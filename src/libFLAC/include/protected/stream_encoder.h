@@ -35,6 +35,7 @@ typedef struct FLAC__StreamEncoderProtected {
 	unsigned qlp_coeff_precision;
 	FLAC__bool do_qlp_coeff_prec_search;
 	FLAC__bool do_exhaustive_model_search;
+	FLAC__bool do_escape_coding;
 	unsigned min_residual_partition_order;
 	unsigned max_residual_partition_order;
 	unsigned rice_parameter_search_dist;
