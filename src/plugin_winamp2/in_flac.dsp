@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "in_flac_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /Ox /Og /Oi /Os /Op /Ob1 /I "include" /I ".." /I "..\..\include" /D "NDEBUG" /D VERSION=\"1.0.5_beta2\" /D "in_flac_EXPORTS" /D "FLAC__NO_DLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Ox /Og /Oi /Os /Op /Gf /Gy /I "include" /I ".." /I "..\..\include" /D "NDEBUG" /D VERSION=\"1.0.5_beta2\" /D "in_flac_EXPORTS" /D "FLAC__NO_DLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 plugin_common_static.lib grabbag_static.lib libFLAC_static.lib gain_analysis_static.lib kernel32.lib user32.lib /nologo /dll /machine:I386 /nodefaultlib:"libc.lib" /out:"../../obj/release/bin/in_flac.dll" /libpath:"../../obj/release/lib" /opt:nowin98
+# ADD LINK32 plugin_common_static.lib grabbag_static.lib libFLAC_static.lib gain_analysis_static.lib kernel32.lib user32.lib /nologo /dll /machine:I386 /out:"../../obj/release/bin/in_flac.dll" /libpath:"../../obj/release/lib" /opt:nowin98
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "in_flac - Win32 Debug"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ..\..\obj\debug\lib\plugin_common_static.lib ..\..\obj\debug\lib\grabbag_static.lib ..\..\obj\debug\lib\libFLAC_static.lib kernel32.lib user32.lib /nologo /dll /debug /machine:I386 /nodefaultlib:"libcd.lib" /out:"../../obj/debug/bin/in_flac.dll" /pdbtype:sept /libpath:"../../obj/debug/lib"
+# ADD LINK32 plugin_common_static.lib grabbag_static.lib libFLAC_static.lib gain_analysis_static.lib kernel32.lib user32.lib /nologo /dll /debug /machine:I386 /out:"../../obj/debug/bin/in_flac.dll" /pdbtype:sept /libpath:"../../obj/debug/lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -97,11 +97,11 @@ LINK32=link.exe
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE="in2.h"
+SOURCE=.\include\winamp2\in2.h
 # End Source File
 # Begin Source File
 
-SOURCE="out.h"
+SOURCE=.\include\winamp2\out.h
 # End Source File
 # End Group
 # Begin Source File
@@ -118,7 +118,27 @@ SOURCE=.\in_flac.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\infobox.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\infobox.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\resource.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\resource.rc
+# End Source File
+# Begin Source File
+
+SOURCE=.\tagz.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\tagz.h
 # End Source File
 # End Group
 # End Target

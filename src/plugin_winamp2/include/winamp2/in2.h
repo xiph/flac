@@ -3,6 +3,9 @@
 
 #include "out.h"
 
+/* post this to the main window at end of file (after playback as stopped) */
+#define WM_WA_MPEG_EOF          (WM_USER + 2)
+
 // note: exported symbol is now winampGetInModule2.
 
 #define IN_VER 0x100

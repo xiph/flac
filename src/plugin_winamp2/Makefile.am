@@ -23,5 +23,7 @@ EXTRA_DIST = \
 	config.c \
 	in_flac.c \
 	in_flac.dsp \
+	infobox.c \
+	infobox.h \
 	resource.h \
 	resource.rc

@@ -21,67 +21,6 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 #pragma code_page(1251)
 #endif //_WIN32
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_CONFIG DIALOG DISCARDABLE  0, 0, 227, 193
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "FLAC Configuration"
-FONT 8, "MS Sans Serif"
-BEGIN
-    GROUPBOX        " ReplayGain  ",IDC_STATIC,4,2,220,57
-    CONTROL         "&Enable ReplayGain",IDC_ENABLE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,15,77,10
-    CONTROL         "&Album mode",IDC_ALBUM,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,10,27,55,10
-    CONTROL         "6dB &hard limiter",IDC_LIMITER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,125,27,64,10
-    LTEXT           "&Preamp",IDC_STATIC,10,44,25,8
-    CONTROL         "Slider1",IDC_PREAMP,"msctls_trackbar32",TBS_NOTICKS | 
-                    WS_TABSTOP,38,43,154,12
-    RTEXT           "",IDC_PA,196,44,21,8
-    GROUPBOX        " Resolution  ",IDC_STATIC,3,62,220,96
-    GROUPBOX        " Without ReplayGain ",IDC_STATIC,9,71,209,30
-    CONTROL         "&Dither 24bps to 16bps",IDC_DITHER,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,18,84,85,10
-    GROUPBOX        " With ReplayGain ",IDC_STATIC,9,104,209,48
-    CONTROL         "E&nable dithering",IDC_DITHERRG,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,18,116,67,10
-    LTEXT           "Dither &to",IDC_STATIC,18,135,28,8
-    COMBOBOX        IDC_TO,52,132,39,43,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-    LTEXT           "Noise &shaping",IDC_STATIC,115,135,46,8
-    COMBOBOX        IDC_SHAPE,166,132,46,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
-    DEFPUSHBUTTON   "OK",IDOK,65,176,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,119,176,50,14
-    PUSHBUTTON      "Reset",IDC_RESET,173,176,50,14
-    LTEXT           "Note: pressing OK will stop FLAC playback",IDC_STATIC,4,
-                    162,135,8
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    IDD_CONFIG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 220
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 186
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -107,7 +46,167 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_INFOBOX DIALOG DISCARDABLE  0, 0, 292, 148
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_NAME,3,3,285,12,ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_TABSTOP
+    GROUPBOX        " Tag  ",IDC_STATIC,3,20,182,104
+    RTEXT           "&Title",IDC_STATIC,8,32,31,8
+    EDITTEXT        IDC_TITLE,43,30,137,12,ES_AUTOHSCROLL
+    RTEXT           "&Artist",IDC_STATIC,8,47,31,8
+    EDITTEXT        IDC_ARTIST,43,45,137,12,ES_AUTOHSCROLL
+    RTEXT           "Albu&m",IDC_STATIC,8,62,31,8
+    EDITTEXT        IDC_ALBUM,43,60,137,12,ES_AUTOHSCROLL
+    RTEXT           "&Comment",IDC_STATIC,8,77,31,8
+    EDITTEXT        IDC_COMMENT,43,75,137,12,ES_AUTOHSCROLL
+    RTEXT           "&Year",IDC_STATIC,8,92,31,8
+    EDITTEXT        IDC_YEAR,43,90,40,12,ES_AUTOHSCROLL
+    RTEXT           "Track &number",IDC_STATIC,90,92,46,8
+    EDITTEXT        IDC_TRACK,141,90,39,12,ES_AUTOHSCROLL
+    RTEXT           "&Genre",IDC_STATIC,8,107,31,8
+    COMBOBOX        IDC_GENRE,43,105,137,95,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        " FLAC Info  ",IDC_STATIC,191,20,97,124
+    LTEXT           "",IDC_INFO,195,30,90,110
+    DEFPUSHBUTTON   "Close",IDOK,3,130,50,14
+    PUSHBUTTON      "&Update",IDC_UPDATE,69,130,50,14
+    PUSHBUTTON      "&Remove",IDC_REMOVE,135,130,50,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_INFOBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 285
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 141
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
 #endif    // Russian resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CONFIG DIALOG DISCARDABLE  0, 0, 237, 212
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "FLAC Configuration"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,75,195,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,195,50,14
+    PUSHBUTTON      "Reset",IDC_RESET,183,195,50,14
+    CONTROL         "Tab1",IDC_TABS,"SysTabControl32",WS_TABSTOP,3,3,230,187
+END
+
+IDD_CONFIG_GENERAL DIALOG DISCARDABLE  0, 0, 226, 171
+STYLE DS_CONTROL | WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        " Title Formatting  ",IDC_STATIC,2,2,220,43
+    LTEXT           "&Title:",IDC_STATIC,8,17,16,8
+    EDITTEXT        IDC_TITLE,27,15,188,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "help",IDC_TAGZ_HELP,188,28,27,10
+END
+
+IDD_CONFIG_OUTPUT DIALOG DISCARDABLE  0, 0, 224, 171
+STYLE DS_CONTROL | WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        " ReplayGain  ",IDC_STATIC,2,2,220,57
+    CONTROL         "&Enable ReplayGain",IDC_ENABLE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,8,15,77,10
+    CONTROL         "&Album mode",IDC_ALBUM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,8,27,55,10
+    CONTROL         "6dB &hard limiter",IDC_LIMITER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,123,27,64,10
+    LTEXT           "&Preamp",IDC_STATIC,8,44,25,8
+    CONTROL         "Slider1",IDC_PREAMP,"msctls_trackbar32",TBS_NOTICKS | 
+                    WS_TABSTOP,36,43,154,12
+    RTEXT           "",IDC_PA,194,44,21,8
+    GROUPBOX        " Resolution  ",IDC_STATIC,1,62,220,95
+    GROUPBOX        " Without ReplayGain ",IDC_STATIC,7,71,209,30
+    CONTROL         "&Dither 24bps to 16bps",IDC_DITHER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,84,85,10
+    GROUPBOX        " With ReplayGain ",IDC_STATIC,7,104,209,47
+    CONTROL         "E&nable dithering",IDC_DITHERRG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,134,67,10
+    LTEXT           "&Output bit depth",IDC_STATIC,16,119,52,8
+    COMBOBOX        IDC_TO,71,116,39,43,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Noise &shaping",IDC_STATIC,113,135,46,8
+    COMBOBOX        IDC_SHAPE,164,132,46,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Note: changes take effect after restarting playback",
+                    IDC_STATIC,2,160,161,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_CONFIG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 230
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 205
+    END
+
+    IDD_CONFIG_GENERAL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 219
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 164
+    END
+
+    IDD_CONFIG_OUTPUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 217
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 164
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

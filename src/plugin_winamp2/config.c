@@ -1,24 +1,28 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <stdio.h>
-#include "winamp2/in2.h"
-#include "winamp2/frontend.h"
 #include "config.h"
+#include "tagz.h"
 #include "resource.h"
 
 
 static char buffer[256];
 
 //
-//  read/write
+//  Read/write config
 //
 
 #define RI(x, def)          (x = GetPrivateProfileInt("FLAC", #x, def, ini_name))
 #define WI(x)               WritePrivateProfileString("FLAC", #x, itoa(x, buffer, 10), ini_name)
+#define RS(x, n, def)       GetPrivateProfileString("FLAC", #x, def, x, n, ini_name)
+#define WS(x)               WritePrivateProfileString("FLAC", #x, x, ini_name)
 
+static const char default_format[] = "[%artist% - ]$if2(%title%,%filename%)";
 
 void ReadConfig()
 {
+    RS(flac_cfg.title.tag_format, sizeof(flac_cfg.title.tag_format), default_format);
+
     RI(flac_cfg.output.replaygain.enable, 1);
     RI(flac_cfg.output.replaygain.album_mode, 0);
     RI(flac_cfg.output.replaygain.hard_limit, 0);
@@ -31,6 +35,8 @@ void ReadConfig()
 
 void WriteConfig()
 {
+    WS(flac_cfg.title.tag_format);
+
     WI(flac_cfg.output.replaygain.enable);
     WI(flac_cfg.output.replaygain.album_mode);
     WI(flac_cfg.output.replaygain.hard_limit);
@@ -42,15 +48,48 @@ void WriteConfig()
 }
 
 //
-//  dialog
+//  Dialog
 //
+
+#define PREAMP_RANGE            24
 
 #define Check(x,y)              CheckDlgButton(hwnd, x, y ? BST_CHECKED : BST_UNCHECKED)
 #define GetCheck(x)             (IsDlgButtonChecked(hwnd, x)==BST_CHECKED)
 #define GetSel(x)               SendDlgItemMessage(hwnd, x, CB_GETCURSEL, 0, 0)
 #define GetPos(x)               SendDlgItemMessage(hwnd, x, TBM_GETPOS, 0, 0)
+#define Enable(x,y)             EnableWindow(GetDlgItem(hwnd, x), y)
 
-#define PREAMP_RANGE            24
+
+static INT_PTR CALLBACK GeneralProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+    // init
+    case WM_INITDIALOG:
+        SetDlgItemText(hwnd, IDC_TITLE, flac_cfg.title.tag_format);
+        return TRUE;
+    // commands
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        // ok
+        case IDOK:
+            GetDlgItemText(hwnd, IDC_TITLE, flac_cfg.title.tag_format, sizeof(flac_cfg.title.tag_format));
+            break;
+        // reset
+        case IDC_RESET:
+            SetDlgItemText(hwnd, IDC_TITLE, default_format);
+            break;
+        // help
+        case IDC_TAGZ_HELP:
+            MessageBox(hwnd, tagz_manual, "Help", 0);
+            break;
+        }
+        break;
+    }
+
+    return 0;
+}
 
 
 static void UpdatePreamp(HWND hwnd, HWND hamp)
@@ -60,7 +99,22 @@ static void UpdatePreamp(HWND hwnd, HWND hamp)
     SetDlgItemText(hwnd, IDC_PA, buffer);
 }
 
-static INT_PTR CALLBACK DialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+static void UpdateRG(HWND hwnd)
+{
+    int on = GetCheck(IDC_ENABLE);
+    Enable(IDC_ALBUM, on);
+    Enable(IDC_LIMITER, on);
+    Enable(IDC_PREAMP, on);
+    Enable(IDC_PA, on);
+}
+
+static void UpdateDither(HWND hwnd)
+{
+    int on = GetCheck(IDC_DITHERRG);
+    Enable(IDC_SHAPE, on);
+}
+
+static INT_PTR CALLBACK OutputProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
@@ -71,12 +125,14 @@ static INT_PTR CALLBACK DialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
         Check(IDC_LIMITER, flac_cfg.output.replaygain.hard_limit);
         Check(IDC_DITHER, flac_cfg.output.resolution.normal.dither_24_to_16);
         Check(IDC_DITHERRG, flac_cfg.output.resolution.replaygain.dither);
+        // prepare preamp slider
         {
             HWND hamp = GetDlgItem(hwnd, IDC_PREAMP);
             SendMessage(hamp, TBM_SETRANGE, 1, MAKELONG(0, PREAMP_RANGE*2));
             SendMessage(hamp, TBM_SETPOS, 1, flac_cfg.output.replaygain.preamp+PREAMP_RANGE);
             UpdatePreamp(hwnd, hamp);
         }
+        // fill comboboxes
         {
             HWND hlist = GetDlgItem(hwnd, IDC_TO);
             SendMessage(hlist, CB_ADDSTRING, 0, (LPARAM)"16 bps");
@@ -90,16 +146,15 @@ static INT_PTR CALLBACK DialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             SendMessage(hlist, CB_ADDSTRING, 0, (LPARAM)"High");
             SendMessage(hlist, CB_SETCURSEL, flac_cfg.output.resolution.replaygain.noise_shaping, 0);
         }
+        UpdateRG(hwnd);
+        UpdateDither(hwnd);
         return TRUE;
     // commands
     case WM_COMMAND:
         switch (LOWORD(wParam))
         {
-        // ok/cancel
+        // ok
         case IDOK:
-            if (thread_handle != INVALID_HANDLE_VALUE)
-                SendMessage(mod_.hMainWindow, WM_COMMAND, WINAMP_BUTTON4, 0);
-
             flac_cfg.output.replaygain.enable = GetCheck(IDC_ENABLE);
             flac_cfg.output.replaygain.album_mode = GetCheck(IDC_ALBUM);
             flac_cfg.output.replaygain.hard_limit = GetCheck(IDC_LIMITER);
@@ -108,10 +163,8 @@ static INT_PTR CALLBACK DialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             flac_cfg.output.resolution.replaygain.dither = GetCheck(IDC_DITHERRG);
             flac_cfg.output.resolution.replaygain.noise_shaping = GetSel(IDC_SHAPE);
             flac_cfg.output.resolution.replaygain.bps_out = (GetSel(IDC_TO)+2)*8;
-            /* fall through */
-        case IDCANCEL:
-            EndDialog(hwnd, LOWORD(wParam));
-            return TRUE;
+            break;
+        // reset
         case IDC_RESET:
             Check(IDC_ENABLE, 1);
             Check(IDC_ALBUM, 0);
@@ -120,10 +173,19 @@ static INT_PTR CALLBACK DialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
             Check(IDC_DITHERRG, 0);
 
             SendDlgItemMessage(hwnd, IDC_PREAMP, TBM_SETPOS, 1, PREAMP_RANGE);
-            UpdatePreamp(hwnd, GetDlgItem(hwnd, IDC_PREAMP));
-
             SendDlgItemMessage(hwnd, IDC_TO, CB_SETCURSEL, 0, 0);
             SendDlgItemMessage(hwnd, IDC_SHAPE, CB_SETCURSEL, 1, 0);
+
+            UpdatePreamp(hwnd, GetDlgItem(hwnd, IDC_PREAMP));
+            UpdateRG(hwnd);
+            UpdateDither(hwnd);
+            break;
+        // active check-boxes
+        case IDC_ENABLE:
+            UpdateRG(hwnd);
+            break;
+        case IDC_DITHERRG:
+            UpdateDither(hwnd);
             break;
         }
         break;
@@ -137,8 +199,144 @@ static INT_PTR CALLBACK DialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
     return 0;
 }
 
+#define NUM_PAGES       2
 
-int DoConfig(HWND parent)
+typedef struct
 {
-    return DialogBox(mod_.hDllInstance, MAKEINTRESOURCE(IDD_CONFIG), parent, DialogProc) == IDOK;
+    HWND htab;
+    HWND hdlg;
+    RECT r;
+    HWND all[NUM_PAGES];
+} LOCALDATA;
+
+static void ScreenToClientRect(HWND hwnd, RECT *rect)
+{
+    POINT pt = { rect->left, rect->top };
+    ScreenToClient(hwnd, &pt);
+    rect->left = pt.x;
+    rect->top  = pt.y;
+
+    pt.x = rect->right;
+    pt.y = rect->bottom;
+    ScreenToClient(hwnd, &pt);
+    rect->right  = pt.x;
+    rect->bottom = pt.y;
+}
+
+static void SendCommand(HWND hwnd, int command)
+{
+    LOCALDATA *data = (LOCALDATA*)GetWindowLong(hwnd, GWL_USERDATA);
+    SendMessage(data->hdlg, WM_COMMAND, command, 0);
+}
+
+static void BroadcastCommand(HWND hwnd, int command)
+{
+    LOCALDATA *data = (LOCALDATA*)GetWindowLong(hwnd, GWL_USERDATA);
+    int i;
+
+    for (i=0; i<NUM_PAGES; i++)
+        SendMessage(data->all[i], WM_COMMAND, command, 0);
+}
+
+static void OnSelChange(HWND hwnd)
+{
+    LOCALDATA *data = (LOCALDATA*)GetWindowLong(hwnd, GWL_USERDATA);
+    int index = TabCtrl_GetCurSel(data->htab);
+    if (index < 0) return;
+    // hide previous
+    if (data->hdlg)
+        ShowWindow(data->hdlg, SW_HIDE);
+    // display
+    data->hdlg = data->all[index];
+    SetWindowPos(data->hdlg, HWND_TOP, data->r.left, data->r.top, data->r.right-data->r.left, data->r.bottom-data->r.top, SWP_SHOWWINDOW);
+}
+
+static INT_PTR CALLBACK DialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    static activePage = 0;
+
+    switch (msg)
+    {
+    // init
+    case WM_INITDIALOG:
+        {
+            LOCALDATA *data = LocalAlloc(LPTR, sizeof(LOCALDATA));
+            HINSTANCE inst = (HINSTANCE)lParam;
+            TCITEM item;
+
+            // init
+            SetWindowLong(hwnd, GWL_USERDATA, (LONG)data);
+            data->htab = GetDlgItem(hwnd, IDC_TABS);
+            data->hdlg = NULL;
+            // add pages
+            item.mask = TCIF_TEXT;
+            data->all[0] = CreateDialog(inst, MAKEINTRESOURCE(IDD_CONFIG_GENERAL), hwnd, GeneralProc);
+            item.pszText = "General";
+            TabCtrl_InsertItem(data->htab, 0, &item);
+
+            data->all[1] = CreateDialog(inst, MAKEINTRESOURCE(IDD_CONFIG_OUTPUT), hwnd, OutputProc);
+            item.pszText = "Output";
+            TabCtrl_InsertItem(data->htab, 1, &item);
+            // get rect (after adding pages)
+            GetWindowRect(data->htab, &data->r);
+            ScreenToClientRect(hwnd, &data->r);
+            TabCtrl_AdjustRect(data->htab, 0, &data->r);
+            // simulate item change
+            TabCtrl_SetCurSel(data->htab, activePage);
+            OnSelChange(hwnd);
+        }
+        return TRUE;
+    // destory
+    case WM_DESTROY:
+        {
+            LOCALDATA *data = (LOCALDATA*)GetWindowLong(hwnd, GWL_USERDATA);
+            int i;
+
+            activePage = TabCtrl_GetCurSel(data->htab);
+
+            for (i=0; i<NUM_PAGES; i++)
+                DestroyWindow(data->all[i]);
+
+            LocalFree(data);
+        }
+        break;
+    // commands
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        // ok/cancel
+        case IDOK:
+            BroadcastCommand(hwnd, IDOK);
+            /* fall through */
+        case IDCANCEL:
+            EndDialog(hwnd, LOWORD(wParam));
+            return TRUE;
+        case IDC_RESET:
+            SendCommand(hwnd, IDC_RESET);
+            break;
+        }
+        break;
+    // notification
+    case WM_NOTIFY:
+        if (LOWORD(wParam) == IDC_TABS)
+        {
+            NMHDR *hdr = (NMHDR*)lParam;
+
+            switch (hdr->code)
+            {
+            case TCN_SELCHANGE:
+                OnSelChange(hwnd);
+                break;
+            }
+        }
+        break;
+    }
+
+    return 0;
+}
+
+
+int DoConfig(HINSTANCE inst, HWND parent)
+{
+    return DialogBoxParam(inst, MAKEINTRESOURCE(IDD_CONFIG), parent, DialogProc, (LONG)inst) == IDOK;
 }
