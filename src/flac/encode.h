@@ -29,6 +29,7 @@
 typedef struct {
 	FLAC__bool verbose;
 	utils__SkipUntilSpecification skip_specification;
+	utils__SkipUntilSpecification until_specification;
 	FLAC__bool verify;
 #ifdef FLAC__HAS_OGG
 	FLAC__bool use_ogg;

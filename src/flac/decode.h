@@ -35,6 +35,7 @@ typedef struct {
 	long serial_number;
 #endif
 	utils__SkipUntilSpecification skip_specification;
+	utils__SkipUntilSpecification until_specification;
 } decode_options_t;
 
 typedef struct {

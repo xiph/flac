@@ -49,6 +49,7 @@ typedef struct {
 	FLAC__bool analysis_mode;
 	analysis_options aopts;
 	utils__SkipUntilSpecification *skip_specification;
+	utils__SkipUntilSpecification *until_specification; /* a canonicalized value of 0 mean end-of-stream (i.e. --until=-0) */
 
 	const char *inbasefilename;
 	const char *outfilename;
@@ -94,12 +95,13 @@ static FLAC__bool is_big_endian_host_;
 /*
  * local routines
  */
-static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, const char *infilename, const char *outfilename);
+static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
 static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, decode_options_t decode_options, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
 static int DecoderSession_finish_ok(DecoderSession *d);
 static int DecoderSession_finish_error(DecoderSession *d);
+static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val);
 static FLAC__bool fixup_wave_chunk_size(const char *outfilename, unsigned riff_offset, unsigned data_offset, FLAC__uint32 data_size);
@@ -139,6 +141,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 			analysis_mode,
 			aopts,
 			&options.common.skip_specification,
+			&options.common.until_specification,
 			infilename,
 			outfilename
 		)
@@ -175,6 +178,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 			analysis_mode,
 			aopts,
 			&options.common.skip_specification,
+			&options.common.until_specification,
 			infilename,
 			outfilename
 		)
@@ -190,7 +194,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	return DecoderSession_finish_ok(&decoder_session);
 }
 
-FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, const char *infilename, const char *outfilename)
+FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, const char *infilename, const char *outfilename)
 {
 #ifdef FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
@@ -205,6 +209,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->analysis_mode = analysis_mode;
 	d->aopts = aopts;
 	d->skip_specification = skip_specification;
+	d->until_specification = until_specification;
 
 	d->inbasefilename = grabbag__file_get_basename(infilename);
 	d->outfilename = outfilename;
@@ -489,6 +494,51 @@ int DecoderSession_finish_error(DecoderSession *d)
 	return 1;
 }
 
+FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input)
+{
+	/* convert from mm:ss.sss to sample number if necessary */
+	flac__utils_canonicalize_skip_until_specification(spec, sample_rate);
+
+	/* special case: if "--until=-0", use the special value '0' to mean "end-of-stream" */
+	if(spec->is_relative && spec->value.samples == 0) {
+		spec->is_relative = false;
+		return true;
+	}
+
+	/* in any other case the total samples in the input must be known */
+	if(total_samples_in_input == 0) {
+		fprintf(stderr, "%s: ERROR, cannot use --until when FLAC metadata has total sample count of 0\n", inbasefilename);
+		return false;
+	}
+
+	FLAC__ASSERT(spec->value_is_samples);
+
+	/* convert relative specifications to absolute */
+	if(spec->is_relative) {
+		if(spec->value.samples <= 0)
+			spec->value.samples += (FLAC__int64)total_samples_in_input;
+		else
+			spec->value.samples += skip;
+		spec->is_relative = false;
+	}
+
+	/* error check */
+	if(spec->value.samples < 0) {
+		fprintf(stderr, "%s: ERROR, --until value is before beginning of input\n", inbasefilename);
+		return false;
+	}
+	if((FLAC__uint64)spec->value.samples <= skip) {
+		fprintf(stderr, "%s: ERROR, --until value is before --skip point\n", inbasefilename);
+		return false;
+	}
+	if((FLAC__uint64)spec->value.samples > total_samples_in_input) {
+		fprintf(stderr, "%s: ERROR, --until value is after end of input\n", inbasefilename);
+		return false;
+	}
+
+	return true;
+}
+
 FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val)
 {
 	FLAC__byte *b = (FLAC__byte*)(&val);
@@ -600,101 +650,119 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 
-	decoder_session->samples_processed += wide_samples;
-	decoder_session->frame_counter++;
-
-	if(decoder_session->verbose && !(decoder_session->frame_counter & 0x3f))
-		print_stats(decoder_session);
-
-	if(decoder_session->analysis_mode) {
-		flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->aopts, fout);
+	/*
+	 * limit the number of samples to accept based on --until
+	 */
+	FLAC__ASSERT(!decoder_session->skip_specification->is_relative);
+	FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
+	FLAC__ASSERT(!decoder_session->until_specification->is_relative);
+	FLAC__ASSERT(decoder_session->until_specification->value.samples >= 0);
+	if(decoder_session->until_specification->value.samples > 0) {
+		const FLAC__uint64 skip = (FLAC__uint64)decoder_session->skip_specification->value.samples;
+		const FLAC__uint64 until = (FLAC__uint64)decoder_session->until_specification->value.samples;
+		const FLAC__uint64 input_samples_passed = skip + decoder_session->samples_processed;
+		FLAC__ASSERT(until >= input_samples_passed);
+		if(input_samples_passed + wide_samples > until)
+			wide_samples = until - input_samples_passed;
 	}
-	else if(!decoder_session->test_only) {
-		if(bps == 8) {
-			if(is_unsigned_samples) {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
-						u8buffer[sample] = (FLAC__uint8)(buffer[channel][wide_sample] + 0x80);
-			}
-			else {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
-						s8buffer[sample] = (FLAC__int8)(buffer[channel][wide_sample]);
-			}
-			if(fwrite(u8buffer, 1, sample, fout) != sample)
-				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+
+	if(wide_samples > 0) {
+		decoder_session->samples_processed += wide_samples;
+		decoder_session->frame_counter++;
+
+		if(decoder_session->verbose && !(decoder_session->frame_counter & 0x3f))
+			print_stats(decoder_session);
+
+		if(decoder_session->analysis_mode) {
+			flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->aopts, fout);
 		}
-		else if(bps == 16) {
-			if(is_unsigned_samples) {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
-						u16buffer[sample] = (FLAC__uint16)(buffer[channel][wide_sample] + 0x8000);
+		else if(!decoder_session->test_only) {
+			if(bps == 8) {
+				if(is_unsigned_samples) {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							u8buffer[sample] = (FLAC__uint8)(buffer[channel][wide_sample] + 0x80);
+				}
+				else {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							s8buffer[sample] = (FLAC__int8)(buffer[channel][wide_sample]);
+				}
+				if(fwrite(u8buffer, 1, sample, fout) != sample)
+					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+			}
+			else if(bps == 16) {
+				if(is_unsigned_samples) {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							u16buffer[sample] = (FLAC__uint16)(buffer[channel][wide_sample] + 0x8000);
+				}
+				else {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							s16buffer[sample] = (FLAC__int16)(buffer[channel][wide_sample]);
+				}
+				if(is_big_endian != is_big_endian_host_) {
+					unsigned char tmp;
+					const unsigned bytes = sample * 2;
+					for(byte = 0; byte < bytes; byte += 2) {
+						tmp = u8buffer[byte];
+						u8buffer[byte] = u8buffer[byte+1];
+						u8buffer[byte+1] = tmp;
+					}
+				}
+				if(fwrite(u16buffer, 2, sample, fout) != sample)
+					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+			}
+			else if(bps == 24) {
+				if(is_unsigned_samples) {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							u32buffer[sample] = buffer[channel][wide_sample] + 0x800000;
+				}
+				else {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							s32buffer[sample] = buffer[channel][wide_sample];
+				}
+				if(is_big_endian != is_big_endian_host_) {
+					unsigned char tmp;
+					const unsigned bytes = sample * 4;
+					for(byte = 0; byte < bytes; byte += 4) {
+						tmp = u8buffer[byte];
+						u8buffer[byte] = u8buffer[byte+3];
+						u8buffer[byte+3] = tmp;
+						tmp = u8buffer[byte+1];
+						u8buffer[byte+1] = u8buffer[byte+2];
+						u8buffer[byte+2] = tmp;
+					}
+				}
+				if(is_big_endian) {
+					unsigned lbyte;
+					const unsigned bytes = sample * 4;
+					for(lbyte = byte = 0; byte < bytes; ) {
+						byte++;
+						u8buffer[lbyte++] = u8buffer[byte++];
+						u8buffer[lbyte++] = u8buffer[byte++];
+						u8buffer[lbyte++] = u8buffer[byte++];
+					}
+				}
+				else {
+					unsigned lbyte;
+					const unsigned bytes = sample * 4;
+					for(lbyte = byte = 0; byte < bytes; ) {
+						u8buffer[lbyte++] = u8buffer[byte++];
+						u8buffer[lbyte++] = u8buffer[byte++];
+						u8buffer[lbyte++] = u8buffer[byte++];
+						byte++;
+					}
+				}
+				if(fwrite(u8buffer, 3, sample, fout) != sample)
+					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 			}
 			else {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
-						s16buffer[sample] = (FLAC__int16)(buffer[channel][wide_sample]);
+				FLAC__ASSERT(0);
 			}
-			if(is_big_endian != is_big_endian_host_) {
-				unsigned char tmp;
-				const unsigned bytes = sample * 2;
-				for(byte = 0; byte < bytes; byte += 2) {
-					tmp = u8buffer[byte];
-					u8buffer[byte] = u8buffer[byte+1];
-					u8buffer[byte+1] = tmp;
-				}
-			}
-			if(fwrite(u16buffer, 2, sample, fout) != sample)
-				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-		}
-		else if(bps == 24) {
-			if(is_unsigned_samples) {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
-						u32buffer[sample] = buffer[channel][wide_sample] + 0x800000;
-			}
-			else {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
-						s32buffer[sample] = buffer[channel][wide_sample];
-			}
-			if(is_big_endian != is_big_endian_host_) {
-				unsigned char tmp;
-				const unsigned bytes = sample * 4;
-				for(byte = 0; byte < bytes; byte += 4) {
-					tmp = u8buffer[byte];
-					u8buffer[byte] = u8buffer[byte+3];
-					u8buffer[byte+3] = tmp;
-					tmp = u8buffer[byte+1];
-					u8buffer[byte+1] = u8buffer[byte+2];
-					u8buffer[byte+2] = tmp;
-				}
-			}
-			if(is_big_endian) {
-				unsigned lbyte;
-				const unsigned bytes = sample * 4;
-				for(lbyte = byte = 0; byte < bytes; ) {
-					byte++;
-					u8buffer[lbyte++] = u8buffer[byte++];
-					u8buffer[lbyte++] = u8buffer[byte++];
-					u8buffer[lbyte++] = u8buffer[byte++];
-				}
-			}
-			else {
-				unsigned lbyte;
-				const unsigned bytes = sample * 4;
-				for(lbyte = byte = 0; byte < bytes; ) {
-					u8buffer[lbyte++] = u8buffer[byte++];
-					u8buffer[lbyte++] = u8buffer[byte++];
-					u8buffer[lbyte++] = u8buffer[byte++];
-					byte++;
-				}
-			}
-			if(fwrite(u8buffer, 3, sample, fout) != sample)
-				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-		}
-		else {
-			FLAC__ASSERT(0);
 		}
 	}
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
@@ -705,7 +773,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		FLAC__uint64 skip;
+		FLAC__uint64 skip, until;
 		decoder_session->bps = metadata->data.stream_info.bits_per_sample;
 		decoder_session->channels = metadata->data.stream_info.channels;
 		decoder_session->sample_rate = metadata->data.stream_info.sample_rate;
@@ -716,17 +784,26 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 
 		/* remember, metadata->data.stream_info.total_samples can be 0, meaning 'unknown' */
 		if(metadata->data.stream_info.total_samples > 0 && skip >= metadata->data.stream_info.total_samples) {
-			fprintf(stderr, "%s: ERROR trying to skip more samples than in stream\n", decoder_session->inbasefilename);
+			fprintf(stderr, "%s: ERROR trying to --skip more samples than in stream\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
 		else if(metadata->data.stream_info.total_samples == 0 && skip > 0) {
-			fprintf(stderr, "%s: ERROR, can't skip when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
+			fprintf(stderr, "%s: ERROR, can't --skip when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
-		else
-			decoder_session->total_samples = metadata->data.stream_info.total_samples - skip;
+		decoder_session->total_samples = metadata->data.stream_info.total_samples - skip;
+
+		/* note that we use metadata->data.stream_info.total_samples instead of decoder_session->total_samples */
+		if(!canonicalize_until_specification(decoder_session->until_specification, decoder_session->inbasefilename, decoder_session->sample_rate, skip, metadata->data.stream_info.total_samples)) {
+			decoder_session->abort_flag = true;
+			return;
+		}
+		FLAC__ASSERT(decoder_session->until_specification->value.samples >= 0);
+		until = (FLAC__uint64)decoder_session->until_specification->value.samples;
+
+		decoder_session->total_samples -= (metadata->data.stream_info.total_samples - until);
 
 		if(decoder_session->bps != 8 && decoder_session->bps != 16 && decoder_session->bps != 24) {
 			fprintf(stderr, "%s: ERROR: bits per sample is not 8/16/24\n", decoder_session->inbasefilename);
