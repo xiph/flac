@@ -1133,7 +1133,7 @@
 				<FONT SIZE="+1">NOTES</FONT><BR>
 				<UL>
 				<LI>
-					The blocksize bits 0000-0101 and 1000-1111 may only be used if the blocksize is fixed throughout the entire stream.  Blocksize bits 0110-0111 may be used in any case but the decoder will have to pessimistically guess that it is a variable-blocksize stream.  There is only one special case: the encoder may use blocksize bits 0110-0111 on the last frame of a fixed-blocksize stream, as long as the blocksize is not greater than the stream blocksize.
+					The blocksize bits 0000-0101 and 1000-1111 may only be used if the blocksize is fixed throughout the entire stream.  Blocksize bits 0110-0111 may be used in any case but the decoder will have to pessimistically guess that it is a variable-blocksize stream unless it has STREAMINFO metadata and the min_blocksize and max_blocksize values in it match.  There is only one special case: the encoder may use blocksize bits 0110-0111 on the last frame of a fixed-blocksize stream, as long as the blocksize is not greater than the stream blocksize.
 				</LI>
 				<LI>
 					The "UTF-8" coding used for the sample/frame number is the same variable length code used to store compressed UCS-2, extended to handle larger input.
@@ -1251,7 +1251,7 @@
 					<TT>0</TT> : no wasted bits-per-sample in source subblock, k=0
 				</LI>
 				<LI>
-					<TT>1</TT> : k wasted bits-per-sample in source subblock, k-1 follows, unary coded; i.e. k=3 => 001 follows, k=7 => 0000001 follows.
+					<TT>1</TT> : k wasted bits-per-sample in source subblock, k-1 follows, unary coded; e.g. k=3 =&gt; 001 follows, k=7 =&gt; 0000001 follows.
 				</LI>
 			</TD>
 		</TR>
