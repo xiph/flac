@@ -22,5 +22,20 @@
 
 bool FLAC__seek_table_is_valid(FLAC__StreamMetaData_SeekTable *seek_table)
 {
+	unsigned i;
+	uint64 last_sample_number = 0;
+	bool got_last = false;
+
+	for(i = 0; i < seek_table->num_points; i++) {
+		if(seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER) {
+			if(got_last) {
+				if(seek_table->points[i].sample_number <= last_sample_number)
+					return false;
+			}
+			last_sample_number = seek_table->points[i].sample_number;
+			got_last = true;
+		}
+	}
+
 	return true;
 }
