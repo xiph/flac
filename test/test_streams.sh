@@ -121,6 +121,9 @@ if [ $has_ogg = "yes" ] ; then
 
 	echo "Testing multiple files with --ogg and --sector-align, with verify..."
 	test_multifile sector_align ogg "--verify"
+
+	echo "Testing multiple files with --ogg and --serial-number, with verify..."
+	test_multifile ogg no_sector_align "--serial-number=321 --verify"
 fi
 
 #
