@@ -85,6 +85,9 @@ typedef enum {
 	FLAC__SEEKABLE_STREAM_ENCODER_MEMORY_ALLOCATION_ERROR,
 	/**< Memory allocation failed. */
 
+	FLAC__SEEKABLE_STREAM_ENCODER_WRITE_ERROR,
+	/**< The write callback returned an error. */
+
 	FLAC__SEEKABLE_STREAM_ENCODER_READ_ERROR,
 	/**< The read callback returned an error. */
 
@@ -102,6 +105,11 @@ typedef enum {
 	 * callbacks being set.
 	 */
 
+    FLAC__SEEKABLE_STREAM_ENCODER_INVALID_SEEKTABLE,
+	/**< An invalid seek table was passed is the metadata to
+	 * FLAC__seekable_stream_encoder_set_metadata().
+	 */
+
 	FLAC__SEEKABLE_STREAM_ENCODER_UNINITIALIZED
 	/**< The encoder is in the uninitialized state. */
 
@@ -114,6 +122,26 @@ typedef enum {
  */
 /* @@@@ double-check mapping */
 extern const char * const FLAC__SeekableStreamEncoderStateString[];
+
+
+/** Return values for the FLAC__SeekableStreamEncoder seek callback.
+ */
+typedef enum {
+
+	FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK,
+	/**< The seek was OK and encoding can continue. */
+
+	FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The encoder will return from the process call. */
+
+} FLAC__SeekableStreamEncoderSeekStatus;
+
+/** Maps a FLAC__SeekableStreamEncoderSeekStatus to a C string.
+ *
+ *  Using a FLAC__SeekableStreamEncoderSeekStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern const char * const FLAC__SeekableStreamEncoderSeekStatusString[];
 
 
 /***********************************************************************
@@ -382,6 +410,12 @@ FLAC__bool FLAC__seekable_stream_encoder_set_total_samples_estimate(FLAC__Seekab
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_metadata().
  *
+ * \note
+ * The decoder instance \b will modify the first \c SEEKTABLE block
+ * as it transforms the template to a valid seektable while encoding,
+ * but it is still up to the caller to free all metadata blocks after
+ * encoding.
+ *
  * \default \c NULL, 0
  * \param  encoder     An encoder instance to set.
  * \param  metadata    See above.
@@ -391,7 +425,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_total_samples_estimate(FLAC__Seekab
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_metadata(FLAC__SeekableStreamEncoder *encoder, FLAC__FileMetadata **metadata, unsigned num_blocks);
+FLAC__bool FLAC__seekable_stream_encoder_set_metadata(FLAC__SeekableStreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
 /** Set the seek callback.
  *  The supplied function will be called when the encoder needs to seek
@@ -428,7 +462,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamE
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data));
+FLAC__bool FLAC__seekable_stream_encoder_set_write_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data));
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data
@@ -442,7 +476,7 @@ FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder,
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__stream_encoder_set_client_data(FLAC__StreamEncoder *encoder, void *value);
+FLAC__bool FLAC__seekable_stream_encoder_set_client_data(FLAC__SeekableStreamEncoder *encoder, void *value);
 
 /** Get the current encoder state.
  *
