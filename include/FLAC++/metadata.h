@@ -606,7 +606,7 @@ namespace FLAC {
 				inline unsigned get_type() const { return object_->type; }
 				inline bool get_pre_emphasis() const { return object_->pre_emphasis; }
 
-				inline bool get_num_indices() const { return object_->num_indices; }
+				inline FLAC__byte get_num_indices() const { return object_->num_indices; }
 				::FLAC__StreamMetadata_CueSheet_Index get_index(unsigned i) const;
 
 				inline const ::FLAC__StreamMetadata_CueSheet_Track *get_track() const { return object_; }
