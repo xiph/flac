@@ -509,6 +509,27 @@ if [ $has_ogg = "yes" ] ; then
 	test_skip_until aiff ogg
 fi
 
+echo "Testing seek extremes:"
+
+run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 noise.raw || die "ERROR generating FLAC file"
+
+total_samples=`metaflac --show-total-samples noise.flac`
+[ $? = 0 ] || die "ERROR getting total sample count from noise.flac"
+
+echo -n "Testing --skip=0... "
+run_flac $wav_dopt --skip=0 -o z.wav noise.flac || die "ERROR decoding FLAC file $desc"
+echo OK
+
+for delta in 2 1 ; do
+	n=`expr $total_samples - $delta`
+	echo -n "Testing --skip=$n... "
+	run_flac $wav_dopt --skip=$n -o z.wav noise.flac || die "ERROR decoding FLAC file $desc"
+	echo OK
+done
+
+rm noise.flac z.wav
+
+
 ############################################################################
 # test --cue
 ############################################################################
