@@ -811,6 +811,9 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32
 ; WATCHOUT: this routine works on 16 bit data which means bits-per-sample for
 ; the channel must be <= 16.  Especially note that this routine cannot be used
 ; for side-channel coded 16bps channels since the effective bps is 17.
+; WATCHOUT: this routine requires that each data array have a buffer of up to
+; 3 zeroes in front (at negative indices) for alignment purposes, i.e. for each
+; channel n, data[n][-1] through data[n][-3] should be accessible and zero.
 	ALIGN	16
 cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx
 	;[esp + 40]	residual[]
@@ -1209,6 +1212,9 @@ cident FLAC__lpc_restore_signal_asm_ia32
 ; WATCHOUT: this routine works on 16 bit data which means bits-per-sample for
 ; the channel must be <= 16.  Especially note that this routine cannot be used
 ; for side-channel coded 16bps channels since the effective bps is 17.
+; WATCHOUT: this routine requires that each data array have a buffer of up to
+; 3 zeroes in front (at negative indices) for alignment purposes, i.e. for each
+; channel n, data[n][-1] through data[n][-3] should be accessible and zero.
 	ALIGN	16
 cident FLAC__lpc_restore_signal_asm_ia32_mmx
 	;[esp + 40]	data[]
