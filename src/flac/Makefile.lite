@@ -7,6 +7,7 @@ INCLUDES     = -I./include -I../../include
 LIBS         = -lFLAC -lm
 
 OBJS = \
+	analyze.o \
 	decode.o \
 	encode.o \
 	main.o

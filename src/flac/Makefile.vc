@@ -9,6 +9,7 @@
 !endif
 
 C_FILES= \
+	analyze.c \
 	decode.c \
 	encode.c \
 	main.c

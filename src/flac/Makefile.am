@@ -2,6 +2,7 @@ bin_PROGRAMS = flac
 CFLAGS = @CFLAGS@
 
 flac_SOURCES = \
+	analyze.c \
 	decode.c \
 	encode.c \
 	main.c
