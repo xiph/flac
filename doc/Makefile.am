@@ -19,11 +19,18 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = . html
 
+if FLaC__HAS_DOXYGEN
 FLAC.tag: Doxyfile
 	doxygen Doxyfile
 	rm -rf html/api
 	mv doxytmp/html html/api
 	rm -rf doxytmp
+else
+FLAC.tag:
+	echo "*** Warning: Doxygen not found; documentation will not be built."
+	touch $<
+	mkdir -p html/api
+endif
 
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 
@@ -32,5 +39,5 @@ doc_DATA = \
 
 EXTRA_DIST = Doxyfile Makefile.lite $(doc_DATA)
 
-clean-local:
+maintainer-clean-local:
 	rm -rf FLAC.tag html/api doxytmp

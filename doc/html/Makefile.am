@@ -42,5 +42,5 @@ install-data-local:
 	(cd api && $(INSTALL_DATA) * $(DESTDIR)$(docdir)/api)
 uninstall-local:
 	rm -rf $(DESTDIR)$(docdir)/api
-clean-local:
+maintainer-clean-local:
 	rm -rf api
