@@ -36,6 +36,8 @@
 #include <config.h>
 #endif
 
+#include "FLAC/ordinals.h"
+
 /*
  * These typedefs make it easier to ensure that integer versions of
  * the library really only contain integer operations.  All the code
@@ -49,6 +51,43 @@
 typedef double FLAC__double;
 typedef float FLAC__float;
 typedef float FLAC__real;
+#else
+/*
+ * The convention for FLAC__fixedpoint is to use the upper 16 bits
+ * for the integer part and lower 16 bits for the fractional part.
+ */
+typedef FLAC__int32 FLAC__fixedpoint;
+extern const FLAC__fixedpoint FLAC__FP_ZERO;
+extern const FLAC__fixedpoint FLAC__FP_ONE_HALF;
+extern const FLAC__fixedpoint FLAC__FP_ONE;
+extern const FLAC__fixedpoint FLAC__FP_LN2;
+extern const FLAC__fixedpoint FLAC__FP_E;
+
+#define FLAC__fixedpoint_trunc(x) ((x)>>16)
+
+#define FLAC__fixedpoint_mul(x, y) ( (FLAC__fixedpoint) ( ((FLAC__int64)(x)*(FLAC__int64)(y)) >> 16 ) )
+
+#define FLAC__fixedpoint_div(x, y) ( (FLAC__fixedpoint) ( ( ((FLAC__int64)(x)<<32) / (FLAC__int64)(y) ) >> 16 ) )
+
+/*
+ *	FLAC__fixedpoint_log2()
+ *	--------------------------------------------------------------------
+ *	Returns the base-2 logarithm of the fixed-point number 'x' using an
+ *	algorithm by Knuth for x >= 1.0
+ *
+ *	'fracbits' is the number of fractional bits of 'x'.  'fracbits' must
+ *	be < 32 and evenly divisible by 4 (0 is OK but not very precise).
+ *
+ *	'precision' roughly limits the number of iterations that are done;
+ *	use (unsigned)(-1) for maximum precision.
+ *
+ *	If 'x' is less than one -- that is, x < (1<<fracbits) -- then this
+ *	function will punt and return 0.
+ *
+ *	The return value will also have 'fracbits' fractional bits.
+ */
+FLAC__uint32 FLAC__fixedpoint_log2(FLAC__uint32 x, unsigned fracbits, unsigned precision);
+
 #endif
 
 #endif
