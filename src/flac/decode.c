@@ -111,7 +111,7 @@ static FLAC__StreamDecoderReadStatus read_callback(const OggFLAC__StreamDecoder 
  * FLAC__StreamDecoder and FLAC__FileDecoder.  The 'decoder' argument is
  * actually never used in the callbacks.
  */
-static FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback(const void *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_error_with_state(const DecoderSession *d, const char *message);
@@ -541,7 +541,7 @@ FLAC__StreamDecoderReadStatus read_callback(const OggFLAC__StreamDecoder *decode
 }
 #endif
 
-FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	FILE *fout = decoder_session->fout;
