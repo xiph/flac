@@ -43,7 +43,7 @@ typedef struct {
 } stream_info_struct;
 
 static bool stream_init(const char *infile);
-static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
 static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
@@ -376,11 +376,11 @@ bool stream_init(const char *infile)
 	return true;
 }
 
-FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	unsigned bps = stream_info->bits_per_sample, channels = stream_info->channels;
-	unsigned wide_samples = header->blocksize, wide_sample, sample, channel, offset;
+	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, offset;
 
 	(void)decoder;
 

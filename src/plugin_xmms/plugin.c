@@ -64,7 +64,7 @@ static void FLAC_XMMS__get_song_info(char *filename, char **title, int *length);
 static void *play_loop_(void *arg);
 static bool decoder_init_(const char *filename);
 static bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
-static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
 static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
@@ -346,11 +346,11 @@ bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
 	}
 }
 
-FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
 {
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	unsigned bps = file_info->bits_per_sample, channels = file_info->channels;
-	unsigned wide_samples = header->blocksize, wide_sample, sample, channel;
+	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel;
 
 	(void)decoder;
 
