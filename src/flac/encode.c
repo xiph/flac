@@ -240,7 +240,8 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					}
 				}
 
-				encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample - skip;
+				data_bytes -= skip * bytes_per_wide_sample;
+				encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample;
 				encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
 
 				if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
@@ -249,18 +250,18 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				encoder_wrapper.verify_fifo.into_frames = true;
 
 				while(data_bytes > 0) {
-					bytes_read = fread(ucbuffer, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample, infile);
+					bytes_read = fread(ucbuffer, sizeof(unsigned char), min(data_bytes, CHUNK_OF_SAMPLES * bytes_per_wide_sample), infile);
 					if(bytes_read == 0) {
 						if(ferror(infile)) {
 							fprintf(stderr, "ERROR reading from %s\n", infilename);
 							goto wav_abort_;
 						}
-						else if(feof(infile))
-							break;
+						else if(feof(infile)) {
+							fprintf(stderr, "WARNING: unexpected EOF from %s, expected %u samples, got %u samples\n", infilename, (unsigned)encoder_wrapper.total_samples_to_encode, (unsigned)encoder_wrapper.samples_written);
+							data_bytes = 0;
+						}
 					}
 					else {
-						if(bytes_read > data_bytes)
-							bytes_read = data_bytes; /* chop off anything after the end of the data sub-chunk */
 						if(bytes_read % bytes_per_wide_sample != 0) {
 							fprintf(stderr, "ERROR, got partial sample from input file %s\n", infilename);
 							goto wav_abort_;
