@@ -31,8 +31,8 @@
  ***********************************************************************/
 
 static void set_defaults_(FLAC__FileEncoder *encoder);
-static FLAC__StreamEncoderWriteStatus file_encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
-static void file_encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
+static FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+static FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 
 /***********************************************************************
  *
@@ -69,6 +69,7 @@ const char * const FLAC__FileEncoderStateString[] = {
  * Class constructor/destructor
  *
  ***********************************************************************/
+
 FLAC__FileEncoder *FLAC__file_encoder_new()
 {
 	FLAC__FileEncoder *encoder;
@@ -141,19 +142,19 @@ FLAC__FileEncoderState FLAC__file_encoder_init(FLAC__FileEncoder *encoder)
 	if(0 == encoder->private_->filename)
 		return encoder->protected_->state = FLAC__FILE_ENCODER_NO_FILENAME;
 
-	encoder->private_->file = fopen(encoder->private_->filename, "wb");
+	encoder->private_->file = fopen(encoder->private_->filename, "w+b");
 
 	if(encoder->private_->file == 0)
 		return encoder->protected_->state = FLAC__FILE_ENCODER_ERROR_OPENING_FILE;
 
+	FLAC__seekable_stream_encoder_set_seek_callback(encoder->private_->seekable_stream_encoder, seek_callback_);
 	FLAC__seekable_stream_encoder_set_write_callback(encoder->private_->seekable_stream_encoder, write_callback_);
-	FLAC__seekable_stream_encoder_set_metadata_callback(encoder->private_->seekable_stream_encoder, metadata_callback_);
 	FLAC__seekable_stream_encoder_set_client_data(encoder->private_->seekable_stream_encoder, encoder);
 
-	if(FLAC__seekable_seekable_stream_encoder_init(encoder->private_->seekable_stream_encoder) != FLAC__SEEKABLE_STREAM_ENCODER_OK)
+	if(FLAC__seekable_stream_encoder_init(encoder->private_->seekable_stream_encoder) != FLAC__SEEKABLE_STREAM_ENCODER_OK)
 		return encoder->protected_->state = FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR;
 
-	return decoder->protected_->state = FLAC__FILE_ENCODER_OK;
+	return encoder->protected_->state = FLAC__FILE_ENCODER_OK;
 }
 
 void FLAC__file_encoder_finish(FLAC__FileEncoder *encoder)
@@ -366,7 +367,7 @@ FLAC__bool FLAC__file_encoder_set_metadata(FLAC__FileEncoder *encoder, FLAC__Str
 	FLAC__ASSERT(0 != encoder->private_->seekable_stream_encoder);
 	if(encoder->protected_->state != FLAC__FILE_ENCODER_UNINITIALIZED)
 		return false;
-	return FLAC__seekable_stream_encoder_set_metadata(encoder->private_->stream_encoder, value);
+	return FLAC__seekable_stream_encoder_set_metadata(encoder->private_->seekable_stream_encoder, metadata, num_blocks);
 }
 
 FLAC__bool FLAC__file_encoder_set_filename(FLAC__FileEncoder *encoder, const char *value)
@@ -396,11 +397,18 @@ FLAC__FileEncoderState FLAC__file_encoder_get_state(const FLAC__FileEncoder *enc
 	return encoder->protected_->state;
 }
 
-FLAC__FileEncoderState FLAC__file_encoder_get_seekable_stream_encoder_state(const FLAC__FileEncoder *encoder)
+FLAC__SeekableStreamEncoderState FLAC__file_encoder_get_seekable_stream_encoder_state(const FLAC__FileEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
 	return FLAC__seekable_stream_encoder_get_state(encoder->private_->seekable_stream_encoder);
+}
+
+FLAC__StreamEncoderState FLAC__file_encoder_get_stream_encoder_state(const FLAC__FileEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	return FLAC__seekable_stream_encoder_get_stream_encoder_state(encoder->private_->seekable_stream_encoder);
 }
 
 FLAC__bool FLAC__file_encoder_get_streamable_subset(const FLAC__FileEncoder *encoder)
@@ -523,6 +531,7 @@ FLAC__bool FLAC__file_encoder_process_interleaved(FLAC__FileEncoder *encoder, co
 	return FLAC__seekable_stream_encoder_process_interleaved(encoder->private_->seekable_stream_encoder, buffer, samples);
 }
 
+
 /***********************************************************************
  *
  * Private class methods
@@ -533,208 +542,34 @@ void set_defaults_(FLAC__FileEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
-	FLAC__ASSERT(0 != encoder->protected_);
 
-	encoder->protected_->filename = 0;
+	encoder->private_->filename = 0;
 }
 
-FLAC__StreamEncoderWriteStatus file_encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
+FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data)
 {
 	FLAC__FileEncoder *file_encoder = (FLAC__FileEncoder*)client_data;
 
-	/* mark the current seek point if hit (if stream_offset == 0 that means we're still writing metadata and haven't hit the first frame yet) */
-	if(file_encoder->private_->stream_offset > 0 && file_encoder->private_->seek_table.num_points > 0) {
-		FLAC__uint64 current_sample = (FLAC__uint64)current_frame * (FLAC__uint64)FLAC__stream_encoder_get_blocksize(encoder), test_sample;
-		unsigned i;
-		for(i = file_encoder->private_->first_seek_point_to_check; i < file_encoder->private_->seek_table.num_points; i++) {
-			test_sample = file_encoder->private_->seek_table.points[i].sample_number;
-			if(test_sample > current_sample) {
-				break;
-			}
-			else if(test_sample == current_sample) {
-				file_encoder->private_->seek_table.points[i].stream_offset = file_encoder->private_->bytes_written - file_encoder->private_->stream_offset;
-				file_encoder->private_->seek_table.points[i].frame_samples = FLAC__stream_encoder_get_blocksize(encoder);
-				file_encoder->private_->first_seek_point_to_check++;
-				break;
-			}
-			else {
-				file_encoder->private_->first_seek_point_to_check++;
-			}
-		}
-	}
+	(void)encoder;
 
-	file_encoder->private_->bytes_written += bytes;
-	file_encoder->private_->samples_written += samples;
-	file_encoder->private_->current_frame = current_frame;
+	FLAC__ASSERT(0 != file_encoder);
 
-	if(samples && file_encoder->private_->verbose && file_encoder->private_->total_samples_to_encode > 0 && !(current_frame & mask))
-		print_stats(file_encoder->private_);
-
-	if(file_encoder->private_->verify) {
-		file_encoder->private_->verify_fifo.encoded_signal = buffer;
-		file_encoder->private_->verify_fifo.encoded_bytes = bytes;
-		if(file_encoder->private_->verify_fifo.into_frames) {
-			if(!FLAC__stream_decoder_process_one_frame(file_encoder->private_->verify_fifo.decoder)) {
-				file_encoder->private_->verify_fifo.result = FLAC__VERIFY_FAILED_IN_FRAME;
-				return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
-			}
-		}
-		else {
-			if(!FLAC__stream_decoder_process_metadata(file_encoder->private_->verify_fifo.decoder)) {
-				file_encoder->private_->verify_fifo.result = FLAC__VERIFY_FAILED_IN_METADATA;
-				return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
-			}
-		}
-	}
-
-#ifdef FLAC__HAS_OGG
-	if(file_encoder->private_->use_ogg) {
-		ogg_packet op;
-
-		memset(&op, 0, sizeof(op));
-		op.packet = (unsigned char *)buffer;
-		op.granulepos = file_encoder->private_->samples_written - 1;
-		/*@@@ WATCHOUT:
-		 * this depends on the behavior of libFLAC that we will get one
-		 * write_callback first with all the metadata (and 'samples'
-		 * will be 0), then one write_callback for each frame.
-		 */
-		op.packetno = (samples == 0? -1 : (int)file_encoder->private_->current_frame);
-		op.bytes = bytes;
-
-		if (file_encoder->private_->bytes_written == bytes)
-			op.b_o_s = 1;
-
-		if (file_encoder->private_->total_samples_to_encode == file_encoder->private_->samples_written)
-			op.e_o_s = 1;
-
-		ogg_stream_packetin(&file_encoder->private_->ogg.os, &op);
-
-		while(ogg_stream_pageout(&file_encoder->private_->ogg.os, &file_encoder->private_->ogg.og) != 0) {
-			int written;
-			written = fwrite(file_encoder->private_->ogg.og.header, 1, file_encoder->private_->ogg.og.header_len, file_encoder->private_->fout);
-			if (written != file_encoder->private_->ogg.og.header_len)
-				return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
-
-			written = fwrite(file_encoder->private_->ogg.og.body, 1, file_encoder->private_->ogg.og.body_len, file_encoder->private_->fout);
-			if (written != file_encoder->private_->ogg.og.body_len)
-				return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
-		}
-
-		return FLAC__STREAM_ENCODER_WRITE_OK;
-	}
+	if(fseek(file_encoder->private_->file, absolute_byte_offset, SEEK_SET) < 0)
+		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_ERROR;
 	else
-#endif
-	{
-		if(fwrite(buffer, sizeof(FLAC__byte), bytes, file_encoder->private_->fout) == bytes)
-			return FLAC__STREAM_ENCODER_WRITE_OK;
-		else
-			return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
-	}
+		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK;
 }
 
-void file_encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
+FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
-	file_encoder->private_ *file_encoder->private_ = (file_encoder->private_ *)client_data;
-	FLAC__byte b;
-	FILE *f = file_encoder->private_->fout;
-	const FLAC__uint64 samples = metadata->data.stream_info.total_samples;
-	const unsigned min_framesize = metadata->data.stream_info.min_framesize;
-	const unsigned max_framesize = metadata->data.stream_info.max_framesize;
+	FLAC__FileEncoder *file_encoder = (FLAC__FileEncoder*)client_data;
 
-	FLAC__ASSERT(metadata->type == FLAC__METADATA_TYPE_STREAMINFO);
+	(void)encoder, (void)samples, (void)current_frame;
 
-	/*
-	 * If we are writing to an ogg stream, there is no need to go back
-	 * and update the STREAMINFO or SEEKTABLE blocks; the values we would
-	 * update are not necessary with Ogg as the transport.  We can't do
-	 * it reliably anyway without knowing the Ogg structure.
-	 */
-#ifdef FLAC__HAS_OGG
-	if(file_encoder->private_->use_ogg)
-		return;
-#endif
+	FLAC__ASSERT(0 != file_encoder);
 
-	/*
-	 * we get called by the encoder when the encoding process has
-	 * finished so that we can update the STREAMINFO and SEEKTABLE
-	 * blocks.
-	 */
-
-	(void)encoder; /* silence compiler warning about unused parameter */
-
-	if(f != stdout) {
-		fclose(file_encoder->private_->fout);
-		if(0 == (f = fopen(file_encoder->private_->outfilename, "r+b")))
-			return;
-	}
-
-	/* all this is based on intimate knowledge of the stream header
-	 * layout, but a change to the header format that would break this
-	 * would also break all streams encoded in the previous format.
-	 */
-
-	if(-1 == fseek(f, 26, SEEK_SET)) goto end_;
-	fwrite(metadata->data.stream_info.md5sum, 1, 16, f);
-
-	/* if we get this far we know we can seek so no need to check the
-	 * return value from fseek()
-	 */
-	fseek(f, 21, SEEK_SET);
-	if(fread(&b, 1, 1, f) != 1) goto framesize_;
-	fseek(f, 21, SEEK_SET);
-	b = (b & 0xf0) | (FLAC__byte)((samples >> 32) & 0x0F);
-	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
-	b = (FLAC__byte)((samples >> 24) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
-	b = (FLAC__byte)((samples >> 16) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
-	b = (FLAC__byte)((samples >> 8) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
-	b = (FLAC__byte)(samples & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
-
-framesize_:
-	fseek(f, 12, SEEK_SET);
-	b = (FLAC__byte)((min_framesize >> 16) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (FLAC__byte)((min_framesize >> 8) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (FLAC__byte)(min_framesize & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (FLAC__byte)((max_framesize >> 16) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (FLAC__byte)((max_framesize >> 8) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (FLAC__byte)(max_framesize & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-
-seektable_:
-	if(file_encoder->private_->seek_table.num_points > 0) {
-		long pos;
-		unsigned i;
-
-		/* convert any unused seek points to placeholders */
-		for(i = 0; i < file_encoder->private_->seek_table.num_points; i++) {
-			if(file_encoder->private_->seek_table.points[i].sample_number == FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER)
-				break;
-			else if(file_encoder->private_->seek_table.points[i].frame_samples == 0)
-				file_encoder->private_->seek_table.points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
-		}
-
-		/* the offset of the seek table data 'pos' should be after then stream sync and STREAMINFO block and SEEKTABLE header */
-		pos = (FLAC__STREAM_SYNC_LEN + FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
-		pos += metadata->length;
-		pos += (FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
-		fseek(f, pos, SEEK_SET);
-		for(i = 0; i < file_encoder->private_->seek_table.num_points; i++) {
-			if(!write_big_endian_uint64(f, file_encoder->private_->seek_table.points[i].sample_number)) goto end_;
-			if(!write_big_endian_uint64(f, file_encoder->private_->seek_table.points[i].stream_offset)) goto end_;
-			if(!write_big_endian_uint16(f, (FLAC__uint16)file_encoder->private_->seek_table.points[i].frame_samples)) goto end_;
-		}
-	}
-
-end_:
-	fclose(f);
-	return;
+	if(fwrite(buffer, sizeof(FLAC__byte), bytes, file_encoder->private_->file) == bytes)
+		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+	else
+		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 }

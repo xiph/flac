@@ -453,6 +453,19 @@ FLAC__FileEncoderState FLAC__file_encoder_get_state(const FLAC__FileEncoder *enc
  */
 FLAC__SeekableStreamEncoderState FLAC__file_encoder_get_seekable_stream_encoder_state(const FLAC__FileEncoder *encoder);
 
+/** Get the state of the underlying stream encoder.
+ *  Useful when the file encoder state is
+ *  \c FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR and the seekable stream
+ *  encoder state is \c FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__SeekableStreamEncoderState
+ *    The seekable stream encoder state.
+ */
+FLAC__StreamEncoderState FLAC__file_encoder_get_stream_encoder_state(const FLAC__FileEncoder *encoder);
+
 /** Get the "streamable subset" flag.
  *  This is inherited from FLAC__SeekableStreamEncoder; see
  *  FLAC__seekable_stream_encoder_get_streamable_subset().
