@@ -31,10 +31,14 @@ const unsigned FLAC__CPUINFO_IA32_CPUID_SSE2 = 0x04000000;
 void FLAC__cpu_info(FLAC__CPUInfo *info)
 {
 #ifdef FLAC__CPU_IA32
-fprintf(stderr,"@@@ FLAC__CPU_IA32 defined\n");
+#ifdef DEBUG
+	fprintf(stderr,"@@@ FLAC__CPU_IA32 defined\n");
+#endif
 	info->type = FLAC__CPUINFO_TYPE_IA32;
 #if !defined FLAC__NO_ASM && defined FLAC__HAS_NASM
-fprintf(stderr,"@@@ !defined FLAC__NO_ASM && defined FLAC__HAS_NASM\n");
+#ifdef DEBUG
+	fprintf(stderr,"@@@ !defined FLAC__NO_ASM && defined FLAC__HAS_NASM\n");
+#endif
 	info->use_asm = true;
 	{
 		unsigned cpuid = FLAC__cpu_info_asm_i386();
@@ -43,20 +47,26 @@ fprintf(stderr,"@@@ !defined FLAC__NO_ASM && defined FLAC__HAS_NASM\n");
 		info->data.ia32.fxsr = (cpuid & FLAC__CPUINFO_IA32_CPUID_FXSR)? true : false;
 		info->data.ia32.sse = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE)? true : false; /* @@@ also need to check for operating system support */
 		info->data.ia32.sse2 = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE2)? true : false; /* @@@ also need to check for operating system support */
-fprintf(stderr,"@@@ \tcpuid=%08X\n",cpuid);
-fprintf(stderr,"@@@ \tcmov=%u\n",info->data.ia32.cmov);
-fprintf(stderr,"@@@ \tmmx=%u\n",info->data.ia32.mmx);
-fprintf(stderr,"@@@ \tfxsr=%u\n",info->data.ia32.fxsr);
-fprintf(stderr,"@@@ \tsse=%u\n",info->data.ia32.sse);
-fprintf(stderr,"@@@ \tsse2=%u\n",info->data.ia32.sse2);
+#ifdef DEBUG
+		fprintf(stderr,"@@@ \tcpuid=%08X\n",cpuid);
+		fprintf(stderr,"@@@ \tcmov=%u\n",info->data.ia32.cmov);
+		fprintf(stderr,"@@@ \tmmx=%u\n",info->data.ia32.mmx);
+		fprintf(stderr,"@@@ \tfxsr=%u\n",info->data.ia32.fxsr);
+		fprintf(stderr,"@@@ \tsse=%u\n",info->data.ia32.sse);
+		fprintf(stderr,"@@@ \tsse2=%u\n",info->data.ia32.sse2);
+#endif
 	}
 #else
-fprintf(stderr,"@@@ not: !defined FLAC__NO_ASM && defined FLAC__HAS_NASM\n");
+#ifdef DEBUG
+	fprintf(stderr,"@@@ not: !defined FLAC__NO_ASM && defined FLAC__HAS_NASM\n");
+#endif
 	info->use_asm = true;
 	info->use_asm = false;
 #endif
 #else
-fprintf(stderr,"@@@ FLAC__CPU_UNKNOWN\n");
+#ifdef DEBUG
+	fprintf(stderr,"@@@ FLAC__CPU_UNKNOWN\n");
+#endif
 	info->type = FLAC__CPUINFO_TYPE_UNKNOWN;
 	info->use_asm = false;
 #endif
