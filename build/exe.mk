@@ -21,8 +21,10 @@
 
 ifeq ($(DARWIN_BUILD),yes)
 CC          = cc
+CCC         = c++
 else
 CC          = gcc
+CCC         = g++
 endif
 NASM        = nasm
 # LINKAGE can be forced to -static or -dynamic from invocation if desired, but it defaults to -static except on OSX
@@ -53,8 +55,12 @@ $(PROGRAM) : $(OBJS)
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+%.o : %.cc
+	$(CCC) $(CFLAGS) -c $< -o $@
 %.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
+%.i : %.cc
+	$(CCC) $(CFLAGS) -E $< -o $@
 
 %.o : %.nasm
 	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ $< -o $@

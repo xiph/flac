@@ -21,8 +21,10 @@
 
 ifeq ($(DARWIN_BUILD),yes)
 CC          = cc
+CCC         = c++
 else
 CC          = gcc
+CCC         = g++
 endif
 NASM        = nasm
 LINK        = ar cru
@@ -65,8 +67,12 @@ endif
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+%.o : %.cc
+	$(CCC) $(CFLAGS) -c $< -o $@
 %.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
+%.i : %.cc
+	$(CCC) $(CFLAGS) -E $< -o $@
 
 %.o : %.nasm
 	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ $< -o $@
