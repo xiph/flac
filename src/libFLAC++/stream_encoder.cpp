@@ -356,5 +356,5 @@ namespace FLAC {
 			instance->metadata_callback(metadata);
 		}
 
-	};
-};
+	}
+}

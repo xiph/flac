@@ -75,7 +75,7 @@ namespace FLAC {
 				return ret;
 			}
 
-		};
+		}
 
 		FLACPP_API Prototype *clone(const Prototype *object)
 		{
@@ -1360,5 +1360,5 @@ namespace FLAC {
 			return ret;
 		}
 
-	};
-};
+	}
+}

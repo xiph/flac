@@ -351,7 +351,7 @@ namespace OggFLAC {
 
 		/* \} */
 
-	};
-};
+	}
+}
 
 #endif

@@ -232,5 +232,5 @@ namespace FLAC {
 			instance->error_callback(status);
 		}
 
-	};
-};
+	}
+}

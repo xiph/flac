@@ -368,5 +368,5 @@ namespace FLAC {
 			instance->progress_callback(bytes_written, samples_written, frames_written, total_frames_estimate);
 		}
 
-	};
-};
+	}
+}

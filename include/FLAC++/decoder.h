@@ -346,7 +346,7 @@ namespace FLAC {
 
 		/* \} */
 
-	};
-};
+	}
+}
 
 #endif

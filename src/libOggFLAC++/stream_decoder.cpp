@@ -224,5 +224,5 @@ namespace OggFLAC {
 			instance->error_callback(status);
 		}
 
-	};
-};
+	}
+}

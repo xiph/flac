@@ -380,7 +380,7 @@ namespace OggFLAC {
 
 		/* \} */
 
-	};
-};
+	}
+}
 
 #endif

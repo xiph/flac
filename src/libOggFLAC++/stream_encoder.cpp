@@ -342,5 +342,5 @@ namespace OggFLAC {
 			instance->metadata_callback(metadata);
 		}
 
-	};
-};
+	}
+}

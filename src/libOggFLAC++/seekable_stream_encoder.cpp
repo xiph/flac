@@ -362,5 +362,5 @@ namespace OggFLAC {
 			return instance->write_callback(buffer, bytes, samples, current_frame);
 		}
 
-	};
-};
+	}
+}
