@@ -27,6 +27,7 @@ EXTRA_DIST = \
 SUBDIRS = \
 	libFLAC \
 	libFLAC++ \
+	libOggFLAC \
 	share \
 	flac \
 	metaflac \
