@@ -404,7 +404,7 @@ void *play_loop_(void *arg)
 			unsigned target_sample = (unsigned)(distance * (double)file_info_.total_samples);
 			if(FLAC__file_decoder_seek_absolute(decoder_, (FLAC__uint64)target_sample)) {
 				flac_ip.output->flush(file_info_.seek_to_in_sec * 1000);
-				bh_index_last_w = bh_index_last_o = file_info_.seek_to_in_sec * 1000 / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE;
+				bh_index_last_w = bh_index_last_o = flac_ip.output->output_time() / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE;
 				file_info_.seek_to_in_sec = -1;
 				file_info_.eof = false;
 				wide_samples_in_reservoir_ = 0;
@@ -413,7 +413,7 @@ void *play_loop_(void *arg)
 		else {
 			/* display the right bitrate from history */
 			unsigned bh_index_o = flac_ip.output->output_time() / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE;
-			if(bh_index_o != bh_index_last_o && bh_index_last_w != bh_index_o) {
+			if(bh_index_o != bh_index_last_o && bh_index_o != bh_index_last_w && bh_index_o != (bh_index_last_w + 1) % BITRATE_HIST_SIZE) {
 				bh_index_last_o = bh_index_o;
 				flac_ip.set_info(file_info_.title, file_info_.length_in_msec, bitrate_history_[bh_index_o], file_info_.sample_rate, file_info_.channels);
 			}
