@@ -278,15 +278,23 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-H</TT>
+				<TT>-h</TT>, <TT>--help</TT>
 			</TD>
 			<TD>
-				Show the long usage screen.  Running <B><TT>flac</TT></B> without arguments shows the short help screen by default.
+				Show basic usage and a list of all options.  Running <B><TT>flac</TT></B> without arguments shows the short help screen by default.
 			</TD>
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-d</TT>
+				<TT>-H</TT>, <TT>--explain</TT>
+			</TD>
+			<TD>
+				Show detailed explanation of usage and all options.  Running <B><TT>flac</TT></B> without arguments shows the short help screen by default.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>-d</TT>, <TT>--decode</TT>
 			</TD>
 			<TD>
 				Decode (<B><TT>flac</TT></B> encodes by default).  <B><TT>flac</TT></B> will exit with an exit code of <TT>1</TT> (and print a message, even in silent mode) if there were any errors during decoding, including when the MD5 checksum does not match the decoded output.  Otherwise the exit code will be <TT>0</TT>.
@@ -294,7 +302,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-t</TT>
+				<TT>-t</TT>, <TT>--test</TT>
 			</TD>
 			<TD>
 				Test (same as <B><TT>-d</TT></B> except no decoded file is written).  The exit codes are the same as in decode mode.
@@ -302,7 +310,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-a</TT>
+				<TT>-a</TT>, <TT>--analyze</TT>
 			</TD>
 			<TD>
 				Analyze (same as <B><TT>-d</TT></B> except an analysis file is written).  The exit codes are the same as in decode mode.  This option is mainly for developers; the output will be a text file that has data about each frame and subframe.
@@ -310,15 +318,15 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-c</TT>
+				<TT>-c</TT>, <TT>--stdout</TT>
 			</TD>
 			<TD>
-				Write output to stdout
+				Write output to stdout.
 			</TD>
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-s</TT>
+				<TT>-s</TT>, <TT>--silent</TT>
 			</TD>
 			<TD>
 				Silent: do not show encoding/decoding statistics.
@@ -326,7 +334,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-o filename</TT>
+				<TT>-o filename</TT>, <TT>--output-name=filename</TT>
 			</TD>
 			<TD>
 				Force the output file name (usually <TT><B>flac</B></TT> just changes the extension).  May only be used when encoding a single file.  May not be used in conjunction with <TT>--output-prefix</T>.
@@ -334,7 +342,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>--output-prefix string</TT>
+				<TT>--output-prefix=string</TT>
 			</TD>
 			<TD>
 				Prefix each output file name with the given string.  This can be useful for encoding/decoding files to a different directory.  Make sure if your string is a path name that it ends with a trailing '<TT>/</TT>' slash.
@@ -350,7 +358,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>--skip #</TT>
+				<TT>--skip=#</TT>
 			</TD>
 			<TD>
 				Skip over the first # of samples of the input.  This works for both encoding and decoding, but not testing.
@@ -369,7 +377,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>--a-rtext</TT>
+				<TT>--residual-text</TT>
 			</TD>
 			<TD>
 				Includes the residual signal in the analysis file.  This will make the file <B>very</B> big, much larger than even the decoded file.
@@ -377,7 +385,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>--a-rgp</TT>
+				<TT>--residual-gnuplot</TT>
 			</TD>
 			<TD>
 				Generates a gnuplot file for every subframe; each file will contain the residual distribution of the subframe.  This will create a <B>lot</B> of files.
@@ -396,7 +404,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-F</TT>
+				<TT>-F</TT>, <TT>--decode-through-errors</TT>
 			</TD>
 			<TD>
 				By default <B><TT>flac</TT></B> stops decoding with an error and removes the partially decoded file if it encounters a bitstream error.  With <TT>-F</TT>, errors are still printed but <B><TT>flac</TT></B> will continue decoding to completion.  Note that errors may cause the decoded audio to be missing some samples or have silent sections.
@@ -411,6 +419,14 @@
 		<TR>
 			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
 				<A NAME="encoding_options"><FONT SIZE="+1"><B>Encoding Options</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>-V</TT>, <TT>--verify</TT>
+			</TD>
+			<TD>
+				Verify the encoding process.  With this option, <B><TT>flac</TT></B> will create a parallel decoder that decodes the output of the encoder and compares the result against the original.  It will abort immediately with an error if a mismatch occurs.  <B><TT>-V</TT></B> increases the total encoding time but is guaranteed to catch any unforseen bug in the encoding process.
 			</TD>
 		</TR>
 		<TR>
@@ -442,7 +458,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-S { # | X | #x }</TT>
+				<TT>-S {#|X|#x}</TT>, <TT>--seekpoint={#|X|#x}</TT>
 			</TD>
 			<TD>
 				Include a point or points in a SEEKTABLE:<BR>
@@ -465,7 +481,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-P #</TT>
+				<TT>-P #</TT>, <TT>--padding=#</TT>
 			</TD>
 			<TD>
 				Tell the encoder to write a <TT>PADDING</TT> metadata block of the given length (in bytes) after the <TT>STREAMINFO</TT> block.  This is useful if you plan to tag the file later with an <TT>APPLICATION</TT> block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the <TT>PADDING</TT> block.  Note that the total length of the <TT>PADDING</TT> block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no <TT>PADDING</TT> block at all to be written with <TT>-P-</TT>, which is the default.
@@ -473,7 +489,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-b #</TT>
+				<TT>-b #</TT>, <TT>--blocksize=#</TT>
 			</TD>
 			<TD>
 				Specify the block size in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The reference encoder uses the same block size for the entire stream.
@@ -481,7 +497,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-m</TT>
+				<TT>-m</TT>, <TT>--mid-side</TT>
 			</TD>
 			<TD>
 				Enable mid-side coding (only for stereo streams).  Tends to increase compression by a few percent on average.  For each block both the stereo pair and mid-side versions of the block will be encoded, and smallest resulting frame will be stored.  Currently mid-side encoding is only available when bits-per-sample <= 16.
@@ -489,15 +505,15 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-M</TT>
+				<TT>-M</TT>, <TT>--adaptive-mid-side</TT>
 			</TD>
 			<TD>
-				Enable loose mid-side coding (only for stereo streams).  Like <TT>-m</TT> but the encoder adaptively switches between independent and mid-side coding, which is faster but yields less compression than <TT>-m</TT> (which does an exhaustive search).
+				Enable adaptive mid-side coding (only for stereo streams).  Like <TT>-m</TT> but the encoder adaptively switches between independent and mid-side coding, which is faster but yields less compression than <TT>-m</TT> (which does an exhaustive search).
 			</TD>
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-0 .. -8</TT>
+				<TT>-0 .. -8</TT>, <TT>--compression-level-0 .. --compression-level-8</TT>
 			</TD>
 			<TD>
 				Fastest compression .. highest compression.  The default is <TT>-5</TT>.
@@ -505,7 +521,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-0</TT>
+				<TT>-0</TT>, <TT>--compression-level-0</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 0 -b 1152 -r 2,2</TT>
@@ -513,7 +529,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-1</TT>
+				<TT>-1</TT>, <TT>--compression-level-1</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 0 -b 1152 -M -r 2,2</TT>
@@ -521,7 +537,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-2</TT>
+				<TT>-2</TT>, <TT>--compression-level-2</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 0 -b 1152 -m -r 3</TT>
@@ -529,7 +545,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-3</TT>
+				<TT>-3</TT>, <TT>--compression-level-3</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 6 -b 4608 -r 3,3</TT>
@@ -537,7 +553,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-4</TT>
+				<TT>-4</TT>, <TT>--compression-level-4</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 8 -b 4608 -M -r 3,3</TT>
@@ -545,7 +561,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-5</TT>
+				<TT>-5</TT>, <TT>--compression-level-5</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 8 -b 4608 -m -r 3,3</TT>
@@ -553,7 +569,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-6</TT>
+				<TT>-6</TT>, <TT>--compression-level-6</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 8 -b 4608 -m -r 4</TT>
@@ -561,7 +577,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-7</TT>
+				<TT>-7</TT>, <TT>--compression-level-7</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 8 -b 4608 -m -e -r 6</TT>
@@ -569,7 +585,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-8</TT>
+				<TT>-8</TT>, <TT>--compression-level-8</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 12 -b 4608 -m -e -r 6</TT>
@@ -593,7 +609,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-e</TT>
+				<TT>-e</TT>, <TT>--exhaustive-model-search</TT>
 			</TD>
 			<TD>
 				Exhaustive model search (expensive!).  Normally the encoder estimates the best model to use and encodes once based on the estimate.  With an exhaustive model search, the encoder will generate subframes for every order and use the smallest.  If the max LPC order is high this can significantly increase the encode time but can shave off another 0.5%.
@@ -601,7 +617,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-E</TT>
+				<TT>-E</TT>, <TT>--escape-coding</TT>
 			</TD>
 			<TD>
 				Do escape coding in the entropy coder.  This causes the encoder to use an unencoded representation of the residual in a partition if it is smaller.  It increases the runtime and usually results in an improvement of less than 1%.
@@ -609,7 +625,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-l #</TT>
+				<TT>-l #</TT>, <TT>--max-lpc-order=#</TT>
 			</TD>
 			<TD>
 				Specifies the maximum LPC order.  This number must be <= 32.  If 0, the encoder will not attempt generic linear prediction, and use only fixed predictors.  Using fixed predictors is faster but usually results in files being 5-10% larger.
@@ -617,7 +633,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-q #</TT>
+				<TT>-q #</TT>, <TT>--qlp-coeff-precision=#</TT>
 			</TD>
 			<TD>
 				Specifies the precision of the quantized LP coefficients, in bits.  The default is <B><TT>-q 0</TT></B>, which means let the encoder decide based on the signal.  Unless you really know your input file it's best to leave this up to the encoder.
@@ -625,7 +641,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-p</TT>
+				<TT>-p</TT>, <TT>--qlp-coeff-precision-search</TT>
 			</TD>
 			<TD>
 				Do exhaustive LP coefficient quantization optimization.  This option overrides any <B><TT>-q</TT></B> option.  It is expensive and typically will only improve the compression a tiny fraction of a percent.  <B><TT>-q</TT></B> has no effect when <B><TT>-l 0</TT></B> is used.
@@ -633,7 +649,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-r [#,]#</TT>
+				<TT>-r [#,]#</TT>, <TT>--rice-partition-order=[#,]#</TT>
 			</TD>
 			<TD>
 				Set the [min,]max residual partition order.  The min value defaults to 0 if unspecified.<P>
@@ -642,17 +658,25 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-V</TT>
+				<TT>--no-adaptive-mid-side</TT><BR>
+				<TT>--no-decode-through-errors</TT><BR>
+				<TT>--no-delete-input-file</TT><BR>
+				<TT>--no-escape-coding</TT><BR>
+				<TT>--no-exhaustive-model-search</TT><BR>
+				<TT>--no-lax</TT><BR>
+				<TT>--no-mid-side</TT><BR>
+				<TT>--no-ogg</TT><BR>
+				<TT>--no-padding</TT><BR>
+				<TT>--no-qlp-coeff-precision-search</TT><BR>
+				<TT>--no-residual-gnuplot</TT><BR>
+				<TT>--no-residual-text</TT><BR>
+				<TT>--no-sector-align</TT><BR>
+				<TT>--no-seektable</TT><BR>
+				<TT>--no-silent</TT><BR>
+				<TT>--no-verify</TT><
 			</TD>
 			<TD>
-				Verify the encoding process.  With this option, <B><TT>flac</TT></B> will create a parallel decoder that decodes the output of the encoder and compares the result against the original.  It will abort immediately with an error if a mismatch occurs.  <B><TT>-V</TT></B> increases the total encoding time but is guaranteed to catch any unforseen bug in the encoding process.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-			</TD>
-			<TD>
-				<TT>-F-</TT>, <TT>-S-</TT>, <TT>-P-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-E-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--delete-input-file-</TT>, <TT>--lax-</TT>, <TT>--sector-align-</TT> can all be used to turn off a particular option.
+				can all be used to turn off a particular option.
 			</TD>
 		</TR>
 	</TABLE>
@@ -668,15 +692,15 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-fb | -fl</TT>
+				<TT>--endian={big|little}</TT>
 			</TD>
 			<TD>
-				Specify big-endian | little-endian byte order in the raw file.
+				Specify big-endian or little-endian byte order in the raw file.
 			</TD>
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-fc #</TT>
+				<TT>--channels=#</TT>
 			</TD>
 			<TD>
 				Specify the number of channels in the raw file.
@@ -684,7 +708,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-fp #</TT>
+				<TT>--bps=#</TT>
 			</TD>
 			<TD>
 				Specify the number of bits per sample in the raw file.
@@ -692,7 +716,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-fs #</TT>
+				<TT>--sample-rate=#</TT>
 			</TD>
 			<TD>
 				Specify the sample rate of the raw file.
@@ -700,15 +724,15 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-fu</TT>
+				<TT>--sign={signed|unsigned}</TT>
 			</TD>
 			<TD>
-				Specify that the samples in the raw file are unsigned (the default is signed).
+				Specify that the samples in the raw file are signed or unsigned (the default is signed).
 			</TD>
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-fr</TT>
+				<TT>--force-raw-input</TT>
 			</TD>
 			<TD>
 				Treat the input file (or output file if decoding) as a raw file, regardless of the extension.
