@@ -31,6 +31,7 @@
 .text
 	.align 2
 .globl _FLAC__lpc_restore_signal_asm_ppc_altivec_16
+
 .globl _FLAC__lpc_restore_signal_asm_ppc_altivec_16_order8
 
 _FLAC__lpc_restore_signal_asm_ppc_altivec_16:
