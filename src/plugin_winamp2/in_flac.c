@@ -70,7 +70,7 @@ void config(HWND hwndParent)
 }
 void about(HWND hwndParent)
 {
-	MessageBox(hwndParent,"Winamp FLAC Plugin v" VERSION ", by Josh Coalson\nSee http://flac.sourceforge.net/","About FLAC Plugin",MB_OK);
+	MessageBox(hwndParent,"Winamp FLAC Plugin v" FLAC__VERSION_STRING ", by Josh Coalson\nSee http://flac.sourceforge.net/","About FLAC Plugin",MB_OK);
 }
 
 void init()
