@@ -1536,7 +1536,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 	for(i = 0; i < options->ops.num_operations && ok; i++)
 		ok &= do_shorthand_operation(options->prefix_with_filename? filename : 0, chain, &options->ops.operations[i], &needs_write, options->utf8_convert);
 
-	if(ok) {
+	if(ok && needs_write) {
 		if(options->use_padding)
 			FLAC__metadata_chain_sort_padding(chain);
 		ok = FLAC__metadata_chain_write(chain, options->use_padding, options->preserve_modtime);
