@@ -1178,8 +1178,6 @@ bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, boo
 	assert(bb != 0);
 	assert(bb->buffer != 0);
 
-	assert(bits <= 32);
-
 	while(1) {
 		if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
 			return false;
