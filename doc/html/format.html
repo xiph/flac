@@ -258,16 +258,16 @@
 			Individual subframes (one for each channel) are coded separately within a frame, and appear serially in the stream.  In other words, the encoded audio data is NOT channel-interleaved.  This reduces decoder complexity at the cost of requiring larger decode buffers.  Each subframe has its own header specifying the attributes of the subframe, like prediction method and order, residual coding parameters, etc.  The header is followed by the encoded audio data for that channel.
 		</LI></P>
 		<P><LI>
-			<A NAME="subset">FLAC specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the blocking such that decoder buffer sizes can be easily determined.  "flac" generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
+			<A NAME="subset">FLAC specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the encoding parameters such that decoder buffer sizes and other resource requirements can be easily determined.  "flac" generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
 			<UL>
 			<LI>
-				The blocksize bits in the <A HREF="#frame_header">frame header</A> must be 0001-0101 or 1000-1111, specifying a fixed-blocksize stream (the exception being the last block as described in the table).  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.
-			</LI>
-			<LI>
-				The bits-per-sample bits in the <A HREF="#frame_header">frame header</A> must be 001-110.
+				The blocksize bits in the <A HREF="#frame_header">frame header</A> must be 0001-0101 or 1000-1110, specifying a fixed-blocksize stream (the exception being the last block as described in the table) and a few allowable blocksizes.  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.
 			</LI>
 			<LI>
 				The sample rate bits in the <A HREF="#frame_header">frame header</A> must be 0001-1011.
+			</LI>
+			<LI>
+				The bits-per-sample bits in the <A HREF="#frame_header">frame header</A> must be 001-111.
 			</LI>
 			</UL>
 		</LI></P>

@@ -205,6 +205,9 @@ typedef enum {
 	FLAC__STREAM_ENCODER_INVALID_BLOCK_SIZE,
 	/**< The encoder has an invalid setting for the block size. */
 
+	FLAC__STREAM_ENCODER_INVALID_MAX_LPC_ORDER,
+	/**< The encoder has an invalid setting for the maximum LPC order. */
+
 	FLAC__STREAM_ENCODER_INVALID_QLP_COEFF_PRECISION,
 	/**< The encoder has an invalid setting for the precision of the quantized linear predictor coefficients. */
 

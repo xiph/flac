@@ -393,6 +393,7 @@ const char * const FLAC__StreamEncoderStateString[] = {
 	"FLAC__STREAM_ENCODER_INVALID_BITS_PER_SAMPLE",
 	"FLAC__STREAM_ENCODER_INVALID_SAMPLE_RATE",
 	"FLAC__STREAM_ENCODER_INVALID_BLOCK_SIZE",
+	"FLAC__STREAM_ENCODER_INVALID_MAX_LPC_ORDER",
 	"FLAC__STREAM_ENCODER_INVALID_QLP_COEFF_PRECISION",
 	"FLAC__STREAM_ENCODER_MID_SIDE_CHANNELS_MISMATCH",
 	"FLAC__STREAM_ENCODER_MID_SIDE_SAMPLE_SIZE_MISMATCH",
@@ -566,6 +567,9 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	if(encoder->protected_->blocksize < FLAC__MIN_BLOCK_SIZE || encoder->protected_->blocksize > FLAC__MAX_BLOCK_SIZE)
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_BLOCK_SIZE;
 
+	if(encoder->protected_->max_lpc_order > FLAC__MAX_LPC_ORDER)
+		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_MAX_LPC_ORDER;
+
 	if(encoder->protected_->blocksize < encoder->protected_->max_lpc_order)
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER;
 
@@ -595,14 +599,45 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 			encoder->protected_->qlp_coeff_precision = min(13, 8*sizeof(FLAC__int32) - encoder->protected_->bits_per_sample - 1 - 2); /* @@@ -2 to keep things 32-bit safe */
 		}
 	}
-	else if(encoder->protected_->qlp_coeff_precision < FLAC__MIN_QLP_COEFF_PRECISION || encoder->protected_->qlp_coeff_precision + encoder->protected_->bits_per_sample >= 8*sizeof(FLAC__uint32) || encoder->protected_->qlp_coeff_precision >= (1u<<FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
+	else if(encoder->protected_->qlp_coeff_precision < FLAC__MIN_QLP_COEFF_PRECISION || encoder->protected_->qlp_coeff_precision >= (1u<<FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_QLP_COEFF_PRECISION;
 
 	if(encoder->protected_->streamable_subset) {
-		/*@@@ add check for blocksize here */
-		if(encoder->protected_->bits_per_sample != 8 && encoder->protected_->bits_per_sample != 12 && encoder->protected_->bits_per_sample != 16 && encoder->protected_->bits_per_sample != 20 && encoder->protected_->bits_per_sample != 24)
+		if(
+			encoder->protected_->blocksize != 192 &&
+			encoder->protected_->blocksize != 576 &&
+			encoder->protected_->blocksize != 1152 &&
+			encoder->protected_->blocksize != 2304 &&
+			encoder->protected_->blocksize != 4608 &&
+			encoder->protected_->blocksize != 256 &&
+			encoder->protected_->blocksize != 512 &&
+			encoder->protected_->blocksize != 1024 &&
+			encoder->protected_->blocksize != 2048 &&
+			encoder->protected_->blocksize != 4096 &&
+			encoder->protected_->blocksize != 8192 &&
+			encoder->protected_->blocksize != 16384
+		)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_NOT_STREAMABLE;
-		if(encoder->protected_->sample_rate > 655350)
+		if(
+			encoder->protected_->sample_rate != 8000 &&
+			encoder->protected_->sample_rate != 16000 &&
+			encoder->protected_->sample_rate != 22050 &&
+			encoder->protected_->sample_rate != 24000 &&
+			encoder->protected_->sample_rate != 32000 &&
+			encoder->protected_->sample_rate != 44100 &&
+			encoder->protected_->sample_rate != 48000 &&
+			encoder->protected_->sample_rate != 96000
+		)
+			return encoder->protected_->state = FLAC__STREAM_ENCODER_NOT_STREAMABLE;
+		if(
+			encoder->protected_->bits_per_sample != 8 &&
+			encoder->protected_->bits_per_sample != 12 &&
+			encoder->protected_->bits_per_sample != 16 &&
+			encoder->protected_->bits_per_sample != 20 &&
+			encoder->protected_->bits_per_sample != 24
+		)
+			return encoder->protected_->state = FLAC__STREAM_ENCODER_NOT_STREAMABLE;
+		if(encoder->protected_->max_residual_partition_order > 8)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_NOT_STREAMABLE;
 	}
 
@@ -2157,6 +2192,13 @@ unsigned evaluate_lpc_subframe_(
 	int quantization, ret;
 	const unsigned residual_samples = blocksize - order;
 
+	/* try to keep qlp coeff precision such that only 32-bit math is required for decode of <=16bps streams */
+	if(subframe_bps <= 16) {
+		FLAC__ASSERT(order > 0);
+		FLAC__ASSERT(order <= FLAC__MAX_LPC_ORDER);
+		qlp_coeff_precision = min(qlp_coeff_precision, 32 - subframe_bps - FLAC__bitmath_ilog2(order));
+	}
+
 	ret = FLAC__lpc_quantize_coefficients(lp_coeff, order, qlp_coeff_precision, subframe_bps, qlp_coeff, &quantization);
 	if(ret != 0)
 		return 0; /* this is a hack to indicate to the caller that we can't do lp at this order on this subframe */
@@ -2345,7 +2387,7 @@ unsigned find_best_partition_order_(
 	}
 
 	/*
-	 * We are allowed to de-const the pointer based on our special knowledhe;
+	 * We are allowed to de-const the pointer based on our special knowledge;
 	 * it is const to the outside world.
 	 */
 	{
