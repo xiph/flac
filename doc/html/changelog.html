@@ -90,6 +90,7 @@
 		<LI>
 			General:
 			<UL>
+				<LI>New PPC optimizations almost double the decoding speed on OS X</LI>
 				<LI>Ogg FLAC seeking now works</LI>
 			</UL>
 		</LI>
@@ -151,6 +152,7 @@
 		<LI>
 			libraries:
 			<UL>
+				<LI>libFLAC: PPC+Altivec optimizations of some decoder routines.</LI>
 				<LI>libFLAC: Make stream encoder encode the blocksize and sample rate in the frame header if at all possible (not in STREAMINFO), even if subset encoding was not requested.</LI>
 				<LI>libFLAC: Bug fix: fixed seek routine where infinite loop could happen when seeking past end of stream.</LI>
 				<LI>libFLAC, libFLAC++: added methods to skip single frames, useful for quickly finding frame boundaries (see interface changes below).</LI>
