@@ -52,7 +52,8 @@ cglobal FLAC__lpc_restore_signal_asm_i386_mmx
 ;	}
 ; }
 ;
-FLAC__lpc_compute_autocorrelation_asm_i386:
+	ALIGN 16
+cident FLAC__lpc_compute_autocorrelation_asm_i386:
 
 	; esp + 20 == data[]
 	; esp + 24 == data_len
@@ -202,7 +203,8 @@ FLAC__lpc_compute_autocorrelation_asm_i386:
 	ret
 
 ;@@@ NOTE: this SSE version is not even tested yet and only works for lag == 8
-FLAC__lpc_compute_autocorrelation_asm_i386_sse:
+	ALIGN 16
+cident FLAC__lpc_compute_autocorrelation_asm_i386_sse:
 
 	; esp + 4 == data[]
 	; esp + 8 == data_len
@@ -285,7 +287,7 @@ ret
 ; 	}
 ; }
 	ALIGN	16
-FLAC__lpc_restore_signal_asm_i386:
+cident FLAC__lpc_restore_signal_asm_i386:
 	;[esp + 40]	data[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order
@@ -486,7 +488,7 @@ FLAC__lpc_restore_signal_asm_i386:
 ; the channel must be <= 16.  Especially note that this routine cannot be used
 ; for side-channel coded 16bps channels since the effective bps is 17.
 	ALIGN	16
-FLAC__lpc_restore_signal_asm_i386_mmx:
+cident FLAC__lpc_restore_signal_asm_i386_mmx:
 	;[esp + 40]	data[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order

@@ -63,7 +63,8 @@ cglobal FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov
 ;
 ; 	return order;
 ; }
-FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov:
+	ALIGN 16
+cident FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov:
 
 	; esp + 36 == data[]
 	; esp + 40 == data_len
