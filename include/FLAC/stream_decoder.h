@@ -100,16 +100,16 @@ extern "C" {
  *   metadata as well as an array of pointers (one for each channel)
  *   pointing to the decoded audio.
  * - Metadata callback - This function will be called when the decoder has
- *   decoded a metadata block.  There will always be one STREAMINFO block
- *   per stream, followed by zero or more other metadata blocks.  These will
- *   be supplied by the decoder in the same order as they appear in the
- *   stream and always before the first audio frame (i.e. write callback).
- *   The metadata block that is passed in must not be modified, and it
- *   doesn't live beyond the callback, so you should make a copy of it with
- *   FLAC__metadata_object_clone() if you will need it elsewhere.  Since
- *   metadata blocks can potentially be large, by default the decoder only
- *   calls the metadata callback for the STREAMINFO block; you can instruct
- *   the decoder to pass or filter other blocks with
+ *   decoded a metadata block.  In a valid FLAC file there will always be
+ *   one STREAMINFO block, followed by zero or more other metadata
+ *   blocks.  These will be supplied by the decoder in the same order as
+ *   they appear in the stream and always before the first audio frame
+ *   (i.e. write callback).  The metadata block that is passed in must not
+ *   be modified, and it doesn't live beyond the callback, so you should
+ *   make a copy of it with FLAC__metadata_object_clone() if you will need
+ *   it elsewhere.  Since metadata blocks can potentially be large, by
+ *   default the decoder only calls the metadata callback for the STREAMINFO
+ *   block; you can instruct the decoder to pass or filter other blocks with
  *   FLAC__stream_decoder_set_metadata_*() calls.
  * - Error callback - This function will be called whenever an error occurs
  *   during decoding.
@@ -442,8 +442,8 @@ FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, 
 FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteCallback value);
 
 /** Set the metadata callback.
- *  The supplied function will be called when the decoder has decoded a
- *  metadata block.  There will always be one STREAMINFO block per stream,
+ *  The supplied function will be called when the decoder has decoded a metadata
+ *  block.  In a valid FLAC file there will always be one STREAMINFO block,
  *  followed by zero or more other metadata blocks.  These will be supplied
  *  by the decoder in the same order as they appear in the stream and always
  *  before the first audio frame (i.e. write callback).  The metadata block

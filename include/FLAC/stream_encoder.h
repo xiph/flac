@@ -227,7 +227,11 @@ typedef enum {
 	/**< An error occurred while writing the stream; usually, the write_callback returned an error. */
 
 	FLAC__STREAM_ENCODER_INVALID_METADATA,
-	/**< The metadata input to the encoder is invalid. */
+	/**< The metadata input to the encoder is invalid, in one of the following ways:
+	 * - FLAC__stream_encoder_set_metadata() was called with a null pointer but a block count > 0
+	 * - It contains an illegal SEEKTABLE as checked by FLAC__format_seektable_is_legal()
+	 * - It contains more than one SEEKTABLE block or more than one VORBIS_COMMENT block
+	 */
 
 	FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING,
 	/**< An error occurred while writing the stream; usually, the write_callback returned an error. */
@@ -616,8 +620,22 @@ FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *
  *  Otherwise, the encoder will not modify or free the blocks.  It is up
  *  to the caller to free the metadata blocks after encoding.
  *
- *  The STREAMINFO block is always written and no STREAMINFO block may
- *  occur in the supplied array.
+ * \note
+ * The encoder stores only the \a metadata pointer; the passed-in array
+ * must survive at least until after FLAC__stream_encoder_init() returns.
+ * Do not modify the array or free the blocks until then.
+ *
+ * \note
+ * The STREAMINFO block is always written and no STREAMINFO block may
+ * occur in the supplied array.
+ *
+ * \note
+ * A VORBIS_COMMENT block may be supplied.  The vendor string in it
+ * will be ignored.  libFLAC will use it's own vendor string. libFLAC
+ * will not modify the passed-in VORBIS_COMMENT's vendor string, it
+ * will simply write it's own into the stream.  If no VORBIS_COMMENT
+ * block is present in the \a metadata array, libFLAC will write an
+ * empty one, containing only the vendor string.
  *
  * \default \c NULL, 0
  * \param  encoder     An encoder instance to set.
