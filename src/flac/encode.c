@@ -299,10 +299,6 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			/* SSND chunk size */
 			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
-			else if(xx!=(sample_frames*bytes_per_frame + 8U)) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: SSND chunk size inconsistent with sample frame count\n", encoder_session.inbasefilename);
-				return EncoderSession_finish_error(&encoder_session);
-			}
 			data_bytes= xx;
 			pad= (data_bytes & 1U) ? true : false;
 			data_bytes-= 8U; /* discount the offset and block size fields */
@@ -310,11 +306,8 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			/* offset */
 			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
-			else if(xx!=0U) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: offset is %u; must be 0\n", encoder_session.inbasefilename, (unsigned int)xx);
-				return EncoderSession_finish_error(&encoder_session);
-			}
 			offset= xx;
+			data_bytes-= offset;
 
 			/* block size */
 			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
@@ -324,6 +317,15 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			block_size= xx;
+
+			if(fseek(infile, offset, SEEK_CUR)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: skipping offset in SSND chunk\n", encoder_session.inbasefilename);
+				return EncoderSession_finish_error(&encoder_session);
+			}
+			if(data_bytes!=(sample_frames*bytes_per_frame)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: SSND chunk size inconsistent with sample frame count\n", encoder_session.inbasefilename);
+				return EncoderSession_finish_error(&encoder_session);
+			}
 
 			/* *options.common.align_reservoir_samples will be 0 unless --sector-align is used */
 			FLAC__ASSERT(options.common.sector_align || *options.common.align_reservoir_samples == 0);
