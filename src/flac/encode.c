@@ -40,11 +40,6 @@
 #endif
 #define min(x,y) ((x)<(y)?(x):(y))
 
-#ifdef max
-#undef max
-#endif
-#define max(x,y) ((x)>(y)?(x):(y))
-
 /* this MUST be >= 588 so that sector aligning can take place with one read */
 #define CHUNK_OF_SAMPLES 2048
 
@@ -62,6 +57,8 @@ typedef struct {
 	FLAC__uint64 total_samples_to_encode;
 	FLAC__uint64 bytes_written;
 	FLAC__uint64 samples_written;
+	unsigned blocksize;
+	unsigned stats_mask;
 
 	/*
 	 * We use flac.stream for encoding native FLAC to stdout
@@ -112,7 +109,8 @@ static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool 
 static FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 #endif
 static FLAC__StreamEncoderWriteStatus flac_stream_encoder_write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
-static void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
+static void flac_stream_encoder_metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
+static void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 static void print_stats(const EncoderSession *encoder_session);
 static void print_error_with_state(const EncoderSession *e, const char *message);
 static void print_verify_error(EncoderSession *e);
@@ -933,6 +931,8 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	e->total_samples_to_encode = 0;
 	e->bytes_written = 0;
 	e->samples_written = 0;
+	e->blocksize = 0;
+	e->stats_mask = 0;
 
 	e->encoder.flac.stream = 0;
 	e->encoder.flac.file = 0;
@@ -1131,6 +1131,9 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		padding.length = (unsigned)options.padding;
 		metadata[num_metadata++] = &padding;
 	}
+
+	e->blocksize = options.blocksize;
+	e->stats_mask = (options.do_exhaustive_model_search || options.do_qlp_coeff_prec_search)? 0x0f : 0x3f;
 
 #ifdef FLAC__HAS_OGG
 	if(e->use_ogg) {
@@ -1378,12 +1381,18 @@ void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_
 FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	EncoderSession *encoder_session = (EncoderSession*)client_data;
-	const unsigned mask = (OggFLAC__stream_encoder_get_do_exhaustive_model_search(encoder) || OggFLAC__stream_encoder_get_do_qlp_coeff_prec_search(encoder))? 0x1f : 0x7f;
 
 	encoder_session->bytes_written += bytes;
-	encoder_session->samples_written += samples;
+	/*
+	 * With Ogg FLAC we don't get one write callback per frame and
+	 * we don't have good number for 'samples', so we estimate based
+	 * on the frame number and the knowledge that all blocks (except
+	 * the last) are the same size.
+	 */
+	(void)samples;
+	encoder_session->samples_written = (current_frame+1) * encoder_session->blocksize;
 
-	if(samples && encoder_session->verbose && encoder_session->total_samples_to_encode > 0 && !(current_frame & mask))
+	if(encoder_session->verbose && encoder_session->total_samples_to_encode > 0 && !(current_frame & encoder_session->stats_mask))
 		print_stats(encoder_session);
 
 	if(fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_session->fout) == bytes)
@@ -1396,12 +1405,13 @@ FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__
 FLAC__StreamEncoderWriteStatus flac_stream_encoder_write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	EncoderSession *encoder_session = (EncoderSession*)client_data;
-	const unsigned mask = (FLAC__stream_encoder_get_do_exhaustive_model_search(encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(encoder))? 0x1f : 0x7f;
+
+	(void)encoder;
 
 	encoder_session->bytes_written += bytes;
 	encoder_session->samples_written += samples;
 
-	if(samples && encoder_session->verbose && encoder_session->total_samples_to_encode > 0 && !(current_frame & mask))
+	if(samples && encoder_session->verbose && encoder_session->total_samples_to_encode > 0 && !(current_frame & encoder_session->stats_mask))
 		print_stats(encoder_session);
 
 	if(fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_session->fout) == bytes)
@@ -1419,23 +1429,22 @@ void flac_stream_encoder_metadata_callback(const FLAC__StreamEncoder *encoder, c
 	(void)encoder, (void)metadata, (void)client_data;
 }
 
-void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
+void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
 {
 	EncoderSession *encoder_session = (EncoderSession*)client_data;
-	const unsigned mask = (FLAC__file_encoder_get_do_exhaustive_model_search(encoder) || FLAC__file_encoder_get_do_qlp_coeff_prec_search(encoder))? 0x1f : 0x7f;
 
-	(void)total_frames_estimate;
+	(void)encoder, (void)total_frames_estimate;
 
 	encoder_session->bytes_written = bytes_written;
-	encoder_session->samples_written = (FLAC__uint64)frames_written * (FLAC__uint64)FLAC__file_encoder_get_blocksize(encoder);
+	encoder_session->samples_written = samples_written;
 
-	if(encoder_session->verbose && encoder_session->total_samples_to_encode > 0 && !((frames_written-1) & mask))
+	if(encoder_session->verbose && encoder_session->total_samples_to_encode > 0 && !((frames_written-1) & encoder_session->stats_mask))
 		print_stats(encoder_session);
 }
 
 void print_stats(const EncoderSession *encoder_session)
 {
-	const FLAC__uint64 samples_written = max(encoder_session->total_samples_to_encode, encoder_session->samples_written);
+	const FLAC__uint64 samples_written = min(encoder_session->total_samples_to_encode, encoder_session->samples_written);
 #if defined _MSC_VER || defined __MINGW32__
 	/* with VC++ you have to spoon feed it the casting */
 	const double progress = (double)(FLAC__int64)samples_written / (double)(FLAC__int64)encoder_session->total_samples_to_encode;
