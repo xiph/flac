@@ -41,7 +41,7 @@ DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).$(DYNAMIC_LIB_SUFFIX)
 ifeq ($(DARWIN_BUILD),yes)
 LINKD       = $(CC) -dynamiclib -flat_namespace -undefined suppress -install_name $(DYNAMIC_LIB)
 else
-LINKD       = ld -G
+LINKD       = $(CC) -shared
 endif
 
 all : release
