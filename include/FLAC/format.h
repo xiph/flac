@@ -22,6 +22,10 @@
 
 #include "ordinals.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* changing the following values to be higher will break the framing and hence the stream format, so DON'T! */
 #define FLAC__MIN_BLOCK_SIZE (16u)
 #define FLAC__MAX_BLOCK_SIZE (65535u)
@@ -503,5 +507,9 @@ extern const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /* = 24 bits */
  * encapsulated here:
  */
 FLAC__bool FLAC__format_is_valid_sample_rate(unsigned sample_rate);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

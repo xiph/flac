@@ -22,6 +22,11 @@
 
 #include "format.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 typedef enum {
 	FLAC__STREAM_ENCODER_OK = 0,
 	FLAC__STREAM_ENCODER_INVALID_CALLBACK,
@@ -189,5 +194,9 @@ void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder);
  */
 FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 *buf[], unsigned samples);
 FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buf[], unsigned samples);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

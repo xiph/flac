@@ -22,6 +22,10 @@
 
 #include "stream_decoder.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum {
     FLAC__FILE_DECODER_OK = 0,
 	FLAC__FILE_DECODER_SEEKING, /*@@@ NOTE: unused; remove this in the next minor-version */
@@ -133,5 +137,9 @@ FLAC__bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder);
 FLAC__bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder);
 
 FLAC__bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, FLAC__uint64 sample);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

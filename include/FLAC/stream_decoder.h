@@ -22,6 +22,11 @@
 
 #include "format.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 typedef enum {
 	FLAC__STREAM_DECODER_SEARCH_FOR_METADATA = 0,
 	FLAC__STREAM_DECODER_READ_METADATA,
@@ -160,5 +165,9 @@ FLAC__bool FLAC__stream_decoder_process_whole_stream(FLAC__StreamDecoder *decode
 FLAC__bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder);
 FLAC__bool FLAC__stream_decoder_process_one_frame(FLAC__StreamDecoder *decoder);
 FLAC__bool FLAC__stream_decoder_process_remaining_frames(FLAC__StreamDecoder *decoder);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

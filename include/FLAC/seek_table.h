@@ -22,6 +22,15 @@
 
 #include "format.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 FLAC__bool FLAC__seek_table_is_valid(const FLAC__StreamMetaData_SeekTable *seek_table);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
