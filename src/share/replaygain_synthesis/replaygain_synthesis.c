@@ -46,6 +46,13 @@
 #define FLAC__INLINE
 #endif
 
+/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
+#ifdef _MSC_VER
+#define FLAC__I64L(x) x
+#else
+#define FLAC__I64L(x) x##LL
+#endif
+
 
 /*
  * the following is based on parts of dither.c
@@ -232,7 +239,7 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_d
 	double doubletmp, Sum2;
 	FLAC__int64 val;
 
-#define ROUND64(x)   ( doubletmp = (x) + d->Add + (FLAC__int64)0x001FFFFD80000000L, *(FLAC__int64*)(&doubletmp) - (FLAC__int64)0x433FFFFD80000000L )
+#define ROUND64(x)   ( doubletmp = (x) + d->Add + (FLAC__int64)FLAC__I64L(0x001FFFFD80000000), *(FLAC__int64*)(&doubletmp) - (FLAC__int64)FLAC__I64L(0x433FFFFD80000000) )
 
 	if(do_dithering) {
 		if(shapingtype == 0) {

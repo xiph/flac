@@ -37,6 +37,13 @@
 #include "protected/stream_decoder.h"
 #include "private/md5.h"
 
+/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
+#ifdef _MSC_VER
+#define FLAC__U64L(x) x
+#else
+#define FLAC__U64L(x) x##LLU
+#endif
+
 /***********************************************************************
  *
  * Private class method prototypes
@@ -853,7 +860,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 	FLAC__int64 pos = -1, last_pos = -1;
 	int i, lower_seek_point = -1, upper_seek_point = -1;
 	unsigned approx_bytes_per_frame;
-	FLAC__uint64 last_frame_sample = 0xffffffffffffffff;
+	FLAC__uint64 last_frame_sample = FLAC__U64L(0xffffffffffffffff);
 	FLAC__bool needs_seek;
 	const FLAC__uint64 total_samples = decoder->private_->stream_info.total_samples;
 	const unsigned min_blocksize = decoder->private_->stream_info.min_blocksize;

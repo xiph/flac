@@ -52,6 +52,13 @@
 #endif
 #define max(a,b) ((a)>(b)?(a):(b))
 
+/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
+#ifdef _MSC_VER
+#define FLAC__U64L(x) x
+#else
+#define FLAC__U64L(x) x##LLU
+#endif
+
 /***********************************************************************
  *
  * Private static data
@@ -1696,7 +1703,7 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 	if(blocksize_hint && is_known_variable_blocksize_stream) {
 		if(!FLAC__bitbuffer_read_utf8_uint64(decoder->private_->input, &xx, read_callback_, decoder, raw_header, &raw_header_len))
 			return false; /* the read_callback_ sets the state for us */
-		if(xx == 0xffffffffffffffff) { /* i.e. non-UTF8 code... */
+		if(xx == FLAC__U64L(0xffffffffffffffff)) { /* i.e. non-UTF8 code... */
 			decoder->private_->lookahead = raw_header[raw_header_len-1]; /* back up as much as we can */
 			decoder->private_->cached = true;
 			decoder->private_->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER, decoder->private_->client_data);

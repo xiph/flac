@@ -48,6 +48,13 @@
 #endif
 #define min(x,y) ((x)<(y)?(x):(y))
 
+/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
+#ifdef _MSC_VER
+#define FLAC__U64L(x) x
+#else
+#define FLAC__U64L(x) x##LLU
+#endif
+
 extern void FLAC_XMMS__file_info_box(char *filename);
 
 typedef struct {
@@ -549,7 +556,7 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		FLAC__ASSERT(metadata->data.stream_info.total_samples < 0x100000000); /* this plugin can only handle < 4 gigasamples */
+		FLAC__ASSERT(metadata->data.stream_info.total_samples < FLAC__U64L(0x100000000)); /* this plugin can only handle < 4 gigasamples */
 		file_info->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xffffffff);
 		file_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
 		file_info->channels = metadata->data.stream_info.channels;
