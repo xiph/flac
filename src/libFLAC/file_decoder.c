@@ -43,7 +43,6 @@
 #include "FLAC/assert.h"
 #include "protected/file_decoder.h"
 #include "protected/seekable_stream_decoder.h"
-#include "private/md5.h"
 
 /***********************************************************************
  *
@@ -570,12 +569,11 @@ FLAC__SeekableStreamDecoderReadStatus read_callback_(const FLAC__SeekableStreamD
 	(void)decoder;
 
 	if(*bytes > 0) {
-		size_t bytes_read = fread(buffer, sizeof(FLAC__byte), *bytes, file_decoder->private_->file);
-		if(bytes_read == 0 && !feof(file_decoder->private_->file)) {
+		*bytes = (unsigned)fread(buffer, sizeof(FLAC__byte), *bytes, file_decoder->private_->file);
+		if(ferror(file_decoder->private_->file)) {
 			return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR;
 		}
 		else {
-			*bytes = (unsigned)bytes_read;
 			return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK;
 		}
 	}
@@ -627,7 +625,7 @@ FLAC__bool eof_callback_(const FLAC__SeekableStreamDecoder *decoder, void *clien
 	FLAC__FileDecoder *file_decoder = (FLAC__FileDecoder *)client_data;
 	(void)decoder;
 
-	return feof(file_decoder->private_->file);
+	return feof(file_decoder->private_->file)? true : false;
 }
 
 FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
