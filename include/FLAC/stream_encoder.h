@@ -86,6 +86,7 @@ typedef struct {
  * unsigned     qlp_coeff_precision            (DEFAULT: 0    ) >= FLAC__MIN_QLP_COEFF_PRECISION, or 0 to let encoder select based on blocksize;
  *                                                          qlp_coeff_precision+bits_per_sample must be < 32
  * FLAC__bool   do_qlp_coeff_prec_search       (DEFAULT: false) false => use qlp_coeff_precision, true => search around qlp_coeff_precision, take best
+ * FLAC__bool   do_escape_coding               (DEFAULT: false) true => search for escape codes in the entropy coding stage for slightly better compression
  * FLAC__bool   do_exhaustive_model_search     (DEFAULT: false) false => use estimated bits per residual for scoring, true => generate all, take shortest
  * unsigned     min_residual_partition_order   (DEFAULT: 0    ) 0 => estimate Rice parameter based on residual variance; >0 => partition residual, use parameter
  * unsigned     max_residual_partition_order   (DEFAULT: 0    )      for each based on mean; min_ and max_ specify the min and max Rice partition order
@@ -135,6 +136,7 @@ FLAC__bool FLAC__stream_encoder_set_blocksize(const FLAC__StreamEncoder *encoder
 FLAC__bool FLAC__stream_encoder_set_max_lpc_order(const FLAC__StreamEncoder *encoder, unsigned value);
 FLAC__bool FLAC__stream_encoder_set_qlp_coeff_precision(const FLAC__StreamEncoder *encoder, unsigned value);
 FLAC__bool FLAC__stream_encoder_set_do_qlp_coeff_prec_search(const FLAC__StreamEncoder *encoder, FLAC__bool value);
+FLAC__bool FLAC__stream_encoder_set_do_escape_coding(const FLAC__StreamEncoder *encoder, FLAC__bool value);
 FLAC__bool FLAC__stream_encoder_set_do_exhaustive_model_search(const FLAC__StreamEncoder *encoder, FLAC__bool value);
 FLAC__bool FLAC__stream_encoder_set_min_residual_partition_order(const FLAC__StreamEncoder *encoder, unsigned value);
 FLAC__bool FLAC__stream_encoder_set_max_residual_partition_order(const FLAC__StreamEncoder *encoder, unsigned value);
@@ -161,6 +163,7 @@ unsigned   FLAC__stream_encoder_get_blocksize(const FLAC__StreamEncoder *encoder
 unsigned   FLAC__stream_encoder_get_max_lpc_order(const FLAC__StreamEncoder *encoder);
 unsigned   FLAC__stream_encoder_get_qlp_coeff_precision(const FLAC__StreamEncoder *encoder);
 FLAC__bool FLAC__stream_encoder_get_do_qlp_coeff_prec_search(const FLAC__StreamEncoder *encoder);
+FLAC__bool FLAC__stream_encoder_get_do_escape_coding(const FLAC__StreamEncoder *encoder);
 FLAC__bool FLAC__stream_encoder_get_do_exhaustive_model_search(const FLAC__StreamEncoder *encoder);
 unsigned   FLAC__stream_encoder_get_min_residual_partition_order(const FLAC__StreamEncoder *encoder);
 unsigned   FLAC__stream_encoder_get_max_residual_partition_order(const FLAC__StreamEncoder *encoder);
