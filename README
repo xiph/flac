@@ -151,7 +151,7 @@ Building with MSVC
 ===============================================================================
 
 @@@@ write instructions for FLAC.dsw and *.dsp, need %NASW% set to
-@@@@ full path to nasmw.exe
+@@@@ full path to nasmw.exe, location of ogg static libs and headers
 There is no overall make system for MSVC but the individual
 source directories with a 'Makefile.vc' file in them allow
 building with MSVC.  Just 'nmake /f Makefile.vc'.  Currently
