@@ -31,7 +31,8 @@ static int usage(const char *message, ...);
 int main(int argc, char *argv[])
 {
 	int i;
-	bool verify = false, verbose = true, lax = false, mode_decode = false, do_mid_side = true, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+	bool verify = false, verbose = true, lax = false, mode_decode = false, test_only = false;
+	bool do_mid_side = true, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
 	unsigned max_lpc_order = 8;
 	unsigned qlp_coeff_precision = 0;
 	uint64 skip = 0;
@@ -48,6 +49,10 @@ int main(int argc, char *argv[])
 			break;
 		if(0 == strcmp(argv[i], "-d"))
 			mode_decode = true;
+		else if(0 == strcmp(argv[i], "-t")) {
+			mode_decode = true;
+			test_only = true;
+		}
 		else if(0 == strcmp(argv[i], "-s"))
 			verbose = false;
 		else if(0 == strcmp(argv[i], "-s-"))
@@ -158,8 +163,8 @@ int main(int argc, char *argv[])
 			return usage("ERROR: invalid option '%s'\n", argv[i]);
 		}
 	}
-	if(i + 2 != argc)
-		return usage("ERROR: invalid arguments (more/less than 2 filenames?)\n");
+	if(i + (test_only? 1:2) != argc)
+		return usage("ERROR: invalid arguments (more/less than %d filename%s?)\n", (test_only? 1:2), (test_only? "":"s"));
 
 	/* tweak options based on the filenames; validate the values */
 	if(!mode_decode) {
@@ -191,15 +196,17 @@ int main(int argc, char *argv[])
 		}
 	}
 	else {
-		if(format_is_wave < 0) {
-			if(strstr(argv[i+1], ".wav") == argv[i+1] + (strlen(argv[i+1]) - strlen(".wav")))
-				format_is_wave = true;
-			else
-				format_is_wave = false;
-		}
-		if(!format_is_wave) {
-			if(format_is_big_endian < 0)
-				return usage("ERROR: for decoding to a raw file you must specify -fb or -fl\n");
+		if(!test_only) {
+			if(format_is_wave < 0) {
+				if(strstr(argv[i+1], ".wav") == argv[i+1] + (strlen(argv[i+1]) - strlen(".wav")))
+					format_is_wave = true;
+				else
+					format_is_wave = false;
+			}
+			if(!format_is_wave) {
+				if(format_is_big_endian < 0)
+					return usage("ERROR: for decoding to a raw file you must specify -fb or -fl\n");
+			}
 		}
 	}
 
@@ -225,7 +232,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* turn off verbosity if the output stream is going to stdout */
-	if(0 == strcmp(argv[i+1], "-"))
+	if(!test_only && 0 == strcmp(argv[i+1], "-"))
 		verbose = false;
 
 	if(verbose) {
@@ -246,9 +253,9 @@ int main(int argc, char *argv[])
 
 	if(mode_decode)
 		if(format_is_wave)
-			return decode_wav(argv[i], argv[i+1], verbose, skip);
+			return decode_wav(argv[i], test_only? 0 : argv[i+1], verbose, skip);
 		else
-			return decode_raw(argv[i], argv[i+1], verbose, skip, format_is_big_endian, format_is_unsigned_samples);
+			return decode_raw(argv[i], test_only? 0 : argv[i+1], verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 	else
 		if(format_is_wave)
 			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision);
@@ -263,8 +270,6 @@ int usage(const char *message, ...)
 	va_list args;
 
 	if(message) {
-		fprintf(stderr, message);
-		fprintf(stderr, "\n");
 		va_start(args, message);
 
 		(void) vfprintf(stderr, message, args);

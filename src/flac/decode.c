@@ -30,6 +30,7 @@
 typedef struct {
 	FILE *fout;
 	bool abort_flag;
+	bool test_only;
 	bool is_wave_out;
 	bool is_big_endian;
 	bool is_unsigned_samples;
@@ -57,23 +58,27 @@ static void print_stats(const stream_info_struct *stream_info);
 
 int decode_wav(const char *infile, const char *outfile, bool verbose, uint64 skip)
 {
+	bool md5_failure = false;
 	stream_info_struct stream_info;
 
 	decoder = 0;
 	stream_info.abort_flag = false;
+	stream_info.test_only = (outfile == 0);
 	stream_info.is_wave_out = true;
 	stream_info.verbose = verbose;
 	stream_info.skip = skip;
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
 
-	if(0 == strcmp(outfile, "-")) {
-		stream_info.fout = stdout;
-	}
-	else {
-		if(0 == (stream_info.fout = fopen(outfile, "wb"))) {
-			fprintf(stderr, "ERROR: can't open output file %s\n", outfile);
-			return false;
+	if(!stream_info.test_only) {
+		if(0 == strcmp(outfile, "-")) {
+			stream_info.fout = stdout;
+		}
+		else {
+			if(0 == (stream_info.fout = fopen(outfile, "wb"))) {
+				fprintf(stderr, "ERROR: can't open output file %s\n", outfile);
+				return false;
+			}
 		}
 	}
 
@@ -82,42 +87,52 @@ int decode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 
 	if(skip > 0) {
 		if(!FLAC__file_decoder_process_metadata(decoder)) {
-			fprintf(stderr, "ERROR during decoding\n");
+			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_seek_absolute(decoder, skip)) {
-			fprintf(stderr, "ERROR seeking while skipping bytes in input file %s\n", infile);
+			fprintf(stderr, "%s: ERROR seeking while skipping bytes\n", infile);
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
-			fprintf(stderr, "ERROR during decoding\n");
+			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto wav_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			fprintf(stderr, "ERROR during decoding\n");
+			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto wav_abort_;
 		}
 	}
 	else {
 		if(!FLAC__file_decoder_process_whole_file(decoder)) {
-			fprintf(stderr, "ERROR during decoding\n");
+			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto wav_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			fprintf(stderr, "ERROR during decoding, state=%d:%s\n", decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto wav_abort_;
 		}
 	}
 
 	if(decoder) {
 		if(decoder->state != FLAC__FILE_DECODER_UNINITIALIZED)
-			FLAC__file_decoder_finish(decoder);
+			md5_failure = !FLAC__file_decoder_finish(decoder);
 		print_stats(&stream_info);
 		FLAC__file_decoder_free_instance(decoder);
 	}
-	fclose(stream_info.fout);
+	if(!stream_info.test_only)
+		fclose(stream_info.fout);
 	if(verbose)
 		printf("\n");
+	fflush(stdout);
+	if(md5_failure) {
+		fprintf(stderr, "%s: WARNING, MD5 signature mismatch\n", infile);
+		return 1;
+	}
+	else {
+		if(stream_info.test_only)
+			printf("%s: ok\n", infile);
+	}
 	return 0;
 wav_abort_:
 	if(decoder) {
@@ -125,17 +140,21 @@ wav_abort_:
 			FLAC__file_decoder_finish(decoder);
 		FLAC__file_decoder_free_instance(decoder);
 	}
-	fclose(stream_info.fout);
-	unlink(outfile);
+	if(!stream_info.test_only) {
+		fclose(stream_info.fout);
+		unlink(outfile);
+	}
 	return 1;
 }
 
 int decode_raw(const char *infile, const char *outfile, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples)
 {
+	bool md5_failure = false;
 	stream_info_struct stream_info;
 
 	decoder = 0;
 	stream_info.abort_flag = false;
+	stream_info.test_only = (outfile == 0);
 	stream_info.is_wave_out = false;
 	stream_info.is_big_endian = is_big_endian;
 	stream_info.is_unsigned_samples = is_unsigned_samples;
@@ -144,13 +163,15 @@ int decode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
 
-	if(0 == strcmp(outfile, "-")) {
-		stream_info.fout = stdout;
-	}
-	else {
-		if(0 == (stream_info.fout = fopen(outfile, "wb"))) {
-			fprintf(stderr, "ERROR: can't open output file %s\n", outfile);
-			return false;
+	if(!stream_info.test_only) {
+		if(0 == strcmp(outfile, "-")) {
+			stream_info.fout = stdout;
+		}
+		else {
+			if(0 == (stream_info.fout = fopen(outfile, "wb"))) {
+				fprintf(stderr, "ERROR: can't open output file %s\n", outfile);
+				return false;
+			}
 		}
 	}
 
@@ -159,42 +180,52 @@ int decode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 
 	if(skip > 0) {
 		if(!FLAC__file_decoder_process_metadata(decoder)) {
-			fprintf(stderr, "ERROR during decoding\n");
+			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_seek_absolute(decoder, skip)) {
-			fprintf(stderr, "ERROR seeking while skipping bytes in input file %s\n", infile);
+			fprintf(stderr, "%s: ERROR seeking while skipping bytes\n", infile);
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
-			fprintf(stderr, "ERROR during decoding\n");
+			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto raw_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			fprintf(stderr, "ERROR during decoding\n");
+			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto raw_abort_;
 		}
 	}
 	else {
 		if(!FLAC__file_decoder_process_whole_file(decoder)) {
-			fprintf(stderr, "ERROR during decoding\n");
+			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto raw_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			fprintf(stderr, "ERROR during decoding\n");
+			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto raw_abort_;
 		}
 	}
 
 	if(decoder) {
 		if(decoder->state != FLAC__FILE_DECODER_UNINITIALIZED)
-			FLAC__file_decoder_finish(decoder);
+			md5_failure = !FLAC__file_decoder_finish(decoder);
 		print_stats(&stream_info);
 		FLAC__file_decoder_free_instance(decoder);
 	}
-	fclose(stream_info.fout);
+	if(!stream_info.test_only)
+		fclose(stream_info.fout);
 	if(verbose)
 		printf("\n");
+	fflush(stdout);
+	if(md5_failure) {
+		fprintf(stderr, "%s: WARNING, MD5 signature mismatch\n", infile);
+		return 1;
+	}
+	else {
+		if(stream_info.test_only)
+			printf("%s: ok\n", infile);
+	}
 	return 0;
 raw_abort_:
 	if(decoder) {
@@ -202,8 +233,10 @@ raw_abort_:
 			FLAC__file_decoder_finish(decoder);
 		FLAC__file_decoder_free_instance(decoder);
 	}
-	fclose(stream_info.fout);
-	unlink(outfile);
+	if(!stream_info.test_only) {
+		fclose(stream_info.fout);
+		unlink(outfile);
+	}
 	return 1;
 }
 
@@ -218,6 +251,7 @@ bool init(const char *infile, stream_info_struct *stream_info)
 		fprintf(stderr, "ERROR creating the decoder instance\n");
 		return false;
 	}
+	decoder->check_md5 = true;
 
 	if(FLAC__file_decoder_init(decoder, infile, write_callback, metadata_callback, error_callback, stream_info) != FLAC__FILE_DECODER_OK) {
 		fprintf(stderr, "ERROR initializing decoder, state = %d\n", decoder->state);
@@ -272,41 +306,43 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 	if(stream_info->verbose && !(stream_info->frame_counter & 0x1f))
 		print_stats(stream_info);
 
-	if(bps == 8) {
-		if(is_unsigned_samples) {
-			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++)
-					ucbuffer[sample] = buffer[channel][wide_sample] + 128;
-		}
-		else {
-			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++)
-					scbuffer[sample] = buffer[channel][wide_sample];
-		}
-		if(fwrite(ucbuffer, 1, sample, fout) != sample)
-			return FLAC__STREAM_DECODER_WRITE_ABORT;
-	}
-	else { /* bps == 16 */
-		if(is_unsigned_samples) {
-			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++)
-					usbuffer[sample] = buffer[channel][wide_sample] + 32768;
-		}
-		else {
-			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++)
-					ssbuffer[sample] = buffer[channel][wide_sample];
-		}
-		if(is_big_endian != is_big_endian_host) {
-			unsigned char tmp;
-			for(byte = 0; byte < sample<<1; byte += 2) {
-				tmp = ucbuffer[byte];
-				ucbuffer[byte] = ucbuffer[byte+1];
-				ucbuffer[byte+1] = tmp;
+	if(!stream_info->test_only) {
+		if(bps == 8) {
+			if(is_unsigned_samples) {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						ucbuffer[sample] = buffer[channel][wide_sample] + 128;
 			}
+			else {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						scbuffer[sample] = buffer[channel][wide_sample];
+			}
+			if(fwrite(ucbuffer, 1, sample, fout) != sample)
+				return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}
-		if(fwrite(usbuffer, 2, sample, fout) != sample)
-			return FLAC__STREAM_DECODER_WRITE_ABORT;
+		else { /* bps == 16 */
+			if(is_unsigned_samples) {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						usbuffer[sample] = buffer[channel][wide_sample] + 32768;
+			}
+			else {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						ssbuffer[sample] = buffer[channel][wide_sample];
+			}
+			if(is_big_endian != is_big_endian_host) {
+				unsigned char tmp;
+				for(byte = 0; byte < sample<<1; byte += 2) {
+					tmp = ucbuffer[byte];
+					ucbuffer[byte] = ucbuffer[byte+1];
+					ucbuffer[byte+1] = tmp;
+				}
+			}
+			if(fwrite(usbuffer, 2, sample, fout) != sample)
+				return FLAC__STREAM_DECODER_WRITE_ABORT;
+		}
 	}
 	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
 }
@@ -328,7 +364,7 @@ void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaD
 		}
 
 		/* write the WAVE headers if necessary */
-		if(stream_info->is_wave_out) {
+		if(!stream_info->test_only && stream_info->is_wave_out) {
 			uint64 data_size = stream_info->total_samples * stream_info->channels * ((stream_info->bps+7)/8);
 			if(data_size >= 0xFFFFFFDC) {
 				fprintf(stderr, "ERROR: stream is too big for a wave file\n");
@@ -362,7 +398,8 @@ void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorSt
 void print_stats(const stream_info_struct *stream_info)
 {
 	if(stream_info->verbose) {
-		printf("\rwrote %u of %u samples, %6.2f%% complete",
+		printf("\r%s %u of %u samples, %6.2f%% complete",
+			stream_info->test_only? "tested" : "wrote",
 			(unsigned)stream_info->samples_processed,
 			(unsigned)stream_info->total_samples,
 #ifdef _MSC_VER
