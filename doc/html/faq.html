@@ -115,6 +115,9 @@
 		<LI>
 			<A HREF="#general__lowest_bitrate"><B>What is the lowest bitrate achievable with FLAC?</B></A>
 		</LI>
+		<LI>
+			<A HREF="#general__submit_bug"><B>How do I submit a bug report?</B></A>
+		</LI>
 	</UL>
 	</P>
 
@@ -130,6 +133,9 @@
 		</LI>
 		<LI>
 			<A HREF="#tools__long_meta_edits"><B>Why does it take so long to edit some FLAC files with metaflac?</B></A>
+		</LI>
+		<LI>
+			<A HREF="#tools__hardware_prob"><B>I compressed a file to FLAC with verify on, and flac said "Verify FAILED!"  Why?</B></A>
 		</LI>
 		<LI>
 			<A HREF="#tools__wave_flac_wave"><B>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</B></A>
@@ -264,6 +270,12 @@
 	<P>
 		With FLAC you do not specify a bitrate like with some lossy codecs.  It's more like specifying a quality with Vorbis or MPC, except with FLAC the quality is always "lossless" and the resulting bitrate is roughly proportional to the amount of information in the original signal.  You cannot control the bitrate and the result can be from around 100% of the input rate (if you are encoding noise), down to almost 0 (encoding silence).
 	</P>
+	<P>
+		<A NAME="general__submit_bug"><B>How do I submit a bug report?</B></A>
+	</P>
+	<P>
+		First, <A HREF="http://sourceforge.net/tracker/?group_id=13478&atid=113478">visit the bug submission page</A> and do a little searching of both open and closed bugs to see if yours is already there.  If you have something truly new, <A HREF="http://sourceforge.net/bugs/?func=addbug&group_id=13478">submit a new bug</A>.  <B>Make sure</B> to monitor the bug or include your email address in the description.
+	</P>
 
 	<H2>
 		<B>Tools</B>
@@ -288,6 +300,12 @@
 	</P>
 	<P>
 		Since metadata is stored at the beginning of a FLAC file, changing the length of it can sometimes cause the whole file to be rewritten.  You can avoid this by adding padding with <TT>flac</TT> when you encode, or with <TT>metaflac</TT> after encoding.  By default, <TT>flac</TT> adds 4k of padding; you can change this amount if you need more or less.
+	</P>
+	<P>
+		<A NAME="tools__hardware_prob"><B>I compressed a file to FLAC with verify on, and flac said "Verify FAILED!"  Why?</B></A>
+	</P>
+	<P>
+		Every single report of this has turned out to be caused by a hardware problem, usually aggressive over-clocking or bad RAM.  The best indicator of this is that the verify failure does not always happen in the same place for the same file.  First, read the comments in <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=595858&group_id=13478&atid=113478">this bug report</A>.  Then, if you have a file that fails verification in the same place every time, <A HREF="#general__submit_bug">submit a new bug</A>, uploading a sample according to <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=585158&group_id=13478&atid=113478">the instructions found at the bottom of this bug report</A>.
 	</P>
 	<P>
 		<A NAME="tools__wave_flac_wave"><B>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</B></A>
