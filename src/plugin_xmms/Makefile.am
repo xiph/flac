@@ -26,6 +26,13 @@ LIBTOOL = $(top_builddir)/libtool-disable-static
 
 xmmsinputplugin_LTLIBRARIES = libxmms-flac.la
 libxmms_flac_la_SOURCES = plugin.c
-libxmms_flac_la_LIBADD = $(top_builddir)/src/libFLAC/libFLAC.la @XMMS_LIBS@
-#libxmms_flac_la_LIBADD = -L$(top_builddir)/src/libFLAC/.libs -lFLAC @XMMS_LIBS@
+# work around the bug in libtool where its relinking fails with a different DESTDIR
+# for libtool bug info see:
+#   http://mail.gnu.org/pipermail/bug-libtool/2002-February/003018.html
+#   http://mail.gnu.org/pipermail/libtool/2002-April/006244.html
+#   http://mail.gnu.org/pipermail/libtool/2002-April/006250.html
+# for fix info see:
+#   http://lists.freshrpms.net/pipermail/rpm-list/2002-April/000746.html
+# the workaround is the extra '-L$(top_builddir)/src/libFLAC/.libs'
+libxmms_flac_la_LIBADD = $(top_builddir)/src/libFLAC/libFLAC.la -L$(top_builddir)/src/libFLAC/.libs @XMMS_LIBS@
 libxmms_flac_la_LDFLAGS = -module -avoid-version
