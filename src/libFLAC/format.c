@@ -36,7 +36,8 @@ const unsigned FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN = 20; /* bits */
 const unsigned FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN = 3; /* bits */
 const unsigned FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN = 5; /* bits */
 const unsigned FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN = 36; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_LENGTH = 18; /* bytes */
+const unsigned FLAC__STREAM_METADATA_ENCODING_MD5SUM_LEN = 128; /* bits */
+const unsigned FLAC__STREAM_METADATA_ENCODING_LENGTH = 34; /* bytes */
 
 const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN = 1; /* bits */
 const unsigned FLAC__STREAM_METADATA_TYPE_LEN = 7; /* bits */

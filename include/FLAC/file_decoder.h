@@ -30,12 +30,16 @@ typedef enum {
     FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR,
 	FLAC__FILE_DECODER_SEEK_ERROR,
 	FLAC__FILE_DECODER_STREAM_ERROR,
+	FLAC__FILE_DECODER_MD5_ERROR,
     FLAC__FILE_DECODER_UNINITIALIZED
 } FLAC__FileDecoderState;
 extern const char *FLAC__FileDecoderStateString[];
 
 struct FLAC__FileDecoderPrivate;
 typedef struct {
+	/* this field may not change once FLAC__file_decoder_init() is called */
+	bool check_md5; /* if true, generate MD5 signature of decoded data and compare against signature in the Encoding metadata block */
+
 	FLAC__FileDecoderState state; /* must be FLAC__FILE_DECODER_UNINITIALIZED when passed to FLAC__file_decoder_init() */
 	struct FLAC__FileDecoderPrivate *guts; /* must be 0 when passed to FLAC__file_decoder_init() */
 } FLAC__FileDecoder;
@@ -50,7 +54,8 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	void (*error_callback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data),
 	void *client_data
 );
-void FLAC__file_decoder_finish(FLAC__FileDecoder *decoder);
+/* only returns false if check_md5 is set AND the stored MD5 sum is non-zero AND the stored MD5 sum and computed MD5 sum do not match */
+bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder);
 bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder);
 bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder);
 bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder);

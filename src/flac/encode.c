@@ -603,6 +603,10 @@ void metadata_callback(const FLAC__Encoder *encoder, const FLAC__StreamMetaData 
 	 * would also break all streams encoded in the previous format.
 	 */
 
+	if(-1 == fseek(f, 26, SEEK_SET)) goto samples_;
+	fwrite(metadata->data.encoding.md5sum, 1, 16, f);
+
+samples_:
 	if(-1 == fseek(f, 21, SEEK_SET)) goto framesize_;
 	if(fread(&b, 1, 1, f) != 1) goto framesize_;
 	if(-1 == fseek(f, 21, SEEK_SET)) goto framesize_;

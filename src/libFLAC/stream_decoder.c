@@ -481,6 +481,13 @@ bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 			return false; /* the read_callback_ sets the state for us */
 		used_bits += FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN;
 
+		for(i = 0; i < 16; i++) {
+			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
+				return false; /* the read_callback_ sets the state for us */
+			decoder->guts->stream_header.data.encoding.md5sum[i] = (byte)x;
+		}
+		used_bits += 128;
+
 		/* skip the rest of the block */
 		assert(used_bits % 8 == 0);
 		length -= (used_bits / 8);

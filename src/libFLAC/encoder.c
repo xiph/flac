@@ -26,6 +26,7 @@
 #include "private/encoder_framing.h"
 #include "private/fixed.h"
 #include "private/lpc.h"
+#include "private/md5.h"
 
 #ifdef min
 #undef min
@@ -54,6 +55,7 @@ typedef struct FLAC__EncoderPrivate {
 	FLAC__StreamMetaData metadata;
 	unsigned current_sample_number;
 	unsigned current_frame_number;
+	struct MD5Context md5context;
 	FLAC__EncoderWriteStatus (*write_callback)(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 	void (*metadata_callback)(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
 	void *client_data;
@@ -329,6 +331,8 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	encoder->guts->metadata.data.encoding.channels = encoder->channels;
 	encoder->guts->metadata.data.encoding.bits_per_sample = encoder->bits_per_sample;
 	encoder->guts->metadata.data.encoding.total_samples = 0; /* we don't know this yet; have to fill it in later */
+	memset(encoder->guts->metadata.data.encoding.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
+	MD5Init(&encoder->guts->md5context);
 	if(!FLAC__add_metadata_block(&encoder->guts->metadata, &encoder->guts->frame))
 		return encoder->state = FLAC__ENCODER_FRAMING_ERROR;
 
@@ -354,6 +358,7 @@ void FLAC__encoder_finish(FLAC__Encoder *encoder)
 		encoder->blocksize = encoder->guts->current_sample_number;
 		encoder_process_frame_(encoder, true); /* true => is last frame */
 	}
+	MD5Final(encoder->guts->metadata.data.encoding.md5sum, &encoder->guts->md5context);
 	encoder->guts->metadata_callback(encoder, &encoder->guts->metadata, encoder->guts->client_data);
 	if(encoder->guts != 0) {
 		for(i = 0; i < encoder->channels; i++) {
@@ -487,6 +492,14 @@ bool encoder_process_frame_(FLAC__Encoder *encoder, bool is_last_frame)
 	FLAC__BitBuffer *smallest_frame;
 
 	assert(encoder->state == FLAC__ENCODER_OK);
+
+	/*
+	 * Accumulate raw signal to the MD5 signature
+	 */
+	if(!FLAC__MD5Accumulate(&encoder->guts->md5context, encoder->guts->integer_signal, encoder->channels, encoder->blocksize, (encoder->bits_per_sample+7) / 8)) {
+		encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
+		return false;
+	}
 
 	/*
 	 * First do a normal encoding pass

@@ -66,8 +66,9 @@ typedef enum {
  *  3: (number of channels)-1
  *  5: (bits per sample)-1
  * 36: total samples, 0 => unknown
+ *128: MD5 digest of the original unencoded audio data
  *---- -----------------
- * 18  bytes total
+ * 34  bytes total
  */
 typedef struct {
 	unsigned min_blocksize, max_blocksize;
@@ -76,6 +77,7 @@ typedef struct {
 	unsigned channels;
 	unsigned bits_per_sample;
 	uint64 total_samples;
+	byte md5sum[16];
 } FLAC__StreamMetaData_Encoding;
 
 extern const unsigned FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN; /* = 16 bits */
@@ -86,7 +88,8 @@ extern const unsigned FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN; /* = 20 bi
 extern const unsigned FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN; /* = 3 bits */
 extern const unsigned FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN; /* = 5 bits */
 extern const unsigned FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN; /* = 36 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_LENGTH; /* = 18 bytes */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_MD5SUM_LEN; /* = 128 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_LENGTH; /* = 34 bytes */
 
 /*****************************************************************************
  *

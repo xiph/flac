@@ -32,6 +32,8 @@ static bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const i
 
 bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuffer *bb)
 {
+	unsigned i;
+
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->is_last, FLAC__STREAM_METADATA_IS_LAST_LEN))
 		return false;
 
@@ -70,6 +72,10 @@ bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuf
 				return false;
 			if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.encoding.total_samples, FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN))
 				return false;
+			for(i = 0; i < 16; i++) {
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.encoding.md5sum[i], 8))
+					return false;
+			}
 			break;
 		default:
 			assert(0);

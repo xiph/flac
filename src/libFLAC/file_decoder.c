@@ -23,6 +23,7 @@
 #include <string.h> /* for strcmp() */
 #include "FLAC/file_decoder.h"
 #include "protected/stream_decoder.h"
+#include "private/md5.h"
 
 typedef struct FLAC__FileDecoderPrivate {
 	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data);
@@ -31,6 +32,9 @@ typedef struct FLAC__FileDecoderPrivate {
 	void *client_data;
 	FILE *file;
 	FLAC__StreamDecoder *stream;
+	struct MD5Context md5context;
+	byte stored_md5sum[16]; /* this is what is stored in the metadata */
+	byte computed_md5sum[16]; /* this is the sum we computed from the decoded data */
 	/* the rest of these are only used for seeking: */
 	FLAC__StreamMetaData_Encoding metadata; /* we keep this around so we can figure out how to seek quickly */
 	FLAC__FrameHeader last_frame_header; /* holds the info of the last frame we seeked to */
@@ -105,6 +109,14 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	if(decoder->guts->file == 0)
 		return decoder->state = FLAC__FILE_DECODER_ERROR_OPENING_FILE;
 
+	/* We initialize the MD5Context even though we may never use it.  This is
+	 * because check_md5 may be turned on to start and then turned off if a
+	 * seek occurs.  So we always init the context here and finalize it in
+	 * FLAC__file_decoder_finish() to make sure things are always cleaned up
+	 *properly.
+	 */
+	MD5Init(&decoder->guts->md5context);
+
 	decoder->guts->stream = FLAC__stream_decoder_get_new_instance();
 	if(FLAC__stream_decoder_init(decoder->guts->stream, read_callback_, write_callback_, metadata_callback_, error_callback_, decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
 		return decoder->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR; /* this is based on internal knowledge of FLAC__stream_decoder_init() */
@@ -112,22 +124,33 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	return decoder->state;
 }
 
-void FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
+bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
 {
+	bool md5_failed = false;
+
 	assert(decoder != 0);
 	if(decoder->state == FLAC__FILE_DECODER_UNINITIALIZED)
-		return;
+		return true;
 	if(decoder->guts != 0) {
 		if(decoder->guts->file != 0 && decoder->guts->file != stdin)
 			fclose(decoder->guts->file);
+		/* see the comment in FLAC__file_decoder_init() as to why we always
+		 * call MD5Final()
+		 */
+		MD5Final(decoder->guts->computed_md5sum, &decoder->guts->md5context);
 		if(decoder->guts->stream != 0) {
 			FLAC__stream_decoder_finish(decoder->guts->stream);
 			FLAC__stream_decoder_free_instance(decoder->guts->stream);
+		}
+		if(decoder->check_md5) {
+			if(memcmp(decoder->guts->stored_md5sum, decoder->guts->computed_md5sum, 16))
+				md5_failed = true;
 		}
 		free(decoder->guts);
 		decoder->guts = 0;
 	}
 	decoder->state = FLAC__FILE_DECODER_UNINITIALIZED;
+	return !md5_failed;
 }
 
 bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
@@ -206,6 +229,9 @@ bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample)
 	assert(decoder->state == FLAC__FILE_DECODER_OK);
 
 	decoder->state = FLAC__FILE_DECODER_SEEKING;
+
+	/* turn off md5 checking if a seek is attempted */
+	decoder->check_md5 = false;
 
 	if(!FLAC__stream_decoder_reset(decoder->guts->stream)) {
 		decoder->state = FLAC__FILE_DECODER_STREAM_ERROR;
@@ -301,6 +327,10 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decode
 		}
 	}
 	else {
+		if(file_decoder->check_md5) {
+			if(!FLAC__MD5Accumulate(&file_decoder->guts->md5context, buffer, header->channels, header->blocksize, (header->bits_per_sample+7) / 8))
+				return FLAC__STREAM_DECODER_WRITE_ABORT;
+		}
 		return file_decoder->guts->write_callback(file_decoder, header, buffer, file_decoder->guts->client_data);
 	}
 }
@@ -310,8 +340,13 @@ void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMe
 	FLAC__FileDecoder *file_decoder = (FLAC__FileDecoder *)client_data;
 	(void)decoder;
 
-	if(metadata->type == FLAC__METADATA_TYPE_ENCODING)
+	if(metadata->type == FLAC__METADATA_TYPE_ENCODING) {
 		file_decoder->guts->metadata = metadata->data.encoding;
+		/* save the MD5 signature for comparison later */
+		memcpy(file_decoder->guts->stored_md5sum, metadata->data.encoding.md5sum, 16);
+		if(0 == memcmp(file_decoder->guts->stored_md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16))
+			file_decoder->check_md5 = false;
+	}
 	if(file_decoder->state != FLAC__FILE_DECODER_SEEKING)
 		file_decoder->guts->metadata_callback(file_decoder, metadata, file_decoder->guts->client_data);
 }
