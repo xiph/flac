@@ -16,10 +16,15 @@
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA  02111-1307, USA.
 
-# nasm build rule:
 SUFFIXES = .nasm .lo
+
+STRIP_FPIC = sh $(top_srcdir)/strip_fPIC.sh
+
 .nasm.lo:
-	$(NASM) -f $(OBJ_FORMAT) -d OBJ_FORMAT_$(OBJ_FORMAT) $< -o $@
+	$(LIBTOOL) --tag=CC --mode=compile \
+		$(STRIP_FPIC) $(NASM) -f $(OBJ_FORMAT) -d OBJ_FORMAT_$(OBJ_FORMAT) $<
+
+#@@@OLD RULE:	$(NASM) -f $(OBJ_FORMAT) -d OBJ_FORMAT_$(OBJ_FORMAT) $< -o $@
 
 noinst_LTLIBRARIES = libFLAC-asm.la
 libFLAC_asm_la_SOURCES = \
