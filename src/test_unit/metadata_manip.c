@@ -708,7 +708,7 @@ static FLAC__bool test_level_1_()
 		return die_("copying object");
 	if(!insert_to_our_metadata_(padding, our_current_position+1, /*copy=*/true))
 		return die_("copying object");
-	our_metadata_.blocks[our_current_position+1]->length = sizeof(data) - 23 - 4;
+	our_metadata_.blocks[our_current_position+1]->length = sizeof(data) - 23 - FLAC__STREAM_METADATA_HEADER_LENGTH;
 	if(!FLAC__metadata_simple_iterator_set_block(siterator, app, true))
 		return die_ss_("FLAC__metadata_simple_iterator_set_block(siterator, app, true)", siterator);
 
@@ -1363,9 +1363,9 @@ static FLAC__bool test_level_2_()
 
 	printf("SPPPAPP\tmerge padding\n");
 	FLAC__metadata_chain_merge_padding(chain);
-	our_metadata_.blocks[1]->length += (4 + our_metadata_.blocks[2]->length);
-	our_metadata_.blocks[1]->length += (4 + our_metadata_.blocks[3]->length);
-	our_metadata_.blocks[5]->length += (4 + our_metadata_.blocks[6]->length);
+	our_metadata_.blocks[1]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[2]->length);
+	our_metadata_.blocks[1]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[3]->length);
+	our_metadata_.blocks[5]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[6]->length);
 	delete_from_our_metadata_(6);
 	delete_from_our_metadata_(3);
 	delete_from_our_metadata_(2);
@@ -1379,7 +1379,7 @@ static FLAC__bool test_level_2_()
 
 	printf("SPAP\tsort padding\n");
 	FLAC__metadata_chain_sort_padding(chain);
-	our_metadata_.blocks[3]->length += (4 + our_metadata_.blocks[1]->length);
+	our_metadata_.blocks[3]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[1]->length);
 	delete_from_our_metadata_(1);
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
