@@ -58,6 +58,7 @@ typedef struct {
 	const char *inbasefilename;
 	const char *outfilename;
 
+	FLAC__uint64 skip;
 	FLAC__bool replay_gain;
 	unsigned channels;
 	unsigned bits_per_sample;
@@ -156,8 +157,6 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 	unsigned int channels= 0U, bps= 0U, sample_rate= 0U, sample_frames= 0U;
 	FLAC__bool got_comm_chunk= false, got_ssnd_chunk= false;
 	int info_align_carry= -1, info_align_zero= -1;
-
-	FLAC__ASSERT(!options.common.sector_align || options.common.skip == 0);
 
 	(void)infilesize; /* silence compiler warning about unused parameter */
 	(void)lookahead; /* silence compiler warning about unused parameter */
@@ -263,6 +262,15 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 				skip-= need;
 			}
 
+			/*
+			 * now that we know the sample rate, canonicalize the
+			 * --skip string to a number of samples:
+			 */
+			flac__utils_canonicalize_skip_until_specification(&options.common.skip_specification, sample_rate);
+			FLAC__ASSERT(options.common.skip_specification.value.samples >= 0);
+			encoder_session.skip = (FLAC__uint64)options.common.skip_specification.value.samples;
+			FLAC__ASSERT(!options.common.sector_align || encoder_session.skip == 0);
+
 			got_comm_chunk= true;
 		}
 		else if(got_ssnd_chunk==false && !strncmp(chunk_id, "SSND", 4)) { /* sound data chunk */
@@ -303,8 +311,8 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			}
 			block_size= xx;
 
-			if(options.common.skip>0U) {
-				FLAC__uint64 remaining= options.common.skip*bytes_per_frame;
+			if(encoder_session.skip>0U) {
+				FLAC__uint64 remaining= encoder_session.skip*bytes_per_frame;
 
 				/* do 1<<30 bytes at a time, since 1<<30 is a nice round number, and */
 				/* is guaranteed to be less than LONG_MAX */
@@ -324,7 +332,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 				}
 			}
 
-			data_bytes-= (8U + (unsigned int)options.common.skip*bytes_per_frame); /*@@@ WATCHOUT: 4GB limit */
+			data_bytes-= (8U + (unsigned int)encoder_session.skip*bytes_per_frame); /*@@@ WATCHOUT: 4GB limit */
 			encoder_session.total_samples_to_encode= data_bytes/bytes_per_frame + *options.common.align_reservoir_samples;
 			if(options.common.sector_align) {
 				align_remainder= (unsigned int)(encoder_session.total_samples_to_encode % 588U);
@@ -487,8 +495,6 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	unsigned align_remainder = 0;
 	int info_align_carry = -1, info_align_zero = -1;
 
-	FLAC__ASSERT(!options.common.sector_align || options.common.skip == 0);
-
 	(void)infilesize;
 	(void)lookahead;
 	(void)lookahead_length;
@@ -595,6 +601,15 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				}
 			}
 
+			/*
+			 * now that we know the sample rate, canonicalize the
+			 * --skip string to a number of samples:
+			 */
+			flac__utils_canonicalize_skip_until_specification(&options.common.skip_specification, sample_rate);
+			FLAC__ASSERT(options.common.skip_specification.value.samples >= 0);
+			encoder_session.skip = (FLAC__uint64)options.common.skip_specification.value.samples;
+			FLAC__ASSERT(!options.common.sector_align || encoder_session.skip == 0);
+
 			got_fmt_chunk = true;
 		}
 		else if(xx == 0x61746164 && !got_data_chunk && got_fmt_chunk) { /* "data" */
@@ -605,11 +620,11 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 
 			bytes_per_wide_sample = channels * (bps >> 3);
 
-			if(options.common.skip > 0) {
-				if(fseek(infile, bytes_per_wide_sample * (unsigned)options.common.skip, SEEK_CUR) < 0) {
+			if(encoder_session.skip > 0) {
+				if(fseek(infile, bytes_per_wide_sample * (unsigned)encoder_session.skip, SEEK_CUR) < 0) {
 					/* can't seek input, read ahead manually... */
 					unsigned left, need;
-					for(left = (unsigned)options.common.skip; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
+					for(left = (unsigned)encoder_session.skip; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
 						need = min(left, CHUNK_OF_SAMPLES);
 						if(fread(ucbuffer_, bytes_per_wide_sample, need, infile) < need) {
 							fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
@@ -620,7 +635,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				}
 			}
 
-			data_bytes -= (unsigned)options.common.skip * bytes_per_wide_sample; /*@@@ WATCHOUT: 4GB limit */
+			data_bytes -= (unsigned)encoder_session.skip * bytes_per_wide_sample; /*@@@ WATCHOUT: 4GB limit */
 			encoder_session.total_samples_to_encode = data_bytes / bytes_per_wide_sample + *options.common.align_reservoir_samples;
 			if(options.common.sector_align) {
 				align_remainder = (unsigned)(encoder_session.total_samples_to_encode % 588);
@@ -783,12 +798,10 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	unsigned align_remainder = 0;
 	int info_align_carry = -1, info_align_zero = -1;
 
-	FLAC__ASSERT(!options.common.sector_align || options.common.skip == 0);
 	FLAC__ASSERT(!options.common.sector_align || options.channels == 2);
 	FLAC__ASSERT(!options.common.sector_align || options.bps == 16);
 	FLAC__ASSERT(!options.common.sector_align || options.sample_rate == 44100);
 	FLAC__ASSERT(!options.common.sector_align || infilesize >= 0);
-	FLAC__ASSERT(!options.common.replay_gain || options.common.skip == 0);
 	FLAC__ASSERT(!options.common.replay_gain || options.channels <= 2);
 	FLAC__ASSERT(!options.common.replay_gain || grabbag__replaygain_is_valid_sample_frequency(options.sample_rate));
 
@@ -809,13 +822,23 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	)
 		return 1;
 
+	/*
+	 * now that we know the sample rate, canonicalize the
+	 * --skip string to a number of samples:
+	 */
+	flac__utils_canonicalize_skip_until_specification(&options.common.skip_specification, options.sample_rate);
+	FLAC__ASSERT(options.common.skip_specification.value.samples >= 0);
+	encoder_session.skip = (FLAC__uint64)options.common.skip_specification.value.samples;
+	FLAC__ASSERT(!options.common.sector_align || encoder_session.skip == 0);
+	FLAC__ASSERT(!options.common.replay_gain || encoder_session.skip == 0);
+
 	/* get the file length */
 	if(infilesize < 0) {
 		encoder_session.total_samples_to_encode = encoder_session.unencoded_size = 0;
 	}
 	else {
 		if(options.common.sector_align) {
-			FLAC__ASSERT(options.common.skip == 0);
+			FLAC__ASSERT(encoder_session.skip == 0);
 			encoder_session.total_samples_to_encode = (unsigned)infilesize / bytes_per_wide_sample + *options.common.align_reservoir_samples;
 			align_remainder = (unsigned)(encoder_session.total_samples_to_encode % 588);
 			if(options.common.is_last_file)
@@ -824,7 +847,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 				encoder_session.total_samples_to_encode -= align_remainder; /* will stop short and carry over to next file */
 		}
 		else {
-			encoder_session.total_samples_to_encode = (unsigned)infilesize / bytes_per_wide_sample - options.common.skip;
+			encoder_session.total_samples_to_encode = (unsigned)infilesize / bytes_per_wide_sample - encoder_session.skip;
 		}
 
 		encoder_session.unencoded_size = encoder_session.total_samples_to_encode * bytes_per_wide_sample;
@@ -833,8 +856,8 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	if(encoder_session.verbose && encoder_session.total_samples_to_encode <= 0)
 		fprintf(stderr, "(No runtime statistics possible; please wait for encoding to finish...)\n");
 
-	if(options.common.skip > 0) {
-		unsigned skip_bytes = bytes_per_wide_sample * (unsigned)options.common.skip;
+	if(encoder_session.skip > 0) {
+		unsigned skip_bytes = bytes_per_wide_sample * (unsigned)encoder_session.skip;
 		if(skip_bytes > lookahead_length) {
 			skip_bytes -= lookahead_length;
 			lookahead_length = 0;
@@ -997,6 +1020,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	e->inbasefilename = grabbag__file_get_basename(infilename);
 	e->outfilename = outfilename;
 
+	e->skip = 0; /* filled in later after the sample_rate is known */
 	e->unencoded_size = 0;
 	e->total_samples_to_encode = 0;
 	e->bytes_written = 0;

@@ -38,6 +38,7 @@
 #include "analyze.h"
 #include "decode.h"
 #include "encode.h"
+#include "utils.h"
 #include "vorbiscomment.h"
 
 #if 0
@@ -228,7 +229,7 @@ static struct {
 	int padding;
 	unsigned max_lpc_order;
 	unsigned qlp_coeff_precision;
-	FLAC__uint64 skip;
+	const char *skip_specification;
 	int format_is_big_endian;
 	int format_is_unsigned_samples;
 	int format_channels;
@@ -333,7 +334,7 @@ int do_it()
 		}
 		else {
 			if(option_values.test_only) {
-				if(option_values.skip > 0)
+				if(0 != option_values.skip_specification)
 					return usage_error("ERROR: --skip is not allowed in test mode\n");
 			}
 		}
@@ -376,7 +377,7 @@ int do_it()
 		if(option_values.sector_align) {
 			if(option_values.mode_decode)
 				return usage_error("ERROR: --sector-align only allowed for encoding\n");
-			if(option_values.skip > 0)
+			if(0 != option_values.skip_specification)
 				return usage_error("ERROR: --sector-align not allowed with --skip\n");
 			if(option_values.format_channels >= 0 && option_values.format_channels != 2)
 				return usage_error("ERROR: --sector-align can only be done with stereo input\n");
@@ -534,7 +535,7 @@ FLAC__bool init_options()
 	option_values.padding = 4096;
 	option_values.max_lpc_order = 8;
 	option_values.qlp_coeff_precision = 0;
-	option_values.skip = 0;
+	option_values.skip_specification = 0;
 	option_values.format_is_big_endian = -1;
 	option_values.format_is_unsigned_samples = -1;
 	option_values.format_channels = -1;
@@ -619,7 +620,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "skip")) {
 			FLAC__ASSERT(0 != option_argument);
-			option_values.skip = (FLAC__uint64)atoi(option_argument); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
+			option_values.skip_specification = option_argument;
 		}
 		else if(0 == strcmp(long_option, "cuesheet")) {
 			FLAC__ASSERT(0 != option_argument);
@@ -1082,7 +1083,7 @@ void show_help()
 	printf("  -o, --output-name=FILENAME   Force the output file name\n");
 	printf("      --output-prefix=STRING   Prepend STRING to output names\n");
 	printf("      --delete-input-file      Deletes after a successful encode/decode\n");
-	printf("      --skip=#                 Skip the first # samples of each input file\n");
+	printf("      --skip={#|mm:ss.ss}      Skip the given initial samples for each input\n");
 	printf("analysis options:\n");
 	printf("      --residual-text          Include residual signal in text output\n");
 	printf("      --residual-gnuplot       Generate gnuplot files of residual distribution\n");
@@ -1203,8 +1204,10 @@ void show_explain()
 	printf("                               successful encode or decode.  If there was an\n");
 	printf("                               error (including a verify error) the input file\n");
 	printf("                               is left intact.\n");
-	printf("      --skip=#                 Skip the first # samples of each input file; can\n");
-	printf("                               be used both for encoding and decoding\n");
+	printf("      --skip={#|mm:ss.ss}      Skip the first # samples of each input file; can\n");
+	printf("                               be used both for encoding and decoding.  The\n");
+	printf("                               alternative form mm:ss.ss can be used to specify\n");
+	printf("                               minutes, seconds, and fractions of a second.\n");
 	printf("analysis options:\n");
 	printf("      --residual-text          Include residual signal in text output.  This\n");
 	printf("                               will make the file very big, much larger than\n");
@@ -1436,8 +1439,10 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			return usage_error("ERROR: --replay-gain cannot be used when encoding to stdout\n");
 	}
 
+	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative)
+		return usage_error("ERROR: invalid value for --skip\n");
+
 	common_options.verbose = option_values.verbose;
-	common_options.skip = option_values.skip;
 	common_options.verify = option_values.verify;
 #ifdef FLAC__HAS_OGG
 	common_options.use_ogg = option_values.use_ogg;
@@ -1540,6 +1545,9 @@ int decode_file(const char *infilename)
 	}
 #endif
 
+	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative)
+		return usage_error("ERROR: invalid value for --skip\n");
+
 	common_options.verbose = option_values.verbose;
 	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
 #ifdef FLAC__HAS_OGG
@@ -1547,7 +1555,6 @@ int decode_file(const char *infilename)
 	common_options.use_first_serial_number = !option_values.has_serial_number;
 	common_options.serial_number = option_values.serial_number;
 #endif
-	common_options.skip = option_values.skip;
 
 	if(!option_values.force_raw_format) {
 		wav_decode_options_t options;

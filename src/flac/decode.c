@@ -48,7 +48,7 @@ typedef struct {
 	FLAC__bool test_only;
 	FLAC__bool analysis_mode;
 	analysis_options aopts;
-	FLAC__uint64 skip;
+	utils__SkipUntilSpecification *skip_specification;
 
 	const char *inbasefilename;
 	const char *outfilename;
@@ -94,7 +94,7 @@ static FLAC__bool is_big_endian_host_;
 /*
  * local routines
  */
-static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, FLAC__uint64 skip, const char *infilename, const char *outfilename);
+static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
 static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, decode_options_t decode_options, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
@@ -138,7 +138,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 			options.common.continue_through_decode_errors,
 			analysis_mode,
 			aopts,
-			options.common.skip,
+			&options.common.skip_specification,
 			infilename,
 			outfilename
 		)
@@ -174,7 +174,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 			options.common.continue_through_decode_errors,
 			analysis_mode,
 			aopts,
-			options.common.skip,
+			&options.common.skip_specification,
 			infilename,
 			outfilename
 		)
@@ -190,7 +190,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	return DecoderSession_finish_ok(&decoder_session);
 }
 
-FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, FLAC__uint64 skip, const char *infilename, const char *outfilename)
+FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, const char *infilename, const char *outfilename)
 {
 #ifdef FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
@@ -204,7 +204,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->test_only = (0 == outfilename);
 	d->analysis_mode = analysis_mode;
 	d->aopts = aopts;
-	d->skip = skip;
+	d->skip_specification = skip_specification;
 
 	d->inbasefilename = grabbag__file_get_basename(infilename);
 	d->outfilename = outfilename;
@@ -341,20 +341,46 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 
 FLAC__bool DecoderSession_process(DecoderSession *d)
 {
-	if(d->skip > 0) {
+#ifdef FLAC__HAS_OGG
+	if(d->is_ogg) {
+		if(!OggFLAC__stream_decoder_process_until_end_of_metadata(d->decoder.ogg.stream)) {
+			if(d->verbose) fprintf(stderr, "\n");
+			print_error_with_state(d, "ERROR while decoding metadata");
+			return false;
+		}
+		if(OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC && OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_END_OF_STREAM) {
+			if(d->verbose) fprintf(stderr, "\n");
+			print_error_with_state(d, "ERROR during metadata decoding");
+			return false;
+		}
+	}
+	else
+#endif
+	{
+		if(!FLAC__file_decoder_process_until_end_of_metadata(d->decoder.flac.file)) {
+			if(d->verbose) fprintf(stderr, "\n");
+			print_error_with_state(d, "ERROR while decoding metadata");
+			return false;
+		}
+		if(FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_END_OF_FILE) {
+			if(d->verbose) fprintf(stderr, "\n");
+			print_error_with_state(d, "ERROR during metadata decoding");
+			return false;
+		}
+	}
+	if(d->abort_flag)
+		return false;
+
+	if(d->skip_specification->value.samples > 0) {
+		const FLAC__uint64 skip = (FLAC__uint64)d->skip_specification->value.samples;
+
 #ifdef FLAC__HAS_OGG
 		if(d->is_ogg) { /*@@@ (move this check into main.c) */
 			fprintf(stderr, "%s: ERROR, can't skip when decoding Ogg-FLAC yet; convert to native-FLAC first\n", d->inbasefilename);
 			return false;
 		}
 #endif
-		if(!FLAC__file_decoder_process_until_end_of_metadata(d->decoder.flac.file)) {
-			print_error_with_state(d, "ERROR while decoding metadata");
-			return false;
-		}
-		if(d->abort_flag)
-			return false;
-		if(!FLAC__file_decoder_seek_absolute(d->decoder.flac.file, d->skip)) {
+		if(!FLAC__file_decoder_seek_absolute(d->decoder.flac.file, skip)) {
 			print_error_with_state(d, "ERROR seeking while skipping bytes");
 			return false;
 		}
@@ -679,22 +705,28 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+		FLAC__uint64 skip;
+		decoder_session->bps = metadata->data.stream_info.bits_per_sample;
+		decoder_session->channels = metadata->data.stream_info.channels;
+		decoder_session->sample_rate = metadata->data.stream_info.sample_rate;
+
+		flac__utils_canonicalize_skip_until_specification(decoder_session->skip_specification, decoder_session->sample_rate);
+		FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
+		skip = (FLAC__uint64)decoder_session->skip_specification->value.samples;
+
 		/* remember, metadata->data.stream_info.total_samples can be 0, meaning 'unknown' */
-		if(metadata->data.stream_info.total_samples > 0 && decoder_session->skip >= metadata->data.stream_info.total_samples) {
+		if(metadata->data.stream_info.total_samples > 0 && skip >= metadata->data.stream_info.total_samples) {
 			fprintf(stderr, "%s: ERROR trying to skip more samples than in stream\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
-		else if(metadata->data.stream_info.total_samples == 0 && decoder_session->skip > 0) {
+		else if(metadata->data.stream_info.total_samples == 0 && skip > 0) {
 			fprintf(stderr, "%s: ERROR, can't skip when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
 		else
-			decoder_session->total_samples = metadata->data.stream_info.total_samples - decoder_session->skip;
-		decoder_session->bps = metadata->data.stream_info.bits_per_sample;
-		decoder_session->channels = metadata->data.stream_info.channels;
-		decoder_session->sample_rate = metadata->data.stream_info.sample_rate;
+			decoder_session->total_samples = metadata->data.stream_info.total_samples - skip;
 
 		if(decoder_session->bps != 8 && decoder_session->bps != 16 && decoder_session->bps != 24) {
 			fprintf(stderr, "%s: ERROR: bits per sample is not 8/16/24\n", decoder_session->inbasefilename);

@@ -20,6 +20,7 @@
 #define flac__decode_h
 
 #include "analyze.h"
+#include "utils.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -33,7 +34,7 @@ typedef struct {
 	FLAC__bool use_first_serial_number;
 	long serial_number;
 #endif
-	FLAC__uint64 skip;
+	utils__SkipUntilSpecification skip_specification;
 } decode_options_t;
 
 typedef struct {

@@ -20,6 +20,7 @@
 #define flac__encode_h
 
 #include "FLAC/metadata.h"
+#include "utils.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -27,7 +28,7 @@
 
 typedef struct {
 	FLAC__bool verbose;
-	FLAC__uint64 skip;
+	utils__SkipUntilSpecification skip_specification;
 	FLAC__bool verify;
 #ifdef FLAC__HAS_OGG
 	FLAC__bool use_ogg;
