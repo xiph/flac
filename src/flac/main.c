@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 			do_mid_side = false;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
-			min_residual_partition_order = max_residual_partition_order = 0;
+			min_residual_partition_order = max_residual_partition_order = 2;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 0;
 		}
@@ -456,7 +456,7 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -M   : loose mid-side coding for all frames (stereo input only)\n");
 	fprintf(stderr, "  -0 .. -9 : fastest compression .. highest compression, default is -5\n");
 	fprintf(stderr, "             these are synonyms for other options:\n");
-	fprintf(stderr, "  -0   : synonymous with -l 0 -b 1152\n");
+	fprintf(stderr, "  -0   : synonymous with -l 0 -b 1152 -r 2,2\n");
 	fprintf(stderr, "  -1   : synonymous with -l 0 -b 1152 -M -r 2,2\n");
 	fprintf(stderr, "  -2   : synonymous with -l 0 -b 1152 -m -r 3\n");
 	fprintf(stderr, "  -3   : synonymous with -l 6 -b 4608 -r 3,3\n");
