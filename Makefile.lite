@@ -58,7 +58,7 @@ libOggFLAC++: libFLAC
 share:
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
-flac: libFLAC libOggFLAC
+flac: libFLAC libOggFLAC share
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 metaflac: libFLAC share
