@@ -447,7 +447,7 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	if(0 != decoder->guts->seek_table) {
 		/* find the closest seek point <= target_sample, if it exists */
 		for(i = (int)decoder->guts->seek_table->num_points - 1; i >= 0; i--) {
-			if(decoder->guts->seek_table->points[i].sample_number <= target_sample)
+			if(decoder->guts->seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER && decoder->guts->seek_table->points[i].sample_number <= target_sample)
 				break;
 		}
 		if(i >= 0) { /* i.e. we found a suitable seek point... */
@@ -457,7 +457,7 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 
 		/* find the closest seek point > target_sample, if it exists */
 		for(i = 0; i < (int)decoder->guts->seek_table->num_points; i++) {
-			if(decoder->guts->seek_table->points[i].sample_number > target_sample)
+			if(decoder->guts->seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER && decoder->guts->seek_table->points[i].sample_number > target_sample)
 				break;
 		}
 		if(i < (int)decoder->guts->seek_table->num_points) { /* i.e. we found a suitable seek point... */
