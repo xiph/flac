@@ -126,7 +126,7 @@ LIBS_save_blah_blah_blah=$LIBS
 LIBS=""
 AC_SEARCH_LIBS(ID3Tag_Link,"id3" "id3 -lstdc++" "id3 -lz" "id3 -lz -lstdc++",
                [have_id3lib=yes],
-               [AC_MSG_WARN([id3lib not found - ID3v2 will not be supported, internal function support only id3v1])])
+               [AC_MSG_WARN([id3lib not found - ID3v2 will not be supported, internal functions support only id3v1])])
 AM_CONDITIONAL(FLaC__HAS_ID3LIB, [test x$have_id3lib = xyes])
 if test x$have_id3lib = xyes ; then
 AC_DEFINE(FLAC__HAS_ID3LIB)
@@ -229,10 +229,7 @@ fi
 CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS $OUR_CFLAGS_TAIL"
 CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS $OUR_CFLAGS_TAIL"
 
-AC_OUTPUT( \
-	po/Makefile.in \
-	m4/Makefile \
-	intl/Makefile \
+AC_OUTPUT( po/Makefile.in m4/Makefile intl/Makefile \
 	Makefile \
 	src/Makefile \
 	src/libFLAC/Makefile \
