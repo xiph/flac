@@ -1218,8 +1218,7 @@ static FLAC__bool test_level_2_(const char *progname)
 	memcpy(app->data.application.id, "duh", (FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8));
 	if(!FLAC__metadata_object_application_set_data(app, data, block->length-(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8), true))
 		return die_("setting APPLICATION data");
-	FLAC__metadata_object_delete(block);
-	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/false))
+	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
 		return die_("copying object");
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
