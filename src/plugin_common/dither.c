@@ -103,7 +103,7 @@ static FLAC__INLINE FLAC__int32 linear_dither(unsigned source_bps, unsigned targ
 	return output >> scalebits;
 }
 
-unsigned FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
+size_t FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
 {
 	static dither_state dither[FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
 	FLAC__byte * const start = data;
@@ -111,7 +111,7 @@ unsigned FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const
 	const FLAC__int32 *input_;
 	unsigned samples, channel;
 	const unsigned bytes_per_sample = target_bps / 8;
-	unsigned inc = bytes_per_sample * channels;
+	const unsigned incr = bytes_per_sample * channels;
 
 	FLAC__ASSERT(channels > 0 && channels <= FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS);
 	FLAC__ASSERT(source_bps < 32);
@@ -148,7 +148,7 @@ unsigned FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const
 						break;
 				}
 
-				data += inc;
+				data += incr;
 			}
 		}
 	}
@@ -176,15 +176,15 @@ unsigned FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const
 						break;
 				}
 
-				data += inc;
+				data += incr;
 			}
 		}
 	}
 
-	return data - start;
+	return wide_samples * channels * (target_bps/8);
 }
 
-unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
+size_t FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
 {
 	static dither_state dither[FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
 	FLAC__byte * const start = data;
@@ -192,7 +192,7 @@ unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, co
 	const FLAC__int32 *input_;
 	unsigned samples, channel;
 	const unsigned bytes_per_sample = target_bps / 8;
-	unsigned inc = bytes_per_sample * channels;
+	const unsigned incr = bytes_per_sample * channels;
 
 	FLAC__ASSERT(channels > 0 && channels <= FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS);
 	FLAC__ASSERT(source_bps < 32);
@@ -226,7 +226,7 @@ unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, co
 						data[0] = (FLAC__byte)sample;
 				}
 
-				data += inc;
+				data += incr;
 			}
 		}
 	}
@@ -251,10 +251,10 @@ unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, co
 						data[0] = (FLAC__byte)sample;
 				}
 
-				data += inc;
+				data += incr;
 			}
 		}
 	}
 
-	return data - start;
+	return wide_samples * channels * (target_bps/8);
 }
