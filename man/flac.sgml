@@ -261,7 +261,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-m</option></term>
+		<term><option>-M</option></term>
 
 		<listitem>
 		  <para>Loose mid-side coding for all frames (stereo
