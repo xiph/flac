@@ -274,13 +274,8 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				bytes_per_wide_sample = channels * (bps >> 3);
 
 				if(options.common.skip > 0) {
-					if(infile != stdin) {
-						if(-1 == fseek(infile, bytes_per_wide_sample * (unsigned)options.common.skip, SEEK_CUR)) {
-							fprintf(stderr, "%s: ERROR during seek while skipping samples\n", encoder_wrapper.inbasefilename);
-							goto wav_abort_;
-						}
-					}
-					else {
+					if(fseek(infile, bytes_per_wide_sample * (unsigned)options.common.skip, SEEK_CUR) < 0) {
+						/* can't seek input, read ahead manually... */
 						unsigned left, need;
 						for(left = (unsigned)options.common.skip; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
 							need = min(left, CHUNK_OF_SAMPLES);
@@ -423,13 +418,8 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			/* sub-chunk size */
 			if(!read_little_endian_uint32(infile, &xx, false, encoder_wrapper.inbasefilename))
 				goto wav_abort_;
-			if(infile != stdin) {
-				if(-1 == fseek(infile, xx, SEEK_CUR)) {
-					fprintf(stderr, "%s: ERROR during seek while skipping unsupported sub-chunk\n", encoder_wrapper.inbasefilename);
-					goto wav_abort_;
-				}
-			}
-			else {
+			if(fseek(infile, xx, SEEK_CUR) < 0) {
+				/* can't seek input, read ahead manually... */
 				unsigned left, need;
 				const unsigned chunk = sizeof(ucbuffer);
 				for(left = xx; left > 0; ) {
@@ -553,13 +543,8 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		if(skip_bytes > lookahead_length) {
 			skip_bytes -= lookahead_length;
 			lookahead_length = 0;
-			if(infile != stdin) {
-				if(-1 == fseek(infile, (long)skip_bytes, SEEK_CUR)) {
-					fprintf(stderr, "%s: ERROR during seek while skipping samples\n", encoder_wrapper.inbasefilename);
-					goto raw_abort_;
-				}
-			}
-			else {
+			if(fseek(infile, (long)skip_bytes, SEEK_CUR) < 0) {
+				/* can't seek input, read ahead manually... */
 				unsigned left, need;
 				const unsigned chunk = sizeof(ucbuffer);
 				for(left = skip_bytes; left > 0; ) {
@@ -1095,25 +1080,29 @@ void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMet
 
 	(void)encoder; /* silence compiler warning about unused parameter */
 
-	if(encoder_wrapper->fout == stdout)
-		return;
-
-	fclose(encoder_wrapper->fout);
-	if(0 == (f = fopen(encoder_wrapper->outfilename, "r+b")))
-		return;
+	if(encoder_wrapper->fout != stdout) {
+		fclose(encoder_wrapper->fout);
+		if(0 == (f = fopen(encoder_wrapper->outfilename, "r+b")))
+			return;
+	}
+	else
+		f = stdout;
 
 	/* all this is based on intimate knowledge of the stream header
 	 * layout, but a change to the header format that would break this
 	 * would also break all streams encoded in the previous format.
 	 */
 
-	if(-1 == fseek(f, 26, SEEK_SET)) goto samples_;
+	if(-1 == fseek(f, 26, SEEK_SET)) goto end_;
 	fwrite(metadata->data.stream_info.md5sum, 1, 16, f);
 
 samples_:
-	if(-1 == fseek(f, 21, SEEK_SET)) goto framesize_;
+	/* if we get this far we know we can seek so no need to check the
+	 * return value from fseek()
+	 */
+	fseek(f, 21, SEEK_SET);
 	if(fread(&b, 1, 1, f) != 1) goto framesize_;
-	if(-1 == fseek(f, 21, SEEK_SET)) goto framesize_;
+	fseek(f, 21, SEEK_SET);
 	b = (b & 0xf0) | (FLAC__byte)((samples >> 32) & 0x0F);
 	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
 	b = (FLAC__byte)((samples >> 24) & 0xFF);
@@ -1126,7 +1115,7 @@ samples_:
 	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
 
 framesize_:
-	if(-1 == fseek(f, 12, SEEK_SET)) goto seektable_;
+	fseek(f, 12, SEEK_SET);
 	b = (FLAC__byte)((min_framesize >> 16) & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
 	b = (FLAC__byte)((min_framesize >> 8) & 0xFF);
@@ -1157,7 +1146,7 @@ seektable_:
 		pos = (FLAC__STREAM_SYNC_LEN + FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
 		pos += metadata->length;
 		pos += (FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
-		if(-1 == fseek(f, pos, SEEK_SET)) goto end_;
+		fseek(f, pos, SEEK_SET);
 		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
 			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].sample_number)) goto end_;
 			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].stream_offset)) goto end_;
