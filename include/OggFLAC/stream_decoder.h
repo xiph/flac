@@ -72,8 +72,11 @@ typedef enum {
 	OggFLAC__STREAM_DECODER_OK = 0,
 	/**< The decoder is in the normal OK state. */
 
-	OggFLAC__STREAM_ENCODER_OGG_ERROR,
+	OggFLAC__STREAM_DECODER_OGG_ERROR,
 	/**< An error occurred in the underlying Ogg layer.  */
+
+	OggFLAC__STREAM_DECODER_READ_ERROR,
+	/**< The read callback returned an error. */
 
 	OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR,
 	/**< An error occurred in the underlying FLAC stream decoder;
@@ -253,7 +256,7 @@ FLAC__bool OggFLAC__stream_decoder_set_client_data(OggFLAC__StreamDecoder *decod
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_decoder_set_metadata_respond(OggFLAC__StreamDecoder *decoder, OggFLAC__MetadataType type);
+FLAC__bool OggFLAC__stream_decoder_set_metadata_respond(OggFLAC__StreamDecoder *decoder, FLAC__MetadataType type);
 
 /** Direct the decoder to pass on all APPLICATION metadata blocks of the
  *  given \a id.
@@ -297,7 +300,7 @@ FLAC__bool OggFLAC__stream_decoder_set_metadata_respond_all(OggFLAC__StreamDecod
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_decoder_set_metadata_ignore(OggFLAC__StreamDecoder *decoder, OggFLAC__MetadataType type);
+FLAC__bool OggFLAC__stream_decoder_set_metadata_ignore(OggFLAC__StreamDecoder *decoder, FLAC__MetadataType type);
 
 /** Direct the decoder to filter out all APPLICATION metadata blocks of
  *  the given \a id.
@@ -368,7 +371,7 @@ unsigned OggFLAC__stream_decoder_get_channels(const OggFLAC__StreamDecoder *deco
  * \retval OggFLAC__ChannelAssignment
  *    See above.
  */
-OggFLAC__ChannelAssignment OggFLAC__stream_decoder_get_channel_assignment(const OggFLAC__StreamDecoder *decoder);
+FLAC__ChannelAssignment OggFLAC__stream_decoder_get_channel_assignment(const OggFLAC__StreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_get_bits_per_sample()
  *

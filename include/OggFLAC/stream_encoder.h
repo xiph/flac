@@ -123,7 +123,7 @@ typedef struct {
 } OggFLAC__StreamEncoder;
 
 /*@@@@ document: */
-typedef OggFLAC__StreamEncoderWriteStatus (*OggFLAC__StreamEncoderWriteCallback)(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+typedef FLAC__StreamEncoderWriteStatus (*OggFLAC__StreamEncoderWriteCallback)(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 
 
 /***********************************************************************
@@ -371,7 +371,7 @@ FLAC__bool OggFLAC__stream_encoder_set_total_samples_estimate(OggFLAC__StreamEnc
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncoder *encoder, OggFLAC__StreamMetadata **metadata, unsigned num_blocks);
+FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
 /** Set the write callback.
  *
