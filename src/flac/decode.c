@@ -1093,7 +1093,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 				const char *ls[] = { "no", "peak", "hard" };
 				const char *ns[] = { "no", "low", "medium", "high" };
 				decoder_session->replaygain.scale = grabbag__replaygain_compute_scale_factor(peak, gain, decoder_session->replaygain.spec.preamp, decoder_session->replaygain.spec.limiter == RGSS_LIMIT__PEAK);
-				assert(decoder_session->bps > 0 && decoder_session->bps <= 32);
+				FLAC__assert(decoder_session->bps > 0 && decoder_session->bps <= 32);
 				FLAC__replaygain_synthesis__init_dither_context(&decoder_session->replaygain.dither_context, decoder_session->bps, decoder_session->replaygain.spec.noise_shaping);
 				fprintf(stderr, "%s: INFO: applying %s ReplayGain (gain=%0.2fdB+preamp=%0.1fdB, %s noise shaping, %s limiting) to output\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track", gain, decoder_session->replaygain.spec.preamp, ns[decoder_session->replaygain.spec.noise_shaping], ls[decoder_session->replaygain.spec.limiter]);
 				fprintf(stderr, "%s: WARNING: applying ReplayGain is not lossless\n", decoder_session->inbasefilename);
