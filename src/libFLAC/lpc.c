@@ -18,10 +18,12 @@
  */
 
 #include <math.h>
-#include <stdio.h>
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
 #include "private/lpc.h"
+#if defined DEBUG || defined FLAC__OVERFLOW_DETECT || defined FLAC__OVERFLOW_DETECT_VERBOSE
+#include <stdio.h>
+#endif
 
 #ifndef M_LN2
 /* math.h in VC++ doesn't seem to have this (how Microsoft is that?) */
