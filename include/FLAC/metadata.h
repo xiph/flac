@@ -94,6 +94,10 @@
  *  All levels know how to skip over and not disturb an ID3v2 tag at the
  *  front of the file.
  *
+ *  All levels access files via their filenames.  In addition, level 2
+ *  has additional alternative read and write functions that take an I/O
+ *  handle and callbacks, for times when access by filename is not possible.
+ *
  *  In addition to the three interfaces, this module defines functions for
  *  creating and manipulating various metadata objects in memory.  As we see
  *  from the Format module, FLAC metadata blocks in memory are very primitive
@@ -669,7 +673,8 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
  *
  * \param chain    A pointer to an existing chain.
  * \param handle   The I/O handle of the FLAC stream to read.  The
- *                 handle will NOT be closed after the metadata is read.
+ *                 handle will NOT be closed after the metadata is read;
+ *                 that is the duty of the caller.
  * \param callbacks
  *                 A set of callbacks to use for I/O.  The mandatory
  *                 callbacks are \a read, \a seek, and \a tell.
@@ -682,7 +687,32 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);
 
-/* @@@@@@ document */
+/** Checks if writing the given chain would require the use of a
+ *  temporary file, or if it could be written in place.
+ *
+ *  Under certain conditions, padding can be utilized so that writing
+ *  edited metadata back to the FLAC file does not require rewriting the
+ *  entire file.  If rewriting is required, then a temporary workfile is
+ *  required.  When writing metadata using callbacks, you must check
+ *  this function to know whether to call
+ *  FLAC__metadata_chain_write_with_callbacks() or
+ *  FLAC__metadata_chain_write_with_callbacks_and_tempfile().  When
+ *  writing with FLAC__metadata_chain_write(), the temporary file is
+ *  handled internally.
+ *
+ * \param chain    A pointer to an existing chain.
+ * \param use_padding
+ *                 Whether or not padding will be allowed to be used
+ *                 during the write.  The value of \a use_padding given
+ *                 here must match the value later passed to
+ *                 FLAC__metadata_chain_write_with_callbacks() or
+ *                 FLAC__metadata_chain_write_with_callbacks_with_tempfile().
+ * \assert
+ *    \code chain != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if writing the current chain would require a tempfile, or
+ *    \c false if metadata can be written in place.
+ */
 FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata_Chain *chain, FLAC__bool use_padding);
 
 /** Write all metadata out to the FLAC file.  This function tries to be as
@@ -716,6 +746,9 @@ FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata
  *  If \a preserve_file_stats is \c true, the owner and modification time will
  *  be preserved even if the FLAC file is written.
  *
+ *  For this write function to be used, the chain must have been read with
+ *  FLAC__metadata_chain_read(), not FLAC__metadata_chain_read_with_callbacks().
+ *
  * \param chain               A pointer to an existing chain.
  * \param use_padding         See above.
  * \param preserve_file_stats See above.
@@ -727,10 +760,83 @@ FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats);
 
-/* @@@@@@ document */
+/** Write all metadata out to a FLAC stream via callbacks.
+ *
+ *  (See FLAC__metadata_chain_write() for the details on how padding is
+ *  used to write metadata in place if possible.)
+ *
+ *  The \a handle must be open for updating and be seekable.  The
+ *  equivalent minimum stdio fopen() file mode is \c "r+" (or \c "r+b"
+ *  for Windows).
+ *
+ *  For this write function to be used, the chain must have been read with
+ *  FLAC__metadata_chain_read_with_callbacks(), not FLAC__metadata_chain_read().
+ *  Also, FLAC__metadata_chain_check_if_tempfile_needed() must have returned
+ *  \c false.
+ *
+ * \param chain        A pointer to an existing chain.
+ * \param use_padding  See FLAC__metadata_chain_write()
+ * \param handle       The I/O handle of the FLAC stream to write.  The
+ *                     handle will NOT be closed after the metadata is
+ *                     written; that is the duty of the caller.
+ * \param callbacks    A set of callbacks to use for I/O.  The mandatory
+ *                     callbacks are \a write and \a seek.
+ * \assert
+ *    \code chain != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if the write succeeded, else \c false.  On failure,
+ *    check the status with FLAC__metadata_chain_status().
+ */
 FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);
 
-/* @@@@@@ document */
+/** Write all metadata out to a FLAC stream via callbacks.
+ *
+ *  (See FLAC__metadata_chain_write() for the details on how padding is
+ *  used to write metadata in place if possible.)
+ *
+ *  This version of the write-with-callbacks function must be used when
+ *  FLAC__metadata_chain_check_if_tempfile_needed() returns true.  In
+ *  this function, you must supply an I/O handle corresponding to the
+ *  FLAC file to edit, and a temporary handle to which the new FLAC
+ *  file will be written.  It is the caller's job to move this temporary
+ *  FLAC file on top of the original FLAC file to complete the metadata
+ *  edit.
+ *
+ *  The \a handle must be open for reading and be seekable.  The
+ *  equivalent minimum stdio fopen() file mode is \c "r" (or \c "rb"
+ *  for Windows).
+ *
+ *  The \a temp_handle must be open for writing.  The
+ *  equivalent minimum stdio fopen() file mode is \c "w" (or \c "wb"
+ *  for Windows).  It should be an empty stream, or at least positioned
+ *  at the start-of-file (in which case it is the caller's duty to
+ *  truncate it on return).
+ *
+ *  For this write function to be used, the chain must have been read with
+ *  FLAC__metadata_chain_read_with_callbacks(), not FLAC__metadata_chain_read().
+ *  Also, FLAC__metadata_chain_check_if_tempfile_needed() must have returned
+ *  \c true.
+ *
+ * \param chain        A pointer to an existing chain.
+ * \param use_padding  See FLAC__metadata_chain_write()
+ * \param handle       The I/O handle of the original FLAC stream to read.
+ *                     The handle will NOT be closed after the metadata is
+ *                     written; that is the duty of the caller.
+ * \param callbacks    A set of callbacks to use for I/O on \a handle.
+ *                     The mandatory callbacks are \a read, \a seek, and
+ *                     \a eof.
+ * \param temp_handle  The I/O handle of the FLAC stream to write.  The
+ *                     handle will NOT be closed after the metadata is
+ *                     written; that is the duty of the caller.
+ * \param temp_callbacks
+ *                     A set of callbacks to use for I/O on temp_handle.
+ *                     The only mandatory callback is \a write.
+ * \assert
+ *    \code chain != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if the write succeeded, else \c false.  On failure,
+ *    check the status with FLAC__metadata_chain_status().
+ */
 FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks_and_tempfile(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks, FLAC__IOHandle temp_handle, FLAC__IOCallbacks temp_callbacks);
 
 /** Merge adjacent PADDING blocks into a single block.
