@@ -805,7 +805,6 @@ FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte
 				encoder_wrapper->seek_table.points[i].stream_offset = encoder_wrapper->bytes_written - encoder_wrapper->stream_offset;
 				encoder_wrapper->seek_table.points[i].frame_samples = encoder->blocksize;
 				encoder_wrapper->first_seek_point_to_check++;
-fprintf(stderr,"\nHIT seek point %llu at frame %u, stream_offset = %llu, first_frame_offset = %llu\n",encoder_wrapper->seek_table.points[i].sample_number,current_frame,encoder_wrapper->seek_table.points[i].stream_offset,encoder_wrapper->stream_offset);
 				break;
 			}
 			else {
