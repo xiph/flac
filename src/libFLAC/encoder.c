@@ -46,7 +46,7 @@ typedef struct FLAC__EncoderPrivate {
 	real *real_signal[FLAC__MAX_CHANNELS];      /* the floating-point version of the input signal */
 	real *real_signal_mid_side[2];              /* the floating-point version of the mid-side input signal (stereo only) */
 	unsigned subframe_bps[FLAC__MAX_CHANNELS];  /* the effective bits per sample of the input signal (stream bps - wasted bits) */
-	unsigned subframe_bps_mid_side[2];          /* the effective bits per sample of the mid-side input signal (stream bps - wasted bits -/+ 1) */
+	unsigned subframe_bps_mid_side[2];          /* the effective bits per sample of the mid-side input signal (stream bps - wasted bits + 0/1) */
 	int32 *residual_workspace[FLAC__MAX_CHANNELS][2]; /* each channel has a candidate and best workspace where the subframe residual signals will be stored */
 	int32 *residual_workspace_mid_side[2][2];
 	FLAC__Subframe subframe_workspace[FLAC__MAX_CHANNELS][2];
