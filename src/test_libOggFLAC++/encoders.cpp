@@ -48,6 +48,7 @@ public:
 
 	// from OggFLAC::Encoder::Stream
 	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame);
+	void metadata_callback(const FLAC__StreamMetadata *metadata);
 
 	bool die(const char *msg = 0) const;
 };
@@ -57,6 +58,11 @@ public:
 	(void)buffer, (void)bytes, (void)samples, (void)current_frame;
 
 	return ::FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+}
+
+void StreamEncoder::metadata_callback(const FLAC__StreamMetadata *metadata)
+{
+	(void)metadata;
 }
 
 bool StreamEncoder::die(const char *msg) const

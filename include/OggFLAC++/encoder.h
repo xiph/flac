@@ -158,10 +158,12 @@ namespace OggFLAC {
 			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples);
 		protected:
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
+			virtual void metadata_callback(const FLAC__StreamMetadata *metadata) = 0;
 
 			::OggFLAC__StreamEncoder *encoder_;
 		private:
 			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+			static void metadata_callback_(const ::OggFLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
 
 			// Private and undefined so you can't use them:
 			Stream(const Stream &);

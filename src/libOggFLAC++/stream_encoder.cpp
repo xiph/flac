@@ -296,6 +296,7 @@ namespace OggFLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			::OggFLAC__stream_encoder_set_write_callback(encoder_, write_callback_);
+			::OggFLAC__stream_encoder_set_metadata_callback(encoder_, metadata_callback_);
 			::OggFLAC__stream_encoder_set_client_data(encoder_, (void*)this);
 			return State(::OggFLAC__stream_encoder_init(encoder_));
 		}
@@ -325,6 +326,15 @@ namespace OggFLAC {
 			Stream *instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			return instance->write_callback(buffer, bytes, samples, current_frame);
+		}
+
+		void Stream::metadata_callback_(const ::OggFLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
+		{
+			(void)encoder;
+			FLAC__ASSERT(0 != client_data);
+			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->metadata_callback(metadata);
 		}
 
 	};

@@ -69,6 +69,12 @@ static FLAC__StreamEncoderWriteStatus stream_encoder_write_callback_(const OggFL
 	return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 }
 
+static void stream_encoder_metadata_callback_(const OggFLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
+{
+	(void)encoder, (void)metadata, (void)client_data;
+}
+
+
 static FLAC__bool test_stream_encoder()
 {
 	OggFLAC__StreamEncoder *encoder;
@@ -188,6 +194,11 @@ static FLAC__bool test_stream_encoder()
 
 	printf("testing OggFLAC__stream_encoder_set_write_callback()... ");
 	if(!OggFLAC__stream_encoder_set_write_callback(encoder, stream_encoder_write_callback_))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
+	printf("testing OggFLAC__stream_encoder_set_metadata_callback()... ");
+	if(!OggFLAC__stream_encoder_set_metadata_callback(encoder, stream_encoder_metadata_callback_))
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 

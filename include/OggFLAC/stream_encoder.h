@@ -55,10 +55,11 @@ extern "C" {
  *  \ingroup oggflac
  *
  *  \brief
- *  This module describes the encoder layers provided by libOggFLAC.
+ *  This module describes the three encoder layers provided by libOggFLAC.
  *
- * libOggFLAC currently provides the same stream layer access as libFLAC;
- * the interface is nearly identical.  See the \link flac_encoder FLAC
+ * libOggFLAC currently provides the same three layers of access as libFLAC;
+ * the interfaces are nearly identical, with the addition of a method for
+ * specifying the Ogg serial number.  See the \link flac_encoder FLAC
  * encoder module \endlink for full documentation.
  */
 
@@ -70,8 +71,10 @@ extern "C" {
  *  encoder.
  *
  * The interface here is nearly identical to FLAC's stream encoder,
- * including the callbacks.  See the \link flac_stream_encoder
- * FLAC stream encoder module \endlink for full documentation.
+ * including the callbacks, with the addition of
+ * OggFLAC__stream_encoder_set_serial_number().  See the
+ * \link flac_stream_encoder FLAC stream encoder module \endlink
+ * for full documentation.
  *
  * \{
  */
@@ -153,6 +156,17 @@ typedef struct {
  *    The callee's return status.
  */
 typedef FLAC__StreamEncoderWriteStatus (*OggFLAC__StreamEncoderWriteCallback)(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+
+/** Signature for the metadata callback.
+ *  See OggFLAC__stream_encoder_set_metadata_callback()
+ *  and FLAC__stream_encoder_set_metadata_callback() for more info.
+ *
+ * \param  encoder      The encoder instance calling the callback.
+ * \param  metadata     The final populated STREAMINFO block.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__stream_encoder_set_client_data().
+ */
+typedef void (*OggFLAC__StreamEncoderMetadataCallback)(const OggFLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
 
 
 /***********************************************************************
@@ -438,6 +452,24 @@ OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncod
  *    \c false if the encoder is already initialized, else \c true.
  */
 OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_write_callback(OggFLAC__StreamEncoder *encoder, OggFLAC__StreamEncoderWriteCallback value);
+
+/** Set the metadata callback.
+ *  This is inherited from FLAC__StreamEncoder; see
+ *  FLAC__stream_encoder_set_metadata_callback().
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_metadata_callback(OggFLAC__StreamEncoder *encoder, OggFLAC__StreamEncoderMetadataCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data

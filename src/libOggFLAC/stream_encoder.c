@@ -61,6 +61,7 @@ static void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__S
 
 typedef struct OggFLAC__StreamEncoderPrivate {
 	OggFLAC__StreamEncoderWriteCallback write_callback;
+	OggFLAC__StreamEncoderMetadataCallback metadata_callback;
 	void *client_data;
 	FLAC__StreamEncoder *FLAC_stream_encoder;
 	/* internal vars (all the above are class settings) */
@@ -162,7 +163,7 @@ OggFLAC_API OggFLAC__StreamEncoderState OggFLAC__stream_encoder_init(OggFLAC__St
 	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
 		return encoder->protected_->state = OggFLAC__STREAM_ENCODER_ALREADY_INITIALIZED;
 
-	if(0 == encoder->private_->write_callback)
+	if(0 == encoder->private_->write_callback || 0 == encoder->private_->metadata_callback)
 		return encoder->protected_->state = OggFLAC__STREAM_ENCODER_INVALID_CALLBACK;
 
 	if(ogg_stream_init(&encoder->private_->ogg.stream_state, encoder->protected_->serial_number) != 0)
@@ -423,6 +424,18 @@ OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_write_callback(OggFLAC__Strea
 	return true;
 }
 
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_metadata_callback(OggFLAC__StreamEncoder *encoder, OggFLAC__StreamEncoderMetadataCallback value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	FLAC__ASSERT(0 != value);
+	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private_->metadata_callback = value;
+	return true;
+}
+
 OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_client_data(OggFLAC__StreamEncoder *encoder, void *value)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -670,6 +683,7 @@ void set_defaults_(OggFLAC__StreamEncoder *encoder)
 	FLAC__ASSERT(0 != encoder);
 
 	encoder->private_->write_callback = 0;
+	encoder->private_->metadata_callback = 0;
 	encoder->private_->client_data = 0;
 	encoder->protected_->serial_number = 0;
 }
@@ -717,13 +731,12 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *unused
 	return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 }
 
-void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
+void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMetadata *metadata, void *client_data)
 {
-	/*
-	 * We don't try to go back and update metadata blocks by mucking
-	 * around inside the Ogg layer.  Maybe someday we will care to
-	 * and an OggFLAC__SeekableStreamEncoder and OggFLAC__FileEncoder
-	 * will be possible but it may just never be useful.
-	 */
-	(void)encoder, (void)metadata, (void)client_data;
+	OggFLAC__StreamEncoder *encoder = (OggFLAC__StreamEncoder*)client_data;
+
+	(void)unused;
+	FLAC__ASSERT(encoder->private_->FLAC_stream_encoder == unused);
+
+	encoder->private_->metadata_callback(encoder, metadata, encoder->private_->client_data);
 }
