@@ -212,11 +212,21 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, unsigned count)
 	for (i = 0; !stop_signal_ && (count == 0 || i < count); i++) {
 		FLAC__uint64 pos;
 
+		/* for the first 10, seek to the first 10 samples */
+		if (n >= 10 && i < 10) {
+			pos = i;
+		}
+		/* for the second 10, seek to the last 10 samples */
+		else if (n >= 10 && i < 20) {
+			pos = n - 1 - (i-10);
+		}
+		else {
 #if !defined _MSC_VER && !defined __MINGW32__
-		pos = (FLAC__uint64)(random() % n);
+			pos = (FLAC__uint64)(random() % n);
 #else
-		pos = (FLAC__uint64)(rand() % n);
+			pos = (FLAC__uint64)(rand() % n);
 #endif
+		}
 
 		printf("seek(%llu)... ", pos);
 		fflush(stdout);
@@ -292,11 +302,21 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, unsigned count)
 	for (i = 0; !stop_signal_ && (count == 0 || i < count); i++) {
 		FLAC__uint64 pos;
 
+		/* for the first 10, seek to the first 10 samples */
+		if (n >= 10 && i < 10) {
+			pos = i;
+		}
+		/* for the second 10, seek to the last 10 samples */
+		else if (n >= 10 && i < 20) {
+			pos = n - 1 - (i-10);
+		}
+		else {
 #if !defined _MSC_VER && !defined __MINGW32__
-		pos = (FLAC__uint64)(random() % n);
+			pos = (FLAC__uint64)(random() % n);
 #else
-		pos = (FLAC__uint64)(rand() % n);
+			pos = (FLAC__uint64)(rand() % n);
 #endif
+		}
 
 		printf("seek(%llu)... ", pos);
 		fflush(stdout);
@@ -338,6 +358,9 @@ int main(int argc, char *argv[])
 
 	if (argc > 2)
 		count = strtoul(argv[2], 0, 10);
+
+	if (count < 20)
+		fprintf(stderr, "WARNING: random seeks don't kick in until after 20 preprogrammed ones\n");
 
 #if !defined _MSC_VER && !defined __MINGW32__
 	{
