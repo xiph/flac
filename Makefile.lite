@@ -27,7 +27,7 @@
 # clean   : remove all non-distro files
 #
 
-all: libFLAC libFLAC++ share flac metaflac test_libFLAC test_libFLAC++ test_streams
+all: libFLAC libFLAC++ share plugin_xmms flac metaflac test_libFLAC test_libFLAC++ test_streams
 
 DEFAULT_CONFIG = release
 
