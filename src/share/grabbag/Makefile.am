@@ -7,6 +7,7 @@ INCLUDES = -I$(top_srcdir)/include
 noinst_LIBRARIES = libgrabbag.a
 
 libgrabbag_a_SOURCES = \
+	cuesheet.c \
 	file.c \
 	replaygain.c \
 	seektable.c

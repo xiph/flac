@@ -8,6 +8,7 @@ LIB_NAME = libgrabbag
 INCLUDES = -I$(topdir)/include
 
 OBJS = \
+	cuesheet.o \
 	file.o \
 	replaygain.o \
 	seektable.o

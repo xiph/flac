@@ -9,6 +9,7 @@
 !endif
 
 C_FILES= \
+	cuesheet.c \
 	file.c \
 	replaygain.c \
 	seektable.c

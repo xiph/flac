@@ -92,6 +92,10 @@ LINK32=link.exe
 # PROP Default_Filter "c"
 # Begin Source File
 
+SOURCE=.\cuesheet.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\file.c
 # End Source File
 # Begin Source File
