@@ -36,7 +36,5 @@ EXTRA_DIST = \
 libOggFLAC_la_LDFLAGS = -version-info 0:0:0
 
 libOggFLAC_la_SOURCES = \
-	file_decoder.c \
-	seekable_stream_decoder.c \
 	stream_decoder.c \
 	stream_encoder.c

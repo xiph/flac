@@ -30,12 +30,10 @@ else
 DEFINES =
 endif
 endif
-INCLUDES = -I./include -I../../include
+INCLUDES = -I./include -I../../include -I$(HOME)/local/include
 DEBUG_CFLAGS = 
 
 OBJS = \
-	file_decoder.o \
-	seekable_stream_decoder.o \
 	stream_decoder.o \
 	stream_encoder.o
 
