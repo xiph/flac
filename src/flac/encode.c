@@ -603,7 +603,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 		return true;
 
 	if(num_requested_seek_points < 0) {
-		strcpy(requested_seek_points, ",100x");
+		strcpy(requested_seek_points, "100x<");
 		num_requested_seek_points = 100;
 	}
 
@@ -647,7 +647,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 		*q++ = '\0';
 
 		if(0 == strcmp(pt, "X")) { /* -S X */
-			placeholders++;
+			; /* we append placeholders later */
 		}
 		else if(pt[strlen(pt)-1] == 'x') { /* -S #x */
 			if(stream_samples > 0) { /* we can only do these if we know the number of samples to encode up front */
@@ -849,6 +849,8 @@ void metadata_callback(const FLAC__Encoder *encoder, const FLAC__StreamMetaData 
 	const unsigned min_framesize = metadata->data.stream_info.min_framesize;
 	const unsigned max_framesize = metadata->data.stream_info.max_framesize;
 
+	assert(metadata->type == FLAC__METADATA_TYPE_STREAMINFO);
+
 	/*
 	 * we get called by the encoder when the encoding process has
 	 * finished so that we can update the STREAMINFO and SEEKTABLE
@@ -915,9 +917,10 @@ seektable_:
 				encoder_wrapper->seek_table.points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
 		}
 
+		/* the offset of the seek table data 'pos' should be after then stream sync and STREAMINFO block and SEEKTABLE header */
 		pos = (FLAC__STREAM_SYNC_LEN + FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
 		pos += metadata->length;
-		pos = (FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
+		pos += (FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
 		if(-1 == fseek(f, pos, SEEK_SET)) goto end_;
 		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
 			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].sample_number)) goto end_;
