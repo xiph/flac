@@ -434,6 +434,9 @@ static FLAC__bool test_level_1_()
 	FLAC__byte data[1000];
 	unsigned our_current_position = 0;
 
+	/* initialize 'data' to avoid Valgrind errors */
+	memset(data, 0, sizeof(data));
+
 	printf("\n\n++++++ testing level 1 interface\n");
 
 	/************************************************************/
@@ -1091,6 +1094,9 @@ static FLAC__bool test_level_2_()
 	FLAC__StreamMetadata *block, *app, *padding;
 	FLAC__byte data[2000];
 	unsigned our_current_position;
+
+	/* initialize 'data' to avoid Valgrind errors */
+	memset(data, 0, sizeof(data));
 
 	printf("\n\n++++++ testing level 2 interface\n");
 
