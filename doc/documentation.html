@@ -1000,6 +1000,18 @@
 	<P>
 		Bug tracking is done on the Sourceforge project page <A HREF="http://sourceforge.net/bugs/?group_id=13478">here</A>.  If you submit a bug, please provide an email contact and/or use the Monitor feature.
 	</P>
+	<P>
+		The following are major known bugs in the current release:
+	</P>
+	<P>
+		<UL>
+			<LI>
+				Encoding/decoding with <B><TT>flac</TT></B> through pipes on Windows, using the binary distribution, will corrupt piped data.  This has been fixed in CVS.  This bug does not occur if you are compiling the source using Cygwin.  Use the -V option on Windows to verify that pipes are working in your configuration.
+			</LI>
+			<LI>
+				If you build <B><TT>flac</TT></B> from sources without Ogg support, or are using a binary built without Ogg support, encoding may yield a FLAC file with an invalid seek table.  The 1.0.2 binary releases, except the Darwin release, do not have this problem, since they are built with Ogg support.  This bug has been fixed in CVS.  This will not affect the integrity of the audio data, but may increase the seek time during playback.  You can use <B><TT>metaflac</TT></B> to verify the integrity of existing files' seek tables.
+			</LI>
+	</P>
 	</FONT>
 	</TD></TR>
 	</TABLE>
