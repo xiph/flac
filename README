@@ -162,10 +162,9 @@ all the libraries and executables.
 Prerequisite: you must have the Ogg libraries installed as described
 later.
 
-Prerequisite: you must have nasm installed, and have the environment
-variable FLAC_NASM set to the full path to nasmw.exe, e.g
-
-C:\nasm\nasmw.exe
+Prerequisite: you must have nasm installed, and nasmw.exe must be in
+your PATH, or the path to nasmw.exe must be added to the list of
+directories for executable files in the MSVC global options.
 
 To build everything, run Developer Studio, do File|Open Workspace,
 and open FLAC.dsw.  Select "Build | Set active configuration..."
