@@ -257,25 +257,25 @@
 		  <variablelist>
 		    <varlistentry>
 		      <term><option>-0</option></term>
-		      
+
 		      <listitem>
 			<para>Synonymous with -l 0 -b 1152 -r 2,2
 			  </para>
 		      </listitem>
 		    </varlistentry>
-		    
+
 		    <varlistentry>
 		      <term><option>-1</option></term>
-		      
+
 		      <listitem>
 			<para>Synonymous with -l 0 -b 1152 -M -r 2,2
 			  </para>
 		      </listitem>
 		    </varlistentry>
-		    
+
 		    <varlistentry>
 		      <term><option>-2</option></term>
-		      
+
 		      <listitem>
 			<para>Synonymous with -l 0 -b 1152 -m -r 3
 			  </para>
@@ -284,25 +284,25 @@
 
 		    <varlistentry>
 		      <term><option>-3</option></term>
-		      
+
 		      <listitem>
 			<para>Synonymous with -l 6 -b 4608 -r 3,3
 			  </para>
 		      </listitem>
 		    </varlistentry>
-		    
+
 		    <varlistentry>
 		      <term><option>-4</option></term>
-		      
+
 		      <listitem>
 			<para>Synonymous with -l 8 -b 4608 -M -r 3,3
 			  </para>
 		      </listitem>
 		    </varlistentry>
-		    
+
 		    <varlistentry>
 		      <term><option>-5</option></term>
-		      
+
 		      <listitem>
 			<para>Synonymous with -l 8 -b 4608 -m -r 3,3
 			  </para>
@@ -311,16 +311,16 @@
 
 		    <varlistentry>
 		      <term><option>-6</option></term>
-		      
+
 		      <listitem>
 			<para>Synonymous with -l 8 -b 4608 -m -r 4
 			  </para>
 		      </listitem>
 		    </varlistentry>
-		    
+
 		    <varlistentry>
 		      <term><option>-7</option></term>
-		      
+
 		      <listitem>
 			<para>Synonymous with -l 8 -b 4608 -m -e -r 6
 			  </para>
@@ -338,14 +338,14 @@
 
 		    <varlistentry>
 		      <term><option>-9</option></term>
-		      
+
 		      <listitem>
 			<para>Synonymous with -l 32 -b 4608 -m -e -r 16 -p
 			  (very slow!)</para>
 		      </listitem>
 		    </varlistentry>
 		  </variablelist>
-		  
+
 		</listitem>
 
 

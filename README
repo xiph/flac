@@ -22,7 +22,7 @@ codec developed by Josh Coalson.
 
 FLAC is comprised of 1) `libFLAC', a library which implements
 reference encoders and decoders, licensed under the GNU Lesser
-General Public License (LGPL); 2) `flac', a command-line program for 
+General Public License (LGPL); 2) `flac', a command-line program for
 encoding and decoding files, licensed under the GNU General public
 License (GPL); 3) `metaflac', a command-line program for editing
 FLAC metadata, licensed under the GPL; 4) player plugins for XMMS

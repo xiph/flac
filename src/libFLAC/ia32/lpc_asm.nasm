@@ -905,7 +905,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx
 	sub	ebx, 2
 	jg	.mmx_4_loop_i
 	jmp	.mmx_end
-	
+
 .mmx_4more:
 	shl	eax, 2
 	neg	eax
