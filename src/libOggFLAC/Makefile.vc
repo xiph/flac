@@ -38,5 +38,5 @@ libOggFLAC.lib: $(OBJS)
 	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
 
 clean:
-	-del *.obj ia32\*.obj *.pch
+	-del *.obj *.pch
 	-del ..\..\obj\lib\libOggFLAC.lib ..\..\obj\lib\libOggFLAC.pdb
