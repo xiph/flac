@@ -1514,7 +1514,7 @@ FLAC__bool do_shorthand_operations(const CommandLineOptions *options)
 	unsigned i;
 	FLAC__bool ok = true;
 
-	/*@@@ to die after first error,  v---  add '&& ok' here */
+	/* to die after first error,     v---  add '&& ok' here */
 	for(i = 0; i < options->num_files; i++)
 		ok &= do_shorthand_operations_on_file(options->filenames[i], options);
 
@@ -1905,14 +1905,31 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__bool raw, FILE *f)
 {
 	if(0 != entry->entry) {
-		char *converted;
-
 		if(filename)
 			fprintf(f, "%s:", filename);
 
-		if(!raw && utf8_decode(entry->entry, &converted) >= 0) {
-			(void) fwrite(converted, 1, strlen(converted), f);
-			free(converted);
+		if(!raw) {
+			/*
+			 * utf8_decode() works on NULL-terminated strings, so
+			 * we append a null to the entry.  @@@ Note, this means
+			 * that comments that contain an embedded null will be
+			 * truncated by utf_decode().
+			 */
+			char *terminated, *converted;
+
+			if(0 == (terminated = malloc(entry->length + 1)))
+				die("out of memory allocating space for vorbis comment");
+			memcpy(terminated, entry->entry, entry->length);
+			terminated[entry->length] = '\0';
+			if(utf8_decode(terminated, &converted) >= 0) {
+				(void) fwrite(converted, 1, strlen(converted), f);
+				free(terminated);
+				free(converted);
+			}
+			else {
+				free(terminated);
+				(void) fwrite(entry->entry, 1, entry->length, f);
+			}
 		}
 		else {
 			(void) fwrite(entry->entry, 1, entry->length, f);
