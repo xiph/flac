@@ -23,5 +23,6 @@
 #include "FLAC/metadata.h"
 
 void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object);
+void FLAC__metadata_object_cuesheet_track_delete_data(FLAC__StreamMetadata_CueSheet_Track *object);
 
 #endif

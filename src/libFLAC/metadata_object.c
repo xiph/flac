@@ -207,6 +207,7 @@ static void cuesheet_calculate_length_(FLAC__StreamMetadata *object)
 	object->length = (
 		FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
 		FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
 		FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
 	) / 8;
 
@@ -1025,6 +1026,43 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entries_matching(FLAC__S
 	return ok? (int)matching : -1;
 }
 
+FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_track_new()
+{
+	return (FLAC__StreamMetadata_CueSheet_Track*)calloc(1, sizeof(FLAC__StreamMetadata_CueSheet_Track));
+}
+
+FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_track_clone(const FLAC__StreamMetadata_CueSheet_Track *object)
+{
+	FLAC__StreamMetadata_CueSheet_Track *to;
+
+	FLAC__ASSERT(0 != object);
+
+	if(0 != (to = FLAC__metadata_object_cuesheet_track_new())) {
+		if(!copy_track_(to, object)) {
+			FLAC__metadata_object_cuesheet_track_delete(to);
+			return 0;
+		}
+	}
+
+	return to;
+}
+
+void FLAC__metadata_object_cuesheet_track_delete_data(FLAC__StreamMetadata_CueSheet_Track *object)
+{
+	FLAC__ASSERT(0 != object);
+
+	if(0 != object->indices) {
+		FLAC__ASSERT(object->num_indices > 0);
+		free(object->indices);
+	}
+}
+
+FLAC_API void FLAC__metadata_object_cuesheet_track_delete(FLAC__StreamMetadata_CueSheet_Track *object)
+{
+	FLAC__metadata_object_cuesheet_track_delete_data(object);
+	free(object);
+}
+
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__StreamMetadata *object, unsigned track_num, unsigned new_num_indices)
 {
 	FLAC__StreamMetadata_CueSheet_Track *track;
@@ -1150,12 +1188,12 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 	return true;
 }
 
-FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_set_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track track, FLAC__bool copy)
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_set_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track *track, FLAC__bool copy)
 {
-	return cuesheet_set_track_(object, &object->data.cue_sheet.tracks[track_num], &track, copy);
+	return cuesheet_set_track_(object, object->data.cue_sheet.tracks + track_num, track, copy);
 }
 
-FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track track, FLAC__bool copy)
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track *track, FLAC__bool copy)
 {
 	FLAC__StreamMetadata_CueSheet *cs;
 
