@@ -103,7 +103,7 @@ static int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int
 static int EncoderSession_finish_error(EncoderSession *e);
 static FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate);
 static FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], unsigned samples);
-static FLAC__bool convert_to_seek_table_template(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, FLAC__StreamMetadata *seek_table_template);
+static FLAC__bool convert_to_seek_table_template(char *requested_seek_points, int num_requested_seek_points, EncoderSession *e);
 static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps);
 #ifdef FLAC__HAS_OGG
 static FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
@@ -1115,7 +1115,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	if(channels != 2)
 		options.do_mid_side = options.loose_mid_side = false;
 
-	if(!convert_to_seek_table_template(options.requested_seek_points, options.num_requested_seek_points, e->total_samples_to_encode, e->seek_table_template)) {
+	if(!convert_to_seek_table_template(options.requested_seek_points, options.num_requested_seek_points, e)) {
 		fprintf(stderr, "%s: ERROR allocating memory for seek table\n", e->inbasefilename);
 		return false;
 	}
@@ -1241,10 +1241,12 @@ FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const b
 	}
 }
 
-FLAC__bool convert_to_seek_table_template(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, FLAC__StreamMetadata *seek_table_template)
+FLAC__bool convert_to_seek_table_template(char *requested_seek_points, int num_requested_seek_points, EncoderSession *e)
 {
-	unsigned i, real_points, placeholders;
+	unsigned i;
 	char *pt = requested_seek_points, *q;
+	FLAC__bool only_placeholders = false;
+	FLAC__bool needs_warning = false;
 
 	if(num_requested_seek_points == 0)
 		return true;
@@ -1254,28 +1256,14 @@ FLAC__bool convert_to_seek_table_template(char *requested_seek_points, int num_r
 		num_requested_seek_points = 1;
 	}
 
-	/* first count how many individual seek points we may need */
-	real_points = placeholders = 0;
-	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
-		q = strchr(pt, '<');
-		FLAC__ASSERT(0 != q);
-		*q = '\0';
-
-		if(0 == strcmp(pt, "X")) { /* -S X */
-			placeholders++;
-		}
-		else if(pt[strlen(pt)-1] == 'x') { /* -S #x */
-			if(stream_samples > 0) /* we can only do these if we know the number of samples to encode up front */
-				real_points += (unsigned)atoi(pt);
-		}
-		else { /* -S # */
-			real_points++;
-		}
-		*q++ = '<';
-
-		pt = q;
+	if(e->is_stdout) {
+		only_placeholders = true;
 	}
-	pt = requested_seek_points;
+#ifdef HAS_OGG
+	else if(e->is_ogg) {
+		only_placeholders = true;
+	}
+#endif
 
 	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
 		q = strchr(pt, '<');
@@ -1283,26 +1271,43 @@ FLAC__bool convert_to_seek_table_template(char *requested_seek_points, int num_r
 		*q++ = '\0';
 
 		if(0 == strcmp(pt, "X")) { /* -S X */
-			if(!FLAC__metadata_object_seektable_template_append_placeholders(seek_table_template, 1))
+			if(!FLAC__metadata_object_seektable_template_append_placeholders(e->seek_table_template, 1))
 				return false;
 		}
-		else if(pt[strlen(pt)-1] == 'x') { /* -S #x */
-			if(stream_samples > 0) { /* we can only do these if we know the number of samples to encode up front */
-				if(!FLAC__metadata_object_seektable_template_append_spaced_points(seek_table_template, atoi(pt), stream_samples))
+		else if(!only_placeholders) {
+			if(pt[strlen(pt)-1] == 'x') { /* -S #x */
+				if(e->total_samples_to_encode > 0) { /* we can only do these if we know the number of samples to encode up front */
+					if(!FLAC__metadata_object_seektable_template_append_spaced_points(e->seek_table_template, atoi(pt), e->total_samples_to_encode))
+						return false;
+				}
+			}
+			else { /* -S # */
+				FLAC__uint64 n = (unsigned)atoi(pt);
+				if(!FLAC__metadata_object_seektable_template_append_point(e->seek_table_template, n))
 					return false;
 			}
 		}
-		else { /* -S # */
-			FLAC__uint64 n = (unsigned)atoi(pt);
-			if(!FLAC__metadata_object_seektable_template_append_point(seek_table_template, n))
-				return false;
-		}
+		else
+			needs_warning = true;
 
 		pt = q;
 	}
 
-	if(!FLAC__metadata_object_seektable_template_sort(seek_table_template, /*compact=*/true))
+	if(!FLAC__metadata_object_seektable_template_sort(e->seek_table_template, /*compact=*/true))
 		return false;
+
+	if(needs_warning) {
+		if(e->is_stdout) {
+			fprintf(stderr, "%s: WARNING, cannot write back seektable when encoding to stdout\n", e->inbasefilename);
+		}
+#ifdef HAS_OGG
+		else if(e->is_ogg) {
+			fprintf(stderr, "%s: WARNING, cannot write back seektable when encoding to Ogg\n", e->inbasefilename);
+		}
+#endif
+		else
+			FLAC__ASSERT(0);
+	}
 
 	return true;
 }
@@ -1381,6 +1386,8 @@ void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_
 FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	EncoderSession *encoder_session = (EncoderSession*)client_data;
+
+	(void)encoder;
 
 	encoder_session->bytes_written += bytes;
 	/*
