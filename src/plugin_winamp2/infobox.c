@@ -231,7 +231,7 @@ static BOOL InitInfoboxInfo(HWND hwnd, const char *file)
 		SetTextW(IDC_TITLE,   L"TITLE");
 		SetTextW(IDC_ARTIST,  L"ARTIST");
 		SetTextW(IDC_ALBUM,   L"ALBUM");
-		SetTextW(IDC_COMMENT, L"DESCRIPTION");
+		SetTextW(IDC_COMMENT, L"COMMENT");
 		SetTextW(IDC_YEAR,    L"DATE");
 		SetTextW(IDC_TRACK,   L"TRACKNUMBER");
 		SetTextW(IDC_GENRE,   L"GENRE");
@@ -241,7 +241,7 @@ static BOOL InitInfoboxInfo(HWND hwnd, const char *file)
 		SetText(IDC_TITLE,   L"TITLE");
 		SetText(IDC_ARTIST,  L"ARTIST");
 		SetText(IDC_ALBUM,   L"ALBUM");
-		SetText(IDC_COMMENT, L"DESCRIPTION");
+		SetText(IDC_COMMENT, L"COMMENT");
 		SetText(IDC_YEAR,    L"DATE");
 		SetText(IDC_TRACK,   L"TRACKNUMBER");
 		SetText(IDC_GENRE,   L"GENRE");
@@ -271,7 +271,7 @@ static void UpdateTag(HWND hwnd)
 		GetTextW(IDC_TITLE,   L"TITLE");
 		GetTextW(IDC_ARTIST,  L"ARTIST");
 		GetTextW(IDC_ALBUM,   L"ALBUM");
-		GetTextW(IDC_COMMENT, L"DESCRIPTION");
+		GetTextW(IDC_COMMENT, L"COMMENT");
 		GetTextW(IDC_YEAR,    L"DATE");
 		GetTextW(IDC_TRACK,   L"TRACKNUMBER");
 		GetTextW(IDC_GENRE,   L"GENRE");
@@ -283,7 +283,7 @@ static void UpdateTag(HWND hwnd)
 		GetText(IDC_TITLE,   L"TITLE");
 		GetText(IDC_ARTIST,  L"ARTIST");
 		GetText(IDC_ALBUM,   L"ALBUM");
-		GetText(IDC_COMMENT, L"DESCRIPTION");
+		GetText(IDC_COMMENT, L"COMMENT");
 		GetText(IDC_YEAR,    L"DATE");
 		GetText(IDC_TRACK,   L"TRACKNUMBER");
 		GetText(IDC_GENRE,   L"GENRE");
