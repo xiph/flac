@@ -252,9 +252,6 @@ int encode_wav(FILE *infile, const char *infilename, const char *outfilename, bo
 	encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample - skip;
 	encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
 
-	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode <= 0)
-		printf("(No runtime statistics possible; please wait for encoding to finish...)\n");
-
 	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
 		goto wav_abort_;
 
@@ -384,6 +381,9 @@ int encode_raw(FILE *infile, const char *infilename, const char *outfilename, bo
 			encoder_wrapper.total_samples_to_encode = filesize / bytes_per_wide_sample - skip;
 		}
 	}
+
+	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode <= 0)
+		printf("(No runtime statistics possible; please wait for encoding to finish...)\n");
 
 	if(skip > 0) {
 		if(infile != stdin) {
