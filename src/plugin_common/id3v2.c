@@ -20,8 +20,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "id3v2.h"
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -41,8 +39,15 @@
 
 #define ID3V2_MAX_STRING_LEN 4096
 #define NUMBER_TRACK_FORMATED 1
+#endif
 
+/*
+ * This should come after #include<id3.h> because id3.h doesn't #undef
+ * true and false before redefining them, causing warnings.
+ */
+#include "id3v2.h"
 
+#ifdef FLAC__HAS_ID3LIB
 /* local__strip() based on glib's g_strchomp() and g_strchug():
  * GLIB - Library of useful routines for C programming
  * Copyright (C) 1995-1997  Peter Mattis, Spencer Kimball and Josh MacDonald
