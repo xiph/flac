@@ -1,0 +1,18 @@
+!include <win32.mak>
+
+.c.obj:
+	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /O2 -DNODEBUG $<
+
+C_FILES= \
+	main.c
+
+OBJS= $(C_FILES:.c=.obj)
+
+all: flac_ren.exe
+
+flac_ren.exe: $(OBJS)
+	link.exe $(OBJS) -out:$*.exe
+
+clean:
+	-del *.obj *.pch
+	-del flac_ren.exe

@@ -85,6 +85,7 @@
 			<LI><A HREF="#plugins">plugins</A> - documentation for the various input plugins.</LI>
 			<LI><A HREF="#libflac">libFLAC API</A> - for developers who want to add FLAC support to their programs.</LI>
 			<LI><A HREF="#bugs">bugs</A> - known bugs.</LI>
+			<LI><A HREF="#monkey">How to add FLAC support to the Monkey's Audio GUI</A></LI>
 		</UL>
 	</P>
 	<P>
@@ -936,6 +937,41 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
 		Bug tracking is done on the Sourceforge project page <A HREF="http://sourceforge.net/bugs/?group_id=13478">here</A>.  If you submit a bug, please provide an email contact and/or use the Monitor feature.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<A NAME="monkey"><B><FONT SIZE="+2">monkey</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		Monkey's Audio comes with a nice GUI that many people are familiar with.  It supports some external encoders, but not FLAC.  However, the FLAC Windows distribution comes with a utility that allows you to replace one the of the supported lossless external codecs with FLAC.  Here's how:
+		<UL>
+			<LI>Copy <B><TT>flac.exe</TT></B> and <B><TT>flac_ren.exe</TT></B> to the <B><TT>External/</TT></B> directory of the Monkey's Audio installation.</LI>
+			<LI>
+				Choose a supported encoder to replace:
+				<UL>
+					<LI>Shorten - copy <B><TT>flac_mac.exe</TT></B> on top of <B><TT>External/shortn32.exe</TT></B></LI>
+					<LI>WavPack - copy <B><TT>flac_mac.exe</TT></B> on top of both <B><TT>External/wavpack.exe</TT></B> and <B><TT>External/wvunpack.exe</TT></B></LI>
+					<LI>RKAU - copy <B><TT>flac_mac.exe</TT></B> on top of <B><TT>External/rkau.exe</TT></B></LI>
+				</UL>
+				If you choose WavPack you will also be able to use the WavPack Configuration menu to add flac options.
+			</LI>
+			<LI>Now you can encode FLAC files as if you were using the replaced encoder.  The renamed <B><TT>flac_mac.exe</TT></B> utility will call <B><TT>flac.exe</TT></B> and afterwards, <B><TT>flac_ren.exe</TT></B> will rename the resulting file to have the .flac extension.</LI>
+		</UL>
 	</P>
 	</FONT>
 	</TD></TR>
