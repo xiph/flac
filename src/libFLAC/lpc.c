@@ -302,19 +302,7 @@ FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample(FLAC__real lpc_er
 
 	error_scale = 0.5 * M_LN2 * M_LN2 / (FLAC__real)total_samples;
 
-	if(lpc_error > 0.0) {
-		FLAC__real bps = (FLAC__real)((double)0.5 * log(error_scale * lpc_error) / M_LN2);
-		if(bps >= 0.0)
-			return bps;
-		else
-			return 0.0;
-	}
-	else if(lpc_error < 0.0) { /* error should not be negative but can happen due to inadequate float resolution */
-		return (FLAC__real)1e32;
-	}
-	else {
-		return 0.0;
-	}
+	return FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error, error_scale);
 }
 
 FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(FLAC__real lpc_error, double error_scale)
