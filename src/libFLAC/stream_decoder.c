@@ -797,6 +797,8 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 	byte crc8, raw_header[16]; /* MAGIC NUMBER based on the maximum frame header size, including CRC */
 	unsigned raw_header_len;
 	bool is_unparseable = false;
+	const bool is_known_variable_blocksize_stream = (decoder->guts->has_stream_info && decoder->guts->stream_info.data.stream_info.min_blocksize != decoder->guts->stream_info.data.stream_info.max_blocksize);
+	const bool is_known_fixed_blocksize_stream = (decoder->guts->has_stream_info && decoder->guts->stream_info.data.stream_info.min_blocksize == decoder->guts->stream_info.data.stream_info.max_blocksize);
 
 	assert(decoder->guts->input.consumed_bits == 0); /* make sure we're byte aligned */
 
@@ -837,7 +839,7 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 
 	switch(x = raw_header[2] >> 4) {
 		case 0:
-			if(decoder->guts->has_stream_info && decoder->guts->stream_info.data.stream_info.min_blocksize == decoder->guts->stream_info.data.stream_info.max_blocksize) /* i.e. it's a fixed-blocksize stream */
+			if(is_known_fixed_blocksize_stream)
 				decoder->guts->frame.header.blocksize = decoder->guts->stream_info.data.stream_info.min_blocksize;
 			else
 				is_unparseable = true;
@@ -979,7 +981,7 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 		return true;
 	}
 
-	if(blocksize_hint) {
+	if(blocksize_hint && is_known_variable_blocksize_stream) {
 		if(!FLAC__bitbuffer_read_utf8_uint64(&decoder->guts->input, &xx, read_callback_, decoder, raw_header, &raw_header_len))
 			return false; /* the read_callback_ sets the state for us */
 		if(xx == 0xffffffffffffffff) { /* i.e. non-UTF8 code... */
@@ -989,10 +991,7 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 			decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 			return true;
 		}
-		if(decoder->guts->has_stream_info && decoder->guts->stream_info.data.stream_info.min_blocksize == decoder->guts->stream_info.data.stream_info.max_blocksize) /* i.e. it's a fixed-blocksize stream */
-			decoder->guts->frame.header.number.sample_number = (uint64)decoder->guts->last_frame_number * (int64)decoder->guts->stream_info.data.stream_info.min_blocksize + xx;
-		else
-			decoder->guts->frame.header.number.sample_number = xx;
+		decoder->guts->frame.header.number.sample_number = xx;
 	}
 	else {
 		if(!FLAC__bitbuffer_read_utf8_uint32(&decoder->guts->input, &x, read_callback_, decoder, raw_header, &raw_header_len))
