@@ -1,10 +1,6 @@
 /* in_flac - Winamp2 FLAC input plugin
  * Copyright (C) 2000,2001,2002  Josh Coalson
  *
- * dithering routine derived from (other GPLed source):
- * mad - MPEG audio decoder
- * Copyright (C) 2000-2001 Robert Leslie
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -38,8 +34,6 @@
 
 #define FLAC__DO_DITHER
 
-#define MAX_SUPPORTED_CHANNELS 2
-
 typedef struct {
 	FLAC__byte raw[128];
 	char title[31];
@@ -66,7 +60,7 @@ typedef struct {
 	unsigned bits_per_sample;
 	unsigned channels;
 	unsigned sample_rate;
-	unsigned length_in_ms;
+	unsigned length_in_msec;
 } file_info_struct;
 
 static FLAC__bool safe_decoder_init_(const char *infilename, FLAC__FileDecoder *decoder);
@@ -82,8 +76,10 @@ char lastfn_[MAX_PATH]; /* currently playing file (used for getting info on the 
 int decode_pos_ms_; /* current decoding position, in milliseconds */
 int paused_; /* are we paused? */
 int seek_needed_; /* if != -1, it is the point that the decode thread should seek to, in ms. */
-FLAC__int32 reservoir_[FLAC__MAX_BLOCK_SIZE * 2/*for overflow*/ * MAX_SUPPORTED_CHANNELS];
-char sample_buffer_[576 * MAX_SUPPORTED_CHANNELS * (24/8) * 2]; /* (24/8) for max bytes per sample, and 2 for who knows what */
+
+#define SAMPLES_PER_WRITE 576
+FLAC__int32 reservoir_[FLAC__MAX_BLOCK_SIZE * 2/*for overflow*/ * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
+char sample_buffer_[SAMPLES_PER_WRITE * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS * (24/8) * 2]; /* (24/8) for max bytes per sample, and 2 for who knows what */
 unsigned wide_samples_in_reservoir_;
 static file_info_struct file_info_;
 static FLAC__FileDecoder *decoder_;
@@ -245,7 +241,7 @@ void stop()
 
 int getlength()
 {
-	return (int)file_info_.length_in_ms;
+	return (int)file_info_.length_in_msec;
 }
 
 int getoutputtime()
@@ -308,13 +304,17 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 	int done = 0;
 
 	while(! *((int *)b) ) {
-		unsigned channels = file_info_.channels;
-		unsigned bits_per_sample = file_info_.bits_per_sample;
-		unsigned bytes_per_sample = (bits_per_sample+7)/8;
-		unsigned sample_rate = file_info_.sample_rate;
+		const unsigned channels = file_info_.channels;
+		const unsigned bits_per_sample = file_info_.bits_per_sample;
+#ifdef FLAC__DO_DITHER
+		const unsigned target_bps = 16;
+#else
+		const unsigned target_bps = bits_per_sample;
+#endif
+		const unsigned sample_rate = file_info_.sample_rate;
 		if(seek_needed_ != -1) {
 			const double distance = (double)seek_needed_ / (double)getlength();
-			unsigned target_sample = (unsigned)(distance * (double)file_info_.total_samples);
+			const unsigned target_sample = (unsigned)(distance * (double)file_info_.total_samples);
 			if(FLAC__file_decoder_seek_absolute(decoder_, (FLAC__uint64)target_sample)) {
 				decode_pos_ms_ = (int)(distance * (double)getlength());
 				seek_needed_ = -1;
@@ -329,8 +329,8 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 			}
 			Sleep(10);
 		}
-		else if(mod_.outMod->CanWrite() >= ((int)(576*channels*bytes_per_sample) << (mod_.dsp_isactive()?1:0))) {
-			while(wide_samples_in_reservoir_ < 576) {
+		else if(mod_.outMod->CanWrite() >= ((int)(SAMPLES_PER_WRITE*channels*((target_bps+7)/8)) << (mod_.dsp_isactive()?1:0))) {
+			while(wide_samples_in_reservoir_ < SAMPLES_PER_WRITE) {
 				if(FLAC__file_decoder_get_state(decoder_) == FLAC__FILE_DECODER_END_OF_FILE) {
 					done = 1;
 					break;
@@ -346,14 +346,9 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 				done = 1;
 			}
 			else {
-#ifdef FLAC__DO_DITHER
-				const unsigned target_bps = 16;
-#else
-				const unsigned target_bps = bits_per_sample;
-#endif
-				const unsigned n = min(wide_samples_in_reservoir_, 576);
+				const unsigned n = min(wide_samples_in_reservoir_, SAMPLES_PER_WRITE);
 				const unsigned delta = n * channels;
-				int bytes = (int)FLAC__plugin_common__pack_pcm(sample_buffer_, reservoir_, n, channels, bits_per_sample, target_bps);
+				int bytes = (int)FLAC__plugin_common__pack_pcm_signed_little_endian(sample_buffer_, reservoir_, n, channels, bits_per_sample, target_bps);
 				unsigned i;
 
 				for(i = delta; i < wide_samples_in_reservoir_ * channels; i++)
@@ -477,13 +472,13 @@ void safe_decoder_delete_(FLAC__FileDecoder *decoder)
 
 FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
-	file_info_struct *file_info_ = (file_info_struct *)client_data;
-	const unsigned bps = file_info_->bits_per_sample, channels = file_info_->channels, wide_samples = frame->header.blocksize;
+	file_info_struct *file_info = (file_info_struct *)client_data;
+	const unsigned channels = file_info->channels, wide_samples = frame->header.blocksize;
 	unsigned wide_sample, offset_sample, channel;
 
 	(void)decoder;
 
-	if(file_info_->abort_flag)
+	if(file_info->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
 	for(offset_sample = wide_samples_in_reservoir_ * channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
@@ -497,38 +492,38 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 
 void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
-	file_info_struct *file_info_ = (file_info_struct *)client_data;
+	file_info_struct *file_info = (file_info_struct *)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		FLAC__ASSERT(metadata->data.stream_info.total_samples < 0x100000000); /* this plugin can only handle < 4 gigasamples */
-		file_info_->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xffffffff);
-		file_info_->bits_per_sample = metadata->data.stream_info.bits_per_sample;
-		file_info_->channels = metadata->data.stream_info.channels;
-		file_info_->sample_rate = metadata->data.stream_info.sample_rate;
+		file_info->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xffffffff);
+		file_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
+		file_info->channels = metadata->data.stream_info.channels;
+		file_info->sample_rate = metadata->data.stream_info.sample_rate;
 
 #ifdef FLAC__DO_DITHER
-		if(file_info_->bits_per_sample != 16 && file_info_->bits_per_sample != 24) {
+		if(file_info->bits_per_sample != 16 && file_info->bits_per_sample != 24) {
 			MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 16/24-bit samples\n", "ERROR: plugin can only handle 16/24-bit samples", 0);
-			file_info_->abort_flag = true;
+			file_info->abort_flag = true;
 			return;
 		}
 #else
-		if(file_info_->bits_per_sample != 8 && file_info_->bits_per_sample != 16 && file_info_->bits_per_sample != 24) {
+		if(file_info->bits_per_sample != 8 && file_info->bits_per_sample != 16 && file_info->bits_per_sample != 24) {
 			MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16/24-bit samples\n", "ERROR: plugin can only handle 8/16/24-bit samples", 0);
-			file_info_->abort_flag = true;
+			file_info->abort_flag = true;
 			return;
 		}
 #endif
-		file_info_->length_in_ms = file_info_->total_samples * 10 / (file_info_->sample_rate / 100);
+		file_info->length_in_msec = file_info->total_samples * 10 / (file_info->sample_rate / 100);
 	}
 }
 
 void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
-	file_info_struct *file_info_ = (file_info_struct *)client_data;
+	file_info_struct *file_info = (file_info_struct *)client_data;
 	(void)decoder;
 	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
-		file_info_->abort_flag = true;
+		file_info->abort_flag = true;
 }
 
 FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
