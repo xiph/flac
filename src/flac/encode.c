@@ -436,8 +436,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	}
 
 	if(encoder_wrapper.encoder) {
-		if(FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
-			FLAC__stream_encoder_finish(encoder_wrapper.encoder);
+		FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
 #ifdef FLAC__HAS_OGG
 		if(encoder_wrapper.use_ogg)
@@ -469,8 +468,7 @@ wav_abort_:
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0)
 		fprintf(stderr, "\n");
 	if(encoder_wrapper.encoder) {
-		if(FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
-			FLAC__stream_encoder_finish(encoder_wrapper.encoder);
+		FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
 #ifdef FLAC__HAS_OGG
 		if(encoder_wrapper.use_ogg)
@@ -607,8 +605,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	}
 
 	if(encoder_wrapper.encoder) {
-		if(FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
-			FLAC__stream_encoder_finish(encoder_wrapper.encoder);
+		FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
 #ifdef FLAC__HAS_OGG
 		if(encoder_wrapper.use_ogg)
@@ -636,8 +633,7 @@ raw_abort_:
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0)
 		fprintf(stderr, "\n");
 	if(encoder_wrapper.encoder) {
-		if(FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
-			FLAC__stream_encoder_finish(encoder_wrapper.encoder);
+		FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
 #ifdef FLAC__HAS_OGG
 		if(encoder_wrapper.use_ogg)
