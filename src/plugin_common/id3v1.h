@@ -31,7 +31,7 @@ typedef struct {
 	char artist[30];
 	char album[30];
 	char year[4];
-    /* always use layout of id3 v1.1 */
+	/* always use layout of id3 v1.1 */
 	char comment[28];
 	char zero;
 	unsigned char track;
