@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef _MSC_VER
+#if !defined _MSC_VER && !defined __MINGW32__
 /* unlink is in stdio.h in VC++ */
 #include <unistd.h> /* for unlink() */
 #else

@@ -217,7 +217,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 data[], 
 			sum += qlp_coeff[j] * (*(--history));
 #ifdef FLAC__OVERFLOW_DETECT
 			sumo += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*history);
-#ifdef _MSC_VER /* don't know how to do 64-bit literals in VC++ */
+#if defined _MSC_VER || defined __MINGW32__ /* don't know how to do 64-bit literals in VC++ */
 			if(sumo < 0) sumo = -sumo;
 			if(sumo > 2147483647)
 #else
@@ -268,7 +268,7 @@ void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, c
 			sum += qlp_coeff[j] * (*(--history));
 #ifdef FLAC__OVERFLOW_DETECT
 			sumo += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*history);
-#ifdef _MSC_VER /* don't know how to do 64-bit literals in VC++ */
+#if defined _MSC_VER || defined __MINGW32__ /* don't know how to do 64-bit literals in VC++ */
 			if(sumo < 0) sumo = -sumo;
 			if(sumo > 2147483647)
 #else

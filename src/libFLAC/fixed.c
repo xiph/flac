@@ -110,7 +110,7 @@ unsigned FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], unsig
 	/* Estimate the expected number of bits per residual signal sample. */
 	/* 'total_error*' is linearly related to the variance of the residual */
 	/* signal, so we use it directly to compute E(|x|) */
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __MINGW32__
 	/* with VC++ you have to spoon feed it the casting */
 	residual_bits_per_sample[0] = (FLAC__real)((data_len > 0 && total_error_0 > 0) ? log(M_LN2 * (double)(FLAC__int64)total_error_0 / (double) data_len) / M_LN2 : 0.0);
 	residual_bits_per_sample[1] = (FLAC__real)((data_len > 0 && total_error_1 > 0) ? log(M_LN2 * (double)(FLAC__int64)total_error_1 / (double) data_len) / M_LN2 : 0.0);

@@ -636,7 +636,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 			const FLAC__uint64 target_offset = target_sample - decoder->private_->seek_table->points[lower_seek_point].sample_number;
 			const FLAC__uint64 range_samples = decoder->private_->seek_table->points[upper_seek_point].sample_number - decoder->private_->seek_table->points[lower_seek_point].sample_number;
 			const FLAC__uint64 range_bytes = upper_bound - lower_bound;
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __MINGW32__
 			/* with VC++ you have to spoon feed it the casting */
 			pos = (FLAC__int64)lower_bound + (FLAC__int64)((double)(FLAC__int64)target_offset / (double)(FLAC__int64)range_samples * (double)(FLAC__int64)(range_bytes-1)) - approx_bytes_per_frame;
 #else
@@ -646,7 +646,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 	}
 	if(pos < 0) {
 		/* We need to use the metadata and the filelength to estimate the position of the frame with the correct sample */
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __MINGW32__
 		/* with VC++ you have to spoon feed it the casting */
 		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((double)(FLAC__int64)target_sample / (double)(FLAC__int64)decoder->private_->stream_info.total_samples * (double)(FLAC__int64)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
 #else

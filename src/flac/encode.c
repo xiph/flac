@@ -1245,7 +1245,7 @@ void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecod
 
 void print_stats(const encoder_wrapper_struct *encoder_wrapper)
 {
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __MINGW32__
 	/* with VC++ you have to spoon feed it the casting */
 	const double progress = (double)(FLAC__int64)encoder_wrapper->samples_written / (double)(FLAC__int64)encoder_wrapper->total_samples_to_encode;
 	const double ratio = (double)(FLAC__int64)encoder_wrapper->bytes_written / ((double)(FLAC__int64)encoder_wrapper->unencoded_size * progress);

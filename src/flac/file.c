@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __MINGW32__
 #include <sys/utime.h> /* for utime() */
 #include <io.h> /* for chmod() */
 #else
@@ -38,7 +38,7 @@ void flac__file_copy_metadata(const char *srcpath, const char *destpath)
 		srctime.modtime = srcstat.st_mtime;
 		(void)chmod(destpath, srcstat.st_mode);
 		(void)utime(destpath, &srctime);
-#ifndef _MSC_VER
+#if !defined _MSC_VER && !defined __MINGW32__
 		(void)chown(destpath, srcstat.st_uid, -1);
 		(void)chown(destpath, -1, srcstat.st_gid);
 #endif

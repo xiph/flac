@@ -784,7 +784,7 @@ void error_callback(const void *decoder, FLAC__StreamDecoderErrorStatus status, 
 void print_stats(const stream_info_struct *stream_info)
 {
 	if(stream_info->verbose) {
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __MINGW32__
 		/* with VC++ you have to spoon feed it the casting */
 		const double progress = (double)(FLAC__int64)stream_info->samples_processed / (double)(FLAC__int64)stream_info->total_samples * 100.0;
 #else

@@ -19,7 +19,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef _MSC_VER
+#if !defined _MSC_VER && !defined __MINGW32__
 #include <sys/time.h>
 #endif
 #include "FLAC/assert.h"
@@ -392,7 +392,7 @@ static FLAC__bool generate_noise(const char *fn, unsigned bytes)
 {
 	FILE *f;
 	unsigned b;
-#ifndef _MSC_VER
+#if !defined _MSC_VER && !defined __MINGW32__
 	struct timeval tv;
 
 	if(gettimeofday(&tv, 0) < 0) {
@@ -408,7 +408,7 @@ static FLAC__bool generate_noise(const char *fn, unsigned bytes)
 		return false;
 
 	for(b = 0; b < bytes; b++) {
-#ifndef _MSC_VER
+#if !defined _MSC_VER && !defined __MINGW32__
 		FLAC__byte x = (FLAC__byte)(((unsigned)random()) & 0xff);
 #else
 		FLAC__byte x = (FLAC__byte)((((unsigned)generate_noise) >> 8) ^ (b * 17)); /* fake it */
