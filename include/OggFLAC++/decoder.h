@@ -95,6 +95,7 @@ namespace OggFLAC {
 				inline State(::OggFLAC__StreamDecoderState state): state_(state) { }
 				inline operator ::OggFLAC__StreamDecoderState() const { return state_; }
 				inline const char *as_cstring() const { return ::OggFLAC__StreamDecoderStateString[state_]; }
+				inline const char *resolved_as_cstring(const Stream &decoder) const { return ::OggFLAC__stream_decoder_get_resolved_state_string(decoder.decoder_); }
 			protected:
 				::OggFLAC__StreamDecoderState state_;
 			};
