@@ -92,7 +92,7 @@ FLAC__bool file_utils__remove_file(const char *filename)
 	return file_utils__change_stats(filename, /*read_only=*/false) && 0 == unlink(filename);
 }
 
-FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned length, const FLAC__StreamMetaData *streaminfo, FLAC__StreamMetaData **metadata, unsigned num_metadata)
+FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned *output_filesize, unsigned length, const FLAC__StreamMetaData *streaminfo, FLAC__StreamMetaData **metadata, unsigned num_metadata)
 {
 	FLAC__int32 samples[1024];
 	FLAC__StreamEncoder *encoder;
@@ -159,6 +159,15 @@ FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned l
 	fclose(encoder_client_data.file);
 
 	FLAC__stream_encoder_delete(encoder);
+
+	if(0 != output_filesize) {
+		struct stat filestats;
+
+		if(stat(output_filename, &filestats) != 0)
+			return false;
+		else
+			*output_filesize = (unsigned)filestats.st_size;
+	}
 
 	return true;
 }
