@@ -298,7 +298,7 @@ bool init(const char *infile, stream_info_struct *stream_info)
 	decoder->check_md5 = true;
 
 	if(FLAC__file_decoder_init(decoder, infile, write_callback, metadata_callback, error_callback, stream_info) != FLAC__FILE_DECODER_OK) {
-		fprintf(stderr, "ERROR initializing decoder, state = %d\n", decoder->state);
+		fprintf(stderr, "ERROR initializing decoder, state=%d:%s\n", decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 		return false;
 	}
 
