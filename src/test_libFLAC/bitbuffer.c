@@ -183,7 +183,7 @@ FLAC__bool test_bitbuffer()
 		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)) {
-		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1));
+		printf("FAILED byte count %u != %u\n", bb->blurbs, (unsigned)sizeof(test_pattern1));
 		FLAC__bitbuffer_dump(bb, stdout);
 		return false;
 	}
@@ -213,7 +213,7 @@ FLAC__bool test_bitbuffer()
 		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)) {
-		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1));
+		printf("FAILED byte count %u != %u\n", bb->blurbs, (unsigned)sizeof(test_pattern1));
 		FLAC__bitbuffer_dump(bb, stdout);
 		return false;
 	}
@@ -243,7 +243,7 @@ FLAC__bool test_bitbuffer()
 		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)) {
-		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1));
+		printf("FAILED byte count %u != %u\n", bb->blurbs, (unsigned)sizeof(test_pattern1));
 		FLAC__bitbuffer_dump(bb, stdout);
 		return false;
 	}
@@ -273,7 +273,7 @@ FLAC__bool test_bitbuffer()
 		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)) {
-		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1));
+		printf("FAILED byte count %u != %u\n", bb->blurbs, (unsigned)sizeof(test_pattern1));
 		FLAC__bitbuffer_dump(bb, stdout);
 		return false;
 	}
@@ -305,7 +305,7 @@ FLAC__bool test_bitbuffer()
 		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)+1) {
-		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1)+1);
+		printf("FAILED byte count %u != %u\n", bb->blurbs, (unsigned)sizeof(test_pattern1)+1);
 		FLAC__bitbuffer_dump(bb, stdout);
 		return false;
 	}
@@ -337,7 +337,7 @@ FLAC__bool test_bitbuffer()
 		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)+1) {
-		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1)+1);
+		printf("FAILED byte count %u != %u\n", bb->blurbs, (unsigned)sizeof(test_pattern1)+1);
 		FLAC__bitbuffer_dump(bb, stdout);
 		return false;
 	}
@@ -369,7 +369,7 @@ FLAC__bool test_bitbuffer()
 		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)+2) {
-		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1)+2);
+		printf("FAILED byte count %u != %u\n", bb->blurbs, (unsigned)sizeof(test_pattern1)+2);
 		FLAC__bitbuffer_dump(bb, stdout);
 		return false;
 	}
@@ -400,7 +400,7 @@ FLAC__bool test_bitbuffer()
 		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)+4) {
-		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1)+4);
+		printf("FAILED byte count %u != %u\n", bb->blurbs, (unsigned)sizeof(test_pattern1)+4);
 		FLAC__bitbuffer_dump(bb, stdout);
 		return false;
 	}
