@@ -95,7 +95,7 @@ void FLAC__file_decoder_delete(FLAC__FileDecoder *);
  * NOT reset the values to the constructor defaults.
  */
 FLAC__bool FLAC__file_decoder_set_md5_checking(const FLAC__FileDecoder *decoder, FLAC__bool value);
-FLAC__bool FLAC__file_decoder_set_filename(const FLAC__FileDecoder *decoder, const char *value);
+FLAC__bool FLAC__file_decoder_set_filename(const FLAC__FileDecoder *decoder, const char *value); /* 'value' may not be 0; use "-" for stdin */
 FLAC__bool FLAC__file_decoder_set_write_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
 FLAC__bool FLAC__file_decoder_set_metadata_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
 FLAC__bool FLAC__file_decoder_set_error_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));

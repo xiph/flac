@@ -154,7 +154,7 @@ FLAC__FileDecoderState FLAC__file_decoder_init(FLAC__FileDecoder *decoder)
 	decoder->private_->stream_decoder = 0;
 	decoder->private_->seek_table = 0;
 
-	if(0 == strcmp(decoder->private_->filename, "-"))
+	if(0 == decoder->private_->filename)
 		decoder->private_->file = stdin;
 	else
 		decoder->private_->file = fopen(decoder->private_->filename, "rb");
@@ -221,13 +221,21 @@ FLAC__bool FLAC__file_decoder_set_md5_checking(const FLAC__FileDecoder *decoder,
 
 FLAC__bool FLAC__file_decoder_set_filename(const FLAC__FileDecoder *decoder, const char *value)
 {
+	FLAC__ASSERT(value != 0);
 	if(decoder->protected_->state != FLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	if(0 == (decoder->private_->filename = (char*)malloc(strlen(value)+1))) {
-		decoder->protected_->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
-		return false;
+	if(0 != decoder->private_->filename)
+		free(decoder->private_->filename);
+	if(0 == strcmp(value, "-")) {
+		decoder->private_->filename = 0;
 	}
-	strcpy(decoder->private_->filename, value);
+	else  {
+		if(0 == (decoder->private_->filename = (char*)malloc(strlen(value)+1))) {
+			decoder->protected_->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
+			return false;
+		}
+		strcpy(decoder->private_->filename, value);
+	}
 	return true;
 }
 
