@@ -438,7 +438,8 @@
 			</TD>
 			<TD>
 				When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <TT><B>flac</B></TT>.<P>
-				When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.
+				When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.<P>
+				<B>NOTE:</B> Ogg FLAC files created prior to <B><TT>flac</TT></B> 1.1.1 used an ad-hoc mapping and do not support seeking.  They should be decoded and re-encoded with <B><TT>flac</TT></B> 1.1.1 or later.
 			</TD>
 		</TR>
 		<A NAME="flac_options_serial_number">

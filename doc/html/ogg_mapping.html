@@ -98,7 +98,7 @@
 		In the interest of simplicity and expediency, the second method was chosen for the first official FLAC-&gt;Ogg mapping.  A mapping version is included in the first packet so that a less redundant mapping can be defined in the future.
 	</P>
 	<P>
-		It should also be noted that support for encapsulating FLAC in Ogg has been present in the FLAC tools since version 1.0.1.  However, the mappings used were never formalized and have insurmountable problems.  For that reason, Ogg FLAC streams created with <B><TT>flac</TT></B> versions before 1.1.1 should be decoded by the corresponding version of <B><TT>flac</TT></B>, and re-encoded with <B><TT>flac</TT></B> 1.1.1 or later.  Since the support for Ogg FLAC before FLAC 1.1.1 was limited, we hope this will not result in too much inconvenience.
+		It should also be noted that support for encapsulating FLAC in Ogg has been present in the FLAC tools since version 1.0.1.  However, the mappings used were never formalized and have insurmountable problems.  For that reason, Ogg FLAC streams created with <B><TT>flac</TT></B> versions before 1.1.1 should be decoded and re-encoded with <B><TT>flac</TT></B> 1.1.1 or later (<B><TT>flac</TT></B> 1.1.1 can decode all previous Ogg FLAC files, but files made prior to 1.1.0 don't support seeking).  Since the support for Ogg FLAC before FLAC 1.1.1 was limited, we hope this will not result in too much inconvenience.
 	</P>
 	<P>
 		Version 1.0 of the FLAC-to-Ogg mapping then is a simple identifying header followed by pure native FLAC data, as follows:
