@@ -87,7 +87,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b); /* the decode thread procedure */
 
 
 /* 32-bit pseudo-random number generator */
-static inline FLAC__uint32 prng(FLAC__uint32 state)
+static /*inline*/ FLAC__uint32 prng(FLAC__uint32 state)
 {
 	return (state * 0x0019660dL + 0x3c6ef35fL) & 0xffffffffL;
 }
@@ -99,7 +99,7 @@ typedef struct {
 	FLAC__int32 random;
 } dither_state;
 
-static inline FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
+static /*inline*/ FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
 {
 	unsigned scalebits;
 	FLAC__int32 output, mask, random;
@@ -155,8 +155,8 @@ static unsigned pack_pcm(FLAC__byte *data, FLAC__int32 *input, unsigned wide_sam
 	static dither_state dither[MAX_SUPPORTED_CHANNELS];
 	FLAC__byte * const start = data;
 	FLAC__int32 sample;
+	unsigned samples = wide_samples * channels;
 	const unsigned bytes_per_sample = target_bps / 8;
-	const unsigned samples = wide_samples * channels;
 
 	FLAC__ASSERT(MAX_SUPPORTED_CHANNELS == 2);
 	FLAC__ASSERT(channels > 0 && channels <= MAX_SUPPORTED_CHANNELS);
@@ -167,7 +167,7 @@ static unsigned pack_pcm(FLAC__byte *data, FLAC__int32 *input, unsigned wide_sam
 	FLAC__ASSERT(target_bps & 7 == 0);
 
 	if(source_bps != target_bps) {
-		const FLAC__int32 MIN = source_bps == -(1L << source_bps);
+		const FLAC__int32 MIN = -(1L << source_bps);
 		const FLAC__int32 MAX = ~MIN; /*(1L << (source_bps-1)) - 1 */
 		const unsigned dither_twiggle = channels - 1;
 		unsigned dither_source = 0;
@@ -181,11 +181,11 @@ static unsigned pack_pcm(FLAC__byte *data, FLAC__int32 *input, unsigned wide_sam
 					data[0] = sample ^ 0x80;
 					break;
 				case 24:
-					data[2] = sample >> 16;
+					data[2] = (FLAC__byte)(sample >> 16);
 					/* fall through */
 				case 16:
-					data[1] = sample >> 8;
-					data[0] = sample >> 0;
+					data[1] = (FLAC__byte)(sample >> 8);
+					data[0] = (FLAC__byte)sample;
 			}
 
 			data += bytes_per_sample;
@@ -200,11 +200,11 @@ static unsigned pack_pcm(FLAC__byte *data, FLAC__int32 *input, unsigned wide_sam
 					data[0] = sample ^ 0x80;
 					break;
 				case 24:
-					data[2] = sample >> 16;
+					data[2] = (FLAC__byte)(sample >> 16);
 					/* fall through */
 				case 16:
-					data[1] = sample >> 8;
-					data[0] = sample >> 0;
+					data[1] = (FLAC__byte)(sample >> 8);
+					data[0] = (FLAC__byte)sample;
 			}
 
 			data += bytes_per_sample;
