@@ -564,7 +564,7 @@ FLAC__bool FLAC__stream_encoder_set_do_exhaustive_model_search(FLAC__StreamEncod
  */
 FLAC__bool FLAC__stream_encoder_set_min_residual_partition_order(FLAC__StreamEncoder *encoder, unsigned value);
 
-/** Set the minimum partition order to search when coding the residual.
+/** Set the maximum partition order to search when coding the residual.
  *  This is used in tandem with
  *  FLAC__stream_encoder_set_min_residual_partition_order().
  *
