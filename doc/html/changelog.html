@@ -92,17 +92,21 @@
 		<LI>
 			General:
 			<UL>
+				<LI>Sped up decoding by a few percent overall.<LI>
 				<LI>Sped up encoding when not using LPC (i.e. when using <TT>flac</TT> options <TT>-0</TT>, <TT>-1</TT>, <TT>-2</TT>, or <TT>-l 0</TT>).</LI>
+				<LI>Fixed a decoding bug that could cause sync errors with some ID3v1-tagged FLAC files.</LI>
 			</UL>
 		</LI>
 		<LI>
 			FLAC format:
 			<UL>
+				<LI>(none)</LI>
 			</UL>
 		</LI>
 		<LI>
 			Ogg FLAC format:
 			<UL>
+				<LI>(none)</LI>
 			</UL>
 		</LI>
 		<LI>
@@ -114,6 +118,7 @@
 		<LI>
 			metaflac:
 			<UL>
+				<LI>(none)</LI>
 			</UL>
 		</LI>
 		<LI>
@@ -125,12 +130,15 @@
 		<LI>
 			build system:
 			<UL>
+				<LI>(none)</LI>
 			</UL>
 		</LI>
 		<LI>
 			libraries:
 			<UL>
+				<LI>libFLAC: Sped up Rice block decoding in the bitbuffer, resulting in decoding speed gains of a few percent.</LI>
 				<LI>libFLAC: Sped up encoding when not using LPC (i.e. <TT>max_lpc_order == 0</TT>).</LI>
+				<LI>libFLAC: Fixed a bug in the logic that determines the frame or sample number in a frame header; the bug could cause sync errors with some ID3v1-tagged FLAC files.</LI>
 				<LI>libFLAC, libOggFLAC: Can now be compiled to use only integer instructions, including encoding.  The decoder is almost completely integer anyway but there were a couple places that needed a fixed-point replacement.  There is no fixed-point version of LPC analysis yet, so if libFLAC is compiled integer-only, the encoder will behave as if the max LPC order is 0 (i.e. used fixed predictors only).  LPC decoding is supported in all cases as it always was integer-only.</LI>
 			</UL>
 		</LI>
@@ -166,17 +174,19 @@
 						</LI>
 						<LI><B>Changed</B> the signature of FLAC::Metadata::VorbisComment::get_vendor_string() and FLAC::Metadata::VorbisComment::set_vendor_string() to use a UTF-8, NUL-terminated string <TT>const FLAC__byte *</TT> for the vendor string instead of <TT>FLAC::Metadata::VorbisComment::Entry</TT>.</LI>
 						<LI><B>Added</B> FLAC::Metadata::*::assign() to all Metadata objects.</LI>
-						<LI><B>Added</B> bool FLAC::Metadata::get_tags(const char *filename, VorbisComment &tags)</LI>
+						<LI><B>Added</B> bool FLAC::Metadata::get_tags(const char *filename, VorbisComment &amp;tags)</LI>
 					</UL>
 				</LI>
 				<LI>
 					libOggFLAC:
 					<UL>
+						<LI>(none)</LI>
 					</UL>
 				</LI>
 				<LI>
 					libOggFLAC++:
 					<UL>
+						<LI>(none)</LI>
 					</UL>
 				</LI>
 			</UL>
