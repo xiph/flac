@@ -416,7 +416,7 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_single(OggFLAC__StreamDec
 	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
 
-	if(FLAC__seekable_stream_decoder_get_state(decoder->private_->FLAC_stream_decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
+	if(FLAC__stream_decoder_get_state(decoder->private_->FLAC_stream_decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
 		decoder->protected_->state = OggFLAC__STREAM_DECODER_END_OF_STREAM;
 
 	if(decoder->protected_->state == OggFLAC__STREAM_DECODER_END_OF_STREAM)
@@ -436,7 +436,7 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_until_end_of_metadata(Ogg
 	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
 
-	if(FLAC__seekable_stream_decoder_get_state(decoder->private_->FLAC_stream_decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
+	if(FLAC__stream_decoder_get_state(decoder->private_->FLAC_stream_decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
 		decoder->protected_->state = OggFLAC__STREAM_DECODER_END_OF_STREAM;
 
 	if(decoder->protected_->state == OggFLAC__STREAM_DECODER_END_OF_STREAM)
@@ -456,7 +456,7 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_until_end_of_stream(OggFL
 	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
 
-	if(FLAC__seekable_stream_decoder_get_state(decoder->private_->FLAC_stream_decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
+	if(FLAC__stream_decoder_get_state(decoder->private_->FLAC_stream_decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
 		decoder->protected_->state = OggFLAC__STREAM_DECODER_END_OF_STREAM;
 
 	if(decoder->protected_->state == OggFLAC__STREAM_DECODER_END_OF_STREAM)
