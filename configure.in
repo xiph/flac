@@ -40,6 +40,7 @@ AM_CONDITIONAL(FLaC__CPU_IA32, test x$cpu_ia32 = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test x$cpu_ppc = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test x$cpu_sparc = xtrue)
 case "$host" in
+	i[3-6]86-*-openbsd*) OBJ_FORMAT=aoutb ;;
 	*) OBJ_FORMAT=elf ;;
 esac
 AC_SUBST(OBJ_FORMAT)
