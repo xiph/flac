@@ -80,7 +80,6 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 	}
 }
 
-#if 0
 int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, int32 qlp_coeff[], int *shift)
 {
 	unsigned i;
