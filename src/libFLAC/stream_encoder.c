@@ -1671,17 +1671,19 @@ FLAC__bool stream_encoder_set_partitioned_rice_(const FLAC__uint32 abs_residual[
 				else
 					partition_samples -= predictor_order;
 			}
-			mean = partition_samples >> 1;
 #ifdef FLAC__PRECOMPUTE_PARTITION_SUMS
-			mean += abs_residual_partition_sums[partition];
+			mean = abs_residual_partition_sums[partition];
 #else
+			mean = 0;
 			save_residual_sample = residual_sample;
 			for(partition_sample = 0; partition_sample < partition_samples; residual_sample++, partition_sample++)
 				mean += abs_residual[residual_sample];
 			residual_sample = save_residual_sample;
 #endif
-			mean /= partition_samples;
 #ifdef FLAC__SYMMETRIC_RICE
+			mean += partition_samples >> 1; /* for rounding effect */
+			mean /= partition_samples;
+
 			/* calc rice_parameter = floor(log2(mean)) */
 			rice_parameter = 0;
 			mean>>=1;
@@ -1690,12 +1692,9 @@ FLAC__bool stream_encoder_set_partitioned_rice_(const FLAC__uint32 abs_residual[
 				mean >>= 1;
 			}
 #else
-			/* calc rice_parameter = floor(log2(mean)) + 1 */
-			rice_parameter = 0;
-			while(mean) {
-				rice_parameter++;
-				mean >>= 1;
-			}
+			/* calc rice_parameter ala LOCO-I */
+			for(rice_parameter = 0; (partition_samples<<rice_parameter) < mean; rice_parameter++)
+				;
 #endif
 			if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER)
 				rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
