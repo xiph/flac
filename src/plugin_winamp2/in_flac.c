@@ -305,13 +305,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 In_Module mod =
 {
 	IN_VER,
-	"Reference FLAC Player v0.0"
-#ifdef __alpha
-	"(AXP)"
-#else
-	"(x86)"
-#endif
-	,
+	"Reference FLAC Player v" FLAC__VERSION_STRING,
 	0,	/* hMainWindow */
 	0,  /* hDllInstance */
 	"FLAC\0FLAC Audio File (*.FLAC)\0"
