@@ -217,9 +217,9 @@ extern const char *FLAC__ChannelAssignmentString[];
 /*****************************************************************************
  *
  * 14: sync code '11111111111110'
- +  2: reserved
- +        00: currently required value
- +        01-11: reserved
+ *  2: reserved
+ *        00: currently required value
+ *        01-11: reserved
  *  4: blocksize in samples
  *        0000: get from stream header => implies constant blocksize throughout stream
  *        0001: 192 samples (AES/EBU) => implies constant blocksize throughout stream
@@ -266,7 +266,7 @@ extern const char *FLAC__ChannelAssignmentString[];
  *        8/16 bit (blocksize-1)
  *  ?: if(sample rate bits == 11xx)
  *        8/16 bit sample rate
- *  8: CRC-8 (polynomial = x^8 + x^2 + x + 1) of everything before the crc, including the sync code
+ *  8: CRC-8 (polynomial = x^8 + x^2 + x^1 + x^0, initialized with 0) of everything before the crc, including the sync code
  */
 typedef struct {
 	unsigned blocksize; /* in samples */
@@ -293,7 +293,7 @@ extern const unsigned FLAC__FRAME_HEADER_CRC_LEN; /* = 8 bits */
 
 /*****************************************************************************
  *
- * 16: CRC-16 (polynomial = ) of everything before the crc, back to and including the frame header sync code
+ * 16: CRC-16 (polynomial = x^16 + x^15 + x^2 + x^0, initialized with 0) of everything before the crc, back to and including the frame header sync code
  */
 typedef struct {
 	uint16 crc;
