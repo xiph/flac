@@ -57,8 +57,13 @@ typedef struct {
 	unsigned channels;
 	unsigned sample_rate;
 	FLAC__bool verbose;
+	FLAC__bool continue_through_decode_errors;
+	struct {
+		FLAC__bool needs_fixup;
+		unsigned riff_offset;
+		unsigned data_offset;
+	} wave_chunk_size_fixup;
 	FLAC__uint64 skip;
-	FLAC__bool skip_count_too_high;
 	FLAC__uint64 samples_processed;
 	unsigned frame_counter;
 #ifdef FLAC__HAS_OGG
@@ -79,6 +84,7 @@ static FLAC__bool is_big_endian_host;
 static FLAC__bool init(const char *infilename, stream_info_struct *stream_info);
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val);
+static FLAC__bool fixup_wave_chunk_size(const char *outfilename, unsigned riff_offset, unsigned data_offset, FLAC__uint32 data_size);
 #ifdef FLAC__HAS_OGG
 static FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 #endif
@@ -104,8 +110,9 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 	stream_info.test_only = (outfilename == 0);
 	stream_info.is_wave_out = true;
 	stream_info.verbose = options.common.verbose;
+	stream_info.continue_through_decode_errors = options.common.continue_through_decode_errors;
+	stream_info.wave_chunk_size_fixup.needs_fixup = false;
 	stream_info.skip = options.common.skip;
-	stream_info.skip_count_too_high = false;
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
 #ifdef FLAC__HAS_OGG
@@ -161,10 +168,8 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 			fprintf(stderr, "%s: ERROR while decoding metadata, state=%d:%s\n", stream_info.inbasefilename, FLAC__file_decoder_get_state(stream_info.decoder.file), FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(stream_info.decoder.file)]);
 			goto wav_abort_;
 		}
-		if(stream_info.skip_count_too_high) {
-			fprintf(stderr, "%s: ERROR trying to skip more samples than in stream\n", stream_info.inbasefilename);
+		if(stream_info.abort_flag)
 			goto wav_abort_;
-		}
 		if(!FLAC__file_decoder_seek_absolute(stream_info.decoder.file, stream_info.skip)) {
 			fprintf(stderr, "%s: ERROR seeking while skipping bytes, state=%d:%s\n", stream_info.inbasefilename, FLAC__file_decoder_get_state(stream_info.decoder.file), FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(stream_info.decoder.file)]);
 			goto wav_abort_;
@@ -238,6 +243,9 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 #endif
 	if(analysis_mode)
 		flac__analyze_finish(aopts);
+	if(stream_info.wave_chunk_size_fixup.needs_fixup)
+		if(!fixup_wave_chunk_size(outfilename, stream_info.wave_chunk_size_fixup.riff_offset, stream_info.wave_chunk_size_fixup.data_offset, (FLAC__uint32)stream_info.samples_processed))
+			return 1;
 	if(md5_failure) {
 		fprintf(stderr, "\r%s: WARNING, MD5 signature mismatch\n", stream_info.inbasefilename);
 	}
@@ -290,8 +298,9 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	stream_info.is_big_endian = options.is_big_endian;
 	stream_info.is_unsigned_samples = options.is_unsigned_samples;
 	stream_info.verbose = options.common.verbose;
+	stream_info.continue_through_decode_errors = options.common.continue_through_decode_errors;
+	stream_info.wave_chunk_size_fixup.needs_fixup = false;
 	stream_info.skip = options.common.skip;
-	stream_info.skip_count_too_high = false;
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
 #ifdef FLAC__HAS_OGG
@@ -347,10 +356,8 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 			fprintf(stderr, "%s: ERROR while decoding metadata, state=%d:%s\n", stream_info.inbasefilename, FLAC__file_decoder_get_state(stream_info.decoder.file), FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(stream_info.decoder.file)]);
 			goto raw_abort_;
 		}
-		if(stream_info.skip_count_too_high) {
-			fprintf(stderr, "%s: ERROR trying to skip more samples than in stream\n", stream_info.inbasefilename);
+		if(stream_info.abort_flag)
 			goto raw_abort_;
-		}
 		if(!FLAC__file_decoder_seek_absolute(stream_info.decoder.file, stream_info.skip)) {
 			fprintf(stderr, "%s: ERROR seeking while skipping bytes, state=%d:%s\n", stream_info.inbasefilename, FLAC__file_decoder_get_state(stream_info.decoder.file), FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(stream_info.decoder.file)]);
 			goto raw_abort_;
@@ -549,6 +556,37 @@ FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val)
 	return fwrite(b, 1, 4, f) == 4;
 }
 
+FLAC__bool fixup_wave_chunk_size(const char *outfilename, unsigned riff_offset, unsigned data_offset, FLAC__uint32 data_size)
+{
+	FILE *f = fopen(outfilename, "r+b");
+	if(0 == f) {
+		fprintf(stderr, "ERROR, couldn't open file %s while fixing up WAVE chunk size\n", outfilename);
+		return false;
+	}
+	if(fseek(f, riff_offset, SEEK_SET) < 0) {
+		fprintf(stderr, "ERROR, couldn't seek in file %s while fixing up WAVE chunk size\n", outfilename);
+		fclose(f);
+		return false;
+	}
+	if(!write_little_endian_uint32(f, data_size + 36)) {
+		fprintf(stderr, "ERROR, couldn't write size in file %s while fixing up WAVE chunk size\n", outfilename);
+		fclose(f);
+		return false;
+	}
+	if(fseek(f, data_offset, SEEK_SET) < 0) {
+		fprintf(stderr, "ERROR, couldn't seek in file %s while fixing up WAVE chunk size\n", outfilename);
+		fclose(f);
+		return false;
+	}
+	if(!write_little_endian_uint32(f, data_size)) {
+		fprintf(stderr, "ERROR, couldn't write size in file %s while fixing up WAVE chunk size\n", outfilename);
+		fclose(f);
+		return false;
+	}
+	fclose(f);
+	return true;
+}
+
 #ifdef FLAC__HAS_OGG
 #define OGG_READ_BUFFER_SIZE 4096
 FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
@@ -725,8 +763,14 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetaData *metadata
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		/* remember, metadata->data.stream_info.total_samples can be 0, meaning 'unknown' */
 		if(metadata->data.stream_info.total_samples > 0 && stream_info->skip >= metadata->data.stream_info.total_samples) {
-			stream_info->total_samples = 0;
-			stream_info->skip_count_too_high = true;
+			fprintf(stderr, "%s: ERROR trying to skip more samples than in stream\n", stream_info->inbasefilename);
+			stream_info->abort_flag = true;
+			return;
+		}
+		else if(metadata->data.stream_info.total_samples == 0 && stream_info->skip > 0) {
+			fprintf(stderr, "%s: ERROR, can't skip when FLAC metadata has total sample count of 0\n", stream_info->inbasefilename);
+			stream_info->abort_flag = true;
+			return;
 		}
 		else
 			stream_info->total_samples = metadata->data.stream_info.total_samples - stream_info->skip;
@@ -743,12 +787,24 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetaData *metadata
 		/* write the WAVE headers if necessary */
 		if(!stream_info->analysis_mode && !stream_info->test_only && stream_info->is_wave_out) {
 			FLAC__uint64 data_size = stream_info->total_samples * stream_info->channels * ((stream_info->bps+7)/8);
+			if(stream_info->total_samples == 0) {
+				if(stream_info->fout == stdout) {
+					fprintf(stderr, "%s: WARNING, don't have accurate sample count available for WAVE header.\n", stream_info->inbasefilename);
+					fprintf(stderr, "             Generated WAVE file will have a data chunk size of 0.  Try\n");
+					fprintf(stderr, "             decoding directly to a file instead.\n");
+				}
+				else {
+					stream_info->wave_chunk_size_fixup.needs_fixup = true;
+				}
+			}
 			if(data_size >= 0xFFFFFFDC) {
 				fprintf(stderr, "%s: ERROR: stream is too big to fit in a single WAVE file chunk\n", stream_info->inbasefilename);
 				stream_info->abort_flag = true;
 				return;
 			}
 			if(fwrite("RIFF", 1, 4, stream_info->fout) != 4) stream_info->abort_flag = true;
+			if(stream_info->wave_chunk_size_fixup.needs_fixup)
+				stream_info->wave_chunk_size_fixup.riff_offset = ftell(stream_info->fout);
 			if(!write_little_endian_uint32(stream_info->fout, (FLAC__uint32)(data_size+36))) stream_info->abort_flag = true; /* filesize-8 */
 			if(fwrite("WAVEfmt ", 1, 8, stream_info->fout) != 8) stream_info->abort_flag = true;
 			if(fwrite("\020\000\000\000", 1, 4, stream_info->fout) != 4) stream_info->abort_flag = true; /* chunk size = 16 */
@@ -759,6 +815,8 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetaData *metadata
 			if(!write_little_endian_uint16(stream_info->fout, (FLAC__uint16)(stream_info->channels * ((stream_info->bps+7) / 8)))) stream_info->abort_flag = true; /* block align */
 			if(!write_little_endian_uint16(stream_info->fout, (FLAC__uint16)(stream_info->bps))) stream_info->abort_flag = true; /* bits per sample */
 			if(fwrite("data", 1, 4, stream_info->fout) != 4) stream_info->abort_flag = true;
+			if(stream_info->wave_chunk_size_fixup.needs_fixup)
+				stream_info->wave_chunk_size_fixup.data_offset = ftell(stream_info->fout);
 			if(!write_little_endian_uint32(stream_info->fout, (FLAC__uint32)data_size)) stream_info->abort_flag = true; /* data size */
 		}
 	}
@@ -769,7 +827,8 @@ void error_callback(const void *decoder, FLAC__StreamDecoderErrorStatus status, 
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	(void)decoder;
 	fprintf(stderr, "%s: *** Got error code %d:%s\n", stream_info->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
-	stream_info->abort_flag = true;
+	if(!stream_info->continue_through_decode_errors)
+		stream_info->abort_flag = true;
 }
 
 void print_stats(const stream_info_struct *stream_info)
@@ -797,3 +856,111 @@ void print_stats(const stream_info_struct *stream_info)
 		}
 	}
 }
+#if 0
+void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data)
+{
+	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
+	FLAC__byte b;
+	FILE *f = encoder_wrapper->fout;
+	const FLAC__uint64 samples = metadata->data.stream_info.total_samples;
+	const unsigned min_framesize = metadata->data.stream_info.min_framesize;
+	const unsigned max_framesize = metadata->data.stream_info.max_framesize;
+
+	FLAC__ASSERT(metadata->type == FLAC__METADATA_TYPE_STREAMINFO);
+
+	/*
+	 * If we are writing to an ogg stream, there is no need to go back
+	 * and update the STREAMINFO or SEEKTABLE blocks; the values we would
+	 * update are not necessary with Ogg as the transport.  We can't do
+	 * it reliably anyway without knowing the Ogg structure.
+	 */
+#ifdef FLAC__HAS_OGG
+	if(encoder_wrapper->use_ogg)
+		return;
+#endif
+
+	/*
+	 * we get called by the encoder when the encoding process has
+	 * finished so that we can update the STREAMINFO and SEEKTABLE
+	 * blocks.
+	 */
+
+	(void)encoder; /* silence compiler warning about unused parameter */
+
+	if(f != stdout) {
+		fclose(encoder_wrapper->fout);
+		if(0 == (f = fopen(encoder_wrapper->outfilename, "r+b")))
+			return;
+	}
+
+	/* all this is based on intimate knowledge of the stream header
+	 * layout, but a change to the header format that would break this
+	 * would also break all streams encoded in the previous format.
+	 */
+
+	if(-1 == fseek(f, 26, SEEK_SET)) goto end_;
+	fwrite(metadata->data.stream_info.md5sum, 1, 16, f);
+
+samples_:
+	/* if we get this far we know we can seek so no need to check the
+	 * return value from fseek()
+	 */
+	fseek(f, 21, SEEK_SET);
+	if(fread(&b, 1, 1, f) != 1) goto framesize_;
+	fseek(f, 21, SEEK_SET);
+	b = (b & 0xf0) | (FLAC__byte)((samples >> 32) & 0x0F);
+	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
+	b = (FLAC__byte)((samples >> 24) & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
+	b = (FLAC__byte)((samples >> 16) & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
+	b = (FLAC__byte)((samples >> 8) & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
+	b = (FLAC__byte)(samples & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
+
+framesize_:
+	fseek(f, 12, SEEK_SET);
+	b = (FLAC__byte)((min_framesize >> 16) & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
+	b = (FLAC__byte)((min_framesize >> 8) & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
+	b = (FLAC__byte)(min_framesize & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
+	b = (FLAC__byte)((max_framesize >> 16) & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
+	b = (FLAC__byte)((max_framesize >> 8) & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
+	b = (FLAC__byte)(max_framesize & 0xFF);
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
+
+seektable_:
+	if(encoder_wrapper->seek_table.num_points > 0) {
+		long pos;
+		unsigned i;
+
+		/* convert any unused seek points to placeholders */
+		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
+			if(encoder_wrapper->seek_table.points[i].sample_number == FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER)
+				break;
+			else if(encoder_wrapper->seek_table.points[i].frame_samples == 0)
+				encoder_wrapper->seek_table.points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+		}
+
+		/* the offset of the seek table data 'pos' should be after then stream sync and STREAMINFO block and SEEKTABLE header */
+		pos = (FLAC__STREAM_SYNC_LEN + FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
+		pos += metadata->length;
+		pos += (FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
+		fseek(f, pos, SEEK_SET);
+		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
+			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].sample_number)) goto end_;
+			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].stream_offset)) goto end_;
+			if(!write_big_endian_uint16(f, (FLAC__uint16)encoder_wrapper->seek_table.points[i].frame_samples)) goto end_;
+		}
+	}
+
+end_:
+	fclose(f);
+	return;
+}
+#endif
