@@ -171,9 +171,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	movd	mm5, eax			; mm5 = 0:abs(error_4)
 	paddd	mm2, mm5			; total_error_4 += abs(error_4)
 	dec	ecx
-	jecxz	.loop_end			; can't "jnz .loop" because of distance
-	jmp	.loop
-.loop_end:
+	jnz	near .loop
 
 ; 	if(total_error_0 < min(min(min(total_error_1, total_error_2), total_error_3), total_error_4))
 ; 		order = 0;
@@ -234,12 +232,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	fldz					; ST = 0.0 data_len
 	xor	eax, eax
 	cmp	eax, [esp + 32]
-	jne	.rbps_0
-	; data_len == 0, so residual_bits_per_sample[*] = 0.0
-	mov	ecx, 5				; eax still == 0, ecx = # of dwords of 0 to store
-	mov	edi, [esp + 36]
-	rep stosd
-	jmp	.end
+	je	near .data_len_is_0
 .rbps_0:
 	cmp	eax, ebx
 	je	.total_error_0_is_0
@@ -320,6 +313,12 @@ FLAC__fixed_compute_best_predictor_asm:
 .rbps_end:
 	fstp	st0				; ST = data_len
 	fstp	st0				; ST = [empty]
+	jmp	short .end
+.data_len_is_0:
+	; data_len == 0, so residual_bits_per_sample[*] = 0.0
+	mov	ecx, 5				; eax still == 0, ecx = # of dwords of 0 to store
+	mov	edi, [esp + 36]
+	rep stosd
 
 .end:
 	mov	eax, ebp			; return order

@@ -157,9 +157,7 @@ FLAC__lpc_compute_autocorrelation_asm:
 	inc	ebp				; sample++
 	add	eax, byte 4			; &data[sample++]
 	dec	ecx
-	jecxz	.outer_loop_end			; can't "jnz .outer_loop" because of distance
-	jmp	.outer_loop
-.outer_loop_end:
+	jnz	near .outer_loop
 
 	;	for(; sample < data_len; sample++) {
 	;		d = data[sample];
