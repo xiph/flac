@@ -177,7 +177,7 @@ static FLAC__bool compare_chain_(FLAC__Metadata_Chain *chain, unsigned current_p
 			return die_("getting block from iterator");
 		}
 
-		if(!compare_block_(our_metadata_.blocks[i], block)) {
+		if(!mutils__compare_block(our_metadata_.blocks[i], block)) {
 			FLAC__metadata_iterator_delete(iterator);
 			return die_("metadata block mismatch");
 		}
@@ -198,7 +198,7 @@ static FLAC__bool compare_chain_(FLAC__Metadata_Chain *chain, unsigned current_p
 		printf("CURRENT_POSITION... ");
 		fflush(stdout);
 
-		if(!compare_block_(our_metadata_.blocks[current_position], current_block))
+		if(!mutils__compare_block(our_metadata_.blocks[current_position], current_block))
 			return die_("metadata block mismatch");
 	}
 
@@ -254,7 +254,7 @@ static void decoder_metadata_callback_compare_(const FLAC__FileDecoder *decoder,
 		dcd->error_occurred = true;
 	}
 	else {
-		if(!compare_block_(our_metadata_.blocks[mc_our_block_number_], metadata)) {
+		if(!mutils__compare_block(our_metadata_.blocks[mc_our_block_number_], metadata)) {
 			(void)die_("metadata block mismatch");
 			dcd->error_occurred = true;
 		}

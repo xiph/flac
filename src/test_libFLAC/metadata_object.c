@@ -456,7 +456,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -487,7 +487,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -518,7 +518,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -548,7 +548,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -578,7 +578,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -612,7 +612,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -699,7 +699,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -862,7 +862,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -872,7 +872,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -882,7 +882,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -892,7 +892,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -902,7 +902,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -912,7 +912,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -922,7 +922,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -932,7 +932,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -942,7 +942,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -956,7 +956,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -966,7 +966,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -976,21 +976,21 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_set_comment(copy)...");
 	vc_set_new_(&entry, vorbiscomment, 0, "name5=field5");
 	FLAC__metadata_object_vorbiscomment_set_comment(block, 0, entry, /*copy=*/true);
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_set_vendor_string(copy)...");
 	vc_set_vs_new_(&entry, vorbiscomment, "name6=field6");
 	FLAC__metadata_object_vorbiscomment_set_vendor_string(block, entry, /*copy=*/true);
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1014,7 +1014,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1025,7 +1025,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1036,7 +1036,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1047,7 +1047,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1058,7 +1058,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1068,7 +1068,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1078,7 +1078,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1088,7 +1088,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1096,7 +1096,7 @@ FLAC__bool test_metadata_object()
 	vc_set_new_(&entry, vorbiscomment, 0, "name5=field5");
 	entry_clone_(&entry);
 	FLAC__metadata_object_vorbiscomment_set_comment(block, 0, entry, /*copy=*/false);
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1104,7 +1104,7 @@ FLAC__bool test_metadata_object()
 	vc_set_vs_new_(&entry, vorbiscomment, "name6=field6");
 	entry_clone_(&entry);
 	FLAC__metadata_object_vorbiscomment_set_vendor_string(block, entry, /*copy=*/false);
-	if(!compare_block_(vorbiscomment, block))
+	if(!mutils__compare_block(vorbiscomment, block))
 		return false;
 	printf("OK\n");
 
@@ -1170,7 +1170,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1180,7 +1180,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1190,7 +1190,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1200,7 +1200,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1210,7 +1210,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1220,7 +1220,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1230,7 +1230,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1240,7 +1240,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1250,7 +1250,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -1264,7 +1264,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1274,7 +1274,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1284,14 +1284,14 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_cuesheet_set_track(copy)...");
 	cs_set_new_(&track, cuesheet, 0, 40, 5, "EBCDE1234567", false, false);
 	FLAC__metadata_object_cuesheet_set_track(block, 0, &track, /*copy=*/true);
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1301,7 +1301,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1311,7 +1311,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1321,7 +1321,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1333,7 +1333,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1345,7 +1345,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1357,7 +1357,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1369,7 +1369,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1379,7 +1379,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!mutils__compare_block(block, blockcopy))
 		return false;
 	printf("OK\n");
 
@@ -1393,7 +1393,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1403,7 +1403,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1413,7 +1413,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1437,7 +1437,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1448,7 +1448,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1459,7 +1459,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1470,7 +1470,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1481,7 +1481,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1491,7 +1491,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1501,7 +1501,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1511,7 +1511,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned false\n");
 		return false;
 	}
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
@@ -1519,7 +1519,7 @@ FLAC__bool test_metadata_object()
 	cs_set_new_(&track, cuesheet, 0, 100, 11, "KBCDE1234567", false, false);
 	track_clone_(&track);
 	FLAC__metadata_object_cuesheet_set_track(block, 0, &track, /*copy=*/false);
-	if(!compare_block_(cuesheet, block))
+	if(!mutils__compare_block(cuesheet, block))
 		return false;
 	printf("OK\n");
 
