@@ -56,8 +56,8 @@ extern "C" {
  *  structures is easy but creating or modifying them directly is
  *  more complex.  For the most part, as a user of a library, editing
  *  is not necessary; however, for metadata blocks it is, so there are
- *  convenience functions provided in the metadata module to simplify
- *  the manipulation of metadata blocks.
+ *  convenience functions provided in the \link flac_metadata metadata
+ *  module \endlink to simplify the manipulation of metadata blocks.
  *
  * \note
  * It's not the best convention, but symbols ending in _LEN are in bits
