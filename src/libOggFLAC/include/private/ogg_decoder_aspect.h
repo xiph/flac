@@ -53,6 +53,7 @@ void OggFLAC__ogg_decoder_aspect_set_defaults(OggFLAC__OggDecoderAspect *aspect)
 FLAC__bool OggFLAC__ogg_decoder_aspect_init(OggFLAC__OggDecoderAspect *aspect);
 void OggFLAC__ogg_decoder_aspect_finish(OggFLAC__OggDecoderAspect *aspect);
 void OggFLAC__ogg_decoder_aspect_flush(OggFLAC__OggDecoderAspect *aspect);
+void OggFLAC__ogg_decoder_aspect_reset(OggFLAC__OggDecoderAspect *aspect);
 
 typedef FLAC__StreamDecoderReadStatus (*OggFLAC__OggDecoderAspectReadCallbackProxy)(void *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 

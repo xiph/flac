@@ -77,7 +77,13 @@ void OggFLAC__ogg_decoder_aspect_set_defaults(OggFLAC__OggDecoderAspect *aspect)
 
 void OggFLAC__ogg_decoder_aspect_flush(OggFLAC__OggDecoderAspect *aspect)
 {
-	(void)ogg_sync_clear(&aspect->sync_state);
+	OggFLAC__ogg_decoder_aspect_reset(aspect);
+}
+
+void OggFLAC__ogg_decoder_aspect_reset(OggFLAC__OggDecoderAspect *aspect)
+{
+	(void)ogg_stream_reset(&aspect->sync_state);
+	(void)ogg_sync_reset(&aspect->sync_state);
 }
 
 OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wrapper(OggFLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], unsigned *bytes, OggFLAC__OggDecoderAspectReadCallbackProxy read_callback, void *decoder, void *client_data)
