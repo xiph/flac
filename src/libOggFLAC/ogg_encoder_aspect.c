@@ -94,6 +94,15 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 	if(ogg_stream_packetin(&aspect->stream_state, &packet) != 0)
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 
+#ifdef FLAC__ONE_FLAC_FRAME_PER_OGG_PAGE
+	while(ogg_stream_flush(&aspect->stream_state, &aspect->page) != 0) {
+		if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+
+		if(write_callback(encoder, aspect->page.body, aspect->page.body_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+	}
+#else
 	while(ogg_stream_pageout(&aspect->stream_state, &aspect->page) != 0) {
 		if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
@@ -101,6 +110,7 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 		if(write_callback(encoder, aspect->page.body, aspect->page.body_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 	}
+#endif
 
 	return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 }
