@@ -63,6 +63,15 @@ static struct FLAC__share__option long_options_[] = {
 	{ "show-channels", 0, 0, 0 },
 	{ "show-bps", 0, 0, 0 },
 	{ "show-total-samples", 0, 0, 0 },
+	{ "set-md5sum", 1, 0, 0 }, /* undocumented */
+	{ "set-min-blocksize", 1, 0, 0 }, /* undocumented */
+	{ "set-max-blocksize", 1, 0, 0 }, /* undocumented */
+	{ "set-min-framesize", 1, 0, 0 }, /* undocumented */
+	{ "set-max-framesize", 1, 0, 0 }, /* undocumented */
+	{ "set-sample-rate", 1, 0, 0 }, /* undocumented */
+	{ "set-channels", 1, 0, 0 }, /* undocumented */
+	{ "set-bps", 1, 0, 0 }, /* undocumented */
+	{ "set-total-samples", 1, 0, 0 }, /* undocumented */
 	{ "show-vc-vendor", 0, 0, 0 },
 	{ "show-vc-field", 1, 0, 0 },
 	{ "remove-vc-all", 0, 0, 0 },
@@ -70,6 +79,7 @@ static struct FLAC__share__option long_options_[] = {
 	{ "remove-vc-firstfield", 1, 0, 0 },
 	{ "set-vc-field", 1, 0, 0 },
 	{ "import-vc-from", 1, 0, 0 },
+	{ "export-vc-to", 1, 0, 0 },
 	{ "add-padding", 1, 0, 0 },
 	/* major operations */
 	{ "help", 0, 0, 0 },
@@ -100,6 +110,15 @@ typedef enum {
 	OP__SHOW_CHANNELS,
 	OP__SHOW_BPS,
 	OP__SHOW_TOTAL_SAMPLES,
+	OP__SET_MD5SUM,
+	OP__SET_MIN_BLOCKSIZE,
+	OP__SET_MAX_BLOCKSIZE,
+	OP__SET_MIN_FRAMESIZE,
+	OP__SET_MAX_FRAMESIZE,
+	OP__SET_SAMPLE_RATE,
+	OP__SET_CHANNELS,
+	OP__SET_BPS,
+	OP__SET_TOTAL_SAMPLES,
 	OP__SHOW_VC_VENDOR,
 	OP__SHOW_VC_FIELD,
 	OP__REMOVE_VC_ALL,
@@ -107,6 +126,7 @@ typedef enum {
 	OP__REMOVE_VC_FIRSTFIELD,
 	OP__SET_VC_FIELD,
 	OP__IMPORT_VC_FROM,
+	OP__EXPORT_VC_TO,
 	OP__ADD_PADDING,
 	OP__LIST,
 	OP__APPEND,
@@ -125,7 +145,19 @@ typedef enum {
 } ArgumentType;
 
 typedef struct {
-	char *field_name;
+	FLAC__byte value[16];
+} Argument_StreaminfoMD5;
+
+typedef struct {
+	FLAC__uint32 value;
+} Argument_StreaminfoUInt32;
+
+typedef struct {
+	FLAC__uint64 value;
+} Argument_StreaminfoUInt64;
+
+typedef struct {
+	char *value;
 } Argument_VcFieldName;
 
 typedef struct {
@@ -137,8 +169,8 @@ typedef struct {
 } Argument_VcField;
 
 typedef struct {
-	char *file_name;
-} Argument_VcImportFile;
+	char *value;
+} Argument_VcFilename;
 
 typedef struct {
 	unsigned num_entries;
@@ -171,11 +203,12 @@ typedef struct {
 typedef struct {
 	OperationType type;
 	union {
-		Argument_VcFieldName show_vc_field;
-		Argument_VcFieldName remove_vc_field;
-		Argument_VcFieldName remove_vc_firstfield;
-		Argument_VcField set_vc_field;
-		Argument_VcImportFile import_vc_from;
+		Argument_StreaminfoMD5 streaminfo_md5;
+		Argument_StreaminfoUInt32 streaminfo_uint32;
+		Argument_StreaminfoUInt64 streaminfo_uint64;
+		Argument_VcFieldName vc_field_name;
+		Argument_VcField vc_field;
+		Argument_VcFilename vc_filename;
 		Argument_AddPadding add_padding;
 	} argument;
 } Operation;
@@ -232,6 +265,9 @@ static void show_version();
 static int short_usage(const char *message, ...);
 static int long_usage(const char *message, ...);
 static char *local_strdup(const char *source);
+static FLAC__bool parse_md5(const char *src, FLAC__byte dest[16]);
+static FLAC__bool parse_uint32(const char *src, FLAC__uint32 *dest);
+static FLAC__bool parse_uint64(const char *src, FLAC__uint64 *dest);
 static FLAC__bool parse_filename(const char *src, char **dest);
 static FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field, char **name, char **value, unsigned *length, const char **violation);
 static FLAC__bool parse_vorbis_comment_field_name(const char *field_ref, char **name, const char **violation);
@@ -251,19 +287,21 @@ static FLAC__bool do_shorthand_operations(const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert);
 static FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write);
-static FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, OperationType op);
+static FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
 static FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
 static FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMetadata *block, unsigned block_number);
 static void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool hexdump_application);
-static void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__bool raw);
-static void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw);
+static void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__bool raw, FILE *f);
+static void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw, FILE *f);
 static FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *block, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_field(FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_firstfield(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw);
-static FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_VcImportFile *file, FLAC__bool *needs_write, FLAC__bool raw);
+static FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_VcFilename *vc_filename, FLAC__bool *needs_write, FLAC__bool raw);
+static FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_VcFilename *vc_filename, FLAC__bool raw);
 static FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetadata_VorbisComment_Entry *entry);
 static void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent);
+static void undocumented_warning(const char *opt);
 
 int main(int argc, char *argv[])
 {
@@ -429,6 +467,88 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	else if(0 == strcmp(opt, "show-total-samples")) {
 		(void) append_shorthand_operation(options, OP__SHOW_TOTAL_SAMPLES);
 	}
+	else if(0 == strcmp(opt, "set-md5sum")) {
+		op = append_shorthand_operation(options, OP__SET_MD5SUM);
+		FLAC__ASSERT(0 != option_argument);
+		if(!parse_md5(option_argument, op->argument.streaminfo_md5.value)) {
+			fprintf(stderr, "ERROR (--%s): bad MD5 sum\n", opt);
+			ok = false;
+		}
+		else
+			undocumented_warning(opt);
+	}
+	else if(0 == strcmp(opt, "set-min-blocksize")) {
+		op = append_shorthand_operation(options, OP__SET_MIN_BLOCKSIZE);
+		if(!parse_uint32(option_argument, &(op->argument.streaminfo_uint32.value)) || op->argument.streaminfo_uint32.value < FLAC__MIN_BLOCK_SIZE || op->argument.streaminfo_uint32.value > FLAC__MAX_BLOCK_SIZE) {
+			fprintf(stderr, "ERROR (--%s): value must be >= %u and <= %u\n", opt, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
+			ok = false;
+		}
+		else
+			undocumented_warning(opt);
+	}
+	else if(0 == strcmp(opt, "set-max-blocksize")) {
+		op = append_shorthand_operation(options, OP__SET_MAX_BLOCKSIZE);
+		if(!parse_uint32(option_argument, &(op->argument.streaminfo_uint32.value)) || op->argument.streaminfo_uint32.value < FLAC__MIN_BLOCK_SIZE || op->argument.streaminfo_uint32.value > FLAC__MAX_BLOCK_SIZE) {
+			fprintf(stderr, "ERROR (--%s): value must be >= %u and <= %u\n", opt, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
+			ok = false;
+		}
+		else
+			undocumented_warning(opt);
+	}
+	else if(0 == strcmp(opt, "set-min-framesize")) {
+		op = append_shorthand_operation(options, OP__SET_MIN_FRAMESIZE);
+		if(!parse_uint32(option_argument, &(op->argument.streaminfo_uint32.value)) || op->argument.streaminfo_uint32.value >= (1u<<FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN)) {
+			fprintf(stderr, "ERROR (--%s): value must be a %u-bit unsigned integer\n", opt, FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN);
+			ok = false;
+		}
+		else
+			undocumented_warning(opt);
+	}
+	else if(0 == strcmp(opt, "set-max-framesize")) {
+		op = append_shorthand_operation(options, OP__SET_MAX_FRAMESIZE);
+		if(!parse_uint32(option_argument, &(op->argument.streaminfo_uint32.value)) || op->argument.streaminfo_uint32.value >= (1u<<FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN)) {
+			fprintf(stderr, "ERROR (--%s): value must be a %u-bit unsigned integer\n", opt, FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN);
+			ok = false;
+		}
+		else
+			undocumented_warning(opt);
+	}
+	else if(0 == strcmp(opt, "set-sample-rate")) {
+		op = append_shorthand_operation(options, OP__SET_SAMPLE_RATE);
+		if(!parse_uint32(option_argument, &(op->argument.streaminfo_uint32.value)) || !FLAC__format_sample_rate_is_valid(op->argument.streaminfo_uint32.value)) {
+			fprintf(stderr, "ERROR (--%s): invalid sample rate\n", opt);
+			ok = false;
+		}
+		else
+			undocumented_warning(opt);
+	}
+	else if(0 == strcmp(opt, "set-channels")) {
+		op = append_shorthand_operation(options, OP__SET_CHANNELS);
+		if(!parse_uint32(option_argument, &(op->argument.streaminfo_uint32.value)) || op->argument.streaminfo_uint32.value > FLAC__MAX_CHANNELS) {
+			fprintf(stderr, "ERROR (--%s): value must be > 0 and <= %u\n", opt, FLAC__MAX_CHANNELS);
+			ok = false;
+		}
+		else
+			undocumented_warning(opt);
+	}
+	else if(0 == strcmp(opt, "set-bps")) {
+		op = append_shorthand_operation(options, OP__SET_BPS);
+		if(!parse_uint32(option_argument, &(op->argument.streaminfo_uint32.value)) || op->argument.streaminfo_uint32.value < FLAC__MIN_BITS_PER_SAMPLE || op->argument.streaminfo_uint32.value > FLAC__MAX_BITS_PER_SAMPLE) {
+			fprintf(stderr, "ERROR (--%s): value must be >= %u and <= %u\n", opt, FLAC__MIN_BITS_PER_SAMPLE, FLAC__MAX_BITS_PER_SAMPLE);
+			ok = false;
+		}
+		else
+			undocumented_warning(opt);
+	}
+	else if(0 == strcmp(opt, "set-total-samples")) {
+		op = append_shorthand_operation(options, OP__SET_TOTAL_SAMPLES);
+		if(!parse_uint64(option_argument, &(op->argument.streaminfo_uint64.value)) || op->argument.streaminfo_uint64.value >= (1u<<FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN)) {
+			fprintf(stderr, "ERROR (--%s): value must be a %u-bit unsigned integer\n", opt, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN);
+			ok = false;
+		}
+		else
+			undocumented_warning(opt);
+	}
 	else if(0 == strcmp(opt, "show-vc-vendor")) {
 		(void) append_shorthand_operation(options, OP__SHOW_VC_VENDOR);
 	}
@@ -436,9 +556,9 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		const char *violation;
 		op = append_shorthand_operation(options, OP__SHOW_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_vorbis_comment_field_name(option_argument, &(op->argument.show_vc_field.field_name), &violation)) {
+		if(!parse_vorbis_comment_field_name(option_argument, &(op->argument.vc_field_name.value), &violation)) {
 			FLAC__ASSERT(0 != violation);
-			fprintf(stderr, "ERROR: malformed vorbis comment field name \"%s\",\n       %s\n", option_argument, violation);
+			fprintf(stderr, "ERROR (--%s): malformed vorbis comment field name \"%s\",\n       %s\n", opt, option_argument, violation);
 			ok = false;
 		}
 	}
@@ -449,9 +569,9 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		const char *violation;
 		op = append_shorthand_operation(options, OP__REMOVE_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_vorbis_comment_field_name(option_argument, &(op->argument.remove_vc_field.field_name), &violation)) {
+		if(!parse_vorbis_comment_field_name(option_argument, &(op->argument.vc_field_name.value), &violation)) {
 			FLAC__ASSERT(0 != violation);
-			fprintf(stderr, "ERROR: malformed vorbis comment field name \"%s\",\n       %s\n", option_argument, violation);
+			fprintf(stderr, "ERROR (--%s): malformed vorbis comment field name \"%s\",\n       %s\n", opt, option_argument, violation);
 			ok = false;
 		}
 	}
@@ -459,9 +579,9 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		const char *violation;
 		op = append_shorthand_operation(options, OP__REMOVE_VC_FIRSTFIELD);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_vorbis_comment_field_name(option_argument, &(op->argument.remove_vc_firstfield.field_name), &violation)) {
+		if(!parse_vorbis_comment_field_name(option_argument, &(op->argument.vc_field_name.value), &violation)) {
 			FLAC__ASSERT(0 != violation);
-			fprintf(stderr, "ERROR: malformed vorbis comment field name \"%s\",\n       %s\n", option_argument, violation);
+			fprintf(stderr, "ERROR (--%s): malformed vorbis comment field name \"%s\",\n       %s\n", opt, option_argument, violation);
 			ok = false;
 		}
 	}
@@ -469,17 +589,25 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		const char *violation;
 		op = append_shorthand_operation(options, OP__SET_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_vorbis_comment_field(option_argument, &(op->argument.set_vc_field.field), &(op->argument.set_vc_field.field_name), &(op->argument.set_vc_field.field_value), &(op->argument.set_vc_field.field_value_length), &violation)) {
+		if(!parse_vorbis_comment_field(option_argument, &(op->argument.vc_field.field), &(op->argument.vc_field.field_name), &(op->argument.vc_field.field_value), &(op->argument.vc_field.field_value_length), &violation)) {
 			FLAC__ASSERT(0 != violation);
-			fprintf(stderr, "ERROR: malformed vorbis comment field \"%s\",\n       %s\n", option_argument, violation);
+			fprintf(stderr, "ERROR (--%s): malformed vorbis comment field \"%s\",\n       %s\n", opt, option_argument, violation);
 			ok = false;
 		}
 	}
 	else if(0 == strcmp(opt, "import-vc-from")) {
 		op = append_shorthand_operation(options, OP__IMPORT_VC_FROM);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_filename(option_argument, &(op->argument.import_vc_from.file_name))) {
-			fprintf(stderr, "ERROR: missing filename\n");
+		if(!parse_filename(option_argument, &(op->argument.vc_filename.value))) {
+			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
+			ok = false;
+		}
+	}
+	else if(0 == strcmp(opt, "export-vc-to")) {
+		op = append_shorthand_operation(options, OP__EXPORT_VC_TO);
+		FLAC__ASSERT(0 != option_argument);
+		if(!parse_filename(option_argument, &(op->argument.vc_filename.value))) {
+			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
 			ok = false;
 		}
 	}
@@ -487,7 +615,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		op = append_shorthand_operation(options, OP__ADD_PADDING);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_add_padding(option_argument, &(op->argument.add_padding.length))) {
-			fprintf(stderr, "ERROR: illegal length \"%s\", length must be >= 0 and < 2^%u\n", option_argument, FLAC__STREAM_METADATA_LENGTH_LEN);
+			fprintf(stderr, "ERROR (--%s): illegal length \"%s\", length must be >= 0 and < 2^%u\n", opt, option_argument, FLAC__STREAM_METADATA_LENGTH_LEN);
 			ok = false;
 		}
 	}
@@ -527,7 +655,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		arg = append_argument(options, ARG__BLOCK_TYPE);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_block_type(option_argument, &(arg->value.block_type))) {
-			fprintf(stderr, "ERROR: malformed block type specification \"%s\"\n", option_argument);
+			fprintf(stderr, "ERROR (--%s): malformed block type specification \"%s\"\n", opt, option_argument);
 			ok = false;
 		}
 		options->args.checks.has_block_type = true;
@@ -536,7 +664,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		arg = append_argument(options, ARG__EXCEPT_BLOCK_TYPE);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_block_type(option_argument, &(arg->value.block_type))) {
-			fprintf(stderr, "ERROR: malformed block type specification \"%s\"\n", option_argument);
+			fprintf(stderr, "ERROR (--%s): malformed block type specification \"%s\"\n", opt, option_argument);
 			ok = false;
 		}
 		options->args.checks.has_except_block_type = true;
@@ -545,14 +673,14 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		arg = append_argument(options, ARG__DATA_FORMAT);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_data_format(option_argument, &(arg->value.data_format))) {
-			fprintf(stderr, "ERROR: illegal data format \"%s\"\n", option_argument);
+			fprintf(stderr, "ERROR (--%s): illegal data format \"%s\"\n", opt, option_argument);
 			ok = false;
 		}
 	}
 	else if(0 == strcmp(opt, "application-data-format")) {
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_application_data_format(option_argument, &(options->application_data_format_is_hexdump))) {
-			fprintf(stderr, "ERROR: illegal application data format \"%s\"\n", option_argument);
+			fprintf(stderr, "ERROR (--%s): illegal application data format \"%s\"\n", opt, option_argument);
 			ok = false;
 		}
 	}
@@ -582,20 +710,21 @@ void free_options(CommandLineOptions *options)
 			case OP__SHOW_VC_FIELD:
 			case OP__REMOVE_VC_FIELD:
 			case OP__REMOVE_VC_FIRSTFIELD:
-				if(0 != op->argument.show_vc_field.field_name)
-					free(op->argument.show_vc_field.field_name);
+				if(0 != op->argument.vc_field_name.value)
+					free(op->argument.vc_field_name.value);
 				break;
 			case OP__SET_VC_FIELD:
-				if(0 != op->argument.set_vc_field.field)
-					free(op->argument.set_vc_field.field);
-				if(0 != op->argument.set_vc_field.field_name)
-					free(op->argument.set_vc_field.field_name);
-				if(0 != op->argument.set_vc_field.field_value)
-					free(op->argument.set_vc_field.field_value);
+				if(0 != op->argument.vc_field.field)
+					free(op->argument.vc_field.field);
+				if(0 != op->argument.vc_field.field_name)
+					free(op->argument.vc_field.field_name);
+				if(0 != op->argument.vc_field.field_value)
+					free(op->argument.vc_field.field_value);
 				break;
 			case OP__IMPORT_VC_FROM:
-				if(0 != op->argument.import_vc_from.file_name)
-					free(op->argument.import_vc_from.file_name);
+			case OP__EXPORT_VC_TO:
+				if(0 != op->argument.vc_filename.value)
+					free(op->argument.vc_filename.value);
 				break;
 			default:
 				break;
@@ -817,6 +946,9 @@ int long_usage(const char *message, ...)
 	fprintf(out, "                      line comments are currently not supported.  Specify\n");
 	fprintf(out, "                      --remove-vc-all and/or --no-utf8-convert before\n");
 	fprintf(out, "                      --import-vc-from if necessary.\n");
+	fprintf(out, "--export-vc-to=file   Export Vorbis comments to a file.  Use '-' for stdin.\n");
+	fprintf(out, "                      Each line will be of the form NAME=VALUE.  Specify\n");
+	fprintf(out, "                      --no-utf8-convert if necessary.\n");
 	fprintf(out, "--add-padding=length  Add a padding block of the given length (in bytes).\n");
 	fprintf(out, "                      The overall length of the new block will be 4 + length;\n");
 	fprintf(out, "                      the extra 4 bytes is for the metadata block header.\n");
@@ -919,6 +1051,57 @@ char *local_strdup(const char *source)
 	if(0 == (ret = strdup(source)))
 		die("out of memory during strdup()");
 	return ret;
+}
+
+FLAC__bool parse_md5(const char *src, FLAC__byte dest[16])
+{
+	unsigned i, d;
+	char c;
+	FLAC__ASSERT(0 != src);
+	if(strlen(src) != 32)
+		return false;
+	/* strtoul() accepts negative numbers which we do not want, so we do it the hard way */
+	for(i = 0; i < 16; i++) {
+		c = *src++;
+		if(isdigit(c))
+			d = (unsigned)c - (unsigned)'0';
+		else if(c >= 'a' && c <= 'f')
+			d = (unsigned)c - (unsigned)'a' + 10u;
+		else if(c >= 'A' && c <= 'F')
+			d = (unsigned)c - (unsigned)'A' + 10u;
+		else
+			return false;
+		d <<= 4;
+		c = *src++;
+		if(isdigit(c))
+			d |= (unsigned)c - (unsigned)'0';
+		else if(c >= 'a' && c <= 'f')
+			d |= (unsigned)c - (unsigned)'a' + 10u;
+		else if(c >= 'A' && c <= 'F')
+			d |= (unsigned)c - (unsigned)'A' + 10u;
+		else
+			return false;
+		dest[i] = (FLAC__byte)d;
+	}
+	return true;
+}
+
+FLAC__bool parse_uint32(const char *src, FLAC__uint32 *dest)
+{
+	FLAC__ASSERT(0 != src);
+	if(strlen(src) == 0 || strspn(src, "0123456789") != strlen(src))
+		return false;
+	*dest = strtoul(src, 0, 10);
+	return true;
+}
+
+FLAC__bool parse_uint64(const char *src, FLAC__uint64 *dest)
+{
+	FLAC__ASSERT(0 != src);
+	if(strlen(src) == 0 || strspn(src, "0123456789") != strlen(src))
+		return false;
+	*dest = strtoull(src, 0, 10);
+	return true;
 }
 
 FLAC__bool parse_filename(const char *src, char **dest)
@@ -1364,7 +1547,16 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *ch
 		case OP__SHOW_CHANNELS:
 		case OP__SHOW_BPS:
 		case OP__SHOW_TOTAL_SAMPLES:
-			ok = do_shorthand_operation__streaminfo(filename, chain, operation->type);
+		case OP__SET_MD5SUM:
+		case OP__SET_MIN_BLOCKSIZE:
+		case OP__SET_MAX_BLOCKSIZE:
+		case OP__SET_MIN_FRAMESIZE:
+		case OP__SET_MAX_FRAMESIZE:
+		case OP__SET_SAMPLE_RATE:
+		case OP__SET_CHANNELS:
+		case OP__SET_BPS:
+		case OP__SET_TOTAL_SAMPLES:
+			ok = do_shorthand_operation__streaminfo(filename, chain, operation, needs_write);
 			break;
 		case OP__SHOW_VC_VENDOR:
 		case OP__SHOW_VC_FIELD:
@@ -1373,6 +1565,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *ch
 		case OP__REMOVE_VC_FIRSTFIELD:
 		case OP__SET_VC_FIELD:
 		case OP__IMPORT_VC_FROM:
+		case OP__EXPORT_VC_TO:
 			ok = do_shorthand_operation__vorbis_comment(filename, chain, operation, needs_write, !utf8_convert);
 			break;
 		case OP__ADD_PADDING:
@@ -1416,7 +1609,7 @@ FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metad
 	return true;
 }
 
-FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, OperationType op)
+FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
 {
 	unsigned i;
 	FLAC__bool ok = true;
@@ -1436,7 +1629,7 @@ FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metada
 	if(0 != filename)
 		printf("%s:", filename);
 
-	switch(op) {
+	switch(operation->type) {
 		case OP__SHOW_MD5SUM:
 			for(i = 0; i < 16; i++)
 				printf("%02x", block->data.stream_info.md5sum[i]);
@@ -1465,6 +1658,42 @@ FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metada
 			break;
 		case OP__SHOW_TOTAL_SAMPLES:
 			printf("%llu\n", block->data.stream_info.total_samples);
+			break;
+		case OP__SET_MD5SUM:
+			memcpy(block->data.stream_info.md5sum, operation->argument.streaminfo_md5.value, 16);
+			*needs_write = true;
+			break;
+		case OP__SET_MIN_BLOCKSIZE:
+			block->data.stream_info.min_blocksize = operation->argument.streaminfo_uint32.value;
+			*needs_write = true;
+			break;
+		case OP__SET_MAX_BLOCKSIZE:
+			block->data.stream_info.max_blocksize = operation->argument.streaminfo_uint32.value;
+			*needs_write = true;
+			break;
+		case OP__SET_MIN_FRAMESIZE:
+			block->data.stream_info.min_framesize = operation->argument.streaminfo_uint32.value;
+			*needs_write = true;
+			break;
+		case OP__SET_MAX_FRAMESIZE:
+			block->data.stream_info.max_framesize = operation->argument.streaminfo_uint32.value;
+			*needs_write = true;
+			break;
+		case OP__SET_SAMPLE_RATE:
+			block->data.stream_info.sample_rate = operation->argument.streaminfo_uint32.value;
+			*needs_write = true;
+			break;
+		case OP__SET_CHANNELS:
+			block->data.stream_info.channels = operation->argument.streaminfo_uint32.value;
+			*needs_write = true;
+			break;
+		case OP__SET_BPS:
+			block->data.stream_info.bits_per_sample = operation->argument.streaminfo_uint32.value;
+			*needs_write = true;
+			break;
+		case OP__SET_TOTAL_SAMPLES:
+			block->data.stream_info.total_samples = operation->argument.streaminfo_uint64.value;
+			*needs_write = true;
 			break;
 		default:
 			ok = false;
@@ -1514,25 +1743,28 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Me
 
 	switch(operation->type) {
 		case OP__SHOW_VC_VENDOR:
-			write_vc_field(filename, &block->data.vorbis_comment.vendor_string, raw);
+			write_vc_field(filename, &block->data.vorbis_comment.vendor_string, raw, stdout);
 			break;
 		case OP__SHOW_VC_FIELD:
-			write_vc_fields(filename, operation->argument.show_vc_field.field_name, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw);
+			write_vc_fields(filename, operation->argument.vc_field_name.value, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, stdout);
 			break;
 		case OP__REMOVE_VC_ALL:
 			ok = remove_vc_all(filename, block, needs_write);
 			break;
 		case OP__REMOVE_VC_FIELD:
-			ok = remove_vc_field(block, operation->argument.remove_vc_field.field_name, needs_write);
+			ok = remove_vc_field(block, operation->argument.vc_field_name.value, needs_write);
 			break;
 		case OP__REMOVE_VC_FIRSTFIELD:
-			ok = remove_vc_firstfield(filename, block, operation->argument.remove_vc_firstfield.field_name, needs_write);
+			ok = remove_vc_firstfield(filename, block, operation->argument.vc_field_name.value, needs_write);
 			break;
 		case OP__SET_VC_FIELD:
-			ok = set_vc_field(filename, block, &operation->argument.set_vc_field, needs_write, raw);
+			ok = set_vc_field(filename, block, &operation->argument.vc_field, needs_write, raw);
 			break;
 		case OP__IMPORT_VC_FROM:
-			ok = import_vc_from(filename, block, &operation->argument.import_vc_from, needs_write, raw);
+			ok = import_vc_from(filename, block, &operation->argument.vc_filename, needs_write, raw);
+			break;
+		case OP__EXPORT_VC_TO:
+			ok = export_vc_to(filename, block, &operation->argument.vc_filename, raw);
 			break;
 		default:
 			ok = false;
@@ -1655,34 +1887,34 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 #undef PPR
 }
 
-void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__bool raw)
+void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__bool raw, FILE *f)
 {
 	if(0 != entry->entry) {
 		char *converted;
 
 		if(filename)
-			printf("%s:", filename);
+			fprintf(f, "%s:", filename);
 
 		if(!raw && utf8_decode(entry->entry, &converted) >= 0) {
-			(void) fwrite(converted, 1, strlen(converted), stdout);
+			(void) fwrite(converted, 1, strlen(converted), f);
 			free(converted);
 		}
 		else {
-			(void) fwrite(entry->entry, 1, entry->length, stdout);
+			(void) fwrite(entry->entry, 1, entry->length, f);
 		}
 	}
 
-	printf("\n");
+	fprintf(f, "\n");
 }
 
-void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw)
+void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw, FILE *f)
 {
 	unsigned i;
-	const unsigned field_name_length = strlen(field_name);
+	const unsigned field_name_length = (0 != field_name)? strlen(field_name) : 0;
 
 	for(i = 0; i < num_entries; i++) {
-		if(field_name_matches_entry(field_name, field_name_length, entry + i))
-			write_vc_field(filename, entry + i, raw);
+		if(0 == field_name || field_name_matches_entry(field_name, field_name_length, entry + i))
+			write_vc_field(filename, entry + i, raw, f);
 	}
 }
 
@@ -1792,23 +2024,23 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 	}
 }
 
-FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_VcImportFile *file, FLAC__bool *needs_write, FLAC__bool raw)
+FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_VcFilename *vc_filename, FLAC__bool *needs_write, FLAC__bool raw)
 {
 	FILE *f;
 	char line[65536];
 	FLAC__bool ret;
 
-	if(0 == file->file_name || strlen(file->file_name) == 0) {
+	if(0 == vc_filename->value || strlen(vc_filename->value) == 0) {
 		fprintf(stderr, "%s: ERROR: empty import file name\n", filename);
 		return false;
 	}
-	if(0 == strcmp(file->file_name, "-"))
+	if(0 == strcmp(vc_filename->value, "-"))
 		f = stdin;
 	else
-		f = fopen(file->file_name, "r");
+		f = fopen(vc_filename->value, "r");
 
 	if(0 == f) {
-		fprintf(stderr, "%s: ERROR: can't open import file %s\n", filename, file->file_name);
+		fprintf(stderr, "%s: ERROR: can't open import file %s\n", filename, vc_filename->value);
 		return false;
 	}
 
@@ -1818,7 +2050,7 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 		if(!feof(f)) {
 			char *p = strchr(line, '\n');
 			if(0 == p) {
-				fprintf(stderr, "%s: ERROR: line too long, aborting\n", file->file_name);
+				fprintf(stderr, "%s: ERROR: line too long, aborting\n", vc_filename->value);
 				ret = false;
 			}
 			else {
@@ -1828,7 +2060,7 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 				memset(&field, 0, sizeof(Argument_VcField));
 				if(!parse_vorbis_comment_field(line, &field.field, &field.field_name, &field.field_value, &field.field_value_length, &violation)) {
 					FLAC__ASSERT(0 != violation);
-					fprintf(stderr, "%s: ERROR: malformed vorbis comment field \"%s\",\n       %s\n", file->file_name, line, violation);
+					fprintf(stderr, "%s: ERROR: malformed vorbis comment field \"%s\",\n       %s\n", vc_filename->value, line, violation);
 					ret = false;
 				}
 				else {
@@ -1845,6 +2077,34 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 	};
 
 	if(f != stdin)
+		fclose(f);
+	return ret;
+}
+
+FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_VcFilename *vc_filename, FLAC__bool raw)
+{
+	FILE *f;
+	FLAC__bool ret;
+
+	if(0 == vc_filename->value || strlen(vc_filename->value) == 0) {
+		fprintf(stderr, "%s: ERROR: empty export file name\n", filename);
+		return false;
+	}
+	if(0 == strcmp(vc_filename->value, "-"))
+		f = stdout;
+	else
+		f = fopen(vc_filename->value, "w");
+
+	if(0 == f) {
+		fprintf(stderr, "%s: ERROR: can't open export file %s\n", filename, vc_filename->value);
+		return false;
+	}
+
+	ret = true;
+
+	write_vc_fields(0, 0, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, f);
+
+	if(f != stdout)
 		fclose(f);
 	return ret;
 }
@@ -1909,4 +2169,9 @@ void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const 
 		left -= 16;
 		b += 16;
    }
+}
+
+void undocumented_warning(const char *opt)
+{
+	fprintf(stderr, "WARNING: undocmented option --%s should be used with caution,\n         only for repairing a damaged STREAMINFO block\n", opt);
 }
