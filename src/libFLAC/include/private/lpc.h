@@ -37,6 +37,7 @@
  *	OUT autoc[0,lag-1]
  */
 void FLAC__lpc_compute_autocorrelation(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+void FLAC__lpc_compute_autocorrelation_asm(const real data[], unsigned data_len, unsigned lag, real autoc[]);
 
 /*
  *	FLAC__lpc_compute_lp_coefficients()

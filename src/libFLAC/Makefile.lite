@@ -19,7 +19,8 @@ OBJS = \
 	lpc.o \
 	md5.o \
 	seek_table.o \
-	stream_decoder.o
+	stream_decoder.o \
+	i386/lpc_asm.o
 
 include ../../build/lib.mk
 
