@@ -31,7 +31,7 @@ static int usage(const char *message, ...);
 int main(int argc, char *argv[])
 {
 	int i;
-	bool verbose = true, lax = false, mode_decode = false, do_mid_side = true, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+	bool verify = false, verbose = true, lax = false, mode_decode = false, do_mid_side = true, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
 	unsigned max_lpc_order = 8;
 	unsigned qlp_coeff_precision = 0;
 	uint64 skip = 0;
@@ -78,6 +78,10 @@ int main(int argc, char *argv[])
 			qlp_coeff_precision = atoi(argv[++i]);
 		else if(0 == strcmp(argv[i], "-r"))
 			rice_optimization_level = atoi(argv[++i]);
+		else if(0 == strcmp(argv[i], "-V"))
+			verify = true;
+		else if(0 == strcmp(argv[i], "-V-"))
+			verify = false;
 		else if(0 == strcmp(argv[i], "-fb"))
 			format_is_big_endian = true;
 		else if(0 == strcmp(argv[i], "-fl"))
@@ -231,10 +235,11 @@ int main(int argc, char *argv[])
 		printf("welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
 		if(!mode_decode) {
-			printf("options:%s -b %u%s -l %u%s%s -q %u -r %u\n",
+			printf("options:%s -b %u%s -l %u%s%s -q %u -r %u%s\n",
 				lax?" --lax":"", (unsigned)blocksize, do_mid_side?" -m":"", max_lpc_order,
 				do_exhaustive_model_search?" -e":"", do_qlp_coeff_prec_search?" -p":"",
-				qlp_coeff_precision, (unsigned)rice_optimization_level
+				qlp_coeff_precision, (unsigned)rice_optimization_level,
+				verify? " -V":""
 			);
 		}
 	}
@@ -246,9 +251,9 @@ int main(int argc, char *argv[])
 			return decode_raw(argv[i], argv[i+1], verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 	else
 		if(format_is_wave)
-			return encode_wav(argv[i], argv[i+1], verbose, skip, lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision);
+			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision);
 		else
-			return encode_raw(argv[i], argv[i+1], verbose, skip, lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
 	return 0;
 }
@@ -325,7 +330,8 @@ int usage(const char *message, ...)
 	printf("  -p : do exhaustive search of LP coefficient quantization (expensive!); overrides -q\n");
 	printf("  -q bits : precision of the quantized linear-predictor coefficients, 0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	printf("  -r level : rice parameter optimization level (level is 0..99, 0 => none, default is -r 0, above 4 doesn't usually help much)\n");
-	printf("  -m-, -e-, -p-, --lax- can all be used to turn off a particular option\n");
+	printf("  -V : verify a correct encoding by decoding the output in parallel and comparing to the original\n");
+	printf("  -m-, -e-, -p-, -V-, --lax- can all be used to turn off a particular option\n");
 	printf("format options:\n");
 	printf("  -fb | -fl : big-endian | little-endian byte order\n");
 	printf("  -fc channels\n");

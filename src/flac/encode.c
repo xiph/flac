@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+/*@@@ need to "_finish()" the verify decoder */
+
 #include <assert.h>
 #if defined _WIN32 && !defined __CYGWIN__
 /* where MSVC puts unlink() */
@@ -23,23 +25,43 @@
 #else
 # include <unistd.h>
 #endif
-#include <stdio.h> /* for FILE */
+#include <stdio.h> /* for FILE et al. */
+#include <stdlib.h> /* for malloc */
 #include <string.h> /* for strcmp() */
 #include "FLAC/all.h"
 #include "encode.h"
 
 #define CHUNK_OF_SAMPLES 2048
 
+typedef enum {
+	FLAC__VERIFY_OK,
+	FLAC__VERIFY_FAILED_IN_FRAME,
+	FLAC__VERIFY_FAILED_IN_METADATA
+} verify_code;
+
+typedef struct {
+	int32 *original[FLAC__MAX_CHANNELS];
+	unsigned size; /* of each original[] in samples */
+	unsigned tail; /* in wide samples */
+	const byte *encoded_signal;
+	unsigned encoded_bytes;
+	bool into_frames;
+	verify_code result;
+	FLAC__StreamDecoder *decoder;
+} verify_fifo_struct;
+
 typedef struct {
 	FILE *fout;
 	const char *outfile;
 	FLAC__Encoder *encoder;
+	bool verify;
 	bool verbose;
 	uint64 unencoded_size;
 	uint64 total_samples_to_encode;
 	uint64 bytes_written;
 	uint64 samples_written;
 	unsigned current_frame;
+	verify_fifo_struct verify_fifo;
 } encoder_wrapper_struct;
 
 static bool is_big_endian_host;
@@ -55,14 +77,18 @@ static int32 *input[FLAC__MAX_CHANNELS];
 /* local routines */
 static bool init(encoder_wrapper_struct *encoder_wrapper);
 static bool init_encoder(bool lax, bool do_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper);
-static void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps);
+static void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
 static FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
+static FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data);
+static FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data);
+static void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
+static void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const encoder_wrapper_struct *encoder_wrapper);
 static bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok);
 static bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok);
 
-int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 skip, bool lax, bool do_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision)
+int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	FILE *fin;
@@ -73,6 +99,7 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 	uint32 xx;
 
 	encoder_wrapper.encoder = 0;
+	encoder_wrapper.verify = verify;
 	encoder_wrapper.verbose = verbose;
 	encoder_wrapper.bytes_written = 0;
 	encoder_wrapper.samples_written = 0;
@@ -200,6 +227,7 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 
 	encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample - skip;
 	encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
+	encoder_wrapper.verify_fifo.into_frames = true;
 
 	while(data_bytes > 0) {
 		bytes_read = fread(ucbuffer, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample, fin);
@@ -217,9 +245,9 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 		}
 		else {
 			unsigned wide_samples = bytes_read / bytes_per_wide_sample;
-			format_input(wide_samples, false, is_unsigned_samples, channels, bps);
+			format_input(wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
 			if(!FLAC__encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
-				fprintf(stderr, "ERROR during encoding, state = %d\n", encoder_wrapper.encoder->state);
+				fprintf(stderr, "ERROR during encoding, state = %d:%s\n", encoder_wrapper.encoder->state, FLAC__EncoderStateString[encoder_wrapper.encoder->state]);
 				goto wav_abort_;
 			}
 			data_bytes -= bytes_read;
@@ -228,7 +256,7 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 
 wav_end_:
 	if(encoder_wrapper.encoder) {
-		if(encoder_wrapper.encoder->state != FLAC__ENCODER_UNINITIALIZED)
+		if(encoder_wrapper.encoder->state == FLAC__ENCODER_OK)
 			FLAC__encoder_finish(encoder_wrapper.encoder);
 		FLAC__encoder_free_instance(encoder_wrapper.encoder);
 	}
@@ -236,22 +264,40 @@ wav_end_:
 		print_stats(&encoder_wrapper);
 		printf("\n");
 	}
+	if(verify) {
+		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
+			printf("Verify FAILED!  Do not use %s\n", outfile);
+			return 1;
+		}
+		else {
+			printf("Verify succeeded\n");
+		}
+	}
 	fclose(fin);
 	return 0;
 wav_abort_:
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0)
 		printf("\n");
 	if(encoder_wrapper.encoder) {
-		if(encoder_wrapper.encoder->state != FLAC__ENCODER_UNINITIALIZED)
+		if(encoder_wrapper.encoder->state == FLAC__ENCODER_OK)
 			FLAC__encoder_finish(encoder_wrapper.encoder);
 		FLAC__encoder_free_instance(encoder_wrapper.encoder);
+	}
+	if(verify) {
+		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
+			printf("Verify FAILED!  Do not use %s\n", outfile);
+			return 1;
+		}
+		else {
+			printf("Verify succeeded\n");
+		}
 	}
 	fclose(fin);
 	unlink(outfile);
 	return 1;
 }
 
-int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 skip, bool lax, bool do_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
+int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	FILE *fin;
@@ -259,6 +305,7 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 	const size_t bytes_per_wide_sample = channels * (bps >> 3);
 
 	encoder_wrapper.encoder = 0;
+	encoder_wrapper.verify = verify;
 	encoder_wrapper.verbose = verbose;
 	encoder_wrapper.bytes_written = 0;
 	encoder_wrapper.samples_written = 0;
@@ -311,6 +358,8 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 		goto raw_abort_;
 	}
 
+	encoder_wrapper.verify_fifo.into_frames = true;
+
 	while(!feof(fin)) {
 		bytes_read = fread(ucbuffer, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample, fin);
 		if(bytes_read == 0) {
@@ -325,16 +374,16 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 		}
 		else {
 			unsigned wide_samples = bytes_read / bytes_per_wide_sample;
-			format_input(wide_samples, is_big_endian, is_unsigned_samples, channels, bps);
+			format_input(wide_samples, is_big_endian, is_unsigned_samples, channels, bps, &encoder_wrapper);
 			if(!FLAC__encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
-				fprintf(stderr, "ERROR during encoding, state = %d\n", encoder_wrapper.encoder->state);
+				fprintf(stderr, "ERROR during encoding, state = %d:%s\n", encoder_wrapper.encoder->state, FLAC__EncoderStateString[encoder_wrapper.encoder->state]);
 				goto raw_abort_;
 			}
 		}
 	}
 
 	if(encoder_wrapper.encoder) {
-		if(encoder_wrapper.encoder->state != FLAC__ENCODER_UNINITIALIZED)
+		if(encoder_wrapper.encoder->state == FLAC__ENCODER_OK)
 			FLAC__encoder_finish(encoder_wrapper.encoder);
 		FLAC__encoder_free_instance(encoder_wrapper.encoder);
 	}
@@ -342,15 +391,33 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 		print_stats(&encoder_wrapper);
 		printf("\n");
 	}
+	if(verify) {
+		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
+			printf("Verify FAILED!  Do not use %s\n", outfile);
+			return 1;
+		}
+		else {
+			printf("Verify succeeded\n");
+		}
+	}
 	fclose(fin);
 	return 0;
 raw_abort_:
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0)
 		printf("\n");
 	if(encoder_wrapper.encoder) {
-		if(encoder_wrapper.encoder->state != FLAC__ENCODER_UNINITIALIZED)
+		if(encoder_wrapper.encoder->state == FLAC__ENCODER_OK)
 			FLAC__encoder_finish(encoder_wrapper.encoder);
 		FLAC__encoder_free_instance(encoder_wrapper.encoder);
+	}
+	if(verify) {
+		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
+			printf("Verify FAILED!  Do not use %s\n", outfile);
+			return 1;
+		}
+		else {
+			printf("Verify succeeded\n");
+		}
 	}
 	fclose(fin);
 	unlink(outfile);
@@ -381,6 +448,33 @@ bool init_encoder(bool lax, bool do_mid_side, bool do_exhaustive_model_search, b
 	if(channels != 2 || bps > 16)
 		do_mid_side = false;
 
+	if(encoder_wrapper->verify) {
+		unsigned i;
+
+		/* set up the fifo which will hold the original signal to compare against */
+		encoder_wrapper->verify_fifo.size = blocksize + CHUNK_OF_SAMPLES;
+		for(i = 0; i < channels; i++) {
+			if(0 == (encoder_wrapper->verify_fifo.original[i] = (int32*)malloc(sizeof(int32) * encoder_wrapper->verify_fifo.size))) {
+				fprintf(stderr, "ERROR allocating verify buffers\n");
+				return false;
+			}
+		}
+		encoder_wrapper->verify_fifo.tail = 0;
+		encoder_wrapper->verify_fifo.into_frames = false;
+		encoder_wrapper->verify_fifo.result = FLAC__VERIFY_OK;
+
+		/* set up a stream decoder for verification */
+		encoder_wrapper->verify_fifo.decoder = FLAC__stream_decoder_get_new_instance();
+		if(0 == encoder_wrapper->verify_fifo.decoder) {
+			fprintf(stderr, "ERROR creating the verify decoder instance\n");
+			return false;
+		}
+		if(FLAC__stream_decoder_init(encoder_wrapper->verify_fifo.decoder, verify_read_callback, verify_write_callback, verify_metadata_callback, verify_error_callback, encoder_wrapper) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA) {
+			fprintf(stderr, "ERROR initializing decoder, state = %d:%s\n", encoder_wrapper->verify_fifo.decoder->state, FLAC__StreamDecoderStateString[encoder_wrapper->verify_fifo.decoder->state]);
+			return false;
+		}
+	}
+
 	encoder_wrapper->encoder->streamable_subset = !lax;
 	encoder_wrapper->encoder->channels = channels;
 	encoder_wrapper->encoder->bits_per_sample = bps;
@@ -401,7 +495,7 @@ bool init_encoder(bool lax, bool do_mid_side, bool do_exhaustive_model_search, b
 	return true;
 }
 
-void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps)
+void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper)
 {
 	unsigned wide_sample, sample, channel, byte;
 
@@ -438,6 +532,13 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 					input[channel][wide_sample] = (int32)ssbuffer[sample];
 		}
 	}
+
+	if(encoder_wrapper->verify) {
+		for(channel = 0; channel < channels; channel++)
+			memcpy(&encoder_wrapper->verify_fifo.original[channel][encoder_wrapper->verify_fifo.tail], &input[channel][0], sizeof(int32) * wide_samples);
+		encoder_wrapper->verify_fifo.tail += wide_samples;
+		assert(encoder_wrapper->verify_fifo.tail <= encoder_wrapper->verify_fifo.size);
+	}
 }
 
 FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
@@ -451,6 +552,23 @@ FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte
 
 	if(samples && encoder_wrapper->verbose && encoder_wrapper->total_samples_to_encode > 0 && !(current_frame & mask))
 		print_stats(encoder_wrapper);
+
+	if(encoder_wrapper->verify) {
+		encoder_wrapper->verify_fifo.encoded_signal = buffer;
+		encoder_wrapper->verify_fifo.encoded_bytes = bytes;
+		if(encoder_wrapper->verify_fifo.into_frames) {
+			if(!FLAC__stream_decoder_process_one_frame(encoder_wrapper->verify_fifo.decoder)) {
+				encoder_wrapper->verify_fifo.result = FLAC__VERIFY_FAILED_IN_FRAME;
+				return FLAC__ENCODER_WRITE_FATAL_ERROR;
+			}
+		}
+		else {
+			if(!FLAC__stream_decoder_process_metadata(encoder_wrapper->verify_fifo.decoder)) {
+				encoder_wrapper->verify_fifo.result = FLAC__VERIFY_FAILED_IN_METADATA;
+				return FLAC__ENCODER_WRITE_FATAL_ERROR;
+			}
+		}
+	}
 
 	if(fwrite(buffer, sizeof(byte), bytes, encoder_wrapper->fout) == bytes)
 		return FLAC__ENCODER_WRITE_OK;
@@ -512,6 +630,53 @@ framesize_:
 end_:
 	fclose(encoder_wrapper->fout);
 	return;
+}
+
+FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data)
+{
+	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
+	(void)decoder;
+
+	*bytes = encoder_wrapper->verify_fifo.encoded_bytes;
+	memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
+
+	return FLAC__STREAM_DECODER_READ_CONTINUE;
+}
+
+FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data)
+{
+	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
+	unsigned channel, l, r;
+
+	for(channel = 0; channel < decoder->channels; channel++) {
+		if(0 != memcmp(buffer[channel], encoder_wrapper->verify_fifo.original[channel], sizeof(int32) * decoder->blocksize)) {
+			fprintf(stderr, "\nERROR: mismatch in decoded data, verify FAILED!\n");
+			fprintf(stderr, "       Please submit a bug report to http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
+			return FLAC__STREAM_DECODER_WRITE_ABORT;
+		}
+	}
+	/* dequeue the frame from the fifo */
+	for(channel = 0; channel < decoder->channels; channel++) {
+		for(l = 0, r = header->blocksize; r < encoder_wrapper->verify_fifo.tail; l++, r++) {
+			encoder_wrapper->verify_fifo.original[channel][l] = encoder_wrapper->verify_fifo.original[channel][r];
+		}
+	}
+	encoder_wrapper->verify_fifo.tail -= header->blocksize;
+	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
+}
+
+void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
+{
+	(void)decoder;
+	(void)metadata;
+	(void)client_data;
+}
+
+void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+{
+	(void)decoder;
+	(void)client_data;
+	fprintf(stderr, "\nERROR: verification decoder returned error %d:%s\n", status, FLAC__StreamDecoderErrorStatusString[status]);
 }
 
 void print_stats(const encoder_wrapper_struct *encoder_wrapper)
