@@ -31,11 +31,13 @@ if FLaC__NO_ASM
 else
 if FLaC__CPU_IA32
 if FLaC__HAS_NASM
-SUBDIRS = ia32 .
-libFLAC_la_LIBADD = ia32/libFLAC-asm.a
+ARCH_SUBDIRS = ia32
+libFLAC_la_LIBADD = ia32/libFLAC-asm.la
 endif
 endif
 endif
+
+SUBDIRS = $(ARCH_SUBDIRS) include .
 
 libFLAC_la_LDFLAGS = -version-info 1:0:0
 

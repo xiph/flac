@@ -34,7 +34,7 @@
 #
 
 
-SUBDIRS = src test
+SUBDIRS = doc include man src test
 
 DISTCLEANFILES = libtool-disable-static
 

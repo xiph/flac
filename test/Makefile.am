@@ -17,6 +17,10 @@
 
 TESTS = ./test_unit.sh ./test_streams.sh ./test_bins.sh
 
+EXTRA_DIST = test_unit.sh \
+	test_streams.sh \
+	test_bins.sh
+
 CLEANFILES = \
 	$(wildcard *.raw) $(wildcard *.flac) $(wildcard *.cmp) $(wildcard *.wav) \
 	$(wildcard ../../test_files/bins/*.raw) \

@@ -136,7 +136,7 @@ AC_SUBST(FLaC__SIZE64)
 AC_SUBST(FLaC__USIZE64)
 
 SAVE_CFLAGS="$CFLAGS"
-CFLAGS='-I./include -I $(top_srcdir)/include -Wall -W'
+CFLAGS='-I$(srcdir)/include -I $(top_srcdir)/include -Wall -W'
 if test x$debug = xtrue; then
 	CFLAGS="$CFLAGS -g -O0 -DDEBUG"
 else
@@ -151,6 +151,9 @@ AC_OUTPUT(	Makefile	\
 	src/Makefile	\
 	src/libFLAC/Makefile	\
 	src/libFLAC/ia32/Makefile	\
+	src/libFLAC/include/Makefile	\
+	src/libFLAC/include/private/Makefile	\
+	src/libFLAC/include/protected/Makefile	\
 	src/flac/Makefile	\
 	src/metaflac/Makefile	\
 	src/plugin_xmms/Makefile	\
@@ -159,5 +162,9 @@ AC_OUTPUT(	Makefile	\
 	include/Makefile \
 	include/FLAC/Makefile \
 	include/FLAC/ordinals.h \
+	doc/Makefile \
+	doc/images/Makefile \
+	doc/ru/Makefile \
+	man/Makefile \
 	test/Makefile	\
 )
