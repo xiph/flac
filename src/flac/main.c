@@ -801,7 +801,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 			unlink(infilename);
 	}
 
-	return 0;
+	return retval;
 }
 
 int decode_file(const char *infilename, const char *forced_outfilename)
@@ -885,5 +885,5 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 			unlink(infilename);
 	}
 
-	return 0;
+	return retval;
 }
