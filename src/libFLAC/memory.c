@@ -18,9 +18,10 @@
  */
 
 #include <assert.h>
+#include <stdio.h> /*@@@ for stderr */
 #include "private/memory.h"
 
-void *FLAC__memory_alloc(size_t bytes, void **aligned_address)
+void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address)
 {
 	void *x;
 
@@ -36,4 +37,92 @@ fprintf(stderr, "FLAC__memory_alloc(unaligned=%p, aligned=%p)\n",x,*aligned_addr
 	*aligned_address = x;
 #endif
 	return x;
+}
+
+bool FLAC__memory_alloc_aligned_int32_array(unsigned elements, int32 **unaligned_pointer, int32 **aligned_pointer)
+{
+	int32 *pa, *pu; /* aligned pointer, unaligned pointer */
+
+	assert(elements > 0);
+	assert(0 != unaligned_pointer);
+	assert(0 != aligned_pointer);
+	assert(unaligned_pointer != aligned_pointer);
+
+	pu = (int32*)FLAC__memory_alloc_aligned(sizeof(int32) * elements, (void*)&pa);
+	if(0 == pu) {
+		return false;
+	}
+	else {
+		if(*unaligned_pointer != 0)
+			free(*unaligned_pointer);
+		*unaligned_pointer = pu;
+		*aligned_pointer = pa;
+		return true;
+	}
+}
+
+bool FLAC__memory_alloc_aligned_uint32_array(unsigned elements, uint32 **unaligned_pointer, uint32 **aligned_pointer)
+{
+	uint32 *pa, *pu; /* aligned pointer, unaligned pointer */
+
+	assert(elements > 0);
+	assert(0 != unaligned_pointer);
+	assert(0 != aligned_pointer);
+	assert(unaligned_pointer != aligned_pointer);
+
+	pu = (uint32*)FLAC__memory_alloc_aligned(sizeof(uint32) * elements, (void*)&pa);
+	if(0 == pu) {
+		return false;
+	}
+	else {
+		if(*unaligned_pointer != 0)
+			free(*unaligned_pointer);
+		*unaligned_pointer = pu;
+		*aligned_pointer = pa;
+		return true;
+	}
+}
+
+bool FLAC__memory_alloc_aligned_unsigned_array(unsigned elements, unsigned **unaligned_pointer, unsigned **aligned_pointer)
+{
+	unsigned *pa, *pu; /* aligned pointer, unaligned pointer */
+
+	assert(elements > 0);
+	assert(0 != unaligned_pointer);
+	assert(0 != aligned_pointer);
+	assert(unaligned_pointer != aligned_pointer);
+
+	pu = (unsigned*)FLAC__memory_alloc_aligned(sizeof(unsigned) * elements, (void*)&pa);
+	if(0 == pu) {
+		return false;
+	}
+	else {
+		if(*unaligned_pointer != 0)
+			free(*unaligned_pointer);
+		*unaligned_pointer = pu;
+		*aligned_pointer = pa;
+		return true;
+	}
+}
+
+bool FLAC__memory_alloc_aligned_real_array(unsigned elements, real **unaligned_pointer, real **aligned_pointer)
+{
+	real *pa, *pu; /* aligned pointer, unaligned pointer */
+
+	assert(elements > 0);
+	assert(0 != unaligned_pointer);
+	assert(0 != aligned_pointer);
+	assert(unaligned_pointer != aligned_pointer);
+
+	pu = (real*)FLAC__memory_alloc_aligned(sizeof(real) * elements, (void*)&pa);
+	if(0 == pu) {
+		return false;
+	}
+	else {
+		if(*unaligned_pointer != 0)
+			free(*unaligned_pointer);
+		*unaligned_pointer = pu;
+		*aligned_pointer = pa;
+		return true;
+	}
 }
