@@ -32,4 +32,5 @@ noinst_HEADERS = \
 	all.h \
 	ogg_decoder_aspect.h \
 	ogg_encoder_aspect.h \
-	ogg_helper.h
+	ogg_helper.h \
+	ogg_mapping.h
