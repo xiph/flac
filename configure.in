@@ -283,6 +283,12 @@ CFLAGS=$CFLAGS_save_blah_blah_blah
 LIBS=$LIBS_save_blah_blah_blah
 fi
 
+AC_CHECK_PROGS(DOXYGEN, doxygen)
+AM_CONDITIONAL(FLaC__HAS_DOXYGEN, test -n "$DOXYGEN")
+if test -n "$DOXYGEN" ; then
+AC_DEFINE(FLAC__HAS_DOXYGEN)
+fi
+
 AC_CHECK_PROGS(NASM, nasm)
 AM_CONDITIONAL(FLaC__HAS_NASM, test -n "$NASM")
 if test -n "$NASM" ; then
@@ -341,15 +347,15 @@ AC_SUBST(FLaC__USIZE64)
 
 OUR_CFLAGS_HEAD='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
 if test x$debug = xtrue; then
-	OUR_CFLAGS_TAIL="-g -O0 -DDEBUG"
+	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -g -O0 -DDEBUG"
 else
-	OUR_CFLAGS_TAIL="-O3 -DNDEBUG"
+	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -O3 -DNDEBUG"
 	if test x$GCC = xyes; then
-		OUR_CFLAGS_TAIL="$OUR_CFLAGS_TAIL -fomit-frame-pointer -funroll-loops -finline-functions -Wall -W -Winline -DFLaC__INLINE=__inline__"
+		OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -fomit-frame-pointer -funroll-loops -finline-functions -Wall -W -Winline -DFLaC__INLINE=__inline__"
 	fi
 fi
-CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS $OUR_CFLAGS_TAIL"
-CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS $OUR_CFLAGS_TAIL"
+CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS"
+CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS"
 
 AM_CONFIG_HEADER(config.h)
 AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA,  [define if XXX])
@@ -358,11 +364,12 @@ AH_TEMPLATE(FLAC__CPU_PPC,  [define if building for PowerPC])
 AH_TEMPLATE(FLAC__CPU_SPARC,  [define if building for SPARC])
 AH_TEMPLATE(FLAC__EXHAUSTIVE_TESTS,  [define to run even more tests])
 AH_TEMPLATE(FLAC__VALGRIND_TESTING,  [define to enable use of Valgrind in testers])
+AH_TEMPLATE(FLAC__HAS_DOXYGEN,  [define if you have Doxygen])
 AH_TEMPLATE(FLAC__HAS_ID3LIB,  [define if you have the id3lib library])
 AH_TEMPLATE(FLAC__HAS_NASM,  [define if you have the NASM assembler])
 AH_TEMPLATE(FLAC__HAS_OGG,  [define if you have the ogg library])
 AH_TEMPLATE(FLAC__NO_ASM,  [define to disable use of assembly code])
-AH_TEMPLATE(FLAC__SSE_OS,  [define to enable use of SSE instructions])
+AH_TEMPLATE(FLAC__SSE_OS,  [define if your operating system supports SSE instructions])
 AH_TEMPLATE(FLAC__USE_3DNOW,  [define to enable use of 3Dnow! instructions])
 AH_TEMPLATE(ID3LIB_MAJOR,  [define to major version number of id3lib])
 AH_TEMPLATE(ID3LIB_MINOR,  [define to minor version number of id3lib])
@@ -383,13 +390,15 @@ AC_OUTPUT( \
 	src/libOggFLAC++/Makefile \
 	src/flac/Makefile \
 	src/metaflac/Makefile \
+	src/monkeys_audio_utilities/Makefile \
 	src/monkeys_audio_utilities/flac_mac/Makefile \
 	src/monkeys_audio_utilities/flac_ren/Makefile \
-	src/monkeys_audio_utilities/Makefile \
 	src/plugin_common/Makefile \
 	src/plugin_common/include/Makefile \
 	src/plugin_common/include/private/Makefile \
 	src/plugin_winamp2/Makefile \
+	src/plugin_winamp2/include/Makefile \
+	src/plugin_winamp2/include/winamp2/Makefile \
 	src/plugin_winamp3/Makefile \
 	src/plugin_xmms/Makefile \
 	src/share/Makefile \
@@ -397,8 +406,8 @@ AC_OUTPUT( \
 	src/share/getopt/Makefile \
 	src/share/grabbag/Makefile \
 	src/share/utf8/Makefile \
-	src/test_grabbag/cuesheet/Makefile \
 	src/test_grabbag/Makefile \
+	src/test_grabbag/cuesheet/Makefile \
 	src/test_libFLAC/Makefile \
 	src/test_libFLAC++/Makefile \
 	src/test_libOggFLAC/Makefile \
@@ -417,15 +426,15 @@ AC_OUTPUT( \
 	doc/html/images/Makefile \
 	doc/html/ru/Makefile \
 	man/Makefile \
-	test/cuesheets/Makefile \
 	test/Makefile \
+	test/cuesheets/Makefile \
 	build/Makefile \
+	obj/Makefile \
+	obj/debug/Makefile \
 	obj/debug/bin/Makefile \
 	obj/debug/lib/Makefile \
-	obj/debug/Makefile \
+	obj/release/Makefile \
 	obj/release/bin/Makefile \
 	obj/release/lib/Makefile \
-	obj/release/Makefile \
-	obj/Makefile \
 	flac.pbproj/Makefile \
 )
