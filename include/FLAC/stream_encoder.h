@@ -232,6 +232,8 @@ typedef enum {
 	FLAC__STREAM_ENCODER_INVALID_METADATA,
 	/**< The metadata input to the encoder is invalid, in one of the following ways:
 	 * - FLAC__stream_encoder_set_metadata() was called with a null pointer but a block count > 0
+	 * - One of the metadata blocks contains an undefined type
+	 * - It contains an illegal CUESHEET as checked by FLAC__format_cuesheet_is_legal()
 	 * - It contains an illegal SEEKTABLE as checked by FLAC__format_seektable_is_legal()
 	 * - It contains more than one SEEKTABLE block or more than one VORBIS_COMMENT block
 	 */
