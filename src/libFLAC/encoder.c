@@ -329,6 +329,7 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	if(encoder->guts->cpuinfo.use_asm) {
 #ifdef FLAC__CPU_IA32
 		assert(encoder->guts->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
+#ifdef FLAC__HAS_NASM
 #if 0
 		/* @@@ SSE version not working yet */
 		if(encoder->guts->cpuinfo.data.ia32.sse)
@@ -341,6 +342,7 @@ fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");
 {
 			encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov;
 fprintf(stderr,"@@@ got _asm_i386_mmx_cmov of fixed_compute_best_predictor()\n");}
+#endif
 #endif
 	}
 

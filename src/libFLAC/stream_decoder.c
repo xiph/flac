@@ -170,6 +170,7 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(
 	if(decoder->guts->cpuinfo.use_asm) {
 #ifdef FLAC__CPU_IA32
 		assert(decoder->guts->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
+#ifdef FLAC__HAS_NASM
 #if 0
 		/* @@@ MMX version needs bps check */
 		if(decoder->guts->cpuinfo.data.ia32.mmx && @@@bps check here@@@)
@@ -178,6 +179,7 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(
 #endif
 fprintf(stderr,"@@@ got _asm_i386 of lpc_restore_signal()\n");
 			decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386;
+#endif
 #endif
 	}
 
