@@ -15,6 +15,7 @@ OBJS = \
 	fixed.o \
 	format.o \
 	lpc.o \
+	md5.o \
 	stream_decoder.o
 
 include ../../build/lib.mk
