@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h> /* for calloc() */
 #include <string.h> /* for memcpy() */
-#include "ogg/ogg.h"
+#include <ogg/ogg.h>
 #include "FLAC/assert.h"
 #include "OggFLAC/stream_decoder.h"
 #include "protected/stream_encoder.h"

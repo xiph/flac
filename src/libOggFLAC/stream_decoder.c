@@ -19,7 +19,7 @@
 
 #include <stdlib.h> /* for calloc() */
 #include <string.h> /* for memset() */
-#include "ogg/ogg.h"
+#include <ogg/ogg.h>
 #include "FLAC/assert.h"
 #include "protected/stream_decoder.h"
 
