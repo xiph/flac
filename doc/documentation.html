@@ -839,7 +839,7 @@
 		<B><TT>libFLAC</TT></B> usually only requires the standard C library and C math library.  In particular, threading is not used so there is no dependency on a thread library.  However, <B><TT>libFLAC</TT></B> does not use global variables and should be thread-safe.
 	</P>
 	<P>
-		The <B><TT>libFLAC</TT></B> interface is described in the public header files in the include/FLAC directory.  The public headers and the compiled library are all that is needed to compile and link against the library.  Note that none of the code in src/libFLAC/, including the private header files in src/libFLAC/include/ is required.
+		The <B><TT>libFLAC</TT></B> interface is described in the public header files in the <TT>include/FLAC/</TT> directory.  The public headers and the compiled library are all that is needed to compile and link against the library.  Note that none of the code in <TT>src/libFLAC/</TT>, including the private header files in <TT>src/libFLAC/include/</TT> is required.
 	</P>
 	<P>
 		Aside from encoders and decoders, <B><TT>libFLAC</TT></B> provides a powerful metadata interface for manipulating metadata in FLAC files.  It allows the user to add, delete, and modify FLAC metadata blocks and it can automatically take advantage of PADDING blocks to avoid rewriting the entire FLAC file when changing the size of the metadata.  The documentation for the metadata interface is currently being rewritten but there are extensive usage comments in the header file <TT>include/FLAC/metadata.h</TT>.
@@ -1029,7 +1029,7 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-		Bug tracking is done on the Sourceforge project page <A HREF="http://sourceforge.net/bugs/?group_id=13478">here</A>.  If you submit a bug, please provide an email contact and/or use the Monitor feature.
+		Bug tracking is done on the Sourceforge project page <A HREF="http://sourceforge.net/bugs/?group_id=13478">here</A>.  If you submit a bug, make sure and provide an email contact or use the Monitor feature.
 	</P>
 	<P>
 		The following are major known bugs in the current release:
@@ -1076,7 +1076,7 @@
 		</UL>
 	</P>
 	<P>
-		Other front-ends may be wedged in the same way; if you have one in mind, post it to the flac-dev mailing list.
+		Other front-ends may be wedged in the same way; if you have one in mind, post it to the <A HREF="http://lists.sourceforge.net/lists/listinfo/flac-dev">flac-dev</A> mailing list.
 	</P>
 	</FONT>
 	</TD></TR>
