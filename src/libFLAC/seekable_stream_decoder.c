@@ -420,11 +420,16 @@ FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore(FLAC__Seek
 	FLAC__ASSERT(0 != decoder->private_->stream_decoder);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
-	if(type == FLAC__METADATA_TYPE_STREAMINFO)
+	if(type == FLAC__METADATA_TYPE_STREAMINFO) {
 		decoder->private_->ignore_stream_info_block = true;
-	else if(type == FLAC__METADATA_TYPE_SEEKTABLE)
+		return true;
+	}
+	else if(type == FLAC__METADATA_TYPE_SEEKTABLE) {
 		decoder->private_->ignore_seek_table_block = true;
-	return FLAC__stream_decoder_set_metadata_ignore(decoder->private_->stream_decoder, type);
+		return true;
+	}
+	else
+		return FLAC__stream_decoder_set_metadata_ignore(decoder->private_->stream_decoder, type);
 }
 
 FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_application(FLAC__SeekableStreamDecoder *decoder, const FLAC__byte id[4])
@@ -448,7 +453,10 @@ FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(FLAC__
 		return false;
 	decoder->private_->ignore_stream_info_block = true;
 	decoder->private_->ignore_seek_table_block = true;
-	return FLAC__stream_decoder_set_metadata_ignore_all(decoder->private_->stream_decoder);
+	return
+		FLAC__stream_decoder_set_metadata_ignore_all(decoder->private_->stream_decoder) &&
+		FLAC__stream_decoder_set_metadata_respond(decoder->private_->stream_decoder, FLAC__METADATA_TYPE_STREAMINFO) &&
+		FLAC__stream_decoder_set_metadata_respond(decoder->private_->stream_decoder, FLAC__METADATA_TYPE_SEEKTABLE);
 }
 
 FLAC_API FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_state(const FLAC__SeekableStreamDecoder *decoder)
