@@ -20,7 +20,7 @@
 #include <assert.h>
 #include "FLAC/seek_table.h"
 
-bool FLAC__seek_table_is_valid(FLAC__StreamMetaData_SeekTable *seek_table)
+bool FLAC__seek_table_is_valid(const FLAC__StreamMetaData_SeekTable *seek_table)
 {
 	unsigned i;
 	uint64 last_sample_number = 0;
