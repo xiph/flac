@@ -453,7 +453,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-S-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option>
+		<term><option>-S-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-E-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option>
 		</term>
 
 		<listitem>
