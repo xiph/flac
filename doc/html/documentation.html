@@ -984,10 +984,407 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-		<B><TT>metaflac</TT></B> is the command-line <TT>.flac</TT> file metadata editor.  You can use it to list the contents of blocks, delete or insert blocks, and manage padding.
+		<B><TT>metaflac</TT></B> is the command-line <TT>.flac</TT> file metadata editor.  You can use it to list the contents of metadata blocks, edit, delete or insert blocks, and manage padding.
 	</P>
 	<P>
-		The HTML documentation for <B><TT>metaflac</TT></B> is currently being rewritten, but the usage screen should explain it pretty well, and there is a man page.  Do <TT>metaflac --help</TT> to see the full usage.
+		<B><TT>metaflac</TT></B> takes a set of "options" (though some are not optional) and a set of FLAC files to operate on.  There are three kinds of "options":
+		<UL>
+			<LI>
+				Major operations, which specify a mode of operation like listing blocks, removing blocks, etc.  These will have sub-operations describing exactly what is to be done.
+			</LI>
+			<LI>
+				Shorthand operations, which are convenient synonyms for major operations.  For example, there is a shorthand operation <TT>--show-sample-rate</TT> that shows just the sample rate field from the STREAMINFO metadata block.
+			</LI>
+			<LI>
+				Global options, which affect all the operations.
+			</LI>
+		</UL>
+	</P>
+	<P>
+		All of these are described in the tables below.  At least one shorthand or major operation must be supplied.  You can use multiple shorthand operations to do more than one thing to a file or set of files.  Most of the common things to do to metadata have shorthand operations.  As an example, here is how to show the MD5 signatures for a set of three FLAC files:
+	</P>
+	<P>
+		<TT>metaflac --show-md5sum file1.flac file2.flac file3.flac</TT>
+	</P>
+	<P>
+		Another example; this removes all DESCRIPTION and COMMENT tags in a set of FLAC files, and uses the <TT>--preserve-modtime</TT> global option to keep the FLAC file modification times the same (usually when files are edited the modification time is set to the current time):
+	</P>
+	<P>
+		<TT>metaflac --preserve-modtime --remove-tag=DESCRIPTION --remove-tag=COMMENT file1.flac file2.flac file3.flac</TT>
+	</P>
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="global_options"><FONT SIZE="+1"><B>Global Options</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_options_preserve_modtime">
+				<TT>--preserve-modtime</TT>
+			</TD>
+			<TD>
+				Preserve the original modification time in spite of edits.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_options_with_filename">
+				<TT>--with-filename</TT>
+			</TD>
+			<TD>
+				Prefix each output line with the FLAC file name (the default if more than one FLAC file is specified).
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_options_no_filename">
+				<TT>--no-filename</TT>
+			</TD>
+			<TD>
+				Do not prefix each output line with the FLAC file name (the default if only one FLAC file is specified)
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_options_no_utf8_convert">
+				<TT>--no-utf8-convert</TT>
+			</TD>
+			<TD>
+				Do not convert tags from UTF-8 to local charset, or vice versa.  This is useful for scripts.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_options_dont_use_padding">
+				<TT>--dont-use-padding</TT>
+			</TD>
+			<TD>
+				By default <B><TT>metaflac</TT></B> tries to use padding where possible to avoid rewriting the entire file if the metadata size changes.  Use this option to tell metaflac to not take advantage of padding this way.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="shorthand_operations"><FONT SIZE="+1"><B>Shorthand Operations</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_md5sum">
+				<TT>--show-md5sum</TT>
+			</TD>
+			<TD>
+				Show the MD5 signature from the STREAMINFO block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_min_blocksize">
+				<TT>--show-min-blocksize</TT>
+			</TD>
+			<TD>
+				Show the minimum block size from the STREAMINFO block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_max_blocksize">
+				<TT>--show-max-blocksize</TT>
+			</TD>
+			<TD>
+				Show the maximum block size from the STREAMINFO block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_min_framesize">
+				<TT>--show-min-framesize</TT>
+			</TD>
+			<TD>
+				Show the minimum frame size from the STREAMINFO block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_max_framesize">
+				<TT>--show-max-framesize</TT>
+			</TD>
+			<TD>
+				Show the maximum frame size from the STREAMINFO block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_sample_rate">
+				<TT>--show-sample-rate</TT>
+			</TD>
+			<TD>
+				Show the sample rate from the STREAMINFO block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_channels">
+				<TT>--show-channels</TT>
+			</TD>
+			<TD>
+				Show the number of channels from the STREAMINFO block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_bps">
+				<TT>--show-bps</TT>
+			</TD>
+			<TD>
+				Show the # of bits per sample from the STREAMINFO block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_total_samples">
+				<TT>--show-total-samples</TT>
+			</TD>
+			<TD>
+				Show the total # of samples from the STREAMINFO block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_vendor_tag">
+				<TT>--show-vendor-tag</TT>
+			</TD>
+			<TD>
+				Show the vendor string from the VORBIS_COMMENT block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_show_tag">
+				<TT>--show-tag=NAME</TT>
+			</TD>
+			<TD>
+				Show all tags where the the field name matches <TT>NAME</TT>.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_remove_tag">
+				<TT>--remove-tag=NAME</TT>
+			</TD>
+			<TD>
+				Remove all tags whose field name is <TT>NAME</TT>.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_remove_first_tag">
+				<TT>--remove-first-tag=NAME</TT>
+			</TD>
+			<TD>
+				Remove first tag whose field name is <TT>NAME</TT>.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_remove_all_tags">
+				<TT>--remove-all-tags</TT>
+			</TD>
+			<TD>
+				Remove all tags, leaving only the vendor string.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_set_tag">
+				<TT>--set-tag=FIELD</TT>
+			</TD>
+			<TD>
+				Add a tag.  The <TT>FIELD</TT> must comply with the Vorbis comment spec, of the form <TT>NAME=VALUE</TT>.  If there is currently no tag block, one will be created.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_import_tags_from">
+				<TT>--import-tags-from=FILE</TT>
+			</TD>
+			<TD>
+				Import tags from a file.  Use '-' for stdin.  Each line should be of the form <TT>NAME=VALUE</TT>.  Multi-line comments are currently not supported.  Specify <TT>--remove-all-tags</TT> and/or <TT>--no-utf8-convert</TT> before <TT>--import-tags-from</TT> if necessary.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_export_tags_to">
+				<TT>--export-tags-to=FILE</TT>
+			</TD>
+			<TD>
+				Export tags to a file.  Use '-' for stdin.  Each line will be of the form <TT>NAME=VALUE</TT>.  Specify <TT>--no-utf8-convert</TT> if necessary.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_import_cuesheet_from">
+				<TT>--import-cuesheet-from=FILE</TT>
+			</TD>
+			<TD>
+				Import a cuesheet from a file.  Use '-' for stdin.  Only one FLAC file may be specified.  A seekpoint will be added for each index point in the cuesheet to the SEEKTABLE unless <TT>--no-cued-seekpoints</TT> is specified.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_export_cuesheet_to">
+				<TT>--export-cuesheet-to=FILE</TT>
+			</TD>
+			<TD>
+				Export CUESHEET block to a cuesheet file, suitable for use by CD authoring software.  Use '-' for stdout.  Only one FLAC file may be specified on the command line.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_add_replay_gain">
+				<TT>--add-replay-gain</TT>
+			</TD>
+			<TD>
+				Calculates the title and album gains/peaks of the given FLAC files as if all the files were part of one album, then stores them in the VORBIS_COMMENT block.  The tags are the same as those used by <TT>vorbisgain</TT>.  Existing ReplayGain tags will be replaced.  If only one FLAC file is given, the album and title gains will be the same.  Since this operation requires two passes, it is always executed last, after all other operations have been completed and written to disk.  All FLAC files specified must have the same resolution, sample rate, and number of channels.  The sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_add_seekpoint">
+				<TT>--add-seekpoint={#|X|#x|#s}</TT>
+			</TD>
+			<TD>
+				Add seek points to a SEEKTABLE block:<BR>
+				<UL>
+				<LI>
+					<TT>#&nbsp;</TT> : a specific sample number for a seek point
+				</LI>
+				<LI>
+					<TT>X&nbsp;</TT> : a placeholder point (always goes at the end of the SEEKTABLE)
+				</LI>
+				<LI>
+					<TT>#x</TT> : # evenly spaced seekpoints, the first being at sample 0
+				</LI>
+				<LI>
+					<TT>#s</TT> : a seekpoint every # seconds; # does not have to be a whole number, it can be, for example, <TT>9.5</TT>, meaning a seekpoint every 9.5 seconds
+				</LI>
+				</UL>
+				If no SEEKTABLE block exists, one will be created.  If one already exists, points will be added to the existing table, and any duplicates will be turned into placeholder points.<BR>
+				You may use many <TT>--add-seekpoint</TT> options; the resulting SEEKTABLE will be the unique-ified union of all such values.  Example: <TT>--add-seekpoint=100x --add-seekpoint=3.5s</TT> will add 100 evenly spaced seekpoints and a seekpoint every 3.5 seconds.<BR>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_shorthand_add_padding">
+				<TT>--add-padding=#</TT>
+			</TD>
+			<TD>
+				Add a padding block of the given length (in bytes).  The overall length of the new block will be 4 + length; the extra 4 bytes is for the metadata block header.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="major_operations"><FONT SIZE="+1"><B>Major Operations</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_operations_version">
+				<TT>--version</TT>
+			</TD>
+			<TD>
+				Show the metaflac version number.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_operations_list">
+				<TT>--list</TT>
+			</TD>
+			<TD>
+				List the contents of one or more metadata blocks to stdout.  By default, all metadata blocks are listed in text format.  Use the following options to change this behavior:<P>
+
+				<TT>--block-number=#[,#[...]]</TT><BR>
+				An optional comma-separated list of block numbers to display.  The first block, the STREAMINFO block, is block 0.<P>
+
+				<TT>--block-type=type[,type[...]]</TT><BR>
+				<TT>--except-block-type=type[,type[...]]</TT><BR>
+				An optional comma-separated list of block types to be included or ignored with this option.  Use only one of <TT>--block-type</TT> or <TT>--except-block-type</TT>.  The valid block types are: STREAMINFO, PADDING, APPLICATION, SEEKTABLE, VORBIS_COMMENT.  You may narrow down the types of APPLICATION blocks displayed as follows:<BR>
+				<TABLE BORDER="1">
+					<TR>
+						<TD><TT>APPLICATION:abcd</TT></TD>
+						<TD>The APPLICATION block(s) whose textual representation of the 4-byte ID is "abcd"
+					<TR>
+						<TD><TT>APPLICATION:0xXXXXXXXX</TT></TD>
+						<TD>The APPLICATION block(s) whose hexadecimal big- endian representation of the 4-byte ID is "0xXXXXXXXX".  For the example "abcd" above the hexadecimal equivalalent is 0x61626364
+				</TABLE>
+				<P>
+
+				NOTE: if both <TT>--block-number</TT> and <TT>--[except-]block-type</TT> are specified, the result is the logical AND of both arguments.<P>
+
+				<TT>--application-data-format=hexdump|text</TT><BR>
+				If the application block you are displaying contains binary data but your <TT>--data-format=text</TT>, you can display a hex dump of the application data contents instead using <TT>--application-data-format=hexdump</TT>.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_operations_remove">
+				<TT>--remove</TT>
+			</TD>
+			<TD>
+				Remove one or more metadata blocks from the metadata.  Unless <TT>--dont-use-padding</TT> is specified, the blocks will be replaced with padding.  You may not remove the STREAMINFO block.<P>
+
+				<TT>--block-number=#[,#[...]]</TT><BR>
+				<TT>--block-type=type[,type[...]]</TT><BR>
+				<TT>--except-block-type=type[,type[...]]</TT><BR>
+				See <A HREF="#metaflac_operations_list"><TT>--list</TT></A> above for usage.<P>
+
+				NOTE: if both <TT>--block-number</TT> and <TT>--[except-]block-type</TT> are specified, the result is the logical AND of both arguments.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_operations_remove_all">
+				<TT>--remove-all</TT>
+			</TD>
+			<TD>
+				Remove all metadata blocks (except the STREAMINFO block) from the metadata.  Unless <TT>--dont-use-padding</TT> is specified, the blocks will be replaced with padding.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_operations_merge_padding">
+				<TT>--merge-padding</TT>
+			</TD>
+			<TD>
+				Merge adjacent PADDING blocks into single blocks.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="metaflac_operations_sort_padding">
+				<TT>--sort-padding</TT>
+			</TD>
+			<TD>
+				Move all PADDING blocks to the end of the metadata and merge them into a single block.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
 	</P>
 	</FONT>
 	</TD></TR>
