@@ -42,6 +42,10 @@ ARCH_SUBDIRS = ia32
 libFLAC_la_LIBADD = ia32/libFLAC-asm.la
 endif
 endif
+if FLaC__CPU_PPC
+ARCH_SUBDIRS = ppc
+libFLAC_la_LIBADD = ppc/libFLAC-asm.la
+endif
 endif
 
 SUBDIRS = $(ARCH_SUBDIRS) include .
