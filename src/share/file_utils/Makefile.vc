@@ -1,0 +1,23 @@
+!include <win32.mak>
+
+!IFDEF DEBUG
+.c.obj:
+	$(cc) /D "_LIB" -DFLAC__NO_DLL /GX $(cdebug) $(cflags) /I "..\..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+!else
+.c.obj:
+	$(cc) /D "_LIB" -DFLAC__NO_DLL /O2 $(crelease) $(cflags) /I "..\..\..\include" -DSTRICT -YX -DNODEBUG $<
+!endif
+
+C_FILES= \
+	file_utils.c \
+
+OBJS= $(C_FILES:.c=.obj)
+
+all: file_utils.lib
+
+file_utils.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../../obj/lib/$*.lib $(OBJS)
+
+clean:
+	-del *.obj *.pch
+	-del ..\..\..\obj\lib\file_utils.lib ..\..\..\obj\lib\file_utils.pdb
