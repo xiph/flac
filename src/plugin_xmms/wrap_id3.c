@@ -103,7 +103,7 @@ char *flac_format_song_title(char *filename)
 	input->album_name = local__getstr(tag.album);
 	input->track_name = local__getstr(tag.title);
 	input->track_number = local__getnum(tag.track_number);
-	input->year = local__getnum(tag.year_performed);
+	input->year = local__getnum(tag.year_recorded);
 	input->genre = local__getstr(tag.genre);
 	input->comment = local__getstr(tag.comment);
 
