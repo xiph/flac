@@ -16,7 +16,7 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 bin_PROGRAMS = flac
-CFLAGS = @CFLAGS@
+CFLAGS = @CFLAGS@ @OGG_CFLAGS@
 
 flac_SOURCES = \
 	analyze.c \
@@ -29,4 +29,4 @@ flac_SOURCES = \
 	encode.h \
 	file.h
 
-flac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la -lm
+flac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ -lm

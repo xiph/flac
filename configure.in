@@ -93,9 +93,7 @@ if test x$use_3dnow = xtrue ; then
 AC_DEFINE(FLAC__USE_3DNOW)
 fi
 
-AC_CHECK_LIB(ogg, ogg_stream_init,
-             [LIBS="$LIBS -logg"; have_ogg=yes],
-             [AC_MSG_WARN([*** Ogg development enviroment not installed - ogg support will not be built])])
+AM_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
 AM_CONDITIONAL(FLaC__HAS_OGG, [test x$have_ogg = xyes])
 if test x$have_ogg = xyes ; then
 AC_DEFINE(FLAC__HAS_OGG)
