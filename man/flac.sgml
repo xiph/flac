@@ -121,6 +121,23 @@
 	  </refsect2>
 
 	  <refsect2>
+	    <title>Analysis Options</title>
+
+	    <variablelist>
+	      <varlistentry>
+		<term><option>-v</option>
+		</term>
+		<listitem>
+		  <para>Verbose mode.  Includes the residual signal in
+		    the analysis file.  This will make the file very
+		    big, much larger than even the decoded file.</para>
+		</listitem>
+	      </varlistentry>
+
+	    </variablelist>
+	  </refsect2>
+
+	  <refsect2>
 	    <title>Encoding Options</title>
 
 	    <variablelist>
