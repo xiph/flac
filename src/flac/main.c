@@ -34,8 +34,7 @@
 #define strcasecmp stricmp
 #endif
 #include "FLAC/all.h"
-#include "share/file_utils.h"
-#include "share/replaygain.h"
+#include "share/grabbag.h"
 #include "analyze.h"
 #include "decode.h"
 #include "encode.h"
@@ -76,10 +75,10 @@ static char *local_strdup(const char *source);
 
 
 /*
- * FLAC__share__getopt format struct; note that for long options with no
+ * share__getopt format struct; note that for long options with no
  * short option equivalent we just set the 'val' field to 0.
  */
-static struct FLAC__share__option long_options_[] = {
+static struct share__option long_options_[] = {
 	/*
 	 * general options
 	 */
@@ -389,7 +388,7 @@ int do_it()
 				return usage_error("ERROR: --replay-gain only allowed for encoding\n");
 			if(option_values.format_channels > 2)
 				return usage_error("ERROR: --replay-gain can only be done with mono/stereo input\n");
-			if(option_values.format_sample_rate >= 0 && !FLAC__replaygain_is_valid_sample_frequency(option_values.format_sample_rate))
+			if(option_values.format_sample_rate >= 0 && !grabbag__replaygain_is_valid_sample_frequency(option_values.format_sample_rate))
 				return usage_error("ERROR: invalid sample rate used with --replay-gain\n");
 			/*
 			 * We want to reserve padding space for the ReplayGain
@@ -398,10 +397,10 @@ int do_it()
 			 */
 			if(option_values.padding < 0) {
 				fprintf(stderr, "NOTE: --replay-gain may leave a small PADDING block even with --no-padding\n");
-				option_values.padding = FLAC__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
+				option_values.padding = GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
 			}
 			else {
-				option_values.padding += FLAC__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
+				option_values.padding += GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
 			}
 		}
 		if(option_values.num_files > 1 && option_values.cmdline_forced_outfilename) {
@@ -480,12 +479,12 @@ int do_it()
 			}
 			if(option_values.replay_gain && retval == 0) {
 				float album_gain, album_peak;
-				FLAC__replaygain_get_album(&album_gain, &album_peak);
+				grabbag__replaygain_get_album(&album_gain, &album_peak);
 				for(i = 0; i < option_values.num_files; i++) {
 					const char *error, *outfilename = get_encoded_outfilename(option_values.filenames[i]);
 					if(0 == strcmp(option_values.filenames[i], "-"))
 						FLAC__ASSERT(0);
-					if(0 != (error = FLAC__replaygain_store_to_file_album(outfilename, album_gain, album_peak, /*preserve_modtime=*/true))) {
+					if(0 != (error = grabbag__replaygain_store_to_file_album(outfilename, album_gain, album_peak, /*preserve_modtime=*/true))) {
 						fprintf(stderr, "%s: ERROR writing ReplayGain album tags\n", outfilename);
 						retval = 1;
 					}
@@ -562,17 +561,17 @@ int parse_options(int argc, char *argv[])
 	/*@@@ E and R: are deprecated */
 	const char *short_opts = "0123456789ab:cdeFhHl:mMo:pP:q:r:sS:tT:vV";
 
-	while ((short_option = FLAC__share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
+	while ((short_option = share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
 		switch (short_option) {
 			case 0: /* long option with no equivalent short option */
-				had_error |= (parse_option(short_option, long_options_[option_index].name, FLAC__share__optarg) != 0);
+				had_error |= (parse_option(short_option, long_options_[option_index].name, share__optarg) != 0);
 				break;
 			case '?':
 			case ':':
 				had_error = true;
 				break;
 			default: /* short option */
-				had_error |= (parse_option(short_option, 0, FLAC__share__optarg) != 0);
+				had_error |= (parse_option(short_option, 0, share__optarg) != 0);
 				break;
 		}
 	}
@@ -581,16 +580,16 @@ int parse_options(int argc, char *argv[])
 		return 1;
 	}
 
-	FLAC__ASSERT(FLAC__share__optind <= argc);
+	FLAC__ASSERT(share__optind <= argc);
 
-	option_values.num_files = argc - FLAC__share__optind;
+	option_values.num_files = argc - share__optind;
 
 	if(option_values.num_files > 0) {
 		unsigned i = 0;
 		if(0 == (option_values.filenames = malloc(sizeof(char *) * option_values.num_files)))
 			die("out of memory allocating space for file names list");
-		while(FLAC__share__optind < argc)
-			option_values.filenames[i++] = local_strdup(argv[FLAC__share__optind++]);
+		while(share__optind < argc)
+			option_values.filenames[i++] = local_strdup(argv[share__optind++]);
 	}
 
 	return 0;
@@ -897,7 +896,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 					option_values.num_requested_seek_points = 0;
 				option_values.num_requested_seek_points++;
 				strcat(option_values.requested_seek_points, option_argument);
-				strcat(option_values.requested_seek_points, "<");
+				strcat(option_values.requested_seek_points, ";");
 				break;
 			case 'P':
 				FLAC__ASSERT(0 != option_argument);
@@ -1070,7 +1069,7 @@ void show_help()
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align multiple files on sector boundaries\n");
 	printf("      --replay-gain            Calculate ReplayGain & store in Vorbis comments\n");
-	printf("  -S, --seekpoint={#|X|#x}     Add seek point(s)\n");
+	printf("  -S, --seekpoint={#|X|#x|#s}  Add seek point(s)\n");
 	printf("  -P, --padding=#              Write a PADDING block of length #\n");
 	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment; may appear multiple times\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
@@ -1223,15 +1222,16 @@ void show_explain()
 	printf("                               one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1,\n");
 	printf("                               or 48 kHz.  NOTE: this option may also leave a\n");
 	printf("                               few extra bytes in the PADDING block.\n");
-	printf("  -S, --seekpoint={#|X|#x}     Include a point or points in a SEEKTABLE\n");
+	printf("  -S, --seekpoint={#|X|#x|#s}  Include a point or points in a SEEKTABLE\n");
 	printf("       #  : a specific sample number for a seek point\n");
 	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
 	printf("       #x : # evenly spaced seekpoints, the first being at sample 0\n");
+	printf("       #s : a seekpoint every # seconds; # does not have to be a whole number\n");
 	printf("     You may use many -S options; the resulting SEEKTABLE will be the unique-\n");
 	printf("           ified union of all such values.\n");
 	printf("     With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.\n");
-	printf("     Note: -S #x will not work if the encoder can't determine the input size\n");
-	printf("           before starting.\n");
+	printf("     Note: -S #x and -S #s will not work if the encoder can't determine the\n");
+	printf("           input size before starting.\n");
 	printf("     Note: if you use -S # and # is >= samples in the input, there will be\n");
 	printf("           either no seek point entered (if the input size is determinable\n");
 	printf("           before encoding starts) or a placeholder point (if input size is not\n");
@@ -1348,10 +1348,10 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 	if(0 == strcmp(infilename, "-")) {
 		infilesize = -1;
-		encode_infile = FLAC__file_utils_get_binary_stdin();
+		encode_infile = grabbag__file_get_binary_stdin();
 	}
 	else {
-		infilesize = FLAC__file_utils_get_filesize(infilename);
+		infilesize = grabbag__file_get_filesize(infilename);
 		if(0 == (encode_infile = fopen(infilename, "rb"))) {
 			fprintf(stderr, "ERROR: can't open input file %s\n", infilename);
 			return 1;
@@ -1463,12 +1463,12 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			if(option_values.replay_gain) {
 				float title_gain, title_peak;
 				const char *error;
-				FLAC__replaygain_get_title(&title_gain, &title_peak);
-				if(0 != (error = FLAC__replaygain_store_to_file_title(outfilename, title_gain, title_peak, /*preserve_modtime=*/true))) {
+				grabbag__replaygain_get_title(&title_gain, &title_peak);
+				if(0 != (error = grabbag__replaygain_store_to_file_title(outfilename, title_gain, title_peak, /*preserve_modtime=*/true))) {
 					fprintf(stderr, "%s: ERROR writing ReplayGain title tags\n", outfilename);
 				}
 			}
-			FLAC__file_utils_copy_metadata(infilename, outfilename);
+			grabbag__file_copy_metadata(infilename, outfilename);
 		}
 		if(option_values.delete_input)
 			unlink(infilename);
@@ -1531,7 +1531,7 @@ int decode_file(const char *infilename)
 
 	if(retval == 0 && strcmp(infilename, "-")) {
 		if(strcmp(outfilename, "-"))
-			FLAC__file_utils_copy_metadata(infilename, outfilename);
+			grabbag__file_copy_metadata(infilename, outfilename);
 		if(option_values.delete_input && !option_values.test_only && !option_values.analyze)
 			unlink(infilename);
 	}
