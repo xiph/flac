@@ -1344,7 +1344,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMe
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
  *    \code (entry->entry != NULL && entry->length > 0) ||
- * (entry->entry == NULL && entry->length == 0 && copy == false) \endcode
+ * (entry->entry == NULL && entry->length == 0) \endcode
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
  */
@@ -1382,7 +1382,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
  *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
  *    \code comment_num < object->data.vorbis_comment.num_comments \endcode
  *    \code (entry->entry != NULL && entry->length > 0) ||
- * (entry->entry == NULL && entry->length == 0 && copy == false) \endcode
+ * (entry->entry == NULL && entry->length == 0) \endcode
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
  */
