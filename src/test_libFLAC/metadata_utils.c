@@ -244,37 +244,40 @@ FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueSheet *blo
 			printf("FAILED, tracks[%u].number mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].number, (unsigned)blockcopy->tracks[i].number);
 			return false;
 		}
-		if(0 != strcmp(blockcopy->tracks[i].isrc, block->tracks[i].isrc)) {
-			printf("FAILED, tracks[%u].number mismatch, expected %s, got %s\n", i, block->tracks[i].isrc, blockcopy->tracks[i].isrc);
-			return false;
-		}
-		if(blockcopy->tracks[i].type != block->tracks[i].type) {
-			printf("FAILED, tracks[%u].type mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].type, (unsigned)blockcopy->tracks[i].type);
-			return false;
-		}
-		if(blockcopy->tracks[i].pre_emphasis != block->tracks[i].pre_emphasis) {
-			printf("FAILED, tracks[%u].pre_emphasis mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].pre_emphasis, (unsigned)blockcopy->tracks[i].pre_emphasis);
-			return false;
-		}
 		if(blockcopy->tracks[i].num_indices != block->tracks[i].num_indices) {
 			printf("FAILED, tracks[%u].num_indices mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].num_indices, (unsigned)blockcopy->tracks[i].num_indices);
 			return false;
 		}
-		if(0 == block->tracks[i].indices || 0 == blockcopy->tracks[i].indices) {
-			if(block->tracks[i].indices != blockcopy->tracks[i].indices) {
-				printf("FAILED, tracks[%u].indices mismatch\n", i);
+		/* num_indices == 0 means lead-out track so only the track offset and number are valid */
+		if(block->tracks[i].num_indices > 0) {
+			if(0 != strcmp(blockcopy->tracks[i].isrc, block->tracks[i].isrc)) {
+				printf("FAILED, tracks[%u].isrc mismatch, expected %s, got %s\n", i, block->tracks[i].isrc, blockcopy->tracks[i].isrc);
 				return false;
 			}
-		}
-		else {
-			for(j = 0; j < block->tracks[i].num_indices; j++) {
-				if(blockcopy->tracks[i].indices[j].offset != block->tracks[i].indices[j].offset) {
-					printf("FAILED, tracks[%u].indices[%u].offset mismatch, expected %llu, got %llu\n", i, j, block->tracks[i].indices[j].offset, blockcopy->tracks[i].indices[j].offset);
+			if(blockcopy->tracks[i].type != block->tracks[i].type) {
+				printf("FAILED, tracks[%u].type mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].type, (unsigned)blockcopy->tracks[i].type);
+				return false;
+			}
+			if(blockcopy->tracks[i].pre_emphasis != block->tracks[i].pre_emphasis) {
+				printf("FAILED, tracks[%u].pre_emphasis mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].pre_emphasis, (unsigned)blockcopy->tracks[i].pre_emphasis);
+				return false;
+			}
+			if(0 == block->tracks[i].indices || 0 == blockcopy->tracks[i].indices) {
+				if(block->tracks[i].indices != blockcopy->tracks[i].indices) {
+					printf("FAILED, tracks[%u].indices mismatch\n", i);
 					return false;
 				}
-				if(blockcopy->tracks[i].indices[j].number != block->tracks[i].indices[j].number) {
-					printf("FAILED, tracks[%u].indices[%u].number mismatch, expected %u, got %u\n", i, j, (unsigned)block->tracks[i].indices[j].number, (unsigned)blockcopy->tracks[i].indices[j].number);
-					return false;
+			}
+			else {
+				for(j = 0; j < block->tracks[i].num_indices; j++) {
+					if(blockcopy->tracks[i].indices[j].offset != block->tracks[i].indices[j].offset) {
+						printf("FAILED, tracks[%u].indices[%u].offset mismatch, expected %llu, got %llu\n", i, j, block->tracks[i].indices[j].offset, blockcopy->tracks[i].indices[j].offset);
+						return false;
+					}
+					if(blockcopy->tracks[i].indices[j].number != block->tracks[i].indices[j].number) {
+						printf("FAILED, tracks[%u].indices[%u].number mismatch, expected %u, got %u\n", i, j, (unsigned)block->tracks[i].indices[j].number, (unsigned)blockcopy->tracks[i].indices[j].number);
+						return false;
+					}
 				}
 			}
 		}
