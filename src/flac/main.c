@@ -1305,7 +1305,7 @@ void show_explain()
 	printf("       #s : a seekpoint every # seconds; # does not have to be a whole number\n");
 	printf("     You may use many -S options; the resulting SEEKTABLE will be the unique-\n");
 	printf("           ified union of all such values.\n");
-	printf("     With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.\n");
+	printf("     With no -S options, flac defaults to '-S 10s'.  Use -S- for no SEEKTABLE.\n");
 	printf("     Note: -S #x and -S #s will not work if the encoder can't determine the\n");
 	printf("           input size before starting.\n");
 	printf("     Note: if you use -S # and # is >= samples in the input, there will be\n");

@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>December 18, 2002</date>">
+  <!ENTITY dhdate      "<date>December 30, 2002</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -359,7 +359,7 @@
 		    meaning a seekpoint every 9.5 seconds).  You may use
 		    many -S options; the resulting SEEKTABLE will be the
 		    unique-ified union of all such values.  With no -S
-		    options, flac defaults to '-S 100x'.  Use --no-seektable
+		    options, flac defaults to '-S 10s'.  Use --no-seektable
 		    for no SEEKTABLE.  Note: '-S #x' and '-S #s' will not
 		    work if the encoder can't determine the input size before
 		    starting.  Note: if you use '-S #' and # is >=

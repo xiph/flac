@@ -1556,7 +1556,7 @@ FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int
 		return true;
 
 	if(num_requested_seek_points < 0) {
-		requested_seek_points = "100x;";
+		requested_seek_points = "10s;";
 		num_requested_seek_points = 1;
 	}
 
