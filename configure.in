@@ -230,8 +230,6 @@ fi
 AM_PATH_XMMS(0.9.5.1, , AC_MSG_WARN([*** XMMS >= 0.9.5.1 not installed - xmms support will not be built]))
 AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
 
-SHARE_LIBS='$(top_builddir)/src/share/grabbag/libgrabbag.a $(top_builddir)/src/share/gain_analysis/libgain_analysis.a $(top_builddir)/src/share/getopt/libgetopt.a $(top_builddir)/src/share/utf8/libutf8.a'
-
 dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_ICONV
 AM_LANGINFO_CODESET
@@ -329,8 +327,6 @@ AC_SUBST(FLaC__USIZE32)
 AC_SUBST(FLaC__SIZE64)
 AC_SUBST(FLaC__USIZE64)
 
-AC_SUBST(SHARE_LIBS)
-
 OUR_CFLAGS_HEAD='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
 if test x$debug = xtrue; then
 	OUR_CFLAGS_TAIL="-g -O0 -DDEBUG"
@@ -388,6 +384,8 @@ AC_OUTPUT( \
 	src/share/getopt/Makefile \
 	src/share/grabbag/Makefile \
 	src/share/utf8/Makefile \
+	src/test_grabbag/cuesheet/Makefile \
+	src/test_grabbag/Makefile \
 	src/test_libFLAC/Makefile \
 	src/test_libFLAC++/Makefile \
 	src/test_libOggFLAC/Makefile \
@@ -406,6 +404,7 @@ AC_OUTPUT( \
 	doc/html/images/Makefile \
 	doc/html/ru/Makefile \
 	man/Makefile \
+	test/cuesheets/Makefile \
 	test/Makefile \
 	build/Makefile \
 	obj/debug/bin/Makefile \

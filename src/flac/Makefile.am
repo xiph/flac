@@ -38,4 +38,13 @@ flac_SOURCES = \
 	encode.h \
 	vorbiscomment.h
 
-flac_LDADD = $(NEED_OGGFLAC_LIB) @SHARE_LIBS@ $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ @LIBICONV@ -lm
+flac_LDADD = \
+	$(NEED_OGGFLAC_LIB) \
+	$(top_builddir)/src/share/grabbag/libgrabbag.a \
+	$(top_builddir)/src/share/gain_analysis/libgain_analysis.a \
+	$(top_builddir)/src/share/getopt/libgetopt.a \
+	$(top_builddir)/src/share/utf8/libutf8.a \
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	@OGG_LIBS@ \
+	@LIBICONV@ \
+	-lm

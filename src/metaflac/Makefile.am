@@ -32,7 +32,18 @@ metaflac_SOURCES = \
 	operations_shorthand_vorbiscomment.c \
 	options.c \
 	usage.c \
-	utils.c
+	utils.c \
+	operations.h \
+	options.h \
+	usage.h \
+	utils.h
 metaflac_LDFLAGS = 
 
-metaflac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @SHARE_LIBS@ @LIBICONV@ -lm
+metaflac_LDADD = \
+	$(top_builddir)/src/share/grabbag/libgrabbag.a \
+	$(top_builddir)/src/share/gain_analysis/libgain_analysis.a \
+	$(top_builddir)/src/share/getopt/libgetopt.a \
+	$(top_builddir)/src/share/utf8/libutf8.a \
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	@LIBICONV@ \
+	-lm
