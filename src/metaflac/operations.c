@@ -508,7 +508,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 /*@@@ yuck, should do this with a varargs function or something: */
 #define PPR if(filename)printf("%s:",filename);
 	PPR; printf("METADATA block #%u\n", block_number);
-	PPR; printf("  type: %u (%s)\n", (unsigned)block->type, block->type<=FLAC__METADATA_TYPE_VORBIS_COMMENT? FLAC__MetadataTypeString[block->type] : "UNKNOWN");
+	PPR; printf("  type: %u (%s)\n", (unsigned)block->type, block->type < FLAC__METADATA_TYPE_UNDEFINED? FLAC__MetadataTypeString[block->type] : "UNKNOWN");
 	PPR; printf("  is last: %s\n", block->is_last? "true":"false");
 	PPR; printf("  length: %u\n", block->length);
 

@@ -460,8 +460,14 @@ typedef enum {
 	FLAC__METADATA_TYPE_VORBIS_COMMENT = 4,
 	/**< <A HREF="../format.html#metadata_block_vorbis_comment">VORBISCOMMENT</A> block */
 
-	FLAC__METADATA_TYPE_CUESHEET = 5
+	FLAC__METADATA_TYPE_CUESHEET = 5,
 	/**< <A HREF="../format.html#metadata_block_cuesheet">CUESHEET</A> block */
+
+	FLAC__METADATA_TYPE_UNDEFINED = 6
+	/**< <A HREF="../format.html#metadata_block_cuesheet">marker to denote
+	 * beginning of undefined type range; this number will increase as new
+	 * metadata types are added</A> block
+	 */
 
 } FLAC__MetadataType;
 
@@ -633,7 +639,6 @@ typedef struct {
 	char isrc[13]; /*@@@@ 12 ascii characters plus trailing '\0' */
 	unsigned type:1;			/*@@@@q-channel control bit 3: 0=>audio, 1=>data (undefined for CD-DA, defined for CDROM) */
 	unsigned pre_emphasis:1;	/*@@@@q-channel control bit 5: 0=>no pre-em, 1=>pre-em */
-	unsigned reserved:6;
 	FLAC__byte num_indices;
 	FLAC__StreamMetadata_CueSheet_Index *indices;
 } FLAC__StreamMetadata_CueSheet_Track;
@@ -650,7 +655,7 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_
 /** FLAC CUESHEET structure.  (c.f. <A HREF="../format.html#metadata_block_cuesheet">format specification</A>)
  */
 typedef struct {
-	char media_catalog_number[129]; /*@@@@ for CD-DA: 13 ascii digits ('0'-'9') plus 116 trailing '\0' characters */
+	char media_catalog_number[129]; /*@@@@ in the stream, the media_catalog_number will be 128 alphanumberic ascii characters; unused digits are padded out to the right with null characters.  in memory, the 129th character will be guaranteed to be a null character so that the whole string is always a valid C string.  CD-DA: 13 ascii digits ('0'-'9') plus 116 trailing '\0' characters */
 	FLAC__uint64 lead_in;	/*@@@@ length of lead-in in samples; required to compute some versions of CD TOC hashes; CD-DA says the lead-in must be digital silence and rippers don't save it by convention, so TRACK 00 is disallowed and instead we store only the length.  The lead-in is the number of samples up to the first index point of the first track, \b not INDEX 01 of the first track.  This is so applications can correctly compute a CD-DA TOC equivalent even when there is TRACK 01 INDEX 00 data. */
 	unsigned num_tracks;
 	FLAC__StreamMetadata_CueSheet_Track *tracks;
