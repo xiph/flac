@@ -994,7 +994,9 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder
 	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
+#ifndef FLAC__MANDATORY_VERIFY_WHILE_ENCODING
 	encoder->protected_->verify = value;
+#endif
 	return true;
 }
 
@@ -1634,7 +1636,11 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
 
+#ifdef FLAC__MANDATORY_VERIFY_WHILE_ENCODING
+	encoder->protected_->verify = true;
+#else
 	encoder->protected_->verify = false;
+#endif
 	encoder->protected_->streamable_subset = true;
 	encoder->protected_->do_mid_side_stereo = false;
 	encoder->protected_->loose_mid_side_stereo = false;
