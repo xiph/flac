@@ -20,5 +20,6 @@
 #define flac__file_h
 
 void flac__file_copy_metadata(const char *srcpath, const char *destpath);
+off_t flac__file_get_filesize(const char *srcpath);
 
 #endif

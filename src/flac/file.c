@@ -42,3 +42,13 @@ void flac__file_copy_metadata(const char *srcpath, const char *destpath)
 #endif
 	}
 }
+
+off_t flac__file_get_filesize(const char *srcpath)
+{
+	struct stat srcstat;
+
+	if(0 == stat(srcpath, &srcstat))
+		return srcstat.st_size;
+	else
+		return -1;
+}
