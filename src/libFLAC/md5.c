@@ -241,6 +241,19 @@ FLAC__MD5Accumulate(struct MD5Context *ctx, const FLAC__int32 * const signal[], 
 
 	buf_ = ctx->internal_buf;
 
+#ifdef FLAC__CPU_IA32
+	if(channels == 2 && bytes_per_sample == 2) {
+		memcpy(buf_, signal[0], sizeof(FLAC__int32) * samples);
+		buf_ += sizeof(FLAC__int16);
+		for(sample = 0; sample < samples; sample++)
+			((FLAC__int16 *)buf_)[2 * sample] = (FLAC__int16)signal[1][sample];
+	}
+	else if(channels == 1 && bytes_per_sample == 2) {
+		for(sample = 0; sample < samples; sample++)
+			((FLAC__int16 *)buf_)[sample] = (FLAC__int16)signal[0][sample];
+	}
+	else
+#endif
 	for(sample = 0; sample < samples; sample++) {
 		for(channel = 0; channel < channels; channel++) {
 			a_word = signal[channel][sample];
