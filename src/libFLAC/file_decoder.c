@@ -38,6 +38,7 @@
  *
  ***********************************************************************/
 
+static void file_decoder_set_defaults_(FLAC__FileDecoder *decoder);
 static FILE *get_binary_stdin_();
 static FLAC__SeekableStreamDecoderReadStatus read_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 static FLAC__SeekableStreamDecoderSeekStatus seek_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
@@ -121,11 +122,7 @@ FLAC__FileDecoder *FLAC__file_decoder_new()
 
 	decoder->protected_->state = FLAC__FILE_DECODER_UNINITIALIZED;
 
-	decoder->private_->filename = 0;
-	decoder->private_->write_callback = 0;
-	decoder->private_->metadata_callback = 0;
-	decoder->private_->error_callback = 0;
-	decoder->private_->client_data = 0;
+	file_decoder_set_defaults_(decoder);
 
 	return decoder;
 }
@@ -203,10 +200,10 @@ FLAC__bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
 	if(decoder->private_->file != 0 && decoder->private_->file != stdin)
 		fclose(decoder->private_->file);
 
-	if(decoder->private_->filename != 0) {
+	if(decoder->private_->filename != 0)
 		free(decoder->private_->filename);
-		decoder->private_->filename = 0;
-	}
+
+	file_decoder_set_defaults_(decoder);
 
 	decoder->protected_->state = FLAC__FILE_DECODER_UNINITIALIZED;
 
@@ -371,6 +368,41 @@ FLAC__bool FLAC__file_decoder_get_md5_checking(const FLAC__FileDecoder *decoder)
 	return FLAC__seekable_stream_decoder_get_md5_checking(decoder->private_->seekable_stream_decoder);
 }
 
+unsigned FLAC__file_decoder_get_channels(const FLAC__FileDecoder *decoder)
+{
+    FLAC__ASSERT(decoder != 0);
+    FLAC__ASSERT(decoder->private_ != 0);
+    return FLAC__seekable_stream_decoder_get_channels(decoder->private_->seekable_stream_decoder);
+}
+
+FLAC__ChannelAssignment FLAC__file_decoder_get_channel_assignment(const FLAC__FileDecoder *decoder)
+{
+    FLAC__ASSERT(decoder != 0);
+    FLAC__ASSERT(decoder->private_ != 0);
+    return FLAC__seekable_stream_decoder_get_channel_assignment(decoder->private_->seekable_stream_decoder);
+}
+
+unsigned FLAC__file_decoder_get_bits_per_sample(const FLAC__FileDecoder *decoder)
+{
+    FLAC__ASSERT(decoder != 0);
+    FLAC__ASSERT(decoder->private_ != 0);
+    return FLAC__seekable_stream_decoder_get_bits_per_sample(decoder->private_->seekable_stream_decoder);
+}
+
+unsigned FLAC__file_decoder_get_sample_rate(const FLAC__FileDecoder *decoder)
+{
+    FLAC__ASSERT(decoder != 0);
+    FLAC__ASSERT(decoder->private_ != 0);
+    return FLAC__seekable_stream_decoder_get_sample_rate(decoder->private_->seekable_stream_decoder);
+}
+
+unsigned FLAC__file_decoder_get_blocksize(const FLAC__FileDecoder *decoder)
+{
+    FLAC__ASSERT(decoder != 0);
+    FLAC__ASSERT(decoder->private_ != 0);
+    return FLAC__seekable_stream_decoder_get_blocksize(decoder->private_->seekable_stream_decoder);
+}
+
 FLAC__bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
 {
 	FLAC__bool ret;
@@ -476,6 +508,15 @@ FLAC__bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, FLAC__ui
  * Private class methods
  *
  ***********************************************************************/
+
+void file_decoder_set_defaults_(FLAC__FileDecoder *decoder)
+{
+	decoder->private_->filename = 0;
+	decoder->private_->write_callback = 0;
+	decoder->private_->metadata_callback = 0;
+	decoder->private_->error_callback = 0;
+	decoder->private_->client_data = 0;
+}
 
 /*
  * This will forcibly set stdin to binary mode (for OSes that require it)
