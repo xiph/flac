@@ -20,8 +20,9 @@
 
 	data_section
 
-cglobal FLAC__lpc_compute_autocorrelation_asm
-cglobal FLAC__lpc_restore_signal_asm
+cglobal FLAC__lpc_compute_autocorrelation_asm_i386
+cglobal FLAC__lpc_compute_autocorrelation_asm_i386_sse
+cglobal FLAC__lpc_restore_signal_asm_i386
 
 	code_section
 
@@ -50,7 +51,7 @@ cglobal FLAC__lpc_restore_signal_asm
 ;	}
 ; }
 ;
-FLAC__lpc_compute_autocorrelation_asm:
+FLAC__lpc_compute_autocorrelation_asm_i386:
 
 	; esp + 20 == data[]
 	; esp + 24 == data_len
@@ -200,7 +201,7 @@ FLAC__lpc_compute_autocorrelation_asm:
 	ret
 
 ;@@@ NOTE: this SSE version is not even tested yet and only works for lag == 8
-FLAC__lpc_compute_autocorrelation_sse:
+FLAC__lpc_compute_autocorrelation_asm_i386_sse:
 
 	; esp + 4 == data[]
 	; esp + 8 == data_len
@@ -209,6 +210,8 @@ FLAC__lpc_compute_autocorrelation_sse:
 
 	;	for(coeff = 0; coeff < lag; coeff++)
 	;		autoc[coeff] = 0.0;
+stmxcsr [esp+12]
+ret
 	xorps	xmm6, xmm6
 	xorps	xmm7, xmm7
 
@@ -280,7 +283,7 @@ FLAC__lpc_compute_autocorrelation_sse:
 ; 		data[i] = residual[i] + (sum >> lp_quantization);
 ; 	}
 ; }
-FLAC__lpc_restore_signal_asm:
+FLAC__lpc_restore_signal_asm_i386:
 	; [esp + 20] == residual[]
 	; [esp + 24] == data_len
 	; [esp + 28] == qlp_coeff[]

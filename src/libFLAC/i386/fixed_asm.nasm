@@ -20,7 +20,7 @@
 
 	data_section
 
-cglobal FLAC__fixed_compute_best_predictor_asm
+cglobal FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov
 
 	code_section
 
@@ -63,7 +63,7 @@ cglobal FLAC__fixed_compute_best_predictor_asm
 ;
 ; 	return order;
 ; }
-FLAC__fixed_compute_best_predictor_asm:
+FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov:
 
 	; esp + 36 == data[]
 	; esp + 40 == data_len
