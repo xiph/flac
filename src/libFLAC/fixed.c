@@ -34,7 +34,7 @@
 #ifdef local_abs
 #undef local_abs
 #endif
-#define local_abs(x) ((x)<0? -(x) : (x))
+#define local_abs(x) ((unsigned)((x)<0? -(x) : (x)))
 
 unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
 {
@@ -43,7 +43,7 @@ unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_le
 	int32 last_error_2 = last_error_1 - (data[-2] - data[-3]);
 	int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
 	int32 error_0, error_1, error_2, error_3, error_4;
-	int32 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
+	uint32 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
 	unsigned i, order;
 
 	for(i = 0; i < data_len; i++) {
@@ -52,6 +52,12 @@ unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_le
 		error_2 = error_1 - last_error_1; total_error_2 += local_abs(error_2);
 		error_3 = error_2 - last_error_2; total_error_3 += local_abs(error_3);
 		error_4 = error_3 - last_error_3; total_error_4 += local_abs(error_4);
+
+		/* WATCHOUT - total_error_* has been know to overflow when encoding
+		 * erratic signals when the bits-per-sample is large.  We avoid the
+		 * speed penalty of watching for overflow, and instead rely on the
+		 * encoder's evaluation of the subframe to catch these cases.
+		 */
 
 		last_error_0 = error_0;
 		last_error_1 = error_1;
@@ -73,11 +79,11 @@ unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_le
 	/* Estimate the expected number of bits per residual signal sample. */
 	/* 'total_error*' is linearly related to the variance of the residual */
 	/* signal, so we use it directly to compute E(|x|) */
-	residual_bits_per_sample[0] = (real)((total_error_0 > 0 && data_len > 0) ? log(M_LN2 * total_error_0  / (real) data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[1] = (real)((total_error_1 > 0 && data_len > 0) ? log(M_LN2 * total_error_1  / (real) data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[2] = (real)((total_error_2 > 0 && data_len > 0) ? log(M_LN2 * total_error_2  / (real) data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[3] = (real)((total_error_3 > 0 && data_len > 0) ? log(M_LN2 * total_error_3  / (real) data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[4] = (real)((total_error_4 > 0 && data_len > 0) ? log(M_LN2 * total_error_4  / (real) data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[0] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_0  / (real) data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[1] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_1  / (real) data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[2] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_2  / (real) data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[3] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_3  / (real) data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[4] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_4  / (real) data_len) / M_LN2 : 0.0);
 
 	return order;
 }
