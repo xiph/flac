@@ -103,7 +103,7 @@
 			<UL>
 				<LI>Previously mentioned decoder speedup in <B><TT>libFLAC</TT></B>.</LI>
 				<LI>New metadata interface to <B><TT>libFLAC</TT></B> for manipulating metadata in FLAC files.</LI>
-				<LI>New <B><TT><A HREF="documentation.html#libflacpp">libFLAC++</A></TT></B> API, an object wrapper around <B><TT>libFLAC</TT></B>.</LI>
+				<LI>New <B><TT>libFLAC++</TT></B> API, an object wrapper around <B><TT>libFLAC</TT></B>.</LI>
 				<LI>New <A HREF="format.html#metadata_block_vorbis_comment">VORBIS_COMMENT</A> metadata block for tagging with Vorbis-style comments.</LI>
 				<LI>Customizable metadata filtering by type in decoders.</LI>
 				<LI>Stream encoder can take an arbitrary list of metadata blocks, instead of just one SEEKTABLE and/or PADDING block.</LI>
@@ -162,7 +162,7 @@
 			<P>
 			New features for developers:
 			<UL>
-				<LI>Added a SeekableStreamDecoder layer between StreamDecoder and FileDecoder.  This makes it easier to use libFLAC in situations where files have been abstracted away.  See the latest <A HREF="documentation.html#libflac">documentation</A> for more.  The interface for the StreamDecoder and FileDecoder remain the same and are still binary-compatible with libFLAC 1.0.</LI>
+				<LI>Added a SeekableStreamDecoder layer between StreamDecoder and FileDecoder.  This makes it easier to use libFLAC in situations where files have been abstracted away.  See the latest <A HREF="api/index.html">documentation</A> for more.  The interface for the StreamDecoder and FileDecoder remain the same and are still binary-compatible with libFLAC 1.0.</LI>
 				<LI>Drastically reduced the stack requirements of the encoder.</LI>
 			</UL>
 			<P>
