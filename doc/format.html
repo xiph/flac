@@ -141,7 +141,7 @@
 		Currently the reference encoder uses a fixed block size, optimized on the sample rate of the input.  Future version may vary the block size depending on the characteristics of the signal.
 	</P>
 	<P>
-		Blocked data is passed to the predictor stage one subblock (channel) at a time.  Each subblock is independently coded into a subframe, and the subframes are concatenated into a frame.  Because each channel is coded independently, it means that one channel of a stereo frame may be encoded as a constant subframe, and the other an LPC subframe.  The FLAC format has reserved space for supporting mid-side coding of stereo data, but it is currently not defined or implemented in the reference codec.
+		Blocked data is passed to the predictor stage one subblock (channel) at a time.  Each subblock is independently coded into a subframe, and the subframes are concatenated into a frame.  Because each channel is coded separately, it means that one channel of a stereo frame may be encoded as a constant subframe, and the other an LPC subframe.
 	</P>
 	<P>
 		<A NAME="interchannel"><FONT SIZE="+1"><B><U>Interchannel Decorrelation</U></B></FONT></A>
@@ -193,7 +193,7 @@
 		FLAC currently defines two similar methods for the coding of the error signal from the prediction stage.  The error signal is coded using Rice codes in one of two ways: 1) the encoder estimates a single rice parameter based on the variance of the residual, and Rice codes the entire residual using this parameter; 2) the residual is partitioned into several equal-length regions of contiguous samples, and each region is coded with its own Rice parameter based on the region's mean.  (Note that the first method is a special case of the second method with one partition, except the Rice parameter is based on the residual variance instead of the mean.)
 	</P>
 	<P>
-		The FLAC format has reserved space for other coding methods.  Some possiblities for volunteers would be to explore better context-modeling of the Rice parameter, generic Golomb coding (Rice codes are a subset of Golomb codes where the Rice parameter k is the Golomb parameter m = 2^k), and Huffman coding.  See <A HREF="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</A> and <A HREF="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</A> for descriptions of several universal codes.
+		The FLAC format has reserved space for other coding methods.  Some possiblities for volunteers would be to explore better context-modeling of the Rice parameter, or Huffman coding.  See <A HREF="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</A> and <A HREF="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</A> for descriptions of several universal codes.
 	</P>
 	<P>
 		<FONT SIZE="+1"><B><U>Format</U></B></FONT>
