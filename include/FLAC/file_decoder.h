@@ -24,17 +24,18 @@
 
 typedef enum {
     FLAC__FILE_DECODER_OK = 0,
-	FLAC__FILE_DECODER_SEEKING,
+	FLAC__FILE_DECODER_SEEKING, /*@@@ NOTE: unused; remove this in the next minor-version */
 	FLAC__FILE_DECODER_END_OF_FILE,
     FLAC__FILE_DECODER_ERROR_OPENING_FILE,
     FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR,
 	FLAC__FILE_DECODER_SEEK_ERROR,
 	FLAC__FILE_DECODER_STREAM_ERROR,
-	FLAC__FILE_DECODER_MD5_ERROR,
+	FLAC__FILE_DECODER_MD5_ERROR, /*@@@ NOTE: unused; remove this in the next minor-version */
 	FLAC__FILE_DECODER_STREAM_DECODER_ERROR,
     FLAC__FILE_DECODER_ALREADY_INITIALIZED,
     FLAC__FILE_DECODER_INVALID_CALLBACK,
-    FLAC__FILE_DECODER_UNINITIALIZED
+    FLAC__FILE_DECODER_UNINITIALIZED,
+	FLAC__FILE_DECODER_SEEKABLE_STREAM_ERROR = FLAC__FILE_DECODER_STREAM_ERROR /*@@@ NOTE: do the actual replacement in the next minor-version */
 } FLAC__FileDecoderState;
 extern const char *FLAC__FileDecoderStateString[];
 
@@ -111,7 +112,7 @@ FLAC__bool FLAC__file_decoder_get_md5_checking(const FLAC__FileDecoder *decoder)
  * Initialize the instance; should be called after construction and
  * 'set' calls but before any of the 'process' or 'seek' calls.  Will
  * set and return the decoder state, which will be FLAC__FILE_DECODER_OK
- * if initializationsucceeded.
+ * if initialization succeeded.
  */
 FLAC__FileDecoderState FLAC__file_decoder_init(FLAC__FileDecoder *decoder);
 

@@ -52,6 +52,7 @@ libFLAC_la_SOURCES = \
 	md5.c \
 	memory.c \
 	seek_table.c \
+	seekable_stream_decoder.c \
 	stream_decoder.c \
 	stream_encoder.c \
 	stream_encoder_framing.c \

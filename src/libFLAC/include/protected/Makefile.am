@@ -18,5 +18,6 @@
 
 noinst_HEADERS = \
 	file_decoder.h \
+	seekable_stream_decoder.h \
 	stream_decoder.h \
 	stream_encoder.h
