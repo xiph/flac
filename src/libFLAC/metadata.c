@@ -475,7 +475,7 @@ FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__MetaData_SimpleIterato
 		return write_metadata_block_stationary_(iterator, block);
 	else if(iterator->length > block->length) {
 		if(use_padding && iterator->length >= 4 + block->length) /*@@@ 4 = MAGIC NUMBER for metadata block header bytes */
-			return write_metadata_block_stationary_with_padding_(iterator, block, iterator->length - block->length - 4, block->is_last);
+			return write_metadata_block_stationary_with_padding_(iterator, block, iterator->length - 4 - block->length, block->is_last);
 		else
 			return rewrite_whole_file_(iterator, block, /*append=*/false);
 	}
@@ -498,16 +498,15 @@ FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__MetaData_SimpleIterato
 					use_padding = false;
 				}
 				else {
-					/*@@@ MAGIC NUMBER 4 = metadata block header length, appears 3 times here: */
-					const unsigned available_size = existing_block_length + 4 + iterator->length;
-					if(available_size == block->length) {
+					/*@@@ MAGIC NUMBER 4 = metadata block header length, appears 2 times here: */
+					if(iterator->length == block->length) {
 						padding_leftover = 0;
 						block->is_last = iterator->is_last;
 					}
-					else if(available_size - 4 < block->length)
+					else if(iterator->length < 4 + block->length)
 						use_padding = false;
 					else {
-						padding_leftover = available_size - 4 - block->length;
+						padding_leftover = iterator->length - 4 - block->length;
 						padding_is_last = iterator->is_last;
 						block->is_last = false;
 					}
@@ -901,6 +900,7 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__MetaData_Chain *chain, FLAC__bool us
 	struct stat stats;
 	const char *tempfile_path_prefix = 0;
 
+	/*@@@ MAGIC NUMBER 4 = metadata header bytes, appears several times here */
 	if(use_padding && chain->current_length + 4 <= chain->initial_length) {
 		FLAC__StreamMetaData *padding;
 		FLAC__MetaData_Node *node;
@@ -1280,6 +1280,8 @@ void FLAC__metadata_object_delete_data_(FLAC__StreamMetaData *object)
 				if(0 != object->data.vorbis_comment.comments[i].entry)
 					free(object->data.vorbis_comment.comments[i].entry);
 			}
+			if(0 != object->data.vorbis_comment.comments)
+				free(object->data.vorbis_comment.comments);
 			break;
 		default:
 			FLAC__ASSERT(0);
