@@ -709,11 +709,10 @@ struct FLAC__Metadata_Chain {
 	long first_offset, last_offset; /*@@@ 2G limit */
 	/*
 	 * This is the length of the chain initially read from the FLAC file.
-	 * it is used to compare against the current_length to decide whether
+	 * it is used to compare against the current length to decide whether
 	 * or not the whole file has to be rewritten.
 	 */
 	unsigned initial_length; /*@@@ 4G limit */
-	unsigned current_length; /*@@@ 4G limit */
 };
 
 struct FLAC__Metadata_Iterator {
@@ -774,7 +773,6 @@ static void chain_append_node_(FLAC__Metadata_Chain *chain, FLAC__Metadata_Node 
 	}
 	chain->tail = node;
 	chain->nodes++;
-	chain->current_length += (FLAC__STREAM_METADATA_HEADER_LENGTH + node->data->length);
 }
 
 static void chain_remove_node_(FLAC__Metadata_Chain *chain, FLAC__Metadata_Node *node)
@@ -796,13 +794,21 @@ static void chain_remove_node_(FLAC__Metadata_Chain *chain, FLAC__Metadata_Node 
 		chain->tail->data->is_last = true;
 
 	chain->nodes--;
-	chain->current_length -= (FLAC__STREAM_METADATA_HEADER_LENGTH + node->data->length);
 }
 
 static void chain_delete_node_(FLAC__Metadata_Chain *chain, FLAC__Metadata_Node *node)
 {
 	chain_remove_node_(chain, node);
 	node_delete_(node);
+}
+
+static unsigned chain_calculate_length_(FLAC__Metadata_Chain *chain)
+{
+	const FLAC__Metadata_Node *node;
+	unsigned length = 0;
+	for(node = chain->head; node; node = node->next)
+		length += (FLAC__STREAM_METADATA_HEADER_LENGTH + node->data->length);
+	return length;
 }
 
 static void iterator_insert_node_(FLAC__Metadata_Iterator *iterator, FLAC__Metadata_Node *node)
@@ -828,7 +834,6 @@ static void iterator_insert_node_(FLAC__Metadata_Iterator *iterator, FLAC__Metad
 	iterator->current->prev = node;
 
 	iterator->chain->nodes++;
-	iterator->chain->current_length += (FLAC__STREAM_METADATA_HEADER_LENGTH + node->data->length);
 }
 
 static void iterator_insert_node_after_(FLAC__Metadata_Iterator *iterator, FLAC__Metadata_Node *node)
@@ -856,7 +861,6 @@ static void iterator_insert_node_after_(FLAC__Metadata_Iterator *iterator, FLAC_
 	iterator->chain->tail->data->is_last = true;
 
 	iterator->chain->nodes++;
-	iterator->chain->current_length += (FLAC__STREAM_METADATA_HEADER_LENGTH + node->data->length);
 }
 
 /* return true iff node and node->next are both padding */
@@ -865,7 +869,6 @@ static FLAC__bool chain_merge_adjacent_padding_(FLAC__Metadata_Chain *chain, FLA
 	if(node->data->type == FLAC__METADATA_TYPE_PADDING && 0 != node->next && node->next->data->type == FLAC__METADATA_TYPE_PADDING) {
 		const unsigned growth = FLAC__STREAM_METADATA_HEADER_LENGTH + node->next->data->length;
 		node->data->length += growth;
-		chain->current_length += growth;
 
 		chain_delete_node_(chain, node->next);
 		return true;
@@ -883,7 +886,7 @@ FLAC__Metadata_Chain *FLAC__metadata_chain_new()
 		chain->head = chain->tail = 0;
 		chain->nodes = 0;
 		chain->status = FLAC__METADATA_CHAIN_STATUS_OK;
-		chain->initial_length = chain->current_length = 0;
+		chain->initial_length = 0;
 	}
 
 	return chain;
@@ -966,7 +969,7 @@ FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *fi
 	chain->last_offset = ftell(iterator->file) + iterator->length;
 	FLAC__metadata_simple_iterator_delete(iterator);
 
-	chain->initial_length = chain->current_length;
+	chain->initial_length = chain_calculate_length_(chain);
 	return true;
 }
 
@@ -974,22 +977,27 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool us
 {
 	struct stat stats;
 	const char *tempfile_path_prefix = 0;
+	unsigned current_length;
+
+	FLAC__ASSERT(0 != chain);
+
+	current_length = chain_calculate_length_(chain);
 
 	if(use_padding) {
-		if(chain->current_length < chain->initial_length && chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
-			const unsigned delta = chain->initial_length - chain->current_length;
+		if(current_length < chain->initial_length && chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
+			const unsigned delta = chain->initial_length - current_length;
 			chain->tail->data->length += delta;
-			chain->current_length += delta;
-			FLAC__ASSERT(chain->current_length == chain->initial_length);
+			current_length += delta;
+			FLAC__ASSERT(current_length == chain->initial_length);
 		}
-		else if(chain->current_length + FLAC__STREAM_METADATA_HEADER_LENGTH <= chain->initial_length) {
+		else if(current_length + FLAC__STREAM_METADATA_HEADER_LENGTH <= chain->initial_length) {
 			FLAC__StreamMetadata *padding;
 			FLAC__Metadata_Node *node;
 			if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING))) {
 				chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
 				return false;
 			}
-			padding->length = chain->initial_length - (FLAC__STREAM_METADATA_HEADER_LENGTH + chain->current_length);
+			padding->length = chain->initial_length - (FLAC__STREAM_METADATA_HEADER_LENGTH + current_length);
 			if(0 == (node = node_new_())) {
 				FLAC__metadata_object_delete(padding);
 				chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
@@ -997,19 +1005,21 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool us
 			}
 			node->data = padding;
 			chain_append_node_(chain, node);
-			FLAC__ASSERT(chain->current_length == chain->initial_length);
+			current_length = chain_calculate_length_(chain);
+			FLAC__ASSERT(current_length == chain->initial_length);
 		}
-		else if(chain->current_length > chain->initial_length) {
-			const unsigned delta = chain->current_length - chain->initial_length;
+		else if(current_length > chain->initial_length) {
+			const unsigned delta = current_length - chain->initial_length;
 			if(chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
 				if(chain->tail->data->length + FLAC__STREAM_METADATA_HEADER_LENGTH == delta) {
 					chain_delete_node_(chain, chain->tail);
-					FLAC__ASSERT(chain->current_length == chain->initial_length);
+					current_length = chain_calculate_length_(chain);
+					FLAC__ASSERT(current_length == chain->initial_length);
 				}
 				else if(chain->tail->data->length >= delta) {
 					chain->tail->data->length -= delta;
-					chain->current_length -= delta;
-					FLAC__ASSERT(chain->current_length == chain->initial_length);
+					current_length -= delta;
+					FLAC__ASSERT(current_length == chain->initial_length);
 				}
 			}
 		}
@@ -1018,7 +1028,7 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool us
 	if(preserve_file_stats)
 		get_file_stats_(chain->filename, &stats);
 
-	if(chain->current_length == chain->initial_length) {
+	if(current_length == chain->initial_length) {
 		if(!chain_rewrite_chain_(chain))
 			return false;
 	}
@@ -1031,9 +1041,9 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool us
 		set_file_stats_(chain->filename, &stats);
 
 	/* recompute lengths and offsets if necessary */
-	if(chain->initial_length != chain->current_length) {
+	if(chain->initial_length != current_length) {
 		const FLAC__Metadata_Node *node;
-		chain->initial_length = chain->current_length;
+		chain->initial_length = current_length;
 		chain->last_offset = chain->first_offset;
 		for(node = chain->head; node; node = node->next)
 			chain->last_offset += (FLAC__STREAM_METADATA_HEADER_LENGTH + node->data->length);
