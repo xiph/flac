@@ -27,7 +27,6 @@ test_libFLAC___SOURCES = \
 	metadata.cc \
 	metadata_manip.cc \
 	metadata_object.cc \
-	bitbuffer.h \
 	decoders.h \
 	encoders.h \
 	file_utils.h \
