@@ -116,6 +116,7 @@
    GNU application programs can use a third alternative mode in which
    they can distinguish the relative order of options and other arguments.  */
 
+#include "share/getopt.h"
 /*[JEC] was:#include "getopt.h"*/
 
 /* For communication from `FLAC__share__getopt' to the caller.

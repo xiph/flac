@@ -36,6 +36,7 @@
 #include <config.h>
 #endif
 
+#include "share/getopt.h"
 /*[JEC] was:#include "getopt.h"*/
 
 #if !defined __STDC__ || !__STDC__
