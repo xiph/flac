@@ -178,8 +178,7 @@ binaries, statically linked (e.g. obj\release\bin\flac.exe).
 Everything will end up in the "obj" directory.  DLLs and .exe files
 are all that are needed and can be copied to an installation area and
 added to the PATH.  The plugins have to be copied to their appropriate
-place in the player area.  For Winamp2 this is <winamp2-dir>\Plugins
-and for Winamp3 this is <winamp3-dir>\Wacs.
+place in the player area.  For Winamp2 this is <winamp2-dir>\Plugins.
 
 By default the code is configured with Ogg support.  Before building FLAC
 you will need to get the Ogg source distribution

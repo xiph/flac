@@ -35,7 +35,6 @@ SUBDIRS = \
 	plugin_common \
 	$(XMMS_DIRS) \
 	plugin_winamp2 \
-	plugin_winamp3 \
 	test_grabbag \
 	test_libFLAC \
 	test_libFLAC++ \

@@ -357,7 +357,6 @@ AC_OUTPUT( \
 	src/plugin_winamp2/Makefile \
 	src/plugin_winamp2/include/Makefile \
 	src/plugin_winamp2/include/winamp2/Makefile \
-	src/plugin_winamp3/Makefile \
 	src/plugin_xmms/Makefile \
 	src/share/Makefile \
 	src/share/getopt/Makefile \
