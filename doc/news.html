@@ -78,6 +78,42 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 
 	<P>
+		<A NAME="20011114">14-Nov-2001:</A>
+	</P>
+	<P>
+	<UL>
+		<LI>
+			<B>FLAC 1.0.1 released</B>&nbsp;&nbsp;The core codec is unchanged but there have been some features added and some bugs fixed:
+			<P>
+			New features for users:
+			<UL>
+				<LI>Support for Ogg-FLAC, i.e. <B><TT>flac</TT></B> can now read and write FLAC streams using Ogg as the transport layer.</LI>
+				<LI>New Winamp 3 plugin based on the Wasabi Beta 1 SDK.</LI>
+				<LI>New utilities for adding FLAC support to the Monkey's Audio GUI (see <A HREF="documentation.html#monkey">how</A>).</LI>
+				<LI>Mac OS X support.  The download area now contains an OS X binary release.</LI>
+				<LI>Mingw32 support.</LI>
+				<LI>Better handling of MS-specific 'fmt' chunks in WAVE files.</LI>
+			</UL>
+			<P>
+			New features for developers:
+			<UL>
+				<LI>Added a SeekableStreamDecoder layer between StreamDecoder and FileDecoder.  This makes it easier to use libFLAC in situations where files have been abstracted away.  See the latest <A HREF="documentation.html#libflac">documentation</A> for more.  The interface for the StreamDecoder and FileDecoder remain the same and are still binary-compatible with libFLAC 1.0.</LI>
+				<LI>Drastically reduced the stack requirements of the encoder.</LI>
+			</UL>
+			<P>
+			Bug fixes:
+			<UL>
+				<LI>Fixed a serious bug with <B><TT>flac</TT></B> and raw input where the encoder was trying to rewind when it shouldn't, which would add 12 junk samples to the encoded file.  This was not present in WAVE encoding.</LI>
+				<LI>Fixed a minor bug in <B><TT>libFLAC</TT></B> with setting the file name to stdin on a file decoder.</LI>
+				<LI>Fixed a minor bug in <B><TT>libFLAC</TT></B> where multiple calls to setting the file name on a file decoder caused leaked memory.</LI>
+				<LI>Fixed a minor bug in <B><TT>metaflac</TT></B>, now correctly skips an id3v2 tag if present.</LI>
+				<LI>Fixed a minor bug in <B><TT>metaflac</TT></B>, now correctly skips long metadata blocks.</LI>
+			</UL>
+		</LI>
+	</UL>
+	</P>
+
+	<P>
 		<A NAME="20010720">20-Jul-2001:</A>
 	</P>
 	<P>
