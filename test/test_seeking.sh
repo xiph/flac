@@ -34,11 +34,13 @@ LD_LIBRARY_PATH=../src/libOggFLAC/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../obj/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 PATH=../src/flac:$PATH
+PATH=../src/metaflac:$PATH
 PATH=../src/test_seeking:$PATH
 PATH=../src/test_streams:$PATH
 PATH=../obj/$BUILD/bin:$PATH
 
 flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
+metaflac --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac executable"
 
 run_flac ()
 {
@@ -46,6 +48,15 @@ run_flac ()
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 flac $* 4>>test_seeking.valgrind.log
 	else
 		flac $*
+	fi
+}
+
+run_metaflac ()
+{
+	if [ x"$FLAC__VALGRIND" = xyes ] ; then
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 metaflac $* 4>>test_seeking.valgrind.log
+	else
+		metaflac $*
 	fi
 }
 
@@ -77,6 +88,21 @@ if run_test_seeking tiny.flac 100 ; then : ; else
 fi
 
 echo "testing small.flac:"
+if run_test_seeking small.flac 1000 ; then : ; else
+	die "ERROR: during test_seeking"
+fi
+
+echo "removing sample count from tiny.flac and small.flac:"
+if run_metaflac --no-filename --set-total-samples=0 tiny.flac small.flac ; then : ; else
+	die "ERROR: during metaflac"
+fi
+
+echo "testing tiny.flac with total_samples=0:"
+if run_test_seeking tiny.flac 100 ; then : ; else
+	die "ERROR: during test_seeking"
+fi
+
+echo "testing small.flac with total_samples=0:"
 if run_test_seeking small.flac 1000 ; then : ; else
 	die "ERROR: during test_seeking"
 fi
