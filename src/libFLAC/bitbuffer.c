@@ -75,6 +75,7 @@ static FLAC__bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 		bb->consumed_bits = 0;
 		bb->total_consumed_bits = (new_capacity<<3);
 	}
+	free(bb->buffer); // we've already asserted above that (bb->buffer != 0)
 	bb->buffer = new_buffer;
 	bb->capacity = new_capacity;
 	return true;
@@ -94,6 +95,7 @@ static FLAC__bool bitbuffer_ensure_size_(FLAC__BitBuffer *bb, unsigned bits_to_a
 {
 	FLAC__ASSERT(bb != 0);
 	FLAC__ASSERT(bb->buffer != 0);
+
 	if((bb->capacity<<3) < bb->total_bits + bits_to_add)
 		return bitbuffer_grow_(bb, (bits_to_add>>3)+2);
 	else
@@ -232,6 +234,11 @@ FLAC__bool FLAC__bitbuffer_clear(FLAC__BitBuffer *bb)
 
 FLAC__bool FLAC__bitbuffer_clone(FLAC__BitBuffer *dest, const FLAC__BitBuffer *src)
 {
+	FLAC__ASSERT(dest != 0);
+	FLAC__ASSERT(dest->buffer != 0);
+	FLAC__ASSERT(src != 0);
+	FLAC__ASSERT(src->buffer != 0);
+
 	if(dest->capacity < src->capacity)
 		if(!bitbuffer_resize_(dest, src->capacity))
 			return false;
@@ -248,7 +255,7 @@ FLAC__bool FLAC__bitbuffer_clone(FLAC__BitBuffer *dest, const FLAC__BitBuffer *s
 
 FLAC__bool FLAC__bitbuffer_write_zeroes(FLAC__BitBuffer *bb, unsigned bits)
 {
-	unsigned n, k;
+	unsigned n;
 
 	FLAC__ASSERT(bb != 0);
 	FLAC__ASSERT(bb->buffer != 0);
@@ -260,7 +267,6 @@ FLAC__bool FLAC__bitbuffer_write_zeroes(FLAC__BitBuffer *bb, unsigned bits)
 	bb->total_bits += bits;
 	while(bits > 0) {
 		n = min(8 - bb->bits, bits);
-		k = bits - n;
 		bb->buffer[bb->bytes] <<= n;
 		bits -= n;
 		bb->bits += n;
