@@ -98,9 +98,9 @@ struct FLAC__BitBuffer {
 	FLAC__blurb save_head, save_tail;
 };
 
+#if FLAC__BITS_PER_BLURB == 32
 static void crc16_update_blurb(FLAC__BitBuffer *bb, FLAC__blurb blurb)
 {
-#if FLAC__BITS_PER_BLURB == 32
 	if(bb->crc16_align == 0) {
 		FLAC__CRC16_UPDATE(blurb >> 24, bb->read_crc16);
 		FLAC__CRC16_UPDATE((blurb >> 16) & 0xff, bb->read_crc16);
@@ -120,11 +120,8 @@ static void crc16_update_blurb(FLAC__BitBuffer *bb, FLAC__blurb blurb)
 		FLAC__CRC16_UPDATE(blurb & 0xff, bb->read_crc16);
 	}
 	bb->crc16_align = 0;
-#else
-	(void)bb; (void)blurb;
-	FLAC__ASSERT(false);
-#endif
 }
+#endif
 
 /*
  * WATCHOUT: The current implentation is not friendly to shrinking, i.e. it
@@ -469,7 +466,8 @@ FLAC__uint16 FLAC__bitbuffer_get_write_crc16(const FLAC__BitBuffer *bb)
 
 FLAC__byte FLAC__bitbuffer_get_write_crc8(const FLAC__BitBuffer *bb)
 {
-	FLAC__ASSERT(bb->blurbs == 0);
+	FLAC__ASSERT(0 != bb);
+	//@@@ WHY WAS THIS HERE? FLAC__ASSERT(bb->blurbs == 0);
 	FLAC__ASSERT(bb->buffer[0] == 0xff); /* MAGIC NUMBER for the first byte of the sync code */
 	FLAC__ASSERT((bb->bits & 7) == 0); /* assert that we're byte-aligned */
 #if FLAC__BITS_PER_BLURB == 8
@@ -570,8 +568,11 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_write_raw_uint32(FLAC__BitBuffer *bb, FL
 		if(!bitbuffer_ensure_size_(bb, bits))
 			return false;
 	}
+
+	/* zero-out unused bits; WATCHOUT: other code relies on this, so this needs to stay */
 	if(bits < 32) /* @@@ gcc seems to require this because the following line causes incorrect results when bits==32; investigate */
 		val &= (~(0xffffffff << bits)); /* zero-out unused bits */
+
 	bb->total_bits += bits;
 	while(bits > 0) {
 		n = FLAC__BITS_PER_BLURB - bb->bits;
@@ -698,6 +699,36 @@ FLAC__bool FLAC__bitbuffer_write_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 va
 FLAC__bool FLAC__bitbuffer_write_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 val, unsigned bits)
 {
 	return FLAC__bitbuffer_write_raw_uint64(bb, (FLAC__uint64)val, bits);
+}
+
+FLaC__INLINE FLAC__bool FLAC__bitbuffer_write_raw_uint32_little_endian(FLAC__BitBuffer *bb, FLAC__uint32 val)
+{
+	/* this doesn't need to be that fast as currently it is only used for vorbis comments */
+
+	/* NOTE: we rely on the fact that FLAC__bitbuffer_write_raw_uint32() masks out the unused bits */
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, val, 8))
+		return false;
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, val>>8, 8))
+		return false;
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, val>>16, 8))
+		return false;
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, val>>24, 8))
+		return false;
+
+	return true;
+}
+
+FLaC__INLINE FLAC__bool FLAC__bitbuffer_write_byte_block(FLAC__BitBuffer *bb, const FLAC__byte vals[], unsigned nvals)
+{
+	unsigned i;
+
+	/* this could be faster but currently we don't need it to be */
+	for(i = 0; i < nvals; i++) {
+		if(!FLAC__bitbuffer_write_raw_uint32(bb, (FLAC__uint32)(vals[i]), 8))
+			return false;
+	}
+
+	return true;
 }
 
 FLAC__bool FLAC__bitbuffer_write_unary_unsigned(FLAC__BitBuffer *bb, unsigned val)
@@ -1781,6 +1812,31 @@ FLAC__bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 *val,
 }
 #endif
 
+FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32_little_endian(FLAC__BitBuffer *bb, FLAC__uint32 *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+{
+	FLAC__uint32 x8, x32 = 0;
+
+	/* this doesn't need to be that fast as currently it is only used for vorbis comments */
+
+	if(!FLAC__bitbuffer_read_raw_uint32(bb, &x32, 8, read_callback, client_data))
+		return false;
+
+	if(!FLAC__bitbuffer_read_raw_uint32(bb, &x8, 8, read_callback, client_data))
+		return false;
+	x32 |= (x8 << 8);
+
+	if(!FLAC__bitbuffer_read_raw_uint32(bb, &x8, 8, read_callback, client_data))
+		return false;
+	x32 |= (x8 << 16);
+
+	if(!FLAC__bitbuffer_read_raw_uint32(bb, &x8, 8, read_callback, client_data))
+		return false;
+	x32 |= (x8 << 24);
+
+	*val = x32;
+	return true;
+}
+
 FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 #ifdef FLAC__NO_MANUAL_INLINING
 {
@@ -1945,9 +2001,9 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 {
 	const FLAC__blurb *buffer = bb->buffer;
 
-	unsigned i, j, uval, val_i = 0;
-	unsigned msbs = 0, lsbs_left;
-	FLAC__blurb blurb, save_blurb, cbits;
+	unsigned i, j, val_i = 0;
+	unsigned cbits = 0, uval = 0, msbs = 0, lsbs_left = 0;
+	FLAC__blurb blurb, save_blurb;
 	unsigned state = 0; /* 0 = getting unary MSBs, 1 = getting binary LSBs */
 
 	FLAC__ASSERT(bb != 0);
