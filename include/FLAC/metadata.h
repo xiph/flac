@@ -1446,7 +1446,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC
 /*@@@@ add to unit tests */
 /** Find a Vorbis comment with the given field name.
  *
- *  The search begins at entry number \a offset; use and offset of 0 to
+ *  The search begins at entry number \a offset; use an offset of 0 to
  *  search from the beginning of the comment array.
  *
  * \param object      A pointer to an existing VORBIS_COMMENT object.
