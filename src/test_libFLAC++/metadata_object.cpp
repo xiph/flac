@@ -22,7 +22,7 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp() */
 
-static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application_, vorbiscomment_;
+static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application_, vorbiscomment_, cuesheet_;
 
 static bool die_(const char *msg)
 {
@@ -38,6 +38,44 @@ static void *malloc_or_die_(size_t size)
 		exit(1);
 	}
 	return x;
+}
+
+static bool index_is_equal_(const ::FLAC__StreamMetadata_CueSheet_Index &index, const ::FLAC__StreamMetadata_CueSheet_Index &indexcopy)
+{
+	if(indexcopy.offset != index.offset)
+		return false;
+	if(indexcopy.number != index.number)
+		return false;
+	return true;
+}
+
+static bool track_is_equal_(const ::FLAC__StreamMetadata_CueSheet_Track *track, const ::FLAC__StreamMetadata_CueSheet_Track *trackcopy)
+{
+	unsigned i;
+
+	if(trackcopy->offset != track->offset)
+		return false;
+	if(trackcopy->number != track->number)
+		return false;
+	if(0 != strcmp(trackcopy->isrc, track->isrc))
+		return false;
+	if(trackcopy->type != track->type)
+		return false;
+	if(trackcopy->pre_emphasis != track->pre_emphasis)
+		return false;
+	if(trackcopy->num_indices != track->num_indices)
+		return false;
+	if(0 == track->indices || 0 == trackcopy->indices) {
+		if(track->indices != trackcopy->indices)
+			return false;
+	}
+	else {
+		for(i = 0; i < track->num_indices; i++) {
+			if(!index_is_equal_(trackcopy->indices[i], track->indices[i]))
+				return false;
+		}
+	}
+	return true;
 }
 
 static void init_metadata_blocks_()
@@ -78,7 +116,7 @@ static void init_metadata_blocks_()
 	application_.data.application.data = (FLAC__byte*)malloc_or_die_(4);
 	memcpy(application_.data.application.data, "\xf0\xe1\xd2\xc3", 4);
 
-	vorbiscomment_.is_last = true;
+	vorbiscomment_.is_last = false;
 	vorbiscomment_.type = ::FLAC__METADATA_TYPE_VORBIS_COMMENT;
 	vorbiscomment_.length = (4 + 5) + 4 + (4 + 12) + (4 + 12);
 	vorbiscomment_.data.vorbis_comment.vendor_string.length = 5;
@@ -92,6 +130,60 @@ static void init_metadata_blocks_()
 	vorbiscomment_.data.vorbis_comment.comments[1].length = 12;
 	vorbiscomment_.data.vorbis_comment.comments[1].entry = (FLAC__byte*)malloc_or_die_(12);
 	memcpy(vorbiscomment_.data.vorbis_comment.comments[1].entry, "name3=value3", 12);
+
+	cuesheet_.is_last = true;
+	cuesheet_.type = ::FLAC__METADATA_TYPE_CUESHEET;
+	cuesheet_.length =
+		/* cuesheet guts */
+		(
+			FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
+		) / 8 +
+		/* 2 tracks */
+		2 * (
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN
+		) / 8 +
+		/* 3 index points */
+		3 * (
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN
+		) / 8
+	;
+	memset(cuesheet_.data.cue_sheet.media_catalog_number, 0, sizeof(cuesheet_.data.cue_sheet.media_catalog_number));
+	cuesheet_.data.cue_sheet.media_catalog_number[0] = 'j';
+	cuesheet_.data.cue_sheet.media_catalog_number[1] = 'C';
+	cuesheet_.data.cue_sheet.lead_in = 159;
+	cuesheet_.data.cue_sheet.num_tracks = 2;
+	cuesheet_.data.cue_sheet.tracks = (FLAC__StreamMetadata_CueSheet_Track*)malloc_or_die_(cuesheet_.data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track));
+	cuesheet_.data.cue_sheet.tracks[0].offset = 1;
+	cuesheet_.data.cue_sheet.tracks[0].number = 1;
+	memcpy(cuesheet_.data.cue_sheet.tracks[0].isrc, "ACBDE1234567", sizeof(cuesheet_.data.cue_sheet.tracks[0].isrc));
+	cuesheet_.data.cue_sheet.tracks[0].type = 0;
+	cuesheet_.data.cue_sheet.tracks[0].pre_emphasis = 1;
+	cuesheet_.data.cue_sheet.tracks[0].num_indices = 2;
+	cuesheet_.data.cue_sheet.tracks[0].indices = (FLAC__StreamMetadata_CueSheet_Index*)malloc_or_die_(cuesheet_.data.cue_sheet.tracks[0].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet_.data.cue_sheet.tracks[0].indices[0].offset = 0;
+	cuesheet_.data.cue_sheet.tracks[0].indices[0].number = 0;
+	cuesheet_.data.cue_sheet.tracks[0].indices[1].offset = 1234567890;
+	cuesheet_.data.cue_sheet.tracks[0].indices[1].number = 1;
+	cuesheet_.data.cue_sheet.tracks[1].offset = 12345678901;
+	cuesheet_.data.cue_sheet.tracks[1].number = 2;
+	memcpy(cuesheet_.data.cue_sheet.tracks[1].isrc, "ACBDE7654321", sizeof(cuesheet_.data.cue_sheet.tracks[1].isrc));
+	cuesheet_.data.cue_sheet.tracks[1].type = 1;
+	cuesheet_.data.cue_sheet.tracks[1].pre_emphasis = 0;
+	cuesheet_.data.cue_sheet.tracks[1].num_indices = 1;
+	cuesheet_.data.cue_sheet.tracks[1].indices = (FLAC__StreamMetadata_CueSheet_Index*)malloc_or_die_(cuesheet_.data.cue_sheet.tracks[1].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet_.data.cue_sheet.tracks[1].indices[0].offset = 0;
+	cuesheet_.data.cue_sheet.tracks[1].indices[0].number = 1;
 }
 
 static void free_metadata_blocks_()
@@ -101,6 +193,9 @@ static void free_metadata_blocks_()
 	free(vorbiscomment_.data.vorbis_comment.vendor_string.entry);
 	free(vorbiscomment_.data.vorbis_comment.comments[0].entry);
 	free(vorbiscomment_.data.vorbis_comment.comments);
+	free(cuesheet_.data.cue_sheet.tracks[0].indices);
+	free(cuesheet_.data.cue_sheet.tracks[1].indices);
+	free(cuesheet_.data.cue_sheet.tracks);
 }
 
 bool test_metadata_object_streaminfo()
@@ -948,6 +1043,323 @@ bool test_metadata_object_vorbiscomment()
 	return true;
 }
 
+bool test_metadata_object_cuesheet()
+{
+	unsigned expected_length;
+
+	printf("testing class FLAC::Metadata::CueSheet::Track\n");
+
+	printf("testing Track::Track()... ");
+	FLAC::Metadata::CueSheet::Track track0;
+	if(!track0.is_valid())
+		return die_("!is_valid()");
+	printf("OK\n");
+
+	{
+		printf("testing Track::get_track()... ");
+		const ::FLAC__StreamMetadata_CueSheet_Track *trackp = track0.get_track();
+		if(0 == trackp)
+			return die_("returned pointer is NULL");
+		printf("OK\n");
+
+		printf("testing Track::Track(const ::FLAC__StreamMetadata_CueSheet_Track*)... ");
+		FLAC::Metadata::CueSheet::Track track2(trackp);
+		if(!track2.is_valid())
+			return die_("!is_valid()");
+		if(!track_is_equal_(track2.get_track(), trackp))
+			return die_("copy is not equal");
+		printf("OK\n");
+
+		printf("testing Track::~Track()... ");
+	}
+	printf("OK\n");
+
+	printf("testing Track::Track(const Track &track)... ");
+	{
+		FLAC::Metadata::CueSheet::Track track0copy(track0);
+		if(!track0copy.is_valid())
+			return die_("!is_valid()");
+		if(!track_is_equal_(track0copy.get_track(), track0.get_track()))
+			return die_("copy is not equal");
+		printf("OK\n");
+
+		printf("testing Track::~Track()... ");
+	}
+	printf("OK\n");
+
+	printf("testing Track::operator=(const Track &track)... ");
+	FLAC::Metadata::CueSheet::Track track1 = track0;
+	if(!track0.is_valid())
+		return die_("!is_valid()");
+	if(!track_is_equal_(track1.get_track(), track0.get_track()))
+		return die_("copy is not equal");
+	printf("OK\n");
+
+	printf("testing Track::get_offset()... ");
+	if(track1.get_offset() != 0)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::get_number()... ");
+	if(track1.get_number() != 0)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::get_isrc()... ");
+	if(0 != memcmp(track1.get_isrc(), "\0\0\0\0\0\0\0\0\0\0\0\0\0", 13))
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::get_type()... ");
+	if(track1.get_type() != 0)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::get_pre_emphasis()... ");
+	if(track1.get_pre_emphasis() != 0)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::get_num_indices()... ");
+	if(track1.get_num_indices() != 0)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::set_offset()... ");
+	track1.set_offset(588);
+	if(track1.get_offset() != 588)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::set_number()... ");
+	track1.set_number(1);
+	if(track1.get_number() != 1)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::set_isrc()... ");
+	track1.set_isrc("ABCDE1234567");
+	if(0 != memcmp(track1.get_isrc(), "ABCDE1234567", 13))
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::set_type()... ");
+	track1.set_type(1);
+	if(track1.get_type() != 1)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing Track::set_pre_emphasis()... ");
+	track1.set_pre_emphasis(1);
+	if(track1.get_pre_emphasis() != 1)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("PASSED\n\n");
+
+	printf("testing class FLAC::Metadata::CueSheet\n");
+
+	printf("testing CueSheet::CueSheet()... ");
+	FLAC::Metadata::CueSheet block;
+	if(!block.is_valid())
+		return die_("!block.is_valid()");
+	expected_length = (
+		FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
+	) / 8;
+	if(block.get_length() != expected_length) {
+		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block.get_length());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing CueSheet::CueSheet(const CueSheet &)... +\n");
+	printf("        CueSheet::operator!=(const CueSheet &)... ");
+	{
+		FLAC::Metadata::CueSheet blockcopy(block);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != block)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+
+		printf("testing CueSheet::~CueSheet()... ");
+	}
+	printf("OK\n");
+
+	printf("testing CueSheet::CueSheet(const ::FLAC__StreamMetadata &)... +\n");
+	printf("        CueSheet::operator!=(const ::FLAC__StreamMetadata &)... ");
+	{
+		FLAC::Metadata::CueSheet blockcopy(cuesheet_);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != cuesheet_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing CueSheet::CueSheet(const ::FLAC__StreamMetadata *)... +\n");
+	printf("        CueSheet::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::CueSheet blockcopy(&cuesheet_);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != cuesheet_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing CueSheet::operator=(const CueSheet &)... +\n");
+	printf("        CueSheet::operator==(const CueSheet &)... ");
+	{
+		FLAC::Metadata::CueSheet blockcopy = block;
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(!(blockcopy == block))
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing CueSheet::operator=(const ::FLAC__StreamMetadata &)... +\n");
+	printf("        CueSheet::operator==(const ::FLAC__StreamMetadata &)... ");
+	{
+		FLAC::Metadata::CueSheet blockcopy = cuesheet_;
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(!(blockcopy == cuesheet_))
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing CueSheet::operator=(const ::FLAC__StreamMetadata *)... +\n");
+	printf("        CueSheet::operator==(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::CueSheet blockcopy = &cuesheet_;
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(!(blockcopy == cuesheet_))
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing CueSheet::get_media_catalog_number()... ");
+	if(0 != strcmp(block.get_media_catalog_number(), ""))
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing CueSheet::get_lead_in()... ");
+	if(block.get_lead_in() != 0)
+		return die_("value mismatch, expected 0");
+	printf("OK\n");
+
+	printf("testing CueSheet::get_num_tracks()... ");
+	if(block.get_num_tracks() != 0)
+		return die_("value mismatch, expected 0");
+	printf("OK\n");
+
+	printf("testing CueSheet::set_media_catalog_number()... ");
+	{
+		char mcn[129];
+		memset(mcn, 0, sizeof(mcn));
+		strcpy(mcn, "1234567890123");
+		block.set_media_catalog_number(mcn);
+		if(0 != memcmp(block.get_media_catalog_number(), mcn, sizeof(mcn)))
+			return die_("value mismatch");
+	}
+	printf("OK\n");
+
+	printf("testing CueSheet::set_lead_in()... ");
+	block.set_lead_in(588);
+	if(block.get_lead_in() != 588)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing CueSheet::insert_track()... +\n");
+	printf("        CueSheet::get_track()... ");
+	if(!block.insert_track(0, track0))
+		return die_("returned false");
+	if(!track_is_equal_(block.get_track(0).get_track(), track0.get_track()))
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing CueSheet::insert_track()... +\n");
+	printf("        CueSheet::get_track()... ");
+	if(!block.insert_track(1, track1))
+		return die_("returned false");
+	if(!track_is_equal_(block.get_track(1).get_track(), track1.get_track()))
+		return die_("value mismatch");
+	printf("OK\n");
+
+	::FLAC__StreamMetadata_CueSheet_Index index0;
+	index0.offset = 588*4;
+	index0.number = 1;
+
+	printf("testing CueSheet::insert_index(0)... +\n");
+	printf("        CueSheet::get_track()... +\n");
+	printf("        CueSheet::Track::get_index()... ");
+	if(!block.insert_index(0, 0, index0))
+		return die_("returned false");
+	if(!index_is_equal_(block.get_track(0).get_index(0), index0))
+		return die_("value mismatch");
+	printf("OK\n");
+
+	index0.offset = 588*5;
+	printf("testing CueSheet::Track::set_index()... ");
+	{
+		FLAC::Metadata::CueSheet::Track track_ = block.get_track(0);
+		track_.set_index(0, index0);
+		if(!index_is_equal_(track_.get_index(0), index0))
+			return die_("value mismatch");
+	}
+	printf("OK\n");
+
+	index0.offset = 588*6;
+	printf("testing CueSheet::set_index()... ");
+	block.set_index(0, 0, index0);
+	if(!index_is_equal_(block.get_track(0).get_index(0), index0))
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing CueSheet::delete_index()... ");
+	if(!block.delete_index(0, 0))
+		return die_("returned false");
+	if(block.get_track(0).get_num_indices() != 0)
+		return die_("num_indices mismatch");
+	printf("OK\n");
+
+
+	printf("testing CueSheet::set_track()... +\n");
+	printf("        CueSheet::get_track()... ");
+	if(!block.set_track(0, track1))
+		return die_("returned false");
+	if(!track_is_equal_(block.get_track(0).get_track(), track1.get_track()))
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing CueSheet::delete_track()... ");
+	if(!block.delete_track(0))
+		return die_("returned false");
+	if(block.get_num_tracks() != 1)
+		return die_("num_tracks mismatch");
+	printf("OK\n");
+
+	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
+	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
+	if(0 == clone_)
+		return die_("returned NULL");
+	if(0 == dynamic_cast<FLAC::Metadata::CueSheet *>(clone_))
+		return die_("downcast is NULL");
+	if(*dynamic_cast<FLAC::Metadata::CueSheet *>(clone_) != block)
+		return die_("clone is not identical");
+	printf("OK\n");
+
+
+	printf("PASSED\n\n");
+	return true;
+}
+
 bool test_metadata_object()
 {
 	printf("\n+++ libFLAC++ unit test: metadata objects\n\n");
@@ -967,6 +1379,9 @@ bool test_metadata_object()
 		return false;
 
 	if(!test_metadata_object_vorbiscomment())
+		return false;
+
+	if(!test_metadata_object_cuesheet())
 		return false;
 
 	free_metadata_blocks_();
