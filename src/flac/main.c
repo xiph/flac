@@ -157,7 +157,7 @@ static struct share__option long_options_[] = {
 	/*
 	 * analysis options
 	 */
-	{ "residual-gnu-plot", share__no_argument, 0, 0 },
+	{ "residual-gnuplot", share__no_argument, 0, 0 },
 	{ "residual-text", share__no_argument, 0, 0 },
 
 	/*
@@ -763,7 +763,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			else
 				return usage_error("ERROR: argument to --sign must be \"signed\" or \"unsigned\"\n");
 		}
-		else if(0 == strcmp(long_option, "residual-gnu-plot")) {
+		else if(0 == strcmp(long_option, "residual-gnuplot")) {
 			option_values.aopts.do_residual_gnuplot = true;
 		}
 		else if(0 == strcmp(long_option, "residual-text")) {
