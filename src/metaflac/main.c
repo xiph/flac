@@ -42,11 +42,11 @@ static int usage(const char *message, ...);
 static FLAC__bool list(FILE *f, FLAC__bool verbose);
 static FLAC__uint32 unpack_uint32(FLAC__byte *b, unsigned bytes);
 static FLAC__uint64 unpack_uint64(FLAC__byte *b, unsigned bytes);
-static void hexdump(const FLAC__byte *buf, unsigned bytes);
+static void hexdump(const FLAC__byte *buf, unsigned bytes, const char *indent);
 
 int main(int argc, char *argv[])
 {
-	int i;
+	int i, first_file, retval = 0;
 	FLAC__bool verbose = false, list_mode = true;
 
 	if(argc <= 1)
@@ -66,24 +66,29 @@ int main(int argc, char *argv[])
 			return usage("ERROR: invalid option '%s'\n", argv[i]);
 		}
 	}
-	if(i + (list_mode? 1:2) != argc)
-		return usage("ERROR: invalid arguments (more/less than %d filename%s?)\n", (list_mode? 1:2), (list_mode? "":"s"));
+	if(i == argc)
+		return usage(0);
 
 	if(list_mode) {
-		FILE *f = fopen(argv[i], "r");
+		for(first_file = i; i < argc; i++) {
+			FILE *f = fopen(argv[i], "r");
 
-		if(0 == f) {
-			fprintf(stderr, "ERROR opening %s\n", argv[i]);
-			return 1;
+			if(0 == f) {
+				fprintf(stderr, "ERROR opening %s\n", argv[i]);
+				retval = 1;
+			}
+			else {
+				printf("%sfile: %s\n", i==first_file? "" : "\n", argv[i]);
+
+				if(!list(f, verbose))
+					retval = 1;
+
+				fclose(f);
+			}
 		}
-
-		if(!list(f, verbose))
-			return 1;
-
-		fclose(f);
 	}
 
-	return 0;
+	return retval;
 }
 
 int usage(const char *message, ...)
@@ -117,13 +122,13 @@ int usage(const char *message, ...)
 	printf("Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.\n");
 	printf("==============================================================================\n");
 	printf("Usage:\n");
-	printf("  metaflac [options] infile [outfile]\n");
+	printf("  metaflac [options] flacfile [...]\n");
 	printf("\n");
 	printf("options:\n");
 	printf("  -l : list metadata blocks\n");
 	printf("  -v : verbose\n");
 
-	return 1;
+	return message? 1 : 0;
 }
 
 FLAC__bool list(FILE *f, FLAC__bool verbose)
@@ -153,19 +158,19 @@ FLAC__bool list(FILE *f, FLAC__bool verbose)
 
 		/* print header */
 		printf("METADATA block #%u\n", blocknum);
-		printf("byte offset: %u\n", byte_offset);
-		printf("type: %u (%s)\n", (unsigned)metadata.type, metadata.type<=FLAC__METADATA_TYPE_SEEKTABLE? metadata_type_string_[metadata.type] : "UNKNOWN");
-		printf("is last: %s\n", metadata.is_last? "true":"false");
-		printf("length: %u\n", metadata.length);
+		printf("  byte offset: %u\n", byte_offset);
+		printf("  type: %u (%s)\n", (unsigned)metadata.type, metadata.type<=FLAC__METADATA_TYPE_SEEKTABLE? metadata_type_string_[metadata.type] : "UNKNOWN");
+		printf("  is last: %s\n", metadata.is_last? "true":"false");
+		printf("  length: %u\n", metadata.length);
 
 		if(metadata.length > sizeof(buf)) {
-			printf("SKIPPING large block\n\n");
+			printf("  SKIPPING large block\n");
 			continue;
 		}
 
 		/* read the metadata block data */
 		if(fread(buf, 1, metadata.length, f) < metadata.length) {
-			fprintf(stderr, "ERROR: short count reading metadata block data\n\n");
+			fprintf(stderr, "ERROR: short count reading metadata block data\n");
 			return false;
 		}
 		switch(metadata.type) {
@@ -195,54 +200,52 @@ FLAC__bool list(FILE *f, FLAC__bool verbose)
 				b = buf; /* we leave the points in buf for printing later */
 				break;
 			default:
-				printf("SKIPPING block of unknown type\n\n");
+				printf("SKIPPING block of unknown type\n");
 				continue;
 		}
 
 		/* print data */
 		switch(metadata.type) {
 			case FLAC__METADATA_TYPE_STREAMINFO:
-				printf("minumum blocksize: %u samples\n", metadata.data.stream_info.min_blocksize);
-				printf("maximum blocksize: %u samples\n", metadata.data.stream_info.max_blocksize);
-				printf("minimum framesize: %u bytes\n", metadata.data.stream_info.min_framesize);
-				printf("maximum framesize: %u bytes\n", metadata.data.stream_info.max_framesize);
-				printf("sample_rate: %u Hz\n", metadata.data.stream_info.sample_rate);
-				printf("channels: %u\n", metadata.data.stream_info.channels);
-				printf("bits-per-sample: %u\n", metadata.data.stream_info.bits_per_sample);
-				printf("total samples: %llu\n", metadata.data.stream_info.total_samples);
-				printf("MD5 signature: ");
+				printf("  minumum blocksize: %u samples\n", metadata.data.stream_info.min_blocksize);
+				printf("  maximum blocksize: %u samples\n", metadata.data.stream_info.max_blocksize);
+				printf("  minimum framesize: %u bytes\n", metadata.data.stream_info.min_framesize);
+				printf("  maximum framesize: %u bytes\n", metadata.data.stream_info.max_framesize);
+				printf("  sample_rate: %u Hz\n", metadata.data.stream_info.sample_rate);
+				printf("  channels: %u\n", metadata.data.stream_info.channels);
+				printf("  bits-per-sample: %u\n", metadata.data.stream_info.bits_per_sample);
+				printf("  total samples: %llu\n", metadata.data.stream_info.total_samples);
+				printf("  MD5 signature: ");
 				for(i = 0; i < 16; i++)
 					printf("%02x", metadata.data.stream_info.md5sum[i]);
 				printf("\n");
 				break;
 			case FLAC__METADATA_TYPE_PADDING:
 				if(verbose) {
-					printf("pad contents:\n");
-					hexdump(buf, metadata.length);
+					printf("  pad contents:\n");
+					hexdump(buf, metadata.length, "    ");
 				}
 				break;
 			case FLAC__METADATA_TYPE_APPLICATION:
-				printf("Application ID: ");
+				printf("  application ID: ");
 				for(i = 0; i < 4; i++)
 					printf("%02x", metadata.data.application.id[i]);
 				printf("\n");
 				if(verbose) {
-					printf("data contents:\n");
-					hexdump(metadata.data.application.data, metadata.length);
+					printf("  data contents:\n");
+					hexdump(metadata.data.application.data, metadata.length, "    ");
 				}
 				break;
 			case FLAC__METADATA_TYPE_SEEKTABLE:
-				printf("seek points: %u\n", metadata.data.seek_table.num_points);
-				for(i = 0; i < metadata.data.seek_table.num_points; i++, b += SEEKPOINT_LEN_) {
-					printf("\tpoint %d: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, unpack_uint64(b, 8), unpack_uint64(b+8, 8), unpack_uint32(b+16, 2));
+				printf("  seek points: %u\n", metadata.data.seek_table.num_points);
+				if(verbose) {
+					for(i = 0; i < metadata.data.seek_table.num_points; i++, b += SEEKPOINT_LEN_)
+						printf("    point %d: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, unpack_uint64(b, 8), unpack_uint64(b+8, 8), unpack_uint32(b+16, 2));
 				}
 				break;
 			default:
 				FLAC__ASSERT(0);
 		}
-
-		if(!metadata.is_last)
-			printf("\n");
 
 		blocknum++;
 		byte_offset += (4 + metadata.length);
@@ -273,17 +276,17 @@ FLAC__uint64 unpack_uint64(FLAC__byte *b, unsigned bytes)
 	return ret;
 }
 
-void hexdump(const FLAC__byte *buf, unsigned bytes)
+void hexdump(const FLAC__byte *buf, unsigned bytes, const char *indent)
 {
 	unsigned i, left = bytes;
 	const FLAC__byte *b = buf;
 
 	for(i = 0; i < bytes; i += 16) {
-		printf("%08X: "
+		printf("%s%08X: "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\n",
-			i,
+			indent, i,
 			left >  0? (unsigned char)b[ 0] : 0,
 			left >  1? (unsigned char)b[ 1] : 0,
 			left >  2? (unsigned char)b[ 2] : 0,
