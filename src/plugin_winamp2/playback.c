@@ -17,6 +17,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h> /* for memmove() */
 #include "playback.h"
 #include "share/grabbag.h"
 
