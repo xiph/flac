@@ -49,6 +49,7 @@ typedef struct {
 	unsigned size; /* of each original[] in samples */
 	unsigned tail; /* in wide samples */
 	const byte *encoded_signal;
+	unsigned encoded_signal_capacity;
 	unsigned encoded_bytes;
 	bool into_frames;
 	verify_code result;
@@ -684,10 +685,19 @@ end_:
 FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
+	const unsigned encoded_bytes = encoder_wrapper->verify_fifo.encoded_bytes;
 	(void)decoder;
 
-	*bytes = encoder_wrapper->verify_fifo.encoded_bytes;
-	memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
+	if(encoded_bytes <= *bytes) {
+		*bytes = encoded_bytes;
+		memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
+	}
+	else {
+fprintf(stderr,"@@@ verify_read_callback: encoded_bytes=%u, *bytes=%u\n",encoded_bytes,*bytes);
+		memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
+		encoder_wrapper->verify_fifo.encoded_signal += *bytes;
+		encoder_wrapper->verify_fifo.encoded_bytes -= *bytes;
+	}
 
 	return FLAC__STREAM_DECODER_READ_CONTINUE;
 }
