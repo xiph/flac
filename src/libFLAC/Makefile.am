@@ -37,6 +37,8 @@ endif
 endif
 endif
 
+libFLAC_la_LDFLAGS = -version-info 1:0:0
+
 libFLAC_la_SOURCES = \
 	bitbuffer.c \
 	bitmath.c \
