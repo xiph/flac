@@ -35,7 +35,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__BitBuffer input;
 	int32 *output[FLAC__MAX_CHANNELS];
 	int32 *residual[FLAC__MAX_CHANNELS];
-	unsigned output_capacity;
+	unsigned output_capacity, output_channels;
 	uint32 last_frame_number;
 	uint64 samples_decoded;
 	bool has_stream_header;
@@ -45,7 +45,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 
 static byte ID3V2_TAG_[3] = { 'I', 'D', '3' };
 
-static bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigned size);
+static bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigned channels);
 static bool stream_decoder_find_metadata_(FLAC__StreamDecoder *decoder);
 static bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder);
 static bool stream_decoder_skip_id3v2_tag_(FLAC__StreamDecoder *decoder);
@@ -144,6 +144,7 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(
 	}
 
 	decoder->guts->output_capacity = 0;
+	decoder->guts->output_channels = 0;
 	decoder->guts->last_frame_number = 0;
 	decoder->guts->samples_decoded = 0;
 	decoder->guts->has_stream_header = false;
@@ -340,12 +341,12 @@ unsigned FLAC__stream_decoder_input_bytes_unconsumed(FLAC__StreamDecoder *decode
 	return decoder->guts->input.bytes - decoder->guts->input.consumed_bytes;
 }
 
-bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigned size)
+bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigned channels)
 {
 	unsigned i;
 	int32 *tmp;
 
-	if(size <= decoder->guts->output_capacity)
+	if(size <= decoder->guts->output_capacity && channels <= decoder->guts->output_channels)
 		return true;
 
 	/* @@@ should change to use realloc() */
@@ -361,7 +362,7 @@ bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigned size
 		}
 	}
 
-	for(i = 0; i < decoder->guts->frame.header.channels; i++) {
+	for(i = 0; i < channels; i++) {
 		tmp = (int32*)malloc(sizeof(int32)*size);
 		if(tmp == 0) {
 			decoder->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
@@ -378,6 +379,7 @@ bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigned size
 	}
 
 	decoder->guts->output_capacity = size;
+	decoder->guts->output_channels = channels;
 
 	return true;
 }
@@ -599,7 +601,7 @@ bool stream_decoder_read_frame_(FLAC__StreamDecoder *decoder, bool *got_a_frame)
 			decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
 	}
-	if(!stream_decoder_allocate_output_(decoder, decoder->guts->frame.header.blocksize))
+	if(!stream_decoder_allocate_output_(decoder, decoder->guts->frame.header.blocksize, decoder->guts->frame.header.channels))
 		return false;
 	for(channel = 0; channel < decoder->guts->frame.header.channels; channel++) {
 		/*
