@@ -115,3 +115,22 @@ the Makefile.vc for libFLAC is hardcoded to use nasm.  If
 you don't have nasm, or don't want any assembly optimizations,
 edit the makefile, adding '/D FLAC__NO_ASM' and delete the
 rules which compile the .s files.
+
+
+====================
+Building on Mac OS X
+====================
+
+There is a Project Builder project in the top-level source
+directory to build libFLAC and the command-line utilities on
+Mac OS X.  In a terminal, cd to the top-level directory (the
+one that contains this README file) and type:
+
+	pbxbuild -alltargets
+
+This will create everything and leave it in build/ directory.
+Don't worry about the rest of the stuff that is in build or
+the stuff that was already there before building.
+
+There currently is no install procedure; you will have to
+manually copy the tools to wherever you need them.
