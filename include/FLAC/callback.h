@@ -74,6 +74,8 @@
  *  large files.  You will have to find an equivalent function (e.g. ftello),
  *  or write a wrapper.  The same is true for feof() since this is usually
  *  implemented as a macro, not as a function whose address can be taken.
+ *
+ * \{
  */
 
 #ifdef __cplusplus
@@ -169,6 +171,8 @@ typedef struct {
 	FLAC__IOCallback_Eof eof;
 	FLAC__IOCallback_Close close;
 } FLAC__IOCallbacks;
+
+/* \} */
 
 #ifdef __cplusplus
 }
