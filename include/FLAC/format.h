@@ -33,7 +33,7 @@
 #define FLAC__MAX_SAMPLE_RATE (1048570u)
 #define FLAC__MAX_LPC_ORDER (32u)
 #define FLAC__MIN_QLP_COEFF_PRECISION (5u)
-/* changing this also means changing all of fixed.c and more, so DON'T! */
+/* changing FLAC__MAX_FIXED_ORDER also means changing all of fixed.c and more, so DON'T! */
 #define FLAC__MAX_FIXED_ORDER (4u)
 #define FLAC__MAX_RICE_PARTITION_ORDER (15u)
 
