@@ -35,7 +35,7 @@ all default: $(DEFAULT_BUILD)
 # GNU makefile fragment for emulating stuff normally done by configure
 #
 
-VERSION=\"1.0.4\"
+VERSION=\"1.0.5-beta1\"
 
 ORDINALS_H = $(topdir)/include/FLAC/ordinals.h
 
