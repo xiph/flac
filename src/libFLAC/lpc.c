@@ -289,8 +289,7 @@ real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(real l
 unsigned FLAC__lpc_compute_best_order(const real lpc_error[], unsigned max_order, unsigned total_samples, unsigned bits_per_signal_sample)
 {
 	unsigned order, best_order;
-	real best_bits, tmp_bits;
-	const error_scale;
+	real best_bits, tmp_bits, error_scale;
 
 	assert(max_order > 0);
 	assert(total_samples > 0);
