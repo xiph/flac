@@ -73,6 +73,11 @@ void OggFLAC__ogg_encoder_aspect_set_defaults(OggFLAC__OggEncoderAspect *aspect)
 
 FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrapper(OggFLAC__OggEncoderAspect *aspect, const FLAC__uint64 total_samples_estimate, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, OggFLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data)
 {
+	/* WATCHOUT:
+	 * This depends on the behavior of FLAC__StreamEncoder that 'samples'
+	 * will be 0 for metadata writes.
+	 */
+	const FLAC__bool is_metadata = (samples == 0);
 	ogg_packet packet;
 
 	aspect->samples_written += samples;
@@ -80,11 +85,6 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 	memset(&packet, 0, sizeof(packet));
 	packet.packet = (unsigned char *)buffer;
 	packet.granulepos = aspect->samples_written;
-	/* WATCHOUT:
-	 * This depends on the behavior of FLAC__StreamEncoder that 'samples'
-	 * will be 0 for metadata writes.
-	 */
-	packet.packetno = (samples == 0? -1 : (int)current_frame);
 	packet.bytes = bytes;
 
 	if(aspect->is_first_packet) {
@@ -107,7 +107,7 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 	/*@@@@@@ combine fLaC header + STREAMINFO into the first page? 2 packets or 1 packet? */
 	/*@@@@@@ need our own implementation of ogg_stream_flush to max out the page instead of use its 4096 nominal page size */
 	/*@@@@@@ can't figure out a way to pass a useful number for 'samples' to the write_callback, so we'll just pass 0 */
-	if (packet.packetno == -1) {
+	if (is_metadata) {
 		while(ogg_stream_flush(&aspect->stream_state, &aspect->page) != 0) {
 			if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
