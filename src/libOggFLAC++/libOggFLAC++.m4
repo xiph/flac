@@ -19,7 +19,7 @@ AC_ARG_ENABLE(libOggFLACPPtest, [  --disable-libOggFLACPPtest       Do not try t
   elif test "x$libOggFLACPP_prefix" != "x" ; then
     LIBOGGFLACPP_LIBS="-L$libOggFLACPP_prefix/lib"
   elif test "x$prefix" != "xNONE" ; then
-    LIBOGGFLACPP_LIBS="-L$prefix/lib"
+    LIBOGGFLACPP_LIBS="-L$libdir"
   fi
 
   LIBOGGFLACPP_LIBS="$LIBOGGFLACPP_LIBS -lOggFLAC++ $LIBOGGFLAC_LIBS"

@@ -19,7 +19,7 @@ AC_ARG_ENABLE(libFLACPPtest, [  --disable-libFLACPPtest       Do not try to comp
   elif test "x$libFLACPP_prefix" != "x" ; then
     LIBFLACPP_LIBS="-L$libFLACPP_prefix/lib"
   elif test "x$prefix" != "xNONE" ; then
-    LIBFLACPP_LIBS="-L$prefix/lib"
+    LIBFLACPP_LIBS="-L$libdir"
   fi
 
   LIBFLACPP_LIBS="$LIBFLACPP_LIBS -lFLAC++ $LIBFLAC_LIBS"
