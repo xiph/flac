@@ -35,6 +35,7 @@ noinst_HEADERS = \
 	cpu.h \
 	crc.h \
 	fixed.h \
+	float.h \
 	format.h \
 	lpc.h \
 	md5.h \
