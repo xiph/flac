@@ -47,6 +47,10 @@ FLAC__bool OggFLAC__ogg_encoder_aspect_init(OggFLAC__OggEncoderAspect *aspect)
 
 	aspect->is_first_packet = true;
 	aspect->samples_written = 0;
+#if 0
+	/*@@@@@@ not used, get rid of it? */
+	aspect->bytes_written = 0;
+#endif
 
 	return true;
 }
@@ -94,25 +98,46 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 	if(ogg_stream_packetin(&aspect->stream_state, &packet) != 0)
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 
+	/*
+	 * For the initial fLaC header and metadata blocks, we will try and
+	 * force them to all be on their own page.
+	 *
+	 * For audio frames, we let Ogg do the paging.
+	 */
+	/*@@@@@@ need our own implementation of ogg_stream_flush to max out the page instead of use its 4096 nominal page size */
 	/*@@@@@@ can't figure out a way to pass a useful number for 'samples' to the write_callback, so we'll just pass 0 */
-#ifdef FLAC__ONE_FLAC_FRAME_PER_OGG_PAGE
-	/* WATCHOUT: a FLAC frame still may not be able to fit in a single Ogg page */
-	while(ogg_stream_flush(&aspect->stream_state, &aspect->page) != 0) {
-		if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
-			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-
-		if(write_callback(encoder, aspect->page.body, aspect->page.body_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
-			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-	}
-#else
-	while(ogg_stream_pageout(&aspect->stream_state, &aspect->page) != 0) {
-		if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
-			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-
-		if(write_callback(encoder, aspect->page.body, aspect->page.body_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
-			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-	}
+	if (packet.packetno == -1) {
+		while(ogg_stream_flush(&aspect->stream_state, &aspect->page) != 0) {
+			if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+#if 0
+			/*@@@@@@ not used, get rid of it? */
+			aspect->bytes_written += aspect->page.header_len;
 #endif
+			if(write_callback(encoder, aspect->page.body, aspect->page.body_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+#if 0
+			/*@@@@@@ not used, get rid of it? */
+			aspect->bytes_written += aspect->page.body_len;
+#endif
+		}
+	}
+	else {
+		while(ogg_stream_pageout(&aspect->stream_state, &aspect->page) != 0) {
+			if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+#if 0
+			/*@@@@@@ not used, get rid of it? */
+			aspect->bytes_written += aspect->page.header_len;
+#endif
+			if(write_callback(encoder, aspect->page.body, aspect->page.body_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+#if 0
+			/*@@@@@@ not used, get rid of it? */
+			aspect->bytes_written += aspect->page.body_len;
+#endif
+		}
+	}
 
 	return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 }
