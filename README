@@ -14,11 +14,8 @@ for full documentation.
 
 A brief description of the directory tree:
 
-	build/     makefile templates for building
 	doc/       the HTML documentation
 	include/   public include files for libFLAC
-	obj/       the compiled libraries and executables will
-	           end up here
 	src/       the source code and private headers
 	test/      the test scripts
 
@@ -27,16 +24,11 @@ A brief description of the directory tree:
 Building in a GNU environment
 =============================
 
-All files called 'Makefile' are GNUmake files.  To build all
-libraries and programs, just 'make all' from the top-level
-directory.  To run the tests, just 'make test'.
+FLAC now uses autoconf and libtool for configuring and
+building.  Better documentation for these will be
+forthcoming, but in general, this should work:
 
-Everything can be built in either debug or release mode.
-See the Makefiles for details.
-
-The default make rule does not attempt to build the XMMS
-plugin, so if you want that also, run 'make plugin_xmms'
-after 'make'.
+./configure ; make ; make install
 
 
 ==================
