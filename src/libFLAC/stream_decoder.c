@@ -41,6 +41,7 @@
 #include "private/fixed.h"
 #include "private/format.h"
 #include "private/lpc.h"
+#include "private/memory.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -98,13 +99,18 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__StreamDecoderWriteCallback write_callback;
 	FLAC__StreamDecoderMetadataCallback metadata_callback;
 	FLAC__StreamDecoderErrorCallback error_callback;
+	/* generic 32-bit datapath: */
 	void (*local_lpc_restore_signal)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
+	/* generic 64-bit datapath: */
 	void (*local_lpc_restore_signal_64bit)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
+	/* for use when the signal is <= 16 bits-per-sample, or <= 15 bits-per-sample on a side channel (which requires 1 extra bit): */
 	void (*local_lpc_restore_signal_16bit)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
+	/* for use when the signal is <= 16 bits-per-sample, or <= 15 bits-per-sample on a side channel (which requires 1 extra bit), AND order <= 8: */
+	void (*local_lpc_restore_signal_16bit_order8)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
 	void *client_data;
 	FLAC__BitBuffer *input;
 	FLAC__int32 *output[FLAC__MAX_CHANNELS];
-	FLAC__int32 *residual[FLAC__MAX_CHANNELS];
+	FLAC__int32 *residual[FLAC__MAX_CHANNELS]; /* WATCHOUT: these are the aligned pointers; the real pointers that should be free()'d are residual_unaligned[] below */
 	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents[FLAC__MAX_CHANNELS];
 	unsigned output_capacity, output_channels;
 	FLAC__uint32 last_frame_number;
@@ -120,6 +126,8 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__CPUInfo cpuinfo;
 	FLAC__byte header_warmup[2]; /* contains the sync code and reserved bits */
 	FLAC__byte lookahead; /* temp storage when we need to look ahead one byte in the stream */
+	/* unaligned (original) pointers to allocated data */
+	FLAC__int32 *residual_unaligned[FLAC__MAX_CHANNELS];
 } FLAC__StreamDecoderPrivate;
 
 /***********************************************************************
@@ -208,7 +216,7 @@ FLAC_API FLAC__StreamDecoder *FLAC__stream_decoder_new()
 
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
 		decoder->private_->output[i] = 0;
-		decoder->private_->residual[i] = 0;
+		decoder->private_->residual_unaligned[i] = decoder->private_->residual[i] = 0;
 	}
 
 	decoder->private_->output_capacity = 0;
@@ -281,6 +289,7 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_init(FLAC__StreamDecoder 
 	decoder->private_->local_lpc_restore_signal = FLAC__lpc_restore_signal;
 	decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide;
 	decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal;
+	decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal;
 	/* now override with asm where appropriate */
 #ifndef FLAC__NO_ASM
 	if(decoder->private_->cpuinfo.use_asm) {
@@ -290,12 +299,20 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_init(FLAC__StreamDecoder 
 		if(decoder->private_->cpuinfo.data.ia32.mmx) {
 			decoder->private_->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32_mmx;
+			decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal_asm_ia32_mmx;
 		}
 		else {
 			decoder->private_->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32;
+			decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal_asm_ia32;
 		}
 #endif
+#elif defined FLAC__CPU_PPC
+		FLAC__ASSERT(decoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_PPC);
+		if(decoder->private_->cpuinfo.data.ppc.altivec) {
+			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ppc_altivec_16;
+			decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal_asm_ppc_altivec_16_order8;
+		}
 #endif
 	}
 #endif
@@ -329,9 +346,9 @@ FLAC_API void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 			free(decoder->private_->output[i]-4);
 			decoder->private_->output[i] = 0;
 		}
-		if(0 != decoder->private_->residual[i]) {
-			free(decoder->private_->residual[i]);
-			decoder->private_->residual[i] = 0;
+		if(0 != decoder->private_->residual_unaligned[i]) {
+			free(decoder->private_->residual_unaligned[i]);
+			decoder->private_->residual_unaligned[i] = decoder->private_->residual[i] = 0;
 		}
 	}
 	decoder->private_->output_capacity = 0;
@@ -763,9 +780,9 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigne
 			free(decoder->private_->output[i]-4);
 			decoder->private_->output[i] = 0;
 		}
-		if(0 != decoder->private_->residual[i]) {
-			free(decoder->private_->residual[i]);
-			decoder->private_->residual[i] = 0;
+		if(0 != decoder->private_->residual_unaligned[i]) {
+			free(decoder->private_->residual_unaligned[i]);
+			decoder->private_->residual_unaligned[i] = decoder->private_->residual[i] = 0;
 		}
 	}
 
@@ -784,12 +801,13 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigne
 		memset(tmp, 0, sizeof(FLAC__int32)*4);
 		decoder->private_->output[i] = tmp + 4;
 
-		tmp = (FLAC__int32*)malloc(sizeof(FLAC__int32)*size);
-		if(tmp == 0) {
+		/* WATCHOUT:
+		 * minimum of quadword alignment for PPC vector optimizations is REQUIRED:
+		 */
+		if(!FLAC__memory_alloc_aligned_int32_array(size, &decoder->private_->residual_unaligned[i], &decoder->private_->residual[i])) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
-		decoder->private_->residual[i] = tmp;
 	}
 
 	decoder->private_->output_capacity = size;
@@ -1974,8 +1992,12 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, un
 	if(do_full_decode) {
 		memcpy(decoder->private_->output[channel], subframe->warmup, sizeof(FLAC__int32) * order);
 		if(bps + subframe->qlp_coeff_precision + FLAC__bitmath_ilog2(order) <= 32)
-			if(bps <= 16 && subframe->qlp_coeff_precision <= 16)
-				decoder->private_->local_lpc_restore_signal_16bit(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
+			if(bps <= 16 && subframe->qlp_coeff_precision <= 16) {
+				if(order <= 8)
+					decoder->private_->local_lpc_restore_signal_16bit_order8(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
+				else
+					decoder->private_->local_lpc_restore_signal_16bit(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
+			}
 			else
 				decoder->private_->local_lpc_restore_signal(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
 		else

@@ -208,6 +208,18 @@ if test x$use_3dnow = xtrue ; then
 AC_DEFINE(FLAC__USE_3DNOW)
 fi
 
+AC_ARG_ENABLE(altivec,
+[  --disable-altivec              Disable Altivec optimizations],
+[case "${enableval}" in
+	yes) use_altivec=true ;;
+	no)  use_altivec=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-altivec) ;;
+esac],[use_altivec=true])
+AM_CONDITIONAL(FLaC__USE_ALTIVEC, test x$use_altivec = xtrue)
+if test x$use_altivec = xtrue ; then
+AC_DEFINE(FLAC__USE_ALTIVEC)
+fi
+
 AC_ARG_ENABLE(local-xmms-plugin,
 [  --enable-local-xmms-plugin     Install XMMS plugin to ~/.xmms/Plugins instead of system location],
 [case "${enableval}" in
@@ -330,6 +342,7 @@ AH_TEMPLATE(FLAC__HAS_OGG,  [define if you have the ogg library])
 AH_TEMPLATE(FLAC__NO_ASM,  [define to disable use of assembly code])
 AH_TEMPLATE(FLAC__SSE_OS,  [define if your operating system supports SSE instructions])
 AH_TEMPLATE(FLAC__USE_3DNOW,  [define to enable use of 3Dnow! instructions])
+AH_TEMPLATE(FLAC__USE_ALTIVEC,  [define to enable use of Altivec instructions])
 AH_TEMPLATE(ID3LIB_MAJOR,  [define to major version number of id3lib])
 AH_TEMPLATE(ID3LIB_MINOR,  [define to minor version number of id3lib])
 AH_TEMPLATE(ID3LIB_PATCH,  [define to patch level of id3lib])
@@ -339,6 +352,7 @@ AC_OUTPUT( \
 	src/Makefile \
 	src/libFLAC/Makefile \
 	src/libFLAC/ia32/Makefile \
+	src/libFLAC/ppc/Makefile \
 	src/libFLAC/include/Makefile \
 	src/libFLAC/include/private/Makefile \
 	src/libFLAC/include/protected/Makefile \

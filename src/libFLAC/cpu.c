@@ -37,6 +37,14 @@
 #include <config.h>
 #endif
 
+#if defined FLAC__CPU_PPC
+#if !defined FLAC__NO_ASM
+#if defined __APPLE__ && defined __MACH__
+#include <sys/sysctl.h>
+#endif /* __APPLE__ && __MACH__ */
+#endif /* FLAC__NO_ASM */
+#endif /* FLAC__CPU_PPC */
+
 const unsigned FLAC__CPUINFO_IA32_CPUID_CMOV = 0x00008000;
 const unsigned FLAC__CPUINFO_IA32_CPUID_MMX = 0x00800000;
 const unsigned FLAC__CPUINFO_IA32_CPUID_FXSR = 0x01000000;
@@ -78,6 +86,30 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #else
 	info->use_asm = false;
 #endif
+#elif defined FLAC__CPU_PPC
+	info->type = FLAC__CPUINFO_TYPE_PPC;
+#if !defined FLAC__NO_ASM
+	info->use_asm = true;
+#ifdef FLAC__USE_ALTIVEC
+#if defined __APPLE__ && defined __MACH__
+	{
+		int selectors[2] = { CTL_HW, HW_VECTORUNIT };
+		int result = 0;
+		size_t length = sizeof(result);
+		int error = sysctl(selectors, 2, &result, &length, 0, 0);
+
+		info->data.ppc.altivec = error==0 ? result!=0 : 0;
+	}
+#else /* __APPLE__ && __MACH__ */
+	/* don't know of any other thread-safe way to check */
+	info->data.ppc.altivec = 0;
+#endif /* __APPLE__ && __MACH__ */
+#else /* FLAC__USE_ALTIVEC */
+	info->data.ppc.altivec = 0;
+#endif /* FLAC__USE_ALTIVEC */
+#else /* FLAC__NO_ASM */
+	info->use_asm = false;
+#endif /* FLAC__NO_ASM */
 #else
 	info->type = FLAC__CPUINFO_TYPE_UNKNOWN;
 	info->use_asm = false;

@@ -40,6 +40,7 @@
 
 typedef enum {
 	FLAC__CPUINFO_TYPE_IA32,
+	FLAC__CPUINFO_TYPE_PPC,
 	FLAC__CPUINFO_TYPE_UNKNOWN
 } FLAC__CPUInfo_Type;
 
@@ -53,6 +54,10 @@ typedef struct {
 	FLAC__bool ext3dnow;
 	FLAC__bool extmmx;
 } FLAC__CPUInfo_IA32;
+
+typedef struct {
+	FLAC__bool altivec;
+} FLAC__CPUInfo_PPC;
 
 extern const unsigned FLAC__CPUINFO_IA32_CPUID_CMOV;
 extern const unsigned FLAC__CPUINFO_IA32_CPUID_MMX;
@@ -69,6 +74,7 @@ typedef struct {
 	FLAC__CPUInfo_Type type;
 	union {
 		FLAC__CPUInfo_IA32 ia32;
+		FLAC__CPUInfo_PPC ppc;
 	} data;
 } FLAC__CPUInfo;
 
