@@ -722,7 +722,7 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *unused
 	FLAC__uint64 output_position;
 
 	(void)unused; /* silence compiler warning about unused parameter */
-	FLAC__ASSERT(encoder->private_->FLAC_stream_encoder == unused);
+	FLAC__ASSERT(encoder->private_->stream_encoder == unused);
 
 	if(encoder->private_->tell_callback(encoder, &output_position, encoder->private_->client_data) != FLAC__SEEKABLE_STREAM_ENCODER_TELL_STATUS_OK)
 		return encoder->protected_->state = FLAC__SEEKABLE_STREAM_ENCODER_TELL_ERROR;
@@ -744,7 +744,7 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *unused
 	 * frame yet)
 	 */
 	if(0 != encoder->private_->seek_table && encoder->protected_->audio_offset > 0 && encoder->private_->seek_table->num_points > 0) {
-		const unsigned blocksize = FLAC__stream_encoder_get_blocksize(encoder);
+		const unsigned blocksize = FLAC__stream_encoder_get_blocksize(encoder->private_->stream_encoder);
 		const FLAC__uint64 frame_first_sample = encoder->private_->samples_written;
 		const FLAC__uint64 frame_last_sample = frame_first_sample + (FLAC__uint64)blocksize - 1;
 		FLAC__uint64 test_sample;
@@ -800,7 +800,7 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 	 */
 
 	(void)unused; /* silence compiler warning about unused parameter */
-	FLAC__ASSERT(encoder->private_->FLAC_stream_encoder == unused);
+	FLAC__ASSERT(encoder->private_->stream_encoder == unused);
 
 	/*@@@ reopen callback here?  The docs currently require user to open files in update mode from the start */
 

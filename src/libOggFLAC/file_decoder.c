@@ -308,7 +308,7 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_serial_number(OggFLAC__FileDeco
 	FLAC__ASSERT(0 != decoder->protected_);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	OggFLAC__seekable_stream_decoder_set_serial_number(&decoder->private_->seekable_stream_decoder, value);
+	OggFLAC__seekable_stream_decoder_set_serial_number(decoder->private_->seekable_stream_decoder, value);
 	return true;
 }
 
