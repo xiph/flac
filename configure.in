@@ -226,6 +226,10 @@ AC_OUTPUT( \
 	src/libFLAC/include/private/Makefile \
 	src/libFLAC/include/protected/Makefile \
 	src/libFLAC++/Makefile \
+	src/libOggFLAC/Makefile \
+	src/libOggFLAC/include/Makefile \
+	src/libOggFLAC/include/protected/Makefile \
+	src/libOggFLAC++/Makefile \
 	src/flac/Makefile \
 	src/metaflac/Makefile \
 	src/plugin_xmms/Makefile \

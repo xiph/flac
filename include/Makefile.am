@@ -16,4 +16,8 @@
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA  02111-1307, USA.
 
-SUBDIRS = FLAC FLAC++ OggFLAC share
+if FLaC__HAS_OGG
+OGGFLAC_DIRS = OggFLAC OggFLAC++
+endif
+
+SUBDIRS = FLAC FLAC++ $(OGGFLAC_DIRS) share
