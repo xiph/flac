@@ -400,12 +400,12 @@ void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaD
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	(void)decoder;
-	if(metadata->type == FLAC__METADATA_TYPE_ENCODING) {
-		assert(metadata->data.encoding.total_samples < 0x100000000); /* this plugin can only handle < 4 gigasamples */
-		stream_info->total_samples = (unsigned)(metadata->data.encoding.total_samples&0xffffffff);
-		stream_info->bits_per_sample = metadata->data.encoding.bits_per_sample;
-		stream_info->channels = metadata->data.encoding.channels;
-		stream_info->sample_rate = metadata->data.encoding.sample_rate;
+	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+		assert(metadata->data.stream_info.total_samples < 0x100000000); /* this plugin can only handle < 4 gigasamples */
+		stream_info->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xffffffff);
+		stream_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
+		stream_info->channels = metadata->data.stream_info.channels;
+		stream_info->sample_rate = metadata->data.stream_info.sample_rate;
 
 		if(stream_info->bits_per_sample != 16) {
 			MessageBox(mod.hMainWindow,"ERROR: plugin can only handle 16-bit samples\n","ERROR: plugin can only handle 16-bit samples",0);
