@@ -147,6 +147,10 @@ int main(int argc, char *argv[])
 			aopts.do_residual_gnuplot = true;
 		else if(0 == strcmp(argv[i], "--a-rgp-"))
 			aopts.do_residual_gnuplot = false;
+		else if(0 == strcmp(argv[i], "--a-rtext"))
+			aopts.do_residual_text = true;
+		else if(0 == strcmp(argv[i], "--a-rtext-"))
+			aopts.do_residual_text = false;
 		else if(0 == strcmp(argv[i], "-0")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = false;
