@@ -649,14 +649,17 @@ bool stream_decoder_read_frame_(FLAC__StreamDecoder *decoder, bool *got_a_frame)
 				/* no adjustment needed */
 				break;
 			case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
+				assert(decoder->guts->frame.header.channels == 2);
 				if(channel == 1)
 					bps++;
 				break;
 			case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
+				assert(decoder->guts->frame.header.channels == 2);
 				if(channel == 0)
 					bps++;
 				break;
 			case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
+				assert(decoder->guts->frame.header.channels == 2);
 				if(channel == 1)
 					bps++;
 				break;
