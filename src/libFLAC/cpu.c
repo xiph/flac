@@ -43,13 +43,18 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		info->data.ia32.cmov = (cpuid & FLAC__CPUINFO_IA32_CPUID_CMOV)? true : false;
 		info->data.ia32.mmx = (cpuid & FLAC__CPUINFO_IA32_CPUID_MMX)? true : false;
 		info->data.ia32.fxsr = (cpuid & FLAC__CPUINFO_IA32_CPUID_FXSR)? true : false;
-		info->data.ia32.sse = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE)? true : false; /* @@@ also need to check for operating system support */
-		info->data.ia32.sse2 = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE2)? true : false; /* @@@ also need to check for operating system support */
+		info->data.ia32.sse = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE)? true : false;
+		info->data.ia32.sse2 = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE2)? true : false; /* @@@ also need to check for operating system support? */
 
 		cpuid = FLAC__cpu_info_extended_amd_asm_ia32();
 		info->data.ia32._3dnow = (cpuid & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_3DNOW)? true : false;
 		info->data.ia32.ext3dnow = (cpuid & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXT3DNOW)? true : false;
 		info->data.ia32.extmmx = (cpuid & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX)? true : false;
+
+#ifndef FLAC__SSE_OS
+		if(!FLAC__cpu_info_sse_os_asm_ia32()) /* this function currently always returns false */
+			info->data.ia32.fxsr = info->data.ia32.sse = info->data.ia32.sse2 = false;
+#endif
 	}
 #else
 	info->use_asm = false;
