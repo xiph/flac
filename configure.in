@@ -1,5 +1,5 @@
 AC_INIT(src/flac/main.c)
-AM_INIT_AUTOMAKE(flac, 0.5)
+AM_INIT_AUTOMAKE(flac, 0.6)
 
 # We need two libtools, one that builds both shared and static, and
 # one that builds only static.  This is because the resulting libtool
