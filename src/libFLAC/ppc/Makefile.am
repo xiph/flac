@@ -30,8 +30,12 @@
 
 SUFFIXES = .s .lo
 
+STRIP_NON_ASM = sh $(top_srcdir)/strip_non_asm_libtool_args.sh
+
+# For some unknown reason libtool can't figure out the tag for 'as', so
+# we fake it with --tag=CC and strip out unwanted options.
 .s.lo:
-	$(LIBTOOL) --mode=compile as -force_cpusubtype_ALL -o $@ $<
+	$(LIBTOOL) --tag=CC --mode=compile $(STRIP_NON_ASM) as -force_cpusubtype_ALL -o $@ $<
 
 noinst_LTLIBRARIES = libFLAC-asm.la
 libFLAC_asm_la_SOURCES = \
