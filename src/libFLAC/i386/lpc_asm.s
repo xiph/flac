@@ -299,7 +299,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386:
 	mov	ebx, [esp + 24]			; ebx = data_len
 
 	test	ebx, ebx
-	jz	.end				; do nothing if data_len == 0
+	jz	near .end				; do nothing if data_len == 0
 .begin:
 	cmp	eax, byte 1
 	jg	short .i_1more
@@ -696,7 +696,7 @@ cident FLAC__lpc_restore_signal_asm_i386:
 	mov	ebx, [esp + 24]			; ebx = data_len
 
 	test	ebx, ebx
-	jz	.end				; do nothing if data_len == 0
+	jz	near .end				; do nothing if data_len == 0
 
 .begin:
 	cmp	eax, byte 1
@@ -901,7 +901,7 @@ cident FLAC__lpc_restore_signal_asm_i386_mmx:
 	mov	ebx, [esp + 24]
 
 	test	ebx, ebx
-	jz	.end				; do nothing if data_len == 0
+	jz	near .end				; do nothing if data_len == 0
 	cmp	eax, 4
 	jb	near FLAC__lpc_restore_signal_asm_i386.begin
 
