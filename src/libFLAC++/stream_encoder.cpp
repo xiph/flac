@@ -32,6 +32,11 @@
 #include "FLAC++/encoder.h"
 #include "FLAC/assert.h"
 
+#ifdef _MSC_VER
+// warning C4800: 'int' : forcing to bool 'true' or 'false' (performance warning)
+#pragma warning ( disable : 4800 )
+#endif
+
 namespace FLAC {
 	namespace Encoder {
 
