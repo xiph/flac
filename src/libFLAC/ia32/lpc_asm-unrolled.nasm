@@ -442,7 +442,7 @@ FLAC__lpc_compute_autocorrelation_asm:
 .outer_end:
 	jmp	.end
 
-.lag_eq_6_1:
+.lag_eq_6_plus_1:
 	mov	ecx, [ebp + 4]			; ecx == data_len
 	mov	esi, [ebp]			; esi == data
 	mov	edi, [ebp + 12]			; edi == autoc
@@ -460,7 +460,7 @@ FLAC__lpc_compute_autocorrelation_asm:
 	fstp	dword [edi + 24]
 	jmp	.end
 
-.lag_eq_6_2:
+.lag_eq_6_plus_2:
 	mov	ecx, [ebp + 4]			; ecx == data_len
 	mov	esi, [ebp]			; esi == data
 	mov	edi, [ebp + 12]			; edi == autoc
@@ -488,7 +488,7 @@ FLAC__lpc_compute_autocorrelation_asm:
 	fstp	dword [edi + 28]
 	jmp	.end
 
-.lag_eq_6_3:
+.lag_eq_6_plus_3:
 	mov	ecx, [ebp + 4]			; ecx == data_len
 	mov	esi, [ebp]			; esi == data
 	mov	edi, [ebp + 12]			; edi == autoc
@@ -529,7 +529,7 @@ FLAC__lpc_compute_autocorrelation_asm:
 	fstp	dword [edi + 32]
 	jmp	.end
 
-.lag_eq_6_4:
+.lag_eq_6_plus_4:
 	mov	ecx, [ebp + 4]			; ecx == data_len
 	mov	esi, [ebp]			; esi == data
 	mov	edi, [ebp + 12]			; edi == autoc
@@ -586,7 +586,7 @@ FLAC__lpc_compute_autocorrelation_asm:
 	fstp	dword [edi + 36]
 	jmp	.end
 
-.lag_eq_6_5:
+.lag_eq_6_plus_5:
 	mov	ecx, [ebp + 4]			; ecx == data_len
 	mov	esi, [ebp]			; esi == data
 	mov	edi, [ebp + 12]			; edi == autoc
@@ -662,7 +662,7 @@ FLAC__lpc_compute_autocorrelation_asm:
 	fstp	dword [edi + 40]
 	jmp	.end
 
-.lag_eq_6_6:
+.lag_eq_6_plus_6:
 	mov	ecx, [ebp + 4]			; ecx == data_len
 	mov	esi, [ebp]			; esi == data
 	mov	edi, [ebp + 12]			; edi == autoc
