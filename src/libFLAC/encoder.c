@@ -263,11 +263,6 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	if(encoder->do_mid_side_stereo && encoder->channels != 2)
 		return encoder->state = FLAC__ENCODER_MID_SIDE_CHANNELS_MISMATCH;
 
-/*@@@ necessary?
-	if(encoder->do_mid_side_stereo && encoder->bits_per_sample > 16)
-		return encoder->state = FLAC__ENCODER_MID_SIDE_SAMPLE_SIZE_MISMATCH;
-*/
-
 	if(encoder->loose_mid_side_stereo && !encoder->do_mid_side_stereo)
 		return encoder->state = FLAC__ENCODER_ILLEGAL_MID_SIDE_FORCE;
 
