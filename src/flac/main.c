@@ -1323,7 +1323,8 @@ void show_explain()
 	printf("                               be 4 bytes longer than the length given because\n");
 	printf("                               of the 4 metadata block header bytes.  You can\n");
 	printf("                               force no PADDING block at all to be written with\n");
-	printf("                               --no-padding, which is the default.\n");
+	printf("                               --no-padding.  The encoder writes a PADDING\n");
+	printf("                               block of 4096 bytes by default.\n");
 	printf("  -b, --blocksize=#            Specify the blocksize in samples; the default is\n");
 	printf("                               1152 for -l 0, else 4608; must be one of 192,\n");
 	printf("                               576, 1152, 2304, 4608, 256, 512, 1024, 2048,\n");

@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>January 02, 2003</date>">
+  <!ENTITY dhdate      "<date>January 10, 2003</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -384,8 +384,9 @@
 		    of the PADDING block will be 4 bytes longer than
 		    the length given because of the 4 metadata block
 		    header bytes.  You can force no PADDING block at
-		    all to be written with --no-padding, which is the
-		    default.</para>
+		    all to be written with --no-padding.  The encoder
+		    writes a PADDING block of 4096 bytes by default.
+		    </para>
 		</listitem>
 	      </varlistentry>
 

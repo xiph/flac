@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "02 January 2003" "" ""
+.TH "FLAC" "1" "10 January 2003" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -198,8 +198,8 @@ over the PADDING block.  Note that the total length
 of the PADDING block will be 4 bytes longer than
 the length given because of the 4 metadata block
 header bytes.  You can force no PADDING block at
-all to be written with --no-padding, which is the
-default.
+all to be written with --no-padding.  The encoder
+writes a PADDING block of 4096 bytes by default.
 .TP
 \fB-T \fIFIELD=VALUE\fB, --tag=\fIFIELD=VALUE\fB\fR
 Add a Vorbis comment.  The comment must adhere
