@@ -387,12 +387,20 @@ public:
 	~SeekableStreamEncoder() { }
 
 	// from OggFLAC::Encoder::SeekableStream
+	::OggFLAC__SeekableStreamEncoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);
 	::FLAC__SeekableStreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
 	::FLAC__SeekableStreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset);
 	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame);
 
 	bool die(const char *msg = 0) const;
 };
+
+::OggFLAC__SeekableStreamEncoderReadStatus SeekableStreamEncoder::read_callback(FLAC__byte buffer[], unsigned *bytes)
+{
+	(void)buffer, (void)bytes;
+
+	return ::OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_CONTINUE;
+}
 
 ::FLAC__SeekableStreamEncoderSeekStatus SeekableStreamEncoder::seek_callback(FLAC__uint64 absolute_byte_offset)
 {

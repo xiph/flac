@@ -300,6 +300,7 @@ namespace OggFLAC {
 		SeekableStream::State SeekableStream::init()
 		{
 			FLAC__ASSERT(is_valid());
+			::OggFLAC__seekable_stream_encoder_set_read_callback(encoder_, read_callback_);
 			::OggFLAC__seekable_stream_encoder_set_seek_callback(encoder_, seek_callback_);
 			::OggFLAC__seekable_stream_encoder_set_tell_callback(encoder_, tell_callback_);
 			::OggFLAC__seekable_stream_encoder_set_write_callback(encoder_, write_callback_);
@@ -323,6 +324,15 @@ namespace OggFLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::OggFLAC__seekable_stream_encoder_process_interleaved(encoder_, buffer, samples);
+		}
+
+		::OggFLAC__SeekableStreamEncoderReadStatus SeekableStream::read_callback_(const ::OggFLAC__SeekableStreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+		{
+			(void)encoder;
+			FLAC__ASSERT(0 != client_data);
+			SeekableStream *instance = reinterpret_cast<SeekableStream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->read_callback(buffer, bytes);
 		}
 
 		::FLAC__SeekableStreamEncoderSeekStatus SeekableStream::seek_callback_(const ::OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data)

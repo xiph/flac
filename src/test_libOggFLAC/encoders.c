@@ -431,6 +431,12 @@ static FLAC__bool test_stream_encoder()
 	return true;
 }
 
+OggFLAC__SeekableStreamEncoderReadStatus seekable_stream_encoder_read_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+{
+	(void)encoder, (void)buffer, (void)bytes, (void)client_data;
+	return OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_CONTINUE;
+}
+
 FLAC__SeekableStreamEncoderSeekStatus seekable_stream_encoder_seek_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data)
 {
 	(void)encoder, (void)absolute_byte_offset, (void)client_data;
@@ -564,6 +570,11 @@ static FLAC__bool test_seekable_stream_encoder()
 
 	printf("testing OggFLAC__seekable_stream_encoder_set_metadata()... ");
 	if(!OggFLAC__seekable_stream_encoder_set_metadata(encoder, metadata_sequence_, num_metadata_))
+		return die_ss_("returned false", encoder);
+	printf("OK\n");
+
+	printf("testing OggFLAC__seekable_stream_encoder_set_read_callback()... ");
+	if(!OggFLAC__seekable_stream_encoder_set_read_callback(encoder, seekable_stream_encoder_read_callback_))
 		return die_ss_("returned false", encoder);
 	printf("OK\n");
 

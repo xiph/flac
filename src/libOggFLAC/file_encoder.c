@@ -53,6 +53,7 @@ extern FLAC__bool OggFLAC__seekable_stream_encoder_disable_fixed_subframes(OggFL
 extern FLAC__bool OggFLAC__seekable_stream_encoder_disable_verbatim_subframes(OggFLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
 
 static void set_defaults_(OggFLAC__FileEncoder *encoder);
+static OggFLAC__SeekableStreamEncoderReadStatus read_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 static FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 static FLAC__SeekableStreamEncoderTellStatus tell_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 static FLAC__StreamEncoderWriteStatus write_callback_(const OggFLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
@@ -181,6 +182,7 @@ OggFLAC_API OggFLAC__FileEncoderState OggFLAC__file_encoder_init(OggFLAC__FileEn
 	encoder->private_->samples_written = 0;
 	encoder->private_->frames_written = 0;
 
+	OggFLAC__seekable_stream_encoder_set_read_callback(encoder->private_->seekable_stream_encoder, read_callback_);
 	OggFLAC__seekable_stream_encoder_set_seek_callback(encoder->private_->seekable_stream_encoder, seek_callback_);
 	OggFLAC__seekable_stream_encoder_set_tell_callback(encoder->private_->seekable_stream_encoder, tell_callback_);
 	OggFLAC__seekable_stream_encoder_set_write_callback(encoder->private_->seekable_stream_encoder, write_callback_);
@@ -715,6 +717,24 @@ void set_defaults_(OggFLAC__FileEncoder *encoder)
 	encoder->private_->client_data = 0;
 	encoder->private_->total_frames_estimate = 0;
 	encoder->private_->filename = 0;
+}
+
+OggFLAC__SeekableStreamEncoderReadStatus read_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+{
+	OggFLAC__FileEncoder *file_encoder = (OggFLAC__FileEncoder*)client_data;
+
+	(void)encoder;
+
+	FLAC__ASSERT(0 != file_encoder);
+
+	*bytes = (unsigned)fread(buffer, 1, *bytes, file_encoder->private_->file);
+	if (*bytes == 0) {
+		if (feof(file_encoder->private_->file))
+			return OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_END_OF_STREAM;
+		else if (ferror(file_encoder->private_->file))
+			return OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_ABORT;
+	}
+	return OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_CONTINUE;
 }
 
 FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data)

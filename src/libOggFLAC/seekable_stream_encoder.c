@@ -31,9 +31,11 @@
 
 #include <stdio.h>
 #include <stdlib.h> /* for calloc() */
+#include <string.h> /* for memcpy() */
 #include "FLAC/assert.h"
 #include "OggFLAC/seekable_stream_encoder.h"
 #include "protected/seekable_stream_encoder.h"
+#include "private/ogg_helper.h"
 
 #ifdef max
 #undef max
@@ -63,6 +65,7 @@ static void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__S
  ***********************************************************************/
 
 typedef struct OggFLAC__SeekableStreamEncoderPrivate {
+	OggFLAC__SeekableStreamEncoderReadCallback read_callback;
 	OggFLAC__SeekableStreamEncoderSeekCallback seek_callback;
 	OggFLAC__SeekableStreamEncoderTellCallback tell_callback;
 	OggFLAC__SeekableStreamEncoderWriteCallback write_callback;
@@ -88,12 +91,19 @@ OggFLAC_API const char * const OggFLAC__SeekableStreamEncoderStateString[] = {
 	"OggFLAC__SEEKABLE_STREAM_ENCODER_MEMORY_ALLOCATION_ERROR",
 	"OggFLAC__SEEKABLE_STREAM_ENCODER_WRITE_ERROR",
 	"OggFLAC__SEEKABLE_STREAM_ENCODER_READ_ERROR",
+	"OggFLAC__SEEKABLE_STREAM_ENCODER_READ_ERROR",
 	"OggFLAC__SEEKABLE_STREAM_ENCODER_SEEK_ERROR",
 	"OggFLAC__SEEKABLE_STREAM_ENCODER_TELL_ERROR",
 	"OggFLAC__SEEKABLE_STREAM_ENCODER_ALREADY_INITIALIZED",
 	"OggFLAC__SEEKABLE_STREAM_ENCODER_INVALID_CALLBACK",
 	"OggFLAC__SEEKABLE_STREAM_ENCODER_INVALID_SEEKTABLE",
 	"OggFLAC__SEEKABLE_STREAM_ENCODER_UNINITIALIZED"
+};
+
+OggFLAC_API const char * const OggFLAC__SeekableStreamEncoderReadStatusString[] = {
+	"OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_CONTINUE",
+	"OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_END_OF_STREAM",
+	"OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_ABORT"
 };
 
 
@@ -442,6 +452,18 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_encoder_set_metadata(OggFLAC__Se
 		}
 	}
 	return FLAC__stream_encoder_set_metadata(encoder->private_->FLAC_stream_encoder, metadata, num_blocks);
+}
+
+OggFLAC_API FLAC__bool OggFLAC__seekable_stream_encoder_set_read_callback(OggFLAC__SeekableStreamEncoder *encoder, OggFLAC__SeekableStreamEncoderReadCallback value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	FLAC__ASSERT(0 != value);
+	if(encoder->protected_->state != OggFLAC__SEEKABLE_STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private_->read_callback = value;
+	return true;
 }
 
 OggFLAC_API FLAC__bool OggFLAC__seekable_stream_encoder_set_seek_callback(OggFLAC__SeekableStreamEncoder *encoder, OggFLAC__SeekableStreamEncoderSeekCallback value)
@@ -850,7 +872,7 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 	const FLAC__uint64 samples = metadata->data.stream_info.total_samples;
 	const unsigned min_framesize = metadata->data.stream_info.min_framesize;
 	const unsigned max_framesize = metadata->data.stream_info.max_framesize;
-	const unsigned bps = metadata->data.stream_info.bits_per_sample;
+	ogg_page page;
 
 	FLAC__ASSERT(metadata->type == FLAC__METADATA_TYPE_STREAMINFO);
 
@@ -861,7 +883,6 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 
 	(void)unused; /* silence compiler warning about unused parameter */
 	FLAC__ASSERT(encoder->private_->FLAC_stream_encoder == unused);
-return;//@@@@@@
 
 	/*@@@ reopen callback here?  The docs currently require user to open files in update mode from the start */
 
@@ -871,89 +892,85 @@ return;//@@@@@@
 	 */
 
 	/*
-	 * Write MD5 signature
+	 * Write STREAMINFO stats
+	 */
+	simple_ogg_page__init(&page);
+	if(!simple_ogg_page__get_at(encoder, encoder->protected_->streaminfo_offset, &page, encoder->private_->seek_callback, encoder->private_->read_callback, encoder->private_->client_data))
+		return; /* state already set */
+	/*
+	 * MD5 signature
 	 */
 	{
 		const unsigned md5_offset =
-		FLAC__STREAM_METADATA_HEADER_LENGTH +
-		(
-			FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN
-		) / 8;
+			FLAC__STREAM_METADATA_HEADER_LENGTH +
+			(
+				FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN
+			) / 8;
 
-		if(encoder->private_->seek_callback(encoder, encoder->protected_->streaminfo_offset + md5_offset, encoder->private_->client_data) != FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK) {
-			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_SEEK_ERROR;
+		if(md5_offset + 16 > (unsigned)page.body_len) {
+			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_OGG_ERROR;
 			return;
 		}
-		if(encoder->private_->write_callback(encoder, metadata->data.stream_info.md5sum, 16, 0, 0, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
-			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_WRITE_ERROR;
-			return;
-		}
+		memcpy(page.body + md5_offset, metadata->data.stream_info.md5sum, 16);
 	}
-
 	/*
-	 * Write total samples
+	 * total samples
 	 */
 	{
 		const unsigned total_samples_byte_offset =
-		FLAC__STREAM_METADATA_HEADER_LENGTH +
-		(
-			FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN
-			- 4
-		) / 8;
+			FLAC__STREAM_METADATA_HEADER_LENGTH +
+			(
+				FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN
+				- 4
+			) / 8;
 
-		b[0] = ((FLAC__byte)(bps-1) << 4) | (FLAC__byte)((samples >> 32) & 0x0F);
+		if(total_samples_byte_offset + 5 > (unsigned)page.body_len) {
+			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_OGG_ERROR;
+			return;
+		}
+		b[0] = (FLAC__byte)page.body[total_samples_byte_offset] & 0xF0;
+		b[0] |= (FLAC__byte)((samples >> 32) & 0x0F);
 		b[1] = (FLAC__byte)((samples >> 24) & 0xFF);
 		b[2] = (FLAC__byte)((samples >> 16) & 0xFF);
 		b[3] = (FLAC__byte)((samples >> 8) & 0xFF);
 		b[4] = (FLAC__byte)(samples & 0xFF);
-		if(encoder->private_->seek_callback(encoder, encoder->protected_->streaminfo_offset + total_samples_byte_offset, encoder->private_->client_data) != FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK) {
-			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_SEEK_ERROR;
-			return;
-		}
-		if(encoder->private_->write_callback(encoder, b, 5, 0, 0, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
-			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_WRITE_ERROR;
-			return;
-		}
+		memcpy(page.body + total_samples_byte_offset, b, 5);
 	}
-
 	/*
-	 * Write min/max framesize
+	 * min/max framesize
 	 */
 	{
 		const unsigned min_framesize_offset =
-		FLAC__STREAM_METADATA_HEADER_LENGTH +
-		(
-			FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN +
-			FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN
-		) / 8;
+			FLAC__STREAM_METADATA_HEADER_LENGTH +
+			(
+				FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN +
+				FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN
+			) / 8;
 
+		if(min_framesize_offset + 6 > (unsigned)page.body_len) {
+			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_OGG_ERROR;
+			return;
+		}
 		b[0] = (FLAC__byte)((min_framesize >> 16) & 0xFF);
 		b[1] = (FLAC__byte)((min_framesize >> 8) & 0xFF);
 		b[2] = (FLAC__byte)(min_framesize & 0xFF);
 		b[3] = (FLAC__byte)((max_framesize >> 16) & 0xFF);
 		b[4] = (FLAC__byte)((max_framesize >> 8) & 0xFF);
 		b[5] = (FLAC__byte)(max_framesize & 0xFF);
-		if(encoder->private_->seek_callback(encoder, encoder->protected_->streaminfo_offset + min_framesize_offset, encoder->private_->client_data) != FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK) {
-			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_SEEK_ERROR;
-			return;
-		}
-		if(encoder->private_->write_callback(encoder, b, 6, 0, 0, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
-			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_WRITE_ERROR;
-			return;
-		}
+		memcpy(page.body + min_framesize_offset, b, 6);
 	}
 
 	/*
@@ -961,17 +978,22 @@ return;//@@@@@@
 	 */
 	if(0 != encoder->private_->seek_table && encoder->private_->seek_table->num_points > 0 && encoder->protected_->seektable_offset > 0) {
 		unsigned i;
+		FLAC__byte *p;
 
 		FLAC__format_seektable_sort(encoder->private_->seek_table);
 
 		FLAC__ASSERT(FLAC__format_seektable_is_legal(encoder->private_->seek_table));
 
-		if(encoder->private_->seek_callback(encoder, encoder->protected_->seektable_offset + FLAC__STREAM_METADATA_HEADER_LENGTH, encoder->private_->client_data) != FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK) {
-			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_SEEK_ERROR;
+		simple_ogg_page__init(&page);
+		if(!simple_ogg_page__get_at(encoder, encoder->protected_->seektable_offset, &page, encoder->private_->seek_callback, encoder->private_->read_callback, encoder->private_->client_data))
+			return; /* state already set */
+
+		if(FLAC__STREAM_METADATA_HEADER_LENGTH + (18*encoder->private_->seek_table->num_points) > (unsigned)page.body_len) {
+			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_OGG_ERROR;
 			return;
 		}
 
-		for(i = 0; i < encoder->private_->seek_table->num_points; i++) {
+		for(i = 0, p = page.body + FLAC__STREAM_METADATA_HEADER_LENGTH; i < encoder->private_->seek_table->num_points; i++, p += 18) {
 			FLAC__uint64 xx;
 			unsigned x;
 			xx = encoder->private_->seek_table->points[i].sample_number;
@@ -999,6 +1021,11 @@ return;//@@@@@@
 				encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_WRITE_ERROR;
 				return;
 			}
+			memcpy(p, b, 18);
 		}
+
+		if(!simple_ogg_page__set_at(encoder, encoder->protected_->seektable_offset, &page, encoder->private_->seek_callback, encoder->private_->write_callback, encoder->private_->client_data))
+			return; /* state already set */
+		simple_ogg_page__clear(&page);
 	}
 }

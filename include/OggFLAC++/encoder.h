@@ -258,6 +258,7 @@ namespace OggFLAC {
 			bool process(const FLAC__int32 * const buffer[], unsigned samples);
 			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples);
 		protected:
+			virtual ::OggFLAC__SeekableStreamEncoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes) = 0;
 			virtual ::FLAC__SeekableStreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset) = 0;
 			virtual ::FLAC__SeekableStreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset) = 0;
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
@@ -268,6 +269,7 @@ namespace OggFLAC {
 #endif
 			::OggFLAC__SeekableStreamEncoder *encoder_;
 		private:
+			static ::OggFLAC__SeekableStreamEncoderReadStatus read_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 			static ::FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 			static ::FLAC__SeekableStreamEncoderTellStatus tell_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 			static ::FLAC__StreamEncoderWriteStatus write_callback_(const OggFLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);

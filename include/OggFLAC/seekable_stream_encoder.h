@@ -131,6 +131,29 @@ typedef enum {
 extern OggFLAC_API const char * const OggFLAC__SeekableStreamEncoderStateString[];
 
 
+/** Return values for the OggFLAC__SeekableStreamEncoder read callback.
+ */
+typedef enum {
+
+	OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_CONTINUE,
+	/**< The read was OK and decoding can continue. */
+
+	OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_END_OF_STREAM,
+	/**< The read was attempted at the end of the stream. */
+
+	OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_ABORT
+	/**< An unrecoverable error occurred. */
+
+} OggFLAC__SeekableStreamEncoderReadStatus;
+
+/** Maps a OggFLAC__SeekableStreamEncoderReadStatus to a C string.
+ *
+ *  Using a OggFLAC__SeekableStreamEncoderReadStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern OggFLAC_API const char * const OggFLAC__SeekableStreamEncoderReadStatusString[];
+
+
 /***********************************************************************
  *
  * class OggFLAC__StreamEncoder
@@ -147,6 +170,25 @@ typedef struct {
 	struct OggFLAC__SeekableStreamEncoderProtected *protected_; /* avoid the C++ keyword 'protected' */
 	struct OggFLAC__SeekableStreamEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } OggFLAC__SeekableStreamEncoder;
+
+/** Signature for the read callback.
+ *  See OggFLAC__seekable_stream_encoder_set_read_callback() for more info.
+ *
+ * \param  encoder  The encoder instance calling the callback.
+ * \param  buffer   A pointer to a location for the callee to store
+ *                  data to be encoded.
+ * \param  bytes    A pointer to the size of the buffer.  On entry
+ *                  to the callback, it contains the maximum number
+ *                  of bytes that may be stored in \a buffer.  The
+ *                  callee must set it to the actual number of bytes
+ *                  stored (0 in case of error or end-of-stream) before
+ *                  returning.
+ * \param  client_data  The callee's client data set through
+ *                      OggFLAC__seekable_stream_encoder_set_client_data().
+ * \retval OggFLAC__SeekableStreamEncoderReadStatus
+ *    The callee's return status.
+ */
+typedef OggFLAC__SeekableStreamEncoderReadStatus (*OggFLAC__SeekableStreamEncoderReadCallback)(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 
 /** Signature for the seek callback.
  *  See OggFLAC__seekable_stream_encoder_set_seek_callback()
@@ -453,6 +495,30 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_encoder_set_total_samples_estima
  *    \c false if the encoder is already initialized, else \c true.
  */
 OggFLAC_API FLAC__bool OggFLAC__seekable_stream_encoder_set_metadata(OggFLAC__SeekableStreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
+
+/** Set the read callback.
+ *  The supplied function will be called when the encoder needs to read back
+ *  encoded data.  This happens during the metadata callback, when the encoder
+ *  has to read, modify, and rewrite the metadata (e.g. seekpoints) gathered
+ *  while encoding.  The address of the buffer to be filled is supplied, along
+ *  with the number of bytes the buffer can hold.  The callback may choose to
+ *  supply less data and modify the byte count but must be careful not to
+ *  overflow the buffer.  The callback then returns a status code chosen from
+ *  OggFLAC__SeekableStreamEncoderReadStatus.
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  encoder  A encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+OggFLAC_API FLAC__bool OggFLAC__seekable_stream_encoder_set_read_callback(OggFLAC__SeekableStreamEncoder *encoder, OggFLAC__SeekableStreamEncoderReadCallback value);
 
 /** Set the seek callback.
  *  The supplied function will be called when the encoder needs to seek
