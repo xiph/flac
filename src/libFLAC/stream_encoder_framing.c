@@ -197,7 +197,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 
 	FLAC__ASSERT(header->blocksize > 0 && header->blocksize <= FLAC__MAX_BLOCK_SIZE);
 	/* when this assertion holds true, any legal blocksize can be expressed in the frame header */
-	FLAC__ASSERT(FLAC__MAX_BLOCK_SIZE <= (1u << FLAC__FRAME_HEADER_BLOCK_SIZE_LEN));
+	FLAC__ASSERT(FLAC__MAX_BLOCK_SIZE <= 65535u);
 	blocksize_hint = 0;
 	switch(header->blocksize) {
 		case   192: u = 1; break;

@@ -1020,13 +1020,14 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 			}
 		}
 	}
-	FLAC__ASSERT(bytes_to_write > 0);
-	if(flac__utils_fwrite(u8buffer, 1, bytes_to_write, fout) != bytes_to_write) {
-		/* if a pipe closed when writing to stdout, we let it go without an error message */
-		if(errno == EPIPE && decoder_session->fout == stdout)
-			decoder_session->aborting_due_to_until = true;
-		decoder_session->abort_flag = true;
-		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	if(bytes_to_write > 0) {
+		if(flac__utils_fwrite(u8buffer, 1, bytes_to_write, fout) != bytes_to_write) {
+			/* if a pipe closed when writing to stdout, we let it go without an error message */
+			if(errno == EPIPE && decoder_session->fout == stdout)
+				decoder_session->aborting_due_to_until = true;
+			decoder_session->abort_flag = true;
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		}
 	}
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
