@@ -152,6 +152,8 @@ FLAC__SeekableStreamDecoder *FLAC__seekable_stream_decoder_new()
 	decoder->private_->error_callback = 0;
 	decoder->private_->client_data = 0;
 
+	decoder->protected_->md5_checking = false;
+
 	return decoder;
 }
 
