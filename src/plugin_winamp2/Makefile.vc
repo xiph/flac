@@ -19,10 +19,10 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) /GX $(cdebug) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" /I ".." -DSTRICT -DVERSION=\"1.0.3\" -YX /Od /D "_DEBUG" $<
+	$(cc) /GX $(cdebug) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" /I ".." -DSTRICT -DVERSION=\"1.0.4_beta\" -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /O2 $(crelease) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" /I ".." -DSTRICT -DVERSION=\"1.0.3\" -YX -DNODEBUG $<
+	$(cc) /O2 $(crelease) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" /I ".." -DSTRICT -DVERSION=\"1.0.4_beta\" -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
