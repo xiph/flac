@@ -27,7 +27,7 @@ noinst_HEADERS = \
 	configure.h \
 	wrap_id3.h
 
-CFLAGS = @ CFLAGS@  @ ID3LIB_CFLAGS@  @ XMMS_CFLAGS@ 
+CFLAGS = @CFLAGS@  @ ID3LIB_CFLAGS@  @ XMMS_CFLAGS@ 
 INCLUDES = -I$(top_srcdir)/src
 xmmsinputplugindir = @ XMMS_INPUT_PLUGIN_DIR@ 
 

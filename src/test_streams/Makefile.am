@@ -19,7 +19,7 @@ EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc
 
-CFLAGS = @ CFLAGS@ 
+CFLAGS = @CFLAGS@ 
 
 noinst_PROGRAMS = test_streams
 test_streams_SOURCES = \
