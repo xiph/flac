@@ -36,6 +36,7 @@ EXTRA_DIST = \
 	COPYING.FDL \
 	COPYING.GPL \
 	COPYING.LGPL \
+	FLAC.dsw \
 	Makefile.lite \
 	autogen.sh \
 	depcomp \
