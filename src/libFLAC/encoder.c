@@ -848,7 +848,9 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned max_partition_or
 				if(fixed_residual_bits_per_sample[fixed_order] >= (real)bits_per_sample)
 					continue; /* don't even try */
 				rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > 0.0)? (unsigned)(fixed_residual_bits_per_sample[fixed_order]+0.5) : 0; /* 0.5 is for rounding */
+#ifdef FOLDED_RICE
 				rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
+#endif
 				if(rice_parameter >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 					rice_parameter = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN) - 1;
 				_candidate_bits = encoder_evaluate_fixed_subframe_(integer_signal, residual[!_best_subframe], encoder->guts->abs_residual, frame_header->blocksize, bits_per_sample, fixed_order, rice_parameter, max_partition_order, subframe[!_best_subframe]);
@@ -888,7 +890,9 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned max_partition_or
 							if(lpc_residual_bits_per_sample >= (real)bits_per_sample)
 								continue; /* don't even try */
 							rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
+#ifdef FOLDED_RICE
 							rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
+#endif
 							if(rice_parameter >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 								rice_parameter = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN) - 1;
 							for(qlp_coeff_precision = min_qlp_coeff_precision; qlp_coeff_precision <= max_qlp_coeff_precision; qlp_coeff_precision++) {
@@ -1047,7 +1051,12 @@ unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_r
 #ifdef ESTIMATE_RICE_BITS
 #undef ESTIMATE_RICE_BITS
 #endif
+#ifdef FOLDED_RICE
 #define ESTIMATE_RICE_BITS(value, parameter) ((value) >> (parameter))
+#else
+/* symmetric Rice coding ala Shorten */
+#define ESTIMATE_RICE_BITS(value, parameter) ((value) >> (parameter))
+#endif
 
 bool encoder_set_partitioned_rice_(const uint32 abs_residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameter, const unsigned partition_order, unsigned parameters[], unsigned *bits)
 {
@@ -1056,14 +1065,24 @@ bool encoder_set_partitioned_rice_(const uint32 abs_residual[], const unsigned r
 	if(partition_order == 0) {
 		unsigned i;
 #ifdef ESTIMATE_RICE_BITS
+#ifdef FOLDED_RICE
 		const unsigned rice_parameter_estimate = rice_parameter-1;
-		bits_ += (1+rice_parameter) * residual_samples;
+		bits_ += (2+rice_parameter) * residual_samples;
+#else
+		/* symmetric Rice coding ala Shorten */
+		bits_ += (2+rice_parameter) * residual_samples;
+#endif
 #endif
 		parameters[0] = rice_parameter;
 		bits_ += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
 		for(i = 0; i < residual_samples; i++)
 #ifdef ESTIMATE_RICE_BITS
+#ifdef FOLDED_RICE
 			bits_ += ESTIMATE_RICE_BITS(abs_residual[i], rice_parameter_estimate);
+#else
+			/* symmetric Rice coding ala Shorten */
+			bits_ += ESTIMATE_RICE_BITS(abs_residual[i], rice_parameter);
+#endif
 #else
 			bits_ += FLAC__bitbuffer_rice_bits(residual[i], rice_parameter);
 #endif
@@ -1084,23 +1103,48 @@ bool encoder_set_partitioned_rice_(const uint32 abs_residual[], const unsigned r
 			for(j = 0; j < partition_samples; j++, k++)
 				mean += abs_residual[k];
 			mean /= partition_samples;
+#ifdef ESTIMATE_RICE_BITS
+#ifdef FOLDED_RICE
 			/* calc parameter = floor(log2(mean)) + 1 */
 			parameter = 0;
 			while(mean) {
 				parameter++;
 				mean >>= 1;
 			}
+#else
+			/* symmetric Rice coding ala Shorten */
+			/* calc parameter = floor(log2(mean)) + 1 */
+			parameter = 0;
+mean>>=1;
+			while(mean) {
+				parameter++;
+				mean >>= 1;
+			}
+#endif
+#else
+#error
+#endif
 			if(parameter > max_parameter)
 				parameter = max_parameter;
 			parameters[i] = parameter;
 			bits_ += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
 #ifdef ESTIMATE_RICE_BITS
-			bits_ += (1+parameter) * partition_samples;
+#ifdef FOLDED_RICE
+			bits_ += (2+parameter) * partition_samples;
 			--parameter;
+#else
+			/* symmetric Rice coding ala Shorten */
+			bits_ += (2+parameter) * partition_samples;
+#endif
 #endif
 			for(j = k_last; j < k; j++)
 #ifdef ESTIMATE_RICE_BITS
+#ifdef FOLDED_RICE
 				bits_ += ESTIMATE_RICE_BITS(abs_residual[j], parameter);
+#else
+				/* symmetric Rice coding ala Shorten */
+				bits_ += ESTIMATE_RICE_BITS(abs_residual[j], parameter);
+#endif
 #else
 				bits_ += FLAC__bitbuffer_rice_bits(residual[j], parameter);
 #endif
