@@ -1231,7 +1231,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__Str
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetadata *object, unsigned comment_num);
 
-/*@@@@ needs unit test still */
+/*@@@@ add to unit tests */
 /** Check if the given Vorbis comment entry's field name matches the given
  *  field name.
  *
@@ -1247,7 +1247,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__Str
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, unsigned field_name_length);
 
-/*@@@@ needs unit test still */
+/*@@@@ add to unit tests */
 /** Find a Vorbis comment with the given field name.
  *
  *  The search begins at entry number \a offset; use and offset of 0 to
@@ -1266,7 +1266,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC
  */
 FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(const FLAC__StreamMetadata *object, unsigned offset, const char *field_name);
 
-/*@@@@ needs unit test still */
+/*@@@@ add to unit tests */
 /** Remove first Vorbis comment matching the given field name.
  *
  * \param object      A pointer to an existing VORBIS_COMMENT object.
@@ -1280,7 +1280,7 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(const FLAC__Str
  */
 FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entry_matching(FLAC__StreamMetadata *object, const char *field_name);
 
-/*@@@@ needs unit test still */
+/*@@@@ add to unit tests */
 /** Remove all Vorbis comments matching the given field name.
  *
  * \param object      A pointer to an existing VORBIS_COMMENT object.
@@ -1293,6 +1293,49 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entry_matching(FLAC__Str
  *    else the number of matching entries deleted.
  */
 FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entries_matching(FLAC__StreamMetadata *object, const char *field_name);
+
+/*@@@@ document, add to unit tests */
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__StreamMetadata *object, unsigned track_num, unsigned new_num_indices);
+
+/*@@@@ document, add to unit tests */
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num, FLAC__StreamMetadata_CueSheet_Index index);
+
+/*@@@@ document, add to unit tests */
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_delete_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num);
+
+/*@@@@ document */
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMetadata *object, unsigned new_num_tracks);
+
+/*@@@@ document */
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_set_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track track, FLAC__bool copy);
+
+/*@@@@ document */
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track track, FLAC__bool copy);
+
+/*@@@@ document */
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_delete_track(FLAC__StreamMetadata *object, unsigned track_num);
+
+/*@@@@ add to unit tests */
+/** Check a cue sheet to see if it conforms to the FLAC specification.
+ *  See the format specification for limits on the contents of the
+ *  cue sheet.
+ *
+ * \param object     A pointer to an existing CUESHEET object.
+ * \param check_cd_da_subset  If \c true, check CUESHEET against more
+ *                   stringent requirements for a CD-DA (audio) disc.
+ * \param violation  Address of a pointer to a string.  If there is a
+ *                   violation, a pointer to a string explanation of the
+ *                   violation will be returned here. \a violation may be
+ *                   \c NULL if you don't need the returned string.  Do not
+ *                   free the returned string; it will always point to static
+ *                   data.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ * \retval FLAC__bool
+ *    \c false if cue sheet is illegal, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_is_legal(const FLAC__StreamMetadata *object, FLAC__bool check_cd_da_subset, const char **violation);
 
 /* \} */
 

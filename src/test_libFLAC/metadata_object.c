@@ -183,11 +183,120 @@ static void vc_delete_(FLAC__StreamMetadata *block, unsigned pos)
 	vc_calc_len_(block);
 }
 
+static void track_new_(FLAC__StreamMetadata_CueSheet_Track *track, FLAC__uint64 offset, FLAC__byte number, const char *isrc, FLAC__bool data, FLAC__bool pre_em)
+{
+	track->offset = offset;
+	track->number = number;
+	memcpy(track->isrc, isrc, sizeof(track->isrc));
+	track->type = data;
+	track->pre_emphasis = pre_em;
+	track->num_indices = 0;
+	track->indices = 0;
+}
+
+static void track_clone_(FLAC__StreamMetadata_CueSheet_Track *track)
+{
+	if(track->num_indices > 0) {
+		size_t bytes = sizeof(FLAC__StreamMetadata_CueSheet_Index) * track->num_indices;
+		FLAC__StreamMetadata_CueSheet_Index *x = (FLAC__StreamMetadata_CueSheet_Index*)malloc(bytes);
+		FLAC__ASSERT(0 != x);
+		memcpy(x, track->indices, bytes);
+		track->indices = x;
+	}
+}
+
+static void cs_calc_len_(FLAC__StreamMetadata *block)
+{
+	const FLAC__StreamMetadata_CueSheet *cs = &block->data.cue_sheet;
+	unsigned i;
+
+	block->length = (
+		FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
+	) / 8;
+	block->length += cs->num_tracks * (
+		FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN
+	) / 8;
+	for(i = 0; i < cs->num_tracks; i++) {
+		block->length += cs->tracks[i].num_indices * (
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN
+		) / 8;
+	}
+}
+
+static void cs_resize_(FLAC__StreamMetadata *block, unsigned num)
+{
+	FLAC__StreamMetadata_CueSheet *cs = &block->data.cue_sheet;
+
+	if(cs->num_tracks != 0) {
+		FLAC__ASSERT(0 != cs->tracks);
+		if(num < cs->num_tracks) {
+			unsigned i;
+			for(i = num; i < cs->num_tracks; i++) {
+				if(0 != cs->tracks[i].indices)
+					free(cs->tracks[i].indices);
+			}
+		}
+	}
+	if(num == 0) {
+		if(0 != cs->tracks) {
+			free(cs->tracks);
+			cs->tracks = 0;
+		}
+	}
+	else {
+		cs->tracks = (FLAC__StreamMetadata_CueSheet_Track*)realloc(cs->tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track)*num);
+		FLAC__ASSERT(0 != cs->tracks);
+		if(num > cs->num_tracks)
+			memset(cs->tracks+cs->num_tracks, 0, sizeof(FLAC__StreamMetadata_CueSheet_Track)*(num-cs->num_tracks));
+	}
+
+	cs->num_tracks = num;
+	cs_calc_len_(block);
+}
+
+static void cs_set_new_(FLAC__StreamMetadata_CueSheet_Track *track, FLAC__StreamMetadata *block, unsigned pos, FLAC__uint64 offset, FLAC__byte number, const char *isrc, FLAC__bool data, FLAC__bool pre_em)
+{
+	track_new_(track, offset, number, isrc, data, pre_em);
+	block->data.cue_sheet.tracks[pos] = *track;
+	cs_calc_len_(block);
+}
+
+static void cs_insert_new_(FLAC__StreamMetadata_CueSheet_Track *track, FLAC__StreamMetadata *block, unsigned pos, FLAC__uint64 offset, FLAC__byte number, const char *isrc, FLAC__bool data, FLAC__bool pre_em)
+{
+	cs_resize_(block, block->data.cue_sheet.num_tracks+1);
+	memmove(&block->data.cue_sheet.tracks[pos+1], &block->data.cue_sheet.tracks[pos], sizeof(FLAC__StreamMetadata_CueSheet_Track)*(block->data.cue_sheet.num_tracks-1-pos));
+	cs_set_new_(track, block, pos, offset, number, isrc, data, pre_em);
+	cs_calc_len_(block);
+}
+
+static void cs_delete_(FLAC__StreamMetadata *block, unsigned pos)
+{
+	if(0 != block->data.cue_sheet.tracks[pos].indices)
+		free(block->data.cue_sheet.tracks[pos].indices);
+	memmove(&block->data.cue_sheet.tracks[pos], &block->data.cue_sheet.tracks[pos+1], sizeof(FLAC__StreamMetadata_CueSheet_Track)*(block->data.cue_sheet.num_tracks-pos-1));
+	block->data.cue_sheet.tracks[block->data.cue_sheet.num_tracks-1].indices = 0;
+	block->data.cue_sheet.tracks[block->data.cue_sheet.num_tracks-1].num_indices = 0;
+	cs_resize_(block, block->data.cue_sheet.num_tracks-1);
+	cs_calc_len_(block);
+}
+
+
 FLAC__bool test_metadata_object()
 {
-	FLAC__StreamMetadata *block, *blockcopy, *vorbiscomment;
+	FLAC__StreamMetadata *block, *blockcopy, *vorbiscomment, *cuesheet;
 	FLAC__StreamMetadata_SeekPoint seekpoint_array[8];
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
+	FLAC__StreamMetadata_CueSheet_Track track;
 	unsigned i, expected_length, seekpoints;
 	static FLAC__byte dummydata[4] = { 'a', 'b', 'c', 'd' };
 
@@ -869,6 +978,270 @@ FLAC__bool test_metadata_object()
 
 	printf("testing FLAC__metadata_object_delete()... ");
 	FLAC__metadata_object_delete(vorbiscomment);
+	FLAC__metadata_object_delete(block);
+	printf("OK\n");
+
+
+	printf("testing CUESHEET\n");
+
+	printf("testing FLAC__metadata_object_new()... ");
+	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_CUESHEET);
+	if(0 == block) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	expected_length = (
+		FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
+	) / 8;
+	if(block->length != expected_length) {
+		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_clone()... ");
+	cuesheet = FLAC__metadata_object_clone(block);
+	if(0 == cuesheet) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	cs_resize_(cuesheet, 2);
+	printf("testing FLAC__metadata_object_cuesheet_resize_tracks(grow to %u)...", cuesheet->data.cue_sheet.num_tracks);
+	if(!FLAC__metadata_object_cuesheet_resize_tracks(block, cuesheet->data.cue_sheet.num_tracks)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	cs_resize_(cuesheet, 1);
+	printf("testing FLAC__metadata_object_cuesheet_resize_tracks(shrink to %u)...", cuesheet->data.cue_sheet.num_tracks);
+	if(!FLAC__metadata_object_cuesheet_resize_tracks(block, cuesheet->data.cue_sheet.num_tracks)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	cs_resize_(cuesheet, 0);
+	printf("testing FLAC__metadata_object_cuesheet_resize_tracks(shrink to %u)...", cuesheet->data.cue_sheet.num_tracks);
+	if(!FLAC__metadata_object_cuesheet_resize_tracks(block, cuesheet->data.cue_sheet.num_tracks)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_insert_track(copy) on empty array...");
+	cs_insert_new_(&track, cuesheet, 0, 0, 1, "ABCDE1234567", false, false);
+	if(!FLAC__metadata_object_cuesheet_insert_track(block, 0, track, /*copy=*/true)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_insert_track(copy) on beginning of non-empty array...");
+	cs_insert_new_(&track, cuesheet, 0, 10, 2, "BBCDE1234567", false, false);
+	if(!FLAC__metadata_object_cuesheet_insert_track(block, 0, track, /*copy=*/true)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_insert_track(copy) on middle of non-empty array...");
+	cs_insert_new_(&track, cuesheet, 1, 20, 3, "CBCDE1234567", false, false);
+	if(!FLAC__metadata_object_cuesheet_insert_track(block, 1, track, /*copy=*/true)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_insert_track(copy) on end of non-empty array...");
+	cs_insert_new_(&track, cuesheet, 3, 30, 4, "DBCDE1234567", false, false);
+	if(!FLAC__metadata_object_cuesheet_insert_track(block, 3, track, /*copy=*/true)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_clone()... ");
+	blockcopy = FLAC__metadata_object_clone(block);
+	if(0 == blockcopy) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	if(!compare_block_(block, blockcopy))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_delete()... ");
+	FLAC__metadata_object_delete(blockcopy);
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_delete_track() on middle of array...");
+	cs_delete_(cuesheet, 2);
+	if(!FLAC__metadata_object_cuesheet_delete_track(block, 2)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_delete_track() on end of array...");
+	cs_delete_(cuesheet, 2);
+	if(!FLAC__metadata_object_cuesheet_delete_track(block, 2)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_delete_track() on beginning of array...");
+	cs_delete_(cuesheet, 0);
+	if(!FLAC__metadata_object_cuesheet_delete_track(block, 0)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_set_track(copy)...");
+	cs_set_new_(&track, cuesheet, 0, 40, 5, "EBCDE1234567", false, false);
+	FLAC__metadata_object_cuesheet_set_track(block, 0, track, /*copy=*/true);
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	/*@@@@ track index function tests here*/
+
+	printf("testing FLAC__metadata_object_delete()... ");
+	FLAC__metadata_object_delete(cuesheet);
+	FLAC__metadata_object_delete(block);
+	printf("OK\n");
+
+
+	printf("testing FLAC__metadata_object_new()... ");
+	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_CUESHEET);
+	if(0 == block) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_clone()... ");
+	cuesheet = FLAC__metadata_object_clone(block);
+	if(0 == cuesheet) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_insert_track(own) on empty array...");
+	cs_insert_new_(&track, cuesheet, 0, 60, 7, "GBCDE1234567", false, false);
+	track_clone_(&track);
+	if(!FLAC__metadata_object_cuesheet_insert_track(block, 0, track, /*copy=*/false)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_insert_track(own) on beginning of non-empty array...");
+	cs_insert_new_(&track, cuesheet, 0, 70, 8, "HBCDE1234567", false, false);
+	track_clone_(&track);
+	if(!FLAC__metadata_object_cuesheet_insert_track(block, 0, track, /*copy=*/false)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_insert_track(own) on middle of non-empty array...");
+	cs_insert_new_(&track, cuesheet, 1, 80, 9, "IBCDE1234567", false, false);
+	track_clone_(&track);
+	if(!FLAC__metadata_object_cuesheet_insert_track(block, 1, track, /*copy=*/false)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_insert_track(own) on end of non-empty array...");
+	cs_insert_new_(&track, cuesheet, 3, 90, 10, "JBCDE1234567", false, false);
+	track_clone_(&track);
+	if(!FLAC__metadata_object_cuesheet_insert_track(block, 3, track, /*copy=*/false)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_delete_track() on middle of array...");
+	cs_delete_(cuesheet, 2);
+	if(!FLAC__metadata_object_cuesheet_delete_track(block, 2)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_delete_track() on end of array...");
+	cs_delete_(cuesheet, 2);
+	if(!FLAC__metadata_object_cuesheet_delete_track(block, 2)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_delete_track() on beginning of array...");
+	cs_delete_(cuesheet, 0);
+	if(!FLAC__metadata_object_cuesheet_delete_track(block, 0)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_set_track(own)...");
+	cs_set_new_(&track, cuesheet, 0, 100, 11, "KBCDE1234567", false, false);
+	track_clone_(&track);
+	FLAC__metadata_object_cuesheet_set_track(block, 0, track, /*copy=*/false);
+	if(!compare_block_(cuesheet, block))
+		return false;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_delete()... ");
+	FLAC__metadata_object_delete(cuesheet);
 	FLAC__metadata_object_delete(block);
 	printf("OK\n");
 

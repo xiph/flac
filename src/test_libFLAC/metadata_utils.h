@@ -38,6 +38,8 @@ FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetadata_SeekTable *b
 
 FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_VorbisComment *block, const FLAC__StreamMetadata_VorbisComment *blockcopy);
 
+FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueSheet *block, const FLAC__StreamMetadata_CueSheet *blockcopy);
+
 FLAC__bool compare_block_(const FLAC__StreamMetadata *block, const FLAC__StreamMetadata *blockcopy);
 
 #endif
