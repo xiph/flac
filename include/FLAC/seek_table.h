@@ -22,6 +22,6 @@
 
 #include "format.h"
 
-bool FLAC__seek_table_is_valid(const FLAC__StreamMetaData_SeekTable *seek_table);
+FLAC__bool FLAC__seek_table_is_valid(const FLAC__StreamMetaData_SeekTable *seek_table);
 
 #endif

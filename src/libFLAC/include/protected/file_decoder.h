@@ -23,7 +23,7 @@
 #include "FLAC/file_decoder.h"
 
 typedef struct FLAC__FileDecoderProtected {
-	bool md5_checking; /* if true, generate MD5 signature of decoded data and compare against signature in the Encoding metadata block */
+	FLAC__bool md5_checking; /* if true, generate MD5 signature of decoded data and compare against signature in the Encoding metadata block */
 	FLAC__FileDecoderState state;
 } FLAC__FileDecoderProtected;
 

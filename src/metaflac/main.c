@@ -39,15 +39,15 @@ static const char *metadata_type_string_[] = { /* DUPLICATE:FLAC__MetaDataTypeSt
 static const unsigned SEEKPOINT_LEN_ = 18; /* DUPLICATE:FLAC__STREAM_METADATA_SEEKPOINT_LEN */
 
 static int usage(const char *message, ...);
-static bool list(FILE *f, bool verbose);
-static uint32 unpack_uint32(byte *b, unsigned bytes);
-static uint64 unpack_uint64(byte *b, unsigned bytes);
-static void hexdump(const byte *buf, unsigned bytes);
+static FLAC__bool list(FILE *f, FLAC__bool verbose);
+static FLAC__uint32 unpack_uint32(FLAC__byte *b, unsigned bytes);
+static FLAC__uint64 unpack_uint64(FLAC__byte *b, unsigned bytes);
+static void hexdump(const FLAC__byte *buf, unsigned bytes);
 
 int main(int argc, char *argv[])
 {
 	int i;
-	bool verbose = false, list_mode = true;
+	FLAC__bool verbose = false, list_mode = true;
 
 	if(argc <= 1)
 		return usage(0);
@@ -126,10 +126,10 @@ int usage(const char *message, ...)
 	return 1;
 }
 
-bool list(FILE *f, bool verbose)
+FLAC__bool list(FILE *f, FLAC__bool verbose)
 {
-	byte buf[65536];
-	byte *b = buf;
+	FLAC__byte buf[65536];
+	FLAC__byte *b = buf;
 	FLAC__StreamMetaData metadata;
 	unsigned blocknum = 0, byte_offset = 0, i;
 
@@ -178,7 +178,7 @@ bool list(FILE *f, bool verbose)
 				metadata.data.stream_info.sample_rate = (unpack_uint32(b, 2) << 4) | ((unsigned)(b[2] & 0xf0) >> 4);
 				metadata.data.stream_info.channels = (unsigned)((b[2] & 0x0e) >> 1) + 1;
 				metadata.data.stream_info.bits_per_sample = ((((unsigned)(b[2] & 0x01)) << 1) | (((unsigned)(b[3] & 0xf0)) >> 4)) + 1;
-				metadata.data.stream_info.total_samples = (((uint64)(b[3] & 0x0f)) << 32) | unpack_uint64(b+4, 4);
+				metadata.data.stream_info.total_samples = (((FLAC__uint64)(b[3] & 0x0f)) << 32) | unpack_uint64(b+4, 4);
 				memcpy(metadata.data.stream_info.md5sum, b+8, 16);
 				break;
 			case FLAC__METADATA_TYPE_PADDING:
@@ -251,32 +251,32 @@ bool list(FILE *f, bool verbose)
 	return true;
 }
 
-uint32 unpack_uint32(byte *b, unsigned bytes)
+FLAC__uint32 unpack_uint32(FLAC__byte *b, unsigned bytes)
 {
-	uint32 ret = 0;
+	FLAC__uint32 ret = 0;
 	unsigned i;
 
 	for(i = 0; i < bytes; i++)
-		ret = (ret << 8) | (uint32)(*b++);
+		ret = (ret << 8) | (FLAC__uint32)(*b++);
 
 	return ret;
 }
 
-uint64 unpack_uint64(byte *b, unsigned bytes)
+FLAC__uint64 unpack_uint64(FLAC__byte *b, unsigned bytes)
 {
-	uint64 ret = 0;
+	FLAC__uint64 ret = 0;
 	unsigned i;
 
 	for(i = 0; i < bytes; i++)
-		ret = (ret << 8) | (uint64)(*b++);
+		ret = (ret << 8) | (FLAC__uint64)(*b++);
 
 	return ret;
 }
 
-void hexdump(const byte *buf, unsigned bytes)
+void hexdump(const FLAC__byte *buf, unsigned bytes)
 {
 	unsigned i, left = bytes;
-	const byte *b = buf;
+	const FLAC__byte *b = buf;
 
 	for(i = 0; i < bytes; i += 16) {
 		printf("%08X: "

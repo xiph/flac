@@ -20,64 +20,30 @@
 #ifndef FLAC__ORDINALS_H
 #define FLAC__ORDINALS_H
 
-#ifdef bool
-#undef bool
-#endif
 #ifdef true
 #undef true
 #endif
 #ifdef false
 #undef false
 #endif
-#ifdef int8
-#undef int8
-#endif
-#ifdef uint8
-#undef uint8
-#endif
-#ifdef int16
-#undef int16
-#endif
-#ifdef uint16
-#undef uint16
-#endif
-#ifdef int32
-#undef int32
-#endif
-#ifdef uint32
-#undef uint32
-#endif
-#ifdef int64
-#undef int64
-#endif
-#ifdef uint64
-#undef uint64
-#endif
-#ifdef byte
-#undef byte
-#endif
-#ifdef real
-#undef real
-#endif
-
 #define true 1
 #define false 0
 
-typedef int bool;
-typedef signed char int8;
-typedef unsigned char uint8;
-typedef signed short int16;
-typedef unsigned short uint16;
-typedef signed int int32;
-typedef unsigned int uint32;
+typedef int FLAC__bool;
+typedef signed char FLAC__int8;
+typedef unsigned char FLAC__uint8;
+typedef signed short FLAC__int16;
+typedef unsigned short FLAC__uint16;
+typedef signed int FLAC__int32;
+typedef unsigned int FLAC__uint32;
 #if defined _WIN32 && !defined __CYGWIN__
-typedef __int64 int64;
-typedef unsigned __int64 uint64;
+typedef __int64 FLAC__int64;
+typedef unsigned __int64 FLAC__uint64;
 #else
-typedef long long int int64;
-typedef unsigned long long uint64;
+typedef long long int FLAC__int64;
+typedef unsigned long long FLAC__uint64;
 #endif
-typedef uint8 byte;
-typedef float real;
+typedef FLAC__uint8 FLAC__byte;
+typedef float FLAC__real;
 
 #endif

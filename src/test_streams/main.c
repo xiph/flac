@@ -29,9 +29,9 @@
 	static const char *mode = "w";
 #endif
 
-static bool is_big_endian_host;
+static FLAC__bool is_big_endian_host;
 
-static void swap16(int16 *i)
+static void swap16(FLAC__int16 *i)
 {
 	unsigned char *x = (unsigned char *)i, b;
 	if(!is_big_endian_host) {
@@ -41,7 +41,7 @@ static void swap16(int16 *i)
 	}
 }
 
-static void swap24(byte *x)
+static void swap24(FLAC__byte *x)
 {
 	if(is_big_endian_host) {
 		x[0] = x[1];
@@ -49,17 +49,17 @@ static void swap24(byte *x)
 		x[2] = x[3];
 	}
 	else {
-		byte b = x[0];
+		FLAC__byte b = x[0];
 		x[0] = x[2];
 		x[2] = b;
 	}
 }
 
 /* a mono one-sample 16bps stream */
-static bool generate_01()
+static FLAC__bool generate_01()
 {
 	FILE *f;
-	int16 x = -32768;
+	FLAC__int16 x = -32768;
 
 	if(0 == (f = fopen("test01.raw", mode)))
 		return false;
@@ -76,10 +76,10 @@ foo:
 }
 
 /* a stereo one-sample 16bps stream */
-static bool generate_02()
+static FLAC__bool generate_02()
 {
 	FILE *f;
-	int16 xl = -32768, xr = 32767;
+	FLAC__int16 xl = -32768, xr = 32767;
 
 	if(0 == (f = fopen("test02.raw", mode)))
 		return false;
@@ -100,10 +100,10 @@ foo:
 }
 
 /* a mono five-sample 16bps stream */
-static bool generate_03()
+static FLAC__bool generate_03()
 {
 	FILE *f;
-	int16 x[] = { -25, 0, 25, 50, 100 };
+	FLAC__int16 x[] = { -25, 0, 25, 50, 100 };
 	unsigned i;
 
 	if(0 == (f = fopen("test03.raw", mode)))
@@ -112,7 +112,7 @@ static bool generate_03()
 	for(i = 0; i < 5; i++)
 		swap16(x+i);
 
-	if(fwrite(&x, sizeof(int16), 5, f) < 5)
+	if(fwrite(&x, sizeof(FLAC__int16), 5, f) < 5)
 		goto foo;
 
 	fclose(f);
@@ -123,10 +123,10 @@ foo:
 }
 
 /* a stereo five-sample 16bps stream */
-static bool generate_04()
+static FLAC__bool generate_04()
 {
 	FILE *f;
-	int16 x[] = { -25, 500, 0, 400, 25, 300, 50, 200, 100, 100 };
+	FLAC__int16 x[] = { -25, 500, 0, 400, 25, 300, 50, 200, 100, 100 };
 	unsigned i;
 
 	if(0 == (f = fopen("test04.raw", mode)))
@@ -135,7 +135,7 @@ static bool generate_04()
 	for(i = 0; i < 10; i++)
 		swap16(x+i);
 
-	if(fwrite(&x, sizeof(int16), 10, f) < 10)
+	if(fwrite(&x, sizeof(FLAC__int16), 10, f) < 10)
 		goto foo;
 
 	fclose(f);
@@ -146,7 +146,7 @@ foo:
 }
 
 /* a mono full-scale deflection 8bps stream */
-static bool generate_fsd8(const char *fn, const int pattern[], unsigned reps)
+static FLAC__bool generate_fsd8(const char *fn, const int pattern[], unsigned reps)
 {
 	FILE *f;
 	unsigned rep, p;
@@ -172,7 +172,7 @@ foo:
 }
 
 /* a mono full-scale deflection 16bps stream */
-static bool generate_fsd16(const char *fn, const int pattern[], unsigned reps)
+static FLAC__bool generate_fsd16(const char *fn, const int pattern[], unsigned reps)
 {
 	FILE *f;
 	unsigned rep, p;
@@ -184,7 +184,7 @@ static bool generate_fsd16(const char *fn, const int pattern[], unsigned reps)
 
 	for(rep = 0; rep < reps; rep++) {
 		for(p = 0; pattern[p]; p++) {
-			int16 x = pattern[p] > 0? 32767 : -32768;
+			FLAC__int16 x = pattern[p] > 0? 32767 : -32768;
 			swap16(&x);
 			if(fwrite(&x, sizeof(x), 1, f) < 1)
 				goto foo;
@@ -199,7 +199,7 @@ foo:
 }
 
 /* a stereo wasted-bits-per-sample 16bps stream */
-static bool generate_wbps16(const char *fn, unsigned samples)
+static FLAC__bool generate_wbps16(const char *fn, unsigned samples)
 {
 	FILE *f;
 	unsigned sample;
@@ -208,8 +208,8 @@ static bool generate_wbps16(const char *fn, unsigned samples)
 		return false;
 
 	for(sample = 0; sample < samples; sample++) {
-		int16 l = (sample % 2000) << 2;
-		int16 r = (sample % 1000) << 3;
+		FLAC__int16 l = (sample % 2000) << 2;
+		FLAC__int16 r = (sample % 1000) << 3;
 		swap16(&l);
 		swap16(&r);
 		if(fwrite(&l, sizeof(l), 1, f) < 1)
@@ -226,7 +226,7 @@ foo:
 }
 
 /* a mono full-scale deflection 24bps stream */
-static bool generate_fsd24(const char *fn, const int pattern[], unsigned reps)
+static FLAC__bool generate_fsd24(const char *fn, const int pattern[], unsigned reps)
 {
 	FILE *f;
 	unsigned rep, p;
@@ -238,8 +238,8 @@ static bool generate_fsd24(const char *fn, const int pattern[], unsigned reps)
 
 	for(rep = 0; rep < reps; rep++) {
 		for(p = 0; pattern[p]; p++) {
-			int32 x = pattern[p] > 0? 8388607 : -8388608;
-			byte *b = (byte*)(&x);
+			FLAC__int32 x = pattern[p] > 0? 8388607 : -8388608;
+			FLAC__byte *b = (FLAC__byte*)(&x);
 			swap24(b);
 			if(fwrite(b, 3, 1, f) < 1)
 				goto foo;
@@ -254,9 +254,9 @@ foo:
 }
 
 /* a mono sine-wave 16bps stream */
-static bool generate_sine16_1(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2)
+static FLAC__bool generate_sine16_1(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2)
 {
-	const int16 full_scale = 32767;
+	const FLAC__int16 full_scale = 32767;
 	const double delta1 = 2.0 * M_PI / ( sample_rate / f1);
 	const double delta2 = 2.0 * M_PI / ( sample_rate / f2);
 	FILE *f;
@@ -268,7 +268,7 @@ static bool generate_sine16_1(const char *fn, const double sample_rate, const un
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
 		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
-		int16 v = (int16)(val + 0.5);
+		FLAC__int16 v = (FLAC__int16)(val + 0.5);
 		swap16(&v);
 		if(fwrite(&v, sizeof(v), 1, f) < 1)
 			goto foo;
@@ -282,9 +282,9 @@ foo:
 }
 
 /* a stereo sine-wave 16bps stream */
-static bool generate_sine16_2(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2, double fmult)
+static FLAC__bool generate_sine16_2(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2, double fmult)
 {
-	const int16 full_scale = 32767;
+	const FLAC__int16 full_scale = 32767;
 	const double delta1 = 2.0 * M_PI / ( sample_rate / f1);
 	const double delta2 = 2.0 * M_PI / ( sample_rate / f2);
 	FILE *f;
@@ -296,12 +296,12 @@ static bool generate_sine16_2(const char *fn, const double sample_rate, const un
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
 		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
-		int16 v = (int16)(val + 0.5);
+		FLAC__int16 v = (FLAC__int16)(val + 0.5);
 		swap16(&v);
 		if(fwrite(&v, sizeof(v), 1, f) < 1)
 			goto foo;
 		val = -(a1*sin(theta1*fmult) + a2*sin(theta2*fmult))*(double)full_scale;
-		v = (int16)(val + 0.5);
+		v = (FLAC__int16)(val + 0.5);
 		swap16(&v);
 		if(fwrite(&v, sizeof(v), 1, f) < 1)
 			goto foo;
@@ -315,9 +315,9 @@ foo:
 }
 
 /* a mono sine-wave 24bps stream */
-static bool generate_sine24_1(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2)
+static FLAC__bool generate_sine24_1(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2)
 {
-	const int32 full_scale = 0x7fffff;
+	const FLAC__int32 full_scale = 0x7fffff;
 	const double delta1 = 2.0 * M_PI / ( sample_rate / f1);
 	const double delta2 = 2.0 * M_PI / ( sample_rate / f2);
 	FILE *f;
@@ -329,8 +329,8 @@ static bool generate_sine24_1(const char *fn, const double sample_rate, const un
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
 		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
-		int32 v = (int32)(val + 0.5);
-		byte *b = (byte*)(&v);
+		FLAC__int32 v = (FLAC__int32)(val + 0.5);
+		FLAC__byte *b = (FLAC__byte*)(&v);
 		swap24(b);
 		if(fwrite(b, 3, 1, f) < 1)
 			goto foo;
@@ -344,9 +344,9 @@ foo:
 }
 
 /* a stereo sine-wave 24bps stream */
-static bool generate_sine24_2(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2, double fmult)
+static FLAC__bool generate_sine24_2(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2, double fmult)
 {
-	const int32 full_scale = 0x7fffff;
+	const FLAC__int32 full_scale = 0x7fffff;
 	const double delta1 = 2.0 * M_PI / ( sample_rate / f1);
 	const double delta2 = 2.0 * M_PI / ( sample_rate / f2);
 	FILE *f;
@@ -358,13 +358,13 @@ static bool generate_sine24_2(const char *fn, const double sample_rate, const un
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
 		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
-		int32 v = (int32)(val + 0.5);
-		byte *b = (byte*)(&v);
+		FLAC__int32 v = (FLAC__int32)(val + 0.5);
+		FLAC__byte *b = (FLAC__byte*)(&v);
 		swap24(b);
 		if(fwrite(b, 3, 1, f) < 1)
 			goto foo;
 		val = -(a1*sin(theta1*fmult) + a2*sin(theta2*fmult))*(double)full_scale;
-		v = (int32)(val + 0.5);
+		v = (FLAC__int32)(val + 0.5);
 		swap24(b);
 		if(fwrite(b, 3, 1, f) < 1)
 			goto foo;
@@ -377,7 +377,7 @@ foo:
 	return false;
 }
 
-static bool generate_noise(const char *fn, unsigned bytes)
+static FLAC__bool generate_noise(const char *fn, unsigned bytes)
 {
 	FILE *f;
 	struct timeval tv;
@@ -393,7 +393,7 @@ static bool generate_noise(const char *fn, unsigned bytes)
 		return false;
 
 	for(b = 0; b < bytes; b++) {
-		byte x = (byte)(((unsigned)random()) & 0xff);
+		FLAC__byte x = (FLAC__byte)(((unsigned)random()) & 0xff);
 		if(fwrite(&x, sizeof(x), 1, f) < 1)
 			goto foo;
 	}
@@ -405,10 +405,10 @@ foo:
 	return false;
 }
 
-static bool generate_wackywavs()
+static FLAC__bool generate_wackywavs()
 {
 	FILE *f;
-	byte wav[] = {
+	FLAC__byte wav[] = {
 		'R', 'I', 'F', 'F',  76,   0,   0,   0,
 		'W', 'A', 'V', 'E', 'f', 'a', 'c', 't',
 		  4,   0,   0,  0 , 'b', 'l', 'a', 'h',
@@ -444,7 +444,7 @@ foo:
 
 int main(int argc, char *argv[])
 {
-	uint32 test = 1;
+	FLAC__uint32 test = 1;
 
 	int pattern01[] = { 1, -1, 0 };
 	int pattern02[] = { 1, 1, -1, 0 };
@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
 
 	(void)argc;
 	(void)argv;
-	is_big_endian_host = (*((byte*)(&test)))? false : true;
+	is_big_endian_host = (*((FLAC__byte*)(&test)))? false : true;
 
 	if(!generate_01()) return 1;
 	if(!generate_02()) return 1;

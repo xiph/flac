@@ -35,15 +35,15 @@ static int usage(const char *message, ...);
 static int encode_file(const char *infilename, const char *forced_outfilename);
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
-bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
-bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
-bool force_to_stdout = false, delete_input = false;
+FLAC__bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
+FLAC__bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+FLAC__bool force_to_stdout = false, delete_input = false;
 const char *cmdline_forced_outfilename = 0;
 analysis_options aopts = { false, false };
 unsigned padding = 0;
 unsigned max_lpc_order = 8;
 unsigned qlp_coeff_precision = 0;
-uint64 skip = 0;
+FLAC__uint64 skip = 0;
 int format_is_wave = -1, format_is_big_endian = -1, format_is_unsigned_samples = false;
 int format_channels = -1, format_bps = -1, format_sample_rate = -1;
 int blocksize = -1, min_residual_partition_order = -1, max_residual_partition_order = -1, rice_parameter_search_dist = -1;
@@ -53,7 +53,7 @@ int num_requested_seek_points = -1; /* -1 => no -S options were given, 0 => -S- 
 int main(int argc, char *argv[])
 {
 	int i, retval = 0;
-	bool mode_decode = false;
+	FLAC__bool mode_decode = false;
 
 	if(argc <= 1)
 		return usage(0);
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "--delete-input-file-"))
 			delete_input = false;
 		else if(0 == strcmp(argv[i], "--skip"))
-			skip = (uint64)atoi(argv[++i]); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
+			skip = (FLAC__uint64)atoi(argv[++i]); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
 		else if(0 == strcmp(argv[i], "--lax"))
 			lax = true;
 		else if(0 == strcmp(argv[i], "--lax-"))
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
 	}
 
 	if(mode_decode) {
-		bool first = true;
+		FLAC__bool first = true;
 		int save_format;
 
 		if(i == argc) {
@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	else { /* encode */
-		bool first = true;
+		FLAC__bool first = true;
 		int save_format;
 
 		if(i == argc) {
@@ -512,7 +512,7 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 	FILE *encode_infile;
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
 	char *p;
-	byte lookahead[12];
+	FLAC__byte lookahead[12];
 	unsigned lookahead_length = 0;
 	int retval;
 	long infilesize;

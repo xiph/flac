@@ -28,11 +28,11 @@ typedef enum {
 } FLAC__CPUInfo_Type;
 
 typedef struct {
-	bool cmov;
-	bool mmx;
-	bool fxsr;
-	bool sse;
-	bool sse2;
+	FLAC__bool cmov;
+	FLAC__bool mmx;
+	FLAC__bool fxsr;
+	FLAC__bool sse;
+	FLAC__bool sse2;
 } FLAC__CPUInfo_IA32;
 extern const unsigned FLAC__CPUINFO_IA32_CPUID_CMOV;
 extern const unsigned FLAC__CPUINFO_IA32_CPUID_MMX;
@@ -41,7 +41,7 @@ extern const unsigned FLAC__CPUINFO_IA32_CPUID_SSE;
 extern const unsigned FLAC__CPUINFO_IA32_CPUID_SSE2;
 
 typedef struct {
-	bool use_asm;
+	FLAC__bool use_asm;
 	FLAC__CPUInfo_Type type;
 	union {
 		FLAC__CPUInfo_IA32 ia32;

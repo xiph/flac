@@ -26,14 +26,14 @@ cglobal FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 
 ; **********************************************************************
 ;
-; unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+; unsigned FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
 ; {
-; 	int32 last_error_0 = data[-1];
-; 	int32 last_error_1 = data[-1] - data[-2];
-; 	int32 last_error_2 = last_error_1 - (data[-2] - data[-3]);
-; 	int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
-; 	int32 error, save;
-; 	uint32 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
+; 	FLAC__int32 last_error_0 = data[-1];
+; 	FLAC__int32 last_error_1 = data[-1] - data[-2];
+; 	FLAC__int32 last_error_2 = last_error_1 - (data[-2] - data[-3]);
+; 	FLAC__int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
+; 	FLAC__int32 error, save;
+; 	FLAC__uint32 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
 ; 	unsigned i, order;
 ;
 ; 	for(i = 0; i < data_len; i++) {
@@ -55,11 +55,11 @@ cglobal FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 ; 	else
 ; 		order = 4;
 ;
-; 	residual_bits_per_sample[0] = (real)((data_len > 0 && total_error_0 > 0) ? log(M_LN2 * (real)total_error_0  / (real) data_len) / M_LN2 : 0.0);
-; 	residual_bits_per_sample[1] = (real)((data_len > 0 && total_error_1 > 0) ? log(M_LN2 * (real)total_error_1  / (real) data_len) / M_LN2 : 0.0);
-; 	residual_bits_per_sample[2] = (real)((data_len > 0 && total_error_2 > 0) ? log(M_LN2 * (real)total_error_2  / (real) data_len) / M_LN2 : 0.0);
-; 	residual_bits_per_sample[3] = (real)((data_len > 0 && total_error_3 > 0) ? log(M_LN2 * (real)total_error_3  / (real) data_len) / M_LN2 : 0.0);
-; 	residual_bits_per_sample[4] = (real)((data_len > 0 && total_error_4 > 0) ? log(M_LN2 * (real)total_error_4  / (real) data_len) / M_LN2 : 0.0);
+; 	residual_bits_per_sample[0] = (FLAC__real)((data_len > 0 && total_error_0 > 0) ? log(M_LN2 * (double)total_error_0 / (double)data_len) / M_LN2 : 0.0);
+; 	residual_bits_per_sample[1] = (FLAC__real)((data_len > 0 && total_error_1 > 0) ? log(M_LN2 * (double)total_error_1 / (double)data_len) / M_LN2 : 0.0);
+; 	residual_bits_per_sample[2] = (FLAC__real)((data_len > 0 && total_error_2 > 0) ? log(M_LN2 * (double)total_error_2 / (double)data_len) / M_LN2 : 0.0);
+; 	residual_bits_per_sample[3] = (FLAC__real)((data_len > 0 && total_error_3 > 0) ? log(M_LN2 * (double)total_error_3 / (double)data_len) / M_LN2 : 0.0);
+; 	residual_bits_per_sample[4] = (FLAC__real)((data_len > 0 && total_error_4 > 0) ? log(M_LN2 * (double)total_error_4 / (double)data_len) / M_LN2 : 0.0);
 ;
 ; 	return order;
 ; }
@@ -75,7 +75,7 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	push	esi
 	push	edi
 	sub	esp, byte 16
-	; qword [esp] == temp space for loading uint64s to FPU regs
+	; qword [esp] == temp space for loading FLAC__uint64s to FPU regs
 	; dword [esp] == last_error_0
 	; dword [esp + 4] == last_error_1
 	; dword [esp + 8] == last_error_2
@@ -230,11 +230,11 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 .not_order_3:
 	mov	ebp, 4
 .got_order:
-	; 	residual_bits_per_sample[0] = (real)((data_len > 0 && total_error_0 > 0) ? log(M_LN2 * (real)total_error_0  / (real) data_len) / M_LN2 : 0.0);
-	; 	residual_bits_per_sample[1] = (real)((data_len > 0 && total_error_1 > 0) ? log(M_LN2 * (real)total_error_1  / (real) data_len) / M_LN2 : 0.0);
-	; 	residual_bits_per_sample[2] = (real)((data_len > 0 && total_error_2 > 0) ? log(M_LN2 * (real)total_error_2  / (real) data_len) / M_LN2 : 0.0);
-	; 	residual_bits_per_sample[3] = (real)((data_len > 0 && total_error_3 > 0) ? log(M_LN2 * (real)total_error_3  / (real) data_len) / M_LN2 : 0.0);
-	; 	residual_bits_per_sample[4] = (real)((data_len > 0 && total_error_4 > 0) ? log(M_LN2 * (real)total_error_4  / (real) data_len) / M_LN2 : 0.0);
+	; 	residual_bits_per_sample[0] = (FLAC__real)((data_len > 0 && total_error_0 > 0) ? log(M_LN2 * (double)total_error_0 / (double)data_len) / M_LN2 : 0.0);
+	; 	residual_bits_per_sample[1] = (FLAC__real)((data_len > 0 && total_error_1 > 0) ? log(M_LN2 * (double)total_error_1 / (double)data_len) / M_LN2 : 0.0);
+	; 	residual_bits_per_sample[2] = (FLAC__real)((data_len > 0 && total_error_2 > 0) ? log(M_LN2 * (double)total_error_2 / (double)data_len) / M_LN2 : 0.0);
+	; 	residual_bits_per_sample[3] = (FLAC__real)((data_len > 0 && total_error_3 > 0) ? log(M_LN2 * (double)total_error_3 / (double)data_len) / M_LN2 : 0.0);
+	; 	residual_bits_per_sample[4] = (FLAC__real)((data_len > 0 && total_error_4 > 0) ? log(M_LN2 * (double)total_error_4 / (double)data_len) / M_LN2 : 0.0);
 	xor	eax, eax
 	cmp	eax, [esp + 40]
 	je	near .data_len_is_0
@@ -244,7 +244,7 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	jz	.total_error_0_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], ebx
-	mov	[esp + 4], eax			; [esp] = (uint64)total_error_0
+	mov	[esp + 4], eax			; [esp] = (FLAC__uint64)total_error_0
 	mov	ebx, [esp + 44]
 	fild	qword [esp]			; ST = total_error_0 1.0 data_len
 	fdiv	st2				; ST = total_error_0/data_len 1.0 data_len
@@ -261,7 +261,7 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	jz	.total_error_1_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], ecx
-	mov	[esp + 4], eax			; [esp] = (uint64)total_error_1
+	mov	[esp + 4], eax			; [esp] = (FLAC__uint64)total_error_1
 	fild	qword [esp]			; ST = total_error_1 1.0 data_len
 	fdiv	st2				; ST = total_error_1/data_len 1.0 data_len
 	fldln2					; ST = ln2 total_error_1/data_len 1.0 data_len
@@ -276,7 +276,7 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	jz	.total_error_2_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], edx
-	mov	[esp + 4], eax			; [esp] = (uint64)total_error_2
+	mov	[esp + 4], eax			; [esp] = (FLAC__uint64)total_error_2
 	fild	qword [esp]			; ST = total_error_2 1.0 data_len
 	fdiv	st2				; ST = total_error_2/data_len 1.0 data_len
 	fldln2					; ST = ln2 total_error_2/data_len 1.0 data_len
@@ -291,7 +291,7 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	jz	.total_error_3_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], esi
-	mov	[esp + 4], eax			; [esp] = (uint64)total_error_3
+	mov	[esp + 4], eax			; [esp] = (FLAC__uint64)total_error_3
 	fild	qword [esp]			; ST = total_error_3 1.0 data_len
 	fdiv	st2				; ST = total_error_3/data_len 1.0 data_len
 	fldln2					; ST = ln2 total_error_3/data_len 1.0 data_len
@@ -306,7 +306,7 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	jz	.total_error_4_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], edi
-	mov	[esp + 4], eax			; [esp] = (uint64)total_error_4
+	mov	[esp + 4], eax			; [esp] = (FLAC__uint64)total_error_4
 	fild	qword [esp]			; ST = total_error_4 1.0 data_len
 	fdiv	st2				; ST = total_error_4/data_len 1.0 data_len
 	fldln2					; ST = ln2 total_error_4/data_len 1.0 data_len

@@ -28,9 +28,9 @@ cglobal FLAC__lpc_compute_autocorrelation_asm
 
 ; **********************************************************************
 ;
-; void FLAC__lpc_compute_autocorrelation_asm(const real data[], unsigned data_len, unsigned lag, real autoc[])
+; void FLAC__lpc_compute_autocorrelation_asm(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 ; {
-;	real d;
+;	FLAC__real d;
 ;	unsigned sample, coeff;
 ;	const unsigned limit = data_len - lag;
 ;

@@ -33,7 +33,7 @@ BOOL WINAPI _DllMainCRTStartup(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lp
 #define WM_WA_MPEG_EOF WM_USER+2
 
 typedef struct {
-	bool abort_flag;
+	FLAC__bool abort_flag;
 	unsigned total_samples;
 	unsigned bits_per_sample;
 	unsigned channels;
@@ -41,8 +41,8 @@ typedef struct {
 	unsigned length_in_ms;
 } stream_info_struct;
 
-static bool stream_init(const char *infilename);
-static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
+static FLAC__bool stream_init(const char *infilename);
+static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
 static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
@@ -51,7 +51,7 @@ char lastfn[MAX_PATH]; /* currently playing file (used for getting info on the c
 int decode_pos_ms; /* current decoding position, in milliseconds */
 int paused; /* are we paused? */
 int seek_needed; /* if != -1, it is the point that the decode thread should seek to, in ms. */
-int16 reservoir[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max channels, another *2 for overflow */
+FLAC__int16 reservoir[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max channels, another *2 for overflow */
 char sample_buffer[576 * 2 * (16/8) * 2]; /* 2 for max channels, (16/8) for max bytes per sample, and 2 for who knows what */
 unsigned samples_in_reservoir;
 static stream_info_struct stream_info;
@@ -251,7 +251,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 		if (seek_needed != -1) {
 			const double distance = (double)seek_needed / (double)getlength();
 			unsigned target_sample = (unsigned)(distance * (double)stream_info.total_samples);
-			if(FLAC__file_decoder_seek_absolute(decoder, (uint64)target_sample)) {
+			if(FLAC__file_decoder_seek_absolute(decoder, (FLAC__uint64)target_sample)) {
 				decode_pos_ms = (int)(distance * (double)getlength());
 				seek_needed=-1;
 				done=0;
@@ -358,7 +358,7 @@ __declspec( dllexport ) In_Module * winampGetInModule2()
 /***********************************************************************
  * local routines
  **********************************************************************/
-bool stream_init(const char *infilename)
+FLAC__bool stream_init(const char *infilename)
 {
 	FLAC__file_decoder_set_md5_checking(decoder, false);
 	FLAC__file_decoder_set_filename(decoder, infilename);
@@ -379,7 +379,7 @@ bool stream_init(const char *infilename)
 	return true;
 }
 
-FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	const unsigned bps = stream_info->bits_per_sample, channels = stream_info->channels, wide_samples = frame->header.blocksize;
@@ -392,7 +392,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 
 	for(sample = samples_in_reservoir*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 		for(channel = 0; channel < channels; channel++, sample++)
-			reservoir[sample] = (int16)buffer[channel][wide_sample];
+			reservoir[sample] = (FLAC__int16)buffer[channel][wide_sample];
 
 	samples_in_reservoir += wide_samples;
 

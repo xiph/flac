@@ -113,11 +113,11 @@ void FLAC__stream_decoder_delete(FLAC__StreamDecoder *);
  * FLAC__stream_decoder_flush() or FLAC__stream_decoder_reset() do
  * NOT reset the values to the constructor defaults.
  */
-bool FLAC__stream_decoder_set_read_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadStatus (*value)(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data));
-bool FLAC__stream_decoder_set_write_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data));
-bool FLAC__stream_decoder_set_metadata_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
-bool FLAC__stream_decoder_set_error_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
-bool FLAC__stream_decoder_set_client_data(const FLAC__StreamDecoder *decoder, void *value);
+FLAC__bool FLAC__stream_decoder_set_read_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadStatus (*value)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));
+FLAC__bool FLAC__stream_decoder_set_write_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
+FLAC__bool FLAC__stream_decoder_set_metadata_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
+FLAC__bool FLAC__stream_decoder_set_error_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
+FLAC__bool FLAC__stream_decoder_set_client_data(const FLAC__StreamDecoder *decoder, void *value);
 
 /*
  * Methods to return the current stream decoder state, number
@@ -150,15 +150,15 @@ void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder);
 /*
  * state control methods
  */
-bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder);
-bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
 
 /*
  * Methods for decoding the data
  */
-bool FLAC__stream_decoder_process_whole_stream(FLAC__StreamDecoder *decoder);
-bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder);
-bool FLAC__stream_decoder_process_one_frame(FLAC__StreamDecoder *decoder);
-bool FLAC__stream_decoder_process_remaining_frames(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_process_whole_stream(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_process_one_frame(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_process_remaining_frames(FLAC__StreamDecoder *decoder);
 
 #endif

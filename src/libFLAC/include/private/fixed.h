@@ -34,15 +34,15 @@
  *	IN data_len
  *	OUT residual_bits_per_sample[0,FLAC__MAX_FIXED_ORDER]
  */
-unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+unsigned FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #ifndef FLAC__NO_ASM
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
-unsigned FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+unsigned FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #endif
 #endif
 #endif
-unsigned FLAC__fixed_compute_best_predictor_slow(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+unsigned FLAC__fixed_compute_best_predictor_slow(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 
 /*
  *	FLAC__fixed_compute_residual()
@@ -55,7 +55,7 @@ unsigned FLAC__fixed_compute_best_predictor_slow(const int32 data[], unsigned da
  *	IN order <= FLAC__MAX_FIXED_ORDER fixed-predictor order
  *	OUT residual[0,data_len-1]        residual signal
  */
-void FLAC__fixed_compute_residual(const int32 data[], unsigned data_len, unsigned order, int32 residual[]);
+void FLAC__fixed_compute_residual(const FLAC__int32 data[], unsigned data_len, unsigned order, FLAC__int32 residual[]);
 
 /*
  *	FLAC__fixed_restore_signal()
@@ -70,6 +70,6 @@ void FLAC__fixed_compute_residual(const int32 data[], unsigned data_len, unsigne
  *	IN  data[-order,-1]               previously-reconstructed historical samples
  *	OUT data[0,data_len-1]            original signal
  */
-void FLAC__fixed_restore_signal(const int32 residual[], unsigned data_len, unsigned order, int32 data[]);
+void FLAC__fixed_restore_signal(const FLAC__int32 residual[], unsigned data_len, unsigned order, FLAC__int32 data[]);
 
 #endif

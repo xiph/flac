@@ -28,17 +28,17 @@
 
 #include "private/md5.h"
 
-static bool is_big_endian_host_;
+static FLAC__bool is_big_endian_host_;
 
 void
-byteSwap(uint32 *buf, unsigned words)
+byteSwap(FLAC__uint32 *buf, unsigned words)
 {
 	md5byte *p = (md5byte *)buf;
 
 	if(!is_big_endian_host_)
 		return;
 	do {
-		*buf++ = (uint32)((unsigned)p[3] << 8 | p[2]) << 16 | ((unsigned)p[1] << 8 | p[0]);
+		*buf++ = (FLAC__uint32)((unsigned)p[3] << 8 | p[2]) << 16 | ((unsigned)p[1] << 8 | p[0]);
 		p += 4;
 	} while (--words);
 }
@@ -50,9 +50,9 @@ byteSwap(uint32 *buf, unsigned words)
 void
 MD5Init(struct MD5Context *ctx)
 {
-    uint32 test = 1;
+    FLAC__uint32 test = 1;
 
-    is_big_endian_host_ = (*((byte*)(&test)))? false : true;
+    is_big_endian_host_ = (*((FLAC__byte*)(&test)))? false : true;
 
 	ctx->buf[0] = 0x67452301;
 	ctx->buf[1] = 0xefcdab89;
@@ -73,7 +73,7 @@ MD5Init(struct MD5Context *ctx)
 void
 MD5Update(struct MD5Context *ctx, md5byte const *buf, unsigned len)
 {
-	uint32 t;
+	FLAC__uint32 t;
 
 	/* Update byte count */
 
@@ -109,16 +109,16 @@ MD5Update(struct MD5Context *ctx, md5byte const *buf, unsigned len)
 /*
  * Convert the incoming audio signal to a byte stream and MD5Update it.
  */
-bool
-FLAC__MD5Accumulate(struct MD5Context *ctx, const int32 *signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
+FLAC__bool
+FLAC__MD5Accumulate(struct MD5Context *ctx, const FLAC__int32 *signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
 {
 	unsigned channel, sample, a_byte;
-	int32 a_word;
-	byte *buf_;
+	FLAC__int32 a_word;
+	FLAC__byte *buf_;
 	const unsigned bytes_needed = channels * samples * bytes_per_sample;
 
 	if(ctx->capacity < bytes_needed) {
-		byte *tmp = realloc(ctx->internal_buf, bytes_needed);
+		FLAC__byte *tmp = realloc(ctx->internal_buf, bytes_needed);
 		if(0 == tmp) {
 			free(ctx->internal_buf);
 			if(0 == (ctx->internal_buf = malloc(bytes_needed)))
@@ -134,7 +134,7 @@ FLAC__MD5Accumulate(struct MD5Context *ctx, const int32 *signal[], unsigned chan
 		for(channel = 0; channel < channels; channel++) {
 			a_word = signal[channel][sample];
 			for(a_byte = 0; a_byte < bytes_per_sample; a_byte++) {
-				*buf_++ = (byte)(a_word & 0xff);
+				*buf_++ = (FLAC__byte)(a_word & 0xff);
 				a_word >>= 8;
 			}
 		}
@@ -206,9 +206,9 @@ MD5Final(md5byte digest[16], struct MD5Context *ctx)
  * the data and converts bytes into longwords for this routine.
  */
 void
-MD5Transform(uint32 buf[4], uint32 const in[16])
+MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16])
 {
-	register uint32 a, b, c, d;
+	register FLAC__uint32 a, b, c, d;
 
 	a = buf[0];
 	b = buf[1];

@@ -18,7 +18,7 @@
 
 #include "private/bitbuffer.h" /* from the libFLAC private include area */
 
-static bool dummy_read_callback(byte buffer[], unsigned *bytes, void *client_data)
+static FLAC__bool dummy_read_callback(FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {
 	(void)buffer, (void)bytes, (void)client_data;
 	return true;
@@ -27,9 +27,9 @@ static bool dummy_read_callback(byte buffer[], unsigned *bytes, void *client_dat
 int test_bitbuffer()
 {
 	FLAC__BitBuffer bb, bb_zero, bb_one, bbcopy;
-	bool ok;
+	FLAC__bool ok;
 	unsigned i, j;
-	static byte test_pattern1[19] = { 0xaa, 0xf0, 0xaa, 0xbe, 0xaa, 0xaa, 0xaa, 0xa8, 0x30, 0x0a, 0xaa, 0xaa, 0xaa, 0xad, 0xea, 0xdb, 0xee, 0xfa, 0xce };
+	static FLAC__byte test_pattern1[19] = { 0xaa, 0xf0, 0xaa, 0xbe, 0xaa, 0xaa, 0xaa, 0xa8, 0x30, 0x0a, 0xaa, 0xaa, 0xaa, 0xad, 0xea, 0xdb, 0xee, 0xfa, 0xce };
 
 	printf("testing init... OK\n");
 	FLAC__bitbuffer_init(&bb);
@@ -87,7 +87,7 @@ int test_bitbuffer()
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
 	}
-	if(memcmp(bb.buffer, test_pattern1, sizeof(byte)*sizeof(test_pattern1)) != 0) {
+	if(memcmp(bb.buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
@@ -117,7 +117,7 @@ int test_bitbuffer()
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
 	}
-	if(memcmp(bb.buffer, test_pattern1, sizeof(byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes] != 0x3d) {
+	if(memcmp(bb.buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes] != 0x3d) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
@@ -147,7 +147,7 @@ int test_bitbuffer()
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
 	}
-	if(memcmp(bb.buffer, test_pattern1, sizeof(byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes] != 0x3d) {
+	if(memcmp(bb.buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes] != 0x3d) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
@@ -177,7 +177,7 @@ int test_bitbuffer()
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
 	}
-	if(memcmp(bb.buffer, test_pattern1, sizeof(byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes] != 0x7b) {
+	if(memcmp(bb.buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes] != 0x7b) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
@@ -209,7 +209,7 @@ int test_bitbuffer()
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
 	}
-	if(memcmp(bb.buffer, test_pattern1, sizeof(byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes-1] != 0xf7) {
+	if(memcmp(bb.buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes-1] != 0xf7) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
@@ -241,7 +241,7 @@ int test_bitbuffer()
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
 	}
-	if(memcmp(bb.buffer, test_pattern1, sizeof(byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes] != 0x08) {
+	if(memcmp(bb.buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes] != 0x08) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
@@ -273,7 +273,7 @@ int test_bitbuffer()
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
 	}
-	if(memcmp(bb.buffer, test_pattern1, sizeof(byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes-1] != 0x8a || bb.buffer[bb.bytes] != 0x0a) {
+	if(memcmp(bb.buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes-1] != 0x8a || bb.buffer[bb.bytes] != 0x0a) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
@@ -304,7 +304,7 @@ int test_bitbuffer()
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
 	}
-	if(memcmp(bb.buffer, test_pattern1, sizeof(byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes-3] != 0x8a || bb.buffer[bb.bytes-2] != 0xaa || bb.buffer[bb.bytes-1] != 0xaa || bb.buffer[bb.bytes] != 0x15) {
+	if(memcmp(bb.buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb.buffer[bb.bytes-3] != 0x8a || bb.buffer[bb.bytes-2] != 0xaa || bb.buffer[bb.bytes-1] != 0xaa || bb.buffer[bb.bytes] != 0x15) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(&bb, stdout);
 		return 1;
@@ -612,7 +612,7 @@ int test_bitbuffer()
 		FLAC__bitbuffer_dump(&bbcopy, stdout);
 		return 1;
 	}
-	if(memcmp(bb.buffer, bbcopy.buffer, sizeof(byte)*bb.capacity) != 0) {
+	if(memcmp(bb.buffer, bbcopy.buffer, sizeof(FLAC__byte)*bb.capacity) != 0) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(&bb, stdout);
 		FLAC__bitbuffer_dump(&bbcopy, stdout);

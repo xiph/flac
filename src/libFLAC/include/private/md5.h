@@ -31,18 +31,18 @@
 #include "FLAC/ordinals.h"
 
 struct MD5Context {
-	uint32 buf[4];
-	uint32 bytes[2];
-	uint32 in[16];
-	byte *internal_buf;
+	FLAC__uint32 buf[4];
+	FLAC__uint32 bytes[2];
+	FLAC__uint32 in[16];
+	FLAC__byte *internal_buf;
 	unsigned capacity;
 };
 
 void MD5Init(struct MD5Context *context);
 void MD5Update(struct MD5Context *context, md5byte const *buf, unsigned len);
 void MD5Final(md5byte digest[16], struct MD5Context *context);
-void MD5Transform(uint32 buf[4], uint32 const in[16]);
+void MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16]);
 
-bool FLAC__MD5Accumulate(struct MD5Context *ctx, const int32 *signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample);
+FLAC__bool FLAC__MD5Accumulate(struct MD5Context *ctx, const FLAC__int32 *signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample);
 
 #endif /* !MD5_H */

@@ -19,11 +19,11 @@
 
 #include "FLAC/seek_table.h"
 
-bool FLAC__seek_table_is_valid(const FLAC__StreamMetaData_SeekTable *seek_table)
+FLAC__bool FLAC__seek_table_is_valid(const FLAC__StreamMetaData_SeekTable *seek_table)
 {
 	unsigned i;
-	uint64 last_sample_number = 0;
-	bool got_last = false;
+	FLAC__uint64 last_sample_number = 0;
+	FLAC__bool got_last = false;
 
 	for(i = 0; i < seek_table->num_points; i++) {
 		if(seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER) {

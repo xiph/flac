@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include "FLAC/format.h"
 
-const byte     FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
+const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
 const unsigned FLAC__STREAM_SYNC = 0x664C6143;
 const unsigned FLAC__STREAM_SYNC_LEN = 32; /* bits */;
 
@@ -42,7 +42,7 @@ const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN = 64; /* bits *
 const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN = 16; /* bits */
 const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LEN = 18; /* bytes */
 
-const uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER = 0xffffffffffffffff;
+const FLAC__uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER = 0xffffffffffffffff;
 
 const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN = 1; /* bits */
 const unsigned FLAC__STREAM_METADATA_TYPE_LEN = 7; /* bits */

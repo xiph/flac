@@ -20,8 +20,8 @@
 #define flac__analyze_h
 
 typedef struct {
-	bool do_residual_text;
-	bool do_residual_gnuplot;
+	FLAC__bool do_residual_text;
+	FLAC__bool do_residual_gnuplot;
 } analysis_options;
 
 void flac__analyze_init(analysis_options aopts);

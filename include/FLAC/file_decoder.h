@@ -62,11 +62,11 @@ typedef struct {
  * will take on the defaults from the constructor, shown below.
  * For more on what the parameters mean, see the documentation.
  *
- * bool     md5_checking                   (DEFAULT: false) MD5 checking will be turned off if a seek is requested
- *        (*write_callback)()              (DEFAULT: NULL ) The callbacks are the only values that MUST be set before FLAC__file_decoder_init()
- *        (*metadata_callback)()           (DEFAULT: NULL )
- *        (*error_callback)()              (DEFAULT: NULL )
- * void*    client_data                    (DEFAULT: NULL ) passed back through the callbacks
+ * FLAC__bool  md5_checking                   (DEFAULT: false) MD5 checking will be turned off if a seek is requested
+ *           (*write_callback)()              (DEFAULT: NULL ) The callbacks are the only values that MUST be set before FLAC__file_decoder_init()
+ *           (*metadata_callback)()           (DEFAULT: NULL )
+ *           (*error_callback)()              (DEFAULT: NULL )
+ * void*       client_data                    (DEFAULT: NULL ) passed back through the callbacks
  */
 FLAC__FileDecoder *FLAC__file_decoder_new();
 void FLAC__file_decoder_delete(FLAC__FileDecoder *);
@@ -94,18 +94,18 @@ void FLAC__file_decoder_delete(FLAC__FileDecoder *);
  * FLAC__file_decoder_flush() or FLAC__file_decoder_reset() do
  * NOT reset the values to the constructor defaults.
  */
-bool FLAC__file_decoder_set_md5_checking(const FLAC__FileDecoder *decoder, bool value);
-bool FLAC__file_decoder_set_filename(const FLAC__FileDecoder *decoder, const char *value);
-bool FLAC__file_decoder_set_write_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data));
-bool FLAC__file_decoder_set_metadata_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
-bool FLAC__file_decoder_set_error_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
-bool FLAC__file_decoder_set_client_data(const FLAC__FileDecoder *decoder, void *value);
+FLAC__bool FLAC__file_decoder_set_md5_checking(const FLAC__FileDecoder *decoder, FLAC__bool value);
+FLAC__bool FLAC__file_decoder_set_filename(const FLAC__FileDecoder *decoder, const char *value);
+FLAC__bool FLAC__file_decoder_set_write_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
+FLAC__bool FLAC__file_decoder_set_metadata_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
+FLAC__bool FLAC__file_decoder_set_error_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
+FLAC__bool FLAC__file_decoder_set_client_data(const FLAC__FileDecoder *decoder, void *value);
 
 /*
  * Various "get" methods
  */
 FLAC__FileDecoderState FLAC__file_decoder_get_state(const FLAC__FileDecoder *decoder);
-bool FLAC__file_decoder_get_md5_checking(const FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_get_md5_checking(const FLAC__FileDecoder *decoder);
 
 /*
  * Initialize the instance; should be called after construction and
@@ -121,16 +121,16 @@ FLAC__FileDecoderState FLAC__file_decoder_init(FLAC__FileDecoder *decoder);
  * md5_checking is set AND the stored MD5 sum is non-zero AND the stored
  * MD5 sum and computed MD5 sum do not match.
  */
-bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder);
 
 /*
  * Methods for decoding the data
  */
-bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder);
-bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder);
-bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder);
-bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder);
 
-bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample);
+FLAC__bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, FLAC__uint64 sample);
 
 #endif

@@ -27,10 +27,10 @@
 #endif
 #define max(x,y) ((x)>(y)?(x):(y))
 
-static bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method);
-static bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order);
+static FLAC__bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method);
+static FLAC__bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order);
 
-bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 
@@ -112,10 +112,10 @@ bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuf
 	return true;
 }
 
-bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_subset, bool is_last_block, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool streamable_subset, FLAC__bool is_last_block, FLAC__BitBuffer *bb)
 {
 	unsigned u, crc8_start, blocksize_hint, sample_rate_hint;
-	byte crc8;
+	FLAC__byte crc8;
 
 	FLAC__ASSERT(bb->bits == 0); /* assert that we're byte-aligned before writing */
 
@@ -254,9 +254,9 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	return true;
 }
 
-bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
-	bool ok;
+	FLAC__bool ok;
 
 	ok =
 		FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN) &&
@@ -267,7 +267,7 @@ bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsign
 	return ok;
 }
 
-bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 
@@ -295,7 +295,7 @@ bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned res
 	return true;
 }
 
-bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 
@@ -331,10 +331,10 @@ bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residua
 	return true;
 }
 
-bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	unsigned i;
-	const int32 *signal = subframe->data;
+	const FLAC__int32 *signal = subframe->data;
 
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
@@ -349,7 +349,7 @@ bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsign
 	return true;
 }
 
-bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method)
+FLAC__bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method)
 {
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, method->type, FLAC__ENTROPY_CODING_METHOD_TYPE_LEN))
 		return false;
@@ -364,7 +364,7 @@ bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__Entrop
 	return true;
 }
 
-bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order)
+FLAC__bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order)
 {
 	if(partition_order == 0) {
 		unsigned i;

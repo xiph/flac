@@ -22,15 +22,15 @@
 
 #include <stdlib.h> /* for size_t */
 
-#include "FLAC/ordinals.h" /* for bool */
+#include "FLAC/ordinals.h" /* for FLAC__bool */
 
 /* Returns the unaligned address returned by malloc.
  * Use free() on this address to deallocate.
  */
 void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address);
-bool FLAC__memory_alloc_aligned_int32_array(unsigned elements, int32 **unaligned_pointer, int32 **aligned_pointer);
-bool FLAC__memory_alloc_aligned_uint32_array(unsigned elements, uint32 **unaligned_pointer, uint32 **aligned_pointer);
-bool FLAC__memory_alloc_aligned_unsigned_array(unsigned elements, unsigned **unaligned_pointer, unsigned **aligned_pointer);
-bool FLAC__memory_alloc_aligned_real_array(unsigned elements, real **unaligned_pointer, real **aligned_pointer);
+FLAC__bool FLAC__memory_alloc_aligned_int32_array(unsigned elements, FLAC__int32 **unaligned_pointer, FLAC__int32 **aligned_pointer);
+FLAC__bool FLAC__memory_alloc_aligned_uint32_array(unsigned elements, FLAC__uint32 **unaligned_pointer, FLAC__uint32 **aligned_pointer);
+FLAC__bool FLAC__memory_alloc_aligned_unsigned_array(unsigned elements, unsigned **unaligned_pointer, unsigned **aligned_pointer);
+FLAC__bool FLAC__memory_alloc_aligned_real_array(unsigned elements, FLAC__real **unaligned_pointer, FLAC__real **aligned_pointer);
 
 #endif

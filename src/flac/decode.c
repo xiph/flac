@@ -32,39 +32,39 @@
 typedef struct {
 	const char *inbasefilename;
 	FILE *fout;
-	bool abort_flag;
-	bool analysis_mode;
+	FLAC__bool abort_flag;
+	FLAC__bool analysis_mode;
 	analysis_options aopts;
-	bool test_only;
-	bool is_wave_out;
-	bool is_big_endian;
-	bool is_unsigned_samples;
-	uint64 total_samples;
+	FLAC__bool test_only;
+	FLAC__bool is_wave_out;
+	FLAC__bool is_big_endian;
+	FLAC__bool is_unsigned_samples;
+	FLAC__uint64 total_samples;
 	unsigned bps;
 	unsigned channels;
 	unsigned sample_rate;
-	bool verbose;
-	uint64 skip;
-	bool skip_count_too_high;
-	uint64 samples_processed;
+	FLAC__bool verbose;
+	FLAC__uint64 skip;
+	FLAC__bool skip_count_too_high;
+	FLAC__uint64 samples_processed;
 	unsigned frame_counter;
 } stream_info_struct;
 
 static FLAC__FileDecoder *decoder;
-static bool is_big_endian_host;
+static FLAC__bool is_big_endian_host;
 
 /* local routines */
-static bool init(const char *infilename, stream_info_struct *stream_info);
-static bool write_little_endian_uint16(FILE *f, uint16 val);
-static bool write_little_endian_uint32(FILE *f, uint32 val);
-static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
+static FLAC__bool init(const char *infilename, stream_info_struct *stream_info);
+static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
+static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val);
+static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
 static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const stream_info_struct *stream_info);
 
-int flac__decode_wav(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip)
+int flac__decode_wav(const char *infile, const char *outfile, FLAC__bool analysis_mode, analysis_options aopts, FLAC__bool verbose, FLAC__uint64 skip)
 {
-	bool md5_failure = false;
+	FLAC__bool md5_failure = false;
 	stream_info_struct stream_info;
 
 	decoder = 0;
@@ -171,9 +171,9 @@ wav_abort_:
 	return 1;
 }
 
-int flac__decode_raw(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples)
+int flac__decode_raw(const char *infile, const char *outfile, FLAC__bool analysis_mode, analysis_options aopts, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples)
 {
-	bool md5_failure = false;
+	FLAC__bool md5_failure = false;
 	stream_info_struct stream_info;
 
 	decoder = 0;
@@ -282,11 +282,11 @@ raw_abort_:
 	return 1;
 }
 
-bool init(const char *infilename, stream_info_struct *stream_info)
+FLAC__bool init(const char *infilename, stream_info_struct *stream_info)
 {
-	uint32 test = 1;
+	FLAC__uint32 test = 1;
 
-	is_big_endian_host = (*((byte*)(&test)))? false : true;
+	is_big_endian_host = (*((FLAC__byte*)(&test)))? false : true;
 
 	decoder = FLAC__file_decoder_new();
 	if(0 == decoder) {
@@ -309,42 +309,42 @@ bool init(const char *infilename, stream_info_struct *stream_info)
 	return true;
 }
 
-bool write_little_endian_uint16(FILE *f, uint16 val)
+FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val)
 {
-	byte *b = (byte*)(&val);
+	FLAC__byte *b = (FLAC__byte*)(&val);
 	if(is_big_endian_host) {
-		byte tmp;
+		FLAC__byte tmp;
 		tmp = b[1]; b[1] = b[0]; b[0] = tmp;
 	}
 	return fwrite(b, 1, 2, f) == 2;
 }
 
-bool write_little_endian_uint32(FILE *f, uint32 val)
+FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val)
 {
-	byte *b = (byte*)(&val);
+	FLAC__byte *b = (FLAC__byte*)(&val);
 	if(is_big_endian_host) {
-		byte tmp;
+		FLAC__byte tmp;
 		tmp = b[3]; b[3] = b[0]; b[0] = tmp;
 		tmp = b[2]; b[2] = b[1]; b[1] = tmp;
 	}
 	return fwrite(b, 1, 4, f) == 4;
 }
 
-FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	FILE *fout = stream_info->fout;
 	unsigned bps = stream_info->bps, channels = stream_info->channels;
-	bool is_big_endian = (stream_info->is_wave_out? false : stream_info->is_big_endian);
-	bool is_unsigned_samples = (stream_info->is_wave_out? bps<=8 : stream_info->is_unsigned_samples);
+	FLAC__bool is_big_endian = (stream_info->is_wave_out? false : stream_info->is_big_endian);
+	FLAC__bool is_unsigned_samples = (stream_info->is_wave_out? bps<=8 : stream_info->is_unsigned_samples);
 	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, byte;
-	static int8 s8buffer[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(int32)]; /* WATCHOUT: can be up to 2 megs */
-	/* WATCHOUT: we say 'sizeof(int32)' above instead of '(FLAC__MAX_BITS_PER_SAMPLE+7)/8' because we have to use an array int32 even for 24 bps */
-	uint8  *u8buffer  = (uint8  *)s8buffer;
-	int16  *s16buffer = (int16  *)s8buffer;
-	uint16 *u16buffer = (uint16 *)s8buffer;
-	int32  *s32buffer = (int32  *)s8buffer;
-	uint32 *u32buffer = (uint32 *)s8buffer;
+	static FLAC__int8 s8buffer[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(FLAC__int32)]; /* WATCHOUT: can be up to 2 megs */
+	/* WATCHOUT: we say 'sizeof(FLAC__int32)' above instead of '(FLAC__MAX_BITS_PER_SAMPLE+7)/8' because we have to use an array FLAC__int32 even for 24 bps */
+	FLAC__uint8  *u8buffer  = (FLAC__uint8  *)s8buffer;
+	FLAC__int16  *s16buffer = (FLAC__int16  *)s8buffer;
+	FLAC__uint16 *u16buffer = (FLAC__uint16 *)s8buffer;
+	FLAC__int32  *s32buffer = (FLAC__int32  *)s8buffer;
+	FLAC__uint32 *u32buffer = (FLAC__uint32 *)s8buffer;
 
 	(void)decoder;
 
@@ -475,24 +475,24 @@ void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaD
 
 		/* write the WAVE headers if necessary */
 		if(!stream_info->analysis_mode && !stream_info->test_only && stream_info->is_wave_out) {
-			uint64 data_size = stream_info->total_samples * stream_info->channels * ((stream_info->bps+7)/8);
+			FLAC__uint64 data_size = stream_info->total_samples * stream_info->channels * ((stream_info->bps+7)/8);
 			if(data_size >= 0xFFFFFFDC) {
 				fprintf(stderr, "%s: ERROR: stream is too big to fit in a single WAVE file chunk\n", stream_info->inbasefilename);
 				stream_info->abort_flag = true;
 				return;
 			}
 			if(fwrite("RIFF", 1, 4, stream_info->fout) != 4) stream_info->abort_flag = true;
-			if(!write_little_endian_uint32(stream_info->fout, (uint32)(data_size+36))) stream_info->abort_flag = true; /* filesize-8 */
+			if(!write_little_endian_uint32(stream_info->fout, (FLAC__uint32)(data_size+36))) stream_info->abort_flag = true; /* filesize-8 */
 			if(fwrite("WAVEfmt ", 1, 8, stream_info->fout) != 8) stream_info->abort_flag = true;
 			if(fwrite("\020\000\000\000", 1, 4, stream_info->fout) != 4) stream_info->abort_flag = true; /* chunk size = 16 */
 			if(fwrite("\001\000", 1, 2, stream_info->fout) != 2) stream_info->abort_flag = true; /* compression code == 1 */
-			if(!write_little_endian_uint16(stream_info->fout, (uint16)(stream_info->channels))) stream_info->abort_flag = true;
+			if(!write_little_endian_uint16(stream_info->fout, (FLAC__uint16)(stream_info->channels))) stream_info->abort_flag = true;
 			if(!write_little_endian_uint32(stream_info->fout, stream_info->sample_rate)) stream_info->abort_flag = true;
 			if(!write_little_endian_uint32(stream_info->fout, stream_info->sample_rate * stream_info->channels * ((stream_info->bps+7) / 8))) stream_info->abort_flag = true; /* @@@ or is it (sample_rate*channels*bps) / 8 ??? */
-			if(!write_little_endian_uint16(stream_info->fout, (uint16)(stream_info->channels * ((stream_info->bps+7) / 8)))) stream_info->abort_flag = true; /* block align */
-			if(!write_little_endian_uint16(stream_info->fout, (uint16)(stream_info->bps))) stream_info->abort_flag = true; /* bits per sample */
+			if(!write_little_endian_uint16(stream_info->fout, (FLAC__uint16)(stream_info->channels * ((stream_info->bps+7) / 8)))) stream_info->abort_flag = true; /* block align */
+			if(!write_little_endian_uint16(stream_info->fout, (FLAC__uint16)(stream_info->bps))) stream_info->abort_flag = true; /* bits per sample */
 			if(fwrite("data", 1, 4, stream_info->fout) != 4) stream_info->abort_flag = true;
-			if(!write_little_endian_uint32(stream_info->fout, (uint32)data_size)) stream_info->abort_flag = true; /* data size */
+			if(!write_little_endian_uint32(stream_info->fout, (FLAC__uint32)data_size)) stream_info->abort_flag = true; /* data size */
 		}
 	}
 }
@@ -510,7 +510,7 @@ void print_stats(const stream_info_struct *stream_info)
 	if(stream_info->verbose) {
 #ifdef _MSC_VER
 		/* with VC++ you have to spoon feed it the casting */
-		const double progress = (double)(int64)stream_info->samples_processed / (double)(int64)stream_info->total_samples * 100.0;
+		const double progress = (double)(FLAC__int64)stream_info->samples_processed / (double)(FLAC__int64)stream_info->total_samples * 100.0;
 #else
 		const double progress = (double)stream_info->samples_processed / (double)stream_info->total_samples * 100.0;
 #endif

@@ -27,7 +27,7 @@
 #define FLAC__MAX_BLOCK_SIZE (65535u)
 #define FLAC__MAX_CHANNELS (8u)
 #define FLAC__MIN_BITS_PER_SAMPLE (4u)
-/*NOTE: only up to 24 because of the current predictor coefficient quantization and the fact we use int32s for all work */
+/*NOTE: only up to 24 because of the current predictor coefficient quantization and the fact we use FLAC__int32s for all work */
 #define FLAC__MAX_BITS_PER_SAMPLE (24u)
 /* the following is ((2 ** 20) - 1) div 10 */
 #define FLAC__MAX_SAMPLE_RATE (1048570u)
@@ -42,7 +42,7 @@
 #define FLAC__VERSION_STRING VERSION
 #endif
 
-extern const byte     FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */;
+extern const FLAC__byte FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */;
 extern const unsigned FLAC__STREAM_SYNC; /* = 0x664C6143 */;
 extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */;
 
@@ -115,7 +115,7 @@ extern const char *FLAC__SubframeTypeString[];
  * n: constant value for signal; n = frame's bits-per-sample
  */
 typedef struct {
-	int32 value;
+	FLAC__int32 value;
 } FLAC__Subframe_Constant;
 
 /*****************************************************************************
@@ -123,7 +123,7 @@ typedef struct {
  * n*i: unencoded signal; n = frame's bits-per-sample, i = frame's blocksize
  */
 typedef struct {
-	const int32 *data;
+	const FLAC__int32 *data;
 } FLAC__Subframe_Verbatim;
 
 /*****************************************************************************
@@ -136,8 +136,8 @@ typedef struct {
 typedef struct {
 	FLAC__EntropyCodingMethod entropy_coding_method;
 	unsigned order;
-	int32 warmup[FLAC__MAX_FIXED_ORDER];
-	const int32 *residual;
+	FLAC__int32 warmup[FLAC__MAX_FIXED_ORDER];
+	const FLAC__int32 *residual;
 } FLAC__Subframe_Fixed;
 
 /*****************************************************************************
@@ -155,9 +155,9 @@ typedef struct {
 	unsigned order;
 	unsigned qlp_coeff_precision;
 	int quantization_level;
-	int32 qlp_coeff[FLAC__MAX_LPC_ORDER];
-	int32 warmup[FLAC__MAX_LPC_ORDER];
-	const int32 *residual;
+	FLAC__int32 qlp_coeff[FLAC__MAX_LPC_ORDER];
+	FLAC__int32 warmup[FLAC__MAX_LPC_ORDER];
+	const FLAC__int32 *residual;
 } FLAC__Subframe_LPC;
 
 extern const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN; /* = 4 bits */
@@ -278,10 +278,10 @@ typedef struct {
 	FLAC__ChannelAssignment channel_assignment;
 	unsigned bits_per_sample;
 	union {
-		uint32 frame_number;
-		uint64 sample_number;
+		FLAC__uint32 frame_number;
+		FLAC__uint64 sample_number;
 	} number;
-	uint8 crc;
+	FLAC__uint8 crc;
 } FLAC__FrameHeader;
 
 extern const unsigned FLAC__FRAME_HEADER_SYNC; /* = 0x3ffe */
@@ -299,7 +299,7 @@ extern const unsigned FLAC__FRAME_HEADER_CRC_LEN; /* = 8 bits */
  * 16: CRC-16 (polynomial = x^16 + x^15 + x^2 + x^0, initialized with 0) of everything before the crc, back to and including the frame header sync code
  */
 typedef struct {
-	uint16 crc;
+	FLAC__uint16 crc;
 } FLAC__FrameFooter;
 
 extern const unsigned FLAC__FRAME_FOOTER_CRC_LEN; /* = 16 bits */
@@ -347,8 +347,8 @@ typedef struct {
 	unsigned sample_rate;
 	unsigned channels;
 	unsigned bits_per_sample;
-	uint64 total_samples;
-	byte md5sum[16];
+	FLAC__uint64 total_samples;
+	FLAC__byte md5sum[16];
 } FLAC__StreamMetaData_StreamInfo;
 
 extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN; /* = 16 bits */
@@ -381,8 +381,8 @@ typedef struct {
  * 4+n/8  bytes total
  */
 typedef struct {
-	byte id[4];
-	byte *data;
+	FLAC__byte id[4];
+	FLAC__byte *data;
 } FLAC__StreamMetaData_Application;
 
 extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /* = 32 bits */
@@ -396,8 +396,8 @@ extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /* = 32 bits */
  *  18  bytes total
  */
 typedef struct {
-	uint64 sample_number;
-	uint64 stream_offset;
+	FLAC__uint64 sample_number;
+	FLAC__uint64 stream_offset;
 	unsigned frame_samples;
 } FLAC__StreamMetaData_SeekPoint;
 
@@ -406,7 +406,7 @@ extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN; /* = 64
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN; /* = 16 bits */
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LEN; /* = 18 bytes */
 
-extern const uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER; /* = 0xffffffffffffffff */
+extern const FLAC__uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER; /* = 0xffffffffffffffff */
 
 /*****************************************************************************
  *
@@ -436,7 +436,7 @@ typedef struct {
  */
 typedef struct {
 	FLAC__MetaDataType type;
-	bool is_last;
+	FLAC__bool is_last;
 	unsigned length; /* in bytes */
 	union {
 		FLAC__StreamMetaData_StreamInfo stream_info;

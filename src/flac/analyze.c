@@ -24,7 +24,7 @@
 #include "analyze.h"
 
 typedef struct {
-	int32 residual;
+	FLAC__int32 residual;
 	unsigned count;
 } pair_t;
 
@@ -42,9 +42,9 @@ typedef struct {
 static subframe_stats_t all_;
 
 static void init_stats(subframe_stats_t *stats);
-static void update_stats(subframe_stats_t *stats, int32 residual, unsigned incr);
+static void update_stats(subframe_stats_t *stats, FLAC__int32 residual, unsigned incr);
 static void compute_stats(subframe_stats_t *stats);
-static bool dump_stats(const subframe_stats_t *stats, const char *filename);
+static FLAC__bool dump_stats(const subframe_stats_t *stats, const char *filename);
 
 void flac__analyze_init(analysis_options aopts)
 {
@@ -147,7 +147,7 @@ void init_stats(subframe_stats_t *stats)
 	stats->sos = 0.0;
 }
 
-void update_stats(subframe_stats_t *stats, int32 residual, unsigned incr)
+void update_stats(subframe_stats_t *stats, FLAC__int32 residual, unsigned incr)
 {
 	unsigned i;
 	const double r = (double)residual, a = r*incr;
@@ -179,7 +179,7 @@ void compute_stats(subframe_stats_t *stats)
 	stats->stddev = sqrt(stats->variance);
 }
 
-bool dump_stats(const subframe_stats_t *stats, const char *filename)
+FLAC__bool dump_stats(const subframe_stats_t *stats, const char *filename)
 {
 	FILE *outfile;
 	unsigned i;

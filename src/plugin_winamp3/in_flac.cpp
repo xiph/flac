@@ -22,7 +22,7 @@
 #include "FLAC/all.h"
 
 typedef struct {
-	byte raw[128];
+	FLAC__byte raw[128];
 	char title[31];
 	char artist[31];
 	char album[31];
@@ -34,9 +34,9 @@ typedef struct {
 } id3v1_struct;
 
 typedef struct {
-	bool abort_flag;
-	bool is_playing;
-	bool eof;
+	FLAC__bool abort_flag;
+	FLAC__bool is_playing;
+	FLAC__bool eof;
 	unsigned total_samples;
 	unsigned bits_per_sample;
 	unsigned channels;
@@ -44,9 +44,9 @@ typedef struct {
 	unsigned length_in_msec;
 } file_info_struct;
 
-static bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
-static bool decoder_init_(const char *filename);
-static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
+static FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
+static FLAC__bool decoder_init_(const char *filename);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
 static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
@@ -131,17 +131,17 @@ class FLAC_Source : public WInputSource
 	private:
 		id3v1_struct tag_;
 		FLAC__FileDecoder *decoder_;
-		int16 reservoir_[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max channels, another *2 for overflow */
+		FLAC__int16 reservoir_[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max channels, another *2 for overflow */
 		unsigned reservoir_samples_;
 		file_info_struct file_info_;
-		bool audio_error_;
+		FLAC__bool audio_error_;
 	public:
 		FLAC_Source();
 		~FLAC_Source();
 		inline char *GetDescription(void) { return plugin_description_; }
 		inline int UsesOutputFilters(void) { return 1; }
-		int Open(char *url, bool *killswitch);
-		int GetSamples(char *sample_buffer, int bytes, int *bps, int *nch, int *srate, bool *killswitch);
+		int Open(char *url, FLAC__bool *killswitch);
+		int GetSamples(char *sample_buffer, int bytes, int *bps, int *nch, int *srate, FLAC__bool *killswitch);
 		int SetPosition(int); // sets position in ms
 		void GetTitle(char *buf, int maxlen);
 		void GetInfoString(char *buf, int maxlen);
@@ -174,7 +174,7 @@ void FLAC_Source::GetInfoString(char *buf, int maxlen)
 	buf[maxlen-1] = 0;
 }
 
-int FLAC_Source::Open(char *url, bool *killswitch)
+int FLAC_Source::Open(char *url, FLAC__bool *killswitch)
 {
 	const char *filename = url; /* @@@ right now we only handle files */
 
@@ -205,7 +205,7 @@ int FLAC_Source::Open(char *url, bool *killswitch)
 	return 0;
 }
 
-int FLAC_Source::GetSamples(char *sample_buffer, int bytes, int *bps, int *nch, int *srate, bool *killswitch)
+int FLAC_Source::GetSamples(char *sample_buffer, int bytes, int *bps, int *nch, int *srate, FLAC__bool *killswitch)
 {
 	int return_bytes = 0;
 
@@ -228,7 +228,7 @@ if(bytes&0x3)fprintf(stderr,"@@@ Got odd buffer size request\n");
 		}
 		if(reservoir_samples_ > 0) {
 			unsigned i, n = min(reservoir_samples_, wide_samples), delta;
-			int16 output = (int16*)sample_buffer;
+			FLAC__int16 output = (FLAC__int16*)sample_buffer;
 
 			for(i = 0; i < n*channels; i++)
 				output[i] = reservoir_[i];
@@ -250,7 +250,7 @@ int FLAC_Source::SetPosition(int position)
 {
 	const double distance = (double)position * 1000.0 / (double)file_info_.length_in_msec;
 	unsigned target_sample = (unsigned)(distance * (double)file_info_.total_samples);
-	if(FLAC__file_decoder_seek_absolute(decoder_, (uint64)target_sample)) {
+	if(FLAC__file_decoder_seek_absolute(decoder_, (FLAC__uint64)target_sample)) {
 		file_info_.eof = false;
 		reservoir_samples_ = 0;
 		return 0;
@@ -277,7 +277,7 @@ void FLAC_Source::cleanup()
  * local routines
  **********************************************************************/
 
-bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
+FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
 {
 	const char *temp;
 	FILE *f = fopen(filename, "rb");
@@ -314,8 +314,8 @@ bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
 		memcpy(tag->album, tag->raw+63, 30);
 		memcpy(year_str, tag->raw+93, 4); year_str[4] = '\0'; tag->year = atoi(year_str);
 		memcpy(tag->comment, tag->raw+97, 30);
-		tag->genre = (unsigned)((byte)tag->raw[127]);
-		tag->track = (unsigned)((byte)tag->raw[126]);
+		tag->genre = (unsigned)((FLAC__byte)tag->raw[127]);
+		tag->track = (unsigned)((FLAC__byte)tag->raw[126]);
 
 		sprintf(tag->description, "%s - %s", tag->artist, tag->title);
 
@@ -323,7 +323,7 @@ bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
 	}
 }
 
-bool decoder_init_(const char *filename)
+FLAC__bool decoder_init_(const char *filename)
 {
 	if(decoder_ == 0)
 		return false;
@@ -345,7 +345,7 @@ bool decoder_init_(const char *filename)
 	return true;
 }
 
-FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
 {
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	const unsigned bps = file_info->bits_per_sample, channels = file_info->channels, wide_samples = frame->header.blocksize;
@@ -360,7 +360,7 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 
 	for(sample = reservoir_samples_*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 		for(channel = 0; channel < channels; channel++, sample++)
-			reservoir_[sample] = (int16)buffer[channel][wide_sample];
+			reservoir_[sample] = (FLAC__int16)buffer[channel][wide_sample];
 
 	reservoir_samples_ += wide_samples;
 

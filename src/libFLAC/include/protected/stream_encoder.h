@@ -24,24 +24,24 @@
 
 typedef struct FLAC__StreamEncoderProtected {
 	FLAC__StreamEncoderState state;
-	bool     streamable_subset;
-	bool     do_mid_side_stereo;
-	bool     loose_mid_side_stereo;
+	FLAC__bool streamable_subset;
+	FLAC__bool do_mid_side_stereo;
+	FLAC__bool loose_mid_side_stereo;
 	unsigned channels;
 	unsigned bits_per_sample;
 	unsigned sample_rate;
 	unsigned blocksize;
 	unsigned max_lpc_order;
 	unsigned qlp_coeff_precision;
-	bool     do_qlp_coeff_prec_search;
-	bool     do_exhaustive_model_search;
+	FLAC__bool do_qlp_coeff_prec_search;
+	FLAC__bool do_exhaustive_model_search;
 	unsigned min_residual_partition_order;
 	unsigned max_residual_partition_order;
 	unsigned rice_parameter_search_dist;
-	uint64   total_samples_estimate;
+	FLAC__uint64 total_samples_estimate;
 	const FLAC__StreamMetaData_SeekTable *seek_table;
 	unsigned padding;
-	bool     last_metadata_is_last;
+	FLAC__bool last_metadata_is_last;
 } FLAC__StreamEncoderProtected;
 
 #endif

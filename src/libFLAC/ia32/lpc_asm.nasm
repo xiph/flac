@@ -33,9 +33,9 @@ cglobal FLAC__lpc_restore_signal_asm_ia32_mmx
 
 ; **********************************************************************
 ;
-; void FLAC__lpc_compute_autocorrelation_asm(const real data[], unsigned data_len, unsigned lag, real autoc[])
+; void FLAC__lpc_compute_autocorrelation_asm(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 ; {
-;	real d;
+;	FLAC__real d;
 ;	unsigned sample, coeff;
 ;	const unsigned limit = data_len - lag;
 ;
@@ -592,7 +592,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
 .end:
 	ret
 
-;void FLAC__lpc_compute_residual_from_qlp_coefficients(const int32 data[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 residual[])
+;void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
 ;
 ;	for(i = 0; i < data_len; i++) {
 ;		sum = 0;
@@ -988,10 +988,10 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx
 
 ; **********************************************************************
 ;
-; void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[])
+; void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[])
 ; {
 ; 	unsigned i, j;
-; 	int32 sum;
+; 	FLAC__int32 sum;
 ;
 ; 	FLAC__ASSERT(order > 0);
 ;

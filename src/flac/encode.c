@@ -50,13 +50,13 @@ static const char *verify_code_string[] = {
 };
 
 typedef struct {
-	int32 *original[FLAC__MAX_CHANNELS];
+	FLAC__int32 *original[FLAC__MAX_CHANNELS];
 	unsigned size; /* of each original[] in samples */
 	unsigned tail; /* in wide samples */
-	const byte *encoded_signal;
+	const FLAC__byte *encoded_signal;
 	unsigned encoded_signal_capacity;
 	unsigned encoded_bytes;
-	bool into_frames;
+	FLAC__bool into_frames;
 	verify_code result;
 	FLAC__StreamDecoder *decoder;
 } verify_fifo_struct;
@@ -66,57 +66,57 @@ typedef struct {
 	FILE *fout;
 	const char *outfilename;
 	FLAC__StreamEncoder *encoder;
-	bool verify;
-	bool verbose;
-	uint64 unencoded_size;
-	uint64 total_samples_to_encode;
-	uint64 bytes_written;
-	uint64 samples_written;
-	uint64 stream_offset; /* i.e. number of bytes before the first byte of the the first frame's header */
+	FLAC__bool verify;
+	FLAC__bool verbose;
+	FLAC__uint64 unencoded_size;
+	FLAC__uint64 total_samples_to_encode;
+	FLAC__uint64 bytes_written;
+	FLAC__uint64 samples_written;
+	FLAC__uint64 stream_offset; /* i.e. number of bytes before the first byte of the the first frame's header */
 	unsigned current_frame;
 	verify_fifo_struct verify_fifo;
 	FLAC__StreamMetaData_SeekTable seek_table;
 	unsigned first_seek_point_to_check;
 } encoder_wrapper_struct;
 
-static bool is_big_endian_host;
+static FLAC__bool is_big_endian_host;
 
 static unsigned char ucbuffer[CHUNK_OF_SAMPLES*FLAC__MAX_CHANNELS*((FLAC__MAX_BITS_PER_SAMPLE+7)/8)];
 static signed char *scbuffer = (signed char *)ucbuffer;
-static uint16 *usbuffer = (uint16 *)ucbuffer;
-static int16 *ssbuffer = (int16 *)ucbuffer;
+static FLAC__uint16 *usbuffer = (FLAC__uint16 *)ucbuffer;
+static FLAC__int16 *ssbuffer = (FLAC__int16 *)ucbuffer;
 
-static int32 in[FLAC__MAX_CHANNELS][CHUNK_OF_SAMPLES];
-static int32 *input[FLAC__MAX_CHANNELS];
+static FLAC__int32 in[FLAC__MAX_CHANNELS][CHUNK_OF_SAMPLES];
+static FLAC__int32 *input[FLAC__MAX_CHANNELS];
 
 /* local routines */
-static bool init(encoder_wrapper_struct *encoder_wrapper);
-static bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper);
-static bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, uint64 stream_samples, unsigned blocksize, FLAC__StreamMetaData_SeekTable *seek_table);
-static void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, uint64 sample, uint64 stream_samples, uint64 blocksize);
+static FLAC__bool init(encoder_wrapper_struct *encoder_wrapper);
+static FLAC__bool init_encoder(FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper);
+static FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, unsigned blocksize, FLAC__StreamMetaData_SeekTable *seek_table);
+static void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, FLAC__uint64 sample, FLAC__uint64 stream_samples, FLAC__uint64 blocksize);
 static int seekpoint_compare(const FLAC__StreamMetaData_SeekPoint *l, const FLAC__StreamMetaData_SeekPoint *r);
-static void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
-static FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+static void format_input(unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
+static FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
-static FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data);
-static FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+static FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
 static void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const encoder_wrapper_struct *encoder_wrapper);
-static bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok, const char *fn);
-static bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok, const char *fn);
-static bool write_big_endian_uint16(FILE *f, uint16 val);
-static bool write_big_endian_uint64(FILE *f, uint64 val);
+static FLAC__bool read_little_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn);
+static FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn);
+static FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 val);
+static FLAC__bool write_big_endian_uint64(FILE *f, FLAC__uint64 val);
 
-int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const byte *lookahead, unsigned lookahead_length, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
+int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
 {
 	encoder_wrapper_struct encoder_wrapper;
-	bool is_unsigned_samples = false;
+	FLAC__bool is_unsigned_samples = false;
 	unsigned channels = 0, bps = 0, sample_rate = 0, data_bytes;
 	size_t bytes_per_wide_sample, bytes_read;
-	uint16 x;
-	uint32 xx;
-	bool got_fmt_chunk = false, got_data_chunk = false;
+	FLAC__uint16 x;
+	FLAC__uint32 xx;
+	FLAC__bool got_fmt_chunk = false, got_data_chunk = false;
 
 	encoder_wrapper.encoder = 0;
 	encoder_wrapper.verify = verify;
@@ -358,7 +358,7 @@ wav_abort_:
 	return 1;
 }
 
-int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const byte *lookahead, unsigned lookahead_length, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
+int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	size_t bytes_read;
@@ -521,12 +521,12 @@ raw_abort_:
 	return 1;
 }
 
-bool init(encoder_wrapper_struct *encoder_wrapper)
+FLAC__bool init(encoder_wrapper_struct *encoder_wrapper)
 {
 	unsigned i;
-	uint32 test = 1;
+	FLAC__uint32 test = 1;
 
-	is_big_endian_host = (*((byte*)(&test)))? false : true;
+	is_big_endian_host = (*((FLAC__byte*)(&test)))? false : true;
 
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++)
 		input[i] = &(in[i][0]);
@@ -540,7 +540,7 @@ bool init(encoder_wrapper_struct *encoder_wrapper)
 	return true;
 }
 
-bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper)
+FLAC__bool init_encoder(FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper)
 {
 	unsigned i;
 
@@ -551,7 +551,7 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 		/* set up the fifo which will hold the original signal to compare against */
 		encoder_wrapper->verify_fifo.size = blocksize + CHUNK_OF_SAMPLES;
 		for(i = 0; i < channels; i++) {
-			if(0 == (encoder_wrapper->verify_fifo.original[i] = (int32*)malloc(sizeof(int32) * encoder_wrapper->verify_fifo.size))) {
+			if(0 == (encoder_wrapper->verify_fifo.original[i] = (FLAC__int32*)malloc(sizeof(FLAC__int32) * encoder_wrapper->verify_fifo.size))) {
 				fprintf(stderr, "%s: ERROR allocating verify buffers\n", encoder_wrapper->inbasefilename);
 				return false;
 			}
@@ -615,11 +615,11 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 	return true;
 }
 
-bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, uint64 stream_samples, unsigned blocksize, FLAC__StreamMetaData_SeekTable *seek_table)
+FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, unsigned blocksize, FLAC__StreamMetaData_SeekTable *seek_table)
 {
 	unsigned i, j, real_points, placeholders;
 	char *pt = requested_seek_points, *q;
-	bool first;
+	FLAC__bool first;
 
 	seek_table->num_points = 0;
 
@@ -678,11 +678,11 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 				unsigned j, n;
 				n = (unsigned)atoi(pt);
 				for(j = 0; j < n; j++)
-					append_point_to_seek_table(seek_table, stream_samples * (uint64)j / (uint64)n, stream_samples, blocksize);
+					append_point_to_seek_table(seek_table, stream_samples * (FLAC__uint64)j / (FLAC__uint64)n, stream_samples, blocksize);
 			}
 		}
 		else { /* -S # */
-			append_point_to_seek_table(seek_table, (uint64)atoi(pt), stream_samples, blocksize);
+			append_point_to_seek_table(seek_table, (FLAC__uint64)atoi(pt), stream_samples, blocksize);
 		}
 
 		pt = q;
@@ -711,9 +711,9 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 	return true;
 }
 
-void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, uint64 sample, uint64 stream_samples, uint64 blocksize)
+void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, FLAC__uint64 sample, FLAC__uint64 stream_samples, FLAC__uint64 blocksize)
 {
-	const uint64 target_sample = (sample / blocksize) * blocksize;
+	const FLAC__uint64 target_sample = (sample / blocksize) * blocksize;
 
 	if(stream_samples == 0 || target_sample < stream_samples)
 		seek_table->points[seek_table->num_points++].sample_number = target_sample;
@@ -721,7 +721,7 @@ void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, uint
 
 int seekpoint_compare(const FLAC__StreamMetaData_SeekPoint *l, const FLAC__StreamMetaData_SeekPoint *r)
 {
-	/* we don't just 'return l->sample_number - r->sample_number' since the result (int64) might overflow an 'int' */
+	/* we don't just 'return l->sample_number - r->sample_number' since the result (FLAC__int64) might overflow an 'int' */
 	if(l->sample_number == r->sample_number)
 		return 0;
 	else if(l->sample_number < r->sample_number)
@@ -730,7 +730,7 @@ int seekpoint_compare(const FLAC__StreamMetaData_SeekPoint *l, const FLAC__Strea
 		return 1;
 }
 
-void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper)
+void format_input(unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper)
 {
 	unsigned wide_sample, sample, channel, byte;
 
@@ -738,12 +738,12 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 		if(is_unsigned_samples) {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (int32)ucbuffer[sample] - 0x80;
+					input[channel][wide_sample] = (FLAC__int32)ucbuffer[sample] - 0x80;
 		}
 		else {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (int32)scbuffer[sample];
+					input[channel][wide_sample] = (FLAC__int32)scbuffer[sample];
 		}
 	}
 	else if(bps == 16) {
@@ -759,12 +759,12 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 		if(is_unsigned_samples) {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (int32)usbuffer[sample] - 0x8000;
+					input[channel][wide_sample] = (FLAC__int32)usbuffer[sample] - 0x8000;
 		}
 		else {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (int32)ssbuffer[sample];
+					input[channel][wide_sample] = (FLAC__int32)ssbuffer[sample];
 		}
 	}
 	else if(bps == 24) {
@@ -801,20 +801,20 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 
 	if(encoder_wrapper->verify) {
 		for(channel = 0; channel < channels; channel++)
-			memcpy(&encoder_wrapper->verify_fifo.original[channel][encoder_wrapper->verify_fifo.tail], &input[channel][0], sizeof(int32) * wide_samples);
+			memcpy(&encoder_wrapper->verify_fifo.original[channel][encoder_wrapper->verify_fifo.tail], &input[channel][0], sizeof(FLAC__int32) * wide_samples);
 		encoder_wrapper->verify_fifo.tail += wide_samples;
 		FLAC__ASSERT(encoder_wrapper->verify_fifo.tail <= encoder_wrapper->verify_fifo.size);
 	}
 }
 
-FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
+FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	const unsigned mask = (FLAC__stream_encoder_get_do_exhaustive_model_search(encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(encoder))? 0x1f : 0x7f;
 
 	/* mark the current seek point if hit (if stream_offset == 0 that means we're still writing metadata and haven't hit the first frame yet) */
 	if(encoder_wrapper->stream_offset > 0 && encoder_wrapper->seek_table.num_points > 0) {
-		uint64 current_sample = (uint64)current_frame * (uint64)FLAC__stream_encoder_get_blocksize(encoder), test_sample;
+		FLAC__uint64 current_sample = (FLAC__uint64)current_frame * (FLAC__uint64)FLAC__stream_encoder_get_blocksize(encoder), test_sample;
 		unsigned i;
 		for(i = encoder_wrapper->first_seek_point_to_check; i < encoder_wrapper->seek_table.num_points; i++) {
 			test_sample = encoder_wrapper->seek_table.points[i].sample_number;
@@ -857,7 +857,7 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 		}
 	}
 
-	if(fwrite(buffer, sizeof(byte), bytes, encoder_wrapper->fout) == bytes)
+	if(fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_wrapper->fout) == bytes)
 		return FLAC__STREAM_ENCODER_WRITE_OK;
 	else
 		return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
@@ -866,9 +866,9 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
-	byte b;
+	FLAC__byte b;
 	FILE *f;
-	const uint64 samples = metadata->data.stream_info.total_samples;
+	const FLAC__uint64 samples = metadata->data.stream_info.total_samples;
 	const unsigned min_framesize = metadata->data.stream_info.min_framesize;
 	const unsigned max_framesize = metadata->data.stream_info.max_framesize;
 
@@ -901,30 +901,30 @@ samples_:
 	if(-1 == fseek(f, 21, SEEK_SET)) goto framesize_;
 	if(fread(&b, 1, 1, f) != 1) goto framesize_;
 	if(-1 == fseek(f, 21, SEEK_SET)) goto framesize_;
-	b = (b & 0xf0) | (byte)((samples >> 32) & 0x0F);
+	b = (b & 0xf0) | (FLAC__byte)((samples >> 32) & 0x0F);
 	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
-	b = (byte)((samples >> 24) & 0xFF);
+	b = (FLAC__byte)((samples >> 24) & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
-	b = (byte)((samples >> 16) & 0xFF);
+	b = (FLAC__byte)((samples >> 16) & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
-	b = (byte)((samples >> 8) & 0xFF);
+	b = (FLAC__byte)((samples >> 8) & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
-	b = (byte)(samples & 0xFF);
+	b = (FLAC__byte)(samples & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
 
 framesize_:
 	if(-1 == fseek(f, 12, SEEK_SET)) goto seektable_;
-	b = (byte)((min_framesize >> 16) & 0xFF);
+	b = (FLAC__byte)((min_framesize >> 16) & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (byte)((min_framesize >> 8) & 0xFF);
+	b = (FLAC__byte)((min_framesize >> 8) & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (byte)(min_framesize & 0xFF);
+	b = (FLAC__byte)(min_framesize & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (byte)((max_framesize >> 16) & 0xFF);
+	b = (FLAC__byte)((max_framesize >> 16) & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (byte)((max_framesize >> 8) & 0xFF);
+	b = (FLAC__byte)((max_framesize >> 8) & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
-	b = (byte)(max_framesize & 0xFF);
+	b = (FLAC__byte)(max_framesize & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
 
 seektable_:
@@ -957,7 +957,7 @@ end_:
 	return;
 }
 
-FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data)
+FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	const unsigned encoded_bytes = encoder_wrapper->verify_fifo.encoded_bytes;
@@ -976,12 +976,12 @@ FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *de
 	return FLAC__STREAM_DECODER_READ_CONTINUE;
 }
 
-FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	unsigned channel, l, r;
 	const unsigned channels = FLAC__stream_decoder_get_channels(decoder);
-	const unsigned bytes_per_block = sizeof(int32) * FLAC__stream_decoder_get_blocksize(decoder);
+	const unsigned bytes_per_block = sizeof(FLAC__int32) * FLAC__stream_decoder_get_blocksize(decoder);
 
 	for(channel = 0; channel < channels; channel++) {
 		if(0 != memcmp(buffer[channel], encoder_wrapper->verify_fifo.original[channel], bytes_per_block)) {
@@ -1021,8 +1021,8 @@ void print_stats(const encoder_wrapper_struct *encoder_wrapper)
 {
 #ifdef _MSC_VER
 	/* with VC++ you have to spoon feed it the casting */
-	const double progress = (double)(int64)encoder_wrapper->samples_written / (double)(int64)encoder_wrapper->total_samples_to_encode;
-	const double ratio = (double)(int64)encoder_wrapper->bytes_written / ((double)(int64)encoder_wrapper->unencoded_size * progress);
+	const double progress = (double)(FLAC__int64)encoder_wrapper->samples_written / (double)(FLAC__int64)encoder_wrapper->total_samples_to_encode;
+	const double ratio = (double)(FLAC__int64)encoder_wrapper->bytes_written / ((double)(FLAC__int64)encoder_wrapper->unencoded_size * progress);
 #else
 	const double progress = (double)encoder_wrapper->samples_written / (double)encoder_wrapper->total_samples_to_encode;
 	const double ratio = (double)encoder_wrapper->bytes_written / ((double)encoder_wrapper->unencoded_size * progress);
@@ -1041,7 +1041,7 @@ void print_stats(const encoder_wrapper_struct *encoder_wrapper)
 	}
 }
 
-bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok, const char *fn)
+FLAC__bool read_little_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn)
 {
 	size_t bytes_read = fread(val, 1, 2, f);
 
@@ -1059,14 +1059,14 @@ bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok, const char *fn
 	}
 	else {
 		if(is_big_endian_host) {
-			byte tmp, *b = (byte*)val;
+			FLAC__byte tmp, *b = (FLAC__byte*)val;
 			tmp = b[1]; b[1] = b[0]; b[0] = tmp;
 		}
 		return true;
 	}
 }
 
-bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok, const char *fn)
+FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn)
 {
 	size_t bytes_read = fread(val, 1, 4, f);
 
@@ -1084,7 +1084,7 @@ bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok, const char *fn
 	}
 	else {
 		if(is_big_endian_host) {
-			byte tmp, *b = (byte*)val;
+			FLAC__byte tmp, *b = (FLAC__byte*)val;
 			tmp = b[3]; b[3] = b[0]; b[0] = tmp;
 			tmp = b[2]; b[2] = b[1]; b[1] = tmp;
 		}
@@ -1092,19 +1092,19 @@ bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok, const char *fn
 	}
 }
 
-bool write_big_endian_uint16(FILE *f, uint16 val)
+FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 val)
 {
 	if(!is_big_endian_host) {
-		byte *b = (byte *)&val, tmp;
+		FLAC__byte *b = (FLAC__byte *)&val, tmp;
 		tmp = b[0]; b[0] = b[1]; b[1] = tmp;
 	}
 	return fwrite(&val, 1, 2, f) == 2;
 }
 
-bool write_big_endian_uint64(FILE *f, uint64 val)
+FLAC__bool write_big_endian_uint64(FILE *f, FLAC__uint64 val)
 {
 	if(!is_big_endian_host) {
-		byte *b = (byte *)&val, tmp;
+		FLAC__byte *b = (FLAC__byte *)&val, tmp;
 		tmp = b[0]; b[0] = b[7]; b[7] = tmp;
 		tmp = b[1]; b[1] = b[6]; b[6] = tmp;
 		tmp = b[2]; b[2] = b[5]; b[5] = tmp;
