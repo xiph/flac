@@ -20,6 +20,8 @@
 
 int main(int argc, char *argv[])
 {
+	(void)argc, (void)argv;
+
 	if(0 != test_bitbuffer())
 		return 1;
 	return 0;

@@ -17,6 +17,7 @@
  */
 
 #include "private/bitbuffer.h" /* from the libFLAC private include area */
+#include <string.h> /* for memcmp() */
 
 static FLAC__bool dummy_read_callback(FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {

@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
+#include <string.h> /* for memcpy()/memcmp() */
 #include "FLAC/assert.h"
 #include "protected/seekable_stream_decoder.h"
 #include "protected/stream_decoder.h"
