@@ -437,32 +437,58 @@ bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 	if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &length, FLAC__STREAM_METADATA_LENGTH_LEN, read_callback_, decoder))
 		return false; /* the read_callback_ sets the state for us */
 	if(type == FLAC__METADATA_TYPE_ENCODING) {
+		unsigned used_bits = 0;
 		decoder->guts->stream_header.type = type;
 		decoder->guts->stream_header.is_last = last_block;
 		decoder->guts->stream_header.length = length;
+
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		decoder->guts->stream_header.data.encoding.min_blocksize = x;
+		used_bits += FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN;
+
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		decoder->guts->stream_header.data.encoding.max_blocksize = x;
+		used_bits += FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN;
+
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		decoder->guts->stream_header.data.encoding.min_framesize = x;
+		used_bits += FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN;
+
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		decoder->guts->stream_header.data.encoding.max_framesize = x;
+		used_bits += FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN;
+
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		decoder->guts->stream_header.data.encoding.sample_rate = x;
+		used_bits += FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN;
+
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		decoder->guts->stream_header.data.encoding.channels = x+1;
+		used_bits += FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN;
+
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		decoder->guts->stream_header.data.encoding.bits_per_sample = x+1;
+		used_bits += FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN;
+
 		if(!FLAC__bitbuffer_read_raw_uint64(&decoder->guts->input, &decoder->guts->stream_header.data.encoding.total_samples, FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
+		used_bits += FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN;
+
+		/* skip the rest of the block */
+		assert(used_bits % 8 == 0);
+		length -= (used_bits / 8);
+		for(i = 0; i < length; i++) {
+			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
+				return false; /* the read_callback_ sets the state for us */
+		}
+
 		decoder->guts->has_stream_header = true;
 		decoder->guts->metadata_callback(decoder, &decoder->guts->stream_header, decoder->guts->client_data);
 	}
