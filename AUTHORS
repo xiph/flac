@@ -18,7 +18,7 @@
 
 
 FLAC (http://flac.sourceforge.net/) is an Open Source lossless audio
-codec developed by Josh Coalson.
+codec developed by Josh Coalson <jcoalson@users.sourceforge.net>.
 
 Other major contributors and their contributions:
 "Andrey Astafiev" <andrei@tvcell.ru>
@@ -26,6 +26,9 @@ Other major contributors and their contributions:
 
 "Miroslav Lichvar" <mirator@upcase.inf.upol.cz>
 * IA-32 assembly versions of several libFLAC routines
+
+"Brady Patterson" <bpat@users.sourceforge.net>
+* AIFF file support
 
 "Daisuke Shimamura" <Daisuke_Shimamura@nifty.com>
 * id3 v1/v2 and i18n support in the XMMS plugin
