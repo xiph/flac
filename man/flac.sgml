@@ -131,7 +131,7 @@
 		<term><option>-a</option>, <option>--analyze</option>
 		</term>
 		<listitem>
-		  <para>Analyze a flac encoded file (same as -d
+		  <para>Analyze a FLAC encoded file (same as -d
 		    except an analysis file is written)</para>
 		</listitem>
 	      </varlistentry>
@@ -150,6 +150,16 @@
 		<listitem>
 		  <para>Silent mode (do not write runtime
 		    encode/decode statistics to stderr)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-f</option>, <option>--force</option>
+		</term>
+		<listitem>
+		  <para>Force overwriting of output files.  By default,
+		    flac warns that the output file already exists and
+		    continues to the next file.</para>
 		</listitem>
 	      </varlistentry>
 
