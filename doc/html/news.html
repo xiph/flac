@@ -78,6 +78,67 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 
 	<P>
+		<A NAME="20020910">10-Sep-2002:</A>
+	</P>
+	<P>
+	<UL>
+		<LI>
+			<B>FLAC 1.0.4 released</B>&nbsp;&nbsp;There are a lot of improvements since 1.0.3; let's get right to it:
+			<P>
+			Plugins:
+			<UL>
+				<LI>Support for Vorbis comments, ID3 v1 and v2 tags.</LI>
+				<LI>Configurable title formatting and charset conversion in XMMS plugin.</LI>
+				<LI>Support for 8- and 24-bit FLAC files.  There is a compile-time option for raw 24-bit output or 24bps-to-16bps linear dithering (the default).</LI>
+			</UL>
+			<P>
+			<B><TT>flac</TT></B>:
+			<UL>
+				<LI>Improved option parser (now uses getopt).</LI>
+				<LI>AIFF input support (thanks to Brady Patterson).</LI>
+				<LI>Small decoder speedup.</LI>
+				<LI><TT>--sector-align</TT> now supported for raw input files.</LI>
+				<LI>New --serial-number option for use with --ogg.</LI>
+				<LI>Automatically writes vendor string in Vorbis comments.</LI>
+				<LI>Drastically reduced memory requirements.</LI>
+				<LI>Fixed bug where extra fmt/data chunks that were supposed to be skipped were not getting skipped.</LI>
+				<LI>Fixed bug in granulepos setting for Ogg FLAC streams.</LI>
+				<LI>Fixed memory leak when encoding multiple files with -V.</LI>
+			</UL>
+			<P>
+			<B><TT>metaflac</TT></B>:
+			<UL>
+				<LI>UTF-8 support in Vorbis comments.</LI>
+				<LI>New --import-vc-from and --export-vc-to commands for importing/exporting Vorbis comments from/to a file.  For example, the following can be used to copy tags back and forth:<BR>
+					<TT>
+					metaflac --export-vc-to=- --no-utf8-convert file.flac | vorbiscomment --raw -w -c file.ogg<BR>
+					vorbiscomment -l --raw file.ogg | metaflac --import-vc-from=- --no-utf8-convert file.flac<BR>
+					</TT>
+				</LI>
+				<LI>Fixed <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=606796&group_id=13478&atid=113478">bug #606796</A> where <B><TT>metaflac</TT></B> was failing on read-only files.</LI>
+			</UL>
+			<P>
+			Libraries:
+			<UL>
+				<LI>All APIs now meticulously documented via Doxygen.  <A HREF="api/index.html">See here</A>.</LI>
+				<LI>New <B><TT>libOggFLAC</TT></B> and <B><TT>libOggFLAC++</TT></B> libraries.  These wrap around <B><TT>libFLAC</TT></B> to provide encoding and decoding of Ogg FLAC streams, providing interfaces similar to the ones of the native FLAC libraries.  These are also documented via Doxygen.</LI>
+				<LI>New FLAC__SeekableStreamEncoder and FLAC__FileEncoder in <B><TT>libFLAC</TT></B> simplify common encoding tasks.</LI>
+				<LI>New verify mode in all encoders.</LI>
+				<LI>FLAC__stream_encoder_finish() now resets the defaults just like the stream decoders.</LI>
+				<LI>Drastically reduced memory requirements of encoders and decoders.</LI>
+				<LI>Encoder now automatically writes vendor string in VORBIS_COMMENT block.</LI>
+				<LI>MD5 speedup for 16bps mono/stereo signals on x86 (thanks to Miroslav Lichvar).</LI>
+				<LI>Fixed bug in metadata interface where a bps in STREAMINFO > 16 was incorrectly parsed.</LI>
+				<LI>Fixed bug where aborting stream decoder could cause infinite loop.</LI>
+				<LI>Behavior change: simplified decoder *_process() commands.</LI>
+				<LI>Behavior change: calling FLAC__stream_encoder_init() calls write callback once for "fLaC" signature and once for each metadata block.</LI>
+				<LI>Behavior change: deprecated do_escape_coding and rice_parameter_search_distance in encoder.</LI>
+			</UL>
+		</LI>
+	</UL>
+	</P>
+
+	<P>
 		<A NAME="20020822">22-Aug-2002:</A>
 	</P>
 	<P>
