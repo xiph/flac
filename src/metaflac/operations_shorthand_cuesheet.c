@@ -145,7 +145,11 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 		for(track = 0; track < cs->num_tracks; track++) {
 			const FLAC__StreamMetadata_CueSheet_Track *tr = cs->tracks+track;
 			for(index = 0; index < tr->num_indices; index++) {
+#ifdef _MSC_VER
+				sprintf(spec, "%I64u;", tr->offset + tr->indices[index].offset);
+#else
 				sprintf(spec, "%llu;", tr->offset + tr->indices[index].offset);
+#endif
 				local_strcat(seekpoint_specification, spec);
 			}
 		}

@@ -234,12 +234,11 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 data[], 
 			sumo += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*history);
 #if defined _MSC_VER
 			if(sumo > 2147483647I64 || sumo < -2147483648I64)
+				fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%I64d\n",i,j,qlp_coeff[j],*history,sumo);
 #else
 			if(sumo > 2147483647ll || sumo < -2147483648ll)
-#endif
-			{
 				fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
-			}
+#endif
 #endif
 		}
 		*(residual++) = *(data++) - (sum >> lp_quantization);
@@ -317,12 +316,11 @@ void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, c
 			sumo += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*history);
 #if defined _MSC_VER
 			if(sumo > 2147483647I64 || sumo < -2147483648I64)
+				fprintf(stderr,"FLAC__lpc_restore_signal: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%I64d\n",i,j,qlp_coeff[j],*history,sumo);
 #else
 			if(sumo > 2147483647ll || sumo < -2147483648ll)
-#endif
-			{
 				fprintf(stderr,"FLAC__lpc_restore_signal: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
-			}
+#endif
 #endif
 		}
 		*(data++) = *(residual++) + (sum >> lp_quantization);

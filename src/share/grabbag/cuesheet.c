@@ -546,10 +546,19 @@ void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, co
 				fprintf(file, "%02u:%02u:%02u\n", m, s, f);
 			}
 			else
+#ifdef _MSC_VER
+				fprintf(file, "%I64u\n", track->offset + index->offset);
+#else
 				fprintf(file, "%llu\n", track->offset + index->offset);
+#endif
 		}
 	}
 
+#ifdef _MSC_VER
+	fprintf(file, "REM FLAC__lead-in %I64u\n", cs->lead_in);
+	fprintf(file, "REM FLAC__lead-out %u %I64u\n", (unsigned)cs->tracks[track_num].number, cs->tracks[track_num].offset);
+#else
 	fprintf(file, "REM FLAC__lead-in %llu\n", cs->lead_in);
 	fprintf(file, "REM FLAC__lead-out %u %llu\n", (unsigned)cs->tracks[track_num].number, cs->tracks[track_num].offset);
+#endif
 }
