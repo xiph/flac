@@ -51,11 +51,11 @@ A brief description of the directory tree:
 Building in a GNU environment
 =============================
 
-FLAC now uses autoconf and libtool for configuring and
-building.  Better documentation for these will be
-forthcoming, but in general, this should work:
+FLAC uses autoconf and libtool for configuring and building.
+Better documentation for these will be forthcoming, but in
+general, this should work:
 
-./configure ; make ; make install
+./configure && make && make install
 
 If it doesn't, see the next section on Makefile.lite.
 
