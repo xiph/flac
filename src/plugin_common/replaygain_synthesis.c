@@ -358,8 +358,8 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, un
 		-1073741824, /* 31 bits-per-sample */
 		(FLAC__int64)(-1073741824) * 2 /* 32 bits-per-sample */
 	};
-	const FLAC__int32 conv_factor = conv_factors_[source_bps];
-	const FLAC__int64 hard_clip_factor = hard_clip_factors_[source_bps];
+	const FLAC__int32 conv_factor = conv_factors_[target_bps];
+	const FLAC__int64 hard_clip_factor = hard_clip_factors_[target_bps];
 	/*
 	 * The integer input coming in has a varying range based on the
 	 * source_bps.  We want to normalize it to [-1.0, 1.0) so instead
