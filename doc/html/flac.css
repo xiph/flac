@@ -31,6 +31,9 @@ div.logo
 
 div.navbar
 {
+	border-width: 2px 0px 2px 0px;
+	border-style: solid;
+	border-color: black;
 	background-color: #D3D4C5;
 	padding: 3px;
 	text-align: center;
@@ -38,6 +41,9 @@ div.navbar
 
 div.langbar
 {
+	border-width: 0px 0px 2px 0px;
+	border-style: solid;
+	border-color: black;
 	background-color: #EEEED4;
 	padding: 3px;
 	text-align: center;
@@ -155,18 +161,6 @@ div.copyright
 {
 	text-align: left;
 	margin: 10px;
-}
-
-div.separator
-{
-	background-color: black;
-	height: 1px;
-}
-
-div.separator2
-{
-	background-color: black;
-	height: 2px;
 }
 
 span.commandname
