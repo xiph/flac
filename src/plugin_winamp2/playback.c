@@ -72,7 +72,7 @@ static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__Stre
 			file_info->abort_flag = true;
 			return;
 		}
-		file_info->length_in_msec = file_info->total_samples * 10 / (file_info->sample_rate / 100);
+		file_info->length_in_msec = (unsigned)((double)file_info->total_samples / (double)file_info->sample_rate * 1000.0 + 0.5);
 	}
 	else if (metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT)
 	{

@@ -307,7 +307,7 @@ static void getfileinfo(char *filename, char *title, int *length_in_msec)
 		filename = lastfn_;
 		if (length_in_msec)
 		{
-			*length_in_msec = file_info_.length_in_msec;
+			*length_in_msec = (int)file_info_.length_in_msec;
 			length_in_msec  = 0;    /* force skip in following code */
 		}
 	}
@@ -327,7 +327,7 @@ static void getfileinfo(char *filename, char *title, int *length_in_msec)
 	}
 
 	if (length_in_msec)
-		*length_in_msec = (int)(streaminfo.data.stream_info.total_samples*10 / (streaminfo.data.stream_info.sample_rate/100));
+		*length_in_msec = (int)((double)streaminfo.data.stream_info.total_samples / (double)streaminfo.data.stream_info.sample_rate * 1000.0 + 0.5);
 }
 
 /*

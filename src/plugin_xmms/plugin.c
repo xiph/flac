@@ -440,7 +440,7 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 		*title = flac_format_song_title(filename);
 	}
 	if(length_in_msec)
-		*length_in_msec = streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100);
+		*length_in_msec = (unsigned)((double)streaminfo.data.stream_info.total_samples / (double)streaminfo.data.stream_info.sample_rate * 1000.0 + 0.5);
 }
 
 /***********************************************************************
@@ -794,7 +794,7 @@ void metadata_callback_(const void *decoder, const FLAC__StreamMetadata *metadat
 		file_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
 		file_info->channels = metadata->data.stream_info.channels;
 		file_info->sample_rate = metadata->data.stream_info.sample_rate;
-		file_info->length_in_msec = (FLAC__uint64)file_info->total_samples * 10 / (file_info->sample_rate / 100);
+		file_info->length_in_msec = (unsigned)((double)file_info->total_samples / (double)file_info->sample_rate * 1000.0 + 0.5);
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 		double gain, peak;
