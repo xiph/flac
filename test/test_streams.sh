@@ -19,10 +19,19 @@
 
 LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/flac:../src/test_streams:../obj/release/b:../obj/debug/bin:$PATH
+PATH=../src/flac:../src/test_streams:../obj/release/bin:../obj/debug/bin:$PATH
 
 flac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find flac executable" 1>&2 && exit 1)
 if [ $? != 0 ] ; then exit 1 ; fi
+
+run_flac ()
+{
+	if [ "$FLAC__VALGRIND" = yes ] ; then
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=10 --logfile-fd=4 flac $* 4>>valgrind.log
+	else
+		flac $*
+	fi
+}
 
 echo "Generating streams..."
 if test_streams ; then : ; else
@@ -39,18 +48,15 @@ else
 	echo "flac --ogg doesn't work"
 fi
 
-#FLAC="valgrind --leak-check=yes --show-reachable=yes --logfile-fd=1 flac"
-FLAC=flac
-
 #
 # multi-file tests
 #
 echo "Generating multiple input files from noise..."
-if $FLAC --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 noise.raw ; then : ; else
+if run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 noise.raw ; then : ; else
 	echo "ERROR generating FLAC file" 1>&2
 	exit 1
 fi
-if $FLAC --decode --silent noise.flac ; then : ; else
+if run_flac --decode --silent noise.flac ; then : ; else
 	echo "ERROR generating WAVE file" 1>&2
 	exit 1
 fi
@@ -76,14 +82,14 @@ test_multifile ()
 		encode_options="$encode_options --sector-align"
 	fi
 
-	if $FLAC $encode_options file0.wav file1.wav file2.wav ; then : ; else
+	if run_flac $encode_options file0.wav file1.wav file2.wav ; then : ; else
 		echo "ERROR" 1>&2
 		exit 1
 	fi
 	for n in 0 1 2 ; do
 		mv file$n.$suffix file${n}x.$suffix
 	done
-	if $FLAC --decode file0x.$suffix file1x.$suffix file2x.$suffix ; then : ; else
+	if run_flac --decode file0x.$suffix file1x.$suffix file2x.$suffix ; then : ; else
 		echo "ERROR" 1>&2
 		exit 1
 	fi
@@ -141,7 +147,7 @@ test_file ()
 	encode_options="$4"
 
 	echo -n "$name (--channels=$channels --bps=$bps $encode_options): encode..."
-	cmd="$FLAC --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.raw"
+	cmd="run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.raw"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else
@@ -149,7 +155,7 @@ test_file ()
 		exit 1
 	fi
 	echo -n "decode..."
-	cmd="$FLAC --silent --endian=big --sign=signed --decode --force-raw-format --output-name=$name.cmp $name.flac"
+	cmd="run_flac --silent --endian=big --sign=signed --decode --force-raw-format --output-name=$name.cmp $name.flac"
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else
@@ -182,7 +188,7 @@ test_file_piped ()
 
 	echo -n "$name: encode via pipes..."
 	if [ $is_win = yes ] ; then
-		cmd="$FLAC --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --stdout $name.raw"
+		cmd="run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --stdout $name.raw"
 		echo "### ENCODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if $cmd 1>$name.flac 2>>./streams.log ; then : ; else
@@ -190,7 +196,7 @@ test_file_piped ()
 			exit 1
 		fi
 	else
-		cmd="$FLAC --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --stdout -"
+		cmd="run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --stdout -"
 		echo "### ENCODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if cat $name.raw | $cmd 1>$name.flac 2>>./streams.log ; then : ; else
@@ -200,7 +206,7 @@ test_file_piped ()
 	fi
 	echo -n "decode via pipes..."
 	if [ $is_win = yes ] ; then
-		cmd="$FLAC --silent --endian=big --sign=signed --decode --force-raw-format --stdout $name.flac"
+		cmd="run_flac --silent --endian=big --sign=signed --decode --force-raw-format --stdout $name.flac"
 		echo "### DECODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if $cmd 1>$name.cmp 2>>./streams.log ; then : ; else
@@ -208,7 +214,7 @@ test_file_piped ()
 			exit 1
 		fi
 	else
-		cmd="$FLAC --silent --endian=big --sign=signed --decode --force-raw-format --stdout -"
+		cmd="run_flac --silent --endian=big --sign=signed --decode --force-raw-format --stdout -"
 		echo "### DECODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if cat $name.flac | $cmd 1>$name.cmp 2>>./streams.log ; then : ; else

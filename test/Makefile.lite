@@ -22,18 +22,26 @@
 topdir = ..
 
 all: clean
-	FLAC__EXHAUSTIVE_TESTS=yes ./test_libFLAC.sh
-	FLAC__EXHAUSTIVE_TESTS=yes ./test_libFLAC++.sh
-	FLAC__EXHAUSTIVE_TESTS=yes ./test_libOggFLAC.sh
-	FLAC__EXHAUSTIVE_TESTS=yes ./test_libOggFLAC++.sh
-	FLAC__EXHAUSTIVE_TESTS=yes ./test_metaflac.sh
-	FLAC__EXHAUSTIVE_TESTS=yes ./test_grabbag.sh
-	FLAC__EXHAUSTIVE_TESTS=yes ./test_streams.sh
-	FLAC__EXHAUSTIVE_TESTS=yes ./test_bins.sh
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libFLAC.sh
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libFLAC++.sh
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libOggFLAC.sh
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libOggFLAC++.sh
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_metaflac.sh
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_grabbag.sh
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_streams.sh
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_bins.sh
 
-debug: all
+debug   : FLAC__EXHAUSTIVE_TESTS=FLAC__EXHAUSTIVE_TESTS=yes
+valgrind: FLAC__EXHAUSTIVE_TESTS=FLAC__EXHAUSTIVE_TESTS=no
+release : FLAC__EXHAUSTIVE_TESTS=FLAC__EXHAUSTIVE_TESTS=yes
 
-release: all
+debug   : FLAC__VALGRIND=FLAC__VALGRIND=no
+valgrind: FLAC__VALGRIND=FLAC__VALGRIND=yes
+release : FLAC__VALGRIND=FLAC__VALGRIND=no
+
+debug   : all
+valgrind: all
+release : all
 
 clean:
 	rm -f *.raw *.flac *.ogg *.cmp *.wav ../../test_files/bins/*.raw ../../test_files/bins/*.flac ../../test_files/bins/*.cmp *.diff *.log *.cue core

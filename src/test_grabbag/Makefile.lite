@@ -23,9 +23,11 @@ DEFAULT_CONFIG = release
 CONFIG = $(DEFAULT_CONFIG)
 
 debug   : CONFIG = debug
+valgrind: CONFIG = valgrind
 release : CONFIG = release
 
 debug   : all
+valgrind: all
 release : all
 
 cuesheet:

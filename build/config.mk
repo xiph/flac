@@ -21,8 +21,13 @@
 
 DEFAULT_BUILD = release
 
-debug   : BUILD = debug
-release : BUILD = release
+debug    : BUILD = debug
+valgrind : BUILD = debug
+release  : BUILD = release
+
+debug    : LINKAGE = -static
+valgrind : LINKAGE = -dynamic
+release  : LINKAGE = -static
 
 all default: $(DEFAULT_BUILD)
 

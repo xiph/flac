@@ -19,10 +19,19 @@
 
 LD_LIBRARY_PATH=../src/libFLAC/.libs:../src/share/grabbag/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/test_grabbag/cuesheet:../obj/release/b:../obj/debug/bin:$PATH
+PATH=../src/test_grabbag/cuesheet:../obj/release/bin:../obj/debug/bin:$PATH
 
 test_cuesheet -h 1>/dev/null 2>/dev/null || (echo "ERROR can't find test_cuesheet executable" 1>&2 && exit 1)
 if [ $? != 0 ] ; then exit 1 ; fi
+
+run_test_cuesheet ()
+{
+	if [ "$FLAC__VALGRIND" = yes ] ; then
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=10 --logfile-fd=4 test_cuesheet $* 4>>valgrind.log
+	else
+		test_cuesheet $*
+	fi
+}
 
 ########################################################################
 #
@@ -43,7 +52,7 @@ rm -f $log
 #
 for cuesheet in $bad_cuesheets ; do
 	echo "NEGATIVE $cuesheet" >> $log 2>&1
-	test_cuesheet $cuesheet $good_leadout cdda >> $log 2>&1
+	run_test_cuesheet $cuesheet $good_leadout cdda >> $log 2>&1
 	exit_code=$?
 	if [ "$exit_code" = 255 ] ; then
 		echo "Error: test script is broken"
@@ -59,7 +68,7 @@ done
 #
 for cuesheet in $good_cuesheets ; do
 	echo "POSITIVE $cuesheet" >> $log 2>&1
-	test_cuesheet $cuesheet $good_leadout cdda >> $log 2>&1
+	run_test_cuesheet $cuesheet $good_leadout cdda >> $log 2>&1
 	exit_code=$?
 	if [ "$exit_code" = 255 ] ; then
 		echo "Error: test script is broken"

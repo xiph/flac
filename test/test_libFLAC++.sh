@@ -19,10 +19,19 @@
 
 LD_LIBRARY_PATH=../src/libFLAC++/.libs:../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/test_libFLAC++:../obj/release/b:../obj/debug/bin:$PATH
+PATH=../src/test_libFLAC++:../obj/release/bin:../obj/debug/bin:$PATH
 export PATH
 
-if test_libFLAC++ ; then : ; else
+run_test_libFLACpp ()
+{
+	if [ "$FLAC__VALGRIND" = yes ] ; then
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=10 --logfile-fd=4 test_libFLAC++ $* 4>>valgrind.log
+	else
+		test_libFLAC++ $*
+	fi
+}
+
+if run_test_libFLACpp ; then : ; else
 	echo "ERROR during test_libFLAC++" 1>&2
 	exit 1
 fi

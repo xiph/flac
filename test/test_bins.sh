@@ -19,14 +19,20 @@
 
 LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/flac:../obj/release/b:../obj/debug/bin:$PATH
+PATH=../src/flac:../obj/release/bin:../obj/debug/bin:$PATH
 BINS_PATH=../../test_files/bins
 
 flac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find flac executable" 1>&2 && exit 1)
 if [ $? != 0 ] ; then exit 1 ; fi
 
-#FLAC="valgrind --leak-check=yes --show-reachable=yes --logfile-fd=1 flac"
-FLAC=flac
+run_flac ()
+{
+	if [ "$FLAC__VALGRIND" = yes ] ; then
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=10 --logfile-fd=4 flac $* 4>>valgrind.log
+	else
+		flac $*
+	fi
+}
 
 test -d ${BINS_PATH} || exit 77
 
@@ -38,7 +44,7 @@ test_file ()
 	encode_options="$4"
 
 	echo -n "$name (--channels=$channels --bps=$bps $encode_options): encode..."
-	cmd="$FLAC --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
+	cmd="run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else
@@ -46,7 +52,7 @@ test_file ()
 		exit 1
 	fi
 	echo -n "decode..."
-	cmd="$FLAC --silent --endian=big --sign=signed --decode --force-raw-format $name.flac";
+	cmd="run_flac --silent --endian=big --sign=signed --decode --force-raw-format $name.flac";
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else

@@ -56,6 +56,7 @@ LINKD       = $(CC) -shared
 endif
 
 debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+valgrind: CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -Winline -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
 LFLAGS  = -L$(LIBPATH)
@@ -66,6 +67,7 @@ DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=
 RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o)
 
 debug   : $(ORDINALS_H) $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
+valgrind: $(ORDINALS_H) $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
 release : $(ORDINALS_H) $(RELEASE_STATIC_LIB) $(RELEASE_DYNAMIC_LIB)
 
 $(DEBUG_STATIC_LIB): $(DEBUG_OBJS)

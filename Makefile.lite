@@ -22,6 +22,7 @@
 #
 # all     : build all libraries and programs in the default configuration (currently 'release')
 # debug   : build all libraries and programs in debug mode
+# valgrind: build all libraries and programs in debug mode, dynamically linked and ready for valgrind
 # release : build all libraries and programs in release mode
 # test    : run the unit and stream tests
 # clean   : remove all non-distro files
@@ -37,9 +38,11 @@ DEFAULT_CONFIG = release
 CONFIG = $(DEFAULT_CONFIG)
 
 debug   : CONFIG = debug
+valgrind: CONFIG = valgrind
 release : CONFIG = release
 
 debug   : all
+valgrind: all
 release : all
 
 doc:
@@ -91,7 +94,13 @@ test_libOggFLAC++: libFLAC libOggFLAC libOggFLAC++
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 test: debug
-	(cd test ; $(MAKE) -f Makefile.lite)
+	(cd test ; $(MAKE) -f Makefile.lite debug)
+
+testv: valgrind
+	(cd test ; $(MAKE) -f Makefile.lite valgrind)
+
+testr: release
+	(cd test ; $(MAKE) -f Makefile.lite release)
 
 clean:
 	-(cd doc ; $(MAKE) -f Makefile.lite clean)
