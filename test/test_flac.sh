@@ -517,13 +517,13 @@ total_samples=`metaflac --show-total-samples noise.flac`
 [ $? = 0 ] || die "ERROR getting total sample count from noise.flac"
 
 echo -n "Testing --skip=0... "
-run_flac $wav_dopt --skip=0 -o z.wav noise.flac || die "ERROR decoding FLAC file $desc"
+run_flac $wav_dopt --skip=0 -o z.wav noise.flac || die "ERROR decoding FLAC file noise.flac"
 echo OK
 
 for delta in 2 1 ; do
 	n=`expr $total_samples - $delta`
 	echo -n "Testing --skip=$n... "
-	run_flac $wav_dopt --skip=$n -o z.wav noise.flac || die "ERROR decoding FLAC file $desc"
+	run_flac $wav_dopt --skip=$n -o z.wav noise.flac || die "ERROR decoding FLAC file noise.flac"
 	echo OK
 done
 
