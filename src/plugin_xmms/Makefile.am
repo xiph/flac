@@ -25,9 +25,9 @@ EXTRA_DIST = \
 noinst_HEADERS = \
 	charset.h \
 	configure.h \
-	wrap_id3.h
+	tag.h
 
-CFLAGS = @CFLAGS@ @ID3LIB_CFLAGS@ @XMMS_CFLAGS@
+CFLAGS = @CFLAGS@ @XMMS_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src
 if FLaC__INSTALL_XMMS_PLUGIN_LOCALLY
 xmmsinputplugindir = $(HOME)/.xmms/Plugins
@@ -40,13 +40,9 @@ LIBTOOL = $(top_builddir)/libtool-disable-static
 
 xmmsinputplugin_LTLIBRARIES = libxmms-flac.la
 
-plugin_sources = charset.c configure.c plugin.c wrap_id3.c fileinfo.c
+plugin_sources = charset.c configure.c plugin.c tag.c fileinfo.c
 
-if FLaC__HAS_ID3LIB
 libxmms_flac_la_SOURCES = $(plugin_sources)
-else
-libxmms_flac_la_SOURCES = $(plugin_sources)
-endif
 
 # work around the bug in libtool where its relinking fails with a different DESTDIR
 # for libtool bug info see:
@@ -64,6 +60,5 @@ libxmms_flac_la_LIBADD = \
 	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	-L$(top_builddir)/src/libFLAC/.libs \
-	@XMMS_LIBS@ \
-	@ID3LIB_LIBS@
+	@XMMS_LIBS@
 libxmms_flac_la_LDFLAGS = -module -avoid-version

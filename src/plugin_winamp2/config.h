@@ -27,7 +27,6 @@ typedef struct {
 		char tag_format[256];
 		char sep[16];
 		WCHAR *tag_format_w;
-		BOOL read_v1;
 	} title;
 	struct {
 		BOOL reserve_space;

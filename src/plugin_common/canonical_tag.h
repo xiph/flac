@@ -19,8 +19,7 @@
 #ifndef FLAC__PLUGIN_COMMON__CANONICAL_TAG_H
 #define FLAC__PLUGIN_COMMON__CANONICAL_TAG_H
 
-#include "id3v1.h"
-#include "id3v2.h"
+#include "FLAC/ordinals.h"
 
 /* TODO: splay tree? */
 typedef struct tagFLAC__tag_entry FLAC__tag_entry;
@@ -80,20 +79,6 @@ wchar_t *FLAC_plugin__canonical_get_value(FLAC__tag_iterator it);
 char *FLAC_plugin__canonical_get_formatted(FLAC__tag_iterator it);
 
 void FLAC_plugin__canonical_tag_merge(FLAC_Plugin__CanonicalTag *dest, const FLAC_Plugin__CanonicalTag *src);
-void FLAC_plugin__canonical_tag_convert_from_id3v1(FLAC_Plugin__CanonicalTag *, const FLAC_Plugin__Id3v1_Tag *);
-void FLAC_plugin__canonical_tag_convert_from_id3v2(FLAC_Plugin__CanonicalTag *, const FLAC_Plugin__Id3v2_Tag *);
-
-void FLAC_plugin__canonical_tag_add_id3v1(const char *filename, FLAC_Plugin__CanonicalTag *tag);
-void FLAC_plugin__canonical_tag_add_id3v2(const char *filename, FLAC_Plugin__CanonicalTag *tag);
-
-/* Returns a merged tag based on any Vorbis comments, id3v2 tag, and id3v1.
- * In case of overlaps the preceding precedence applies.
- *
- * sep - separator to use when merging fields with same name (in VorbisComment).
- * should be in UTF-8. if sep==NULL, no merging occurs, so multiple fields
- * with the same name can exist.
- */
-void FLAC_plugin__canonical_tag_get_combined(const char *filename, FLAC_Plugin__CanonicalTag *tag, const char *sep);
 
 /* helpers */
 wchar_t *FLAC_plugin__convert_ansi_to_wide(const char *src);

@@ -40,8 +40,8 @@
 #include "share/grabbag.h"
 #include "share/replaygain_synthesis.h"
 #include "configure.h"
-#include "wrap_id3.h"
 #include "charset.h"
+#include "tag.h"
 
 #ifdef min
 #undef min

@@ -30,6 +30,7 @@
 
 #include "FLAC/metadata.h"
 #include "plugin_common/canonical_tag.h"
+#include "plugin_common/vorbiscomment.h"
 #include "charset.h"
 #include "configure.h"
 
@@ -103,7 +104,7 @@ char *flac_format_song_title(char *filename)
 
 	FLAC_plugin__canonical_tag_init(&tag);
 
-	FLAC_plugin__canonical_tag_get_combined(filename, &tag, /*sep=*/0);
+	FLAC_plugin__vorbiscomment_get(filename, &tag, /*sep=*/0);
 
 	title       = local__getfield(&tag, L"TITLE");
 	artist      = local__getfield(&tag, L"ARTIST");

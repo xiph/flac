@@ -59,7 +59,6 @@ void ReadConfig()
 	flac_cfg.title.tag_format_w = FLAC_plugin__convert_ansi_to_wide(flac_cfg.title.tag_format);
 	/* @@@ FIXME: trailing spaces */
 	RS(flac_cfg.title.sep, sizeof(flac_cfg.title.sep), default_sep);
-	RI(flac_cfg.title.read_v1, 1);
 	RI(flac_cfg.tag.reserve_space, 1);
 
 	RI(flac_cfg.display.show_bps, 1);
@@ -77,7 +76,6 @@ void ReadConfig()
 void WriteConfig()
 {
 	WS(flac_cfg.title.tag_format);
-	WI(flac_cfg.title.read_v1);
 	WI(flac_cfg.tag.reserve_space);
 	WS(flac_cfg.title.sep);
 
@@ -116,7 +114,7 @@ static INT_PTR CALLBACK GeneralProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 		SetDlgItemText(hwnd, IDC_TITLE, flac_cfg.title.tag_format);
 		SetDlgItemText(hwnd, IDC_SEP, flac_cfg.title.sep);
-		Check(IDC_ID3V1, flac_cfg.title.read_v1);
+		Check(IDC_ID3V1, 0);
 /*!		Check(IDC_RESERVE, flac_cfg.tag.reserve_space); */
 		Check(IDC_BPS, flac_cfg.display.show_bps);
 		Check(IDC_ERRORS, flac_cfg.output.misc.stop_err);
@@ -133,14 +131,13 @@ static INT_PTR CALLBACK GeneralProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			GetDlgItemText(hwnd, IDC_SEP, flac_cfg.title.sep, sizeof(flac_cfg.title.sep));
 			flac_cfg.title.tag_format_w = FLAC_plugin__convert_ansi_to_wide(flac_cfg.title.tag_format);
 
-			flac_cfg.title.read_v1 = GetCheck(IDC_ID3V1);
 /*!			flac_cfg.tag.reserve_space = GetCheck(IDC_RESERVE); */
 			flac_cfg.display.show_bps = GetCheck(IDC_BPS);
 			flac_cfg.output.misc.stop_err = GetCheck(IDC_ERRORS);
 			break;
 		/* reset */
 		case IDC_RESET:
-			Check(IDC_ID3V1, 1);
+			Check(IDC_ID3V1, 0);
 			Check(IDC_RESERVE, 1);
 			Check(IDC_BPS, 1);
 			Check(IDC_ERRORS, 0);

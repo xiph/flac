@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __FLAC_ID3_H__
-#define __FLAC_ID3_H__
+#ifndef __FLAC__PLUGIN_XMMS__TAG_H__
+#define __FLAC__PLUGIN_XMMS__TAG_H__
 
 gchar *flac_format_song_title(gchar * filename);
 

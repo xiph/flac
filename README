@@ -133,7 +133,6 @@ $HOME/.xmms/Plugins, instead of the global XMMS plugin area
 (usually /usr/lib/xmms/Input).
 
 --with-ogg=
---with-id3lib=
 --with-xmms-prefix=
 --with-libiconv-prefix=
 Use these if you have these packages but configure can't find them.

@@ -395,9 +395,6 @@ void ReadTags(const char *fileName, FLAC_Plugin__CanonicalTag *tag, BOOL forDisp
 	FLAC_plugin__canonical_tag_init(tag);
 	FLAC_plugin__vorbiscomment_get(fileName, tag, forDisplay ? flac_cfg.title.sep : NULL);
 
-	if (flac_cfg.title.read_v1)
-		FLAC_plugin__canonical_tag_add_id3v1(fileName, tag);
-
 	/* add file name */
 	if (forDisplay)
 	{

@@ -22,8 +22,6 @@
 #include "canonical_tag.h"
 #include "charset.h"
 #include "dither.h"
-#include "id3v1.h"
-#include "id3v2.h"
 #include "locale_hack.h"
 #include "vorbiscomment.h"
 

@@ -11,7 +11,7 @@
 # - libtool 1.5.6
 #
 # You may need to specify -I /SOME_PATH/share/aclocal if the packages
-# FLAC relies on (autotools, libogg, libiconv, libid3) are installed in
+# FLAC relies on (autotools, libogg, libiconv) are installed in
 # non-standard places.
 #
 # If you don't have XMMS installed at all, you should comment out

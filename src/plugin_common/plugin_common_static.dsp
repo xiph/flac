@@ -97,14 +97,6 @@ SOURCE=.\dither.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\id3v1.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\id3v2.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\vorbiscomment.c
 # End Source File
 # End Group
@@ -126,10 +118,6 @@ SOURCE=.\charset.h
 # Begin Source File
 
 SOURCE=.\dither.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\id3v1.h
 # End Source File
 # Begin Source File
 

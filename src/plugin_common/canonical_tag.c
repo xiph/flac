@@ -22,9 +22,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h> /* for strlen() and memcpy() */
 
 #include "canonical_tag.h"
-#include "id3v2.h"
 #include "vorbiscomment.h"
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
@@ -149,38 +149,6 @@ __wcscasecmp (s1, s2 LOCALE_PARAM)
 #ifndef __wcscasecmp
 weak_alias (__wcscasecmp, wcscasecmp)
 #endif
-#endif
-
-#ifndef _MSC_VER
-/* @@@ cheesy and does base 10 only */
-wchar_t *local__itow(int value, wchar_t *string)
-{
-	if (value == 0) {
-		string[0] = (wchar_t)'0';
-		string[1] = (wchar_t)0;
-	}
-	else {
-		/* convert backwards, then reverse string */
-		wchar_t *start = string, *s;
-		if (value < 0) {
-			*start++ = (wchar_t)'-';
-			value = -value; /* @@@ overflow at INT_MIN */
-		}
-		s = start;
-		while (value > 0) {
-			*s++ = (wchar_t)((value % 10) + '0');
-			value /= 10;
-		}
-		*s-- = (wchar_t)0;
-		while (s > start) {
-			wchar_t tmp = *s;
-			*s-- = *start;
-			*start++ = tmp;
-		}
-	}
-
-	return string;
-}
 #endif
 
 /*
@@ -611,133 +579,7 @@ void FLAC_plugin__canonical_tag_merge(FLAC_Plugin__CanonicalTag *dest, const FLA
 	}
 }
 
-static wchar_t *local__copy_field(const char *src, unsigned n)
-{
-	const char *p = src + n;
-	wchar_t *dest;
-	FLAC__ASSERT(n > 0);
-
-	while (p>src && *(--p)==' ');
-
-	n = p - src + 1;
-	if (!n) return NULL;
-
-	if ((dest = malloc((n+1)*sizeof(wchar_t))) != 0)
-	{
-		mbstowcs(dest, src, n);
-		dest[n] = 0;
-	}
-	return dest;
-}
-
-static void local__add_id3_field(FLAC_Plugin__CanonicalTag *object, const char *value, size_t length, const wchar_t *new_name)
-{
-	wchar_t *tmp;
-	if (0 != value && length > 0) {
-		tmp = local__copy_field(value, length);
-		if (tmp)
-			FLAC_plugin__canonical_add_tail(object, wcsdup(new_name), tmp);
-	}
-}
-
-void FLAC_plugin__canonical_tag_convert_from_id3v1(FLAC_Plugin__CanonicalTag *object, const FLAC_Plugin__Id3v1_Tag *id3v1_tag)
-{
-	wchar_t *tmp;
-	FLAC_plugin__canonical_tag_clear(object);
-
-	local__add_id3_field(object, id3v1_tag->title, 30, L"TITLE");
-	local__add_id3_field(object, id3v1_tag->artist, 30, L"ARTIST");
-	local__add_id3_field(object, id3v1_tag->album, 30, L"ALBUM");
-	local__add_id3_field(object, id3v1_tag->year, 4, L"YEAR");
-
-	/* check for v1.1 tags */
-	if (id3v1_tag->zero == 0)
-	{
-		if (id3v1_tag->track && (tmp=(wchar_t*)malloc(sizeof(id3v1_tag->track)*4*sizeof(wchar_t)))!=0)
-		{
-#ifdef _MSC_VER
-			_itow(id3v1_tag->track, tmp, 10);
-#else
-			local__itow(id3v1_tag->track, tmp);
-#endif
-			FLAC_plugin__canonical_add_tail(object, wcsdup(L"TRACKNUMBER"), tmp);
-		}
-		local__add_id3_field(object, id3v1_tag->comment, 28, L"DESCRIPTION");
-	}
-	else
-	{
-		local__add_id3_field(object, id3v1_tag->comment, 30, L"DESCRIPTION");
-	}
-
-	tmp = FLAC_plugin__convert_ansi_to_wide(FLAC_plugin__id3v1_tag_get_genre_as_string(id3v1_tag->genre));
-	if (tmp) FLAC_plugin__canonical_add_tail(object, wcsdup(L"GENRE"), tmp);
-}
-
-void FLAC_plugin__canonical_tag_convert_from_id3v2(FLAC_Plugin__CanonicalTag *object, const FLAC_Plugin__Id3v2_Tag *id3v2_tag)
-{
-	FLAC_plugin__canonical_tag_clear(object);
-
-	local__add_id3_field(object, id3v2_tag->title          , strlen(id3v2_tag->title)          , L"TITLE");
-	local__add_id3_field(object, id3v2_tag->composer       , strlen(id3v2_tag->composer)       , L"ARTIST");
-	local__add_id3_field(object, id3v2_tag->performer      , strlen(id3v2_tag->performer)      , L"PERFORMER");
-	local__add_id3_field(object, id3v2_tag->album          , strlen(id3v2_tag->album)          , L"ALBUM");
-	local__add_id3_field(object, id3v2_tag->year_recorded  , strlen(id3v2_tag->year_recorded)  , L"YEAR_RECORDED");
-	local__add_id3_field(object, id3v2_tag->year_performed , strlen(id3v2_tag->year_performed) , L"YEAR_PERFORMED");
-	local__add_id3_field(object, id3v2_tag->track_number   , strlen(id3v2_tag->track_number)   , L"TRACKNUMBER");
-	local__add_id3_field(object, id3v2_tag->tracks_in_album, strlen(id3v2_tag->tracks_in_album), L"TRACKS_IN_ALBUM");
-	local__add_id3_field(object, id3v2_tag->genre          , strlen(id3v2_tag->genre)          , L"GENRE");
-	local__add_id3_field(object, id3v2_tag->comment        , strlen(id3v2_tag->comment)        , L"DESCRIPTION");
-}
-
-static FLAC__bool local__get_id3v1_tag_as_canonical(const char *filename, FLAC_Plugin__CanonicalTag *tag)
-{
-	FLAC_Plugin__Id3v1_Tag id3v1_tag;
-
-	if (FLAC_plugin__id3v1_tag_get(filename, &id3v1_tag))
-	{
-		FLAC_plugin__canonical_tag_convert_from_id3v1(tag, &id3v1_tag);
-		return true;
-	}
-	return false;
-}
-
-static FLAC__bool local__get_id3v2_tag_as_canonical(const char *filename, FLAC_Plugin__CanonicalTag *tag)
-{
-	FLAC_Plugin__Id3v2_Tag id3v2_tag;
-
-	if (FLAC_plugin__id3v2_tag_get(filename, &id3v2_tag))
-	{
-		FLAC_plugin__canonical_tag_convert_from_id3v2(tag, &id3v2_tag);
-		return true;
-	}
-	return false;
-}
-
-void FLAC_plugin__canonical_tag_add_id3v1(const char *filename, FLAC_Plugin__CanonicalTag *tag)
-{
-	FLAC_Plugin__CanonicalTag id3v1_tag;
-
-	FLAC_plugin__canonical_tag_init(&id3v1_tag);
-	(void)local__get_id3v1_tag_as_canonical(filename, &id3v1_tag);
-	FLAC_plugin__canonical_tag_merge(tag, &id3v1_tag);
-
-	FLAC_plugin__canonical_tag_clear(&id3v1_tag);
-}
-
-void FLAC_plugin__canonical_tag_add_id3v2(const char *filename, FLAC_Plugin__CanonicalTag *tag)
-{
-	FLAC_Plugin__CanonicalTag id3v2_tag;
-
-	FLAC_plugin__canonical_tag_init(&id3v2_tag);
-	(void)local__get_id3v2_tag_as_canonical(filename, &id3v2_tag);
-	FLAC_plugin__canonical_tag_merge(tag, &id3v2_tag);
-
-	FLAC_plugin__canonical_tag_clear(&id3v2_tag);
-}
-
 void FLAC_plugin__canonical_tag_get_combined(const char *filename, FLAC_Plugin__CanonicalTag *tag, const char *sep)
 {
 	FLAC_plugin__vorbiscomment_get(filename, tag, sep);
-	FLAC_plugin__canonical_tag_add_id3v2(filename, tag);
-	FLAC_plugin__canonical_tag_add_id3v1(filename, tag);
 }
