@@ -213,7 +213,7 @@ FLAC__bool FLAC__file_decoder_set_md5_checking(FLAC__FileDecoder *decoder, FLAC_
 
 /** Set the input file name to decode.
  *
- * \default \c false
+ * \default \c "-"
  * \param  decoder  A decoder instance to set.
  * \param  value    The input file name, or "-" for \c stdin.
  * \assert
@@ -223,7 +223,7 @@ FLAC__bool FLAC__file_decoder_set_md5_checking(FLAC__FileDecoder *decoder, FLAC_
  *    \c false if the decoder is already initialized, or there was a memory
  *    allocation error, else \c true.
  */
-FLAC__bool FLAC__file_decoder_set_filename(FLAC__FileDecoder *decoder, const char *value); /* 'value' may not be 0; use "-" for stdin */
+FLAC__bool FLAC__file_decoder_set_filename(FLAC__FileDecoder *decoder, const char *value);
 
 /** Set the write callback.
  *  This is inherited from FLAC__SeekableStreamDecoder; see
