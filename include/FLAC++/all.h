@@ -33,7 +33,7 @@
  * Note that Doxygen currently has some quirks (bugs?) in the way
  * it deals with some member groups and C++ constructs.  You will find
  * some document entries in the wrong place under [NOHEADER] sections.
- * Hopefully this is not too annoying.
+ * Hopefully this is not too distracting.
  */
 
 #endif

@@ -624,12 +624,11 @@ namespace FLAC {
 		 * \{
 		 */
 
-		/** XXX class SimpleIterator
+		/** This class is a wrapper around the FLAC__metadata_simple_iterator
+		 *  structures and methods; see ::FLAC__Metadata_SimpleIterator.
 		 */
 		class SimpleIterator {
 		public:
-			/** XXX class SimpleIterator::Status
-			 */
 			class Status {
 			public:
 				inline Status(::FLAC__Metadata_SimpleIteratorStatus status): status_(status) { }
@@ -702,12 +701,11 @@ namespace FLAC {
 		 * \{
 		 */
 
-		/** XXX class Chain
+		/** This class is a wrapper around the FLAC__metadata_chain
+		 *  structures and methods; see ::FLAC__Metadata_Chain.
 		 */
 		class Chain {
 		public:
-			/** XXX class Chain::Status
-			 */
 			class Status {
 			public:
 				inline Status(::FLAC__Metadata_ChainStatus status): status_(status) { }
@@ -736,7 +734,8 @@ namespace FLAC {
 			virtual void clear();
 		};
 
-		/** XXX class Iterator
+		/** This class is a wrapper around the FLAC__metadata_iterator
+		 *  structures and methods; see ::FLAC__Metadata_Iterator.
 		 */
 		class Iterator {
 		public:

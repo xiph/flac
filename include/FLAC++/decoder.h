@@ -24,18 +24,11 @@
 #include "FLAC/seekable_stream_decoder.h"
 #include "FLAC/stream_decoder.h"
 
-// ===============================================================
-//
-//  Full documentation for the decoder interfaces can be found
-//  in the C layer in include/FLAC/ *_decoder.h
-//
-// ===============================================================
-
 
 /** \file include/FLAC++/decoder.h
  *
  *  \brief
- *  This file contains the classes which implement the various
+ *  This module contains the classes which implement the various
  *  decoders.
  *
  *  See the detailed documentation in the
@@ -46,23 +39,21 @@
  *  \ingroup flacpp
  *
  *  \brief
- *  Brief XXX.
+ *  This module describes the three decoder layers provided by libFLAC++.
  *
- * Detailed decoder XXX.
+ * The libFLAC++ decoder classes are object wrappers around their
+ * counterparts in libFLAC.  All three decoding layers available in
+ * libFLAC are also provided here.  The interface is very similar;
+ * make sure to read the \link flac_decoder libFLAC decoder module \endlink.
+ *
+ * The only real difference here is that instead of passing in C function
+ * pointers for callbacks, you inherit from the decoder class and provide
+ * implementations for the callbacks in the derived class; because of this
+ * there is no need for a 'client_data' property.
  */
 
 namespace FLAC {
 	namespace Decoder {
-
-		// ============================================================
-		//
-		//  The only real difference here is that instead of passing
-		//  in C function pointers for callbacks, you inherit from the
-		//  decoder class and provide implementations for the callbacks
-		//  in the derived class; because of this there is no need for
-		//  a 'client_data' property.
-		//
-		// ============================================================
 
 		// ============================================================
 		//
@@ -74,14 +65,14 @@ namespace FLAC {
 		 *  \ingroup flacpp_decoder
 		 *
 		 *  \brief
-		 *  Brief XXX.
+		 *  This class wraps the ::FLAC__StreamDecoder.
 		 *
-		 * Detailed stream decoder XXX.
+		 * See the \link flac_stream_decoder libFLAC stream decoder module \endlink.
 		 *
 		 * \{
 		 */
 
-		/** stream decoder XXX.
+		/** This class wraps the ::FLAC__StreamDecoder.
 		 */
 		class Stream {
 		public:
@@ -114,9 +105,10 @@ namespace FLAC {
 			unsigned get_sample_rate() const;
 			unsigned get_blocksize() const;
 
-			// Initialize the instance; as with the C interface,
-			// init() should be called after construction and 'set'
-			// calls but before any of the 'process' calls.
+			/** Initialize the instance; as with the C interface,
+			 *  init() should be called after construction and 'set'
+			 *  calls but before any of the 'process' calls.
+			 */
 			State init();
 
 			void finish();
@@ -158,14 +150,14 @@ namespace FLAC {
 		 *  \ingroup flacpp_decoder
 		 *
 		 *  \brief
-		 *  Brief XXX.
+		 *  This class wraps the ::FLAC__SeekableStreamDecoder.
 		 *
-		 * Detailed seekable stream decoder XXX.
+		 * See the \link flac_seekable_stream_decoder libFLAC seekable stream decoder module \endlink.
 		 *
 		 * \{
 		 */
 
-		/** seekable stream decoder XXX.
+		/** This class wraps the ::FLAC__SeekableStreamDecoder.
 		 */
 		class SeekableStream {
 		public:
@@ -252,14 +244,14 @@ namespace FLAC {
 		 *  \ingroup flacpp_decoder
 		 *
 		 *  \brief
-		 *  Brief XXX.
+		 *  This class wraps the ::FLAC__FileDecoder.
 		 *
-		 * Detailed file decoder XXX.
+		 * See the \link flac_file_decoder libFLAC file decoder module \endlink.
 		 *
 		 * \{
 		 */
 
-		/** file decoder XXX.
+		/** This class wraps the ::FLAC__FileDecoder.
 		 */
 		class File {
 		public:
@@ -279,7 +271,7 @@ namespace FLAC {
 			inline operator bool() const { return is_valid(); }
 
 			bool set_md5_checking(bool value);
-			bool set_filename(const char *value); // 'value' may not be 0; use "-" for stdin
+			bool set_filename(const char *value); //!< 'value' may not be \c NULL; use "-" for stdin
 			bool set_metadata_respond(::FLAC__MetadataType type);
 			bool set_metadata_respond_application(const FLAC__byte id[4]);
 			bool set_metadata_respond_all();

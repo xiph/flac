@@ -24,18 +24,11 @@
 // we only need this for the state abstraction really...
 #include "FLAC++/decoder.h"
 
-// ===============================================================
-//
-//  Full documentation for the decoder interfaces can be found
-//  in the C layer in include/OggFLAC/ *_decoder.h
-//
-// ===============================================================
-
 
 /** \file include/OggFLAC++/decoder.h
  *
  *  \brief
- *  This file contains the classes which implement the various
+ *  This module contains the classes which implement the various
  *  decoders.
  *
  *  See the detailed documentation in the
@@ -46,23 +39,21 @@
  *  \ingroup oggflacpp
  *
  *  \brief
- *  Brief XXX.
+ *  This module describes the decoder layers provided by libOggFLAC++.
  *
- * Detailed decoder XXX.
+ * The libOggFLAC++ decoder classes are object wrappers around their
+ * counterparts in libOggFLAC.  Only the stream decoding layer in
+ * libOggFLAC provided here.  The interface is very similar;
+ * make sure to read the \link oggflac_decoder libOggFLAC decoder module \endlink.
+ *
+ * The only real difference here is that instead of passing in C function
+ * pointers for callbacks, you inherit from the decoder class and provide
+ * implementations for the callbacks in the derived class; because of this
+ * there is no need for a 'client_data' property.
  */
 
 namespace OggFLAC {
 	namespace Decoder {
-
-		// ============================================================
-		//
-		//  The only real difference here is that instead of passing
-		//  in C function pointers for callbacks, you inherit from
-		//  stream and provide implementations for the callbacks in
-		//  the derived class; because of this there is no need for a
-		//  'client_data' property.
-		//
-		// ============================================================
 
 		// ============================================================
 		//
@@ -74,13 +65,14 @@ namespace OggFLAC {
 		 *  \ingroup oggflacpp_decoder
 		 *
 		 *  \brief
-		 *  Brief XXX.
+		 *  This class wraps the ::OggFLAC__StreamDecoder.
 		 *
-		 * Detailed stream decoder XXX.
+		 * See the \link oggflac_stream_decoder libOggFLAC stream decoder module \endlink.
+		 *
 		 * \{
 		 */
 
-		/** stream decoder XXX.
+		/** This class wraps the ::OggFLAC__StreamDecoder.
 		 */
 		class Stream {
 		public:
@@ -114,9 +106,6 @@ namespace OggFLAC {
 			unsigned get_sample_rate() const;
 			unsigned get_blocksize() const;
 
-			// Initialize the instance; as with the C interface,
-			// init() should be called after construction and 'set'
-			// calls but before any of the 'process' calls.
 			State init();
 
 			void finish();

@@ -25,13 +25,6 @@
 #include "FLAC/stream_encoder.h"
 #include "decoder.h"
 
-// ===============================================================
-//
-//  Full documentation for the encoder interfaces can be found
-//  in the C layer in include/FLAC/ *_encoder.h
-//
-// ===============================================================
-
 
 /** \file include/FLAC++/encoder.h
  *
@@ -47,9 +40,17 @@
  *  \ingroup flacpp
  *
  *  \brief
- *  Brief XXX.
+ *  This module describes the three encoder layers provided by libFLAC++.
  *
- * Detailed encoder XXX.
+ * The libFLAC++ encoder classes are object wrappers around their
+ * counterparts in libFLAC.  All three encoding layers available in
+ * libFLAC are also provided here.  The interface is very similar;
+ * make sure to read the \link flac_encoder libFLAC encoder module \endlink.
+ *
+ * The only real difference here is that instead of passing in C function
+ * pointers for callbacks, you inherit from the encoder class and provide
+ * implementations for the callbacks in the derived class; because of this
+ * there is no need for a 'client_data' property.
  */
 
 namespace FLAC {
@@ -59,28 +60,20 @@ namespace FLAC {
 		//
 		//  Equivalent: FLAC__StreamEncoder
 		//
-		//  ----------------------------------------------------------
-		//
-		//  The only real difference here is that instead of passing
-		//  in C function pointers for callbacks, you inherit from the
-		//  encoder class and provide implementations for the callbacks
-		//  in the derived class; because of this there is no need for
-		//  a 'client_data' property.
-		//
 		// ============================================================
 
 		/** \defgroup flacpp_stream_encoder FLAC++/encoder.h: stream encoder class
 		 *  \ingroup flacpp_encoder
 		 *
 		 *  \brief
-		 *  Brief XXX.
+		 *  This class wraps the ::FLAC__StreamEncoder.
 		 *
-		 * Detailed stream encoder XXX.
+		 * See the \link flac_stream_encoder libFLAC stream encoder module \endlink.
 		 *
 		 * \{
 		 */
 
-		/** stream encoder XXX.
+		/** This class wraps the ::FLAC__StreamEncoder.
 		 */
 		class Stream {
 		public:
@@ -139,9 +132,6 @@ namespace FLAC {
 			unsigned get_rice_parameter_search_dist() const;
 			FLAC__uint64 get_total_samples_estimate() const;
 
-			// Initialize the instance; as with the C interface,
-			// init() should be called after construction and 'set'
-			// calls but before any of the 'process' calls.
 			State init();
 
 			void finish();
@@ -168,14 +158,14 @@ namespace FLAC {
 		 *  \ingroup flacpp_encoder
 		 *
 		 *  \brief
-		 *  Brief XXX.
+		 *  This class wraps the ::FLAC__SeekableStreamEncoder.
 		 *
-		 * Detailed seekable stream encoder XXX.
+		 * See the \link flac_seekable_stream_encoder libFLAC seekable stream encoder module \endlink.
 		 *
 		 * \{
 		 */
 
-		/** seekable stream encoder XXX.
+		/** This class wraps the ::FLAC__SeekableStreamEncoder.
 		 */
 		class SeekableStream {
 		public:
@@ -235,9 +225,6 @@ namespace FLAC {
 			unsigned get_rice_parameter_search_dist() const;
 			FLAC__uint64 get_total_samples_estimate() const;
 
-			// Initialize the instance; as with the C interface,
-			// init() should be called after construction and 'set'
-			// calls but before any of the 'process' calls.
 			State init();
 
 			void finish();
@@ -264,14 +251,14 @@ namespace FLAC {
 		 *  \ingroup flacpp_encoder
 		 *
 		 *  \brief
-		 *  Brief XXX.
+		 *  This class wraps the ::FLAC__FileEncoder.
 		 *
-		 * Detailed file encoder XXX.
+		 * See the \link flac_file_encoder libFLAC file encoder module \endlink.
 		 *
 		 * \{
 		 */
 
-		/** file encoder XXX.
+		/** This class wraps the ::FLAC__FileEncoder.
 		 */
 		class File {
 		public:
@@ -333,9 +320,6 @@ namespace FLAC {
 			unsigned get_rice_parameter_search_dist() const;
 			FLAC__uint64 get_total_samples_estimate() const;
 
-			// Initialize the instance; as with the C interface,
-			// init() should be called after construction and 'set'
-			// calls but before any of the 'process' calls.
 			State init();
 
 			void finish();

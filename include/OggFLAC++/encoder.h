@@ -26,13 +26,6 @@
 #include "FLAC++/decoder.h"
 #include "FLAC++/encoder.h"
 
-// ===============================================================
-//
-//  Full documentation for the encoder interfaces can be found
-//  in the C layer in include/OggFLAC/ *_encoder.h
-//
-// ===============================================================
-
 
 /** \file include/OggFLAC++/encoder.h
  *
@@ -48,9 +41,17 @@
  *  \ingroup oggflacpp
  *
  *  \brief
- *  Brief XXX.
+ *  This module describes the encoder layers provided by libOggFLAC++.
  *
- * Detailed encoder XXX.
+ * The libOggFLAC++ encoder classes are object wrappers around their
+ * counterparts in libOggFLAC.  Only the stream encoding layer in
+ * libOggFLAC is provided here.  The interface is very similar;
+ * make sure to read the \link oggflac_encoder libOggFLAC encoder module \endlink.
+ *
+ * The only real difference here is that instead of passing in C function
+ * pointers for callbacks, you inherit from the encoder class and provide
+ * implementations for the callbacks in the derived class; because of this
+ * there is no need for a 'client_data' property.
  */
 
 namespace OggFLAC {
@@ -60,27 +61,20 @@ namespace OggFLAC {
 		//
 		//  Equivalent: OggFLAC__StreamEncoder
 		//
-		//  ----------------------------------------------------------
-		//
-		//  The only real difference here is that instead of passing
-		//  in C function pointers for callbacks, you inherit from
-		//  stream and provide implementations for the callbacks in
-		//  the derived class; because of this there is no need for a
-		//  'client_data' property.
-		//
 		// ============================================================
 
 		/** \defgroup oggflacpp_stream_encoder OggFLAC++/encoder.h: stream encoder class
 		 *  \ingroup oggflacpp_encoder
 		 *
 		 *  \brief
-		 *  Brief XXX.
+		 *  This class wraps the ::OggFLAC__StreamEncoder.
 		 *
-		 * Detailed stream encoder XXX.
+		 * See the \link oggflac_stream_encoder libOggFLAC stream encoder module \endlink.
+		 *
 		 * \{
 		 */
 
-		/** stream encoder XXX.
+		/** This class wraps the ::OggFLAC__StreamEncoder.
 		 */
 		class Stream {
 		public:
@@ -140,9 +134,6 @@ namespace OggFLAC {
 			unsigned get_rice_parameter_search_dist() const;
 			FLAC__uint64 get_total_samples_estimate() const;
 
-			// Initialize the instance; as with the C interface,
-			// init() should be called after construction and 'set'
-			// calls but before any of the 'process' calls.
 			State init();
 
 			void finish();
