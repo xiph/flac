@@ -606,6 +606,16 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(FLAC__StreamDec
  */
 FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__StreamDecoder *decoder);
 
+/** Get the current decoder state as a C string.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval const char *
+ *    The decoder state as a C string.  Do not modify the contents.
+ */
+FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__StreamDecoder *decoder);
+
 /** Get the current number of channels in the stream being decoded.
  *  Will only be valid after decoding has started and will contain the
  *  value from the most recently decoded frame header.

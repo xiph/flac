@@ -95,6 +95,7 @@ namespace FLAC {
 				inline State(::FLAC__StreamDecoderState state): state_(state) { }
 				inline operator ::FLAC__StreamDecoderState() const { return state_; }
 				inline const char *as_cstring() const { return ::FLAC__StreamDecoderStateString[state_]; }
+				inline const char *resolved_as_cstring(const Stream &decoder) const { return ::FLAC__stream_decoder_get_resolved_state_string(decoder.decoder_); }
 			protected:
 				::FLAC__StreamDecoderState state_;
 			};

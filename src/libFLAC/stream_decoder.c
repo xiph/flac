@@ -516,6 +516,11 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__Str
 	return decoder->protected_->state;
 }
 
+FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__StreamDecoder *decoder)
+{
+	return FLAC__StreamDecoderStateString[decoder->protected_->state];
+}
+
 FLAC_API unsigned FLAC__stream_decoder_get_channels(const FLAC__StreamDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
