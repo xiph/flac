@@ -393,7 +393,7 @@ static int infobox(char *fn, HWND hwnd)
 static In_Module mod_ =
 {
 	IN_VER,
-	"Reference FLAC Decoder v" PLUGIN_VERSION,
+	"FLAC Decoder v" PLUGIN_VERSION,
 	0,                                    /* hMainWindow */
 	0,                                    /* hDllInstance */
 	"FLAC\0FLAC Audio File (*.FLAC)\0",
