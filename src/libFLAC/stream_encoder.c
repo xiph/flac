@@ -587,14 +587,22 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
+
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return;
-	if(encoder->private_->current_sample_number != 0) {
-		encoder->protected_->blocksize = encoder->private_->current_sample_number;
-		process_frame_(encoder, true); /* true => is last frame */
+
+	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK) {
+		if(encoder->private_->current_sample_number != 0) {
+			encoder->protected_->blocksize = encoder->private_->current_sample_number;
+			process_frame_(encoder, true); /* true => is last frame */
+		}
 	}
+
 	MD5Final(encoder->private_->metadata.data.stream_info.md5sum, &encoder->private_->md5context);
-	encoder->private_->metadata_callback(encoder, &encoder->private_->metadata, encoder->private_->client_data);
+
+	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK) {
+		encoder->private_->metadata_callback(encoder, &encoder->private_->metadata, encoder->private_->client_data);
+	}
 
 	if(encoder->protected_->verify && 0 != encoder->private_->verify.decoder)
 		FLAC__stream_decoder_finish(encoder->private_->verify.decoder);
