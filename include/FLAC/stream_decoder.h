@@ -334,7 +334,8 @@ typedef struct {
  *                  to the callback, it contains the maximum number
  *                  of bytes that may be stored in \a buffer.  The
  *                  callee must set it to the actual number of bytes
- *                  stored before returning.
+ *                  stored (0 in case of error or end-of-stream) before
+ *                  returning.
  * \param  client_data  The callee's client data set through
  *                      FLAC__stream_decoder_set_client_data().
  * \retval FLAC__StreamDecoderReadStatus

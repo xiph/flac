@@ -95,6 +95,7 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 
 #ifdef FLAC__ONE_FLAC_FRAME_PER_OGG_PAGE
+	/* WATCHOUT: a FLAC frame may not be able to fit in a single Ogg page */
 	while(ogg_stream_flush(&aspect->stream_state, &aspect->page) != 0) {
 		if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
