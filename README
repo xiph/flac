@@ -57,8 +57,27 @@ forthcoming, but in general, this should work:
 
 ./configure ; make ; make install
 
-To disable all assembly optimizations, pass the
---disable-asm-optimizations flag to configure.
+There are a few FLAC-specific arguments you can give to
+`configure':
+
+--enable-debug : Builds everything with debug symbols and some
+extra (and more verbose) error checking.
+
+--disable-asm-optimizations : Disables the compilation of the
+assembly routines.  Many routines have assembly versions for
+speed and `configure' is pretty good about knowing what is
+supported, but you can use this option to build only from the
+C sources.
+
+--sse-os : If you are building for an x86 CPU that supports
+SSE instructions, you can enable some of the faster routines
+if your operating system also supports SSE instructions.  flac
+can tell if the CPU supports the instructions but currently has
+no way to test if the OS does, so if it does, you must pass
+this argument to configure to use the SSE routines.  If flac
+crashes when built with this option you will have to go back and
+configure without --sse-os.  Note that --disable-asm-optimizations
+overrides --sse-os.
 
 
 ==================
