@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
 	int i;
 	bool verify = false, verbose = true, lax = false, mode_decode = false, test_only = false, analyze = false;
 	bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+	bool analyze_residual = false;
 	unsigned padding = 0;
 	unsigned max_lpc_order = 8;
 	unsigned qlp_coeff_precision = 0;
@@ -94,6 +95,10 @@ int main(int argc, char *argv[])
 			qlp_coeff_precision = atoi(argv[++i]);
 		else if(0 == strcmp(argv[i], "-r"))
 			rice_optimization_level = atoi(argv[++i]);
+		else if(0 == strcmp(argv[i], "-v"))
+			analyze_residual = true;
+		else if(0 == strcmp(argv[i], "-v-"))
+			analyze_residual = false;
 		else if(0 == strcmp(argv[i], "-V"))
 			verify = true;
 		else if(0 == strcmp(argv[i], "-V-"))
@@ -276,9 +281,9 @@ int main(int argc, char *argv[])
 
 	if(mode_decode)
 		if(format_is_wave)
-			return decode_wav(argv[i], test_only? 0 : argv[i+1], analyze, verbose, skip);
+			return decode_wav(argv[i], test_only? 0 : argv[i+1], analyze, analyze_residual, verbose, skip);
 		else
-			return decode_raw(argv[i], test_only? 0 : argv[i+1], analyze, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
+			return decode_raw(argv[i], test_only? 0 : argv[i+1], analyze, analyze_residual, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 	else
 		if(format_is_wave)
 			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding);
@@ -339,6 +344,8 @@ int usage(const char *message, ...)
 	printf("  -a : analyze (same as -d except an analysis file is written)\n");
 	printf("  -s : silent (do not write runtime encode/decode statistics to stdout)\n");
 	printf("  --skip samples : can be used both for encoding and decoding\n");
+	printf("analyze options:\n");
+	printf("  -v : verbose (include residual signal in output)\n");
 	printf("encoding options:\n");
 	printf("  --lax : allow encoder to generate non-Subset files\n");
 	printf("  -P bytes : write a PADDING block of the given length (0 => no PADDING block, default is -P 0)\n");

@@ -32,6 +32,7 @@ typedef struct {
 	FILE *fout;
 	bool abort_flag;
 	bool analysis_mode;
+	bool analyze_residual;
 	bool test_only;
 	bool is_wave_out;
 	bool is_big_endian;
@@ -58,7 +59,7 @@ static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__Stre
 static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const stream_info_struct *stream_info);
 
-int decode_wav(const char *infile, const char *outfile, bool analysis_mode, bool verbose, uint64 skip)
+int decode_wav(const char *infile, const char *outfile, bool analysis_mode, bool analyze_residual, bool verbose, uint64 skip)
 {
 	bool md5_failure = false;
 	stream_info_struct stream_info;
@@ -66,6 +67,7 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, bool
 	decoder = 0;
 	stream_info.abort_flag = false;
 	stream_info.analysis_mode = analysis_mode;
+	stream_info.analyze_residual = analyze_residual;
 	stream_info.test_only = (outfile == 0);
 	stream_info.is_wave_out = true;
 	stream_info.verbose = verbose;
@@ -156,7 +158,7 @@ wav_abort_:
 	return 1;
 }
 
-int decode_raw(const char *infile, const char *outfile, bool analysis_mode, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples)
+int decode_raw(const char *infile, const char *outfile, bool analysis_mode, bool analyze_residual, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples)
 {
 	bool md5_failure = false;
 	stream_info_struct stream_info;
@@ -164,6 +166,7 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, bool
 	decoder = 0;
 	stream_info.abort_flag = false;
 	stream_info.analysis_mode = analysis_mode;
+	stream_info.analyze_residual = analyze_residual;
 	stream_info.test_only = (outfile == 0);
 	stream_info.is_wave_out = false;
 	stream_info.is_big_endian = is_big_endian;
@@ -338,12 +341,20 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 				case FLAC__SUBFRAME_TYPE_FIXED:
 					fprintf(fout, "\torder=%u\tpartition_order=%u\n", subframe->data.fixed.order, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order); /*@@@ assumes method is partitioned-rice */
 					for(i = 0; i < subframe->data.fixed.order; i++)
-						fprintf(fout, "\twarmup[%u]=%d\n", i, subframe->data.fixed.warmup[i]);
+						fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.fixed.warmup[i]);
+					if(stream_info->analyze_residual) {
+						for(i = 0; i < frame->header.blocksize-subframe->data.fixed.order; i++)
+							fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.fixed.residual[i]);
+					}
 					break;
 				case FLAC__SUBFRAME_TYPE_LPC:
 					fprintf(fout, "\torder=%u\tpartition_order=%u\tqlp_coeff_precision=%u\tquantization_level=%d\n", subframe->data.lpc.order, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level); /*@@@ assumes method is partitioned-rice */
 					for(i = 0; i < subframe->data.lpc.order; i++)
-						fprintf(fout, "\twarmup[%u]=%d\n", i, subframe->data.lpc.warmup[i]);
+						fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.lpc.warmup[i]);
+					if(stream_info->analyze_residual) {
+						for(i = 0; i < frame->header.blocksize-subframe->data.lpc.order; i++)
+							fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.lpc.residual[i]);
+					}
 					break;
 				case FLAC__SUBFRAME_TYPE_VERBATIM:
 					fprintf(fout, "\n");
