@@ -2,4 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-EXTRA_DIST = utf8.h getopt.h
+EXTRA_DIST = \
+	gain_analysis.h \
+	getopt.h \
+	utf8.h

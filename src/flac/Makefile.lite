@@ -24,16 +24,16 @@ topdir = ../..
 PROGRAM_NAME = flac
 ifeq ($(DARWIN_BUILD),yes)
 INCLUDES     = -I./include -I$(topdir)/include
-LIBS         = -lFLAC -lgetopt -lutf8 -lc -lm
+LIBS         = -lFLAC -lgain_analysis -lgetopt -lutf8 -lc -lm
 else
 #@@@ TODO: conditionalize ogg includes, defines, and -logg
 ifeq ($(SOLARIS_BUILD),yes)
 INCLUDES     = -I./include -I$(topdir)/include -I$(HOME)/local/include -DFLAC__HAS_OGG
-LIBS         = -lOggFLAC -lFLAC -lgetopt -lutf8 -lm -L$(HOME)/local/lib -logg
+LIBS         = -lOggFLAC -lFLAC -lgain_analysis -lgetopt -lutf8 -lm -L$(HOME)/local/lib -logg
 else
 #@@@ TODO: conditionalize ogg includes, defines, and -logg
 INCLUDES     = -I./include -I$(topdir)/include -I$(HOME)/local/include -DFLAC__HAS_OGG
-LIBS         = -lOggFLAC -lFLAC -lgetopt -lutf8 -lm -L$(HOME)/local/lib -logg
+LIBS         = -lOggFLAC -lFLAC -lgain_analysis -lgetopt -lutf8 -lm -L$(HOME)/local/lib -logg
 endif
 endif
 

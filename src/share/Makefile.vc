@@ -3,6 +3,9 @@
 # It's less hassle to spell it all out that to figure out how to do it right with nmake:
 
 all:
+	cd gain_analysis
+	nmake /f Makefile.vc
+	cd ..
 	cd getopt
 	nmake /f Makefile.vc
 	cd ..
@@ -11,6 +14,9 @@ all:
 	cd ..
 
 clean:
+	cd gain_analysis
+	nmake /f Makefile.vc clean
+	cd ..
 	cd getopt
 	nmake /f Makefile.vc clean
 	cd ..

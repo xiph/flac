@@ -27,6 +27,9 @@ Package=<4>
     Project_Dep_Name flac_ren
     End Project Dependency
     Begin Project Dependency
+    Project_Dep_Name gain_analysis
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name getopt
     End Project Dependency
     Begin Project Dependency
@@ -72,6 +75,9 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
+    Project_Dep_Name gain_analysis
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name getopt
     End Project Dependency
     Begin Project Dependency
@@ -100,6 +106,18 @@ Package=<4>
 ###############################################################################
 
 Project: "flac_ren"=.\src\monkeys_audio_utilities\flac_ren\flac_ren.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "gain_analysis"=.\src\share\gain_analysis\gain_analysis.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -209,6 +227,18 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name gain_analysis
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name getopt
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libFLAC
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name utf8
+    End Project Dependency
 }}}
 
 ###############################################################################
