@@ -23,6 +23,7 @@
 cglobal FLAC__lpc_compute_autocorrelation_asm_i386
 cglobal FLAC__lpc_compute_autocorrelation_asm_i386_sse
 cglobal FLAC__lpc_restore_signal_asm_i386
+cglobal FLAC__lpc_restore_signal_asm_i386_mmx
 
 	code_section
 
@@ -283,58 +284,80 @@ ret
 ; 		data[i] = residual[i] + (sum >> lp_quantization);
 ; 	}
 ; }
+	ALIGN	16
 FLAC__lpc_restore_signal_asm_i386:
-	; [esp + 20] == residual[]
-	; [esp + 24] == data_len
-	; [esp + 28] == qlp_coeff[]
-	; [esp + 32] == order
-	; [esp + 36] == lp_quantization
-	; [esp + 40] == data[]
+	;[esp + 40]	data[]
+	;[esp + 36]	lp_quantization
+	;[esp + 32]	order
+	;[esp + 28]	qlp_coeff[]
+	;[esp + 24]	data_len
+	;[esp + 20]	residual[]
 
 	push	ebp
 	push	ebx
 	push	esi
 	push	edi
-	
+
 	mov	esi, [esp + 20]
-	mov	ebx, [esp + 24]
-	mov	eax, [esp + 32]
 	mov	edi, [esp + 40]
-	
+	mov	eax, [esp + 32]
+	mov	ebx, [esp + 24]
+
+	cmp	eax, byte 1
+	jg	short .x87_1more
+
+	mov	ecx, [esp + 28]
+	mov	edx, [ecx]
+	mov	eax, [edi - 4]
+	mov	cl, [esp + 36]
+	ALIGN	16
+.x87_1_loop_i:
+	imul	eax, edx
+	sar	eax, cl
+	add	eax, [esi]
+	mov	[edi], eax
+	add	esi, byte 4
+	add	edi, byte 4
+	dec	ebx
+	jnz	.x87_1_loop_i
+
+	jmp	.end
+
+.x87_1more:
 	cmp	eax, byte 32		; for order <= 32 there is a faster routine
-	jbe	short .b
+	jbe	short .x87_32
 
 	; This version is here just for completeness, since FLAC__MAX_LPC_ORDER == 32
 	ALIGN 16
-.loop_i_a
+.x87_32more_loop_i:
 	xor	ebp, ebp
 	mov	ecx, [esp + 32]
 	mov	edx, ecx
 	shl	edx, 2
 	add	edx, [esp + 28]
 	neg	ecx
-	ALIGN 16
-.loop_j_a
-	sub	edx, 4
+	ALIGN	16
+.x87_32more_loop_j:
+	sub	edx, byte 4
 	mov	eax, [edx]
 	imul	eax, [edi + 4 * ecx]
 	add	ebp, eax
 	inc	ecx
-	jnz	.loop_j_a
-	
+	jnz	short .x87_32more_loop_j
+
 	mov	cl, [esp + 36]
 	sar	ebp, cl
 	add	ebp, [esi]
 	mov	[edi], ebp
 	add	edi, byte 4
 	add	esi, byte 4
-	
+
 	dec	ebx
-	jnz	.loop_i_a
-	
+	jnz	.x87_32more_loop_i
+
 	jmp	.end
 
-.b
+.x87_32:
 	sub	esi, edi
 	neg	eax
 	lea	edx, [eax + eax * 8 + .jumper_0]
@@ -342,14 +365,14 @@ FLAC__lpc_restore_signal_asm_i386:
 	mov	eax, [esp + 28]
 	xor	ebp, ebp
 	jmp	edx
-;.jumper_32
-	mov	ecx, [eax + 124]	;32
+
+	mov	ecx, [eax + 124]
 	imul	ecx, [edi - 128]
 	add	ebp, ecx
 	mov	ecx, [eax + 120]
 	imul	ecx, [edi - 124]
 	add	ebp, ecx
-	mov	ecx, [eax + 116]	;30
+	mov	ecx, [eax + 116]
 	imul	ecx, [edi - 120]
 	add	ebp, ecx
 	mov	ecx, [eax + 112]
@@ -364,7 +387,7 @@ FLAC__lpc_restore_signal_asm_i386:
 	mov	ecx, [eax + 100]
 	imul	ecx, [edi - 104]
 	add	ebp, ecx
-	mov	ecx, [eax + 96]		;25
+	mov	ecx, [eax + 96]
 	imul	ecx, [edi - 100]
 	add	ebp, ecx
 	mov	ecx, [eax + 92]
@@ -379,7 +402,7 @@ FLAC__lpc_restore_signal_asm_i386:
 	mov	ecx, [eax + 80]
 	imul	ecx, [edi - 84]
 	add	ebp, ecx
-	mov	ecx, [eax + 76]		;20
+	mov	ecx, [eax + 76]
 	imul	ecx, [edi - 80]
 	add	ebp, ecx
 	mov	ecx, [eax + 72]
@@ -394,7 +417,7 @@ FLAC__lpc_restore_signal_asm_i386:
 	mov	ecx, [eax + 60]
 	imul	ecx, [edi - 64]
 	add	ebp, ecx
-	mov	ecx, [eax + 56]		;15
+	mov	ecx, [eax + 56]
 	imul	ecx, [edi - 60]
 	add	ebp, ecx
 	mov	ecx, [eax + 52]
@@ -409,7 +432,7 @@ FLAC__lpc_restore_signal_asm_i386:
 	mov	ecx, [eax + 40]
 	imul	ecx, [edi - 44]
 	add	ebp, ecx
-	mov	ecx, [eax + 36]		;10
+	mov	ecx, [eax + 36]
 	imul	ecx, [edi - 40]
 	add	ebp, ecx
 	mov	ecx, [eax + 32]
@@ -424,7 +447,7 @@ FLAC__lpc_restore_signal_asm_i386:
 	mov	ecx, [eax + 20]
 	imul	ecx, [edi - 24]
 	add	ebp, ecx
-	mov	ecx, [eax + 16]		;5
+	mov	ecx, [eax + 16]
 	imul	ecx, [edi - 20]
 	add	ebp, ecx
 	mov	ecx, [eax + 12]
@@ -439,20 +462,151 @@ FLAC__lpc_restore_signal_asm_i386:
 	mov	ecx, [eax]		;there is one byte missing
 	imul	ecx, [edi - 4]
 	add	ebp, ecx
-.jumper_0
+.jumper_0:
 
 	mov	cl, [esp + 36]
 	sar	ebp, cl
 	add	ebp, [esi + edi]
 	mov	[edi], ebp
 	add	edi, byte 4
-	
+
 	dec	ebx
 	jz	short .end
 	xor	ebp, ebp
 	jmp	edx
-	
-.end
+
+.end:
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
+	ret
+
+; WATCHOUT: this routine works on 16 bit data which means bits-per-sample for
+; the channel must be <= 16.  Especially note that this routine cannot be used
+; for side-channel coded 16bps channels since the effective bps is 17.
+	ALIGN	16
+FLAC__lpc_restore_signal_asm_i386_mmx:
+	;[esp + 40]	data[]
+	;[esp + 36]	lp_quantization
+	;[esp + 32]	order
+	;[esp + 28]	qlp_coeff[]
+	;[esp + 24]	data_len
+	;[esp + 20]	residual[]
+
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+
+	mov	esi, [esp + 20]
+	mov	edi, [esp + 40]
+	mov	eax, [esp + 32]
+	mov	ebx, [esp + 24]
+
+	mov	edx, [esp + 28]
+	movd	mm6, [esp + 36]
+	mov	ebp, esp
+
+	and	esp, 0xfffffff8
+
+	xor	ecx, ecx
+.copy_qlp_loop:
+	push	word [edx + 4 * ecx]
+	inc	ecx
+	cmp	ecx, eax
+	jnz	short .copy_qlp_loop
+
+	and	ecx, 0x3
+	test	ecx, ecx
+	je	short .za_end
+	sub	ecx, byte 4
+.za_loop:
+	push	word 0
+	inc	eax
+	inc	ecx
+	jnz	short .za_loop
+.za_end:
+
+	movq	mm5, [esp + 2 * eax - 8]
+	movd	mm4, [edi - 16]
+	punpckldq	mm4, [edi - 12]
+	movd	mm0, [edi - 8]
+	punpckldq	mm0, [edi - 4]
+	packssdw	mm4, mm0
+
+	cmp	eax, byte 4
+	jnbe	short .mmx_4more
+
+	align	16
+.mmx_4_loop_i:
+	movq	mm7, mm4
+	pmaddwd	mm7, mm5
+	movq	mm0, mm7
+	punpckhdq	mm7, mm7
+	paddd	mm7, mm0
+	psrad	mm7, mm6
+	movd	mm1, [esi]
+	paddd	mm7, mm1
+	movd	[edi], mm7
+	psllq	mm7, 48
+	psrlq	mm4, 16
+	por	mm4, mm7
+
+	add	esi, byte 4
+	add	edi, byte 4
+
+	dec	ebx
+	jnz	.mmx_4_loop_i
+	jmp	.mmx_end
+.mmx_4more:
+	shl	eax, 2
+	neg	eax
+	add	eax, byte 16
+	align	16
+.mmx_4more_loop_i:
+	mov	ecx, edi
+	add	ecx, eax
+	mov	edx, esp
+
+	movq	mm7, mm4
+	pmaddwd	mm7, mm5
+
+	align	16
+.mmx_4more_loop_j:
+	movd	mm0, [ecx - 16]
+	punpckldq	mm0, [ecx - 12]
+	movd	mm1, [ecx - 8]
+	punpckldq	mm1, [ecx - 4]
+	packssdw	mm0, mm1
+	pmaddwd	mm0, [edx]
+	paddd	mm7, mm0
+
+	add	edx, byte 8
+	add	ecx, byte 16
+	cmp	ecx, edi
+	jnz	.mmx_4more_loop_j
+
+	movq	mm0, mm7
+	punpckhdq	mm7, mm7
+	paddd	mm7, mm0
+	psrad	mm7, mm6
+	movd	mm1, [esi]
+	paddd	mm7, mm1
+	movd	[edi], mm7
+	psllq	mm7, 48
+	psrlq	mm4, 16
+	por	mm4, mm7
+
+	add	esi, byte 4
+	add	edi, byte 4
+
+	dec	ebx
+	jnz	short .mmx_4more_loop_i
+.mmx_end:
+	emms
+	mov	esp, ebp
+
 	pop	edi
 	pop	esi
 	pop	ebx
