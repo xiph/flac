@@ -363,13 +363,13 @@
 		The machine I used for encoding the test files is a PII-333 with 256 megs of RAM, running Windows NT 4.0 SP5.  Unfortunately, Windows is the lowest-common-denominator platform for all the encoders.
 	</P>
 	<P>
-		The input corpus currently consists entirely of CD music tracks.  In the future it may include more kinds of input (like speech, other sample rates, etc).  There are 13 tracks whose genres range from death metal to pop to classical to chant.
+		The input corpus currently consists entirely of CD music tracks.  In the future it may include more kinds of input (like speech, other sample rates/resolutions, etc).  There are 13 tracks whose genres range from death metal to pop to classical to chant.
 	</P>
 	<P>
 		In all tables, the results are sorted by compression ratio, which is compressed size / uncompressed size.  The first table is a summary of results on all input tracks.  The remaining table shows the results of the encoders on each track.
 	</P>
 	<P>
-		Some interesting things to note: LPAC quality settings are not too stable with -r (which allows seeking during playback) turned on.  In most cases the 'normal' mode makes the smallest file, and much faster.  RKAU also has a tendency to get bigger in the 'high' mode.  Shorten's method for quantizing and transmitting the LPC coefficients is not very good which is the main reason why the fixed predictors runs are both smaller and faster.
+		Some interesting things to note: LPAC quality settings are not too stable with -r (which allows seeking during playback) turned on.  In most cases the 'normal' mode makes the smallest file, and much faster.  RKAU also has a tendency to get bigger in the 'high' mode.  Shorten's method for quantizing and transmitting the LPC coefficients is not very good which is the main reason why the fixed predictor runs are both smaller and faster.
 	</P>
 	<P>
 		Another ironic fact is that the encoders that are patented or cost money turn out to be the worst by most measures.  SPS is so archane and crippled that I gave up trying to put together results for it after one track.
