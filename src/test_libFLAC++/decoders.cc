@@ -271,9 +271,11 @@ bool StreamDecoder::die(const char *msg) const
 	State state = get_state();
 
 	if(msg)
-		printf("FAILED, %s, state = %u (%s)\n", msg, (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		printf("FAILED, %s", msg);
 	else
-		printf("FAILED, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		printf("FAILED");
+
+	printf(", state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
 
 	return false;
 }
@@ -945,9 +947,15 @@ bool SeekableStreamDecoder::die(const char *msg) const
 	State state = get_state();
 
 	if(msg)
-		printf("FAILED, %s, state = %u (%s)\n", msg, (unsigned)((::FLAC__SeekableStreamDecoderState)state), state.as_cstring());
+		printf("FAILED, %s", msg);
 	else
-		printf("FAILED, state = %u (%s)\n", (unsigned)((::FLAC__SeekableStreamDecoderState)state), state.as_cstring());
+		printf("FAILED");
+
+	printf(", state = %u (%s)\n", (unsigned)((::FLAC__SeekableStreamDecoderState)state), state.as_cstring());
+	if(state == ::FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
+		FLAC::Decoder::Stream::State state_ = get_stream_decoder_state();
+		printf("      stream decoder state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state_), state_.as_cstring());
+	}
 
 	return false;
 }
@@ -1581,9 +1589,19 @@ bool FileDecoder::die(const char *msg) const
 	State state = get_state();
 
 	if(msg)
-		printf("FAILED, %s, state = %u (%s)\n", msg, (unsigned)((::FLAC__FileDecoderState)state), state.as_cstring());
+		printf("FAILED, %s", msg);
 	else
-		printf("FAILED, state = %u (%s)\n", (unsigned)((::FLAC__FileDecoderState)state), state.as_cstring());
+		printf("FAILED");
+
+	printf(", state = %u (%s)\n", (unsigned)((::FLAC__FileDecoderState)state), state.as_cstring());
+	if(state == ::FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR) {
+		FLAC::Decoder::SeekableStream::State state_ = get_seekable_stream_decoder_state();
+		printf("      seekable stream decoder state = %u (%s)\n", (unsigned)((::FLAC__SeekableStreamDecoderState)state_), state_.as_cstring());
+		if(state_ == ::FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
+			FLAC::Decoder::Stream::State state__ = get_stream_decoder_state();
+			printf("      stream decoder state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state__), state__.as_cstring());
+		}
+	}
 
 	return false;
 }

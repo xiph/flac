@@ -76,7 +76,7 @@ static FLAC__bool die_ss_(const char *msg, const FLAC__SeekableStreamDecoder *de
 	printf(", state = %u (%s)\n", (unsigned)state, FLAC__SeekableStreamDecoderStateString[state]);
 	if(state == FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
 		FLAC__StreamDecoderState state_ = FLAC__seekable_stream_decoder_get_stream_decoder_state(decoder);
-		printf("      stream decoder state = %u (%s)\n", (unsigned)state, FLAC__StreamDecoderStateString[state_]);
+		printf("      stream decoder state = %u (%s)\n", (unsigned)state_, FLAC__StreamDecoderStateString[state_]);
 	}
 
 	return false;
@@ -97,7 +97,7 @@ static FLAC__bool die_f_(const char *msg, const FLAC__FileDecoder *decoder)
 		printf("      seekable stream decoder state = %u (%s)\n", (unsigned)state, FLAC__SeekableStreamDecoderStateString[state_]);
 		if(state_ == FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
 			FLAC__StreamDecoderState state__ = FLAC__file_decoder_get_stream_decoder_state(decoder);
-			printf("      stream decoder state = %u (%s)\n", (unsigned)state, FLAC__StreamDecoderStateString[state__]);
+			printf("      stream decoder state = %u (%s)\n", (unsigned)state__, FLAC__StreamDecoderStateString[state__]);
 		}
 	}
 
