@@ -171,7 +171,9 @@ redo_it:
 	}
 	else { /* (*shift < 0) */
 		const int nshift = -(*shift);
+#ifdef DEBUG
 		fprintf(stderr,"FLAC__lpc_quantize_coefficients: negative shift = %d\n", *shift);
+#endif
 		for(i = 0; i < order; i++) {
 			qlp_coeff[i] = (FLAC__int32)floor((double)lp_coeff[i] / (double)(1 << nshift));
 
