@@ -105,7 +105,6 @@ static FLAC__bool rewrite_whole_file_(FLAC__Metadata_SimpleIterator *iterator, F
 static void simple_iterator_push_(FLAC__Metadata_SimpleIterator *iterator);
 static FLAC__bool simple_iterator_pop_(FLAC__Metadata_SimpleIterator *iterator);
 
-/* return 0 if OK, 1 if read error, 2 if not a FLAC file */
 static unsigned seek_to_first_metadata_block_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOCallback_Seek seek_cb);
 static unsigned seek_to_first_metadata_block_(FILE *f);
 
@@ -1357,7 +1356,7 @@ FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata
 		}
 	}
 
-	return true;
+	return (current_length != chain->initial_length);
 }
 
 FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats)
