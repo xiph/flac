@@ -139,10 +139,10 @@ typedef struct FLAC__StreamEncoderPrivate {
 	void (*local_lpc_compute_autocorrelation)(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients)(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients_16bit)(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
-	FLAC__bool use_wide_by_block;                     /* use slow 64-bit versions of some functions because of the block size */
-	FLAC__bool use_wide_by_partition;                 /* use slow 64-bit versions of some functions because of the min partition order and blocksize */
-	FLAC__bool use_wide_by_order;                     /* use slow 64-bit versions of some functions because of the lpc order */
-	FLAC__bool precompute_partition_sums;             /* our initial guess as to whether precomputing the partitions sums will be a speed improvement */
+	FLAC__bool use_wide_by_block;          /* use slow 64-bit versions of some functions because of the block size */
+	FLAC__bool use_wide_by_partition;      /* use slow 64-bit versions of some functions because of the min partition order and blocksize */
+	FLAC__bool use_wide_by_order;          /* use slow 64-bit versions of some functions because of the lpc order */
+	FLAC__bool precompute_partition_sums;  /* our initial guess as to whether precomputing the partitions sums will be a speed improvement */
 	FLAC__StreamEncoderWriteCallback write_callback;
 	FLAC__StreamEncoderMetadataCallback metadata_callback;
 	void *client_data;
@@ -180,6 +180,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 			FLAC__int32 got;
 		} error_stats;
 	} verify;
+	FLAC__bool is_being_deleted; /* if true, call to ..._finish() from ..._delete() will not call the callbacks */
 } FLAC__StreamEncoderPrivate;
 
 /***********************************************************************
@@ -259,6 +260,7 @@ FLAC__StreamEncoder *FLAC__stream_encoder_new()
 
 	set_defaults_(encoder);
 
+	encoder->private_->is_being_deleted = false;
 	encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
 
 	return encoder;
@@ -271,7 +273,10 @@ void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->private_->frame);
 
-	free_(encoder);
+	encoder->private_->is_being_deleted = true;
+
+	FLAC__stream_encoder_finish(encoder);
+
 	if(encoder->protected_->verify && 0 != encoder->private_->verify.decoder)
 		FLAC__stream_decoder_delete(encoder->private_->verify.decoder);
 	FLAC__bitbuffer_delete(encoder->private_->frame);
@@ -595,7 +600,7 @@ void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return;
 
-	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK) {
+	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		if(encoder->private_->current_sample_number != 0) {
 			encoder->protected_->blocksize = encoder->private_->current_sample_number;
 			process_frame_(encoder, true); /* true => is last frame */
@@ -604,7 +609,7 @@ void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 
 	MD5Final(encoder->private_->metadata.data.stream_info.md5sum, &encoder->private_->md5context);
 
-	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK) {
+	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		encoder->private_->metadata_callback(encoder, &encoder->private_->metadata, encoder->private_->client_data);
 	}
 
