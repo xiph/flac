@@ -356,7 +356,7 @@ PLUGIN_COMMON_API int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC
 		-268435456, /* 29 bits-per-sample */
 		-536870912, /* 30 bits-per-sample */
 		-1073741824, /* 31 bits-per-sample */
-		-2147483648ll /* 32 bits-per-sample */
+		(FLAC__int64)(-1073741824) * 2 /* 32 bits-per-sample */
 	};
 	const FLAC__int32 conv_factor = conv_factors_[source_bps];
 	const FLAC__int64 hard_clip_factor = hard_clip_factors_[source_bps];

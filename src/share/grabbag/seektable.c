@@ -60,7 +60,12 @@ GRABBAG_API FLAC__bool grabbag__seektable_convert_specification_to_template(cons
 					if(!only_explicit_placeholders) {
 						double sec = atof(pt);
 						if(sec > 0.0) {
+#if defined _MSC_VER || defined __MINGW32__
+							/* with VC++ you have to spoon feed it the casting */
+							unsigned n = (unsigned)((double)(FLAC__int64)total_samples_to_encode / (sec * (double)sample_rate));
+#else
 							unsigned n = (unsigned)((double)total_samples_to_encode / (sec * (double)sample_rate));
+#endif
 							if(!FLAC__metadata_object_seektable_template_append_spaced_points(seektable_template, n, total_samples_to_encode))
 								return false;
 						}
