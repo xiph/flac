@@ -3,13 +3,14 @@
 #
 
 LIB_NAME  = libFLAC
-DEFINES = -DFLAC__PRECOMPUTE_PARTITION_SUMS -DFLAC__ALIGN_MALLOC_DATA
+DEFINES = -DFLAC__CPU_IA32 -DFLAC__HAS_NASM -DFLAC__PRECOMPUTE_PARTITION_SUMS -DFLAC__ALIGN_MALLOC_DATA
 INCLUDES  = -I./include -I../../include
 DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
 OBJS = \
 	bitbuffer.o \
 	bitmath.o \
+	cpu.o \
 	crc.o \
 	encoder.o \
 	encoder_framing.o \
@@ -20,7 +21,10 @@ OBJS = \
 	md5.o \
 	memory.o \
 	seek_table.o \
-	stream_decoder.o
+	stream_decoder.o \
+	i386/cpu_asm.o \
+	i386/fixed_asm.o \
+	i386/lpc_asm.o
 
 include ../../build/lib.mk
 
