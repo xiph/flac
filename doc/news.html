@@ -68,6 +68,7 @@
 				<LI>A new metadata block <A HREF="format.html#def_SEEKTABLE">SEEKTABLE</A> has been defined to hold an arbitrary number of seek points, which speeds up seeking within a stream.</LI>
 				<LI><B><TT>flac</TT></B> now has a command-line usage similar to 'gzip'; make sure to see the latest <A HREF="documentation.html">documentation</A> for the new usage.  It also attempts to preserve the input file's timestamp and permissions.</LI>
 				<LI>The -# options in <B><TT>flac</TT></B> have been tweaked to yield the best compression-to-encode-time ratios.  The new default is -5.</LI>
+				<LI><B><TT>flac</TT></B> can now usually autodetect WAVE files when encoding so that -fw is usually not needed when encoding from stdin.</LI>
 				<LI>The WAVE reader in <B><TT>flac</TT></B> now just ignores (with a warning) unsupported sub-chunks instead of aborting with an error.</LI>
 				<LI>Added an option '--delete-input-file' to <B><TT>flac</TT></B> which automatically deletes the input after a successful encode/decode.</LI>
 				<LI>Added an option '-o' to <B><TT>flac</TT></B> to force the output file name (the old usage of "flac - outputfilename" is no longer supported).</LI>
