@@ -240,8 +240,8 @@ int main(int argc, char *argv[])
 			return usage("ERROR: invalid number of channels '%u', must be > 0 and <= %u\n", format_channels, FLAC__MAX_CHANNELS);
 	}
 	if(format_bps >= 0) {
-		if(format_bps != 8 && format_bps != 16)
-			return usage("ERROR: invalid bits per sample '%u' (must be 8 or 16)\n", format_bps);
+		if(format_bps != 8 && format_bps != 16 && format_bps != 24)
+			return usage("ERROR: invalid bits per sample '%u' (must be 8/16/24)\n", format_bps);
 	}
 	if(format_sample_rate >= 0) {
 		if(format_sample_rate == 0 || (unsigned)format_sample_rate > FLAC__MAX_SAMPLE_RATE)

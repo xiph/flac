@@ -304,12 +304,14 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 	FILE *fout = stream_info->fout;
 	unsigned bps = stream_info->bps, channels = stream_info->channels;
 	bool is_big_endian = (stream_info->is_wave_out? false : stream_info->is_big_endian);
-	bool is_unsigned_samples = (stream_info->is_wave_out? bps==8 : stream_info->is_unsigned_samples);
+	bool is_unsigned_samples = (stream_info->is_wave_out? bps<=8 : stream_info->is_unsigned_samples);
 	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, byte;
 	static signed char scbuffer[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * ((FLAC__MAX_BITS_PER_SAMPLE+7)>>3)]; /* WATCHOUT: can be up to 2 megs */
 	unsigned char *ucbuffer = (unsigned char *)scbuffer;
 	signed short *ssbuffer = (signed short *)scbuffer;
 	unsigned short *usbuffer = (unsigned short *)scbuffer;
+	signed *slbuffer = (signed *)scbuffer;
+	unsigned *ulbuffer = (unsigned *)scbuffer;
 
 	(void)decoder;
 
@@ -353,7 +355,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 			if(is_unsigned_samples) {
 				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 					for(channel = 0; channel < channels; channel++, sample++)
-						ucbuffer[sample] = buffer[channel][wide_sample] + 128;
+						ucbuffer[sample] = buffer[channel][wide_sample] + 0x80;
 			}
 			else {
 				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
@@ -363,11 +365,11 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 			if(fwrite(ucbuffer, 1, sample, fout) != sample)
 				return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}
-		else { /* bps == 16 */
+		else if(bps == 16) {
 			if(is_unsigned_samples) {
 				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 					for(channel = 0; channel < channels; channel++, sample++)
-						usbuffer[sample] = buffer[channel][wide_sample] + 32768;
+						usbuffer[sample] = buffer[channel][wide_sample] + 0x8000;
 			}
 			else {
 				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
@@ -376,7 +378,8 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 			}
 			if(is_big_endian != is_big_endian_host) {
 				unsigned char tmp;
-				for(byte = 0; byte < sample<<1; byte += 2) {
+				const unsigned bytes = sample * 2;
+				for(byte = 0; byte < bytes; byte += 2) {
 					tmp = ucbuffer[byte];
 					ucbuffer[byte] = ucbuffer[byte+1];
 					ucbuffer[byte+1] = tmp;
@@ -384,6 +387,78 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 			}
 			if(fwrite(usbuffer, 2, sample, fout) != sample)
 				return FLAC__STREAM_DECODER_WRITE_ABORT;
+		}
+		else if(bps == 24) {
+			if(is_unsigned_samples) {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						ulbuffer[sample] = buffer[channel][wide_sample] + 0x800000;
+			}
+			else {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						slbuffer[sample] = buffer[channel][wide_sample];
+			}
+/*@@@
+			if(is_big_endian != is_big_endian_host) {
+				unsigned char tmp;
+				unsigned lbyte;
+				const unsigned bytes = sample * 4;
+				for(lbyte = byte = 0; byte < bytes; byte += 4, lbyte += 3) {
+					tmp = ucbuffer[byte];
+					ucbuffer[lbyte] = ucbuffer[byte+2];
+					ucbuffer[lbyte+2] = tmp;
+					ucbuffer[lbyte+1] = ucbuffer[byte+1];
+				}
+			}
+			else {
+				unsigned lbyte;
+				const unsigned bytes = sample * 4;
+				for(lbyte = byte = 0; byte < bytes; ) {
+					ucbuffer[lbyte++] = ucbuffer[byte++];
+					ucbuffer[lbyte++] = ucbuffer[byte++];
+					ucbuffer[lbyte++] = ucbuffer[byte++];
+					byte++;
+				}
+			}
+*/
+			if(is_big_endian != is_big_endian_host) {
+				unsigned char tmp;
+				const unsigned bytes = sample * 4;
+				for(byte = 0; byte < bytes; byte += 4) {
+					tmp = ucbuffer[byte];
+					ucbuffer[byte] = ucbuffer[byte+3];
+					ucbuffer[byte+3] = tmp;
+					tmp = ucbuffer[byte+1];
+					ucbuffer[byte+1] = ucbuffer[byte+2];
+					ucbuffer[byte+2] = tmp;
+				}
+			}
+			if(is_big_endian) {
+				unsigned lbyte;
+				const unsigned bytes = sample * 4;
+				for(lbyte = byte = 0; byte < bytes; ) {
+					byte++;
+					ucbuffer[lbyte++] = ucbuffer[byte++];
+					ucbuffer[lbyte++] = ucbuffer[byte++];
+					ucbuffer[lbyte++] = ucbuffer[byte++];
+				}
+			}
+			else {
+				unsigned lbyte;
+				const unsigned bytes = sample * 4;
+				for(lbyte = byte = 0; byte < bytes; ) {
+					ucbuffer[lbyte++] = ucbuffer[byte++];
+					ucbuffer[lbyte++] = ucbuffer[byte++];
+					ucbuffer[lbyte++] = ucbuffer[byte++];
+					byte++;
+				}
+			}
+			if(fwrite(ucbuffer, 3, sample, fout) != sample)
+				return FLAC__STREAM_DECODER_WRITE_ABORT;
+		}
+		else {
+			assert(0);
 		}
 	}
 	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
@@ -399,8 +474,8 @@ void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaD
 		stream_info->channels = metadata->data.stream_info.channels;
 		stream_info->sample_rate = metadata->data.stream_info.sample_rate;
 
-		if(stream_info->bps != 8 && stream_info->bps != 16) {
-			fprintf(stderr, "ERROR: bits per sample is not 8 or 16\n");
+		if(stream_info->bps != 8 && stream_info->bps != 16 && stream_info->bps != 24) {
+			fprintf(stderr, "ERROR: bits per sample is not 8/16/24\n");
 			stream_info->abort_flag = true;
 			return;
 		}

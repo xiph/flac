@@ -72,7 +72,7 @@ typedef struct {
 
 static bool is_big_endian_host;
 
-static unsigned char ucbuffer[CHUNK_OF_SAMPLES*FLAC__MAX_CHANNELS*(FLAC__MAX_BITS_PER_SAMPLE>>3)];
+static unsigned char ucbuffer[CHUNK_OF_SAMPLES*FLAC__MAX_CHANNELS*((FLAC__MAX_BITS_PER_SAMPLE+7)/8)];
 static signed char *scbuffer = (signed char *)ucbuffer;
 static uint16 *usbuffer = (uint16 *)ucbuffer;
 static int16 *ssbuffer = (int16 *)ucbuffer;
@@ -489,7 +489,7 @@ bool init(encoder_wrapper_struct *encoder_wrapper)
 
 bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, encoder_wrapper_struct *encoder_wrapper)
 {
-	if(channels != 2 || bps > 16)
+	if(channels != 2 /*@@@ not necessary? || bps > 16*/)
 		do_mid_side = loose_mid_side = false;
 
 	if(encoder_wrapper->verify) {
@@ -550,7 +550,7 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 		if(is_unsigned_samples) {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (int32)ucbuffer[sample] - 128;
+					input[channel][wide_sample] = (int32)ucbuffer[sample] - 0x80;
 		}
 		else {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
@@ -558,7 +558,7 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 					input[channel][wide_sample] = (int32)scbuffer[sample];
 		}
 	}
-	else {
+	else if(bps == 16) {
 		if(is_big_endian != is_big_endian_host) {
 			unsigned char tmp;
 			const unsigned bytes = wide_samples * channels * (bps >> 3);
@@ -571,13 +571,44 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 		if(is_unsigned_samples) {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (int32)usbuffer[sample] - 32768;
+					input[channel][wide_sample] = (int32)usbuffer[sample] - 0x8000;
 		}
 		else {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
 					input[channel][wide_sample] = (int32)ssbuffer[sample];
 		}
+	}
+	else if(bps == 24) {
+		if(!is_big_endian) {
+			unsigned char tmp;
+			const unsigned bytes = wide_samples * channels * (bps >> 3);
+			for(byte = 0; byte < bytes; byte += 3) {
+				tmp = ucbuffer[byte];
+				ucbuffer[byte] = ucbuffer[byte+2];
+				ucbuffer[byte+2] = tmp;
+			}
+		}
+		if(is_unsigned_samples) {
+			for(byte = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+				for(channel = 0; channel < channels; channel++, sample++) {
+					input[channel][wide_sample]  = ucbuffer[byte++]; input[channel][wide_sample] <<= 8;
+					input[channel][wide_sample] |= ucbuffer[byte++]; input[channel][wide_sample] <<= 8;
+					input[channel][wide_sample] |= ucbuffer[byte++];
+					input[channel][wide_sample] -= 0x800000;
+				}
+		}
+		else {
+			for(byte = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+				for(channel = 0; channel < channels; channel++, sample++) {
+					input[channel][wide_sample]  = scbuffer[byte++]; input[channel][wide_sample] <<= 8;
+					input[channel][wide_sample] |= ucbuffer[byte++]; input[channel][wide_sample] <<= 8;
+					input[channel][wide_sample] |= ucbuffer[byte++];
+				}
+		}
+	}
+	else {
+		assert(0);
 	}
 
 	if(encoder_wrapper->verify) {
@@ -711,6 +742,9 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 		if(0 != memcmp(buffer[channel], encoder_wrapper->verify_fifo.original[channel], sizeof(int32) * decoder->blocksize)) {
 			fprintf(stderr, "\nERROR: mismatch in decoded data, verify FAILED!\n");
 			fprintf(stderr, "       Please submit a bug report to http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
+for(l=0;l<decoder->blocksize;l++)
+if(buffer[channel][l]!=encoder_wrapper->verify_fifo.original[channel][l])break;
+fprintf(stderr,"@@@channel=%u, sample=%u, expected %08x, got %08x\n",channel,l,buffer[channel][l],encoder_wrapper->verify_fifo.original[channel][l]);
 			return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}
 	}
