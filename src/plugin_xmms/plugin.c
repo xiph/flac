@@ -310,14 +310,17 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 
 void *play_loop_(void *arg)
 {
-	unsigned written_time_last = 0, bh_index_last_w = 0, bh_index_last_o = BITRATE_HIST_SIZE;
-	FLAC__uint64 decode_position_last = 0;
+	unsigned written_time_last = 0, bh_index_last_w = 0, bh_index_last_o = BITRATE_HIST_SIZE, blocksize = 1;
+	FLAC__uint64 decode_position_last = 0, decode_position_frame_last = 0, decode_position_frame = 0;
 
 	(void)arg;
 
 	while(file_info_.is_playing) {
 		if(!file_info_.eof) {
 			while(wide_samples_in_reservoir_ < SAMPLES_PER_WRITE) {
+				unsigned s;
+
+				s = wide_samples_in_reservoir_;
 				if(FLAC__file_decoder_get_state(decoder_) == FLAC__FILE_DECODER_END_OF_FILE) {
 					file_info_.eof = true;
 					break;
@@ -328,6 +331,10 @@ void *play_loop_(void *arg)
 					file_info_.eof = true;
 					break;
 				}
+				blocksize = wide_samples_in_reservoir_ - s;
+				decode_position_frame_last = decode_position_frame;
+				if(!FLAC__file_decoder_get_decode_position(decoder_, &decode_position_frame))
+					decode_position_frame = 0;
 			}
 			if(wide_samples_in_reservoir_ > 0) {
 				const unsigned channels = file_info_.channels;
@@ -379,12 +386,10 @@ void *play_loop_(void *arg)
 				/* compute current bitrate */
 
 				written_time = flac_ip.output->written_time();
-				bh_index_w = written_time / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE ;
-				if(bh_index_w != bh_index_last_w && wide_samples_in_reservoir_ < SAMPLES_PER_WRITE) {
+				bh_index_w = written_time / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE;
+				if(bh_index_w != bh_index_last_w) {
 					bh_index_last_w = bh_index_w;
-					if(!FLAC__file_decoder_get_decode_position(decoder_, &decode_position))
-						decode_position = 0;
-
+					decode_position = decode_position_frame - (double)wide_samples_in_reservoir_ * (double)(decode_position_frame - decode_position_frame_last) / (double)blocksize;
 					bitrate_history_[(bh_index_w + BITRATE_HIST_SIZE - 1) % BITRATE_HIST_SIZE] =
 						decode_position > decode_position_last && written_time > written_time_last ?
 							8000 * (decode_position - decode_position_last) / (written_time - written_time_last) :
@@ -406,6 +411,8 @@ void *play_loop_(void *arg)
 			if(FLAC__file_decoder_seek_absolute(decoder_, (FLAC__uint64)target_sample)) {
 				flac_ip.output->flush(file_info_.seek_to_in_sec * 1000);
 				bh_index_last_w = bh_index_last_o = flac_ip.output->output_time() / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE;
+				if(!FLAC__file_decoder_get_decode_position(decoder_, &decode_position_frame))
+					decode_position_frame = 0;
 				file_info_.seek_to_in_sec = -1;
 				file_info_.eof = false;
 				wide_samples_in_reservoir_ = 0;
