@@ -30,6 +30,7 @@ doc_DATA =  \
 	faq.html \
 	favicon.ico \
 	features.html \
+	flac.css \
 	format.html \
 	goals.html \
 	id.html \

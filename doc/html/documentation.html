@@ -1,1543 +1,1407 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!-- Copyright (c)  2000,2001,2002,2003,2004,2005  Josh Coalson -->
 <!-- Permission is granted to copy, distribute and/or modify this document -->
 <!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
 <!-- or any later version published by the Free Software Foundation; -->
 <!-- with no invariant sections. -->
 <!-- A copy of the license can be found at http://www.gnu.org/copyleft/fdl.html -->
-<HTML>
-<HEAD>
-	<TITLE>FLAC - documentation</TITLE>
-</HEAD>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<meta name="author" content="Josh Coalson" />
+	<meta name="description" content="A free, open source codec for lossless audio compression and decompression" />
+	<meta name="keywords" content="free,lossless,audio,codec,encoder,decoder,compression,compressor,archival,archive,archiving,backup,music" />
+	<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+	<link rel="stylesheet" type="text/css" href="flac.css" />
+	<title>FLAC - documentation</title>
+</head>
 
-<BODY MARGINWIDTH="0" MARGINHEIGHT="0" LEFTMARGIN="0" RIGHTMARGIN="0" TOPMARGIN="0" BGCOLOR="#99CC99" TEXT="#000000" LINK="#336699" VLINK="#336699" ALINK="#336699">
+<body>
 
-<TABLE BORDER=0 WIDTH="100%" CELLPADDING=1 CELLSPACING=0>
-	<TR>
-		<TD ALIGN="CENTER" BGCOLOR="#000000"><A HREF="http://flac.sourceforge.net/"><IMG SRC="images/logo130.gif" ALIGN=CENTER ALT="FLAC Logo" BORDER=0 HSPACE=0></a></TD>
-	</TR>
-</TABLE>
+<div class="logo">
+	<a href="http://flac.sourceforge.net/"><img src="images/logo130.gif" alt="FLAC Logo" align="middle" border="0" hspace="0" /></a>
+</div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="25" ALT=""></TD></TR></TABLE>
+<div class="above_nav"></div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+<div class="separator2"></div>
 
-<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
-	<TR>
-		<TD ALIGN="CENTER" BGCOLOR="#D3D4C5">
-			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
-				<TR>
-					<TD HEIGHT=22 BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="index.html">home</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="faq.html">faq</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="news.html">news</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="download.html">download</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="features.html">features</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="goals.html">goals</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="format.html">format</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="id.html">id</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="comparison.html">comparison</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;documentation&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="changelog.html">changelog</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="links.html">links</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="developers.html">developers</A>&nbsp;&nbsp;</TD>
-				</TR>
-			</TABLE>
-		</TD>
-	</TR>
-</TABLE>
+<div class="navbar">
+	&nbsp;<a href="index.html">home</a>&nbsp;&nbsp;|
+	&nbsp;<a href="faq.html">faq</a>&nbsp;&nbsp;|
+	&nbsp;<a href="news.html">news</a>&nbsp;&nbsp;|
+	&nbsp;<a href="download.html">download</a>&nbsp;&nbsp;|
+	&nbsp;<a href="features.html">features</a>&nbsp;&nbsp;|
+	&nbsp;<a href="goals.html">goals</a>&nbsp;&nbsp;|
+	&nbsp;<a href="format.html">format</a>&nbsp;&nbsp;|
+	&nbsp;<a href="id.html">id</a>&nbsp;&nbsp;|
+	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
+	&nbsp;documentation&nbsp;&nbsp;|
+	&nbsp;<a href="changelog.html">changelog</a>&nbsp;&nbsp;|
+	&nbsp;<a href="links.html">links</a>&nbsp;&nbsp;|
+	&nbsp;<a href="developers.html">developers</a>&nbsp;
+</div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+<div class="separator2"></div>
 
-<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
-	<TR>
-		<TD ALIGN="CENTER" BGCOLOR="#EEEED4">
-			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
-				<TR>
-					<TD HEIGHT=22 BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;english&nbsp;&nbsp;</TD><TD BGCOLOR="#EEEED4" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="ru/documentation.html">russian</A>&nbsp;&nbsp;</TD>
-				</TR>
-			</TABLE>
-		</TD>
-	</TR>
-</TABLE>
+<div class="langbar">
+	&nbsp;english&nbsp;&nbsp;|
+	&nbsp;<a href="ru/documentation.html">russian</a>&nbsp;
+</div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+<div class="separator2"></div>
 
-<CENTER>
+<div class="below_nav"></div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="15" ALT=""></TD></TR></TABLE>
-
-
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<B><FONT SIZE="+2">documentation</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
+<div class="box">
+	<div class="box_title">
+		documentation
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
 		This page is broken up into the following sections:
-		<UL>
-			<LI><A HREF="#format">format</A> - the user-level view of the FLAC format (for a more detailed explanation see the <A HREF="format.html">format page</A>).</LI>
-			<LI><A HREF="#flac">flac</A> - the usage of the command-line file encoder/decoder <B><TT>flac</TT></B>.</LI>
-			<LI><A HREF="#metaflac">metaflac</A> - the usage of the command-line FLAC metadata editor <B><TT>metaflac</TT></B>.</LI>
-			<LI><A HREF="#plugins">plugins</A> - documentation for the various input plugins.</LI>
-			<LI><A HREF="api/index.html">libFLAC and libFLAC++ APIs</A> - for developers who want to add FLAC support to their programs.</LI>
-			<LI><A HREF="#bugs">bugs</A> - known bugs.</LI>
-			<LI><A HREF="#monkey">How to add FLAC support to the Monkey's Audio GUI</A></LI>
-		</UL>
-	</P>
-	<P>
+		<ul>
+			<li><a href="#format">format</a> - the user-level view of the FLAC format (for a more detailed explanation see the <a href="format.html">format page</a>).</li>
+			<li><a href="#flac">flac</a> - the usage of the command-line file encoder/decoder <span class="commandname">flac</span>.</li>
+			<li><a href="#metaflac">metaflac</a> - the usage of the command-line FLAC metadata editor <span class="commandname">metaflac</span>.</li>
+			<li><a href="#plugins">plugins</a> - documentation for the various input plugins.</li>
+			<li><a href="api/index.html">libFLAC and libFLAC++ APIs</a> - for developers who want to add FLAC support to their programs.</li>
+			<li><a href="#bugs">bugs</a> - known bugs.</li>
+			<li><a href="#monkey">How to add FLAC support to the Monkey's Audio GUI</a></li>
+		</ul>
 		Keep in mind that the online version of this document will always apply to the latest release.  For older releases, check the documentation included with the release package.
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+	</div>
+	<div class="box_footer"></div>
+</div>
 
+<br />
 
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="format"><B><FONT SIZE="+2">format</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
-		<B><TT>flac</TT></B> has been tuned so that the default options yield a good speed vs. compression tradeoff for many kinds of input.  However, if you are looking to maximize the compression rate or speed, or want to use the full power of FLAC's metadata system, this section is for you.  If not, just skip to the <A HREF="#flac">next section</A>.
-	</P>
-	<P>
+<div class="box">
+	<div class="box_title">
+		<a name="format">format</a>
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
+		<span class="commandname">flac</span> has been tuned so that the default options yield a good speed vs. compression tradeoff for many kinds of input.  However, if you are looking to maximize the compression rate or speed, or want to use the full power of FLAC's metadata system, this section is for you.  If not, just skip to the <a href="#flac">next section</a>.
+		<br /><br />
 		The basic structure of a FLAC stream is:
-		<UL>
-			<LI>The four byte string "fLaC"</LI>
-			<LI>The <A HREF="format.html#def_STREAMINFO">STREAMINFO</A> metadata block</LI>
-			<LI>Zero or more other metadata blocks</LI>
-			<LI>One or more audio frames</LI>
-		</UL>
-	</P>
-	<P>
+		<ul>
+			<li>The four byte string "<span class="code">fLaC</span>"</li>
+			<li>The <a href="format.html#def_STREAMINFO"><span class="code">STREAMINFO</span></a> metadata block</li>
+			<li>Zero or more other metadata blocks</li>
+			<li>One or more audio frames</li>
+		</ul>
 		The first four bytes are to identify the FLAC stream.  The metadata that follows contains all the information about the stream except for the audio data itself.  After the metadata comes the encoded audio data.
-	</P>
-	<P>
-		<B>METADATA</B>
-	</P>
-	<P>
-		FLAC defines several types of metadata blocks (see the <A HREF="format.html">format</A> page for the complete list).  Metadata blocks can be any length and new ones can be defined.  A decoder is allowed to skip any metadata types it does not understand.  Only one is mandatory: the STREAMINFO block.  This block has information like the sample rate, number of channels, etc., and data that can help the decoder manage its buffers, like the minimum and maximum data rate and minimum and maximum block size.  Also included in the STREAMINFO block is the MD5 signature of the <I>unencoded</I> audio data.  This is useful for checking an entire stream for transmission errors.
-	</P>
-	<P>
-		Other blocks allow for padding, seek tables, tags, cuesheets, and application-specific data.  You can see <B><TT>flac</TT></B> options below for adding PADDING blocks or specifying seek points.  FLAC does not require seek points for seeking but they can speed up seeks, or be used for cueing in editing applications.
-	<P>
-	</P>
-		Also, if you have a need of a custom metadata block, you can define your own and request an ID <A HREF="id.html">here</A>.  Then you can reserve a PADDING block of the correct size when encoding, and overwrite the padding block with your APPLICATION block after encoding.  The resulting stream will be FLAC compatible; decoders that are aware of your metadata can use it and the rest will safely ignore it.
-	</P>
-	<P>
-		<B>AUDIO DATA</B>
-	</P>
-	<P>
+		<br /><br />
+		<b>METADATA</b>
+		<br /><br />
+		FLAC defines several types of metadata blocks (see the <a href="format.html">format</a> page for the complete list).  Metadata blocks can be any length and new ones can be defined.  A decoder is allowed to skip any metadata types it does not understand.  Only one is mandatory: the <span class="code">STREAMINFO</span> block.  This block has information like the sample rate, number of channels, etc., and data that can help the decoder manage its buffers, like the minimum and maximum data rate and minimum and maximum block size.  Also included in the <span class="code">STREAMINFO</span> block is the MD5 signature of the <i>unencoded</i> audio data.  This is useful for checking an entire stream for transmission errors.
+		<br /><br />
+		Other blocks allow for padding, seek tables, tags, cuesheets, and application-specific data.  You can see <span class="commandname">flac</span> options below for adding <span class="code">PADDING</span> blocks or specifying seek points.  FLAC does not require seek points for seeking but they can speed up seeks, or be used for cueing in editing applications.
+		<br /><br />
+		Also, if you have a need of a custom metadata block, you can define your own and request an ID <a href="id.html">here</a>.  Then you can reserve a <span class="code">PADDING</span> block of the correct size when encoding, and overwrite the padding block with your <span class="code">APPLICATION</span> block after encoding.  The resulting stream will be FLAC compatible; decoders that are aware of your metadata can use it and the rest will safely ignore it.
+		<br /><br />
+		<b>AUDIO DATA</b>
+		<br /><br />
 		After the metadata comes the encoded audio data.  Audio data and metadata are not interleaved.  Like most audio codecs, FLAC splits the unencoded audio data into blocks, and encodes each block separately.  The encoded block is packed into a frame and appended to the stream.  The reference encoder uses a single block size for the whole stream but the FLAC format does not require it.
-	</P>
-	<P>
-		<B>BLOCKING</B>
-	</P>
-	<P>
-		The block size is an important parameter to encoding.  If it is too small, the frame overhead will lower the compression.  If it is too large, the modeling stage of the compressor will not be able to generate an efficient model.  Understanding FLAC's modeling will help you to improve compression for some kinds of input by varying the block size.  In the most general case, using linear prediction on 44.1kHz audio, the optimal block size will be between 2-6 ksamples.  <B><TT>flac</TT></B> defaults to a block size of 4608 in this case.  Using the fast fixed predictors, a smaller block size is usually preferable because of the smaller frame header.
-	</P>
-	<P>
-		<B>INTER-CHANNEL DECORRELATION</B>
-	</P>
-	<P>
-		In the case of stereo input, once the data is blocked it is optionally passed through an inter-channel decorrelation stage.  The left and right channels are converted to center and side channels through the following transformation: mid = (left + right) / 2, side = left - right.  This is a lossless process, unlike joint stereo.  For normal CD audio this can result in significant extra compression.  <B><TT>flac</TT></B> has two options for this: <TT>-m</TT> always compresses both the left-right and mid-side versions of the block and takes the smallest frame, and <TT>-M</TT>, which adaptively switches between left-right and mid-side.
-	</P>
-	<P>
-		<B>MODELING</B>
-	</P>
-	<P>
-		In the next stage, the encoder tries to approximate the signal with a function in such a way that when the approximation is subracted, the result (called the <I>residual</I>, <I>residue</I>, or <I>error</I>) requires fewer bits-per-sample to encode.  The function's parameters also have to be transmitted so they should not be so complex as to eat up the savings.  FLAC has two methods of forming approximations: 1) fitting a simple polynomial to the signal; and 2) general linear predictive coding (LPC).  I will not go into the details here, only some generalities that involve the encoding options.
-	</P>
-	<P>
-		First, fixed polynomial prediction (specified with <TT>-l 0</TT>) is much faster, but less accurate than LPC.  The higher the maximum LPC order, the slower, but more accurate, the model will be.  However, there are diminishing returns with increasing orders.  Also, at some point (usually around order 9) the part of the encoder that guesses what is the best order to use will start to get it wrong and the compression will actually decrease slightly; at that point you will have to you will have to use the exhaustive search option <TT>-e</TT> to overcome this, which is significantly slower.
-	</P>
-	<P>
+		<br /><br />
+		<b>BLOCKING</b>
+		<br /><br />
+		The block size is an important parameter to encoding.  If it is too small, the frame overhead will lower the compression.  If it is too large, the modeling stage of the compressor will not be able to generate an efficient model.  Understanding FLAC's modeling will help you to improve compression for some kinds of input by varying the block size.  In the most general case, using linear prediction on 44.1kHz audio, the optimal block size will be between 2-6 ksamples.  <span class="commandname">flac</span> defaults to a block size of 4608 in this case.  Using the fast fixed predictors, a smaller block size is usually preferable because of the smaller frame header.
+		<br /><br />
+		<b>INTER-CHANNEL DECORRELATION</b>
+		<br /><br />
+		In the case of stereo input, once the data is blocked it is optionally passed through an inter-channel decorrelation stage.  The left and right channels are converted to center and side channels through the following transformation: mid = (left + right) / 2, side = left - right.  This is a lossless process, unlike joint stereo.  For normal CD audio this can result in significant extra compression.  <span class="commandname">flac</span> has two options for this: <span class="argument">-m</span> always compresses both the left-right and mid-side versions of the block and takes the smallest frame, and <span class="argument">-M</span>, which adaptively switches between left-right and mid-side.
+		<br /><br />
+		<b>MODELING</b>
+		<br /><br />
+		In the next stage, the encoder tries to approximate the signal with a function in such a way that when the approximation is subracted, the result (called the <i>residual</i>, <i>residue</i>, or <i>error</i>) requires fewer bits-per-sample to encode.  The function's parameters also have to be transmitted so they should not be so complex as to eat up the savings.  FLAC has two methods of forming approximations: 1) fitting a simple polynomial to the signal; and 2) general linear predictive coding (LPC).  I will not go into the details here, only some generalities that involve the encoding options.
+		<br /><br />
+		First, fixed polynomial prediction (specified with <span class="argument">-l 0</span>) is much faster, but less accurate than LPC.  The higher the maximum LPC order, the slower, but more accurate, the model will be.  However, there are diminishing returns with increasing orders.  Also, at some point (usually around order 9) the part of the encoder that guesses what is the best order to use will start to get it wrong and the compression will actually decrease slightly; at that point you will have to you will have to use the exhaustive search option <span class="argument">-e</span> to overcome this, which is significantly slower.
+		<br /><br />
 		Second, the parameters for the fixed predictors can be transmitted in 3 bits whereas the parameters for the LPC model depend on the bits-per-sample and LPC order.  This means the frame header length varies depending on the method and order you choose and can affect the optimal block size.
-	</P>
-	<P>
-		<B>RESIDUAL CODING</B>
-	</P>
-	<P>
+		<br /><br />
+		<b>RESIDUAL CODING</b>
+		<br /><br />
 		Once the model is generated, the encoder subracts the approximation from the original signal to get the residual (error) signal.  The error signal is then losslessly coded.  To do this, FLAC takes advantage of the fact that the error signal generally has a Laplacian (two-sided geometric) distribution, and that there are a set of special Huffman codes called Rice codes that can be used to efficiently encode these kind of signals quickly and without needing a dictionary.
-	</P>
-	<P>
-		Rice coding involves finding a single parameter that matches a signal's distribution, then using that parameter to generate the codes.  As the distribution changes, the optimal parameter changes, so FLAC supports a method that allows the parameter to change as needed.  The residual can be broken into several <I>contexts</I> or <I>partitions</I>, each with it's own Rice parameter.  <B><TT>flac</TT></B> allows you to specify how the partitioning is done with the <TT>-r</TT> option.  The residual can be broken into 2^<I>n</I> partitions, by using the option <TT>-r n,n</TT>.  The parameter <I>n</I> is called the <I>partition order</I>.  Furthermore, the encoder can be made to search through <I>m</I> to <I>n</I> partition orders, taking the best one, by specifying <TT>-r m,n</TT>.  Generally, the choice of n does not affect encoding speed but m,n does.  The larger the difference between m and n, the more time it will take the encoder to search for the best order.  The block size will also affect the optimal order.
-	</P>
-	<P>
-		<B>FRAMING</B>
-	</P>
-	<P>
+		<br /><br />
+		Rice coding involves finding a single parameter that matches a signal's distribution, then using that parameter to generate the codes.  As the distribution changes, the optimal parameter changes, so FLAC supports a method that allows the parameter to change as needed.  The residual can be broken into several <i>contexts</i> or <i>partitions</i>, each with it's own Rice parameter.  <span class="commandname">flac</span> allows you to specify how the partitioning is done with the <span class="argument">-r</span> option.  The residual can be broken into 2^<i>n</i> partitions, by using the option <span class="argument">-r n,n</span>.  The parameter <i>n</i> is called the <i>partition order</i>.  Furthermore, the encoder can be made to search through <i>m</i> to <i>n</i> partition orders, taking the best one, by specifying <span class="argument">-r m,n</span>.  Generally, the choice of n does not affect encoding speed but m,n does.  The larger the difference between m and n, the more time it will take the encoder to search for the best order.  The block size will also affect the optimal order.
+		<br /><br />
+		<b>FRAMING</b>
+		<br /><br />
 		An audio frame is preceded by a frame header and trailed by a frame footer.  The header starts with a sync code, and contains the minimum information necessary for a decoder to play the stream, like sample rate, bits per sample, etc.  It also contains the block or sample number and an 8-bit CRC of the frame header.  The sync code, frame header CRC, and block/sample number allow resynchronization and seeking even in the absence of seek points.  The frame footer contains a 16-bit CRC of the entire encoded frame for error detection.  If the reference decoder detects a CRC error it will generate a silent block.
-	</P>
-	<P>
-		<B>MISCELLANEOUS</B>
-	</P>
-	<P>
-		As a convenience, the reference decoder knows how to skip <A HREF="http://www.id3.org/">ID3v1 and ID3v2 tags</A>.  Note however that the FLAC specification does not require compliant implementations to support ID3 in any form and their use is discouraged.
-	</P>
-	<P>
-		<B><TT>flac</TT></B> has a verify option <TT>-V</TT> that verifies the output while encoding.  With this option, a decoder is run in parallel to the encoder and its output is compared against the original input.  If a difference is found <B><TT>flac</TT></B> will stop with an error.
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+		<br /><br />
+		<b>MISCELLANEOUS</b>
+		<br /><br />
+		As a convenience, the reference decoder knows how to skip <a href="http://www.id3.org/">ID3v1 and ID3v2 tags</a>.  Note however that the FLAC specification does not require compliant implementations to support ID3 in any form and their use is discouraged.
+		<br /><br />
+		<span class="commandname">flac</span> has a verify option <span class="argument">-V</span> that verifies the output while encoding.  With this option, a decoder is run in parallel to the encoder and its output is compared against the original input.  If a difference is found <span class="commandname">flac</span> will stop with an error.
+	</div>
+	<div class="box_footer"></div>
+</div>
 
+<br />
 
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="flac"><B><FONT SIZE="+2">flac</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
-		<B><TT>flac</TT></B> is the command-line file encoder/decoder.  The input to the encoder and the output to the decoder must either be RIFF WAVE format, AIFF, or raw interleaved sample data.  <B><TT>flac</TT></B> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.).  Another restriction (hopefully short-term) is that the input must be 8, 16, or 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.
-	</P>
-	<P>
-		<B><TT>flac</TT></B> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, and files ending in ".aif" or ".aiff" or have the AIFF header present are in AIFF files.  This may be overridden with a command-line option.  It also assumes that files ending in ".ogg" are Ogg FLAC files.  Other than this, <B><TT>flac</TT></B> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
-	</P>
-	<P>
-		Before going into the full command-line description, a few other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-8</TT></B> (or <B><TT>--fast</B></TT> and <B><TT>--best</B></TT>) that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <B><TT>flac</TT></B> behaves similarly to gzip in the way it handles input and output files.
-	</P>
-	<P>
-		<B><TT>flac</TT></B> will be invoked one of four ways, depending on whether you are encoding, decoding, testing, or analyzing:
-		<UL>
-		<LI>
-			Encoding: flac [<I><A HREF="#general_options">&lt;general-options&gt;</A></I>] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [<I><A HREF="#encoding_options">&lt;encoding options&gt;</A></I>] [inputfile [...]]
-		</LI>
-		<LI>
-			Decoding: flac -d [<I><A HREF="#general_options">&lt;general-options&gt;</A></I>] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [<I><A HREF="#decoding_options">&lt;decoding options&gt;</A></I>]  [FLACfile [...]]
-		</LI>
-		<LI>
-			Testing: flac -t [<I><A HREF="#general_options">&lt;general-options&gt;</A></I>] [FLACfile [...]]
-		</LI>
-		<LI>
-			Analyzing: flac -a [<I><A HREF="#general_options">&lt;general-options&gt;</A></I>] [<I><A HREF="#analysis_options">&lt;analysis-options&gt;</A></I>] [FLACfile [...]]
-		</LI>
-		</UL>
-	</P>
-	<P>
-		In any case, if no <TT>inputfile</TT> is specified, stdin is assumed.  If only one inputfile is specified, it may be "-" for stdin.  When stdin is used as input, <B><TT>flac</TT></B> will write to stdout.  Otherwise <B><TT>flac</TT></B> will perform the desired operation on each input file to similarly named output files (meaning for encoding, the extension will be replaced with ".flac", or appended with ".flac" if the input file has no extension, and for decoding, the extension will be ".wav" for WAVE output and ".raw" for raw output).  The original file is not deleted unless --delete-input-file is specified.
-	</P>
-	<P>
+<div class="box">
+	<div class="box_title">
+		<a name="flac">flac</a>
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
+		<span class="commandname">flac</span> is the command-line file encoder/decoder.  The input to the encoder and the output to the decoder must either be RIFF WAVE format, AIFF, or raw interleaved sample data.  <span class="commandname">flac</span> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.).  Another restriction (hopefully short-term) is that the input must be 8, 16, or 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.
+		<br /><br />
+		<span class="commandname">flac</span> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, and files ending in ".aif" or ".aiff" or have the AIFF header present are in AIFF files.  This may be overridden with a command-line option.  It also assumes that files ending in ".ogg" are Ogg FLAC files.  Other than this, <span class="commandname">flac</span> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
+		<br /><br />
+		Before going into the full command-line description, a few other things help to sort it out: 1) <span class="commandname">flac</span> encodes by default, so you must use <b>-d</b> to decode; 2) the options <span class="argument">-0</span> .. <span class="argument">-8</span> (or <span class="argument">--fast</span> and <span class="argument">--best</span>) that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <span class="commandname">flac</span> behaves similarly to gzip in the way it handles input and output files.
+		<br /><br />
+		<span class="commandname">flac</span> will be invoked one of four ways, depending on whether you are encoding, decoding, testing, or analyzing:
+		<ul>
+			<li>
+				Encoding: flac [<i><a href="#general_options">&lt;general-options&gt;</a></i>] [<i><a href="#format_options">&lt;format-options&gt;</a></i>] [<i><a href="#encoding_options">&lt;encoding options&gt;</a></i>] [inputfile [...]]
+			</li>
+			<li>
+				Decoding: flac -d [<i><a href="#general_options">&lt;general-options&gt;</a></i>] [<i><a href="#format_options">&lt;format-options&gt;</a></i>] [<i><a href="#decoding_options">&lt;decoding options&gt;</a></i>]  [FLACfile [...]]
+			</li>
+			<li>
+				Testing: flac -t [<i><a href="#general_options">&lt;general-options&gt;</a></i>] [FLACfile [...]]
+			</li>
+			<li>
+				Analyzing: flac -a [<i><a href="#general_options">&lt;general-options&gt;</a></i>] [<i><a href="#analysis_options">&lt;analysis-options&gt;</a></i>] [FLACfile [...]]
+			</li>
+		</ul>
+		In any case, if no <span class="argument">inputfile</span> is specified, stdin is assumed.  If only one inputfile is specified, it may be "-" for stdin.  When stdin is used as input, <span class="commandname">flac</span> will write to stdout.  Otherwise <span class="commandname">flac</span> will perform the desired operation on each input file to similarly named output files (meaning for encoding, the extension will be replaced with ".flac", or appended with ".flac" if the input file has no extension, and for decoding, the extension will be ".wav" for WAVE output and ".raw" for raw output).  The original file is not deleted unless --delete-input-file is specified.
+		<br /><br />
 		If you are encoding/decoding from stdin to a file, you should use the -o option like so:
-		<UL>
-		<LI>
-			flac [options] -o outputfile
-		</LI>
-		<LI>
-			flac -d [options] -o outputfile
-		</LI>
-		</UL>
-		which are better than:
-		<UL>
-		<LI>
-			flac [options] &gt; outputfile
-		</LI>
-		<LI>
-			flac -d [options] &gt; outputfile
-		</LI>
-		</UL>
-		since the former allows flac to seek backwards to write the STREAMINFO or RIFF WAVE header contents when necessary.
-	</P>
-	<P>
-		Also, you can force output data to go to stdout using <TT>-c</TT>.
-	</P>
-	<P>
-		To encode or decode files that start with a dash, use <TT>--</TT> to signal the end of options, to keep the filenames themselves from being treated as options:
-		<UL>
-		<LI>
-			<TT>flac -V -- -01-filename.wav</TT>
-		</LI>
-		</UL>
-	</P>
-	<P>The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <B><TT>flac</TT></B> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE or AIFF file the format options are not needed since they are read from the AIFF/WAVE header.
-	</P>
-	<P>
-		In test mode, <B><TT>flac</TT></B> acts just like in decode mode, except no output file is written.  Both decode and test modes detect errors in the stream, but they also detect when the MD5 signature of the decoded audio does not match the stored MD5 signature, even when the bitstream is valid.
-	</P>
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="general_options"><FONT SIZE="+1"><B>General Options</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_version">
-				<TT>-v</TT>, <TT>--version</TT>
-			</TD>
-			<TD>
-				Show the <B><TT>flac</TT></B> version number.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_help">
-				<TT>-h</TT>, <TT>--help</TT>
-			</TD>
-			<TD>
-				Show basic usage and a list of all options.  Running <B><TT>flac</TT></B> without arguments shows the short help screen by default.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_explain">
-				<TT>-H</TT>, <TT>--explain</TT>
-			</TD>
-			<TD>
-				Show detailed explanation of usage and all options.  Running <B><TT>flac</TT></B> without arguments shows the short help screen by default.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_decode">
-				<TT>-d</TT>, <TT>--decode</TT>
-			</TD>
-			<TD>
-				Decode (<B><TT>flac</TT></B> encodes by default).  <B><TT>flac</TT></B> will exit with an exit code of <TT>1</TT> (and print a message, even in silent mode) if there were any errors during decoding, including when the MD5 checksum does not match the decoded output.  Otherwise the exit code will be <TT>0</TT>.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_test">
-				<TT>-t</TT>, <TT>--test</TT>
-			</TD>
-			<TD>
-				Test (same as <B><TT>-d</TT></B> except no decoded file is written).  The exit codes are the same as in decode mode.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_analyze">
-				<TT>-a</TT>, <TT>--analyze</TT>
-			</TD>
-			<TD>
-				Analyze (same as <B><TT>-d</TT></B> except an analysis file is written).  The exit codes are the same as in decode mode.  This option is mainly for developers; the output will be a text file that has data about each frame and subframe.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_stdout">
-				<TT>-c</TT>, <TT>--stdout</TT>
-			</TD>
-			<TD>
-				Write output to stdout.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_silent">
-				<TT>-s</TT>, <TT>--silent</TT>
-			</TD>
-			<TD>
-				Silent: do not show encoding/decoding statistics.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_totally_silent">
-				<TT>--totally-silent</TT>
-			</TD>
-			<TD>
-				Do not print anything of any kind, including warnings or errors.  The exit code will be the only way to determine successful completion.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_force">
-				<TT>-f</TT>, <TT>--force</TT>
-			</TD>
-			<TD>
-				Force overwriting of output files.  By default, <TT><B>flac</B></TT> warns that the output file already exists and continues to the next file.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_output_name">
-				<TT>-o filename</TT>,<BR><TT>--output-name=filename</TT>
-			</TD>
-			<TD>
-				Force the output file name (usually <TT><B>flac</B></TT> just changes the extension).  May only be used when encoding a single file.  May not be used in conjunction with <TT><A HREF="#flac_options_output_prefix">--output-prefix</A></TT>.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_output_prefix">
-				<TT>--output-prefix=string</TT>
-			</TD>
-			<TD>
-				Prefix each output file name with the given string.  This can be useful for encoding/decoding files to a different directory.  Make sure if your string is a path name that it ends with a trailing '<TT>/</TT>' slash.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_delete_input_file">
-				<TT>--delete-input-file</TT>
-			</TD>
-			<TD>
-				Automatically delete the input file after a successful encode or decode.  If there was an error (including a verify error) the input file is left intact.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_skip">
-				<TT>--skip={#|mm:ss.ss}</TT>
-			</TD>
-			<TD>
-				Skip over the first # of samples of the input.  This works for both encoding and decoding, but not testing.  The alternative form <TT>mm:ss.ss</TT> can be used to specify minutes, seconds, and fractions of a second.<P>
-				Examples:<P>
-				<TT>--skip=123</TT> : skip the first 123 samples of the input<P>
-				<TT>--skip=1:23.45</TT> : skip the first 1 minute and 23.45 seconds of the input
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_until">
-				<TT>--until={#|[+|-]mm:ss.ss}</TT>
-			</TD>
-			<TD>
-				Stop at the given sample number for each input file.  This works for both encoding and decoding, but not testing.  The given sample number is not included in the decoded output.  The alternative form <TT>mm:ss.ss</TT> can be used to specify minutes, seconds, and fractions of a second.  If a <TT>+</TT> sign is at the beginning, the <TT>--until</TT> point is relative to the <TT>--skip</TT> point.  If a <TT>-</TT> sign is at the beginning, the <TT>--until</TT> point is relative to end of the audio.<P>
-				Examples:<P>
-				<TT>--until=123</TT> : decode only the first 123 samples of the input (samples 0-122, stopping at 123)<P>
-				<TT>--until=1:23.45</TT> : decode only the first 1 minute and 23.45 seconds of the input<P>
-				<TT>--skip=1:00 --until=+1:23.45</TT> : decode 1:00.00 to 2:23.45<P>
-				<TT>--until=-1:23.45</TT> : decode everything except the last 1 minute and 23.45 seconds<P>
-				<TT>--until=-0:00</TT> : decode until the end of the input (the same as not specifying <TT>--until</TT>)
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_ogg">
-				<TT>--ogg</TT>
-			</TD>
-			<TD>
-				When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <TT><B>flac</B></TT>.<P>
-				When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.<P>
-				<B>NOTE:</B> Ogg FLAC files created prior to <B><TT>flac</TT></B> 1.1.1 used an ad-hoc mapping and do not support seeking.  They should be decoded and re-encoded with <B><TT>flac</TT></B> 1.1.1 or later.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_serial_number">
-				<TT>--serial-number=#</TT>
-			</TD>
-			<TD>
-				When used with --ogg, specifies the serial number to use for the first Ogg FLAC stream, which is then incremented for each additional stream.  When encoding and no serial number is given, <TT><B>flac</B></TT> uses a random number for the first stream, then increments it for each additional stream.  When decoding and no number is given, <TT><B>flac</B></TT> uses the serial number of the first page.
-			</TD>
-		</TR>
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="analysis_options"><FONT SIZE="+1"><B>Analysis Options</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_residual_text">
-				<TT>--residual-text</TT>
-			</TD>
-			<TD>
-				Includes the residual signal in the analysis file.  This will make the file <B>very</B> big, much larger than even the decoded file.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_residual_gnuplot">
-				<TT>--residual-gnuplot</TT>
-			</TD>
-			<TD>
-				Generates a gnuplot file for every subframe; each file will contain the residual distribution of the subframe.  This will create a <B>lot</B> of files.
-			</TD>
-		</TR>
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="decoding_options"><FONT SIZE="+1"><B>Decoding Options</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_cue">
-				<TT>--cue=[#.#][-[#.#]]</TT>
-			</TD>
-			<TD>
-				Set the beginning and ending cuepoints to decode.  The optional first <TT>#.#</TT> is the track and index point at which decoding will start; the default is the beginning of the stream.  The optional second <TT>#.#</TT> is the track and index point at which decoding will end; the default is the end of the stream.  If the cuepoint does not exist, the closest one before it (for the start point) or after it (for the end point) will be used.  If those don't exist, the start of the stream (for the start point) or end of the stream (for the end point) will be used.  The cuepoints are merely translated into sample numbers then used as --skip and --until.<P>
-				Examples:<P>
-				<TT>--cue=-</TT> : decode the entire stream<P>
-				<TT>--cue=4.1</TT> : decode from track 4, index 1 to the end of the stream<P>
-				<TT>--cue=4.1-</TT> : decode from track 4, index 1 to the end of the stream<P>
-				<TT>--cue=-4.1</TT> : decode from the beginning of the stream up to, but not including, track 4, index 1<P>
-				<TT>--cue=2.1-2.4</TT> : decode from track 2, index 1, up to, but not including, track 2, index 4<P>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_decode_through_errors">
-				<TT>-F</TT>,<BR><TT>--decode-through-errors</TT>
-			</TD>
-			<TD>
-				By default <B><TT>flac</TT></B> stops decoding with an error and removes the partially decoded file if it encounters a bitstream error.  With <TT>-F</TT>, errors are still printed but <B><TT>flac</TT></B> will continue decoding to completion.  Note that errors may cause the decoded audio to be missing some samples or have silent sections.
-			</TD>
-		</TR>
-		<!-- @@@ undocumented, also not in the man page yet
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_apply_replaygain_which_is_not_lossless">
-				<TT>--apply-replaygain-which-is-not-lossless[=&lt;specification&gt;]</TT>
-			</TD>
-			<TD>
-				Applies ReplayGain values while decoding.
-				<P>
-				<B>WARNING: THIS IS NOT LOSSLESS.  DECODED AUDIO WILL NOT BE IDENTICAL TO THE ORIGINAL WITH THIS OPTION</B>.
-				<P>
-				The equals sign and &lt;specification&gt; is optional.  If omitted, the default is <TT>0aLn1</TT>.
-				<P>
-				The <TT>&lt;specification&gt;</TT> is a shorthand notation for describing how to apply ReplayGain.  All components are optional but order is important.  '<TT>[]</TT>' means 'optional'.  '<TT>|</TT>' means 'or'.  '<TT>{}</TT>' means required.  The format is:<P>
-				&nbsp;&nbsp;<TT>[&lt;preamp&gt;][a|t][l|L][n{0|1|2|3}]</TT>
-				<P>
-				<UL>
-					<LI>
-						<TT>&lt;preamp&gt;</TT><P>
-							&nbsp;&nbsp;A floating point number in dB.  This is added to the existing gain value.
-					</LI>
-					<LI>
-						<TT>a|t</TT><P>
-							&nbsp;&nbsp;Specify '<TT>a</TT>' to use the album gain, or '<TT>t</TT>' to use the track gain
-					</LI>
-					<LI>
-						<TT>l|L</TT><P>
-							&nbsp;&nbsp;Specify '<TT>l</TT>' to peak-limit the output, so that the ReplayGain peak value is full-scale.  Specify '<TT>L</TT>' to use a 6dB hard limiter that kicks in when the signal approaches full-scale.
-					</LI>
-					<LI>
-						<TT>n{0|1|2|3}</TT><P>
-							&nbsp;&nbsp;Specify the amount of noise shaping.  ReplayGain synthesis happens in floating point; the result is dithered before converting back to integer.  This quantization adds noise.  Noise shaping tries to move the noise where you won't hear it as much.  <TT>0</TT> means no noise shaping, <TT>1</TT> means 'low', <TT>2</TT> means 'medium', <TT>3</TT> means 'high'.
-					</LI>
-				</UL>
-				<P>
-				For example, the default of <TT>0aLn1</TT> means 0dB preamp, use album gain, 6dB hard limit, low noise shaping.
-				<P>
-				<TT>--apply-replaygain-which-is-not-lossless=3</TT> means 3dB preamp, use album gain, no limiting, no noise shaping.
-				<P>
-				<B><TT>flac</B></TT> uses the ReplayGain tags for the calculation.  If a stream does not have the required tags or they can't be parsed, decoding will continue with a warning, and no ReplayGain is applied to that stream.
-			</TD>
-		</TR>
-		-->
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="encoding_options"><FONT SIZE="+1"><B>Encoding Options</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_verify">
-				<TT>-V</TT>, <TT>--verify</TT>
-			</TD>
-			<TD>
-				Verify the encoding process.  With this option, <B><TT>flac</TT></B> will create a parallel decoder that decodes the output of the encoder and compares the result against the original.  It will abort immediately with an error if a mismatch occurs.  <B><TT>-V</TT></B> increases the total encoding time but is guaranteed to catch any unforseen bug in the encoding process.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_lax">
-				<TT>--lax</TT>
-			</TD>
-			<TD>
-				Allow encoder to generate non-<A HREF="format.html#subset">Subset</A> files.  The resulting FLAC file may not be streamable or might have trouble being played in all players (especially hardware devices), so you should only use this option in combination with custom encoding options meant for archival.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_replay_gain">
-				<TT>--replay-gain</TT>
-			</TD>
-			<TD>
-				Calculate <A HREF="http://www.replaygain.org/">ReplayGain</A> values and store in FLAC tags, similar to <A HREF="http://packages.qa.debian.org/v/vorbisgain.html">VorbisGain</A>.  Title gains/peaks will be computed for each input file, and an album gain/peak will be computed for all files.  All input files must have the same resolution, sample rate, and number of channels.  Only mono and stereo files are allowed, and the sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.  Also note that this option may leave a few extra bytes in a PADDING block as the exact size of the tags is not known until all files are processed.<P>
-				Note that this option cannot be used when encoding to standard output (stdout).
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_cuesheet">
-				<TT>--cuesheet=FILENAME</TT>
-			</TD>
-			<TD>
-				Import the given cuesheet file and store it in a <A HREF="format.html#def_CUESHEET">CUESHEET</A> metadata block.  This option may only be used when encoding a single file.  A seekpoint will be added for each index point in the cuesheet to the <A HREF="format.html#def_SEEKTABLE">SEEKTABLE</A> unless <TT>--no-cued-seekpoints</TT> is specified.<P>
-				The cuesheet file must be of the sort written by <A HREF="http://www.goldenhawk.com/cdrwin.htm">CDRwin</A>, <A HREF="http://www.dcsoft.com/prod03.htm">CDRcue</A>, <A HREF="http://www.exactaudiocopy.de/">EAC</A>, et al.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_sector_align">
-				<TT>--sector-align</TT>
-			</TD>
-			<TD>
-				Align encoding of multiple CD format WAVE files on sector boundaries.  This option is only allowed when encoding WAVE files, all of which have a 44.1kHz sample rate and 2 channels.  With <TT>--sector-align</TT>, the encoder will align the resulting .flac streams so that their lengths are even multiples of a CD sector (1/75th of a second, or 588 samples).  It does this by carrying over any partial sector at the end of each WAVE file to the next stream.  The last stream will be padded to alignment with zeroes.<P>
-				This option will have no effect if the files are already aligned (as is the normally the case with WAVE files ripped from a CD).  <TT><B>flac</B></TT> can only align a set of files given in one invocation of <TT><B>flac</B></TT>.<P>
-				<B>WARNING:</B> The ordering of files is important!  If you give a command like '<TT>flac --sector-align *.wav</TT>' the shell may not expand the wildcard to the order you expect.  To be safe you should '<TT>echo *.wav</TT>' first to confirm the order, or be explicit like '<TT>flac --sector-align 8.wav 9.wav 10.wav</TT>'.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_seekpoint">
-				<TT>-S {#|X|#x|#s}</TT>,<BR><TT>--seekpoint={#|X|#x|#s}</TT>
-			</TD>
-			<TD>
-				Include a point or points in a SEEKTABLE:<BR>
-				<UL>
-				<LI>
-					<TT>#&nbsp;</TT> : a specific sample number for a seek point
-				</LI>
-				<LI>
-					<TT>X&nbsp;</TT> : a placeholder point (always goes at the end of the SEEKTABLE)
-				</LI>
-				<LI>
-					<TT>#x</TT> : # evenly spaced seekpoints, the first being at sample 0
-				</LI>
-				<LI>
-					<TT>#s</TT> : a seekpoint every # seconds; # does not have to be a whole number, it can be, for example, <TT>9.5</TT>, meaning a seekpoint every 9.5 seconds
-				</LI>
-				</UL>
-				You may use many -S options; the resulting SEEKTABLE will be the unique-ified union of all such values.<BR>
-				With no -S options, flac defaults to '-S 10s'.  Use --no-seektable for no SEEKTABLE.<BR>
-				<B>NOTE:</B> -S #x and -S #s will not work if the encoder can't determine the input size before starting.<BR>
-				<B>NOTE:</B> if you use -S # and # is &gt;= samples in the input, there will be either no seek point entered (if the input size is determinable before encoding starts) or a placeholder point (if input size is not determinable).<BR>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_padding">
-				<TT>-P #</TT>, <TT>--padding=#</TT>
-			</TD>
-			<TD>
-				Tell the encoder to write a <TT>PADDING</TT> metadata block of the given length (in bytes) after the <TT>STREAMINFO</TT> block.  This is useful if you plan to tag the file later with an <TT>APPLICATION</TT> block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the <TT>PADDING</TT> block.  Note that the total length of the <TT>PADDING</TT> block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no <TT>PADDING</TT> block at all to be written with <TT>--no-padding</TT>.  The encoder writes a PADDING block of 4096 bytes by default.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_tag">
-				<TT>-T FIELD=VALUE</TT>, <TT>--tag=FIELD=VALUE</TT>
-			</TD>
-			<TD>
-				Add a FLAC tag.  The comment must adhere to the Vorbis comment spec (which FLAC tags implement), i.e. the FIELD must contain only legal characters, terminated by an 'equals' sign.  Make sure to quote the comment if necessary.  This option may appear more than once to add several comments.  NOTE: all tags will be added to all encoded files.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_blocksize">
-				<TT>-b #</TT>, <TT>--blocksize=#</TT>
-			</TD>
-			<TD>
-				Specify the block size in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The reference encoder uses the same block size for the entire stream.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_mid_side">
-				<TT>-m</TT>, <TT>--mid-side</TT>
-			</TD>
-			<TD>
-				Enable mid-side coding (only for stereo streams).  Tends to increase compression by a few percent on average.  For each block both the stereo pair and mid-side versions of the block will be encoded, and smallest resulting frame will be stored.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_adaptive_mid_side">
-				<TT>-M</TT>, <TT>--adaptive-mid-side</TT>
-			</TD>
-			<TD>
-				Enable adaptive mid-side coding (only for stereo streams).  Like <TT>-m</TT> but the encoder adaptively switches between independent and mid-side coding, which is faster but yields less compression than <TT>-m</TT> (which does an exhaustive search).
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_levels">
-				<TT>-0 .. -8</TT>
-			</TD>
-			<TD>
-				Fastest compression .. highest compression.  The default is <TT>-5</TT>.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_level_0">
-				<TT>-0</TT>, <TT>--compression-level-0</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 0 -b 1152 -r 2,2</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_level_1">
-				<TT>-1</TT>, <TT>--compression-level-1</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 0 -b 1152 -M -r 2,2</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_level_2">
-				<TT>-2</TT>, <TT>--compression-level-2</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 0 -b 1152 -m -r 3</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_level_3">
-				<TT>-3</TT>, <TT>--compression-level-3</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 6 -b 4608 -r 3,3</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_level_4">
-				<TT>-4</TT>, <TT>--compression-level-4</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 8 -b 4608 -M -r 3,3</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_level_5">
-				<TT>-5</TT>, <TT>--compression-level-5</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 8 -b 4608 -m -r 3,3</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_level_6">
-				<TT>-6</TT>, <TT>--compression-level-6</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 8 -b 4608 -m -r 4</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_level_7">
-				<TT>-7</TT>, <TT>--compression-level-7</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 8 -b 4608 -m -e -r 6</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_level_8">
-				<TT>-8</TT>, <TT>--compression-level-8</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 12 -b 4608 -m -e -r 6</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_fast">
-				<TT>--fast</TT>
-			</TD>
-			<TD>
-				Fastest compression.  Currently synonymous with <TT>-0</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_best">
-				<TT>--best</TT>
-			</TD>
-			<TD>
-				Highest compression.  Currently synonymous with <TT>-8</TT>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_exhaustive_model_search">
-				<TT>-e</TT>,<BR><TT>--exhaustive-model-search</TT>
-			</TD>
-			<TD>
-				Exhaustive model search (expensive!).  Normally the encoder estimates the best model to use and encodes once based on the estimate.  With an exhaustive model search, the encoder will generate subframes for every order and use the smallest.  If the max LPC order is high this can significantly increase the encode time but can shave off another 0.5%.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_max_lpc_order">
-				<TT>-l #</TT>, <TT>--max-lpc-order=#</TT>
-			</TD>
-			<TD>
-				Specifies the maximum LPC order.  This number must be &lt;= 32.  If 0, the encoder will not attempt generic linear prediction, and use only fixed predictors.  Using fixed predictors is faster but usually results in files being 5-10% larger.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_qlp_coeff_precision">
-				<TT>-q #</TT>,<BR><TT>--qlp-coeff-precision=#</TT>
-			</TD>
-			<TD>
-				Specifies the precision of the quantized LP coefficients, in bits.  The default is <B><TT>-q 0</TT></B>, which means let the encoder decide based on the signal.  Unless you really know your input file it's best to leave this up to the encoder.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_qlp_coeff_precision_search">
-				<TT>-p</TT>,<BR><TT>--qlp-coeff-precision-search</TT>
-			</TD>
-			<TD>
-				Do exhaustive LP coefficient quantization optimization.  This option overrides any <B><TT>-q</TT></B> option.  It is expensive and typically will only improve the compression a tiny fraction of a percent.  <B><TT>-q</TT></B> has no effect when <B><TT>-l 0</TT></B> is used.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_rice_partition_order">
-				<TT>-r [#,]#</TT>,<BR><TT>--rice-partition-order=[#,]#</TT>
-			</TD>
-			<TD>
-				Set the [min,]max residual partition order.  The min value defaults to 0 if unspecified.<P>
-				By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is iteratively partitioned into 2^min# .. 2^max# pieces, each with its own Rice parameter.  Higher values of max# yield diminishing returns.  The most bang for the buck is usually with <B><TT>-r 2,2</TT></B> (more for higher block sizes).  This usually shaves off about 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <B><TT>-r 0,16</TT></B> to force the highest degree of optimization.
-			</TD>
-		</TR>
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="format_options"><FONT SIZE="+1"><B>Format Options</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_endian">
-				<TT>--endian={big|little}</TT>
-			</TD>
-			<TD>
-				Specify big-endian or little-endian byte order in the raw file.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_channels">
-				<TT>--channels=#</TT>
-			</TD>
-			<TD>
-				Specify the number of channels in the raw file.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_bps">
-				<TT>--bps=#</TT>
-			</TD>
-			<TD>
-				Specify the number of bits per sample in the raw file.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_sample_rate">
-				<TT>--sample-rate=#</TT>
-			</TD>
-			<TD>
-				Specify the sample rate of the raw file.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_sign">
-				<TT>--sign={signed|unsigned}</TT>
-			</TD>
-			<TD>
-				Specify that the samples in the raw file are signed or unsigned (the default is signed).
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_input_size">
-				<TT>--input-size=#</TT>
-			</TD>
-			<TD>
-				Specify the size of the raw input in bytes.  If you are encoding raw samples from stdin, you must set this option in order to be able to use --skip, --until, --cue-sheet, or other options that need to know the size of the input beforehand.  If the size given is greater than what is found in the input stream, the encoder will complain about an unexpected end-of-file.  If the size given is less, samples will be truncated.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_force_aiff_format">
-				<TT>--force-aiff-format</TT>
-			</TD>
-			<TD>
-				Force the decoder to output AIFF format.  This option is not needed if the output filename (as set by -o) ends with .aiff.  Also, this option has no effect when encoding since input AIFF is auto-detected.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="flac_options_force_raw_format">
-				<TT>--force-raw-format</TT>
-			</TD>
-			<TD>
-				Treat the input file (or output file if decoding) as a raw file, regardless of the extension.
-			</TD>
-		</TR>
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="negative_options"><FONT SIZE="+1"><B>Negative Options</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>--no-adaptive-mid-side</TT><BR>
-				<TT>--no-decode-through-errors</TT><BR>
-				<TT>--no-delete-input-file</TT><BR>
-				<TT>--no-escape-coding</TT><BR>
-				<TT>--no-exhaustive-model-search</TT><BR>
-				<TT>--no-lax</TT><BR>
-				<TT>--no-mid-side</TT><BR>
-				<TT>--no-ogg</TT><BR>
-				<TT>--no-padding</TT><BR>
-				<TT>--no-qlp-coeff-precision-search</TT><BR>
-				<TT>--no-residual-gnuplot</TT><BR>
-				<TT>--no-residual-text</TT><BR>
-				<TT>--no-sector-align</TT><BR>
-				<TT>--no-seektable</TT><BR>
-				<TT>--no-silent</TT><BR>
-				<TT>--no-verify</TT>
-			</TD>
-			<TD>
-				can all be used to turn off a particular option.
-			</TD>
-		</TR>
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+		<ul>
+			<li>
+				flac [options] -o outputfile
+			</li>
+			<li>
+				flac -d [options] -o outputfile
+			</li>
+			</ul>
+			which are better than:
+			<ul>
+			<li>
+				flac [options] &gt; outputfile
+			</li>
+			<li>
+				flac -d [options] &gt; outputfile
+			</li>
+		</ul>
+		since the former allows flac to seek backwards to write the <span class="code">STREAMINFO</span> or RIFF WAVE header contents when necessary.
+		<br /><br />
+		Also, you can force output data to go to stdout using <span class="argument">-c</span>.
+		<br /><br />
+		To encode or decode files that start with a dash, use <span class="argument">--</span> to signal the end of options, to keep the filenames themselves from being treated as options:
+		<ul>
+			<li>
+				<span class="code">flac -V -- -01-filename.wav</span>
+			</li>
+		</ul>
+		The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <span class="commandname">flac</span> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE or AIFF file the format options are not needed since they are read from the AIFF/WAVE header.
+		<br /><br />
+		In test mode, <span class="commandname">flac</span> acts just like in decode mode, except no output file is written.  Both decode and test modes detect errors in the stream, but they also detect when the MD5 signature of the decoded audio does not match the stored MD5 signature, even when the bitstream is valid.
+		<br /><br />
 
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+		<table width="100%" border="1" bgcolor="#EEEED4">
+			<tr>
+				<td colspan="2" bgcolor="#D3D4C5">
+					<a name="general_options"><font size="+1"><b>General Options</b></font></a>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_version" />
+					<span class="argument">-v</span>, <span class="argument">--version</span>
+				</td>
+				<td>
+					Show the <span class="commandname">flac</span> version number.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_help" />
+					<span class="argument">-h</span>, <span class="argument">--help</span>
+				</td>
+				<td>
+					Show basic usage and a list of all options.  Running <span class="commandname">flac</span> without arguments shows the short help screen by default.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_explain" />
+					<span class="argument">-H</span>, <span class="argument">--explain</span>
+				</td>
+				<td>
+					Show detailed explanation of usage and all options.  Running <span class="commandname">flac</span> without arguments shows the short help screen by default.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_decode" />
+					<span class="argument">-d</span>, <span class="argument">--decode</span>
+				</td>
+				<td>
+					Decode <span class="commandname">flac</span> encodes by <span class="commandname">flac</span> will exit with an exit code of <span class="argument">1</span> (and print a message, even in silent mode) if there were any errors during decoding, including when the MD5 checksum does not match the decoded output.  Otherwise the exit code will be <span class="argument">0</span>.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_test" />
+					<span class="argument">-t</span>, <span class="argument">--test</span>
+				</td>
+				<td>
+					Test (same as <span class="argument">-d</span> except no decoded file is written).  The exit codes are the same as in decode mode.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_analyze" />
+					<span class="argument">-a</span>, <span class="argument">--analyze</span>
+				</td>
+				<td>
+					Analyze (same as <span class="argument">-d</span> except an analysis file is written).  The exit codes are the same as in decode mode.  This option is mainly for developers; the output will be a text file that has data about each frame and subframe.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_stdout" />
+					<span class="argument">-c</span>, <span class="argument">--stdout</span>
+				</td>
+				<td>
+					Write output to stdout.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_silent" />
+					<span class="argument">-s</span>, <span class="argument">--silent</span>
+				</td>
+				<td>
+					Silent: do not show encoding/decoding statistics.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_totally_silent" />
+					<span class="argument">--totally-silent</span>
+				</td>
+				<td>
+					Do not print anything of any kind, including warnings or errors.  The exit code will be the only way to determine successful completion.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_force" />
+					<span class="argument">-f</span>, <span class="argument">--force</span>
+				</td>
+				<td>
+					Force overwriting of output files.  By default, <span class="commandname">flac</span> warns that the output file already exists and continues to the next file.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_output_name" />
+					<span class="argument">-o filename</span>,<br /><span class="argument">--output-name=filename</span>
+				</td>
+				<td>
+					Force the output file name (usually <span class="commandname">flac</span> just changes the extension).  May only be used when encoding a single file.  May not be used in conjunction with <a href="#flac_options_output_prefix"><span class="argument">--output-prefix</span></a>.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_output_prefix" />
+					<span class="argument">--output-prefix=string</span>
+				</td>
+				<td>
+					Prefix each output file name with the given string.  This can be useful for encoding/decoding files to a different directory.  Make sure if your string is a path name that it ends with a trailing '<span class="argument">/</span>' slash.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_delete_input_file" />
+					<span class="argument">--delete-input-file</span>
+				</td>
+				<td>
+					Automatically delete the input file after a successful encode or decode.  If there was an error (including a verify error) the input file is left intact.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_skip" />
+					<span class="argument">--skip={#|mm:ss.ss}</span>
+				</td>
+				<td>
+					Skip over the first # of samples of the input.  This works for both encoding and decoding, but not testing.  The alternative form <span class="argument">mm:ss.ss</span> can be used to specify minutes, seconds, and fractions of a second.<br /><br />
+					Examples:<br /><br />
+					<span class="argument">--skip=123</span> : skip the first 123 samples of the input<br />
+					<span class="argument">--skip=1:23.45</span> : skip the first 1 minute and 23.45 seconds of the input
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_until" />
+					<span class="argument">--until={#|[+|-]mm:ss.ss}</span>
+				</td>
+				<td>
+					Stop at the given sample number for each input file.  This works for both encoding and decoding, but not testing.  The given sample number is not included in the decoded output.  The alternative form <span class="argument">mm:ss.ss</span> can be used to specify minutes, seconds, and fractions of a second.  If a <span class="argument">+</span> sign is at the beginning, the <span class="argument">--until</span> point is relative to the <span class="argument">--skip</span> point.  If a <span class="argument">-</span> sign is at the beginning, the <span class="argument">--until</span> point is relative to end of the audio.<br /><br />
+					Examples:<br /><br />
+					<span class="argument">--until=123</span> : decode only the first 123 samples of the input (samples 0-122, stopping at 123)<br />
+					<span class="argument">--until=1:23.45</span> : decode only the first 1 minute and 23.45 seconds of the input<br />
+					<span class="argument">--skip=1:00 --until=+1:23.45</span> : decode 1:00.00 to 2:23.45<br />
+					<span class="argument">--until=-1:23.45</span> : decode everything except the last 1 minute and 23.45 seconds<br />
+					<span class="argument">--until=-0:00</span> : decode until the end of the input (the same as not specifying <span class="argument">--until</span>)
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_ogg" />
+					<span class="argument">--ogg</span>
+				</td>
+				<td>
+					When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <span class="commandname">flac</span>.<br /><br />
+					When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.<br /><br />
+					<b>NOTE:</b> Ogg FLAC files created prior to <span class="commandname">flac</span> 1.1.1 used an ad-hoc mapping and do not support seeking.  They should be decoded and re-encoded with <span class="commandname">flac</span> 1.1.1 or later.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_serial_number" />
+					<span class="argument">--serial-number=#</span>
+				</td>
+				<td>
+					When used with --ogg, specifies the serial number to use for the first Ogg FLAC stream, which is then incremented for each additional stream.  When encoding and no serial number is given, <span class="commandname">flac</span> uses a random number for the first stream, then increments it for each additional stream.  When decoding and no number is given, <span class="commandname">flac</span> uses the serial number of the first page.
+				</td>
+			</tr>
+		</table>
+		</td></tr></table>
 
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="metaflac"><B><FONT SIZE="+2">metaflac</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
-		<B><TT>metaflac</TT></B> is the command-line <TT>.flac</TT> file metadata editor.  You can use it to list the contents of metadata blocks, edit, delete or insert blocks, and manage padding.
-	</P>
-	<P>
-		<B><TT>metaflac</TT></B> takes a set of "options" (though some are not optional) and a set of FLAC files to operate on.  There are three kinds of "options":
-		<UL>
-			<LI>
+		<br />
+
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+		<table width="100%" border="1" bgcolor="#EEEED4">
+			<tr>
+				<td colspan="2" bgcolor="#D3D4C5">
+					<a name="analysis_options"><font size="+1"><b>Analysis Options</b></font></a>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_residual_text" />
+					<span class="argument">--residual-text</span>
+				</td>
+				<td>
+					Includes the residual signal in the analysis file.  This will make the file <b>very</b> big, much larger than even the decoded file.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_residual_gnuplot" />
+					<span class="argument">--residual-gnuplot</span>
+				</td>
+				<td>
+					Generates a gnuplot file for every subframe; each file will contain the residual distribution of the subframe.  This will create a <b>lot</b> of files.
+				</td>
+			</tr>
+		</table>
+		</td></tr></table>
+
+		<br />
+
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+		<table width="100%" border="1" bgcolor="#EEEED4">
+			<tr>
+				<td colspan="2" bgcolor="#D3D4C5">
+					<a name="decoding_options"><font size="+1"><b>Decoding Options</b></font></a>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_cue" />
+					<span class="argument">--cue=[#.#][-[#.#]]</span>
+				</td>
+				<td>
+					Set the beginning and ending cuepoints to decode.  The optional first <span class="argument">#.#</span> is the track and index point at which decoding will start; the default is the beginning of the stream.  The optional second <span class="argument">#.#</span> is the track and index point at which decoding will end; the default is the end of the stream.  If the cuepoint does not exist, the closest one before it (for the start point) or after it (for the end point) will be used.  If those don't exist, the start of the stream (for the start point) or end of the stream (for the end point) will be used.  The cuepoints are merely translated into sample numbers then used as --skip and --until.<br /><br />
+					Examples:<br /><br />
+					<span class="argument">--cue=-</span> : decode the entire stream<br />
+					<span class="argument">--cue=4.1</span> : decode from track 4, index 1 to the end of the stream<br />
+					<span class="argument">--cue=4.1-</span> : decode from track 4, index 1 to the end of the stream<br />
+					<span class="argument">--cue=-4.1</span> : decode from the beginning of the stream up to, but not including, track 4, index 1<br />
+					<span class="argument">--cue=2.1-2.4</span> : decode from track 2, index 1, up to, but not including, track 2, index 4
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_decode_through_errors" />
+					<span class="argument">-F</span>,<br /><span class="argument">--decode-through-errors</span>
+				</td>
+				<td>
+					By default <span class="commandname">flac</span> stops decoding with an error and removes the partially decoded file if it encounters a bitstream error.  With <span class="argument">-F</span>, errors are still printed but <span class="commandname">flac</span> will continue decoding to completion.  Note that errors may cause the decoded audio to be missing some samples or have silent sections.
+				</td>
+			</tr>
+			<!-- @@@ undocumented, also not in the man page yet
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_apply_replaygain_which_is_not_lossless" />
+					<span class="argument">-@@@-apply-replaygain-which-is-not-lossless[=&lt;specification&gt;]</span>
+				</td>
+				<td>
+					Applies ReplayGain values while decoding.
+					<br /><br />
+					<b>WARNING: THIS IS NOT LOSSLESS.  DECODED AUDIO WILL NOT BE IDENTICAL TO THE ORIGINAL WITH THIS OPTION</b>.
+					<br /><br />
+					The equals sign and &lt;specification&gt; is optional.  If omitted, the default is <span class="argument">0aLn1</span>.
+					<br /><br />
+					The <span class="argument">&lt;specification&gt;</span> is a shorthand notation for describing how to apply ReplayGain.  All components are optional but order is important.  '<span class="argument">[]</span>' means 'optional'.  '<span class="argument">|</span>' means 'or'.  '<span class="argument">{}</span>' means required.  The format is:<br /><br />
+					&nbsp;&nbsp;<span class="argument">[&lt;preamp&gt;][a|t][l|L][n{0|1|2|3}]</span>
+					<ul>
+						<li>
+							<span class="argument">&lt;preamp&gt;</span><br />
+								&nbsp;&nbsp;A floating point number in dB.  This is added to the existing gain value.
+						</li>
+						<li>
+							<span class="argument">a|t</span><br />
+								&nbsp;&nbsp;Specify '<span class="argument">a</span>' to use the album gain, or '<span class="argument">t</span>' to use the track gain
+						</li>
+						<li>
+							<span class="argument">l|L</span><br />
+								&nbsp;&nbsp;Specify '<span class="argument">l</span>' to peak-limit the output, so that the ReplayGain peak value is full-scale.  Specify '<span class="argument">L</span>' to use a 6dB hard limiter that kicks in when the signal approaches full-scale.
+						</li>
+						<li>
+							<span class="argument">n{0|1|2|3}</span><br />
+								&nbsp;&nbsp;Specify the amount of noise shaping.  ReplayGain synthesis happens in floating point; the result is dithered before converting back to integer.  This quantization adds noise.  Noise shaping tries to move the noise where you won't hear it as much.  <span class="argument">0</span> means no noise shaping, <span class="argument">1</span> means 'low', <span class="argument">2</span> means 'medium', <span class="argument">3</span> means 'high'.
+						</li>
+					</ul>
+					For example, the default of <span class="argument">0aLn1</span> means 0dB preamp, use album gain, 6dB hard limit, low noise shaping.
+					<br /><br />
+					<span class="argument">-@@@-apply-replaygain-which-is-not-lossless=3</span> means 3dB preamp, use album gain, no limiting, no noise shaping.
+					<br /><br />
+					<span class="commandname">flac</span> uses the ReplayGain tags for the calculation.  If a stream does not have the required tags or they can't be parsed, decoding will continue with a warning, and no ReplayGain is applied to that stream.
+				</td>
+			</tr>
+			-->
+		</table>
+		</td></tr></table>
+
+		<br />
+
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+		<table width="100%" border="1" bgcolor="#EEEED4">
+			<tr>
+				<td colspan="2" bgcolor="#D3D4C5">
+					<a name="encoding_options"><font size="+1"><b>Encoding Options</b></font></a>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_verify" />
+					<span class="argument">-V</span>, <span class="argument">--verify</span>
+				</td>
+				<td>
+					Verify the encoding process.  With this option, <span class="commandname">flac</span> will create a parallel decoder that decodes the output of the encoder and compares the result against the original.  It will abort immediately with an error if a mismatch occurs.  <span class="argument">-V</span> increases the total encoding time but is guaranteed to catch any unforseen bug in the encoding process.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_lax" />
+					<span class="argument">--lax</span>
+				</td>
+				<td>
+					Allow encoder to generate non-<a href="format.html#subset">Subset</a> files.  The resulting FLAC file may not be streamable or might have trouble being played in all players (especially hardware devices), so you should only use this option in combination with custom encoding options meant for archival.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_replay_gain" />
+					<span class="argument">--replay-gain</span>
+				</td>
+				<td>
+					Calculate <a href="http://www.replaygain.org/">ReplayGain</a> values and store in FLAC tags, similar to <a href="http://packages.qa.debian.org/v/vorbisgain.html">VorbisGain</a>.  Title gains/peaks will be computed for each input file, and an album gain/peak will be computed for all files.  All input files must have the same resolution, sample rate, and number of channels.  Only mono and stereo files are allowed, and the sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.  Also note that this option may leave a few extra bytes in a <span class="code">PADDING</span> block as the exact size of the tags is not known until all files are processed.<br /><br />
+					Note that this option cannot be used when encoding to standard output (stdout).
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_cuesheet" />
+					<span class="argument">--cuesheet=FILENAME</span>
+				</td>
+				<td>
+					Import the given cuesheet file and store it in a <a href="format.html#def_CUESHEET"><span class="code">CUESHEET</span></a> metadata block.  This option may only be used when encoding a single file.  A seekpoint will be added for each index point in the cuesheet to the <a href="format.html#def_SEEKTABLE"><span class="code">SEEKTABLE</span></a> unless <span class="argument">--no-cued-seekpoints</span> is specified.<br /><br />
+					The cuesheet file must be of the sort written by <a href="http://www.goldenhawk.com/cdrwin.htm">CDRwin</a>, <a href="http://www.dcsoft.com/prod03.htm">CDRcue</a>, <a href="http://www.exactaudiocopy.de/">EAC</a>, et al.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_sector_align" />
+					<span class="argument">--sector-align</span>
+				</td>
+				<td>
+					Align encoding of multiple CD format WAVE files on sector boundaries.  This option is only allowed when encoding WAVE files, all of which have a 44.1kHz sample rate and 2 channels.  With <span class="argument">--sector-align</span>, the encoder will align the resulting .flac streams so that their lengths are even multiples of a CD sector (1/75th of a second, or 588 samples).  It does this by carrying over any partial sector at the end of each WAVE file to the next stream.  The last stream will be padded to alignment with zeroes.<br /><br />
+					This option will have no effect if the files are already aligned (as is the normally the case with WAVE files ripped from a CD).  <span class="commandname">flac</span> can only align a set of files given in one invocation of <span class="commandname">flac</span>.<br /><br />
+					<b>WARNING:</b> The ordering of files is important!  If you give a command like '<span class="code">flac --sector-align *.wav</span>' the shell may not expand the wildcard to the order you expect.  To be safe you should '<span class="code">echo *.wav</span>' first to confirm the order, or be explicit like '<span class="code">flac --sector-align 8.wav 9.wav 10.wav</span>'.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_seekpoint" />
+					<span class="argument">-S {#|X|#x|#s}</span>,<br /><span class="argument">--seekpoint={#|X|#x|#s}</span>
+				</td>
+				<td>
+					Include a point or points in a <span class="code">SEEKTABLE</span>:<br />
+					<ul>
+					<li>
+						<span class="argument">#&nbsp;</span> : a specific sample number for a seek point
+					</li>
+					<li>
+						<span class="argument">X&nbsp;</span> : a placeholder point (always goes at the end of the <span class="code">SEEKTABLE</span>)
+					</li>
+					<li>
+						<span class="argument">#x</span> : # evenly spaced seekpoints, the first being at sample 0
+					</li>
+					<li>
+						<span class="argument">#s</span> : a seekpoint every # seconds; # does not have to be a whole number, it can be, for example, <span class="argument">9.5</span>, meaning a seekpoint every 9.5 seconds
+					</li>
+					</ul>
+					You may use many -S options; the resulting <span class="code">SEEKTABLE</span> will be the unique-ified union of all such values.<br />
+					With no -S options, flac defaults to '-S 10s'.  Use --no-seektable for no <span class="code">SEEKTABLE</span>.<br />
+					<b>NOTE:</b> -S #x and -S #s will not work if the encoder can't determine the input size before starting.<br />
+					<b>NOTE:</b> if you use -S # and # is &gt;= samples in the input, there will be either no seek point entered (if the input size is determinable before encoding starts) or a placeholder point (if input size is not determinable).<br />
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_padding" />
+					<span class="argument">-P #</span>, <span class="argument">--padding=#</span>
+				</td>
+				<td>
+					Tell the encoder to write a <span class="code">PADDING</span> metadata block of the given length (in bytes) after the <span class="code">STREAMINFO</span> block.  This is useful if you plan to tag the file later with an <span class="code">APPLICATION</span> block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the <span class="code">PADDING</span> block.  Note that the total length of the <span class="code">PADDING</span> block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no <span class="code">PADDING</span> block at all to be written with <span class="argument">--no-padding</span>.  The encoder writes a <span class="code">PADDING</span> block of 4096 bytes by default.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_tag" />
+					<span class="argument">-T FIELD=VALUE</span>,<br /><span class="argument">--tag=FIELD=VALUE</span>
+				</td>
+				<td>
+					Add a FLAC tag.  The comment must adhere to the Vorbis comment spec (which FLAC tags implement), i.e. the FIELD must contain only legal characters, terminated by an 'equals' sign.  Make sure to quote the comment if necessary.  This option may appear more than once to add several comments.  NOTE: all tags will be added to all encoded files.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_blocksize" />
+					<span class="argument">-b #</span>, <span class="argument">--blocksize=#</span>
+				</td>
+				<td>
+					Specify the block size in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The reference encoder uses the same block size for the entire stream.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_mid_side" />
+					<span class="argument">-m</span>, <span class="argument">--mid-side</span>
+				</td>
+				<td>
+					Enable mid-side coding (only for stereo streams).  Tends to increase compression by a few percent on average.  For each block both the stereo pair and mid-side versions of the block will be encoded, and smallest resulting frame will be stored.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_adaptive_mid_side" />
+					<span class="argument">-M</span>, <span class="argument">--adaptive-mid-side</span>
+				</td>
+				<td>
+					Enable adaptive mid-side coding (only for stereo streams).  Like <span class="argument">-m</span> but the encoder adaptively switches between independent and mid-side coding, which is faster but yields less compression than <span class="argument">-m</span> (which does an exhaustive search).
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_levels" />
+					<span class="argument">-0 .. -8</span>
+				</td>
+				<td>
+					Fastest compression .. highest compression.  The default is <span class="argument">-5</span>.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_level_0" />
+					<span class="argument">-0</span>, <span class="argument">--compression-level-0</span>
+				</td>
+				<td>
+					Synonymous with <span class="argument">-l 0 -b 1152 -r 2,2</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_level_1" />
+					<span class="argument">-1</span>, <span class="argument">--compression-level-1</span>
+				</td>
+				<td>
+					Synonymous with <span class="argument">-l 0 -b 1152 -M -r 2,2</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_level_2" />
+					<span class="argument">-2</span>, <span class="argument">--compression-level-2</span>
+				</td>
+				<td>
+					Synonymous with <span class="argument">-l 0 -b 1152 -m -r 3</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_level_3" />
+					<span class="argument">-3</span>, <span class="argument">--compression-level-3</span>
+				</td>
+				<td>
+					Synonymous with <span class="argument">-l 6 -b 4608 -r 3,3</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_level_4" />
+					<span class="argument">-4</span>, <span class="argument">--compression-level-4</span>
+				</td>
+				<td>
+					Synonymous with <span class="argument">-l 8 -b 4608 -M -r 3,3</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_level_5" />
+					<span class="argument">-5</span>, <span class="argument">--compression-level-5</span>
+				</td>
+				<td>
+					Synonymous with <span class="argument">-l 8 -b 4608 -m -r 3,3</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_level_6" />
+					<span class="argument">-6</span>, <span class="argument">--compression-level-6</span>
+				</td>
+				<td>
+					Synonymous with <span class="argument">-l 8 -b 4608 -m -r 4</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_level_7" />
+					<span class="argument">-7</span>, <span class="argument">--compression-level-7</span>
+				</td>
+				<td>
+					Synonymous with <span class="argument">-l 8 -b 4608 -m -e -r 6</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_level_8" />
+					<span class="argument">-8</span>, <span class="argument">--compression-level-8</span>
+				</td>
+				<td>
+					Synonymous with <span class="argument">-l 12 -b 4608 -m -e -r 6</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_fast" />
+					<span class="argument">--fast</span>
+				</td>
+				<td>
+					Fastest compression.  Currently synonymous with <span class="argument">-0</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_best" />
+					<span class="argument">--best</span>
+				</td>
+				<td>
+					Highest compression.  Currently synonymous with <span class="argument">-8</span>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_exhaustive_model_search" />
+					<span class="argument">-e</span>,<br /><span class="argument">--exhaustive-model-search</span>
+				</td>
+				<td>
+					Exhaustive model search (expensive!).  Normally the encoder estimates the best model to use and encodes once based on the estimate.  With an exhaustive model search, the encoder will generate subframes for every order and use the smallest.  If the max LPC order is high this can significantly increase the encode time but can shave off another 0.5%.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_max_lpc_order" />
+					<span class="argument">-l #</span>, <span class="argument">--max-lpc-order=#</span>
+				</td>
+				<td>
+					Specifies the maximum LPC order.  This number must be &lt;= 32.  If 0, the encoder will not attempt generic linear prediction, and use only fixed predictors.  Using fixed predictors is faster but usually results in files being 5-10% larger.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_qlp_coeff_precision" />
+					<span class="argument">-q #</span>,<br /><span class="argument">--qlp-coeff-precision=#</span>
+				</td>
+				<td>
+					Specifies the precision of the quantized LP coefficients, in bits.  The default is <span class="argument">-q 0</span>, which means let the encoder decide based on the signal.  Unless you really know your input file it's best to leave this up to the encoder.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_qlp_coeff_precision_search" />
+					<span class="argument">-p</span>,<br /><span class="argument">--qlp-coeff-precision-search</span>
+				</td>
+				<td>
+					Do exhaustive LP coefficient quantization optimization.  This option overrides any <span class="argument">-q</span> option.  It is expensive and typically will only improve the compression a tiny fraction of a percent.  <span class="argument">-q</span> has no effect when <span class="argument">-l 0</span> is used.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_rice_partition_order" />
+					<span class="argument">-r [#,]#</span>,<br /><span class="argument">--rice-partition-order=[#,]#</span>
+				</td>
+				<td>
+					Set the [min,]max residual partition order.  The min value defaults to 0 if unspecified.<br /><br />
+					By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is iteratively partitioned into 2^min# .. 2^max# pieces, each with its own Rice parameter.  Higher values of max# yield diminishing returns.  The most bang for the buck is usually with <span class="argument">-r 2,2</span> (more for higher block sizes).  This usually shaves off about 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <span class="argument">-r 0,16</span> to force the highest degree of optimization.
+				</td>
+			</tr>
+		</table>
+		</td></tr></table>
+
+		<br />
+
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+		<table width="100%" border="1" bgcolor="#EEEED4">
+			<tr>
+				<td colspan="2" bgcolor="#D3D4C5">
+					<a name="format_options"><font size="+1"><b>Format Options</b></font></a>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_endian" />
+					<span class="argument">--endian={big|little}</span>
+				</td>
+				<td>
+					Specify big-endian or little-endian byte order in the raw file.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_channels" />
+					<span class="argument">--channels=#</span>
+				</td>
+				<td>
+					Specify the number of channels in the raw file.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_bps" />
+					<span class="argument">--bps=#</span>
+				</td>
+				<td>
+					Specify the number of bits per sample in the raw file.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_sample_rate" />
+					<span class="argument">--sample-rate=#</span>
+				</td>
+				<td>
+					Specify the sample rate of the raw file.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_sign" />
+					<span class="argument">--sign={signed|unsigned}</span>
+				</td>
+				<td>
+					Specify that the samples in the raw file are signed or unsigned (the default is signed).
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_input_size" />
+					<span class="argument">--input-size=#</span>
+				</td>
+				<td>
+					Specify the size of the raw input in bytes.  If you are encoding raw samples from stdin, you must set this option in order to be able to use --skip, --until, --cue-sheet, or other options that need to know the size of the input beforehand.  If the size given is greater than what is found in the input stream, the encoder will complain about an unexpected end-of-file.  If the size given is less, samples will be truncated.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_force_aiff_format" />
+					<span class="argument">--force-aiff-format</span>
+				</td>
+				<td>
+					Force the decoder to output AIFF format.  This option is not needed if the output filename (as set by -o) ends with .aiff.  Also, this option has no effect when encoding since input AIFF is auto-detected.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_force_raw_format" />
+					<span class="argument">--force-raw-format</span>
+				</td>
+				<td>
+					Treat the input file (or output file if decoding) as a raw file, regardless of the extension.
+				</td>
+			</tr>
+		</table>
+		</td></tr></table>
+
+		<br />
+
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+		<table width="100%" border="1" bgcolor="#EEEED4">
+			<tr>
+				<td colspan="2" bgcolor="#D3D4C5">
+					<a name="negative_options"><font size="+1"><b>Negative Options</b></font></a>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<span class="argument">--no-adaptive-mid-side</span><br />
+					<span class="argument">--no-decode-through-errors</span><br />
+					<span class="argument">--no-delete-input-file</span><br />
+					<span class="argument">--no-escape-coding</span><br />
+					<span class="argument">--no-exhaustive-model-search</span><br />
+					<span class="argument">--no-lax</span><br />
+					<span class="argument">--no-mid-side</span><br />
+					<span class="argument">--no-ogg</span><br />
+					<span class="argument">--no-padding</span><br />
+					<span class="argument">--no-qlp-coeff-precision-search</span><br />
+					<span class="argument">--no-residual-gnuplot</span><br />
+					<span class="argument">--no-residual-text</span><br />
+					<span class="argument">--no-sector-align</span><br />
+					<span class="argument">--no-seektable</span><br />
+					<span class="argument">--no-silent</span><br />
+					<span class="argument">--no-verify</span>
+				</td>
+				<td>
+					Can all be used to turn off a particular option.
+				</td>
+			</tr>
+		</table>
+		</td></tr></table>
+
+	</div>
+	<div class="box_footer"></div>
+</div>
+
+<br />
+
+<div class="box">
+	<div class="box_title">
+		<a name="metaflac">metaflac</a>
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
+		<span class="commandname">metaflac</span> is the command-line <span class="code">.flac</span> file metadata editor.  You can use it to list the contents of metadata blocks, edit, delete or insert blocks, and manage padding.
+		<br /><br />
+		<span class="commandname">metaflac</span> takes a set of "options" (though some are not optional) and a set of FLAC files to operate on.  There are three kinds of "options":
+		<ul>
+			<li>
 				Major operations, which specify a mode of operation like listing blocks, removing blocks, etc.  These will have sub-operations describing exactly what is to be done.
-			</LI>
-			<LI>
-				Shorthand operations, which are convenient synonyms for major operations.  For example, there is a shorthand operation <TT>--show-sample-rate</TT> that shows just the sample rate field from the STREAMINFO metadata block.
-			</LI>
-			<LI>
+			</li>
+			<li>
+				Shorthand operations, which are convenient synonyms for major operations.  For example, there is a shorthand operation <span class="argument">--show-sample-rate</span> that shows just the sample rate field from the <span class="code">STREAMINFO</span> metadata block.
+			</li>
+			<li>
 				Global options, which affect all the operations.
-			</LI>
-		</UL>
-	</P>
-	<P>
+			</li>
+		</ul>
 		All of these are described in the tables below.  At least one shorthand or major operation must be supplied.  You can use multiple shorthand operations to do more than one thing to a file or set of files.  Most of the common things to do to metadata have shorthand operations.  As an example, here is how to show the MD5 signatures for a set of three FLAC files:
-	</P>
-	<P>
-		<TT>metaflac --show-md5sum file1.flac file2.flac file3.flac</TT>
-	</P>
-	<P>
-		Another example; this removes all DESCRIPTION and COMMENT tags in a set of FLAC files, and uses the <TT>--preserve-modtime</TT> global option to keep the FLAC file modification times the same (usually when files are edited the modification time is set to the current time):
-	</P>
-	<P>
-		<TT>metaflac --preserve-modtime --remove-tag=DESCRIPTION --remove-tag=COMMENT file1.flac file2.flac file3.flac</TT>
-	</P>
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="global_options"><FONT SIZE="+1"><B>Global Options</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_options_preserve_modtime">
-				<TT>--preserve-modtime</TT>
-			</TD>
-			<TD>
-				Preserve the original modification time in spite of edits.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_options_with_filename">
-				<TT>--with-filename</TT>
-			</TD>
-			<TD>
-				Prefix each output line with the FLAC file name (the default if more than one FLAC file is specified).
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_options_no_filename">
-				<TT>--no-filename</TT>
-			</TD>
-			<TD>
-				Do not prefix each output line with the FLAC file name (the default if only one FLAC file is specified)
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_options_no_utf8_convert">
-				<TT>--no-utf8-convert</TT>
-			</TD>
-			<TD>
-				Do not convert tags from UTF-8 to local charset, or vice versa.  This is useful for scripts.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_options_dont_use_padding">
-				<TT>--dont-use-padding</TT>
-			</TD>
-			<TD>
-				By default <B><TT>metaflac</TT></B> tries to use padding where possible to avoid rewriting the entire file if the metadata size changes.  Use this option to tell metaflac to not take advantage of padding this way.
-			</TD>
-		</TR>
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="shorthand_operations"><FONT SIZE="+1"><B>Shorthand Operations</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_md5sum">
-				<TT>--show-md5sum</TT>
-			</TD>
-			<TD>
-				Show the MD5 signature from the STREAMINFO block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_min_blocksize">
-				<TT>--show-min-blocksize</TT>
-			</TD>
-			<TD>
-				Show the minimum block size from the STREAMINFO block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_max_blocksize">
-				<TT>--show-max-blocksize</TT>
-			</TD>
-			<TD>
-				Show the maximum block size from the STREAMINFO block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_min_framesize">
-				<TT>--show-min-framesize</TT>
-			</TD>
-			<TD>
-				Show the minimum frame size from the STREAMINFO block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_max_framesize">
-				<TT>--show-max-framesize</TT>
-			</TD>
-			<TD>
-				Show the maximum frame size from the STREAMINFO block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_sample_rate">
-				<TT>--show-sample-rate</TT>
-			</TD>
-			<TD>
-				Show the sample rate from the STREAMINFO block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_channels">
-				<TT>--show-channels</TT>
-			</TD>
-			<TD>
-				Show the number of channels from the STREAMINFO block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_bps">
-				<TT>--show-bps</TT>
-			</TD>
-			<TD>
-				Show the # of bits per sample from the STREAMINFO block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_total_samples">
-				<TT>--show-total-samples</TT>
-			</TD>
-			<TD>
-				Show the total # of samples from the STREAMINFO block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_vendor_tag">
-				<TT>--show-vendor-tag</TT>
-			</TD>
-			<TD>
-				Show the vendor string from the VORBIS_COMMENT block.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_show_tag">
-				<TT>--show-tag=NAME</TT>
-			</TD>
-			<TD>
-				Show all tags where the the field name matches <TT>NAME</TT>.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_remove_tag">
-				<TT>--remove-tag=NAME</TT>
-			</TD>
-			<TD>
-				Remove all tags whose field name is <TT>NAME</TT>.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_remove_first_tag">
-				<TT>--remove-first-tag=NAME</TT>
-			</TD>
-			<TD>
-				Remove first tag whose field name is <TT>NAME</TT>.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_remove_all_tags">
-				<TT>--remove-all-tags</TT>
-			</TD>
-			<TD>
-				Remove all tags, leaving only the vendor string.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_set_tag">
-				<TT>--set-tag=FIELD</TT>
-			</TD>
-			<TD>
-				Add a tag.  The <TT>FIELD</TT> must comply with the Vorbis comment spec, of the form <TT>NAME=VALUE</TT>.  If there is currently no tag block, one will be created.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_import_tags_from">
-				<TT>--import-tags-from=FILE</TT>
-			</TD>
-			<TD>
-				Import tags from a file.  Use '-' for stdin.  Each line should be of the form <TT>NAME=VALUE</TT>.  Multi-line comments are currently not supported.  Specify <TT>--remove-all-tags</TT> and/or <TT>--no-utf8-convert</TT> before <TT>--import-tags-from</TT> if necessary.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_export_tags_to">
-				<TT>--export-tags-to=FILE</TT>
-			</TD>
-			<TD>
-				Export tags to a file.  Use '-' for stdin.  Each line will be of the form <TT>NAME=VALUE</TT>.  Specify <TT>--no-utf8-convert</TT> if necessary.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_import_cuesheet_from">
-				<TT>--import-cuesheet-from=FILE</TT>
-			</TD>
-			<TD>
-				Import a cuesheet from a file.  Use '-' for stdin.  Only one FLAC file may be specified.  A seekpoint will be added for each index point in the cuesheet to the SEEKTABLE unless <TT>--no-cued-seekpoints</TT> is specified.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_export_cuesheet_to">
-				<TT>--export-cuesheet-to=FILE</TT>
-			</TD>
-			<TD>
-				Export CUESHEET block to a cuesheet file, suitable for use by CD authoring software.  Use '-' for stdout.  Only one FLAC file may be specified on the command line.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_add_replay_gain">
-				<TT>--add-replay-gain</TT>
-			</TD>
-			<TD>
-				Calculates the title and album gains/peaks of the given FLAC files as if all the files were part of one album, then stores them in the VORBIS_COMMENT block.  The tags are the same as those used by <TT>vorbisgain</TT>.  Existing ReplayGain tags will be replaced.  If only one FLAC file is given, the album and title gains will be the same.  Since this operation requires two passes, it is always executed last, after all other operations have been completed and written to disk.  All FLAC files specified must have the same resolution, sample rate, and number of channels.  The sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_add_seekpoint">
-				<TT>--add-seekpoint={#|X|#x|#s}</TT>
-			</TD>
-			<TD>
-				Add seek points to a SEEKTABLE block:<BR>
-				<UL>
-				<LI>
-					<TT>#&nbsp;</TT> : a specific sample number for a seek point
-				</LI>
-				<LI>
-					<TT>X&nbsp;</TT> : a placeholder point (always goes at the end of the SEEKTABLE)
-				</LI>
-				<LI>
-					<TT>#x</TT> : # evenly spaced seekpoints, the first being at sample 0
-				</LI>
-				<LI>
-					<TT>#s</TT> : a seekpoint every # seconds; # does not have to be a whole number, it can be, for example, <TT>9.5</TT>, meaning a seekpoint every 9.5 seconds
-				</LI>
-				</UL>
-				If no SEEKTABLE block exists, one will be created.  If one already exists, points will be added to the existing table, and any duplicates will be turned into placeholder points.<BR>
-				You may use many <TT>--add-seekpoint</TT> options; the resulting SEEKTABLE will be the unique-ified union of all such values.  Example: <TT>--add-seekpoint=100x --add-seekpoint=3.5s</TT> will add 100 evenly spaced seekpoints and a seekpoint every 3.5 seconds.<BR>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_shorthand_add_padding">
-				<TT>--add-padding=#</TT>
-			</TD>
-			<TD>
-				Add a padding block of the given length (in bytes).  The overall length of the new block will be 4 + length; the extra 4 bytes is for the metadata block header.
-			</TD>
-		</TR>
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="major_operations"><FONT SIZE="+1"><B>Major Operations</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_operations_version">
-				<TT>--version</TT>
-			</TD>
-			<TD>
-				Show the metaflac version number.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_operations_list">
-				<TT>--list</TT>
-			</TD>
-			<TD>
-				List the contents of one or more metadata blocks to stdout.  By default, all metadata blocks are listed in text format.  Use the following options to change this behavior:<P>
+		<br /><br />
+			<span class="code">metaflac --show-md5sum file1.flac file2.flac file3.flac</span>
+		<br /><br />
+			Another example; this removes all DESCRIPTION and COMMENT tags in a set of FLAC files, and uses the <span class="argument">--preserve-modtime</span> global option to keep the FLAC file modification times the same (usually when files are edited the modification time is set to the current time):
+		<br /><br />
+			<span class="code">metaflac --preserve-modtime --remove-tag=DESCRIPTION --remove-tag=COMMENT file1.flac file2.flac file3.flac</span>
+		<br /><br />
 
-				<TT>--block-number=#[,#[...]]</TT><BR>
-				An optional comma-separated list of block numbers to display.  The first block, the STREAMINFO block, is block 0.<P>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+		<table width="100%" border="1" bgcolor="#EEEED4">
+			<tr>
+				<td colspan="2" bgcolor="#D3D4C5">
+					<a name="global_options"><font size="+1"><b>Global Options</b></font></a>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_options_preserve_modtime" />
+					<span class="argument">--preserve-modtime</span>
+				</td>
+				<td>
+					Preserve the original modification time in spite of edits.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_options_with_filename" />
+					<span class="argument">--with-filename</span>
+				</td>
+				<td>
+					Prefix each output line with the FLAC file name (the default if more than one FLAC file is specified).
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_options_no_filename" />
+					<span class="argument">--no-filename</span>
+				</td>
+				<td>
+					Do not prefix each output line with the FLAC file name (the default if only one FLAC file is specified)
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_options_no_utf8_convert" />
+					<span class="argument">--no-utf8-convert</span>
+				</td>
+				<td>
+					Do not convert tags from UTF-8 to local charset, or vice versa.  This is useful for scripts.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_options_dont_use_padding" />
+					<span class="argument">--dont-use-padding</span>
+				</td>
+				<td>
+					By default <span class="commandname">metaflac</span> tries to use padding where possible to avoid rewriting the entire file if the metadata size changes.  Use this option to tell metaflac to not take advantage of padding this way.
+				</td>
+			</tr>
+		</table>
+		</td></tr></table>
 
-				<TT>--block-type=type[,type[...]]</TT><BR>
-				<TT>--except-block-type=type[,type[...]]</TT><BR>
-				An optional comma-separated list of block types to be included or ignored with this option.  Use only one of <TT>--block-type</TT> or <TT>--except-block-type</TT>.  The valid block types are: STREAMINFO, PADDING, APPLICATION, SEEKTABLE, VORBIS_COMMENT.  You may narrow down the types of APPLICATION blocks displayed as follows:<BR>
-				<TABLE BORDER="1">
-					<TR>
-						<TD><TT>APPLICATION:abcd</TT></TD>
-						<TD>The APPLICATION block(s) whose textual representation of the 4-byte ID is "abcd"
-					<TR>
-						<TD><TT>APPLICATION:0xXXXXXXXX</TT></TD>
-						<TD>The APPLICATION block(s) whose hexadecimal big- endian representation of the 4-byte ID is "0xXXXXXXXX".  For the example "abcd" above the hexadecimal equivalalent is 0x61626364
-				</TABLE>
-				<P>
+		<br />
 
-				NOTE: if both <TT>--block-number</TT> and <TT>--[except-]block-type</TT> are specified, the result is the logical AND of both arguments.<P>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+		<table width="100%" border="1" bgcolor="#EEEED4">
+			<tr>
+				<td colspan="2" bgcolor="#D3D4C5">
+					<a name="shorthand_operations"><font size="+1"><b>Shorthand Operations</b></font></a>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_md5sum" />
+					<span class="argument">--show-md5sum</span>
+				</td>
+				<td>
+					Show the MD5 signature from the <span class="code">STREAMINFO</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_min_blocksize" />
+					<span class="argument">--show-min-blocksize</span>
+				</td>
+				<td>
+					Show the minimum block size from the <span class="code">STREAMINFO</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_max_blocksize" />
+					<span class="argument">--show-max-blocksize</span>
+				</td>
+				<td>
+					Show the maximum block size from the <span class="code">STREAMINFO</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_min_framesize" />
+					<span class="argument">--show-min-framesize</span>
+				</td>
+				<td>
+					Show the minimum frame size from the <span class="code">STREAMINFO</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_max_framesize" />
+					<span class="argument">--show-max-framesize</span>
+				</td>
+				<td>
+					Show the maximum frame size from the <span class="code">STREAMINFO</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_sample_rate" />
+					<span class="argument">--show-sample-rate</span>
+				</td>
+				<td>
+					Show the sample rate from the <span class="code">STREAMINFO</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_channels" />
+					<span class="argument">--show-channels</span>
+				</td>
+				<td>
+					Show the number of channels from the <span class="code">STREAMINFO</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_bps" />
+					<span class="argument">--show-bps</span>
+				</td>
+				<td>
+					Show the # of bits per sample from the <span class="code">STREAMINFO</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_total_samples" />
+					<span class="argument">--show-total-samples</span>
+				</td>
+				<td>
+					Show the total # of samples from the <span class="code">STREAMINFO</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_vendor_tag" />
+					<span class="argument">--show-vendor-tag</span>
+				</td>
+				<td>
+					Show the vendor string from the <span class="code">VORBIS_COMMENT</span> block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_show_tag" />
+					<span class="argument">--show-tag=NAME</span>
+				</td>
+				<td>
+					Show all tags where the the field name matches <span class="argument">NAME</span>.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_remove_tag" />
+					<span class="argument">--remove-tag=NAME</span>
+				</td>
+				<td>
+					Remove all tags whose field name is <span class="argument">NAME</span>.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_remove_first_tag" />
+					<span class="argument">--remove-first-tag=NAME</span>
+				</td>
+				<td>
+					Remove first tag whose field name is <span class="argument">NAME</span>.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_remove_all_tags" />
+					<span class="argument">--remove-all-tags</span>
+				</td>
+				<td>
+					Remove all tags, leaving only the vendor string.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_set_tag" />
+					<span class="argument">--set-tag=FIELD</span>
+				</td>
+				<td>
+					Add a tag.  The <span class="argument">FIELD</span> must comply with the Vorbis comment spec, of the form <span class="argument">NAME=VALUE</span>.  If there is currently no tag block, one will be created.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_import_tags_from" />
+					<span class="argument">--import-tags-from=FILE</span>
+				</td>
+				<td>
+					Import tags from a file.  Use '-' for stdin.  Each line should be of the form <span class="argument">NAME=VALUE</span>.  Multi-line comments are currently not supported.  Specify <span class="argument">--remove-all-tags</span> and/or <span class="argument">--no-utf8-convert</span> before <span class="argument">--import-tags-from</span> if necessary.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_export_tags_to" />
+					<span class="argument">--export-tags-to=FILE</span>
+				</td>
+				<td>
+					Export tags to a file.  Use '-' for stdin.  Each line will be of the form <span class="argument">NAME=VALUE</span>.  Specify <span class="argument">--no-utf8-convert</span> if necessary.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_import_cuesheet_from" />
+					<span class="argument">--import-cuesheet-from=FILE</span>
+				</td>
+				<td>
+					Import a cuesheet from a file.  Use '-' for stdin.  Only one FLAC file may be specified.  A seekpoint will be added for each index point in the cuesheet to the <span class="code">SEEKTABLE</span> unless <span class="argument">--no-cued-seekpoints</span> is specified.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_export_cuesheet_to" />
+					<span class="argument">--export-cuesheet-to=FILE</span>
+				</td>
+				<td>
+					Export <span class="code">CUESHEET</span> block to a cuesheet file, suitable for use by CD authoring software.  Use '-' for stdout.  Only one FLAC file may be specified on the command line.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_add_replay_gain" />
+					<span class="argument">--add-replay-gain</span>
+				</td>
+				<td>
+					Calculates the title and album gains/peaks of the given FLAC files as if all the files were part of one album, then stores them in the <span class="code">VORBIS_COMMENT</span> block.  The tags are the same as those used by <span class="commandname">vorbisgain</span>.  Existing ReplayGain tags will be replaced.  If only one FLAC file is given, the album and title gains will be the same.  Since this operation requires two passes, it is always executed last, after all other operations have been completed and written to disk.  All FLAC files specified must have the same resolution, sample rate, and number of channels.  The sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_add_seekpoint" />
+					<span class="argument">--add-seekpoint={#|X|#x|#s}</span>
+				</td>
+				<td>
+					Add seek points to a <span class="code">SEEKTABLE</span> block:<br />
+					<ul>
+					<li>
+						<span class="argument">#&nbsp;</span> : a specific sample number for a seek point
+					</li>
+					<li>
+						<span class="argument">X&nbsp;</span> : a placeholder point (always goes at the end of the <span class="code">SEEKTABLE</span>)
+					</li>
+					<li>
+						<span class="argument">#x</span> : # evenly spaced seekpoints, the first being at sample 0
+					</li>
+					<li>
+						<span class="argument">#s</span> : a seekpoint every # seconds; # does not have to be a whole number, it can be, for example, <span class="argument">9.5</span>, meaning a seekpoint every 9.5 seconds
+					</li>
+					</ul>
+					If no <span class="code">SEEKTABLE</span> block exists, one will be created.  If one already exists, points will be added to the existing table, and any duplicates will be turned into placeholder points.<br />
+					You may use many <span class="argument">--add-seekpoint</span> options; the resulting <span class="code">SEEKTABLE</span> will be the unique-ified union of all such values.  Example: <span class="argument">--add-seekpoint=100x --add-seekpoint=3.5s</span> will add 100 evenly spaced seekpoints and a seekpoint every 3.5 seconds.<br />
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_add_padding" />
+					<span class="argument">--add-padding=#</span>
+				</td>
+				<td>
+					Add a padding block of the given length (in bytes).  The overall length of the new block will be 4 + length; the extra 4 bytes is for the metadata block header.
+				</td>
+			</tr>
+		</table>
+		</td></tr></table>
 
-				<TT>--application-data-format=hexdump|text</TT><BR>
-				If the application block you are displaying contains binary data but your <TT>--data-format=text</TT>, you can display a hex dump of the application data contents instead using <TT>--application-data-format=hexdump</TT>.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_operations_remove">
-				<TT>--remove</TT>
-			</TD>
-			<TD>
-				Remove one or more metadata blocks from the metadata.  Unless <TT>--dont-use-padding</TT> is specified, the blocks will be replaced with padding.  You may not remove the STREAMINFO block.<P>
+		<br />
 
-				<TT>--block-number=#[,#[...]]</TT><BR>
-				<TT>--block-type=type[,type[...]]</TT><BR>
-				<TT>--except-block-type=type[,type[...]]</TT><BR>
-				See <A HREF="#metaflac_operations_list"><TT>--list</TT></A> above for usage.<P>
+		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+		<table width="100%" border="1" bgcolor="#EEEED4">
+			<tr>
+				<td colspan="2" bgcolor="#D3D4C5">
+					<a name="major_operations"><font size="+1"><b>Major Operations</b></font></a>
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_operations_version" />
+					<span class="argument">--version</span>
+				</td>
+				<td>
+					Show the metaflac version number.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_operations_list" />
+					<span class="argument">--list</span>
+				</td>
+				<td>
+					List the contents of one or more metadata blocks to stdout.  By default, all metadata blocks are listed in text format.  Use the following options to change this behavior:<br /><br />
 
-				NOTE: if both <TT>--block-number</TT> and <TT>--[except-]block-type</TT> are specified, the result is the logical AND of both arguments.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_operations_remove_all">
-				<TT>--remove-all</TT>
-			</TD>
-			<TD>
-				Remove all metadata blocks (except the STREAMINFO block) from the metadata.  Unless <TT>--dont-use-padding</TT> is specified, the blocks will be replaced with padding.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_operations_merge_padding">
-				<TT>--merge-padding</TT>
-			</TD>
-			<TD>
-				Merge adjacent PADDING blocks into single blocks.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A NAME="metaflac_operations_sort_padding">
-				<TT>--sort-padding</TT>
-			</TD>
-			<TD>
-				Move all PADDING blocks to the end of the metadata and merge them into a single block.
-			</TD>
-		</TR>
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+					<span class="argument">--block-number=#[,#[...]]</span><br />
+					An optional comma-separated list of block numbers to display.  The first block, the <span class="code">STREAMINFO</span> block, is block 0.<br /><br />
 
+					<span class="argument">--block-type=type[,type[...]]</span><br />
+					<span class="argument">--except-block-type=type[,type[...]]</span><br />
+					An optional comma-separated list of block types to be included or ignored with this option.  Use only one of <span class="argument">--block-type</span> or <span class="argument">--except-block-type</span>.  The valid block types are: <span class="code">STREAMINFO</span>, <span class="code">PADDING</span>, <span class="code">APPLICATION</span>, <span class="code">SEEKTABLE</span>, <span class="code">VORBIS_COMMENT</span>.  You may narrow down the types of <span class="code">APPLICATION</span> blocks displayed as follows:<br />
+					<table border="1">
+						<tr>
+							<td><span class="argument">APPLICATION:abcd</span></td>
+							<td>The <span class="code">APPLICATION</span> block(s) whose textual representation of the 4-byte ID is "abcd"</td>
+						</tr>
+						<tr>
+							<td><span class="argument">APPLICATION:0xXXXXXXXX</span></td>
+							<td>The <span class="code">APPLICATION</span> block(s) whose hexadecimal big- endian representation of the 4-byte ID is "0xXXXXXXXX".  For the example "abcd" above the hexadecimal equivalalent is 0x61626364</td>
+						</tr>
+					</table>
+					<br />
 
-<A NAME="plugins"></A>
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="xmms_plugin"><B><FONT SIZE="+2">xmms plugin</FONT></B></A>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
-		All that is necessary is to copy <B><TT>libxmms-flac.so</TT></B> to the directory where XMMS looks for input plugins (usually <B><TT>/usr/lib/xmms/Input</TT></B>).  There is nothing else to configure.  Make sure to restart XMMS before trying to play any <TT>.flac</TT> files.
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+					NOTE: if both <span class="argument">--block-number</span> and <span class="argument">--[except-]block-type</span> are specified, the result is the logical AND of both arguments.<br /><br />
 
+					<span class="argument">--application-data-format=hexdump|text</span><br />
+					If the application block you are displaying contains binary data but your <span class="argument">--data-format=text</span>, you can display a hex dump of the application data contents instead using <span class="argument">--application-data-format=hexdump</span>.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_operations_remove" />
+					<span class="argument">--remove</span>
+				</td>
+				<td>
+					Remove one or more metadata blocks from the metadata.  Unless <span class="argument">--dont-use-padding</span> is specified, the blocks will be replaced with padding.  You may not remove the <span class="code">STREAMINFO</span> block.<br /><br />
 
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="winamp2_plugin"><B><FONT SIZE="+2">winamp2 plugin</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
-		The Winamp plugin should work for both Winamp2 and Winamp5.  If you are using Winamp 2.x, all that is necessary is to copy <B><TT>in_flac.dll</TT></B> to the <B><TT>Plugins/</TT></B> directory of your Winamp installation.  There is nothing else to configure.  Make sure to restart Winamp before trying to play any <TT>.flac</TT> files.
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+					<span class="argument">--block-number=#[,#[...]]</span><br />
+					<span class="argument">--block-type=type[,type[...]]</span><br />
+					<span class="argument">--except-block-type=type[,type[...]]</span><br />
+					See <a href="#metaflac_operations_list"><span class="argument">--list</span></a> above for usage.<br /><br />
 
+					NOTE: if both <span class="argument">--block-number</span> and <span class="argument">--[except-]block-type</span> are specified, the result is the logical AND of both arguments.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_operations_remove_all" />
+					<span class="argument">--remove-all</span>
+				</td>
+				<td>
+					Remove all metadata blocks (except the <span class="code">STREAMINFO</span> block) from the metadata.  Unless <span class="argument">--dont-use-padding</span> is specified, the blocks will be replaced with padding.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_operations_merge_padding" />
+					<span class="argument">--merge-padding</span>
+				</td>
+				<td>
+					Merge adjacent <span class="code">PADDING</span> blocks into single blocks.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_operations_sort_padding" />
+					<span class="argument">--sort-padding</span>
+				</td>
+				<td>
+					Move all <span class="code">PADDING</span> blocks to the end of the metadata and merge them into a single block.
+				</td>
+			</tr>
+		</table>
+		</td></tr></table>
 
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="bugs"><B><FONT SIZE="+2">known bugs</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
-		Bug tracking is done on the Sourceforge project page <A HREF="http://sourceforge.net/bugs/?group_id=13478">here</A>.  If you submit a bug, make sure and provide an email contact or use the Monitor feature.
-	</P>
-	<P>
+	</div>
+	<div class="box_footer"></div>
+</div>
+
+<br />
+
+<div class="box">
+	<div class="box_title">
+		<a name="plugins"></a><a name="xmms_plugin">xmms plugin</a>
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
+		All that is necessary is to copy <span class="code">libxmms-flac.so</span> to the directory where XMMS looks for input plugins (usually <span class="code">/usr/lib/xmms/Input</span> or <span class="code">$HOME/.xmms/Input</span>).  There is nothing else to configure.  Make sure to restart XMMS before trying to play any <span class="code">.flac</span> files.
+	</div>
+	<div class="box_footer"></div>
+</div>
+
+<br />
+
+<div class="box">
+	<div class="box_title">
+		<a name="winamp2_plugin">winamp2 plugin</a>
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
+		The Winamp plugin should work for both Winamp2 and Winamp5.  If you are using Winamp 2.x, all that is necessary is to copy <span class="code">in_flac.dll</span> to the <span class="code">Plugins/</span> directory of your Winamp installation.  There is nothing else to configure.  Make sure to restart Winamp before trying to play any <span class="code">.flac</span> files.
+	</div>
+	<div class="box_footer"></div>
+</div>
+
+<br />
+
+<div class="box">
+	<div class="box_title">
+		<a name="bugs">known bugs</a>
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
+		Bug tracking is done on the Sourceforge project page <a href="http://sourceforge.net/bugs/?group_id=13478">here</a>.  If you submit a bug, make sure and provide an email contact or use the Monitor feature.
+		<br /><br />
 		The following are major known bugs in the current (1.1.2) release:
-	</P>
-	<P>
-		<UL>
-			<LI>
+		<ul>
+			<li>
 				(none)
-			</LI>
-		</UL>
-	</P>
-	<P>
+			</li>
+		</ul>
 		The following are major known bugs in the 1.1.0 release:
-	</P>
-	<P>
-		<UL>
-			<LI>
+		<ul>
+			<li>
 				If you change the FLAC configuration options in the XMMS plugin while a FLAC file is playing, it can cause a crash or other bad things to happen.
-			</LI>
-		</UL>
-	</P>
-	<P>
+			</li>
+		</ul>
 		The following are major known bugs in the 1.0.4 release:
-	</P>
-	<P>
-		<UL>
-			<LI>
-				All decoders prior to and including 1.0.4 have a bug that prevents them from skipping unknown metadata blocks properly.  A FLAC file created by flac 1.1.0 containing a CUESHEET metadata block will not decode in 1.0.x decoders.
-			</LI>
-			<LI>
-				<B><TT>metaflac</TT></B> has a bug where, if --import-vc-from is used on a FLAC file that has no Vorbis comment block, the FLAC file can be corrupted.  All FLAC files generated by 1.0.4 have a Vorbis comment block added automatically but files from 1.0.3 and before do not.  This is fixed in CVS.
-			</LI>
-			<LI>
-				There is an odd bug in <B><TT>metaflac</TT></B> such that you must always use the <TT>--dont-use-padding</TT> option with <TT>--add-padding</TT> or the padding block won't be written.  This is fixed in CVS.
-			</LI>
-		</UL>
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+		<ul>
+			<li>
+				All decoders prior to and including 1.0.4 have a bug that prevents them from skipping unknown metadata blocks properly.  A FLAC file created by flac 1.1.0 containing a <span class="code">CUESHEET</span> metadata block will not decode in 1.0.x decoders.
+			</li>
+			<li>
+				<span class="commandname">metaflac</span> has a bug where, if --import-vc-from is used on a FLAC file that has no Vorbis comment block, the FLAC file can be corrupted.  All FLAC files generated by 1.0.4 have a Vorbis comment block added automatically but files from 1.0.3 and before do not.  This is fixed in CVS.
+			</li>
+			<li>
+				There is an odd bug in <span class="commandname">metaflac</span> such that you must always use the <span class="argument">--dont-use-padding</span> option with <span class="argument">--add-padding</span> or the padding block won't be written.  This is fixed in CVS.
+			</li>
+		</ul>
+	</div>
+	<div class="box_footer"></div>
+</div>
 
+<br />
 
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="monkey"><B><FONT SIZE="+2">monkey</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
+<div class="box">
+	<div class="box_title">
+		<a name="monkey">monkey</a>
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
 		Monkey's Audio comes with a nice GUI that many people are familiar with.  It supports some external encoders, but not FLAC.  However, the FLAC Windows distribution comes with a utility that allows you to replace one the of the supported lossless external codecs with FLAC.  Here's how:
-		<UL>
-			<LI>Copy <B><TT>flac.exe</TT></B> and <B><TT>flac_ren.exe</TT></B> to the <B><TT>External/</TT></B> directory of the Monkey's Audio installation.</LI>
-			<LI>
+		<ul>
+			<li>Copy <span class="commandname">flac.exe</span> and <span class="commandname">flac_ren.exe</span> to the <span class="code">External/</span> directory of the Monkey's Audio installation.</li>
+			<li>
 				Choose a supported encoder to replace:
-				<UL>
-					<LI>Shorten - copy <B><TT>flac_mac.exe</TT></B> on top of <B><TT>External/shortn32.exe</TT></B></LI>
-					<LI>WavPack - copy <B><TT>flac_mac.exe</TT></B> on top of both <B><TT>External/wavpack.exe</TT></B> and <B><TT>External/wvunpack.exe</TT></B></LI>
-					<LI>RKAU - copy <B><TT>flac_mac.exe</TT></B> on top of <B><TT>External/rkau.exe</TT></B></LI>
-				</UL>
+				<ul>
+					<li>Shorten - copy <span class="commandname">flac_mac.exe</span> on top of <span class="commandname">External/shortn32.exe</span></li>
+					<li>WavPack - copy <span class="commandname">flac_mac.exe</span> on top of both <span class="commandname">External/wavpack.exe</span> and <span class="commandname">External/wvunpack.exe</span></li>
+					<li>RKAU - copy <span class="commandname">flac_mac.exe</span> on top of <span class="commandname">External/rkau.exe</span></li>
+				</ul>
 				If you choose WavPack you will also be able to use the WavPack Configuration menu to add flac options.
-			</LI>
-			<LI>Now you can encode FLAC files as if you were using the replaced encoder.  The renamed <B><TT>flac_mac.exe</TT></B> utility will call <B><TT>flac.exe</TT></B> and afterwards, <B><TT>flac_ren.exe</TT></B> will rename the resulting file to have the .flac extension.</LI>
-		</UL>
-	</P>
-	<P>
-		Other front-ends may be wedged in the same way; if you have one in mind, post it to the <A HREF="http://lists.sourceforge.net/lists/listinfo/flac-dev">flac-dev</A> mailing list.
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+			</li>
+			<li>Now you can encode FLAC files as if you were using the replaced encoder.  The renamed <span class="commandname">flac_mac.exe</span> utility will call <span class="commandname">flac.exe</span> and afterwards, <span class="commandname">flac_ren.exe</span> will rename the resulting file to have the .flac extension.</li>
+		</ul>
+		Other front-ends may be wedged in the same way; if you have one in mind, post it to the <a href="http://lists.sourceforge.net/lists/listinfo/flac-dev">flac-dev</a> mailing list.
+	</div>
+	<div class="box_footer"></div>
+</div>
 
 
-</CENTER>
+<div class="copyright">
+	Copyright (c) 2000,2001,2002,2003,2004,2005  Josh Coalson
+</div>
 
-<P>&nbsp;Copyright (c) 2000,2001,2002,2003,2004,2005  Josh Coalson</P>
-
-</BODY>
-</HTML>
+</body>
+</html>

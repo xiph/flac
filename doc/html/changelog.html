@@ -1,407 +1,381 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!-- Copyright (c)  2004,2005  Josh Coalson -->
 <!-- Permission is granted to copy, distribute and/or modify this document -->
 <!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
 <!-- or any later version published by the Free Software Foundation; -->
 <!-- with no invariant sections. -->
 <!-- A copy of the license can be found at http://www.gnu.org/copyleft/fdl.html -->
-<HTML>
-<HEAD>
-	<TITLE>FLAC - changelog</TITLE>
-</HEAD>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<meta name="author" content="Josh Coalson" />
+	<meta name="description" content="A free, open source codec for lossless audio compression and decompression" />
+	<meta name="keywords" content="free,lossless,audio,codec,encoder,decoder,compression,compressor,archival,archive,archiving,backup,music" />
+	<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+	<link rel="stylesheet" type="text/css" href="flac.css" />
+	<title>FLAC - changelog</title>
+</head>
 
-<BODY MARGINWIDTH="0" MARGINHEIGHT="0" LEFTMARGIN="0" RIGHTMARGIN="0" TOPMARGIN="0" BGCOLOR="#99CC99" TEXT="#000000" LINK="#336699" VLINK="#336699" ALINK="#336699">
+<body>
 
-<TABLE BORDER=0 WIDTH="100%" CELLPADDING=1 CELLSPACING=0>
-	<TR>
-		<TD ALIGN="CENTER" BGCOLOR="#000000"><A HREF="http://flac.sourceforge.net/"><IMG SRC="images/logo130.gif" ALIGN=CENTER ALT="FLAC Logo" BORDER=0 HSPACE=0></a></TD>
-	</TR>
-</TABLE>
+<div class="logo">
+	<a href="http://flac.sourceforge.net/"><img src="images/logo130.gif" alt="FLAC Logo" align="middle" border="0" hspace="0" /></a>
+</div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="25" ALT=""></TD></TR></TABLE>
+<div class="above_nav"></div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+<div class="separator2"></div>
 
-<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
-	<TR>
-		<TD ALIGN="CENTER" BGCOLOR="#D3D4C5">
-			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
-				<TR>
-					<TD HEIGHT=22 BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="index.html">home</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="faq.html">faq</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="news.html">news</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="download.html">download</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="features.html">features</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="goals.html">goals</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="format.html">format</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="id.html">id</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="comparison.html">comparison</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="documentation.html">documentation</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;changelog&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="links.html">links</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="developers.html">developers</A>&nbsp;&nbsp;</TD>
-				</TR>
-			</TABLE>
-		</TD>
-	</TR>
-</TABLE>
+<div class="navbar">
+	&nbsp;<a href="index.html">home</a>&nbsp;&nbsp;|
+	&nbsp;<a href="faq.html">faq</a>&nbsp;&nbsp;|
+	&nbsp;<a href="news.html">news</a>&nbsp;&nbsp;|
+	&nbsp;<a href="download.html">download</a>&nbsp;&nbsp;|
+	&nbsp;<a href="features.html">features</a>&nbsp;&nbsp;|
+	&nbsp;<a href="goals.html">goals</a>&nbsp;&nbsp;|
+	&nbsp;<a href="format.html">format</a>&nbsp;&nbsp;|
+	&nbsp;<a href="id.html">id</a>&nbsp;&nbsp;|
+	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
+	&nbsp;<a href="documentation.html">documentation</a>&nbsp;&nbsp;|
+	&nbsp;changelog&nbsp;&nbsp;|
+	&nbsp;<a href="links.html">links</a>&nbsp;&nbsp;|
+	&nbsp;<a href="developers.html">developers</a>&nbsp;
+</div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+<div class="separator2"></div>
 
-<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
-	<TR>
-		<TD ALIGN="CENTER" BGCOLOR="#EEEED4">
-			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
-				<TR>
-					<TD HEIGHT=22 BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;english&nbsp;&nbsp;</TD><TD BGCOLOR="#EEEED4" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="ru/changelog.html">russian</A>&nbsp;&nbsp;</TD>
-				</TR>
-			</TABLE>
-		</TD>
-	</TR>
-</TABLE>
+<div class="langbar">
+	&nbsp;english&nbsp;&nbsp;|
+	&nbsp;<a href="ru/changelog.html">russian</a>&nbsp;
+</div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+<div class="separator2"></div>
 
-<CENTER>
+<div class="below_nav"></div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="15" ALT=""></TD></TR></TABLE>
-
-
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<B><FONT SIZE="+2">changelog</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-
-	<P>
+<div class="box">
+	<div class="box_title">
+		changelog
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
 		This is an informal changelog, a summary of changes in each release.  Particulary important for developers is the precise description of changes to the library interfaces.
-	</P>
 
-	<P>
-		<A NAME="flac_1_1_2"><B>FLAC 1.1.2</B></A>
-	</P>
-	<P>
-	<UL>
-		<LI>
-			General:
-			<UL>
-				<LI>Sped up decoding by a few percent overall.<LI>
-				<LI>Sped up encoding when not using LPC (i.e. when using <TT>flac</TT> options <TT>-0</TT>, <TT>-1</TT>, <TT>-2</TT>, or <TT>-l 0</TT>).</LI>
-				<LI>Fixed a decoding bug that could cause sync errors with some ID3v1-tagged FLAC files.</LI>
-				<LI>Added <A HREF="documentation.html#metaflac">HTML documentation for metaflac</A>.</LI>
-			</UL>
-		</LI>
-		<LI>
-			FLAC format:
-			<UL>
-				<LI>(none)</LI>
-			</UL>
-		</LI>
-		<LI>
-			Ogg FLAC format:
-			<UL>
-				<LI>(none)</LI>
-			</UL>
-		</LI>
-		<LI>
-			flac:
-			<UL>
-				<LI>New option <A HREF="documentation.html#flac_options_input_size"><TT>--input-size</TT></A> to manually specify the input size when encoding raw samples from stdin.</LI>
-			</UL>
-		</LI>
-		<LI>
-			metaflac:
-			<UL>
-				<LI>(none)</LI>
-			</UL>
-		</LI>
-		<LI>
-			plugins:
-			<UL>
-				<LI>Added support for HTTP streaming in XMMS plugin.  <B>NOTE</B>: there is a <A HREF="http://bugs.xmms.org/show_bug.cgi?id=2038">bug</A> in the XMMS mpg123 plugin that hijacks FLAC streams; to fix it you will need to add the '.flac' extension to the list of exceptions in <TT>Input/mpg123/mpg123.c:is_our_file()</TT> in the XMMS sources and recompile.</LI>
-			</UL>
-		</LI>
-		<LI>
-			build system:
-			<UL>
-				<LI>(none)</LI>
-			</UL>
-		</LI>
-		<LI>
-			libraries:
-			<UL>
-				<LI>libFLAC: Sped up Rice block decoding in the bitbuffer, resulting in decoding speed gains of a few percent.</LI>
-				<LI>libFLAC: Sped up encoding when not using LPC (i.e. <TT>max_lpc_order == 0</TT>).</LI>
-				<LI>libFLAC: Trailing NUL characters maintained on Vorbis comment entries so they can be treated like C strings.</LI>
-				<LI>libFLAC: More FLAC tag (i.e. Vorbis comment) validation.</LI>
-				<LI>libFLAC: Fixed a bug in the logic that determines the frame or sample number in a frame header; the bug could cause sync errors with some ID3v1-tagged FLAC files.</LI>
-				<LI>libFLAC, libOggFLAC: Can now be compiled to use only integer instructions, including encoding.  The decoder is almost completely integer anyway but there were a couple places that needed a fixed-point replacement.  There is no fixed-point version of LPC analysis yet, so if libFLAC is compiled integer-only, the encoder will behave as if the max LPC order is 0 (i.e. used fixed predictors only).  LPC decoding is supported in all cases as it always was integer-only.</LI>
-			</UL>
-		</LI>
-		<LI>
-			Interface changes:
-			<UL>
-				<LI>
-					libFLAC:
-					<UL>
-						<LI><B>Changed:</B> Metadata object interface now maintains a trailing NUL on Vorbis comment entries for convenience.</LI>
-						<LI><B>Changed:</B> Metadata object interface now validates all Vorbis comment entries on input and returns false if an entry does not conform to the Vorbis comment spec.</LI>
-						<LI><B>Added</B> FLAC__format_vorbiscomment_entry_name_is_legal()</LI>
-						<LI><B>Added</B> FLAC__format_vorbiscomment_entry_value_is_legal()</LI>
-						<LI><B>Added</B> FLAC__format_vorbiscomment_entry_is_legal()</LI>
-						<LI><B>Added</B> FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair()</LI>
-						<LI><B>Added</B> FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair()</LI>
-						<LI><B>Changed</B> the signature of FLAC__metadata_object_vorbiscomment_entry_matches(): the first argument is now <TT>FLAC__StreamMetadata_VorbisComment_Entry entry</TT> (was <TT>const FLAC__StreamMetadata_VorbisComment_Entry *entry</TT>), i.e. <TT>entry</TT> is now pass-by-value.</LI>
-					</UL>
-				</LI>
-				<LI>
-					libFLAC++:
-					<UL>
-						<LI><B>Changed:</B> Metadata object interface now maintains a trailing NUL on Vorbis comment values for convenience.</LI>
-						<LI><B>Changed:</B> Metadata object interface now validates all Vorbis comment entries on input and returns false if an entry does not conform to the Vorbis comment spec.</LI>
-						<LI><B>Changed:</B> All Metadata objects' operator=() methods now return a reference to themselves.</LI>
-						<LI><B>Added</B> methods to FLAC::Metadata::VorbisComment::Entry for setting comment values from null-terminated strings:
-							<UL>
-								<LI>Entry(const char *field)</LI>
-								<LI>Entry(const char *field_name, const char *field_value)</LI>
-								<LI>bool set_field(const char *field)</LI>
-								<LI>bool set_field_value(const char *field_value)</LI>
-							</UL>
-						</LI>
-						<LI><B>Changed</B> the signature of FLAC::Metadata::VorbisComment::get_vendor_string() and FLAC::Metadata::VorbisComment::set_vendor_string() to use a UTF-8, NUL-terminated string <TT>const FLAC__byte *</TT> for the vendor string instead of <TT>FLAC::Metadata::VorbisComment::Entry</TT>.</LI>
-						<LI><B>Added</B> FLAC::Metadata::*::assign() to all Metadata objects.</LI>
-						<LI><B>Added</B> bool FLAC::Metadata::get_tags(const char *filename, VorbisComment &amp;tags)</LI>
-					</UL>
-				</LI>
-				<LI>
-					libOggFLAC:
-					<UL>
-						<LI>(none)</LI>
-					</UL>
-				</LI>
-				<LI>
-					libOggFLAC++:
-					<UL>
-						<LI>(none)</LI>
-					</UL>
-				</LI>
-			</UL>
-		</LI>
-	</UL>
-	</P>
+		<br /><br />
 
-	<P>
-		<A NAME="flac_1_1_1"><B>FLAC 1.1.1</B></A>
-	</P>
-	<P>
-	<UL>
-		<LI>
-			General:
-			<UL>
-				<LI>Ogg FLAC seeking now works</LI>
-				<LI>New optimizations almost double the decoding speed on PowerPC (e.g. Mac G4/G5)</LI>
-				<LI>A native OS X release thanks to updated Project Builder and autotools files</LI>
-			</UL>
-		</LI>
-		<LI>
-			FLAC format:
-			<UL>
-				<LI>Made invalid the metadata block type 127 so that audio frames can always be distinguished from metadata by seeing 0xff as the first byte.  (This was also required for the Ogg FLAC mapping.)</LI>
-			</UL>
-		</LI>
-		<LI>
-			Ogg FLAC format:
-			<UL>
-				<LI>First official FLAC-&gt;Ogg bitstream mapping standardized (see new <A HREF="ogg_mapping.html">FLAC-to-Ogg mapping specification</A>).  See the documentation for the <A HREF="documentation.html#flac_options_ogg"><TT>--ogg</TT></A> switch about having to re-encode older Ogg FLAC files.</LI>
-			</UL>
-		</LI>
-		<LI>
-			flac:
-			<UL>
-				<LI>Print an error when output file already exists instead of automatically overwriting.</LI>
-				<LI>New option <A HREF="documentation.html#flac_options_force"><TT>-f</TT> (<TT>--force</TT>)</A> to force overwriting if the output file already exists.</LI>
-				<LI>New option <A HREF="documentation.html#flac_options_cue"><TT>--cue</TT></A> to select a specific section to decode using cuesheet track/index points.</LI>
-				<LI>New option <A HREF="documentation.html#flac_options_totally_silent"><TT>--totally-silent</TT></A> to suppress all output.</LI>
-				<LI>New (but undocumented) option <TT>--apply-replaygain-which-is-not-lossless</TT> which applies ReplayGain to the decoded output.  See <A HREF="http://www.hydrogenaudio.org/forums/index.php?showtopic=17293&st=11">this thread</A> for usage and caveats.</LI>
-				<LI>When encoding to Ogg FLAC, use a random serial number (instead of 0 as was done before) when a serial number is not specified.</LI>
-				<LI>When encoding multiple Ogg FLAC streams, <TT>--serial-number</TT> or random serial number sets the first number, which is then incremented for subsequent streams (before, the same serial number was used for all streams).</LI>
-				<LI>Decoder no longer exits with an error when writing to stdout and the pipe is broken.</LI>
-				<LI>Better explanation of common error messages.</LI>
-				<LI>Default extension when writing AIFF files is .aif (before, it was .aiff).</LI>
-				<LI>Write more common representation of SANE numbers in AIFF files.</LI>
-				<LI>Bug fix: calculating ReplayGain on 48kHz streams.</LI>
-				<LI>Bug fix: check for supported block alignments in WAVE files.</LI>
-				<LI>Bug fix: "offset" field in AIFF SSND chunk properly handled.</LI>
-				<LI>Bug fix: <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=679166&group_id=13478&atid=113478">#679166</A>: flac doesn't respect RIFF subchunk padding byte.</LI>
-				<LI>Bug fix: <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=828391&group_id=13478&atid=113478">#828391</A>: --add-replay-gain segfaults.</LI>
-				<LI>Bug fix: <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=851155&group_id=13478&atid=113478">#851155</A>: Can't seek to position in flac file.</LI>
-				<LI>Bug fix: <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=851756&group_id=13478&atid=113478">#851756</A>: flac --skip --until reads entire file.</LI>
-				<LI>Bug fix: <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=877122&group_id=13478&atid=113478">#877122</A>: problem parsing cuesheet with CATALOG entry.</LI>
-				<LI>Bug fix: <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=896057&group_id=13478&atid=113478">#896057</A>: parsing ISRC number from cuesheet.</LI>
-			</UL>
-		</LI>
-		<LI>
-			metaflac:
-			<UL>
-				<LI>Renamed the tag editing options as follows (the <TT>...-vc-...</TT> options still work but are deprecated):
-					<UL>
-						<LI><TT>--show-vc-vendor</TT> becomes <TT>--show-vendor-tag</TT></LI>
-						<LI><TT>--show-vc-field</TT> becomes <TT>--show-tag</TT></LI>
-						<LI><TT>--remove-vc-all</TT> becomes <TT>--remove-all-tags</TT></LI>
-						<LI><TT>--remove-vc-field</TT> becomes <TT>--remove-tag</TT></LI>
-						<LI><TT>--remove-vc-firstfield</TT> becomes <TT>--remove-first-tag</TT></LI>
-						<LI><TT>--set-vc-field</TT> becomes <TT>--set-tag</TT></LI>
-						<LI><TT>--import-vc-from</TT> becomes <TT>--import-tags-from</TT></LI>
-						<LI><TT>--export-vc-to</TT> becomes <TT>--export-tags-to</TT></LI>
-					</UL>
-				</LI>
-				<LI>Better explanation of common error messages.</LI>
-				<LI>Bug fix: calculating ReplayGain on 48kHz streams.</LI>
-				<LI>Bug fix: incorrect numbers when printing seek points.</LI>
-			</UL>
-		</LI>
-		<LI>
-			plugins:
-			<UL>
-				<LI>Speed optimization in ReplayGain synthesis.</LI>
-				<LI>Speed optimization in XMMS playback.</LI>
-				<LI>Support for big-endian architectures in XMMS plugin.</LI>
-				<LI>Removed support for ID3 tags.</LI>
-				<LI>Bug fix: make hard limiter default to off in XMMS plugin.</LI>
-				<LI>Bug fix: stream length calculation bug in XMMS plugin, debian bug #200435; <A HREF="http://sourceforge.net/mailarchive/forum.php?thread_id=2733072&forum_id=6312">see also</A>.</LI>
-				<LI>Bug fix: small memory leak in XMMS plugin.</LI>
-			</UL>
-		</LI>
-		<LI>
-			build system:
-			<UL>
-				<LI><TT>ordinals.h</TT> is now static, not a build-generated file anymore.</LI>
-			</UL>
-		</LI>
-		<LI>
-			libraries:
-			<UL>
-				<LI>libFLAC: PPC+Altivec optimizations of some decoder routines.</LI>
-				<LI>libFLAC: Make stream encoder encode the blocksize and sample rate in the frame header if at all possible (not in STREAMINFO), even if subset encoding was not requested.</LI>
-				<LI>libFLAC: Bug fix: fixed seek routine where infinite loop could happen when seeking past end of stream.</LI>
-				<LI>libFLAC, libFLAC++: added methods to skip single frames, useful for quickly finding frame boundaries (see interface changes below).</LI>
-				<LI>libOggFLAC, libOggFLAC++: New seekable-stream and file encoder and decoder APIs to match native FLAC APIs (see interface changes below).</LI>
-			</UL>
-		</LI>
-		<LI>
-			Interface changes:
-			<UL>
-				<LI>
-					libFLAC:
-					<UL>
-						<LI><B>Added</B> FLAC__metadata_get_tags()</LI>
-						<LI><B>Added</B> callback-based versions of metadata editing functions:
-							<UL>
-								<LI>FLAC__metadata_chain_read_with_callbacks()</LI>
-								<LI>FLAC__metadata_chain_write_with_callbacks()</LI>
-								<LI>FLAC__metadata_chain_write_with_callbacks_and_tempfile()</LI>
-								<LI>FLAC__metadata_chain_check_if_tempfile_needed()</LI>
-							</UL>
-						</LI>
-						<LI><B>Added</B> decoder functions for skipping single frames, also useful for quickly finding frame boundaries:
-							<UL>
-								<LI>FLAC__stream_decoder_skip_single_frame()</LI>
-								<LI>FLAC__seekable_stream_decoder_skip_single_frame()</LI>
-								<LI>FLAC__file_decoder_skip_single_frame()</LI>
-							</UL>
-						</LI>
-						<LI><B>Added</B> new required tell callback on seekable stream encoder:
-							<UL>
-								<LI>FLAC__SeekableStreamEncoderTellStatus and FLAC__SeekableStreamEncoderTellStatusString[]</LI>
-								<LI>FLAC__SeekableStreamEncoderTellCallback</LI>
-								<LI>FLAC__seekable_stream_encoder_set_tell_callback()</LI>
-							</UL>
-						</LI>
-						<LI><B>Changed</B> FLAC__SeekableStreamEncoderState by adding FLAC__SEEKABLE_STREAM_ENCODER_TELL_ERROR</LI>
-						<LI><B>Changed</B> Tell callback is now required to initialize seekable stream encoder</LI>
-						<LI><B>Deleted</B> erroneous and unimplemented FLAC__file_decoder_process_remaining_frames()</LI>
-					</UL>
-				</LI>
-				<LI>
-					libFLAC++:
-					<UL>
-						<LI><B>Added</B> FLAC::Metadata::get_tags()</LI>
-						<LI><B>Added</B> decoder functions for skipping single frames, also useful for quickly finding frame boundaries:
-							<UL>
-								<LI>FLAC::Decoder::Stream::skip_single_frame()</LI>
-								<LI>FLAC::Decoder::SeekableStream::skip_single_frame()</LI>
-								<LI>FLAC::Decoder::File::skip_single_frame()</LI>
-							</UL>
-						</LI>
-						<LI><B>Added</B> encoder functions for setting metadata:
-							<UL>
-								<LI>FLAC::Encoder::Stream::set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks)</LI>
-								<LI>FLAC::Encoder::SeekableStream::set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks)</LI>
-								<LI>FLAC::Encoder::File::set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks)</LI>
-							</UL>
-						</LI>
-						<LI><B>Added</B> new required tell callback on seekable stream encoder:
-							<UL>
-								<LI>pure virtual FLAC::Encoder::SeekableStream::tell_callback()</LI>
-							</UL>
-						</LI>
-						<LI><B>Changed</B> Tell callback is now required to initialize seekable stream encoder</LI>
-						<LI><B>Deleted</B> the following methods:
-							<UL>
-								<LI>FLAC::Decoder::Stream::State::resolved_as_cstring()</LI>
-								<LI>FLAC::Encoder::Stream::State::resolved_as_cstring()</LI>
-							</UL>
-						</LI>
-					</UL>
-				</LI>
-				<LI>
-					libOggFLAC:
-					<UL>
-						<LI><B>Added</B> OggFLAC__SeekableStreamDecoder interface</LI>
-						<LI><B>Added</B> OggFLAC__FileDecoder interface</LI>
-						<LI><B>Added</B> OggFLAC__SeekableStreamEncoder interface</LI>
-						<LI><B>Added</B> OggFLAC__FileEncoder interface</LI>
-						<LI><B>Added</B> OggFLAC__stream_decoder_get_resolved_state_string()</LI>
-						<LI><B>Added</B> OggFLAC__stream_encoder_get_resolved_state_string()</LI>
-						<LI><B>Added</B> OggFLAC__stream_encoder_set_metadata_callback()</LI>
-						<LI><B>Changed</B> OggFLAC__StreamDecoderState by adding OggFLAC__STREAM_DECODER_END_OF_STREAM</LI>
-					</UL>
-				</LI>
-				<LI>
-					libOggFLAC++:
-					<UL>
-						<LI><B>Added</B> OggFLAC::Decoder::SeekableStream interface</LI>
-						<LI><B>Added</B> OggFLAC::Decoder::File interface</LI>
-						<LI><B>Added</B> OggFLAC::Encoder::SeekableStream interface</LI>
-						<LI><B>Added</B> OggFLAC::Encoder::File interface</LI>
-						<LI><B>Added</B> OggFLAC::Decoder::Stream::get_resolved_state_string()</LI>
-						<LI><B>Added</B> OggFLAC::Encoder::Stream::get_resolved_state_string()</LI>
-						<LI><B>Added</B> pure virtual OggFLAC::Encoder::Stream::metadata_callback()</LI>
-					</UL>
-				</LI>
-			</UL>
-		</LI>
-	</UL>
-	</P>
+		<a name="flac_1_1_2"><b>FLAC 1.1.2</b></a>
 
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+		<br />
 
+		<ul>
+			<li>
+				General:
+				<ul>
+					<li>Sped up decoding by a few percent overall.</li>
+					<li>Sped up encoding when not using LPC (i.e. when using <span class="commandname">flac</span> options <span class="argument">-0</span>, <span class="argument">-1</span>, <span class="argument">-2</span>, or <span class="argument">-l 0</span>).</li>
+					<li>Fixed a decoding bug that could cause sync errors with some ID3v1-tagged FLAC files.</li>
+					<li>Added <a href="documentation.html#metaflac">HTML documentation for metaflac</a>.</li>
+				</ul>
+			</li>
+			<li>
+				FLAC format:
+				<ul>
+					<li>(none)</li>
+				</ul>
+			</li>
+			<li>
+				Ogg FLAC format:
+				<ul>
+					<li>(none)</li>
+				</ul>
+			</li>
+			<li>
+				flac:
+				<ul>
+					<li>New option <a href="documentation.html#flac_options_input_size"><span class="argument">--input-size</span></a> to manually specify the input size when encoding raw samples from stdin.</li>
+				</ul>
+			</li>
+			<li>
+				metaflac:
+				<ul>
+					<li>(none)</li>
+				</ul>
+			</li>
+			<li>
+				plugins:
+				<ul>
+					<li>Added support for HTTP streaming in XMMS plugin.  <b>NOTE</b>: there is a <a href="http://bugs.xmms.org/show_bug.cgi?id=2038">bug</a> in the XMMS mpg123 plugin that hijacks FLAC streams; to fix it you will need to add the '.flac' extension to the list of exceptions in <span class="code">Input/mpg123/mpg123.c:is_our_file()</span> in the XMMS sources and recompile.</li>
+				</ul>
+			</li>
+			<li>
+				build system:
+				<ul>
+					<li>(none)</li>
+				</ul>
+			</li>
+			<li>
+				libraries:
+				<ul>
+					<li>libFLAC: Sped up Rice block decoding in the bitbuffer, resulting in decoding speed gains of a few percent.</li>
+					<li>libFLAC: Sped up encoding when not using LPC (i.e. <span class="code">max_lpc_order == 0</span>).</li>
+					<li>libFLAC: Trailing NUL characters maintained on Vorbis comment entries so they can be treated like C strings.</li>
+					<li>libFLAC: More FLAC tag (i.e. Vorbis comment) validation.</li>
+					<li>libFLAC: Fixed a bug in the logic that determines the frame or sample number in a frame header; the bug could cause sync errors with some ID3v1-tagged FLAC files.</li>
+					<li>libFLAC, libOggFLAC: Can now be compiled to use only integer instructions, including encoding.  The decoder is almost completely integer anyway but there were a couple places that needed a fixed-point replacement.  There is no fixed-point version of LPC analysis yet, so if libFLAC is compiled integer-only, the encoder will behave as if the max LPC order is 0 (i.e. used fixed predictors only).  LPC decoding is supported in all cases as it always was integer-only.</li>
+				</ul>
+			</li>
+			<li>
+				Interface changes:
+				<ul>
+					<li>
+						libFLAC:
+						<ul>
+							<li><b>Changed:</b> Metadata object interface now maintains a trailing NUL on Vorbis comment entries for convenience.</li>
+							<li><b>Changed:</b> Metadata object interface now validates all Vorbis comment entries on input and returns false if an entry does not conform to the Vorbis comment spec.</li>
+							<li><b>Added</b> FLAC__format_vorbiscomment_entry_name_is_legal()</li>
+							<li><b>Added</b> FLAC__format_vorbiscomment_entry_value_is_legal()</li>
+							<li><b>Added</b> FLAC__format_vorbiscomment_entry_is_legal()</li>
+							<li><b>Added</b> FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair()</li>
+							<li><b>Added</b> FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair()</li>
+							<li><b>Changed</b> the signature of FLAC__metadata_object_vorbiscomment_entry_matches(): the first argument is now <span class="code">FLAC__StreamMetadata_VorbisComment_Entry entry</span> (was <span class="code">const FLAC__StreamMetadata_VorbisComment_Entry *entry</span>), i.e. <span class="code">entry</span> is now pass-by-value.</li>
+						</ul>
+					</li>
+					<li>
+						libFLAC++:
+						<ul>
+							<li><b>Changed:</b> Metadata object interface now maintains a trailing NUL on Vorbis comment values for convenience.</li>
+							<li><b>Changed:</b> Metadata object interface now validates all Vorbis comment entries on input and returns false if an entry does not conform to the Vorbis comment spec.</li>
+							<li><b>Changed:</b> All Metadata objects' operator=() methods now return a reference to themselves.</li>
+							<li><b>Added</b> methods to FLAC::Metadata::VorbisComment::Entry for setting comment values from null-terminated strings:
+								<ul>
+									<li>Entry(const char *field)</li>
+									<li>Entry(const char *field_name, const char *field_value)</li>
+									<li>bool set_field(const char *field)</li>
+									<li>bool set_field_value(const char *field_value)</li>
+								</ul>
+							</li>
+							<li><b>Changed</b> the signature of FLAC::Metadata::VorbisComment::get_vendor_string() and FLAC::Metadata::VorbisComment::set_vendor_string() to use a UTF-8, NUL-terminated string <span class="code">const FLAC__byte *</span> for the vendor string instead of <span class="code">FLAC::Metadata::VorbisComment::Entry</span>.</li>
+							<li><b>Added</b> FLAC::Metadata::*::assign() to all Metadata objects.</li>
+							<li><b>Added</b> bool FLAC::Metadata::get_tags(const char *filename, VorbisComment &amp;tags)</li>
+						</ul>
+					</li>
+					<li>
+						libOggFLAC:
+						<ul>
+							<li>(none)</li>
+						</ul>
+					</li>
+					<li>
+						libOggFLAC++:
+						<ul>
+							<li>(none)</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+		</ul>
 
-</CENTER>
+		<br />
 
-<P>&nbsp;Copyright (c) 2004,2005  Josh Coalson</P>
+		<a name="flac_1_1_1"><b>FLAC 1.1.1</b></a>
 
-</BODY>
-</HTML>
+		<br />
+
+		<ul>
+			<li>
+				General:
+				<ul>
+					<li>Ogg FLAC seeking now works</li>
+					<li>New optimizations almost double the decoding speed on PowerPC (e.g. Mac G4/G5)</li>
+					<li>A native OS X release thanks to updated Project Builder and autotools files</li>
+				</ul>
+			</li>
+			<li>
+				FLAC format:
+				<ul>
+					<li>Made invalid the metadata block type 127 so that audio frames can always be distinguished from metadata by seeing 0xff as the first byte.  (This was also required for the Ogg FLAC mapping.)</li>
+				</ul>
+			</li>
+			<li>
+				Ogg FLAC format:
+				<ul>
+					<li>First official FLAC-&gt;Ogg bitstream mapping standardized (see new <a href="ogg_mapping.html">FLAC-to-Ogg mapping specification</a>).  See the documentation for the <a href="documentation.html#flac_options_ogg"><span class="argument">--ogg</span></a> switch about having to re-encode older Ogg FLAC files.</li>
+				</ul>
+			</li>
+			<li>
+				flac:
+				<ul>
+					<li>Print an error when output file already exists instead of automatically overwriting.</li>
+					<li>New option <a href="documentation.html#flac_options_force"><span class="argument">-f</span> (<span class="argument">--force</span>)</a> to force overwriting if the output file already exists.</li>
+					<li>New option <a href="documentation.html#flac_options_cue"><span class="argument">--cue</span></a> to select a specific section to decode using cuesheet track/index points.</li>
+					<li>New option <a href="documentation.html#flac_options_totally_silent"><span class="argument">--totally-silent</span></a> to suppress all output.</li>
+					<li>New (but undocumented) option <span class="argument">--apply-replaygain-which-is-not-lossless</span> which applies ReplayGain to the decoded output.  See <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=17293&amp;st=11">this thread</a> for usage and caveats.</li>
+					<li>When encoding to Ogg FLAC, use a random serial number (instead of 0 as was done before) when a serial number is not specified.</li>
+					<li>When encoding multiple Ogg FLAC streams, <span class="argument">--serial-number</span> or random serial number sets the first number, which is then incremented for subsequent streams (before, the same serial number was used for all streams).</li>
+					<li>Decoder no longer exits with an error when writing to stdout and the pipe is broken.</li>
+					<li>Better explanation of common error messages.</li>
+					<li>Default extension when writing AIFF files is .aif (before, it was .aiff).</li>
+					<li>Write more common representation of SANE numbers in AIFF files.</li>
+					<li>Bug fix: calculating ReplayGain on 48kHz streams.</li>
+					<li>Bug fix: check for supported block alignments in WAVE files.</li>
+					<li>Bug fix: "offset" field in AIFF SSND chunk properly handled.</li>
+					<li>Bug fix: <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=679166&amp;group_id=13478&amp;atid=113478">#679166</a>: flac doesn't respect RIFF subchunk padding byte.</li>
+					<li>Bug fix: <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=828391&amp;group_id=13478&amp;atid=113478">#828391</a>: --add-replay-gain segfaults.</li>
+					<li>Bug fix: <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=851155&amp;group_id=13478&amp;atid=113478">#851155</a>: Can't seek to position in flac file.</li>
+					<li>Bug fix: <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=851756&amp;group_id=13478&amp;atid=113478">#851756</a>: flac --skip --until reads entire file.</li>
+					<li>Bug fix: <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=877122&amp;group_id=13478&amp;atid=113478">#877122</a>: problem parsing cuesheet with CATALOG entry.</li>
+					<li>Bug fix: <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=896057&amp;group_id=13478&amp;atid=113478">#896057</a>: parsing ISRC number from cuesheet.</li>
+				</ul>
+			</li>
+			<li>
+				metaflac:
+				<ul>
+					<li>Renamed the tag editing options as follows (the <span class="argument">...-vc-...</span> options still work but are deprecated):
+						<ul>
+							<li><span class="argument">--show-vc-vendor</span> becomes <span class="argument">--show-vendor-tag</span></li>
+							<li><span class="argument">--show-vc-field</span> becomes <span class="argument">--show-tag</span></li>
+							<li><span class="argument">--remove-vc-all</span> becomes <span class="argument">--remove-all-tags</span></li>
+							<li><span class="argument">--remove-vc-field</span> becomes <span class="argument">--remove-tag</span></li>
+							<li><span class="argument">--remove-vc-firstfield</span> becomes <span class="argument">--remove-first-tag</span></li>
+							<li><span class="argument">--set-vc-field</span> becomes <span class="argument">--set-tag</span></li>
+							<li><span class="argument">--import-vc-from</span> becomes <span class="argument">--import-tags-from</span></li>
+							<li><span class="argument">--export-vc-to</span> becomes <span class="argument">--export-tags-to</span></li>
+						</ul>
+					</li>
+					<li>Better explanation of common error messages.</li>
+					<li>Bug fix: calculating ReplayGain on 48kHz streams.</li>
+					<li>Bug fix: incorrect numbers when printing seek points.</li>
+				</ul>
+			</li>
+			<li>
+				plugins:
+				<ul>
+					<li>Speed optimization in ReplayGain synthesis.</li>
+					<li>Speed optimization in XMMS playback.</li>
+					<li>Support for big-endian architectures in XMMS plugin.</li>
+					<li>Removed support for ID3 tags.</li>
+					<li>Bug fix: make hard limiter default to off in XMMS plugin.</li>
+					<li>Bug fix: stream length calculation bug in XMMS plugin, debian bug #200435; <a href="http://sourceforge.net/mailarchive/forum.php?thread_id=2733072&amp;forum_id=6312">see also</a>.</li>
+					<li>Bug fix: small memory leak in XMMS plugin.</li>
+				</ul>
+			</li>
+			<li>
+				build system:
+				<ul>
+					<li><span class="code">ordinals.h</span> is now static, not a build-generated file anymore.</li>
+				</ul>
+			</li>
+			<li>
+				libraries:
+				<ul>
+					<li>libFLAC: PPC+Altivec optimizations of some decoder routines.</li>
+					<li>libFLAC: Make stream encoder encode the blocksize and sample rate in the frame header if at all possible (not in STREAMINFO), even if subset encoding was not requested.</li>
+					<li>libFLAC: Bug fix: fixed seek routine where infinite loop could happen when seeking past end of stream.</li>
+					<li>libFLAC, libFLAC++: added methods to skip single frames, useful for quickly finding frame boundaries (see interface changes below).</li>
+					<li>libOggFLAC, libOggFLAC++: New seekable-stream and file encoder and decoder APIs to match native FLAC APIs (see interface changes below).</li>
+				</ul>
+			</li>
+			<li>
+				Interface changes:
+				<ul>
+					<li>
+						libFLAC:
+						<ul>
+							<li><b>Added</b> FLAC__metadata_get_tags()</li>
+							<li><b>Added</b> callback-based versions of metadata editing functions:
+								<ul>
+									<li>FLAC__metadata_chain_read_with_callbacks()</li>
+									<li>FLAC__metadata_chain_write_with_callbacks()</li>
+									<li>FLAC__metadata_chain_write_with_callbacks_and_tempfile()</li>
+									<li>FLAC__metadata_chain_check_if_tempfile_needed()</li>
+								</ul>
+							</li>
+							<li><b>Added</b> decoder functions for skipping single frames, also useful for quickly finding frame boundaries:
+								<ul>
+									<li>FLAC__stream_decoder_skip_single_frame()</li>
+									<li>FLAC__seekable_stream_decoder_skip_single_frame()</li>
+									<li>FLAC__file_decoder_skip_single_frame()</li>
+								</ul>
+							</li>
+							<li><b>Added</b> new required tell callback on seekable stream encoder:
+								<ul>
+									<li>FLAC__SeekableStreamEncoderTellStatus and FLAC__SeekableStreamEncoderTellStatusString[]</li>
+									<li>FLAC__SeekableStreamEncoderTellCallback</li>
+									<li>FLAC__seekable_stream_encoder_set_tell_callback()</li>
+								</ul>
+							</li>
+							<li><b>Changed</b> FLAC__SeekableStreamEncoderState by adding FLAC__SEEKABLE_STREAM_ENCODER_TELL_ERROR</li>
+							<li><b>Changed</b> Tell callback is now required to initialize seekable stream encoder</li>
+							<li><b>Deleted</b> erroneous and unimplemented FLAC__file_decoder_process_remaining_frames()</li>
+						</ul>
+					</li>
+					<li>
+						libFLAC++:
+						<ul>
+							<li><b>Added</b> FLAC::Metadata::get_tags()</li>
+							<li><b>Added</b> decoder functions for skipping single frames, also useful for quickly finding frame boundaries:
+								<ul>
+									<li>FLAC::Decoder::Stream::skip_single_frame()</li>
+									<li>FLAC::Decoder::SeekableStream::skip_single_frame()</li>
+									<li>FLAC::Decoder::File::skip_single_frame()</li>
+								</ul>
+							</li>
+							<li><b>Added</b> encoder functions for setting metadata:
+								<ul>
+									<li>FLAC::Encoder::Stream::set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks)</li>
+									<li>FLAC::Encoder::SeekableStream::set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks)</li>
+									<li>FLAC::Encoder::File::set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks)</li>
+								</ul>
+							</li>
+							<li><b>Added</b> new required tell callback on seekable stream encoder:
+								<ul>
+									<li>pure virtual FLAC::Encoder::SeekableStream::tell_callback()</li>
+								</ul>
+							</li>
+							<li><b>Changed</b> Tell callback is now required to initialize seekable stream encoder</li>
+							<li><b>Deleted</b> the following methods:
+								<ul>
+									<li>FLAC::Decoder::Stream::State::resolved_as_cstring()</li>
+									<li>FLAC::Encoder::Stream::State::resolved_as_cstring()</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+					<li>
+						libOggFLAC:
+						<ul>
+							<li><b>Added</b> OggFLAC__SeekableStreamDecoder interface</li>
+							<li><b>Added</b> OggFLAC__FileDecoder interface</li>
+							<li><b>Added</b> OggFLAC__SeekableStreamEncoder interface</li>
+							<li><b>Added</b> OggFLAC__FileEncoder interface</li>
+							<li><b>Added</b> OggFLAC__stream_decoder_get_resolved_state_string()</li>
+							<li><b>Added</b> OggFLAC__stream_encoder_get_resolved_state_string()</li>
+							<li><b>Added</b> OggFLAC__stream_encoder_set_metadata_callback()</li>
+							<li><b>Changed</b> OggFLAC__StreamDecoderState by adding OggFLAC__STREAM_DECODER_END_OF_STREAM</li>
+						</ul>
+					</li>
+					<li>
+						libOggFLAC++:
+						<ul>
+							<li><b>Added</b> OggFLAC::Decoder::SeekableStream interface</li>
+							<li><b>Added</b> OggFLAC::Decoder::File interface</li>
+							<li><b>Added</b> OggFLAC::Encoder::SeekableStream interface</li>
+							<li><b>Added</b> OggFLAC::Encoder::File interface</li>
+							<li><b>Added</b> OggFLAC::Decoder::Stream::get_resolved_state_string()</li>
+							<li><b>Added</b> OggFLAC::Encoder::Stream::get_resolved_state_string()</li>
+							<li><b>Added</b> pure virtual OggFLAC::Encoder::Stream::metadata_callback()</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</div>
+	<div class="box_footer"></div>
+</div>
+
+<div class="copyright">
+	Copyright (c) 2004,2005  Josh Coalson
+</div>
+
+</body>
+</html>

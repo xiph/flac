@@ -1,159 +1,114 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!-- Copyright (c)  2000,2001,2002,2003,2004,2005  Josh Coalson -->
 <!-- Permission is granted to copy, distribute and/or modify this document -->
 <!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
 <!-- or any later version published by the Free Software Foundation; -->
 <!-- with no invariant sections. -->
 <!-- A copy of the license can be found at http://www.gnu.org/copyleft/fdl.html -->
-<HTML>
-<HEAD>
-	<TITLE>FLAC - developers</TITLE>
-</HEAD>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<meta name="author" content="Josh Coalson" />
+	<meta name="description" content="A free, open source codec for lossless audio compression and decompression" />
+	<meta name="keywords" content="free,lossless,audio,codec,encoder,decoder,compression,compressor,archival,archive,archiving,backup,music" />
+	<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
+	<link rel="stylesheet" type="text/css" href="flac.css" />
+	<title>FLAC - developers</title>
+</head>
 
-<BODY MARGINWIDTH="0" MARGINHEIGHT="0" LEFTMARGIN="0" RIGHTMARGIN="0" TOPMARGIN="0" BGCOLOR="#99CC99" TEXT="#000000" LINK="#336699" VLINK="#336699" ALINK="#336699">
+<body>
 
-<TABLE BORDER=0 WIDTH="100%" CELLPADDING=1 CELLSPACING=0>
-	<TR>
-		<TD ALIGN="CENTER" BGCOLOR="#000000"><A HREF="http://flac.sourceforge.net/"><IMG SRC="images/logo130.gif" ALIGN=CENTER ALT="FLAC Logo" BORDER=0 HSPACE=0></a></TD>
-	</TR>
-</TABLE>
+<div class="logo">
+	<a href="http://flac.sourceforge.net/"><img src="images/logo130.gif" alt="FLAC Logo" align="middle" border="0" hspace="0" /></a>
+</div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="25" ALT=""></TD></TR></TABLE>
+<div class="above_nav"></div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+<div class="separator2"></div>
 
-<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
-	<TR>
-		<TD ALIGN="CENTER" BGCOLOR="#D3D4C5">
-			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
-				<TR>
-					<TD HEIGHT=22 BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="index.html">home</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="faq.html">faq</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="news.html">news</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="download.html">download</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="features.html">features</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="goals.html">goals</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="format.html">format</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="id.html">id</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="comparison.html">comparison</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="documentation.html">documentation</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="changelog.html">changelog</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="links.html">links</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;developers&nbsp;&nbsp;</TD>
-				</TR>
-			</TABLE>
-		</TD>
-	</TR>
-</TABLE>
+<div class="navbar">
+	&nbsp;<a href="index.html">home</a>&nbsp;&nbsp;|
+	&nbsp;<a href="faq.html">faq</a>&nbsp;&nbsp;|
+	&nbsp;<a href="news.html">news</a>&nbsp;&nbsp;|
+	&nbsp;<a href="download.html">download</a>&nbsp;&nbsp;|
+	&nbsp;<a href="features.html">features</a>&nbsp;&nbsp;|
+	&nbsp;<a href="goals.html">goals</a>&nbsp;&nbsp;|
+	&nbsp;<a href="format.html">format</a>&nbsp;&nbsp;|
+	&nbsp;<a href="id.html">id</a>&nbsp;&nbsp;|
+	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
+	&nbsp;<a href="documentation.html">documentation</a>&nbsp;&nbsp;|
+	&nbsp;<a href="changelog.html">changelog</a>&nbsp;&nbsp;|
+	&nbsp;<a href="links.html">links</a>&nbsp;&nbsp;|
+	&nbsp;developers&nbsp;
+</div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+<div class="separator2"></div>
 
-<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
-	<TR>
-		<TD ALIGN="CENTER" BGCOLOR="#EEEED4">
-			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
-				<TR>
-					<TD HEIGHT=22 BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;english&nbsp;&nbsp;</TD><TD BGCOLOR="#EEEED4" ALIGN=CENTER>|</TD>
-					<TD           BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="ru/developers.html">russian</A>&nbsp;&nbsp;</TD>
-				</TR>
-			</TABLE>
-		</TD>
-	</TR>
-</TABLE>
+<div class="langbar">
+	&nbsp;english&nbsp;&nbsp;|
+	&nbsp;<a href="ru/developers.html">russian</a>&nbsp;
+</div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+<div class="separator2"></div>
 
-<CENTER>
+<div class="below_nav"></div>
 
-<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="15" ALT=""></TD></TR></TABLE>
-
-
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<B><FONT SIZE="+2">FLAC developers</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
-		FLAC is an open source project and we are happy to enlist the help of anyone who wants to contribute.  The preferred method for transmitting improvements is patch files (in "diff -c" format) sent to the <A HREF="http://sourceforge.net/mail/?group_id=13478">developer mailing list</A>, but zipped up sources are OK.  Make sure to read the <A HREF="goals.html">FLAC goals</A> first; there are some thing the we <B>don't</B> want added to FLAC, like copy protection and lossy compression.
-	</P>
-	<P>
+<div class="box">
+	<div class="box_title">
+		FLAC developers
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
+		FLAC is an open source project and we are happy to enlist the help of anyone who wants to contribute.  The preferred method for transmitting improvements is patch files (in "diff -c" format) sent to the <a href="http://sourceforge.net/mail/?group_id=13478">developer mailing list</a>, but zipped up sources are OK.  Make sure to read the <a href="goals.html">FLAC goals</a> first; there are some thing the we <b>don't</b> want added to FLAC, like copy protection and lossy compression.
+		<br /><br />
 		High priority items are:
-	</P>
-	<P>
-	<UL>
-		<LI>
-			Support in the plugins for using the CUESHEET metadata block.  The plugin should be able to see a CUESHEET in a FLAC file and present the individual tracks in the player, and fetch metadata from CDDB or CDindex by computing the hash from the CUESHEET and looking up either in a local database or over the net.
-		</LI>
-	</UL>
-	</P>
-	<P>
+		<ul>
+			<li>
+				Support in the plugins for using the CUESHEET metadata block.  The plugin should be able to see a CUESHEET in a FLAC file and present the individual tracks in the player, and fetch metadata from CDDB or CDindex by computing the hash from the CUESHEET and looking up either in a local database or over the net.
+			</li>
+		</ul>
 		Some other "nice-to-haves":
-	</P>
-	<P>
-	<UL>
-		<LI>
-			FLAC module for <A HREF="http://www.68k.org/~michael/audiofile/">Audiofile</A>.
-		</LI>
-		<LI>
-			<A HREF="http://java.sun.com/products/java-media/jmf/">JMF</A> plugin.
-		</LI>
-		<LI>
-			Streaming support in the Winamp plugin.
-		</LI>
-	</UL>
-	</P>
-	<P>
-		See also the <A HREF="http://sourceforge.net/projects/flac">FLAC project page</A> on Sourceforge.net.
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+		<ul>
+			<li>
+				FLAC module for <a href="http://www.68k.org/~michael/audiofile/">Audiofile</a>.
+			</li>
+			<li>
+				<a href="http://java.sun.com/products/java-media/jmf/">JMF</a> plugin.
+			</li>
+			<li>
+				Streaming support in the Winamp plugin.
+			</li>
+		</ul>
+		See also the <a href="http://sourceforge.net/projects/flac">FLAC project page</a> on Sourceforge.net.
+	</div>
+	<div class="box_footer"></div>
+</div>
 
+<br />
 
-<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
-<TR><TD>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
-		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<B><FONT SIZE="+2">third-party developers</FONT></B>
-		</FONT></TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
-	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-	<P>
+<div class="box">
+	<div class="box_title">
+		third-party developers
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
 		FLAC is open to third-party developers who want to add support for FLAC into their programs.  All the necessary functionality is contained the lib*FLAC libraries which are licensed under Xiph.org's BSD license.  The relevant documentation here is:
-		<UL>
-			<LI>The <A HREF="license.html">license page</A>.</LI>
-			<LI>The <A HREF="api/index.html">API documentation</A>.</LI>
-			<LI>The <A HREF="format.html">formal description</A> of the FLAC format.</LI>
-			<LI>The <A HREF="ogg_mapping.html">Ogg FLAC mapping</A> document.</LI>
-			<LI>The <A HREF="id.html">ID registration page</A> for registering an ID if you need to write custom metadata.</LI>
-		</UL>
-	</P>
-	<P>
-		There also are several examples in the FLAC code base of API usage that may also be helpful.  Visit the <A HREF="download.html">download page</A> for instructions on how to get the source.
-	</P>
-	</FONT>
-	</TD></TR>
-	</TABLE>
-	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
-</TD></TR>
-</TABLE>
+		<ul>
+			<li>The <a href="license.html">license page</a>.</li>
+			<li>The <a href="api/index.html">API documentation</a>.</li>
+			<li>The <a href="format.html">formal description</a> of the FLAC format.</li>
+			<li>The <a href="ogg_mapping.html">Ogg FLAC mapping</a> document.</li>
+			<li>The <a href="id.html">ID registration page</a> for registering an ID if you need to write custom metadata.</li>
+		</ul>
+		There also are several examples in the FLAC code base of API usage that may also be helpful.  Visit the <a href="download.html">download page</a> for instructions on how to get the source.
+	</div>
+	<div class="box_footer"></div>
+</div>
 
 
-</CENTER>
+<div class="copyright">
+	Copyright (c) 2000,2001,2002,2003,2004,2005  Josh Coalson
+</div>
 
-<P>&nbsp;Copyright (c) 2000,2001,2002,2003,2004,2005  Josh Coalson</P>
-
-</BODY>
-</HTML>
+</body>
+</html>
