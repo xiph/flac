@@ -1605,7 +1605,7 @@ FLAC__bool set_vc_field(FLAC__StreamMetaData *block, const Argument_VcField *fie
 	entry.length = strlen(field->field);
 	entry.entry = field->field;
 
-	if(!FLAC__metadata_object_vorbiscomment_set_comment(block, block->data.vorbis_comment.num_comments, &entry, /*copy=*/true)) {
+	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, block->data.vorbis_comment.num_comments, entry, /*copy=*/true)) {
 		return false;
 	}
 	else {
