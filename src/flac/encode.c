@@ -1866,7 +1866,7 @@ void print_stats(const EncoderSession *encoder_session)
 {
 	const FLAC__uint64 samples_written = min(encoder_session->total_samples_to_encode, encoder_session->samples_written);
 #if defined _MSC_VER || defined __MINGW32__
-	/* with VC++ you have to spoon feed it the casting */
+	/* with MSVC you have to spoon feed it the casting */
 	const double progress = (double)(FLAC__int64)samples_written / (double)(FLAC__int64)encoder_session->total_samples_to_encode;
 	const double ratio = (double)(FLAC__int64)encoder_session->bytes_written / ((double)(FLAC__int64)encoder_session->unencoded_size * min(1.0, progress));
 #else
