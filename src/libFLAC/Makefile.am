@@ -39,7 +39,9 @@ else
 if FLaC__CPU_IA32
 if FLaC__HAS_NASM
 ARCH_SUBDIRS = ia32
-libFLAC_la_LIBADD = ia32/libFLAC-asm.la
+libFLAC_la_LIBADD = -lm ia32/libFLAC-asm.la
+else
+libFLAC_la_LIBADD = -lm
 endif
 endif
 endif
@@ -57,7 +59,6 @@ EXTRA_DIST = \
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
 libFLAC_la_LDFLAGS = -version-info 5:2:1
-
 libFLAC_la_SOURCES = \
 	bitbuffer.c \
 	bitmath.c \
