@@ -33,6 +33,7 @@ doc_DATA =  \
 	goals.html \
 	id.html \
 	index.html \
+	license.html \
 	links.html \
 	news.html
 
