@@ -426,11 +426,11 @@ unsigned FLAC__bitbuffer_rice_bits(int val, unsigned parameter)
 {
 	unsigned msbs, uval;
 
-	/* convert signed to unsigned */
+	/* fold signed to unsigned */
 	if(val < 0)
 		/* equivalent to
 		 *     (unsigned)(((--val) << 1) - 1);
-		 * but without the overflow problem at -MAXINT
+		 * but without the overflow problem at MININT
 		 */
 		uval = (unsigned)(((-(++val)) << 1) + 1);
 	else
@@ -448,11 +448,11 @@ unsigned FLAC__bitbuffer_golomb_bits_signed(int val, unsigned parameter)
 
 	FLAC__ASSERT(parameter > 0);
 
-	/* convert signed to unsigned */
+	/* fold signed to unsigned */
 	if(val < 0)
 		/* equivalent to
 		 *     (unsigned)(((--val) << 1) - 1);
-		 * but without the overflow problem at -MAXINT
+		 * but without the overflow problem at MININT
 		 */
 		uval = (unsigned)(((-(++val)) << 1) + 1);
 	else
@@ -633,11 +633,11 @@ bool FLAC__bitbuffer_write_rice_signed(FLAC__BitBuffer *bb, int val, unsigned pa
 	FLAC__ASSERT(bb->buffer != 0);
 	FLAC__ASSERT(parameter <= 30);
 
-	/* convert signed to unsigned */
+	/* fold signed to unsigned */
 	if(val < 0)
 		/* equivalent to
 		 *     (unsigned)(((--val) << 1) - 1);
-		 * but without the overflow problem at -MAXINT
+		 * but without the overflow problem at MININT
 		 */
 		uval = (unsigned)(((-(++val)) << 1) + 1);
 	else
@@ -675,11 +675,11 @@ bool FLAC__bitbuffer_write_rice_signed_guarded(FLAC__BitBuffer *bb, int val, uns
 
 	*overflow = false;
 
-	/* convert signed to unsigned */
+	/* fold signed to unsigned */
 	if(val < 0)
 		/* equivalent to
 		 *     (unsigned)(((--val) << 1) - 1);
-		 * but without the overflow problem at -MAXINT
+		 * but without the overflow problem at MININT
 		 */
 		uval = (unsigned)(((-(++val)) << 1) + 1);
 	else
@@ -719,11 +719,11 @@ bool FLAC__bitbuffer_write_golomb_signed(FLAC__BitBuffer *bb, int val, unsigned 
 	FLAC__ASSERT(bb->buffer != 0);
 	FLAC__ASSERT(parameter > 0);
 
-	/* convert signed to unsigned */
+	/* fold signed to unsigned */
 	if(val < 0)
 		/* equivalent to
 		 *     (unsigned)(((--val) << 1) - 1);
-		 * but without the overflow problem at -MAXINT
+		 * but without the overflow problem at MININT
 		 */
 		uval = (unsigned)(((-(++val)) << 1) + 1);
 	else
