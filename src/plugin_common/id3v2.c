@@ -368,6 +368,7 @@ FLAC__bool FLAC_plugin__id3v2_tag_get(const char *filename, FLAC_Plugin__Canonic
 #ifdef FLAC__HAS_ID3LIB
 	return local__get_tag(filename, tag);
 #else
+	(void)filename, (void)tag;
 	return false;
 #endif
 }

@@ -659,6 +659,8 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *unused
 	OggFLAC__StreamEncoder *encoder = (OggFLAC__StreamEncoder*)client_data;
 	ogg_packet packet;
 	const FLAC__uint64 total_samples_estimate = FLAC__stream_encoder_get_total_samples_estimate(encoder->private_->FLAC_stream_encoder);
+
+	(void)unused;
 	FLAC__ASSERT(encoder->private_->FLAC_stream_encoder == unused);
 
 	encoder->private_->samples_written += samples;
