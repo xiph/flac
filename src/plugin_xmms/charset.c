@@ -155,6 +155,14 @@ GList *Charset_Create_List (void)
 	return list;
 }
 
+GList *Charset_Create_List_UTF8_Only (void)
+{
+	GList *list = NULL;
+
+	list = g_list_append(list,_(Charset_Get_Title_From_Name("UTF-8")));
+	return list;
+}
+
 
 /*
  * Return charset_name from charset_title

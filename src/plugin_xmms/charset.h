@@ -48,6 +48,7 @@ char *convert_from_utf8_to_user(const char *string);
 char *convert_from_user_to_utf8(const char *string);
 
 GList *Charset_Create_List (void);
+GList *Charset_Create_List_UTF8_Only (void);
 gchar *Charset_Get_Name_From_Title (gchar *charset_title);
 gchar *Charset_Get_Title_From_Name (gchar *charset_name);
 
