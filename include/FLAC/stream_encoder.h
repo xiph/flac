@@ -337,7 +337,7 @@ typedef struct {
  * \param  current_frame  The number of the current frame being encoded.
  * \param  client_data  The callee's client data set through
  *                      FLAC__stream_encoder_set_client_data().
- * \retval FLAC__StreamDecoderWriteStatus
+ * \retval FLAC__StreamEncoderWriteStatus
  *    The callee's return status.
  */
 typedef FLAC__StreamEncoderWriteStatus (*FLAC__StreamEncoderWriteCallback)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
