@@ -52,7 +52,7 @@ fi
 ############################################################################
 
 #
-# first make some chopped-up files
+# first make some chopped-up raw files
 #
 echo "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMN" > master.raw
 dddie="die ERROR: creating files for --skip/--until tests"
@@ -64,262 +64,296 @@ dd if=master.raw ibs=1 count=39 of=50c.until39.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=10 count=30 of=50c.skip10.until40.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=10 count=29 of=50c.skip10.until39.raw 2>/dev/null || $dddie
 
-eopt="--silent --verify --lax --force-raw-format --endian=big --sign=signed --sample-rate=10 --bps=8 --channels=1"
-dopt="--silent --decode --force-raw-format --endian=big --sign=signed"
+wav_eopt="--silent --verify --lax"
+wav_dopt="--silent --decode"
+
+raw_eopt="$wav_eopt --force-raw-format --endian=big --sign=signed --sample-rate=10 --bps=8 --channels=1"
+raw_dopt="$wav_dopt --force-raw-format --endian=big --sign=signed"
 
 #
-# test --skip when encoding
+# convert them to WAVE files
 #
+convert_to_wav ()
+{
+	run_flac $raw_eopt $1.raw || die "ERROR converting $1.raw to WAVE"
+	run_flac $wav_dopt $1.flac || die "ERROR converting $1.raw to WAVE"
+}
+convert_to_wav 50c
+convert_to_wav 50c.skip10
+convert_to_wav 50c.skip11
+convert_to_wav 50c.until40
+convert_to_wav 50c.until39
+convert_to_wav 50c.skip10.until40
+convert_to_wav 50c.skip10.until39
 
-echo -n "testing --skip=# (encode)... "
-run_flac $eopt --skip=10 -o z50c.skip10.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.raw z50c.skip10.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.raw z50c.skip10.raw || die "ERROR: file mismatch for --skip=10 (encode)"
-rm -f z50c.skip10.flac z50c.skip10.raw
-echo OK
+test_skip_until ()
+{
+	fmt=$1
 
-echo -n "testing --skip=mm:ss (encode)... "
-run_flac $eopt --skip=0:01 -o z50c.skip0:01.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip0:01.raw z50c.skip0:01.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.raw z50c.skip0:01.raw || die "ERROR: file mismatch for --skip=0:01 (encode)"
-rm -f z50c.skip0:01.flac z50c.skip0:01.raw
-echo OK
+	[ $fmt = wav ] || [ $fmt = raw ] || die "ERROR: internal error, bad format '$fmt'"
 
-echo -n "testing --skip=mm:ss.sss (encode)... "
-run_flac $eopt --skip=0:01.1001 -o z50c.skip0:01.1001.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip0:01.1001.raw z50c.skip0:01.1001.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip11.raw z50c.skip0:01.1001.raw || die "ERROR: file mismatch for --skip=0:01.1001 (encode)"
-rm -f z50c.skip0:01.1001.flac z50c.skip0:01.1001.raw
-echo OK
+	if [ $fmt = raw ] ; then
+		eopt="$raw_eopt"
+		dopt="$raw_dopt"
+	else
+		eopt="$wav_eopt"
+		dopt="$wav_dopt"
+	fi
 
-#
-# test --skip when decoding
-#
+	#
+	# test --skip when encoding
+	#
 
-echo -n "testing --skip=# (decode)... "
-run_flac $eopt -o z50c.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt --skip=10 -o z50c.skip10.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.raw z50c.skip10.raw || die "ERROR: file mismatch for --skip=10 (decode)"
-rm -f z50c.skip10.raw
-echo OK
+	echo -n "testing --skip=# (encode) ($fmt)... "
+	run_flac $eopt --skip=10 -o z50c.skip10.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.$fmt z50c.skip10.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.$fmt z50c.skip10.$fmt || die "ERROR: file mismatch for --skip=10 (encode) ($fmt)"
+	rm -f z50c.skip10.flac z50c.skip10.$fmt
+	echo OK
 
-echo -n "testing --skip=mm:ss (decode)... "
-run_flac $dopt --skip=0:01 -o z50c.skip0:01.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.raw z50c.skip0:01.raw || die "ERROR: file mismatch for --skip=0:01 (decode)"
-rm -f z50c.skip0:01.raw
-echo OK
+	echo -n "testing --skip=mm:ss (encode) ($fmt)... "
+	run_flac $eopt --skip=0:01 -o z50c.skip0:01.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip0:01.$fmt z50c.skip0:01.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.$fmt z50c.skip0:01.$fmt || die "ERROR: file mismatch for --skip=0:01 (encode) ($fmt)"
+	rm -f z50c.skip0:01.flac z50c.skip0:01.$fmt
+	echo OK
 
-echo -n "testing --skip=mm:ss.sss (decode)... "
-run_flac $dopt --skip=0:01.1001 -o z50c.skip0:01.1001.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip11.raw z50c.skip0:01.1001.raw || die "ERROR: file mismatch for --skip=0:01.1001 (decode)"
-rm -f z50c.skip0:01.1001.raw
-echo OK
+	echo -n "testing --skip=mm:ss.sss (encode) ($fmt)... "
+	run_flac $eopt --skip=0:01.1001 -o z50c.skip0:01.1001.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip0:01.1001.$fmt z50c.skip0:01.1001.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip11.$fmt z50c.skip0:01.1001.$fmt || die "ERROR: file mismatch for --skip=0:01.1001 (encode) ($fmt)"
+	rm -f z50c.skip0:01.1001.flac z50c.skip0:01.1001.$fmt
+	echo OK
 
-rm -f z50c.flac
+	#
+	# test --skip when decoding
+	#
 
-#
-# test --until when encoding
-#
+	echo -n "testing --skip=# (decode) ($fmt)... "
+	run_flac $eopt -o z50c.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt --skip=10 -o z50c.skip10.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.$fmt z50c.skip10.$fmt || die "ERROR: file mismatch for --skip=10 (decode) ($fmt)"
+	rm -f z50c.skip10.$fmt
+	echo OK
 
-echo -n "testing --until=# (encode)... "
-run_flac $eopt --until=40 -o z50c.until40.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.until40.raw z50c.until40.flac || die "ERROR decoding FLAC file"
-cmp 50c.until40.raw z50c.until40.raw || die "ERROR: file mismatch for --until=40 (encode)"
-rm -f z50c.until40.flac z50c.until40.raw
-echo OK
+	echo -n "testing --skip=mm:ss (decode) ($fmt)... "
+	run_flac $dopt --skip=0:01 -o z50c.skip0:01.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.$fmt z50c.skip0:01.$fmt || die "ERROR: file mismatch for --skip=0:01 (decode) ($fmt)"
+	rm -f z50c.skip0:01.$fmt
+	echo OK
 
-echo -n "testing --until=mm:ss (encode)... "
-run_flac $eopt --until=0:04 -o z50c.until0:04.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.until0:04.raw z50c.until0:04.flac || die "ERROR decoding FLAC file"
-cmp 50c.until40.raw z50c.until0:04.raw || die "ERROR: file mismatch for --until=0:04 (encode)"
-rm -f z50c.until0:04.flac z50c.until0:04.raw
-echo OK
+	echo -n "testing --skip=mm:ss.sss (decode) ($fmt)... "
+	run_flac $dopt --skip=0:01.1001 -o z50c.skip0:01.1001.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip11.$fmt z50c.skip0:01.1001.$fmt || die "ERROR: file mismatch for --skip=0:01.1001 (decode) ($fmt)"
+	rm -f z50c.skip0:01.1001.$fmt
+	echo OK
 
-echo -n "testing --until=mm:ss.sss (encode)... "
-run_flac $eopt --until=0:03.9001 -o z50c.until0:03.9001.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.until0:03.9001.raw z50c.until0:03.9001.flac || die "ERROR decoding FLAC file"
-cmp 50c.until39.raw z50c.until0:03.9001.raw || die "ERROR: file mismatch for --until=0:03.9001 (encode)"
-rm -f z50c.until0:03.9001.flac z50c.until0:03.9001.raw
-echo OK
+	rm -f z50c.flac
 
-echo -n "testing --until=-# (encode)... "
-run_flac $eopt --until=-10 -o z50c.until-10.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.until-10.raw z50c.until-10.flac || die "ERROR decoding FLAC file"
-cmp 50c.until40.raw z50c.until-10.raw || die "ERROR: file mismatch for --until=-10 (encode)"
-rm -f z50c.until-10.flac z50c.until-10.raw
-echo OK
+	#
+	# test --until when encoding
+	#
 
-echo -n "testing --until=-mm:ss (encode)... "
-run_flac $eopt --until=-0:01 -o z50c.until-0:01.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.until-0:01.raw z50c.until-0:01.flac || die "ERROR decoding FLAC file"
-cmp 50c.until40.raw z50c.until-0:01.raw || die "ERROR: file mismatch for --until=-0:01 (encode)"
-rm -f z50c.until-0:01.flac z50c.until-0:01.raw
-echo OK
+	echo -n "testing --until=# (encode) ($fmt)... "
+	run_flac $eopt --until=40 -o z50c.until40.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.until40.$fmt z50c.until40.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until40.$fmt z50c.until40.$fmt || die "ERROR: file mismatch for --until=40 (encode) ($fmt)"
+	rm -f z50c.until40.flac z50c.until40.$fmt
+	echo OK
 
-echo -n "testing --until=-mm:ss.sss (encode)... "
-run_flac $eopt --until=-0:01.1001 -o z50c.until-0:01.1001.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.until-0:01.1001.raw z50c.until-0:01.1001.flac || die "ERROR decoding FLAC file"
-cmp 50c.until39.raw z50c.until-0:01.1001.raw || die "ERROR: file mismatch for --until=-0:01.1001 (encode)"
-rm -f z50c.until-0:01.1001.flac z50c.until-0:01.1001.raw
-echo OK
+	echo -n "testing --until=mm:ss (encode) ($fmt)... "
+	run_flac $eopt --until=0:04 -o z50c.until0:04.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.until0:04.$fmt z50c.until0:04.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until40.$fmt z50c.until0:04.$fmt || die "ERROR: file mismatch for --until=0:04 (encode) ($fmt)"
+	rm -f z50c.until0:04.flac z50c.until0:04.$fmt
+	echo OK
 
-#
-# test --until when decoding
-#
+	echo -n "testing --until=mm:ss.sss (encode) ($fmt)... "
+	run_flac $eopt --until=0:03.9001 -o z50c.until0:03.9001.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.until0:03.9001.$fmt z50c.until0:03.9001.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until39.$fmt z50c.until0:03.9001.$fmt || die "ERROR: file mismatch for --until=0:03.9001 (encode) ($fmt)"
+	rm -f z50c.until0:03.9001.flac z50c.until0:03.9001.$fmt
+	echo OK
 
-run_flac $eopt -o z50c.flac 50c.raw || die "ERROR generating FLAC file"
+	echo -n "testing --until=-# (encode) ($fmt)... "
+	run_flac $eopt --until=-10 -o z50c.until-10.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.until-10.$fmt z50c.until-10.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until40.$fmt z50c.until-10.$fmt || die "ERROR: file mismatch for --until=-10 (encode) ($fmt)"
+	rm -f z50c.until-10.flac z50c.until-10.$fmt
+	echo OK
 
-echo -n "testing --until=# (decode)... "
-run_flac $dopt --until=40 -o z50c.until40.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.until40.raw z50c.until40.raw || die "ERROR: file mismatch for --until=40 (decode)"
-rm -f z50c.until40.raw
-echo OK
+	echo -n "testing --until=-mm:ss (encode) ($fmt)... "
+	run_flac $eopt --until=-0:01 -o z50c.until-0:01.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.until-0:01.$fmt z50c.until-0:01.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until40.$fmt z50c.until-0:01.$fmt || die "ERROR: file mismatch for --until=-0:01 (encode) ($fmt)"
+	rm -f z50c.until-0:01.flac z50c.until-0:01.$fmt
+	echo OK
 
-echo -n "testing --until=mm:ss (decode)... "
-run_flac $dopt --until=0:04 -o z50c.until0:04.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.until40.raw z50c.until0:04.raw || die "ERROR: file mismatch for --until=0:04 (decode)"
-rm -f z50c.until0:04.raw
-echo OK
+	echo -n "testing --until=-mm:ss.sss (encode) ($fmt)... "
+	run_flac $eopt --until=-0:01.1001 -o z50c.until-0:01.1001.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.until-0:01.1001.$fmt z50c.until-0:01.1001.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until39.$fmt z50c.until-0:01.1001.$fmt || die "ERROR: file mismatch for --until=-0:01.1001 (encode) ($fmt)"
+	rm -f z50c.until-0:01.1001.flac z50c.until-0:01.1001.$fmt
+	echo OK
 
-echo -n "testing --until=mm:ss.sss (decode)... "
-run_flac $dopt --until=0:03.9001 -o z50c.until0:03.9001.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.until39.raw z50c.until0:03.9001.raw || die "ERROR: file mismatch for --until=0:03.9001 (decode)"
-rm -f z50c.until0:03.9001.raw
-echo OK
+	#
+	# test --until when decoding
+	#
 
-echo -n "testing --until=-# (decode)... "
-run_flac $dopt --until=-10 -o z50c.until-10.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.until40.raw z50c.until-10.raw || die "ERROR: file mismatch for --until=-10 (decode)"
-rm -f z50c.until-10.raw
-echo OK
+	run_flac $eopt -o z50c.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
 
-echo -n "testing --until=-mm:ss (decode)... "
-run_flac $dopt --until=-0:01 -o z50c.until-0:01.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.until40.raw z50c.until-0:01.raw || die "ERROR: file mismatch for --until=-0:01 (decode)"
-rm -f z50c.until-0:01.raw
-echo OK
+	echo -n "testing --until=# (decode) ($fmt)... "
+	run_flac $dopt --until=40 -o z50c.until40.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until40.$fmt z50c.until40.$fmt || die "ERROR: file mismatch for --until=40 (decode) ($fmt)"
+	rm -f z50c.until40.$fmt
+	echo OK
 
-echo -n "testing --until=-mm:ss.sss (decode)... "
-run_flac $dopt --until=-0:01.1001 -o z50c.until-0:01.1001.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.until39.raw z50c.until-0:01.1001.raw || die "ERROR: file mismatch for --until=-0:01.1001 (decode)"
-rm -f z50c.until-0:01.1001.raw
-echo OK
+	echo -n "testing --until=mm:ss (decode) ($fmt)... "
+	run_flac $dopt --until=0:04 -o z50c.until0:04.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until40.$fmt z50c.until0:04.$fmt || die "ERROR: file mismatch for --until=0:04 (decode) ($fmt)"
+	rm -f z50c.until0:04.$fmt
+	echo OK
 
-rm -f z50c.flac
+	echo -n "testing --until=mm:ss.sss (decode) ($fmt)... "
+	run_flac $dopt --until=0:03.9001 -o z50c.until0:03.9001.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until39.$fmt z50c.until0:03.9001.$fmt || die "ERROR: file mismatch for --until=0:03.9001 (decode) ($fmt)"
+	rm -f z50c.until0:03.9001.$fmt
+	echo OK
 
-#
-# test --skip and --until when encoding
-#
+	echo -n "testing --until=-# (decode) ($fmt)... "
+	run_flac $dopt --until=-10 -o z50c.until-10.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until40.$fmt z50c.until-10.$fmt || die "ERROR: file mismatch for --until=-10 (decode) ($fmt)"
+	rm -f z50c.until-10.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=# (encode)... "
-run_flac $eopt --skip=10 --until=40 -o z50c.skip10.until40.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.until40.raw z50c.skip10.until40.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until40.raw || die "ERROR: file mismatch for --skip=10 --until=40 (encode)"
-rm -f z50c.skip10.until40.flac z50c.skip10.until40.raw
-echo OK
+	echo -n "testing --until=-mm:ss (decode) ($fmt)... "
+	run_flac $dopt --until=-0:01 -o z50c.until-0:01.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until40.$fmt z50c.until-0:01.$fmt || die "ERROR: file mismatch for --until=-0:01 (decode) ($fmt)"
+	rm -f z50c.until-0:01.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=mm:ss (encode)... "
-run_flac $eopt --skip=10 --until=0:04 -o z50c.skip10.until0:04.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.until0:04.raw z50c.skip10.until0:04.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until0:04.raw || die "ERROR: file mismatch for --skip=10 --until=0:04 (encode)"
-rm -f z50c.skip10.until0:04.flac z50c.skip10.until0:04.raw
-echo OK
+	echo -n "testing --until=-mm:ss.sss (decode) ($fmt)... "
+	run_flac $dopt --until=-0:01.1001 -o z50c.until-0:01.1001.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.until39.$fmt z50c.until-0:01.1001.$fmt || die "ERROR: file mismatch for --until=-0:01.1001 (decode) ($fmt)"
+	rm -f z50c.until-0:01.1001.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=mm:ss.sss (encode)... "
-run_flac $eopt --skip=10 --until=0:03.9001 -o z50c.skip10.until0:03.9001.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.until0:03.9001.raw z50c.skip10.until0:03.9001.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until39.raw z50c.skip10.until0:03.9001.raw || die "ERROR: file mismatch for --skip=10 --until=0:03.9001 (encode)"
-rm -f z50c.skip10.until0:03.9001.flac z50c.skip10.until0:03.9001.raw
-echo OK
+	rm -f z50c.flac
 
-echo -n "testing --skip=10 --until=+# (encode)... "
-run_flac $eopt --skip=10 --until=+30 -o z50c.skip10.until+30.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.until+30.raw z50c.skip10.until+30.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until+30.raw || die "ERROR: file mismatch for --skip=10 --until=+30 (encode)"
-rm -f z50c.skip10.until+30.flac z50c.skip10.until+30.raw
-echo OK
+	#
+	# test --skip and --until when encoding
+	#
 
-echo -n "testing --skip=10 --until=+mm:ss (encode)... "
-run_flac $eopt --skip=10 --until=+0:03 -o z50c.skip10.until+0:03.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.until+0:03.raw z50c.skip10.until+0:03.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until+0:03.raw || die "ERROR: file mismatch for --skip=10 --until=+0:03 (encode)"
-rm -f z50c.skip10.until+0:03.flac z50c.skip10.until+0:03.raw
-echo OK
+	echo -n "testing --skip=10 --until=# (encode) ($fmt)... "
+	run_flac $eopt --skip=10 --until=40 -o z50c.skip10.until40.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.until40.$fmt z50c.skip10.until40.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until40.$fmt || die "ERROR: file mismatch for --skip=10 --until=40 (encode) ($fmt)"
+	rm -f z50c.skip10.until40.flac z50c.skip10.until40.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=+mm:ss.sss (encode)... "
-run_flac $eopt --skip=10 --until=+0:02.9001 -o z50c.skip10.until+0:02.9001.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.until+0:02.9001.raw z50c.skip10.until+0:02.9001.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until39.raw z50c.skip10.until+0:02.9001.raw || die "ERROR: file mismatch for --skip=10 --until=+0:02.9001 (encode)"
-rm -f z50c.skip10.until+0:02.9001.flac z50c.skip10.until+0:02.9001.raw
-echo OK
+	echo -n "testing --skip=10 --until=mm:ss (encode) ($fmt)... "
+	run_flac $eopt --skip=10 --until=0:04 -o z50c.skip10.until0:04.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.until0:04.$fmt z50c.skip10.until0:04.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until0:04.$fmt || die "ERROR: file mismatch for --skip=10 --until=0:04 (encode) ($fmt)"
+	rm -f z50c.skip10.until0:04.flac z50c.skip10.until0:04.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=-# (encode)... "
-run_flac $eopt --skip=10 --until=-10 -o z50c.skip10.until-10.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.until-10.raw z50c.skip10.until-10.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until-10.raw || die "ERROR: file mismatch for --skip=10 --until=-10 (encode)"
-rm -f z50c.skip10.until-10.flac z50c.skip10.until-10.raw
-echo OK
+	echo -n "testing --skip=10 --until=mm:ss.sss (encode) ($fmt)... "
+	run_flac $eopt --skip=10 --until=0:03.9001 -o z50c.skip10.until0:03.9001.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.until0:03.9001.$fmt z50c.skip10.until0:03.9001.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until39.$fmt z50c.skip10.until0:03.9001.$fmt || die "ERROR: file mismatch for --skip=10 --until=0:03.9001 (encode) ($fmt)"
+	rm -f z50c.skip10.until0:03.9001.flac z50c.skip10.until0:03.9001.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=-mm:ss (encode)... "
-run_flac $eopt --skip=10 --until=-0:01 -o z50c.skip10.until-0:01.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.until-0:01.raw z50c.skip10.until-0:01.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until-0:01.raw || die "ERROR: file mismatch for --skip=10 --until=-0:01 (encode)"
-rm -f z50c.skip10.until-0:01.flac z50c.skip10.until-0:01.raw
-echo OK
+	echo -n "testing --skip=10 --until=+# (encode) ($fmt)... "
+	run_flac $eopt --skip=10 --until=+30 -o z50c.skip10.until+30.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.until+30.$fmt z50c.skip10.until+30.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until+30.$fmt || die "ERROR: file mismatch for --skip=10 --until=+30 (encode) ($fmt)"
+	rm -f z50c.skip10.until+30.flac z50c.skip10.until+30.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=-mm:ss.sss (encode)... "
-run_flac $eopt --skip=10 --until=-0:01.1001 -o z50c.skip10.until-0:01.1001.flac 50c.raw || die "ERROR generating FLAC file"
-run_flac $dopt -o z50c.skip10.until-0:01.1001.raw z50c.skip10.until-0:01.1001.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until39.raw z50c.skip10.until-0:01.1001.raw || die "ERROR: file mismatch for --skip=10 --until=-0:01.1001 (encode)"
-rm -f z50c.skip10.until-0:01.1001.flac z50c.skip10.until-0:01.1001.raw
-echo OK
+	echo -n "testing --skip=10 --until=+mm:ss (encode) ($fmt)... "
+	run_flac $eopt --skip=10 --until=+0:03 -o z50c.skip10.until+0:03.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.until+0:03.$fmt z50c.skip10.until+0:03.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until+0:03.$fmt || die "ERROR: file mismatch for --skip=10 --until=+0:03 (encode) ($fmt)"
+	rm -f z50c.skip10.until+0:03.flac z50c.skip10.until+0:03.$fmt
+	echo OK
 
-#
-# test --skip and --until when decoding
-#
+	echo -n "testing --skip=10 --until=+mm:ss.sss (encode) ($fmt)... "
+	run_flac $eopt --skip=10 --until=+0:02.9001 -o z50c.skip10.until+0:02.9001.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.until+0:02.9001.$fmt z50c.skip10.until+0:02.9001.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until39.$fmt z50c.skip10.until+0:02.9001.$fmt || die "ERROR: file mismatch for --skip=10 --until=+0:02.9001 (encode) ($fmt)"
+	rm -f z50c.skip10.until+0:02.9001.flac z50c.skip10.until+0:02.9001.$fmt
+	echo OK
 
-run_flac $eopt -o z50c.flac 50c.raw || die "ERROR generating FLAC file"
+	echo -n "testing --skip=10 --until=-# (encode) ($fmt)... "
+	run_flac $eopt --skip=10 --until=-10 -o z50c.skip10.until-10.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.until-10.$fmt z50c.skip10.until-10.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until-10.$fmt || die "ERROR: file mismatch for --skip=10 --until=-10 (encode) ($fmt)"
+	rm -f z50c.skip10.until-10.flac z50c.skip10.until-10.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=# (decode)... "
-run_flac $dopt --skip=10 --until=40 -o z50c.skip10.until40.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until40.raw || die "ERROR: file mismatch for --skip=10 --until=40 (decode)"
-rm -f z50c.skip10.until40.raw
-echo OK
+	echo -n "testing --skip=10 --until=-mm:ss (encode) ($fmt)... "
+	run_flac $eopt --skip=10 --until=-0:01 -o z50c.skip10.until-0:01.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.until-0:01.$fmt z50c.skip10.until-0:01.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until-0:01.$fmt || die "ERROR: file mismatch for --skip=10 --until=-0:01 (encode) ($fmt)"
+	rm -f z50c.skip10.until-0:01.flac z50c.skip10.until-0:01.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=mm:ss (decode)... "
-run_flac $dopt --skip=10 --until=0:04 -o z50c.skip10.until0:04.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until0:04.raw || die "ERROR: file mismatch for --skip=10 --until=0:04 (decode)"
-rm -f z50c.skip10.until0:04.raw
-echo OK
+	echo -n "testing --skip=10 --until=-mm:ss.sss (encode) ($fmt)... "
+	run_flac $eopt --skip=10 --until=-0:01.1001 -o z50c.skip10.until-0:01.1001.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
+	run_flac $dopt -o z50c.skip10.until-0:01.1001.$fmt z50c.skip10.until-0:01.1001.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until39.$fmt z50c.skip10.until-0:01.1001.$fmt || die "ERROR: file mismatch for --skip=10 --until=-0:01.1001 (encode) ($fmt)"
+	rm -f z50c.skip10.until-0:01.1001.flac z50c.skip10.until-0:01.1001.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=mm:ss.sss (decode)... "
-run_flac $dopt --skip=10 --until=0:03.9001 -o z50c.skip10.until0:03.9001.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until39.raw z50c.skip10.until0:03.9001.raw || die "ERROR: file mismatch for --skip=10 --until=0:03.9001 (decode)"
-rm -f z50c.skip10.until0:03.9001.raw
-echo OK
+	#
+	# test --skip and --until when decoding
+	#
 
-echo -n "testing --skip=10 --until=-# (decode)... "
-run_flac $dopt --skip=10 --until=-10 -o z50c.skip10.until-10.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until-10.raw || die "ERROR: file mismatch for --skip=10 --until=-10 (decode)"
-rm -f z50c.skip10.until-10.raw
-echo OK
+	run_flac $eopt -o z50c.flac 50c.$fmt || die "ERROR generating FLAC file ($fmt)"
 
-echo -n "testing --skip=10 --until=-mm:ss (decode)... "
-run_flac $dopt --skip=10 --until=-0:01 -o z50c.skip10.until-0:01.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until40.raw z50c.skip10.until-0:01.raw || die "ERROR: file mismatch for --skip=10 --until=-0:01 (decode)"
-rm -f z50c.skip10.until-0:01.raw
-echo OK
+	echo -n "testing --skip=10 --until=# (decode) ($fmt)... "
+	run_flac $dopt --skip=10 --until=40 -o z50c.skip10.until40.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until40.$fmt || die "ERROR: file mismatch for --skip=10 --until=40 (decode) ($fmt)"
+	rm -f z50c.skip10.until40.$fmt
+	echo OK
 
-echo -n "testing --skip=10 --until=-mm:ss.sss (decode)... "
-run_flac $dopt --skip=10 --until=-0:01.1001 -o z50c.skip10.until-0:01.1001.raw z50c.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.until39.raw z50c.skip10.until-0:01.1001.raw || die "ERROR: file mismatch for --skip=10 --until=-0:01.1001 (decode)"
-rm -f z50c.skip10.until-0:01.1001.raw
-echo OK
+	echo -n "testing --skip=10 --until=mm:ss (decode) ($fmt)... "
+	run_flac $dopt --skip=10 --until=0:04 -o z50c.skip10.until0:04.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until0:04.$fmt || die "ERROR: file mismatch for --skip=10 --until=0:04 (decode) ($fmt)"
+	rm -f z50c.skip10.until0:04.$fmt
+	echo OK
 
-rm -f z50c.flac
+	echo -n "testing --skip=10 --until=mm:ss.sss (decode) ($fmt)... "
+	run_flac $dopt --skip=10 --until=0:03.9001 -o z50c.skip10.until0:03.9001.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until39.$fmt z50c.skip10.until0:03.9001.$fmt || die "ERROR: file mismatch for --skip=10 --until=0:03.9001 (decode) ($fmt)"
+	rm -f z50c.skip10.until0:03.9001.$fmt
+	echo OK
 
-#@@@@@@
-exit 123
+	echo -n "testing --skip=10 --until=-# (decode) ($fmt)... "
+	run_flac $dopt --skip=10 --until=-10 -o z50c.skip10.until-10.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until-10.$fmt || die "ERROR: file mismatch for --skip=10 --until=-10 (decode) ($fmt)"
+	rm -f z50c.skip10.until-10.$fmt
+	echo OK
+
+	echo -n "testing --skip=10 --until=-mm:ss (decode) ($fmt)... "
+	run_flac $dopt --skip=10 --until=-0:01 -o z50c.skip10.until-0:01.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until40.$fmt z50c.skip10.until-0:01.$fmt || die "ERROR: file mismatch for --skip=10 --until=-0:01 (decode) ($fmt)"
+	rm -f z50c.skip10.until-0:01.$fmt
+	echo OK
+
+	echo -n "testing --skip=10 --until=-mm:ss.sss (decode) ($fmt)... "
+	run_flac $dopt --skip=10 --until=-0:01.1001 -o z50c.skip10.until-0:01.1001.$fmt z50c.flac || die "ERROR decoding FLAC file ($fmt)"
+	cmp 50c.skip10.until39.$fmt z50c.skip10.until-0:01.1001.$fmt || die "ERROR: file mismatch for --skip=10 --until=-0:01.1001 (decode) ($fmt)"
+	rm -f z50c.skip10.until-0:01.1001.$fmt
+	echo OK
+
+	rm -f z50c.flac
+}
+
+test_skip_until raw
+test_skip_until wav
 
 #
 # multi-file tests
