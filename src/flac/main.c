@@ -43,7 +43,7 @@ FLAC__bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_searc
 FLAC__bool force_to_stdout = false, force_raw_format = false, delete_input = false, sector_align = false;
 const char *cmdline_forced_outfilename = 0, *output_prefix = 0;
 analysis_options aopts = { false, false };
-unsigned padding = 0;
+int padding = -1;
 unsigned max_lpc_order = 8;
 unsigned qlp_coeff_precision = 0;
 FLAC__uint64 skip = 0;
@@ -170,7 +170,11 @@ int main(int argc, char *argv[])
 			if(++i >= argc)
 				return long_usage("ERROR: must specify a value with -P\n");
 			padding = atoi(argv[i]);
+			if(padding < 0)
+				return long_usage("ERROR: argument to -P must be >= 0\n");
 		}
+		else if(0 == strcmp(argv[i], "-P-"))
+			padding = -1;
 		else if(0 == strcmp(argv[i], "-q")) {
 			if(++i >= argc)
 				return long_usage("ERROR: must specify a value with -q\n");
@@ -418,18 +422,23 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
 		if(!mode_decode) {
+			char padopt[16];
+			if(padding < 0)
+				strcpy(padopt, "-");
+			else
+				sprintf(padopt, " %d", padding);
 			fprintf(stderr,
 				"options:%s%s"
 #ifdef FLAC__HAS_OGG
 				"%s"
 #endif
-				"%s -P %u -b %u%s -l %u%s%s%s -q %u -r %u,%u -R %u%s\n",
+				"%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u -R %u%s\n",
 				delete_input?" --delete-input-file":"", sector_align?" --sector-align":"",
 #ifdef FLAC__HAS_OGG
 				use_ogg?" --ogg":"",
 #endif
 				lax?" --lax":"",
-				padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
+				padopt, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
 				do_exhaustive_model_search?" -e":"", do_escape_coding?" -E":"", do_qlp_coeff_prec_search?" -p":"",
 				qlp_coeff_precision,
 				(unsigned)min_residual_partition_order, (unsigned)max_residual_partition_order, (unsigned)rice_parameter_search_dist,
@@ -599,8 +608,9 @@ int long_usage(const char *message, ...)
 	fprintf(out, "           either no seek point entered (if the input size is determinable\n");
 	fprintf(out, "           before encoding starts) or a placeholder point (if input size is not\n");
 	fprintf(out, "           determinable)\n");
-	fprintf(out, "  -P # : write a PADDING block of # bytes (goes after SEEKTABLE)\n");
-	fprintf(out, "         (0 => no PADDING block, default is -P 0)\n");
+	fprintf(out, "  -P # : write a PADDING block of length # (goes after SEEKTABLE)\n");
+	fprintf(out, "         (# must be >= 0; default is -P-).  Note that the overall size in bytes\n");
+	fprintf(out, "         of the PADDING block will be # + 4 because of the metadata header.\n");
 	fprintf(out, "  -b # : specify blocksize in samples; default is 1152 for -l 0, else 4608;\n");
 	fprintf(out, "         must be 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768\n");
 	fprintf(out, "         (unless --lax is used)\n");
@@ -630,14 +640,14 @@ int long_usage(const char *message, ...)
 	fprintf(out, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
 	fprintf(out, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	fprintf(out, "         comparing to the original\n");
-	fprintf(out, "  -S-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-,%s --lax-, --sector-align-\n",
+	fprintf(out, "  -S-, -P-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-,%s --lax-,\n",
 #ifdef FLAC__HAS_OGG
 		" --ogg-,"
 #else
 		""
 #endif
 	);
-	fprintf(out, "  can all be used to turn off a particular option\n");
+	fprintf(out, "  --sector-align- can all be used to turn off a particular option\n");
 	fprintf(out, "format options:\n");
 	fprintf(out, "  -fb | -fl : big-endian | little-endian byte order\n");
 	fprintf(out, "  -fc channels\n");

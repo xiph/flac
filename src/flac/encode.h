@@ -40,7 +40,7 @@ typedef struct {
 	unsigned max_lpc_order;
 	unsigned blocksize;
 	unsigned qlp_coeff_precision;
-	unsigned padding;
+	int padding;
 	char *requested_seek_points;
 	int num_requested_seek_points;
 } encode_options_t;
