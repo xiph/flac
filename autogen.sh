@@ -15,5 +15,11 @@
 # Otherwise, this is the no-op:
 hacks=true
 #
+# Also watchout, if you replace ltmain.sh, there is a bug in some
+# versions of libtool (or maybe autoconf) on some platforms where the
+# configure-generated libtool does not have $SED defined.  See also:
+#
+#   http://lists.gnu.org/archive/html/libtool/2003-11/msg00131.html
+#
 
 aclocal && libtoolize && autoconf && autoheader && $hacks && automake --foreign --include-deps --add-missing --copy
