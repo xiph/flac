@@ -29,8 +29,8 @@
 #define FLAC__MIN_BITS_PER_SAMPLE (4u)
 /*NOTE: only up to 24 because of the current predictor coefficient quantization and the fact we use FLAC__int32s for all work */
 #define FLAC__MAX_BITS_PER_SAMPLE (24u)
-/* the following is ((2 ** 20) - 1) div 10 */
-#define FLAC__MAX_SAMPLE_RATE (1048570u)
+/* the following is ((2 ** 16) - 1) * 10; see format.html as to why */
+#define FLAC__MAX_SAMPLE_RATE (655350u)
 #define FLAC__MAX_LPC_ORDER (32u)
 #define FLAC__MIN_QLP_COEFF_PRECISION (5u)
 /* changing FLAC__MAX_FIXED_ORDER also means changing all of fixed.c and more, so DON'T! */
@@ -412,7 +412,7 @@ typedef struct {
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN; /* = 64 bits */
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN; /* = 64 bits */
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN; /* = 16 bits */
-extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LEN; /* = 18 bytes */
+extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LENGTH; /* = 18 bytes */
 
 extern const FLAC__uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER; /* = 0xffffffffffffffff */
 
@@ -436,6 +436,36 @@ typedef struct {
 
 /*****************************************************************************
  *
+ *     32: Entry length in bytes (WATCHOUT: this is little-endian coded)
+ *      n: Entry (n = 8 * length)
+ *-------- -----------------
+ * 32+n/8  bytes total
+ */
+typedef struct {
+	FLAC__uint32 length;
+	FLAC__byte *entry;
+} FLAC__StreamMetaData_VorbisComment_Entry;
+
+extern const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN; /* = 32 bits */
+
+/*****************************************************************************
+ *
+ *          n: Vendor string entry
+ *         32: Number of comment fields (WATCHOUT: this is little-endian coded)
+ *          m: Comment entries
+ *------------ -----------------
+ * (32+m+n)/8  bytes total
+ */
+typedef struct {
+	FLAC__StreamMetaData_VorbisComment_Entry vendor_string;
+	FLAC__uint32 num_comments;
+	FLAC__StreamMetaData_VorbisComment_Entry *comments;
+} FLAC__StreamMetaData_VorbisComment;
+
+extern const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN; /* = 32 bits */
+
+/*****************************************************************************
+ *
  *  1: =1 if this is the last meta-data block, else =0
  *  7: meta-data type (c.f. FLAC__MetaDataType)
  * 24: length (in bytes) of the block-specific data to follow
@@ -451,6 +481,7 @@ typedef struct {
 		FLAC__StreamMetaData_Padding padding;
 		FLAC__StreamMetaData_Application application;
 		FLAC__StreamMetaData_SeekTable seek_table;
+		FLAC__StreamMetaData_VorbisComment vorbis_comment;
 	} data;
 } FLAC__StreamMetaData;
 
@@ -463,15 +494,14 @@ extern const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /* = 24 bits */
 
 /*****************************************************************************
  *
- * Stream structures
+ * Utility functions
  *
  *****************************************************************************/
 
-typedef struct {
-	FLAC__StreamMetaData_StreamInfo stream_info;
-	FLAC__Frame *frames;
-} FLAC__Stream;
-
-/*****************************************************************************/
+/*
+ * Since the rules for valid sample rates are slightly complex, they are
+ * encapsulated here:
+ */
+FLAC__bool FLAC__format_is_valid_sample_rate(unsigned sample_rate);
 
 #endif
