@@ -1128,6 +1128,9 @@ FLAC__bool read_metadata_cuesheet_(FLAC__StreamDecoder *decoder, FLAC__StreamMet
 	if(!FLAC__bitbuffer_read_raw_uint64(decoder->private_->input, &obj->lead_in, FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN, read_callback_, decoder))
 		return false; /* the read_callback_ sets the state for us */
 
+	if(!FLAC__bitbuffer_skip_bits_no_crc(decoder->private_->input, FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN, read_callback_, decoder))
+		return false; /* the read_callback_ sets the state for us */
+
 	if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN, read_callback_, decoder))
 		return false; /* the read_callback_ sets the state for us */
 	obj->num_tracks = x;

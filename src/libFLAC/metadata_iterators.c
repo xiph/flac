@@ -1521,7 +1521,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_(FIL
 	if(block->num_comments == 0) {
 		block->comments = 0;
 	}
-	else if(0 == (block->comments = (FLAC__StreamMetadata_VorbisComment_Entry*)calloc(sizeof(FLAC__StreamMetadata_VorbisComment_Entry), block->num_comments)))
+	else if(0 == (block->comments = (FLAC__StreamMetadata_VorbisComment_Entry*)calloc(block->num_comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry))))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < block->num_comments; i++) {
@@ -1607,7 +1607,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_(FILE *fil
 {
 	unsigned i, len;
 	FLAC__Metadata_SimpleIteratorStatus status;
-	FLAC__byte buffer[sizeof(FLAC__uint64)]; /* the largest object we'll read in one shot */
+	FLAC__byte buffer[max(sizeof(FLAC__uint64), FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN/8)]; /* the largest object we'll read in one shot */
 
 	FLAC__ASSERT(0 != file);
 
@@ -1621,6 +1621,11 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_(FILE *fil
 	if(fread(buffer, 1, len, file) != len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 	block->lead_in = unpack_uint64_(buffer, len);
+
+	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN % 8 == 0);
+	len = FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN / 8;
+	if(fread(buffer, 1, len, file) != len)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN / 8;
@@ -1814,9 +1819,10 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_vorbis_comment_(FI
 FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *file, const FLAC__StreamMetadata_CueSheet *block)
 {
 	unsigned i, j, len;
-	FLAC__byte buffer[32]; /* asserted below that this is big enough */
+	FLAC__byte buffer[1024]; /* asserted below that this is big enough */
 
 	FLAC__ASSERT(sizeof(buffer) >= sizeof(FLAC__uint64));
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN/8);
 	FLAC__ASSERT(sizeof(buffer) >= (FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN)/8);
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN/8);
 
@@ -1830,6 +1836,12 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *fi
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN / 8;
 	pack_uint64_(block->lead_in, buffer, len);
+	if(fwrite(buffer, 1, len, file) != len)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+
+	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN % 8 == 0);
+	len = FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN / 8;
+	memset(buffer, 0, len);
 	if(fwrite(buffer, 1, len, file) != len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 

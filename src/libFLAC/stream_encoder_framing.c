@@ -125,6 +125,8 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 				return false;
 			if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.cue_sheet.lead_in, FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN))
 				return false;
+			if(!FLAC__bitbuffer_write_zeroes(bb, FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN))
+				return false;
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.cue_sheet.num_tracks, FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN))
 				return false;
 			for(i = 0; i < metadata->data.cue_sheet.num_tracks; i++) {
