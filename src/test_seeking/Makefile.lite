@@ -23,7 +23,7 @@ topdir = ../..
 
 PROGRAM_NAME = test_seeking
 INCLUDES     = -I../libFLAC/include -I$(topdir)/include
-LIBS         = -lOggFLAC -lFLAC -logg -lm
+LIBS         = -lOggFLAC -lFLAC -L$(HOME)/local/lib -logg -lm
 SRCS_C = \
 	main.c
 
