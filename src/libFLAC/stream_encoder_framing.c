@@ -183,7 +183,7 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 	return true;
 }
 
-FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool streamable_subset, FLAC__bool is_last_block, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool streamable_subset, FLAC__BitBuffer *bb)
 {
 	unsigned u, blocksize_hint, sample_rate_hint;
 
@@ -196,6 +196,8 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 		return false;
 
 	FLAC__ASSERT(header->blocksize > 0 && header->blocksize <= FLAC__MAX_BLOCK_SIZE);
+	/* when this assertion holds true, any legal blocksize can be expressed in the frame header */
+	FLAC__ASSERT(FLAC__MAX_BLOCK_SIZE <= (1u << FLAC__FRAME_HEADER_BLOCK_SIZE_LEN));
 	blocksize_hint = 0;
 	switch(header->blocksize) {
 		case   192: u = 1; break;
@@ -212,14 +214,14 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 		case 16384: u = 14; break;
 		case 32768: u = 15; break;
 		default:
-			if(streamable_subset || is_last_block) {
-				if(header->blocksize <= 0x100)
-					blocksize_hint = u = 6;
-				else
-					blocksize_hint = u = 7;
+			if(header->blocksize <= 0x100)
+				blocksize_hint = u = 6;
+			else if(header->blocksize <= 0x10000)
+				blocksize_hint = u = 7;
+			else {
+				FLAC__ASSERT(0);
+				return false;
 			}
-			else
-				u = 0;
 			break;
 	}
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))
@@ -237,13 +239,15 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 		case 48000: u = 10; break;
 		case 96000: u = 11; break;
 		default:
-			if(streamable_subset) {
-				if(header->sample_rate % 1000 == 0)
-					sample_rate_hint = u = 12;
-				else if(header->sample_rate % 10 == 0)
-					sample_rate_hint = u = 14;
-				else
-					sample_rate_hint = u = 13;
+			if(header->sample_rate <= 255000 && header->sample_rate % 1000 == 0)
+				sample_rate_hint = u = 12;
+			else if(header->sample_rate % 10 == 0)
+				sample_rate_hint = u = 14;
+			else if(header->sample_rate <= 0xffff)
+				sample_rate_hint = u = 13;
+			else if(streamable_subset) {
+				FLAC__ASSERT(0);
+				return false;
 			}
 			else
 				u = 0;
