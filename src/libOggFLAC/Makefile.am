@@ -20,7 +20,7 @@ lib_LTLIBRARIES = libOggFLAC.la
 if DEBUG
 DEBUGCFLAGS = 
 endif
-CFLAGS = @CFLAGS@ $(DEBUGCFLAGS)
+CFLAGS = @CFLAGS@ @OGG_CFLAGS@ $(DEBUGCFLAGS)
 
 SUBDIRS = include .
 
@@ -33,6 +33,7 @@ EXTRA_DIST = \
 	libOggFLAC.dsp \
 	libOggFLAC.m4
 
+libOggFLAC_la_LIBADD = @OGG_LIBS@
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
 libOggFLAC_la_LDFLAGS = -version-info 0:1:0
 
