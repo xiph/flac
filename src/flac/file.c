@@ -26,7 +26,8 @@
 #include <unistd.h> /* for chown() */
 #endif
 #ifdef __CYGWIN__
-#include <io.h> /* for _setmode(), O_BINARY */
+#include <io.h> /* for setmode(), O_BINARY */
+#include <fcntl.h> /* for _O_BINARY */
 #endif
 #include <sys/stat.h> /* for stat(), maybe chmod() */
 #include <string.h> /* for strrchr() */

@@ -25,7 +25,8 @@
 #include <io.h> /* for _setmode() */
 #include <fcntl.h> /* for _O_BINARY */
 #elif defined __CYGWIN__
-#include <io.h> /* for _setmode(), O_BINARY */
+#include <io.h> /* for setmode(), O_BINARY */
+#include <fcntl.h> /* for _O_BINARY */
 #endif
 #include "FLAC/assert.h"
 #include "protected/file_decoder.h"
