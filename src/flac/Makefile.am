@@ -33,4 +33,4 @@ flac_SOURCES = \
 	encode.h \
 	file.h
 
-flac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ -lm
+flac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ @SHARE_LIBS@ -lm

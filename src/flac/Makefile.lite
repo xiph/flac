@@ -22,16 +22,16 @@
 PROGRAM_NAME = flac
 ifeq ($(DARWIN_BUILD),yes)
 INCLUDES     = -I./include -I../../include
-LIBS         = -lFLAC -lc -lm
+LIBS         = -lFLAC -lgetopt -lc -lm
 else
 #@@@ TODO: conditionalize ogg includes, defines, and -logg
 ifeq ($(SOLARIS_BUILD),yes)
 INCLUDES     = -I./include -I../../include -I$(HOME)/local/include -DFLAC__HAS_OGG
-LIBS         = -lOggFLAC -lFLAC -lm -L$(HOME)/local/lib -logg
+LIBS         = -lOggFLAC -lFLAC -lgetopt -lm -L$(HOME)/local/lib -logg
 else
 #@@@ TODO: conditionalize ogg includes, defines, and -logg
 INCLUDES     = -I./include -I../../include -I$(HOME)/local/include -DFLAC__HAS_OGG
-LIBS         = -lOggFLAC -lFLAC -lm -L$(HOME)/local/lib -logg
+LIBS         = -lOggFLAC -lFLAC -lgetopt -lm -L$(HOME)/local/lib -logg
 endif
 endif
 
