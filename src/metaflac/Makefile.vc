@@ -26,7 +26,14 @@
 !endif
 
 C_FILES= \
-	main.c
+	main.c \
+	operations.c \
+	operations_shorthand_seektable.c \
+	operations_shorthand_streaminfo.c \
+	operations_shorthand_vorbiscomment.c \
+	options.c \
+	usage.c \
+	utils.c
 
 OBJS= $(C_FILES:.c=.obj)
 

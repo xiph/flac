@@ -24,7 +24,14 @@ EXTRA_DIST = \
 	metaflac.dsp
 
 metaflac_SOURCES = \
-	main.c
+	main.c \
+	operations.c \
+	operations_shorthand_seektable.c \
+	operations_shorthand_streaminfo.c \
+	operations_shorthand_vorbiscomment.c \
+	options.c \
+	usage.c \
+	utils.c
 metaflac_LDFLAGS = 
 
 metaflac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @SHARE_LIBS@ @LIBICONV@ -lm

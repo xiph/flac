@@ -91,6 +91,34 @@ LINK32=link.exe
 
 SOURCE=.\main.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\operations.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\operations_shorthand_seektable.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\operations_shorthand_streaminfo.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\operations_shorthand_vorbiscomment.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\options.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\usage.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\utils.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
