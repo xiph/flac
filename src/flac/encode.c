@@ -31,6 +31,11 @@
 #include "FLAC/all.h"
 #include "encode.h"
 
+#ifdef min
+#undef min
+#endif
+#define min(x,y) ((x)<(y)?(x):(y))
+
 #define CHUNK_OF_SAMPLES 2048
 
 typedef enum {
@@ -218,9 +223,22 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 	bytes_per_wide_sample = channels * (bps >> 3);
 
 	if(skip > 0) {
-		if(-1 == fseek(fin, bytes_per_wide_sample * (unsigned)skip, SEEK_CUR)) {
-			fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infile);
-			goto wav_abort_;
+		if(fin != stdin) {
+			if(-1 == fseek(fin, bytes_per_wide_sample * (unsigned)skip, SEEK_CUR)) {
+				fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infile);
+				goto wav_abort_;
+			}
+		}
+		else {
+			int64 left;
+			unsigned need;
+			for(left = (int64)skip; left > 0; left -= CHUNK_OF_SAMPLES) {
+				need = min(left, CHUNK_OF_SAMPLES);
+				if(fread(ucbuffer, 1, bytes_per_wide_sample * need, fin) < need) {
+					fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infile);
+					goto wav_abort_;
+				}
+			}
 		}
 	}
 
@@ -357,9 +375,24 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 		}
 	}
 
-	if(-1 == fseek(fin, bytes_per_wide_sample * (unsigned)skip, SEEK_SET)) {
-		fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infile);
-		goto raw_abort_;
+	if(skip > 0) {
+		if(fin != stdin) {
+			if(-1 == fseek(fin, bytes_per_wide_sample * (unsigned)skip, SEEK_SET)) {
+				fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infile);
+				goto raw_abort_;
+			}
+		}
+		else {
+			int64 left;
+			unsigned need;
+			for(left = (int64)skip; left > 0; left -= CHUNK_OF_SAMPLES) {
+				need = min(left, CHUNK_OF_SAMPLES);
+				if(fread(ucbuffer, 1, bytes_per_wide_sample * need, fin) < need) {
+					fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infile);
+					goto raw_abort_;
+				}
+			}
+		}
 	}
 
 	if(!init_encoder(lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
