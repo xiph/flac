@@ -294,7 +294,6 @@ static FLAC__bool cuesheet_set_track_(FLAC__StreamMetadata *object, FLAC__Stream
 	FLAC__ASSERT(0 != src);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_CUESHEET);
 	FLAC__ASSERT((0 != src->indices && src->num_indices > 0) || (0 == src->indices && src->num_indices == 0));
-	/*@@@@ for docs, note that there is no "&& copy == false" at the end here ^^^ which will filter up */
 
 	save = dest->indices;
 

@@ -618,8 +618,8 @@ namespace FLAC {
 				inline void set_pre_emphasis(bool value) { object_->pre_emphasis = value? 1 : 0; }
 
  				void set_index(unsigned i, const ::FLAC__StreamMetadata_CueSheet_Index &index);
-				//@@@@ It's awkward but to insert/delete index points
-				//@@@@ you must use the routines in the CueSheet class.
+				//@@@ It's awkward but to insert/delete index points
+				//@@@ you must use the routines in the CueSheet class.
 			};
 
 			CueSheet();

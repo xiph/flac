@@ -1482,7 +1482,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative)
 		return usage_error("ERROR: invalid value for --skip\n");
 
-	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) //@@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code
+	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) //@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code
 		return usage_error("ERROR: invalid value for --until\n");
 	/* if there is no "--until" we want to default to "--until=-0" */
 	if(0 == option_values.until_specification)
@@ -1594,7 +1594,7 @@ int decode_file(const char *infilename)
 	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative)
 		return usage_error("ERROR: invalid value for --skip\n");
 
-	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) //@@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code
+	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) //@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code
 		return usage_error("ERROR: invalid value for --until\n");
 	/* if there is no "--until" we want to default to "--until=-0" */
 	if(0 == option_values.until_specification)

@@ -269,7 +269,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					*error_message = "CD-DA INDEX number must be between 0 and 99, inclusive";
 					return false;
 				}
-				/*@@@@ search for duplicate track number? */
+				/*@@@ search for duplicate track number? */
 				if(0 == (field = local__get_field_(&line))) {
 					*error_message = "INDEX is missing an offset after the index number";
 					return false;
@@ -371,7 +371,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					*error_message = "CD-DA TRACK numbers must be sequential";
 					return false;
 				}
-				/*@@@@ search for duplicate track number? */
+				/*@@@ search for duplicate track number? */
 				if(0 == (field = local__get_field_(&line))) {
 					*error_message = "TRACK is missing a track type after the track number";
 					return false;
@@ -381,7 +381,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					return false;
 				}
 				cs->tracks[cs->num_tracks-1].number = in_track_num;
-				cs->tracks[cs->num_tracks-1].type = (0 == FLAC__STRCASECMP(field, "AUDIO"))? 0 : 1; /*@@@@ should we be more strict with the value here? */
+				cs->tracks[cs->num_tracks-1].type = (0 == FLAC__STRCASECMP(field, "AUDIO"))? 0 : 1; /*@@@ should we be more strict with the value here? */
 				in_index_num = -1;
 				track_has_flags = false;
 				track_has_isrc = false;
@@ -422,7 +422,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 							return false;
 						}
 						forced_leadout_track_num = (unsigned)track_num;
-						/*@@@@ search for duplicate track number? */
+						/*@@@ search for duplicate track number? */
 						if(0 == (field = local__get_field_(&line))) {
 							*error_message = "FLAC__lead-out is missing offset";
 							return false;

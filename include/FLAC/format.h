@@ -604,7 +604,7 @@ typedef struct {
 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN; /**< == 64 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN; /**< == 8 (bits) */
-extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN; /**< == @@@@3*8 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN; /**< == 3*8 (bits) */
 
 
 /** FLAC CUESHEET track structure.  (See the
@@ -640,7 +640,7 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN; 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN; /**< == 12*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN; /**< == 1 (bit) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN; /**< == 1 (bit) */
-extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN; /**< == 6+@@@@13*8 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN; /**< == 6+13*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN; /**< == 8 (bits) */
 
 
@@ -672,7 +672,7 @@ typedef struct {
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN; /**< == 128*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN; /**< == 64 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN; /**< == 1 (bit) */
-extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN; /**< == @@@@7+258*8 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN; /**< == 7+258*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN; /**< == 8 (bits) */
 
 
@@ -764,7 +764,7 @@ FLAC_API FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_S
  */
 FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table);
 
-/*@@@@ add to unit tests */
+/* @@@@ add to unit tests */
 /** Check a cue sheet to see if it conforms to the FLAC specification.
  *  See the format specification for limits on the contents of the
  *  cue sheet.

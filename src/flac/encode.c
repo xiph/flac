@@ -1811,7 +1811,7 @@ FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet
 		return false;
 	}
 
-	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, /*@@@@is_cdda=*/true, lead_out_offset);
+	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, /*@@@is_cdda=*/true, lead_out_offset);
 
 	fclose(f);
 
