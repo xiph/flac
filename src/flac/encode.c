@@ -1245,6 +1245,8 @@ void EncoderSession_destroy(EncoderSession *e)
 {
 	if(e->fin != stdin)
 		fclose(e->fin);
+	if(0 != e->fout && e->fout != stdout)
+		fclose(e->fout);
 
 #ifdef FLAC__HAS_OGG
 	if(e->use_ogg) {
