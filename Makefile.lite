@@ -23,27 +23,27 @@ debug   : all
 release : all
 
 libFLAC:
-	(cd src/$@ ; $(MAKE) $(CONFIG))
+	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 flac: libFLAC
-	(cd src/$@ ; $(MAKE) $(CONFIG))
+	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 plugin_xmms: libFLAC
-	(cd src/$@ ; $(MAKE) $(CONFIG))
+	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 test_streams: libFLAC
-	(cd src/$@ ; $(MAKE) $(CONFIG))
+	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 test_unit: libFLAC
-	(cd src/$@ ; $(MAKE) $(CONFIG))
+	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 test: debug
-	(cd test ; $(MAKE))
+	(cd test ; $(MAKE) -f Makefile.lite)
 
 clean:
-	-(cd src/libFLAC ; $(MAKE) clean)
-	-(cd src/flac ; $(MAKE) clean)
-	-(cd src/plugin_xmms ; $(MAKE) clean)
-	-(cd src/test_streams ; $(MAKE) clean)
-	-(cd src/test_unit ; $(MAKE) clean)
-	-(cd test ; $(MAKE) clean)
+	-(cd src/libFLAC ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/flac ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/plugin_xmms ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/test_streams ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/test_unit ; $(MAKE) -f Makefile.lite clean)
+	-(cd test ; $(MAKE) -f Makefile.lite clean)
