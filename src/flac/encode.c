@@ -894,11 +894,11 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				unsigned long skip = xx+(xx & 1U);
 
 				FLAC__ASSERT(skip<=LONG_MAX);
-				if(fseek(infile, xx, SEEK_CUR) < 0) {
+				if(fseek(infile, skip, SEEK_CUR) < 0) {
 					/* can't seek input, read ahead manually... */
 					unsigned left, need;
 					const unsigned chunk = sizeof(ucbuffer_);
-					for(left = xx; left > 0; ) {
+					for(left = skip; left > 0; ) {
 						need = min(left, chunk);
 						if(fread(ucbuffer_, 1, need, infile) < need) {
 							flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping unsupported sub-chunk\n", encoder_session.inbasefilename);
