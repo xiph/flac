@@ -152,7 +152,7 @@ void FLAC_XMMS__play_file(char *filename)
 
 	if (flac_ip.output->open_audio(file_info_.sample_format, file_info_.sample_rate, file_info_.channels) == 0) {
 		audio_error_ = true;
-		if(decoder_ && FLAC__file_decoder_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(decoder_ && FLAC__file_decoder_get_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
 			FLAC__file_decoder_finish(decoder_);
 		return;
 	}
@@ -170,7 +170,7 @@ void FLAC_XMMS__stop()
 		file_info_.is_playing = false;
 		pthread_join(decode_thread_, NULL);
 		flac_ip.output->close_audio();
-		if(decoder_ && FLAC__file_decoder_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(decoder_ && FLAC__file_decoder_get_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
 			FLAC__file_decoder_finish(decoder_);
 	}
 }
@@ -222,7 +222,13 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 			return;
 		}
 		tmp_file_info.abort_flag = false;
-		if(FLAC__file_decoder_init(tmp_decoder, false /*md5_check*/, filename, write_callback_, metadata_callback_, error_callback_, &tmp_file_info) != FLAC__FILE_DECODER_OK) {
+		FLAC__file_decoder_set_md5_checking(tmp_decoder, false);
+		FLAC__file_decoder_set_filename(tmp_decoder, filename);
+		FLAC__file_decoder_set_write_callback(tmp_decoder, write_callback_);
+		FLAC__file_decoder_set_metadata_callback(tmp_decoder, metadata_callback_);
+		FLAC__file_decoder_set_error_callback(tmp_decoder, error_callback_);
+		FLAC__file_decoder_set_client_data(tmp_decoder, &tmp_file_info);
+		if(FLAC__file_decoder_init(tmp_decoder) != FLAC__FILE_DECODER_OK) {
 			*length_in_msec = -1;
 			return;
 		}
@@ -233,7 +239,7 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 
 		*length_in_msec = (int)tmp_file_info.length_in_msec;
 
-		if(FLAC__file_decoder_state(tmp_decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(FLAC__file_decoder_get_state(tmp_decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
 			FLAC__file_decoder_finish(tmp_decoder);
 		FLAC__file_decoder_delete(tmp_decoder);
 	}
@@ -297,7 +303,7 @@ void *play_loop_(void *arg)
 	while(file_info_.is_playing) {
 		if(!file_info_.eof) {
 			while(reservoir_samples_ < SAMPLES_PER_WRITE) {
-				if(FLAC__file_decoder_state(decoder_) == FLAC__FILE_DECODER_END_OF_FILE) {
+				if(FLAC__file_decoder_get_state(decoder_) == FLAC__FILE_DECODER_END_OF_FILE) {
 					file_info_.eof = true;
 					break;
 				}
@@ -342,7 +348,7 @@ void *play_loop_(void *arg)
 		}
 
 	}
-	if(decoder_ && FLAC__file_decoder_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
+	if(decoder_ && FLAC__file_decoder_get_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
 		FLAC__file_decoder_finish(decoder_);
 
 	/* are these two calls necessary? */
@@ -358,7 +364,13 @@ bool decoder_init_(const char *filename)
 	if(decoder_ == 0)
 		return false;
 
-	if(FLAC__file_decoder_init(decoder_, false /*md5_check*/, filename, write_callback_, metadata_callback_, error_callback_, &file_info_) != FLAC__FILE_DECODER_OK)
+	FLAC__file_decoder_set_md5_checking(decoder_, false);
+	FLAC__file_decoder_set_filename(decoder_, filename);
+	FLAC__file_decoder_set_write_callback(decoder_, write_callback_);
+	FLAC__file_decoder_set_metadata_callback(decoder_, metadata_callback_);
+	FLAC__file_decoder_set_error_callback(decoder_, error_callback_);
+	FLAC__file_decoder_set_client_data(decoder_, &file_info_);
+	if(FLAC__file_decoder_init(decoder_) != FLAC__FILE_DECODER_OK)
 		return false;
 
 	file_info_.abort_flag = false;

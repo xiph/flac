@@ -40,6 +40,8 @@ typedef struct FLAC__StreamEncoderProtected {
 	unsigned rice_parameter_search_dist;
 	uint64   total_samples_estimate;
 	const FLAC__StreamMetaData_SeekTable *seek_table;
+	unsigned padding;
+	bool     last_metadata_is_last;
 } FLAC__StreamEncoderProtected;
 
 #endif

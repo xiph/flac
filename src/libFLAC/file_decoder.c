@@ -78,6 +78,7 @@ const char *FLAC__FileDecoderStateString[] = {
 	"FLAC__FILE_DECODER_STREAM_ERROR",
 	"FLAC__FILE_DECODER_STREAM_DECODER_ERROR",
 	"FLAC__FILE_DECODER_ALREADY_INITIALIZED",
+	"FLAC__FILE_DECODER_INVALID_CALLBACK",
 	"FLAC__FILE_DECODER_UNINITIALIZED"
 };
 
@@ -111,6 +112,12 @@ FLAC__FileDecoder *FLAC__file_decoder_new()
 
 	decoder->protected->state = FLAC__FILE_DECODER_UNINITIALIZED;
 
+	decoder->private->filename = 0;
+	decoder->private->write_callback = 0;
+	decoder->private->metadata_callback = 0;
+	decoder->private->error_callback = 0;
+	decoder->private->client_data = 0;
+
 	return decoder;
 }
 
@@ -131,52 +138,32 @@ void FLAC__file_decoder_delete(FLAC__FileDecoder *decoder)
  *
  ***********************************************************************/
 
-FLAC__FileDecoderState FLAC__file_decoder_init(
-	FLAC__FileDecoder *decoder,
-	bool check_md5,
-	const char *filename,
-	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data),
-	void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data),
-	void (*error_callback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data),
-	void *client_data
-)
+FLAC__FileDecoderState FLAC__file_decoder_init(FLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(decoder != 0);
-	FLAC__ASSERT(write_callback != 0);
-	FLAC__ASSERT(metadata_callback != 0);
-	FLAC__ASSERT(error_callback != 0);
 
 	if(decoder->protected->state != FLAC__FILE_DECODER_UNINITIALIZED)
 		return decoder->protected->state = FLAC__FILE_DECODER_ALREADY_INITIALIZED;
 
 	decoder->protected->state = FLAC__FILE_DECODER_OK;
 
-	decoder->protected->check_md5 = check_md5;
+    if(0 == decoder->private->write_callback || 0 == decoder->private->metadata_callback || 0 == decoder->private->error_callback)
+        return decoder->protected->state = FLAC__FILE_DECODER_INVALID_CALLBACK;
 
-	decoder->private->write_callback = write_callback;
-	decoder->private->metadata_callback = metadata_callback;
-	decoder->private->error_callback = error_callback;
-	decoder->private->client_data = client_data;
 	decoder->private->file = 0;
 	decoder->private->stream_decoder = 0;
-	decoder->private->filename = 0;
 	decoder->private->seek_table = 0;
 
-	if(0 == strcmp(filename, "-")) {
+	if(0 == strcmp(decoder->private->filename, "-"))
 		decoder->private->file = stdin;
-	}
-	else {
-		if(0 == (decoder->private->filename = (char*)malloc(strlen(filename)+1)))
-			return decoder->protected->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
-		strcpy(decoder->private->filename, filename);
-		decoder->private->file = fopen(filename, "rb");
-	}
+	else
+		decoder->private->file = fopen(decoder->private->filename, "rb");
 
 	if(decoder->private->file == 0)
 		return decoder->protected->state = FLAC__FILE_DECODER_ERROR_OPENING_FILE;
 
 	/* We initialize the MD5Context even though we may never use it.  This is
-	 * because check_md5 may be turned on to start and then turned off if a
+	 * because md5_checking may be turned on to start and then turned off if a
 	 * seek occurs.  So we always init the context here and finalize it in
 	 * FLAC__file_decoder_finish() to make sure things are always cleaned up
 	 * properly.
@@ -184,7 +171,14 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	MD5Init(&decoder->private->md5context);
 
 	decoder->private->stream_decoder = FLAC__stream_decoder_new();
-	if(FLAC__stream_decoder_init(decoder->private->stream_decoder, read_callback_, write_callback_, metadata_callback_, error_callback_, decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
+
+	FLAC__stream_decoder_set_read_callback(decoder->private->stream_decoder, read_callback_);
+	FLAC__stream_decoder_set_write_callback(decoder->private->stream_decoder, write_callback_);
+	FLAC__stream_decoder_set_metadata_callback(decoder->private->stream_decoder, metadata_callback_);
+	FLAC__stream_decoder_set_error_callback(decoder->private->stream_decoder, error_callback_);
+	FLAC__stream_decoder_set_client_data(decoder->private->stream_decoder, decoder);
+
+	if(FLAC__stream_decoder_init(decoder->private->stream_decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
 		return decoder->protected->state = FLAC__FILE_DECODER_STREAM_DECODER_ERROR;
 
 	return decoder->protected->state;
@@ -209,7 +203,7 @@ bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
 		FLAC__stream_decoder_finish(decoder->private->stream_decoder);
 		FLAC__stream_decoder_delete(decoder->private->stream_decoder);
 	}
-	if(decoder->protected->check_md5) {
+	if(decoder->protected->md5_checking) {
 		if(memcmp(decoder->private->stored_md5sum, decoder->private->computed_md5sum, 16))
 			md5_failed = true;
 	}
@@ -217,14 +211,66 @@ bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
 	return !md5_failed;
 }
 
-FLAC__FileDecoderState FLAC__file_decoder_state(const FLAC__FileDecoder *decoder)
+bool FLAC__file_decoder_set_md5_checking(const FLAC__FileDecoder *decoder, bool value)
+{
+	if(decoder->protected->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		return false;
+	decoder->protected->md5_checking = value;
+	return true;
+}
+
+bool FLAC__file_decoder_set_filename(const FLAC__FileDecoder *decoder, const char *value)
+{
+	if(decoder->protected->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		return false;
+	if(0 == (decoder->private->filename = (char*)malloc(strlen(value)+1))) {
+		decoder->protected->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
+		return false;
+	}
+	strcpy(decoder->private->filename, value);
+	return true;
+}
+
+bool FLAC__file_decoder_set_write_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data))
+{
+	if(decoder->protected->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private->write_callback = value;
+	return true;
+}
+
+bool FLAC__file_decoder_set_metadata_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data))
+{
+	if(decoder->protected->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private->metadata_callback = value;
+	return true;
+}
+
+bool FLAC__file_decoder_set_error_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data))
+{
+	if(decoder->protected->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private->error_callback = value;
+	return true;
+}
+
+bool FLAC__file_decoder_set_client_data(const FLAC__FileDecoder *decoder, void *value)
+{
+	if(decoder->protected->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private->client_data = value;
+	return true;
+}
+
+FLAC__FileDecoderState FLAC__file_decoder_get_state(const FLAC__FileDecoder *decoder)
 {
 	return decoder->protected->state;
 }
 
-bool FLAC__file_decoder_check_md5(const FLAC__FileDecoder *decoder)
+bool FLAC__file_decoder_get_md5_checking(const FLAC__FileDecoder *decoder)
 {
-	return decoder->protected->check_md5;
+	return decoder->protected->md5_checking;
 }
 
 bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
@@ -329,7 +375,7 @@ bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample)
 	decoder->protected->state = FLAC__FILE_DECODER_SEEKING;
 
 	/* turn off md5 checking if a seek is attempted */
-	decoder->protected->check_md5 = false;
+	decoder->protected->md5_checking = false;
 
 	if(!FLAC__stream_decoder_reset(decoder->private->stream_decoder)) {
 		decoder->protected->state = FLAC__FILE_DECODER_STREAM_ERROR;
@@ -421,7 +467,7 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decode
 		}
 	}
 	else {
-		if(file_decoder->protected->check_md5) {
+		if(file_decoder->protected->md5_checking) {
 			if(!FLAC__MD5Accumulate(&file_decoder->private->md5context, buffer, frame->header.channels, frame->header.blocksize, (frame->header.bits_per_sample+7) / 8))
 				return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}
@@ -439,7 +485,7 @@ void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMe
 		/* save the MD5 signature for comparison later */
 		memcpy(file_decoder->private->stored_md5sum, metadata->data.stream_info.md5sum, 16);
 		if(0 == memcmp(file_decoder->private->stored_md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16))
-			file_decoder->protected->check_md5 = false;
+			file_decoder->protected->md5_checking = false;
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_SEEKTABLE) {
 		file_decoder->private->seek_table = &metadata->data.seek_table;
@@ -488,7 +534,7 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 		decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
-	first_frame_offset -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->private->stream_decoder);
+	first_frame_offset -= FLAC__stream_decoder_get_input_bytes_unconsumed(decoder->private->stream_decoder);
 	FLAC__ASSERT(first_frame_offset >= 0);
 
 	/*
@@ -610,7 +656,7 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 						decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 						return false;
 					}
-					pos -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->private->stream_decoder);
+					pos -= FLAC__stream_decoder_get_input_bytes_unconsumed(decoder->private->stream_decoder);
 					needs_seek = false;
 				}
 			}

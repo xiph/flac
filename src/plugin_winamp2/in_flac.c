@@ -41,7 +41,7 @@ typedef struct {
 	unsigned length_in_ms;
 } stream_info_struct;
 
-static bool stream_init(const char *infile);
+static bool stream_init(const char *infilename);
 static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
 static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
@@ -161,7 +161,7 @@ void stop()
 		thread_handle = INVALID_HANDLE_VALUE;
 	}
 	if(decoder) {
-		if(FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(FLAC__file_decoder_get_state(decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
 			FLAC__file_decoder_finish(decoder);
 	}
 
@@ -210,14 +210,20 @@ void getfileinfo(char *filename, char *title, int *length_in_ms)
 			FLAC__FileDecoder *tmp_decoder = FLAC__file_decoder_new();
 			stream_info_struct tmp_stream_info;
 			tmp_stream_info.abort_flag = false;
-			if(FLAC__file_decoder_init(tmp_decoder, false /*md5_check*/, filename, write_callback, metadata_callback, error_callback, &tmp_stream_info) != FLAC__FILE_DECODER_OK)
+			FLAC__file_decoder_set_md5_checking(tmp_decoder, false);
+			FLAC__file_decoder_set_filename(tmp_decoder, filename);
+			FLAC__file_decoder_set_write_callback(tmp_decoder, write_callback);
+			FLAC__file_decoder_set_metadata_callback(tmp_decoder, metadata_callback);
+			FLAC__file_decoder_set_error_callback(tmp_decoder, error_callback);
+			FLAC__file_decoder_set_client_data(tmp_decoder, &tmp_stream_info);
+			if(FLAC__file_decoder_init(tmp_decoder) != FLAC__FILE_DECODER_OK)
 				return;
 			if(!FLAC__file_decoder_process_metadata(tmp_decoder))
 				return;
 
 			*length_in_ms = (int)tmp_stream_info.length_in_ms;
 
-			if(FLAC__file_decoder_state(tmp_decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
+			if(FLAC__file_decoder_get_state(tmp_decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
 				FLAC__file_decoder_finish(tmp_decoder);
 			FLAC__file_decoder_delete(tmp_decoder);
 		}
@@ -261,7 +267,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 		}
 		else if (mod.outMod->CanWrite() >= ((int)(576*channels*bytes_per_sample) << (mod.dsp_isactive()?1:0))) {
 			while(samples_in_reservoir < 576) {
-				if(FLAC__file_decoder_state(decoder) == FLAC__FILE_DECODER_END_OF_FILE) {
+				if(FLAC__file_decoder_get_state(decoder) == FLAC__FILE_DECODER_END_OF_FILE) {
 					done = 1;
 					break;
 				}
@@ -352,9 +358,15 @@ __declspec( dllexport ) In_Module * winampGetInModule2()
 /***********************************************************************
  * local routines
  **********************************************************************/
-bool stream_init(const char *infile)
+bool stream_init(const char *infilename)
 {
-	if(FLAC__file_decoder_init(decoder, false /*md5_check*/, infile, write_callback, metadata_callback, error_callback, &stream_info) != FLAC__FILE_DECODER_OK) {
+	FLAC__file_decoder_set_md5_checking(decoder, false);
+	FLAC__file_decoder_set_filename(decoder, infilename);
+	FLAC__file_decoder_set_write_callback(decoder, write_callback);
+	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback);
+	FLAC__file_decoder_set_error_callback(decoder, error_callback);
+	FLAC__file_decoder_set_client_data(decoder, &stream_info);
+	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK) {
 		MessageBox(mod.hMainWindow,"ERROR initializing decoder, state = %d\n","ERROR initializing decoder",0);
 		return false;
 	}

@@ -276,7 +276,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 
 							/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
 							if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
-								fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper.encoder)]);
+								fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
 								goto wav_abort_;
 							}
 							data_bytes -= bytes_read;
@@ -313,7 +313,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	}
 
 	if(encoder_wrapper.encoder) {
-		if(FLAC__stream_encoder_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
+		if(FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
 			FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
 	}
@@ -338,7 +338,7 @@ wav_abort_:
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0)
 		fprintf(stderr, "\n");
 	if(encoder_wrapper.encoder) {
-		if(FLAC__stream_encoder_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
+		if(FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
 			FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
 	}
@@ -469,14 +469,14 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 
 			/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
 			if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
-				fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper.encoder)]);
+				fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
 				goto raw_abort_;
 			}
 		}
 	}
 
 	if(encoder_wrapper.encoder) {
-		if(FLAC__stream_encoder_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
+		if(FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
 			FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
 	}
@@ -501,7 +501,7 @@ raw_abort_:
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0)
 		fprintf(stderr, "\n");
 	if(encoder_wrapper.encoder) {
-		if(FLAC__stream_encoder_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
+		if(FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_OK)
 			FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
 	}
@@ -566,8 +566,13 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 			fprintf(stderr, "%s: ERROR creating the verify decoder instance\n", encoder_wrapper->inbasefilename);
 			return false;
 		}
-		if(FLAC__stream_decoder_init(encoder_wrapper->verify_fifo.decoder, verify_read_callback, verify_write_callback, verify_metadata_callback, verify_error_callback, encoder_wrapper) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA) {
-			fprintf(stderr, "%s: ERROR initializing decoder, state = %d:%s\n", encoder_wrapper->inbasefilename, FLAC__stream_decoder_state(encoder_wrapper->verify_fifo.decoder), FLAC__StreamDecoderStateString[FLAC__stream_decoder_state(encoder_wrapper->verify_fifo.decoder)]);
+		FLAC__stream_decoder_set_read_callback(encoder_wrapper->verify_fifo.decoder, verify_read_callback);
+		FLAC__stream_decoder_set_write_callback(encoder_wrapper->verify_fifo.decoder, verify_write_callback);
+		FLAC__stream_decoder_set_metadata_callback(encoder_wrapper->verify_fifo.decoder, verify_metadata_callback);
+		FLAC__stream_decoder_set_error_callback(encoder_wrapper->verify_fifo.decoder, verify_error_callback);
+		FLAC__stream_decoder_set_client_data(encoder_wrapper->verify_fifo.decoder, encoder_wrapper);
+		if(FLAC__stream_decoder_init(encoder_wrapper->verify_fifo.decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA) {
+			fprintf(stderr, "%s: ERROR initializing decoder, state = %d:%s\n", encoder_wrapper->inbasefilename, FLAC__stream_decoder_get_state(encoder_wrapper->verify_fifo.decoder), FLAC__StreamDecoderStateString[FLAC__stream_decoder_get_state(encoder_wrapper->verify_fifo.decoder)]);
 			return false;
 		}
 	}
@@ -577,8 +582,30 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 		return false;
 	}
 
-	if(FLAC__stream_encoder_init(encoder_wrapper->encoder, !lax, do_mid_side, loose_mid_side, channels, bps, sample_rate, blocksize, max_lpc_order, qlp_coeff_precision, do_qlp_coeff_prec_search, do_exhaustive_model_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, encoder_wrapper->total_samples_to_encode, (encoder_wrapper->seek_table.num_points > 0)? &encoder_wrapper->seek_table : 0, padding, true /*last_metadata_is_last*/, write_callback, metadata_callback, encoder_wrapper) != FLAC__STREAM_ENCODER_OK) {
-		fprintf(stderr, "%s: ERROR initializing encoder, state = %d:%s\n", encoder_wrapper->inbasefilename, FLAC__stream_encoder_state(encoder_wrapper->encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper->encoder)]);
+	FLAC__stream_encoder_set_streamable_subset(encoder_wrapper->encoder, !lax);
+	FLAC__stream_encoder_set_do_mid_side_stereo(encoder_wrapper->encoder, do_mid_side);
+	FLAC__stream_encoder_set_loose_mid_side_stereo(encoder_wrapper->encoder, loose_mid_side);
+	FLAC__stream_encoder_set_channels(encoder_wrapper->encoder, channels);
+	FLAC__stream_encoder_set_bits_per_sample(encoder_wrapper->encoder, bps);
+	FLAC__stream_encoder_set_sample_rate(encoder_wrapper->encoder, sample_rate);
+	FLAC__stream_encoder_set_blocksize(encoder_wrapper->encoder, blocksize);
+	FLAC__stream_encoder_set_max_lpc_order(encoder_wrapper->encoder, max_lpc_order);
+	FLAC__stream_encoder_set_qlp_coeff_precision(encoder_wrapper->encoder, qlp_coeff_precision);
+	FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder_wrapper->encoder, do_qlp_coeff_prec_search);
+	FLAC__stream_encoder_set_do_exhaustive_model_search(encoder_wrapper->encoder, do_exhaustive_model_search);
+	FLAC__stream_encoder_set_min_residual_partition_order(encoder_wrapper->encoder, min_residual_partition_order);
+	FLAC__stream_encoder_set_max_residual_partition_order(encoder_wrapper->encoder, max_residual_partition_order);
+	FLAC__stream_encoder_set_rice_parameter_search_dist(encoder_wrapper->encoder, rice_parameter_search_dist);
+	FLAC__stream_encoder_set_total_samples_estimate(encoder_wrapper->encoder, encoder_wrapper->total_samples_to_encode);
+	FLAC__stream_encoder_set_seek_table(encoder_wrapper->encoder, (encoder_wrapper->seek_table.num_points > 0)? &encoder_wrapper->seek_table : 0);
+	FLAC__stream_encoder_set_padding(encoder_wrapper->encoder, padding);
+	FLAC__stream_encoder_set_last_metadata_is_last(encoder_wrapper->encoder, true);
+	FLAC__stream_encoder_set_write_callback(encoder_wrapper->encoder, write_callback);
+	FLAC__stream_encoder_set_metadata_callback(encoder_wrapper->encoder, metadata_callback);
+	FLAC__stream_encoder_set_client_data(encoder_wrapper->encoder, encoder_wrapper);
+
+	if(FLAC__stream_encoder_init(encoder_wrapper->encoder) != FLAC__STREAM_ENCODER_OK) {
+		fprintf(stderr, "%s: ERROR initializing encoder, state = %d:%s\n", encoder_wrapper->inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper->encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper->encoder)]);
 		return false;
 	}
 
@@ -783,11 +810,11 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
-	const unsigned mask = (FLAC__stream_encoder_do_exhaustive_model_search(encoder) || FLAC__stream_encoder_do_qlp_coeff_prec_search(encoder))? 0x1f : 0x7f;
+	const unsigned mask = (FLAC__stream_encoder_get_do_exhaustive_model_search(encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(encoder))? 0x1f : 0x7f;
 
 	/* mark the current seek point if hit (if stream_offset == 0 that means we're still writing metadata and haven't hit the first frame yet) */
 	if(encoder_wrapper->stream_offset > 0 && encoder_wrapper->seek_table.num_points > 0) {
-		uint64 current_sample = (uint64)current_frame * (uint64)FLAC__stream_encoder_blocksize(encoder), test_sample;
+		uint64 current_sample = (uint64)current_frame * (uint64)FLAC__stream_encoder_get_blocksize(encoder), test_sample;
 		unsigned i;
 		for(i = encoder_wrapper->first_seek_point_to_check; i < encoder_wrapper->seek_table.num_points; i++) {
 			test_sample = encoder_wrapper->seek_table.points[i].sample_number;
@@ -796,7 +823,7 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 			}
 			else if(test_sample == current_sample) {
 				encoder_wrapper->seek_table.points[i].stream_offset = encoder_wrapper->bytes_written - encoder_wrapper->stream_offset;
-				encoder_wrapper->seek_table.points[i].frame_samples = FLAC__stream_encoder_blocksize(encoder);
+				encoder_wrapper->seek_table.points[i].frame_samples = FLAC__stream_encoder_get_blocksize(encoder);
 				encoder_wrapper->first_seek_point_to_check++;
 				break;
 			}
@@ -953,8 +980,8 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	unsigned channel, l, r;
-	const unsigned channels = FLAC__stream_decoder_channels(decoder);
-	const unsigned bytes_per_block = sizeof(int32) * FLAC__stream_decoder_blocksize(decoder);
+	const unsigned channels = FLAC__stream_decoder_get_channels(decoder);
+	const unsigned bytes_per_block = sizeof(int32) * FLAC__stream_decoder_get_blocksize(decoder);
 
 	for(channel = 0; channel < channels; channel++) {
 		if(0 != memcmp(buffer[channel], encoder_wrapper->verify_fifo.original[channel], bytes_per_block)) {

@@ -33,6 +33,7 @@ typedef enum {
 	FLAC__FILE_DECODER_MD5_ERROR,
 	FLAC__FILE_DECODER_STREAM_DECODER_ERROR,
     FLAC__FILE_DECODER_ALREADY_INITIALIZED,
+    FLAC__FILE_DECODER_INVALID_CALLBACK,
     FLAC__FILE_DECODER_UNINITIALIZED
 } FLAC__FileDecoderState;
 extern const char *FLAC__FileDecoderStateString[];
@@ -56,6 +57,17 @@ typedef struct {
  *
  ***********************************************************************/
 
+/*
+ * Any parameters that are not set before FLAC__file_decoder_init()
+ * will take on the defaults from the constructor, shown below.
+ * For more on what the parameters mean, see the documentation.
+ *
+ * bool     md5_checking                   (DEFAULT: false) MD5 checking will be turned off if a seek is requested
+ *        (*write_callback)()              (DEFAULT: NULL ) The callbacks are the only values that MUST be set before FLAC__file_decoder_init()
+ *        (*metadata_callback)()           (DEFAULT: NULL )
+ *        (*error_callback)()              (DEFAULT: NULL )
+ * void*    client_data                    (DEFAULT: NULL ) passed back through the callbacks
+ */
 FLAC__FileDecoder *FLAC__file_decoder_new();
 void FLAC__file_decoder_delete(FLAC__FileDecoder *);
 
@@ -66,34 +78,53 @@ void FLAC__file_decoder_delete(FLAC__FileDecoder *);
  ***********************************************************************/
 
 /*
- * Initialize the instance; should be called after construction and
- * before any other calls.  Will set and return the decoder state,
- * which will be FLAC__FILE_DECODER_OK if initialization succeeded.
+ * Various "set" methods.  These may only be called when the decoder
+ * is in the state FLAC__FILE_DECODER_UNINITIALIZED, i.e. after
+ * FLAC__file_decoder_new() or FLAC__file_decoder_finish(), but
+ * before FLAC__file_decoder_init().  If this is the case they will
+ * return true, otherwise false.
+ *
+ * NOTE that these functions do not validate the values as many are
+ * interdependent.  The FLAC__file_decoder_init() function will do
+ * this, so make sure to pay attention to the state returned by
+ * FLAC__file_decoder_init().
+ *
+ * Any parameters that are not set before FLAC__file_decoder_init()
+ * will take on the defaults from the constructor.  NOTE that
+ * FLAC__file_decoder_flush() or FLAC__file_decoder_reset() do
+ * NOT reset the values to the constructor defaults.
  */
-FLAC__FileDecoderState FLAC__file_decoder_init(
-	FLAC__FileDecoder *decoder,
-	bool check_md5,
-	const char *filename,
-	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data),
-	void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data),
-	void (*error_callback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data),
-	void *client_data
-);
+bool FLAC__file_decoder_set_md5_checking(const FLAC__FileDecoder *decoder, bool value);
+bool FLAC__file_decoder_set_filename(const FLAC__FileDecoder *decoder, const char *value);
+bool FLAC__file_decoder_set_write_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data));
+bool FLAC__file_decoder_set_metadata_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
+bool FLAC__file_decoder_set_error_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
+bool FLAC__file_decoder_set_client_data(const FLAC__FileDecoder *decoder, void *value);
+
 /*
- * only returns false if check_md5 is set AND the stored MD5 sum
- * is non-zero AND the stored MD5 sum and computed MD5 sum do not
- * match
+ * Various "get" methods
+ */
+FLAC__FileDecoderState FLAC__file_decoder_get_state(const FLAC__FileDecoder *decoder);
+bool FLAC__file_decoder_get_md5_checking(const FLAC__FileDecoder *decoder);
+
+/*
+ * Initialize the instance; should be called after construction and
+ * 'set' calls but before any of the 'process' or 'seek' calls.  Will
+ * set and return the decoder state, which will be FLAC__FILE_DECODER_OK
+ * if initializationsucceeded.
+ */
+FLAC__FileDecoderState FLAC__file_decoder_init(FLAC__FileDecoder *decoder);
+
+/*
+ * Flush the decoding buffer, release resources, and return the decoder
+ * state to FLAC__FILE_DECODER_UNINITIALIZED.  Only returns false if
+ * md5_checking is set AND the stored MD5 sum is non-zero AND the stored
+ * MD5 sum and computed MD5 sum do not match.
  */
 bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder);
 
 /*
- * methods to return the file decoder state and check_md5 flag
- */
-FLAC__FileDecoderState FLAC__file_decoder_state(const FLAC__FileDecoder *decoder);
-bool FLAC__file_decoder_check_md5(const FLAC__FileDecoder *decoder);
-
-/*
- * methods for decoding the data
+ * Methods for decoding the data
  */
 bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder);
 bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder);

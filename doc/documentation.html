@@ -800,6 +800,7 @@
 	<P>
 		The file decoder is a wrapper around the stream decoder meant to simplfy the process of decoding from a file.  The instance type is <TT>FLAC__FileDecoder</TT>.  The flow and callbacks are similar to that of the stream decoder.  However, a file path replaces the read callback argument during initialization.  The program needs only to provide the path to the file and the file decoder handles the read callbacks.  The remaining callbacks and process functions are analogous to their stream decoder counterparts.
 	</P>
+@@@MD5 checking
 	<P>
 		Since the file decoder manages the input automatically, it also can provide seeking.  This is exposed through the <TT>FLAC__file_decoder_seek_absolute()</TT> method.  At any point after the file decoder has been initialized, the program can call this function to seek to an exact sample within the file.  Subsequently, the first time the write callback is called it will contain a (possibly partial) block starting at that sample.
 	</P>

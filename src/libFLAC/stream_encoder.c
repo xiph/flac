@@ -130,6 +130,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 
 const char *FLAC__StreamEncoderStateString[] = {
 	"FLAC__STREAM_ENCODER_OK",
+	"FLAC__STREAM_ENCODER_INVALID_CALLBACK",
 	"FLAC__STREAM_ENCODER_INVALID_NUMBER_OF_CHANNELS",
 	"FLAC__STREAM_ENCODER_INVALID_BITS_PER_SAMPLE",
 	"FLAC__STREAM_ENCODER_INVALID_SAMPLE_RATE",
@@ -182,6 +183,29 @@ FLAC__StreamEncoder *FLAC__stream_encoder_new()
 
 	encoder->protected->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
 
+	encoder->protected->streamable_subset = true;
+	encoder->protected->do_mid_side_stereo = false;
+	encoder->protected->loose_mid_side_stereo = false;
+	encoder->protected->channels = 2;
+	encoder->protected->bits_per_sample = 16;
+	encoder->protected->sample_rate = 44100;
+	encoder->protected->blocksize = 1152;
+	encoder->protected->max_lpc_order = 0;
+	encoder->protected->qlp_coeff_precision = 0;
+	encoder->protected->do_qlp_coeff_prec_search = false;
+	encoder->protected->do_exhaustive_model_search = false;
+	encoder->protected->min_residual_partition_order = 0;
+	encoder->protected->max_residual_partition_order = 0;
+	encoder->protected->rice_parameter_search_dist = 0;
+	encoder->protected->total_samples_estimate = 0;
+	encoder->protected->seek_table = 0;
+	encoder->protected->padding = 0;
+	encoder->protected->last_metadata_is_last = true;
+
+	encoder->private->write_callback = 0;
+	encoder->private->metadata_callback = 0;
+	encoder->private->client_data = 0;
+
 	return encoder;
 }
 
@@ -202,59 +226,21 @@ void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
  *
  ***********************************************************************/
 
-FLAC__StreamEncoderState FLAC__stream_encoder_init(
-	FLAC__StreamEncoder *encoder,
-	bool streamable_subset,
-	bool do_mid_side_stereo,
-	bool loose_mid_side_stereo,
-	unsigned channels,
-	unsigned bits_per_sample,
-	unsigned sample_rate,
-	unsigned blocksize,
-	unsigned max_lpc_order,
-	unsigned qlp_coeff_precision,
-	bool do_qlp_coeff_prec_search,
-	bool do_exhaustive_model_search,
-	unsigned min_residual_partition_order,
-	unsigned max_residual_partition_order,
-	unsigned rice_parameter_search_dist,
-	uint64 total_samples_estimate,
-	const FLAC__StreamMetaData_SeekTable *seek_table,
-	unsigned padding,
-	bool last_metadata_is_last,
-	FLAC__StreamEncoderWriteStatus (*write_callback)(const FLAC__StreamEncoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data),
-	void (*metadata_callback)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data),
-	void *client_data)
+FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 {
 	unsigned i;
 	FLAC__StreamMetaData padding_block;
 	FLAC__StreamMetaData seek_table_block;
 
 	FLAC__ASSERT(encoder != 0);
-	FLAC__ASSERT(write_callback != 0);
-	FLAC__ASSERT(metadata_callback != 0);
 
 	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return encoder->protected->state = FLAC__STREAM_ENCODER_ALREADY_INITIALIZED;
 
 	encoder->protected->state = FLAC__STREAM_ENCODER_OK;
 
-	encoder->protected->streamable_subset = streamable_subset;
-	encoder->protected->do_mid_side_stereo = do_mid_side_stereo;
-	encoder->protected->loose_mid_side_stereo = loose_mid_side_stereo;
-	encoder->protected->channels = channels;
-	encoder->protected->bits_per_sample = bits_per_sample;
-	encoder->protected->sample_rate = sample_rate;
-	encoder->protected->blocksize = blocksize;
-	encoder->protected->max_lpc_order = max_lpc_order;
-	encoder->protected->qlp_coeff_precision = qlp_coeff_precision;
-	encoder->protected->do_qlp_coeff_prec_search = do_qlp_coeff_prec_search;
-	encoder->protected->do_exhaustive_model_search = do_exhaustive_model_search;
-	encoder->protected->min_residual_partition_order = min_residual_partition_order;
-	encoder->protected->max_residual_partition_order = max_residual_partition_order;
-	encoder->protected->rice_parameter_search_dist = rice_parameter_search_dist;
-	encoder->protected->total_samples_estimate = total_samples_estimate;
-	encoder->protected->seek_table = seek_table;
+	if(0 == encoder->private->write_callback || 0 == encoder->private->metadata_callback)
+		return encoder->protected->state = FLAC__STREAM_ENCODER_INVALID_CALLBACK;
 
 	if(encoder->protected->channels == 0 || encoder->protected->channels > FLAC__MAX_CHANNELS)
 		return encoder->protected->state = FLAC__STREAM_ENCODER_INVALID_NUMBER_OF_CHANNELS;
@@ -411,9 +397,6 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(
 		return encoder->protected->state;
 	}
 	FLAC__bitbuffer_init(&encoder->private->frame);
-	encoder->private->write_callback = write_callback;
-	encoder->private->metadata_callback = metadata_callback;
-	encoder->private->client_data = client_data;
 
 	/*
 	 * write the stream header
@@ -425,7 +408,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(
 		return encoder->protected->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 
 	encoder->private->metadata.type = FLAC__METADATA_TYPE_STREAMINFO;
-	encoder->private->metadata.is_last = (encoder->protected->seek_table == 0 && padding == 0 && last_metadata_is_last);
+	encoder->private->metadata.is_last = (encoder->protected->seek_table == 0 && encoder->protected->padding == 0 && encoder->protected->last_metadata_is_last);
 	encoder->private->metadata.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
 	encoder->private->metadata.data.stream_info.min_blocksize = encoder->protected->blocksize; /* this encoder uses the same blocksize for the whole stream */
 	encoder->private->metadata.data.stream_info.max_blocksize = encoder->protected->blocksize;
@@ -444,7 +427,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(
 		if(!FLAC__seek_table_is_valid(encoder->protected->seek_table))
 			return encoder->protected->state = FLAC__STREAM_ENCODER_INVALID_SEEK_TABLE;
 		seek_table_block.type = FLAC__METADATA_TYPE_SEEKTABLE;
-		seek_table_block.is_last = (padding == 0 && last_metadata_is_last);
+		seek_table_block.is_last = (encoder->protected->padding == 0 && encoder->protected->last_metadata_is_last);
 		seek_table_block.length = encoder->protected->seek_table->num_points * FLAC__STREAM_METADATA_SEEKPOINT_LEN;
 		seek_table_block.data.seek_table = *encoder->protected->seek_table;
 		if(!FLAC__add_metadata_block(&seek_table_block, &encoder->private->frame))
@@ -452,10 +435,10 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(
 	}
 
 	/* add a PADDING block if requested */
-	if(padding > 0) {
+	if(encoder->protected->padding > 0) {
 		padding_block.type = FLAC__METADATA_TYPE_PADDING;
-		padding_block.is_last = last_metadata_is_last;
-		padding_block.length = padding;
+		padding_block.is_last = encoder->protected->last_metadata_is_last;
+		padding_block.length = encoder->protected->padding;
 		if(!FLAC__add_metadata_block(&padding_block, &encoder->private->frame))
 			return encoder->protected->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 	}
@@ -539,77 +522,245 @@ void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	encoder->protected->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
 }
 
-FLAC__StreamEncoderState FLAC__stream_encoder_state(const FLAC__StreamEncoder *encoder)
+bool FLAC__stream_encoder_set_streamable_subset(const FLAC__StreamEncoder *encoder, bool value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->streamable_subset = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_do_mid_side_stereo(const FLAC__StreamEncoder *encoder, bool value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->do_mid_side_stereo = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder, bool value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->loose_mid_side_stereo = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_channels(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->channels = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_bits_per_sample(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->bits_per_sample = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_sample_rate(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->sample_rate = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_blocksize(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->blocksize = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_max_lpc_order(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->max_lpc_order = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_qlp_coeff_precision(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->qlp_coeff_precision = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_do_qlp_coeff_prec_search(const FLAC__StreamEncoder *encoder, bool value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->do_qlp_coeff_prec_search = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_do_exhaustive_model_search(const FLAC__StreamEncoder *encoder, bool value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->do_exhaustive_model_search = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_min_residual_partition_order(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->min_residual_partition_order = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_max_residual_partition_order(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->max_residual_partition_order = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_rice_parameter_search_dist(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->rice_parameter_search_dist = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_total_samples_estimate(const FLAC__StreamEncoder *encoder, uint64 value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->total_samples_estimate = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_seek_table(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData_SeekTable *value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->seek_table = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_padding(const FLAC__StreamEncoder *encoder, unsigned value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->padding = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_last_metadata_is_last(const FLAC__StreamEncoder *encoder, bool value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected->last_metadata_is_last = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_write_callback(const FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__StreamEncoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data))
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private->write_callback = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_metadata_callback(const FLAC__StreamEncoder *encoder, void (*value)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data))
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private->metadata_callback = value;
+	return true;
+}
+
+bool FLAC__stream_encoder_set_client_data(const FLAC__StreamEncoder *encoder, void *value)
+{
+	if(encoder->protected->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private->client_data = value;
+	return true;
+}
+
+FLAC__StreamEncoderState FLAC__stream_encoder_get_state(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->state;
 }
 
-bool FLAC__stream_encoder_streamable_subset(const FLAC__StreamEncoder *encoder)
+bool FLAC__stream_encoder_get_streamable_subset(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->streamable_subset;
 }
 
-bool FLAC__stream_encoder_do_mid_side_stereo(const FLAC__StreamEncoder *encoder)
+bool FLAC__stream_encoder_get_do_mid_side_stereo(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->do_mid_side_stereo;
 }
 
-bool FLAC__stream_encoder_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder)
+bool FLAC__stream_encoder_get_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->loose_mid_side_stereo;
 }
 
-unsigned FLAC__stream_encoder_channels(const FLAC__StreamEncoder *encoder)
+unsigned FLAC__stream_encoder_get_channels(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->channels;
 }
 
-unsigned FLAC__stream_encoder_bits_per_sample(const FLAC__StreamEncoder *encoder)
+unsigned FLAC__stream_encoder_get_bits_per_sample(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->bits_per_sample;
 }
 
-unsigned FLAC__stream_encoder_sample_rate(const FLAC__StreamEncoder *encoder)
+unsigned FLAC__stream_encoder_get_sample_rate(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->sample_rate;
 }
 
-unsigned FLAC__stream_encoder_blocksize(const FLAC__StreamEncoder *encoder)
+unsigned FLAC__stream_encoder_get_blocksize(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->blocksize;
 }
 
-unsigned FLAC__stream_encoder_max_lpc_order(const FLAC__StreamEncoder *encoder)
+unsigned FLAC__stream_encoder_get_max_lpc_order(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->max_lpc_order;
 }
 
-unsigned FLAC__stream_encoder_qlp_coeff_precision(const FLAC__StreamEncoder *encoder)
+unsigned FLAC__stream_encoder_get_qlp_coeff_precision(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->qlp_coeff_precision;
 }
 
-bool FLAC__stream_encoder_do_qlp_coeff_prec_search(const FLAC__StreamEncoder *encoder)
+bool FLAC__stream_encoder_get_do_qlp_coeff_prec_search(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->do_qlp_coeff_prec_search;
 }
 
-bool FLAC__stream_encoder_do_exhaustive_model_search(const FLAC__StreamEncoder *encoder)
+bool FLAC__stream_encoder_get_do_exhaustive_model_search(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->do_exhaustive_model_search;
 }
 
-unsigned FLAC__stream_encoder_min_residual_partition_order(const FLAC__StreamEncoder *encoder)
+unsigned FLAC__stream_encoder_get_min_residual_partition_order(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->min_residual_partition_order;
 }
 
-unsigned FLAC__stream_encoder_max_residual_partition_order(const FLAC__StreamEncoder *encoder)
+unsigned FLAC__stream_encoder_get_max_residual_partition_order(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->max_residual_partition_order;
 }
 
-unsigned FLAC__stream_encoder_rice_parameter_search_dist(const FLAC__StreamEncoder *encoder)
+unsigned FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC__StreamEncoder *encoder)
 {
 	return encoder->protected->rice_parameter_search_dist;
 }
@@ -1637,4 +1788,3 @@ unsigned stream_encoder_get_wasted_bits_(int32 signal[], unsigned samples)
 
 	return shift;
 }
-

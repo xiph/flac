@@ -104,6 +104,7 @@ const char *FLAC__StreamDecoderStateString[] = {
 	"FLAC__STREAM_DECODER_UNPARSEABLE_STREAM",
 	"FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR",
 	"FLAC__STREAM_DECODER_ALREADY_INITIALIZED",
+	"FLAC__STREAM_DECODER_INVALID_CALLBACK",
 	"FLAC__STREAM_DECODER_UNINITIALIZED"
 };
 
@@ -153,6 +154,12 @@ FLAC__StreamDecoder *FLAC__stream_decoder_new()
 
 	decoder->protected->state = FLAC__STREAM_DECODER_UNINITIALIZED;
 
+	decoder->private->read_callback = 0;
+	decoder->private->write_callback = 0;
+	decoder->private->metadata_callback = 0;
+	decoder->private->error_callback = 0;
+	decoder->private->client_data = 0;
+
 	return decoder;
 }
 
@@ -173,32 +180,19 @@ void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder)
  *
  ***********************************************************************/
 
-FLAC__StreamDecoderState FLAC__stream_decoder_init(
-	FLAC__StreamDecoder *decoder,
-    FLAC__StreamDecoderReadStatus (*read_callback)(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data),
-    FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data),
-    void (*metadata_callback)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data),
-    void (*error_callback)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data),
-    void *client_data)
+FLAC__StreamDecoderState FLAC__stream_decoder_init(FLAC__StreamDecoder *decoder)
 {
 	unsigned i;
 
 	FLAC__ASSERT(decoder != 0);
-	FLAC__ASSERT(read_callback != 0);
-	FLAC__ASSERT(write_callback != 0);
-	FLAC__ASSERT(metadata_callback != 0);
-	FLAC__ASSERT(error_callback != 0);
 
 	if(decoder->protected->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return decoder->protected->state = FLAC__STREAM_DECODER_ALREADY_INITIALIZED;
 
 	decoder->protected->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
 
-	decoder->private->read_callback = read_callback;
-	decoder->private->write_callback = write_callback;
-	decoder->private->metadata_callback = metadata_callback;
-	decoder->private->error_callback = error_callback;
-	decoder->private->client_data = client_data;
+	if(0 == decoder->private->read_callback || 0 == decoder->private->write_callback || 0 == decoder->private->metadata_callback || 0 == decoder->private->error_callback)
+		return decoder->protected->state = FLAC__STREAM_DECODER_INVALID_CALLBACK;
 
 	FLAC__bitbuffer_init(&decoder->private->input);
 
@@ -267,32 +261,72 @@ void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	decoder->protected->state = FLAC__STREAM_DECODER_UNINITIALIZED;
 }
 
-FLAC__StreamDecoderState FLAC__stream_decoder_state(const FLAC__StreamDecoder *decoder)
+bool FLAC__stream_decoder_set_read_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadStatus (*value)(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data))
+{
+	if(decoder->protected->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private->read_callback = value;
+	return true;
+}
+
+bool FLAC__stream_decoder_set_write_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data))
+{
+	if(decoder->protected->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private->write_callback = value;
+	return true;
+}
+
+bool FLAC__stream_decoder_set_metadata_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data))
+{
+	if(decoder->protected->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private->metadata_callback = value;
+	return true;
+}
+
+bool FLAC__stream_decoder_set_error_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data))
+{
+	if(decoder->protected->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private->error_callback = value;
+	return true;
+}
+
+bool FLAC__stream_decoder_set_client_data(const FLAC__StreamDecoder *decoder, void *value)
+{
+	if(decoder->protected->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private->client_data = value;
+	return true;
+}
+
+FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__StreamDecoder *decoder)
 {
 	return decoder->protected->state;
 }
 
-unsigned FLAC__stream_decoder_channels(const FLAC__StreamDecoder *decoder)
+unsigned FLAC__stream_decoder_get_channels(const FLAC__StreamDecoder *decoder)
 {
 	return decoder->protected->channels;
 }
 
-FLAC__ChannelAssignment FLAC__stream_decoder_channel_assignment(const FLAC__StreamDecoder *decoder)
+FLAC__ChannelAssignment FLAC__stream_decoder_get_channel_assignment(const FLAC__StreamDecoder *decoder)
 {
 	return decoder->protected->channel_assignment;
 }
 
-unsigned FLAC__stream_decoder_bits_per_sample(const FLAC__StreamDecoder *decoder)
+unsigned FLAC__stream_decoder_get_bits_per_sample(const FLAC__StreamDecoder *decoder)
 {
 	return decoder->protected->bits_per_sample;
 }
 
-unsigned FLAC__stream_decoder_sample_rate(const FLAC__StreamDecoder *decoder)
+unsigned FLAC__stream_decoder_get_sample_rate(const FLAC__StreamDecoder *decoder)
 {
 	return decoder->protected->sample_rate;
 }
 
-unsigned FLAC__stream_decoder_blocksize(const FLAC__StreamDecoder *decoder)
+unsigned FLAC__stream_decoder_get_blocksize(const FLAC__StreamDecoder *decoder)
 {
 	return decoder->protected->blocksize;
 }
@@ -464,7 +498,7 @@ bool FLAC__stream_decoder_process_remaining_frames(FLAC__StreamDecoder *decoder)
  *
  ***********************************************************************/
 
-unsigned FLAC__stream_decoder_input_bytes_unconsumed(const FLAC__StreamDecoder *decoder)
+unsigned FLAC__stream_decoder_get_input_bytes_unconsumed(const FLAC__StreamDecoder *decoder)
 {
 	FLAC__ASSERT(decoder != 0);
 	return decoder->private->input.bytes - decoder->private->input.consumed_bytes;

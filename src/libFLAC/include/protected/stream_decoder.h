@@ -34,6 +34,6 @@ typedef struct FLAC__StreamDecoderProtected {
 /*
  * return the number of input bytes consumed
  */
-unsigned FLAC__stream_decoder_input_bytes_unconsumed(const FLAC__StreamDecoder *decoder);
+unsigned FLAC__stream_decoder_get_input_bytes_unconsumed(const FLAC__StreamDecoder *decoder);
 
 #endif
