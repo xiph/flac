@@ -942,7 +942,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 			decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
 			return false;
 		}
-		pos = (FLAC__int32)upos;
+		pos = (FLAC__int64)upos;
 		needs_seek = false;
 	}
 	else
@@ -1000,7 +1000,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 						return false;
 					}
 					last_pos = pos;
-					pos = (FLAC__int32)upos;
+					pos = (FLAC__int64)upos;
 					pos -= FLAC__stream_decoder_get_input_bytes_unconsumed(decoder->private_->stream_decoder);
 					needs_seek = false;
 					/*
