@@ -677,7 +677,7 @@ framesize_:
 	b = (byte)(max_framesize & 0xFF);
 	if(fwrite(&b, 1, 1, f) != 1) goto end_;
 end_:
-	fclose(encoder_wrapper->fout);
+	fclose(f);
 	return;
 }
 
