@@ -1487,7 +1487,7 @@
 				Encoded residual.  The number of samples (n) in the partition is determined as follows:<BR>
 				<UL>
 				<LI>
-					if the partition order is zero, n = frame's blocksize
+					if the partition order is zero, n = frame's blocksize - predictor order
 				</LI>
 				<LI>
 					else if this is not the first partition of the subframe, n = (frame's blocksize / (2^partition order))
