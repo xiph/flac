@@ -28,6 +28,9 @@ libFLAC:
 flac: libFLAC
 	(cd src/$@ ; make $(CONFIG))
 
+plugin_xmms: libFLAC
+	(cd src/$@ ; make $(CONFIG))
+
 test_streams: libFLAC
 	(cd src/$@ ; make $(CONFIG))
 
