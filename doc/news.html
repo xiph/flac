@@ -55,12 +55,26 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
+		<A NAME="20010128">28-Jan-2001:</A>
+	</P>
+	<P>
+	<UL>
+		<LI>
+			<B>FLAC 0.6 released.</B>&nbsp;&nbsp;The encoder is now much faster.  The -m option has been sped up by 4x and -r improved, meaning that in the default compression mode (-6), encoding should be at least 3 times faster.  Other changes:
+			<UL>
+				<LI>Some bugs related to <B><TT>flac</TT></B> and pipes were fixed (see <A HREF="http://www.geocrawler.com/lists/3/SourceForge/7206/0/5013495/">here</A> for the discussion).</LI>
+				<LI>An analyze mode (<B><TT>-a</TT></B>) has been added to <B><TT>flac</TT></B>.  This is useful mainly for developers; currently it will dump info about each frame and subframe to a file.  It's a text file in a format that can be easily processed by scripts; a separate analysis program is in the works.</LI>
+			</UL>
+		</LI>
+	</UL>
+	</P>
+	<P>
 		<A NAME="20010115">15-Jan-2001:</A>
 	</P>
 	<P>
 	<UL>
 		<LI>
-			<B>FLAC 0.5 released.</B>  This is the first beta version of FLAC.  Being beta, there will be no changes to the format that will break older streams, unless a serious bug involving the format is found.  What this means is that, barring such a bug, streams created with 0.5 will be decodable by future versions.  This version also includes some new features:
+			<B>FLAC 0.5 released.</B>&nbsp;&nbsp;This is the first beta version of FLAC.  Being beta, there will be no changes to the format that will break older streams, unless a serious bug involving the format is found.  What this means is that, barring such a bug, streams created with 0.5 will be decodable by future versions.  This version also includes some new features:
 			<UL>
 				<LI>An <A HREF="http://userpages.umbc.edu/~mabzug1/cs/md5/md5.html">MD5 signature</A> of the unencoded audio is computed during encoding, and stored in the Encoding metadata block in the stream header.  When decoding, <B><TT>flac</TT></B> will now compute the MD5 signature of the decoded data and compare it against the signature in the stream header.</LI>
 				<LI>A test mode (<B><TT>-t</TT></B>) has been added to <B><TT>flac</TT></B>.  It works like decode mode but doesn't write an output file.</LI>
@@ -73,7 +87,7 @@
 	</P>
 	<P>
 	<UL>
-		<LI><B>FLAC 0.4 released.</B>  This version fixes a bug in the constant subframe detection.  More importantly, a verify option (-V) has been added to <B><TT>flac</TT></B> that verifies the encoding process.  With this option turned on, <B><TT>flac</TT></B> will create a parallel decoder while encoding to make sure that the encoded output decodes to exactly match the original input.  In this way, any unknown bug in the encoder will be caught and <B><TT>flac</TT></B> will abort with an error message.</LI>
+		<LI><B>FLAC 0.4 released.</B>&nbsp;&nbsp;This version fixes a bug in the constant subframe detection.  More importantly, a verify option (-V) has been added to <B><TT>flac</TT></B> that verifies the encoding process.  With this option turned on, <B><TT>flac</TT></B> will create a parallel decoder while encoding to make sure that the encoded output decodes to exactly match the original input.  In this way, any unknown bug in the encoder will be caught and <B><TT>flac</TT></B> will abort with an error message.</LI>
 	</UL>
 	</P>
 	<P>
@@ -81,7 +95,7 @@
 	</P>
 	<P>
 	<UL>
-		<LI><B>FLAC debuts on SourceForge.</B>  The FLAC project is now being hosted on SourceForge.  Visit the <A HREF="http://www.sourceforge.net/projects/projects/flac/">FLAC project page</A> to join the mailing list or sign up as a developer.</LI>
+		<LI><B>FLAC debuts on SourceForge.</B>&nbsp;&nbsp;The FLAC project is now being hosted on SourceForge.  Visit the <A HREF="http://www.sourceforge.net/projects/projects/flac/">FLAC project page</A> to join the mailing list or sign up as a developer.</LI>
 	</UL>
 	</P>
 	</FONT>
