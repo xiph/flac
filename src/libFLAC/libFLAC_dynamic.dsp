@@ -104,7 +104,7 @@ USERDEP__CPU_A="ia32/cpu_asm.nasm"
 InputPath=.\ia32\cpu_asm.nasm
 
 "ia32/cpu_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	%FLAC_NASM% -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
+	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
 
 # End Custom Build
 
@@ -115,7 +115,7 @@ USERDEP__CPU_A="ia32/cpu_asm.nasm"
 InputPath=.\ia32\cpu_asm.nasm
 
 "ia32/cpu_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	%FLAC_NASM% -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
+	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
 
 # End Custom Build
 
@@ -133,7 +133,7 @@ USERDEP__FIXED="ia32/fixed_asm.nasm"
 InputPath=.\ia32\fixed_asm.nasm
 
 "ia32/fixed_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	%FLAC_NASM% -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
+	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
 
 # End Custom Build
 
@@ -144,7 +144,7 @@ USERDEP__FIXED="ia32/fixed_asm.nasm"
 InputPath=.\ia32\fixed_asm.nasm
 
 "ia32/fixed_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	%FLAC_NASM% -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
+	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
 
 # End Custom Build
 
@@ -162,7 +162,7 @@ USERDEP__LPC_A="ia32/lpc_asm.nasm"
 InputPath=.\ia32\lpc_asm.nasm
 
 "ia32/lpc_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	%FLAC_NASM% -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
+	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
 
 # End Custom Build
 
@@ -173,7 +173,7 @@ USERDEP__LPC_A="ia32/lpc_asm.nasm"
 InputPath=.\ia32\lpc_asm.nasm
 
 "ia32/lpc_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	%FLAC_NASM% -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
+	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
 
 # End Custom Build
 
@@ -385,7 +385,7 @@ InputDir=..\..\include\FLAC
 InputPath=..\..\include\FLAC\ordinals.h.in
 
 "$(InputDir)\ordinals.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputDir)\ordinals.h.in $(InputDir)\ordinals.h
+	copy "$(InputDir)\ordinals.h.in" "$(InputDir)\ordinals.h"
 
 # End Custom Build
 
@@ -397,7 +397,7 @@ InputDir=..\..\include\FLAC
 InputPath=..\..\include\FLAC\ordinals.h.in
 
 "$(InputDir)\ordinals.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputDir)\ordinals.h.in $(InputDir)\ordinals.h
+	copy "$(InputDir)\ordinals.h.in" "$(InputDir)\ordinals.h"
 
 # End Custom Build
 
