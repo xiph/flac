@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "09 September 2004" "" ""
+.TH "FLAC" "1" "01 February 2005" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -141,7 +141,7 @@ The optional first #.# is the track and index point at
 which decoding will start; the default is the beginning
 of the stream.  The optional second #.# is the track
 and index point at which decoding will end; the default
-is the end of the stream.  If the seekpoint does not
+is the end of the stream.  If the cuepoint does not
 exist, the closest one before it (for the start point)
 or after it (for the end point) will be used.  If those
 don't exist, the start of the stream (for the start
@@ -332,6 +332,16 @@ Set sample rate (in Hz).
 .TP
 \fB--sign={\fIsigned\fB|\fIunsigned\fB}\fR
 Set the sign of samples (the default is signed).
+.TP
+\fB--input-size=\fI#\fB\fR
+Specify the size of the raw input in bytes.  If you are
+encoding raw samples from stdin, you must set this option
+in order to be able to use --skip, --until, --cue-sheet, or
+other options that need to know the size of the input
+beforehand.  If the size given is greater than what is
+found in the input stream, the encoder will complain about
+an unexpected end-of-file.  If the size given is less,
+samples will be truncated.
 .TP
 \fB--force-aiff-format\fR
 Force the decoder to output AIFF format.  This option

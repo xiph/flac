@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "METAFLAC" "1" "14 September 2004" "" ""
+.TH "METAFLAC" "1" "01 February 2005" "" ""
 .SH NAME
 metaflac \- program to list, add, remove, or edit metadata in one or more FLAC files.
 .SH SYNOPSIS
@@ -93,14 +93,14 @@ line will be of the form NAME=VALUE.  Specify
 --no-utf8-convert if necessary.
 .TP
 \fB--import-cuesheet-from=file\fR
-Import a cuesheet from a file.  Only one FLAC file may be
-specified.  A seekpoint will be added for each index point in
-the cuesheet to the SEEKTABLE unless --no-cued-seekpoints is
-specified.
+Import a cuesheet from a file.  Use '-' for stdin.  Only one
+FLAC file may be specified.  A seekpoint will be added for each
+index point in the cuesheet to the SEEKTABLE unless
+--no-cued-seekpoints is specified.
 .TP
 \fB--export-cuesheet-to=file\fR
 Export CUESHEET block to a cuesheet file, suitable for use by
-CD authoring software.  Use '-' for stdin.  Only one FLAC file
+CD authoring software.  Use '-' for stdout.  Only one FLAC file
 may be specified on the command line.
 .TP
 \fB--add-replay-gain\fR
@@ -150,7 +150,7 @@ The first block, the STREAMINFO block, is block 0.
 \fB--block-type=type[,type[...]]\fR
 .TP
 \fB--except-block-type=type[,type[...]]\fR
-An optional comma-separated list of block types to included
+An optional comma-separated list of block types to be included
 or ignored with this option.  Use only one of --block-type or
 --except-block-type.  The valid block types are: STREAMINFO,
 PADDING, APPLICATION, SEEKTABLE, VORBIS_COMMENT.  You may
