@@ -22,6 +22,7 @@ SUBDIRS = ru images
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/html
 
 doc_DATA =  \
+	changelog.html \
 	comparison.html \
 	developers.html \
 	documentation.html \
@@ -31,6 +32,7 @@ doc_DATA =  \
 	goals.html \
 	id.html \
 	index.html \
+	links.html \
 	news.html
 
 EXTRA_DIST = $(doc_DATA) api
