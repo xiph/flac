@@ -836,10 +836,8 @@ FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder 
 	encoder->private_->metadata.data.stream_info.total_samples = encoder->protected_->total_samples_estimate; /* we will replace this later with the real total */
 	memset(encoder->private_->metadata.data.stream_info.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
 	MD5Init(&encoder->private_->md5context);
-	if(!FLAC__bitbuffer_clear(encoder->private_->frame)) {
-		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-		return false;
-	}
+	if(!FLAC__bitbuffer_clear(encoder->private_->frame))
+		return encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 	if(!FLAC__add_metadata_block(&encoder->private_->metadata, encoder->private_->frame))
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 	if(!write_bitbuffer_(encoder, 0)) {
@@ -869,10 +867,8 @@ FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder 
 		vorbis_comment.data.vorbis_comment.vendor_string.entry = 0;
 		vorbis_comment.data.vorbis_comment.num_comments = 0;
 		vorbis_comment.data.vorbis_comment.comments = 0;
-		if(!FLAC__bitbuffer_clear(encoder->private_->frame)) {
-			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-			return false;
-		}
+		if(!FLAC__bitbuffer_clear(encoder->private_->frame))
+			return encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 		if(!FLAC__add_metadata_block(&vorbis_comment, encoder->private_->frame))
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 		if(!write_bitbuffer_(encoder, 0)) {
@@ -886,10 +882,8 @@ FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder 
 	 */
 	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
 		encoder->protected_->metadata[i]->is_last = (i == encoder->protected_->num_metadata_blocks - 1);
-		if(!FLAC__bitbuffer_clear(encoder->private_->frame)) {
-			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-			return false;
-		}
+		if(!FLAC__bitbuffer_clear(encoder->private_->frame))
+			return encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 		if(!FLAC__add_metadata_block(encoder->protected_->metadata[i], encoder->private_->frame))
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 		if(!write_bitbuffer_(encoder, 0)) {
@@ -1831,7 +1825,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 			bits[FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE ] = encoder->private_->best_subframe_bits         [1] + encoder->private_->best_subframe_bits_mid_side[1];
 			bits[FLAC__CHANNEL_ASSIGNMENT_MID_SIDE   ] = encoder->private_->best_subframe_bits_mid_side[0] + encoder->private_->best_subframe_bits_mid_side[1];
 
-			for(channel_assignment = 0, min_bits = bits[0], ca = 1; ca <= 3; ca++) {
+			for(channel_assignment = (FLAC__ChannelAssignment)0, min_bits = bits[0], ca = (FLAC__ChannelAssignment)1; (int)ca <= 3; ca = (FLAC__ChannelAssignment)((int)ca + 1)) {
 				if(bits[ca] < min_bits) {
 					min_bits = bits[ca];
 					channel_assignment = ca;
