@@ -201,7 +201,7 @@ typedef struct {
 		unsigned capacity;
 	} args;
 	unsigned num_files;
-	const char **filenames;
+	char **filenames;
 } CommandLineOptions;
 
 static void die(const char *message);

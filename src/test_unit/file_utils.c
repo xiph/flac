@@ -61,6 +61,7 @@ FLAC__bool file_utils__change_stats(const char *filename, FLAC__bool read_only)
 	struct stat stats;
 
 	if(0 == stat(filename, &stats)) {
+#if !defined _MSC_VER && !defined __MINGW32__
 		if(read_only) {
 			stats.st_mode &= ~S_IWUSR;
 			stats.st_mode &= ~S_IWGRP;
@@ -71,6 +72,12 @@ FLAC__bool file_utils__change_stats(const char *filename, FLAC__bool read_only)
 			stats.st_mode |= S_IWGRP;
 			stats.st_mode |= S_IWOTH;
 		}
+#else
+		if(read_only)
+			stats.st_mode &= ~S_IWRITE;
+		else
+			stats.st_mode |= S_IWRITE;
+#endif
 		if(0 != chmod(filename, stats.st_mode))
 			return false;
 	}

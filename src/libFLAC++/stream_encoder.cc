@@ -43,115 +43,103 @@ namespace FLAC {
 		bool Stream::set_streamable_subset(bool value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_streamable_subset(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_streamable_subset(encoder_, value);
 		}
 
 		bool Stream::set_do_mid_side_stereo(bool value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_do_mid_side_stereo(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_do_mid_side_stereo(encoder_, value);
 		}
 
 		bool Stream::set_loose_mid_side_stereo(bool value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_loose_mid_side_stereo(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_loose_mid_side_stereo(encoder_, value);
 		}
 
 		bool Stream::set_channels(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_channels(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_channels(encoder_, value);
 		}
 
 		bool Stream::set_bits_per_sample(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_bits_per_sample(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_bits_per_sample(encoder_, value);
 		}
 
 		bool Stream::set_sample_rate(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_sample_rate(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_sample_rate(encoder_, value);
 		}
 
 		bool Stream::set_blocksize(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_blocksize(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_blocksize(encoder_, value);
 		}
 
 		bool Stream::set_max_lpc_order(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_max_lpc_order(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_max_lpc_order(encoder_, value);
 		}
 
 		bool Stream::set_qlp_coeff_precision(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_qlp_coeff_precision(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_qlp_coeff_precision(encoder_, value);
 		}
 
 		bool Stream::set_do_qlp_coeff_prec_search(bool value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder_, value);
 		}
 
 		bool Stream::set_do_escape_coding(bool value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_do_escape_coding(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_do_escape_coding(encoder_, value);
 		}
 
 		bool Stream::set_do_exhaustive_model_search(bool value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_do_exhaustive_model_search(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_do_exhaustive_model_search(encoder_, value);
 		}
 
 		bool Stream::set_min_residual_partition_order(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_min_residual_partition_order(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_min_residual_partition_order(encoder_, value);
 		}
 
 		bool Stream::set_max_residual_partition_order(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_max_residual_partition_order(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_max_residual_partition_order(encoder_, value);
 		}
 
 		bool Stream::set_rice_parameter_search_dist(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_rice_parameter_search_dist(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_rice_parameter_search_dist(encoder_, value);
 		}
 
 		bool Stream::set_total_samples_estimate(FLAC__uint64 value)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_total_samples_estimate(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_total_samples_estimate(encoder_, value);
 		}
 
-		bool Stream::set_seek_table(const FLAC__StreamMetaData_SeekTable *value)
+		bool Stream::set_metadata(FLAC__StreamMetaData **metadata, unsigned num_blocks)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_seek_table(encoder_, value);
-		}
-
-		bool Stream::set_padding(int value)
-		{
-			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_padding(encoder_, value);
-		}
-
-		bool Stream::set_last_metadata_is_last(bool value)
-		{
-			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_set_last_metadata_is_last(encoder_, value);
+			return (bool)::FLAC__stream_encoder_set_metadata(encoder_, metadata, num_blocks);
 		}
 
 		Stream::State Stream::get_state() const
@@ -163,19 +151,19 @@ namespace FLAC {
 		bool Stream::get_streamable_subset() const
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_get_streamable_subset(encoder_);
+			return (bool)::FLAC__stream_encoder_get_streamable_subset(encoder_);
 		}
 
 		bool Stream::get_do_mid_side_stereo() const
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_get_do_mid_side_stereo(encoder_);
+			return (bool)::FLAC__stream_encoder_get_do_mid_side_stereo(encoder_);
 		}
 
 		bool Stream::get_loose_mid_side_stereo() const
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_get_loose_mid_side_stereo(encoder_);
+			return (bool)::FLAC__stream_encoder_get_loose_mid_side_stereo(encoder_);
 		}
 
 		unsigned Stream::get_channels() const
@@ -217,19 +205,19 @@ namespace FLAC {
 		bool Stream::get_do_qlp_coeff_prec_search() const
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_get_do_qlp_coeff_prec_search(encoder_);
+			return (bool)::FLAC__stream_encoder_get_do_qlp_coeff_prec_search(encoder_);
 		}
 
 		bool Stream::get_do_escape_coding() const
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_get_do_escape_coding(encoder_);
+			return (bool)::FLAC__stream_encoder_get_do_escape_coding(encoder_);
 		}
 
 		bool Stream::get_do_exhaustive_model_search() const
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_get_do_exhaustive_model_search(encoder_);
+			return (bool)::FLAC__stream_encoder_get_do_exhaustive_model_search(encoder_);
 		}
 
 		unsigned Stream::get_min_residual_partition_order() const
@@ -268,13 +256,13 @@ namespace FLAC {
 		bool Stream::process(const FLAC__int32 *buf[], unsigned samples)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_process(encoder_, buf, samples);
+			return (bool)::FLAC__stream_encoder_process(encoder_, buf, samples);
 		}
 
 		bool Stream::process_interleaved(const FLAC__int32 buf[], unsigned samples)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_encoder_process_interleaved(encoder_, buf, samples);
+			return (bool)::FLAC__stream_encoder_process_interleaved(encoder_, buf, samples);
 		}
 
 		::FLAC__StreamEncoderWriteStatus Stream::write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)

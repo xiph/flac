@@ -109,7 +109,7 @@ namespace FLAC {
 		bool Prototype::get_is_last() const
 		{
 			FLAC__ASSERT(is_valid());
-			return object_->is_last;
+			return (bool)object_->is_last;
 		}
 
 		FLAC__MetaDataType Prototype::get_type() const
@@ -321,7 +321,7 @@ namespace FLAC {
 		bool Application::set_data(FLAC__byte *data, unsigned length, bool copy)
 		{
 			FLAC__ASSERT(is_valid());
-			return FLAC__metadata_object_application_set_data(object_, data, length, copy);
+			return (bool)::FLAC__metadata_object_application_set_data(object_, data, length, copy);
 		}
 
 
@@ -364,14 +364,14 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index <= object_->data.seek_table.num_points);
-			return ::FLAC__metadata_object_seektable_insert_point(object_, index, point);
+			return (bool)::FLAC__metadata_object_seektable_insert_point(object_, index, point);
 		}
 
 		bool SeekTable::delete_point(unsigned index)
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index < object_->data.seek_table.num_points);
-			return ::FLAC__metadata_object_seektable_delete_point(object_, index);
+			return (bool)::FLAC__metadata_object_seektable_delete_point(object_, index);
 		}
 
 
@@ -678,28 +678,28 @@ namespace FLAC {
 		bool VorbisComment::set_vendor_string(const VorbisComment::Entry &entry)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_object_vorbiscomment_set_vendor_string(object_, entry.get_entry(), /*copy=*/true);
+			return (bool)::FLAC__metadata_object_vorbiscomment_set_vendor_string(object_, entry.get_entry(), /*copy=*/true);
 		}
 
 		bool VorbisComment::set_comment(unsigned index, const VorbisComment::Entry &entry)
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index < object_->data.vorbis_comment.num_comments);
-			return ::FLAC__metadata_object_vorbiscomment_set_comment(object_, index, entry.get_entry(), /*copy=*/true);
+			return (bool)::FLAC__metadata_object_vorbiscomment_set_comment(object_, index, entry.get_entry(), /*copy=*/true);
 		}
 
 		bool VorbisComment::insert_comment(unsigned index, const VorbisComment::Entry &entry)
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index <= object_->data.vorbis_comment.num_comments);
-			return ::FLAC__metadata_object_vorbiscomment_insert_comment(object_, index, entry.get_entry(), /*copy=*/true);
+			return (bool)::FLAC__metadata_object_vorbiscomment_insert_comment(object_, index, entry.get_entry(), /*copy=*/true);
 		}
 
 		bool VorbisComment::delete_comment(unsigned index)
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index < object_->data.vorbis_comment.num_comments);
-			return ::FLAC__metadata_object_vorbiscomment_delete_comment(object_, index);
+			return (bool)::FLAC__metadata_object_vorbiscomment_delete_comment(object_, index);
 		}
 
 
@@ -750,7 +750,7 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(0 != filename);
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_simple_iterator_init(iterator_, filename, preserve_file_stats);
+			return (bool)::FLAC__metadata_simple_iterator_init(iterator_, filename, preserve_file_stats);
 		}
 
 		bool SimpleIterator::is_valid() const
@@ -767,19 +767,19 @@ namespace FLAC {
 		bool SimpleIterator::is_writable() const
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_simple_iterator_is_writable(iterator_);
+			return (bool)::FLAC__metadata_simple_iterator_is_writable(iterator_);
 		}
 
 		bool SimpleIterator::next()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_simple_iterator_next(iterator_);
+			return (bool)::FLAC__metadata_simple_iterator_next(iterator_);
 		}
 
 		bool SimpleIterator::prev()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_simple_iterator_prev(iterator_);
+			return (bool)::FLAC__metadata_simple_iterator_prev(iterator_);
 		}
 
 		::FLAC__MetaDataType SimpleIterator::get_block_type() const
@@ -798,20 +798,20 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(0 != block);
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_simple_iterator_set_block(iterator_, block->object_, use_padding);
+			return (bool)::FLAC__metadata_simple_iterator_set_block(iterator_, block->object_, use_padding);
 		}
 
 		bool SimpleIterator::insert_block_after(Prototype *block, bool use_padding)
 		{
 			FLAC__ASSERT(0 != block);
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_simple_iterator_insert_block_after(iterator_, block->object_, use_padding);
+			return (bool)::FLAC__metadata_simple_iterator_insert_block_after(iterator_, block->object_, use_padding);
 		}
 
 		bool SimpleIterator::delete_block(bool use_padding)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_simple_iterator_delete_block(iterator_, use_padding);
+			return (bool)::FLAC__metadata_simple_iterator_delete_block(iterator_, use_padding);
 		}
 
 
@@ -852,13 +852,13 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(0 != filename);
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_chain_read(chain_, filename);
+			return (bool)::FLAC__metadata_chain_read(chain_, filename);
 		}
 
 		bool Chain::write(bool use_padding, bool preserve_file_stats)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_chain_write(chain_, use_padding, preserve_file_stats);
+			return (bool)::FLAC__metadata_chain_write(chain_, use_padding, preserve_file_stats);
 		}
 
 		void Chain::merge_padding()
@@ -906,13 +906,13 @@ namespace FLAC {
 		bool Iterator::next()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_iterator_next(iterator_);
+			return (bool)::FLAC__metadata_iterator_next(iterator_);
 		}
 
 		bool Iterator::prev()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_iterator_prev(iterator_);
+			return (bool)::FLAC__metadata_iterator_prev(iterator_);
 		}
 
 		::FLAC__MetaDataType Iterator::get_block_type() const 
@@ -934,7 +934,7 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(0 != block);
 			FLAC__ASSERT(is_valid());
-			bool ret = ::FLAC__metadata_iterator_set_block(iterator_, block->object_);
+			bool ret = (bool)::FLAC__metadata_iterator_set_block(iterator_, block->object_);
 			if(ret) {
 				block->set_reference(true);
 				delete block;
@@ -945,14 +945,14 @@ namespace FLAC {
 		bool Iterator::delete_block(bool replace_with_padding)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__metadata_iterator_delete_block(iterator_, replace_with_padding);
+			return (bool)::FLAC__metadata_iterator_delete_block(iterator_, replace_with_padding);
 		}
 
 		bool Iterator::insert_block_before(Prototype *block)
 		{
 			FLAC__ASSERT(0 != block);
 			FLAC__ASSERT(is_valid());
-			bool ret = ::FLAC__metadata_iterator_insert_block_before(iterator_, block->object_);
+			bool ret = (bool)::FLAC__metadata_iterator_insert_block_before(iterator_, block->object_);
 			if(ret) {
 				block->set_reference(true);
 				delete block;
@@ -964,7 +964,7 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(0 != block);
 			FLAC__ASSERT(is_valid());
-			bool ret = ::FLAC__metadata_iterator_insert_block_after(iterator_, block->object_);
+			bool ret = (bool)::FLAC__metadata_iterator_insert_block_after(iterator_, block->object_);
 			if(ret) {
 				block->set_reference(true);
 				delete block;

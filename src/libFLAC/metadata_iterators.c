@@ -1426,8 +1426,9 @@ FLAC__MetaData_SimpleIteratorStatus read_metadata_block_data_seektable_(FILE *fi
 FLAC__MetaData_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_entry_(FILE *file, FLAC__StreamMetaData_VorbisComment_Entry *entry)
 {
 	const unsigned entry_length_len = FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8;
-	FLAC__byte buffer[FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8];
+	FLAC__byte buffer[4]; /* magic number is asserted below */
 
+	FLAC__ASSERT(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8 == 4);
 	FLAC__ASSERT(0 != file);
 
 	if(fread(buffer, 1, entry_length_len, file) != entry_length_len)
@@ -1453,8 +1454,9 @@ FLAC__MetaData_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_(FIL
 	unsigned i;
 	FLAC__MetaData_SimpleIteratorStatus status;
 	const unsigned num_comments_len = FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8;
-	FLAC__byte buffer[FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8];
+	FLAC__byte buffer[4]; /* magic number is asserted below */
 
+	FLAC__ASSERT(FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8 == 4);
 	FLAC__ASSERT(0 != file);
 
 	if(FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK != (status = read_metadata_block_data_vorbis_comment_entry_(file, &(block->vendor_string))))
@@ -1544,7 +1546,7 @@ FLAC__MetaData_SimpleIteratorStatus write_metadata_block_data_streaminfo_(FILE *
 	buffer[10] = (block->sample_rate >> 12) & 0xff;
 	buffer[11] = (block->sample_rate >> 4) & 0xff;
 	buffer[12] = ((block->sample_rate & 0x0f) << 4) | (channels1 << 1) | (bps1 >> 4);
-	buffer[13] = ((bps1 & 0x0f) << 4) | ((block->total_samples >> 32) & 0x0f);
+	buffer[13] = (FLAC__byte)(((bps1 & 0x0f) << 4) | ((block->total_samples >> 32) & 0x0f));
 	pack_uint32_((FLAC__uint32)block->total_samples, buffer+14, 4);
 	memcpy(buffer+18, block->md5sum, 16);
 
@@ -1618,8 +1620,9 @@ FLAC__MetaData_SimpleIteratorStatus write_metadata_block_data_vorbis_comment_(FI
 	unsigned i;
 	const unsigned entry_length_len = FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8;
 	const unsigned num_comments_len = FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8;
-	FLAC__byte buffer[max(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN, FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8];
+	FLAC__byte buffer[4]; /* magic number is asserted below */
 
+	FLAC__ASSERT(max(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN, FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8 == 4);
 	FLAC__ASSERT(0 != file);
 
 	pack_uint32_little_endian_(block->vendor_string.length, buffer, entry_length_len);

@@ -18,12 +18,14 @@
 
 !include <win32.mak>
 
+SUFFIXES = .cpp
+
 !IFDEF DEBUG
 .cc.obj:
-	$(ccc) /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .cc.obj:
-	$(ccc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 CC_FILES= \
@@ -40,6 +42,18 @@ all: libFLAC++.lib
 libFLAC++.lib: $(OBJS)
 	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
 
+# can't figure out how to get it to take .cc so we just hack it for now:
+file_decoder.obj: file_decoder.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP file_decoder.cc
+metadata.obj: metadata.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata.cc
+seekable_stream_decoder.obj: seekable_stream_decoder.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP seekable_stream_decoder.cc
+stream_decoder.obj: stream_decoder.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP stream_decoder.cc
+stream_encoder.obj: stream_encoder.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP stream_encoder.cc
+
 clean:
-	-del *.obj ia32\*.obj *.pch
+	-del *.obj *.pch
 	-del ..\..\obj\lib\libFLAC++.lib ..\..\obj\lib\libFLAC++.pdb

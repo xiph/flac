@@ -80,9 +80,7 @@ namespace FLAC {
 			bool set_max_residual_partition_order(unsigned value);
 			bool set_rice_parameter_search_dist(unsigned value);
 			bool set_total_samples_estimate(FLAC__uint64 value);
-			bool set_seek_table(const FLAC__StreamMetaData_SeekTable *value);
-			bool set_padding(int value);
-			bool set_last_metadata_is_last(bool value);
+			bool set_metadata(FLAC__StreamMetaData **metadata, unsigned num_blocks);
 
 			State    get_state() const;
 			bool     get_streamable_subset() const;

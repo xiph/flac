@@ -43,37 +43,37 @@ namespace FLAC {
 		bool Stream::set_metadata_respond(::FLAC__MetaDataType type)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_set_metadata_respond(decoder_, type);
+			return (bool)::FLAC__stream_decoder_set_metadata_respond(decoder_, type);
 		}
 
 		bool Stream::set_metadata_respond_application(const FLAC__byte id[4])
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_set_metadata_respond_application(decoder_, id);
+			return (bool)::FLAC__stream_decoder_set_metadata_respond_application(decoder_, id);
 		}
 
 		bool Stream::set_metadata_respond_all()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_set_metadata_respond_all(decoder_);
+			return (bool)::FLAC__stream_decoder_set_metadata_respond_all(decoder_);
 		}
 
 		bool Stream::set_metadata_ignore(::FLAC__MetaDataType type)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_set_metadata_ignore(decoder_, type);
+			return (bool)::FLAC__stream_decoder_set_metadata_ignore(decoder_, type);
 		}
 
 		bool Stream::set_metadata_ignore_application(const FLAC__byte id[4])
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_set_metadata_ignore_application(decoder_, id);
+			return (bool)::FLAC__stream_decoder_set_metadata_ignore_application(decoder_, id);
 		}
 
 		bool Stream::set_metadata_ignore_all()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_set_metadata_ignore_all(decoder_);
+			return (bool)::FLAC__stream_decoder_set_metadata_ignore_all(decoder_);
 		}
 
 		Stream::State Stream::get_state() const
@@ -132,37 +132,37 @@ namespace FLAC {
 		bool Stream::flush()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_flush(decoder_);
+			return (bool)::FLAC__stream_decoder_flush(decoder_);
 		}
 
 		bool Stream::reset()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_reset(decoder_);
+			return (bool)::FLAC__stream_decoder_reset(decoder_);
 		}
 
 		bool Stream::process_whole_stream()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_process_whole_stream(decoder_);
+			return (bool)::FLAC__stream_decoder_process_whole_stream(decoder_);
 		}
 
 		bool Stream::process_metadata()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_process_metadata(decoder_);
+			return (bool)::FLAC__stream_decoder_process_metadata(decoder_);
 		}
 
 		bool Stream::process_one_frame()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_process_one_frame(decoder_);
+			return (bool)::FLAC__stream_decoder_process_one_frame(decoder_);
 		}
 
 		bool Stream::process_remaining_frames()
 		{
 			FLAC__ASSERT(is_valid());
-			return ::FLAC__stream_decoder_process_remaining_frames(decoder_);
+			return (bool)::FLAC__stream_decoder_process_remaining_frames(decoder_);
 		}
 
 		::FLAC__StreamDecoderReadStatus Stream::read_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
