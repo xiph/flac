@@ -57,7 +57,7 @@ LINKD       = $(CC) -shared
 endif
 
 debug   : CFLAGS = -g -O0 -DDEBUG $(CONFIG_CFLAGS) $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
-valgrind: CFLAGS = -g -O0 -DDEBUG $(CONFIG_CFLAGS) -DFLAC__VALGRIND_TESTING -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+valgrind: CFLAGS = -g -O0 -DDEBUG $(CONFIG_CFLAGS) $(DEBUG_CFLAGS) -DFLAC__VALGRIND_TESTING -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(CONFIG_CFLAGS) $(RELEASE_CFLAGS) -Wall -W -Winline -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
 LFLAGS  = -L$(LIBPATH)
@@ -65,9 +65,9 @@ LFLAGS  = -L$(LIBPATH)
 DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o) $(SRCS_S:%.s=%.debug.o)
 RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o) $(SRCS_S:%.s=%.release.o)
 
-debug   : $(ORDINALS_H) $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
-valgrind: $(ORDINALS_H) $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
-release : $(ORDINALS_H) $(RELEASE_STATIC_LIB) $(RELEASE_DYNAMIC_LIB)
+debug   : $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
+valgrind: $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
+release : $(RELEASE_STATIC_LIB) $(RELEASE_DYNAMIC_LIB)
 
 $(DEBUG_STATIC_LIB): $(DEBUG_OBJS)
 	$(LINK) $@ $(DEBUG_OBJS) && ranlib $@
@@ -115,7 +115,7 @@ endif
 
 .PHONY : clean
 clean :
-	-rm -f $(DEBUG_OBJS) $(RELEASE_OBJS) $(OBJPATH)/*/lib/$(STATIC_LIB_NAME) $(OBJPATH)/*/lib/$(DYNAMIC_LIB_NAME) $(ORDINALS_H)
+	-rm -f $(DEBUG_OBJS) $(RELEASE_OBJS) $(OBJPATH)/*/lib/$(STATIC_LIB_NAME) $(OBJPATH)/*/lib/$(DYNAMIC_LIB_NAME)
 
 .PHONY : depend
 depend:

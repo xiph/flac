@@ -50,9 +50,9 @@ LFLAGS  = -L$(LIBPATH)
 DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o)
 RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o)
 
-debug   : $(ORDINALS_H) $(DEBUG_PROGRAM)
-valgrind: $(ORDINALS_H) $(DEBUG_PROGRAM)
-release : $(ORDINALS_H) $(RELEASE_PROGRAM)
+debug   : $(DEBUG_PROGRAM)
+valgrind: $(DEBUG_PROGRAM)
+release : $(RELEASE_PROGRAM)
 
 # by default on OS X we link with static libs as much as possible
 
