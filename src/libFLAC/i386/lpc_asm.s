@@ -62,6 +62,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386
 	;[esp + 24] == data_len
 	;[esp + 20] == data[]
 
+.begin:
 	push	ebp
 	push	ebx
 	push	esi
@@ -212,6 +213,9 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse
 	;[esp + 12] == lag
 	;[esp + 8] == data_len
 	;[esp + 4] == data[]
+
+	cmp	[esp + 12], 8
+	jne	near FLAC__lpc_compute_autocorrelation_asm_i386.begin
 
 	;	for(coeff = 0; coeff < lag; coeff++)
 	;		autoc[coeff] = 0.0;
