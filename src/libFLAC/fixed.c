@@ -42,21 +42,16 @@ unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_le
 	int32 last_error_1 = data[-1] - data[-2];
 	int32 last_error_2 = last_error_1 - (data[-2] - data[-3]);
 	int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
-	int32 error_0, error_1, error_2, error_3, error_4;
+	int32 error, save;
 	uint32 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
 	unsigned i, order;
 
 	for(i = 0; i < data_len; i++) {
-		error_0 = data[i]               ; total_error_0 += local_abs(error_0);
-		error_1 = error_0 - last_error_0; total_error_1 += local_abs(error_1);
-		error_2 = error_1 - last_error_1; total_error_2 += local_abs(error_2);
-		error_3 = error_2 - last_error_2; total_error_3 += local_abs(error_3);
-		error_4 = error_3 - last_error_3; total_error_4 += local_abs(error_4);
-
-		last_error_0 = error_0;
-		last_error_1 = error_1;
-		last_error_2 = error_2;
-		last_error_3 = error_3;
+		error  = data[i]     ; total_error_0 += local_abs(error);                      save = error;
+		error -= last_error_0; total_error_1 += local_abs(error); last_error_0 = save; save = error;
+		error -= last_error_1; total_error_2 += local_abs(error); last_error_1 = save; save = error;
+		error -= last_error_2; total_error_3 += local_abs(error); last_error_2 = save; save = error;
+		error -= last_error_3; total_error_4 += local_abs(error); last_error_3 = save;
 	}
 
 	if(total_error_0 < min(min(min(total_error_1, total_error_2), total_error_3), total_error_4))
@@ -70,23 +65,11 @@ unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_le
 	else
 		order = 4;
 
-	/* Estimate the expected number of bits per residual signal sample. */
-	/* 'total_error*' is linearly related to the variance of the residual */
-	/* signal, so we use it directly to compute E(|x|) */
-#ifdef _MSC_VER
-	/* with VC++ you have to spoon feed it the casting */
-	residual_bits_per_sample[0] = (real)((data_len > 0) ? log(M_LN2 * (real)(int64)total_error_0  / (real) data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[1] = (real)((data_len > 0) ? log(M_LN2 * (real)(int64)total_error_1  / (real) data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[2] = (real)((data_len > 0) ? log(M_LN2 * (real)(int64)total_error_2  / (real) data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[3] = (real)((data_len > 0) ? log(M_LN2 * (real)(int64)total_error_3  / (real) data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[4] = (real)((data_len > 0) ? log(M_LN2 * (real)(int64)total_error_4  / (real) data_len) / M_LN2 : 0.0);
-#else
 	residual_bits_per_sample[0] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_0  / (real) data_len) / M_LN2 : 0.0);
 	residual_bits_per_sample[1] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_1  / (real) data_len) / M_LN2 : 0.0);
 	residual_bits_per_sample[2] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_2  / (real) data_len) / M_LN2 : 0.0);
 	residual_bits_per_sample[3] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_3  / (real) data_len) / M_LN2 : 0.0);
 	residual_bits_per_sample[4] = (real)((data_len > 0) ? log(M_LN2 * (real)total_error_4  / (real) data_len) / M_LN2 : 0.0);
-#endif
 
 	return order;
 }
