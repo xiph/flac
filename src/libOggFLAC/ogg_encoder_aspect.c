@@ -118,22 +118,22 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 	 */
 	if(aspect->seen_magic) {
 		ogg_packet packet;
+		FLAC__byte synthetic_first_packet_body[
+			OggFLAC__MAPPING_PACKET_TYPE_LENGTH +
+			OggFLAC__MAPPING_MAGIC_LENGTH +
+			OggFLAC__MAPPING_VERSION_MAJOR_LENGTH +
+			OggFLAC__MAPPING_VERSION_MINOR_LENGTH +
+			OggFLAC__MAPPING_NUM_HEADERS_LENGTH +
+			FLAC__STREAM_SYNC_LENGTH +
+			FLAC__STREAM_METADATA_HEADER_LENGTH +
+			FLAC__STREAM_METADATA_STREAMINFO_LENGTH
+		];
 
 		memset(&packet, 0, sizeof(packet));
 		packet.granulepos = aspect->samples_written + samples;
 
 		if(aspect->is_first_packet) {
-			FLAC__byte newbuffer[
-				OggFLAC__MAPPING_PACKET_TYPE_LENGTH +
-				OggFLAC__MAPPING_MAGIC_LENGTH +
-				OggFLAC__MAPPING_VERSION_MAJOR_LENGTH +
-				OggFLAC__MAPPING_VERSION_MINOR_LENGTH +
-				OggFLAC__MAPPING_NUM_HEADERS_LENGTH +
-				FLAC__STREAM_SYNC_LENGTH +
-				FLAC__STREAM_METADATA_HEADER_LENGTH +
-				FLAC__STREAM_METADATA_STREAMINFO_LENGTH
-			];
-			FLAC__byte *b = newbuffer;
+			FLAC__byte *b = synthetic_first_packet_body;
 			if(bytes != FLAC__STREAM_METADATA_HEADER_LENGTH + FLAC__STREAM_METADATA_STREAMINFO_LENGTH) {
 				/*
 				 * If we get here, our assumption about the way write callbacks happen
@@ -164,9 +164,9 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 			b += FLAC__STREAM_SYNC_LENGTH;
 			/* add STREAMINFO */
 			memcpy(b, buffer, bytes);
-			FLAC__ASSERT(b + bytes - newbuffer == sizeof(newbuffer));
-			packet.packet = (unsigned char *)newbuffer;
-			packet.bytes = sizeof(newbuffer);
+			FLAC__ASSERT(b + bytes - synthetic_first_packet_body == sizeof(synthetic_first_packet_body));
+			packet.packet = (unsigned char *)synthetic_first_packet_body;
+			packet.bytes = sizeof(synthetic_first_packet_body);
 
 			packet.b_o_s = 1;
 			aspect->is_first_packet = false;
