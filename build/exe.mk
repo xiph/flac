@@ -57,9 +57,13 @@ $(PROGRAM) : $(OBJS)
 	$(CC) $(CFLAGS) -c $< -o $@
 %.o : %.cc
 	$(CCC) $(CFLAGS) -c $< -o $@
+%.o : %.cpp
+	$(CCC) $(CFLAGS) -c $< -o $@
 %.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
 %.i : %.cc
+	$(CCC) $(CFLAGS) -E $< -o $@
+%.i : %.cpp
 	$(CCC) $(CFLAGS) -E $< -o $@
 
 %.o : %.nasm
@@ -71,4 +75,4 @@ clean :
 
 .PHONY : depend
 depend:
-	makedepend -fMakefile.lite -- $(CFLAGS) $(INCLUDES) -- *.c *.cc
+	makedepend -fMakefile.lite -- $(CFLAGS) $(INCLUDES) -- *.c *.cc *.cpp
