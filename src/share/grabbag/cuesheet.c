@@ -36,7 +36,7 @@ GRABBAG_API void grabbag__cuesheet_frame_to_msf(unsigned frame, unsigned *minute
 	*minutes = frame;
 }
 
-/* since we only care about values >= 0 or error, returns < 0 for any illegal int, else value */
+/* since we only care about values >= 0 or error, returns < 0 for any illegal string, else value */
 static int local__parse_int_(const char *s)
 {
 	int ret = 0;
@@ -50,6 +50,88 @@ static int local__parse_int_(const char *s)
 			ret = ret * 10 + (c - '0');
 		else
 			return -1;
+
+	return ret;
+}
+
+/* since we only care about values >= 0 or error, returns < 0 for any illegal string, else value */
+static FLAC__int64 local__parse_int64_(const char *s)
+{
+	FLAC__int64 ret = 0;
+	char c;
+
+	if(*s == '\0')
+		return -1;
+
+	while('\0' != (c = *s++))
+		if(c >= '0' && c <= '9')
+			ret = ret * 10 + (c - '0');
+		else
+			return -1;
+
+	return ret;
+}
+
+/* accept '[0-9]+:[0-9][0-9]?:[0-9][0-9]?', but max second of 59 and max frame of 74, e.g. 0:0:0, 123:45:67
+ * return sample number or <0 for error
+ */
+static FLAC__int64 local__parse_msf_(const char *s)
+{
+	FLAC__int64 ret, field;
+	char c;
+
+	c = *s++;
+	if(c >= '0' && c <= '9')
+		field = (c - '0');
+	else
+		return -1;
+	while(':' != (c = *s++)) {
+		if(c >= '0' && c <= '9')
+			field = field * 10 + (c - '0');
+		else
+			return -1;
+	}
+
+	ret = field * 60 * 44100;
+
+	c = *s++;
+	if(c >= '0' && c <= '9')
+		field = (c - '0');
+	else
+		return -1;
+	if(':' != (c = *s++)) {
+		if(c >= '0' && c <= '9')
+			field = field * 10 + (c - '0');
+		else
+			return -1;
+	}
+
+	if(field >= 60)
+		return -1;
+
+	ret += field * 44100;
+
+	c = *s++;
+	if(c >= '0' && c <= '9')
+		field = (c - '0');
+	else
+		return -1;
+	if('\0' != (c = *s++)) {
+		if(c >= '0' && c <= '9') {
+			field = field * 10 + (c - '0');
+			c = *s++;
+		}
+		else
+			return -1;
+	}
+
+	if(c != '\0')
+		return -1;
+
+	if(field >= 75)
+		return -1;
+
+	ret += field * (44100 / 75);
 
 	return ret;
 }
@@ -84,7 +166,7 @@ static char *local__get_field_(char **s)
 	return p;
 }
 
-static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message, unsigned *last_line_read, FLAC__StreamMetadata *cuesheet, FLAC__bool check_cd_da_subset)
+static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message, unsigned *last_line_read, FLAC__StreamMetadata *cuesheet, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
 {
 #if defined _MSC_VER || defined __MINGW32__
 #define FLAC__STRCASECMP stricmp
@@ -92,11 +174,16 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 #define FLAC__STRCASECMP strcasecmp
 #endif
 	char buffer[4096], *line, *field;
-	unsigned linelen;
-	int in_track = -1, in_index = -1;
+	unsigned linelen, forced_leadout_track_num = 0;
+	FLAC__uint64 forced_leadout_track_offset = 0;
+	int in_track_num = -1, in_index_num = -1;
+	FLAC__bool disc_has_catalog = false, track_has_flags, track_has_isrc, has_forced_leadout = false;
+	FLAC__StreamMetadata_CueSheet *cs = &cuesheet->data.cue_sheet;
+
+	cs->lead_in = is_cdda? 2 * 44100 /* The default lead-in size for CD-DA */ : 0;
 
 	while(0 != fgets(buffer, sizeof(buffer), file)) {
-		*last_line_read++;
+		(*last_line_read)++;
 		line = buffer;
 
 		linelen = strlen(line);
@@ -107,55 +194,257 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 
 		if(0 != (field = local__get_field_(&line))) {
 			if(0 == FLAC__STRCASECMP(field, "CATALOG")) {
-				/*@@@@ error if already encountered CATALOG */
-				/*@@@@ check_cd_da_subset: 13 digits ['0'..'9'] */
+				if(disc_has_catalog) {
+					*error_message = "found multiple CATALOG commands";
+					return false;
+				}
+				if(0 == (field = local__get_field_(&line))) {
+					*error_message = "CATALOG is missing catalog number";
+					return false;
+				}
+				if(strlen(field) >= sizeof(cs->media_catalog_number)) {
+					*error_message = "CATALOG number is to long";
+					return false;
+				}
+				if(is_cdda && (strlen(field) != 13 || strspn(field, "0123456789") != 13)) {
+					*error_message = "CD-DA CATALOG number must be 13 decimal digits";
+					return false;
+				}
+				strcpy(cs->media_catalog_number, field);
+				disc_has_catalog = true;
 			}
 			else if(0 == FLAC__STRCASECMP(field, "FLAGS")) {
-				/*@@@@ error if already encountered FLAGS in this track */
-				if(in_track < 0) {
-					/*@@@@*/
+				if(track_has_flags) {
+					*error_message = "found multiple FLAGS commands";
+					return false;
 				}
-				if(in_index >= 0) {
-					/*@@@@*/
+				if(in_track_num < 0 || in_index_num >= 0) {
+					*error_message = "FLAGS command must come after TRACK but before INDEX";
+					return false;
 				}
-				/*@@@@ search for PRE flag only */
+				while(0 != (field = local__get_field_(&line))) {
+					if(0 == FLAC__STRCASECMP(field, "PRE"))
+						cs->tracks[cs->num_tracks-1].pre_emphasis = 1;
+				}
+				track_has_flags = true;
 			}
 			else if(0 == FLAC__STRCASECMP(field, "INDEX")) {
-				if(in_track < 0) {
+				FLAC__int64 xx;
+				FLAC__StreamMetadata_CueSheet_Track *track = &cs->tracks[cs->num_tracks-1];
+				if(in_track_num < 0) {
 					*error_message = "found INDEX before any TRACK";
 					return false;
 				}
-				/*@@@@ check_cd_da_subset: 0..99 */
-				/*@@@@ check_cd_da_subset: first index of first track is 00:00:00 */
-				/*@@@@ check first is 0 or 1 */
-				/*@@@@ check sequential */
-				/*@@@@ parse msf (or sample offset if !check_cd_da_subset)
+				if(0 == (field = local__get_field_(&line))) {
+					*error_message = "INDEX is missing index number";
+					return false;
+				}
+				in_index_num = local__parse_int_(field);
+				if(in_index_num < 0) {
+					*error_message = "INDEX has invalid index number";
+					return false;
+				}
+				FLAC__ASSERT(cs->num_tracks > 0);
+				if(track->num_indices == 0) {
+					/* it's the first index point of the track */
+					if(in_index_num > 1) {
+						*error_message = "first INDEX number of a TRACK must be 0 or 1";
+						return false;
+					}
+				}
+				else {
+					if(in_index_num != track->indices[track->num_indices-1].number + 1) {
+						*error_message = "INDEX numbers must be sequential";
+						return false;
+					}
+				}
+				if(is_cdda && in_index_num > 99) {
+					*error_message = "CD-DA INDEX number must be between 0 and 99, inclusive";
+					return false;
+				}
+				/*@@@@ search for duplicate track number? */
+				if(0 == (field = local__get_field_(&line))) {
+					*error_message = "INDEX is missing an offset after the index number";
+					return false;
+				}
+				xx = local__parse_msf_(field);
+				if(xx < 0) {
+					if(is_cdda) {
+						*error_message = "illegal INDEX offset (not of the form MM:SS:FF)";
+						return false;
+					}
+					xx = local__parse_int64_(field);
+					if(xx < 0) {
+						*error_message = "illegal INDEX offset";
+						return false;
+					}
+				}
+				if(is_cdda && cs->num_tracks == 1 && cs->tracks[0].num_indices == 0 && xx != 0) {
+					*error_message = "first INDEX of first TRACK must have an offset of 00:00:00";
+					return false;
+				}
+				if(is_cdda && track->num_indices > 0 && (FLAC__uint64)xx <= track->indices[track->num_indices-1].offset) {
+					*error_message = "CD-DA INDEX offsets must increase in time";
+					return false;
+				}
+				/* fill in track offset if it's the first index of the track */
+				if(track->num_indices == 0)
+					track->offset = (FLAC__uint64)xx;
+				if(is_cdda && cs->num_tracks > 0 && (FLAC__uint64)xx <= track->offset + track->indices[track->num_indices-1].offset) {
+					*error_message = "CD-DA INDEX offsets must increase in time";
+					return false;
+				}
+				if(!FLAC__metadata_object_cuesheet_track_insert_blank_index(cuesheet, cs->num_tracks-1, track->num_indices)) {
+					*error_message = "memory allocation error";
+					return false;
+				}
+				track->indices[track->num_indices-1].offset = track->offset - (FLAC__uint64)xx;
+				track->indices[track->num_indices-1].number = in_index_num;
 			}
 			else if(0 == FLAC__STRCASECMP(field, "ISRC")) {
-				/*@@@@ error if already encountered ISRC in this track */
-				if(in_track < 0) {
-					/*@@@@*/
+				if(track_has_isrc) {
+					*error_message = "found multiple ISRC commands";
+					return false;
 				}
-				if(in_index >= 0) {
-					/*@@@@*/
+				if(in_track_num < 0 || in_index_num >= 0) {
+					*error_message = "FLAGS command must come after TRACK but before INDEX";
+					return false;
 				}
+				if(strlen(field) != 12 || strspn(field, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") < 5 || strspn(field+5, "1234567890") != 7) {
+					*error_message = "invalid ISRC number";
+					return false;
+				}
+				strcpy(cs->tracks[cs->num_tracks-1].isrc, field);
+				track_has_isrc = true;
 			}
 			else if(0 == FLAC__STRCASECMP(field, "TRACK")) {
+				if(cs->num_tracks > 0) {
+					const FLAC__StreamMetadata_CueSheet_Track *prev = &cs->tracks[cs->num_tracks-1];
+					if(
+						prev->num_indices == 0 ||
+						(
+						 	is_cdda &&
+							(
+								(prev->num_indices == 1 && prev->indices[0].number != 1) ||
+								(prev->num_indices == 2 && (prev->indices[0].number != 1 || prev->indices[1].number != 1))
+							)
+						)
+					) {
+						*error_message = is_cdda?
+							"previous TRACK must specify at least one INDEX 01" :
+							"previous TRACK must specify at least one INDEX";
+						return false;
+					}
+				}
 				if(0 == (field = local__get_field_(&line))) {
 					*error_message = "TRACK is missing track number";
 					return false;
 				}
-				in_track = local__parse_int_(field);
-				in_index = -1;
-				if(in_track <= 0) {
+				in_track_num = local__parse_int_(field);
+				if(in_track_num < 0) {
 					*error_message = "TRACK has invalid track number";
 					return false;
 				}
-				/*@@@@ check_cd_da_subset: 1..99 */
-				/*@@@@ check_cd_da_subset: sequential */
+				if(in_track_num == 0) {
+					*error_message = "TRACK number must be greater than 0";
+					return false;
+				}
+				if(is_cdda && in_track_num > 99) {
+					*error_message = "CD-DA TRACK number must be between 1 and 99, inclusive";
+					return false;
+				}
+				if(is_cdda && cs->num_tracks > 0 && in_track_num != cs->tracks[cs->num_tracks-1].number + 1) {
+					*error_message = "CD-DA TRACK numbers must be sequential";
+					return false;
+				}
+				/*@@@@ search for duplicate track number? */
+				if(0 == (field = local__get_field_(&line))) {
+					*error_message = "TRACK is missing a track type after the track number";
+					return false;
+				}
+				if(!FLAC__metadata_object_cuesheet_insert_blank_track(cuesheet, cs->num_tracks)) {
+					*error_message = "memory allocation error";
+					return false;
+				}
+				cs->tracks[cs->num_tracks-1].number = in_track_num;
+				cs->tracks[cs->num_tracks-1].type = (0 == FLAC__STRCASECMP(field, "AUDIO"))? 0 : 1; /*@@@@ should we be more strict with the value here? */
+				in_index_num = -1;
+				track_has_flags = false;
+				track_has_isrc = false;
+			}
+			else if(0 == FLAC__STRCASECMP(field, "REM")) {
+				if(0 != (field = local__get_field_(&line))) {
+					if(0 == strcmp(field, "FLAC__lead-in")) {
+						FLAC__int64 xx;
+						if(0 != (field = local__get_field_(&line))) {
+							*error_message = "FLAC__lead-in is missing offset";
+							return false;
+						}
+						xx = local__parse_int64_(field);
+						if(xx < 0) {
+							*error_message = "illegal FLAC__lead-in offset";
+							return false;
+						}
+						if(is_cdda && xx % 588 != 0) {
+							*error_message = "illegal CD-DA FLAC__lead-in offset, must be even multiple of 588 samples";
+							return false;
+						}
+						cs->lead_in = (FLAC__uint64)xx;
+					}
+					else if(0 == strcmp(field, "FLAC__lead-out")) {
+						int track_num;
+						FLAC__int64 offset;
+						if(has_forced_leadout) {
+							*error_message = "multiple FLAC__lead-out commands";
+							return false;
+						}
+						if(0 != (field = local__get_field_(&line))) {
+							*error_message = "FLAC__lead-out is missing track number";
+							return false;
+						}
+						track_num = local__parse_int_(field);
+						if(track_num < 0) {
+							*error_message = "illegal FLAC__lead-out track number";
+							return false;
+						}
+						forced_leadout_track_num = (unsigned)track_num;
+						/*@@@@ search for duplicate track number? */
+						if(0 != (field = local__get_field_(&line))) {
+							*error_message = "FLAC__lead-out is missing offset";
+							return false;
+						}
+						offset = local__parse_int64_(field);
+						if(offset < 0) {
+							*error_message = "illegal FLAC__lead-out offset";
+							return false;
+						}
+						forced_leadout_track_offset = (FLAC__uint64)offset;
+						if(forced_leadout_track_offset != lead_out_offset) {
+							*error_message = "FLAC__lead-out offset does not match end-of-stream offset";
+							return false;
+						}
+						has_forced_leadout = true;
+					}
+				}
 			}
 		}
 	}
+
+	if(cs->num_tracks == 0) {
+		*error_message = "there must be at least one TRACK command";
+		return false;
+	}
+
+	if(!has_forced_leadout) {
+		forced_leadout_track_num = is_cdda? 170 : cs->num_tracks;
+		forced_leadout_track_offset = lead_out_offset;
+	}
+	if(!FLAC__metadata_object_cuesheet_insert_blank_track(cuesheet, cs->num_tracks)) {
+		*error_message = "memory allocation error";
+		return false;
+	}
+	cs->tracks[cs->num_tracks-1].number = forced_leadout_track_num;
+	cs->tracks[cs->num_tracks-1].offset = forced_leadout_track_offset;
 
 	if(!feof(file)) {
 		*error_message = "read error";
@@ -165,7 +454,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 #undef FLAC__STRCASECMP
 }
 
-GRABBAG_API FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, unsigned *last_line_read, FLAC__bool check_cd_da_subset)
+GRABBAG_API FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, unsigned *last_line_read, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
 {
 	FLAC__StreamMetadata *cuesheet;
 
@@ -181,7 +470,7 @@ GRABBAG_API FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char
 		return 0;
 	}
 
-	if(!local__cuesheet_parse_(file, error_message, last_line_read, cuesheet, check_cd_da_subset)) {
+	if(!local__cuesheet_parse_(file, error_message, last_line_read, cuesheet, is_cdda, lead_out_offset)) {
 		FLAC__metadata_object_delete(cuesheet);
 		return 0;
 	}
