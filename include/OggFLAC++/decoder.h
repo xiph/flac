@@ -310,7 +310,7 @@ namespace OggFLAC {
 			bool set_metadata_ignore_all();
 
 			State get_state() const;
-			FLAC::Decoder::File::State get_FLAC_file_decoder_state() const;
+			OggFLAC::Decoder::SeekableStream::State get_seekable_stream_decoder_state() const;
 			FLAC::Decoder::SeekableStream::State get_FLAC_seekable_stream_decoder_state() const;
 			FLAC::Decoder::Stream::State get_FLAC_stream_decoder_state() const;
 			bool get_md5_checking() const;

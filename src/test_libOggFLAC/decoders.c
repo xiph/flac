@@ -101,10 +101,10 @@ static FLAC__bool die_f_(const char *msg, const OggFLAC__FileDecoder *decoder)
 		printf("FAILED");
 
 	printf(", state = %u (%s)\n", (unsigned)state, OggFLAC__SeekableStreamDecoderStateString[state]);
-	if(state == OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR) {
-		FLAC__FileDecoderState state_ = OggFLAC__file_decoder_get_FLAC_file_decoder_state(decoder);
-		printf("      FLAC file decoder state = %u (%s)\n", (unsigned)state_, FLAC__FileDecoderStateString[state_]);
-		if(state_ == FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR) {
+	if(state == OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR) {
+		OggFLAC__SeekableStreamDecoderState state_ = OggFLAC__file_decoder_get_seekable_stream_decoder_state(decoder);
+		printf("      seekable stream decoder state = %u (%s)\n", (unsigned)state_, OggFLAC__SeekableStreamDecoderStateString[state_]);
+		if(state_ == OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR) {
 			FLAC__SeekableStreamDecoderState state__ = OggFLAC__file_decoder_get_FLAC_seekable_stream_decoder_state(decoder);
 			printf("      FLAC seekable stream decoder state = %u (%s)\n", (unsigned)state__, FLAC__SeekableStreamDecoderStateString[state__]);
 			if(state__ == FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
@@ -149,7 +149,6 @@ static FLAC__bool generate_file_()
 static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const OggFLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {
 	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
-	const unsigned requested_bytes = *bytes;
 
 	(void)decoder;
 
@@ -165,8 +164,8 @@ static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const OggFLAC
 		*bytes = 0;
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 	}
-	else if(requested_bytes > 0) {
-		*bytes = fread(buffer, 1, requested_bytes, dcd->file);
+	else if(*bytes > 0) {
+		*bytes = fread(buffer, 1, *bytes, dcd->file);
 		if(*bytes == 0) {
 			if(feof(dcd->file))
 				return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
@@ -1582,7 +1581,7 @@ static FLAC__bool test_file_decoder()
 {
 	OggFLAC__FileDecoder *decoder;
 	OggFLAC__FileDecoderState state;
-	FLAC__FileDecoderState ffstate;
+	OggFLAC__SeekableStreamDecoderState sstate;
 	FLAC__SeekableStreamDecoderState fsstate;
 	FLAC__StreamDecoderState fstate;
 	seekable_stream_decoder_client_data_struct decoder_client_data;
@@ -1673,9 +1672,9 @@ static FLAC__bool test_file_decoder()
 	state = OggFLAC__file_decoder_get_state(decoder);
 	printf("returned state = %u (%s)... OK\n", state, OggFLAC__FileDecoderStateString[state]);
 
-	printf("testing OggFLAC__file_decoder_get_FLAC_file_decoder_state()... ");
-	ffstate = OggFLAC__file_decoder_get_FLAC_file_decoder_state(decoder);
-	printf("returned state = %u (%s)... OK\n", ffstate, FLAC__FileDecoderStateString[ffstate]);
+	printf("testing OggFLAC__file_decoder_get_seekable_stream_decoder_state()... ");
+	sstate = OggFLAC__file_decoder_get_seekable_stream_decoder_state(decoder);
+	printf("returned state = %u (%s)... OK\n", sstate, OggFLAC__SeekableStreamDecoderStateString[sstate]);
 
 	printf("testing OggFLAC__file_decoder_get_FLAC_seekable_stream_decoder_state()... ");
 	fsstate = OggFLAC__file_decoder_get_FLAC_seekable_stream_decoder_state(decoder);

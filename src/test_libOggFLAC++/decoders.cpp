@@ -91,18 +91,19 @@ public:
 	if(error_occurred_)
 		return ::FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 
-	if(feof(file_))
+	if(feof(file_)) {
+		*bytes = 0;
 		return ::FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+	}
 	else if(*bytes > 0) {
-		unsigned bytes_read = ::fread(buffer, 1, *bytes, file_);
-		if(bytes_read == 0) {
+		*bytes = ::fread(buffer, 1, *bytes, file_);
+		if(*bytes == 0) {
 			if(feof(file_))
 				return ::FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 			else
 				return ::FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 		}
 		else {
-			*bytes = bytes_read;
 			return ::FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 		}
 	}
@@ -819,9 +820,9 @@ public:
 {
 	switch(common_read_callback_(buffer, bytes)) {
 		case ::FLAC__STREAM_DECODER_READ_STATUS_CONTINUE:
+		case ::FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM:
 			return ::FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK;
 		case ::FLAC__STREAM_DECODER_READ_STATUS_ABORT:
-		case ::FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM:
 			return ::FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR;
 		default:
 			FLAC__ASSERT(0);
@@ -1571,9 +1572,9 @@ bool FileDecoder::die(const char *msg) const
 		printf("FAILED");
 
 	printf(", state = %u (%s)\n", (unsigned)((::OggFLAC__FileDecoderState)state), state.as_cstring());
-	if(state == ::OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR) {
-		FLAC::Decoder::File::State state_ = get_FLAC_file_decoder_state();
-		printf("      FLAC file decoder state = %u (%s)\n", (unsigned)((::FLAC__FileDecoderState)state_), state_.as_cstring());
+	if(state == ::OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR) {
+		OggFLAC::Decoder::SeekableStream::State state_ = get_seekable_stream_decoder_state();
+		printf("      seekable stream decoder state = %u (%s)\n", (unsigned)((::OggFLAC__SeekableStreamDecoderState)state_), state_.as_cstring());
 		if(state_ == ::OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR) {
 			FLAC::Decoder::SeekableStream::State state__ = get_FLAC_seekable_stream_decoder_state();
 			printf("      FLAC seekable stream decoder state = %u (%s)\n", (unsigned)((::FLAC__SeekableStreamDecoderState)state__), state__.as_cstring());
@@ -1725,9 +1726,9 @@ static bool test_file_decoder()
 	OggFLAC::Decoder::File::State state = decoder->get_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::OggFLAC__FileDecoderState)state), state.as_cstring());
 
-	printf("testing get_FLAC_file_decoder_state()... ");
-	FLAC::Decoder::File::State state_ = decoder->get_FLAC_file_decoder_state();
-	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__FileDecoderState)state_), state_.as_cstring());
+	printf("testing get_seekable_stream_decoder_state()... ");
+	OggFLAC::Decoder::SeekableStream::State state_ = decoder->get_seekable_stream_decoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::OggFLAC__SeekableStreamDecoderState)state_), state_.as_cstring());
 
 	printf("testing get_FLAC_seekable_stream_decoder_state()... ");
 	FLAC::Decoder::SeekableStream::State state__ = decoder->get_FLAC_seekable_stream_decoder_state();

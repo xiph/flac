@@ -29,9 +29,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdlib.h> /* for calloc() */
+#include <stdio.h>
+#include <stdlib.h> /* for malloc() */
+#include <string.h> /* for strcmp() */
+#include <sys/stat.h> /* for stat() */
+#if defined _MSC_VER || defined __MINGW32__
+#include <io.h> /* for _setmode() */
+#include <fcntl.h> /* for _O_BINARY */
+#elif defined __CYGWIN__
+#include <io.h> /* for setmode(), O_BINARY */
+#include <fcntl.h> /* for _O_BINARY */
+#endif
 #include "FLAC/assert.h"
 #include "protected/file_decoder.h"
+#include "protected/seekable_stream_decoder.h"
 
 /***********************************************************************
  *
@@ -40,10 +51,15 @@
  ***********************************************************************/
 
 static void set_defaults_(OggFLAC__FileDecoder *decoder);
-static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
-static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
-
+static FILE *get_binary_stdin_();
+static FLAC__SeekableStreamDecoderReadStatus read_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+static FLAC__SeekableStreamDecoderSeekStatus seek_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+static FLAC__SeekableStreamDecoderTellStatus tell_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
+static FLAC__SeekableStreamDecoderLengthStatus length_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
+static FLAC__bool eof_callback_(const OggFLAC__SeekableStreamDecoder *decoder, void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback_(const OggFLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+static void metadata_callback_(const OggFLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+static void error_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 /***********************************************************************
  *
@@ -56,7 +72,9 @@ typedef struct OggFLAC__FileDecoderPrivate {
 	OggFLAC__FileDecoderMetadataCallback metadata_callback;
 	OggFLAC__FileDecoderErrorCallback error_callback;
 	void *client_data;
-	FLAC__FileDecoder *FLAC_file_decoder;
+	FILE *file;
+	char *filename; /* == NULL if stdin */
+	OggFLAC__SeekableStreamDecoder *seekable_stream_decoder;
 } OggFLAC__FileDecoderPrivate;
 
 /***********************************************************************
@@ -68,23 +86,26 @@ typedef struct OggFLAC__FileDecoderPrivate {
 OggFLAC_API const char * const OggFLAC__FileDecoderStateString[] = {
 	"OggFLAC__FILE_DECODER_OK",
 	"OggFLAC__FILE_DECODER_END_OF_FILE",
-	"OggFLAC__FILE_DECODER_OGG_ERROR",
-	"OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR",
+	"OggFLAC__FILE_DECODER_ERROR_OPENING_FILE",
+	"OggFLAC__FILE_DECODER_SEEK_ERROR",
+	"OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR",
 	"OggFLAC__FILE_DECODER_INVALID_CALLBACK",
 	"OggFLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR",
 	"OggFLAC__FILE_DECODER_ALREADY_INITIALIZED",
 	"OggFLAC__FILE_DECODER_UNINITIALIZED"
 };
 
-
 /***********************************************************************
  *
  * Class constructor/destructor
  *
  ***********************************************************************/
+
 OggFLAC_API OggFLAC__FileDecoder *OggFLAC__file_decoder_new()
 {
 	OggFLAC__FileDecoder *decoder;
+
+	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
 
 	decoder = (OggFLAC__FileDecoder*)calloc(1, sizeof(OggFLAC__FileDecoder));
 	if(decoder == 0) {
@@ -104,13 +125,15 @@ OggFLAC_API OggFLAC__FileDecoder *OggFLAC__file_decoder_new()
 		return 0;
 	}
 
-	decoder->private_->FLAC_file_decoder = FLAC__file_decoder_new();
-	if(0 == decoder->private_->FLAC_file_decoder) {
+	decoder->private_->seekable_stream_decoder = OggFLAC__seekable_stream_decoder_new();
+	if(0 == decoder->private_->seekable_stream_decoder) {
 		free(decoder->private_);
 		free(decoder->protected_);
 		free(decoder);
 		return 0;
 	}
+
+	decoder->private_->file = 0;
 
 	set_defaults_(decoder);
 
@@ -124,11 +147,11 @@ OggFLAC_API void OggFLAC__file_decoder_delete(OggFLAC__FileDecoder *decoder)
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
 	FLAC__ASSERT(0 != decoder->private_);
-	FLAC__ASSERT(0 != decoder->private_->FLAC_file_decoder);
+	FLAC__ASSERT(0 != decoder->private_->seekable_stream_decoder);
 
-	OggFLAC__file_decoder_finish(decoder);
+	(void)OggFLAC__file_decoder_finish(decoder);
 
-	FLAC__file_decoder_delete(decoder->private_->FLAC_file_decoder);
+	OggFLAC__seekable_stream_decoder_delete(decoder->private_->seekable_stream_decoder);
 
 	free(decoder->private_);
 	free(decoder->protected_);
@@ -151,42 +174,54 @@ OggFLAC_API OggFLAC__FileDecoderState OggFLAC__file_decoder_init(OggFLAC__FileDe
 	if(0 == decoder->private_->write_callback || 0 == decoder->private_->metadata_callback || 0 == decoder->private_->error_callback)
 		return decoder->protected_->state = OggFLAC__FILE_DECODER_INVALID_CALLBACK;
 
-	if(!OggFLAC__ogg_decoder_aspect_init(&decoder->protected_->ogg_decoder_aspect))
-		return decoder->protected_->state = OggFLAC__FILE_DECODER_OGG_ERROR;
+	if(0 == decoder->private_->filename)
+		decoder->private_->file = get_binary_stdin_();
+	else
+		decoder->private_->file = fopen(decoder->private_->filename, "rb");
 
-	FLAC__file_decoder_set_write_callback(decoder->private_->FLAC_file_decoder, write_callback_);
-	FLAC__file_decoder_set_metadata_callback(decoder->private_->FLAC_file_decoder, metadata_callback_);
-	FLAC__file_decoder_set_error_callback(decoder->private_->FLAC_file_decoder, error_callback_);
-	FLAC__file_decoder_set_client_data(decoder->private_->FLAC_file_decoder, decoder);
+	if(decoder->private_->file == 0)
+		return decoder->protected_->state = OggFLAC__FILE_DECODER_ERROR_OPENING_FILE;
 
-	if(FLAC__file_decoder_init(decoder->private_->FLAC_file_decoder) != FLAC__FILE_DECODER_OK)
-		return decoder->protected_->state = OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR;
+	OggFLAC__seekable_stream_decoder_set_read_callback(decoder->private_->seekable_stream_decoder, read_callback_);
+	OggFLAC__seekable_stream_decoder_set_seek_callback(decoder->private_->seekable_stream_decoder, seek_callback_);
+	OggFLAC__seekable_stream_decoder_set_tell_callback(decoder->private_->seekable_stream_decoder, tell_callback_);
+	OggFLAC__seekable_stream_decoder_set_length_callback(decoder->private_->seekable_stream_decoder, length_callback_);
+	OggFLAC__seekable_stream_decoder_set_eof_callback(decoder->private_->seekable_stream_decoder, eof_callback_);
+	OggFLAC__seekable_stream_decoder_set_write_callback(decoder->private_->seekable_stream_decoder, write_callback_);
+	OggFLAC__seekable_stream_decoder_set_metadata_callback(decoder->private_->seekable_stream_decoder, metadata_callback_);
+	OggFLAC__seekable_stream_decoder_set_error_callback(decoder->private_->seekable_stream_decoder, error_callback_);
+	OggFLAC__seekable_stream_decoder_set_client_data(decoder->private_->seekable_stream_decoder, decoder);
+
+	if(OggFLAC__seekable_stream_decoder_init(decoder->private_->seekable_stream_decoder) != OggFLAC__SEEKABLE_STREAM_DECODER_OK)
+		return decoder->protected_->state = OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
 
 	return decoder->protected_->state = OggFLAC__FILE_DECODER_OK;
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_finish(OggFLAC__FileDecoder *decoder)
 {
-	FLAC__bool ok;
-
 	FLAC__ASSERT(0 != decoder);
-	FLAC__ASSERT(0 != decoder->private_);
-	FLAC__ASSERT(0 != decoder->protected_);
 
 	if(decoder->protected_->state == OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return true;
 
-	FLAC__ASSERT(0 != decoder->private_->FLAC_file_decoder);
+	FLAC__ASSERT(0 != decoder->private_->seekable_stream_decoder);
 
-	ok = FLAC__file_decoder_finish(decoder->private_->FLAC_file_decoder);
+	if(0 != decoder->private_->file && decoder->private_->file != stdin) {
+		fclose(decoder->private_->file);
+		decoder->private_->file = 0;
+	}
 
-	OggFLAC__ogg_decoder_aspect_finish(&decoder->protected_->ogg_decoder_aspect);
+	if(0 != decoder->private_->filename) {
+		free(decoder->private_->filename);
+		decoder->private_->filename = 0;
+	}
 
 	set_defaults_(decoder);
 
 	decoder->protected_->state = OggFLAC__FILE_DECODER_UNINITIALIZED;
 
-	return ok;
+	return OggFLAC__seekable_stream_decoder_finish(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_md5_checking(OggFLAC__FileDecoder *decoder, FLAC__bool value)
@@ -194,9 +229,10 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_md5_checking(OggFLAC__FileDecod
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
+	FLAC__ASSERT(0 != decoder->private_->seekable_stream_decoder);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	return FLAC__file_decoder_set_md5_checking(decoder->private_->FLAC_file_decoder, value);
+	return OggFLAC__seekable_stream_decoder_set_md5_checking(decoder->private_->seekable_stream_decoder, value);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_filename(OggFLAC__FileDecoder *decoder, const char *value)
@@ -204,9 +240,21 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_filename(OggFLAC__FileDecoder *
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
+	FLAC__ASSERT(0 != value);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	return FLAC__file_decoder_set_filename(decoder->private_->FLAC_file_decoder, value);
+	if(0 != decoder->private_->filename) {
+		free(decoder->private_->filename);
+		decoder->private_->filename = 0;
+	}
+	if(0 != strcmp(value, "-")) {
+		if(0 == (decoder->private_->filename = (char*)malloc(strlen(value)+1))) {
+			decoder->protected_->state = OggFLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
+			return false;
+		}
+		strcpy(decoder->private_->filename, value);
+	}
+	return true;
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_write_callback(OggFLAC__FileDecoder *decoder, OggFLAC__FileDecoderWriteCallback value)
@@ -260,7 +308,7 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_serial_number(OggFLAC__FileDeco
 	FLAC__ASSERT(0 != decoder->protected_);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	OggFLAC__ogg_decoder_aspect_set_serial_number(&decoder->protected_->ogg_decoder_aspect, value);
+	OggFLAC__seekable_stream_decoder_set_serial_number(&decoder->private_->seekable_stream_decoder, value);
 	return true;
 }
 
@@ -269,9 +317,10 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond(OggFLAC__FileD
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
+	FLAC__ASSERT(0 != decoder->private_->seekable_stream_decoder);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	return FLAC__file_decoder_set_metadata_respond(decoder->private_->FLAC_file_decoder, type);
+	return OggFLAC__seekable_stream_decoder_set_metadata_respond(decoder->private_->seekable_stream_decoder, type);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond_application(OggFLAC__FileDecoder *decoder, const FLAC__byte id[4])
@@ -279,9 +328,10 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond_application(Og
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
+	FLAC__ASSERT(0 != decoder->private_->seekable_stream_decoder);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	return FLAC__file_decoder_set_metadata_respond_application(decoder->private_->FLAC_file_decoder, id);
+	return OggFLAC__seekable_stream_decoder_set_metadata_respond_application(decoder->private_->seekable_stream_decoder, id);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond_all(OggFLAC__FileDecoder *decoder)
@@ -289,9 +339,10 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond_all(OggFLAC__F
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
+	FLAC__ASSERT(0 != decoder->private_->seekable_stream_decoder);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	return FLAC__file_decoder_set_metadata_respond_all(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_set_metadata_respond_all(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore(OggFLAC__FileDecoder *decoder, FLAC__MetadataType type)
@@ -299,9 +350,10 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore(OggFLAC__FileDe
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
+	FLAC__ASSERT(0 != decoder->private_->seekable_stream_decoder);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	return FLAC__file_decoder_set_metadata_ignore(decoder->private_->FLAC_file_decoder, type);
+	return OggFLAC__seekable_stream_decoder_set_metadata_ignore(decoder->private_->seekable_stream_decoder, type);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_application(OggFLAC__FileDecoder *decoder, const FLAC__byte id[4])
@@ -309,9 +361,10 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_application(Ogg
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
+	FLAC__ASSERT(0 != decoder->private_->seekable_stream_decoder);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	return FLAC__file_decoder_set_metadata_ignore_application(decoder->private_->FLAC_file_decoder, id);
+	return OggFLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder->private_->seekable_stream_decoder, id);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_all(OggFLAC__FileDecoder *decoder)
@@ -319,9 +372,10 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_all(OggFLAC__Fi
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
+	FLAC__ASSERT(0 != decoder->private_->seekable_stream_decoder);
 	if(decoder->protected_->state != OggFLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	return FLAC__file_decoder_set_metadata_ignore_all(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API OggFLAC__FileDecoderState OggFLAC__file_decoder_get_state(const OggFLAC__FileDecoder *decoder)
@@ -331,82 +385,82 @@ OggFLAC_API OggFLAC__FileDecoderState OggFLAC__file_decoder_get_state(const OggF
 	return decoder->protected_->state;
 }
 
-OggFLAC_API FLAC__FileDecoderState OggFLAC__file_decoder_get_FLAC_file_decoder_state(const OggFLAC__FileDecoder *decoder)
+OggFLAC_API OggFLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_seekable_stream_decoder_state(const OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_state(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_get_state(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API FLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_FLAC_seekable_stream_decoder_state(const OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_seekable_stream_decoder_state(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_get_FLAC_seekable_stream_decoder_state(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API FLAC__StreamDecoderState OggFLAC__file_decoder_get_FLAC_stream_decoder_state(const OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_stream_decoder_state(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_get_FLAC_stream_decoder_state(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API const char *OggFLAC__file_decoder_get_resolved_state_string(const OggFLAC__FileDecoder *decoder)
 {
-	if(decoder->protected_->state != OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR)
+	if(decoder->protected_->state != OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR)
 		return OggFLAC__FileDecoderStateString[decoder->protected_->state];
 	else
-		return FLAC__file_decoder_get_resolved_state_string(decoder->private_->FLAC_file_decoder);
+		return OggFLAC__seekable_stream_decoder_get_resolved_state_string(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_get_md5_checking(const OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_md5_checking(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_get_md5_checking(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API unsigned OggFLAC__file_decoder_get_channels(const OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_channels(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_get_channels(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API FLAC__ChannelAssignment OggFLAC__file_decoder_get_channel_assignment(const OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_channel_assignment(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_get_channel_assignment(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API unsigned OggFLAC__file_decoder_get_bits_per_sample(const OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_bits_per_sample(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_get_bits_per_sample(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API unsigned OggFLAC__file_decoder_get_sample_rate(const OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_sample_rate(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_get_sample_rate(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API unsigned OggFLAC__file_decoder_get_blocksize(const OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_blocksize(decoder->private_->FLAC_file_decoder);
+	return OggFLAC__seekable_stream_decoder_get_blocksize(decoder->private_->seekable_stream_decoder);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_get_decode_position(const OggFLAC__FileDecoder *decoder, FLAC__uint64 *position)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__file_decoder_get_decode_position(decoder->private_->FLAC_file_decoder, position);
+	return OggFLAC__seekable_stream_decoder_get_decode_position(decoder->private_->seekable_stream_decoder, position);
 }
 
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_single(OggFLAC__FileDecoder *decoder)
@@ -414,7 +468,7 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_single(OggFLAC__FileDecoder
 	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
 
-	if(FLAC__file_decoder_get_state(decoder->private_->FLAC_file_decoder) == FLAC__FILE_DECODER_END_OF_FILE)
+	if(decoder->private_->seekable_stream_decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
 		decoder->protected_->state = OggFLAC__FILE_DECODER_END_OF_FILE;
 
 	if(decoder->protected_->state == OggFLAC__FILE_DECODER_END_OF_FILE)
@@ -422,9 +476,9 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_single(OggFLAC__FileDecoder
 
 	FLAC__ASSERT(decoder->protected_->state == OggFLAC__FILE_DECODER_OK);
 
-	ret = FLAC__file_decoder_process_single(decoder->private_->FLAC_file_decoder);
+	ret = OggFLAC__seekable_stream_decoder_process_single(decoder->private_->seekable_stream_decoder);
 	if(!ret)
-		decoder->protected_->state = OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR;
+		decoder->protected_->state = OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -434,7 +488,7 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_metadata(OggFL
 	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
 
-	if(FLAC__file_decoder_get_state(decoder->private_->FLAC_file_decoder) == FLAC__FILE_DECODER_END_OF_FILE)
+	if(decoder->private_->seekable_stream_decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
 		decoder->protected_->state = OggFLAC__FILE_DECODER_END_OF_FILE;
 
 	if(decoder->protected_->state == OggFLAC__FILE_DECODER_END_OF_FILE)
@@ -442,9 +496,9 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_metadata(OggFL
 
 	FLAC__ASSERT(decoder->protected_->state == OggFLAC__FILE_DECODER_OK);
 
-	ret = FLAC__file_decoder_process_until_end_of_metadata(decoder->private_->FLAC_file_decoder);
+	ret = OggFLAC__seekable_stream_decoder_process_until_end_of_metadata(decoder->private_->seekable_stream_decoder);
 	if(!ret)
-		decoder->protected_->state = OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR;
+		decoder->protected_->state = OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -454,7 +508,7 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_file(OggFLAC__
 	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
 
-	if(FLAC__file_decoder_get_state(decoder->private_->FLAC_file_decoder) == FLAC__FILE_DECODER_END_OF_FILE)
+	if(decoder->private_->seekable_stream_decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
 		decoder->protected_->state = OggFLAC__FILE_DECODER_END_OF_FILE;
 
 	if(decoder->protected_->state == OggFLAC__FILE_DECODER_END_OF_FILE)
@@ -462,9 +516,9 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_file(OggFLAC__
 
 	FLAC__ASSERT(decoder->protected_->state == OggFLAC__FILE_DECODER_OK);
 
-	ret = FLAC__file_decoder_process_until_end_of_file(decoder->private_->FLAC_file_decoder);
+	ret = OggFLAC__seekable_stream_decoder_process_until_end_of_stream(decoder->private_->seekable_stream_decoder);
 	if(!ret)
-		decoder->protected_->state = OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR;
+		decoder->protected_->state = OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -474,8 +528,13 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_seek_absolute(OggFLAC__FileDecoder 
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(decoder->protected_->state == OggFLAC__FILE_DECODER_OK || decoder->protected_->state == OggFLAC__FILE_DECODER_END_OF_FILE);
 
-	if(!FLAC__file_decoder_seek_absolute(decoder->private_->FLAC_file_decoder, sample)) {
-		decoder->protected_->state = OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR;
+	if(decoder->private_->filename == 0) { /* means the file is stdin... */
+		decoder->protected_->state = OggFLAC__FILE_DECODER_SEEK_ERROR;
+		return false;
+	}
+
+	if(!OggFLAC__seekable_stream_decoder_seek_absolute(decoder->private_->seekable_stream_decoder, sample)) {
+		decoder->protected_->state = OggFLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
 	else {
@@ -493,30 +552,120 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_seek_absolute(OggFLAC__FileDecoder 
 
 void set_defaults_(OggFLAC__FileDecoder *decoder)
 {
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+
+	decoder->private_->filename = 0;
 	decoder->private_->write_callback = 0;
 	decoder->private_->metadata_callback = 0;
 	decoder->private_->error_callback = 0;
 	decoder->private_->client_data = 0;
-	OggFLAC__ogg_decoder_aspect_set_defaults(&decoder->protected_->ogg_decoder_aspect);
 }
 
-FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *unused, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+/*
+ * This will forcibly set stdin to binary mode (for OSes that require it)
+ */
+FILE *get_binary_stdin_()
 {
-	OggFLAC__FileDecoder *decoder = (OggFLAC__FileDecoder*)client_data;
-	(void)unused;
-	return decoder->private_->write_callback(decoder, frame, buffer, decoder->private_->client_data);
+	/* if something breaks here it is probably due to the presence or
+	 * absence of an underscore before the identifiers 'setmode',
+	 * 'fileno', and/or 'O_BINARY'; check your system header files.
+	 */
+#if defined _MSC_VER || defined __MINGW32__
+	_setmode(_fileno(stdin), _O_BINARY);
+#elif defined __CYGWIN__
+	/* almost certainly not needed for any modern Cygwin, but let's be safe... */
+	setmode(_fileno(stdin), _O_BINARY);
+#endif
+
+	return stdin;
 }
 
-void metadata_callback_(const FLAC__FileDecoder *unused, const FLAC__StreamMetadata *metadata, void *client_data)
+FLAC__SeekableStreamDecoderReadStatus read_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {
-	OggFLAC__FileDecoder *decoder = (OggFLAC__FileDecoder*)client_data;
-	(void)unused;
-	decoder->private_->metadata_callback(decoder, metadata, decoder->private_->client_data);
+	OggFLAC__FileDecoder *file_decoder = (OggFLAC__FileDecoder *)client_data;
+	(void)decoder;
+
+	if(*bytes > 0) {
+		*bytes = (unsigned)fread(buffer, sizeof(FLAC__byte), *bytes, file_decoder->private_->file);
+		if(ferror(file_decoder->private_->file)) {
+			return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR;
+		}
+		else {
+			return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK;
+		}
+	}
+	else
+		return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR; /* abort to avoid a deadlock */
 }
 
-void error_callback_(const FLAC__FileDecoder *unused, FLAC__StreamDecoderErrorStatus status, void *client_data)
+FLAC__SeekableStreamDecoderSeekStatus seek_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
 {
-	OggFLAC__FileDecoder *decoder = (OggFLAC__FileDecoder*)client_data;
-	(void)unused;
-	decoder->private_->error_callback(decoder, status, decoder->private_->client_data);
+	OggFLAC__FileDecoder *file_decoder = (OggFLAC__FileDecoder *)client_data;
+	(void)decoder;
+
+	if(fseek(file_decoder->private_->file, (long)absolute_byte_offset, SEEK_SET) < 0)
+		return FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
+	else
+		return FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK;
+}
+
+FLAC__SeekableStreamDecoderTellStatus tell_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+{
+	OggFLAC__FileDecoder *file_decoder = (OggFLAC__FileDecoder *)client_data;
+	long pos;
+	(void)decoder;
+
+	if((pos = ftell(file_decoder->private_->file)) < 0)
+		return FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR;
+	else {
+		*absolute_byte_offset = (FLAC__uint64)pos;
+		return FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK;
+	}
+}
+
+FLAC__SeekableStreamDecoderLengthStatus length_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
+{
+	OggFLAC__FileDecoder *file_decoder = (OggFLAC__FileDecoder *)client_data;
+	struct stat filestats;
+	(void)decoder;
+
+	if(0 == file_decoder->private_->filename || stat(file_decoder->private_->filename, &filestats) != 0)
+		return FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR;
+	else {
+		*stream_length = (FLAC__uint64)filestats.st_size;
+		return FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_OK;
+	}
+}
+
+FLAC__bool eof_callback_(const OggFLAC__SeekableStreamDecoder *decoder, void *client_data)
+{
+	OggFLAC__FileDecoder *file_decoder = (OggFLAC__FileDecoder *)client_data;
+	(void)decoder;
+
+	return feof(file_decoder->private_->file)? true : false;
+}
+
+FLAC__StreamDecoderWriteStatus write_callback_(const OggFLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+{
+	OggFLAC__FileDecoder *file_decoder = (OggFLAC__FileDecoder *)client_data;
+	(void)decoder;
+
+	return file_decoder->private_->write_callback(file_decoder, frame, buffer, file_decoder->private_->client_data);
+}
+
+void metadata_callback_(const OggFLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+{
+	OggFLAC__FileDecoder *file_decoder = (OggFLAC__FileDecoder *)client_data;
+	(void)decoder;
+
+	file_decoder->private_->metadata_callback(file_decoder, metadata, file_decoder->private_->client_data);
+}
+
+void error_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+{
+	OggFLAC__FileDecoder *file_decoder = (OggFLAC__FileDecoder *)client_data;
+	(void)decoder;
+
+	file_decoder->private_->error_callback(file_decoder, status, file_decoder->private_->client_data);
 }

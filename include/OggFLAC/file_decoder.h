@@ -34,7 +34,7 @@
 
 #include "export.h"
 
-#include "FLAC/file_decoder.h"
+#include "seekable_stream_decoder.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,12 +80,15 @@ typedef enum {
 	OggFLAC__FILE_DECODER_END_OF_FILE,
 	/**< The decoder has reached the end of the file. */
 
-	OggFLAC__FILE_DECODER_OGG_ERROR,
-	/**< An error occurred in the underlying Ogg layer.  */
+	OggFLAC__FILE_DECODER_ERROR_OPENING_FILE,
+	/**< An error occurred opening the input file. */
 
-	OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR,
-	/**< An error occurred in the underlying FLAC file decoder;
-	 * check OggFLAC__file_decoder_get_FLAC_file_decoder_state().
+	OggFLAC__FILE_DECODER_SEEK_ERROR,
+	/**< An error occurred while seeking. */
+
+	OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR,
+	/**< An error occurred in the underlying seekable stream decoder;
+	 * check OggFLAC__file_decoder_get_seekable_stream_decoder_state().
 	 */
 
 	OggFLAC__FILE_DECODER_INVALID_CALLBACK,
@@ -406,22 +409,23 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_all(OggFLAC__Fi
  */
 OggFLAC_API OggFLAC__FileDecoderState OggFLAC__file_decoder_get_state(const OggFLAC__FileDecoder *decoder);
 
-/** Get the state of the underlying FLAC file decoder.
+/** Get the state of the underlying seekable stream decoder.
  *  Useful when the file decoder state is
- *  \c OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR.
+ *  \c OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR.
  *
  * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__FileDecoderState
- *    The FLAC file decoder state.
+ *    The seekable stream decoder state.
  */
-OggFLAC_API FLAC__FileDecoderState OggFLAC__file_decoder_get_FLAC_file_decoder_state(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API OggFLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_seekable_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
 
-/** Get the state of the underlying FLAC file decoder's seekable stream decoder.
+/** Get the state of the underlying FLAC seekable stream decoder.
  *  Useful when the file decoder state is
- *  \c OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR and the FLAC file decoder state is
- *  \c FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR.
+ *  \c OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR
+ *  and the seekable stream decoder state is
+ *  \c OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR.
  *
  * \param  decoder  A decoder instance to query.
  * \assert
@@ -431,11 +435,13 @@ OggFLAC_API FLAC__FileDecoderState OggFLAC__file_decoder_get_FLAC_file_decoder_s
  */
 OggFLAC_API FLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_FLAC_seekable_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
 
-/** Get the state of the underlying FLAC file decoder's stream decoder.
+/** Get the state of the underlying FLAC stream decoder.
  *  Useful when the file decoder state is
- *  \c OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR and the FLAC file decoder state is
- *  \c FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR and the
- *  FLAC seekable stream decoder state is \c FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR.
+ *  \c OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR
+ *  and the seekable stream decoder state is
+ *  \c OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR
+ *  and the *  FLAC seekable stream decoder state is
+ *  \c FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR.
  *
  * \param  decoder  A decoder instance to query.
  * \assert
@@ -447,8 +453,8 @@ OggFLAC_API FLAC__StreamDecoderState OggFLAC__file_decoder_get_FLAC_stream_decod
 
 /** Get the current decoder state as a C string.
  *  This version automatically resolves
- *  \c OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR
- *  by getting the FLAC file decoder's state.
+ *  \c OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR
+ *  by getting the seekable stream decoder's state.
  *
  * \param  decoder  A decoder instance to query.
  * \assert
