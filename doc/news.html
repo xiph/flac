@@ -78,6 +78,28 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 
 	<P>
+		<A NAME="20010720">20-Jul-2001:</A>
+	</P>
+	<P>
+	<UL>
+		<LI>
+			<B>FLAC 1.0 is out!</B>&nbsp;&nbsp;It's finally here.  There are a few new features but mostly it is minor bug fixes since 0.10:
+			<UL>
+				<LI>New '--sector-align' option to <B><TT>flac</TT></B> which aligns a group of encoded files on CD audio sector boundaries.</LI>
+				<LI>New '--output-prefix' option to <B><TT>flac</TT></B> to allow the user to prepend a prefix to all output filenames (useful, for example, for encoding/decoding to a different directory).</LI>
+				<LI>Better WAVE autodetection (doesn't rely on ungetc() anymore).</LI>
+				<LI>Cleaner one-line encoding/decoding stats.</LI>
+				<LI>Changes to the libFLAC interface and type names to make binary compatibility easier to maintain in the future.</LI>
+				<LI>New '--sse-os' option to 'configure' to enable faster SSE-based routines.</LI>
+				<LI>Another (hopefully last) fix to the Winamp 2 plugin.</LI>
+				<LI>Slightly improved Rice parameter estimation.</LI>
+				<LI>Bug fixes for some very rare corner cases when encoding.</LI>
+			</UL>
+		</LI>
+	</UL>
+	</P>
+
+	<P>
 		<A NAME="20010607">07-Jun-2001:</A>
 	</P>
 	<P>
