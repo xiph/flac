@@ -304,7 +304,7 @@
 		    which decoding will start; the default is the beginning
 		    of the stream.  The optional second #.# is the track
 		    and index point at which decoding will end; the default
-		    is the end of the stream.  If the seekpoint does not
+		    is the end of the stream.  If the cuepoint does not
 		    exist, the closest one before it (for the start point)
 		    or after it (for the end point) will be used.  If those
 		    don't exist, the start of the stream (for the start

@@ -1332,7 +1332,7 @@ void show_explain()
 	printf("                               default is the beginning of the stream.  The\n");
 	printf("                               optional second #.# is the track and index point\n");
 	printf("                               at which decoding will end; the default is the\n");
-	printf("                               end of the stream.  If the seekpoint does not\n");
+	printf("                               end of the stream.  If the cuepoint does not\n");
 	printf("                               exist, the closest one before it (for the start\n");
 	printf("                               point) or after it (for the end point) will be\n");
 	printf("                               used.  The cuepoints are merely translated into\n");
