@@ -82,7 +82,7 @@ char *flac_format_song_title(char *filename)
 
 	FLAC_plugin__canonical_tag_get_combined(filename, &tag);
 
-	if(flac_cfg.convert_char_set) {
+	if(flac_cfg.title.convert_char_set) {
 		convert_from_file_to_user_in_place(&tag.title);
 		convert_from_file_to_user_in_place(&tag.composer);
 		convert_from_file_to_user_in_place(&tag.performer);
@@ -108,10 +108,7 @@ char *flac_format_song_title(char *filename)
 	input->file_name = g_basename(filename);
 	input->file_path = filename;
 	input->file_ext = local__extname(filename);
-	ret = xmms_get_titlestring(flac_cfg.tag_override ? flac_cfg.tag_format : xmms_get_gentitle_format(), input);
-fprintf(stderr,"@@@@ override=%c\n",flac_cfg.tag_override?'y':'n');
-fprintf(stderr,"@@@@ fmt=%s\n",flac_cfg.tag_override ? flac_cfg.tag_format : xmms_get_gentitle_format());
-fprintf(stderr,"@@@@ ret=%s\n",ret);
+	ret = xmms_get_titlestring(flac_cfg.title.tag_override ? flac_cfg.title.tag_format : xmms_get_gentitle_format(), input);
 	g_free(input);
 
 	if (!ret) {

@@ -37,6 +37,7 @@
 
 #include "FLAC/all.h"
 #include "plugin_common/all.h"
+#include "share/replaygain.h"
 #include "configure.h"
 #include "wrap_id3.h"
 #include "charset.h"
@@ -46,7 +47,6 @@
 #endif
 #define min(x,y) ((x)<(y)?(x):(y))
 
-#define FLAC__DO_DITHER
 
 typedef struct {
 	FLAC__bool abort_flag;
@@ -60,6 +60,9 @@ typedef struct {
 	unsigned length_in_msec;
 	AFormat sample_format;
 	int seek_to_in_sec;
+	FLAC__bool has_replaygain;
+	double replay_scale;
+	DitherContext dither_context;
 } file_info_struct;
 
 static void FLAC_XMMS__init();
@@ -127,38 +130,46 @@ void FLAC_XMMS__init()
 {
 	ConfigFile *cfg;
 
-	flac_cfg.tag_override = FALSE;
-	g_free(flac_cfg.tag_format);
-	flac_cfg.convert_char_set = FALSE;
+	flac_cfg.title.tag_override = FALSE;
+	g_free(flac_cfg.title.tag_format);
+	flac_cfg.title.convert_char_set = FALSE;
 
 	cfg = xmms_cfg_open_default_file();
 
-	xmms_cfg_read_boolean(cfg, "flac", "tag_override", &flac_cfg.tag_override);
+	/* title */
 
-	if(!xmms_cfg_read_string(cfg, "flac", "tag_format", &flac_cfg.tag_format))
-		flac_cfg.tag_format = g_strdup("%p - %t");
+	xmms_cfg_read_boolean(cfg, "flac", "title.tag_override", &flac_cfg.title.tag_override);
 
-	xmms_cfg_read_boolean(cfg, "flac", "convert_char_set", &flac_cfg.convert_char_set);
+	if(!xmms_cfg_read_string(cfg, "flac", "title.tag_format", &flac_cfg.title.tag_format))
+		flac_cfg.title.tag_format = g_strdup("%p - %t");
 
-	if(!xmms_cfg_read_string(cfg, "flac", "file_char_set", &flac_cfg.file_char_set))
-		flac_cfg.file_char_set = FLAC_plugin__charset_get_current();
+	xmms_cfg_read_boolean(cfg, "flac", "title.convert_char_set", &flac_cfg.title.convert_char_set);
 
-	if(!xmms_cfg_read_string(cfg, "flac", "user_char_set", &flac_cfg.user_char_set))
-		flac_cfg.user_char_set = FLAC_plugin__charset_get_current();
+	if(!xmms_cfg_read_string(cfg, "flac", "title.file_char_set", &flac_cfg.title.file_char_set))
+		flac_cfg.title.file_char_set = FLAC_plugin__charset_get_current();
+
+	if(!xmms_cfg_read_string(cfg, "flac", "title.user_char_set", &flac_cfg.title.user_char_set))
+		flac_cfg.title.user_char_set = FLAC_plugin__charset_get_current();
 
 	/* replaygain */
 
-	xmms_cfg_read_boolean(cfg, "flac", "replaygain_enable", &flac_cfg.replaygain.enable);
+	xmms_cfg_read_boolean(cfg, "flac", "output.replaygain.enable", &flac_cfg.output.replaygain.enable);
 
-	if(!xmms_cfg_read_int(cfg, "flac", "replaygain_preamp", &flac_cfg.replaygain.preamp))
-		flac_cfg.replaygain.preamp = 0;
+	xmms_cfg_read_boolean(cfg, "flac", "output.replaygain.album_mode", &flac_cfg.output.replaygain.album_mode);
 
-	xmms_cfg_read_boolean(cfg, "flac", "replaygain_hard_limit", &flac_cfg.replaygain.hard_limit);
+	if(!xmms_cfg_read_int(cfg, "flac", "output.replaygain.preamp", &flac_cfg.output.replaygain.preamp))
+		flac_cfg.output.replaygain.preamp = 0;
 
-	xmms_cfg_read_boolean(cfg, "flac", "replaygain_dither", &flac_cfg.replaygain.dither);
+	xmms_cfg_read_boolean(cfg, "flac", "output.replaygain.hard_limit", &flac_cfg.output.replaygain.hard_limit);
 
-	if(!xmms_cfg_read_int(cfg, "flac", "replaygain_noise_shaping", &flac_cfg.replaygain.noise_shaping))
-		flac_cfg.replaygain.noise_shaping = 1;
+	xmms_cfg_read_boolean(cfg, "flac", "output.resolution.normal.dither_24_to_16", &flac_cfg.output.resolution.normal.dither_24_to_16);
+	xmms_cfg_read_boolean(cfg, "flac", "output.resolution.replaygain.dither", &flac_cfg.output.resolution.replaygain.dither);
+
+	if(!xmms_cfg_read_int(cfg, "flac", "output.resolution.replaygain.noise_shaping", &flac_cfg.output.resolution.replaygain.noise_shaping))
+		flac_cfg.output.resolution.replaygain.noise_shaping = 1;
+
+	if(!xmms_cfg_read_int(cfg, "flac", "output.resolution.replaygain.bps_out", &flac_cfg.output.resolution.replaygain.bps_out))
+		flac_cfg.output.resolution.replaygain.bps_out = 16;
 
 	decoder_ = FLAC__file_decoder_new();
 }
@@ -185,6 +196,7 @@ void FLAC_XMMS__play_file(char *filename)
 	file_info_.is_playing = false;
 	file_info_.eof = false;
 	file_info_.play_thread_open = false;
+	file_info_.has_replaygain = false;
 
 	if(0 == (f = fopen(filename, "r")))
 		return;
@@ -195,6 +207,9 @@ void FLAC_XMMS__play_file(char *filename)
 
 	if(!safe_decoder_init_(filename, decoder_))
 		return;
+
+	if(file_info_.has_replaygain && flac_cfg.output.replaygain.enable && flac_cfg.output.resolution.replaygain.dither)
+		FLAC__plugin_common__init_dither_context(&file_info_.dither_context, file_info_.bits_per_sample, flac_cfg.output.resolution.replaygain.noise_shaping);
 
 	file_info_.is_playing = true;
 
@@ -308,15 +323,38 @@ void *play_loop_(void *arg)
 			if(wide_samples_in_reservoir_ > 0) {
 				const unsigned channels = file_info_.channels;
 				const unsigned bits_per_sample = file_info_.bits_per_sample;
-#ifdef FLAC__DO_DITHER
-				const unsigned target_bps = min(bits_per_sample, 16);
-#else
-				const unsigned target_bps = bits_per_sample;
-#endif
 				const unsigned n = min(wide_samples_in_reservoir_, SAMPLES_PER_WRITE);
 				const unsigned delta = n * channels;
-				int bytes = (int)FLAC__plugin_common__pack_pcm_signed_little_endian(sample_buffer_, reservoir_, n, channels, bits_per_sample, target_bps);
+				int bytes;
 				unsigned i;
+
+				if(flac_cfg.output.replaygain.enable && file_info_.has_replaygain) {
+					bytes = (int)FLAC__plugin_common__apply_gain(
+						sample_buffer_,
+						reservoir_,
+						n,
+						channels,
+						bits_per_sample,
+						flac_cfg.output.resolution.replaygain.bps_out,
+						file_info_.replay_scale,
+						flac_cfg.output.replaygain.hard_limit,
+						flac_cfg.output.resolution.replaygain.dither,
+						(NoiseShaping)flac_cfg.output.resolution.replaygain.noise_shaping,
+						&file_info_.dither_context
+					);
+				}
+				else {
+					bytes = (int)FLAC__plugin_common__pack_pcm_signed_little_endian(
+						sample_buffer_,
+						reservoir_,
+						n,
+						channels,
+						bits_per_sample,
+						flac_cfg.output.resolution.normal.dither_24_to_16?
+							min(bits_per_sample, 16) :
+							bits_per_sample
+					);
+				}
 
 				for(i = delta; i < wide_samples_in_reservoir_ * channels; i++)
 					reservoir_[i-delta] = reservoir_[i];
@@ -366,6 +404,9 @@ FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *decoder)
 
 	FLAC__file_decoder_set_md5_checking(decoder, false);
 	FLAC__file_decoder_set_filename(decoder, filename);
+	FLAC__file_decoder_set_metadata_ignore_all(decoder);
+	FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_STREAMINFO);
+	FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__file_decoder_set_write_callback(decoder, write_callback_);
 	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback_);
 	FLAC__file_decoder_set_error_callback(decoder, error_callback_);
@@ -450,6 +491,13 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 		}
 #endif
 		file_info->length_in_msec = file_info->total_samples * 10 / (file_info->sample_rate / 100);
+	}
+	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+		double gain, peak;
+		if(FLAC__replaygain_load_from_vorbiscomment(metadata, flac_cfg.output.replaygain.album_mode, &gain, &peak)) {
+			file_info_.has_replaygain = true;
+			file_info_.replay_scale = FLAC__replaygain_compute_scale_factor(peak, gain, (double)flac_cfg.output.replaygain.preamp, /*prevent_clipping=*/true);
+		}
 	}
 }
 

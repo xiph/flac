@@ -24,19 +24,32 @@
 #include <glib.h>
 
 typedef struct {
-	gboolean tag_override;
-	gchar *tag_format;
-	gboolean convert_char_set;
-	gchar *file_char_set;
-	gchar *user_char_set;
+	struct {
+		gboolean tag_override;
+		gchar *tag_format;
+		gboolean convert_char_set;
+		gchar *file_char_set;
+		gchar *user_char_set;
+	} title;
 
 	struct {
-		gboolean enable;
-		gint preamp;
-		gboolean hard_limit;
-		gboolean dither;
-		guint noise_shaping; /* value must be one of NoiseShaping enum, c.f. plugin_common/replaygain_synthesis.h */
-	} replaygain;
+		struct {
+			gboolean enable;
+			gboolean album_mode;
+			gint preamp;
+			gboolean hard_limit;
+		} replaygain;
+		struct {
+			struct {
+				gboolean dither_24_to_16;
+			} normal;
+			struct {
+				gboolean dither;
+				gint noise_shaping; /* value must be one of NoiseShaping enum, c.f. plugin_common/replaygain_synthesis.h */
+				gint bps_out;
+			} replaygain;
+		} resolution;
+	} output;
 } flac_config_t;
 
 extern flac_config_t flac_cfg;

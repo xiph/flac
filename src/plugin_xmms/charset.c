@@ -137,12 +137,12 @@ const CharsetInfo charset_trans_array[] = {
  */
 char *convert_from_file_to_user(const char *string)
 {
-	return FLAC_plugin__charset_convert_string(string, flac_cfg.file_char_set, flac_cfg.user_char_set);
+	return FLAC_plugin__charset_convert_string(string, flac_cfg.title.file_char_set, flac_cfg.title.user_char_set);
 }
 
 char *convert_from_user_to_file(const char *string)
 {
-	return FLAC_plugin__charset_convert_string(string, flac_cfg.user_char_set, flac_cfg.file_char_set);
+	return FLAC_plugin__charset_convert_string(string, flac_cfg.title.user_char_set, flac_cfg.title.file_char_set);
 }
 
 void convert_from_file_to_user_in_place(char **string)
