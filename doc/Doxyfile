@@ -236,7 +236,8 @@ GENERATE_BUGLIST       = YES
 # will result in a user defined paragraph with heading "Side Effects:". 
 # You can put \n's in the value part of an alias to insert newlines.
 
-ALIASES                = "assert=\par Assertions:\n"
+ALIASES                = "assert=\par Assertions:\n" \
+                         "default=\par Default Value:\n"
 
 # The ENABLED_SECTIONS tag can be used to enable conditional 
 # documentation sections, marked by \if sectionname ... \endif.
