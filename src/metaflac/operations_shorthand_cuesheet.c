@@ -22,7 +22,7 @@
 #include "share/grabbag.h"
 #include <string.h>
 
-static FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet, const char *cs_filename, FLAC__bool *needs_write, FLAC__uint64 lead_out_offset, Argument_AddSeekpoint *add_seekpoint_link);
+static FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet, const char *cs_filename, FLAC__bool *needs_write, FLAC__uint64 lead_out_offset, FLAC__bool is_cdda, Argument_AddSeekpoint *add_seekpoint_link);
 static FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cuesheet, const char *cs_filename);
 
 FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
@@ -31,6 +31,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 	FLAC__StreamMetadata *cuesheet = 0;
 	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
 	FLAC__uint64 lead_out_offset = 0;
+	FLAC__bool is_cdda;
 
 	if(0 == iterator)
 		die("out of memory allocating iterator");
@@ -46,11 +47,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 				FLAC__metadata_iterator_delete(iterator);
 				return false;
 			}
-			if(block->data.stream_info.sample_rate != 44100) {
-				fprintf(stderr, "%s: ERROR: FLAC stream must currently be 44.1kHz in order to import/export cuesheet\n", filename);
-				FLAC__metadata_iterator_delete(iterator);
-				return false;
-			}
+			is_cdda = (block->data.stream_info.channels == 1 || block->data.stream_info.channels == 2) && (block->data.stream_info.bits_per_sample == 16) && (block->data.stream_info.sample_rate == 44100);
 		}
 		else if(block->type == FLAC__METADATA_TYPE_CUESHEET)
 			cuesheet = block;
@@ -69,7 +66,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 				ok = false;
 			}
 			else {
-				ok = import_cs_from(filename, &cuesheet, operation->argument.import_cuesheet_from.filename, needs_write, lead_out_offset, operation->argument.import_cuesheet_from.add_seekpoint_link);
+				ok = import_cs_from(filename, &cuesheet, operation->argument.import_cuesheet_from.filename, needs_write, lead_out_offset, is_cdda, operation->argument.import_cuesheet_from.add_seekpoint_link);
 				if(ok) {
 					/* append CUESHEET block */
 					while(FLAC__metadata_iterator_next(iterator))
@@ -104,7 +101,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
  * local routines
  */
 
-FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet, const char *cs_filename, FLAC__bool *needs_write, FLAC__uint64 lead_out_offset, Argument_AddSeekpoint *add_seekpoint_link)
+FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet, const char *cs_filename, FLAC__bool *needs_write, FLAC__uint64 lead_out_offset, FLAC__bool is_cdda, Argument_AddSeekpoint *add_seekpoint_link)
 {
 	FILE *f;
 	const char *error_message;
@@ -125,7 +122,7 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 		return false;
 	}
 
-	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, /*@@@is_cdda=*/true, lead_out_offset);
+	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, is_cdda, lead_out_offset);
 
 	if(f != stdin)
 		fclose(f);
