@@ -160,11 +160,7 @@ void FLAC_XMMS__play_file(char *filename)
 {
 	FILE *f;
 	gchar *ret;
-#ifdef FLAC__DO_DITHER
-	const AFormat output_format = FMT_S16_NE;
-#else
 	const AFormat output_format = file_info_.sample_format;
-#endif
 
 	wide_samples_in_reservoir_ = 0;
 	audio_error_ = false;
@@ -296,7 +292,7 @@ void *play_loop_(void *arg)
 				const unsigned channels = file_info_.channels;
 				const unsigned bits_per_sample = file_info_.bits_per_sample;
 #ifdef FLAC__DO_DITHER
-				const unsigned target_bps = 16;
+				const unsigned target_bps = min(bits_per_sample, 16);
 #else
 				const unsigned target_bps = bits_per_sample;
 #endif
@@ -412,11 +408,14 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 		file_info->sample_rate = metadata->data.stream_info.sample_rate;
 
 #ifdef FLAC__DO_DITHER
-		if(file_info->bits_per_sample == 16 || file_info->bits_per_sample == 24) {
+		if(file_info->bits_per_sample == 8) {
+			file_info->sample_format = FMT_S8;
+		}
+		else if(file_info->bits_per_sample == 16 || file_info->bits_per_sample == 24) {
 			file_info->sample_format = FMT_S16_LE;
 		}
 		else {
-			/*@@@ need some error here like wa2: MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 16/24-bit samples\n", "ERROR: plugin can only handle 16/24-bit samples", 0); */
+			/*@@@ need some error here like wa2: MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16/24-bit samples\n", "ERROR: plugin can only handle 8/16/24-bit samples", 0); */
 			file_info->abort_flag = true;
 			return;
 		}
