@@ -483,7 +483,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-S {#|X|#x}</TT>,<BR><TT>--seekpoint={#|X|#x}</TT>
+				<TT>-S {#|X|#x|#s}</TT>,<BR><TT>--seekpoint={#|X|#x|#s}</TT>
 			</TD>
 			<TD>
 				Include a point or points in a SEEKTABLE:<BR>
@@ -497,10 +497,13 @@
 				<LI>
 					<TT>#x</TT> : # evenly spaced seekpoints, the first being at sample 0
 				</LI>
+				<LI>
+					<TT>#s</TT> : a seekpoint every # seconds; # does not have to be a whole number, it can be, for example, <TT>9.5</TT>, meaning a seekpoint every 9.5 seconds
+				</LI>
 				</UL>
 				You may use many -S options; the resulting SEEKTABLE will be the unique-ified union of all such values.<BR>
 				With no -S options, flac defaults to '-S 100x'.  Use --no-seektable for no SEEKTABLE.<BR>
-				<B>NOTE:</B> -S #x will not work if the encoder can't determine the input size before starting.<BR>
+				<B>NOTE:</B> -S #x and -S #s will not work if the encoder can't determine the input size before starting.<BR>
 				<B>NOTE:</B> if you use -S # and # is &gt;= samples in the input, there will be either no seek point entered (if the input size is determinable before encoding starts) or a placeholder point (if input size is not determinable).<BR>
 			</TD>
 		</TR>

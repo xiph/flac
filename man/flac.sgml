@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>October 30, 2002</date>">
+  <!ENTITY dhdate      "<date>November 6, 2002</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -316,7 +316,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-S</option> {<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>}, <option>--seekpoint</option>={<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>}</term>
+		<term><option>-S</option> {<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>|<replaceable>#s</replaceable>}, <option>--seekpoint</option>={<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>|<replaceable>#s</replaceable>}</term>
 
 		<listitem>
 		  <para>
@@ -324,12 +324,15 @@
 		    a seek point at that sample number is added.  Using
 		    X, a placeholder point is added at the end of a the
 		    table.  Using #x, # evenly spaced seek points will
-		    be added, the first being at sample 0.  You may use
+		    be added, the first being at sample 0.  Using #s, a
+		    seekpoint will be added every # seconds (# does not
+		    have to be a whole number; it can be, for example, 9.5,
+		    meaning a seekpoint every 9.5 seconds).  You may use
 		    many -S options; the resulting SEEKTABLE will be the
 		    unique-ified union of all such values.  With no -S
 		    options, flac defaults to '-S 100x'.  Use --no-seektable
-		    for no SEEKTABLE.  Note: '-S #x' will not work if the
-		    encoder can't determine the input size before
+		    for no SEEKTABLE.  Note: '-S #x' and '-S #s' will not
+		    work if the encoder can't determine the input size before
 		    starting.  Note: if you use '-S #' and # is >=
 		    samples in the input, there will be either no seek
 		    point entered (if the input size is determinable
