@@ -36,6 +36,11 @@
 #include "OggFLAC/seekable_stream_encoder.h"
 #include "protected/file_encoder.h"
 
+#ifdef max
+#undef max
+#endif
+#define max(x,y) ((x)>(y)?(x):(y))
+
 /***********************************************************************
  *
  * Private class method prototypes
@@ -64,6 +69,7 @@ typedef struct OggFLAC__FileEncoderPrivate {
 	char *filename;
 	FLAC__uint64 bytes_written;
 	FLAC__uint64 samples_written;
+	FLAC__uint64 frames_written;
 	unsigned total_frames_estimate;
 	OggFLAC__SeekableStreamEncoder *seekable_stream_encoder;
 	FILE *file;
@@ -173,6 +179,7 @@ OggFLAC_API OggFLAC__FileEncoderState OggFLAC__file_encoder_init(OggFLAC__FileEn
 
 	encoder->private_->bytes_written = 0;
 	encoder->private_->samples_written = 0;
+	encoder->private_->frames_written = 0;
 
 	OggFLAC__seekable_stream_encoder_set_seek_callback(encoder->private_->seekable_stream_encoder, seek_callback_);
 	OggFLAC__seekable_stream_encoder_set_tell_callback(encoder->private_->seekable_stream_encoder, tell_callback_);
@@ -767,15 +774,25 @@ FLAC__StreamEncoderWriteStatus write_callback_(const OggFLAC__SeekableStreamEnco
 {
 	OggFLAC__FileEncoder *file_encoder = (OggFLAC__FileEncoder*)client_data;
 
-	(void)encoder, (void)samples, (void)current_frame;
+	(void)encoder;
 
 	FLAC__ASSERT(0 != file_encoder);
 
 	if(local__fwrite(buffer, sizeof(FLAC__byte), bytes, file_encoder->private_->file) == bytes) {
 		file_encoder->private_->bytes_written += bytes;
 		file_encoder->private_->samples_written += samples;
-		if(0 != file_encoder->private_->progress_callback && samples > 0)
-			file_encoder->private_->progress_callback(file_encoder, file_encoder->private_->bytes_written, file_encoder->private_->samples_written, current_frame+1, file_encoder->private_->total_frames_estimate, file_encoder->private_->client_data);
+		/* we keep a high watermark on the number of frames written because
+		 * when the encoder goes back to write metadata, 'current_frame'
+		 * will drop back to 0.
+		 */
+		file_encoder->private_->frames_written = max(file_encoder->private_->frames_written, current_frame+1);
+		/*@@@@@@ We would like to add an '&& samples > 0' to the if clause
+		 * here but currently because of the nature of Ogg writing 'samples'
+		 * is always 0 (see ogg_encoder_aspect.c).  The downside is extra
+		 * progress callbacks.
+		 */
+		if(0 != file_encoder->private_->progress_callback)
+			file_encoder->private_->progress_callback(file_encoder, file_encoder->private_->bytes_written, file_encoder->private_->samples_written, file_encoder->private_->frames_written, file_encoder->private_->total_frames_estimate, file_encoder->private_->client_data);
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 	}
 	else

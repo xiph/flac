@@ -45,6 +45,10 @@
 #undef min
 #endif
 #define min(x,y) ((x)<(y)?(x):(y))
+#ifdef max
+#undef max
+#endif
+#define max(x,y) ((x)>(y)?(x):(y))
 
 /* this MUST be >= 588 so that sector aligning can take place with one read */
 #define CHUNK_OF_SAMPLES 2048
@@ -73,9 +77,8 @@ typedef struct {
 	unsigned stats_mask;
 
 	/*
-	 * We use flac.stream for encoding native FLAC to stdout
-	 * We use flac.file for encoding native FLAC to a regular file
-	 * We use ogg.stream for encoding Ogg FLAC to either stdout or a regular file
+	 * We use *.stream for encoding to stdout
+	 * We use *.file for encoding to a regular file
 	 */
 	union {
 		union {
@@ -1801,7 +1804,7 @@ FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__
 	encoder_session->bytes_written += bytes;
 	/*
 	 * With Ogg FLAC we don't get one write callback per frame and
-	 * we don't have good number for 'samples', so we estimate based
+	 * we don't have a good number for 'samples', so we estimate based
 	 * on the frame number and the knowledge that all blocks (except
 	 * the last) are the same size.
 	 */
@@ -1825,8 +1828,16 @@ void ogg_stream_encoder_metadata_callback(const OggFLAC__StreamEncoder *encoder,
 
 void ogg_file_encoder_progress_callback(const OggFLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
 {
+	EncoderSession *encoder_session = (EncoderSession*)client_data;
+
 	(void)encoder;
 
+	/*
+	 * With Ogg FLAC we don't get a value for 'samples_written', so we
+	 * estimate based on the frames written and the knowledge that all
+	 * blocks (except the last) are the same size.
+	 */
+	samples_written = frames_written * encoder_session->blocksize;
 	flac_file_encoder_progress_callback(0, bytes_written, samples_written, frames_written, total_frames_estimate, client_data);
 }
 
@@ -1912,7 +1923,7 @@ void print_stats(const EncoderSession *encoder_session)
 	const double ratio = (double)(FLAC__int64)encoder_session->bytes_written / ((double)(FLAC__int64)encoder_session->unencoded_size * progress);
 #else
 	const double progress = (double)samples_written / (double)encoder_session->total_samples_to_encode;
-	const double ratio = (double)encoder_session->bytes_written / ((double)encoder_session->unencoded_size * progress);
+	const double ratio = (double)encoder_session->bytes_written / ((double)encoder_session->unencoded_size * max(1.0, progress));
 #endif
 
 	if(samples_written == encoder_session->total_samples_to_encode) {
