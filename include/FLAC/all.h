@@ -35,6 +35,7 @@
 #include "export.h"
 
 #include "assert.h"
+#include "callback.h"
 #include "file_decoder.h"
 #include "file_encoder.h"
 #include "format.h"

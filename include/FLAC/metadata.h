@@ -33,6 +33,7 @@
 #define FLAC__METADATA_H
 
 #include "export.h"
+#include "callback.h"
 #include "format.h"
 
 /******************************************************************************
