@@ -538,7 +538,7 @@ static FLAC__bool generate_noise(const char *fn, unsigned bytes)
 	}
 	srandom(tv.tv_usec);
 #else
-	/* who has the patience to figure out how to do RNG with VC++? */
+	srand(time(0));
 #endif
 
 	if(0 == (f = fopen(fn, mode)))
@@ -548,7 +548,7 @@ static FLAC__bool generate_noise(const char *fn, unsigned bytes)
 #if !defined _MSC_VER && !defined __MINGW32__
 		FLAC__byte x = (FLAC__byte)(((unsigned)random()) & 0xff);
 #else
-		FLAC__byte x = (FLAC__byte)((((unsigned)generate_noise) >> 8) ^ (b * 17)); /* fake it */
+		FLAC__byte x = (FLAC__byte)(((unsigned)rand()) & 0xff);
 #endif
 		if(fwrite(&x, sizeof(x), 1, f) < 1)
 			goto foo;
