@@ -217,7 +217,7 @@
 		<B><TT>flac</TT></B> is the command-line file encoder/decoder.  The input to the encoder and the output to the decoder must either be RIFF WAVE format, AIFF, or raw interleaved sample data.  <B><TT>flac</TT></B> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.).  Another restriction (hopefully short-term) is that the input must be 8, 16, or 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.
 	</P>
 	<P>
-		<B><TT>flac</TT></B> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, and files ending in ".aif" or ".aiff" or have the AIFF header present are in AIFF files.  This may be overridden with a command-line option.  It also assumes that files ending in ".ogg" are Ogg-FLAC files.  Other than this, <B><TT>flac</TT></B> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
+		<B><TT>flac</TT></B> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, and files ending in ".aif" or ".aiff" or have the AIFF header present are in AIFF files.  This may be overridden with a command-line option.  It also assumes that files ending in ".ogg" are Ogg FLAC files.  Other than this, <B><TT>flac</TT></B> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
 	</P>
 	<P>
 		Before going into the full command-line description, a few other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-8</TT></B> (or <B><TT>--fast</B></TT> and <B><TT>--best</B></TT>) that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <B><TT>flac</TT></B> behaves similarly to gzip in the way it handles input and output files.
@@ -437,8 +437,8 @@
 				<TT>--ogg</TT>
 			</TD>
 			<TD>
-				When encoding, generate Ogg-FLAC output instead of native-FLAC.  Ogg-FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <TT><B>flac</B></TT>.<P>
-				When decoding, force the input to be treated as Ogg-FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.
+				When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <TT><B>flac</B></TT>.<P>
+				When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.
 			</TD>
 		</TR>
 		<A NAME="flac_options_serial_number">
@@ -1047,7 +1047,17 @@
 		Bug tracking is done on the Sourceforge project page <A HREF="http://sourceforge.net/bugs/?group_id=13478">here</A>.  If you submit a bug, make sure and provide an email contact or use the Monitor feature.
 	</P>
 	<P>
-		The following are major known bugs in the current (1.1.0) release:
+		The following are major known bugs in the current (1.1.1) release:
+	</P>
+	<P>
+		<UL>
+			<LI>
+				(none)
+			</LI>
+		</UL>
+	</P>
+	<P>
+		The following are major known bugs in the 1.1.0 release:
 	</P>
 	<P>
 		<UL>
