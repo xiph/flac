@@ -538,8 +538,8 @@ void get_description_(const char *filename, char *description, unsigned max_size
 			*p = '\0';
 	}
 	else {
-		char *artist = tag.performer[0]? tag.performer : tag.composer[0]? tag.composer : "Unknown Artist";
-		char *title = tag.title[0]? tag.title : "Untitled";
+		char *artist = !local__is_blank(tag.performer)? tag.performer : !local__is_blank(tag.composer)? tag.composer : "Unknown Artist";
+		char *title = !local__is_blank(tag.title)? tag.title : "Untitled";
 
 		/* there's no snprintf in VC6 so we get sloppy */
 #if 0
