@@ -93,6 +93,18 @@ if test x$use_3dnow = xtrue ; then
 AC_DEFINE(FLAC__USE_3DNOW)
 fi
 
+AC_ARG_ENABLE(exhaustive-tests,
+[  --enable-exhaustive-tests      Enable exhaustive testing ("make check" will take a LONG time!)],
+[case "${enableval}" in
+	yes) exhaustive_tests=true ;;
+	no)  exhaustive_tests=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-exhaustive-tests) ;;
+esac],[exhaustive_tests=false])
+AM_CONDITIONAL(FLaC__EXHAUSTIVE_TESTS, test x$exhaustive_tests = xtrue)
+if test x$exhaustive_tests = xtrue ; then
+AC_DEFINE(FLAC__EXHAUSTIVE_TESTS)
+fi
+
 AM_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
 AM_CONDITIONAL(FLaC__HAS_OGG, [test x$have_ogg = xyes])
 if test x$have_ogg = xyes ; then

@@ -134,7 +134,7 @@ test_file ()
 	bps=$3
 	encode_options="$4"
 
-	echo -n "$name: encode..."
+	echo -n "$name (--channels=$channels --bps=$bps $encode_options): encode..."
 	cmd="flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.raw"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
@@ -221,94 +221,109 @@ test_file_piped ()
 	echo OK
 }
 
+if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
+	max_lpc_order=32
+else
+	max_lpc_order=16
+fi
+
 echo "Testing noise through pipes..."
 test_file_piped noise 1 8 "-0"
 
 echo "Testing small files..."
-test_file test01 1 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
-test_file test02 2 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
-test_file test03 1 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
-test_file test04 2 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
+test_file test01 1 16 "-0 -l $max_lpc_order -m -e -p"
+test_file test02 2 16 "-0 -l $max_lpc_order -m -e -p"
+test_file test03 1 16 "-0 -l $max_lpc_order -m -e -p"
+test_file test04 2 16 "-0 -l $max_lpc_order -m -e -p"
 
 echo "Testing 8-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd8-$b 1 8 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
+	test_file fsd8-$b 1 8 "-0 -l $max_lpc_order -m -e -p"
 done
 
 echo "Testing 16-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd16-$b 1 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
+	test_file fsd16-$b 1 16 "-0 -l $max_lpc_order -m -e -p"
 done
 
 echo "Testing 24-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd24-$b 1 24 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
+	test_file fsd24-$b 1 24 "-0 -l $max_lpc_order -m -e -p"
 done
 
 echo "Testing 16-bit wasted-bits-per-sample streams..."
 for b in 01 ; do
-	test_file wbps16-$b 1 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
+	test_file wbps16-$b 1 16 "-0 -l $max_lpc_order -m -e -p"
 done
 
 for bps in 8 16 24 ; do
 	echo "Testing $bps-bit sine wave streams..."
 	for b in 00 ; do
-		test_file sine${bps}-$b 1 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --sample-rate=48000"
+		test_file sine${bps}-$b 1 $bps "-0 -l $max_lpc_order -m -e --sample-rate=48000"
 	done
 	for b in 01 ; do
-		test_file sine${bps}-$b 1 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --sample-rate=96000"
+		test_file sine${bps}-$b 1 $bps "-0 -l $max_lpc_order -m -e --sample-rate=96000"
 	done
 	for b in 02 03 04 ; do
-		test_file sine${bps}-$b 1 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search"
+		test_file sine${bps}-$b 1 $bps "-0 -l $max_lpc_order -m -e"
 	done
 	for b in 10 11 ; do
-		test_file sine${bps}-$b 2 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --sample-rate=48000"
+		test_file sine${bps}-$b 2 $bps "-0 -l $max_lpc_order -m -e --sample-rate=48000"
 	done
 	for b in 12 ; do
-		test_file sine${bps}-$b 2 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --sample-rate=96000"
+		test_file sine${bps}-$b 2 $bps "-0 -l $max_lpc_order -m -e --sample-rate=96000"
 	done
 	for b in 13 14 15 16 17 18 19 ; do
-		test_file sine${bps}-$b 2 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search"
+		test_file sine${bps}-$b 2 $bps "-0 -l $max_lpc_order -m -e"
 	done
 done
 
 echo "Testing some frame header variations..."
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --blocksize=16"
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --blocksize=65535"
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --blocksize=16"
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --blocksize=65535"
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --sample-rate=9"
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --sample-rate=90"
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --sample-rate=90000"
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --sample-rate=9"
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --sample-rate=90"
-test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --sample-rate=90000"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p -b $max_lpc_order"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax -b $max_lpc_order"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax -b 65535"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=9"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=90"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=90000"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --sample-rate=9"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --sample-rate=90"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --sample-rate=90000"
 
 echo "Testing option variations..."
 for f in 00 01 02 03 04 ; do
 	for opt in 0 1 2 4 5 6 8 ; do
-		for extras in '' '--qlp-coeff-precision-search' '--exhaustive-model-search' ; do
+		for extras in '' '-p' '-e' ; do
 			test_file sine16-$f 1 16 "-$opt $extras"
 		done
 	done
+	if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
+		test_file sine16-$f 1 16 "-b 16384 -m -r 8 -l $max_lpc_order -e -p"
+	fi
 done
+
 for f in 10 11 12 13 14 15 16 17 18 19 ; do
 	for opt in 0 1 2 4 5 6 8 ; do
-		for extras in '' '--qlp-coeff-precision-search' '--exhaustive-model-search' ; do
+		for extras in '' '-p' '-e' ; do
 			test_file sine16-$f 2 16 "-$opt $extras"
 		done
 	done
+	if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
+		test_file sine16-$f 2 16 "-b 16384 -m -r 8 -l $max_lpc_order -e -p"
+	fi
 done
 
 echo "Testing noise..."
-for opt in 0 1 2 3 4 5 6 7 8 ; do
-	for extras in '' '--qlp-coeff-precision-search' '--exhaustive-model-search' ; do
-		for blocksize in '' '--blocksize=32' '--blocksize=32768' '--blocksize=65535' ; do
-			for channels in 1 2 4 8 ; do
-				for bps in 8 16 24 ; do
+for channels in 1 2 4 8 ; do
+	for bps in 8 16 24 ; do
+		for opt in 0 1 2 3 4 5 6 7 8 ; do
+			for extras in '' '-p' '-e' ; do
+				for blocksize in '' '-b 32' '--lax -b 32768' '--lax -b 65535' ; do
 					test_file noise $channels $bps "-$opt $extras $blocksize"
 				done
 			done
 		done
+		if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
+			test_file noise $channels $bps "-b 16384 -m -r 8 -l $max_lpc_order -e -p"
+		fi
 	done
 done

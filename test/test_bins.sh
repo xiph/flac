@@ -31,7 +31,7 @@ test_file ()
 	bps=$3
 	encode_options="$4"
 
-	echo -n "$name: encode..."
+	echo -n "$name (--channels=$channels --bps=$bps $encode_options): encode..."
 	cmd="flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
@@ -60,15 +60,18 @@ test_file ()
 
 echo "Testing bins..."
 for f in b00 b01 b02 b03 ; do
-	for opt in 0 1 2 4 5 6 8 ; do
-		for extras in '' '--qlp-coeff-precision-search' '--exhaustive-model-search' ; do
-			for blocksize in '' '--blocksize=32' '--blocksize=32768' '--blocksize=65535' ; do
-				for channels in 1 2 4 8 ; do
-					for bps in 8 16 24 ; do
+	for channels in 1 2 4 8 ; do
+		for bps in 8 16 24 ; do
+			for opt in 0 1 2 4 5 6 8 ; do
+				for extras in '' '-p' '-e' ; do
+					for blocksize in '' '-b 32' '--lax -b 32768' '--lax -b 65535' ; do
 						test_file $BINS_PATH/$f $channels $bps "-$opt $extras $blocksize"
 					done
 				done
 			done
+			if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
+				test_file $BINS_PATH/$f $channels $bps "-b 16384 -m -r 8 -l 32 -e -p"
+			fi
 		done
 	done
 done

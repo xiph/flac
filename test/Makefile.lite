@@ -19,13 +19,13 @@
 # GNU makefile
 #
 all: clean
-	./test_libFLAC.sh
-	./test_libFLAC++.sh
-	./test_libOggFLAC.sh
-	./test_libOggFLAC++.sh
-	./test_metaflac.sh
-	./test_streams.sh
-	./test_bins.sh
+	FLAC__EXHAUSTIVE_TESTS=yes ./test_libFLAC.sh
+	FLAC__EXHAUSTIVE_TESTS=yes ./test_libFLAC++.sh
+	FLAC__EXHAUSTIVE_TESTS=yes ./test_libOggFLAC.sh
+	FLAC__EXHAUSTIVE_TESTS=yes ./test_libOggFLAC++.sh
+	FLAC__EXHAUSTIVE_TESTS=yes ./test_metaflac.sh
+	FLAC__EXHAUSTIVE_TESTS=yes ./test_streams.sh
+	FLAC__EXHAUSTIVE_TESTS=yes ./test_bins.sh
 
 debug: all
 

@@ -15,6 +15,12 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+if FLaC__EXHAUSTIVE_TESTS
+TESTS_ENVIRONMENT = FLAC__EXHAUSTIVE_TESTS=yes
+else
+TESTS_ENVIRONMENT = FLAC__EXHAUSTIVE_TESTS=no
+endif
+
 if FLaC__HAS_OGG
 OGG_TESTS = \
 	./test_libOggFLAC.sh \
@@ -40,7 +46,11 @@ EXTRA_DIST = \
 	test_bins.sh
 
 CLEANFILES = \
-	$(wildcard *.raw) $(wildcard *.flac) $(wildcard *.ogg) $(wildcard *.cmp) $(wildcard *.wav) \
+	$(wildcard *.raw) \
+	$(wildcard *.flac) \
+	$(wildcard *.ogg) \
+	$(wildcard *.cmp) \
+	$(wildcard *.wav) \
 	$(wildcard ../../test_files/bins/*.raw) \
 	$(wildcard ../../test_files/bins/*.flac) \
 	$(wildcard ../../test_files/bins/*.cmp) \
