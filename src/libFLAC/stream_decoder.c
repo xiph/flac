@@ -45,7 +45,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 
 static byte ID3V2_TAG_[3] = { 'I', 'D', '3' };
 
-static bool stream_decoder_allocate_output(FLAC__StreamDecoder *decoder, unsigned size);
+static bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigned size);
 static bool stream_decoder_find_metadata_(FLAC__StreamDecoder *decoder);
 static bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder);
 static bool stream_decoder_skip_id3v2_tag_(FLAC__StreamDecoder *decoder);
@@ -339,7 +339,7 @@ unsigned FLAC__stream_decoder_input_bytes_unconsumed(FLAC__StreamDecoder *decode
 	return decoder->guts->input.bytes - decoder->guts->input.consumed_bytes;
 }
 
-bool stream_decoder_allocate_output(FLAC__StreamDecoder *decoder, unsigned size)
+bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigned size)
 {
 	unsigned i;
 	int32 *tmp;
@@ -562,7 +562,7 @@ bool stream_decoder_read_frame_(FLAC__StreamDecoder *decoder, bool *got_a_frame)
 			decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
 	}
-	if(!stream_decoder_allocate_output(decoder, decoder->guts->frame_header.blocksize))
+	if(!stream_decoder_allocate_output_(decoder, decoder->guts->frame_header.blocksize))
 		return false;
 	for(channel = 0; channel < decoder->guts->frame_header.channels; channel++) {
 		if(!stream_decoder_read_subframe_(decoder, channel))
