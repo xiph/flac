@@ -226,7 +226,7 @@ void FLAC_plugin__tags_destroy(FLAC__StreamMetadata **tags)
 const char *FLAC_plugin__tags_get_tag_utf8(const FLAC__StreamMetadata *tags, const char *name)
 {
 	const int i = FLAC__metadata_object_vorbiscomment_find_entry_from(tags, /*offset=*/0, name);
-	return (i < 0? 0 : tags->data.vorbis_comment.comments[i].entry);
+	return (i < 0? 0 : strchr(tags->data.vorbis_comment.comments[i].entry, '=')+1);
 }
 
 FLAC__uint16 *FLAC_plugin__tags_get_tag_ucs2(const FLAC__StreamMetadata *tags, const char *name)
