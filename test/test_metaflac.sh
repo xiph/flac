@@ -78,11 +78,12 @@ check_exit
 check_exit
 check_flac
 
-(set -x && metaflac --set-vc-field="ARTIST=The artist formerly known as the artist..." $flacfile)
+# some flavors of /bin/sh (e.g. Darwin's) won't handle even quoted spaces, so we underscore:
+(set -x && metaflac --set-vc-field="ARTIST=The_artist_formerly_known_as_the_artist..." $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --set-vc-field="ARTIST=Chuck Woolery" $flacfile)
+(set -x && metaflac --set-vc-field="ARTIST=Chuck_Woolery" $flacfile)
 check_exit
 check_flac
 
@@ -90,7 +91,7 @@ check_flac
 check_exit
 check_flac
 
-(set -x && metaflac --set-vc-field="TITLE=He who smelt it dealt it" $flacfile)
+(set -x && metaflac --set-vc-field="TITLE=He_who_smelt_it_dealt_it" $flacfile)
 check_exit
 check_flac
 
