@@ -65,6 +65,11 @@ for b in 01 02 03 04 05 06 07 ; do
 	test_file fsd24-$b 1 24 "-0 -l 8 -m -e -q 7"
 done
 
+echo "Testing 16-bit wasted-bits-per-sample streams..."
+for b in 01 ; do
+	test_file wbps16-$b 1 16 "-0 -l 8 -m -e -q 15"
+done
+
 for bps in 16 24 ; do
 	echo "Testing $bps-bit sine wave streams..."
 	for b in 00 01 02 03 04 ; do

@@ -198,6 +198,33 @@ foo:
 	return false;
 }
 
+/* a stereo wasted-bits-per-sample 16bps stream */
+static bool generate_wbps16(const char *fn, unsigned samples)
+{
+	FILE *f;
+	unsigned sample;
+
+	if(0 == (f = fopen(fn, mode)))
+		return false;
+
+	for(sample = 0; sample < samples; sample++) {
+		int16 l = (sample % 2000) << 2;
+		int16 r = (sample % 1000) << 3;
+		swap16(&l);
+		swap16(&r);
+		if(fwrite(&l, sizeof(l), 1, f) < 1)
+			goto foo;
+		if(fwrite(&r, sizeof(r), 1, f) < 1)
+			goto foo;
+	}
+
+	fclose(f);
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
 /* a mono full-scale deflection 24bps stream */
 static bool generate_fsd24(const char *fn, const int pattern[], unsigned reps)
 {
@@ -422,6 +449,8 @@ int main(int argc, char *argv[])
 	if(!generate_fsd24("fsd24-05.raw", pattern05, 100)) return 1;
 	if(!generate_fsd24("fsd24-06.raw", pattern06, 100)) return 1;
 	if(!generate_fsd24("fsd24-07.raw", pattern07, 100)) return 1;
+
+	if(!generate_wbps16("wbps16-01.raw", 1000)) return 1;
 
 	if(!generate_sine16_1("sine16-00.raw", 44100.0, 80000, 441.0, 0.50, 441.0, 0.49)) return 1;
 	if(!generate_sine16_1("sine16-01.raw", 44100.0, 80000, 441.0, 0.61, 661.5, 0.37)) return 1;
