@@ -2118,7 +2118,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 {
 	const FLAC__blurb *buffer = bb->buffer;
 
-	unsigned i, j, val_i = 0;
+	unsigned i, j, val_i = nvals;
 	unsigned cbits = 0, uval = 0, msbs = 0, lsbs_left = 0;
 	FLAC__blurb blurb, save_blurb;
 	unsigned state = 0; /* 0 = getting unary MSBs, 1 = getting binary LSBs */
@@ -2132,7 +2132,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 
 	cbits = bb->consumed_bits;
 	i = bb->consumed_blurbs;
-	while(val_i < nvals) {
+	while(val_i != 0) {
 		for( ; i < bb->blurbs; i++) {
 			blurb = (save_blurb = buffer[i]) << cbits;
 			while(1) {
@@ -2171,11 +2171,13 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 						if(lsbs_left == available_bits) {
 							/* compose the value */
 							uval |= (msbs << parameter);
-							vals[val_i++] = (int)(uval >> 1 ^ -(int)(uval & 1));
-							if(val_i == nvals) {
+							*vals = (int)(uval >> 1 ^ -(int)(uval & 1));
+							--val_i;
+							if(val_i == 0) {
 								i++;
 								goto break2;
 							}
+							*(++vals);
 
 							msbs = 0;
 							state = 0;
@@ -2192,9 +2194,11 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 
 						/* compose the value */
 						uval |= (msbs << parameter);
-						vals[val_i++] = (int)(uval >> 1 ^ -(int)(uval & 1));
-						if(val_i == nvals)
+						*vals = (int)(uval >> 1 ^ -(int)(uval & 1));
+						--val_i;
+						if(val_i == 0)
 							goto break2;
+						*(++vals);
 
 						msbs = 0;
 						state = 0;
@@ -2206,7 +2210,7 @@ break2:
 		bb->consumed_blurbs = i;
 		bb->consumed_bits = cbits;
 		bb->total_consumed_bits = (i << FLAC__BITS_PER_BLURB_LOG2) | cbits;
-		if(val_i < nvals) {
+		if(val_i != 0) {
 			if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
 				return false;
 			/* these must be zero because we can only get here if we got to the end of the buffer */
