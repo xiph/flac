@@ -190,16 +190,17 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
 	FLAC__ASSERT(0 != dest);
 	FLAC__ASSERT(0 != src);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
-	FLAC__ASSERT((0 != src->entry && src->length > 0) || (0 == src->entry && src->length == 0 && copy == false));
+	FLAC__ASSERT((0 != src->entry && src->length > 0) || (0 == src->entry && src->length == 0));
 
 	save = dest->entry;
 
 	/* do the copy first so that if we fail we leave the object untouched */
-	if(copy) {
+	if(copy && (0 != src->entry && src->length > 0)) {
 		if(!copy_vcentry_(dest, src))
 			return false;
 	}
 	else {
+		/* either we're not copying or the src is null */
 		*dest = *src;
 	}
 
