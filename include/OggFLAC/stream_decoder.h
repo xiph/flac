@@ -72,6 +72,9 @@ typedef enum {
 	OggFLAC__STREAM_DECODER_OK = 0,
 	/**< The decoder is in the normal OK state. */
 
+	OggFLAC__STREAM_ENCODER_OGG_ERROR,
+	/**< An error occurred in the underlying Ogg layer.  */
+
 	OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR,
 	/**< An error occurred in the underlying FLAC stream decoder;
 	 * check OggFLAC__stream_decoder_get_FLAC_stream_decoder_state().

@@ -27,7 +27,11 @@
  *
  ***********************************************************************/
 
-static void set_defaults_(FLAC__StreamDecoder *decoder);
+static void set_defaults_(OggFLAC__StreamDecoder *decoder);
+static FLAC__StreamDecoderReadStatus read_callback_(const OggFLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback_(const OggFLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+static void metadata_callback_(const OggFLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+static void error_callback_(const OggFLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 
 /***********************************************************************
@@ -36,13 +40,18 @@ static void set_defaults_(FLAC__StreamDecoder *decoder);
  *
  ***********************************************************************/
 
-typedef struct FLAC__StreamDecoderPrivate {
-	FLAC__StreamDecoderReadCallback read_callback;
-	FLAC__StreamDecoderWriteCallback write_callback;
-	FLAC__StreamDecoderMetadataCallback metadata_callback;
-	FLAC__StreamDecoderErrorCallback error_callback;
+typedef struct OggFLAC__StreamDecoderPrivate {
+	OggFLAC__StreamDecoderReadCallback read_callback;
+	OggFLAC__StreamDecoderWriteCallback write_callback;
+	OggFLAC__StreamDecoderMetadataCallback metadata_callback;
+	OggFLAC__StreamDecoderErrorCallback error_callback;
 	void *client_data;
-} FLAC__StreamDecoderPrivate;
+	FLAC__StreamDecoder *FLAC_stream_decoder;
+	struct {
+		ogg_stream_state stream_state;
+		ogg_sync_state sync_state;
+	} ogg;
+} OggFLAC__StreamDecoderPrivate;
 
 /***********************************************************************
  *
@@ -50,8 +59,9 @@ typedef struct FLAC__StreamDecoderPrivate {
  *
  ***********************************************************************/
 
-const char * const FLAC__StreamDecoderStateString[] = {
+const char * const OggFLAC__StreamDecoderStateString[] = {
 	"OggFLAC__STREAM_DECODER_OK",
+	"OggFLAC__STREAM_DECODER_OGG_ERROR",
 	"OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR",
 	"OggFLAC__STREAM_DECODER_INVALID_CALLBACK",
 	"OggFLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR",
@@ -594,4 +604,20 @@ void set_defaults_(FLAC__StreamDecoder *decoder)
 	memset(decoder->private_->metadata_filter, 0, sizeof(decoder->private_->metadata_filter));
 	decoder->private_->metadata_filter[FLAC__METADATA_TYPE_STREAMINFO] = true;
 	decoder->private_->metadata_filter_ids_count = 0;
+}
+
+FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+{
+}
+
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+{
+}
+
+void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+{
+}
+
+void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+{
 }
