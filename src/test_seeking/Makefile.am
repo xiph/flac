@@ -1,5 +1,5 @@
 #  test_seeking - Seeking tester for libFLAC and libOggFLAC
-#  Copyright (C) 2004  Josh Coalson
+#  Copyright (C) 2004,2005  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License

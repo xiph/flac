@@ -1,5 +1,5 @@
 /* libxmms-flac - XMMS FLAC input plugin
- * Copyright (C) 2002,2003,2004  Daisuke Shimamura
+ * Copyright (C) 2002,2003,2004,2005  Daisuke Shimamura
  *
  * Almost from charset.h - 2001/12/04
  *  EasyTAG - Tag editor for MP3 and OGG files
