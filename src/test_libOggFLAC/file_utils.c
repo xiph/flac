@@ -58,6 +58,11 @@ static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const OggFLAC__Str
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 }
 
+static void encoder_metadata_callback_(const OggFLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
+{
+	(void)encoder, (void)metadata, (void)client_data;
+}
+
 FLAC__bool file_utils__generate_oggflacfile(const char *output_filename, unsigned *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)
 {
 	FLAC__int32 samples[1024];
@@ -99,6 +104,7 @@ FLAC__bool file_utils__generate_oggflacfile(const char *output_filename, unsigne
 	OggFLAC__stream_encoder_set_total_samples_estimate(encoder, streaminfo->data.stream_info.total_samples);
 	OggFLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
 	OggFLAC__stream_encoder_set_write_callback(encoder, encoder_write_callback_);
+	OggFLAC__stream_encoder_set_metadata_callback(encoder, encoder_metadata_callback_);
 	OggFLAC__stream_encoder_set_client_data(encoder, &encoder_client_data);
 
 	if(OggFLAC__stream_encoder_init(encoder) != OggFLAC__STREAM_ENCODER_OK) {

@@ -134,6 +134,7 @@ static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification
 static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps);
 #ifdef FLAC__HAS_OGG
 static FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+static void ogg_stream_encoder_metadata_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
 #endif
 static FLAC__StreamEncoderWriteStatus flac_stream_encoder_write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void flac_stream_encoder_metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
@@ -1451,6 +1452,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		OggFLAC__stream_encoder_set_total_samples_estimate(e->encoder.ogg.stream, e->total_samples_to_encode);
 		OggFLAC__stream_encoder_set_metadata(e->encoder.ogg.stream, (num_metadata > 0)? metadata : 0, num_metadata);
 		OggFLAC__stream_encoder_set_write_callback(e->encoder.ogg.stream, ogg_stream_encoder_write_callback);
+		OggFLAC__stream_encoder_set_metadata_callback(e->encoder.ogg.stream, ogg_stream_encoder_metadata_callback);
 		OggFLAC__stream_encoder_set_client_data(e->encoder.ogg.stream, e);
 
 		OggFLAC__stream_encoder_disable_constant_subframes(e->encoder.ogg.stream, options.debug.disable_constant_subframes);
@@ -1756,6 +1758,12 @@ FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 	else
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+}
+
+void ogg_stream_encoder_metadata_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
+{
+	// do nothing, for compatibilty.  soon we will be using the ogg file encoder anyway.
+	(void)encoder, (void)metadata, (void)client_data;
 }
 #endif
 
