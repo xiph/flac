@@ -28,9 +28,9 @@
 	in src/metaflac/)
 ******************************************************************************/
 
-/******************************************************************************
+/** \file include/FLAC/metadata.h
 	This module provides read and write access to FLAC file metadata at
-	three increasing levels of complexity:
+	three increasing levels of complexity.
 
 	level 0:
 	read-only access to the STREAMINFO block.
@@ -130,22 +130,59 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetad
 struct FLAC__Metadata_SimpleIterator;
 typedef struct FLAC__Metadata_SimpleIterator FLAC__Metadata_SimpleIterator;
 
+/** Status type for FLAC__Metadata_SimpleIterator.
+ *
+ *  The iterator's current status can be obtained by calling FLAC__metadata_simple_iterator_status().
+ */
 typedef enum {
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK = 0,
+	/**< The iterator is in the normal OK state */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT,
+	/**< The data passed into the function violated the function's usage criteria */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE,
+	/**< The iterator could not open the target file */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_A_FLAC_FILE,
+	/**< The iterator could not find the FLAC signature at the start of the file */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE,
+	/**< The iterator tried to write to a file that was not writable */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA,
+	/**< The iterator encountered input that does not conform to the FLAC metadata specification */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR,
+	/**< The iterator encountered an error while reading the FLAC file */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR,
+	/**< The iterator encountered an error while seeking in the FLAC file */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR,
+	/**< The iterator encountered an error while writing the FLAC file */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_RENAME_ERROR,
+	/**< The iterator encountered an error renaming the FLAC file */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_UNLINK_ERROR,
+	/**< The iterator encountered an error removing the temporary file */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR,
+	/**< Memory allocation failed */
+
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_INTERNAL_ERROR
+	/**< The caller violated an assertion or an unexpected error occurred */
+
 } FLAC__Metadata_SimpleIteratorStatus;
+
+/** Maps a FLAC__Metadata_SimpleIteratorStatus to a C string.
+ *
+ *  The contents should not be modified.
+ */
 extern const char * const FLAC__Metadata_SimpleIteratorStatusString[];
+
 
 /*
  * Constructor/destructor

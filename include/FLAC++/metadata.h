@@ -47,13 +47,38 @@ namespace FLAC {
 		// DO NOT disobey and write into it.  Always use the set_*()
 		// methods.
 
-		// base class for all metadata blocks
+		//!
+		//! Base class for all metadata blocks.
+		//!
 		class Prototype {
 		protected:
-			Prototype(const Prototype &object); // this form always copies object.object_
-			Prototype(const ::FLAC__StreamMetadata &object); // this form always copies
-			Prototype(const ::FLAC__StreamMetadata *object); // this form always copies
-			Prototype(::FLAC__StreamMetadata *object, bool copy); // this form allows you to pass ownership to the Prototype using copy=false
+			//!
+			//! Constructs a copy of the given object.  This form
+			//! always performs a deep copy.
+			//!
+			Prototype(const Prototype &object);
+
+			//!
+			//! Constructs a copy of the given object.  This form
+			//! always performs a deep copy.
+			//!
+			Prototype(const ::FLAC__StreamMetadata &object);
+
+			//!
+			//! Constructs a copy of the given object.  This form
+			//! always performs a deep copy.
+			//!
+			Prototype(const ::FLAC__StreamMetadata *object);
+
+			//!
+			//! Constructs an object with copy control.  When 'copy'
+			//! is true, behaves identically to
+			//! FLAC::Metadata::Prototype::Prototype(const ::FLAC__StreamMetadata *object).
+			//! When 'copy' is false, the instance takes ownership of
+			//! the pointer and the ::FLAC__StreamMetadata object will
+			//! be freed by the destructor.
+			//!
+			Prototype(::FLAC__StreamMetadata *object, bool copy);
 
 			void operator=(const Prototype &);
 			void operator=(const ::FLAC__StreamMetadata &); // this form always copies
