@@ -764,14 +764,14 @@ namespace FLAC {
 		void CueSheet::Track::operator=(const Track &track)
 		{
 			if(0 != object_)
-				free(object_);
+				::FLAC__metadata_object_cuesheet_track_delete(object_);
 			object_ = ::FLAC__metadata_object_cuesheet_track_clone(track.object_);
 		}
 
 		CueSheet::Track::~Track()
 		{
 			if(0 != object_)
-				free(object_);
+				::FLAC__metadata_object_cuesheet_track_delete(object_);
 		}
 
 		bool CueSheet::Track::is_valid() const
