@@ -21,10 +21,10 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3_beta\" -DFLAC__HAS_OGG -YX /Od /D "_DEBUG" $<
+	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3\" -DFLAC__HAS_OGG -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3_beta\" -DFLAC__HAS_OGG -YX -DNODEBUG $<
+	$(cc) /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3\" -DFLAC__HAS_OGG -YX -DNODEBUG $<
 !endif
 
 C_FILES= \

@@ -19,10 +19,10 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) $(cdebug) $(cflags) /I "..\libFLAC\include" /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3_beta\" -YX /Od /D "_DEBUG" $<
+	$(cc) $(cdebug) $(cflags) /I "..\libFLAC\include" /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3\" -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /O2 $(crelease) $(cflags) /I "..\libFLAC\include" /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3_beta\" -YX -DNODEBUG $<
+	$(cc) /O2 $(crelease) $(cflags) /I "..\libFLAC\include" /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3\" -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
