@@ -122,6 +122,7 @@ int encode_wav(FILE *infile, const char *infilename, const char *outfilename, bo
 	encoder_wrapper.verbose = verbose;
 	encoder_wrapper.bytes_written = 0;
 	encoder_wrapper.samples_written = 0;
+	encoder_wrapper.stream_offset = 0;
 	encoder_wrapper.outfilename = outfilename;
 	encoder_wrapper.seek_table.points = 0;
 	encoder_wrapper.first_seek_point_to_check = 0;
@@ -348,6 +349,7 @@ int encode_raw(FILE *infile, const char *infilename, const char *outfilename, bo
 	encoder_wrapper.verbose = verbose;
 	encoder_wrapper.bytes_written = 0;
 	encoder_wrapper.samples_written = 0;
+	encoder_wrapper.stream_offset = 0;
 	encoder_wrapper.outfilename = outfilename;
 	encoder_wrapper.seek_table.points = 0;
 	encoder_wrapper.first_seek_point_to_check = 0;
@@ -564,7 +566,7 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 		return false;
 	}
 
-	/* the above call write all the metadata, so we save the stream offset now */
+	/* the above call writes all the metadata, so we save the stream offset now */
 	encoder_wrapper->stream_offset = encoder_wrapper->bytes_written;
 
 	return true;
