@@ -45,23 +45,23 @@ C_FILES= \
 	stream_encoder_framing.c
 
 NASM_FILES= \
-	i386/cpu_asm.s \
-	i386/fixed_asm.s \
-	i386/lpc_asm.s
+	i386/cpu_asm.nasm \
+	i386/fixed_asm.nasm \
+	i386/lpc_asm.nasm
 
-OBJS= $(C_FILES:.c=.obj) $(NASM_FILES:.s=.obj)
+OBJS= $(C_FILES:.c=.obj) $(NASM_FILES:.nasm=.obj)
 
 all: libFLAC.lib
 
 libFLAC.lib: $(OBJS)
 	link.exe -lib -out:../../obj/lib/$*.lib $(OBJS)
 
-i386/cpu_asm.obj: i386/cpu_asm.s
-	$(NASM) -f win32 -d WIN32 -i i386/ i386/cpu_asm.s -o i386/cpu_asm.obj
-i386/fixed_asm.obj: i386/fixed_asm.s
-	$(NASM) -f win32 -d WIN32 -i i386/ i386/fixed_asm.s -o i386/fixed_asm.obj
-i386/lpc_asm.obj: i386/lpc_asm.s
-	$(NASM) -f win32 -d WIN32 -i i386/ i386/lpc_asm.s -o i386/lpc_asm.obj
+i386/cpu_asm.obj: i386/cpu_asm.nasm
+	$(NASM) -f win32 -d WIN32 -i i386/ i386/cpu_asm.nasm -o i386/cpu_asm.obj
+i386/fixed_asm.obj: i386/fixed_asm.nasm
+	$(NASM) -f win32 -d WIN32 -i i386/ i386/fixed_asm.nasm -o i386/fixed_asm.obj
+i386/lpc_asm.obj: i386/lpc_asm.nasm
+	$(NASM) -f win32 -d WIN32 -i i386/ i386/lpc_asm.nasm -o i386/lpc_asm.obj
 
 clean:
 	-del *.obj i386\*.obj *.pch

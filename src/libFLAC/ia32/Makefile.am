@@ -17,12 +17,12 @@
 #  Boston, MA  02111-1307, USA.
 
 # nasm build rule:
-SUFFIXES = .s .lo
-.s.lo:
+SUFFIXES = .nasm .lo
+.nasm.lo:
 	$(NASM) -f elf -d ELF $< -o $@
 
 noinst_LTLIBRARIES = libFLAC-asm.la
 libFLAC_asm_la_SOURCES = \
-	cpu_asm.s \
-	fixed_asm.s \
-	lpc_asm.s
+	cpu_asm.nasm \
+	fixed_asm.nasm \
+	lpc_asm.nasm
