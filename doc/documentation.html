@@ -213,10 +213,10 @@
 		<B><TT>flac</TT></B> is the command-line file encoder/decoder.  The input to the encoder and the output to the decoder must either be RIFF WAVE format, or raw interleaved sample data.  <B><TT>flac</TT></B> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.).  Another restriction (hopefully short-term) is that the input must be 8, 16, or 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.
 	</P>
 	<P>
-		<B><TT>flac</TT></B> assumes that RIFF WAVE files will have the extension ".wav"; this may be overridden with a command-line option.  For piped-in data, <B><TT>flac</TT></B> tries to determine the type by looking at the beginning of the file.  Other than this, <B><TT>flac</TT></B> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
+		<B><TT>flac</TT></B> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files; this may be overridden with a command-line option; it also assumes that files ending in ".ogg" are Ogg-FLAC files.  Other than this, <B><TT>flac</TT></B> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
 	</P>
 	<P>
-		Before going into the full command-line description, a few other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-9</TT></B> that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <B><TT>flac</TT></B> behaves similarly to gzip in the way it handles input and output files.
+		Before going into the full command-line description, a few other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-8</TT></B> that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <B><TT>flac</TT></B> behaves similarly to gzip in the way it handles input and output files.
 	</P>
 	<P>
 		<B><TT>flac</TT></B> will be invoked one of four ways, depending on whether you are encoding, decoding, testing, or analyzing:
@@ -273,6 +273,14 @@
 		<TR>
 			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
 				<A NAME="general_options"><FONT SIZE="+1"><B>General Options</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>-H</TT>
+			</TD>
+			<TD>
+				Show the long usage screen.  Running <B><TT>flac</TT></B> without arguments shows the short help screen by default.
 			</TD>
 		</TR>
 		<TR>
@@ -387,6 +395,15 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--ogg</TT>
+			</TD>
+			<TD>
+				When encoding, generate Ogg-FLAC output instead of native-FLAC.  Ogg-FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <TT><B>flac</B></TT>.<P>
+				When decoding, force the input to be treated as Ogg-FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 				<TT>--lax</TT>
 			</TD>
 			<TD>
@@ -460,7 +477,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-0 .. -9</TT>
+				<TT>-0 .. -8</TT>
 			</TD>
 			<TD>
 				Fastest compression .. highest compression.  The default is <TT>-5</TT>.
@@ -540,14 +557,6 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-9</TT>
-			</TD>
-			<TD>
-				Synonymous with <TT>-l 32 -b 4608 -m -e -E -r 16 -p</TT>.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for the given block size.  It is more of a theoretical option without much practical use, since <TT>-8</TT> will get you within tiny fractions of a percent of <TT>-9</TT> and much faster.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 				<TT>-e</TT>
 			</TD>
 			<TD>
@@ -600,7 +609,7 @@
 				<TT>-R #</TT>
 			</TD>
 			<TD>
-				Set the Rice parameter search distance.  Defaults to 0.  The residual coder will search for the best Rice parameter +/- this number for each residual partition.  This option is expensive (run time for -R n will typically be (2n)*30% over that of -R 0) and doesn't give much of a gain.  As a matter of fact, none of the -0..-9 options currently use it since -R > 1 is not consistently better like it should be.
+				Set the Rice parameter search distance.  Defaults to 0.  The residual coder will search for the best Rice parameter +/- this number for each residual partition.  This option is expensive (run time for -R n will typically be (2n)*30% over that of -R 0) and doesn't give much of a gain.  As a matter of fact, none of the -0..-8 options currently use it since -R > 1 is not consistently better like it should be.
 			</TD>
 		</TR>
 		<TR>
@@ -675,14 +684,6 @@
 			</TD>
 			<TD>
 				Treat the input file (or output file if decoding) as a raw file, regardless of the extension.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-fw</TT>
-			</TD>
-			<TD>
-				Treat the input file (or output file if decoding) as a RIFF WAVE file, regardless of the extension.
 			</TD>
 		</TR>
 	</TABLE>

@@ -74,6 +74,14 @@
 
 	    <variablelist>
 	      <varlistentry>
+		<term><option>-H</option>
+		</term>
+		<listitem>
+		  <para>Show detailed help screen</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term><option>-d</option>
 		</term>
 		<listitem>
@@ -194,6 +202,21 @@
 
 	    <variablelist>
 	      <varlistentry>
+		<term><option>--ogg</option></term>
+
+		<listitem>
+		  <para>When encoding, generate Ogg-FLAC output instead
+		    of native-FLAC.  Ogg-FLAC streams are FLAC streams
+		    wrapped in an Ogg transport layer.  The resulting
+		    file should have an '.ogg' extension and will still
+		    be decodable by <TT><B>flac</B></TT>.<P></para>
+		  <para>When decoding, force the input to be treated as
+		    Ogg-FLAC.  This is useful when piping input from
+		    stdin or when the filename does not end in '.ogg'.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term><option>--lax</option></term>
 
 		<listitem>
@@ -279,7 +302,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-0</option>..<option>-9</option></term>
+		<term><option>-0</option>..<option>-8</option></term>
 
 		<listitem>
 		  <para>Fastest compression..highest compression
@@ -365,15 +388,6 @@
 		      <listitem>
 			<para>Synonymous with -l 12 -b 4608 -m -e -r 6
 			  </para>
-		      </listitem>
-		    </varlistentry>
-
-		    <varlistentry>
-		      <term><option>-9</option></term>
-
-		      <listitem>
-			<para>Synonymous with -l 32 -b 4608 -m -e -E -r 16 -p
-			  (very slow!)</para>
 		      </listitem>
 		    </varlistentry>
 		  </variablelist>
@@ -462,7 +476,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-S-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-E-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option>
+		<term><option>-S-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-E-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option> <option>--ogg-</option>
 		</term>
 
 		<listitem>
@@ -534,14 +548,6 @@
 		<listitem>
 		  <para>Force to raw format (even if filename ends
 		    in <filename>.wav</filename>).</para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term><option>-fw</option></term>
-
-		<listitem>
-		  <para>Force to RIFF WAVE.</para>
 		</listitem>
 	      </varlistentry>
 
