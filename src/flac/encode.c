@@ -29,9 +29,9 @@
 #include <stdlib.h> /* for malloc */
 #include <string.h> /* for strcmp() */
 #include "FLAC/all.h"
+#include "share/file_utils.h"
 #include "share/replaygain.h"
 #include "encode.h"
-#include "file.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -994,7 +994,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 
 	e->is_stdout = (0 == strcmp(outfilename, "-"));
 
-	e->inbasefilename = flac__file_get_basename(infilename);
+	e->inbasefilename = FLAC__file_utils_get_basename(infilename);
 	e->outfilename = outfilename;
 
 	e->unencoded_size = 0;
@@ -1015,7 +1015,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	e->seek_table_template = 0;
 
 	if(e->is_stdout) {
-		e->fout = file__get_binary_stdout();
+		e->fout = FLAC__file_utils_get_binary_stdout();
 	}
 #ifdef FLAC__HAS_OGG
 	else {
@@ -1182,7 +1182,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__StreamMetadata padding;
 	FLAC__StreamMetadata *metadata[3];
 
-	e->replay_gain = option.common.replay_gain;
+	e->replay_gain = options.replay_gain;
 	e->channels = channels;
 	e->bits_per_sample = bps;
 	e->sample_rate = sample_rate;
@@ -1195,6 +1195,12 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		if(!FLAC__replaygain_is_valid_sample_frequency(sample_rate)) {
 			fprintf(stderr, "%s: ERROR, invalid sample rate (%u) for --replay-gain\n", e->inbasefilename, sample_rate);
 			return false;
+		}
+		if(options.is_first_file) {
+			if(!FLAC__replaygain_init(sample_rate)) {
+				fprintf(stderr, "%s: ERROR initializing ReplayGain stage\n", e->inbasefilename);
+				return false;
+			}
 		}
 	}
 
