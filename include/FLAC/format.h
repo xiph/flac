@@ -464,10 +464,7 @@ typedef enum {
 	/**< <A HREF="../format.html#metadata_block_cuesheet">CUESHEET</A> block */
 
 	FLAC__METADATA_TYPE_UNDEFINED = 6
-	/**< <A HREF="../format.html#metadata_block_cuesheet">marker to denote
-	 * beginning of undefined type range; this number will increase as new
-	 * metadata types are added</A> block
-	 */
+	/**< marker to denote beginning of undefined type range; this number will increase as new metadata types are added */
 
 } FLAC__MetadataType;
 
@@ -598,8 +595,8 @@ typedef struct {
 	/**< The index offset from the beginning of the track, in samples.
 	 * For CD-DA, the offset must be evenly divisible by 588 samples (588
 	 * samples = 44100 samples/sec * 1/75th of a sec).  Note that the
-	 * offset from the beginning of the track, not the beginning of the
-	 * audio data.
+	 * offset is from the beginning of the track, not the beginning of
+	 * the audio data.
 	 */
 
 	FLAC__byte number;
@@ -626,7 +623,7 @@ typedef struct {
 	 * of the track's INDEX 01 even if there is an INDEX 00.
 	 *
 	 * For CD-DA, the offset must be evenly divisible by 588 samples (588
-	 * samples = 44100 samples/sec * 1/75th of a sec)
+	 * samples = 44100 samples/sec * 1/75th of a sec).
 	 */
 
 	FLAC__byte number;
@@ -652,14 +649,14 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN; 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN; /**< == 12*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN; /**< == 1 (bit) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN; /**< == 1 (bit) */
-extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN; /**< == 6+@@@@12*8 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN; /**< == 6+@@@@13*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN; /**< == 8 (bits) */
 
 
 /** FLAC CUESHEET structure.  (c.f. <A HREF="../format.html#metadata_block_cuesheet">format specification</A>)
  */
 typedef struct {
-	char media_catalog_number[129]; /*@@@@ in the stream, the media_catalog_number will be 128 alphanumberic ascii characters; unused digits are padded out to the right with null characters.  in memory, the 129th character will be guaranteed to be a null character so that the whole string is always a valid C string.  CD-DA: 13 ascii digits ('0'-'9') plus 116 trailing '\0' characters */
+	char media_catalog_number[129]; /*@@@@ in the stream, the media_catalog_number will be 128 alphanumeric ascii characters; unused digits are padded out to the right with NUL characters.  in memory, the 129th character will be guaranteed to be a null character so that the whole string is always a valid C string.  CD-DA: 13 ascii digits ('0'-'9') plus 116 trailing '\0' characters */
 	FLAC__uint64 lead_in;	/*@@@@ length of lead-in in samples; required to compute some versions of CD TOC hashes; CD-DA says the lead-in must be digital silence and rippers don't save it by convention, so TRACK 00 is disallowed and instead we store only the length.  The lead-in is the number of samples up to the first index point of the first track, \b not INDEX 01 of the first track.  This is so applications can correctly compute a CD-DA TOC equivalent even when there is TRACK 01 INDEX 00 data. */
 	unsigned num_tracks;
 	FLAC__StreamMetadata_CueSheet_Track *tracks;
@@ -667,9 +664,8 @@ typedef struct {
 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN; /**< == 128*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN; /**< == 64 (bits) */
-extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN; /**< == @@@@256*8 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN; /**< == @@@@259*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN; /**< == 8 (bits) */
-/*@@@@@ RESERVED SPACE HERE*/
 
 
 /** FLAC metadata block structure.  (c.f. <A HREF="../format.html#metadata_block">format specification</A>)
