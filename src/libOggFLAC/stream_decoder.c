@@ -17,7 +17,7 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include <stdlib.h>
+#include <stdlib.h> /* for calloc() */
 #include <string.h> /* for memset() */
 #include "ogg/ogg.h"
 #include "FLAC/assert.h"
@@ -88,26 +88,23 @@ OggFLAC_API OggFLAC__StreamDecoder *OggFLAC__stream_decoder_new()
 {
 	OggFLAC__StreamDecoder *decoder;
 
-	decoder = (OggFLAC__StreamDecoder*)malloc(sizeof(OggFLAC__StreamDecoder));
+	decoder = (OggFLAC__StreamDecoder*)calloc(1, sizeof(OggFLAC__StreamDecoder));
 	if(decoder == 0) {
 		return 0;
 	}
-	memset(decoder, 0, sizeof(OggFLAC__StreamDecoder));
 
-	decoder->protected_ = (OggFLAC__StreamDecoderProtected*)malloc(sizeof(OggFLAC__StreamDecoderProtected));
+	decoder->protected_ = (OggFLAC__StreamDecoderProtected*)calloc(1, sizeof(OggFLAC__StreamDecoderProtected));
 	if(decoder->protected_ == 0) {
 		free(decoder);
 		return 0;
 	}
-	memset(decoder->protected_, 0, sizeof(OggFLAC__StreamDecoderProtected));
 
-	decoder->private_ = (OggFLAC__StreamDecoderPrivate*)malloc(sizeof(OggFLAC__StreamDecoderPrivate));
+	decoder->private_ = (OggFLAC__StreamDecoderPrivate*)calloc(1, sizeof(OggFLAC__StreamDecoderPrivate));
 	if(decoder->private_ == 0) {
 		free(decoder->protected_);
 		free(decoder);
 		return 0;
 	}
-	memset(decoder->private_, 0, sizeof(OggFLAC__StreamDecoderPrivate));
 
 	decoder->private_->FLAC_stream_decoder = FLAC__stream_decoder_new();
 	if(0 == decoder->private_->FLAC_stream_decoder) {

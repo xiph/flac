@@ -18,7 +18,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h> /* for malloc() */
+#include <stdlib.h> /* for calloc() */
 #include <string.h> /* for memcpy() */
 #include "FLAC/assert.h"
 #include "protected/seekable_stream_encoder.h"
@@ -99,26 +99,23 @@ FLAC_API FLAC__SeekableStreamEncoder *FLAC__seekable_stream_encoder_new()
 
 	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
 
-	encoder = (FLAC__SeekableStreamEncoder*)malloc(sizeof(FLAC__SeekableStreamEncoder));
+	encoder = (FLAC__SeekableStreamEncoder*)calloc(1, sizeof(FLAC__SeekableStreamEncoder));
 	if(encoder == 0) {
 		return 0;
 	}
-	memset(encoder, 0, sizeof(FLAC__SeekableStreamEncoder));
 
-	encoder->protected_ = (FLAC__SeekableStreamEncoderProtected*)malloc(sizeof(FLAC__SeekableStreamEncoderProtected));
+	encoder->protected_ = (FLAC__SeekableStreamEncoderProtected*)calloc(1, sizeof(FLAC__SeekableStreamEncoderProtected));
 	if(encoder->protected_ == 0) {
 		free(encoder);
 		return 0;
 	}
-	memset(encoder->protected_, 0, sizeof(FLAC__SeekableStreamEncoderProtected));
 
-	encoder->private_ = (FLAC__SeekableStreamEncoderPrivate*)malloc(sizeof(FLAC__SeekableStreamEncoderPrivate));
+	encoder->private_ = (FLAC__SeekableStreamEncoderPrivate*)calloc(1, sizeof(FLAC__SeekableStreamEncoderPrivate));
 	if(encoder->private_ == 0) {
 		free(encoder->protected_);
 		free(encoder);
 		return 0;
 	}
-	memset(encoder->private_, 0, sizeof(FLAC__SeekableStreamEncoderPrivate));
 
 	encoder->private_->stream_encoder = FLAC__stream_encoder_new();
 	if(0 == encoder->private_->stream_encoder) {

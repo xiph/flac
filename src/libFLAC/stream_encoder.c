@@ -430,26 +430,23 @@ FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new()
 
 	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
 
-	encoder = (FLAC__StreamEncoder*)malloc(sizeof(FLAC__StreamEncoder));
+	encoder = (FLAC__StreamEncoder*)calloc(1, sizeof(FLAC__StreamEncoder));
 	if(encoder == 0) {
 		return 0;
 	}
-	memset(encoder, 0, sizeof(FLAC__StreamEncoder));
 
-	encoder->protected_ = (FLAC__StreamEncoderProtected*)malloc(sizeof(FLAC__StreamEncoderProtected));
+	encoder->protected_ = (FLAC__StreamEncoderProtected*)calloc(1, sizeof(FLAC__StreamEncoderProtected));
 	if(encoder->protected_ == 0) {
 		free(encoder);
 		return 0;
 	}
-	memset(encoder->protected_, 0, sizeof(FLAC__StreamEncoderProtected));
 
-	encoder->private_ = (FLAC__StreamEncoderPrivate*)malloc(sizeof(FLAC__StreamEncoderPrivate));
+	encoder->private_ = (FLAC__StreamEncoderPrivate*)calloc(1, sizeof(FLAC__StreamEncoderPrivate));
 	if(encoder->private_ == 0) {
 		free(encoder->protected_);
 		free(encoder);
 		return 0;
 	}
-	memset(encoder->private_, 0, sizeof(FLAC__StreamEncoderPrivate));
 
 	encoder->private_->frame = FLAC__bitbuffer_new();
 	if(encoder->private_->frame == 0) {

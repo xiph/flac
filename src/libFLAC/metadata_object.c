@@ -111,16 +111,9 @@ static void vorbiscomment_calculate_length_(FLAC__StreamMetadata *object)
 
 static FLAC__StreamMetadata_VorbisComment_Entry *vorbiscomment_entry_array_new_(unsigned num_comments)
 {
-	FLAC__StreamMetadata_VorbisComment_Entry *object_array;
-
 	FLAC__ASSERT(num_comments > 0);
 
-	object_array = malloc(num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
-
-	if(0 != object_array)
-		memset(object_array, 0, num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
-
-	return object_array;
+	return calloc(num_comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
 }
 
 static void vorbiscomment_entry_array_delete_(FLAC__StreamMetadata_VorbisComment_Entry *object_array, unsigned num_comments)
@@ -204,9 +197,8 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
 
 FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type)
 {
-	FLAC__StreamMetadata *object = malloc(sizeof(FLAC__StreamMetadata));
+	FLAC__StreamMetadata *object = calloc(1, sizeof(FLAC__StreamMetadata));
 	if(0 != object) {
-		memset(object, 0, sizeof(FLAC__StreamMetadata));
 		object->is_last = false;
 		object->type = type;
 		switch(type) {

@@ -140,10 +140,9 @@ static FLAC__bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 	if(bb->capacity == new_capacity)
 		return true;
 
-	new_buffer = (FLAC__blurb*)malloc(sizeof(FLAC__blurb) * new_capacity);
+	new_buffer = (FLAC__blurb*)calloc(new_capacity, sizeof(FLAC__blurb));
 	if(new_buffer == 0)
 		return false;
-	memset(new_buffer, 0, sizeof(FLAC__blurb) * new_capacity);
 	memcpy(new_buffer, bb->buffer, sizeof(FLAC__blurb)*min(bb->blurbs+(bb->bits?1:0), new_capacity));
 	if(new_capacity < bb->blurbs+(bb->bits?1:0)) {
 		bb->blurbs = new_capacity;
@@ -251,15 +250,15 @@ static FLAC__bool bitbuffer_read_from_client_(FLAC__BitBuffer *bb, FLAC__bool (*
 
 FLAC__BitBuffer *FLAC__bitbuffer_new()
 {
-	FLAC__BitBuffer *bb = (FLAC__BitBuffer*)malloc(sizeof(FLAC__BitBuffer));
+	FLAC__BitBuffer *bb = (FLAC__BitBuffer*)calloc(1, sizeof(FLAC__BitBuffer));
 
-	if(0 != bb) {
+	/* calloc() implies:
 		memset(bb, 0, sizeof(FLAC__BitBuffer));
 		bb->buffer = 0;
 		bb->capacity = 0;
 		bb->blurbs = bb->bits = bb->total_bits = 0;
 		bb->consumed_blurbs = bb->consumed_bits = bb->total_consumed_bits = 0;
-	}
+	*/
 	return bb;
 }
 
@@ -357,10 +356,9 @@ FLAC__bool FLAC__bitbuffer_clear(FLAC__BitBuffer *bb)
 {
 	if(bb->buffer == 0) {
 		bb->capacity = FLAC__BITBUFFER_DEFAULT_CAPACITY;
-		bb->buffer = (FLAC__blurb*)malloc(sizeof(FLAC__blurb) * bb->capacity);
+		bb->buffer = (FLAC__blurb*)calloc(bb->capacity, sizeof(FLAC__blurb));
 		if(bb->buffer == 0)
 			return false;
-		memset(bb->buffer, 0, bb->capacity);
 	}
 	else {
 		memset(bb->buffer, 0, bb->blurbs + (bb->bits?1:0));

@@ -242,7 +242,7 @@ FLAC_API const char * const FLAC__Metadata_SimpleIteratorStatusString[] = {
 
 FLAC_API FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new()
 {
-	FLAC__Metadata_SimpleIterator *iterator = malloc(sizeof(FLAC__Metadata_SimpleIterator));
+	FLAC__Metadata_SimpleIterator *iterator = calloc(1, sizeof(FLAC__Metadata_SimpleIterator));
 
 	if(0 != iterator) {
 		iterator->file = 0;
@@ -748,10 +748,7 @@ FLAC_API const char * const FLAC__Metadata_ChainStatusString[] = {
 
 static FLAC__Metadata_Node *node_new_()
 {
-	FLAC__Metadata_Node *node = (FLAC__Metadata_Node*)malloc(sizeof(FLAC__Metadata_Node));
-	if(0 != node)
-		memset(node, 0, sizeof(FLAC__Metadata_Node));
-	return node;
+	return (FLAC__Metadata_Node*)calloc(1, sizeof(FLAC__Metadata_Node));
 }
 
 static void node_delete_(FLAC__Metadata_Node *node)
@@ -888,7 +885,7 @@ static FLAC__bool chain_merge_adjacent_padding_(FLAC__Metadata_Chain *chain, FLA
 
 FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new()
 {
-	FLAC__Metadata_Chain *chain = malloc(sizeof(FLAC__Metadata_Chain));
+	FLAC__Metadata_Chain *chain = calloc(1, sizeof(FLAC__Metadata_Chain));
 
 	if(0 != chain) {
 		chain->filename = 0;
@@ -1102,12 +1099,12 @@ FLAC_API void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain)
 
 FLAC_API FLAC__Metadata_Iterator *FLAC__metadata_iterator_new()
 {
-	FLAC__Metadata_Iterator *iterator = malloc(sizeof(FLAC__Metadata_Iterator));
+	FLAC__Metadata_Iterator *iterator = calloc(1, sizeof(FLAC__Metadata_Iterator));
 
-	if(0 != iterator) {
+	/* calloc() implies:
 		iterator->current = 0;
 		iterator->chain = 0;
-	}
+	*/
 
 	return iterator;
 }

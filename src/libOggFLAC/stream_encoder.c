@@ -18,7 +18,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h> /* for malloc() */
+#include <stdlib.h> /* for calloc() */
 #include <string.h> /* for memcpy() */
 #include "ogg/ogg.h"
 #include "FLAC/assert.h"
@@ -87,26 +87,23 @@ OggFLAC_API OggFLAC__StreamEncoder *OggFLAC__stream_encoder_new()
 {
 	OggFLAC__StreamEncoder *encoder;
 
-	encoder = (OggFLAC__StreamEncoder*)malloc(sizeof(OggFLAC__StreamEncoder));
+	encoder = (OggFLAC__StreamEncoder*)calloc(1, sizeof(OggFLAC__StreamEncoder));
 	if(encoder == 0) {
 		return 0;
 	}
-	memset(encoder, 0, sizeof(OggFLAC__StreamEncoder));
 
-	encoder->protected_ = (OggFLAC__StreamEncoderProtected*)malloc(sizeof(OggFLAC__StreamEncoderProtected));
+	encoder->protected_ = (OggFLAC__StreamEncoderProtected*)calloc(1, sizeof(OggFLAC__StreamEncoderProtected));
 	if(encoder->protected_ == 0) {
 		free(encoder);
 		return 0;
 	}
-	memset(encoder->protected_, 0, sizeof(OggFLAC__StreamEncoderProtected));
 
-	encoder->private_ = (OggFLAC__StreamEncoderPrivate*)malloc(sizeof(OggFLAC__StreamEncoderPrivate));
+	encoder->private_ = (OggFLAC__StreamEncoderPrivate*)calloc(1, sizeof(OggFLAC__StreamEncoderPrivate));
 	if(encoder->private_ == 0) {
 		free(encoder->protected_);
 		free(encoder);
 		return 0;
 	}
-	memset(encoder->private_, 0, sizeof(OggFLAC__StreamEncoderPrivate));
 
 	encoder->private_->FLAC_stream_encoder = FLAC__stream_encoder_new();
 	if(0 == encoder->private_->FLAC_stream_encoder) {

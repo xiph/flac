@@ -96,26 +96,23 @@ OggFLAC_API FLAC__FileDecoder *FLAC__file_decoder_new()
 
 	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
 
-	decoder = (FLAC__FileDecoder*)malloc(sizeof(FLAC__FileDecoder));
+	decoder = (FLAC__FileDecoder*)calloc(1, sizeof(FLAC__FileDecoder));
 	if(decoder == 0) {
 		return 0;
 	}
-	memset(decoder, 0, sizeof(FLAC__FileDecoder));
 
-	decoder->protected_ = (FLAC__FileDecoderProtected*)malloc(sizeof(FLAC__FileDecoderProtected));
+	decoder->protected_ = (FLAC__FileDecoderProtected*)calloc(1, sizeof(FLAC__FileDecoderProtected));
 	if(decoder->protected_ == 0) {
 		free(decoder);
 		return 0;
 	}
-	memset(decoder->protected_, 0, sizeof(FLAC__FileDecoderProtected));
 
-	decoder->private_ = (FLAC__FileDecoderPrivate*)malloc(sizeof(FLAC__FileDecoderPrivate));
+	decoder->private_ = (FLAC__FileDecoderPrivate*)calloc(1, sizeof(FLAC__FileDecoderPrivate));
 	if(decoder->private_ == 0) {
 		free(decoder->protected_);
 		free(decoder);
 		return 0;
 	}
-	memset(decoder->private_, 0, sizeof(FLAC__FileDecoderPrivate));
 
 	decoder->private_->seekable_stream_decoder = FLAC__seekable_stream_decoder_new();
 	if(0 == decoder->private_->seekable_stream_decoder) {

@@ -86,26 +86,23 @@ FLAC_API FLAC__FileEncoder *FLAC__file_encoder_new()
 
 	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
 
-	encoder = (FLAC__FileEncoder*)malloc(sizeof(FLAC__FileEncoder));
+	encoder = (FLAC__FileEncoder*)calloc(1, sizeof(FLAC__FileEncoder));
 	if(encoder == 0) {
 		return 0;
 	}
-	memset(encoder, 0, sizeof(FLAC__FileEncoder));
 
-	encoder->protected_ = (FLAC__FileEncoderProtected*)malloc(sizeof(FLAC__FileEncoderProtected));
+	encoder->protected_ = (FLAC__FileEncoderProtected*)calloc(1, sizeof(FLAC__FileEncoderProtected));
 	if(encoder->protected_ == 0) {
 		free(encoder);
 		return 0;
 	}
-	memset(encoder->protected_, 0, sizeof(FLAC__FileEncoderProtected));
 
-	encoder->private_ = (FLAC__FileEncoderPrivate*)malloc(sizeof(FLAC__FileEncoderPrivate));
+	encoder->private_ = (FLAC__FileEncoderPrivate*)calloc(1, sizeof(FLAC__FileEncoderPrivate));
 	if(encoder->private_ == 0) {
 		free(encoder->protected_);
 		free(encoder);
 		return 0;
 	}
-	memset(encoder->private_, 0, sizeof(FLAC__FileEncoderPrivate));
 
 	encoder->private_->seekable_stream_encoder = FLAC__seekable_stream_encoder_new();
 	if(0 == encoder->private_->seekable_stream_encoder) {

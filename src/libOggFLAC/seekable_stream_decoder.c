@@ -18,7 +18,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h> /* for malloc() */
+#include <stdlib.h> /* for calloc() */
 #include <string.h> /* for memcpy()/memcmp() */
 #include "FLAC/assert.h"
 #include "protected/seekable_stream_decoder.h"
@@ -121,26 +121,23 @@ OggFLAC_API FLAC__SeekableStreamDecoder *FLAC__seekable_stream_decoder_new()
 
 	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
 
-	decoder = (FLAC__SeekableStreamDecoder*)malloc(sizeof(FLAC__SeekableStreamDecoder));
+	decoder = (FLAC__SeekableStreamDecoder*)calloc(1, sizeof(FLAC__SeekableStreamDecoder));
 	if(decoder == 0) {
 		return 0;
 	}
-	memset(decoder, 0, sizeof(FLAC__SeekableStreamDecoder));
 
-	decoder->protected_ = (FLAC__SeekableStreamDecoderProtected*)malloc(sizeof(FLAC__SeekableStreamDecoderProtected));
+	decoder->protected_ = (FLAC__SeekableStreamDecoderProtected*)calloc(1, sizeof(FLAC__SeekableStreamDecoderProtected));
 	if(decoder->protected_ == 0) {
 		free(decoder);
 		return 0;
 	}
-	memset(decoder->protected_, 0, sizeof(FLAC__SeekableStreamDecoderProtected));
 
-	decoder->private_ = (FLAC__SeekableStreamDecoderPrivate*)malloc(sizeof(FLAC__SeekableStreamDecoderPrivate));
+	decoder->private_ = (FLAC__SeekableStreamDecoderPrivate*)calloc(1, sizeof(FLAC__SeekableStreamDecoderPrivate));
 	if(decoder->private_ == 0) {
 		free(decoder->protected_);
 		free(decoder);
 		return 0;
 	}
-	memset(decoder->private_, 0, sizeof(FLAC__SeekableStreamDecoderPrivate));
 
 	decoder->private_->stream_decoder = FLAC__stream_decoder_new();
 	if(0 == decoder->private_->stream_decoder) {
