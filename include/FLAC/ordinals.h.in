@@ -30,19 +30,26 @@
 #define false 0
 
 typedef int FLAC__bool;
+
 typedef signed char FLAC__int8;
 typedef unsigned char FLAC__uint8;
-typedef signed short FLAC__int16;
-typedef unsigned short FLAC__uint16;
-typedef signed int FLAC__int32;
-typedef unsigned int FLAC__uint32;
-#if defined _WIN32 && !defined __CYGWIN__
+
+#ifdef _MSC_VER
+typedef __int16 FLAC__int16;
+typedef __int32 FLAC__int32;
 typedef __int64 FLAC__int64;
+typedef unsigned __int16 FLAC__uint16;
+typedef unsigned __int32 FLAC__uint32;
 typedef unsigned __int64 FLAC__uint64;
 #else
-typedef long long int FLAC__int64;
-typedef unsigned long long FLAC__uint64;
+typedef @FLaC__SIZE16@ FLAC__int16;
+typedef @FLaC__SIZE32@ FLAC__int32;
+typedef @FLaC__SIZE64@ FLAC__int64;
+typedef @FLaC__USIZE16@ FLAC__uint16;
+typedef @FLaC__USIZE32@ FLAC__uint32;
+typedef @FLaC__USIZE64@ FLAC__uint64;
 #endif
+
 typedef FLAC__uint8 FLAC__byte;
 typedef float FLAC__real;
 
