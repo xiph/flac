@@ -685,11 +685,13 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 		}
 		else if(xx == 0x61746164 && !got_data_chunk && got_fmt_chunk) { /* "data" */
 			FLAC__uint64 total_samples_in_input, trim = 0;
+			FLAC__bool pad = false;
 
 			/* data size */
 			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
 			data_bytes = xx;
+			pad = (data_bytes & 1U) ? true : false;
 
 			bytes_per_wide_sample = channels * (bps >> 3);
 
@@ -855,6 +857,15 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				}
 			}
 
+			if(pad == true) {
+				unsigned char tmp;
+
+				if(fread(&tmp, 1U, 1U, infile) < 1U) {
+					flac__utils_printf(stderr, 1, "%s: ERROR during read of data pad byte\n", encoder_session.inbasefilename);
+					return EncoderSession_finish_error(&encoder_session);
+				}
+			}
+
 			got_data_chunk = true;
 		}
 		else {
@@ -879,17 +890,22 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			/* sub-chunk size */
 			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
-			if(fseek(infile, xx, SEEK_CUR) < 0) {
-				/* can't seek input, read ahead manually... */
-				unsigned left, need;
-				const unsigned chunk = sizeof(ucbuffer_);
-				for(left = xx; left > 0; ) {
-					need = min(left, chunk);
-					if(fread(ucbuffer_, 1, need, infile) < need) {
-						flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping unsupported sub-chunk\n", encoder_session.inbasefilename);
-						return EncoderSession_finish_error(&encoder_session);
+			else {
+				unsigned long skip = xx+(xx & 1U);
+
+				FLAC__ASSERT(skip<=LONG_MAX);
+				if(fseek(infile, xx, SEEK_CUR) < 0) {
+					/* can't seek input, read ahead manually... */
+					unsigned left, need;
+					const unsigned chunk = sizeof(ucbuffer_);
+					for(left = xx; left > 0; ) {
+						need = min(left, chunk);
+						if(fread(ucbuffer_, 1, need, infile) < need) {
+							flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping unsupported sub-chunk\n", encoder_session.inbasefilename);
+							return EncoderSession_finish_error(&encoder_session);
+						}
+						left -= need;
 					}
-					left -= need;
 				}
 			}
 		}
