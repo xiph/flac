@@ -57,8 +57,8 @@ unsigned samples_in_reservoir;
 static stream_info_struct stream_info;
 static FLAC__FileDecoder *decoder;
 
-int killDecodeThread=0;					/* the kill switch for the decode thread */
-HANDLE thread_handle=INVALID_HANDLE_VALUE;	/* the handle to the decode thread */
+int killDecodeThread = 0;					/* the kill switch for the decode thread */
+HANDLE thread_handle = INVALID_HANDLE_VALUE;	/* the handle to the decode thread */
 
 DWORD WINAPI __stdcall DecodeThread(void *b); /* the decode thread procedure */
 
@@ -69,7 +69,7 @@ void config(HWND hwndParent)
 }
 void about(HWND hwndParent)
 {
-	MessageBox(hwndParent,"Winamp FLAC Plugin v" FLAC__VERSION_STRING ", by Josh Coalson\nSee http://flac.sourceforge.net/","About FLAC Plugin",MB_OK);
+	MessageBox(hwndParent, "Winamp FLAC Plugin v" FLAC__VERSION_STRING ", by Josh Coalson\nSee http://flac.sourceforge.net/", "About FLAC Plugin", MB_OK);
 }
 
 void init()
@@ -84,19 +84,19 @@ void quit()
 }
 
 int isourfile(char *fn) { return 0; }
-/* used for detecting URL streams.. unused here. strncmp(fn,"http://",7) to detect HTTP streams, etc */
+/* used for detecting URL streams.. unused here. strncmp(fn, "http://", 7) to detect HTTP streams, etc */
 
 int play(char *fn)
 {
 	int maxlatency;
 	int thread_id;
-	HANDLE input_file=INVALID_HANDLE_VALUE;
+	HANDLE input_file = INVALID_HANDLE_VALUE;
 
 	if(0 == decoder) {
 		return 1;
 	}
 
-	input_file = CreateFile(fn,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+	input_file = CreateFile(fn, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (input_file == INVALID_HANDLE_VALUE) {
 		return 1;
 	}
@@ -106,42 +106,42 @@ int play(char *fn)
 		return 1;
 	}
 
-	strcpy(lastfn,fn);
-	paused=0;
-	decode_pos_ms=0;
-	seek_needed=-1;
+	strcpy(lastfn, fn);
+	paused = 0;
+	decode_pos_ms = 0;
+	seek_needed = -1;
 	samples_in_reservoir = 0;
 
-	maxlatency = mod.outMod->Open(stream_info.sample_rate, stream_info.channels, stream_info.bits_per_sample, -1,-1);
+	maxlatency = mod.outMod->Open(stream_info.sample_rate, stream_info.channels, stream_info.bits_per_sample, -1, -1);
 	if (maxlatency < 0) { /* error opening device */
 		return 1;
 	}
 
 	/* dividing by 1000 for the first parameter of setinfo makes it */
 	/* display 'H'... for hundred.. i.e. 14H Kbps. */
-	mod.SetInfo((stream_info.sample_rate*stream_info.bits_per_sample*stream_info.channels)/1000,stream_info.sample_rate/1000,stream_info.channels,1);
+	mod.SetInfo((stream_info.sample_rate*stream_info.bits_per_sample*stream_info.channels)/1000, stream_info.sample_rate/1000, stream_info.channels, 1);
 
 	/* initialize vis stuff */
-	mod.SAVSAInit(maxlatency,stream_info.sample_rate);
-	mod.VSASetInfo(stream_info.sample_rate,stream_info.channels);
+	mod.SAVSAInit(maxlatency, stream_info.sample_rate);
+	mod.VSASetInfo(stream_info.sample_rate, stream_info.channels);
 
 	mod.outMod->SetVolume(-666); /* set the output plug-ins default volume */
 
-	killDecodeThread=0;
-	thread_handle = (HANDLE) CreateThread(NULL,0,(LPTHREAD_START_ROUTINE) DecodeThread,(void *) &killDecodeThread,0,&thread_id);
+	killDecodeThread = 0;
+	thread_handle = (HANDLE) CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) DecodeThread, (void *) &killDecodeThread, 0, &thread_id);
 
 	return 0;
 }
 
 void pause()
 {
-	paused=1;
+	paused = 1;
 	mod.outMod->Pause(1);
 }
 
 void unpause()
 {
-	paused=0;
+	paused = 0;
 	mod.outMod->Pause(0);
 }
 int ispaused()
@@ -152,10 +152,10 @@ int ispaused()
 void stop()
 {
 	if (thread_handle != INVALID_HANDLE_VALUE) {
-		killDecodeThread=1;
-		if (WaitForSingleObject(thread_handle,INFINITE) == WAIT_TIMEOUT) {
-			MessageBox(mod.hMainWindow,"error asking thread to die!\n","error killing decode thread",0);
-			TerminateThread(thread_handle,0);
+		killDecodeThread = 1;
+		if (WaitForSingleObject(thread_handle, INFINITE) == WAIT_TIMEOUT) {
+			MessageBox(mod.hMainWindow, "error asking thread to die!\n", "error killing decode thread", 0);
+			TerminateThread(thread_handle, 0);
 		}
 		CloseHandle(thread_handle);
 		thread_handle = INVALID_HANDLE_VALUE;
@@ -182,7 +182,7 @@ int getoutputtime()
 
 void setoutputtime(int time_in_ms)
 {
-	seek_needed=time_in_ms;
+	seek_needed = time_in_ms;
 }
 
 void setvolume(int volume) { mod.outMod->SetVolume(volume); }
@@ -198,11 +198,11 @@ void getfileinfo(char *filename, char *title, int *length_in_ms)
 {
 	if (!filename || !*filename) { /* currently playing file */
 		if (length_in_ms)
-			*length_in_ms=getlength();
+			*length_in_ms = getlength();
 		if (title) {
-			char *p=lastfn+strlen(lastfn);
+			char *p = lastfn+strlen(lastfn);
 			while (*p != '\\' && p >= lastfn) p--;
-			strcpy(title,++p);
+			strcpy(title, ++p);
 		}
 	}
 	else { /* some other file */
@@ -228,9 +228,9 @@ void getfileinfo(char *filename, char *title, int *length_in_ms)
 			FLAC__file_decoder_delete(tmp_decoder);
 		}
 		if (title) {
-			char *p=filename+strlen(filename);
+			char *p = filename+strlen(filename);
 			while (*p != '\\' && p >= filename) p--;
-			strcpy(title,++p);
+			strcpy(title, ++p);
 		}
 	}
 }
@@ -241,7 +241,7 @@ void eq_set(int on, char data[10], int preamp)
 
 DWORD WINAPI __stdcall DecodeThread(void *b)
 {
-	int done=0;
+	int done = 0;
 
 	while (! *((int *)b) ) {
 		unsigned channels = stream_info.channels;
@@ -253,14 +253,14 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 			unsigned target_sample = (unsigned)(distance * (double)stream_info.total_samples);
 			if(FLAC__file_decoder_seek_absolute(decoder, (FLAC__uint64)target_sample)) {
 				decode_pos_ms = (int)(distance * (double)getlength());
-				seek_needed=-1;
-				done=0;
+				seek_needed = -1;
+				done = 0;
 				mod.outMod->Flush(decode_pos_ms);
 			}
 		}
 		if (done) {
 			if (!mod.outMod->IsPlaying()) {
-				PostMessage(mod.hMainWindow,WM_WA_MPEG_EOF,0,0);
+				PostMessage(mod.hMainWindow, WM_WA_MPEG_EOF, 0, 0);
 				return 0;
 			}
 			Sleep(10);
@@ -276,11 +276,11 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 			}
 
 			if (samples_in_reservoir == 0) {
-				done=1;
+				done = 1;
 			}
 			else {
 				unsigned i, n = min(samples_in_reservoir, 576), delta;
-				int l;
+				int bytes;
 				signed short *ssbuffer = (signed short *)sample_buffer;
 
 				for(i = 0; i < n*channels; i++)
@@ -289,14 +289,15 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 				for( ; i < samples_in_reservoir*channels; i++)
 					reservoir[i-delta] = reservoir[i];
 				samples_in_reservoir -= n;
-				l = n * channels * bytes_per_sample;
 
-				mod.SAAddPCMData((char *)sample_buffer,channels,bits_per_sample,decode_pos_ms);
-				mod.VSAAddPCMData((char *)sample_buffer,channels,bits_per_sample,decode_pos_ms);
-				decode_pos_ms+=(n*1000 + sample_rate/2)/sample_rate;
+				mod.SAAddPCMData((char *)sample_buffer, channels, bits_per_sample, decode_pos_ms);
+				mod.VSAAddPCMData((char *)sample_buffer, channels, bits_per_sample, decode_pos_ms);
+				decode_pos_ms += (n*1000 + sample_rate/2)/sample_rate;
 				if (mod.dsp_isactive())
-					l=mod.dsp_dosamples((short *)sample_buffer,n/channels/bytes_per_sample,bits_per_sample,channels,sample_rate) * (channels*bytes_per_sample);
-				mod.outMod->Write(sample_buffer,l);
+					bytes = mod.dsp_dosamples((short *)sample_buffer, n, bits_per_sample, channels, sample_rate) * (channels*bytes_per_sample);
+				else
+					bytes = n * channels * bytes_per_sample;
+				mod.outMod->Write(sample_buffer, bytes);
 			}
 		}
 		else Sleep(20);
@@ -367,7 +368,7 @@ FLAC__bool stream_init(const char *infilename)
 	FLAC__file_decoder_set_error_callback(decoder, error_callback);
 	FLAC__file_decoder_set_client_data(decoder, &stream_info);
 	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK) {
-		MessageBox(mod.hMainWindow,"ERROR initializing decoder, state = %d\n","ERROR initializing decoder",0);
+		MessageBox(mod.hMainWindow, "ERROR initializing decoder, state = %d\n", "ERROR initializing decoder", 0);
 		return false;
 	}
 
@@ -411,7 +412,7 @@ void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaD
 		stream_info->sample_rate = metadata->data.stream_info.sample_rate;
 
 		if(stream_info->bits_per_sample != 16) {
-			MessageBox(mod.hMainWindow,"ERROR: plugin can only handle 16-bit samples\n","ERROR: plugin can only handle 16-bit samples",0);
+			MessageBox(mod.hMainWindow, "ERROR: plugin can only handle 16-bit samples\n", "ERROR: plugin can only handle 16-bit samples", 0);
 			stream_info->abort_flag = true;
 			return;
 		}
