@@ -535,7 +535,10 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 	}
 
 	if(encoder_wrapper->verbose && encoder_wrapper->seek_table.num_points > 0) {
-		printf("seek points:");
+		if(encoder_wrapper->total_samples_to_encode > 0)
+			printf("seek points (%llu total samples):", encoder_wrapper->total_samples_to_encode);
+		else
+			printf("seek points (total samples unknown):");
 		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
 			if(encoder_wrapper->seek_table.points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER)
 				printf(" %llu", encoder_wrapper->seek_table.points[i].sample_number);
