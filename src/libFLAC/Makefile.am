@@ -38,7 +38,7 @@ endif
 
 SUBDIRS = $(ARCH_SUBDIRS) include .
 
-libFLAC_la_LDFLAGS = -version-info 2:0:1
+libFLAC_la_LDFLAGS = -version-info 2:1:1
 
 libFLAC_la_SOURCES = \
 	bitbuffer.c \
