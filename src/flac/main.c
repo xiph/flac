@@ -504,7 +504,8 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -fu : unsigned samples (default is signed)\n");
 	fprintf(stderr, "  -fr : force to raw format (even if filename ends in .wav)\n");
 	fprintf(stderr, "  -fw : force to RIFF WAVE\n");
-	return 1;
+
+	return message? 1 : 0;
 }
 
 int encode_file(const char *infilename, const char *forced_outfilename)
