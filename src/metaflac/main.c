@@ -1754,19 +1754,25 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Me
 			found_vc_block = true;
 	} while(!found_vc_block && FLAC__metadata_iterator_next(iterator));
 
-	/* create a new block if necessary */
-	if(!found_vc_block && operation->type == OP__SET_VC_FIELD) {
-		block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
-		if(0 == block)
-			die("out of memory allocating VORBIS_COMMENT block");
-		while(FLAC__metadata_iterator_next(iterator))
-			;
-		if(!FLAC__metadata_iterator_insert_block_after(iterator, block)) {
-			fprintf(stderr, "%s: ERROR: adding new VORBIS_COMMENT block to metadata, status =\"%s\"\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
-			return false;
+	if(!found_vc_block) {
+		/* create a new block if necessary */
+		if(operation->type == OP__SET_VC_FIELD || operation->type == OP__IMPORT_VC_FROM) {
+			block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
+			if(0 == block)
+				die("out of memory allocating VORBIS_COMMENT block");
+			while(FLAC__metadata_iterator_next(iterator))
+				;
+			if(!FLAC__metadata_iterator_insert_block_after(iterator, block)) {
+				fprintf(stderr, "%s: ERROR: adding new VORBIS_COMMENT block to metadata, status =\"%s\"\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+				return false;
+			}
+			/* iterator is left pointing to new block */
+			FLAC__ASSERT(FLAC__metadata_iterator_get_block(iterator) == block);
 		}
-		/* iterator is left pointing to new block */
-		FLAC__ASSERT(FLAC__metadata_iterator_get_block(iterator) == block);
+		else {
+			FLAC__metadata_iterator_delete(iterator);
+			return ok;
+		}
 	}
 
 	FLAC__ASSERT(0 != block);
