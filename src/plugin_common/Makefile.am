@@ -13,7 +13,7 @@ noinst_HEADERS = \
 	dither.h \
 	id3v1.h \
 	id3v2.h \
-	locale_hack.h
+	locale_hack.h \
 	vorbiscomment.h
 
 libplugin_common_a_SOURCES = \
