@@ -782,11 +782,11 @@ namespace FLAC {
 			iterator_ = 0;
 		}
 
-		bool SimpleIterator::init(const char *filename, bool preserve_file_stats)
+		bool SimpleIterator::init(const char *filename, bool read_only, bool preserve_file_stats)
 		{
 			FLAC__ASSERT(0 != filename);
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__metadata_simple_iterator_init(iterator_, filename, preserve_file_stats);
+			return (bool)::FLAC__metadata_simple_iterator_init(iterator_, filename, read_only, preserve_file_stats);
 		}
 
 		bool SimpleIterator::is_valid() const

@@ -276,12 +276,17 @@ void FLAC__metadata_simple_iterator_delete(FLAC__Metadata_SimpleIterator *iterat
 FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__Metadata_SimpleIterator *iterator);
 
 /** Initialize the iterator to point to the first metadata block in the
- *  given FLAC file.  If \a preserve_file_stats is \c true, the owner and
- *  modification time will be preserved even if the FLAC file is written.
+ *  given FLAC file.
  *
  * \param iterator             A pointer to an existing iterator.
  * \param filename             The path to the FLAC file.
- * \param preserve_file_stats  See above.
+ * \param read_only            If \c true, the FLAC file will be opened
+ *                             in read-only mode; if \c false, the FLAC
+ *                             file will be opened for edit even if no
+ *                             edits are performed.
+ * \param preserve_file_stats  If \c true, the owner and modification
+ *                             time will be preserved even if the FLAC
+ *                             file is written to.
  * \assert
  *    \code iterator != NULL \endcode
  *    \code filename != NULL \endcode
@@ -289,7 +294,7 @@ FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__
  *    \c false if a memory allocation error occurs, the file can't be
  *    opened, or another error occurs, else \c true.
  */
-FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *iterator, const char *filename, FLAC__bool preserve_file_stats);
+FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *iterator, const char *filename, FLAC__bool read_only, FLAC__bool preserve_file_stats);
 
 /** Returns \c true if the FLAC file is writable.  If \c false, calls to
  *  FLAC__metadata_simple_iterator_set_block() and

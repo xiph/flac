@@ -297,18 +297,17 @@ FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__
 	return status;
 }
 
-static FLAC__bool simple_iterator_prime_input_(FLAC__Metadata_SimpleIterator *iterator)
+static FLAC__bool simple_iterator_prime_input_(FLAC__Metadata_SimpleIterator *iterator, FLAC__bool read_only)
 {
 	unsigned ret;
 
 	FLAC__ASSERT(0 != iterator);
 
-	iterator->is_writable = false;
-
-	if(0 == (iterator->file = fopen(iterator->filename, "r+b"))) {
+	if(read_only || 0 == (iterator->file = fopen(iterator->filename, "r+b"))) {
+		iterator->is_writable = false;
 #if !defined _MSC_VER && !defined __MINGW32__
 /*@@@ don't know how to resolve errno without using LIBC.LIB; must use MSVCRT.LIB only for plugins */
-		if(errno == EACCES) {
+		if(read_only || errno == EACCES) {
 #endif
 			if(0 == (iterator->file = fopen(iterator->filename, "rb"))) {
 				iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE;
@@ -362,7 +361,7 @@ static FLAC__bool simple_iterator_prime_input_(FLAC__Metadata_SimpleIterator *it
 FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *iterator, const char *filename, FLAC__bool preserve_file_stats, const char *tempfile_path_prefix);
 #endif
 
-FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *iterator, const char *filename, FLAC__bool preserve_file_stats)
+FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *iterator, const char *filename, FLAC__bool read_only, FLAC__bool preserve_file_stats)
 {
 	const char *tempfile_path_prefix = 0; /*@@@ search for comments near 'rename(...)' for what it will take to finish implementing this */
 
@@ -371,7 +370,7 @@ FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *it
 
 	simple_iterator_free_guts_(iterator);
 
-	if(preserve_file_stats)
+	if(!read_only && preserve_file_stats)
 		iterator->has_stats = get_file_stats_(filename, &iterator->stats);
 
 	if(0 == (iterator->filename = strdup(filename))) {
@@ -383,7 +382,7 @@ FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *it
 		return false;
 	}
 
-	return simple_iterator_prime_input_(iterator);
+	return simple_iterator_prime_input_(iterator, read_only);
 }
 
 FLAC__bool FLAC__metadata_simple_iterator_is_writable(const FLAC__Metadata_SimpleIterator *iterator)
@@ -949,7 +948,7 @@ FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *fi
 		return false;
 	}
 
-	if(!FLAC__metadata_simple_iterator_init(iterator, filename, /*preserve_file_stats=*/false)) {
+	if(!FLAC__metadata_simple_iterator_init(iterator, filename, /*read_only=*/true, /*preserve_file_stats=*/false)) {
 		chain->status = get_equivalent_status_(iterator->status);
 		return false;
 	}
@@ -2071,7 +2070,7 @@ FLAC__bool simple_iterator_copy_file_postfix_(FLAC__Metadata_SimpleIterator *ite
 	if(iterator->has_stats)
 		set_file_stats_(iterator->filename, &iterator->stats);
 
-	if(!simple_iterator_prime_input_(iterator))
+	if(!simple_iterator_prime_input_(iterator, !iterator->is_writable))
 		return false;
 	if(backup) {
 		while(iterator->offset[iterator->depth] + (long)FLAC__STREAM_METADATA_HEADER_LENGTH + (long)iterator->length < save_offset)

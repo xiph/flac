@@ -451,7 +451,7 @@ static FLAC__bool test_level_1_()
 	if(0 == (iterator = FLAC__metadata_simple_iterator_new()))
 		return die_("FLAC__metadata_simple_iterator_new()");
 
-	if(!FLAC__metadata_simple_iterator_init(iterator, flacfile_, false))
+	if(!FLAC__metadata_simple_iterator_init(iterator, flacfile_, /*read_only=*/false, /*preserve_file_stats=*/false))
 		return die_("FLAC__metadata_simple_iterator_init() returned false");
 
 	printf("is writable = %u\n", (unsigned)FLAC__metadata_simple_iterator_is_writable(iterator));
@@ -544,7 +544,7 @@ static FLAC__bool test_level_1_()
 	if(0 == (iterator = FLAC__metadata_simple_iterator_new()))
 		return die_("FLAC__metadata_simple_iterator_new()");
 
-	if(!FLAC__metadata_simple_iterator_init(iterator, flacfile_, /*preserve_file_stats=*/false))
+	if(!FLAC__metadata_simple_iterator_init(iterator, flacfile_, /*read_only=*/false, /*preserve_file_stats=*/false))
 		return die_("FLAC__metadata_simple_iterator_init() returned false");
 	our_current_position = 0;
 

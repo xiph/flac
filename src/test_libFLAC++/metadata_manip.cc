@@ -441,7 +441,7 @@ static bool test_level_1_()
 	if(!iterator.is_valid())
 		return die_("iterator.is_valid() returned false");
 
-	if(!iterator.init(flacfile_, false))
+	if(!iterator.init(flacfile_, /*read_only=*/false, /*preserve_file_stats=*/false))
 		return die_("iterator.init() returned false");
 
 	printf("is writable = %u\n", (unsigned)iterator.is_writable());
@@ -537,7 +537,7 @@ static bool test_level_1_()
 	if(!iterator.is_valid())
 		return die_("iterator.is_valid() returned false");
 
-	if(!iterator.init(flacfile_, /*preserve_file_stats=*/false))
+	if(!iterator.init(flacfile_, /*read_only=*/false, /*preserve_file_stats=*/false))
 		return die_("iterator.init() returned false");
 	our_current_position = 0;
 

@@ -641,7 +641,7 @@ namespace FLAC {
 			SimpleIterator();
 			virtual ~SimpleIterator();
 
-			bool init(const char *filename, bool preserve_file_stats = false);
+			bool init(const char *filename, bool read_only, bool preserve_file_stats);
 
 			bool is_valid() const;
 			Status status();
