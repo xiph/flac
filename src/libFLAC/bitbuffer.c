@@ -1005,7 +1005,7 @@ bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, int64 *val, unsigned bi
 
 bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
-	uint32 lsbs, msbs = 0;
+	uint32 lsbs = 0, msbs = 0;
 	unsigned bit, uval;
 
 	assert(bb != 0);
@@ -1036,7 +1036,7 @@ bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned pa
 
 bool FLAC__bitbuffer_read_golomb_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
-	uint32 lsbs, msbs = 0;
+	uint32 lsbs = 0, msbs = 0;
 	unsigned bit, uval, k;
 
 	assert(bb != 0);

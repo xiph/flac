@@ -1204,7 +1204,7 @@ bool stream_decoder_read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder
 bool stream_decoder_read_zero_padding_(FLAC__StreamDecoder *decoder)
 {
 	if(decoder->guts->input.consumed_bits != 0) {
-		uint32 zero;
+		uint32 zero = 0;
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &zero, 8-decoder->guts->input.consumed_bits, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		if(zero != 0) {

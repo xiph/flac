@@ -337,9 +337,10 @@ bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 re
 			if(i == 0)
 				partition_samples -= predictor_order;
 			k += partition_samples;
-			for(j = k_last; j < k; j++)
+			for(j = k_last; j < k; j++) {
 				if(!FLAC__bitbuffer_write_rice_signed(bb, residual[j], rice_parameters[i]))
 					return false;
+			}
 			k_last = k;
 		}
 		return true;
