@@ -1,4 +1,4 @@
-# NOTE that for many of the conditionals we use the prefix FLaC__
+# NOTE that for many of the AM_CONDITIONALs we use the prefix FLaC__
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_INIT(src/flac/main.c)
@@ -15,18 +15,23 @@ AC_PROG_MAKE_SET
 
 AC_CANONICAL_HOST
 case $host_cpu in
-	i*86)	cpu_ia32=true ;;
-	powerpc)	cpu_ppc=true ;;
-	sparc)	cpu_sparc=true ;;
+	i*86)	cpu_ia32=true ; AC_DEFINE(FLAC__CPU_IA32) ;;
+	powerpc)	cpu_ppc=true ; AC_DEFINE(FLAC__CPU_PPC) ;;
+	sparc)	cpu_sparc=true ; AC_DEFINE(FLAC__CPU_SPARC) ;;
 esac
 AM_CONDITIONAL(FLaC__CPU_IA32, test x$cpu_ia32 = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test x$cpu_ppc = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test x$cpu_sparc = xtrue)
 
-AM_CONDITIONAL(FLaC__ALIGN_MALLOC_DATA, test x$cpu_ia32 = xtrue)
+if test x$cpu_ia32 = xtrue ; then
+AC_DEFINE(FLAC__ALIGN_MALLOC_DATA)
+fi
 
 AC_ARG_ENABLE(asm-optimizations, [  --disable-asm-optimizations    Don't use any assembly optimization routines], asm_opt=no, asm_opt=yes)
 AM_CONDITIONAL(FLaC__NO_ASM, test x$asm_opt = xno)
+if test x$asm_opt = xno ; then
+AC_DEFINE(FLAC__NO_ASM)
+fi
 
 AC_ARG_ENABLE(debug,
 	[  --enable-debug                 Turn on debugging],
@@ -42,6 +47,9 @@ AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
 
 AC_CHECK_PROGS(NASM, nasm)
 AM_CONDITIONAL(FLaC__HAS_NASM, test -n "$NASM")
+if test -n "$NASM" ; then
+AC_DEFINE(FLAC__HAS_NASM)
+fi
 
 CFLAGS='-I./include -I $(top_srcdir)/include -Wall -W'
 if test x$debug = xtrue; then
@@ -53,6 +61,7 @@ fi
 AC_OUTPUT(	Makefile	\
 		src/Makefile	\
 		src/libFLAC/Makefile	\
+		src/libFLAC/i386/Makefile	\
 		src/flac/Makefile	\
 		src/metaflac/Makefile	\
 		src/plugin_xmms/Makefile	\
