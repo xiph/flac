@@ -27,7 +27,7 @@
 ** init = 0
 */
 extern byte const FLAC__crc8_table[256];
-#define FLAC__CRC8_UPDATE(data, crc) crc = FLAC__crc8_table[crc ^ data];
+#define FLAC__CRC8_UPDATE(data, crc) (crc) = FLAC__crc8_table[(crc) ^ (data)];
 void FLAC__crc8_update(const byte data, uint8 *crc);
 void FLAC__crc8_update_block(const byte *data, unsigned len, uint8 *crc);
 uint8 FLAC__crc8(const byte *data, unsigned len);
@@ -37,7 +37,7 @@ uint8 FLAC__crc8(const byte *data, unsigned len);
 ** init = 0
 */
 extern uint16 FLAC__crc16_table[256];
-#define FLAC__CRC16_UPDATE(data, crc) crc = (crc<<8) ^ FLAC__crc16_table[(crc>>8) ^ data];
+#define FLAC__CRC16_UPDATE(data, crc) (crc) = ((crc)<<8) ^ FLAC__crc16_table[((crc)>>8) ^ (data)];
 void FLAC__crc16_update(const byte data, uint16 *crc);
 void FLAC__crc16_update_block(const byte *data, unsigned len, uint16 *crc);
 uint16 FLAC__crc16(const byte *data, unsigned len);
