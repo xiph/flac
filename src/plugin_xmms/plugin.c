@@ -106,7 +106,7 @@ static bool audio_error_ = false;
 
 InputPlugin *get_iplugin_info()
 {
-	flac_ip.description = g_strdup_printf("FLAC Player v%u.%u", FLAC__MAJOR_VERSION, FLAC__MINOR_VERSION);
+	flac_ip.description = g_strdup_printf("FLAC Player v%s", FLAC__VERSION_STRING);
 	return &flac_ip;
 }
 

@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 
 	if(verbose) {
 		printf("\n");
-		printf("flac v%u.%u, Copyright (C) 2000,2001 Josh Coalson\n", FLAC__MAJOR_VERSION, FLAC__MINOR_VERSION);
+		printf("flac %s, Copyright (C) 2000,2001 Josh Coalson\n", FLAC__VERSION_STRING);
 		printf("flac comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are\n");
 		printf("welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
@@ -298,7 +298,7 @@ int usage(const char *message, ...)
 
 	}
 	printf("==============================================================================\n");
-	printf("flac - Command-line FLAC encoder/decoder version %u.%u\n", FLAC__MAJOR_VERSION, FLAC__MINOR_VERSION);
+	printf("flac - Command-line FLAC encoder/decoder version %s\n", FLAC__VERSION_STRING);
 	printf("Copyright (C) 2000,2001  Josh Coalson\n");
 	printf("\n");
 	printf("This program is free software; you can redistribute it and/or\n");

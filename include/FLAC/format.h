@@ -38,8 +38,6 @@
 
 /* VERSION comes from configure */
 #define FLAC__VERSION_STRING VERSION
-extern const unsigned FLAC__MAJOR_VERSION;
-extern const unsigned FLAC__MINOR_VERSION;
 
 extern const byte     FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */;
 extern const unsigned FLAC__STREAM_SYNC; /* = 0x664C6143 */;
