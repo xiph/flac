@@ -160,8 +160,8 @@ namespace FLAC {
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 
 #if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
-		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
-		public:
+			// lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring()
+			friend State;
 #endif
 			::FLAC__StreamEncoder *encoder_;
 		private:
@@ -260,8 +260,8 @@ namespace FLAC {
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
 
 #if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
-		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
-		public:
+			// lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring()
+			friend State;
 #endif
 			::FLAC__SeekableStreamEncoder *encoder_;
 		private:
@@ -361,8 +361,8 @@ namespace FLAC {
 			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);
 
 #if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
-		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
-		public:
+			// lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring()
+			friend State;
 #endif
 			::FLAC__FileEncoder *encoder_;
 		private:

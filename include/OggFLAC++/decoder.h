@@ -145,8 +145,8 @@ namespace OggFLAC {
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
 #if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
-		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
-		public:
+			// lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring()
+			friend State;
 #endif
 			::OggFLAC__StreamDecoder *decoder_;
 		private:
@@ -241,8 +241,8 @@ namespace OggFLAC {
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
 #if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
-		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
-		public:
+			// lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring()
+			friend State;
 #endif
 			::OggFLAC__SeekableStreamDecoder *decoder_;
 		private:
@@ -335,8 +335,8 @@ namespace OggFLAC {
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
 #if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
-		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
-		public:
+			// lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring()
+			friend State;
 #endif
 			::OggFLAC__FileDecoder *decoder_;
 		private:
