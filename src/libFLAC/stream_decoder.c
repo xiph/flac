@@ -23,6 +23,7 @@
 #include <string.h> /* for memset/memcpy() */
 #include "FLAC/stream_decoder.h"
 #include "private/bitbuffer.h"
+#include "private/cpu.h"
 #include "private/crc.h"
 #include "private/fixed.h"
 #include "private/lpc.h"
@@ -32,6 +33,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
 	void (*metadata_callback)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 	void (*error_callback)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+	void (*local_lpc_restore_signal)(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
 	void *client_data;
 	FLAC__BitBuffer input;
 	int32 *output[FLAC__MAX_CHANNELS];
@@ -43,9 +45,10 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__StreamMetaData stream_info;
 	FLAC__StreamMetaData seek_table;
 	FLAC__Frame frame;
+	bool cached; /* true if there is a byte in lookahead */
+	FLAC__CPUInfo cpuinfo;
 	byte header_warmup[2]; /* contains the sync code and reserved bits */
 	byte lookahead; /* temp storage when we need to look ahead one byte in the stream */
-	bool cached; /* true if there is a byte in lookahead */
 } FLAC__StreamDecoderPrivate;
 
 static byte ID3V2_TAG_[3] = { 'I', 'D', '3' };
@@ -156,6 +159,27 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(
 	decoder->guts->has_stream_info = false;
 	decoder->guts->has_seek_table = false;
 	decoder->guts->cached = false;
+
+	/*
+	 * get the CPU info and set the function pointers
+	 */
+	FLAC__cpu_info(&decoder->guts->cpuinfo);
+	/* first default to the non-asm routines */
+	decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal;
+	/* now override with asm where appropriate */
+	if(decoder->guts->cpuinfo.use_asm) {
+#ifdef FLAC__CPU_IA32
+		assert(decoder->guts->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
+#if 0
+		/* @@@ MMX version needs bps check */
+		if(decoder->guts->cpuinfo.data.ia32.mmx && @@@bps check here@@@)
+			decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386_mmx;
+		else
+#endif
+fprintf(stderr,"@@@ got _asm_i386 of lpc_restore_signal()\n");
+			decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386;
+#endif
+	}
 
 	return decoder->state;
 }
@@ -1271,7 +1295,7 @@ bool stream_decoder_read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned ch
 
 	/* decode the subframe */
 	memcpy(decoder->guts->output[channel], subframe->warmup, sizeof(int32) * order);
-	FLAC__lpc_restore_signal(decoder->guts->residual[channel], decoder->guts->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->guts->output[channel]+order);
+	decoder->guts->local_lpc_restore_signal(decoder->guts->residual[channel], decoder->guts->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->guts->output[channel]+order);
 
 	return true;
 }
