@@ -50,6 +50,7 @@ typedef struct {
 
 	struct {
 		replaygain_synthesis_spec_t spec;
+		FLAC__bool apply; /* 'spec.apply' is just a request; this 'apply' means we actually parsed the RG tags and are ready to go */
 		double scale;
 		DitherContext dither_context;
 	} replaygain;
@@ -260,6 +261,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->is_wave_out = is_wave_out;
 	d->continue_through_decode_errors = continue_through_decode_errors;
 	d->replaygain.spec = replaygain_synthesis_spec;
+	d->replaygain.apply = false;
 	d->replaygain.scale = 0.0;
 	/* d->replaygain.dither_context gets initialized later once we know the sample resolution */
 	d->test_only = (0 == outfilename);
@@ -818,7 +820,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 			flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->aopts, fout);
 		}
 		else if(!decoder_session->test_only) {
-			if (decoder_session->replaygain.spec.apply) {
+			if (decoder_session->replaygain.apply) {
 				const size_t n = FLAC__replaygain_synthesis__apply_gain(
 					u8buffer,
 					is_big_endian,
@@ -1086,7 +1088,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 		if (decoder_session->replaygain.spec.apply) {
 			double gain, peak;
-			if (!(decoder_session->replaygain.spec.apply = grabbag__replaygain_load_from_vorbiscomment(metadata, decoder_session->replaygain.spec.use_album_gain, &gain, &peak))) {
+			if (!(decoder_session->replaygain.apply = grabbag__replaygain_load_from_vorbiscomment(metadata, decoder_session->replaygain.spec.use_album_gain, &gain, &peak))) {
 				fprintf(stderr, "%s: WARNING: can't get %s ReplayGain tag\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track");
 			}
 			else {
