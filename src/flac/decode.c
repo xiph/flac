@@ -494,7 +494,7 @@ void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorSt
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	(void)decoder;
-	fprintf(stderr, "%s: *** Got error code %d:%s\n", stream_info->infbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
+	fprintf(stderr, "%s: *** Got error code %d:%s\n", stream_info->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
 	stream_info->abort_flag = true;
 }
 
