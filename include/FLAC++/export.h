@@ -41,7 +41,7 @@
 #define	FLACPP_API	_declspec(dllexport)
 #else
 #define FLACPP_API	_declspec(dllimport)
-#define __LIBNAME__ "libFLAC++.lib"
+#define __LIBNAME__ "libFLAC++_static.lib"
 #pragma comment(lib, __LIBNAME__)
 #undef __LIBNAME__
 
