@@ -693,6 +693,59 @@ namespace FLAC {
 			bool is_legal(bool check_cd_da_subset = false, const char **violation = 0) const;
 		};
 
+		/** Opaque metadata block for storing unknown types.
+		 *  This should not be used unless you know what you are doing;
+		 *  it is currently used only internally to support forward
+		 *  compatibility of metadata blocks.
+		 */
+		class FLACPP_API Unknown : public Prototype {
+		public:
+			Unknown();
+			//
+			//@{
+			/** Constructs a copy of the given object.  This form
+			 *  always performs a deep copy.
+			 */
+			inline Unknown(const Unknown &object): Prototype(object) { }
+			inline Unknown(const ::FLAC__StreamMetadata &object): Prototype(object) { }
+			inline Unknown(const ::FLAC__StreamMetadata *object): Prototype(object) { }
+			//@}
+
+			/** Constructs an object with copy control.  See
+			 *  Prototype(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline Unknown(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
+
+			~Unknown();
+
+			//@{
+			/** Assign from another object.  Always performs a deep copy. */
+			inline void operator=(const Unknown &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
+			//@}
+
+			//@{
+			/** Check for equality, performing a deep compare by following pointers. */
+			inline bool operator==(const Unknown &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata *object) const { return Prototype::operator==(object); }
+			//@}
+
+			//@{
+			/** Check for inequality, performing a deep compare by following pointers. */
+			inline bool operator!=(const Unknown &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
+			//@}
+
+			const FLAC__byte *get_data() const;
+
+			//! This form always copies \a data
+			bool set_data(const FLAC__byte *data, unsigned length);
+			bool set_data(FLAC__byte *data, unsigned length, bool copy);
+		};
+
 		/* \} */
 
 

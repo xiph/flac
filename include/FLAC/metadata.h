@@ -907,6 +907,10 @@ FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_It
  *  with the exception of FLAC__METADATA_TYPE_VORBIS_COMMENT, which will have
  *  the vendor string set (but zero comments).
  *
+ *  Do not pass in a value greater than or equal to
+ *  \a FLAC__METADATA_TYPE_UNDEFINED unless you really know what you're
+ *  doing.
+ *
  * \param type  Type of object to create
  * \retval FLAC__StreamMetadata*
  *    \c NULL if there was an error allocating memory, else the new instance.

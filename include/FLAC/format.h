@@ -670,12 +670,20 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN; /**<
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN; /**< == 8 (bits) */
 
 
+/** Structure that is used when a metadata block of unknown type is loaded.  The contents are opaque.
+ */
+typedef struct {
+	FLAC__byte *data;
+} FLAC__StreamMetadata_Unknown;
+
+
 /** FLAC metadata block structure.  (c.f. <A HREF="../format.html#metadata_block">format specification</A>)
  */
 typedef struct {
 	FLAC__MetadataType type;
 	/**< The type of the metadata block; used determine which member of the
-	 * \a data union to dereference. */
+	 * \a data union to dereference.  If type >= FLAC__METADATA_TYPE_UNDEFINED
+	 * then \a data.unknown must be used. */
 
 	FLAC__bool is_last;
 	/**< \c true if this metadata block is the last, else \a false */
@@ -690,6 +698,7 @@ typedef struct {
 		FLAC__StreamMetadata_SeekTable seek_table;
 		FLAC__StreamMetadata_VorbisComment vorbis_comment;
 		FLAC__StreamMetadata_CueSheet cue_sheet;
+		FLAC__StreamMetadata_Unknown unknown;
 	} data;
 	/**< Polymorphic block data; use the \a type value to determine which
 	 * to use. */
