@@ -1458,7 +1458,6 @@ bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, boo
 			/* we hold off updating bb->total_consumed_bits until the end */
 		}
 	}
-	return true;
 }
 #endif
 
