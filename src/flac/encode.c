@@ -1108,7 +1108,6 @@ void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMet
 	if(-1 == fseek(f, 26, SEEK_SET)) goto end_;
 	fwrite(metadata->data.stream_info.md5sum, 1, 16, f);
 
-samples_:
 	/* if we get this far we know we can seek so no need to check the
 	 * return value from fseek()
 	 */

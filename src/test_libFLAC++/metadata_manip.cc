@@ -639,7 +639,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.insert_block_after(app, true)", iterator);
 	if(!insert_to_our_metadata_(app, ++our_current_position, /*copy=*/true))
 		return false;
-	add_to_padding_length_(our_current_position+1, -((FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + app->get_length()));
+	add_to_padding_length_(our_current_position+1, -((int)(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + (int)app->get_length()));
 
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
@@ -655,7 +655,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.set_block(app, true)", iterator);
 	if(!insert_to_our_metadata_(app, our_current_position, /*copy=*/true))
 		return false;
-	add_to_padding_length_(our_current_position+1, -((FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + app->get_length()));
+	add_to_padding_length_(our_current_position+1, -((int)(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + (int)app->get_length()));
 
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
@@ -690,7 +690,7 @@ static bool test_level_1_()
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
 		return die_("copying object");
-	add_to_padding_length_(our_current_position+1, -(sizeof(data) - 12));
+	add_to_padding_length_(our_current_position+1, -((int)sizeof(data) - 12));
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 

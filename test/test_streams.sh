@@ -68,21 +68,47 @@ test_file_piped ()
 	bps=$3
 	encode_options="$4"
 
+	if [ `env | grep -ic '^comspec='` != 0 ] ; then
+		is_win=yes
+	else
+		is_win=no
+	fi
+
 	echo -n "$name: encode via pipes..."
-	cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options -c -"
-	echo "### ENCODE $name #######################################################" >> ./streams.log
-	echo "###    cmd=$cmd" >> ./streams.log
-	if cat $name.raw | $cmd 1>$name.flac 2>>./streams.log ; then : ; else
-		echo "ERROR during encode of $name" 1>&2
-		exit 1
+	if [ $is_win = yes ] ; then
+		cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options -c $name.raw"
+		echo "### ENCODE $name #######################################################" >> ./streams.log
+		echo "###    cmd=$cmd" >> ./streams.log
+		if $cmd 1>$name.flac 2>>./streams.log ; then : ; else
+			echo "ERROR during encode of $name" 1>&2
+			exit 1
+		fi
+	else
+		cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options -c -"
+		echo "### ENCODE $name #######################################################" >> ./streams.log
+		echo "###    cmd=$cmd" >> ./streams.log
+		if cat $name.raw | $cmd 1>$name.flac 2>>./streams.log ; then : ; else
+			echo "ERROR during encode of $name" 1>&2
+			exit 1
+		fi
 	fi
 	echo -n "decode via pipes..."
-	cmd="flac -s -fb -d -fr -c -"
-	echo "### DECODE $name #######################################################" >> ./streams.log
-	echo "###    cmd=$cmd" >> ./streams.log
-	if cat $name.flac | $cmd 1>$name.cmp 2>>./streams.log ; then : ; else
-		echo "ERROR during decode of $name" 1>&2
-		exit 1
+	if [ $is_win = yes ] ; then
+		cmd="flac -s -fb -d -fr -c $name.flac"
+		echo "### DECODE $name #######################################################" >> ./streams.log
+		echo "###    cmd=$cmd" >> ./streams.log
+		if $cmd 1>$name.cmp 2>>./streams.log ; then : ; else
+			echo "ERROR during decode of $name" 1>&2
+			exit 1
+		fi
+	else
+		cmd="flac -s -fb -d -fr -c -"
+		echo "### DECODE $name #######################################################" >> ./streams.log
+		echo "###    cmd=$cmd" >> ./streams.log
+		if cat $name.flac | $cmd 1>$name.cmp 2>>./streams.log ; then : ; else
+			echo "ERROR during decode of $name" 1>&2
+			exit 1
+		fi
 	fi
 	ls -1l $name.raw >> ./streams.log
 	ls -1l $name.flac >> ./streams.log

@@ -820,7 +820,7 @@ static FLAC__SeekableStreamDecoderSeekStatus seekable_stream_decoder_seek_callba
 	if(dcd->error_occurred)
 		return FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
 
-	if(fseek(dcd->file, absolute_byte_offset, SEEK_SET) < 0) {
+	if(fseek(dcd->file, (long)absolute_byte_offset, SEEK_SET) < 0) {
 		dcd->error_occurred = true;
 		return FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
 	}

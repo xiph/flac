@@ -208,23 +208,23 @@ int infoDlg(char *fn, HWND hwnd)
 	return 0;
 }
 
-void getfileinfo(char *filename, char *title, int *length_in_ms)
+void getfileinfo(char *filename, char *title, int *length_in_msec)
 {
 	id3v1_struct tag;
 	FLAC__StreamMetadata streaminfo;
 
 	if(0 == filename) {
 		filename = lastfn_;
-		if (length_in_ms) {
-			*length_in_ms = getlength();
-			length_in_ms = 0; /* force skip in following code */
+		if (length_in_msec) {
+			*length_in_msec = getlength();
+			length_in_msec = 0; /* force skip in following code */
 		}
 	}
 
 	if(!FLAC__metadata_get_streaminfo(filename, &streaminfo)) {
 		MessageBox(mod_.hMainWindow, filename, "ERROR: invalid/missing FLAC metadata", 0);
 		if(title) {
-			static const char *errtitle = "Invalid FLAC File: ");
+			static const char *errtitle = "Invalid FLAC File: ";
 			sprintf(title, "%s\"%s\"", errtitle, filename);
 		}
 		if(length_in_msec)
@@ -237,7 +237,7 @@ void getfileinfo(char *filename, char *title, int *length_in_ms)
 		strcpy(title, tag.description);
 	}
 	if(length_in_msec)
-		*length_in_msec = streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100);
+		*length_in_msec = (int)(streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100));
 }
 
 void eq_set(int on, char data[10], int preamp)

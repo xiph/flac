@@ -17,7 +17,7 @@
 
 !include <win32.mak>
 
-SUFFIXES = .cpp
+SUFFIXES = .cc
 
 !IFDEF DEBUG
 .c.obj:
@@ -29,10 +29,10 @@ SUFFIXES = .cpp
 
 !IFDEF DEBUG
 .cc.obj:
-	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /GR /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .cc.obj:
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
@@ -46,8 +46,10 @@ CC_FILES= \
 	metadata_manip.cc \
 	metadata_object.cc
 
-OBJS= $(C_FILES:.c=.obj)
-OBJS= $(CC_FILES:.cc=.obj)
+C_OBJS= $(C_FILES:.c=.obj)
+CC_OBJS= $(CC_FILES:.cc=.obj)
+
+all: test_libFLAC++.exe
 
 # can't figure out how to get it to take .cc so we just hack it for now:
 decoders.obj: decoders.cc
@@ -63,10 +65,8 @@ metadata_manip.obj: metadata_manip.cc
 metadata_object.obj: metadata_object.cc
 	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata_object.cc
 
-all: test_libFLAC++.exe
-
-test_libFLAC++.exe: $(OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) libFLAC++.lib libFLAC.lib
+test_libFLAC++.exe: $(C_OBJS) $(CC_OBJS)
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(CC_OBJS) $(C_OBJS) libFLAC++.lib libFLAC.lib
 
 clean:
 	-del *.obj *.pch

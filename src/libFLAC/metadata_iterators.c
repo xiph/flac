@@ -2134,6 +2134,15 @@ FLAC__bool transport_tempfile_(const char *filename, FILE **tempfile, char **tem
 
 	(void)fclose(*tempfile);
 	*tempfile = 0;
+
+#if defined _MSC_VER || defined __MINGW32__
+	if(unlink(filename) < 0) {
+		cleanup_tempfile_(tempfile, tempfilename);
+		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_UNLINK_ERROR;
+		return false;
+	}
+#endif
+
 	/*@@@ to fully support the tempfile_path_prefix we need to update this piece to actually copy across filesystems instead of just rename(): */
 	if(0 != rename(*tempfilename, filename)) {
 		cleanup_tempfile_(tempfile, tempfilename);

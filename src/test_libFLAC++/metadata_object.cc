@@ -271,7 +271,7 @@ bool test_metadata_object_streaminfo()
 	printf("OK\n");
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
-	FLAC::Metadata::Prototype *clone_ = clone(&block);
+	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
 	if(0 == clone_)
 		return die_("returned NULL");
 	if(0 == dynamic_cast<FLAC::Metadata::StreamInfo *>(clone_))
@@ -381,7 +381,7 @@ bool test_metadata_object_padding()
 	printf("OK\n");
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
-	FLAC::Metadata::Prototype *clone_ = clone(&block);
+	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
 	if(0 == clone_)
 		return die_("returned NULL");
 	if(0 == dynamic_cast<FLAC::Metadata::Padding *>(clone_))
@@ -500,7 +500,7 @@ bool test_metadata_object_application()
 	printf("OK\n");
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
-	FLAC::Metadata::Prototype *clone_ = clone(&block);
+	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
 	if(0 == clone_)
 		return die_("returned NULL");
 	if(0 == dynamic_cast<FLAC::Metadata::Application *>(clone_))
@@ -648,7 +648,7 @@ bool test_metadata_object_seektable()
 	printf("OK\n");
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
-	FLAC::Metadata::Prototype *clone_ = clone(&block);
+	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
 	if(0 == clone_)
 		return die_("returned NULL");
 	if(0 == dynamic_cast<FLAC::Metadata::SeekTable *>(clone_))
@@ -934,7 +934,7 @@ bool test_metadata_object_vorbiscomment()
 	printf("OK\n");
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
-	FLAC::Metadata::Prototype *clone_ = clone(&block);
+	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
 	if(0 == clone_)
 		return die_("returned NULL");
 	if(0 == dynamic_cast<FLAC::Metadata::VorbisComment *>(clone_))

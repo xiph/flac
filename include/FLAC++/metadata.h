@@ -91,13 +91,13 @@ namespace FLAC {
 		};
 
 		inline bool Prototype::operator==(const Prototype &object) const 
-		{ return ::FLAC__metadata_object_is_equal(object_, object.object_); }
+		{ return (bool)::FLAC__metadata_object_is_equal(object_, object.object_); }
 
 		inline bool Prototype::operator==(const ::FLAC__StreamMetadata &object) const 
-		{ return ::FLAC__metadata_object_is_equal(object_, &object); }
+		{ return (bool)::FLAC__metadata_object_is_equal(object_, &object); }
 
 		inline bool Prototype::operator==(const ::FLAC__StreamMetadata *object) const 
-		{ return ::FLAC__metadata_object_is_equal(object_, object); }
+		{ return (bool)::FLAC__metadata_object_is_equal(object_, object); }
 
 		inline bool Prototype::operator!=(const Prototype &object) const 
 		{ return !operator==(object); }

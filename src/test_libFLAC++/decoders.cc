@@ -258,12 +258,12 @@ public:
 
 void StreamDecoder::metadata_callback(const ::FLAC__StreamMetadata *metadata)
 {
-	return common_metadata_callback_(metadata);
+	common_metadata_callback_(metadata);
 }
 
 void StreamDecoder::error_callback(::FLAC__StreamDecoderErrorStatus status)
 {
-	return common_error_callback_(status);
+	common_error_callback_(status);
 }
 
 bool StreamDecoder::die(const char *msg) const
@@ -830,7 +830,7 @@ public:
 	if(error_occurred_)
 		return ::FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
 
-	if(::fseek(file_, absolute_byte_offset, SEEK_SET) < 0) {
+	if(::fseek(file_, (long)absolute_byte_offset, SEEK_SET) < 0) {
 		error_occurred_ = true;
 		return ::FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
 	}
@@ -868,7 +868,7 @@ bool SeekableStreamDecoder::eof_callback()
 	if(error_occurred_)
 		return true;
 
-	return feof(file_);
+	return (bool)feof(file_);
 }
 
 ::FLAC__StreamDecoderWriteStatus SeekableStreamDecoder::write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[])

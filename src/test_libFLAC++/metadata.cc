@@ -19,8 +19,8 @@
 #include "metadata.h"
 #include <stdio.h>
 
-extern int test_metadata_object();
-extern int test_metadata_file_manipulation();
+extern bool test_metadata_object();
+extern bool test_metadata_file_manipulation();
 
 bool test_metadata()
 {
