@@ -339,39 +339,25 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 #ifdef FLAC__HAS_NASM
 	if(0 && encoder->guts->cpuinfo.data.ia32.sse) { /* SSE version lacks necessary resolution, plus SSE flag doesn't check for OS support */
 		if(encoder->max_lpc_order < 4)
-{//@@@
-		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4;
-fprintf(stderr,"@@@ got _asm_i386_sse_lag_4 of lpc_compute_autocorrelation()\n");}
+			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4;
 		else if(encoder->max_lpc_order < 8)
-{//@@@
-		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8;
-fprintf(stderr,"@@@ got _asm_i386_sse_lag_8 of lpc_compute_autocorrelation()\n");}
+			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8;
 		else if(encoder->max_lpc_order < 12)
-{//@@@
-		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12;
-fprintf(stderr,"@@@ got _asm_i386_sse_lag_12 of lpc_compute_autocorrelation()\n");}
+			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12;
 		else
-{//@@@
 			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
-fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");}
 	}
 	else
-{//@@@
 		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
-fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");}
 	if(encoder->guts->cpuinfo.data.ia32.mmx && encoder->guts->cpuinfo.data.ia32.cmov)
-{//@@@
 		encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov;
-fprintf(stderr,"@@@ got _asm_i386_mmx_cmov of fixed_compute_best_predictor()\n");}
 	if(encoder->guts->cpuinfo.data.ia32.mmx) {
 		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
 		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx;
-fprintf(stderr,"@@@ got _asm_i386_mmx of lpc_compute_residual_from_qlp_coefficients()\n");
 	}
 	else {
 		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
 		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
-fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_residual_from_qlp_coefficients()\n");
 	}
 #endif
 #endif
