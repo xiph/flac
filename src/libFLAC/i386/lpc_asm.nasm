@@ -31,6 +31,9 @@ cglobal FLAC__lpc_compute_autocorrelation_asm
 ; 	real d;
 ; 	unsigned i;
 ;
+;	assert(lag > 0);
+;	assert(lag <= data_len);
+;
 ; 	while(lag--) {
 ; 		for(i = lag, d = 0.0; i < data_len; i++)
 ; 			d += data[i] * data[i - lag];
