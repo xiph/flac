@@ -18,5 +18,4 @@
 EXTRA_DIST = \
 	config.mk \
 	exe.mk \
-	lib.mk \
-	project_builder_prebuild_phase.sh
+	lib.mk
