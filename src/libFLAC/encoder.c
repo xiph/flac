@@ -840,8 +840,8 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned max_partition_or
 			for(fixed_order = min_fixed_order; fixed_order <= max_fixed_order; fixed_order++) {
 				if(fixed_residual_bits_per_sample[fixed_order] >= (real)bits_per_sample)
 					continue; /* don't even try */
-				/* 0.5 is for rounding, another 1.0 is to account for the signed->unsigned conversion during rice coding */
-				rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > 0.0)? (unsigned)(fixed_residual_bits_per_sample[fixed_order]+1.5) : 0;
+				rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > 0.0)? (unsigned)(fixed_residual_bits_per_sample[fixed_order]+0.5) : 0; /* 0.5 is for rounding */
+				rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
 				if(rice_parameter >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 					rice_parameter = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN) - 1;
 				_candidate_bits = encoder_evaluate_fixed_subframe_(integer_signal, residual[!_best_subframe], encoder->guts->abs_residual, frame_header->blocksize, bits_per_sample, fixed_order, rice_parameter, max_partition_order, subframe[!_best_subframe]);
@@ -875,11 +875,11 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned max_partition_or
 						min_qlp_coeff_precision = max_qlp_coeff_precision = encoder->qlp_coeff_precision;
 					}
 					for(lpc_order = min_lpc_order; lpc_order <= max_lpc_order; lpc_order++) {
-						lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize);
+						lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize-lpc_order);
 						if(lpc_residual_bits_per_sample >= (real)bits_per_sample)
 							continue; /* don't even try */
-						/* 0.5 is for rounding, another 1.0 is to account for the signed->unsigned conversion during rice coding */
-						rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+1.5) : 0;
+						rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
+						rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
 						if(rice_parameter >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 							rice_parameter = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN) - 1;
 						for(qlp_coeff_precision = min_qlp_coeff_precision; qlp_coeff_precision <= max_qlp_coeff_precision; qlp_coeff_precision++) {
