@@ -21,6 +21,7 @@
 #include "metadata_utils.h"
 #include "FLAC/assert.h"
 #include "OggFLAC/stream_decoder.h"
+#include "share/file_utils.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -814,7 +815,7 @@ FLAC__bool test_decoders()
 	if(!test_stream_decoder())
 		return false;
 
-	(void) file_utils__remove_file(oggflacfilename_);
+	(void) FLAC__file_utils_remove_file(oggflacfilename_);
 	free_metadata_blocks_();
 
 	return true;

@@ -22,6 +22,7 @@ extern "C" {
 #include "FLAC/assert.h"
 #include "FLAC++/decoder.h"
 #include "FLAC++/metadata.h"
+#include "share/file_utils.h"
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy()/memset() */
@@ -362,8 +363,8 @@ static bool test_file_(const char *filename, bool ignore_metadata)
 
 static bool change_stats_(const char *filename, bool read_only)
 {
-	if(!file_utils__change_stats(filename, read_only))
-		return die_("during file_utils__change_stats()");
+	if(!FLAC__file_utils_change_stats(filename, read_only))
+		return die_("during FLAC__file_utils_change_stats()");
 
 	return true;
 }
@@ -373,7 +374,7 @@ static bool remove_file_(const char *filename)
 	while(our_metadata_.num_blocks > 0)
 		delete_from_our_metadata_(0);
 
-	if(!file_utils__remove_file(filename))
+	if(!FLAC__file_utils_remove_file(filename))
 		return die_("removing file");
 
 	return true;

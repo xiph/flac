@@ -21,14 +21,7 @@
 #include "FLAC/stream_encoder.h"
 #include <stdio.h>
 #include <stdlib.h>
-#if defined _MSC_VER || defined __MINGW32__
-#include <io.h> /* for chmod(), unlink */
-#endif
-#include <sys/stat.h> /* for stat(), chmod() */
-#if defined _WIN32 && !defined __CYGWIN__
-#else
-#include <unistd.h> /* for unlink() */
-#endif
+#include <sys/stat.h> /* for stat() */
 
 #ifdef min
 #undef min
@@ -54,42 +47,6 @@ static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const FLAC__Stream
 static void encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	(void)encoder, (void)metadata, (void)client_data;
-}
-
-FLAC__bool file_utils__change_stats(const char *filename, FLAC__bool read_only)
-{
-	struct stat stats;
-
-	if(0 == stat(filename, &stats)) {
-#if !defined _MSC_VER && !defined __MINGW32__
-		if(read_only) {
-			stats.st_mode &= ~S_IWUSR;
-			stats.st_mode &= ~S_IWGRP;
-			stats.st_mode &= ~S_IWOTH;
-		}
-		else {
-			stats.st_mode |= S_IWUSR;
-			stats.st_mode |= S_IWGRP;
-			stats.st_mode |= S_IWOTH;
-		}
-#else
-		if(read_only)
-			stats.st_mode &= ~S_IWRITE;
-		else
-			stats.st_mode |= S_IWRITE;
-#endif
-		if(0 != chmod(filename, stats.st_mode))
-			return false;
-	}
-	else
-		return false;
-
-	return true;
-}
-
-FLAC__bool file_utils__remove_file(const char *filename)
-{
-	return file_utils__change_stats(filename, /*read_only=*/false) && 0 == unlink(filename);
 }
 
 FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)

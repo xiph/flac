@@ -23,6 +23,7 @@ extern "C" {
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h" // for ::FLAC__metadata_object_is_equal()
 #include "OggFLAC++/decoder.h"
+#include "share/file_utils.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -866,7 +867,7 @@ bool test_decoders()
 	if(!test_stream_decoder())
 		return false;
 
-	(void) file_utils__remove_file(oggflacfilename_);
+	(void) FLAC__file_utils_remove_file(oggflacfilename_);
 	free_metadata_blocks_();
 
 	return true;

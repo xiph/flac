@@ -49,7 +49,7 @@ CPP_OBJS= $(CPP_FILES:.cpp=.obj)
 all: test_libOggFLAC++.exe
 
 test_libOggFLAC++.exe: $(C_OBJS) $(CPP_OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(CPP_OBJS) $(C_OBJS) libOggFLAC++.lib libOggFLAC.lib libFLAC.lib ogg_static.lib
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(CPP_OBJS) $(C_OBJS) libOggFLAC++.lib libOggFLAC.lib libFLAC.lib ogg_static.lib file_utils.lib
 
 clean:
 	-del *.obj *.pch

@@ -23,7 +23,7 @@ topdir = ../..
 
 PROGRAM_NAME = test_libFLAC++
 INCLUDES     = -I$(topdir)/include
-LIBS         = -lFLAC++ -lFLAC -lm
+LIBS         = -lFLAC++ -lFLAC -lfile_utils -lm
 OBJS = \
 	decoders.o \
 	encoders.o \
