@@ -52,7 +52,7 @@ char lastfn[MAX_PATH]; /* currently playing file (used for getting info on the c
 int decode_pos_ms; /* current decoding position, in milliseconds */
 int paused; /* are we paused? */
 int seek_needed; /* if != -1, it is the point that the decode thread should seek to, in ms. */
-int16 reservoir[FLAC__MAX_BLOCK_SIZE * 2]; /* 2 for max channels */
+int16 reservoir[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max channels, another *2 for overflow */
 char sample_buffer[576 * 2 * (16/8) * 2]; /* 2 for max channels, (16/8) for max bytes per sample, and 2 for who knows what */
 unsigned samples_in_reservoir;
 static stream_info_struct stream_info;
@@ -379,17 +379,15 @@ bool stream_init(const char *infile)
 FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
-	unsigned bps = stream_info->bits_per_sample, channels = stream_info->channels;
-	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, offset;
+	const unsigned bps = stream_info->bits_per_sample, channels = stream_info->channels, wide_samples = frame->header.blocksize;
+	unsigned wide_sample, sample, channel, offset;
 
 	(void)decoder;
 
 	if(stream_info->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_ABORT;
 
-	offset = samples_in_reservoir * channels;
-
-	for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+	for(sample = samples_in_reservoir*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 		for(channel = 0; channel < channels; channel++, sample++)
 			reservoir[offset+sample] = (int16)buffer[channel][wide_sample];
 
