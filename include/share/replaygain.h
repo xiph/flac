@@ -47,6 +47,8 @@
 extern "C" {
 #endif
 
+extern REPLAYGAIN_API const unsigned FLAC__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
+
 REPLAYGAIN_API FLAC__bool FLAC__replaygain_is_valid_sample_frequency(unsigned sample_frequency);
 
 REPLAYGAIN_API FLAC__bool FLAC__replaygain_init(unsigned sample_frequency);
@@ -54,13 +56,17 @@ REPLAYGAIN_API FLAC__bool FLAC__replaygain_init(unsigned sample_frequency);
 /* 'bps' must be valid for FLAC, i.e. >=4 and <= 32 */
 REPLAYGAIN_API FLAC__bool FLAC__replaygain_analyze(const FLAC__int32 * const input[], FLAC__bool is_stereo, unsigned bps, unsigned samples);
 
-REPLAYGAIN_API float FLAC__replaygain_get_album_gain();
-REPLAYGAIN_API float FLAC__replaygain_get_title_gain();
+REPLAYGAIN_API void FLAC__replaygain_get_album(float *gain, float *peak);
+REPLAYGAIN_API void FLAC__replaygain_get_title(float *gain, float *peak);
 
 /* These three functions return an error string on error, or NULL if successful */
 REPLAYGAIN_API const char *FLAC__replaygain_analyze_file(const char *filename, float *title_gain, float *title_peak);
 REPLAYGAIN_API const char *FLAC__replaygain_store_to_vorbiscomment(FLAC__StreamMetadata *block, float album_gain, float album_peak, float title_gain, float title_peak);
+REPLAYGAIN_API const char *FLAC__replaygain_store_to_vorbiscomment_album(FLAC__StreamMetadata *block, float album_gain, float album_peak);
+REPLAYGAIN_API const char *FLAC__replaygain_store_to_vorbiscomment_title(FLAC__StreamMetadata *block, float title_gain, float title_peak);
 REPLAYGAIN_API const char *FLAC__replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak, FLAC__bool preserve_modtime);
+REPLAYGAIN_API const char *FLAC__replaygain_store_to_file_album(const char *filename, float album_gain, float album_peak, FLAC__bool preserve_modtime);
+REPLAYGAIN_API const char *FLAC__replaygain_store_to_file_title(const char *filename, float title_gain, float title_peak, FLAC__bool preserve_modtime);
 
 #ifdef __cplusplus
 }
