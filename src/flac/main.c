@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
 			lax = true;
 		else if(0 == strcmp(argv[i], "--lax-"))
 			lax = false;
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 		else if(0 == strcmp(argv[i], "--ogg"))
 			use_ogg = true;
 		else if(0 == strcmp(argv[i], "--ogg-"))
@@ -382,12 +382,12 @@ int main(int argc, char *argv[])
 		if(!mode_decode) {
 			fprintf(stderr,
 				"options:%s%s"
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 				"%s"
 #endif
 				"%s -P %u -b %u%s -l %u%s%s%s -q %u -r %u,%u -R %u%s\n",
 				delete_input?" --delete-input-file":"", sector_align?" --sector-align":"",
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 				use_ogg?" --ogg":"",
 #endif
 				lax?" --lax":"",
@@ -540,7 +540,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "  --a-rtext : include residual signal in text output\n");
 	fprintf(out, "  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
 	fprintf(out, "encoding options:\n");
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	fprintf(out, "  --ogg : output Ogg-FLAC stream instead of native FLAC\n");
 #endif
 	fprintf(out, "  --lax : allow encoder to generate non-Subset files\n");
@@ -589,7 +589,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	fprintf(out, "         comparing to the original\n");
 	fprintf(out, "  -S-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-,%s --lax-, --sector-align-\n",
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 		" --ogg-,"
 #else
 		""
@@ -690,7 +690,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	common_options.verbose = verbose;
 	common_options.skip = skip;
 	common_options.verify = verify;
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	common_options.use_ogg = use_ogg;
 #endif
 	common_options.lax = lax;
@@ -786,7 +786,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	else
 		treat_as_ogg = false;
 
-#ifndef FLaC__HAS_OGG
+#ifndef FLAC__HAS_OGG
 	if(treat_as_ogg) {
 		fprintf(stderr, "%s: Ogg support has not been built into this copy of flac\n", infilename);
 		return 1;
@@ -794,7 +794,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 #endif
 
 	common_options.verbose = verbose;
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	common_options.is_ogg = treat_as_ogg;
 #endif
 	common_options.skip = skip;

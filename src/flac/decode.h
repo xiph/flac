@@ -23,7 +23,7 @@
 
 typedef struct {
 	FLAC__bool verbose;
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	FLAC__bool is_ogg;
 #endif
 	FLAC__uint64 skip;

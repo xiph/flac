@@ -28,11 +28,11 @@
 #include "FLAC/all.h"
 #include "decode.h"
 #include "file.h"
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 #include "ogg/ogg.h"
 #endif
 
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 typedef struct {
 	ogg_sync_state oy;
 	ogg_stream_state os;
@@ -41,7 +41,7 @@ typedef struct {
 
 typedef struct {
 	const char *inbasefilename;
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	FILE *fin;
 #endif
 	FILE *fout;
@@ -61,14 +61,14 @@ typedef struct {
 	FLAC__bool skip_count_too_high;
 	FLAC__uint64 samples_processed;
 	unsigned frame_counter;
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	FLAC__bool is_ogg;
 #endif
 	union {
 		FLAC__FileDecoder *file;
 		FLAC__StreamDecoder *stream;
 	} decoder;
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	ogg_info_struct ogg;
 #endif
 } stream_info_struct;
@@ -79,7 +79,7 @@ static FLAC__bool is_big_endian_host;
 static FLAC__bool init(const char *infilename, stream_info_struct *stream_info);
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val);
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 static FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 #endif
 /*
@@ -108,7 +108,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 	stream_info.skip_count_too_high = false;
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	stream_info.is_ogg = options.common.is_ogg;
 #endif
 	stream_info.decoder.file = 0; /* this zeroes stream_info.decoder.stream also */
@@ -129,7 +129,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 		}
 	}
 
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if (0 == strcmp(infilename, "-")) {
 			stream_info.fin = stdin;
@@ -151,7 +151,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 		goto wav_abort_;
 
 	if(stream_info.skip > 0) {
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 		if(stream_info.is_ogg) { //@@@ (move this check into main.c)
 			fprintf(stderr, "%s: ERROR, can't skip when decoding Ogg-FLAC yet; convert to native-FLAC first\n", stream_info.inbasefilename);
 			goto wav_abort_;
@@ -181,7 +181,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 		}
 	}
 	else {
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 		if(stream_info.is_ogg) {
 			if(!FLAC__stream_decoder_process_whole_stream(stream_info.decoder.stream)) {
 				if(stream_info.verbose) fprintf(stderr, "\n");
@@ -210,7 +210,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 		}
 	}
 
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(stream_info.decoder.stream) {
 			if(FLAC__stream_decoder_get_state(stream_info.decoder.stream) != FLAC__STREAM_DECODER_UNINITIALIZED)
@@ -232,7 +232,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 	}
 	if(0 != stream_info.fout && stream_info.fout != stdout)
 		fclose(stream_info.fout);
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(0 != stream_info.fin && stream_info.fin != stdin)
 			fclose(stream_info.fin);
@@ -249,7 +249,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 	}
 	return 0;
 wav_abort_:
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(stream_info.decoder.stream) {
 			if(FLAC__stream_decoder_get_state(stream_info.decoder.stream) != FLAC__STREAM_DECODER_UNINITIALIZED)
@@ -270,7 +270,7 @@ wav_abort_:
 		fclose(stream_info.fout);
 		unlink(outfilename);
 	}
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(0 != stream_info.fin && stream_info.fin != stdin)
 			fclose(stream_info.fin);
@@ -298,7 +298,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	stream_info.skip_count_too_high = false;
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	stream_info.is_ogg = options.common.is_ogg;
 #endif
 	stream_info.decoder.file = 0; /* this zeroes stream_info.decoder.stream also */
@@ -319,7 +319,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 		}
 	}
 
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if (0 == strcmp(infilename, "-")) {
 			stream_info.fin = stdin;
@@ -341,7 +341,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 		goto raw_abort_;
 
 	if(stream_info.skip > 0) {
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 		if(stream_info.is_ogg) { //@@@ (move this check into main.c)
 			fprintf(stderr, "%s: ERROR, can't skip when decoding Ogg-FLAC yet; convert to native-FLAC first\n", stream_info.inbasefilename);
 			goto raw_abort_;
@@ -371,7 +371,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 		}
 	}
 	else {
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 		if(stream_info.is_ogg) {
 			if(!FLAC__stream_decoder_process_whole_stream(stream_info.decoder.stream)) {
 				if(stream_info.verbose) fprintf(stderr, "\n");
@@ -400,7 +400,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 		}
 	}
 
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(stream_info.decoder.stream) {
 			if(FLAC__stream_decoder_get_state(stream_info.decoder.stream) != FLAC__STREAM_DECODER_UNINITIALIZED)
@@ -422,7 +422,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	}
 	if(0 != stream_info.fout && stream_info.fout != stdout)
 		fclose(stream_info.fout);
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(0 != stream_info.fin && stream_info.fin != stdin)
 			fclose(stream_info.fin);
@@ -439,7 +439,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	}
 	return 0;
 raw_abort_:
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(stream_info.decoder.stream) {
 			if(FLAC__stream_decoder_get_state(stream_info.decoder.stream) != FLAC__STREAM_DECODER_UNINITIALIZED)
@@ -460,7 +460,7 @@ raw_abort_:
 		fclose(stream_info.fout);
 		unlink(outfilename);
 	}
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(0 != stream_info.fin && stream_info.fin != stdin)
 			fclose(stream_info.fin);
@@ -477,7 +477,7 @@ FLAC__bool init(const char *infilename, stream_info_struct *stream_info)
 
 	is_big_endian_host = (*((FLAC__byte*)(&test)))? false : true;
 
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 	if(stream_info->is_ogg) {
 		stream_info->decoder.stream = FLAC__stream_decoder_new();
 
@@ -557,7 +557,7 @@ FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val)
 	return fwrite(b, 1, 4, f) == 4;
 }
 
-#ifdef FLaC__HAS_OGG
+#ifdef FLAC__HAS_OGG
 #define OGG_READ_BUFFER_SIZE 4096
 FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {
