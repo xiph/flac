@@ -804,13 +804,15 @@ static void iterator_insert_node_(FLAC__MetaData_Iterator *iterator, FLAC__MetaD
 	FLAC__ASSERT(0 != iterator->chain->tail);
 
 	node->data->is_last = false;
+
 	node->prev = iterator->current->prev;
+	node->next = iterator->current;
+
 	if(0 == node->prev)
 		iterator->chain->head = node;
 	else
 		node->prev->next = node;
 
-	node->next = iterator->current;
 	iterator->current->prev = node;
 
 	iterator->chain->nodes++;
@@ -830,18 +832,34 @@ static void iterator_insert_node_after_(FLAC__MetaData_Iterator *iterator, FLAC_
 	iterator->current->data->is_last = false;
 
 	node->prev = iterator->current;
-	iterator->current->next = node;
-
 	node->next = iterator->current->next;
+
 	if(0 == node->next)
 		iterator->chain->tail = node;
 	else
 		node->next->prev = node;
 
+	node->prev->next = node;
+
 	iterator->chain->tail->data->is_last = true;
 
 	iterator->chain->nodes++;
 	iterator->chain->current_length += (4 + node->data->length); /*@@@ MAGIC NUMBER 4 = metadata block header bytes */
+}
+
+/* return true iff node and node->next are both padding */
+static FLAC__bool chain_merge_adjacent_padding_(FLAC__MetaData_Chain *chain, FLAC__MetaData_Node *node)
+{
+	if(node->data->type == FLAC__METADATA_TYPE_PADDING && 0 != node->next && node->next->data->type == FLAC__METADATA_TYPE_PADDING) {
+		const unsigned growth = 4 + node->next->data->length; /*@@@ MAGIC NUMBER 4 = metadata data block header bytes */
+		node->data->length += growth;
+		chain->current_length += growth;
+
+		chain_delete_node_(chain, node->next);
+		return true;
+	}
+	else
+		return false;
 }
 
 FLAC__MetaData_Chain *FLAC__metadata_chain_new()
@@ -911,6 +929,8 @@ FLAC__bool FLAC__metadata_chain_read(FLAC__MetaData_Chain *chain, const char *fi
 		return false;
 	}
 
+	chain->first_offset = iterator->offset[iterator->depth];
+
 	do {
 		node = node_new_();
 		if(0 == node) {
@@ -931,7 +951,7 @@ FLAC__bool FLAC__metadata_chain_read(FLAC__MetaData_Chain *chain, const char *fi
 		return false;
 	}
 
-	chain->last_offset = ftell(iterator->file);
+	chain->last_offset = ftell(iterator->file) + iterator->length;
 	FLAC__metadata_simple_iterator_delete(iterator);
 
 	chain->initial_length = chain->current_length;
@@ -943,22 +963,45 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__MetaData_Chain *chain, FLAC__bool us
 	struct stat stats;
 	const char *tempfile_path_prefix = 0;
 
-	/*@@@ MAGIC NUMBER 4 = metadata header bytes, appears several times here */
-	if(use_padding && chain->current_length + 4 <= chain->initial_length) {
-		FLAC__StreamMetaData *padding;
-		FLAC__MetaData_Node *node;
-		if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING))) {
-			chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
-			return false;
+	if(use_padding) {
+		/*@@@ MAGIC NUMBER 4 = metadata header bytes, appears several times here */
+		if(chain->current_length < chain->initial_length && chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
+			const unsigned delta = chain->initial_length - chain->current_length;
+			chain->tail->data->length += delta;
+			chain->current_length += delta;
+			FLAC__ASSERT(chain->current_length == chain->initial_length);
 		}
-		padding->length = chain->initial_length - (4 + chain->current_length);
-		if(0 == (node = node_new_())) {
-			FLAC__metadata_object_delete(padding);
-			chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
-			return false;
+		else if(chain->current_length + 4 <= chain->initial_length) {
+			FLAC__StreamMetaData *padding;
+			FLAC__MetaData_Node *node;
+			if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING))) {
+				chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
+				return false;
+			}
+			padding->length = chain->initial_length - (4 + chain->current_length);
+			if(0 == (node = node_new_())) {
+				FLAC__metadata_object_delete(padding);
+				chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
+				return false;
+			}
+			node->data = padding;
+			chain_append_node_(chain, node);
+			FLAC__ASSERT(chain->current_length == chain->initial_length);
 		}
-		node->data = padding;
-		chain_append_node_(chain, node);
+		else if(chain->current_length > chain->initial_length) {
+			const unsigned delta = chain->current_length - chain->initial_length;
+			if(chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
+				if(chain->tail->data->length + 4 == delta) {
+					chain_delete_node_(chain, chain->tail);
+					FLAC__ASSERT(chain->current_length == chain->initial_length);
+				}
+				else if(chain->tail->data->length <= delta) {
+					chain->tail->data->length -= delta;
+					chain->current_length -= delta;
+					FLAC__ASSERT(chain->current_length == chain->initial_length);
+				}
+			}
+		}
 	}
 
 	if(preserve_file_stats)
@@ -987,13 +1030,8 @@ void FLAC__metadata_chain_merge_padding(FLAC__MetaData_Chain *chain)
 	FLAC__ASSERT(0 != chain);
 
 	for(node = chain->head; node; ) {
-		if(node->data->type == FLAC__METADATA_TYPE_PADDING && 0 != node->next && node->next->data->type == FLAC__METADATA_TYPE_PADDING) {
-			node->data->length += (4 + node->next->data->length); /*@@@ MAGIC NUMBER 4 = metadata data block header bytes */
-			chain_delete_node_(chain, node->next);
-		}
-		else {
+		if(!chain_merge_adjacent_padding_(chain, node))
 			node = node->next;
-		}
 	}
 }
 
@@ -1084,6 +1122,7 @@ FLAC__MetaDataType FLAC__metadata_iterator_get_block_type(const FLAC__MetaData_I
 {
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->current);
+	FLAC__ASSERT(0 != iterator->current->data);
 
 	return iterator->current->data->type;
 }
@@ -1094,6 +1133,11 @@ FLAC__StreamMetaData *FLAC__metadata_iterator_get_block(FLAC__MetaData_Iterator 
 	FLAC__ASSERT(0 != iterator->current);
 
 	return iterator->current->data;
+}
+
+FLAC__bool FLAC__metadata_iterator_set_block(FLAC__MetaData_Iterator *iterator, FLAC__StreamMetaData *block)
+{
+	return FLAC__metadata_iterator_delete_block(iterator, false) && FLAC__metadata_iterator_insert_block_after(iterator, block);
 }
 
 FLAC__bool FLAC__metadata_iterator_delete_block(FLAC__MetaData_Iterator *iterator, FLAC__bool replace_with_padding)
