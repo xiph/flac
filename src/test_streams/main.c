@@ -38,33 +38,133 @@
 
 static FLAC__bool is_big_endian_host;
 
-/* some flavors of UNIX #define this */
-#ifdef swap16
-#undef swap16
-#endif
-static void swap16(FLAC__int16 *i)
+
+static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 x)
 {
-	unsigned char *x = (unsigned char *)i, b;
-	if(!is_big_endian_host) {
-		b = x[0];
-		x[0] = x[1];
-		x[1] = b;
-	}
+	return
+		fputc(x, f) != EOF &&
+		fputc(x >> 8, f) != EOF
+	;
 }
 
-static void swap24(FLAC__byte *x)
+static FLAC__bool write_little_endian_int16(FILE *f, FLAC__int16 x)
 {
-	if(is_big_endian_host) {
-		x[0] = x[1];
-		x[1] = x[2];
-		x[2] = x[3];
-	}
-	else {
-		FLAC__byte b = x[0];
-		x[0] = x[2];
-		x[2] = b;
-	}
+	return write_little_endian_uint16(f, (FLAC__uint16)x);
 }
+
+static FLAC__bool write_little_endian_uint24(FILE *f, FLAC__uint32 x)
+{
+	return
+		fputc(x, f) != EOF &&
+		fputc(x >> 8, f) != EOF &&
+		fputc(x >> 16, f) != EOF
+	;
+}
+
+static FLAC__bool write_little_endian_int24(FILE *f, FLAC__int32 x)
+{
+	return write_little_endian_uint24(f, (FLAC__uint32)x);
+}
+
+static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 x)
+{
+	return
+		fputc(x, f) != EOF &&
+		fputc(x >> 8, f) != EOF &&
+		fputc(x >> 16, f) != EOF &&
+		fputc(x >> 24, f) != EOF
+	;
+}
+
+#if 0
+/* @@@ not used (yet) */
+static FLAC__bool write_little_endian_int32(FILE *f, FLAC__int32 x)
+{
+	return write_little_endian_uint32(f, (FLAC__uint32)x);
+}
+#endif
+
+static FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 x)
+{
+	return
+		fputc(x >> 8, f) != EOF &&
+		fputc(x, f) != EOF
+	;
+}
+
+#if 0
+/* @@@ not used (yet) */
+static FLAC__bool write_big_endian_int16(FILE *f, FLAC__int16 x)
+{
+	return write_big_endian_uint16(f, (FLAC__uint16)x);
+}
+#endif
+
+#if 0
+/* @@@ not used (yet) */
+static FLAC__bool write_big_endian_uint24(FILE *f, FLAC__uint32 x)
+{
+	return
+		fputc(x >> 16, f) != EOF &&
+		fputc(x >> 8, f) != EOF &&
+		fputc(x, f) != EOF
+	;
+}
+#endif
+
+#if 0
+/* @@@ not used (yet) */
+static FLAC__bool write_big_endian_int24(FILE *f, FLAC__int32 x)
+{
+	return write_big_endian_uint24(f, (FLAC__uint32)x);
+}
+#endif
+
+static FLAC__bool write_big_endian_uint32(FILE *f, FLAC__uint32 x)
+{
+	return
+		fputc(x >> 24, f) != EOF &&
+		fputc(x >> 16, f) != EOF &&
+		fputc(x >> 8, f) != EOF &&
+		fputc(x, f) != EOF
+	;
+}
+
+#if 0
+/* @@@ not used (yet) */
+static FLAC__bool write_big_endian_int32(FILE *f, FLAC__int32 x)
+{
+	return write_big_endian_uint32(f, (FLAC__uint32)x);
+}
+#endif
+
+static FLAC__bool write_sane_extended(FILE *f, unsigned val)
+{
+	unsigned i, exponent;
+
+	/* this reasonable limitation make the implementation simpler */
+	FLAC__ASSERT(val < 0x80000000);
+
+	/* we'll use the denormalized form, with no implicit '1' (i bit == 0) */
+
+	for(i = val, exponent = 0; i; i >>= 1, exponent++)
+		;
+	if(!write_big_endian_uint16(f, (FLAC__uint16)(exponent + 16383)))
+		return false;
+
+	for(i = 32; i; i--) {
+		if(val & 0x40000000)
+			break;
+		val <<= 1;
+	}
+	if(!write_big_endian_uint32(f, val))
+		return false;
+	if(!write_big_endian_uint32(f, 0))
+		return false;
+
+	return true;
+}
+
 
 /* a mono one-sample 16bps stream */
 static FLAC__bool generate_01()
@@ -75,8 +175,7 @@ static FLAC__bool generate_01()
 	if(0 == (f = fopen("test01.raw", mode)))
 		return false;
 
-	swap16(&x);
-	if(fwrite(&x, sizeof(x), 1, f) < 1)
+	if(!write_little_endian_int16(f, x))
 		goto foo;
 
 	fclose(f);
@@ -95,12 +194,9 @@ static FLAC__bool generate_02()
 	if(0 == (f = fopen("test02.raw", mode)))
 		return false;
 
-	swap16(&xl);
-	swap16(&xr);
-
-	if(fwrite(&xl, sizeof(xl), 1, f) < 1)
+	if(!write_little_endian_int16(f, xl))
 		goto foo;
-	if(fwrite(&xr, sizeof(xr), 1, f) < 1)
+	if(!write_little_endian_int16(f, xr))
 		goto foo;
 
 	fclose(f);
@@ -121,10 +217,8 @@ static FLAC__bool generate_03()
 		return false;
 
 	for(i = 0; i < 5; i++)
-		swap16(x+i);
-
-	if(fwrite(&x, sizeof(FLAC__int16), 5, f) < 5)
-		goto foo;
+		if(!write_little_endian_int16(f, x[i]))
+			goto foo;
 
 	fclose(f);
 	return true;
@@ -144,10 +238,8 @@ static FLAC__bool generate_04()
 		return false;
 
 	for(i = 0; i < 10; i++)
-		swap16(x+i);
-
-	if(fwrite(&x, sizeof(FLAC__int16), 10, f) < 10)
-		goto foo;
+		if(!write_little_endian_int16(f, x[i]))
+			goto foo;
 
 	fclose(f);
 	return true;
@@ -196,8 +288,7 @@ static FLAC__bool generate_fsd16(const char *fn, const int pattern[], unsigned r
 	for(rep = 0; rep < reps; rep++) {
 		for(p = 0; pattern[p]; p++) {
 			FLAC__int16 x = pattern[p] > 0? 32767 : -32768;
-			swap16(&x);
-			if(fwrite(&x, sizeof(x), 1, f) < 1)
+			if(!write_little_endian_int16(f, x))
 				goto foo;
 		}
 	}
@@ -221,11 +312,9 @@ static FLAC__bool generate_wbps16(const char *fn, unsigned samples)
 	for(sample = 0; sample < samples; sample++) {
 		FLAC__int16 l = (sample % 2000) << 2;
 		FLAC__int16 r = (sample % 1000) << 3;
-		swap16(&l);
-		swap16(&r);
-		if(fwrite(&l, sizeof(l), 1, f) < 1)
+		if(!write_little_endian_int16(f, l))
 			goto foo;
-		if(fwrite(&r, sizeof(r), 1, f) < 1)
+		if(!write_little_endian_int16(f, r))
 			goto foo;
 	}
 
@@ -250,9 +339,7 @@ static FLAC__bool generate_fsd24(const char *fn, const int pattern[], unsigned r
 	for(rep = 0; rep < reps; rep++) {
 		for(p = 0; pattern[p]; p++) {
 			FLAC__int32 x = pattern[p] > 0? 8388607 : -8388608;
-			FLAC__byte *b = (FLAC__byte*)(&x);
-			swap24(b);
-			if(fwrite(b, 3, 1, f) < 1)
+			if(!write_little_endian_int24(f, x))
 				goto foo;
 		}
 	}
@@ -338,8 +425,7 @@ static FLAC__bool generate_sine16_1(const char *fn, const double sample_rate, co
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
 		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
 		FLAC__int16 v = (FLAC__int16)(val + 0.5);
-		swap16(&v);
-		if(fwrite(&v, sizeof(v), 1, f) < 1)
+		if(!write_little_endian_int16(f, v))
 			goto foo;
 	}
 
@@ -366,13 +452,11 @@ static FLAC__bool generate_sine16_2(const char *fn, const double sample_rate, co
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
 		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
 		FLAC__int16 v = (FLAC__int16)(val + 0.5);
-		swap16(&v);
-		if(fwrite(&v, sizeof(v), 1, f) < 1)
+		if(!write_little_endian_int16(f, v))
 			goto foo;
 		val = -(a1*sin(theta1*fmult) + a2*sin(theta2*fmult))*(double)full_scale;
 		v = (FLAC__int16)(val + 0.5);
-		swap16(&v);
-		if(fwrite(&v, sizeof(v), 1, f) < 1)
+		if(!write_little_endian_int16(f, v))
 			goto foo;
 	}
 
@@ -399,9 +483,7 @@ static FLAC__bool generate_sine24_1(const char *fn, const double sample_rate, co
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
 		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
 		FLAC__int32 v = (FLAC__int32)(val + 0.5);
-		FLAC__byte *b = (FLAC__byte*)(&v);
-		swap24(b);
-		if(fwrite(b, 3, 1, f) < 1)
+		if(!write_little_endian_int24(f, v))
 			goto foo;
 	}
 
@@ -428,14 +510,11 @@ static FLAC__bool generate_sine24_2(const char *fn, const double sample_rate, co
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
 		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
 		FLAC__int32 v = (FLAC__int32)(val + 0.5);
-		FLAC__byte *b = (FLAC__byte*)(&v);
-		swap24(b);
-		if(fwrite(b, 3, 1, f) < 1)
+		if(!write_little_endian_int24(f, v))
 			goto foo;
 		val = -(a1*sin(theta1*fmult) + a2*sin(theta2*fmult))*(double)full_scale;
 		v = (FLAC__int32)(val + 0.5);
-		swap24(b);
-		if(fwrite(b, 3, 1, f) < 1)
+		if(!write_little_endian_int24(f, v))
 			goto foo;
 	}
 
@@ -474,6 +553,90 @@ static FLAC__bool generate_noise(const char *fn, unsigned bytes)
 		if(fwrite(&x, sizeof(x), 1, f) < 1)
 			goto foo;
 	}
+
+	fclose(f);
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
+static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsigned channels, unsigned bytes_per_sample, unsigned samples)
+{
+	const unsigned true_size = channels * bytes_per_sample * samples;
+	const unsigned padded_size = (true_size + 1) & (~1u);
+	FILE *f;
+	unsigned i;
+
+	if(0 == (f = fopen(filename, mode)))
+		return false;
+	if(fwrite("FORM", 1, 4, f) < 4)
+		goto foo;
+	if(!write_big_endian_uint32(f, padded_size + 46))
+		goto foo;
+	if(fwrite("AIFFCOMM\000\000\000\022", 1, 12, f) < 12)
+		goto foo;
+	if(!write_big_endian_uint16(f, channels))
+		goto foo;
+	if(!write_big_endian_uint32(f, samples))
+		goto foo;
+	if(!write_big_endian_uint16(f, (FLAC__uint16)(8 * bytes_per_sample)))
+		goto foo;
+	if(!write_sane_extended(f, sample_rate))
+		goto foo;
+	if(fwrite("SSND", 1, 4, f) < 4)
+		goto foo;
+	if(!write_big_endian_uint32(f, true_size + 8))
+		goto foo;
+	if(fwrite("\000\000\000\000\000\000\000\000", 1, 8, f) < 8)
+		goto foo;
+
+	for(i = 0; i < true_size; i++)
+		if(fputc(i, f) == EOF)
+			goto foo;
+	for( ; i < padded_size; i++)
+		if(fputc(0, f) == EOF)
+			goto foo;
+
+	fclose(f);
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
+static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bytes_per_sample, unsigned samples)
+{
+	const unsigned size = channels * bytes_per_sample * samples;
+	FILE *f;
+	unsigned i;
+
+	if(0 == (f = fopen(filename, mode)))
+		return false;
+	if(fwrite("RIFF", 1, 4, f) < 4)
+		goto foo;
+	if(!write_little_endian_uint32(f, size + 36))
+		goto foo;
+	if(fwrite("WAVEfmt \020\000\000\000\001\000", 1, 14, f) < 14)
+		goto foo;
+	if(!write_little_endian_uint16(f, channels))
+		goto foo;
+	if(!write_little_endian_uint32(f, sample_rate))
+		goto foo;
+	if(!write_little_endian_uint32(f, sample_rate * channels * bytes_per_sample))
+		goto foo;
+	if(!write_little_endian_uint16(f, (FLAC__uint16)(channels * bytes_per_sample))) /* block align */
+		goto foo;
+	if(!write_little_endian_uint16(f, (FLAC__uint16)(8 * bytes_per_sample)))
+		goto foo;
+	if(fwrite("data", 1, 4, f) < 4)
+		goto foo;
+	if(!write_little_endian_uint32(f, size))
+		goto foo;
+
+	for(i = 0; i < size; i++)
+		if(fputc(i, f) == EOF)
+			goto foo;
 
 	fclose(f);
 	return true;
@@ -522,6 +685,7 @@ foo:
 int main(int argc, char *argv[])
 {
 	FLAC__uint32 test = 1;
+	unsigned channels;
 
 	int pattern01[] = { 1, -1, 0 };
 	int pattern02[] = { 1, 1, -1, 0 };
@@ -620,6 +784,28 @@ int main(int argc, char *argv[])
 	if(!generate_noise("noise.raw", 65536 * 8 * 3)) return 1;
 	if(!generate_noise("noise8m32.raw", 32)) return 1;
 	if(!generate_wackywavs()) return 1;
+	for(channels = 1; channels <= 8; channels++) {
+		unsigned bytes_per_sample;
+		for(bytes_per_sample = 1; bytes_per_sample <= 3; bytes_per_sample++) {
+			static const unsigned nsamples[] = { 1, 111, 55555 } ;
+			unsigned samples;
+			for(samples = 0; samples < sizeof(nsamples)/sizeof(nsamples[0]); samples++) {
+				char fn[64];
+
+				sprintf(fn, "rt-%u-%u-%u.aiff", channels, bytes_per_sample, nsamples[samples]);
+				if(!generate_aiff(fn, 44100, channels, bytes_per_sample, nsamples[samples]))
+					return 1;
+
+				sprintf(fn, "rt-%u-%u-%u.raw", channels, bytes_per_sample, nsamples[samples]);
+				if(!generate_noise(fn, channels * bytes_per_sample * nsamples[samples]))
+					return 1;
+
+				sprintf(fn, "rt-%u-%u-%u.wav", channels, bytes_per_sample, nsamples[samples]);
+				if(!generate_wav(fn, 44100, channels, bytes_per_sample, nsamples[samples]))
+					return 1;
+			}
+		}
+	}
 
 	return 0;
 }
