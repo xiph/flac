@@ -1060,10 +1060,10 @@ static void usage_summary()
 {
 	printf("Usage:\n");
 	printf("\n");
-	printf(" Encoding: flac [-s] [--skip #] [<encoding/format-options>] [INPUTFILE [...]]\n");
-	printf(" Decoding: flac -d [-s] [--skip #] [-F] [<format-options>] [INPUTFILE [...]]\n");
-	printf("  Testing: flac -t [-s] [INPUTFILE [...]]\n");
-	printf("Analyzing: flac -a [-s] [--skip #] [<analysis-options>] [INPUTFILE [...]]\n");
+	printf(" Encoding: flac [<general-options>] [<encoding/format-options>] [INPUTFILE [...]]\n");
+	printf(" Decoding: flac -d [<general-options>] [<format-options>] [FLACFILE [...]]\n");
+	printf("  Testing: flac -t [<general-options>] [FLACFILE [...]]\n");
+	printf("Analyzing: flac -a [<general-options>] [<analysis-options>] [FLACFILE [...]]\n");
 	printf("\n");
 }
 
@@ -1090,7 +1090,7 @@ void show_help()
 {
 	usage_header();
 	usage_summary();
-	printf("generic options:\n");
+	printf("general options:\n");
 	printf("  -v, --version                Show the flac version number\n");
 	printf("  -h, --help                   Show this screen\n");
 	printf("  -H, --explain                Show detailed explanation of usage and options\n");
@@ -1104,6 +1104,10 @@ void show_help()
 	printf("      --delete-input-file      Deletes after a successful encode/decode\n");
 	printf("      --skip={#|mm:ss.ss}      Skip the given initial samples for each input\n");
 	printf("      --until={#|[+|-]mm:ss.ss}  Stop at the given sample for each input file\n");
+#ifdef FLAC__HAS_OGG
+	printf("      --ogg                    Use Ogg as transport layer\n");
+	printf("      --serial-number          Serial number to use for the FLAC stream\n");
+#endif
 	printf("analysis options:\n");
 	printf("      --residual-text          Include residual signal in text output\n");
 	printf("      --residual-gnuplot       Generate gnuplot files of residual distribution\n");
@@ -1111,10 +1115,6 @@ void show_help()
 	printf("  -F, --decode-through-errors  Continue decoding through stream errors\n");
 	printf("encoding options:\n");
 	printf("  -V, --verify                 Verify a correct encoding\n");
-#ifdef FLAC__HAS_OGG
-	printf("      --ogg                    Use Ogg as transport layer\n");
-	printf("      --serial-number          Serial number to use for the FLAC stream\n");
-#endif
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align multiple files on sector boundaries\n");
 	printf("      --replay-gain            Calculate ReplayGain & store in Vorbis comments\n");
@@ -1203,7 +1203,7 @@ void show_explain()
 	printf("apply to all raw files.  You can force AIFF/WAVE files to be treated as raw\n");
 	printf("files using -fr.\n");
 	printf("\n");
-	printf("generic options:\n");
+	printf("general options:\n");
 	printf("  -v, --version                Show the flac version number\n");
 	printf("  -h, --help                   Show basic usage a list of all options\n");
 	printf("  -H, --explain                Show this screen\n");
@@ -1229,7 +1229,31 @@ void show_explain()
 	printf("                               be used both for encoding and decoding.  The\n");
 	printf("                               alternative form mm:ss.ss can be used to specify\n");
 	printf("                               minutes, seconds, and fractions of a second.\n");
-	printf("      --until={#|[+|-]mm:ss.ss}  Stop at the given sample for each input file@@@@\n");
+	printf("      --until={#|[+|-]mm:ss.ss}  Stop at the given sample number for each input\n");
+	printf("                               file.  The given sample number is not included\n");
+	printf("                               in the decoded output.  The alternative form\n");
+	printf("                               mm:ss.ss can be used to specify minutes,\n");
+	printf("                               seconds, and fractions of a second.  If a `+'\n");
+	printf("                               sign is at the beginning, the --until point is\n");
+	printf("                               relative to the --skip point.  If a `-' sign is\n");
+	printf("                               at the beginning, the --until point is relative\n");
+	printf("                               to end of the audio.\n");
+#ifdef FLAC__HAS_OGG
+	printf("      --ogg                    When encoding, generate Ogg-FLAC output instead\n");
+	printf("                               of native-FLAC.  Ogg-FLAC streams are FLAC\n");
+	printf("                               streams wrapped in an Ogg transport layer.  The\n");
+	printf("                               resulting file should have an '.ogg' extension\n");
+	printf("                               and will still be decodable by flac.  When\n");
+	printf("                               decoding, force the input to be treated as\n");
+	printf("                               Ogg-FLAC.  This is useful when piping input\n");
+	printf("                               from stdin or when the filename does not end in\n");
+	printf("                               '.ogg'.\n");
+	printf("      --serial-number          Serial number to use for the FLAC stream.  When\n");
+	printf("                               encoding and no serial number is given, flac\n");
+	printf("                               uses '0'.  When decoding and no number is\n");
+	printf("                               given, flac uses the serial number of the first\n");
+	printf("                               page.\n");
+#endif
 	printf("analysis options:\n");
 	printf("      --residual-text          Include residual signal in text output.  This\n");
 	printf("                               will make the file very big, much larger than\n");
@@ -1248,22 +1272,6 @@ void show_explain()
 	printf("  -V, --verify                 Verify a correct encoding by decoding the\n");
 	printf("                               output in parallel and comparing to the\n");
 	printf("                               original\n");
-#ifdef FLAC__HAS_OGG
-	printf("      --ogg                    When encoding, generate Ogg-FLAC output instead\n");
-	printf("                               of native-FLAC.  Ogg-FLAC streams are FLAC\n");
-	printf("                               streams wrapped in an Ogg transport layer.  The\n");
-	printf("                               resulting file should have an '.ogg' extension\n");
-	printf("                               and will still be decodable by flac.  When\n");
-	printf("                               decoding, force the input to be treated as\n");
-	printf("                               Ogg-FLAC.  This is useful when piping input\n");
-	printf("                               from stdin or when the filename does not end in\n");
-	printf("                               '.ogg'.\n");
-	printf("      --serial-number          Serial number to use for the FLAC stream.  When\n");
-	printf("                               encoding and no serial number is given, flac\n");
-	printf("                               uses '0'.  When decoding and no number is\n");
-	printf("                               given, flac uses the serial number of the first\n");
-	printf("                               page.\n");
-#endif
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align encoding of multiple CD format WAVE files\n");
 	printf("                               on sector boundaries.\n");
