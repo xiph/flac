@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
 			return long_usage("ERROR: invalid bits per sample '%u' (must be 8/16/24)\n", format_bps);
 	}
 	if(format_sample_rate >= 0) {
-		if(!FLAC__format_is_valid_sample_rate(format_sample_rate))
+		if(!FLAC__format_sample_rate_is_valid(format_sample_rate))
 			return long_usage("ERROR: invalid sample rate '%u', must be > 0 and <= %u\n", format_sample_rate, FLAC__MAX_SAMPLE_RATE);
 	}
 	if(!mode_decode && ((unsigned)blocksize < FLAC__MIN_BLOCK_SIZE || (unsigned)blocksize > FLAC__MAX_BLOCK_SIZE)) {
