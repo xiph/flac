@@ -58,11 +58,12 @@ extern "C" {
  * The interface here is identical to FLAC's stream encoder.  See the
  * defaults, including the callbacks.  See the \link flac_stream_encoder
  * FLAC stream encoder module \endlink for full documentation.
+ *
  * \{
  */
 
 
-/** State values for a OggFLAC__StreamEncoder
+/** State values for an OggFLAC__StreamEncoder
  *
  *  The encoder's state can be obtained by calling OggFLAC__stream_encoder_get_state().
  */
@@ -71,9 +72,9 @@ typedef enum {
 	OggFLAC__STREAM_ENCODER_OK = 0,
 	/**< The encoder is in the normal OK state. */
 
-	OggFLAC__STREAM_ENCODER_FLAC_ENCODER_ERROR,
+	OggFLAC__STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR,
 	/**< An error occurred in the underlying FLAC stream encoder;
-	 * check OggFLAC__stream_encoder_get_FLAC_encoder_state().
+	 * check OggFLAC__stream_encoder_get_FLAC_stream_encoder_state().
 	 */
 
 	OggFLAC__STREAM_ENCODER_INVALID_CALLBACK,
@@ -95,29 +96,10 @@ typedef enum {
 
 /** Maps an OggFLAC__StreamEncoderState to a C string.
  *
- *  Using a OggFLAC__StreamEncoderState as the index to this array
+ *  Using an OggFLAC__StreamEncoderState as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
 extern const char * const OggFLAC__StreamEncoderStateString[];
-
-/** Return values for the OggFLAC__StreamEncoder write callback.
- */
-typedef enum {
-
-	OggFLAC__STREAM_ENCODER_WRITE_STATUS_OK = 0,
-	/**< The write was OK and encoding can continue. */
-
-	OggFLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR
-	/**< An unrecoverable error occurred.  The encoder will return from the process call. */
-
-} OggFLAC__StreamEncoderWriteStatus;
-
-/** Maps an OggFLAC__StreamEncoderWriteStatus to a C string.
- *
- *  Using a OggFLAC__StreamEncoderWriteStatus as the index to this array
- *  will give the string equivalent.  The contents should not be modified.
- */
-extern const char * const OggFLAC__StreamEncoderWriteStatusString[];
 
 
 /***********************************************************************
@@ -139,7 +121,6 @@ typedef struct {
 
 /*@@@@ document: */
 typedef OggFLAC__StreamEncoderWriteStatus (*OggFLAC__StreamEncoderWriteCallback)(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
-typedef void (*OggFLAC__StreamEncoderMetadataCallback)(const OggFLAC__StreamEncoder *encoder, const OggFLAC__StreamMetadata *metadata, void *client_data);
 
 
 /***********************************************************************
@@ -165,206 +146,534 @@ OggFLAC__StreamEncoder *OggFLAC__stream_encoder_new();
  */
 void OggFLAC__stream_encoder_delete(OggFLAC__StreamEncoder *encoder);
 
+
 /***********************************************************************
  *
  * Public class method prototypes
  *
  ***********************************************************************/
 
-/** Inherited from FLAC__stream_encoder_set_verify()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_verify()
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_verify(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Inherited from FLAC__stream_encoder_set_streamable_subset()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_streamable_subset()
+ *
+ * \default \c true
+ * \param  encoder  An encoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_streamable_subset(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Inherited from FLAC__stream_encoder_set_do_mid_side_stereo()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_do_mid_side_stereo()
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_do_mid_side_stereo(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Inherited from FLAC__stream_encoder_set_loose_mid_side_stereo()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_loose_mid_side_stereo()
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_loose_mid_side_stereo(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Inherited from FLAC__stream_encoder_set_channels()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_channels()
+ *
+ * \default \c 2
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_channels(OggFLAC__StreamEncoder *encoder, unsigned value);
 
-/** Inherited from FLAC__stream_encoder_set_bits_per_sample()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_bits_per_sample()
+ *
+ * \default \c 16
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_bits_per_sample(OggFLAC__StreamEncoder *encoder, unsigned value);
 
-/** Inherited from FLAC__stream_encoder_set_sample_rate()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_sample_rate()
+ *
+ * \default \c 44100
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_sample_rate(OggFLAC__StreamEncoder *encoder, unsigned value);
 
-/** Inherited from FLAC__stream_encoder_set_blocksize()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_blocksize()
+ *
+ * \default \c 1152
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_blocksize(OggFLAC__StreamEncoder *encoder, unsigned value);
 
-/** Inherited from FLAC__stream_encoder_set_max_lpc_order()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_max_lpc_order()
+ *
+ * \default \c 0
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_max_lpc_order(OggFLAC__StreamEncoder *encoder, unsigned value);
 
-/** Inherited from FLAC__stream_encoder_set_qlp_coeff_precision()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_qlp_coeff_precision()
+ *
+ * \default \c 0
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_qlp_coeff_precision(OggFLAC__StreamEncoder *encoder, unsigned value);
 
-/** Inherited from FLAC__stream_encoder_set_do_qlp_coeff_prec_search()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_qlp_coeff_prec_search()
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_do_qlp_coeff_prec_search(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Inherited from FLAC__stream_encoder_set_do_escape_coding()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_do_escape_coding()
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_do_escape_coding(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Inherited from FLAC__stream_encoder_set_do_exhaustive_model_search()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_do_exhaustive_model_search()
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_do_exhaustive_model_search(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Inherited from FLAC__stream_encoder_set_min_residual_partition_order()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_min_residual_partition_order()
+ *
+ * \default \c 0
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_min_residual_partition_order(OggFLAC__StreamEncoder *encoder, unsigned value);
 
-/** Inherited from FLAC__stream_encoder_set_max_residual_partition_order()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_max_residual_partition_order()
+ *
+ * \default \c 0
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_max_residual_partition_order(OggFLAC__StreamEncoder *encoder, unsigned value);
 
-/** Inherited from FLAC__stream_encoder_set_rice_parameter_search_dist()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_rice_parameter_search_dist()
+ *
+ * \default \c 0
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_rice_parameter_search_dist(OggFLAC__StreamEncoder *encoder, unsigned value);
 
-/** Inherited from FLAC__stream_encoder_set_total_samples_estimate()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_total_samples_estimate()
+ *
+ * \default \c 0
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_total_samples_estimate(OggFLAC__StreamEncoder *encoder, FLAC__uint64 value);
 
-/** Inherited from FLAC__stream_encoder_set_metadata()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_metadata()
+ *
+ * \default \c NULL, 0
+ * \param  encoder     An encoder instance to set.
+ * \param  metadata    See above.
+ * \param  num_blocks  See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncoder *encoder, OggFLAC__StreamMetadata **metadata, unsigned num_blocks);
 
-/** Inherited from FLAC__stream_encoder_set_write_callback()
+/** Set the write callback.
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_write_callback(OggFLAC__StreamEncoder *encoder, OggFLAC__StreamEncoderWriteCallback value);
 
-/** Inherited from FLAC__stream_encoder_set_metadata_callback()
- */
-FLAC__bool OggFLAC__stream_encoder_set_metadata_callback(OggFLAC__StreamEncoder *encoder, OggFLAC__StreamEncoderMetadataCallback value);
-
-/** Inherited from FLAC__stream_encoder_set_client_data()
+/** Set the client data to be passed back to callbacks.
+ *  This value will be supplied to callbacks in their \a client_data
+ *  argument.
+ *
+ * \default \c NULL
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_encoder_set_client_data(OggFLAC__StreamEncoder *encoder, void *value);
 
-/** Inherited from FLAC__stream_encoder_get_state()
+/** Get the current encoder state.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval OggFLAC__StreamEncoderState
+ *    The current encoder state.
  */
 OggFLAC__StreamEncoderState OggFLAC__stream_encoder_get_state(const OggFLAC__StreamEncoder *encoder);
 
-/** Get the state of the underlying FLAC encoder.
+/** Get the state of the underlying FLAC stream encoder.
  *  Useful when the stream encoder state is
- *  \c OggFLAC__STREAM_ENCODER_FLAC_ENCODER_ERROR.
+ *  \c OggFLAC__STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__StreamEncoderState
- *    The stream encoder state.
+ *    The FLAC stream encoder state.
  */
-FLAC__StreamEncoderState OggFLAC__stream_encoder_get_FLAC_encoder_state(const OggFLAC__StreamEncoder *encoder);
+FLAC__StreamEncoderState OggFLAC__stream_encoder_get_FLAC_stream_encoder_state(const OggFLAC__StreamEncoder *encoder);
 
-/** Get the state of the FLAC encoder's verify decoder.
+/** Get the state of the underlying FLAC stream encoder's verify decoder.
  *  Useful when the stream encoder state is
- *  \c OggFLAC__STREAM_ENCODER_FLAC_ENCODER_ERROR and the
- *  FLAC encoder state is \c OggFLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.
+ *  \c OggFLAC__STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR and the
+ *  FLAC encoder state is \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__StreamDecoderState
- *    The stream encoder state.
+ *    The FLAC verify decoder state.
  */
 FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_state(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_verify()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_verify()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See OggFLAC__stream_encoder_set_verify().
  */
 FLAC__bool OggFLAC__stream_encoder_get_verify(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_streamable_subset()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_streamable_subset()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See OggFLAC__stream_encoder_set_streamable_subset().
  */
 FLAC__bool OggFLAC__stream_encoder_get_streamable_subset(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_do_mid_side_stereo()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_mid_side_stereo()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See OggFLAC__stream_encoder_get_do_mid_side_stereo().
  */
 FLAC__bool OggFLAC__stream_encoder_get_do_mid_side_stereo(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_loose_mid_side_stereo()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_loose_mid_side_stereo()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See OggFLAC__stream_encoder_set_loose_mid_side_stereo().
  */
 FLAC__bool OggFLAC__stream_encoder_get_loose_mid_side_stereo(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_channels()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_channels()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval unsigned
+ *    See OggFLAC__stream_encoder_set_channels().
  */
 unsigned OggFLAC__stream_encoder_get_channels(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_bits_per_sample()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_bits_per_sample()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval unsigned
+ *    See OggFLAC__stream_encoder_set_bits_per_sample().
  */
 unsigned OggFLAC__stream_encoder_get_bits_per_sample(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_sample_rate()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_sample_rate()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval unsigned
+ *    See OggFLAC__stream_encoder_set_sample_rate().
  */
 unsigned OggFLAC__stream_encoder_get_sample_rate(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_blocksize()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_blocksize()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval unsigned
+ *    See OggFLAC__stream_encoder_set_blocksize().
  */
 unsigned OggFLAC__stream_encoder_get_blocksize(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_max_lpc_order()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_max_lpc_order()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval unsigned
+ *    See OggFLAC__stream_encoder_set_max_lpc_order().
  */
 unsigned OggFLAC__stream_encoder_get_max_lpc_order(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_qlp_coeff_precision()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_qlp_coeff_precision()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval unsigned
+ *    See OggFLAC__stream_encoder_set_qlp_coeff_precision().
  */
 unsigned OggFLAC__stream_encoder_get_qlp_coeff_precision(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_do_qlp_coeff_prec_search()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_qlp_coeff_prec_search()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See OggFLAC__stream_encoder_set_do_qlp_coeff_prec_search().
  */
 FLAC__bool OggFLAC__stream_encoder_get_do_qlp_coeff_prec_search(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_do_escape_coding()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_escape_coding()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See OggFLAC__stream_encoder_set_do_escape_coding().
  */
 FLAC__bool OggFLAC__stream_encoder_get_do_escape_coding(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_do_exhaustive_model_search()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_exhaustive_model_search()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See OggFLAC__stream_encoder_set_do_exhaustive_model_search().
  */
 FLAC__bool OggFLAC__stream_encoder_get_do_exhaustive_model_search(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_min_residual_partition_order()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_min_residual_partition_order()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval unsigned
+ *    See OggFLAC__stream_encoder_set_min_residual_partition_order().
  */
 unsigned OggFLAC__stream_encoder_get_min_residual_partition_order(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_max_residual_partition_order()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_man_residual_partition_order()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval unsigned
+ *    See OggFLAC__stream_encoder_set_max_residual_partition_order().
  */
 unsigned OggFLAC__stream_encoder_get_max_residual_partition_order(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_rice_parameter_search_dist()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_rice_parameter_search_dist()
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval unsigned
+ *    See OggFLAC__stream_encoder_set_rice_parameter_search_dist().
  */
 unsigned OggFLAC__stream_encoder_get_rice_parameter_search_dist(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_get_total_samples_estimate()
+/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_total_samples_estimate()
+ *
+ * \param  encoder  An encoder instance to set.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__uint64
+ *    See OggFLAC__stream_encoder_get_total_samples_estimate().
  */
 FLAC__uint64 OggFLAC__stream_encoder_get_total_samples_estimate(const OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_init()
+/** Initialize the encoder instance.
+ *  Should be called after OggFLAC__stream_encoder_new() and
+ *  OggFLAC__stream_encoder_set_*() but before OggFLAC__stream_encoder_process()
+ *  or OggFLAC__stream_encoder_process_interleaved().  Will set and return
+ *  the encoder state, which will be OggFLAC__STREAM_ENCODER_OK if
+ *  initialization succeeded.
+ *
+ *  The call to OggFLAC__stream_encoder_init() currently will also immediately
+ *  call the write callback several times, once with the \c fLaC signature,
+ *  and once for each encoded metadata block.
+ *
+ * \param  encoder  An uninitialized encoder instance.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval OggFLAC__StreamEncoderState
+ *    \c OggFLAC__STREAM_ENCODER_OK if initialization was successful; see
+ *    OggFLAC__StreamEncoderState for the meanings of other return values.
  */
 OggFLAC__StreamEncoderState OggFLAC__stream_encoder_init(OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_finish()
+/** Finish the encoding process.
+ *  Flushes the encoding buffer, releases resources, resets the encoder
+ *  settings to their defaults, and returns the encoder state to
+ *  OggFLAC__STREAM_ENCODER_UNINITIALIZED.  Note that this can generate
+ *  one or more write callbacks before returning.
+ *
+ *  In the event of a prematurely-terminated encode, it is not strictly
+ *  necessary to call this immediately before OggFLAC__stream_encoder_delete()
+ *  but it is good practice to match every OggFLAC__stream_encoder_init()
+ *  with an OggFLAC__stream_encoder_finish().
+ *
+ * \param  encoder  An uninitialized encoder instance.
+ * \assert
+ *    \code encoder != NULL \endcode
  */
 void OggFLAC__stream_encoder_finish(OggFLAC__StreamEncoder *encoder);
 
-/** Inherited from FLAC__stream_encoder_process()
+/** Submit data for encoding.
+ * This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_process().
+ *
+ * \param  encoder  An initialized encoder instance in the OK state.
+ * \param  buffer   An array of pointers to each channel's signal.
+ * \param  samples  The number of samples in one channel.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code OggFLAC__stream_encoder_get_state(encoder) == OggFLAC__STREAM_ENCODER_OK \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false; in this case, check the
+ *    encoder state with OggFLAC__stream_encoder_get_state() to see what
+ *    went wrong.
  */
 FLAC__bool OggFLAC__stream_encoder_process(OggFLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples);
 
-/** Inherited from FLAC__stream_encoder_process_interleaved()
+/** Submit data for encoding.
+ * This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_process_interleaved().
+ *
+ * \param  encoder  An initialized encoder instance in the OK state.
+ * \param  buffer   An array of channel-interleaved data (see above).
+ * \param  samples  The number of samples in one channel, the same as for
+ *                  OggFLAC__stream_encoder_process().  For example, if
+ *                  encoding two channels, \c 1000 \a samples corresponds
+ *                  to a \a buffer of 2000 values.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code OggFLAC__stream_encoder_get_state(encoder) == OggFLAC__STREAM_ENCODER_OK \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false; in this case, check the
+ *    encoder state with OggFLAC__stream_encoder_get_state() to see what
+ *    went wrong.
  */
 FLAC__bool OggFLAC__stream_encoder_process_interleaved(OggFLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples);
 
