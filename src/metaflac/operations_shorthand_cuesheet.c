@@ -30,7 +30,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 	FLAC__bool ok = true;
 	FLAC__StreamMetadata *cuesheet = 0;
 	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
-	FLAC__uint64 lead_out_offset;
+	FLAC__uint64 lead_out_offset = 0;
 
 	if(0 == iterator)
 		die("out of memory allocating iterator");
@@ -55,6 +55,12 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 		else if(block->type == FLAC__METADATA_TYPE_CUESHEET)
 			cuesheet = block;
 	} while(FLAC__metadata_iterator_next(iterator));
+
+	if(lead_out_offset == 0) {
+		fprintf(stderr, "%s: ERROR: FLAC stream has no STREAMINFO block\n", filename);
+		FLAC__metadata_iterator_delete(iterator);
+		return false;
+	}
 
 	switch(operation->type) {
 		case OP__IMPORT_CUESHEET_FROM:
