@@ -69,6 +69,7 @@ static struct FLAC__share__option long_options_[] = {
 	{ "remove-vc-field", 1, 0, 0 },
 	{ "remove-vc-firstfield", 1, 0, 0 },
 	{ "set-vc-field", 1, 0, 0 },
+	{ "import-vc-from", 1, 0, 0 },
 	{ "add-padding", 1, 0, 0 },
 	/* major operations */
 	{ "help", 0, 0, 0 },
@@ -105,6 +106,7 @@ typedef enum {
 	OP__REMOVE_VC_FIELD,
 	OP__REMOVE_VC_FIRSTFIELD,
 	OP__SET_VC_FIELD,
+	OP__IMPORT_VC_FROM,
 	OP__ADD_PADDING,
 	OP__LIST,
 	OP__APPEND,
@@ -133,6 +135,10 @@ typedef struct {
 	unsigned field_value_length;
 	char *field_value;
 } Argument_VcField;
+
+typedef struct {
+	char *file_name;
+} Argument_VcImportFile;
 
 typedef struct {
 	unsigned num_entries;
@@ -169,6 +175,7 @@ typedef struct {
 		Argument_VcFieldName remove_vc_field;
 		Argument_VcFieldName remove_vc_firstfield;
 		Argument_VcField set_vc_field;
+		Argument_VcImportFile import_vc_from;
 		Argument_AddPadding add_padding;
 	} argument;
 } Operation;
@@ -225,6 +232,7 @@ static void show_version();
 static int short_usage(const char *message, ...);
 static int long_usage(const char *message, ...);
 static char *local_strdup(const char *source);
+static FLAC__bool parse_filename(const char *src, char **dest);
 static FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field, char **name, char **value, unsigned *length, const char **violation);
 static FLAC__bool parse_vorbis_comment_field_name(const char *field_ref, char **name, const char **violation);
 static FLAC__bool parse_add_padding(const char *in, unsigned *out);
@@ -253,6 +261,7 @@ static FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *bloc
 static FLAC__bool remove_vc_field(FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_firstfield(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw);
+static FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_VcImportFile *file, FLAC__bool *needs_write, FLAC__bool raw);
 static FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetadata_VorbisComment_Entry *entry);
 static void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent);
 
@@ -466,6 +475,14 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
+	else if(0 == strcmp(opt, "import-vc-from")) {
+		op = append_shorthand_operation(options, OP__IMPORT_VC_FROM);
+		FLAC__ASSERT(0 != option_argument);
+		if(!parse_filename(option_argument, &(op->argument.import_vc_from.file_name))) {
+			fprintf(stderr, "ERROR: missing filename\n");
+			ok = false;
+		}
+	}
 	else if(0 == strcmp(opt, "add-padding")) {
 		op = append_shorthand_operation(options, OP__ADD_PADDING);
 		FLAC__ASSERT(0 != option_argument);
@@ -575,6 +592,10 @@ void free_options(CommandLineOptions *options)
 					free(op->argument.set_vc_field.field_name);
 				if(0 != op->argument.set_vc_field.field_value)
 					free(op->argument.set_vc_field.field_value);
+				break;
+			case OP__IMPORT_VC_FROM:
+				if(0 != op->argument.import_vc_from.file_name)
+					free(op->argument.import_vc_from.file_name);
 				break;
 			default:
 				break;
@@ -791,6 +812,11 @@ int long_usage(const char *message, ...)
 	fprintf(out, "                      the Vorbis comment spec, of the form \"NAME=VALUE\".  If\n");
 	fprintf(out, "                      there is currently no VORBIS_COMMENT block, one will be\n");
 	fprintf(out, "                      created.\n");
+	fprintf(out, "--import-vc-from=file Import Vorbis comments from a file.  Use '-' for stdin.\n");
+	fprintf(out, "                      Each line should be of the form NAME=VALUE.  Multi-\n");
+	fprintf(out, "                      line comments are currently not supported.  Specify\n");
+	fprintf(out, "                      --remove-vc-all and/or --no-utf8-convert before\n");
+	fprintf(out, "                      --import-vc-from if necessary.\n");
 	fprintf(out, "--add-padding=length  Add a padding block of the given length (in bytes).\n");
 	fprintf(out, "                      The overall length of the new block will be 4 + length;\n");
 	fprintf(out, "                      the extra 4 bytes is for the metadata block header.\n");
@@ -893,6 +919,14 @@ char *local_strdup(const char *source)
 	if(0 == (ret = strdup(source)))
 		die("out of memory during strdup()");
 	return ret;
+}
+
+FLAC__bool parse_filename(const char *src, char **dest)
+{
+	if(0 == src || strlen(src) == 0)
+		return false;
+	*dest = strdup(src);
+	return true;
 }
 
 FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field, char **name, char **value, unsigned *length, const char **violation)
@@ -1338,6 +1372,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *ch
 		case OP__REMOVE_VC_FIELD:
 		case OP__REMOVE_VC_FIRSTFIELD:
 		case OP__SET_VC_FIELD:
+		case OP__IMPORT_VC_FROM:
 			ok = do_shorthand_operation__vorbis_comment(filename, chain, operation, needs_write, !utf8_convert);
 			break;
 		case OP__ADD_PADDING:
@@ -1495,6 +1530,9 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Me
 			break;
 		case OP__SET_VC_FIELD:
 			ok = set_vc_field(filename, block, &operation->argument.set_vc_field, needs_write, raw);
+			break;
+		case OP__IMPORT_VC_FROM:
+			ok = import_vc_from(filename, block, &operation->argument.import_vc_from, needs_write, raw);
 			break;
 		default:
 			ok = false;
@@ -1752,6 +1790,63 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 			free(converted);
 		return true;
 	}
+}
+
+FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_VcImportFile *file, FLAC__bool *needs_write, FLAC__bool raw)
+{
+	FILE *f;
+	char line[65536];
+	FLAC__bool ret;
+
+	if(0 == file->file_name || strlen(file->file_name) == 0) {
+		fprintf(stderr, "%s: ERROR: empty import file name\n", filename);
+		return false;
+	}
+	if(0 == strcmp(file->file_name, "-"))
+		f = stdin;
+	else
+		f = fopen(file->file_name, "r");
+
+	if(0 == f) {
+		fprintf(stderr, "%s: ERROR: can't open import file %s\n", filename, file->file_name);
+		return false;
+	}
+
+	ret = true;
+	while(ret && !feof(f)) {
+		fgets(line, sizeof(line), f);
+		if(!feof(f)) {
+			char *p = strchr(line, '\n');
+			if(0 == p) {
+				fprintf(stderr, "%s: ERROR: line too long, aborting\n", file->file_name);
+				ret = false;
+			}
+			else {
+				const char *violation;
+				Argument_VcField field;
+				*p = '\0';
+				memset(&field, 0, sizeof(Argument_VcField));
+				if(!parse_vorbis_comment_field(line, &field.field, &field.field_name, &field.field_value, &field.field_value_length, &violation)) {
+					FLAC__ASSERT(0 != violation);
+					fprintf(stderr, "%s: ERROR: malformed vorbis comment field \"%s\",\n       %s\n", file->file_name, line, violation);
+					ret = false;
+				}
+				else {
+					ret = set_vc_field(filename, block, &field, needs_write, raw);
+				}
+				if(0 != field.field)
+					free(field.field);
+				if(0 != field.field_name)
+					free(field.field_name);
+				if(0 != field.field_value)
+					free(field.field_value);
+			}
+		}
+	};
+
+	if(f != stdin)
+		fclose(f);
+	return ret;
 }
 
 FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetadata_VorbisComment_Entry *entry)

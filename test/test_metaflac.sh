@@ -231,4 +231,22 @@ check_flac
 (set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
+(set -x && echo "TITLE=Tittle" | metaflac --import-vc-from=- $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
+
+cat > vc.txt << EOF
+artist=Fartist
+artist=artits
+EOF
+(set -x && metaflac --import-vc-from=vc.txt $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
+
+rm vc.txt
+
 exit 0
