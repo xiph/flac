@@ -28,6 +28,10 @@
 
 #include "private/md5.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifndef FLaC__INLINE
 #define FLaC__INLINE
 #endif

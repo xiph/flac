@@ -22,6 +22,10 @@
 
 #include "FLAC/ordinals.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef enum {
 	FLAC__CPUINFO_TYPE_IA32,
 	FLAC__CPUINFO_TYPE_UNKNOWN

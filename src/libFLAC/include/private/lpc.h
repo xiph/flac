@@ -20,9 +20,11 @@
 #ifndef FLAC__PRIVATE__LPC_H
 #define FLAC__PRIVATE__LPC_H
 
-#include "FLAC/ordinals.h"
+#include "FLAC/format.h"
 
-#define FLAC__MAX_LPC_ORDER (32u)
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 /*
  *	FLAC__lpc_compute_autocorrelation()

@@ -20,6 +20,10 @@
 #include "private/memory.h"
 #include "FLAC/assert.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address)
 {
 	void *x;

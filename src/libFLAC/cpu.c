@@ -21,6 +21,10 @@
 #include<stdlib.h>
 #include<stdio.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 const unsigned FLAC__CPUINFO_IA32_CPUID_CMOV = 0x00008000;
 const unsigned FLAC__CPUINFO_IA32_CPUID_MMX = 0x00800000;
 const unsigned FLAC__CPUINFO_IA32_CPUID_FXSR = 0x01000000;

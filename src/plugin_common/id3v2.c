@@ -35,6 +35,10 @@
 #include "id3v1.h" /* for genre stuff */
 #include "locale_hack.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #define ID3V2_MAX_STRING_LEN 4096
 #define NUMBER_TRACK_FORMATED 1
 

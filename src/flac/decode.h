@@ -21,6 +21,10 @@
 
 #include "analyze.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef struct {
 	FLAC__bool verbose;
 	FLAC__bool continue_through_decode_errors;

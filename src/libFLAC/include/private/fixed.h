@@ -22,6 +22,10 @@
 
 #include "FLAC/format.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 /*
  *	FLAC__fixed_compute_best_predictor()
  *	--------------------------------------------------------------------

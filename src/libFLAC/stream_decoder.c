@@ -30,6 +30,10 @@
 #include "private/format.h"
 #include "private/lpc.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef max
 #undef max
 #endif

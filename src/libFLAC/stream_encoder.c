@@ -35,6 +35,10 @@
 #include "private/memory.h"
 #include "private/stream_encoder_framing.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef min
 #undef min
 #endif
