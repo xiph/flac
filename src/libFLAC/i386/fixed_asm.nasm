@@ -268,11 +268,9 @@ FLAC__fixed_compute_best_predictor_asm:
 	fldln2					; ST = ln2 total_error_1/data_len 1.0 0.0 data_len
 	fmulp	st1				; ST = ln2*total_error_1/data_len 1.0 0.0 data_len
 	fyl2x					; ST = log2(ln2*total_error_1/data_len) 0.0 data_len
-	mov	ebx, [esp + 36]
 	fstp	dword [ebx + 4]			; residual_bits_per_sample[1] = log2(ln2*total_error_1/data_len)   ST = 0.0 data_len
 	jmp	short .rbps_2
 .total_error_1_is_0:
-	mov	ebx, [esp + 36]
 	fst	dword [ebx + 4]			; residual_bits_per_sample[1] = 0.0   ST = 0.0 data_len
 .rbps_2:
 	cmp	eax, edx
@@ -285,11 +283,9 @@ FLAC__fixed_compute_best_predictor_asm:
 	fldln2					; ST = ln2 total_error_2/data_len 1.0 0.0 data_len
 	fmulp	st1				; ST = ln2*total_error_2/data_len 1.0 0.0 data_len
 	fyl2x					; ST = log2(ln2*total_error_2/data_len) 0.0 data_len
-	mov	ebx, [esp + 36]
 	fstp	dword [ebx + 8]			; residual_bits_per_sample[2] = log2(ln2*total_error_2/data_len)   ST = 0.0 data_len
 	jmp	short .rbps_3
 .total_error_2_is_0:
-	mov	ebx, [esp + 36]
 	fst	dword [ebx + 8]			; residual_bits_per_sample[2] = 0.0   ST = 0.0 data_len
 .rbps_3:
 	cmp	eax, esi
@@ -302,11 +298,9 @@ FLAC__fixed_compute_best_predictor_asm:
 	fldln2					; ST = ln2 total_error_3/data_len 1.0 0.0 data_len
 	fmulp	st1				; ST = ln2*total_error_3/data_len 1.0 0.0 data_len
 	fyl2x					; ST = log2(ln2*total_error_3/data_len) 0.0 data_len
-	mov	ebx, [esp + 36]
 	fstp	dword [ebx + 12]		; residual_bits_per_sample[3] = log2(ln2*total_error_3/data_len)   ST = 0.0 data_len
 	jmp	short .rbps_4
 .total_error_3_is_0:
-	mov	ebx, [esp + 36]
 	fst	dword [ebx + 12]		; residual_bits_per_sample[3] = 0.0   ST = 0.0 data_len
 .rbps_4:
 	cmp	eax, edi
@@ -319,11 +313,9 @@ FLAC__fixed_compute_best_predictor_asm:
 	fldln2					; ST = ln2 total_error_4/data_len 1.0 0.0 data_len
 	fmulp	st1				; ST = ln2*total_error_4/data_len 1.0 0.0 data_len
 	fyl2x					; ST = log2(ln2*total_error_4/data_len) 0.0 data_len
-	mov	ebx, [esp + 36]
 	fstp	dword [ebx + 16]		; residual_bits_per_sample[2] = log2(ln2*total_error_4/data_len)   ST = 0.0 data_len
 	jmp	short .rbps_end
 .total_error_4_is_0:
-	mov	ebx, [esp + 36]
 	fst	dword [ebx + 16]		; residual_bits_per_sample[2] = 0.0   ST = 0.0 data_len
 .rbps_end:
 	fstp	st0				; ST = data_len
