@@ -3,6 +3,7 @@
 #
 
 CC          = gcc
+NASM        = nasm
 LINK        = ar cru
 LINKD       = ld -G
 LIBPATH     = ../../obj/lib
@@ -29,6 +30,9 @@ $(DYNAMIC_LIB) : $(OBJS)
 	$(CC) $(CFLAGS) -c $< -o $@
 %.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
+
+%.o : %.nasm
+	$(NASM) -f elf -d ELF -i i386/ $< -o $@
 
 .PHONY : clean
 clean :

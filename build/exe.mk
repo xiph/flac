@@ -2,13 +2,14 @@
 # GNU makefile fragment for building an executable
 #
 
-CC           = gcc
+CC          = gcc
+NASM        = nasm
 # LINKAGE can be forced to -static or -dynamic from invocation if desired, but it defaults to -static
-LINKAGE      = -static
-LINK         = gcc $(LINKAGE)
-BINPATH      = ../../obj/bin
-LIBPATH      = ../../obj/lib
-PROGRAM      = $(BINPATH)/$(PROGRAM_NAME)
+LINKAGE     = -static
+LINK        = gcc $(LINKAGE)
+BINPATH     = ../../obj/bin
+LIBPATH     = ../../obj/lib
+PROGRAM     = $(BINPATH)/$(PROGRAM_NAME)
 
 all : release
 
@@ -27,6 +28,9 @@ $(PROGRAM) : $(OBJS)
 	$(CC) $(CFLAGS) -c $< -o $@
 %.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
+
+%.o : %.nasm
+	$(NASM) -f elf -d ELF -i i386/ $< -o $@
 
 .PHONY : clean
 clean :
