@@ -211,7 +211,7 @@ int infoDlg(char *fn, HWND hwnd)
 void getfileinfo(char *filename, char *title, int *length_in_ms)
 {
 	id3v1_struct tag;
-	FLAC__StreamMetadata_StreamInfo streaminfo;
+	FLAC__StreamMetadata streaminfo;
 
 	if(0 == filename) {
 		filename = lastfn_;

@@ -80,11 +80,10 @@ extern "C" {
  * Only one routine to read the STREAMINFO.  Skips any ID3v2 tag at the
  * head of the file.  Useful for file-based player plugins.
  *
- * Provide the address of a FLAC__StreamMetadata_StreamInfo object to
- * fill.
+ * Provide the address of a FLAC__StreamMetadata object to fill.
  */
 
-FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata_StreamInfo *streaminfo);
+FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo);
 
 
 /***********************************************************************

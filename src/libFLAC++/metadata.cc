@@ -749,7 +749,7 @@ namespace FLAC {
 
 			::FLAC__StreamMetadata s;
 
-			if(::FLAC__metadata_get_streaminfo(filename, &s.data.stream_info)) {
+			if(::FLAC__metadata_get_streaminfo(filename, &s)) {
 				streaminfo = s;
 				return true;
 			}
@@ -929,12 +929,11 @@ namespace FLAC {
 			return 0 != iterator_;
 		}
 
-		void Iterator::init(Chain *chain)
+		void Iterator::init(Chain &chain)
 		{
-			FLAC__ASSERT(0 != chain);
 			FLAC__ASSERT(is_valid());
-			FLAC__ASSERT(chain->is_valid());
-			::FLAC__metadata_iterator_init(iterator_, chain->chain_);
+			FLAC__ASSERT(chain.is_valid());
+			::FLAC__metadata_iterator_init(iterator_, chain.chain_);
 		}
 
 		bool Iterator::next()

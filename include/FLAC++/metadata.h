@@ -454,7 +454,7 @@ namespace FLAC {
 
 			bool is_valid() const;
 
-			void init(Chain *chain);
+			void init(Chain &chain);
 
 			bool next();
 			bool prev();

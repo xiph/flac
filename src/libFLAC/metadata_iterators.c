@@ -118,10 +118,10 @@ static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecode
 typedef struct {
 	FLAC__bool got_error;
 	FLAC__bool got_streaminfo;
-	FLAC__StreamMetadata_StreamInfo *streaminfo;
+	FLAC__StreamMetadata *streaminfo;
 } level0_client_data;
 
-FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata_StreamInfo *streaminfo)
+FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo)
 {
 	level0_client_data cd;
 	FLAC__FileDecoder *decoder = FLAC__file_decoder_new();
@@ -171,7 +171,7 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 	(void)decoder;
 
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO && 0 != cd->streaminfo) {
-		*(cd->streaminfo) = metadata->data.stream_info;
+		*(cd->streaminfo) = *metadata;
 		cd->got_streaminfo = true;
 	}
 }

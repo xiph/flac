@@ -220,7 +220,7 @@ void FLAC_XMMS__cleanup()
 void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 {
 	id3v1_struct tag;
-	FLAC__StreamMetadata_StreamInfo streaminfo;
+	FLAC__StreamMetadata streaminfo;
 
 	if(0 == filename)
 		filename = "";

@@ -367,7 +367,7 @@ static FLAC__bool remove_file_(const char *filename)
 
 static FLAC__bool test_level_0_()
 {
-	FLAC__StreamMetadata_StreamInfo streaminfo;
+	FLAC__StreamMetadata streaminfo;
 
 	printf("\n\n++++++ testing level 0 interface\n");
 
@@ -381,16 +381,16 @@ static FLAC__bool test_level_0_()
 		return die_("during FLAC__metadata_get_streaminfo()");
 
 	/* check to see if some basic data matches (c.f. generate_file_()) */
-	if(streaminfo.channels != 1)
-		return die_("mismatch in streaminfo.channels");
-	if(streaminfo.bits_per_sample != 8)
-		return die_("mismatch in streaminfo.bits_per_sample");
-	if(streaminfo.sample_rate != 44100)
-		return die_("mismatch in streaminfo.sample_rate");
-	if(streaminfo.min_blocksize != 576)
-		return die_("mismatch in streaminfo.min_blocksize");
-	if(streaminfo.max_blocksize != 576)
-		return die_("mismatch in streaminfo.max_blocksize");
+	if(streaminfo.data.stream_info.channels != 1)
+		return die_("mismatch in streaminfo.data.stream_info.channels");
+	if(streaminfo.data.stream_info.bits_per_sample != 8)
+		return die_("mismatch in streaminfo.data.stream_info.bits_per_sample");
+	if(streaminfo.data.stream_info.sample_rate != 44100)
+		return die_("mismatch in streaminfo.data.stream_info.sample_rate");
+	if(streaminfo.data.stream_info.min_blocksize != 576)
+		return die_("mismatch in streaminfo.data.stream_info.min_blocksize");
+	if(streaminfo.data.stream_info.max_blocksize != 576)
+		return die_("mismatch in streaminfo.data.stream_info.max_blocksize");
 
 	if(!remove_file_(flacfile_))
 		return false;
