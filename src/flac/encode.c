@@ -1019,7 +1019,14 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 		memset(&op, 0, sizeof(op));
 		op.packet = (unsigned char *)buffer;
 		op.granulepos = encoder_wrapper->samples_written - 1;
-		op.packetno = encoder_wrapper->current_frame;
+		/*@@@ WATCHOUT:
+		 * this depends on the behavior of libFLAC that we will get one
+		 * write_callback first with all the metadata (and 'samples'
+		 * will be 0), then one for each frame, hence the +1 so that the
+		 * metadata packet is packet 0, the first audio frame is 1, and
+		 * so on.
+		 */
+		op.packetno = (samples == 0? 0 : encoder_wrapper->current_frame + 1);
 		op.bytes = bytes;
 
 		if (encoder_wrapper->bytes_written == bytes)
