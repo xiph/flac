@@ -63,6 +63,7 @@ CLEANFILES = \
 	$(wildcard *.flac) \
 	$(wildcard *.ogg) \
 	$(wildcard *.cmp) \
+	$(wildcard *.aiff) \
 	$(wildcard *.wav) \
 	$(wildcard ../../test_files/bins/*.raw) \
 	$(wildcard ../../test_files/bins/*.flac) \
