@@ -45,52 +45,52 @@ test_file ()
 }
 
 echo "Testing small files..."
-test_file test01 1 16 "-0 -l 8 -m -e"
-test_file test02 2 16 "-0 -l 8 -m -e"
-test_file test03 1 16 "-0 -l 8 -m -e"
-test_file test04 2 16 "-0 -l 8 -m -e"
+test_file test01 1 16 "-0 -l 16 -m -e -p"
+test_file test02 2 16 "-0 -l 16 -m -e -p"
+test_file test03 1 16 "-0 -l 16 -m -e -p"
+test_file test04 2 16 "-0 -l 16 -m -e -p"
 
 echo "Testing 8-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd8-$b 1 8 "-0 -l 8 -m -e -q 15"
+	test_file fsd8-$b 1 8 "-0 -l 16 -m -e -p"
 done
 
 echo "Testing 16-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd16-$b 1 16 "-0 -l 8 -m -e -q 15"
+	test_file fsd16-$b 1 16 "-0 -l 16 -m -e -p"
 done
 
 echo "Testing 24-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd24-$b 1 24 "-0 -l 8 -m -e -q 7"
+	test_file fsd24-$b 1 24 "-0 -l 16 -m -e -p"
 done
 
 echo "Testing 16-bit wasted-bits-per-sample streams..."
 for b in 01 ; do
-	test_file wbps16-$b 1 16 "-0 -l 8 -m -e -q 15"
+	test_file wbps16-$b 1 16 "-0 -l 16 -m -e -p"
 done
 
 for bps in 16 24 ; do
 	echo "Testing $bps-bit sine wave streams..."
 	for b in 00 01 02 03 04 ; do
-		test_file sine${bps}-$b 1 $bps "-0 -l 8 -m -e"
+		test_file sine${bps}-$b 1 $bps "-0 -l 16 -m -e"
 	done
 	for b in 10 11 12 13 14 15 16 17 18 19 ; do
-		test_file sine${bps}-$b 2 $bps "-0 -l 8 -m -e"
+		test_file sine${bps}-$b 2 $bps "-0 -l 16 -m -e"
 	done
 done
 
 echo "Testing some frame header variations..."
-test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -b 16"
-test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -b 65535"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -b 16"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -b 65535"
-test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -fs 9"
-test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -fs 90"
-test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -fs 90000"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -fs 9"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -fs 90"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -fs 90000"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -b 16"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -b 65535"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p -b 16"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p -b 65535"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -fs 9"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -fs 90"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -fs 90000"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p -fs 9"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p -fs 90"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -p -fs 90000"
 
 echo "Testing option variations..."
 for f in 00 01 02 03 04 ; do
