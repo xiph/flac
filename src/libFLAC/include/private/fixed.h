@@ -26,13 +26,16 @@
  *	FLAC__fixed_compute_best_predictor()
  *	--------------------------------------------------------------------
  *	Compute the best fixed predictor and the expected bits-per-sample
- *	of the residual signal for each order.
+ *  of the residual signal for each order.  The _slow() version uses
+ *  64-bit integers which is statistically necessary when bits-per-
+ *  sample + log2(blocksize) > 30
  *
  *	IN data[0,data_len-1]
  *	IN data_len
  *	OUT residual_bits_per_sample[0,FLAC__MAX_FIXED_ORDER]
  */
 unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+unsigned FLAC__fixed_compute_best_predictor_slow(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 
 /*
  *	FLAC__fixed_compute_residual()
