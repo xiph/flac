@@ -95,6 +95,7 @@
 				<LI>Sped up decoding by a few percent overall.<LI>
 				<LI>Sped up encoding when not using LPC (i.e. when using <TT>flac</TT> options <TT>-0</TT>, <TT>-1</TT>, <TT>-2</TT>, or <TT>-l 0</TT>).</LI>
 				<LI>Fixed a decoding bug that could cause sync errors with some ID3v1-tagged FLAC files.</LI>
+				<LI>Added <A HREF="documentation.html#metaflac">HTML documentation for metaflac</A>.<LI>
 			</UL>
 		</LI>
 		<LI>
@@ -138,6 +139,8 @@
 			<UL>
 				<LI>libFLAC: Sped up Rice block decoding in the bitbuffer, resulting in decoding speed gains of a few percent.</LI>
 				<LI>libFLAC: Sped up encoding when not using LPC (i.e. <TT>max_lpc_order == 0</TT>).</LI>
+				<LI>libFLAC: Trailing NUL characters maintained on Vorbis comment entries so they can be treated like C strings.</LI>
+				<LI>libFLAC: More FLAC tag (i.e. Vorbis comment) validation.</LI>
 				<LI>libFLAC: Fixed a bug in the logic that determines the frame or sample number in a frame header; the bug could cause sync errors with some ID3v1-tagged FLAC files.</LI>
 				<LI>libFLAC, libOggFLAC: Can now be compiled to use only integer instructions, including encoding.  The decoder is almost completely integer anyway but there were a couple places that needed a fixed-point replacement.  There is no fixed-point version of LPC analysis yet, so if libFLAC is compiled integer-only, the encoder will behave as if the max LPC order is 0 (i.e. used fixed predictors only).  LPC decoding is supported in all cases as it always was integer-only.</LI>
 			</UL>
@@ -148,7 +151,7 @@
 				<LI>
 					libFLAC:
 					<UL>
-						<LI><B>Changed:</B> Metadata object interface now maintains a trailing NULL on Vorbis comment entries for convenience.</LI>
+						<LI><B>Changed:</B> Metadata object interface now maintains a trailing NUL on Vorbis comment entries for convenience.</LI>
 						<LI><B>Changed:</B> Metadata object interface now validates all Vorbis comment entries on input and returns false if an entry does not conform to the Vorbis comment spec.</LI>
 						<LI><B>Added</B> FLAC__format_vorbiscomment_entry_name_is_legal()</LI>
 						<LI><B>Added</B> FLAC__format_vorbiscomment_entry_value_is_legal()</LI>
@@ -161,7 +164,7 @@
 				<LI>
 					libFLAC++:
 					<UL>
-						<LI><B>Changed:</B> Metadata object interface now maintains a trailing NULL on Vorbis comment values for convenience.</LI>
+						<LI><B>Changed:</B> Metadata object interface now maintains a trailing NUL on Vorbis comment values for convenience.</LI>
 						<LI><B>Changed:</B> Metadata object interface now validates all Vorbis comment entries on input and returns false if an entry does not conform to the Vorbis comment spec.</LI>
 						<LI><B>Changed:</B> All Metadata objects' operator=() methods now return a reference to themselves.</LI>
 						<LI><B>Added</B> methods to FLAC::Metadata::VorbisComment::Entry for setting comment values from null-terminated strings:
