@@ -526,13 +526,6 @@ OggFLAC_API OggFLAC__SeekableStreamEncoderState OggFLAC__file_encoder_get_seekab
 	return OggFLAC__seekable_stream_encoder_get_state(encoder->private_->seekable_stream_encoder);
 }
 
-OggFLAC_API FLAC__SeekableStreamEncoderState OggFLAC__file_encoder_get_FLAC_seekable_stream_encoder_state(const OggFLAC__FileEncoder *encoder)
-{
-	FLAC__ASSERT(0 != encoder);
-	FLAC__ASSERT(0 != encoder->private_);
-	return OggFLAC__seekable_stream_encoder_get_FLAC_seekable_stream_encoder_state(encoder->private_->seekable_stream_encoder);
-}
-
 OggFLAC_API FLAC__StreamEncoderState OggFLAC__file_encoder_get_FLAC_stream_encoder_state(const OggFLAC__FileEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
