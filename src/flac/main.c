@@ -370,7 +370,7 @@ int usage(const char *message, ...)
 	printf("       #  : a specific sample number for a seek point\n");
 	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
 	printf("       #x : # evenly spaced seekpoints, the first being at sample 0\n");
-	printf("     You may use many -S options; the resulting SEEKTABLE will be the union of all such values.\n");
+	printf("     You may use many -S options; the resulting SEEKTABLE will be the unique-ified union of all such values.\n");
 	printf("     With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.\n");
 	printf("     Note: -S #x will not work if the encoder can't determine the input size before starting.\n");
 	printf("     Note: if you use -S # and # is >= samples in the input, there will be either no seek point entered (if the input size\n");
