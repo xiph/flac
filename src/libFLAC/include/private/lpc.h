@@ -41,9 +41,9 @@ void FLAC__lpc_compute_autocorrelation(const real data[], unsigned data_len, uns
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
 void FLAC__lpc_compute_autocorrelation_asm_i386(const real data[], unsigned data_len, unsigned lag, real autoc[]);
-void FLAC__lpc_compute_autocorrelation_asm_i386_sse_4(const real data[], unsigned data_len, unsigned lag, real autoc[]);
-void FLAC__lpc_compute_autocorrelation_asm_i386_sse_8(const real data[], unsigned data_len, unsigned lag, real autoc[]);
-void FLAC__lpc_compute_autocorrelation_asm_i386_sse_12(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+void FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+void FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+void FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12(const real data[], unsigned data_len, unsigned lag, real autoc[]);
 #endif
 #endif
 #endif

@@ -337,28 +337,25 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 #ifdef FLAC__CPU_IA32
 	FLAC__ASSERT(encoder->guts->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #ifdef FLAC__HAS_NASM
-#if 0
-	/* @@@ SSE version not working yet */
-	if(encoder->guts->cpuinfo.data.ia32.sse) {
+	if(0 && encoder->guts->cpuinfo.data.ia32.sse) { /* SSE version lacks necessary resolution, plus SSE flag doesn't check for OS support */
 		if(encoder->max_lpc_order < 4)
 {//@@@
-		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_4;
-fprintf(stderr,"@@@ got _asm_i386_sse_4 of lpc_compute_autocorrelation()\n");}
+		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4;
+fprintf(stderr,"@@@ got _asm_i386_sse_lag_4 of lpc_compute_autocorrelation()\n");}
 		else if(encoder->max_lpc_order < 8)
 {//@@@
-		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_8;
-fprintf(stderr,"@@@ got _asm_i386_sse_8 of lpc_compute_autocorrelation()\n");}
+		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8;
+fprintf(stderr,"@@@ got _asm_i386_sse_lag_8 of lpc_compute_autocorrelation()\n");}
 		else if(encoder->max_lpc_order < 12)
 {//@@@
-		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_12;
-fprintf(stderr,"@@@ got _asm_i386_sse_12 of lpc_compute_autocorrelation()\n");}
+		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12;
+fprintf(stderr,"@@@ got _asm_i386_sse_lag_12 of lpc_compute_autocorrelation()\n");}
 		else
 {//@@@
 			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
 fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");}
 	}
 	else
-#endif
 {//@@@
 		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
 fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");}
