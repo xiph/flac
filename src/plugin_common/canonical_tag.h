@@ -23,7 +23,7 @@
 
 typedef struct {
 	char *title;
-	char *artist;
+	char *composer;
 	char *performer;
 	char *album;
 	char *year_recorded;
@@ -38,6 +38,12 @@ FLAC_Plugin__CanonicalTag *FLAC_plugin__canonical_tag_new();
 void FLAC_plugin__canonical_tag_delete(FLAC_Plugin__CanonicalTag *);
 void FLAC_plugin__canonical_tag_init(FLAC_Plugin__CanonicalTag *);
 void FLAC_plugin__canonical_tag_clear(FLAC_Plugin__CanonicalTag *);
+
+/* For each null field in dest, move the corresponding field from src
+ * WATCHOUT: note that src is not-const, because fields are 'moved' from
+ * src to dest and the src field is set to null.
+ */
+void FLAC_plugin__canonical_tag_merge(FLAC_Plugin__CanonicalTag *dest, FLAC_Plugin__CanonicalTag *src);
 
 void FLAC_plugin__canonical_tag_convert_from_id3v1(FLAC_Plugin__CanonicalTag *, const FLAC_Plugin__Id3v1_Tag *);
 

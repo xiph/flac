@@ -63,7 +63,7 @@ void FLAC_plugin__canonical_tag_init(FLAC_Plugin__CanonicalTag *object)
 {
 	FLAC__ASSERT(0 != object);
 	object->title = 0;
-	object->artist = 0;
+	object->composer = 0;
 	object->performer = 0;
 	object->album = 0;
 	object->year_recorded = 0;
@@ -78,7 +78,7 @@ void FLAC_plugin__canonical_tag_clear(FLAC_Plugin__CanonicalTag *object)
 {
 	FLAC__ASSERT(0 != object);
 	local__safe_free(object->title);
-	local__safe_free(object->artist);
+	local__safe_free(object->composer);
 	local__safe_free(object->performer);
 	local__safe_free(object->album);
 	local__safe_free(object->year_recorded);
@@ -90,10 +90,33 @@ void FLAC_plugin__canonical_tag_clear(FLAC_Plugin__CanonicalTag *object)
 	FLAC_plugin__canonical_tag_init(object);
 }
 
+static void local__grab(char **dest, char **src)
+{
+	if(0 == *dest) {
+		*dest = *src;
+		*src = 0;
+	}
+}
+
+void FLAC_plugin__canonical_tag_merge(FLAC_Plugin__CanonicalTag *dest, FLAC_Plugin__CanonicalTag *src)
+{
+	local__grab(&dest->title, &src->title);
+	local__grab(&dest->composer, &src->composer);
+	local__grab(&dest->performer, &src->performer);
+	local__grab(&dest->album, &src->album);
+	local__grab(&dest->year_recorded, &src->year_recorded);
+	local__grab(&dest->year_performed, &src->year_performed);
+	local__grab(&dest->track_number, &src->track_number);
+	local__grab(&dest->tracks_in_album, &src->tracks_in_album);
+	local__grab(&dest->genre, &src->genre);
+	local__grab(&dest->comment, &src->comment);
+}
+
 void FLAC_plugin__canonical_tag_convert_from_id3v1(FLAC_Plugin__CanonicalTag *object, const FLAC_Plugin__Id3v1_Tag *id3v1_tag)
 {
 	local__copy_field(&object->title, id3v1_tag->title, 30);
-	local__copy_field(&object->artist, id3v1_tag->artist, 30);
+	local__copy_field(&object->composer, id3v1_tag->artist, 30);
+	local__copy_field(&object->performer, id3v1_tag->artist, 30);
 	local__copy_field(&object->album, id3v1_tag->album, 30);
 	local__copy_field(&object->year_performed, id3v1_tag->year, 4);
 
