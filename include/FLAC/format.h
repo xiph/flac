@@ -588,24 +588,18 @@ typedef struct {
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN; /**< == 32 (bits) */
 
 
-/** XXX.  (c.f. <A HREF="../format.html#XXX">format specification</A>)
+/** FLAC CUESHEET track index structure.  (See the
+ * <A HREF="../format.html#cuesheet_track_index">format specification</A> for
+ * the full description of each field.)
  */
 typedef struct {
 	FLAC__uint64 offset;
-	/**< The index offset from the beginning of the track, in samples.
-	 * For CD-DA, the offset must be evenly divisible by 588 samples (588
-	 * samples = 44100 samples/sec * 1/75th of a sec).  Note that the
-	 * offset is from the beginning of the track, not the beginning of
-	 * the audio data.
+	/**< Offset in samples, relative to the track offset, of the index
+	 * point.
 	 */
 
 	FLAC__byte number;
-	/**< The index number.  For CD-DA, an index number of 0 corresponds
-	 * to the track pregap.  There must be at least one index in every
-	 * track except the lead-out track.  The first index in a track must
-	 * be 0 or 1 and subsequently index numbers must increase by 1.  Index
-	 * numbers must be unique within a track.
-	 */
+	/**< The index point number. */
 } FLAC__StreamMetadata_CueSheet_Index;
 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN; /**< == 64 (bits) */
@@ -613,35 +607,32 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN; 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN; /**< == @@@@3*8 (bits) */
 
 
-/** XXX.  (c.f. <A HREF="../format.html#XXX">format specification</A>)
+/** FLAC CUESHEET track structure.  (See the
+ * <A HREF="../format.html#cuesheet_track">format specification</A> for
+ * the full description of each field.)
  */
 typedef struct {
 	FLAC__uint64 offset;
-	/**< The track offset from the beginning of the audio data, in samples.
-	 * This track offset is the offset to the first index point of the
-	 * track.  Note that for CD-DA, the track's offset in the TOC is that
-	 * of the track's INDEX 01 even if there is an INDEX 00.
-	 *
-	 * For CD-DA, the offset must be evenly divisible by 588 samples (588
-	 * samples = 44100 samples/sec * 1/75th of a sec).
-	 */
+	/**< Track offset in samples, relative to the beginning of the FLAC audio stream. */
 
 	FLAC__byte number;
-	/**< The track number.  A track number of 0 is not allowed to avoid
-	 * conflicting with the CD-DA spec, which reserves this for the
-	 * lead-in. For CD-DA the number must be 1-99, or 170 for the lead-out.
-	 * It is not required but encouraged to start with track 1 and increase
-	 * sequentially.  A CUESHEET block is required to have a lead-out
-	 * track; it is always the last track in the cuesheet and the number
-	 * must be 170 for CD-DA.  Track numbers must be unique within a
-	 * CUESHEET.
-	 */
+	/**< The track number. */
 
-	char isrc[13]; /*@@@@ 12 ascii characters plus trailing '\0' */
-	unsigned type:1;			/*@@@@q-channel control bit 3: 0=>audio, 1=>data (undefined for CD-DA, defined for CDROM) */
-	unsigned pre_emphasis:1;	/*@@@@q-channel control bit 5: 0=>no pre-em, 1=>pre-em */
+	char isrc[13];
+	/**< Track ISRC.  This is a 12-digit alphanumeric code plus a trailing '\0' */
+
+	unsigned type:1;
+	/**< The track type: 0 for audio, 1 for non-audio. */
+
+	unsigned pre_emphasis:1;
+	/**< The pre-emphasis flag: 0 for no pre-emphasis, 1 for pre-emphasis. */
+
 	FLAC__byte num_indices;
+	/**< The number of track index points. */
+
 	FLAC__StreamMetadata_CueSheet_Index *indices;
+	/**< NULL if num_indices == 0, else pointer to array of index points. */
+
 } FLAC__StreamMetadata_CueSheet_Track;
 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN; /**< == 64 (bits) */
@@ -653,14 +644,29 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN; /**< == 8 (bits) */
 
 
-/** FLAC CUESHEET structure.  (c.f. <A HREF="../format.html#metadata_block_cuesheet">format specification</A>)
+/** FLAC CUESHEET structure.  (See the
+ * <A HREF="../format.html#metadata_block_cuesheet">format specification</A>
+ * for the full description of each field.)
  */
 typedef struct {
-	char media_catalog_number[129]; /*@@@@ in the stream, the media_catalog_number will be 128 alphanumeric ascii characters; unused digits are padded out to the right with NUL characters.  in memory, the 129th character will be guaranteed to be a null character so that the whole string is always a valid C string.  CD-DA: 13 ascii digits ('0'-'9') plus 116 trailing '\0' characters */
-	FLAC__uint64 lead_in;	/*@@@@ length of lead-in in samples; required to compute some versions of CD TOC hashes; CD-DA says the lead-in must be digital silence and rippers don't save it by convention, so TRACK 00 is disallowed and instead we store only the length.  The lead-in is the number of samples up to the first index point of the first track, \b not INDEX 01 of the first track.  This is so applications can correctly compute a CD-DA TOC equivalent even when there is TRACK 01 INDEX 00 data. */
-	FLAC__bool is_cd; /* \c true if CUESHEET corresponds to a Compact Disc, else \c false */
+	char media_catalog_number[129];
+	/**< Media catalog number, in ASCII printable characters 0x20-0x7e.  In
+	 * general, the media catalog number may be 0 to 128 bytes long; any
+	 * unused characters should be right-padded with NUL characters.
+	 */
+
+	FLAC__uint64 lead_in;
+	/**< The number of lead-in samples. */
+
+	FLAC__bool is_cd;
+	/**< \c true if CUESHEET corresponds to a Compact Disc, else \c false */
+
 	unsigned num_tracks;
+	/**< The number of tracks. */
+
 	FLAC__StreamMetadata_CueSheet_Track *tracks;
+	/**< NULL if num_tracks == 0, else pointer to array of tracks. */
+
 } FLAC__StreamMetadata_CueSheet;
 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN; /**< == 128*8 (bits) */
@@ -670,7 +676,9 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN; /**<
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN; /**< == 8 (bits) */
 
 
-/** Structure that is used when a metadata block of unknown type is loaded.  The contents are opaque.
+/** Structure that is used when a metadata block of unknown type is loaded.
+ *  The contents are opaque.  The structure is used only internally to
+ *  correctly handle unknown metadata.
  */
 typedef struct {
 	FLAC__byte *data;

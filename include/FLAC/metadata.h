@@ -1172,6 +1172,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetadata *object, unsigned new_num_comments);
 
+/*@@@@ code and docs need to assert on track_num */
 /** Sets a comment in a VORBIS_COMMENT block.
  *
  *  If \a copy is \c true, a copy of the entry is stored; otherwise, the object
@@ -1217,10 +1218,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__Stream
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
 /** Delete a comment in a VORBIS_COMMENT block at the given index.
- *
- *  If \a copy is \c true, a copy of the entry is stored; otherwise, the object
- *  takes ownership of the \c entry->entry pointer.  Returns \c false if
- *  \a copy == \c true and malloc fails.
  *
  * \param object       A pointer to an existing VORBIS_COMMENT object.
  * \param comment_num  The index of the comment to delete.
@@ -1310,30 +1307,147 @@ FLAC_API void FLAC__metadata_object_cuesheet_track_delete(FLAC__StreamMetadata_C
 /*@@@@ document */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__StreamMetadata *object, unsigned track_num, unsigned new_num_indices);
 
-/*@@@@ document */
+/** Insert an index point in a CUESHEET track at the given index.
+ *
+ * \param object       A pointer to an existing CUESHEET object.
+ * \param track_num    The index of the track to modify.  NOTE: this is not
+ *                     necessarily the same as the track's \a number field.
+ * \param index_num    The index into the track's index array at which to
+ *                     insert the index point.  NOTE: this is not necessarily
+ *                     the same as the index point's \a number field.  The
+ *                     indices at and after \a index_num move right one
+ *                     position.  To append an index point to the end, set
+ *                     \a index_num to
+ *                     \c object->data.cue_sheet.tracks[track_num].num_indices .
+ * \param index        The index point to insert.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ *    \code object->data.cue_sheet.num_tracks >= track_num \endcode
+ *    \code object->data.cue_sheet.num_tracks > track_num \endcode
+ *    \code object->data.cue_sheet.tracks[track_num].num_indices >= index_num \endcode
+ * \retval FLAC__bool
+ *    \c false if realloc fails, else \c true.
+ */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num, FLAC__StreamMetadata_CueSheet_Index index);
 
 /*@@@@ document, add to unit tests */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_blank_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num);
 
-/*@@@@ document */
+/** Delete an index point in a CUESHEET track at the given index.
+ *
+ * \param object       A pointer to an existing CUESHEET object.
+ * \param track_num    The index into the track array of the track to
+ *                     modify.  NOTE: this is not necessarily the same
+ *                     as the track's \a number field.
+ * \param index_num    The index into the track's index array of the index
+ *                     to delete.  NOTE: this is not necessarily the same
+ *                     as the index's \a number field.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ *    \code object->data.cue_sheet.num_tracks > track_num \endcode
+ *    \code object->data.cue_sheet.tracks[track_num].num_indices > index_num \endcode
+ * \retval FLAC__bool
+ *    \c false if realloc fails, else \c true.
+ */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_delete_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num);
 
-/*@@@@ document */
+/** Resize the track array.
+ *
+ *  If the size shrinks, elements will truncated; if it grows, new blank
+ *  tracks will be added to the end.
+ *
+ * \param object            A pointer to an existing CUESHEET object.
+ * \param new_num_tracks    The desired length of the array; may be \c 0.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ *    \code (object->data.cue_sheet.tracks == NULL && object->data.cue_sheet.num_tracks == 0) ||
+ * (object->data.cue_sheet.tracks != NULL && object->data.cue_sheet.num_tracks > 0) \endcode
+ * \retval FLAC__bool
+ *    \c false if memory allocation error, else \c true.
+ */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMetadata *object, unsigned new_num_tracks);
 
-/*@@@@ document */
-/*@@@@ you may safely un-const the \a track pointer if \a copy is \c true */
+/*@@@@ code and docs need to assert on track_num */
+/** Sets a track in a CUESHEET block.
+ *
+ *  If \a copy is \c true, a copy of the track is stored; otherwise, the object
+ *  takes ownership of the \a track pointer.  Returns \c false if
+ *  \a copy == \c true and malloc fails.
+ *
+ * \param object       A pointer to an existing CUESHEET object.
+ * \param track_num    Index into track array to set.  NOTE: this is not
+ *                     necessarily the same as the track's \a number field.
+ * \param track        The track to set the track to.  You may safely pass in
+ *                     a const pointer if \a copy is \c true.
+ * \param copy         See above.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ * \retval FLAC__bool
+ *    \c false if \a copy is \c true and malloc fails, else \c true.
+ */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_set_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track *track, FLAC__bool copy);
 
-/*@@@@ document */
-/*@@@@ you may safely un-const the \a track pointer if \a copy is \c true */
+/** Insert a track in a CUESHEET block at the given index.
+ *
+ *  If \a copy is \c true, a copy of the track is stored; otherwise, the object
+ *  takes ownership of the \a track pointer.  Returns \c false if
+ *  \a copy == \c true and malloc fails.
+ *
+ * \param object       A pointer to an existing CUESHEET object.
+ * \param track_num    The index at which to insert the track.  NOTE: this
+ *                     is not necessarily the same as the track's \a number
+ *                     field.  The tracks at and after \a track_num move right
+ *                     one position.  To append a track to the end, set
+ *                     \a track_num to \c object->data.cue_sheet.num_tracks .
+ * \param track        The track to insert.  You may safely pass in a const
+ *                     pointer if \a copy is \c true.
+ * \param copy         See above.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ *    \code object->data.cue_sheet.num_tracks >= track_num \endcode
+ * \retval FLAC__bool
+ *    \c false if \a copy is \c true and malloc fails, else \c true.
+ */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track *track, FLAC__bool copy);
 
-/*@@@@ document, add to unit tests */
+/*@@@@ add to unit tests */
+/** Insert a blank track in a CUESHEET block at the given index.
+ *
+ *  A blank track is one in which all field values are zero.
+ *
+ * \param object       A pointer to an existing CUESHEET object.
+ * \param track_num    The index at which to insert the track.  NOTE: this
+ *                     is not necessarily the same as the track's \a number
+ *                     field.  The tracks at and after \a track_num move right
+ *                     one position.  To append a track to the end, set
+ *                     \a track_num to \c object->data.cue_sheet.num_tracks .
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ *    \code object->data.cue_sheet.num_tracks >= track_num \endcode
+ * \retval FLAC__bool
+ *    \c false if \a copy is \c true and malloc fails, else \c true.
+ */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_blank_track(FLAC__StreamMetadata *object, unsigned track_num);
 
-/*@@@@ document */
+/** Delete a track in a CUESHEET block at the given index.
+ *
+ * \param object       A pointer to an existing CUESHEET object.
+ * \param track_num    The index into the track array of the track to
+ *                     delete.  NOTE: this is not necessarily the same
+ *                     as the track's \a number field.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ *    \code object->data.cue_sheet.num_tracks > track_num \endcode
+ * \retval FLAC__bool
+ *    \c false if realloc fails, else \c true.
+ */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_delete_track(FLAC__StreamMetadata *object, unsigned track_num);
 
 /** Check a cue sheet to see if it conforms to the FLAC specification.
