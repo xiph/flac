@@ -160,7 +160,7 @@ static void delete_from_our_metadata_(unsigned position)
 }
 
 /*
- * This wad of functions supports filename- and callback-based chain writing.
+ * This wad of functions supports filename- and callback-based chain reading/writing.
  * Everything up to set_file_stats_() is copied from libFLAC/metadata_iterators.c
  */
 FLAC__bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
