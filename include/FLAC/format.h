@@ -120,22 +120,19 @@ extern "C" {
 /** The maximum Rice partition order permitted by the format. */
 #define FLAC__MAX_RICE_PARTITION_ORDER (15u)
 
-/* VERSION should come from configure */
-#ifdef VERSION
-/** The version string of the current library.
+/** The version string of the release, stamped onto the libraries and binaries.
  *
  * \note
  * This does not correspond to the shared library version number, which
  * is used to determine binary compatibility.
  */
-#define FLAC__VERSION_STRING VERSION
-#endif
+extern const char *FLAC__VERSION_STRING;
 
 /** The vendor string inserted by the encoder into the VORBIS_COMMENT block.
  *  This is a nulL-terminated ASCII string; when inserted into the
  *  VORBIS_COMMENT the trailing null is stripped.
  */
-extern const FLAC__byte *FLAC__VENDOR_STRING;
+extern const char *FLAC__VENDOR_STRING;
 
 /** The byte string representation of the beginning of a FLAC stream. */
 extern const FLAC__byte FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */

@@ -80,7 +80,7 @@ InputPlugin flac_ip =
 {
 	NULL,
 	NULL,
-	"Reference FLAC Player v" FLAC__VERSION_STRING,
+	"Reference FLAC Player v" VERSION,
 	FLAC_XMMS__init,
 	FLAC_XMMS__aboutbox,
 	FLAC_XMMS__configure,

@@ -28,11 +28,14 @@
 #endif
 #define min(a,b) ((a)<(b)?(a):(b))
 
+/* VERSION should come from configure */
+const char *FLAC__VERSION_STRING = VERSION;
+
 #if defined _MSC_VER || defined __MINW32__
 /* yet one more hack because of MSVC6: */
-const FLAC__byte *FLAC__VENDOR_STRING = "reference libFLAC 1.0.4_beta 20020910";
+const char *FLAC__VENDOR_STRING = "reference libFLAC 1.0.4 20020924";
 #else
-const FLAC__byte *FLAC__VENDOR_STRING = "reference libFLAC " FLAC__VERSION_STRING " 20020910";
+const char *FLAC__VENDOR_STRING = "reference libFLAC " VERSION " 20020924";
 #endif
 
 const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };

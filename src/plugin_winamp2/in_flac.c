@@ -120,7 +120,7 @@ void config(HWND hwndParent)
 }
 void about(HWND hwndParent)
 {
-	MessageBox(hwndParent, "Winamp FLAC Plugin v" FLAC__VERSION_STRING ", by Josh Coalson\nSee http://flac.sourceforge.net/", "About FLAC Plugin", MB_OK);
+	MessageBox(hwndParent, "Winamp FLAC Plugin v" VERSION ", by Josh Coalson\nSee http://flac.sourceforge.net/", "About FLAC Plugin", MB_OK);
 }
 
 void init()
@@ -203,6 +203,7 @@ void unpause()
 	paused_ = 0;
 	mod_.outMod->Pause(0);
 }
+
 int ispaused()
 {
 	return paused_;
@@ -357,7 +358,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 In_Module mod_ =
 {
 	IN_VER,
-	"Reference FLAC Player v" FLAC__VERSION_STRING,
+	"Reference FLAC Player v" VERSION,
 	0,	/* hMainWindow */
 	0,  /* hDllInstance */
 	"FLAC\0FLAC Audio File (*.FLAC)\0"
