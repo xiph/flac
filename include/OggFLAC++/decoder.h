@@ -34,6 +34,8 @@
 
 #include "export.h"
 
+#include "OggFLAC/file_decoder.h"
+#include "OggFLAC/seekable_stream_decoder.h"
 #include "OggFLAC/stream_decoder.h"
 // we only need this for the state abstraction really...
 #include "FLAC++/decoder.h"
@@ -53,11 +55,11 @@
  *  \ingroup oggflacpp
  *
  *  \brief
- *  This module describes the decoder layers provided by libOggFLAC++.
+ *  This module describes the three decoder layers provided by libOggFLAC++.
  *
  * The libOggFLAC++ decoder classes are object wrappers around their
- * counterparts in libOggFLAC.  Only the stream decoding layer in
- * libOggFLAC provided here.  The interface is very similar;
+ * counterparts in libOggFLAC.  All three decoding layers available in
+ * libOggFLAC are also provided here.  The interface is very similar;
  * make sure to read the \link oggflac_decoder libOggFLAC decoder module \endlink.
  *
  * The only real difference here is that instead of passing in C function
@@ -122,6 +124,10 @@ namespace OggFLAC {
 			unsigned get_sample_rate() const;
 			unsigned get_blocksize() const;
 
+			/** Initialize the instance; as with the C interface,
+			 *  init() should be called after construction and 'set'
+			 *  calls but before any of the 'process' calls.
+			 */
 			State init();
 
 			void finish();
@@ -148,6 +154,187 @@ namespace OggFLAC {
 			// Private and undefined so you can't use them:
 			Stream(const Stream &);
 			void operator=(const Stream &);
+		};
+
+		/* \} */
+
+		// ============================================================
+		//
+		//  Equivalent: OggFLAC__SeekableStreamDecoder
+		//
+		// ============================================================
+
+		/** \defgroup oggflacpp_seekable_stream_decoder OggFLAC++/decoder.h: seekable stream decoder class
+		 *  \ingroup oggflacpp_decoder
+		 *
+		 *  \brief
+		 *  This class wraps the ::OggFLAC__SeekableStreamDecoder.
+		 *
+		 * See the \link oggflac_seekable_stream_decoder libOggFLAC seekable stream decoder module \endlink.
+		 *
+		 * \{
+		 */
+
+		/** This class wraps the ::OggFLAC__SeekableStreamDecoder.
+		 */
+		class OggFLACPP_API SeekableStream {
+		public:
+			class OggFLACPP_API State {
+			public:
+				inline State(::OggFLAC__SeekableStreamDecoderState state): state_(state) { }
+				inline operator ::OggFLAC__SeekableStreamDecoderState() const { return state_; }
+				inline const char *as_cstring() const { return ::OggFLAC__SeekableStreamDecoderStateString[state_]; }
+				inline const char *resolved_as_cstring(const SeekableStream &decoder) const { return ::OggFLAC__seekable_stream_decoder_get_resolved_state_string(decoder.decoder_); }
+			protected:
+				::OggFLAC__SeekableStreamDecoderState state_;
+			};
+
+			SeekableStream();
+			virtual ~SeekableStream();
+
+			bool is_valid() const;
+			inline operator bool() const { return is_valid(); }
+
+			bool set_serial_number(long value);
+			bool set_md5_checking(bool value);
+			bool set_metadata_respond(::FLAC__MetadataType type);
+			bool set_metadata_respond_application(const FLAC__byte id[4]);
+			bool set_metadata_respond_all();
+			bool set_metadata_ignore(::FLAC__MetadataType type);
+			bool set_metadata_ignore_application(const FLAC__byte id[4]);
+			bool set_metadata_ignore_all();
+
+			State get_state() const;
+			FLAC::Decoder::SeekableStream::State get_FLAC_seekable_stream_decoder_state() const;
+			FLAC::Decoder::Stream::State get_FLAC_stream_decoder_state() const;
+			bool get_md5_checking() const;
+			unsigned get_channels() const;
+			::FLAC__ChannelAssignment get_channel_assignment() const;
+			unsigned get_bits_per_sample() const;
+			unsigned get_sample_rate() const;
+			unsigned get_blocksize() const;
+
+			State init();
+
+			bool finish();
+
+			bool flush();
+			bool reset();
+
+			bool process_single();
+			bool process_until_end_of_metadata();
+			bool process_until_end_of_stream();
+
+			bool seek_absolute(FLAC__uint64 sample);
+		protected:
+			virtual ::FLAC__SeekableStreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes) = 0;
+			virtual ::FLAC__SeekableStreamDecoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset) = 0;
+			virtual ::FLAC__SeekableStreamDecoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset) = 0;
+			virtual ::FLAC__SeekableStreamDecoderLengthStatus length_callback(FLAC__uint64 *stream_length) = 0;
+			virtual bool eof_callback() = 0;
+			virtual ::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]) = 0;
+			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
+			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
+
+			::OggFLAC__SeekableStreamDecoder *decoder_;
+		private:
+			static ::FLAC__SeekableStreamDecoderReadStatus read_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+			static ::FLAC__SeekableStreamDecoderSeekStatus seek_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+			static ::FLAC__SeekableStreamDecoderTellStatus tell_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
+			static ::FLAC__SeekableStreamDecoderLengthStatus length_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
+			static FLAC__bool eof_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, void *client_data);
+			static ::FLAC__StreamDecoderWriteStatus write_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+			static void metadata_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, const ::FLAC__StreamMetadata *metadata, void *client_data);
+			static void error_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, ::FLAC__StreamDecoderErrorStatus status, void *client_data);
+
+			// Private and undefined so you can't use them:
+			SeekableStream(const SeekableStream &);
+			void operator=(const SeekableStream &);
+		};
+
+		/* \} */
+
+		// ============================================================
+		//
+		//  Equivalent: OggFLAC__FileDecoder
+		//
+		// ============================================================
+
+		/** \defgroup oggflacpp_file_decoder OggFLAC++/decoder.h: file decoder class
+		 *  \ingroup oggflacpp_decoder
+		 *
+		 *  \brief
+		 *  This class wraps the ::OggFLAC__FileDecoder.
+		 *
+		 * See the \link oggflac_file_decoder libOggFLAC file decoder module \endlink.
+		 *
+		 * \{
+		 */
+
+		/** This class wraps the ::OggFLAC__FileDecoder.
+		 */
+		class OggFLACPP_API File {
+		public:
+			class OggFLACPP_API State {
+			public:
+				inline State(::OggFLAC__FileDecoderState state): state_(state) { }
+				inline operator ::OggFLAC__FileDecoderState() const { return state_; }
+				inline const char *as_cstring() const { return ::OggFLAC__FileDecoderStateString[state_]; }
+				inline const char *resolved_as_cstring(const File &decoder) const { return ::OggFLAC__file_decoder_get_resolved_state_string(decoder.decoder_); }
+			protected:
+				::OggFLAC__FileDecoderState state_;
+			};
+
+			File();
+			virtual ~File();
+
+			bool is_valid() const;
+			inline operator bool() const { return is_valid(); }
+
+			bool set_serial_number(long value);
+			bool set_md5_checking(bool value);
+			bool set_filename(const char *value); //!< 'value' may not be \c NULL; use "-" for stdin
+			bool set_metadata_respond(::FLAC__MetadataType type);
+			bool set_metadata_respond_application(const FLAC__byte id[4]);
+			bool set_metadata_respond_all();
+			bool set_metadata_ignore(::FLAC__MetadataType type);
+			bool set_metadata_ignore_application(const FLAC__byte id[4]);
+			bool set_metadata_ignore_all();
+
+			State get_state() const;
+			FLAC::Decoder::File::State get_FLAC_file_decoder_state() const;
+			FLAC::Decoder::SeekableStream::State get_FLAC_seekable_stream_decoder_state() const;
+			FLAC::Decoder::Stream::State get_FLAC_stream_decoder_state() const;
+			bool get_md5_checking() const;
+			unsigned get_channels() const;
+			::FLAC__ChannelAssignment get_channel_assignment() const;
+			unsigned get_bits_per_sample() const;
+			unsigned get_sample_rate() const;
+			unsigned get_blocksize() const;
+
+			State init();
+
+			bool finish();
+
+			bool process_single();
+			bool process_until_end_of_metadata();
+			bool process_until_end_of_file();
+
+			bool seek_absolute(FLAC__uint64 sample);
+		protected:
+			virtual ::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]) = 0;
+			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
+			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
+
+			::OggFLAC__FileDecoder *decoder_;
+		private:
+			static ::FLAC__StreamDecoderWriteStatus write_callback_(const ::OggFLAC__FileDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+			static void metadata_callback_(const ::OggFLAC__FileDecoder *decoder, const ::FLAC__StreamMetadata *metadata, void *client_data);
+			static void error_callback_(const ::OggFLAC__FileDecoder *decoder, ::FLAC__StreamDecoderErrorStatus status, void *client_data);
+
+			// Private and undefined so you can't use them:
+			File(const File &);
+			void operator=(const File &);
 		};
 
 		/* \} */

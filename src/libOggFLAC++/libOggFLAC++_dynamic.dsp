@@ -92,6 +92,22 @@ LINK32=link.exe
 # PROP Default_Filter "cpp"
 # Begin Source File
 
+SOURCE=.\file_decoder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\file_encoder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\seekable_stream_decoder.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\seekable_stream_encoder.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\stream_decoder.cpp
 # End Source File
 # Begin Source File

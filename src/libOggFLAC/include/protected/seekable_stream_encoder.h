@@ -29,27 +29,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef OggFLAC__ALL_H
-#define OggFLAC__ALL_H
+#ifndef OggFLAC__PROTECTED__SEEKABLE_STREAM_ENCODER_H
+#define OggFLAC__PROTECTED__SEEKABLE_STREAM_ENCODER_H
 
-/* NOTE: file_decoder.h and seekable_stream_decoder.h are NOT ready
- * for distribution yet.
- */
+#include "OggFLAC/seekable_stream_encoder.h"
+#include "private/ogg_encoder_aspect.h"
 
-#include "export.h"
-
-#include "file_decoder.h"
-#include "file_encoder.h"
-#include "seekable_stream_decoder.h"
-#include "seekable_stream_encoder.h"
-#include "stream_decoder.h"
-#include "stream_encoder.h"
-
-/** \defgroup oggflac OggFLAC C API
- *
- * The OggFLAC C API is the interface to libOggFLAC, a set of encoders
- * and decoders that wrap around the libFLAC API to provide encoding
- * to and decoding from FLAC streams in an Ogg transport.
- */
+typedef struct OggFLAC__SeekableStreamEncoderProtected {
+	OggFLAC__SeekableStreamEncoderState state;
+	OggFLAC__OggEncoderAspect ogg_encoder_aspect;
+} OggFLAC__SeekableStreamEncoderProtected;
 
 #endif
