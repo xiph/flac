@@ -119,7 +119,7 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 		return false;
 	}
 
-	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, /*is_cdda=*/true, lead_out_offset);
+	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, /*@@@@is_cdda=*/true, lead_out_offset);
 
 	if(f != stdin)
 		fclose(f);
@@ -167,7 +167,7 @@ FLAC__bool export_cs_to(const char *filename, FLAC__StreamMetadata *cuesheet, co
 		return false;
 	}
 
-	grabbag__cuesheet_emit(f, cuesheet, "\"dummy.wav\" WAVE", /*is_cdda=*/true);
+	grabbag__cuesheet_emit(f, cuesheet, "\"dummy.wav\" WAVE", /*@@@@is_cdda=*/true);
 
 	if(f != stdout)
 		fclose(f);
