@@ -730,13 +730,13 @@
 </TD></TR>
 </TABLE>
 
-
+<A NAME="plugins"></A>
 <TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
 <TR><TD>
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
 		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="plugins"><A NAME="xmms_plugin"><B><FONT SIZE="+2">xmms plugin</FONT></B></A>
+		<A NAME="xmms_plugin"><B><FONT SIZE="+2">xmms plugin</FONT></B></A>
 		</FONT></TD></TR>
 	</TABLE>
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
@@ -758,14 +758,36 @@
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
 		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="winamp_plugin"><B><FONT SIZE="+2">winamp plugin</FONT></B>
+		<A NAME="winamp2_plugin"><B><FONT SIZE="+2">winamp2 plugin</FONT></B>
 		</FONT></TD></TR>
 	</TABLE>
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-		All that is necessary is to copy <B><TT>in_flac.dll</TT></B> to the <B><TT>Plugins/</TT></B> directory of your Winamp installation.  There is nothing else to configure.  Make sure to restart Winamp before trying to play any <TT>.flac</TT> files.
+		There are two Winamp plugins; one for Winamp versions 2.x and one for Winamp versions 3.x.  If you are using Winamp 2.x, all that is necessary is to copy <B><TT>in_flac.dll</TT></B> to the <B><TT>Plugins/</TT></B> directory of your Winamp installation.  There is nothing else to configure.  Make sure to restart Winamp before trying to play any <TT>.flac</TT> files.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<A NAME="winamp3_plugin"><B><FONT SIZE="+2">winamp3 plugin</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		There are two Winamp plugins; one for Winamp versions 2.x and one for Winamp versions 3.x.  If you are using Winamp 3.x, all that is necessary is to copy <B><TT>cnv_flacpcm.wac</TT></B> to the <B><TT>Wacs/</TT></B> directory of your Winamp installation.  There is nothing else to configure.  Make sure to restart Winamp before trying to play any <TT>.flac</TT> files.
 	</P>
 	</FONT>
 	</TD></TR>
@@ -807,7 +829,13 @@
 		</OL>
 	</P>
 	<P>
-		For decoding, <B><TT>libFLAC</TT></B> provides two layers of access.  The lowest layer is stream-level decoding, and the highest level is file-level decoding, which is a wrapper around the stream decoder.  The interfaces are described in <TT>stream_decoder.h</TT> and <TT>file_decoder.h</TT> respectively.  The file decoder supplies the read callback internally and provides seek functions.  Currently there is only one level of encoder implementation which is at the stream level (<TT>stream_encoder.h</TT>).  There is no currently no file encoder because seeking within a file while encoding seemed like too obscure a feature.
+		For decoding, <B><TT>libFLAC</TT></B> provides three layers of access.  The lowest layer is non-seekable stream-level decoding, the next is seekable stream-level decoding, and the highest layer is file-level decoding.  The interfaces are described in <TT>stream_decoder.h</TT>, <TT>seekable_stream_decoder.h</TT>, and <TT>file_decoder.h</TT> respectively.  Typically you will choose the highest layer that your input source will support.
+	</P>
+	<P>
+		The stream decoder relies on callbacks for all input and output and has no provisions for seeking.  The seekable stream decoder wraps the stream decoder and exposes functions for seeking.  However, you must provide extra callbacks for seek-related operations on your stream, like seek and tell.  The file decoder wraps the seekable stream decoder and supplies most of the callbacks internally, simplifying the processing of standard files.
+	</P>
+	<P>
+		Currently there is only one level of encoder implementation which is at the stream level (<TT>stream_encoder.h</TT>).  There is currently no file encoder because seeking within a file while encoding seemed like too obscure a feature.
 	</P>
 	<P>
 		Structures and constants related to the format are defined in <TT>format.h</TT>.
@@ -837,28 +865,46 @@
 		When the decoder has finished decoding (normally or through an abort), the instance is finished by calling <TT>FLAC__stream_decoder_finish()</TT>, which ensures the decoder is in the correct state and frees memory.  Then the instance may be deleted with <TT>FLAC__stream_decoder_delete()</TT> or initialized again to decode another stream.
 	</P>
 	<P>
-		Note that the stream decoder has no real concept of stream position, it just converts data.  To seek within a stream the callbacks have only to flush the decoder using <TT>FLAC__stream_decoder_flush()</TT> and start feeding data from the new position through the read callback.  The file decoder does just this.
+		Note that the stream decoder has no real concept of stream position, it just converts data.  To seek within a stream the callbacks have only to flush the decoder using <TT>FLAC__stream_decoder_flush()</TT> and start feeding data from the new position through the read callback.  The seekable stream decoder does just this.
+	</P>
+	<P>
+		<B>SEEKABLE STREAM DECODER</B>
+	</P>
+	<P>
+		The seekable stream decoder is a wrapper around the stream decoder which also provides seeking capability.  The instance type is <TT>FLAC__SeekableStreamDecoder</TT>.  In addition to the Read/Write/Metadata/Error callbacks of the stream decoder, the user must also provide the following:
+		<UL>
+			<LI>Seek callback - This function will be called when the decoder wants to seek to an absolute position in the stream.</LI>
+			<LI>Tell callback - This function will be called when the decoder wants to know the current absolute position of the stream.</LI>
+			<LI>Length callback - This function will be called when the decoder wants to know length of the stream.  The seeking algorithm currently requires that the overall stream length be known.</LI>
+			<LI>EOF callback - This function will be called when the decoder wants to know if it is at the end of the stream.  This could be determined from the tell and length callbacks but it may be more expensive that way.</LI>
+		</UL>
+	</P>
+	<P>
+		Seeking is exposed through the <TT>FLAC__seekable_stream_decoder_seek_absolute()</TT> method.  At any point after the seekable stream decoder has been initialized, the user can call this function to seek to an exact sample within the stream.  Subsequently, the first time the write callback is called it will contain a (possibly partial) block starting at that sample.
+	</P>
+	<P>
+		The seekable stream decoder also provides MD5 signature checking.  If this is turned on before initialization, <TT>FLAC__seekable_stream_decoder_finish()</TT> will report when the decoded MD5 signature does not match the one stored in the STREAMINFO block.  MD5 checking is automatically turned off if there is no signature in the STREAMINFO block or when a seek is attempted.
 	</P>
 	<P>
 		<B>FILE DECODER</B>
 	</P>
 	<P>
-		The file decoder is a wrapper around the stream decoder meant to simplfy the process of decoding from a file.  The instance type is <TT>FLAC__FileDecoder</TT>.  The flow and callbacks are similar to that of the stream decoder.  However, a file path replaces the read callback argument during initialization.  The program needs only to provide the path to the file and the file decoder handles the read callbacks.  The remaining callbacks and process functions are analogous to their stream decoder counterparts.
+		The file decoder is a trivial wrapper around the seekable stream decoder meant to simplfy the process of decoding from a standard file.  The instance type is <TT>FLAC__FileDecoder</TT>.  The file decoder supplies all but the Write/Metadata/Error callbacks.  The user needs only to provide the path to the file and the file decoder handles the rest.
 	</P>
 	<P>
-		Since the file decoder manages the input automatically, it also can provide seeking.  This is exposed through the <TT>FLAC__file_decoder_seek_absolute()</TT> method.  At any point after the file decoder has been initialized, the program can call this function to seek to an exact sample within the file.  Subsequently, the first time the write callback is called it will contain a (possibly partial) block starting at that sample.
+		Like the seekable stream decoder, seeking is exposed through the <TT>FLAC__file_decoder_seek_absolute()</TT> method.  At any point after the file decoder has been initialized, the user can call this function to seek to an exact sample within the file.  Subsequently, the first time the write callback is called it will contain a (possibly partial) block starting at that sample.
 	</P>
 	<P>
-		The file decoder also provides MD5 signature checking.  If this is turned on before initialization, <TT>FLAC__file_decoder_finish()</TT> will report when the decoded MD5 signature does not match the one stored in the STREAMINFO block.  MD5 checking is automatically turned off if the is no signature in the STREAMINFO block or when a seek is attempted.
+		The file decoder also inherits MD5 signature checking from the seekable stream decoder.  If this is turned on before initialization, <TT>FLAC__file_decoder_finish()</TT> will report when the decoded MD5 signature does not match the one stored in the STREAMINFO block.  MD5 checking is automatically turned off if there is no signature in the STREAMINFO block or when a seek is attempted.
 	</P>
 	<P>
 		<B>STREAM ENCODER</B>
 	</P>
 	<P>
-		The stream encoder functions similarly to the stream decoder, but has fewer callbacks and more options.  The instance type is <TT>FLAC__StreamEncoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__stream_encoder_new()</TT>, then set the necessary parameters with <TT>FLAC__stream_encoder_set_*()</TT>, and initialize it by calling <TT>FLAC__stream_encoder_init()</TT>.
+		The stream encoder functions similarly to the stream decoder, but has fewer callbacks and more options.  The instance type is <TT>FLAC__StreamEncoder</TT>.  Typically the user will create a new instance by calling <TT>FLAC__stream_encoder_new()</TT>, then set the necessary parameters with <TT>FLAC__stream_encoder_set_*()</TT>, and initialize it by calling <TT>FLAC__stream_encoder_init()</TT>.
 	</P>
 	<P>
-		Unlike the decoding process, FLAC encoding has many options that can affect the speed and compression ratio.  When the program calls <TT>FLAC__stream_encoder_init()</TT> the encoder will validate the values, so you should make sure to check the returned state to see that it is FLAC__STREAM_ENCODER_OK.  When setting these parameters you should have some basic knowledge of the format (see the <A HREF="#format">user-level documentation</A> or the <A HREF="format.html">formal description</A>) but the required parameters are summarized here:
+		Unlike the decoding process, FLAC encoding has many options that can affect the speed and compression ratio.  When the user calls <TT>FLAC__stream_encoder_init()</TT> the encoder will validate the values, so you should make sure to check the returned state to see that it is FLAC__STREAM_ENCODER_OK.  When setting these parameters you should have some basic knowledge of the format (see the <A HREF="#format">user-level documentation</A> or the <A HREF="format.html">formal description</A>) but the required parameters are summarized here:
 		<UL>
 			<LI><B><TT>streamable_subset</TT></B> - true to force the encoder to generate a <A HREF="format.html#subset">Subset stream</A>, else false.</LI>
 			<LI><B><TT>do_mid_side_stereo</TT></B> - true to try mid-side encoding on stereo input, else false.  <TT>channels</TT> must be 2.</LI>
@@ -881,7 +927,7 @@
 		</UL>
 	</P>
 	<P>
-		The program provide addresses for the following callbacks:
+		The user provides addresses for the following callbacks:
 		<UL>
 			<LI>Write callback - This function is called anytime there is raw encoded data to write.  It may include metadata mixed with encoded audio frames and the data is not guaranteed to be aligned on frame or metadata block boundaries.</LI>
 			<LI>Metadata callback - This function is called once at the end of encoding with the populated STREAMINFO structure.  This is so file encoders can seek back to the beginning of the file and write the STREAMINFO block with the correct statistics after encoding (like minimum/maximum frame size).</LI>
@@ -889,14 +935,14 @@
 		The call to <TT>FLAC__stream_encoder_init()</TT> currently will also immediately call the write callback with the "fLaC" signature and all the encoded metadata.
 	</P>
 	<P>
-		After initializing the instance, the program may feed audio data to the encoder in one of two ways:
+		After initializing the instance, the user may feed audio data to the encoder in one of two ways:
 		<UL>
-			<LI>Channel separate, through <B><TT>FLAC__stream_encoder_process()</TT></B> - The program will pass an array of pointers to buffers, one for each channel, to the encoder, each of the same length.  The samples need not be block-aligned.</LI>
-			<LI>Channel interleaved, through <B><TT>FLAC__stream_encoder_process_interleaved()</TT></B> - The program will pass a single pointer to data that is channel-interleaved (i.e. <TT>channel0_sample0, channel1_sample0, ... , channelN_sample0, channel0_sample1, ...</TT>).  Again, the samples need not be block-aligned but they must be sample-aligned, i.e. the first value should be channel0_sampleX and the last value channelN_sampleY.</LI>
+			<LI>Channel separate, through <B><TT>FLAC__stream_encoder_process()</TT></B> - The user will pass an array of pointers to buffers, one for each channel, to the encoder, each of the same length.  The samples need not be block-aligned.</LI>
+			<LI>Channel interleaved, through <B><TT>FLAC__stream_encoder_process_interleaved()</TT></B> - The user will pass a single pointer to data that is channel-interleaved (i.e. <TT>channel0_sample0, channel1_sample0, ... , channelN_sample0, channel0_sample1, ...</TT>).  Again, the samples need not be block-aligned but they must be sample-aligned, i.e. the first value should be channel0_sampleX and the last value channelN_sampleY.</LI>
 		</UL>
 	</P>
 	<P>
-		When the program is finished encoding data, it calls <TT>FLAC__stream_encoder_finish()</TT>, which causes the encoder to encode any data still in its input pipe, and call the metadata callback with the final encoding statistics.  Then the instance may be deleted with <TT>FLAC__stream_encoder_delete()</TT> or initialized again to encode another stream.
+		When the user is finished encoding data, it calls <TT>FLAC__stream_encoder_finish()</TT>, which causes the encoder to encode any data still in its input pipe, and call the metadata callback with the final encoding statistics.  Then the instance may be deleted with <TT>FLAC__stream_encoder_delete()</TT> or initialized again to encode another stream.
 	</P>
 	<P>
 		<B>MISCELLANEOUS</B>
@@ -972,6 +1018,9 @@
 			</LI>
 			<LI>Now you can encode FLAC files as if you were using the replaced encoder.  The renamed <B><TT>flac_mac.exe</TT></B> utility will call <B><TT>flac.exe</TT></B> and afterwards, <B><TT>flac_ren.exe</TT></B> will rename the resulting file to have the .flac extension.</LI>
 		</UL>
+	</P>
+	<P>
+		If you like this little hack, make sure to <A HREF="mailto:email@monkeysaudio.com">ask Matt</A> (the author) to add FLAC support officially!  Also, other front-ends may be wedged in the same way; if you have one in mind, post it to the flac-dev mailing list.
 	</P>
 	</FONT>
 	</TD></TR>
