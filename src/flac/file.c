@@ -16,8 +16,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <unistd.h> /* for chown() */
+#ifdef _MSC_VER
+#include <sys/utime.h> /* for utime() */
+#include <io.h> /* for chmod() */
+#else
 #include <utime.h> /* for utime() */
+#include <unistd.h> /* for chown() */
+#endif
 #include <sys/stat.h> /* for stat() */
 #include "file.h"
 
@@ -31,7 +36,9 @@ void flac__file_copy_metadata(const char *srcpath, const char *destpath)
 		srctime.modtime = srcstat.st_mtime;
 		(void)chmod(destpath, srcstat.st_mode);
 		(void)utime(destpath, &srctime);
+#ifndef _MSC_VER
 		(void)chown(destpath, srcstat.st_uid, -1);
 		(void)chown(destpath, -1, srcstat.st_gid);
+#endif
 	}
 }

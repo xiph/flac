@@ -12,6 +12,7 @@ C_FILES= \
 	analyze.c \
 	decode.c \
 	encode.c \
+	file.c \
 	main.c
 
 OBJS= $(C_FILES:.c=.obj)

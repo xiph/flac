@@ -21,7 +21,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef _MSC_VER
+/* unlink is in stdio.h in VC++ */
 #include <unistd.h> /* for unlink() */
+#endif
 #include "FLAC/all.h"
 #include "analyze.h"
 #include "decode.h"
