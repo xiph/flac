@@ -451,6 +451,9 @@ FLAC_API FLAC__SeekableStreamDecoderState FLAC__file_decoder_get_seekable_stream
  */
 FLAC_API FLAC__StreamDecoderState FLAC__file_decoder_get_stream_decoder_state(const FLAC__FileDecoder *decoder);
 
+/*@@@@ document */
+FLAC_API const char *FLAC__file_decoder_get_resolved_state_string(const FLAC__FileDecoder *decoder);
+
 /** Get the "MD5 signature checking" flag.
  *  This is inherited from FLAC__SeekableStreamDecoder; see
  *  FLAC__seekable_stream_decoder_get_md5_checking().

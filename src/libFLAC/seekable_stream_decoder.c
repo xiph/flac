@@ -453,6 +453,14 @@ FLAC_API FLAC__StreamDecoderState FLAC__seekable_stream_decoder_get_stream_decod
 	return FLAC__stream_decoder_get_state(decoder->private_->stream_decoder);
 }
 
+FLAC_API const char *FLAC__seekable_stream_decoder_get_resolved_state_string(const FLAC__SeekableStreamDecoder *decoder)
+{
+	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR)
+		return FLAC__SeekableStreamDecoderStateString[decoder->protected_->state];
+	else
+		return FLAC__StreamDecoderStateString[FLAC__stream_decoder_get_state(decoder->private_->stream_decoder)];
+}
+
 FLAC_API FLAC__bool FLAC__seekable_stream_decoder_get_md5_checking(const FLAC__SeekableStreamDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);

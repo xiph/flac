@@ -597,6 +597,9 @@ FLAC_API FLAC__StreamEncoderState FLAC__seekable_stream_encoder_get_stream_encod
  */
 FLAC_API FLAC__StreamDecoderState FLAC__seekable_stream_encoder_get_verify_decoder_state(const FLAC__SeekableStreamEncoder *encoder);
 
+/*@@@@ document */
+FLAC_API const char *FLAC__seekable_stream_encoder_get_resolved_state_string(const FLAC__SeekableStreamEncoder *encoder);
+
 /** Get relevant values about the nature of a verify decoder error.
  *  Inherited from FLAC__stream_encoder_get_verify_decoder_error_stats().
  *  Useful when the seekable stream encoder state is

@@ -684,6 +684,9 @@ FLAC_API FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_stat
  */
 FLAC_API FLAC__StreamDecoderState FLAC__seekable_stream_decoder_get_stream_decoder_state(const FLAC__SeekableStreamDecoder *decoder);
 
+/*@@@@ document */
+FLAC_API const char *FLAC__seekable_stream_decoder_get_resolved_state_string(const FLAC__SeekableStreamDecoder *decoder);
+
 /** Get the "MD5 signature checking" flag.
  *  This is the value of the setting, not whether or not the decoder is
  *  currently checking the MD5 (remember, it can be turned off automatically
