@@ -33,8 +33,8 @@ OBJS= $(C_FILES:.c=.obj)
 all: in_flac.dll
 
 in_flac.dll: $(OBJS)
-	link.exe /dll /nodefaultlib:libc.lib /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.dll $(OBJS) libFLAC.lib plugin_common.lib user32.lib kernel32.lib
+	link.exe /dll /nodefaultlib:libc.lib /libpath:"..\..\obj\release\lib" -out:../../obj/release/bin/$*.dll $(OBJS) libFLAC_static.lib plugin_common_static.lib user32.lib kernel32.lib
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\obj\bin\in_flac.*
+	-del ..\..\obj\release\bin\in_flac.*

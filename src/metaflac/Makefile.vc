@@ -40,8 +40,8 @@ OBJS= $(C_FILES:.c=.obj)
 all: metaflac.exe
 
 metaflac.exe: $(OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) grabbag.lib libFLAC.lib gain_analysis.lib getopt.lib utf8.lib
+	link.exe /libpath:"..\..\obj\release\lib" -out:../../obj/release/bin/$*.exe $(OBJS) grabbag_static.lib libFLAC_static.lib gain_analysis_static.lib getopt_static.lib utf8_static.lib
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\obj\bin\metaflac.exe
+	-del ..\..\obj\release\bin\metaflac.exe

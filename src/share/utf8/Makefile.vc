@@ -15,11 +15,11 @@ C_FILES= \
 
 OBJS= $(C_FILES:.c=.obj)
 
-all: utf8.lib
+all: utf8_static.lib
 
-utf8.lib: $(UTF8_OBJS)
-	link.exe -lib /nodefaultlib -out:../../../obj/lib/$*.lib $(UTF8_OBJS)
+utf8_static.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../../obj/release/lib/$*.lib $(OBJS)
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\..\obj\lib\utf8.lib ..\..\..\obj\lib\utf8.pdb
+	-del ..\..\..\obj\release\lib\utf8_static.lib ..\..\..\obj\release\lib\utf8_static.pdb

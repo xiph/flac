@@ -33,8 +33,8 @@ OBJS= $(C_FILES:.c=.obj)
 all: test_streams.exe
 
 test_streams.exe: $(OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS)
+	link.exe /libpath:"..\..\obj\release\lib" -out:../../obj/release/bin/$*.exe $(OBJS)
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\obj\bin\test_streams.exe
+	-del ..\..\obj\release\bin\test_streams.exe

@@ -55,14 +55,14 @@ NASM_FILES= \
 
 OBJS= $(C_FILES:.c=.obj) $(NASM_FILES:.nasm=.obj)
 
-all: ordinals libFLAC.lib
+all: ordinals libFLAC_static.lib
 
 ordinals: ../../include/FLAC/ordinals.h
 ../../include/FLAC/ordinals.h: ../../include/FLAC/ordinals.h.in
 	sed -e 's/@FLaC__SIZE16@/short/g' -e 's/@FLaC__SIZE32@/int/g' -e 's/@FLaC__SIZE64@/long long/g' -e 's/@FLaC__USIZE16@/unsigned short/g' -e 's/@FLaC__USIZE32@/unsigned int/g' -e 's/@FLaC__USIZE64@/unsigned long long/g' ../../include/FLAC/ordinals.h.in > ../../include/FLAC/ordinals.h
 
-libFLAC.lib: $(OBJS)
-	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
+libFLAC_static.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../obj/release/lib/$*.lib $(OBJS)
 
 ia32/cpu_asm.obj: ia32/cpu_asm.nasm
 	$(NASM) -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
@@ -73,4 +73,4 @@ ia32/lpc_asm.obj: ia32/lpc_asm.nasm
 
 clean:
 	-del *.obj ia32\*.obj *.pch
-	-del ..\..\obj\lib\libFLAC.lib ..\..\obj\lib\libFLAC.pdb
+	-del ..\..\obj\release\lib\libFLAC_static.lib ..\..\obj\release\lib\libFLAC_static.pdb

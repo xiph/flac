@@ -2,10 +2,10 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\..\include" -DFLAC__NO_DLL -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\..\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\..\include" -DFLAC__NO_DLL -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
@@ -16,11 +16,11 @@ C_FILES= \
 
 OBJS= $(C_FILES:.c=.obj)
 
-all: grabbag.lib
+all: grabbag_static.lib
 
-grabbag.lib: $(OBJS)
-	link.exe -lib /nodefaultlib -out:../../../obj/lib/$*.lib $(OBJS)
+grabbag_static.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../../obj/release/lib/$*.lib $(OBJS)
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\..\obj\lib\grabbag.lib ..\..\..\obj\lib\grabbag.pdb
+	-del ..\..\..\obj\release\lib\grabbag_static.lib ..\..\..\obj\release\lib\grabbag_static.pdb

@@ -14,11 +14,11 @@ C_FILES= \
 
 OBJS= $(C_FILES:.c=.obj)
 
-all: getopt.lib
+all: getopt_static.lib
 
-getopt.lib: $(OBJS)
-	link.exe -lib /nodefaultlib -out:../../../obj/lib/$*.lib $(OBJS)
+getopt_static.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../../obj/release/lib/$*.lib $(OBJS)
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\..\obj\lib\getopt.lib ..\..\..\obj\lib\getopt.pdb
+	-del ..\..\..\obj\release\lib\getopt_static.lib ..\..\..\obj\release\lib\getopt_static.pdb

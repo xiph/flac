@@ -13,11 +13,11 @@ C_FILES= \
 
 OBJS= $(C_FILES:.c=.obj)
 
-all: gain_analysis.lib
+all: gain_analysis_static.lib
 
-gain_analysis.lib: $(OBJS)
-	link.exe -lib /nodefaultlib -out:../../../obj/lib/$*.lib $(OBJS)
+gain_analysis_static.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../../obj/release/lib/$*.lib $(OBJS)
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\..\obj\lib\gain_analysis.lib ..\..\..\obj\lib\gain_analysis.pdb
+	-del ..\..\..\obj\release\lib\gain_analysis_static.lib ..\..\..\obj\release\lib\gain_analysis_static.pdb

@@ -52,8 +52,8 @@ CPP_OBJS= $(CPP_FILES:.cpp=.obj)
 all: test_libFLAC++.exe
 
 test_libFLAC++.exe: $(C_OBJS) $(CPP_OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(CPP_OBJS) $(C_OBJS) grabbag.lib libFLAC++.lib libFLAC.lib
+	link.exe /libpath:"..\..\obj\release\lib" -out:../../obj/release/bin/$*.exe $(CPP_OBJS) $(C_OBJS) grabbag_static.lib libFLAC++_static.lib libFLAC_static.lib
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\obj\bin\test_libFLAC++.exe
+	-del ..\..\obj\release\bin\test_libFLAC++.exe

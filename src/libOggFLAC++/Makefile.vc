@@ -34,11 +34,11 @@ CPP_FILES= \
 
 OBJS= $(CPP_FILES:.cpp=.obj)
 
-all: libOggFLAC++.lib
+all: libOggFLAC++_static.lib
 
-libOggFLAC++.lib: $(OBJS)
-	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
+libOggFLAC++_static.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../obj/release/lib/$*.lib $(OBJS)
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\obj\lib\libOggFLAC++.lib ..\..\obj\lib\libOggFLAC++.pdb
+	-del ..\..\obj\release\lib\libOggFLAC++_static.lib ..\..\obj\release\lib\libOggFLAC++_static.pdb

@@ -2,10 +2,10 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I ".\include" /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I ".\include" /I "..\..\include" -DFLAC__NO_DLL -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I ".\include" /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I ".\include" /I "..\..\include" -DFLAC__NO_DLL -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
@@ -19,11 +19,11 @@ C_FILES= \
 
 OBJS= $(C_FILES:.c=.obj)
 
-all: plugin_common.lib
+all: plugin_common_static.lib
 
-plugin_common.lib: $(OBJS)
-	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
+plugin_common_static.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../obj/release/lib/$*.lib $(OBJS)
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\obj\lib\plugin_common.lib ..\..\obj\lib\plugin_common.pdb
+	-del ..\..\obj\release\lib\plugin_common_static.lib ..\..\obj\release\lib\plugin_common_static.pdb
