@@ -93,6 +93,7 @@ static struct share__option long_options_[] = {
 	{ "test"             , share__no_argument, 0, 't' },
 	{ "stdout"           , share__no_argument, 0, 'c' },
 	{ "silent"           , share__no_argument, 0, 's' },
+	{ "force"            , share__no_argument, 0, 'f' },
 	{ "delete-input-file", share__no_argument, 0, 0 },
 	{ "output-prefix"    , share__required_argument, 0, 0 },
 	{ "output-name"      , share__required_argument, 0, 'o' },
@@ -161,6 +162,7 @@ static struct share__option long_options_[] = {
 	 */
 	{ "no-decode-through-errors"  , share__no_argument, 0, 0 },
 	{ "no-silent"                 , share__no_argument, 0, 0 },
+	{ "no-force"                  , share__no_argument, 0, 0 },
 	{ "no-seektable"              , share__no_argument, 0, 0 },
 	{ "no-delete-input-file"      , share__no_argument, 0, 0 },
 	{ "no-replay-gain"            , share__no_argument, 0, 0 },
@@ -199,6 +201,7 @@ static struct {
 	FLAC__bool mode_decode;
 	FLAC__bool verify;
 	FLAC__bool verbose;
+	FLAC__bool force_file_overwrite;
 	FLAC__bool continue_through_decode_errors;
 	replaygain_synthesis_spec_t replaygain_synthesis_spec;
 	FLAC__bool lax;
@@ -521,6 +524,7 @@ FLAC__bool init_options()
 	option_values.mode_decode = false;
 	option_values.verify = false;
 	option_values.verbose = true;
+	option_values.force_file_overwrite = false;
 	option_values.continue_through_decode_errors = false;
 	option_values.replaygain_synthesis_spec.apply = false;
 	option_values.replaygain_synthesis_spec.use_album_gain = true;
@@ -585,7 +589,7 @@ int parse_options(int argc, char *argv[])
 	int short_option;
 	int option_index = 1;
 	FLAC__bool had_error = false;
-	const char *short_opts = "0123456789ab:cdeFhHl:mMo:pP:q:r:sS:tT:vV";
+	const char *short_opts = "0123456789ab:cdefFhHl:mMo:pP:q:r:sS:tT:vV";
 
 	while ((short_option = share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
 		switch (short_option) {
@@ -755,6 +759,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "no-silent")) {
 			option_values.verbose = true;
 		}
+		else if(0 == strcmp(long_option, "no-force")) {
+			option_values.force_file_overwrite = false;
+		}
 		else if(0 == strcmp(long_option, "no-seektable")) {
 			option_values.num_requested_seek_points = 0;
 			option_values.requested_seek_points[0] = '\0';
@@ -838,6 +845,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 's':
 				option_values.verbose = false;
+				break;
+			case 'f':
+				option_values.force_file_overwrite = true;
 				break;
 			case 'o':
 				FLAC__ASSERT(0 != option_argument);
@@ -1122,6 +1132,7 @@ void show_help()
 	printf("  -a, --analyze                Same as -d except an analysis file is written\n");
 	printf("  -c, --stdout                 Write output to stdout\n");
 	printf("  -s, --silent                 Do not write runtime encode/decode statistics\n");
+	printf("  -f, --force                  Force overwriting of output files\n");
 	printf("  -o, --output-name=FILENAME   Force the output file name\n");
 	printf("      --output-prefix=STRING   Prepend STRING to output names\n");
 	printf("      --delete-input-file      Deletes after a successful encode/decode\n");
@@ -1188,6 +1199,7 @@ void show_help()
 	printf("      --no-sector-align\n");
 	printf("      --no-seektable\n");
 	printf("      --no-silent\n");
+	printf("      --no-force\n");
 	printf("      --no-verify\n");
 }
 
@@ -1223,6 +1235,7 @@ void show_explain()
 	printf("  -a, --analyze                Same as -d except an analysis file is written\n");
 	printf("  -c, --stdout                 Write output to stdout\n");
 	printf("  -s, --silent                 Do not write runtime encode/decode statistics\n");
+	printf("  -f, --force                  Force overwriting of output files\n");
 	printf("  -o, --output-name=FILENAME   Force the output file name; usually flac just\n");
 	printf("                               changes the extension.  May only be used when\n");
 	printf("                               encoding a single file.  May not be used in\n");
@@ -1394,6 +1407,7 @@ void show_explain()
 	printf("      --no-sector-align\n");
 	printf("      --no-seektable\n");
 	printf("      --no-silent\n");
+	printf("      --no-force\n");
 	printf("      --no-verify\n");
 }
 
@@ -1416,6 +1430,15 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 	if(0 == outfilename) {
 		fprintf(stderr, "ERROR: filename too long: %s", infilename);
+		return 1;
+	}
+
+	/*
+	 * Error if output file already exists (and -f not used).
+	 * Use grabbag__file_get_filesize() as a cheap way to check.
+	 */
+	if(!option_values.test_only && !option_values.force_file_overwrite && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
+		fprintf(stderr, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
 	}
 
@@ -1569,6 +1592,15 @@ int decode_file(const char *infilename)
 
 	if(0 == outfilename) {
 		fprintf(stderr, "ERROR: filename too long: %s", infilename);
+		return 1;
+	}
+
+	/*
+	 * Error if output file already exists (and -f not used).
+	 * Use grabbag__file_get_filesize() as a cheap way to check.
+	 */
+	if(!option_values.test_only && !option_values.force_file_overwrite && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
+		fprintf(stderr, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
 	}
 
