@@ -189,7 +189,7 @@ bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
 	strcpy(*tempfilename, filename);
 	strcat(*tempfilename, tempfile_suffix);
 
-	if(0 == (*tempfile = fopen(*tempfilename, "w+b")))
+	if(0 == (*tempfile = fopen(*tempfilename, "wb")))
 		return false;
 
 	return true;
