@@ -25,7 +25,7 @@ die ()
 
 LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/flac:../src/test_streams:../obj/release/bin:../obj/debug/bin:$PATH
+PATH=../src/flac:../src/metaflac:../src/test_streams:../obj/release/bin:../obj/debug/bin:$PATH
 
 flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 
