@@ -949,12 +949,20 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 		else if(upper_seek_point >= 0) {
 			const FLAC__uint64 target_offset = target_sample - decoder->private_->seek_table->points[lower_seek_point].sample_number;
 			const FLAC__uint64 range_samples = decoder->private_->seek_table->points[upper_seek_point].sample_number - decoder->private_->seek_table->points[lower_seek_point].sample_number;
-			const FLAC__uint64 range_bytes = upper_bound - lower_bound;
+			const FLAC__uint64 range_bytes = (upper_bound>lower_bound? upper_bound - lower_bound - 1 : 0);
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
 #if defined _MSC_VER || defined __MINGW32__
 			/* with VC++ you have to spoon feed it the casting */
-			pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)(FLAC__int64)target_offset / (FLAC__double)(FLAC__int64)range_samples * (FLAC__double)(FLAC__int64)(range_bytes-1)) - approx_bytes_per_frame;
+			pos = (FLAC__int64)lower_bound + (FLAC__int64)(((FLAC__double)(FLAC__int64)target_offset / (FLAC__double)(FLAC__int64)range_samples) * (FLAC__double)(FLAC__int64)(range_bytes-1)) - approx_bytes_per_frame;
 #else
-			pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)target_offset / (FLAC__double)range_samples * (FLAC__double)(range_bytes-1)) - approx_bytes_per_frame;
+			pos = (FLAC__int64)lower_bound + (FLAC__int64)(((FLAC__double)target_offset / (FLAC__double)range_samples) * (FLAC__double)range_bytes) - approx_bytes_per_frame;
+#endif
+#else
+			/* a little less accurate: */
+			if (range_bytes <= 0xffffffff)
+				pos = (FLAC__int64)lower_bound + (FLAC__int64)((target_offset * range_bytes) / range_samples) - approx_bytes_per_frame;
+			else /* @@@ WATCHOUT, ~2TB limit */
+				pos = (FLAC__int64)lower_bound + (FLAC__int64)(((target_offset>>8) * (range_bytes>>8)) / (range_samples>>16)) - approx_bytes_per_frame;
 #endif
 		}
 	}
@@ -965,11 +973,25 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 	 * frame with the correct sample.
 	 */
 	if(pos < 0 && total_samples > 0) {
+		/*
+		 * For max accuracy we should be using
+		 * (stream_length-first_frame_offset-1) in the divisor, but the
+		 * difference is trivial and (stream_length-first_frame_offset)
+		 * has no chance of underflow.
+		 */
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
 #if defined _MSC_VER || defined __MINGW32__
 		/* with VC++ you have to spoon feed it the casting */
-		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((FLAC__double)(FLAC__int64)target_sample / (FLAC__double)(FLAC__int64)total_samples * (FLAC__double)(FLAC__int64)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
+		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)(((FLAC__double)(FLAC__int64)target_sample / (FLAC__double)(FLAC__int64)total_samples) * (FLAC__double)(FLAC__int64)(stream_length-first_frame_offset)) - approx_bytes_per_frame;
 #else
-		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((FLAC__double)target_sample / (FLAC__double)total_samples * (FLAC__double)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
+		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)(((FLAC__double)target_sample / (FLAC__double)total_samples) * (FLAC__double)(stream_length-first_frame_offset)) - approx_bytes_per_frame;
+#endif
+#else
+		/* a little less accurate: */
+		if (stream_length < 0xffffffff)
+			pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((target_sample * (stream_length-first_frame_offset)) / total_samples) - approx_bytes_per_frame;
+		else /* @@@ WATCHOUT, ~2TB limit */
+			pos = (FLAC__int64)first_frame_offset + (FLAC__int64)(((target_sample>>8) * ((stream_length-first_frame_offset)>>8)) / (total_samples>>16)) - approx_bytes_per_frame;
 #endif
 	}
 

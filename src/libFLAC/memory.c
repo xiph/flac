@@ -157,6 +157,8 @@ FLAC__bool FLAC__memory_alloc_aligned_unsigned_array(unsigned elements, unsigned
 	}
 }
 
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+
 FLAC__bool FLAC__memory_alloc_aligned_real_array(unsigned elements, FLAC__real **unaligned_pointer, FLAC__real **aligned_pointer)
 {
 	FLAC__real *pu; /* unaligned pointer */
@@ -182,3 +184,5 @@ FLAC__bool FLAC__memory_alloc_aligned_real_array(unsigned elements, FLAC__real *
 		return true;
 	}
 }
+
+#endif

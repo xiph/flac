@@ -51,15 +51,20 @@
  *	IN data_len
  *	OUT residual_bits_per_sample[0,FLAC__MAX_FIXED_ORDER]
  */
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
 unsigned FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
-#ifndef FLAC__NO_ASM
-#ifdef FLAC__CPU_IA32
-#ifdef FLAC__HAS_NASM
+# ifndef FLAC__NO_ASM
+#  ifdef FLAC__CPU_IA32
+#   ifdef FLAC__HAS_NASM
 unsigned FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
-#endif
-#endif
-#endif
+#   endif
+#  endif
+# endif
 unsigned FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+#else
+unsigned FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], unsigned data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+unsigned FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], unsigned data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+#endif
 
 /*
  *	FLAC__fixed_compute_residual()

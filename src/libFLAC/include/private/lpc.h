@@ -39,6 +39,8 @@
 #include "private/float.h"
 #include "FLAC/format.h"
 
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+
 /*
  *	FLAC__lpc_compute_autocorrelation()
  *	--------------------------------------------------------------------
@@ -130,6 +132,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx(const FLAC__i
 #  endif
 #endif
 
+#endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
+
 /*
  *	FLAC__lpc_restore_signal()
  *	--------------------------------------------------------------------
@@ -159,6 +163,8 @@ void FLAC__lpc_restore_signal_asm_ppc_altivec_16_order8(const FLAC__int32 residu
 #  endif/* FLAC__CPU_IA32 || FLAC__CPU_PPC */
 #endif /* FLAC__NO_ASM */
 
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+
 /*
  *	FLAC__lpc_compute_expected_bits_per_residual_sample()
  *	--------------------------------------------------------------------
@@ -185,5 +191,7 @@ FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scal
  *	RETURN [1,max_order]                best order
  */
 unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned max_order, unsigned total_samples, unsigned bits_per_signal_sample);
+
+#endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
 
 #endif

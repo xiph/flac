@@ -863,11 +863,19 @@ FLAC__bool seek_to_absolute_sample_(OggFLAC__SeekableStreamDecoder *decoder, FLA
 				pos = (right_pos + left_pos) / 2;
 			}
 			else {
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
 #if defined _MSC_VER || defined __MINGW32__
 				/* with MSVC you have to spoon feed it the casting */
 				pos = (FLAC__uint64)((FLAC__double)(FLAC__int64)(target_sample - left_sample) / (FLAC__double)(FLAC__int64)(right_sample - left_sample) * (FLAC__double)(FLAC__int64)(right_pos - left_pos));
 #else
 				pos = (FLAC__uint64)((FLAC__double)(target_sample - left_sample) / (FLAC__double)(right_sample - left_sample) * (FLAC__double)(right_pos - left_pos));
+#endif
+#else
+				/* a little less accurate: */
+				if ((target_sample-left_sample <= 0xffffffff) && (right_pos-left_pos <= 0xffffffff))
+					pos = (FLAC__int64)(((target_sample-left_sample) * (right_pos-left_pos)) / (right_sample-left_sample));
+				else /* @@@ WATCHOUT, ~2TB limit */
+					pos = (FLAC__int64)((((target_sample-left_sample)>>8) * ((right_pos-left_pos)>>8)) / ((right_sample-left_sample)>>16));
 #endif
 				/* @@@ TODO: might want to limit pos to some distance
 				 * before EOF, to make sure we land before the last frame,

@@ -38,6 +38,8 @@
 #include <stdio.h>
 #endif
 
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+
 #ifndef M_LN2
 /* math.h in VC++ doesn't seem to have this (how Microsoft is that?) */
 #define M_LN2 0.69314718055994530942
@@ -287,6 +289,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 dat
 	}
 }
 
+#endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
+
 void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[])
 {
 #ifdef FLAC__OVERFLOW_DETECT
@@ -369,6 +373,8 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 	}
 }
 
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+
 FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample(FLAC__double lpc_error, unsigned total_samples)
 {
 	FLAC__double error_scale;
@@ -420,3 +426,5 @@ unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned m
 
 	return best_order+1; /* +1 since index of lpc_error[] is order-1 */
 }
+
+#endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
