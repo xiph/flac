@@ -20,9 +20,22 @@
 #include <mmreg.h>
 #include <msacm.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "in2.h"
 #include "FLAC/all.h"
+
+typedef struct {
+	FLAC__byte raw[128];
+	char title[31];
+	char artist[31];
+	char album[31];
+	char comment[31];
+	unsigned year;
+	unsigned track; /* may be 0 if v1 (not v1.1) tag */
+	unsigned genre;
+	char description[1024]; /* the formatted description passed to player */
+} id3v1_struct;
 
 BOOL WINAPI _DllMainCRTStartup(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 {
@@ -45,6 +58,7 @@ static FLAC__bool stream_init(const char *infilename);
 static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
 static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+static FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
 
 In_Module mod; /* the output module (declared near the bottom of this file) */
 char lastfn[MAX_PATH]; /* currently playing file (used for getting info on the current file) */
@@ -196,41 +210,41 @@ int infoDlg(char *fn, HWND hwnd)
 
 void getfileinfo(char *filename, char *title, int *length_in_ms)
 {
+	id3v1_struct tag;
+
 	if (!filename || !*filename) { /* currently playing file */
-		if (length_in_ms)
+		if (length_in_ms) {
 			*length_in_ms = getlength();
-		if (title) {
-			char *p = lastfn+strlen(lastfn);
-			while (*p != '\\' && p >= lastfn) p--;
-			strcpy(title, ++p);
+			length_in_ms = 0; /* force skip in following code */
+		}
+		if (title && lastfn && lastfn[0]) {
+			filename = lastfn;
 		}
 	}
-	else { /* some other file */
-		if (length_in_ms) {
-			FLAC__FileDecoder *tmp_decoder = FLAC__file_decoder_new();
-			stream_info_struct tmp_stream_info;
-			tmp_stream_info.abort_flag = false;
-			FLAC__file_decoder_set_md5_checking(tmp_decoder, false);
-			FLAC__file_decoder_set_filename(tmp_decoder, filename);
-			FLAC__file_decoder_set_write_callback(tmp_decoder, write_callback);
-			FLAC__file_decoder_set_metadata_callback(tmp_decoder, metadata_callback);
-			FLAC__file_decoder_set_error_callback(tmp_decoder, error_callback);
-			FLAC__file_decoder_set_client_data(tmp_decoder, &tmp_stream_info);
-			if(FLAC__file_decoder_init(tmp_decoder) != FLAC__FILE_DECODER_OK)
-				return;
-			if(!FLAC__file_decoder_process_metadata(tmp_decoder))
-				return;
 
-			*length_in_ms = (int)tmp_stream_info.length_in_ms;
+	if (length_in_ms) {
+		FLAC__FileDecoder *tmp_decoder = FLAC__file_decoder_new();
+		stream_info_struct tmp_stream_info;
+		tmp_stream_info.abort_flag = false;
+		FLAC__file_decoder_set_md5_checking(tmp_decoder, false);
+		FLAC__file_decoder_set_filename(tmp_decoder, filename);
+		FLAC__file_decoder_set_write_callback(tmp_decoder, write_callback);
+		FLAC__file_decoder_set_metadata_callback(tmp_decoder, metadata_callback);
+		FLAC__file_decoder_set_error_callback(tmp_decoder, error_callback);
+		FLAC__file_decoder_set_client_data(tmp_decoder, &tmp_stream_info);
+		if(FLAC__file_decoder_init(tmp_decoder) != FLAC__FILE_DECODER_OK)
+			return;
+		if(!FLAC__file_decoder_process_metadata(tmp_decoder))
+			return;
 
-			FLAC__file_decoder_finish(tmp_decoder);
-			FLAC__file_decoder_delete(tmp_decoder);
-		}
-		if (title) {
-			char *p = filename+strlen(filename);
-			while (*p != '\\' && p >= filename) p--;
-			strcpy(title, ++p);
-		}
+		*length_in_ms = (int)tmp_stream_info.length_in_ms;
+
+		FLAC__file_decoder_finish(tmp_decoder);
+		FLAC__file_decoder_delete(tmp_decoder);
+	}
+	if (title) {
+		(void)get_id3v1_tag_(filename, &tag);
+		strcpy(title, tag.description);
 	}
 }
 
@@ -425,4 +439,50 @@ void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorSt
 	(void)decoder;
 	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
 		stream_info->abort_flag = true;
+}
+
+FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
+{
+	const char *temp;
+	FILE *f = fopen(filename, "rb");
+	memset(tag, 0, sizeof(id3v1_struct));
+
+	/* set the title and description to the filename by default */
+	temp = strrchr(filename, '/');
+	if(!temp)
+		temp = filename;
+	else
+		temp++;
+	strcpy(tag->description, temp);
+	*strrchr(tag->description, '.') = '\0';
+	strncpy(tag->title, tag->description, 30); tag->title[30] = '\0';
+
+	if(0 == f)
+		return false;
+	if(-1 == fseek(f, -128, SEEK_END)) {
+		fclose(f);
+		return false;
+	}
+	if(fread(tag->raw, 1, 128, f) < 128) {
+		fclose(f);
+		return false;
+	}
+	fclose(f);
+	if(strncmp(tag->raw, "TAG", 3))
+		return false;
+	else {
+		char year_str[5];
+
+		memcpy(tag->title, tag->raw+3, 30);
+		memcpy(tag->artist, tag->raw+33, 30);
+		memcpy(tag->album, tag->raw+63, 30);
+		memcpy(year_str, tag->raw+93, 4); year_str[4] = '\0'; tag->year = atoi(year_str);
+		memcpy(tag->comment, tag->raw+97, 30);
+		tag->genre = (unsigned)((FLAC__byte)tag->raw[127]);
+		tag->track = (unsigned)((FLAC__byte)tag->raw[126]);
+
+		sprintf(tag->description, "%s - %s", tag->artist[0]? tag->artist : "Unknown Artist", tag->title[0]? tag->title : "Untitled");
+
+		return true;
+	}
 }
