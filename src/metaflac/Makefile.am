@@ -3,4 +3,4 @@ CFLAGS = @CFLAGS@
 
 metaflac_SOURCES = \
 	main.c
-metaflac_LDFLAGS = -lm
+metaflac_LDFLAGS = 

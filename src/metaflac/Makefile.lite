@@ -4,7 +4,7 @@
 
 PROGRAM_NAME = metaflac
 INCLUDES     = -I./include -I../../include
-LIBS         = -lm
+LIBS         = 
 
 OBJS = \
 	main.o
