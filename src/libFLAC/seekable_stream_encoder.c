@@ -656,7 +656,7 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *encode
 	 * means we're still writing metadata and haven't hit the first
 	 * frame yet)
 	 */
-	if(seekable_stream_encoder->private_->stream_offset > 0 && seekable_stream_encoder->private_->seek_table->num_points > 0) {
+	if(0 != seekable_stream_encoder->private_->seek_table && seekable_stream_encoder->private_->stream_offset > 0 && seekable_stream_encoder->private_->seek_table->num_points > 0) {
 		/*@@@ WATCHOUT: assumes the encoder is fixed-blocksize, which will be true indefinitely: */
 		const unsigned blocksize = FLAC__stream_encoder_get_blocksize(encoder);
 		const FLAC__uint64 frame_first_sample = (FLAC__uint64)current_frame * (FLAC__uint64)blocksize;
@@ -771,7 +771,7 @@ void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMe
 	/*
 	 * Write seektable
 	 */
-	if(seekable_stream_encoder->private_->seek_table->num_points > 0 && seekable_stream_encoder->private_->seektable_offset > 0) {
+	if(0 != seekable_stream_encoder->private_->seek_table && seekable_stream_encoder->private_->seek_table->num_points > 0 && seekable_stream_encoder->private_->seektable_offset > 0) {
 		unsigned i;
 
 		FLAC__format_seektable_sort(seekable_stream_encoder->private_->seek_table);
