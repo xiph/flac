@@ -1,0 +1,66 @@
+#  FLAC - Free Lossless Audio Codec
+#  Copyright (C) 2001,2002  Josh Coalson
+#
+#  This program is part of FLAC; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+.PHONY: all flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
+all: flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
+
+DEFAULT_CONFIG = release
+
+CONFIG = $(DEFAULT_CONFIG)
+
+debug   : CONFIG = debug
+valgrind: CONFIG = valgrind
+release : CONFIG = release
+
+debug   : all
+valgrind: all
+release : all
+
+flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams:
+	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
+
+clean:
+	-(cd flac ; $(MAKE) -f Makefile.lite clean)
+	-(cd libFLAC ; $(MAKE) -f Makefile.lite clean)
+	-(cd libFLAC++ ; $(MAKE) -f Makefile.lite clean)
+	-(cd libOggFLAC ; $(MAKE) -f Makefile.lite clean)
+	-(cd libOggFLAC++ ; $(MAKE) -f Makefile.lite clean)
+	-(cd metaflac ; $(MAKE) -f Makefile.lite clean)
+	-(cd plugin_common ; $(MAKE) -f Makefile.lite clean)
+	-(cd plugin_xmms ; $(MAKE) -f Makefile.lite clean)
+	-(cd share ; $(MAKE) -f Makefile.lite clean)
+	-(cd test_grabbag ; $(MAKE) -f Makefile.lite clean)
+	-(cd test_libFLAC ; $(MAKE) -f Makefile.lite clean)
+	-(cd test_libFLAC++ ; $(MAKE) -f Makefile.lite clean)
+	-(cd test_libOggFLAC ; $(MAKE) -f Makefile.lite clean)
+	-(cd test_libOggFLAC++ ; $(MAKE) -f Makefile.lite clean)
+	-(cd test_streams ; $(MAKE) -f Makefile.lite clean)
+
+flac: libFLAC libOggFLAC share
+libFLAC++: libFLAC
+libOggFLAC++: libFLAC
+libOggFLAC: libFLAC
+metaflac: libFLAC share
+plugin_common: libFLAC
+plugin_xmms: libFLAC plugin_common
+share: libFLAC
+test_grabbag: share
+test_libFLAC++: libFLAC libFLAC++
+test_libFLAC: libFLAC
+test_libOggFLAC++: libFLAC libOggFLAC libOggFLAC++
+test_libOggFLAC: libFLAC libOggFLAC
+test_streams: libFLAC
