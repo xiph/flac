@@ -14,11 +14,17 @@ C_FILES= \
 
 OBJS= $(C_FILES:.c=.obj)
 
-all: getopt.lib
+UTF8_OBJS=charset.o iconvert.o utf8.o
+
+all: getopt.lib utf8.lib
 
 getopt.lib: $(OBJS)
 	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
 
+utf8.lib: $(UTF8_OBJS)
+	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(UTF8_OBJS)
+
 clean:
 	-del *.obj *.pch
 	-del ..\..\obj\lib\getopt.lib ..\..\obj\lib\getopt.pdb
+	-del ..\..\obj\lib\utf8.lib ..\..\obj\lib\utf8.pdb

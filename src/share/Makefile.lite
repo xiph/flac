@@ -3,12 +3,38 @@
 #
 
 LIB_NAME = libgetopt
-INCLUDES = -I../../include
+INCLUDES = -I../../include -I../../include/share
 
 OBJS = \
 	getopt.o \
 	getopt1.o
 
 include ../../build/lib.mk
+
+# Our lame Makefile.lite system has no provision for building multiple libs in
+# a directory, so we hack it:
+UTF8_LIB_NAME = libutf8
+UTF8_OBJS = charset.o iconvert.o utf8.o
+UTF8_STATIC_LIB = $(LIBPATH)/$(UTF8_LIB_NAME).$(STATIC_LIB_SUFFIX)
+UTF8_DYNAMIC_LIB = $(LIBPATH)/$(UTF8_LIB_NAME).$(DYNAMIC_LIB_SUFFIX)
+
+debug: $(UTF8_STATIC_LIB) $(UTF8_DYNAMIC_LIB)
+
+release: $(UTF8_STATIC_LIB) $(UTF8_DYNAMIC_LIB)
+
+clean: utf8_clean
+
+utf8_clean:
+	rm -f $(UTF8_OBJS) $(UTF8_STATIC_LIB) $(UTF8_DYNAMIC_LIB)
+
+$(UTF8_STATIC_LIB): $(UTF8_OBJS)
+	$(LINK) $@ $(UTF8_OBJS) && ranlib $@
+
+$(UTF8_DYNAMIC_LIB): $(UTF8_OBJS)
+ifeq ($(DARWIN_BUILD),yes)
+	$(LINKD) -o $@ $(UTF8_OBJS) $(LFLAGS) $(LIBS) -lc
+else
+	$(LINKD) -o $@ $(UTF8_OBJS) $(LFLAGS) $(LIBS)
+endif
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
