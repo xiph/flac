@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>December 30, 2002</date>">
+  <!ENTITY dhdate      "<date>January 02, 2003</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -27,7 +27,7 @@
 	&dhsurname;
       </author>
 	<copyright>
-		    <year>2002</year>
+		    <year>2002,2003</year>
 		    <holder>&dhusername;</holder>
 	</copyright>
 	    &dhdate;
