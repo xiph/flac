@@ -21,6 +21,7 @@ flaccincludedir = $(includedir)/FLAC
 flaccinclude_HEADERS = \
 	all.h \
 	assert.h \
+	export.h \
 	file_decoder.h \
 	file_encoder.h \
 	format.h \

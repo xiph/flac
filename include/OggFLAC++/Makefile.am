@@ -21,4 +21,5 @@ oggflaccppincludedir = $(includedir)/OggFLAC++
 oggflaccppinclude_HEADERS = \
 	all.h \
 	decoder.h \
-	encoder.h
+	encoder.h \
+	export.h

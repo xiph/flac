@@ -22,4 +22,5 @@ flaccppinclude_HEADERS = \
 	all.h \
 	decoder.h \
 	encoder.h \
+	export.h \
 	metadata.h
