@@ -40,7 +40,7 @@
 #ifdef VERSION
 #define FLAC__VERSION_STRING VERSION
 #else
-#define FLAC__VERSION_STRING "DEVEL"
+#define FLAC__VERSION_STRING "0.6"
 #endif
 
 extern const byte     FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */;
