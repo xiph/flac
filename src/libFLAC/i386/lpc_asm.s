@@ -58,34 +58,33 @@ cglobal FLAC__lpc_restore_signal_asm_i386_mmx
 ;
 	ALIGN 16
 cident FLAC__lpc_compute_autocorrelation_asm_i386
-	;[esp + 32] == autoc[]
-	;[esp + 28] == lag
-	;[esp + 24] == data_len
-	;[esp + 20] == data[]
+	;[esp + 24] == autoc[]
+	;[esp + 20] == lag
+	;[esp + 16] == data_len
+	;[esp + 12] == data[]
 
 	;ASSERT(lag > 0)
+	;ASSERT(lag <= 33)
 	;ASSERT(lag <= data_len)
 
 .begin:
-	push	ebp
-	push	ebx
 	push	esi
 	push	edi
 
-	mov	edx, [esp + 28]			; edx == lag
-	mov	edi, [esp + 32]			; edi == autoc
-
 	;	for(coeff = 0; coeff < lag; coeff++)
 	;		autoc[coeff] = 0.0;
-	mov	ecx, edx			; ecx = # of dwords of 0 to write
+	mov	edi, [esp + 24]			; edi == autoc
+	mov	ecx, [esp + 20]			; ecx = # of dwords (=lag) of 0 to write
 	xor	eax, eax
 	rep	stosd
 
 	;	const unsigned limit = data_len - lag;
-	mov	esi, [esp + 24]			; esi == data_len
-	mov	ecx, esi
-	sub	ecx, edx			; ecx == limit
-	mov	edi, [esp + 32]			; edi == autoc
+	mov	eax, [esp + 20]			; eax == lag
+	mov	ecx, [esp + 16]
+	sub	ecx, eax			; ecx == limit
+
+	mov	edi, [esp + 24]			; edi == autoc
+	mov	esi, [esp + 12]			; esi == data
 	inc	ecx				; we are looping <= limit so we add one to the counter
 
 	;	for(sample = 0; sample <= limit; sample++) {
@@ -93,120 +92,324 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386
 	;		for(coeff = 0; coeff < lag; coeff++)
 	;			autoc[coeff] += d * data[sample+coeff];
 	;	}
-	mov	eax, [esp + 20]			; eax == &data[sample] <- &data[0]
-	xor	ebp, ebp			; ebp == sample <- 0
-	ALIGN 16
-.outer_loop:
-	push	eax				; save &data[sample], for inner_loop:
-						; eax == &data[sample+coeff] <- &data[sample]
-	fld	dword [eax]			; ST = d <- data[sample]
-	mov	edx, [esp + 32]			; edx <- lag (note the +4 due to the above 'push eax')
-	mov	ebx, edi			; ebx == &autoc[coeff] <- &autoc[0]
-	and	edx, byte 3			; edx <- lag % 4
-	jz	.inner_start
-	cmp	edx, byte 1
-	je	.warmup_1
-	cmp	edx, byte 2
-	je	.warmup_2
-.warmup_3:
+	fld	dword [esi]			; ST = d <- data[sample]
+	; each iteration is 11 bytes so we need (-eax)*11, so we do (-12*eax + eax)
+	lea	edx, [eax + eax*2]
+	neg	edx
+	lea	edx, [eax + edx*4 + .jumper1_0]
+	inc	edx				; compensate for the shorter opcode on the last iteration
+	inc	edx				; compensate for the shorter opcode on the last iteration
+	inc	edx				; compensate for the shorter opcode on the last iteration
+	cmp	eax, 33
+	jne	.loop1_start
+	sub	edx, byte 9			; compensate for the longer opcodes on the first iteration
+.loop1_start:
+	jmp	edx
+
 	fld	st0				; ST = d d
-	fmul	dword [eax]			; ST = d*data[sample+coeff] d
-	add	eax, byte 4			; (sample+coeff)++
-	fadd	dword [ebx]			; ST = autoc[coeff]+d*data[sample+coeff] d
-	fstp	dword [ebx]			; autoc[coeff]+=d*data[sample+coeff]  ST = d
-	add	ebx, byte 4			; coeff++
-.warmup_2:
+	fmul	dword [esi + (32*4)]		; ST = d*data[sample+32] d		WATCHOUT: not a byte displacement here!
+	fadd	dword [edi + (32*4)]		; ST = autoc[32]+d*data[sample+32] d	WATCHOUT: not a byte displacement here!
+	fstp	dword [edi + (32*4)]		; autoc[32]+=d*data[sample+32]  ST = d	WATCHOUT: not a byte displacement here!
 	fld	st0				; ST = d d
-	fmul	dword [eax]			; ST = d*data[sample+coeff] d
-	add	eax, byte 4			; (sample+coeff)++
-	fadd	dword [ebx]			; ST = autoc[coeff]+d*data[sample+coeff] d
-	fstp	dword [ebx]			; autoc[coeff]+=d*data[sample+coeff]  ST = d
-	add	ebx, byte 4			; coeff++
-.warmup_1:
+	fmul	dword [esi + (31*4)]		; ST = d*data[sample+31] d
+	fadd	dword [edi + (31*4)]		; ST = autoc[31]+d*data[sample+31] d
+	fstp	dword [edi + (31*4)]		; autoc[31]+=d*data[sample+31]  ST = d
 	fld	st0				; ST = d d
-	fmul	dword [eax]			; ST = d*data[sample+coeff] d
-	add	eax, byte 4			; (sample+coeff)++
-	fadd	dword [ebx]			; ST = autoc[coeff]+d*data[sample+coeff] d
-	fstp	dword [ebx]			; autoc[coeff]+=d*data[sample+coeff]  ST = d
-	add	ebx, byte 4			; coeff++
-.inner_start:
-	mov	edx, [esp + 32]			; edx <- lag (note the +4 due to the above 'push eax')
-	shr	edx, 2				; edx <- lag / 4
-	jz	.inner_end
-	ALIGN 16
-.inner_loop:
+	fmul	dword [esi + (30*4)]		; ST = d*data[sample+30] d
+	fadd	dword [edi + (30*4)]		; ST = autoc[30]+d*data[sample+30] d
+	fstp	dword [edi + (30*4)]		; autoc[30]+=d*data[sample+30]  ST = d
 	fld	st0				; ST = d d
-	fmul	dword [eax]			; ST = d*data[sample+coeff] d
-	add	eax, byte 4			; (sample+coeff)++
-	fadd	dword [ebx]			; ST = autoc[coeff]+d*data[sample+coeff] d
-	fstp	dword [ebx]			; autoc[coeff]+=d*data[sample+coeff]  ST = d
-	add	ebx, byte 4			; coeff++
+	fmul	dword [esi + (29*4)]		; ST = d*data[sample+29] d
+	fadd	dword [edi + (29*4)]		; ST = autoc[29]+d*data[sample+29] d
+	fstp	dword [edi + (29*4)]		; autoc[29]+=d*data[sample+29]  ST = d
 	fld	st0				; ST = d d
-	fmul	dword [eax]			; ST = d*data[sample+coeff] d
-	add	eax, byte 4			; (sample+coeff)++
-	fadd	dword [ebx]			; ST = autoc[coeff]+d*data[sample+coeff] d
-	fstp	dword [ebx]			; autoc[coeff]+=d*data[sample+coeff]  ST = d
-	add	ebx, byte 4			; coeff++
+	fmul	dword [esi + (28*4)]		; ST = d*data[sample+28] d
+	fadd	dword [edi + (28*4)]		; ST = autoc[28]+d*data[sample+28] d
+	fstp	dword [edi + (28*4)]		; autoc[28]+=d*data[sample+28]  ST = d
 	fld	st0				; ST = d d
-	fmul	dword [eax]			; ST = d*data[sample+coeff] d
-	add	eax, byte 4			; (sample+coeff)++
-	fadd	dword [ebx]			; ST = autoc[coeff]+d*data[sample+coeff] d
-	fstp	dword [ebx]			; autoc[coeff]+=d*data[sample+coeff]  ST = d
-	add	ebx, byte 4			; coeff++
+	fmul	dword [esi + (27*4)]		; ST = d*data[sample+27] d
+	fadd	dword [edi + (27*4)]		; ST = autoc[27]+d*data[sample+27] d
+	fstp	dword [edi + (27*4)]		; autoc[27]+=d*data[sample+27]  ST = d
 	fld	st0				; ST = d d
-	fmul	dword [eax]			; ST = d*data[sample+coeff] d
-	add	eax, byte 4			; (sample+coeff)++
-	fadd	dword [ebx]			; ST = autoc[coeff]+d*data[sample+coeff] d
-	fstp	dword [ebx]			; autoc[coeff]+=d*data[sample+coeff]  ST = d
-	add	ebx, byte 4			; coeff++
-	dec	edx
-	jnz	.inner_loop
-.inner_end:
-	pop	eax				; restore &data[sample]
+	fmul	dword [esi + (26*4)]		; ST = d*data[sample+26] d
+	fadd	dword [edi + (26*4)]		; ST = autoc[26]+d*data[sample+26] d
+	fstp	dword [edi + (26*4)]		; autoc[26]+=d*data[sample+26]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (25*4)]		; ST = d*data[sample+25] d
+	fadd	dword [edi + (25*4)]		; ST = autoc[25]+d*data[sample+25] d
+	fstp	dword [edi + (25*4)]		; autoc[25]+=d*data[sample+25]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (24*4)]		; ST = d*data[sample+24] d
+	fadd	dword [edi + (24*4)]		; ST = autoc[24]+d*data[sample+24] d
+	fstp	dword [edi + (24*4)]		; autoc[24]+=d*data[sample+24]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (23*4)]		; ST = d*data[sample+23] d
+	fadd	dword [edi + (23*4)]		; ST = autoc[23]+d*data[sample+23] d
+	fstp	dword [edi + (23*4)]		; autoc[23]+=d*data[sample+23]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (22*4)]		; ST = d*data[sample+22] d
+	fadd	dword [edi + (22*4)]		; ST = autoc[22]+d*data[sample+22] d
+	fstp	dword [edi + (22*4)]		; autoc[22]+=d*data[sample+22]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (21*4)]		; ST = d*data[sample+21] d
+	fadd	dword [edi + (21*4)]		; ST = autoc[21]+d*data[sample+21] d
+	fstp	dword [edi + (21*4)]		; autoc[21]+=d*data[sample+21]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (20*4)]		; ST = d*data[sample+20] d
+	fadd	dword [edi + (20*4)]		; ST = autoc[20]+d*data[sample+20] d
+	fstp	dword [edi + (20*4)]		; autoc[20]+=d*data[sample+20]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (19*4)]		; ST = d*data[sample+19] d
+	fadd	dword [edi + (19*4)]		; ST = autoc[19]+d*data[sample+19] d
+	fstp	dword [edi + (19*4)]		; autoc[19]+=d*data[sample+19]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (18*4)]		; ST = d*data[sample+18] d
+	fadd	dword [edi + (18*4)]		; ST = autoc[18]+d*data[sample+18] d
+	fstp	dword [edi + (18*4)]		; autoc[18]+=d*data[sample+18]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (17*4)]		; ST = d*data[sample+17] d
+	fadd	dword [edi + (17*4)]		; ST = autoc[17]+d*data[sample+17] d
+	fstp	dword [edi + (17*4)]		; autoc[17]+=d*data[sample+17]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (16*4)]		; ST = d*data[sample+16] d
+	fadd	dword [edi + (16*4)]		; ST = autoc[16]+d*data[sample+16] d
+	fstp	dword [edi + (16*4)]		; autoc[16]+=d*data[sample+16]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (15*4)]		; ST = d*data[sample+15] d
+	fadd	dword [edi + (15*4)]		; ST = autoc[15]+d*data[sample+15] d
+	fstp	dword [edi + (15*4)]		; autoc[15]+=d*data[sample+15]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (14*4)]		; ST = d*data[sample+14] d
+	fadd	dword [edi + (14*4)]		; ST = autoc[14]+d*data[sample+14] d
+	fstp	dword [edi + (14*4)]		; autoc[14]+=d*data[sample+14]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (13*4)]		; ST = d*data[sample+13] d
+	fadd	dword [edi + (13*4)]		; ST = autoc[13]+d*data[sample+13] d
+	fstp	dword [edi + (13*4)]		; autoc[13]+=d*data[sample+13]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (12*4)]		; ST = d*data[sample+12] d
+	fadd	dword [edi + (12*4)]		; ST = autoc[12]+d*data[sample+12] d
+	fstp	dword [edi + (12*4)]		; autoc[12]+=d*data[sample+12]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (11*4)]		; ST = d*data[sample+11] d
+	fadd	dword [edi + (11*4)]		; ST = autoc[11]+d*data[sample+11] d
+	fstp	dword [edi + (11*4)]		; autoc[11]+=d*data[sample+11]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (10*4)]		; ST = d*data[sample+10] d
+	fadd	dword [edi + (10*4)]		; ST = autoc[10]+d*data[sample+10] d
+	fstp	dword [edi + (10*4)]		; autoc[10]+=d*data[sample+10]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 9*4)]		; ST = d*data[sample+9] d
+	fadd	dword [edi + ( 9*4)]		; ST = autoc[9]+d*data[sample+9] d
+	fstp	dword [edi + ( 9*4)]		; autoc[9]+=d*data[sample+9]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 8*4)]		; ST = d*data[sample+8] d
+	fadd	dword [edi + ( 8*4)]		; ST = autoc[8]+d*data[sample+8] d
+	fstp	dword [edi + ( 8*4)]		; autoc[8]+=d*data[sample+8]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 7*4)]		; ST = d*data[sample+7] d
+	fadd	dword [edi + ( 7*4)]		; ST = autoc[7]+d*data[sample+7] d
+	fstp	dword [edi + ( 7*4)]		; autoc[7]+=d*data[sample+7]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 6*4)]		; ST = d*data[sample+6] d
+	fadd	dword [edi + ( 6*4)]		; ST = autoc[6]+d*data[sample+6] d
+	fstp	dword [edi + ( 6*4)]		; autoc[6]+=d*data[sample+6]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 5*4)]		; ST = d*data[sample+4] d
+	fadd	dword [edi + ( 5*4)]		; ST = autoc[4]+d*data[sample+4] d
+	fstp	dword [edi + ( 5*4)]		; autoc[4]+=d*data[sample+4]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 4*4)]		; ST = d*data[sample+4] d
+	fadd	dword [edi + ( 4*4)]		; ST = autoc[4]+d*data[sample+4] d
+	fstp	dword [edi + ( 4*4)]		; autoc[4]+=d*data[sample+4]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 3*4)]		; ST = d*data[sample+3] d
+	fadd	dword [edi + ( 3*4)]		; ST = autoc[3]+d*data[sample+3] d
+	fstp	dword [edi + ( 3*4)]		; autoc[3]+=d*data[sample+3]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 2*4)]		; ST = d*data[sample+2] d
+	fadd	dword [edi + ( 2*4)]		; ST = autoc[2]+d*data[sample+2] d
+	fstp	dword [edi + ( 2*4)]		; autoc[2]+=d*data[sample+2]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 1*4)]		; ST = d*data[sample+1] d
+	fadd	dword [edi + ( 1*4)]		; ST = autoc[1]+d*data[sample+1] d
+	fstp	dword [edi + ( 1*4)]		; autoc[1]+=d*data[sample+1]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi]			; ST = d*data[sample] d			WATCHOUT: no displacement byte here!
+	fadd	dword [edi]			; ST = autoc[0]+d*data[sample] d	WATCHOUT: no displacement byte here!
+	fstp	dword [edi]			; autoc[0]+=d*data[sample]  ST = d	WATCHOUT: no displacement byte here!
+.jumper1_0:
+
 	fstp	st0				; pop d, ST = empty
-	inc	ebp				; sample++
-	add	eax, byte 4			; &data[sample++]
+	add	esi, byte 4			; sample++
 	dec	ecx
-	jnz	near .outer_loop
+	jz	.loop1_end
+	fld	dword [esi]			; ST = d <- data[sample]
+	jmp	edx
+.loop1_end:
 
 	;	for(; sample < data_len; sample++) {
 	;		d = data[sample];
 	;		for(coeff = 0; coeff < data_len - sample; coeff++)
 	;			autoc[coeff] += d * data[sample+coeff];
 	;	}
-	mov	ecx, [esp + 28]			; ecx <- lag
+	mov	ecx, [esp + 20]			; ecx <- lag
 	dec	ecx				; ecx <- lag - 1
-	jz	.end				; skip loop if 0
-	ALIGN 16
-.outer_loop2:
-	push	eax				; save &data[sample], for inner_loop2:
-						; eax == &data[sample+coeff] <- &data[sample]
-	fld	dword [eax]			; ST = d <- data[sample]
-	mov	edx, esi			; edx <- data_len
-	sub	edx, ebp			; edx <- data_len-sample
-	mov	ebx, edi			; ebx == &autoc[coeff] <- &autoc[0]
-	ALIGN 16
-.inner_loop2:
+	jz	near .end			; skip loop if 0 (i.e. lag == 1)
+
+	fld	dword [esi]			; ST = d <- data[sample]
+	mov	eax, ecx			; eax <- lag - 1 == data_len - sample the first time through
+	; each iteration is 11 bytes so we need (-eax)*11, so we do (-12*eax + eax)
+	lea	edx, [eax + eax*2]
+	neg	edx
+	lea	edx, [eax + edx*4 + .jumper2_0]
+	inc	edx				; compensate for the shorter opcode on the last iteration
+	inc	edx				; compensate for the shorter opcode on the last iteration
+	inc	edx				; compensate for the shorter opcode on the last iteration
+	jmp	edx
+
 	fld	st0				; ST = d d
-	fmul	dword [eax]			; ST = d*data[sample+coeff] d
-	add	eax, byte 4			; (sample+coeff)++
-	fadd	dword [ebx]			; ST = autoc[coeff]+d*data[sample+coeff] d
-	fstp	dword [ebx]			; autoc[coeff]+=d*data[sample+coeff]  ST = d
-	add	ebx, byte 4			; coeff++
-	dec	edx
-	jnz	.inner_loop2
-	pop	eax				; restore &data[sample]
+	fmul	dword [esi + (31*4)]		; ST = d*data[sample+31] d
+	fadd	dword [edi + (31*4)]		; ST = autoc[31]+d*data[sample+31] d
+	fstp	dword [edi + (31*4)]		; autoc[31]+=d*data[sample+31]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (30*4)]		; ST = d*data[sample+30] d
+	fadd	dword [edi + (30*4)]		; ST = autoc[30]+d*data[sample+30] d
+	fstp	dword [edi + (30*4)]		; autoc[30]+=d*data[sample+30]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (29*4)]		; ST = d*data[sample+29] d
+	fadd	dword [edi + (29*4)]		; ST = autoc[29]+d*data[sample+29] d
+	fstp	dword [edi + (29*4)]		; autoc[29]+=d*data[sample+29]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (28*4)]		; ST = d*data[sample+28] d
+	fadd	dword [edi + (28*4)]		; ST = autoc[28]+d*data[sample+28] d
+	fstp	dword [edi + (28*4)]		; autoc[28]+=d*data[sample+28]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (27*4)]		; ST = d*data[sample+27] d
+	fadd	dword [edi + (27*4)]		; ST = autoc[27]+d*data[sample+27] d
+	fstp	dword [edi + (27*4)]		; autoc[27]+=d*data[sample+27]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (26*4)]		; ST = d*data[sample+26] d
+	fadd	dword [edi + (26*4)]		; ST = autoc[26]+d*data[sample+26] d
+	fstp	dword [edi + (26*4)]		; autoc[26]+=d*data[sample+26]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (25*4)]		; ST = d*data[sample+25] d
+	fadd	dword [edi + (25*4)]		; ST = autoc[25]+d*data[sample+25] d
+	fstp	dword [edi + (25*4)]		; autoc[25]+=d*data[sample+25]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (24*4)]		; ST = d*data[sample+24] d
+	fadd	dword [edi + (24*4)]		; ST = autoc[24]+d*data[sample+24] d
+	fstp	dword [edi + (24*4)]		; autoc[24]+=d*data[sample+24]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (23*4)]		; ST = d*data[sample+23] d
+	fadd	dword [edi + (23*4)]		; ST = autoc[23]+d*data[sample+23] d
+	fstp	dword [edi + (23*4)]		; autoc[23]+=d*data[sample+23]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (22*4)]		; ST = d*data[sample+22] d
+	fadd	dword [edi + (22*4)]		; ST = autoc[22]+d*data[sample+22] d
+	fstp	dword [edi + (22*4)]		; autoc[22]+=d*data[sample+22]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (21*4)]		; ST = d*data[sample+21] d
+	fadd	dword [edi + (21*4)]		; ST = autoc[21]+d*data[sample+21] d
+	fstp	dword [edi + (21*4)]		; autoc[21]+=d*data[sample+21]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (20*4)]		; ST = d*data[sample+20] d
+	fadd	dword [edi + (20*4)]		; ST = autoc[20]+d*data[sample+20] d
+	fstp	dword [edi + (20*4)]		; autoc[20]+=d*data[sample+20]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (19*4)]		; ST = d*data[sample+19] d
+	fadd	dword [edi + (19*4)]		; ST = autoc[19]+d*data[sample+19] d
+	fstp	dword [edi + (19*4)]		; autoc[19]+=d*data[sample+19]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (18*4)]		; ST = d*data[sample+18] d
+	fadd	dword [edi + (18*4)]		; ST = autoc[18]+d*data[sample+18] d
+	fstp	dword [edi + (18*4)]		; autoc[18]+=d*data[sample+18]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (17*4)]		; ST = d*data[sample+17] d
+	fadd	dword [edi + (17*4)]		; ST = autoc[17]+d*data[sample+17] d
+	fstp	dword [edi + (17*4)]		; autoc[17]+=d*data[sample+17]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (16*4)]		; ST = d*data[sample+16] d
+	fadd	dword [edi + (16*4)]		; ST = autoc[16]+d*data[sample+16] d
+	fstp	dword [edi + (16*4)]		; autoc[16]+=d*data[sample+16]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (15*4)]		; ST = d*data[sample+15] d
+	fadd	dword [edi + (15*4)]		; ST = autoc[15]+d*data[sample+15] d
+	fstp	dword [edi + (15*4)]		; autoc[15]+=d*data[sample+15]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (14*4)]		; ST = d*data[sample+14] d
+	fadd	dword [edi + (14*4)]		; ST = autoc[14]+d*data[sample+14] d
+	fstp	dword [edi + (14*4)]		; autoc[14]+=d*data[sample+14]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (13*4)]		; ST = d*data[sample+13] d
+	fadd	dword [edi + (13*4)]		; ST = autoc[13]+d*data[sample+13] d
+	fstp	dword [edi + (13*4)]		; autoc[13]+=d*data[sample+13]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (12*4)]		; ST = d*data[sample+12] d
+	fadd	dword [edi + (12*4)]		; ST = autoc[12]+d*data[sample+12] d
+	fstp	dword [edi + (12*4)]		; autoc[12]+=d*data[sample+12]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (11*4)]		; ST = d*data[sample+11] d
+	fadd	dword [edi + (11*4)]		; ST = autoc[11]+d*data[sample+11] d
+	fstp	dword [edi + (11*4)]		; autoc[11]+=d*data[sample+11]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + (10*4)]		; ST = d*data[sample+10] d
+	fadd	dword [edi + (10*4)]		; ST = autoc[10]+d*data[sample+10] d
+	fstp	dword [edi + (10*4)]		; autoc[10]+=d*data[sample+10]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 9*4)]		; ST = d*data[sample+9] d
+	fadd	dword [edi + ( 9*4)]		; ST = autoc[9]+d*data[sample+9] d
+	fstp	dword [edi + ( 9*4)]		; autoc[9]+=d*data[sample+9]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 8*4)]		; ST = d*data[sample+8] d
+	fadd	dword [edi + ( 8*4)]		; ST = autoc[8]+d*data[sample+8] d
+	fstp	dword [edi + ( 8*4)]		; autoc[8]+=d*data[sample+8]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 7*4)]		; ST = d*data[sample+7] d
+	fadd	dword [edi + ( 7*4)]		; ST = autoc[7]+d*data[sample+7] d
+	fstp	dword [edi + ( 7*4)]		; autoc[7]+=d*data[sample+7]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 6*4)]		; ST = d*data[sample+6] d
+	fadd	dword [edi + ( 6*4)]		; ST = autoc[6]+d*data[sample+6] d
+	fstp	dword [edi + ( 6*4)]		; autoc[6]+=d*data[sample+6]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 5*4)]		; ST = d*data[sample+4] d
+	fadd	dword [edi + ( 5*4)]		; ST = autoc[4]+d*data[sample+4] d
+	fstp	dword [edi + ( 5*4)]		; autoc[4]+=d*data[sample+4]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 4*4)]		; ST = d*data[sample+4] d
+	fadd	dword [edi + ( 4*4)]		; ST = autoc[4]+d*data[sample+4] d
+	fstp	dword [edi + ( 4*4)]		; autoc[4]+=d*data[sample+4]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 3*4)]		; ST = d*data[sample+3] d
+	fadd	dword [edi + ( 3*4)]		; ST = autoc[3]+d*data[sample+3] d
+	fstp	dword [edi + ( 3*4)]		; autoc[3]+=d*data[sample+3]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 2*4)]		; ST = d*data[sample+2] d
+	fadd	dword [edi + ( 2*4)]		; ST = autoc[2]+d*data[sample+2] d
+	fstp	dword [edi + ( 2*4)]		; autoc[2]+=d*data[sample+2]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi + ( 1*4)]		; ST = d*data[sample+1] d
+	fadd	dword [edi + ( 1*4)]		; ST = autoc[1]+d*data[sample+1] d
+	fstp	dword [edi + ( 1*4)]		; autoc[1]+=d*data[sample+1]  ST = d
+	fld	st0				; ST = d d
+	fmul	dword [esi]			; ST = d*data[sample] d			WATCHOUT: no displacement byte here!
+	fadd	dword [edi]			; ST = autoc[0]+d*data[sample] d	WATCHOUT: no displacement byte here!
+	fstp	dword [edi]			; autoc[0]+=d*data[sample]  ST = d	WATCHOUT: no displacement byte here!
+.jumper2_0:
+
 	fstp	st0				; pop d, ST = empty
-	inc	ebp				; sample++
-	add	eax, byte 4			; &data[sample++]
+	add	esi, byte 4			; sample++
 	dec	ecx
-	jnz	.outer_loop2
+	jz	.loop2_end
+	add	edx, byte 11			; adjust our inner loop counter by adjusting the jump target
+	fld	dword [esi]			; ST = d <- data[sample]
+	jmp	edx
+.loop2_end:
 
 .end:
 	pop	edi
 	pop	esi
-	pop	ebx
-	pop	ebp
 	ret
 
 	ALIGN 16
@@ -882,7 +1085,7 @@ cident FLAC__lpc_restore_signal_asm_i386
 	sub	esi, edi
 	neg	eax
 	lea	edx, [eax + eax * 8 + .jumper_0]
-	inc	edx
+	inc	edx				; compensate for the shorter opcode on the last iteration
 	mov	eax, [esp + 28]			; eax = qlp_coeff[]
 	xor	ebp, ebp
 	jmp	edx
@@ -980,7 +1183,7 @@ cident FLAC__lpc_restore_signal_asm_i386
 	mov	ecx, [eax + 4]			; ecx =  qlp_coeff[ 1]
 	imul	ecx, [edi - 8]			; ecx =  qlp_coeff[ 1] * data[i- 2]
 	add	ebp, ecx			; sum += qlp_coeff[ 1] * data[i- 2]
-	mov	ecx, [eax]			; ecx =  qlp_coeff[ 0]
+	mov	ecx, [eax]			; ecx =  qlp_coeff[ 0] (NOTE: one byte missing from instruction)
 	imul	ecx, [edi - 4]			; ecx =  qlp_coeff[ 0] * data[i- 1]
 	add	ebp, ecx			; sum += qlp_coeff[ 0] * data[i- 1]
 .jumper_0:
