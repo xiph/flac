@@ -496,7 +496,7 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 		double gain, peak;
 		if(FLAC__replaygain_load_from_vorbiscomment(metadata, flac_cfg.output.replaygain.album_mode, &gain, &peak)) {
 			file_info_.has_replaygain = true;
-			file_info_.replay_scale = FLAC__replaygain_compute_scale_factor(peak, gain, (double)flac_cfg.output.replaygain.preamp, /*prevent_clipping=*/true);
+			file_info_.replay_scale = FLAC__replaygain_compute_scale_factor(peak, gain, (double)flac_cfg.output.replaygain.preamp, /*prevent_clipping=*/!flac_cfg.output.replaygain.hard_limit);
 		}
 	}
 }
