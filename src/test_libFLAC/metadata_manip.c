@@ -25,6 +25,17 @@
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 
+#if defined _MSC_VER || defined __MINGW32__
+#include <sys/utime.h> /* for utime() */
+#include <io.h> /* for chmod() */
+#else
+#include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
+#include <utime.h> /* for utime() */
+#include <unistd.h> /* for chown(), unlink() */
+#endif
+#include <sys/stat.h> /* for stat(), maybe chmod() */
+
+
 /******************************************************************************
 	The general strategy of these tests (for interface levels 1 and 2) is
 	to create a dummy FLAC file with a known set of initial metadata
@@ -145,6 +156,195 @@ static void delete_from_our_metadata_(unsigned position)
 		for(i = 0; i < our_metadata_.num_blocks - 1; i++)
 			our_metadata_.blocks[i]->is_last = false;
 		our_metadata_.blocks[i]->is_last = true;
+	}
+}
+
+/*
+ * This wad of functions supports filename- and callback-based chain writing.
+ * Everything up to set_file_stats_() is copied from libFLAC/metadata_iterators.c
+ */
+FLAC__bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
+{
+	static const char *tempfile_suffix = ".metadata_edit";
+
+	if(0 == (*tempfilename = (char*)malloc(strlen(filename) + strlen(tempfile_suffix) + 1)))
+		return false;
+	strcpy(*tempfilename, filename);
+	strcat(*tempfilename, tempfile_suffix);
+
+	if(0 == (*tempfile = fopen(*tempfilename, "w+b")))
+		return false;
+
+	return true;
+}
+
+void cleanup_tempfile_(FILE **tempfile, char **tempfilename)
+{
+	if(0 != *tempfile) {
+		(void)fclose(*tempfile);
+		*tempfile = 0;
+	}
+
+	if(0 != *tempfilename) {
+		(void)unlink(*tempfilename);
+		free(*tempfilename);
+		*tempfilename = 0;
+	}
+}
+
+FLAC__bool transport_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
+{
+	FLAC__ASSERT(0 != filename);
+	FLAC__ASSERT(0 != tempfile);
+	FLAC__ASSERT(0 != tempfilename);
+	FLAC__ASSERT(0 != *tempfilename);
+
+	if(0 != *tempfile) {
+		(void)fclose(*tempfile);
+		*tempfile = 0;
+	}
+
+#if defined _MSC_VER || defined __MINGW32__
+	if(unlink(filename) < 0) {
+		cleanup_tempfile_(tempfile, tempfilename);
+		return false;
+	}
+#endif
+
+	if(0 != rename(*tempfilename, filename)) {
+		cleanup_tempfile_(tempfile, tempfilename);
+		return false;
+	}
+
+	cleanup_tempfile_(tempfile, tempfilename);
+
+	return true;
+}
+
+FLAC__bool get_file_stats_(const char *filename, struct stat *stats)
+{
+	FLAC__ASSERT(0 != filename);
+	FLAC__ASSERT(0 != stats);
+	return (0 == stat(filename, stats));
+}
+
+void set_file_stats_(const char *filename, struct stat *stats)
+{
+	struct utimbuf srctime;
+
+	FLAC__ASSERT(0 != filename);
+	FLAC__ASSERT(0 != stats);
+
+	srctime.actime = stats->st_atime;
+	srctime.modtime = stats->st_mtime;
+	(void)chmod(filename, stats->st_mode);
+	(void)utime(filename, &srctime);
+#if !defined _MSC_VER && !defined __MINGW32__
+	(void)chown(filename, stats->st_uid, -1);
+	(void)chown(filename, -1, stats->st_gid);
+#endif
+}
+
+#ifdef FLAC__VALGRIND_TESTING
+static size_t chain_write_cb_(const void *ptr, size_t size, size_t nmemb, FLAC__IOHandle handle)
+{
+	FILE *stream = (FILE*)handle;
+	size_t ret = fwrite(ptr, size, nmemb, stream);
+	if(!ferror(stream))
+		fflush(stream);
+	return ret;
+}
+#endif
+
+static int chain_seek_cb_(FLAC__IOHandle handle, FLAC__int64 offset, int whence)
+{
+	long o = (long)offset;
+	FLAC__ASSERT(offset == o);
+	return fseek((FILE*)handle, o, whence);
+}
+
+static FLAC__int64 chain_tell_cb_(FLAC__IOHandle handle)
+{
+	return ftell((FILE*)handle);
+}
+
+static int chain_eof_cb_(FLAC__IOHandle handle)
+{
+	return feof((FILE*)handle);
+}
+
+static FLAC__bool write_chain_(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats, FLAC__bool filename_based, const char *filename)
+{
+	if(filename_based)
+		return FLAC__metadata_chain_write(chain, use_padding, preserve_file_stats);
+	else {
+		FLAC__IOCallbacks callbacks;
+
+		memset(&callbacks, 0, sizeof(callbacks));
+		callbacks.read = (FLAC__IOCallback_Read)fread;
+#ifdef FLAC__VALGRIND_TESTING
+		callbacks.write = chain_write_cb_;
+#else
+		callbacks.write = (FLAC__IOCallback_Write)fwrite;
+#endif
+		callbacks.seek = chain_seek_cb_;
+		callbacks.eof = chain_eof_cb_;
+		callbacks.close = (FLAC__IOCallback_Close)fclose;
+
+		if(FLAC__metadata_chain_check_if_tempfile_needed(chain, use_padding)) {
+			struct stat stats;
+			FILE *file, *tempfile;
+			char *tempfilename;
+			if(preserve_file_stats) {
+				if(!get_file_stats_(filename, &stats))
+					return false;
+			}
+			if(0 == (file = fopen(filename, "rb")))
+				return false; /*@@@ chain status still says OK though */
+			if(!open_tempfile_(filename, &tempfile, &tempfilename)) {
+				fclose(file);
+				cleanup_tempfile_(&tempfile, &tempfilename);
+				return false; /*@@@ chain status still says OK though */
+			}
+			if(!FLAC__metadata_chain_write_with_callbacks_and_tempfile(chain, use_padding, (FLAC__IOHandle)file, callbacks, (FLAC__IOHandle)tempfile, callbacks))
+				return false;
+			file = tempfile = 0; /* FLAC__metadata_chain_write_with_callbacks_and_tempfile() always closes the file handles */
+			if(!transport_tempfile_(filename, &tempfile, &tempfilename))
+				return false;
+			if(preserve_file_stats)
+				set_file_stats_(filename, &stats);
+		}
+		else {
+			FILE *file = fopen(filename, "r+b");
+			if(0 == file)
+				return false; /*@@@ chain status still says OK though */
+			if(!FLAC__metadata_chain_write_with_callbacks(chain, use_padding, (FLAC__IOHandle)file, callbacks))
+				return false;
+		}
+	}
+
+	return true;
+}
+
+static FLAC__bool chain_read_(FLAC__Metadata_Chain *chain, const char *filename, FLAC__bool filename_based)
+{
+	if(filename_based)
+		return FLAC__metadata_chain_read(chain, flacfile_);
+	else {
+		FLAC__IOCallbacks callbacks;
+
+		memset(&callbacks, 0, sizeof(callbacks));
+		callbacks.read = (FLAC__IOCallback_Read)fread;
+		callbacks.seek = chain_seek_cb_;
+		callbacks.tell = chain_tell_cb_;
+		callbacks.close = (FLAC__IOCallback_Close)fclose;
+
+		{
+			FILE *file = fopen(filename, "rb");
+			if(0 == file)
+				return false; /*@@@ chain status still says OK though */
+			return FLAC__metadata_chain_read_with_callbacks(chain, (FLAC__IOHandle)file, callbacks);
+		}
 	}
 }
 
@@ -327,7 +527,7 @@ static FLAC__bool generate_file_()
 	return true;
 }
 
-static FLAC__bool test_file_(const char *filename, void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data))
+static FLAC__bool test_file_(const char *filename, FLAC__FileDecoderMetadataCallback metadata_callback)
 {
 	FLAC__FileDecoder *decoder;
 	decoder_client_struct decoder_client_data;
@@ -1087,7 +1287,7 @@ static FLAC__bool test_level_1_()
 	return true;
 }
 
-static FLAC__bool test_level_2_()
+static FLAC__bool test_level_2_(FLAC__bool filename_based)
 {
 	FLAC__Metadata_Iterator *iterator;
 	FLAC__Metadata_Chain *chain;
@@ -1098,7 +1298,7 @@ static FLAC__bool test_level_2_()
 	/* initialize 'data' to avoid Valgrind errors */
 	memset(data, 0, sizeof(data));
 
-	printf("\n\n++++++ testing level 2 interface\n");
+	printf("\n\n++++++ testing level 2 interface (%s-based)\n", filename_based? "filename":"callback");
 
 	printf("generate read-only file\n");
 
@@ -1115,7 +1315,7 @@ static FLAC__bool test_level_2_()
 
 	printf("read chain\n");
 
-	if(!FLAC__metadata_chain_read(chain, flacfile_))
+	if(!chain_read_(chain, flacfile_, filename_based))
 		return die_c_("reading chain", FLAC__metadata_chain_status(chain));
 
 	printf("[S]VP\ttest initial metadata\n");
@@ -1149,7 +1349,7 @@ static FLAC__bool test_level_2_()
 	if(!replace_in_our_metadata_(block, our_current_position, /*copy=*/true))
 		return die_("copying object");
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/true))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/true, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, false, true)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1179,7 +1379,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1196,7 +1396,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1213,7 +1413,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1230,7 +1430,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1247,7 +1447,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1269,7 +1469,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1287,7 +1487,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1304,7 +1504,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1322,7 +1522,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1340,7 +1540,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_iterator_set_block(iterator, app))
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
@@ -1456,7 +1656,7 @@ static FLAC__bool test_level_2_()
 	delete_from_our_metadata_(4);
 	delete_from_our_metadata_(3);
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, 0, 0))
 		return false;
@@ -1468,7 +1668,7 @@ static FLAC__bool test_level_2_()
 	our_metadata_.blocks[4]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[2]->length);
 	delete_from_our_metadata_(2);
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, 0, 0))
 		return false;
@@ -1567,7 +1767,7 @@ static FLAC__bool test_level_2_()
 	printf("SV\tmerge padding\n");
 	FLAC__metadata_chain_merge_padding(chain);
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, 0, 0))
 		return false;
@@ -1577,7 +1777,7 @@ static FLAC__bool test_level_2_()
 	printf("SV\tsort padding\n");
 	FLAC__metadata_chain_sort_padding(chain);
 
-	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfile_))
 		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, 0, 0))
 		return false;
@@ -1606,7 +1806,9 @@ FLAC__bool test_metadata_file_manipulation()
 	if(!test_level_1_())
 		return false;
 
-	if(!test_level_2_())
+	if(!test_level_2_(/*filename_based=*/true)) /* filename-based */
+		return false;
+	if(!test_level_2_(/*filename_based=*/false)) /* callback-based */
 		return false;
 
 	return true;
