@@ -394,6 +394,7 @@ AC_OUTPUT( \
 	src/test_libFLAC++/Makefile \
 	src/test_libOggFLAC/Makefile \
 	src/test_libOggFLAC++/Makefile \
+	src/test_seeking/Makefile \
 	src/test_streams/Makefile \
 	include/Makefile \
 	include/FLAC/Makefile \

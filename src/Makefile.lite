@@ -15,8 +15,8 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-.PHONY: all flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
-all: flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
+.PHONY: all flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams
+all: flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams
 
 DEFAULT_CONFIG = release
 
@@ -30,7 +30,7 @@ debug   : all
 valgrind: all
 release : all
 
-flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams:
+flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams:
 	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 clean:
@@ -48,6 +48,7 @@ clean:
 	-(cd test_libFLAC++ ; $(MAKE) -f Makefile.lite clean)
 	-(cd test_libOggFLAC ; $(MAKE) -f Makefile.lite clean)
 	-(cd test_libOggFLAC++ ; $(MAKE) -f Makefile.lite clean)
+	-(cd test_seeking ; $(MAKE) -f Makefile.lite clean)
 	-(cd test_streams ; $(MAKE) -f Makefile.lite clean)
 
 flac: libFLAC libOggFLAC share
@@ -63,4 +64,5 @@ test_libFLAC++: libFLAC libFLAC++
 test_libFLAC: libFLAC
 test_libOggFLAC++: libFLAC libOggFLAC libOggFLAC++
 test_libOggFLAC: libFLAC libOggFLAC
+test_seeking: libFLAC libOggFLAC
 test_streams: libFLAC

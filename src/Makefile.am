@@ -39,6 +39,7 @@ SUBDIRS = \
 	test_libFLAC \
 	test_libFLAC++ \
 	$(OGGFLAC_TEST_DIRS) \
+	test_seeking \
 	test_streams
 
 EXTRA_DIST = \
