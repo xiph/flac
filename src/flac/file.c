@@ -33,6 +33,14 @@
 #include <string.h> /* for strrchr() */
 #include "file.h"
 
+#if defined unix || defined __CYGWIN__ || defined __CYGWIN32__
+static const char path_separator_ = '/';
+#elif defined WIN32 || defined _MSC_VER || defined __MINGW32__
+static const char path_separator_ = '\\';
+#else
+#error Can't determine native path separator
+#endif
+
 void flac__file_copy_metadata(const char *srcpath, const char *destpath)
 {
 	struct stat srcstat;
@@ -64,12 +72,9 @@ const char *flac__file_get_basename(const char *srcpath)
 {
 	const char *p;
 
-	p = strrchr(srcpath, '\\');
-	if(0 == p) {
-		p = strrchr(srcpath, '/');
-		if(0 == p)
-			return srcpath;
-	}
+	p = strrchr(srcpath, path_separator_);
+	if(0 == p)
+		return srcpath;
 	return ++p;
 }
 
