@@ -150,7 +150,7 @@ void FLAC__lpc_restore_signal_asm_ia32_mmx(const FLAC__int32 residual[], unsigne
  *	RETURN                expected bits per sample
  */
 FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample(FLAC__real lpc_error, unsigned total_samples);
-FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(FLAC__real lpc_error, FLAC__real error_scale);
+FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(FLAC__real lpc_error, double error_scale);
 
 /*
  *	FLAC__lpc_compute_best_order()
