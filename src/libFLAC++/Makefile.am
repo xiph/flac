@@ -19,6 +19,11 @@
 lib_LTLIBRARIES = libFLAC++.la
 CXXFLAGS = @CXXFLAGS@
 
+m4datadir = $(datadir)/aclocal
+m4data_DATA = libFLAC++.m4
+
+EXTRA_DIST = libFLAC++.m4
+
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
 libFLAC___la_LDFLAGS = -version-info 1:0:0
 
