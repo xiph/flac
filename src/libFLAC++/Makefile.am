@@ -30,7 +30,7 @@ EXTRA_DIST = \
 	libFLAC++.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
-libFLAC___la_LDFLAGS = -version-info 2:1:0
+libFLAC___la_LDFLAGS = -version-info 3:0:1
 
 libFLAC___la_SOURCES = \
 	file_decoder.cpp \
