@@ -28,4 +28,4 @@ debug: all
 release: all
 
 clean:
-	rm -f *.raw *.flac *.cmp ../../test_files/bins/*.raw ../../test_files/bins/*.flac ../../test_files/bins/*.cmp *.log core
+	rm -f *.raw *.flac *.cmp *.wav ../../test_files/bins/*.raw ../../test_files/bins/*.flac ../../test_files/bins/*.cmp *.log core
