@@ -459,6 +459,8 @@ FLAC__share___getopt_initialize (argc, argv, optstring)
     }
   else
     nonoption_flags_len = 0;
+#else
+  (void)argc, (void)argv;
 #endif
 
   return optstring;

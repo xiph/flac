@@ -214,6 +214,7 @@ static char* convert_string (const char *string, char *from, char *to)
 #else
 static char* convert_string (const char *string, char *from, char *to)
 {
+	(void)from, (void)to;
     if (!string)
         return NULL;
     return g_strdup(string);
@@ -301,6 +302,7 @@ gboolean test_conversion_charset (char *from, char *to)
 #else
 gboolean test_conversion_charset (char *from, char *to)
 {
+	(void)from, (void)to;
     return TRUE;
 }
 #endif

@@ -66,6 +66,7 @@ static void flac_configurewin_ok(GtkWidget * widget, gpointer data)
 	ConfigFile *cfg;
 	gchar *filename;
 
+	(void)widget, (void)data; /* unused arguments */
 	g_free(flac_cfg.tag_format);
         flac_cfg.tag_format = g_strdup(gtk_entry_get_text(GTK_ENTRY(title_tag_entry)));	
 	flac_cfg.file_char_set = Charset_Get_Name_From_Title(gtk_entry_get_text_1(fileCharacterSetEntry));
@@ -86,12 +87,14 @@ static void flac_configurewin_ok(GtkWidget * widget, gpointer data)
 	gtk_widget_destroy(flac_configurewin);
 }
 
-static void configure_destroy(GtkWidget * w, gpointer data)
+static void configure_destroy(GtkWidget *widget, gpointer data)
 {
+	(void)widget, (void)data; /* unused arguments */
 }
 
-static void title_tag_override_cb(GtkWidget * w, gpointer data)
+static void title_tag_override_cb(GtkWidget *widget, gpointer data)
 {
+	(void)widget, (void)data; /* unused arguments */
 	flac_cfg.tag_override = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(title_tag_override));
 
 	gtk_widget_set_sensitive(title_tag_box, flac_cfg.tag_override);
@@ -99,8 +102,9 @@ static void title_tag_override_cb(GtkWidget * w, gpointer data)
 
 }
 
-static void convert_char_set_cb(GtkWidget * w, gpointer data)
+static void convert_char_set_cb(GtkWidget *widget, gpointer data)
 {
+	(void)widget, (void)data; /* unused arguments */
 	flac_cfg.convert_char_set = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(convert_char_set));
 
 	gtk_widget_set_sensitive(fileCharacterSetEntry, flac_cfg.convert_char_set);

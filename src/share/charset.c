@@ -107,7 +107,7 @@ int utf8_mbtowc(int *pwc, const char *s, size_t n)
   else
     return -1;
 
-  if (n < k)
+  if (n < (size_t)k)
     return -1;
   wc = *s++ & ((1 << (7 - k)) - 1);
   for (i = 1; i < k; i++) {
@@ -128,29 +128,29 @@ int utf8_wctomb(char *s, int wc1)
 
   if (!s)
     return 0;
-  if (wc < (1 << 7)) {
+  if (wc < (1u << 7)) {
     *s++ = wc;
     return 1;
   }
-  else if (wc < (1 << 11)) {
+  else if (wc < (1u << 11)) {
     *s++ = 0xc0 | (wc >> 6);
     *s++ = 0x80 | (wc & 0x3f);
     return 2;
   }
-  else if (wc < (1 << 16)) {
+  else if (wc < (1u << 16)) {
     *s++ = 0xe0 | (wc >> 12);
     *s++ = 0x80 | ((wc >> 6) & 0x3f);
     *s++ = 0x80 | (wc & 0x3f);
     return 3;
   }
-  else if (wc < (1 << 21)) {
+  else if (wc < (1u << 21)) {
     *s++ = 0xf0 | (wc >> 18);
     *s++ = 0x80 | ((wc >> 12) & 0x3f);
     *s++ = 0x80 | ((wc >> 6) & 0x3f);
     *s++ = 0x80 | (wc & 0x3f);
     return 4;
   }
-  else if (wc < (1 << 26)) {
+  else if (wc < (1u << 26)) {
     *s++ = 0xf8 | (wc >> 24);
     *s++ = 0x80 | ((wc >> 18) & 0x3f);
     *s++ = 0x80 | ((wc >> 12) & 0x3f);
@@ -158,7 +158,7 @@ int utf8_wctomb(char *s, int wc1)
     *s++ = 0x80 | (wc & 0x3f);
     return 5;
   }
-  else if (wc < (1 << 31)) {
+  else if (wc < (1u << 31)) {
     *s++ = 0xfc | (wc >> 30);
     *s++ = 0x80 | ((wc >> 24) & 0x3f);
     *s++ = 0x80 | ((wc >> 18) & 0x3f);
@@ -203,11 +203,13 @@ int charset_max(struct charset *charset)
 
 static int mbtowc_utf8(void *map, int *pwc, const char *s, size_t n)
 {
+  (void)map;
   return utf8_mbtowc(pwc, s, n);
 }
 
 static int wctomb_utf8(void *map, char *s, int wc)
 {
+  (void)map;
   return utf8_wctomb(s, wc);
 }
 
@@ -221,6 +223,7 @@ static int mbtowc_ascii(void *map, int *pwc, const char *s, size_t n)
 {
   int wc;
 
+  (void)map;
   if (!n || !s)
     return 0;
   wc = (unsigned char)*s;
@@ -233,6 +236,7 @@ static int mbtowc_ascii(void *map, int *pwc, const char *s, size_t n)
 
 static int wctomb_ascii(void *map, char *s, int wc)
 {
+  (void)map;
   if (!s)
     return 0;
   if (wc & ~0x7f)
@@ -251,6 +255,7 @@ static int mbtowc_iso1(void *map, int *pwc, const char *s, size_t n)
 {
   int wc;
 
+  (void)map;
   if (!n || !s)
     return 0;
   wc = (unsigned char)*s;
@@ -263,6 +268,7 @@ static int mbtowc_iso1(void *map, int *pwc, const char *s, size_t n)
 
 static int wctomb_iso1(void *map, char *s, int wc)
 {
+  (void)map;
   if (!s)
     return 0;
   if (wc & ~0xff)
