@@ -189,12 +189,6 @@ namespace OggFLAC {
 			return SeekableStream::State(::OggFLAC__file_encoder_get_seekable_stream_encoder_state(encoder_));
 		}
 
-		FLAC::Encoder::SeekableStream::State File::get_FLAC_seekable_stream_encoder_state() const
-		{
-			FLAC__ASSERT(is_valid());
-			return FLAC::Encoder::SeekableStream::State(::OggFLAC__file_encoder_get_FLAC_seekable_stream_encoder_state(encoder_));
-		}
-
 		FLAC::Encoder::Stream::State File::get_FLAC_stream_encoder_state() const
 		{
 			FLAC__ASSERT(is_valid());

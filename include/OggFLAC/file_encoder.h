@@ -511,27 +511,11 @@ OggFLAC_API OggFLAC__FileEncoderState OggFLAC__file_encoder_get_state(const OggF
  */
 OggFLAC_API OggFLAC__SeekableStreamEncoderState OggFLAC__file_encoder_get_seekable_stream_encoder_state(const OggFLAC__FileEncoder *encoder);
 
-/** Get the state of the underlying FLAC seekable stream encoder.
- *  Useful when the file encoder state is
- *  \c OggFLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR
- *  and the seekable stream encoder state is
- *  \c OggFLAC__SEEKABLE_STREAM_ENCODER_FLAC_SEEKABLE_STREAM_ENCODER_ERROR.
- *
- * \param  encoder  An encoder instance to query.
- * \assert
- *    \code encoder != NULL \endcode
- * \retval FLAC__SeekableStreamEncoderState
- *    The seekable stream encoder state.
- */
-OggFLAC_API FLAC__SeekableStreamEncoderState OggFLAC__file_encoder_get_FLAC_seekable_stream_encoder_state(const OggFLAC__FileEncoder *encoder);
-
 /** Get the state of the underlying FLAC stream encoder.
  *  Useful when the file encoder state is
  *  \c OggFLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR
  *  and the seekable stream encoder state is
- *  \c OggFLAC__SEEKABLE_STREAM_ENCODER_FLAC_SEEKABLE_STREAM_ENCODER_ERROR
- *  and the FLAC seekable stream encoder state is
- *  \c FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR.
+ *  \c OggFLAC__SEEKABLE_STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -545,9 +529,7 @@ OggFLAC_API FLAC__StreamEncoderState OggFLAC__file_encoder_get_FLAC_stream_encod
  *  Useful when the file encoder state is
  *  \c OggFLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR
  *  and the seekable stream encoder state is
- *  \c OggFLAC__SEEKABLE_STREAM_ENCODER_FLAC_SEEKABLE_STREAM_ENCODER_ERROR
- *  and the FLAC seekable stream encoder state is
- *  \c FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR
+ *  \c OggFLAC__SEEKABLE_STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR
  *  and the FLAC stream encoder state is
  *  \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.
  *

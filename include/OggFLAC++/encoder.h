@@ -230,7 +230,6 @@ namespace OggFLAC {
 			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
 			State    get_state() const;
-			FLAC::Encoder::SeekableStream::State get_FLAC_seekable_stream_encoder_state() const;
 			FLAC::Encoder::Stream::State get_FLAC_stream_encoder_state() const;
 			FLAC::Decoder::Stream::State get_verify_decoder_state() const;
 			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
@@ -334,7 +333,6 @@ namespace OggFLAC {
 
 			State    get_state() const;
 			SeekableStream::State get_seekable_stream_encoder_state() const;
-			FLAC::Encoder::SeekableStream::State get_FLAC_seekable_stream_encoder_state() const;
 			FLAC::Encoder::Stream::State get_FLAC_stream_encoder_state() const;
 			FLAC::Decoder::Stream::State get_verify_decoder_state() const;
 			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
