@@ -1,5 +1,22 @@
 #!/bin/sh
 
+# FLAC needs relatively recent versions of autotools for autogen.sh to
+# run properly.  For example, if your autoconf is too old, it will not
+# check for inttypes.h and compilation will fail later.  If you are
+# having problems with autogen.sh it is best to upgrade to at least the
+# following if possible:
+#
+# - autoconf 2.59
+# - automake 1.8.5
+# - libtool 1.5.6
+#
+# You may need to specify -I /SOME_PATH/share/aclocal if the packages
+# FLAC relies on (autotools, libogg, libiconv, libid3) are installed in
+# non-standard places.
+#
+# If you don't have XMMS installed at all, you should comment out
+# AM_PATH_XMMS in configure.in.
+#
 # 'hacks' is the place to put some commands you may need.  There is one
 # that seems to be necessary in some situations:
 #
