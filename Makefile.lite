@@ -57,11 +57,8 @@ libOggFLAC: libFLAC
 libOggFLAC++: libFLAC
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
-share:
-	(cd src/$@/gain_analysis ; $(MAKE) -f Makefile.lite $(CONFIG))
-	(cd src/$@/getopt ; $(MAKE) -f Makefile.lite $(CONFIG))
-	(cd src/$@/grabbag ; $(MAKE) -f Makefile.lite $(CONFIG))
-	(cd src/$@/utf8 ; $(MAKE) -f Makefile.lite $(CONFIG))
+share: libFLAC
+	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 flac: libFLAC libOggFLAC share
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
@@ -99,10 +96,7 @@ clean:
 	-(cd src/libFLAC++ ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/libOggFLAC ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/libOggFLAC++ ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/share/gain_analysis ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/share/getopt ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/share/grabbag ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/share/utf8 ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/share ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/flac ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/metaflac ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/plugin_common ; $(MAKE) -f Makefile.lite clean)
