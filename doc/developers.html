@@ -63,19 +63,13 @@
 	<P>
 	<UL>
 		<LI>
-			Converging on the <A HREF="format.html">bitstream format</A>.  This is probably the single most important issue.
-		</LI>
-		<LI>
-			Testing.  This is a close second, since if you are a lossless encoder you have to be absolutely lossless for all input.  The test suite has patterns that are designed to strain the encoder to the limit but more test cases would definitely help.
-		</LI>
-		<LI>
-			Makefile fixups and code changes to work on more platforms.  Both libFLAC and flac are ANSI C and use only the standard C library and math library, meaning ports should not be that difficult.  Currently there is a GNU make system and makefiles for MSVC.
+			Testing.  Since FLAC is still beta this is number 1.  If you are a lossless encoder you have to be absolutely lossless for all input.  The test suite has patterns that are designed to strain the encoder to the limit but more test cases would definitely help.
 		</LI>
 		<LI>
 			More input plugins.  Currently there are plugins for XMMS and Winamp.  More is better!
 		</LI>
 		<LI>
-			Speeding up the encoding.  Encoding speed at average compression is a little slower than I would like.  Improvements to the reference encoder that don't drastically obfuscate the code would be welcome.
+			Speeding up the encoding.  Encoding speed at average compression is still a little slower than I would like.  Improvements to the reference encoder that don't drastically obfuscate the code would be welcome.
 		</LI>
 	</UL>
 	</P>
@@ -104,9 +98,6 @@
 		</LI>
 		<LI>
 			Support more input types than just WAVE and raw in flac.
-		</LI>
-		<LI>
-			Expand the test suite.
 		</LI>
 		<LI>
 			A better logo!  Gimp jedi I'm not...
