@@ -76,8 +76,9 @@
  *  the whole file is read into memory and manipulated before writing
  *  out again.
  *
- *  What do we mean by efficient?  When writing metadata back to a FLAC
- *  file it is possible to grow or shrink the metadata such that the entire
+ *  What do we mean by efficient?  Since FLAC metadata appears at the
+ *  beginning of the file, when writing metadata back to a FLAC file
+ *  it is possible to grow or shrink the metadata such that the entire
  *  file must be rewritten.  However, if the size remains the same during
  *  changes or PADDING blocks are utilized, only the metadata needs to be
  *  overwritten, which is much faster.
@@ -186,7 +187,7 @@ FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__St
  *
  * \note
  * Do not modify the \a is_last, \a length, or \a type fields of returned
- * FLAC__MetadataType objects.  These are managed automatically.
+ * FLAC__StreamMetadata objects.  These are managed automatically.
  *
  * \note
  * If any of the modification functions
@@ -524,7 +525,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_S
  *
  * \note
  * Do not modify the is_last, length, or type fields of returned
- * FLAC__MetadataType objects.  These are managed automatically.
+ * FLAC__StreamMetadata objects.  These are managed automatically.
  *
  * \note
  * The metadata objects returned by FLAC__metadata_iterator_get_block()
