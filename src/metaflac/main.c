@@ -290,9 +290,7 @@ static FLAC__bool do_major_operation__remove_all(FLAC__Metadata_Chain *chain, co
 static FLAC__bool do_shorthand_operations(const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert);
-static FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files);
-static FLAC__bool do_replaygain_analyze_file(const char *filename, float *title_gain, float *title_peak);
-static FLAC__bool do_replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak);
+static FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files, FLAC__bool preserve_modtime);
 static FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write);
 static FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
 static FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
@@ -301,12 +299,11 @@ static void write_metadata(const char *filename, FLAC__StreamMetadata *block, un
 static void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__bool raw, FILE *f);
 static void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw, FILE *f);
 static FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *block, FLAC__bool *needs_write);
-static FLAC__bool remove_vc_field(FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
+static FLAC__bool remove_vc_field(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_firstfield(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw);
 static FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_VcFilename *vc_filename, FLAC__bool *needs_write, FLAC__bool raw);
 static FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_VcFilename *vc_filename, FLAC__bool raw);
-static FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetadata_VorbisComment_Entry *entry);
 static void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent);
 static void undocumented_warning(const char *opt);
 
@@ -1543,7 +1540,7 @@ FLAC__bool do_shorthand_operations(const CommandLineOptions *options)
 	if(ok && options->num_files > 0) {
 		for(i = 0; i < options->ops.num_operations; i++) {
 			if(options->ops.operations[i].type == OP__ADD_REPLAY_GAIN)
-				ok = do_shorthand_operation__add_replay_gain(options->filenames, options->num_files);
+				ok = do_shorthand_operation__add_replay_gain(options->filenames, options->num_files, options->preserve_modtime);
 		}
 	}
 
@@ -1642,28 +1639,16 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *ch
 	return ok;
 }
 
-FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files)
+FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files, FLAC__bool preserve_modtime)
 {
-	static const unsigned valid_sample_rates[] = {
-		8000,
-		11025,
-		12000,
-		16000,
-		22050,
-		24000,
-		32000,
-		44100,
-		48000
-	};
-	static const unsigned n_valid_sample_rates = sizeof(valid_sample_rates) / sizeof(valid_sample_rates[0]);
-
 	FLAC__StreamMetadata streaminfo;
 	float *title_gains = 0, *title_peaks = 0;
 	float album_gain = 0.0, album_peak = 0.0;
 	unsigned sample_rate = 0;
 	unsigned bits_per_sample = 0;
 	unsigned channels = 0;
-	unsigned i, j;
+	unsigned i;
+	const char *error;
 	FLAC__bool first = true;
 
 	FLAC__ASSERT(num_files > 0);
@@ -1694,10 +1679,7 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 				return false;
 			}
 		}
-		for(j = 0; j < n_valid_sample_rates; j++)
-			if(sample_rate == valid_sample_rates[j])
-				break;
-		if(j == n_valid_sample_rates) {
+		if(!FLAC__replaygain_is_valid_sample_frequency(sample_rate)) {
 			fprintf(stderr, "%s: ERROR: sample rate of %u Hz is not supported\n", filenames[i], sample_rate);
 			return false;
 		}
@@ -1718,7 +1700,8 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 		die("out of memory allocating space for title gains/peaks");
 
 	for(i = 0; i < num_files; i++) {
-		if(!do_replaygain_analyze_file(filenames[i], title_gains+i, title_peaks+i)) {
+		if(0 != (error = FLAC__replaygain_analyze_file(filenames[i], title_gains+i, title_peaks+i))) {
+			fprintf(stderr, "%s: ERROR: during analysis (%s)\n", filenames[i], error);
 			free(title_gains);
 			free(title_peaks);
 			return false;
@@ -1729,7 +1712,8 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 	album_gain = FLAC__replaygain_get_album_gain();
 
 	for(i = 0; i < num_files; i++) {
-		if(!do_replaygain_store_to_file(filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i])) {
+		if(0 != (error = FLAC__replaygain_store_to_file(filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i], preserve_modtime))) {
+			fprintf(stderr, "%s: ERROR: writing tags (%s)\n", filenames[i], error);
 			free(title_gains);
 			free(title_peaks);
 			return false;
@@ -1739,16 +1723,6 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 	free(title_gains);
 	free(title_peaks);
 	return true;
-}
-
-FLAC__bool do_replaygain_analyze_file(const char *filename, float *title_gain, float *title_peak)
-{
-	return false;//@@@@
-}
-
-FLAC__bool do_replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak)
-{
-	return false;//@@@@
 }
 
 FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write)
@@ -1931,7 +1905,7 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Me
 			ok = remove_vc_all(filename, block, needs_write);
 			break;
 		case OP__REMOVE_VC_FIELD:
-			ok = remove_vc_field(block, operation->argument.vc_field_name.value, needs_write);
+			ok = remove_vc_field(filename, block, operation->argument.vc_field_name.value, needs_write);
 			break;
 		case OP__REMOVE_VC_FIRSTFIELD:
 			ok = remove_vc_firstfield(filename, block, operation->argument.vc_field_name.value, needs_write);
@@ -2107,7 +2081,7 @@ void write_vc_fields(const char *filename, const char *field_name, const FLAC__S
 	const unsigned field_name_length = (0 != field_name)? strlen(field_name) : 0;
 
 	for(i = 0; i < num_entries; i++) {
-		if(0 == field_name || field_name_matches_entry(field_name, field_name_length, entry + i))
+		if(0 == field_name || FLAC__metadata_object_vorbiscomment_entry_matches(entry + i, field_name, field_name_length))
 			write_vc_field(filename, entry + i, raw, f);
 	}
 }
@@ -2133,48 +2107,38 @@ FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *block, FLAC
 	return true;
 }
 
-FLAC__bool remove_vc_field(FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write)
+FLAC__bool remove_vc_field(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write)
 {
-	FLAC__bool ok = true;
-	const unsigned field_name_length = strlen(field_name);
-	int i;
+	int n;
 
-	FLAC__ASSERT(0 != block);
-	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__ASSERT(0 != needs_write);
 
-	/* must delete from end to start otherwise it will interfere with our iteration */
-	for(i = (int)block->data.vorbis_comment.num_comments - 1; ok && i >= 0; i--) {
-		if(field_name_matches_entry(field_name, field_name_length, block->data.vorbis_comment.comments + i)) {
-			ok &= FLAC__metadata_object_vorbiscomment_delete_comment(block, (unsigned)i);
-			if(ok)
-				*needs_write = true;
-		}
-	}
+	n = FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, field_name);
 
-	return ok;
+	if(n < 0) {
+		fprintf(stderr, "%s: ERROR: memory allocation failure\n", filename);
+		return false;
+	}
+	else if(n > 0)
+		*needs_write = true;
+
+	return true;
 }
 
 FLAC__bool remove_vc_firstfield(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write)
 {
-	const unsigned field_name_length = strlen(field_name);
-	unsigned i;
+	int n;
 
-	FLAC__ASSERT(0 != block);
-	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__ASSERT(0 != needs_write);
 
-	for(i = 0; i < block->data.vorbis_comment.num_comments; i++) {
-		if(field_name_matches_entry(field_name, field_name_length, block->data.vorbis_comment.comments + i)) {
-			if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, (unsigned)i)) {
-				fprintf(stderr, "%s: ERROR: memory allocation failure\n", filename);
-				return false;
-			}
-			else
-				*needs_write = true;
-			break;
-		}
+	n = FLAC__metadata_object_vorbiscomment_remove_entry_matching(block, field_name);
+
+	if(n < 0) {
+		fprintf(stderr, "%s: ERROR: memory allocation failure\n", filename);
+		return false;
 	}
+	else if(n > 0)
+		*needs_write = true;
 
 	return true;
 }
@@ -2301,18 +2265,6 @@ FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const
 	if(f != stdout)
 		fclose(f);
 	return ret;
-}
-
-FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetadata_VorbisComment_Entry *entry)
-{
-	const FLAC__byte *eq = memchr(entry->entry, '=', entry->length);
-#if defined _MSC_VER || defined __MINGW32__
-#define FLAC__STRNCASECMP strnicmp
-#else
-#define FLAC__STRNCASECMP strncasecmp
-#endif
-	return (0 != eq && (unsigned)(eq-entry->entry) == field_name_length && 0 == FLAC__STRNCASECMP(field_name, entry->entry, field_name_length));
-#undef FLAC__STRNCASECMP
 }
 
 void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent)
