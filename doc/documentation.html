@@ -755,10 +755,12 @@
 	<P>
 		The basic usage of <B><TT>libFLAC</TT></B> is as follows:
 		<OL>
-			<LI>The program creates an instance of a decoder or encoder.</LI>
-			<LI>The program initializes the instance and provides <B><TT>libFLAC</TT></B> with callbacks for reading, writing, error reporting, and metadata reporting.</LI>
-			<LI>The program calls <B><TT>libFLAC</TT></B> functions to encode or decode data, which subsequently calls the callbacks.</LI>
-			<LI>The program finishes the instance, which flushes the input and output.</LI>
+			<LI>The program creates an instance of a decoder or encoder using <TT>*_init()</TT>.</LI>
+			<LI>The program sets the parameters of the instance and callbacks for reading, writing, error reporting, and metadata reporting using <TT>*_set_*()</TT> functions.</LI>
+			<LI>The program initializes the instance to validate the parameters and prepare for decoding/encoding using <TT>*_init()</TT>.</LI>
+			<LI>The program calls <TT>*_process_*()</TT> functions to encode or decode data, which subsequently calls the callbacks.</LI>
+			<LI>The program finishes the instance with <TT>*_finish()</TT>, which flushes the input and output.</LI>
+			<LI>The instance may be used again or deleted with <TT>*_delete()</TT>.</LI>
 		</OL>
 	</P>
 	<P>
@@ -771,7 +773,7 @@
 		<B>STREAM DECODER</B>
 	</P>
 	<P>
-		First we discuss the stream decoder.  The instance type is <TT>FLAC__StreamDecoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__stream_decoder_new()</TT>, then call <TT>FLAC__stream_decoder_init()</TT> with the addresses of the required callbacks.  The program can also supply a client_data pointer to <TT>FLAC__stream_decoder_init()</TT> which will be included when calling the callbacks.
+		First we discuss the stream decoder.  The instance type is <TT>FLAC__StreamDecoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__stream_decoder_new()</TT>, then call <TT>FLAC__stream_decoder_set_*()</TT> functions to set the callbacks and client data, and call <TT>FLAC__stream_decoder_init()</TT>.  The required callbacks are:
 		<UL>
 			<LI>Read callback - This function will be called when the decoder needs more input data.  The address of the buffer to be filled is supplied, along with the number of bytes the buffer can hold.  The callback may choose to supply less data and modify the byte count but must be careful not to overflow the buffer.  The callback then returns a status code chosen from FLAC__StreamDecoderReadStatus.</LI>
 			<LI>Write callback - This function will be called when the decoder has decoded a single frame of data.  The decoder will pass the frame metadata as well as an array of pointers (one for each channel) pointing to the decoded audio.</LI>
@@ -800,15 +802,17 @@
 	<P>
 		The file decoder is a wrapper around the stream decoder meant to simplfy the process of decoding from a file.  The instance type is <TT>FLAC__FileDecoder</TT>.  The flow and callbacks are similar to that of the stream decoder.  However, a file path replaces the read callback argument during initialization.  The program needs only to provide the path to the file and the file decoder handles the read callbacks.  The remaining callbacks and process functions are analogous to their stream decoder counterparts.
 	</P>
-@@@MD5 checking
 	<P>
 		Since the file decoder manages the input automatically, it also can provide seeking.  This is exposed through the <TT>FLAC__file_decoder_seek_absolute()</TT> method.  At any point after the file decoder has been initialized, the program can call this function to seek to an exact sample within the file.  Subsequently, the first time the write callback is called it will contain a (possibly partial) block starting at that sample.
+	</P>
+	<P>
+		The file decoder also provides MD5 signature checking.  If this is turned on before initialization, <TT>FLAC__file_decoder_finish()</TT> will report when the decoded MD5 signature does not match the one stored in the STREAMINFO block.  MD5 checking is automatically turned off if the is no signature in the STREAMINFO block or when a seek is attempted.
 	</P>
 	<P>
 		<B>STREAM ENCODER</B>
 	</P>
 	<P>
-		The stream encoder functions similarly to the stream decoder, but has fewer callbacks and more options.  The instance type is <TT>FLAC__StreamEncoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__stream_encoder_new(), then initialize it by calling <TT>FLAC__stream_encoder_init()</TT>.
+		The stream encoder functions similarly to the stream decoder, but has fewer callbacks and more options.  The instance type is <TT>FLAC__StreamEncoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__stream_encoder_new()</TT>, then set the necessary parameters with <TT>FLAC__stream_encoder_set_*()</TT>, and initialize it by calling <TT>FLAC__stream_encoder_init()</TT>.
 	</P>
 	<P>
 		Unlike the decoding process, FLAC encoding has many options that can affect the speed and compression ratio.  When the program calls <TT>FLAC__stream_encoder_init()</TT> the encoder will validate the values, so you should make sure to check the returned state to see that it is FLAC__STREAM_ENCODER_OK.  When setting these parameters you should have some basic knowledge of the format (see the <A HREF="#format">user-level documentation</A> or the <A HREF="format.html">formal description</A>) but the required parameters are summarized here:
@@ -833,7 +837,7 @@
 		</UL>
 	</P>
 	<P>
-		The program must also give <TT>FLAC__stream_encoder_init()</TT> addresses for the following callbacks:
+		The program provide addresses for the following callbacks:
 		<UL>
 			<LI>Write callback - This function is called anytime there is raw encoded data to write.  It may include metadata mixed with encoded audio frames and the data is not guaranteed to be aligned on frame or metadata block boundaries.</LI>
 			<LI>Metadata callback - This function is called once at the end of encoding with the populated STREAMINFO structure.  This is so file encoders can seek back to the beginning of the file and write the STREAMINFO block with the correct statistics after encoding (like minimum/maximum frame size).</LI>
@@ -848,7 +852,7 @@
 		</UL>
 	</P>
 	<P>
-		When the program is finished encoding data, it calls <TT>FLAC__stream_encoder_finish()</TT>, which causes the encoder to encode any data still in its input pipe, and call the metadata callback with the correct encoding statistics.  Then the instance may be deleted with <TT>FLAC__stream_encoder_delete()</TT> or initialized again to encode another stream.
+		When the program is finished encoding data, it calls <TT>FLAC__stream_encoder_finish()</TT>, which causes the encoder to encode any data still in its input pipe, and call the metadata callback with the final encoding statistics.  Then the instance may be deleted with <TT>FLAC__stream_encoder_delete()</TT> or initialized again to encode another stream.
 	</P>
 	<P>
 		<B>MISCELLANEOUS</B>
