@@ -215,18 +215,21 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 		goto wav_abort_;
 	data_bytes = xx;
 
-	if(!init_encoder(lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
-		goto wav_abort_;
-
 	bytes_per_wide_sample = channels * (bps >> 3);
 
-	if(-1 == fseek(fin, bytes_per_wide_sample * (unsigned)skip, SEEK_CUR)) {
-		fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infile);
-		goto wav_abort_;
+	if(skip > 0) {
+		if(-1 == fseek(fin, bytes_per_wide_sample * (unsigned)skip, SEEK_CUR)) {
+			fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infile);
+			goto wav_abort_;
+		}
 	}
 
 	encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample - skip;
 	encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
+
+	if(!init_encoder(lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
+		goto wav_abort_;
+
 	encoder_wrapper.verify_fifo.into_frames = true;
 
 	while(data_bytes > 0) {
@@ -338,9 +341,6 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 	if(!init(&encoder_wrapper))
 		goto raw_abort_;
 
-	if(!init_encoder(lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
-		goto raw_abort_;
-
 	/* get the file length */
 	if(0 != fseek(fin, 0, SEEK_END)) {
 		encoder_wrapper.total_samples_to_encode = encoder_wrapper.unencoded_size = 0;
@@ -361,6 +361,9 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 		fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infile);
 		goto raw_abort_;
 	}
+
+	if(!init_encoder(lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
+		goto raw_abort_;
 
 	encoder_wrapper.verify_fifo.into_frames = true;
 
@@ -490,6 +493,7 @@ bool init_encoder(bool lax, bool do_mid_side, bool do_exhaustive_model_search, b
 	encoder_wrapper->encoder->do_exhaustive_model_search = do_exhaustive_model_search;
 	encoder_wrapper->encoder->do_qlp_coeff_prec_search = do_qlp_coeff_prec_search;
 	encoder_wrapper->encoder->rice_optimization_level = rice_optimization_level;
+	encoder_wrapper->encoder->total_samples_estimate = encoder_wrapper->total_samples_to_encode;
 
 	if(FLAC__encoder_init(encoder_wrapper->encoder, write_callback, metadata_callback, encoder_wrapper) != FLAC__ENCODER_OK) {
 		fprintf(stderr, "ERROR initializing encoder, state = %d\n", encoder_wrapper->encoder->state);
