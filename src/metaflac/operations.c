@@ -109,7 +109,7 @@ FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOpt
 		die("out of memory allocating chain");
 
 	if(!FLAC__metadata_chain_read(chain, filename)) {
-		fprintf(stderr, "%s: ERROR: reading metadata, status = \"%s\"\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+		print_error_with_chain_status(chain, "%s: ERROR: reading metadata", filename);
 		return false;
 	}
 
@@ -147,7 +147,7 @@ FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOpt
 			FLAC__metadata_chain_sort_padding(chain);
 		ok = FLAC__metadata_chain_write(chain, options->use_padding, options->preserve_modtime);
 		if(!ok)
-			fprintf(stderr, "%s: ERROR: writing FLAC file, error = %s\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+			print_error_with_chain_status(chain, "%s: ERROR: writing FLAC file", filename);
 	}
 
 	FLAC__metadata_chain_delete(chain);
@@ -267,7 +267,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 		die("out of memory allocating chain");
 
 	if(!FLAC__metadata_chain_read(chain, filename)) {
-		fprintf(stderr, "%s: ERROR: reading metadata, status = \"%s\"\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+		print_error_with_chain_status(chain, "%s: ERROR: reading metadata", filename);
 		return false;
 	}
 
@@ -304,7 +304,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 			FLAC__metadata_chain_sort_padding(chain);
 		ok = FLAC__metadata_chain_write(chain, use_padding, options->preserve_modtime);
 		if(!ok)
-			fprintf(stderr, "%s: ERROR: writing FLAC file, error = %s\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+			print_error_with_chain_status(chain, "%s: ERROR: writing FLAC file", filename);
 	}
 
 	FLAC__metadata_chain_delete(chain);
@@ -478,7 +478,7 @@ FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metad
 	padding->length = length;
 
 	if(!FLAC__metadata_iterator_insert_block_after(iterator, padding)) {
-		fprintf(stderr, "%s: ERROR: adding new PADDING block to metadata, status =\"%s\"\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+		print_error_with_chain_status(chain, "%s: ERROR: adding new PADDING block to metadata", filename);
 		FLAC__metadata_object_delete(padding);
 		FLAC__metadata_iterator_delete(iterator);
 		return false;

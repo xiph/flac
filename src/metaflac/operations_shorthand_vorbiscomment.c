@@ -56,7 +56,7 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bo
 			while(FLAC__metadata_iterator_next(iterator))
 				;
 			if(!FLAC__metadata_iterator_insert_block_after(iterator, block)) {
-				fprintf(stderr, "%s: ERROR: adding new VORBIS_COMMENT block to metadata, status =\"%s\"\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+				print_error_with_chain_status(chain, "%s: ERROR: adding new VORBIS_COMMENT block to metadata", filename);
 				return false;
 			}
 			/* iterator is left pointing to new block */

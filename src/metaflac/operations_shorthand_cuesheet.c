@@ -75,7 +75,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 					while(FLAC__metadata_iterator_next(iterator))
 						;
 					if(!FLAC__metadata_iterator_insert_block_after(iterator, cuesheet)) {
-						fprintf(stderr, "%s: ERROR: adding new CUESHEET block to metadata, status =\"%s\"\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+						print_error_with_chain_status(chain, "%s: ERROR: adding new CUESHEET block to metadata", filename);
 						FLAC__metadata_object_delete(cuesheet);
 						ok = false;
 					}

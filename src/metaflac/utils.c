@@ -20,6 +20,7 @@
 #include "FLAC/assert.h"
 #include "share/utf8.h"
 #include <ctype.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -117,6 +118,61 @@ void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const 
 		left -= 16;
 		b += 16;
    }
+}
+
+void print_error_with_chain_status(FLAC__Metadata_Chain *chain, const char *format, ...)
+{
+	const FLAC__Metadata_ChainStatus status = FLAC__metadata_chain_status(chain);
+	va_list args;
+
+	FLAC__ASSERT(0 != format);
+
+	va_start(args, format);
+
+	(void) vfprintf(stderr, format, args);
+
+	va_end(args);
+
+	fprintf(stderr, ", status = \"%s\"\n", FLAC__Metadata_ChainStatusString[status]);
+
+	if(status == FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE) {
+		fprintf(stderr, "\n"
+			"The FLAC file could not be opened.  Most likely the file does not exist\n"
+			"or is not readable.\n"
+		);
+	}
+	else if(status == FLAC__METADATA_CHAIN_STATUS_NOT_A_FLAC_FILE) {
+		fprintf(stderr, "\n"
+			"The file does not appear to be a FLAC file.\n"
+		);
+	}
+	else if(status == FLAC__METADATA_CHAIN_STATUS_NOT_WRITABLE) {
+		fprintf(stderr, "\n"
+			"The FLAC file does not have write permissions.\n"
+		);
+	}
+	else if(status == FLAC__METADATA_CHAIN_STATUS_BAD_METADATA) {
+		fprintf(stderr, "\n"
+			"The metadata to be writted does not conform to the FLAC metadata\n"
+			"specifications.\n"
+		);
+	}
+	else if(status == FLAC__METADATA_CHAIN_STATUS_READ_ERROR) {
+		fprintf(stderr, "\n"
+			"There was an error while reading the FLAC file.\n"
+		);
+	}
+	else if(status == FLAC__METADATA_CHAIN_STATUS_WRITE_ERROR) {
+		fprintf(stderr, "\n"
+			"There was an error while writing FLAC file; most probably the disk is\n"
+			"full.\n"
+		);
+	}
+	else if(status == FLAC__METADATA_CHAIN_STATUS_UNLINK_ERROR) {
+		fprintf(stderr, "\n"
+			"There was an error removing the temporary FLAC file.\n"
+		);
+	}
 }
 
 FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field, char **name, char **value, unsigned *length, const char **violation)
