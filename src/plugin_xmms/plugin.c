@@ -215,6 +215,7 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 			return;
 		}
 		tmp_file_info.abort_flag = false;
+		tmp_decoder->check_md5 = false; /* turn off MD5 checking in the decoder */
 		if(FLAC__file_decoder_init(tmp_decoder, filename, write_callback_, metadata_callback_, error_callback_, &tmp_file_info) != FLAC__FILE_DECODER_OK) {
 			*length_in_msec = -1;
 			return;
@@ -286,6 +287,8 @@ bool decoder_init_(const char *filename)
 {
 	if(decoder_ == 0)
 		return false;
+
+	decoder_->check_md5 = false; /* turn off MD5 checking in the decoder */
 
 	if(FLAC__file_decoder_init(decoder_, filename, write_callback_, metadata_callback_, error_callback_, &file_info_) != FLAC__FILE_DECODER_OK)
 		return false;
