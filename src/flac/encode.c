@@ -978,7 +978,7 @@ void print_stats(const encoder_wrapper_struct *encoder_wrapper)
 #else
 	double progress = (double)encoder_wrapper->samples_written / (double)encoder_wrapper->total_samples_to_encode;
 #endif
-	fprintf(stderr, "\r%0.2f%% complete: frame %u, wrote %u bytes, %u of %u samples, ratio = %5.3f",
+	fprintf(stderr, "\r%0.2f%% complete: frame %u, wrote %u bytes (%u/%u samples), r=%5.3f",
 		progress * 100.0, encoder_wrapper->current_frame,
 		(unsigned)encoder_wrapper->bytes_written, (unsigned)encoder_wrapper->samples_written, (unsigned)encoder_wrapper->total_samples_to_encode,
 #ifdef _MSC_VER
