@@ -177,5 +177,52 @@ check_flac
 check_exit
 check_flac
 
-exit 0
+(set -x && metaflac --set-vc-field="f=0123456789abcdefghij" $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+check_exit
 
+(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789abcdefghi" $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+check_exit
+
+(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789abcde" $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+check_exit
+
+(set -x && metaflac --remove-vc-all --set-vc-field="f=0" $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+check_exit
+
+(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789" $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+check_exit
+
+(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789abcdefghi" $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+check_exit
+
+(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789" $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+check_exit
+
+(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789abcdefghij" $flacfile)
+check_exit
+check_flac
+(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+check_exit
+
+exit 0
