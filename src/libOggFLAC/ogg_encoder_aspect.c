@@ -104,6 +104,7 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 	 *
 	 * For audio frames, we let Ogg do the paging.
 	 */
+	/*@@@@@@ combine fLaC header + STREAMINFO into the first page? 2 packets or 1 packet? */
 	/*@@@@@@ need our own implementation of ogg_stream_flush to max out the page instead of use its 4096 nominal page size */
 	/*@@@@@@ can't figure out a way to pass a useful number for 'samples' to the write_callback, so we'll just pass 0 */
 	if (packet.packetno == -1) {
