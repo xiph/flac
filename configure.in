@@ -76,6 +76,7 @@ if test x$sse_os = xtrue ; then
 AC_DEFINE(FLAC__SSE_OS)
 fi
 
+AC_ARG_ENABLE(use_3dnow,
 [  --use-3dnow                 Enable 3DNOW! support],
 [case "${enableval}" in
 	yes) use_3dnow=true ;;
