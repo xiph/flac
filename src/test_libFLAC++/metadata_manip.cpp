@@ -591,6 +591,7 @@ static bool remove_file_(const char *filename)
 static bool test_level_0_()
 {
 	FLAC::Metadata::StreamInfo streaminfo;
+	FLAC::Metadata::VorbisComment *tags = 0;
 
 	printf("\n\n++++++ testing level 0 interface\n");
 
@@ -599,6 +600,8 @@ static bool test_level_0_()
 
 	if(!test_file_(flacfile_, /*ignore_metadata=*/true))
 		return false;
+
+	printf("testing FLAC::Metadata::get_streaminfo()... ");
 
 	if(!FLAC::Metadata::get_streaminfo(flacfile_, streaminfo))
 		return die_("during FLAC::Metadata::get_streaminfo()");
@@ -614,6 +617,21 @@ static bool test_level_0_()
 		return die_("mismatch in streaminfo.get_min_blocksize()");
 	if(streaminfo.get_max_blocksize() != 576)
 		return die_("mismatch in streaminfo.get_max_blocksize()");
+
+	printf("OK\n");
+
+	printf("testing FLAC::Metadata::get_tags()... ");
+
+	if(!FLAC::Metadata::get_tags(flacfile_, tags))
+		return die_("during FLAC::Metadata::get_tags()");
+
+	/* check to see if some basic data matches (c.f. generate_file_()) */
+	if(tags->get_num_comments() != 0)
+		return die_("mismatch in tags->get_num_comments()");
+
+	printf("OK\n");
+
+	delete tags;
 
 	if(!remove_file_(flacfile_))
 		return false;

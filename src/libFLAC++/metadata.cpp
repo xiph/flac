@@ -985,10 +985,26 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(0 != filename);
 
-			::FLAC__StreamMetadata s;
+			::FLAC__StreamMetadata object;
 
-			if(::FLAC__metadata_get_streaminfo(filename, &s)) {
-				streaminfo = s;
+			if(::FLAC__metadata_get_streaminfo(filename, &object)) {
+				streaminfo = object;
+				return true;
+			}
+			else
+				return false;
+		}
+
+		FLACPP_API bool get_tags(const char *filename, VorbisComment *&tags)
+		{
+			FLAC__ASSERT(0 != filename);
+
+			::FLAC__StreamMetadata *object;
+
+			tags = 0;
+
+			if(::FLAC__metadata_get_tags(filename, &object)) {
+				tags = new VorbisComment(object, /*copy=*/false);
 				return true;
 			}
 			else

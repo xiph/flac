@@ -64,7 +64,7 @@
  *  There are three metadata interfaces of increasing complexity:
  *
  *  Level 0:
- *  Read-only access to the STREAMINFO block.
+ *  Read-only access to the STREAMINFO and VORBIS_COMMENT blocks.
  *
  *  Level 1:
  *  Read-write access to all metadata blocks.  This level is write-
@@ -123,8 +123,8 @@ extern "C" {
  *  \ingroup flac_metadata
  *
  *  \brief
- *  The level 0 interface consists of a single routine to read the
- *  STREAMINFO block.
+ *  The level 0 interface consists of individual routines to read the
+ *  STREAMINFO and VORBIS_COMMENT blocks, requiring only a filename.
  *
  *  It skips any ID3v2 tag at the head of the file.
  *
@@ -135,16 +135,39 @@ extern "C" {
  *  will skip any ID3v2 tag at the head of the file.
  *
  * \param filename    The path to the FLAC file to read.
- * \param streaminfo  A pointer to space for the STREAMINFO block.
+ * \param streaminfo  A pointer to space for the STREAMINFO block.  Since
+ *                    FLAC__StreamMetadata is a simple structure with no
+ *                    memory allocation involved, you pass the address of
+ *                    an existing structure.  It need not be initialized.
  * \assert
  *    \code filename != NULL \endcode
  *    \code streaminfo != NULL \endcode
  * \retval FLAC__bool
  *    \c true if a valid STREAMINFO block was read from \a filename.  Returns
  *    \c false if there was a memory allocation error, a file decoder error,
- *    or the file contained no STREAMINFO block.
+ *    or the file contained no STREAMINFO block.  (A memory allocation error
+ *    is possible because this function must set up a file decoder.)
  */
 FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo);
+
+/** Read the VORBIS_COMMENT metadata block of the given FLAC file.  This
+ *  function will skip any ID3v2 tag at the head of the file.
+ *
+ * \param filename    The path to the FLAC file to read.
+ * \param tags        The address where the returned pointer will be
+ *                    stored.  The \a tags object must be deleted by
+ *                    the caller using FLAC__metadata_object_delete().
+ * \assert
+ *    \code filename != NULL \endcode
+ *    \code streaminfo != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if a valid VORBIS_COMMENT block was read from \a filename,
+ *    and \a *tags will be set to the address of the tag structure.
+ *    Returns \c false if there was a memory allocation error, a file
+ *    decoder error, or the file contained no VORBIS_COMMENT block, and
+ *    \a *tags will be set to \c NULL.
+ */
+FLAC_API FLAC__bool FLAC__metadata_get_tags(const char *filename, FLAC__StreamMetadata **tags);
 
 /* \} */
 

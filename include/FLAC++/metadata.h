@@ -787,7 +787,7 @@ namespace FLAC {
 		 *  \ingroup flacpp_metadata
 		 *
 		 *  \brief
-		 *  Level 0 metadata iterator.
+		 *  Level 0 metadata iterators.
 		 *
 		 *  See the \link flac_metadata_level0 C layer equivalent \endlink
 		 *  for more.
@@ -797,6 +797,9 @@ namespace FLAC {
 
 	 	//! See FLAC__metadata_get_streaminfo().
 		FLACPP_API bool get_streaminfo(const char *filename, StreamInfo &streaminfo);
+		//
+	 	//! See FLAC__metadata_get_tags().
+		FLACPP_API bool get_tags(const char *filename, VorbisComment *&tags);
 
 		/* \} */
 

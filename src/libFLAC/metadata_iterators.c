@@ -153,8 +153,8 @@ static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecode
 
 typedef struct {
 	FLAC__bool got_error;
-	FLAC__bool got_streaminfo;
-	FLAC__StreamMetadata *streaminfo;
+	FLAC__bool got_object;
+	FLAC__StreamMetadata *object;
 } level0_client_data;
 
 FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo)
@@ -171,8 +171,8 @@ FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__St
 		return false;
 
 	cd.got_error = false;
-	cd.got_streaminfo = false;
-	cd.streaminfo = streaminfo;
+	cd.got_object = false;
+	cd.object = 0;
 
 	FLAC__file_decoder_set_md5_checking(decoder, false);
 	FLAC__file_decoder_set_filename(decoder, filename);
@@ -189,17 +189,77 @@ FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__St
 		return false;
 	}
 
-	/* the first thing decoded must be the STREAMINFO block: */
 	if(!FLAC__file_decoder_process_until_end_of_metadata(decoder) || cd.got_error) {
 		FLAC__file_decoder_finish(decoder);
 		FLAC__file_decoder_delete(decoder);
+		if(0 != cd.object)
+			FLAC__metadata_object_delete(cd.object);
 		return false;
 	}
 
 	FLAC__file_decoder_finish(decoder);
 	FLAC__file_decoder_delete(decoder);
 
-	return !cd.got_error && cd.got_streaminfo;
+	if(cd.got_object) {
+		/* can just copy the contents since STREAMINFO has no internal structure */
+		*streaminfo = *(cd.object);
+	}
+
+	if(0 != cd.object)
+		FLAC__metadata_object_delete(cd.object);
+
+	return cd.got_object;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_get_tags(const char *filename, FLAC__StreamMetadata **tags)
+{
+	level0_client_data cd;
+	FLAC__FileDecoder *decoder;
+
+	FLAC__ASSERT(0 != filename);
+	FLAC__ASSERT(0 != tags);
+
+	decoder = FLAC__file_decoder_new();
+
+	if(0 == decoder)
+		return false;
+
+	*tags = 0;
+
+	cd.got_error = false;
+	cd.got_object = false;
+	cd.object = 0;
+
+	FLAC__file_decoder_set_md5_checking(decoder, false);
+	FLAC__file_decoder_set_filename(decoder, filename);
+	FLAC__file_decoder_set_metadata_ignore_all(decoder);
+	FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	FLAC__file_decoder_set_write_callback(decoder, write_callback_);
+	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback_);
+	FLAC__file_decoder_set_error_callback(decoder, error_callback_);
+	FLAC__file_decoder_set_client_data(decoder, &cd);
+
+	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK || cd.got_error) {
+		FLAC__file_decoder_finish(decoder);
+		FLAC__file_decoder_delete(decoder);
+		return false;
+	}
+
+	if(!FLAC__file_decoder_process_until_end_of_metadata(decoder) || cd.got_error) {
+		FLAC__file_decoder_finish(decoder);
+		FLAC__file_decoder_delete(decoder);
+		if(0 != cd.object)
+			FLAC__metadata_object_delete(cd.object);
+		return false;
+	}
+
+	FLAC__file_decoder_finish(decoder);
+	FLAC__file_decoder_delete(decoder);
+
+	if(cd.got_object)
+		*tags = cd.object;
+
+	return cd.got_object;
 }
 
 FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
@@ -214,9 +274,15 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 	level0_client_data *cd = (level0_client_data *)client_data;
 	(void)decoder;
 
-	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO && 0 != cd->streaminfo) {
-		*(cd->streaminfo) = *metadata;
-		cd->got_streaminfo = true;
+	/*
+	 * we assume we only get here when the one metadata block we were
+	 * looking for was passed to us
+	 */
+	if(!cd->got_object) {
+		if(0 == (cd->object = FLAC__metadata_object_clone(metadata)))
+			cd->got_error = true;
+		else
+			cd->got_object = true;
 	}
 }
 
