@@ -32,7 +32,7 @@ test_file ()
 	encode_options="$4"
 
 	echo -n "$name: encode..."
-	cmd="flac --verify --silent --force-raw-input --endian=big --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
+	cmd="flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else
@@ -40,7 +40,7 @@ test_file ()
 		exit 1
 	fi
 	echo -n "decode..."
-	cmd="flac --silent --endian=big --decode --force-raw-input $name.flac";
+	cmd="flac --silent --endian=big --decode --force-raw-format $name.flac";
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else

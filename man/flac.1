@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "19 August 2002" "" ""
+.TH "FLAC" "1" "20 August 2002" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -255,8 +255,9 @@ Set sample rate (in Hz).
 \fB--sign={\fIsigned\fB|\fIunsigned\fB}\fR
 Set the sign of samples (the default is signed).
 .TP
-\fB--force-raw-input\fR
-Force input to be treated as raw samples (even if filename ends
+\fB--force-raw-format\fR
+Force input (when encoding) or output (when decoding)
+to be treated as raw samples (even if filename ends
 in \fI.wav\fR).
 .SS "NEGATIVE OPTIONS"
 .TP

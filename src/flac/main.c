@@ -107,7 +107,7 @@ static struct FLAC__share__option long_options_[] = {
 	{ "fast", 0, 0, '0' },
 	{ "super-secret-impractical-compression-level", 0, 0, 0 },
 	{ "verify", 0, 0, 'V' },
-	{ "force-raw-input", 0, 0, 0 },
+	{ "force-raw-format", 0, 0, 0 },
 	{ "lax", 0, 0, 0 },
 	{ "sector-align", 0, 0, 0 },
 	{ "seekpoint", 1, 0, 'S' },
@@ -314,6 +314,20 @@ int do_it()
 			if(!FLAC__format_sample_rate_is_valid(option_values.format_sample_rate))
 				return usage_error("ERROR: invalid sample rate '%u', must be > 0 and <= %u\n", option_values.format_sample_rate, FLAC__MAX_SAMPLE_RATE);
 		}
+		if(option_values.mode_decode) {
+			if(!option_values.force_raw_format) {
+				if(option_values.format_is_big_endian >= 0)
+					return usage_error("ERROR: --endian only allowed with --force-raw-format\n");
+				if(option_values.format_is_unsigned_samples >= 0)
+					return usage_error("ERROR: --sign only allowed with --force-raw-format\n");
+			}
+			if(option_values.format_channels >= 0)
+				return usage_error("ERROR: --channels not allowed with --decode\n");
+			if(option_values.format_bps >= 0)
+				return usage_error("ERROR: --bps not allowed with --decode\n");
+			if(option_values.format_sample_rate >= 0)
+				return usage_error("ERROR: --sample-rate not allowed with --decode\n");
+		}
 		if(!option_values.mode_decode && ((unsigned)option_values.blocksize < FLAC__MIN_BLOCK_SIZE || (unsigned)option_values.blocksize > FLAC__MAX_BLOCK_SIZE)) {
 			return usage_error("ERROR: invalid blocksize '%u', must be >= %u and <= %u\n", (unsigned)option_values.blocksize, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
 		}
@@ -449,7 +463,7 @@ void init_options()
 	option_values.qlp_coeff_precision = 0;
 	option_values.skip = 0;
 	option_values.format_is_big_endian = -1;
-	option_values.format_is_unsigned_samples = false;
+	option_values.format_is_unsigned_samples = -1;
 	option_values.format_channels = -1;
 	option_values.format_bps = -1;
 	option_values.format_sample_rate = -1;
@@ -534,7 +548,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			option_values.rice_parameter_search_dist = 0;
 			option_values.max_lpc_order = 32;
 		}
-		else if(0 == strcmp(long_option, "force-raw-input")) {
+		else if(0 == strcmp(long_option, "force-raw-format")) {
 			option_values.force_raw_format = true;
 		}
 		else if(0 == strcmp(long_option, "lax")) {
@@ -984,7 +998,7 @@ void show_help()
 	printf("      --bps=#                  Number of bits per sample\n");
 	printf("      --sample-rate=#          Sample rate in Hz\n");
 	printf("      --sign={signed|unsigned} Sign of samples\n");
-	printf("      --force-raw-input        Force input to be treated as raw samples\n");
+	printf("      --force-raw-format       Treat input or output as raw samples\n");
 	printf("negative options:\n");
 	printf("      --no-adaptive-mid-side\n");
 	printf("      --no-decode-through-errors\n");
@@ -1164,7 +1178,8 @@ void show_explain()
 	printf("      --bps=#                  Number of bits per sample\n");
 	printf("      --sample-rate=#          Sample rate in Hz\n");
 	printf("      --sign={signed|unsigned} Sign of samples (the default is signed)\n");
-	printf("      --force-raw-input        Force input to be treated as raw samples\n");
+	printf("      --force-raw-format       Force input (when encoding) or output (when\n");
+	printf("                               decoding) to be treated as raw samples\n");
 	printf("negative options:\n");
 	printf("      --no-adaptive-mid-side\n");
 	printf("      --no-decode-through-errors\n");
@@ -1253,8 +1268,8 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	}
 
 	if(fmt == RAW) {
-		if(option_values.format_is_big_endian < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0)
-			return usage_error("ERROR: for encoding a raw file you must specify a value for --endian, --channels, --bps, and --sample-rate\n");
+		if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0)
+			return usage_error("ERROR: for encoding a raw file you must specify a value for --endian, --sign, --channels, --bps, and --sample-rate\n");
 	}
 
 	if(encode_infile == stdin || option_values.force_to_stdout)
@@ -1348,8 +1363,8 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	decode_options_t common_options;
 
 	if(!option_values.test_only && !option_values.analyze) {
-		if(option_values.force_raw_format && option_values.format_is_big_endian < 0)
-			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian\n");
+		if(option_values.force_raw_format && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0))
+			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian and --sign\n");
 	}
 
 	if(0 == strcmp(infilename, "-") || option_values.force_to_stdout)

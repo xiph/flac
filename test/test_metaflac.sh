@@ -30,7 +30,7 @@ metaflac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find metaflac exec
 if [ $? != 0 ] ; then exit 1 ; fi
 
 echo "Generating stream..."
-if flac --verify -0 --output-name=$flacfile --force-raw-input --endian=big --channels=1 --bps=8 --sample-rate=44100 /bin/sh ; then
+if flac --verify -0 --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=44100 /bin/sh ; then
 	chmod +w $flacfile
 else
 	echo "ERROR during generation" 1>&2
