@@ -22,15 +22,7 @@
 #include <string.h> /* for memcpy(), memset() */
 #include "private/bitbuffer.h"
 
-/* WATCHOUT: this size here is a workaround due to a bug in the
- * verify_read_callback in flac/encode.c, c.f.
- *
- *     http://sourceforge.net/bugs/?func=detailbug&bug_id=131976&group_id=13478
- *
- * When that bug is fixed the number here can be set back to a
- * reasonable level.
- */
-static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 300000; /* bytes */
+static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 65536; /* bytes */
 
 #ifdef min
 #undef min
