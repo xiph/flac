@@ -671,7 +671,6 @@
 		<term><option>--no-adaptive-mid-side</option></term>
 		<term><option>--no-decode-through-errors</option></term>
 		<term><option>--no-delete-input-file</option></term>
-		<term><option>--no-escape-coding</option></term>
 		<term><option>--no-exhaustive-model-search</option></term>
 		<term><option>--no-lax</option></term>
 		<term><option>--no-mid-side</option></term>
