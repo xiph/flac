@@ -1837,6 +1837,37 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32_little_endian(FLAC__BitB
 	return true;
 }
 
+FLAC__bool FLAC__bitbuffer_read_byte_block_aligned(FLAC__BitBuffer *bb, FLAC__byte *val, unsigned nvals, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+{
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(FLAC__bitbuffer_is_byte_aligned(bb));
+	FLAC__ASSERT(FLAC__bitbuffer_is_consumed_byte_aligned(bb));
+#if FLAC__BITS_PER_BLURB == 8
+	while(nvals > 0) {
+		unsigned chunk = min(nvals, bb->blurbs - bb->consumed_blurbs);
+		if(chunk == 0) {
+			if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
+				return false;
+		}
+		else {
+			if(0 != val) {
+				memcpy(val, bb->buffer + bb->consumed_blurbs, FLAC__BYTES_PER_BLURB * chunk);
+				val += FLAC__BYTES_PER_BLURB * chunk;
+			}
+			nvals -= chunk;
+			bb->consumed_blurbs += chunk;
+			bb->total_consumed_bits = (bb->consumed_blurbs << FLAC__BITS_PER_BLURB_LOG2);
+		}
+	}
+#else
+	@@@ need to write this still
+	FLAC__ASSERT(0);
+#endif
+
+	return true;
+}
+
 FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 #ifdef FLAC__NO_MANUAL_INLINING
 {
