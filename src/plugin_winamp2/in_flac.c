@@ -209,8 +209,8 @@ void getfileinfo(char *filename, char *title, int *length_in_ms)
 	else { /* some other file */
 		if (length_in_ms) {
 			FLAC__FileDecoder *tmp_decoder = FLAC__file_decoder_get_new_instance();
-			tmp_decoder->check_md5 = false; /* turn off MD5 checking in the decoder */
 			stream_info_struct tmp_stream_info;
+			tmp_decoder->check_md5 = false; /* turn off MD5 checking in the decoder */
 			tmp_stream_info.abort_flag = false;
 			if(FLAC__file_decoder_init(tmp_decoder, filename, write_callback, metadata_callback, error_callback, &tmp_stream_info) != FLAC__FILE_DECODER_OK)
 				return;
