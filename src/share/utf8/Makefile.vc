@@ -1,0 +1,25 @@
+!include <win32.mak>
+
+!IFDEF DEBUG
+.c.obj:
+	$(cc) /D "_LIB" -DFLAC__NO_DLL /GX $(cdebug) $(cflags) /I "..\..\..\include" /I "..\..\..\include\share" -DSTRICT -YX /Od /D "_DEBUG" $<
+!else
+.c.obj:
+	$(cc) /D "_LIB" -DFLAC__NO_DLL /O2 $(crelease) $(cflags) /I "..\..\..\include" /I "..\..\..\include\share" -DSTRICT -YX -DNODEBUG $<
+!endif
+
+C_FILES= \
+	charset.c \
+	iconvert.c \
+	utf8.c
+
+OBJS= $(C_FILES:.c=.obj)
+
+all: utf8.lib
+
+utf8.lib: $(UTF8_OBJS)
+	link.exe -lib /nodefaultlib -out:../../../obj/lib/$*.lib $(UTF8_OBJS)
+
+clean:
+	-del *.obj *.pch
+	-del ..\..\..\obj\lib\utf8.lib ..\..\..\obj\lib\utf8.pdb

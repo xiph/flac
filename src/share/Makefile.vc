@@ -1,35 +1,19 @@
 !include <win32.mak>
 
-!IFDEF DEBUG
-.c.obj:
-	$(cc) /D "_LIB" -DFLAC__NO_DLL /GX $(cdebug) $(cflags) /I "..\..\include" /I "..\..\include\share" -DSTRICT -YX /Od /D "_DEBUG" $<
-!else
-.c.obj:
-	$(cc) /D "_LIB" -DFLAC__NO_DLL /O2 $(crelease) $(cflags) /I "..\..\include" /I "..\..\include\share" -DSTRICT -YX -DNODEBUG $<
-!endif
+# It's less hassle to spell it all out that to figure out how to do it right with nmake:
 
-C_FILES= \
-	getopt.c \
-	getopt1.c
-
-UTF8_C_FILES= \
-	charset.c \
-	iconvert.c \
-	utf8.c
-
-OBJS= $(C_FILES:.c=.obj)
-
-UTF8_OBJS= $(UTF8_C_FILES:.c=.obj)
-
-all: getopt.lib utf8.lib
-
-getopt.lib: $(OBJS)
-	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
-
-utf8.lib: $(UTF8_OBJS)
-	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(UTF8_OBJS)
+all:
+	cd getopt
+	nmake /f Makefile.vc
+	cd ..
+	cd utf8
+	nmake /f Makefile.vc
+	cd ..
 
 clean:
-	-del *.obj *.pch
-	-del ..\..\obj\lib\getopt.lib ..\..\obj\lib\getopt.pdb
-	-del ..\..\obj\lib\utf8.lib ..\..\obj\lib\utf8.pdb
+	cd getopt
+	nmake /f Makefile.vc clean
+	cd ..
+	cd utf8
+	nmake /f Makefile.vc clean
+	cd ..
