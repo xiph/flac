@@ -1122,7 +1122,7 @@ bool stream_decoder_read_subframe_fixed_(FLAC__StreamDecoder *decoder, unsigned 
 
 	/* read warm-up samples */
 	for(u = 0; u < order; u++) {
-		if(!FLAC__bitbuffer_read_raw_int32(&decoder->guts->input, &i32, bps - decoder->guts->frame.subframes[channel].wasted_bits, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_int32(&decoder->guts->input, &i32, bps, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		subframe->warmup[u] = i32;
 	}
@@ -1173,7 +1173,7 @@ bool stream_decoder_read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned ch
 
 	/* read warm-up samples */
 	for(u = 0; u < order; u++) {
-		if(!FLAC__bitbuffer_read_raw_int32(&decoder->guts->input, &i32, bps - decoder->guts->frame.subframes[channel].wasted_bits, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_int32(&decoder->guts->input, &i32, bps, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		subframe->warmup[u] = i32;
 	}
