@@ -138,8 +138,45 @@ FLAC__bool list(FILE *f, FLAC__bool verbose)
 	FLAC__StreamMetaData metadata;
 	unsigned blocknum = 0, byte_offset = 0, i;
 
-	/* read the stream sync code */
-	if(fread(buf, 1, 4, f) < 4 || memcmp(buf, sync_string_, 4)) {
+	/* skip any id3v2 tag */
+	if(fread(buf, 1, 4, f) < 4) {
+		fprintf(stderr, "ERROR: not a FLAC file\n");
+		return false;
+	}
+	if(0 == memcmp(buf, "ID3", 3)) {
+		unsigned tag_length = 0;
+
+		/* skip to the tag length */
+		if(fseek(f, 2, SEEK_CUR) < 0) {
+			fprintf(stderr, "ERROR: bad ID3v2 tag\n");
+			return false;
+		}
+
+		/* read the length */
+		for(i = 0; i < 4; i++) {
+			if(fread(buf, 1, 1, f) < 1 || buf[0] & 0x80) {
+				fprintf(stderr, "ERROR: bad ID3v2 tag\n");
+				return false;
+			}
+			tag_length <<= 7;
+			tag_length |= (buf[0] & 0x7f);
+		}
+
+		/* skip the rest of the tag */
+		if(fseek(f, tag_length, SEEK_CUR) < 0) {
+			fprintf(stderr, "ERROR: bad ID3v2 tag\n");
+			return false;
+		}
+
+		/* read the stream sync code */
+		if(fread(buf, 1, 4, f) < 4) {
+			fprintf(stderr, "ERROR: not a FLAC file (no '%s' header)\n", sync_string_);
+			return false;
+		}
+	}
+
+	/* check the stream sync code */
+	if(memcmp(buf, sync_string_, 4)) {
 		fprintf(stderr, "ERROR: not a FLAC file (no '%s' header)\n", sync_string_);
 		return false;
 	}
@@ -165,6 +202,10 @@ FLAC__bool list(FILE *f, FLAC__bool verbose)
 
 		if(metadata.length > sizeof(buf)) {
 			printf("  SKIPPING large block\n");
+			if(fseek(f, metadata.length, SEEK_CUR) < 0) {
+				fprintf(stderr, "ERROR: short count skipping metadata block data\n");
+				return false;
+			}
 			continue;
 		}
 
