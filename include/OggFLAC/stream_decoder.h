@@ -55,11 +55,11 @@ extern "C" {
  *  \ingroup oggflac
  *
  *  \brief
- *  This module describes the decoder layers provided by libOggFLAC.
+ *  This module describes the three decoder layers provided by libOggFLAC.
  *
- * libOggFLAC currently provides the same stream layer access as libFLAC;
- * the interface is identical.  See the \link flac_decoder FLAC
- * decoder module \endlink for full documentation.
+ * libOggFLAC currently provides the same three layers of access as
+ * libFLAC; the interface is identical.  See the \link flac_decoder
+ * FLAC decoder module \endlink for full documentation.
  */
 
 /** \defgroup oggflac_stream_decoder OggFLAC/stream_decoder.h: stream decoder interface
@@ -70,8 +70,10 @@ extern "C" {
  *  decoder.
  *
  * The interface here is identical to FLAC's stream decoder,
- * including the callbacks.  See the \link flac_stream_decoder
- * FLAC stream decoder module \endlink for full documentation.
+ * including the callbacks, with the addition of
+ * OggFLAC__stream_decoder_set_serial_number().  See the
+ * \link flac_stream_decoder FLAC stream decoder module \endlink
+ * for full documentation.
  *
  * \{
  */
@@ -146,7 +148,11 @@ typedef struct {
  * \param  decoder  The decoder instance calling the callback.
  * \param  buffer   A pointer to a location for the callee to store
  *                  data to be decoded.
- * \param  bytes    A pointer to the size of the buffer.
+ * \param  bytes    A pointer to the size of the buffer.  On entry
+ *                  to the callback, it contains the maximum number
+ *                  of bytes that may be stored in \a buffer.  The
+ *                  callee must set it to the actual number of bytes
+ *                  stored before returning.
  * \param  client_data  The callee's client data set through
  *                      OggFLAC__stream_decoder_set_client_data().
  * \retval FLAC__StreamDecoderReadStatus
@@ -159,8 +165,14 @@ typedef FLAC__StreamDecoderReadStatus (*OggFLAC__StreamDecoderReadCallback)(cons
  *  and FLAC__StreamDecoderWriteCallback for more info.
  *
  * \param  decoder  The decoder instance calling the callback.
- * \param  frame    The description of the decoded frame.
+ * \param  frame    The description of the decoded frame.  See
+ *                  FLAC__Frame.
  * \param  buffer   An array of pointers to decoded channels of data.
+ *                  Each pointer will point to an array of signed
+ *                  samples of length \a frame->header.blocksize.
+ *                  Currently, the channel order has no meaning
+ *                  except for stereo streams; in this case channel
+ *                  0 is left and 1 is right.
  * \param  client_data  The callee's client data set through
  *                      OggFLAC__stream_decoder_set_client_data().
  * \retval FLAC__StreamDecoderWriteStatus

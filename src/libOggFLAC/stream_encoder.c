@@ -712,7 +712,7 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *unused
 void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	/*
-	 * We don't try to go back an update metadata blocks by mucking
+	 * We don't try to go back and update metadata blocks by mucking
 	 * around inside the Ogg layer.  Maybe someday we will care to
 	 * and an OggFLAC__SeekableStreamEncoder and OggFLAC__FileEncoder
 	 * will be possible but it may just never be useful.
