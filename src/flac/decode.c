@@ -95,20 +95,24 @@ int decode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
+			if(verbose) ( printf("\n"); fflush(stdout); }
 			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto wav_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
+			if(verbose) ( printf("\n"); fflush(stdout); }
 			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto wav_abort_;
 		}
 	}
 	else {
 		if(!FLAC__file_decoder_process_whole_file(decoder)) {
+			if(verbose) ( printf("\n"); fflush(stdout); }
 			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto wav_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
+			if(verbose) ( printf("\n"); fflush(stdout); }
 			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto wav_abort_;
 		}
@@ -188,20 +192,24 @@ int decode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
+			if(verbose) ( printf("\n"); fflush(stdout); }
 			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto raw_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
+			if(verbose) ( printf("\n"); fflush(stdout); }
 			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto raw_abort_;
 		}
 	}
 	else {
 		if(!FLAC__file_decoder_process_whole_file(decoder)) {
+			if(verbose) ( printf("\n"); fflush(stdout); }
 			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto raw_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
+			if(verbose) ( printf("\n"); fflush(stdout); }
 			fprintf(stderr, "%s: ERROR during decoding\n", infile);
 			goto raw_abort_;
 		}
