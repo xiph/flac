@@ -193,7 +193,7 @@ bool list(FILE *f, bool verbose)
 				break;
 			case FLAC__METADATA_TYPE_SEEKTABLE:
 				metadata.data.seek_table.num_points = metadata.length / SEEKPOINT_LEN_;
-				b = buf+4; /* we leave the points in buf for printing later */
+				b = buf; /* we leave the points in buf for printing later */
 				break;
 			default:
 				printf("SKIPPING block of unknown type\n\n");
