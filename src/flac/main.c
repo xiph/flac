@@ -1437,11 +1437,11 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 	if(!option_values.force_raw_format) {
 		/* first set format based on name */
-		if(strlen(infilename) > 3 && 0 == strcasecmp(infilename+(strlen(infilename)-4), ".wav"))
+		if(strlen(infilename) >= 4 && 0 == strcasecmp(infilename+(strlen(infilename)-4), ".wav"))
 			fmt= WAV;
-		else if(strlen(infilename) > 3 && 0 == strcasecmp(infilename+(strlen(infilename)-4), ".aif"))
+		else if(strlen(infilename) >= 4 && 0 == strcasecmp(infilename+(strlen(infilename)-4), ".aif"))
 			fmt= AIF;
-		else if(strlen(infilename) > 4 && 0 == strcasecmp(infilename+(strlen(infilename)-5), ".aiff"))
+		else if(strlen(infilename) >= 5 && 0 == strcasecmp(infilename+(strlen(infilename)-5), ".aiff"))
 			fmt= AIF;
 
 		/* attempt to guess the file type based on the first 12 bytes */
@@ -1578,7 +1578,7 @@ int decode_file(const char *infilename)
 
 	if(option_values.use_ogg)
 		treat_as_ogg = true;
-	else if(0 == strcasecmp(infilename+(strlen(infilename)-4), ".ogg"))
+	else if(strlen(infilename) >= 4 && 0 == strcasecmp(infilename+(strlen(infilename)-4), ".ogg"))
 		treat_as_ogg = true;
 	else
 		treat_as_ogg = false;
@@ -1614,8 +1614,8 @@ int decode_file(const char *infilename)
 
 		if(
 			option_values.force_aiff_format ||
-			(strlen(outfilename) > 3 && 0 == strcasecmp(outfilename+(strlen(outfilename)-4), ".aif")) ||
-			(strlen(outfilename) > 4 && 0 == strcasecmp(outfilename+(strlen(outfilename)-5), ".aiff"))
+			(strlen(outfilename) >= 4 && 0 == strcasecmp(outfilename+(strlen(outfilename)-4), ".aif")) ||
+			(strlen(outfilename) >= 5 && 0 == strcasecmp(outfilename+(strlen(outfilename)-5), ".aiff"))
 		)
 			retval = flac__decode_aiff(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
 		else
