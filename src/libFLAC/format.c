@@ -100,5 +100,6 @@ const char *FLAC__ChannelAssignmentString[] = {
 const char *FLAC__MetaDataTypeString[] = {
 	"STREAMINFO",
 	"PADDING",
-	"APPLICATION"
+	"APPLICATION",
+	"SEEKTABLE"
 };
