@@ -28,11 +28,7 @@
 #include <stdio.h> /* for FILE etc. */
 #include <stdlib.h> /* for malloc */
 #include <string.h> /* for strcmp() */
-#if defined _MSC_VER || defined __MINGW32__
 #include <time.h>
-#else
-#include <sys/time.h>
-#endif
 #include "FLAC/all.h"
 #include "share/grabbag.h"
 #include "encode.h"
