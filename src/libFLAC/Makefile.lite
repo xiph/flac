@@ -55,7 +55,8 @@ OBJS = $(ASM_OBJS) \
 	lpc.o \
 	md5.o \
 	memory.o \
-	metadata.o \
+	metadata_iterators.o \
+	metadata_object.o \
 	seek_table.o \
 	seekable_stream_decoder.o \
 	stream_decoder.o \
