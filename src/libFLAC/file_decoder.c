@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for strcmp() */
+#include <sys/stat.h> /* for stat() */
 #include "FLAC/file_decoder.h"
 #include "protected/stream_decoder.h"
 #include "private/md5.h"
@@ -31,6 +32,7 @@ typedef struct FLAC__FileDecoderPrivate {
 	void (*error_callback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 	void *client_data;
 	FILE *file;
+	char *filename; /* == NULL if stdin */
 	FLAC__StreamDecoder *stream;
 	struct MD5Context md5context;
 	byte stored_md5sum[16]; /* this is what is stored in the metadata */
@@ -101,11 +103,19 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	decoder->guts->error_callback = error_callback;
 	decoder->guts->client_data = client_data;
 	decoder->guts->stream = 0;
+	decoder->guts->file = 0;
+	decoder->guts->filename = 0;
 
-	if(0 == strcmp(filename, "-"))
+	if(0 == strcmp(filename, "-")) {
 		decoder->guts->file = stdin;
-	else
+	}
+	else {
+		if(0 == (decoder->guts->filename = (char*)malloc(strlen(filename)+1)))
+			return decoder->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
+		strcpy(decoder->guts->filename, filename);
 		decoder->guts->file = fopen(filename, "rb");
+	}
+
 	if(decoder->guts->file == 0)
 		return decoder->state = FLAC__FILE_DECODER_ERROR_OPENING_FILE;
 
@@ -113,7 +123,7 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	 * because check_md5 may be turned on to start and then turned off if a
 	 * seek occurs.  So we always init the context here and finalize it in
 	 * FLAC__file_decoder_finish() to make sure things are always cleaned up
-	 *properly.
+	 * properly.
 	 */
 	MD5Init(&decoder->guts->md5context);
 
@@ -134,6 +144,8 @@ bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
 	if(decoder->guts != 0) {
 		if(decoder->guts->file != 0 && decoder->guts->file != stdin)
 			fclose(decoder->guts->file);
+		if(0 != decoder->guts->filename)
+			free(decoder->guts->filename);
 		/* see the comment in FLAC__file_decoder_init() as to why we always
 		 * call MD5Final()
 		 */
@@ -236,9 +248,15 @@ bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder)
 bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample)
 {
 	long filesize;
+	struct stat filestats;
 
 	assert(decoder != 0);
 	assert(decoder->state == FLAC__FILE_DECODER_OK);
+
+	if(decoder->guts->filename == 0) { /* means the file is stdin... */
+		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
+		return false;
+	}
 
 	decoder->state = FLAC__FILE_DECODER_SEEKING;
 
@@ -250,15 +268,11 @@ bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample)
 		return false;
 	}
 	/* get the file length */
-	if(0 != fseek(decoder->guts->file, 0, SEEK_END)) {
+	if(stat(decoder->guts->filename, &filestats) != 0) {
 		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
-	fflush(decoder->guts->file);
-	if(-1 == (filesize = ftell(decoder->guts->file))) {
-		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
-		return false;
-	}
+	filesize = filestats.st_size;
 	/* rewind */
 	if(0 != fseek(decoder->guts->file, 0, SEEK_SET)) {
 		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
@@ -380,27 +394,40 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	bool needs_seek;
 	const bool is_variable_blocksize_stream = (decoder->guts->stream_info.min_blocksize != decoder->guts->stream_info.max_blocksize);
 
-	if(!is_variable_blocksize_stream) {
-		/* we are just guessing here, but we want to guess high, not low */
+	/* we are just guessing here, but we want to guess high, not low */
+	if(decoder->guts->stream_info.max_framesize > 0) {
+		approx_bytes_per_frame = decoder->guts->stream_info.max_framesize + 64;
+	}
+	else if(!is_variable_blocksize_stream) {
 		/* note there are no () around 'decoder->guts->stream_info.bits_per_sample/8' to keep precision up since it's an integer calulation */
 		approx_bytes_per_frame = decoder->guts->stream_info.min_blocksize * decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample/8 + 64;
 	}
 	else
 		approx_bytes_per_frame = 1152 * decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample/8 + 64;
 
-	/* Now we need to use the metadata and the filelength to search to the frame with the correct sample */
+	/* The file pointer is currently at the first frame plus any read
+	   ahead data, so first we get the file pointer, then subtract
+	   uncomsumed bytes to get the position (l) of the first frame
+	   in the file */
 	if(-1 == (l = ftell(decoder->guts->file))) {
 		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
-	l -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream);
+	l -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream) + 1;
+	if(l < 0)
+		l = 0;
+
+	/* Now we need to use the metadata and the filelength to search to the frame with the correct sample */
 #ifdef _MSC_VER
 	/* with VC++ you have to spoon feed it the casting */
 	pos = l + (long)((double)(int64)target_sample / (double)(int64)decoder->guts->stream_info.total_samples * (double)(filesize-l+1)) - approx_bytes_per_frame;
 #else
 	pos = l + (long)((double)target_sample / (double)decoder->guts->stream_info.total_samples * (double)(filesize-l+1)) - approx_bytes_per_frame;
 #endif
-	r = filesize - ((decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 64);
+	if(decoder->guts->stream_info.max_framesize > 0)
+		r = filesize - decoder->guts->stream_info.max_framesize - 2;
+	else
+		r = filesize - ((decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 64);
 	if(pos >= r)
 		pos = r-1;
 	if(pos < l)
@@ -453,8 +480,6 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 			}
 			if(pos < l)
 				pos = l;
-			if(pos < 0)
-				pos = 0;
 			last_frame_sample = this_frame_sample;
 		}
 	}
