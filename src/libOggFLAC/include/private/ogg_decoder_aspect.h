@@ -45,6 +45,7 @@ typedef struct OggFLAC__OggDecoderAspect {
 	/* these are for internal state related to Ogg decoding */
 	ogg_stream_state stream_state;
 	ogg_sync_state sync_state;
+	unsigned version_major, version_minor;
 	FLAC__bool need_serial_number;
 	FLAC__bool end_of_stream;
 	FLAC__bool have_working_page; /* only if true will the following vars be valid */
@@ -64,6 +65,8 @@ typedef enum {
 	OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_OK = 0,
 	OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM,
 	OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC,
+	OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC,
+	OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_UNSUPPORTED_MAPPING_VERSION,
 	OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT,
 	OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_ERROR,
 	OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR

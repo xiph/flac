@@ -32,6 +32,10 @@
 #include <string.h> /* for memset() */
 #include "FLAC/assert.h"
 #include "private/ogg_encoder_aspect.h"
+#include "private/ogg_mapping.h"
+
+static const FLAC__byte OggFLAC__MAPPING_VERSION_MAJOR = 1;
+static const FLAC__byte OggFLAC__MAPPING_VERSION_MINOR = 0;
 
 /***********************************************************************
  *
@@ -72,13 +76,14 @@ void OggFLAC__ogg_encoder_aspect_set_defaults(OggFLAC__OggEncoderAspect *aspect)
  * The basic FLAC -> Ogg mapping goes like this:
  *
  * - 'fLaC' magic and STREAMINFO block get combined into the first
- *   packet
- * - the first packet is flushed to the first page
- * - each subsequent metadata block goes into its own packet
- * - each metadata packet is flushed to page (this is not required,
+ *   packet.  The packet is prefixed with 'FLAC' magic and the 2
+ *   byte Ogg FLAC mapping version number.
+ * - The first packet is flushed to the first page.
+ * - Each subsequent metadata block goes into its own packet.
+ * - Each metadata packet is flushed to page (this is not required,
  *   the mapping only requires that a flush must occur after all
- *   metadata is written)
- * - each subsequent FLAC audio frame goes into its own packet.
+ *   metadata is written).
+ * - Each subsequent FLAC audio frame goes into its own packet.
  *
  * WATCHOUT:
  * This depends on the behavior of FLAC__StreamEncoder that we get a
@@ -104,7 +109,15 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 		packet.granulepos = aspect->samples_written + samples;
 
 		if(aspect->is_first_packet) {
-			FLAC__byte newbuffer[FLAC__STREAM_SYNC_LENGTH + FLAC__STREAM_METADATA_HEADER_LENGTH + FLAC__STREAM_METADATA_STREAMINFO_LENGTH];
+			FLAC__byte newbuffer[
+				OggFLAC__MAPPING_MAGIC_LENGTH +
+				OggFLAC__MAPPING_VERSION_MAJOR_LENGTH +
+				OggFLAC__MAPPING_VERSION_MINOR_LENGTH +
+				FLAC__STREAM_SYNC_LENGTH +
+				FLAC__STREAM_METADATA_HEADER_LENGTH +
+				FLAC__STREAM_METADATA_STREAMINFO_LENGTH
+			];
+			FLAC__byte *b = newbuffer;
 			if(bytes != FLAC__STREAM_METADATA_HEADER_LENGTH + FLAC__STREAM_METADATA_STREAMINFO_LENGTH) {
 				/*
 				 * If we get here, our assumption about the way write callbacks happen
@@ -113,8 +126,21 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 				FLAC__ASSERT(0);
 				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 			}
-			memcpy(newbuffer, FLAC__STREAM_SYNC_STRING, FLAC__STREAM_SYNC_LENGTH);
-			memcpy(newbuffer + FLAC__STREAM_SYNC_LENGTH, buffer, bytes);
+			/* add 'FLAC' mapping magic */
+			memcpy(b, OggFLAC__MAPPING_MAGIC, OggFLAC__MAPPING_MAGIC_LENGTH);
+			b += OggFLAC__MAPPING_MAGIC_LENGTH;
+			/* add Ogg FLAC mapping major version number */
+			memcpy(b, &OggFLAC__MAPPING_VERSION_MAJOR, OggFLAC__MAPPING_VERSION_MAJOR_LENGTH);
+			b += OggFLAC__MAPPING_VERSION_MAJOR_LENGTH;
+			/* add Ogg FLAC mapping minor version number */
+			memcpy(b, &OggFLAC__MAPPING_VERSION_MINOR, OggFLAC__MAPPING_VERSION_MINOR_LENGTH);
+			b += OggFLAC__MAPPING_VERSION_MINOR_LENGTH;
+			/* add native FLAC 'fLaC' magic */
+			memcpy(b, FLAC__STREAM_SYNC_STRING, FLAC__STREAM_SYNC_LENGTH);
+			b += FLAC__STREAM_SYNC_LENGTH;
+			/* add STREAMINFO */
+			memcpy(b, buffer, bytes);
+			FLAC__ASSERT(b + bytes - newbuffer == sizeof(newbuffer));
 			packet.packet = (unsigned char *)newbuffer;
 			packet.bytes = sizeof(newbuffer);
 
