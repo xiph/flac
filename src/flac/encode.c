@@ -528,7 +528,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 			skip_bytes -= lookahead_length;
 			lookahead_length = 0;
 			if(infile != stdin) {
-				if(-1 == fseek(infile, (long)skip_bytes, SEEK_SET)) {
+				if(-1 == fseek(infile, (long)skip_bytes, SEEK_CUR)) {
 					fprintf(stderr, "%s: ERROR during seek while skipping samples\n", encoder_wrapper.inbasefilename);
 					goto raw_abort_;
 				}
@@ -550,9 +550,6 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 			lookahead += skip_bytes;
 			lookahead_length -= skip_bytes;
 		}
-	}
-	else {
-		fseek(infile, 0, SEEK_SET);
 	}
 
 	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_escape_coding, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
