@@ -20,7 +20,6 @@
 #include <sys/utime.h> /* for utime() */
 #include <io.h> /* for chmod() */
 #else
-#include <sys/types.h>
 #include <utime.h> /* for utime() */
 #include <unistd.h> /* for chown() */
 #endif

@@ -19,6 +19,8 @@
 #ifndef flac__file_h
 #define flac__file_h
 
+#include <sys/types.h> /* for off_t */
+
 void flac__file_copy_metadata(const char *srcpath, const char *destpath);
 off_t flac__file_get_filesize(const char *srcpath);
 const char *flac__file_get_basename(const char *srcpath);
