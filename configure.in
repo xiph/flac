@@ -81,7 +81,7 @@ fi
 AC_OUTPUT(	Makefile	\
 		src/Makefile	\
 		src/libFLAC/Makefile	\
-		src/libFLAC/i386/Makefile	\
+		src/libFLAC/ia32/Makefile	\
 		src/flac/Makefile	\
 		src/metaflac/Makefile	\
 		src/plugin_xmms/Makefile	\

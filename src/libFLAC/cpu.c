@@ -35,7 +35,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #if !defined FLAC__NO_ASM && defined FLAC__HAS_NASM
 	info->use_asm = true;
 	{
-		unsigned cpuid = FLAC__cpu_info_asm_i386();
+		unsigned cpuid = FLAC__cpu_info_asm_ia32();
 		info->data.ia32.cmov = (cpuid & FLAC__CPUINFO_IA32_CPUID_CMOV)? true : false;
 		info->data.ia32.mmx = (cpuid & FLAC__CPUINFO_IA32_CPUID_MMX)? true : false;
 		info->data.ia32.fxsr = (cpuid & FLAC__CPUINFO_IA32_CPUID_FXSR)? true : false;

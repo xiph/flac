@@ -38,7 +38,7 @@ unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_le
 #ifndef FLAC__NO_ASM
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
-unsigned FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+unsigned FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #endif
 #endif
 #endif

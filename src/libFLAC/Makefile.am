@@ -31,8 +31,8 @@ if FLaC__NO_ASM
 else
 if FLaC__CPU_IA32 
 if FLaC__HAS_NASM
-SUBDIRS = i386 .
-libFLAC_la_LIBADD = i386/libFLAC-asm.la
+SUBDIRS = ia32 .
+libFLAC_la_LIBADD = ia32/libFLAC-asm.la
 endif
 endif
 endif

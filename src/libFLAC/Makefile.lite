@@ -40,9 +40,9 @@ OBJS = \
 	stream_decoder.o \
 	stream_encoder.o \
 	stream_encoder_framing.o \
-	i386/cpu_asm.o \
-	i386/fixed_asm.o \
-	i386/lpc_asm.o
+	ia32/cpu_asm.o \
+	ia32/fixed_asm.o \
+	ia32/lpc_asm.o
 
 include ../../build/lib.mk
 

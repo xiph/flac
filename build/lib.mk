@@ -49,7 +49,7 @@ $(DYNAMIC_LIB) : $(OBJS)
 	$(CC) $(CFLAGS) -E $< -o $@
 
 %.o : %.nasm
-	$(NASM) -f elf -d ELF -i i386/ $< -o $@
+	$(NASM) -f elf -d ELF -i ia32/ $< -o $@
 
 .PHONY : clean
 clean :

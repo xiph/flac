@@ -20,14 +20,14 @@
 
 	data_section
 
-cglobal FLAC__lpc_compute_autocorrelation_asm_i386
-cglobal FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4
-cglobal FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8
-cglobal FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12
-cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386
-cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx
-cglobal FLAC__lpc_restore_signal_asm_i386
-cglobal FLAC__lpc_restore_signal_asm_i386_mmx
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
+cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32
+cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx
+cglobal FLAC__lpc_restore_signal_asm_ia32
+cglobal FLAC__lpc_restore_signal_asm_ia32_mmx
 
 	code_section
 
@@ -57,7 +57,7 @@ cglobal FLAC__lpc_restore_signal_asm_i386_mmx
 ; }
 ;
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_i386
+cident FLAC__lpc_compute_autocorrelation_asm_ia32
 	;[esp + 24] == autoc[]
 	;[esp + 20] == lag
 	;[esp + 16] == data_len
@@ -413,7 +413,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386
 	ret
 
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4
+cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4
 	;[esp + 16] == autoc[]
 	;[esp + 12] == lag
 	;[esp + 8] == data_len
@@ -460,7 +460,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4
 	ret
 
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8
+cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8
 	;[esp + 16] == autoc[]
 	;[esp + 12] == lag
 	;[esp + 8] == data_len
@@ -519,7 +519,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8
 	ret
 
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12
+cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
 	;[esp + 16] == autoc[]
 	;[esp + 12] == lag
 	;[esp + 8] == data_len
@@ -602,7 +602,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12
 ;	}
 ;
 	ALIGN	16
-cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386
+cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32
 	;[esp + 40]	residual[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order
@@ -812,7 +812,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386
 ; the channel must be <= 16.  Especially note that this routine cannot be used
 ; for side-channel coded 16bps channels since the effective bps is 17.
 	ALIGN	16
-cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx
+cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx
 	;[esp + 40]	residual[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order
@@ -977,7 +977,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx
 .last_one:
 	mov	eax, [esp + 32]
 	inc	ebx
-	jnz	near FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386.begin
+	jnz	near FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32.begin
 
 .end:
 	pop	edi
@@ -1003,7 +1003,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx
 ; 	}
 ; }
 	ALIGN	16
-cident FLAC__lpc_restore_signal_asm_i386
+cident FLAC__lpc_restore_signal_asm_ia32
 	;[esp + 40]	data[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order
@@ -1210,7 +1210,7 @@ cident FLAC__lpc_restore_signal_asm_i386
 ; the channel must be <= 16.  Especially note that this routine cannot be used
 ; for side-channel coded 16bps channels since the effective bps is 17.
 	ALIGN	16
-cident FLAC__lpc_restore_signal_asm_i386_mmx
+cident FLAC__lpc_restore_signal_asm_ia32_mmx
 	;[esp + 40]	data[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order
@@ -1233,7 +1233,7 @@ cident FLAC__lpc_restore_signal_asm_i386_mmx
 	test	ebx, ebx
 	jz	near .end			; do nothing if data_len == 0
 	cmp	eax, byte 4
-	jb	near FLAC__lpc_restore_signal_asm_i386.begin
+	jb	near FLAC__lpc_restore_signal_asm_ia32.begin
 
 	mov	edx, [esp + 28]
 	movd	mm6, [esp + 36]

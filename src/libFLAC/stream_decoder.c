@@ -229,12 +229,12 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(
 	FLAC__ASSERT(decoder->private->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #ifdef FLAC__HAS_NASM
 	if(decoder->private->cpuinfo.data.ia32.mmx) {
-		decoder->private->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386;
-		decoder->private->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_i386_mmx;
+		decoder->private->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
+		decoder->private->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32_mmx;
 	}
 	else {
-		decoder->private->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386;
-		decoder->private->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_i386;
+		decoder->private->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
+		decoder->private->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32;
 	}
 #endif
 #endif

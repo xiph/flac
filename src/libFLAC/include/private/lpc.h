@@ -40,10 +40,10 @@ void FLAC__lpc_compute_autocorrelation(const real data[], unsigned data_len, uns
 #ifndef FLAC__NO_ASM
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
-void FLAC__lpc_compute_autocorrelation_asm_i386(const real data[], unsigned data_len, unsigned lag, real autoc[]);
-void FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4(const real data[], unsigned data_len, unsigned lag, real autoc[]);
-void FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8(const real data[], unsigned data_len, unsigned lag, real autoc[]);
-void FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+void FLAC__lpc_compute_autocorrelation_asm_ia32(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+void FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+void FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+void FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12(const real data[], unsigned data_len, unsigned lag, real autoc[]);
 #endif
 #endif
 #endif
@@ -108,8 +108,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const int32 data[], unsign
 #ifndef FLAC__NO_ASM
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
-void FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386(const int32 data[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 residual[]);
-void FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx(const int32 data[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 residual[]);
+void FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32(const int32 data[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 residual[]);
+void FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx(const int32 data[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 residual[]);
 #endif
 #endif
 #endif
@@ -133,8 +133,8 @@ void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const i
 #ifndef FLAC__NO_ASM
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
-void FLAC__lpc_restore_signal_asm_i386(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
-void FLAC__lpc_restore_signal_asm_i386_mmx(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
+void FLAC__lpc_restore_signal_asm_ia32(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
+void FLAC__lpc_restore_signal_asm_ia32_mmx(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
 #endif
 #endif
 #endif

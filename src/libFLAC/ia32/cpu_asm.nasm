@@ -20,14 +20,14 @@
 
 	data_section
 
-cglobal FLAC__cpu_info_asm_i386
+cglobal FLAC__cpu_info_asm_ia32
 
 	code_section
 
 ; **********************************************************************
 ;
 	ALIGN 16
-cident FLAC__cpu_info_asm_i386
+cident FLAC__cpu_info_asm_ia32
 
 	push	ebx
 

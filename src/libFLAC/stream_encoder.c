@@ -377,25 +377,25 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(
 #ifdef FLAC__HAS_NASM
 	if(0 && encoder->private->cpuinfo.data.ia32.sse) { /* SSE version lacks necessary resolution, plus SSE flag doesn't check for OS support */
 		if(encoder->protected->max_lpc_order < 4)
-			encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4;
+			encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4;
 		else if(encoder->protected->max_lpc_order < 8)
-			encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8;
+			encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8;
 		else if(encoder->protected->max_lpc_order < 12)
-			encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12;
+			encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12;
 		else
-			encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
+			encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32;
 	}
 	else
-		encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
+		encoder->private->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32;
 	if(encoder->private->cpuinfo.data.ia32.mmx && encoder->private->cpuinfo.data.ia32.cmov)
-		encoder->private->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov;
+		encoder->private->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov;
 	if(encoder->private->cpuinfo.data.ia32.mmx) {
-		encoder->private->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
-		encoder->private->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx;
+		encoder->private->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32;
+		encoder->private->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx;
 	}
 	else {
-		encoder->private->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
-		encoder->private->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
+		encoder->private->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32;
+		encoder->private->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32;
 	}
 #endif
 #endif
