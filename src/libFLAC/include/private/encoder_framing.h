@@ -25,9 +25,9 @@
 
 bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuffer *bb);
 bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_subset, bool is_last_block, FLAC__BitBuffer *bb);
-bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned bits_per_sample, FLAC__BitBuffer *bb);
-bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned bits_per_sample, FLAC__BitBuffer *bb);
-bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned bits_per_sample, FLAC__BitBuffer *bb);
-bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned bits_per_sample, FLAC__BitBuffer *bb);
+bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb);
+bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb);
+bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb);
+bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb);
 
 #endif

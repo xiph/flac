@@ -230,24 +230,28 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	return true;
 }
 
-bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned bits_per_sample, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	bool ok;
 
 	ok =
-		FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK, FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN) &&
+		FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN) &&
+		(wasted_bits? FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1) : true) &&
 		FLAC__bitbuffer_write_raw_int32(bb, subframe->value, bits_per_sample)
 	;
 
 	return ok;
 }
 
-bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned bits_per_sample, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK | (subframe->order<<1), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, (FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK | (subframe->order<<1)) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
+	if(wasted_bits)
+		if(!FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1))
+			return false;
 
 	for(i = 0; i < subframe->order; i++)
 		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], bits_per_sample))
@@ -267,12 +271,15 @@ bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned res
 	return true;
 }
 
-bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned bits_per_sample, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK | ((subframe->order-1)<<1), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, (FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK | ((subframe->order-1)<<1)) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
+	if(wasted_bits)
+		if(!FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1))
+			return false;
 
 	for(i = 0; i < subframe->order; i++)
 		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], bits_per_sample))
@@ -300,13 +307,16 @@ bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residua
 	return true;
 }
 
-bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned bits_per_sample, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 	const int32 *signal = subframe->data;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK, FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
+	if(wasted_bits)
+		if(!FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1))
+			return false;
 
 	for(i = 0; i < samples; i++)
 		if(!FLAC__bitbuffer_write_raw_int32(bb, signal[i], bits_per_sample))

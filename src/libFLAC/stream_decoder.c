@@ -511,7 +511,7 @@ bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 				return false; /* the read_callback_ sets the state for us */
 			decoder->guts->stream_header.data.stream_info.md5sum[i] = (byte)x;
 		}
-		used_bits += 128;
+		used_bits += i*8;
 
 		/* skip the rest of the block */
 		assert(used_bits % 8 == 0);
@@ -1040,6 +1040,9 @@ bool stream_decoder_read_subframe_(FLAC__StreamDecoder *decoder, unsigned channe
 	else
 		decoder->guts->frame.subframes[channel].wasted_bits = 0;
 
+	/*
+	 * Lots of magic numbers here
+	 */
 	if(x & 0x80) {
 		decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
 		decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
@@ -1071,8 +1074,12 @@ bool stream_decoder_read_subframe_(FLAC__StreamDecoder *decoder, unsigned channe
 	}
 
 	if(wasted_bits) {
-		fprintf(stderr,"@@@ CAN'T DEAL WITH WASTED BITS YET!!!\n");
+		unsigned i;
+		x = decoder->guts->frame.subframes[channel].wasted_bits;
+		for(i = 0; i < decoder->guts->frame.header.blocksize; i++)
+			decoder->guts->output[channel][i] <<= x;
 	}
+
 	return true;
 }
 
@@ -1111,7 +1118,7 @@ bool stream_decoder_read_subframe_fixed_(FLAC__StreamDecoder *decoder, unsigned 
 
 	/* read warm-up samples */
 	for(u = 0; u < order; u++) {
-		if(!FLAC__bitbuffer_read_raw_int32(&decoder->guts->input, &i32, bps, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_int32(&decoder->guts->input, &i32, bps - decoder->guts->frame.subframes[channel].wasted_bits, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		subframe->warmup[u] = i32;
 	}
@@ -1162,7 +1169,7 @@ bool stream_decoder_read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned ch
 
 	/* read warm-up samples */
 	for(u = 0; u < order; u++) {
-		if(!FLAC__bitbuffer_read_raw_int32(&decoder->guts->input, &i32, bps, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_int32(&decoder->guts->input, &i32, bps - decoder->guts->frame.subframes[channel].wasted_bits, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		subframe->warmup[u] = i32;
 	}
