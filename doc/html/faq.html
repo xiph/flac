@@ -113,15 +113,6 @@
 			<A HREF="#general__testing"><B>How much testing has been done on FLAC?</B></A>
 		</LI>
 		<LI>
-			<A HREF="#general__wave_flac_wave"><B>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</B></A>
-		</LI>
-		<LI>
-			<A HREF="#general__skipped_subchunk"><B>I compressed a WAVE file to FLAC and it said "warning: skipping unknown sub-chunk LIST".  Why?</B></A>
-		</LI>
-		<LI>
-			<A HREF="#general__two_bytes_short"><B>I decoded a FLAC file and the WAVE is 2 bytes shorter than the original.  Why?</B></A>
-		</LI>
-		<LI>
 			<A HREF="#general__lowest_bitrate"><B>What is the lowest bitrate achieveable with FLAC?</B></A>
 		</LI>
 	</UL>
@@ -136,6 +127,15 @@
 		</LI>
 		<LI>
 			<A HREF="#tools__long_meta_edits"><B>Why does it take so long to edit some FLAC files with metaflac?</B></A>
+		</LI>
+		<LI>
+			<A HREF="#tools__wave_flac_wave"><B>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</B></A>
+		</LI>
+		<LI>
+			<A HREF="#tools__skipped_subchunk"><B>I compressed a WAVE file to FLAC and it said "warning: skipping unknown sub-chunk LIST".  Why?</B></A>
+		</LI>
+		<LI>
+			<A HREF="#tools__two_bytes_short"><B>I decoded a FLAC file and the WAVE is 2 bytes shorter than the original.  Why?</B></A>
 		</LI>
 		<LI>
 			<A HREF="#tools__not_streamable"><B>Why did I get "ERROR initializing encoder, state = 14:FLAC__STREAM_ENCODER_NOT_STREAMABLE"?</B></A>
@@ -256,23 +256,6 @@
 		Finally, FLAC is used by many people and has been judged stable enough by many software and hardware makers to be incorporated into their products.
 	</P>
 	<P>
-		<A NAME="general__wave_flac_wave"><B>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</B></A>
-		<BR>
-		<A NAME="general__skipped_subchunk"><B>I compressed a WAVE file to FLAC and it said "warning: skipping unknown sub-chunk LIST".  Why?</B></A>
-	</P>
-	<P>
-		WAVE is a complicated standard; many kinds of data besides audio data can be put in it.  Most likely what has happened is that the application that created the original WAVE file also added some extra information for it's own use, which FLAC does not store or recreate.  But the audio data in the two WAVE files will be identical.  There are other tools to compare just the audio content of two WAVE files; <A HREF="http://www.exactaudiocopy.de/">ExactAudioCopy</A> has such a feature.  <A HREF="#general__two_bytes_short">(see also)</A>
-	</P>
-	<P>
-		For the more technically inclined, FLAC only stores what is in the 'fmt ' and 'data' sub-chunks.
-	</P>
-	<P>
-		<A NAME="general__two_bytes_short"><B>I decoded a FLAC file and the WAVE is 2 bytes shorter than the original.  Why?</B></A>
-	</P>
-	<P>
-		The difference is probably an 18-byte 'fmt ' subchunk in the original WAVE vs. a 16-byte one in the decoded WAVE.  With WAVE there is more than one way to right identical formatting information, but FLAC always writes the most common form.  <A HREF="#general__wave_flac_wave">(see also)</A>
-	</P>
-	<P>
 		<A NAME="general__lowest_bitrate"><B>What is the lowest bitrate achieveable with FLAC?</B></A>
 	</P>
 	<P>
@@ -296,6 +279,23 @@
 	</P>
 	<P>
 		Since metadata is stored at the beginning of a FLAC file, changing the length of it can sometimes cause the whole file to be rewritten.  You can avoid this by adding padding with <TT>flac</TT> when you encode, or with <TT>metaflac</TT> after encoding.  By default, <TT>flac</TT> adds 4k of padding; you can change this amount if you need more or less.
+	</P>
+	<P>
+		<A NAME="tools__wave_flac_wave"><B>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</B></A>
+		<BR>
+		<A NAME="tools__skipped_subchunk"><B>I compressed a WAVE file to FLAC and it said "warning: skipping unknown sub-chunk LIST".  Why?</B></A>
+	</P>
+	<P>
+		WAVE is a complicated standard; many kinds of data besides audio data can be put in it.  Most likely what has happened is that the application that created the original WAVE file also added some extra information for it's own use, which FLAC does not store or recreate.  But the audio data in the two WAVE files will be identical.  There are other tools to compare just the audio content of two WAVE files; <A HREF="http://www.exactaudiocopy.de/">ExactAudioCopy</A> has such a feature.  <A HREF="#tools__two_bytes_short">(see also)</A>
+	</P>
+	<P>
+		For the more technically inclined, FLAC only stores what is in the 'fmt ' and 'data' sub-chunks.
+	</P>
+	<P>
+		<A NAME="tools__two_bytes_short"><B>I decoded a FLAC file and the WAVE is 2 bytes shorter than the original.  Why?</B></A>
+	</P>
+	<P>
+		The difference is probably an 18-byte 'fmt ' subchunk in the original WAVE vs. a 16-byte one in the decoded WAVE.  With WAVE there is more than one way to right identical formatting information, but FLAC always writes the most common form.  <A HREF="#tools__wave_flac_wave">(see also)</A>
 	</P>
 	<P>
 		<A NAME="tools__not_streamable"><B>Why did I get "ERROR initializing encoder, state = 14:FLAC__STREAM_ENCODER_NOT_STREAMABLE"?</B></A>
