@@ -307,7 +307,7 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 			encoder->qlp_coeff_precision = min(13, 8*sizeof(int32) - encoder->bits_per_sample - 1);
 		}
 	}
-	else if(encoder->qlp_coeff_precision < FLAC__MIN_QLP_COEFF_PRECISION || encoder->qlp_coeff_precision + encoder->bits_per_sample >= 8*sizeof(uint32))
+	else if(encoder->qlp_coeff_precision < FLAC__MIN_QLP_COEFF_PRECISION || encoder->qlp_coeff_precision + encoder->bits_per_sample >= 8*sizeof(uint32) || encoder->qlp_coeff_precision >= (1u<<FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
 		return encoder->state = FLAC__ENCODER_INVALID_QLP_COEFF_PRECISION;
 
 	if(encoder->streamable_subset) {
@@ -879,7 +879,7 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned max_partition_or
 					}
 					if(encoder->do_qlp_coeff_prec_search) {
 						min_qlp_coeff_precision = FLAC__MIN_QLP_COEFF_PRECISION;
-						max_qlp_coeff_precision = 32 - bits_per_sample - 1;
+						max_qlp_coeff_precision = min(32 - bits_per_sample - 1, (1u<<FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN)-1);
 					}
 					else {
 						min_qlp_coeff_precision = max_qlp_coeff_precision = encoder->qlp_coeff_precision;
