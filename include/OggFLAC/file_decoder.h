@@ -91,9 +91,6 @@ typedef enum {
 	 * check OggFLAC__file_decoder_get_seekable_stream_decoder_state().
 	 */
 
-	OggFLAC__FILE_DECODER_INVALID_CALLBACK,
-	/**< The decoder was initialized before setting all the required callbacks. */
-
 	OggFLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR,
 	/**< Memory allocation failed. */
 
@@ -102,6 +99,9 @@ typedef enum {
 	 * already initialized, usually because
 	 * OggFLAC__file_decoder_finish() was not called.
 	 */
+
+	OggFLAC__FILE_DECODER_INVALID_CALLBACK,
+	/**< The decoder was initialized before setting all the required callbacks. */
 
 	OggFLAC__FILE_DECODER_UNINITIALIZED
 	/**< The decoder is in the uninitialized state. */
