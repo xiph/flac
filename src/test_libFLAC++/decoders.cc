@@ -104,7 +104,7 @@ static void init_metadata_blocks_()
 	application2_.data.application.data = 0;
 
 	{
-		const unsigned vendor_string_length = (unsigned)strlen((const char *)FLAC__VENDOR_STRING);
+		const unsigned vendor_string_length = (unsigned)strlen(FLAC__VENDOR_STRING);
 		vorbiscomment_.is_last = true;
 		vorbiscomment_.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
 		vorbiscomment_.length = (4 + vendor_string_length) + 4 + (4 + 5) + (4 + 0);

@@ -107,7 +107,7 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 			if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, vendor_string_length))
 				return false;
-			if(!FLAC__bitbuffer_write_byte_block(bb, FLAC__VENDOR_STRING, vendor_string_length))
+			if(!FLAC__bitbuffer_write_byte_block(bb, (const FLAC__byte*)FLAC__VENDOR_STRING, vendor_string_length))
 				return false;
 			if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, metadata->data.vorbis_comment.num_comments))
 				return false;

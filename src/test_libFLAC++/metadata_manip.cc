@@ -286,7 +286,7 @@ static bool generate_file_()
 	memset(streaminfo.data.stream_info.md5sum, 0, 16);
 
 	{
-		const unsigned vendor_string_length = (unsigned)strlen((const char*)FLAC__VENDOR_STRING);
+		const unsigned vendor_string_length = (unsigned)strlen(FLAC__VENDOR_STRING);
 		vorbiscomment.is_last = false;
 		vorbiscomment.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
 		vorbiscomment.length = (4 + vendor_string_length) + 4;
