@@ -160,7 +160,6 @@ void FLAC_XMMS__play_file(char *filename)
 {
 	FILE *f;
 	gchar *ret;
-	const AFormat output_format = file_info_.sample_format;
 
 	wide_samples_in_reservoir_ = 0;
 	audio_error_ = false;
@@ -181,7 +180,7 @@ void FLAC_XMMS__play_file(char *filename)
 
 	file_info_.is_playing = true;
 
-	if(flac_ip.output->open_audio(output_format, file_info_.sample_rate, file_info_.channels) == 0) {
+	if(flac_ip.output->open_audio(file_info_.sample_format, file_info_.sample_rate, file_info_.channels) == 0) {
 		audio_error_ = true;
 		safe_decoder_finish_(decoder_);
 		return;

@@ -143,11 +143,7 @@ int play(char *fn)
 	int maxlatency;
 	int thread_id;
 	HANDLE input_file = INVALID_HANDLE_VALUE;
-#ifdef FLAC__DO_DITHER
-	const unsigned output_bits_per_sample = min(file_info_.bits_per_sample, 16);
-#else
-	const unsigned output_bits_per_sample = file_info_.bits_per_sample;
-#endif
+	unsigned output_bits_per_sample;
 
 	if(0 == decoder_) {
 		return 1;
@@ -162,6 +158,12 @@ int play(char *fn)
 	if(!safe_decoder_init_(fn, decoder_)) {
 		return 1;
 	}
+
+#ifdef FLAC__DO_DITHER
+	output_bits_per_sample = min(file_info_.bits_per_sample, 16);
+#else
+	output_bits_per_sample = file_info_.bits_per_sample;
+#endif
 
 	strcpy(lastfn_, fn);
 	paused_ = 0;
