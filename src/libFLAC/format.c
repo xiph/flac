@@ -22,7 +22,7 @@
 #include "FLAC/format.h"
 
 const unsigned FLAC__MAJOR_VERSION = 0;
-const unsigned FLAC__MINOR_VERSION = 3;
+const unsigned FLAC__MINOR_VERSION = 4;
 
 const byte     FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
 const unsigned FLAC__STREAM_SYNC = 0x664C6143;
