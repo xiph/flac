@@ -33,17 +33,19 @@ more powerful operations yet to add:
 #include <stdlib.h>
 #include <string.h>
 
-#if HAVE_GETOPT_LONG
+#if 0
+/*[JEC] was:#if HAVE_GETOPT_LONG*/
+/*[JEC] see flac/include/share/getopt.h as to why the change */
 #  include <getopt.h>
 #else
 #  include "share/getopt.h"
 #endif
 
 /*
-   getopt format struct; note we don't use short options so we just
+   FLAC__share__getopt format struct; note we don't use short options so we just
    set the 'val' field to 0 everywhere to indicate a valid option.
 */
-static struct option long_options_[] = {
+static struct FLAC__share__option long_options_[] = {
 	/* global options */
     { "preserve-modtime", 0, 0, 0 },
     { "with-filename", 0, 0, 0 },
@@ -304,10 +306,10 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
     int option_index = 1;
 	FLAC__bool had_error = false;
 
-    while ((ret = getopt_long(argc, argv, "", long_options_, &option_index)) != -1) {
+    while ((ret = FLAC__share__getopt_long(argc, argv, "", long_options_, &option_index)) != -1) {
         switch (ret) {
             case 0:
-				had_error |= !parse_option(option_index, optarg, options);
+				had_error |= !parse_option(option_index, FLAC__share__optarg, options);
                 break;
 			case '?':
 			case ':':
@@ -320,22 +322,22 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
     }
 
 	if(options->prefix_with_filename == 2)
-		options->prefix_with_filename = (argc - optind > 1);
+		options->prefix_with_filename = (argc - FLAC__share__optind > 1);
 
-	if(optind >= argc && !options->show_long_help) {
+	if(FLAC__share__optind >= argc && !options->show_long_help) {
 		fprintf(stderr,"ERROR: you must specify at least one FLAC file;\n");
 		fprintf(stderr,"       metaflac cannot be used as a pipe\n");
 		had_error = true;
 	}
 
-	options->num_files = argc - optind;
+	options->num_files = argc - FLAC__share__optind;
 
 	if(options->num_files > 0) {
 		unsigned i = 0;
 		if(0 == (options->filenames = malloc(sizeof(char *) * options->num_files)))
 			die("out of memory allocating space for file names list");
-		while(optind < argc)
-			options->filenames[i++] = local_strdup(argv[optind++]);
+		while(FLAC__share__optind < argc)
+			options->filenames[i++] = local_strdup(argv[FLAC__share__optind++]);
 	}
 
 	if(options->args.checks.num_major_ops > 0) {

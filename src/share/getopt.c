@@ -1,3 +1,17 @@
+/*
+	NOTE:
+	I cannot get the vanilla getopt code to work (i.e. compile only what
+	is needed and not duplicate symbols found in the standard library)
+	on all the platforms that FLAC supports.  In particular the gating
+	of code with the ELIDE_CODE #define is not accurate enough on systems
+	that are POSIX but not glibc.  If someone has a patch that works on
+	GNU/Linux, Darwin, AND Solaris please submit it on the project page:
+		http://sourceforge.net/projects/flac
+
+	In the meantime I have munged the global symbols and remove gates
+	around code, while at the same time trying to touch the original as
+	little as possible.
+*/
 /* Getopt for GNU.
    NOTE: getopt is now part of the C library, so if you don't know what
    "Keep this file name-space clean" means, talk to drepper@gnu.org
@@ -57,7 +71,8 @@
 # endif
 #endif
 
-#ifndef ELIDE_CODE
+#if 1
+/*[JEC] was:#ifndef ELIDE_CODE*/
 
 
 /* This needs to come after some library #include
@@ -87,11 +102,11 @@
 # endif
 #endif
 
-/* This version of `getopt' appears to the caller like standard Unix `getopt'
+/* This version of `FLAC__share__getopt' appears to the caller like standard Unix `getopt'
    but it behaves differently for the user, since it allows the user
    to intersperse the options with the other arguments.
 
-   As `getopt' works, it permutes the elements of ARGV so that,
+   As `FLAC__share__getopt' works, it permutes the elements of ARGV so that,
    when it is done, all the options precede everything else.  Thus
    all application programs are extended to handle flexible argument order.
 
@@ -101,36 +116,36 @@
    GNU application programs can use a third alternative mode in which
    they can distinguish the relative order of options and other arguments.  */
 
-#include "getopt.h"
+/*[JEC] was:#include "getopt.h"*/
 
-/* For communication from `getopt' to the caller.
-   When `getopt' finds an option that takes an argument,
+/* For communication from `FLAC__share__getopt' to the caller.
+   When `FLAC__share__getopt' finds an option that takes an argument,
    the argument value is returned here.
    Also, when `ordering' is RETURN_IN_ORDER,
    each non-option ARGV-element is returned here.  */
 
-char *optarg;
+char *FLAC__share__optarg;
 
 /* Index in ARGV of the next element to be scanned.
    This is used for communication to and from the caller
-   and for communication between successive calls to `getopt'.
+   and for communication between successive calls to `FLAC__share__getopt'.
 
-   On entry to `getopt', zero means this is the first call; initialize.
+   On entry to `FLAC__share__getopt', zero means this is the first call; initialize.
 
-   When `getopt' returns -1, this is the index of the first of the
+   When `FLAC__share__getopt' returns -1, this is the index of the first of the
    non-option elements that the caller should itself scan.
 
-   Otherwise, `optind' communicates from one call to the next
+   Otherwise, `FLAC__share__optind' communicates from one call to the next
    how much of ARGV has been scanned so far.  */
 
 /* 1003.2 says this must be 1 before any call.  */
-int optind = 1;
+int FLAC__share__optind = 1;
 
-/* Formerly, initialization of getopt depended on optind==0, which
+/* Formerly, initialization of getopt depended on FLAC__share__optind==0, which
    causes problems with re-calling getopt as programs generally don't
    know that. */
 
-int __getopt_initialized;
+int FLAC__share____getopt_initialized;
 
 /* The next char to be scanned in the option-element
    in which the last option character we returned was found.
@@ -144,13 +159,13 @@ static char *nextchar;
 /* Callers store zero here to inhibit the error message
    for unrecognized options.  */
 
-int opterr = 1;
+int FLAC__share__opterr = 1;
 
 /* Set to an option character which was unrecognized.
    This must be initialized on some systems to avoid linking in the
    system's own getopt implementation.  */
 
-int optopt = '?';
+int FLAC__share__optopt = '?';
 
 /* Describe how to deal with options that follow non-option ARGV-elements.
 
@@ -179,7 +194,7 @@ int optopt = '?';
 
    The special argument `--' forces an end of option-scanning regardless
    of the value of `ordering'.  In the case of RETURN_IN_ORDER, only
-   `--' can cause `getopt' to return -1 with `optind' != ARGC.  */
+   `--' can cause `FLAC__share__getopt' to return -1 with `FLAC__share__optind' != ARGC.  */
 
 static enum
 {
@@ -287,7 +302,7 @@ text_set_element (__libc_subinit, store_args_and_env);
 /* Exchange two adjacent subsequences of ARGV.
    One subsequence is elements [first_nonopt,last_nonopt)
    which contains all the non-options that have been skipped so far.
-   The other is elements [last_nonopt,optind), which contains all
+   The other is elements [last_nonopt,FLAC__share__optind), which contains all
    the options processed since those non-options were skipped.
 
    `first_nonopt' and `last_nonopt' are relocated so that they describe
@@ -303,7 +318,7 @@ exchange (argv)
 {
   int bottom = first_nonopt;
   int middle = last_nonopt;
-  int top = optind;
+  int top = FLAC__share__optind;
   char *tem;
 
   /* Exchange the shorter segment with the far end of the longer segment.
@@ -373,17 +388,17 @@ exchange (argv)
 
   /* Update records for the slots the non-options now occupy.  */
 
-  first_nonopt += (optind - last_nonopt);
-  last_nonopt = optind;
+  first_nonopt += (FLAC__share__optind - last_nonopt);
+  last_nonopt = FLAC__share__optind;
 }
 
 /* Initialize the internal data when the first call is made.  */
 
 #if defined __STDC__ && __STDC__
-static const char *_getopt_initialize (int, char *const *, const char *);
+static const char *FLAC__share___getopt_initialize (int, char *const *, const char *);
 #endif
 static const char *
-_getopt_initialize (argc, argv, optstring)
+FLAC__share___getopt_initialize (argc, argv, optstring)
      int argc;
      char *const *argv;
      const char *optstring;
@@ -392,7 +407,7 @@ _getopt_initialize (argc, argv, optstring)
      is the program name); the sequence of previously skipped
      non-option ARGV-elements is empty.  */
 
-  first_nonopt = last_nonopt = optind;
+  first_nonopt = last_nonopt = FLAC__share__optind;
 
   nextchar = NULL;
 
@@ -453,29 +468,29 @@ _getopt_initialize (argc, argv, optstring)
 
    If an element of ARGV starts with '-', and is not exactly "-" or "--",
    then it is an option element.  The characters of this element
-   (aside from the initial '-') are option characters.  If `getopt'
+   (aside from the initial '-') are option characters.  If `FLAC__share__getopt'
    is called repeatedly, it returns successively each of the option characters
    from each of the option elements.
 
-   If `getopt' finds another option character, it returns that character,
-   updating `optind' and `nextchar' so that the next call to `getopt' can
+   If `FLAC__share__getopt' finds another option character, it returns that character,
+   updating `FLAC__share__optind' and `nextchar' so that the next call to `FLAC__share__getopt' can
    resume the scan with the following option character or ARGV-element.
 
-   If there are no more option characters, `getopt' returns -1.
-   Then `optind' is the index in ARGV of the first ARGV-element
+   If there are no more option characters, `FLAC__share__getopt' returns -1.
+   Then `FLAC__share__optind' is the index in ARGV of the first ARGV-element
    that is not an option.  (The ARGV-elements have been permuted
    so that those that are not options now come last.)
 
    OPTSTRING is a string containing the legitimate option characters.
    If an option character is seen that is not listed in OPTSTRING,
-   return '?' after printing an error message.  If you set `opterr' to
+   return '?' after printing an error message.  If you set `FLAC__share__opterr' to
    zero, the error message is suppressed but we still return '?'.
 
    If a char in OPTSTRING is followed by a colon, that means it wants an arg,
    so the following text in the same ARGV-element, or the text of the following
-   ARGV-element, is returned in `optarg'.  Two colons mean an option that
+   ARGV-element, is returned in `FLAC__share__optarg'.  Two colons mean an option that
    wants an optional arg; if there is text in the current ARGV-element,
-   it is returned in `optarg', otherwise `optarg' is set to zero.
+   it is returned in `FLAC__share__optarg', otherwise `FLAC__share__optarg' is set to zero.
 
    If OPTSTRING starts with `-' or `+', it requests different methods of
    handling the non-option ARGV-elements.
@@ -486,7 +501,7 @@ _getopt_initialize (argc, argv, optstring)
    or is an exact match for some defined option.  If they have an
    argument, it follows the option name in the same ARGV-element, separated
    from the option name by a `=', or else the in next ARGV-element.
-   When `getopt' finds a long-named option, it returns 0 if that option's
+   When `FLAC__share__getopt' finds a long-named option, it returns 0 if that option's
    `flag' field is nonzero, the value of the option's `val' field
    if the `flag' field is zero.
 
@@ -494,7 +509,7 @@ _getopt_initialize (argc, argv, optstring)
    But we pretend they're const in the prototype to be compatible
    with other systems.
 
-   LONGOPTS is a vector of `struct option' terminated by an
+   LONGOPTS is a vector of `struct FLAC__share__option' terminated by an
    element containing a name which is zero.
 
    LONGIND returns the index in LONGOPT of the long-named option found.
@@ -505,34 +520,34 @@ _getopt_initialize (argc, argv, optstring)
    long-named options.  */
 
 int
-_getopt_internal (argc, argv, optstring, longopts, longind, long_only)
+FLAC__share___getopt_internal (argc, argv, optstring, longopts, longind, long_only)
      int argc;
      char *const *argv;
      const char *optstring;
-     const struct option *longopts;
+     const struct FLAC__share__option *longopts;
      int *longind;
      int long_only;
 {
-  optarg = NULL;
+  FLAC__share__optarg = NULL;
 
-  if (optind == 0 || !__getopt_initialized)
+  if (FLAC__share__optind == 0 || !FLAC__share____getopt_initialized)
     {
-      if (optind == 0)
-	optind = 1;	/* Don't scan ARGV[0], the program name.  */
-      optstring = _getopt_initialize (argc, argv, optstring);
-      __getopt_initialized = 1;
+      if (FLAC__share__optind == 0)
+	FLAC__share__optind = 1;	/* Don't scan ARGV[0], the program name.  */
+      optstring = FLAC__share___getopt_initialize (argc, argv, optstring);
+      FLAC__share____getopt_initialized = 1;
     }
 
-  /* Test whether ARGV[optind] points to a non-option argument.
+  /* Test whether ARGV[FLAC__share__optind] points to a non-option argument.
      Either it does not have option syntax, or there is an environment flag
      from the shell indicating it is not an option.  The later information
      is only used when the used in the GNU libc.  */
 #ifdef _LIBC
-# define NONOPTION_P (argv[optind][0] != '-' || argv[optind][1] == '\0'	      \
-		      || (optind < nonoption_flags_len			      \
-			  && __getopt_nonoption_flags[optind] == '1'))
+# define NONOPTION_P (argv[FLAC__share__optind][0] != '-' || argv[FLAC__share__optind][1] == '\0'	      \
+		      || (FLAC__share__optind < nonoption_flags_len			      \
+			  && __getopt_nonoption_flags[FLAC__share__optind] == '1'))
 #else
-# define NONOPTION_P (argv[optind][0] != '-' || argv[optind][1] == '\0')
+# define NONOPTION_P (argv[FLAC__share__optind][0] != '-' || argv[FLAC__share__optind][1] == '\0')
 #endif
 
   if (nextchar == NULL || *nextchar == '\0')
@@ -541,27 +556,27 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 
       /* Give FIRST_NONOPT & LAST_NONOPT rational values if OPTIND has been
 	 moved back by the user (who may also have changed the arguments).  */
-      if (last_nonopt > optind)
-	last_nonopt = optind;
-      if (first_nonopt > optind)
-	first_nonopt = optind;
+      if (last_nonopt > FLAC__share__optind)
+	last_nonopt = FLAC__share__optind;
+      if (first_nonopt > FLAC__share__optind)
+	first_nonopt = FLAC__share__optind;
 
       if (ordering == PERMUTE)
 	{
 	  /* If we have just processed some options following some non-options,
 	     exchange them so that the options come first.  */
 
-	  if (first_nonopt != last_nonopt && last_nonopt != optind)
+	  if (first_nonopt != last_nonopt && last_nonopt != FLAC__share__optind)
 	    exchange ((char **) argv);
-	  else if (last_nonopt != optind)
-	    first_nonopt = optind;
+	  else if (last_nonopt != FLAC__share__optind)
+	    first_nonopt = FLAC__share__optind;
 
 	  /* Skip any additional non-options
 	     and extend the range of non-options previously skipped.  */
 
-	  while (optind < argc && NONOPTION_P)
-	    optind++;
-	  last_nonopt = optind;
+	  while (FLAC__share__optind < argc && NONOPTION_P)
+	    FLAC__share__optind++;
+	  last_nonopt = FLAC__share__optind;
 	}
 
       /* The special ARGV-element `--' means premature end of options.
@@ -569,28 +584,28 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	 then exchange with previous non-options as if it were an option,
 	 then skip everything else like a non-option.  */
 
-      if (optind != argc && !strcmp (argv[optind], "--"))
+      if (FLAC__share__optind != argc && !strcmp (argv[FLAC__share__optind], "--"))
 	{
-	  optind++;
+	  FLAC__share__optind++;
 
-	  if (first_nonopt != last_nonopt && last_nonopt != optind)
+	  if (first_nonopt != last_nonopt && last_nonopt != FLAC__share__optind)
 	    exchange ((char **) argv);
 	  else if (first_nonopt == last_nonopt)
-	    first_nonopt = optind;
+	    first_nonopt = FLAC__share__optind;
 	  last_nonopt = argc;
 
-	  optind = argc;
+	  FLAC__share__optind = argc;
 	}
 
       /* If we have done all the ARGV-elements, stop the scan
 	 and back over any non-options that we skipped and permuted.  */
 
-      if (optind == argc)
+      if (FLAC__share__optind == argc)
 	{
 	  /* Set the next-arg-index to point at the non-options
 	     that we previously skipped, so the caller will digest them.  */
 	  if (first_nonopt != last_nonopt)
-	    optind = first_nonopt;
+	    FLAC__share__optind = first_nonopt;
 	  return -1;
 	}
 
@@ -601,15 +616,15 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	{
 	  if (ordering == REQUIRE_ORDER)
 	    return -1;
-	  optarg = argv[optind++];
+	  FLAC__share__optarg = argv[FLAC__share__optind++];
 	  return 1;
 	}
 
       /* We have found another option-ARGV-element.
 	 Skip the initial punctuation.  */
 
-      nextchar = (argv[optind] + 1
-		  + (longopts != NULL && argv[optind][1] == '-'));
+      nextchar = (argv[FLAC__share__optind] + 1
+		  + (longopts != NULL && argv[FLAC__share__optind][1] == '-'));
     }
 
   /* Decode the current option-ARGV-element.  */
@@ -628,12 +643,12 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
      This distinction seems to be the most useful approach.  */
 
   if (longopts != NULL
-      && (argv[optind][1] == '-'
-	  || (long_only && (argv[optind][2] || !my_index (optstring, argv[optind][1])))))
+      && (argv[FLAC__share__optind][1] == '-'
+	  || (long_only && (argv[FLAC__share__optind][2] || !my_index (optstring, argv[FLAC__share__optind][1])))))
     {
       char *nameend;
-      const struct option *p;
-      const struct option *pfound = NULL;
+      const struct FLAC__share__option *p;
+      const struct FLAC__share__option *pfound = NULL;
       int exact = 0;
       int ambig = 0;
       int indfound = -1;
@@ -669,30 +684,30 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 
       if (ambig && !exact)
 	{
-	  if (opterr)
+	  if (FLAC__share__opterr)
 	    fprintf (stderr, _("%s: option `%s' is ambiguous\n"),
-		     argv[0], argv[optind]);
+		     argv[0], argv[FLAC__share__optind]);
 	  nextchar += strlen (nextchar);
-	  optind++;
-	  optopt = 0;
+	  FLAC__share__optind++;
+	  FLAC__share__optopt = 0;
 	  return '?';
 	}
 
       if (pfound != NULL)
 	{
 	  option_index = indfound;
-	  optind++;
+	  FLAC__share__optind++;
 	  if (*nameend)
 	    {
 	      /* Don't test has_arg with >, because some C compilers don't
 		 allow it to be used on enums.  */
 	      if (pfound->has_arg)
-		optarg = nameend + 1;
+		FLAC__share__optarg = nameend + 1;
 	      else
 		{
-		  if (opterr)
+		  if (FLAC__share__opterr)
 		    {
-		      if (argv[optind - 1][1] == '-')
+		      if (argv[FLAC__share__optind - 1][1] == '-')
 			/* --option */
 			fprintf (stderr,
 				 _("%s: option `--%s' doesn't allow an argument\n"),
@@ -701,27 +716,27 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 			/* +option or -option */
 			fprintf (stderr,
 				 _("%s: option `%c%s' doesn't allow an argument\n"),
-				 argv[0], argv[optind - 1][0], pfound->name);
+				 argv[0], argv[FLAC__share__optind - 1][0], pfound->name);
 		    }
 
 		  nextchar += strlen (nextchar);
 
-		  optopt = pfound->val;
+		  FLAC__share__optopt = pfound->val;
 		  return '?';
 		}
 	    }
 	  else if (pfound->has_arg == 1)
 	    {
-	      if (optind < argc)
-		optarg = argv[optind++];
+	      if (FLAC__share__optind < argc)
+		FLAC__share__optarg = argv[FLAC__share__optind++];
 	      else
 		{
-		  if (opterr)
+		  if (FLAC__share__opterr)
 		    fprintf (stderr,
 			   _("%s: option `%s' requires an argument\n"),
-			   argv[0], argv[optind - 1]);
+			   argv[0], argv[FLAC__share__optind - 1]);
 		  nextchar += strlen (nextchar);
-		  optopt = pfound->val;
+		  FLAC__share__optopt = pfound->val;
 		  return optstring[0] == ':' ? ':' : '?';
 		}
 	    }
@@ -736,27 +751,27 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	  return pfound->val;
 	}
 
-      /* Can't find it as a long option.  If this is not getopt_long_only,
+      /* Can't find it as a long option.  If this is not FLAC__share__getopt_long_only,
 	 or the option starts with '--' or is not a valid short
 	 option, then it's an error.
 	 Otherwise interpret it as a short option.  */
-      if (!long_only || argv[optind][1] == '-'
+      if (!long_only || argv[FLAC__share__optind][1] == '-'
 	  || my_index (optstring, *nextchar) == NULL)
 	{
-	  if (opterr)
+	  if (FLAC__share__opterr)
 	    {
-	      if (argv[optind][1] == '-')
+	      if (argv[FLAC__share__optind][1] == '-')
 		/* --option */
 		fprintf (stderr, _("%s: unrecognized option `--%s'\n"),
 			 argv[0], nextchar);
 	      else
 		/* +option or -option */
 		fprintf (stderr, _("%s: unrecognized option `%c%s'\n"),
-			 argv[0], argv[optind][0], nextchar);
+			 argv[0], argv[FLAC__share__optind][0], nextchar);
 	    }
 	  nextchar = (char *) "";
-	  optind++;
-	  optopt = 0;
+	  FLAC__share__optind++;
+	  FLAC__share__optopt = 0;
 	  return '?';
 	}
     }
@@ -767,13 +782,13 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
     char c = *nextchar++;
     char *temp = my_index (optstring, c);
 
-    /* Increment `optind' when we start to process its last character.  */
+    /* Increment `FLAC__share__optind' when we start to process its last character.  */
     if (*nextchar == '\0')
-      ++optind;
+      ++FLAC__share__optind;
 
     if (temp == NULL || c == ':')
       {
-	if (opterr)
+	if (FLAC__share__opterr)
 	  {
 	    if (posixly_correct)
 	      /* 1003.2 specifies the format of this message.  */
@@ -783,15 +798,15 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	      fprintf (stderr, _("%s: invalid option -- %c\n"),
 		       argv[0], c);
 	  }
-	optopt = c;
+	FLAC__share__optopt = c;
 	return '?';
       }
     /* Convenience. Treat POSIX -W foo same as long option --foo */
     if (temp[0] == 'W' && temp[1] == ';')
       {
 	char *nameend;
-	const struct option *p;
-	const struct option *pfound = NULL;
+	const struct FLAC__share__option *p;
+	const struct FLAC__share__option *pfound = NULL;
 	int exact = 0;
 	int ambig = 0;
 	int indfound = 0;
@@ -800,20 +815,20 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	/* This is an option that requires an argument.  */
 	if (*nextchar != '\0')
 	  {
-	    optarg = nextchar;
+	    FLAC__share__optarg = nextchar;
 	    /* If we end this ARGV-element by taking the rest as an arg,
 	       we must advance to the next element now.  */
-	    optind++;
+	    FLAC__share__optind++;
 	  }
-	else if (optind == argc)
+	else if (FLAC__share__optind == argc)
 	  {
-	    if (opterr)
+	    if (FLAC__share__opterr)
 	      {
 		/* 1003.2 specifies the format of this message.  */
 		fprintf (stderr, _("%s: option requires an argument -- %c\n"),
 			 argv[0], c);
 	      }
-	    optopt = c;
+	    FLAC__share__optopt = c;
 	    if (optstring[0] == ':')
 	      c = ':';
 	    else
@@ -821,14 +836,14 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	    return c;
 	  }
 	else
-	  /* We already incremented `optind' once;
+	  /* We already incremented `FLAC__share__optind' once;
 	     increment it again when taking next ARGV-elt as argument.  */
-	  optarg = argv[optind++];
+	  FLAC__share__optarg = argv[FLAC__share__optind++];
 
-	/* optarg is now the argument, see if it's in the
+	/* FLAC__share__optarg is now the argument, see if it's in the
 	   table of longopts.  */
 
-	for (nextchar = nameend = optarg; *nameend && *nameend != '='; nameend++)
+	for (nextchar = nameend = FLAC__share__optarg; *nameend && *nameend != '='; nameend++)
 	  /* Do nothing.  */ ;
 
 	/* Test all long options for either exact match
@@ -856,11 +871,11 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	    }
 	if (ambig && !exact)
 	  {
-	    if (opterr)
+	    if (FLAC__share__opterr)
 	      fprintf (stderr, _("%s: option `-W %s' is ambiguous\n"),
-		       argv[0], argv[optind]);
+		       argv[0], argv[FLAC__share__optind]);
 	    nextchar += strlen (nextchar);
-	    optind++;
+	    FLAC__share__optind++;
 	    return '?';
 	  }
 	if (pfound != NULL)
@@ -871,10 +886,10 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 		/* Don't test has_arg with >, because some C compilers don't
 		   allow it to be used on enums.  */
 		if (pfound->has_arg)
-		  optarg = nameend + 1;
+		  FLAC__share__optarg = nameend + 1;
 		else
 		  {
-		    if (opterr)
+		    if (FLAC__share__opterr)
 		      fprintf (stderr, _("\
 %s: option `-W %s' doesn't allow an argument\n"),
 			       argv[0], pfound->name);
@@ -885,14 +900,14 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	      }
 	    else if (pfound->has_arg == 1)
 	      {
-		if (optind < argc)
-		  optarg = argv[optind++];
+		if (FLAC__share__optind < argc)
+		  FLAC__share__optarg = argv[FLAC__share__optind++];
 		else
 		  {
-		    if (opterr)
+		    if (FLAC__share__opterr)
 		      fprintf (stderr,
 			       _("%s: option `%s' requires an argument\n"),
-			       argv[0], argv[optind - 1]);
+			       argv[0], argv[FLAC__share__optind - 1]);
 		    nextchar += strlen (nextchar);
 		    return optstring[0] == ':' ? ':' : '?';
 		  }
@@ -917,11 +932,11 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	    /* This is an option that accepts an argument optionally.  */
 	    if (*nextchar != '\0')
 	      {
-		optarg = nextchar;
-		optind++;
+		FLAC__share__optarg = nextchar;
+		FLAC__share__optind++;
 	      }
 	    else
-	      optarg = NULL;
+	      FLAC__share__optarg = NULL;
 	    nextchar = NULL;
 	  }
 	else
@@ -929,30 +944,30 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	    /* This is an option that requires an argument.  */
 	    if (*nextchar != '\0')
 	      {
-		optarg = nextchar;
+		FLAC__share__optarg = nextchar;
 		/* If we end this ARGV-element by taking the rest as an arg,
 		   we must advance to the next element now.  */
-		optind++;
+		FLAC__share__optind++;
 	      }
-	    else if (optind == argc)
+	    else if (FLAC__share__optind == argc)
 	      {
-		if (opterr)
+		if (FLAC__share__opterr)
 		  {
 		    /* 1003.2 specifies the format of this message.  */
 		    fprintf (stderr,
 			   _("%s: option requires an argument -- %c\n"),
 			   argv[0], c);
 		  }
-		optopt = c;
+		FLAC__share__optopt = c;
 		if (optstring[0] == ':')
 		  c = ':';
 		else
 		  c = '?';
 	      }
 	    else
-	      /* We already incremented `optind' once;
+	      /* We already incremented `FLAC__share__optind' once;
 		 increment it again when taking next ARGV-elt as argument.  */
-	      optarg = argv[optind++];
+	      FLAC__share__optarg = argv[FLAC__share__optind++];
 	    nextchar = NULL;
 	  }
       }
@@ -961,13 +976,13 @@ _getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 }
 
 int
-getopt (argc, argv, optstring)
+FLAC__share__getopt (argc, argv, optstring)
      int argc;
      char *const *argv;
      const char *optstring;
 {
-  return _getopt_internal (argc, argv, optstring,
-			   (const struct option *) 0,
+  return FLAC__share___getopt_internal (argc, argv, optstring,
+			   (const struct FLAC__share__option *) 0,
 			   (int *) 0,
 			   0);
 }
@@ -977,7 +992,7 @@ getopt (argc, argv, optstring)
 #ifdef TEST
 
 /* Compile with -DTEST to make an executable for use in testing
-   the above definition of `getopt'.  */
+   the above definition of `FLAC__share__getopt'.  */
 
 int
 main (argc, argv)
@@ -989,9 +1004,9 @@ main (argc, argv)
 
   while (1)
     {
-      int this_option_optind = optind ? optind : 1;
+      int this_option_optind = FLAC__share__optind ? FLAC__share__optind : 1;
 
-      c = getopt (argc, argv, "abc:d:0123456789");
+      c = FLAC__share__getopt (argc, argv, "abc:d:0123456789");
       if (c == -1)
 	break;
 
@@ -1022,7 +1037,7 @@ main (argc, argv)
 	  break;
 
 	case 'c':
-	  printf ("option c with value `%s'\n", optarg);
+	  printf ("option c with value `%s'\n", FLAC__share__optarg);
 	  break;
 
 	case '?':
@@ -1033,11 +1048,11 @@ main (argc, argv)
 	}
     }
 
-  if (optind < argc)
+  if (FLAC__share__optind < argc)
     {
       printf ("non-option ARGV-elements: ");
-      while (optind < argc)
-	printf ("%s ", argv[optind++]);
+      while (FLAC__share__optind < argc)
+	printf ("%s ", argv[FLAC__share__optind++]);
       printf ("\n");
     }
 

@@ -1,3 +1,17 @@
+/*
+	NOTE:
+	I cannot get the vanilla getopt code to work (i.e. compile only what
+	is needed and not duplicate symbols found in the standard library)
+	on all the platforms that FLAC supports.  In particular the gating
+	of code with the ELIDE_CODE #define is not accurate enough on systems
+	that are POSIX but not glibc.  If someone has a patch that works on
+	GNU/Linux, Darwin, AND Solaris please submit it on the project page:
+		http://sourceforge.net/projects/flac
+
+	In the meantime I have munged the global symbols and remove gates
+	around code, while at the same time trying to touch the original as
+	little as possible.
+*/
 /* getopt_long and getopt_long_only entry points for GNU getopt.
    Copyright (C) 1987,88,89,90,91,92,93,94,96,97,98
      Free Software Foundation, Inc.
@@ -22,7 +36,7 @@
 #include <config.h>
 #endif
 
-#include "getopt.h"
+/*[JEC] was:#include "getopt.h"*/
 
 #if !defined __STDC__ || !__STDC__
 /* This is a separate conditional since some stdc systems
@@ -50,7 +64,8 @@
 #endif
 #endif
 
-#ifndef ELIDE_CODE
+#if 1
+/*[JEC] was:#ifndef ELIDE_CODE*/
 
 
 /* This needs to come after some library #include
@@ -64,30 +79,30 @@
 #endif
 
 int
-getopt_long (argc, argv, options, long_options, opt_index)
+FLAC__share__getopt_long (argc, argv, options, long_options, opt_index)
      int argc;
      char *const *argv;
      const char *options;
-     const struct option *long_options;
+     const struct FLAC__share__option *long_options;
      int *opt_index;
 {
-  return _getopt_internal (argc, argv, options, long_options, opt_index, 0);
+  return FLAC__share___getopt_internal (argc, argv, options, long_options, opt_index, 0);
 }
 
-/* Like getopt_long, but '-' as well as '--' can indicate a long option.
+/* Like FLAC__share__getopt_long, but '-' as well as '--' can indicate a long option.
    If an option that starts with '-' (not '--') doesn't match a long option,
    but does match a short option, it is parsed as a short option
    instead.  */
 
 int
-getopt_long_only (argc, argv, options, long_options, opt_index)
+FLAC__share__getopt_long_only (argc, argv, options, long_options, opt_index)
      int argc;
      char *const *argv;
      const char *options;
-     const struct option *long_options;
+     const struct FLAC__share__option *long_options;
      int *opt_index;
 {
-  return _getopt_internal (argc, argv, options, long_options, opt_index, 1);
+  return FLAC__share___getopt_internal (argc, argv, options, long_options, opt_index, 1);
 }
 
 
@@ -107,9 +122,9 @@ main (argc, argv)
 
   while (1)
     {
-      int this_option_optind = optind ? optind : 1;
+      int this_option_optind = FLAC__share__optind ? FLAC__share__optind : 1;
       int option_index = 0;
-      static struct option long_options[] =
+      static struct FLAC__share__option long_options[] =
       {
 	{"add", 1, 0, 0},
 	{"append", 0, 0, 0},
@@ -120,7 +135,7 @@ main (argc, argv)
 	{0, 0, 0, 0}
       };
 
-      c = getopt_long (argc, argv, "abc:d:0123456789",
+      c = FLAC__share__getopt_long (argc, argv, "abc:d:0123456789",
 		       long_options, &option_index);
       if (c == -1)
 	break;
@@ -129,8 +144,8 @@ main (argc, argv)
 	{
 	case 0:
 	  printf ("option %s", long_options[option_index].name);
-	  if (optarg)
-	    printf (" with arg %s", optarg);
+	  if (FLAC__share__optarg)
+	    printf (" with arg %s", FLAC__share__optarg);
 	  printf ("\n");
 	  break;
 
@@ -159,11 +174,11 @@ main (argc, argv)
 	  break;
 
 	case 'c':
-	  printf ("option c with value `%s'\n", optarg);
+	  printf ("option c with value `%s'\n", FLAC__share__optarg);
 	  break;
 
 	case 'd':
-	  printf ("option d with value `%s'\n", optarg);
+	  printf ("option d with value `%s'\n", FLAC__share__optarg);
 	  break;
 
 	case '?':
@@ -174,11 +189,11 @@ main (argc, argv)
 	}
     }
 
-  if (optind < argc)
+  if (FLAC__share__optind < argc)
     {
       printf ("non-option ARGV-elements: ");
-      while (optind < argc)
-	printf ("%s ", argv[optind++]);
+      while (FLAC__share__optind < argc)
+	printf ("%s ", argv[FLAC__share__optind++]);
       printf ("\n");
     }
 
