@@ -154,6 +154,7 @@ void FLAC__fixed_compute_residual(const int32 data[], unsigned data_len, unsigne
 {
 	unsigned i;
 
+#if 0
 	switch(order) {
 		case 0:
 			for(i = 0; i < data_len; i++) {
@@ -186,6 +187,32 @@ void FLAC__fixed_compute_residual(const int32 data[], unsigned data_len, unsigne
 		default:
 			assert(0);
 	}
+#else
+	switch(order) {
+		case 0:
+			for(i = 0; i < data_len; i++)
+				residual[i] = data[i];
+			break;
+		case 1:
+			for(i = 0; i < data_len; i++)
+				residual[i] = data[i] - data[i-1];
+			break;
+		case 2:
+			for(i = 0; i < data_len; i++)
+				residual[i] = data[i] - 2*data[i-1] + data[i-2];
+			break;
+		case 3:
+			for(i = 0; i < data_len; i++)
+				residual[i] = data[i] - 3*data[i-1] + 3*data[i-2] - data[i-3];
+			break;
+		case 4:
+			for(i = 0; i < data_len; i++)
+				residual[i] = data[i] - 4*data[i-1] + 6*data[i-2] - 4*data[i-3] + data[i-4];
+			break;
+		default:
+			assert(0);
+	}
+#endif
 }
 
 void FLAC__fixed_restore_signal(const int32 residual[], unsigned data_len, unsigned order, int32 data[])
