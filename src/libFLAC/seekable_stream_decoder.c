@@ -503,6 +503,19 @@ FLAC_API unsigned FLAC__seekable_stream_decoder_get_blocksize(const FLAC__Seekab
 	return FLAC__stream_decoder_get_blocksize(decoder->private_->stream_decoder);
 }
 
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_get_decode_position(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *position)
+{
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+	FLAC__ASSERT(0 != position);
+
+	if(decoder->private_->tell_callback(decoder, position, decoder->private_->client_data) != FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK)
+		return false;
+	FLAC__ASSERT(*position >= FLAC__stream_decoder_get_input_bytes_unconsumed(decoder->private_->stream_decoder));
+	*position -= FLAC__stream_decoder_get_input_bytes_unconsumed(decoder->private_->stream_decoder);
+	return true;
+}
+
 FLAC_API FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
@@ -822,17 +835,13 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 		approx_bytes_per_frame = 4608 * channels * bps/8 + 64;
 
 	/*
-	 * The stream position is currently at the first frame plus any read
-	 * ahead data, so first we get the stream position, then subtract
-	 * uncomsumed bytes to get the position of the first frame in the
-	 * stream.
+	 * The decode position is currently at the first frame since we
+	 * rewound and processed metadata.
 	 */
-	if(decoder->private_->tell_callback(decoder, &first_frame_offset, decoder->private_->client_data) != FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK) {
+	if(!FLAC__seekable_stream_decoder_get_decode_position(decoder, &first_frame_offset)) {
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
 		return false;
 	}
-	FLAC__ASSERT(first_frame_offset >= FLAC__stream_decoder_get_input_bytes_unconsumed(decoder->private_->stream_decoder));
-	first_frame_offset -= FLAC__stream_decoder_get_input_bytes_unconsumed(decoder->private_->stream_decoder);
 
 	/*
 	 * First, we set an upper and lower bound on where in the

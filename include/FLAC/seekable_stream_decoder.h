@@ -756,6 +756,9 @@ FLAC_API unsigned FLAC__seekable_stream_decoder_get_sample_rate(const FLAC__Seek
  */
 FLAC_API unsigned FLAC__seekable_stream_decoder_get_blocksize(const FLAC__SeekableStreamDecoder *decoder);
 
+/*@@@@ document */
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_get_decode_position(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *position);
+
 /** Initialize the decoder instance.
  *  Should be called after FLAC__seekable_stream_decoder_new() and
  *  FLAC__seekable_stream_decoder_set_*() but before any of the
