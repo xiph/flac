@@ -585,13 +585,8 @@ typedef struct {
 /** Vorbis comment entry structure used in VORBIS_COMMENT blocks.  (c.f. <A HREF="../format.html#metadata_block_vorbis_comment">format specification</A>)
  *
  *  For convenience, the APIs maintain a trailing NUL character at the end of
- *  \a entry which is not counted toward \a length or stored in the stream,
- *  i.e.
+ *  \a entry which is not counted toward \a length, i.e.
  *  \code strlen(entry) == length \endcode
- *
- *  It's recommended but not required for users to follow this convention as
- *  well when dealing directly with FLAC__StreamMetadata_VorbisComment_Entry
- *  as it makes dealing with plain strings easier.
  */
 typedef struct {
 	FLAC__uint32 length;

@@ -26,10 +26,9 @@ INCLUDES = -I$(topdir)/include -I$(HOME)/local/include
 DEFINES  = 
 
 SRCS_C = \
-	canonical_tag.c \
 	charset.c \
 	dither.c \
-	vorbiscomment.c
+	tags.c
 
 include $(topdir)/build/lib.mk
 

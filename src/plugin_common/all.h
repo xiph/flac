@@ -19,10 +19,9 @@
 #ifndef FLAC__PLUGIN_COMMON__ALL_H
 #define FLAC__PLUGIN_COMMON__ALL_H
 
-#include "canonical_tag.h"
 #include "charset.h"
 #include "dither.h"
 #include "locale_hack.h"
-#include "vorbiscomment.h"
+#include "tags.h"
 
 #endif

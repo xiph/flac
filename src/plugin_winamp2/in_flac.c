@@ -267,20 +267,20 @@ static DWORD WINAPI DecodeThread(void *unused)
 
 static const T_CHAR *get_tag(const T_CHAR *tag, void *param)
 {
-	FLAC_Plugin__CanonicalTag *t = (FLAC_Plugin__CanonicalTag*)param;
-	const T_CHAR *val = FLAC_plugin__canonical_get(t, tag);
+	FLAC__StreamMetadata *tags = (FLAC__StreamMetadata*)param;
+	const T_CHAR *val = FLAC_plugin__tags_get_tag_ucs2(tags, tag);
 	/* some "user friendly cheavats" */
 	if (!val)
 	{
 		if (!wcsicmp(tag, L"ARTIST"))
 		{
-			val = FLAC_plugin__canonical_get(t, L"PERFORMER");
-			if (!val) val = FLAC_plugin__canonical_get(t, L"COMPOSER");
+			val = FLAC_plugin__tags_get_tag_ucs2(tags, "PERFORMER");
+			if (!val) val = FLAC_plugin__tags_get_tag_ucs2(tags, L"COMPOSER");
 		}
 		else if (!wcsicmp(tag, L"YEAR") || !wcsicmp(tag, L"DATE"))
 		{
-			val = FLAC_plugin__canonical_get(t, L"YEAR_RECORDED");
-			if (!val) val = FLAC_plugin__canonical_get(t, L"YEAR_PERFORMED");
+			val = FLAC_plugin__tags_get_tag_ucs2(tags, L"YEAR_RECORDED");
+			if (!val) val = FLAC_plugin__tags_get_tag_ucs2(tags, L"YEAR_PERFORMED");
 		}
 	}
 
@@ -289,13 +289,13 @@ static const T_CHAR *get_tag(const T_CHAR *tag, void *param)
 
 static void format_title(const char *filename, WCHAR *title, unsigned max_size)
 {
-	FLAC_Plugin__CanonicalTag tag;
+	FLAC__StreamMetadata *tags;
 
-	ReadTags(filename, &tag, true);
+	ReadTags(filename, &tags, /*forDisplay=*/true);
 
-	tagz_format(flac_cfg.title.tag_format_w, get_tag, NULL, &tag, title, max_size);
+	tagz_format(flac_cfg.title.tag_format_w, get_tag, free, tags, title, max_size);
 
-	FLAC_plugin__canonical_tag_clear(&tag);
+	FLAC_plugin__tags_destroy(&tags);
 }
 
 static void getfileinfo(char *filename, char *title, int *length_in_msec)

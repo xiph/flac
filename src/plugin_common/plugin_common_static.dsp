@@ -85,10 +85,6 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp"
 # Begin Source File
 
-SOURCE=.\canonical_tag.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\charset.c
 # End Source File
 # Begin Source File
@@ -97,7 +93,7 @@ SOURCE=.\dither.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\vorbiscomment.c
+SOURCE=.\tags.c
 # End Source File
 # End Group
 # Begin Group "Public Header Files"
@@ -106,10 +102,6 @@ SOURCE=.\vorbiscomment.c
 # Begin Source File
 
 SOURCE=.\all.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\canonical_tag.h
 # End Source File
 # Begin Source File
 
@@ -125,7 +117,7 @@ SOURCE=.\locale_hack.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\vorbiscomment.h
+SOURCE=.\tags.h
 # End Source File
 # End Group
 # End Target

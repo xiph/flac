@@ -28,10 +28,10 @@
 typedef struct
 {
 	char filename[MAX_PATH];
-	FLAC_Plugin__CanonicalTag tag;
+	FLAC__StreamMetadata tags;
 } LOCALDATA;
 
-static char buffer[1024];
+static char buffer[8192];
 static char *genres = NULL;
 static DWORD genresSize = 0, genresCount = 0;
 static BOOL genresChanged = FALSE, isNT;
@@ -174,27 +174,46 @@ static void DeinitGenres(HWND hwnd, BOOL final)
 	}
 }
 
+static wchar_t *AnsiToWide(const char *src)
+{
+	int len;
+	wchar_t *dest;
+
+	FLAC__ASSERT(0 != src);
+
+	len = strlen(src) + 1;
+	/* copy */
+	dest = malloc(len*sizeof(wchar_t));
+	if (dest) mbstowcs(dest, src, len);
+	return dest;
+}
+
 /*
  *  Infobox helpers
  */
 
-#define SetText(x,y)            WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, FLAC_plugin__canonical_get(&data->tag, y), -1, buffer, sizeof(buffer), NULL, NULL); \
+#define SetText(x,y)            ucs2 = FLAC_plugin__tags_get_tag_ucs2(data->tags, y); \
+                                WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, ucs2, -1, buffer, sizeof(buffer), NULL, NULL); \
+                                if(ucs2) free(ucs2); \
                                 SetDlgItemText(hwnd, x, buffer)
 
 #define GetText(x,y)            GetDlgItemText(hwnd, x, buffer, sizeof(buffer));                        \
-                                if (*buffer) FLAC_plugin__canonical_set_ansi(&data->tag, y, buffer);    \
-                                else FLAC_plugin__canonical_remove_all(&data->tag, y)
+                                if (*buffer) { ucs2 = AnsiToWide(buffer); FLAC_plugin__tags_set_tag_ucs2(data->tags, y, ucs2, /*replace_all=*/false); free(ucs2); } \
+                                else FLAC_plugin__tags_delete_tag(data->tags, y)
 
-#define SetTextW(x,y)           SetDlgItemTextW(hwnd, x, FLAC_plugin__canonical_get(&data->tag, y))
+#define SetTextW(x,y)           ucs2 = FLAC_plugin__tags_get_tag_ucs2(data->tags, y)); \
+                                SetDlgItemTextW(hwnd, x, ucs2); \
+                                free(ucs2)
 
 #define GetTextW(x,y)           GetDlgItemTextW(hwnd, x, (WCHAR*)buffer, sizeof(buffer)/2);                     \
-                                if (*(WCHAR*)buffer) FLAC_plugin__canonical_set(&data->tag, y, (WCHAR*)buffer); \
-                                else FLAC_plugin__canonical_remove_all(&data->tag, y)
+                                if (*(WCHAR*)buffer) FLAC_plugin__tags_set_tag_ucs2(data->tags, y, (WCHAR*)buffer, /*replace_all=*/false); \
+                                else FLAC_plugin__tags_delete_tag(data->tags, y)
 
 
 static BOOL InitInfoboxInfo(HWND hwnd, const char *file)
 {
 	LOCALDATA *data = LocalAlloc(LPTR, sizeof(LOCALDATA));
+	wchar_t *ucs2;
 	FLAC__StreamMetadata streaminfo;
 	DWORD    length, bps, ratio, rg;
 	LONGLONG filesize;
@@ -208,13 +227,13 @@ static BOOL InitInfoboxInfo(HWND hwnd, const char *file)
 	if (!filesize) return FALSE;
 	if (!FLAC__metadata_get_streaminfo(file, &streaminfo))
 		return FALSE;
-	ReadTags(file, &data->tag, false);
+	ReadTags(file, &data->tags, false);
 
 	length = (DWORD)(streaminfo.data.stream_info.total_samples / streaminfo.data.stream_info.sample_rate);
 	bps = (DWORD)(filesize / (125*streaminfo.data.stream_info.total_samples/streaminfo.data.stream_info.sample_rate));
 	ratio = bps*1000000 / (streaminfo.data.stream_info.sample_rate*streaminfo.data.stream_info.channels*streaminfo.data.stream_info.bits_per_sample);
-	rg  = FLAC_plugin__canonical_get(&data->tag, L"REPLAYGAIN_TRACK_GAIN") ? 1 : 0;
-	rg |= FLAC_plugin__canonical_get(&data->tag, L"REPLAYGAIN_ALBUM_GAIN") ? 2 : 0;
+	rg  = FLAC_plugin__tags_get_tag_utf8(data->tags, L"REPLAYGAIN_TRACK_GAIN") ? 1 : 0;
+	rg |= FLAC_plugin__tags_get_tag_utf8(data->tags, L"REPLAYGAIN_ALBUM_GAIN") ? 2 : 0;
 
 	sprintf(buffer, "Sample rate: %d Hz\nChannels: %d\nBits per sample: %d\nMin block size: %d\nMax block size: %d\n"
 	                "File size: %I64d bytes\nTotal samples: %I64d\nLength: %d:%02d\nAvg. bitrate: %d\nCompression ratio: %d.%d%%\n"
@@ -228,33 +247,33 @@ static BOOL InitInfoboxInfo(HWND hwnd, const char *file)
 	/* tag */
 	if (isNT)
 	{
-		SetTextW(IDC_TITLE,   L"TITLE");
-		SetTextW(IDC_ARTIST,  L"ARTIST");
-		SetTextW(IDC_ALBUM,   L"ALBUM");
-		SetTextW(IDC_COMMENT, L"COMMENT");
-		SetTextW(IDC_YEAR,    L"DATE");
-		SetTextW(IDC_TRACK,   L"TRACKNUMBER");
-		SetTextW(IDC_GENRE,   L"GENRE");
+		SetTextW(IDC_TITLE,   "TITLE");
+		SetTextW(IDC_ARTIST,  "ARTIST");
+		SetTextW(IDC_ALBUM,   "ALBUM");
+		SetTextW(IDC_COMMENT, "COMMENT");
+		SetTextW(IDC_YEAR,    "DATE");
+		SetTextW(IDC_TRACK,   "TRACKNUMBER");
+		SetTextW(IDC_GENRE,   "GENRE");
 	}
 	else
 	{
-		SetText(IDC_TITLE,   L"TITLE");
-		SetText(IDC_ARTIST,  L"ARTIST");
-		SetText(IDC_ALBUM,   L"ALBUM");
-		SetText(IDC_COMMENT, L"COMMENT");
-		SetText(IDC_YEAR,    L"DATE");
-		SetText(IDC_TRACK,   L"TRACKNUMBER");
-		SetText(IDC_GENRE,   L"GENRE");
+		SetText(IDC_TITLE,   "TITLE");
+		SetText(IDC_ARTIST,  "ARTIST");
+		SetText(IDC_ALBUM,   "ALBUM");
+		SetText(IDC_COMMENT, "COMMENT");
+		SetText(IDC_YEAR,    "DATE");
+		SetText(IDC_TRACK,   "TRACKNUMBER");
+		SetText(IDC_GENRE,   "GENRE");
 	}
 
 	return TRUE;
 }
 
-static void __inline SetTag(HWND hwnd, const char *filename, FLAC_Plugin__CanonicalTag *tag)
+static void __inline SetTag(HWND hwnd, const char *filename, FLAC__StreamMetadata *tags)
 {
 	strcpy(buffer, infoTitle);
 
-	if (FLAC_plugin__vorbiscomment_set(filename, tag))
+	if (FLAC_plugin__tags_set(filename, tags))
 		strcat(buffer, " [Updated]");
 	else strcat(buffer, " [Failed]");
 
@@ -264,42 +283,45 @@ static void __inline SetTag(HWND hwnd, const char *filename, FLAC_Plugin__Canoni
 static void UpdateTag(HWND hwnd)
 {
 	LOCALDATA *data = (LOCALDATA*)GetWindowLong(hwnd, GWL_USERDATA);
+	wchar_t *ucs2;
 
 	/* get fields */
 	if (isNT)
 	{
-		GetTextW(IDC_TITLE,   L"TITLE");
-		GetTextW(IDC_ARTIST,  L"ARTIST");
-		GetTextW(IDC_ALBUM,   L"ALBUM");
-		GetTextW(IDC_COMMENT, L"COMMENT");
-		GetTextW(IDC_YEAR,    L"DATE");
-		GetTextW(IDC_TRACK,   L"TRACKNUMBER");
-		GetTextW(IDC_GENRE,   L"GENRE");
+		GetTextW(IDC_TITLE,   "TITLE");
+		GetTextW(IDC_ARTIST,  "ARTIST");
+		GetTextW(IDC_ALBUM,   "ALBUM");
+		GetTextW(IDC_COMMENT, "COMMENT");
+		GetTextW(IDC_YEAR,    "DATE");
+		GetTextW(IDC_TRACK,   "TRACKNUMBER");
+		GetTextW(IDC_GENRE,   "GENRE");
 
-		WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, FLAC_plugin__canonical_get(&data->tag, L"GENRE"), -1, buffer, sizeof(buffer), NULL, NULL);
+		ucs2 = FLAC_plugin__tags_get_tag_ucs2(data->tags, "GENRE");
+		WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, ucs2, -1, buffer, sizeof(buffer), NULL, NULL);
+		free(ucs2);
 	}
 	else
 	{
-		GetText(IDC_TITLE,   L"TITLE");
-		GetText(IDC_ARTIST,  L"ARTIST");
-		GetText(IDC_ALBUM,   L"ALBUM");
-		GetText(IDC_COMMENT, L"COMMENT");
-		GetText(IDC_YEAR,    L"DATE");
-		GetText(IDC_TRACK,   L"TRACKNUMBER");
-		GetText(IDC_GENRE,   L"GENRE");
+		GetText(IDC_TITLE,   "TITLE");
+		GetText(IDC_ARTIST,  "ARTIST");
+		GetText(IDC_ALBUM,   "ALBUM");
+		GetText(IDC_COMMENT, "COMMENT");
+		GetText(IDC_YEAR,    "DATE");
+		GetText(IDC_TRACK,   "TRACKNUMBER");
+		GetText(IDC_GENRE,   "GENRE");
 	}
 
 	/* update genres list (buffer should contain genre) */
 	if (buffer[0]) AddGenre(hwnd, buffer);
 
 	/* write tag */
-	SetTag(hwnd, data->filename, &data->tag);
+	SetTag(hwnd, data->filename, data->tags);
 }
 
 static void RemoveTag(HWND hwnd)
 {
 	LOCALDATA *data = (LOCALDATA*)GetWindowLong(hwnd, GWL_USERDATA);
-	FLAC_plugin__canonical_tag_clear(&data->tag);
+	FLAC_plugin__tags_delete_all(data->tags);
 
 	SetDlgItemText(hwnd, IDC_TITLE,   "");
 	SetDlgItemText(hwnd, IDC_ARTIST,  "");
@@ -309,7 +331,7 @@ static void RemoveTag(HWND hwnd)
 	SetDlgItemText(hwnd, IDC_TRACK,   "");
 	SetDlgItemText(hwnd, IDC_GENRE,   "");
 
-	SetTag(hwnd, data->filename, &data->tag);
+	SetTag(hwnd, data->filename, data->tags);
 }
 
 
@@ -329,7 +351,7 @@ static INT_PTR CALLBACK InfoProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 	case WM_DESTROY:
 		{
 			LOCALDATA *data = (LOCALDATA*)GetWindowLong(hwnd, GWL_USERDATA);
-			FLAC_plugin__canonical_tag_clear(&data->tag);
+			FLAC_plugin__tags_destroy(&data->tags);
 			LocalFree(data);
 			DeinitGenres(hwnd, FALSE);
 		}
@@ -390,20 +412,25 @@ static __inline char *GetFileName(const char *fullname)
 	return (char*)c;
 }
 
-void ReadTags(const char *fileName, FLAC_Plugin__CanonicalTag *tag, BOOL forDisplay)
+void ReadTags(const char *fileName, FLAC__StreamMetadata **tags, BOOL forDisplay)
 {
-	FLAC_plugin__canonical_tag_init(tag);
-	FLAC_plugin__vorbiscomment_get(fileName, tag, forDisplay ? flac_cfg.title.sep : NULL);
+	if(FLAC_plugin__tags_get(fileName, tags, forDisplay ? flac_cfg.title.sep : NULL)) {
 
-	/* add file name */
-	if (forDisplay)
-	{
-		char *c;
-		FLAC_plugin__canonical_set_ansi(tag, L"filepath", fileName);
+		/* add file name */
+		if (forDisplay)
+		{
+			char *c;
+			wchar_t *ucs2;
+			ucs2 = AnsiToWide(fileName);
+			FLAC_plugin__tags_set_tag_ucs2(*tags, "filepath", ucs2);
+			free(ucs2);
 
-		strcpy(buffer, GetFileName(fileName));
-		if (c = strrchr(buffer, '.')) *c = 0;
-		FLAC_plugin__canonical_set_ansi(tag, L"filename", buffer);
+			strcpy(buffer, GetFileName(fileName));
+			if (c = strrchr(buffer, '.')) *c = 0;
+			ucs2 = AnsiToWide(buffer);
+			FLAC_plugin__tags_set_tag_ucs2(*tags, "filename", ucs2);
+			free(ucs2);
+		}
 	}
 }
 

@@ -29,8 +29,7 @@
 #include <xmms/titlestring.h>
 
 #include "FLAC/metadata.h"
-#include "plugin_common/canonical_tag.h"
-#include "plugin_common/vorbiscomment.h"
+#include "plugin_common/tags.h"
 #include "charset.h"
 #include "configure.h"
 
@@ -65,21 +64,19 @@ static int local__getnum(char* str)
 	return 0;
 }
 
-static char *local__getfield(FLAC_Plugin__CanonicalTag *tag, const wchar_t *name)
+static char *local__getfield(const FLAC__StreamMetadata *tags, const char *name)
 {
-	const wchar_t *ucs2 = FLAC_plugin__canonical_get(tag, name);
-	if (0 != ucs2) {
-		char *utf8 = FLAC_plugin__convert_ucs2_to_utf8(FLAC_plugin__canonical_get(tag, name));
-		if(flac_cfg.title.convert_char_set) {
-			char *user = convert_from_utf8_to_user(utf8);
-			free(utf8);
-			return user;
+	if (0 != tags) {
+		const char *utf8 = FLAC_plugin__tags_get_tag_utf8(tags, name);
+		if (0 != utf8) {
+			if(flac_cfg.title.convert_char_set)
+				return convert_from_utf8_to_user(utf8);
+			else
+				return strdup(utf8);
 		}
-		else
-			return utf8;
 	}
-	else
-		return 0;
+
+	return 0;
 }
 
 static void local__safe_free(char *s)
@@ -99,21 +96,19 @@ char *flac_format_song_title(char *filename)
 {
 	char *ret = NULL;
 	TitleInput *input = NULL;
-	FLAC_Plugin__CanonicalTag tag;
+	FLAC__StreamMetadata *tags;
 	char *title, *artist, *performer, *album, *date, *tracknumber, *genre, *description;
 
-	FLAC_plugin__canonical_tag_init(&tag);
+	FLAC_plugin__tags_get(filename, &tags);
 
-	FLAC_plugin__vorbiscomment_get(filename, &tag, /*sep=*/0);
-
-	title       = local__getfield(&tag, L"TITLE");
-	artist      = local__getfield(&tag, L"ARTIST");
-	performer   = local__getfield(&tag, L"PERFORMER");
-	album       = local__getfield(&tag, L"ALBUM");
-	date        = local__getfield(&tag, L"DATE");
-	tracknumber = local__getfield(&tag, L"TRACKNUMBER");
-	genre       = local__getfield(&tag, L"GENRE");
-	description = local__getfield(&tag, L"DESCRIPTION");
+	title       = local__getfield(tags, "TITLE");
+	artist      = local__getfield(tags, "ARTIST");
+	performer   = local__getfield(tags, "PERFORMER");
+	album       = local__getfield(tags, "ALBUM");
+	date        = local__getfield(tags, "DATE");
+	tracknumber = local__getfield(tags, "TRACKNUMBER");
+	genre       = local__getfield(tags, "GENRE");
+	description = local__getfield(tags, "DESCRIPTION");
 
 	XMMS_NEW_TITLEINPUT(input);
 
@@ -142,7 +137,7 @@ char *flac_format_song_title(char *filename)
 			*(local__extname(ret) - 1) = '\0';	/* removes period */
 	}
 
-	FLAC_plugin__canonical_tag_clear(&tag);
+	FLAC_plugin__tags_destroy(&tags);
 	local__safe_free(title);
 	local__safe_free(artist);
 	local__safe_free(performer);

@@ -23,18 +23,16 @@ noinst_LTLIBRARIES = libplugin_common.la
 
 noinst_HEADERS = \
 	all.h \
-	canonical_tag.h \
 	charset.h \
 	defs.h \
 	dither.h \
 	locale_hack.h \
-	vorbiscomment.h
+	tags.h
 
 libplugin_common_la_SOURCES = \
-	canonical_tag.c \
 	charset.c \
 	dither.c \
-	vorbiscomment.c
+	tags.c
 
 EXTRA_DIST = \
 	Makefile.lite \

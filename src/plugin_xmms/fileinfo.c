@@ -29,7 +29,7 @@
 #include "FLAC/metadata.h"
 #include "charset.h"
 #include "configure.h"
-#include "plugin_common/vorbiscomment.h"
+#include "plugin_common/tags.h"
 #include "plugin_common/locale_hack.h"
 
 static GtkWidget *window = NULL;
@@ -40,7 +40,7 @@ static GtkWidget *genre_combo;
 static GtkWidget *flac_samplerate, *flac_channels, *flac_bits_per_sample, *flac_blocksize, *flac_filesize, *flac_samples, *flac_bitrate;
 
 static gchar *current_filename = NULL;
-static FLAC_Plugin__CanonicalTag *canonical_tag = NULL;
+static FLAC__StreamMetadata *tags_ = NULL;
 
 static const gchar *vorbis_genres[] =
 {
@@ -102,20 +102,16 @@ static void label_set_text(GtkWidget * label, char *str, ...)
 	g_free(tempstr);
 }
 
-static void set_entry_tag(GtkEntry * entry, const wchar_t * tag)
+static void set_entry_tag(GtkEntry * entry, const char * utf8)
 {
-
-	if(tag) {
-		char *utf8 = FLAC_plugin__convert_ucs2_to_utf8(tag);
+	if(utf8) {
 		if(flac_cfg.title.convert_char_set) {
 			char *text = convert_from_utf8_to_user(utf8);
 			gtk_entry_set_text(entry, text);
 			free(text);
 		}
-		else {
+		else
 			gtk_entry_set_text(entry, utf8);
-		}
-		free(utf8);
 	}
 	else
 		gtk_entry_set_text(entry, "");
@@ -134,7 +130,7 @@ static void get_entry_tag(GtkEntry * entry, const char *name)
 	else
 		utf8 = text;
 
-	FLAC_plugin__canonical_add_utf8(canonical_tag, name, utf8, (unsigned)(-1), (unsigned)(-1), /*sep=*/0);
+	FLAC_plugin__tags_add_tag_utf8(tags_, name, utf8, /*separator=*/0);
 
 	if(flac_cfg.title.convert_char_set)
 		free(utf8);
@@ -142,13 +138,13 @@ static void get_entry_tag(GtkEntry * entry, const char *name)
 
 static void show_tag()
 {
-	set_entry_tag(GTK_ENTRY(title_entry)                  , FLAC_plugin__canonical_get(canonical_tag, L"TITLE"));
-	set_entry_tag(GTK_ENTRY(artist_entry)                 , FLAC_plugin__canonical_get(canonical_tag, L"ARTIST"));
-	set_entry_tag(GTK_ENTRY(album_entry)                  , FLAC_plugin__canonical_get(canonical_tag, L"ALBUM"));
-	set_entry_tag(GTK_ENTRY(date_entry)                   , FLAC_plugin__canonical_get(canonical_tag, L"DATE"));
-	set_entry_tag(GTK_ENTRY(tracknum_entry)               , FLAC_plugin__canonical_get(canonical_tag, L"TRACKNUMBER"));
-	set_entry_tag(GTK_ENTRY(comment_entry)                , FLAC_plugin__canonical_get(canonical_tag, L"DESCRIPTION"));
-	set_entry_tag(GTK_ENTRY(GTK_COMBO(genre_combo)->entry), FLAC_plugin__canonical_get(canonical_tag, L"GENRE"));
+	set_entry_tag(GTK_ENTRY(title_entry)                  , FLAC_plugin__tags_get_tag_utf8(tags_, "TITLE"));
+	set_entry_tag(GTK_ENTRY(artist_entry)                 , FLAC_plugin__tags_get_tag_utf8(tags_, "ARTIST"));
+	set_entry_tag(GTK_ENTRY(album_entry)                  , FLAC_plugin__tags_get_tag_utf8(tags_, "ALBUM"));
+	set_entry_tag(GTK_ENTRY(date_entry)                   , FLAC_plugin__tags_get_tag_utf8(tags_, "DATE"));
+	set_entry_tag(GTK_ENTRY(tracknum_entry)               , FLAC_plugin__tags_get_tag_utf8(tags_, "TRACKNUMBER"));
+	set_entry_tag(GTK_ENTRY(comment_entry)                , FLAC_plugin__tags_get_tag_utf8(tags_, "DESCRIPTION"));
+	set_entry_tag(GTK_ENTRY(GTK_COMBO(genre_combo)->entry), FLAC_plugin__tags_get_tag_utf8(tags_, "GENRE"));
 }
 
 static void save_tag(GtkWidget * w, gpointer data)
@@ -156,13 +152,13 @@ static void save_tag(GtkWidget * w, gpointer data)
 	(void)w;
 	(void)data;
 
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"TITLE")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"ARTIST")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"ALBUM")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"DATE")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"TRACKNUMBER")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"DESCRIPTION")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"GENRE")) ;
+	FLAC_plugin__tags_delete_tag(tags_, "TITLE");
+	FLAC_plugin__tags_delete_tag(tags_, "ARTIST");
+	FLAC_plugin__tags_delete_tag(tags_, "ALBUM");
+	FLAC_plugin__tags_delete_tag(tags_, "DATE");
+	FLAC_plugin__tags_delete_tag(tags_, "TRACKNUMBER");
+	FLAC_plugin__tags_delete_tag(tags_, "DESCRIPTION");
+	FLAC_plugin__tags_delete_tag(tags_, "GENRE");
 
 	get_entry_tag(GTK_ENTRY(title_entry)                  , "TITLE");
 	get_entry_tag(GTK_ENTRY(artist_entry)                 , "ARTIST");
@@ -172,7 +168,7 @@ static void save_tag(GtkWidget * w, gpointer data)
 	get_entry_tag(GTK_ENTRY(comment_entry)                , "DESCRIPTION");
 	get_entry_tag(GTK_ENTRY(GTK_COMBO(genre_combo)->entry), "GENRE");
 
-	FLAC_plugin__vorbiscomment_set(current_filename, canonical_tag);
+	FLAC_plugin__tags_set(current_filename, tags_);
 	gtk_widget_destroy(window);
 }
 
@@ -181,15 +177,15 @@ static void remove_tag(GtkWidget * w, gpointer data)
 	(void)w;
 	(void)data;
 	
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"TITLE")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"ARTIST")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"ALBUM")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"DATE")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"TRACKNUMBER")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"DESCRIPTION")) ;
-	while (FLAC_plugin__canonical_remove(canonical_tag, L"GENRE")) ;
+	FLAC_plugin__tags_delete_tag(tags_, "TITLE");
+	FLAC_plugin__tags_delete_tag(tags_, "ARTIST");
+	FLAC_plugin__tags_delete_tag(tags_, "ALBUM");
+	FLAC_plugin__tags_delete_tag(tags_, "DATE");
+	FLAC_plugin__tags_delete_tag(tags_, "TRACKNUMBER");
+	FLAC_plugin__tags_delete_tag(tags_, "DESCRIPTION");
+	FLAC_plugin__tags_delete_tag(tags_, "GENRE");
 
-	FLAC_plugin__vorbiscomment_set(current_filename, canonical_tag);
+	FLAC_plugin__tags_set(current_filename, tags_);
 	gtk_widget_destroy(window);
 }
 
@@ -416,12 +412,10 @@ void FLAC_XMMS__file_info_box(char *filename)
 	gtk_entry_set_text(GTK_ENTRY(filename_entry), filename);
 	gtk_editable_set_position(GTK_EDITABLE(filename_entry), -1);
 
-	if(canonical_tag)
-		FLAC_plugin__canonical_tag_clear(canonical_tag);
-	else
-		canonical_tag = FLAC_plugin__canonical_tag_new();
+	if(tags_)
+		FLAC_plugin__tags_destroy(&tags_);
 
-	FLAC_plugin__vorbiscomment_get(current_filename, canonical_tag, /*sep=*/0);
+	FLAC_plugin__tags_get(current_filename, &tags_);
 
 	show_tag();
 	show_file_info();
