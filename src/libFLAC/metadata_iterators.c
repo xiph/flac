@@ -1266,6 +1266,7 @@ static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *t
 	return true;
 }
 
+/* assumes 'handle' is already at beginning of file */
 static FLAC__bool chain_rewrite_file_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOCallback_Seek seek_cb, FLAC__IOCallback_Eof eof_cb, FLAC__IOHandle temp_handle, FLAC__IOCallback_Write temp_write_cb)
 {
 	FLAC__Metadata_SimpleIteratorStatus status;
@@ -1373,6 +1374,12 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chai
 
 	if (0 == callbacks.read || 0 == callbacks.seek || 0 == callbacks.tell) {
 		chain->status = FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS;
+		return false;
+	}
+
+	/* rewind */
+	if(0 != callbacks.seek(handle, 0, SEEK_SET)) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR;
 		return false;
 	}
 
@@ -1526,6 +1533,12 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks_and_tempfile(FLAC_
 		return false;
 
 	FLAC__ASSERT(current_length != chain->initial_length);
+
+	/* rewind */
+	if(0 != callbacks.seek(handle, 0, SEEK_SET)) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR;
+		return false;
+	}
 
 	if(!chain_rewrite_file_cb_(chain, handle, callbacks.read, callbacks.seek, callbacks.eof, temp_handle, temp_callbacks.write))
 		return false;
