@@ -33,9 +33,11 @@
 #define OggFLAC__PROTECTED__FILE_DECODER_H
 
 #include "OggFLAC/file_decoder.h"
+#include "private/ogg_decoder_aspect.h"
 
 typedef struct OggFLAC__FileDecoderProtected {
 	OggFLAC__FileDecoderState state;
+	OggFLAC__OggDecoderAspect ogg_decoder_aspect;
 } OggFLAC__FileDecoderProtected;
 
 #endif

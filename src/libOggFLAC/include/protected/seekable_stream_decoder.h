@@ -33,9 +33,11 @@
 #define OggFLAC__PROTECTED__SEEKABLE_STREAM_DECODER_H
 
 #include "OggFLAC/seekable_stream_decoder.h"
+#include "private/ogg_decoder_aspect.h"
 
 typedef struct OggFLAC__SeekableStreamDecoderProtected {
 	OggFLAC__SeekableStreamDecoderState state;
+	OggFLAC__OggDecoderAspect ogg_decoder_aspect;
 } OggFLAC__SeekableStreamDecoderProtected;
 
 #endif
