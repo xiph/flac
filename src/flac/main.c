@@ -31,7 +31,7 @@ static int usage(const char *message, ...);
 int main(int argc, char *argv[])
 {
 	int i;
-	bool verify = false, verbose = true, lax = false, mode_decode = false, test_only = false;
+	bool verify = false, verbose = true, lax = false, mode_decode = false, test_only = false, analyze = false;
 	bool do_mid_side = true, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
 	unsigned max_lpc_order = 8;
 	unsigned qlp_coeff_precision = 0;
@@ -49,6 +49,10 @@ int main(int argc, char *argv[])
 			break;
 		if(0 == strcmp(argv[i], "-d"))
 			mode_decode = true;
+		else if(0 == strcmp(argv[i], "-a")) {
+			mode_decode = true;
+			analyze = true;
+		}
 		else if(0 == strcmp(argv[i], "-t")) {
 			mode_decode = true;
 			test_only = true;
@@ -200,7 +204,7 @@ int main(int argc, char *argv[])
 			if(skip > 0)
 				return usage("ERROR: --skip is not allowed in test mode\n");
 		}
-		else {
+		else if(!analyze) {
 			if(format_is_wave < 0) {
 				if(strstr(argv[i+1], ".wav") == argv[i+1] + (strlen(argv[i+1]) - strlen(".wav")))
 					format_is_wave = true;
@@ -257,9 +261,9 @@ int main(int argc, char *argv[])
 
 	if(mode_decode)
 		if(format_is_wave)
-			return decode_wav(argv[i], test_only? 0 : argv[i+1], verbose, skip);
+			return decode_wav(argv[i], test_only? 0 : argv[i+1], analyze, verbose, skip);
 		else
-			return decode_raw(argv[i], test_only? 0 : argv[i+1], verbose, skip, format_is_big_endian, format_is_unsigned_samples);
+			return decode_raw(argv[i], test_only? 0 : argv[i+1], analyze, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 	else
 		if(format_is_wave)
 			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision);
@@ -305,7 +309,7 @@ int usage(const char *message, ...)
 	printf("For encoding:\n");
 	printf("  infile may be a PCM RIFF WAVE file or raw samples\n");
 	printf("  outfile will be in FLAC format\n");
-	printf("For decoding, the reverse will be true\n");
+	printf("For decoding, the reverse is be true\n");
 	printf("\n");
 	printf("infile may be - for stdin, outfile may be - for stdout\n");
 	printf("\n");

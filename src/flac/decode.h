@@ -20,7 +20,7 @@
 #define flac__decode_h
 
 /* outfile == 0 => test only */
-int decode_wav(const char *infile, const char *outfile, bool verbose, uint64 skip);
-int decode_raw(const char *infile, const char *outfile, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples);
+int decode_wav(const char *infile, const char *outfile, bool analysis_mode, bool verbose, uint64 skip);
+int decode_raw(const char *infile, const char *outfile, bool analysis_mode, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples);
 
 #endif
