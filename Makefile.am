@@ -40,6 +40,7 @@ EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
 	autogen.sh \
+	config.rpath \
 	depcomp \
 	ltmain.sh \
 	strip_fPIC.sh
