@@ -105,6 +105,10 @@ SOURCE=.\main.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\string.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\utils.c
 # End Source File
 # Begin Source File
@@ -126,6 +130,10 @@ SOURCE=.\decode.h
 # Begin Source File
 
 SOURCE=.\encode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\string.h
 # End Source File
 # Begin Source File
 
