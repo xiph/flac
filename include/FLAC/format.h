@@ -120,6 +120,9 @@ extern "C" {
 /** The maximum Rice partition order permitted by the format. */
 #define FLAC__MAX_RICE_PARTITION_ORDER (15u)
 
+/** The maximum Rice partition order permitted by the FLAC Subset. */
+#define FLAC__SUBSET_MAX_RICE_PARTITION_ORDER (8u)
+
 /** The version string of the release, stamped onto the libraries and binaries.
  *
  * \note

@@ -637,7 +637,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 			encoder->protected_->bits_per_sample != 24
 		)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_NOT_STREAMABLE;
-		if(encoder->protected_->max_residual_partition_order > 8)
+		if(encoder->protected_->max_residual_partition_order > FLAC__SUBSET_MAX_RICE_PARTITION_ORDER)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_NOT_STREAMABLE;
 	}
 
