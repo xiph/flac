@@ -278,7 +278,7 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, off_t filesize,
 			else
 				printf("seek past end failed as expected... ");
 
-			/* hack to work around a deficiency in the seek API's bahavior */
+			/* hack to work around a deficiency in the seek API's behavior */
 			/* seeking past EOF sets the file decoder state to non-OK and there's no ..._flush() or ..._reset() call to reset it */
 			if(!FLAC__file_decoder_finish(decoder))
 				return die_f_("FLAC__file_decoder_finish() FAILED", decoder);
@@ -318,6 +318,11 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, off_t filesize,
 
 		printf("OK\n");
 		fflush(stdout);
+	}
+
+	if(FLAC__file_decoder_get_state(decoder) != FLAC__FILE_DECODER_UNINITIALIZED) {
+		if(!FLAC__file_decoder_finish(decoder))
+			return die_f_("FLAC__file_decoder_finish() FAILED", decoder);
 	}
 
 	printf("\nPASSED!\n");
@@ -414,7 +419,7 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, off_t filesize, un
 				printf("seek failed, assuming it was past EOF... ");
 			else
 				printf("seek past end failed as expected... ");
-			/* hack to work around a deficiency in the seek API's bahavior */
+			/* hack to work around a deficiency in the seek API's behavior */
 			/* seeking past EOF sets the file decoder state to non-OK and there's no ..._flush() or ..._reset() call to reset it */
 			if(!OggFLAC__file_decoder_finish(decoder))
 				return die_of_("OggFLAC__file_decoder_finish() FAILED", decoder);
@@ -454,6 +459,11 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, off_t filesize, un
 
 		printf("OK\n");
 		fflush(stdout);
+	}
+
+	if(OggFLAC__file_decoder_get_state(decoder) != OggFLAC__FILE_DECODER_UNINITIALIZED) {
+		if(!OggFLAC__file_decoder_finish(decoder))
+			return die_of_("OggFLAC__file_decoder_finish() FAILED", decoder);
 	}
 
 	printf("\nPASSED!\n");
