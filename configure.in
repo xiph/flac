@@ -205,7 +205,7 @@ AC_DEFINE(FLAC__USE_3DNOW)
 fi
 
 AC_ARG_ENABLE(exhaustive-tests,
-[  --enable-exhaustive-tests      Enable exhaustive testing ("make check" will take a LONG time!)],
+[  --enable-exhaustive-tests      Enable exhaustive testing.  "make check" will take a LONG time!],
 [case "${enableval}" in
 	yes) exhaustive_tests=true ;;
 	no)  exhaustive_tests=false ;;

@@ -1056,29 +1056,29 @@ char *local_strdup(const char *source)
 FLAC__bool parse_md5(const char *src, FLAC__byte dest[16])
 {
 	unsigned i, d;
-	char c;
+	int c;
 	FLAC__ASSERT(0 != src);
 	if(strlen(src) != 32)
 		return false;
 	/* strtoul() accepts negative numbers which we do not want, so we do it the hard way */
 	for(i = 0; i < 16; i++) {
-		c = *src++;
+		c = (int)(*src++);
 		if(isdigit(c))
-			d = (unsigned)c - (unsigned)'0';
+			d = (unsigned)(c - '0');
 		else if(c >= 'a' && c <= 'f')
-			d = (unsigned)c - (unsigned)'a' + 10u;
+			d = (unsigned)(c - 'a') + 10u;
 		else if(c >= 'A' && c <= 'F')
-			d = (unsigned)c - (unsigned)'A' + 10u;
+			d = (unsigned)(c - 'A') + 10u;
 		else
 			return false;
 		d <<= 4;
-		c = *src++;
+		c = (int)(*src++);
 		if(isdigit(c))
-			d |= (unsigned)c - (unsigned)'0';
+			d |= (unsigned)(c - '0');
 		else if(c >= 'a' && c <= 'f')
-			d |= (unsigned)c - (unsigned)'a' + 10u;
+			d |= (unsigned)(c - 'a') + 10u;
 		else if(c >= 'A' && c <= 'F')
-			d |= (unsigned)c - (unsigned)'A' + 10u;
+			d |= (unsigned)(c - 'A') + 10u;
 		else
 			return false;
 		dest[i] = (FLAC__byte)d;
