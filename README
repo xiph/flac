@@ -57,6 +57,8 @@ forthcoming, but in general, this should work:
 
 ./configure ; make ; make install
 
+If it doesn't, see the next section on Makefile.lite.
+
 There are a few FLAC-specific arguments you can give to
 `configure':
 
@@ -78,6 +80,28 @@ this argument to configure to use the SSE routines.  If flac
 crashes when built with this option you will have to go back and
 configure without --sse-os.  Note that --disable-asm-optimizations
 overrides --sse-os.
+
+
+===========================
+Building with Makefile.lite
+===========================
+
+There is a more lightweight build system for do-it-yourself-ers.
+It is also useful if configure isn't working, which may be the
+case since lately we've had some problems with different versions
+of automake and libtool.  The Makefile.lite system should work
+on Gnu systems with few or no minor adjustments.
+
+From the top level just 'make -f Makefile.lite'.  You can
+specify zero or one optional target from 'release', 'debug',
+'test', or 'clean'.  The default is 'release'.  There is no
+'install' target but everything you need will end up in the
+obj/ directory.
+
+If you are not on an x86 system or you don't have nasm, you
+may have to change the DEFINES in src/libFLAC/Makefile.lite.  If
+you don't have nasm, remove -DFLAC__HAS_NASM.  If your target is
+not an x86, change -DFLAC__CPU_IA32 to -DFLAC__CPU_UNKNOWN.
 
 
 ==================
