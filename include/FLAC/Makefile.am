@@ -25,4 +25,5 @@ include_HEADERS = \
 	ordinals.h \
 	seek_table.h \
 	stream_decoder.h \
-	stream_encoder.h
+	stream_encoder.h \
+	utility.h

@@ -27,5 +27,6 @@
 #include "seek_table.h"
 #include "stream_decoder.h"
 #include "stream_encoder.h"
+#include "utility.h"
 
 #endif
