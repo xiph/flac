@@ -49,6 +49,8 @@ typedef struct {
 	int padding;
 	char *requested_seek_points;
 	int num_requested_seek_points;
+	const char *cuesheet_filename;
+	FLAC__bool cued_seekpoints;
 
 	/* options related to --replay-gain and --sector-align */
 	FLAC__bool is_first_file;

@@ -103,6 +103,8 @@ static struct share__option long_options_[] = {
 	/*
 	 * encoding options
 	 */
+	{ "cuesheet", 1, 0, 0 },
+	{ "no-cued-seekpoints", 0, 0, 0 },
 	{ "tag", 1, 0, 'T' },
 	{ "compression-level-0", 0, 0, '0' },
 	{ "compression-level-1", 0, 0, '1' },
@@ -116,7 +118,7 @@ static struct share__option long_options_[] = {
 	{ "compression-level-9", 0, 0, '9' },
 	{ "best", 0, 0, '8' },
 	{ "fast", 0, 0, '0' },
-	{ "super-secret-impractical-compression-level", 0, 0, 0 },
+	{ "super-secret-totally-impractical-compression-level", 0, 0, 0 },
 	{ "verify", 0, 0, 'V' },
 	{ "force-raw-format", 0, 0, 0 },
 	{ "lax", 0, 0, 0 },
@@ -236,8 +238,10 @@ static struct {
 	int min_residual_partition_order;
 	int max_residual_partition_order;
 	int rice_parameter_search_dist;
-	char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER */
+	char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER but buffer overflow is checked */
 	int num_requested_seek_points; /* -1 => no -S options were given, 0 => -S- was given */
+	const char *cuesheet_filename;
+	FLAC__bool cued_seekpoints;
 
 	unsigned num_files;
 	char **filenames;
@@ -409,6 +413,9 @@ int do_it()
 		if(option_values.cmdline_forced_outfilename && option_values.output_prefix) {
 			return usage_error("ERROR: --output-prefix conflicts with -o/--output-name\n");
 		}
+		if(!option_values.mode_decode && 0 != option_values.cuesheet_filename && option_values.num_files > 1) {
+			return usage_error("ERROR: --cuesheet cannot be used when encoding multiple files\n");
+		}
 	}
 	if(option_values.verbose) {
 		fprintf(stderr, "\n");
@@ -539,6 +546,8 @@ FLAC__bool init_options()
 	option_values.rice_parameter_search_dist = -1;
 	option_values.requested_seek_points[0] = '\0';
 	option_values.num_requested_seek_points = -1;
+	option_values.cuesheet_filename = 0;
+	option_values.cued_seekpoints = true;
 
 	option_values.num_files = 0;
 	option_values.filenames = 0;
@@ -612,7 +621,15 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			FLAC__ASSERT(0 != option_argument);
 			option_values.skip = (FLAC__uint64)atoi(option_argument); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
 		}
-		else if(0 == strcmp(long_option, "super-secret-impractical-compression-level")) {
+		else if(0 == strcmp(long_option, "cuesheet")) {
+			FLAC__ASSERT(0 != option_argument);
+			option_values.cuesheet_filename = option_argument;
+		}
+		else if(0 == strcmp(long_option, "no-cued-seekpoints")) {
+			option_values.cued_seekpoints = false;
+		}
+		else if(0 == strcmp(long_option, "super-secret-totally-impractical-compression-level")) {
+			option_values.lax = true;
 			option_values.do_exhaustive_model_search = true;
 			option_values.do_escape_coding = true;
 			option_values.do_mid_side = true;
@@ -895,8 +912,13 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				if(option_values.num_requested_seek_points < 0)
 					option_values.num_requested_seek_points = 0;
 				option_values.num_requested_seek_points++;
-				strcat(option_values.requested_seek_points, option_argument);
-				strcat(option_values.requested_seek_points, ";");
+				if(strlen(option_values.requested_seek_points)+strlen(option_argument)+2 >= sizeof(option_values.requested_seek_points)) {
+					return usage_error("ERROR: too many seekpoints requested\n");
+				}
+				else {
+					strcat(option_values.requested_seek_points, option_argument);
+					strcat(option_values.requested_seek_points, ";");
+				}
 				break;
 			case 'P':
 				FLAC__ASSERT(0 != option_argument);
@@ -1069,9 +1091,10 @@ void show_help()
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align multiple files on sector boundaries\n");
 	printf("      --replay-gain            Calculate ReplayGain & store in Vorbis comments\n");
+	printf("      --cuesheet=FILENAME      Import cuesheet and store in CUESHEET block\n");
+	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment; may appear multiple times\n");
 	printf("  -S, --seekpoint={#|X|#x|#s}  Add seek point(s)\n");
 	printf("  -P, --padding=#              Write a PADDING block of length #\n");
-	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment; may appear multiple times\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
 	printf("  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 2,2\n");
 	printf("  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3\n");
@@ -1222,6 +1245,16 @@ void show_explain()
 	printf("                               one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1,\n");
 	printf("                               or 48 kHz.  NOTE: this option may also leave a\n");
 	printf("                               few extra bytes in the PADDING block.\n");
+	printf("      --cuesheet=FILENAME      Import the given cuesheet file and store it in\n");
+	printf("                               a CUESHEET metadata block.  This option may only\n");
+	printf("                               be used when encoding a single file.  A\n");
+	printf("                               seekpoint will be added for each index point in\n");
+	printf("                               the cuesheet to the SEEKTABLE unless\n");
+	printf("                               --no-cued-seekpoints is specified.\n");
+	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment.  Make sure to quote the\n");
+	printf("                               comment if necessary.  This option may appear\n");
+	printf("                               more than once to add several comments.  NOTE:\n");
+	printf("                               all tags will be added to all encoded files.\n");
 	printf("  -S, --seekpoint={#|X|#x|#s}  Include a point or points in a SEEKTABLE\n");
 	printf("       #  : a specific sample number for a seek point\n");
 	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
@@ -1253,10 +1286,6 @@ void show_explain()
 	printf("                               576, 1152, 2304, 4608, 256, 512, 1024, 2048,\n");
 	printf("                               4096, 8192, 16384, or 32768 (unless --lax is\n");
 	printf("                               used)\n");
-	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment.  Make sure to quote the\n");
-	printf("                               comment if necessary.  This option may appear\n");
-	printf("                               more than once to add several comments.  NOTE:\n");
-	printf("                               all tags will be added to all encoded files.\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
 	printf("  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 2,2\n");
 	printf("  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3\n");
@@ -1424,6 +1453,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.padding = option_values.padding;
 	common_options.requested_seek_points = option_values.requested_seek_points;
 	common_options.num_requested_seek_points = option_values.num_requested_seek_points;
+	common_options.cuesheet_filename = option_values.cuesheet_filename;
+	common_options.cued_seekpoints = option_values.cued_seekpoints;
 	common_options.is_first_file = is_first_file;
 	common_options.is_last_file = is_last_file;
 	common_options.align_reservoir = align_reservoir;

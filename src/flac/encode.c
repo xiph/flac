@@ -125,7 +125,7 @@ static int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int
 static int EncoderSession_finish_error(EncoderSession *e);
 static FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate);
 static FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], unsigned samples);
-static FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, EncoderSession *e);
+static FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, FLAC__StreamMetadata *cuesheet, EncoderSession *e);
 static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps);
 #ifdef FLAC__HAS_OGG
 static FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
@@ -133,6 +133,7 @@ static FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const Og
 static FLAC__StreamEncoderWriteStatus flac_stream_encoder_write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void flac_stream_encoder_metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
+static FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__uint64 lead_out_offset);
 static void print_stats(const EncoderSession *encoder_session);
 static void print_error_with_state(const EncoderSession *e, const char *message);
 static void print_verify_error(EncoderSession *e);
@@ -1178,8 +1179,8 @@ int EncoderSession_finish_error(EncoderSession *e)
 FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate)
 {
 	unsigned num_metadata;
-	FLAC__StreamMetadata padding;
-	FLAC__StreamMetadata *metadata[3];
+	FLAC__StreamMetadata padding, *cuesheet = 0;
+	FLAC__StreamMetadata *metadata[4];
 
 	e->replay_gain = options.replay_gain;
 	e->channels = channels;
@@ -1206,17 +1207,24 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	if(channels != 2)
 		options.do_mid_side = options.loose_mid_side = false;
 
-	if(!convert_to_seek_table_template(options.requested_seek_points, options.num_requested_seek_points, e)) {
+	if(!parse_cuesheet_(&cuesheet, options.cuesheet_filename, e->inbasefilename, e->total_samples_to_encode))
+		return false;
+
+	if(!convert_to_seek_table_template(options.requested_seek_points, options.num_requested_seek_points, options.cued_seekpoints? cuesheet : 0, e)) {
 		fprintf(stderr, "%s: ERROR allocating memory for seek table\n", e->inbasefilename);
+		if(0 != cuesheet)
+			free(cuesheet);
 		return false;
 	}
 
 	num_metadata = 0;
-	metadata[num_metadata++] = options.vorbis_comment;
 	if(e->seek_table_template->data.seek_table.num_points > 0) {
 		e->seek_table_template->is_last = false; /* the encoder will set this for us */
 		metadata[num_metadata++] = e->seek_table_template;
 	}
+	if(0 != cuesheet)
+		metadata[num_metadata++] = cuesheet;
+	metadata[num_metadata++] = options.vorbis_comment;
 	if(options.padding > 0) {
 		padding.is_last = false; /* the encoder will set this for us */
 		padding.type = FLAC__METADATA_TYPE_PADDING;
@@ -1258,6 +1266,8 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 		if(OggFLAC__stream_encoder_init(e->encoder.ogg.stream) != FLAC__STREAM_ENCODER_OK) {
 			print_error_with_state(e, "ERROR initializing encoder");
+			if(0 != cuesheet)
+				free(cuesheet);
 			return false;
 		}
 	}
@@ -1292,6 +1302,8 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 		if(FLAC__stream_encoder_init(e->encoder.flac.stream) != FLAC__STREAM_ENCODER_OK) {
 			print_error_with_state(e, "ERROR initializing encoder");
+			if(0 != cuesheet)
+				free(cuesheet);
 			return false;
 		}
 	}
@@ -1324,9 +1336,14 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 		if(FLAC__file_encoder_init(e->encoder.flac.file) != FLAC__FILE_ENCODER_OK) {
 			print_error_with_state(e, "ERROR initializing encoder");
+			if(0 != cuesheet)
+				free(cuesheet);
 			return false;
 		}
 	}
+
+	if(0 != cuesheet)
+		free(cuesheet);
 
 	return true;
 }
@@ -1352,16 +1369,18 @@ FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const b
 	}
 }
 
-FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, EncoderSession *e)
+FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, FLAC__StreamMetadata *cuesheet, EncoderSession *e)
 {
 	FLAC__bool only_placeholders;
 	FLAC__bool has_real_points;
 
-	if(num_requested_seek_points == 0)
+	if(num_requested_seek_points == 0 && 0 == cuesheet)
 		return true;
 
-	if(num_requested_seek_points < 0)
+	if(num_requested_seek_points < 0) {
 		requested_seek_points = "100x;";
+		num_requested_seek_points = 1;
+	}
 
 	if(e->is_stdout)
 		only_placeholders = true;
@@ -1372,8 +1391,26 @@ FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int
 	else
 		only_placeholders = false;
 
-	if(!grabbag__seektable_convert_specification_to_template(requested_seek_points, only_placeholders, e->total_samples_to_encode, e->sample_rate, e->seek_table_template, &has_real_points))
-		return false;
+	if(num_requested_seek_points > 0) {
+		if(!grabbag__seektable_convert_specification_to_template(requested_seek_points, only_placeholders, e->total_samples_to_encode, e->sample_rate, e->seek_table_template, &has_real_points))
+			return false;
+	}
+
+	if(0 != cuesheet) {
+		unsigned i, j;
+		const FLAC__StreamMetadata_CueSheet *cs = &cuesheet->data.cue_sheet;
+		for(i = 0; i < cs->num_tracks; i++) {
+			const FLAC__StreamMetadata_CueSheet_Track *tr = cs->tracks+i;
+			for(j = 0; j < tr->num_indices; j++) {
+				if(!FLAC__metadata_object_seektable_template_append_point(e->seek_table_template, tr->offset + tr->indices[j].offset))
+					return false;
+				has_real_points = true;
+			}
+		}
+		if(has_real_points)
+			if(!FLAC__metadata_object_seektable_template_sort(e->seek_table_template, /*compact=*/true))
+				return false;
+	}
 
 	if(has_real_points) {
 		if(e->is_stdout)
@@ -1522,6 +1559,37 @@ void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC_
 
 	if(encoder_session->verbose && encoder_session->total_samples_to_encode > 0 && !((frames_written-1) & encoder_session->stats_mask))
 		print_stats(encoder_session);
+}
+
+FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__uint64 lead_out_offset)
+{
+	FILE *f;
+	unsigned last_line_read;
+	const char *error_message;
+
+	if(0 == cuesheet_filename)
+		return true;
+
+	if(lead_out_offset == 0) {
+		fprintf(stderr, "%s: ERROR cannot import cuesheet when the number of input samples to encode is unknown\n", inbasefilename);
+		return false;
+	}
+
+	if(0 == (f = fopen(cuesheet_filename, "r"))) {
+		fprintf(stderr, "%s: ERROR opening cuesheet \"%s\" for reading\n", inbasefilename, cuesheet_filename);
+		return false;
+	}
+
+	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, /*@@@@is_cdda=*/true, lead_out_offset);
+
+	fclose(f);
+
+	if(0 == *cuesheet) {
+		fprintf(stderr, "%s: ERROR parsing cuesheet \"%s\" on line %u: %s\n", inbasefilename, cuesheet_filename, last_line_read, error_message);
+		return false;
+	}
+
+	return true;
 }
 
 void print_stats(const EncoderSession *encoder_session)
