@@ -58,8 +58,9 @@ extern "C" {
  *  This module describes the three decoder layers provided by libOggFLAC.
  *
  * libOggFLAC currently provides the same three layers of access as
- * libFLAC; the interface is identical.  See the \link flac_decoder
- * FLAC decoder module \endlink for full documentation.
+ * libFLAC; the interfaces are nearly identical, with th addition of a
+ * method for specifying the Ogg serial number.  See the
+ * \link flac_decoder FLAC decoder module \endlink for full documentation.
  */
 
 /** \defgroup oggflac_stream_decoder OggFLAC/stream_decoder.h: stream decoder interface
