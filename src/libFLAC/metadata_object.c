@@ -777,7 +777,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC
 #undef FLAC__STRNCASECMP
 }
 
-FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(FLAC__StreamMetadata *object, unsigned offset, const char *field_name)
+FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(const FLAC__StreamMetadata *object, unsigned offset, const char *field_name)
 {
 	const unsigned field_name_length = strlen(field_name);
 	unsigned i;

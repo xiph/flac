@@ -1264,7 +1264,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC
  *    The offset in the comment array of the first comment whose field
  *    name matches \a field_name, or \c -1 if no match was found.
  */
-FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(FLAC__StreamMetadata *object, unsigned offset, const char *field_name);
+FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(const FLAC__StreamMetadata *object, unsigned offset, const char *field_name);
 
 /*@@@@ needs unit test still */
 /** Remove first Vorbis comment matching the given field name.
