@@ -213,7 +213,7 @@ void getfileinfo(char *filename, char *title, int *length_in_msec)
 	id3v1_struct tag;
 	FLAC__StreamMetadata streaminfo;
 
-	if(0 == filename) {
+	if(0 == filename || filename[0] == '\0') {
 		filename = lastfn_;
 		if (length_in_msec) {
 			*length_in_msec = getlength();
