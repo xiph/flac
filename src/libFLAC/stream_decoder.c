@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
+#include <string.h> /* for memset/memcpy() */
 #include "FLAC/stream_decoder.h"
 #include "private/bitbuffer.h"
 #include "private/crc.h"
