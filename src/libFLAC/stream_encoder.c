@@ -49,6 +49,7 @@
  ***********************************************************************/
 
 static void stream_encoder_set_defaults_(FLAC__StreamEncoder *encoder);
+static void stream_encoder_free_(FLAC__StreamEncoder *encoder);
 static FLAC__bool stream_encoder_resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size);
 static FLAC__bool stream_encoder_process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
 static FLAC__bool stream_encoder_process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
@@ -217,6 +218,7 @@ void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 	FLAC__ASSERT(encoder->private_ != 0);
 	FLAC__ASSERT(encoder->private_->frame != 0);
 
+	stream_encoder_free_(encoder);
 	FLAC__bitbuffer_delete(encoder->private_->frame);
 	free(encoder->private_);
 	free(encoder->protected_);
@@ -484,56 +486,8 @@ void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	}
 	MD5Final(encoder->private_->metadata.data.stream_info.md5sum, &encoder->private_->md5context);
 	encoder->private_->metadata_callback(encoder, &encoder->private_->metadata, encoder->private_->client_data);
-	for(i = 0; i < encoder->protected_->channels; i++) {
-		if(encoder->private_->integer_signal_unaligned[i] != 0) {
-			free(encoder->private_->integer_signal_unaligned[i]);
-			encoder->private_->integer_signal_unaligned[i] = 0;
-		}
-		if(encoder->private_->real_signal_unaligned[i] != 0) {
-			free(encoder->private_->real_signal_unaligned[i]);
-			encoder->private_->real_signal_unaligned[i] = 0;
-		}
-	}
-	for(i = 0; i < 2; i++) {
-		if(encoder->private_->integer_signal_mid_side_unaligned[i] != 0) {
-			free(encoder->private_->integer_signal_mid_side_unaligned[i]);
-			encoder->private_->integer_signal_mid_side_unaligned[i] = 0;
-		}
-		if(encoder->private_->real_signal_mid_side_unaligned[i] != 0) {
-			free(encoder->private_->real_signal_mid_side_unaligned[i]);
-			encoder->private_->real_signal_mid_side_unaligned[i] = 0;
-		}
-	}
-	for(channel = 0; channel < encoder->protected_->channels; channel++) {
-		for(i = 0; i < 2; i++) {
-			if(encoder->private_->residual_workspace_unaligned[channel][i] != 0) {
-				free(encoder->private_->residual_workspace_unaligned[channel][i]);
-				encoder->private_->residual_workspace_unaligned[channel][i] = 0;
-			}
-		}
-	}
-	for(channel = 0; channel < 2; channel++) {
-		for(i = 0; i < 2; i++) {
-			if(encoder->private_->residual_workspace_mid_side_unaligned[channel][i] != 0) {
-				free(encoder->private_->residual_workspace_mid_side_unaligned[channel][i]);
-				encoder->private_->residual_workspace_mid_side_unaligned[channel][i] = 0;
-			}
-		}
-	}
-	if(encoder->private_->abs_residual_unaligned != 0) {
-		free(encoder->private_->abs_residual_unaligned);
-		encoder->private_->abs_residual_unaligned = 0;
-	}
-	if(encoder->private_->abs_residual_partition_sums_unaligned != 0) {
-		free(encoder->private_->abs_residual_partition_sums_unaligned);
-		encoder->private_->abs_residual_partition_sums_unaligned = 0;
-	}
-	if(encoder->private_->raw_bits_per_partition_unaligned != 0) {
-		free(encoder->private_->raw_bits_per_partition_unaligned);
-		encoder->private_->raw_bits_per_partition_unaligned = 0;
-	}
-	FLAC__bitbuffer_free(encoder->private_->frame);
 
+	stream_encoder_free_(encoder);
 	stream_encoder_set_defaults_(encoder);
 
 	encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
@@ -634,7 +588,9 @@ FLAC__bool FLAC__stream_encoder_set_do_escape_coding(FLAC__StreamEncoder *encode
 	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
+	/*@@@ deprecated:
 	encoder->protected_->do_escape_coding = value;
+	*/
 	return true;
 }
 
@@ -670,7 +626,9 @@ FLAC__bool FLAC__stream_encoder_set_rice_parameter_search_dist(FLAC__StreamEncod
 	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
+	/*@@@ deprecated:
 	encoder->protected_->rice_parameter_search_dist = value;
+	*/
 	return true;
 }
 
@@ -953,6 +911,62 @@ void stream_encoder_set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->private_->write_callback = 0;
 	encoder->private_->metadata_callback = 0;
 	encoder->private_->client_data = 0;
+}
+
+void stream_encoder_free_(FLAC__StreamEncoder *encoder)
+{
+	unsigned i, channel;
+
+	FLAC__ASSERT(encoder != 0);
+	for(i = 0; i < encoder->protected_->channels; i++) {
+		if(encoder->private_->integer_signal_unaligned[i] != 0) {
+			free(encoder->private_->integer_signal_unaligned[i]);
+			encoder->private_->integer_signal_unaligned[i] = 0;
+		}
+		if(encoder->private_->real_signal_unaligned[i] != 0) {
+			free(encoder->private_->real_signal_unaligned[i]);
+			encoder->private_->real_signal_unaligned[i] = 0;
+		}
+	}
+	for(i = 0; i < 2; i++) {
+		if(encoder->private_->integer_signal_mid_side_unaligned[i] != 0) {
+			free(encoder->private_->integer_signal_mid_side_unaligned[i]);
+			encoder->private_->integer_signal_mid_side_unaligned[i] = 0;
+		}
+		if(encoder->private_->real_signal_mid_side_unaligned[i] != 0) {
+			free(encoder->private_->real_signal_mid_side_unaligned[i]);
+			encoder->private_->real_signal_mid_side_unaligned[i] = 0;
+		}
+	}
+	for(channel = 0; channel < encoder->protected_->channels; channel++) {
+		for(i = 0; i < 2; i++) {
+			if(encoder->private_->residual_workspace_unaligned[channel][i] != 0) {
+				free(encoder->private_->residual_workspace_unaligned[channel][i]);
+				encoder->private_->residual_workspace_unaligned[channel][i] = 0;
+			}
+		}
+	}
+	for(channel = 0; channel < 2; channel++) {
+		for(i = 0; i < 2; i++) {
+			if(encoder->private_->residual_workspace_mid_side_unaligned[channel][i] != 0) {
+				free(encoder->private_->residual_workspace_mid_side_unaligned[channel][i]);
+				encoder->private_->residual_workspace_mid_side_unaligned[channel][i] = 0;
+			}
+		}
+	}
+	if(encoder->private_->abs_residual_unaligned != 0) {
+		free(encoder->private_->abs_residual_unaligned);
+		encoder->private_->abs_residual_unaligned = 0;
+	}
+	if(encoder->private_->abs_residual_partition_sums_unaligned != 0) {
+		free(encoder->private_->abs_residual_partition_sums_unaligned);
+		encoder->private_->abs_residual_partition_sums_unaligned = 0;
+	}
+	if(encoder->private_->raw_bits_per_partition_unaligned != 0) {
+		free(encoder->private_->raw_bits_per_partition_unaligned);
+		encoder->private_->raw_bits_per_partition_unaligned = 0;
+	}
+	FLAC__bitbuffer_free(encoder->private_->frame);
 }
 
 FLAC__bool stream_encoder_resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size)
