@@ -22,6 +22,8 @@ export LD_LIBRARY_PATH
 PATH=../src/flac:../obj/bin:$PATH
 BINS_PATH=../../test_files/bins
 
+test -d ${BINS_PATH} || exit 77
+
 test_file ()
 {
 	name=$1
