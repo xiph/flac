@@ -93,7 +93,8 @@ unsigned FLAC__bitmath_silog2(int v)
 			return 2;
 		}
 		else {
-			v = -(++v);
+			v++;
+			v = -v;
 		}
 	}
 }
