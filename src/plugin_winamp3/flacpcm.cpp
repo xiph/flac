@@ -254,7 +254,7 @@ FLAC__bool FlacPcm::eofCallback_(const FLAC__SeekableStreamDecoder *decoder, voi
 	return instance->reader->getPos() == instance->reader->getLength();
 }
 
-FLAC__StreamDecoderWriteStatus FlacPcm::writeCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus FlacPcm::writeCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	FlacPcm *instance = (FlacPcm*)client_data;
 	const unsigned bps = instance->streaminfo.data.stream_info.bits_per_sample, channels = instance->streaminfo.data.stream_info.channels, wide_samples = frame->header.blocksize;
@@ -279,7 +279,7 @@ void FlacPcm::metadataCallback_(const FLAC__SeekableStreamDecoder *decoder, cons
 	FlacPcm *instance = (FlacPcm*)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		instance->streaminfo.data.stream_info = *metadata;
+		instance->streaminfo = *metadata;
 
 		if(instance->streaminfo.data.stream_info.bits_per_sample != 16) {
 			//@@@ how to do this?  MessageBox(mod.hMainWindow, "ERROR: plugin can only handle 16-bit samples\n", "ERROR: plugin can only handle 16-bit samples", 0);

@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "cnv_flacpcm_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\include" /I "\Wasabi SDK\studio" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "cnv_flacpcm_EXPORTS" /D "USE_ASM" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\..\include" /I "\Wasabi SDK\studio" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "cnv_flacpcm_EXPORTS" /D "USE_ASM" /D "WACLIENT_NOICONSUPPORT" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -105,22 +105,6 @@ SOURCE="\Wasabi SDK\studio\attribs\attribute.cpp"
 # End Source File
 # Begin Source File
 
-SOURCE="\Wasabi SDK\studio\attribs\attrint.cpp"
-# End Source File
-# Begin Source File
-
-SOURCE="\Wasabi SDK\studio\common\bitmap.cpp"
-# End Source File
-# Begin Source File
-
-SOURCE="\Wasabi SDK\studio\common\blending.cpp"
-# End Source File
-# Begin Source File
-
-SOURCE="\Wasabi SDK\studio\common\canvas.cpp"
-# End Source File
-# Begin Source File
-
 SOURCE="\Wasabi SDK\studio\attribs\cfgitemi.cpp"
 # End Source File
 # Begin Source File
@@ -133,6 +117,10 @@ SOURCE="\Wasabi SDK\studio\common\depend.cpp"
 # End Source File
 # Begin Source File
 
+SOURCE="\Wasabi SDK\studio\common\memblock.cpp"
+# End Source File
+# Begin Source File
+
 SOURCE="\Wasabi SDK\studio\common\nsGUID.cpp"
 # End Source File
 # Begin Source File
@@ -142,10 +130,6 @@ SOURCE="\Wasabi SDK\studio\common\pathparse.cpp"
 # Begin Source File
 
 SOURCE="\Wasabi SDK\studio\common\ptrlist.cpp"
-# End Source File
-# Begin Source File
-
-SOURCE="\Wasabi SDK\studio\common\region.cpp"
 # End Source File
 # Begin Source File
 

@@ -53,27 +53,20 @@ static WACNAME wac;
 WAComponentClient *the = &wac;
 
 #include "studio/services/servicei.h"
-static waServiceT<svc_mediaConverter, FlacPcm> flacpcm;
 
 // {683FA153-4055-467c-ABEE-5E35FA03C51E}
 static const GUID guid = 
 { 0x683fa153, 0x4055, 0x467c, { 0xab, 0xee, 0x5e, 0x35, 0xfa, 0x3, 0xc5, 0x1e } };
 
-_int nch;
-_int samplerate;
-_int bps;
+_int nch("# of channels", 2);
+_int samplerate("Sample rate", 44100);
+_int bps("Bits per second", 16);
 
-WACNAME::WACNAME() : CfgItemI("RAW files support") {
-#ifdef FORTIFY
-	FortifySetName("cnv_flacpcm.wac");
-	FortifyEnterScope();
-#endif
+WACNAME::WACNAME() : WAComponentClient("RAW files support") {
+	registerService(new waServiceT<svc_mediaConverter, FlacPcm>);
 }
 
 WACNAME::~WACNAME() {
-#ifdef FORTIFY
-	FortifyLeaveScope();
-#endif
 }
 
 GUID WACNAME::getGUID() {
@@ -81,21 +74,9 @@ GUID WACNAME::getGUID() {
 }
 
 void WACNAME::onRegisterServices() {
-	api->service_register(&flacpcm);
 	api->core_registerExtension("*.flac","FLAC Files");
 
-	nch.setName("# of channels");
-	nch=2;
 	registerAttribute(&nch);
-	samplerate.setName("Sample rate");
-	samplerate=44100;
 	registerAttribute(&samplerate);
-	bps.setName("Bits per second");
-	bps=16;
 	registerAttribute(&bps);
-}
-
-void WACNAME::onDestroy() {
-	api->service_deregister(&flacpcm);
-	WAComponentClient::onDestroy();
 }

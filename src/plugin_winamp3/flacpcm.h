@@ -100,7 +100,7 @@ private:
 	static FLAC__SeekableStreamDecoderTellStatus tellCallback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 	static FLAC__SeekableStreamDecoderLengthStatus lengthCallback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
 	static FLAC__bool eofCallback_(const FLAC__SeekableStreamDecoder *decoder, void *client_data);
-	static FLAC__StreamDecoderWriteStatus writeCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
+	static FLAC__StreamDecoderWriteStatus writeCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 	static void metadataCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 	static void errorCallback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 };

@@ -56,20 +56,14 @@
 
 #define WACNAME WACcnv_flacpcm
 
-class WACNAME : public WAComponentClient, public CfgItemI {
+class WACNAME : public WAComponentClient {
 public:
 	WACNAME();
 	virtual ~WACNAME();
 
-	virtual const char *getName() { return "FLAC to PCM converter"; };
 	virtual GUID getGUID();
 
 	virtual void onRegisterServices();
-	virtual void onDestroy();
-
-	virtual int getDisplayComponent() { return FALSE; };
-
-	virtual CfgItem *getCfgInterface(int n) { return this; }
 };
 
 #endif
