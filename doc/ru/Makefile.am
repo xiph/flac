@@ -1,5 +1,5 @@
 #  FLAC - Free Lossless Audio Codec
-#  Copyright (C) 2001  Josh Coalson
+#  Copyright (C) 2001,2002  Josh Coalson
 #
 #  This program is part of FLAC; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License

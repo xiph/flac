@@ -1,5 +1,5 @@
 /* metaflac - Command-line FLAC metadata editor
- * Copyright (C) 2001  Josh Coalson
+ * Copyright (C) 2001,2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -105,7 +105,7 @@ int usage(const char *message, ...)
 	}
 	printf("==============================================================================\n");
 	printf("metaflac - Command-line FLAC metadata editor version %s\n", FLAC__VERSION_STRING);
-	printf("Copyright (C) 2001  Josh Coalson\n");
+	printf("Copyright (C) 2001,2002  Josh Coalson\n");
 	printf("\n");
 	printf("This program is free software; you can redistribute it and/or\n");
 	printf("modify it under the terms of the GNU General Public License\n");
