@@ -154,31 +154,36 @@ There are two ways to build with MSVC:
 @@@@Prerequisite: Ogg headers/libs
 
   1. Project Files
+  ----------------
   Prerequisite: you must have nasm installed, and have the environment
   variable FLAC_NASM set to the full path to nasmw.exe, e.g
-  C:\nasm\nasmw.exe
+
+    C:\nasm\nasmw.exe
 
   To build everything, run Developer Studio, do File|Open Workspace,
   and open FLAC.dsw.  Switch to the 'Files' tab, select 'all files'
   from the tree, do right-mouse-button and 'Set as active project'.
   The default build mode will probably be Debug; to change to release
   do Build|Set Active Configuration and select 'all - Win32 Release'.
-  Then do Project|Build.  The libraries will be built as both .libs and DLLs.
+  Then do Project|Build.  The libraries will be built as and DLLs and
+  you'll need to install these as well.
 
   2. nmake
+  --------
   Prerequisite: you must have nasm installed and nasmw.exe must be in
   your path.
 
   To build everything, open a Command window, cd to the top-level
   directory (where this README is) and do
 
-  nmake /f Makefile.vc
+    nmake /f Makefile.vc
 
   This will recur into all the source directories in the right order
   and build everything.  The libraries will be build only as static
-  libs.  To clean up everything you can do
+  libs.  You need only to install the binaries.  To clean up everything
+  you can do
 
-  nmake /f Makefile.vc clean
+    nmake /f Makefile.vc clean
 
   from the top level directory, or any directory which has a
   Makefile.vc
