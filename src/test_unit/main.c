@@ -27,13 +27,13 @@ int main(int argc, char *argv[])
 	if(0 != test_bitbuffer())
 		return 1;
 
-	if(0 != test_metadata())
-		return 1;
-
 	if(0 != test_decoders())
 		return 1;
 
 	/* the encoder is tested relatively well in the file_utils */
+
+	if(0 != test_metadata())
+		return 1;
 
 	return 0;
 }
