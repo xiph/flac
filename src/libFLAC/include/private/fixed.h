@@ -26,7 +26,7 @@
  *	FLAC__fixed_compute_best_predictor()
  *	--------------------------------------------------------------------
  *	Compute the best fixed predictor and the expected bits-per-sample
- *  of the residual signal for each order.  The _slow() version uses
+ *  of the residual signal for each order.  The _wide() version uses
  *  64-bit integers which is statistically necessary when bits-per-
  *  sample + log2(blocksize) > 30
  *
@@ -42,7 +42,7 @@ unsigned FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov(const FLAC__int32 
 #endif
 #endif
 #endif
-unsigned FLAC__fixed_compute_best_predictor_slow(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+unsigned FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 
 /*
  *	FLAC__fixed_compute_residual()
