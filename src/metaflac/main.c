@@ -16,6 +16,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+/* 
+ * WATCHOUT - this is meant to be very lightweight an not even dependent
+ * on libFLAC, so there are a couple places where FLAC__* variables are
+ * duplicated here.  Look for 'DUPLICATE:' in comments.
+ */
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -24,11 +30,15 @@
 #include <string.h>
 #include "FLAC/all.h"
 
+static const char *sync_string_ = "fLaC"; /* DUPLICATE:FLAC__STREAM_SYNC_STRING */
+
 static int usage(const char *message, ...);
+static bool list(FILE *f, bool verbose);
 
 int main(int argc, char *argv[])
 {
-	bool verbose, list_mode;
+	int i;
+	bool verbose = false, list_mode = true;
 
 	if(argc <= 1)
 		return usage(0);
@@ -49,6 +59,20 @@ int main(int argc, char *argv[])
 	}
 	if(i + (list_mode? 1:2) != argc)
 		return usage("ERROR: invalid arguments (more/less than %d filename%s?)\n", (list_mode? 1:2), (list_mode? "":"s"));
+
+	if(list_mode) {
+		FILE *f = fopen(argv[i], "r");
+
+		if(0 == f) {
+			fprintf(stderr, "ERROR opening %s\n", argv[i]);
+			return 1;
+		}
+
+		if(!list(f, verbose))
+			return 1;
+
+		fclose(f);
+	}
 
 	return 0;
 }
@@ -92,4 +116,38 @@ int usage(const char *message, ...)
 	printf("  -v- can all be used to turn off a particular option\n");
 
 	return 1;
+}
+
+bool list(FILE *f, bool verbose)
+{
+	static byte buf[65536];
+	FLAC__StreamMetaData metadata;
+
+	/* read the stream sync code */
+	if(fread(buf, 1, 4, f) < 4 || memcmp(buf, sync_string_, 4)) {
+		fprintf(stderr, "ERROR: not a FLAC file (no '%s' header)\n", sync_string_);
+		return false;
+	}
+
+	/* read the metadata blocks */
+	do {
+		/* read the metadata block header */
+		if(fread(buf, 1, 4, f) < 4) {
+			fprintf(stderr, "ERROR: short count reading metadata block header\n");
+			return false;
+		}
+		metadata.is_last = (buf[0] & 0x80)? true:false;
+		metadata.type = (FLAC__MetaDataType)(buf[0] & 0x7f);
+		metadata.length = (((unsigned)buf[1]) << 16) | (((unsigned)buf[2]) << 8) | ((unsigned)buf[3]);
+
+		/* read the metadata block data */
+
+		/* print it */
+		printf("METADATA block:\n");	
+		printf("\ttype: %u\n", (unsigned)metadata.type);
+		printf("\tis last: %s\n", metadata.is_last? "true":"false");
+		printf("\tlength: %u\n", metadata.length);
+	} while (!metadata.is_last);
+
+	return true;
 }
