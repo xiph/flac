@@ -19,6 +19,8 @@
 #ifndef flac__string_h
 #define flac__string_h
 
+#include <stdlib.h> /* for size_t */
+
 size_t flac__strlcpy(char *dst, const char *src, size_t siz);
 size_t flac__strlcat(char *dst, const char *src, size_t siz);
 
