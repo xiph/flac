@@ -632,6 +632,14 @@ FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *
  * occur in the supplied array.
  *
  * \note
+ * By default the encoder does not create a SEEKTABLE.  If one is supplied
+ * in the \a metadata array it will be written verbatim.  However by itself
+ * this is not very useful as the user will not know the stream offsets for
+ * the seekpoints ahead of time.  You must use the seekable stream encoder
+ * to generate a legal seektable
+ * (see FLAC__seekable_stream_encoder_set_metadata())
+ *
+ * \note
  * A VORBIS_COMMENT block may be supplied.  The vendor string in it
  * will be ignored.  libFLAC will use it's own vendor string. libFLAC
  * will not modify the passed-in VORBIS_COMMENT's vendor string, it

@@ -482,7 +482,19 @@ FLAC__bool FLAC__seekable_stream_encoder_set_total_samples_estimate(FLAC__Seekab
  *  FLAC__stream_encoder_set_metadata().
  *
  * \note
- * The decoder instance \b will modify the first \c SEEKTABLE block
+ * SEEKTABLE blocks are handled specially.  Since you will not know
+ * the values for the seek point stream offsets, you should pass in
+ * a SEEKTABLE 'template', that is, a SEEKTABLE object with the
+ * required sample numbers (or placeholder points), with \c 0 for the
+ * \a frame_samples and \a stream_offset fields for each point.  While
+ * encoding, the encoder will fill them in for you and when encoding
+ * is finished, it will seek back and write the real values into the
+ * SEEKTABLE block in the stream.  There are helper routines for
+ * manipulating seektable template blocks; see metadata.h:
+ * FLAC__metadata_object_seektable_template_*().
+ *
+ * \note
+ * The encoder instance \b will modify the first \c SEEKTABLE block
  * as it transforms the template to a valid seektable while encoding,
  * but it is still up to the caller to free all metadata blocks after
  * encoding.
