@@ -1,0 +1,25 @@
+!include <win32.mak>
+
+!IFDEF DEBUG
+.c.obj:
+	$(cc) /D "_LIB" -DFLAC__NO_DLL /GX $(cdebug) $(cflags) /I "..\..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+!else
+.c.obj:
+	$(cc) /D "_LIB" -DFLAC__NO_DLL /O2 $(crelease) $(cflags) /I "..\..\..\include" -DSTRICT -YX -DNODEBUG $<
+!endif
+
+C_FILES= \
+	file.c \
+	replaygain.c \
+	seektable.c
+
+OBJS= $(C_FILES:.c=.obj)
+
+all: grabbag.lib
+
+grabbag.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../../obj/lib/$*.lib $(OBJS)
+
+clean:
+	-del *.obj *.pch
+	-del ..\..\..\obj\lib\grabbag.lib ..\..\..\obj\lib\grabbag.pdb
