@@ -70,48 +70,6 @@ FLAC__lpc_compute_autocorrelation_asm:
 	faddp	st1				; d += data[i]*data[i-lag]  ST = d
 	inc	eax
 	inc	ebx
-	cmp	ebx, ecx
-	jae	short .inner_end
-	fld	qword [esi + ebx * 8]		; ST = data[i] d
-	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
-	faddp	st1				; d += data[i]*data[i-lag]  ST = d
-	inc	eax
-	inc	ebx
-	cmp	ebx, ecx
-	jae	short .inner_end
-	fld	qword [esi + ebx * 8]		; ST = data[i] d
-	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
-	faddp	st1				; d += data[i]*data[i-lag]  ST = d
-	inc	eax
-	inc	ebx
-	cmp	ebx, ecx
-	jae	short .inner_end
-	fld	qword [esi + ebx * 8]		; ST = data[i] d
-	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
-	faddp	st1				; d += data[i]*data[i-lag]  ST = d
-	inc	eax
-	inc	ebx
-	cmp	ebx, ecx
-	jae	short .inner_end
-	fld	qword [esi + ebx * 8]		; ST = data[i] d
-	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
-	faddp	st1				; d += data[i]*data[i-lag]  ST = d
-	inc	eax
-	inc	ebx
-	cmp	ebx, ecx
-	jae	short .inner_end
-	fld	qword [esi + ebx * 8]		; ST = data[i] d
-	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
-	faddp	st1				; d += data[i]*data[i-lag]  ST = d
-	inc	eax
-	inc	ebx
-	cmp	ebx, ecx
-	jae	short .inner_end
-	fld	qword [esi + ebx * 8]		; ST = data[i] d
-	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
-	faddp	st1				; d += data[i]*data[i-lag]  ST = d
-	inc	eax
-	inc	ebx
 	jmp	.inner_loop
 .inner_end:
 
