@@ -30,8 +30,8 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_;
-static ::FLAC__StreamMetadata *expected_metadata_sequence_[7];
+static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, unknown_;
+static ::FLAC__StreamMetadata *expected_metadata_sequence_[8];
 static unsigned num_expected_;
 static const char *flacfilename_ = "metadata.flac";
 static unsigned flacfilesize_;
@@ -44,12 +44,12 @@ static bool die_(const char *msg)
 
 static void init_metadata_blocks_()
 {
-	mutils__init_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_);
+	mutils__init_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &unknown_);
 }
 
 static void free_metadata_blocks_()
 {
-	mutils__free_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_);
+	mutils__free_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &unknown_);
 }
 
 static bool generate_file_()
@@ -63,6 +63,7 @@ static bool generate_file_()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!file_utils__generate_flacfile(flacfilename_, &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
 		return die_("creating the encoded file");
@@ -444,6 +445,7 @@ static bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -489,6 +491,7 @@ static bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -517,6 +520,7 @@ static bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -546,6 +550,7 @@ static bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -581,6 +586,7 @@ static bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -722,6 +728,7 @@ static bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -766,6 +773,7 @@ static bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	::fclose(decoder->file_);
 
@@ -1159,6 +1167,7 @@ static bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1204,6 +1213,7 @@ static bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1232,6 +1242,7 @@ static bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1261,6 +1272,7 @@ static bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1296,6 +1308,7 @@ static bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1437,6 +1450,7 @@ static bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1481,6 +1495,7 @@ static bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	::fclose(decoder->file_);
 
@@ -1784,6 +1799,7 @@ static bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1829,6 +1845,7 @@ static bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1857,6 +1874,7 @@ static bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1886,6 +1904,7 @@ static bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -1921,6 +1940,7 @@ static bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -2062,6 +2082,7 @@ static bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!decoder->test_respond())
 		return false;
@@ -2106,6 +2127,7 @@ static bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	printf("freeing decoder instance... ");
 	delete decoder;

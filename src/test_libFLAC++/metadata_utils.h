@@ -51,7 +51,8 @@ void mutils__init_metadata_blocks(
 	FLAC__StreamMetadata *application1,
 	FLAC__StreamMetadata *application2,
 	FLAC__StreamMetadata *vorbiscomment,
-	FLAC__StreamMetadata *cuesheet
+	FLAC__StreamMetadata *cuesheet,
+	FLAC__StreamMetadata *unknown
 );
 
 void mutils__free_metadata_blocks(
@@ -61,7 +62,8 @@ void mutils__free_metadata_blocks(
 	FLAC__StreamMetadata *application1,
 	FLAC__StreamMetadata *application2,
 	FLAC__StreamMetadata *vorbiscomment,
-	FLAC__StreamMetadata *cuesheet
+	FLAC__StreamMetadata *cuesheet,
+	FLAC__StreamMetadata *unknown
 );
 
 #endif

@@ -368,7 +368,8 @@ void mutils__init_metadata_blocks(
 	FLAC__StreamMetadata *application1,
 	FLAC__StreamMetadata *application2,
 	FLAC__StreamMetadata *vorbiscomment,
-	FLAC__StreamMetadata *cuesheet
+	FLAC__StreamMetadata *cuesheet,
+	FLAC__StreamMetadata *unknown
 )
 {
 	/*
@@ -439,7 +440,7 @@ void mutils__init_metadata_blocks(
 		vorbiscomment->data.vorbis_comment.comments[1].entry = 0;
 	}
 
-	cuesheet->is_last = true;
+	cuesheet->is_last = false;
 	cuesheet->type = FLAC__METADATA_TYPE_CUESHEET;
 	cuesheet->length =
 		/* cuesheet guts */
@@ -497,6 +498,12 @@ void mutils__init_metadata_blocks(
 	cuesheet->data.cue_sheet.tracks[2].offset = 12345 * 588;
 	cuesheet->data.cue_sheet.tracks[2].number = 170;
 	cuesheet->data.cue_sheet.tracks[2].num_indices = 0;
+
+	unknown->is_last = true;
+	unknown->type = 127;
+	unknown->length = 8;
+	unknown->data.unknown.data = (FLAC__byte*)malloc_or_die_(8);
+	memcpy(unknown->data.unknown.data, "\xfe\xdc\xba\x98\xf0\xe1\xd2\xc3", 8);
 }
 
 void mutils__free_metadata_blocks(
@@ -506,7 +513,8 @@ void mutils__free_metadata_blocks(
 	FLAC__StreamMetadata *application1,
 	FLAC__StreamMetadata *application2,
 	FLAC__StreamMetadata *vorbiscomment,
-	FLAC__StreamMetadata *cuesheet
+	FLAC__StreamMetadata *cuesheet,
+	FLAC__StreamMetadata *unknown
 )
 {
 	(void)streaminfo, (void)padding, (void)application2;
@@ -518,4 +526,5 @@ void mutils__free_metadata_blocks(
 	free(cuesheet->data.cue_sheet.tracks[0].indices);
 	free(cuesheet->data.cue_sheet.tracks[1].indices);
 	free(cuesheet->data.cue_sheet.tracks);
+	free(unknown->data.unknown.data);
 }
