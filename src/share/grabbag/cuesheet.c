@@ -209,7 +209,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					return false;
 				}
 				if(strlen(field) >= sizeof(cs->media_catalog_number)) {
-					*error_message = "CATALOG number is to long";
+					*error_message = "CATALOG number is too long";
 					return false;
 				}
 				if(is_cdda && (strlen(field) != 13 || strspn(field, "0123456789") != 13)) {
@@ -316,7 +316,11 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					return false;
 				}
 				if(in_track_num < 0 || in_index_num >= 0) {
-					*error_message = "FLAGS command must come after TRACK but before INDEX";
+					*error_message = "ISRC command must come after TRACK but before INDEX";
+					return false;
+				}
+				if(0 == (field = local__get_field_(&line))) {
+					*error_message = "ISRC is missing ISRC number";
 					return false;
 				}
 				if(strlen(field) != 12 || strspn(field, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") < 5 || strspn(field+5, "1234567890") != 7) {
@@ -442,6 +446,24 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 	if(cs->num_tracks == 0) {
 		*error_message = "there must be at least one TRACK command";
 		return false;
+	}
+	else {
+		const FLAC__StreamMetadata_CueSheet_Track *prev = &cs->tracks[cs->num_tracks-1];
+		if(
+			prev->num_indices == 0 ||
+			(
+				is_cdda &&
+				(
+					(prev->num_indices == 1 && prev->indices[0].number != 1) ||
+					(prev->num_indices == 2 && prev->indices[0].number != 1 && prev->indices[1].number != 1)
+				)
+			)
+		) {
+			*error_message = is_cdda?
+				"previous TRACK must specify at least one INDEX 01" :
+				"previous TRACK must specify at least one INDEX";
+			return false;
+		}
 	}
 
 	if(!has_forced_leadout) {

@@ -103,6 +103,11 @@ int main(int argc, char *argv[])
 	FLAC__bool is_cdda = false;
 	const char *usage = "usage: test_cuesheet cuesheet_file lead_out_offset [ cdda ]\n";
 
+	if(argc > 1 && 0 == strcmp(argv[1], "-h")) {
+		printf(usage);
+		return 0;
+	}
+
 	if(argc < 3 || argc > 4) {
 		fprintf(stderr, usage);
 		return 255;
