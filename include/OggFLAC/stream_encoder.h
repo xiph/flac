@@ -376,6 +376,13 @@ FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncoder *encoder,
 /** Set the write callback.
  *
  * \note
+ * Unlike the FLAC stream encoder write callback, the Ogg stream
+ * encoder write callback will be called twice when writing audio
+ * frames; once for the page header, and once for the page body.
+ * When writing the page header, the \a samples argument to the
+ * write callback will be \c 0.
+ *
+ * \note
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
