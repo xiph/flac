@@ -25,7 +25,9 @@ LIBS         = -lFLAC -lm
 OBJS = \
 	bitbuffer.o \
 	main.o \
-	metadata.o
+	metadata.o \
+	metadata_manip.o \
+	metadata_object.o
 
 include ../../build/exe.mk
 

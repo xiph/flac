@@ -23,6 +23,8 @@ test_unit_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la -lm
 test_unit_SOURCES = \
 	bitbuffer.c \
 	metadata.c \
+	metadata_manip.c \
+	metadata_object.c \
 	main.c \
 	bitbuffer.h \
 	metadata.h

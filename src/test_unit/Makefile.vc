@@ -28,7 +28,9 @@
 C_FILES= \
 	bitbuffer.c \
 	main.c \
-	metadata.c
+	metadata.c \
+	metadata_manip.c \
+	metadata_object.c
 
 OBJS= $(C_FILES:.c=.obj)
 

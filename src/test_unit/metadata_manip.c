@@ -18,19 +18,22 @@
 
 #include "FLAC/metadata.h"
 #include <stdio.h>
+#include <stdlib.h> /* for malloc() */
+#include <string.h> /* for memcmp() */
 
-extern int test_metadata_object();
-extern int test_metadata_file_manipulation();
-
-int test_metadata()
+static FLAC__bool generate_file_()
 {
-	if(0 != test_metadata_object())
-		return 1;
+	return true;
+}
 
-	if(0 != test_metadata_file_manipulation())
-		return 1;
+static FLAC__bool test_file_(void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data))
+{
+	return true;
+}
 
-	printf("\nPASSED!\n");
+int test_metadata_file_manipulation()
+{
+	printf("\n+++ unit test: metadata manipulation\n\n");
 
 	return 0;
 }
