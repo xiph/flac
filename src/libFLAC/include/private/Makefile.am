@@ -26,4 +26,5 @@ noinst_HEADERS = \
 	lpc.h \
 	md5.h \
 	memory.h \
+	metadata.h \
 	stream_encoder_framing.h
