@@ -17,6 +17,7 @@ OBJS = \
 	format.o \
 	lpc.o \
 	md5.o \
+	seek_table.o \
 	stream_decoder.o
 
 include ../../build/lib.mk

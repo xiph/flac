@@ -20,4 +20,5 @@ libFLAC_la_SOURCES = \
 	format.c \
 	lpc.c \
 	md5.c \
+	seek_table.c \
 	stream_decoder.c

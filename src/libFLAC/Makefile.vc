@@ -19,6 +19,7 @@ C_FILES= \
 	format.c \
 	lpc.c \
 	md5.c \
+	seek_table.c \
 	stream_decoder.c
 
 OBJS= $(C_FILES:.c=.obj)
