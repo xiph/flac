@@ -55,6 +55,7 @@ libOggFLAC_la_SOURCES = \
 	ogg_decoder_aspect.c \
 	ogg_encoder_aspect.c \
 	ogg_helper.c \
+	ogg_mapping.c \
 	seekable_stream_decoder.c \
 	seekable_stream_encoder.c \
 	stream_decoder.c \
