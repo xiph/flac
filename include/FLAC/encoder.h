@@ -66,6 +66,7 @@ typedef struct {
 	bool     do_qlp_coeff_prec_search;    /* 0 => use qlp_coeff_precision, 1 => search around qlp_coeff_precision, take best */
 	bool     do_exhaustive_model_search;  /* 0 => use estimated bits per residual for scoring, 1 => generate all, take shortest */
 	unsigned rice_optimization_level;     /* 0 => estimate Rice parameter based on residual variance, 1-8 => partition residual, use parameter for each */
+	uint64   total_samples_estimate;      /* may be 0 if unknown.  this will be a placeholder in the metadata block until the actual total is calculated */
 } FLAC__Encoder;
 
 

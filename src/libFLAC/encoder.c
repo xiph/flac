@@ -343,7 +343,7 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	encoder->guts->metadata.data.encoding.sample_rate = encoder->sample_rate;
 	encoder->guts->metadata.data.encoding.channels = encoder->channels;
 	encoder->guts->metadata.data.encoding.bits_per_sample = encoder->bits_per_sample;
-	encoder->guts->metadata.data.encoding.total_samples = 0; /* we don't know this yet; have to fill it in later */
+	encoder->guts->metadata.data.encoding.total_samples = encoder->total_samples_estimate; /* we will replace this later with the real total */
 	memset(encoder->guts->metadata.data.encoding.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
 	MD5Init(&encoder->guts->md5context);
 	if(!FLAC__add_metadata_block(&encoder->guts->metadata, &encoder->guts->frame))
@@ -354,8 +354,10 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	if(encoder->guts->write_callback(encoder, encoder->guts->frame.buffer, encoder->guts->frame.bytes, 0, encoder->guts->current_frame_number, encoder->guts->client_data) != FLAC__ENCODER_WRITE_OK)
 		return encoder->state = FLAC__ENCODER_FATAL_ERROR_WHILE_WRITING;
 
-	/* now that the metadata block is written, we can init this to an absurdly-high value */
+	/* now that the metadata block is written, we can init this to an absurdly-high value... */
 	encoder->guts->metadata.data.encoding.min_framesize = (1u << FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN) - 1;
+	/* ... and clear this to 0 */
+	encoder->guts->metadata.data.encoding.total_samples = 0;
 
 	return encoder->state;
 }
