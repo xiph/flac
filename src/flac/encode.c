@@ -939,7 +939,6 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 	for(channel = 0; channel < decoder->channels; channel++) {
 		if(0 != memcmp(buffer[channel], encoder_wrapper->verify_fifo.original[channel], sizeof(int32) * decoder->blocksize)) {
 			fprintf(stderr, "\nERROR: mismatch in decoded data, verify FAILED!\n");
-			fprintf(stderr, "................................................................................oup_id=13478\n");
 			fprintf(stderr, "       Please submit a bug report to\n");
 			fprintf(stderr, "           http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
 			fprintf(stderr, "       Make sure to include an email contact in the comment and/or use the\n");
