@@ -755,7 +755,7 @@
 	<P>
 		The basic usage of <B><TT>libFLAC</TT></B> is as follows:
 		<OL>
-			<LI>The program creates an instance of a decoder or encoder using <TT>*_init()</TT>.</LI>
+			<LI>The program creates an instance of a decoder or encoder using <TT>*_new()</TT>.</LI>
 			<LI>The program sets the parameters of the instance and callbacks for reading, writing, error reporting, and metadata reporting using <TT>*_set_*()</TT> functions.</LI>
 			<LI>The program initializes the instance to validate the parameters and prepare for decoding/encoding using <TT>*_init()</TT>.</LI>
 			<LI>The program calls <TT>*_process_*()</TT> functions to encode or decode data, which subsequently calls the callbacks.</LI>
