@@ -20,7 +20,7 @@
 #ifndef FLAC__EXPORT_H
 #define FLAC__EXPORT_H
 
-#if defined(FLAC__NO_DLL) || defined(unix) || defined(__CYGWIN__) || defined(__CYGWIN32__)
+#if defined(FLAC__NO_DLL) || !defined(_MSC_VER)
 #define FLAC_API
 
 #else
