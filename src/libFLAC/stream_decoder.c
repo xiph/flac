@@ -61,6 +61,34 @@ static bool stream_decoder_read_residual_partitioned_rice_(FLAC__StreamDecoder *
 static bool stream_decoder_read_zero_padding_(FLAC__StreamDecoder *decoder);
 static bool read_callback_(byte buffer[], unsigned *bytes, void *client_data);
 
+const char *FLAC__StreamDecoderStateString[] = {
+	"FLAC__STREAM_DECODER_SEARCH_FOR_METADATA",
+	"FLAC__STREAM_DECODER_READ_METADATA",
+	"FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC",
+	"FLAC__STREAM_DECODER_READ_FRAME",
+	"FLAC__STREAM_DECODER_RESYNC_IN_HEADER",
+	"FLAC__STREAM_DECODER_END_OF_STREAM",
+	"FLAC__STREAM_DECODER_ABORTED",
+	"FLAC__STREAM_DECODER_UNPARSEABLE_STREAM",
+	"FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR",
+	"FLAC__STREAM_DECODER_UNINITIALIZED"
+};
+
+const char *FLAC__StreamDecoderReadStatusString[] = {
+	"FLAC__STREAM_DECODER_READ_CONTINUE",
+	"FLAC__STREAM_DECODER_READ_END_OF_STREAM",
+	"FLAC__STREAM_DECODER_READ_ABORT"
+};
+
+const char *FLAC__StreamDecoderWriteStatusString[] = {
+	"FLAC__STREAM_DECODER_WRITE_CONTINUE",
+	"FLAC__STREAM_DECODER_WRITE_ABORT"
+};
+
+const char *FLAC__StreamDecoderErrorStatusString[] = {
+	"FLAC__STREAM_DECODER_ERROR_LOST_SYNC"
+};
+
 FLAC__StreamDecoder *FLAC__stream_decoder_get_new_instance()
 {
 	FLAC__StreamDecoder *decoder = (FLAC__StreamDecoder*)malloc(sizeof(FLAC__StreamDecoder));

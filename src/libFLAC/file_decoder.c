@@ -43,6 +43,17 @@ static void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__S
 static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 target_sample);
 
+const char *FLAC__FileDecoderStateString[] = {
+	"FLAC__FILE_DECODER_OK",
+	"FLAC__FILE_DECODER_SEEKING",
+	"FLAC__FILE_DECODER_END_OF_FILE",
+	"FLAC__FILE_DECODER_ERROR_OPENING_FILE",
+	"FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR",
+	"FLAC__FILE_DECODER_SEEK_ERROR",
+	"FLAC__FILE_DECODER_STREAM_ERROR",
+	"FLAC__FILE_DECODER_UNINITIALIZED"
+};
+
 FLAC__FileDecoder *FLAC__file_decoder_get_new_instance()
 {
 	FLAC__FileDecoder *decoder = (FLAC__FileDecoder*)malloc(sizeof(FLAC__FileDecoder));

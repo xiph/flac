@@ -23,7 +23,7 @@
 #include "stream_decoder.h"
 
 typedef enum {
-    FLAC__FILE_DECODER_OK,
+    FLAC__FILE_DECODER_OK = 0,
 	FLAC__FILE_DECODER_SEEKING,
 	FLAC__FILE_DECODER_END_OF_FILE,
     FLAC__FILE_DECODER_ERROR_OPENING_FILE,
@@ -32,6 +32,7 @@ typedef enum {
 	FLAC__FILE_DECODER_STREAM_ERROR,
     FLAC__FILE_DECODER_UNINITIALIZED
 } FLAC__FileDecoderState;
+extern const char *FLAC__FileDecoderStateString[];
 
 struct FLAC__FileDecoderPrivate;
 typedef struct {

@@ -23,7 +23,7 @@
 #include "format.h"
 
 typedef enum {
-	FLAC__STREAM_DECODER_SEARCH_FOR_METADATA,
+	FLAC__STREAM_DECODER_SEARCH_FOR_METADATA = 0,
 	FLAC__STREAM_DECODER_READ_METADATA,
 	FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC,
 	FLAC__STREAM_DECODER_READ_FRAME,
@@ -34,21 +34,25 @@ typedef enum {
 	FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR,
 	FLAC__STREAM_DECODER_UNINITIALIZED
 } FLAC__StreamDecoderState;
+extern const char *FLAC__StreamDecoderStateString[];
 
 typedef enum {
 	FLAC__STREAM_DECODER_READ_CONTINUE,
 	FLAC__STREAM_DECODER_READ_END_OF_STREAM,
 	FLAC__STREAM_DECODER_READ_ABORT
 } FLAC__StreamDecoderReadStatus;
+extern const char *FLAC__StreamDecoderReadStatusString[];
 
 typedef enum {
 	FLAC__STREAM_DECODER_WRITE_CONTINUE,
 	FLAC__STREAM_DECODER_WRITE_ABORT
 } FLAC__StreamDecoderWriteStatus;
+extern const char *FLAC__StreamDecoderWriteStatusString[];
 
 typedef enum {
 	FLAC__STREAM_DECODER_ERROR_LOST_SYNC
 } FLAC__StreamDecoderErrorStatus;
+extern const char *FLAC__StreamDecoderErrorStatusString[];
 
 struct FLAC__StreamDecoderPrivate;
 typedef struct {

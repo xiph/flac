@@ -24,11 +24,12 @@
 
 typedef enum {
 	FLAC__ENCODER_WRITE_OK = 0,
-	FLAC__ENCODER_WRITE_FATAL_ERROR = 1
+	FLAC__ENCODER_WRITE_FATAL_ERROR
 } FLAC__EncoderWriteStatus;
+extern const char *FLAC__EncoderWriteStatusString[];
 
 typedef enum {
-	FLAC__ENCODER_OK,
+	FLAC__ENCODER_OK = 0,
 	FLAC__ENCODER_UNINITIALIZED,
 	FLAC__ENCODER_INVALID_NUMBER_OF_CHANNELS,
 	FLAC__ENCODER_INVALID_BITS_PER_SAMPLE,
@@ -44,6 +45,7 @@ typedef enum {
 	FLAC__ENCODER_FATAL_ERROR_WHILE_WRITING, /* that is, the write_callback returned an error */
 	FLAC__ENCODER_MEMORY_ALLOCATION_ERROR
 } FLAC__EncoderState;
+extern const char *FLAC__EncoderStateString[];
 
 struct FLAC__EncoderPrivate;
 typedef struct {

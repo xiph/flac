@@ -79,6 +79,29 @@ static bool encoder_generate_verbatim_subframe_(const FLAC__SubframeHeader *head
 static void encoder_promote_candidate_subframe_(FLAC__Encoder *encoder);
 static bool encoder_set_partitioned_rice_(const int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameter, const unsigned partition_order, unsigned parameters[], unsigned *bits);
 
+const char *FLAC__EncoderWriteStatusString[] = {
+	"FLAC__ENCODER_WRITE_OK",
+	"FLAC__ENCODER_WRITE_FATAL_ERROR"
+};
+
+const char *FLAC__EncoderStateString[] = {
+	"FLAC__ENCODER_OK",
+	"FLAC__ENCODER_UNINITIALIZED",
+	"FLAC__ENCODER_INVALID_NUMBER_OF_CHANNELS",
+	"FLAC__ENCODER_INVALID_BITS_PER_SAMPLE",
+	"FLAC__ENCODER_INVALID_SAMPLE_RATE",
+	"FLAC__ENCODER_INVALID_BLOCK_SIZE",
+	"FLAC__ENCODER_INVALID_QLP_COEFF_PRECISION",
+	"FLAC__ENCODER_MID_SIDE_CHANNELS_MISMATCH",
+	"FLAC__ENCODER_MID_SIDE_SAMPLE_SIZE_MISMATCH",
+	"FLAC__ENCODER_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER",
+	"FLAC__ENCODER_NOT_STREAMABLE",
+	"FLAC__ENCODER_FRAMING_ERROR",
+	"FLAC__ENCODER_FATAL_ERROR_WHILE_ENCODING",
+	"FLAC__ENCODER_FATAL_ERROR_WHILE_WRITING",
+	"FLAC__ENCODER_MEMORY_ALLOCATION_ERROR"
+};
+
 
 bool encoder_resize_buffers_(FLAC__Encoder *encoder, unsigned new_size)
 {
