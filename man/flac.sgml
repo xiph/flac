@@ -501,18 +501,6 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-E</option>, <option>--escape-coding</option></term>
-
-		<listitem>
-		  <para>Do escape coding in the entropy coder.  This
-		    causes the encoder to use an unencoded representation
-		    of the residual in a partition if it is smaller.  It
-		    increases the runtime and usually results in an
-		    improvement of less than 1%.</para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
 		<term><option>-l</option> <replaceable>#</replaceable>, <option>--max-lpc-order</option>=<replaceable>#</replaceable></term>
 
 		<listitem>
