@@ -4,6 +4,7 @@ LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 PATH=../src/flac:../src/test_streams:../obj/bin:$PATH
 
+echo "Generating streams..."
 if test_streams ; then : ; else
 	echo "ERROR during test_streams" 1>&2
 	exit 1
@@ -59,38 +60,45 @@ for b in 01 02 03 04 05 06 07 ; do
 	test_file fsd16-$b 1 16 "-0 -l 8 -m -e -q 15"
 done
 
-echo "Testing sine wave streams..."
-for b in 00 01 02 03 04 ; do
-	test_file sine-$b 1 16 "-0 -l 8 -m -e"
+echo "Testing 24-bit full-scale deflection streams..."
+for b in 01 02 03 04 05 06 07 ; do
+	test_file fsd24-$b 1 24 "-0 -l 8 -m -e -q 7"
 done
-for b in 10 11 12 13 14 15 16 17 18 19 ; do
-	test_file sine-$b 2 16 "-0 -l 8 -m -e"
+
+for bps in 16 24 ; do
+	echo "Testing $bps-bit sine wave streams..."
+	for b in 00 01 02 03 04 ; do
+		test_file sine${bps}-$b 1 $bps "-0 -l 8 -m -e"
+	done
+	for b in 10 11 12 13 14 15 16 17 18 19 ; do
+		test_file sine${bps}-$b 2 $bps "-0 -l 8 -m -e"
+	done
 done
 
 echo "Testing some frame header variations..."
-test_file sine-01 1 16 "-0 -l 8 -m -e --lax -b 16"
-test_file sine-01 1 16 "-0 -l 8 -m -e --lax -b 65535"
-test_file sine-01 1 16 "-0 -l 8 -m -e -b 16"
-test_file sine-01 1 16 "-0 -l 8 -m -e -b 65535"
-test_file sine-01 1 16 "-0 -l 8 -m -e --lax -fs 9"
-test_file sine-01 1 16 "-0 -l 8 -m -e --lax -fs 90"
-test_file sine-01 1 16 "-0 -l 8 -m -e --lax -fs 90000"
-test_file sine-01 1 16 "-0 -l 8 -m -e -fs 9"
-test_file sine-01 1 16 "-0 -l 8 -m -e -fs 90"
-test_file sine-01 1 16 "-0 -l 8 -m -e -fs 90000"
+test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -b 16"
+test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -b 65535"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -b 16"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -b 65535"
+test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -fs 9"
+test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -fs 90"
+test_file sine16-01 1 16 "-0 -l 8 -m -e --lax -fs 90000"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -fs 9"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -fs 90"
+test_file sine16-01 1 16 "-0 -l 8 -m -e -fs 90000"
 
 echo "Testing option variations..."
 for f in 00 01 02 03 04 ; do
 	for opt in 0 1 2 4 5 6 8 ; do
 		for extras in '' '-p' '-e' ; do
-			test_file sine-$f 1 16 "-$opt $extras"
+			test_file sine16-$f 1 16 "-$opt $extras"
 		done
 	done
 done
 for f in 10 11 12 13 14 15 16 17 18 19 ; do
 	for opt in 0 1 2 4 5 6 8 ; do
 		for extras in '' '-p' '-e' ; do
-			test_file sine-$f 2 16 "-$opt $extras"
+			test_file sine16-$f 2 16 "-$opt $extras"
 		done
 	done
 done
@@ -99,8 +107,8 @@ echo "Testing noise..."
 for opt in 0 1 2 4 5 6 8 ; do
 	for extras in '' '-p' '-e' ; do
 		for blocksize in '' '-b 32' '-b 32768' '-b 65535' ; do
-			for channels in 1 2 4 ; do
-				for bps in 8 16 ; do
+			for channels in 1 2 5 8 ; do
+				for bps in 8 16 24 ; do
 					test_file noise $channels $bps "-$opt $extras $blocksize"
 				done
 			done
