@@ -149,14 +149,14 @@ extern "C" {
  * attention.  By default, the decoder only calls the metadata_callback for
  * the STREAMINFO block.  These functions allow you to tell the decoder
  * explicitly which blocks to parse and return via the metadata_callback
- * and/or which to skip.  Use a FLAC__stream_decoder_respond_all(),
- * FLAC__stream_decoder_ignore() ... or FLAC__stream_decoder_ignore_all(),
- * FLAC__stream_decoder_respond() ... sequence to exactly specify which
+ * and/or which to skip.  Use a FLAC__stream_decoder_set_metadata_respond_all(),
+ * FLAC__stream_decoder_set_metadata_ignore() ... or FLAC__stream_decoder_set_metadata_ignore_all(),
+ * FLAC__stream_decoder_set_metadata_respond() ... sequence to exactly specify which
  * blocks to return.  Remember that some metadata blocks can be big so
  * filtering out the ones you don't use can reduce the memory requirements
  * of the decoder.  Also note the special forms
- * FLAC__stream_decoder_respond_application(id) and
- * FLAC__stream_decoder_ignore_application(id) for filtering APPLICATION
+ * FLAC__stream_decoder_set_metadata_respond_application(id) and
+ * FLAC__stream_decoder_set_metadata_ignore_application(id) for filtering APPLICATION
  * blocks based on the application ID.
  *
  * STREAMINFO and SEEKTABLE blocks are always parsed and used internally, but
