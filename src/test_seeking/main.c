@@ -228,10 +228,12 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, off_t filesize,
 		return die_f_("FLAC__file_decoder_process_until_end_of_metadata() FAILED", decoder);
 
 	printf("file's total_samples is %llu\n", decoder_client_data.total_samples);
+#if !defined _MSC_VER && !defined __MINGW32__
 	if (decoder_client_data.total_samples > (FLAC__uint64)RAND_MAX) {
 		printf("ERROR: must be total_samples < %u\n", (unsigned)RAND_MAX);
 		return false;
 	}
+#endif
 	n = (long int)decoder_client_data.total_samples;
 
 	/* if we don't have a total samples count, just guess based on the file size */
@@ -239,8 +241,10 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, off_t filesize,
 	if(n == 0) {
 		/* 8 would imply no compression, 9 guarantees that we will get some samples off the end of the stream to test that case */
 		n = 9 * filesize / (decoder_client_data.channels * decoder_client_data.bits_per_sample);
+#if !defined _MSC_VER && !defined __MINGW32__
 		if(n > RAND_MAX)
 			n = RAND_MAX;
+#endif
 	}
 
 	printf("Begin seek barrage, count=%u\n", count);
@@ -262,9 +266,10 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, off_t filesize,
 		}
 		else {
 #if !defined _MSC_VER && !defined __MINGW32__
-			pos = (FLAC__uint64)(random() % n);
-#else
 			pos = (FLAC__uint64)(rand() % n);
+#else
+			/* RAND_MAX is only 32767 in my MSVC */
+			pos = (FLAC__uint64)((random()<<15|random()) % n);
 #endif
 		}
 
@@ -371,18 +376,22 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, off_t filesize, un
 		return die_of_("OggFLAC__file_decoder_process_until_end_of_metadata() FAILED", decoder);
 
 	printf("file's total_samples is %llu\n", decoder_client_data.total_samples);
+#if !defined _MSC_VER && !defined __MINGW32__
 	if (decoder_client_data.total_samples > (FLAC__uint64)RAND_MAX) {
 		printf("ERROR: must be total_samples < %u\n", (unsigned)RAND_MAX);
 		return false;
 	}
+#endif
 	n = (long int)decoder_client_data.total_samples;
 
 	/* if we don't have a total samples count, just guess based on the file size */
 	if(n == 0) {
 		/* 8 would imply no compression, 9 guarantees that we will get some samples off the end of the stream to test that case */
 		n = 9 * filesize / (decoder_client_data.channels * decoder_client_data.bits_per_sample);
+#if !defined _MSC_VER && !defined __MINGW32__
 		if(n > RAND_MAX)
 			n = RAND_MAX;
+#endif
 	}
 
 	printf("Begin seek barrage, count=%u\n", count);
@@ -404,9 +413,10 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, off_t filesize, un
 		}
 		else {
 #if !defined _MSC_VER && !defined __MINGW32__
-			pos = (FLAC__uint64)(random() % n);
-#else
 			pos = (FLAC__uint64)(rand() % n);
+#else
+			/* RAND_MAX is only 32767 in my MSVC */
+			pos = (FLAC__uint64)((random()<<15|random()) % n);
 #endif
 		}
 
