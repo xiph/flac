@@ -47,6 +47,68 @@ else
 	echo "flac --ogg doesn't work"
 fi
 
+
+echo "Generating streams..."
+if [ ! -f wacky1.wav ] ; then
+	test_streams || die "ERROR during test_streams"
+fi
+
+############################################################################
+# basic 'round-trip' tests of various kinds of streams
+############################################################################
+
+rt_test_raw ()
+{
+	f="$1"
+	channels=`echo $f | awk -F- '{print $2}'`
+	bytes_per_sample=`echo $f | awk -F- '{print $3}'`
+	bps=`expr $bytes_per_sample '*' 8`
+	echo -n "round-trip test ($f) encode... "
+	run_flac --silent --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $f -o rt.flac || die "ERROR"
+	echo -n "decode... "
+	run_flac --silent --decode --force-raw-format --endian=little --sign=signed -o rt.raw rt.flac || die "ERROR"
+	echo -n "compare... "
+	cmp $f rt.raw || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.raw
+}
+
+rt_test_wav ()
+{
+	f="$1"
+	echo -n "round-trip test ($f) encode... "
+	run_flac --silent --verify $f -o rt.flac || die "ERROR"
+	echo -n "decode... "
+	run_flac --silent --decode -o rt.wav rt.flac || die "ERROR"
+	echo -n "compare... "
+	cmp $f rt.wav || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.wav
+}
+
+rt_test_aiff ()
+{
+	f="$1"
+	echo -n "round-trip test ($f) encode... "
+	run_flac --silent --verify $f -o rt.flac || die "ERROR"
+	echo -n "decode... "
+	run_flac --silent --decode -o rt.aiff rt.flac || die "ERROR"
+	echo -n "compare... "
+	cmp $f rt.aiff || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.aiff
+}
+
+for f in rt-*.raw ; do
+	rt_test_raw $f
+done
+for f in rt-*.wav ; do
+	rt_test_wav $f
+done
+for f in rt-*.aiff ; do
+	rt_test_aiff $f
+done
+
 ############################################################################
 # test --skip and --until
 ############################################################################
@@ -71,7 +133,7 @@ raw_eopt="$wav_eopt --force-raw-format --endian=big --sign=signed --sample-rate=
 raw_dopt="$wav_dopt --force-raw-format --endian=big --sign=signed"
 
 #
-# convert them to WAVE files
+# convert them to WAVE and AIFF files
 #
 convert_to_wav ()
 {
@@ -86,11 +148,24 @@ convert_to_wav 50c.until39
 convert_to_wav 50c.skip10.until40
 convert_to_wav 50c.skip10.until39
 
+convert_to_aiff ()
+{
+	run_flac $raw_eopt $1.raw || die "ERROR converting $1.raw to AIFF"
+	run_flac $wav_dopt $1.flac -o $1.aiff || die "ERROR converting $1.raw to AIFF"
+}
+convert_to_aiff 50c
+convert_to_aiff 50c.skip10
+convert_to_aiff 50c.skip11
+convert_to_aiff 50c.until40
+convert_to_aiff 50c.until39
+convert_to_aiff 50c.skip10.until40
+convert_to_aiff 50c.skip10.until39
+
 test_skip_until ()
 {
 	fmt=$1
 
-	[ $fmt = wav ] || [ $fmt = raw ] || die "ERROR: internal error, bad format '$fmt'"
+	[ $fmt = wav ] || [ $fmt = aiff ] || [ $fmt = raw ] || die "ERROR: internal error, bad format '$fmt'"
 
 	if [ $fmt = raw ] ; then
 		eopt="$raw_eopt"
@@ -354,15 +429,11 @@ test_skip_until ()
 
 test_skip_until raw
 test_skip_until wav
+test_skip_until aiff
 
 #
 # multi-file tests
 #
-
-echo "Generating streams..."
-if [ ! -f wacky1.wav ] ; then
-	test_streams || die "ERROR during test_streams"
-fi
 
 echo "Generating multiple input files from noise..."
 run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 noise.raw || die "ERROR generating FLAC file"
