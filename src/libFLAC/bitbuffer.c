@@ -228,11 +228,27 @@ static FLAC__bool bitbuffer_read_from_client_(FLAC__BitBuffer *bb, FLAC__bool (*
 
 	/* first shift the unconsumed buffer data toward the front as much as possible */
 	if(bb->total_consumed_bits >= FLAC__BITS_PER_BLURB) {
-		unsigned l = 0, r = bb->consumed_blurbs, r_end = bb->blurbs + (bb->bits? 1:0);
+#if FLAC__BITS_PER_BLURB == 8
+		/*
+		 * memset and memcpy are usually implemented in assembly language
+		 * by the system libc, and they can be much faster
+		 */
+		const unsigned r_end = bb->blurbs + (bb->bits? 1:0);
+		const unsigned r = bb->consumed_blurbs, l = r_end - r;
+		memmove(&bb->buffer[0], &bb->buffer[r], l);
+		memset(&bb->buffer[l], 0, r);
+#elif FLAC__BITS_PER_BLURB == 32
+		/* still needs optimization */
+		const unsigned r_end = bb->blurbs + (bb->bits? 1:0);
+		unsigned l = 0, r = bb->consumed_blurbs;
 		for( ; r < r_end; l++, r++)
 			bb->buffer[l] = bb->buffer[r];
 		for( ; l < r_end; l++)
 			bb->buffer[l] = 0;
+#else
+		FLAC__ASSERT(false); /* ERROR, only sizes of 8 and 32 are supported */
+#endif /* FLAC__BITS_PER_BLURB == 32 or 8 */
+
 		bb->blurbs -= bb->consumed_blurbs;
 		bb->total_bits -= FLAC__BLURBS_TO_BITS(bb->consumed_blurbs);
 		bb->consumed_blurbs = 0;
