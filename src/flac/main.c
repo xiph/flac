@@ -122,6 +122,7 @@ static struct share__option long_options_[] = {
 	{ "fast", 0, 0, '0' },
 	{ "super-secret-totally-impractical-compression-level", 0, 0, 0 },
 	{ "verify", 0, 0, 'V' },
+	{ "force-aiff-format", 0, 0, 0 },
 	{ "force-raw-format", 0, 0, 0 },
 	{ "lax", 0, 0, 0 },
 	{ "replay-gain", 0, 0, 0 },
@@ -220,6 +221,7 @@ static struct {
 	FLAC__bool do_escape_coding;
 	FLAC__bool do_qlp_coeff_prec_search;
 	FLAC__bool force_to_stdout;
+	FLAC__bool force_aiff_format;
 	FLAC__bool force_raw_format;
 	FLAC__bool delete_input;
 	FLAC__bool replay_gain;
@@ -357,6 +359,8 @@ int do_it()
 			if(!FLAC__format_sample_rate_is_valid(option_values.format_sample_rate))
 				return usage_error("ERROR: invalid sample rate '%u', must be > 0 and <= %u\n", option_values.format_sample_rate, FLAC__MAX_SAMPLE_RATE);
 		}
+		if(option_values.force_raw_format && option_values.force_aiff_format)
+			return usage_error("ERROR: only one of --force-raw-format and --force-aiff-format allowed\n");
 		if(option_values.mode_decode) {
 			if(!option_values.force_raw_format) {
 				if(option_values.format_is_big_endian >= 0)
@@ -530,6 +534,7 @@ FLAC__bool init_options()
 	option_values.do_escape_coding = false;
 	option_values.do_qlp_coeff_prec_search = false;
 	option_values.force_to_stdout = false;
+	option_values.force_aiff_format = false;
 	option_values.force_raw_format = false;
 	option_values.delete_input = false;
 	option_values.replay_gain = false;
@@ -651,6 +656,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			option_values.max_residual_partition_order = 16;
 			option_values.rice_parameter_search_dist = 0;
 			option_values.max_lpc_order = 32;
+		}
+		else if(0 == strcmp(long_option, "force-aiff-format")) {
+			option_values.force_aiff_format = true;
 		}
 		else if(0 == strcmp(long_option, "force-raw-format")) {
 			option_values.force_raw_format = true;
@@ -1145,6 +1153,7 @@ void show_help()
 	printf("      --bps=#                  Number of bits per sample\n");
 	printf("      --sample-rate=#          Sample rate in Hz\n");
 	printf("      --sign={signed|unsigned} Sign of samples\n");
+	printf("      --force-aiff-format      Force decoding to AIFF format\n");
 	printf("      --force-raw-format       Treat input or output as raw samples\n");
 	printf("negative options:\n");
 	printf("      --no-adaptive-mid-side\n");
@@ -1354,6 +1363,11 @@ void show_explain()
 	printf("      --bps=#                  Number of bits per sample\n");
 	printf("      --sample-rate=#          Sample rate in Hz\n");
 	printf("      --sign={signed|unsigned} Sign of samples (the default is signed)\n");
+	printf("      --force-aiff-format      Force the decoder to output AIFF format.  This\n");
+	printf("                               option is not needed if the output filename (as\n");
+	printf("                               set by -o) ends with .aiff; this option has no\n");
+	printf("                               effect when encoding since input AIFF is auto-\n");
+	printf("                               detected.\n");
 	printf("      --force-raw-format       Force input (when encoding) or output (when\n");
 	printf("                               decoding) to be treated as raw samples\n");
 	printf("negative options:\n");
@@ -1586,7 +1600,14 @@ int decode_file(const char *infilename)
 
 		options.common = common_options;
 
-		retval = flac__decode_wav(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
+		if(
+			option_values.force_aiff_format ||
+			(strlen(outfilename) > 3 && 0 == strcasecmp(outfilename+(strlen(outfilename)-4), ".aif")) ||
+			(strlen(outfilename) > 4 && 0 == strcasecmp(outfilename+(strlen(outfilename)-5), ".aiff"))
+		)
+			retval = flac__decode_aiff(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
+		else
+			retval = flac__decode_wav(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
 	}
 	else {
 		raw_decode_options_t options;
@@ -1647,8 +1668,13 @@ const char *get_decoded_outfilename(const char *infilename)
 			strcpy(buffer, "-");
 		}
 		else {
-			static const char *suffixes[] = { ".wav", ".raw", ".ana" };
-			const char *suffix = suffixes[option_values.analyze? 2 : option_values.force_raw_format? 1 : 0];
+			static const char *suffixes[] = { ".wav", ".aiff", ".raw", ".ana" };
+			const char *suffix = suffixes[
+				option_values.analyze? 3 :
+				option_values.force_raw_format? 2 :
+				option_values.force_aiff_format? 1 :
+				0
+			];
 			char *p;
 			strcpy(buffer, option_values.output_prefix? option_values.output_prefix : "");
 			strcat(buffer, infilename);
