@@ -90,11 +90,11 @@ int decode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
-			fprintf(stderr, "ERROR during decodingg\n");
+			fprintf(stderr, "ERROR during decoding\n");
 			goto wav_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			fprintf(stderr, "ERROR during decodinggg\n");
+			fprintf(stderr, "ERROR during decoding\n");
 			goto wav_abort_;
 		}
 	}
@@ -104,7 +104,7 @@ int decode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 			goto wav_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			fprintf(stderr, "ERROR during decodingg, state=%u\n", decoder->state);
+			fprintf(stderr, "ERROR during decoding, state=%d:%s\n", decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto wav_abort_;
 		}
 	}
@@ -167,11 +167,11 @@ int decode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
-			fprintf(stderr, "ERROR during decodingg\n");
+			fprintf(stderr, "ERROR during decoding\n");
 			goto raw_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			fprintf(stderr, "ERROR during decodinggg\n");
+			fprintf(stderr, "ERROR during decoding\n");
 			goto raw_abort_;
 		}
 	}
@@ -181,7 +181,7 @@ int decode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 			goto raw_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			fprintf(stderr, "ERROR during decodingg\n");
+			fprintf(stderr, "ERROR during decoding\n");
 			goto raw_abort_;
 		}
 	}
