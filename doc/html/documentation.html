@@ -584,7 +584,7 @@
 				<TT>--lax</TT>
 			</TD>
 			<TD>
-				Allow encoder to generate non-<A HREF="format.html#subset">Subset</A> files.  The resulting FLAC file may not be streamable, so you should only use this option in combination with custom encoding options meant for archival.  File decoders will still be able play (and seek in) such files.
+				Allow encoder to generate non-<A HREF="format.html#subset">Subset</A> files.  The resulting FLAC file may not be streamable or might have trouble being played in all players (especially hardware devices), so you should only use this option in combination with custom encoding options meant for archival.
 			</TD>
 		</TR>
 		<TR>
@@ -678,7 +678,7 @@
 				<TT>-m</TT>, <TT>--mid-side</TT>
 			</TD>
 			<TD>
-				Enable mid-side coding (only for stereo streams).  Tends to increase compression by a few percent on average.  For each block both the stereo pair and mid-side versions of the block will be encoded, and smallest resulting frame will be stored.  Currently mid-side encoding is only available when bits-per-sample &lt;= 16.
+				Enable mid-side coding (only for stereo streams).  Tends to increase compression by a few percent on average.  For each block both the stereo pair and mid-side versions of the block will be encoded, and smallest resulting frame will be stored.
 			</TD>
 		</TR>
 		<TR>

@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>July 29, 2004</date>">
+  <!ENTITY dhdate      "<date>Feb 2, 2005</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -27,8 +27,8 @@
 	&dhsurname;
       </author>
 	<copyright>
-		    <year>2002,2003,2004</year>
-		    <holder>&dhusername;</holder>
+	    <year>2002,2003,2004,2005</year>
+	    <holder>&dhusername;</holder>
 	</copyright>
 	    &dhdate;
 	</docinfo>
@@ -350,7 +350,12 @@
 
 		<listitem>
 		  <para>Allow encoder to generate non-Subset
-		    files.</para>
+		    files.  The resulting FLAC file may not be
+		    streamable or might have trouble being played
+		    in all players (especially hardware devices),
+		    so you should only use this option in
+		    combination with custom encoding options meant
+		    for archival.</para>
 		</listitem>
 	      </varlistentry>
 
