@@ -546,10 +546,10 @@ FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetaData *ob
 /******************************************************************
  * FLAC__StreamMetaData_VorbisComment
  */
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetaData *object, FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetaData *object, FLAC__StreamMetaData_VorbisComment_Entry entry, FLAC__bool copy);
 FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetaData *object, unsigned new_num_comments);
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__bool copy);
-FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry entry, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry entry, FLAC__bool copy);
 FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetaData *object, unsigned comment_num);
 
 #ifdef __cplusplus
