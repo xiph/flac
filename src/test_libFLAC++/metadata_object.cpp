@@ -254,6 +254,54 @@ bool test_metadata_object_streaminfo()
 		printf("OK\n");
 	}
 
+	printf("testing StreamInfo::StreamInfo(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        StreamInfo::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::StreamInfo blockcopy(&streaminfo_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != streaminfo_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing StreamInfo::StreamInfo(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        StreamInfo::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&streaminfo_);
+		FLAC::Metadata::StreamInfo blockcopy(copy, /*copy=*/false);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != streaminfo_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing StreamInfo::assign(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        StreamInfo::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::StreamInfo blockcopy;
+		blockcopy.assign(&streaminfo_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != streaminfo_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing StreamInfo::assign(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        StreamInfo::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&streaminfo_);
+		FLAC::Metadata::StreamInfo blockcopy;
+		blockcopy.assign(copy, /*copy=*/false);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != streaminfo_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
 	printf("testing StreamInfo::operator=(const StreamInfo &)... +\n");
 	printf("        StreamInfo::operator==(const StreamInfo &)... ");
 	{
@@ -439,6 +487,54 @@ bool test_metadata_object_padding()
 		printf("OK\n");
 	}
 
+	printf("testing Padding::Padding(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        Padding::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::Padding blockcopy(&padding_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != padding_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing Padding::Padding(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        Padding::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&padding_);
+		FLAC::Metadata::Padding blockcopy(copy, /*copy=*/false);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != padding_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing Padding::assign(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        Padding::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::Padding blockcopy;
+		blockcopy.assign(&padding_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != padding_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing Padding::assign(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        Padding::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&padding_);
+		FLAC::Metadata::Padding blockcopy;
+		blockcopy.assign(copy, /*copy=*/false);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != padding_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
 	printf("testing Padding::operator=(const Padding &)... +\n");
 	printf("        Padding::operator==(const Padding &)... ");
 	{
@@ -545,6 +641,54 @@ bool test_metadata_object_application()
 	printf("        Application::operator!=(const ::FLAC__StreamMetadata *)... ");
 	{
 		FLAC::Metadata::Application blockcopy(&application_);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != application_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing Application::Application(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        Application::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::Application blockcopy(&application_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != application_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing Application::Application(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        Application::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&application_);
+		FLAC::Metadata::Application blockcopy(copy, /*copy=*/false);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != application_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing Application::assign(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        Application::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::Application blockcopy;
+		blockcopy.assign(&application_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != application_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing Application::assign(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        Application::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&application_);
+		FLAC::Metadata::Application blockcopy;
+		blockcopy.assign(copy, /*copy=*/false);
 		if(!blockcopy.is_valid())
 			return die_("!block.is_valid()");
 		if(blockcopy != application_)
@@ -667,6 +811,54 @@ bool test_metadata_object_seektable()
 	printf("        SeekTable::operator!=(const ::FLAC__StreamMetadata *)... ");
 	{
 		FLAC::Metadata::SeekTable blockcopy(&seektable_);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != seektable_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing SeekTable::SeekTable(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        SeekTable::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::SeekTable blockcopy(&seektable_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != seektable_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing SeekTable::SeekTable(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        SeekTable::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&seektable_);
+		FLAC::Metadata::SeekTable blockcopy(copy, /*copy=*/false);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != seektable_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing SeekTable::assign(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        SeekTable::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::SeekTable blockcopy;
+		blockcopy.assign(&seektable_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != seektable_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing SeekTable::assign(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        SeekTable::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&seektable_);
+		FLAC::Metadata::SeekTable blockcopy;
+		blockcopy.assign(copy, /*copy=*/false);
 		if(!blockcopy.is_valid())
 			return die_("!block.is_valid()");
 		if(blockcopy != seektable_)
@@ -972,6 +1164,54 @@ bool test_metadata_object_vorbiscomment()
 	printf("        VorbisComment::operator!=(const ::FLAC__StreamMetadata *)... ");
 	{
 		FLAC::Metadata::VorbisComment blockcopy(&vorbiscomment_);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != vorbiscomment_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing VorbisComment::VorbisComment(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        VorbisComment::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::VorbisComment blockcopy(&vorbiscomment_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != vorbiscomment_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing VorbisComment::VorbisComment(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        VorbisComment::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&vorbiscomment_);
+		FLAC::Metadata::VorbisComment blockcopy(copy, /*copy=*/false);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != vorbiscomment_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing VorbisComment::assign(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        VorbisComment::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::VorbisComment blockcopy;
+		blockcopy.assign(&vorbiscomment_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != vorbiscomment_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing VorbisComment::assign(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        VorbisComment::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&vorbiscomment_);
+		FLAC::Metadata::VorbisComment blockcopy;
+		blockcopy.assign(copy, /*copy=*/false);
 		if(!blockcopy.is_valid())
 			return die_("!block.is_valid()");
 		if(blockcopy != vorbiscomment_)
@@ -1302,6 +1542,54 @@ bool test_metadata_object_cuesheet()
 	printf("        CueSheet::operator!=(const ::FLAC__StreamMetadata *)... ");
 	{
 		FLAC::Metadata::CueSheet blockcopy(&cuesheet_);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != cuesheet_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing CueSheet::CueSheet(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        CueSheet::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::CueSheet blockcopy(&cuesheet_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != cuesheet_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing CueSheet::CueSheet(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        CueSheet::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&cuesheet_);
+		FLAC::Metadata::CueSheet blockcopy(copy, /*copy=*/false);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != cuesheet_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing CueSheet::assign(const ::FLAC__StreamMetadata *, copy=true)... +\n");
+	printf("        CueSheet::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		FLAC::Metadata::CueSheet blockcopy;
+		blockcopy.assign(&cuesheet_, /*copy=*/true);
+		if(!blockcopy.is_valid())
+			return die_("!block.is_valid()");
+		if(blockcopy != cuesheet_)
+			return die_("copy is not identical to original");
+		printf("OK\n");
+	}
+
+	printf("testing CueSheet::assign(const ::FLAC__StreamMetadata *, copy=false)... +\n");
+	printf("        CueSheet::operator!=(const ::FLAC__StreamMetadata *)... ");
+	{
+		::FLAC__StreamMetadata *copy = ::FLAC__metadata_object_clone(&cuesheet_);
+		FLAC::Metadata::CueSheet blockcopy;
+		blockcopy.assign(copy, /*copy=*/false);
 		if(!blockcopy.is_valid())
 			return die_("!block.is_valid()");
 		if(blockcopy != cuesheet_)
