@@ -136,7 +136,7 @@ AC_SUBST(FLaC__SIZE64)
 AC_SUBST(FLaC__USIZE64)
 
 SAVE_CFLAGS="$CFLAGS"
-CFLAGS='-I$(srcdir)/include -I $(top_srcdir)/include -Wall -W'
+CFLAGS='-I$(top_builddir) -I$(srcdir)/include -I $(top_srcdir)/include -Wall -W'
 if test x$debug = xtrue; then
 	CFLAGS="$CFLAGS -g -O0 -DDEBUG"
 else
