@@ -70,99 +70,99 @@ static struct FLAC__share__option long_options_[] = {
 	/*
 	 * general options
 	 */
-	{ "--help", 0, 0, 'H' },
-	{ "--decode", 0, 0, 'd' },
-	{ "--analyze", 0, 0, 'a' },
-	{ "--test", 0, 0, 't' },
-	{ "--stdout", 0, 0, 'c' },
-	{ "--silent", 0, 0, 's' },
-	{ "--delete-input-file", 0, 0, 0 },
-	{ "--output-prefix", 1, 0, 0 },
-	{ "--output-name", 1, 0, 'o' },
-	{ "--skip", 1, 0, 0 },
+	{ "help", 0, 0, 'H' },
+	{ "decode", 0, 0, 'd' },
+	{ "analyze", 0, 0, 'a' },
+	{ "test", 0, 0, 't' },
+	{ "stdout", 0, 0, 'c' },
+	{ "silent", 0, 0, 's' },
+	{ "delete-input-file", 0, 0, 0 },
+	{ "output-prefix", 1, 0, 0 },
+	{ "output-name", 1, 0, 'o' },
+	{ "skip", 1, 0, 0 },
 
 	/*
 	 * decoding options
 	 */
-	{ "--decode-through-errors", 0, 0, 'F' },
+	{ "decode-through-errors", 0, 0, 'F' },
 
 	/*
 	 * encoding options
 	 */
-	{ "--compression-level-0", 0, 0, '0' },
-	{ "--compression-level-1", 0, 0, '1' },
-	{ "--compression-level-2", 0, 0, '2' },
-	{ "--compression-level-3", 0, 0, '3' },
-	{ "--compression-level-4", 0, 0, '4' },
-	{ "--compression-level-5", 0, 0, '5' },
-	{ "--compression-level-6", 0, 0, '6' },
-	{ "--compression-level-7", 0, 0, '7' },
-	{ "--compression-level-8", 0, 0, '8' },
-	{ "--compression-level-9", 0, 0, '9' },
-	{ "--best", 0, 0, '8' },
-	{ "--fast", 0, 0, '0' },
-	{ "--super-secret-impractical-compression-level", 0, 0, 0 },
-	{ "--verify", 0, 0, 'V' },
-	{ "--force-raw-input", 0, 0, 0 },
-	{ "--lax", 0, 0, 0 },
-	{ "--sector-align", 0, 0, 0 },
-	{ "--seekpoint", 1, 0, 'S' },
-	{ "--padding", 1, 0, 'P' },
+	{ "compression-level-0", 0, 0, '0' },
+	{ "compression-level-1", 0, 0, '1' },
+	{ "compression-level-2", 0, 0, '2' },
+	{ "compression-level-3", 0, 0, '3' },
+	{ "compression-level-4", 0, 0, '4' },
+	{ "compression-level-5", 0, 0, '5' },
+	{ "compression-level-6", 0, 0, '6' },
+	{ "compression-level-7", 0, 0, '7' },
+	{ "compression-level-8", 0, 0, '8' },
+	{ "compression-level-9", 0, 0, '9' },
+	{ "best", 0, 0, '8' },
+	{ "fast", 0, 0, '0' },
+	{ "super-secret-impractical-compression-level", 0, 0, 0 },
+	{ "verify", 0, 0, 'V' },
+	{ "force-raw-input", 0, 0, 0 },
+	{ "lax", 0, 0, 0 },
+	{ "sector-align", 0, 0, 0 },
+	{ "seekpoint", 1, 0, 'S' },
+	{ "padding", 1, 0, 'P' },
 #ifdef FLAC__HAS_OGG
-	{ "--ogg", 0, 0, 0 },
+	{ "ogg", 0, 0, 0 },
 #endif
-	{ "--blocksize", 1, 0, 'b' },
-	{ "--exhaustive-model-search", 0, 0, 'e' },
+	{ "blocksize", 1, 0, 'b' },
+	{ "exhaustive-model-search", 0, 0, 'e' },
 #if 0
 	/* @@@ deprecated: */
-	{ "--escape-coding", 0, 0, 'E' },
+	{ "escape-coding", 0, 0, 'E' },
 #endif
-	{ "--max-lpc-order", 1, 0, 'l' },
-	{ "--mid-side", 0, 0, 'm' },
-	{ "--adaptive-mid-side", 0, 0, 'M' },
-	{ "--qlp-coeff-precision-search", 0, 0, 'p' },
-	{ "--qlp-coeff-precision", 1, 0, 'q' },
-	{ "--rice-partition-order", 1, 0, 'r' },
+	{ "max-lpc-order", 1, 0, 'l' },
+	{ "mid-side", 0, 0, 'm' },
+	{ "adaptive-mid-side", 0, 0, 'M' },
+	{ "qlp-coeff-precision-search", 0, 0, 'p' },
+	{ "qlp-coeff-precision", 1, 0, 'q' },
+	{ "rice-partition-order", 1, 0, 'r' },
 #if 0
 	/* @@@ deprecated: */
-	{ "--rice-parameter-search-distance", 1, 0, 'R' },
+	{ "rice-parameter-search-distance", 1, 0, 'R' },
 #endif
-	{ "--endian", 1, 0, 0 },
-	{ "--channels", 1, 0, 0 },
-	{ "--bps", 1, 0, 0 },
-	{ "--sample-rate", 1, 0, 0 },
-	{ "--sign", 1, 0, 0 },
+	{ "endian", 1, 0, 0 },
+	{ "channels", 1, 0, 0 },
+	{ "bps", 1, 0, 0 },
+	{ "sample-rate", 1, 0, 0 },
+	{ "sign", 1, 0, 0 },
 
 	/*
 	 * analysis options
 	 */
-	{ "--residual-gnu-plot", 0, 0, 0 },
-	{ "--residual-text", 0, 0, 0 },
+	{ "residual-gnu-plot", 0, 0, 0 },
+	{ "residual-text", 0, 0, 0 },
 
 	/*
 	 * negatives
 	 */
-	{ "--no-decode-through-errors", 0, 0, 0 },
-	{ "--no-silent", 0, 0, 0 },
-	{ "--no-seektable", 0, 0, 0 },
-	{ "--no-delete-input-file", 0, 0, 0 },
-	{ "--no-sector-align", 0, 0, 0 },
-	{ "--no-lax", 0, 0, 0 },
+	{ "no-decode-through-errors", 0, 0, 0 },
+	{ "no-silent", 0, 0, 0 },
+	{ "no-seektable", 0, 0, 0 },
+	{ "no-delete-input-file", 0, 0, 0 },
+	{ "no-sector-align", 0, 0, 0 },
+	{ "no-lax", 0, 0, 0 },
 #ifdef FLAC__HAS_OGG
-	{ "--no-ogg", 0, 0, 0 },
+	{ "no-ogg", 0, 0, 0 },
 #endif
-	{ "--no-exhaustive-model-search", 0, 0, 0 },
+	{ "no-exhaustive-model-search", 0, 0, 0 },
 #if 0
 	/* @@@ deprecated: */
-	{ "--no-escape-coding", 0, 0, 0 },
+	{ "no-escape-coding", 0, 0, 0 },
 #endif
-	{ "--no-mid-side", 0, 0, 0 },
-	{ "--no-adaptive-mid-side", 0, 0, 0 },
-	{ "--no-qlp-coeff-prec-search", 0, 0, 0 },
-	{ "--no-padding", 0, 0, 0 },
-	{ "--no-verify", 0, 0, 0 },
-	{ "--no-residual-gnuplot", 0, 0, 0 },
-	{ "--no-residual-text", 0, 0, 0 },
+	{ "no-mid-side", 0, 0, 0 },
+	{ "no-adaptive-mid-side", 0, 0, 0 },
+	{ "no-qlp-coeff-prec-search", 0, 0, 0 },
+	{ "no-padding", 0, 0, 0 },
+	{ "no-verify", 0, 0, 0 },
+	{ "no-residual-gnuplot", 0, 0, 0 },
+	{ "no-residual-text", 0, 0, 0 },
 
 	{0, 0, 0, 0}
 };
@@ -325,8 +325,6 @@ int do_it()
 		if(option_values.cmdline_forced_outfilename && option_values.output_prefix) {
 			return usage_error("ERROR: --output-prefix conflicts with -o\n");
 		}
-
-		return 0;
 	}
 	if(option_values.verbose) {
 		fprintf(stderr, "\n");
@@ -496,23 +494,22 @@ int parse_options(int argc, char *argv[])
 
 int parse_option(int short_option, const char *long_option, const char *option_argument)
 {
-	FLAC__bool ok = true;
 	char *p;
 
 	if(short_option == 0) {
 		FLAC__ASSERT(0 != long_option);
-		if(0 == strcmp(long_option, "--delete-input-file")) {
+		if(0 == strcmp(long_option, "delete-input-file")) {
 			option_values.delete_input = true;
 		}
-		else if(0 == strcmp(long_option, "--output-prefix")) {
+		else if(0 == strcmp(long_option, "output-prefix")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.output_prefix = option_argument;
 		}
-		else if(0 == strcmp(long_option, "--skip")) {
+		else if(0 == strcmp(long_option, "skip")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.skip = (FLAC__uint64)atoi(option_argument); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
 		}
-		else if(0 == strcmp(long_option, "--super-secret-impractical-compression-level")) {
+		else if(0 == strcmp(long_option, "super-secret-impractical-compression-level")) {
 			option_values.do_exhaustive_model_search = true;
 			option_values.do_escape_coding = true;
 			option_values.do_mid_side = true;
@@ -523,115 +520,111 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			option_values.rice_parameter_search_dist = 0;
 			option_values.max_lpc_order = 32;
 		}
-		else if(0 == strcmp(long_option, "--force-raw-input")) {
+		else if(0 == strcmp(long_option, "force-raw-input")) {
 			option_values.force_raw_format = true;
 		}
-		else if(0 == strcmp(long_option, "--lax")) {
+		else if(0 == strcmp(long_option, "lax")) {
 			option_values.lax = true;
 		}
-		else if(0 == strcmp(long_option, "--sector-align")) {
+		else if(0 == strcmp(long_option, "sector-align")) {
 			option_values.sector_align = true;
 		}
 #ifdef FLAC__HAS_OGG
-		else if(0 == strcmp(long_option, "--ogg")) {
+		else if(0 == strcmp(long_option, "ogg")) {
 			option_values.use_ogg = true;
 		}
 #endif
-		else if(0 == strcmp(long_option, "--endian")) {
+		else if(0 == strcmp(long_option, "endian")) {
 			FLAC__ASSERT(0 != option_argument);
 			if(0 == strncmp(option_argument, "big", strlen(option_argument)))
 				option_values.format_is_big_endian = true;
 			else if(0 == strncmp(option_argument, "little", strlen(option_argument)))
 				option_values.format_is_big_endian = false;
-			else {
+			else
 				return usage_error("ERROR: argument to --endian must be \"big\" or \"little\"\n");
-				ok = false;
-			}
 		}
-		else if(0 == strcmp(long_option, "--channels")) {
+		else if(0 == strcmp(long_option, "channels")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.format_channels = atoi(option_argument);
 		}
-		else if(0 == strcmp(long_option, "--bps")) {
+		else if(0 == strcmp(long_option, "bps")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.format_bps = atoi(option_argument);
 		}
-		else if(0 == strcmp(long_option, "--sample-rate")) {
+		else if(0 == strcmp(long_option, "sample-rate")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.format_sample_rate = atoi(option_argument);
 		}
-		else if(0 == strcmp(long_option, "--sign")) {
+		else if(0 == strcmp(long_option, "sign")) {
 			FLAC__ASSERT(0 != option_argument);
 			if(0 == strncmp(option_argument, "signed", strlen(option_argument)))
 				option_values.format_is_unsigned_samples = false;
 			else if(0 == strncmp(option_argument, "unsigned", strlen(option_argument)))
 				option_values.format_is_unsigned_samples = true;
-			else {
+			else
 				return usage_error("ERROR: argument to --sign must be \"signed\" or \"unsigned\"\n");
-				ok = false;
-			}
 		}
-		else if(0 == strcmp(long_option, "--residual-gnu-plot")) {
+		else if(0 == strcmp(long_option, "residual-gnu-plot")) {
 			option_values.aopts.do_residual_gnuplot = true;
 		}
-		else if(0 == strcmp(long_option, "--residual-text")) {
+		else if(0 == strcmp(long_option, "residual-text")) {
 			option_values.aopts.do_residual_text = true;
 		}
 		/*
 		 * negatives
 		 */
-		else if(0 == strcmp(long_option, "--no-decode-through-errors")) {
+		else if(0 == strcmp(long_option, "no-decode-through-errors")) {
 			option_values.continue_through_decode_errors = false;
 		}
-		else if(0 == strcmp(long_option, "--no-silent")) {
+		else if(0 == strcmp(long_option, "no-silent")) {
 			option_values.verbose = true;
 		}
-		else if(0 == strcmp(long_option, "--no-seektable")) {
+		else if(0 == strcmp(long_option, "no-seektable")) {
 			option_values.num_requested_seek_points = 0;
 			option_values.requested_seek_points[0] = '\0';
 		}
-		else if(0 == strcmp(long_option, "--no-delete-input-file")) {
+		else if(0 == strcmp(long_option, "no-delete-input-file")) {
 			option_values.delete_input = false;
 		}
-		else if(0 == strcmp(long_option, "--no-sector-align")) {
+		else if(0 == strcmp(long_option, "no-sector-align")) {
 			option_values.sector_align = false;
 		}
-		else if(0 == strcmp(long_option, "--no-lax")) {
+		else if(0 == strcmp(long_option, "no-lax")) {
 			option_values.lax = false;
 		}
 #ifdef FLAC__HAS_OGG
-		else if(0 == strcmp(long_option, "--no-ogg")) {
+		else if(0 == strcmp(long_option, "no-ogg")) {
 			option_values.use_ogg = false;
 		}
 #endif
-		else if(0 == strcmp(long_option, "--no-exhaustive-model-search")) {
+		else if(0 == strcmp(long_option, "no-exhaustive-model-search")) {
 			option_values.do_exhaustive_model_search = false;
 		}
 #if 0
 		/* @@@ deprecated: */
-		else if(0 == strcmp(long_option, "--no-escape-coding")) {
+		else if(0 == strcmp(long_option, "no-escape-coding")) {
 			option_values.do_escape_coding = false;
 		}
 #endif
-		else if(0 == strcmp(long_option, "--no-mid-side")) {
+		else if(0 == strcmp(long_option, "no-mid-side")) {
 			option_values.do_mid_side = option_values.loose_mid_side = false;
 		}
-		else if(0 == strcmp(long_option, "--no-adaptive-mid-side")) {
+		else if(0 == strcmp(long_option, "no-adaptive-mid-side")) {
 			option_values.loose_mid_side = option_values.do_mid_side = false;
 		}
-		else if(0 == strcmp(long_option, "--no-qlp-coeff-prec-search")) {
+		else if(0 == strcmp(long_option, "no-qlp-coeff-prec-search")) {
 			option_values.do_qlp_coeff_prec_search = false;
 		}
-		else if(0 == strcmp(long_option, "--no-padding")) {
+		else if(0 == strcmp(long_option, "no-padding")) {
 			option_values.padding = -1;
 		}
-		else if(0 == strcmp(long_option, "--no-verify")) {
+		else if(0 == strcmp(long_option, "no-verify")) {
 			option_values.verify = false;
 		}
-		else if(0 == strcmp(long_option, "--no-residual-gnuplot")) {
+		else if(0 == strcmp(long_option, "no-residual-gnuplot")) {
 			option_values.aopts.do_residual_gnuplot = false;
 		}
-		else if(0 == strcmp(long_option, "--no-residual-text")) {
+		else if(0 == strcmp(long_option, "no-residual-text")) {
 			option_values.aopts.do_residual_text = false;
 		}
 	}
@@ -760,7 +753,6 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case '9':
 				return usage_error("ERROR: compression level '9' is reserved\n");
-				break;
 			case 'V':
 				option_values.verify = true;
 				break;
@@ -775,9 +767,8 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			case 'P':
 				FLAC__ASSERT(0 != option_argument);
 				option_values.padding = atoi(option_argument);
-				if(option_values.padding < 0) {
+				if(option_values.padding < 0)
 					return usage_error("ERROR: argument to -P must be >= 0\n");
-				}
 				break;
 			case 'b':
 				FLAC__ASSERT(0 != option_argument);
@@ -828,7 +819,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 	}
 
-	return ok;
+	return 0;
 }
 
 void free_options()
