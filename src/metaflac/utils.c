@@ -31,6 +31,16 @@ void die(const char *message)
 	exit(1);
 }
 
+#ifdef FLAC__VALGRIND_TESTING
+size_t local_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+	size_t ret = fwrite(ptr, size, nmemb, stream);
+	if(!ferror(stream))
+		fflush(stream);
+	return ret;
+}
+#endif
+
 char *local_strdup(const char *source)
 {
 	char *ret;
@@ -166,17 +176,17 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 			memcpy(terminated, entry->entry, entry->length);
 			terminated[entry->length] = '\0';
 			if(utf8_decode(terminated, &converted) >= 0) {
-				(void) fwrite(converted, 1, strlen(converted), f);
+				(void) local_fwrite(converted, 1, strlen(converted), f);
 				free(terminated);
 				free(converted);
 			}
 			else {
 				free(terminated);
-				(void) fwrite(entry->entry, 1, entry->length, f);
+				(void) local_fwrite(entry->entry, 1, entry->length, f);
 			}
 		}
 		else {
-			(void) fwrite(entry->entry, 1, entry->length, f);
+			(void) local_fwrite(entry->entry, 1, entry->length, f);
 		}
 	}
 

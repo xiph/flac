@@ -699,6 +699,18 @@ FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamE
 		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK;
 }
 
+#ifdef FLAC__VALGRIND_TESTING
+static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+	size_t ret = fwrite(ptr, size, nmemb, stream);
+	if(!ferror(stream))
+		fflush(stream);
+	return ret;
+}
+#else
+#define local__fwrite fwrite
+#endif
+
 FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	FLAC__FileEncoder *file_encoder = (FLAC__FileEncoder*)client_data;
@@ -707,7 +719,7 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__SeekableStreamEncoder
 
 	FLAC__ASSERT(0 != file_encoder);
 
-	if(fwrite(buffer, sizeof(FLAC__byte), bytes, file_encoder->private_->file) == bytes) {
+	if(local__fwrite(buffer, sizeof(FLAC__byte), bytes, file_encoder->private_->file) == bytes) {
 		file_encoder->private_->bytes_written += bytes;
 		file_encoder->private_->samples_written += samples;
 		if(0 != file_encoder->private_->progress_callback && samples > 0)

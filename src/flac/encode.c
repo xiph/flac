@@ -1735,7 +1735,7 @@ FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__
 	if(encoder_session->verbose && encoder_session->total_samples_to_encode > 0 && !(current_frame & encoder_session->stats_mask))
 		print_stats(encoder_session);
 
-	if(fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_session->fout) == bytes)
+	if(flac__utils_fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_session->fout) == bytes)
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 	else
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
@@ -1754,7 +1754,7 @@ FLAC__StreamEncoderWriteStatus flac_stream_encoder_write_callback(const FLAC__St
 	if(samples && encoder_session->verbose && encoder_session->total_samples_to_encode > 0 && !(current_frame & encoder_session->stats_mask))
 		print_stats(encoder_session);
 
-	if(fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_session->fout) == bytes)
+	if(flac__utils_fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_session->fout) == bytes)
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 	else
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;

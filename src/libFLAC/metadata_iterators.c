@@ -111,6 +111,18 @@ static void set_file_stats_(const char *filename, struct stat *stats);
 static FLAC__Metadata_ChainStatus get_equivalent_status_(FLAC__Metadata_SimpleIteratorStatus status);
 
 
+#ifdef FLAC__VALGRIND_TESTING
+static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+	size_t ret = fwrite(ptr, size, nmemb, stream);
+	if(!ferror(stream))
+		fflush(stream);
+	return ret;
+}
+#else
+#define local__fwrite fwrite
+#endif
+
 /****************************************************************************
  *
  * Level 0 implementation
@@ -1661,7 +1673,7 @@ FLAC__bool write_metadata_block_header_(FILE *file, FLAC__Metadata_SimpleIterato
 	buffer[0] = (block->is_last? 0x80 : 0) | (FLAC__byte)block->type;
 	pack_uint32_(block->length, buffer + 1, 3);
 
-	if(fwrite(buffer, 1, FLAC__STREAM_METADATA_HEADER_LENGTH, file) != FLAC__STREAM_METADATA_HEADER_LENGTH) {
+	if(local__fwrite(buffer, 1, FLAC__STREAM_METADATA_HEADER_LENGTH, file) != FLAC__STREAM_METADATA_HEADER_LENGTH) {
 		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 		return false;
 	}
@@ -1723,7 +1735,7 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_streaminfo_(FILE *
 	pack_uint32_((FLAC__uint32)block->total_samples, buffer+14, 4);
 	memcpy(buffer+18, block->md5sum, 16);
 
-	if(fwrite(buffer, 1, FLAC__STREAM_METADATA_STREAMINFO_LENGTH, file) != FLAC__STREAM_METADATA_STREAMINFO_LENGTH)
+	if(local__fwrite(buffer, 1, FLAC__STREAM_METADATA_STREAMINFO_LENGTH, file) != FLAC__STREAM_METADATA_STREAMINFO_LENGTH)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
@@ -1741,12 +1753,12 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_padding_(FILE *fil
 	memset(buffer, 0, 1024);
 
 	for(i = 0; i < n/1024; i++)
-		if(fwrite(buffer, 1, 1024, file) != 1024)
+		if(local__fwrite(buffer, 1, 1024, file) != 1024)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	n %= 1024;
 
-	if(fwrite(buffer, 1, n, file) != n)
+	if(local__fwrite(buffer, 1, n, file) != n)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
@@ -1758,12 +1770,12 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_application_(FILE 
 
 	FLAC__ASSERT(0 != file);
 
-	if(fwrite(block->id, 1, id_bytes, file) != id_bytes)
+	if(local__fwrite(block->id, 1, id_bytes, file) != id_bytes)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	block_length -= id_bytes;
 
-	if(fwrite(block->data, 1, block_length, file) != block_length)
+	if(local__fwrite(block->data, 1, block_length, file) != block_length)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
@@ -1781,7 +1793,7 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_seektable_(FILE *f
 		pack_uint64_(block->points[i].sample_number, buffer, 8);
 		pack_uint64_(block->points[i].stream_offset, buffer+8, 8);
 		pack_uint32_(block->points[i].frame_samples, buffer+16, 2);
-		if(fwrite(buffer, 1, FLAC__STREAM_METADATA_SEEKPOINT_LENGTH, file) != FLAC__STREAM_METADATA_SEEKPOINT_LENGTH)
+		if(local__fwrite(buffer, 1, FLAC__STREAM_METADATA_SEEKPOINT_LENGTH, file) != FLAC__STREAM_METADATA_SEEKPOINT_LENGTH)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 	}
 
@@ -1799,20 +1811,20 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_vorbis_comment_(FI
 	FLAC__ASSERT(0 != file);
 
 	pack_uint32_little_endian_(block->vendor_string.length, buffer, entry_length_len);
-	if(fwrite(buffer, 1, entry_length_len, file) != entry_length_len)
+	if(local__fwrite(buffer, 1, entry_length_len, file) != entry_length_len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
-	if(fwrite(block->vendor_string.entry, 1, block->vendor_string.length, file) != block->vendor_string.length)
+	if(local__fwrite(block->vendor_string.entry, 1, block->vendor_string.length, file) != block->vendor_string.length)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	pack_uint32_little_endian_(block->num_comments, buffer, num_comments_len);
-	if(fwrite(buffer, 1, num_comments_len, file) != num_comments_len)
+	if(local__fwrite(buffer, 1, num_comments_len, file) != num_comments_len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	for(i = 0; i < block->num_comments; i++) {
 		pack_uint32_little_endian_(block->comments[i].length, buffer, entry_length_len);
-		if(fwrite(buffer, 1, entry_length_len, file) != entry_length_len)
+		if(local__fwrite(buffer, 1, entry_length_len, file) != entry_length_len)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
-		if(fwrite(block->comments[i].entry, 1, block->comments[i].length, file) != block->comments[i].length)
+		if(local__fwrite(block->comments[i].entry, 1, block->comments[i].length, file) != block->comments[i].length)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 	}
 
@@ -1833,13 +1845,13 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *fi
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN / 8;
-	if(fwrite(block->media_catalog_number, 1, len, file) != len)
+	if(local__fwrite(block->media_catalog_number, 1, len, file) != len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN / 8;
 	pack_uint64_(block->lead_in, buffer, len);
-	if(fwrite(buffer, 1, len, file) != len)
+	if(local__fwrite(buffer, 1, len, file) != len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	FLAC__ASSERT((FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN + FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN) % 8 == 0);
@@ -1847,13 +1859,13 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *fi
 	memset(buffer, 0, len);
 	if(block->is_cd)
 		buffer[0] |= 0x80;
-	if(fwrite(buffer, 1, len, file) != len)
+	if(local__fwrite(buffer, 1, len, file) != len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN / 8;
 	pack_uint32_(block->num_tracks, buffer, len);
-	if(fwrite(buffer, 1, len, file) != len)
+	if(local__fwrite(buffer, 1, len, file) != len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	for(i = 0; i < block->num_tracks; i++) {
@@ -1862,31 +1874,31 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *fi
 		FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN % 8 == 0);
 		len = FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN / 8;
 		pack_uint64_(track->offset, buffer, len);
-		if(fwrite(buffer, 1, len, file) != len)
+		if(local__fwrite(buffer, 1, len, file) != len)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 		FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN % 8 == 0);
 		len = FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN / 8;
 		pack_uint32_(track->number, buffer, len);
-		if(fwrite(buffer, 1, len, file) != len)
+		if(local__fwrite(buffer, 1, len, file) != len)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 		FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN % 8 == 0);
 		len = FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN / 8;
-		if(fwrite(track->isrc, 1, len, file) != len)
+		if(local__fwrite(track->isrc, 1, len, file) != len)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 		FLAC__ASSERT((FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN) % 8 == 0);
 		len = (FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN) / 8;
 		memset(buffer, 0, len);
 		buffer[0] = (track->type << 7) | (track->pre_emphasis << 6);
-		if(fwrite(buffer, 1, len, file) != len)
+		if(local__fwrite(buffer, 1, len, file) != len)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 		FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN % 8 == 0);
 		len = FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN / 8;
 		pack_uint32_(track->num_indices, buffer, len);
-		if(fwrite(buffer, 1, len, file) != len)
+		if(local__fwrite(buffer, 1, len, file) != len)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 		for(j = 0; j < track->num_indices; j++) {
@@ -1895,19 +1907,19 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *fi
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN % 8 == 0);
 			len = FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN / 8;
 			pack_uint64_(index->offset, buffer, len);
-			if(fwrite(buffer, 1, len, file) != len)
+			if(local__fwrite(buffer, 1, len, file) != len)
 				return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN % 8 == 0);
 			len = FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN / 8;
 			pack_uint32_(index->number, buffer, len);
-			if(fwrite(buffer, 1, len, file) != len)
+			if(local__fwrite(buffer, 1, len, file) != len)
 				return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN % 8 == 0);
 			len = FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN / 8;
 			memset(buffer, 0, len);
-			if(fwrite(buffer, 1, len, file) != len)
+			if(local__fwrite(buffer, 1, len, file) != len)
 				return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 		}
 	}
@@ -2278,7 +2290,7 @@ FLAC__bool simple_iterator_copy_file_postfix_(FLAC__Metadata_SimpleIterator *ite
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 			return false;
 		}
-		if(fwrite(&x, 1, 1, *tempfile) != 1) {
+		if(local__fwrite(&x, 1, 1, *tempfile) != 1) {
 			cleanup_tempfile_(tempfile, tempfilename);
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 			return false;
@@ -2321,7 +2333,7 @@ FLAC__bool copy_n_bytes_from_file_(FILE *file, FILE *tempfile, unsigned bytes/*@
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 			return false;
 		}
-		if(fwrite(buffer, 1, n, tempfile) != n) {
+		if(local__fwrite(buffer, 1, n, tempfile) != n) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 			return false;
 		}
@@ -2342,7 +2354,7 @@ FLAC__bool copy_remaining_bytes_from_file_(FILE *file, FILE *tempfile, FLAC__Met
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 			return false;
 		}
-		if(n > 0 && fwrite(buffer, 1, n, tempfile) != n) {
+		if(n > 0 && local__fwrite(buffer, 1, n, tempfile) != n) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 			return false;
 		}

@@ -20,6 +20,7 @@
 #define flac__utils_h
 
 #include "FLAC/ordinals.h"
+#include <stdio.h> /* for FILE */
 
 typedef struct {
 	FLAC__bool is_relative; /* i.e. specification string started with + or - */
@@ -30,6 +31,11 @@ typedef struct {
 	} value;
 } utils__SkipUntilSpecification;
 
+#ifdef FLAC__VALGRIND_TESTING
+size_t flac__utils_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+#else
+#define flac__utils_fwrite fwrite
+#endif
 FLAC__bool flac__utils_parse_skip_until_specification(const char *s, utils__SkipUntilSpecification *spec);
 void flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, unsigned sample_rate);
 

@@ -78,6 +78,16 @@ static FLAC__bool local__parse_timecode_(const char *s, double *value)
 	return true;
 }
 
+#ifdef FLAC__VALGRIND_TESTING
+size_t flac__utils_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+	size_t ret = fwrite(ptr, size, nmemb, stream);
+	if(!ferror(stream))
+		fflush(stream);
+	return ret;
+}
+#endif
+
 FLAC__bool flac__utils_parse_skip_until_specification(const char *s, utils__SkipUntilSpecification *spec)
 {
 	FLAC__uint64 val;

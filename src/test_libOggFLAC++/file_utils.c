@@ -30,6 +30,18 @@
 
 const long file_utils__serial_number = 12345;
 
+#ifdef FLAC__VALGRIND_TESTING
+static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+	size_t ret = fwrite(ptr, size, nmemb, stream);
+	if(!ferror(stream))
+		fflush(stream);
+	return ret;
+}
+#else
+#define local__fwrite fwrite
+#endif
+
 typedef struct {
 	FILE *file;
 } encoder_client_struct;
@@ -40,7 +52,7 @@ static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const OggFLAC__Str
 
 	(void)encoder, (void)samples, (void)current_frame;
 
-	if(fwrite(buffer, 1, bytes, ecd->file) != bytes)
+	if(local__fwrite(buffer, 1, bytes, ecd->file) != bytes)
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 	else
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;

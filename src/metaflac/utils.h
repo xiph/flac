@@ -23,6 +23,11 @@
 #include <stdio.h> /* for FILE */
 
 void die(const char *message);
+#ifdef FLAC__VALGRIND_TESTING
+size_t local_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);
+#else
+#define local_fwrite fwrite
+#endif
 char *local_strdup(const char *source);
 void local_strcat(char **dest, const char *source);
 void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent);

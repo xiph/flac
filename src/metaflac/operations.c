@@ -568,7 +568,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 				if(hexdump_application)
 					hexdump(filename, block->data.application.data, block->length - FLAC__STREAM_METADATA_HEADER_LENGTH, "    ");
 				else
-					(void) fwrite(block->data.application.data, 1, block->length - FLAC__STREAM_METADATA_HEADER_LENGTH, stdout);
+					(void) local_fwrite(block->data.application.data, 1, block->length - FLAC__STREAM_METADATA_HEADER_LENGTH, stdout);
 			}
 			break;
 		case FLAC__METADATA_TYPE_SEEKTABLE:
