@@ -64,24 +64,24 @@ AC_ARG_ENABLE(debug,
 esac],[debug=false])
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
-AC_ARG_ENABLE(sse_os,
-[  --sse-os                 Enable SSE support by asserting that the OS supports SSE instructions],
+AC_ARG_ENABLE(sse,
+[  --enable-sse                   Enable SSE support by asserting that the OS supports SSE instructions],
 [case "${enableval}" in
 	yes) sse_os=true ;;
 	no)  sse_os=false ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --sse-os) ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
 esac],[sse_os=false])
 AM_CONDITIONAL(FLaC__SSE_OS, test x$sse_os = xtrue)
 if test x$sse_os = xtrue ; then
 AC_DEFINE(FLAC__SSE_OS)
 fi
 
-AC_ARG_ENABLE(use_3dnow,
-[  --use-3dnow                 Enable 3DNOW! support],
+AC_ARG_ENABLE(3dnow,
+[  --enable-3dnow                 Enable 3DNOW! support],
 [case "${enableval}" in
 	yes) use_3dnow=true ;;
 	no)  use_3dnow=false ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --use-3dnow) ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-3dnow) ;;
 esac],[use_3dnow=false])
 AM_CONDITIONAL(FLaC__USE_3DNOW, test x$use_3dnow = xtrue)
 if test x$use_3dnow = xtrue ; then
