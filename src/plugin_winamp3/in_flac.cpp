@@ -1,3 +1,4 @@
+/* in_flac - Winamp3 FLAC input plugin
  * Copyright (C) 2001  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or

@@ -1,12 +1,39 @@
+/* FLAC - Free Lossless Audio Codec
+ * Copyright (C) 2001  Josh Coalson
+ *
+ * This program is part of FLAC; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+
+FLAC (http://flac.sourceforge.net/) is an Open Source lossless audio
+codec developed by Josh Coalson.
+
+FLAC is comprised of 1) `libFLAC', a library which implements
+reference encoders and decoders, licensed under the GNU Lesser
+General Public License (LGPL); 2) `flac', a command-line program for 
+encoding and decoding files, licensed under the GNU General public
+License (GPL); 3) `metaflac', a command-line program for editing
+FLAC metadata, licensed under the GPL; 4) player plugins for XMMS
+and Winamp, licensed under the GPL; and 5) documentation, licensed
+under the GNU Free Documentation License.
+
 ===========
 FLAC - 0.10
 ===========
 
-This is the source release for the FLAC project.  The
-reference encoder/decoder library 'libFLAC' is released
-under the LGPL (see COPYING.LGPL).  This means the code
-in include/FLAC/ and src/libFLAC/.  All other code is
-covered by the GPL (see COPYING.GPL).  See
+This is the source release for the FLAC project.  See
 
 	doc/index.html
 
