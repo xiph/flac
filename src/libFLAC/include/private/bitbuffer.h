@@ -65,10 +65,10 @@ bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_ca
 bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
 bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, uint32 *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
 bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, uint64 *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
-bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
-bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, int32 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
-bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, uint64 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
-bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, int64 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
+bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, const unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
+bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, int32 *val, const unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
+bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, uint64 *val, const unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
+bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, int64 *val, const unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
 bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
 bool FLAC__bitbuffer_read_symmetric_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
 bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data);
