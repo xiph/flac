@@ -129,19 +129,19 @@
 		</UL>
 	</P>
 	<P>
-		In any case, if no <TT>inputfile</TT> is specified, stdin is assumed.  If only one inputfile is specified, it may be "-" for stdin.  When stdin is used as input, <B><TT>flac</TT></B> will write to stdout.  Otherwise <B><TT>flac</TT></B> will perform the desired operation on each input file to similarly named output files (meaning for encoding, the extension will be replaced with ".flac", or appended with ".flac" if the input file has no extension, and for decoding, the extension will be ".wav" for WAVE output and ".raw" for raw output).  The original file is not deleted.
+		In any case, if no <TT>inputfile</TT> is specified, stdin is assumed.  If only one inputfile is specified, it may be "-" for stdin.  When stdin is used as input, <B><TT>flac</TT></B> will write to stdout.  Otherwise <B><TT>flac</TT></B> will perform the desired operation on each input file to similarly named output files (meaning for encoding, the extension will be replaced with ".flac", or appended with ".flac" if the input file has no extension, and for decoding, the extension will be ".wav" for WAVE output and ".raw" for raw output).  The original file is not deleted unless --delete-input-file is specified.
 	</P>
 	<P>
-		There are special forms for encoding/decoding from stdin to a file:
+		If you are encoding/decoding from stdin to a file, you should use the -o option like so:
 		<UL>
 		<LI>
-			flac [options] - outputfile
+			flac [options] -o outputfile
 		</LI>
 		<LI>
-			flac -d [options] - outputfile
+			flac -d [options] -o outputfile
 		</LI>
 		</UL>
-		which are better than
+		which are better than:
 		<UL>
 		<LI>
 			flac [options] &gt; outputfile
@@ -170,7 +170,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				-d
+				<TT>-d</TT>
 			</TD>
 			<TD>
 				Decode (<B><TT>flac</TT></B> encodes by default).  <B><TT>flac</TT></B> will exit with an exit code of <TT>1</TT> (and print a message, even in silent mode) if there were any errors during decoding, including when the MD5 checksum does not match the decoded output.  Otherwise the exit code will be <TT>0</TT>.
@@ -178,7 +178,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				-t
+				<TT>-t</TT>
 			</TD>
 			<TD>
 				Test (same as <B><TT>-d</TT></B> except no decoded file is written).  The exit codes are the same as in decode mode.
@@ -186,7 +186,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				-a
+				<TT>-a</TT>
 			</TD>
 			<TD>
 				Analyze (same as <B><TT>-d</TT></B> except an analysis file is written).  The exit codes are the same as in decode mode.  This option is mainly for developers; the output will be a text file that has data about each frame and subframe.
@@ -194,7 +194,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				-c
+				<TT>-c</TT>
 			</TD>
 			<TD>
 				Write output to stdout
@@ -202,7 +202,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				-s
+				<TT>-s</TT>
 			</TD>
 			<TD>
 				Silent: do not show encoding/decoding statistics.
@@ -210,7 +210,23 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				--skip #
+				<TT>-o filename</TT>
+			</TD>
+			<TD>
+				Force the output file name (usually <TT>flac</TT> just changes the extension).
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--delete-input-file</TT>
+			</TD>
+			<TD>
+				Automatically delete the input file after a successful encode or decode.  If there was an error (including a verify error) the input file is left intact.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--skip #</TT>
 			</TD>
 			<TD>
 				Skip over the first # of samples of the input.  This works for both encoding and decoding, but not testing.
@@ -466,7 +482,7 @@
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 			</TD>
 			<TD>
-				<TT>-S-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--lax-</TT> can all be used to turn off a particular option.
+				<TT>-S-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--delete-input-file-</TT>, <TT>--lax-</TT> can all be used to turn off a particular option.
 			</TD>
 		</TR>
 	</TABLE>

@@ -48,7 +48,7 @@
 
 	    <arg><option><replaceable>OPTION</replaceable></option></arg>
 	    <arg choice=plain><replaceable>infile</replaceable></arg>
-	    <arg choice=plain><replaceable>outfile</replaceable></arg>
+	    <arg choice=plain><replaceable>...</replaceable></arg>
 	  </cmdsynopsis>
 	</refsynopsisdiv>
 	<refsect1>
@@ -105,6 +105,25 @@
 		<listitem>
 		  <para>Silent mode (do not write runtime
 		    encode/decode statistics to stdout)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-o</option> <replaceable>filename</replaceable></term>
+		<listitem>
+		  <para>Force the output file name (usually flac just
+		    changes the extension).</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>--delete-input-file</option>
+		</term>
+		<listitem>
+		  <para>Automatically delete the input file after a
+		    successful encode or decode.  If there was an
+		    error (including a verify error) the input file
+		    is left intact.</para>
 		</listitem>
 	      </varlistentry>
 
@@ -399,7 +418,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-S-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-p-</option> <option>-V-</option> <option>--lax-</option>
+		<term><option>-S-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option>
 		</term>
 
 		<listitem>
