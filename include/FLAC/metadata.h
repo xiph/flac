@@ -472,9 +472,7 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__MetaData_Iterator *i
 
 	There is no need to recalculate the length field on metadata blocks
 	you have modified.  They will be calculated automatically before they
-	are written back to a file.  @@@NO LONGER NEEDED? If you need to know the length to can
-	explicitly call FLAC__metadata_object_calculate_length(), then read
-	object->length
+	are written back to a file.
 ******************************************************************************/
 
 
@@ -484,10 +482,6 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__MetaData_Iterator *i
 FLAC__StreamMetaData *FLAC__metadata_object_new(FLAC__MetaDataType type);
 FLAC__StreamMetaData *FLAC__metadata_object_copy(const FLAC__StreamMetaData *object);
 void FLAC__metadata_object_delete(FLAC__StreamMetaData *object);
-#if 0
-@@@ no longer needed
-void FLAC__metadata_object_calculate_length(FLAC__StreamMetaData *object);
-#endif
 
 /******************************************************************
  * FLAC__StreamMetaData_Application
