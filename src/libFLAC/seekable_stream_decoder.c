@@ -55,6 +55,7 @@ typedef struct FLAC__SeekableStreamDecoderPrivate {
 	void (*error_callback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 	void *client_data;
 	FLAC__StreamDecoder *stream_decoder;
+	FLAC__bool do_md5_checking; /* initially gets protected_->md5_checking but is turned off after a seek */
 	struct MD5Context md5context;
 	FLAC__byte stored_md5sum[16]; /* this is what is stored in the metadata */
 	FLAC__byte computed_md5sum[16]; /* this is the sum we computed from the decoded data */
@@ -188,8 +189,10 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__Seekab
 
 	decoder->private_->seek_table = 0;
 
+	decoder->private_->do_md5_checking = decoder->protected_->md5_checking;
+
 	/* We initialize the MD5Context even though we may never use it.  This is
-	 * because md5_checking may be turned on to start and then turned off if a
+	 * because md5 checking may be turned on to start and then turned off if a
 	 * seek occurs.  So we always init the context here and finalize it in
 	 * FLAC__seekable_stream_decoder_finish() to make sure things are always
 	 * cleaned up properly.
@@ -235,7 +238,7 @@ FLAC__bool FLAC__seekable_stream_decoder_finish(FLAC__SeekableStreamDecoder *dec
 
 	FLAC__stream_decoder_finish(decoder->private_->stream_decoder);
 
-	if(decoder->protected_->md5_checking) {
+	if(decoder->private_->do_md5_checking) {
 		if(memcmp(decoder->private_->stored_md5sum, decoder->private_->computed_md5sum, 16))
 			md5_failed = true;
 	}
@@ -489,7 +492,7 @@ FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *deco
 	FLAC__ASSERT(decoder->private_ != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
 
-	decoder->protected_->md5_checking = false;
+	decoder->private_->do_md5_checking = false;
 
 	if(!FLAC__stream_decoder_flush(decoder->private_->stream_decoder)) {
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
@@ -516,6 +519,16 @@ FLAC__bool FLAC__seekable_stream_decoder_reset(FLAC__SeekableStreamDecoder *deco
 	}
 
 	decoder->private_->seek_table = 0;
+
+	decoder->private_->do_md5_checking = decoder->protected_->md5_checking;
+
+	/* We initialize the MD5Context even though we may never use it.  This is
+	 * because md5 checking may be turned on to start and then turned off if a
+	 * seek occurs.  So we always init the context here and finalize it in
+	 * FLAC__seekable_stream_decoder_finish() to make sure things are always
+	 * cleaned up properly.
+	 */
+	MD5Init(&decoder->private_->md5context);
 
 	decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_OK;
 
@@ -612,7 +625,7 @@ FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecod
 	decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEKING;
 
 	/* turn off md5 checking if a seek is attempted */
-	decoder->protected_->md5_checking = false;
+	decoder->private_->do_md5_checking = false;
 
 	if(!FLAC__stream_decoder_reset(decoder->private_->stream_decoder)) {
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
@@ -733,7 +746,7 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decode
 		}
 	}
 	else {
-		if(seekable_stream_decoder->protected_->md5_checking) {
+		if(seekable_stream_decoder->private_->do_md5_checking) {
 			if(!FLAC__MD5Accumulate(&seekable_stream_decoder->private_->md5context, buffer, frame->header.channels, frame->header.blocksize, (frame->header.bits_per_sample+7) / 8))
 				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
@@ -751,7 +764,7 @@ void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMe
 		/* save the MD5 signature for comparison later */
 		memcpy(seekable_stream_decoder->private_->stored_md5sum, metadata->data.stream_info.md5sum, 16);
 		if(0 == memcmp(seekable_stream_decoder->private_->stored_md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16))
-			seekable_stream_decoder->protected_->md5_checking = false;
+			seekable_stream_decoder->private_->do_md5_checking = false;
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_SEEKTABLE) {
 		seekable_stream_decoder->private_->seek_table = &metadata->data.seek_table;
