@@ -140,7 +140,7 @@ static void init_metadata_blocks_()
 	seektable_.type = FLAC__METADATA_TYPE_SEEKTABLE;
 	seektable_.data.seek_table.num_points = 2;
 	seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	seektable_.data.seek_table.points = malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint));
+	seektable_.data.seek_table.points = (FLAC__StreamMetadata_SeekPoint*)malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint));
 	seektable_.data.seek_table.points[0].sample_number = 0;
 	seektable_.data.seek_table.points[0].stream_offset = 0;
 	seektable_.data.seek_table.points[0].frame_samples = streaminfo_.data.stream_info.min_blocksize;
@@ -152,7 +152,7 @@ static void init_metadata_blocks_()
 	application1_.type = FLAC__METADATA_TYPE_APPLICATION;
 	application1_.length = 8;
 	memcpy(application1_.data.application.id, "\xfe\xdc\xba\x98", 4);
-	application1_.data.application.data = malloc_or_die_(4);
+	application1_.data.application.data = (FLAC__byte*)malloc_or_die_(4);
 	memcpy(application1_.data.application.data, "\xf0\xe1\xd2\xc3", 4);
 
 	application2_.is_last = false;
@@ -165,12 +165,12 @@ static void init_metadata_blocks_()
 	vorbiscomment_.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
 	vorbiscomment_.length = (4 + 8) + 4 + (4 + 5) + (4 + 0);
 	vorbiscomment_.data.vorbis_comment.vendor_string.length = 8;
-	vorbiscomment_.data.vorbis_comment.vendor_string.entry = malloc_or_die_(8);
+	vorbiscomment_.data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc_or_die_(8);
 	memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, "flac 1.x", 8);
 	vorbiscomment_.data.vorbis_comment.num_comments = 2;
-	vorbiscomment_.data.vorbis_comment.comments = malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
+	vorbiscomment_.data.vorbis_comment.comments = (FLAC__StreamMetadata_VorbisComment_Entry*)malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
 	vorbiscomment_.data.vorbis_comment.comments[0].length = 5;
-	vorbiscomment_.data.vorbis_comment.comments[0].entry = malloc_or_die_(5);
+	vorbiscomment_.data.vorbis_comment.comments[0].entry = (FLAC__byte*)malloc_or_die_(5);
 	memcpy(vorbiscomment_.data.vorbis_comment.comments[0].entry, "ab=cd", 5);
 	vorbiscomment_.data.vorbis_comment.comments[1].length = 0;
 	vorbiscomment_.data.vorbis_comment.comments[1].entry = 0;
