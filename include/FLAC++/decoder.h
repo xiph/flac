@@ -81,6 +81,7 @@ namespace FLAC {
 				inline State(::FLAC__StreamDecoderState state): state_(state) { }
 				inline operator ::FLAC__StreamDecoderState() const { return state_; }
 				inline const char *as_cstring() const { return ::FLAC__StreamDecoderStateString[state_]; }
+				const char *resolved_as_cstring(const Stream &) const;
 			protected:
 				::FLAC__StreamDecoderState state_;
 			};
@@ -166,6 +167,7 @@ namespace FLAC {
 				inline State(::FLAC__SeekableStreamDecoderState state): state_(state) { }
 				inline operator ::FLAC__SeekableStreamDecoderState() const { return state_; }
 				inline const char *as_cstring() const { return ::FLAC__SeekableStreamDecoderStateString[state_]; }
+				const char *resolved_as_cstring(const SeekableStream &) const;
 			protected:
 				::FLAC__SeekableStreamDecoderState state_;
 			};
@@ -260,6 +262,7 @@ namespace FLAC {
 				inline State(::FLAC__FileDecoderState state): state_(state) { }
 				inline operator ::FLAC__FileDecoderState() const { return state_; }
 				inline const char *as_cstring() const { return ::FLAC__FileDecoderStateString[state_]; }
+				const char *resolved_as_cstring(const File &) const;
 			protected:
 				::FLAC__FileDecoderState state_;
 			};
