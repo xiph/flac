@@ -23,7 +23,6 @@
  * Still in the public domain.
  */
 
-#include <assert.h>		/* for assert() */
 #include <stdlib.h>		/* for malloc() */
 #include <string.h>		/* for memcpy() */
 

@@ -39,8 +39,8 @@ cglobal FLAC__lpc_restore_signal_asm_i386_mmx
 ;	unsigned sample, coeff;
 ;	const unsigned limit = data_len - lag;
 ;
-;	assert(lag > 0);
-;	assert(lag <= data_len);
+;	FLAC__ASSERT(lag > 0);
+;	FLAC__ASSERT(lag <= data_len);
 ;
 ;	for(coeff = 0; coeff < lag; coeff++)
 ;		autoc[coeff] = 0.0;
@@ -790,7 +790,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx
 ; 	unsigned i, j;
 ; 	int32 sum;
 ;
-; 	assert(order > 0);
+; 	FLAC__ASSERT(order > 0);
 ;
 ; 	for(i = 0; i < data_len; i++) {
 ; 		sum = 0;

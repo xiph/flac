@@ -19,8 +19,8 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <sys/time.h>
+#include "FLAC/assert.h"
 #include "FLAC/ordinals.h"
 
 #ifdef _WIN32
@@ -151,7 +151,7 @@ static bool generate_fsd8(const char *fn, const int pattern[], unsigned reps)
 	FILE *f;
 	unsigned rep, p;
 
-	assert(pattern != 0);
+	FLAC__ASSERT(pattern != 0);
 
 	if(0 == (f = fopen(fn, mode)))
 		return false;
@@ -177,7 +177,7 @@ static bool generate_fsd16(const char *fn, const int pattern[], unsigned reps)
 	FILE *f;
 	unsigned rep, p;
 
-	assert(pattern != 0);
+	FLAC__ASSERT(pattern != 0);
 
 	if(0 == (f = fopen(fn, mode)))
 		return false;
@@ -231,7 +231,7 @@ static bool generate_fsd24(const char *fn, const int pattern[], unsigned reps)
 	FILE *f;
 	unsigned rep, p;
 
-	assert(pattern != 0);
+	FLAC__ASSERT(pattern != 0);
 
 	if(0 == (f = fopen(fn, mode)))
 		return false;

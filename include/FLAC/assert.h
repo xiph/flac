@@ -17,37 +17,15 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include "private/bitmath.h"
-#include "FLAC/assert.h"
+#ifndef FLAC__ASSERT_H
+#define FLAC__ASSERT_H
 
-unsigned FLAC__bitmath_ilog2(unsigned v)
-{
-	unsigned l = 0;
-	FLAC__ASSERT(v > 0);
-	while(v >>= 1)
-		l++;
-	return l;
-}
+/* we need this since some compilers (like MSVC) leave asserts on release code (and we don't want to use their ASSERT) */
+#ifdef DEBUG
+#include <assert.h>
+#define FLAC__ASSERT(x) assert(x)
+#else
+#define FLAC__ASSERT(x)
+#endif
 
-unsigned FLAC__bitmath_silog2(int v)
-{
-	while(1) {
-		if(v == 0) {
-			return 0;
-		}
-		else if(v > 0) {
-			unsigned l = 0;
-			while(v) {
-				l++;
-				v >>= 1;
-			}
-			return l+1;
-		}
-		else if(v == -1) {
-			return 2;
-		}
-		else {
-			v = -(++v);
-		}
-	}
-}
+#endif

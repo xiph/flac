@@ -346,7 +346,7 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 	if(file_info->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_ABORT;
 
-	assert(bps == 16);
+	FLAC__ASSERT(bps == 16);
 
 	for(sample = reservoir_samples_*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 		for(channel = 0; channel < channels; channel++, sample++)
@@ -362,7 +362,7 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		assert(metadata->data.stream_info.total_samples < 0x100000000); /* this plugin can only handle < 4 gigasamples */
+		FLAC__ASSERT(metadata->data.stream_info.total_samples < 0x100000000); /* this plugin can only handle < 4 gigasamples */
 		file_info->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xffffffff);
 		file_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
 		file_info->channels = metadata->data.stream_info.channels;

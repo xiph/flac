@@ -22,7 +22,6 @@
  * duplicated here.  Look for 'DUPLICATE:' in comments.
  */
 
-#include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -239,7 +238,7 @@ bool list(FILE *f, bool verbose)
 				}
 				break;
 			default:
-				assert(0);
+				FLAC__ASSERT(0);
 		}
 
 		if(!metadata.is_last)

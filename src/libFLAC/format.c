@@ -17,7 +17,6 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include <assert.h>
 #include <stdio.h>
 #include "FLAC/format.h"
 

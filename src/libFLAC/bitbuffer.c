@@ -17,12 +17,12 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include <assert.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy(), memset() */
 #include "private/bitbuffer.h"
 #include "private/bitmath.h"
 #include "private/crc.h"
+#include "FLAC/assert.h"
 
 /*
  * Along the way you will see two versions of some functions, selected
@@ -50,8 +50,8 @@ static bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 {
 	byte *new_buffer;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
 	if(bb->capacity == new_capacity)
 		return true;
@@ -80,7 +80,7 @@ static bool bitbuffer_grow_(FLAC__BitBuffer *bb, unsigned min_bytes_to_add)
 {
 	unsigned new_capacity;
 
-	assert(min_bytes_to_add > 0);
+	FLAC__ASSERT(min_bytes_to_add > 0);
 
 	new_capacity = max(bb->capacity * 4, bb->capacity + min_bytes_to_add);
 	return bitbuffer_resize_(bb, new_capacity);
@@ -88,8 +88,8 @@ static bool bitbuffer_grow_(FLAC__BitBuffer *bb, unsigned min_bytes_to_add)
 
 static bool bitbuffer_ensure_size_(FLAC__BitBuffer *bb, unsigned bits_to_add)
 {
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 	if((bb->capacity<<3) < bb->total_bits + bits_to_add)
 		return bitbuffer_grow_(bb, (bits_to_add>>3)+2);
 	else
@@ -128,7 +128,8 @@ static bool bitbuffer_read_from_client_(FLAC__BitBuffer *bb, bool (*read_callbac
 
 void FLAC__bitbuffer_init(FLAC__BitBuffer *bb)
 {
-	assert(bb != 0);
+	FLAC__ASSERT(bb != 0);
+
 	bb->buffer = 0;
 	bb->capacity = 0;
 	bb->bytes = bb->bits = bb->total_bits = 0;
@@ -137,12 +138,13 @@ void FLAC__bitbuffer_init(FLAC__BitBuffer *bb)
 
 bool FLAC__bitbuffer_init_from(FLAC__BitBuffer *bb, const byte buffer[], unsigned bytes)
 {
-	assert(bb != 0);
+	FLAC__ASSERT(bb != 0);
 	FLAC__bitbuffer_init(bb);
+
 	if(bytes == 0)
 		return true;
 	else {
-		assert(buffer != 0);
+		FLAC__ASSERT(buffer != 0);
 		bb->buffer = (byte*)malloc(sizeof(byte)*bytes);
 		if(bb->buffer == 0)
 			return false;
@@ -157,7 +159,7 @@ bool FLAC__bitbuffer_init_from(FLAC__BitBuffer *bb, const byte buffer[], unsigne
 
 void FLAC__bitbuffer_init_read_crc16(FLAC__BitBuffer *bb, uint16 seed)
 {
-	assert(bb != 0);
+	FLAC__ASSERT(bb != 0);
 
 	bb->read_crc16 = seed;
 }
@@ -167,8 +169,8 @@ bool FLAC__bitbuffer_concatenate_aligned(FLAC__BitBuffer *dest, const FLAC__BitB
 	static const byte mask_[9] = { 0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
 	unsigned bits_to_add = src->total_bits - src->total_consumed_bits;
 
-	assert(dest != 0);
-	assert(src != 0);
+	FLAC__ASSERT(dest != 0);
+	FLAC__ASSERT(src != 0);
 
 	if(bits_to_add == 0)
 		return true;
@@ -197,7 +199,8 @@ bool FLAC__bitbuffer_concatenate_aligned(FLAC__BitBuffer *dest, const FLAC__BitB
 
 void FLAC__bitbuffer_free(FLAC__BitBuffer *bb)
 {
-	assert(bb != 0);
+	FLAC__ASSERT(bb != 0);
+
 	if(bb->buffer != 0)
 		free(bb->buffer);
 	bb->buffer = 0;
@@ -243,8 +246,8 @@ bool FLAC__bitbuffer_write_zeroes(FLAC__BitBuffer *bb, unsigned bits)
 {
 	unsigned n, k;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
 	if(bits == 0)
 		return true;
@@ -269,14 +272,17 @@ bool FLAC__bitbuffer_write_raw_uint32(FLAC__BitBuffer *bb, uint32 val, unsigned 
 {
 	unsigned n, k;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 32);
+	FLAC__ASSERT(bits <= 32);
 	if(bits == 0)
 		return true;
-	if(!bitbuffer_ensure_size_(bb, bits))
-		return false;
+	/* inline the size check so we don't incure a function call unnecessarily */
+	if((bb->capacity<<3) < bb->total_bits + bits) {
+		if(!bitbuffer_ensure_size_(bb, bits))
+			return false;
+	}
 	if(bits < 32) /* @@@ gcc seems to require this because the following line causes incorrect results when bits==32; investigate */
 		val &= (~(0xffffffff << bits)); /* zero-out unused bits */
 	bb->total_bits += bits;
@@ -352,10 +358,10 @@ bool FLAC__bitbuffer_write_raw_uint64(FLAC__BitBuffer *bb, uint64 val, unsigned 
 	};
 	unsigned n, k;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 64);
+	FLAC__ASSERT(bits <= 64);
 	if(bits == 0)
 		return true;
 	if(!bitbuffer_ensure_size_(bb, bits))
@@ -440,7 +446,7 @@ unsigned FLAC__bitbuffer_golomb_bits_signed(int val, unsigned parameter)
 	unsigned bits, msbs, uval;
 	unsigned k;
 
-	assert(parameter > 0);
+	FLAC__ASSERT(parameter > 0);
 
 	/* convert signed to unsigned */
 	if(val < 0)
@@ -454,7 +460,7 @@ unsigned FLAC__bitbuffer_golomb_bits_signed(int val, unsigned parameter)
 
 	k = FLAC__bitmath_ilog2(parameter);
 	if(parameter == 1u<<k) {
-		assert(k <= 30);
+		FLAC__ASSERT(k <= 30);
 
 		msbs = uval >> k;
 		bits = 1 + k + msbs;
@@ -478,11 +484,11 @@ unsigned FLAC__bitbuffer_golomb_bits_unsigned(unsigned uval, unsigned parameter)
 	unsigned bits, msbs;
 	unsigned k;
 
-	assert(parameter > 0);
+	FLAC__ASSERT(parameter > 0);
 
 	k = FLAC__bitmath_ilog2(parameter);
 	if(parameter == 1u<<k) {
-		assert(k <= 30);
+		FLAC__ASSERT(k <= 30);
 
 		msbs = uval >> k;
 		bits = 1 + k + msbs;
@@ -506,9 +512,9 @@ bool FLAC__bitbuffer_write_symmetric_rice_signed(FLAC__BitBuffer *bb, int val, u
 	unsigned total_bits, interesting_bits, msbs;
 	uint32 pattern;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(parameter <= 31);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(parameter <= 31);
 
 	/* init pattern with the unary end bit and the sign bit */
 	if(val < 0) {
@@ -544,9 +550,9 @@ bool FLAC__bitbuffer_write_symmetric_rice_signed_guarded(FLAC__BitBuffer *bb, in
 	unsigned total_bits, interesting_bits, msbs;
 	uint32 pattern;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(parameter <= 31);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(parameter <= 31);
 
 	*overflow = false;
 
@@ -588,9 +594,9 @@ bool FLAC__bitbuffer_write_symmetric_rice_signed_escape(FLAC__BitBuffer *bb, int
 	unsigned total_bits, val_bits;
 	uint32 pattern;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(parameter <= 31);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(parameter <= 31);
 
 	val_bits = FLAC__bitmath_silog2(val);
 	total_bits = 2 + parameter + 5 + val_bits;
@@ -623,9 +629,9 @@ bool FLAC__bitbuffer_write_rice_signed(FLAC__BitBuffer *bb, int val, unsigned pa
 	unsigned total_bits, interesting_bits, msbs, uval;
 	uint32 pattern;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(parameter <= 30);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(parameter <= 30);
 
 	/* convert signed to unsigned */
 	if(val < 0)
@@ -663,9 +669,9 @@ bool FLAC__bitbuffer_write_rice_signed_guarded(FLAC__BitBuffer *bb, int val, uns
 	unsigned total_bits, interesting_bits, msbs, uval;
 	uint32 pattern;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(parameter <= 30);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(parameter <= 30);
 
 	*overflow = false;
 
@@ -709,9 +715,9 @@ bool FLAC__bitbuffer_write_golomb_signed(FLAC__BitBuffer *bb, int val, unsigned 
 	unsigned total_bits, msbs, uval;
 	unsigned k;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(parameter > 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(parameter > 0);
 
 	/* convert signed to unsigned */
 	if(val < 0)
@@ -727,7 +733,7 @@ bool FLAC__bitbuffer_write_golomb_signed(FLAC__BitBuffer *bb, int val, unsigned 
 	if(parameter == 1u<<k) {
 		unsigned pattern;
 
-		assert(k <= 30);
+		FLAC__ASSERT(k <= 30);
 
 		msbs = uval >> k;
 		total_bits = 1 + k + msbs;
@@ -777,15 +783,15 @@ bool FLAC__bitbuffer_write_golomb_unsigned(FLAC__BitBuffer *bb, unsigned uval, u
 	unsigned total_bits, msbs;
 	unsigned k;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(parameter > 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(parameter > 0);
 
 	k = FLAC__bitmath_ilog2(parameter);
 	if(parameter == 1u<<k) {
 		unsigned pattern;
 
-		assert(k <= 30);
+		FLAC__ASSERT(k <= 30);
 
 		msbs = uval >> k;
 		total_bits = 1 + k + msbs;
@@ -834,10 +840,10 @@ bool FLAC__bitbuffer_write_utf8_uint32(FLAC__BitBuffer *bb, uint32 val)
 {
 	bool ok = 1;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(!(val & 0x80000000)); /* this version only handles 31 bits */
+	FLAC__ASSERT(!(val & 0x80000000)); /* this version only handles 31 bits */
 
 	if(val < 0x80) {
 		return FLAC__bitbuffer_write_raw_uint32(bb, val, 8);
@@ -880,10 +886,10 @@ bool FLAC__bitbuffer_write_utf8_uint64(FLAC__BitBuffer *bb, uint64 val)
 {
 	bool ok = 1;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(!(val & 0xFFFFFFF000000000)); /* this version only handles 36 bits */
+	FLAC__ASSERT(!(val & 0xFFFFFFF000000000)); /* this version only handles 36 bits */
 
 	if(val < 0x80) {
 		return FLAC__bitbuffer_write_raw_uint32(bb, (uint32)val, 8);
@@ -943,9 +949,9 @@ bool FLAC__bitbuffer_zero_pad_to_byte_boundary(FLAC__BitBuffer *bb)
 bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	/* to avoid a drastic speed penalty we don't:
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(bb->bits == 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(bb->bits == 0);
 	*/
 
 	while(1) {
@@ -963,9 +969,9 @@ bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_ca
 bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	/* to avoid a drastic speed penalty we don't:
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(bb->bits == 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(bb->bits == 0);
 	*/
 
 	while(1) {
@@ -990,9 +996,9 @@ bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_ca
 bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, uint32 *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	/* to avoid a drastic speed penalty we don't:
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(bb->bits == 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(bb->bits == 0);
 	*/
 
 	while(1) {
@@ -1018,9 +1024,9 @@ bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, uint32 *val, bool (
 bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, uint64 *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	/* to avoid a drastic speed penalty we don't:
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(bb->bits == 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(bb->bits == 0);
 	*/
 
 	while(1) {
@@ -1048,10 +1054,10 @@ bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, const uns
 {
 	unsigned i;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 32);
+	FLAC__ASSERT(bits <= 32);
 
 	*val = 0;
 	for(i = 0; i < bits; i++) {
@@ -1065,11 +1071,11 @@ bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, const uns
 	unsigned i, bits_ = bits;
 	uint32 v = 0;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 32);
-	assert((bb->capacity*8) * 2 >= bits);
+	FLAC__ASSERT(bits <= 32);
+	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
 
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
@@ -1119,10 +1125,10 @@ bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, int32 *val, const unsig
 	unsigned i;
 	uint32 v;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 32);
+	FLAC__ASSERT(bits <= 32);
 
 	v = 0;
 	for(i = 0; i < bits; i++) {
@@ -1147,11 +1153,11 @@ bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, int32 *val, const unsig
 	unsigned i, bits_ = bits;
 	uint32 v = 0;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 32);
-	assert((bb->capacity*8) * 2 >= bits);
+	FLAC__ASSERT(bits <= 32);
+	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
 
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
@@ -1214,10 +1220,10 @@ bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, uint64 *val, const uns
 {
 	unsigned i;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 64);
+	FLAC__ASSERT(bits <= 64);
 
 	*val = 0;
 	for(i = 0; i < bits; i++) {
@@ -1231,11 +1237,11 @@ bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, uint64 *val, const uns
 	unsigned i, bits_ = bits;
 	uint64 v = 0;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 64);
-	assert((bb->capacity*8) * 2 >= bits);
+	FLAC__ASSERT(bits <= 64);
+	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
 
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
@@ -1285,10 +1291,10 @@ bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, int64 *val, const unsig
 	unsigned i;
 	uint64 v;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 64);
+	FLAC__ASSERT(bits <= 64);
 
 	v = 0;
 	for(i = 0; i < bits; i++) {
@@ -1312,11 +1318,11 @@ bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, int64 *val, const unsig
 	unsigned i, bits_ = bits;
 	uint64 v = 0;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
-	assert(bits <= 64);
-	assert((bb->capacity*8) * 2 >= bits);
+	FLAC__ASSERT(bits <= 64);
+	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
 
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
@@ -1379,8 +1385,8 @@ bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, boo
 {
 	unsigned bit, val_ = 0;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
 	while(1) {
 		if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
@@ -1399,8 +1405,8 @@ bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, boo
 	unsigned total_bytes_ = (bb->total_bits + 7) / 8;
 	byte b;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
 	if(bb->consumed_bits) {
 		b = bb->buffer[bb->consumed_bytes] << bb->consumed_bits;
@@ -1464,9 +1470,9 @@ bool FLAC__bitbuffer_read_symmetric_rice_signed(FLAC__BitBuffer *bb, int *val, u
 {
 	uint32 sign = 0, lsbs = 0, msbs = 0;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(parameter <= 31);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(parameter <= 31);
 
 	/* read the unary MSBs and end bit */
 	if(!FLAC__bitbuffer_read_unary_unsigned(bb, &msbs, read_callback, client_data))
@@ -1493,9 +1499,9 @@ bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned pa
 	uint32 lsbs = 0, msbs = 0;
 	unsigned uval;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
-	assert(parameter <= 31);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT(parameter <= 31);
 
 	/* read the unary MSBs and end bit */
 	if(!FLAC__bitbuffer_read_unary_unsigned(bb, &msbs, read_callback, client_data))
@@ -1520,8 +1526,8 @@ bool FLAC__bitbuffer_read_golomb_signed(FLAC__BitBuffer *bb, int *val, unsigned 
 	uint32 lsbs = 0, msbs = 0;
 	unsigned bit, uval, k;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
 	k = FLAC__bitmath_ilog2(parameter);
 
@@ -1564,8 +1570,8 @@ bool FLAC__bitbuffer_read_golomb_unsigned(FLAC__BitBuffer *bb, unsigned *val, un
 	uint32 lsbs, msbs = 0;
 	unsigned bit, k;
 
-	assert(bb != 0);
-	assert(bb->buffer != 0);
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
 
 	k = FLAC__bitmath_ilog2(parameter);
 

@@ -17,9 +17,9 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include <assert.h>
 #include <math.h>
 #include <stdio.h>
+#include "FLAC/assert.h"
 #include "FLAC/format.h"
 #include "private/lpc.h"
 
@@ -37,8 +37,8 @@ void FLAC__lpc_compute_autocorrelation(const real data[], unsigned data_len, uns
 	real d;
 	unsigned i;
 
-	assert(lag > 0);
-	assert(lag <= data_len);
+	FLAC__ASSERT(lag > 0);
+	FLAC__ASSERT(lag <= data_len);
 
 	while(lag--) {
 		for(i = lag, d = 0.0; i < data_len; i++)
@@ -55,8 +55,8 @@ void FLAC__lpc_compute_autocorrelation(const real data[], unsigned data_len, uns
 	unsigned sample, coeff;
 	const unsigned limit = data_len - lag;
 
-	assert(lag > 0);
-	assert(lag <= data_len);
+	FLAC__ASSERT(lag > 0);
+	FLAC__ASSERT(lag <= data_len);
 
 	for(coeff = 0; coeff < lag; coeff++)
 		autoc[coeff] = 0.0;
@@ -77,9 +77,9 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 	unsigned i, j;
 	real r, err, ref[FLAC__MAX_LPC_ORDER], lpc[FLAC__MAX_LPC_ORDER];
 
-	assert(0 < max_order);
-	assert(max_order <= FLAC__MAX_LPC_ORDER);
-	assert(autoc[0] != 0.0);
+	FLAC__ASSERT(0 < max_order);
+	FLAC__ASSERT(max_order <= FLAC__MAX_LPC_ORDER);
+	FLAC__ASSERT(autoc[0] != 0.0);
 
 	err = autoc[0];
 
@@ -114,11 +114,11 @@ int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsig
 	unsigned i;
 	real d, cmax = -1e10;
 
-	assert(bits_per_sample > 0);
-	assert(bits_per_sample <= sizeof(int32)*8);
-	assert(precision > 0);
-	assert(precision >= FLAC__MIN_QLP_COEFF_PRECISION);
-	assert(precision + bits_per_sample < sizeof(int32)*8);
+	FLAC__ASSERT(bits_per_sample > 0);
+	FLAC__ASSERT(bits_per_sample <= sizeof(int32)*8);
+	FLAC__ASSERT(precision > 0);
+	FLAC__ASSERT(precision >= FLAC__MIN_QLP_COEFF_PRECISION);
+	FLAC__ASSERT(precision + bits_per_sample < sizeof(int32)*8);
 #ifdef NDEBUG
 	(void)bits_per_sample; /* silence compiler warning about unused parameter */
 #endif
@@ -171,7 +171,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const int32 data[], unsign
 		fprintf(stderr,", q[%u]=%d",i,qlp_coeff[i]);
 	fprintf(stderr,"\n");
 #endif
-	assert(order > 0);
+	FLAC__ASSERT(order > 0);
 
 	for(i = 0; i < data_len; i++) {
 #ifdef FLAC__OVERFLOW_DETECT
@@ -216,7 +216,7 @@ void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const i
 		fprintf(stderr,", q[%u]=%d",i,qlp_coeff[i]);
 	fprintf(stderr,"\n");
 #endif
-	assert(order > 0);
+	FLAC__ASSERT(order > 0);
 
 	for(i = 0; i < data_len; i++) {
 #ifdef FLAC__OVERFLOW_DETECT
@@ -250,7 +250,7 @@ real FLAC__lpc_compute_expected_bits_per_residual_sample(real lpc_error, unsigne
 {
 	real error_scale;
 
-	assert(total_samples > 0);
+	FLAC__ASSERT(total_samples > 0);
 
 	error_scale = 0.5 * M_LN2 * M_LN2 / (real)total_samples;
 
@@ -291,8 +291,8 @@ unsigned FLAC__lpc_compute_best_order(const real lpc_error[], unsigned max_order
 	unsigned order, best_order;
 	real best_bits, tmp_bits, error_scale;
 
-	assert(max_order > 0);
-	assert(total_samples > 0);
+	FLAC__ASSERT(max_order > 0);
+	FLAC__ASSERT(total_samples > 0);
 
 	error_scale = 0.5 * M_LN2 * M_LN2 / (real)total_samples;
 

@@ -18,7 +18,6 @@
 
 /*@@@ need to "_finish()" the verify decoder */
 
-#include <assert.h>
 #if defined _WIN32 && !defined __CYGWIN__
 /* where MSVC puts unlink() */
 # include <io.h>
@@ -592,7 +591,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 	real_points = placeholders = 0;
 	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
 		q = strchr(pt, '<');
-		assert(0 != q);
+		FLAC__ASSERT(0 != q);
 		*q = '\0';
 
 		if(0 == strcmp(pt, "X")) { /* -S X */
@@ -624,7 +623,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 
 	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
 		q = strchr(pt, '<');
-		assert(0 != q);
+		FLAC__ASSERT(0 != q);
 		*q++ = '\0';
 
 		if(0 == strcmp(pt, "X")) { /* -S X */
@@ -753,14 +752,14 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 		}
 	}
 	else {
-		assert(0);
+		FLAC__ASSERT(0);
 	}
 
 	if(encoder_wrapper->verify) {
 		for(channel = 0; channel < channels; channel++)
 			memcpy(&encoder_wrapper->verify_fifo.original[channel][encoder_wrapper->verify_fifo.tail], &input[channel][0], sizeof(int32) * wide_samples);
 		encoder_wrapper->verify_fifo.tail += wide_samples;
-		assert(encoder_wrapper->verify_fifo.tail <= encoder_wrapper->verify_fifo.size);
+		FLAC__ASSERT(encoder_wrapper->verify_fifo.tail <= encoder_wrapper->verify_fifo.size);
 	}
 }
 
@@ -829,7 +828,7 @@ void metadata_callback(const FLAC__Encoder *encoder, const FLAC__StreamMetaData 
 	const unsigned min_framesize = metadata->data.stream_info.min_framesize;
 	const unsigned max_framesize = metadata->data.stream_info.max_framesize;
 
-	assert(metadata->type == FLAC__METADATA_TYPE_STREAMINFO);
+	FLAC__ASSERT(metadata->type == FLAC__METADATA_TYPE_STREAMINFO);
 
 	/*
 	 * we get called by the encoder when the encoding process has

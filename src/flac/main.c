@@ -16,7 +16,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -290,7 +289,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	assert(blocksize >= 0 || mode_decode);
+	FLAC__ASSERT(blocksize >= 0 || mode_decode);
 
 	if(format_channels >= 0) {
 		if(format_channels == 0 || (unsigned)format_channels > FLAC__MAX_CHANNELS)

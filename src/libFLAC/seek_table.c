@@ -17,7 +17,6 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include <assert.h>
 #include "FLAC/seek_table.h"
 
 bool FLAC__seek_table_is_valid(const FLAC__StreamMetaData_SeekTable *seek_table)

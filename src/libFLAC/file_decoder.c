@@ -17,11 +17,11 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for strcmp() */
 #include <sys/stat.h> /* for stat() */
+#include "FLAC/assert.h"
 #include "FLAC/file_decoder.h"
 #include "protected/stream_decoder.h"
 #include "private/md5.h"
@@ -85,13 +85,13 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	void *client_data
 )
 {
-	assert(sizeof(int) >= 4); /* we want to die right away if this is not true */
-	assert(decoder != 0);
-	assert(write_callback != 0);
-	assert(metadata_callback != 0);
-	assert(error_callback != 0);
-	assert(decoder->state == FLAC__FILE_DECODER_UNINITIALIZED);
-	assert(decoder->guts == 0);
+	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(write_callback != 0);
+	FLAC__ASSERT(metadata_callback != 0);
+	FLAC__ASSERT(error_callback != 0);
+	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_UNINITIALIZED);
+	FLAC__ASSERT(decoder->guts == 0);
 
 	decoder->state = FLAC__FILE_DECODER_OK;
 
@@ -140,7 +140,7 @@ bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
 {
 	bool md5_failed = false;
 
-	assert(decoder != 0);
+	FLAC__ASSERT(decoder != 0);
 	if(decoder->state == FLAC__FILE_DECODER_UNINITIALIZED)
 		return true;
 	if(decoder->guts != 0) {
@@ -170,7 +170,7 @@ bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
 bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
 {
 	bool ret;
-	assert(decoder != 0);
+	FLAC__ASSERT(decoder != 0);
 
 	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_STREAM)
 		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
@@ -178,7 +178,7 @@ bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
 	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
-	assert(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
 
 	ret = FLAC__stream_decoder_process_whole_stream(decoder->guts->stream);
 	if(!ret)
@@ -190,7 +190,7 @@ bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
 bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder)
 {
 	bool ret;
-	assert(decoder != 0);
+	FLAC__ASSERT(decoder != 0);
 
 	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_STREAM)
 		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
@@ -198,7 +198,7 @@ bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder)
 	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
-	assert(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
 
 	ret = FLAC__stream_decoder_process_metadata(decoder->guts->stream);
 	if(!ret)
@@ -210,7 +210,7 @@ bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder)
 bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder)
 {
 	bool ret;
-	assert(decoder != 0);
+	FLAC__ASSERT(decoder != 0);
 
 	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_STREAM)
 		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
@@ -218,7 +218,7 @@ bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder)
 	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
-	assert(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
 
 	ret = FLAC__stream_decoder_process_one_frame(decoder->guts->stream);
 	if(!ret)
@@ -230,7 +230,7 @@ bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder)
 bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder)
 {
 	bool ret;
-	assert(decoder != 0);
+	FLAC__ASSERT(decoder != 0);
 
 	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_STREAM)
 		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
@@ -238,7 +238,7 @@ bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder)
 	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
-	assert(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
 
 	ret = FLAC__stream_decoder_process_remaining_frames(decoder->guts->stream);
 	if(!ret)
@@ -252,8 +252,8 @@ bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample)
 	long filesize;
 	struct stat filestats;
 
-	assert(decoder != 0);
-	assert(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
 
 	if(decoder->guts->filename == 0) { /* means the file is stdin... */
 		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
@@ -423,7 +423,7 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 		return false;
 	}
 	first_frame_offset -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream);
-	assert(first_frame_offset >= 0);
+	FLAC__ASSERT(first_frame_offset >= 0);
 
 	/*
 	 * First, we set an upper and lower bound on where in the

@@ -17,14 +17,14 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include <assert.h>
 #include "private/memory.h"
+#include "FLAC/assert.h"
 
 void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address)
 {
 	void *x;
 
-	assert(0 != aligned_address);
+	FLAC__ASSERT(0 != aligned_address);
 
 #ifdef FLAC__ALIGN_MALLOC_DATA
 	/* align on 32-byte (256-bit) boundary */
@@ -41,10 +41,10 @@ bool FLAC__memory_alloc_aligned_int32_array(unsigned elements, int32 **unaligned
 {
 	int32 *pa, *pu; /* aligned pointer, unaligned pointer */
 
-	assert(elements > 0);
-	assert(0 != unaligned_pointer);
-	assert(0 != aligned_pointer);
-	assert(unaligned_pointer != aligned_pointer);
+	FLAC__ASSERT(elements > 0);
+	FLAC__ASSERT(0 != unaligned_pointer);
+	FLAC__ASSERT(0 != aligned_pointer);
+	FLAC__ASSERT(unaligned_pointer != aligned_pointer);
 
 	pu = (int32*)FLAC__memory_alloc_aligned(sizeof(int32) * elements, (void*)&pa);
 	if(0 == pu) {
@@ -63,10 +63,10 @@ bool FLAC__memory_alloc_aligned_uint32_array(unsigned elements, uint32 **unalign
 {
 	uint32 *pa, *pu; /* aligned pointer, unaligned pointer */
 
-	assert(elements > 0);
-	assert(0 != unaligned_pointer);
-	assert(0 != aligned_pointer);
-	assert(unaligned_pointer != aligned_pointer);
+	FLAC__ASSERT(elements > 0);
+	FLAC__ASSERT(0 != unaligned_pointer);
+	FLAC__ASSERT(0 != aligned_pointer);
+	FLAC__ASSERT(unaligned_pointer != aligned_pointer);
 
 	pu = (uint32*)FLAC__memory_alloc_aligned(sizeof(uint32) * elements, (void*)&pa);
 	if(0 == pu) {
@@ -85,10 +85,10 @@ bool FLAC__memory_alloc_aligned_unsigned_array(unsigned elements, unsigned **una
 {
 	unsigned *pa, *pu; /* aligned pointer, unaligned pointer */
 
-	assert(elements > 0);
-	assert(0 != unaligned_pointer);
-	assert(0 != aligned_pointer);
-	assert(unaligned_pointer != aligned_pointer);
+	FLAC__ASSERT(elements > 0);
+	FLAC__ASSERT(0 != unaligned_pointer);
+	FLAC__ASSERT(0 != aligned_pointer);
+	FLAC__ASSERT(unaligned_pointer != aligned_pointer);
 
 	pu = (unsigned*)FLAC__memory_alloc_aligned(sizeof(unsigned) * elements, (void*)&pa);
 	if(0 == pu) {
@@ -107,10 +107,10 @@ bool FLAC__memory_alloc_aligned_real_array(unsigned elements, real **unaligned_p
 {
 	real *pa, *pu; /* aligned pointer, unaligned pointer */
 
-	assert(elements > 0);
-	assert(0 != unaligned_pointer);
-	assert(0 != aligned_pointer);
-	assert(unaligned_pointer != aligned_pointer);
+	FLAC__ASSERT(elements > 0);
+	FLAC__ASSERT(0 != unaligned_pointer);
+	FLAC__ASSERT(0 != aligned_pointer);
+	FLAC__ASSERT(unaligned_pointer != aligned_pointer);
 
 	pu = (real*)FLAC__memory_alloc_aligned(sizeof(real) * elements, (void*)&pa);
 	if(0 == pu) {

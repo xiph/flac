@@ -1,6 +1,7 @@
 includedir = ${prefix}/include/FLAC
 
 include_HEADERS = all.h \
+	assert.h \
 	encoder.h \
 	file_decoder.h \
 	format.h \

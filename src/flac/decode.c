@@ -22,7 +22,6 @@
 #else
 # include <unistd.h>
 #endif
-#include <assert.h> /* for FILE */
 #include <stdio.h> /* for FILE */
 #include <string.h> /* for strcmp() */
 #include "FLAC/all.h"
@@ -78,7 +77,7 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, anal
 	stream_info.frame_counter = 0;
 	stream_info.fout = 0; /* initialized with an open file later if necessary */
 
-	assert(!(stream_info.test_only && stream_info.analysis_mode));
+	FLAC__ASSERT(!(stream_info.test_only && stream_info.analysis_mode));
 
 	if(!stream_info.test_only) {
 		if(0 == strcmp(outfile, "-")) {
@@ -191,7 +190,7 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, anal
 	stream_info.frame_counter = 0;
 	stream_info.fout = 0; /* initialized with an open file later if necessary */
 
-	assert(!(stream_info.test_only && stream_info.analysis_mode));
+	FLAC__ASSERT(!(stream_info.test_only && stream_info.analysis_mode));
 
 	if(!stream_info.test_only) {
 		if(0 == strcmp(outfile, "-")) {
@@ -441,7 +440,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 				return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}
 		else {
-			assert(0);
+			FLAC__ASSERT(0);
 		}
 	}
 	return FLAC__STREAM_DECODER_WRITE_CONTINUE;

@@ -17,9 +17,9 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include <assert.h>
 #include <math.h>
 #include "private/fixed.h"
+#include "FLAC/assert.h"
 
 #ifndef M_LN2
 /* math.h in VC++ doesn't seem to have this (how Microsoft is that?) */
@@ -162,7 +162,7 @@ void FLAC__fixed_compute_residual(const int32 data[], unsigned data_len, unsigne
 			}
 			break;
 		default:
-			assert(0);
+			FLAC__ASSERT(0);
 	}
 }
 
@@ -200,6 +200,6 @@ void FLAC__fixed_restore_signal(const int32 residual[], unsigned data_len, unsig
 			}
 			break;
 		default:
-			assert(0);
+			FLAC__ASSERT(0);
 	}
 }

@@ -17,10 +17,10 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#include <assert.h>
 #include <stdio.h>
 #include "private/encoder_framing.h"
 #include "private/crc.h"
+#include "FLAC/assert.h"
 
 #ifdef max
 #undef max
@@ -40,34 +40,34 @@ bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuf
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->type, FLAC__STREAM_METADATA_TYPE_LEN))
 		return false;
 
-	assert(metadata->length < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
+	FLAC__ASSERT(metadata->length < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->length, FLAC__STREAM_METADATA_LENGTH_LEN))
 		return false;
 
 	switch(metadata->type) {
 		case FLAC__METADATA_TYPE_STREAMINFO:
-			assert(metadata->data.stream_info.min_blocksize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN));
+			FLAC__ASSERT(metadata->data.stream_info.min_blocksize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.min_blocksize, FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN))
 				return false;
-			assert(metadata->data.stream_info.max_blocksize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN));
+			FLAC__ASSERT(metadata->data.stream_info.max_blocksize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.max_blocksize, FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN))
 				return false;
-			assert(metadata->data.stream_info.min_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN));
+			FLAC__ASSERT(metadata->data.stream_info.min_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.min_framesize, FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN))
 				return false;
-			assert(metadata->data.stream_info.max_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN));
+			FLAC__ASSERT(metadata->data.stream_info.max_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.max_framesize, FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN))
 				return false;
-			assert(metadata->data.stream_info.sample_rate > 0);
-			assert(metadata->data.stream_info.sample_rate < (1u << FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN));
+			FLAC__ASSERT(metadata->data.stream_info.sample_rate > 0);
+			FLAC__ASSERT(metadata->data.stream_info.sample_rate < (1u << FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.sample_rate, FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN))
 				return false;
-			assert(metadata->data.stream_info.channels > 0);
-			assert(metadata->data.stream_info.channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN));
+			FLAC__ASSERT(metadata->data.stream_info.channels > 0);
+			FLAC__ASSERT(metadata->data.stream_info.channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.channels-1, FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN))
 				return false;
-			assert(metadata->data.stream_info.bits_per_sample > 0);
-			assert(metadata->data.stream_info.bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
+			FLAC__ASSERT(metadata->data.stream_info.bits_per_sample > 0);
+			FLAC__ASSERT(metadata->data.stream_info.bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.bits_per_sample-1, FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN))
 				return false;
 			if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.stream_info.total_samples, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN))
@@ -92,7 +92,7 @@ bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuf
 			}
 			break;
 		default:
-			assert(0);
+			FLAC__ASSERT(0);
 	}
 
 	return true;
@@ -103,7 +103,7 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	unsigned u, crc8_start, blocksize_hint, sample_rate_hint;
 	byte crc8;
 
-	assert(bb->bits == 0); /* assert that we're byte-aligned before writing */
+	FLAC__ASSERT(bb->bits == 0); /* assert that we're byte-aligned before writing */
 
 	crc8_start = bb->bytes;
 
@@ -113,7 +113,7 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, 0, FLAC__FRAME_HEADER_RESERVED_LEN))
 		return false;
 
-	assert(header->blocksize > 0 && header->blocksize <= FLAC__MAX_BLOCK_SIZE);
+	FLAC__ASSERT(header->blocksize > 0 && header->blocksize <= FLAC__MAX_BLOCK_SIZE);
 	blocksize_hint = 0;
 	switch(header->blocksize) {
 		case   192: u = 1; break;
@@ -143,7 +143,7 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))
 		return false;
 
-	assert(header->sample_rate > 0 && header->sample_rate < (1u << FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN));
+	FLAC__ASSERT(header->sample_rate > 0 && header->sample_rate < (1u << FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN));
 	sample_rate_hint = 0;
 	switch(header->sample_rate) {
 		case  8000: u = 4; break;
@@ -170,30 +170,30 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_SAMPLE_RATE_LEN))
 		return false;
 
-	assert(header->channels > 0 && header->channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN) && header->channels <= FLAC__MAX_CHANNELS);
+	FLAC__ASSERT(header->channels > 0 && header->channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN) && header->channels <= FLAC__MAX_CHANNELS);
 	switch(header->channel_assignment) {
 		case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
 			u = header->channels - 1;
 			break;
 		case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
-			assert(header->channels == 2);
+			FLAC__ASSERT(header->channels == 2);
 			u = 8;
 			break;
 		case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
-			assert(header->channels == 2);
+			FLAC__ASSERT(header->channels == 2);
 			u = 9;
 			break;
 		case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
-			assert(header->channels == 2);
+			FLAC__ASSERT(header->channels == 2);
 			u = 10;
 			break;
 		default:
-			assert(0);
+			FLAC__ASSERT(0);
 	}
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN))
 		return false;
 
-	assert(header->bits_per_sample > 0 && header->bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
+	FLAC__ASSERT(header->bits_per_sample > 0 && header->bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
 	switch(header->bits_per_sample) {
 		case 8 : u = 1; break;
 		case 12: u = 2; break;
@@ -231,8 +231,8 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	}
 
 	/* write the CRC */
-	assert(bb->buffer[crc8_start] == 0xff); /* MAGIC NUMBER for the first byte of the sync code */
-	assert(bb->bits == 0); /* assert that we're byte-aligned */
+	FLAC__ASSERT(bb->buffer[crc8_start] == 0xff); /* MAGIC NUMBER for the first byte of the sync code */
+	FLAC__ASSERT(bb->bits == 0); /* assert that we're byte-aligned */
 	crc8 = FLAC__crc8(bb->buffer+crc8_start, bb->bytes-crc8_start);
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, crc8, FLAC__FRAME_HEADER_CRC_LEN))
 		return false;
@@ -275,7 +275,7 @@ bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned res
 				return false;
 			break;
 		default:
-			assert(0);
+			FLAC__ASSERT(0);
 	}
 
 	return true;
@@ -311,7 +311,7 @@ bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residua
 				return false;
 			break;
 		default:
-			assert(0);
+			FLAC__ASSERT(0);
 	}
 
 	return true;
@@ -345,7 +345,7 @@ bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__Entrop
 				return false;
 			break;
 		default:
-			assert(0);
+			FLAC__ASSERT(0);
 	}
 	return true;
 }
