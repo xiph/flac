@@ -143,7 +143,8 @@ unsigned FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], unsig
 
 void FLAC__fixed_compute_residual(const FLAC__int32 data[], unsigned data_len, unsigned order, FLAC__int32 residual[])
 {
-	int i, idata_len = (int)data_len;
+	const int idata_len = (int)data_len;
+	int i;
 
 	switch(order) {
 		case 0:
