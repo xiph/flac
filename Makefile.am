@@ -29,11 +29,12 @@
 #
 
 
-SUBDIRS = doc include man src test build flac.pbproj obj
+SUBDIRS = intl m4 doc include man src test build flac.pbproj obj
 
 DISTCLEANFILES = libtool-disable-static
 
 EXTRA_DIST = \
+	config.rpath \
 	COPYING.FDL \
 	COPYING.GPL \
 	COPYING.LGPL \
@@ -43,3 +44,5 @@ EXTRA_DIST = \
 	strip_fPIC.sh
 
 AUTOMAKE_OPTIONS = foreign
+
+ACLOCAL_AMFLAGS = -I m4

@@ -105,7 +105,7 @@ if test x$exhaustive_tests = xtrue ; then
 AC_DEFINE(FLAC__EXHAUSTIVE_TESTS)
 fi
 
-AM_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
+XIPH_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
 AM_CONDITIONAL(FLaC__HAS_OGG, [test x$have_ogg = xyes])
 if test x$have_ogg = xyes ; then
 AC_DEFINE(FLAC__HAS_OGG)
@@ -230,6 +230,9 @@ CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS $OUR_CFLAGS_TAIL"
 CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS $OUR_CFLAGS_TAIL"
 
 AC_OUTPUT( \
+	po/Makefile.in \
+	m4/Makefile \
+	intl/Makefile \
 	Makefile \
 	src/Makefile \
 	src/libFLAC/Makefile \
