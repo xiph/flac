@@ -50,13 +50,13 @@ void local_strcat(char **dest, const char *source)
 	ndest = *dest? strlen(*dest) : 0;
 	nsource = strlen(source);
 
-	*dest = realloc(*dest, ndest + nsource);
+	if(nsource == 0)
+		return;
+
+	*dest = realloc(*dest, ndest + nsource + 1);
 	if(0 == *dest)
 		die("out of memory growing string");
-	if(0 == ndest)
-		strcpy(*dest, source);
-	else
-		strcat(*dest, source);
+	strcpy((*dest)+ndest, source);
 }
 
 void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent)
