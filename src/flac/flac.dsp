@@ -133,7 +133,7 @@ SOURCE=.\encode.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\string.h
+SOURCE=.\local_string_utils.h
 # End Source File
 # Begin Source File
 
