@@ -257,9 +257,9 @@ int main(int argc, char *argv[])
 		}
 	}
 	else {
-		if(test_only || analyze) {
+		if(test_only) {
 			if(skip > 0)
-				return usage("ERROR: --skip is not allowed in %s mode\n", test_only? "test":"analysis");
+				return usage("ERROR: --skip is not allowed in test mode\n");
 		}
 	}
 
