@@ -786,7 +786,7 @@ bool test_metadata_object_vorbiscomment()
 	FLAC::Metadata::VorbisComment block;
 	if(!block.is_valid())
 		return die_("!block.is_valid()");
-	expected_length = (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN + FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8;
+	expected_length = (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + strlen(::FLAC__VENDOR_STRING) + FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN/8);
 	if(block.get_length() != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block.get_length());
 		return false;

@@ -608,7 +608,7 @@ FLAC__bool test_metadata_object()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
-	expected_length = (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN + FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8;
+	expected_length = (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + strlen(FLAC__VENDOR_STRING) + FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN/8);
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
 		return false;
