@@ -19,10 +19,10 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) -DFLAC__NO_DLL $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.5-beta1\" -YX /Od /D "_DEBUG" $<
+	$(cc) -DFLAC__NO_DLL $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.5_beta2\" -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) -DFLAC__NO_DLL /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.5-beta1\" -YX -DNODEBUG $<
+	$(cc) -DFLAC__NO_DLL /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.5_beta2\" -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
