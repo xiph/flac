@@ -52,7 +52,11 @@ NASM_FILES= \
 
 OBJS= $(C_FILES:.c=.obj) $(NASM_FILES:.nasm=.obj)
 
-all: libFLAC.lib
+all: ordinals libFLAC.lib
+
+ordinals: ../../include/FLAC/ordinals.h
+../../include/FLAC/ordinals.h: ../../include/FLAC/ordinals.h.in
+	sed -e 's/@FLaC__SIZE16@/short/g' -e 's/@FLaC__SIZE32@/int/g' -e 's/@FLaC__SIZE64@/long long/g' -e 's/@FLaC__USIZE16@/unsigned short/g' -e 's/@FLaC__USIZE32@/unsigned int/g' -e 's/@FLaC__USIZE64@/unsigned long long/g' ../../include/FLAC/ordinals.h.in > ../../include/FLAC/ordinals.h
 
 libFLAC.lib: $(OBJS)
 	link.exe -lib -out:../../obj/lib/$*.lib $(OBJS)
