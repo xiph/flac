@@ -36,6 +36,8 @@ AM_PROG_AS
 AC_PROG_CXX
 AC_PROG_MAKE_SET
 
+AC_CHECK_TYPES(socklen_t, [], [])
+
 dnl check for getopt in standard library
 dnl AC_CHECK_FUNCS(getopt_long , , [LIBOBJS="$LIBOBJS getopt.o getopt1.o"] )
 AC_CHECK_FUNCS(getopt_long, [], [])
@@ -50,14 +52,16 @@ AM_CONDITIONAL(FLaC__CPU_IA32, test x$cpu_ia32 = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test x$cpu_ppc = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test x$cpu_sparc = xtrue)
 case "$host" in
-	*-pc-linux-gnu) sys_linux=true ; AC_DEFINE(FLAC__SYS_LINUX) ;;
-	*-*-darwin*) sys_darwin=true ; AC_DEFINE(FLAC__SYS_DARWIN) ;;
 	i386-*-openbsd3.[[0-3]]) OBJ_FORMAT=aoutb ;;
 	*) OBJ_FORMAT=elf ;;
 esac
+AC_SUBST(OBJ_FORMAT)
+case "$host" in
+	*-pc-linux-gnu) sys_linux=true ; AC_DEFINE(FLAC__SYS_LINUX) ;;
+	*-*-darwin*) sys_darwin=true ; AC_DEFINE(FLAC__SYS_DARWIN) ;;
+esac
 AM_CONDITIONAL(FLaC__SYS_DARWIN, test x$sys_darwin = xtrue)
 AM_CONDITIONAL(FLaC__SYS_LINUX, test x$sys_linux = xtrue)
-AC_SUBST(OBJ_FORMAT)
 
 if test x$cpu_ia32 = xtrue ; then
 AC_DEFINE(FLAC__ALIGN_MALLOC_DATA)
