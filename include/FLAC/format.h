@@ -597,14 +597,17 @@ typedef struct {
 	FLAC__uint64 offset;
 	/**< The index offset from the beginning of the track, in samples.
 	 * For CD-DA, the offset must be evenly divisible by 588 samples (588
-	 * samples = 44100 samples/sec * 1/75th of a sec)
+	 * samples = 44100 samples/sec * 1/75th of a sec).  Note that the
+	 * offset from the beginning of the track, not the beginning of the
+	 * audio data.
 	 */
 
 	FLAC__byte number;
 	/**< The index number.  For CD-DA, an index number of 0 corresponds
-	 * to the track pregap.  There must be at least one index in a track.
-	 * The first index in a track must be 0 or 1 and subsequently index
-	 * numbers must increase by 1.
+	 * to the track pregap.  There must be at least one index in every
+	 * track except the lead-out track.  The first index in a track must
+	 * be 0 or 1 and subsequently index numbers must increase by 1.  Index
+	 * numbers must be unique within a track.
 	 */
 } FLAC__StreamMetadata_CueSheet_Index;
 
@@ -633,7 +636,8 @@ typedef struct {
 	 * It is not required but encouraged to start with track 1 and increase
 	 * sequentially.  A CUESHEET block is required to have a lead-out
 	 * track; it is always the last track in the cuesheet and the number
-	 * must be 170 for CD-DA.
+	 * must be 170 for CD-DA.  Track numbers must be unique within a
+	 * CUESHEET.
 	 */
 
 	char isrc[13]; /*@@@@ 12 ascii characters plus trailing '\0' */
