@@ -43,7 +43,7 @@
  * describing the components of FLAC streams, and functions for
  * encoding and decoding streams, as well as manipulating FLAC
  * metadata in files.  The public include files will be installed
- * in your include area as <include>/FLAC/*.
+ * in your include area as <include>/FLAC/...
  *
  * The FLAC C++ API is a set of classes that encapsulate the
  * structures and functions in libFLAC.  They provide slightly more
@@ -52,7 +52,7 @@
  * their counterparts in libFLAC, and the FLAC C API documentation
  * can be used as a supplement.  The public include files
  * for the C++ API will be installed in your include area as
- * <include>/FLAC++/*.
+ * <include>/FLAC++/...
  *
  * A good starting point for learning the API is to browse through
  * the XXX modules XXX.  Modules are logical groupings of related

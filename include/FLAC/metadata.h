@@ -91,11 +91,8 @@
  *  metadata however, you will not probably not need these.
  *
  *  From a dependency standpoint, none of the encoders or decoders require
- *  the metadata module (the only exception is
- *  FLAC__metadata_object_seektable_is_legal() used by the stream encoder,
- *  and this will eventually be fixed).  This is so that embedded users
- *  can strip out the metadata module from libFLAC to reduce the size and
- *  complexity.
+ *  the metadata module.  This is so that embedded users can strip out the
+ *  metadata module from libFLAC to reduce the size and complexity.
  */
 
 #ifdef __cplusplus
@@ -933,7 +930,6 @@ FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMetadata *ob
  */
 void FLAC__metadata_object_delete(FLAC__StreamMetadata *object);
 
-/* Does a deep comparison of the block data */
 /** Compares two metadata objects.
  *
  *  The compare is "deep", i.e. dynamically allocated data within the
@@ -1029,12 +1025,12 @@ FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *ob
  *  See the format specification for limits on the contents of the
  *  seektable.
  *
- * \param object     A pointer to an existing SEEKTABLE object.
+ * \param object  A pointer to an existing SEEKTABLE object.
  * \assert
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
  * \retval FLAC__bool
- *    \c false if seektable is illegal, else \c true.
+ *    \c false if seek table is illegal, else \c true.
  */
 FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object);
 
