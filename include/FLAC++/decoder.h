@@ -32,6 +32,25 @@
 // ===============================================================
 
 
+/** \file include/FLAC++/decoder.h
+ *
+ *  \brief
+ *  This file contains the classes which implement the various
+ *  decoders.
+ *
+ *  See the detailed documentation in the
+ *  \link flacpp_decoder decoder \endlink module.
+ */
+
+/** \defgroup flacpp_decoder FLAC++/decoder.h: decoder classes
+ *  \ingroup flacpp
+ *
+ *  \brief
+ *  Brief XXX.
+ *
+ * Detailed decoder XXX.
+ */
+
 namespace FLAC {
 	namespace Decoder {
 
@@ -51,6 +70,18 @@ namespace FLAC {
 		//
 		// ============================================================
 
+		/** \defgroup flacpp_stream_decoder FLAC++/decoder.h: stream decoder class
+		 *  \ingroup flacpp_decoder
+		 *
+		 *  \brief
+		 *  Brief XXX.
+		 *
+		 * Detailed stream decoder XXX.
+		 * \{
+		 */
+
+		/** stream decoder XXX.
+		 */
 		class Stream {
 		public:
 			class State {
@@ -114,12 +145,27 @@ namespace FLAC {
 			void operator=(const Stream &);
 		};
 
+		/* \} */
+
+
 		// ============================================================
 		//
 		//  Equivalent: FLAC__SeekableStreamDecoder
 		//
 		// ============================================================
 
+		/** \defgroup flacpp_seekable_stream_decoder FLAC++/decoder.h: seekable stream decoder class
+		 *  \ingroup flacpp_decoder
+		 *
+		 *  \brief
+		 *  Brief XXX.
+		 *
+		 * Detailed seekable stream decoder XXX.
+		 * \{
+		 */
+
+		/** seekable stream decoder XXX.
+		 */
 		class SeekableStream {
 		public:
 			class State {
@@ -192,12 +238,27 @@ namespace FLAC {
 			void operator=(const SeekableStream &);
 		};
 
+		/* \} */
+
+
 		// ============================================================
 		//
 		//  Equivalent: FLAC__FileDecoder
 		//
 		// ============================================================
 
+		/** \defgroup flacpp_file_decoder FLAC++/decoder.h: file decoder class
+		 *  \ingroup flacpp_decoder
+		 *
+		 *  \brief
+		 *  Brief XXX.
+		 *
+		 * Detailed file decoder XXX.
+		 * \{
+		 */
+
+		/** file decoder XXX.
+		 */
 		class File {
 		public:
 			class State {
@@ -257,6 +318,8 @@ namespace FLAC {
 			File(const File &);
 			void operator=(const File &);
 		};
+
+		/* \} */
 
 	};
 };

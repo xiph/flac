@@ -37,7 +37,7 @@ extern "C" {
  *  \link flac_stream_decoder stream decoder \endlink module.
  */
 
-/** \defgroup flac_decoder FLAC/*_decoder.h: decoder interfaces
+/** \defgroup flac_decoder FLAC/ *_decoder.h: decoder interfaces
  *  \ingroup flac
  *
  *  \brief

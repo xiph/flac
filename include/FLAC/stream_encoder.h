@@ -37,7 +37,7 @@ extern "C" {
  *  \link flac_stream_encoder stream encoder \endlink module.
  */
 
-/** \defgroup flac_encoder FLAC/*_encoder.h: encoder interfaces
+/** \defgroup flac_encoder FLAC/ *_encoder.h: encoder interfaces
  *  \ingroup flac
  *
  *  \brief
@@ -46,11 +46,6 @@ extern "C" {
  * Currently there is only one level of encoder implementation which is at
  * the stream level.  There is currently no file encoder because seeking
  * within a file while encoding seemed like too obscure a feature.
- */
-
-/** \defgroup flac_encoder FLAC/*_encoder.h: encoder interfaces
- *  \ingroup flac
- *
  */
 
 /** \defgroup flac_stream_encoder FLAC/stream_encoder.h: stream encoder interface

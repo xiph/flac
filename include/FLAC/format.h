@@ -426,11 +426,22 @@ typedef struct {
 
 /** An enumeration of the available metadata block types. */
 typedef enum {
+
 	FLAC__METADATA_TYPE_STREAMINFO = 0,
+	/**< <A HREF="../format.html#metadata_block_streaminfo">STREAMINFO</A> block */
+
 	FLAC__METADATA_TYPE_PADDING = 1,
+	/**< <A HREF="../format.html#metadata_block_padding"PADDING</A> block */
+
 	FLAC__METADATA_TYPE_APPLICATION = 2,
+	/**< <A HREF="../format.html#metadata_block_application"APPLICATION</A> block */
+
 	FLAC__METADATA_TYPE_SEEKTABLE = 3,
-	FLAC__METADATA_TYPE_VORBIS_COMMENT = 4
+	/**< <A HREF="../format.html#metadata_block_seektable"SEEKTABLE</A> block */
+
+	FLAC__METADATA_TYPE_VORBIS_COMMENT = 4,
+	/**< <A HREF="../format.html#metadata_block_vorbis_comment"VORBISCOMMENT</A> block */
+
 } FLAC__MetadataType;
 
 /** Maps a FLAC__MetadataType to a C string.
@@ -439,6 +450,7 @@ typedef enum {
  *  give the string equivalent.  The contents should not be modified.
  */
 extern const char * const FLAC__MetadataTypeString[];
+
 
 /** FLAC STREAMINFO structure.  (c.f. <A HREF="../format.html#metadata_block_streaminfo">format specification</A>)
  */

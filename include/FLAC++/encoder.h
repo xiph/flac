@@ -30,6 +30,25 @@
 // ===============================================================
 
 
+/** \file include/FLAC++/encoder.h
+ *
+ *  \brief
+ *  This module contains the classes which implement the various
+ *  encoders.
+ *
+ *  See the detailed documentation in the
+ *  \link flacpp_encoder encoder \endlink module.
+ */
+
+/** \defgroup flacpp_encoder FLAC++/encoder.h: encoder classes
+ *  \ingroup flacpp
+ *
+ *  \brief
+ *  Brief XXX.
+ *
+ * Detailed encoder XXX.
+ */
+
 namespace FLAC {
 	namespace Encoder {
 
@@ -47,6 +66,18 @@ namespace FLAC {
 		//
 		// ============================================================
 
+		/** \defgroup flacpp_stream_encoder FLAC++/encoder.h: stream encoder class
+		 *  \ingroup flacpp_encoder
+		 *
+		 *  \brief
+		 *  Brief XXX.
+		 *
+		 * Detailed stream encoder XXX.
+		 * \{
+		 */
+
+		/** stream encoder XXX.
+		 */
 		class Stream {
 		public:
 			class State {
@@ -121,6 +152,8 @@ namespace FLAC {
 			Stream(const Stream &);
 			void operator=(const Stream &);
 		};
+
+		/* \} */
 
 	};
 };

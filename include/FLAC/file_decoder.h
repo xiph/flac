@@ -188,7 +188,7 @@ FLAC__FileDecoder *FLAC__file_decoder_new();
  * \assert
  *    \code decoder != NULL \endcode
  */
-void FLAC__file_decoder_delete(FLAC__FileDecoder *);
+void FLAC__file_decoder_delete(FLAC__FileDecoder *decoder);
 
 
 /***********************************************************************

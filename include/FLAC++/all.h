@@ -24,4 +24,12 @@
 #include "decoder.h"
 #include "metadata.h"
 
+/** \defgroup flacpp FLAC C++ API
+ *
+ * The FLAC C++ API is the interface to libFLAC++, a set of classes
+ * that encapsulate the encoders, decoders, and metadata interfaces
+ * in libFLAC.
+ *
+ */
+
 #endif
