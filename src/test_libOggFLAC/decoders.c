@@ -126,19 +126,22 @@ static void init_metadata_blocks_()
 	memcpy(application2_.data.application.id, "\x76\x54\x32\x10", 4);
 	application2_.data.application.data = 0;
 
-    vorbiscomment_.is_last = true;
-    vorbiscomment_.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
-    vorbiscomment_.length = (4 + 8) + 4 + (4 + 5) + (4 + 0);
-	vorbiscomment_.data.vorbis_comment.vendor_string.length = 8;
-	vorbiscomment_.data.vorbis_comment.vendor_string.entry = malloc_or_die_(8);
-	memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, "flac 1.x", 8);
-	vorbiscomment_.data.vorbis_comment.num_comments = 2;
-	vorbiscomment_.data.vorbis_comment.comments = malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
-	vorbiscomment_.data.vorbis_comment.comments[0].length = 5;
-	vorbiscomment_.data.vorbis_comment.comments[0].entry = malloc_or_die_(5);
-	memcpy(vorbiscomment_.data.vorbis_comment.comments[0].entry, "ab=cd", 5);
-	vorbiscomment_.data.vorbis_comment.comments[1].length = 0;
-	vorbiscomment_.data.vorbis_comment.comments[1].entry = 0;
+	{
+		const unsigned vendor_string_length = (unsigned)strlen(FLAC__VENDOR_STRING);
+		vorbiscomment_.is_last = true;
+		vorbiscomment_.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
+		vorbiscomment_.length = (4 + vendor_string_length) + 4 + (4 + 5) + (4 + 0);
+		vorbiscomment_.data.vorbis_comment.vendor_string.length = vendor_string_length;
+		vorbiscomment_.data.vorbis_comment.vendor_string.entry = malloc_or_die_(vendor_string_length);
+		memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, FLAC__VENDOR_STRING, vendor_string_length);
+		vorbiscomment_.data.vorbis_comment.num_comments = 2;
+		vorbiscomment_.data.vorbis_comment.comments = malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
+		vorbiscomment_.data.vorbis_comment.comments[0].length = 5;
+		vorbiscomment_.data.vorbis_comment.comments[0].entry = malloc_or_die_(5);
+		memcpy(vorbiscomment_.data.vorbis_comment.comments[0].entry, "ab=cd", 5);
+		vorbiscomment_.data.vorbis_comment.comments[1].length = 0;
+		vorbiscomment_.data.vorbis_comment.comments[1].entry = 0;
+	}
 }
 
 static void free_metadata_blocks_()

@@ -72,6 +72,16 @@ static FLAC__bool die_ss_(const char *msg, FLAC__Metadata_SimpleIterator *iterat
 	return false;
 }
 
+static void *malloc_or_die_(size_t size)
+{
+	void *x = malloc(size);
+	if(0 == x) {
+		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (unsigned)size);
+		exit(1);
+	}
+	return x;
+}
+
 /* functions for working with our metadata copy */
 
 static FLAC__bool replace_in_our_metadata_(FLAC__StreamMetadata *block, unsigned position, FLAC__bool copy)
@@ -262,7 +272,7 @@ static void decoder_error_callback_(const FLAC__FileDecoder *decoder, FLAC__Stre
 
 static FLAC__bool generate_file_()
 {
-	FLAC__StreamMetadata streaminfo, padding;
+	FLAC__StreamMetadata streaminfo, vorbiscomment, padding;
 	FLAC__StreamMetadata *metadata[1];
 
 	printf("generating FLAC file for test\n");
@@ -283,17 +293,35 @@ static FLAC__bool generate_file_()
 	streaminfo.data.stream_info.total_samples = 0;
 	memset(streaminfo.data.stream_info.md5sum, 0, 16);
 
+	{
+		const unsigned vendor_string_length = (unsigned)strlen(FLAC__VENDOR_STRING);
+		vorbiscomment.is_last = false;
+		vorbiscomment.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
+		vorbiscomment.length = (4 + vendor_string_length) + 4;
+		vorbiscomment.data.vorbis_comment.vendor_string.length = vendor_string_length;
+		vorbiscomment.data.vorbis_comment.vendor_string.entry = malloc_or_die_(vendor_string_length);
+		memcpy(vorbiscomment.data.vorbis_comment.vendor_string.entry, FLAC__VENDOR_STRING, vendor_string_length);
+		vorbiscomment.data.vorbis_comment.num_comments = 0;
+		vorbiscomment.data.vorbis_comment.comments = 0;
+	}
+
 	padding.is_last = true;
 	padding.type = FLAC__METADATA_TYPE_PADDING;
 	padding.length = 1234;
 
 	metadata[0] = &padding;
 
-	if(!insert_to_our_metadata_(&streaminfo, 0, /*copy=*/true) || !insert_to_our_metadata_(&padding, 1, /*copy=*/true))
+	if(
+		!insert_to_our_metadata_(&streaminfo, 0, /*copy=*/true) ||
+		!insert_to_our_metadata_(&vorbiscomment, 1, /*copy=*/true) ||
+		!insert_to_our_metadata_(&padding, 2, /*copy=*/true)
+	)
 		return die_("priming our metadata");
 
 	if(!file_utils__generate_flacfile(flacfile_, 0, 512 * 1024, &streaminfo, metadata, 1))
 		return die_("creating the encoded file"); 
+
+	free(vorbiscomment.data.vorbis_comment.vendor_string.entry);
 
 	return true;
 }
@@ -458,10 +486,14 @@ static FLAC__bool test_level_1_()
 		return die_("forward iterator ended early");
 	our_current_position++;
 
+	if(!FLAC__metadata_simple_iterator_next(iterator))
+		return die_("forward iterator ended early");
+	our_current_position++;
+
 	if(FLAC__metadata_simple_iterator_get_block_type(iterator) != FLAC__METADATA_TYPE_PADDING)
 		return die_("expected PADDING type from FLAC__metadata_simple_iterator_get_block_type()");
 	if(0 == (block = FLAC__metadata_simple_iterator_get_block(iterator)))
-		return die_("getting block 1");
+		return die_("getting block 2");
 	if(block->type != FLAC__METADATA_TYPE_PADDING)
 		return die_("expected PADDING type");
 	if(!block->is_last)
@@ -474,6 +506,8 @@ static FLAC__bool test_level_1_()
 		return die_("forward iterator returned true but should have returned false");
 
 	printf("iterate backwards\n");
+	if(!FLAC__metadata_simple_iterator_prev(iterator))
+		return die_("reverse iterator ended early");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("reverse iterator ended early");
 	if(FLAC__metadata_simple_iterator_prev(iterator))
@@ -516,35 +550,40 @@ static FLAC__bool test_level_1_()
 
 	printf("is writable = %u\n", (unsigned)FLAC__metadata_simple_iterator_is_writable(iterator));
 
-	printf("[S]P\ttry to write over STREAMINFO block...\n");
+	printf("[S]VP\ttry to write over STREAMINFO block...\n");
 	if(!FLAC__metadata_simple_iterator_set_block(iterator, app, false))
 		printf("\tFLAC__metadata_simple_iterator_set_block() returned false like it should\n");
 	else
 		return die_("FLAC__metadata_simple_iterator_set_block() returned true but shouldn't have");
 
-	printf("[S]P\tnext\n");
+	printf("[S]VP\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[P]\tinsert PADDING after, don't expand into padding\n");
+	printf("S[V]P\tnext\n");
+	if(!FLAC__metadata_simple_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("SV[P]\tinsert PADDING after, don't expand into padding\n");
 	padding->length = 25;
 	if(!FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false))
 		return die_ss_("FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false)", iterator);
 	if(!insert_to_our_metadata_(padding, ++our_current_position, /*copy=*/true))
 		return false;
 
-	printf("SP[P]\tprev\n");
+	printf("SVP[P]\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("S[P]P\tprev\n");
+	printf("SV[P]P\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("[S]PP\tinsert PADDING after, don't expand into padding\n");
+	printf("S[V]PP\tinsert PADDING after, don't expand into padding\n");
 	padding->length = 30;
 	if(!FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false))
 		return die_ss_("FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false)", iterator);
@@ -554,34 +593,44 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 	
-	printf("S[P]PP\tprev\n");
+	printf("SV[P]PP\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("[S]PPP\tdelete (STREAMINFO block), must fail\n");
+	printf("S[V]PPP\tprev\n");
+	if(!FLAC__metadata_simple_iterator_prev(iterator))
+		return die_("iterator ended early\n");
+	our_current_position--;
+
+	printf("[S]VPPP\tdelete (STREAMINFO block), must fail\n");
 	if(FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false) should have returned false", iterator);
 
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("[S]PPP\tnext\n");
+	printf("[S]VPPP\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[P]PP\tdelete (middle block), replace with padding\n");
+	printf("S[V]PPP\tnext\n");
+	if(!FLAC__metadata_simple_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("SV[P]PP\tdelete (middle block), replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, true))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, true)", iterator);
 	our_current_position--;
 
-	printf("[S]PPP\tnext\n");
+	printf("S[V]PPP\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[P]PP\tdelete (middle block), don't replace with padding\n");
+	printf("SV[P]PP\tdelete (middle block), don't replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
@@ -589,17 +638,17 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("[S]PP\tnext\n");
+	printf("S[V]PP\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[P]P\tnext\n");
+	printf("SV[P]P\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("SP[P]\tdelete (last block), replace with padding\n");
+	printf("SVP[P]\tdelete (last block), replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, true))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	our_current_position--;
@@ -607,12 +656,12 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[P]P\tnext\n");
+	printf("SV[P]P\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("SP[P]\tdelete (last block), don't replace with padding\n");
+	printf("SVP[P]\tdelete (last block), don't replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
@@ -620,12 +669,17 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[P]\tprev\n");
+	printf("SV[P]\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("[S]P\tset STREAMINFO (change sample rate)\n");
+	printf("S[V]P\tprev\n");
+	if(!FLAC__metadata_simple_iterator_prev(iterator))
+		return die_("iterator ended early\n");
+	our_current_position--;
+
+	printf("[S]VP\tset STREAMINFO (change sample rate)\n");
 	FLAC__ASSERT(our_current_position == 0);
 	block = FLAC__metadata_simple_iterator_get_block(iterator);
 	block->data.stream_info.sample_rate = 32000;
@@ -638,7 +692,12 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("[S]P\tinsert APPLICATION after, expand into padding of exceeding size\n");
+	printf("[S]VP\tnext\n");
+	if(!FLAC__metadata_simple_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("S[V]P\tinsert APPLICATION after, expand into padding of exceeding size\n");
 	app->data.application.id[0] = 'e'; /* twiddle the id so that our comparison doesn't miss transposition */
 	if(!FLAC__metadata_simple_iterator_insert_block_after(iterator, app, true))
 		return die_ss_("FLAC__metadata_simple_iterator_insert_block_after(iterator, app, true)", iterator);
@@ -649,12 +708,12 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]P\tnext\n");
+	printf("SV[A]P\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("SA[P]\tset APPLICATION, expand into padding of exceeding size\n");
+	printf("SVA[P]\tset APPLICATION, expand into padding of exceeding size\n");
 	app->data.application.id[0] = 'f'; /* twiddle the id */
 	if(!FLAC__metadata_simple_iterator_set_block(iterator, app, true))
 		return die_ss_("FLAC__metadata_simple_iterator_set_block(iterator, app, true)", iterator);
@@ -665,7 +724,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SA[A]P\tset APPLICATION (grow), don't expand into padding\n");
+	printf("SVA[A]P\tset APPLICATION (grow), don't expand into padding\n");
 	app->data.application.id[0] = 'g'; /* twiddle the id */
 	if(!FLAC__metadata_object_application_set_data(app, data, sizeof(data), true))
 		return die_("setting APPLICATION data");
@@ -677,7 +736,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SA[A]P\tset APPLICATION (shrink), don't fill in with padding\n");
+	printf("SVA[A]P\tset APPLICATION (shrink), don't fill in with padding\n");
 	app->data.application.id[0] = 'h'; /* twiddle the id */
 	if(!FLAC__metadata_object_application_set_data(app, data, 12, true))
 		return die_("setting APPLICATION data");
@@ -689,7 +748,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SA[A]P\tset APPLICATION (grow), expand into padding of exceeding size\n");
+	printf("SVA[A]P\tset APPLICATION (grow), expand into padding of exceeding size\n");
 	app->data.application.id[0] = 'i'; /* twiddle the id */
 	if(!FLAC__metadata_object_application_set_data(app, data, sizeof(data), true))
 		return die_("setting APPLICATION data");
@@ -702,7 +761,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SA[A]P\tset APPLICATION (shrink), fill in with padding\n");
+	printf("SVA[A]P\tset APPLICATION (shrink), fill in with padding\n");
 	app->data.application.id[0] = 'j'; /* twiddle the id */
 	if(!FLAC__metadata_object_application_set_data(app, data, 23, true))
 		return die_("setting APPLICATION data");
@@ -717,17 +776,17 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SA[A]PP\tnext\n");
+	printf("SVA[A]PP\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("SAA[P]P\tnext\n");
+	printf("SVAA[P]P\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("SAAP[P]\tset PADDING (shrink), don't fill in with padding\n");
+	printf("SVAAP[P]\tset PADDING (shrink), don't fill in with padding\n");
 	padding->length = 5;
 	if(!replace_in_our_metadata_(padding, our_current_position, /*copy=*/true))
 		return die_("copying object");
@@ -737,7 +796,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SAAP[P]\tset APPLICATION (grow)\n");
+	printf("SVAAP[P]\tset APPLICATION (grow)\n");
 	app->data.application.id[0] = 'k'; /* twiddle the id */
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
 		return die_("copying object");
@@ -747,7 +806,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SAAP[A]\tset PADDING (equal)\n");
+	printf("SVAAP[A]\tset PADDING (equal)\n");
 	padding->length = 27;
 	if(!replace_in_our_metadata_(padding, our_current_position, /*copy=*/true))
 		return die_("copying object");
@@ -757,12 +816,12 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SAAP[P]\tprev\n");
+	printf("SVAAP[P]\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("SAA[P]P\tdelete (middle block), don't replace with padding\n");
+	printf("SVAA[P]P\tdelete (middle block), don't replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
@@ -770,7 +829,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SA[A]P\tdelete (middle block), don't replace with padding\n");
+	printf("SVA[A]P\tdelete (middle block), don't replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
@@ -778,12 +837,12 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]P\tnext\n");
+	printf("SV[A]P\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("SA[P]\tinsert PADDING after\n");
+	printf("SVA[P]\tinsert PADDING after\n");
 	padding->length = 5;
 	if(!FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false))
 		return die_ss_("FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false)", iterator);
@@ -793,17 +852,17 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SAP[P]\tprev\n");
+	printf("SVAP[P]\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("SA[P]P\tprev\n");
+	printf("SVA[P]P\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("S[A]PP\tset APPLICATION (grow), try to expand into padding which is too small\n");
+	printf("SV[A]PP\tset APPLICATION (grow), try to expand into padding which is too small\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 32, true))
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
@@ -814,7 +873,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]PP\tset APPLICATION (grow), try to expand into padding which is 'close' but still too small\n");
+	printf("SV[A]PP\tset APPLICATION (grow), try to expand into padding which is 'close' but still too small\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 60, true))
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
@@ -825,7 +884,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]PP\tset APPLICATION (grow), expand into padding which will leave 0-length pad\n");
+	printf("SV[A]PP\tset APPLICATION (grow), expand into padding which will leave 0-length pad\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 87, true))
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
@@ -837,7 +896,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]PP\tset APPLICATION (grow), expand into padding which is exactly consumed\n");
+	printf("SV[A]PP\tset APPLICATION (grow), expand into padding which is exactly consumed\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 91, true))
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
@@ -849,7 +908,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]P\tset APPLICATION (grow), expand into padding which is exactly consumed\n");
+	printf("SV[A]P\tset APPLICATION (grow), expand into padding which is exactly consumed\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 100, true))
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
@@ -862,7 +921,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]\tset PADDING (equal size)\n");
+	printf("SV[A]\tset PADDING (equal size)\n");
 	padding->length = app->length;
 	if(!replace_in_our_metadata_(padding, our_current_position, /*copy=*/true))
 		return die_("copying object");
@@ -872,7 +931,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[P]\tinsert PADDING after\n");
+	printf("SV[P]\tinsert PADDING after\n");
 	if(!FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false))
 		return die_ss_("FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false)", iterator);
 	if(!insert_to_our_metadata_(padding, ++our_current_position, /*copy=*/true))
@@ -881,7 +940,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SP[P]\tinsert PADDING after\n");
+	printf("SVP[P]\tinsert PADDING after\n");
 	padding->length = 5;
 	if(!FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false))
 		return die_ss_("FLAC__metadata_simple_iterator_insert_block_after(iterator, padding, false)", iterator);
@@ -891,22 +950,22 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SPP[P]\tprev\n");
+	printf("SVPP[P]\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("SP[P]P\tprev\n");
+	printf("SVP[P]P\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("S[P]PP\tprev\n");
+	printf("SV[P]PP\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("[S]PPP\tinsert APPLICATION after, try to expand into padding which is too small\n");
+	printf("S[V]PPP\tinsert APPLICATION after, try to expand into padding which is too small\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 101, true))
 		return die_("setting APPLICATION data");
 	if(!insert_to_our_metadata_(app, ++our_current_position, /*copy=*/true))
@@ -917,7 +976,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]PPP\tdelete (middle block), don't replace with padding\n");
+	printf("SV[A]PPP\tdelete (middle block), don't replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
@@ -925,7 +984,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("[S]PPP\tinsert APPLICATION after, try to expand into padding which is 'close' but still too small\n");
+	printf("S[V]PPP\tinsert APPLICATION after, try to expand into padding which is 'close' but still too small\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 97, true))
 		return die_("setting APPLICATION data");
 	if(!insert_to_our_metadata_(app, ++our_current_position, /*copy=*/true))
@@ -936,7 +995,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]PPP\tdelete (middle block), don't replace with padding\n");
+	printf("SV[A]PPP\tdelete (middle block), don't replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
@@ -944,7 +1003,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("[S]PPP\tinsert APPLICATION after, expand into padding which is exactly consumed\n");
+	printf("S[V]PPP\tinsert APPLICATION after, expand into padding which is exactly consumed\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 100, true))
 		return die_("setting APPLICATION data");
 	if(!insert_to_our_metadata_(app, ++our_current_position, /*copy=*/true))
@@ -956,7 +1015,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]PP\tdelete (middle block), don't replace with padding\n");
+	printf("SV[A]PP\tdelete (middle block), don't replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
@@ -964,7 +1023,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("[S]PP\tinsert APPLICATION after, expand into padding which will leave 0-length pad\n");
+	printf("S[V]PP\tinsert APPLICATION after, expand into padding which will leave 0-length pad\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 96, true))
 		return die_("setting APPLICATION data");
 	if(!insert_to_our_metadata_(app, ++our_current_position, /*copy=*/true))
@@ -976,7 +1035,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]PP\tdelete (middle block), don't replace with padding\n");
+	printf("SV[A]PP\tdelete (middle block), don't replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
@@ -984,12 +1043,12 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("[S]PP\tnext\n");
+	printf("S[V]PP\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[P]P\tdelete (middle block), don't replace with padding\n");
+	printf("SV[P]P\tdelete (middle block), don't replace with padding\n");
 	if(!FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
@@ -997,7 +1056,7 @@ static FLAC__bool test_level_1_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("[S]P\tinsert APPLICATION after, expand into padding which is exactly consumed\n");
+	printf("S[V]P\tinsert APPLICATION after, expand into padding which is exactly consumed\n");
 	if(!FLAC__metadata_object_application_set_data(app, data, 1, true))
 		return die_("setting APPLICATION data");
 	if(!insert_to_our_metadata_(app, ++our_current_position, /*copy=*/true))
@@ -1050,7 +1109,7 @@ static FLAC__bool test_level_2_()
 	if(!FLAC__metadata_chain_read(chain, flacfile_))
 		return die_c_("reading chain", FLAC__metadata_chain_status(chain));
 
-	printf("[S]P\ttest initial metadata\n");
+	printf("[S]VP\ttest initial metadata\n");
 
 	if(!compare_chain_(chain, 0, 0))
 		return false;
@@ -1075,7 +1134,7 @@ static FLAC__bool test_level_2_()
 
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_STREAMINFO);
 
-	printf("[S]P\tmodify STREAMINFO, write\n");
+	printf("[S]VP\tmodify STREAMINFO, write\n");
 
 	block->data.stream_info.sample_rate = 32000;
 	if(!replace_in_our_metadata_(block, our_current_position, /*copy=*/true))
@@ -1088,12 +1147,17 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("[S]P\tnext\n");
+	printf("[S]VP\tnext\n");
 	if(!FLAC__metadata_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[P]\treplace PADDING with identical-size APPLICATION\n");
+	printf("S[V]P\tnext\n");
+	if(!FLAC__metadata_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("SV[P]\treplace PADDING with identical-size APPLICATION\n");
 	if(0 == (block = FLAC__metadata_iterator_get_block(iterator)))
 		return die_("getting block from iterator");
 	if(0 == (app = FLAC__metadata_object_new(FLAC__METADATA_TYPE_APPLICATION)))
@@ -1113,7 +1177,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]\tshrink APPLICATION, don't use padding\n");
+	printf("SV[A]\tshrink APPLICATION, don't use padding\n");
 	if(0 == (app = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("copying object");
 	if(!FLAC__metadata_object_application_set_data(app, data, 26, true))
@@ -1130,7 +1194,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]\tgrow APPLICATION, don't use padding\n");
+	printf("SV[A]\tgrow APPLICATION, don't use padding\n");
 	if(0 == (app = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("copying object");
 	if(!FLAC__metadata_object_application_set_data(app, data, 28, true))
@@ -1147,7 +1211,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]\tgrow APPLICATION, use padding, but last block is not padding\n");
+	printf("SV[A]\tgrow APPLICATION, use padding, but last block is not padding\n");
 	if(0 == (app = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("copying object");
 	if(!FLAC__metadata_object_application_set_data(app, data, 36, true))
@@ -1164,7 +1228,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]\tshrink APPLICATION, use padding, last block is not padding, but delta is too small for new PADDING block\n");
+	printf("SV[A]\tshrink APPLICATION, use padding, last block is not padding, but delta is too small for new PADDING block\n");
 	if(0 == (app = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("copying object");
 	if(!FLAC__metadata_object_application_set_data(app, data, 33, true))
@@ -1181,7 +1245,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]\tshrink APPLICATION, use padding, last block is not padding, delta is enough for new PADDING block\n");
+	printf("SV[A]\tshrink APPLICATION, use padding, last block is not padding, delta is enough for new PADDING block\n");
 	if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)))
 		return die_("creating PADDING block");
 	if(0 == (app = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
@@ -1203,7 +1267,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]P\tshrink APPLICATION, use padding, last block is padding\n");
+	printf("SV[A]P\tshrink APPLICATION, use padding, last block is padding\n");
 	if(0 == (app = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("copying object");
 	if(!FLAC__metadata_object_application_set_data(app, data, 16, true))
@@ -1221,7 +1285,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]P\tgrow APPLICATION, use padding, last block is padding, but delta is too small\n");
+	printf("SV[A]P\tgrow APPLICATION, use padding, last block is padding, but delta is too small\n");
 	if(0 == (app = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("copying object");
 	if(!FLAC__metadata_object_application_set_data(app, data, 50, true))
@@ -1238,7 +1302,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]P\tgrow APPLICATION, use padding, last block is padding of exceeding size\n");
+	printf("SV[A]P\tgrow APPLICATION, use padding, last block is padding of exceeding size\n");
 	if(0 == (app = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("copying object");
 	if(!FLAC__metadata_object_application_set_data(app, data, 56, true))
@@ -1256,7 +1320,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]P\tgrow APPLICATION, use padding, last block is padding of exact size\n");
+	printf("SV[A]P\tgrow APPLICATION, use padding, last block is padding of exact size\n");
 	if(0 == (app = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("copying object");
 	if(!FLAC__metadata_object_application_set_data(app, data, 67, true))
@@ -1274,12 +1338,17 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S[A]\tprev\n");
+	printf("SV[A]\tprev\n");
 	if(!FLAC__metadata_iterator_prev(iterator))
 		return die_("iterator ended early\n");
 	our_current_position--;
 
-	printf("[S]A\tinsert PADDING before STREAMINFO (should fail)\n");
+	printf("S[V]A\tprev\n");
+	if(!FLAC__metadata_iterator_prev(iterator))
+		return die_("iterator ended early\n");
+	our_current_position--;
+
+	printf("[S]VA\tinsert PADDING before STREAMINFO (should fail)\n");
 	if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)))
 		return die_("creating PADDING block");
 	padding->length = 30;
@@ -1288,7 +1357,12 @@ static FLAC__bool test_level_2_()
 	else
 		return die_("FLAC__metadata_iterator_insert_block_before() should have returned false");
 
-	printf("[S]A\tinsert PADDING after\n");
+	printf("[S]VP\tnext\n");
+	if(!FLAC__metadata_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("S[V]A\tinsert PADDING after\n");
 	if(!insert_to_our_metadata_(padding, ++our_current_position, /*copy=*/true))
 		return die_("copying metadata");
 	if(!FLAC__metadata_iterator_insert_block_after(iterator, padding))
@@ -1297,7 +1371,7 @@ static FLAC__bool test_level_2_()
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 
-	printf("S[P]A\tinsert PADDING before\n");
+	printf("SV[P]A\tinsert PADDING before\n");
 	if(0 == (padding = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("creating PADDING block");
 	padding->length = 17;
@@ -1309,7 +1383,7 @@ static FLAC__bool test_level_2_()
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 
-	printf("S[P]PA\tinsert PADDING before\n");
+	printf("SV[P]PA\tinsert PADDING before\n");
 	if(0 == (padding = FLAC__metadata_object_clone(our_metadata_.blocks[our_current_position])))
 		return die_("creating PADDING block");
 	padding->length = 0;
@@ -1321,23 +1395,23 @@ static FLAC__bool test_level_2_()
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 
-	printf("S[P]PPA\tnext\n");
+	printf("SV[P]PPA\tnext\n");
 	if(!FLAC__metadata_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("SP[P]PA\tnext\n");
+	printf("SVP[P]PA\tnext\n");
 	if(!FLAC__metadata_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("SPP[P]A\tnext\n");
+	printf("SVPP[P]A\tnext\n");
 	if(!FLAC__metadata_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("SPPP[A]\tinsert PADDING after\n");
-	if(0 == (padding = FLAC__metadata_object_clone(our_metadata_.blocks[1])))
+	printf("SVPPP[A]\tinsert PADDING after\n");
+	if(0 == (padding = FLAC__metadata_object_clone(our_metadata_.blocks[2])))
 		return die_("creating PADDING block");
 	padding->length = 57;
 	if(!insert_to_our_metadata_(padding, ++our_current_position, /*copy=*/true))
@@ -1348,8 +1422,8 @@ static FLAC__bool test_level_2_()
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 
-	printf("SPPPA[P]\tinsert PADDING before\n");
-	if(0 == (padding = FLAC__metadata_object_clone(our_metadata_.blocks[1])))
+	printf("SVPPPA[P]\tinsert PADDING before\n");
+	if(0 == (padding = FLAC__metadata_object_clone(our_metadata_.blocks[2])))
 		return die_("creating PADDING block");
 	padding->length = 99;
 	if(!insert_to_our_metadata_(padding, our_current_position, /*copy=*/true))
@@ -1364,14 +1438,14 @@ static FLAC__bool test_level_2_()
 	FLAC__metadata_iterator_delete(iterator);
 	our_current_position = 0;
 
-	printf("SPPPAPP\tmerge padding\n");
+	printf("SVPPPAPP\tmerge padding\n");
 	FLAC__metadata_chain_merge_padding(chain);
-	our_metadata_.blocks[1]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[2]->length);
-	our_metadata_.blocks[1]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[3]->length);
-	our_metadata_.blocks[5]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[6]->length);
-	delete_from_our_metadata_(6);
+	our_metadata_.blocks[2]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[3]->length);
+	our_metadata_.blocks[2]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[4]->length);
+	our_metadata_.blocks[6]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[7]->length);
+	delete_from_our_metadata_(7);
+	delete_from_our_metadata_(4);
 	delete_from_our_metadata_(3);
-	delete_from_our_metadata_(2);
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
@@ -1380,10 +1454,10 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("SPAP\tsort padding\n");
+	printf("SVPAP\tsort padding\n");
 	FLAC__metadata_chain_sort_padding(chain);
-	our_metadata_.blocks[3]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[1]->length);
-	delete_from_our_metadata_(1);
+	our_metadata_.blocks[4]->length += (FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[2]->length);
+	delete_from_our_metadata_(2);
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
 		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
@@ -1400,12 +1474,17 @@ static FLAC__bool test_level_2_()
 
 	FLAC__metadata_iterator_init(iterator, chain);
 
-	printf("[S]AP\tnext\n");
+	printf("[S]VAP\tnext\n");
 	if(!FLAC__metadata_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[A]P\tdelete middle block, replace with padding\n");
+	printf("S[V]AP\tnext\n");
+	if(!FLAC__metadata_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("SV[A]P\tdelete middle block, replace with padding\n");
 	if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)))
 		return die_("creating PADDING block");
 	padding->length = 71;
@@ -1417,12 +1496,12 @@ static FLAC__bool test_level_2_()
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 
-	printf("[S]PP\tnext\n");
+	printf("S[V]PP\tnext\n");
 	if(!FLAC__metadata_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[P]P\tdelete middle block, don't replace with padding\n");
+	printf("SV[P]P\tdelete middle block, don't replace with padding\n");
 	delete_from_our_metadata_(our_current_position--);
 	if(!FLAC__metadata_iterator_delete_block(iterator, /*replace_with_padding=*/false))
 		return die_c_("FLAC__metadata_iterator_delete_block(iterator, false)", FLAC__metadata_chain_status(chain));
@@ -1430,12 +1509,12 @@ static FLAC__bool test_level_2_()
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 
-	printf("[S]P\tnext\n");
+	printf("S[V]P\tnext\n");
 	if(!FLAC__metadata_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[P]\tdelete last block, replace with padding\n");
+	printf("SV[P]\tdelete last block, replace with padding\n");
 	if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)))
 		return die_("creating PADDING block");
 	padding->length = 219;
@@ -1447,12 +1526,12 @@ static FLAC__bool test_level_2_()
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 
-	printf("[S]P\tnext\n");
+	printf("S[V]P\tnext\n");
 	if(!FLAC__metadata_iterator_next(iterator))
 		return die_("iterator ended early\n");
 	our_current_position++;
 
-	printf("S[P]\tdelete last block, don't replace with padding\n");
+	printf("SV[P]\tdelete last block, don't replace with padding\n");
 	delete_from_our_metadata_(our_current_position--);
 	if(!FLAC__metadata_iterator_delete_block(iterator, /*replace_with_padding=*/false))
 		return die_c_("FLAC__metadata_iterator_delete_block(iterator, false)", FLAC__metadata_chain_status(chain));
@@ -1460,7 +1539,12 @@ static FLAC__bool test_level_2_()
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 
-	printf("[S]\tdelete STREAMINFO block, should fail\n");
+	printf("S[V]\tprev\n");
+	if(!FLAC__metadata_iterator_prev(iterator))
+		return die_("iterator ended early\n");
+	our_current_position--;
+
+	printf("[S]V\tdelete STREAMINFO block, should fail\n");
 	if(FLAC__metadata_iterator_delete_block(iterator, /*replace_with_padding=*/false))
 		return die_("FLAC__metadata_iterator_delete_block() on STREAMINFO should have failed but didn't");
 
@@ -1471,7 +1555,7 @@ static FLAC__bool test_level_2_()
 	FLAC__metadata_iterator_delete(iterator);
 	our_current_position = 0;
 
-	printf("S\tmerge padding\n");
+	printf("SV\tmerge padding\n");
 	FLAC__metadata_chain_merge_padding(chain);
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
@@ -1481,7 +1565,7 @@ static FLAC__bool test_level_2_()
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
 
-	printf("S\tsort padding\n");
+	printf("SV\tsort padding\n");
 	FLAC__metadata_chain_sort_padding(chain);
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
