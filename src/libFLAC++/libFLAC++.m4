@@ -5,7 +5,7 @@
 dnl AM_PATH_LIBFLACPP([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libFLAC++, and define LIBFLACPP_CFLAGS and LIBFLACPP_LIBS
 dnl
-AC_DEFUN(AM_PATH_LIBFLACPP,
+AC_DEFUN([AM_PATH_LIBFLACPP],
 [dnl 
 dnl Get the cflags and libraries
 dnl

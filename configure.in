@@ -32,7 +32,7 @@ AM_MAINTAINER_MODE
 dnl LOCAL__PATH_ID3LIB([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libid3, and define ID3LIB_CFLAGS and ID3LIB_LIBS
 dnl
-AC_DEFUN(LOCAL__PATH_ID3LIB,
+AC_DEFUN([LOCAL__PATH_ID3LIB],
 [dnl
 dnl Get the cflags and libraries
 dnl

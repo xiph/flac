@@ -4,7 +4,7 @@
 dnl AM_PATH_LIBOGGFLAC([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libOggFLAC, and define LIBOGGFLAC_CFLAGS and LIBOGGFLAC_LIBS
 dnl
-AC_DEFUN(AM_PATH_LIBOGGFLAC,
+AC_DEFUN([AM_PATH_LIBOGGFLAC],
 [dnl 
 dnl Get the cflags and libraries
 dnl
