@@ -105,6 +105,8 @@ static void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__Stre
 static void print_stats(const encoder_wrapper_struct *encoder_wrapper);
 static bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok);
 static bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok);
+static bool write_big_endian_uint16(FILE *f, uint16 val);
+static bool write_big_endian_uint64(FILE *f, uint64 val);
 
 int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
 {
@@ -846,6 +848,12 @@ void metadata_callback(const FLAC__Encoder *encoder, const FLAC__StreamMetaData 
 	const unsigned min_framesize = metadata->data.stream_info.min_framesize;
 	const unsigned max_framesize = metadata->data.stream_info.max_framesize;
 
+	/*
+	 * we get called by the encoder when the encoding process has
+	 * finished so that we can update the STREAMINFO and SEEKTABLE
+	 * blocks.
+	 */
+
 	(void)encoder; /* silence compiler warning about unused parameter */
 
 	if(encoder_wrapper->fout == stdout)
@@ -879,19 +887,44 @@ samples_:
 	if(fwrite(&b, 1, 1, f) != 1) goto framesize_;
 
 framesize_:
-	if(-1 == fseek(f, 12, SEEK_SET)) goto end_;
+	if(-1 == fseek(f, 12, SEEK_SET)) goto seektable_;
 	b = (byte)((min_framesize >> 16) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto end_;
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
 	b = (byte)((min_framesize >> 8) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto end_;
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
 	b = (byte)(min_framesize & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto end_;
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
 	b = (byte)((max_framesize >> 16) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto end_;
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
 	b = (byte)((max_framesize >> 8) & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto end_;
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
 	b = (byte)(max_framesize & 0xFF);
-	if(fwrite(&b, 1, 1, f) != 1) goto end_;
+	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
+
+seektable_:
+	if(encoder_wrapper->seek_table.num_points > 0) {
+		long pos;
+		unsigned i;
+
+		/* convert any unused seek points to placeholders */
+		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
+			if(encoder_wrapper->seek_table.points[i].sample_number == FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER)
+				break;
+			else if(encoder_wrapper->seek_table.points[i].frame_samples == 0)
+				encoder_wrapper->seek_table.points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+		}
+
+		pos = (FLAC__STREAM_SYNC_LEN + FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
+		pos += metadata->length;
+		pos = (FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
+		if(-1 == fseek(f, pos, SEEK_SET)) goto end_;
+		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
+			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].sample_number)) goto end_;
+			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].stream_offset)) goto end_;
+			if(!write_big_endian_uint16(f, encoder_wrapper->seek_table.points[i].frame_samples)) goto end_;
+		}
+	}
+
 end_:
 	fclose(f);
 	return;
@@ -1022,4 +1055,25 @@ bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok)
 		}
 		return true;
 	}
+}
+
+bool write_big_endian_uint16(FILE *f, uint16 val)
+{
+	if(!is_big_endian_host) {
+		byte *b = (byte *)&val, tmp;
+		tmp = b[0]; b[0] = b[1]; b[1] = tmp;
+	}
+	return fwrite(&val, 1, 2, f) == 2;
+}
+
+bool write_big_endian_uint64(FILE *f, uint64 val)
+{
+	if(!is_big_endian_host) {
+		byte *b = (byte *)&val, tmp;
+		tmp = b[0]; b[0] = b[7]; b[7] = tmp;
+		tmp = b[1]; b[1] = b[6]; b[6] = tmp;
+		tmp = b[2]; b[2] = b[5]; b[3] = tmp;
+		tmp = b[3]; b[3] = b[4]; b[4] = tmp;
+	}
+	return fwrite(&val, 1, 8, f) == 8;
 }
