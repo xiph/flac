@@ -201,6 +201,7 @@ const char *FLAC__MetaData_SimpleIteratorStatusString[] = {
 	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE",
 	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_A_FLAC_FILE",
 	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE",
+	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA",
 	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR",
 	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR",
 	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR",
@@ -701,6 +702,7 @@ const char *FLAC__MetaData_ChainStatusString[] = {
 	"FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE",
 	"FLAC__METADATA_CHAIN_STATUS_NOT_A_FLAC_FILE",
 	"FLAC__METADATA_CHAIN_STATUS_NOT_WRITABLE",
+	"FLAC__METADATA_CHAIN_STATUS_BAD_METADATA",
 	"FLAC__METADATA_CHAIN_STATUS_READ_ERROR",
 	"FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR",
 	"FLAC__METADATA_CHAIN_STATUS_WRITE_ERROR",
@@ -1039,7 +1041,6 @@ void FLAC__metadata_chain_sort_padding(FLAC__MetaData_Chain *chain)
 	 * the small number of nodes that we deal with.
 	 */
 	for(i = 0, node = chain->head; i < chain->nodes; i++) {
-		node->data->is_last = false; /* we'll fix at the end */
 		if(node->data->type == FLAC__METADATA_TYPE_PADDING) {
 			save = node->next;
 			chain_remove_node_(chain, node);
@@ -1724,6 +1725,12 @@ FLAC__bool read_metadata_block_header_(FLAC__MetaData_SimpleIterator *iterator)
 	iterator->type = (FLAC__MetaDataType)(raw_header[0] & 0x7f);
 	iterator->length = unpack_uint32_(raw_header + 1, 3);
 
+	/* do some checking */
+	if(iterator->type > FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA;
+		return false;
+	}
+
 	return true;
 }
 
@@ -2302,24 +2309,53 @@ FLAC__bool simple_iterator_pop_(FLAC__MetaData_SimpleIterator *iterator)
 
 unsigned seek_to_first_metadata_block_(FILE *f)
 {
-	FLAC__byte signature[FLAC__STREAM_METADATA_HEADER_LENGTH];
+	FLAC__byte buffer[4];
+	size_t n;
+	unsigned i;
 
 	FLAC__ASSERT(0 != f);
+	FLAC__ASSERT(FLAC__STREAM_SYNC_LENGTH == 4);
 
-	/*@@@@ skip id3v2, change comment about id3v2 in metadata.h*/
-
-	/* search for the fLaC signature */
-	if(fread(signature, 1, FLAC__STREAM_METADATA_HEADER_LENGTH, f) == FLAC__STREAM_METADATA_HEADER_LENGTH) {
-		if(0 == memcmp(FLAC__STREAM_SYNC_STRING, signature, FLAC__STREAM_SYNC_LENGTH)) {
-			return 0;
-		}
-		else {
-			return 2;
-		}
-	}
-	else {
+	/* skip any id3v2 tag */
+	errno = 0;
+	n = fread(buffer, 1, 4, f);
+	if(errno)
 		return 1;
+	else if(n != 4)
+		return 2;
+	else if(0 == memcmp(buffer, "ID3", 3)) {
+		unsigned tag_length = 0;
+
+		/* skip to the tag length */
+		if(fseek(f, 2, SEEK_CUR) < 0)
+			return 1;
+
+		/* read the length */
+		for(i = 0; i < 4; i++) {
+			if(fread(buffer, 1, 1, f) < 1 || buffer[0] & 0x80)
+				return 1;
+			tag_length <<= 7;
+			tag_length |= (buffer[0] & 0x7f);
+		}
+
+		/* skip the rest of the tag */
+		if(fseek(f, tag_length, SEEK_CUR) < 0)
+			return 1;
+
+		/* read the stream sync code */
+		errno = 0;
+		n = fread(buffer, 1, 4, f);
+		if(errno)
+			return 1;
+		else if(n != 4)
+			return 2;
 	}
+
+	/* check for the fLaC signature */
+	if(0 == memcmp(FLAC__STREAM_SYNC_STRING, buffer, FLAC__STREAM_SYNC_LENGTH))
+		return 0;
+	else
+		return 2;
 }
 
 FLAC__bool simple_iterator_copy_file_prefix_(FLAC__MetaData_SimpleIterator *iterator, FILE **tempfile, char **tempfilename, FLAC__bool append)
@@ -2572,6 +2608,8 @@ FLAC__MetaData_ChainStatus get_equivalent_status_(FLAC__MetaData_SimpleIteratorS
 			return FLAC__METADATA_CHAIN_STATUS_NOT_A_FLAC_FILE;
 		case FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE:
 			return FLAC__METADATA_CHAIN_STATUS_NOT_WRITABLE;
+		case FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA:
+			return FLAC__METADATA_CHAIN_STATUS_BAD_METADATA;
 		case FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR:
 			return FLAC__METADATA_CHAIN_STATUS_READ_ERROR;
 		case FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR:
@@ -2589,3 +2627,249 @@ FLAC__MetaData_ChainStatus get_equivalent_status_(FLAC__MetaData_SimpleIteratorS
 			return FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR;
 	}
 }
+#if 0
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+FLAC__bool list(FILE *f, FLAC__bool verbose)
+{
+	FLAC__byte buf[65536];
+	FLAC__byte *b = buf;
+	FLAC__StreamMetaData metadata;
+	unsigned blocknum = 0, byte_offset = 0, i;
+
+	/* skip any id3v2 tag */
+	if(fread(buf, 1, 4, f) < 4) {
+		fprintf(stderr, "ERROR: not a FLAC file\n");
+		return false;
+	}
+	if(0 == memcmp(buf, "ID3", 3)) {
+		unsigned tag_length = 0;
+
+		/* skip to the tag length */
+		if(fseek(f, 2, SEEK_CUR) < 0) {
+			fprintf(stderr, "ERROR: bad ID3v2 tag\n");
+			return false;
+		}
+
+		/* read the length */
+		for(i = 0; i < 4; i++) {
+			if(fread(buf, 1, 1, f) < 1 || buf[0] & 0x80) {
+				fprintf(stderr, "ERROR: bad ID3v2 tag\n");
+				return false;
+			}
+			tag_length <<= 7;
+			tag_length |= (buf[0] & 0x7f);
+		}
+
+		/* skip the rest of the tag */
+		if(fseek(f, tag_length, SEEK_CUR) < 0) {
+			fprintf(stderr, "ERROR: bad ID3v2 tag\n");
+			return false;
+		}
+
+		/* read the stream sync code */
+		if(fread(buf, 1, 4, f) < 4) {
+			fprintf(stderr, "ERROR: not a FLAC file (no '%s' header)\n", sync_string_);
+			return false;
+		}
+	}
+
+	/* check the stream sync code */
+	if(memcmp(buf, sync_string_, 4)) {
+		fprintf(stderr, "ERROR: not a FLAC file (no '%s' header)\n", sync_string_);
+		return false;
+	}
+	byte_offset += 4;
+
+	/* read the metadata blocks */
+	do {
+		/* read the metadata block header */
+		if(fread(buf, 1, 4, f) < 4) {
+			fprintf(stderr, "ERROR: short count reading metadata block header\n");
+			return false;
+		}
+		metadata.is_last = (buf[0] & 0x80)? true:false;
+		metadata.type = (FLAC__MetaDataType)(buf[0] & 0x7f);
+		metadata.length = unpack_uint32(buf+1, 3);
+
+		/* print header */
+		printf("METADATA block #%u\n", blocknum);
+		printf("  byte offset: %u\n", byte_offset);
+		printf("  type: %u (%s)\n", (unsigned)metadata.type, metadata.type<=FLAC__METADATA_TYPE_SEEKTABLE? metadata_type_string_[metadata.type] : "UNKNOWN");
+		printf("  is last: %s\n", metadata.is_last? "true":"false");
+		printf("  length: %u\n", metadata.length);
+
+		if(metadata.length > sizeof(buf)) {
+			printf("  SKIPPING large block\n");
+			if(fseek(f, metadata.length, SEEK_CUR) < 0) {
+				fprintf(stderr, "ERROR: short count skipping metadata block data\n");
+				return false;
+			}
+			continue;
+		}
+
+		/* read the metadata block data */
+		if(fread(buf, 1, metadata.length, f) < metadata.length) {
+			fprintf(stderr, "ERROR: short count reading metadata block data\n");
+			return false;
+		}
+		switch(metadata.type) {
+			case FLAC__METADATA_TYPE_STREAMINFO:
+				b = buf;
+				metadata.data.stream_info.min_blocksize = unpack_uint32(b, 2); b += 2;
+				metadata.data.stream_info.max_blocksize = unpack_uint32(b, 2); b += 2;
+				metadata.data.stream_info.min_framesize = unpack_uint32(b, 3); b += 3;
+				metadata.data.stream_info.max_framesize = unpack_uint32(b, 3); b += 3;
+				metadata.data.stream_info.sample_rate = (unpack_uint32(b, 2) << 4) | ((unsigned)(b[2] & 0xf0) >> 4);
+				metadata.data.stream_info.channels = (unsigned)((b[2] & 0x0e) >> 1) + 1;
+				metadata.data.stream_info.bits_per_sample = ((((unsigned)(b[2] & 0x01)) << 1) | (((unsigned)(b[3] & 0xf0)) >> 4)) + 1;
+				metadata.data.stream_info.total_samples = (((FLAC__uint64)(b[3] & 0x0f)) << 32) | unpack_uint64(b+4, 4);
+				memcpy(metadata.data.stream_info.md5sum, b+8, 16);
+				break;
+			case FLAC__METADATA_TYPE_PADDING:
+				if(verbose) {
+					/* dump contents */
+				}
+				break;
+			case FLAC__METADATA_TYPE_APPLICATION:
+				memcpy(metadata.data.application.id, buf, 4);
+				metadata.data.application.data = buf+4;
+				break;
+			case FLAC__METADATA_TYPE_SEEKTABLE:
+				metadata.data.seek_table.num_points = metadata.length / SEEKPOINT_LEN_;
+				b = buf; /* we leave the points in buf for printing later */
+				break;
+			default:
+				printf("SKIPPING block of unknown type\n");
+				continue;
+		}
+
+		/* print data */
+		switch(metadata.type) {
+			case FLAC__METADATA_TYPE_STREAMINFO:
+				printf("  minumum blocksize: %u samples\n", metadata.data.stream_info.min_blocksize);
+				printf("  maximum blocksize: %u samples\n", metadata.data.stream_info.max_blocksize);
+				printf("  minimum framesize: %u bytes\n", metadata.data.stream_info.min_framesize);
+				printf("  maximum framesize: %u bytes\n", metadata.data.stream_info.max_framesize);
+				printf("  sample_rate: %u Hz\n", metadata.data.stream_info.sample_rate);
+				printf("  channels: %u\n", metadata.data.stream_info.channels);
+				printf("  bits-per-sample: %u\n", metadata.data.stream_info.bits_per_sample);
+				printf("  total samples: %llu\n", metadata.data.stream_info.total_samples);
+				printf("  MD5 signature: ");
+				for(i = 0; i < 16; i++)
+					printf("%02x", metadata.data.stream_info.md5sum[i]);
+				printf("\n");
+				break;
+			case FLAC__METADATA_TYPE_PADDING:
+				if(verbose) {
+					printf("  pad contents:\n");
+					hexdump(buf, metadata.length, "    ");
+				}
+				break;
+			case FLAC__METADATA_TYPE_APPLICATION:
+				printf("  application ID: ");
+				for(i = 0; i < 4; i++)
+					printf("%02x", metadata.data.application.id[i]);
+				printf("\n");
+				if(verbose) {
+					printf("  data contents:\n");
+					hexdump(metadata.data.application.data, metadata.length, "    ");
+				}
+				break;
+			case FLAC__METADATA_TYPE_SEEKTABLE:
+				printf("  seek points: %u\n", metadata.data.seek_table.num_points);
+				if(verbose) {
+					for(i = 0; i < metadata.data.seek_table.num_points; i++, b += SEEKPOINT_LEN_)
+						printf("    point %d: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, unpack_uint64(b, 8), unpack_uint64(b+8, 8), unpack_uint32(b+16, 2));
+				}
+				break;
+			default:
+				FLAC__ASSERT(0);
+		}
+
+		blocknum++;
+		byte_offset += (4 + metadata.length);
+	} while (!metadata.is_last);
+
+	return true;
+}
+
+FLAC__uint32 unpack_uint32(FLAC__byte *b, unsigned bytes)
+{
+	FLAC__uint32 ret = 0;
+	unsigned i;
+
+	for(i = 0; i < bytes; i++)
+		ret = (ret << 8) | (FLAC__uint32)(*b++);
+
+	return ret;
+}
+
+FLAC__uint64 unpack_uint64(FLAC__byte *b, unsigned bytes)
+{
+	FLAC__uint64 ret = 0;
+	unsigned i;
+
+	for(i = 0; i < bytes; i++)
+		ret = (ret << 8) | (FLAC__uint64)(*b++);
+
+	return ret;
+}
+
+void hexdump(const FLAC__byte *buf, unsigned bytes, const char *indent)
+{
+	unsigned i, left = bytes;
+	const FLAC__byte *b = buf;
+
+	for(i = 0; i < bytes; i += 16) {
+		printf("%s%08X: "
+			"%02X %02X %02X %02X %02X %02X %02X %02X "
+			"%02X %02X %02X %02X %02X %02X %02X %02X "
+			"%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\n",
+			indent, i,
+			left >  0? (unsigned char)b[ 0] : 0,
+			left >  1? (unsigned char)b[ 1] : 0,
+			left >  2? (unsigned char)b[ 2] : 0,
+			left >  3? (unsigned char)b[ 3] : 0,
+			left >  4? (unsigned char)b[ 4] : 0,
+			left >  5? (unsigned char)b[ 5] : 0,
+			left >  6? (unsigned char)b[ 6] : 0,
+			left >  7? (unsigned char)b[ 7] : 0,
+			left >  8? (unsigned char)b[ 8] : 0,
+			left >  9? (unsigned char)b[ 9] : 0,
+			left > 10? (unsigned char)b[10] : 0,
+			left > 11? (unsigned char)b[11] : 0,
+			left > 12? (unsigned char)b[12] : 0,
+			left > 13? (unsigned char)b[13] : 0,
+			left > 14? (unsigned char)b[14] : 0,
+			left > 15? (unsigned char)b[15] : 0,
+			(left >  0) ? (isprint(b[ 0]) ? b[ 0] : '.') : ' ',
+			(left >  1) ? (isprint(b[ 1]) ? b[ 1] : '.') : ' ',
+			(left >  2) ? (isprint(b[ 2]) ? b[ 2] : '.') : ' ',
+			(left >  3) ? (isprint(b[ 3]) ? b[ 3] : '.') : ' ',
+			(left >  4) ? (isprint(b[ 4]) ? b[ 4] : '.') : ' ',
+			(left >  5) ? (isprint(b[ 5]) ? b[ 5] : '.') : ' ',
+			(left >  6) ? (isprint(b[ 6]) ? b[ 6] : '.') : ' ',
+			(left >  7) ? (isprint(b[ 7]) ? b[ 7] : '.') : ' ',
+			(left >  8) ? (isprint(b[ 8]) ? b[ 8] : '.') : ' ',
+			(left >  9) ? (isprint(b[ 9]) ? b[ 9] : '.') : ' ',
+			(left > 10) ? (isprint(b[10]) ? b[10] : '.') : ' ',
+			(left > 11) ? (isprint(b[11]) ? b[11] : '.') : ' ',
+			(left > 12) ? (isprint(b[12]) ? b[12] : '.') : ' ',
+			(left > 13) ? (isprint(b[13]) ? b[13] : '.') : ' ',
+			(left > 14) ? (isprint(b[14]) ? b[14] : '.') : ' ',
+			(left > 15) ? (isprint(b[15]) ? b[15] : '.') : ' '
+		);
+		left -= 16;
+		b += 16;
+   }
+}
+#endif

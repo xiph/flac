@@ -59,8 +59,8 @@
 	2, which allows you to edit all the metadata for a file in memory and
 	write it out all at once.
 
-	@@@@WATCHOUT: levels 1 and 2 do not support id3v2 tags at the front of the
-	file.  You will get an error that it is not a valid FLAC file.
+	All levels know how to skip over and not disturb an ID3v2 tag at the
+	front of the file.
 ******************************************************************************/
 
 /******************************************************************************
@@ -77,7 +77,7 @@ extern "C" {
 /***********************************************************************
  * level 0
  * ---------------------------------------------------------------------
- * Only one routine to read the STREAMINFO.  Skips any id3v2 tag at the
+ * Only one routine to read the STREAMINFO.  Skips any ID3v2 tag at the
  * head of the file.  Useful for file-based player plugins.
  *
  * Provide the address of a FLAC__StreamMetaData_StreamInfo object to
@@ -137,6 +137,7 @@ typedef enum {
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE,
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_A_FLAC_FILE,
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE,
+	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA,
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR,
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR,
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR,
@@ -325,6 +326,7 @@ typedef enum {
 	FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE,
 	FLAC__METADATA_CHAIN_STATUS_NOT_A_FLAC_FILE,
 	FLAC__METADATA_CHAIN_STATUS_NOT_WRITABLE,
+	FLAC__METADATA_CHAIN_STATUS_BAD_METADATA,
 	FLAC__METADATA_CHAIN_STATUS_READ_ERROR,
 	FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR,
 	FLAC__METADATA_CHAIN_STATUS_WRITE_ERROR,
