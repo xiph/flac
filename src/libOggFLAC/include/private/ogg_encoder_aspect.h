@@ -40,6 +40,7 @@
 typedef struct OggFLAC__OggEncoderAspect {
 	/* these are storage for values that can be set through the API */
 	long serial_number;
+	unsigned num_metadata;
 
 	/* these are for internal state related to Ogg encoding */
 	ogg_stream_state stream_state;
@@ -50,6 +51,7 @@ typedef struct OggFLAC__OggEncoderAspect {
 } OggFLAC__OggEncoderAspect;
 
 void OggFLAC__ogg_encoder_aspect_set_serial_number(OggFLAC__OggEncoderAspect *aspect, long value);
+FLAC__bool OggFLAC__ogg_encoder_aspect_set_num_metadata(OggFLAC__OggEncoderAspect *aspect, unsigned value);
 void OggFLAC__ogg_encoder_aspect_set_defaults(OggFLAC__OggEncoderAspect *aspect);
 FLAC__bool OggFLAC__ogg_encoder_aspect_init(OggFLAC__OggEncoderAspect *aspect);
 void OggFLAC__ogg_encoder_aspect_finish(OggFLAC__OggEncoderAspect *aspect);

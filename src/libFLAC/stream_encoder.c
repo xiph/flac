@@ -880,6 +880,11 @@ FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder 
 	 * Check to see if the supplied metadata contains a VORBIS_COMMENT;
 	 * if not, we will write an empty one (FLAC__add_metadata_block()
 	 * automatically supplies the vendor string).
+	 *
+	 * WATCHOUT: libOggFLAC depends on us to write this block after the
+	 * STREAMINFO since that's what the mapping requires.  (In the case
+	 * that metadata_has_vorbis_comment it true it will have already
+	 * insured that the metadata list is properly ordered.)
 	 */
 	if(!metadata_has_vorbis_comment) {
 		FLAC__StreamMetadata vorbis_comment;

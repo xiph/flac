@@ -84,15 +84,18 @@ void OggFLAC__ogg_decoder_aspect_set_defaults(OggFLAC__OggDecoderAspect *aspect)
 
 void OggFLAC__ogg_decoder_aspect_flush(OggFLAC__OggDecoderAspect *aspect)
 {
-	OggFLAC__ogg_decoder_aspect_reset(aspect);
-}
-
-void OggFLAC__ogg_decoder_aspect_reset(OggFLAC__OggDecoderAspect *aspect)
-{
 	(void)ogg_stream_reset(&aspect->stream_state);
 	(void)ogg_sync_reset(&aspect->sync_state);
 	aspect->end_of_stream = false;
 	aspect->have_working_page = false;
+}
+
+void OggFLAC__ogg_decoder_aspect_reset(OggFLAC__OggDecoderAspect *aspect)
+{
+	OggFLAC__ogg_decoder_aspect_flush(aspect);
+
+	if(aspect->use_first_serial_number)
+		aspect->need_serial_number = true;
 }
 
 OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wrapper(OggFLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], unsigned *bytes, OggFLAC__OggDecoderAspectReadCallbackProxy read_callback, void *decoder, void *client_data)
@@ -153,15 +156,24 @@ OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wr
 				const int ret = ogg_stream_packetout(&aspect->stream_state, &aspect->working_packet);
 				if (ret > 0) {
 					aspect->have_working_packet = true;
-					/* if it is packet 0, check for magic and a supported Ogg FLAC mapping version */
-					if (aspect->working_packet.packetno == 0) {
-						const unsigned header_length = OggFLAC__MAPPING_MAGIC_LENGTH + OggFLAC__MAPPING_VERSION_MAJOR_LENGTH + OggFLAC__MAPPING_VERSION_MINOR_LENGTH;
+					/* if it is the first header packet, check for magic and a supported Ogg FLAC mapping version */
+					if (aspect->working_packet.bytes > 0 && aspect->working_packet.packet[0] == OggFLAC__MAPPING_FIRST_HEADER_PACKET_TYPE) {
+						const FLAC__byte *b = aspect->working_packet.packet;
+						const unsigned header_length =
+							OggFLAC__MAPPING_PACKET_TYPE_LENGTH +
+							OggFLAC__MAPPING_MAGIC_LENGTH +
+							OggFLAC__MAPPING_VERSION_MAJOR_LENGTH +
+							OggFLAC__MAPPING_VERSION_MINOR_LENGTH +
+							OggFLAC__MAPPING_NUM_HEADERS_LENGTH;
 						if (aspect->working_packet.bytes < (long)header_length)
 							return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC;
-						if (memcmp(aspect->working_packet.packet, OggFLAC__MAPPING_MAGIC, OggFLAC__MAPPING_MAGIC_LENGTH))
+						b += OggFLAC__MAPPING_PACKET_TYPE_LENGTH;
+						if (memcmp(b, OggFLAC__MAPPING_MAGIC, OggFLAC__MAPPING_MAGIC_LENGTH))
 							return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC;
-						aspect->version_major = (unsigned)aspect->working_packet.packet[OggFLAC__MAPPING_MAGIC_LENGTH];
-						aspect->version_minor = (unsigned)aspect->working_packet.packet[OggFLAC__MAPPING_MAGIC_LENGTH+OggFLAC__MAPPING_VERSION_MAJOR_LENGTH];
+						b += OggFLAC__MAPPING_MAGIC_LENGTH;
+						aspect->version_major = (unsigned)(*b);
+						b += OggFLAC__MAPPING_VERSION_MAJOR_LENGTH;
+						aspect->version_minor = (unsigned)(*b);
 						if (aspect->version_major != 1)
 							return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_UNSUPPORTED_MAPPING_VERSION;
 						aspect->working_packet.packet += header_length;

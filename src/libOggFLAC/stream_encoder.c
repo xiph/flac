@@ -397,6 +397,21 @@ OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncod
 	FLAC__ASSERT(0 != encoder->private_->FLAC_stream_encoder);
 	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
+	/* reorder metadata if necessary to ensure that any VORBIS_COMMENT is the first, according to the mapping spec */
+	if(0 != metadata && num_blocks > 1) {
+		unsigned i;
+		for(i = 1; i < num_blocks; i++) {
+			if(0 != metadata[i] && metadata[i]->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+				FLAC__StreamMetadata *vc = metadata[i];
+				for( ; i > 0; i--)
+					metadata[i] = metadata[i-1];
+				metadata[0] = vc;
+				break;
+			}
+		}
+	}
+	if(!OggFLAC__ogg_encoder_aspect_set_num_metadata(&encoder->protected_->ogg_encoder_aspect, num_blocks))
+		return false;
 	return FLAC__stream_encoder_set_metadata(encoder->private_->FLAC_stream_encoder, metadata, num_blocks);
 }
 

@@ -139,6 +139,7 @@ static FLAC__bool generate_file_()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
+	/* WATCHOUT: the encoder should move the VORBIS_COMMENT block to the front, right after STREAMINFO */
 
 	if(!file_utils__generate_oggflacfile(oggflacfilename_, &oggflacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
 		return die_("creating the encoded file");
@@ -504,11 +505,11 @@ static FLAC__bool test_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -571,9 +572,9 @@ static FLAC__bool test_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -596,10 +597,10 @@ static FLAC__bool test_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -627,9 +628,9 @@ static FLAC__bool test_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -744,10 +745,10 @@ static FLAC__bool test_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -782,11 +783,11 @@ static FLAC__bool test_stream_decoder()
 	/* done, now leave the sequence the way we found it... */
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1223,11 +1224,11 @@ static FLAC__bool test_seekable_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1290,9 +1291,9 @@ static FLAC__bool test_seekable_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1315,10 +1316,10 @@ static FLAC__bool test_seekable_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1346,9 +1347,9 @@ static FLAC__bool test_seekable_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1463,10 +1464,10 @@ static FLAC__bool test_seekable_stream_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1501,11 +1502,11 @@ static FLAC__bool test_seekable_stream_decoder()
 	/* done, now leave the sequence the way we found it... */
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1773,11 +1774,11 @@ static FLAC__bool test_file_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1840,9 +1841,9 @@ static FLAC__bool test_file_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1865,10 +1866,10 @@ static FLAC__bool test_file_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -1896,9 +1897,9 @@ static FLAC__bool test_file_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -2013,10 +2014,10 @@ static FLAC__bool test_file_decoder()
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
@@ -2051,11 +2052,11 @@ static FLAC__bool test_file_decoder()
 	/* done, now leave the sequence the way we found it... */
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 

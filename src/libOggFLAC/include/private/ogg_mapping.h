@@ -35,6 +35,13 @@
 #include "FLAC/ordinals.h"
 
 /** The length of the 'FLAC' magic in bytes. */
+#define OggFLAC__MAPPING_PACKET_TYPE_LENGTH (1u)
+
+extern const unsigned OggFLAC__MAPPING_PACKET_TYPE_LEN; /* = 8 bits */
+
+extern const FLAC__byte OggFLAC__MAPPING_FIRST_HEADER_PACKET_TYPE; /* = 0x7f */
+
+/** The length of the 'FLAC' magic in bytes. */
 #define OggFLAC__MAPPING_MAGIC_LENGTH (4u)
 
 extern const FLAC__byte * const OggFLAC__MAPPING_MAGIC; /* = "FLAC" */
@@ -47,5 +54,10 @@ extern const unsigned OggFLAC__MAPPING_VERSION_MINOR_LEN; /* = 8 bits */
 
 /** The length of the Ogg FLAC mapping minor version number in bytes. */
 #define OggFLAC__MAPPING_VERSION_MINOR_LENGTH (1u)
+
+extern const unsigned OggFLAC__MAPPING_NUM_HEADERS_LEN; /* = 16 bits */
+
+/** The length of the #-of-header-packets number bytes. */
+#define OggFLAC__MAPPING_NUM_HEADERS_LENGTH (2u)
 
 #endif

@@ -98,7 +98,7 @@
 		In the interest of simplicity and expediency, the second method was chosen for the first official FLAC-&gt;Ogg mapping.  A mapping version is included in the first packet so that a less redundant mapping can be defined in the future.
 	</P>
 	<P>
-		It should also be noted that support for encapsulating FLAC in Ogg has been present in the FLAC tools since version 1.0.1.  However, the mappings used were never formalized and have insurmountable problems.  For that reason, Ogg FLAC streams created with <TT>flac</TT> versions before 1.1.1 should be decoded by the corresponding version of <TT>flac</TT>, and re-encoded with <TT>flac</TT> 1.1.1 or later.  Since the support for Ogg FLAC before FLAC 1.1.1 was limited, we hope there will not result in too much inconvenience.
+		It should also be noted that support for encapsulating FLAC in Ogg has been present in the FLAC tools since version 1.0.1.  However, the mappings used were never formalized and have insurmountable problems.  For that reason, Ogg FLAC streams created with <B><TT>flac</TT></B> versions before 1.1.1 should be decoded by the corresponding version of <B><TT>flac</TT></B>, and re-encoded with <B><TT>flac</TT></B> 1.1.1 or later.  Since the support for Ogg FLAC before FLAC 1.1.1 was limited, we hope this will not result in too much inconvenience.
 	</P>
 	<P>
 		Version 1.0 of the FLAC-to-Ogg mapping then is a simple identifying header followed by pure native FLAC data, as follows:
@@ -106,6 +106,7 @@
 			<LI>
 				The first packet of a stream consists of:
 				<UL>
+					<LI>The one-byte packet type 0x7F</LI>
 					<LI>The four-byte ASCII signature "FLAC", i.e. 0x46, 0x4C, 0x41, 0x43</LI>
 					<LI>A one-byte binary major version number for the mapping, e.g. 0x01 for mapping version 1.0</LI>
 					<LI>A one-byte binary minor version number for the mapping, e.g. 0x00 for mapping version 1.0</LI>
@@ -113,13 +114,13 @@
 					<LI>The four-byte ASCII native FLAC signature "fLaC" according to the <A HREF="format.html#stream">FLAC format specification</A></LI>
 					<LI>The <A HREF="format.html#metadata_block">STREAMINFO</A> metadata block for the stream.</LI>
 				</UL>
-				This first packet is the only packet in the first page of the stream.  This results in a first Ogg page of exactly 78 bytes at the very beginning of the logical stream.
+				This first packet is the only packet in the first page of the stream.  This results in a first Ogg page of exactly 79 bytes at the very beginning of the logical stream.
 			</LI>
 			<LI>
 				This first page is marked 'beginning of stream' in the page flags.
 			</LI>
 			<LI>
-				The first packet is followed by one or more header packets.  Each such packet will contain a single <A HREF="format.html#metadata_block">native FLAC metadata block</A>.  The first of these must be a VORBIS_COMMENT block.  These packets may span page boundaries but the last will finish the page on which it ends, so that the first audio packet begins a page.
+				The first packet is followed by one or more header packets.  Each such packet will contain a single <A HREF="format.html#metadata_block">native FLAC metadata block</A>.  The first of these must be a VORBIS_COMMENT block.  These packets may span page boundaries but the last will finish the page on which it ends, so that the first audio packet begins a page.  The first byte of these metadata packets serves also as the packet type, and has a legal range of (0x01-0x7E,0x81-0xFE).
 			</LI>
 			<LI>
 				The granule position of these first pages containing only headers is zero.
@@ -128,7 +129,7 @@
 				The first audio packet of the logical stream begins a fresh Ogg page.
 			</LI>
 			<LI>
-				Native FLAC audio frames appear as subsequent packets in the stream.  Each packet corresponds to one FLAC audio frame.
+				Native FLAC audio frames appear as subsequent packets in the stream.  Each packet corresponds to one FLAC audio frame.  The first byte of each packet serves as the packet type.  Since audio packets are native FLAC frames, this first byte will be always 0xFF according to the <A HREF="format.html#frame_header">native FLAC format specification</A>.
 			</LI>
 			<LI>
 				The last page is marked 'end of stream' in the page flags.

@@ -67,17 +67,31 @@ void OggFLAC__ogg_encoder_aspect_set_serial_number(OggFLAC__OggEncoderAspect *as
 	aspect->serial_number = value;
 }
 
+FLAC__bool OggFLAC__ogg_encoder_aspect_set_num_metadata(OggFLAC__OggEncoderAspect *aspect, unsigned value)
+{
+	if(value < (1u << OggFLAC__MAPPING_NUM_HEADERS_LEN)) {
+		aspect->num_metadata = value;
+		return true;
+	}
+	else
+		return false;
+}
+
 void OggFLAC__ogg_encoder_aspect_set_defaults(OggFLAC__OggEncoderAspect *aspect)
 {
 	aspect->serial_number = 0;
+	aspect->num_metadata = 0;
 }
 
 /*
  * The basic FLAC -> Ogg mapping goes like this:
  *
  * - 'fLaC' magic and STREAMINFO block get combined into the first
- *   packet.  The packet is prefixed with 'FLAC' magic and the 2
- *   byte Ogg FLAC mapping version number.
+ *   packet.  The packet is prefixed with
+ *   + the one-byte packet type 0x7F
+ *   + 'FLAC' magic
+ *   + the 2 byte Ogg FLAC mapping version number
+ *   + tne 2 byte big-endian # of header packets
  * - The first packet is flushed to the first page.
  * - Each subsequent metadata block goes into its own packet.
  * - Each metadata packet is flushed to page (this is not required,
@@ -110,9 +124,11 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 
 		if(aspect->is_first_packet) {
 			FLAC__byte newbuffer[
+				OggFLAC__MAPPING_PACKET_TYPE_LENGTH +
 				OggFLAC__MAPPING_MAGIC_LENGTH +
 				OggFLAC__MAPPING_VERSION_MAJOR_LENGTH +
 				OggFLAC__MAPPING_VERSION_MINOR_LENGTH +
+				OggFLAC__MAPPING_NUM_HEADERS_LENGTH +
 				FLAC__STREAM_SYNC_LENGTH +
 				FLAC__STREAM_METADATA_HEADER_LENGTH +
 				FLAC__STREAM_METADATA_STREAMINFO_LENGTH
@@ -126,6 +142,9 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 				FLAC__ASSERT(0);
 				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 			}
+			/* add first header packet type */
+			*b = OggFLAC__MAPPING_FIRST_HEADER_PACKET_TYPE;
+			b += OggFLAC__MAPPING_PACKET_TYPE_LENGTH;
 			/* add 'FLAC' mapping magic */
 			memcpy(b, OggFLAC__MAPPING_MAGIC, OggFLAC__MAPPING_MAGIC_LENGTH);
 			b += OggFLAC__MAPPING_MAGIC_LENGTH;
@@ -135,6 +154,11 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 			/* add Ogg FLAC mapping minor version number */
 			memcpy(b, &OggFLAC__MAPPING_VERSION_MINOR, OggFLAC__MAPPING_VERSION_MINOR_LENGTH);
 			b += OggFLAC__MAPPING_VERSION_MINOR_LENGTH;
+			/* add number of header packets */
+			*b = (FLAC__byte)(aspect->num_metadata >> 8);
+			b++;
+			*b = (FLAC__byte)(aspect->num_metadata);
+			b++;
 			/* add native FLAC 'fLaC' magic */
 			memcpy(b, FLAC__STREAM_SYNC_STRING, FLAC__STREAM_SYNC_LENGTH);
 			b += FLAC__STREAM_SYNC_LENGTH;
@@ -158,7 +182,7 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 		if(ogg_stream_packetin(&aspect->stream_state, &packet) != 0)
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 
-		/*@@@@@@ can't figure out a way to pass a useful number for 'samples' to the write_callback, so we'll just pass 0 */
+		/*@@@ can't figure out a way to pass a useful number for 'samples' to the write_callback, so we'll just pass 0 */
 		if(is_metadata) {
 			while(ogg_stream_flush(&aspect->stream_state, &aspect->page) != 0) {
 				if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)

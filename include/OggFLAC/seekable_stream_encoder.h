@@ -486,6 +486,19 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_encoder_set_total_samples_estima
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_metadata()
  *
+ * \note The Ogg FLAC mapping requires that the VORBIS_COMMENT block be
+ * the second metadata block of the stream.  The encoder already supplies
+ * the STREAMINFO block automatically.  If \a metadata does not contain a
+ * VORBIS_COMMENT block, the encoder will supply that too.  Otherwise, if
+ * \a metadata does contain a VORBIS_COMMENT block and it is not the
+ * first, this function will reorder \a metadata by moving the
+ * VORBIS_COMMENT block to the front; the relative ordering of the other
+ * blocks will remain as they were.
+ *
+ * \note The Ogg FLAC mapping limits the number of metadata blocks per
+ * stream to \c 65535.  If \a num_blocks exceeds this the function will
+ * return \c false.
+ *
  * \default \c NULL, 0
  * \param  encoder     An encoder instance to set.
  * \param  metadata    See above.
@@ -493,7 +506,8 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_encoder_set_total_samples_estima
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
- *    \c false if the encoder is already initialized, else \c true.
+ *    \c false if the encoder is already initialized, or if
+ *    \a num_blocks > 65535, else \c true.
  */
 OggFLAC_API FLAC__bool OggFLAC__seekable_stream_encoder_set_metadata(OggFLAC__SeekableStreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
