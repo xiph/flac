@@ -1756,7 +1756,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 
 FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetadata_VorbisComment_Entry *entry)
 {
-	FLAC__byte *eq = memchr(entry->entry, '=', entry->length);
+	const FLAC__byte *eq = memchr(entry->entry, '=', entry->length);
 #if defined _MSC_VER || defined __MINGW32__
 #define FLAC__STRNCASECMP strnicmp
 #else
