@@ -190,7 +190,7 @@
 		<A NAME="residualcoding"><FONT SIZE="+1"><B><U>Residual Coding</U></B></FONT></A>
 	</P>
 	<P>
-		FLAC currently defines two similar methods for the coding of the error signal from the prediction stage.  The error signal is coded using Rice codes in one of two ways: 1) the encoder estimates a single rice parameter based on the variance of the residual, and Rice codes the entire residual using this parameter; 2) the residual is partitioned into several equal-length regions of contiguous samples, and each region is coded with its own Rice parameter based on the region's mean.  (Note that the first method is a special case of the second method with one partition, except the Rice parameter is based on the residual variance instead of the mean.)
+		FLAC currently defines two similar methods for the coding of the error signal from the prediction stage.  The error signal is coded using Rice codes in one of two ways: 1) the encoder estimates a single rice parameter based on the variance of the residual and Rice codes the entire residual using this parameter; 2) the residual is partitioned into several equal-length regions of contiguous samples, and each region is coded with its own Rice parameter based on the region's mean.  (Note that the first method is a special case of the second method with one partition, except the Rice parameter is based on the residual variance instead of the mean.)
 	</P>
 	<P>
 		The FLAC format has reserved space for other coding methods.  Some possiblities for volunteers would be to explore better context-modeling of the Rice parameter, or Huffman coding.  See <A HREF="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</A> and <A HREF="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</A> for descriptions of several universal codes.
@@ -500,6 +500,14 @@
 			</TD>
 			<TD>
 				Total samples in stream.  'Samples' means channel-wide sample, i.e. one second of 44.1Khz audio will have 44100 samples regardless of the number of channels.  A value of zero here means the number of total samples is unknown.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;128&gt;
+			</TD>
+			<TD>
+				MD5 signature of the unencoded audio data.  This allows the decoder to determine if an error exists in the audio data even when the error does not result in an invalid bitstream.
 			</TD>
 		</TR>
 		<TR>
