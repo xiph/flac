@@ -35,7 +35,7 @@ static FLAC__bool do_major_operation__remove(FLAC__Metadata_Chain *chain, const 
 static FLAC__bool do_major_operation__remove_all(FLAC__Metadata_Chain *chain, const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations(const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLineOptions *options);
-static FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert);
+static FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert);
 static FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files, FLAC__bool preserve_modtime);
 static FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write);
 
@@ -46,10 +46,10 @@ static void write_metadata(const char *filename, FLAC__StreamMetadata *block, un
 extern FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Metadata_Chain *chain, const char *specification, FLAC__bool *needs_write);
 
 /* from operations_shorthand_streaminfo.c */
-extern FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
+extern FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
 
 /* from operations_shorthand_vorbiscomment.c */
-extern FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
+extern FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
 
 FLAC__bool do_operations(const CommandLineOptions *options)
 {
@@ -268,7 +268,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 	}
 
 	for(i = 0; i < options->ops.num_operations && ok; i++) {
-		ok &= do_shorthand_operation(options->prefix_with_filename? filename : 0, chain, &options->ops.operations[i], &needs_write, options->utf8_convert);
+		ok &= do_shorthand_operation(filename, options->prefix_with_filename, chain, &options->ops.operations[i], &needs_write, options->utf8_convert);
 
 		/* The following seems counterintuitive but the meaning
 		 * of 'use_padding' is 'try to keep the overall metadata
@@ -294,7 +294,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 	return ok;
 }
 
-FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert)
+FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert)
 {
 	FLAC__bool ok = true;
 
@@ -317,7 +317,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *ch
 		case OP__SET_CHANNELS:
 		case OP__SET_BPS:
 		case OP__SET_TOTAL_SAMPLES:
-			ok = do_shorthand_operation__streaminfo(filename, chain, operation, needs_write);
+			ok = do_shorthand_operation__streaminfo(filename, prefix_with_filename, chain, operation, needs_write);
 			break;
 		case OP__SHOW_VC_VENDOR:
 		case OP__SHOW_VC_FIELD:
@@ -327,7 +327,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *ch
 		case OP__SET_VC_FIELD:
 		case OP__IMPORT_VC_FROM:
 		case OP__EXPORT_VC_TO:
-			ok = do_shorthand_operation__vorbis_comment(filename, chain, operation, needs_write, !utf8_convert);
+			ok = do_shorthand_operation__vorbis_comment(filename, prefix_with_filename, chain, operation, needs_write, !utf8_convert);
 			break;
 		case OP__ADD_SEEKPOINT:
 			ok = do_shorthand_operation__add_seekpoints(filename, chain, operation->argument.add_seekpoint.specification, needs_write);

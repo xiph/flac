@@ -22,7 +22,7 @@
 #include "FLAC/metadata.h"
 #include <string.h>
 
-FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
+FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
 {
 	unsigned i;
 	FLAC__bool ok = true;
@@ -39,7 +39,7 @@ FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metada
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_STREAMINFO);
 
-	if(0 != filename)
+	if(prefix_with_filename)
 		printf("%s:", filename);
 
 	switch(operation->type) {

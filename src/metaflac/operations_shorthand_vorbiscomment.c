@@ -30,7 +30,7 @@ static FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block
 static FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_VcFilename *vc_filename, FLAC__bool *needs_write, FLAC__bool raw);
 static FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_VcFilename *vc_filename, FLAC__bool raw);
 
-FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw)
+FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw)
 {
 	FLAC__bool ok = true, found_vc_block = false;
 	FLAC__StreamMetadata *block = 0;
@@ -73,10 +73,10 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Me
 
 	switch(operation->type) {
 		case OP__SHOW_VC_VENDOR:
-			write_vc_field(filename, &block->data.vorbis_comment.vendor_string, raw, stdout);
+			write_vc_field(prefix_with_filename? filename : 0, &block->data.vorbis_comment.vendor_string, raw, stdout);
 			break;
 		case OP__SHOW_VC_FIELD:
-			write_vc_fields(filename, operation->argument.vc_field_name.value, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, stdout);
+			write_vc_fields(prefix_with_filename? filename : 0, operation->argument.vc_field_name.value, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, stdout);
 			break;
 		case OP__REMOVE_VC_ALL:
 			ok = remove_vc_all(filename, block, needs_write);
