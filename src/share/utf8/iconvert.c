@@ -56,7 +56,7 @@ int iconvert(const char *fromcode, const char *tocode,
   iconv_t cd1, cd2;
   char *ib;
   char *ob;
-  char *utfbuf, *outbuf, *newbuf;
+  char *utfbuf = 0, *outbuf, *newbuf;
   size_t utflen, outlen, ibl, obl, k;
   char tbuf[2048];
 
@@ -237,7 +237,8 @@ int iconvert(const char *fromcode, const char *tocode,
   return ret;
 
  fail:
-  free(utfbuf);
+  if(0 != utfbuf)
+    free(utfbuf);
   iconv_close(cd1);
   if (cd2 != (iconv_t)(-1))
     iconv_close(cd2);
