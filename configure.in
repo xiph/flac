@@ -42,7 +42,6 @@ dnl check for getopt in standard library
 dnl AC_CHECK_FUNCS(getopt_long , , [LIBOBJS="$LIBOBJS getopt.o getopt1.o"] )
 AC_CHECK_FUNCS(getopt_long, [], [])
 
-AC_CANONICAL_HOST
 case "$host_cpu" in
 	i*86)	cpu_ia32=true ; AC_DEFINE(FLAC__CPU_IA32) ;;
 	powerpc)	cpu_ppc=true ; AC_DEFINE(FLAC__CPU_PPC) ;;
@@ -208,6 +207,10 @@ else
 fi
 CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS"
 CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS"
+
+#@@@@@@
+AM_CONDITIONAL(FLaC__HAS_AS__TEMPORARILY_DISABLED, test "yes" = "no")
+AM_CONDITIONAL(FLaC__HAS_GAS__TEMPORARILY_DISABLED, test "yes" = "no")
 
 AM_CONFIG_HEADER(config.h)
 AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA,  [define to align allocated memory on 32-byte boundaries])
