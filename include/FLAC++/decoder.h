@@ -219,12 +219,12 @@ namespace FLAC {
 
 			::FLAC__SeekableStreamDecoder *decoder_;
 		private:
-			static FLAC__SeekableStreamDecoderReadStatus read_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
-			static FLAC__SeekableStreamDecoderSeekStatus seek_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
-			static FLAC__SeekableStreamDecoderTellStatus tell_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
-			static FLAC__SeekableStreamDecoderLengthStatus length_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
+			static ::FLAC__SeekableStreamDecoderReadStatus read_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+			static ::FLAC__SeekableStreamDecoderSeekStatus seek_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+			static ::FLAC__SeekableStreamDecoderTellStatus tell_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
+			static ::FLAC__SeekableStreamDecoderLengthStatus length_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
 			static FLAC__bool eof_callback_(const ::FLAC__SeekableStreamDecoder *decoder, void *client_data);
-			static FLAC__StreamDecoderWriteStatus write_callback_(const ::FLAC__SeekableStreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+			static ::FLAC__StreamDecoderWriteStatus write_callback_(const ::FLAC__SeekableStreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 			static void metadata_callback_(const ::FLAC__SeekableStreamDecoder *decoder, const ::FLAC__StreamMetadata *metadata, void *client_data);
 			static void error_callback_(const ::FLAC__SeekableStreamDecoder *decoder, ::FLAC__StreamDecoderErrorStatus status, void *client_data);
 

@@ -195,7 +195,7 @@ namespace FLAC {
 			return (bool)::FLAC__seekable_stream_decoder_seek_absolute(decoder_, sample);
 		}
 
-		FLAC__SeekableStreamDecoderReadStatus SeekableStream::read_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+		::FLAC__SeekableStreamDecoderReadStatus SeekableStream::read_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);
@@ -204,7 +204,7 @@ namespace FLAC {
 			return instance->read_callback(buffer, bytes);
 		}
 
-		FLAC__SeekableStreamDecoderSeekStatus SeekableStream::seek_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
+		::FLAC__SeekableStreamDecoderSeekStatus SeekableStream::seek_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);
@@ -213,7 +213,7 @@ namespace FLAC {
 			return instance->seek_callback(absolute_byte_offset);
 		}
 
-		FLAC__SeekableStreamDecoderTellStatus SeekableStream::tell_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+		::FLAC__SeekableStreamDecoderTellStatus SeekableStream::tell_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);
@@ -222,7 +222,7 @@ namespace FLAC {
 			return instance->tell_callback(absolute_byte_offset);
 		}
 
-		FLAC__SeekableStreamDecoderLengthStatus SeekableStream::length_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
+		::FLAC__SeekableStreamDecoderLengthStatus SeekableStream::length_callback_(const ::FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);
@@ -240,7 +240,7 @@ namespace FLAC {
 			return instance->eof_callback();
 		}
 
-		FLAC__StreamDecoderWriteStatus SeekableStream::write_callback_(const ::FLAC__SeekableStreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+		::FLAC__StreamDecoderWriteStatus SeekableStream::write_callback_(const ::FLAC__SeekableStreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);
