@@ -223,15 +223,13 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				bps = x;
 				is_unsigned_samples = (x == 8);
 
-				bytes_per_wide_sample = channels * (bps >> 3);
-
 				/* skip any extra data in the fmt sub-chunk */
 				data_bytes -= 16;
 				if(data_bytes > 0) {
 					unsigned left, need;
-					for(left = data_bytes; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
+					for(left = data_bytes; left > 0; ) {
 						need = min(left, CHUNK_OF_SAMPLES);
-						if(fread(ucbuffer, 1, bytes_per_wide_sample * need, infile) < need) {
+						if(fread(ucbuffer, 1, need, infile) < need) {
 							fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_wrapper.inbasefilename);
 							goto wav_abort_;
 						}
@@ -269,7 +267,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 						unsigned left, need;
 						for(left = (unsigned)skip; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
 							need = min(left, CHUNK_OF_SAMPLES);
-							if(fread(ucbuffer, 1, bytes_per_wide_sample * need, infile) < need) {
+							if(fread(ucbuffer, bytes_per_wide_sample, need, infile) < need) {
 								fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_wrapper.inbasefilename);
 								goto wav_abort_;
 							}
