@@ -196,7 +196,11 @@ int main(int argc, char *argv[])
 		}
 	}
 	else {
-		if(!test_only) {
+		if(test_only) {
+			if(skip > 0)
+				return usage("ERROR: --skip is not allowed in test mode\n");
+		}
+		else {
 			if(format_is_wave < 0) {
 				if(strstr(argv[i+1], ".wav") == argv[i+1] + (strlen(argv[i+1]) - strlen(".wav")))
 					format_is_wave = true;
