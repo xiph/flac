@@ -68,6 +68,9 @@ REPLAYGAIN_API const char *FLAC__replaygain_store_to_file(const char *filename, 
 REPLAYGAIN_API const char *FLAC__replaygain_store_to_file_album(const char *filename, float album_gain, float album_peak, FLAC__bool preserve_modtime);
 REPLAYGAIN_API const char *FLAC__replaygain_store_to_file_title(const char *filename, float title_gain, float title_peak, FLAC__bool preserve_modtime);
 
+REPLAYGAIN_API FLAC__bool FLAC__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadata *block, FLAC__bool album_mode, double *gain, double *peak);
+REPLAYGAIN_API double FLAC__replaygain_compute_scale_factor(double peak, double gain, double preamp, FLAC__bool prevent_clipping);
+
 #ifdef __cplusplus
 }
 #endif

@@ -22,6 +22,7 @@
 #include "FLAC/assert.h"
 #include "FLAC/file_decoder.h"
 #include "FLAC/metadata.h"
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -540,4 +541,66 @@ REPLAYGAIN_API const char *FLAC__replaygain_store_to_file_title(const char *file
 		return error;
 
 	return 0;
+}
+
+static FLAC__bool parse_double_(const FLAC__StreamMetadata_VorbisComment_Entry *entry, double *val)
+{
+	char s[32], *end;
+	const char *p, *q;
+	double v;
+
+	FLAC__ASSERT(0 != entry);
+	FLAC__ASSERT(0 != val);
+
+fprintf(stderr,"@@@@ tag=[");fwrite(entry->entry,1,entry->length,stderr);fprintf(stderr,"]\n");
+	p = (const char *)entry->entry;
+	q = strchr(p, '=');
+	if(0 == q)
+		return false;
+	q++;
+	memset(s, 0, sizeof(s)-1);
+	strncpy(s, q, local_min(sizeof(s)-1, entry->length - (q-p)));
+fprintf(stderr,"@@@@ s=[%s]\n",s);
+
+	v = strtod(s, &end);
+	if(end == s)
+		return false;
+
+	*val = v;
+fprintf(stderr,"@@@@ v=[%0.12f]\n",v);
+	return true;
+}
+
+REPLAYGAIN_API FLAC__bool FLAC__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadata *block, FLAC__bool album_mode, double *gain, double *peak)
+{
+	int gain_offset, peak_offset;
+
+	FLAC__ASSERT(0 != block);
+	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+	if(0 > (gain_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, album_mode? tag_album_gain_ : tag_title_gain_)))
+		return false;
+	if(0 > (peak_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, album_mode? tag_album_peak_ : tag_title_peak_)))
+		return false;
+
+	if(!parse_double_(block->data.vorbis_comment.comments + gain_offset, gain))
+		return false;
+	if(!parse_double_(block->data.vorbis_comment.comments + peak_offset, peak))
+		return false;
+
+	return true;
+}
+
+REPLAYGAIN_API double FLAC__replaygain_compute_scale_factor(double peak, double gain, double preamp, FLAC__bool prevent_clipping)
+{
+	double scale;
+	FLAC__ASSERT(peak >= 0.0);
+ 	gain += preamp;
+	scale = (float) pow(10.0, gain * 0.05);
+	if(prevent_clipping && peak > 0.0) {
+		const double max_scale = (float)(1.0 / peak);
+		if(scale > max_scale)
+			scale = max_scale;
+	}
+	return scale;
 }
