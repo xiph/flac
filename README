@@ -27,7 +27,8 @@ FLAC is comprised of
   * `libOggFLAC' and `libOggFLAC++', which provide encoders and
     decoders for FLAC streams in an Ogg container
   * `flac', a command-line program for encoding and decoding files
-  * `metaflac', a command-line program for editing FLAC metadata
+  * `metaflac', a command-line program for viewing and editing FLAC
+    metadata
   * player plugins for XMMS and Winamp
   * user and API documentation
 
