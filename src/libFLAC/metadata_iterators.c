@@ -740,7 +740,7 @@ typedef struct FLAC__Metadata_Node {
 } FLAC__Metadata_Node;
 
 struct FLAC__Metadata_Chain {
-	char *filename;
+	char *filename; /* will be NULL if using callbacks */
 	FLAC__Metadata_Node *head;
 	FLAC__Metadata_Node *tail;
 	unsigned nodes;
@@ -772,7 +772,8 @@ FLAC_API const char * const FLAC__Metadata_ChainStatusString[] = {
 	"FLAC__METADATA_CHAIN_STATUS_RENAME_ERROR",
 	"FLAC__METADATA_CHAIN_STATUS_UNLINK_ERROR",
 	"FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR",
-	"FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR"
+	"FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR",
+	"FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS"
 };
 
 
@@ -787,6 +788,35 @@ static void node_delete_(FLAC__Metadata_Node *node)
 	if(0 != node->data)
 		FLAC__metadata_object_delete(node->data);
 	free(node);
+}
+
+static void chain_init_(FLAC__Metadata_Chain *chain)
+{
+	FLAC__ASSERT(0 != chain);
+
+	chain->filename = 0;
+	chain->head = chain->tail = 0;
+	chain->nodes = 0;
+	chain->status = FLAC__METADATA_CHAIN_STATUS_OK;
+	chain->initial_length = 0;
+}
+
+static void chain_clear_(FLAC__Metadata_Chain *chain)
+{
+	FLAC__Metadata_Node *node, *next;
+
+	FLAC__ASSERT(0 != chain);
+
+	for(node = chain->head; node; ) {
+		next = node->next;
+		node_delete_(node);
+		node = next;
+	}
+
+	if(0 != chain->filename)
+		free(chain->filename);
+
+	chain_init_(chain);
 }
 
 static void chain_append_node_(FLAC__Metadata_Chain *chain, FLAC__Metadata_Node *node)
@@ -1003,31 +1033,17 @@ FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new()
 {
 	FLAC__Metadata_Chain *chain = (FLAC__Metadata_Chain*)calloc(1, sizeof(FLAC__Metadata_Chain));
 
-	if(0 != chain) {
-		chain->filename = 0;
-		chain->head = chain->tail = 0;
-		chain->nodes = 0;
-		chain->status = FLAC__METADATA_CHAIN_STATUS_OK;
-		chain->initial_length = 0;
-	}
+	if(0 != chain)
+		chain_init_(chain);
 
 	return chain;
 }
 
 FLAC_API void FLAC__metadata_chain_delete(FLAC__Metadata_Chain *chain)
 {
-	FLAC__Metadata_Node *node, *next;
-
 	FLAC__ASSERT(0 != chain);
 
-	for(node = chain->head; node; ) {
-		next = node->next;
-		node_delete_(node);
-		node = next;
-	}
-
-	if(0 != chain->filename)
-		free(chain->filename);
+	chain_clear_(chain);
 
 	free(chain);
 }
@@ -1050,6 +1066,8 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
 	FLAC__ASSERT(0 != chain);
 	FLAC__ASSERT(0 != filename);
 
+	chain_clear_(chain);
+
 	if(0 == (chain->filename = strdup(filename))) {
 		chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
 		return false;
@@ -1061,6 +1079,27 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
 	}
 
 	if(!chain_read_cb_(chain, file, (FLAC__IOCallback_Read)fread, fseek_wrapper_, ftell_wrapper_, (FLAC__IOCallback_Close)fclose))
+		return false; /* chain->status is already set by chain_read_cb_ */
+
+	/* chain_read_cb_() closes the file handle */
+
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks)
+{
+	FILE *file;
+
+	FLAC__ASSERT(0 != chain);
+
+	chain_clear_(chain);
+
+	if (0 == callbacks.read || 0 == callbacks.seek || 0 == callbacks.tell || 0 == callbacks.close) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS;
+		return false;
+	}
+
+	if(!chain_read_cb_(chain, handle, callbacks.read, callbacks.seek, callbacks.tell, callbacks.close))
 		return false; /* chain->status is already set by chain_read_cb_ */
 
 	return true;

@@ -585,8 +585,11 @@ typedef enum {
 	FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR,
 	/**< Memory allocation failed */
 
-	FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR
+	FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR,
 	/**< The caller violated an assertion or an unexpected error occurred */
+
+	FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS
+	/**< One or more of the required callbacks was NULL */
 
 } FLAC__Metadata_ChainStatus;
 
@@ -639,6 +642,24 @@ FLAC_API FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_C
  *    FLAC__metadata_chain_status().
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *filename);
+
+/** Read all metadata from a FLAC stream into the chain via I/O callbacks.
+ *
+ * \param chain    A pointer to an existing chain.
+ * \param handle   The I/O handle of the FLAC stream to read.  The
+ *                 handle will be closed after the metadata is read.
+ * \param callbacks
+ *                 A set of callbacks to use for I/O.  The mandatory
+ *                 callbacks are \a read, \a seek, \a tell, and
+ *                 \a close.
+ * \assert
+ *    \code chain != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if a valid list of metadata blocks was read from
+ *    \a handle, else \c false.  On failure, check the status with
+ *    FLAC__metadata_chain_status().
+ */
+FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);
 
 /** Write all metadata out to the FLAC file.  This function tries to be as
  *  efficient as possible; how the metadata is actually written is shown by
