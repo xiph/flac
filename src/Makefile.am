@@ -1,4 +1,4 @@
-if XMMS
+if FLaC__HAS_XMMS
 XMMS_DIRS = plugin_xmms
 endif
 
