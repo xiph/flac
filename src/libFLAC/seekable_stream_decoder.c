@@ -744,7 +744,7 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder,
 	if(seekable_stream_decoder->private_->eof_callback(seekable_stream_decoder, seekable_stream_decoder->private_->client_data)) {
 		*bytes = 0;
 #if 0
-@@@@@@ verify that this is not needed
+		/*@@@@@@ verify that this is not needed */
 		seekable_stream_decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
 #endif
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
@@ -757,7 +757,7 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder,
 		if(*bytes == 0) {
 			if(seekable_stream_decoder->private_->eof_callback(seekable_stream_decoder, seekable_stream_decoder->private_->client_data)) {
 #if 0
-@@@@@@ verify that this is not needed
+				/*@@@@@@ verify that this is not needed */
 				seekable_stream_decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
 #endif
 				return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
@@ -1062,7 +1062,8 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 			}
 		}
 		/* our write callback will change the state when it gets to the target frame */
-		if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_SEEKING) {
+		/* actually, we could have got_a_frame if our decoder is at FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM so we need to check for that also */
+		if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_SEEKING && decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM) {
 			break;
 		}
 		else { /* we need to narrow the search */
