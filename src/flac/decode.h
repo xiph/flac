@@ -23,6 +23,7 @@
 
 typedef struct {
 	FLAC__bool verbose;
+	FLAC__bool continue_through_decode_errors;
 #ifdef FLAC__HAS_OGG
 	FLAC__bool is_ogg;
 #endif
