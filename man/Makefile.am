@@ -18,6 +18,9 @@
 flac.1: flac.sgml
 	docbook-to-man $? > $@ || (docbook2man $? && mv FLAC.1 $@)
 
-man_MANS = flac.1
+metaflac.1: metaflac.sgml
+	docbook-to-man $? > $@ || (docbook2man $? && mv METAFLAC.1 $@)
 
-EXTRA_DIST = $(man_MANS) flac.sgml
+man_MANS = flac.1 metaflac.1
+
+EXTRA_DIST = $(man_MANS) flac.sgml metaflac.sgml
