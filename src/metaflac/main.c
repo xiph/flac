@@ -34,8 +34,10 @@ static const char *sync_string_ = "fLaC"; /* DUPLICATE:FLAC__STREAM_SYNC_STRING 
 static const char *metadata_type_string_[] = { /* DUPLICATE:FLAC__MetaDataTypeString */
 	"STREAMINFO",
 	"PADDING",
-	"APPLICATION"
+	"APPLICATION",
+	"SEEKTABLE"
 };
+static const unsigned SEEKPOINT_LEN_ = 18; /* DUPLICATE:FLAC__STREAM_METADATA_SEEKPOINT_LEN */
 
 static int usage(const char *message, ...);
 static bool list(FILE *f, bool verbose);
@@ -189,6 +191,10 @@ bool list(FILE *f, bool verbose)
 				memcpy(buf, metadata.data.application.id, 4);
 				metadata.data.application.data = buf+4;
 				break;
+			case FLAC__METADATA_TYPE_SEEKTABLE:
+				metadata.data.seek_table.num_points = metadata.length / SEEKPOINT_LEN_;
+				b = buf+4; /* we leave the points in buf for printing later */
+				break;
 			default:
 				printf("SKIPPING block of unknown type\n\n");
 				continue;
@@ -224,6 +230,12 @@ bool list(FILE *f, bool verbose)
 				if(verbose) {
 					printf("data contents:\n");
 					hexdump(metadata.data.application.data, metadata.length);
+				}
+				break;
+			case FLAC__METADATA_TYPE_SEEKTABLE:
+				printf("seek points: %u\n", metadata.data.seek_table.num_points);
+				for(i = 0; i < metadata.data.seek_table.num_points; i++, b += SEEKPOINT_LEN_) {
+					printf("\tpoint %d: sample_number=%llu, stream_offset=%llu, block_offset=%u\n", i, unpack_uint64(b, 8), unpack_uint64(b+8, 8), unpack_uint32(b+16, 2));
 				}
 				break;
 			default:
