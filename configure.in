@@ -76,6 +76,17 @@ if test x$sse_os = xtrue ; then
 AC_DEFINE(FLAC__SSE_OS)
 fi
 
+[  --use-3dnow                 Enable 3DNOW! support],
+[case "${enableval}" in
+	yes) use_3dnow=true ;;
+	no)  use_3dnow=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --use-3dnow) ;;
+esac],[use_3dnow=false])
+AM_CONDITIONAL(FLaC__USE_3DNOW, test x$use_3dnow = xtrue)
+if test x$use_3dnow = xtrue ; then
+AC_DEFINE(FLAC__USE_3DNOW)
+fi
+
 AC_CHECK_LIB(ogg, ogg_stream_init,
              [LIBS="$LIBS -logg"; have_ogg=yes],
              [AC_MSG_WARN([*** Ogg development enviroment not installed - ogg support will not be built])])

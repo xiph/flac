@@ -81,6 +81,12 @@ crashes when built with this option you will have to go back and
 configure without --sse-os.  Note that --disable-asm-optimizations
 overrides --sse-os.
 
+--use-3dnow : If you are building for an AMD CPU which has 3DNOW!
+support, you can use this flag to enable some assembly routines
+which use 3DNOW! instructions.  There have been some reports that
+they may cause flac to crash, which is why it is not turned on
+by default.
+
 
 ===========================
 Building with Makefile.lite
