@@ -35,8 +35,13 @@ doc_DATA =  \
 	links.html \
 	news.html
 
+if FLaC__HAS_DOXYGEN
 EXTRA_DIST = $(doc_DATA) api
+else
+EXTRA_DIST = $(doc_DATA)
+endif
 
+if FLaC__HAS_DOXYGEN
 # The install targets don't copy whole directories so we have to
 # handle 'api/' specially:
 install-data-local:
@@ -46,3 +51,4 @@ uninstall-local:
 	rm -rf $(DESTDIR)$(docdir)/api
 maintainer-clean-local:
 	rm -rf api
+endif
