@@ -296,7 +296,7 @@
 		<A NAME="general__testing"><B>How much testing has been done on FLAC?</B></A>
 	</P>
 	<P>
-		First, FLAC is probably the only lossless compressor that has a published and comprehensive test suite.  With the others you rely on the author's personal testing or the longevity of the program.  But with FLAC you can check out the whole test suite and run it on any version you like, or alter it to test your own data.  The test suite checks every function in the API, as well as running many thousands of streams through an encode-decode-verify process, to test every nook and cranny of the system.  Even on a fast machine the full test suite takes hours.  The full test suite must pass on several platforms before a release is made.
+		First, FLAC is probably the only lossless compressor that has a published and comprehensive test suite.  With the others you rely on the author's personal testing or the longevity of the program.  But with FLAC you can download the whole test suite and run it on any version you like, or alter it to test your own data.  The test suite checks every function in the API, as well as running many thousands of streams through an encode-decode-verify process, to test every nook and cranny of the system.  Even on a fast machine the full test suite takes hours.  The full test suite must pass on several platforms before a release is made.
 	</P>
 	<P>
 		Second, you can always use the <TT>-V</TT> option with <TT>flac</TT> (also supported by most GUI frontends) to verify while encoding.  With this option, a decoder is run in parallel to the encoder and its output is compared against the original input.  If a difference is found <TT>flac</TT> will stop with an error.
@@ -308,7 +308,7 @@
 		<A NAME="general__lowest_bitrate"><B>What is the lowest bitrate achievable with FLAC?</B></A>
 	</P>
 	<P>
-		With FLAC you do not specify a bitrate like with some lossy codecs.  It's more like specifying a quality with Vorbis or MPC, except with FLAC the quality is always "lossless" and the resulting bitrate is roughly proportional to the amount of information in the original signal.  You cannot control the bitrate and the result can be from around 100% of the input rate (if you are encoding noise), down to almost 0 (encoding silence).
+		With FLAC you do not specify a bitrate like with some lossy codecs.  It's more like specifying a quality with Vorbis or MPC, except with FLAC the quality is always "lossless" and the resulting bitrate is roughly proportional to the amount of information in the original signal.  You cannot control the bitrate much and the result can be from around 100% of the input rate (if you are encoding noise), down to almost 0 (encoding silence).
 	</P>
 
 	<H2>
