@@ -57,6 +57,23 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 
 	<P>
+		<A NAME="20010324">24-Mar-2001:</A>
+	</P>
+	<P>
+	<UL>
+		<LI>
+			<B>FLAC 0.9 released.</B>&nbsp;&nbsp;A few more bug fixes and features:
+			<UL>
+				<LI>Added two options to the analysis mode, one for including the residual signal in the analysis file, and one for generating gnuplot files of each subframe's residual distribution with some statistics.  See the latest <A HREF="documentation.html#analysis_options">documentation</A>.</LI>
+				<LI>Fixed a bug in the Winamp2 plugin where the audio sounded garbled.</LI>
+				<LI>Fixed a bug in the Winamp2 plugin where Winamp would hang sporadically at the end of a track (c.f. <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=231197&group_id=13478&atid=113478">bug #231197</A>).</LI>
+			</UL>
+			FLAC is on track for an official 1.0 release soon.
+		</LI>
+	</UL>
+	</P>
+
+	<P>
 		<A NAME="20010305">05-Mar-2001:</A>
 	</P>
 	<P>
@@ -74,7 +91,7 @@
 				<LI>Fixed a bug in <B><TT>libFLAC</B></TT> where the error estimation in the fixed predictor could overflow.</LI>
 				<LI>Fixed a bug in <B><TT>libFLAC</B></TT> where LPC was attempted even when the autocorrelation coefficients implied it wouldn't help.</LI>
 				<LI>Reworked the LPC coefficient quantizer, which also fixed another bug that might occur in rare cases.</LI>
-				<LI>Really fixed the '-V overflow' bug (c.f. <A HREF="http://sourceforge.net/bugs/?func=detailbug&bug_id=131976&group_id=13478">bug #131976</A>).</LI>
+				<LI>Really fixed the '-V overflow' bug (c.f. <A HREF="http://sourceforge.net/tracker/?group_id=13478&atid=113478&aid=231976&func=detail">bug #231976</A>).</LI>
 				<LI>Fixed a bug in <B><TT>flac</B></TT> related to the decode buffer sizing.</LI>
 			</UL>
 			FLAC is very close to being ready for an official release.  The only known problems left are with the Winamp plugins, which should be fixed soon, and pipes with MSVC.
@@ -91,8 +108,8 @@
 			<B>FLAC 0.7 released.</B>&nbsp;&nbsp;This is mainly a bug fix release, specifically:
 			<UL>
 				<LI>Fixed a bug that happened when both -fr and --seek were used at the same time.</LI>
-				<LI>Fixed a bug with -p (c.f. <A HREF="http://sourceforge.net/bugs/?func=detailbug&bug_id=130992&group_id=13478">bug #130992</A>).</LI>
-				<LI>Fixed a bug that happened when using large (&gt;32K) blocksizes and -V (c.f. <A HREF="http://sourceforge.net/bugs/?func=detailbug&bug_id=131976&group_id=13478">bug #131976</A>).</LI>
+				<LI>Fixed a bug with -p (c.f. <A HREF="http://sourceforge.net/tracker/?group_id=13478&atid=113478&aid=230992&func=detail">bug #230992</A>).</LI>
+				<LI>Fixed a bug that happened when using large (&gt;32K) blocksizes and -V (c.f. <A HREF="http://sourceforge.net/tracker/?group_id=13478&atid=113478&aid=231976&func=detail">bug #231976</A>).</LI>
 				<LI>Fixed a bug where encoder was double-closing a file.</LI>
 				<LI>Expanded the test suite.</LI>
 				<LI>Added more optimization flags for gcc, which should speed up flac.</LI>
@@ -147,7 +164,7 @@
 	</P>
 	<P>
 	<UL>
-		<LI><B>FLAC debuts on SourceForge.</B>&nbsp;&nbsp;The FLAC project is now being hosted on SourceForge.  Visit the <A HREF="http://www.sourceforge.net/projects/projects/flac/">FLAC project page</A> to join the mailing list or sign up as a developer.</LI>
+		<LI><B>FLAC debuts on SourceForge.</B>&nbsp;&nbsp;The FLAC project is now being hosted on SourceForge.  Visit the <A HREF="http://www.sourceforge.net/projects/flac/">FLAC project page</A> to join the mailing list or sign up as a developer.</LI>
 	</UL>
 	</P>
 	</FONT>
