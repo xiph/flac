@@ -210,6 +210,8 @@ bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 	}
 	decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
 
+	decoder->guts->samples_decoded = 0;
+
 	return true;
 }
 
@@ -779,7 +781,7 @@ bool stream_decoder_read_frame_(FLAC__StreamDecoder *decoder, bool *got_a_frame)
 	decoder->sample_rate = decoder->guts->frame.header.sample_rate;
 	decoder->blocksize = decoder->guts->frame.header.blocksize;
 
-	decoder->guts->samples_decoded += decoder->guts->frame.header.blocksize;
+	decoder->guts->samples_decoded = decoder->guts->frame.header.number.sample_number + decoder->guts->frame.header.blocksize;
 
 	/* write it */
 	/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 3 here: */
