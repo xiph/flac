@@ -38,6 +38,7 @@ EXTRA_DIST = \
 	COPYING.LGPL \
 	FLAC.dsw \
 	Makefile.lite \
+	Makefile.vc \
 	autogen.sh \
 	depcomp \
 	ltmain.sh \

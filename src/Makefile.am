@@ -40,3 +40,6 @@ SUBDIRS = \
 	test_libFLAC++ \
 	$(OGGFLAC_TEST_DIRS) \
 	test_streams
+
+EXTRA_DIST = \
+	Makefile.vc

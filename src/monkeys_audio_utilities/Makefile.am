@@ -16,3 +16,6 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 SUBDIRS = flac_mac flac_ren
+
+EXTRA_DIST = \
+	Makefile.vc
