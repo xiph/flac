@@ -25,16 +25,9 @@
 #include <string.h>
 #include <errno.h>
 
-#ifdef HAVE_ICONV
-#include <iconv.h>
-#endif
-
-#ifdef HAVE_LANGINFO_CODESET
-#include <langinfo.h>
-#endif
-
+#include "plugin_common/charset.h"
+#include "plugin_common/locale_hack.h"
 #include "charset.h"
-#include "mylocale.h"
 #include "configure.h"
 
 
@@ -43,212 +36,145 @@
  ****************/
 
 #define CHARSET_TRANS_ARRAY_LEN ( sizeof(charset_trans_array) / sizeof((charset_trans_array)[0]) )
-const CharsetInfo charset_trans_array[] = { 
-    {N_("Arabic (IBM-864)"),                  "IBM864"        },
-    {N_("Arabic (ISO-8859-6)"),               "ISO-8859-6"    },
-    {N_("Arabic (Windows-1256)"),             "windows-1256"  },
-    {N_("Baltic (ISO-8859-13)"),              "ISO-8859-13"   },
-    {N_("Baltic (ISO-8859-4)"),               "ISO-8859-4"    },
-    {N_("Baltic (Windows-1257)"),             "windows-1257"  },
-    {N_("Celtic (ISO-8859-14)"),              "ISO-8859-14"   },
-    {N_("Central European (IBM-852)"),        "IBM852"        },
-    {N_("Central European (ISO-8859-2)"),     "ISO-8859-2"    },
-    {N_("Central European (Windows-1250)"),   "windows-1250"  },
-    {N_("Chinese Simplified (GB18030)"),      "gb18030"       },
-    {N_("Chinese Simplified (GB2312)"),       "GB2312"        },
-    {N_("Chinese Traditional (Big5)"),        "Big5"          },
-    {N_("Chinese Traditional (Big5-HKSCS)"),  "Big5-HKSCS"    },
-    {N_("Cyrillic (IBM-855)"),                "IBM855"        },
-    {N_("Cyrillic (ISO-8859-5)"),             "ISO-8859-5"    },
-    {N_("Cyrillic (ISO-IR-111)"),             "ISO-IR-111"    },
-    {N_("Cyrillic (KOI8-R)"),                 "KOI8-R"        },
-    {N_("Cyrillic (Windows-1251)"),           "windows-1251"  },
-    {N_("Cyrillic/Russian (CP-866)"),         "IBM866"        },
-    {N_("Cyrillic/Ukrainian (KOI8-U)"),       "KOI8-U"        },
-    {N_("English (US-ASCII)"),                "us-ascii"      },
-    {N_("Greek (ISO-8859-7)"),                "ISO-8859-7"    },
-    {N_("Greek (Windows-1253)"),              "windows-1253"  },
-    {N_("Hebrew (IBM-862)"),                  "IBM862"        },
-    {N_("Hebrew (Windows-1255)"),             "windows-1255"  },
-    {N_("Japanese (EUC-JP)"),                 "EUC-JP"        },
-    {N_("Japanese (ISO-2022-JP)"),            "ISO-2022-JP"   },
-    {N_("Japanese (Shift_JIS)"),              "Shift_JIS"     },
-    {N_("Korean (EUC-KR)"),                   "EUC-KR"        },
-    {N_("Nordic (ISO-8859-10)"),              "ISO-8859-10"   },
-    {N_("South European (ISO-8859-3)"),       "ISO-8859-3"    },
-    {N_("Thai (TIS-620)"),                    "TIS-620"       },
-    {N_("Turkish (IBM-857)"),                 "IBM857"        },
-    {N_("Turkish (ISO-8859-9)"),              "ISO-8859-9"    },
-    {N_("Turkish (Windows-1254)"),            "windows-1254"  },
-    {N_("Unicode (UTF-7)"),                   "UTF-7"         },
-    {N_("Unicode (UTF-8)"),                   "UTF-8"         },
-    {N_("Unicode (UTF-16BE)"),                "UTF-16BE"      },
-    {N_("Unicode (UTF-16LE)"),                "UTF-16LE"      },
-    {N_("Unicode (UTF-32BE)"),                "UTF-32BE"      },
-    {N_("Unicode (UTF-32LE)"),                "UTF-32LE"      },
-    {N_("Vietnamese (VISCII)"),               "VISCII"        },
-    {N_("Vietnamese (Windows-1258)"),         "windows-1258"  },
-    {N_("Visual Hebrew (ISO-8859-8)"),        "ISO-8859-8"    },
-    {N_("Western (IBM-850)"),                 "IBM850"        },
-    {N_("Western (ISO-8859-1)"),              "ISO-8859-1"    },
-    {N_("Western (ISO-8859-15)"),             "ISO-8859-15"   },
-    {N_("Western (Windows-1252)"),            "windows-1252"  }
+const CharsetInfo charset_trans_array[] = {
+	{N_("Arabic (IBM-864)"),                  "IBM864"        },
+	{N_("Arabic (ISO-8859-6)"),               "ISO-8859-6"    },
+	{N_("Arabic (Windows-1256)"),             "windows-1256"  },
+	{N_("Baltic (ISO-8859-13)"),              "ISO-8859-13"   },
+	{N_("Baltic (ISO-8859-4)"),               "ISO-8859-4"    },
+	{N_("Baltic (Windows-1257)"),             "windows-1257"  },
+	{N_("Celtic (ISO-8859-14)"),              "ISO-8859-14"   },
+	{N_("Central European (IBM-852)"),        "IBM852"        },
+	{N_("Central European (ISO-8859-2)"),     "ISO-8859-2"    },
+	{N_("Central European (Windows-1250)"),   "windows-1250"  },
+	{N_("Chinese Simplified (GB18030)"),      "gb18030"       },
+	{N_("Chinese Simplified (GB2312)"),       "GB2312"        },
+	{N_("Chinese Traditional (Big5)"),        "Big5"          },
+	{N_("Chinese Traditional (Big5-HKSCS)"),  "Big5-HKSCS"    },
+	{N_("Cyrillic (IBM-855)"),                "IBM855"        },
+	{N_("Cyrillic (ISO-8859-5)"),             "ISO-8859-5"    },
+	{N_("Cyrillic (ISO-IR-111)"),             "ISO-IR-111"    },
+	{N_("Cyrillic (KOI8-R)"),                 "KOI8-R"        },
+	{N_("Cyrillic (Windows-1251)"),           "windows-1251"  },
+	{N_("Cyrillic/Russian (CP-866)"),         "IBM866"        },
+	{N_("Cyrillic/Ukrainian (KOI8-U)"),       "KOI8-U"        },
+	{N_("English (US-ASCII)"),                "us-ascii"      },
+	{N_("Greek (ISO-8859-7)"),                "ISO-8859-7"    },
+	{N_("Greek (Windows-1253)"),              "windows-1253"  },
+	{N_("Hebrew (IBM-862)"),                  "IBM862"        },
+	{N_("Hebrew (Windows-1255)"),             "windows-1255"  },
+	{N_("Japanese (EUC-JP)"),                 "EUC-JP"        },
+	{N_("Japanese (ISO-2022-JP)"),            "ISO-2022-JP"   },
+	{N_("Japanese (Shift_JIS)"),              "Shift_JIS"     },
+	{N_("Korean (EUC-KR)"),                   "EUC-KR"        },
+	{N_("Nordic (ISO-8859-10)"),              "ISO-8859-10"   },
+	{N_("South European (ISO-8859-3)"),       "ISO-8859-3"    },
+	{N_("Thai (TIS-620)"),                    "TIS-620"       },
+	{N_("Turkish (IBM-857)"),                 "IBM857"        },
+	{N_("Turkish (ISO-8859-9)"),              "ISO-8859-9"    },
+	{N_("Turkish (Windows-1254)"),            "windows-1254"  },
+	{N_("Unicode (UTF-7)"),                   "UTF-7"         },
+	{N_("Unicode (UTF-8)"),                   "UTF-8"         },
+	{N_("Unicode (UTF-16BE)"),                "UTF-16BE"      },
+	{N_("Unicode (UTF-16LE)"),                "UTF-16LE"      },
+	{N_("Unicode (UTF-32BE)"),                "UTF-32BE"      },
+	{N_("Unicode (UTF-32LE)"),                "UTF-32LE"      },
+	{N_("Vietnamese (VISCII)"),               "VISCII"        },
+	{N_("Vietnamese (Windows-1258)"),         "windows-1258"  },
+	{N_("Visual Hebrew (ISO-8859-8)"),        "ISO-8859-8"    },
+	{N_("Western (IBM-850)"),                 "IBM850"        },
+	{N_("Western (ISO-8859-1)"),              "ISO-8859-1"    },
+	{N_("Western (ISO-8859-15)"),             "ISO-8859-15"   },
+	{N_("Western (Windows-1252)"),            "windows-1252"  }
 
-    /*
-     * From this point, character sets aren't supported by iconv
-     */
-/*    {N_("Arabic (IBM-864-I)"),                "IBM864i"              },
-    {N_("Arabic (ISO-8859-6-E)"),             "ISO-8859-6-E"         },
-    {N_("Arabic (ISO-8859-6-I)"),             "ISO-8859-6-I"         },
-    {N_("Arabic (MacArabic)"),                "x-mac-arabic"         },
-    {N_("Armenian (ARMSCII-8)"),              "armscii-8"            },
-    {N_("Central European (MacCE)"),          "x-mac-ce"             },
-    {N_("Chinese Simplified (GBK)"),          "x-gbk"                },
-    {N_("Chinese Simplified (HZ)"),           "HZ-GB-2312"           },
-    {N_("Chinese Traditional (EUC-TW)"),      "x-euc-tw"             },
-    {N_("Croatian (MacCroatian)"),            "x-mac-croatian"       },
-    {N_("Cyrillic (MacCyrillic)"),            "x-mac-cyrillic"       },
-    {N_("Cyrillic/Ukrainian (MacUkrainian)"), "x-mac-ukrainian"      },
-    {N_("Farsi (MacFarsi)"),                  "x-mac-farsi"},
-    {N_("Greek (MacGreek)"),                  "x-mac-greek"          },
-    {N_("Gujarati (MacGujarati)"),            "x-mac-gujarati"       },
-    {N_("Gurmukhi (MacGurmukhi)"),            "x-mac-gurmukhi"       },
-    {N_("Hebrew (ISO-8859-8-E)"),             "ISO-8859-8-E"         },
-    {N_("Hebrew (ISO-8859-8-I)"),             "ISO-8859-8-I"         },
-    {N_("Hebrew (MacHebrew)"),                "x-mac-hebrew"         },
-    {N_("Hindi (MacDevanagari)"),             "x-mac-devanagari"     },
-    {N_("Icelandic (MacIcelandic)"),          "x-mac-icelandic"      },
-    {N_("Korean (JOHAB)"),                    "x-johab"              },
-    {N_("Korean (UHC)"),                      "x-windows-949"        },
-    {N_("Romanian (MacRomanian)"),            "x-mac-romanian"       },
-    {N_("Turkish (MacTurkish)"),              "x-mac-turkish"        },
-    {N_("User Defined"),                      "x-user-defined"       },
-    {N_("Vietnamese (TCVN)"),                 "x-viet-tcvn5712"      },
-    {N_("Vietnamese (VPS)"),                  "x-viet-vps"           },
-    {N_("Western (MacRoman)"),                "x-mac-roman"          },
-    // charsets whithout posibly translatable names
-    {"T61.8bit",                              "T61.8bit"             },
-    {"x-imap4-modified-utf7",                 "x-imap4-modified-utf7"},
-    {"x-u-escaped",                           "x-u-escaped"          },
-    {"windows-936",                           "windows-936"          }
-*/
+	/*
+	 * From this point, character sets aren't supported by iconv
+	 */
+#if 0
+	{N_("Arabic (IBM-864-I)"),                "IBM864i"              },
+	{N_("Arabic (ISO-8859-6-E)"),             "ISO-8859-6-E"         },
+	{N_("Arabic (ISO-8859-6-I)"),             "ISO-8859-6-I"         },
+	{N_("Arabic (MacArabic)"),                "x-mac-arabic"         },
+	{N_("Armenian (ARMSCII-8)"),              "armscii-8"            },
+	{N_("Central European (MacCE)"),          "x-mac-ce"             },
+	{N_("Chinese Simplified (GBK)"),          "x-gbk"                },
+	{N_("Chinese Simplified (HZ)"),           "HZ-GB-2312"           },
+	{N_("Chinese Traditional (EUC-TW)"),      "x-euc-tw"             },
+	{N_("Croatian (MacCroatian)"),            "x-mac-croatian"       },
+	{N_("Cyrillic (MacCyrillic)"),            "x-mac-cyrillic"       },
+	{N_("Cyrillic/Ukrainian (MacUkrainian)"), "x-mac-ukrainian"      },
+	{N_("Farsi (MacFarsi)"),                  "x-mac-farsi"},
+	{N_("Greek (MacGreek)"),                  "x-mac-greek"          },
+	{N_("Gujarati (MacGujarati)"),            "x-mac-gujarati"       },
+	{N_("Gurmukhi (MacGurmukhi)"),            "x-mac-gurmukhi"       },
+	{N_("Hebrew (ISO-8859-8-E)"),             "ISO-8859-8-E"         },
+	{N_("Hebrew (ISO-8859-8-I)"),             "ISO-8859-8-I"         },
+	{N_("Hebrew (MacHebrew)"),                "x-mac-hebrew"         },
+	{N_("Hindi (MacDevanagari)"),             "x-mac-devanagari"     },
+	{N_("Icelandic (MacIcelandic)"),          "x-mac-icelandic"      },
+	{N_("Korean (JOHAB)"),                    "x-johab"              },
+	{N_("Korean (UHC)"),                      "x-windows-949"        },
+	{N_("Romanian (MacRomanian)"),            "x-mac-romanian"       },
+	{N_("Turkish (MacTurkish)"),              "x-mac-turkish"        },
+	{N_("User Defined"),                      "x-user-defined"       },
+	{N_("Vietnamese (TCVN)"),                 "x-viet-tcvn5712"      },
+	{N_("Vietnamese (VPS)"),                  "x-viet-vps"           },
+	{N_("Western (MacRoman)"),                "x-mac-roman"          },
+	/* charsets whithout posibly translatable names */
+	{"T61.8bit",                              "T61.8bit"             },
+	{"x-imap4-modified-utf7",                 "x-imap4-modified-utf7"},
+	{"x-u-escaped",                           "x-u-escaped"          },
+	{"windows-936",                           "windows-936"          }
+#endif
 };
 
 /*************
  * Functions *
  *************/
 
-char* get_current_charset (void)
-{
-    char *charset = getenv("CHARSET");
-
-#ifdef HAVE_LANGINFO_CODESET
-    if (!charset)
-        charset = nl_langinfo(CODESET);
-#endif
-    if (!charset)
-        charset = "ISO-8859-1";
-
-    return charset;
-}
-
-
-#ifdef HAVE_ICONV
-static char* convert_string (const char *string, char *from, char *to)
-{
-    size_t outleft, outsize, length;
-    iconv_t cd;
-    char *out, *outptr;
-    const char *input = string;
-
-    if (!string)
-        return NULL;
-
-    length = strlen(string);
-
-    /*  g_message("converting %s from %s to %s", string, from, to); */
-    if ((cd = iconv_open(to, from)) == (iconv_t)-1)
-    {
-        g_warning("convert_string(): Conversion not supported. Charsets: %s -> %s", from, to);
-        return g_strdup(string);
-    }
-
-    /* Due to a GLIBC bug, round outbuf_size up to a multiple of 4 */
-    /* + 1 for nul in case len == 1 */
-    outsize = ((length + 3) & ~3) + 1;
-    out = g_malloc(outsize);
-    outleft = outsize - 1;
-    outptr = out;
-
- retry:
-    if (iconv(cd, &input, &length, &outptr, &outleft) == -1)
-    {
-        int used;
-        switch (errno)
-        {
-            case E2BIG:
-                used = outptr - out;
-                outsize = (outsize - 1) * 2 + 1;
-                out = g_realloc(out, outsize);
-                outptr = out + used;
-                outleft = outsize - 1 - used;
-                goto retry;
-            case EINVAL:
-                break;
-            case EILSEQ:
-                /* Invalid sequence, try to get the
-                                   rest of the string */
-                input++;
-                length = strlen(input);
-                goto retry;
-            default:
-                g_warning("convert_string(): Conversion failed. Inputstring: %s; Error: %s", string, strerror(errno));
-                break;
-        }
-    }
-    *outptr = '\0';
-
-    iconv_close(cd);
-    return out;
-}
-#else
-static char* convert_string (const char *string, char *from, char *to)
-{
-	(void)from, (void)to;
-    if (!string)
-        return NULL;
-    return g_strdup(string);
-}
-#endif
-
 /*
  * Commons conversion functions
  */
-char* convert_from_file_to_user (const char *string)
+char *convert_from_file_to_user(const char *string)
 {
-    char *file_charset = flac_cfg.file_char_set;
-    char *user_charset = flac_cfg.user_char_set;
-
-    return convert_string(string,file_charset,user_charset);
+	return FLAC_plugin__charset_convert_string(string, flac_cfg.file_char_set, flac_cfg.user_char_set);
 }
 
-char* convert_from_user_to_file (const char *string)
+char *convert_from_user_to_file(const char *string)
 {
-    char *file_charset = flac_cfg.file_char_set;
-    char *user_charset = flac_cfg.user_char_set;
-
-    return convert_string(string,user_charset,file_charset);
+	return FLAC_plugin__charset_convert_string(string, flac_cfg.user_char_set, flac_cfg.file_char_set);
 }
 
+void convert_from_file_to_user_in_place(char **string)
+{
+	if(0 != *string) {
+		char *tmp;
+
+		tmp = convert_from_file_to_user(*string);
+		free(*string);
+		*string = tmp;
+	}
+}
+
+void convert_from_user_to_file_in_place(char **string)
+{
+	if(0 != *string) {
+		char *tmp;
+
+		tmp = convert_from_user_to_file(*string);
+		free(*string);
+		*string = tmp;
+	}
+}
 
 GList *Charset_Create_List (void)
 {
-    GList *list = NULL;
-    guint i;
+	GList *list = NULL;
+	guint i;
 
-    for (i=0; i<CHARSET_TRANS_ARRAY_LEN; i++)
-        list = g_list_append(list,_(charset_trans_array[i].charset_title));
-    return list;
+	for (i=0; i<CHARSET_TRANS_ARRAY_LEN; i++)
+		list = g_list_append(list,_(charset_trans_array[i].charset_title));
+	return list;
 }
 
 
@@ -257,13 +183,13 @@ GList *Charset_Create_List (void)
  */
 gchar *Charset_Get_Name_From_Title (gchar *charset_title)
 {
-    guint i;
+	guint i;
 
-    if (charset_title)
-        for (i=0; i<CHARSET_TRANS_ARRAY_LEN; i++)
-            if ( strcasecmp(_(charset_title),_(charset_trans_array[i].charset_title)) == 0 )
-                return charset_trans_array[i].charset_name;
-    return "";
+	if (charset_title)
+		for (i=0; i<CHARSET_TRANS_ARRAY_LEN; i++)
+			if ( strcasecmp(_(charset_title),_(charset_trans_array[i].charset_title)) == 0 )
+				return charset_trans_array[i].charset_name;
+	return "";
 }
 
 
@@ -272,37 +198,11 @@ gchar *Charset_Get_Name_From_Title (gchar *charset_title)
  */
 gchar *Charset_Get_Title_From_Name (gchar *charset_name)
 {
-    guint i;
+	guint i;
 
-    if (charset_name)
-        for (i=0; i<CHARSET_TRANS_ARRAY_LEN; i++)
-            if ( strcasecmp(charset_name,charset_trans_array[i].charset_name) == 0 )
-                return _(charset_trans_array[i].charset_title);
-    return "";
+	if (charset_name)
+		for (i=0; i<CHARSET_TRANS_ARRAY_LEN; i++)
+			if ( strcasecmp(charset_name,charset_trans_array[i].charset_name) == 0 )
+				return _(charset_trans_array[i].charset_title);
+	return "";
 }
-
-
-
-/*
- * Test if the conversion is supported between two character sets ('from' and 'to)
- */
-#ifdef HAVE_ICONV
-gboolean test_conversion_charset (char *from, char *to)
-{
-    iconv_t cd;
-
-    if ((cd=iconv_open(to,from)) == (iconv_t)-1)
-    {
-        /* Conversion not supported */
-        return FALSE;
-    }
-    iconv_close(cd);
-    return TRUE;
-}
-#else
-gboolean test_conversion_charset (char *from, char *to)
-{
-	(void)from, (void)to;
-    return TRUE;
-}
-#endif
