@@ -40,7 +40,7 @@ m4data_DATA = libFLAC.m4
 EXTRA_DIST = libFLAC.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
-libFLAC_la_LDFLAGS = -version-info 3:0:0
+libFLAC_la_LDFLAGS = -version-info 3:1:0
 
 libFLAC_la_SOURCES = \
 	bitbuffer.c \
