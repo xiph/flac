@@ -35,11 +35,6 @@
 namespace FLAC {
 	namespace Decoder {
 
-		const char *Stream::State::resolved_as_cstring(const Stream &) const
-		{
-			return as_cstring();
-		}
-
 		Stream::Stream():
 		decoder_(::FLAC__stream_decoder_new())
 		{ }

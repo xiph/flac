@@ -35,14 +35,6 @@
 namespace FLAC {
 	namespace Encoder {
 
-		const char *Stream::State::resolved_as_cstring(const Stream &encoder) const
-		{
-			if(state_ == ::FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR)
-				return encoder.get_verify_decoder_state().as_cstring();
-			else
-				return as_cstring();
-		}
-
 		Stream::Stream():
 		encoder_(::FLAC__stream_encoder_new())
 		{ }

@@ -35,24 +35,6 @@
 namespace FLAC {
 	namespace Encoder {
 
-		const char *File::State::resolved_as_cstring(const File &encoder) const
-		{
-			if(state_ == ::FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR) {
-				FLAC::Encoder::SeekableStream::State state__ = encoder.get_seekable_stream_encoder_state();
-				if(state__ == ::FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR) {
-					FLAC::Encoder::Stream::State state___ = encoder.get_stream_encoder_state();
-					if(state___ == ::FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR)
-						return encoder.get_verify_decoder_state().as_cstring();
-					else
-						return state___.as_cstring();
-				}
-				else
-					return state__.as_cstring();
-			}
-			else
-				return as_cstring();
-		}
-
 		File::File():
 		encoder_(::FLAC__file_encoder_new())
 		{ }

@@ -35,19 +35,6 @@
 namespace FLAC {
 	namespace Decoder {
 
-		const char *File::State::resolved_as_cstring(const File &decoder) const
-		{
-			if(state_ == ::FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR) {
-				FLAC::Decoder::SeekableStream::State state__ = decoder.get_seekable_stream_decoder_state();
-				if(state__ == ::FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR)
-					return decoder.get_stream_decoder_state().as_cstring();
-				else
-					return state__.as_cstring();
-			}
-			else
-				return as_cstring();
-		}
-
 		File::File():
 		decoder_(::FLAC__file_decoder_new())
 		{ }
