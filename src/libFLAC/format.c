@@ -42,14 +42,17 @@ const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN = 1; /* bits */
 const unsigned FLAC__STREAM_METADATA_TYPE_LEN = 7; /* bits */
 const unsigned FLAC__STREAM_METADATA_LENGTH_LEN = 24; /* bits */
 
-const unsigned FLAC__FRAME_HEADER_SYNC = 0x1fe;
-const unsigned FLAC__FRAME_HEADER_SYNC_LEN = 9; /* bits */
-const unsigned FLAC__FRAME_HEADER_BLOCK_SIZE_LEN = 3; /* bits */
+const unsigned FLAC__FRAME_HEADER_SYNC = 0x3ffe;
+const unsigned FLAC__FRAME_HEADER_SYNC_LEN = 14; /* bits */
+const unsigned FLAC__FRAME_HEADER_RESERVED_LEN = 2; /* bits */
+const unsigned FLAC__FRAME_HEADER_BLOCK_SIZE_LEN = 4; /* bits */
 const unsigned FLAC__FRAME_HEADER_SAMPLE_RATE_LEN = 4; /* bits */
 const unsigned FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN = 4; /* bits */
 const unsigned FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN = 3; /* bits */
 const unsigned FLAC__FRAME_HEADER_ZERO_PAD_LEN = 1; /* bits */
-const unsigned FLAC__FRAME_HEADER_CRC8_LEN = 8; /* bits */
+const unsigned FLAC__FRAME_HEADER_CRC_LEN = 8; /* bits */
+
+const unsigned FLAC__FRAME_FOOTER_CRC_LEN = 16; /* bits */
 
 const unsigned FLAC__ENTROPY_CODING_METHOD_TYPE_LEN = 2; /* bits */
 const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN = 4; /* bits */
@@ -62,11 +65,14 @@ const char *FLAC__EntropyCodingMethodTypeString[] = {
 const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN = 4; /* bits */
 const unsigned FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN = 5; /* bits */
 
-const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BITS = 0x00;
-const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BITS = 0x02;
-const unsigned FLAC__SUBFRAME_TYPE_FIXED_BITS = 0x10;
-const unsigned FLAC__SUBFRAME_TYPE_LPC_BITS = 0x40;
-const unsigned FLAC__SUBFRAME_TYPE_LEN = 8; /* bits */
+const unsigned FLAC__SUBFRAME_ZERO_PAD_LEN = 1; /* bits */
+const unsigned FLAC__SUBFRAME_TYPE_LEN = 6; /* bits */
+const unsigned FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN = 1; /* bits */
+
+const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK = 0x00;
+const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK = 0x02;
+const unsigned FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK = 0x10;
+const unsigned FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK = 0x40;
 
 const char *FLAC__SubframeTypeString[] = {
 	"CONSTANT",

@@ -162,16 +162,19 @@ extern const unsigned FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN; /* = 5 bits */
 
 /*****************************************************************************
  *
- *  8: subframe type
- *       xxxxxxx1: invalid, to prevent sync-fooling string of 1s (use to check for erroneous sync)
- *       00000000: constant value
- *       00000010: verbatim
- *       000001x0: reserved
- *       00001xx0: reserved
- *       0001xxx0: fixed predictor, xxx=order <= 4, else reserved
- *       001xxxx0: reserved
- *       01xxxxx0: lpc, xxxxx=order-1
- *       1xxxxxxx: invalid, to prevent sync-fooling string of 1s (use to check for erroneous sync)
+ *  1: zero pad, to prevent sync-fooling string of 1s (use to check for erroneous sync)
+ *  6: subframe type
+ *       000000: constant value
+ *       000001: verbatim
+ *       00001x: reserved
+ *       0001xx: reserved
+ *       001xxx: fixed predictor, xxx=order <= 4, else reserved
+ *       01xxxx: reserved
+ *       1xxxxx: lpc, xxxxx=order-1
+ *  1: 'wasted bits' flag
+ *       0: no wasted bits in source subblock
+ *       1: all samples in source subblock contain n 0 least significant bits.  n-1 follows, unary coded, i.e. n=3, 001 follows, n=7, 0000001 follows.
+ *             ?: unary coded (n-1)
  *  ?: subframe-specific data (c.f. FLAC__Subframe_*)
  */
 typedef struct {
@@ -182,13 +185,17 @@ typedef struct {
 		FLAC__Subframe_LPC lpc;
 		FLAC__Subframe_Verbatim verbatim;
 	} data;
+	unsigned wasted_bits;
 } FLAC__Subframe;
 
-extern const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BITS; /* = 0x00 */
-extern const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BITS; /* = 0x02 */
-extern const unsigned FLAC__SUBFRAME_TYPE_FIXED_BITS; /* = 0x10 */
-extern const unsigned FLAC__SUBFRAME_TYPE_LPC_BITS; /* = 0x40 */
-extern const unsigned FLAC__SUBFRAME_TYPE_LEN; /* = 8 bits */
+extern const unsigned FLAC__SUBFRAME_ZERO_PAD_LEN; /* = 1 bit */
+extern const unsigned FLAC__SUBFRAME_TYPE_LEN; /* = 6 bits */
+extern const unsigned FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN; /* = 1 bit */
+
+extern const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK; /* = 0x00 */
+extern const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK; /* = 0x02 */
+extern const unsigned FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK; /* = 0x10 */
+extern const unsigned FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK; /* = 0x40 */
 
 /*****************************************************************************/
 
@@ -209,13 +216,17 @@ extern const char *FLAC__ChannelAssignmentString[];
 
 /*****************************************************************************
  *
- *  9: sync code '111111110'
- *  3: blocksize in samples
- *        000: get from stream header => implies constant blocksize throughout stream
- *        001: 192 samples (AES/EBU) => implies constant blocksize throughout stream
- *        010-101: 576 * (2^(2-n)) samples, i.e. 576/1152/2304/4608 => implies constant blocksize throughout stream
- *        110: get 8 bit (blocksize-1) from end of header => variable blocksize throughout stream unless it's the last frame
- *        111: get 16 bit (blocksize-1) from end of header => variable blocksize throughout stream unless it's the last frame
+ * 14: sync code '11111111111110'
+ +  2: reserved
+ +        00: currently required value
+ +        01-11: reserved
+ *  4: blocksize in samples
+ *        0000: get from stream header => implies constant blocksize throughout stream
+ *        0001: 192 samples (AES/EBU) => implies constant blocksize throughout stream
+ *        0010-0101: 576 * (2^(n-2)) samples, i.e. 576/1152/2304/4608 => implies constant blocksize throughout stream
+ *        0110: get 8 bit (blocksize-1) from end of header => possibly variable blocksize throughout stream unless it's the last frame
+ *        0111: get 16 bit (blocksize-1) from end of header => possibly variable blocksize throughout stream unless it's the last frame
+ *        1000-1111: 256 * (2^(n-8)) samples, i.e. 256/512/1024/2048/4096/8192/16384/32768 => implies constant blocksize throughout stream
  *  4: sample rate:
  *        0000: get from stream header
  *        0001-0011: reserved
@@ -267,20 +278,33 @@ typedef struct {
 		uint32 frame_number;
 		uint64 sample_number;
 	} number;
+	uint8 crc;
 } FLAC__FrameHeader;
 
-extern const unsigned FLAC__FRAME_HEADER_SYNC; /* = 0x1fe */
-extern const unsigned FLAC__FRAME_HEADER_SYNC_LEN; /* = 9 bits */
-extern const unsigned FLAC__FRAME_HEADER_BLOCK_SIZE_LEN; /* = 3 bits */
+extern const unsigned FLAC__FRAME_HEADER_SYNC; /* = 0x3ffe */
+extern const unsigned FLAC__FRAME_HEADER_SYNC_LEN; /* = 14 bits */
+extern const unsigned FLAC__FRAME_HEADER_RESERVED_LEN; /* = 2 bits */
+extern const unsigned FLAC__FRAME_HEADER_BLOCK_SIZE_LEN; /* = 4 bits */
 extern const unsigned FLAC__FRAME_HEADER_SAMPLE_RATE_LEN; /* = 4 bits */
 extern const unsigned FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN; /* = 4 bits */
 extern const unsigned FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN; /* = 3 bits */
 extern const unsigned FLAC__FRAME_HEADER_ZERO_PAD_LEN; /* = 1 bit */
-extern const unsigned FLAC__FRAME_HEADER_CRC8_LEN; /* = 8 bits */
+extern const unsigned FLAC__FRAME_HEADER_CRC_LEN; /* = 8 bits */
+
+/*****************************************************************************
+ *
+ * 16: CRC-16 (polynomial = ) of everything before the crc, back to and including the frame header sync code
+ */
+typedef struct {
+	uint16 crc;
+} FLAC__FrameFooter;
+
+extern const unsigned FLAC__FRAME_FOOTER_CRC_LEN; /* = 16 bits */
 
 typedef struct {
 	FLAC__FrameHeader header;
 	FLAC__Subframe subframes[FLAC__MAX_CHANNELS];
+	FLAC__FrameFooter footer;
 } FLAC__Frame;
 
 /*****************************************************************************/

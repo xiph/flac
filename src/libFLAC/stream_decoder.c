@@ -41,6 +41,9 @@ typedef struct FLAC__StreamDecoderPrivate {
 	bool has_stream_header;
 	FLAC__StreamMetaData stream_header;
 	FLAC__Frame frame;
+	byte header_warmup[2]; /* contains the sync code and reserved bits */
+	byte lookahead; /* temp storage when we need to look ahead one byte in the stream */
+	bool cached; /* true if there is a byte in lookahead */
 } FLAC__StreamDecoderPrivate;
 
 static byte ID3V2_TAG_[3] = { 'I', 'D', '3' };
@@ -66,7 +69,6 @@ const char *FLAC__StreamDecoderStateString[] = {
 	"FLAC__STREAM_DECODER_READ_METADATA",
 	"FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC",
 	"FLAC__STREAM_DECODER_READ_FRAME",
-	"FLAC__STREAM_DECODER_RESYNC_IN_HEADER",
 	"FLAC__STREAM_DECODER_END_OF_STREAM",
 	"FLAC__STREAM_DECODER_ABORTED",
 	"FLAC__STREAM_DECODER_UNPARSEABLE_STREAM",
@@ -86,7 +88,9 @@ const char *FLAC__StreamDecoderWriteStatusString[] = {
 };
 
 const char *FLAC__StreamDecoderErrorStatusString[] = {
-	"FLAC__STREAM_DECODER_ERROR_LOST_SYNC"
+	"FLAC__STREAM_DECODER_ERROR_LOST_SYNC",
+	"FLAC__STREAM_DECODER_ERROR_BAD_HEADER",
+	"FLAC__STREAM_DECODER_ERROR_FRAME_CRC_MISMATCH"
 };
 
 FLAC__StreamDecoder *FLAC__stream_decoder_get_new_instance()
@@ -148,6 +152,7 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(
 	decoder->guts->last_frame_number = 0;
 	decoder->guts->samples_decoded = 0;
 	decoder->guts->has_stream_header = false;
+	decoder->guts->cached = false;
 
 	return decoder->state;
 }
@@ -388,15 +393,21 @@ bool stream_decoder_find_metadata_(FLAC__StreamDecoder *decoder)
 {
 	uint32 x;
 	unsigned i, id;
-	bool first = 1;
+	bool first = true;
 
 	assert(decoder->guts->input.consumed_bits == 0); /* make sure we're byte aligned */
 
 	for(i = id = 0; i < 4; ) {
-		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
-			return false; /* the read_callback_ sets the state for us */
+		if(decoder->guts->cached) {
+			x = (uint32)decoder->guts->lookahead;
+			decoder->guts->cached = false;
+		}
+		else {
+			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
+				return false; /* the read_callback_ sets the state for us */
+		}
 		if(x == FLAC__STREAM_SYNC_STRING[i]) {
-			first = 1;
+			first = true;
 			i++;
 			id = 0;
 			continue;
@@ -411,10 +422,18 @@ bool stream_decoder_find_metadata_(FLAC__StreamDecoder *decoder)
 			continue;
 		}
 		if(x == 0xff) { /* MAGIC NUMBER for the first 8 frame sync bits */
-			unsigned y;
-			if(!FLAC__bitbuffer_peek_bit(&decoder->guts->input, &y, read_callback_, decoder))
+			decoder->guts->header_warmup[0] = (byte)x;
+			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
-			if(!y) { /* MAGIC NUMBER for the last sync bit */
+
+			/* we have to check if we just read two 0xff's in a row; the second may actually be the beginning of the sync code */
+			/* else we have to check if the second byte is the end of a sync code */
+			if(x == 0xff) { /* MAGIC NUMBER for the first 8 frame sync bits */
+				decoder->guts->lookahead = (byte)x;
+				decoder->guts->cached = true;
+			}
+			else if(x >> 2 == 0x3e) { /* MAGIC NUMBER for the last 6 sync bits */
+				decoder->guts->header_warmup[1] = (byte)x;
 				decoder->state = FLAC__STREAM_DECODER_READ_FRAME;
 				return true;
 			}
@@ -422,7 +441,7 @@ bool stream_decoder_find_metadata_(FLAC__StreamDecoder *decoder)
 		i = 0;
 		if(first) {
 			decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
-			first = 0;
+			first = false;
 		}
 	}
 
@@ -546,7 +565,7 @@ bool stream_decoder_skip_id3v2_tag_(FLAC__StreamDecoder *decoder)
 bool stream_decoder_frame_sync_(FLAC__StreamDecoder *decoder)
 {
 	uint32 x;
-	bool first = 1;
+	bool first = true;
 
 	/* If we know the total number of samples in the stream, stop if we've read that many. */
 	/* This will stop us, for example, from wasting time trying to sync on an ID3V1 tag. */
@@ -564,13 +583,27 @@ bool stream_decoder_frame_sync_(FLAC__StreamDecoder *decoder)
 	}
 
 	while(1) {
-		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
-			return false; /* the read_callback_ sets the state for us */
-		if(x == 0xff) { /* MAGIC NUMBER for the first 8 frame sync bits */
-			unsigned y;
-			if(!FLAC__bitbuffer_peek_bit(&decoder->guts->input, &y, read_callback_, decoder))
+		if(decoder->guts->cached) {
+			x = (uint32)decoder->guts->lookahead;
+			decoder->guts->cached = false;
+		}
+		else {
+			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
-			if(!y) { /* MAGIC NUMBER for the last sync bit */
+		}
+		if(x == 0xff) { /* MAGIC NUMBER for the first 8 frame sync bits */
+			decoder->guts->header_warmup[0] = (byte)x;
+			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
+				return false; /* the read_callback_ sets the state for us */
+
+			/* we have to check if we just read two 0xff's in a row; the second may actually be the beginning of the sync code */
+			/* else we have to check if the second byte is the end of a sync code */
+			if(x == 0xff) { /* MAGIC NUMBER for the first 8 frame sync bits */
+				decoder->guts->lookahead = (byte)x;
+				decoder->guts->cached = true;
+			}
+			else if(x >> 2 == 0x3e) { /* MAGIC NUMBER for the last 6 sync bits */
+				decoder->guts->header_warmup[1] = (byte)x;
 				decoder->state = FLAC__STREAM_DECODER_READ_FRAME;
 				return true;
 			}
@@ -589,18 +622,21 @@ bool stream_decoder_read_frame_(FLAC__StreamDecoder *decoder, bool *got_a_frame)
 	unsigned channel;
 	unsigned i;
 	int32 mid, side, left, right;
+	uint16 frame_crc; /* the one we calculate from the input stream */
+	uint32 x;
 
 	*got_a_frame = false;
 
+	/* init the CRC */
+	frame_crc = 0;
+	FLAC__CRC16_UPDATE(decoder->guts->header_warmup[0], frame_crc);
+	FLAC__CRC16_UPDATE(decoder->guts->header_warmup[1], frame_crc);
+	FLAC__bitbuffer_init_read_crc16(&decoder->guts->input, frame_crc);
+
 	if(!stream_decoder_read_frame_header_(decoder))
 		return false;
-	if(decoder->state != FLAC__STREAM_DECODER_READ_FRAME) {
-		if(decoder->state == FLAC__STREAM_DECODER_RESYNC_IN_HEADER)
-			decoder->state = FLAC__STREAM_DECODER_READ_FRAME;
-		else
-			decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+	if(decoder->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC)
 		return true;
-	}
 	if(!stream_decoder_allocate_output_(decoder, decoder->guts->frame.header.blocksize, decoder->guts->frame.header.channels))
 		return false;
 	for(channel = 0; channel < decoder->guts->frame.header.channels; channel++) {
@@ -640,38 +676,53 @@ bool stream_decoder_read_frame_(FLAC__StreamDecoder *decoder, bool *got_a_frame)
 	if(!stream_decoder_read_zero_padding_(decoder))
 		return false;
 
-	/* Undo any special channel coding */
-	switch(decoder->guts->frame.header.channel_assignment) {
-		case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
-			/* do nothing */
-			break;
-		case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
-			assert(decoder->guts->frame.header.channels == 2);
-			for(i = 0; i < decoder->guts->frame.header.blocksize; i++)
-				decoder->guts->output[1][i] = decoder->guts->output[0][i] - decoder->guts->output[1][i];
-			break;
-		case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
-			assert(decoder->guts->frame.header.channels == 2);
-			for(i = 0; i < decoder->guts->frame.header.blocksize; i++)
-				decoder->guts->output[0][i] += decoder->guts->output[1][i];
-			break;
-		case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
-			assert(decoder->guts->frame.header.channels == 2);
-			for(i = 0; i < decoder->guts->frame.header.blocksize; i++) {
-				mid = decoder->guts->output[0][i];
-				side = decoder->guts->output[1][i];
-				mid <<= 1;
-				if(side & 1) /* i.e. if 'side' is odd... */
-					mid++;
-				left = mid + side;
-				right = mid - side;
-				decoder->guts->output[0][i] = left >> 1;
-				decoder->guts->output[1][i] = right >> 1;
-			}
-			break;
-		default:
-			assert(0);
-			break;
+	/*
+	 * Read the frame CRC-16 from the footer and check
+	 */
+	frame_crc = decoder->guts->input.read_crc16;
+	if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__FRAME_FOOTER_CRC_LEN, read_callback_, decoder))
+		return false; /* the read_callback_ sets the state for us */
+	if(frame_crc == (uint16)x) {
+		/* Undo any special channel coding */
+		switch(decoder->guts->frame.header.channel_assignment) {
+			case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
+				/* do nothing */
+				break;
+			case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
+				assert(decoder->guts->frame.header.channels == 2);
+				for(i = 0; i < decoder->guts->frame.header.blocksize; i++)
+					decoder->guts->output[1][i] = decoder->guts->output[0][i] - decoder->guts->output[1][i];
+				break;
+			case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
+				assert(decoder->guts->frame.header.channels == 2);
+				for(i = 0; i < decoder->guts->frame.header.blocksize; i++)
+					decoder->guts->output[0][i] += decoder->guts->output[1][i];
+				break;
+			case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
+				assert(decoder->guts->frame.header.channels == 2);
+				for(i = 0; i < decoder->guts->frame.header.blocksize; i++) {
+					mid = decoder->guts->output[0][i];
+					side = decoder->guts->output[1][i];
+					mid <<= 1;
+					if(side & 1) /* i.e. if 'side' is odd... */
+						mid++;
+					left = mid + side;
+					right = mid - side;
+					decoder->guts->output[0][i] = left >> 1;
+					decoder->guts->output[1][i] = right >> 1;
+				}
+				break;
+			default:
+				assert(0);
+				break;
+		}
+	}
+	else {
+		/* Bad frame, emit error and zero the output signal */
+		decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_FRAME_CRC_MISMATCH, decoder->guts->client_data);
+		for(channel = 0; channel < decoder->guts->frame.header.channels; channel++) {
+			memset(decoder->guts->output[channel], 0, sizeof(int32) * decoder->guts->frame.header.blocksize);
+		}
 	}
 
 	*got_a_frame = true;
@@ -698,15 +749,29 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 	uint32 x;
 	uint64 xx;
 	unsigned i, blocksize_hint = 0, sample_rate_hint = 0;
-	byte crc, raw_header[15]; /* MAGIC NUMBER based on the maximum frame header size, including CRC */
+	byte crc8, raw_header[16]; /* MAGIC NUMBER based on the maximum frame header size, including CRC */
 	unsigned raw_header_len;
 	bool is_unparseable = false;
 
 	assert(decoder->guts->input.consumed_bits == 0); /* make sure we're byte aligned */
 
-	/* init the raw header with the first 8 bits of the sync code */
-	raw_header[0] = 0xff; /* MAGIC NUMBER for the first 8 frame sync bits */
-	raw_header_len = 1;
+	/* init the raw header with the saved bits from synchronization */
+	raw_header[0] = decoder->guts->header_warmup[0];
+	raw_header[1] = decoder->guts->header_warmup[1];
+	raw_header_len = 2;
+
+	/*
+	 * check to make sure that the reserved bits are 0
+	 */
+	if(raw_header[1] & 0x03) { /* MAGIC NUMBER */
+		is_unparseable = true;
+	}
+
+	/*
+	 * Note that along the way as we read the header, we look for a sync
+	 * code inside.  If we find one it would indicate that our original
+	 * sync was bad since there cannot be a sync code in a valid header.
+	 */
 
 	/*
 	 * read in the raw header as bytes so we can CRC it, and parse it on the way
@@ -714,26 +779,18 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 	for(i = 0; i < 2; i++) {
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		else if(x == 0xff) { /* MAGIC NUMBER for the first part of the sync code */
+		if(x == 0xff) { /* MAGIC NUMBER for the first 8 frame sync bits */
 			/* if we get here it means our original sync was erroneous since the sync code cannot appear in the header */
-			uint32 y;
-			if(!FLAC__bitbuffer_peek_bit(&decoder->guts->input, &y, read_callback_, decoder))
-				return false; /* the read_callback_ sets the state for us */
-			if(!y) { /* MAGIC NUMBER for the last sync bit */
-				decoder->state = FLAC__STREAM_DECODER_RESYNC_IN_HEADER;
-				return true;
-			}
-			else {
-				decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
-				decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-				return true;
-			}
+			decoder->guts->lookahead = (byte)x;
+			decoder->guts->cached = true;
+			decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_BAD_HEADER, decoder->guts->client_data);
+			decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
 		}
 		raw_header[raw_header_len++] = (byte)x;
 	}
-	assert(!(raw_header[1] & 0x80)); /* last sync bit should be confirmed zero before we get here */
 
-	switch(x = raw_header[1] >> 4) {
+	switch(x = raw_header[2] >> 4) {
 		case 0:
 			if(decoder->guts->has_stream_header && decoder->guts->stream_header.data.stream_info.min_blocksize == decoder->guts->stream_header.data.stream_info.max_blocksize) /* i.e. it's a fixed-blocksize stream */
 				decoder->guts->frame.header.blocksize = decoder->guts->stream_header.data.stream_info.min_blocksize;
@@ -753,12 +810,22 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 		case 7:
 			blocksize_hint = x;
 			break;
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+		case 13:
+		case 14:
+		case 15:
+			decoder->guts->frame.header.blocksize = 256 << (x-8);
+			break;
 		default:
 			assert(0);
 			break;
 	}
 
-	switch(x = raw_header[1] & 0x0f) {
+	switch(x = raw_header[2] & 0x0f) {
 		case 0:
 			if(decoder->guts->has_stream_header)
 				decoder->guts->frame.header.sample_rate = decoder->guts->stream_header.data.stream_info.sample_rate;
@@ -800,14 +867,14 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 			sample_rate_hint = x;
 			break;
 		case 15:
-			decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
+			decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_BAD_HEADER, decoder->guts->client_data);
 			decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 			return true;
 		default:
 			assert(0);
 	}
 
-	x = (unsigned)(raw_header[2] >> 4);
+	x = (unsigned)(raw_header[3] >> 4);
 	if(x & 8) {
 		decoder->guts->frame.header.channels = 2;
 		switch(x & 7) {
@@ -830,7 +897,7 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 		decoder->guts->frame.header.channel_assignment = FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT;
 	}
 
-	switch(x = (unsigned)(raw_header[2] & 0x0e) >> 1) {
+	switch(x = (unsigned)(raw_header[3] & 0x0e) >> 1) {
 		case 0:
 			if(decoder->guts->has_stream_header)
 				decoder->guts->frame.header.bits_per_sample = decoder->guts->stream_header.data.stream_info.bits_per_sample;
@@ -861,8 +928,8 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 			break;
 	}
 
-	if(raw_header[2] & 0x01) { /* this should be a zero padding bit */
-		decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
+	if(raw_header[3] & 0x01) { /* this should be a zero padding bit */
+		decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_BAD_HEADER, decoder->guts->client_data);
 		decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
 	}
@@ -870,26 +937,12 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 	if(blocksize_hint) {
 		if(!FLAC__bitbuffer_read_utf8_uint64(&decoder->guts->input, &xx, read_callback_, decoder, raw_header, &raw_header_len))
 			return false; /* the read_callback_ sets the state for us */
-		if(xx == 0xffffffffffffffff) {
-			if(raw_header[raw_header_len-1] == 0xff) { /* MAGIC NUMBER for sync code */
-				uint32 y;
-				if(!FLAC__bitbuffer_peek_bit(&decoder->guts->input, &y, read_callback_, decoder))
-					return false; /* the read_callback_ sets the state for us */
-				if(!y) { /* MAGIC NUMBER for the last sync bit */
-					decoder->state = FLAC__STREAM_DECODER_RESYNC_IN_HEADER;
-					return true;
-				}
-				else {
-					decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
-					decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-					return true;
-				}
-			}
-			else {
-				decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
-				decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-				return true;
-			}
+		if(xx == 0xffffffffffffffff) { /* i.e. non-UTF8 code... */
+			decoder->guts->lookahead = raw_header[raw_header_len-1]; /* back up as much as we can */
+			decoder->guts->cached = true;
+			decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_BAD_HEADER, decoder->guts->client_data);
+			decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
 		}
 		if(decoder->guts->has_stream_header && decoder->guts->stream_header.data.stream_info.min_blocksize == decoder->guts->stream_header.data.stream_info.max_blocksize) /* i.e. it's a fixed-blocksize stream */
 			decoder->guts->frame.header.number.sample_number = (uint64)decoder->guts->last_frame_number * (int64)decoder->guts->stream_header.data.stream_info.min_blocksize + xx;
@@ -899,26 +952,12 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 	else {
 		if(!FLAC__bitbuffer_read_utf8_uint32(&decoder->guts->input, &x, read_callback_, decoder, raw_header, &raw_header_len))
 			return false; /* the read_callback_ sets the state for us */
-		if(x == 0xffffffff) {
-			if(raw_header[raw_header_len-1] == 0xff) { /* MAGIC NUMBER for sync code */
-				uint32 y;
-				if(!FLAC__bitbuffer_peek_bit(&decoder->guts->input, &y, read_callback_, decoder))
-					return false; /* the read_callback_ sets the state for us */
-				if(!y) { /* MAGIC NUMBER for the last sync bit */
-					decoder->state = FLAC__STREAM_DECODER_RESYNC_IN_HEADER;
-					return true;
-				}
-				else {
-					decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
-					decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-					return true;
-				}
-			}
-			else {
-				decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
-				decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-				return true;
-			}
+		if(x == 0xffffffff) { /* i.e. non-UTF8 code... */
+			decoder->guts->lookahead = raw_header[raw_header_len-1]; /* back up as much as we can */
+			decoder->guts->cached = true;
+			decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_BAD_HEADER, decoder->guts->client_data);
+			decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
 		}
 		decoder->guts->last_frame_number = x;
 		if(decoder->guts->has_stream_header) {
@@ -962,13 +1001,13 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 			decoder->guts->frame.header.sample_rate = x*10;
 	}
 
-	/* read the crc byte */
+	/* read the CRC-8 byte */
 	if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
 		return false; /* the read_callback_ sets the state for us */
-	crc = (byte)x;
+	crc8 = (byte)x;
 
-	if(FLAC__crc8(raw_header, raw_header_len) != crc) {
-		decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
+	if(FLAC__crc8(raw_header, raw_header_len) != crc8) {
+		decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_BAD_HEADER, decoder->guts->client_data);
 		decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
 	}
@@ -984,34 +1023,57 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 bool stream_decoder_read_subframe_(FLAC__StreamDecoder *decoder, unsigned channel, unsigned bps)
 {
 	uint32 x;
+	bool wasted_bits;
 
-	if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__SUBFRAME_TYPE_LEN, read_callback_, decoder))
+	if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder)) /* MAGIC NUMBER */
 		return false; /* the read_callback_ sets the state for us */
-	if(x & 0x01 || x & 0x80) {
+
+	wasted_bits = (x & 1);
+	x &= 0xfe;
+
+	if(wasted_bits) {
+		unsigned u;
+		if(!FLAC__bitbuffer_read_unary_unsigned(&decoder->guts->input, &u, read_callback_, decoder))
+			return false; /* the read_callback_ sets the state for us */
+		decoder->guts->frame.subframes[channel].wasted_bits = u+1;
+	}
+	else
+		decoder->guts->frame.subframes[channel].wasted_bits = 0;
+
+	if(x & 0x80) {
 		decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
 		decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
 	}
 	else if(x == 0) {
-		return stream_decoder_read_subframe_constant_(decoder, channel, bps);
+		if(!stream_decoder_read_subframe_constant_(decoder, channel, bps))
+			return false;
 	}
 	else if(x == 2) {
-		return stream_decoder_read_subframe_verbatim_(decoder, channel, bps);
+		if(!stream_decoder_read_subframe_verbatim_(decoder, channel, bps))
+			return false;
 	}
 	else if(x < 16) {
 		decoder->state = FLAC__STREAM_DECODER_UNPARSEABLE_STREAM;
 		return false;
 	}
 	else if(x <= 24) {
-		return stream_decoder_read_subframe_fixed_(decoder, channel, bps, (x>>1)&7);
+		if(!stream_decoder_read_subframe_fixed_(decoder, channel, bps, (x>>1)&7))
+			return false;
 	}
 	else if(x < 64) {
 		decoder->state = FLAC__STREAM_DECODER_UNPARSEABLE_STREAM;
 		return false;
 	}
 	else {
-		return stream_decoder_read_subframe_lpc_(decoder, channel, bps, ((x>>1)&31)+1);
+		if(!stream_decoder_read_subframe_lpc_(decoder, channel, bps, ((x>>1)&31)+1))
+			return false;
 	}
+
+	if(wasted_bits) {
+		fprintf(stderr,"@@@ CAN'T DEAL WITH WASTED BITS YET!!!\n");
+	}
+	return true;
 }
 
 bool stream_decoder_read_subframe_constant_(FLAC__StreamDecoder *decoder, unsigned channel, unsigned bps)

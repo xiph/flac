@@ -23,6 +23,7 @@
 #include <string.h> /* for memcpy() */
 #include "FLAC/encoder.h"
 #include "private/bitbuffer.h"
+#include "private/crc.h"
 #include "private/encoder_framing.h"
 #include "private/fixed.h"
 #include "private/lpc.h"
@@ -308,6 +309,7 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 		return encoder->state = FLAC__ENCODER_INVALID_QLP_COEFF_PRECISION;
 
 	if(encoder->streamable_subset) {
+//@@@ add check for blocksize here
 		if(encoder->bits_per_sample != 8 && encoder->bits_per_sample != 12 && encoder->bits_per_sample != 16 && encoder->bits_per_sample != 20 && encoder->bits_per_sample != 24)
 			return encoder->state = FLAC__ENCODER_NOT_STREAMABLE;
 		if(encoder->sample_rate > 655350)
@@ -594,10 +596,15 @@ bool encoder_process_frame_(FLAC__Encoder *encoder, bool is_last_frame)
 	}
 
 	/*
+	 * CRC-16 the whole thing
+	 */
+	assert(encoder->guts->frame.bits == 0); /* assert that we're byte-aligned */
+	assert(encoder->guts->frame.total_consumed_bits == 0); /* assert that no reading of the buffer was done */
+	FLAC__bitbuffer_write_raw_uint32(&encoder->guts->frame, FLAC__crc16(encoder->guts->frame.buffer, encoder->guts->frame.bytes), FLAC__FRAME_FOOTER_CRC_LEN);
+
+	/*
 	 * Write it
 	 */
-	assert(encoder->guts->frame.bits == 0); /* assert that we're byte-aligned before writing */
-	assert(encoder->guts->frame.total_consumed_bits == 0); /* assert that no reading of the buffer was done */
 	if(encoder->guts->write_callback(encoder, encoder->guts->frame.buffer, encoder->guts->frame.bytes, encoder->blocksize, encoder->guts->current_frame_number, encoder->guts->client_data) != FLAC__ENCODER_WRITE_OK) {
 		encoder->state = FLAC__ENCODER_FATAL_ERROR_WHILE_WRITING;
 		return false;
@@ -956,7 +963,7 @@ unsigned encoder_evaluate_constant_subframe_(const int32 signal, unsigned bits_p
 	subframe->type = FLAC__SUBFRAME_TYPE_CONSTANT;
 	subframe->data.constant.value = signal;
 
-	return FLAC__SUBFRAME_TYPE_LEN + bits_per_sample;
+	return FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + bits_per_sample;
 }
 
 unsigned encoder_evaluate_fixed_subframe_(const int32 signal[], int32 residual[], uint32 abs_residual[], unsigned blocksize, unsigned bits_per_sample, unsigned order, unsigned rice_parameter, unsigned max_partition_order, FLAC__Subframe *subframe)
@@ -977,7 +984,7 @@ unsigned encoder_evaluate_fixed_subframe_(const int32 signal[], int32 residual[]
 	for(i = 0; i < order; i++)
 		subframe->data.fixed.warmup[i] = signal[i];
 
-	return FLAC__SUBFRAME_TYPE_LEN + (order * bits_per_sample) + residual_bits;
+	return FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + (order * bits_per_sample) + residual_bits;
 }
 
 unsigned encoder_evaluate_lpc_subframe_(const int32 signal[], int32 residual[], uint32 abs_residual[], const real lp_coeff[], unsigned blocksize, unsigned bits_per_sample, unsigned order, unsigned qlp_coeff_precision, unsigned rice_parameter, unsigned max_partition_order, FLAC__Subframe *subframe)
@@ -1007,7 +1014,7 @@ unsigned encoder_evaluate_lpc_subframe_(const int32 signal[], int32 residual[], 
 	for(i = 0; i < order; i++)
 		subframe->data.lpc.warmup[i] = signal[i];
 
-	return FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN + FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN + (order * (qlp_coeff_precision + bits_per_sample)) + residual_bits;
+	return FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN + FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN + (order * (qlp_coeff_precision + bits_per_sample)) + residual_bits;
 }
 
 unsigned encoder_evaluate_verbatim_subframe_(const int32 signal[], unsigned blocksize, unsigned bits_per_sample, FLAC__Subframe *subframe)
@@ -1016,7 +1023,7 @@ unsigned encoder_evaluate_verbatim_subframe_(const int32 signal[], unsigned bloc
 
 	subframe->data.verbatim.data = signal;
 
-	return FLAC__SUBFRAME_TYPE_LEN + (blocksize * bits_per_sample);
+	return FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + (blocksize * bits_per_sample);
 }
 
 unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_residual[], unsigned residual_samples, unsigned predictor_order, unsigned rice_parameter, unsigned max_partition_order, unsigned *best_partition_order, unsigned best_parameters[])
