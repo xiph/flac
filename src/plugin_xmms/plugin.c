@@ -27,6 +27,11 @@
 #include "xmms/util.h"
 #include "FLAC/all.h"
 
+#ifdef min
+#undef min
+#endif
+#define min(x,y) ((x)<(y)?(x):(y))
+
 typedef struct {
 	byte raw[128];
 	char title[31];
@@ -343,7 +348,7 @@ void *play_loop_(void *arg)
 	while(file_info_.is_playing) {
 		if(!file_info_.eof) {
 			while(reservoir_samples_ < SAMPLES_PER_WRITE) {
-				if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE) {
+				if(decoder_->state == FLAC__FILE_DECODER_END_OF_FILE) {
 					file_info_.eof = true;
 					break;
 				}
@@ -360,7 +365,7 @@ void *play_loop_(void *arg)
 					output_[i] = reservoir_[i];
 				delta = i;
 				for( ; i < reservoir_samples_*bytes_per_sample*channels; i++)
-					reservoir[i-delta] = reservoir[i];
+					reservoir_[i-delta] = reservoir_[i];
 				reservoir_samples_ -= n;
 
 				flac_ip.add_vis_pcm(flac_ip.output->written_time(), file_info_.sample_format, channels, bytes, output_);
