@@ -45,4 +45,4 @@ valgrind: all
 release : all
 
 clean:
-	rm -f *.raw *.flac *.ogg *.cmp *.aiff *.wav ../../test_files/bins/*.raw ../../test_files/bins/*.flac ../../test_files/bins/*.cmp *.diff *.log *.cue core
+	rm -f *.raw *.flac *.ogg *.cmp *.aiff *.wav *.diff *.log *.cue core
