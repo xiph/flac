@@ -287,6 +287,8 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 			else {
 				unsigned wide_samples = bytes_read / bytes_per_wide_sample;
 				format_input(wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
+
+				/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
 				if(!FLAC__encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
 					fprintf(stderr, "ERROR during encoding, state = %d:%s\n", encoder_wrapper.encoder->state, FLAC__EncoderStateString[encoder_wrapper.encoder->state]);
 					goto wav_abort_;
@@ -441,6 +443,8 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 		else {
 			unsigned wide_samples = bytes_read / bytes_per_wide_sample;
 			format_input(wide_samples, is_big_endian, is_unsigned_samples, channels, bps, &encoder_wrapper);
+
+			/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
 			if(!FLAC__encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
 				fprintf(stderr, "ERROR during encoding, state = %d:%s\n", encoder_wrapper.encoder->state, FLAC__EncoderStateString[encoder_wrapper.encoder->state]);
 				goto raw_abort_;

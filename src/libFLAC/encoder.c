@@ -614,6 +614,7 @@ bool encoder_process_frame_(FLAC__Encoder *encoder, bool is_last_frame)
 	/*
 	 * Accumulate raw signal to the MD5 signature
 	 */
+	/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
 	if(!FLAC__MD5Accumulate(&encoder->guts->md5context, encoder->guts->integer_signal, encoder->channels, encoder->blocksize, (encoder->bits_per_sample+7) / 8)) {
 		encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
 		return false;

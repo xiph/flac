@@ -782,6 +782,7 @@ bool stream_decoder_read_frame_(FLAC__StreamDecoder *decoder, bool *got_a_frame)
 	decoder->guts->samples_decoded += decoder->guts->frame.header.blocksize;
 
 	/* write it */
+	/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 3 here: */
 	if(decoder->guts->write_callback(decoder, &decoder->guts->frame, decoder->guts->output, decoder->guts->client_data) != FLAC__STREAM_DECODER_WRITE_CONTINUE)
 		return false;
 
