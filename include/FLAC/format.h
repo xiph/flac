@@ -53,65 +53,12 @@ extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */;
  *
  *****************************************************************************/
 
-typedef enum {
-	FLAC__METADATA_TYPE_ENCODING = 0
-} FLAC__MetaDataType;
 
 /*****************************************************************************
  *
- * 16: minimum blocksize (in samples) of all blocks in the stream
- * 16: maximum blocksize (in samples) of all blocks in the stream
- * 24: minimum framesize (in bytes) of all frames in the stream; 0 => unknown
- * 24: maximum framesize (in bytes) of all frames in the stream; 0 => unknown
- * 20: sample rate in Hz, 0 is invalid
- *  3: (number of channels)-1
- *  5: (bits per sample)-1
- * 36: total samples, 0 => unknown
- *128: MD5 digest of the original unencoded audio data
- *---- -----------------
- * 34  bytes total
- */
-typedef struct {
-	unsigned min_blocksize, max_blocksize;
-	unsigned min_framesize, max_framesize;
-	unsigned sample_rate;
-	unsigned channels;
-	unsigned bits_per_sample;
-	uint64 total_samples;
-	byte md5sum[16];
-} FLAC__StreamMetaData_Encoding;
-
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN; /* = 16 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN; /* = 16 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN; /* = 24 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN; /* = 24 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN; /* = 20 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN; /* = 3 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN; /* = 5 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN; /* = 36 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MD5SUM_LEN; /* = 128 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_LENGTH; /* = 34 bytes */
-
-/*****************************************************************************
+ * Subframe structures
  *
- *  1: =1 if this is the last meta-data block, else =0
- *  7: meta-data type (c.f. FLAC__MetaDataType)
- * 24: length (in bytes) of the block-specific data to follow
- *---- -----------------
- *  4  bytes total
- */
-typedef struct {
-	FLAC__MetaDataType type;
-	bool is_last;
-	unsigned length; /* in bytes */
-	union {
-		FLAC__StreamMetaData_Encoding encoding;
-	} data;
-} FLAC__StreamMetaData;
-
-extern const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN; /* = 1 bits */
-extern const unsigned FLAC__STREAM_METADATA_TYPE_LEN; /* = 7 bits */
-extern const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /* = 24 bits */
+ *****************************************************************************/
 
 /*****************************************************************************/
 
@@ -146,86 +93,6 @@ typedef struct {
 } FLAC__EntropyCodingMethod;
 
 extern const unsigned FLAC__ENTROPY_CODING_METHOD_TYPE_LEN; /* = 2 bits */
-
-/*****************************************************************************/
-
-typedef enum {
-	FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT = 0,
-	FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE = 1,
-	FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE = 2,
-	FLAC__CHANNEL_ASSIGNMENT_MID_SIDE = 3
-} FLAC__ChannelAssignment;
-
-/*****************************************************************************
- *
- *  9: sync code '111111110'
- *  3: blocksize in samples
- *        000: get from stream header => implies constant blocksize throughout stream
- *        001: 192 samples (AES/EBU) => implies constant blocksize throughout stream
- *        010-101: 576 * (2^(2-n)) samples, i.e. 576/1152/2304/4608 => implies constant blocksize throughout stream
- *        110: get 8 bit (blocksize-1) from end of header => variable blocksize throughout stream unless it's the last frame
- *        111: get 16 bit (blocksize-1) from end of header => variable blocksize throughout stream unless it's the last frame
- *  4: sample rate:
- *        0000: get from stream header
- *        0001-0011: reserved
- *        0100: 8kHz
- *        0101: 16kHz
- *        0110: 22.05kHz
- *        0111: 24kHz
- *        1000: 32kHz
- *        1001: 44.1kHz
- *        1010: 48kHz
- *        1011: 96kHz
- *        1100: get 8 bit sample rate (in kHz) from end of header
- *        1101: get 16 bit sample rate (in Hz) from end of header
- *        1110: get 16 bit sample rate (in tens of Hz) from end of header
- *        1111: invalid, to prevent sync-fooling string of 1s (use to check for erroneous sync)
- *  4: channel assignment
- *     0000-0111: (number of independent channels)-1.  when == 0001, channel 0 is the left channel and channel 1 is the right
- *     1000: left/side stereo : channel 0 is the left             channel, channel 1 is the side(difference) channel
- *     1001: right/side stereo: channel 0 is the side(difference) channel, channel 1 is the right            channel
- *     1010: mid/side stereo  : channel 0 is the mid(average)     channel, channel 1 is the side(difference) channel
- *     1011-1111: reserved
- *  3: sample size in bits
- *        000: get from stream header
- *        001: 8 bits per sample
- *        010: 12 bits per sample
- *        011: reserved
- *        100: 16 bits per sample
- *        101: 20 bits per sample
- *        110: 24 bits per sample
- *        111: reserved
- *  1: zero pad, to prevent sync-fooling string of 1s (use to check for erroneous sync)
- *  ?: if(variable blocksize)
- *        8-56: 'UTF-8' coded sample number (decoded number is 0-36 bits) (use to check for erroneous sync)
- *     else
- *        8-48: 'UTF-8' coded frame number (decoded number is 0-31 bits) (use to check for erroneous sync)
- *  ?: if(blocksize bits == 11x)
- *        8/16 bit (blocksize-1)
- *  ?: if(sample rate bits == 11xx)
- *        8/16 bit sample rate
- *  8: CRC-8 (polynomial = x^8 + x^2 + x + 1) of everything before the crc, including the sync code
- */
-typedef struct {
-	unsigned blocksize; /* in samples */
-	unsigned sample_rate; /* in Hz */
-	unsigned channels;
-	FLAC__ChannelAssignment channel_assignment;
-	unsigned bits_per_sample;
-	union {
-		uint32 frame_number;
-		uint64 sample_number;
-	} number;
-} FLAC__FrameHeader;
-
-extern const unsigned FLAC__FRAME_HEADER_SYNC; /* = 0x1fe */
-extern const unsigned FLAC__FRAME_HEADER_SYNC_LEN; /* = 9 bits */
-extern const unsigned FLAC__FRAME_HEADER_BLOCK_SIZE_LEN; /* = 3 bits */
-extern const unsigned FLAC__FRAME_HEADER_SAMPLE_RATE_LEN; /* = 4 bits */
-extern const unsigned FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN; /* = 4 bits */
-extern const unsigned FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN; /* = 3 bits */
-extern const unsigned FLAC__FRAME_HEADER_ZERO_PAD_LEN; /* = 1 bit */
-extern const unsigned FLAC__FRAME_HEADER_CRC8_LEN; /* = 8 bits */
 
 /*****************************************************************************/
 
@@ -313,6 +180,186 @@ extern const unsigned FLAC__SUBFRAME_HEADER_TYPE_VERBATIM; /* = 0x02 */
 extern const unsigned FLAC__SUBFRAME_HEADER_TYPE_FIXED; /* = 0x10 */
 extern const unsigned FLAC__SUBFRAME_HEADER_TYPE_LPC; /* = 0x40 */
 extern const unsigned FLAC__SUBFRAME_HEADER_TYPE_LEN; /* = 8 bits */
+
+typedef struct {
+	FLAC__SubframeHeader header;
+	const int32 *data;
+} FLAC__Subframe;
+
+/*****************************************************************************/
+
+
+/*****************************************************************************
+ *
+ * Frame structures
+ *
+ *****************************************************************************/
+
+typedef enum {
+	FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT = 0,
+	FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE = 1,
+	FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE = 2,
+	FLAC__CHANNEL_ASSIGNMENT_MID_SIDE = 3
+} FLAC__ChannelAssignment;
+
+/*****************************************************************************
+ *
+ *  9: sync code '111111110'
+ *  3: blocksize in samples
+ *        000: get from stream header => implies constant blocksize throughout stream
+ *        001: 192 samples (AES/EBU) => implies constant blocksize throughout stream
+ *        010-101: 576 * (2^(2-n)) samples, i.e. 576/1152/2304/4608 => implies constant blocksize throughout stream
+ *        110: get 8 bit (blocksize-1) from end of header => variable blocksize throughout stream unless it's the last frame
+ *        111: get 16 bit (blocksize-1) from end of header => variable blocksize throughout stream unless it's the last frame
+ *  4: sample rate:
+ *        0000: get from stream header
+ *        0001-0011: reserved
+ *        0100: 8kHz
+ *        0101: 16kHz
+ *        0110: 22.05kHz
+ *        0111: 24kHz
+ *        1000: 32kHz
+ *        1001: 44.1kHz
+ *        1010: 48kHz
+ *        1011: 96kHz
+ *        1100: get 8 bit sample rate (in kHz) from end of header
+ *        1101: get 16 bit sample rate (in Hz) from end of header
+ *        1110: get 16 bit sample rate (in tens of Hz) from end of header
+ *        1111: invalid, to prevent sync-fooling string of 1s (use to check for erroneous sync)
+ *  4: channel assignment
+ *     0000-0111: (number of independent channels)-1.  when == 0001, channel 0 is the left channel and channel 1 is the right
+ *     1000: left/side stereo : channel 0 is the left             channel, channel 1 is the side(difference) channel
+ *     1001: right/side stereo: channel 0 is the side(difference) channel, channel 1 is the right            channel
+ *     1010: mid/side stereo  : channel 0 is the mid(average)     channel, channel 1 is the side(difference) channel
+ *     1011-1111: reserved
+ *  3: sample size in bits
+ *        000: get from stream header
+ *        001: 8 bits per sample
+ *        010: 12 bits per sample
+ *        011: reserved
+ *        100: 16 bits per sample
+ *        101: 20 bits per sample
+ *        110: 24 bits per sample
+ *        111: reserved
+ *  1: zero pad, to prevent sync-fooling string of 1s (use to check for erroneous sync)
+ *  ?: if(variable blocksize)
+ *        8-56: 'UTF-8' coded sample number (decoded number is 0-36 bits) (use to check for erroneous sync)
+ *     else
+ *        8-48: 'UTF-8' coded frame number (decoded number is 0-31 bits) (use to check for erroneous sync)
+ *  ?: if(blocksize bits == 11x)
+ *        8/16 bit (blocksize-1)
+ *  ?: if(sample rate bits == 11xx)
+ *        8/16 bit sample rate
+ *  8: CRC-8 (polynomial = x^8 + x^2 + x + 1) of everything before the crc, including the sync code
+ */
+typedef struct {
+	unsigned blocksize; /* in samples */
+	unsigned sample_rate; /* in Hz */
+	unsigned channels;
+	FLAC__ChannelAssignment channel_assignment;
+	unsigned bits_per_sample;
+	union {
+		uint32 frame_number;
+		uint64 sample_number;
+	} number;
+} FLAC__FrameHeader;
+
+extern const unsigned FLAC__FRAME_HEADER_SYNC; /* = 0x1fe */
+extern const unsigned FLAC__FRAME_HEADER_SYNC_LEN; /* = 9 bits */
+extern const unsigned FLAC__FRAME_HEADER_BLOCK_SIZE_LEN; /* = 3 bits */
+extern const unsigned FLAC__FRAME_HEADER_SAMPLE_RATE_LEN; /* = 4 bits */
+extern const unsigned FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN; /* = 4 bits */
+extern const unsigned FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN; /* = 3 bits */
+extern const unsigned FLAC__FRAME_HEADER_ZERO_PAD_LEN; /* = 1 bit */
+extern const unsigned FLAC__FRAME_HEADER_CRC8_LEN; /* = 8 bits */
+
+typedef struct {
+	FLAC__FrameHeader header;
+	FLAC__Subframe subframes[FLAC__MAX_CHANNELS];
+} FLAC__Frame;
+
+/*****************************************************************************/
+
+
+/*****************************************************************************
+ *
+ * Meta-data structures
+ *
+ *****************************************************************************/
+
+typedef enum {
+	FLAC__METADATA_TYPE_ENCODING = 0
+} FLAC__MetaDataType;
+
+/*****************************************************************************
+ *
+ * 16: minimum blocksize (in samples) of all blocks in the stream
+ * 16: maximum blocksize (in samples) of all blocks in the stream
+ * 24: minimum framesize (in bytes) of all frames in the stream; 0 => unknown
+ * 24: maximum framesize (in bytes) of all frames in the stream; 0 => unknown
+ * 20: sample rate in Hz, 0 is invalid
+ *  3: (number of channels)-1
+ *  5: (bits per sample)-1
+ * 36: total samples, 0 => unknown
+ *128: MD5 digest of the original unencoded audio data
+ *---- -----------------
+ * 34  bytes total
+ */
+typedef struct {
+	unsigned min_blocksize, max_blocksize;
+	unsigned min_framesize, max_framesize;
+	unsigned sample_rate;
+	unsigned channels;
+	unsigned bits_per_sample;
+	uint64 total_samples;
+	byte md5sum[16];
+} FLAC__StreamMetaData_Encoding;
+
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN; /* = 16 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN; /* = 16 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN; /* = 24 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN; /* = 24 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN; /* = 20 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN; /* = 3 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN; /* = 5 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN; /* = 36 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_MD5SUM_LEN; /* = 128 bits */
+extern const unsigned FLAC__STREAM_METADATA_ENCODING_LENGTH; /* = 34 bytes */
+
+/*****************************************************************************
+ *
+ *  1: =1 if this is the last meta-data block, else =0
+ *  7: meta-data type (c.f. FLAC__MetaDataType)
+ * 24: length (in bytes) of the block-specific data to follow
+ *---- -----------------
+ *  4  bytes total
+ */
+typedef struct {
+	FLAC__MetaDataType type;
+	bool is_last;
+	unsigned length; /* in bytes */
+	union {
+		FLAC__StreamMetaData_Encoding encoding;
+	} data;
+} FLAC__StreamMetaData;
+
+extern const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN; /* = 1 bits */
+extern const unsigned FLAC__STREAM_METADATA_TYPE_LEN; /* = 7 bits */
+extern const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /* = 24 bits */
+
+/*****************************************************************************/
+
+
+/*****************************************************************************
+ *
+ * Stream structures
+ *
+ *****************************************************************************/
+
+typedef struct {
+	FLAC__StreamMetaData_Encoding metadata;
+	FLAC__Frame *frames;
+} FLAC__Stream;
 
 /*****************************************************************************/
 
