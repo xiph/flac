@@ -314,7 +314,8 @@
 		<LI>1 : <TT>PADDING</TT></LI>
 		<LI>2 : <TT>APPLICATION</TT></LI>
 		<LI>3 : <TT>SEEKTABLE</TT></LI>
-		<LI>4-127 : зарезервированы</LI>
+		<LI>4 : <TT>VORBIS_COMMENT</TT></LI>
+		<LI>5-127 : зарезервированы</LI>
 	</UL>
 	</TD>
 </TR>
@@ -334,12 +335,11 @@
 </TR>
 
 <TR>
-	<TD VALIGN="TOP"><A HREF="format.html#metadata_block_streaminfo"><TT>БЛОК_МЕТАДАННЫХ_STREAMINFO</TT></A> || <A HREF="format.html#metadata_block_padding"><TT>БЛОК_МЕТАДАННЫХ_PADDING</TT></A> || <A HREF="format.html#metadata_block_application"><TT>БЛОК_МЕТАДАННЫХ_APPLICATION</TT></A> || <A HREF="format.html#metadata_block_seektable"><TT>БЛОК_МЕТАДАННЫХ_SEEKTABLE</TT></A></TD>
+	<TD VALIGN="TOP"><A HREF="format.html#metadata_block_streaminfo"><TT>БЛОК_МЕТАДАННЫХ_STREAMINFO</TT></A> || <A HREF="format.html#metadata_block_padding"><TT>БЛОК_МЕТАДАННЫХ_PADDING</TT></A> || <A HREF="format.html#metadata_block_application"><TT>БЛОК_МЕТАДАННЫХ_APPLICATION</TT></A> || <A HREF="format.html#metadata_block_seektable"><TT>БЛОК_МЕТАДАННЫХ_SEEKTABLE</TT></A> || <A HREF="#metadata_block_vorbis_comment"><TT>БЛОК_МЕТАДАННЫХ_VORBIS_COMMENT</TT></A></TD>
 	<TD>Содержимое блока должно соответствовать типу блока, указанному в заголовке</TD>
 </TR>
 
 </TABLE></P>
-
 
 <P><TABLE WIDTH="100%" BORDER="1">
 
@@ -493,7 +493,24 @@
 	</TD>
 </TR>
 
+
 </TABLE></P>
+
+
+<P><TABLE WIDTH="100%" BORDER="1">
+
+<TR>
+	<TD COLSPAN="2" BGCOLOR="#E0E0E0"><A NAME="metadata_block_vorbis_comment"><FONT SIZE="+2"><B><TT>БЛОК_МЕТАДАННЫХ_VORBIS_COMMENT</TT></B></FONT></A></TD>
+</TR>
+
+<TR>
+	<TD VALIGN="TOP">&lt;n&gt;</TD>
+	<TD>Содержимое комметария в формате Vorbis, как оно описано <A HREF="http://www.xiph.org/ogg/vorbis/doc/v-comment.html">здесь</A>. Обратите внимание на то, что спецификация Vorbis ограничивает размер этого блока 2 ^ 64 байтами, в то время как блок метаданных FLAC может иметь размер не больше 2 ^ 24 байтов. В соответствии со спецификацией Vorbis 32-битные данные little-endian coded, в отличие от big-endian coding целых, используемых в остальных местах FLAC.</TD>
+</TR>
+
+
+</TABLE></P>
+
 
 
 <P><TABLE WIDTH="100%" BORDER="1">
