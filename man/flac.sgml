@@ -240,11 +240,13 @@
 		<term><option>--serial-number</option>=<replaceable>#</replaceable></term>
 
 		<listitem>
-		  <para>When used with --ogg, specifies the serial
-		    number to use for the FLAC stream.  When encoding and
-		    no serial number is given, flac uses '0'.  When
-		    decoding and no number is given, flac uses the serial
-		    number of the first page.</para>
+		  <para>When used with --ogg, specifies the serial number to
+		    use for the first Ogg FLAC stream, which is then
+		    incremented for each additional stream.  When encoding and
+		    no serial number is given, flac uses a random number for
+		    the first stream, then increments it for each additional
+		    stream.  When decoding and no number is given, flac uses
+		    the serial number of the first page.</para>
 		</listitem>
 	      </varlistentry>
 

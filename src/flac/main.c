@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1510,8 +1511,13 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.verify = option_values.verify;
 #ifdef FLAC__HAS_OGG
 	common_options.use_ogg = option_values.use_ogg;
-	common_options.has_serial_number = option_values.has_serial_number;
-	common_options.serial_number = option_values.serial_number;
+	/* set a random serial number if one has not yet been specified */
+	if(!option_values.has_serial_number) {
+		srand(time(0));
+		option_values.serial_number = rand();
+		option_values.has_serial_number = true;
+	}
+	common_options.serial_number = option_values.serial_number++;
 #endif
 	common_options.lax = option_values.lax;
 	common_options.do_mid_side = option_values.do_mid_side;
