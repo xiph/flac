@@ -37,6 +37,7 @@ SRCS_C = \
 	decoders.c \
 	encoders.c \
 	file_utils.c \
+	format.c \
 	main.c \
 	metadata.c \
 	metadata_manip.c \

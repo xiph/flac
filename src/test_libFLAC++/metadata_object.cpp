@@ -1018,14 +1018,15 @@ bool test_metadata_object_vorbiscomment()
 	printf("OK\n");
 
 	printf("testing VorbisComment::set_vendor_string()... ");
-	if(!block.set_vendor_string(entry1))
+	if(!block.set_vendor_string((const FLAC__byte *)"mame0"))
 		return die_("returned false");
 	printf("OK\n");
+	vorbiscomment_.data.vorbis_comment.vendor_string.entry[0] = 'm';
 
 	printf("testing VorbisComment::get_vendor_string()... ");
-	if(block.get_vendor_string().get_field_name_length() != vorbiscomment_.data.vorbis_comment.vendor_string.length)
+	if(strlen((const char *)block.get_vendor_string()) != vorbiscomment_.data.vorbis_comment.vendor_string.length)
 		return die_("length mismatch");
-	if(0 != memcmp(block.get_vendor_string().get_field_name(), vorbiscomment_.data.vorbis_comment.vendor_string.entry, vorbiscomment_.data.vorbis_comment.vendor_string.length))
+	if(0 != memcmp(block.get_vendor_string(), vorbiscomment_.data.vorbis_comment.vendor_string.entry, vorbiscomment_.data.vorbis_comment.vendor_string.length))
 		return die_("value mismatch");
 	printf("OK\n");
 

@@ -33,6 +33,7 @@ test_libFLAC_SOURCES = \
 	decoders.c \
 	encoders.c \
 	file_utils.c \
+	format.c \
 	main.c \
 	metadata.c \
 	metadata_manip.c \
@@ -42,5 +43,6 @@ test_libFLAC_SOURCES = \
 	decoders.h \
 	encoders.h \
 	file_utils.h \
+	format.h \
 	metadata.h \
 	metadata_utils.h

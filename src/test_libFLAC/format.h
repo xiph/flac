@@ -1,5 +1,5 @@
 /* test_libFLAC - Unit tester for libFLAC
- * Copyright (C) 2000,2001,2002,2003,2004  Josh Coalson
+ * Copyright (C) 2004  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,30 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "bitbuffer.h"
-#include "decoders.h"
-#include "encoders.h"
-#include "format.h"
-#include "metadata.h"
+#ifndef FLAC__TEST_LIBFLAC_FORMAT_H
+#define FLAC__TEST_LIBFLAC_FORMAT_H
 
-int main(int argc, char *argv[])
-{
-	(void)argc, (void)argv;
+#include "FLAC/ordinals.h"
 
-	if(!test_bitbuffer())
-		return 1;
+FLAC__bool test_format();
 
-	if(!test_format())
-		return 1;
-
-	if(!test_encoders())
-		return 1;
-
-	if(!test_decoders())
-		return 1;
-
-	if(!test_metadata())
-		return 1;
-
-	return 0;
-}
+#endif

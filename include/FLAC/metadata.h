@@ -1087,12 +1087,16 @@ FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_It
  * FLAC__metadata_object_application_set_data(), you will get an assertion
  * failure.
  *
- * The FLAC__metadata_object_vorbiscomment_*() functions for convenience
+ * For convenience the FLAC__metadata_object_vorbiscomment_*() functions
  * maintain a trailing NUL on each Vorbis comment entry.  This is not counted
  * toward the length or stored in the stream, but it can make working with plain
  * comments (those that don't contain embedded-NULs in the value) easier.
  * Entries passed into these functions have trailing NULs added if missing, and
  * returned entries are guaranteed to have a trailing NUL.
+ *
+ * The FLAC__metadata_object_vorbiscomment_*() functions that take a Vorbis
+ * comment entry/name/value will first validate that it complies with the Vorbis
+ * comment specification and return false if it does not.
  *
  * There is no need to recalculate the length field on metadata blocks you
  * have modified.  They will be calculated automatically before they  are
@@ -1357,7 +1361,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMe
  *    \code (entry.entry != NULL && entry.length > 0) ||
  * (entry.entry == NULL && entry.length == 0) \endcode
  * \retval FLAC__bool
- *    \c false if memory allocation fails, else \c true.
+ *    \c false if memory allocation fails or \a entry does not comply with the
+ *    Vorbis comment specification, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
@@ -1374,7 +1379,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__
  *    \code (object->data.vorbis_comment.comments == NULL && object->data.vorbis_comment.num_comments == 0) ||
  * (object->data.vorbis_comment.comments != NULL && object->data.vorbis_comment.num_comments > 0) \endcode
  * \retval FLAC__bool
- *    \c false if memory allocation error, else \c true.
+ *    \c false if memory allocation fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetadata *object, unsigned new_num_comments);
 
@@ -1400,7 +1405,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
  *    \code (entry.entry != NULL && entry.length > 0) ||
  * (entry.entry == NULL && entry.length == 0) \endcode
  * \retval FLAC__bool
- *    \c false if memory allocation fails, else \c true.
+ *    \c false if memory allocation fails or \a entry does not comply with the
+ *    Vorbis comment specification, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
@@ -1429,7 +1435,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__Stream
  *    \code (entry.entry != NULL && entry.length > 0) ||
  * (entry.entry == NULL && entry.length == 0 && copy == false) \endcode
  * \retval FLAC__bool
- *    \c false if memory allocation fails, else \c true.
+ *    \c false if memory allocation fails or \a entry does not comply with the
+ *    Vorbis comment specification, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
@@ -1453,7 +1460,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__Str
  *    \code (entry.entry != NULL && entry.length > 0) ||
  * (entry.entry == NULL && entry.length == 0 && copy == false) \endcode
  * \retval FLAC__bool
- *    \c false if memory allocation fails, else \c true.
+ *    \c false if memory allocation fails or \a entry does not comply with the
+ *    Vorbis comment specification, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
@@ -1487,7 +1495,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__Str
  *    \code (entry.entry != NULL && entry.length > 0) ||
  * (entry.entry == NULL && entry.length == 0 && copy == false) \endcode
  * \retval FLAC__bool
- *    \c false if memory allocation fails, else \c true.
+ *    \c false if memory allocation fails or \a entry does not comply with the
+ *    Vorbis comment specification, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool all, FLAC__bool copy);
 
@@ -1513,14 +1522,15 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__Str
  * \param entry              A pointer to a Vorbis comment entry.  The entry's
  *                           \c entry pointer should not point to allocated
  *                           memory as it will be overwritten.
- * \param field_name         The field name in ASCII, \c NULL terminated.
- * \param field_value        The field value in UTF-8, \c NULL terminated.
+ * \param field_name         The field name in ASCII, \c NUL terminated.
+ * \param field_value        The field value in UTF-8, \c NUL terminated.
  * \assert
  *    \code entry != NULL \endcode
  *    \code field_name != NULL \endcode
  *    \code field_value != NULL \endcode
  * \retval FLAC__bool
- *    \c false if malloc() fails, else \c true.
+ *    \c false if malloc() fails, or if \a field_name or \a field_value does
+ *    not comply with the Vorbis comment specification, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, const char *field_value);
 
@@ -1529,7 +1539,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
  *  The returned pointers to name and value will be allocated by malloc()
  *  and shall be owned by the caller.
  *
- * \param entry              A pointer to an existing Vorbis comment entry.
+ * \param entry              An existing Vorbis comment entry.
  * \param field_name         The address of where the returned pointer to the
  *                           field name will be stored.
  * \param field_value        The address of where the returned pointer to the
@@ -1540,17 +1550,18 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
  *    \code field_name != NULL \endcode
  *    \code field_value != NULL \endcode
  * \retval FLAC__bool
- *    \c false if malloc() fails, else \c true.
+ *    \c false if memory allocation fails or \a entry does not comply with the
+ *    Vorbis comment specification, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry entry, char **field_name, char **field_value);
 
 /** Check if the given Vorbis comment entry's field name matches the given
  *  field name.
  *
- * \param entry              A pointer to an existing Vorbis comment entry.
+ * \param entry              An existing Vorbis comment entry.
  * \param field_name         The field name to check.
  * \param field_name_length  The length of \a field_name, not including the
- *                           terminating \c NULL.
+ *                           terminating \c NUL.
  * \assert
  *    \code (entry.entry != NULL && entry.length > 0) \endcode
  * \retval FLAC__bool

@@ -138,7 +138,11 @@
 				<LI>
 					libFLAC:
 					<UL>
-						<LI>Metadata interface now maintains a trailing NULL on Vorbis comment entries for convenience.</LI>
+						<LI><B>Changed:</B> Metadata object interface now maintains a trailing NULL on Vorbis comment entries for convenience.</LI>
+						<LI><B>Changed:</B> Metadata object interface now validates all Vorbis comment entries on input and returns false if an entry does not conform to the Vorbis comment spec.</LI>
+						<LI><B>Added</B> FLAC__format_vorbiscomment_entry_name_is_legal()</LI>
+						<LI><B>Added</B> FLAC__format_vorbiscomment_entry_value_is_legal()</LI>
+						<LI><B>Added</B> FLAC__format_vorbiscomment_entry_is_legal()</LI>
 						<LI><B>Added</B> FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair()</LI>
 						<LI><B>Added</B> FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair()</LI>
 						<LI><B>Changed</B> the signature of FLAC__metadata_object_vorbiscomment_entry_matches(): the first argument is now <TT>FLAC__StreamMetadata_VorbisComment_Entry entry</TT> (was <TT>const FLAC__StreamMetadata_VorbisComment_Entry *entry</TT>), i.e. <TT>entry</TT> is now pass-by-value.</LI>
@@ -147,7 +151,8 @@
 				<LI>
 					libFLAC++:
 					<UL>
-						<LI>Metadata interface now maintains a trailing NULL on Vorbis comment values for convenience.</LI>
+						<LI><B>Changed:</B> Metadata object interface now maintains a trailing NULL on Vorbis comment values for convenience.</LI>
+						<LI><B>Changed:</B> Metadata object interface now validates all Vorbis comment entries on input and returns false if an entry does not conform to the Vorbis comment spec.</LI>
 						<LI><B>Added</B> methods to FLAC::Metadata::VorbisComment::Entry for setting comment values from null-terminated strings:
 							<UL>
 								<LI>Entry(const char *field)</LI>
@@ -156,6 +161,7 @@
 								<LI>bool set_field_value(const char *field_value)</LI>
 							</UL>
 						</LI>
+						<LI><B>Changed</B> the signature of FLAC::Metadata::VorbisComment::get_vendor_string() and FLAC::Metadata::VorbisComment::set_vendor_string() to use a UTF-8, NUL-terminated string <TT>const FLAC__byte *</TT> for the vendor string instead of <TT>FLAC::Metadata::VorbisComment::Entry</TT>.</LI>
 					</UL>
 				</LI>
 				<LI>

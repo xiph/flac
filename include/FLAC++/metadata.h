@@ -493,36 +493,37 @@ namespace FLAC {
 			 *
 			 *  A \a field as used in the methods refers to an
 			 *  entire 'NAME=VALUE' string; for convenience the
-			 *  string is null-terminated.  A length field is
+			 *  string is NUL-terminated.  A length field is
 			 *  required in the unlikely event that the value
-			 *  contains contain embedded nulls.
+			 *  contains contain embedded NULs.
 			 *
 			 *  A \a field_name is what is on the left side of the
 			 *  first '=' in the \a field.  By definition it is ASCII
-			 *  and so is null-terminated and does not require a
+			 *  and so is NUL-terminated and does not require a
 			 *  length to describe it.  \a field_name is undefined
 			 *  for a vendor string entry.
 			 *
 			 *  A \a field_value is what is on the right side of the
 			 *  first '=' in the \a field.  By definition, this may
-			 *  contain embedded nulls and so a \a field_value_length
+			 *  contain embedded NULs and so a \a field_value_length
 			 *  is required to describe it.  However in practice,
-			 *  embedded nulls are not known to be used, so it is
-			 *  generally safe to treat field values as null-
+			 *  embedded NULs are not known to be used, so it is
+			 *  generally safe to treat field values as NUL-
 			 *  terminated UTF-8 strings.
 			 *
 			 *  Always check is_valid() after the constructor or operator=
-			 *  to make sure memory was properly allocated.
+			 *  to make sure memory was properly allocated and that the
+			 *  Entry conforms to the Vorbis comment specification.
 			 */
 			class FLACPP_API Entry {
 			public:
 				Entry();
 
 				Entry(const char *field, unsigned field_length);
-				Entry(const char *field); // assumes \a field is null-terminated
+				Entry(const char *field); // assumes \a field is NUL-terminated
 
 				Entry(const char *field_name, const char *field_value, unsigned field_value_length);
-				Entry(const char *field_name, const char *field_value); // assumes \a field_value is null-terminated
+				Entry(const char *field_name, const char *field_value); // assumes \a field_value is NUL-terminated
 
 				Entry(const Entry &entry);
 
@@ -542,10 +543,10 @@ namespace FLAC {
 				const char *get_field_value() const;
 
 				bool set_field(const char *field, unsigned field_length);
-				bool set_field(const char *field); // assumes \a field is null-terminated
+				bool set_field(const char *field); // assumes \a field is NUL-terminated
 				bool set_field_name(const char *field_name);
 				bool set_field_value(const char *field_value, unsigned field_value_length);
-				bool set_field_value(const char *field_value); // assumes \a field_value is null-terminated
+				bool set_field_value(const char *field_value); // assumes \a field_value is NUL-terminated
 			protected:
 				bool is_valid_;
 				::FLAC__StreamMetadata_VorbisComment_Entry entry_;
@@ -560,9 +561,9 @@ namespace FLAC {
 				void clear_field_name();
 				void clear_field_value();
 				void construct(const char *field, unsigned field_length);
-				void construct(const char *field); // assumes \a field is null-terminated
+				void construct(const char *field); // assumes \a field is NUL-terminated
 				void construct(const char *field_name, const char *field_value, unsigned field_value_length);
-				void construct(const char *field_name, const char *field_value); // assumes \a field_value is null-terminated
+				void construct(const char *field_name, const char *field_value); // assumes \a field_value is NUL-terminated
 				void compose_field();
 				void parse_field();
 			};
@@ -607,12 +608,11 @@ namespace FLAC {
 			//@}
 
 			unsigned get_num_comments() const;
-			Entry get_vendor_string() const; // only the Entry's field name should be used
+			const FLAC__byte *get_vendor_string() const; // NUL-terminated UTF-8 string
 			Entry get_comment(unsigned index) const;
 
 			//! See FLAC__metadata_object_vorbiscomment_set_vendor_string()
-			//! \note Only the Entry's field name will be used.
-			bool set_vendor_string(const Entry &entry);
+			bool set_vendor_string(const FLAC__byte *string); // NUL-terminated UTF-8 string
 
 			//! See FLAC__metadata_object_vorbiscomment_set_comment()
 			bool set_comment(unsigned index, const Entry &entry);

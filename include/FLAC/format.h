@@ -747,7 +747,6 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bit
  *
  *****************************************************************************/
 
-/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Tests that a sample rate is valid for FLAC.  Since the rules for valid
  *  sample rates are slightly complex, they are encapsulated in this function.
  *
@@ -757,6 +756,52 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bit
  *    \c false.
  */
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate);
+
+/** Check a Vorbis comment entry name to see if it conforms to the Vorbis
+ *  comment specification.
+ *
+ *  Vorbis comment names must be composed only of characters from
+ *  [0x20-0x3C,0x3E-0x7D].
+ *
+ * \param name       A NUL-terminated string to be checked.
+ * \assert
+ *    \code name != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if entry name is illegal, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_name_is_legal(const char *name);
+
+/** Check a Vorbis comment entry value to see if it conforms to the Vorbis
+ *  comment specification.
+ *
+ *  Vorbis comment values must be valid UTF-8 sequences.
+ *
+ * \param value      A string to be checked.
+ * \param length     A the length of \a value in bytes.  May be
+ *                   \c (unsigned)(-1) to indicate that \a value is a plain
+ *                   UTF-8 NUL-terminated string.
+ * \assert
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if entry name is illegal, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_value_is_legal(const FLAC__byte *value, unsigned length);
+
+/** Check a Vorbis comment entry to see if it conforms to the Vorbis
+ *  comment specification.
+ *
+ *  Vorbis comment entries must be of the form 'name=value', and 'name' and
+ *  'value' must be legal according to
+ *  FLAC__format_vorbiscomment_entry_name_is_legal() and
+ *  FLAC__format_vorbiscomment_entry_value_is_legal() respectively.
+ *
+ * \param value      A string to be checked.
+ * \assert
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if entry name is illegal, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_is_legal(const FLAC__byte *entry, unsigned length);
 
 /* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Check a seek table to see if it conforms to the FLAC specification.

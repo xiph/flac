@@ -105,6 +105,10 @@ SOURCE=.\file_utils.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\format.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\main.c
 # End Source File
 # Begin Source File
@@ -142,6 +146,10 @@ SOURCE=.\encoders.h
 # Begin Source File
 
 SOURCE=.\file_utils.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\format.h
 # End Source File
 # Begin Source File
 

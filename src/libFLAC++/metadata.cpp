@@ -550,6 +550,9 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(0 != field);
 
+			if(!::FLAC__format_vorbiscomment_entry_is_legal((const ::FLAC__byte*)field, field_length))
+				return is_valid_ = false;
+
 			clear_entry();
 
 			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_length+1))) {
@@ -575,6 +578,9 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(0 != field_name);
 
+			if(!::FLAC__format_vorbiscomment_entry_name_is_legal(field_name))
+				return is_valid_ = false;
+
 			clear_field_name();
 
 			if(0 == (field_name_ = strdup(field_name))) {
@@ -592,6 +598,9 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(0 != field_value);
+
+			if(!::FLAC__format_vorbiscomment_entry_value_is_legal((const FLAC__byte*)field_value, field_value_length))
+				return is_valid_ = false;
 
 			clear_field_value();
 
@@ -756,10 +765,10 @@ namespace FLAC {
 			return object_->data.vorbis_comment.num_comments;
 		}
 
-		VorbisComment::Entry VorbisComment::get_vendor_string() const
+		const FLAC__byte *VorbisComment::get_vendor_string() const
 		{
 			FLAC__ASSERT(is_valid());
-			return Entry((const char *)object_->data.vorbis_comment.vendor_string.entry, object_->data.vorbis_comment.vendor_string.length);
+			return object_->data.vorbis_comment.vendor_string.entry;
 		}
 
 		VorbisComment::Entry VorbisComment::get_comment(unsigned index) const
@@ -769,13 +778,11 @@ namespace FLAC {
 			return Entry((const char *)object_->data.vorbis_comment.comments[index].entry, object_->data.vorbis_comment.comments[index].length);
 		}
 
-		bool VorbisComment::set_vendor_string(const VorbisComment::Entry &entry)
+		bool VorbisComment::set_vendor_string(const FLAC__byte *string)
 		{
 			FLAC__ASSERT(is_valid());
 			// vendor_string is a special kind of entry
-			::FLAC__StreamMetadata_VorbisComment_Entry vendor_string;
-			vendor_string.length = entry.get_field_name_length();
-			vendor_string.entry = (FLAC__byte*)entry.get_field_name(); // we can cheat on const-ness because we make a copy below:
+			const ::FLAC__StreamMetadata_VorbisComment_Entry vendor_string = { strlen((const char *)string), (FLAC__byte*)string }; // we can cheat on const-ness because we make a copy below:
 			return (bool)::FLAC__metadata_object_vorbiscomment_set_vendor_string(object_, vendor_string, /*copy=*/true);
 		}
 

@@ -964,6 +964,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMe
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
 {
+	if(!FLAC__format_vorbiscomment_entry_value_is_legal(entry.entry, entry.length))
+		return false;
 	return vorbiscomment_set_entry_(object, &object->data.vorbis_comment.vendor_string, &entry, copy);
 }
 
@@ -1016,6 +1018,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__Stream
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(comment_num < object->data.vorbis_comment.num_comments);
 
+	if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length))
+		return false;
 	return vorbiscomment_set_entry_(object, &object->data.vorbis_comment.comments[comment_num], &entry, copy);
 }
 
@@ -1026,6 +1030,9 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__Str
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__ASSERT(comment_num <= object->data.vorbis_comment.num_comments);
+
+	if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length))
+		return false;
 
 	vc = &object->data.vorbis_comment;
 
@@ -1050,6 +1057,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__Str
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool all, FLAC__bool copy)
 {
 	FLAC__ASSERT(0 != entry.entry && entry.length > 0);
+
+	if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length))
+		return false;
+
 	{
 		int i;
 		unsigned field_name_length;
@@ -1111,6 +1122,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
 	FLAC__ASSERT(0 != field_name);
 	FLAC__ASSERT(0 != field_value);
 
+	if(!FLAC__format_vorbiscomment_entry_name_is_legal(field_name))
+		return false;
+	if(!FLAC__format_vorbiscomment_entry_value_is_legal(field_value, (unsigned)(-1)))
+		return false;
+
 	{
 		const size_t nn = strlen(field_name);
 		const size_t nv = strlen(field_value);
@@ -1131,6 +1147,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair
 	FLAC__ASSERT(0 != entry.entry && entry.length > 0);
 	FLAC__ASSERT(0 != field_name);
 	FLAC__ASSERT(0 != field_value);
+
+	if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length))
+		return false;
+
 	{
 		const FLAC__byte *eq = (FLAC__byte*)memchr(entry.entry, '=', entry.length);
 		const size_t nn = eq-entry.entry;
