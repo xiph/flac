@@ -30,8 +30,10 @@ SUFFIXES = .cc
 
 CC_FILES= \
 	file_decoder.cc \
+	file_encoder.cc \
 	metadata.cc \
 	seekable_stream_decoder.cc \
+	seekable_stream_encoder.cc \
 	stream_decoder.cc \
 	stream_encoder.cc
 
@@ -45,10 +47,14 @@ libFLAC++.lib: $(OBJS)
 # can't figure out how to get it to take .cc so we just hack it for now:
 file_decoder.obj: file_decoder.cc
 	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP file_decoder.cc
+file_encoder.obj: file_encoder.cc
+	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP file_encoder.cc
 metadata.obj: metadata.cc
 	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata.cc
 seekable_stream_decoder.obj: seekable_stream_decoder.cc
 	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP seekable_stream_decoder.cc
+seekable_stream_encoder.obj: seekable_stream_encoder.cc
+	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP seekable_stream_encoder.cc
 stream_decoder.obj: stream_decoder.cc
 	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP stream_decoder.cc
 stream_encoder.obj: stream_encoder.cc

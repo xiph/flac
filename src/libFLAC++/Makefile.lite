@@ -25,8 +25,10 @@ INCLUDES = -I../../include
 
 OBJS = \
 	file_decoder.o \
+	file_encoder.o \
 	metadata.o \
 	seekable_stream_decoder.o \
+	seekable_stream_encoder.o \
 	stream_decoder.o \
 	stream_encoder.o
 

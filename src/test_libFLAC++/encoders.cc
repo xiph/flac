@@ -29,6 +29,7 @@ extern "C" {
 static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_;
 static ::FLAC__StreamMetadata *metadata_sequence_[] = { &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_ };
 static const unsigned num_metadata_ = 5;
+static const char *flacfilename_ = "metadata.flac";
 
 static void *malloc_or_die_(size_t size)
 {
@@ -146,9 +147,11 @@ bool StreamEncoder::die(const char *msg) const
 	State state = get_state();
 
 	if(msg)
-		printf("FAILED, %s, state = %u (%s)\n", msg, (unsigned)((::FLAC__StreamEncoderState)state), state.as_cstring());
+		printf("FAILED, %s", msg);
 	else
-		printf("FAILED, state = %u (%s)\n", (unsigned)((::FLAC__StreamEncoderState)state), state.as_cstring());
+		printf("FAILED");
+
+	printf(", state = %u (%s)\n", (unsigned)((::FLAC__StreamEncoderState)state), state.as_cstring());
 
 	return false;
 }
@@ -401,11 +404,607 @@ static bool test_stream_encoder()
 	return true;
 }
 
+class SeekableStreamEncoder : public FLAC::Encoder::SeekableStream {
+public:
+	SeekableStreamEncoder(): FLAC::Encoder::SeekableStream() { }
+	~SeekableStreamEncoder() { }
+
+	// from FLAC::Encoder::SeekableStream
+	::FLAC__SeekableStreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
+	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame);
+
+	bool die(const char *msg = 0) const;
+};
+
+::FLAC__SeekableStreamEncoderSeekStatus SeekableStreamEncoder::seek_callback(FLAC__uint64 absolute_byte_offset)
+{
+	(void)absolute_byte_offset;
+
+	return ::FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK;
+}
+
+::FLAC__StreamEncoderWriteStatus SeekableStreamEncoder::write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame)
+{
+	(void)buffer, (void)bytes, (void)samples, (void)current_frame;
+
+	return ::FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+}
+
+bool SeekableStreamEncoder::die(const char *msg) const
+{
+	State state = get_state();
+
+	if(msg)
+		printf("FAILED, %s", msg);
+	else
+		printf("FAILED");
+
+	printf(", state = %u (%s)\n", (unsigned)((::FLAC__SeekableStreamEncoderState)state), state.as_cstring());
+	if(state == ::FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR) {
+		FLAC::Encoder::Stream::State state_ = get_stream_encoder_state();
+		printf("      stream encoder state = %u (%s)\n", (unsigned)((::FLAC__StreamEncoderState)state_), state_.as_cstring());
+	}
+
+	return false;
+}
+
+static bool test_seekable_stream_encoder()
+{
+	SeekableStreamEncoder *encoder;
+	FLAC__int32 samples[1024];
+	FLAC__int32 *samples_array[1] = { samples };
+	unsigned i;
+
+	printf("\n+++ libFLAC++ unit test: FLAC::Encoder::SeekableStream\n\n");
+
+	printf("allocating encoder instance... ");
+	encoder = new SeekableStreamEncoder();
+	if(0 == encoder) {
+		printf("FAILED, new returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing is_valid()... ");
+	if(!encoder->is_valid()) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing set_streamable_subset()... ");
+	if(!encoder->set_streamable_subset(true))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_do_mid_side_stereo()... ");
+	if(!encoder->set_do_mid_side_stereo(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_loose_mid_side_stereo()... ");
+	if(!encoder->set_loose_mid_side_stereo(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_channels()... ");
+	if(!encoder->set_channels(streaminfo_.data.stream_info.channels))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_bits_per_sample()... ");
+	if(!encoder->set_bits_per_sample(streaminfo_.data.stream_info.bits_per_sample))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_sample_rate()... ");
+	if(!encoder->set_sample_rate(streaminfo_.data.stream_info.sample_rate))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_blocksize()... ");
+	if(!encoder->set_blocksize(streaminfo_.data.stream_info.min_blocksize))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_max_lpc_order()... ");
+	if(!encoder->set_max_lpc_order(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_qlp_coeff_precision()... ");
+	if(!encoder->set_qlp_coeff_precision(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_do_qlp_coeff_prec_search()... ");
+	if(!encoder->set_do_qlp_coeff_prec_search(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_do_escape_coding()... ");
+	if(!encoder->set_do_escape_coding(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_do_exhaustive_model_search()... ");
+	if(!encoder->set_do_exhaustive_model_search(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_min_residual_partition_order()... ");
+	if(!encoder->set_min_residual_partition_order(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_max_residual_partition_order()... ");
+	if(!encoder->set_max_residual_partition_order(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_rice_parameter_search_dist()... ");
+	if(!encoder->set_rice_parameter_search_dist(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_total_samples_estimate()... ");
+	if(!encoder->set_total_samples_estimate(streaminfo_.data.stream_info.total_samples))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_metadata()... ");
+	if(!encoder->set_metadata(metadata_sequence_, num_metadata_))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing init()... ");
+	if(encoder->init() != ::FLAC__SEEKABLE_STREAM_ENCODER_OK)
+		return encoder->die();
+	printf("OK\n");
+
+	printf("testing get_state()... ");
+	FLAC::Encoder::SeekableStream::State state = encoder->get_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__SeekableStreamEncoderState)state), state.as_cstring());
+
+	printf("testing get_stream_encoder_state()... ");
+	FLAC::Encoder::Stream::State state_ = encoder->get_stream_encoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamEncoderState)state_), state_.as_cstring());
+
+	printf("testing get_streamable_subset()... ");
+	if(encoder->get_streamable_subset() != true) {
+		printf("FAILED, expected true, got false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_do_mid_side_stereo()... ");
+	if(encoder->get_do_mid_side_stereo() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_loose_mid_side_stereo()... ");
+	if(encoder->get_loose_mid_side_stereo() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_channels()... ");
+	if(encoder->get_channels() != streaminfo_.data.stream_info.channels) {
+		printf("FAILED, expected %u, got %u\n", streaminfo_.data.stream_info.channels, encoder->get_channels());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_bits_per_sample()... ");
+	if(encoder->get_bits_per_sample() != streaminfo_.data.stream_info.bits_per_sample) {
+		printf("FAILED, expected %u, got %u\n", streaminfo_.data.stream_info.bits_per_sample, encoder->get_bits_per_sample());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_sample_rate()... ");
+	if(encoder->get_sample_rate() != streaminfo_.data.stream_info.sample_rate) {
+		printf("FAILED, expected %u, got %u\n", streaminfo_.data.stream_info.sample_rate, encoder->get_sample_rate());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_blocksize()... ");
+	if(encoder->get_blocksize() != streaminfo_.data.stream_info.min_blocksize) {
+		printf("FAILED, expected %u, got %u\n", streaminfo_.data.stream_info.min_blocksize, encoder->get_blocksize());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_max_lpc_order()... ");
+	if(encoder->get_max_lpc_order() != 0) {
+		printf("FAILED, expected %u, got %u\n", 0, encoder->get_max_lpc_order());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_qlp_coeff_precision()... ");
+	(void)encoder->get_qlp_coeff_precision();
+	/* we asked the encoder to auto select this so we accept anything */
+	printf("OK\n");
+
+	printf("testing get_do_qlp_coeff_prec_search()... ");
+	if(encoder->get_do_qlp_coeff_prec_search() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_do_escape_coding()... ");
+	if(encoder->get_do_escape_coding() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_do_exhaustive_model_search()... ");
+	if(encoder->get_do_exhaustive_model_search() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_min_residual_partition_order()... ");
+	if(encoder->get_min_residual_partition_order() != 0) {
+		printf("FAILED, expected %u, got %u\n", 0, encoder->get_min_residual_partition_order());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_max_residual_partition_order()... ");
+	if(encoder->get_max_residual_partition_order() != 0) {
+		printf("FAILED, expected %u, got %u\n", 0, encoder->get_max_residual_partition_order());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_rice_parameter_search_dist()... ");
+	if(encoder->get_rice_parameter_search_dist() != 0) {
+		printf("FAILED, expected %u, got %u\n", 0, encoder->get_rice_parameter_search_dist());
+		return false;
+	}
+	printf("OK\n");
+
+	/* init the dummy sample buffer */
+	for(i = 0; i < sizeof(samples) / sizeof(FLAC__int32); i++)
+		samples[i] = i & 7;
+
+	printf("testing process()... ");
+	if(!encoder->process(samples_array, sizeof(samples) / sizeof(FLAC__int32)))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing process_interleaved()... ");
+	if(!encoder->process_interleaved(samples, sizeof(samples) / sizeof(FLAC__int32)))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing finish()... ");
+	encoder->finish();
+	printf("OK\n");
+
+	printf("freeing encoder instance... ");
+	delete encoder;
+	printf("OK\n");
+
+	printf("\nPASSED!\n");
+
+	return true;
+}
+
+class FileEncoder : public FLAC::Encoder::File {
+public:
+	FileEncoder(): FLAC::Encoder::File() { }
+	~FileEncoder() { }
+
+	// from FLAC::Encoder::File
+	//@@@@ progress callback
+
+	bool die(const char *msg = 0) const;
+};
+
+bool FileEncoder::die(const char *msg) const
+{
+	State state = get_state();
+
+	if(msg)
+		printf("FAILED, %s", msg);
+	else
+		printf("FAILED");
+
+	printf(", state = %u (%s)\n", (unsigned)((::FLAC__FileEncoderState)state), state.as_cstring());
+	if(state == ::FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR) {
+		FLAC::Encoder::SeekableStream::State state_ = get_seekable_stream_encoder_state();
+		printf("      seekable stream encoder state = %u (%s)\n", (unsigned)((::FLAC__SeekableStreamEncoderState)state_), state_.as_cstring());
+		if(state_ == ::FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR) {
+			FLAC::Encoder::Stream::State state__ = get_stream_encoder_state();
+			printf("      stream encoder state = %u (%s)\n", (unsigned)((::FLAC__StreamEncoderState)state__), state__.as_cstring());
+		}
+	}
+
+	return false;
+}
+
+static bool test_file_encoder()
+{
+	FileEncoder *encoder;
+	FLAC__int32 samples[1024];
+	FLAC__int32 *samples_array[1] = { samples };
+	unsigned i;
+
+	printf("\n+++ libFLAC++ unit test: FLAC::Encoder::File\n\n");
+
+	printf("allocating encoder instance... ");
+	encoder = new FileEncoder();
+	if(0 == encoder) {
+		printf("FAILED, new returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing is_valid()... ");
+	if(!encoder->is_valid()) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing set_streamable_subset()... ");
+	if(!encoder->set_streamable_subset(true))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_do_mid_side_stereo()... ");
+	if(!encoder->set_do_mid_side_stereo(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_loose_mid_side_stereo()... ");
+	if(!encoder->set_loose_mid_side_stereo(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_channels()... ");
+	if(!encoder->set_channels(streaminfo_.data.stream_info.channels))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_bits_per_sample()... ");
+	if(!encoder->set_bits_per_sample(streaminfo_.data.stream_info.bits_per_sample))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_sample_rate()... ");
+	if(!encoder->set_sample_rate(streaminfo_.data.stream_info.sample_rate))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_blocksize()... ");
+	if(!encoder->set_blocksize(streaminfo_.data.stream_info.min_blocksize))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_max_lpc_order()... ");
+	if(!encoder->set_max_lpc_order(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_qlp_coeff_precision()... ");
+	if(!encoder->set_qlp_coeff_precision(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_do_qlp_coeff_prec_search()... ");
+	if(!encoder->set_do_qlp_coeff_prec_search(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_do_escape_coding()... ");
+	if(!encoder->set_do_escape_coding(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_do_exhaustive_model_search()... ");
+	if(!encoder->set_do_exhaustive_model_search(false))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_min_residual_partition_order()... ");
+	if(!encoder->set_min_residual_partition_order(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_max_residual_partition_order()... ");
+	if(!encoder->set_max_residual_partition_order(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_rice_parameter_search_dist()... ");
+	if(!encoder->set_rice_parameter_search_dist(0))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_total_samples_estimate()... ");
+	if(!encoder->set_total_samples_estimate(streaminfo_.data.stream_info.total_samples))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_metadata()... ");
+	if(!encoder->set_metadata(metadata_sequence_, num_metadata_))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing set_filename()... ");
+	if(!encoder->set_filename(flacfilename_))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing init()... ");
+	if(encoder->init() != ::FLAC__FILE_ENCODER_OK)
+		return encoder->die();
+	printf("OK\n");
+
+	printf("testing get_state()... ");
+	FLAC::Encoder::File::State state = encoder->get_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__FileEncoderState)state), state.as_cstring());
+
+	printf("testing get_seekable_stream_encoder_state()... ");
+	FLAC::Encoder::SeekableStream::State state_ = encoder->get_seekable_stream_encoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__SeekableStreamEncoderState)state_), state_.as_cstring());
+
+	printf("testing get_stream_encoder_state()... ");
+	FLAC::Encoder::Stream::State state__ = encoder->get_stream_encoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamEncoderState)state__), state__.as_cstring());
+
+	printf("testing get_streamable_subset()... ");
+	if(encoder->get_streamable_subset() != true) {
+		printf("FAILED, expected true, got false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_do_mid_side_stereo()... ");
+	if(encoder->get_do_mid_side_stereo() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_loose_mid_side_stereo()... ");
+	if(encoder->get_loose_mid_side_stereo() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_channels()... ");
+	if(encoder->get_channels() != streaminfo_.data.stream_info.channels) {
+		printf("FAILED, expected %u, got %u\n", streaminfo_.data.stream_info.channels, encoder->get_channels());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_bits_per_sample()... ");
+	if(encoder->get_bits_per_sample() != streaminfo_.data.stream_info.bits_per_sample) {
+		printf("FAILED, expected %u, got %u\n", streaminfo_.data.stream_info.bits_per_sample, encoder->get_bits_per_sample());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_sample_rate()... ");
+	if(encoder->get_sample_rate() != streaminfo_.data.stream_info.sample_rate) {
+		printf("FAILED, expected %u, got %u\n", streaminfo_.data.stream_info.sample_rate, encoder->get_sample_rate());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_blocksize()... ");
+	if(encoder->get_blocksize() != streaminfo_.data.stream_info.min_blocksize) {
+		printf("FAILED, expected %u, got %u\n", streaminfo_.data.stream_info.min_blocksize, encoder->get_blocksize());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_max_lpc_order()... ");
+	if(encoder->get_max_lpc_order() != 0) {
+		printf("FAILED, expected %u, got %u\n", 0, encoder->get_max_lpc_order());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_qlp_coeff_precision()... ");
+	(void)encoder->get_qlp_coeff_precision();
+	/* we asked the encoder to auto select this so we accept anything */
+	printf("OK\n");
+
+	printf("testing get_do_qlp_coeff_prec_search()... ");
+	if(encoder->get_do_qlp_coeff_prec_search() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_do_escape_coding()... ");
+	if(encoder->get_do_escape_coding() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_do_exhaustive_model_search()... ");
+	if(encoder->get_do_exhaustive_model_search() != false) {
+		printf("FAILED, expected false, got true\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_min_residual_partition_order()... ");
+	if(encoder->get_min_residual_partition_order() != 0) {
+		printf("FAILED, expected %u, got %u\n", 0, encoder->get_min_residual_partition_order());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_max_residual_partition_order()... ");
+	if(encoder->get_max_residual_partition_order() != 0) {
+		printf("FAILED, expected %u, got %u\n", 0, encoder->get_max_residual_partition_order());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_rice_parameter_search_dist()... ");
+	if(encoder->get_rice_parameter_search_dist() != 0) {
+		printf("FAILED, expected %u, got %u\n", 0, encoder->get_rice_parameter_search_dist());
+		return false;
+	}
+	printf("OK\n");
+
+	/* init the dummy sample buffer */
+	for(i = 0; i < sizeof(samples) / sizeof(FLAC__int32); i++)
+		samples[i] = i & 7;
+
+	printf("testing process()... ");
+	if(!encoder->process(samples_array, sizeof(samples) / sizeof(FLAC__int32)))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing process_interleaved()... ");
+	if(!encoder->process_interleaved(samples, sizeof(samples) / sizeof(FLAC__int32)))
+		return encoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing finish()... ");
+	encoder->finish();
+	printf("OK\n");
+
+	printf("freeing encoder instance... ");
+	delete encoder;
+	printf("OK\n");
+
+	printf("\nPASSED!\n");
+
+	return true;
+}
+
 bool test_encoders()
 {
 	init_metadata_blocks_();
 
 	if(!test_stream_encoder())
+		return false;
+
+	if(!test_seekable_stream_encoder())
+		return false;
+
+	if(!test_file_encoder())
 		return false;
 
 	free_metadata_blocks_();

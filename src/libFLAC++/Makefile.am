@@ -32,7 +32,9 @@ libFLAC___la_LDFLAGS = -version-info 1:1:0
 
 libFLAC___la_SOURCES = \
 	file_decoder.cc \
+	file_encoder.cc \
 	metadata.cc \
 	seekable_stream_decoder.cc \
+	seekable_stream_encoder.cc \
 	stream_decoder.cc \
 	stream_encoder.cc 
