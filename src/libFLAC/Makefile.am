@@ -16,10 +16,6 @@
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA  02111-1307, USA.
 
-#
-# GNU makefile
-#
-
 lib_LTLIBRARIES = libFLAC.la
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT

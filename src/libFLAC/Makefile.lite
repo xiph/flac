@@ -20,7 +20,7 @@
 # GNU makefile
 #
 
-LIB_NAME  = libFLAC
+LIB_NAME = libFLAC
 ifeq ($(DARWIN_BUILD),yes)
 DEFINES = -DFLAC__NO_NASM -DFLAC__ALIGN_MALLOC_DATA
 else
@@ -30,7 +30,7 @@ else
 DEFINES = -DFLAC__CPU_IA32 -DFLAC__HAS_NASM -DFLAC__ALIGN_MALLOC_DATA
 endif
 endif
-INCLUDES  = -I./include -I../../include
+INCLUDES = -I./include -I../../include
 DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
 ifeq ($(DARWIN_BUILD),yes)
