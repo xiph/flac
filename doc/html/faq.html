@@ -124,7 +124,13 @@
 			<A HREF="#general__testing"><B>How much testing has been done on FLAC?</B></A>
 		</LI>
 		<LI>
-			<A HREF="#general__lowest_bitrate"><B>What is the lowest bitrate achievable with FLAC?</B></A>
+			<A HREF="#general__lowest_bitrate"><B>What is the lowest bitrate (or highest compression) achievable with FLAC?</B></A>
+		</LI>
+		<LI>
+			<A HREF="#general__channels"><B>How many channels does FLAC support?</B></A>
+		</LI>
+		<LI>
+			<A HREF="#general__samples"><B>What kind of audio samples does FLAC support?</B></A>
 		</LI>
 	</UL>
 	</P>
@@ -294,10 +300,25 @@
 		Finally, FLAC is used by many people and has been judged stable enough by many software and hardware makers to be incorporated into their products.
 	</P>
 	<P>
-		<A NAME="general__lowest_bitrate"><B>What is the lowest bitrate achievable with FLAC?</B></A>
+		<A NAME="general__lowest_bitrate"><B>What is the lowest bitrate (or highest compression) achievable with FLAC?</B></A>
 	</P>
 	<P>
 		With FLAC you do not specify a bitrate like with some lossy codecs.  It's more like specifying a quality with Vorbis or MPC, except with FLAC the quality is always "lossless" and the resulting bitrate is roughly proportional to the amount of information in the original signal.  You cannot control the bitrate much and the result can be from around 100% of the input rate (if you are encoding noise), down to almost 0 (encoding silence).
+	</P>
+	<P>
+		<A NAME="general__channels"><B>How many channels does FLAC support?</B></A>
+	</P>
+	<P>
+		FLAC supports from 1 to 8 channels per stream.  Channels are only grouped in FLAC to take advantage of interchannel correlation and to define common channel assignments (like stereo L/R, 5.1 surround, et cetera).  When encoding a large number of independent channels it is expected that they are coded separately and if required, multiplexed together in a suitable container like Ogg or Matroska.
+	</P>
+	<P>
+		<A NAME="general__samples"><B>What kind of audio samples does FLAC support?</B></A>
+	</P>
+	<P>
+		FLAC supports linear PCM samples with a resolution between 4 and 32 bits per sample.  FLAC does not support floating point samples.  In some cases it is possible to losslessly transform samples from an incompatible range to a FLAC-compatible range before encoding.
+	</P>
+	<P>
+		FLAC supports linear sample rates from 1Hz - 655350Hz in 1Hz increments.
 	</P>
 
 	<H2>
