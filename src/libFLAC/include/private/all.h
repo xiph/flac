@@ -21,9 +21,11 @@
 #define FLAC__PRIVATE__ALL_H
 
 #include "bitbuffer.h"
+#include "bitmath.h"
 #include "crc.h"
 #include "encoder_framing.h"
 #include "fixed.h"
 #include "lpc.h"
+#include "md5.h"
 
 #endif
