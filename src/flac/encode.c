@@ -252,6 +252,9 @@ int encode_wav(FILE *infile, const char *infilename, const char *outfilename, bo
 	encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample - skip;
 	encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
 
+	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode <= 0)
+		printf("(No runtime statistics possible; please wait for encoding to finish...)\n");
+
 	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
 		goto wav_abort_;
 
@@ -302,11 +305,11 @@ wav_end_:
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
 		else {
-			printf("Verify succeeded\n");
+			fprintf(stderr, "Verify succeeded\n");
 		}
 	}
 	if(infile != stdin)
@@ -324,11 +327,11 @@ wav_abort_:
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
 		else {
-			printf("Verify succeeded\n");
+			fprintf(stderr, "Verify succeeded\n");
 		}
 	}
 	if(infile != stdin)
@@ -447,11 +450,11 @@ int encode_raw(FILE *infile, const char *infilename, const char *outfilename, bo
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
 		else {
-			printf("Verify succeeded\n");
+			fprintf(stderr, "Verify succeeded\n");
 		}
 	}
 	if(infile != stdin)
@@ -469,11 +472,11 @@ raw_abort_:
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
 		else {
-			printf("Verify succeeded\n");
+			fprintf(stderr, "Verify succeeded\n");
 		}
 	}
 	if(infile != stdin)
