@@ -154,7 +154,8 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetad
 		return false;
 	}
 
-	if(!FLAC__file_decoder_process_metadata(decoder) || cd.got_error) {
+	/* the first thing decoded must be the STREAMINFO block: */
+	if(!FLAC__file_decoder_process_single(decoder) || cd.got_error) {
 		FLAC__file_decoder_finish(decoder);
 		FLAC__file_decoder_delete(decoder);
 		return false;

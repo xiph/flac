@@ -27,7 +27,7 @@
 // ===============================================================
 //
 //  Full documentation for the decoder interfaces can be found
-//  in the C layer in include/FLAC/*_decoder.h
+//  in the C layer in include/FLAC/ *_decoder.h
 //
 // ===============================================================
 
@@ -123,10 +123,9 @@ namespace FLAC {
 			bool flush();
 			bool reset();
 
-			bool process_whole_stream();
-			bool process_metadata();
-			bool process_one_frame();
-			bool process_remaining_frames();
+			bool process_single();
+			bool process_until_end_of_metadata();
+			bool process_until_end_of_stream();
 		protected:
 			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes) = 0;
 			virtual ::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]) = 0;
@@ -192,6 +191,7 @@ namespace FLAC {
 			bool set_metadata_ignore_all();
 
 			State get_state() const;
+			Stream::State get_stream_decoder_state() const;
 			bool get_md5_checking() const;
 			unsigned get_channels() const;
 			::FLAC__ChannelAssignment get_channel_assignment() const;
@@ -206,10 +206,9 @@ namespace FLAC {
 			bool flush();
 			bool reset();
 
-			bool process_whole_stream();
-			bool process_metadata();
-			bool process_one_frame();
-			bool process_remaining_frames();
+			bool process_single();
+			bool process_until_end_of_metadata();
+			bool process_until_end_of_stream();
 
 			bool seek_absolute(FLAC__uint64 sample);
 		protected:
@@ -286,6 +285,8 @@ namespace FLAC {
 			bool set_metadata_ignore_all();
 
 			State get_state() const;
+			SeekableStream::State get_seekable_stream_decoder_state() const;
+			Stream::State get_stream_decoder_state() const;
 			bool get_md5_checking() const;
 			unsigned get_channels() const;
 			::FLAC__ChannelAssignment get_channel_assignment() const;
@@ -297,10 +298,9 @@ namespace FLAC {
 
 			bool finish();
 
-			bool process_whole_file();
-			bool process_metadata();
-			bool process_one_frame();
-			bool process_remaining_frames();
+			bool process_single();
+			bool process_until_end_of_metadata();
+			bool process_until_end_of_file();
 
 			bool seek_absolute(FLAC__uint64 sample);
 		protected:
