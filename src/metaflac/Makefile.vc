@@ -16,7 +16,7 @@ OBJS= $(C_FILES:.c=.obj)
 all: metaflac.exe
 
 metaflac.exe: $(OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) libFLAC.lib
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS)
 
 clean:
 	-del *.obj *.pch
