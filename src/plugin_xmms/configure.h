@@ -1,5 +1,5 @@
 /* libxmms-flac - XMMS FLAC input plugin
- * Copyright (C) 2002  Daisuke Shimamura
+ * Copyright (C) 2002,2003,2004  Daisuke Shimamura
  *
  * Based on mpg123 plugin
  *

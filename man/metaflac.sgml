@@ -40,7 +40,7 @@ manpage.1: manpage.sgml
       &mansurname;
     </author>
     <copyright>
-      <year>2002,2003</year>
+      <year>2002,2003,2004</year>
       <holder>&manusername;</holder>
     </copyright>
     &mandate;

@@ -1,5 +1,5 @@
 #  test_libFLAC - Unit tester for libFLAC
-#  Copyright (C) 2000,2001,2002,2003  Josh Coalson
+#  Copyright (C) 2000,2001,2002,2003,2004  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License

@@ -1,5 +1,5 @@
 /* flac - Command-line FLAC encoder/decoder
- * Copyright (C) 2000,2001,2002,2003  Josh Coalson
+ * Copyright (C) 2000,2001,2002,2003,2004  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -422,7 +422,7 @@ int do_it()
 	}
 	if(option_values.verbose) {
 		fprintf(stderr, "\n");
-		fprintf(stderr, "flac %s, Copyright (C) 2000,2001,2002,2003 Josh Coalson\n", FLAC__VERSION_STRING);
+		fprintf(stderr, "flac %s, Copyright (C) 2000,2001,2002,2003,2004 Josh Coalson\n", FLAC__VERSION_STRING);
 		fprintf(stderr, "flac comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are\n");
 		fprintf(stderr, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
@@ -1061,7 +1061,7 @@ static void usage_header()
 {
 	printf("===============================================================================\n");
 	printf("flac - Command-line FLAC encoder/decoder version %s\n", FLAC__VERSION_STRING);
-	printf("Copyright (C) 2000,2001,2002,2003  Josh Coalson\n");
+	printf("Copyright (C) 2000,2001,2002,2003,2004  Josh Coalson\n");
 	printf("\n");
 	printf("This program is free software; you can redistribute it and/or\n");
 	printf("modify it under the terms of the GNU General Public License\n");

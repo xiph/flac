@@ -1,5 +1,5 @@
 #  libOggFLAC - Free Lossless Audio Codec + Ogg library
-#  Copyright (C) 2002,2003  Josh Coalson
+#  Copyright (C) 2002,2003,2004  Josh Coalson
 #
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions

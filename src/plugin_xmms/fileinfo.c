@@ -1,7 +1,7 @@
 /*  XMMS - Cross-platform multimedia player
  *  Copyright (C) 1998-2000  Peter Alm, Mikael Alm, Olle Hallnas, Thomas Nilsson and 4Front Technologies
  *  Copyright (C) 1999,2000  Håvard Kvålen
- *  Copyright (C) 2002  Daisuke Shimamura
+ *  Copyright (C) 2002,2003,2004  Daisuke Shimamura
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
