@@ -182,14 +182,19 @@ extern const char * const FLAC__EntropyCodingMethodTypeString[];
 typedef struct {
 
 	unsigned order;
-	/**< The partition order, i.e. # of contexts = 2 ^ order. */
+	/**< The partition order, i.e. # of contexts = 2 ^ \a order. */
 
-	unsigned parameters[1 << FLAC__MAX_RICE_PARTITION_ORDER];
+	unsigned *parameters;
 	/**< The Rice parameters for each context. */
 
-	unsigned raw_bits[1 << FLAC__MAX_RICE_PARTITION_ORDER];
+	unsigned *raw_bits;
 	/**< Widths for escape-coded partitions. */
 
+	unsigned capacity_by_order;
+	/**< The capacity of the \a parameters and \a raw_bits arrays
+	 * specified as an order, i.e. the number of array elements
+	 * allocated is 2 ^ \a capacity_by_order.
+	 */
 } FLAC__EntropyCodingMethod_PartitionedRice;
 
 extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN; /**< == 4 (bits) */

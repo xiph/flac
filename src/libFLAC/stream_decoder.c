@@ -26,7 +26,13 @@
 #include "private/cpu.h"
 #include "private/crc.h"
 #include "private/fixed.h"
+#include "private/format.h"
 #include "private/lpc.h"
+
+#ifdef max
+#undef max
+#endif
+#define max(a,b) ((a)>(b)?(a):(b))
 
 /***********************************************************************
  *
@@ -87,6 +93,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__byte *metadata_filter_ids;
 	unsigned metadata_filter_ids_count, metadata_filter_ids_capacity; /* units for both are IDs, not bytes */
 	FLAC__Frame frame;
+	FLAC__EntropyCodingMethod_PartitionedRice allocated_ecm_pr;
 	FLAC__bool cached; /* true if there is a byte in lookahead */
 	FLAC__CPUInfo cpuinfo;
 	FLAC__byte header_warmup[2]; /* contains the sync code and reserved bits */
@@ -188,6 +195,7 @@ FLAC__StreamDecoder *FLAC__stream_decoder_new()
 	decoder->private_->output_capacity = 0;
 	decoder->private_->output_channels = 0;
 	decoder->private_->has_seek_table = false;
+	FLAC__format_entropy_coding_method_partitioned_rice_init(&decoder->private_->allocated_ecm_pr);
 
 	set_defaults_(decoder);
 
@@ -209,6 +217,9 @@ void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder)
 		free(decoder->private_->metadata_filter_ids);
 
 	FLAC__bitbuffer_delete(decoder->private_->input);
+
+	FLAC__format_entropy_coding_method_partitioned_rice_clear(&decoder->private_->allocated_ecm_pr);
+
 	free(decoder->private_);
 	free(decoder->protected_);
 	free(decoder);
@@ -284,7 +295,12 @@ void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	}
 	FLAC__bitbuffer_free(decoder->private_->input);
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
-		/* WATCHOUT: FLAC__lpc_restore_signal_asm_ia32_mmx() requires that the output arrays have a buffer of up to 3 zeroes in front (at negative indices) for alignment purposes; we use 4 to keep the data well-aligned. */
+		/* WATCHOUT:
+		 * FLAC__lpc_restore_signal_asm_ia32_mmx() requires that the
+		 * output arrays have a buffer of up to 3 zeroes in front
+		 * (at negative indices) for alignment purposes; we use 4
+		 * to keep the data well-aligned.
+		 */
 		if(0 != decoder->private_->output[i]) {
 			free(decoder->private_->output[i]-4);
 			decoder->private_->output[i] = 0;
@@ -674,7 +690,7 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigne
 	if(size <= decoder->private_->output_capacity && channels <= decoder->private_->output_channels)
 		return true;
 
-	/* @@@ should change to use realloc() */
+	/* @@@@ should change to use realloc() */
 
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
 		if(0 != decoder->private_->output[i]) {
@@ -688,7 +704,12 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigne
 	}
 
 	for(i = 0; i < channels; i++) {
-		/* WATCHOUT: FLAC__lpc_restore_signal_asm_ia32_mmx() requires that the output arrays have a buffer of up to 3 zeroes in front (at negative indices) for alignment purposes; we use 4 to keep the data well-aligned. */
+		/* WATCHOUT:
+		 * FLAC__lpc_restore_signal_asm_ia32_mmx() requires that the
+		 * output arrays have a buffer of up to 3 zeroes in front
+		 * (at negative indices) for alignment purposes; we use 4
+		 * to keep the data well-aligned.
+		 */
 		tmp = (FLAC__int32*)malloc(sizeof(FLAC__int32)*(size+4));
 		if(tmp == 0) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
@@ -1749,6 +1770,13 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigne
 	const unsigned partition_order = partitioned_rice->order;
 	const unsigned partitions = 1u << partition_order;
 	const unsigned partition_samples = partition_order > 0? decoder->private_->frame.header.blocksize >> partition_order : decoder->private_->frame.header.blocksize - predictor_order;
+
+	if(!FLAC__format_entropy_coding_method_partitioned_rice_ensure_size(&decoder->private_->allocated_ecm_pr, max(6, partition_order))) {
+		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+		return false;
+	}
+	partitioned_rice->parameters = decoder->private_->allocated_ecm_pr.parameters;
+	partitioned_rice->raw_bits = decoder->private_->allocated_ecm_pr.raw_bits;
 
 	sample = 0;
 	for(partition = 0; partition < partitions; partition++) {
