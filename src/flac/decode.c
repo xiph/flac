@@ -76,6 +76,7 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, anal
 	stream_info.skip_count_too_high = false;
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
+	stream_info.fout = 0; /* initialized with an open file later if necessary */
 
 	assert(!(stream_info.test_only && stream_info.analysis_mode));
 
@@ -140,7 +141,7 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, anal
 		print_stats(&stream_info);
 		FLAC__file_decoder_free_instance(decoder);
 	}
-	if(!stream_info.test_only)
+	if(0 != stream_info.fout && stream_info.fout != stdout)
 		fclose(stream_info.fout);
 	if(verbose)
 		fprintf(stderr, "\n");
@@ -161,7 +162,7 @@ wav_abort_:
 			FLAC__file_decoder_finish(decoder);
 		FLAC__file_decoder_free_instance(decoder);
 	}
-	if(!stream_info.test_only) {
+	if(0 != stream_info.fout && stream_info.fout != stdout) {
 		fclose(stream_info.fout);
 		unlink(outfile);
 	}
@@ -188,6 +189,7 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, anal
 	stream_info.skip_count_too_high = false;
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
+	stream_info.fout = 0; /* initialized with an open file later if necessary */
 
 	assert(!(stream_info.test_only && stream_info.analysis_mode));
 
@@ -252,7 +254,7 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, anal
 		print_stats(&stream_info);
 		FLAC__file_decoder_free_instance(decoder);
 	}
-	if(!stream_info.test_only)
+	if(0 != stream_info.fout && stream_info.fout != stdout)
 		fclose(stream_info.fout);
 	if(verbose)
 		fprintf(stderr, "\n");
@@ -273,7 +275,7 @@ raw_abort_:
 			FLAC__file_decoder_finish(decoder);
 		FLAC__file_decoder_free_instance(decoder);
 	}
-	if(!stream_info.test_only) {
+	if(0 != stream_info.fout && stream_info.fout != stdout) {
 		fclose(stream_info.fout);
 		unlink(outfile);
 	}
