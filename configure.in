@@ -1,4 +1,4 @@
-# note that for many of the conditionals we use the prefix FLaC__
+# NOTE that for many of the conditionals we use the prefix FLaC__
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_INIT(src/flac/main.c)
@@ -13,8 +13,8 @@ chmod +x libtool-disable-static
 
 AC_PROG_MAKE_SET
 
-AC_CANONICAL_TARGET
-case $target_cpu in
+AC_CANONICAL_HOST
+case $host_cpu in
 	i*86)	cpu_ia32=true ;;
 	powerpc)	cpu_ppc=true ;;
 	sparc)	cpu_sparc=true ;;
