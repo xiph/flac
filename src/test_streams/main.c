@@ -38,6 +38,10 @@
 
 static FLAC__bool is_big_endian_host;
 
+/* some flavors of UNIX #define this */
+#ifdef swap16
+#undef swap16
+#endif
 static void swap16(FLAC__int16 *i)
 {
 	unsigned char *x = (unsigned char *)i, b;
