@@ -88,8 +88,8 @@ typedef struct {
 	verify_fifo_struct verify_fifo;
 	FLAC__StreamMetaData_SeekTable seek_table;
 	unsigned first_seek_point_to_check;
-	FLAC__bool use_ogg;
 #ifdef FLAC__HAS_OGG
+	FLAC__bool use_ogg;
 	ogg_info_struct ogg;
 #endif
 } encoder_wrapper_struct;
@@ -233,7 +233,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				/* bits per sample */
 				if(!read_little_endian_uint16(infile, &x, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
-				if(x != 8 && x != 16) {
+				if(x != 8 && x != 16 && x != 24) {
 					fprintf(stderr, "%s: ERROR: unsupported bits per sample %u\n", encoder_wrapper.inbasefilename, (unsigned)x);
 					goto wav_abort_;
 				}
@@ -1069,8 +1069,10 @@ void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMet
 	 * update are not necessary with Ogg as the transport.  We can't do
 	 * it reliably anyway without knowing the Ogg structure.
 	 */
+#ifdef FLAC__HAS_OGG
 	if(encoder_wrapper->use_ogg)
 		return;
+#endif
 
 	/*
 	 * we get called by the encoder when the encoding process has
