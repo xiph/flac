@@ -21,6 +21,12 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for strcmp() */
 #include <sys/stat.h> /* for stat() */
+#if defined _MSC_VER || defined __MINGW32__
+#include <io.h> /* for _setmode() */
+#include <fcntl.h> /* for _O_BINARY */
+#elif defined __CYGWIN__
+#include <io.h> /* for _setmode(), O_BINARY */
+#endif
 #include "FLAC/assert.h"
 #include "protected/file_decoder.h"
 #include "protected/seekable_stream_decoder.h"
@@ -32,6 +38,7 @@
  *
  ***********************************************************************/
 
+static FILE *get_binary_stdin_();
 static FLAC__SeekableStreamDecoderReadStatus read_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 static FLAC__SeekableStreamDecoderSeekStatus seek_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 static FLAC__SeekableStreamDecoderTellStatus tell_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
@@ -153,7 +160,7 @@ FLAC__FileDecoderState FLAC__file_decoder_init(FLAC__FileDecoder *decoder)
 	decoder->private_->seekable_stream_decoder = 0;
 
 	if(0 == decoder->private_->filename)
-		decoder->private_->file = stdin;
+		decoder->private_->file = get_binary_stdin_();
 	else
 		decoder->private_->file = fopen(decoder->private_->filename, "rb");
 
@@ -384,6 +391,25 @@ FLAC__bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, FLAC__ui
  * Private class methods
  *
  ***********************************************************************/
+
+/*
+ * This will forcibly set stdin to binary mode (for OSes that require it)
+ */
+FILE *get_binary_stdin_()
+{
+	/* if something breaks here it is probably due to the presence or
+	 * absence of an underscore before the identifiers 'setmode',
+	 * 'fileno', and/or 'O_BINARY'; check your system header files.
+	 */
+#if defined _MSC_VER || defined __MINGW32__
+	_setmode(_fileno(stdin), _O_BINARY);
+#elif defined __CYGWIN__
+	/* almost certainly not needed for any modern Cygwin, but let's be safe... */
+	setmode(_fileno(stdin), _O_BINARY);
+#endif
+
+	return stdin;
+}
 
 FLAC__SeekableStreamDecoderReadStatus read_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {

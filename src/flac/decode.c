@@ -119,7 +119,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 
 	if(!stream_info.test_only) {
 		if(0 == strcmp(outfilename, "-")) {
-			stream_info.fout = stdout;
+			stream_info.fout = file__get_binary_stdout();
 		}
 		else {
 			if(0 == (stream_info.fout = fopen(outfilename, "wb"))) {
@@ -132,11 +132,11 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 #ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if (0 == strcmp(infilename, "-")) {
-			stream_info.fin = stdin;
+			stream_info.fin = file__get_binary_stdin();
 		} else {
 			if (0 == (stream_info.fin = fopen(infilename, "rb"))) {
 				fprintf(stderr, "%s: ERROR: can't open input file %s\n", stream_info.inbasefilename, infilename);
-				if(stream_info.fout != stdout)
+				if(0 != stream_info.fout && stream_info.fout != stdout)
 					fclose(stream_info.fout);
 				return 1;
 			}
@@ -305,7 +305,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 
 	if(!stream_info.test_only) {
 		if(0 == strcmp(outfilename, "-")) {
-			stream_info.fout = stdout;
+			stream_info.fout = file__get_binary_stdout();
 		}
 		else {
 			if(0 == (stream_info.fout = fopen(outfilename, "wb"))) {
@@ -318,11 +318,11 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 #ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if (0 == strcmp(infilename, "-")) {
-			stream_info.fin = stdin;
+			stream_info.fin = file__get_binary_stdin();
 		} else {
 			if (0 == (stream_info.fin = fopen(infilename, "rb"))) {
 				fprintf(stderr, "%s: ERROR: can't open input file %s\n", stream_info.inbasefilename, infilename);
-				if(stream_info.fout != stdout)
+				if(0 != stream_info.fout && stream_info.fout != stdout)
 					fclose(stream_info.fout);
 				return 1;
 			}

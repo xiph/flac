@@ -18,13 +18,17 @@
 
 #if defined _MSC_VER || defined __MINGW32__
 #include <sys/utime.h> /* for utime() */
-#include <io.h> /* for chmod() */
+#include <io.h> /* for chmod(), _setmode() */
+#include <fcntl.h> /* for _O_BINARY */
 #else
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
 #include <utime.h> /* for utime() */
 #include <unistd.h> /* for chown() */
 #endif
-#include <sys/stat.h> /* for stat() */
+#ifdef __CYGWIN__
+#include <io.h> /* for _setmode(), O_BINARY */
+#endif
+#include <sys/stat.h> /* for stat(), maybe chmod() */
 #include <string.h> /* for strrchr() */
 #include "file.h"
 
@@ -66,4 +70,36 @@ const char *flac__file_get_basename(const char *srcpath)
 			return srcpath;
 	}
 	return ++p;
+}
+
+FILE *file__get_binary_stdin()
+{
+	/* if something breaks here it is probably due to the presence or
+	 * absence of an underscore before the identifiers 'setmode',
+	 * 'fileno', and/or 'O_BINARY'; check your system header files.
+	 */
+#if defined _MSC_VER || defined __MINGW32__
+	_setmode(_fileno(stdin), _O_BINARY);
+#elif defined __CYGWIN__
+	/* almost certainly not needed for any modern Cygwin, but let's be safe... */
+	setmode(_fileno(stdin), _O_BINARY);
+#endif
+
+	return stdin;
+}
+
+FILE *file__get_binary_stdout()
+{
+	/* if something breaks here it is probably due to the presence or
+	 * absence of an underscore before the identifiers 'setmode',
+	 * 'fileno', and/or 'O_BINARY'; check your system header files.
+	 */
+#if defined _MSC_VER || defined __MINGW32__
+	_setmode(_fileno(stdout), _O_BINARY);
+#elif defined __CYGWIN__
+	/* almost certainly not needed for any modern Cygwin, but let's be safe... */
+	setmode(_fileno(stdout), _O_BINARY);
+#endif
+
+	return stdout;
 }

@@ -156,12 +156,13 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	(void)lookahead_length;
 
 	if(0 == strcmp(outfilename, "-")) {
-		encoder_wrapper.fout = stdout;
+		encoder_wrapper.fout = file__get_binary_stdout();
 	}
 	else {
 		if(0 == (encoder_wrapper.fout = fopen(outfilename, "wb"))) {
 			fprintf(stderr, "%s: ERROR: can't open output file %s\n", encoder_wrapper.inbasefilename, outfilename);
-			fclose(infile);
+			if(infile != stdin)
+				fclose(infile);
 			return 1;
 		}
 	}
@@ -262,7 +263,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				fprintf(stderr, "%s: WARNING: skipping extra 'data' sub-chunk\n", encoder_wrapper.inbasefilename);
 			}
 			else if(!got_fmt_chunk) {
-				fprintf(stderr, "%s: ERROR: got data sub-chunk before fmt sub-chunk\n", encoder_wrapper.inbasefilename);
+				fprintf(stderr, "%s: ERROR: got 'data' sub-chunk before 'fmt' sub-chunk\n", encoder_wrapper.inbasefilename);
 				goto wav_abort_;
 			}
 			else {
@@ -399,7 +400,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 								goto wav_abort_;
 							}
 							else if(bytes_read != (*options.align_reservoir_samples) * bytes_per_wide_sample) {
-								fprintf(stderr, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_wrapper.inbasefilename, (unsigned)encoder_wrapper.total_samples_to_encode, (unsigned)encoder_wrapper.samples_written);
+								fprintf(stderr, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_wrapper.inbasefilename, (unsigned)bytes_read, (unsigned)encoder_wrapper.total_samples_to_encode, (unsigned)encoder_wrapper.samples_written);
 								data_bytes = 0;
 							}
 							else {
@@ -513,12 +514,13 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 #endif
 
 	if(0 == strcmp(outfilename, "-")) {
-		encoder_wrapper.fout = stdout;
+		encoder_wrapper.fout = file__get_binary_stdout();
 	}
 	else {
 		if(0 == (encoder_wrapper.fout = fopen(outfilename, "wb"))) {
 			fprintf(stderr, "ERROR: can't open output file %s\n", outfilename);
-			fclose(infile);
+			if(infile != stdin)
+				fclose(infile);
 			return 1;
 		}
 	}
@@ -1062,7 +1064,7 @@ void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMet
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	FLAC__byte b;
-	FILE *f;
+	FILE *f = encoder_wrapper->fout;
 	const FLAC__uint64 samples = metadata->data.stream_info.total_samples;
 	const unsigned min_framesize = metadata->data.stream_info.min_framesize;
 	const unsigned max_framesize = metadata->data.stream_info.max_framesize;
@@ -1088,13 +1090,11 @@ void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMet
 
 	(void)encoder; /* silence compiler warning about unused parameter */
 
-	if(encoder_wrapper->fout != stdout) {
+	if(f != stdout) {
 		fclose(encoder_wrapper->fout);
 		if(0 == (f = fopen(encoder_wrapper->outfilename, "r+b")))
 			return;
 	}
-	else
-		f = stdout;
 
 	/* all this is based on intimate knowledge of the stream header
 	 * layout, but a change to the header format that would break this

@@ -660,7 +660,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 
 	if(0 == strcmp(infilename, "-")) {
 		infilesize = -1;
-		encode_infile = stdin;
+		encode_infile = file__get_binary_stdin();
 	}
 	else {
 		infilesize = flac__file_get_filesize(infilename);
