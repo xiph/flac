@@ -1168,7 +1168,11 @@ bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, int32 *val, const unsig
 			/* we hold off updating bb->total_consumed_bits until the end */
 		}
 		else {
-			*val = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits)) >> (i-bits_);
+			/* bits_ must be < 7 if we get to here */
+			v = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits));
+			v <<= (32-i);
+			*val = (int32)v;
+			*val >>= (32-bits_);
 			bb->consumed_bits += bits_;
 			bb->total_consumed_bits += bits_;
 			return true;
