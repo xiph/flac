@@ -44,6 +44,7 @@ typedef struct OggFLAC__OggEncoderAspect {
 	/* these are for internal state related to Ogg encoding */
 	ogg_stream_state stream_state;
 	ogg_page page;
+	FLAC__bool seen_magic; /* true if we've seen the fLaC magic in the write callback yet */
 	FLAC__bool is_first_packet;
 	FLAC__uint64 samples_written;
 } OggFLAC__OggEncoderAspect;
