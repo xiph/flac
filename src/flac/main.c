@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 {
 	int i;
 	bool verify = false, verbose = true, lax = false, mode_decode = false, test_only = false, analyze = false;
-	bool do_mid_side = true, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+	bool do_mid_side = true, force_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
 	unsigned max_lpc_order = 8;
 	unsigned qlp_coeff_precision = 0;
 	uint64 skip = 0;
@@ -79,6 +79,10 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 		else if(0 == strcmp(argv[i], "-m-"))
 			do_mid_side = false;
+		else if(0 == strcmp(argv[i], "-M"))
+			force_mid_side = do_mid_side = true;
+		else if(0 == strcmp(argv[i], "-M-"))
+			force_mid_side = do_mid_side = false;
 		else if(0 == strcmp(argv[i], "-p"))
 			do_qlp_coeff_prec_search = true;
 		else if(0 == strcmp(argv[i], "-p-"))
@@ -110,6 +114,7 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "-0")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = false;
+			force_mid_side = false;
 			qlp_coeff_precision = 0;
 			rice_optimization_level = 0;
 			max_lpc_order = 0;
@@ -117,6 +122,7 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "-1")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = true;
+			force_mid_side = true;
 			qlp_coeff_precision = 0;
 			rice_optimization_level = 0;
 			max_lpc_order = 0;
@@ -124,12 +130,14 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "-2")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = true;
+			force_mid_side = false;
 			qlp_coeff_precision = 0;
 			max_lpc_order = 0;
 		}
 		else if(0 == strcmp(argv[i], "-4")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = false;
+			force_mid_side = false;
 			qlp_coeff_precision = 0;
 			rice_optimization_level = 0;
 			max_lpc_order = 8;
@@ -137,6 +145,7 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "-5")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = true;
+			force_mid_side = true;
 			qlp_coeff_precision = 0;
 			rice_optimization_level = 0;
 			max_lpc_order = 8;
@@ -144,18 +153,21 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "-6")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = true;
+			force_mid_side = false;
 			qlp_coeff_precision = 0;
 			max_lpc_order = 8;
 		}
 		else if(0 == strcmp(argv[i], "-8")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = true;
+			force_mid_side = false;
 			qlp_coeff_precision = 0;
 			max_lpc_order = 32;
 		}
 		else if(0 == strcmp(argv[i], "-9")) {
 			do_exhaustive_model_search = true;
 			do_mid_side = true;
+			force_mid_side = false;
 			do_qlp_coeff_prec_search = true;
 			rice_optimization_level = 99;
 			max_lpc_order = 32;
@@ -251,7 +263,7 @@ int main(int argc, char *argv[])
 
 		if(!mode_decode) {
 			printf("options:%s -b %u%s -l %u%s%s -q %u -r %u%s\n",
-				lax?" --lax":"", (unsigned)blocksize, do_mid_side?" -m":"", max_lpc_order,
+				lax?" --lax":"", (unsigned)blocksize, force_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
 				do_exhaustive_model_search?" -e":"", do_qlp_coeff_prec_search?" -p":"",
 				qlp_coeff_precision, (unsigned)rice_optimization_level,
 				verify? " -V":""
@@ -266,9 +278,9 @@ int main(int argc, char *argv[])
 			return decode_raw(argv[i], test_only? 0 : argv[i+1], analyze, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 	else
 		if(format_is_wave)
-			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision);
+			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, force_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision);
 		else
-			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, force_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
 	return 0;
 }
@@ -327,14 +339,15 @@ int usage(const char *message, ...)
 	printf("  --lax : allow encoder to generate non-Subset files\n");
 	printf("  -b blocksize : default is 1152 for -l 0, else 4608; should be 192/576/1152/2304/4608 (unless --lax is used)\n");
 	printf("  -m : try mid-side coding for each frame (stereo input only)\n");
+	printf("  -M : force mid-side coding for all frames (stereo input only)\n");
 	printf("  -0 .. -9 : fastest compression .. highest compression, default is -6\n");
 	printf("             these are synonyms for other options:\n");
 	printf("  -0 : synonymous with -l 0\n");
-	printf("  -1 : synonymous with -l 0 -m\n");
+	printf("  -1 : synonymous with -l 0 -M\n");
 	printf("  -2 : synonymous with -l 0 -m -r # (# is automatically determined by the block size)\n");
 	printf("  -3 : reserved\n");
 	printf("  -4 : synonymous with -l 8\n");
-	printf("  -5 : synonymous with -l 8 -m\n");
+	printf("  -5 : synonymous with -l 8 -M\n");
 	printf("  -6 : synonymous with -l 8 -m -r # (# is automatically determined by the block size)\n");
 	printf("  -7 : reserved\n");
 	printf("  -8 : synonymous with -l 32 -m -r # (# is automatically determined by the block size)\n");
@@ -345,7 +358,7 @@ int usage(const char *message, ...)
 	printf("  -q bits : precision of the quantized linear-predictor coefficients, 0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	printf("  -r level : rice parameter optimization level (level is 0..99, 0 => none, default is -r 0, above 4 doesn't usually help much)\n");
 	printf("  -V : verify a correct encoding by decoding the output in parallel and comparing to the original\n");
-	printf("  -m-, -e-, -p-, -V-, --lax- can all be used to turn off a particular option\n");
+	printf("  -m-, -M-, -e-, -p-, -V-, --lax- can all be used to turn off a particular option\n");
 	printf("format options:\n");
 	printf("  -fb | -fl : big-endian | little-endian byte order\n");
 	printf("  -fc channels\n");
