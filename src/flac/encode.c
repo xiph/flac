@@ -44,6 +44,12 @@ typedef enum {
 	FLAC__VERIFY_FAILED_IN_METADATA
 } verify_code;
 
+static const char *verify_code_string[] = {
+	"FLAC__VERIFY_OK",
+	"FLAC__VERIFY_FAILED_IN_FRAME",
+	"FLAC__VERIFY_FAILED_IN_METADATA"
+};
+
 typedef struct {
 	int32 *original[FLAC__MAX_CHANNELS];
 	unsigned size; /* of each original[] in samples */
@@ -292,7 +298,7 @@ wav_end_:
 	}
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			printf("Verify FAILED!  Do not use %s\n", outfile);
+			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfile);
 			return 1;
 		}
 		else {
@@ -311,7 +317,7 @@ wav_abort_:
 	}
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			printf("Verify FAILED!  Do not use %s\n", outfile);
+			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfile);
 			return 1;
 		}
 		else {
@@ -437,7 +443,7 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 	}
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			printf("Verify FAILED!  Do not use %s\n", outfile);
+			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfile);
 			return 1;
 		}
 		else {
@@ -456,7 +462,7 @@ raw_abort_:
 	}
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			printf("Verify FAILED!  Do not use %s\n", outfile);
+			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfile);
 			return 1;
 		}
 		else {
