@@ -630,7 +630,7 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *unused
 	memset(&packet, 0, sizeof(packet));
 	packet.packet = (unsigned char *)buffer;
 	packet.granulepos = encoder->private_->samples_written;
-	/*@@@ WATCHOUT:
+	/* WATCHOUT:
 	 * This depends on the behavior of FLAC__StreamEncoder that 'samples'
 	 * will be 0 for metadata writes.
 	 */
