@@ -247,7 +247,7 @@ bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned res
 {
 	unsigned i;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, (FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK | (subframe->order<<1)) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK | (subframe->order<<1) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
 	if(wasted_bits)
 		if(!FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1))
@@ -275,7 +275,7 @@ bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residua
 {
 	unsigned i;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, (FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK | ((subframe->order-1)<<1)) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK | ((subframe->order-1)<<1) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
 	if(wasted_bits)
 		if(!FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1))
