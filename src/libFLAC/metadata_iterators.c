@@ -526,15 +526,15 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_Simp
 		return write_metadata_block_stationary_(iterator, block);
 	else if(iterator->length > block->length) {
 		if(use_padding && iterator->length >= FLAC__STREAM_METADATA_HEADER_LENGTH + block->length) {
-			ret =  write_metadata_block_stationary_with_padding_(iterator, block, iterator->length - FLAC__STREAM_METADATA_HEADER_LENGTH - block->length, block->is_last);
-			FLAC__ASSERT(iterator->offset[iterator->depth] == debug_target_offset);
-			FLAC__ASSERT(ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
+			ret = write_metadata_block_stationary_with_padding_(iterator, block, iterator->length - FLAC__STREAM_METADATA_HEADER_LENGTH - block->length, block->is_last);
+			FLAC__ASSERT(!ret || iterator->offset[iterator->depth] == debug_target_offset);
+			FLAC__ASSERT(!ret || ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
 			return ret;
 		}
 		else {
 			ret = rewrite_whole_file_(iterator, block, /*append=*/false);
-			FLAC__ASSERT(iterator->offset[iterator->depth] == debug_target_offset);
-			FLAC__ASSERT(ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
+			FLAC__ASSERT(!ret || iterator->offset[iterator->depth] == debug_target_offset);
+			FLAC__ASSERT(!ret || ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
 			return ret;
 		}
 	}
@@ -576,22 +576,22 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_Simp
 		if(use_padding) {
 			if(padding_leftover == 0) {
 				ret = write_metadata_block_stationary_(iterator, block);
-				FLAC__ASSERT(iterator->offset[iterator->depth] == debug_target_offset);
-				FLAC__ASSERT(ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
+				FLAC__ASSERT(!ret || iterator->offset[iterator->depth] == debug_target_offset);
+				FLAC__ASSERT(!ret || ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
 				return ret;
 			}
 			else {
 				FLAC__ASSERT(padding_leftover >= FLAC__STREAM_METADATA_HEADER_LENGTH);
 				ret = write_metadata_block_stationary_with_padding_(iterator, block, padding_leftover - FLAC__STREAM_METADATA_HEADER_LENGTH, padding_is_last);
-				FLAC__ASSERT(iterator->offset[iterator->depth] == debug_target_offset);
-				FLAC__ASSERT(ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
+				FLAC__ASSERT(!ret || iterator->offset[iterator->depth] == debug_target_offset);
+				FLAC__ASSERT(!ret || ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
 				return ret;
 			}
 		}
 		else {
 			ret = rewrite_whole_file_(iterator, block, /*append=*/false);
-			FLAC__ASSERT(iterator->offset[iterator->depth] == debug_target_offset);
-			FLAC__ASSERT(ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
+			FLAC__ASSERT(!ret || iterator->offset[iterator->depth] == debug_target_offset);
+			FLAC__ASSERT(!ret || ftell(iterator->file) == debug_target_offset + (long)FLAC__STREAM_METADATA_HEADER_LENGTH);
 			return ret;
 		}
 	}
