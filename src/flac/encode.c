@@ -2039,7 +2039,12 @@ void print_verify_error(EncoderSession *e)
 
 	flac__utils_printf(stderr, 1, "%s: ERROR: mismatch in decoded data, verify FAILED!\n", e->inbasefilename);
 	flac__utils_printf(stderr, 1, "       Absolute sample=%u, frame=%u, channel=%u, sample=%u, expected %d, got %d\n", (unsigned)absolute_sample, frame_number, channel, sample, expected, got);
-	flac__utils_printf(stderr, 1, "       Please submit a bug report to\n");
+	flac__utils_printf(stderr, 1, "       In all known cases, verify errors are caused by hardware problems,\n");
+	flac__utils_printf(stderr, 1, "       usually overclocking or bad RAM.  Delete %s\n", e->inbasefilename);
+	flac__utils_printf(stderr, 1, "       and repeat the flac command exactly as before.  If it does not give a\n");
+	flac__utils_printf(stderr, 1, "       verify error in the exact same place each time you try it, then there is\n");
+	flac__utils_printf(stderr, 1, "       a problem with your hardware.  If it does, keep the bad FLAC file and\n");
+	flac__utils_printf(stderr, 1, "       submit a bug report to:\n");
 	flac__utils_printf(stderr, 1, "           http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
 	flac__utils_printf(stderr, 1, "       Make sure to include an email contact in the comment and/or use the\n");
 	flac__utils_printf(stderr, 1, "       \"Monitor\" feature to monitor the bug status.\n");
