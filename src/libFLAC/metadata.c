@@ -1450,8 +1450,10 @@ FLAC__bool FLAC__metadata_object_seekpoint_array_resize(FLAC__StreamMetaData_See
 
 		FLAC__ASSERT(old_num_points > 0);
 
-		if(new_size == 0)
+		if(new_size == 0) {
+			free(*object_array);
 			*object_array = 0;
+		}
 		else if(0 == (*object_array = realloc(*object_array, new_size)))
 			return false;
 
@@ -1561,8 +1563,10 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_entry_array_resize(FLAC__StreamMe
 					free((*object_array)[i].entry);
 		}
 
-		if(new_size == 0)
+		if(new_size == 0) {
+			free(*object_array);
 			*object_array = 0;
+		}
 		else if(0 == (*object_array = realloc(*object_array, new_size)))
 			return false;
 
