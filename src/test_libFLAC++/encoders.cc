@@ -133,7 +133,7 @@ public:
 {
 	(void)buffer, (void)bytes, (void)samples, (void)current_frame;
 
-	return ::FLAC__STREAM_ENCODER_WRITE_OK;
+	return ::FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 }
 
 void StreamEncoder::metadata_callback(const ::FLAC__StreamMetadata *metadata)

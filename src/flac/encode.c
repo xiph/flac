@@ -1512,13 +1512,13 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 		if(encoder_wrapper->verify_fifo.into_frames) {
 			if(!FLAC__stream_decoder_process_one_frame(encoder_wrapper->verify_fifo.decoder)) {
 				encoder_wrapper->verify_fifo.result = FLAC__VERIFY_FAILED_IN_FRAME;
-				return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
+				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 			}
 		}
 		else {
 			if(!FLAC__stream_decoder_process_metadata(encoder_wrapper->verify_fifo.decoder)) {
 				encoder_wrapper->verify_fifo.result = FLAC__VERIFY_FAILED_IN_METADATA;
-				return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
+				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 			}
 		}
 	}
@@ -1550,22 +1550,22 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 			int written;
 			written = fwrite(encoder_wrapper->ogg.og.header, 1, encoder_wrapper->ogg.og.header_len, encoder_wrapper->fout);
 			if (written != encoder_wrapper->ogg.og.header_len)
-				return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
+				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 
 			written = fwrite(encoder_wrapper->ogg.og.body, 1, encoder_wrapper->ogg.og.body_len, encoder_wrapper->fout);
 			if (written != encoder_wrapper->ogg.og.body_len)
-				return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
+				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 		}
 
-		return FLAC__STREAM_ENCODER_WRITE_OK;
+		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 	}
 	else
 #endif
 	{
 		if(fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_wrapper->fout) == bytes)
-			return FLAC__STREAM_ENCODER_WRITE_OK;
+			return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 		else
-			return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
+			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 	}
 }
 
