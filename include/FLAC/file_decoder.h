@@ -118,6 +118,16 @@ FLAC__bool FLAC__file_decoder_set_metadata_ignore_all(FLAC__FileDecoder *decoder
  */
 FLAC__FileDecoderState FLAC__file_decoder_get_state(const FLAC__FileDecoder *decoder);
 FLAC__bool FLAC__file_decoder_get_md5_checking(const FLAC__FileDecoder *decoder);
+/*
+ * Methods to return the current number of channels, channel assignment
+ * bits-per-sample, sample rate in Hz, and blocksize in samples.  These
+ * will only be valid after decoding has started.
+ */
+unsigned FLAC__file_decoder_get_channels(const FLAC__FileDecoder *decoder);
+FLAC__ChannelAssignment FLAC__file_decoder_get_channel_assignment(const FLAC__FileDecoder *decoder);
+unsigned FLAC__file_decoder_get_bits_per_sample(const FLAC__FileDecoder *decoder);
+unsigned FLAC__file_decoder_get_sample_rate(const FLAC__FileDecoder *decoder);
+unsigned FLAC__file_decoder_get_blocksize(const FLAC__FileDecoder *decoder);
 
 /*
  * Initialize the instance; should be called after construction and

@@ -153,12 +153,22 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(FLAC__SeekableS
  */
 FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_state(const FLAC__SeekableStreamDecoder *decoder);
 FLAC__bool FLAC__seekable_stream_decoder_get_md5_checking(const FLAC__SeekableStreamDecoder *decoder);
+/*
+ * Methods to return the current number of channels, channel assignment
+ * bits-per-sample, sample rate in Hz, and blocksize in samples.  These
+ * will only be valid after decoding has started.
+ */
+unsigned FLAC__seekable_stream_decoder_get_channels(const FLAC__SeekableStreamDecoder *decoder);
+FLAC__ChannelAssignment FLAC__seekable_stream_decoder_get_channel_assignment(const FLAC__SeekableStreamDecoder *decoder);
+unsigned FLAC__seekable_stream_decoder_get_bits_per_sample(const FLAC__SeekableStreamDecoder *decoder);
+unsigned FLAC__seekable_stream_decoder_get_sample_rate(const FLAC__SeekableStreamDecoder *decoder);
+unsigned FLAC__seekable_stream_decoder_get_blocksize(const FLAC__SeekableStreamDecoder *decoder);
 
 /*
  * Initialize the instance; should be called after construction and
  * 'set' calls but before any of the 'process' or 'seek' calls.  Will
- * set and return the decoder state, which will be FLAC__SEEKABLE_STREAM_DECODER_OK
- * if initialization succeeded.
+ * set and return the decoder state, which will be
+ *  FLAC__SEEKABLE_STREAM_DECODER_OK if initialization succeeded.
  */
 FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__SeekableStreamDecoder *decoder);
 
@@ -169,6 +179,12 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__Seekab
  * MD5 sum and computed MD5 sum do not match.
  */
 FLAC__bool FLAC__seekable_stream_decoder_finish(FLAC__SeekableStreamDecoder *decoder);
+
+/*
+ * state control methods
+ */
+FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *decoder);
+FLAC__bool FLAC__seekable_stream_decoder_reset(FLAC__SeekableStreamDecoder *decoder);
 
 /*
  * Methods for decoding the data
