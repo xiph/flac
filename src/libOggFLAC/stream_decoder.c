@@ -30,7 +30,6 @@
  */
 
 #include <stdlib.h> /* for calloc() */
-#include <string.h> /* for memset() */
 #include "FLAC/assert.h"
 #include "protected/stream_decoder.h"
 
@@ -334,7 +333,7 @@ OggFLAC_API const char *OggFLAC__stream_decoder_get_resolved_state_string(const 
 	if(decoder->protected_->state != OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR)
 		return OggFLAC__StreamDecoderStateString[decoder->protected_->state];
 	else
-		return FLAC__StreamDecoderStateString[FLAC__stream_decoder_get_state(decoder->private_->FLAC_stream_decoder)];
+		return FLAC__stream_decoder_get_resolved_state_string(decoder->private_->FLAC_stream_decoder);
 }
 
 OggFLAC_API unsigned OggFLAC__stream_decoder_get_channels(const OggFLAC__StreamDecoder *decoder)

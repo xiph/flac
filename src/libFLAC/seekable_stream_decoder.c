@@ -470,7 +470,7 @@ FLAC_API const char *FLAC__seekable_stream_decoder_get_resolved_state_string(con
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR)
 		return FLAC__SeekableStreamDecoderStateString[decoder->protected_->state];
 	else
-		return FLAC__StreamDecoderStateString[FLAC__stream_decoder_get_state(decoder->private_->stream_decoder)];
+		return FLAC__stream_decoder_get_resolved_state_string(decoder->private_->stream_decoder);
 }
 
 FLAC_API FLAC__bool FLAC__seekable_stream_decoder_get_md5_checking(const FLAC__SeekableStreamDecoder *decoder)
