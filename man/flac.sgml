@@ -125,12 +125,23 @@
 
 	    <variablelist>
 	      <varlistentry>
-		<term><option>-v</option>
+		<term><option>--a-rtext</option>
 		</term>
 		<listitem>
-		  <para>Verbose mode.  Includes the residual signal in
-		    the analysis file.  This will make the file very
-		    big, much larger than even the decoded file.</para>
+		  <para>Includes the residual signal in the analysis
+		    file.  This will make the file very big, much
+		    larger than even the decoded file.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>--a-rgp</option>
+		</term>
+		<listitem>
+		  <para>Generates a gnuplot file for every subframe;
+		    each file will contain the residual distribution
+		    of the subframe.  This will create a lot of
+		    files.</para>
 		</listitem>
 	      </varlistentry>
 
