@@ -74,6 +74,14 @@ void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analys
 				for(i = 0; i < subframe->data.fixed.order; i++)
 					fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.fixed.warmup[i]);
 				if(aopts.do_residual_text) {
+					const unsigned partitions = (1u << subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
+					for(i = 0; i < partitions; i++) {
+						unsigned parameter = subframe->data.fixed.entropy_coding_method.data.partitioned_rice.parameters[i];
+						if(parameter == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER)
+							fprintf(fout, "\t\tparameter[%u]=ESCAPE, raw_bits=%u\n", i, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.raw_bits[i]);
+						else
+							fprintf(fout, "\t\tparameter[%u]=%u\n", i, parameter);
+					}
 					for(i = 0; i < frame->header.blocksize-subframe->data.fixed.order; i++)
 						fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.fixed.residual[i]);
 				}
@@ -83,6 +91,14 @@ void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analys
 				for(i = 0; i < subframe->data.lpc.order; i++)
 					fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.lpc.warmup[i]);
 				if(aopts.do_residual_text) {
+					const unsigned partitions = (1u << subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
+					for(i = 0; i < partitions; i++) {
+						unsigned parameter = subframe->data.lpc.entropy_coding_method.data.partitioned_rice.parameters[i];
+						if(parameter == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER)
+							fprintf(fout, "\t\tparameter[%u]=ESCAPE, raw_bits=%u\n", i, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.raw_bits[i]);
+						else
+							fprintf(fout, "\t\tparameter[%u]=%u\n", i, parameter);
+					}
 					for(i = 0; i < frame->header.blocksize-subframe->data.lpc.order; i++)
 						fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.lpc.residual[i]);
 				}
