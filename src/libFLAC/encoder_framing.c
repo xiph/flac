@@ -45,37 +45,41 @@ bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuf
 		return false;
 
 	switch(metadata->type) {
-		case FLAC__METADATA_TYPE_ENCODING:
-			assert(metadata->data.encoding.min_blocksize < (1u << FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.encoding.min_blocksize, FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN))
+		case FLAC__METADATA_TYPE_STREAMINFO:
+			assert(metadata->data.stream_info.min_blocksize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN));
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.min_blocksize, FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN))
 				return false;
-			assert(metadata->data.encoding.max_blocksize < (1u << FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.encoding.max_blocksize, FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN))
+			assert(metadata->data.stream_info.max_blocksize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN));
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.max_blocksize, FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN))
 				return false;
-			assert(metadata->data.encoding.min_framesize < (1u << FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.encoding.min_framesize, FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN))
+			assert(metadata->data.stream_info.min_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN));
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.min_framesize, FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN))
 				return false;
-			assert(metadata->data.encoding.max_framesize < (1u << FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.encoding.max_framesize, FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN))
+			assert(metadata->data.stream_info.max_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN));
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.max_framesize, FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN))
 				return false;
-			assert(metadata->data.encoding.sample_rate > 0);
-			assert(metadata->data.encoding.sample_rate < (1u << FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.encoding.sample_rate, FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN))
+			assert(metadata->data.stream_info.sample_rate > 0);
+			assert(metadata->data.stream_info.sample_rate < (1u << FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN));
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.sample_rate, FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN))
 				return false;
-			assert(metadata->data.encoding.channels > 0);
-			assert(metadata->data.encoding.channels <= (1u << FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.encoding.channels-1, FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN))
+			assert(metadata->data.stream_info.channels > 0);
+			assert(metadata->data.stream_info.channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN));
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.channels-1, FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN))
 				return false;
-			assert(metadata->data.encoding.bits_per_sample > 0);
-			assert(metadata->data.encoding.bits_per_sample <= (1u << FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.encoding.bits_per_sample-1, FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN))
+			assert(metadata->data.stream_info.bits_per_sample > 0);
+			assert(metadata->data.stream_info.bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.bits_per_sample-1, FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN))
 				return false;
-			if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.encoding.total_samples, FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN))
+			if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.stream_info.total_samples, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN))
 				return false;
 			for(i = 0; i < 16; i++) {
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.encoding.md5sum[i], 8))
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.md5sum[i], 8))
 					return false;
 			}
+			break;
+		case FLAC__METADATA_TYPE_PADDING:
+			if(!FLAC__bitbuffer_write_zeroes(bb, metadata->length * 8))
+				return false;
 			break;
 		default:
 			assert(0);
@@ -118,7 +122,7 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))
 		return false;
 
-	assert(header->sample_rate > 0 && header->sample_rate < (1u << FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN));
+	assert(header->sample_rate > 0 && header->sample_rate < (1u << FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN));
 	sample_rate_hint = 0;
 	switch(header->sample_rate) {
 		case  8000: u = 4; break;
@@ -145,7 +149,7 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_SAMPLE_RATE_LEN))
 		return false;
 
-	assert(header->channels > 0 && header->channels <= (1u << FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN) && header->channels <= FLAC__MAX_CHANNELS);
+	assert(header->channels > 0 && header->channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN) && header->channels <= FLAC__MAX_CHANNELS);
 	switch(header->channel_assignment) {
 		case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
 			u = header->channels - 1;
@@ -168,7 +172,7 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN))
 		return false;
 
-	assert(header->bits_per_sample > 0 && header->bits_per_sample <= (1u << FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN));
+	assert(header->bits_per_sample > 0 && header->bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
 	switch(header->bits_per_sample) {
 		case 8 : u = 1; break;
 		case 12: u = 2; break;

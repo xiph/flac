@@ -25,16 +25,18 @@ const byte     FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
 const unsigned FLAC__STREAM_SYNC = 0x664C6143;
 const unsigned FLAC__STREAM_SYNC_LEN = 32; /* bits */;
 
-const unsigned FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN = 16; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN = 16; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN = 24; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN = 24; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN = 20; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN = 3; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN = 5; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN = 36; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_MD5SUM_LEN = 128; /* bits */
-const unsigned FLAC__STREAM_METADATA_ENCODING_LENGTH = 34; /* bytes */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN = 16; /* bits */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN = 16; /* bits */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN = 24; /* bits */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN = 24; /* bits */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN = 20; /* bits */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN = 3; /* bits */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN = 5; /* bits */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN = 36; /* bits */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN = 128; /* bits */
+const unsigned FLAC__STREAM_METADATA_STREAMINFO_LENGTH = 34; /* bytes */
+
+const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN = 128; /* bits */
 
 const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN = 1; /* bits */
 const unsigned FLAC__STREAM_METADATA_TYPE_LEN = 7; /* bits */
@@ -81,5 +83,7 @@ const char *FLAC__ChannelAssignmentString[] = {
 };
 
 const char *FLAC__MetaDataTypeString[] = {
-	"ENCODING"
+	"STREAMINFO",
+	"PADDING",
+	"APPLICATION"
 };
