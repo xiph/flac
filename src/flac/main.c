@@ -52,6 +52,7 @@ static void free_options();
 
 static int usage_error(const char *message, ...);
 static void short_usage();
+static void show_version();
 static void show_help();
 static void show_explain();
 static void format_mistake(const char *infilename, const char *wrong, const char *right);
@@ -72,6 +73,8 @@ static struct FLAC__share__option long_options_[] = {
 	 * general options
 	 */
 	{ "help", 0, 0, 'h' },
+	{ "explain", 0, 0, 'H' },
+	{ "version", 0, 0, 'v' },
 	{ "decode", 0, 0, 'd' },
 	{ "analyze", 0, 0, 'a' },
 	{ "test", 0, 0, 't' },
@@ -176,6 +179,7 @@ static struct FLAC__share__option long_options_[] = {
 static struct {
 	FLAC__bool show_help;
 	FLAC__bool show_explain;
+	FLAC__bool show_version;
 	FLAC__bool mode_decode;
 	FLAC__bool verify;
 	FLAC__bool verbose;
@@ -246,7 +250,11 @@ int do_it()
 {
 	int retval = 0;
 
-	if(option_values.show_explain) {
+	if(option_values.show_version) {
+		show_version();
+		return 0;
+	}
+	else if(option_values.show_explain) {
 		show_explain();
 		return 0;
 	}
@@ -462,7 +470,7 @@ int parse_options(int argc, char *argv[])
 	int option_index = 1;
 	FLAC__bool had_error = false;
 	/*@@@ E and R: are deprecated */
-	const char *short_opts = "0123456789ab:cdeFhHl:mMo:pP:q:r:sS:tV";
+	const char *short_opts = "0123456789ab:cdeFhHl:mMo:pP:q:r:sS:tvV";
 
 	while ((short_option = FLAC__share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
 		switch (short_option) {
@@ -641,6 +649,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 'H':
 				option_values.show_explain = true;
+				break;
+			case 'v':
+				option_values.show_version = true;
 				break;
 			case 'd':
 				option_values.mode_decode = true;
@@ -854,6 +865,11 @@ int usage_error(const char *message, ...)
 	return 1;
 }
 
+void show_version()
+{
+	printf("flac %s\n", FLAC__VERSION_STRING);
+}
+
 static void usage_header()
 {
 	printf("===============================================================================\n");
@@ -911,6 +927,7 @@ void show_help()
 	usage_header();
 	usage_summary();
 	printf("generic options:\n");
+	printf("  -v, --version                Show the flac version number\n");
 	printf("  -h, --help                   Show this screen\n");
 	printf("  -H, --explain                Show detailed explanation of usage and options\n");
 	printf("  -d, --decode                 Decode (the default behavior is to encode)\n");
@@ -1016,6 +1033,7 @@ void show_explain()
 	printf("files using -fr.\n");
 	printf("\n");
 	printf("generic options:\n");
+	printf("  -v, --version                Show the flac version number\n");
 	printf("  -h, --help                   Show basic usage a list of all options\n");
 	printf("  -H, --explain                Show this screen\n");
 	printf("  -d, --decode                 Decode (the default behavior is to encode)\n");

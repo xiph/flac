@@ -72,6 +72,7 @@ static struct FLAC__share__option long_options_[] = {
     { "add-padding", 1, 0, 0 },
 	/* major operations */
     { "help", 0, 0, 0 },
+    { "version", 0, 0, 0 },
     { "list", 0, 0, 0 },
     { "append", 0, 0, 0 },
     { "remove", 0, 0, 0 },
@@ -188,6 +189,7 @@ typedef struct {
 	FLAC__bool utf8_convert;
 	FLAC__bool use_padding;
 	FLAC__bool show_long_help;
+	FLAC__bool show_version;
 	FLAC__bool application_data_format_is_hexdump;
 	struct {
 		Operation *operations;
@@ -219,6 +221,7 @@ static void append_new_argument(CommandLineOptions *options, Argument argument);
 static Operation *append_major_operation(CommandLineOptions *options, OperationType type);
 static Operation *append_shorthand_operation(CommandLineOptions *options, OperationType type);
 static Argument *append_argument(CommandLineOptions *options, ArgumentType type);
+static void show_version();
 static int short_usage(const char *message, ...);
 static int long_usage(const char *message, ...);
 static char *local_strdup(const char *source);
@@ -286,6 +289,7 @@ void init_options(CommandLineOptions *options)
 	options->utf8_convert = true;
 	options->use_padding = true;
 	options->show_long_help = false;
+	options->show_version = false;
 	options->application_data_format_is_hexdump = false;
 
 	options->ops.operations = 0;
@@ -329,7 +333,7 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 	if(options->prefix_with_filename == 2)
 		options->prefix_with_filename = (argc - FLAC__share__optind > 1);
 
-	if(FLAC__share__optind >= argc && !options->show_long_help) {
+	if(FLAC__share__optind >= argc && !options->show_long_help && !options->show_version) {
 		fprintf(stderr,"ERROR: you must specify at least one FLAC file;\n");
 		fprintf(stderr,"       metaflac cannot be used as a pipe\n");
 		had_error = true;
@@ -472,6 +476,9 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	}
     else if(0 == strcmp(opt, "help")) {
 		options->show_long_help = true;
+	}
+    else if(0 == strcmp(opt, "version")) {
+		options->show_version = true;
 	}
     else if(0 == strcmp(opt, "list")) {
 		(void) append_major_operation(options, OP__LIST);
@@ -671,6 +678,11 @@ Argument *append_argument(CommandLineOptions *options, ArgumentType type)
 	return options->args.arguments + (options->args.num_arguments - 1);
 }
 
+void show_version()
+{
+	printf("metaflac %s\n", FLAC__VERSION_STRING);
+}
+
 static void usage_header(FILE *out)
 {
 	fprintf(out, "==============================================================================\n");
@@ -784,6 +796,8 @@ int long_usage(const char *message, ...)
     fprintf(out, "                      the extra 4 bytes is for the metadata block header.\n");
     fprintf(out, "\n");
     fprintf(out, "Major operations:\n");
+    fprintf(out, "--version\n");
+    fprintf(out, "    Show the metaflac version number.\n");
     fprintf(out, "--list\n");
     fprintf(out, "    List the contents of one or more metadata blocks to stdout.  By default,\n");
     fprintf(out, "    all metadata blocks are listed in text format.  Use the following options\n");
@@ -1093,6 +1107,9 @@ FLAC__bool do_operations(const CommandLineOptions *options)
 
 	if(options->show_long_help) {
 		long_usage(0);
+	}
+	if(options->show_version) {
+		show_version();
 	}
 	else if(options->args.checks.num_major_ops > 0) {
 		FLAC__ASSERT(options->args.checks.num_shorthand_ops == 0);
