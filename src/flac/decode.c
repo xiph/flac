@@ -101,7 +101,7 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, anal
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_seek_absolute(decoder, skip)) {
-			fprintf(stderr, "%s: ERROR seeking while skipping bytes\n", infile);
+			fprintf(stderr, "%s: ERROR seeking while skipping bytes, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
@@ -209,7 +209,7 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, anal
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_seek_absolute(decoder, skip)) {
-			fprintf(stderr, "%s: ERROR seeking while skipping bytes\n", infile);
+			fprintf(stderr, "%s: ERROR seeking while skipping bytes, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
