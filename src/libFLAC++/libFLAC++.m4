@@ -40,8 +40,10 @@ AC_ARG_ENABLE(libFLACPPtest, [  --disable-libFLACPPtest       Do not try to comp
 
   if test "x$enable_libFLACPPtest" = "xyes" ; then
     ac_save_CFLAGS="$CFLAGS"
+    ac_save_CXXFLAGS="$CXXFLAGS"
     ac_save_LIBS="$LIBS"
     CFLAGS="$CFLAGS $LIBFLACPP_CFLAGS"
+    CXXFLAGS="$CXXFLAGS $LIBFLACPP_CFLAGS"
     LIBS="$LIBS $LIBFLACPP_LIBS"
 dnl
 dnl Now check if the installed libFLAC++ is sufficiently new.

@@ -37,8 +37,10 @@ AC_ARG_ENABLE(libFLACtest, [  --disable-libFLACtest       Do not try to compile 
 
   if test "x$enable_libFLACtest" = "xyes" ; then
     ac_save_CFLAGS="$CFLAGS"
+    ac_save_CXXFLAGS="$CXXFLAGS"
     ac_save_LIBS="$LIBS"
     CFLAGS="$CFLAGS $LIBFLAC_CFLAGS"
+    CXXFLAGS="$CXXFLAGS $LIBFLAC_CFLAGS"
     LIBS="$LIBS $LIBFLAC_LIBS"
 dnl
 dnl Now check if the installed libFLAC is sufficiently new.
