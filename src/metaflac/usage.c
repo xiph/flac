@@ -161,7 +161,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "       #s : a seekpoint every # seconds; # does not have to be a whole number\n");
 	fprintf(out, "                      If no SEEKTABLE block exists, one will be created.  If\n");
 	fprintf(out, "                      one already exists, points will be added to the existing\n");
-	fprintf(out, "                      table, and duplicates will be turned into placeholder\n");
+	fprintf(out, "                      table, and any duplicates will be turned into placeholder\n");
 	fprintf(out, "                      points.  You may use many --add-seekpoint options; the\n");
 	fprintf(out, "                      resulting SEEKTABLE will be the unique-ified union of\n");
 	fprintf(out, "                      all such values.  Example: --add-seekpoint=100x\n");
