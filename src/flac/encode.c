@@ -72,9 +72,11 @@ typedef struct {
 	uint64 total_samples_to_encode;
 	uint64 bytes_written;
 	uint64 samples_written;
+	uint64 stream_offset; /* i.e. number of bytes before the first byte of the the first frame's header */
 	unsigned current_frame;
 	verify_fifo_struct verify_fifo;
 	FLAC__StreamMetaData_SeekTable seek_table;
+	unsigned first_seek_point_to_check;
 } encoder_wrapper_struct;
 
 static bool is_big_endian_host;
@@ -120,6 +122,8 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 	encoder_wrapper.bytes_written = 0;
 	encoder_wrapper.samples_written = 0;
 	encoder_wrapper.outfile = outfile;
+	encoder_wrapper.seek_table.points = 0;
+	encoder_wrapper.first_seek_point_to_check = 0;
 
 	if(0 == strcmp(infile, "-")) {
 		fin = stdin;
@@ -300,6 +304,8 @@ wav_end_:
 		print_stats(&encoder_wrapper);
 		printf("\n");
 	}
+	if(0 != encoder_wrapper.seek_table.points)
+		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
 			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfile);
@@ -319,6 +325,8 @@ wav_abort_:
 			FLAC__encoder_finish(encoder_wrapper.encoder);
 		FLAC__encoder_free_instance(encoder_wrapper.encoder);
 	}
+	if(0 != encoder_wrapper.seek_table.points)
+		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
 			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfile);
@@ -346,6 +354,8 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 	encoder_wrapper.bytes_written = 0;
 	encoder_wrapper.samples_written = 0;
 	encoder_wrapper.outfile = outfile;
+	encoder_wrapper.seek_table.points = 0;
+	encoder_wrapper.first_seek_point_to_check = 0;
 
 	if(0 == strcmp(infile, "-")) {
 		fin = stdin;
@@ -445,6 +455,8 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 		print_stats(&encoder_wrapper);
 		printf("\n");
 	}
+	if(0 != encoder_wrapper.seek_table.points)
+		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
 			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfile);
@@ -464,6 +476,8 @@ raw_abort_:
 			FLAC__encoder_finish(encoder_wrapper.encoder);
 		FLAC__encoder_free_instance(encoder_wrapper.encoder);
 	}
+	if(0 != encoder_wrapper.seek_table.points)
+		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
 			printf("Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfile);
@@ -569,6 +583,9 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 		return false;
 	}
 
+	/* the above call write all the metadata, so we save the stream offset now */
+	encoder_wrapper->stream_offset = encoder_wrapper->bytes_written;
+
 	return true;
 }
 
@@ -613,6 +630,13 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 	/* make some space */
 	if(0 == (seek_table->points = (FLAC__StreamMetaData_SeekPoint*)malloc(sizeof(FLAC__StreamMetaData_SeekPoint) * (real_points+placeholders))))
 		return false;
+
+	/* initialize the seek_table.  we set frame_samples to zero to signify the points have not yet been hit by a frame write yet. */
+	for(i = 0; i < real_points+placeholders; i++) {
+		seek_table->points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+		seek_table->points[i].stream_offset = 0;
+		seek_table->points[i].frame_samples = 0;
+	}
 
 	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
 		q = strchr(pt, ',');
@@ -760,6 +784,28 @@ FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	unsigned mask = (encoder->do_exhaustive_model_search || encoder->do_qlp_coeff_prec_search)? 0x07 : 0x1f;
+
+	/* mark the current seek point if hit */
+	if(encoder_wrapper->seek_table.num_points > 0) {
+		uint64 current_sample = (uint64)current_frame * (uint64)encoder->blocksize, test_sample;
+		unsigned i;
+		for(i = encoder_wrapper->first_seek_point_to_check; i < encoder_wrapper->seek_table.num_points; i++) {
+			test_sample = encoder_wrapper->seek_table.points[i].sample_number;
+			if(test_sample > current_sample) {
+				break;
+			}
+			else if(test_sample == current_sample) {
+				encoder_wrapper->seek_table.points[i].stream_offset = encoder_wrapper->bytes_written - encoder_wrapper->stream_offset;
+				encoder_wrapper->seek_table.points[i].frame_samples = encoder->blocksize;
+				encoder_wrapper->first_seek_point_to_check++;
+fprintf(stderr,"\nHIT seek point %llu at frame %u, stream_offset = %llu, first_frame_offset = %llu\n",encoder_wrapper->seek_table.points[i].sample_number,current_frame,encoder_wrapper->seek_table.points[i].stream_offset,encoder_wrapper->stream_offset);
+				break;
+			}
+			else {
+				encoder_wrapper->first_seek_point_to_check++;
+			}
+		}
+	}
 
 	encoder_wrapper->bytes_written += bytes;
 	encoder_wrapper->samples_written += samples;
