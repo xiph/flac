@@ -109,7 +109,7 @@ int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsig
 		return 2;
 	}
 	else {
-		const int maxshift = (int)precision - floor(log(cmax) / M_LN2) - 1;
+		const int maxshift = (int)precision - (int)floor(log(cmax) / M_LN2) - 1;
 		const int max_shiftlimit = (1 << (FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN-1)) - 1;
 		const int min_shiftlimit = -max_shiftlimit - 1;
 
