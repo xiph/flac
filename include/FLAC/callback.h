@@ -68,15 +68,16 @@
  *  opaque structure for a data source.
  *
  *  The callback function prototypes are similar (but not identical) to the
- *  stdio functions fread, fwrite, fseek, ftell, and fclose.  If you use stdio
- *  streams to implement the callbacks, you can pass fread, fwrite, and fclose
- *  anywhere a FLAC__IOCallback_Read, FLAC__IOCallback_Write, or
+ *  stdio functions fread, fwrite, fseek, ftell, feof, and fclose.  If you use
+ *  stdio streams to implement the callbacks, you can pass fread, fwrite, and
+ *  fclose anywhere a FLAC__IOCallback_Read, FLAC__IOCallback_Write, or
  *  FLAC__IOCallback_Close is required, and a FILE* anywhere a FLAC__IOHandle
  *  is required.  \warning You generally can NOT directly use fseek or ftell
  *  for FLAC__IOCallback_Seek or FLAC__IOCallback_Tell since on most systems
  *  these use 32-bit offsets and FLAC requires 64-bit offsets to deal with
  *  large files.  You will have to find an equivalent function (e.g. ftello),
- *  or write a wrapper.
+ *  or write a wrapper.  The same is true for feof() since this is usually
+ *  implemented as a macro, not as a function whose address can be taken.
  */
 
 #ifdef __cplusplus
@@ -135,6 +136,17 @@ typedef int (*FLAC__IOCallback_Seek) (FLAC__IOHandle handle, FLAC__int64 offset,
  */
 typedef FLAC__int64 (*FLAC__IOCallback_Tell) (FLAC__IOHandle handle);
 
+/** Signature for the EOF callback.
+ *  The signature and semantics mostly match POSIX feof() but WATCHOUT:
+ *  on many systems, feof() is a macro, so in this case a wrapper function
+ *  must be provided instead.
+ *
+ * \param  handle   The handle to the data source.
+ * \retval int
+ *    \c 0 if not at end of file, nonzero if at end of file.
+ */
+typedef int (*FLAC__IOCallback_Eof) (FLAC__IOHandle handle);
+
 /** Signature for the close callback.
  *  The signature and semantics match POSIX fclose() implementations
  *  and can generally be used interchangeably.
@@ -158,6 +170,7 @@ typedef struct {
 	FLAC__IOCallback_Write write;
 	FLAC__IOCallback_Seek seek;
 	FLAC__IOCallback_Tell tell;
+	FLAC__IOCallback_Eof eof;
 	FLAC__IOCallback_Close close;
 } FLAC__IOCallbacks;
 
