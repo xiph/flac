@@ -2,8 +2,10 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 LIB_NAME = libplugin_common
-INCLUDES = -I../../include -I$(HOME)/local/include
+INCLUDES = -I$(topdir)/include -I$(HOME)/local/include
 DEFINES  = -DFLAC__HAS_ID3LIB -DID3LIB_MAJOR=3 -DID3LIB_MINOR=8 -DID3LIB_PATCH=0
 
 OBJS = \
@@ -14,6 +16,6 @@ OBJS = \
 	id3v2.o \
 	vorbiscomment.o
 
-include ../../build/lib.mk
+include $(topdir)/build/lib.mk
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

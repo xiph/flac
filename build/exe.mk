@@ -34,13 +34,13 @@ else
 LINKAGE     = -static
 endif
 LINK        = $(CC) $(LINKAGE)
-BINPATH     = ../../obj/bin
-LIBPATH     = ../../obj/lib
+BINPATH     = $(topdir)/obj/bin
+LIBPATH     = $(topdir)/obj/lib
 PROGRAM     = $(BINPATH)/$(PROGRAM_NAME)
 
 all : release
 
-include ../../build/config.mk
+include $(topdir)/build/config.mk
 
 debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -Winline -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)

@@ -18,6 +18,9 @@
 #
 # GNU makefile
 #
+
+topdir = ..
+
 all: clean
 	FLAC__EXHAUSTIVE_TESTS=yes ./test_libFLAC.sh
 	FLAC__EXHAUSTIVE_TESTS=yes ./test_libFLAC++.sh

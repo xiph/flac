@@ -19,18 +19,20 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 PROGRAM_NAME = flac
 ifeq ($(DARWIN_BUILD),yes)
-INCLUDES     = -I./include -I../../include
+INCLUDES     = -I./include -I$(topdir)/include
 LIBS         = -lFLAC -lgetopt -lutf8 -lc -lm
 else
 #@@@ TODO: conditionalize ogg includes, defines, and -logg
 ifeq ($(SOLARIS_BUILD),yes)
-INCLUDES     = -I./include -I../../include -I$(HOME)/local/include -DFLAC__HAS_OGG
+INCLUDES     = -I./include -I$(topdir)/include -I$(HOME)/local/include -DFLAC__HAS_OGG
 LIBS         = -lOggFLAC -lFLAC -lgetopt -lutf8 -lm -L$(HOME)/local/lib -logg
 else
 #@@@ TODO: conditionalize ogg includes, defines, and -logg
-INCLUDES     = -I./include -I../../include -I$(HOME)/local/include -DFLAC__HAS_OGG
+INCLUDES     = -I./include -I$(topdir)/include -I$(HOME)/local/include -DFLAC__HAS_OGG
 LIBS         = -lOggFLAC -lFLAC -lgetopt -lutf8 -lm -L$(HOME)/local/lib -logg
 endif
 endif
@@ -43,6 +45,6 @@ OBJS = \
 	main.o \
 	vorbiscomment.o
 
-include ../../build/exe.mk
+include $(topdir)/build/exe.mk
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

@@ -28,7 +28,7 @@ CCC         = g++
 endif
 NASM        = nasm
 LINK        = ar cru
-LIBPATH     = ../../obj/lib
+LIBPATH     = $(topdir)/obj/lib
 ifeq ($(DARWIN_BUILD),yes)
 STATIC_LIB_SUFFIX = a
 DYNAMIC_LIB_SUFFIX = dylib
@@ -46,7 +46,7 @@ endif
 
 all : release
 
-include ../../build/config.mk
+include $(topdir)/build/config.mk
 
 debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -Winline -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)

@@ -19,9 +19,11 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 PROGRAM_NAME = test_libOggFLAC
 #@@@ TODO: conditionalize ogg lib path and -logg
-INCLUDES     = -I../../include
+INCLUDES     = -I$(topdir)/include
 LIBS         = -lOggFLAC -lFLAC -lm -L$(HOME)/local/lib -logg
 OBJS = \
 	decoders.o \
@@ -30,6 +32,6 @@ OBJS = \
 	main.o \
 	metadata_utils.o
 
-include ../../build/exe.mk
+include $(topdir)/build/exe.mk
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

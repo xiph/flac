@@ -19,8 +19,10 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 PROGRAM_NAME = test_libFLAC++
-INCLUDES     = -I../../include
+INCLUDES     = -I$(topdir)/include
 LIBS         = -lFLAC++ -lFLAC -lm
 OBJS = \
 	decoders.o \
@@ -31,7 +33,7 @@ OBJS = \
 	metadata_manip.o \
 	metadata_object.o
 
-include ../../build/exe.mk
+include $(topdir)/build/exe.mk
 
 LINK = $(CCC) $(LINKAGE)
 

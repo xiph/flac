@@ -20,8 +20,10 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 LIB_NAME = libFLAC++
-INCLUDES = -I../../include
+INCLUDES = -I$(topdir)/include
 
 OBJS = \
 	file_decoder.o \
@@ -32,6 +34,6 @@ OBJS = \
 	stream_decoder.o \
 	stream_encoder.o
 
-include ../../build/lib.mk
+include $(topdir)/build/lib.mk
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

@@ -21,7 +21,7 @@
 
 VERSION=\"1.0.4\"
 
-ORDINALS_H = ../../include/FLAC/ordinals.h
+ORDINALS_H = $(topdir)/include/FLAC/ordinals.h
 
 $(ORDINALS_H): $(ORDINALS_H).in
 	sed \

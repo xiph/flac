@@ -19,8 +19,10 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 PROGRAM_NAME = test_libFLAC
-INCLUDES     = -I../libFLAC/include -I../../include
+INCLUDES     = -I../libFLAC/include -I$(topdir)/include
 LIBS         = -lFLAC -lm
 OBJS = \
 	bitbuffer.o \
@@ -33,6 +35,6 @@ OBJS = \
 	metadata_object.o \
 	metadata_utils.o
 
-include ../../build/exe.mk
+include $(topdir)/build/exe.mk
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

@@ -2,14 +2,16 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 LIB_NAME = libgetopt
-INCLUDES = -I../../include -I../../include/share
+INCLUDES = -I$(topdir)/include -I$(topdir)/include/share
 
 OBJS = \
 	getopt.o \
 	getopt1.o
 
-include ../../build/lib.mk
+include $(topdir)/build/lib.mk
 
 # Our lame Makefile.lite system has no provision for building multiple libs in
 # a directory, so we hack it:

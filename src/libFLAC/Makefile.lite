@@ -20,6 +20,8 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 LIB_NAME = libFLAC
 ifeq ($(DARWIN_BUILD),yes)
 DEFINES = -DFLAC__NO_NASM -DFLAC__ALIGN_MALLOC_DATA
@@ -30,7 +32,7 @@ else
 DEFINES = -DFLAC__CPU_IA32 -DFLAC__HAS_NASM -DFLAC__ALIGN_MALLOC_DATA
 endif
 endif
-INCLUDES = -I./include -I../../include
+INCLUDES = -I./include -I$(topdir)/include
 DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
 ifeq ($(DARWIN_BUILD),yes)
@@ -64,6 +66,6 @@ OBJS = $(ASM_OBJS) \
 	stream_encoder.o \
 	stream_encoder_framing.o
 
-include ../../build/lib.mk
+include $(topdir)/build/lib.mk
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

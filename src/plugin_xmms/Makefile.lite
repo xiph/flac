@@ -19,9 +19,11 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 LIB_NAME  = libxmms-flac
-INCLUDES  = $(shell xmms-config --cflags) -I./include -I../../include -I..
-LIBS = ../../obj/lib/libFLAC.a ../../obj/lib/libplugin_common.a
+INCLUDES  = $(shell xmms-config --cflags) -I./include -I$(topdir)/include -I..
+LIBS = $(topdir)/obj/lib/libFLAC.a $(topdir)/obj/lib/libplugin_common.a
 
 OBJS = \
 	charset.o \
@@ -29,6 +31,6 @@ OBJS = \
 	plugin.o \
 	wrap_id3.o
 
-include ../../build/lib.mk
+include $(topdir)/build/lib.mk
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

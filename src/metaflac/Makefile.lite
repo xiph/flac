@@ -19,13 +19,15 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 PROGRAM_NAME = metaflac
-INCLUDES     = -I./include -I../../include
+INCLUDES     = -I./include -I$(topdir)/include
 LIBS         = -lFLAC -lgetopt -lutf8 -lm
 
 OBJS = \
 	main.o
 
-include ../../build/exe.mk
+include $(topdir)/build/exe.mk
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

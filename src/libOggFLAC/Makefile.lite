@@ -20,6 +20,8 @@
 # GNU makefile
 #
 
+topdir = ../..
+
 LIB_NAME = libOggFLAC
 ifeq ($(DARWIN_BUILD),yes)
 DEFINES =
@@ -30,13 +32,13 @@ else
 DEFINES =
 endif
 endif
-INCLUDES = -I./include -I../../include -I$(HOME)/local/include
+INCLUDES = -I./include -I$(topdir)/include -I$(HOME)/local/include
 DEBUG_CFLAGS = 
 
 OBJS = \
 	stream_decoder.o \
 	stream_encoder.o
 
-include ../../build/lib.mk
+include $(topdir)/build/lib.mk
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
