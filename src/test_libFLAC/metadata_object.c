@@ -1244,6 +1244,16 @@ FLAC__bool test_metadata_object()
 		return false;
 	printf("OK\n");
 
+	printf("testing FLAC__metadata_object_cuesheet_insert_blank_track() on end of non-empty array...");
+	cs_insert_new_(&track, cuesheet, 4, 0, 0, "\0\0\0\0\0\0\0\0\0\0\0\0", false, false);
+	if(!FLAC__metadata_object_cuesheet_insert_blank_track(block, 4)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!mutils__compare_block(cuesheet, block))
+		return false;
+	printf("OK\n");
+
 	printf("testing FLAC__metadata_object_clone()... ");
 	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
@@ -1256,6 +1266,16 @@ FLAC__bool test_metadata_object()
 
 	printf("testing FLAC__metadata_object_delete()... ");
 	FLAC__metadata_object_delete(blockcopy);
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_delete_track() on end of array...");
+	cs_delete_(cuesheet, 4);
+	if(!FLAC__metadata_object_cuesheet_delete_track(block, 4)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!mutils__compare_block(cuesheet, block))
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_cuesheet_delete_track() on middle of array...");
@@ -1373,6 +1393,18 @@ FLAC__bool test_metadata_object()
 		return false;
 	printf("OK\n");
 
+	index.offset = 0;
+	index.number = 0;
+	printf("testing FLAC__metadata_object_cuesheet_track_insert_blank_index() on end of non-empty array...");
+	tr_insert_new_(cuesheet, 0, 4, index);
+	if(!FLAC__metadata_object_cuesheet_track_insert_blank_index(block, 0, 4)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!mutils__compare_block(cuesheet, block))
+		return false;
+	printf("OK\n");
+
 	printf("testing FLAC__metadata_object_clone()... ");
 	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
@@ -1385,6 +1417,16 @@ FLAC__bool test_metadata_object()
 
 	printf("testing FLAC__metadata_object_delete()... ");
 	FLAC__metadata_object_delete(blockcopy);
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_cuesheet_track_delete_index() on end of array...");
+	tr_delete_(cuesheet, 0, 4);
+	if(!FLAC__metadata_object_cuesheet_track_delete_index(block, 0, 4)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!mutils__compare_block(cuesheet, block))
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_cuesheet_track_delete_index() on middle of array...");
