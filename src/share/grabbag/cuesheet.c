@@ -100,8 +100,12 @@ static FLAC__int64 local__parse_msf_(const char *s)
 	else
 		return -1;
 	if(':' != (c = *s++)) {
-		if(c >= '0' && c <= '9')
+		if(c >= '0' && c <= '9') {
 			field = field * 10 + (c - '0');
+			c = *s++;
+			if(c != ':')
+				return -1;
+		}
 		else
 			return -1;
 	}
@@ -157,8 +161,10 @@ static char *local__get_field_(char **s)
 	if(p) {
 		while(**s && 0 == strchr(" \t\r\n", **s))
 			(*s)++;
-		if(**s)
+		if(**s) {
 			**s = '\0';
+			(*s)++;
+		}
 		else
 			*s = 0;
 	}
@@ -290,15 +296,18 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 				/* fill in track offset if it's the first index of the track */
 				if(track->num_indices == 0)
 					track->offset = (FLAC__uint64)xx;
-				if(is_cdda && cs->num_tracks > 0 && (FLAC__uint64)xx <= track->offset + track->indices[track->num_indices-1].offset) {
-					*error_message = "CD-DA INDEX offsets must increase in time";
-					return false;
+				if(is_cdda && cs->num_tracks > 1) {
+					const FLAC__StreamMetadata_CueSheet_Track *prev = &cs->tracks[cs->num_tracks-2];
+					if((FLAC__uint64)xx <= prev->offset + prev->indices[prev->num_indices-1].offset) {
+						*error_message = "CD-DA INDEX offsets must increase in time";
+						return false;
+					}
 				}
 				if(!FLAC__metadata_object_cuesheet_track_insert_blank_index(cuesheet, cs->num_tracks-1, track->num_indices)) {
 					*error_message = "memory allocation error";
 					return false;
 				}
-				track->indices[track->num_indices-1].offset = track->offset - (FLAC__uint64)xx;
+				track->indices[track->num_indices-1].offset = (FLAC__uint64)xx - track->offset;
 				track->indices[track->num_indices-1].number = in_index_num;
 			}
 			else if(0 == FLAC__STRCASECMP(field, "ISRC")) {
@@ -326,7 +335,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 						 	is_cdda &&
 							(
 								(prev->num_indices == 1 && prev->indices[0].number != 1) ||
-								(prev->num_indices == 2 && (prev->indices[0].number != 1 || prev->indices[1].number != 1))
+								(prev->num_indices == 2 && prev->indices[0].number != 1 && prev->indices[1].number != 1)
 							)
 						)
 					) {
@@ -376,7 +385,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 				if(0 != (field = local__get_field_(&line))) {
 					if(0 == strcmp(field, "FLAC__lead-in")) {
 						FLAC__int64 xx;
-						if(0 != (field = local__get_field_(&line))) {
+						if(0 == (field = local__get_field_(&line))) {
 							*error_message = "FLAC__lead-in is missing offset";
 							return false;
 						}
@@ -398,7 +407,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 							*error_message = "multiple FLAC__lead-out commands";
 							return false;
 						}
-						if(0 != (field = local__get_field_(&line))) {
+						if(0 == (field = local__get_field_(&line))) {
 							*error_message = "FLAC__lead-out is missing track number";
 							return false;
 						}
@@ -409,7 +418,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 						}
 						forced_leadout_track_num = (unsigned)track_num;
 						/*@@@@ search for duplicate track number? */
-						if(0 != (field = local__get_field_(&line))) {
+						if(0 == (field = local__get_field_(&line))) {
 							*error_message = "FLAC__lead-out is missing offset";
 							return false;
 						}
@@ -476,4 +485,48 @@ FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_mes
 	}
 
 	return cuesheet;
+}
+
+void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, const char *file_reference, FLAC__bool is_cdda)
+{
+	const FLAC__StreamMetadata_CueSheet *cs;
+	unsigned track_num, index_num;
+
+	FLAC__ASSERT(0 != file);
+	FLAC__ASSERT(0 != cuesheet);
+	FLAC__ASSERT(cuesheet->type == FLAC__METADATA_TYPE_CUESHEET);
+
+	cs = &cuesheet->data.cue_sheet;
+
+	if(*(cs->media_catalog_number))
+		fprintf(file, "CATALOG %s\n", cs->media_catalog_number);
+	fprintf(file, "FILE %s\n", file_reference);
+
+	for(track_num = 0; track_num < cs->num_tracks-1; track_num++) {
+		const FLAC__StreamMetadata_CueSheet_Track *track = cs->tracks + track_num;
+
+		fprintf(file, "  TRACK %02u %s\n", (unsigned)track->number, track->type == 0? "AUDIO" : "DATA");
+
+		if(track->pre_emphasis)
+			fprintf(file, "    FLAGS PRE\n");
+		if(*(track->isrc))
+			fprintf(file, "    ISRC %s\n", track->isrc);
+
+		for(index_num = 0; index_num < track->num_indices; index_num++) {
+			const FLAC__StreamMetadata_CueSheet_Index *index = track->indices + index_num;
+
+			fprintf(file, "    INDEX %02u ", (unsigned)index->number);
+			if(is_cdda) {
+				const unsigned logical_frame = (track->offset + index->offset) / (44100 / 75);
+				unsigned m, s, f;
+				grabbag__cuesheet_frame_to_msf(logical_frame, &m, &s, &f);
+				fprintf(file, "%02u:%02u:%02u\n", m, s, f);
+			}
+			else
+				fprintf(file, "%llu\n", track->offset + index->offset);
+		}
+	}
+
+	fprintf(file, "REM FLAC__lead-in %llu\n", cs->lead_in);
+	fprintf(file, "REM FLAC__lead-out %u %llu\n", (unsigned)cs->tracks[track_num].number, cs->tracks[track_num].offset);
 }
