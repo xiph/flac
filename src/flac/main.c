@@ -203,8 +203,6 @@ static struct {
 	FLAC__bool show_version;
 	FLAC__bool mode_decode;
 	FLAC__bool verify;
-	FLAC__bool verbose;
-	FLAC__bool silent;
 	FLAC__bool force_file_overwrite;
 	FLAC__bool continue_through_decode_errors;
 	replaygain_synthesis_spec_t replaygain_synthesis_spec;
@@ -276,7 +274,7 @@ int main(int argc, char *argv[])
 
 	setlocale(LC_ALL, "");
 	if(!init_options()) {
-		if(!option_values.silent) fprintf(stderr, "ERROR: allocating memory\n");
+		flac__utils_printf(stderr, 1, "ERROR: allocating memory\n");
 		retval = 1;
 	}
 	else {
@@ -307,7 +305,8 @@ int do_it()
 	}
 	else {
 		if(option_values.num_files == 0) {
-			if(!option_values.silent) short_usage();
+			if(flac__utils_verbosity_ >= 1)
+				short_usage();
 			return 0;
 		}
 
@@ -420,7 +419,7 @@ int do_it()
 			 * whole file.
 			 */
 			if(option_values.padding < 0) {
-				if(!option_values.silent) fprintf(stderr, "NOTE: --replay-gain may leave a small PADDING block even with --no-padding\n");
+				flac__utils_printf(stderr, 1, "NOTE: --replay-gain may leave a small PADDING block even with --no-padding\n");
 				option_values.padding = GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
 			}
 			else {
@@ -437,37 +436,36 @@ int do_it()
 			return usage_error("ERROR: --cuesheet cannot be used when encoding multiple files\n");
 		}
 	}
-	if(option_values.verbose) {
-		fprintf(stderr, "\n");
-		fprintf(stderr, "flac %s, Copyright (C) 2000,2001,2002,2003,2004 Josh Coalson\n", FLAC__VERSION_STRING);
-		fprintf(stderr, "flac comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are\n");
-		fprintf(stderr, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
-		if(!option_values.mode_decode) {
-			char padopt[16];
-			if(option_values.padding < 0)
-				strcpy(padopt, "-");
-			else
-				sprintf(padopt, " %d", option_values.padding);
-			fprintf(stderr,
-				"options:%s%s%s%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u%s\n",
-				option_values.delete_input?" --delete-input-file":"",
-				option_values.sector_align?" --sector-align":"",
-				option_values.use_ogg?" --ogg":"",
-				option_values.lax?" --lax":"",
-				padopt,
-				(unsigned)option_values.blocksize,
-				option_values.loose_mid_side?" -M":option_values.do_mid_side?" -m":"",
-				option_values.max_lpc_order,
-				option_values.do_exhaustive_model_search?" -e":"",
-				option_values.do_escape_coding?" -E":"",
-				option_values.do_qlp_coeff_prec_search?" -p":"",
-				option_values.qlp_coeff_precision,
-				(unsigned)option_values.min_residual_partition_order,
-				(unsigned)option_values.max_residual_partition_order,
-				option_values.verify? " -V":""
-			);
-		}
+	flac__utils_printf(stderr, 2, "\n");
+	flac__utils_printf(stderr, 2, "flac %s, Copyright (C) 2000,2001,2002,2003,2004 Josh Coalson\n", FLAC__VERSION_STRING);
+	flac__utils_printf(stderr, 2, "flac comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are\n");
+	flac__utils_printf(stderr, 2, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
+
+	if(!option_values.mode_decode) {
+		char padopt[16];
+		if(option_values.padding < 0)
+			strcpy(padopt, "-");
+		else
+			sprintf(padopt, " %d", option_values.padding);
+		flac__utils_printf(stderr, 2,
+			"options:%s%s%s%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u%s\n",
+			option_values.delete_input?" --delete-input-file":"",
+			option_values.sector_align?" --sector-align":"",
+			option_values.use_ogg?" --ogg":"",
+			option_values.lax?" --lax":"",
+			padopt,
+			(unsigned)option_values.blocksize,
+			option_values.loose_mid_side?" -M":option_values.do_mid_side?" -m":"",
+			option_values.max_lpc_order,
+			option_values.do_exhaustive_model_search?" -e":"",
+			option_values.do_escape_coding?" -E":"",
+			option_values.do_qlp_coeff_prec_search?" -p":"",
+			option_values.qlp_coeff_precision,
+			(unsigned)option_values.min_residual_partition_order,
+			(unsigned)option_values.max_residual_partition_order,
+			option_values.verify? " -V":""
+		);
 	}
 
 	if(option_values.mode_decode) {
@@ -510,17 +508,17 @@ int do_it()
 				for(i = 0; i < option_values.num_files; i++) {
 					const char *error, *outfilename = get_encoded_outfilename(option_values.filenames[i]);
 					if(0 == outfilename) {
-						if(!option_values.silent) fprintf(stderr, "ERROR: filename too long: %s", option_values.filenames[i]);
+						flac__utils_printf(stderr, 1, "ERROR: filename too long: %s", option_values.filenames[i]);
 						return 1;
 					}
 					if(0 == strcmp(option_values.filenames[i], "-")) {
 						FLAC__ASSERT(0);
 						/* double protection */
-						if(!option_values.silent) fprintf(stderr, "internal error\n");
+						flac__utils_printf(stderr, 1, "internal error\n");
 						return 2;
 					}
 					if(0 != (error = grabbag__replaygain_store_to_file_album(outfilename, album_gain, album_peak, /*preserve_modtime=*/true))) {
-						if(!option_values.silent) fprintf(stderr, "%s: ERROR writing ReplayGain album tags\n", outfilename);
+						flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain album tags\n", outfilename);
 						retval = 1;
 					}
 				}
@@ -537,8 +535,6 @@ FLAC__bool init_options()
 	option_values.show_explain = false;
 	option_values.mode_decode = false;
 	option_values.verify = false;
-	option_values.verbose = true;
-	option_values.silent = false;
 	option_values.force_file_overwrite = false;
 	option_values.continue_through_decode_errors = false;
 	option_values.replaygain_synthesis_spec.apply = false;
@@ -648,8 +644,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 	if(short_option == 0) {
 		FLAC__ASSERT(0 != long_option);
 		if(0 == strcmp(long_option, "totally-silent")) {
-			option_values.verbose = false;
-			option_values.silent = true;
+			flac__utils_verbosity_ = 0;
 		}
 		else if(0 == strcmp(long_option, "delete-input-file")) {
 			option_values.delete_input = true;
@@ -781,8 +776,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			option_values.continue_through_decode_errors = false;
 		}
 		else if(0 == strcmp(long_option, "no-silent")) {
-			option_values.verbose = true;
-			option_values.silent = false;
+			flac__utils_verbosity_ = 2;
 		}
 		else if(0 == strcmp(long_option, "no-force")) {
 			option_values.force_file_overwrite = false;
@@ -869,7 +863,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				option_values.force_to_stdout = true;
 				break;
 			case 's':
-				option_values.verbose = false;
+				flac__utils_verbosity_ = 1;
 				break;
 			case 'f':
 				option_values.force_file_overwrite = true;
@@ -1072,7 +1066,7 @@ void free_options()
 
 int usage_error(const char *message, ...)
 {
-	if(!option_values.silent) {
+	if(flac__utils_verbosity_ >= 1) {
 		va_list args;
 
 		FLAC__ASSERT(0 != message);
@@ -1456,7 +1450,7 @@ void show_explain()
 
 void format_mistake(const char *infilename, const char *wrong, const char *right)
 {
-	if(!option_values.silent) fprintf(stderr, "WARNING: %s is not a %s file; treating as a %s file\n", infilename, wrong, right);
+	flac__utils_printf(stderr, 1, "WARNING: %s is not a %s file; treating as a %s file\n", infilename, wrong, right);
 }
 
 int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file)
@@ -1471,7 +1465,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	const char *outfilename = get_encoded_outfilename(infilename);
 
 	if(0 == outfilename) {
-		if(!option_values.silent) fprintf(stderr, "ERROR: filename too long: %s", infilename);
+		flac__utils_printf(stderr, 1, "ERROR: filename too long: %s", infilename);
 		return 1;
 	}
 
@@ -1480,7 +1474,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	 * Use grabbag__file_get_filesize() as a cheap way to check.
 	 */
 	if(!option_values.test_only && !option_values.force_file_overwrite && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
-		if(!option_values.silent) fprintf(stderr, "ERROR: output file %s already exists, use -f to override\n", outfilename);
+		flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
 	}
 
@@ -1491,7 +1485,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	else {
 		infilesize = grabbag__file_get_filesize(infilename);
 		if(0 == (encode_infile = fopen(infilename, "rb"))) {
-			if(!option_values.silent) fprintf(stderr, "ERROR: can't open input file %s\n", infilename);
+			flac__utils_printf(stderr, 1, "ERROR: can't open input file %s\n", infilename);
 			return 1;
 		}
 	}
@@ -1525,7 +1519,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 
 	if(option_values.sector_align && fmt == RAW && infilesize < 0) {
-		if(!option_values.silent) fprintf(stderr, "ERROR: can't --sector-align when the input size is unknown\n");
+		flac__utils_printf(stderr, 1, "ERROR: can't --sector-align when the input size is unknown\n");
 		return 1;
 	}
 
@@ -1548,8 +1542,6 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	if(0 == option_values.until_specification)
 		common_options.until_specification.is_relative = true;
 
-	common_options.verbose = option_values.verbose;
-	common_options.silent = option_values.silent;
 	common_options.verify = option_values.verify;
 #ifdef FLAC__HAS_OGG
 	common_options.use_ogg = option_values.use_ogg;
@@ -1619,7 +1611,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				const char *error;
 				grabbag__replaygain_get_title(&title_gain, &title_peak);
 				if(0 != (error = grabbag__replaygain_store_to_file_title(outfilename, title_gain, title_peak, /*preserve_modtime=*/true))) {
-					if(!option_values.silent) fprintf(stderr, "%s: ERROR writing ReplayGain title tags\n", outfilename);
+					flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain title tags\n", outfilename);
 				}
 			}
 			grabbag__file_copy_metadata(infilename, outfilename);
@@ -1639,7 +1631,7 @@ int decode_file(const char *infilename)
 	const char *outfilename = get_decoded_outfilename(infilename);
 
 	if(0 == outfilename) {
-		if(!option_values.silent) fprintf(stderr, "ERROR: filename too long: %s", infilename);
+		flac__utils_printf(stderr, 1, "ERROR: filename too long: %s", infilename);
 		return 1;
 	}
 
@@ -1648,7 +1640,7 @@ int decode_file(const char *infilename)
 	 * Use grabbag__file_get_filesize() as a cheap way to check.
 	 */
 	if(!option_values.test_only && !option_values.force_file_overwrite && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
-		if(!option_values.silent) fprintf(stderr, "ERROR: output file %s already exists, use -f to override\n", outfilename);
+		flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
 	}
 
@@ -1666,7 +1658,7 @@ int decode_file(const char *infilename)
 
 #ifndef FLAC__HAS_OGG
 	if(treat_as_ogg) {
-		if(!option_values.silent) fprintf(stderr, "%s: Ogg support has not been built into this copy of flac\n", infilename);
+		flac__utils_printf(stderr, 1, "%s: Ogg support has not been built into this copy of flac\n", infilename);
 		return 1;
 	}
 #endif
@@ -1688,8 +1680,6 @@ int decode_file(const char *infilename)
 	else
 		common_options.has_cue_specification = false;
 
-	common_options.verbose = option_values.verbose;
-	common_options.silent = option_values.silent;
 	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
 	common_options.replaygain_synthesis_spec = option_values.replaygain_synthesis_spec;
 #ifdef FLAC__HAS_OGG
@@ -1796,7 +1786,7 @@ const char *get_outfilename(const char *infilename, const char *suffix)
 void die(const char *message)
 {
 	FLAC__ASSERT(0 != message);
-	if(!option_values.silent) fprintf(stderr, "ERROR: %s\n", message);
+	flac__utils_printf(stderr, 1, "ERROR: %s\n", message);
 	exit(1);
 }
 

@@ -23,8 +23,11 @@
 #include "utils.h"
 #include "FLAC/assert.h"
 #include <math.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+
+int flac__utils_verbosity_ = 2;
 
 static FLAC__bool local__parse_uint64_(const char *s, FLAC__uint64 *value)
 {
@@ -130,6 +133,21 @@ static FLAC__uint64 local__find_closest_cue_(const FLAC__StreamMetadata_CueSheet
 				if(cuesheet->tracks[t].number < track || (cuesheet->tracks[t].number == track && cuesheet->tracks[t].indices[i].number <= index))
 					return cuesheet->tracks[t].offset + cuesheet->tracks[t].indices[i].offset;
 		return 0;
+	}
+}
+
+void flac__utils_printf(FILE *stream, int level, const char *format, ...)
+{
+	if(flac__utils_verbosity_ >= level) {
+		va_list args;
+
+		FLAC__ASSERT(0 != format);
+
+		va_start(args, format);
+
+		(void) vfprintf(stream, format, args);
+
+		va_end(args);
 	}
 }
 

@@ -43,6 +43,10 @@ size_t flac__utils_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stre
 #else
 #define flac__utils_fwrite fwrite
 #endif
+
+extern int flac__utils_verbosity_;
+void flac__utils_printf(FILE *stream, int level, const char *format, ...);
+
 FLAC__bool flac__utils_parse_skip_until_specification(const char *s, utils__SkipUntilSpecification *spec);
 void flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, unsigned sample_rate);
 
