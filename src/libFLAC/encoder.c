@@ -37,11 +37,6 @@
 #endif
 #define max(x,y) ((x)>(y)?(x):(y))
 
-#ifdef RICE_BITS
-#undef RICE_BITS
-#endif
-#define RICE_BITS(value, parameter) (2 + (parameter) + (((unsigned)((value) < 0? -(value) : (value))) >> (parameter)))
-
 typedef struct FLAC__EncoderPrivate {
 	unsigned input_capacity;                    /* current size (in samples) of the signal and residual buffers */
 	int32 *integer_signal[FLAC__MAX_CHANNELS];  /* the integer version of the input signal */
@@ -678,7 +673,8 @@ bool encoder_process_subframes_(FLAC__Encoder *encoder, bool is_last_frame, cons
 				for(fixed_order = min_fixed_order; fixed_order <= max_fixed_order; fixed_order++) {
 					if(fixed_residual_bits_per_sample[fixed_order] >= (real)frame_header->bits_per_sample)
 						continue; /* don't even try */
-					rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > 0.0)? (unsigned)(fixed_residual_bits_per_sample[fixed_order]+0.5) : 0;
+					/* 0.5 is for rounding, another 1.0 is to account for the signed->unsigned conversion during rice coding */
+					rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > 0.0)? (unsigned)(fixed_residual_bits_per_sample[fixed_order]+1.5) : 0;
 					if(rice_parameter >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 						rice_parameter = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN) - 1;
 					candidate_bits = encoder_evaluate_fixed_subframe_(integer_signal[channel], encoder->guts->residual[!encoder->guts->best_residual], frame_header->blocksize, frame_header->bits_per_sample, fixed_order, rice_parameter, max_partition_order, &(encoder->guts->candidate_subframe));
@@ -715,7 +711,8 @@ bool encoder_process_subframes_(FLAC__Encoder *encoder, bool is_last_frame, cons
 							lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize);
 							if(lpc_residual_bits_per_sample >= (real)frame_header->bits_per_sample)
 								continue; /* don't even try */
-							rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+0.5) : 0;
+							/* 0.5 is for rounding, another 1.0 is to account for the signed->unsigned conversion during rice coding */
+							rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+1.5) : 0;
 							if(rice_parameter >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 								rice_parameter = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN) - 1;
 							for(qlp_coeff_precision = min_qlp_coeff_precision; qlp_coeff_precision <= max_qlp_coeff_precision; qlp_coeff_precision++) {
@@ -770,7 +767,7 @@ unsigned encoder_evaluate_constant_subframe_(const int32 signal, unsigned bits_p
 	subframe->type = FLAC__SUBFRAME_TYPE_CONSTANT;
 	subframe->data.constant.value = signal;
 
-	return 8 + bits_per_sample;
+	return FLAC__SUBFRAME_HEADER_TYPE_LEN + bits_per_sample;
 }
 
 unsigned encoder_evaluate_fixed_subframe_(const int32 signal[], int32 residual[], unsigned blocksize, unsigned bits_per_sample, unsigned order, unsigned rice_parameter, unsigned max_partition_order, FLAC__SubframeHeader *subframe)
@@ -790,7 +787,7 @@ unsigned encoder_evaluate_fixed_subframe_(const int32 signal[], int32 residual[]
 	for(i = 0; i < order; i++)
 		subframe->data.fixed.warmup[i] = signal[i];
 
-	return 8 + (order * bits_per_sample) + residual_bits;
+	return FLAC__SUBFRAME_HEADER_TYPE_LEN + (order * bits_per_sample) + residual_bits;
 }
 
 unsigned encoder_evaluate_lpc_subframe_(const int32 signal[], int32 residual[], const real lp_coeff[], unsigned blocksize, unsigned bits_per_sample, unsigned order, unsigned qlp_coeff_precision, unsigned rice_parameter, unsigned max_partition_order, FLAC__SubframeHeader *subframe)
@@ -819,14 +816,14 @@ unsigned encoder_evaluate_lpc_subframe_(const int32 signal[], int32 residual[], 
 	for(i = 0; i < order; i++)
 		subframe->data.lpc.warmup[i] = signal[i];
 
-	return 8 + 9 + (order * (qlp_coeff_precision + bits_per_sample)) + residual_bits;
+	return FLAC__SUBFRAME_HEADER_TYPE_LEN + FLAC__SUBFRAME_HEADER_LPC_QLP_COEFF_PRECISION_LEN + FLAC__SUBFRAME_HEADER_LPC_QLP_SHIFT_LEN + (order * (qlp_coeff_precision + bits_per_sample)) + residual_bits;
 }
 
 unsigned encoder_evaluate_verbatim_subframe_(unsigned blocksize, unsigned bits_per_sample, FLAC__SubframeHeader *subframe)
 {
 	subframe->type = FLAC__SUBFRAME_TYPE_VERBATIM;
 
-	return 8 + (blocksize * bits_per_sample);
+	return FLAC__SUBFRAME_HEADER_TYPE_LEN + (blocksize * bits_per_sample);
 }
 
 unsigned encoder_find_best_partition_order_(int32 residual[], unsigned residual_samples, unsigned predictor_order, unsigned rice_parameter, unsigned max_partition_order, unsigned *best_partition_order, unsigned best_parameters[])
@@ -887,19 +884,18 @@ void encoder_promote_candidate_subframe_(FLAC__Encoder *encoder)
 
 bool encoder_set_partitioned_rice_(const int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameter, const unsigned partition_order, unsigned parameters[], unsigned *bits)
 {
-	unsigned bits_ = 2 + 3;
+	unsigned bits_ = FLAC__ENTROPY_CODING_METHOD_TYPE_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN;
 
 	if(partition_order == 0) {
 		unsigned i;
 		parameters[0] = rice_parameter;
 		bits_ += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
 		for(i = 0; i < residual_samples; i++)
-			bits_ += RICE_BITS(residual[i], rice_parameter);
+			bits_ += FLAC__bitbuffer_rice_bits(residual[i], rice_parameter);
 	}
 	else {
-		unsigned i, j, k = 0, k_last = 0, z;
-		unsigned mean;
-		unsigned parameter, partition_samples;
+		unsigned i, j, k = 0, k_last = 0;
+		unsigned mean, parameter, partition_samples;
 		const unsigned max_parameter = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN) - 1;
 		for(i = 0; i < (1u<<partition_order); i++) {
 			partition_samples = (residual_samples+predictor_order) >> partition_order;
@@ -913,17 +909,18 @@ bool encoder_set_partitioned_rice_(const int32 residual[], const unsigned residu
 			for(j = 0; j < partition_samples; j++, k++)
 				mean += ((residual[k] < 0)? (unsigned)(-residual[k]) : (unsigned)residual[k]);
 			mean /= partition_samples;
-			z = 0x80000000;
-			for(j = 0; j < 32; j++, z >>= 1)
-				if(mean & z)
-					break;
-			parameter = j > 31? 0 : 32 - j - 1;
+			/* calc parameter = floor(log2(mean)) + 1 */
+			parameter = 0;
+			while(mean) {
+				parameter++;
+				mean >>= 1;
+			}
 			if(parameter > max_parameter)
 				parameter = max_parameter;
 			parameters[i] = parameter;
 			bits_ += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
 			for(j = k_last; j < k; j++)
-				bits_ += RICE_BITS(residual[j], parameter);
+				bits_ += FLAC__bitbuffer_rice_bits(residual[j], parameter);
 			k_last = k;
 		}
 	}
