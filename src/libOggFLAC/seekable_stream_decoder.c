@@ -722,6 +722,11 @@ FLAC__StreamDecoderReadStatus read_callback_(const OggFLAC__StreamDecoder *decod
 	(void)decoder;
 	if(seekable_stream_decoder->private_->eof_callback(seekable_stream_decoder, seekable_stream_decoder->private_->client_data)) {
 		*bytes = 0;
+#if 0
+		/*@@@@@@ we used to do this: */
+		seekable_stream_decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
+		/* but it causes a problem because the Ogg decoding layer reads as much as it can to get pages, so the state will get to end-of-stream before the bitbuffer does */
+#endif
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 	}
 	else if(*bytes > 0) {
@@ -731,6 +736,11 @@ FLAC__StreamDecoderReadStatus read_callback_(const OggFLAC__StreamDecoder *decod
 		}
 		if(*bytes == 0) {
 			if(seekable_stream_decoder->private_->eof_callback(seekable_stream_decoder, seekable_stream_decoder->private_->client_data)) {
+#if 0
+				/*@@@@@@ we used to do this: */
+				seekable_stream_decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
+				/* but it causes a problem because the Ogg decoding layer reads as much as it can to get pages, so the state will get to end-of-stream before the bitbuffer does */
+#endif
 				return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 			}
 			else
