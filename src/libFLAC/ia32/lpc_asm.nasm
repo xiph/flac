@@ -736,7 +736,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow
 	pop	ebp
 	ret
 
-;void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
+;void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
 ;
 ;	for(i = 0; i < data_len; i++) {
 ;		sum = 0;

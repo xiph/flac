@@ -38,7 +38,7 @@ cglobal FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 
 ; **********************************************************************
 ;
-; unsigned FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+; unsigned FLAC__fixed_compute_best_predictor(const FLAC__int32 *data, unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
 ; {
 ; 	FLAC__int32 last_error_0 = data[-1];
 ; 	FLAC__int32 last_error_1 = data[-1] - data[-2];
