@@ -108,6 +108,16 @@ static void *malloc_or_die_(size_t size)
 	return x;
 }
 
+static void *calloc_or_die_(size_t n, size_t size)
+{
+	void *x = calloc(n, size);
+	if(0 == x) {
+		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (unsigned)n*(unsigned)size);
+		exit(1);
+	}
+	return x;
+}
+
 static void init_metadata_blocks_()
 {
 	/*
@@ -209,7 +219,7 @@ static void init_metadata_blocks_()
 	cuesheet_.data.cue_sheet.lead_in = 2 * 44100;
 	cuesheet_.data.cue_sheet.is_cd = true;
 	cuesheet_.data.cue_sheet.num_tracks = 3;
-	cuesheet_.data.cue_sheet.tracks = malloc_or_die_(cuesheet_.data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track));
+	cuesheet_.data.cue_sheet.tracks = calloc_or_die_(cuesheet_.data.cue_sheet.num_tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track));
 	cuesheet_.data.cue_sheet.tracks[0].offset = 0;
 	cuesheet_.data.cue_sheet.tracks[0].number = 1;
 	memcpy(cuesheet_.data.cue_sheet.tracks[0].isrc, "ACBDE1234567", sizeof(cuesheet_.data.cue_sheet.tracks[0].isrc));
