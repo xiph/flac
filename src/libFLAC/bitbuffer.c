@@ -76,7 +76,6 @@ static bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 	if(bb->capacity == new_capacity)
 		return true;
 
-fprintf(stderr,"@@@ bitbuffer_resize_(bb=%p, capacity=%u, new_capactity=%u)\n",bb,bb->capacity,new_capacity);
 	new_buffer = (byte*)malloc(sizeof(byte) * new_capacity);
 	if(new_buffer == 0)
 		return false;
@@ -87,7 +86,6 @@ fprintf(stderr,"@@@ bitbuffer_resize_(bb=%p, capacity=%u, new_capactity=%u)\n",b
 		bb->bits = 0;
 		bb->total_bits = (new_capacity<<3);
 	}
-//@@@ boy oh boy, is this a bug?  maybe should drop the 'if' statement
 	if(new_capacity < bb->consumed_bytes+(bb->consumed_bits?1:0)) {
 		bb->consumed_bytes = new_capacity;
 		bb->consumed_bits = 0;
