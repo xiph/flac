@@ -799,19 +799,19 @@ namespace FLAC {
 		 *    - Write changes back to FLAC file with Chain::write()
 		 *    - Destroy the Chain instance
 		 *
-		 *  The ownership of pointers in the C++ layer follows that in
-		 *  the C layer, i.e.
-		 *    - The objects returned by Iterator::get_block() are
-		 *      owned by the iterator and should not be deleted.
-		 *      When you modify the block, you are directly editing
-		 *      what's in the chain and do not need to call
-		 *      Iterator::set_block().  However the changes will not
-		 *      be reflected in the FLAC file until the chain is
-		 *      written with Chain::write().
+		 *  The ownership of pointers in the C++ layer is slightly
+		 *  different than in the C layer, i.e.
+		 *    - The objects returned by Iterator::get_block() are NOT
+		 *      owned by the iterator and should be deleted by the
+		 *      caller when finished, BUT, when you modify the block,
+		 *      it will directly edit what's in the chain and you do
+		 *      not need to call Iterator::set_block().  However the
+		 *      changes will not be reflected in the FLAC file until
+		 *      the chain is written with Chain::write().
 		 *    - When you pass an object to Iterator::set_block(),
 		 *      Iterator::insert_block_before(), or
 		 *      Iterator::insert_block_after(), the iterator takes
-		 *      ownership of the block and it will be deleted with the
+		 *      ownership of the block and it will be deleted by the
 		 *      chain.
 		 *
 		 *  See the \link flac_metadata_level2 C layer equivalent \endlink
