@@ -440,55 +440,55 @@ bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 		return false; /* the read_callback_ sets the state for us */
 	if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &length, FLAC__STREAM_METADATA_LENGTH_LEN, read_callback_, decoder))
 		return false; /* the read_callback_ sets the state for us */
-	if(type == FLAC__METADATA_TYPE_ENCODING) {
+	if(type == FLAC__METADATA_TYPE_STREAMINFO) {
 		unsigned used_bits = 0;
 		decoder->guts->stream_header.type = type;
 		decoder->guts->stream_header.is_last = last_block;
 		decoder->guts->stream_header.length = length;
 
-		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		decoder->guts->stream_header.data.encoding.min_blocksize = x;
-		used_bits += FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN;
+		decoder->guts->stream_header.data.stream_info.min_blocksize = x;
+		used_bits += FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN;
 
-		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		decoder->guts->stream_header.data.encoding.max_blocksize = x;
-		used_bits += FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN;
+		decoder->guts->stream_header.data.stream_info.max_blocksize = x;
+		used_bits += FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN;
 
-		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		decoder->guts->stream_header.data.encoding.min_framesize = x;
-		used_bits += FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN;
+		decoder->guts->stream_header.data.stream_info.min_framesize = x;
+		used_bits += FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN;
 
-		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		decoder->guts->stream_header.data.encoding.max_framesize = x;
-		used_bits += FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN;
+		decoder->guts->stream_header.data.stream_info.max_framesize = x;
+		used_bits += FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN;
 
-		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		decoder->guts->stream_header.data.encoding.sample_rate = x;
-		used_bits += FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN;
+		decoder->guts->stream_header.data.stream_info.sample_rate = x;
+		used_bits += FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN;
 
-		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		decoder->guts->stream_header.data.encoding.channels = x+1;
-		used_bits += FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN;
+		decoder->guts->stream_header.data.stream_info.channels = x+1;
+		used_bits += FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN;
 
-		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		decoder->guts->stream_header.data.encoding.bits_per_sample = x+1;
-		used_bits += FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN;
+		decoder->guts->stream_header.data.stream_info.bits_per_sample = x+1;
+		used_bits += FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN;
 
-		if(!FLAC__bitbuffer_read_raw_uint64(&decoder->guts->input, &decoder->guts->stream_header.data.encoding.total_samples, FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN, read_callback_, decoder))
+		if(!FLAC__bitbuffer_read_raw_uint64(&decoder->guts->input, &decoder->guts->stream_header.data.stream_info.total_samples, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		used_bits += FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN;
+		used_bits += FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN;
 
 		for(i = 0; i < 16; i++) {
 			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, 8, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
-			decoder->guts->stream_header.data.encoding.md5sum[i] = (byte)x;
+			decoder->guts->stream_header.data.stream_info.md5sum[i] = (byte)x;
 		}
 		used_bits += 128;
 
@@ -548,8 +548,8 @@ bool stream_decoder_frame_sync_(FLAC__StreamDecoder *decoder)
 
 	/* If we know the total number of samples in the stream, stop if we've read that many. */
 	/* This will stop us, for example, from wasting time trying to sync on an ID3V1 tag. */
-	if(decoder->guts->has_stream_header && decoder->guts->stream_header.data.encoding.total_samples) {
-		if(decoder->guts->samples_decoded >= decoder->guts->stream_header.data.encoding.total_samples) {
+	if(decoder->guts->has_stream_header && decoder->guts->stream_header.data.stream_info.total_samples) {
+		if(decoder->guts->samples_decoded >= decoder->guts->stream_header.data.stream_info.total_samples) {
 			decoder->state = FLAC__STREAM_DECODER_END_OF_STREAM;
 			return true;
 		}
@@ -733,8 +733,8 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 
 	switch(x = raw_header[1] >> 4) {
 		case 0:
-			if(decoder->guts->has_stream_header && decoder->guts->stream_header.data.encoding.min_blocksize == decoder->guts->stream_header.data.encoding.max_blocksize) /* i.e. it's a fixed-blocksize stream */
-				decoder->guts->frame.header.blocksize = decoder->guts->stream_header.data.encoding.min_blocksize;
+			if(decoder->guts->has_stream_header && decoder->guts->stream_header.data.stream_info.min_blocksize == decoder->guts->stream_header.data.stream_info.max_blocksize) /* i.e. it's a fixed-blocksize stream */
+				decoder->guts->frame.header.blocksize = decoder->guts->stream_header.data.stream_info.min_blocksize;
 			else
 				is_unparseable = true;
 			break;
@@ -759,7 +759,7 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 	switch(x = raw_header[1] & 0x0f) {
 		case 0:
 			if(decoder->guts->has_stream_header)
-				decoder->guts->frame.header.sample_rate = decoder->guts->stream_header.data.encoding.sample_rate;
+				decoder->guts->frame.header.sample_rate = decoder->guts->stream_header.data.stream_info.sample_rate;
 			else
 				is_unparseable = true;
 			break;
@@ -831,7 +831,7 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 	switch(x = (unsigned)(raw_header[2] & 0x0e) >> 1) {
 		case 0:
 			if(decoder->guts->has_stream_header)
-				decoder->guts->frame.header.bits_per_sample = decoder->guts->stream_header.data.encoding.bits_per_sample;
+				decoder->guts->frame.header.bits_per_sample = decoder->guts->stream_header.data.stream_info.bits_per_sample;
 			else
 				is_unparseable = true;
 			break;
@@ -889,8 +889,8 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 				return true;
 			}
 		}
-		if(decoder->guts->has_stream_header && decoder->guts->stream_header.data.encoding.min_blocksize == decoder->guts->stream_header.data.encoding.max_blocksize) /* i.e. it's a fixed-blocksize stream */
-			decoder->guts->frame.header.number.sample_number = (uint64)decoder->guts->last_frame_number * (int64)decoder->guts->stream_header.data.encoding.min_blocksize + xx;
+		if(decoder->guts->has_stream_header && decoder->guts->stream_header.data.stream_info.min_blocksize == decoder->guts->stream_header.data.stream_info.max_blocksize) /* i.e. it's a fixed-blocksize stream */
+			decoder->guts->frame.header.number.sample_number = (uint64)decoder->guts->last_frame_number * (int64)decoder->guts->stream_header.data.stream_info.min_blocksize + xx;
 		else
 			decoder->guts->frame.header.number.sample_number = xx;
 	}
@@ -920,7 +920,7 @@ bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 		}
 		decoder->guts->last_frame_number = x;
 		if(decoder->guts->has_stream_header) {
-			decoder->guts->frame.header.number.sample_number = (int64)decoder->guts->stream_header.data.encoding.min_blocksize * (int64)x;
+			decoder->guts->frame.header.number.sample_number = (int64)decoder->guts->stream_header.data.stream_info.min_blocksize * (int64)x;
 		}
 		else {
 			is_unparseable = true;

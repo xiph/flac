@@ -393,11 +393,11 @@ void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaD
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	(void)decoder;
-	if(metadata->type == FLAC__METADATA_TYPE_ENCODING) {
-		stream_info->total_samples = metadata->data.encoding.total_samples - stream_info->skip;
-		stream_info->bps = metadata->data.encoding.bits_per_sample;
-		stream_info->channels = metadata->data.encoding.channels;
-		stream_info->sample_rate = metadata->data.encoding.sample_rate;
+	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+		stream_info->total_samples = metadata->data.stream_info.total_samples - stream_info->skip;
+		stream_info->bps = metadata->data.stream_info.bits_per_sample;
+		stream_info->channels = metadata->data.stream_info.channels;
+		stream_info->sample_rate = metadata->data.stream_info.sample_rate;
 
 		if(stream_info->bps != 8 && stream_info->bps != 16) {
 			fprintf(stderr, "ERROR: bits per sample is not 8 or 16\n");

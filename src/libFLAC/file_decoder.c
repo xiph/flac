@@ -36,7 +36,7 @@ typedef struct FLAC__FileDecoderPrivate {
 	byte stored_md5sum[16]; /* this is what is stored in the metadata */
 	byte computed_md5sum[16]; /* this is the sum we computed from the decoded data */
 	/* the rest of these are only used for seeking: */
-	FLAC__StreamMetaData_Encoding metadata; /* we keep this around so we can figure out how to seek quickly */
+	FLAC__StreamMetaData_StreamInfo stream_info; /* we keep this around so we can figure out how to seek quickly */
 	FLAC__Frame last_frame; /* holds the info of the last frame we seeked to */
 	uint64 target_sample;
 } FLAC__FileDecoderPrivate;
@@ -256,7 +256,7 @@ bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample)
 		decoder->state = FLAC__FILE_DECODER_STREAM_ERROR;
 		return false;
 	}
-	if(sample > decoder->guts->metadata.total_samples) {
+	if(sample > decoder->guts->stream_info.total_samples) {
 		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
@@ -340,10 +340,10 @@ void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMe
 	FLAC__FileDecoder *file_decoder = (FLAC__FileDecoder *)client_data;
 	(void)decoder;
 
-	if(metadata->type == FLAC__METADATA_TYPE_ENCODING) {
-		file_decoder->guts->metadata = metadata->data.encoding;
+	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+		file_decoder->guts->stream_info = metadata->data.stream_info;
 		/* save the MD5 signature for comparison later */
-		memcpy(file_decoder->guts->stored_md5sum, metadata->data.encoding.md5sum, 16);
+		memcpy(file_decoder->guts->stored_md5sum, metadata->data.stream_info.md5sum, 16);
 		if(0 == memcmp(file_decoder->guts->stored_md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16))
 			file_decoder->check_md5 = false;
 	}
@@ -366,15 +366,15 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	unsigned approx_bytes_per_frame;
 	uint64 last_frame_sample = 0xffffffffffffffff;
 	bool needs_seek;
-	const bool is_variable_blocksize_stream = (decoder->guts->metadata.min_blocksize != decoder->guts->metadata.max_blocksize);
+	const bool is_variable_blocksize_stream = (decoder->guts->stream_info.min_blocksize != decoder->guts->stream_info.max_blocksize);
 
 	if(!is_variable_blocksize_stream) {
 		/* we are just guessing here, but we want to guess high, not low */
-		/* note there are no () around 'decoder->guts->metadata.bits_per_sample/8' to keep precision up since it's an integer calulation */
-		approx_bytes_per_frame = decoder->guts->metadata.min_blocksize * decoder->guts->metadata.channels * decoder->guts->metadata.bits_per_sample/8 + 64;
+		/* note there are no () around 'decoder->guts->stream_info.bits_per_sample/8' to keep precision up since it's an integer calulation */
+		approx_bytes_per_frame = decoder->guts->stream_info.min_blocksize * decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample/8 + 64;
 	}
 	else
-		approx_bytes_per_frame = 1152 * decoder->guts->metadata.channels * decoder->guts->metadata.bits_per_sample/8 + 64;
+		approx_bytes_per_frame = 1152 * decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample/8 + 64;
 
 	/* Now we need to use the metadata and the filelength to search to the frame with the correct sample */
 	if(-1 == (l = ftell(decoder->guts->file))) {
@@ -384,11 +384,11 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	l -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream);
 #ifdef _MSC_VER
 	/* with VC++ you have to spoon feed it the casting */
-	pos = l + (long)((double)(int64)target_sample / (double)(int64)decoder->guts->metadata.total_samples * (double)(filesize-l+1)) - approx_bytes_per_frame;
+	pos = l + (long)((double)(int64)target_sample / (double)(int64)decoder->guts->stream_info.total_samples * (double)(filesize-l+1)) - approx_bytes_per_frame;
 #else
-	pos = l + (long)((double)target_sample / (double)decoder->guts->metadata.total_samples * (double)(filesize-l+1)) - approx_bytes_per_frame;
+	pos = l + (long)((double)target_sample / (double)decoder->guts->stream_info.total_samples * (double)(filesize-l+1)) - approx_bytes_per_frame;
 #endif
-	r = filesize - ((decoder->guts->metadata.channels * decoder->guts->metadata.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 64);
+	r = filesize - ((decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 64);
 	if(pos >= r)
 		pos = r-1;
 	if(pos < l)
