@@ -400,52 +400,52 @@ void FLAC__encoder_finish(FLAC__Encoder *encoder)
 	encoder->guts->metadata_callback(encoder, &encoder->guts->metadata, encoder->guts->client_data);
 	if(encoder->guts != 0) {
 		for(i = 0; i < encoder->channels; i++) {
-			if(encoder->guts->integer_signal[i] != 0) {
-				free(encoder->guts->integer_signal[i]);
-				encoder->guts->integer_signal[i] = 0;
+			if(encoder->guts->integer_signal_unaligned[i] != 0) {
+				free(encoder->guts->integer_signal_unaligned[i]);
+				encoder->guts->integer_signal_unaligned[i] = 0;
 			}
-			if(encoder->guts->real_signal[i] != 0) {
-				free(encoder->guts->real_signal[i]);
-				encoder->guts->real_signal[i] = 0;
+			if(encoder->guts->real_signal_unaligned[i] != 0) {
+				free(encoder->guts->real_signal_unaligned[i]);
+				encoder->guts->real_signal_unaligned[i] = 0;
 			}
 		}
 		for(i = 0; i < 2; i++) {
-			if(encoder->guts->integer_signal_mid_side[i] != 0) {
-				free(encoder->guts->integer_signal_mid_side[i]);
-				encoder->guts->integer_signal_mid_side[i] = 0;
+			if(encoder->guts->integer_signal_mid_side_unaligned[i] != 0) {
+				free(encoder->guts->integer_signal_mid_side_unaligned[i]);
+				encoder->guts->integer_signal_mid_side_unaligned[i] = 0;
 			}
-			if(encoder->guts->real_signal_mid_side[i] != 0) {
-				free(encoder->guts->real_signal_mid_side[i]);
-				encoder->guts->real_signal_mid_side[i] = 0;
+			if(encoder->guts->real_signal_mid_side_unaligned[i] != 0) {
+				free(encoder->guts->real_signal_mid_side_unaligned[i]);
+				encoder->guts->real_signal_mid_side_unaligned[i] = 0;
 			}
 		}
 		for(channel = 0; channel < encoder->channels; channel++) {
 			for(i = 0; i < 2; i++) {
-				if(encoder->guts->residual_workspace[channel][i] != 0) {
-					free(encoder->guts->residual_workspace[channel][i]);
-					encoder->guts->residual_workspace[channel][i] = 0;
+				if(encoder->guts->residual_workspace_unaligned[channel][i] != 0) {
+					free(encoder->guts->residual_workspace_unaligned[channel][i]);
+					encoder->guts->residual_workspace_unaligned[channel][i] = 0;
 				}
 			}
 		}
 		for(channel = 0; channel < 2; channel++) {
 			for(i = 0; i < 2; i++) {
-				if(encoder->guts->residual_workspace_mid_side[channel][i] != 0) {
-					free(encoder->guts->residual_workspace_mid_side[channel][i]);
-					encoder->guts->residual_workspace_mid_side[channel][i] = 0;
+				if(encoder->guts->residual_workspace_mid_side_unaligned[channel][i] != 0) {
+					free(encoder->guts->residual_workspace_mid_side_unaligned[channel][i]);
+					encoder->guts->residual_workspace_mid_side_unaligned[channel][i] = 0;
 				}
 			}
 		}
-		if(encoder->guts->abs_residual != 0) {
-			free(encoder->guts->abs_residual);
-			encoder->guts->abs_residual = 0;
+		if(encoder->guts->abs_residual_unaligned != 0) {
+			free(encoder->guts->abs_residual_unaligned);
+			encoder->guts->abs_residual_unaligned = 0;
 		}
-		if(encoder->guts->abs_residual_partition_sums != 0) {
-			free(encoder->guts->abs_residual_partition_sums);
-			encoder->guts->abs_residual_partition_sums = 0;
+		if(encoder->guts->abs_residual_partition_sums_unaligned != 0) {
+			free(encoder->guts->abs_residual_partition_sums_unaligned);
+			encoder->guts->abs_residual_partition_sums_unaligned = 0;
 		}
-		if(encoder->guts->raw_bits_per_partition != 0) {
-			free(encoder->guts->raw_bits_per_partition);
-			encoder->guts->raw_bits_per_partition = 0;
+		if(encoder->guts->raw_bits_per_partition_unaligned != 0) {
+			free(encoder->guts->raw_bits_per_partition_unaligned);
+			encoder->guts->raw_bits_per_partition_unaligned = 0;
 		}
 		FLAC__bitbuffer_free(&encoder->guts->frame);
 		free(encoder->guts);
