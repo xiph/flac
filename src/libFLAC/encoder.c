@@ -223,6 +223,9 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	if(encoder->loose_mid_side_stereo && !encoder->do_mid_side_stereo)
 		return encoder->state = FLAC__ENCODER_ILLEGAL_MID_SIDE_FORCE;
 
+	if(encoder->bits_per_sample >= 32)
+		encoder->do_mid_side_stereo = false; /* since we do 32-bit math, the side channel would have 33 bps and overflow */
+
 	if(encoder->bits_per_sample < FLAC__MIN_BITS_PER_SAMPLE || encoder->bits_per_sample > FLAC__MAX_BITS_PER_SAMPLE)
 		return encoder->state = FLAC__ENCODER_INVALID_BITS_PER_SAMPLE;
 
@@ -509,28 +512,32 @@ bool FLAC__encoder_process(FLAC__Encoder *encoder, const int32 *buf[], unsigned 
 {
 	unsigned i, j, channel;
 	int32 x, mid, side;
-	const bool ms = encoder->do_mid_side_stereo && encoder->channels == 2;
+	bool ms;
+	const bool ms0 = encoder->do_mid_side_stereo && encoder->channels == 2;
 	const int32 min_side = -((int64)1 << (encoder->bits_per_sample-1));
 	const int32 max_side =  ((int64)1 << (encoder->bits_per_sample-1)) - 1;
+	const unsigned channels = encoder->channels, blocksize = encoder->blocksize;
 
 	assert(encoder != 0);
 	assert(encoder->state == FLAC__ENCODER_OK);
 
 	j = 0;
+	ms = ms0 && encoder->guts->current_frame_can_do_mid_side;
 	do {
-		for(i = encoder->guts->current_sample_number; i < encoder->blocksize && j < samples; i++, j++) {
-			for(channel = 0; channel < encoder->channels; channel++) {
+		for(i = encoder->guts->current_sample_number; i < blocksize && j < samples; i++, j++) {
+			for(channel = 0; channel < channels; channel++) {
 				x = buf[channel][j];
 				encoder->guts->integer_signal[channel][i] = x;
 				encoder->guts->real_signal[channel][i] = (real)x;
 			}
-			if(ms && encoder->guts->current_frame_can_do_mid_side) {
-				side = buf[0][j] - buf[1][j];
+			if(ms) {
+				side = buf[0][j] - x; /* x still == buf[1][j] */
 				if(side < min_side || side > max_side) {
 					encoder->guts->current_frame_can_do_mid_side = false;
+					ms = false;
 				}
 				else {
-					mid = (buf[0][j] + buf[1][j]) >> 1; /* NOTE: not the same as 'mid = (buf[0][j] + buf[1][j]) / 2' ! */
+					mid = (buf[0][j] + x) >> 1; /* NOTE: not the same as 'mid = (buf[0][j] + x) / 2' ! */
 					encoder->guts->integer_signal_mid_side[0][i] = mid;
 					encoder->guts->integer_signal_mid_side[1][i] = side;
 					encoder->guts->real_signal_mid_side[0][i] = (real)mid;
@@ -539,9 +546,10 @@ bool FLAC__encoder_process(FLAC__Encoder *encoder, const int32 *buf[], unsigned 
 			}
 			encoder->guts->current_sample_number++;
 		}
-		if(i == encoder->blocksize) {
+		if(i == blocksize) {
 			if(!encoder_process_frame_(encoder, false)) /* false => not last frame */
 				return false;
+			ms = ms0;
 		}
 	} while(j < samples);
 
@@ -562,9 +570,9 @@ bool FLAC__encoder_process_interleaved(FLAC__Encoder *encoder, const int32 buf[]
 
 	j = k = 0;
 	do {
-		for(i = encoder->guts->current_sample_number; i < encoder->blocksize && j < samples; i++, j++, k++) {
-			for(channel = 0; channel < encoder->channels; channel++, k++) {
-				x = buf[k];
+		for(i = encoder->guts->current_sample_number; i < encoder->blocksize && j < samples; i++, j++) {
+			for(channel = 0; channel < encoder->channels; channel++) {
+				x = buf[k++];
 				encoder->guts->integer_signal[channel][i] = x;
 				encoder->guts->real_signal[channel][i] = (real)x;
 				if(ms && encoder->guts->current_frame_can_do_mid_side) {
