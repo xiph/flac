@@ -3,6 +3,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 EXTRA_DIST = \
+	cuesheet.h \
 	file.h \
 	replaygain.h \
 	seektable.h
