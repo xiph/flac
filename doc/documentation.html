@@ -305,7 +305,15 @@
 				<TT>-o filename</TT>
 			</TD>
 			<TD>
-				Force the output file name (usually <TT><B>flac</B></TT> just changes the extension).
+				Force the output file name (usually <TT><B>flac</B></TT> just changes the extension).  May only be used when encoding a single file.  May not be used in conjunction with <TT>--output-prefix</T>.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--output-prefix string</TT>
+			</TD>
+			<TD>
+				Prefix each output file name with the given string.  This can be useful for encoding/decoding files to a different directory.  Make sure if your string is a path name that it ends with a trailing '<TT>/</TT>' slash.
 			</TD>
 		</TR>
 		<TR>

@@ -38,7 +38,7 @@ static int decode_file(const char *infilename, const char *forced_outfilename);
 FLAC__bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
 FLAC__bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
 FLAC__bool force_to_stdout = false, delete_input = false, sector_align = false;
-const char *cmdline_forced_outfilename = 0;
+const char *cmdline_forced_outfilename = 0, *output_prefix = 0;
 analysis_options aopts = { false, false };
 unsigned padding = 0;
 unsigned max_lpc_order = 8;
@@ -96,6 +96,8 @@ int main(int argc, char *argv[])
 			delete_input = true;
 		else if(0 == strcmp(argv[i], "--delete-input-file-"))
 			delete_input = false;
+		else if(0 == strcmp(argv[i], "--output-prefix"))
+			output_prefix = argv[++i];
 		else if(0 == strcmp(argv[i], "--sector-align"))
 			sector_align = true;
 		else if(0 == strcmp(argv[i], "--sector-align-"))
@@ -338,6 +340,12 @@ int main(int argc, char *argv[])
 			return usage("ERROR: --sector-align can only be done with stereo input\n");
 		else if(format_sample_rate >= 0 && format_sample_rate != 2)
 			return usage("ERROR: --sector-align can only be done with sample rate of 44100\n");
+	}
+	if(argc - i > 1 && cmdline_forced_outfilename) {
+		return usage("ERROR: -o cannot be used with multiple files\n");
+	}
+	if(cmdline_forced_outfilename && output_prefix) {
+		return usage("ERROR: --output-prefix conflicts with -o\n");
 	}
 
 	if(verbose) {
@@ -586,7 +594,8 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	if(encode_infile == stdin || force_to_stdout)
 		strcpy(outfilename, "-");
 	else {
-		strcpy(outfilename, infilename);
+		strcpy(outfilename, output_prefix? output_prefix : "");
+		strcat(outfilename, infilename);
 		if(0 == (p = strrchr(outfilename, '.')))
 			strcat(outfilename, ".flac");
 		else {
@@ -637,7 +646,8 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 		strcpy(outfilename, "-");
 	else {
 		const char *suffix = suffixes[analyze? 2 : format_is_wave? 0 : 1];
-		strcpy(outfilename, infilename);
+		strcpy(outfilename, output_prefix? output_prefix : "");
+		strcat(outfilename, infilename);
 		if(0 == (p = strrchr(outfilename, '.')))
 			strcat(outfilename, suffix);
 		else {

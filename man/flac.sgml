@@ -112,7 +112,20 @@
 		<term><option>-o</option> <replaceable>filename</replaceable></term>
 		<listitem>
 		  <para>Force the output file name (usually flac just
-		    changes the extension).</para>
+		    changes the extension).  May only be used when
+		    encoding a single file.  May not be used in
+		    conjunction with --output-prefix.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>--output-prefix</option> <replaceable>string</replaceable></term>
+		<listitem>
+		  <para>Prefix each output file name with the given
+		    string.  This can be useful for encoding/decoding
+		    files to a different directory.  Make sure if your
+		    string is a path name that it ends with a trailing
+		    `/' (slash).</para>
 		</listitem>
 	      </varlistentry>
 
