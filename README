@@ -81,7 +81,8 @@ libogg according to the specific instructions below.  You must have
 libogg 1.1.2 or greater, or there will be seeking problems with Ogg FLAC.
 
 If you are building on x86 and want the assembly optimizations, you will
-need to have NASM installed according to the specific instructions below.
+need to have NASM >= 0.98.30 installed according to the specific instructions
+below.
 
 
 ===============================================================================
