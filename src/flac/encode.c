@@ -1986,7 +1986,7 @@ void print_error_with_state(const EncoderSession *e, const char *message)
 	flac__utils_printf(stderr, 1, "%*s state = %s\n", ilen, "", state_string);
 
 	/* print out some more info for some errors: */
-	if (0 == strcmp(state_string, FLAC__StreamEncoderStateString[FLAC__STREAM_ENCODER_NOT_STREAMABLE])) {
+	if(0 == strcmp(state_string, FLAC__StreamEncoderStateString[FLAC__STREAM_ENCODER_NOT_STREAMABLE])) {
 		flac__utils_printf(stderr, 1,
 			"\n"
 			"The encoding parameters specified do not conform to the FLAC Subset and may not\n"
@@ -1994,13 +1994,23 @@ void print_error_with_state(const EncoderSession *e, const char *message)
 			"options to encode with these parameters.\n"
 		);
 	}
-	else if (0 == strcmp(state_string, FLAC__FileEncoderStateString[FLAC__FILE_ENCODER_FATAL_ERROR_WHILE_WRITING]) || 0 == strcmp(state_string, OggFLAC__FileEncoderStateString[OggFLAC__FILE_ENCODER_FATAL_ERROR_WHILE_WRITING])) {
+	else if(
+		0 == strcmp(state_string, FLAC__FileEncoderStateString[FLAC__FILE_ENCODER_FATAL_ERROR_WHILE_WRITING])
+#ifdef FLAC__HAS_OGG
+		|| 0 == strcmp(state_string, OggFLAC__FileEncoderStateString[OggFLAC__FILE_ENCODER_FATAL_ERROR_WHILE_WRITING])
+#endif
+	) {
 		flac__utils_printf(stderr, 1,
 			"\n"
 			"An error occurred while writing; the most common cause is that the disk is full.\n"
 		);
 	}
-	else if (0 == strcmp(state_string, FLAC__FileEncoderStateString[FLAC__FILE_ENCODER_ERROR_OPENING_FILE]) || 0 == strcmp(state_string, OggFLAC__FileEncoderStateString[OggFLAC__FILE_ENCODER_ERROR_OPENING_FILE])) {
+	else if(
+		0 == strcmp(state_string, FLAC__FileEncoderStateString[FLAC__FILE_ENCODER_ERROR_OPENING_FILE])
+#ifdef FLAC__HAS_OGG
+		|| 0 == strcmp(state_string, OggFLAC__FileEncoderStateString[OggFLAC__FILE_ENCODER_ERROR_OPENING_FILE])
+#endif
+	) {
 		flac__utils_printf(stderr, 1,
 			"\n"
 			"An error occurred opening the output file; it is likely that the output\n"

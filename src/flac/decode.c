@@ -1165,7 +1165,12 @@ void print_error_with_state(const DecoderSession *d, const char *message)
 			d->inbasefilename, FLAC__VERSION_STRING
 		);
 	}
-	else if (0 == strcmp(state_string, FLAC__FileDecoderStateString[FLAC__FILE_DECODER_ERROR_OPENING_FILE]) || 0 == strcmp(state_string, OggFLAC__FileDecoderStateString[OggFLAC__FILE_DECODER_ERROR_OPENING_FILE])) {
+	else if (
+		0 == strcmp(state_string, FLAC__FileDecoderStateString[FLAC__FILE_DECODER_ERROR_OPENING_FILE])
+#ifdef FLAC__HAS_OGG
+		|| 0 == strcmp(state_string, OggFLAC__FileDecoderStateString[OggFLAC__FILE_DECODER_ERROR_OPENING_FILE])
+#endif
+	) {
 		flac__utils_printf(stderr, 1,
 			"\n"
 			"An error occurred opening the input file; it is likely that it does not exist\n"
