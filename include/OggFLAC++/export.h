@@ -41,9 +41,6 @@
 #define	OggFLACPP_API	_declspec(dllexport)
 #else
 #define OggFLACPP_API	_declspec(dllimport)
-#define __LIBNAME__ "libOggFLAC++_static.lib"
-#pragma comment(lib, __LIBNAME__)
-#undef __LIBNAME__
 
 #endif
 #endif
