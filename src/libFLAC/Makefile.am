@@ -32,7 +32,7 @@ else
 if FLaC__CPU_IA32
 if FLaC__HAS_NASM
 SUBDIRS = ia32 .
-libFLAC_la_LIBADD = ia32/libFLAC-asm.la
+libFLAC_la_LIBADD = ia32/libFLAC-asm.a
 endif
 endif
 endif

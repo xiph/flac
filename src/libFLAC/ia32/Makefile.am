@@ -20,14 +20,16 @@ SUFFIXES = .nasm .lo
 
 STRIP_FPIC = sh $(top_srcdir)/strip_fPIC.sh
 
-.nasm.lo:
-	$(LIBTOOL) --tag=CC --mode=compile \
-		$(STRIP_FPIC) $(NASM) -f $(OBJ_FORMAT) -d OBJ_FORMAT_$(OBJ_FORMAT) $<
+.nasm.o:
+	$(NASM) -f $(OBJ_FORMAT) -d OBJ_FORMAT_$(OBJ_FORMAT) $< -o $@
 
-#@@@OLD RULE:	$(NASM) -f $(OBJ_FORMAT) -d OBJ_FORMAT_$(OBJ_FORMAT) $< -o $@
+# patch from Ben for the above rule that may be needed with new libtool:
+#.nasm.lo:
+#	$(LIBTOOL) --tag=CC --mode=compile \
+#		$(STRIP_FPIC) $(NASM) -f $(OBJ_FORMAT) -d OBJ_FORMAT_$(OBJ_FORMAT) $<
 
-noinst_LTLIBRARIES = libFLAC-asm.la
-libFLAC_asm_la_SOURCES = \
+noinst_LIBRARIES = libFLAC-asm.a
+libFLAC_asm_a_SOURCES = \
 	cpu_asm.nasm \
 	fixed_asm.nasm \
 	lpc_asm.nasm
