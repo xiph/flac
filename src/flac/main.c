@@ -1289,13 +1289,13 @@ void show_explain()
 	printf("                               at the beginning, the --until point is relative\n");
 	printf("                               to end of the audio.\n");
 #ifdef FLAC__HAS_OGG
-	printf("      --ogg                    When encoding, generate Ogg-FLAC output instead\n");
-	printf("                               of native-FLAC.  Ogg-FLAC streams are FLAC\n");
+	printf("      --ogg                    When encoding, generate Ogg FLAC output instead\n");
+	printf("                               of native FLAC.  Ogg FLAC streams are FLAC\n");
 	printf("                               streams wrapped in an Ogg transport layer.  The\n");
 	printf("                               resulting file should have an '.ogg' extension\n");
 	printf("                               and will still be decodable by flac.  When\n");
 	printf("                               decoding, force the input to be treated as\n");
-	printf("                               Ogg-FLAC.  This is useful when piping input\n");
+	printf("                               Ogg FLAC.  This is useful when piping input\n");
 	printf("                               from stdin or when the filename does not end in\n");
 	printf("                               '.ogg'.\n");
 	printf("      --serial-number          Serial number to use for the FLAC stream.  When\n");
