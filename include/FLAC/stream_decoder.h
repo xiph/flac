@@ -677,7 +677,7 @@ FLAC_API unsigned FLAC__stream_decoder_get_blocksize(const FLAC__StreamDecoder *
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__StreamDecoderState
- *    \c FLAC__STREAM_DECODER_SEARCH_FOR_MEATADATA if initialization was
+ *    \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA if initialization was
  *    successful; see FLAC__StreamDecoderState for the meanings of other
  *    return values.
  */

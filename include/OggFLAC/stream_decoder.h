@@ -69,7 +69,7 @@ extern "C" {
  *  This module contains the functions which implement the stream
  *  decoder.
  *
- * The interface here is identical to FLAC's stream decoder,
+ * The interface here is nearly identical to FLAC's stream decoder,
  * including the callbacks, with the addition of
  * OggFLAC__stream_decoder_set_serial_number().  See the
  * \link flac_stream_decoder FLAC stream decoder module \endlink
@@ -317,7 +317,7 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_client_data(OggFLAC__StreamDe
 
 /** Set the serial number for the Ogg stream.
  * The default behavior is to use the serial number of the first Ogg
- * page.  Setting a serial number here will explicitly define which
+ * page.  Setting a serial number here will explicitly specify which
  * stream is to be decoded.
  *
  * \default \c use serial number of first page

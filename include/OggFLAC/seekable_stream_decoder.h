@@ -123,7 +123,7 @@ typedef struct {
 	struct OggFLAC__SeekableStreamDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } OggFLAC__SeekableStreamDecoder;
 
-/*@@@ document */
+/*@@@@ document */
 typedef FLAC__SeekableStreamDecoderReadStatus (*OggFLAC__SeekableStreamDecoderReadCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 typedef FLAC__SeekableStreamDecoderSeekStatus (*OggFLAC__SeekableStreamDecoderSeekCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 typedef FLAC__SeekableStreamDecoderTellStatus (*OggFLAC__SeekableStreamDecoderTellCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
@@ -165,7 +165,7 @@ OggFLAC_API void OggFLAC__seekable_stream_decoder_delete(OggFLAC__SeekableStream
  *
  ***********************************************************************/
 
-/*@@@inherit set_serial_number*/
+/*@@@@inherit set_serial_number*/
 
 /** Set the "MD5 signature checking" flag.
  *  This is inherited from FLAC__SeekableStreamDecoder; see
