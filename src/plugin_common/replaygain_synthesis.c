@@ -218,7 +218,7 @@ void FLAC__plugin_common__init_dither_context(DitherContext *d, int bits, int sh
 	d->FilterCoeff = F [shapingtype];
 	d->Mask   = ((FLAC__uint64)-1) << (32 - bits);
 	d->Add    = 0.5     * ((1L << (32 - bits)) - 1);
-	d->Dither = 0.01*default_dither[index] / (((FLAC__int64)1) << bits);
+	d->Dither = 0.01f*default_dither[index] / (((FLAC__int64)1) << bits);
 }
 
 /*
@@ -236,13 +236,13 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_d
 		if(shapingtype == 0) {
 			double  tmp = random_equi_(d->Dither);
 			Sum2 = tmp - d->LastRandomNumber [k];
-			d->LastRandomNumber [k] = tmp;
+			d->LastRandomNumber [k] = (int)tmp;
 			Sum2 = Sum += Sum2;
 			val = ROUND64(Sum2) & d->Mask;
 		}
 		else {
 			Sum2 = random_triangular_(d->Dither) - scalar16_(d->DitherHistory[k], d->FilterCoeff + i);
-			Sum += d->DitherHistory [k] [(-1-i)&15] = Sum2;
+			Sum += d->DitherHistory [k] [(-1-i)&15] = (float)Sum2;
 			Sum2 = Sum + scalar16_(d->ErrorHistory [k], d->FilterCoeff + i);
 			val = ROUND64(Sum2) & d->Mask;
 			d->ErrorHistory [k] [(-1-i)&15] = (float)(Sum - val);

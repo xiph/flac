@@ -30,7 +30,7 @@ export PATH
 
 run_test_libFLAC ()
 {
-	if [ "$FLAC__VALGRIND" = yes ] ; then
+	if [ x"$FLAC__VALGRIND" = xyes ] ; then
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 test_libFLAC $* 4>>test_libFLAC.valgrind.log
 	else
 		test_libFLAC $*
