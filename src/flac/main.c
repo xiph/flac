@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = true;
 			qlp_coeff_precision = 0;
-			min_residual_partition_order = max_residual_partition_order = 0;
+			min_residual_partition_order = max_residual_partition_order = 2;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 0;
 		}
@@ -178,6 +178,8 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
+			min_residual_partition_order = 0;
+			min_residual_partition_order = 3;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 0;
 		}
@@ -195,7 +197,7 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = true;
 			qlp_coeff_precision = 0;
-			min_residual_partition_order = max_residual_partition_order = 0;
+			min_residual_partition_order = max_residual_partition_order = 3;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
@@ -204,6 +206,8 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
+			min_residual_partition_order = 0;
+			min_residual_partition_order = 4;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
@@ -242,15 +246,15 @@ int main(int argc, char *argv[])
 				blocksize = 4608;
 		}
 		if(min_residual_partition_order < 0) {
-			min_residual_partition_order = 0;
 			if(blocksize <= 1152)
-				max_residual_partition_order = 4;
+				max_residual_partition_order = 3;
 			else if(blocksize <= 2304)
 				max_residual_partition_order = 4;
 			else if(blocksize <= 4608)
 				max_residual_partition_order = 4;
 			else
 				max_residual_partition_order = 5;
+			min_residual_partition_order = max_residual_partition_order;
 		}
 		if(rice_parameter_search_dist < 0) {
 			rice_parameter_search_dist = 0;
@@ -428,14 +432,14 @@ int usage(const char *message, ...)
 	fprintf(stderr, "         (unless --lax is used)\n");
 	fprintf(stderr, "  -m   : try mid-side coding for each frame (stereo input only)\n");
 	fprintf(stderr, "  -M   : loose mid-side coding for all frames (stereo input only)\n");
-	fprintf(stderr, "  -0 .. -9 : fastest compression .. highest compression, default is -6\n");
+	fprintf(stderr, "  -0 .. -9 : fastest compression .. highest compression, default is -5\n");
 	fprintf(stderr, "             these are synonyms for other options:\n");
 	fprintf(stderr, "  -0   : synonymous with -l 0 -b 1152\n");
-	fprintf(stderr, "  -1   : synonymous with -l 0 -b 1152 -M\n");
-	fprintf(stderr, "  -2   : synonymous with -l 0 -b 1152 -m -r 4\n");
+	fprintf(stderr, "  -1   : synonymous with -l 0 -b 1152 -M -r 2,2\n");
+	fprintf(stderr, "  -2   : synonymous with -l 0 -b 1152 -m -r 3\n");
 	fprintf(stderr, "  -3   : reserved\n");
-	fprintf(stderr, "  -4   : synonymous with -l 8 -b 4608 \n");
-	fprintf(stderr, "  -5   : synonymous with -l 8 -b 4608 -M\n");
+	fprintf(stderr, "  -4   : synonymous with -l 8 -b 4608\n");
+	fprintf(stderr, "  -5   : synonymous with -l 8 -b 4608 -M -r 3,3\n");
 	fprintf(stderr, "  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
 	fprintf(stderr, "  -7   : reserved\n");
 	fprintf(stderr, "  -8   : synonymous with -l 32 -b 4608 -m -r 4\n");
