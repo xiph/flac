@@ -43,6 +43,7 @@ static FLAC__byte ID3V2_TAG_[3] = { 'I', 'D', '3' };
  ***********************************************************************/
 
 static FLAC__bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigned channels);
+static FLAC__bool stream_decoder_has_id_filtered_(FLAC__StreamDecoder *decoder, FLAC__byte *id);
 static FLAC__bool stream_decoder_find_metadata_(FLAC__StreamDecoder *decoder);
 static FLAC__bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder);
 static FLAC__bool stream_decoder_skip_id3v2_tag_(FLAC__StreamDecoder *decoder);
@@ -81,6 +82,9 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__bool has_stream_info, has_seek_table;
 	FLAC__StreamMetaData stream_info;
 	FLAC__StreamMetaData seek_table;
+	FLAC__bool metadata_filter[FLAC__METADATA_TYPE_VORBIS_COMMENT+1];
+	FLAC__byte *metadata_filter_ids;
+	unsigned metadata_filter_ids_count, metadata_filter_ids_capacity; /* units for both are IDs, not bytes */
 	FLAC__Frame frame;
 	FLAC__bool cached; /* true if there is a byte in lookahead */
 	FLAC__CPUInfo cpuinfo;
@@ -217,6 +221,16 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(FLAC__StreamDecoder *decoder)
 	decoder->private_->samples_decoded = 0;
 	decoder->private_->has_stream_info = false;
 	decoder->private_->has_seek_table = false;
+
+	memset(decoder->private_->metadata_filter, 0, sizeof(decoder->private_->metadata_filter));
+	decoder->private_->metadata_filter[FLAC__METADATA_TYPE_STREAMINFO] = true;
+	decoder->private_->metadata_filter_ids_capacity = 16;
+	if(0 == (decoder->private_->metadata_filter_ids = malloc((FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) * decoder->private_->metadata_filter_ids_capacity))) {
+		decoder->private_->metadata_filter_ids_capacity = 0;
+		return decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+	}
+	decoder->private_->metadata_filter_ids_count = 0;
+
 	decoder->private_->cached = false;
 
 	/*
@@ -270,6 +284,10 @@ void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 			decoder->private_->residual[i] = 0;
 		}
 	}
+	if(decoder->private_->metadata_filter_ids != 0) {
+		free(decoder->private_->metadata_filter_ids);
+		decoder->private_->metadata_filter_ids = 0;
+	}
 	decoder->private_->output_capacity = 0;
 	decoder->private_->output_channels = 0;
 	decoder->protected_->state = FLAC__STREAM_DECODER_UNINITIALIZED;
@@ -277,6 +295,9 @@ void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 
 FLAC__bool FLAC__stream_decoder_set_read_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadStatus (*value)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data))
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 	decoder->private_->read_callback = value;
@@ -285,6 +306,9 @@ FLAC__bool FLAC__stream_decoder_set_read_callback(const FLAC__StreamDecoder *dec
 
 FLAC__bool FLAC__stream_decoder_set_write_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data))
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 	decoder->private_->write_callback = value;
@@ -293,6 +317,9 @@ FLAC__bool FLAC__stream_decoder_set_write_callback(const FLAC__StreamDecoder *de
 
 FLAC__bool FLAC__stream_decoder_set_metadata_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data))
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 	decoder->private_->metadata_callback = value;
@@ -301,6 +328,9 @@ FLAC__bool FLAC__stream_decoder_set_metadata_callback(const FLAC__StreamDecoder 
 
 FLAC__bool FLAC__stream_decoder_set_error_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data))
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 	decoder->private_->error_callback = value;
@@ -309,45 +339,165 @@ FLAC__bool FLAC__stream_decoder_set_error_callback(const FLAC__StreamDecoder *de
 
 FLAC__bool FLAC__stream_decoder_set_client_data(const FLAC__StreamDecoder *decoder, void *value)
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 	decoder->private_->client_data = value;
 	return true;
 }
 
+FLAC__bool FLAC__stream_decoder_set_metadata_respond(const FLAC__StreamDecoder *decoder, FLAC__MetaDataType type)
+{
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(type <= FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private_->metadata_filter[type] = true;
+	if(type == FLAC__METADATA_TYPE_APPLICATION)
+		decoder->private_->metadata_filter_ids_count = 0;
+	return true;
+}
+
+FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(const FLAC__StreamDecoder *decoder, FLAC__byte id[4])
+{
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
+	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+
+	if(decoder->private_->metadata_filter[FLAC__METADATA_TYPE_APPLICATION])
+		return true;
+
+	FLAC__ASSERT(0 != decoder->private_->metadata_filter_ids);
+
+	if(decoder->private_->metadata_filter_ids_count == decoder->private_->metadata_filter_ids_capacity) {
+		if(0 == (decoder->private_->metadata_filter_ids = realloc(decoder->private_->metadata_filter_ids, decoder->private_->metadata_filter_ids_capacity * 2)))
+			return decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+		decoder->private_->metadata_filter_ids_capacity *= 2;
+	}
+
+	memcpy(decoder->private_->metadata_filter_ids + decoder->private_->metadata_filter_ids_count * (FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8), id, (FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8));
+	decoder->private_->metadata_filter_ids_count++;
+
+	return true;
+}
+
+FLAC__bool FLAC__stream_decoder_set_metadata_respond_all(const FLAC__StreamDecoder *decoder)
+{
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
+	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+	/* OK, technically 0x01010101 != true, but it still means true */
+	memset(decoder->private_->metadata_filter, 1, sizeof(decoder->private_->metadata_filter));
+	decoder->private_->metadata_filter_ids_count = 0;
+	return true;
+}
+
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore(const FLAC__StreamDecoder *decoder, FLAC__MetaDataType type)
+{
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(type <= FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+	decoder->private_->metadata_filter[type] = false;
+	if(type == FLAC__METADATA_TYPE_APPLICATION)
+		decoder->private_->metadata_filter_ids_count = 0;
+	return true;
+}
+
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(const FLAC__StreamDecoder *decoder, FLAC__byte id[4])
+{
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
+	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+
+	if(!decoder->private_->metadata_filter[FLAC__METADATA_TYPE_APPLICATION])
+		return true;
+
+	FLAC__ASSERT(0 != decoder->private_->metadata_filter_ids);
+
+	if(decoder->private_->metadata_filter_ids_count == decoder->private_->metadata_filter_ids_capacity) {
+		if(0 == (decoder->private_->metadata_filter_ids = realloc(decoder->private_->metadata_filter_ids, decoder->private_->metadata_filter_ids_capacity * 2)))
+			return decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+		decoder->private_->metadata_filter_ids_capacity *= 2;
+	}
+
+	memcpy(decoder->private_->metadata_filter_ids + decoder->private_->metadata_filter_ids_count * (FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8), id, (FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8));
+	decoder->private_->metadata_filter_ids_count++;
+
+	return true;
+}
+
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(const FLAC__StreamDecoder *decoder)
+{
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
+	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+	memset(decoder->private_->metadata_filter, 0, sizeof(decoder->private_->metadata_filter));
+	decoder->private_->metadata_filter_ids_count = 0;
+	return true;
+}
+
 FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__StreamDecoder *decoder)
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	return decoder->protected_->state;
 }
 
 unsigned FLAC__stream_decoder_get_channels(const FLAC__StreamDecoder *decoder)
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	return decoder->protected_->channels;
 }
 
 FLAC__ChannelAssignment FLAC__stream_decoder_get_channel_assignment(const FLAC__StreamDecoder *decoder)
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	return decoder->protected_->channel_assignment;
 }
 
 unsigned FLAC__stream_decoder_get_bits_per_sample(const FLAC__StreamDecoder *decoder)
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	return decoder->protected_->bits_per_sample;
 }
 
 unsigned FLAC__stream_decoder_get_sample_rate(const FLAC__StreamDecoder *decoder)
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	return decoder->protected_->sample_rate;
 }
 
 unsigned FLAC__stream_decoder_get_blocksize(const FLAC__StreamDecoder *decoder)
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 	return decoder->protected_->blocksize;
 }
 
 FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder)
 {
 	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 
 	if(!FLAC__bitbuffer_clear(decoder->private_->input)) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
@@ -361,6 +511,8 @@ FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder)
 FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 {
 	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
 
 	if(!FLAC__stream_decoder_flush(decoder)) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
@@ -571,6 +723,20 @@ FLAC__bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigne
 	return true;
 }
 
+FLAC__bool stream_decoder_has_id_filtered_(FLAC__StreamDecoder *decoder, FLAC__byte *id)
+{
+	unsigned i;
+
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+
+	for(i = 0; i < decoder->private_->metadata_filter_ids_count; i++)
+		if(0 == memcmp(decoder->private_->metadata_filter_ids + i * (FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8), id, (FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8)))
+			return true;
+
+	return false;
+}
+
 FLAC__bool stream_decoder_find_metadata_(FLAC__StreamDecoder *decoder)
 {
 	FLAC__uint32 x;
@@ -689,23 +855,19 @@ FLAC__bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 			return false; /* the read_callback_ sets the state for us */
 		used_bits += FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN;
 
-		for(i = 0; i < 16; i++) {
-			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &x, 8, read_callback_, decoder))
-				return false; /* the read_callback_ sets the state for us */
-			decoder->private_->stream_info.data.stream_info.md5sum[i] = (FLAC__byte)x;
-		}
-		used_bits += i*8;
+		if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, decoder->private_->stream_info.data.stream_info.md5sum, 16, read_callback_, decoder))
+			return false; /* the read_callback_ sets the state for us */
+		used_bits += 16*8;
 
 		/* skip the rest of the block */
 		FLAC__ASSERT(used_bits % 8 == 0);
 		length -= (used_bits / 8);
-		for(i = 0; i < length; i++) {
-			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &x, 8, read_callback_, decoder))
-				return false; /* the read_callback_ sets the state for us */
-		}
+		if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, 0, length, read_callback_, decoder))
+			return false; /* the read_callback_ sets the state for us */
 
 		decoder->private_->has_stream_info = true;
-		decoder->private_->metadata_callback(decoder, &decoder->private_->stream_info, decoder->private_->client_data);
+		if(decoder->private_->metadata_filter[FLAC__METADATA_TYPE_STREAMINFO])
+			decoder->private_->metadata_callback(decoder, &decoder->private_->stream_info, decoder->private_->client_data);
 	}
 	else if(type == FLAC__METADATA_TYPE_SEEKTABLE) {
 		unsigned real_points;
@@ -736,16 +898,133 @@ FLAC__bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 			if(decoder->private_->seek_table.data.seek_table.points[real_points].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER)
 				real_points++;
 		}
+		length -= (decoder->private_->seek_table.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH);
 		decoder->private_->seek_table.data.seek_table.num_points = real_points;
 
+		/* if there is a partial point left, skip over it */
+		if(length > 0) {
+			/*@@@ do an error_callback() here?  there's an argument for either way */
+			if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, 0, length, read_callback_, decoder))
+				return false; /* the read_callback_ sets the state for us */
+		}
+
 		decoder->private_->has_seek_table = true;
-		decoder->private_->metadata_callback(decoder, &decoder->private_->seek_table, decoder->private_->client_data);
+		if(decoder->private_->metadata_filter[FLAC__METADATA_TYPE_SEEKTABLE])
+			decoder->private_->metadata_callback(decoder, &decoder->private_->seek_table, decoder->private_->client_data);
 	}
 	else {
-		/* skip other metadata blocks */
-		for(i = 0; i < length; i++) {
-			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &x, 8, read_callback_, decoder))
+		FLAC__bool skip_it = !decoder->private_->metadata_filter[type];
+		unsigned real_length = length;
+		FLAC__StreamMetaData block;
+
+		block.is_last = last_block;
+		block.type = type;
+		block.length = length;
+
+		if(type == FLAC__METADATA_TYPE_APPLICATION && decoder->private_->metadata_filter_ids_count > 0) {
+			if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, block.data.application.id, FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
+
+			real_length -= FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8;
+
+			if(stream_decoder_has_id_filtered_(decoder, block.data.application.id))
+				skip_it = !skip_it;
+		}
+
+		if(skip_it) {
+			if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, 0, real_length, read_callback_, decoder))
+				return false; /* the read_callback_ sets the state for us */
+		}
+		else {
+			switch(type) {
+				case FLAC__METADATA_TYPE_PADDING:
+					/* skip the padding bytes */
+					if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, 0, real_length, read_callback_, decoder))
+						return false; /* the read_callback_ sets the state for us */
+					break;
+				case FLAC__METADATA_TYPE_APPLICATION:
+					/* remember, we read the ID already */
+					if(0 == (block.data.application.data = malloc(real_length))) {
+						decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+						return false;
+					}
+					if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, block.data.application.data, real_length, read_callback_, decoder))
+						return false; /* the read_callback_ sets the state for us */
+					break;
+				case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+					/* read vendor string */
+					if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &block.data.vorbis_comment.vendor_string.length, FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN, read_callback_, decoder))
+						return false; /* the read_callback_ sets the state for us */
+					if(block.data.vorbis_comment.vendor_string.length > 0) {
+						if(0 == (block.data.vorbis_comment.vendor_string.entry = malloc(block.data.vorbis_comment.vendor_string.length))) {
+							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+							return false;
+						}
+						if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, block.data.vorbis_comment.vendor_string.entry, block.data.vorbis_comment.vendor_string.length, read_callback_, decoder))
+							return false; /* the read_callback_ sets the state for us */
+					}
+					else
+						block.data.vorbis_comment.vendor_string.entry = 0;
+
+					/* read num comments */
+					if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &block.data.vorbis_comment.num_comments, FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN, read_callback_, decoder))
+						return false; /* the read_callback_ sets the state for us */
+
+					/* read comments */
+					if(block.data.vorbis_comment.num_comments > 0) {
+						if(0 == (block.data.vorbis_comment.comments = malloc(block.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetaData_VorbisComment_Entry)))) {
+							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+							return false;
+						}
+						for(i = 0; i < block.data.vorbis_comment.num_comments; i++) {
+							if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &block.data.vorbis_comment.comments[i].length, FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN, read_callback_, decoder))
+								return false; /* the read_callback_ sets the state for us */
+							if(block.data.vorbis_comment.comments[i].length > 0) {
+								if(0 == (block.data.vorbis_comment.comments[i].entry = malloc(block.data.vorbis_comment.comments[i].length))) {
+									decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+									return false;
+								}
+								if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, block.data.vorbis_comment.comments[i].entry, block.data.vorbis_comment.comments[i].length, read_callback_, decoder))
+									return false; /* the read_callback_ sets the state for us */
+							}
+							else
+								block.data.vorbis_comment.comments[i].entry = 0;
+						}
+					}
+					else {
+						block.data.vorbis_comment.comments = 0;
+					}
+					break;
+				case FLAC__METADATA_TYPE_STREAMINFO:
+				case FLAC__METADATA_TYPE_SEEKTABLE:
+				default:
+					FLAC__ASSERT(0);
+			}
+			decoder->private_->metadata_callback(decoder, &block, decoder->private_->client_data);
+
+			/* now we have to free any malloc'ed data in the block */
+			switch(type) {
+				case FLAC__METADATA_TYPE_PADDING:
+					break;
+				case FLAC__METADATA_TYPE_APPLICATION:
+					if(0 != block.data.application.data)
+						free(block.data.application.data);
+					break;
+				case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+					if(0 != block.data.vorbis_comment.vendor_string.entry)
+						free(block.data.vorbis_comment.vendor_string.entry);
+					if(block.data.vorbis_comment.num_comments > 0)
+						for(i = 0; i < block.data.vorbis_comment.num_comments; i++)
+							if(0 != block.data.vorbis_comment.comments[i].entry)
+								free(block.data.vorbis_comment.comments[i].entry);
+					if(0 != block.data.vorbis_comment.comments)
+						free(block.data.vorbis_comment.comments);
+					break;
+				case FLAC__METADATA_TYPE_STREAMINFO:
+				case FLAC__METADATA_TYPE_SEEKTABLE:
+				default:
+					FLAC__ASSERT(0);
+			}
 		}
 	}
 
@@ -772,10 +1051,8 @@ FLAC__bool stream_decoder_skip_id3v2_tag_(FLAC__StreamDecoder *decoder)
 		skip |= (x & 0x7f);
 	}
 	/* skip the rest of the tag */
-	for(i = 0; i < skip; i++) {
-		if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &x, 8, read_callback_, decoder))
-			return false; /* the read_callback_ sets the state for us */
-	}
+	if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, 0, skip, read_callback_, decoder))
+		return false; /* the read_callback_ sets the state for us */
 	return true;
 }
 

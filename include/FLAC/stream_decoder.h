@@ -123,6 +123,26 @@ FLAC__bool FLAC__stream_decoder_set_write_callback(const FLAC__StreamDecoder *de
 FLAC__bool FLAC__stream_decoder_set_metadata_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
 FLAC__bool FLAC__stream_decoder_set_error_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
 FLAC__bool FLAC__stream_decoder_set_client_data(const FLAC__StreamDecoder *decoder, void *value);
+/*
+ * These deserve special attention.  By default, the decoder only calls the
+ * metadata_callback for the STREAMINFO block.  These functions allow you to
+ * tell the decoder explicitly which blocks to parse and return via the
+ * metadata_callback and/or which to skip.  Use a _respond_all(), _ignore() ...
+ * or _ignore_all(), _respond() ... sequence to exactly specify which blocks
+ * to return.  Remember that some metadata blocks can be big so filtering out
+ * the ones you don't use can reduce the memory requirements of the decoder.
+ * Also note the special forms _respond/_ignore_application(id) for filtering
+ * APPLICATION blocks based on the application ID.
+ *
+ * STREAMINFO and SEEKTABLE blocks are always parsed and used internally, but
+ * they still can legally be filtered from the metadata_callback here.
+ */
+FLAC__bool FLAC__stream_decoder_set_metadata_respond(const FLAC__StreamDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(const FLAC__StreamDecoder *decoder, FLAC__byte id[4]);
+FLAC__bool FLAC__stream_decoder_set_metadata_respond_all(const FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore(const FLAC__StreamDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(const FLAC__StreamDecoder *decoder, FLAC__byte id[4]);
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(const FLAC__StreamDecoder *decoder);
 
 /*
  * Methods to return the current stream decoder state, number

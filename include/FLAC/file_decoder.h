@@ -105,6 +105,15 @@ FLAC__bool FLAC__file_decoder_set_write_callback(const FLAC__FileDecoder *decode
 FLAC__bool FLAC__file_decoder_set_metadata_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
 FLAC__bool FLAC__file_decoder_set_error_callback(const FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
 FLAC__bool FLAC__file_decoder_set_client_data(const FLAC__FileDecoder *decoder, void *value);
+/*
+ * See the comments for the equivalent functions in stream_decoder.h
+ */
+FLAC__bool FLAC__file_decoder_set_metadata_respond(const FLAC__FileDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__file_decoder_set_metadata_respond_application(const FLAC__FileDecoder *decoder, FLAC__byte id[4]);
+FLAC__bool FLAC__file_decoder_set_metadata_respond_all(const FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_set_metadata_ignore(const FLAC__FileDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__file_decoder_set_metadata_ignore_application(const FLAC__FileDecoder *decoder, FLAC__byte id[4]);
+FLAC__bool FLAC__file_decoder_set_metadata_ignore_all(const FLAC__FileDecoder *decoder);
 
 /*
  * Various "get" methods
