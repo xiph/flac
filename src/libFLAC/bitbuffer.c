@@ -24,7 +24,10 @@
 #include "private/bitmath.h"
 #include "private/crc.h"
 
+/* This should be at least twice as large as the largest number of bytes required to represent any 'number' (in any encoding) you are going to read. */
 static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 65536; /* bytes */
+
+static const byte byte_bit_to_mask_[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
 
 #ifdef min
 #undef min
@@ -106,7 +109,7 @@ static bool bitbuffer_read_from_client_(FLAC__BitBuffer *bb, bool (*read_callbac
 		if(!bitbuffer_resize_(bb, 16))
 			return false;
 	}
-	/* finally, read in some data; if OK, go back to read_bit_, else fail */
+	/* finally, read in some data */
 	bytes = bb->capacity - bb->bytes;
 	if(!read_callback(bb->buffer+bb->bytes, &bytes, client_data))
 		return false;
@@ -941,8 +944,6 @@ bool FLAC__bitbuffer_zero_pad_to_byte_boundary(FLAC__BitBuffer *bb)
 
 bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
-	static const byte mask[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-
 	/* to avoid a drastic speed penalty we don't:
 	assert(bb != 0);
 	assert(bb->buffer != 0);
@@ -951,7 +952,7 @@ bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_ca
 
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
-			*val = (bb->buffer[bb->consumed_bytes] & mask[bb->consumed_bits])? 1 : 0;
+			*val = (bb->buffer[bb->consumed_bytes] & byte_bit_to_mask_[bb->consumed_bits])? 1 : 0;
 			return true;
 		}
 		else {
@@ -963,8 +964,6 @@ bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_ca
 
 bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
-	static const byte mask[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-
 	/* to avoid a drastic speed penalty we don't:
 	assert(bb != 0);
 	assert(bb->buffer != 0);
@@ -973,7 +972,7 @@ bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_ca
 
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
-			*val = (bb->buffer[bb->consumed_bytes] & mask[bb->consumed_bits])? 1 : 0;
+			*val = (bb->buffer[bb->consumed_bytes] & byte_bit_to_mask_[bb->consumed_bits])? 1 : 0;
 			bb->consumed_bits++;
 			if(bb->consumed_bits == 8) {
 				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
@@ -992,8 +991,6 @@ bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_ca
 
 bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, uint32 *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
-	static const byte mask[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-
 	/* to avoid a drastic speed penalty we don't:
 	assert(bb != 0);
 	assert(bb->buffer != 0);
@@ -1003,7 +1000,7 @@ bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, uint32 *val, bool (
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
 			*val <<= 1;
-			*val |= (bb->buffer[bb->consumed_bytes] & mask[bb->consumed_bits])? 1 : 0;
+			*val |= (bb->buffer[bb->consumed_bytes] & byte_bit_to_mask_[bb->consumed_bits])? 1 : 0;
 			bb->consumed_bits++;
 			if(bb->consumed_bits == 8) {
 				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
@@ -1022,8 +1019,6 @@ bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, uint32 *val, bool (
 
 bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, uint64 *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
-	static const byte mask[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
-
 	/* to avoid a drastic speed penalty we don't:
 	assert(bb != 0);
 	assert(bb->buffer != 0);
@@ -1033,7 +1028,7 @@ bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, uint64 *val, bool (
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
 			*val <<= 1;
-			*val |= (bb->buffer[bb->consumed_bytes] & mask[bb->consumed_bits])? 1 : 0;
+			*val |= (bb->buffer[bb->consumed_bytes] & byte_bit_to_mask_[bb->consumed_bits])? 1 : 0;
 			bb->consumed_bits++;
 			if(bb->consumed_bits == 8) {
 				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
@@ -1051,6 +1046,7 @@ bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, uint64 *val, bool (
 }
 
 bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+#ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned i;
 
@@ -1066,6 +1062,55 @@ bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, unsigned 
 	}
 	return true;
 }
+#else
+{
+	unsigned i, bits_ = bits;
+	uint32 v = 0;
+
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+
+	assert(bits <= 32);
+	assert((bb->capacity*8) * 2 >= bits);
+
+	while(bb->total_consumed_bits + bits > bb->total_bits) {
+		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
+			return false;
+	}
+	if(bb->consumed_bits) {
+		i = 8 - bb->consumed_bits;
+		if(i <= bits_) {
+			v = bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits);
+			bits_ -= i;
+			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+			bb->consumed_bytes++;
+			bb->consumed_bits = 0;
+		}
+		else {
+			*val = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits)) >> (i-bits_);
+			bb->consumed_bits += bits_;
+			bb->total_consumed_bits += bits_;
+			return true;
+		}
+	}
+	while(bits_ >= 8) {
+		v <<= 8;
+		v |= bb->buffer[bb->consumed_bytes];
+		bits_ -= 8;
+		FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+		bb->consumed_bytes++;
+		/* bb->consumed_bits is already 0 */
+	}
+	if(bits_ > 0) {
+		v <<= bits_;
+		v |= (bb->buffer[bb->consumed_bytes] >> (8-bits_));
+		bb->consumed_bits = bits_;
+	}
+	bb->total_consumed_bits += bits;
+	*val = v;
+	return true;
+}
+#endif
 
 bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, int32 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
