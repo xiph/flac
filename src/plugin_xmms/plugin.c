@@ -100,6 +100,7 @@ InputPlugin flac_ip =
 
 static byte reservoir_[FLAC__MAX_BLOCK_SIZE * 2 * 2 * 2]; /* *2 for max bytes-per-sample, *2 for max channels, another *2 for overflow */
 #ifdef RESERVOIR_TEST
+#define SAMPLES_PER_WRITE 512
 static byte output_[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max bytes-per-sample, *2 for max channels */
 #endif
 static unsigned reservoir_samples_;
@@ -341,7 +342,7 @@ void *play_loop_(void *arg)
 
 	while(file_info_.is_playing) {
 		if(!file_info_.eof) {
-			while(reservoir_samples_ < 576) {
+			while(reservoir_samples_ < SAMPLES_PER_WRITE) {
 				if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE) {
 					file_info_.eof = true;
 					break;
@@ -352,7 +353,7 @@ void *play_loop_(void *arg)
 			if(reservoir_samples_ > 0) {
 				const unsigned channels = file_info_.channels;
 				const unsigned bytes_per_sample = (file_info_.bits_per_sample+7)/8;
-				unsigned i, n = min(reservoir_samples_, 576), delta;
+				unsigned i, n = min(reservoir_samples_, SAMPLES_PER_WRITE), delta;
 				unsigned bytes = n * bytes_per_sample * channels;
 
 				for(i = 0; i < bytes; i++)
