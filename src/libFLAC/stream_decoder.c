@@ -946,12 +946,16 @@ FLAC__bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 					break;
 				case FLAC__METADATA_TYPE_APPLICATION:
 					/* remember, we read the ID already */
-					if(0 == (block.data.application.data = malloc(real_length))) {
-						decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-						return false;
+					if(real_length > 0) {
+						if(0 == (block.data.application.data = malloc(real_length))) {
+							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+							return false;
+						}
+						if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, block.data.application.data, real_length, read_callback_, decoder))
+							return false; /* the read_callback_ sets the state for us */
 					}
-					if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, block.data.application.data, real_length, read_callback_, decoder))
-						return false; /* the read_callback_ sets the state for us */
+					else
+						block.data.application.data = 0;
 					break;
 				case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 					/* read vendor string */
