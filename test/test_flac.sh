@@ -572,12 +572,15 @@ rm noise.flac z.wav
 # test --input-size
 ############################################################################
 
-echo -n "testing --input-size=50 --skip=10... "
-cat 50c.raw | run_flac $raw_eopt --input-size=50 --skip=10 -o z50c.skip10.flac - || die "ERROR generating FLAC file"
-run_flac $raw_dopt -o z50c.skip10.raw z50c.skip10.flac || die "ERROR decoding FLAC file"
-cmp 50c.skip10.raw z50c.skip10.raw || die "ERROR: file mismatch for --input-size=50 --skip=10"
-rm -f z50c.skip10.raw z50c.skip10.flac
-echo OK
+#@@@@@@ cat will not work on old cygwin, need to fix
+if [ $is_win = no ] ; then
+	echo -n "testing --input-size=50 --skip=10... "
+	cat 50c.raw | run_flac $raw_eopt --input-size=50 --skip=10 -o z50c.skip10.flac - || die "ERROR generating FLAC file"
+	run_flac $raw_dopt -o z50c.skip10.raw z50c.skip10.flac || die "ERROR decoding FLAC file"
+	cmp 50c.skip10.raw z50c.skip10.raw || die "ERROR: file mismatch for --input-size=50 --skip=10"
+	rm -f z50c.skip10.raw z50c.skip10.flac
+	echo OK
+fi
 
 
 ############################################################################
