@@ -243,6 +243,8 @@
 				<LI><A NAME="def_APPLICATION"><B>APPLICATION</B>: This block is for use by third-party applications.  The only mandatory field is a 32-bit identifier.  This ID is granted upon request to an application by the FLAC maintainers.  The remainder is of the block is defined by the registered application.  Visit the <A HREF="id.html">registration page</A> if you would like to register an ID for your application with FLAC.</LI>
 				<LI><A NAME="def_PADDING"><B>PADDING</B>: This block allows for an arbitrary amount of padding.  The contents of a PADDING block have no meaning.  This block is useful when it is known that an APPLICATION block will be added after encoding; the user can instruct the encoder to reserve a PADDING block of the proper size so that the application may directly write over it later (which is relatively quick) instead of having to insert the APPLICATION block (which would normally require rewriting the entire file).</LI>
 				<LI><A NAME="def_SEEKTABLE"><B>SEEKTABLE</B>: This is an optional block for storing seek points.  It is possible to seek to any given sample in a FLAC stream without a seek table, but the delay can be unpredictable since the bitrate may vary widely within a stream.  By adding seek points to a stream, this delay can be significantly reduced.  Each seek point takes 18 bytes, so 1% resolution within a stream adds less than 2k.  There can be only one SEEKTABLE in a stream, but the table can have any number of seek points.  There is also a special 'placeholder' seekpoint which will be ignored by decoders but which can be used to reserve space for future seek point insertion.</LI>
+				<LI><A NAME="def_VORBIS_COMMENT"><B>VORBIS_COMMENT</B>: This block is for storing a list of human-readable name/value pairs.  Values are encoded using UTF-8.  It is an implementation of the <A HREF="http://xiph.org/ogg/vorbis/doc/v-comment.html">Vorbis comment specification</A>.  This is the only officially supported tagging mechanism in FLAC.</LI>
+				<LI><A NAME="def_CUESHEET"><B>CUESHEET</B>: This block is for storing various information that can be used in a cue sheet.  It supports track and index points, compatible with Red Book CD digital audio discs, as well as other CD-DA metadata such as media catalog number and track ISRCs.  The CUESHEET block is especially useful for backing up CD-DA discs, but it can be used as a general purpose cueing mechanism for playback.</LI>
 			</UL>
 		</LI></P>
 		<P><LI>
@@ -393,7 +395,7 @@
 					<TT>4</TT> : VORBIS_COMMENT
 				</LI>
 				<LI>
-					<TT>4</TT> : CUESHEET
+					<TT>5</TT> : CUESHEET
 				</LI>
 				<LI>
 					<TT>6-127</TT> : reserved
@@ -423,7 +425,12 @@
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A HREF="#metadata_block_streaminfo"><I>METADATA_BLOCK_STREAMINFO</I></A><BR>|| <A HREF="#metadata_block_padding"><I>METADATA_BLOCK_PADDING</I></A><BR>|| <A HREF="#metadata_block_application"><I>METADATA_BLOCK_APPLICATION</I></A><BR>|| <A HREF="#metadata_block_seektable"><I>METADATA_BLOCK_SEEKTABLE</I></A><BR>|| <A HREF="#metadata_block_vorbis_comment"><I>METADATA_BLOCK_VORBIS_COMMENT</I></A>
+				<A HREF="#metadata_block_streaminfo"><I>METADATA_BLOCK_STREAMINFO</I></A><BR>
+				|| <A HREF="#metadata_block_padding"><I>METADATA_BLOCK_PADDING</I></A><BR>
+				|| <A HREF="#metadata_block_application"><I>METADATA_BLOCK_APPLICATION</I></A><BR>
+				|| <A HREF="#metadata_block_seektable"><I>METADATA_BLOCK_SEEKTABLE</I></A><BR>
+				|| <A HREF="#metadata_block_vorbis_comment"><I>METADATA_BLOCK_VORBIS_COMMENT</I></A><BR>
+				|| <A HREF="#metadata_block_cuesheet"><I>METADATA_BLOCK_CUESHEET</I></A>
 			</TD>
 			<TD>
 				The block data must match the block type in the block header.
@@ -680,6 +687,170 @@
 			</TD>
 			<TD>
 				The contents of a vorbis comment packet as specified <A HREF="http://www.xiph.org/ogg/vorbis/doc/v-comment.html">here</A>, including the vendor string.  Note that the vorbis comment spec allows for on the order of 2 ^ 64 bytes of data where as the FLAC metadata block is limited to 2 ^ 24 bytes.  Given the stated purpose of vorbis comments, i.e. human-readable textual information, this limit is unlikely to be restrictive.  Also note that the 32-bit field lengths are little-endian coded according to the vorbis spec, as opposed to the usual big-endian coding of fixed-length integers in the rest of FLAC.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_cuesheet"><FONT SIZE="+1"><B>METADATA_BLOCK_CUESHEET</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;128*8&gt;
+			</TD>
+			<TD>
+				Media catalog number, in ASCII printable characters 0x20-0x7e.  In general, the media catalog number may be 0 to 128 bytes long; any unused characters should be right-padded with NUL characters.  For CD-DA, this is a thirteen digit number, followed by 115 NUL bytes.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;64&gt;
+			</TD>
+			<TD>
+				The number of lead-in samples.  This field has meaning only for CD-DA cuesheets; for other uses it should be 0.  For CD-DA, the lead-in is the TRACK 00 area where the table of contents is stored; more precisely, it is the number of samples from the first sample of the media to the first sample of the first index point of the first track.  According to the Red Book, the lead-in must be silence and CD grabbing software does not usually store it; additionally, the lead-in must be at least two seconds but may be longer (? @@@@).  For these reasons the lead-in length is stored here so that the absolute position of the first track can be computed.  Note that the lead-in stored here is the number of samples up to the first index point of the first track, not necessarily to INDEX 01 of the first track; even the first track may have INDEX 00 data.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;259*8&gt;
+			</TD>
+			<TD>
+				Reserved.  All bits must be set to zero.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;8&gt;
+			</TD>
+			<TD>
+				The number of tracks.  For CD-DA, this number must be no more than 100 (99 regular tracks and one leadout track).
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#cuesheet_track"><I>CUESHEET_TRACK</I></A>+
+			</TD>
+			<TD>
+				One or more tracks.  A CUESHEET block is required to have a lead-out track; it is always the last track in the CUESHEET.  For CD-DA, the lead-out track number must be 170 as specified by the Red Book (? @@@@).
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="cuesheet_track"><FONT SIZE="+1"><B>CUESHEET_TRACK</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;64&gt;
+			</TD>
+			<TD>
+				Track offset in samples, relative to the beginning of the FLAC audio stream.  It is the offset to the first index point of the track.  (Note how this differs from CD-DA, where the track's offset in the TOC is that of the track's INDEX 01 even if there is an INDEX 00.)  For CD-DA, the offset must be evenly divisible by 588 samples (588 samples = 44100 samples/sec * 1/75th of a sec).
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;8&gt;
+			</TD>
+			<TD>
+				Track number.  A track number of 0 is not allowed to avoid conflicting with the CD-DA spec, which reserves this for the lead-in. For CD-DA the number must be 1-99, or 170 for the lead-out (? @@@@).  It is not required but encouraged to start with track 1 and increase sequentially (? @@@@).  Track numbers must be unique within a CUESHEET.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;12*8&gt;
+			</TD>
+			<TD>
+				Track ISRC.  This is a 12-digit alphanumeric code; see <A HREF="http://www.ifpi.org/isrc/isrc_handbook.html">here</A> and <A HREF="http://www.discusa.com/cdref/cdaudio/isrc.htm">here</A>.  A value of 12 ASCII NUL characters may be used to denote absence of an ISRC.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;1&gt;
+			</TD>
+			<TD>
+				The track type: 0 for audio, 1 for non-audio.  This corresponds to the CD-DA Q-channel control bit 3.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;1&gt;
+			</TD>
+			<TD>
+				The pre-emphasis flag: 0 for no pre-emphasis, 1 for pre-emphasis.  This corresponds to the CD-DA Q-channel control bit 5; see <A HREF="http://www.chipchapin.com/CDMedia/cdda9.php3">here</A>.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;6+13*8&gt;
+			</TD>
+			<TD>
+				Reserved.  All bits must be set to zero.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;8&gt;
+			</TD>
+			<TD>
+				The number of track index points.  There must be at least one index in every track in a CUESHEET except for the lead-out track, which must have zero.  For CD-DA, this number may be no more than 100.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#cuesheet_track_index"><I>CUESHEET_TRACK_INDEX</I></A>+
+			</TD>
+			<TD>
+				One or more track index points.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="cuesheet_track_index"><FONT SIZE="+1"><B>CUESHEET_TRACK_INDEX</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;64&gt;
+			</TD>
+			<TD>
+				Offset in samples, relative to the track offset, of the index point.  For CD-DA, the offset must be evenly divisible by 588 samples (588 samples = 44100 samples/sec * 1/75th of a sec).  Note that the offset is from the beginning of the track, not the beginning of the audio data.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;8&gt;
+			</TD>
+			<TD>
+				Index point number.  The first index in a track must have a number of 0 or 1, and subsequently, index numbers must increase by 1.  Index numbers must be unique within a track.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;3*8&gt;
+			</TD>
+			<TD>
+				Reserved.  All bits must be set to zero.
 			</TD>
 		</TR>
 	</TABLE>
