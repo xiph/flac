@@ -13,7 +13,8 @@ C_FILES= \
 	charset.c \
 	dither.c \
 	id3v1.c \
-	id3v2.c
+	id3v2.c \
+	vorbiscomment.c
 
 OBJS= $(C_FILES:.c=.obj)
 

@@ -12,14 +12,16 @@ noinst_HEADERS = \
 	charset.h \
 	dither.h \
 	id3v1.h \
-	id3v2.h
+	id3v2.h \
+	vorbiscomment.h
 
 libplugin_common_a_SOURCES = \
 	canonical_tag.c \
 	charset.c \
 	dither.c \
 	id3v1.c \
-	id3v2.c
+	id3v2.c \
+	vorbiscomment.c
 
 EXTRA_DIST = \
 	Makefile.lite \

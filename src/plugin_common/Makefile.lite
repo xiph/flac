@@ -11,7 +11,8 @@ OBJS = \
 	charset.o \
 	dither.o \
 	id3v1.o \
-	id3v2.o
+	id3v2.o \
+	vorbiscomment.o
 
 include ../../build/lib.mk
 
