@@ -21,6 +21,9 @@ LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 PATH=../src/test_unit:../obj/bin:$PATH
 
+# We use the whole path to test_unit so it can find itself.  It uses it's own
+# binary as a dummy source for creating a test FLAC file so it can work on the
+# metadata.
 if `which test_unit` ; then : ; else
 	echo "ERROR during test_unit" 1>&2
 	exit 1
