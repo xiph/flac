@@ -53,17 +53,17 @@ all: test_libFLAC++.exe
 
 # can't figure out how to get it to take .cc so we just hack it for now:
 decoders.obj: decoders.cc
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP decoders.cc
+	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP decoders.cc
 encoders.obj: encoders.cc
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP encoders.cc
+	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP encoders.cc
 main.obj: main.cc
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP main.cc
+	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP main.cc
 metadata.obj: metadata.cc
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata.cc
+	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata.cc
 metadata_manip.obj: metadata_manip.cc
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata_manip.cc
+	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata_manip.cc
 metadata_object.obj: metadata_object.cc
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata_object.cc
+	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata_object.cc
 
 test_libFLAC++.exe: $(C_OBJS) $(CC_OBJS)
 	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(CC_OBJS) $(C_OBJS) libFLAC++.lib libFLAC.lib
