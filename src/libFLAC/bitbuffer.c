@@ -35,7 +35,7 @@
 /* This should be at least twice as large as the largest number of bytes required to represent any 'number' (in any encoding) you are going to read. */
 static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 65536; /* bytes */
 
-static const byte byte_bit_to_mask_[] = { 128, 64, 32, 16, 8, 4, 2, 1 };
+#define BYTE_BIT_TO_MASK(b) (((byte)'\x80') >> (b))
 
 #ifdef min
 #undef min
@@ -949,7 +949,7 @@ bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_ca
 
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
-			*val = (bb->buffer[bb->consumed_bytes] & byte_bit_to_mask_[bb->consumed_bits])? 1 : 0;
+			*val = (bb->buffer[bb->consumed_bytes] & BYTE_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
 			return true;
 		}
 		else {
@@ -969,7 +969,7 @@ bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, bool (*read_ca
 
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
-			*val = (bb->buffer[bb->consumed_bytes] & byte_bit_to_mask_[bb->consumed_bits])? 1 : 0;
+			*val = (bb->buffer[bb->consumed_bytes] & BYTE_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
 			bb->consumed_bits++;
 			if(bb->consumed_bits == 8) {
 				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
@@ -997,7 +997,7 @@ bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, uint32 *val, bool (
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
 			*val <<= 1;
-			*val |= (bb->buffer[bb->consumed_bytes] & byte_bit_to_mask_[bb->consumed_bits])? 1 : 0;
+			*val |= (bb->buffer[bb->consumed_bytes] & BYTE_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
 			bb->consumed_bits++;
 			if(bb->consumed_bits == 8) {
 				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
@@ -1025,7 +1025,7 @@ bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, uint64 *val, bool (
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
 			*val <<= 1;
-			*val |= (bb->buffer[bb->consumed_bytes] & byte_bit_to_mask_[bb->consumed_bits])? 1 : 0;
+			*val |= (bb->buffer[bb->consumed_bytes] & BYTE_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
 			bb->consumed_bits++;
 			if(bb->consumed_bits == 8) {
 				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
