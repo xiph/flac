@@ -113,24 +113,23 @@ typedef signed int      Int32_t;
 #define MAX_SAMPLES_PER_WINDOW  (size_t) (MAX_SAMP_FREQ * RMS_WINDOW_TIME)        /* max. Samples per Time slice */
 #define PINK_REF                64.82 /* 298640883795 */                          /* calibration value */
 
-Float_t          linprebuf [MAX_ORDER * 2];
-Float_t*         linpre;                                          /* left input samples, with pre-buffer */
-Float_t          lstepbuf  [MAX_SAMPLES_PER_WINDOW + MAX_ORDER];
-Float_t*         lstep;                                           /* left "first step" (i.e. post first filter) samples */
-Float_t          loutbuf   [MAX_SAMPLES_PER_WINDOW + MAX_ORDER];
-Float_t*         lout;                                            /* left "out" (i.e. post second filter) samples */
-Float_t          rinprebuf [MAX_ORDER * 2];
-Float_t*         rinpre;                                          /* right input samples ... */
-Float_t          rstepbuf  [MAX_SAMPLES_PER_WINDOW + MAX_ORDER];
-Float_t*         rstep;
-Float_t          routbuf   [MAX_SAMPLES_PER_WINDOW + MAX_ORDER];
-Float_t*         rout;
-unsigned int              sampleWindow;                           /* number of samples required to reach number of milliseconds required for RMS window */
-unsigned long    totsamp;
-double           lsum;
-double           rsum;
-int              freqindex;
-int              first;
+static Float_t          linprebuf [MAX_ORDER * 2];
+static Float_t*         linpre;                                          /* left input samples, with pre-buffer */
+static Float_t          lstepbuf  [MAX_SAMPLES_PER_WINDOW + MAX_ORDER];
+static Float_t*         lstep;                                           /* left "first step" (i.e. post first filter) samples */
+static Float_t          loutbuf   [MAX_SAMPLES_PER_WINDOW + MAX_ORDER];
+static Float_t*         lout;                                            /* left "out" (i.e. post second filter) samples */
+static Float_t          rinprebuf [MAX_ORDER * 2];
+static Float_t*         rinpre;                                          /* right input samples ... */
+static Float_t          rstepbuf  [MAX_SAMPLES_PER_WINDOW + MAX_ORDER];
+static Float_t*         rstep;
+static Float_t          routbuf   [MAX_SAMPLES_PER_WINDOW + MAX_ORDER];
+static Float_t*         rout;
+static unsigned int              sampleWindow;                           /* number of samples required to reach number of milliseconds required for RMS window */
+static unsigned long    totsamp;
+static double           lsum;
+static double           rsum;
+static int              freqindex;
 static Uint32_t  A [(size_t)(STEPS_per_dB * MAX_dB)];
 static Uint32_t  B [(size_t)(STEPS_per_dB * MAX_dB)];
 
@@ -141,7 +140,7 @@ static Uint32_t  B [(size_t)(STEPS_per_dB * MAX_dB)];
 #pragma warning ( disable : 4305 )
 #endif
 
-const Float_t  AYule [9] [11] = {
+static const Float_t  AYule [9] [11] = {
     { 1., -3.84664617118067,  7.81501653005538,-11.34170355132042, 13.05504219327545,-12.28759895145294,  9.48293806319790, -5.87257861775999,  2.75465861874613, -0.86984376593551, 0.13919314567432 },
     { 1., -3.47845948550071,  6.36317777566148, -8.54751527471874,  9.47693607801280, -8.81498681370155,  6.85401540936998, -4.39470996079559,  2.19611684890774, -0.75104302451432, 0.13149317958808 },
     { 1., -2.37898834973084,  2.84868151156327, -2.64577170229825,  2.23697657451713, -1.67148153367602,  1.00595954808547, -0.45953458054983,  0.16378164858596, -0.05032077717131, 0.02347897407020 },
@@ -153,7 +152,7 @@ const Float_t  AYule [9] [11] = {
     { 1., -0.25049871956020, -0.43193942311114, -0.03424681017675, -0.04678328784242,  0.26408300200955,  0.15113130533216, -0.17556493366449, -0.18823009262115,  0.05477720428674, 0.04704409688120 }
 };
 
-const Float_t  BYule [9] [11] = {
+static const Float_t  BYule [9] [11] = {
     { 0.03857599435200, -0.02160367184185, -0.00123395316851, -0.00009291677959, -0.01655260341619,  0.02161526843274, -0.02074045215285,  0.00594298065125,  0.00306428023191,  0.00012025322027,  0.00288463683916 },
     { 0.05418656406430, -0.02911007808948, -0.00848709379851, -0.00851165645469, -0.00834990904936,  0.02245293253339, -0.02596338512915,  0.01624864962975, -0.00240879051584,  0.00674613682247, -0.00187763777362 },
     { 0.15457299681924, -0.09331049056315, -0.06247880153653,  0.02163541888798, -0.05588393329856,  0.04781476674921,  0.00222312597743,  0.03174092540049, -0.01390589421898,  0.00651420667831, -0.00881362733839 },
@@ -165,7 +164,7 @@ const Float_t  BYule [9] [11] = {
     { 0.53648789255105, -0.42163034350696, -0.00275953611929,  0.04267842219415, -0.10214864179676,  0.14590772289388, -0.02459864859345, -0.11202315195388, -0.04060034127000,  0.04788665548180, -0.02217936801134 }
 };
 
-const Float_t  AButter [9] [3] = {
+static const Float_t  AButter [9] [3] = {
     { 1., -1.97223372919527, 0.97261396931306 },
     { 1., -1.96977855582618, 0.97022847566350 },
     { 1., -1.95835380975398, 0.95920349965459 },
@@ -177,7 +176,7 @@ const Float_t  AButter [9] [3] = {
     { 1., -1.88903307939452, 0.89487434461664 }
 };
 
-const Float_t  BButter [9] [3] = {
+static const Float_t  BButter [9] [3] = {
     { 0.98621192462708, -1.97242384925416, 0.98621192462708 },
     { 0.98500175787242, -1.97000351574484, 0.98500175787242 },
     { 0.97938932735214, -1.95877865470428, 0.97938932735214 },
