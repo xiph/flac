@@ -788,8 +788,8 @@ FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	unsigned mask = (encoder->do_exhaustive_model_search || encoder->do_qlp_coeff_prec_search)? 0x07 : 0x1f;
 
-	/* mark the current seek point if hit */
-	if(encoder_wrapper->seek_table.num_points > 0) {
+	/* mark the current seek point if hit (if stream_offset == 0 that means we're still writing metadata and haven't hit the first frame yet) */
+	if(encoder_wrapper->stream_offset > 0 && encoder_wrapper->seek_table.num_points > 0) {
 		uint64 current_sample = (uint64)current_frame * (uint64)encoder->blocksize, test_sample;
 		unsigned i;
 		for(i = encoder_wrapper->first_seek_point_to_check; i < encoder_wrapper->seek_table.num_points; i++) {
