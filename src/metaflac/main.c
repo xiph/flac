@@ -27,6 +27,7 @@ more powerful operations yet to add:
 
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
+#include "share/replaygain.h"
 #include "share/utf8.h"
 #include <ctype.h>
 #include <locale.h>
@@ -81,6 +82,7 @@ static struct FLAC__share__option long_options_[] = {
 	{ "set-vc-field", 1, 0, 0 },
 	{ "import-vc-from", 1, 0, 0 },
 	{ "export-vc-to", 1, 0, 0 },
+	{ "add-replay-gain", 0, 0, 0 },
 	{ "add-padding", 1, 0, 0 },
 	/* major operations */
 	{ "help", 0, 0, 0 },
@@ -128,6 +130,7 @@ typedef enum {
 	OP__SET_VC_FIELD,
 	OP__IMPORT_VC_FROM,
 	OP__EXPORT_VC_TO,
+	OP__ADD_REPLAY_GAIN,
 	OP__ADD_PADDING,
 	OP__LIST,
 	OP__APPEND,
@@ -287,6 +290,9 @@ static FLAC__bool do_major_operation__remove_all(FLAC__Metadata_Chain *chain, co
 static FLAC__bool do_shorthand_operations(const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert);
+static FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files);
+static FLAC__bool do_replaygain_analyze_file(const char *filename, float *title_gain, float *title_peak);
+static FLAC__bool do_replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak);
 static FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write);
 static FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
 static FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
@@ -612,6 +618,9 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
 			ok = false;
 		}
+	}
+	else if(0 == strcmp(opt, "add-replay-gain")) {
+		(void) append_shorthand_operation(options, OP__ADD_REPLAY_GAIN);
 	}
 	else if(0 == strcmp(opt, "add-padding")) {
 		op = append_shorthand_operation(options, OP__ADD_PADDING);
@@ -951,6 +960,18 @@ int long_usage(const char *message, ...)
 	fprintf(out, "--export-vc-to=file   Export Vorbis comments to a file.  Use '-' for stdin.\n");
 	fprintf(out, "                      Each line will be of the form NAME=VALUE.  Specify\n");
 	fprintf(out, "                      --no-utf8-convert if necessary.\n");
+	fprintf(out, "--add-replay-gain     Calculates the title and album gains/peaks of the given\n");
+	fprintf(out, "                      FLAC files as if all the files were part of one album,\n");
+	fprintf(out, "                      then stores them in the VORBIS_COMMENT block.  The tags\n");
+	fprintf(out, "                      are the same as those used by vorbisgain.  Existing\n");
+	fprintf(out, "                      ReplayGain tags will be replaced.  If only one FLAC file\n");
+	fprintf(out, "                      is given, the album and title gains will be the same.\n");
+	fprintf(out, "                      Since this operation requires two passes, it is always\n");
+	fprintf(out, "                      executed last, after all other operations have been\n");
+	fprintf(out, "                      completed and written to disk.  All FLAC files specified\n");
+	fprintf(out, "                      must have the same resolution, sample rate, and number\n");
+	fprintf(out, "                      of channels.  The sample rate must be one of 8, 11.025,\n");
+	fprintf(out, "                      12, 16, 22.05, 24, 32, 44.1, or 48 kHz.\n");
 	fprintf(out, "--add-padding=length  Add a padding block of the given length (in bytes).\n");
 	fprintf(out, "                      The overall length of the new block will be 4 + length;\n");
 	fprintf(out, "                      the extra 4 bytes is for the metadata block header.\n");
@@ -1518,6 +1539,14 @@ FLAC__bool do_shorthand_operations(const CommandLineOptions *options)
 	for(i = 0; i < options->num_files; i++)
 		ok &= do_shorthand_operations_on_file(options->filenames[i], options);
 
+	/* check if OP__ADD_REPLAY_GAIN requested */
+	if(ok && options->num_files > 0) {
+		for(i = 0; i < options->ops.num_operations; i++) {
+			if(options->ops.operations[i].type == OP__ADD_REPLAY_GAIN)
+				ok = do_shorthand_operation__add_replay_gain(options->filenames, options->num_files);
+		}
+	}
+
 	return ok;
 }
 
@@ -1597,6 +1626,10 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *ch
 		case OP__EXPORT_VC_TO:
 			ok = do_shorthand_operation__vorbis_comment(filename, chain, operation, needs_write, !utf8_convert);
 			break;
+		case OP__ADD_REPLAY_GAIN:
+			/* this command is always executed last */
+			ok = true;
+			break;
 		case OP__ADD_PADDING:
 			ok = do_shorthand_operation__add_padding(filename, chain, operation->argument.add_padding.length, needs_write);
 			break;
@@ -1607,6 +1640,115 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *ch
 	};
 
 	return ok;
+}
+
+FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files)
+{
+	static const unsigned valid_sample_rates[] = {
+		8000,
+		11025,
+		12000,
+		16000,
+		22050,
+		24000,
+		32000,
+		44100,
+		48000
+	};
+	static const unsigned n_valid_sample_rates = sizeof(valid_sample_rates) / sizeof(valid_sample_rates[0]);
+
+	FLAC__StreamMetadata streaminfo;
+	float *title_gains = 0, *title_peaks = 0;
+	float album_gain = 0.0, album_peak = 0.0;
+	unsigned sample_rate = 0;
+	unsigned bits_per_sample = 0;
+	unsigned channels = 0;
+	unsigned i, j;
+	FLAC__bool first = true;
+
+	FLAC__ASSERT(num_files > 0);
+
+	for(i = 0; i < num_files; i++) {
+		FLAC__ASSERT(0 != filenames[i]);
+		if(!FLAC__metadata_get_streaminfo(filenames[i], &streaminfo)) {
+			fprintf(stderr, "%s: ERROR: can't open file or get STREAMINFO block\n", filenames[i]);
+			return false;
+		}
+		if(first) {
+			first = false;
+			sample_rate = streaminfo.data.stream_info.sample_rate;
+			bits_per_sample = streaminfo.data.stream_info.bits_per_sample;
+			channels = streaminfo.data.stream_info.channels;
+		}
+		else {
+			if(sample_rate != streaminfo.data.stream_info.sample_rate) {
+				fprintf(stderr, "%s: ERROR: sample rate of %u Hz does not match previous files' %u Hz\n", filenames[i], streaminfo.data.stream_info.sample_rate, sample_rate);
+				return false;
+			}
+			if(bits_per_sample != streaminfo.data.stream_info.bits_per_sample) {
+				fprintf(stderr, "%s: ERROR: resolution of %u bps does not match previous files' %u bps\n", filenames[i], streaminfo.data.stream_info.bits_per_sample, bits_per_sample);
+				return false;
+			}
+			if(channels != streaminfo.data.stream_info.channels) {
+				fprintf(stderr, "%s: ERROR: # channels (%u) does not match previous files' (%u)\n", filenames[i], streaminfo.data.stream_info.channels, channels);
+				return false;
+			}
+		}
+		for(j = 0; j < n_valid_sample_rates; j++)
+			if(sample_rate == valid_sample_rates[j])
+				break;
+		if(j == n_valid_sample_rates) {
+			fprintf(stderr, "%s: ERROR: sample rate of %u Hz is not supported\n", filenames[i], sample_rate);
+			return false;
+		}
+		if(channels != 1 && channels != 2) {
+			fprintf(stderr, "%s: ERROR: # of channels (%u) is not supported, must be 1 or 2\n", filenames[i], channels);
+			return false;
+		}
+	}
+	FLAC__ASSERT(bits_per_sample >= FLAC__MIN_BITS_PER_SAMPLE && bits_per_sample <= FLAC__MAX_BITS_PER_SAMPLE);
+
+	if(!FLAC__replaygain_init(sample_rate))
+		FLAC__ASSERT(0);
+
+	if(
+		0 == (title_gains = (float*)malloc(sizeof(float) * num_files)) ||
+		0 == (title_peaks = (float*)malloc(sizeof(float) * num_files))
+	)
+		die("out of memory allocating space for title gains/peaks");
+
+	for(i = 0; i < num_files; i++) {
+		if(!do_replaygain_analyze_file(filenames[i], title_gains+i, title_peaks+i)) {
+			free(title_gains);
+			free(title_peaks);
+			return false;
+		}
+		if(title_peaks[i] > album_peak)
+			album_peak = title_peaks[i];
+	}
+	album_gain = FLAC__replaygain_get_album_gain();
+
+	for(i = 0; i < num_files; i++) {
+		if(!do_replaygain_store_to_file(filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i])) {
+			free(title_gains);
+			free(title_peaks);
+			return false;
+		}
+	}
+
+	free(title_gains);
+	free(title_peaks);
+	return true;
+}
+
+FLAC__bool do_replaygain_analyze_file(const char *filename, float *title_gain, float *title_peak)
+{
+	return false;//@@@@
+}
+
+FLAC__bool do_replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak)
+{
+	return false;//@@@@
 }
 
 FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write)
