@@ -1157,8 +1157,11 @@ FLAC__bool do_major_operation__remove(FLAC__Metadata_Chain *chain, const Command
 	block_number = 0;
 	while(ok && FLAC__metadata_iterator_next(iterator)) {
 		block_number++;
-		if(passes_filter(options, FLAC__metadata_iterator_get_block(iterator), block_number))
+		if(passes_filter(options, FLAC__metadata_iterator_get_block(iterator), block_number)) {
 			ok &= FLAC__metadata_iterator_delete_block(iterator, options->use_padding);
+			if(options->use_padding)
+				ok &= FLAC__metadata_iterator_next(iterator);
+		}
 	}
 
 	FLAC__metadata_iterator_delete(iterator);
@@ -1176,8 +1179,11 @@ FLAC__bool do_major_operation__remove_all(FLAC__Metadata_Chain *chain, const Com
 
 	FLAC__metadata_iterator_init(iterator, chain);
 
-	while(ok && FLAC__metadata_iterator_next(iterator))
+	while(ok && FLAC__metadata_iterator_next(iterator)) {
 		ok &= FLAC__metadata_iterator_delete_block(iterator, options->use_padding);
+		if(options->use_padding)
+			ok &= FLAC__metadata_iterator_next(iterator);
+	}
 
 	FLAC__metadata_iterator_delete(iterator);
 
@@ -1547,13 +1553,13 @@ FLAC__bool remove_vc_all(FLAC__StreamMetadata *block, FLAC__bool *needs_write)
 	FLAC__ASSERT(0 != needs_write);
 
 	if(0 != block->data.vorbis_comment.comments) {
-		FLAC__ASSERT(block->data.vorbis_comment.num_comments == 0);
+		FLAC__ASSERT(block->data.vorbis_comment.num_comments > 0);
 		if(!FLAC__metadata_object_vorbiscomment_resize_comments(block, 0))
 			return false;
 		*needs_write = true;
 	}
 	else {
-		FLAC__ASSERT(block->data.vorbis_comment.num_comments > 0);
+		FLAC__ASSERT(block->data.vorbis_comment.num_comments == 0);
 	}
 
 	return true;
