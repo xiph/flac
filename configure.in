@@ -21,6 +21,117 @@
 AC_INIT(src/flac/main.c)
 AM_INIT_AUTOMAKE(flac, 1.0.3)
 
+# Function to configure paths for id3lib; search for 'meat' to get to the end.
+# adapted from ogg.m4
+# This is here until id3lib comes with an equivalent.
+# It is inline with configure.in instead of a separate file as a courtesy to users unaware of the -I flag to aclocal
+dnl LOCAL__PATH_ID3LIB([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Test for libid3, and define ID3LIB_CFLAGS and ID3LIB_LIBS
+dnl
+AC_DEFUN(LOCAL__PATH_ID3LIB,
+[dnl
+dnl Get the cflags and libraries
+dnl
+AC_ARG_WITH(id3lib,[  --with-id3lib=PFX   Prefix where libid3 is installed (optional)], id3lib_prefix="$withval", id3lib_prefix="")
+AC_ARG_WITH(id3lib-libraries,[  --with-id3lib-libraries=DIR   Directory where libid3 library is installed (optional)], id3lib_libraries="$withval", id3lib_libraries="")
+AC_ARG_WITH(id3lib-includes,[  --with-id3lib-includes=DIR   Directory where libid3 header files are installed (optional)], id3lib_includes="$withval", id3lib_includes="")
+AC_ARG_ENABLE(id3libtest, [  --disable-id3libtest       Do not try to compile and run a test id3lib program],, enable_id3libtest=yes)
+
+	if test "x$id3lib_libraries" != "x" ; then
+		ID3LIB_LIBS="-L$id3lib_libraries"
+	elif test "x$id3lib_prefix" != "x" ; then
+		ID3LIB_LIBS="-L$id3lib_prefix/lib"
+	elif test "x$prefix" != "xNONE" ; then
+		ID3LIB_LIBS="-L$prefix/lib"
+	fi
+
+	ID3LIB_LIBS="$ID3LIB_LIBS -lid3"
+
+	if test "x$id3lib_includes" != "x" ; then
+		ID3LIB_CFLAGS="-I$id3lib_includes"
+	elif test "x$id3lib_prefix" != "x" ; then
+		ID3LIB_CFLAGS="-I$id3lib_prefix/include"
+	elif test "$prefix" != "xNONE"; then
+		ID3LIB_CFLAGS="-I$prefix/include"
+	fi
+
+	AC_MSG_CHECKING(for id3lib)
+
+
+	if test "x$enable_id3libtest" = "xyes" ; then
+		id3lib_found=""
+	else
+		id3lib_found="yes"
+	fi
+	dnl There is some confusion over what libraries libid3 needs
+	dnl so we must be pessimistic and try all permutations:
+	dnl "-lid3" "-lid3 -lstdc++" "-lid3 -lz" "-lid3 -lz -lstdc++"
+	for xtra_stdcpp in "" " -lstdc++" ; do
+		for xtra_z in "" " -lz" ; do
+			if test "x$id3lib_found" = "x" ; then
+				ac_save_CFLAGS="$CFLAGS"
+				ac_save_LIBS="$LIBS"
+				CFLAGS="$CFLAGS $ID3LIB_CFLAGS"
+				LIBS="$LIBS $ID3LIB_LIBS$xtra_stdcpp$xtra_z"
+				rm -f conf.id3libtest
+				AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <id3.h>
+int main () { system("touch conf.id3libtest"); return 0; }
+], id3lib_found=yes,,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+				CFLAGS="$ac_save_CFLAGS"
+				LIBS="$ac_save_LIBS"
+			fi
+			if test "x$id3lib_found" = "xyes" ; then
+				ID3LIB_LIBS="$ID3LIB_LIBS$xtra_stdcpp$xtra_z"
+			fi
+		done
+	done
+
+	if test "x$id3lib_found" = "xyes" ; then
+		AC_MSG_RESULT(yes)
+		ifelse([$1], , :, [$1])
+	else
+		AC_MSG_RESULT(no)
+		if test -f conf.id3libtest ; then
+			:
+		else
+			echo "*** Could not run id3lib test program, checking why..."
+			CFLAGS="$CFLAGS $ID3LIB_CFLAGS"
+			LIBS="$LIBS $ID3LIB_LIBS"
+			AC_TRY_LINK([
+#include <stdio.h>
+#include <id3.h>
+],     [ return 0; ],
+			[ echo "*** The test program compiled, but did not run. This usually means"
+			echo "*** that the run-time linker is not finding id3lib or finding the wrong"
+			echo "*** version of id3lib. If it is not finding id3lib, you'll need to set your"
+			echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+			echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+			echo "*** is required on your system"
+			echo "***"
+			echo "*** If you have an old version installed, it is best to remove it, although"
+			echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"],
+			[ echo "*** The test program failed to compile or link. See the file config.log for the"
+			echo "*** exact error that occured. This usually means id3lib was incorrectly installed"
+			echo "*** or that you have moved id3lib since it was installed." ])
+			CFLAGS="$ac_save_CFLAGS"
+			LIBS="$ac_save_LIBS"
+		fi
+		ID3LIB_CFLAGS=""
+		ID3LIB_LIBS=""
+		ifelse([$2], , :, [$2])
+	fi
+	AC_SUBST(ID3LIB_CFLAGS)
+	AC_SUBST(ID3LIB_LIBS)
+	rm -f conf.id3libtest
+])
+
+
+dnl Now the meat of configure.in:
+
 # We need two libtools, one that builds both shared and static, and
 # one that builds only static.  This is because the resulting libtool
 # does not allow us to choose which to build at runtime.
@@ -105,6 +216,7 @@ if test x$exhaustive_tests = xtrue ; then
 AC_DEFINE(FLAC__EXHAUSTIVE_TESTS)
 fi
 
+dnl check for ogg library
 XIPH_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
 AM_CONDITIONAL(FLaC__HAS_OGG, [test x$have_ogg = xyes])
 if test x$have_ogg = xyes ; then
@@ -120,24 +232,22 @@ dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_ICONV
 AM_LANGINFO_CODESET
 
-dnl check id3lib libraries
-LIBS_save_blah_blah_blah=$LIBS
-LIBS=""
-AC_SEARCH_LIBS(ID3Tag_Link,"id3" "id3 -lstdc++" "id3 -lz" "id3 -lz -lstdc++",
-               [have_id3lib=yes],
-               [AC_MSG_WARN([id3lib not found - ID3v2 will not be supported, internal functions support only id3v1])])
+dnl check for id3lib library
+dnl LOCAL__PATH_ID3LIB is defined by us, and will be until such time as id3lib supplies one
+LOCAL__PATH_ID3LIB(have_id3lib=yes, AC_MSG_WARN([*** id3lib not found - id3v2 support will not be built]))
 AM_CONDITIONAL(FLaC__HAS_ID3LIB, [test x$have_id3lib = xyes])
 if test x$have_id3lib = xyes ; then
 AC_DEFINE(FLAC__HAS_ID3LIB)
-ID3LIBS=$LIBS
-fi
-AC_SUBST(ID3LIBS)
 
-dnl expected version for cross compiling
+dnl expected id3lib version for cross compiling
 ID3LIB_MAJOR=3
 ID3LIB_MINOR=8
 ID3LIB_PATCH=0
 
+CFLAGS_save_blah_blah_blah=$CFLAGS
+CFLAGS="$ID3LIB_CFLAGS $CFLAGS"
+LIBS_save_blah_blah_blah=$LIBS
+LIBS="$ID3LIB_LIBS $LIBS"
 AC_MSG_CHECKING(for id3lib version)
       AC_TRY_RUN([
 #include <id3.h>
@@ -155,8 +265,9 @@ main ()
 AC_DEFINE_UNQUOTED(ID3LIB_MAJOR, $ID3LIB_MAJOR)
 AC_DEFINE_UNQUOTED(ID3LIB_MINOR, $ID3LIB_MINOR)
 AC_DEFINE_UNQUOTED(ID3LIB_PATCH, $ID3LIB_PATCH)
-
+CFLAGS=$CFLAGS_save_blah_blah_blah
 LIBS=$LIBS_save_blah_blah_blah
+fi
 
 AC_CHECK_PROGS(NASM, nasm)
 AM_CONDITIONAL(FLaC__HAS_NASM, test -n "$NASM")
