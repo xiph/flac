@@ -112,7 +112,7 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, int32 qlp_coeff[], int *shift)
 {
 	unsigned i;
-	real d, cmax = -1e10;
+	real d, cmax = -1e32;
 
 	FLAC__ASSERT(bits_per_sample > 0);
 	FLAC__ASSERT(bits_per_sample <= sizeof(int32)*8);
@@ -262,7 +262,7 @@ real FLAC__lpc_compute_expected_bits_per_residual_sample(real lpc_error, unsigne
 			return 0.0;
 	}
 	else if(lpc_error < 0.0) { /* error should not be negative but can happen due to inadequate float resolution */
-		return 1e10;
+		return 1e32;
 	}
 	else {
 		return 0.0;
@@ -279,7 +279,7 @@ real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(real l
 			return 0.0;
 	}
 	else if(lpc_error < 0.0) { /* error should not be negative but can happen due to inadequate float resolution */
-		return 1e10;
+		return 1e32;
 	}
 	else {
 		return 0.0;
