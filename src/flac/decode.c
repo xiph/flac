@@ -557,15 +557,15 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
 	if(bps != decoder_session->bps) {
-		fprintf(stderr, "ERROR, bits-per-sample is %u in frame but %u in STREAMINFO\n", bps, decoder_session->bps);
+		fprintf(stderr, "%s: ERROR, bits-per-sample is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, bps, decoder_session->bps);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 	if(channels != decoder_session->channels) {
-		fprintf(stderr, "ERROR, channels is %u in frame but %u in STREAMINFO\n", channels, decoder_session->channels);
+		fprintf(stderr, "%s: ERROR, channels is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, channels, decoder_session->channels);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 	if(frame->header.sample_rate != decoder_session->sample_rate) {
-		fprintf(stderr, "ERROR, sample rate is %u in frame but %u in STREAMINFO\n", frame->header.sample_rate, decoder_session->sample_rate);
+		fprintf(stderr, "%s: ERROR, sample rate is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, frame->header.sample_rate, decoder_session->sample_rate);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 
