@@ -21,20 +21,18 @@
 	data_section
 
 cglobal FLAC__cpu_info_asm_ia32
+cglobal FLAC__cpu_info_extended_amd_asm_ia32
 
 	code_section
 
 ; **********************************************************************
 ;
-	ALIGN 16
-cident FLAC__cpu_info_asm_ia32
 
-	push	ebx
-
+have_cpuid:
 	pushfd
 	pop	eax
 	mov	edx, eax
-	xor	eax, 00200000h
+	xor	eax, 0x00200000
 	push	eax
 	popfd
 	pushfd
@@ -42,12 +40,43 @@ cident FLAC__cpu_info_asm_ia32
 	cmp	eax, edx
 	jz	.no_cpuid
 	mov	eax, 1
+	jmp	.end
+.no_cpuid:
+	xor	eax, eax
+.end:
+	ret
+
+cident FLAC__cpu_info_asm_ia32
+	push	ebx
+	call	have_cpuid
+	test	eax, eax
+	jz	.no_cpuid
+	mov	eax, 1
 	cpuid
 	mov	eax, edx
-	jmp	short .end
+	jmp	.end
 .no_cpuid:
-	xor	eax, eax			; return 0
-.end:
+	xor	eax, eax
+.end
+	pop	ebx
+	ret
+
+cident FLAC__cpu_info_extended_amd_asm_ia32
+	push	ebx
+	call	have_cpuid
+	test	eax, eax
+	jz	.no_cpuid
+	mov	eax, 0x80000000
+	cpuid
+	cmp	eax, 0x80000001
+	jb	.no_cpuid
+	mov	eax, 0x80000001
+	cpuid
+	mov	eax, edx
+	jmp	.end
+.no_cpuid
+	xor	eax, eax
+.end
 	pop	ebx
 	ret
 

@@ -24,6 +24,7 @@ cglobal FLAC__lpc_compute_autocorrelation_asm_ia32
 cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4
 cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8
 cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow
 cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32
 cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx
 cglobal FLAC__lpc_restore_signal_asm_ia32
@@ -590,6 +591,124 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
 	movups	[edx + 8], xmm7
 
 .end:
+	ret
+
+	align 16
+cident FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow
+	;[ebp + 32] autoc
+	;[ebp + 28] lag
+	;[ebp + 24] data_len
+	;[ebp + 20] data
+
+	push	ebp
+	push	ebx
+	push	esi
+	push	edi
+	mov	ebp, esp
+
+	mov	esi, [ebp + 20]
+	mov	edi, [ebp + 24]
+	mov	edx, [ebp + 28]
+	mov	eax, edx
+	neg	eax
+	and	esp, byte -8
+	lea	esp, [esp + 4 * eax]
+	mov	ecx, edx
+	xor	eax, eax
+.loop0:
+	dec	ecx
+	mov	[esp + 4 * ecx], eax
+	jnz	short .loop0
+
+	mov	eax, edi
+	sub	eax, edx
+	mov	ebx, edx
+	and	ebx, byte 1
+	sub	eax, ebx
+	lea	ecx, [esi + 4 * eax - 12]
+	cmp	esi, ecx
+	mov	eax, esi
+	ja	short .loop2_pre
+	align	16		;8 nops
+.loop1_i:
+	movd	mm0, [eax]
+	movd	mm2, [eax + 4]
+	movd	mm4, [eax + 8]
+	movd	mm6, [eax + 12]
+	mov	ebx, edx
+	punpckldq	mm0, mm0
+	punpckldq	mm2, mm2
+	punpckldq	mm4, mm4
+	punpckldq	mm6, mm6
+	align	16		;3 nops
+.loop1_j:
+	sub	ebx, byte 2
+	movd	mm1, [eax + 4 * ebx]
+	movd	mm3, [eax + 4 * ebx + 4]
+	movd	mm5, [eax + 4 * ebx + 8]
+	movd	mm7, [eax + 4 * ebx + 12]
+	punpckldq	mm1, mm3
+	punpckldq	mm3, mm5
+	pfmul	mm1, mm0
+	punpckldq	mm5, mm7
+	pfmul	mm3, mm2
+	punpckldq	mm7, [eax + 4 * ebx + 16]
+	pfmul	mm5, mm4
+	pfmul	mm7, mm6
+	pfadd	mm1, mm3
+	movq	mm3, [esp + 4 * ebx]
+	pfadd	mm5, mm7
+	pfadd	mm1, mm5
+	pfadd	mm3, mm1
+	movq	[esp + 4 * ebx], mm3
+	jg	short .loop1_j
+
+	add	eax, byte 16
+	cmp	eax, ecx
+	jb	short .loop1_i
+
+.loop2_pre:
+	mov	ebx, eax
+	sub	eax, esi
+	shr	eax, 2
+	lea	ecx, [esi + 4 * edi]
+	mov	esi, ebx
+.loop2_i:
+	movd	mm0, [esi]
+	mov	ebx, edi
+	sub	ebx, eax
+	cmp	ebx, edx
+	jbe	short .loop2_j
+	mov	ebx, edx
+.loop2_j:
+	dec	ebx
+	movd	mm1, [esi + 4 * ebx]
+	pfmul	mm1, mm0
+	movd	mm2, [esp + 4 * ebx]
+	pfadd	mm1, mm2
+	movd	[esp + 4 * ebx], mm1
+
+	jnz	short .loop2_j
+
+	add	esi, byte 4
+	inc	eax
+	cmp	esi, ecx
+	jnz	short .loop2_i
+
+	mov	edi, [ebp + 32]
+.loop3:
+	dec	edx
+	mov	eax, [esp + 4 * edx]
+	mov	[edi + 4 * edx], eax
+	jnz	short .loop3
+
+	femms
+
+	mov	esp, ebp
+	pop	edi
+	pop	esi
+	pop	ebx
+	pop	ebp
 	ret
 
 ;void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
