@@ -211,7 +211,7 @@ static FLAC__StreamDecoderWriteStatus decoder_write_callback_(const FLAC__FileDe
 		fflush(stdout);
 	}
 
-	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
 static void decoder_error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
@@ -293,7 +293,7 @@ static FLAC__bool generate_file_()
 	if(!insert_to_our_metadata_(&streaminfo, 0, /*copy=*/true) || !insert_to_our_metadata_(&padding, 1, /*copy=*/true))
 		return die_("priming our metadata");
 
-	if(!file_utils__generate_flacfile(flacfile_, 512 * 1024, &streaminfo, metadata, 1))
+	if(!file_utils__generate_flacfile(flacfile_, 0, 512 * 1024, &streaminfo, metadata, 1))
 		return die_("creating the encoded file"); 
 
 	return true;

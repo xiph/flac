@@ -145,7 +145,7 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 {
 	(void)decoder, (void)frame, (void)buffer, (void)client_data;
 
-	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
 void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
@@ -162,7 +162,7 @@ void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorS
 	FLAC__StreamMetaData_StreamInfo **streaminfo = (FLAC__StreamMetaData_StreamInfo **)client_data;
 	(void)decoder;
 
-	if(status != FLAC__STREAM_DECODER_ERROR_LOST_SYNC)
+	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
 		*streaminfo = 0;
 }
 
