@@ -453,6 +453,8 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 			}
 			if(pos < l)
 				pos = l;
+			if(pos < 0)
+				pos = 0;
 			last_frame_sample = this_frame_sample;
 		}
 	}
