@@ -405,6 +405,43 @@ foo:
 	return false;
 }
 
+static bool generate_wackywavs()
+{
+	FILE *f;
+	byte wav[] = {
+		'R', 'I', 'F', 'F',  76,   0,   0,   0,
+		'W', 'A', 'V', 'E', 'f', 'a', 'c', 't',
+		  4,   0,   0,  0 , 'b', 'l', 'a', 'h',
+		'p', 'a', 'd', ' ',   4,   0,   0,   0,
+		'B', 'L', 'A', 'H', 'f', 'm', 't', ' ',
+		 16,   0,   0,   0,   1,   0,   1,   0,
+		0x44,0xAC,  0,   0,   0,   0,   0,   0,
+		  2,   0,  16,   0, 'd', 'a', 't', 'a',
+		 16,   0,   0,   0,   0,   0,   1,   0,
+		  4,   0,   9,   0,  16,   0,  25,   0,
+		 36,   0,  49,   0, 'p', 'a', 'd', ' ',
+		  4,   0,   0,   0, 'b', 'l', 'a', 'h'
+	};
+
+	if(0 == (f = fopen("wacky1.wav", mode)))
+		return false;
+	if(fwrite(wav, 1, 84, f) < 84)
+		goto foo;
+	fclose(f);
+
+	wav[4] += 12;
+	if(0 == (f = fopen("wacky2.wav", mode)))
+		return false;
+	if(fwrite(wav, 1, 96, f) < 96)
+		goto foo;
+	fclose(f);
+
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
 int main(int argc, char *argv[])
 {
 	uint32 test = 1;
@@ -487,6 +524,7 @@ int main(int argc, char *argv[])
 	if(!generate_sine24_2("sine24-19.raw", 44100.0, 50000, 8820.0, 0.70, 4410.0, 0.29, 0.1)) return 1;
 
 	if(!generate_noise("noise.raw", 65536 * 8 * 3)) return 1;
+	if(!generate_wackywavs()) return 1;
 
 	return 0;
 }
