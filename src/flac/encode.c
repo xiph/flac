@@ -687,7 +687,9 @@ FLAC__bool init(encoder_wrapper_struct *encoder_wrapper)
 
 FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper)
 {
-	unsigned i;
+	unsigned i, num_metadata;
+	FLAC__StreamMetaData seek_table, padding;
+	FLAC__StreamMetaData *metadata[2];
 
 	if(channels != 2)
 		options.do_mid_side = options.loose_mid_side = false;
@@ -727,6 +729,21 @@ FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bp
 		return false;
 	}
 
+	num_metadata = 0;
+	if(encoder_wrapper->seek_table.num_points > 0) {
+		seek_table.is_last = false; /* the encoder will set this for us */
+		seek_table.type = FLAC__METADATA_TYPE_SEEKTABLE;
+		seek_table.length = encoder_wrapper->seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
+		seek_table.data.seek_table = encoder_wrapper->seek_table;
+		metadata[num_metadata++] = &seek_table;
+	}
+	if(options.padding > 0) {
+		padding.is_last = false; /* the encoder will set this for us */
+		padding.type = FLAC__METADATA_TYPE_PADDING;
+		padding.length = (unsigned)options.padding;
+		metadata[num_metadata++] = &padding;
+	}
+
 	FLAC__stream_encoder_set_streamable_subset(encoder_wrapper->encoder, !options.lax);
 	FLAC__stream_encoder_set_do_mid_side_stereo(encoder_wrapper->encoder, options.do_mid_side);
 	FLAC__stream_encoder_set_loose_mid_side_stereo(encoder_wrapper->encoder, options.loose_mid_side);
@@ -743,9 +760,7 @@ FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bp
 	FLAC__stream_encoder_set_max_residual_partition_order(encoder_wrapper->encoder, options.max_residual_partition_order);
 	FLAC__stream_encoder_set_rice_parameter_search_dist(encoder_wrapper->encoder, options.rice_parameter_search_dist);
 	FLAC__stream_encoder_set_total_samples_estimate(encoder_wrapper->encoder, encoder_wrapper->total_samples_to_encode);
-	FLAC__stream_encoder_set_seek_table(encoder_wrapper->encoder, (encoder_wrapper->seek_table.num_points > 0)? &encoder_wrapper->seek_table : 0);
-	FLAC__stream_encoder_set_padding(encoder_wrapper->encoder, options.padding);
-	FLAC__stream_encoder_set_last_metadata_is_last(encoder_wrapper->encoder, true);
+	FLAC__stream_encoder_set_metadata(encoder_wrapper->encoder, (num_metadata > 0)? metadata : 0, num_metadata);
 	FLAC__stream_encoder_set_write_callback(encoder_wrapper->encoder, write_callback);
 	FLAC__stream_encoder_set_metadata_callback(encoder_wrapper->encoder, metadata_callback);
 	FLAC__stream_encoder_set_client_data(encoder_wrapper->encoder, encoder_wrapper);
