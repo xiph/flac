@@ -19,7 +19,7 @@
 # nasm build rule:
 SUFFIXES = .nasm .lo
 .nasm.lo:
-	$(NASM) -f elf -d ELF $< -o $@
+	$(NASM) -f elf -d OBJ_FORMAT_elf $< -o $@
 
 noinst_LTLIBRARIES = libFLAC-asm.la
 libFLAC_asm_la_SOURCES = \

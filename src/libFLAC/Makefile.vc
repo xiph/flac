@@ -57,11 +57,11 @@ libFLAC.lib: $(OBJS)
 	link.exe -lib -out:../../obj/lib/$*.lib $(OBJS)
 
 ia32/cpu_asm.obj: ia32/cpu_asm.nasm
-	$(NASM) -f win32 -d WIN32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
+	$(NASM) -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
 ia32/fixed_asm.obj: ia32/fixed_asm.nasm
-	$(NASM) -f win32 -d WIN32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
+	$(NASM) -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
 ia32/lpc_asm.obj: ia32/lpc_asm.nasm
-	$(NASM) -f win32 -d WIN32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
+	$(NASM) -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
 
 clean:
 	-del *.obj ia32\*.obj *.pch
