@@ -84,7 +84,11 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 	FLAC__ASSERT(0 != value);
 
 	buffer[sizeof(buffer)-1] = '\0';
+#if defined _MSC_VER || defined __MINGW32__
+	_snprintf(buffer, sizeof(buffer)-1, format, name, value);
+#else
 	snprintf(buffer, sizeof(buffer)-1, format, name, value);
+#endif
 
 	entry.entry = buffer;
 	entry.length = strlen(buffer);
