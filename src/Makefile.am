@@ -21,14 +21,8 @@ endif
 
 if FLaC__HAS_OGG
 OGGFLAC_DIRS = libOggFLAC libOggFLAC++
-#@@@@ tests not written yet: test_libOggFLAC++
-OGGFLAC_TEST_DIRS = test_libOggFLAC
+OGGFLAC_TEST_DIRS = test_libOggFLAC test_libOggFLAC++
 endif
-
-EXTRA_DIST = \
-	monkeys_audio_utilities \
-	plugin_winamp2 \
-	plugin_winamp3
 
 SUBDIRS = \
 	libFLAC \
@@ -37,7 +31,11 @@ SUBDIRS = \
 	share \
 	flac \
 	metaflac \
+	monkeys_audio_utilities \
+	plugin_common \
 	$(XMMS_DIRS) \
+	plugin_winamp2 \
+	plugin_winamp3 \
 	test_libFLAC \
 	test_libFLAC++ \
 	$(OGGFLAC_TEST_DIRS) \

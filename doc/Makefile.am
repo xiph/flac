@@ -27,7 +27,7 @@ FLAC.tag: Doxyfile
 
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 
-doc_DATA =  \
+doc_DATA = \
 	FLAC.tag
 
 EXTRA_DIST = Doxyfile Makefile.lite $(doc_DATA)

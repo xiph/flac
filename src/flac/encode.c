@@ -140,7 +140,21 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 	(void)lookahead; /* silence compiler warning about unused parameter */
 	(void)lookahead_length; /* silence compiler warning about unused parameter */
 
-	if(!EncoderSession_construct(&encoder_session, options.common.use_ogg, options.common.verify, options.common.verbose, infile, infilename, outfilename))
+	if(!
+		EncoderSession_construct(
+			&encoder_session,
+#ifdef FLAC__HAS_OGG
+			options.common.use_ogg,
+#else
+			/*use_ogg=*/false,
+#endif
+			options.common.verify,
+			options.common.verbose,
+			infile,
+			infilename,
+			outfilename
+		)
+	)
 		return 1;
 
 	/* lookahead[] already has "FORMxxxxAIFF", do sub-chunks */
@@ -456,7 +470,21 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	(void)lookahead;
 	(void)lookahead_length;
 
-	if(!EncoderSession_construct(&encoder_session, options.common.use_ogg, options.common.verify, options.common.verbose, infile, infilename, outfilename))
+	if(!
+		EncoderSession_construct(
+			&encoder_session,
+#ifdef FLAC__HAS_OGG
+			options.common.use_ogg,
+#else
+			/*use_ogg=*/false,
+#endif
+			options.common.verify,
+			options.common.verbose,
+			infile,
+			infilename,
+			outfilename
+		)
+	)
 		return 1;
 
 	/*
@@ -738,7 +766,21 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	FLAC__ASSERT(!options.common.sector_align || options.sample_rate == 44100);
 	FLAC__ASSERT(!options.common.sector_align || infilesize >= 0);
 
-	if(!EncoderSession_construct(&encoder_session, options.common.use_ogg, options.common.verify, options.common.verbose, infile, infilename, outfilename))
+	if(!
+		EncoderSession_construct(
+			&encoder_session,
+#ifdef FLAC__HAS_OGG
+			options.common.use_ogg,
+#else
+			/*use_ogg=*/false,
+#endif
+			options.common.verify,
+			options.common.verbose,
+			infile,
+			infilename,
+			outfilename
+		)
+	)
 		return 1;
 
 	/* get the file length */
@@ -918,6 +960,8 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 
 #ifdef FLAC__HAS_OGG
 	e->use_ogg = use_ogg;
+#else
+	(void)use_ogg;
 #endif
 	e->verify = verify;
 	e->verbose = verbose;

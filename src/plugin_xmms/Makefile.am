@@ -23,6 +23,14 @@ EXTRA_DIST = \
 	Makefile.lite \
 	id3_tag.c
 
+noinst_HEADERS = \
+	charset.h \
+	configure.h \
+	genres.h \
+	id3_tag.h \
+	mylocale.h \
+	wrap_id3.h
+
 CFLAGS = @CFLAGS@ @XMMS_CFLAGS@
 xmmsinputplugindir = @XMMS_INPUT_PLUGIN_DIR@
 
@@ -31,7 +39,7 @@ LIBTOOL = $(top_builddir)/libtool-disable-static
 
 xmmsinputplugin_LTLIBRARIES = libxmms-flac.la
 
-plugin_sources = plugin.c wrap_id3.c configure.c charset.c
+plugin_sources = configure.c charset.c plugin.c wrap_id3.c
 id3v2_sources  = id3_tag.c
 
 if FLaC__HAS_ID3LIB

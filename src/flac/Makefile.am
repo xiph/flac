@@ -18,6 +18,10 @@
 bin_PROGRAMS = flac
 CFLAGS = @CFLAGS@ @OGG_CFLAGS@
 
+if FLaC__HAS_OGG
+NEED_OGGFLAC_LIB = $(top_builddir)/src/libOggFLAC/libOggFLAC.la
+endif
+
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc
@@ -33,4 +37,4 @@ flac_SOURCES = \
 	encode.h \
 	file.h
 
-flac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ @SHARE_LIBS@ -lm
+flac_LDADD = $(NEED_OGGFLAC_LIB) $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ @SHARE_LIBS@ -lm

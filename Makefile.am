@@ -29,7 +29,7 @@
 #
 
 
-SUBDIRS = doc include man src test
+SUBDIRS = doc include man src test build flac.pbproj obj
 
 DISTCLEANFILES = libtool-disable-static
 
@@ -39,9 +39,7 @@ EXTRA_DIST = \
 	COPYING.LGPL \
 	Makefile.lite \
 	autogen.sh \
-	build \
 	depcomp \
-	flac.pbproj \
 	strip_fPIC.sh
 
 AUTOMAKE_OPTIONS = foreign

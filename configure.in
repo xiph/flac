@@ -105,7 +105,6 @@ AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
 SHARE_LIBS='$(top_builddir)/src/share/libutf8.a $(top_builddir)/src/share/libgetopt.a'
 
 dnl check for i18n(internationalization); these are from libiconv/gettext
-AM_WITH_NLS
 AM_ICONV
 AM_LANGINFO_CODESET
 
@@ -232,15 +231,25 @@ AC_OUTPUT( \
 	src/libOggFLAC++/Makefile \
 	src/flac/Makefile \
 	src/metaflac/Makefile \
+	src/monkeys_audio_utilities/flac_mac/Makefile \
+	src/monkeys_audio_utilities/flac_ren/Makefile \
+	src/monkeys_audio_utilities/Makefile \
+	src/plugin_common/Makefile \
+	src/plugin_winamp2/Makefile \
+	src/plugin_winamp3/Makefile \
 	src/plugin_xmms/Makefile \
 	src/share/Makefile \
 	src/test_libFLAC/Makefile \
 	src/test_libFLAC++/Makefile \
+	src/test_libOggFLAC/Makefile \
+	src/test_libOggFLAC++/Makefile \
 	src/test_streams/Makefile \
 	include/Makefile \
 	include/FLAC/Makefile \
 	include/FLAC/ordinals.h \
 	include/FLAC++/Makefile \
+	include/OggFLAC/Makefile \
+	include/OggFLAC++/Makefile \
 	include/share/Makefile \
 	doc/Makefile \
 	doc/html/Makefile \
@@ -248,4 +257,9 @@ AC_OUTPUT( \
 	doc/html/ru/Makefile \
 	man/Makefile \
 	test/Makefile \
+	build/Makefile \
+	obj/bin/Makefile \
+	obj/lib/Makefile \
+	obj/Makefile \
+	flac.pbproj/Makefile \
 )

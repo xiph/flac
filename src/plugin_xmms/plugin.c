@@ -125,22 +125,19 @@ void FLAC_XMMS__init()
 	flac_cfg.convert_char_set = FALSE;
 		
 	cfg = xmms_cfg_open_default_file();
+
 	xmms_cfg_read_boolean(cfg, "flac", "tag_override", &flac_cfg.tag_override);
-	if (!xmms_cfg_read_string(cfg, "flac", "tag_format",
-				  &flac_cfg.tag_format))
+
+	if(!xmms_cfg_read_string(cfg, "flac", "tag_format", &flac_cfg.tag_format))
 		flac_cfg.tag_format = g_strdup("%p - %t");
 
 	xmms_cfg_read_boolean(cfg, "flac", "convert_char_set", &flac_cfg.convert_char_set);
-	if (!xmms_cfg_read_string(cfg, "flac", "file_char_set",
-				  &flac_cfg.file_char_set))
-	{
+
+	if(!xmms_cfg_read_string(cfg, "flac", "file_char_set", &flac_cfg.file_char_set))
 		flac_cfg.file_char_set = get_current_charset();
-	}
-	if (!xmms_cfg_read_string(cfg, "flac", "user_char_set",
-				  &flac_cfg.user_char_set))
-	{
+
+	if(!xmms_cfg_read_string(cfg, "flac", "user_char_set", &flac_cfg.user_char_set))
 		flac_cfg.user_char_set = get_current_charset();
-	}
 
 	decoder_ = FLAC__file_decoder_new();
 }

@@ -36,12 +36,12 @@ gboolean get_file_info(char *filename, flac_file_info_struct *tmp_file_info)
 		return FALSE;
 	}
 
-        tmp_file_info->sample_rate	= streaminfo.data.stream_info.sample_rate;
-        tmp_file_info->channels		= streaminfo.data.stream_info.channels;
-        tmp_file_info->bits_per_sample	= streaminfo.data.stream_info.bits_per_sample;
-        tmp_file_info->total_samples	= streaminfo.data.stream_info.total_samples;
+	tmp_file_info->sample_rate = streaminfo.data.stream_info.sample_rate;
+	tmp_file_info->channels = streaminfo.data.stream_info.channels;
+	tmp_file_info->bits_per_sample = streaminfo.data.stream_info.bits_per_sample;
+	tmp_file_info->total_samples = streaminfo.data.stream_info.total_samples;
 
-	tmp_file_info->length_in_msec	= streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100);
+	tmp_file_info->length_in_msec = streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100);
 
 	return TRUE;
 }
@@ -88,8 +88,7 @@ static gint genre_comp_func(gconstpointer a, gconstpointer b)
 
 static gchar* channel_mode_name(int mode)
 {
-	static const gchar *channel_mode[] =
-		{N_("Mono"), N_("Stereo")};
+	static const gchar *channel_mode[] = {N_("Mono"), N_("Stereo")};
 	if (mode < 1 || mode > 2)
 		return "";
 	return gettext(channel_mode[mode]);
@@ -315,11 +314,9 @@ void FLAC_XMMS__file_info_box(char *filename)
 	label_set_text(flac_bitrate, _("Bits/Samples: %d"), tmp_file_info->bits_per_sample);
 	/* tmp_file_info->length_in_msec */
 
-	label_set_text(flac_samplerate, _("Samplerate: %ld Hz"),         tmp_file_info->sample_rate);
+	label_set_text(flac_samplerate, _("Samplerate: %ld Hz"), tmp_file_info->sample_rate);
 	label_set_text(flac_channel, _("Channel: %s"), channel_mode_name(tmp_file_info->channel);
 #if 0
 	label_set_text(flac_fileinfo, _("%d frames\nFilesize: %lu B"), num_frames, ftell(fh));
 #endif
 }
-
-

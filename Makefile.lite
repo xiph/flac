@@ -27,8 +27,8 @@
 # clean   : remove all non-distro files
 #
 
-.PHONY: doc libFLAC libFLAC++ libOggFLAC libOggFLAC++ share plugin_xmms flac metaflac test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
-all: doc libFLAC libFLAC++ libOggFLAC libOggFLAC++ share plugin_xmms flac metaflac test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
+.PHONY: doc libFLAC libFLAC++ libOggFLAC libOggFLAC++ share plugin_common plugin_xmms flac metaflac test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
+all: doc libFLAC libFLAC++ libOggFLAC libOggFLAC++ share plugin_common plugin_xmms flac metaflac test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
 
 DEFAULT_CONFIG = release
 
@@ -64,7 +64,10 @@ flac: libFLAC libOggFLAC
 metaflac: libFLAC share
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
-plugin_xmms: libFLAC
+plugin_common: libFLAC
+	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
+
+plugin_xmms: libFLAC plugin_common
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 test_streams: libFLAC
@@ -94,6 +97,7 @@ clean:
 	-(cd src/share ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/flac ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/metaflac ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/plugin_common ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/plugin_xmms ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/test_libFLAC ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/test_libFLAC++ ; $(MAKE) -f Makefile.lite clean)

@@ -22,7 +22,7 @@ DEBUGCFLAGS =
 endif
 CFLAGS = @CFLAGS@ $(DEBUGCFLAGS)
 
-SUBDIRS = $(ARCH_SUBDIRS) include .
+SUBDIRS = include .
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = libOggFLAC.m4

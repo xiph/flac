@@ -35,3 +35,11 @@ doc_DATA =  \
 	api
 
 EXTRA_DIST = $(doc_DATA)
+
+# The install targets don't copy whole directories so we have to
+# handle 'api/' specially:
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(docdir)/api
+	(cd api && $(INSTALL_DATA) * $(DESTDIR)$(docdir)/api)
+uninstall-local:
+	rm -rf $(DESTDIR)$(docdir)/api

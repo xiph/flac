@@ -20,15 +20,14 @@
 #
 
 LIB_NAME  = libxmms-flac
-INCLUDES  = $(shell xmms-config --cflags) -I./include -I../../include
-LIBS = ../../obj/lib/libFLAC.a
+INCLUDES  = $(shell xmms-config --cflags) -I./include -I../../include -I..
+LIBS = ../../obj/lib/libFLAC.a ../../obj/lib/libplugin-common.a
 
 OBJS = \
-	plugin.o \
+	charset.o \
 	configure.o \
-	wrap_id3.o \
-	charset.o
-
+	plugin.o \
+	wrap_id3.o
 
 include ../../build/lib.mk
 

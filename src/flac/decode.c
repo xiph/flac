@@ -120,7 +120,24 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 {
 	DecoderSession decoder_session;
 
-	if(!DecoderSession_construct(&decoder_session, options.common.is_ogg, options.common.verbose, /*is_wave_out=*/true, options.common.continue_through_decode_errors, analysis_mode, aopts, options.common.skip, infilename, outfilename))
+	if(!
+		DecoderSession_construct(
+			&decoder_session,
+#ifdef FLAC__HAS_OGG
+			options.common.is_ogg,
+#else
+			/*is_ogg=*/false,
+#endif
+			options.common.verbose,
+			/*is_wave_out=*/true,
+			options.common.continue_through_decode_errors,
+			analysis_mode,
+			aopts,
+			options.common.skip,
+			infilename,
+			outfilename
+		)
+	)
 		return 1;
 
 	if(!DecoderSession_init_decoder(&decoder_session, infilename))
@@ -139,7 +156,24 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	decoder_session.is_big_endian = options.is_big_endian;
 	decoder_session.is_unsigned_samples = options.is_unsigned_samples;
 
-	if(!DecoderSession_construct(&decoder_session, options.common.is_ogg, options.common.verbose, /*is_wave_out=*/false, options.common.continue_through_decode_errors, analysis_mode, aopts, options.common.skip, infilename, outfilename))
+	if(!
+		DecoderSession_construct(
+			&decoder_session,
+#ifdef FLAC__HAS_OGG
+			options.common.is_ogg,
+#else
+			/*is_ogg=*/false,
+#endif
+			options.common.verbose,
+			/*is_wave_out=*/false,
+			options.common.continue_through_decode_errors,
+			analysis_mode,
+			aopts,
+			options.common.skip,
+			infilename,
+			outfilename
+		)
+	)
 		return 1;
 
 	if(!DecoderSession_init_decoder(&decoder_session, infilename))
@@ -155,6 +189,8 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 {
 #ifdef FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
+#else
+	(void)is_ogg;
 #endif
 
 	d->verbose = verbose;

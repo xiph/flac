@@ -15,16 +15,22 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+if FLaC__HAS_OGG
+OGG_TESTS = \
+	./test_libOggFLAC.sh \
+	./test_libOggFLAC++.sh
+endif
+
 TESTS = \
 	./test_libFLAC.sh \
 	./test_libFLAC++.sh \
-	./test_libOggFLAC.sh \
-	./test_libOggFLAC++.sh \
+	$(OGG_TESTS) \
 	./test_metaflac.sh \
 	./test_streams.sh \
 	./test_bins.sh
 
 EXTRA_DIST = \
+	Makefile.lite \
 	test_libFLAC.sh \
 	test_libFLAC++.sh \
 	test_libOggFLAC.sh \
