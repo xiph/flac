@@ -618,6 +618,7 @@ int main(int argc, char *argv[])
 	if(!generate_sine24_2("sine24-19.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29, 0.1)) return 1;
 
 	if(!generate_noise("noise.raw", 65536 * 8 * 3)) return 1;
+	if(!generate_noise("noise8m32.raw", 32)) return 1;
 	if(!generate_wackywavs()) return 1;
 
 	return 0;
