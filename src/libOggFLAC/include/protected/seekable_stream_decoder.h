@@ -33,7 +33,6 @@
 #define OggFLAC__PROTECTED__SEEKABLE_STREAM_DECODER_H
 
 #include "OggFLAC/seekable_stream_decoder.h"
-#include "private/ogg_decoder_aspect.h"
 
 typedef struct OggFLAC__SeekableStreamDecoderProtected {
 	FLAC__bool md5_checking; /* if true, generate MD5 signature of decoded data and compare against signature in the STREAMINFO metadata block */
