@@ -38,19 +38,25 @@
 #endif
 
 #if defined FLAC__CPU_PPC
-#if !defined FLAC__NO_ASM
-#if defined FLAC__SYS_DARWIN
-#include <sys/sysctl.h>
-#include <mach/mach.h>
-#include <mach/mach_host.h>
-#include <mach/host_info.h>
-#include <mach/machine.h>
-#ifndef CPU_SUBTYPE_POWERPC_970
-#define CPU_SUBTYPE_POWERPC_970 ((cpu_subtype_t) 100)
-#endif
-#else /* FLAC__SYS_DARWIN */
-#include <signal.h>
-#include <setjmp.h>
+# if !defined FLAC__NO_ASM
+#  if defined FLAC__SYS_DARWIN
+#   include <sys/sysctl.h>
+#   include <mach/mach.h>
+#   include <mach/mach_host.h>
+#   include <mach/host_info.h>
+#   include <mach/machine.h>
+#   ifndef CPU_SUBTYPE_POWERPC_970
+#    define CPU_SUBTYPE_POWERPC_970 ((cpu_subtype_t) 100)
+#   endif
+#  else /* FLAC__SYS_DARWIN */
+
+#   ifdef __FreeBSD__
+#    include <sys/types.h>
+#    include <sys/sysctl.h>
+#   endif
+
+#   include <signal.h>
+#   include <setjmp.h>
 
 static sigjmp_buf jmpbuf;
 static volatile sig_atomic_t canjump = 0;
@@ -64,8 +70,8 @@ static void sigill_handler (int sig)
 	canjump = 0;
 	siglongjmp (jmpbuf, 1);
 }
-#endif /* FLAC__SYS_DARWIN */
-#endif /* FLAC__NO_ASM */
+#  endif /* FLAC__SYS_DARWIN */
+# endif /* FLAC__NO_ASM */
 #endif /* FLAC__CPU_PPC */
 
 const unsigned FLAC__CPUINFO_IA32_CPUID_CMOV = 0x00008000;
@@ -95,6 +101,14 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 
 #ifndef FLAC__SSE_OS
 		info->data.ia32.fxsr = info->data.ia32.sse = info->data.ia32.sse2 = false;
+#elif defined(__FreeBSD__)
+		/* on FreeBSD we can double-check via sysctl whether the OS supports SSE */
+		{
+			int sse;
+			size_t len = sizeof(sse);
+			if (sysctlbyname("hw.instruction_sse", &sse, &len, NULL, 0) || !sse)
+				info->data.ia32.fxsr = info->data.ia32.sse = info->data.ia32.sse2 = false;
+		}
 #endif
 
 #ifdef FLAC__USE_3DNOW
