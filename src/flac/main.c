@@ -387,8 +387,6 @@ int do_it()
 				return usage_error("ERROR: --replay-gain not allowed with -c/--stdout\n");
 			if(option_values.mode_decode)
 				return usage_error("ERROR: --replay-gain only allowed for encoding\n");
-			if(option_values.skip > 0)
-				return usage_error("ERROR: --replay-gain not allowed with --skip\n");
 			if(option_values.format_channels > 2)
 				return usage_error("ERROR: --replay-gain can only be done with mono/stereo input\n");
 			if(option_values.format_sample_rate >= 0 && !FLAC__replaygain_is_valid_sample_frequency(option_values.format_sample_rate))
