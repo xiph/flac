@@ -15,14 +15,16 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+# NOTE: to remove ogg support, just remove '-DFLAC__HAS_OGG' and 'ogg_static.lib' everywhere.
+
 !include <win32.mak>
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0\" -YX /Od /D "_DEBUG" $<
+	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0\" -DFLAC__HAS_OGG -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0\" -YX -DNODEBUG $<
+	$(cc) /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0\" -DFLAC__HAS_OGG -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
@@ -37,7 +39,7 @@ OBJS= $(C_FILES:.c=.obj)
 all: flac.exe
 
 flac.exe: $(OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) libFLAC.lib
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) libFLAC.lib ogg_static.lib
 
 clean:
 	-del *.obj *.pch
