@@ -291,7 +291,7 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_d
 	dB = 20. * log10(scale);
 	*track_gain = (float) dB;
 
- 	const double scale = (float) pow(10., (double)gain * 0.05); /*@@@@ why downcast pow() output to float? */
+ 	const double scale = pow(10., (double)gain * 0.05);
 #endif
 
 
