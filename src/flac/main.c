@@ -89,10 +89,12 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "-s-"))
 			verbose = true;
 		else if(0 == strcmp(argv[i], "-S")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -S\n");
 			if(num_requested_seek_points < 0)
 				num_requested_seek_points = 0;
 			num_requested_seek_points++;
-			strcat(requested_seek_points, argv[++i]);
+			strcat(requested_seek_points, argv[i]);
 			strcat(requested_seek_points, "<");
 		}
 		else if(0 == strcmp(argv[i], "-S-")) {
@@ -103,14 +105,20 @@ int main(int argc, char *argv[])
 			delete_input = true;
 		else if(0 == strcmp(argv[i], "--delete-input-file-"))
 			delete_input = false;
-		else if(0 == strcmp(argv[i], "--output-prefix"))
-			output_prefix = argv[++i];
+		else if(0 == strcmp(argv[i], "--output-prefix")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with --output-prefix\n");
+			output_prefix = argv[i];
+		}
 		else if(0 == strcmp(argv[i], "--sector-align"))
 			sector_align = true;
 		else if(0 == strcmp(argv[i], "--sector-align-"))
 			sector_align = false;
-		else if(0 == strcmp(argv[i], "--skip"))
-			skip = (FLAC__uint64)atoi(argv[++i]); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
+		else if(0 == strcmp(argv[i], "--skip")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with --skip\n");
+			skip = (FLAC__uint64)atoi(argv[i]); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
+		}
 		else if(0 == strcmp(argv[i], "--lax"))
 			lax = true;
 		else if(0 == strcmp(argv[i], "--lax-"))
@@ -121,8 +129,11 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "--ogg-"))
 			use_ogg = false;
 #endif
-		else if(0 == strcmp(argv[i], "-b"))
-			blocksize = atoi(argv[++i]);
+		else if(0 == strcmp(argv[i], "-b")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -b\n");
+			blocksize = atoi(argv[i]);
+		}
 		else if(0 == strcmp(argv[i], "-e"))
 			do_exhaustive_model_search = true;
 		else if(0 == strcmp(argv[i], "-e-"))
@@ -131,8 +142,11 @@ int main(int argc, char *argv[])
 			do_escape_coding = true;
 		else if(0 == strcmp(argv[i], "-E-"))
 			do_escape_coding = false;
-		else if(0 == strcmp(argv[i], "-l"))
-			max_lpc_order = atoi(argv[++i]);
+		else if(0 == strcmp(argv[i], "-l")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -l\n");
+			max_lpc_order = atoi(argv[i]);
+		}
 		else if(0 == strcmp(argv[i], "-m")) {
 			do_mid_side = true;
 			loose_mid_side = false;
@@ -143,18 +157,30 @@ int main(int argc, char *argv[])
 			loose_mid_side = do_mid_side = true;
 		else if(0 == strcmp(argv[i], "-M-"))
 			loose_mid_side = do_mid_side = false;
-		else if(0 == strcmp(argv[i], "-o"))
-			cmdline_forced_outfilename = argv[++i];
+		else if(0 == strcmp(argv[i], "-o")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -o\n");
+			cmdline_forced_outfilename = argv[i];
+		}
 		else if(0 == strcmp(argv[i], "-p"))
 			do_qlp_coeff_prec_search = true;
 		else if(0 == strcmp(argv[i], "-p-"))
 			do_qlp_coeff_prec_search = false;
-		else if(0 == strcmp(argv[i], "-P"))
-			padding = atoi(argv[++i]);
-		else if(0 == strcmp(argv[i], "-q"))
-			qlp_coeff_precision = atoi(argv[++i]);
+		else if(0 == strcmp(argv[i], "-P")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -P\n");
+			padding = atoi(argv[i]);
+		}
+		else if(0 == strcmp(argv[i], "-q")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -q\n");
+			qlp_coeff_precision = atoi(argv[i]);
+		}
 		else if(0 == strcmp(argv[i], "-r")) {
-			char *p = strchr(argv[++i], ',');
+			char *p;
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -r\n");
+			p = strchr(argv[i], ',');
 			if(0 == p) {
 				min_residual_partition_order = 0;
 				max_residual_partition_order = atoi(argv[i]);
@@ -164,8 +190,11 @@ int main(int argc, char *argv[])
 				max_residual_partition_order = atoi(++p);
 			}
 		}
-		else if(0 == strcmp(argv[i], "-R"))
-			rice_parameter_search_dist = atoi(argv[++i]);
+		else if(0 == strcmp(argv[i], "-R")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -R\n");
+			rice_parameter_search_dist = atoi(argv[i]);
+		}
 		else if(0 == strcmp(argv[i], "-V"))
 			verify = true;
 		else if(0 == strcmp(argv[i], "-V-"))
@@ -174,12 +203,21 @@ int main(int argc, char *argv[])
 			format_is_big_endian = true;
 		else if(0 == strcmp(argv[i], "-fl"))
 			format_is_big_endian = false;
-		else if(0 == strcmp(argv[i], "-fc"))
-			format_channels = atoi(argv[++i]);
-		else if(0 == strcmp(argv[i], "-fp"))
-			format_bps = atoi(argv[++i]);
-		else if(0 == strcmp(argv[i], "-fs"))
-			format_sample_rate = atoi(argv[++i]);
+		else if(0 == strcmp(argv[i], "-fc")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -fc\n");
+			format_channels = atoi(argv[i]);
+		}
+		else if(0 == strcmp(argv[i], "-fp")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -fp\n");
+			format_bps = atoi(argv[i]);
+		}
+		else if(0 == strcmp(argv[i], "-fs")) {
+			if(++i >= argc)
+				return long_usage("ERROR: must specify a value with -fs\n");
+			format_sample_rate = atoi(argv[i]);
+		}
 		else if(0 == strcmp(argv[i], "-fu"))
 			format_is_unsigned_samples = true;
 		else if(0 == strcmp(argv[i], "-fr"))
