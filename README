@@ -1,0 +1,44 @@
+==========
+FLAC - 0.2
+==========
+
+This is the source release for the FLAC project.  The
+reference encoder/decoder library 'libFLAC' is released
+under the LGPL (see COPYING.LGPL).  This means the code
+in include/FLAC/ and src/libFLAC/.  All other code is
+covered by the GPL (see COPYING.GPL).  See
+
+	doc/index.html
+
+for full documentation.
+
+A brief description of the directory tree:
+
+	build/     makefile templates for building
+	doc/       the HTML documentation
+	include/   public include files for libFLAC
+	obj/       the compiled libraries and executables will
+	           end up here
+	src/       the source code and private headers
+	test/      the test scripts
+
+
+=============================
+Building in a GNU environment
+=============================
+
+All files called 'Makefile' are GNUmake files.  To build all
+libraries and programs, just 'make all' from the top-level
+directory.  To run the tests, just 'make test'.
+
+Everything can be built in either debug or release mode.
+See the Makefiles for details.
+
+
+==================
+Building with MSVC
+==================
+
+There is no overall make system for MSVC but the individual
+source directories with a 'Makefile.vc' file in them allow
+building with MSVC.  Just 'nmake /f Makefile.vc'.

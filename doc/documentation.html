@@ -1,0 +1,454 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<TITLE>FLAC - documentation</TITLE>
+</HEAD>
+
+<BODY MARGINWIDTH="0" MARGINHEIGHT="0" LEFTMARGIN="0" RIGHTMARGIN="0" TOPMARGIN="0" BGCOLOR="#99CC99" TEXT="#000000" LINK="#336699" VLINK="#336699" ALINK="#336699">
+
+<TABLE BORDER=0 WIDTH="100%" CELLPADDING=1 CELLSPACING=0>
+	<TR>
+		<TD ALIGN="CENTER" BGCOLOR="#000000"><A HREF="http://flac.sourceforge.net/"><IMG SRC="images/logo.jpg" ALIGN=CENTER ALT="FLAC Logo" BORDER=0 HSPACE=0></a></TD>
+	</TR>
+</TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="25" ALT=""></TD></TR></TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
+	<TR>
+		<TD ALIGN="CENTER" BGCOLOR="#D3D4C5">
+			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
+				<TR>
+					<TD HEIGHT=22 BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="index.html">home</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="news.html">news</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="download.html">download</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="features.html">features</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="goals.html">goals</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="format.html">format</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="comparison.html">comparison</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;documentation&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="developers.html">developers</A>&nbsp;&nbsp;</TD>
+				</TR>
+			</TABLE>
+		</TD>
+	</TR>
+</TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+
+<CENTER>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="15" ALT=""></TD></TR></TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">documentation</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		This page describes the user-level view of the FLAC format (for a more detailed explanation see the <A HREF="format.html">format page</A>).  It also contains the user documentation for <B><TT>flac</TT></B>, which is the command-line file encoder/decoder, and the <A HREF="#plugins">input plugins</A>.
+	</P>
+	<P>
+		Keep in mind that the online version of this document will always apply to the latest release.  For older releases, check the documentation included with the release package.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">format</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		See the <A HREF="format.html#scope">Scope</A>, <A HREF="format.html#architecture">Architecture</A>, <A HREF="format.html#definitions">Definitions</A>, and <A HREF="format.html#overview">Overview</A> sections of the <A HREF="format.html">format page</A> for a good introduction.  This section will be expanded in the future.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">flac</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		<B><TT>flac</TT></B> is the command-line file encoder/decoder.  The input to the encoder and the output to the decoder must either be RIFF WAVE format, or raw interleaved sample data.  <B><TT>flac</TT></B> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.).  Another restriction (hopefully short-term) is that the input must be 8 or 16 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder.
+	</P>
+	<P>
+		<B><TT>flac</TT></B> assumes that RIFF WAVE files will have the extension ".wav"; this may be overridden with a command-line option.  Other than this, <B><TT>flac</TT></B> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
+	</P>
+	<P>
+		Before going into the full command-line description, two other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-9</TT></B> that control the compression level actually are just synonyms for different groups of specific coding options (described later).  You can get the same effect by using the same options.
+	</P>
+	<P>
+		<B><TT>flac</TT></B> will be invoked one of two ways, depending on whether you are encoding or decoding:
+		<UL>
+		<LI>
+			Encoding: flac [-v] [--skip #] [&lt;format-options&gt;] [&lt;encoding options&gt;] inputfile outputfile
+		</LI>
+		<LI>
+			Decoding: flac -d [-v] [--skip #] [&lt;format-options&gt;] inputfile outputfile
+		</LI>
+		</UL>
+	</P>
+	<P>
+		In either case, inputfile may be "-" for stdin, and "-" for stdout.  The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <B><TT>flac</TT></B> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE file the format options are not needed since they are read from the WAVE header.
+	</P>
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<FONT SIZE="+1"><B>General Options</B></FONT>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-d
+			</TD>
+			<TD>
+				Decode (<B><TT>flac</TT></B> encodes by default).
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-s
+			</TD>
+			<TD>
+				Silent: do not show encoding/decoding statistics.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				--skip #
+			</TD>
+			<TD>
+				Skip over the first # of samples of the input.  This works for both encoding and decoding.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<FONT SIZE="+1"><B>Encoding Options</B></FONT>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				--lax
+			</TD>
+			<TD>
+				Allow encoder to generate non-Subset files.  The resulting FLAC file may not be streamable, so you should only use this option in combination with custom encoding options meant for archival.  File decoders will still be able play (and seek in) such files.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-b #
+			</TD>
+			<TD>
+				Set the blocksize.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608.  The current encoder uses the same blocksize for the entire stream.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-m
+			</TD>
+			<TD>
+				Enable mid-side coding (only for stereo streams).  Tends to increase compression by a few percent on average.  For each block both the stereo pair and mid-side versions of the block will be encoded, and smallest resulting frame will be stored.  Currently mid-side encoding is only available when bits-per-sample <= 16.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-0 .. -9
+			</TD>
+			<TD>
+				Fastest compression .. highest compression.  The default is <TT>-6</TT>.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-0
+			</TD>
+			<TD>
+				Synonymous with -l 0
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-1
+			</TD>
+			<TD>
+				Synonymous with -l 0 -m
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-2
+			</TD>
+			<TD>
+				Synonymous with -l 0 -m -r # (where # is set based on the blocksize)
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-3
+			</TD>
+			<TD>
+				Reserved
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-4
+			</TD>
+			<TD>
+				Synonymous with -l 8
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-5
+			</TD>
+			<TD>
+				Synonymous with -l 8 -m
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-6
+			</TD>
+			<TD>
+				Synonymous with -l 8 -m -r # (where # is set based on the blocksize)
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-7
+			</TD>
+			<TD>
+				Reserved
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-8
+			</TD>
+			<TD>
+				Synonymous with -l 32 -m -r # (where # is set based on the blocksize)
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-9
+			</TD>
+			<TD>
+				Synonymous with -l 32 -m -e -r 99 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for a given blocksize.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-e
+			</TD>
+			<TD>
+				Exhaustive model search (expensive!).  Normally the encoder estimates the best model to use and encodes once based on the estimate.  With an exhaustive model search, the encoder will generate subframes for every order and use the smallest.  If the max LPC order is high this can significantly increase the encode time but can shave off another 0.5%.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-l #
+			</TD>
+			<TD>
+				Specifies the maximum LPC order.  This number must be <= 32.  If 0, the encoder will not attempt generic linear prediction, and use only fixed predictors.  Using fixed predictors is faster but usually results in files being 5-10% larger.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-q #
+			</TD>
+			<TD>
+				Specifies the precision of the quantized LP coefficients, in bits.  The default is <B><TT>-q 0</TT></B>, which means let the encoder decide based on the signal.  Unless you really know your input file it's best to leave this up to the encoder.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-p
+			</TD>
+			<TD>
+				Do exhaustive LP coefficient quantization optimization.  This option overrides any <B><TT>-q</TT></B> option.  It is expensive and typically will only improve the compression a tiny fraction of a percent.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-r #
+			</TD>
+			<TD>
+				Do Rice parameter optimization.  By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is partitioned into 2^n pieces, each with its own Rice parameter.  Higher values of n yield diminishing returns.  The most bang for the buck is usually with <B><TT>-r 2</TT></B> (more for higher blocksizes).  This usually shaves off another 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <B><TT>-r 99</TT></B> to force the highest degree of optimization.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+			</TD>
+			<TD>
+				-m-, -e-, -p-, --lax- can all be used to turn off a particular option.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<FONT SIZE="+1"><B>Format Options</B></FONT>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-fb | -fl
+			</TD>
+			<TD>
+				Specify big-endian | little-endian byte order in the raw file.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-fc #
+			</TD>
+			<TD>
+				Specify the number of channels in the raw file.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-fp #
+			</TD>
+			<TD>
+				Specify the number of bits per sample in the raw file.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-fs #
+			</TD>
+			<TD>
+				Specify the sample rate of the raw file.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-fu
+			</TD>
+			<TD>
+				Specify that the samples in the raw file are unsigned (the default is signed).
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-fr
+			</TD>
+			<TD>
+				Treat the input file (or output file if decoding) as a raw file, regardless of the extension.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-fw
+			</TD>
+			<TD>
+				Treat the input file (or output file if decoding) as a RIFF WAVE file, regardless of the extension.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<A NAME="plugins"><B><FONT SIZE="+2">xmms plugin</FONT></B></A>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		All that is necessary is to copy <B><TT>libxmms-flac.so</TT></B> to the directory where XMMS looks for input plugins (usually <B><TT>/usr/lib/xmms/Input</TT></B>).  There is nothing else to configure.  Make sure to restart XMMS before trying to play any .flac files.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">winamp plugin</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		All that is necessary is to copy <B><TT>in_flac.dll</TT></B> to the <B><TT>Plugins/</TT></B> directory of your Winamp installation.  There is nothing else to configure.  Make sure to restart Winamp before trying to play any .flac files.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+</CENTER>
+
+</BODY>
+</HTML>

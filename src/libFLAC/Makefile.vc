@@ -1,0 +1,31 @@
+!include <win32.mak>
+
+!IFDEF DEBUG
+.c.obj:
+	$(cc) /D FLAC_OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+!else
+.c.obj:
+	$(cc) $(cdebug) $(cflags) /O2 /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
+!endif
+
+C_FILES= \
+	bitbuffer.c \
+	crc.c \
+	encoder.c \
+	encoder_framing.c \
+	file_decoder.c \
+	fixed.c \
+	format.c \
+	lpc.c \
+	stream_decoder.c
+
+OBJS= $(C_FILES:.c=.obj)
+
+all: libFLAC.lib
+
+libFLAC.lib: $(OBJS)
+	link.exe -lib -out:../../obj/lib/$*.lib $(OBJS)
+
+clean:
+	-del *.obj *.pch
+	-del ..\..\obj\lib\libFLAC.lib ..\..\obj\lib\libFLAC.pdb

@@ -1,0 +1,16 @@
+#
+# GNU makefile
+#
+
+PROGRAM_NAME = flac
+INCLUDES     = -I./include -I../../include
+LIBS         = -lFLAC -lm
+
+OBJS = \
+	decode.o \
+	encode.o \
+	main.o
+
+include ../../build/exe.mk
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
