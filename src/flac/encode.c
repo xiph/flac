@@ -1055,21 +1055,27 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		const FLAC__uint64 max_input_bytes = encoder_session.total_samples_to_encode * bytes_per_wide_sample;
 		FLAC__uint64 total_input_bytes_read = 0;
 		while(total_input_bytes_read < max_input_bytes) {
-			size_t wanted = (CHUNK_OF_SAMPLES * bytes_per_wide_sample);
-			wanted = min(wanted, (size_t)(max_input_bytes - total_input_bytes_read));
+			{
+				size_t wanted = (CHUNK_OF_SAMPLES * bytes_per_wide_sample);
+				wanted = min(wanted, (size_t)(max_input_bytes - total_input_bytes_read));
 
-			if(lookahead_length > 0) {
-				FLAC__ASSERT(lookahead_length < wanted);
-				memcpy(ucbuffer_, lookahead, lookahead_length);
-				bytes_read = fread(ucbuffer_+lookahead_length, sizeof(unsigned char), wanted - lookahead_length, infile) + lookahead_length;
-				if(ferror(infile)) {
-					fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
-					return EncoderSession_finish_error(&encoder_session);
+				if(lookahead_length > 0) {
+					FLAC__ASSERT(lookahead_length <= wanted);
+					memcpy(ucbuffer_, lookahead, lookahead_length);
+					wanted -= lookahead_length;
+					bytes_read = lookahead_length;
+					if(wanted > 0) {
+						bytes_read += fread(ucbuffer_+lookahead_length, sizeof(unsigned char), wanted, infile);
+						if(ferror(infile)) {
+							fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+							return EncoderSession_finish_error(&encoder_session);
+						}
+					}
+					lookahead_length = 0;
 				}
-				lookahead_length = 0;
+				else
+					bytes_read = fread(ucbuffer_, sizeof(unsigned char), wanted, infile);
 			}
-			else
-				bytes_read = fread(ucbuffer_, sizeof(unsigned char), wanted, infile);
 
 			if(bytes_read == 0) {
 				if(ferror(infile)) {
