@@ -306,6 +306,10 @@ echo identical
 
 rm -f $cs_out $cs_out2
 
+(set -x && run_metaflac --add-replay-gain $flacfile)
+check_exit
+check_flac
+
 echo -n "Testing FLAC file with unknown metadata... "
 cp -p metaflac.flac.in $flacfile
 # remove the VORBIS_COMMENT block so vendor string changes don't interfere with the comparison:
