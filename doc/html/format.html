@@ -714,7 +714,7 @@
 				&lt;64&gt;
 			</TD>
 			<TD>
-				The number of lead-in samples.  This field has meaning only for CD-DA cuesheets; for other uses it should be 0.  For CD-DA, the lead-in is the TRACK 00 area where the table of contents is stored; more precisely, it is the number of samples from the first sample of the media to the first sample of the first index point of the first track.  According to the Red Book, the lead-in must be silence and CD grabbing software does not usually store it; additionally, the lead-in must be at least two seconds but may be longer (? @@@@).  For these reasons the lead-in length is stored here so that the absolute position of the first track can be computed.  Note that the lead-in stored here is the number of samples up to the first index point of the first track, not necessarily to INDEX 01 of the first track; even the first track may have INDEX 00 data.
+				The number of lead-in samples.  This field has meaning only for CD-DA cuesheets; for other uses it should be 0.  For CD-DA, the lead-in is the TRACK 00 area where the table of contents is stored; more precisely, it is the number of samples from the first sample of the media to the first sample of the first index point of the first track.  According to the Red Book, the lead-in must be silence and CD grabbing software does not usually store it; additionally, the lead-in must be at least two seconds but may be longer.  For these reasons the lead-in length is stored here so that the absolute position of the first track can be computed.  Note that the lead-in stored here is the number of samples up to the first index point of the first track, not necessarily to INDEX 01 of the first track; even the first track may have INDEX 00 data.
 			</TD>
 		</TR>
 		<TR>
@@ -774,7 +774,7 @@
 				&lt;8&gt;
 			</TD>
 			<TD>
-				Track number.  A track number of 0 is not allowed to avoid conflicting with the CD-DA spec, which reserves this for the lead-in. For CD-DA the number must be 1-99, or 170 for the lead-out (? @@@@).  It is not required but encouraged to start with track 1 and increase sequentially (? @@@@).  Track numbers must be unique within a CUESHEET.
+				Track number.  A track number of 0 is not allowed to avoid conflicting with the CD-DA spec, which reserves this for the lead-in. For CD-DA the number must be 1-99, or 170 for the lead-out (? @@@@).  It is not required but encouraged to start with track 1 and increase sequentially.  Track numbers must be unique within a CUESHEET.
 			</TD>
 		</TR>
 		<TR>
