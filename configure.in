@@ -76,8 +76,10 @@ if test x$sse_os = xtrue ; then
 AC_DEFINE(FLAC__SSE_OS)
 fi
 
-AM_PATH_OGG( , AC_MSG_WARN([*** Ogg development enviroment not installed - ogg support will not be built]))
-AM_CONDITIONAL(FLaC__HAS_OGG, test x$OGG_LIBS != x)
+AC_CHECK_LIB(ogg, ogg_stream_init,
+             [LIBS="$LIBS -logg"; have_ogg=yes],
+             [AC_MSG_WARN([*** Ogg development enviroment not installed - ogg support will not be built])])
+AM_CONDITIONAL(FLaC__HAS_OGG, [test $have_ogg = xyes])
 
 AM_PATH_XMMS(0.9.5.1, , AC_MSG_WARN([*** XMMS >= 0.9.5.1 not installed - xmms support will not be built]))
 AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
