@@ -533,6 +533,8 @@ bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 		decoder->guts->metadata_callback(decoder, &decoder->guts->stream_info, decoder->guts->client_data);
 	}
 	else if(type == FLAC__METADATA_TYPE_SEEKTABLE) {
+		unsigned real_points;
+
 		decoder->guts->seek_table.type = type;
 		decoder->guts->seek_table.is_last = last_block;
 		decoder->guts->seek_table.length = length;
@@ -543,19 +545,23 @@ bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 			decoder->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
-		for(i = 0; i < decoder->guts->seek_table.data.seek_table.num_points; i++) {
+		for(i = real_points = 0; i < decoder->guts->seek_table.data.seek_table.num_points; i++) {
 			if(!FLAC__bitbuffer_read_raw_uint64(&decoder->guts->input, &xx, FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
-			decoder->guts->seek_table.data.seek_table.points[i].sample_number = xx;
+			decoder->guts->seek_table.data.seek_table.points[real_points].sample_number = xx;
 
 			if(!FLAC__bitbuffer_read_raw_uint64(&decoder->guts->input, &xx, FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
-			decoder->guts->seek_table.data.seek_table.points[i].stream_offset = xx;
+			decoder->guts->seek_table.data.seek_table.points[real_points].stream_offset = xx;
 
-			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_SEEKPOINT_BLOCK_OFFSET_LEN, read_callback_, decoder))
+			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &x, FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
-			decoder->guts->seek_table.data.seek_table.points[i].block_offset = x;
+			decoder->guts->seek_table.data.seek_table.points[real_points].frame_samples = x;
+
+			if(decoder->guts->seek_table.data.seek_table.points[real_points].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER)
+				real_points++;
 		}
+		decoder->guts->seek_table.data.seek_table.num_points = real_points;
 
 		decoder->guts->has_seek_table = true;
 		decoder->guts->metadata_callback(decoder, &decoder->guts->seek_table, decoder->guts->client_data);
