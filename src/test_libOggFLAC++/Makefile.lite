@@ -25,10 +25,12 @@ PROGRAM_NAME = test_libOggFLAC++
 #@@@ TODO: conditionalize ogg lib path and -logg
 INCLUDES     = -I$(topdir)/include
 LIBS         = -lgrabbag -lgain_analysis -lOggFLAC++ -lOggFLAC -lFLAC -L$(HOME)/local/lib -logg -lm
+SRCS_C = \
+	file_utils.c \
+	metadata_utils.c
 SRCS_CPP = \
 	decoders.cpp \
 	encoders.cpp \
-	file_utils.cpp \
 	main.cpp
 
 include $(topdir)/build/exe.mk

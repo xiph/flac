@@ -103,6 +103,10 @@ SOURCE=.\file_utils.c
 
 SOURCE=.\main.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\metadata_utils.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -118,6 +122,10 @@ SOURCE=.\encoders.h
 # Begin Source File
 
 SOURCE=.\file_utils.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\metadata_utils.h
 # End Source File
 # End Group
 # Begin Source File

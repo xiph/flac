@@ -36,7 +36,8 @@ SUFFIXES = .cpp
 !endif
 
 C_FILES= \
-	file_utils.c
+	file_utils.c \
+	metadata_utils.c
 
 CPP_FILES= \
 	decoders.cpp \

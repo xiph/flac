@@ -115,6 +115,10 @@ SOURCE=.\metadata_manip.cpp
 
 SOURCE=.\metadata_object.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\metadata_utils.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -134,6 +138,10 @@ SOURCE=.\file_utils.h
 # Begin Source File
 
 SOURCE=.\metadata.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\metadata_utils.h
 # End Source File
 # End Group
 # Begin Source File

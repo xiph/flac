@@ -37,6 +37,8 @@ test_libOggFLAC___SOURCES = \
 	encoders.cpp \
 	file_utils.c \
 	main.cpp \
+	metadata_utils.c \
 	decoders.h \
 	encoders.h \
-	file_utils.h
+	file_utils.h \
+	metadata_utils.h

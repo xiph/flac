@@ -38,7 +38,9 @@ test_libFLAC___SOURCES = \
 	metadata.cpp \
 	metadata_manip.cpp \
 	metadata_object.cpp \
+	metadata_utils.c \
 	decoders.h \
 	encoders.h \
 	file_utils.h \
-	metadata.h
+	metadata.h \
+	metadata_utils.h
