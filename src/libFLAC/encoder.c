@@ -233,6 +233,7 @@ bool encoder_resize_buffers_(FLAC__Encoder *encoder, unsigned new_size)
 				free(encoder->guts->abs_residual);
 			encoder->guts->abs_residual = abs_residual;
 		}
+#ifdef PRECOMPUTE_PARTITION_SUMS
 		abs_residual = (uint32*)malloc(sizeof(uint32) * (new_size * 2));
 		if(0 == abs_residual) {
 			encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
@@ -243,6 +244,8 @@ bool encoder_resize_buffers_(FLAC__Encoder *encoder, unsigned new_size)
 				free(encoder->guts->abs_residual_partition_sums);
 			encoder->guts->abs_residual_partition_sums = abs_residual;
 		}
+#endif
+#ifdef SEARCH_FOR_ESCAPES
 		raw_bits_per_partition = (unsigned*)malloc(sizeof(unsigned) * (new_size * 2));
 		if(0 == raw_bits_per_partition) {
 			encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
@@ -253,6 +256,7 @@ bool encoder_resize_buffers_(FLAC__Encoder *encoder, unsigned new_size)
 				free(encoder->guts->raw_bits_per_partition);
 			encoder->guts->raw_bits_per_partition = raw_bits_per_partition;
 		}
+#endif
 	}
 	if(ok)
 		encoder->guts->input_capacity = new_size;
