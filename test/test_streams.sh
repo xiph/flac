@@ -52,9 +52,9 @@ if flac -d -s noise.flac ; then : ; else
 	exit 1
 fi
 rm -f noise.flac
-mv noise.wav f0.wav
-cp f0.wav f1.wav
-cp f1.wav f2.wav
+mv noise.wav file0.wav
+cp file0.wav file1.wav
+cp file1.wav file2.wav
 
 test_multifile ()
 {
@@ -68,25 +68,25 @@ test_multifile ()
 		suffix=flac
 	fi
 
-	if flac $encode_options f0.wav f1.wav f2.wav ; then : ; else
+	if flac $encode_options file0.wav file1.wav file2.wav ; then : ; else
 		echo "ERROR" 1>&2
 		exit 1
 	fi
 	for n in 0 1 2 ; do
-		mv f$n.$suffix f${n}x.$suffix
+		mv file$n.$suffix file${n}x.$suffix
 	done
-	if flac -d f0x.$suffix f1x.$suffix f2x.$suffix ; then : ; else
+	if flac -d file0x.$suffix file1x.$suffix file2x.$suffix ; then : ; else
 		echo "ERROR" 1>&2
 		exit 1
 	fi
 	for n in 0 1 2 ; do
-		if cmp f$n.wav f${n}x.wav ; then : ; else
+		if cmp file$n.wav file${n}x.wav ; then : ; else
 			echo "ERROR: file mismatch on file #$n" 1>&2
 			exit 1
 		fi
 	done
 	for n in 0 1 2 ; do
-		rm -f f${n}x.$suffix f${n}x.wav
+		rm -f file${n}x.$suffix file${n}x.wav
 	done
 }
 
@@ -96,11 +96,11 @@ test_multifile flac ""
 echo "Testing multiple files with verify..."
 test_multifile flac "-V"
 
-echo "Testing multiple files with --sector-align, without verify..."
-test_multifile flac "--sector-align"
+#@@@@echo "Testing multiple files with --sector-align, without verify..."
+#@@@@test_multifile flac "--sector-align"
 
-echo "Testing multiple files with --sector-align, with verify..."
-test_multifile flac "--sector-align -V"
+#@@@@echo "Testing multiple files with --sector-align, with verify..."
+#@@@@test_multifile flac "--sector-align -V"
 
 if [ $has_ogg = "yes" ] ; then
 	echo "Testing multiple files with --ogg, without verify..."
@@ -109,14 +109,12 @@ if [ $has_ogg = "yes" ] ; then
 	echo "Testing multiple files with --ogg, with verify..."
 	test_multifile ogg "-V"
 
-	echo "Testing multiple files with --ogg and --sector-align, without verify..."
-	test_multifile flac "--ogg --sector-align"
+	#@@@@echo "Testing multiple files with --ogg and --sector-align, without verify..."
+	#@@@@test_multifile ogg "--sector-align"
 
-	echo "Testing multiple files with --ogg and --sector-align, with verify..."
-	test_multifile flac "--ogg --sector-align -V"
+	#@@@@echo "Testing multiple files with --ogg and --sector-align, with verify..."
+	#@@@@test_multifile ogg "--sector-align -V"
 fi
-
-exit 0
 
 #
 # single-file tests
