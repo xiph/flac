@@ -36,8 +36,12 @@
 #define FLAC__MAX_FIXED_ORDER (4u)
 #define FLAC__MAX_RICE_PARTITION_ORDER (15u)
 
-/* VERSION comes from configure */
+/* VERSION should come from configure */
+#ifdef VERSION
 #define FLAC__VERSION_STRING VERSION
+#else
+#define FLAC__VERSION_STRING "DEVEL"
+#endif
 
 extern const byte     FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */;
 extern const unsigned FLAC__STREAM_SYNC; /* = 0x664C6143 */;
