@@ -15,6 +15,13 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-EXTRA_DIST = 1x1.gif \
+AUTOMAKE_OPTIONS = foreign
+
+docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/images
+
+doc_DATA = \
+	1x1.gif \
 	cafebug.gif \
 	logo.jpg
+
+EXTRA_DIST = $(doc_DATA)

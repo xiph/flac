@@ -15,7 +15,11 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-EXTRA_DIST = \
+AUTOMAKE_OPTIONS = foreign
+
+docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/ru
+
+doc_DATA = \
 	authors.html \
 	comparison.html \
 	developers.html \
@@ -28,3 +32,5 @@ EXTRA_DIST = \
 	index.html \
 	links.html \
 	news.html
+
+EXTRA_DIST = $(doc_DATA)
