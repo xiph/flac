@@ -59,6 +59,8 @@ namespace FLAC {
 
 		Prototype *clone(const Prototype *object)
 		{
+			FLAC__ASSERT(0 != object);
+
 			const StreamInfo *streaminfo = dynamic_cast<const StreamInfo *>(object);
 			const Padding *padding = dynamic_cast<const Padding *>(object);
 			const Application *application = dynamic_cast<const Application *>(object);
