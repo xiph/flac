@@ -20,5 +20,4 @@ EXTRA_DIST = \
 	in2.h \
 	in_flac.c \
 	in_flac.dsp \
-	in_flac.dsw \
 	out.h
