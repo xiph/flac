@@ -28,7 +28,6 @@ typedef struct {
 		gboolean tag_override;
 		gchar *tag_format;
 		gboolean convert_char_set;
-		gchar *file_char_set;
 		gchar *user_char_set;
 	} title;
 

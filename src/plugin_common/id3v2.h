@@ -19,8 +19,39 @@
 #ifndef FLAC__PLUGIN_COMMON__ID3V2_H
 #define FLAC__PLUGIN_COMMON__ID3V2_H
 
-#include "canonical_tag.h"
+#include "FLAC/ordinals.h"
 
-FLAC__bool FLAC_plugin__id3v2_tag_get(const char *filename, FLAC_Plugin__CanonicalTag *tag);
+/*
+ * This is a simple structure that holds pointers to field values (in ASCII)
+ * for fields we care about.
+ */
+typedef struct {
+	char *title;
+	char *composer;
+	char *performer;
+	char *album;
+	char *year_recorded;
+	char *year_performed;
+	char *track_number;
+	char *tracks_in_album;
+	char *genre;
+	char *comment;
+} FLAC_Plugin__Id3v2_Tag;
+
+/* Fills up an existing FLAC_Plugin__Id3v2_Tag.  All pointers must be NULL on
+ * entry or the function will return false.  For any field for which there is
+ * no corresponding ID3 frame, it's pointer will be NULL.
+ *
+ * If loading fails, all pointers will be cleared and the function will return
+ * false.
+ *
+ * If the function returns true, be sure to call FLAC_plugin__id3v2_tag_clear()
+ * when you are done with 'tag'.
+ */
+FLAC__bool FLAC_plugin__id3v2_tag_get(const char *filename, FLAC_Plugin__Id3v2_Tag *tag);
+
+/* free()s any non-NULL pointers in 'tag'.  Does NOT free(tag).
+ */
+void FLAC_plugin__id3v2_tag_clear(FLAC_Plugin__Id3v2_Tag *tag);
 
 #endif

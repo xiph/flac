@@ -20,36 +20,99 @@
 #define FLAC__PLUGIN_COMMON__CANONICAL_TAG_H
 
 #include "id3v1.h"
+#include "id3v2.h"
+
+/* TODO: splay tree? */
+typedef struct tagFLAC__tag_entry FLAC__tag_entry;
+struct tagFLAC__tag_entry
+{
+	FLAC__tag_entry *next, *prev;
+	/* TODO: name in ascii? */
+	wchar_t *name;
+	wchar_t *value;
+};
 
 typedef struct {
-	char *title;
-	char *composer;
-	char *performer;
-	char *album;
-	char *year_recorded;
-	char *year_performed;
-	char *track_number;
-	char *tracks_in_album;
-	char *genre;
-	char *comment;
+	FLAC__tag_entry *head, *tail;
+	unsigned count;
 } FLAC_Plugin__CanonicalTag;
 
+
+typedef FLAC__tag_entry *FLAC__tag_iterator;
+
 FLAC_Plugin__CanonicalTag *FLAC_plugin__canonical_tag_new();
-void FLAC_plugin__canonical_tag_delete(FLAC_Plugin__CanonicalTag *);
 void FLAC_plugin__canonical_tag_init(FLAC_Plugin__CanonicalTag *);
 void FLAC_plugin__canonical_tag_clear(FLAC_Plugin__CanonicalTag *);
+void FLAC_plugin__canonical_tag_delete(FLAC_Plugin__CanonicalTag *);
 
-/* For each null field in dest, move the corresponding field from src
- * WATCHOUT: note that src is not-const, because fields are 'moved' from
- * src to dest and the src field is set to null.
+/* note that multiple fields with the same name are allowed.
+ * set - adds field if it's not present yet, or replaces
+ * existing field if it's present.
  */
-void FLAC_plugin__canonical_tag_merge(FLAC_Plugin__CanonicalTag *dest, FLAC_Plugin__CanonicalTag *src);
+void FLAC_plugin__canonical_set(FLAC_Plugin__CanonicalTag *tag, const wchar_t *name, const wchar_t *value);
+void FLAC_plugin__canonical_set_ansi(FLAC_Plugin__CanonicalTag *tag, const wchar_t *name, const char *value);
+/* set_new - only adds field if it's not present yet. */
+void FLAC_plugin__canonical_set_new(FLAC_Plugin__CanonicalTag *tag, const wchar_t *name, const wchar_t *value);
+/* add - adds field if it's not present yet, or merges value with existing
+ * field, if it's present. (sep - separator string to use when merging;
+ * if sep==NULL no merging occurs - always adds new field)
+ */
+void FLAC_plugin__canonical_add(FLAC_Plugin__CanonicalTag *tag, const wchar_t *name, const wchar_t *value, const wchar_t *sep);
+void FLAC_plugin__canonical_add_utf8(FLAC_Plugin__CanonicalTag *tag, const char *name, const char *value, unsigned namelen, unsigned vallen, const char *sep); /* 'namelen'/'vallen' may be (unsigned)(-1) if 'name'/'value' is NUL-terminated */
 
+/* gets value of the first field with the given name (NULL if field not found) */
+const wchar_t *FLAC_plugin__canonical_get(const FLAC_Plugin__CanonicalTag *tag, const wchar_t *name);
+/* removes first field with the given name.
+ * (returns 'true' if deleted, 'false' if not found)
+ */
+FLAC__bool FLAC_plugin__canonical_remove(FLAC_Plugin__CanonicalTag *tag, const wchar_t *name);
+/* removes all fields with the given name. */
+void FLAC_plugin__canonical_remove_all(FLAC_Plugin__CanonicalTag *tag, const wchar_t *name);
+
+/* enumeration */
+static __inline unsigned FLAC_plugin__canonical_get_count(FLAC_Plugin__CanonicalTag *tag)
+{
+	return tag->count;
+}
+static __inline FLAC__tag_iterator FLAC_plugin__canonical_first(FLAC_Plugin__CanonicalTag *tag)
+{
+	return tag->head;
+}
+static __inline FLAC__tag_iterator FLAC_plugin__canonical_next(FLAC__tag_iterator it)
+{
+	return it->next;
+}
+static __inline wchar_t *FLAC_plugin__canonical_get_name(FLAC__tag_iterator it)
+{
+	return it->name;
+}
+static __inline wchar_t *FLAC_plugin__canonical_get_value(FLAC__tag_iterator it)
+{
+	return it->value;
+}
+
+/* returns a new string containing the current entry in UTF-8 in "NAME=VALUE" form */
+char *FLAC_plugin__canonical_get_formatted(FLAC__tag_iterator it);
+
+void FLAC_plugin__canonical_tag_merge(FLAC_Plugin__CanonicalTag *dest, const FLAC_Plugin__CanonicalTag *src);
 void FLAC_plugin__canonical_tag_convert_from_id3v1(FLAC_Plugin__CanonicalTag *, const FLAC_Plugin__Id3v1_Tag *);
+void FLAC_plugin__canonical_tag_convert_from_id3v2(FLAC_Plugin__CanonicalTag *, const FLAC_Plugin__Id3v2_Tag *);
+
+void FLAC_plugin__canonical_tag_add_id3v1(const char *filename, FLAC_Plugin__CanonicalTag *tag);
+void FLAC_plugin__canonical_tag_add_id3v2(const char *filename, FLAC_Plugin__CanonicalTag *tag);
 
 /* Returns a merged tag based on any Vorbis comments, id3v2 tag, and id3v1.
  * In case of overlaps the preceding precedence applies.
+ *
+ * sep - separator to use when merging fields with same name (in VorbisComment).
+ * should be in UTF-8. if sep==NULL, no merging occurs, so multiple fields
+ * with the same name can exist.
  */
-void FLAC_plugin__canonical_tag_get_combined(const char *filename, FLAC_Plugin__CanonicalTag *tag);
+void FLAC_plugin__canonical_tag_get_combined(const char *filename, FLAC_Plugin__CanonicalTag *tag, const char *sep);
+
+/* helpers */
+wchar_t *FLAC_plugin__convert_ansi_to_wide(const char *src);
+wchar_t *FLAC_plugin__convert_utf8_to_ucs2(const char *src, unsigned length); /* 'length' may be (unsigned)(-1) if 'src' is NUL-terminated */
+char    *FLAC_plugin__convert_ucs2_to_utf8(const wchar_t *src);
 
 #endif

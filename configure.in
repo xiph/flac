@@ -147,9 +147,15 @@ AM_PROG_AS
 AC_PROG_CXX
 AC_PROG_MAKE_SET
 
+dnl In order to have access to any available wcsdup() and wcscasecmp()
+AC_GNU_SOURCE
+
 dnl check for getopt in standard library
 dnl AC_CHECK_FUNCS(getopt_long , , [LIBOBJS="$LIBOBJS getopt.o getopt1.o"] )
 AC_CHECK_FUNCS(getopt_long, [], [])
+
+dnl Check for uncommon wide char functions
+AC_CHECK_FUNCS(wcsdup, wcscasecmp, [], [])
 
 AC_CANONICAL_HOST
 case "$host_cpu" in

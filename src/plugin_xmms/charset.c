@@ -135,36 +135,14 @@ const CharsetInfo charset_trans_array[] = {
 /*
  * Commons conversion functions
  */
-char *convert_from_file_to_user(const char *string)
+char *convert_from_utf8_to_user(const char *string)
 {
-	return FLAC_plugin__charset_convert_string(string, flac_cfg.title.file_char_set, flac_cfg.title.user_char_set);
+	return FLAC_plugin__charset_convert_string(string, "UTF-8", flac_cfg.title.user_char_set);
 }
 
-char *convert_from_user_to_file(const char *string)
+char *convert_from_user_to_utf8(const char *string)
 {
-	return FLAC_plugin__charset_convert_string(string, flac_cfg.title.user_char_set, flac_cfg.title.file_char_set);
-}
-
-void convert_from_file_to_user_in_place(char **string)
-{
-	if(0 != *string) {
-		char *tmp;
-
-		tmp = convert_from_file_to_user(*string);
-		free(*string);
-		*string = tmp;
-	}
-}
-
-void convert_from_user_to_file_in_place(char **string)
-{
-	if(0 != *string) {
-		char *tmp;
-
-		tmp = convert_from_user_to_file(*string);
-		free(*string);
-		*string = tmp;
-	}
+	return FLAC_plugin__charset_convert_string(string, flac_cfg.title.user_char_set, "UTF-8");
 }
 
 GList *Charset_Create_List (void)

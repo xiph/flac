@@ -23,7 +23,7 @@
 #include "locale_hack.h"
 
 
-/* 
+/*
  * Do not sort genres!!
  * Last Update: 2000/04/30
  */
@@ -36,37 +36,37 @@ static const char * const FLAC_plugin__id3v1_tag_genre_table[] =
 	"Disco",
 	"Funk",			/* 5 */
 	"Grunge",
-	"Hip-Hop", 
+	"Hip-Hop",
 	"Jazz",
 	"Metal",
 	"New Age",		/* 10 */		
 	"Oldies",
-	"Other", 
+	"Other",
 	"Pop",
 	"R&B",
 	"Rap",			/* 15 */
-	"Reggae", 
+	"Reggae",
 	"Rock",
 	"Techno",
 	"Industrial",
 	"Alternative", 		/* 20 */
 	"Ska",
-	"Death Metal", 
+	"Death Metal",
 	"Pranks",
 	"Soundtrack",
 	"Euro-Techno", 		/* 25 */
 	"Ambient",
-	"Trip-Hop", 
+	"Trip-Hop",
 	"Vocal",
-	"Jazz+Funk", 
+	"Jazz+Funk",
 	"Fusion",		/* 30 */
 	"Trance",
 	"Classical",
-	"Instrumental", 
+	"Instrumental",
 	"Acid",
 	"House",		/* 35 */
 	"Game",
-	"Sound Clip", 
+	"Sound Clip",
 	"Gospel",
 	"Noise",
 	"Altern Rock", 		/* 40 */
@@ -76,42 +76,42 @@ static const char * const FLAC_plugin__id3v1_tag_genre_table[] =
 	"Space",
 	"Meditative",		/* 45 */
 	"Instrumental Pop",
-	"Instrumental Rock", 
+	"Instrumental Rock",
 	"Ethnic",
 	"Gothic",
 	"Darkwave",		/* 50 */
-	"Techno-Industrial", 
-	"Electronic", 
+	"Techno-Industrial",
+	"Electronic",
 	"Pop-Folk",
-	"Eurodance", 
+	"Eurodance",
 	"Dream",		/* 55 */
-	"Southern Rock", 
-	"Comedy", 
+	"Southern Rock",
+	"Comedy",
 	"Cult",
 	"Gangsta",
 	"Top 40",		/* 60 */
-	"Christian Rap", 
-	"Pop/Funk", 
+	"Christian Rap",
+	"Pop/Funk",
 	"Jungle",
-	"Native American", 
+	"Native American",
 	"Cabaret",		/* 65 */
 	"New Wave",
-	"Psychadelic", 
+	"Psychadelic",
 	"Rave",
-	"Showtunes", 
+	"Showtunes",
 	"Trailer",		/* 70 */
 	"Lo-Fi",
 	"Tribal",
 	"Acid Punk",
-	"Acid Jazz", 
+	"Acid Jazz",
 	"Polka",		/* 75 */
 	"Retro",
 	"Musical",
-	"Rock & Roll", 
-	"Hard Rock", 
+	"Rock & Roll",
+	"Hard Rock",
 	"Folk",			/* 80 */
 	"Folk/Rock",
-	"National Folk", 
+	"National Folk",
 	"Fast Fusion",
 	"Swing",
 	"Bebob",		/* 85 */
@@ -122,25 +122,25 @@ static const char * const FLAC_plugin__id3v1_tag_genre_table[] =
 	"Avantgarde",		/* 90 */
 	"Gothic Rock",
 	"Progressive Rock",
-	"Psychedelic Rock", 
-	"Symphonic Rock", 
+	"Psychedelic Rock",
+	"Symphonic Rock",
 	"Slow Rock",		/* 95 */
-	"Big Band", 
+	"Big Band",
 	"Chorus",
-	"Easy Listening", 
-	"Acoustic", 
+	"Easy Listening",
+	"Acoustic",
 	"Humour",		/* 100 */
 	"Speech",
-	"Chanson", 
+	"Chanson",
 	"Opera",
-	"Chamber Music", 
+	"Chamber Music",
 	"Sonata",		/* 105 */
 	"Symphony",
-	"Booty Bass", 
+	"Booty Bass",
 	"Primus",
-	"Porn Groove", 
+	"Porn Groove",
 	"Satire",		/* 110 */
-	"Slow Jam", 
+	"Slow Jam",
 	"Club",
 	"Tango",
 	"Samba",
@@ -182,8 +182,8 @@ static const char * const FLAC_plugin__id3v1_tag_genre_table[] =
 
 FLAC__bool FLAC_plugin__id3v1_tag_get(const char *filename, FLAC_Plugin__Id3v1_Tag *tag)
 {
-	char raw[128];
 	FILE *f;
+	int res;
 
 	FLAC__ASSERT(0 != filename);
 	FLAC__ASSERT(0 != tag);
@@ -196,31 +196,16 @@ FLAC__bool FLAC_plugin__id3v1_tag_get(const char *filename, FLAC_Plugin__Id3v1_T
 		fclose(f);
 		return false;
 	}
-	if(fread(raw, 1, 128, f) < 128) {
-		fclose(f);
-		return false;
-	}
+	res = fread(tag, 128, 1, f);
 	fclose(f);
-	if(strncmp(raw, "TAG", 3))
-		return false;
-	else {
-		memcpy(tag->tag, raw, 3);
-		memcpy(tag->title, raw+3, 30);
-		memcpy(tag->artist, raw+33, 30);
-		memcpy(tag->album, raw+63, 30);
-		memcpy(tag->year, raw+93, 4);
-		memcpy(tag->comment.v1_0.comment, raw+97, 30);
-		tag->genre = raw[127];
-		return true;
-	}
+	return res==1 && !strncmp(tag->tag, "TAG", 3);
 }
 
 const char *FLAC_plugin__id3v1_tag_get_genre_as_string(unsigned char genre_code)
 {
-	if (genre_code < FLAC_plugin__id3v1_tag_genre_table_max())
+	if (genre_code < (sizeof(FLAC_plugin__id3v1_tag_genre_table)/sizeof(FLAC_plugin__id3v1_tag_genre_table[0])))
 		return gettext(FLAC_plugin__id3v1_tag_genre_table[genre_code]);
-
-	return "";
+	return "Unknown";
 }
 
 unsigned FLAC_plugin__id3v1_tag_genre_table_max()

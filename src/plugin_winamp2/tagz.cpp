@@ -125,7 +125,7 @@ static char roman_num[]=
 };
 
 
-static int is_roman(T_CHAR * ptr)//could be more smart i think
+static int is_roman(T_CHAR * ptr)/* could be more smart i think */
 {
 	if (ptr[0]==']' && ptr[1]=='[' && separator(ptr[2])) return 1;
 	while(!separator(*ptr))
@@ -164,7 +164,7 @@ MAKEFUNC(If)
 	if (n_src!=3) return false;
 
 	out.AddString(src[found_src[0] ? 1 : 2]);
-    return true;
+	return true;
 }
 
 MAKEFUNC(If2)
@@ -172,7 +172,7 @@ MAKEFUNC(If2)
 	if (n_src!=2) return false;
 
 	out.AddString(src[found_src[0] ? 0 : 1]);
-    return true;
+	return true;
 }
 
 
@@ -181,7 +181,7 @@ MAKEFUNC(Iflonger)
 	if (n_src!=4) return false;
 
 	out.AddString(src[(int)t_strlen(src[0])>t_atoi(src[1]) ? 2 : 3]);
-    return true;
+	return true;
 }
 
 MAKEFUNC(Ifgreater)
@@ -189,7 +189,7 @@ MAKEFUNC(Ifgreater)
 	if (n_src!=4) return false;
 
 	out.AddString(src[t_atoi(src[0])>t_atoi(src[1]) ? 2 : 3]);
-    return true;
+	return true;
 }
 
 MAKEFUNC(Upper)
@@ -201,7 +201,7 @@ MAKEFUNC(Upper)
 	while(*s)
 		out.AddChar(toupper(*(s++)));
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Lower)
@@ -213,7 +213,7 @@ MAKEFUNC(Lower)
 	while(*s)
 		out.AddChar(tolower(*(s++)));
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Pad)
@@ -222,18 +222,18 @@ MAKEFUNC(Pad)
 
 	T_CHAR *fill=_TX(" ");
 	if (n_src==3 && src[2][0])
-        fill = src[2];
+		fill = src[2];
 
 	int num = t_atoi(src[1]);
 	T_CHAR *p = src[0];
 
-    while (*p) { out.AddChar(*(p++)); num--; }
+	while (*p) { out.AddChar(*(p++)); num--; }
 
 	UINT fl = t_strlen(fill);
 	while (num>0)
-        out.AddChar(fill[(--num)%fl]);
+		out.AddChar(fill[(--num)%fl]);
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Cut)
@@ -245,7 +245,7 @@ MAKEFUNC(Cut)
 
 	while (*p && num>0) {out.AddChar(*(p++));num--;}
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(PadCut)
@@ -254,7 +254,7 @@ MAKEFUNC(PadCut)
 
 	T_CHAR *fill = _TX(" ");
 	if (n_src==3 && src[2][0])
-        fill = src[2];
+		fill = src[2];
 
 	int num = t_atoi(src[1]);
 	T_CHAR *p = src[0];
@@ -263,13 +263,13 @@ MAKEFUNC(PadCut)
 
 	UINT fl=t_strlen(fill);
 	while (num>0)
-        out.AddChar(fill[(--num)%fl]);
+		out.AddChar(fill[(--num)%fl]);
 
-    return true;
+	return true;
 }
 
-// abbr(string)
-// abbr(string,len)
+/* abbr(string) */
+/* abbr(string,len) */
 MAKEFUNC(Abbr)
 {
 	if (n_src==0 || n_src>2) return false;
@@ -301,7 +301,7 @@ MAKEFUNC(Abbr)
 		meta++;
 	}
 
-    return true;
+	return true;
 }
 
 
@@ -324,7 +324,7 @@ MAKEFUNC(Caps)
 		out.AddChar(c);
 	}
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Caps2)
@@ -344,7 +344,7 @@ MAKEFUNC(Caps2)
 		out.AddChar(c);
 	}
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Longest)
@@ -359,7 +359,7 @@ MAKEFUNC(Longest)
 	}
 
 	if (ptr) out.AddString(ptr);
-    return true;
+	return true;
 }
 
 MAKEFUNC(Shortest)
@@ -374,7 +374,7 @@ MAKEFUNC(Shortest)
 	}
 
 	if (ptr) out.AddString(ptr);
-    return true;
+	return true;
 }
 
 MAKEFUNC(Num)
@@ -387,20 +387,20 @@ MAKEFUNC(Num)
 	sprintf(tmp,tmp1,t_atoi(src[0]));
 	out.AddString(tmp);
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Hex)
 {
 	if (n_src!=2) return false;
 
-    T_CHAR tmp[16];
+	T_CHAR tmp[16];
 	T_CHAR tmp1[16];
 	sprintf(tmp1,_TX("%%0%ux"),t_atoi(src[1]));
 	sprintf(tmp,tmp1,t_atoi(src[0]));
 	out.AddString(tmp);
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(StrChr)
@@ -412,10 +412,10 @@ MAKEFUNC(StrChr)
 
 	while (*p && *p!=s) p++;
 	if (*p==s)
-        out.AddInt(1+p-src[0]);
+		out.AddInt(1+p-src[0]);
 	else out.AddChar('0');
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(StrRChr)
@@ -432,10 +432,10 @@ MAKEFUNC(StrRChr)
 	}
 
 	if (p1)
-        out.AddInt(1+p1-src[0]);
+		out.AddInt(1+p1-src[0]);
 	else out.AddChar('0');
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(StrStr)
@@ -445,14 +445,14 @@ MAKEFUNC(StrStr)
 	T_CHAR * p = t_strstr(src[0],src[1]);
 
 	if (p)
-        out.AddInt(1+p-src[0]);
+		out.AddInt(1+p-src[0]);
 	else out.AddChar('0');
 
-    return true;
+	return true;
 }
 
-// substr(string, index)
-// substr(string, index, length)
+/* substr(string, index) */
+/* substr(string, index, length) */
 MAKEFUNC(SubStr)
 {
 	if (n_src<2 || n_src>3) return false;
@@ -472,15 +472,15 @@ MAKEFUNC(SubStr)
 			out.AddChar(src[0][n1++]);
 	}
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Len)
 {
 	if (n_src!=1) return false;
 
-    out.AddInt(t_strlen(src[0]));
-    return true;
+	out.AddInt(t_strlen(src[0]));
+	return true;
 }
 
 MAKEFUNC(Add)
@@ -493,7 +493,7 @@ MAKEFUNC(Add)
 
 	out.AddInt(s);
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Sub)
@@ -508,7 +508,7 @@ MAKEFUNC(Sub)
 
 	out.AddInt(s);
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Mul)
@@ -521,7 +521,7 @@ MAKEFUNC(Mul)
 
 	out.AddInt(s);
 
-    return true;
+	return true;
 }
 				
 MAKEFUNC(Div)
@@ -540,7 +540,7 @@ MAKEFUNC(Div)
 
 	out.AddInt(s);
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Mod)
@@ -559,7 +559,7 @@ MAKEFUNC(Mod)
 
 	out.AddInt(s);
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Max)
@@ -576,7 +576,7 @@ MAKEFUNC(Max)
 	}
 	out.AddInt(m);
 
-    return true;
+	return true;
 }
 
 MAKEFUNC(Min)
@@ -593,10 +593,10 @@ MAKEFUNC(Min)
 	}
 	out.AddInt(m);
 
-    return true;
+	return true;
 }
 
-// replace(string, what_to_replace, replacement)
+/* replace(string, what_to_replace, replacement) */
 MAKEFUNC(Replace)
 {
 	if (n_src!=3) return false;
@@ -616,7 +616,7 @@ MAKEFUNC(Replace)
 		else out.AddChar(*p++);
 	}
 
-    return true;
+	return true;
 }
 
 struct
@@ -671,11 +671,11 @@ private:
 	int found;
 
 	void Error(T_CHAR *e=0)
-    {
-        str.Reset();
-        str.AddString(e ? e : _TX("[SYNTAX ERROR IN FORMATTING STRING]"));
-        found++;  // force displaying
-    }
+	{
+		str.Reset();
+		str.AddString(e ? e : _TX("[SYNTAX ERROR IN FORMATTING STRING]"));
+		found++;  /* force displaying */
+	}
 
 	T_CHAR * _FMT(T_CHAR * s,UINT *f=0)
 	{
@@ -739,7 +739,7 @@ private:
 				*s1=0;
 				const T_CHAR * tag=f(spec,fp);
 				*s1='%';
-				//if (!tag) tag=tag_unknown;
+				/*if (!tag) tag=tag_unknown; */
 				if (tag && tag[0])
 				{
 					found++;
@@ -784,25 +784,25 @@ private:
 
 				for (n=0; n<TABSIZE(FUNCS); n++)
 					if (!t_stricmp(spec, FUNCS[n].name))
-                        break;
+						break;
 
 				*s1='(';
 
 				if (n != TABSIZE(FUNCS))
 				{
 					if (!FUNCS[n].func(nt, temp, temp_f, str))
-                    {
-                        Error(_TX("[INVALID $"));
-                        str.AddString(FUNCS[n].name);
-                        str.AddString(_TX(" SYNTAX]"));
-                        return;
-                    }
+					{
+						Error(_TX("[INVALID $"));
+						str.AddString(FUNCS[n].name);
+						str.AddString(_TX(" SYNTAX]"));
+						return;
+					}
 				}
 				else
-                {
-                    Error(_TX("[UNKNOWN FUNCTION]"));
-                    return;
-                }
+				{
+					Error(_TX("[UNKNOWN FUNCTION]"));
+					return;
+				}
 
 				for(n=0;n<nt;n++) free(temp[n]);
 				spec=s2+1;
@@ -896,8 +896,6 @@ T_CHAR * tagz_format_r(const T_CHAR* spec,TAGFUNC f,TAGFREEFUNC ff,void * fp)
 {
 	return FMT(spec,f,ff,fp);
 }
-
-//char tagz_manual[]="TODO: WTFM";
 
 const char tagz_manual[]="Syntax reference: \n"
 	"\n"

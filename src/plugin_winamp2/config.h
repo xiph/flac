@@ -1,41 +1,50 @@
+/* in_flac - Winamp2 FLAC input plugin
+ * Copyright (C) 2002,2003,2004  Josh Coalson
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
-//
-//  common stuff
-//
+#include "playback.h"
 
-typedef struct {
-	struct {
-		BOOL enable;
-		BOOL album_mode;
-		INT  preamp;
-		BOOL hard_limit;
-	} replaygain;
-	struct {
-		struct {
-			BOOL dither_24_to_16;
-		} normal;
-		struct {
-			BOOL dither;
-			INT  noise_shaping; /* value must be one of NoiseShaping enum, c.f. plugin_common/replaygain_synthesis.h */
-			INT  bps_out;
-		} replaygain;
-	} resolution;
-} output_config_t;
+/*
+ *  common stuff
+ */
 
 typedef struct {
 	struct {
 		char tag_format[256];
+		char sep[16];
+		WCHAR *tag_format_w;
+		BOOL read_v1;
 	} title;
+	struct {
+		BOOL reserve_space;
+	} tag;
+	struct {
+		FLAC__bool show_bps;
+	} display;
 	output_config_t output;
 } flac_config_t;
 
 extern flac_config_t flac_cfg;
-extern char ini_name[MAX_PATH];
 
-//
-//  prototypes
-//
+/*
+ *  prototypes
+ */
 
+void InitConfig();
 void ReadConfig();
 void WriteConfig();
-int DoConfig(HINSTANCE inst, HWND parent);
+int  DoConfig(HINSTANCE inst, HWND parent);

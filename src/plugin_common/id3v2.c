@@ -24,6 +24,11 @@
 #include <config.h>
 #endif
 
+#include "FLAC/assert.h"
+
+#include <stdlib.h> /* for free() */
+#include <string.h> /* for memset() */
+
 #ifdef FLAC__HAS_ID3LIB
 #include <id3.h>
 #include <stdio.h>
@@ -31,8 +36,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
-
-#include "FLAC/assert.h"
 
 #include "id3v1.h" /* for genre stuff */
 #include "locale_hack.h"
@@ -113,25 +116,25 @@ static size_t local__ID3Field_GetASCII_wrapper(const ID3Field *field, char *buff
 	 *  = 3.7.13 : first item num is 0 for ID3Field_GetASCII
 	 * >= 3.8.0  : doesn't need item num for ID3Field_GetASCII
 	 */
-#    if (ID3LIB_MAJOR >= 3)
+#	if (ID3LIB_MAJOR >= 3)
 		 /* (>= 3.x.x) */
-#        if (ID3LIB_MINOR <= 7)
+#		if (ID3LIB_MINOR <= 7)
 			 /* (3.0.0 to 3.7.x) */
-#            if (ID3LIB_PATCH >= 13)
+#			if (ID3LIB_PATCH >= 13)
 				 /* (>= 3.7.13) */
 				 return ID3Field_GetASCII(field, buffer, maxChars, itemNum);
-#            else
+#			else
 				 return ID3Field_GetASCII(field, buffer, maxChars, itemNum+1);
-#            endif
-#        else
+#			endif
+#		else
 			 /* (>= to 3.8.0) */
 			 /*return ID3Field_GetASCII(field, buffer, maxChars); */
 			 return ID3Field_GetASCIIItem(field, buffer, maxChars, itemNum);
-#        endif
-#    else
+#		endif
+#	else
 		 /* Not tested (< 3.x.x) */
 		 return ID3Field_GetASCII(field, buffer, maxChars, itemNum+1);
-#    endif
+#	endif
 }
 
 
@@ -161,7 +164,7 @@ static const char *local__genre_to_string(unsigned genre_code)
  * Returns true on success, else false.
  * If a tag entry exists (ex: title), we allocate memory, else value stays to NULL
  */
-static FLAC__bool local__get_tag(const char *filename, FLAC_Plugin__CanonicalTag *tag)
+static FLAC__bool local__get_tag(const char *filename, FLAC_Plugin__Id3v2_Tag *tag)
 {
 	FILE *file;
 	ID3Tag *id3_tag = 0; /* Tag defined by id3lib */
@@ -368,12 +371,52 @@ static FLAC__bool local__get_tag(const char *filename, FLAC_Plugin__CanonicalTag
 }
 #endif /* ifdef FLAC__HAS_ID3LIB */
 
-FLAC__bool FLAC_plugin__id3v2_tag_get(const char *filename, FLAC_Plugin__CanonicalTag *tag)
+FLAC__bool FLAC_plugin__id3v2_tag_get(const char *filename, FLAC_Plugin__Id3v2_Tag *tag)
 {
+	FLAC__ASSERT(0 != tag);
+	if(
+		0 != tag->title ||
+		0 != tag->composer ||
+		0 != tag->performer ||
+		0 != tag->album ||
+		0 != tag->year_recorded ||
+		0 != tag->year_performed ||
+		0 != tag->track_number ||
+		0 != tag->tracks_in_album ||
+		0 != tag->genre ||
+		0 != tag->comment
+	)
+		return false;
 #ifdef FLAC__HAS_ID3LIB
 	return local__get_tag(filename, tag);
 #else
 	(void)filename, (void)tag;
 	return false;
 #endif
+}
+
+void FLAC_plugin__id3v2_tag_clear(FLAC_Plugin__Id3v2_Tag *tag)
+{
+	FLAC__ASSERT(0 != tag);
+	if(0 != tag->title)
+		free(tag->title);
+	if(0 != tag->composer)
+		free(tag->composer);
+	if(0 != tag->performer)
+		free(tag->performer);
+	if(0 != tag->album)
+		free(tag->album);
+	if(0 != tag->year_recorded)
+		free(tag->year_recorded);
+	if(0 != tag->year_performed)
+		free(tag->year_performed);
+	if(0 != tag->track_number)
+		free(tag->track_number);
+	if(0 != tag->tracks_in_album)
+		free(tag->tracks_in_album);
+	if(0 != tag->genre)
+		free(tag->genre);
+	if(0 != tag->comment)
+		free(tag->comment);
+	memset(tag, 0, sizeof(*tag));
 }

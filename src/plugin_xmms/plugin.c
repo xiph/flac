@@ -167,9 +167,6 @@ void FLAC_XMMS__init()
 
 	xmms_cfg_read_boolean(cfg, "flac", "title.convert_char_set", &flac_cfg.title.convert_char_set);
 
-	if(!xmms_cfg_read_string(cfg, "flac", "title.file_char_set", &flac_cfg.title.file_char_set))
-		flac_cfg.title.file_char_set = FLAC_plugin__charset_get_current();
-
 	if(!xmms_cfg_read_string(cfg, "flac", "title.user_char_set", &flac_cfg.title.user_char_set))
 		flac_cfg.title.user_char_set = FLAC_plugin__charset_get_current();
 

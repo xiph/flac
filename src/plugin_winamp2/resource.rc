@@ -67,7 +67,7 @@ BEGIN
     EDITTEXT        IDC_ALBUM,43,60,137,12,ES_AUTOHSCROLL
     RTEXT           "&Comment",IDC_STATIC,8,77,31,8
     EDITTEXT        IDC_COMMENT,43,75,137,12,ES_AUTOHSCROLL
-    RTEXT           "&Year",IDC_STATIC,8,92,31,8
+    RTEXT           "&Date",IDC_STATIC,8,92,31,8
     EDITTEXT        IDC_YEAR,43,90,40,12,ES_AUTOHSCROLL
     RTEXT           "Track &number",IDC_STATIC,90,92,46,8
     EDITTEXT        IDC_TRACK,141,90,39,12,ES_AUTOHSCROLL
@@ -133,10 +133,23 @@ IDD_CONFIG_GENERAL DIALOG DISCARDABLE  0, 0, 226, 171
 STYLE DS_CONTROL | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        " Title Formatting  ",IDC_STATIC,2,2,220,43
-    LTEXT           "&Title:",IDC_STATIC,8,17,16,8
+    GROUPBOX        " Title Formatting  ",IDC_STATIC,2,2,220,58
+    LTEXT           "&Title",IDC_STATIC,8,17,14,8
     EDITTEXT        IDC_TITLE,27,15,188,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "default",IDC_TAGZ_DEFAULT,156,28,30,10
     PUSHBUTTON      "help",IDC_TAGZ_HELP,188,28,27,10
+    LTEXT           "Separate tag values &with",IDC_STATIC,8,43,79,8
+    EDITTEXT        IDC_SEP,91,41,27,12,ES_AUTOHSCROLL
+    CONTROL         "Read ID3v&1 tags",IDC_ID3V1,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,147,43,70,10
+    GROUPBOX        " Tag Editor  ",IDC_STATIC,2,63,220,30
+    CONTROL         "Reserve space for &VorbisComment",IDC_RESERVE,"Button",
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,8,76,125,10
+    GROUPBOX        " Misk  ",IDC_STATIC,2,96,220,72
+    CONTROL         "&Show average bitrate while playing",IDC_BPS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,108,125,10
+    CONTROL         "Stop on &all errors",IDC_ERRORS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,120,69,10
 END
 
 IDD_CONFIG_OUTPUT DIALOG DISCARDABLE  0, 0, 224, 171
@@ -159,11 +172,11 @@ BEGIN
     CONTROL         "&Dither 24bps to 16bps",IDC_DITHER,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,16,84,85,10
     GROUPBOX        " With ReplayGain ",IDC_STATIC,7,104,209,47
-    CONTROL         "E&nable dithering",IDC_DITHERRG,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,16,134,67,10
     LTEXT           "&Output bit depth",IDC_STATIC,16,119,52,8
     COMBOBOX        IDC_TO,71,116,39,43,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
+    CONTROL         "E&nable dithering",IDC_DITHERRG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,134,67,10
     LTEXT           "Noise &shaping",IDC_STATIC,113,135,46,8
     COMBOBOX        IDC_SHAPE,164,132,46,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP

@@ -48,7 +48,6 @@ flac_config_t flac_cfg = {
 		FALSE, /* tag_override */
 		NULL, /* tag_format */
 		FALSE, /* convert_char_set */
-		NULL, /* file_char_set */
 		NULL /* user_char_set */
 	},
 	/* output */
@@ -108,7 +107,6 @@ static void flac_configurewin_ok(GtkWidget * widget, gpointer data)
 	(void)widget, (void)data; /* unused arguments */
 	g_free(flac_cfg.title.tag_format);
 	flac_cfg.title.tag_format = g_strdup(gtk_entry_get_text(GTK_ENTRY(title_tag_entry)));
-	flac_cfg.title.file_char_set = Charset_Get_Name_From_Title(gtk_entry_get_text_1(fileCharacterSetEntry));
 	flac_cfg.title.user_char_set = Charset_Get_Name_From_Title(gtk_entry_get_text_1(userCharacterSetEntry));
 
 	filename = g_strconcat(g_get_home_dir(), "/.xmms/config", NULL);
@@ -119,7 +117,6 @@ static void flac_configurewin_ok(GtkWidget * widget, gpointer data)
 	xmms_cfg_write_boolean(cfg, "flac", "title.tag_override", flac_cfg.title.tag_override);
 	xmms_cfg_write_string(cfg, "flac", "title.tag_format", flac_cfg.title.tag_format);
 	xmms_cfg_write_boolean(cfg, "flac", "title.convert_char_set", flac_cfg.title.convert_char_set);
-	xmms_cfg_write_string(cfg, "flac", "title.file_char_set", flac_cfg.title.file_char_set);
 	xmms_cfg_write_string(cfg, "flac", "title.user_char_set", flac_cfg.title.user_char_set);
 	/* output */
 	xmms_cfg_write_boolean(cfg, "flac", "output.replaygain.enable", flac_cfg.output.replaygain.enable);
@@ -293,7 +290,6 @@ void FLAC_XMMS__configure(void)
 	list = Charset_Create_List();
 	gtk_combo_set_popdown_strings(GTK_COMBO(fileCharacterSetEntry),list);
 	gtk_combo_set_popdown_strings(GTK_COMBO(userCharacterSetEntry),list);
-	gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(fileCharacterSetEntry)->entry),Charset_Get_Title_From_Name(flac_cfg.title.file_char_set));
 	gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(userCharacterSetEntry)->entry),Charset_Get_Title_From_Name(flac_cfg.title.user_char_set));
 	gtk_widget_set_sensitive(fileCharacterSetEntry, flac_cfg.title.convert_char_set);
 	gtk_widget_set_sensitive(userCharacterSetEntry, flac_cfg.title.convert_char_set);

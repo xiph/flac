@@ -29,8 +29,7 @@
 #include <xmms/titlestring.h>
 
 #include "FLAC/metadata.h"
-#include "plugin_common/id3v1.h"
-#include "plugin_common/id3v2.h"
+#include "plugin_common/canonical_tag.h"
 #include "charset.h"
 #include "configure.h"
 
@@ -65,6 +64,29 @@ static int local__getnum(char* str)
 	return 0;
 }
 
+static char *local__getfield(FLAC_Plugin__CanonicalTag *tag, const wchar_t *name)
+{
+	const wchar_t *ucs2 = FLAC_plugin__canonical_get(tag, name);
+	if (0 != ucs2) {
+		char *utf8 = FLAC_plugin__convert_ucs2_to_utf8(FLAC_plugin__canonical_get(tag, name));
+		if(flac_cfg.title.convert_char_set) {
+			char *user = convert_from_utf8_to_user(utf8);
+			free(utf8);
+			return user;
+		}
+		else
+			return utf8;
+	}
+	else
+		return 0;
+}
+
+static void local__safe_free(char *s)
+{
+	if (0 != s)
+		free(s);
+}
+
 /*
  * Function flac_format_song_title (tag, filename)
  *
@@ -77,35 +99,32 @@ char *flac_format_song_title(char *filename)
 	char *ret = NULL;
 	TitleInput *input = NULL;
 	FLAC_Plugin__CanonicalTag tag;
+	char *title, *artist, *performer, *album, *date, *tracknumber, *genre, *description;
 
 	FLAC_plugin__canonical_tag_init(&tag);
 
-	FLAC_plugin__canonical_tag_get_combined(filename, &tag);
+	FLAC_plugin__canonical_tag_get_combined(filename, &tag, /*sep=*/0);
 
-	if(flac_cfg.title.convert_char_set) {
-		convert_from_file_to_user_in_place(&tag.title);
-		convert_from_file_to_user_in_place(&tag.composer);
-		convert_from_file_to_user_in_place(&tag.performer);
-		convert_from_file_to_user_in_place(&tag.album);
-		convert_from_file_to_user_in_place(&tag.year_recorded);
-		convert_from_file_to_user_in_place(&tag.year_performed);
-		convert_from_file_to_user_in_place(&tag.track_number);
-		convert_from_file_to_user_in_place(&tag.tracks_in_album);
-		convert_from_file_to_user_in_place(&tag.genre);
-		convert_from_file_to_user_in_place(&tag.comment);
-	}
+	title       = local__getfield(&tag, L"TITLE");
+	artist      = local__getfield(&tag, L"ARTIST");
+	performer   = local__getfield(&tag, L"PERFORMER");
+	album       = local__getfield(&tag, L"ALBUM");
+	date        = local__getfield(&tag, L"DATE");
+	tracknumber = local__getfield(&tag, L"TRACKNUMBER");
+	genre       = local__getfield(&tag, L"GENRE");
+	description = local__getfield(&tag, L"DESCRIPTION");
 
 	XMMS_NEW_TITLEINPUT(input);
 
-	input->performer = local__getstr(tag.performer);
+	input->performer = local__getstr(performer);
 	if(!input->performer)
-		input->performer = local__getstr(tag.composer);
-	input->album_name = local__getstr(tag.album);
-	input->track_name = local__getstr(tag.title);
-	input->track_number = local__getnum(tag.track_number);
-	input->year = local__getnum(tag.year_recorded);
-	input->genre = local__getstr(tag.genre);
-	input->comment = local__getstr(tag.comment);
+		input->performer = local__getstr(artist);
+	input->album_name = local__getstr(album);
+	input->track_name = local__getstr(title);
+	input->track_number = local__getnum(tracknumber);
+	input->year = local__getnum(date);
+	input->genre = local__getstr(genre);
+	input->comment = local__getstr(description);
 
 	input->file_name = g_basename(filename);
 	input->file_path = filename;
@@ -123,5 +142,13 @@ char *flac_format_song_title(char *filename)
 	}
 
 	FLAC_plugin__canonical_tag_clear(&tag);
+	local__safe_free(title);
+	local__safe_free(artist);
+	local__safe_free(performer);
+	local__safe_free(album);
+	local__safe_free(date);
+	local__safe_free(tracknumber);
+	local__safe_free(genre);
+	local__safe_free(description);
 	return ret;
 }

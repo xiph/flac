@@ -14,7 +14,7 @@ typedef unsigned short T_CHAR;
 #define T_CHAR char
 #endif
 
-typedef const T_CHAR* (*TAGFUNC)(const T_CHAR *tag,void *p);    // return 0 if not found
+typedef const T_CHAR* (*TAGFUNC)(const T_CHAR *tag,void *p);    /* return 0 if not found */
 typedef void (*TAGFREEFUNC)(const T_CHAR *tag,void *p);
 
 

@@ -22,7 +22,7 @@
 #include "canonical_tag.h"
 #include "FLAC/ordinals.h"
 
-void FLAC_plugin__vorbiscomment_get(const char *filename, FLAC_Plugin__CanonicalTag *tag);
+void FLAC_plugin__vorbiscomment_get(const char *filename, FLAC_Plugin__CanonicalTag *tag, const char *sep);
 FLAC__bool FLAC_plugin__vorbiscomment_set(const char *filename, FLAC_Plugin__CanonicalTag *tag);
 
 #endif

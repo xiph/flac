@@ -41,10 +41,11 @@ extern const CharsetInfo charset_trans_array[];
  * Prototypes *
  **************/
 
-char *convert_from_file_to_user(const char *string);
-char *convert_from_user_to_file(const char *string);
-void convert_from_file_to_user_in_place(char **string);
-void convert_from_user_to_file_in_place(char **string);
+/*
+ * The returned strings are malloc()ed an must be free()d by the caller
+ */
+char *convert_from_utf8_to_user(const char *string);
+char *convert_from_user_to_utf8(const char *string);
 
 GList *Charset_Create_List (void);
 gchar *Charset_Get_Name_From_Title (gchar *charset_title);

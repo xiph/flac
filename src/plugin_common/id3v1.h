@@ -23,24 +23,22 @@
 
 #include "FLAC/ordinals.h"
 
+#pragma pack(push, 1)
+
 typedef struct {
 	char tag[3];
 	char title[30];
 	char artist[30];
 	char album[30];
 	char year[4];
-	union {
-		struct {
-			char comment[30];
-		} v1_0;
-		struct {
-			char comment[28];
-			char zero;
-			unsigned char track;
-		} v1_1;
-	} comment;
+    /* always use layout of id3 v1.1 */
+	char comment[28];
+	char zero;
+	unsigned char track;
 	unsigned char genre;
 } FLAC_Plugin__Id3v1_Tag;
+
+#pragma pack(pop)
 
 FLAC__bool FLAC_plugin__id3v1_tag_get(const char *filename, FLAC_Plugin__Id3v1_Tag *tag);
 
