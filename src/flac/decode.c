@@ -35,7 +35,7 @@
 #include "decode.h"
 
 #ifdef FLAC__HAS_OGG
-#include "OggFLAC/stream_decoder.h"
+#include "OggFLAC/file_decoder.h"
 #endif
 
 typedef struct {
@@ -89,14 +89,11 @@ typedef struct {
 		} flac;
 #ifdef FLAC__HAS_OGG
 		union {
-			OggFLAC__StreamDecoder *stream;
+			OggFLAC__FileDecoder *file;
 		} ogg;
 #endif
 	} decoder;
 
-#ifdef FLAC__HAS_OGG
-	FILE *fin;
-#endif
 	FILE *fout;
 } DecoderSession;
 
@@ -120,9 +117,6 @@ static FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_big_endian_uint32(FILE *f, FLAC__uint32 val);
 static FLAC__bool write_sane_extended(FILE *f, unsigned val);
 static FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out, unsigned riff_offset, unsigned data_offset, unsigned frames_offset, FLAC__uint32 total_samples, unsigned channels, unsigned bps);
-#ifdef FLAC__HAS_OGG
-static FLAC__StreamDecoderReadStatus read_callback(const OggFLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
-#endif
 /*
  * We use 'void *' so that we can use the same callbacks for the
  * FLAC__StreamDecoder and FLAC__FileDecoder.  The 'decoder' argument is
@@ -283,12 +277,9 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	d->decoder.flac.file = 0;
 #ifdef FLAC__HAS_OGG
-	d->decoder.ogg.stream = 0;
+	d->decoder.ogg.file = 0;
 #endif
 
-#ifdef FLAC__HAS_OGG
-	d->fin = 0;
-#endif
 	d->fout = 0; /* initialized with an open file later if necessary */
 
 	FLAC__ASSERT(!(d->test_only && d->analysis_mode));
@@ -306,20 +297,6 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 		}
 	}
 
-#ifdef FLAC__HAS_OGG
-	if(d->is_ogg) {
-		if (0 == strcmp(infilename, "-")) {
-			d->fin = grabbag__file_get_binary_stdin();
-		} else {
-			if (0 == (d->fin = fopen(infilename, "rb"))) {
-				fprintf(stderr, "%s: ERROR: can't open input file %s\n", d->inbasefilename, infilename);
-				DecoderSession_destroy(d, /*error_occurred=*/true);
-				return false;
-			}
-		}
-	}
-#endif
-
 	if(analysis_mode)
 		flac__analyze_init(aopts);
 
@@ -333,10 +310,6 @@ void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred)
 		if(error_occurred)
 			unlink(d->outfilename);
 	}
-#ifdef FLAC__HAS_OGG
-	if(0 != d->fin && d->fin != stdin)
-		fclose(d->fin);
-#endif
 }
 
 FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_options_t decode_options, const char *infilename)
@@ -347,30 +320,31 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 
 #ifdef FLAC__HAS_OGG
 	if(decoder_session->is_ogg) {
-		decoder_session->decoder.ogg.stream = OggFLAC__stream_decoder_new();
+		decoder_session->decoder.ogg.file = OggFLAC__file_decoder_new();
 
-		if(0 == decoder_session->decoder.ogg.stream) {
+		if(0 == decoder_session->decoder.ogg.file) {
 			fprintf(stderr, "%s: ERROR creating the decoder instance\n", decoder_session->inbasefilename);
 			return false;
 		}
 
+		OggFLAC__file_decoder_set_md5_checking(decoder_session->decoder.ogg.file, true);
+		OggFLAC__file_decoder_set_filename(decoder_session->decoder.ogg.file, infilename);
 		if(!decode_options.use_first_serial_number)
-			OggFLAC__stream_decoder_set_serial_number(decoder_session->decoder.ogg.stream, decode_options.serial_number);
+			OggFLAC__file_decoder_set_serial_number(decoder_session->decoder.ogg.file, decode_options.serial_number);
 		if (decoder_session->replaygain.spec.apply)
-			OggFLAC__stream_decoder_set_metadata_respond(decoder_session->decoder.ogg.stream, FLAC__METADATA_TYPE_VORBIS_COMMENT);
+			OggFLAC__file_decoder_set_metadata_respond(decoder_session->decoder.ogg.file, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
-		OggFLAC__stream_decoder_set_read_callback(decoder_session->decoder.ogg.stream, read_callback);
 		/*
 		 * The three ugly casts here are to 'downcast' the 'void *' argument of
-		 * the callback down to 'FLAC__StreamDecoder *'.  In C++ this would be
+		 * the callback down to 'OggFLAC__FileDecoder *'.  In C++ this would be
 		 * unnecessary but here the cast makes the C compiler happy.
 		 */
-		OggFLAC__stream_decoder_set_write_callback(decoder_session->decoder.ogg.stream, (FLAC__StreamDecoderWriteStatus (*)(const OggFLAC__StreamDecoder *, const FLAC__Frame *, const FLAC__int32 * const [], void *))write_callback);
-		OggFLAC__stream_decoder_set_metadata_callback(decoder_session->decoder.ogg.stream, (void (*)(const OggFLAC__StreamDecoder *, const FLAC__StreamMetadata *, void *))metadata_callback);
-		OggFLAC__stream_decoder_set_error_callback(decoder_session->decoder.ogg.stream, (void (*)(const OggFLAC__StreamDecoder *, FLAC__StreamDecoderErrorStatus, void *))error_callback);
-		OggFLAC__stream_decoder_set_client_data(decoder_session->decoder.ogg.stream, decoder_session);
+		OggFLAC__file_decoder_set_write_callback(decoder_session->decoder.ogg.file, (FLAC__StreamDecoderWriteStatus (*)(const OggFLAC__FileDecoder *, const FLAC__Frame *, const FLAC__int32 * const [], void *))write_callback);
+		OggFLAC__file_decoder_set_metadata_callback(decoder_session->decoder.ogg.file, (void (*)(const OggFLAC__FileDecoder *, const FLAC__StreamMetadata *, void *))metadata_callback);
+		OggFLAC__file_decoder_set_error_callback(decoder_session->decoder.ogg.file, (void (*)(const OggFLAC__FileDecoder *, FLAC__StreamDecoderErrorStatus, void *))error_callback);
+		OggFLAC__file_decoder_set_client_data(decoder_session->decoder.ogg.file, decoder_session);
 
-		if(OggFLAC__stream_decoder_init(decoder_session->decoder.ogg.stream) != OggFLAC__STREAM_DECODER_OK) {
+		if(OggFLAC__file_decoder_init(decoder_session->decoder.ogg.file) != OggFLAC__FILE_DECODER_OK) {
 			print_error_with_state(decoder_session, "ERROR initializing decoder");
 			return false;
 		}
@@ -413,12 +387,12 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 {
 #ifdef FLAC__HAS_OGG
 	if(d->is_ogg) {
-		if(!OggFLAC__stream_decoder_process_until_end_of_metadata(d->decoder.ogg.stream)) {
+		if(!OggFLAC__file_decoder_process_until_end_of_metadata(d->decoder.ogg.file)) {
 			if(d->verbose) fprintf(stderr, "\n");
 			print_error_with_state(d, "ERROR while decoding metadata");
 			return false;
 		}
-		if(OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC && OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_END_OF_STREAM) {
+		if(OggFLAC__file_decoder_get_state(d->decoder.ogg.file) != OggFLAC__FILE_DECODER_OK && OggFLAC__file_decoder_get_state(d->decoder.ogg.file) != OggFLAC__FILE_DECODER_END_OF_FILE) {
 			if(d->verbose) fprintf(stderr, "\n");
 			print_error_with_state(d, "ERROR during metadata decoding");
 			return false;
@@ -445,35 +419,50 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		const FLAC__uint64 skip = (FLAC__uint64)d->skip_specification->value.samples;
 
 #ifdef FLAC__HAS_OGG
-		if(d->is_ogg) { /*@@@ (move this check into main.c) */
-			fprintf(stderr, "%s: ERROR, can't skip when decoding Ogg-FLAC yet; convert to native-FLAC first\n", d->inbasefilename);
-			return false;
+		if(d->is_ogg) {
+			if(!OggFLAC__file_decoder_seek_absolute(d->decoder.ogg.file, skip)) {
+				print_error_with_state(d, "ERROR seeking while skipping bytes");
+				return false;
+			}
+			if(!OggFLAC__file_decoder_process_until_end_of_file(d->decoder.ogg.file) && !d->aborting_due_to_until) {
+				if(d->verbose) fprintf(stderr, "\n");
+				print_error_with_state(d, "ERROR while decoding frames");
+				return false;
+			}
+			if(OggFLAC__file_decoder_get_state(d->decoder.ogg.file) != OggFLAC__FILE_DECODER_OK && OggFLAC__file_decoder_get_state(d->decoder.ogg.file) != OggFLAC__FILE_DECODER_END_OF_FILE && !d->aborting_due_to_until) {
+				if(d->verbose) fprintf(stderr, "\n");
+				print_error_with_state(d, "ERROR during decoding");
+				return false;
+			}
 		}
+		else
 #endif
-		if(!FLAC__file_decoder_seek_absolute(d->decoder.flac.file, skip)) {
-			print_error_with_state(d, "ERROR seeking while skipping bytes");
-			return false;
-		}
-		if(!FLAC__file_decoder_process_until_end_of_file(d->decoder.flac.file) && !d->aborting_due_to_until) {
-			if(d->verbose) fprintf(stderr, "\n");
-			print_error_with_state(d, "ERROR while decoding frames");
-			return false;
-		}
-		if(FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_END_OF_FILE && !d->aborting_due_to_until) {
-			if(d->verbose) fprintf(stderr, "\n");
-			print_error_with_state(d, "ERROR during decoding");
-			return false;
+		{
+			if(!FLAC__file_decoder_seek_absolute(d->decoder.flac.file, skip)) {
+				print_error_with_state(d, "ERROR seeking while skipping bytes");
+				return false;
+			}
+			if(!FLAC__file_decoder_process_until_end_of_file(d->decoder.flac.file) && !d->aborting_due_to_until) {
+				if(d->verbose) fprintf(stderr, "\n");
+				print_error_with_state(d, "ERROR while decoding frames");
+				return false;
+			}
+			if(FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_END_OF_FILE && !d->aborting_due_to_until) {
+				if(d->verbose) fprintf(stderr, "\n");
+				print_error_with_state(d, "ERROR during decoding");
+				return false;
+			}
 		}
 	}
 	else {
 #ifdef FLAC__HAS_OGG
 		if(d->is_ogg) {
-			if(!OggFLAC__stream_decoder_process_until_end_of_stream(d->decoder.ogg.stream) && !d->aborting_due_to_until) {
+			if(!OggFLAC__file_decoder_process_until_end_of_file(d->decoder.ogg.file) && !d->aborting_due_to_until) {
 				if(d->verbose) fprintf(stderr, "\n");
 				print_error_with_state(d, "ERROR while decoding data");
 				return false;
 			}
-			if(OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA && OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_END_OF_STREAM && !d->aborting_due_to_until) {
+			if(OggFLAC__file_decoder_get_state(d->decoder.ogg.file) != OggFLAC__FILE_DECODER_OK && OggFLAC__file_decoder_get_state(d->decoder.ogg.file) != OggFLAC__FILE_DECODER_END_OF_FILE && !d->aborting_due_to_until) {
 				if(d->verbose) fprintf(stderr, "\n");
 				print_error_with_state(d, "ERROR during decoding");
 				return false;
@@ -511,11 +500,10 @@ int DecoderSession_finish_ok(DecoderSession *d)
 
 #ifdef FLAC__HAS_OGG
 	if(d->is_ogg) {
-		if(d->decoder.ogg.stream) {
-			OggFLAC__stream_decoder_finish(d->decoder.ogg.stream);
-			md5_failure = false;
+		if(d->decoder.ogg.file) {
+			md5_failure = !OggFLAC__file_decoder_finish(d->decoder.ogg.file) && !d->aborting_due_to_until;
 			print_stats(d);
-			OggFLAC__stream_decoder_delete(d->decoder.ogg.stream);
+			OggFLAC__file_decoder_delete(d->decoder.ogg.file);
 		}
 	}
 	else
@@ -547,9 +535,9 @@ int DecoderSession_finish_error(DecoderSession *d)
 {
 #ifdef FLAC__HAS_OGG
 	if(d->is_ogg) {
-		if(d->decoder.ogg.stream) {
-			OggFLAC__stream_decoder_finish(d->decoder.ogg.stream);
-			OggFLAC__stream_decoder_delete(d->decoder.ogg.stream);
+		if(d->decoder.ogg.file) {
+			OggFLAC__file_decoder_finish(d->decoder.ogg.file);
+			OggFLAC__file_decoder_delete(d->decoder.ogg.file);
 		}
 	}
 	else
@@ -735,32 +723,6 @@ FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out
 	fclose(f);
 	return true;
 }
-
-#ifdef FLAC__HAS_OGG
-FLAC__StreamDecoderReadStatus read_callback(const OggFLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
-{
-	DecoderSession *decoder_session = (DecoderSession*)client_data;
-	FILE *fin = decoder_session->fin;
-	size_t bytes_read;
-
-	(void)decoder; /* avoid compiler warning */
-
-	if (decoder_session->abort_flag)
-		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
-
-	if(feof(fin))
-		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
-
-	bytes_read = fread(buffer, 1, *bytes, fin);
-
-	if(ferror(fin))
-		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
-
-	*bytes = (unsigned)bytes_read;
-
-	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
-}
-#endif
 
 FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
@@ -1128,13 +1090,25 @@ void print_error_with_state(const DecoderSession *d, const char *message)
 
 #ifdef FLAC__HAS_OGG
 	if(d->is_ogg) {
-		const OggFLAC__StreamDecoderState osd_state = OggFLAC__stream_decoder_get_state(d->decoder.ogg.stream);
-		if(osd_state != OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR) {
-			fprintf(stderr, "%*s state = %d:%s\n", ilen, "", (int)osd_state, OggFLAC__StreamDecoderStateString[osd_state]);
+		const OggFLAC__FileDecoderState ofd_state = OggFLAC__file_decoder_get_state(d->decoder.ogg.file);
+		if(ofd_state != OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR) {
+			fprintf(stderr, "%*s state = %d:%s\n", ilen, "", (int)ofd_state, OggFLAC__FileDecoderStateString[ofd_state]);
 		}
 		else {
-			const FLAC__StreamDecoderState fsd_state = OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream);
-			fprintf(stderr, "%*s state = %d:%s\n", ilen, "", (int)fsd_state, FLAC__StreamDecoderStateString[fsd_state]);
+			const OggFLAC__SeekableStreamDecoderState ossd_state = OggFLAC__file_decoder_get_seekable_stream_decoder_state(d->decoder.ogg.file);
+			if(ossd_state != OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
+				fprintf(stderr, "%*s state = %d:%s\n", ilen, "", (int)ossd_state, OggFLAC__SeekableStreamDecoderStateString[ossd_state]);
+			}
+			else {
+				const OggFLAC__StreamDecoderState osd_state = OggFLAC__file_decoder_get_state(d->decoder.ogg.file);
+				if(osd_state != OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR) {
+					fprintf(stderr, "%*s state = %d:%s\n", ilen, "", (int)osd_state, OggFLAC__StreamDecoderStateString[osd_state]);
+				}
+				else {
+					const FLAC__StreamDecoderState fsd_state = OggFLAC__file_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.file);
+					fprintf(stderr, "%*s state = %d:%s\n", ilen, "", (int)fsd_state, FLAC__StreamDecoderStateString[fsd_state]);
+				}
+			}
 		}
 	}
 	else
