@@ -118,7 +118,7 @@ void FLAC_XMMS__file_info_box(char *filename)
 		GtkWidget *flac_frame, *flac_box;
 		GtkWidget *label, *filename_hbox;
 		GtkWidget *bbox, *save, *remove_id3, *cancel;
-		
+
 		window = gtk_window_new(GTK_WINDOW_DIALOG);
 		gtk_window_set_policy(GTK_WINDOW(window), FALSE, FALSE, FALSE);
 		gtk_signal_connect(GTK_OBJECT(window), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &window);
@@ -135,10 +135,10 @@ void FLAC_XMMS__file_info_box(char *filename)
 		filename_entry = gtk_entry_new();
 		gtk_editable_set_editable(GTK_EDITABLE(filename_entry), FALSE);
 		gtk_box_pack_start(GTK_BOX(filename_hbox), filename_entry, TRUE, TRUE, 0);
-		
+
 		hbox = gtk_hbox_new(FALSE, 10);
 		gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-		
+
 		left_vbox = gtk_vbox_new(FALSE, 10);
 		gtk_box_pack_start(GTK_BOX(hbox), left_vbox, FALSE, FALSE, 0);
 

@@ -33,7 +33,7 @@
 #include <xmms/util.h>
 #include <xmms/plugin.h>
 
-#include "mylocale.h"
+#include "plugin_common/locale_hack.h"
 #include "charset.h"
 #include "configure.h"
 
@@ -68,7 +68,7 @@ static void flac_configurewin_ok(GtkWidget * widget, gpointer data)
 
 	(void)widget, (void)data; /* unused arguments */
 	g_free(flac_cfg.tag_format);
-        flac_cfg.tag_format = g_strdup(gtk_entry_get_text(GTK_ENTRY(title_tag_entry)));	
+	flac_cfg.tag_format = g_strdup(gtk_entry_get_text(GTK_ENTRY(title_tag_entry)));
 	flac_cfg.file_char_set = Charset_Get_Name_From_Title(gtk_entry_get_text_1(fileCharacterSetEntry));
 	flac_cfg.user_char_set = Charset_Get_Name_From_Title(gtk_entry_get_text_1(userCharacterSetEntry));
 
@@ -150,7 +150,7 @@ void FLAC_XMMS__configure(void)
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(convert_char_set), flac_cfg.convert_char_set);
 	gtk_signal_connect(GTK_OBJECT(convert_char_set), "clicked", convert_char_set_cb, NULL);
 	gtk_box_pack_start(GTK_BOX(title_tag_vbox), convert_char_set, FALSE, FALSE, 0);
-	// Combo boxes...
+	/*  Combo boxes... */
 	hbox = gtk_hbox_new(FALSE,4);
 	gtk_container_add(GTK_CONTAINER(title_tag_vbox),hbox);
 	label = gtk_label_new(_("Convert character set from :"));
@@ -183,13 +183,13 @@ void FLAC_XMMS__configure(void)
 	gtk_signal_connect(GTK_OBJECT(title_tag_override), "clicked", title_tag_override_cb, NULL);
 	gtk_box_pack_start(GTK_BOX(title_tag_vbox), title_tag_override, FALSE, FALSE, 0);
 
-        title_tag_box = gtk_hbox_new(FALSE, 5);
+	title_tag_box = gtk_hbox_new(FALSE, 5);
 	gtk_widget_set_sensitive(title_tag_box, flac_cfg.tag_override);
 	gtk_box_pack_start(GTK_BOX(title_tag_vbox), title_tag_box, FALSE, FALSE, 0);
-	
+
 	title_tag_label = gtk_label_new(_("Title format:"));
 	gtk_box_pack_start(GTK_BOX(title_tag_box), title_tag_label, FALSE, FALSE, 0);
-	
+
 	title_tag_entry = gtk_entry_new();
 	gtk_entry_set_text(GTK_ENTRY(title_tag_entry), flac_cfg.tag_format);
 	gtk_box_pack_start(GTK_BOX(title_tag_box), title_tag_entry, TRUE, TRUE, 0);
@@ -248,15 +248,14 @@ void FLAC_XMMS__aboutbox()
  */
 static gchar *gtk_entry_get_text_1 (GtkWidget *widget)
 {
-    if (GTK_IS_COMBO(widget))
-    {
-        return gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(widget)->entry));
-    }else if (GTK_IS_ENTRY(widget))
-    {
-        return gtk_entry_get_text(GTK_ENTRY(widget));
-    }else
-    {
-        return NULL;
-    }
+	if (GTK_IS_COMBO(widget))
+	{
+		return gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(widget)->entry));
+	}else if (GTK_IS_ENTRY(widget))
+	{
+		return gtk_entry_get_text(GTK_ENTRY(widget));
+	}else
+	{
+		return NULL;
+	}
 }
-
