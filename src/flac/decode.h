@@ -46,6 +46,8 @@ typedef struct {
 #endif
 	utils__SkipUntilSpecification skip_specification;
 	utils__SkipUntilSpecification until_specification;
+	FLAC__bool has_cue_specification;
+	utils__CueSpecification cue_specification;
 } decode_options_t;
 
 /* used for AIFF also */

@@ -286,6 +286,25 @@
 
 	    <variablelist>
 	      <varlistentry>
+		<term><option>--cue=[<replaceable>#.#</replaceable>][-[<replaceable>#.#</replaceable>]]</option></term>
+		<listitem>
+		  <para>Set the beginning and ending cuepoints to decode.
+		    The optional first #.# is the track and index point at
+		    which decoding will start; the default is the beginning
+		    of the stream.  The optional second #.# is the track
+		    and index point at which decoding will end; the default
+		    is the end of the stream.  If the seekpoint does not
+		    exist, the closest one before it (for the start point)
+		    or after it (for the end point) will be used.  If those
+		    don't exist, the start of the stream (for the start
+		    point) or end of the stream (for the end point) will be
+		    used.  The cuepoints are merely translated into sample
+		    numbers then used as --skip and --until.</para>
+		</listitem>
+	      </varlistentry>
+
+	    <variablelist>
+	      <varlistentry>
 		<term><option>-F</option>, <option>--decode-through-errors</option>
 		</term>
 		<listitem>

@@ -157,10 +157,19 @@ dddie="die ERROR: creating files for --skip/--until tests"
 dd if=master.raw ibs=1 count=50 of=50c.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=10 count=40 of=50c.skip10.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=11 count=39 of=50c.skip11.raw 2>/dev/null || $dddie
-dd if=master.raw ibs=1 count=40 of=50c.until40.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 skip=20 count=30 of=50c.skip20.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 skip=30 count=20 of=50c.skip30.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 skip=40 count=10 of=50c.skip40.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 count=10 of=50c.until10.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 count=20 of=50c.until20.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 count=30 of=50c.until30.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 count=39 of=50c.until39.raw 2>/dev/null || $dddie
-dd if=master.raw ibs=1 skip=10 count=30 of=50c.skip10.until40.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 count=40 of=50c.until40.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 skip=10 count=20 of=50c.skip10.until30.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=10 count=29 of=50c.skip10.until39.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 skip=10 count=30 of=50c.skip10.until40.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 skip=20 count=10 of=50c.skip20.until30.raw 2>/dev/null || $dddie
+dd if=master.raw ibs=1 skip=20 count=20 of=50c.skip20.until40.raw 2>/dev/null || $dddie
 
 wav_eopt="--silent --force --verify --lax"
 wav_dopt="--silent --force --decode"
@@ -179,10 +188,19 @@ convert_to_wav ()
 convert_to_wav 50c
 convert_to_wav 50c.skip10
 convert_to_wav 50c.skip11
-convert_to_wav 50c.until40
+convert_to_wav 50c.skip20
+convert_to_wav 50c.skip30
+convert_to_wav 50c.skip40
+convert_to_wav 50c.until10
+convert_to_wav 50c.until20
+convert_to_wav 50c.until30
 convert_to_wav 50c.until39
-convert_to_wav 50c.skip10.until40
+convert_to_wav 50c.until40
+convert_to_wav 50c.skip10.until30
 convert_to_wav 50c.skip10.until39
+convert_to_wav 50c.skip10.until40
+convert_to_wav 50c.skip20.until30
+convert_to_wav 50c.skip20.until40
 
 convert_to_aiff ()
 {
@@ -192,10 +210,19 @@ convert_to_aiff ()
 convert_to_aiff 50c
 convert_to_aiff 50c.skip10
 convert_to_aiff 50c.skip11
-convert_to_aiff 50c.until40
+convert_to_aiff 50c.skip20
+convert_to_aiff 50c.skip30
+convert_to_aiff 50c.skip40
+convert_to_aiff 50c.until10
+convert_to_aiff 50c.until20
+convert_to_aiff 50c.until30
 convert_to_aiff 50c.until39
-convert_to_aiff 50c.skip10.until40
+convert_to_aiff 50c.until40
+convert_to_aiff 50c.skip10.until30
 convert_to_aiff 50c.skip10.until39
+convert_to_aiff 50c.skip10.until40
+convert_to_aiff 50c.skip20.until30
+convert_to_aiff 50c.skip20.until40
 
 test_skip_until ()
 {
@@ -480,6 +507,179 @@ if [ $has_ogg = "yes" ] ; then
 	test_skip_until raw ogg
 	test_skip_until wav ogg
 	test_skip_until aiff ogg
+fi
+
+############################################################################
+# test --cue
+############################################################################
+
+#
+# create the cue sheet
+#
+cuesheet=cuetest.cue
+cat > $cuesheet << EOF
+CATALOG 1234567890123
+FILE "blah" WAVE
+  TRACK 01 AUDIO
+    INDEX 01 0
+    INDEX 02 10
+    INDEX 03 20
+  TRACK 02 AUDIO
+    INDEX 01 30
+  TRACK 04 AUDIO
+    INDEX 01 40
+EOF
+
+test_cue ()
+{
+	in_fmt=$1
+	out_fmt=$2
+
+	[ "$in_fmt" = wav ] || [ "$in_fmt" = aiff ] || [ "$in_fmt" = raw ] || die "ERROR: internal error, bad 'in' format '$in_fmt'"
+
+	[ "$out_fmt" = flac ] || [ "$out_fmt" = ogg ] || die "ERROR: internal error, bad 'out' format '$out_fmt'"
+
+	if [ $in_fmt = raw ] ; then
+		eopt="$raw_eopt"
+		dopt="$raw_dopt"
+	else
+		eopt="$wav_eopt"
+		dopt="$wav_dopt"
+	fi
+
+	if [ $out_fmt = ogg ] ; then
+		eopt="--ogg $eopt"
+	fi
+
+	desc="($in_fmt<->$out_fmt)"
+
+	#
+	# for this we need just need just one FLAC file; --cue only works while decoding
+	#
+	run_flac $eopt --cuesheet=$cuesheet -o z50c.cue.$out_fmt 50c.$in_fmt || die "ERROR generating FLAC file $desc"
+
+	# To make it easy to translate from cue point to sample numbers, the
+	# file has a sample rate of 10 Hz and a cuesheet like so:
+	#
+	# TRACK 01, INDEX 01 : 0:00.00 -> sample 0
+	# TRACK 01, INDEX 02 : 0:01.00 -> sample 10
+	# TRACK 01, INDEX 03 : 0:02.00 -> sample 20
+	# TRACK 02, INDEX 01 : 0:03.00 -> sample 30
+	# TRACK 04, INDEX 01 : 0:04.00 -> sample 40
+	#
+	echo -n "testing --cue=- $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=- z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=- $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.0 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.0 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.0 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.0- $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.0- z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.0- $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.1 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.1 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.1 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.1- $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.1- z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.1- $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.2 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.2 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.skip10.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.2 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.2- $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.2- z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.skip10.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.2- $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.4 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.4 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.skip20.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.4 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.4- $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.4- z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.skip20.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.4- $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=-5.0 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=-5.0 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=-5.0 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=-4.1 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=-4.1 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.until40.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=-4.1 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=-3.1 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=-3.1 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.until40.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=-3.1 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=-1.4 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=-1.4 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.until30.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=-1.4 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.0-5.0 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.0-5.0 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.0-5.0 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.1-5.0 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.1-5.0 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.1-5.0 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.2-4.1 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.2-4.1 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.skip10.until40.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.2-4.1 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	echo -n "testing --cue=1.4-2.0 $desc... "
+	run_flac $dopt -o z50c.cue.$in_fmt --cue=1.4-2.0 z50c.cue.$out_fmt || die "ERROR decoding FLAC file $desc"
+	cmp 50c.skip20.until30.$in_fmt z50c.cue.$in_fmt || die "ERROR: file mismatch for --cue=1.4-2.0 $desc"
+	rm -f z50c.cue.$in_fmt
+	echo OK
+
+	rm -f z50c.cue.$out_fmt
+}
+
+test_cue raw flac
+test_cue wav flac
+test_cue aiff flac
+
+if [ $has_ogg = "yes" ] ; then
+	test_cue raw ogg
+	test_cue wav ogg
+	test_cue aiff ogg
 fi
 
 ############################################################################

@@ -420,7 +420,7 @@
 				<TT>--serial-number=#</TT>
 			</TD>
 			<TD>
-				When used with --ogg, specifies the serial number to use for the first Ogg FLAC stream, which is then incremented for each additional stream.  When encoding and no serial number is given, <TT><B>flac</B></TT> uses a random number for the first stream, then increments it for each additional stream.  When decoding and no number is given, <TT><B>flac</B></TT> uses the serial number of the first page.<P>
+				When used with --ogg, specifies the serial number to use for the first Ogg FLAC stream, which is then incremented for each additional stream.  When encoding and no serial number is given, <TT><B>flac</B></TT> uses a random number for the first stream, then increments it for each additional stream.  When decoding and no number is given, <TT><B>flac</B></TT> uses the serial number of the first page.
 			</TD>
 		</TR>
 	</TABLE>
@@ -459,6 +459,20 @@
 		<TR>
 			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
 				<A NAME="decoding_options"><FONT SIZE="+1"><B>Decoding Options</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--cue=[#.#][-[#.#]]</TT>
+			</TD>
+			<TD>
+				Set the beginning and ending cuepoints to decode.  The optional first <TT>#.#</TT> is the track and index point at which decoding will start; the default is the beginning of the stream.  The optional second <TT>#.#</TT> is the track and index point at which decoding will end; the default is the end of the stream.  If the seekpoint does not exist, the closest one before it (for the start point) or after it (for the end point) will be used.  If those don't exist, the start of the stream (for the start point) or end of the stream (for the end point) will be used.  The cuepoints are merely translated into sample numbers then used as --skip and --until.<P>
+				Examples:<P>
+				<TT>--cue=-</TT> : decode the entire stream<P>
+				<TT>--cue=4.1</TT> : decode from track 4, index 1 to the end of the stream<P>
+				<TT>--cue=4.1-</TT> : decode from track 4, index 1 to the end of the stream<P>
+				<TT>--cue=-4.1</TT> : decode from the beginning of the stream up to, but not including, track 4, index 1<P>
+				<TT>--cue=2.1-2.4</TT> : decode from track 2, index 1, up to, but not including, track 2, index 4<P>
 			</TD>
 		</TR>
 		<TR>

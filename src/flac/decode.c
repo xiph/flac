@@ -60,6 +60,7 @@ typedef struct {
 	analysis_options aopts;
 	utils__SkipUntilSpecification *skip_specification;
 	utils__SkipUntilSpecification *until_specification; /* a canonicalized value of 0 mean end-of-stream (i.e. --until=-0) */
+	utils__CueSpecification *cue_specification;
 
 	const char *inbasefilename;
 	const char *outfilename;
@@ -104,13 +105,14 @@ static FLAC__bool is_big_endian_host_;
 /*
  * local routines
  */
-static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, const char *infilename, const char *outfilename);
+static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
 static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, decode_options_t decode_options, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
 static int DecoderSession_finish_ok(DecoderSession *d);
 static int DecoderSession_finish_error(DecoderSession *d);
 static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
+static FLAC__bool write_necessary_headers(DecoderSession *decoder_session);
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val);
 static FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 val);
@@ -153,6 +155,7 @@ int flac__decode_aiff(const char *infilename, const char *outfilename, FLAC__boo
 			aopts,
 			&options.common.skip_specification,
 			&options.common.until_specification,
+			options.common.has_cue_specification? &options.common.cue_specification : 0,
 			infilename,
 			outfilename
 		)
@@ -189,6 +192,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 			aopts,
 			&options.common.skip_specification,
 			&options.common.until_specification,
+			options.common.has_cue_specification? &options.common.cue_specification : 0,
 			infilename,
 			outfilename
 		)
@@ -228,6 +232,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 			aopts,
 			&options.common.skip_specification,
 			&options.common.until_specification,
+			options.common.has_cue_specification? &options.common.cue_specification : 0,
 			infilename,
 			outfilename
 		)
@@ -243,7 +248,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	return DecoderSession_finish_ok(&decoder_session);
 }
 
-FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, const char *infilename, const char *outfilename)
+FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename)
 {
 #ifdef FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
@@ -264,6 +269,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->aopts = aopts;
 	d->skip_specification = skip_specification;
 	d->until_specification = until_specification;
+	d->cue_specification = cue_specification;
 
 	d->inbasefilename = grabbag__file_get_basename(infilename);
 	d->outfilename = outfilename;
@@ -331,6 +337,8 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 		OggFLAC__file_decoder_set_filename(decoder_session->decoder.ogg.file, infilename);
 		if(!decode_options.use_first_serial_number)
 			OggFLAC__file_decoder_set_serial_number(decoder_session->decoder.ogg.file, decode_options.serial_number);
+		if (0 != decoder_session->cue_specification)
+			OggFLAC__file_decoder_set_metadata_respond(decoder_session->decoder.ogg.file, FLAC__METADATA_TYPE_CUESHEET);
 		if (decoder_session->replaygain.spec.apply)
 			OggFLAC__file_decoder_set_metadata_respond(decoder_session->decoder.ogg.file, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
@@ -363,6 +371,8 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 
 		FLAC__file_decoder_set_md5_checking(decoder_session->decoder.flac.file, true);
 		FLAC__file_decoder_set_filename(decoder_session->decoder.flac.file, infilename);
+		if (0 != decoder_session->cue_specification)
+			FLAC__file_decoder_set_metadata_respond(decoder_session->decoder.flac.file, FLAC__METADATA_TYPE_CUESHEET);
 		if (decoder_session->replaygain.spec.apply)
 			FLAC__file_decoder_set_metadata_respond(decoder_session->decoder.flac.file, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 		/*
@@ -414,6 +424,12 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 	}
 	if(d->abort_flag)
 		return false;
+
+	/* write the WAVE/AIFF headers if necessary */
+	if(!write_necessary_headers(d)) {
+		d->abort_flag = true;
+		return false;
+	}
 
 	if(d->skip_specification->value.samples > 0) {
 		const FLAC__uint64 skip = (FLAC__uint64)d->skip_specification->value.samples;
@@ -594,6 +610,122 @@ FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec,
 	if((FLAC__uint64)spec->value.samples > total_samples_in_input) {
 		fprintf(stderr, "%s: ERROR, --until value is after end of input\n", inbasefilename);
 		return false;
+	}
+
+	return true;
+}
+
+FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
+{
+	/* write the WAVE/AIFF headers if necessary */
+	if(!decoder_session->analysis_mode && !decoder_session->test_only && (decoder_session->is_wave_out || decoder_session->is_aiff_out)) {
+		const char *fmt_desc = decoder_session->is_wave_out? "WAVE" : "AIFF";
+		FLAC__uint64 data_size = decoder_session->total_samples * decoder_session->channels * ((decoder_session->bps+7)/8);
+		if(decoder_session->total_samples == 0) {
+			if(decoder_session->fout == stdout) {
+				fprintf(stderr, "%s: WARNING, don't have accurate sample count available for %s header.\n", decoder_session->inbasefilename, fmt_desc);
+				fprintf(stderr, "             Generated %s file will have a data chunk size of 0.  Try\n", fmt_desc);
+				fprintf(stderr, "             decoding directly to a file instead.\n");
+			}
+			else {
+				decoder_session->wave_chunk_size_fixup.needs_fixup = true;
+			}
+		}
+		if(data_size >= 0xFFFFFFDC) {
+			fprintf(stderr, "%s: ERROR: stream is too big to fit in a single %s file chunk\n", decoder_session->inbasefilename, fmt_desc);
+			return false;
+		}
+		if(decoder_session->is_wave_out) {
+			if(flac__utils_fwrite("RIFF", 1, 4, decoder_session->fout) != 4)
+				return false;
+
+			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
+				decoder_session->wave_chunk_size_fixup.riff_offset = ftell(decoder_session->fout);
+
+			if(!write_little_endian_uint32(decoder_session->fout, (FLAC__uint32)(data_size+36))) /* filesize-8 */
+				return false;
+
+			if(flac__utils_fwrite("WAVEfmt ", 1, 8, decoder_session->fout) != 8)
+				return false;
+
+			if(flac__utils_fwrite("\020\000\000\000", 1, 4, decoder_session->fout) != 4) /* chunk size = 16 */
+				return false;
+
+			if(flac__utils_fwrite("\001\000", 1, 2, decoder_session->fout) != 2) /* compression code == 1 */
+				return false;
+
+			if(!write_little_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->channels)))
+				return false;
+
+			if(!write_little_endian_uint32(decoder_session->fout, decoder_session->sample_rate))
+				return false;
+
+			if(!write_little_endian_uint32(decoder_session->fout, decoder_session->sample_rate * decoder_session->channels * ((decoder_session->bps+7) / 8))) /* @@@ or is it (sample_rate*channels*bps) / 8 ??? */
+				return false;
+
+			if(!write_little_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->channels * ((decoder_session->bps+7) / 8)))) /* block align */
+				return false;
+
+			if(!write_little_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->bps))) /* bits per sample */
+				return false;
+
+			if(flac__utils_fwrite("data", 1, 4, decoder_session->fout) != 4)
+				return false;
+
+			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
+				decoder_session->wave_chunk_size_fixup.data_offset = ftell(decoder_session->fout);
+
+			if(!write_little_endian_uint32(decoder_session->fout, (FLAC__uint32)data_size)) /* data size */
+				return false;
+		}
+		else {
+			const FLAC__uint32 aligned_data_size = (FLAC__uint32)((data_size+1) & (~1U));
+
+			if(flac__utils_fwrite("FORM", 1, 4, decoder_session->fout) != 4)
+				return false;
+
+			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
+				decoder_session->wave_chunk_size_fixup.riff_offset = ftell(decoder_session->fout);
+
+			if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)(aligned_data_size+46))) /* filesize-8 */
+				return false;
+
+			if(flac__utils_fwrite("AIFFCOMM", 1, 8, decoder_session->fout) != 8)
+				return false;
+
+			if(flac__utils_fwrite("\000\000\000\022", 1, 4, decoder_session->fout) != 4) /* chunk size = 18 */
+				return false;
+
+			if(!write_big_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->channels)))
+				return false;
+
+			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
+				decoder_session->wave_chunk_size_fixup.frames_offset = ftell(decoder_session->fout);
+
+			if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)decoder_session->total_samples))
+				return false;
+
+			if(!write_big_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->bps)))
+				return false;
+
+			if(!write_sane_extended(decoder_session->fout, decoder_session->sample_rate))
+				return false;
+
+			if(flac__utils_fwrite("SSND", 1, 4, decoder_session->fout) != 4)
+				return false;
+
+			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
+				decoder_session->wave_chunk_size_fixup.data_offset = ftell(decoder_session->fout);
+
+			if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)data_size+8)) /* data size */
+				return false;
+
+			if(!write_big_endian_uint32(decoder_session->fout, 0/*offset*/))
+				return false;
+
+			if(!write_big_endian_uint32(decoder_session->fout, 0/*block_size*/))
+				return false;
+		}
 	}
 
 	return true;
@@ -923,6 +1055,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 			decoder_session->abort_flag = true;
 			return;
 		}
+		FLAC__ASSERT(skip == 0 || 0 == decoder_session->cue_specification);
 		decoder_session->total_samples = metadata->data.stream_info.total_samples - skip;
 
 		/* note that we use metadata->data.stream_info.total_samples instead of decoder_session->total_samples */
@@ -933,126 +1066,40 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 		FLAC__ASSERT(decoder_session->until_specification->value.samples >= 0);
 		until = (FLAC__uint64)decoder_session->until_specification->value.samples;
 
-		if(until > 0)
+		if(until > 0) {
+			FLAC__ASSERT(decoder_session->total_samples != 0);
+			FLAC__ASSERT(0 == decoder_session->cue_specification);
 			decoder_session->total_samples -= (metadata->data.stream_info.total_samples - until);
+		}
 
 		if(decoder_session->bps != 8 && decoder_session->bps != 16 && decoder_session->bps != 24) {
 			fprintf(stderr, "%s: ERROR: bits per sample is not 8/16/24\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
-
-		/* write the WAVE/AIFF headers if necessary */
-		if(!decoder_session->analysis_mode && !decoder_session->test_only && (decoder_session->is_wave_out || decoder_session->is_aiff_out)) {
-			const char *fmt_desc = decoder_session->is_wave_out? "WAVE" : "AIFF";
-			FLAC__uint64 data_size = decoder_session->total_samples * decoder_session->channels * ((decoder_session->bps+7)/8);
-			if(decoder_session->total_samples == 0) {
-				if(decoder_session->fout == stdout) {
-					fprintf(stderr, "%s: WARNING, don't have accurate sample count available for %s header.\n", decoder_session->inbasefilename, fmt_desc);
-					fprintf(stderr, "             Generated %s file will have a data chunk size of 0.  Try\n", fmt_desc);
-					fprintf(stderr, "             decoding directly to a file instead.\n");
-				}
-				else {
-					decoder_session->wave_chunk_size_fixup.needs_fixup = true;
-				}
-			}
-			if(data_size >= 0xFFFFFFDC) {
-				fprintf(stderr, "%s: ERROR: stream is too big to fit in a single %s file chunk\n", decoder_session->inbasefilename, fmt_desc);
-				decoder_session->abort_flag = true;
-				return;
-			}
-			if(decoder_session->is_wave_out) {
-				if(flac__utils_fwrite("RIFF", 1, 4, decoder_session->fout) != 4)
-					decoder_session->abort_flag = true;
-
-				if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-					decoder_session->wave_chunk_size_fixup.riff_offset = ftell(decoder_session->fout);
-
-				if(!write_little_endian_uint32(decoder_session->fout, (FLAC__uint32)(data_size+36))) /* filesize-8 */
-					decoder_session->abort_flag = true;
-
-				if(flac__utils_fwrite("WAVEfmt ", 1, 8, decoder_session->fout) != 8)
-					decoder_session->abort_flag = true;
-
-				if(flac__utils_fwrite("\020\000\000\000", 1, 4, decoder_session->fout) != 4) /* chunk size = 16 */
-					decoder_session->abort_flag = true;
-
-				if(flac__utils_fwrite("\001\000", 1, 2, decoder_session->fout) != 2) /* compression code == 1 */
-					decoder_session->abort_flag = true;
-
-				if(!write_little_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->channels)))
-					decoder_session->abort_flag = true;
-
-				if(!write_little_endian_uint32(decoder_session->fout, decoder_session->sample_rate))
-					decoder_session->abort_flag = true;
-
-				if(!write_little_endian_uint32(decoder_session->fout, decoder_session->sample_rate * decoder_session->channels * ((decoder_session->bps+7) / 8))) /* @@@ or is it (sample_rate*channels*bps) / 8 ??? */
-					decoder_session->abort_flag = true;
-
-				if(!write_little_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->channels * ((decoder_session->bps+7) / 8)))) /* block align */
-					decoder_session->abort_flag = true;
-
-				if(!write_little_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->bps))) /* bits per sample */
-					decoder_session->abort_flag = true;
-
-				if(flac__utils_fwrite("data", 1, 4, decoder_session->fout) != 4)
-					decoder_session->abort_flag = true;
-
-				if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-					decoder_session->wave_chunk_size_fixup.data_offset = ftell(decoder_session->fout);
-
-				if(!write_little_endian_uint32(decoder_session->fout, (FLAC__uint32)data_size)) /* data size */
-					decoder_session->abort_flag = true;
-			}
-			else {
-				const FLAC__uint32 aligned_data_size = (FLAC__uint32)((data_size+1) & (~1U));
-
-				if(flac__utils_fwrite("FORM", 1, 4, decoder_session->fout) != 4)
-					decoder_session->abort_flag = true;
-
-				if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-					decoder_session->wave_chunk_size_fixup.riff_offset = ftell(decoder_session->fout);
-
-				if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)(aligned_data_size+46))) /* filesize-8 */
-					decoder_session->abort_flag = true;
-
-				if(flac__utils_fwrite("AIFFCOMM", 1, 8, decoder_session->fout) != 8)
-					decoder_session->abort_flag = true;
-
-				if(flac__utils_fwrite("\000\000\000\022", 1, 4, decoder_session->fout) != 4) /* chunk size = 18 */
-					decoder_session->abort_flag = true;
-
-				if(!write_big_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->channels)))
-					decoder_session->abort_flag = true;
-
-				if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-					decoder_session->wave_chunk_size_fixup.frames_offset = ftell(decoder_session->fout);
-
-				if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)decoder_session->total_samples))
-					decoder_session->abort_flag = true;
-
-				if(!write_big_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->bps)))
-					decoder_session->abort_flag = true;
-
-				if(!write_sane_extended(decoder_session->fout, decoder_session->sample_rate))
-					decoder_session->abort_flag = true;
-
-				if(flac__utils_fwrite("SSND", 1, 4, decoder_session->fout) != 4)
-					decoder_session->abort_flag = true;
-
-				if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-					decoder_session->wave_chunk_size_fixup.data_offset = ftell(decoder_session->fout);
-
-				if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)data_size+8)) /* data size */
-					decoder_session->abort_flag = true;
-
-				if(!write_big_endian_uint32(decoder_session->fout, 0/*offset*/))
-					decoder_session->abort_flag = true;
-
-				if(!write_big_endian_uint32(decoder_session->fout, 0/*block_size*/))
-					decoder_session->abort_flag = true;
-			}
+	}
+	else if(metadata->type == FLAC__METADATA_TYPE_CUESHEET) {
+		/* remember, at this point, decoder_session->total_samples can be 0, meaning 'unknown' */
+		if(decoder_session->total_samples == 0) {
+			fprintf(stderr, "%s: ERROR can't use --cue when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
+			decoder_session->abort_flag = true;
+			return;
 		}
+
+		flac__utils_canonicalize_cue_specification(decoder_session->cue_specification, &metadata->data.cue_sheet, decoder_session->total_samples, decoder_session->skip_specification, decoder_session->until_specification);
+
+		FLAC__ASSERT(!decoder_session->skip_specification->is_relative);
+		FLAC__ASSERT(decoder_session->skip_specification->value_is_samples);
+
+		FLAC__ASSERT(!decoder_session->until_specification->is_relative);
+		FLAC__ASSERT(decoder_session->until_specification->value_is_samples);
+
+		FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
+		FLAC__ASSERT(decoder_session->until_specification->value.samples >= 0);
+		FLAC__ASSERT((FLAC__uint64)decoder_session->until_specification->value.samples <= decoder_session->total_samples);
+		FLAC__ASSERT(decoder_session->skip_specification->value.samples <= decoder_session->until_specification->value.samples);
+
+		decoder_session->total_samples = decoder_session->until_specification->value.samples - decoder_session->skip_specification->value.samples;
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 		if (decoder_session->replaygain.spec.apply) {

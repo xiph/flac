@@ -105,6 +105,7 @@ static struct share__option long_options_[] = {
 	 * decoding options
 	 */
 	{ "decode-through-errors", share__no_argument, 0, 'F' },
+	{ "cue"                  , share__required_argument, 0, 0 },
 	{ "apply-replaygain-which-is-not-lossless", share__optional_argument, 0, 0 }, /* undocumented */
 
 	/*
@@ -230,6 +231,7 @@ static struct {
 	unsigned qlp_coeff_precision;
 	const char *skip_specification;
 	const char *until_specification;
+	const char *cue_specification;
 	int format_is_big_endian;
 	int format_is_unsigned_samples;
 	int format_channels;
@@ -331,6 +333,8 @@ int do_it()
 			if(option_values.rice_parameter_search_dist < 0) {
 				option_values.rice_parameter_search_dist = 0;
 			}
+			if(0 != option_values.cue_specification)
+				return usage_error("ERROR: --cue is not allowed in test mode\n");
 		}
 		else {
 			if(option_values.test_only) {
@@ -338,8 +342,13 @@ int do_it()
 					return usage_error("ERROR: --skip is not allowed in test mode\n");
 				if(0 != option_values.until_specification)
 					return usage_error("ERROR: --until is not allowed in test mode\n");
+				if(0 != option_values.cue_specification)
+					return usage_error("ERROR: --cue is not allowed in test mode\n");
 			}
 		}
+
+		if(0 != option_values.cue_specification && (0 != option_values.skip_specification || 0 != option_values.until_specification))
+			return usage_error("ERROR: --cue may not be combined with --skip or --until\n");
 
 		FLAC__ASSERT(option_values.blocksize >= 0 || option_values.mode_decode);
 
@@ -385,6 +394,8 @@ int do_it()
 				return usage_error("ERROR: --sector-align not allowed with --skip\n");
 			if(0 != option_values.until_specification)
 				return usage_error("ERROR: --sector-align not allowed with --until\n");
+			if(0 != option_values.cue_specification)
+				return usage_error("ERROR: --sector-align not allowed with --cue\n");
 			if(option_values.format_channels >= 0 && option_values.format_channels != 2)
 				return usage_error("ERROR: --sector-align can only be done with stereo input\n");
 			if(option_values.format_bps >= 0 && option_values.format_bps != 16)
@@ -558,6 +569,7 @@ FLAC__bool init_options()
 	option_values.qlp_coeff_precision = 0;
 	option_values.skip_specification = 0;
 	option_values.until_specification = 0;
+	option_values.cue_specification = 0;
 	option_values.format_is_big_endian = -1;
 	option_values.format_is_unsigned_samples = -1;
 	option_values.format_channels = -1;
@@ -646,6 +658,10 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "until")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.until_specification = option_argument;
+		}
+		else if(0 == strcmp(long_option, "cue")) {
+			FLAC__ASSERT(0 != option_argument);
+			option_values.cue_specification = option_argument;
 		}
 		else if(0 == strcmp(long_option, "apply-replaygain-which-is-not-lossless")) {
 			option_values.replaygain_synthesis_spec.apply = true;
@@ -1148,6 +1164,7 @@ void show_help()
 	printf("      --residual-gnuplot       Generate gnuplot files of residual distribution\n");
 	printf("decoding options:\n");
 	printf("  -F, --decode-through-errors  Continue decoding through stream errors\n");
+	printf("      --cue=[#.#][-[#.#]]      Set the beginning and ending cuepoints to decode\n");
 	printf("encoding options:\n");
 	printf("  -V, --verify                 Verify a correct encoding\n");
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
@@ -1293,6 +1310,17 @@ void show_explain()
 	printf("                               decoding to completion.  Note that errors may\n");
 	printf("                               cause the decoded audio to be missing some\n");
 	printf("                               samples or have silent sections.\n");
+	printf("      --cue=[#.#][-[#.#]]      Set the beginning and ending cuepoints to\n");
+	printf("                               decode.  The optional first #.# is the track and\n");
+	printf("                               index point at which decoding will start; the\n");
+	printf("                               default is the beginning of the stream.  The\n");
+	printf("                               optional second #.# is the track and index point\n");
+	printf("                               at which decoding will end; the default is the\n");
+	printf("                               end of the stream.  If the seekpoint does not\n");
+	printf("                               exist, the closest one before it (for the start\n");
+	printf("                               point) or after it (for the end point) will be\n");
+	printf("                               used.  The cuepoints are merely translated into\n");
+	printf("                               sample numbers then used as --skip and --until.\n");
 	printf("encoding options:\n");
 	printf("  -V, --verify                 Verify a correct encoding by decoding the\n");
 	printf("                               output in parallel and comparing to the\n");
@@ -1637,6 +1665,14 @@ int decode_file(const char *infilename)
 	/* if there is no "--until" we want to default to "--until=-0" */
 	if(0 == option_values.until_specification)
 		common_options.until_specification.is_relative = true;
+
+	if(option_values.cue_specification) {
+		if(!flac__utils_parse_cue_specification(option_values.cue_specification, &common_options.cue_specification))
+			return usage_error("ERROR: invalid value for --cue\n");
+		common_options.has_cue_specification = true;
+	}
+	else
+		common_options.has_cue_specification = false;
 
 	common_options.verbose = option_values.verbose;
 	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;

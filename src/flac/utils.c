@@ -78,6 +78,61 @@ static FLAC__bool local__parse_timecode_(const char *s, double *value)
 	return true;
 }
 
+static FLAC__bool local__parse_cue_(const char *s, const char *end, unsigned *track, unsigned *index)
+{
+	FLAC__bool got_track = false, got_index = false;
+	unsigned t = 0, i = 0;
+	char c;
+
+	while(end? s < end : *s != '\0') {
+		c = *s++;
+		if(c >= '0' && c <= '9') {
+			t = t * 10 + (c - '0');
+			got_track = true;
+		}
+		else if(c == '.')
+			break;
+		else
+			return false;
+	}
+	while(end? s < end : *s != '\0') {
+		c = *s++;
+		if(c >= '0' && c <= '9') {
+			i = i * 10 + (c - '0');
+			got_index = true;
+		}
+		else
+			return false;
+	}
+	*track = t;
+	*index = i;
+	return got_track && got_index;
+}
+
+/*
+ * @@@ this only works with sorted cuesheets (the spec strongly recommends but
+ * does not require sorted cuesheets).  but if it's not sorted, picking a
+ * nearest cue point has no significance.
+ */
+static FLAC__uint64 local__find_closest_cue_(const FLAC__StreamMetadata_CueSheet *cuesheet, unsigned track, unsigned index, FLAC__uint64 total_samples, FLAC__bool look_forward)
+{
+	int t, i;
+	if(look_forward) {
+		for(t = 0; t < (int)cuesheet->num_tracks; t++)
+			for(i = 0; i < (int)cuesheet->tracks[t].num_indices; i++)
+				if(cuesheet->tracks[t].number > track || (cuesheet->tracks[t].number == track && cuesheet->tracks[t].indices[i].number >= index))
+					return cuesheet->tracks[t].offset + cuesheet->tracks[t].indices[i].offset;
+		return total_samples;
+	}
+	else {
+		for(t = (int)cuesheet->num_tracks - 1; t >= 0; t--)
+			for(i = (int)cuesheet->tracks[t].num_indices - 1; i >= 0; i--)
+				if(cuesheet->tracks[t].number < track || (cuesheet->tracks[t].number == track && cuesheet->tracks[t].indices[i].number <= index))
+					return cuesheet->tracks[t].offset + cuesheet->tracks[t].indices[i].offset;
+		return 0;
+	}
+}
+
 #ifdef FLAC__VALGRIND_TESTING
 size_t flac__utils_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
@@ -137,4 +192,62 @@ void flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecifica
 		spec->value.samples = (FLAC__int64)(spec->value.seconds * (double)sample_rate);
 		spec->value_is_samples = true;
 	}
+}
+
+FLAC__bool flac__utils_parse_cue_specification(const char *s, utils__CueSpecification *spec)
+{
+	const char *start = s, *end = 0;
+
+	FLAC__ASSERT(0 != spec);
+
+	spec->has_start_point = spec->has_end_point = false;
+
+	s = strchr(s, '-');
+
+	if(0 != s) {
+		if(s == start)
+			start = 0;
+		end = s+1;
+		if(*end == '\0')
+			end = 0;
+	}
+
+	if(start) {
+		if(!local__parse_cue_(start, s, &spec->start_track, &spec->start_index))
+			return false;
+		spec->has_start_point = true;
+	}
+
+	if(end) {
+		if(!local__parse_cue_(end, 0, &spec->end_track, &spec->end_index))
+			return false;
+		spec->has_end_point = true;
+	}
+
+	return true;
+}
+
+void flac__utils_canonicalize_cue_specification(const utils__CueSpecification *cue_spec, const FLAC__StreamMetadata_CueSheet *cuesheet, FLAC__uint64 total_samples, utils__SkipUntilSpecification *skip_spec, utils__SkipUntilSpecification *until_spec)
+{
+	FLAC__ASSERT(0 != cue_spec);
+	FLAC__ASSERT(0 != cuesheet);
+	FLAC__ASSERT(0 != total_samples);
+	FLAC__ASSERT(0 != skip_spec);
+	FLAC__ASSERT(0 != until_spec);
+
+	skip_spec->is_relative = false;
+	skip_spec->value_is_samples = true;
+
+	until_spec->is_relative = false;
+	until_spec->value_is_samples = true;
+
+	if(cue_spec->has_start_point)
+		skip_spec->value.samples = local__find_closest_cue_(cuesheet, cue_spec->start_track, cue_spec->start_index, total_samples, /*look_forward=*/false);
+	else
+		skip_spec->value.samples = 0;
+
+	if(cue_spec->has_end_point)
+		until_spec->value.samples = local__find_closest_cue_(cuesheet, cue_spec->end_track, cue_spec->end_index, total_samples, /*look_forward=*/true);
+	else
+		until_spec->value.samples = total_samples;
 }
