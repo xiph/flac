@@ -39,6 +39,10 @@ esac
 AM_CONDITIONAL(FLaC__CPU_IA32, test x$cpu_ia32 = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test x$cpu_ppc = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test x$cpu_sparc = xtrue)
+case "$host" in
+	*) OBJ_FORMAT=elf ;;
+esac
+AC_SUBST(OBJ_FORMAT)
 
 if test x$cpu_ia32 = xtrue ; then
 AC_DEFINE(FLAC__ALIGN_MALLOC_DATA)
@@ -51,12 +55,12 @@ AC_DEFINE(FLAC__NO_ASM)
 fi
 
 AC_ARG_ENABLE(debug,
-	[  --enable-debug                 Turn on debugging],
-	[case "${enableval}" in
-		yes) debug=true ;;
-		no)  debug=false ;;
-		*) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
-	esac],[debug=false])
+[  --enable-debug                 Turn on debugging],
+[case "${enableval}" in
+	yes) debug=true ;;
+	no)  debug=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+esac],[debug=false])
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 AM_PATH_XMMS(0.9.5.1, , AC_MSG_WARN([*** XMMS >= 0.9.5.1 not installed - xmms support will not be built]))
@@ -70,24 +74,24 @@ fi
 
 CFLAGS='-I./include -I $(top_srcdir)/include -Wall -W'
 if test x$debug = xtrue; then
-	CFLAGS="$CFLAGS -g -O0 -DDEBUG"
+CFLAGS="$CFLAGS -g -O0 -DDEBUG"
 else
-	CFLAGS="$CFLAGS -O3 -DNDEBUG"
-		if test x$GCC = xyes; then
-			CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-loops -ffast-math -finline-functions"
-		fi
+CFLAGS="$CFLAGS -O3 -DNDEBUG"
+	if test x$GCC = xyes; then
+		CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-loops -ffast-math -finline-functions"
+	fi
 fi
 
 AC_OUTPUT(	Makefile	\
-		src/Makefile	\
-		src/libFLAC/Makefile	\
-		src/libFLAC/ia32/Makefile	\
-		src/flac/Makefile	\
-		src/metaflac/Makefile	\
-		src/plugin_xmms/Makefile	\
-		src/test_streams/Makefile	\
-		src/test_unit/Makefile	\
-		include/Makefile \
-		include/FLAC/Makefile \
-		test/Makefile	\
-		)
+	src/Makefile	\
+	src/libFLAC/Makefile	\
+	src/libFLAC/ia32/Makefile	\
+	src/flac/Makefile	\
+	src/metaflac/Makefile	\
+	src/plugin_xmms/Makefile	\
+	src/test_streams/Makefile	\
+	src/test_unit/Makefile	\
+	include/Makefile \
+	include/FLAC/Makefile \
+	test/Makefile	\
+)
