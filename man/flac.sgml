@@ -284,6 +284,28 @@
 	      </varlistentry>
 
 	      <varlistentry>
+		<term><option>--replay-gain</option></term>
+
+		<listitem>
+		  <para>Calculate ReplayGain values and store in
+		    Vorbis comments, similar to vorbisgain.  Title
+		    gains/peaks will be computed for each input
+		    file, and an album gain/peak will be computed
+		    for all files.  All input files must have the
+		    same resolution, sample rate, and number of
+		    channels.  Only mono and stereo files are
+		    allowed, and the sample rate must be one of
+		    8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48
+		    kHz.  Also note that this option may leave a
+		    few extra bytes in a PADDING block as the exact
+		    size of the tags is not known until all files
+		    are processed.  Note that this option cannot be
+		    used when encoding to standard output (stdout).
+		    </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term><option>--sector-align</option></term>
 
 		<listitem>

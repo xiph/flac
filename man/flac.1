@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "19 September 2002" "" ""
+.TH "FLAC" "1" "30 October 2002" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -126,6 +126,22 @@ original
 Allow encoder to generate non-Subset
 files.
 .TP
+\fB--replay-gain\fR
+Calculate ReplayGain values and store in
+Vorbis comments, similar to vorbisgain.  Title
+gains/peaks will be computed for each input
+file, and an album gain/peak will be computed
+for all files.  All input files must have the
+same resolution, sample rate, and number of
+channels.  Only mono and stereo files are
+allowed, and the sample rate must be one of
+8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48
+kHz.  Also note that this option may leave a
+few extra bytes in a PADDING block as the exact
+size of the tags is not known until all files
+are processed.  Note that this option cannot be
+used when encoding to standard output (stdout).
+.TP
 \fB--sector-align\fR
 Align encoding of multiple CD format WAVE
 files on sector boundaries.  See the HTML
@@ -139,8 +155,8 @@ table.  Using #x, # evenly spaced seek points will
 be added, the first being at sample 0.  You may use
 many -S options; the resulting SEEKTABLE will be the
 unique-ified union of all such values.  With no -S
-options, flac defaults to '-S 100x'.  Use -S- for
-no SEEKTABLE.  Note: '-S #x' will not work if the
+options, flac defaults to '-S 100x'.  Use --no-seektable
+for no SEEKTABLE.  Note: '-S #x' will not work if the
 encoder can't determine the input size before
 starting.  Note: if you use '-S #' and # is >=
 samples in the input, there will be either no seek
@@ -159,7 +175,8 @@ over the PADDING block.  Note that the total length
 of the PADDING block will be 4 bytes longer than
 the length given because of the 4 metadata block
 header bytes.  You can force no PADDING block at
-all to be written with -P-, which is the default.
+all to be written with --no-padding, which is the
+default.
 .TP
 \fB-T \fIFIELD=VALUE\fB, --tag=\fIFIELD=VALUE\fB\fR
 Add a Vorbis comment.  The comment must adhere
@@ -229,13 +246,6 @@ synonymous with -8.
 \fB-e, --exhaustive-model-search\fR
 Do exhaustive model search
 (expensive!)
-.TP
-\fB-E, --escape-coding\fR
-Do escape coding in the entropy coder.  This
-causes the encoder to use an unencoded representation
-of the residual in a partition if it is smaller.  It
-increases the runtime and usually results in an
-improvement of less than 1%.
 .TP
 \fB-l \fI#\fB, --max-lpc-order=\fI#\fB\fR
 Set the maximum LPC order; 0 means use only the fixed predictors

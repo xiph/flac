@@ -464,6 +464,15 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--replay-gain</TT>
+			</TD>
+			<TD>
+				Calculate <A HREF="http://www.replaygain.org/">ReplayGain</A> values and store in Vorbis comments, similar to <A HREF="http://packages.qa.debian.org/v/vorbisgain.html">VorbisGain</A>.  Title gains/peaks will be computed for each input file, and an album gain/peak will be computed for all files.  All input files must have the same resolution, sample rate, and number of channels.  Only mono and stereo files are allowed, and the sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.  Also note that this option may leave a few extra bytes in a PADDING block as the exact size of the tags is not known until all files are processed.<P>
+				Note that this option cannot be used when encoding to standard output (stdout).
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 				<TT>--sector-align</TT>
 			</TD>
 			<TD>
