@@ -105,6 +105,7 @@ AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
 SHARE_LIBS='$(top_builddir)/src/share/libutf8.a $(top_builddir)/src/share/libgetopt.a'
 
 dnl check for i18n(internationalization); these are from libiconv/gettext
+AM_GNU_GETTEXT
 AM_ICONV
 AM_LANGINFO_CODESET
 
@@ -130,14 +131,14 @@ AC_MSG_CHECKING(for id3lib version)
       AC_TRY_RUN([
 #include <id3.h>
 #include <stdio.h>
-int 
+int
 main ()
 {
-    FILE *output;
-    output=fopen("conftest.id3","w");
-    fprintf(output,"ID3LIB_MAJOR=%d\nID3LIB_MINOR=%d\nID3LIB_PATCH=%d\n",ID3LIB_MAJOR_VERSION,ID3LIB_MINOR_VERSION,ID3LIB_PATCH_VERSION);
-    fclose(output);
-    exit(0);
+	FILE *output;
+	output=fopen("conftest.id3","w");
+	fprintf(output,"ID3LIB_MAJOR=%d\nID3LIB_MINOR=%d\nID3LIB_PATCH=%d\n",ID3LIB_MAJOR_VERSION,ID3LIB_MINOR_VERSION,ID3LIB_PATCH_VERSION);
+	fclose(output);
+	exit(0);
 }
 ], . conftest.id3; echo "${ID3LIB_MAJOR}.${ID3LIB_MINOR}.${ID3LIB_PATCH}", AC_MSG_WARN(could not determine id3lib version),[echo $ac_n "cross compiling; assuming ${ID3LIB_MAJOR}.${ID3LIB_MINOR}.${ID3LIB_PATCH} $ac_c"])
 AC_DEFINE_UNQUOTED(ID3LIB_MAJOR, $ID3LIB_MAJOR)
