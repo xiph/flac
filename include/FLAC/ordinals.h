@@ -32,22 +32,8 @@
 #ifndef FLAC__ORDINALS_H
 #define FLAC__ORDINALS_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifdef HAVE_INTTYPES_H
+#ifndef _MSC_VER
 #include <inttypes.h>
-#elif defined(HAVE_U_INT)
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#define uint8_t u_int8_t
-#define uint16_t u_int16_t
-#define uint32_t u_int32_t
-#define uint64_t u_int64_t
-#elif !defined(_MSC_VER)
-#error Unable to find fixed-size data types
 #endif
 
 typedef signed char FLAC__int8;
