@@ -33,7 +33,8 @@
 #include "encode.h"
 #include "file.h"
 
-static int usage(const char *message, ...);
+static int short_usage(const char *message, ...);
+static int long_usage(const char *message, ...);
 static int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file);
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
@@ -63,13 +64,15 @@ int main(int argc, char *argv[])
 	FLAC__bool mode_decode = false;
 
 	if(argc <= 1)
-		return usage(0);
+		return short_usage(0);
 
 	/* get the options */
 	for(i = 1; i < argc; i++) {
 		if(argv[i][0] != '-' || argv[i][1] == 0)
 			break;
-		if(0 == strcmp(argv[i], "-d"))
+		if(0 == strcmp(argv[i], "-H"))
+			return long_usage(0);
+		else if(0 == strcmp(argv[i], "-d"))
 			mode_decode = true;
 		else if(0 == strcmp(argv[i], "-a")) {
 			mode_decode = true;
@@ -285,7 +288,7 @@ int main(int argc, char *argv[])
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 12;
 		}
-		else if(0 == strcmp(argv[i], "-9")) {
+		else if(0 == strcmp(argv[i], "--super-secret-impractical-compression-level")) {
 			do_exhaustive_model_search = true;
 			do_escape_coding = true;
 			do_mid_side = true;
@@ -297,10 +300,10 @@ int main(int argc, char *argv[])
 			max_lpc_order = 32;
 		}
 		else if(isdigit((int)(argv[i][1]))) {
-			return usage("ERROR: compression level '%s' is still reserved\n", argv[i]);
+			return long_usage("ERROR: compression level '%s' is reserved\n", argv[i]);
 		}
 		else {
-			return usage("ERROR: invalid option '%s'\n", argv[i]);
+			return long_usage("ERROR: invalid option '%s'\n", argv[i]);
 		}
 	}
 
@@ -330,7 +333,7 @@ int main(int argc, char *argv[])
 	else {
 		if(test_only) {
 			if(skip > 0)
-				return usage("ERROR: --skip is not allowed in test mode\n");
+				return long_usage("ERROR: --skip is not allowed in test mode\n");
 		}
 	}
 
@@ -338,38 +341,38 @@ int main(int argc, char *argv[])
 
 	if(format_channels >= 0) {
 		if(format_channels == 0 || (unsigned)format_channels > FLAC__MAX_CHANNELS)
-			return usage("ERROR: invalid number of channels '%u', must be > 0 and <= %u\n", format_channels, FLAC__MAX_CHANNELS);
+			return long_usage("ERROR: invalid number of channels '%u', must be > 0 and <= %u\n", format_channels, FLAC__MAX_CHANNELS);
 	}
 	if(format_bps >= 0) {
 		if(format_bps != 8 && format_bps != 16 && format_bps != 24)
-			return usage("ERROR: invalid bits per sample '%u' (must be 8/16/24)\n", format_bps);
+			return long_usage("ERROR: invalid bits per sample '%u' (must be 8/16/24)\n", format_bps);
 	}
 	if(format_sample_rate >= 0) {
 		if(format_sample_rate == 0 || (unsigned)format_sample_rate > FLAC__MAX_SAMPLE_RATE)
-			return usage("ERROR: invalid sample rate '%u', must be > 0 and <= %u\n", format_sample_rate, FLAC__MAX_SAMPLE_RATE);
+			return long_usage("ERROR: invalid sample rate '%u', must be > 0 and <= %u\n", format_sample_rate, FLAC__MAX_SAMPLE_RATE);
 	}
 	if(!mode_decode && ((unsigned)blocksize < FLAC__MIN_BLOCK_SIZE || (unsigned)blocksize > FLAC__MAX_BLOCK_SIZE)) {
-		return usage("ERROR: invalid blocksize '%u', must be >= %u and <= %u\n", (unsigned)blocksize, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
+		return long_usage("ERROR: invalid blocksize '%u', must be >= %u and <= %u\n", (unsigned)blocksize, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
 	}
 	if(qlp_coeff_precision > 0 && qlp_coeff_precision < FLAC__MIN_QLP_COEFF_PRECISION) {
-		return usage("ERROR: invalid value for -q '%u', must be 0 or >= %u\n", qlp_coeff_precision, FLAC__MIN_QLP_COEFF_PRECISION);
+		return long_usage("ERROR: invalid value for -q '%u', must be 0 or >= %u\n", qlp_coeff_precision, FLAC__MIN_QLP_COEFF_PRECISION);
 	}
 
 	if(sector_align) {
 		if(mode_decode)
-			return usage("ERROR: --sector-align only allowed for encoding\n");
+			return long_usage("ERROR: --sector-align only allowed for encoding\n");
 		else if(skip > 0)
-			return usage("ERROR: --sector-align not allowed with --skip\n");
+			return long_usage("ERROR: --sector-align not allowed with --skip\n");
 		else if(format_channels >= 0 && format_channels != 2)
-			return usage("ERROR: --sector-align can only be done with stereo input\n");
+			return long_usage("ERROR: --sector-align can only be done with stereo input\n");
 		else if(format_sample_rate >= 0 && format_sample_rate != 2)
-			return usage("ERROR: --sector-align can only be done with sample rate of 44100\n");
+			return long_usage("ERROR: --sector-align can only be done with sample rate of 44100\n");
 	}
 	if(argc - i > 1 && cmdline_forced_outfilename) {
-		return usage("ERROR: -o cannot be used with multiple files\n");
+		return long_usage("ERROR: -o cannot be used with multiple files\n");
 	}
 	if(cmdline_forced_outfilename && output_prefix) {
-		return usage("ERROR: --output-prefix conflicts with -o\n");
+		return long_usage("ERROR: --output-prefix conflicts with -o\n");
 	}
 
 	if(verbose) {
@@ -443,18 +446,8 @@ int main(int argc, char *argv[])
 	return retval;
 }
 
-int usage(const char *message, ...)
+static void usage_header()
 {
-	va_list args;
-
-	if(message) {
-		va_start(args, message);
-
-		(void) vfprintf(stderr, message, args);
-
-		va_end(args);
-
-	}
 	fprintf(stderr, "===============================================================================\n");
 	fprintf(stderr, "flac - Command-line FLAC encoder/decoder version %s\n", FLAC__VERSION_STRING);
 	fprintf(stderr, "Copyright (C) 2000,2001  Josh Coalson\n");
@@ -473,6 +466,51 @@ int usage(const char *message, ...)
 	fprintf(stderr, "along with this program; if not, write to the Free Software\n");
 	fprintf(stderr, "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.\n");
 	fprintf(stderr, "===============================================================================\n");
+}
+
+int short_usage(const char *message, ...)
+{
+	va_list args;
+
+	if(message) {
+		va_start(args, message);
+
+		(void) vfprintf(stderr, message, args);
+
+		va_end(args);
+
+	}
+	usage_header();
+	fprintf(stderr, "\n");
+	fprintf(stderr, "This is the short help; for full help use 'flac -H'\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "To encode:\n");
+	fprintf(stderr, "  flac [-#] [infile [...]]\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "  -# is -0 (fastest compression) to -8 (highest compression); -5 is the default\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "To decode:\n");
+	fprintf(stderr, "  flac -d [infile [...]]\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "To test:\n");
+	fprintf(stderr, "  flac -t [infile [...]]\n");
+
+	return message? 1 : 0;
+}
+
+int long_usage(const char *message, ...)
+{
+	va_list args;
+
+	if(message) {
+		va_start(args, message);
+
+		(void) vfprintf(stderr, message, args);
+
+		va_end(args);
+
+	}
+	usage_header();
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "  flac [options] [infile [...]]\n");
 	fprintf(stderr, "\n");
@@ -534,7 +572,7 @@ int usage(const char *message, ...)
 	fprintf(stderr, "         (unless --lax is used)\n");
 	fprintf(stderr, "  -m   : try mid-side coding for each frame (stereo input only)\n");
 	fprintf(stderr, "  -M   : loose mid-side coding for all frames (stereo input only)\n");
-	fprintf(stderr, "  -0 .. -9 : fastest compression .. highest compression, default is -5\n");
+	fprintf(stderr, "  -0 .. -8 : fastest compression .. highest compression, default is -5\n");
 	fprintf(stderr, "             these are synonyms for other options:\n");
 	fprintf(stderr, "  -0   : synonymous with -l 0 -b 1152 -r 2,2\n");
 	fprintf(stderr, "  -1   : synonymous with -l 0 -b 1152 -M -r 2,2\n");
@@ -545,7 +583,6 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
 	fprintf(stderr, "  -7   : synonymous with -l 8 -b 4608 -m -e -r 6\n");
 	fprintf(stderr, "  -8   : synonymous with -l 12 -b 4608 -m -e -r 6\n");
-	fprintf(stderr, "  -9   : synonymous with -l 32 -b 4608 -m -e -E -r 16 -p (very slow!)\n");
 	fprintf(stderr, "  -e   : do exhaustive model search (expensive!)\n");
 	fprintf(stderr, "  -E   : include escape coding in the entropy coder\n");
 	fprintf(stderr, "  -l # : specify max LPC order; 0 => use only fixed predictors\n");
@@ -632,7 +669,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 
 	if(!format_is_wave) {
 		if(format_is_big_endian < 0 || format_channels < 0 || format_bps < 0 || format_sample_rate < 0)
-			return usage("ERROR: for encoding a raw file you must specify { -fb or -fl }, -fc, -fp, and -fs\n");
+			return long_usage("ERROR: for encoding a raw file you must specify { -fb or -fl }, -fc, -fp, and -fs\n");
 	}
 
 	if(encode_infile == stdin || force_to_stdout)
@@ -727,7 +764,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 		}
 		if(!format_is_wave) {
 			if(format_is_big_endian < 0)
-				return usage("ERROR: for decoding to a raw file you must specify -fb or -fl\n");
+				return long_usage("ERROR: for decoding to a raw file you must specify -fb or -fl\n");
 		}
 	}
 
