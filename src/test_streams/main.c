@@ -264,6 +264,64 @@ foo:
 	return false;
 }
 
+/* a mono sine-wave 8bps stream */
+static FLAC__bool generate_sine8_1(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2)
+{
+	const FLAC__int8 full_scale = 127;
+	const double delta1 = 2.0 * M_PI / ( sample_rate / f1);
+	const double delta2 = 2.0 * M_PI / ( sample_rate / f2);
+	FILE *f;
+	double theta1, theta2;
+	unsigned i;
+
+	if(0 == (f = fopen(fn, mode)))
+		return false;
+
+	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
+		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
+		FLAC__int8 v = (FLAC__int8)(val + 0.5);
+		if(fwrite(&v, sizeof(v), 1, f) < 1)
+			goto foo;
+	}
+
+	fclose(f);
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
+/* a stereo sine-wave 8bps stream */
+static FLAC__bool generate_sine8_2(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2, double fmult)
+{
+	const FLAC__int8 full_scale = 127;
+	const double delta1 = 2.0 * M_PI / ( sample_rate / f1);
+	const double delta2 = 2.0 * M_PI / ( sample_rate / f2);
+	FILE *f;
+	double theta1, theta2;
+	unsigned i;
+
+	if(0 == (f = fopen(fn, mode)))
+		return false;
+
+	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
+		double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
+		FLAC__int8 v = (FLAC__int8)(val + 0.5);
+		if(fwrite(&v, sizeof(v), 1, f) < 1)
+			goto foo;
+		val = -(a1*sin(theta1*fmult) + a2*sin(theta2*fmult))*(double)full_scale;
+		v = (FLAC__int8)(val + 0.5);
+		if(fwrite(&v, sizeof(v), 1, f) < 1)
+			goto foo;
+	}
+
+	fclose(f);
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
 /* a mono sine-wave 16bps stream */
 static FLAC__bool generate_sine16_1(const char *fn, const double sample_rate, const unsigned samples, const double f1, const double a1, const double f2, const double a2)
 {
@@ -508,39 +566,56 @@ int main(int argc, char *argv[])
 
 	if(!generate_wbps16("wbps16-01.raw", 1000)) return 1;
 
-	if(!generate_sine16_1("sine16-00.raw", 44100.0, 80000, 441.0, 0.50, 441.0, 0.49)) return 1;
-	if(!generate_sine16_1("sine16-01.raw", 44100.0, 80000, 441.0, 0.61, 661.5, 0.37)) return 1;
-	if(!generate_sine16_1("sine16-02.raw", 44100.0, 80000, 441.0, 0.50, 882.0, 0.49)) return 1;
-	if(!generate_sine16_1("sine16-03.raw", 44100.0, 80000, 441.0, 0.50, 4410.0, 0.49)) return 1;
-	if(!generate_sine16_1("sine16-04.raw", 44100.0, 50000, 8820.0, 0.70, 4410.0, 0.29)) return 1;
+	if(!generate_sine8_1("sine8-00.raw", 48000.0, 200000, 441.0, 0.50, 441.0, 0.49)) return 1;
+	if(!generate_sine8_1("sine8-01.raw", 96000.0, 200000, 441.0, 0.61, 661.5, 0.37)) return 1;
+	if(!generate_sine8_1("sine8-02.raw", 44100.0, 200000, 441.0, 0.50, 882.0, 0.49)) return 1;
+	if(!generate_sine8_1("sine8-03.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49)) return 1;
+	if(!generate_sine8_1("sine8-04.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29)) return 1;
 
-	if(!generate_sine16_2("sine16-10.raw", 44100.0, 80000, 441.0, 0.50, 441.0, 0.49, 1.0)) return 1;
-	if(!generate_sine16_2("sine16-11.raw", 44100.0, 80000, 441.0, 0.61, 661.5, 0.37, 1.0)) return 1;
-	if(!generate_sine16_2("sine16-12.raw", 44100.0, 80000, 441.0, 0.50, 882.0, 0.49, 1.0)) return 1;
-	if(!generate_sine16_2("sine16-13.raw", 44100.0, 80000, 441.0, 0.50, 4410.0, 0.49, 1.0)) return 1;
-	if(!generate_sine16_2("sine16-14.raw", 44100.0, 50000, 8820.0, 0.70, 4410.0, 0.29, 1.0)) return 1;
-	if(!generate_sine16_2("sine16-15.raw", 44100.0, 80000, 441.0, 0.50, 441.0, 0.49, 0.5)) return 1;
-	if(!generate_sine16_2("sine16-16.raw", 44100.0, 80000, 441.0, 0.61, 661.5, 0.37, 2.0)) return 1;
-	if(!generate_sine16_2("sine16-17.raw", 44100.0, 80000, 441.0, 0.50, 882.0, 0.49, 0.7)) return 1;
-	if(!generate_sine16_2("sine16-18.raw", 44100.0, 80000, 441.0, 0.50, 4410.0, 0.49, 1.3)) return 1;
-	if(!generate_sine16_2("sine16-19.raw", 44100.0, 50000, 8820.0, 0.70, 4410.0, 0.29, 0.1)) return 1;
+	if(!generate_sine8_2("sine8-10.raw", 48000.0, 200000, 441.0, 0.50, 441.0, 0.49, 1.0)) return 1;
+	if(!generate_sine8_2("sine8-11.raw", 48000.0, 200000, 441.0, 0.61, 661.5, 0.37, 1.0)) return 1;
+	if(!generate_sine8_2("sine8-12.raw", 96000.0, 200000, 441.0, 0.50, 882.0, 0.49, 1.0)) return 1;
+	if(!generate_sine8_2("sine8-13.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49, 1.0)) return 1;
+	if(!generate_sine8_2("sine8-14.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29, 1.0)) return 1;
+	if(!generate_sine8_2("sine8-15.raw", 44100.0, 200000, 441.0, 0.50, 441.0, 0.49, 0.5)) return 1;
+	if(!generate_sine8_2("sine8-16.raw", 44100.0, 200000, 441.0, 0.61, 661.5, 0.37, 2.0)) return 1;
+	if(!generate_sine8_2("sine8-17.raw", 44100.0, 200000, 441.0, 0.50, 882.0, 0.49, 0.7)) return 1;
+	if(!generate_sine8_2("sine8-18.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49, 1.3)) return 1;
+	if(!generate_sine8_2("sine8-19.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29, 0.1)) return 1;
 
-	if(!generate_sine24_1("sine24-00.raw", 44100.0, 80000, 441.0, 0.50, 441.0, 0.49)) return 1;
-	if(!generate_sine24_1("sine24-01.raw", 44100.0, 80000, 441.0, 0.61, 661.5, 0.37)) return 1;
-	if(!generate_sine24_1("sine24-02.raw", 44100.0, 80000, 441.0, 0.50, 882.0, 0.49)) return 1;
-	if(!generate_sine24_1("sine24-03.raw", 44100.0, 80000, 441.0, 0.50, 4410.0, 0.49)) return 1;
-	if(!generate_sine24_1("sine24-04.raw", 44100.0, 50000, 8820.0, 0.70, 4410.0, 0.29)) return 1;
+	if(!generate_sine16_1("sine16-00.raw", 48000.0, 200000, 441.0, 0.50, 441.0, 0.49)) return 1;
+	if(!generate_sine16_1("sine16-01.raw", 96000.0, 200000, 441.0, 0.61, 661.5, 0.37)) return 1;
+	if(!generate_sine16_1("sine16-02.raw", 44100.0, 200000, 441.0, 0.50, 882.0, 0.49)) return 1;
+	if(!generate_sine16_1("sine16-03.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49)) return 1;
+	if(!generate_sine16_1("sine16-04.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29)) return 1;
 
-	if(!generate_sine24_2("sine24-10.raw", 44100.0, 80000, 441.0, 0.50, 441.0, 0.49, 1.0)) return 1;
-	if(!generate_sine24_2("sine24-11.raw", 44100.0, 80000, 441.0, 0.61, 661.5, 0.37, 1.0)) return 1;
-	if(!generate_sine24_2("sine24-12.raw", 44100.0, 80000, 441.0, 0.50, 882.0, 0.49, 1.0)) return 1;
-	if(!generate_sine24_2("sine24-13.raw", 44100.0, 80000, 441.0, 0.50, 4410.0, 0.49, 1.0)) return 1;
-	if(!generate_sine24_2("sine24-14.raw", 44100.0, 50000, 8820.0, 0.70, 4410.0, 0.29, 1.0)) return 1;
-	if(!generate_sine24_2("sine24-15.raw", 44100.0, 80000, 441.0, 0.50, 441.0, 0.49, 0.5)) return 1;
-	if(!generate_sine24_2("sine24-16.raw", 44100.0, 80000, 441.0, 0.61, 661.5, 0.37, 2.0)) return 1;
-	if(!generate_sine24_2("sine24-17.raw", 44100.0, 80000, 441.0, 0.50, 882.0, 0.49, 0.7)) return 1;
-	if(!generate_sine24_2("sine24-18.raw", 44100.0, 80000, 441.0, 0.50, 4410.0, 0.49, 1.3)) return 1;
-	if(!generate_sine24_2("sine24-19.raw", 44100.0, 50000, 8820.0, 0.70, 4410.0, 0.29, 0.1)) return 1;
+	if(!generate_sine16_2("sine16-10.raw", 48000.0, 200000, 441.0, 0.50, 441.0, 0.49, 1.0)) return 1;
+	if(!generate_sine16_2("sine16-11.raw", 48000.0, 200000, 441.0, 0.61, 661.5, 0.37, 1.0)) return 1;
+	if(!generate_sine16_2("sine16-12.raw", 96000.0, 200000, 441.0, 0.50, 882.0, 0.49, 1.0)) return 1;
+	if(!generate_sine16_2("sine16-13.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49, 1.0)) return 1;
+	if(!generate_sine16_2("sine16-14.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29, 1.0)) return 1;
+	if(!generate_sine16_2("sine16-15.raw", 44100.0, 200000, 441.0, 0.50, 441.0, 0.49, 0.5)) return 1;
+	if(!generate_sine16_2("sine16-16.raw", 44100.0, 200000, 441.0, 0.61, 661.5, 0.37, 2.0)) return 1;
+	if(!generate_sine16_2("sine16-17.raw", 44100.0, 200000, 441.0, 0.50, 882.0, 0.49, 0.7)) return 1;
+	if(!generate_sine16_2("sine16-18.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49, 1.3)) return 1;
+	if(!generate_sine16_2("sine16-19.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29, 0.1)) return 1;
+
+	if(!generate_sine24_1("sine24-00.raw", 48000.0, 200000, 441.0, 0.50, 441.0, 0.49)) return 1;
+	if(!generate_sine24_1("sine24-01.raw", 96000.0, 200000, 441.0, 0.61, 661.5, 0.37)) return 1;
+	if(!generate_sine24_1("sine24-02.raw", 44100.0, 200000, 441.0, 0.50, 882.0, 0.49)) return 1;
+	if(!generate_sine24_1("sine24-03.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49)) return 1;
+	if(!generate_sine24_1("sine24-04.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29)) return 1;
+
+	if(!generate_sine24_2("sine24-10.raw", 48000.0, 200000, 441.0, 0.50, 441.0, 0.49, 1.0)) return 1;
+	if(!generate_sine24_2("sine24-11.raw", 48000.0, 200000, 441.0, 0.61, 661.5, 0.37, 1.0)) return 1;
+	if(!generate_sine24_2("sine24-12.raw", 96000.0, 200000, 441.0, 0.50, 882.0, 0.49, 1.0)) return 1;
+	if(!generate_sine24_2("sine24-13.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49, 1.0)) return 1;
+	if(!generate_sine24_2("sine24-14.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29, 1.0)) return 1;
+	if(!generate_sine24_2("sine24-15.raw", 44100.0, 200000, 441.0, 0.50, 441.0, 0.49, 0.5)) return 1;
+	if(!generate_sine24_2("sine24-16.raw", 44100.0, 200000, 441.0, 0.61, 661.5, 0.37, 2.0)) return 1;
+	if(!generate_sine24_2("sine24-17.raw", 44100.0, 200000, 441.0, 0.50, 882.0, 0.49, 0.7)) return 1;
+	if(!generate_sine24_2("sine24-18.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49, 1.3)) return 1;
+	if(!generate_sine24_2("sine24-19.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29, 0.1)) return 1;
 
 	if(!generate_noise("noise.raw", 65536 * 8 * 3)) return 1;
 	if(!generate_wackywavs()) return 1;

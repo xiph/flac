@@ -250,12 +250,24 @@ for b in 01 ; do
 	test_file wbps16-$b 1 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
 done
 
-for bps in 16 24 ; do
+for bps in 8 16 24 ; do
 	echo "Testing $bps-bit sine wave streams..."
-	for b in 00 01 02 03 04 ; do
+	for b in 00 ; do
+		test_file sine${bps}-$b 1 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --sample-rate=48000"
+	done
+	for b in 01 ; do
+		test_file sine${bps}-$b 1 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --sample-rate=96000"
+	done
+	for b in 02 03 04 ; do
 		test_file sine${bps}-$b 1 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search"
 	done
-	for b in 10 11 12 13 14 15 16 17 18 19 ; do
+	for b in 10 11 ; do
+		test_file sine${bps}-$b 2 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --sample-rate=48000"
+	done
+	for b in 12 ; do
+		test_file sine${bps}-$b 2 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --sample-rate=96000"
+	done
+	for b in 13 14 15 16 17 18 19 ; do
 		test_file sine${bps}-$b 2 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search"
 	done
 done
