@@ -803,7 +803,8 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 		FLAC__ASSERT(decoder_session->until_specification->value.samples >= 0);
 		until = (FLAC__uint64)decoder_session->until_specification->value.samples;
 
-		decoder_session->total_samples -= (metadata->data.stream_info.total_samples - until);
+		if(until > 0)
+			decoder_session->total_samples -= (metadata->data.stream_info.total_samples - until);
 
 		if(decoder_session->bps != 8 && decoder_session->bps != 16 && decoder_session->bps != 24) {
 			fprintf(stderr, "%s: ERROR: bits per sample is not 8/16/24\n", decoder_session->inbasefilename);

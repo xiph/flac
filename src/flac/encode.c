@@ -278,7 +278,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 		else if(got_ssnd_chunk==false && !strncmp(chunk_id, "SSND", 4)) { /* sound data chunk */
 			unsigned int offset= 0U, block_size= 0U, align_remainder= 0U, data_bytes;
 			size_t bytes_per_frame= channels*(bps>>3);
-			FLAC__uint64 total_samples_in_input;
+			FLAC__uint64 total_samples_in_input, trim = 0;
 			FLAC__bool pad= false;
 
 			if(got_comm_chunk==false) {
@@ -352,7 +352,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			data_bytes-= (unsigned int)encoder_session.skip*bytes_per_frame; /*@@@ WATCHOUT: 4GB limit */
 			encoder_session.total_samples_to_encode= total_samples_in_input - encoder_session.skip;
 			if(encoder_session.until > 0) {
-				const FLAC__uint64 trim = total_samples_in_input - encoder_session.until;
+				trim = total_samples_in_input - encoder_session.until;
 				FLAC__ASSERT(total_samples_in_input > 0);
 				FLAC__ASSERT(!options.common.sector_align);
 				data_bytes-= (unsigned int)trim*bytes_per_frame;
@@ -420,6 +420,29 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 						}
 						else
 							data_bytes-= bytes_read;
+					}
+				}
+			}
+
+			if(trim>0) {
+				FLAC__uint64 remaining= (unsigned int)trim*bytes_per_frame;
+
+				FLAC__ASSERT(!options.common.sector_align);
+
+				/* do 1<<30 bytes at a time, since 1<<30 is a nice round number, and */
+				/* is guaranteed to be less than LONG_MAX */
+				for(; remaining>0U; remaining-= remaining>(1U<<30) ? remaining : (1U<<30))
+				{
+					unsigned long skip= (unsigned long)(remaining % (1U<<30));
+
+					FLAC__ASSERT(skip<=LONG_MAX);
+					while(skip>0 && fseek(infile, skip, SEEK_CUR)<0) {
+						unsigned int need= min(skip, sizeof ucbuffer_);
+						if(fread(ucbuffer_, 1U, need, infile)<need) {
+							fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+							return EncoderSession_finish_error(&encoder_session);
+						}
+						skip-= need;
 					}
 				}
 			}
@@ -637,7 +660,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			got_fmt_chunk = true;
 		}
 		else if(xx == 0x61746164 && !got_data_chunk && got_fmt_chunk) { /* "data" */
-			FLAC__uint64 total_samples_in_input;
+			FLAC__uint64 total_samples_in_input, trim = 0;
 
 			/* data size */
 			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
@@ -677,7 +700,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			data_bytes -= (unsigned)encoder_session.skip * bytes_per_wide_sample; /*@@@ WATCHOUT: 4GB limit */
 			encoder_session.total_samples_to_encode = total_samples_in_input - encoder_session.skip;
 			if(encoder_session.until > 0) {
-				const FLAC__uint64 trim = total_samples_in_input - encoder_session.until;
+				trim = total_samples_in_input - encoder_session.until;
 				FLAC__ASSERT(total_samples_in_input > 0);
 				FLAC__ASSERT(!options.common.sector_align);
 				data_bytes -= (unsigned int)trim * bytes_per_wide_sample;
@@ -749,6 +772,21 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 							return EncoderSession_finish_error(&encoder_session);
 						}
 						data_bytes -= bytes_read;
+					}
+				}
+			}
+
+			if(trim > 0) {
+				if(fseek(infile, bytes_per_wide_sample * (unsigned)trim, SEEK_CUR) < 0) {
+					/* can't seek input, read ahead manually... */
+					unsigned left, need;
+					for(left = (unsigned)trim; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
+						need = min(left, CHUNK_OF_SAMPLES);
+						if(fread(ucbuffer_, bytes_per_wide_sample, need, infile) < need) {
+							fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+							return EncoderSession_finish_error(&encoder_session);
+						}
+						left -= need;
 					}
 				}
 			}
