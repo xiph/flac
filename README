@@ -104,7 +104,7 @@ There is a more lightweight build system for do-it-yourself-ers.
 It is also useful if configure isn't working, which may be the
 case since lately we've had some problems with different versions
 of automake and libtool.  The Makefile.lite system should work
-on Gnu systems with few or no minor adjustments.
+on Gnu systems with few or no adjustments.
 
 From the top level just 'make -f Makefile.lite'.  You can
 specify zero or one optional target from 'release', 'debug',
@@ -127,7 +127,7 @@ source directories with a 'Makefile.vc' file in them allow
 building with MSVC.  Just 'nmake /f Makefile.vc'.  Currently
 the Makefile.vc for libFLAC is hardcoded to use nasm.  If
 you don't have nasm, or don't want any assembly optimizations,
-edit the makefile, adding '/D FLAC__NO_ASM' and delete the
+edit the makefile, adding '/D FLAC__NO_ASM', and delete the
 rules which compile the .s files.
 
 
@@ -135,15 +135,16 @@ rules which compile the .s files.
 Building on Mac OS X
 ====================
 
-There is a Project Builder project in the top-level source
+If you have Fink, the Gnu flow above should work.  Otherwise,
+there is a Project Builder project in the top-level source
 directory to build libFLAC and the command-line utilities on
 Mac OS X.  In a terminal, cd to the top-level directory (the
 one that contains this README file) and type:
 
 	pbxbuild -alltargets
 
-This will create everything and leave it in build/ directory.
-Don't worry about the rest of the stuff that is in build or
+This will create everything and leave it in the build/ directory.
+Don't worry about the rest of the stuff that is in build/ or
 the stuff that was already there before building.
 
 There currently is no install procedure; you will have to
