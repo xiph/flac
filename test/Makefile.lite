@@ -21,17 +21,21 @@
 
 topdir = ..
 
+DEFAULT_CONFIG = release
+
+CONFIG = $(DEFAULT_CONFIG)
+
 all: clean
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libFLAC.sh $(BUILD)
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libFLAC++.sh $(BUILD)
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libOggFLAC.sh $(BUILD)
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libOggFLAC++.sh $(BUILD)
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_flac.sh $(BUILD)
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_metaflac.sh $(BUILD)
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_grabbag.sh $(BUILD)
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_seeking.sh $(BUILD)
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_streams.sh $(BUILD)
-	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_bins.sh $(BUILD)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libFLAC.sh $(CONFIG)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libFLAC++.sh $(CONFIG)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libOggFLAC.sh $(CONFIG)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libOggFLAC++.sh $(CONFIG)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_flac.sh $(CONFIG)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_metaflac.sh $(CONFIG)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_grabbag.sh $(CONFIG)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_seeking.sh $(CONFIG)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_streams.sh $(CONFIG)
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_bins.sh $(CONFIG)
 
 debug   : FLAC__EXHAUSTIVE_TESTS=FLAC__EXHAUSTIVE_TESTS=yes
 valgrind: FLAC__EXHAUSTIVE_TESTS=FLAC__EXHAUSTIVE_TESTS=no
@@ -41,9 +45,9 @@ debug   : FLAC__VALGRIND=FLAC__VALGRIND=no
 valgrind: FLAC__VALGRIND=FLAC__VALGRIND=yes
 release : FLAC__VALGRIND=FLAC__VALGRIND=no
 
-debug   : BUILD=debug
-valgrind: BUILD=debug
-release : BUILD=release
+debug   : CONFIG = debug
+valgrind: CONFIG = valgrind
+release : CONFIG = release
 
 debug   : all
 valgrind: all
