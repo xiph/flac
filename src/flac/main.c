@@ -32,12 +32,12 @@
 #include "file.h"
 
 static int usage(const char *message, ...);
-static int encode_file(const char *infilename, const char *forced_outfilename);
+static int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file);
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
 FLAC__bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
 FLAC__bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
-FLAC__bool force_to_stdout = false, delete_input = false;
+FLAC__bool force_to_stdout = false, delete_input = false, sector_align = false;
 const char *cmdline_forced_outfilename = 0;
 analysis_options aopts = { false, false };
 unsigned padding = 0;
@@ -49,6 +49,9 @@ int format_channels = -1, format_bps = -1, format_sample_rate = -1;
 int blocksize = -1, min_residual_partition_order = -1, max_residual_partition_order = -1, rice_parameter_search_dist = -1;
 char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER */
 int num_requested_seek_points = -1; /* -1 => no -S options were given, 0 => -S- was given */
+FLAC__int32 align_reservoir_0[588], align_reservoir_1[588]; /* for carrying over samples from --sector-align */
+FLAC__int32 *align_reservoir[2] = { align_reservoir_0, align_reservoir_1 };
+unsigned align_reservoir_samples = 0; /* 0 .. 587 */
 
 int main(int argc, char *argv[])
 {
@@ -93,6 +96,10 @@ int main(int argc, char *argv[])
 			delete_input = true;
 		else if(0 == strcmp(argv[i], "--delete-input-file-"))
 			delete_input = false;
+		else if(0 == strcmp(argv[i], "--sector-align"))
+			sector_align = true;
+		else if(0 == strcmp(argv[i], "--sector-align-"))
+			sector_align = false;
 		else if(0 == strcmp(argv[i], "--skip"))
 			skip = (FLAC__uint64)atoi(argv[++i]); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
 		else if(0 == strcmp(argv[i], "--lax"))
@@ -322,6 +329,17 @@ int main(int argc, char *argv[])
 		return usage("ERROR: invalid value for -q '%u', must be 0 or >= %u\n", qlp_coeff_precision, FLAC__MIN_QLP_COEFF_PRECISION);
 	}
 
+	if(sector_align) {
+		if(mode_decode)
+			return usage("ERROR: --sector-align only allowed for encoding\n");
+		else if(skip > 0)
+			return usage("ERROR: --sector-align not allowed with --skip\n");
+		else if(format_channels >= 0 && format_channels != 2)
+			return usage("ERROR: --sector-align can only be done with stereo input\n");
+		else if(format_sample_rate >= 0 && format_sample_rate != 2)
+			return usage("ERROR: --sector-align can only be done with sample rate of 44100\n");
+	}
+
 	if(verbose) {
 		fprintf(stderr, "\n");
 		fprintf(stderr, "flac %s, Copyright (C) 2000,2001 Josh Coalson\n", FLAC__VERSION_STRING);
@@ -329,8 +347,8 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
 		if(!mode_decode) {
-			fprintf(stderr, "options:%s%s -P %u -b %u%s -l %u%s%s -q %u -r %u,%u -R %u%s\n",
-				delete_input?" --delete-input-file":"", lax?" --lax":"",
+			fprintf(stderr, "options:%s%s%s -P %u -b %u%s -l %u%s%s -q %u -r %u,%u -R %u%s\n",
+				delete_input?" --delete-input-file":"", sector_align?" --sector-align":"", lax?" --lax":"",
 				padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
 				do_exhaustive_model_search?" -e":"", do_qlp_coeff_prec_search?" -p":"",
 				qlp_coeff_precision,
@@ -365,7 +383,7 @@ int main(int argc, char *argv[])
 		int save_format;
 
 		if(i == argc) {
-			retval = encode_file("-", 0);
+			retval = encode_file("-", 0, true);
 		}
 		else {
 			if(i + 1 != argc)
@@ -374,7 +392,7 @@ int main(int argc, char *argv[])
 				if(0 == strcmp(argv[i], "-") && !first)
 					continue;
 				save_format = format_is_wave;
-				retval = encode_file(argv[i], 0);
+				retval = encode_file(argv[i], 0, i == (argc-1));
 				format_is_wave = save_format;
 				first = false;
 			}
@@ -451,6 +469,7 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
 	fprintf(stderr, "encoding options:\n");
 	fprintf(stderr, "  --lax : allow encoder to generate non-Subset files\n");
+	fprintf(stderr, "  --sector-align : align encoding of multiple files on sector boundaries\n");
 	fprintf(stderr, "  -S { # | X | #x } : include a point or points in a SEEKTABLE\n");
 	fprintf(stderr, "       #  : a specific sample number for a seek point\n");
 	fprintf(stderr, "       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
@@ -494,8 +513,8 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
 	fprintf(stderr, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	fprintf(stderr, "         comparing to the original\n");
-	fprintf(stderr, "  -S-, -m-, -M-, -e-, -p-, -V-, --delete-input-file-, --lax- can all be used to\n");
-	fprintf(stderr, "  turn off a particular option\n");
+	fprintf(stderr, "  -S-, -m-, -M-, -e-, -p-, -V-, --delete-input-file-, --lax-, --sector-align-\n");
+	fprintf(stderr, "  can all be used to turn off a particular option\n");
 	fprintf(stderr, "format options:\n");
 	fprintf(stderr, "  -fb | -fl : big-endian | little-endian byte order\n");
 	fprintf(stderr, "  -fc channels\n");
@@ -508,7 +527,7 @@ int usage(const char *message, ...)
 	return message? 1 : 0;
 }
 
-int encode_file(const char *infilename, const char *forced_outfilename)
+int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file)
 {
 	FILE *encode_infile;
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
@@ -528,6 +547,11 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 			fprintf(stderr, "ERROR: can't open input file %s\n", infilename);
 			return 1;
 		}
+	}
+
+	if(sector_align && !format_is_wave && infilesize < 0) {
+		fprintf(stderr, "ERROR: can't --sector-align when the input size is unknown\n");
+		return 1;
 	}
 
 	if(format_is_wave < 0) {
@@ -578,9 +602,9 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 		forced_outfilename = cmdline_forced_outfilename;
 
 	if(format_is_wave)
-		retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
+		retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, align_reservoir, &align_reservoir_samples, sector_align, is_last_file, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
 	else
-		retval = flac__encode_raw(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+		retval = flac__encode_raw(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, is_last_file, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
 	if(retval == 0 && strcmp(infilename, "-")) {
 		if(strcmp(forced_outfilename, "-"))

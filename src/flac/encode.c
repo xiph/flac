@@ -35,6 +35,7 @@
 #endif
 #define min(x,y) ((x)<(y)?(x):(y))
 
+/* this MUST be >= 588 so that sector aligning can take place with one read */
 #define CHUNK_OF_SAMPLES 2048
 
 typedef enum {
@@ -95,7 +96,8 @@ static FLAC__bool init_encoder(FLAC__bool lax, FLAC__bool do_mid_side, FLAC__boo
 static FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, unsigned blocksize, FLAC__StreamMetaData_SeekTable *seek_table);
 static void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, FLAC__uint64 sample, FLAC__uint64 stream_samples, FLAC__uint64 blocksize);
 static int seekpoint_compare(const FLAC__StreamMetaData_SeekPoint *l, const FLAC__StreamMetaData_SeekPoint *r);
-static void format_input(unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
+static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
+static void append_to_verify_fifo(encoder_wrapper_struct *encoder_wrapper, const FLAC__int32 *input[], unsigned channels, unsigned wide_samples);
 static FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
@@ -108,7 +110,7 @@ static FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bo
 static FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_big_endian_uint64(FILE *f, FLAC__uint64 val);
 
-int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
+int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__int32 *align_reservoir[], unsigned *align_reservoir_samples, FLAC__bool sector_align, FLAC__bool is_last_file, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	FLAC__bool is_unsigned_samples = false;
@@ -117,6 +119,10 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	FLAC__uint16 x;
 	FLAC__uint32 xx;
 	FLAC__bool got_fmt_chunk = false, got_data_chunk = false;
+	unsigned align_remainder = 0;
+	int info_align_carry = -1, info_align_zero = -1;
+
+	FLAC__ASSERT(!sector_align || skip == 0);
 
 	encoder_wrapper.encoder = 0;
 	encoder_wrapper.verify = verify;
@@ -180,12 +186,20 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					fprintf(stderr, "%s: ERROR: unsupported number channels %u\n", encoder_wrapper.inbasefilename, (unsigned)x);
 					goto wav_abort_;
 				}
+				else if(sector_align && x != 2) {
+					fprintf(stderr, "%s: ERROR: file has %u channels, must be 2 for --sector-align\n", encoder_wrapper.inbasefilename, (unsigned)x);
+					goto wav_abort_;
+				}
 				channels = x;
 				/* sample rate */
 				if(!read_little_endian_uint32(infile, &xx, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
 				if(xx == 0 || xx > FLAC__MAX_SAMPLE_RATE) {
 					fprintf(stderr, "%s: ERROR: unsupported sample rate %u\n", encoder_wrapper.inbasefilename, (unsigned)xx);
+					goto wav_abort_;
+				}
+				else if(sector_align && xx != 44100) {
+					fprintf(stderr, "%s: ERROR: file's sample rate is %u, must be 44100 for --sector-align\n", encoder_wrapper.inbasefilename, (unsigned)xx);
 					goto wav_abort_;
 				}
 				sample_rate = xx;
@@ -245,14 +259,53 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				}
 
 				data_bytes -= skip * bytes_per_wide_sample;
-				encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample;
-				encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
+				encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample + *align_reservoir_samples;
+				if(sector_align) {
+					align_remainder = encoder_wrapper.total_samples_to_encode % 588;
+					if(is_last_file)
+						encoder_wrapper.total_samples_to_encode += (588-align_remainder); /* will pad with zeroes */
+					else
+						encoder_wrapper.total_samples_to_encode -= align_remainder; /* will stop short and carry over to next file */
+				}
+
+				/* +44 for the size of the WAV headers; this is just an estimate for the progress indicator and doesn't need to be exact */
+				encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44;
 
 				if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
 					goto wav_abort_;
 
 				encoder_wrapper.verify_fifo.into_frames = true;
 
+				/*
+				 * first do any samples in the reservoir
+				 */
+				if(sector_align && *align_reservoir_samples > 0) {
+					/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
+					append_to_verify_fifo(&encoder_wrapper, align_reservoir, channels, *align_reservoir_samples);
+
+					/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
+					if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, align_reservoir, *align_reservoir_samples)) {
+						fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+						goto wav_abort_;
+					}
+				}
+
+				/*
+				 * decrement the data_bytes counter if we need to align the file
+				 */
+				if(sector_align) {
+					if(is_last_file) {
+						*align_reservoir_samples = 0;
+					}
+					else {
+						*align_reservoir_samples = align_remainder;
+						data_bytes -= (*align_reservoir_samples) * bytes_per_wide_sample;
+					}
+				}
+
+				/*
+				 * now do from the file
+				 */
 				while(data_bytes > 0) {
 					bytes_read = fread(ucbuffer, sizeof(unsigned char), min(data_bytes, CHUNK_OF_SAMPLES * bytes_per_wide_sample), infile);
 					if(bytes_read == 0) {
@@ -272,7 +325,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 						}
 						else {
 							unsigned wide_samples = bytes_read / bytes_per_wide_sample;
-							format_input(wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
+							format_input(input, wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
 
 							/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
 							if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
@@ -283,6 +336,50 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 						}
 					}
 				}
+
+				/*
+				 * now read unaligned samples into reservoir or pad with zeroes if necessary
+				 */
+				if(sector_align) {
+					if(is_last_file) {
+						unsigned wide_samples = 588 - align_remainder;
+						if(wide_samples < 588) {
+							unsigned channel;
+
+							info_align_zero = wide_samples;
+							data_bytes = wide_samples * bytes_per_wide_sample;
+							for(channel = 0; channel < channels; channel++)
+								memset(input[channel], 0, data_bytes);
+							/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
+							append_to_verify_fifo(&encoder_wrapper, input, channels, wide_samples);
+
+							/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
+							if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
+								fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+								goto wav_abort_;
+							}
+						}
+					}
+					else {
+						if(*align_reservoir_samples > 0) {
+							FLAC__ASSERT(CHUNK_OF_SAMPLES >= 588);
+							bytes_read = fread(ucbuffer, sizeof(unsigned char), (*align_reservoir_samples) * bytes_per_wide_sample, infile);
+							if(bytes_read == 0 && ferror(infile)) {
+								fprintf(stderr, "%s: ERROR during read\n", encoder_wrapper.inbasefilename);
+								goto wav_abort_;
+							}
+							else if(bytes_read != (*align_reservoir_samples) * bytes_per_wide_sample) {
+								fprintf(stderr, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_wrapper.inbasefilename, (unsigned)encoder_wrapper.total_samples_to_encode, (unsigned)encoder_wrapper.samples_written);
+								data_bytes = 0;
+							}
+							else {
+								info_align_carry = *align_reservoir_samples;
+								format_input(align_reservoir, *align_reservoir_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
+							}
+						}
+					}
+				}
+
 				got_data_chunk = true;
 			}
 		}
@@ -331,6 +428,10 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			return 1;
 		}
 	}
+	if(info_align_carry >= 0)
+		fprintf(stderr, "%s: INFO: sector alignment causing %d samples to be carried over\n", encoder_wrapper.inbasefilename, info_align_carry);
+	if(info_align_zero >= 0)
+		fprintf(stderr, "%s: INFO: sector alignment causing %d zero samples to be appended\n", encoder_wrapper.inbasefilename, info_align_zero);
 	if(infile != stdin)
 		fclose(infile);
 	return 0;
@@ -358,11 +459,13 @@ wav_abort_:
 	return 1;
 }
 
-int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
+int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__bool is_last_file, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	size_t bytes_read;
 	const size_t bytes_per_wide_sample = channels * (bps >> 3);
+
+	(void)is_last_file;
 
 	encoder_wrapper.encoder = 0;
 	encoder_wrapper.verify = verify;
@@ -394,8 +497,8 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		encoder_wrapper.total_samples_to_encode = encoder_wrapper.unencoded_size = 0;
 	}
 	else {
-		encoder_wrapper.unencoded_size = (unsigned)infilesize - skip * bytes_per_wide_sample;
 		encoder_wrapper.total_samples_to_encode = (unsigned)infilesize / bytes_per_wide_sample - skip;
+		encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample;
 	}
 
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode <= 0)
@@ -465,7 +568,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		}
 		else {
 			unsigned wide_samples = bytes_read / bytes_per_wide_sample;
-			format_input(wide_samples, is_big_endian, is_unsigned_samples, channels, bps, &encoder_wrapper);
+			format_input(input, wide_samples, is_big_endian, is_unsigned_samples, channels, bps, &encoder_wrapper);
 
 			/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
 			if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
@@ -730,7 +833,7 @@ int seekpoint_compare(const FLAC__StreamMetaData_SeekPoint *l, const FLAC__Strea
 		return 1;
 }
 
-void format_input(unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper)
+void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper)
 {
 	unsigned wide_sample, sample, channel, byte;
 
@@ -738,12 +841,12 @@ void format_input(unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is
 		if(is_unsigned_samples) {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (FLAC__int32)ucbuffer[sample] - 0x80;
+					dest[channel][wide_sample] = (FLAC__int32)ucbuffer[sample] - 0x80;
 		}
 		else {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (FLAC__int32)scbuffer[sample];
+					dest[channel][wide_sample] = (FLAC__int32)scbuffer[sample];
 		}
 	}
 	else if(bps == 16) {
@@ -759,12 +862,12 @@ void format_input(unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is
 		if(is_unsigned_samples) {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (FLAC__int32)usbuffer[sample] - 0x8000;
+					dest[channel][wide_sample] = (FLAC__int32)usbuffer[sample] - 0x8000;
 		}
 		else {
 			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++)
-					input[channel][wide_sample] = (FLAC__int32)ssbuffer[sample];
+					dest[channel][wide_sample] = (FLAC__int32)ssbuffer[sample];
 		}
 	}
 	else if(bps == 24) {
@@ -780,18 +883,18 @@ void format_input(unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is
 		if(is_unsigned_samples) {
 			for(byte = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++) {
-					input[channel][wide_sample]  = ucbuffer[byte++]; input[channel][wide_sample] <<= 8;
-					input[channel][wide_sample] |= ucbuffer[byte++]; input[channel][wide_sample] <<= 8;
-					input[channel][wide_sample] |= ucbuffer[byte++];
-					input[channel][wide_sample] -= 0x800000;
+					dest[channel][wide_sample]  = ucbuffer[byte++]; dest[channel][wide_sample] <<= 8;
+					dest[channel][wide_sample] |= ucbuffer[byte++]; dest[channel][wide_sample] <<= 8;
+					dest[channel][wide_sample] |= ucbuffer[byte++];
+					dest[channel][wide_sample] -= 0x800000;
 				}
 		}
 		else {
 			for(byte = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++) {
-					input[channel][wide_sample]  = scbuffer[byte++]; input[channel][wide_sample] <<= 8;
-					input[channel][wide_sample] |= ucbuffer[byte++]; input[channel][wide_sample] <<= 8;
-					input[channel][wide_sample] |= ucbuffer[byte++];
+					dest[channel][wide_sample]  = scbuffer[byte++]; dest[channel][wide_sample] <<= 8;
+					dest[channel][wide_sample] |= ucbuffer[byte++]; dest[channel][wide_sample] <<= 8;
+					dest[channel][wide_sample] |= ucbuffer[byte++];
 				}
 		}
 	}
@@ -799,9 +902,16 @@ void format_input(unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is
 		FLAC__ASSERT(0);
 	}
 
+	/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
+	append_to_verify_fifo(encoder_wrapper, dest, channels, wide_samples);
+}
+
+void append_to_verify_fifo(encoder_wrapper_struct *encoder_wrapper, const FLAC__int32 *src[], unsigned channels, unsigned wide_samples)
+{
 	if(encoder_wrapper->verify) {
+		unsigned channel;
 		for(channel = 0; channel < channels; channel++)
-			memcpy(&encoder_wrapper->verify_fifo.original[channel][encoder_wrapper->verify_fifo.tail], &input[channel][0], sizeof(FLAC__int32) * wide_samples);
+			memcpy(&encoder_wrapper->verify_fifo.original[channel][encoder_wrapper->verify_fifo.tail], src[channel], sizeof(FLAC__int32) * wide_samples);
 		encoder_wrapper->verify_fifo.tail += wide_samples;
 		FLAC__ASSERT(encoder_wrapper->verify_fifo.tail <= encoder_wrapper->verify_fifo.size);
 	}

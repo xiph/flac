@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>February 23, 2001</date>">
+  <!ENTITY dhdate      "<date>June 26, 2001</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -27,7 +27,7 @@
 	&dhsurname;
       </author>
 	<copyright>
-		    <year>2000</year>
+		    <year>2001</year>
 		    <holder>&dhusername;</holder>
 	</copyright>
 	    &dhdate;
@@ -176,7 +176,17 @@
 
 		<listitem>
 		  <para>Allow encoder to generate non-Subset
-		    files</para>
+		    files.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>--sector-align</option></term>
+
+		<listitem>
+		  <para>Align encoding of multiple CD format WAVE
+		    files on sector boundaries.  See the HTML
+		    documentation for more information.</para>
 		</listitem>
 	      </varlistentry>
 
@@ -199,7 +209,7 @@
 		    samples in the input, there will be either no seek
 		    point entered (if the input size is determinable
 		    before encoding starts) or a placeholder point (if
-		    input size is not determinable)</para>
+		    input size is not determinable).</para>
 		</listitem>
 	      </varlistentry>
 
