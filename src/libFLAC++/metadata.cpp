@@ -34,6 +34,11 @@
 #include <stdlib.h> // for malloc(), free()
 #include <string.h> // for memcpy() etc.
 
+#ifdef _MSC_VER
+// warning C4800: 'int' : forcing to bool 'true' or 'false' (performance warning)
+#pragma warning ( disable : 4800 )
+#endif
+
 namespace FLAC {
 	namespace Metadata {
 

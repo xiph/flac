@@ -215,6 +215,11 @@ namespace FLAC {
 			inline void set_reference(bool x) { is_reference_ = x; }
 		};
 
+#ifdef _MSC_VER
+// warning C4800: 'int' : forcing to bool 'true' or 'false' (performance warning)
+#pragma warning ( disable : 4800 )
+#endif
+
 		inline bool Prototype::operator==(const Prototype &object) const
 		{ return (bool)::FLAC__metadata_object_is_equal(object_, object.object_); }
 
@@ -223,6 +228,11 @@ namespace FLAC {
 
 		inline bool Prototype::operator==(const ::FLAC__StreamMetadata *object) const
 		{ return (bool)::FLAC__metadata_object_is_equal(object_, object); }
+
+#ifdef _MSC_VER
+// @@@ how to re-enable?  the following doesn't work
+// #pragma warning ( enable : 4800 )
+#endif
 
 		inline bool Prototype::operator!=(const Prototype &object) const
 		{ return !operator==(object); }

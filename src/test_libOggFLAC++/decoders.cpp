@@ -30,6 +30,11 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _MSC_VER
+// warning C4800: 'int' : forcing to bool 'true' or 'false' (performance warning)
+#pragma warning ( disable : 4800 )
+#endif
+
 static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, unknown_;
 static ::FLAC__StreamMetadata *expected_metadata_sequence_[8];
 static unsigned num_expected_;
