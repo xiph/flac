@@ -19,6 +19,8 @@
 # GNU makefile fragment for building a library
 #
 
+include $(topdir)/build/config.mk
+
 ifeq ($(DARWIN_BUILD),yes)
 CC          = cc
 CCC         = c++
@@ -28,7 +30,10 @@ CCC         = g++
 endif
 NASM        = nasm
 LINK        = ar cru
-LIBPATH     = $(topdir)/obj/lib
+OBJPATH     = $(topdir)/obj
+LIBPATH     = $(OBJPATH)/$(BUILD)/lib
+DEBUG_LIBPATH     = $(OBJPATH)/debug/lib
+RELEASE_LIBPATH   = $(OBJPATH)/release/lib
 ifeq ($(DARWIN_BUILD),yes)
 STATIC_LIB_SUFFIX = a
 DYNAMIC_LIB_SUFFIX = dylib
@@ -36,55 +41,72 @@ else
 STATIC_LIB_SUFFIX = a
 DYNAMIC_LIB_SUFFIX = so
 endif
-STATIC_LIB  = $(LIBPATH)/$(LIB_NAME).$(STATIC_LIB_SUFFIX)
-DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).$(DYNAMIC_LIB_SUFFIX)
+STATIC_LIB_NAME     = $(LIB_NAME).$(STATIC_LIB_SUFFIX)
+DYNAMIC_LIB_NAME    = $(LIB_NAME).$(DYNAMIC_LIB_SUFFIX)
+STATIC_LIB          = $(LIBPATH)/$(STATIC_LIB_NAME)
+DYNAMIC_LIB         = $(LIBPATH)/$(DYNAMIC_LIB_NAME)
+DEBUG_STATIC_LIB    = $(DEBUG_LIBPATH)/$(STATIC_LIB_NAME)
+DEBUG_DYNAMIC_LIB   = $(DEBUG_LIBPATH)/$(DYNAMIC_LIB_NAME)
+RELEASE_STATIC_LIB  = $(RELEASE_LIBPATH)/$(STATIC_LIB_NAME)
+RELEASE_DYNAMIC_LIB = $(RELEASE_LIBPATH)/$(DYNAMIC_LIB_NAME)
 ifeq ($(DARWIN_BUILD),yes)
 LINKD       = $(CC) -dynamiclib -flat_namespace -undefined suppress -install_name $(DYNAMIC_LIB)
 else
 LINKD       = $(CC) -shared
 endif
 
-all : release
-
-include $(topdir)/build/config.mk
-
 debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -Winline -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
 LFLAGS  = -L$(LIBPATH)
 
-debug   : $(ORDINALS_H) $(STATIC_LIB) $(DYNAMIC_LIB)
-release : $(ORDINALS_H) $(STATIC_LIB) $(DYNAMIC_LIB)
+#@@@ OBJS = $(SRCS_C:%.c=%.o) $(SRCS_CC:%.cc=%.o) $(SRCS_CPP:%.cpp=%.o) $(SRCS_NASM:%.nasm=%.o)
+#@@@ OBJS = $(SRCS_C:%.c=%.$(BUILD).o) $(SRCS_CC:%.cc=%.$(BUILD).o) $(SRCS_CPP:%.cpp=%.$(BUILD).o) $(SRCS_NASM:%.nasm=%.$(BUILD).o)
+DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o)
+RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o)
 
-$(STATIC_LIB) : $(OBJS)
-	$(LINK) $@ $(OBJS) && ranlib $@
+debug   : $(ORDINALS_H) $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
+release : $(ORDINALS_H) $(RELEASE_STATIC_LIB) $(RELEASE_DYNAMIC_LIB)
 
-$(DYNAMIC_LIB) : $(OBJS)
+$(DEBUG_STATIC_LIB): $(DEBUG_OBJS)
+	$(LINK) $@ $(DEBUG_OBJS) && ranlib $@
+
+$(RELEASE_STATIC_LIB): $(RELEASE_OBJS)
+	$(LINK) $@ $(RELEASE_OBJS) && ranlib $@
+
+$(DEBUG_DYNAMIC_LIB) : $(DEBUG_OBJS)
 ifeq ($(DARWIN_BUILD),yes)
-	$(LINKD) -o $@ $(OBJS) $(LFLAGS) $(LIBS) -lc
+	$(LINKD) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS) -lc
 else
-	$(LINKD) -o $@ $(OBJS) $(LFLAGS) $(LIBS)
+	$(LINKD) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS)
 endif
 
-%.o : %.c
+$(RELEASE_DYNAMIC_LIB) : $(RELEASE_OBJS)
+ifeq ($(DARWIN_BUILD),yes)
+	$(LINKD) -o $@ $(RELEASE_OBJS) $(LFLAGS) $(LIBS) -lc
+else
+	$(LINKD) -o $@ $(RELEASE_OBJS) $(LFLAGS) $(LIBS)
+endif
+
+%.debug.o %.release.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
-%.o : %.cc
+%.debug.o %.release.o : %.cc
 	$(CCC) $(CFLAGS) -c $< -o $@
-%.o : %.cpp
+%.debug.o %.release.o : %.cpp
 	$(CCC) $(CFLAGS) -c $< -o $@
-%.i : %.c
+%.debug.i %.release.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
-%.i : %.cc
+%.debug.i %.release.i : %.cc
 	$(CCC) $(CFLAGS) -E $< -o $@
-%.i : %.cpp
+%.debug.i %.release.i : %.cpp
 	$(CCC) $(CFLAGS) -E $< -o $@
 
-%.o : %.nasm
+%.debug.o %.release.o : %.nasm
 	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ $< -o $@
 
 .PHONY : clean
 clean :
-	-rm -f $(OBJS) $(STATIC_LIB) $(DYNAMIC_LIB) $(ORDINALS_H)
+	-rm -f *.o $(OBJPATH)/*/lib/$(STATIC_LIB_NAME) $(OBJPATH)/*/lib/$(DYNAMIC_LIB_NAME) $(ORDINALS_H)
 
 .PHONY : depend
 depend:

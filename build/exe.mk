@@ -19,6 +19,8 @@
 # GNU makefile fragment for building an executable
 #
 
+include $(topdir)/build/config.mk
+
 ifeq ($(DARWIN_BUILD),yes)
 CC          = cc
 CCC         = c++
@@ -34,44 +36,55 @@ else
 LINKAGE     = -static
 endif
 LINK        = $(CC) $(LINKAGE)
-BINPATH     = $(topdir)/obj/bin
-LIBPATH     = $(topdir)/obj/lib
-PROGRAM     = $(BINPATH)/$(PROGRAM_NAME)
-
-all : release
-
-include $(topdir)/build/config.mk
+OBJPATH     = $(topdir)/obj
+BINPATH     = $(OBJPATH)/$(BUILD)/bin
+LIBPATH     = $(OBJPATH)/$(BUILD)/lib
+DEBUG_BINPATH   = $(OBJPATH)/debug/bin
+DEBUG_LIBPATH   = $(OBJPATH)/debug/lib
+RELEASE_BINPATH = $(OBJPATH)/release/bin
+RELEASE_LIBPATH = $(OBJPATH)/release/lib
+PROGRAM         = $(BINPATH)/$(PROGRAM_NAME)
+DEBUG_PROGRAM   = $(DEBUG_BINPATH)/$(PROGRAM_NAME)
+RELEASE_PROGRAM = $(RELEASE_BINPATH)/$(PROGRAM_NAME)
 
 debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -Winline -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
 LFLAGS  = -L$(LIBPATH)
 
-debug   : $(ORDINALS_H) $(PROGRAM)
-release : $(ORDINALS_H) $(PROGRAM)
+#@@@ OBJS = $(SRCS_C:%.c=%.o) $(SRCS_CC:%.cc=%.o) $(SRCS_CPP:%.cpp=%.o) $(SRCS_NASM:%.nasm=%.o)
+#@@@ OBJS = $(SRCS_C:%.c=%.$(BUILD).o) $(SRCS_CC:%.cc=%.$(BUILD).o) $(SRCS_CPP:%.cpp=%.$(BUILD).o) $(SRCS_NASM:%.nasm=%.$(BUILD).o)
+DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o)
+RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o)
 
-$(PROGRAM) : $(OBJS)
-	$(LINK) -o $@ $(OBJS) $(LFLAGS) $(LIBS)
+debug   : $(ORDINALS_H) $(DEBUG_PROGRAM)
+release : $(ORDINALS_H) $(RELEASE_PROGRAM)
 
-%.o : %.c
+$(DEBUG_PROGRAM) : $(DEBUG_OBJS)
+	$(LINK) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS)
+
+$(RELEASE_PROGRAM) : $(RELEASE_OBJS)
+	$(LINK) -o $@ $(RELEASE_OBJS) $(LFLAGS) $(LIBS)
+
+%.debug.o %.release.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
-%.o : %.cc
+%.debug.o %.release.o : %.cc
 	$(CCC) $(CFLAGS) -c $< -o $@
-%.o : %.cpp
+%.debug.o %.release.o : %.cpp
 	$(CCC) $(CFLAGS) -c $< -o $@
-%.i : %.c
+%.debug.i %.release.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
-%.i : %.cc
+%.debug.i %.release.i : %.cc
 	$(CCC) $(CFLAGS) -E $< -o $@
-%.i : %.cpp
+%.debug.i %.release.i : %.cpp
 	$(CCC) $(CFLAGS) -E $< -o $@
 
-%.o : %.nasm
+%.debug.o %.release.o : %.nasm
 	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ $< -o $@
 
 .PHONY : clean
 clean :
-	-rm -f $(OBJS) $(PROGRAM)
+	-rm -f *.o $(OBJPATH)/*/bin/$(PROGRAM_NAME)
 
 .PHONY : depend
 depend:

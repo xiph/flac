@@ -39,32 +39,32 @@ ifeq ($(DARWIN_BUILD),yes)
 else
 ifeq ($(SOLARIS_BUILD),yes)
 else
-ASM_OBJS = \
-	ia32/cpu_asm.o \
-	ia32/fixed_asm.o \
-	ia32/lpc_asm.o
+SRCS_NASM = \
+	ia32/cpu_asm.nasm \
+	ia32/fixed_asm.nasm \
+	ia32/lpc_asm.nasm
 endif
 endif
 
-OBJS = $(ASM_OBJS) \
-	bitbuffer.o \
-	bitmath.o \
-	cpu.o \
-	crc.o \
-	file_decoder.o \
-	file_encoder.o \
-	fixed.o \
-	format.o \
-	lpc.o \
-	md5.o \
-	memory.o \
-	metadata_iterators.o \
-	metadata_object.o \
-	seekable_stream_decoder.o \
-	seekable_stream_encoder.o \
-	stream_decoder.o \
-	stream_encoder.o \
-	stream_encoder_framing.o
+SRCS_C = \
+	bitbuffer.c \
+	bitmath.c \
+	cpu.c \
+	crc.c \
+	file_decoder.c \
+	file_encoder.c \
+	fixed.c \
+	format.c \
+	lpc.c \
+	md5.c \
+	memory.c \
+	metadata_iterators.c \
+	metadata_object.c \
+	seekable_stream_decoder.c \
+	seekable_stream_encoder.c \
+	stream_decoder.c \
+	stream_encoder.c \
+	stream_encoder_framing.c
 
 include $(topdir)/build/lib.mk
 

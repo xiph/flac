@@ -24,8 +24,8 @@ topdir = ../..
 PROGRAM_NAME = test_streams
 INCLUDES     = -I./include -I$(topdir)/include
 LIBS         = -lm
-OBJS = \
-	main.o
+SRCS_C = \
+	main.c
 
 include $(topdir)/build/exe.mk
 

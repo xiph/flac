@@ -25,9 +25,9 @@ topdir = ../..
 LIB_NAME = libOggFLAC++
 INCLUDES = -I$(topdir)/include
 
-OBJS = \
-	stream_decoder.o \
-	stream_encoder.o
+SRCS_CPP = \
+	stream_decoder.cpp \
+	stream_encoder.cpp
 
 include $(topdir)/build/lib.mk
 

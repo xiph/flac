@@ -408,8 +408,12 @@ AC_OUTPUT( \
 	man/Makefile \
 	test/Makefile \
 	build/Makefile \
-	obj/bin/Makefile \
-	obj/lib/Makefile \
+	obj/debug/bin/Makefile \
+	obj/debug/lib/Makefile \
+	obj/debug/Makefile \
+	obj/release/bin/Makefile \
+	obj/release/lib/Makefile \
+	obj/release/Makefile \
 	obj/Makefile \
 	flac.pbproj/Makefile \
 )

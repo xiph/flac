@@ -25,15 +25,15 @@ PROGRAM_NAME = metaflac
 INCLUDES     = -I./include -I$(topdir)/include
 LIBS         = -lgrabbag -lFLAC -lgain_analysis -lgetopt -lutf8 -lm
 
-OBJS = \
-	main.o \
-	operations.o \
-	operations_shorthand_seektable.o \
-	operations_shorthand_streaminfo.o \
-	operations_shorthand_vorbiscomment.o \
-	options.o \
-	usage.o \
-	utils.o
+SRCS_C = \
+	main.c \
+	operations.c \
+	operations_shorthand_seektable.c \
+	operations_shorthand_streaminfo.c \
+	operations_shorthand_vorbiscomment.c \
+	options.c \
+	usage.c \
+	utils.c
 
 include $(topdir)/build/exe.mk
 

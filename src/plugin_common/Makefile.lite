@@ -8,14 +8,14 @@ LIB_NAME = libplugin_common
 INCLUDES = -I./include -I$(topdir)/include -I$(HOME)/local/include
 DEFINES  = -DFLAC__HAS_ID3LIB -DID3LIB_MAJOR=3 -DID3LIB_MINOR=8 -DID3LIB_PATCH=0
 
-OBJS = \
-	canonical_tag.o \
-	charset.o \
-	dither.o \
-	id3v1.o \
-	id3v2.o \
-	replaygain_synthesis.o \
-	vorbiscomment.o
+SRCS_C = \
+	canonical_tag.c \
+	charset.c \
+	dither.c \
+	id3v1.c \
+	id3v2.c \
+	replaygain_synthesis.c \
+	vorbiscomment.c
 
 include $(topdir)/build/lib.mk
 

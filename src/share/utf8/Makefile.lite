@@ -7,10 +7,10 @@ topdir = ../../..
 LIB_NAME = libutf8
 INCLUDES = -I$(topdir)/include -I$(topdir)/include/share
 
-OBJS = \
-	charset.o \
-	iconvert.o \
-	utf8.o
+SRCS_C = \
+	charset.c \
+	iconvert.c \
+	utf8.c
 
 include $(topdir)/build/lib.mk
 

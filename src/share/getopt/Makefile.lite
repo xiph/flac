@@ -7,9 +7,9 @@ topdir = ../../..
 LIB_NAME = libgetopt
 INCLUDES = -I$(topdir)/include -I$(topdir)/include/share
 
-OBJS = \
-	getopt.o \
-	getopt1.o
+SRCS_C = \
+	getopt.c \
+	getopt1.c
 
 include $(topdir)/build/lib.mk
 

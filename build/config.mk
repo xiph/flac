@@ -16,6 +16,17 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #
+# debug/release selection
+#
+
+DEFAULT_BUILD = release
+
+debug   : BUILD = debug
+release : BUILD = release
+
+all default: $(DEFAULT_BUILD)
+
+#
 # GNU makefile fragment for emulating stuff normally done by configure
 #
 

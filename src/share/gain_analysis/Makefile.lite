@@ -7,8 +7,8 @@ topdir = ../../..
 LIB_NAME = libgain_analysis
 INCLUDES = -I$(topdir)/include/share
 
-OBJS = \
-	gain_analysis.o
+SRCS_C = \
+	gain_analysis.c
 
 include $(topdir)/build/lib.mk
 

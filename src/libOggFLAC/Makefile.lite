@@ -35,9 +35,9 @@ endif
 INCLUDES = -I./include -I$(topdir)/include -I$(HOME)/local/include
 DEBUG_CFLAGS = 
 
-OBJS = \
-	stream_decoder.o \
-	stream_encoder.o
+SRCS_C = \
+	stream_decoder.c \
+	stream_encoder.c
 
 include $(topdir)/build/lib.mk
 

@@ -37,12 +37,12 @@ LIBS         = -lgrabbag -lOggFLAC -lFLAC -lgain_analysis -lgetopt -lutf8 -lm -L
 endif
 endif
 
-OBJS = \
-	analyze.o \
-	decode.o \
-	encode.o \
-	main.o \
-	vorbiscomment.o
+SRCS_C = \
+	analyze.c \
+	decode.c \
+	encode.c \
+	main.c \
+	vorbiscomment.c
 
 include $(topdir)/build/exe.mk
 

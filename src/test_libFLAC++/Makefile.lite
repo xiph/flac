@@ -24,14 +24,14 @@ topdir = ../..
 PROGRAM_NAME = test_libFLAC++
 INCLUDES     = -I$(topdir)/include
 LIBS         = -lgrabbag -lFLAC++ -lFLAC -lm
-OBJS = \
-	decoders.o \
-	encoders.o \
-	file_utils.o \
-	main.o \
-	metadata.o \
-	metadata_manip.o \
-	metadata_object.o
+SRCS_CPP = \
+	decoders.cpp \
+	encoders.cpp \
+	file_utils.cpp \
+	main.cpp \
+	metadata.cpp \
+	metadata_manip.cpp \
+	metadata_object.cpp
 
 include $(topdir)/build/exe.mk
 
