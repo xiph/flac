@@ -293,7 +293,9 @@ typedef struct {
  *****************************************************************************/
 
 typedef enum {
-	FLAC__METADATA_TYPE_ENCODING = 0
+	FLAC__METADATA_TYPE_STREAMINFO = 0,
+	FLAC__METADATA_TYPE_PADDING = 1,
+	FLAC__METADATA_TYPE_APPLICATION = 2
 } FLAC__MetaDataType;
 extern const char *FLAC__MetaDataTypeString[];
 
@@ -319,18 +321,41 @@ typedef struct {
 	unsigned bits_per_sample;
 	uint64 total_samples;
 	byte md5sum[16];
-} FLAC__StreamMetaData_Encoding;
+} FLAC__StreamMetaData_StreamInfo;
 
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MIN_BLOCK_SIZE_LEN; /* = 16 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MAX_BLOCK_SIZE_LEN; /* = 16 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN; /* = 24 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MAX_FRAME_SIZE_LEN; /* = 24 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_SAMPLE_RATE_LEN; /* = 20 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_CHANNELS_LEN; /* = 3 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_BITS_PER_SAMPLE_LEN; /* = 5 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_TOTAL_SAMPLES_LEN; /* = 36 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_MD5SUM_LEN; /* = 128 bits */
-extern const unsigned FLAC__STREAM_METADATA_ENCODING_LENGTH; /* = 34 bytes */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN; /* = 16 bits */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN; /* = 16 bits */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN; /* = 24 bits */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN; /* = 24 bits */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN; /* = 20 bits */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN; /* = 3 bits */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN; /* = 5 bits */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN; /* = 36 bits */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN; /* = 128 bits */
+extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_LENGTH; /* = 34 bytes */
+
+/*****************************************************************************
+ *
+ *   n: '0' bits
+ *----- -----------------
+ * n/8  bytes total
+ */
+typedef struct {
+} FLAC__StreamMetaData_Padding;
+
+/*****************************************************************************
+ *
+ *    128: Registered application ID
+ *      n: Application data
+ *-------- -----------------
+ * 16+n/8  bytes total
+ */
+typedef struct {
+	byte id[16];
+	byte *data;
+} FLAC__StreamMetaData_Application;
+
+extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /* = 128 bits */
 
 /*****************************************************************************
  *
@@ -345,7 +370,7 @@ typedef struct {
 	bool is_last;
 	unsigned length; /* in bytes */
 	union {
-		FLAC__StreamMetaData_Encoding encoding;
+		FLAC__StreamMetaData_StreamInfo stream_info;
 	} data;
 } FLAC__StreamMetaData;
 
@@ -363,7 +388,7 @@ extern const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /* = 24 bits */
  *****************************************************************************/
 
 typedef struct {
-	FLAC__StreamMetaData_Encoding metadata;
+	FLAC__StreamMetaData_StreamInfo stream_info;
 	FLAC__Frame *frames;
 } FLAC__Stream;
 
