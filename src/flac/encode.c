@@ -155,6 +155,7 @@ static FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bo
 static FLAC__bool read_big_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn);
 static FLAC__bool read_big_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn);
 static FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn);
+static FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset);
 
 /*
  * public routines
@@ -264,14 +265,9 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			sample_rate= xx;
 
 			/* skip any extra data in the COMM chunk */
-			FLAC__ASSERT(skip<=LONG_MAX);
-			while(skip>0U && fseek(infile, skip, SEEK_CUR)<0) {
-				unsigned int need= min(skip, sizeof ucbuffer_);
-				if(fread(ucbuffer_, 1U, need, infile)<need) {
-					flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping extra COMM data\n", encoder_session.inbasefilename);
-					return EncoderSession_finish_error(&encoder_session);
-				}
-				skip-= need;
+			if(!fskip_ahead(infile, skip)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping extra COMM data\n", encoder_session.inbasefilename);
+				return EncoderSession_finish_error(&encoder_session);
 			}
 
 			/*
@@ -318,7 +314,9 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			}
 			block_size= xx;
 
-			if(fseek(infile, offset, SEEK_CUR)) {
+			/* skip any SSND offset bytes */
+			FLAC__ASSERT(offset<=LONG_MAX);
+			if(!fskip_ahead(infile, offset)) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: skipping offset in SSND chunk\n", encoder_session.inbasefilename);
 				return EncoderSession_finish_error(&encoder_session);
 			}
@@ -341,25 +339,9 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			FLAC__ASSERT(!options.common.sector_align || encoder_session.until == 0);
 
 			if(encoder_session.skip>0U) {
-				FLAC__uint64 remaining= encoder_session.skip*bytes_per_frame;
-
-				/* do 1<<30 bytes at a time, since 1<<30 is a nice round number, and */
-				/* is guaranteed to be less than LONG_MAX */
-				while(remaining>0U)
-				{
-					unsigned long skip= (unsigned long)(remaining % (1U<<30));
-
-					FLAC__ASSERT(skip<=LONG_MAX);
-					while(skip>0 && fseek(infile, skip, SEEK_CUR)<0) {
-						unsigned int need= min(skip, sizeof ucbuffer_);
-						if(fread(ucbuffer_, 1U, need, infile)<need) {
-							flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
-							return EncoderSession_finish_error(&encoder_session);
-						}
-						skip-= need;
-					}
-
-					remaining-= skip;
+				if(!fskip_ahead(infile, encoder_session.skip*bytes_per_frame)) {
+					flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
 
@@ -439,27 +421,10 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			}
 
 			if(trim>0) {
-				FLAC__uint64 remaining= (unsigned int)trim*bytes_per_frame;
-
 				FLAC__ASSERT(!options.common.sector_align);
-
-				/* do 1<<30 bytes at a time, since 1<<30 is a nice round number, and */
-				/* is guaranteed to be less than LONG_MAX */
-				while(remaining>0U)
-				{
-					unsigned long skip= (unsigned long)(remaining % (1U<<30));
-
-					FLAC__ASSERT(skip<=LONG_MAX);
-					while(skip>0 && fseek(infile, skip, SEEK_CUR)<0) {
-						unsigned int need= min(skip, sizeof ucbuffer_);
-						if(fread(ucbuffer_, 1U, need, infile)<need) {
-							flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
-							return EncoderSession_finish_error(&encoder_session);
-						}
-						skip-= need;
-					}
-
-					remaining-= skip;
+				if(!fskip_ahead(infile, trim*bytes_per_frame)) {
+					flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
 
@@ -530,13 +495,9 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 				unsigned long skip= xx+(xx & 1U);
 
 				FLAC__ASSERT(skip<=LONG_MAX);
-				while(skip>0U && fseek(infile, skip, SEEK_CUR)<0) {
-					unsigned int need= min(skip, sizeof ucbuffer_);
-					if(fread(ucbuffer_, 1U, need, infile)<need) {
-						fprintf(stderr, "%s: ERROR during read while skipping unknown chunk\n", encoder_session.inbasefilename);
-						return EncoderSession_finish_error(&encoder_session);
-					}
-					skip-= need;
+				if(!fskip_ahead(infile, skip)) {
+					fprintf(stderr, "%s: ERROR during read while skipping unknown chunk\n", encoder_session.inbasefilename);
+					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
 		}
@@ -711,17 +672,9 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			FLAC__ASSERT(!options.common.sector_align || encoder_session.until == 0);
 
 			if(encoder_session.skip > 0) {
-				if(fseek(infile, bytes_per_wide_sample * (unsigned)encoder_session.skip, SEEK_CUR) < 0) {
-					/* can't seek input, read ahead manually... */
-					unsigned left, need;
-					for(left = (unsigned)encoder_session.skip; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
-						need = min(left, CHUNK_OF_SAMPLES);
-						if(fread(ucbuffer_, bytes_per_wide_sample, need, infile) < need) {
-							flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
-							return EncoderSession_finish_error(&encoder_session);
-						}
-						left -= need;
-					}
+				if(!fskip_ahead(infile, encoder_session.skip * bytes_per_wide_sample)) {
+					flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
 
@@ -805,17 +758,10 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			}
 
 			if(trim > 0) {
-				if(fseek(infile, bytes_per_wide_sample * (unsigned)trim, SEEK_CUR) < 0) {
-					/* can't seek input, read ahead manually... */
-					unsigned left, need;
-					for(left = (unsigned)trim; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
-						need = min(left, CHUNK_OF_SAMPLES);
-						if(fread(ucbuffer_, bytes_per_wide_sample, need, infile) < need) {
-							flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
-							return EncoderSession_finish_error(&encoder_session);
-						}
-						left -= need;
-					}
+				FLAC__ASSERT(!options.common.sector_align);
+				if(!fskip_ahead(infile, trim * bytes_per_wide_sample)) {
+					flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
 
@@ -896,18 +842,9 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				unsigned long skip = xx+(xx & 1U);
 
 				FLAC__ASSERT(skip<=LONG_MAX);
-				if(fseek(infile, skip, SEEK_CUR) < 0) {
-					/* can't seek input, read ahead manually... */
-					unsigned left, need;
-					const unsigned chunk = sizeof(ucbuffer_);
-					for(left = skip; left > 0; ) {
-						need = min(left, chunk);
-						if(fread(ucbuffer_, 1, need, infile) < need) {
-							flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping unsupported sub-chunk\n", encoder_session.inbasefilename);
-							return EncoderSession_finish_error(&encoder_session);
-						}
-						left -= need;
-					}
+				if(!fskip_ahead(infile, skip)) {
+					flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping unsupported sub-chunk\n", encoder_session.inbasefilename);
+					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
 		}
@@ -999,18 +936,9 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		if(skip_bytes > lookahead_length) {
 			skip_bytes -= lookahead_length;
 			lookahead_length = 0;
-			if(fseek(infile, (long)skip_bytes, SEEK_CUR) < 0) {
-				/* can't seek input, read ahead manually... */
-				unsigned left, need;
-				const unsigned chunk = sizeof(ucbuffer_);
-				for(left = skip_bytes; left > 0; ) {
-					need = min(left, chunk);
-					if(fread(ucbuffer_, 1, need, infile) < need) {
-						flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
-						return EncoderSession_finish_error(&encoder_session);
-					}
-					left -= need;
-				}
+			if(!fskip_ahead(infile, skip_bytes)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+				return EncoderSession_finish_error(&encoder_session);
 			}
 		}
 		else {
@@ -2181,5 +2109,21 @@ FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, con
 		p|= (FLAC__uint64)(buf[i+2])<<(56U-i*8);
 	*val= (FLAC__uint32)((p>>shift)+(p>>(shift-1) & 0x1));
 
+	return true;
+}
+
+FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
+{
+	static unsigned char dump[8192];
+
+	while(offset > 0) {
+		long need = (long)min(offset, LONG_MAX);
+	   	if(fseek(f, need, SEEK_CUR) < 0) {
+			need = min(offset, sizeof(dump));
+			if(fread(dump, need, 1, f) < 1)
+				return false;
+		}
+		offset -= need;
+	}
 	return true;
 }
