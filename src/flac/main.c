@@ -42,15 +42,9 @@ int main(int argc, char *argv[])
 	int format_is_wave = -1, format_is_big_endian = -1, format_is_unsigned_samples = false;
 	int format_channels = -1, format_bps = -1, format_sample_rate = -1;
 	int blocksize = -1, min_residual_partition_order = -1, max_residual_partition_order = -1, rice_parameter_search_dist = -1;
-	char default_outfilename[4096]; /* @@@ bad MAGIC NUMBER*/
 	char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER */
 	int num_requested_seek_points = -1; /* -1 => no -S options were given, 0 => -S- was given */
 	FILE *encode_infile = 0;
-
-/*@@@
-	aopts.do_residual_text = false;
-	aopts.do_residual_gnuplot = false;
-*/
 
 	if(argc <= 1)
 		return usage(0);
