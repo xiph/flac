@@ -19,24 +19,21 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) $(cdebug) $(cflags) /I "..\libFLAC\include" /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.2\" -YX /Od /D "_DEBUG" $<
+	$(cc) $(cdebug) $(cflags) /I "..\libFLAC\include" /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3\" -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /O2 $(crelease) $(cflags) /I "..\libFLAC\include" /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.2\" -YX -DNODEBUG $<
+	$(cc) /O2 $(crelease) $(cflags) /I "..\libFLAC\include" /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3\" -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
 	bitbuffer.c \
 	decoders.c \
-	file_decoder.c \
 	file_utils.c \
 	main.c \
 	metadata.c \
 	metadata_manip.c \
 	metadata_object.c \
-	metadata_utils.c \
-	seekable_stream_decoder.c \
-	stream_decoder.c
+	metadata_utils.c
 
 OBJS= $(C_FILES:.c=.obj)
 
