@@ -345,6 +345,7 @@ AC_OUTPUT( \
 	src/libFLAC++/Makefile \
 	src/libOggFLAC/Makefile \
 	src/libOggFLAC/include/Makefile \
+	src/libOggFLAC/include/private/Makefile \
 	src/libOggFLAC/include/protected/Makefile \
 	src/libOggFLAC++/Makefile \
 	src/flac/Makefile \
