@@ -1039,6 +1039,7 @@ bool stream_decoder_read_subframe_(FLAC__StreamDecoder *decoder, unsigned channe
 		if(!FLAC__bitbuffer_read_unary_unsigned(&decoder->guts->input, &u, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
 		decoder->guts->frame.subframes[channel].wasted_bits = u+1;
+		bps -= decoder->guts->frame.subframes[channel].wasted_bits;
 	}
 	else
 		decoder->guts->frame.subframes[channel].wasted_bits = 0;
