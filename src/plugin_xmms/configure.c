@@ -50,6 +50,21 @@ flac_config_t flac_cfg = {
 		FALSE, /* convert_char_set */
 		NULL /* user_char_set */
 	},
+	/* stream */
+	{
+		100 /* KB */, /* http_buffer_size */
+		50, /* http_prebuffer */
+		FALSE, /* use_proxy */
+		"", /* proxy_host */
+		0, /* proxy_port */
+		FALSE, /* proxy_use_auth */
+		"", /* proxy_user */
+		"", /* proxy_pass */
+		FALSE, /* save_http_stream */
+		"", /* save_http_path */
+		FALSE, /* cast_title_streaming */
+		FALSE /* use_udp_channel */
+	},
 	/* output */
 	{
 		/* replaygain */
@@ -95,6 +110,18 @@ static GtkWidget *resolution_replaygain_bps_out_frame;
 static GtkWidget *resolution_replaygain_bps_out_radio_16bps;
 static GtkWidget *resolution_replaygain_bps_out_radio_24bps;
 
+static GtkObject *streaming_size_adj, *streaming_pre_adj;
+static GtkWidget *streaming_proxy_use, *streaming_proxy_host_entry;
+static GtkWidget *streaming_proxy_port_entry, *streaming_save_use, *streaming_save_entry;
+static GtkWidget *streaming_proxy_auth_use;
+static GtkWidget *streaming_proxy_auth_pass_entry, *streaming_proxy_auth_user_entry;
+static GtkWidget *streaming_proxy_auth_user_label, *streaming_proxy_auth_pass_label;
+#ifdef FLAC_ICECAST
+static GtkWidget *streaming_cast_title, *streaming_udp_title;
+#endif
+static GtkWidget *streaming_proxy_hbox, *streaming_proxy_auth_hbox, *streaming_save_dirbrowser;
+static GtkWidget *streaming_save_hbox;
+
 static gchar *gtk_entry_get_text_1 (GtkWidget *widget);
 static void flac_configurewin_ok(GtkWidget * widget, gpointer data);
 static void configure_destroy(GtkWidget * w, gpointer data);
@@ -127,6 +154,61 @@ static void flac_configurewin_ok(GtkWidget * widget, gpointer data)
 	xmms_cfg_write_boolean(cfg, "flac", "output.resolution.replaygain.dither", flac_cfg.output.resolution.replaygain.dither);
 	xmms_cfg_write_int(cfg, "flac", "output.resolution.replaygain.noise_shaping", flac_cfg.output.resolution.replaygain.noise_shaping);
 	xmms_cfg_write_int(cfg, "flac", "output.resolution.replaygain.bps_out", flac_cfg.output.resolution.replaygain.bps_out);
+	/* streaming */
+	flac_cfg.stream.http_buffer_size = (gint) GTK_ADJUSTMENT(streaming_size_adj)->value;
+	flac_cfg.stream.http_prebuffer = (gint) GTK_ADJUSTMENT(streaming_pre_adj)->value;
+
+	flac_cfg.stream.use_proxy = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_proxy_use));
+	g_free(flac_cfg.stream.proxy_host);
+	flac_cfg.stream.proxy_host = g_strdup(gtk_entry_get_text(GTK_ENTRY(streaming_proxy_host_entry)));
+	flac_cfg.stream.proxy_port = atoi(gtk_entry_get_text(GTK_ENTRY(streaming_proxy_port_entry)));
+
+	flac_cfg.stream.proxy_use_auth = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_proxy_auth_use));
+
+	if(flac_cfg.stream.proxy_user)
+		g_free(flac_cfg.stream.proxy_user);
+	flac_cfg.stream.proxy_user = NULL;
+	if(strlen(gtk_entry_get_text(GTK_ENTRY(streaming_proxy_auth_user_entry))) > 0)
+		flac_cfg.stream.proxy_user = g_strdup(gtk_entry_get_text(GTK_ENTRY(streaming_proxy_auth_user_entry)));
+
+	if(flac_cfg.stream.proxy_pass)
+		g_free(flac_cfg.stream.proxy_pass);
+	flac_cfg.stream.proxy_pass = NULL;
+	if(strlen(gtk_entry_get_text(GTK_ENTRY(streaming_proxy_auth_pass_entry))) > 0)
+		flac_cfg.stream.proxy_pass = g_strdup(gtk_entry_get_text(GTK_ENTRY(streaming_proxy_auth_pass_entry)));
+
+
+	flac_cfg.stream.save_http_stream = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_save_use));
+	if (flac_cfg.stream.save_http_path)
+		g_free(flac_cfg.stream.save_http_path);
+	flac_cfg.stream.save_http_path = g_strdup(gtk_entry_get_text(GTK_ENTRY(streaming_save_entry)));
+
+#ifdef FLAC_ICECAST
+	flac_cfg.stream.cast_title_streaming = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_cast_title));
+	flac_cfg.stream.use_udp_channel = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_udp_title));
+#endif
+
+	xmms_cfg_write_int(cfg, "flac", "stream.http_buffer_size", flac_cfg.stream.http_buffer_size);
+	xmms_cfg_write_int(cfg, "flac", "stream.http_prebuffer", flac_cfg.stream.http_prebuffer);
+	xmms_cfg_write_boolean(cfg, "flac", "stream.use_proxy", flac_cfg.stream.use_proxy);
+	xmms_cfg_write_string(cfg, "flac", "stream.proxy_host", flac_cfg.stream.proxy_host);
+	xmms_cfg_write_int(cfg, "flac", "stream.proxy_port", flac_cfg.stream.proxy_port);
+	xmms_cfg_write_boolean(cfg, "flac", "stream.proxy_use_auth", flac_cfg.stream.proxy_use_auth);
+	if(flac_cfg.stream.proxy_user)
+		xmms_cfg_write_string(cfg, "flac", "stream.proxy_user", flac_cfg.stream.proxy_user);
+	else
+		xmms_cfg_remove_key(cfg, "flac", "stream.proxy_user");
+	if(flac_cfg.stream.proxy_pass)
+		xmms_cfg_write_string(cfg, "flac", "stream.proxy_pass", flac_cfg.stream.proxy_pass);
+	else
+		xmms_cfg_remove_key(cfg, "flac", "stream.proxy_pass");
+	xmms_cfg_write_boolean(cfg, "flac", "stream.save_http_stream", flac_cfg.stream.save_http_stream);
+	xmms_cfg_write_string(cfg, "flac", "stream.save_http_path", flac_cfg.stream.save_http_path);
+#ifdef FLAC_ICECAST
+	xmms_cfg_write_boolean(cfg, "flac", "stream.cast_title_streaming", flac_cfg.stream.cast_title_streaming);
+	xmms_cfg_write_boolean(cfg, "flac", "stream.use_udp_channel", flac_cfg.stream.use_udp_channel);
+#endif
+
 	xmms_cfg_write_file(cfg, filename);
 	xmms_cfg_free(cfg);
 	g_free(filename);
@@ -225,6 +307,62 @@ static void resolution_replaygain_bps_out_cb(GtkWidget *widget, gpointer data)
 	;
 }
 
+static void proxy_use_cb(GtkWidget * w, gpointer data)
+{
+	gboolean use_proxy, use_proxy_auth;
+	(void) w;
+	(void) data;
+
+	use_proxy = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_proxy_use));
+	use_proxy_auth = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_proxy_auth_use));
+
+	gtk_widget_set_sensitive(streaming_proxy_hbox, use_proxy);
+	gtk_widget_set_sensitive(streaming_proxy_auth_use, use_proxy);
+	gtk_widget_set_sensitive(streaming_proxy_auth_hbox, use_proxy && use_proxy_auth);
+}
+
+static void proxy_auth_use_cb(GtkWidget *w, gpointer data)
+{
+	gboolean use_proxy, use_proxy_auth;
+	(void) w;
+	(void) data;
+
+	use_proxy = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_proxy_use));
+	use_proxy_auth = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_proxy_auth_use));
+
+	gtk_widget_set_sensitive(streaming_proxy_auth_hbox, use_proxy && use_proxy_auth);
+}
+
+static void streaming_save_dirbrowser_cb(gchar * dir)
+{
+	gtk_entry_set_text(GTK_ENTRY(streaming_save_entry), dir);
+}
+
+static void streaming_save_browse_cb(GtkWidget * w, gpointer data)
+{
+	(void) w;
+	(void) data;
+	if (!streaming_save_dirbrowser)
+	{
+		streaming_save_dirbrowser = xmms_create_dir_browser(_("Select the directory where you want to store the MPEG streams:"),
+								    flac_cfg.stream.save_http_path, GTK_SELECTION_SINGLE, streaming_save_dirbrowser_cb);
+		gtk_signal_connect(GTK_OBJECT(streaming_save_dirbrowser), "destroy", GTK_SIGNAL_FUNC(gtk_widget_destroyed), &streaming_save_dirbrowser);
+		gtk_window_set_transient_for(GTK_WINDOW(streaming_save_dirbrowser), GTK_WINDOW(flac_configurewin));
+		gtk_widget_show(streaming_save_dirbrowser);
+	}
+}
+
+static void streaming_save_use_cb(GtkWidget * w, gpointer data)
+{
+	gboolean save_stream;
+	(void) w;
+	(void) data;
+
+	save_stream = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(streaming_save_use));
+
+	gtk_widget_set_sensitive(streaming_save_hbox, save_stream);
+}
+
 
 void FLAC_XMMS__configure(void)
 {
@@ -236,6 +374,19 @@ void FLAC_XMMS__configure(void)
 	GtkWidget *label, *hbox;
 	GtkWidget *bbox, *ok, *cancel;
 	GList *list;
+
+	GtkWidget *streaming_vbox;
+	GtkWidget *streaming_buf_frame, *streaming_buf_hbox;
+	GtkWidget *streaming_size_box, *streaming_size_label, *streaming_size_spin;
+	GtkWidget *streaming_pre_box, *streaming_pre_label, *streaming_pre_spin;
+	GtkWidget *streaming_proxy_frame, *streaming_proxy_vbox;
+	GtkWidget *streaming_proxy_port_label, 	*streaming_proxy_host_label;
+	GtkWidget *streaming_save_frame, *streaming_save_vbox;
+	GtkWidget *streaming_save_label, *streaming_save_browse;
+#ifdef FLAC_ICECAST
+	GtkWidget *streaming_cast_frame, *streaming_cast_vbox;
+#endif
+	char *temp;
 
 	if (flac_configurewin != NULL) {
 		gdk_window_raise(flac_configurewin->window);
@@ -458,6 +609,153 @@ void FLAC_XMMS__configure(void)
 	resolution_replaygain_dither_cb(resolution_replaygain_dither, NULL);
 
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), output_vbox, gtk_label_new(_("Output")));
+
+	/* Streaming */
+
+	streaming_vbox = gtk_vbox_new(FALSE, 0);
+
+	streaming_buf_frame = gtk_frame_new(_("Buffering:"));
+	gtk_container_set_border_width(GTK_CONTAINER(streaming_buf_frame), 5);
+	gtk_box_pack_start(GTK_BOX(streaming_vbox), streaming_buf_frame, FALSE, FALSE, 0);
+
+	streaming_buf_hbox = gtk_hbox_new(TRUE, 5);
+	gtk_container_set_border_width(GTK_CONTAINER(streaming_buf_hbox), 5);
+	gtk_container_add(GTK_CONTAINER(streaming_buf_frame), streaming_buf_hbox);
+
+	streaming_size_box = gtk_hbox_new(FALSE, 5);
+	/*gtk_table_attach_defaults(GTK_TABLE(streaming_buf_table),streaming_size_box,0,1,0,1); */
+	gtk_box_pack_start(GTK_BOX(streaming_buf_hbox), streaming_size_box, TRUE, TRUE, 0);
+	streaming_size_label = gtk_label_new(_("Buffer size (kb):"));
+	gtk_box_pack_start(GTK_BOX(streaming_size_box), streaming_size_label, FALSE, FALSE, 0);
+	streaming_size_adj = gtk_adjustment_new(flac_cfg.stream.http_buffer_size, 4, 4096, 4, 4, 4);
+	streaming_size_spin = gtk_spin_button_new(GTK_ADJUSTMENT(streaming_size_adj), 8, 0);
+	gtk_widget_set_usize(streaming_size_spin, 60, -1);
+	gtk_box_pack_start(GTK_BOX(streaming_size_box), streaming_size_spin, FALSE, FALSE, 0);
+
+	streaming_pre_box = gtk_hbox_new(FALSE, 5);
+	/*gtk_table_attach_defaults(GTK_TABLE(streaming_buf_table),streaming_pre_box,1,2,0,1); */
+	gtk_box_pack_start(GTK_BOX(streaming_buf_hbox), streaming_pre_box, TRUE, TRUE, 0);
+	streaming_pre_label = gtk_label_new(_("Pre-buffer (percent):"));
+	gtk_box_pack_start(GTK_BOX(streaming_pre_box), streaming_pre_label, FALSE, FALSE, 0);
+	streaming_pre_adj = gtk_adjustment_new(flac_cfg.stream.http_prebuffer, 0, 90, 1, 1, 1);
+	streaming_pre_spin = gtk_spin_button_new(GTK_ADJUSTMENT(streaming_pre_adj), 1, 0);
+	gtk_widget_set_usize(streaming_pre_spin, 60, -1);
+	gtk_box_pack_start(GTK_BOX(streaming_pre_box), streaming_pre_spin, FALSE, FALSE, 0);
+
+ 	/*
+ 	 * Proxy config.
+ 	 */
+	streaming_proxy_frame = gtk_frame_new(_("Proxy:"));
+	gtk_container_set_border_width(GTK_CONTAINER(streaming_proxy_frame), 5);
+	gtk_box_pack_start(GTK_BOX(streaming_vbox), streaming_proxy_frame, FALSE, FALSE, 0);
+
+	streaming_proxy_vbox = gtk_vbox_new(FALSE, 5);
+	gtk_container_set_border_width(GTK_CONTAINER(streaming_proxy_vbox), 5);
+	gtk_container_add(GTK_CONTAINER(streaming_proxy_frame), streaming_proxy_vbox);
+
+	streaming_proxy_use = gtk_check_button_new_with_label(_("Use proxy"));
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(streaming_proxy_use), flac_cfg.stream.use_proxy);
+	gtk_signal_connect(GTK_OBJECT(streaming_proxy_use), "clicked", GTK_SIGNAL_FUNC(proxy_use_cb), NULL);
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_vbox), streaming_proxy_use, FALSE, FALSE, 0);
+
+	streaming_proxy_hbox = gtk_hbox_new(FALSE, 5);
+	gtk_widget_set_sensitive(streaming_proxy_hbox, flac_cfg.stream.use_proxy);
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_vbox), streaming_proxy_hbox, FALSE, FALSE, 0);
+
+	streaming_proxy_host_label = gtk_label_new(_("Host:"));
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_hbox), streaming_proxy_host_label, FALSE, FALSE, 0);
+
+	streaming_proxy_host_entry = gtk_entry_new();
+	gtk_entry_set_text(GTK_ENTRY(streaming_proxy_host_entry), flac_cfg.stream.proxy_host);
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_hbox), streaming_proxy_host_entry, TRUE, TRUE, 0);
+
+	streaming_proxy_port_label = gtk_label_new(_("Port:"));
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_hbox), streaming_proxy_port_label, FALSE, FALSE, 0);
+
+	streaming_proxy_port_entry = gtk_entry_new();
+	gtk_widget_set_usize(streaming_proxy_port_entry, 50, -1);
+	temp = g_strdup_printf("%d", flac_cfg.stream.proxy_port);
+	gtk_entry_set_text(GTK_ENTRY(streaming_proxy_port_entry), temp);
+	g_free(temp);
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_hbox), streaming_proxy_port_entry, FALSE, FALSE, 0);
+
+	streaming_proxy_auth_use = gtk_check_button_new_with_label(_("Use authentication"));
+	gtk_widget_set_sensitive(streaming_proxy_auth_use, flac_cfg.stream.use_proxy);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(streaming_proxy_auth_use), flac_cfg.stream.proxy_use_auth);
+	gtk_signal_connect(GTK_OBJECT(streaming_proxy_auth_use), "clicked", GTK_SIGNAL_FUNC(proxy_auth_use_cb), NULL);
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_vbox), streaming_proxy_auth_use, FALSE, FALSE, 0);
+
+	streaming_proxy_auth_hbox = gtk_hbox_new(FALSE, 5);
+	gtk_widget_set_sensitive(streaming_proxy_auth_hbox, flac_cfg.stream.use_proxy && flac_cfg.stream.proxy_use_auth);
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_vbox), streaming_proxy_auth_hbox, FALSE, FALSE, 0);
+
+	streaming_proxy_auth_user_label = gtk_label_new(_("Username:"));
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_auth_hbox), streaming_proxy_auth_user_label, FALSE, FALSE, 0);
+
+	streaming_proxy_auth_user_entry = gtk_entry_new();
+	if(flac_cfg.stream.proxy_user)
+		gtk_entry_set_text(GTK_ENTRY(streaming_proxy_auth_user_entry), flac_cfg.stream.proxy_user);
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_auth_hbox), streaming_proxy_auth_user_entry, TRUE, TRUE, 0);
+
+	streaming_proxy_auth_pass_label = gtk_label_new(_("Password:"));
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_auth_hbox), streaming_proxy_auth_pass_label, FALSE, FALSE, 0);
+
+	streaming_proxy_auth_pass_entry = gtk_entry_new();
+	if(flac_cfg.stream.proxy_pass)
+		gtk_entry_set_text(GTK_ENTRY(streaming_proxy_auth_pass_entry), flac_cfg.stream.proxy_pass);
+	gtk_entry_set_visibility(GTK_ENTRY(streaming_proxy_auth_pass_entry), FALSE);
+	gtk_box_pack_start(GTK_BOX(streaming_proxy_auth_hbox), streaming_proxy_auth_pass_entry, TRUE, TRUE, 0);
+
+
+	/*
+	 * Save to disk config.
+	 */
+	streaming_save_frame = gtk_frame_new(_("Save stream to disk:"));
+	gtk_container_set_border_width(GTK_CONTAINER(streaming_save_frame), 5);
+	gtk_box_pack_start(GTK_BOX(streaming_vbox), streaming_save_frame, FALSE, FALSE, 0);
+
+	streaming_save_vbox = gtk_vbox_new(FALSE, 5);
+	gtk_container_set_border_width(GTK_CONTAINER(streaming_save_vbox), 5);
+	gtk_container_add(GTK_CONTAINER(streaming_save_frame), streaming_save_vbox);
+
+	streaming_save_use = gtk_check_button_new_with_label(_("Save stream to disk"));
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(streaming_save_use), flac_cfg.stream.save_http_stream);
+	gtk_signal_connect(GTK_OBJECT(streaming_save_use), "clicked", GTK_SIGNAL_FUNC(streaming_save_use_cb), NULL);
+	gtk_box_pack_start(GTK_BOX(streaming_save_vbox), streaming_save_use, FALSE, FALSE, 0);
+
+	streaming_save_hbox = gtk_hbox_new(FALSE, 5);
+	gtk_widget_set_sensitive(streaming_save_hbox, flac_cfg.stream.save_http_stream);
+	gtk_box_pack_start(GTK_BOX(streaming_save_vbox), streaming_save_hbox, FALSE, FALSE, 0);
+
+	streaming_save_label = gtk_label_new(_("Path:"));
+	gtk_box_pack_start(GTK_BOX(streaming_save_hbox), streaming_save_label, FALSE, FALSE, 0);
+
+	streaming_save_entry = gtk_entry_new();
+	gtk_entry_set_text(GTK_ENTRY(streaming_save_entry), flac_cfg.stream.save_http_path);
+	gtk_box_pack_start(GTK_BOX(streaming_save_hbox), streaming_save_entry, TRUE, TRUE, 0);
+
+	streaming_save_browse = gtk_button_new_with_label(_("Browse"));
+	gtk_signal_connect(GTK_OBJECT(streaming_save_browse), "clicked", GTK_SIGNAL_FUNC(streaming_save_browse_cb), NULL);
+	gtk_box_pack_start(GTK_BOX(streaming_save_hbox), streaming_save_browse, FALSE, FALSE, 0);
+
+#ifdef FLAC_ICECAST
+	streaming_cast_frame = gtk_frame_new(_("SHOUT/Icecast:"));
+	gtk_container_set_border_width(GTK_CONTAINER(streaming_cast_frame), 5);
+	gtk_box_pack_start(GTK_BOX(streaming_vbox), streaming_cast_frame, FALSE, FALSE, 0);
+
+	streaming_cast_vbox = gtk_vbox_new(5, FALSE);
+	gtk_container_add(GTK_CONTAINER(streaming_cast_frame), streaming_cast_vbox);
+
+	streaming_cast_title = gtk_check_button_new_with_label(_("Enable SHOUT/Icecast title streaming"));
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(streaming_cast_title), flac_cfg.stream.cast_title_streaming);
+	gtk_box_pack_start(GTK_BOX(streaming_cast_vbox), streaming_cast_title, FALSE, FALSE, 0);
+
+	streaming_udp_title = gtk_check_button_new_with_label(_("Enable Icecast Metadata UDP Channel"));
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(streaming_udp_title), flac_cfg.stream.use_udp_channel);
+	gtk_box_pack_start(GTK_BOX(streaming_cast_vbox), streaming_udp_title, FALSE, FALSE, 0);
+#endif
+
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), streaming_vbox, gtk_label_new(_("Streaming")));
 
 	/* Buttons */
 

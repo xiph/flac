@@ -32,6 +32,21 @@ typedef struct {
 	} title;
 
 	struct {
+		gint http_buffer_size;
+		gint http_prebuffer;
+		gboolean use_proxy; 
+		gchar *proxy_host;
+		gint proxy_port;
+		gboolean proxy_use_auth;
+		gchar *proxy_user;
+		gchar	*proxy_pass;
+		gboolean save_http_stream;
+		gchar *save_http_path;
+		gboolean cast_title_streaming;
+		gboolean use_udp_channel;
+	} stream;
+
+	struct {
 		struct {
 			gboolean enable;
 			gboolean album_mode;

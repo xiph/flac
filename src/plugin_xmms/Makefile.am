@@ -25,6 +25,8 @@ EXTRA_DIST = \
 noinst_HEADERS = \
 	charset.h \
 	configure.h \
+	http.h \
+	plugin.h \
 	tag.h
 
 CFLAGS = @CFLAGS@ @XMMS_CFLAGS@
@@ -40,7 +42,7 @@ LIBTOOL = $(top_builddir)/libtool-disable-static
 
 xmmsinputplugin_LTLIBRARIES = libxmms-flac.la
 
-plugin_sources = charset.c configure.c plugin.c tag.c fileinfo.c
+plugin_sources = charset.c configure.c fileinfo.c http.c plugin.c tag.c
 
 libxmms_flac_la_SOURCES = $(plugin_sources)
 
