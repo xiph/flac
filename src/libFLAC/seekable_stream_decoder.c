@@ -652,7 +652,7 @@ FLAC_API FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableSt
 	FLAC__uint64 length;
 
 	FLAC__ASSERT(0 != decoder);
-	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK /*@@@@@ why shouldn't you be able to do this? || decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM*/);
+	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK || decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM);
 
 	decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEKING;
 
@@ -715,7 +715,10 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder,
 	(void)decoder;
 	if(seekable_stream_decoder->private_->eof_callback(seekable_stream_decoder, seekable_stream_decoder->private_->client_data)) {
 		*bytes = 0;
+#if 0
+@@@@@@ verify that this is not needed
 		seekable_stream_decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
+#endif
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 	}
 	else if(*bytes > 0) {
@@ -725,7 +728,10 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder,
 		}
 		if(*bytes == 0) {
 			if(seekable_stream_decoder->private_->eof_callback(seekable_stream_decoder, seekable_stream_decoder->private_->client_data)) {
+#if 0
+@@@@@@ verify that this is not needed
 				seekable_stream_decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
+#endif
 				return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 			}
 			else
@@ -1010,7 +1016,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 			break;
 		}
 		else { /* we need to narrow the search */
-			FLAC__uint64 this_frame_sample = decoder->private_->last_frame.header.number.sample_number;
+			const FLAC__uint64 this_frame_sample = decoder->private_->last_frame.header.number.sample_number;
 			FLAC__ASSERT(decoder->private_->last_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 			if(this_frame_sample == last_frame_sample && pos < last_pos) {
 				/* our last move backwards wasn't big enough, double it */
