@@ -16,6 +16,7 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 FLAC.tag: Doxyfile
+	rm -rf doxytmp
 	doxygen Doxyfile
 	rm -rf html/api
 	mv doxytmp/html html/api
