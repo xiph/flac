@@ -120,7 +120,7 @@ typedef struct {
  * n*i: unencoded signal; n = frame's bits-per-sample, i = frame's blocksize
  */
 typedef struct {
-	int32 *data;
+	const int32 *data;
 } FLAC__Subframe_Verbatim;
 
 /*****************************************************************************
@@ -134,7 +134,7 @@ typedef struct {
 	FLAC__EntropyCodingMethod entropy_coding_method;
 	unsigned order;
 	int32 warmup[FLAC__MAX_FIXED_ORDER];
-	int32 *residual;
+	const int32 *residual;
 } FLAC__Subframe_Fixed;
 
 /*****************************************************************************
@@ -154,7 +154,7 @@ typedef struct {
 	int quantization_level;
 	int32 qlp_coeff[FLAC__MAX_LPC_ORDER];
 	int32 warmup[FLAC__MAX_LPC_ORDER];
-	int32 *residual;
+	const int32 *residual;
 } FLAC__Subframe_LPC;
 
 extern const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN; /* = 4 bits */
