@@ -20,7 +20,7 @@ lib_LTLIBRARIES = libFLAC.la
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
 endif
-CFLAGS = @CFLAGS@  $(DEBUGCFLAGS)
+CFLAGS = @CFLAGS@ $(DEBUGCFLAGS)
 
 if FLaC__NO_ASM
 else
@@ -40,6 +40,7 @@ m4data_DATA = libFLAC.m4
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
+	libFLAC.dsp \
 	libFLAC.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention

@@ -27,7 +27,8 @@ libplugin_common_a_SOURCES = \
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
-	README
+	README \
+	plugin_common.dsp
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

@@ -25,11 +25,12 @@ m4data_DATA = libOggFLAC++.m4
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
+	libOggFLAC++.dsp \
 	libOggFLAC++.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
 libOggFLAC___la_LDFLAGS = -version-info 0:1:0
 
 libOggFLAC___la_SOURCES = \
-	stream_decoder.cc \
-	stream_encoder.cc
+	stream_decoder.cpp \
+	stream_encoder.cpp

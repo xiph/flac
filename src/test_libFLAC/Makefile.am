@@ -17,9 +17,10 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc
+	Makefile.vc \
+	test_libFLAC.dsp
 
-CFLAGS = @CFLAGS@ 
+CFLAGS = @CFLAGS@
 INCLUDES = -I$(top_srcdir)/src/libFLAC/include
 
 noinst_PROGRAMS = test_libFLAC

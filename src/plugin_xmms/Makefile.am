@@ -27,9 +27,9 @@ noinst_HEADERS = \
 	configure.h \
 	wrap_id3.h
 
-CFLAGS = @CFLAGS@  @ ID3LIB_CFLAGS@  @ XMMS_CFLAGS@ 
+CFLAGS = @CFLAGS@ @ID3LIB_CFLAGS@ @XMMS_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src
-xmmsinputplugindir = @ XMMS_INPUT_PLUGIN_DIR@ 
+xmmsinputplugindir = @XMMS_INPUT_PLUGIN_DIR@
 
 # Don't build a static library
 LIBTOOL = $(top_builddir)/libtool-disable-static
@@ -52,5 +52,5 @@ endif
 # for fix info see:
 #   http://lists.freshrpms.net/pipermail/rpm-list/2002-April/000746.html
 # the workaround is the extra '-L$(top_builddir)/src/libFLAC/.libs'
-libxmms_flac_la_LIBADD = $(top_builddir)/src/plugin_common/libplugin_common.a $(top_builddir)/src/libFLAC/libFLAC.la -L$(top_builddir)/src/libFLAC/.libs @ XMMS_LIBS@  @ ID3LIB_LIBS@ 
+libxmms_flac_la_LIBADD = $(top_builddir)/src/plugin_common/libplugin_common.a $(top_builddir)/src/libFLAC/libFLAC.la -L$(top_builddir)/src/libFLAC/.libs @XMMS_LIBS@ @ID3LIB_LIBS@
 libxmms_flac_la_LDFLAGS = -module -avoid-version

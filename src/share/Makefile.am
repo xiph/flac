@@ -17,7 +17,9 @@ EXTRA_DIST = \
 	charmaps.h \
 	makemap.c \
 	charset_test.c \
-	charsetmap.h
+	charsetmap.h \
+	getopt.dsp \
+	utf8.dsp
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

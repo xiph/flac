@@ -20,7 +20,7 @@ lib_LTLIBRARIES = libOggFLAC.la
 if DEBUG
 DEBUGCFLAGS = 
 endif
-CFLAGS = @CFLAGS@  $(DEBUGCFLAGS)
+CFLAGS = @CFLAGS@ $(DEBUGCFLAGS)
 
 SUBDIRS = include .
 
@@ -30,6 +30,7 @@ m4data_DATA = libOggFLAC.m4
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
+	libOggFLAC.dsp \
 	libOggFLAC.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention

@@ -25,16 +25,17 @@ m4data_DATA = libFLAC++.m4
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
+	libFLAC++.dsp \
 	libFLAC++.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
 libFLAC___la_LDFLAGS = -version-info 2:1:0
 
 libFLAC___la_SOURCES = \
-	file_decoder.cc \
-	file_encoder.cc \
-	metadata.cc \
-	seekable_stream_decoder.cc \
-	seekable_stream_encoder.cc \
-	stream_decoder.cc \
-	stream_encoder.cc
+	file_decoder.cpp \
+	file_encoder.cpp \
+	metadata.cpp \
+	seekable_stream_decoder.cpp \
+	seekable_stream_encoder.cpp \
+	stream_decoder.cpp \
+	stream_encoder.cpp

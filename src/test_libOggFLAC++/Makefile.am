@@ -18,17 +18,18 @@
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
-	README
+	README \
+	test_libOggFLAC++.dsp
 
-CFLAGS = @CFLAGS@  @OGG_CFLAGS@ 
+CFLAGS = @CFLAGS@ @OGG_CFLAGS@
 
 noinst_PROGRAMS = test_libOggFLAC++
-test_libOggFLAC___LDADD = $(top_builddir)/src/libOggFLAC++/libOggFLAC++.la $(top_builddir)/src/libOggFLAC/libOggFLAC.la $(top_builddir)/src/libFLAC/libFLAC.la @ OGG_LIBS@  -lm
+test_libOggFLAC___LDADD = $(top_builddir)/src/libOggFLAC++/libOggFLAC++.la $(top_builddir)/src/libOggFLAC/libOggFLAC.la $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ -lm
 test_libOggFLAC___SOURCES = \
-	decoders.cc \
-	encoders.cc \
+	decoders.cpp \
+	encoders.cpp \
 	file_utils.c \
-	main.cc \
+	main.cpp \
 	decoders.h \
 	encoders.h \
 	file_utils.h

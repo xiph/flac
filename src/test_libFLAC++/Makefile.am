@@ -15,23 +15,24 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-CFLAGS = @CFLAGS@ 
+CFLAGS = @CFLAGS@
 
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
-	README
+	README \
+	test_libFLAC++.dsp
 
 noinst_PROGRAMS = test_libFLAC++
 test_libFLAC___LDADD = $(top_builddir)/src/libFLAC++/libFLAC++.la $(top_builddir)/src/libFLAC/libFLAC.la -lm
 test_libFLAC___SOURCES = \
-	decoders.cc \
-	encoders.cc \
+	decoders.cpp \
+	encoders.cpp \
 	file_utils.c \
-	main.cc \
-	metadata.cc \
-	metadata_manip.cc \
-	metadata_object.cc \
+	main.cpp \
+	metadata.cpp \
+	metadata_manip.cpp \
+	metadata_object.cpp \
 	decoders.h \
 	encoders.h \
 	file_utils.h \

@@ -16,7 +16,7 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 bin_PROGRAMS = flac
-CFLAGS = @CFLAGS@  @OGG_CFLAGS@ 
+CFLAGS = @CFLAGS@ @OGG_CFLAGS@
 
 if FLaC__HAS_OGG
 NEED_OGGFLAC_LIB = $(top_builddir)/src/libOggFLAC/libOggFLAC.la
@@ -24,7 +24,8 @@ endif
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc
+	Makefile.vc \
+	flac.dsp
 
 flac_SOURCES = \
 	analyze.c \
@@ -39,4 +40,4 @@ flac_SOURCES = \
 	file.h \
 	vorbiscomment.h
 
-flac_LDADD = $(NEED_OGGFLAC_LIB) $(top_builddir)/src/libFLAC/libFLAC.la @ OGG_LIBS@  @ SHARE_LIBS@  @ LIBICONV@  -lm
+flac_LDADD = $(NEED_OGGFLAC_LIB) $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ @SHARE_LIBS@ @LIBICONV@ -lm
