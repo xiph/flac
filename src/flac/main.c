@@ -564,7 +564,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "         must be 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768\n");
 	fprintf(out, "         (unless --lax is used)\n");
 	fprintf(out, "  -m   : try mid-side coding for each frame (stereo input only)\n");
-	fprintf(out, "  -M   : loose mid-side coding for all frames (stereo input only)\n");
+	fprintf(out, "  -M   : adaptive mid-side coding for all frames (stereo input only)\n");
 	fprintf(out, "  -0 .. -8 : fastest compression .. highest compression, default is -5\n");
 	fprintf(out, "             these are synonyms for other options:\n");
 	fprintf(out, "  -0   : synonymous with -l 0 -b 1152 -r 2,2\n");
