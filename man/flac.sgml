@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>November 15, 2001</date>">
+  <!ENTITY dhdate      "<date>May 16, 2002</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -264,12 +264,16 @@
 		<listitem>
 		  <para>Tell the encoder to write a PADDING metadata
 		    block of the given length (in bytes) after the
-		    STREAMINFO block.  -P 0 implies no PADDING block,
-		    which is the default.  This is useful if you plan
-		    to tag the file later with an APPLICATION block;
+		    STREAMINFO block.  This is useful if you plan to
+		    tag the file later with an APPLICATION block;
 		    instead of having to rewrite the entire file later
 		    just to insert your block, you can write directly
-		    over the PADDING block.</para>
+		    over the PADDING block.  Note that the total length
+		    of the PADDING block will be 4 bytes longer than
+		    the length given because of the 4 metadata block
+		    header bytes.  You can force no PADDING block at
+		    all to be written with -P-, which is the default.
+		    </para>
 		</listitem>
 	      </varlistentry>
 
@@ -494,7 +498,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-S-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-E-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option> <option>--ogg-</option>
+		<term><option>-S-</option> <option>-P-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-E-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option> <option>--ogg-</option>
 		</term>
 
 		<listitem>

@@ -449,7 +449,7 @@
 				<TT>-P #</TT>
 			</TD>
 			<TD>
-				  Tell the encoder to write a <TT>PADDING</TT> metadata block of the given length (in bytes) after the <TT>STREAMINFO</TT> block.  <TT>-P 0</TT> implies no <TT>PADDING</TT> block, which is the default.  This is useful if you plan to tag the file later with an <TT>APPLICATION</TT> block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the <TT>PADDING</TT> block.
+				Tell the encoder to write a <TT>PADDING</TT> metadata block of the given length (in bytes) after the <TT>STREAMINFO</TT> block.  This is useful if you plan to tag the file later with an <TT>APPLICATION</TT> block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the <TT>PADDING</TT> block.  Note that the total length of the <TT>PADDING</TT> block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no <TT>PADDING</TT> block at all to be written with <TT>-P-</TT>, which is the default.
 			</TD>
 		</TR>
 		<TR>
@@ -641,7 +641,7 @@
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 			</TD>
 			<TD>
-				<TT>-S-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-E-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--delete-input-file-</TT>, <TT>--lax-</TT>, <TT>--sector-align-</TT> can all be used to turn off a particular option.
+				<TT>-S-</TT>, <TT>-P-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-E-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--delete-input-file-</TT>, <TT>--lax-</TT>, <TT>--sector-align-</TT> can all be used to turn off a particular option.
 			</TD>
 		</TR>
 	</TABLE>
@@ -938,7 +938,7 @@
 			<LI><B><TT>rice_parameter_search_dist</TT></B> - 0 to try only calculated parameter k; else try all [k-<TT>rice_parameter_search_dist</TT>..k+<TT>rice_parameter_search_dist</TT>] parameters and use the best.</LI>
 			<LI><B><TT>total_samples_estimate</TT></B> - May be set to 0 if unknown.  Otherwise, set this to the number of samples to be encoded.  This will allow the STREAMINFO block to be more accurate during the first pass in the event that the encoder can't seek back to the beginning of the output file to write the updated STREAMINFO block.</LI>
 			<LI><B><TT>seek_table</TT></B> - Optional seek table to prepend; NULL implies no seek table.</LI>
-			<LI><B><TT>padding</TT></B> - Size of PADDING block to add (goes after seek table); 0 implies do not add a PADDING block.</LI>
+			<LI><B><TT>padding</TT></B> - Length of PADDING block to add (goes after seek table); -1 implies do not add a PADDING block.  Remember that this is length of the padding; the length of the overall PADDING block will be 4 bytes larger because of the metadata block header.</LI>
 			<LI><B><TT>last_metadata_is_last</TT></B> - The value the encoder will use for the 'is_last' flag of the last metadata block it writes.  In normal usage you would set this to true, but if you will be manually inserting more metadata blocks between the time of the first write callback (when the encoder sends the <TT>fLaC</TT> header and metadata) and the time actual audio encoding starts then set this to false.</LI>
 		</UL>
 	</P>
