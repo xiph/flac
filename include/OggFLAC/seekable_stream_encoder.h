@@ -61,7 +61,8 @@ extern "C" {
  *  from the FLAC seekable stream encoder.
  *
  * The interface here is nearly identical to FLAC's seekable stream
- * encoder, including the callback(@@@@@@new read callback and why@@@), with the addition of
+ * encoder, including the callbacks, with the addition of a new required
+ * read callback (needed when writing back STREAMINFO after encoding) and
  * OggFLAC__seekable_stream_encoder_set_serial_number().  See the
  * \link flac_seekable_stream_encoder FLAC seekable stream encoder module \endlink
  * for full documentation.
