@@ -50,7 +50,6 @@ libFLAC_la_SOURCES = \
 	memory.c \
 	metadata_iterators.c \
 	metadata_object.c \
-	seek_table.c \
 	seekable_stream_decoder.c \
 	stream_decoder.c \
 	stream_encoder.c \
