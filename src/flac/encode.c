@@ -107,7 +107,7 @@ static bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok);
 static bool write_big_endian_uint16(FILE *f, uint16 val);
 static bool write_big_endian_uint64(FILE *f, uint64 val);
 
-int flac__encode_wav(FILE *infile, const char *infilename, const char *outfilename, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
+int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const byte *lookahead, unsigned lookahead_length, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	bool is_unsigned_samples = false;
@@ -126,6 +126,9 @@ int flac__encode_wav(FILE *infile, const char *infilename, const char *outfilena
 	encoder_wrapper.outfilename = outfilename;
 	encoder_wrapper.seek_table.points = 0;
 	encoder_wrapper.first_seek_point_to_check = 0;
+	(void)infilesize;
+	(void)lookahead;
+	(void)lookahead_length;
 
 	if(0 == strcmp(outfilename, "-")) {
 		encoder_wrapper.fout = stdout;
@@ -142,28 +145,8 @@ int flac__encode_wav(FILE *infile, const char *infilename, const char *outfilena
 		goto wav_abort_;
 
 	/*
-	 * check the RIFF chunk
+	 * lookahead[] already has "RIFFxxxxWAVE", do sub-chunks
 	 */
-	if(!read_little_endian_uint32(infile, &xx, false))
-		goto wav_abort_;
-	if(xx != 0x46464952) { /* "RIFF" */
-		fprintf(stderr, "ERROR: no RIFF header\n");
-		goto wav_abort_;
-	}
-	if(!read_little_endian_uint32(infile, &xx, false))
-		goto wav_abort_;
-
-	/*
-	 * now process the WAVE chunk
-	 */
-	if(!read_little_endian_uint32(infile, &xx, true))
-		goto wav_end_;
-	if(xx != 0x45564157) { /* "WAVE" */
-		fprintf(stderr, "ERROR: no WAVE header\n");
-		goto wav_abort_;
-	}
-
-	/* do sub-chunks */
 	while(!feof(infile)) {
 		if(!read_little_endian_uint32(infile, &xx, true))
 			goto wav_abort_;
@@ -247,14 +230,14 @@ int flac__encode_wav(FILE *infile, const char *infilename, const char *outfilena
 						}
 					}
 					else {
-						int64 left;
-						unsigned need;
-						for(left = (int64)skip; left > 0; left -= CHUNK_OF_SAMPLES) {
+						unsigned left, need;
+						for(left = skip; left > 0; ) {
 							need = min(left, CHUNK_OF_SAMPLES);
 							if(fread(ucbuffer, 1, bytes_per_wide_sample * need, infile) < need) {
 								fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
 								goto wav_abort_;
 							}
+							left -= need;
 						}
 					}
 				}
@@ -305,15 +288,27 @@ int flac__encode_wav(FILE *infile, const char *infilename, const char *outfilena
 			/* chunk size */
 			if(!read_little_endian_uint32(infile, &xx, false))
 				goto wav_abort_;
-			if(-1 == fseek(infile, xx, SEEK_CUR)) {
-				fprintf(stderr, "ERROR seeking ahead while skipping unsupported sub-chunk in input file %s\n", infilename);
-				goto wav_abort_;
+			if(infile != stdin) {
+				if(-1 == fseek(infile, xx, SEEK_CUR)) {
+					fprintf(stderr, "ERROR seeking ahead while skipping unsupported sub-chunk in input file %s\n", infilename);
+					goto wav_abort_;
+				}
+			}
+			else {
+				unsigned left, need;
+				const unsigned chunk = sizeof(ucbuffer);
+				for(left = xx; left > 0; ) {
+					need = min(left, chunk);
+					if(fread(ucbuffer, 1, need, infile) < need) {
+						fprintf(stderr, "ERROR seeking while skipping unsupported sub-chunk in input file %s\n", infilename);
+						goto wav_abort_;
+					}
+					left -= need;
+				}
 			}
 		}
 	}
 
-
-wav_end_:
 	if(encoder_wrapper.encoder) {
 		if(encoder_wrapper.encoder->state == FLAC__ENCODER_OK)
 			FLAC__encoder_finish(encoder_wrapper.encoder);
@@ -362,7 +357,7 @@ wav_abort_:
 	return 1;
 }
 
-int flac__encode_raw(FILE *infile, const char *infilename, const char *outfilename, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
+int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const byte *lookahead, unsigned lookahead_length, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	size_t bytes_read;
@@ -393,41 +388,44 @@ int flac__encode_raw(FILE *infile, const char *infilename, const char *outfilena
 		goto raw_abort_;
 
 	/* get the file length */
-	if(0 != fseek(infile, 0, SEEK_END)) {
+	if(infilesize < 0) {
 		encoder_wrapper.total_samples_to_encode = encoder_wrapper.unencoded_size = 0;
 	}
 	else {
-		long filesize;
-		fflush(infile);
-		if(-1 == (filesize = ftell(infile))) {
-			encoder_wrapper.total_samples_to_encode = encoder_wrapper.unencoded_size = 0;
-		}
-		else {
-			encoder_wrapper.unencoded_size = filesize - skip * bytes_per_wide_sample;
-			encoder_wrapper.total_samples_to_encode = filesize / bytes_per_wide_sample - skip;
-		}
+		encoder_wrapper.unencoded_size = (unsigned)infilesize - skip * bytes_per_wide_sample;
+		encoder_wrapper.total_samples_to_encode = (unsigned)infilesize / bytes_per_wide_sample - skip;
 	}
 
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode <= 0)
 		fprintf(stderr, "(No runtime statistics possible; please wait for encoding to finish...)\n");
 
 	if(skip > 0) {
-		if(infile != stdin) {
-			if(-1 == fseek(infile, bytes_per_wide_sample * (unsigned)skip, SEEK_SET)) {
-				fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
-				goto raw_abort_;
-			}
-		}
-		else {
-			int64 left;
-			unsigned need;
-			for(left = (int64)skip; left > 0; left -= CHUNK_OF_SAMPLES) {
-				need = min(left, CHUNK_OF_SAMPLES);
-				if(fread(ucbuffer, 1, bytes_per_wide_sample * need, infile) < need) {
+		unsigned skip_bytes = bytes_per_wide_sample * (unsigned)skip;
+		if(skip_bytes > lookahead_length) {
+			skip_bytes -= lookahead_length;
+			lookahead_length = 0;
+			if(infile != stdin) {
+				if(-1 == fseek(infile, (long)skip_bytes, SEEK_SET)) {
 					fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
 					goto raw_abort_;
 				}
 			}
+			else {
+				unsigned left, need;
+				const unsigned chunk = sizeof(ucbuffer);
+				for(left = skip_bytes; left > 0; ) {
+					need = min(left, chunk);
+					if(fread(ucbuffer, 1, need, infile) < need) {
+						fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
+						goto raw_abort_;
+					}
+					left -= need;
+				}
+			}
+		}
+		else {
+			lookahead += skip_bytes;
+			lookahead_length -= skip_bytes;
 		}
 	}
 	else {
@@ -440,7 +438,19 @@ int flac__encode_raw(FILE *infile, const char *infilename, const char *outfilena
 	encoder_wrapper.verify_fifo.into_frames = true;
 
 	while(!feof(infile)) {
-		bytes_read = fread(ucbuffer, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample, infile);
+		if(lookahead_length > 0) {
+			FLAC__ASSERT(lookahead_length < CHUNK_OF_SAMPLES * bytes_per_wide_sample);
+			memcpy(ucbuffer, lookahead, lookahead_length);
+			bytes_read = fread(ucbuffer+lookahead_length, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample - lookahead_length, infile) + lookahead_length;
+			if(ferror(infile)) {
+				fprintf(stderr, "ERROR reading from %s\n", infilename);
+				goto raw_abort_;
+			}
+			lookahead_length = 0;
+		}
+		else
+			bytes_read = fread(ucbuffer, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample, infile);
+
 		if(bytes_read == 0) {
 			if(ferror(infile)) {
 				fprintf(stderr, "ERROR reading from %s\n", infilename);

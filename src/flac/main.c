@@ -512,12 +512,17 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 	FILE *encode_infile;
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
 	char *p;
+	byte lookahead[12];
+	unsigned lookahead_length;
 	int retval;
+	long infilesize;
 
 	if(0 == strcmp(infilename, "-")) {
+		infilesize = -1;
 		encode_infile = stdin;
 	}
 	else {
+		infilesize = flac__file_get_filesize(infilename);
 		if(0 == (encode_infile = fopen(infilename, "rb"))) {
 			fprintf(stderr, "ERROR: can't open input file %s\n", infilename);
 			return 1;
@@ -528,21 +533,20 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 		fprintf(stderr, "%s:\n", infilename);
 
 	if(format_is_wave < 0) {
-		/* lamely attempt to guess the file type based on the first 4 bytes (which is all ungetc will guarantee us) */
-		char head[4];
-		int h, n;
 		/* first set format based on name */
-		if(strstr(infilename, ".wav") == infilename + (strlen(infilename) - strlen(".wav")))
+		if(0 == strcasecmp(infilename+(strlen(infilename)-4), ".wav"))
 			format_is_wave = true;
 		else
 			format_is_wave = false;
-		if((n = fread(head, 1, 4, encode_infile)) < 4) {
+
+		/* attempt to guess the file type based on the first 12 bytes */
+		if((lookahead_length = fread(lookahead, 1, 12, encode_infile)) < 12) {
 			if(format_is_wave)
 				fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
 			format_is_wave = false;
 		}
 		else {
-			if(strncmp(head, "RIFF", 4)) {
+			if(strncmp(lookahead, "RIFF", 4) || strncmp(lookahead+8, "WAVE", 4)) {
 				if(format_is_wave)
 					fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
 				format_is_wave = false;
@@ -550,8 +554,6 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 			else
 				format_is_wave = true;
 		}
-		for(h = n-1; h >= 0; h--)
-			ungetc(head[h], encode_infile);
 	}
 
 	if(!format_is_wave) {
@@ -578,9 +580,9 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 		forced_outfilename = cmdline_forced_outfilename;
 
 	if(format_is_wave)
-		retval = flac__encode_wav(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
+		retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
 	else
-		retval = flac__encode_raw(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+		retval = flac__encode_raw(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
 	if(retval == 0 && strcmp(infilename, "-")) {
 		if(strcmp(forced_outfilename, "-"))
