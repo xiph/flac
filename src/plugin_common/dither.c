@@ -29,7 +29,7 @@
 #define max(a,b) ((a)>(b)?(a):(b))
 
 
-#if defined _MSC_VER || defined __MINGW32__
+#if defined _MSC_VER
 #define FLAC__INLINE __inline
 #else
 #define FLAC__INLINE
