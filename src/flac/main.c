@@ -32,7 +32,7 @@ static int encode_file(const char *infilename, const char *forced_outfilename);
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
 bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
-bool do_mid_side = true, loose_mid_side = true, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
 bool force_to_stdout = false;
 analysis_options aopts = { false, false };
 unsigned padding = 0;
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
 			min_residual_partition_order = 0;
-			min_residual_partition_order = 3;
+			max_residual_partition_order = 3;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 0;
 		}
@@ -218,7 +218,7 @@ int main(int argc, char *argv[])
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
 			min_residual_partition_order = 0;
-			min_residual_partition_order = 4;
+			max_residual_partition_order = 4;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
 			min_residual_partition_order = 0;
-			min_residual_partition_order = 6;
+			max_residual_partition_order = 6;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
 			min_residual_partition_order = 0;
-			min_residual_partition_order = 6;
+			max_residual_partition_order = 6;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 12;
 		}
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
 			else
 				blocksize = 4608;
 		}
-		if(min_residual_partition_order < 0) {
+		if(max_residual_partition_order < 0) {
 			if(blocksize <= 1152)
 				max_residual_partition_order = 2;
 			else if(blocksize <= 2304)
