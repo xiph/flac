@@ -21,7 +21,7 @@
 
 PROGRAM_NAME = metaflac
 INCLUDES     = -I./include -I../../include
-LIBS         = -lgetopt
+LIBS         = -lFLAC -lgetopt -lm
 
 OBJS = \
 	main.o
