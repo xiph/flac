@@ -290,7 +290,7 @@ static FLAC__bool generate_file_()
 	if(!insert_to_our_metadata_(&streaminfo, 0, /*copy=*/true) || !insert_to_our_metadata_(&padding, 1, /*copy=*/true))
 		return die_("priming our metadata");
 
-	if(!file_utils__generate_file(flacfile_, 512 * 1024, &streaminfo, padding.length))
+	if(!file_utils__generate_flacfile(flacfile_, 512 * 1024, &streaminfo, padding.length))
 		return die_("creating the encoded file"); 
 
 	return true;

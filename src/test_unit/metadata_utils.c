@@ -126,14 +126,22 @@ FLAC__bool compare_block_data_application_(const FLAC__StreamMetaData_Applicatio
 		);
 		return false;
     }
-	if(block_length - sizeof(block->id) > 0 && (0 == block->data || 0 == blockcopy->data)) {
+	if(0 == block->data || 0 == blockcopy->data) {
 		if(block->data != blockcopy->data) {
 			printf("FAILED, data mismatch (%s's data pointer is null)\n", 0==block->data?"original":"copy");
 			return false;
 		}
+		else if(block_length - sizeof(block->id) > 0) {
+			printf("FAILED, data pointer is null but block length is not 0\n");
+			return false;
+		}
 	}
 	else {
-		if(0 != memcmp(blockcopy->data, block->data, block_length - sizeof(block->id))) {
+		if(block_length - sizeof(block->id) == 0) {
+			printf("FAILED, data pointer is not null but block length is 0\n");
+			return false;
+		}
+		else if(0 != memcmp(blockcopy->data, block->data, block_length - sizeof(block->id))) {
 			printf("FAILED, data mismatch\n");
 			return false;
 		}
@@ -178,7 +186,7 @@ FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetaData_VorbisCo
 			return false;
 		}
 	}
-	if(0 != memcmp(blockcopy->vendor_string.entry, block->vendor_string.entry, block->vendor_string.length)) {
+	else if(0 != memcmp(blockcopy->vendor_string.entry, block->vendor_string.entry, block->vendor_string.length)) {
 		printf("FAILED, vendor_string.entry mismatch\n");
 		return false;
     }

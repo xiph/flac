@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "FLAC/metadata.h"
+#include "metadata.h"
 #include <stdio.h>
 
 extern int test_metadata_object();

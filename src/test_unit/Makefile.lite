@@ -21,15 +21,19 @@
 
 PROGRAM_NAME = test_unit
 INCLUDES     = -I../libFLAC/include -I../../include
-LIBS         = -lFLAC -lm
+LIBS         = -lFLAC -lm -lefence
 OBJS = \
 	bitbuffer.o \
+	decoders.o \
+	file_decoder.o \
 	file_utils.o \
 	main.o \
 	metadata.o \
 	metadata_manip.o \
 	metadata_object.o \
-	metadata_utils.o
+	metadata_utils.o \
+	stream_decoder.o \
+	seekable_stream_decoder.o
 
 include ../../build/exe.mk
 

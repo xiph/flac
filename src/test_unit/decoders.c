@@ -1,5 +1,5 @@
 /* test_unit - Simple FLAC unit tester
- * Copyright (C) 2000,2001,2002  Josh Coalson
+ * Copyright (C) 2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,24 +16,25 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "bitbuffer.h"
 #include "decoders.h"
-#include "metadata.h"
+#include <stdio.h>
 
-int main(int argc, char *argv[])
+extern int test_file_decoder();
+extern int test_seekable_stream_decoder();
+extern int test_stream_decoder();
+
+int test_decoders()
 {
-	(void)argc, (void)argv;
-
-	if(0 != test_bitbuffer())
+	if(0 != test_stream_decoder())
 		return 1;
 
-	if(0 != test_metadata())
+	if(0 != test_seekable_stream_decoder())
 		return 1;
 
-	if(0 != test_decoders())
+	if(0 != test_file_decoder())
 		return 1;
 
-	/* the encoder is tested relatively well in the file_utils */
+	printf("\nPASSED!\n");
 
 	return 0;
 }

@@ -62,12 +62,133 @@ static FLAC__bool compare_seekpoint_array_(const FLAC__StreamMetaData_SeekPoint 
 	return true;
 }
 
+static FLAC__bool check_seektable_(const FLAC__StreamMetaData *block, unsigned num_points, const FLAC__StreamMetaData_SeekPoint *array)
+{
+	const unsigned expected_length = num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
+
+	if(block->length != expected_length) {
+		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
+		return false;
+    }
+	if(block->data.seek_table.num_points != num_points) {
+		printf("FAILED, expected %u point, got %u\n", num_points, block->data.seek_table.num_points);
+		return false;
+	}
+	if(0 == array) {
+		if(0 != block->data.seek_table.points) {
+			printf("FAILED, 'points' pointer is not null\n");
+			return false;
+		}
+	}
+	else {
+		if(!compare_seekpoint_array_(block->data.seek_table.points, array, num_points))
+			return false;
+	}
+	printf("OK\n");
+
+	return true;
+}
+
+static void entry_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, const char *field)
+{
+	entry->length = strlen(field);
+	entry->entry = malloc(entry->length);
+	FLAC__ASSERT(0 != entry->entry);	
+	memcpy(entry->entry, field, entry->length);
+}
+
+static void entry_clone_(FLAC__StreamMetaData_VorbisComment_Entry *entry)
+{
+	FLAC__byte *x = malloc(entry->length);
+	FLAC__ASSERT(0 != x);	
+	memcpy(x, entry->entry, entry->length);
+	entry->entry = x;
+}
+
+static void vc_calc_len_(FLAC__StreamMetaData *block)
+{
+	const FLAC__StreamMetaData_VorbisComment *vc = &block->data.vorbis_comment;
+	unsigned i;
+
+	block->length = FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8;
+	block->length += vc->vendor_string.length;
+	block->length += FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8;
+	for(i = 0; i < vc->num_comments; i++) {
+		block->length += FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8;
+		block->length += vc->comments[i].length;
+	}
+}
+
+static void vc_resize_(FLAC__StreamMetaData *block, unsigned num)
+{
+	FLAC__StreamMetaData_VorbisComment *vc = &block->data.vorbis_comment;
+
+	if(vc->num_comments != 0) {
+		FLAC__ASSERT(0 != vc->comments);
+		if(num < vc->num_comments) {
+			unsigned i;
+			for(i = num; i < vc->num_comments; i++) {
+				if(0 != vc->comments[i].entry)
+					free(vc->comments[i].entry);
+			}
+		}
+	}
+	if(num == 0) {
+		if(0 != vc->comments) {
+			free(vc->comments);
+			vc->comments = 0;
+		}
+	}
+	else {
+		vc->comments = realloc(vc->comments, sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*num);
+		FLAC__ASSERT(0 != vc->comments);
+		if(num > vc->num_comments)
+			memset(vc->comments+vc->num_comments, 0, sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*(num-vc->num_comments));
+	}
+
+	vc->num_comments = num;
+	vc_calc_len_(block);
+}
+
+static void vc_set_vs_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__StreamMetaData *block, const char *field)
+{
+	entry_new_(entry, field);
+	block->data.vorbis_comment.vendor_string = *entry;
+	vc_calc_len_(block);
+}
+
+static void vc_set_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__StreamMetaData *block, unsigned pos, const char *field)
+{
+	entry_new_(entry, field);
+	block->data.vorbis_comment.comments[pos] = *entry;
+	vc_calc_len_(block);
+}
+
+static void vc_insert_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__StreamMetaData *block, unsigned pos, const char *field)
+{
+	vc_resize_(block, block->data.vorbis_comment.num_comments+1);
+	memmove(&block->data.vorbis_comment.comments[pos+1], &block->data.vorbis_comment.comments[pos], sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*(block->data.vorbis_comment.num_comments-1-pos));
+	vc_set_new_(entry, block, pos, field);
+	vc_calc_len_(block);
+}
+
+static void vc_delete_(FLAC__StreamMetaData *block, unsigned pos)
+{
+	if(0 != block->data.vorbis_comment.comments[pos].entry)
+		free(block->data.vorbis_comment.comments[pos].entry);
+	memmove(&block->data.vorbis_comment.comments[pos], &block->data.vorbis_comment.comments[pos+1], sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*(block->data.vorbis_comment.num_comments-pos-1));
+	block->data.vorbis_comment.comments[block->data.vorbis_comment.num_comments-1].entry = 0;
+	block->data.vorbis_comment.comments[block->data.vorbis_comment.num_comments-1].length = 0;
+	vc_resize_(block, block->data.vorbis_comment.num_comments-1);
+	vc_calc_len_(block);
+}
+
 int test_metadata_object()
 {
-	FLAC__StreamMetaData *block, *blockcopy;
-	FLAC__StreamMetaData_SeekPoint seekpoint_array[3];
-	FLAC__StreamMetaData_VorbisComment_Entry *vorbiscomment_entry_array, *vorbiscomment_entry_array_copy;
-	unsigned expected_length, seekpoints;
+	FLAC__StreamMetaData *block, *blockcopy, *vorbiscomment;
+	FLAC__StreamMetaData_SeekPoint seekpoint_array[4];
+	FLAC__StreamMetaData_VorbisComment_Entry entry;
+	unsigned i, expected_length, seekpoints;
 	static FLAC__byte dummydata[4] = { 'a', 'b', 'c', 'd' };
 
 	printf("\n+++ unit test: metadata objects (libFLAC)\n\n");
@@ -228,25 +349,21 @@ int test_metadata_object()
 
 	printf("testing SEEKTABLE\n");
 
-	seekpoint_array[0].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
-	seekpoint_array[0].stream_offset = 0;
-	seekpoint_array[0].frame_samples = 0;
-	seekpoint_array[1].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
-	seekpoint_array[1].stream_offset = 0;
-	seekpoint_array[1].frame_samples = 0;
+	for(i = 0; i < 4; i++) {
+		seekpoint_array[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+		seekpoint_array[i].stream_offset = 0;
+		seekpoint_array[i].frame_samples = 0;
+	}
 
+	seekpoints = 0;
 	printf("testing FLAC__metadata_object_new()... ");
 	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
 	if(0 == block) {
 		printf("FAILED, returned NULL\n");
 		return 1;
 	}
-	expected_length = 0;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
+	if(!check_seektable_(block, seekpoints, 0))
 		return 1;
-    }
-	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_copy()... ");
 	blockcopy = FLAC__metadata_object_copy(block);
@@ -268,18 +385,8 @@ int test_metadata_object()
 		printf("FAILED, returned false\n");
 		return 1;
 	}
-	expected_length = seekpoints * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
 		return 1;
-    }
-	if(block->data.seek_table.num_points != seekpoints) {
-		printf("FAILED, expected %u points, got %u\n", seekpoints, block->data.seek_table.num_points);
-		return 1;
-	}
-	if(!compare_seekpoint_array_(block->data.seek_table.points, seekpoint_array, seekpoints))
-		return 1;
-	printf("OK\n");
 
 	seekpoints = 1;
 	printf("testing FLAC__metadata_object_seektable_resize_points(shrink to %u)...", seekpoints);
@@ -287,18 +394,8 @@ int test_metadata_object()
 		printf("FAILED, returned false\n");
 		return 1;
 	}
-	expected_length = seekpoints * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
 		return 1;
-    }
-	if(block->data.seek_table.num_points != seekpoints) {
-		printf("FAILED, expected %u point, got %u\n", seekpoints, block->data.seek_table.num_points);
-		return 1;
-	}
-	if(!compare_seekpoint_array_(block->data.seek_table.points, seekpoint_array, seekpoints))
-		return 1;
-	printf("OK\n");
 
 	seekpoints = 0;
 	printf("testing FLAC__metadata_object_seektable_resize_points(shrink to %u)...", seekpoints);
@@ -306,20 +403,94 @@ int test_metadata_object()
 		printf("FAILED, returned false\n");
 		return 1;
 	}
-	expected_length = seekpoints * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
+	if(!check_seektable_(block, seekpoints, 0))
 		return 1;
-    }
-	if(block->data.seek_table.num_points != seekpoints) {
-		printf("FAILED, expected %u points, got %u\n", seekpoints, block->data.seek_table.num_points);
-		return 1;
-	}
-	if(0 != block->data.seek_table.points) {
-		printf("FAILED, 'points' pointer is not null\n");
+
+	seekpoints++;
+	printf("testing FLAC__metadata_object_seektable_insert_point() on empty array...");
+	if(!FLAC__metadata_object_seektable_insert_point(block, 0, seekpoint_array[0])) {
+		printf("FAILED, returned false\n");
 		return 1;
 	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return 1;
+
+	seekpoint_array[0].sample_number = 1;
+	seekpoints++;
+	printf("testing FLAC__metadata_object_seektable_insert_point() on beginning of non-empty array...");
+	if(!FLAC__metadata_object_seektable_insert_point(block, 0, seekpoint_array[0])) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return 1;
+
+	seekpoint_array[1].sample_number = 2;
+	seekpoints++;
+	printf("testing FLAC__metadata_object_seektable_insert_point() on middle of non-empty array...");
+	if(!FLAC__metadata_object_seektable_insert_point(block, 1, seekpoint_array[1])) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return 1;
+
+	seekpoint_array[3].sample_number = 3;
+	seekpoints++;
+	printf("testing FLAC__metadata_object_seektable_insert_point() on end of non-empty array...");
+	if(!FLAC__metadata_object_seektable_insert_point(block, 3, seekpoint_array[3])) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return 1;
+
+	printf("testing FLAC__metadata_object_copy()... ");
+	blockcopy = FLAC__metadata_object_copy(block);
+	if(0 == blockcopy) {
+		printf("FAILED, returned NULL\n");
+		return 1;
+	}
+	if(!compare_block_(block, blockcopy))
+		return 1;
 	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_delete()... ");
+	FLAC__metadata_object_delete(blockcopy);
+	printf("OK\n");
+
+	seekpoint_array[2].sample_number = seekpoint_array[3].sample_number;
+	seekpoints--;
+	printf("testing FLAC__metadata_object_seektable_delete_point() on middle of array...");
+	if(!FLAC__metadata_object_seektable_delete_point(block, 2)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return 1;
+
+	seekpoints--;
+	printf("testing FLAC__metadata_object_seektable_delete_point() on end of array...");
+	if(!FLAC__metadata_object_seektable_delete_point(block, 2)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return 1;
+
+	seekpoints--;
+	printf("testing FLAC__metadata_object_seektable_delete_point() on beginning of array...");
+	if(!FLAC__metadata_object_seektable_delete_point(block, 0)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array+1))
+		return 1;
+
+	printf("testing FLAC__metadata_object_seektable_set_point()...");
+	FLAC__metadata_object_seektable_set_point(block, 0, seekpoint_array[0]);
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return 1;
 
 
 
@@ -339,100 +510,82 @@ int test_metadata_object()
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
+	vorbiscomment = FLAC__metadata_object_copy(block);
+	if(0 == vorbiscomment) {
 		printf("FAILED, returned NULL\n");
 		return 1;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!compare_block_(vorbiscomment, block))
 		return 1;
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	printf("OK\n");
-
-#if 0
-	printf("testing FLAC__metadata_object_vorbiscomment_set_vendor_string(copy)\n");
-	if(!FLAC__metadata_object_vorbiscomment_set_vendor_string(block, dummydata, sizeof(dummydata), true/*copy*/)) {
+	vc_resize_(vorbiscomment, 2);
+	printf("testing FLAC__metadata_object_vorbiscomment_resize_comments(grow to %u)...", vorbiscomment->data.vorbis_comment.num_comments);
+	if(!FLAC__metadata_object_vorbiscomment_resize_comments(block, vorbiscomment->data.vorbis_comment.num_comments)) {
 		printf("FAILED, returned false\n");
 		return 1;
 	}
-	expected_length = ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata)) + (FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8) + block->data.vorbis_comment.num_comments * ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata));
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
+	if(!compare_block_(vorbiscomment, block))
 		return 1;
-	}
+	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_vorbiscomment_set_vendor_string(own)\n");
-	if(!FLAC__metadata_object_vorbiscomment_set_vendor_string(block, make_dummydata_(dummydata, sizeof(dummydata)), sizeof(dummydata), false/*own*/)) {
+	vc_resize_(vorbiscomment, 1);
+	printf("testing FLAC__metadata_object_vorbiscomment_resize_comments(shrink to %u)...", vorbiscomment->data.vorbis_comment.num_comments);
+	if(!FLAC__metadata_object_vorbiscomment_resize_comments(block, vorbiscomment->data.vorbis_comment.num_comments)) {
 		printf("FAILED, returned false\n");
 		return 1;
 	}
-	expected_length = ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata)) + (FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8) + block->data.vorbis_comment.num_comments * ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata));
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-	}
-
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_new()... ");
-	vorbiscomment_entry_array = FLAC__metadata_object_vorbiscomment_entry_array_new(1u);
-	if(0 == vorbiscomment_entry_array) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	printf("OK\n");
-
-	vorbiscomment_entry_array[0].length = sizeof(dummydata);
-	vorbiscomment_entry_array[0].entry = make_dummydata_(dummydata, sizeof(dummydata));
-
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_copy()... ");
-	vorbiscomment_entry_array_copy = FLAC__metadata_object_vorbiscomment_entry_array_copy(vorbiscomment_entry_array, 1u);
-	if(0 == vorbiscomment_entry_array_copy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_vorbiscomment_entry_array_(vorbiscomment_entry_array, vorbiscomment_entry_array_copy, 1u))
+	if(!compare_block_(vorbiscomment, block))
 		return 1;
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_resize(grow)...");
-	if(!FLAC__metadata_object_vorbiscomment_entry_array_resize(&vorbiscomment_entry_array_copy, 1u, 10u)) {
+	vc_resize_(vorbiscomment, 0);
+	printf("testing FLAC__metadata_object_vorbiscomment_resize_comments(shrink to %u)...", vorbiscomment->data.vorbis_comment.num_comments);
+	if(!FLAC__metadata_object_vorbiscomment_resize_comments(block, vorbiscomment->data.vorbis_comment.num_comments)) {
 		printf("FAILED, returned false\n");
 		return 1;
 	}
-	if(!compare_vorbiscomment_entry_array_(vorbiscomment_entry_array, vorbiscomment_entry_array_copy, 1u))
+	if(!compare_block_(vorbiscomment, block))
 		return 1;
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_resize(shrink)...");
-	if(!FLAC__metadata_object_vorbiscomment_entry_array_resize(&vorbiscomment_entry_array_copy, 10u, 1u)) {
+	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(copy) on empty array...");
+	vc_insert_new_(&entry, vorbiscomment, 0, "name1=field1");
+	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 0, entry, /*copy=*/true)) {
 		printf("FAILED, returned false\n");
 		return 1;
 	}
-	if(!compare_vorbiscomment_entry_array_(vorbiscomment_entry_array, vorbiscomment_entry_array_copy, 1u))
+	if(!compare_block_(vorbiscomment, block))
 		return 1;
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_delete()... ");
-	FLAC__metadata_object_vorbiscomment_entry_array_delete(vorbiscomment_entry_array_copy, 1u);
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_vorbiscomment_set_comments(copy)... ");
-	if(!FLAC__metadata_object_vorbiscomment_set_comments(block, vorbiscomment_entry_array, 1u, true/*copy*/)) {
+	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(copy) on beginning of non-empty array...");
+	vc_insert_new_(&entry, vorbiscomment, 0, "name2=field2");
+	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 0, entry, /*copy=*/true)) {
 		printf("FAILED, returned false\n");
 		return 1;
 	}
-	expected_length = ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata)) + (FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8) + block->data.vorbis_comment.num_comments * ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata));
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(copy) on middle of non-empty array...");
+	vc_insert_new_(&entry, vorbiscomment, 1, "name3=field3");
+	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 1, entry, /*copy=*/true)) {
+		printf("FAILED, returned false\n");
 		return 1;
 	}
-	if(block->data.vorbis_comment.num_comments != 1u) {
-		printf("FAILED, bad num_comments, expected %u, got %u\n", 1u, block->data.vorbis_comment.num_comments);
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(copy) on end of non-empty array...");
+	vc_insert_new_(&entry, vorbiscomment, 3, "name4=field4");
+	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 3, entry, /*copy=*/true)) {
+		printf("FAILED, returned false\n");
 		return 1;
 	}
-	if(!compare_vorbiscomment_entry_array_(block->data.vorbis_comment.comments, vorbiscomment_entry_array, 1u))
+	if(!compare_block_(vorbiscomment, block))
 		return 1;
 	printf("OK\n");
 
@@ -450,31 +603,166 @@ int test_metadata_object()
 	FLAC__metadata_object_delete(blockcopy);
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_vorbiscomment_set_comments(own)... ");
-	if(!FLAC__metadata_object_vorbiscomment_set_comments(block, vorbiscomment_entry_array, 1u, false/*own*/)) {
+	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on middle of array...");
+	vc_delete_(vorbiscomment, 2);
+	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 2)) {
 		printf("FAILED, returned false\n");
 		return 1;
 	}
-	expected_length = ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata)) + (FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8) + block->data.vorbis_comment.num_comments * ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata));
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on end of array...");
+	vc_delete_(vorbiscomment, 2);
+	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 2)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on beginning of array...");
+	vc_delete_(vorbiscomment, 0);
+	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 0)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_set_comment(copy)...");
+	vc_set_new_(&entry, vorbiscomment, 0, "name5=field5");
+	FLAC__metadata_object_vorbiscomment_set_comment(block, 0, entry, /*copy=*/true);
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_set_vendor_string(copy)...");
+	vc_set_vs_new_(&entry, vorbiscomment, "name6=field6");
+	FLAC__metadata_object_vorbiscomment_set_vendor_string(block, entry, /*copy=*/true);
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_delete()... ");
+	FLAC__metadata_object_delete(vorbiscomment);
+	FLAC__metadata_object_delete(block);
+	printf("OK\n");
+
+
+	printf("testing FLAC__metadata_object_new()... ");
+	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	if(0 == block) {
+		printf("FAILED, returned NULL\n");
 		return 1;
 	}
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
+	vorbiscomment = FLAC__metadata_object_copy(block);
+	if(0 == vorbiscomment) {
 		printf("FAILED, returned NULL\n");
 		return 1;
 	}
-	if(!compare_block_(block, blockcopy))
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(own) on empty array...");
+	vc_insert_new_(&entry, vorbiscomment, 0, "name1=field1");
+	entry_clone_(&entry);
+	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 0, entry, /*copy=*/false)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(own) on beginning of non-empty array...");
+	vc_insert_new_(&entry, vorbiscomment, 0, "name2=field2");
+	entry_clone_(&entry);
+	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 0, entry, /*copy=*/false)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(own) on middle of non-empty array...");
+	vc_insert_new_(&entry, vorbiscomment, 1, "name3=field3");
+	entry_clone_(&entry);
+	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 1, entry, /*copy=*/false)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(own) on end of non-empty array...");
+	vc_insert_new_(&entry, vorbiscomment, 3, "name4=field4");
+	entry_clone_(&entry);
+	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 3, entry, /*copy=*/false)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on middle of array...");
+	vc_delete_(vorbiscomment, 2);
+	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 2)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on end of array...");
+	vc_delete_(vorbiscomment, 2);
+	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 2)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on beginning of array...");
+	vc_delete_(vorbiscomment, 0);
+	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 0)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_set_comment(own)...");
+	vc_set_new_(&entry, vorbiscomment, 0, "name5=field5");
+	entry_clone_(&entry);
+	FLAC__metadata_object_vorbiscomment_set_comment(block, 0, entry, /*copy=*/false);
+	if(!compare_block_(vorbiscomment, block))
+		return 1;
+	printf("OK\n");
+
+	printf("testing FLAC__metadata_object_vorbiscomment_set_vendor_string(own)...");
+	vc_set_vs_new_(&entry, vorbiscomment, "name6=field6");
+	entry_clone_(&entry);
+	FLAC__metadata_object_vorbiscomment_set_vendor_string(block, entry, /*copy=*/false);
+	if(!compare_block_(vorbiscomment, block))
 		return 1;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-#endif
+	FLAC__metadata_object_delete(vorbiscomment);
 	FLAC__metadata_object_delete(block);
 	printf("OK\n");
 
@@ -521,415 +809,6 @@ int test_metadata_object_pp()
 	blockcopy = new FLAC::Metadata::StreamInfo(block);
 	if(0 == blockcopy) {
 		printf("FAILED, new returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	FLAC__metadata_object_delete(block);
-	printf("OK\n");
-
-
-	printf("testing PADDING\n");
-
-	printf("testing FLAC__metadata_object_new()... ");
-	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
-	if(0 == block) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	expected_length = 0;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-    }
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	FLAC__metadata_object_delete(block);
-	printf("OK\n");
-
-
-	printf("testing APPLICATION\n");
-
-	printf("testing FLAC__metadata_object_new()... ");
-	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_APPLICATION);
-	if(0 == block) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	expected_length = FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-    }
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_application_set_data(copy)... ");
-	if(!FLAC__metadata_object_application_set_data(block, dummydata, sizeof(dummydata), true/*copy*/)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	expected_length = (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8) + sizeof(dummydata);
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-	}
-	if(0 != memcmp(block->data.application.data, dummydata, sizeof(dummydata))) {
-		printf("FAILED, data mismatch\n");
-		return 1;
-	}
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_application_set_data(own)... ");
-	if(!FLAC__metadata_object_application_set_data(block, make_dummydata_(dummydata, sizeof(dummydata)), sizeof(dummydata), false/*own*/)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	expected_length = (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8) + sizeof(dummydata);
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-	}
-	if(0 != memcmp(block->data.application.data, dummydata, sizeof(dummydata))) {
-		printf("FAILED, data mismatch\n");
-		return 1;
-	}
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	FLAC__metadata_object_delete(block);
-	printf("OK\n");
-
-
-	printf("testing SEEKTABLE\n");
-
-	printf("testing FLAC__metadata_object_new()... ");
-	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
-	if(0 == block) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	expected_length = 0;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-    }
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_seekpoint_array_new()... ");
-	seekpoint_array = FLAC__metadata_object_seekpoint_array_new(1u);
-	if(0 == seekpoint_array) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	printf("OK\n");
-
-	seekpoint_array[0].sample_number = 1;
-	seekpoint_array[0].stream_offset = 2;
-	seekpoint_array[0].frame_samples = 3;
-
-	printf("testing FLAC__metadata_object_seekpoint_array_copy()... ");
-	seekpoint_array_copy = FLAC__metadata_object_seekpoint_array_copy(seekpoint_array, 1u);
-	if(0 == seekpoint_array_copy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_seekpoint_array_(seekpoint_array, seekpoint_array_copy, 1u))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_seekpoint_array_resize(grow)...");
-	if(!FLAC__metadata_object_seekpoint_array_resize(&seekpoint_array_copy, 1u, 10u)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	if(!compare_seekpoint_array_(seekpoint_array, seekpoint_array_copy, 1u))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_seekpoint_array_resize(shrink)...");
-	if(!FLAC__metadata_object_seekpoint_array_resize(&seekpoint_array_copy, 10u, 1u)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	if(!compare_seekpoint_array_(seekpoint_array, seekpoint_array_copy, 1u))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_seekpoint_array_delete()... ");
-	FLAC__metadata_object_seekpoint_array_delete(seekpoint_array_copy);
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_seektable_set_points(copy)... ");
-	if(!FLAC__metadata_object_seektable_set_points(block, seekpoint_array, 1u, true/*copy*/)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	expected_length = 1u * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-	}
-	if(block->data.seek_table.num_points != 1u) {
-		printf("FAILED, bad num_points, expected %u, got %u\n", 1u, block->data.seek_table.num_points);
-		return 1;
-	}
-	if(!compare_seekpoint_array_(block->data.seek_table.points, seekpoint_array, 1u))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_seektable_set_points(own)... ");
-	if(!FLAC__metadata_object_seektable_set_points(block, seekpoint_array, 1u, false/*own*/)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	expected_length = 1u * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-	}
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	FLAC__metadata_object_delete(block);
-	printf("OK\n");
-
-
-	printf("testing VORBIS_COMMENT\n");
-
-	printf("testing FLAC__metadata_object_new()... ");
-	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
-	if(0 == block) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	expected_length = (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN + FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8;
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-    }
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_vorbiscomment_set_vendor_string(copy)\n");
-	if(!FLAC__metadata_object_vorbiscomment_set_vendor_string(block, dummydata, sizeof(dummydata), true/*copy*/)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	expected_length = ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata)) + (FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8) + block->data.vorbis_comment.num_comments * ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata));
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-	}
-
-	printf("testing FLAC__metadata_object_vorbiscomment_set_vendor_string(own)\n");
-	if(!FLAC__metadata_object_vorbiscomment_set_vendor_string(block, make_dummydata_(dummydata, sizeof(dummydata)), sizeof(dummydata), false/*own*/)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	expected_length = ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata)) + (FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8) + block->data.vorbis_comment.num_comments * ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata));
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-	}
-
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_new()... ");
-	vorbiscomment_entry_array = FLAC__metadata_object_vorbiscomment_entry_array_new(1u);
-	if(0 == vorbiscomment_entry_array) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	printf("OK\n");
-
-	vorbiscomment_entry_array[0].length = sizeof(dummydata);
-	vorbiscomment_entry_array[0].entry = make_dummydata_(dummydata, sizeof(dummydata));
-
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_copy()... ");
-	vorbiscomment_entry_array_copy = FLAC__metadata_object_vorbiscomment_entry_array_copy(vorbiscomment_entry_array, 1u);
-	if(0 == vorbiscomment_entry_array_copy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_vorbiscomment_entry_array_(vorbiscomment_entry_array, vorbiscomment_entry_array_copy, 1u))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_resize(grow)...");
-	if(!FLAC__metadata_object_vorbiscomment_entry_array_resize(&vorbiscomment_entry_array_copy, 1u, 10u)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	if(!compare_vorbiscomment_entry_array_(vorbiscomment_entry_array, vorbiscomment_entry_array_copy, 1u))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_resize(shrink)...");
-	if(!FLAC__metadata_object_vorbiscomment_entry_array_resize(&vorbiscomment_entry_array_copy, 10u, 1u)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	if(!compare_vorbiscomment_entry_array_(vorbiscomment_entry_array, vorbiscomment_entry_array_copy, 1u))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_vorbiscomment_entry_array_delete()... ");
-	FLAC__metadata_object_vorbiscomment_entry_array_delete(vorbiscomment_entry_array_copy, 1u);
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_vorbiscomment_set_comments(copy)... ");
-	if(!FLAC__metadata_object_vorbiscomment_set_comments(block, vorbiscomment_entry_array, 1u, true/*copy*/)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	expected_length = ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata)) + (FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8) + block->data.vorbis_comment.num_comments * ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata));
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-	}
-	if(block->data.vorbis_comment.num_comments != 1u) {
-		printf("FAILED, bad num_comments, expected %u, got %u\n", 1u, block->data.vorbis_comment.num_comments);
-		return 1;
-	}
-	if(!compare_vorbiscomment_entry_array_(block->data.vorbis_comment.comments, vorbiscomment_entry_array, 1u))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_vorbiscomment_set_comments(own)... ");
-	if(!FLAC__metadata_object_vorbiscomment_set_comments(block, vorbiscomment_entry_array, 1u, false/*own*/)) {
-		printf("FAILED, returned false\n");
-		return 1;
-	}
-	expected_length = ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata)) + (FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8) + block->data.vorbis_comment.num_comments * ((FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8) + sizeof(dummydata));
-	if(block->length != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
-	}
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
-	if(0 == blockcopy) {
-		printf("FAILED, returned NULL\n");
 		return 1;
 	}
 	if(!compare_block_(block, blockcopy))
