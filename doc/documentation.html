@@ -55,7 +55,7 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-		This page describes the user-level view of the FLAC format (for a more detailed explanation see the <A HREF="format.html">format page</A>).  It also contains the user documentation for <B><TT>flac</TT></B>, which is the command-line file encoder/decoder, and the <A HREF="#plugins">input plugins</A>.
+		This page describes the user-level view of the FLAC format (for a more detailed explanation see the <A HREF="format.html">format page</A>).  It also contains the user documentation for <B><TT>flac</TT></B>, which is the command-line file encoder/decoder, <B><TT>metaflac</TT></B>, the FLAC metadata editor, and the <A HREF="#plugins">input plugins</A>.
 	</P>
 	<P>
 		Keep in mind that the online version of this document will always apply to the latest release.  For older releases, check the documentation included with the release package.
@@ -128,7 +128,7 @@
 		</UL>
 	</P>
 	<P>
-		In either case, inputfile may be "-" for stdin, and the outputfile "-" for stdout.  The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <B><TT>flac</TT></B> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE file the format options are not needed since they are read from the WAVE header.
+		In either case, <TT>inputfile</TT> may be "-" for stdin, and the <TT>outputfile</TT> "-" for stdout.  The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <B><TT>flac</TT></B> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE file the format options are not needed since they are read from the WAVE header.
 	</P>
 	<P>
 		In test mode, <B><TT>flac</TT></B> acts just like in decode mode, except no output file is written.  Both decode and test modes detect errors in the stream, but they also detect when the MD5 signature of the decoded audio does not match the stored MD5 signature, even when the bitstream is valid.
@@ -458,6 +458,39 @@
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
 		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">metaflac</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		<B><TT>metaflac</TT></B> is the command-line <TT>.flac</TT> file metadata editor.  Right now it just lists the contents of all metadata blocks in a .flac file, but soon it will allow you to insert, delete, and edit blocks.
+	</P>
+	<P>
+		Currently <B><TT>metaflac</TT></B> can be invoked only one way:
+		<UL>
+		<LI>
+			Listing: metaflac [-v] inputfile
+		</LI>
+		</UL>
+	</P>
+	<P>
+		<TT>inputfile</TT> may be "-" for stdin.  If <TT>-v</TT> is used, you will get verbose output.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 		<A NAME="plugins"><B><FONT SIZE="+2">xmms plugin</FONT></B></A>
 		</FONT></TD></TR>
 	</TABLE>
@@ -465,7 +498,7 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-		All that is necessary is to copy <B><TT>libxmms-flac.so</TT></B> to the directory where XMMS looks for input plugins (usually <B><TT>/usr/lib/xmms/Input</TT></B>).  There is nothing else to configure.  Make sure to restart XMMS before trying to play any .flac files.
+		All that is necessary is to copy <B><TT>libxmms-flac.so</TT></B> to the directory where XMMS looks for input plugins (usually <B><TT>/usr/lib/xmms/Input</TT></B>).  There is nothing else to configure.  Make sure to restart XMMS before trying to play any <TT>.flac</TT> files.
 	</P>
 	</FONT>
 	</TD></TR>
@@ -487,7 +520,7 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-		All that is necessary is to copy <B><TT>in_flac.dll</TT></B> to the <B><TT>Plugins/</TT></B> directory of your Winamp installation.  There is nothing else to configure.  Make sure to restart Winamp before trying to play any .flac files.
+		All that is necessary is to copy <B><TT>in_flac.dll</TT></B> to the <B><TT>Plugins/</TT></B> directory of your Winamp installation.  There is nothing else to configure.  Make sure to restart Winamp before trying to play any <TT>.flac</TT> files.
 	</P>
 	</FONT>
 	</TD></TR>
