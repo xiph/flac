@@ -30,6 +30,7 @@
 #include "private/fixed.h"
 #include "private/lpc.h"
 #include "private/md5.h"
+#include "private/memory.h"
 
 #ifdef min
 #undef min
@@ -76,6 +77,16 @@ typedef struct FLAC__EncoderPrivate {
 	FLAC__EncoderWriteStatus (*write_callback)(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 	void (*metadata_callback)(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
 	void *client_data;
+	/* unaligned (original) pointers to allocated data */
+	int32 *integer_signal_unaligned[FLAC__MAX_CHANNELS];
+	int32 *integer_signal_mid_side_unaligned[2];
+	real *real_signal_unaligned[FLAC__MAX_CHANNELS];
+	real *real_signal_mid_side_unaligned[2];
+	int32 *residual_workspace_unaligned[FLAC__MAX_CHANNELS][2];
+	int32 *residual_workspace_mid_side_unaligned[2][2];
+	uint32 *abs_residual_unaligned;
+	uint32 *abs_residual_partition_sums_unaligned;
+	unsigned *raw_bits_per_partition_unaligned;
 } FLAC__EncoderPrivate;
 
 static bool encoder_resize_buffers_(FLAC__Encoder *encoder, unsigned new_size);
@@ -123,11 +134,6 @@ bool encoder_resize_buffers_(FLAC__Encoder *encoder, unsigned new_size)
 {
 	bool ok;
 	unsigned i, channel;
-	int32 *previous_is, *current_is;
-	real *previous_rs, *current_rs;
-	int32 *residual;
-	uint32 *abs_residual;
-	unsigned *raw_bits_per_partition;
 
 	assert(new_size > 0);
 	assert(encoder->state == FLAC__ENCODER_OK);
@@ -137,129 +143,37 @@ bool encoder_resize_buffers_(FLAC__Encoder *encoder, unsigned new_size)
 	if(new_size <= encoder->guts->input_capacity)
 		return true;
 
-	ok = 1;
-	if(ok) {
-		for(i = 0; ok && i < encoder->channels; i++) {
-			/* integer version of the signal */
-			previous_is = encoder->guts->integer_signal[i];
-			current_is = (int32*)malloc(sizeof(int32) * new_size);
-			if(0 == current_is) {
-				encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-				ok = 0;
-			}
-			else {
-				encoder->guts->integer_signal[i] = current_is;
-				if(previous_is != 0)
-					free(previous_is);
-			}
-			/* real version of the signal */
-			previous_rs = encoder->guts->real_signal[i];
-			current_rs = (real*)malloc(sizeof(real) * new_size);
-			if(0 == current_rs) {
-				encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-				ok = 0;
-			}
-			else {
-				encoder->guts->real_signal[i] = current_rs;
-				if(previous_rs != 0)
-					free(previous_rs);
-			}
-		}
+	ok = true;
+	for(i = 0; ok && i < encoder->channels; i++) {
+		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_size, &encoder->guts->integer_signal_unaligned[i], &encoder->guts->integer_signal[i]);
+		ok = ok && FLAC__memory_alloc_aligned_real_array(new_size, &encoder->guts->real_signal_unaligned[i], &encoder->guts->real_signal[i]);
 	}
-	if(ok) {
+	for(i = 0; ok && i < 2; i++) {
+		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_size, &encoder->guts->integer_signal_mid_side_unaligned[i], &encoder->guts->integer_signal_mid_side[i]);
+		ok = ok && FLAC__memory_alloc_aligned_real_array(new_size, &encoder->guts->real_signal_mid_side_unaligned[i], &encoder->guts->real_signal_mid_side[i]);
+	}
+	for(channel = 0; ok && channel < encoder->channels; channel++) {
 		for(i = 0; ok && i < 2; i++) {
-			/* integer version of the signal */
-			previous_is = encoder->guts->integer_signal_mid_side[i];
-			current_is = (int32*)malloc(sizeof(int32) * new_size);
-			if(0 == current_is) {
-				encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-				ok = 0;
-			}
-			else {
-				encoder->guts->integer_signal_mid_side[i] = current_is;
-				if(previous_is != 0)
-					free(previous_is);
-			}
-			/* real version of the signal */
-			previous_rs = encoder->guts->real_signal_mid_side[i];
-			current_rs = (real*)malloc(sizeof(real) * new_size);
-			if(0 == current_rs) {
-				encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-				ok = 0;
-			}
-			else {
-				encoder->guts->real_signal_mid_side[i] = current_rs;
-				if(previous_rs != 0)
-					free(previous_rs);
-			}
+			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_size, &encoder->guts->residual_workspace_unaligned[channel][i], &encoder->guts->residual_workspace[channel][i]);
 		}
 	}
-	if(ok) {
-		for(channel = 0; channel < encoder->channels; channel++) {
-			for(i = 0; i < 2; i++) {
-				residual = (int32*)malloc(sizeof(int32) * new_size);
-				if(0 == residual) {
-					encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-					ok = 0;
-				}
-				else {
-					if(encoder->guts->residual_workspace[channel][i] != 0)
-						free(encoder->guts->residual_workspace[channel][i]);
-					encoder->guts->residual_workspace[channel][i] = residual;
-				}
-			}
+	for(channel = 0; ok && channel < 2; channel++) {
+		for(i = 0; ok && i < 2; i++) {
+			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_size, &encoder->guts->residual_workspace_mid_side_unaligned[channel][i], &encoder->guts->residual_workspace_mid_side[channel][i]);
 		}
-		for(channel = 0; channel < 2; channel++) {
-			for(i = 0; i < 2; i++) {
-				residual = (int32*)malloc(sizeof(int32) * new_size);
-				if(0 == residual) {
-					encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-					ok = 0;
-				}
-				else {
-					if(encoder->guts->residual_workspace_mid_side[channel][i] != 0)
-						free(encoder->guts->residual_workspace_mid_side[channel][i]);
-					encoder->guts->residual_workspace_mid_side[channel][i] = residual;
-				}
-			}
-		}
-		abs_residual = (uint32*)malloc(sizeof(uint32) * new_size);
-		if(0 == abs_residual) {
-			encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-			ok = 0;
-		}
-		else {
-			if(encoder->guts->abs_residual != 0)
-				free(encoder->guts->abs_residual);
-			encoder->guts->abs_residual = abs_residual;
-		}
+	}
+	ok = ok && FLAC__memory_alloc_aligned_uint32_array(new_size, &encoder->guts->abs_residual_unaligned, &encoder->guts->abs_residual);
 #ifdef FLAC__PRECOMPUTE_PARTITION_SUMS
-		abs_residual = (uint32*)malloc(sizeof(uint32) * (new_size * 2));
-		if(0 == abs_residual) {
-			encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-			ok = 0;
-		}
-		else {
-			if(encoder->guts->abs_residual_partition_sums != 0)
-				free(encoder->guts->abs_residual_partition_sums);
-			encoder->guts->abs_residual_partition_sums = abs_residual;
-		}
+	ok = ok && FLAC__memory_alloc_aligned_uint32_array(new_size * 2, &encoder->guts->abs_residual_partition_sums_unaligned, &encoder->guts->abs_residual_partition_sums);
 #endif
 #ifdef FLAC__SEARCH_FOR_ESCAPES
-		raw_bits_per_partition = (unsigned*)malloc(sizeof(unsigned) * (new_size * 2));
-		if(0 == raw_bits_per_partition) {
-			encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-			ok = 0;
-		}
-		else {
-			if(encoder->guts->raw_bits_per_partition != 0)
-				free(encoder->guts->raw_bits_per_partition);
-			encoder->guts->raw_bits_per_partition = raw_bits_per_partition;
-		}
+	ok = ok && FLAC__memory_alloc_aligned_unsigned_array(new_size * 2, &encoder->guts->raw_bits_per_partition_unaligned, &encoder->guts->raw_bits_per_partition);
 #endif
-	}
+
 	if(ok)
 		encoder->guts->input_capacity = new_size;
+	else
+		encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
 
 	return ok;
 }
