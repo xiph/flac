@@ -111,7 +111,7 @@
 		Before going into the full command-line description, two other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-9</TT></B> that control the compression level actually are just synonyms for different groups of specific coding options (described later).  You can get the same effect by using the same options.
 	</P>
 	<P>
-		<B><TT>flac</TT></B> will be invoked one of three ways, depending on whether you are encoding, decoding, or testing:
+		<B><TT>flac</TT></B> will be invoked one of four ways, depending on whether you are encoding, decoding, testing, or analyzing:
 		<UL>
 		<LI>
 			Encoding: flac [-s] [--skip #] [&lt;format-options&gt;] [&lt;encoding options&gt;] inputfile outputfile
@@ -121,6 +121,9 @@
 		</LI>
 		<LI>
 			Testing: flac -t [-s] inputfile
+		</LI>
+		<LI>
+			Analyzing: flac -a [-s] [--skip #] inputfile outputfile
 		</LI>
 		</UL>
 	</P>
@@ -152,6 +155,14 @@
 			</TD>
 			<TD>
 				Test (same as <B><TT>-d</TT></B> except no decoded file is written).  The exit codes are the same as in decode mode.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-a
+			</TD>
+			<TD>
+				Analyze (same as <B><TT>-d</TT></B> except an analysis file is written).  The exit codes are the same as in decode mode.  This option is mainly for developers; the output will be a text file that has data about each frame and subframe.
 			</TD>
 		</TR>
 		<TR>
