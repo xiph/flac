@@ -97,6 +97,11 @@ const char *FLAC__ChannelAssignmentString[] = {
 	"MID_SIDE"
 };
 
+const char *FLAC__FrameNumberTypeString[] = {
+	"FRAME_NUMBER_TYPE_FRAME_NUMBER",
+	"FRAME_NUMBER_TYPE_SAMPLE_NUMBER"
+};
+
 const char *FLAC__MetaDataTypeString[] = {
 	"STREAMINFO",
 	"PADDING",
