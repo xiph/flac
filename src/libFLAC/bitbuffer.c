@@ -626,12 +626,10 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_write_raw_uint32(FLAC__BitBuffer *bb, FL
 	return true;
 }
 
-#if 0 /* UNUSED */
 FLAC__bool FLAC__bitbuffer_write_raw_int32(FLAC__BitBuffer *bb, FLAC__int32 val, unsigned bits)
 {
 	return FLAC__bitbuffer_write_raw_uint32(bb, (FLAC__uint32)val, bits);
 }
-#endif
 
 FLAC__bool FLAC__bitbuffer_write_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 val, unsigned bits)
 {
@@ -704,10 +702,12 @@ FLAC__bool FLAC__bitbuffer_write_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 va
 	return true;
 }
 
+#if 0 /* UNUSED */
 FLAC__bool FLAC__bitbuffer_write_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 val, unsigned bits)
 {
 	return FLAC__bitbuffer_write_raw_uint64(bb, (FLAC__uint64)val, bits);
 }
+#endif
 
 FLaC__INLINE FLAC__bool FLAC__bitbuffer_write_raw_uint32_little_endian(FLAC__BitBuffer *bb, FLAC__uint32 val)
 {
