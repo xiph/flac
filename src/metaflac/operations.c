@@ -110,6 +110,7 @@ FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOpt
 
 	if(!FLAC__metadata_chain_read(chain, filename)) {
 		print_error_with_chain_status(chain, "%s: ERROR: reading metadata", filename);
+		FLAC__metadata_chain_delete(chain);
 		return false;
 	}
 
