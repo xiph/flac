@@ -40,6 +40,7 @@ OBJS = \
 	stream_decoder.o \
 	stream_encoder.o \
 	stream_encoder_framing.o \
+	utility.o \
 	ia32/cpu_asm.o \
 	ia32/fixed_asm.o \
 	ia32/lpc_asm.o
