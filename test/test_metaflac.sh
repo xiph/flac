@@ -88,22 +88,37 @@ check_exit
 check_exit
 check_flac
 
-# some flavors of /bin/sh (e.g. Darwin's) won't handle even quoted spaces, so we underscore:
+# some flavors of /bin/sh (e.g. Darwin's) won't even handle quoted spaces, so we underscore:
 (set -x && $METAFLAC --set-vc-field="ARTIST=The_artist_formerly_known_as_the_artist..." $flacfile)
 check_exit
 check_flac
+
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
 
 (set -x && $METAFLAC --set-vc-field="ARTIST=Chuck_Woolery" $flacfile)
 check_exit
 check_flac
 
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
+
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
+
 (set -x && $METAFLAC --set-vc-field="ARTIST=Vern" $flacfile)
 check_exit
 check_flac
 
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
+
 (set -x && $METAFLAC --set-vc-field="TITLE=He_who_smelt_it_dealt_it" $flacfile)
 check_exit
 check_flac
+
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
 
 (set -x && $METAFLAC --show-vc-vendor --show-vc-field=ARTIST $flacfile)
 check_exit
@@ -112,9 +127,15 @@ check_exit
 check_exit
 check_flac
 
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
+
 (set -x && $METAFLAC --remove-vc-field=ARTIST $flacfile)
 check_exit
 check_flac
+
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
 
 (set -x && $METAFLAC --list --block-number=0 $flacfile)
 check_exit
