@@ -23,11 +23,11 @@
 #include "assert.h"
 #include "file_decoder.h"
 #include "format.h"
+#include "metadata.h"
 #include "ordinals.h"
 #include "seek_table.h"
 #include "seekable_stream_decoder.h"
 #include "stream_decoder.h"
 #include "stream_encoder.h"
-#include "utility.h"
 
 #endif

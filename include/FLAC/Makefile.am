@@ -22,9 +22,9 @@ include_HEADERS = \
 	assert.h \
 	file_decoder.h \
 	format.h \
+	metadata.h \
 	ordinals.h \
 	seek_table.h \
 	seekable_stream_decoder.h \
 	stream_decoder.h \
-	stream_encoder.h \
-	utility.h
+	stream_encoder.h
