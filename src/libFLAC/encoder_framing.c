@@ -28,7 +28,7 @@
 #define max(x,y) ((x)>(y)?(x):(y))
 
 static bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method);
-static bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned partition_order);
+static bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order);
 
 bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuffer *bb)
 {
@@ -261,7 +261,7 @@ bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned res
 		return false;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!subframe_add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.order))
+			if(!subframe_add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:
@@ -297,7 +297,7 @@ bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residua
 		return false;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!subframe_add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.order))
+			if(!subframe_add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:
@@ -340,21 +340,31 @@ bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__Entrop
 	return true;
 }
 
-bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned partition_order)
+bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order)
 {
 	if(partition_order == 0) {
 		unsigned i;
 
 		if(!FLAC__bitbuffer_write_raw_uint32(bb, rice_parameters[0], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 			return false;
-		for(i = 0; i < residual_samples; i++) {
+		if(rice_parameters[0] < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+			for(i = 0; i < residual_samples; i++) {
 #ifdef SYMMETRIC_RICE
-			if(!FLAC__bitbuffer_write_symmetric_rice_signed(bb, residual[i], rice_parameters[0]))
-				return false;
+				if(!FLAC__bitbuffer_write_symmetric_rice_signed(bb, residual[i], rice_parameters[0]))
+					return false;
 #else
-			if(!FLAC__bitbuffer_write_rice_signed(bb, residual[i], rice_parameters[0]))
-				return false;
+				if(!FLAC__bitbuffer_write_rice_signed(bb, residual[i], rice_parameters[0]))
+					return false;
 #endif
+			}
+		}
+		else {
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, raw_bits[0], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN))
+				return false;
+			for(i = 0; i < residual_samples; i++) {
+				if(!FLAC__bitbuffer_write_raw_int32(bb, residual[i], raw_bits[0]))
+					return false;
+			}
 		}
 		return true;
 	}
@@ -368,14 +378,24 @@ bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 re
 			if(i == 0)
 				partition_samples -= predictor_order;
 			k += partition_samples;
-			for(j = k_last; j < k; j++) {
+			if(rice_parameters[i] < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+				for(j = k_last; j < k; j++) {
 #ifdef SYMMETRIC_RICE
-				if(!FLAC__bitbuffer_write_symmetric_rice_signed(bb, residual[j], rice_parameters[i]))
-					return false;
+					if(!FLAC__bitbuffer_write_symmetric_rice_signed(bb, residual[j], rice_parameters[i]))
+						return false;
 #else
-				if(!FLAC__bitbuffer_write_rice_signed(bb, residual[j], rice_parameters[i]))
-					return false;
+					if(!FLAC__bitbuffer_write_rice_signed(bb, residual[j], rice_parameters[i]))
+						return false;
 #endif
+				}
+			}
+			else {
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, raw_bits[i], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN))
+					return false;
+				for(j = k_last; j < k; j++) {
+					if(!FLAC__bitbuffer_write_raw_int32(bb, residual[j], raw_bits[i]))
+						return false;
+				}
 			}
 			k_last = k;
 		}

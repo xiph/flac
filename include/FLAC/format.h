@@ -77,10 +77,14 @@ extern const char *FLAC__EntropyCodingMethodTypeString[];
 typedef struct {
 	unsigned order;
 	unsigned parameters[1 << FLAC__MAX_RICE_PARTITION_ORDER];
+	unsigned raw_bits[1 << FLAC__MAX_RICE_PARTITION_ORDER];
 } FLAC__EntropyCodingMethod_PartitionedRice;
 
 extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN; /* = 4 bits */
 extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN; /* = 4 bits */
+extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN; /* = 5 bits */
+
+extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER; /* = (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN)-1 */
 
 /*****************************************************************************
  *
