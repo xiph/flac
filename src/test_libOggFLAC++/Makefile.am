@@ -20,7 +20,7 @@ EXTRA_DIST = \
 	Makefile.vc \
 	README
 
-CFLAGS = @CFLAGS@  @ OGG_CFLAGS@ 
+CFLAGS = @CFLAGS@  @OGG_CFLAGS@ 
 
 noinst_PROGRAMS = test_libOggFLAC++
 test_libOggFLAC___LDADD = $(top_builddir)/src/libOggFLAC++/libOggFLAC++.la $(top_builddir)/src/libOggFLAC/libOggFLAC.la $(top_builddir)/src/libFLAC/libFLAC.la @ OGG_LIBS@  -lm
