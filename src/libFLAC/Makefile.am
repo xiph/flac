@@ -57,10 +57,10 @@ endif
 endif
 if FLaC__CPU_PPC
 ARCH_SUBDIRS = ppc
-if FLaC__HAS_AS
+if FLaC__HAS_AS__TEMPORARILY_DISABLED
 libFLAC_la_LIBADD = ppc/as/libFLAC-asm.la
 else
-if FLaC__HAS_GAS
+if FLaC__HAS_GAS__TEMPORARILY_DISABLED
 libFLAC_la_LIBADD = ppc/gas/libFLAC-asm.la
 endif
 endif
