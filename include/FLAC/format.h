@@ -217,6 +217,12 @@ typedef enum {
 } FLAC__ChannelAssignment;
 extern const char *FLAC__ChannelAssignmentString[];
 
+typedef enum {
+	FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER,
+	FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER
+} FLAC__FrameNumberType;
+extern const char *FLAC__FrameNumberTypeString[];
+
 /*****************************************************************************
  *
  * 14: sync code '11111111111110'
@@ -277,6 +283,7 @@ typedef struct {
 	unsigned channels;
 	FLAC__ChannelAssignment channel_assignment;
 	unsigned bits_per_sample;
+	FLAC__FrameNumberType number_type;
 	union {
 		FLAC__uint32 frame_number;
 		FLAC__uint64 sample_number;
