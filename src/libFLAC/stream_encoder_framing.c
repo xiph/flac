@@ -27,8 +27,8 @@
 #endif
 #define max(x,y) ((x)>(y)?(x):(y))
 
-static FLAC__bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method);
-static FLAC__bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order);
+static FLAC__bool add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method);
+static FLAC__bool add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order);
 
 FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitBuffer *bb)
 {
@@ -279,11 +279,11 @@ FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsign
 		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], subframe_bps))
 			return false;
 
-	if(!subframe_add_entropy_coding_method_(bb, &subframe->entropy_coding_method))
+	if(!add_entropy_coding_method_(bb, &subframe->entropy_coding_method))
 		return false;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!subframe_add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
+			if(!add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:
@@ -315,11 +315,11 @@ FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned r
 		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->qlp_coeff[i], subframe->qlp_coeff_precision))
 			return false;
 
-	if(!subframe_add_entropy_coding_method_(bb, &subframe->entropy_coding_method))
+	if(!add_entropy_coding_method_(bb, &subframe->entropy_coding_method))
 		return false;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!subframe_add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
+			if(!add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:
@@ -347,7 +347,7 @@ FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, 
 	return true;
 }
 
-FLAC__bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method)
+FLAC__bool add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method)
 {
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, method->type, FLAC__ENTROPY_CODING_METHOD_TYPE_LEN))
 		return false;
@@ -362,7 +362,7 @@ FLAC__bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__
 	return true;
 }
 
-FLAC__bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order)
+FLAC__bool add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order)
 {
 	if(partition_order == 0) {
 		unsigned i;

@@ -41,11 +41,18 @@ extern "C" {
  *  \ingroup flac
  *
  *  \brief
- *  This module describes the single encoder layer provided by libFLAC.
+ *  This module describes the two encoder layers provided by libFLAC.
  *
- * Currently there is only one level of encoder implementation which is at
- * the stream level.  There is currently no file encoder because seeking
- * within a file while encoding seemed like too obscure a feature.
+ * For encoding FLAC streams, libFLAC provides two layers of access.  The
+ * lowest layer is stream-level encoding, and the highest is file-level
+ * encoding.  The interfaces are described in the \link flac_stream_encoder
+ * stream encoder \endlink and \link flac_file_encoder file encoder \endlink
+ * modules respectively.  Typically you will choose the highest layer that
+ * your output source will support.
+ *
+ * The stream encoder relies on callbacks for writing the data and
+ * metadata. The file encoder provides these callbacks internally and you
+ * need only supply the filename.
  */
 
 /** \defgroup flac_stream_encoder FLAC/stream_encoder.h: stream encoder interface
@@ -574,6 +581,13 @@ FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC_
  *  audio frames and the data is not guaranteed to be aligned on frame or
  *  metadata block boundaries.
  *
+ *  The only duty of the callback is to write out the \a bytes worth of data
+ *  in \a buffer to the current position in the output stream.  The arguments
+ *  \a samples and \a current_frame are purely informational.  If \a samples
+ *  is greater than \c 0, then \a current_frame will hold the current frame
+ *  number that is being written; otherwise, the write callback is being called
+ *  to write metadata.
+ *
  * \note
  * The callback is mandatory and must be set before initialization.
  *
@@ -847,7 +861,6 @@ FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC
  *  The samples need not be block-aligned but they must be
  *  sample-aligned, i.e. the first value should be channel0_sample0
  *  and the last value channelN_sampleM.
- *
  *
  * \param  encoder  An initialized encoder instance in the OK state.
  * \param  buffer   An array of channel-interleaved data (see above).

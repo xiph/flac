@@ -1,5 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2001,2002  Josh Coalson
+ * Copyright (C) 2002  Josh Coalson
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -17,14 +17,13 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#ifndef FLAC__PROTECTED__ALL_H
-#define FLAC__PROTECTED__ALL_H
+#ifndef FLAC__PROTECTED__SEEKABLE_STREAM_ENCODER_H
+#define FLAC__PROTECTED__SEEKABLE_STREAM_ENCODER_H
 
-#include "file_decoder.h"
-#include "file_encoder.h"
-#include "seekable_stream_decoder.h"
-#include "seekable_stream_encoder.h"
-#include "stream_decoder.h"
-#include "stream_encoder.h"
+#include "FLAC/seekable_stream_encoder.h"
+
+typedef struct FLAC__SeekableStreamEncoderProtected {
+	FLAC__SeekableStreamEncoderState state;
+} FLAC__SeekableStreamEncoderProtected;
 
 #endif

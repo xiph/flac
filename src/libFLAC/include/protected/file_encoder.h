@@ -17,14 +17,13 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#ifndef FLAC__PROTECTED__ALL_H
-#define FLAC__PROTECTED__ALL_H
+#ifndef FLAC__PROTECTED__FILE_ENCODER_H
+#define FLAC__PROTECTED__FILE_ENCODER_H
 
-#include "file_decoder.h"
-#include "file_encoder.h"
-#include "seekable_stream_decoder.h"
-#include "seekable_stream_encoder.h"
-#include "stream_decoder.h"
-#include "stream_encoder.h"
+#include "FLAC/file_encoder.h"
+
+typedef struct FLAC__FileEncoderProtected {
+	FLAC__FileEncoderState state;
+} FLAC__FileEncoderProtected;
 
 #endif

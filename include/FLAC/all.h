@@ -22,10 +22,12 @@
 
 #include "assert.h"
 #include "file_decoder.h"
+#include "file_encoder.h"
 #include "format.h"
 #include "metadata.h"
 #include "ordinals.h"
 #include "seekable_stream_decoder.h"
+#include "seekable_stream_encoder.h"
 #include "stream_decoder.h"
 #include "stream_encoder.h"
 
@@ -94,6 +96,28 @@
  * From there you can go on to look at the documentation of
  * individual functions.  You can see different views of the individual
  * functions through the links in top bar across this page.
+ *
+ * \section embedded_developers Embedded Developers
+ *
+ * libFLAC has grown larger over time as more functionality has been
+ * included, but much of it may be unnecessary for a particular embedded
+ * implementation.  Unused parts may be pruned by some simple editing of
+ * src/libFLAC/Makefile.am.  In general, the decoders, encoders, and
+ * metadata interface are all independent from each other.
+ *
+ * It is easiest to just describe the dependencies:
+ *
+ * - All modules depend on the \link flac_format Format \endlink module.
+ * - The decoders and encoders are independent of each other.
+ * - The metadata interface requires the file decoder.
+ * - The decoder and encoder layers depend on the layers below them, but
+ *   not above them; e.g. the seekable stream decoder depends on the stream
+ *   decoder but not the file decoder
+ *
+ * For example, if your application only requires the stream decoder, no
+ * encoders, and no metadata interface, you can remove the seekable stream
+ * decoder, file decoder, all encoders, and the metadata interface, which
+ * will greatly reduce the size of the library.
  */
 
 /** \defgroup flac FLAC C API

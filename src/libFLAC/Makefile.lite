@@ -50,6 +50,7 @@ OBJS = $(ASM_OBJS) \
 	cpu.o \
 	crc.o \
 	file_decoder.o \
+	file_encoder.o \
 	fixed.o \
 	format.o \
 	lpc.o \
@@ -58,6 +59,7 @@ OBJS = $(ASM_OBJS) \
 	metadata_iterators.o \
 	metadata_object.o \
 	seekable_stream_decoder.o \
+	seekable_stream_encoder.o \
 	stream_decoder.o \
 	stream_encoder.o \
 	stream_encoder_framing.o

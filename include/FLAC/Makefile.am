@@ -21,10 +21,12 @@ includedir = ${prefix}/include/FLAC
 include_HEADERS = \
 	all.h \
 	assert.h \
+	file_encoder.h \
 	file_decoder.h \
 	format.h \
 	metadata.h \
 	ordinals.h \
 	seekable_stream_decoder.h \
+	seekable_stream_encoder.h \
 	stream_decoder.h \
 	stream_encoder.h

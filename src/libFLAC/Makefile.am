@@ -51,6 +51,7 @@ libFLAC_la_SOURCES = \
 	cpu.c \
 	crc.c \
 	file_decoder.c \
+	file_encoder.c \
 	fixed.c \
 	format.c \
 	lpc.c \
@@ -59,6 +60,7 @@ libFLAC_la_SOURCES = \
 	metadata_iterators.c \
 	metadata_object.c \
 	seekable_stream_decoder.c \
+	seekable_stream_encoder.c \
 	stream_decoder.c \
 	stream_encoder.c \
 	stream_encoder_framing.c
