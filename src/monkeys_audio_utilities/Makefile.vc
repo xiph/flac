@@ -1,0 +1,19 @@
+!include <win32.mak>
+
+# It's less hassle to spell it all out that to figure out how to do it right with nmake:
+
+all:
+	cd flac_mac
+	nmake /f Makefile.vc
+	cd ..
+	cd flac_ren
+	nmake /f Makefile.vc
+	cd ..
+
+clean:
+	cd flac_mac
+	nmake /f Makefile.vc clean
+	cd ..
+	cd flac_ren
+	nmake /f Makefile.vc clean
+	cd ..

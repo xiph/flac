@@ -1,0 +1,11 @@
+!include <win32.mak>
+
+all:
+	cd src
+	nmake /f Makefile.vc
+	cd ..
+
+clean:
+	cd src
+	nmake /f Makefile.vc clean
+	cd ..

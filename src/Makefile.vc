@@ -1,0 +1,97 @@
+!include <win32.mak>
+
+# It's less hassle to spell it all out that to figure out how to do it right with nmake:
+
+all:
+	cd libFLAC
+	nmake /f Makefile.vc
+	cd ..
+	cd libFLAC++
+	nmake /f Makefile.vc
+	cd ..
+	cd libOggFLAC
+	nmake /f Makefile.vc
+	cd ..
+	cd libOggFLAC++
+	nmake /f Makefile.vc
+	cd ..
+	cd share
+	nmake /f Makefile.vc
+	cd ..
+	cd flac
+	nmake /f Makefile.vc
+	cd ..
+	cd metaflac
+	nmake /f Makefile.vc
+	cd ..
+	cd plugin_common
+	nmake /f Makefile.vc
+	cd ..
+	cd plugin_winamp2
+	nmake /f Makefile.vc
+	cd ..
+	cd monkeys_audio_utilities
+	nmake /f Makefile.vc
+	cd ..
+	cd test_libFLAC
+	nmake /f Makefile.vc
+	cd ..
+	cd test_libFLAC++
+	nmake /f Makefile.vc
+	cd ..
+	cd test_libOggFLAC
+	nmake /f Makefile.vc
+	cd ..
+	cd test_libOggFLAC++
+	nmake /f Makefile.vc
+	cd ..
+	cd test_streams
+	nmake /f Makefile.vc
+	cd ..
+
+clean:
+	cd libFLAC
+	nmake /f Makefile.vc clean
+	cd ..
+	cd libFLAC++
+	nmake /f Makefile.vc clean
+	cd ..
+	cd libOggFLAC
+	nmake /f Makefile.vc clean
+	cd ..
+	cd libOggFLAC++
+	nmake /f Makefile.vc clean
+	cd ..
+	cd share
+	nmake /f Makefile.vc clean
+	cd ..
+	cd flac
+	nmake /f Makefile.vc clean
+	cd ..
+	cd metaflac
+	nmake /f Makefile.vc clean
+	cd ..
+	cd plugin_common
+	nmake /f Makefile.vc clean
+	cd ..
+	cd plugin_winamp2
+	nmake /f Makefile.vc clean
+	cd ..
+	cd monkeys_audio_utilities
+	nmake /f Makefile.vc clean
+	cd ..
+	cd test_libFLAC
+	nmake /f Makefile.vc clean
+	cd ..
+	cd test_libFLAC++
+	nmake /f Makefile.vc clean
+	cd ..
+	cd test_libOggFLAC
+	nmake /f Makefile.vc clean
+	cd ..
+	cd test_libOggFLAC++
+	nmake /f Makefile.vc clean
+	cd ..
+	cd test_streams
+	nmake /f Makefile.vc clean
+	cd ..
