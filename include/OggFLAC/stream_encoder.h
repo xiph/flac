@@ -488,6 +488,19 @@ OggFLAC_API FLAC__StreamEncoderState OggFLAC__stream_encoder_get_FLAC_stream_enc
  */
 OggFLAC_API FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_state(const OggFLAC__StreamEncoder *encoder);
 
+/** Get the current encoder state as a C string.
+ *  This version automatically resolves
+ *  \c OggFLAC__STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR by getting the
+ *  FLAC stream encoder's state.
+ *
+ * \param  encoder  A encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval const char *
+ *    The encoder state as a C string.  Do not modify the contents.
+ */
+OggFLAC_API const char *OggFLAC__stream_encoder_get_resolved_state_string(const OggFLAC__StreamEncoder *encoder);
+
 /** Get relevant values about the nature of a verify decoder error.
  *  Inherited from FLAC__stream_encoder_get_verify_decoder_error_stats().
  *  Useful when the stream encoder state is
