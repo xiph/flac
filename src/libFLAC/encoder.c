@@ -514,8 +514,7 @@ bool FLAC__encoder_process(FLAC__Encoder *encoder, const int32 *buf[], unsigned 
 	int32 x, mid, side;
 	bool ms;
 	const bool ms0 = encoder->do_mid_side_stereo && encoder->channels == 2;
-	const int32 min_side = -((int64)1 << (encoder->bits_per_sample-1));
-	const int32 max_side =  ((int64)1 << (encoder->bits_per_sample-1)) - 1;
+	const int32 limitmask = (int32)(((uint32)(-1)) >> (33-encoder->bits_per_sample));
 	const unsigned channels = encoder->channels, blocksize = encoder->blocksize;
 
 	assert(encoder != 0);
@@ -532,7 +531,7 @@ bool FLAC__encoder_process(FLAC__Encoder *encoder, const int32 *buf[], unsigned 
 			}
 			if(ms) {
 				side = buf[0][j] - x; /* x still == buf[1][j] */
-				if(side < min_side || side > max_side) {
+				if(side & limitmask && ~side & limitmask) {
 					encoder->guts->current_frame_can_do_mid_side = false;
 					ms = false;
 				}
@@ -561,28 +560,30 @@ bool FLAC__encoder_process_interleaved(FLAC__Encoder *encoder, const int32 buf[]
 {
 	unsigned i, j, k, channel;
 	int32 x, left = 0, mid, side;
-	const bool ms = encoder->do_mid_side_stereo && encoder->channels == 2;
-	const int32 min_side = -((int64)1 << (encoder->bits_per_sample-1));
-	const int32 max_side =  ((int64)1 << (encoder->bits_per_sample-1)) - 1;
+	bool ms;
+	const bool ms0 = encoder->do_mid_side_stereo && encoder->channels == 2;
+	const int32 limitmask = (int32)(((uint32)(-1)) >> (33-encoder->bits_per_sample));
 
 	assert(encoder != 0);
 	assert(encoder->state == FLAC__ENCODER_OK);
 
 	j = k = 0;
+	ms = ms0 && encoder->guts->current_frame_can_do_mid_side;
 	do {
 		for(i = encoder->guts->current_sample_number; i < encoder->blocksize && j < samples; i++, j++) {
 			for(channel = 0; channel < encoder->channels; channel++) {
 				x = buf[k++];
 				encoder->guts->integer_signal[channel][i] = x;
 				encoder->guts->real_signal[channel][i] = (real)x;
-				if(ms && encoder->guts->current_frame_can_do_mid_side) {
+				if(ms) {
 					if(channel == 0) {
 						left = x;
 					}
 					else {
 						side = left - x;
-						if(side < min_side || side > max_side) {
+						if(side & limitmask && ~side & limitmask) {
 							encoder->guts->current_frame_can_do_mid_side = false;
+							ms = false;
 						}
 						else {
 							mid = (left + x) >> 1; /* NOTE: not the same as 'mid = (left + x) / 2' ! */
@@ -599,6 +600,7 @@ bool FLAC__encoder_process_interleaved(FLAC__Encoder *encoder, const int32 buf[]
 		if(i == encoder->blocksize) {
 			if(!encoder_process_frame_(encoder, false)) /* false => not last frame */
 				return false;
+			ms = ms0;
 		}
 	} while(j < samples);
 
