@@ -61,6 +61,9 @@ typedef struct FLAC__SeekableStreamDecoderPrivate {
 	/* the rest of these are only used for seeking: */
 	FLAC__StreamMetadata_StreamInfo stream_info; /* we keep this around so we can figure out how to seek quickly */
 	const FLAC__StreamMetadata_SeekTable *seek_table; /* we hold a pointer to the stream decoder's seek table for the same reason */
+	/* Since we always want to see the STREAMINFO and SEEK_TABLE blocks at this level, we need some extra flags to keep track of whether they should be passed on up through the metadata_callback */
+	FLAC__bool ignore_stream_info_block;
+	FLAC__bool ignore_seek_table_block;
 	FLAC__Frame last_frame; /* holds the info of the last frame we seeked to */
 	FLAC__uint64 target_sample;
 } FLAC__SeekableStreamDecoderPrivate;
@@ -198,6 +201,13 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__Seekab
 	FLAC__stream_decoder_set_metadata_callback(decoder->private_->stream_decoder, metadata_callback_);
 	FLAC__stream_decoder_set_error_callback(decoder->private_->stream_decoder, error_callback_);
 	FLAC__stream_decoder_set_client_data(decoder->private_->stream_decoder, decoder);
+
+	/* We always want to see these blocks.  Whether or not we pass them up
+	 * through the metadata callback will be determined by flags set in our
+	 * implementation of ..._set_metadata_respond/ignore...()
+	 */
+	FLAC__stream_decoder_set_metadata_respond(decoder->private_->stream_decoder, FLAC__METADATA_TYPE_STREAMINFO);
+	FLAC__stream_decoder_set_metadata_respond(decoder->private_->stream_decoder, FLAC__METADATA_TYPE_SEEKTABLE);
 
 	if(FLAC__stream_decoder_init(decoder->private_->stream_decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
 		return decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
@@ -354,6 +364,10 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond(FLAC__SeekableStre
 	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
+	if(type == FLAC__METADATA_TYPE_STREAMINFO)
+		decoder->private_->ignore_stream_info_block = false;
+	else if(type == FLAC__METADATA_TYPE_SEEKTABLE)
+		decoder->private_->ignore_seek_table_block = false;
 	return FLAC__stream_decoder_set_metadata_respond(decoder->private_->stream_decoder, type);
 }
 
@@ -376,6 +390,8 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_all(FLAC__Seekable
 	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
+	decoder->private_->ignore_stream_info_block = false;
+	decoder->private_->ignore_seek_table_block = false;
 	return FLAC__stream_decoder_set_metadata_respond_all(decoder->private_->stream_decoder);
 }
 
@@ -387,6 +403,10 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore(FLAC__SeekableStrea
 	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
+	if(type == FLAC__METADATA_TYPE_STREAMINFO)
+		decoder->private_->ignore_stream_info_block = true;
+	else if(type == FLAC__METADATA_TYPE_SEEKTABLE)
+		decoder->private_->ignore_seek_table_block = true;
 	return FLAC__stream_decoder_set_metadata_ignore(decoder->private_->stream_decoder, type);
 }
 
@@ -409,6 +429,8 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(FLAC__SeekableS
 	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
+	decoder->private_->ignore_stream_info_block = true;
+	decoder->private_->ignore_seek_table_block = true;
 	return FLAC__stream_decoder_set_metadata_ignore_all(decoder->private_->stream_decoder);
 }
 
@@ -610,7 +632,7 @@ FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecod
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 		return false;
 	}
-	if(sample > decoder->private_->stream_info.total_samples) {
+	if(decoder->private_->stream_info.total_samples > 0 && sample > decoder->private_->stream_info.total_samples) {
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
 		return false;
 	}
@@ -635,6 +657,9 @@ void seekable_stream_decoder_set_defaults_(FLAC__SeekableStreamDecoder *decoder)
 	decoder->private_->metadata_callback = 0;
 	decoder->private_->error_callback = 0;
 	decoder->private_->client_data = 0;
+	/* WATCHOUT: these should match the default behavior of FLAC__StreamDecoder */
+	decoder->private_->ignore_stream_info_block = false;
+	decoder->private_->ignore_seek_table_block = true;
 
 	decoder->protected_->md5_checking = false;
 }
@@ -732,8 +757,15 @@ void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMe
 		seekable_stream_decoder->private_->seek_table = &metadata->data.seek_table;
 	}
 
-	if(seekable_stream_decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_SEEKING)
-		seekable_stream_decoder->private_->metadata_callback(seekable_stream_decoder, metadata, seekable_stream_decoder->private_->client_data);
+	if(seekable_stream_decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_SEEKING) {
+		FLAC__bool ignore_block = false;
+		if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO && seekable_stream_decoder->private_->ignore_stream_info_block)
+			ignore_block = true;
+		else if(metadata->type == FLAC__METADATA_TYPE_SEEKTABLE && seekable_stream_decoder->private_->ignore_seek_table_block)
+			ignore_block = true;
+		if(!ignore_block)
+			seekable_stream_decoder->private_->metadata_callback(seekable_stream_decoder, metadata, seekable_stream_decoder->private_->client_data);
+	}
 }
 
 void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
@@ -753,18 +785,29 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 	unsigned approx_bytes_per_frame;
 	FLAC__uint64 last_frame_sample = 0xffffffffffffffff;
 	FLAC__bool needs_seek;
-	const FLAC__bool is_variable_blocksize_stream = (decoder->private_->stream_info.min_blocksize != decoder->private_->stream_info.max_blocksize);
+	const FLAC__uint64 total_samples = decoder->private_->stream_info.total_samples;
+	const unsigned min_blocksize = decoder->private_->stream_info.min_blocksize;
+	const unsigned max_blocksize = decoder->private_->stream_info.max_blocksize;
+	const unsigned max_framesize = decoder->private_->stream_info.max_framesize;
+	const unsigned channels = FLAC__seekable_stream_decoder_get_channels(decoder);
+	const unsigned bps = FLAC__seekable_stream_decoder_get_bits_per_sample(decoder);
 
 	/* we are just guessing here, but we want to guess high, not low */
-	if(decoder->private_->stream_info.max_framesize > 0) {
-		approx_bytes_per_frame = decoder->private_->stream_info.max_framesize;
+	if(max_framesize > 0) {
+		approx_bytes_per_frame = max_framesize;
 	}
-	else if(!is_variable_blocksize_stream) {
-		/* note there are no () around 'decoder->private_->stream_info.bits_per_sample/8' to keep precision up since it's an integer calulation */
-		approx_bytes_per_frame = decoder->private_->stream_info.min_blocksize * decoder->private_->stream_info.channels * decoder->private_->stream_info.bits_per_sample/8 + 64;
+	/*
+	 * Check if it's a known fixed-blocksize stream.  Note that though
+	 * the spec doesn't allow zeroes in the STREAMINFO block, we may
+	 * never get a STREAMINFO block when decoding so the value of
+	 * min_blocksize might be zero.
+	 */
+	else if(min_blocksize == max_blocksize && min_blocksize > 0) {
+		/* note there are no () around 'bps/8' to keep precision up since it's an integer calulation */
+		approx_bytes_per_frame = min_blocksize * channels * bps/8 + 64;
 	}
 	else
-		approx_bytes_per_frame = 1152 * decoder->private_->stream_info.channels * decoder->private_->stream_info.bits_per_sample/8 + 64;
+		approx_bytes_per_frame = 4608 * channels * bps/8 + 64;
 
 	/*
 	 * The stream position is currently at the first frame plus any read
@@ -788,10 +831,10 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 	lower_bound = first_frame_offset;
 
 	/* calc the upper_bound, beyond which we never want to seek */
-	if(decoder->private_->stream_info.max_framesize > 0)
-		upper_bound = stream_length - (decoder->private_->stream_info.max_framesize + 128 + 2); /* 128 for a possible ID3V1 tag, 2 for indexing differences */
+	if(max_framesize > 0)
+		upper_bound = stream_length - (max_framesize + 128 + 2); /* 128 for a possible ID3V1 tag, 2 for indexing differences */
 	else
-		upper_bound = stream_length - ((decoder->private_->stream_info.channels * decoder->private_->stream_info.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 128 + 2);
+		upper_bound = stream_length - ((channels * bps * FLAC__MAX_BLOCK_SIZE) / 8 + 128 + 2);
 
 	/*
 	 * Now we refine the bounds if we have a seektable with
@@ -841,22 +884,47 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 #endif
 		}
 	}
-	if(pos < 0) {
-		/* We need to use the metadata and the filelength to estimate the position of the frame with the correct sample */
+
+	/*
+	 * If there's no seek table, we need to use the metadata (if we
+	 * have it) and the filelength to estimate the position of the
+	 * frame with the correct sample.
+	 */
+	if(pos < 0 && total_samples > 0) {
 #if defined _MSC_VER || defined __MINGW32__
 		/* with VC++ you have to spoon feed it the casting */
-		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((double)(FLAC__int64)target_sample / (double)(FLAC__int64)decoder->private_->stream_info.total_samples * (double)(FLAC__int64)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
+		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((double)(FLAC__int64)target_sample / (double)(FLAC__int64)total_samples * (double)(FLAC__int64)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
 #else
-		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((double)target_sample / (double)decoder->private_->stream_info.total_samples * (double)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
+		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((double)target_sample / (double)total_samples * (double)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
 #endif
 	}
 
+	/*
+	 * If there's no seek table and total_samples is unknown, we
+	 * don't even bother trying to figure out a target, we just use
+	 * our current position.
+	 */
+	if(pos < 0) {
+		FLAC__uint64 upos;
+		if(decoder->private_->tell_callback(decoder, &upos, decoder->private_->client_data) != FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK) {
+			decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
+			return false;
+		}
+		pos = (FLAC__int32)upos;
+		needs_seek = false;
+	}
+	else
+		needs_seek = true;
+
 	/* clip the position to the bounds, lower bound takes precedence */
-	if(pos >= (FLAC__int64)upper_bound)
+	if(pos >= (FLAC__int64)upper_bound) {
 		pos = (FLAC__int64)upper_bound-1;
-	if(pos < (FLAC__int64)lower_bound)
+		needs_seek = true;
+	}
+	if(pos < (FLAC__int64)lower_bound) {
 		pos = (FLAC__int64)lower_bound;
-	needs_seek = true;
+		needs_seek = true;
+	}
 
 	decoder->private_->target_sample = target_sample;
 	while(1) {
@@ -889,16 +957,18 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 			else {
 				if(target_sample < this_frame_sample) {
 					last_pos = pos;
-					approx_bytes_per_frame = decoder->private_->last_frame.header.blocksize * decoder->private_->last_frame.header.channels * decoder->private_->last_frame.header.bits_per_sample/8 + 64;
+					approx_bytes_per_frame = decoder->private_->last_frame.header.blocksize * channels * bps/8 + 64;
 					pos -= approx_bytes_per_frame;
 					needs_seek = true;
 				}
 				else { /* target_sample >= this_frame_sample + this frame's blocksize */
-					last_pos = pos;
-					if(decoder->private_->tell_callback(decoder, (FLAC__uint64*)(&pos), decoder->private_->client_data) != FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK) {
+					FLAC__uint64 upos;
+					if(decoder->private_->tell_callback(decoder, &upos, decoder->private_->client_data) != FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK) {
 						decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
 						return false;
 					}
+					last_pos = pos;
+					pos = (FLAC__int32)upos;
 					pos -= FLAC__stream_decoder_get_input_bytes_unconsumed(decoder->private_->stream_decoder);
 					needs_seek = false;
 				}
