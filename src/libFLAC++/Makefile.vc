@@ -18,47 +18,31 @@
 
 !include <win32.mak>
 
-SUFFIXES = .cc
+SUFFIXES = .cpp
 
 !IFDEF DEBUG
-.cc.obj:
+.cpp.obj:
 	$(cc) /D "_LIB" /GX /GR $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
-.cc.obj:
+.cpp.obj:
 	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
-CC_FILES= \
-	file_decoder.cc \
-	file_encoder.cc \
-	metadata.cc \
-	seekable_stream_decoder.cc \
-	seekable_stream_encoder.cc \
-	stream_decoder.cc \
-	stream_encoder.cc
+CPP_FILES= \
+	file_decoder.cpp \
+	file_encoder.cpp \
+	metadata.cpp \
+	seekable_stream_decoder.cpp \
+	seekable_stream_encoder.cpp \
+	stream_decoder.cpp \
+	stream_encoder.cpp
 
-OBJS= $(CC_FILES:.cc=.obj)
+OBJS= $(CPP_FILES:.cpp=.obj)
 
 all: libFLAC++.lib
 
 libFLAC++.lib: $(OBJS)
 	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
-
-# can't figure out how to get it to take .cc so we just hack it for now:
-file_decoder.obj: file_decoder.cc
-	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP file_decoder.cc
-file_encoder.obj: file_encoder.cc
-	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP file_encoder.cc
-metadata.obj: metadata.cc
-	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata.cc
-seekable_stream_decoder.obj: seekable_stream_decoder.cc
-	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP seekable_stream_decoder.cc
-seekable_stream_encoder.obj: seekable_stream_encoder.cc
-	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP seekable_stream_encoder.cc
-stream_decoder.obj: stream_decoder.cc
-	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP stream_decoder.cc
-stream_encoder.obj: stream_encoder.cc
-	$(cc) /D "_LIB" /O2 /GR $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP stream_encoder.cc
 
 clean:
 	-del *.obj *.pch

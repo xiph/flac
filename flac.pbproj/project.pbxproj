@@ -1214,27 +1214,27 @@
 		};
 		F5CA9EDB02D186C7011525B7 = {
 			isa = PBXFileReference;
-			path = file_decoder.cc;
+			path = file_decoder.cpp;
 			refType = 4;
 		};
 		F5CA9EDC02D186C7011525B7 = {
 			isa = PBXFileReference;
-			path = metadata.cc;
+			path = metadata.cpp;
 			refType = 4;
 		};
 		F5CA9EDD02D186C7011525B7 = {
 			isa = PBXFileReference;
-			path = seekable_stream_decoder.cc;
+			path = seekable_stream_decoder.cpp;
 			refType = 4;
 		};
 		F5CA9EDE02D186C7011525B7 = {
 			isa = PBXFileReference;
-			path = stream_decoder.cc;
+			path = stream_decoder.cpp;
 			refType = 4;
 		};
 		F5CA9EDF02D186C7011525B7 = {
 			isa = PBXFileReference;
-			path = stream_encoder.cc;
+			path = stream_encoder.cpp;
 			refType = 4;
 		};
 		F5CA9EE002D186C7011525B7 = {
@@ -1353,7 +1353,7 @@
 		};
 		F5CA9EF302D1874F011525B7 = {
 			isa = PBXFileReference;
-			path = decoders.cc;
+			path = decoders.cpp;
 			refType = 4;
 		};
 		F5CA9EF402D1874F011525B7 = {
@@ -1363,7 +1363,7 @@
 		};
 		F5CA9EF502D1874F011525B7 = {
 			isa = PBXFileReference;
-			path = encoders.cc;
+			path = encoders.cpp;
 			refType = 4;
 		};
 		F5CA9EF602D1874F011525B7 = {
@@ -1383,12 +1383,12 @@
 		};
 		F5CA9EF902D1874F011525B7 = {
 			isa = PBXFileReference;
-			path = main.cc;
+			path = main.cpp;
 			refType = 4;
 		};
 		F5CA9EFA02D1874F011525B7 = {
 			isa = PBXFileReference;
-			path = metadata.cc;
+			path = metadata.cpp;
 			refType = 4;
 		};
 		F5CA9EFB02D1874F011525B7 = {
@@ -1398,12 +1398,12 @@
 		};
 		F5CA9EFC02D1874F011525B7 = {
 			isa = PBXFileReference;
-			path = metadata_manip.cc;
+			path = metadata_manip.cpp;
 			refType = 4;
 		};
 		F5CA9EFD02D1874F011525B7 = {
 			isa = PBXFileReference;
-			path = metadata_object.cc;
+			path = metadata_object.cpp;
 			refType = 4;
 		};
 		F5CA9EFE02D1874F011525B7 = {

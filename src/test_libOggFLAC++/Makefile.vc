@@ -17,7 +17,7 @@
 
 !include <win32.mak>
 
-SUFFIXES = .cc
+SUFFIXES = .cpp
 
 !IFDEF DEBUG
 .c.obj:
@@ -28,36 +28,28 @@ SUFFIXES = .cc
 !endif
 
 !IFDEF DEBUG
-.cc.obj:
+.cpp.obj:
 	$(cc) /GR /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
-.cc.obj:
+.cpp.obj:
 	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
 	file_utils.c
 
-CC_FILES= \
-	decoders.cc \
-	encoders.cc \
-	main.cc
+CPP_FILES= \
+	decoders.cpp \
+	encoders.cpp \
+	main.cpp
 
 C_OBJS= $(C_FILES:.c=.obj)
-CC_OBJS= $(CC_FILES:.cc=.obj)
+CPP_OBJS= $(CPP_FILES:.cpp=.obj)
 
 all: test_libOggFLAC++.exe
 
-# can't figure out how to get it to take .cc so we just hack it for now:
-decoders.obj: decoders.cc
-	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP decoders.cc
-encoders.obj: encoders.cc
-	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP encoders.cc
-main.obj: main.cc
-	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP main.cc
-
-test_libOggFLAC++.exe: $(C_OBJS) $(CC_OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(CC_OBJS) $(C_OBJS) libOggFLAC++.lib libOggFLAC.lib libFLAC.lib ogg_static.lib
+test_libOggFLAC++.exe: $(C_OBJS) $(CPP_OBJS)
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(CPP_OBJS) $(C_OBJS) libOggFLAC++.lib libOggFLAC.lib libFLAC.lib ogg_static.lib
 
 clean:
 	-del *.obj *.pch
