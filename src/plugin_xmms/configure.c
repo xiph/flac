@@ -153,7 +153,7 @@ static void convert_char_set_cb(GtkWidget *widget, gpointer data)
 	(void)widget, (void)data; /* unused arguments */
 	flac_cfg.title.convert_char_set = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(convert_char_set));
 
-	gtk_widget_set_sensitive(fileCharacterSetEntry, flac_cfg.title.convert_char_set);
+	gtk_widget_set_sensitive(fileCharacterSetEntry, FALSE);
 	gtk_widget_set_sensitive(userCharacterSetEntry, flac_cfg.title.convert_char_set);
 }
 
@@ -288,10 +288,10 @@ void FLAC_XMMS__configure(void)
 	gtk_combo_set_value_in_list(GTK_COMBO(userCharacterSetEntry),TRUE,FALSE);
 
 	list = Charset_Create_List();
-	gtk_combo_set_popdown_strings(GTK_COMBO(fileCharacterSetEntry),list);
+	gtk_combo_set_popdown_strings(GTK_COMBO(fileCharacterSetEntry),Charset_Create_List_UTF8_Only());
 	gtk_combo_set_popdown_strings(GTK_COMBO(userCharacterSetEntry),list);
 	gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(userCharacterSetEntry)->entry),Charset_Get_Title_From_Name(flac_cfg.title.user_char_set));
-	gtk_widget_set_sensitive(fileCharacterSetEntry, flac_cfg.title.convert_char_set);
+	gtk_widget_set_sensitive(fileCharacterSetEntry, FALSE);
 	gtk_widget_set_sensitive(userCharacterSetEntry, flac_cfg.title.convert_char_set);
 
 	/* Override Tagging Format */
