@@ -63,5 +63,6 @@ libxmms_flac_la_LIBADD = \
 	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	-L$(top_builddir)/src/libFLAC/.libs \
-	@XMMS_LIBS@
+	@XMMS_LIBS@ \
+	@LIBICONV@
 libxmms_flac_la_LDFLAGS = -module -avoid-version
