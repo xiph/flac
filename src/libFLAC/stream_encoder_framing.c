@@ -58,8 +58,7 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__
 			FLAC__ASSERT(metadata->data.stream_info.max_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.max_framesize, FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN))
 				return false;
-			FLAC__ASSERT(metadata->data.stream_info.sample_rate > 0);
-			FLAC__ASSERT(metadata->data.stream_info.sample_rate < (1u << FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN));
+			FLAC__ASSERT(FLAC__format_is_valid_sample_rate(metadata->data.stream_info.sample_rate));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.sample_rate, FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN))
 				return false;
 			FLAC__ASSERT(metadata->data.stream_info.channels > 0);
@@ -72,28 +71,18 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__
 				return false;
 			if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.stream_info.total_samples, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN))
 				return false;
-			for(i = 0; i < 16; i++) {
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.md5sum[i], 8))
-					return false;
-			}
+			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.stream_info.md5sum, 16))
+				return false;
 			break;
 		case FLAC__METADATA_TYPE_PADDING:
 			if(!FLAC__bitbuffer_write_zeroes(bb, metadata->length * 8))
 				return false;
 			break;
 		case FLAC__METADATA_TYPE_APPLICATION:
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.application.id[0], 8))
+			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.application.id, FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8))
 				return false;
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.application.id[1], 8))
+			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.application.data, metadata->length - (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8)))
 				return false;
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.application.id[2], 8))
-				return false;
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.application.id[3], 8))
-				return false;
-			for(i = 0; i < metadata->length; i++) {
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.application.data[i], 8))
-					return false;
-			}
 			break;
 		case FLAC__METADATA_TYPE_SEEKTABLE:
 			for(i = 0; i < metadata->data.seek_table.num_points; i++) {
@@ -102,6 +91,20 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__
 				if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.seek_table.points[i].stream_offset, FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN))
 					return false;
 				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.seek_table.points[i].frame_samples, FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN))
+					return false;
+			}
+			break;
+		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+			if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, metadata->data.vorbis_comment.vendor_string.length))
+				return false;
+			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.vorbis_comment.vendor_string.entry, metadata->data.vorbis_comment.vendor_string.length))
+				return false;
+			if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, metadata->data.vorbis_comment.num_comments))
+				return false;
+			for(i = 0; i < metadata->data.vorbis_comment.num_comments; i++) {
+				if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, metadata->data.vorbis_comment.comments[i].length))
+					return false;
+				if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.vorbis_comment.comments[i].entry, metadata->data.vorbis_comment.comments[i].length))
 					return false;
 			}
 			break;
@@ -154,7 +157,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))
 		return false;
 
-	FLAC__ASSERT(header->sample_rate > 0 && header->sample_rate < (1u << FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN));
+	FLAC__ASSERT(FLAC__format_is_valid_sample_rate(header->sample_rate));
 	sample_rate_hint = 0;
 	switch(header->sample_rate) {
 		case  8000: u = 4; break;
