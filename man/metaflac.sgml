@@ -20,7 +20,7 @@ manpage.1: manpage.sgml
   <!ENTITY manfirstname "<firstname>dann</firstname>">
   <!ENTITY mansurname   "<surname>frazier</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY mandate      "<date>2002-11-30</date>">
+  <!ENTITY mandate      "<date>2003-01-02</date>">
   <!-- SECTION should be 1-8, maybe with subsection. Other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY mansection   "<manvolnum>1</manvolnum>">
@@ -40,7 +40,7 @@ manpage.1: manpage.sgml
       &mansurname;
     </author>
     <copyright>
-      <year>2002</year>
+      <year>2002,2003</year>
       <holder>&manusername;</holder>
     </copyright>
     &mandate;
@@ -306,8 +306,8 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
-	<listitem>
 	<term><option>--add-seekpoint</option>={<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>|<replaceable>#s</replaceable>}</term>
+	<listitem>
 	  <para>
 	    Add seek points to a SEEKTABLE block.  Using #, a seek point at
 	    that sample number is added.  Using X, a placeholder point is
