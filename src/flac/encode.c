@@ -155,11 +155,11 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				fprintf(stderr, "WARNING: skipping extra 'fmt ' sub-chunk\n");
 			}
 			else {
-				/* fmt chunk size */
+				/* fmt sub-chunk size */
 				if(!read_little_endian_uint32(infile, &xx, false))
 					goto wav_abort_;
 				if(xx != 16) {
-					fprintf(stderr, "ERROR: unsupported chunk\n");
+					fprintf(stderr, "ERROR: unsupported non-standard 'fmt ' sub-chunk has length %u != 16\n", (unsigned)xx);
 					goto wav_abort_;
 				}
 				/* compression code */
@@ -260,7 +260,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					}
 					else {
 						if(bytes_read > data_bytes)
-							bytes_read = data_bytes; /* chop off anything after the end of the data chunk */
+							bytes_read = data_bytes; /* chop off anything after the end of the data sub-chunk */
 						if(bytes_read % bytes_per_wide_sample != 0) {
 							fprintf(stderr, "ERROR, got partial sample from input file %s\n", infilename);
 							goto wav_abort_;
@@ -283,7 +283,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 		}
 		else {
 			fprintf(stderr, "WARNING: skipping unknown sub-chunk '%c%c%c%c'\n", (char)(xx&255), (char)((xx>>8)&255), (char)((xx>>16)&255), (char)(xx>>24));
-			/* chunk size */
+			/* sub-chunk size */
 			if(!read_little_endian_uint32(infile, &xx, false))
 				goto wav_abort_;
 			if(infile != stdin) {
@@ -583,7 +583,7 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 		return false;
 	}
 
-	if(FLAC__stream_encoder_init(encoder_wrapper->encoder, !lax, do_mid_side, loose_mid_side, channels, bps, sample_rate, blocksize, max_lpc_order, qlp_coeff_precision, do_qlp_coeff_prec_search, do_exhaustive_model_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, encoder_wrapper->total_samples_to_encode, (encoder_wrapper->seek_table.num_points > 0)? &encoder_wrapper->seek_table : 0, padding, write_callback, metadata_callback, encoder_wrapper) != FLAC__STREAM_ENCODER_OK) {
+	if(FLAC__stream_encoder_init(encoder_wrapper->encoder, !lax, do_mid_side, loose_mid_side, channels, bps, sample_rate, blocksize, max_lpc_order, qlp_coeff_precision, do_qlp_coeff_prec_search, do_exhaustive_model_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, encoder_wrapper->total_samples_to_encode, (encoder_wrapper->seek_table.num_points > 0)? &encoder_wrapper->seek_table : 0, padding, true /*last_metadata_is_last*/, write_callback, metadata_callback, encoder_wrapper) != FLAC__STREAM_ENCODER_OK) {
 		fprintf(stderr, "ERROR initializing encoder, state = %d:%s\n", FLAC__stream_encoder_state(encoder_wrapper->encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper->encoder)]);
 		return false;
 	}

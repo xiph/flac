@@ -828,6 +828,7 @@
 			<LI><B><TT>total_samples_estimate</TT></B> - May be set to 0 if unknown.  Otherwise, set this to the number of samples to be encoded.  This will allow the STREAMINFO block to be more accurate during the first pass in the event that the encoder can't seek back to the beginning of the output file to write the updated STREAMINFO block.</LI>
 			<LI><B><TT>seek_table</TT></B> - Optional seek table to prepend; NULL implies no seek table.</LI>
 			<LI><B><TT>padding</TT></B> - Size of PADDING block to add (goes after seek table); 0 implies do not add a PADDING block.</LI>
+			<LI><B><TT>last_metadata_is_last</TT></B> - The value the encoder will use for the 'is_last' flag of the last metadata block it writes.  In normal usage you would set this to true, but if you will be manually inserting more metadata blocks between the time of the first write callback (when the encoder sends the <TT>fLaC</TT> header and metadata) and the time actual audio encoding starts then set this to false.</LI>
 		</UL>
 	</P>
 	<P>

@@ -103,6 +103,8 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(
 	uint64   total_samples_estimate,      /* may be 0 if unknown.  this will be a placeholder in the metadata block until the actual total is calculated */
 	const FLAC__StreamMetaData_SeekTable *seek_table, /* optional seek_table to prepend, 0 => no seek table */
 	unsigned padding,                     /* size of PADDING block to add (goes after seek table); 0 => do not add a PADDING block */
+	bool     last_metadata_is_last,       /* the value the encoder will use for the 'is_last' flag of the last metadata block it writes; set this to false */
+	                                      /* if you will be adding more metadata blocks before the audio frames, else true */
 	FLAC__StreamEncoderWriteStatus (*write_callback)(const FLAC__StreamEncoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data),
 	void (*metadata_callback)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data),
 	void *client_data
