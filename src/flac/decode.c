@@ -495,9 +495,12 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		}
 	}
 
-	if(d->is_aiff_out && ((d->total_samples * d->channels * ((d->bps+7)/8)) & 1)) {
+	if((d->is_wave_out || d->is_aiff_out) && ((d->total_samples * d->channels * ((d->bps+7)/8)) & 1)) {
 		if(flac__utils_fwrite("\000", 1, 1, d->fout) != 1) {
-			print_error_with_state(d, "ERROR writing pad byte to AIFF SSND chunk");
+			print_error_with_state(d, d->is_wave_out?
+				"ERROR writing pad byte to WAVE data chunk" :
+				"ERROR writing pad byte to AIFF SSND chunk"
+			);
 			return false;
 		}
 	}
@@ -615,6 +618,7 @@ FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
 	if(!decoder_session->analysis_mode && !decoder_session->test_only && (decoder_session->is_wave_out || decoder_session->is_aiff_out)) {
 		const char *fmt_desc = decoder_session->is_wave_out? "WAVE" : "AIFF";
 		FLAC__uint64 data_size = decoder_session->total_samples * decoder_session->channels * ((decoder_session->bps+7)/8);
+		const FLAC__uint32 aligned_data_size = (FLAC__uint32)((data_size+1) & (~1U)); /* we'll check for overflow later */
 		if(decoder_session->total_samples == 0) {
 			if(decoder_session->fout == stdout) {
 				flac__utils_printf(stderr, 1, "%s: WARNING, don't have accurate sample count available for %s header.\n", decoder_session->inbasefilename, fmt_desc);
@@ -636,7 +640,7 @@ FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
 			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
 				decoder_session->wave_chunk_size_fixup.riff_offset = ftell(decoder_session->fout);
 
-			if(!write_little_endian_uint32(decoder_session->fout, (FLAC__uint32)(data_size+36))) /* filesize-8 */
+			if(!write_little_endian_uint32(decoder_session->fout, aligned_data_size+36)) /* filesize-8 */
 				return false;
 
 			if(flac__utils_fwrite("WAVEfmt ", 1, 8, decoder_session->fout) != 8)
@@ -673,15 +677,13 @@ FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
 				return false;
 		}
 		else {
-			const FLAC__uint32 aligned_data_size = (FLAC__uint32)((data_size+1) & (~1U));
-
 			if(flac__utils_fwrite("FORM", 1, 4, decoder_session->fout) != 4)
 				return false;
 
 			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
 				decoder_session->wave_chunk_size_fixup.riff_offset = ftell(decoder_session->fout);
 
-			if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)(aligned_data_size+46))) /* filesize-8 */
+			if(!write_big_endian_uint32(decoder_session->fout, aligned_data_size+46)) /* filesize-8 */
 				return false;
 
 			if(flac__utils_fwrite("AIFFCOMM", 1, 8, decoder_session->fout) != 8)
@@ -811,7 +813,7 @@ FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out
 	}
 
 	data_size = aligned_data_size = total_samples * channels * ((bps+7)/8);
-	if(!is_wave_out && (aligned_data_size & 1))
+	if(aligned_data_size & 1)
 		aligned_data_size++;
 
 	if(fseek(f, riff_offset, SEEK_SET) < 0) {
