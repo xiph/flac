@@ -24,5 +24,6 @@
 
 unsigned FLAC__bitmath_ilog2(unsigned v);
 unsigned FLAC__bitmath_silog2(int v);
+unsigned FLAC__bitmath_silog2_wide(FLAC__int64 v);
 
 #endif

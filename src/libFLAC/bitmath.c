@@ -98,3 +98,27 @@ unsigned FLAC__bitmath_silog2(int v)
 		}
 	}
 }
+
+unsigned FLAC__bitmath_silog2_wide(FLAC__int64 v)
+{
+	while(1) {
+		if(v == 0) {
+			return 0;
+		}
+		else if(v > 0) {
+			unsigned l = 0;
+			while(v) {
+				l++;
+				v >>= 1;
+			}
+			return l+1;
+		}
+		else if(v == -1) {
+			return 2;
+		}
+		else {
+			v++;
+			v = -v;
+		}
+	}
+}
