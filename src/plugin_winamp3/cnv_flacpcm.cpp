@@ -62,7 +62,7 @@ _int nch("# of channels", 2);
 _int samplerate("Sample rate", 44100);
 _int bps("Bits per second", 16);
 
-WACNAME::WACNAME() : WAComponentClient("RAW files support") {
+WACNAME::WACNAME() : WAComponentClient("FLAC file support") {
 	registerService(new waServiceT<svc_mediaConverter, FlacPcm>);
 }
 
