@@ -178,7 +178,7 @@ FLAC_API FLAC__StreamDecoder *FLAC__stream_decoder_new()
 	}
 
 	decoder->private_->metadata_filter_ids_capacity = 16;
-	if(0 == (decoder->private_->metadata_filter_ids = malloc((FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) * decoder->private_->metadata_filter_ids_capacity))) {
+	if(0 == (decoder->private_->metadata_filter_ids = (FLAC__byte*)malloc((FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) * decoder->private_->metadata_filter_ids_capacity))) {
 		FLAC__bitbuffer_delete(decoder->private_->input);
 		free(decoder->private_);
 		free(decoder->protected_);
@@ -407,7 +407,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(FLAC__
 	FLAC__ASSERT(0 != decoder->private_->metadata_filter_ids);
 
 	if(decoder->private_->metadata_filter_ids_count == decoder->private_->metadata_filter_ids_capacity) {
-		if(0 == (decoder->private_->metadata_filter_ids = realloc(decoder->private_->metadata_filter_ids, decoder->private_->metadata_filter_ids_capacity * 2)))
+		if(0 == (decoder->private_->metadata_filter_ids = (FLAC__byte*)realloc(decoder->private_->metadata_filter_ids, decoder->private_->metadata_filter_ids_capacity * 2)))
 			return decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		decoder->private_->metadata_filter_ids_capacity *= 2;
 	}
@@ -461,7 +461,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(FLAC__S
 	FLAC__ASSERT(0 != decoder->private_->metadata_filter_ids);
 
 	if(decoder->private_->metadata_filter_ids_count == decoder->private_->metadata_filter_ids_capacity) {
-		if(0 == (decoder->private_->metadata_filter_ids = realloc(decoder->private_->metadata_filter_ids, decoder->private_->metadata_filter_ids_capacity * 2)))
+		if(0 == (decoder->private_->metadata_filter_ids = (FLAC__byte*)realloc(decoder->private_->metadata_filter_ids, decoder->private_->metadata_filter_ids_capacity * 2)))
 			return decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		decoder->private_->metadata_filter_ids_capacity *= 2;
 	}
@@ -826,7 +826,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 		return false; /* the read_callback_ sets the state for us */
 	if(type == FLAC__METADATA_TYPE_STREAMINFO) {
 		unsigned used_bits = 0;
-		decoder->private_->stream_info.type = type;
+		decoder->private_->stream_info.type = (FLAC__MetadataType)type;
 		decoder->private_->stream_info.is_last = last_block;
 		decoder->private_->stream_info.length = length;
 
@@ -884,7 +884,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 			decoder->private_->metadata_callback(decoder, &decoder->private_->stream_info, decoder->private_->client_data);
 	}
 	else if(type == FLAC__METADATA_TYPE_SEEKTABLE) {
-		decoder->private_->seek_table.type = type;
+		decoder->private_->seek_table.type = (FLAC__MetadataType)type;
 		decoder->private_->seek_table.is_last = last_block;
 		decoder->private_->seek_table.length = length;
 
@@ -925,7 +925,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 		FLAC__StreamMetadata block;
 
 		block.is_last = last_block;
-		block.type = type;
+		block.type = (FLAC__MetadataType)type;
 		block.length = length;
 
 		if(type == FLAC__METADATA_TYPE_APPLICATION) {
@@ -952,7 +952,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 				case FLAC__METADATA_TYPE_APPLICATION:
 					/* remember, we read the ID already */
 					if(real_length > 0) {
-						if(0 == (block.data.application.data = malloc(real_length))) {
+						if(0 == (block.data.application.data = (FLAC__byte*)malloc(real_length))) {
 							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 							return false;
 						}
@@ -968,7 +968,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 					if(!FLAC__bitbuffer_read_raw_uint32_little_endian(decoder->private_->input, &block.data.vorbis_comment.vendor_string.length, read_callback_, decoder))
 						return false; /* the read_callback_ sets the state for us */
 					if(block.data.vorbis_comment.vendor_string.length > 0) {
-						if(0 == (block.data.vorbis_comment.vendor_string.entry = malloc(block.data.vorbis_comment.vendor_string.length))) {
+						if(0 == (block.data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc(block.data.vorbis_comment.vendor_string.length))) {
 							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 							return false;
 						}
@@ -985,7 +985,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 
 					/* read comments */
 					if(block.data.vorbis_comment.num_comments > 0) {
-						if(0 == (block.data.vorbis_comment.comments = malloc(block.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
+						if(0 == (block.data.vorbis_comment.comments = (FLAC__StreamMetadata_VorbisComment_Entry*)malloc(block.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
 							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 							return false;
 						}
@@ -994,7 +994,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 							if(!FLAC__bitbuffer_read_raw_uint32_little_endian(decoder->private_->input, &block.data.vorbis_comment.comments[i].length, read_callback_, decoder))
 								return false; /* the read_callback_ sets the state for us */
 							if(block.data.vorbis_comment.comments[i].length > 0) {
-								if(0 == (block.data.vorbis_comment.comments[i].entry = malloc(block.data.vorbis_comment.comments[i].length))) {
+								if(0 == (block.data.vorbis_comment.comments[i].entry = (FLAC__byte*)malloc(block.data.vorbis_comment.comments[i].length))) {
 									decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 									return false;
 								}
@@ -1640,7 +1640,7 @@ FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, unsigned channel, 
 	/* read entropy coding method info */
 	if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &u32, FLAC__ENTROPY_CODING_METHOD_TYPE_LEN, read_callback_, decoder))
 		return false; /* the read_callback_ sets the state for us */
-	subframe->entropy_coding_method.type = u32;
+	subframe->entropy_coding_method.type = (FLAC__EntropyCodingMethodType)u32;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
 			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &u32, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN, read_callback_, decoder))
@@ -1714,7 +1714,7 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, un
 	/* read entropy coding method info */
 	if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &u32, FLAC__ENTROPY_CODING_METHOD_TYPE_LEN, read_callback_, decoder))
 		return false; /* the read_callback_ sets the state for us */
-	subframe->entropy_coding_method.type = u32;
+	subframe->entropy_coding_method.type = (FLAC__EntropyCodingMethodType)u32;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
 			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &u32, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN, read_callback_, decoder))

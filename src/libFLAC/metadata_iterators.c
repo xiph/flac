@@ -242,7 +242,7 @@ FLAC_API const char * const FLAC__Metadata_SimpleIteratorStatusString[] = {
 
 FLAC_API FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new()
 {
-	FLAC__Metadata_SimpleIterator *iterator = calloc(1, sizeof(FLAC__Metadata_SimpleIterator));
+	FLAC__Metadata_SimpleIterator *iterator = (FLAC__Metadata_SimpleIterator*)calloc(1, sizeof(FLAC__Metadata_SimpleIterator));
 
 	if(0 != iterator) {
 		iterator->file = 0;
@@ -885,7 +885,7 @@ static FLAC__bool chain_merge_adjacent_padding_(FLAC__Metadata_Chain *chain, FLA
 
 FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new()
 {
-	FLAC__Metadata_Chain *chain = calloc(1, sizeof(FLAC__Metadata_Chain));
+	FLAC__Metadata_Chain *chain = (FLAC__Metadata_Chain*)calloc(1, sizeof(FLAC__Metadata_Chain));
 
 	if(0 != chain) {
 		chain->filename = 0;
@@ -1099,7 +1099,7 @@ FLAC_API void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain)
 
 FLAC_API FLAC__Metadata_Iterator *FLAC__metadata_iterator_new()
 {
-	FLAC__Metadata_Iterator *iterator = calloc(1, sizeof(FLAC__Metadata_Iterator));
+	FLAC__Metadata_Iterator *iterator = (FLAC__Metadata_Iterator*)calloc(1, sizeof(FLAC__Metadata_Iterator));
 
 	/* calloc() implies:
 		iterator->current = 0;
@@ -1429,7 +1429,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_application_(FILE *
 		block->data = 0;
 	}
 	else {
-		if(0 == (block->data = malloc(block_length)))
+		if(0 == (block->data = (FLAC__byte*)malloc(block_length)))
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 		if(fread(block->data, 1, block_length, file) != block_length)
@@ -1451,7 +1451,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_seektable_(FILE *fi
 
 	if(block->num_points == 0)
 		block->points = 0;
-	else if(0 == (block->points = malloc(block->num_points * sizeof(FLAC__StreamMetadata_SeekPoint))))
+	else if(0 == (block->points = (FLAC__StreamMetadata_SeekPoint*)malloc(block->num_points * sizeof(FLAC__StreamMetadata_SeekPoint))))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < block->num_points; i++) {
@@ -1485,7 +1485,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_entr
 		entry->entry = 0;
 	}
 	else {
-		if(0 == (entry->entry = malloc(entry->length)))
+		if(0 == (entry->entry = (FLAC__byte*)malloc(entry->length)))
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 		if(fread(entry->entry, 1, entry->length, file) != entry->length)
@@ -1515,7 +1515,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_(FIL
 	if(block->num_comments == 0) {
 		block->comments = 0;
 	}
-	else if(0 == (block->comments = calloc(sizeof(FLAC__StreamMetadata_VorbisComment_Entry), block->num_comments)))
+	else if(0 == (block->comments = (FLAC__StreamMetadata_VorbisComment_Entry*)calloc(sizeof(FLAC__StreamMetadata_VorbisComment_Entry), block->num_comments)))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < block->num_comments; i++) {
@@ -2132,7 +2132,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 {
 	static const char *tempfile_suffix = ".metadata_edit";
 	if(0 == tempfile_path_prefix) {
-		if(0 == (*tempfilename = malloc(strlen(filename) + strlen(tempfile_suffix) + 1))) {
+		if(0 == (*tempfilename = (char*)malloc(strlen(filename) + strlen(tempfile_suffix) + 1))) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
@@ -2146,7 +2146,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 		else
 			p++;
 
-		if(0 == (*tempfilename = malloc(strlen(tempfile_path_prefix) + 1 + strlen(p) + strlen(tempfile_suffix) + 1))) {
+		if(0 == (*tempfilename = (char*)malloc(strlen(tempfile_path_prefix) + 1 + strlen(p) + strlen(tempfile_suffix) + 1))) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}

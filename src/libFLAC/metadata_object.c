@@ -35,7 +35,7 @@ static FLAC__bool copy_bytes_(FLAC__byte **to, const FLAC__byte *from, unsigned 
 {
 	if(bytes > 0 && 0 != from) {
 		FLAC__byte *x;
-		if(0 == (x = malloc(bytes)))
+		if(0 == (x = (FLAC__byte*)malloc(bytes)))
 			return false;
 		memcpy(x, from, bytes);
 		*to = x;
@@ -58,7 +58,7 @@ static FLAC__bool copy_vcentry_(FLAC__StreamMetadata_VorbisComment_Entry *to, co
 	else {
 		FLAC__byte *x;
 		FLAC__ASSERT(from->length > 0);
-		if(0 == (x = malloc(from->length)))
+		if(0 == (x = (FLAC__byte*)malloc(from->length)))
 			return false;
 		memcpy(x, from->entry, from->length);
 		to->entry = x;
@@ -80,7 +80,7 @@ static FLAC__StreamMetadata_SeekPoint *seekpoint_array_new_(unsigned num_points)
 
 	FLAC__ASSERT(num_points > 0);
 
-	object_array = malloc(num_points * sizeof(FLAC__StreamMetadata_SeekPoint));
+	object_array = (FLAC__StreamMetadata_SeekPoint*)malloc(num_points * sizeof(FLAC__StreamMetadata_SeekPoint));
 
 	if(0 != object_array) {
 		unsigned i;
@@ -113,7 +113,7 @@ static FLAC__StreamMetadata_VorbisComment_Entry *vorbiscomment_entry_array_new_(
 {
 	FLAC__ASSERT(num_comments > 0);
 
-	return calloc(num_comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
+	return (FLAC__StreamMetadata_VorbisComment_Entry*)calloc(num_comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
 }
 
 static void vorbiscomment_entry_array_delete_(FLAC__StreamMetadata_VorbisComment_Entry *object_array, unsigned num_comments)
@@ -197,7 +197,7 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
 
 FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type)
 {
-	FLAC__StreamMetadata *object = calloc(1, sizeof(FLAC__StreamMetadata));
+	FLAC__StreamMetadata *object = (FLAC__StreamMetadata*)calloc(1, sizeof(FLAC__StreamMetadata));
 	if(0 != object) {
 		object->is_last = false;
 		object->type = type;
@@ -503,7 +503,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMe
 			free(object->data.seek_table.points);
 			object->data.seek_table.points = 0;
 		}
-		else if(0 == (object->data.seek_table.points = realloc(object->data.seek_table.points, new_size)))
+		else if(0 == (object->data.seek_table.points = (FLAC__StreamMetadata_SeekPoint*)realloc(object->data.seek_table.points, new_size)))
 			return false;
 
 		/* if growing, set new elements to placeholders */
@@ -703,7 +703,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 			free(object->data.vorbis_comment.comments);
 			object->data.vorbis_comment.comments = 0;
 		}
-		else if(0 == (object->data.vorbis_comment.comments = realloc(object->data.vorbis_comment.comments, new_size)))
+		else if(0 == (object->data.vorbis_comment.comments = (FLAC__StreamMetadata_VorbisComment_Entry*)realloc(object->data.vorbis_comment.comments, new_size)))
 			return false;
 
 		/* if growing, zero all the length/pointers of new elements */
@@ -767,13 +767,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__Str
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, unsigned field_name_length)
 {
-	const FLAC__byte *eq = memchr(entry->entry, '=', entry->length);
+	const FLAC__byte *eq = (FLAC__byte*)memchr(entry->entry, '=', entry->length);
 #if defined _MSC_VER || defined __MINGW32__
 #define FLAC__STRNCASECMP strnicmp
 #else
 #define FLAC__STRNCASECMP strncasecmp
 #endif
-	return (0 != eq && (unsigned)(eq-entry->entry) == field_name_length && 0 == FLAC__STRNCASECMP(field_name, entry->entry, field_name_length));
+	return (0 != eq && (unsigned)(eq-entry->entry) == field_name_length && 0 == FLAC__STRNCASECMP(field_name, (const char *)entry->entry, field_name_length));
 #undef FLAC__STRNCASECMP
 }
 
