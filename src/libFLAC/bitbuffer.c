@@ -21,6 +21,7 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy(), memset() */
 #include "private/bitbuffer.h"
+#include "private/bitmath.h"
 #include "private/crc.h"
 
 static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 65536; /* bytes */
@@ -33,38 +34,6 @@ static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 65536; /* bytes */
 #undef max
 #endif
 #define max(x,y) ((x)>(y)?(x):(y))
-
-static unsigned ilog2_(unsigned v)
-{
-	unsigned l = 0;
-	assert(v > 0);
-	while(v >>= 1)
-		l++;
-	return l;
-}
-
-static unsigned silog2_(int v)
-{
-	while(1) {
-		if(v == 0) {
-			return 0;
-		}
-		else if(v > 0) {
-			unsigned l = 0;
-			while(v) {
-				l++;
-				v >>= 1;
-			}
-			return l+1;
-		}
-		else if(v == -1) {
-			return 2;
-		}
-		else {
-			v = -(++v);
-		}
-	}
-}
 
 static bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 {
@@ -482,7 +451,7 @@ unsigned FLAC__bitbuffer_golomb_bits_signed(int val, unsigned parameter)
 	else
 		uval = (unsigned)(val << 1);
 
-	k = ilog2_(parameter);
+	k = FLAC__bitmath_ilog2(parameter);
 	if(parameter == 1u<<k) {
 		assert(k <= 30);
 
@@ -510,7 +479,7 @@ unsigned FLAC__bitbuffer_golomb_bits_unsigned(unsigned uval, unsigned parameter)
 
 	assert(parameter > 0);
 
-	k = ilog2_(parameter);
+	k = FLAC__bitmath_ilog2(parameter);
 	if(parameter == 1u<<k) {
 		assert(k <= 30);
 
@@ -622,7 +591,7 @@ bool FLAC__bitbuffer_write_symmetric_rice_signed_escape(FLAC__BitBuffer *bb, int
 	assert(bb->buffer != 0);
 	assert(parameter <= 31);
 
-	val_bits = silog2_(val);
+	val_bits = FLAC__bitmath_silog2(val);
 	total_bits = 2 + parameter + 5 + val_bits;
 
 	if(total_bits <= 32) {
@@ -753,7 +722,7 @@ bool FLAC__bitbuffer_write_golomb_signed(FLAC__BitBuffer *bb, int val, unsigned 
 	else
 		uval = (unsigned)(val << 1);
 
-	k = ilog2_(parameter);
+	k = FLAC__bitmath_ilog2(parameter);
 	if(parameter == 1u<<k) {
 		unsigned pattern;
 
@@ -811,7 +780,7 @@ bool FLAC__bitbuffer_write_golomb_unsigned(FLAC__BitBuffer *bb, unsigned uval, u
 	assert(bb->buffer != 0);
 	assert(parameter > 0);
 
-	k = ilog2_(parameter);
+	k = FLAC__bitmath_ilog2(parameter);
 	if(parameter == 1u<<k) {
 		unsigned pattern;
 
@@ -1262,7 +1231,7 @@ bool FLAC__bitbuffer_read_golomb_signed(FLAC__BitBuffer *bb, int *val, unsigned 
 	assert(bb != 0);
 	assert(bb->buffer != 0);
 
-	k = ilog2_(parameter);
+	k = FLAC__bitmath_ilog2(parameter);
 
 	/* read the unary MSBs and end bit */
 	while(1) {
@@ -1311,7 +1280,7 @@ bool FLAC__bitbuffer_read_golomb_unsigned(FLAC__BitBuffer *bb, unsigned *val, un
 	assert(bb != 0);
 	assert(bb->buffer != 0);
 
-	k = ilog2_(parameter);
+	k = FLAC__bitmath_ilog2(parameter);
 
 	/* read the unary MSBs and end bit */
 	while(1) {
