@@ -39,6 +39,20 @@ static char ini_name[MAX_PATH];
 static const char default_format[] = "[%artist% - ]$if2(%title%,%filename%)";
 static const char default_sep[] = ", ";
 
+static wchar_t *convert_ansi_to_wide_(const char *src)
+{
+	int len;
+	wchar_t *dest;
+
+	FLAC__ASSERT(0 != src);
+
+	len = strlen(src) + 1;
+	/* copy */
+	dest = malloc(len*sizeof(wchar_t));
+	if (dest) mbstowcs(dest, src, len);
+	return dest;
+}
+
 void InitConfig()
 {
 	char *p;
@@ -56,7 +70,7 @@ void ReadConfig()
 	RS(flac_cfg.title.tag_format, sizeof(flac_cfg.title.tag_format), default_format);
 	if (flac_cfg.title.tag_format_w)
 		free(flac_cfg.title.tag_format_w);
-	flac_cfg.title.tag_format_w = FLAC_plugin__convert_ansi_to_wide(flac_cfg.title.tag_format);
+	flac_cfg.title.tag_format_w = convert_ansi_to_wide_(flac_cfg.title.tag_format);
 	/* @@@ FIXME: trailing spaces */
 	RS(flac_cfg.title.sep, sizeof(flac_cfg.title.sep), default_sep);
 	RI(flac_cfg.tag.reserve_space, 1);
@@ -129,7 +143,7 @@ static INT_PTR CALLBACK GeneralProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			if (flac_cfg.title.tag_format_w)
 				free(flac_cfg.title.tag_format_w);
 			GetDlgItemText(hwnd, IDC_SEP, flac_cfg.title.sep, sizeof(flac_cfg.title.sep));
-			flac_cfg.title.tag_format_w = FLAC_plugin__convert_ansi_to_wide(flac_cfg.title.tag_format);
+			flac_cfg.title.tag_format_w = convert_ansi_to_wide_(flac_cfg.title.tag_format);
 
 /*!			flac_cfg.tag.reserve_space = GetCheck(IDC_RESERVE); */
 			flac_cfg.display.show_bps = GetCheck(IDC_BPS);

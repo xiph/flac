@@ -21,7 +21,7 @@
  */
 
 ULONGLONG FileSize(const char *fileName);
-void ReadTags(const char *fileName, FLAC_Plugin__CanonicalTag *tag, BOOL forDisplay);
+void ReadTags(const char *fileName, FLAC__StreamMetadata **tags, BOOL forDisplay);
 
 void InitInfobox();
 void DeinitInfobox();

@@ -737,7 +737,7 @@ private:
 				while(*s1 && *s1!='%') s1++;
 				if (!*s1) {Error();break;}
 				*s1=0;
-				const T_CHAR * tag=f(spec,fp);
+				T_CHAR * tag=f(spec,fp);
 				*s1='%';
 				/*if (!tag) tag=tag_unknown; */
 				if (tag && tag[0])

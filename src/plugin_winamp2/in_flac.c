@@ -265,26 +265,50 @@ static DWORD WINAPI DecodeThread(void *unused)
  *  title formatting
  */
 
-static const T_CHAR *get_tag(const T_CHAR *tag, void *param)
+static T_CHAR *get_tag(const T_CHAR *tag, void *param)
 {
 	FLAC__StreamMetadata *tags = (FLAC__StreamMetadata*)param;
-	const T_CHAR *val = FLAC_plugin__tags_get_tag_ucs2(tags, tag);
+	char *tagname, *p;
+	T_CHAR *val;
+
+	if (!tag)
+		return 0;
+	/* Vorbis comment names must be ASCII, so convert 'tag' first */
+	tagname = malloc(wcslen(tag)+1);
+	for(p=tagname;*tag;) {
+		if(*tag > 0x7d) {
+			free(tagname);
+			return 0;
+		}
+		else
+			*p++ = (char)(*tag++);
+	}
+	*p++ = '\0';
+	/* now get it */
+	val = FLAC_plugin__tags_get_tag_ucs2(tags, tagname);
+	free(tagname);
 	/* some "user friendly cheavats" */
 	if (!val)
 	{
 		if (!wcsicmp(tag, L"ARTIST"))
 		{
 			val = FLAC_plugin__tags_get_tag_ucs2(tags, "PERFORMER");
-			if (!val) val = FLAC_plugin__tags_get_tag_ucs2(tags, L"COMPOSER");
+			if (!val) val = FLAC_plugin__tags_get_tag_ucs2(tags, "COMPOSER");
 		}
 		else if (!wcsicmp(tag, L"YEAR") || !wcsicmp(tag, L"DATE"))
 		{
-			val = FLAC_plugin__tags_get_tag_ucs2(tags, L"YEAR_RECORDED");
-			if (!val) val = FLAC_plugin__tags_get_tag_ucs2(tags, L"YEAR_PERFORMED");
+			val = FLAC_plugin__tags_get_tag_ucs2(tags, "YEAR_RECORDED");
+			if (!val) val = FLAC_plugin__tags_get_tag_ucs2(tags, "YEAR_PERFORMED");
 		}
 	}
 
 	return val;
+}
+
+static void free_tag(T_CHAR *tag, void *param)
+{
+	(void)param;
+	free(tag);
 }
 
 static void format_title(const char *filename, WCHAR *title, unsigned max_size)
@@ -293,7 +317,7 @@ static void format_title(const char *filename, WCHAR *title, unsigned max_size)
 
 	ReadTags(filename, &tags, /*forDisplay=*/true);
 
-	tagz_format(flac_cfg.title.tag_format_w, get_tag, free, tags, title, max_size);
+	tagz_format(flac_cfg.title.tag_format_w, get_tag, free_tag, tags, title, max_size);
 
 	FLAC_plugin__tags_destroy(&tags);
 }
@@ -327,7 +351,8 @@ static void getfileinfo(char *filename, char *title, int *length_in_msec)
 	}
 
 	if (length_in_msec)
-		*length_in_msec = (int)((double)streaminfo.data.stream_info.total_samples / (double)streaminfo.data.stream_info.sample_rate * 1000.0 + 0.5);
+		/* with VC++ you have to spoon feed it the casting from uint64->int64->double */
+		*length_in_msec = (int)((double)(FLAC__int64)streaminfo.data.stream_info.total_samples / (double)streaminfo.data.stream_info.sample_rate * 1000.0 + 0.5);
 }
 
 /*

@@ -28,7 +28,7 @@
 typedef struct
 {
 	char filename[MAX_PATH];
-	FLAC__StreamMetadata tags;
+	FLAC__StreamMetadata *tags;
 } LOCALDATA;
 
 static char buffer[8192];
@@ -201,7 +201,7 @@ static wchar_t *AnsiToWide(const char *src)
                                 if (*buffer) { ucs2 = AnsiToWide(buffer); FLAC_plugin__tags_set_tag_ucs2(data->tags, y, ucs2, /*replace_all=*/false); free(ucs2); } \
                                 else FLAC_plugin__tags_delete_tag(data->tags, y)
 
-#define SetTextW(x,y)           ucs2 = FLAC_plugin__tags_get_tag_ucs2(data->tags, y)); \
+#define SetTextW(x,y)           ucs2 = FLAC_plugin__tags_get_tag_ucs2(data->tags, y); \
                                 SetDlgItemTextW(hwnd, x, ucs2); \
                                 free(ucs2)
 
@@ -232,8 +232,8 @@ static BOOL InitInfoboxInfo(HWND hwnd, const char *file)
 	length = (DWORD)(streaminfo.data.stream_info.total_samples / streaminfo.data.stream_info.sample_rate);
 	bps = (DWORD)(filesize / (125*streaminfo.data.stream_info.total_samples/streaminfo.data.stream_info.sample_rate));
 	ratio = bps*1000000 / (streaminfo.data.stream_info.sample_rate*streaminfo.data.stream_info.channels*streaminfo.data.stream_info.bits_per_sample);
-	rg  = FLAC_plugin__tags_get_tag_utf8(data->tags, L"REPLAYGAIN_TRACK_GAIN") ? 1 : 0;
-	rg |= FLAC_plugin__tags_get_tag_utf8(data->tags, L"REPLAYGAIN_ALBUM_GAIN") ? 2 : 0;
+	rg  = FLAC_plugin__tags_get_tag_utf8(data->tags, "REPLAYGAIN_TRACK_GAIN") ? 1 : 0;
+	rg |= FLAC_plugin__tags_get_tag_utf8(data->tags, "REPLAYGAIN_ALBUM_GAIN") ? 2 : 0;
 
 	sprintf(buffer, "Sample rate: %d Hz\nChannels: %d\nBits per sample: %d\nMin block size: %d\nMax block size: %d\n"
 	                "File size: %I64d bytes\nTotal samples: %I64d\nLength: %d:%02d\nAvg. bitrate: %d\nCompression ratio: %d.%d%%\n"
@@ -414,7 +414,7 @@ static __inline char *GetFileName(const char *fullname)
 
 void ReadTags(const char *fileName, FLAC__StreamMetadata **tags, BOOL forDisplay)
 {
-	if(FLAC_plugin__tags_get(fileName, tags, forDisplay ? flac_cfg.title.sep : NULL)) {
+	if(FLAC_plugin__tags_get(fileName, tags)) {
 
 		/* add file name */
 		if (forDisplay)
@@ -422,13 +422,13 @@ void ReadTags(const char *fileName, FLAC__StreamMetadata **tags, BOOL forDisplay
 			char *c;
 			wchar_t *ucs2;
 			ucs2 = AnsiToWide(fileName);
-			FLAC_plugin__tags_set_tag_ucs2(*tags, "filepath", ucs2);
+			FLAC_plugin__tags_set_tag_ucs2(*tags, "filepath", ucs2, /*replace_all=*/true);
 			free(ucs2);
 
 			strcpy(buffer, GetFileName(fileName));
 			if (c = strrchr(buffer, '.')) *c = 0;
 			ucs2 = AnsiToWide(buffer);
-			FLAC_plugin__tags_set_tag_ucs2(*tags, "filename", ucs2);
+			FLAC_plugin__tags_set_tag_ucs2(*tags, "filename", ucs2, /*replace_all=*/true);
 			free(ucs2);
 		}
 	}

@@ -14,8 +14,8 @@ typedef unsigned short T_CHAR;
 #define T_CHAR char
 #endif
 
-typedef const T_CHAR* (*TAGFUNC)(const T_CHAR *tag,void *p);    /* return 0 if not found */
-typedef void (*TAGFREEFUNC)(const T_CHAR *tag,void *p);
+typedef T_CHAR* (*TAGFUNC)(const T_CHAR *tag,void *p);    /* return 0 if not found */
+typedef void (*TAGFREEFUNC)(T_CHAR *tag,void *p);
 
 
 UINT tagz_format(const T_CHAR * spec,TAGFUNC f,TAGFREEFUNC ff,void *fp,T_CHAR * out,UINT max);
