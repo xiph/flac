@@ -266,10 +266,10 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, off_t filesize,
 		}
 		else {
 #if !defined _MSC_VER && !defined __MINGW32__
-			pos = (FLAC__uint64)(rand() % n);
+			pos = (FLAC__uint64)(random() % n);
 #else
 			/* RAND_MAX is only 32767 in my MSVC */
-			pos = (FLAC__uint64)((random()<<15|random()) % n);
+			pos = (FLAC__uint64)((rand()<<15|rand()) % n);
 #endif
 		}
 
@@ -413,10 +413,10 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, off_t filesize, un
 		}
 		else {
 #if !defined _MSC_VER && !defined __MINGW32__
-			pos = (FLAC__uint64)(rand() % n);
+			pos = (FLAC__uint64)(random() % n);
 #else
 			/* RAND_MAX is only 32767 in my MSVC */
-			pos = (FLAC__uint64)((random()<<15|random()) % n);
+			pos = (FLAC__uint64)((rand()<<15|rand()) % n);
 #endif
 		}
 
@@ -429,6 +429,7 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, off_t filesize, un
 				printf("seek failed, assuming it was past EOF... ");
 			else
 				printf("seek past end failed as expected... ");
+
 			/* hack to work around a deficiency in the seek API's behavior */
 			/* seeking past EOF sets the file decoder state to non-OK and there's no ..._flush() or ..._reset() call to reset it */
 			if(!OggFLAC__file_decoder_finish(decoder))
