@@ -40,7 +40,7 @@ all default: $(DEFAULT_BUILD)
 # GNU makefile fragment for emulating stuff normally done by configure
 #
 
-VERSION=\"1.1.1\"
+VERSION=\"1.1.2-beta\"
 
 CONFIG_CFLAGS=-DHAVE_INTTYPES_H -DHAVE_ICONV -DHAVE_SOCKLEN_T -DFLAC__HAS_OGG
 
