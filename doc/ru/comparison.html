@@ -72,7 +72,7 @@
 <P>Целью этой страницы является сравнение FLAC с другими аналогичными кодеками. Исследование затрагивает не только уровень и время сжатия, но и другие важные для пользователя возможности кодеков. Выбирая для себя кодек, помните о следующем:</P>
 
 <P><BLOCKQUOTE>
-<LI>Насколько я знаю, только два кодека (FLAC и Kexis) полностью свободны (лицензия Shorten более ограничена). Большинство предоставляют свободные скомпилированные программы без доступа к исходным кодам, следовательно, выбирая их, Вы попадаете в зависимость от производителя. У вас уже не будет шанса портировать программу на другую операционную систему или исправить ошибку, если она появится, если этого не захочет сделать автор. Это может оказаться серьезным недостатком, если формат не является всемирно признаным.</LI>
+<LI>Насколько я знаю, только три кодека (Bonk, FLAC и Kexis) полностью свободны (лицензия Shorten более ограничена). Большинство предоставляют свободные скомпилированные программы без доступа к исходным кодам, следовательно, выбирая их, Вы попадаете в зависимость от производителя. У вас уже не будет шанса портировать программу на другую операционную систему или исправить ошибку, если она появится, если этого не захочет сделать автор. Это может оказаться серьезным недостатком, если формат не является всемирно признаным.</LI>
 
 <LI>Уровень и время сжатия характеризуют только конкретную версию енкодера. Они не выявляют предела для всех енкодеров и формата FLAC, так как формат открытый и расширяемый и каждый может написать улучшенную версию. Можно с большой долей уверенности сказать, что кодек будет улучшаться.</LI>
 
@@ -85,6 +85,10 @@
 
 <P><BLOCKQUOTE>
 <LI><A HREF="index.html">flac</A>.</LI>
+
+<LI><A HREF="http://yoyo.cc.monash.edu.au/~phf/bonk">Bonk</A> - кодек с открытыми исходниками. Нет отдельной библиотеки и поддержки плейера.</LI>
+
+<LI><A HREF="http://www.ghido.f2s.com/FROG.php">FROG</A> - кодек с закрытыми исходниками только для Windows с плагином для Winamp.</LI>
 
 <LI><A HREF="http://sourceforge.net/projects/kexis">Kexis</A> - кодек с открытыми исходниками. Находится на альфа-стадии разработки. Нет поддержки плейера. Последнее обновление 24 августа 2000 года. Похоже, проект заглох.</LI>
 
@@ -127,13 +131,13 @@
 <TD BGCOLOR="#F0F0F0">
 <FONT SIZE="+1"><B>Цена</B></FONT></TD></TR>
 
-<TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">flac v1.0</TD>
+<TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">flac v1.0.1</TD>
 <TD>да</TD>
 <TD>любая</TD>
 <TD>да (Winamp, XMMS)</TD>
 <TD>да</TD>
 <TD>да</TD>
-<TD>беспл.</TD></TR>
+<TD>своб.</TD></TR>
 
 <TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">Shorten v3.2</TD>
 <TD>да</TD>
@@ -141,7 +145,7 @@
 <TD>да (Winamp, XMMS)</TD>
 <TD BGCOLOR="#E0E0E0">нет</TD>
 <TD BGCOLOR="#E0E0E0">нет (только v3)</TD>
-<TD>беспл.</TD></TR>
+<TD>своб.</TD></TR>
 
 <TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">Ogg Squish 0.98</TD>
 <TD>да</TD>
@@ -149,7 +153,15 @@
 <TD BGCOLOR="#E0E0E0">нет?</TD>
 <TD>да</TD>
 <TD>да</TD>
-<TD>беспл.</TD></TR>
+<TD>своб.</TD></TR>
+
+<TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">Bonk 0.5</TD>
+<TD>да</TD>
+<TD>любая</TD>
+<TD BGCOLOR="#E0E0E0">нет</TD>
+<TD BGCOLOR="#E0E0E0">нет</TD>
+<TD BGCOLOR="#E0E0E0">нет</TD>
+<TD>своб.</TD></TR>
 
 <TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">Kexis 0.2.2</TD>
 <TD>да</TD>
@@ -159,7 +171,7 @@
 <TD BGCOLOR="#E0E0E0">нет</TD>
 <TD>беспл.</TD></TR>
 
-<TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">LPAC v1.20 (codec 2.0)</TD>
+<TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">LPAC v1.31 (codec 3.0)</TD>
 <TD BGCOLOR="#E0E0E0">нет</TD>
 <TD>Windows/Linux/Solaris</TD>
 <TD>да (Winamp)</TD>
@@ -170,8 +182,24 @@
 <TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">Monkey's Audio v3.80</TD>
 <TD BGCOLOR="#E0E0E0">нет</TD>
 <TD BGCOLOR="#E0E0E0">Windows</TD>
+<TD>да (Winamp, MediaJukebox)</TD>
+<TD BGCOLOR="#E0E0E0">нет</TD>
+<TD>да</TD>
+<TD>беспл.</TD></TR>
+
+<TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">WavPack v3.91</TD>
+<TD BGCOLOR="#E0E0E0">нет</TD>
+<TD BGCOLOR="#E0E0E0">Windows</TD>
 <TD>да (Winamp)</TD>
-<TD>нет</TD>
+<TD BGCOLOR="#E0E0E0">нет</TD>
+<TD>да</TD>
+<TD>беспл.</TD></TR>
+
+<TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">Frog 6.61</TD>
+<TD BGCOLOR="#E0E0E0">нет</TD>
+<TD BGCOLOR="#E0E0E0">Windows</TD>
+<TD>да (Winamp)</TD>
+<TD BGCOLOR="#E0E0E0">нет</TD>
 <TD>да</TD>
 <TD>беспл.</TD></TR>
 
@@ -181,14 +209,6 @@
 <TD>да (Winamp)</TD>
 <TD BGCOLOR="#E0E0E0">нет</TD>
 <TD>да</TD>
-<TD>беспл.</TD></TR>
-
-<TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">WavPack v3.6</TD>
-<TD BGCOLOR="#E0E0E0">нет</TD>
-<TD BGCOLOR="#E0E0E0">Windows</TD>
-<TD BGCOLOR="#E0E0E0">нет</TD>
-<TD BGCOLOR="#E0E0E0">нет</TD>
-<TD BGCOLOR="#E0E0E0">нет</TD>
 <TD>беспл.</TD></TR>
 
 <TR><TD ALIGN="RIGHT" BGCOLOR="#F0F0F0">WaveZIP v2</TD>
@@ -229,16 +249,18 @@
 		<TR><TD>Monkey's Audio 3.80 (extra high)</TD><TD>21:09.65</TD><TD>&nbsp;</TD><TD>397.89 MB</TD><TD>0.5097</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (normal)</TD><TD>54:05.71</TD><TD>&nbsp;</TD><TD>397.96 MB</TD><TD>0.5098</TD></TR>
 		<TR><TD>RKAU 1.06 (high)</TD><TD>137:00.11</TD><TD>&nbsp;</TD><TD>398.29 MB</TD><TD>0.5103</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 4)</TD><TD>27:51.08</TD><TD>&nbsp;</TD><TD>401.79 MB</TD><TD>0.5147</TD></TR>
+		<TR><TD>LPAC 1.31 (-r, normal)</TD><TD>19:19.39</TD><TD>&nbsp;</TD><TD>403.52 MB</TD><TD>0.5170</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio 3.80 (high)</TD><TD>7:59.74</TD><TD>&nbsp;</TD><TD>404.08 MB</TD><TD>0.5176</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, high)</TD><TD>91:19.47</TD><TD>&nbsp;</TD><TD>409.72 MB</TD><TD>0.5249</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, normal)</TD><TD>21:22.25</TD><TD>&nbsp;</TD><TD>409.81 MB</TD><TD>0.5250</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, extra high)</TD><TD>112:53.78</TD><TD>&nbsp;</TD><TD>410.54 MB</TD><TD>0.5260</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>56:14.92</TD><TD>&nbsp;</TD><TD>411.85 MB</TD><TD>0.5276</TD></TR>
-		<TR><TD><B>flac 1.0 (-5, default)</B></TD><TD>13:29.11</TD><TD>&nbsp;</TD><TD>413.43 MB</TD><TD>0.5296</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-3)</TD><TD>10:03.33</TD><TD>&nbsp;</TD><TD>419.26 MB</TD><TD>0.5371</TD></TR>
-		<TR><TD>WavPack 3.6 (high)</TD><TD>10:21.44</TD><TD>&nbsp;</TD><TD>420.92 MB</TD><TD>0.5393</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>19:56.44</TD><TD>&nbsp;</TD><TD>405.23 MB</TD><TD>0.5192</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-8)</TD><TD>56:14.92</TD><TD>&nbsp;</TD><TD>411.85 MB</TD><TD>0.5276</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>13:29.11</TD><TD>&nbsp;</TD><TD>413.43 MB</TD><TD>0.5296</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 0)</TD><TD>18:56.67</TD><TD>&nbsp;</TD><TD>413.70 MB</TD><TD>0.5300</TD></TR>
+		<TR><TD>WavPack 3.91 (high)</TD><TD>7:15.37</TD><TD>&nbsp;</TD><TD>418.09 MB</TD><TD>0.5356</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Bonk 0.5</TD><TD>37:05.54</TD><TD>&nbsp;</TD><TD>418.65 MB</TD><TD>0.5363</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>10:03.33</TD><TD>&nbsp;</TD><TD>419.26 MB</TD><TD>0.5371</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>&nbsp;</TD><TD>431.08 MB</TD><TD>0.5522</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>8:59.63</TD><TD>&nbsp;</TD><TD>432.29 MB</TD><TD>0.5538</TD></TR>
+		<TR><TD>flac 1.0.1 (-1)</TD><TD>8:59.63</TD><TD>&nbsp;</TD><TD>432.29 MB</TD><TD>0.5538</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>10:05.16</TD><TD>&nbsp;</TD><TD>433.56 MB</TD><TD>0.5554</TD></TR>
 		<TR><TD>Kexis 0.2.2</TD><TD>17:50.23</TD><TD>&nbsp;</TD><TD>434.33 MB</TD><TD>0.5564</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>12:21.27</TD><TD>&nbsp;</TD><TD>438.86 MB</TD><TD>0.5622</TD></TR>
@@ -264,7 +286,7 @@
 <FONT SIZE="+1"><B>Уровень сжатия</B></FONT></TD></TR>
 
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="19" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="21">
 				Dream Theater<BR><I>6:00</I><BR>58.47 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
@@ -273,45 +295,49 @@
 		<TR><TD>Monkey's Audio (high)</TD><TD>0:41.98</TD><TD>43.85 MB</TD><TD>0.7500</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (high)</TD><TD>8:12.44</TD><TD>43.87 MB</TD><TD>0.7503</TD></TR>
 		<TR><TD>RKAU 1.06 (normal)</TD><TD>2:59.56</TD><TD>43.88 MB</TD><TD>0.7504</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>4:22.30</TD><TD>44.33 MB</TD><TD>0.7581</TD></TR>
-		<TR><TD><B>flac 1.0 (-5, default)</B></TD><TD>1:04.07</TD><TD>44.40 MB</TD><TD>0.7594</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, high)</TD><TD>6:51.24</TD><TD>44.42 MB</TD><TD>0.7598</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, normal)</TD><TD>1:45.72</TD><TD>44.44 MB</TD><TD>0.7601</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, extra high)</TD><TD>7:50.80</TD><TD>44.44 MB</TD><TD>0.7601</TD></TR>
-		<TR><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:58.42</TD><TD>44.75 MB</TD><TD>0.7654</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-3)</TD><TD>0:48.75</TD><TD>44.78 MB</TD><TD>0.7658</TD></TR>
-		<TR><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>45.17 MB</TD><TD>0.7725</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.6 (high)</TD><TD>0:49.21</TD><TD>45.37 MB</TD><TD>0.7760</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.31 (-r, normal)</TD><TD>1:32.62</TD><TD>44.12 MB</TD><TD>0.7545</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>1:33.09</TD><TD>44.15 MB</TD><TD>0.7550</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 4)</TD><TD>2:08.48</TD><TD>44.18 MB</TD><TD>0.7556</TD></TR>
+		<TR><TD>flac 1.0.1 (-8)</TD><TD>4:22.30</TD><TD>44.33 MB</TD><TD>0.7581</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Bonk 0.5</TD><TD>2:57.32</TD><TD>44.35 MB</TD><TD>0.7585</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>1:04.07</TD><TD>44.40 MB</TD><TD>0.7594</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:58.42</TD><TD>44.75 MB</TD><TD>0.7654</TD></TR>
+		<TR><TD>FROG 6.61 (mode 0)</TD><TD>1:30.94</TD><TD>44.77 MB</TD><TD>0.7657</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-3)</TD><TD>0:48.75</TD><TD>44.78 MB</TD><TD>0.7658</TD></TR>
+		<TR><TD>WavPack 3.91 (high)</TD><TD>0:35.86</TD><TD>45.14 MB</TD><TD>0.7720</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>45.17 MB</TD><TD>0.7725</TD></TR>
 		<TR><TD>Pegasus-SPS</TD><TD>4:45.00</TD><TD>45.40 MB</TD><TD>0.7765</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Kexis 0.2.2</TD><TD>1:25.04</TD><TD>46.52 MB</TD><TD>0.7956</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>0:44.84</TD><TD>46.64 MB</TD><TD>0.7977</TD></TR>
+		<TR><TD>flac 1.0.1 (-1)</TD><TD>0:44.84</TD><TD>46.64 MB</TD><TD>0.7977</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:47.19</TD><TD>46.68 MB</TD><TD>0.7984</TD></TR>
 		<TR><TD>WaveZIP</TD><TD>0:38.99</TD><TD>47.22 MB</TD><TD>0.8077</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Eddie Warner<BR><I>Titus</I><BR>27.87 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
 		</TR>
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (high)</TD><TD>3:34.79</TD><TD>14.54 MB</TD><TD>0.5216</TD></TR>
 		<TR><TD>RKAU 1.06 (normal)</TD><TD>1:12.25</TD><TD>14.60 MB</TD><TD>0.5238</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>2:00.01</TD><TD>15.01 MB</TD><TD>0.5384</TD></TR>
-		<TR><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:29.09</TD><TD>15.11 MB</TD><TD>0.5423</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-3)</TD><TD>0:21.88</TD><TD>15.43 MB</TD><TD>0.5537</TD></TR>
-		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:20.71</TD><TD>15.78 MB</TD><TD>0.5662</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>0:45.47</TD><TD>16.04 MB</TD><TD>0.5754</TD></TR>
-		<TR><TD>Monkey's Audio (high)</TD><TD>0:13.99</TD><TD>16.11 MB</TD><TD>0.5779</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:26.37</TD><TD>16.21 MB</TD><TD>0.5818</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>0:20.31</TD><TD>16.38 MB</TD><TD>0.5879</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, high)</TD><TD>2:59.29</TD><TD>16.60 MB</TD><TD>0.5956</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, extra high)</TD><TD>3:24.92</TD><TD>16.61 MB</TD><TD>0.5959</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, normal)</TD><TD>0:40.91</TD><TD>16.65 MB</TD><TD>0.5973</TD></TR>
-		<TR><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>17.03 MB</TD><TD>0.6112</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.6 (high)</TD><TD>0:15.96</TD><TD>17.22 MB</TD><TD>0.6180</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.31 (-r, normal)</TD><TD>0:40.65</TD><TD>14.77 MB</TD><TD>0.5298</TD></TR>
+		<TR><TD>flac 1.0.1 (-8)</TD><TD>2:00.01</TD><TD>15.01 MB</TD><TD>0.5384</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:29.09</TD><TD>15.11 MB</TD><TD>0.5423</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>0:21.88</TD><TD>15.43 MB</TD><TD>0.5537</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:20.71</TD><TD>15.78 MB</TD><TD>0.5662</TD></TR>
+		<TR><TD>Monkey's Audio (extra high)</TD><TD>0:45.47</TD><TD>16.04 MB</TD><TD>0.5754</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (high)</TD><TD>0:13.99</TD><TD>16.11 MB</TD><TD>0.5779</TD></TR>
+		<TR><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:26.37</TD><TD>16.21 MB</TD><TD>0.5818</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-1)</TD><TD>0:20.31</TD><TD>16.38 MB</TD><TD>0.5879</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>0:37.93</TD><TD>16.56 MB</TD><TD>0.5941</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Bonk 0.5</TD><TD>1:22.60</TD><TD>16.73 MB</TD><TD>0.6003</TD></TR>
+		<TR><TD>FROG 6.61 (mode 4)</TD><TD>0:58.79</TD><TD>16.76 MB</TD><TD>0.6014</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>17.03 MB</TD><TD>0.6112</TD></TR>
+		<TR><TD>WavPack 3.91 (high)</TD><TD>0:10.55</TD><TD>17.13 MB</TD><TD>0.6148</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 0)</TD><TD>0:35.42</TD><TD>17.18 MB</TD><TD>0.6166</TD></TR>
 		<TR><TD>Kexis 0.2.2</TD><TD>0:32.81</TD><TD>17.40 MB</TD><TD>0.6242</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:17.55</TD><TD>17.89 MB</TD><TD>0.6420</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Tool<BR><I>Forty-six & 2</I><BR>64.25 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
@@ -320,44 +346,48 @@
 		<TR><TD>Monkey's Audio (high)</TD><TD>0:33.43</TD><TD>39.51 MB</TD><TD>0.6149</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (normal)</TD><TD>3:34.75</TD><TD>39.93 MB</TD><TD>0.6214</TD></TR>
 		<TR><TD>RKAU 1.06 (high)</TD><TD>8:37.42</TD><TD>39.97 MB</TD><TD>0.6220</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, normal)</TD><TD>1:52.22</TD><TD>40.57 MB</TD><TD>0.6314</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, high)</TD><TD>7:36.55</TD><TD>40.61 MB</TD><TD>0.6320</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, extra high)</TD><TD>9:49.64</TD><TD>40.71 MB</TD><TD>0.6336</TD></TR>
-		<TR><TD>flac 1.0 (-8)</TD><TD>4:41.40</TD><TD>40.89 MB</TD><TD>0.6363</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD><B>flac 1.0 (-5, default)</B></TD><TD>1:08.48</TD><TD>41.07 MB</TD><TD>0.6387</TD></TR>
-		<TR><TD>WavPack 3.6 (high)</TD><TD>0:52.37</TD><TD>41.72 MB</TD><TD>0.6492</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-3)</TD><TD>0:51.92</TD><TD>41.71 MB</TD><TD>0.6496</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.31 (-r, normal)</TD><TD>1:38.80</TD><TD>40.25 MB</TD><TD>0.6263</TD></TR>
+		<TR><TD>FROG 6.61 (mode 4)</TD><TD>2:21.06</TD><TD>40.36 MB</TD><TD>0.6281</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 1)</TD><TD>1:42.26</TD><TD>40.38 MB</TD><TD>0.6284</TD></TR>
+		<TR><TD>flac 1.0.1 (-8)</TD><TD>4:41.40</TD><TD>40.89 MB</TD><TD>0.6363</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Bonk 0.5</TD><TD>3:07.42</TD><TD>40.98 MB</TD><TD>0.6378</TD></TR>
+		<TR><TD>FROG 6.61 (mode 0)</TD><TD>1:36.56</TD><TD>41.01 MB</TD><TD>0.6383</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>1:08.48</TD><TD>41.07 MB</TD><TD>0.6387</TD></TR>
+		<TR><TD>WavPack 3.91 (high)</TD><TD>0:37.51</TD><TD>41.51 MB</TD><TD>0.6461</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-3)</TD><TD>0:51.92</TD><TD>41.71 MB</TD><TD>0.6496</TD></TR>
 		<TR><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>42.27 MB</TD><TD>0.6578</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-1)</TD><TD>0:47.39</TD><TD>42.72 MB</TD><TD>0.6646</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-1)</TD><TD>0:47.39</TD><TD>42.72 MB</TD><TD>0.6646</TD></TR>
 		<TR><TD>Kexis 0.2.2</TD><TD>1:30.85</TD><TD>42.75 MB</TD><TD>0.6652</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>1:02.49</TD><TD>43.06 MB</TD><TD>0.6701</TD></TR>
 		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:52.06</TD><TD>43.18 MB</TD><TD>0.6721</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:42.84</TD><TD>44.52 MB</TD><TD>0.6930</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Cannibal Corpse<BR><I>Mummified In Barbed Wire</I><BR>33.37 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
 		</TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>0:49.20</TD><TD>23.47 MB</TD><TD>0.7033</TD></TR>
+		<TR><TD>LPAC 1.31 (-r, normal)</TD><TD>1:12.54</TD><TD>23.53 MB</TD><TD>0.7050</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 4)</TD><TD>1:12.82</TD><TD>23.58 MB</TD><TD>0.7065</TD></TR>
 		<TR><TD>Monkey's Audio (high)</TD><TD>0:23.25</TD><TD>23.66 MB</TD><TD>0.7087</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, normal)</TD><TD>1:01.16</TD><TD>23.75 MB</TD><TD>0.7116</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, high)</TD><TD>5:13.57</TD><TD>23.92 MB</TD><TD>0.7168</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, extra high)</TD><TD>6:04.27</TD><TD>23.95 MB</TD><TD>0.7175</TD></TR>
-		<TR><TD>RKAU 1.06 (normal)</TD><TD>1:32.20</TD><TD>24.04 MB</TD><TD>0.7202</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (high)</TD><TD>3:21.70</TD><TD>24.04 MB</TD><TD>0.7202</TD></TR>
-		<TR><TD>flac 1.0 (-8)</TD><TD>2:29.60</TD><TD>24.18 MB</TD><TD>0.7244</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:36.32</TD><TD>24.30 MB</TD><TD>0.7281</TD></TR>
-		<TR><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:33.98</TD><TD>25.12 MB</TD><TD>0.7526</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-3)</TD><TD>0:27.93</TD><TD>25.16 MB</TD><TD>0.7539</TD></TR>
-		<TR><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>25.23 MB</TD><TD>0.7558</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.6 (high)</TD><TD>0:28.07</TD><TD>25.44 MB</TD><TD>0.7621</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (normal)</TD><TD>1:32.20</TD><TD>24.04 MB</TD><TD>0.7202</TD></TR>
+		<TR><TD>RKAU 1.06 (high)</TD><TD>3:21.70</TD><TD>24.04 MB</TD><TD>0.7202</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-8)</TD><TD>2:29.60</TD><TD>24.18 MB</TD><TD>0.7244</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:36.32</TD><TD>24.30 MB</TD><TD>0.7281</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Bonk 0.5</TD><TD>1:39.10</TD><TD>24.36 MB</TD><TD>0.7297</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>0:52.74</TD><TD>24.46 MB</TD><TD>0.7329</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:33.98</TD><TD>25.12 MB</TD><TD>0.7526</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>0:27.93</TD><TD>25.16 MB</TD><TD>0.7539</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>25.23 MB</TD><TD>0.7558</TD></TR>
+		<TR><TD>FROG 6.61 (mode 0)</TD><TD>0:49.87</TD><TD>25.24 MB</TD><TD>0.7562</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.91 (high)</TD><TD>0:20.50</TD><TD>25.33 MB</TD><TD>0.7589</TD></TR>
 		<TR><TD>Kexis 0.2.2</TD><TD>0:47.07</TD><TD>26.03 MB</TD><TD>0.7799</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-1)</TD><TD>0:25.08</TD><TD>26.09 MB</TD><TD>0.7818</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-1)</TD><TD>0:25.08</TD><TD>26.09 MB</TD><TD>0.7818</TD></TR>
 		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:27.19</TD><TD>26.61 MB</TD><TD>0.7972</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:22.25</TD><TD>26.89 MB</TD><TD>0.8058</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Alanis Morisette<BR><I>Hand In My Pocket</I><BR>39.09 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
@@ -366,44 +396,48 @@
 		<TR><TD>Monkey's Audio (high)</TD><TD>0:25.70</TD><TD>23.04 MB</TD><TD>0.5893</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (high)</TD><TD>5:54.68</TD><TD>23.16 MB</TD><TD>0.5925</TD></TR>
 		<TR><TD>RKAU 1.06 (normal)</TD><TD>2:23.63</TD><TD>23.19 MB</TD><TD>0.5933</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>2:49.68</TD><TD>23.45 MB</TD><TD>0.5997</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, normal)</TD><TD>1:07.58</TD><TD>23.45 MB</TD><TD>0.6000</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, high)</TD><TD>4:47.03</TD><TD>23.49 MB</TD><TD>0.6008</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, extra high)</TD><TD>5:50.53</TD><TD>23.52 MB</TD><TD>0.6016</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:40.70</TD><TD>23.55 MB</TD><TD>0.6025</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 4)</TD><TD>1:25.16</TD><TD>23.21 MB</TD><TD>0.5937</TD></TR>
+		<TR><TD>LPAC 1.31 (-r, normal)</TD><TD>1:01.14</TD><TD>23.25 MB</TD><TD>0.5948</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 1)</TD><TD>1:01.46</TD><TD>23.33 MB</TD><TD>0.5968</TD></TR>
+		<TR><TD>Bonk 0.5</TD><TD>1:54.24</TD><TD>23.35 MB</TD><TD>0.5972</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-8)</TD><TD>2:49.68</TD><TD>23.45 MB</TD><TD>0.5997</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:40.70</TD><TD>23.55 MB</TD><TD>0.6025</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 0)</TD><TD>0:58.35</TD><TD>23.86 MB</TD><TD>0.6104</TD></TR>
 		<TR><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>24.11 MB</TD><TD>0.6167</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.6 (high)</TD><TD>0:31.44</TD><TD>24.30 MB</TD><TD>0.6217</TD></TR>
-		<TR><TD>flac 1.0 (-3)</TD><TD>0:30.81</TD><TD>24.32 MB</TD><TD>0.6220</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.91 (high)</TD><TD>0:22.50</TD><TD>24.22 MB</TD><TD>0.6196</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>0:30.81</TD><TD>24.32 MB</TD><TD>0.6220</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:37.23</TD><TD>24.72 MB</TD><TD>0.6323</TD></TR>
 		<TR><TD>Kexis 0.2.2</TD><TD>0:55.13</TD><TD>24.80 MB</TD><TD>0.6345</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-1)</TD><TD>0:27.16</TD><TD>24.81 MB</TD><TD>0.6347</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-1)</TD><TD>0:27.16</TD><TD>24.81 MB</TD><TD>0.6347</TD></TR>
 		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:29.82</TD><TD>25.34 MB</TD><TD>0.6481</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:28.05</TD><TD>25.95 MB</TD><TD>0.6638</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Gloria Estefan<BR><I>Conga</I><BR>45.15 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
 		</TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>1:15.79</TD><TD>30.12 MB</TD><TD>0.6670</TD></TR>
 		<TR><TD>Monkey's Audio (high)</TD><TD>0:29.68</TD><TD>30.32 MB</TD><TD>0.6716</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>3:20.51</TD><TD>30.75 MB</TD><TD>0.6811</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 4)</TD><TD>1:38.48</TD><TD>30.57 MB</TD><TD>0.6770</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>1:11.15</TD><TD>30.62 MB</TD><TD>0.6782</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Bonk 0.5</TD><TD>2:13.65</TD><TD>30.64 MB</TD><TD>0.6785</TD></TR>
+		<TR><TD>flac 1.0.1 (-8)</TD><TD>3:20.51</TD><TD>30.75 MB</TD><TD>0.6811</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.31 (-r, normal)</TD><TD>1:14.52</TD><TD>30.81 MB</TD><TD>0.6823</TD></TR>
 		<TR><TD>RKAU 1.06 (high)</TD><TD>6:52.69</TD><TD>30.83 MB</TD><TD>0.6828</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:48.33</TD><TD>30.85 MB</TD><TD>0.6833</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:48.33</TD><TD>30.85 MB</TD><TD>0.6833</TD></TR>
 		<TR><TD>RKAU 1.06 (normal)</TD><TD>2:41.42</TD><TD>30.87 MB</TD><TD>0.6837</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, normal)</TD><TD>1:20.29</TD><TD>31.03 MB</TD><TD>0.6871</TD></TR>
-		<TR><TD>WavPack 3.6 (high)</TD><TD>0:37.15</TD><TD>31.04 MB</TD><TD>0.6875</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.91 (high)</TD><TD>0:26.73</TD><TD>30.91 MB</TD><TD>0.6845</TD></TR>
+		<TR><TD>FROG 6.61 (mode 0)</TD><TD>1:08.05</TD><TD>30.96 MB</TD><TD>0.6857</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>31.06 MB</TD><TD>0.6879</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, high)</TD><TD>5:33.21</TD><TD>31.06 MB</TD><TD>0.6879</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, extra high)</TD><TD>6:39.28</TD><TD>31.11 MB</TD><TD>0.6889</TD></TR>
-		<TR><TD>flac 1.0 (-3)</TD><TD>0:36.80</TD><TD>31.63 MB</TD><TD>0.7005</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>0:36.80</TD><TD>31.63 MB</TD><TD>0.7005</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:44.27</TD><TD>31.76 MB</TD><TD>0.7034</TD></TR>
 		<TR><TD>Kexis 0.2.2</TD><TD>1:06.75</TD><TD>31.86 MB</TD><TD>0.7056</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-1)</TD><TD>0:33.50</TD><TD>31.99 MB</TD><TD>0.7085</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-1)</TD><TD>0:33.50</TD><TD>31.99 MB</TD><TD>0.7085</TD></TR>
 		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:36.39</TD><TD>32.47 MB</TD><TD>0.7191</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:29.42</TD><TD>33.02 MB</TD><TD>0.7313</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Cream<BR><I>White Room</I><BR>53.01 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
@@ -411,22 +445,24 @@
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (high)</TD><TD>8:15.46</TD><TD>34.30 MB</TD><TD>0.6469</TD></TR>
 		<TR><TD>RKAU 1.06 (normal)</TD><TD>3:12.99</TD><TD>34.35 MB</TD><TD>0.6479</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>1:28.45</TD><TD>34.65 MB</TD><TD>0.6535</TD></TR>
+		<TR><TD>FROG 6.61 (mode 4)</TD><TD>1:56.51</TD><TD>34.68 MB</TD><TD>0.6542</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.31 (-r, normal)</TD><TD>1:29.48</TD><TD>34.84 MB</TD><TD>0.6572</TD></TR>
 		<TR><TD>Monkey's Audio (high)</TD><TD>0:24.17</TD><TD>34.91 MB</TD><TD>0.6586</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>3:54.58</TD><TD>35.00 MB</TD><TD>0.6602</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, normal)</TD><TD>1:34.16</TD><TD>35.10 MB</TD><TD>0.6621</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, high)</TD><TD>6:39.29</TD><TD>35.17 MB</TD><TD>0.6633</TD></TR>
-		<TR><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:56.64</TD><TD>35.17 MB</TD><TD>0.6634</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, extra high)</TD><TD>7:39.28</TD><TD>35.19 MB</TD><TD>0.6638</TD></TR>
-		<TR><TD>flac 1.0 (-3)</TD><TD>0:42.74</TD><TD>35.37 MB</TD><TD>0.6672</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Bonk 0.5</TD><TD>2:37.02</TD><TD>34.96 MB</TD><TD>0.6595</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>1:24.97</TD><TD>34.99 MB</TD><TD>0.6600</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-8)</TD><TD>3:54.58</TD><TD>35.00 MB</TD><TD>0.6602</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:56.64</TD><TD>35.17 MB</TD><TD>0.6634</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 0)</TD><TD>1:20.55</TD><TD>35.35 MB</TD><TD>0.6667</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>0:42.74</TD><TD>35.37 MB</TD><TD>0.6672</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:51.33</TD><TD>35.40 MB</TD><TD>0.6677</TD></TR>
-		<TR><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>35.74 MB</TD><TD>0.6742</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.6 (high)</TD><TD>0:44.18</TD><TD>35.82 MB</TD><TD>0.6758</TD></TR>
+		<TR><TD>WavPack 3.91 (high)</TD><TD>0:31.05</TD><TD>35.60 MB</TD><TD>0.6715</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>35.74 MB</TD><TD>0.6742</TD></TR>
 		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:40.76</TD><TD>36.42 MB</TD><TD>0.6870</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-1)</TD><TD>0:38.39</TD><TD>36.56 MB</TD><TD>0.6896</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-1)</TD><TD>0:38.39</TD><TD>36.56 MB</TD><TD>0.6896</TD></TR>
 		<TR><TD>Kexis 0.2.2</TD><TD>1:13.46</TD><TD>36.64 MB</TD><TD>0.6911</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:35.77</TD><TD>37.13 MB</TD><TD>0.7004</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Maurice Ravel<BR><I>Fanfare from "L'eventail de Jeanne"</I><BR>20.82 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
@@ -434,91 +470,99 @@
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (normal)</TD><TD>1:46.51</TD><TD>6.86 MB</TD><TD>0.3297</TD></TR>
 		<TR><TD>RKAU 1.06 (high)</TD><TD>3:53.54</TD><TD>6.90 MB</TD><TD>0.3316</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>0:30.30</TD><TD>7.09 MB</TD><TD>0.3407</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, normal)</TD><TD>0:30.93</TD><TD>7.47 MB</TD><TD>0.3586</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, extra high)</TD><TD>3:06.27</TD><TD>7.48 MB</TD><TD>0.3591</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, high)</TD><TD>2:21.16</TD><TD>7.48 MB</TD><TD>0.3593</TD></TR>
+		<TR><TD>FROG 6.61 (mode 4)</TD><TD>0:43.03</TD><TD>7.25 MB</TD><TD>0.3482</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.31 (-r, normal)</TD><TD>0:28.80</TD><TD>7.33 MB</TD><TD>0.3520</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>0:30.54</TD><TD>7.39 MB</TD><TD>0.3549</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (high)</TD><TD>0:12.58</TD><TD>7.56 MB</TD><TD>0.3634</TD></TR>
-		<TR><TD>flac 1.0 (-8)</TD><TD>1:21.75</TD><TD>7.68 MB</TD><TD>0.3691</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:19.79</TD><TD>7.71 MB</TD><TD>0.3702</TD></TR>
-		<TR><TD>flac 1.0 (-3)</TD><TD>0:14.63</TD><TD>7.77 MB</TD><TD>0.3733</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.6 (high)</TD><TD>0:16.11</TD><TD>7.99 MB</TD><TD>0.3838</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>0:13.14</TD><TD>8.12 MB</TD><TD>0.3901</TD></TR>
+		<TR><TD>FROG 6.61 (mode 0)</TD><TD>0:28.81</TD><TD>7.65 MB</TD><TD>0.3673</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-8)</TD><TD>1:21.75</TD><TD>7.68 MB</TD><TD>0.3691</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:19.79</TD><TD>7.71 MB</TD><TD>0.3702</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-3)</TD><TD>0:14.63</TD><TD>7.77 MB</TD><TD>0.3733</TD></TR>
+		<TR><TD>Bonk 0.5</TD><TD>0:56.07</TD><TD>7.83 MB</TD><TD>0.3762</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.91 (high)</TD><TD>0:11.42</TD><TD>7.89 MB</TD><TD>0.3791</TD></TR>
+		<TR><TD>flac 1.0.1 (-1)</TD><TD>0:13.14</TD><TD>8.12 MB</TD><TD>0.3901</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>8.15 MB</TD><TD>0.3914</TD></TR>
 		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:13.68</TD><TD>8.19 MB</TD><TD>0.3932</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:17.56</TD><TD>8.29 MB</TD><TD>0.3983</TD></TR>
 		<TR><TD>Kexis 0.2.2</TD><TD>0:26.88</TD><TD>8.52 MB</TD><TD>0.4091</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:13.11</TD><TD>8.72 MB</TD><TD>0.4193</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Maurice Ravel<BR><I>String Quartet (4th movement)</I><BR>56.18 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
 		</TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>1:29.26</TD><TD>20.87 MB</TD><TD>0.3715</TD></TR>
-		<TR><TD>RKAU 1.06 (normal)</TD><TD>3:51.42</TD><TD>21.46 MB</TD><TD>0.3820</TD></TR>
+		<TR><TD>FROG 6.61 (mode 4)</TD><TD>1:58.06</TD><TD>21.25 MB</TD><TD>0.3781</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (normal)</TD><TD>3:51.42</TD><TD>21.46 MB</TD><TD>0.3820</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>1:24.44</TD><TD>21.50 MB</TD><TD>0.3826</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (high)</TD><TD>0:34.29</TD><TD>21.55 MB</TD><TD>0.3836</TD></TR>
 		<TR><TD>RKAU 1.06 (high)</TD><TD>10:39.05</TD><TD>21.56 MB</TD><TD>0.3838</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, high)</TD><TD>6:28.14</TD><TD>22.30 MB</TD><TD>0.3969</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, normal)</TD><TD>1:28.02</TD><TD>22.32 MB</TD><TD>0.3972</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, extra high)</TD><TD>8:13.86</TD><TD>22.38 MB</TD><TD>0.3983</TD></TR>
-		<TR><TD>WavPack 3.6 (high)</TD><TD>0:43.84</TD><TD>22.53 MB</TD><TD>0.4010</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>3:58.83</TD><TD>22.61 MB</TD><TD>0.4024</TD></TR>
-		<TR><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:56.68</TD><TD>22.67 MB</TD><TD>0.4036</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-3)</TD><TD>0:41.61</TD><TD>23.21 MB</TD><TD>0.4131</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>0:37.14</TD><TD>23.36 MB</TD><TD>0.4158</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 0)</TD><TD>1:19.15</TD><TD>21.92 MB</TD><TD>0.3901</TD></TR>
+		<TR><TD>LPAC 1.31 (-r, normal)</TD><TD>1:21.40</TD><TD>21.96 MB</TD><TD>0.3909</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.91 (high)</TD><TD>0:30.03</TD><TD>22.30 MB</TD><TD>0.3969</TD></TR>
+		<TR><TD>flac 1.0.1 (-8)</TD><TD>3:58.83</TD><TD>22.61 MB</TD><TD>0.4024</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:56.68</TD><TD>22.67 MB</TD><TD>0.4036</TD></TR>
+		<TR><TD>Bonk 0.5</TD><TD>2:34.87</TD><TD>23.18 MB</TD><TD>0.4125</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-3)</TD><TD>0:41.61</TD><TD>23.21 MB</TD><TD>0.4131</TD></TR>
+		<TR><TD>flac 1.0.1 (-1)</TD><TD>0:37.14</TD><TD>23.36 MB</TD><TD>0.4158</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Kexis 0.2.2</TD><TD>1:14.81</TD><TD>23.42 MB</TD><TD>0.4168</TD></TR>
 		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:40.30</TD><TD>23.71 MB</TD><TD>0.4221</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>24.12 MB</TD><TD>0.4293</TD></TR>
 		<TR><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:49.18</TD><TD>25.59 MB</TD><TD>0.4554</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:36.60</TD><TD>25.84 MB</TD><TD>0.4600</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Sergei Prokofiev<BR><I>Piano Concerto No.3 (3rd movement)</I><BR>100.68 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
 		</TR>
-		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>2:37.54</TD><TD>34.55 MB</TD><TD>0.3431</TD></TR>
-		<TR><TD>RKAU 1.06 (normal)</TD><TD>6:34.97</TD><TD>35.31 MB</TD><TD>0.3507</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (high)</TD><TD>1:00.47</TD><TD>35.46 MB</TD><TD>0.3521</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, high)</TD><TD>10:12.47</TD><TD>35.74 MB</TD><TD>0.3549</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 4)</TD><TD>3:28.59</TD><TD>34.51 MB</TD><TD>0.3427</TD></TR>
+		<TR><TD>Monkey's Audio (extra high)</TD><TD>2:37.54</TD><TD>34.55 MB</TD><TD>0.3431</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 1)</TD><TD>2:27.82</TD><TD>34.82 MB</TD><TD>0.3458</TD></TR>
+		<TR><TD>LPAC 1.31 (-r, normal)</TD><TD>2:05.82</TD><TD>35.27 MB</TD><TD>0.3502</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (normal)</TD><TD>6:34.97</TD><TD>35.31 MB</TD><TD>0.3507</TD></TR>
+		<TR><TD>Monkey's Audio (high)</TD><TD>1:00.47</TD><TD>35.46 MB</TD><TD>0.3521</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (high)</TD><TD>18:34.20</TD><TD>35.80 MB</TD><TD>0.3555</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, extra high)</TD><TD>12:18.79</TD><TD>35.83 MB</TD><TD>0.3558</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, normal)</TD><TD>2:33.43</TD><TD>36.05 MB</TD><TD>0.3580</TD></TR>
-		<TR><TD>WavPack 3.6 (high)</TD><TD>1:17.06</TD><TD>37.88 MB</TD><TD>0.3762</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>7:01.69</TD><TD>38.07 MB</TD><TD>0.3781</TD></TR>
-		<TR><TD><B>flac 1.0 (-5, default)</B></TD><TD>1:39.81</TD><TD>38.17 MB</TD><TD>0.3791</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-3)</TD><TD>1:13.23</TD><TD>38.50 MB</TD><TD>0.3824</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>1:04.93</TD><TD>39.30 MB</TD><TD>0.3903</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>1:12.51</TD><TD>39.49 MB</TD><TD>0.3921</TD></TR>
-		<TR><TD>Kexis 0.2.2</TD><TD>2:12.79</TD><TD>39.89 MB</TD><TD>0.3962</TD></TR>
+		<TR><TD>FROG 6.61 (mode 0)</TD><TD>2:20.34</TD><TD>37.02 MB</TD><TD>0.3677</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.91 (high)</TD><TD>0:53.49</TD><TD>37.44 MB</TD><TD>0.3718</TD></TR>
+		<TR><TD>flac 1.0.1 (-8)</TD><TD>7:01.69</TD><TD>38.07 MB</TD><TD>0.3781</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>1:39.81</TD><TD>38.17 MB</TD><TD>0.3791</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>1:13.23</TD><TD>38.50 MB</TD><TD>0.3824</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-1)</TD><TD>1:04.93</TD><TD>39.30 MB</TD><TD>0.3903</TD></TR>
+		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>1:12.51</TD><TD>39.49 MB</TD><TD>0.3921</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Kexis 0.2.2</TD><TD>2:12.79</TD><TD>39.89 MB</TD><TD>0.3962</TD></TR>
+		<TR><TD>Bonk 0.5</TD><TD>4:35.94</TD><TD>40.31 MB</TD><TD>0.4003</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>41.86 MB</TD><TD>0.4157</TD></TR>
 		<TR><TD>WaveZIP</TD><TD>1:05.60</TD><TD>43.67 MB</TD><TD>0.4337</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>1:29.19</TD><TD>45.34 MB</TD><TD>0.4502</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Frederic Chopin<BR><I>Prelude No.24 in d minor</I><BR>27.46 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
 		</TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>0:42.69</TD><TD>10.53 MB</TD><TD>0.3834</TD></TR>
-		<TR><TD>Monkey's Audio (high)</TD><TD>0:19.69</TD><TD>10.77 MB</TD><TD>0.3921</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, high)</TD><TD>3:21.61</TD><TD>10.91 MB</TD><TD>0.3973</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, normal)</TD><TD>0:41.79</TD><TD>10.92 MB</TD><TD>0.3976</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, extra high)</TD><TD>3:56.36</TD><TD>10.93 MB</TD><TD>0.3979</TD></TR>
+		<TR><TD>FROG 6.61 (mode 4)</TD><TD>0:57.62</TD><TD>10.59 MB</TD><TD>0.3855</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.31 (-r, normal)</TD><TD>0:38.43</TD><TD>10.74 MB</TD><TD>0.3911</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>0:40.79</TD><TD>10.74 MB</TD><TD>0.3912</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (high)</TD><TD>0:19.69</TD><TD>10.77 MB</TD><TD>0.3921</TD></TR>
 		<TR><TD>RKAU 1.06 (normal)</TD><TD>1:58.42</TD><TD>10.97 MB</TD><TD>0.3994</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (high)</TD><TD>5:20.71</TD><TD>11.21 MB</TD><TD>0.4083</TD></TR>
-		<TR><TD>WavPack 3.6 (high)</TD><TD>0:22.32</TD><TD>11.52 MB</TD><TD>0.4193</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>1:55.59</TD><TD>11.69 MB</TD><TD>0.4255</TD></TR>
-		<TR><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:27.86</TD><TD>11.71 MB</TD><TD>0.4264</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-3)</TD><TD>0:19.98</TD><TD>11.73 MB</TD><TD>0.4273</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>0:17.59</TD><TD>11.86 MB</TD><TD>0.4318</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:19.21</TD><TD>12.05 MB</TD><TD>0.4386</TD></TR>
-		<TR><TD>Kexis 0.2.2</TD><TD>0:37.61</TD><TD>12.14 MB</TD><TD>0.4419</TD></TR>
+		<TR><TD>WavPack 3.91 (high)</TD><TD>0:14.46</TD><TD>11.38 MB</TD><TD>0.4145</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 0)</TD><TD>0:39.53</TD><TD>11.45 MB</TD><TD>0.4168</TD></TR>
+		<TR><TD>flac 1.0.1 (-8)</TD><TD>1:55.59</TD><TD>11.69 MB</TD><TD>0.4255</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:27.86</TD><TD>11.71 MB</TD><TD>0.4264</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>0:19.98</TD><TD>11.73 MB</TD><TD>0.4273</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-1)</TD><TD>0:17.59</TD><TD>11.86 MB</TD><TD>0.4318</TD></TR>
+		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:19.21</TD><TD>12.05 MB</TD><TD>0.4386</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Kexis 0.2.2</TD><TD>0:37.61</TD><TD>12.14 MB</TD><TD>0.4419</TD></TR>
+		<TR><TD>Bonk 0.5</TD><TD>1:16.95</TD><TD>12.86 MB</TD><TD>0.4684</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:18.75</TD><TD>13.08 MB</TD><TD>0.4765</TD></TR>
 		<TR><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>13.31 MB</TD><TD>0.4845</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:24.23</TD><TD>14.40 MB</TD><TD>0.5242</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				Domenico Scarlatti<BR><I>Sonata K.42 (arr.Yepes for guitar)</I><BR>16.39 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
@@ -526,45 +570,49 @@
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>0:25.79</TD><TD>6.96 MB</TD><TD>0.4245</TD></TR>
 		<TR><TD>RKAU 1.06 (high)</TD><TD>3:09.40</TD><TD>6.96 MB</TD><TD>0.4246</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (normal)</TD><TD>1:14.43</TD><TD>6.97 MB</TD><TD>0.4252</TD></TR>
-		<TR><TD>Monkey's Audio (high)</TD><TD>0:10.28</TD><TD>7.14 MB</TD><TD>0.4356</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, normal)</TD><TD>0:25.98</TD><TD>7.27 MB</TD><TD>0.4436</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, high)</TD><TD>2:21.30</TD><TD>7.34 MB</TD><TD>0.4480</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-8)</TD><TD>1:10.27</TD><TD>7.37 MB</TD><TD>0.4497</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, extra high)</TD><TD>3:00.91</TD><TD>7.38 MB</TD><TD>0.4500</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:16.54</TD><TD>7.40 MB</TD><TD>0.4512</TD></TR>
-		<TR><TD>WavPack 3.6 (high)</TD><TD>0:13.17</TD><TD>7.41 MB</TD><TD>0.4520</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0 (-3)</TD><TD>0:11.90</TD><TD>7.43 MB</TD><TD>0.4529</TD></TR>
+		<TR><TD>FROG 6.61 (mode 4)</TD><TD>0:35.24</TD><TD>7.06 MB</TD><TD>0.4304</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (high)</TD><TD>0:10.28</TD><TD>7.14 MB</TD><TD>0.4356</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>0:25.06</TD><TD>7.18 MB</TD><TD>0.4379</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.31 (-r, normal)</TD><TD>0:30.02</TD><TD>7.21 MB</TD><TD>0.4397</TD></TR>
+		<TR><TD>FROG 6.61 (mode 0)</TD><TD>0:23.52</TD><TD>7.26 MB</TD><TD>0.4426</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.91 (high)</TD><TD>0:09.23</TD><TD>7.35 MB</TD><TD>0.4481</TD></TR>
+		<TR><TD>flac 1.0.1 (-8)</TD><TD>1:10.27</TD><TD>7.37 MB</TD><TD>0.4497</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:16.54</TD><TD>7.40 MB</TD><TD>0.4512</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>0:11.90</TD><TD>7.43 MB</TD><TD>0.4529</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Bonk 0.5</TD><TD>0:45.72</TD><TD>7.46 MB</TD><TD>0.4548</TD></TR>
 		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:11.43</TD><TD>7.48 MB</TD><TD>0.4564</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Kexis 0.2.2</TD><TD>0:21.79</TD><TD>7.50 MB</TD><TD>0.4572</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>0:10.52</TD><TD>7.52 MB</TD><TD>0.4590</TD></TR>
+		<TR><TD>flac 1.0.1 (-1)</TD><TD>0:10.52</TD><TD>7.52 MB</TD><TD>0.4590</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>7.74 MB</TD><TD>0.4723</TD></TR>
 		<TR><TD>WaveZIP</TD><TD>0:10.56</TD><TD>7.83 MB</TD><TD>0.4781</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:14.59</TD><TD>8.20 MB</TD><TD>0.5004</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
-				The Benedictine Monks of Santo Domingo de Silos<BR><I>Laetatus sum</I><BR>24.26 MB
+			<TD ALIGN="RIGHT" ROWSPAN="20">
+				The Benedictine Monks of<BR>Santo Domingo de Silos<BR><I>Laetatus sum</I><BR>24.26 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
 		</TR>
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (high)</TD><TD>3:15.29</TD><TD>12.21 MB</TD><TD>0.5031</TD></TR>
 		<TR><TD>RKAU 1.06 (normal)</TD><TD>1:25.48</TD><TD>12.21 MB</TD><TD>0.5034</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>0:41.19</TD><TD>12.47 MB</TD><TD>0.5138</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 4)</TD><TD>0:52.26</TD><TD>12.34 MB</TD><TD>0.5088</TD></TR>
+		<TR><TD>Monkey's Audio (extra high)</TD><TD>0:41.19</TD><TD>12.47 MB</TD><TD>0.5138</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.31 (-r, normal)</TD><TD>0:45.46</TD><TD>12.62 MB</TD><TD>0.5200</TD></TR>
 		<TR><TD>Monkey's Audio (high)</TD><TD>0:15.69</TD><TD>12.68 MB</TD><TD>0.5228</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, normal)</TD><TD>0:41.22</TD><TD>12.75 MB</TD><TD>0.5253</TD></TR>
-		<TR><TD>flac 1.0 (-8)</TD><TD>1:46.14</TD><TD>12.82 MB</TD><TD>0.5285</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, high)</TD><TD>3:40.65</TD><TD>12.88 MB</TD><TD>0.5309</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, extra high)</TD><TD>4:53.81</TD><TD>12.92 MB</TD><TD>0.5323</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD><B>flac 1.0 (-5, default)</B></TD><TD>0:25.08</TD><TD>12.92 MB</TD><TD>0.5324</TD></TR>
-		<TR><TD>flac 1.0 (-3)</TD><TD>0:18.45</TD><TD>12.98 MB</TD><TD>0.5348</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.6 (high)</TD><TD>0:20.21</TD><TD>13.15 MB</TD><TD>0.5420</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>Bonk 0.5</TD><TD>1:08.23</TD><TD>12.71 MB</TD><TD>0.5237</TD></TR>
+		<TR><TD>FROG 6.61 (mode 1)</TD><TD>0:37.65</TD><TD>12.76 MB</TD><TD>0.5257</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-8)</TD><TD>1:46.14</TD><TD>12.82 MB</TD><TD>0.5285</TD></TR>
+		<TR><TD>FROG 6.61 (mode 0)</TD><TD>0:35.51</TD><TD>12.88 MB</TD><TD>0.5309</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>0:25.08</TD><TD>12.92 MB</TD><TD>0.5324</TD></TR>
+		<TR><TD>flac 1.0.1 (-3)</TD><TD>0:18.45</TD><TD>12.98 MB</TD><TD>0.5348</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.91 (high)</TD><TD>0:13.72</TD><TD>13.06 MB</TD><TD>0.5384</TD></TR>
 		<TR><TD>Kexis 0.2.2</TD><TD>0:34.04</TD><TD>13.30 MB</TD><TD>0.5481</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>0:17.87</TD><TD>13.32 MB</TD><TD>0.5489</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>0:16.14</TD><TD>13.34 MB</TD><TD>0.5499</TD></TR>
+		<TR><TD>flac 1.0.1 (-1)</TD><TD>0:16.14</TD><TD>13.34 MB</TD><TD>0.5499</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>0:22.18</TD><TD>13.42 MB</TD><TD>0.5531</TD></TR>
 		<TR><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>13.41 MB</TD><TD>0.5528</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>0:16.37</TD><TD>13.72 MB</TD><TD>0.5655</TD></TR>
 		<TR>
-			<TD ALIGN="RIGHT" ROWSPAN="18" BGCOLOR="#F0F0F0">
+			<TD ALIGN="RIGHT" ROWSPAN="20">
 				L. Subramaniam<BR><I>Raga Sivapriya</I><BR>213.56 MB
 			</TD>
 			<TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD><TD>&nbsp;</TD>
@@ -572,21 +620,22 @@
 		<TR BGCOLOR="#E0E0E0"><TD>RKAU 1.06 (high)</TD><TD>47:18.78</TD><TD>92.94 MB</TD><TD>0.4351</TD></TR>
 		<TR><TD>RKAU 1.06 (normal)</TD><TD>19:37.68</TD><TD>93.31 MB</TD><TD>0.4369</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Monkey's Audio (extra high)</TD><TD>5:51.97</TD><TD>95.30 MB</TD><TD>0.4462</TD></TR>
+		<TR><TD>FROG 6.61 (mode 4)</TD><TD>7:34.98</TD><TD>95.45 MB</TD><TD>0.4469</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 1)</TD><TD>5:26.54</TD><TD>96.36 MB</TD><TD>0.4512</TD></TR>
+		<TR><TD>LPAC 1.31 (-r, normal)</TD><TD>4:39.71</TD><TD>96.84 MB</TD><TD>0.4534</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>FROG 6.61 (mode 0)</TD><TD>5:10.07</TD><TD>97.15 MB</TD><TD>0.4548</TD></TR>
 		<TR><TD>Monkey's Audio (high)</TD><TD>2:14.54</TD><TD>97.52 MB</TD><TD>0.4566</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, high)</TD><TD>23:13.96</TD><TD>97.80 MB</TD><TD>0.4579</TD></TR>
-		<TR><TD>flac 1.0 (-8)</TD><TD>15:22.57</TD><TD>98.01 MB</TD><TD>0.4589</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>LPAC 1.20 (-r, normal)</TD><TD>5:46.84</TD><TD>98.04 MB</TD><TD>0.4590</TD></TR>
-		<TR><TD>LPAC 1.20 (-r, extra high)</TD><TD>30:04.06</TD><TD>98.10 MB</TD><TD>0.4593</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD><B>flac 1.0 (-5, default)</B></TD><TD>3:39.72</TD><TD>98.41 MB</TD><TD>0.4608</TD></TR>
-		<TR><TD>flac 1.0 (-3)</TD><TD>2:42.70</TD><TD>99.21 MB</TD><TD>0.4645</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.6 (high)</TD><TD>2:50.35</TD><TD>99.53 MB</TD><TD>0.4660</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-8)</TD><TD>15:22.57</TD><TD>98.01 MB</TD><TD>0.4589</TD></TR>
+		<TR BGCOLOR="#C0C0C0"><TD>flac 1.0.1 (-5, default)</TD><TD>3:39.72</TD><TD>98.41 MB</TD><TD>0.4608</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WavPack 3.91 (high)</TD><TD>1:58.32</TD><TD>98.82 MB</TD><TD>0.4627</TD></TR>
+		<TR><TD>Bonk 0.5</TD><TD>9:56.41</TD><TD>98.94 MB</TD><TD>0.4633</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>flac 1.0.1 (-3)</TD><TD>2:42.70</TD><TD>99.21 MB</TD><TD>0.4645</TD></TR>
 		<TR><TD>Ogg Squish 0.98</TD><TD>?</TD><TD>101.88 MB</TD><TD>0.4770</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Shorten 3.2 (-p8 -b2048)</TD><TD>3:30.25</TD><TD>102.60 MB</TD><TD>0.4804</TD></TR>
 		<TR><TD>Shorten 3.2 (-p0 -b256, default)</TD><TD>2:56.04</TD><TD>102.84 MB</TD><TD>0.4815</TD></TR>
 		<TR BGCOLOR="#E0E0E0"><TD>Kexis 0.2.2</TD><TD>4:51.20</TD><TD>103.57 MB</TD><TD>0.4849</TD></TR>
-		<TR><TD>flac 1.0 (-1)</TD><TD>2:23.50</TD><TD>103.59 MB</TD><TD>0.4850</TD></TR>
-		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>2:25.86</TD><TD>107.47 MB</TD><TD>0.5032</TD></TR>
-	</TABLE>
+		<TR><TD>flac 1.0.1 (-1)</TD><TD>2:23.50</TD><TD>103.59 MB</TD><TD>0.4850</TD></TR>
+		<TR BGCOLOR="#E0E0E0"><TD>WaveZIP</TD><TD>2:25.86</TD><TD>107.47 MB</TD><TD>0.5032</TD></TR>	</TABLE>
 </P>
 
 <P>&nbsp;Copyright (c) 2001 Josh Coalson</P>
