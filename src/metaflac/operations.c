@@ -421,8 +421,12 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 	}
 	FLAC__ASSERT(bits_per_sample >= FLAC__MIN_BITS_PER_SAMPLE && bits_per_sample <= FLAC__MAX_BITS_PER_SAMPLE);
 
-	if(!grabbag__replaygain_init(sample_rate))
+	if(!grabbag__replaygain_init(sample_rate)) {
 		FLAC__ASSERT(0);
+		/* double protection */
+		fprintf(stderr, "internal error\n");
+		return false;
+	}
 
 	if(
 		0 == (title_gains = (float*)malloc(sizeof(float) * num_files)) ||

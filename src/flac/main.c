@@ -500,8 +500,12 @@ int do_it()
 				grabbag__replaygain_get_album(&album_gain, &album_peak);
 				for(i = 0; i < option_values.num_files; i++) {
 					const char *error, *outfilename = get_encoded_outfilename(option_values.filenames[i]);
-					if(0 == strcmp(option_values.filenames[i], "-"))
+					if(0 == strcmp(option_values.filenames[i], "-")) {
 						FLAC__ASSERT(0);
+						/* double protection */
+						fprintf(stderr, "internal error\n");
+						return 2;
+					}
 					if(0 != (error = grabbag__replaygain_store_to_file_album(outfilename, album_gain, album_peak, /*preserve_modtime=*/true))) {
 						fprintf(stderr, "%s: ERROR writing ReplayGain album tags\n", outfilename);
 						retval = 1;
