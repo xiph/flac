@@ -1018,6 +1018,7 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 
 		memset(&op, 0, sizeof(op));
 		op.packet = (unsigned char *)buffer;
+		op.granulepos = encoder_wrapper->bytes_written - 1;
 		op.packetno = encoder_wrapper->current_frame;
 		op.bytes = bytes;
 
