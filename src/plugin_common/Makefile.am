@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = -I$(top_srcdir)/include
 
-noinst_LIBRARIES = libplugin-common.a
+noinst_LIBRARIES = libplugin_common.a
 
 noinst_HEADERS = \
 	all.h \

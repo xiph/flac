@@ -21,7 +21,7 @@
 
 LIB_NAME  = libxmms-flac
 INCLUDES  = $(shell xmms-config --cflags) -I./include -I../../include -I..
-LIBS = ../../obj/lib/libFLAC.a ../../obj/lib/libplugin-common.a
+LIBS = ../../obj/lib/libFLAC.a ../../obj/lib/libplugin_common.a
 
 OBJS = \
 	charset.o \

@@ -18,11 +18,11 @@ C_FILES= \
 
 OBJS= $(C_FILES:.c=.obj)
 
-all: plugin-common.lib
+all: plugin_common.lib
 
-plugin-common.lib: $(OBJS)
+plugin_common.lib: $(OBJS)
 	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\obj\lib\plugin-common.lib ..\..\obj\lib\plugin-common.pdb
+	-del ..\..\obj\lib\plugin_common.lib ..\..\obj\lib\plugin_common.pdb

@@ -2,7 +2,7 @@
 # GNU makefile
 #
 
-LIB_NAME = libplugin-common
+LIB_NAME = libplugin_common
 INCLUDES = -I../../include -I$(HOME)/local/include
 DEFINES  = -DFLAC__HAS_ID3LIB -DID3LIB_MAJOR=3 -DID3LIB_MINOR=8 -DID3LIB_PATCH=0
 
