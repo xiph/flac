@@ -85,6 +85,95 @@
 	</P>
 
 	<P>
+		<A NAME="flac_@@@@@@"><B>@@@@@@</B></A>
+	</P>
+	<P>
+	<UL>
+		<LI>
+			General:
+			<UL>
+			</UL>
+		</LI>
+		<LI>
+			FLAC format:
+			<UL>
+			</UL>
+		</LI>
+		<LI>
+			Ogg FLAC format:
+			<UL>
+			</UL>
+		</LI>
+		<LI>
+			flac:
+			<UL>
+				<LI>New option <A HREF="documentation.html#flac_options_input_size"><TT>--input-size</TT></A> to manually specify the input size when encoding raw samples from stdin.</LI>
+			</UL>
+		</LI>
+		<LI>
+			metaflac:
+			<UL>
+			</UL>
+		</LI>
+		<LI>
+			plugins:
+			<UL>
+				<LI>Added support for HTTP streaming in XMMS plugin.</LI>
+			</UL>
+		</LI>
+		<LI>
+			build system:
+			<UL>
+			</UL>
+		</LI>
+		<LI>
+			libraries:
+			<UL>
+				<LI>libFLAC, libOggFLAC: Can now be compiled to use only integer instructions, including encoding.  The decoder is almost completely integer anyway but there were a couple places that needed a fixed-point replacement.  There is no fixed-point version of LPC analysis yet, so if libFLAC is compiled integer-only, it will behave as if the max LPC order is 0 (i.e. used fixed predictors only).</LI>
+			</UL>
+		</LI>
+		<LI>
+			Interface changes:
+			<UL>
+				<LI>
+					libFLAC:
+					<UL>
+						<LI>Metadata interface now maintains a trailing NULL on Vorbis comment entries for convenience.</LI>
+						<LI><B>Added</B> FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair()</LI>
+						<LI><B>Added</B> FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair()</LI>
+						<LI><B>Changed</B> the signature of FLAC__metadata_object_vorbiscomment_entry_matches(): the first argument is now <TT>FLAC__StreamMetadata_VorbisComment_Entry entry</TT> (was <TT>const FLAC__StreamMetadata_VorbisComment_Entry *entry</TT>), i.e. <TT>entry</TT> is now pass-by-value.</LI>
+					</UL>
+				</LI>
+				<LI>
+					libFLAC++:
+					<UL>
+						<LI>Metadata interface now maintains a trailing NULL on Vorbis comment values for convenience.</LI>
+						<LI><B>Added</B> methods to FLAC::Metadata::VorbisComment::Entry for setting comment values from null-terminated strings:
+							<UL>
+								<LI>Entry(const char *field)</LI>
+								<LI>Entry(const char *field_name, const char *field_value)</LI>
+								<LI>bool set_field(const char *field)</LI>
+								<LI>bool set_field_value(const char *field_value)</LI>
+							</UL>
+						</LI>
+					</UL>
+				</LI>
+				<LI>
+					libOggFLAC:
+					<UL>
+					</UL>
+				</LI>
+				<LI>
+					libOggFLAC++:
+					<UL>
+					</UL>
+				</LI>
+			</UL>
+		</LI>
+	</UL>
+	</P>
+
+	<P>
 		<A NAME="flac_1_1_1"><B>FLAC 1.1.1</B></A>
 	</P>
 	<P>

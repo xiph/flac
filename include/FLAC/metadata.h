@@ -1087,6 +1087,13 @@ FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_It
  * FLAC__metadata_object_application_set_data(), you will get an assertion
  * failure.
  *
+ * The FLAC__metadata_object_vorbiscomment_*() functions for convenience
+ * maintain a trailing NUL on each Vorbis comment entry.  This is not counted
+ * toward the length or stored in the stream, but it can make working with plain
+ * comments (those that don't contain embedded-NULs in the value) easier.
+ * Entries passed into these functions have trailing NULs added if missing, and
+ * returned entries are guaranteed to have a trailing NUL.
+ *
  * There is no need to recalculate the length field on metadata blocks you
  * have modified.  They will be calculated automatically before they  are
  * written back to a file.
@@ -1155,8 +1162,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *b
 /** Sets the application data of an APPLICATION block.
  *
  *  If \a copy is \c true, a copy of the data is stored; otherwise, the object
- *  takes ownership of the pointer.  Returns \c false if \a copy == \c true
- *  and malloc fails.
+ *  takes ownership of the pointer.
  *
  * \param object  A pointer to an existing APPLICATION object.
  * \param data    A pointer to the data to set.
@@ -1168,7 +1174,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *b
  *    \code (data != NULL && length > 0) ||
  * (data == NULL && length == 0 && copy == false) \endcode
  * \retval FLAC__bool
- *    \c false if \a copy is \c true and malloc fails, else \c true.
+ *    \c false if \a copy is \c true and malloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, unsigned length, FLAC__bool copy);
 
@@ -1327,15 +1333,20 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
  * \retval FLAC__bool
- *    \c false if realloc fails, else \c true.
+ *    \c false if realloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *object, FLAC__bool compact);
 
 /** Sets the vendor string in a VORBIS_COMMENT block.
  *
+ *  For convenience, a trailing NUL is added to the entry if it doesn't have
+ *  one already.
+ *
  *  If \a copy is \c true, a copy of the entry is stored; otherwise, the object
- *  takes ownership of the \c entry->entry pointer.  Returns \c false if
- *  \a copy == \c true and malloc fails.
+ *  takes ownership of the \c entry.entry pointer.
+ *
+ *  \note If this function returns \c false, the caller still owns the
+ *  pointer.
  *
  * \param object  A pointer to an existing VORBIS_COMMENT object.
  * \param entry   The entry to set the vendor string to.
@@ -1343,10 +1354,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMe
  * \assert
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
- *    \code (entry->entry != NULL && entry->length > 0) ||
- * (entry->entry == NULL && entry->length == 0) \endcode
+ *    \code (entry.entry != NULL && entry.length > 0) ||
+ * (entry.entry == NULL && entry.length == 0) \endcode
  * \retval FLAC__bool
- *    \c false if \a copy is \c true and malloc fails, else \c true.
+ *    \c false if memory allocation fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
@@ -1369,9 +1380,14 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 
 /** Sets a comment in a VORBIS_COMMENT block.
  *
+ *  For convenience, a trailing NUL is added to the entry if it doesn't have
+ *  one already.
+ *
  *  If \a copy is \c true, a copy of the entry is stored; otherwise, the object
- *  takes ownership of the \c entry->entry pointer.  Returns \c false if
- *  \a copy == \c true and malloc fails.
+ *  takes ownership of the \c entry.entry pointer.
+ *
+ *  \note If this function returns \c false, the caller still owns the
+ *  pointer.
  *
  * \param object       A pointer to an existing VORBIS_COMMENT object.
  * \param comment_num  Index into comment array to set.
@@ -1381,18 +1397,23 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
  *    \code comment_num < object->data.vorbis_comment.num_comments \endcode
- *    \code (entry->entry != NULL && entry->length > 0) ||
- * (entry->entry == NULL && entry->length == 0) \endcode
+ *    \code (entry.entry != NULL && entry.length > 0) ||
+ * (entry.entry == NULL && entry.length == 0) \endcode
  * \retval FLAC__bool
- *    \c false if \a copy is \c true and malloc fails, else \c true.
+ *    \c false if memory allocation fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
 /** Insert a comment in a VORBIS_COMMENT block at the given index.
  *
+ *  For convenience, a trailing NUL is added to the entry if it doesn't have
+ *  one already.
+ *
  *  If \a copy is \c true, a copy of the entry is stored; otherwise, the object
- *  takes ownership of the \c entry->entry pointer.  Returns \c false if
- *  \a copy == \c true and malloc fails.
+ *  takes ownership of the \c entry.entry pointer.
+ *
+ *  \note If this function returns \c false, the caller still owns the
+ *  pointer.
  *
  * \param object       A pointer to an existing VORBIS_COMMENT object.
  * \param comment_num  The index at which to insert the comment.  The comments
@@ -1405,12 +1426,70 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__Stream
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
  *    \code object->data.vorbis_comment.num_comments >= comment_num \endcode
- *    \code (entry->entry != NULL && entry->length > 0) ||
- * (entry->entry == NULL && entry->length == 0 && copy == false) \endcode
+ *    \code (entry.entry != NULL && entry.length > 0) ||
+ * (entry.entry == NULL && entry.length == 0 && copy == false) \endcode
  * \retval FLAC__bool
- *    \c false if \a copy is \c true and malloc fails, else \c true.
+ *    \c false if memory allocation fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
+
+/** Appends a comment to a VORBIS_COMMENT block.
+ *
+ *  For convenience, a trailing NUL is added to the entry if it doesn't have
+ *  one already.
+ *
+ *  If \a copy is \c true, a copy of the entry is stored; otherwise, the object
+ *  takes ownership of the \c entry.entry pointer.
+ *
+ *  \note If this function returns \c false, the caller still owns the
+ *  pointer.
+ *
+ * \param object       A pointer to an existing VORBIS_COMMENT object.
+ * \param entry        The comment to insert.
+ * \param copy         See above.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ *    \code (entry.entry != NULL && entry.length > 0) ||
+ * (entry.entry == NULL && entry.length == 0 && copy == false) \endcode
+ * \retval FLAC__bool
+ *    \c false if memory allocation fails, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
+
+/** Replaces comments in a VORBIS_COMMENT block with a new one.
+ *
+ *  For convenience, a trailing NUL is added to the entry if it doesn't have
+ *  one already.
+ *
+ *  Depending on the the value of \a all, either all or just the first comment
+ *  whose field name(s) match the given entry's name will be replaced by the
+ *  given entry.  If no comments match, \a entry will simply be appended.
+ *
+ *  If \a copy is \c true, a copy of the entry is stored; otherwise, the object
+ *  takes ownership of the \c entry.entry pointer.
+ *
+ *  \note If this function returns \c false, the caller still owns the
+ *  pointer.
+ *
+ * \param object       A pointer to an existing VORBIS_COMMENT object.
+ * \param entry        The comment to insert.
+ * \param all          If \c true, all comments whose field name matches
+ *                     \a entry's field name will be removed, and \a entry will
+ *                     be inserted at the position of the first matching
+ *                     comment.  If \c false, only the first comment whose
+ *                     field name matches \a entry's field name will be
+ *                     replaced with \a entry.
+ * \param copy         See above.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ *    \code (entry.entry != NULL && entry.length > 0) ||
+ * (entry.entry == NULL && entry.length == 0 && copy == false) \endcode
+ * \retval FLAC__bool
+ *    \c false if memory allocation fails, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool all, FLAC__bool copy);
 
 /** Delete a comment in a VORBIS_COMMENT block at the given index.
  *
@@ -1420,14 +1499,51 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__Str
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
  *    \code object->data.vorbis_comment.num_comments > comment_num \endcode
- *    \code (entry->entry != NULL && entry->length > 0) ||
- * (entry->entry == NULL && entry->length == 0 && copy == false) \endcode
  * \retval FLAC__bool
- *    \c false if realloc fails, else \c true.
+ *    \c false if realloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetadata *object, unsigned comment_num);
 
-/*@@@@ add to unit tests */
+/** Creates a Vorbis comment entry from NUL-terminated name and value strings.
+ *
+ *  On return, the filled-in \a entry->entry pointer will point to malloc()ed
+ *  memory and shall be owned by the caller.  For convenience the entry will
+ *  have a terminating NUL.
+ *
+ * \param entry              A pointer to a Vorbis comment entry.  The entry's
+ *                           \c entry pointer should not point to allocated
+ *                           memory as it will be overwritten.
+ * \param field_name         The field name in ASCII, \c NULL terminated.
+ * \param field_value        The field value in UTF-8, \c NULL terminated.
+ * \assert
+ *    \code entry != NULL \endcode
+ *    \code field_name != NULL \endcode
+ *    \code field_value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if malloc() fails, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, const char *field_value);
+
+/** Splits a Vorbis comment entry into NUL-terminated name and value strings.
+ *
+ *  The returned pointers to name and value will be allocated by malloc()
+ *  and shall be owned by the caller.
+ *
+ * \param entry              A pointer to an existing Vorbis comment entry.
+ * \param field_name         The address of where the returned pointer to the
+ *                           field name will be stored.
+ * \param field_value        The address of where the returned pointer to the
+ *                           field value will be stored.
+ * \assert
+ *    \code (entry.entry != NULL && entry.length > 0) \endcode
+ *    \code memchr(entry.entry, '=', entry.length) != NULL \endcode
+ *    \code field_name != NULL \endcode
+ *    \code field_value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if malloc() fails, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry entry, char **field_name, char **field_value);
+
 /** Check if the given Vorbis comment entry's field name matches the given
  *  field name.
  *
@@ -1436,14 +1552,12 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__Str
  * \param field_name_length  The length of \a field_name, not including the
  *                           terminating \c NULL.
  * \assert
- *    \code entry != NULL \endcode
- *    \code (entry->entry != NULL && entry->length > 0) \endcode
+ *    \code (entry.entry != NULL && entry.length > 0) \endcode
  * \retval FLAC__bool
  *    \c true if the field names match, else \c false
  */
-FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, unsigned field_name_length);
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(FLAC__StreamMetadata_VorbisComment_Entry entry, const char *field_name, unsigned field_name_length);
 
-/*@@@@ add to unit tests */
 /** Find a Vorbis comment with the given field name.
  *
  *  The search begins at entry number \a offset; use an offset of 0 to
@@ -1456,13 +1570,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC
  * \assert
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ *    \code field_name != NULL \endcode
  * \retval int
  *    The offset in the comment array of the first comment whose field
  *    name matches \a field_name, or \c -1 if no match was found.
  */
 FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(const FLAC__StreamMetadata *object, unsigned offset, const char *field_name);
 
-/*@@@@ add to unit tests */
 /** Remove first Vorbis comment matching the given field name.
  *
  * \param object      A pointer to an existing VORBIS_COMMENT object.
@@ -1476,7 +1590,6 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(const FLAC__Str
  */
 FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entry_matching(FLAC__StreamMetadata *object, const char *field_name);
 
-/*@@@@ add to unit tests */
 /** Remove all Vorbis comments matching the given field name.
  *
  * \param object      A pointer to an existing VORBIS_COMMENT object.
@@ -1561,7 +1674,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
  *    \code object->data.cue_sheet.num_tracks > track_num \endcode
  *    \code object->data.cue_sheet.tracks[track_num].num_indices >= index_num \endcode
  * \retval FLAC__bool
- *    \c false if realloc fails, else \c true.
+ *    \c false if realloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num, FLAC__StreamMetadata_CueSheet_Index index);
 
@@ -1585,7 +1698,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__Stre
  *    \code object->data.cue_sheet.num_tracks > track_num \endcode
  *    \code object->data.cue_sheet.tracks[track_num].num_indices >= index_num \endcode
  * \retval FLAC__bool
- *    \c false if realloc fails, else \c true.
+ *    \c false if realloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_blank_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num);
 
@@ -1604,7 +1717,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_blank_index(FLAC
  *    \code object->data.cue_sheet.num_tracks > track_num \endcode
  *    \code object->data.cue_sheet.tracks[track_num].num_indices > index_num \endcode
  * \retval FLAC__bool
- *    \c false if realloc fails, else \c true.
+ *    \c false if realloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_delete_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num);
 
@@ -1628,8 +1741,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 /** Sets a track in a CUESHEET block.
  *
  *  If \a copy is \c true, a copy of the track is stored; otherwise, the object
- *  takes ownership of the \a track pointer.  Returns \c false if
- *  \a copy == \c true and malloc fails.
+ *  takes ownership of the \a track pointer.
  *
  * \param object       A pointer to an existing CUESHEET object.
  * \param track_num    Index into track array to set.  NOTE: this is not
@@ -1644,15 +1756,14 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
  *    \code (track->indices != NULL && track->num_indices > 0) ||
  * (track->indices == NULL && track->num_indices == 0)
  * \retval FLAC__bool
- *    \c false if \a copy is \c true and malloc fails, else \c true.
+ *    \c false if \a copy is \c true and malloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_set_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track *track, FLAC__bool copy);
 
 /** Insert a track in a CUESHEET block at the given index.
  *
  *  If \a copy is \c true, a copy of the track is stored; otherwise, the object
- *  takes ownership of the \a track pointer.  Returns \c false if
- *  \a copy == \c true and malloc fails.
+ *  takes ownership of the \a track pointer.
  *
  * \param object       A pointer to an existing CUESHEET object.
  * \param track_num    The index at which to insert the track.  NOTE: this
@@ -1668,7 +1779,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_set_track(FLAC__StreamMetadat
  *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
  *    \code object->data.cue_sheet.num_tracks >= track_num \endcode
  * \retval FLAC__bool
- *    \c false if \a copy is \c true and malloc fails, else \c true.
+ *    \c false if \a copy is \c true and malloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track *track, FLAC__bool copy);
 
@@ -1687,7 +1798,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_track(FLAC__StreamMeta
  *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
  *    \code object->data.cue_sheet.num_tracks >= track_num \endcode
  * \retval FLAC__bool
- *    \c false if \a copy is \c true and malloc fails, else \c true.
+ *    \c false if \a copy is \c true and malloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_blank_track(FLAC__StreamMetadata *object, unsigned track_num);
 
@@ -1702,7 +1813,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_blank_track(FLAC__Stre
  *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
  *    \code object->data.cue_sheet.num_tracks > track_num \endcode
  * \retval FLAC__bool
- *    \c false if realloc fails, else \c true.
+ *    \c false if realloc() fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_delete_track(FLAC__StreamMetadata *object, unsigned track_num);
 

@@ -1982,11 +1982,13 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_entr
 		entry->entry = 0;
 	}
 	else {
-		if(0 == (entry->entry = (FLAC__byte*)malloc(entry->length)))
+		if(0 == (entry->entry = (FLAC__byte*)malloc(entry->length+1)))
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 		if(read_cb(entry->entry, 1, entry->length, handle) != entry->length)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+
+		entry->entry[entry->length] = '\0';
 	}
 
 	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;

@@ -220,24 +220,16 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 
 		if(!raw) {
 			/*
-			 * utf8_decode() works on NULL-terminated strings, so
-			 * we append a null to the entry.  @@@ Note, this means
-			 * that comments that contain an embedded null will be
-			 * truncated by utf_decode().
+			 * WATCHOUT: comments that contain an embedded null will
+			 * be truncated by utf_decode().
 			 */
-			char *terminated, *converted;
+			char *converted;
 
-			if(0 == (terminated = malloc(entry->length + 1)))
-				die("out of memory allocating space for vorbis comment");
-			memcpy(terminated, entry->entry, entry->length);
-			terminated[entry->length] = '\0';
-			if(utf8_decode(terminated, &converted) >= 0) {
+			if(utf8_decode(entry->entry, &converted) >= 0) {
 				(void) local_fwrite(converted, 1, strlen(converted), f);
-				free(terminated);
 				free(converted);
 			}
 			else {
-				free(terminated);
 				(void) local_fwrite(entry->entry, 1, entry->length, f);
 			}
 		}
@@ -246,7 +238,7 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 		}
 	}
 
-	fprintf(f, "\n");
+	putc('\n', f);
 }
 
 void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw, FILE *f)
@@ -255,7 +247,7 @@ void write_vc_fields(const char *filename, const char *field_name, const FLAC__S
 	const unsigned field_name_length = (0 != field_name)? strlen(field_name) : 0;
 
 	for(i = 0; i < num_entries; i++) {
-		if(0 == field_name || FLAC__metadata_object_vorbiscomment_entry_matches(entry + i, field_name, field_name_length))
+		if(0 == field_name || FLAC__metadata_object_vorbiscomment_entry_matches(entry[i], field_name, field_name_length))
 			write_vc_field(filename, entry + i, raw, f);
 	}
 }

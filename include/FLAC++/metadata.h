@@ -492,9 +492,10 @@ namespace FLAC {
 			 *  name is undefined; only the field value is relevant.
 			 *
 			 *  A \a field as used in the methods refers to an
-			 *  entire 'NAME=VALUE' string; the string is not null-
-			 *  terminated and a length field is required since the
-			 *  string may contain embedded nulls.
+			 *  entire 'NAME=VALUE' string; for convenience the
+			 *  string is null-terminated.  A length field is
+			 *  required in the unlikely event that the value
+			 *  contains contain embedded nulls.
 			 *
 			 *  A \a field_name is what is on the left side of the
 			 *  first '=' in the \a field.  By definition it is ASCII
@@ -505,7 +506,10 @@ namespace FLAC {
 			 *  A \a field_value is what is on the right side of the
 			 *  first '=' in the \a field.  By definition, this may
 			 *  contain embedded nulls and so a \a field_value_length
-			 *  is requires to describe it.
+			 *  is required to describe it.  However in practice,
+			 *  embedded nulls are not known to be used, so it is
+			 *  generally safe to treat field values as null-
+			 *  terminated UTF-8 strings.
 			 *
 			 *  Always check is_valid() after the constructor or operator=
 			 *  to make sure memory was properly allocated.
@@ -513,9 +517,15 @@ namespace FLAC {
 			class FLACPP_API Entry {
 			public:
 				Entry();
+
 				Entry(const char *field, unsigned field_length);
+				Entry(const char *field); // assumes \a field is null-terminated
+
 				Entry(const char *field_name, const char *field_value, unsigned field_value_length);
+				Entry(const char *field_name, const char *field_value); // assumes \a field_value is null-terminated
+
 				Entry(const Entry &entry);
+
 				void operator=(const Entry &entry);
 
 				virtual ~Entry();
@@ -532,8 +542,10 @@ namespace FLAC {
 				const char *get_field_value() const;
 
 				bool set_field(const char *field, unsigned field_length);
+				bool set_field(const char *field); // assumes \a field is null-terminated
 				bool set_field_name(const char *field_name);
 				bool set_field_value(const char *field_value, unsigned field_value_length);
+				bool set_field_value(const char *field_value); // assumes \a field_value is null-terminated
 			protected:
 				bool is_valid_;
 				::FLAC__StreamMetadata_VorbisComment_Entry entry_;
@@ -548,7 +560,9 @@ namespace FLAC {
 				void clear_field_name();
 				void clear_field_value();
 				void construct(const char *field, unsigned field_length);
+				void construct(const char *field); // assumes \a field is null-terminated
 				void construct(const char *field_name, const char *field_value, unsigned field_value_length);
+				void construct(const char *field_name, const char *field_value); // assumes \a field_value is null-terminated
 				void compose_field();
 				void parse_field();
 			};
@@ -605,6 +619,9 @@ namespace FLAC {
 
 			//! See FLAC__metadata_object_vorbiscomment_insert_comment()
 			bool insert_comment(unsigned index, const Entry &entry);
+
+			//! See FLAC__metadata_object_vorbiscomment_append_comment()
+			bool append_comment(const Entry &entry);
 
 			//! See FLAC__metadata_object_vorbiscomment_delete_comment()
 			bool delete_comment(unsigned index);

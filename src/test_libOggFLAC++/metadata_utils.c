@@ -429,13 +429,13 @@ void mutils__init_metadata_blocks(
 		vorbiscomment->type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
 		vorbiscomment->length = (4 + vendor_string_length) + 4 + (4 + 5) + (4 + 0);
 		vorbiscomment->data.vorbis_comment.vendor_string.length = vendor_string_length;
-		vorbiscomment->data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc_or_die_(vendor_string_length);
-		memcpy(vorbiscomment->data.vorbis_comment.vendor_string.entry, FLAC__VENDOR_STRING, vendor_string_length);
+		vorbiscomment->data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc_or_die_(vendor_string_length+1);
+		memcpy(vorbiscomment->data.vorbis_comment.vendor_string.entry, FLAC__VENDOR_STRING, vendor_string_length+1);
 		vorbiscomment->data.vorbis_comment.num_comments = 2;
 		vorbiscomment->data.vorbis_comment.comments = (FLAC__StreamMetadata_VorbisComment_Entry*)malloc_or_die_(vorbiscomment->data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
 		vorbiscomment->data.vorbis_comment.comments[0].length = 5;
-		vorbiscomment->data.vorbis_comment.comments[0].entry = (FLAC__byte*)malloc_or_die_(5);
-		memcpy(vorbiscomment->data.vorbis_comment.comments[0].entry, "ab=cd", 5);
+		vorbiscomment->data.vorbis_comment.comments[0].entry = (FLAC__byte*)malloc_or_die_(5+1);
+		memcpy(vorbiscomment->data.vorbis_comment.comments[0].entry, "ab=cd", 5+1);
 		vorbiscomment->data.vorbis_comment.comments[1].length = 0;
 		vorbiscomment->data.vorbis_comment.comments[1].entry = 0;
 	}

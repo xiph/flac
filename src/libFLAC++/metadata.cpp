@@ -461,10 +461,22 @@ namespace FLAC {
 			construct(field, field_length);
 		}
 
+		VorbisComment::Entry::Entry(const char *field)
+		{
+			zero();
+			construct(field);
+		}
+
 		VorbisComment::Entry::Entry(const char *field_name, const char *field_value, unsigned field_value_length)
 		{
 			zero();
 			construct(field_name, field_value, field_value_length);
+		}
+
+		VorbisComment::Entry::Entry(const char *field_name, const char *field_value)
+		{
+			zero();
+			construct(field_name, field_value);
 		}
 
 		VorbisComment::Entry::Entry(const Entry &entry)
@@ -540,16 +552,22 @@ namespace FLAC {
 
 			clear_entry();
 
-			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_length))) {
+			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_length+1))) {
 				is_valid_ = false;
 			}
 			else {
 				entry_.length = field_length;
 				memcpy(entry_.entry, field, field_length);
+				entry_.entry[field_length] = '\0';
 				(void) parse_field();
 			}
 
 			return is_valid_;
+		}
+
+		bool VorbisComment::Entry::set_field(const char *field)
+		{
+			return set_field(field, strlen(field));
 		}
 
 		bool VorbisComment::Entry::set_field_name(const char *field_name)
@@ -577,16 +595,22 @@ namespace FLAC {
 
 			clear_field_value();
 
-			if(0 == (field_value_ = (char *)malloc(field_value_length))) {
+			if(0 == (field_value_ = (char *)malloc(field_value_length+1))) {
 				is_valid_ = false;
 			}
 			else {
 				field_value_length_ = field_value_length;
 				memcpy(field_value_, field_value, field_value_length);
+				field_value_[field_value_length] = '\0';
 				compose_field();
 			}
 
 			return is_valid_;
+		}
+
+		bool VorbisComment::Entry::set_field_value(const char *field_value)
+		{
+			return set_field_value(field_value, strlen(field_value));
 		}
 
 		void VorbisComment::Entry::zero()
@@ -641,17 +665,27 @@ namespace FLAC {
 				parse_field();
 		}
 
+		void VorbisComment::Entry::construct(const char *field)
+		{
+			construct(field, strlen(field));
+		}
+
 		void VorbisComment::Entry::construct(const char *field_name, const char *field_value, unsigned field_value_length)
 		{
 			if(set_field_name(field_name) && set_field_value(field_value, field_value_length))
 				compose_field();
 		}
 
+		void VorbisComment::Entry::construct(const char *field_name, const char *field_value)
+		{
+			construct(field_name, field_value, strlen(field_value));
+		}
+
 		void VorbisComment::Entry::compose_field()
 		{
 			clear_entry();
 
-			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_name_length_ + 1 + field_value_length_))) {
+			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_name_length_ + 1 + field_value_length_ + 1))) {
 				is_valid_ = false;
 			}
 			else {
@@ -661,6 +695,7 @@ namespace FLAC {
 				entry_.length += 1;
 				memcpy(entry_.entry + entry_.length, field_value_, field_value_length_);
 				entry_.length += field_value_length_;
+				entry_.entry[entry_.length] = '\0';
 				is_valid_ = true;
 			}
 		}
@@ -692,11 +727,12 @@ namespace FLAC {
 			}
 			else {
 				field_value_length_ = entry_.length - field_name_length_ - 1;
-				if(0 == (field_value_ = (char *)malloc(field_value_length_))) {
+				if(0 == (field_value_ = (char *)malloc(field_value_length_ + 1))) { // +1 for the trailing \0
 					is_valid_ = false;
 					return;
 				}
 				memcpy(field_value_, ++p, field_value_length_);
+				field_value_[field_value_length_] = '\0';
 			}
 
 			is_valid_ = true;
@@ -755,6 +791,12 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index <= object_->data.vorbis_comment.num_comments);
 			return (bool)::FLAC__metadata_object_vorbiscomment_insert_comment(object_, index, entry.get_entry(), /*copy=*/true);
+		}
+
+		bool VorbisComment::append_comment(const VorbisComment::Entry &entry)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_vorbiscomment_append_comment(object_, entry.get_entry(), /*copy=*/true);
 		}
 
 		bool VorbisComment::delete_comment(unsigned index)

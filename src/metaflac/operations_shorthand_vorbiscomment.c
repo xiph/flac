@@ -192,7 +192,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 
 	entry.length = strlen((const char *)entry.entry);
 
-	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, block->data.vorbis_comment.num_comments, entry, /*copy=*/true)) {
+	if(!FLAC__metadata_object_vorbiscomment_append_comment(block, entry, /*copy=*/true)) {
 		if(needs_free)
 			free(converted);
 		fprintf(stderr, "%s: ERROR: memory allocation failure\n", filename);
