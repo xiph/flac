@@ -218,9 +218,10 @@
 		<P><LI>
 			FLAC supports up to 128 kinds of metadata blocks; currently the following are defined:
 			<UL>
-				<A NAME="def_STREAMINFO"><LI><B>STREAMINFO</B>: This block has information about the whole stream, like sample rate, number of channels, total number of samples, etc.  It must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.</LI>
-				<A NAME="def_APPLICATION"><LI><B>APPLICATION</B>: This block is for use by third-party applications.  The only mandatory field is a 32-bit identifier.  This ID is granted upon request to an application by the FLAC maintainers.  The remainder is of the block is defined by the registered application.  Visit the <A HREF="id.html">registration page</A> if you would like to register an ID for your application with FLAC.</LI>
-				<A NAME="def_PADDING"><LI><B>PADDING</B>: This block allows for an arbitrary amount of padding.  The contents of a PADDING block have no meaning.  This block useful when it is known that an APPLICATION block will be added after encoding; the user can instruct the encoder to reserve a PADDING block of the proper size so that the application may directly write over it later (which is relatively quick) instead of having to insert the APPLICATION block (which would normally require rewriting the entire file).</LI>
+				<LI><A NAME="def_STREAMINFO"><B>STREAMINFO</B>: This block has information about the whole stream, like sample rate, number of channels, total number of samples, etc.  It must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.</LI>
+				<LI><A NAME="def_APPLICATION"><B>APPLICATION</B>: This block is for use by third-party applications.  The only mandatory field is a 32-bit identifier.  This ID is granted upon request to an application by the FLAC maintainers.  The remainder is of the block is defined by the registered application.  Visit the <A HREF="id.html">registration page</A> if you would like to register an ID for your application with FLAC.</LI>
+				<LI><A NAME="def_PADDING"><B>PADDING</B>: This block allows for an arbitrary amount of padding.  The contents of a PADDING block have no meaning.  This block useful when it is known that an APPLICATION block will be added after encoding; the user can instruct the encoder to reserve a PADDING block of the proper size so that the application may directly write over it later (which is relatively quick) instead of having to insert the APPLICATION block (which would normally require rewriting the entire file).</LI>
+				<LI><A NAME="def_SEEKTABLE"><B>SEEKTABLE</B>: This is an optional block for storing seek points.  It is possible to seek to any given sample in a FLAC stream without a seek table, but the delay can be unpredictable since the bitrate may vary widely within a stream.  By adding seek points to a stream, this delay can be significantly reduced.  Each seek point takes 18 bytes, so 1% resolution within a stream adds less than 2k.  There can be only one SEEKTABLE in a stream, but the table can have any number of seek points.  There is also a special 'placeholder' seekpoint which will be ignored by decoders but which can be used to reserve space for future seek point insertion.</LI>
 			</UL>
 		</LI></P>
 		<P><LI>
@@ -365,6 +366,9 @@
 					<TT>2</TT> : APPLICATION
 				</LI>
 				<LI>
+					<TT>3</TT> : SEEKTABLE
+				</LI>
+				<LI>
 					<TT>3-127</TT> : reserved
 				</LI>
 				</UL>
@@ -392,7 +396,7 @@
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A HREF="#metadata_block_streaminfo"><I>METADATA_BLOCK_STREAMINFO</I></A><BR>|| <A HREF="#metadata_block_padding"><I>METADATA_BLOCK_PADDING</I></A><BR>|| <A HREF="#metadata_block_application"><I>METADATA_BLOCK_APPLICATION</I></A>
+				<A HREF="#metadata_block_streaminfo"><I>METADATA_BLOCK_STREAMINFO</I></A><BR>|| <A HREF="#metadata_block_padding"><I>METADATA_BLOCK_PADDING</I></A><BR>|| <A HREF="#metadata_block_application"><I>METADATA_BLOCK_APPLICATION</I></A><BR>|| <A HREF="#metadata_block_seektable"><I>METADATA_BLOCK_SEEKTABLE</I></A>
 			</TD>
 			<TD>
 				The block data must match the block type in the block header.
@@ -540,6 +544,95 @@
 			</TD>
 			<TD>
 				Application data (n must be a multiple of 8)
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_seektable"><FONT SIZE="+1"><B>METADATA_BLOCK_SEEKTABLE</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#metadata_block_seekpoint"><I>SEEKPOINT</I></A>+
+			</TD>
+			<TD>
+				One or more seek points.
+			</TD>
+		</TR>
+		<TR>
+			<TD>
+			</TD>
+			<TD BGCOLOR="#F4F4CC">
+				<FONT SIZE="+1">NOTE</FONT><BR>
+				<UL>
+				<LI>
+					The number of seek points is implied by the metadata header 'length' field, i.e. equal to length / 18.
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_seekpoint"><FONT SIZE="+1"><B>METADATA_BLOCK_SEEKPOINT</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;64&gt;
+			</TD>
+			<TD>
+				Sample number of first sample in the target frame, or 0xFFFFFFFFFFFFFFFF for a placeholder point.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;64&gt;
+			</TD>
+			<TD>
+				Offset (in bytes) from the first byte of the first frame header to the first byte of the target frame's header.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;16&gt;
+			</TD>
+			<TD>
+				Number of samples in the target frame.
+			</TD>
+		</TR>
+		<TR>
+			<TD>
+			</TD>
+			<TD BGCOLOR="#F4F4CC">
+				<FONT SIZE="+1">NOTES</FONT><BR>
+				<UL>
+				<LI>
+					For placeholder points, the second and third field values are undefined.
+				</LI>
+				<LI>
+					Seek points within a table must be sorted in ascending order by sample number.
+				</LI>
+				<LI>
+					Seek points within a table must be unique by sample number, with the exception of placeholder points.
+				</LI>
+				<LI>
+					The previous two notes imply that there may be any number of placeholder points, but they must all occur at the end of the table.
+				</LI>
+				</UL>
 			</TD>
 		</TR>
 	</TABLE>
@@ -1145,10 +1238,18 @@
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				&lt;4&gt;
+				&lt;4(+5)&gt;
 			</TD>
 			<TD>
-				Rice parameter
+				Encoding parameter:<BR>
+				<UL>
+				<LI>
+					<TT>0000-1110</TT> : Rice parameter.
+				</LI>
+				<LI>
+					<TT>1111</TT> : Escape code, meaning the partition is in unencoded binary form using n bits per sample; n follows as a 5-bit number.
+				</LI>
+				</UL>
 			</TD>
 		</TR>
 		<TR>
