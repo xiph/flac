@@ -1,4 +1,4 @@
-/* test_libOggFLAC - Unit tester for libOggFLAC
+/* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -215,6 +215,69 @@ FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_VorbisCo
 	return true;
 }
 
+FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueSheet *block, const FLAC__StreamMetadata_CueSheet *blockcopy)
+{
+	unsigned i, j;
+
+	if(0 != strcmp(blockcopy->media_catalog_number, block->media_catalog_number)) {
+		printf("FAILED, media_catalog_number mismatch, expected %s, got %s\n", block->media_catalog_number, blockcopy->media_catalog_number);
+		return false;
+	}
+	if(blockcopy->lead_in != block->lead_in) {
+		printf("FAILED, lead_in mismatch, expected %llu, got %llu\n", block->lead_in, blockcopy->lead_in);
+		return false;
+	}
+	if(blockcopy->num_tracks != block->num_tracks) {
+		printf("FAILED, num_tracks mismatch, expected %u, got %u\n", block->num_tracks, blockcopy->num_tracks);
+		return false;
+	}
+	for(i = 0; i < block->num_tracks; i++) {
+		if(blockcopy->tracks[i].offset != block->tracks[i].offset) {
+			printf("FAILED, tracks[%u].offset mismatch, expected %llu, got %llu\n", i, block->tracks[i].offset, blockcopy->tracks[i].offset);
+			return false;
+		}
+		if(blockcopy->tracks[i].number != block->tracks[i].number) {
+			printf("FAILED, tracks[%u].number mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].number, (unsigned)blockcopy->tracks[i].number);
+			return false;
+		}
+		if(0 != strcmp(blockcopy->tracks[i].isrc, block->tracks[i].isrc)) {
+			printf("FAILED, tracks[%u].number mismatch, expected %s, got %s\n", i, block->tracks[i].isrc, blockcopy->tracks[i].isrc);
+			return false;
+		}
+		if(blockcopy->tracks[i].type != block->tracks[i].type) {
+			printf("FAILED, tracks[%u].type mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].type, (unsigned)blockcopy->tracks[i].type);
+			return false;
+		}
+		if(blockcopy->tracks[i].pre_emphasis != block->tracks[i].pre_emphasis) {
+			printf("FAILED, tracks[%u].pre_emphasis mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].pre_emphasis, (unsigned)blockcopy->tracks[i].pre_emphasis);
+			return false;
+		}
+		if(blockcopy->tracks[i].num_indices != block->tracks[i].num_indices) {
+			printf("FAILED, tracks[%u].num_indices mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].num_indices, (unsigned)blockcopy->tracks[i].num_indices);
+			return false;
+		}
+		if(0 == block->tracks[i].indices || 0 == blockcopy->tracks[i].indices) {
+			if(block->tracks[i].indices != blockcopy->tracks[i].indices) {
+				printf("FAILED, tracks[%u].indices mismatch\n", i);
+				return false;
+			}
+		}
+		else {
+			for(j = 0; j < block->tracks[i].num_indices; j++) {
+				if(blockcopy->tracks[i].indices[j].offset != block->tracks[i].indices[j].offset) {
+					printf("FAILED, tracks[%u].indices[%u].offset mismatch, expected %llu, got %llu\n", i, j, block->tracks[i].indices[j].offset, blockcopy->tracks[i].indices[j].offset);
+					return false;
+				}
+				if(blockcopy->tracks[i].indices[j].number != block->tracks[i].indices[j].number) {
+					printf("FAILED, tracks[%u].indices[%u].number mismatch, expected %u, got %u\n", i, j, (unsigned)block->tracks[i].indices[j].number, (unsigned)blockcopy->tracks[i].indices[j].number);
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
 FLAC__bool compare_block_(const FLAC__StreamMetadata *block, const FLAC__StreamMetadata *blockcopy)
 {
 	if(blockcopy->type != block->type) {
@@ -240,6 +303,8 @@ FLAC__bool compare_block_(const FLAC__StreamMetadata *block, const FLAC__StreamM
 			return compare_block_data_seektable_(&block->data.seek_table, &blockcopy->data.seek_table);
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 			return compare_block_data_vorbiscomment_(&block->data.vorbis_comment, &blockcopy->data.vorbis_comment);
+		case FLAC__METADATA_TYPE_CUESHEET:
+			return compare_block_data_cuesheet_(&block->data.cue_sheet, &blockcopy->data.cue_sheet);
 		default:
 			printf("FAILED, invalid block type %u\n", (unsigned)block->type);
 			return false;

@@ -1,4 +1,4 @@
-/* test_libOggFLAC - Unit tester for libOggFLAC
+/* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef OggFLAC__TEST_LIBOGGFLAC_METADATA_H
-#define OggFLAC__TEST_LIBOGGFLAC_METADATA_H
+#ifndef FLAC__TEST_LIBFLAC_METADATA_H
+#define FLAC__TEST_LIBFLAC_METADATA_H
 
 /*
  * These are not tests, just utility functions used by the metadata tests
@@ -37,6 +37,8 @@ FLAC__bool compare_block_data_application_(const FLAC__StreamMetadata_Applicatio
 FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetadata_SeekTable *block, const FLAC__StreamMetadata_SeekTable *blockcopy);
 
 FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_VorbisComment *block, const FLAC__StreamMetadata_VorbisComment *blockcopy);
+
+FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueSheet *block, const FLAC__StreamMetadata_CueSheet *blockcopy);
 
 FLAC__bool compare_block_(const FLAC__StreamMetadata *block, const FLAC__StreamMetadata *blockcopy);
 
