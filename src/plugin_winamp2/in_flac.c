@@ -79,8 +79,10 @@ void init()
 
 void quit()
 {
-	if(decoder)
+	if(decoder) {
 		FLAC__file_decoder_delete(decoder);
+		decoder = 0;
+	}
 }
 
 int isourfile(char *fn) { return 0; }
@@ -160,10 +162,8 @@ void stop()
 		CloseHandle(thread_handle);
 		thread_handle = INVALID_HANDLE_VALUE;
 	}
-	if(decoder) {
-		if(FLAC__file_decoder_get_state(decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
-			FLAC__file_decoder_finish(decoder);
-	}
+	if(decoder)
+		FLAC__file_decoder_finish(decoder);
 
 	mod.outMod->Close();
 
@@ -223,8 +223,7 @@ void getfileinfo(char *filename, char *title, int *length_in_ms)
 
 			*length_in_ms = (int)tmp_stream_info.length_in_ms;
 
-			if(FLAC__file_decoder_get_state(tmp_decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
-				FLAC__file_decoder_finish(tmp_decoder);
+			FLAC__file_decoder_finish(tmp_decoder);
 			FLAC__file_decoder_delete(tmp_decoder);
 		}
 		if (title) {
