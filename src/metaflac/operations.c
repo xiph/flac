@@ -51,6 +51,10 @@ extern FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC_
 /* from operations_shorthand_vorbiscomment.c */
 extern FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
 
+/* from operations_shorthand_cuesheet.c */
+extern FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool cued_seekpoints);
+
+
 FLAC__bool do_operations(const CommandLineOptions *options)
 {
 	FLAC__bool ok = true;
@@ -329,6 +333,10 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 		case OP__EXPORT_VC_TO:
 			ok = do_shorthand_operation__vorbis_comment(filename, prefix_with_filename, chain, operation, needs_write, !utf8_convert);
 			break;
+		case OP__IMPORT_CUESHEET_FROM:
+		case OP__EXPORT_CUESHEET_TO:
+			ok = do_shorthand_operation__cuesheet(filename, chain, operation, needs_write, /*@@@@cued_seekpoints=*/true);
+			break;
 		case OP__ADD_SEEKPOINT:
 			ok = do_shorthand_operation__add_seekpoints(filename, chain, operation->argument.add_seekpoint.specification, needs_write);
 			break;
@@ -564,6 +572,10 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 				PPR; printf("    comment[%u]: ", i);
 				write_vc_field(0, &block->data.vorbis_comment.comments[i], raw, stdout);
 			}
+			break;
+		case FLAC__METADATA_TYPE_CUESHEET:
+			PPR; printf("  media catalog number: %s\n", block->data.cue_sheet.media_catalog_number);
+			//@@@@ finish
 			break;
 		default:
 			PPR; printf("SKIPPING block of unknown type\n");

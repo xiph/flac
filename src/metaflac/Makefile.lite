@@ -28,6 +28,7 @@ LIBS         = -lgrabbag -lFLAC -lgain_analysis -lgetopt -lutf8 -lm
 SRCS_C = \
 	main.c \
 	operations.c \
+	operations_shorthand_cuesheet.c \
 	operations_shorthand_seektable.c \
 	operations_shorthand_streaminfo.c \
 	operations_shorthand_vorbiscomment.c \

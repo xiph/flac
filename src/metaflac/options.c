@@ -63,6 +63,8 @@ struct share__option long_options_[] = {
 	{ "set-vc-field", 1, 0, 0 },
 	{ "import-vc-from", 1, 0, 0 },
 	{ "export-vc-to", 1, 0, 0 },
+	{ "import-cuesheet-from", 1, 0, 0 },
+	{ "export-cuesheet-to", 1, 0, 0 },
 	{ "add-seekpoint", 1, 0, 0 },
 	{ "add-replay-gain", 0, 0, 0 },
 	{ "add-padding", 1, 0, 0 },
@@ -188,6 +190,8 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 		}
 	}
 
+	//@@@@ check for only one FLAC file used with --import-cuesheet-from/--export-cuesheet-to
+
 	if(options->args.checks.has_block_type && options->args.checks.has_except_block_type) {
 		fprintf(stderr, "ERROR: you may not specify both '--block-type' and '--except-block-type'\n");
 		had_error = true;
@@ -226,8 +230,10 @@ void free_options(CommandLineOptions *options)
 				break;
 			case OP__IMPORT_VC_FROM:
 			case OP__EXPORT_VC_TO:
-				if(0 != op->argument.vc_filename.value)
-					free(op->argument.vc_filename.value);
+			case OP__IMPORT_CUESHEET_FROM:
+			case OP__EXPORT_CUESHEET_TO:
+				if(0 != op->argument.filename.value)
+					free(op->argument.filename.value);
 				break;
 			case OP__ADD_SEEKPOINT:
 				if(0 != op->argument.add_seekpoint.specification)
@@ -452,7 +458,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	else if(0 == strcmp(opt, "import-vc-from")) {
 		op = append_shorthand_operation(options, OP__IMPORT_VC_FROM);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_filename(option_argument, &(op->argument.vc_filename.value))) {
+		if(!parse_filename(option_argument, &(op->argument.filename.value))) {
 			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
 			ok = false;
 		}
@@ -460,7 +466,23 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	else if(0 == strcmp(opt, "export-vc-to")) {
 		op = append_shorthand_operation(options, OP__EXPORT_VC_TO);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_filename(option_argument, &(op->argument.vc_filename.value))) {
+		if(!parse_filename(option_argument, &(op->argument.filename.value))) {
+			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
+			ok = false;
+		}
+	}
+	else if(0 == strcmp(opt, "import-cuesheet-from")) {
+		op = append_shorthand_operation(options, OP__IMPORT_CUESHEET_FROM);
+		FLAC__ASSERT(0 != option_argument);
+		if(!parse_filename(option_argument, &(op->argument.filename.value))) {
+			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
+			ok = false;
+		}
+	}
+	else if(0 == strcmp(opt, "export-cuesheet-to")) {
+		op = append_shorthand_operation(options, OP__EXPORT_CUESHEET_TO);
+		FLAC__ASSERT(0 != option_argument);
+		if(!parse_filename(option_argument, &(op->argument.filename.value))) {
 			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
 			ok = false;
 		}

@@ -26,6 +26,7 @@ EXTRA_DIST = \
 metaflac_SOURCES = \
 	main.c \
 	operations.c \
+	operations_shorthand_cuesheet.c \
 	operations_shorthand_seektable.c \
 	operations_shorthand_streaminfo.c \
 	operations_shorthand_vorbiscomment.c \
