@@ -22,12 +22,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-GRABBAG_API unsigned grabbag__cuesheet_msf_to_frame(unsigned minutes, unsigned seconds, unsigned frames)
+unsigned grabbag__cuesheet_msf_to_frame(unsigned minutes, unsigned seconds, unsigned frames)
 {
 	return ((minutes * 60) + seconds) * 75 + frames;
 }
 
-GRABBAG_API void grabbag__cuesheet_frame_to_msf(unsigned frame, unsigned *minutes, unsigned *seconds, unsigned *frames)
+void grabbag__cuesheet_frame_to_msf(unsigned frame, unsigned *minutes, unsigned *seconds, unsigned *frames)
 {
 	*frames = frame % 75;
 	frame /= 75;
@@ -454,7 +454,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 #undef FLAC__STRCASECMP
 }
 
-GRABBAG_API FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, unsigned *last_line_read, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
+FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, unsigned *last_line_read, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
 {
 	FLAC__StreamMetadata *cuesheet;
 

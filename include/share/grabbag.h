@@ -19,22 +19,6 @@
 #ifndef SHARE__GRABBAG_H
 #define SHARE__GRABBAG_H
 
-#if defined(FLAC__NO_DLL) || defined(unix) || defined(__CYGWIN__) || defined(__CYGWIN32__)
-#define GRABBAG_API
-
-#else
-
-#ifdef GRABBAG_API_EXPORTS
-#define	GRABBAG_API	_declspec(dllexport)
-#else
-#define GRABBAG_API	_declspec(dllimport)
-#define __LIBNAME__ "grabbag.lib"
-#pragma comment(lib, __LIBNAME__)
-#undef __LIBNAME__
-
-#endif
-#endif
-
 /* These can't be included by themselves, only from within grabbag.h */
 #include "grabbag/cuesheet.h"
 #include "grabbag/file.h"

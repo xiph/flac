@@ -25,7 +25,8 @@ m4data_DATA = libFLAC++.m4
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
-	libFLAC++.dsp \
+	libFLAC++_dynamic.dsp \
+	libFLAC++_static.dsp \
 	libFLAC++.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention

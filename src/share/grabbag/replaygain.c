@@ -49,7 +49,7 @@ static const char *gain_format_ = "%s=%+2.2f dB";
 
 static double album_peak_, title_peak_;
 
-GRABBAG_API const unsigned GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED = 148;
+const unsigned GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED = 148;
 /*
 	FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + 21 + 1 + 10 +
 	FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + 21 + 1 + 12 +
@@ -96,7 +96,7 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 	return FLAC__metadata_object_vorbiscomment_insert_comment(block, block->data.vorbis_comment.num_comments, entry, /*copy=*/true);
 }
 
-GRABBAG_API FLAC__bool grabbag__replaygain_is_valid_sample_frequency(unsigned sample_frequency)
+FLAC__bool grabbag__replaygain_is_valid_sample_frequency(unsigned sample_frequency)
 {
 	static const unsigned valid_sample_rates[] = {
 		8000,
@@ -119,13 +119,13 @@ GRABBAG_API FLAC__bool grabbag__replaygain_is_valid_sample_frequency(unsigned sa
 	return false;
 }
 
-GRABBAG_API FLAC__bool grabbag__replaygain_init(unsigned sample_frequency)
+FLAC__bool grabbag__replaygain_init(unsigned sample_frequency)
 {
 	title_peak_ = album_peak_ = 0.0;
 	return InitGainAnalysis((long)sample_frequency) == INIT_GAIN_ANALYSIS_OK;
 }
 
-GRABBAG_API FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__bool is_stereo, unsigned bps, unsigned samples)
+FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__bool is_stereo, unsigned bps, unsigned samples)
 {
 	/* using a small buffer improves data locality; we'd like it to fit easily in the dcache */
 	static Float_t lbuffer[2048], rbuffer[2048];
@@ -235,14 +235,14 @@ GRABBAG_API FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const inp
 	return true;
 }
 
-GRABBAG_API void grabbag__replaygain_get_album(float *gain, float *peak)
+void grabbag__replaygain_get_album(float *gain, float *peak)
 {
 	*gain = (float)GetAlbumGain();
 	*peak = (float)album_peak_;
 	album_peak_ = 0.0;
 }
 
-GRABBAG_API void grabbag__replaygain_get_title(float *gain, float *peak)
+void grabbag__replaygain_get_title(float *gain, float *peak)
 {
 	*gain = (float)GetTitleGain();
 	*peak = (float)title_peak_;
@@ -318,7 +318,7 @@ static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecode
 	instance->error = true;
 }
 
-GRABBAG_API const char *grabbag__replaygain_analyze_file(const char *filename, float *title_gain, float *title_peak)
+const char *grabbag__replaygain_analyze_file(const char *filename, float *title_gain, float *title_peak)
 {
 	DecoderInstance instance;
 	FLAC__FileDecoder *decoder = FLAC__file_decoder_new();
@@ -356,7 +356,7 @@ GRABBAG_API const char *grabbag__replaygain_analyze_file(const char *filename, f
 	return 0;
 }
 
-GRABBAG_API const char *grabbag__replaygain_store_to_vorbiscomment(FLAC__StreamMetadata *block, float album_gain, float album_peak, float title_gain, float title_peak)
+const char *grabbag__replaygain_store_to_vorbiscomment(FLAC__StreamMetadata *block, float album_gain, float album_peak, float title_gain, float title_peak)
 {
 	const char *error;
 
@@ -369,7 +369,7 @@ GRABBAG_API const char *grabbag__replaygain_store_to_vorbiscomment(FLAC__StreamM
 	return 0;
 }
 
-GRABBAG_API const char *grabbag__replaygain_store_to_vorbiscomment_album(FLAC__StreamMetadata *block, float album_gain, float album_peak)
+const char *grabbag__replaygain_store_to_vorbiscomment_album(FLAC__StreamMetadata *block, float album_gain, float album_peak)
 {
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
@@ -389,7 +389,7 @@ GRABBAG_API const char *grabbag__replaygain_store_to_vorbiscomment_album(FLAC__S
 	return 0;
 }
 
-GRABBAG_API const char *grabbag__replaygain_store_to_vorbiscomment_title(FLAC__StreamMetadata *block, float title_gain, float title_peak)
+const char *grabbag__replaygain_store_to_vorbiscomment_title(FLAC__StreamMetadata *block, float title_gain, float title_peak)
 {
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
@@ -486,7 +486,7 @@ static const char *store_to_file_post_(const char *filename, FLAC__Metadata_Chai
 	return 0;
 }
 
-GRABBAG_API const char *grabbag__replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak, FLAC__bool preserve_modtime)
+const char *grabbag__replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak, FLAC__bool preserve_modtime)
 {
 	FLAC__Metadata_Chain *chain;
 	FLAC__StreamMetadata *block;
@@ -506,7 +506,7 @@ GRABBAG_API const char *grabbag__replaygain_store_to_file(const char *filename, 
 	return 0;
 }
 
-GRABBAG_API const char *grabbag__replaygain_store_to_file_album(const char *filename, float album_gain, float album_peak, FLAC__bool preserve_modtime)
+const char *grabbag__replaygain_store_to_file_album(const char *filename, float album_gain, float album_peak, FLAC__bool preserve_modtime)
 {
 	FLAC__Metadata_Chain *chain;
 	FLAC__StreamMetadata *block;
@@ -526,7 +526,7 @@ GRABBAG_API const char *grabbag__replaygain_store_to_file_album(const char *file
 	return 0;
 }
 
-GRABBAG_API const char *grabbag__replaygain_store_to_file_title(const char *filename, float title_gain, float title_peak, FLAC__bool preserve_modtime)
+const char *grabbag__replaygain_store_to_file_title(const char *filename, float title_gain, float title_peak, FLAC__bool preserve_modtime)
 {
 	FLAC__Metadata_Chain *chain;
 	FLAC__StreamMetadata *block;
@@ -571,7 +571,7 @@ static FLAC__bool parse_double_(const FLAC__StreamMetadata_VorbisComment_Entry *
 	return true;
 }
 
-GRABBAG_API FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadata *block, FLAC__bool album_mode, double *gain, double *peak)
+FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadata *block, FLAC__bool album_mode, double *gain, double *peak)
 {
 	int gain_offset, peak_offset;
 
@@ -591,7 +591,7 @@ GRABBAG_API FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__S
 	return true;
 }
 
-GRABBAG_API double grabbag__replaygain_compute_scale_factor(double peak, double gain, double preamp, FLAC__bool prevent_clipping)
+double grabbag__replaygain_compute_scale_factor(double peak, double gain, double preamp, FLAC__bool prevent_clipping)
 {
 	double scale;
 	FLAC__ASSERT(peak >= 0.0);

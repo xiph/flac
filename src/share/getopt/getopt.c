@@ -125,7 +125,7 @@
    Also, when `ordering' is RETURN_IN_ORDER,
    each non-option ARGV-element is returned here.  */
 
-GETOPT_API char *share__optarg;
+char *share__optarg;
 
 /* Index in ARGV of the next element to be scanned.
    This is used for communication to and from the caller
@@ -140,7 +140,7 @@ GETOPT_API char *share__optarg;
    how much of ARGV has been scanned so far.  */
 
 /* 1003.2 says this must be 1 before any call.  */
-GETOPT_API int share__optind = 1;
+int share__optind = 1;
 
 /* Formerly, initialization of getopt depended on share__optind==0, which
    causes problems with re-calling getopt as programs generally don't
@@ -160,13 +160,13 @@ static char *nextchar;
 /* Callers store zero here to inhibit the error message
    for unrecognized options.  */
 
-GETOPT_API int share__opterr = 1;
+int share__opterr = 1;
 
 /* Set to an option character which was unrecognized.
    This must be initialized on some systems to avoid linking in the
    system's own getopt implementation.  */
 
-GETOPT_API int share__optopt = '?';
+int share__optopt = '?';
 
 /* Describe how to deal with options that follow non-option ARGV-elements.
 
@@ -522,7 +522,7 @@ share___getopt_initialize (argc, argv, optstring)
    If LONG_ONLY is nonzero, '-' as well as '--' can introduce
    long-named options.  */
 
-GETOPT_API int
+int
 share___getopt_internal (argc, argv, optstring, longopts, longind, long_only)
      int argc;
      char *const *argv;
@@ -978,7 +978,7 @@ share___getopt_internal (argc, argv, optstring, longopts, longind, long_only)
   }
 }
 
-GETOPT_API int
+int
 share__getopt (argc, argv, optstring)
      int argc;
      char *const *argv;

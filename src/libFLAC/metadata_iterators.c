@@ -1607,9 +1607,11 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_(FILE *fil
 {
 	unsigned i, len;
 	FLAC__Metadata_SimpleIteratorStatus status;
-	FLAC__byte buffer[max(sizeof(FLAC__uint64), FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN/8)]; /* the largest object we'll read in one shot */
+	FLAC__byte buffer[1024]; /* MSVC needs a constant expression so we put a magic number and assert */
 
 	FLAC__ASSERT(0 != file);
+	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN/8 <= sizeof(buffer));
+	FLAC__ASSERT(sizeof(FLAC__uint64) <= sizeof(buffer));
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN / 8;

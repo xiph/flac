@@ -19,8 +19,6 @@
 #ifndef FLAC__PLUGIN_COMMON__ALL_H
 #define FLAC__PLUGIN_COMMON__ALL_H
 
-#include "export.h"
-
 #include "canonical_tag.h"
 #include "charset.h"
 #include "dither.h"

@@ -25,7 +25,8 @@ m4data_DATA = libOggFLAC++.m4
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
-	libOggFLAC++.dsp \
+	libOggFLAC++_dynamic.dsp \
+	libOggFLAC++_static.dsp \
 	libOggFLAC++.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention

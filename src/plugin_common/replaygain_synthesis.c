@@ -286,7 +286,7 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_d
 #endif
 
 
-PLUGIN_COMMON_API int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, NoiseShaping noise_shaping, DitherContext *dither_context)
+int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, NoiseShaping noise_shaping, DitherContext *dither_context)
 {
 	static const FLAC__int32 conv_factors_[33] = {
 		-1, /* 0 bits-per-sample (not supported) */

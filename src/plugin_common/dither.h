@@ -19,11 +19,9 @@
 #ifndef FLAC__PLUGIN_COMMON__DITHER_H
 #define FLAC__PLUGIN_COMMON__DITHER_H
 
-#include "export.h"
-
 #include "defs.h" /* buy FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS for the caller */
 #include "FLAC/ordinals.h"
 
-PLUGIN_COMMON_API unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, FLAC__int32 *input, unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps);
+unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, FLAC__int32 *input, unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps);
 
 #endif

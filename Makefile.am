@@ -39,6 +39,9 @@ EXTRA_DIST = \
 	FLAC.dsw \
 	Makefile.lite \
 	Makefile.vc \
+	all.dsp \
+	all_dynamic.dsp \
+	all_static.dsp \
 	autogen.sh \
 	config.rpath \
 	depcomp \

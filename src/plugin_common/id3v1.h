@@ -21,8 +21,6 @@
 
 #include <string.h>
 
-#include "export.h"
-
 #include "FLAC/ordinals.h"
 
 typedef struct {
@@ -44,12 +42,12 @@ typedef struct {
 	unsigned char genre;
 } FLAC_Plugin__Id3v1_Tag;
 
-PLUGIN_COMMON_API FLAC__bool FLAC_plugin__id3v1_tag_get(const char *filename, FLAC_Plugin__Id3v1_Tag *tag);
+FLAC__bool FLAC_plugin__id3v1_tag_get(const char *filename, FLAC_Plugin__Id3v1_Tag *tag);
 
 
 #define FLAC_PLUGIN__ID3V1_TAG_INVALID_GENRE 255
 
-PLUGIN_COMMON_API const char *FLAC_plugin__id3v1_tag_get_genre_as_string(unsigned char genre_code);
-PLUGIN_COMMON_API unsigned FLAC_plugin__id3v1_tag_genre_table_max();
+const char *FLAC_plugin__id3v1_tag_get_genre_as_string(unsigned char genre_code);
+unsigned FLAC_plugin__id3v1_tag_genre_table_max();
 
 #endif

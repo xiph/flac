@@ -15,7 +15,7 @@ libgrabbag_a_SOURCES = \
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
-	grabbag.dsp
+	grabbag_static.dsp
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

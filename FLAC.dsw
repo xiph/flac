@@ -12,6 +12,24 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
+    Project_Dep_Name all_dynamic
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name all_static
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "all_dynamic"=.\all_dynamic.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
     Project_Dep_Name flac
     End Project Dependency
     Begin Project Dependency
@@ -27,31 +45,43 @@ Package=<4>
     Project_Dep_Name flac_ren
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name grabbag
+    Project_Dep_Name grabbag_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gain_analysis
+    Project_Dep_Name gain_analysis_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name getopt
+    Project_Dep_Name getopt_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libFLAC
+    Project_Dep_Name libFLAC_dynamic
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libFLAC++
+    Project_Dep_Name libFLAC_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libOggFLAC
+    Project_Dep_Name libFLAC++_dynamic
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libOggFLAC++
+    Project_Dep_Name libFLAC++_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name plugin_common
+    Project_Dep_Name libOggFLAC_dynamic
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name utf8
+    Project_Dep_Name libOggFLAC_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC++_dynamic
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC++_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name plugin_common_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name utf8_static
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name test_libFLAC
@@ -64,6 +94,78 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name test_libOggFLAC++
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_streams
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "all_static"=.\all_static.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name flac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name metaflac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name in_flac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name flac_mac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name flac_ren
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name grabbag_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name gain_analysis_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name getopt_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libFLAC_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libFLAC++_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC++_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name plugin_common_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name utf8_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libFLAC
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libFLAC++
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libOggFLAC
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libOggFLAC++
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_streams
     End Project Dependency
 }}}
 
@@ -78,22 +180,22 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name grabbag
+    Project_Dep_Name grabbag_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gain_analysis
+    Project_Dep_Name gain_analysis_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name getopt
+    Project_Dep_Name getopt_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libFLAC
+    Project_Dep_Name libFLAC_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libOggFLAC
+    Project_Dep_Name libOggFLAC_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name utf8
+    Project_Dep_Name utf8_static
     End Project Dependency
 }}}
 
@@ -123,7 +225,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "gain_analysis"=.\src\share\gain_analysis\gain_analysis.dsp - Package Owner=<4>
+Project: "gain_analysis_static"=.\src\share\gain_analysis\gain_analysis_static.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -135,7 +237,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "getopt"=.\src\share\getopt\getopt.dsp - Package Owner=<4>
+Project: "getopt_static"=.\src\share\getopt\getopt_static.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -147,7 +249,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "grabbag"=.\src\share\grabbag\grabbag.dsp - Package Owner=<4>
+Project: "grabbag_static"=.\src\share\grabbag\grabbag_static.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -156,10 +258,10 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libFLAC
+    Project_Dep_Name libFLAC_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gain_analysis
+    Project_Dep_Name gain_analysis_static
     End Project Dependency
 }}}
 
@@ -174,16 +276,16 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libFLAC
+    Project_Dep_Name libFLAC_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name plugin_common
+    Project_Dep_Name plugin_common_static
     End Project Dependency
 }}}
 
 ###############################################################################
 
-Project: "libFLAC"=.\src\libFLAC\libFLAC.dsp - Package Owner=<4>
+Project: "libFLAC_dynamic"=.\src\libFLAC\libFLAC_dynamic.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -195,7 +297,19 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libFLAC++"=".\src\libFLAC++\libFLAC++.dsp" - Package Owner=<4>
+Project: "libFLAC_static"=.\src\libFLAC\libFLAC_static.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "libFLAC++_dynamic"=".\src\libFLAC++\libFLAC++_dynamic.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -204,13 +318,13 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libFLAC
+    Project_Dep_Name libFLAC_dynamic
     End Project Dependency
 }}}
 
 ###############################################################################
 
-Project: "libOggFLAC"=.\src\libOggFLAC\libOggFLAC.dsp - Package Owner=<4>
+Project: "libFLAC++_static"=".\src\libFLAC++\libFLAC++_static.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -219,13 +333,13 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libFLAC
+    Project_Dep_Name libFLAC_static
     End Project Dependency
 }}}
 
 ###############################################################################
 
-Project: "libOggFLAC++"=".\src\libOggFLAC++\libOggFLAC++.dsp" - Package Owner=<4>
+Project: "libOggFLAC_dynamic"=.\src\libOggFLAC\libOggFLAC_dynamic.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -234,10 +348,58 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libOggFLAC
+    Project_Dep_Name libFLAC_dynamic
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "libOggFLAC_static"=.\src\libOggFLAC\libOggFLAC_static.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libFLAC_static
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "libOggFLAC++_dynamic"=".\src\libOggFLAC++\libOggFLAC++_dynamic.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC_dynamic
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libFLAC++
+    Project_Dep_Name libFLAC++_dynamic
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "libOggFLAC++_static"=".\src\libOggFLAC++\libOggFLAC++_static.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libFLAC++_static
     End Project Dependency
 }}}
 
@@ -252,22 +414,25 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name gain_analysis
+    Project_Dep_Name gain_analysis_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name getopt
+    Project_Dep_Name getopt_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name libFLAC
+    Project_Dep_Name grabbag_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name utf8
+    Project_Dep_Name libFLAC_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name utf8_static
     End Project Dependency
 }}}
 
 ###############################################################################
 
-Project: "plugin_common"=.\src\plugin_common\plugin_common.dsp - Package Owner=<4>
+Project: "plugin_common_static"=.\src\plugin_common\plugin_common_static.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -276,7 +441,7 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libFLAC
+    Project_Dep_Name libFLAC_static
     End Project Dependency
 }}}
 
@@ -291,7 +456,7 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libFLAC
+    Project_Dep_Name libFLAC_static
     End Project Dependency
 }}}
 
@@ -306,7 +471,7 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libFLAC++
+    Project_Dep_Name libFLAC++_static
     End Project Dependency
 }}}
 
@@ -321,7 +486,7 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libOggFLAC
+    Project_Dep_Name libOggFLAC_static
     End Project Dependency
 }}}
 
@@ -336,13 +501,25 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name libOggFLAC++
+    Project_Dep_Name libOggFLAC++_static
     End Project Dependency
 }}}
 
 ###############################################################################
 
-Project: "utf8"=.\src\share\utf8\utf8.dsp - Package Owner=<4>
+Project: "test_streams"=.\src\test_streams\test_streams.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "utf8_static"=.\src\share\utf8\utf8_static.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

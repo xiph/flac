@@ -29,23 +29,6 @@
 #ifndef GAIN_ANALYSIS_H
 #define GAIN_ANALYSIS_H
 
-#if defined(FLAC__NO_DLL) || defined(unix) || defined(__CYGWIN__) || defined(__CYGWIN32__)
-#define GAIN_ANALYSIS_API
-
-#else
-
-#ifdef GAIN_ANALYSIS_API_EXPORTS
-#define	GAIN_ANALYSIS_API	_declspec(dllexport)
-#else
-#define GAIN_ANALYSIS_API	_declspec(dllimport)
-#define __LIBNAME__ "gain_analysis.lib"
-#pragma comment(lib, __LIBNAME__)
-#undef __LIBNAME__
-
-#endif
-#endif
-
-
 #include <stddef.h>
 
 #define GAIN_NOT_ENOUGH_SAMPLES  -24601
@@ -61,11 +44,11 @@ extern "C" {
 
 typedef float   Float_t;         /* Type used for filtering */
 
-GAIN_ANALYSIS_API int     InitGainAnalysis ( long samplefreq );
-GAIN_ANALYSIS_API int     AnalyzeSamples   ( const Float_t* left_samples, const Float_t* right_samples, size_t num_samples, int num_channels );
-GAIN_ANALYSIS_API int		ResetSampleFrequency ( long samplefreq );
-GAIN_ANALYSIS_API Float_t   GetTitleGain     ( void );
-GAIN_ANALYSIS_API Float_t   GetAlbumGain     ( void );
+int     InitGainAnalysis ( long samplefreq );
+int     AnalyzeSamples   ( const Float_t* left_samples, const Float_t* right_samples, size_t num_samples, int num_channels );
+int		ResetSampleFrequency ( long samplefreq );
+Float_t   GetTitleGain     ( void );
+Float_t   GetAlbumGain     ( void );
 
 #ifdef __cplusplus
 }

@@ -30,12 +30,10 @@
  * Prototypes *
  **************/
 
-#include "export.h"
-
-PLUGIN_COMMON_API char *FLAC_plugin__charset_get_current();
-PLUGIN_COMMON_API char *FLAC_plugin__charset_convert_string(const char *string, char *from, char *to);
+char *FLAC_plugin__charset_get_current();
+char *FLAC_plugin__charset_convert_string(const char *string, char *from, char *to);
 
 /* returns 1 for success, 0 for failure or no iconv */
-PLUGIN_COMMON_API int FLAC_plugin__charset_test_conversion(char *from, char *to);
+int FLAC_plugin__charset_test_conversion(char *from, char *to);
 
 #endif

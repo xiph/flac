@@ -33,7 +33,7 @@ EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.vc \
 	README \
-	plugin_common.dsp
+	plugin_common_static.dsp
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

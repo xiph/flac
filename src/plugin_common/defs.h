@@ -19,8 +19,6 @@
 #ifndef FLAC__PLUGIN_COMMON__DEFS_H
 #define FLAC__PLUGIN_COMMON__DEFS_H
 
-#include "export.h"
-
 #define FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS 2
 
 #endif

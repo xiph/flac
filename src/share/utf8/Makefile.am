@@ -16,7 +16,7 @@ EXTRA_DIST = \
 	makemap.c \
 	charset_test.c \
 	charsetmap.h \
-	utf8.dsp
+	utf8_static.dsp
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

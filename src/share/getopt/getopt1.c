@@ -79,7 +79,7 @@
 #define NULL 0
 #endif
 
-GETOPT_API int
+int
 share__getopt_long (argc, argv, options, long_options, opt_index)
      int argc;
      char *const *argv;
@@ -95,7 +95,7 @@ share__getopt_long (argc, argv, options, long_options, opt_index)
    but does match a short option, it is parsed as a short option
    instead.  */
 
-GETOPT_API int
+int
 share__getopt_long_only (argc, argv, options, long_options, opt_index)
      int argc;
      char *const *argv;

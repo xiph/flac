@@ -34,23 +34,6 @@
 #ifndef SHARE__GETOPT_H
 #define SHARE__GETOPT_H
 
-#if defined(FLAC__NO_DLL) || defined(unix) || defined(__CYGWIN__) || defined(__CYGWIN32__)
-#define GETOPT_API
-
-#else
-
-#ifdef GETOPT_API_EXPORTS
-#define	GETOPT_API	_declspec(dllexport)
-#else
-#define GETOPT_API	_declspec(dllimport)
-#define __LIBNAME__ "getopt.lib"
-#pragma comment(lib, __LIBNAME__)
-#undef __LIBNAME__
-
-#endif
-#endif
-
-
 /*[JEC] was:#ifndef __need_getopt*/
 /*[JEC] was:# define _GETOPT_H 1*/
 /*[JEC] was:#endif*/
@@ -65,7 +48,7 @@ extern "C" {
    Also, when `ordering' is RETURN_IN_ORDER,
    each non-option ARGV-element is returned here.  */
 
-GETOPT_API extern char *share__optarg;
+extern char *share__optarg;
 
 /* Index in ARGV of the next element to be scanned.
    This is used for communication to and from the caller
@@ -79,16 +62,16 @@ GETOPT_API extern char *share__optarg;
    Otherwise, `share__optind' communicates from one call to the next
    how much of ARGV has been scanned so far.  */
 
-GETOPT_API extern int share__optind;
+extern int share__optind;
 
 /* Callers store zero here to inhibit the error message `share__getopt' prints
    for unrecognized options.  */
 
-GETOPT_API extern int share__opterr;
+extern int share__opterr;
 
 /* Set to an option character which was unrecognized.  */
 
-GETOPT_API extern int share__optopt;
+extern int share__optopt;
 
 /*[JEC] was:#ifndef __need_getopt */
 /* Describe the long-named options requested by the application.
@@ -163,20 +146,20 @@ struct share__option
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
-GETOPT_API extern int share__getopt (int __argc, char *const *__argv, const char *__shortopts);
+extern int share__getopt (int __argc, char *const *__argv, const char *__shortopts);
 /*[JEC] was:# else*/ /* not __GNU_LIBRARY__ */
 /*[JEC] was:extern int getopt ();*/
 /*[JEC] was:# endif*/ /* __GNU_LIBRARY__ */
 
 /*[JEC] was:# ifndef __need_getopt*/
-GETOPT_API extern int share__getopt_long (int __argc, char *const *__argv, const char *__shortopts,
+extern int share__getopt_long (int __argc, char *const *__argv, const char *__shortopts,
 		        const struct share__option *__longopts, int *__longind);
-GETOPT_API extern int share__getopt_long_only (int __argc, char *const *__argv,
+extern int share__getopt_long_only (int __argc, char *const *__argv,
 			     const char *__shortopts,
 		             const struct share__option *__longopts, int *__longind);
 
 /* Internal only.  Users should not call this directly.  */
-GETOPT_API extern int share___getopt_internal (int __argc, char *const *__argv,
+extern int share___getopt_internal (int __argc, char *const *__argv,
 			     const char *__shortopts,
 		             const struct share__option *__longopts, int *__longind,
 			     int __long_only);

@@ -1,35 +1,35 @@
-# Microsoft Developer Studio Project File - Name="plugin_common" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="libFLAC++_dynamic" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=plugin_common - Win32 Debug
+CFG=libFLAC++_dynamic - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "plugin_common.mak".
+!MESSAGE NMAKE /f "libFLAC++_dynamic.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "plugin_common.mak" CFG="plugin_common - Win32 Debug"
+!MESSAGE NMAKE /f "libFLAC++_dynamic.mak" CFG="libFLAC++_dynamic - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "plugin_common - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "plugin_common - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "libFLAC++_dynamic - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "libFLAC++_dynamic - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName "plugin_common"
+# PROP Scc_ProjName "libFLAC++"
 # PROP Scc_LocalPath "..\.."
 CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "plugin_common - Win32 Release"
+!IF  "$(CFG)" == "libFLAC++_dynamic - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -38,12 +38,12 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\obj\lib"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir "..\..\obj\release\lib"
+# PROP Intermediate_Dir "Release_dynamic"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GR /GX /O2 /I ".\include" /I "..\..\include" /D "NDEBUG" /D "PLUGIN_COMMON_API_EXPORTS" /D "_WINDOWS" /D "_WINDLL" /D "WIN32" /D "_USRDLL" /FR /FD /c
+# ADD CPP /nologo /MD /W3 /GR /GX /O2 /I ".\include" /I "..\..\include" /D "NDEBUG" /D "FLACPP_API_EXPORTS" /D "_WINDOWS" /D "_WINDLL" /D "WIN32" /D "_USRDLL" /FR /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -53,10 +53,9 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 ..\..\obj\lib\libFLAC.lib /nologo /subsystem:windows /dll /machine:I386 /nodefaultlib:"libc" /out:"..\..\obj\bin/plugin_common.dll"
-# SUBTRACT LINK32 /nodefaultlib
+# ADD LINK32 ..\..\obj\release\lib\libFLAC.lib /nologo /subsystem:windows /dll /machine:I386 /out:"..\..\obj\release\bin/libFLAC++.dll"
 
-!ELSEIF  "$(CFG)" == "plugin_common - Win32 Debug"
+!ELSEIF  "$(CFG)" == "libFLAC++_dynamic - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -65,12 +64,12 @@ LINK32=link.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\obj\lib"
-# PROP Intermediate_Dir "Debug"
+# PROP Output_Dir "..\..\obj\debug\lib"
+# PROP Intermediate_Dir "Debug_dynamic"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MDd /W3 /Gm /GR /GX /ZI /Od /I ".\include" /I "..\..\include" /D "_DEBUG" /D "_CHATTER" /D "PLUGIN_COMMON_API_EXPORTS" /D "_WINDOWS" /D "_WINDLL" /D "WIN32" /D "_USRDLL" /FR /FD /c
+# ADD CPP /nologo /MDd /W3 /Gm /GR /GX /ZI /Od /I ".\include" /I "..\..\include" /D "_DEBUG" /D "FLACPP_API_EXPORTS" /D "_WINDOWS" /D "_WINDLL" /D "WIN32" /D "_USRDLL" /FR /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -80,54 +79,49 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ..\..\obj\lib\libFLAC.lib /nologo /subsystem:windows /dll /debug /machine:I386 /nodefaultlib:"libc" /out:"..\..\obj\bin/plugin_common.dll" /pdbtype:sept
-# SUBTRACT LINK32 /nodefaultlib
+# ADD LINK32 ..\..\obj\debug\lib\libFLAC.lib /nologo /subsystem:windows /dll /debug /machine:I386 /out:"..\..\obj\debug\bin/libFLAC++.dll" /pdbtype:sept
 
 !ENDIF 
 
 # Begin Target
 
-# Name "plugin_common - Win32 Release"
-# Name "plugin_common - Win32 Debug"
+# Name "libFLAC++_dynamic - Win32 Release"
+# Name "libFLAC++_dynamic - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp"
 # Begin Source File
 
-SOURCE=.\canonical_tag.c
+SOURCE=.\file_decoder.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\charset.c
+SOURCE=.\file_encoder.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\dither.c
+SOURCE=.\metadata.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\id3v1.c
+SOURCE=.\seekable_stream_decoder.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\id3v2.c
+SOURCE=.\seekable_stream_encoder.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\replaygain_synthesis.c
+SOURCE=.\stream_decoder.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\vorbiscomment.c
+SOURCE=.\stream_encoder.cpp
 # End Source File
 # End Group
 # Begin Group "Private Header Files"
 
 # PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\include\private\fast_float_math_hack.h
-# End Source File
 # End Group
 # Begin Group "Protected Header Files"
 
@@ -138,39 +132,23 @@ SOURCE=.\include\private\fast_float_math_hack.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\all.h
+SOURCE="..\..\include\FLAC++\all.h"
 # End Source File
 # Begin Source File
 
-SOURCE=.\canonical_tag.h
+SOURCE="..\..\include\FLAC++\decoder.h"
 # End Source File
 # Begin Source File
 
-SOURCE=.\charset.h
+SOURCE="..\..\include\FLAC++\encoder.h"
 # End Source File
 # Begin Source File
 
-SOURCE=.\dither.h
+SOURCE="..\..\include\FLAC++\export.h"
 # End Source File
 # Begin Source File
 
-SOURCE=.\export.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\id3v1.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\locale_hack.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\replaygain_synthesis.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\vorbiscomment.h
+SOURCE="..\..\include\FLAC++\metadata.h"
 # End Source File
 # End Group
 # End Target

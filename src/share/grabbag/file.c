@@ -39,7 +39,7 @@
 #include "share/grabbag.h"
 
 
-GRABBAG_API void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
+void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
 {
 	struct stat srcstat;
 	struct utimbuf srctime;
@@ -52,7 +52,7 @@ GRABBAG_API void grabbag__file_copy_metadata(const char *srcpath, const char *de
 	}
 }
 
-GRABBAG_API off_t grabbag__file_get_filesize(const char *srcpath)
+off_t grabbag__file_get_filesize(const char *srcpath)
 {
 	struct stat srcstat;
 
@@ -62,7 +62,7 @@ GRABBAG_API off_t grabbag__file_get_filesize(const char *srcpath)
 		return -1;
 }
 
-GRABBAG_API const char *grabbag__file_get_basename(const char *srcpath)
+const char *grabbag__file_get_basename(const char *srcpath)
 {
 	const char *p;
 
@@ -75,7 +75,7 @@ GRABBAG_API const char *grabbag__file_get_basename(const char *srcpath)
 	return ++p;
 }
 
-GRABBAG_API FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only)
+FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only)
 {
 	struct stat stats;
 
@@ -104,12 +104,12 @@ GRABBAG_API FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bo
 	return true;
 }
 
-GRABBAG_API FLAC__bool grabbag__file_remove_file(const char *filename)
+FLAC__bool grabbag__file_remove_file(const char *filename)
 {
 	return grabbag__file_change_stats(filename, /*read_only=*/false) && 0 == unlink(filename);
 }
 
-GRABBAG_API FILE *grabbag__file_get_binary_stdin()
+FILE *grabbag__file_get_binary_stdin()
 {
 	/* if something breaks here it is probably due to the presence or
 	 * absence of an underscore before the identifiers 'setmode',
@@ -125,7 +125,7 @@ GRABBAG_API FILE *grabbag__file_get_binary_stdin()
 	return stdin;
 }
 
-GRABBAG_API FILE *grabbag__file_get_binary_stdout()
+FILE *grabbag__file_get_binary_stdout()
 {
 	/* if something breaks here it is probably due to the presence or
 	 * absence of an underscore before the identifiers 'setmode',

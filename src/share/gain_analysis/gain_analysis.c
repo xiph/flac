@@ -211,7 +211,6 @@ filter ( const Float_t* input, Float_t* output, size_t nSamples, const Float_t* 
 
 /* returns a INIT_GAIN_ANALYSIS_OK if successful, INIT_GAIN_ANALYSIS_ERROR if not */
 
-GAIN_ANALYSIS_API
 int
 ResetSampleFrequency ( long samplefreq ) {
     int  i;
@@ -244,7 +243,6 @@ ResetSampleFrequency ( long samplefreq ) {
 	return INIT_GAIN_ANALYSIS_OK;
 }
 
-GAIN_ANALYSIS_API
 int
 InitGainAnalysis ( long samplefreq )
 {
@@ -266,7 +264,6 @@ InitGainAnalysis ( long samplefreq )
 
 /* returns GAIN_ANALYSIS_OK if successful, GAIN_ANALYSIS_ERROR if not */
 
-GAIN_ANALYSIS_API
 int
 AnalyzeSamples ( const Float_t* left_samples, const Float_t* right_samples, size_t num_samples, int num_channels )
 {
@@ -379,7 +376,6 @@ analyzeResult ( Uint32_t* Array, size_t len )
 }
 
 
-GAIN_ANALYSIS_API
 Float_t
 GetTitleGain ( void )
 {
@@ -402,7 +398,6 @@ GetTitleGain ( void )
 }
 
 
-GAIN_ANALYSIS_API
 Float_t
 GetAlbumGain ( void )
 {

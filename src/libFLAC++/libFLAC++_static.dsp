@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="libFLAC++" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="libFLAC++_static" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
-# TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
+# TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=libFLAC++ - Win32 Debug
+CFG=libFLAC++_static - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "libFLAC++.mak".
+!MESSAGE NMAKE /f "libFLAC++_static.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "libFLAC++.mak" CFG="libFLAC++ - Win32 Debug"
+!MESSAGE NMAKE /f "libFLAC++_static.mak" CFG="libFLAC++_static - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "libFLAC++ - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "libFLAC++ - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "libFLAC++_static - Win32 Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "libFLAC++_static - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -26,10 +26,9 @@ CFG=libFLAC++ - Win32 Debug
 # PROP Scc_ProjName "libFLAC++"
 # PROP Scc_LocalPath "..\.."
 CPP=cl.exe
-MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "libFLAC++ - Win32 Release"
+!IF  "$(CFG)" == "libFLAC++_static - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -38,24 +37,21 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\..\obj\lib"
-# PROP Intermediate_Dir "Release"
-# PROP Ignore_Export_Lib 0
+# PROP Output_Dir "..\..\obj\release\lib"
+# PROP Intermediate_Dir "Release_static"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GR /GX /O2 /I ".\include" /I "..\..\include" /D "NDEBUG" /D "FLACPP_API_EXPORTS" /D "_WINDOWS" /D "_WINDLL" /D "WIN32" /D "_USRDLL" /FR /FD /c
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o "NUL" /win32
+# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I "..\..\include" /D "FLAC__NO_DLL" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
-# ADD RSC /l 0x409 /d "NDEBUG" /d "_USRDLL"
+# ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 ..\..\obj\lib\libFLAC.lib /nologo /subsystem:windows /dll /machine:I386 /out:"..\..\obj\bin/libFLAC++.dll"
+LIB32=link.exe -lib
+# ADD BASE LIB32 /nologo
+# ADD LIB32 /nologo /out:"..\..\obj\release\lib/libFLAC++_static.lib"
 
-!ELSEIF  "$(CFG)" == "libFLAC++ - Win32 Debug"
+!ELSEIF  "$(CFG)" == "libFLAC++_static - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -64,32 +60,29 @@ LINK32=link.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\..\obj\lib"
-# PROP Intermediate_Dir "Debug"
-# PROP Ignore_Export_Lib 0
+# PROP Output_Dir "..\..\obj\debug\lib"
+# PROP Intermediate_Dir "Debug_static"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MDd /W3 /Gm /GR /GX /ZI /Od /I ".\include" /I "..\..\include" /D "_DEBUG" /D "_CHATTER" /D "FLACPP_API_EXPORTS" /D "_WINDOWS" /D "_WINDLL" /D "WIN32" /D "_USRDLL" /FR /FD /c
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o "NUL" /win32
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I "..\..\include" /D "FLAC__NO_DLL" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /d "_DEBUG" /d "_USRDLL"
+# ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
-LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ..\..\obj\lib\libFLAC.lib /nologo /subsystem:windows /dll /debug /machine:I386 /out:"..\..\obj\bin/libFLAC++.dll" /pdbtype:sept
+LIB32=link.exe -lib
+# ADD BASE LIB32 /nologo
+# ADD LIB32 /nologo /out:"..\..\obj\debug\lib/libFLAC++_static.lib"
 
 !ENDIF 
 
 # Begin Target
 
-# Name "libFLAC++ - Win32 Release"
-# Name "libFLAC++ - Win32 Debug"
+# Name "libFLAC++_static - Win32 Release"
+# Name "libFLAC++_static - Win32 Debug"
 # Begin Group "Source Files"
 
-# PROP Default_Filter "cc"
+# PROP Default_Filter "cpp"
 # Begin Source File
 
 SOURCE=.\file_decoder.cpp
