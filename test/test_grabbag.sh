@@ -86,3 +86,5 @@ for cuesheet in $good_cuesheets ; do
 done
 
 diff cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
+
+echo "PASSED (results are in $log)"
