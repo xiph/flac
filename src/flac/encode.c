@@ -239,18 +239,22 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 			else if(feof(fin))
 				break;
 		}
-		else if(bytes_read % bytes_per_wide_sample != 0) {
-			fprintf(stderr, "ERROR, got partial sample from input file %s\n", infile);
-			goto wav_abort_;
-		}
 		else {
-			unsigned wide_samples = bytes_read / bytes_per_wide_sample;
-			format_input(wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
-			if(!FLAC__encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
-				fprintf(stderr, "ERROR during encoding, state = %d:%s\n", encoder_wrapper.encoder->state, FLAC__EncoderStateString[encoder_wrapper.encoder->state]);
+			if(bytes_read > data_bytes)
+				bytes_read = data_bytes; /* chop off anything after the end of the data chunk */
+			if(bytes_read % bytes_per_wide_sample != 0) {
+				fprintf(stderr, "ERROR, got partial sample from input file %s\n", infile);
 				goto wav_abort_;
 			}
-			data_bytes -= bytes_read;
+			else {
+				unsigned wide_samples = bytes_read / bytes_per_wide_sample;
+				format_input(wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
+				if(!FLAC__encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
+					fprintf(stderr, "ERROR during encoding, state = %d:%s\n", encoder_wrapper.encoder->state, FLAC__EncoderStateString[encoder_wrapper.encoder->state]);
+					goto wav_abort_;
+				}
+				data_bytes -= bytes_read;
+			}
 		}
 	}
 
