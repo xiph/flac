@@ -97,6 +97,10 @@ SOURCE=.\operations.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\operations_shorthand_cuesheet.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\operations_shorthand_seektable.c
 # End Source File
 # Begin Source File
@@ -123,6 +127,22 @@ SOURCE=.\utils.c
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\operations.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\options.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\usage.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\utils.h
+# End Source File
 # End Group
 # End Target
 # End Project
