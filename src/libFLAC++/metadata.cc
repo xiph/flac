@@ -19,7 +19,8 @@
 
 #include "FLAC++/metadata.h"
 #include "FLAC/assert.h"
-#include <string.h> // for memcpy()
+#include <stdlib.h> // for malloc(), free()
+#include <string.h> // for memcpy() etc.
 
 namespace FLAC {
 	namespace Metadata {
@@ -122,6 +123,7 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			return object_->length;
 		}
+
 
 		//
 		// StreamInfo
@@ -259,6 +261,7 @@ namespace FLAC {
 			memcpy(object_->data.stream_info.md5sum, value, 16);
 		}
 
+
 		//
 		// Padding
 		//
@@ -273,6 +276,13 @@ namespace FLAC {
 
 		Padding::~Padding()
 		{ }
+
+		void Padding::set_length(unsigned length)
+		{
+			FLAC__ASSERT(is_valid());
+			object_->length = length;
+		}
+
 
 		//
 		// Application
@@ -314,6 +324,7 @@ namespace FLAC {
 			return FLAC__metadata_object_application_set_data(object_, data, length, copy);
 		}
 
+
 		//
 		// SeekTable
 		//
@@ -329,6 +340,307 @@ namespace FLAC {
 		SeekTable::~SeekTable()
 		{ }
 
+		unsigned SeekTable::get_num_points() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.seek_table.num_points;
+		}
+
+		::FLAC__StreamMetaData_SeekPoint SeekTable::get_point(unsigned index) const
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(index < object_->data.seek_table.num_points);
+			return object_->data.seek_table.points[index];
+		}
+
+		void SeekTable::set_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(index < object_->data.seek_table.num_points);
+			::FLAC__metadata_object_seektable_set_point(object_, index, point);
+		}
+
+		bool SeekTable::insert_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(index <= object_->data.seek_table.num_points);
+			return ::FLAC__metadata_object_seektable_insert_point(object_, index, point);
+		}
+
+		bool SeekTable::delete_point(unsigned index)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(index < object_->data.seek_table.num_points);
+			return ::FLAC__metadata_object_seektable_delete_point(object_, index);
+		}
+
+
+		//
+		// VorbisComment::Entry
+		//
+
+		VorbisComment::Entry::Entry()
+		{
+			zero();
+		}
+
+		VorbisComment::Entry::Entry(const char *field, unsigned field_length)
+		{
+			zero();
+			construct(field, field_length);
+		}
+
+		VorbisComment::Entry::Entry(const char *field_name, const char *field_value, unsigned field_value_length)
+		{
+			zero();
+			construct(field_name, field_value, field_value_length);
+		}
+
+		VorbisComment::Entry::Entry(const Entry &entry)
+		{
+			zero();
+			if(entry.is_valid())
+				construct((const char *)entry.entry_.entry, entry.entry_.length);
+		}
+
+		void VorbisComment::Entry::operator=(const Entry &entry)
+		{
+			clear();
+			if(entry.is_valid())
+				construct((const char *)entry.entry_.entry, entry.entry_.length);
+		}
+
+		VorbisComment::Entry::~Entry()
+		{
+			clear();
+		}
+
+		bool VorbisComment::Entry::is_valid() const
+		{
+			return is_valid_;
+		}
+
+		unsigned VorbisComment::Entry::get_field_length() const
+		{
+			FLAC__ASSERT(is_valid());
+			return entry_.length;
+		}
+
+		unsigned VorbisComment::Entry::get_field_name_length() const
+		{
+			FLAC__ASSERT(is_valid());
+			return field_name_length_;
+		}
+
+		unsigned VorbisComment::Entry::get_field_value_length() const
+		{
+			FLAC__ASSERT(is_valid());
+			return field_value_length_;
+		}
+
+		::FLAC__StreamMetaData_VorbisComment_Entry VorbisComment::Entry::get_entry() const
+		{
+			FLAC__ASSERT(is_valid());
+			return entry_;
+		}
+
+		const char *VorbisComment::Entry::get_field() const
+		{
+			FLAC__ASSERT(is_valid());
+			return (const char *)entry_.entry;
+		}
+
+		const char *VorbisComment::Entry::get_field_name() const
+		{
+			FLAC__ASSERT(is_valid());
+			return field_name_;
+		}
+
+		const char *VorbisComment::Entry::get_field_value() const
+		{
+			FLAC__ASSERT(is_valid());
+			return field_value_;
+		}
+
+		bool VorbisComment::Entry::set_field(const char *field, unsigned field_length)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(0 != field);
+
+			clear_entry();
+
+			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_length))) {
+				clear();
+				is_valid_ = false;
+			}
+			else {
+				entry_.length = field_length;
+				memcpy(entry_.entry, field, field_length);
+				parse_field();
+				is_valid_ = true;
+			}
+
+			return is_valid_;
+		}
+
+		bool VorbisComment::Entry::set_field_name(const char *field_name)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(0 != field_name);
+
+			clear_field_name();
+
+			if(0 == (field_name_ = strdup(field_name))) {
+				clear();
+				is_valid_ = false;
+			}
+			else {
+				field_name_length_ = strlen(field_name_);
+				compose_field();
+				is_valid_ = true;
+			}
+
+			return is_valid_;
+		}
+
+		bool VorbisComment::Entry::set_field_value(const char *field_value, unsigned field_value_length)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(0 != field_value);
+
+			clear_field_value();
+
+			if(0 == (field_value_ = (char *)malloc(field_value_length))) {
+				clear();
+				is_valid_ = false;
+			}
+			else {
+				field_value_length_ = field_value_length;
+				memcpy(field_value_, field_value, field_value_length);
+				compose_field();
+				is_valid_ = true;
+			}
+
+			return is_valid_;
+		}
+
+		void VorbisComment::Entry::zero()
+		{
+			is_valid_ = false;
+			entry_.length = 0;
+			entry_.entry = 0;
+			field_name_ = 0;
+			field_name_length_ = 0;
+			field_value_ = 0;
+			field_value_length_ = 0;
+		}
+
+		void VorbisComment::Entry::clear()
+		{
+			clear_entry();
+			clear_field_name();
+			clear_field_value();
+			is_valid_ = false;
+		}
+
+		void VorbisComment::Entry::clear_entry()
+		{
+			if(0 != entry_.entry) {
+				FLAC__ASSERT(entry_.length == 0);
+				free(entry_.entry);
+				entry_.entry = 0;
+				entry_.length = 0;
+			}
+		}
+
+		void VorbisComment::Entry::clear_field_name()
+		{
+			if(0 != field_name_) {
+				FLAC__ASSERT(field_name_length_ == 0);
+				free(field_name_);
+				field_name_ = 0;
+				field_name_length_ = 0;
+			}
+		}
+
+		void VorbisComment::Entry::clear_field_value()
+		{
+			if(0 != field_value_) {
+				FLAC__ASSERT(field_name_length_ == 0);
+				free(field_value_);
+				field_value_ = 0;
+				field_value_length_ = 0;
+			}
+		}
+
+		void VorbisComment::Entry::construct(const char *field, unsigned field_length)
+		{
+			set_field(field, field_length);
+			if(is_valid_) {
+				parse_field();
+			}
+		}
+
+		void VorbisComment::Entry::construct(const char *field_name, const char *field_value, unsigned field_value_length)
+		{
+			set_field_name(field_name);
+			if(is_valid_) {
+				set_field_value(field_value, field_value_length);
+				if(is_valid_) {
+					compose_field();
+				}
+			}
+		}
+
+		void VorbisComment::Entry::compose_field()
+		{
+			clear_entry();
+
+			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_name_length_ + 1 + field_value_length_))) {
+				clear();
+			}
+			else {
+				memcpy(entry_.entry, field_name_, field_name_length_);
+				entry_.length += field_name_length_;
+				memcpy(entry_.entry + entry_.length, "=", 1);
+				entry_.length += 1;
+				memcpy(entry_.entry, field_value_, field_value_length_);
+				entry_.length += field_value_length_;
+				is_valid_ = true;
+			}
+		}
+
+		void VorbisComment::Entry::parse_field()
+		{
+			clear_field_name();
+			clear_field_value();
+
+			const char *p = (const char *)memchr(entry_.entry, '=', entry_.length);
+
+			if(0 == p) {
+				clear();
+				return;
+			}
+
+			if(0 == (field_name_ = (char *)malloc(p - (const char *)entry_.entry + 1))) { // +1 for the trailing \0
+				clear();
+				return;
+			}
+			field_name_length_ = p - (const char *)entry_.entry;
+			memcpy(field_name_, entry_.entry, field_name_length_);
+			field_name_[field_name_length_] = '\0';
+
+			if(0 == (field_value_ = (char *)malloc(entry_.length - field_name_length_ - 1))) {
+				clear();
+				return;
+			}
+			field_value_length_ = entry_.length - field_name_length_ - 1;
+			memcpy(field_value_, ++p, field_value_length_);
+
+			is_valid_ = true;
+		}
+
+
 		//
 		// VorbisComment
 		//
@@ -343,6 +655,52 @@ namespace FLAC {
 
 		VorbisComment::~VorbisComment()
 		{ }
+
+		unsigned VorbisComment::get_num_comments() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.vorbis_comment.num_comments;
+		}
+
+		VorbisComment::Entry VorbisComment::get_vendor_string() const
+		{
+			FLAC__ASSERT(is_valid());
+			return Entry((const char *)object_->data.vorbis_comment.vendor_string.entry, object_->data.vorbis_comment.vendor_string.length);
+		}
+
+		VorbisComment::Entry VorbisComment::get_comment(unsigned index) const
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(index < object_->data.vorbis_comment.num_comments);
+			return Entry((const char *)object_->data.vorbis_comment.vendor_string.entry, object_->data.vorbis_comment.vendor_string.length);
+		}
+
+		bool VorbisComment::set_vendor_string(const VorbisComment::Entry &entry)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_object_vorbiscomment_set_vendor_string(object_, entry.get_entry(), /*copy=*/true);
+		}
+
+		bool VorbisComment::set_comment(unsigned index, const VorbisComment::Entry &entry)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(index < object_->data.vorbis_comment.num_comments);
+			return ::FLAC__metadata_object_vorbiscomment_set_comment(object_, index, entry.get_entry(), /*copy=*/true);
+		}
+
+		bool VorbisComment::insert_comment(unsigned index, const VorbisComment::Entry &entry)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(index <= object_->data.vorbis_comment.num_comments);
+			return ::FLAC__metadata_object_vorbiscomment_insert_comment(object_, index, entry.get_entry(), /*copy=*/true);
+		}
+
+		bool VorbisComment::delete_comment(unsigned index)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(index < object_->data.vorbis_comment.num_comments);
+			return ::FLAC__metadata_object_vorbiscomment_delete_comment(object_, index);
+		}
 
 
 		// ============================================================

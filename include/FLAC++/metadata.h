@@ -114,6 +114,8 @@ namespace FLAC {
 			inline void operator=(const Padding &object) { Prototype::operator=(object); }
 			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
 			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
+
+			void set_length(unsigned length);
 		};
 
 		class Application : public Prototype {
@@ -142,10 +144,61 @@ namespace FLAC {
 			inline void operator=(const SeekTable &object) { Prototype::operator=(object); }
 			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
 			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
+
+			unsigned get_num_points() const;
+			::FLAC__StreamMetaData_SeekPoint get_point(unsigned index) const;
+
+			void set_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point);
+			bool insert_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point);
+			bool delete_point(unsigned index);
 		};
 
 		class VorbisComment : public Prototype {
 		public:
+			class Entry {
+			public:
+				Entry();
+				Entry(const char *field, unsigned field_length);
+				Entry(const char *field_name, const char *field_value, unsigned field_value_length);
+				Entry(const Entry &entry);
+				void operator=(const Entry &entry);
+
+				virtual ~Entry();
+
+				virtual bool is_valid() const;
+				inline operator bool() const { return is_valid(); }
+
+				unsigned get_field_length() const;
+				unsigned get_field_name_length() const;
+				unsigned get_field_value_length() const;
+
+				::FLAC__StreamMetaData_VorbisComment_Entry get_entry() const;
+				const char *get_field() const;
+				const char *get_field_name() const;
+				const char *get_field_value() const;
+
+				bool set_field(const char *field, unsigned field_length);
+				bool set_field_name(const char *field_name);
+				bool set_field_value(const char *field_value, unsigned field_value_length);
+			protected:
+				bool is_valid_;
+				::FLAC__StreamMetaData_VorbisComment_Entry entry_;
+				char *field_name_;
+				unsigned field_name_length_;
+				char *field_value_;
+				unsigned field_value_length_;
+			private:
+				void zero();
+				void clear();
+				void clear_entry();
+				void clear_field_name();
+				void clear_field_value();
+				void construct(const char *field, unsigned field_length);
+				void construct(const char *field_name, const char *field_value, unsigned field_value_length);
+				void compose_field();
+				void parse_field();
+			};
+
 			VorbisComment();
 			VorbisComment(::FLAC__StreamMetaData *object, bool copy = false);
 			~VorbisComment();
@@ -153,7 +206,17 @@ namespace FLAC {
 			inline void operator=(const VorbisComment &object) { Prototype::operator=(object); }
 			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
 			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
+
+			unsigned get_num_comments() const;
+			Entry get_vendor_string() const;
+			Entry get_comment(unsigned index) const;
+
+			bool set_vendor_string(const Entry &entry);
+			bool set_comment(unsigned index, const Entry &entry);
+			bool insert_comment(unsigned index, const Entry &entry);
+			bool delete_comment(unsigned index);
 		};
+
 
 		// ============================================================
 		//
@@ -162,6 +225,7 @@ namespace FLAC {
 		// ============================================================
 
 		bool get_streaminfo(const char *filename, StreamInfo &streaminfo);
+
 
 		// ============================================================
 		//
@@ -225,6 +289,7 @@ namespace FLAC {
 			::FLAC__MetaData_SimpleIterator *iterator_;
 			void clear();
 		};
+
 
 		// ============================================================
 		//
