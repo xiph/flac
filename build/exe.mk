@@ -29,7 +29,7 @@ $(PROGRAM) : $(OBJS)
 %.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
 
-%.o : %.nasm
+%.o : %.s
 	$(NASM) -f elf -d ELF -i i386/ $< -o $@
 
 .PHONY : clean
