@@ -505,6 +505,26 @@ FLAC_API FLAC__bool FLAC__file_decoder_process_until_end_of_file(FLAC__FileDecod
 	return ret;
 }
 
+FLAC_API FLAC__bool FLAC__file_decoder_skip_single_frame(FLAC__FileDecoder *decoder)
+{
+	FLAC__bool ret;
+	FLAC__ASSERT(0 != decoder);
+
+	if(decoder->private_->seekable_stream_decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
+		decoder->protected_->state = FLAC__FILE_DECODER_END_OF_FILE;
+
+	if(decoder->protected_->state == FLAC__FILE_DECODER_END_OF_FILE)
+		return true;
+
+	FLAC__ASSERT(decoder->protected_->state == FLAC__FILE_DECODER_OK);
+
+	ret = FLAC__seekable_stream_decoder_skip_single_frame(decoder->private_->seekable_stream_decoder);
+	if(!ret)
+		decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
+
+	return ret;
+}
+
 FLAC_API FLAC__bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, FLAC__uint64 sample)
 {
 	FLAC__ASSERT(0 != decoder);

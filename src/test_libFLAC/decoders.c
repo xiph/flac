@@ -386,6 +386,11 @@ static FLAC__bool test_stream_decoder()
 		return die_s_("returned false", decoder);
 	printf("OK\n");
 
+	printf("testing FLAC__stream_decoder_skip_single_frame()... ");
+	if(!FLAC__stream_decoder_skip_single_frame(decoder))
+		return die_s_("returned false", decoder);
+	printf("OK\n");
+
 	printf("testing FLAC__stream_decoder_flush()... ");
 	if(!FLAC__stream_decoder_flush(decoder))
 		return die_s_("returned false", decoder);
@@ -1093,6 +1098,11 @@ static FLAC__bool test_seekable_stream_decoder()
 		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
+	printf("testing FLAC__seekable_stream_decoder_skip_single_frame()... ");
+	if(!FLAC__seekable_stream_decoder_skip_single_frame(decoder))
+		return die_ss_("returned false", decoder);
+	printf("OK\n");
+
 	printf("testing FLAC__seekable_stream_decoder_flush()... ");
 	if(!FLAC__seekable_stream_decoder_flush(decoder))
 		return die_ss_("returned false", decoder);
@@ -1661,6 +1671,11 @@ static FLAC__bool test_file_decoder()
 
 	printf("testing FLAC__file_decoder_process_single()... ");
 	if(!FLAC__file_decoder_process_single(decoder))
+		return die_f_("returned false", decoder);
+	printf("OK\n");
+
+	printf("testing FLAC__file_decoder_skip_single_frame()... ");
+	if(!FLAC__file_decoder_skip_single_frame(decoder))
 		return die_f_("returned false", decoder);
 	printf("OK\n");
 

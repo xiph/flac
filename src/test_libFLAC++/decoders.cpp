@@ -343,6 +343,11 @@ static bool test_stream_decoder()
 		return decoder->die("returned false");
 	printf("OK\n");
 
+	printf("testing skip_single_frame()... ");
+	if(!decoder->skip_single_frame())
+		return decoder->die("returned false");
+	printf("OK\n");
+
 	printf("testing flush()... ");
 	if(!decoder->flush())
 		return decoder->die("returned false");
@@ -1060,6 +1065,11 @@ static bool test_seekable_stream_decoder()
 		return decoder->die("returned false");
 	printf("OK\n");
 
+	printf("testing skip_single_frame()... ");
+	if(!decoder->skip_single_frame())
+		return decoder->die("returned false");
+	printf("OK\n");
+
 	printf("testing flush()... ");
 	if(!decoder->flush())
 		return decoder->die("returned false");
@@ -1720,6 +1730,11 @@ static bool test_file_decoder()
 
 	printf("testing process_single()... ");
 	if(!decoder->process_single())
+		return decoder->die("returned false");
+	printf("OK\n");
+
+	printf("testing skip_single_frame()... ");
+	if(!decoder->skip_single_frame())
 		return decoder->die("returned false");
 	printf("OK\n");
 

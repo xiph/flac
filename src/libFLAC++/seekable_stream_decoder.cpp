@@ -198,6 +198,12 @@ namespace FLAC {
 			return (bool)::FLAC__seekable_stream_decoder_process_until_end_of_stream(decoder_);
 		}
 
+		bool SeekableStream::skip_single_frame()
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__seekable_stream_decoder_skip_single_frame(decoder_);
+		}
+
 		bool SeekableStream::seek_absolute(FLAC__uint64 sample)
 		{
 			FLAC__ASSERT(is_valid());

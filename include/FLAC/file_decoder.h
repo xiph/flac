@@ -627,6 +627,17 @@ FLAC_API FLAC__bool FLAC__file_decoder_process_until_end_of_metadata(FLAC__FileD
  */
 FLAC_API FLAC__bool FLAC__file_decoder_process_until_end_of_file(FLAC__FileDecoder *decoder);
 
+/** This is inherited from FLAC__SeekableStreamDecoder; see
+ *  FLAC__seekable_stream_decoder_skip_single_frame().
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
+FLAC_API FLAC__bool FLAC__file_decoder_skip_single_frame(FLAC__FileDecoder *decoder);
+
 /** Flush the input and seek to an absolute sample.
  *  This is inherited from FLAC__SeekableStreamDecoder; see
  *  FLAC__seekable_stream_decoder_seek_absolute().

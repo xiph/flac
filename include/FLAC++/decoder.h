@@ -134,6 +134,7 @@ namespace FLAC {
 			bool process_single();
 			bool process_until_end_of_metadata();
 			bool process_until_end_of_stream();
+			bool skip_single_frame();
 		protected:
 			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes) = 0;
 			virtual ::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]) = 0;
@@ -222,6 +223,7 @@ namespace FLAC {
 			bool process_single();
 			bool process_until_end_of_metadata();
 			bool process_until_end_of_stream();
+			bool skip_single_frame();
 
 			bool seek_absolute(FLAC__uint64 sample);
 		protected:
@@ -319,6 +321,7 @@ namespace FLAC {
 			bool process_single();
 			bool process_until_end_of_metadata();
 			bool process_until_end_of_file();
+			bool skip_single_frame();
 
 			bool seek_absolute(FLAC__uint64 sample);
 		protected:

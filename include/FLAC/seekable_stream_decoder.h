@@ -898,6 +898,17 @@ FLAC_API FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_metadata(
  */
 FLAC_API FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_stream(FLAC__SeekableStreamDecoder *decoder);
 
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_skip_single_frame().
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_skip_single_frame(FLAC__SeekableStreamDecoder *decoder);
+
 /** Flush the input and seek to an absolute sample.
  *  Decoding will resume at the given sample.  Note that because of
  *  this, the next write callback may contain a partial block.

@@ -751,11 +751,21 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
  *  occurred.  If the decoder loses sync it will call the error callback
  *  instead.
  *
- * \param  decoder  An initialized decoder instance in the state
- *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC.
+ *  Unless there is a fatal read error or end of stream, this function
+ *  will return once one whole frame is decoded.  In other words, if the
+ *  stream is not syncronized or points to a corrupt frame header, the
+ *  decoder will continue to try and resync until it gets to a valid
+ *  frame, then decode one frame, then return.  If the decoder points to
+ *  frame whose frame CRC in the frame footer does not match the
+ *  computed frame CRC, this function will issue a
+ *  FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH error to the
+ *  error callback, and return, having decoded one complete, although
+ *  corrupt, frame.  (Such corrupted frames are sent as silence of the
+ *  correct length to the write callback.)
+ *
+ * \param  decoder  An initialized decoder instance.
  * \assert
  *    \code decoder != NULL \endcode
- *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
  *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
@@ -776,11 +786,9 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
  *  with the decoded metadata.  If the decoder loses sync it will call the
  *  error callback.
  *
- * \param  decoder  An initialized decoder instance in the state
- *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
+ * \param  decoder  An initialized decoder instance.
  * \assert
  *    \code decoder != NULL \endcode
- *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
  *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
@@ -801,11 +809,9 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_metadata(FLAC__Str
  *  callback will be called with the decoded metadata or frame.  If the
  *  decoder loses sync it will call the error callback.
  *
- * \param  decoder  An initialized decoder instance in the state
- *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
+ * \param  decoder  An initialized decoder instance.
  * \assert
  *    \code decoder != NULL \endcode
- *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
  *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
@@ -814,6 +820,49 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_metadata(FLAC__Str
  *    check for lost synchronization (a sign of stream corruption).
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__StreamDecoder *decoder);
+
+/** Skip one audio frame.
+ *  This version instructs the decoder to 'skip' a single frame and stop,
+ *  unless the callbacks return a fatal error or the read callback returns
+ *  \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
+ *
+ *  The decoding flow is the same as what occurs when
+ *  FLAC__stream_decoder_process_single() is called to process an audio
+ *  frame, except that this function does not decode the parsed data into
+ *  PCM or call the write callback.  The integrity of the frame is still
+ *  checked the same way as in the other process functions.
+ *
+ *  This function will return once one whole frame is skipped, in the
+ *  same way that FLAC__stream_decoder_process_single() will return once
+ *  one whole frame is decoded.
+ *
+ *  This function, when used from the higher FLAC__SeekableStreamDecoder
+ *  layer, can be used in more quickly determining FLAC frame boundaries
+ *  when decoding of the actual data is not needed, for example when a
+ *  application is separating a FLAC stream into frames for editing or
+ *  storing in a container.  To do this, the application can use
+ *  FLAC__seekable_stream_decoder_skip_single_frame() to quickly advance
+ *  to the next frame, then use
+ *  FLAC__seekable_stream_decoder_get_decode_position() to find the new
+ *  frame boundary.
+ *
+ *  This function should only be called when the stream has advanced
+ *  past all the metadata, otherwise it will return \c false.
+ *
+ * \param  decoder  An initialized decoder instance not in a metadata
+ *                  state.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if any read or write error occurred (except
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), or if the decoder
+ *    is in the FLAC__STREAM_DECODER_SEARCH_FOR_METADATA or
+ *    FLAC__STREAM_DECODER_READ_METADATA state, else \c true;
+ *    in any case, check the decoder state with
+ *    FLAC__stream_decoder_get_state() to see what went wrong or to
+ *    check for lost synchronization (a sign of stream corruption).
+ */
+FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *decoder);
 
 /* \} */
 

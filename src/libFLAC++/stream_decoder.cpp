@@ -176,6 +176,12 @@ namespace FLAC {
 			return (bool)::FLAC__stream_decoder_process_until_end_of_stream(decoder_);
 		}
 
+		bool Stream::skip_single_frame()
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_decoder_skip_single_frame(decoder_);
+		}
+
 		::FLAC__StreamDecoderReadStatus Stream::read_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 		{
 			(void)decoder;
