@@ -1662,13 +1662,15 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 			return true;
 		}
 		decoder->private_->last_frame_number = x;
-		if(decoder->private_->has_stream_info) {
-			decoder->private_->frame.header.number_type = FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER;
-			decoder->private_->frame.header.number.sample_number = (FLAC__int64)decoder->private_->stream_info.data.stream_info.min_blocksize * (FLAC__int64)x;
+		decoder->private_->frame.header.number_type = FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER;
+		if(blocksize_hint) {
+			if(decoder->private_->has_stream_info)
+				decoder->private_->frame.header.number.sample_number = (FLAC__int64)decoder->private_->stream_info.data.stream_info.min_blocksize * (FLAC__int64)x;
+			else
+				is_unparseable = true;
 		}
-		else {
-			is_unparseable = true;
-		}
+		else	
+			decoder->private_->frame.header.number.sample_number = (FLAC__int64)decoder->private_->frame.header.blocksize * (FLAC__int64)x;
 	}
 
 	if(blocksize_hint) {
