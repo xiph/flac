@@ -564,7 +564,7 @@ namespace FLAC {
 
 			//! See FLAC__metadata_object_vorbiscomment_set_vendor_string()
 			//! \note Only the Entry's field name will be used.
-			bool set_vendor_string(const Entry &entry); // only the Entry's field name will be used
+			bool set_vendor_string(const Entry &entry);
 
 			//! See FLAC__metadata_object_vorbiscomment_set_comment()
 			bool set_comment(unsigned index, const Entry &entry);
@@ -574,6 +574,117 @@ namespace FLAC {
 
 			//! See FLAC__metadata_object_vorbiscomment_delete_comment()
 			bool delete_comment(unsigned index);
+		};
+
+		/** CUESHEET metadata block.
+		 *  See <A HREF="../format.html#metadata_block_cuesheet">format specification</A>.
+		 */
+		class FLACPP_API CueSheet : public Prototype {
+		public:
+			/** Convenience class for encapsulating a cue sheet
+			 *  track.
+			 *
+			 *  Always check is_valid() after the constructor or operator=
+			 *  to make sure memory was properly allocated.
+			 */
+			class FLACPP_API Track {
+			protected:
+				::FLAC__StreamMetadata_CueSheet_Track *object_;
+			public:
+				Track();
+				Track(const ::FLAC__StreamMetadata_CueSheet_Track *track);
+				Track(const Track &track);
+				void operator=(const Track &track);
+
+				virtual ~Track();
+
+				virtual bool is_valid() const;
+
+				inline FLAC__uint64 get_offset() const { return object_->offset; }
+				inline FLAC__byte get_number() const { return object_->number; }
+				inline const char *get_isrc() const { return object_->isrc; }
+				inline unsigned get_type() const { return object_->type; }
+				inline bool get_pre_emphasis() const { return object_->pre_emphasis; }
+
+				inline bool get_num_indices() const { return object_->num_indices; }
+				::FLAC__StreamMetadata_CueSheet_Index get_index(unsigned i) const;
+
+				inline const ::FLAC__StreamMetadata_CueSheet_Track *get_track() const { return object_; }
+
+				inline void set_offset(FLAC__uint64 value) { object_->offset = value; }
+				inline void set_number(FLAC__byte value) { object_->number = value; }
+				void set_isrc(char value[12]);
+				void set_type(unsigned value);
+				inline void set_pre_emphasis(bool value) { object_->pre_emphasis = value? 1 : 0; }
+
+				void set_index(unsigned i, const ::FLAC__StreamMetadata_CueSheet_Index &index);
+			};
+
+			CueSheet();
+
+			//@{
+			/** Constructs a copy of the given object.  This form
+			 *  always performs a deep copy.
+			 */
+			inline CueSheet(const CueSheet &object): Prototype(object) { }
+			inline CueSheet(const ::FLAC__StreamMetadata &object): Prototype(object) { }
+			inline CueSheet(const ::FLAC__StreamMetadata *object): Prototype(object) { }
+			//@}
+
+			/** Constructs an object with copy control.  See
+			 *  Prototype(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline CueSheet(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
+
+			~CueSheet();
+
+			//@{
+			/** Assign from another object.  Always performs a deep copy. */
+			inline void operator=(const CueSheet &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
+			//@}
+
+			//@{
+			/** Check for equality, performing a deep compare by following pointers. */
+			inline bool operator==(const CueSheet &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata *object) const { return Prototype::operator==(object); }
+			//@}
+
+			//@{
+			/** Check for inequality, performing a deep compare by following pointers. */
+			inline bool operator!=(const CueSheet &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
+			//@}
+
+			const char *get_media_catalog_number() const;
+			FLAC__uint64 get_lead_in() const;
+
+			unsigned get_num_tracks() const;
+			Track get_track(unsigned i) const;
+
+			void set_media_catalog_number(char value[128]);
+			void set_offset(FLAC__uint64 value);
+
+			//! See FLAC__metadata_object_cuesheet_track_insert_index()
+			bool insert_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
+
+			//! See FLAC__metadata_object_cuesheet_track_delete_index()
+			bool delete_index(unsigned track_num, unsigned index_num);
+
+			//! See FLAC__metadata_object_cuesheet_set_track()
+			bool set_track(unsigned i, const Track &track);
+
+			//! See FLAC__metadata_object_cuesheet_insert_track()
+			bool insert_track(unsigned i, const Track &track);
+
+			//! See FLAC__metadata_object_cuesheet_delete_track()
+			bool delete_track(unsigned i);
+
+			//! See FLAC__metadata_object_cuesheet_is_legal()
+			bool is_legal(bool check_cd_da_subset = false, const char **violation = 0) const;
 		};
 
 		/* \} */

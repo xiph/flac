@@ -48,6 +48,9 @@ namespace FLAC {
 					case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 						ret = new VorbisComment(object, /*copy=*/false);
 						break;
+					case FLAC__METADATA_TYPE_CUESHEET:
+						ret = new CueSheet(object, /*copy=*/false);
+						break;
 					default:
 						FLAC__ASSERT(0);
 						break;
@@ -736,6 +739,138 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index < object_->data.vorbis_comment.num_comments);
 			return (bool)::FLAC__metadata_object_vorbiscomment_delete_comment(object_, index);
+		}
+
+
+		//
+		// CueSheet::Track
+		//
+
+		CueSheet::Track::Track():
+		object_(::FLAC__metadata_object_cuesheet_track_new())
+		{ }
+
+		CueSheet::Track::Track(const ::FLAC__StreamMetadata_CueSheet_Track *track):
+		object_(::FLAC__metadata_object_cuesheet_track_clone(track))
+		{ }
+
+		CueSheet::Track::Track(const Track &track):
+		object_(::FLAC__metadata_object_cuesheet_track_clone(track.object_))
+		{ }
+
+		void CueSheet::Track::operator=(const Track &track)
+		{
+			object_ = ::FLAC__metadata_object_cuesheet_track_clone(track.object_);
+		}
+
+		CueSheet::Track::~Track()
+		{
+			if(0 != object_)
+				delete object_;
+		}
+
+		bool CueSheet::Track::is_valid() const
+		{
+			return(0 != object_);
+		}
+
+		::FLAC__StreamMetadata_CueSheet_Index CueSheet::Track::get_index(unsigned i) const
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(i < object_->num_indices);
+			return object_->indices[i];
+		}
+
+		void CueSheet::Track::set_isrc(char value[12])
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(0 != value);
+			memcpy(object_->isrc, value, 12);
+			object_->isrc[12] = '\0';
+		}
+
+		void CueSheet::Track::set_type(unsigned value)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(value <= 1);
+			object_->type = value;
+		}
+
+		void CueSheet::Track::set_index(unsigned i, const ::FLAC__StreamMetadata_CueSheet_Index &index)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(i < object_->num_indices);
+			object_->indices[i] = index;
+		}
+
+
+		//
+		// CueSheet
+		//
+
+		CueSheet::CueSheet():
+		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_CUESHEET), /*copy=*/false)
+		{ }
+
+		CueSheet::~CueSheet()
+		{ }
+
+		unsigned CueSheet::get_num_tracks() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.cue_sheet.num_tracks;
+		}
+
+		CueSheet::Track CueSheet::get_track(unsigned i) const
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(i < object_->data.cue_sheet.num_tracks);
+			return Track(object_->data.cue_sheet.tracks + i);
+		}
+
+		bool CueSheet::insert_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(track_num < object_->data.cue_sheet.num_tracks);
+			FLAC__ASSERT(index_num <= object_->data.cue_sheet.tracks[track_num].num_indices);
+			return (bool)::FLAC__metadata_object_cuesheet_track_insert_index(object_, track_num, index_num, index);
+		}
+
+		bool CueSheet::delete_index(unsigned track_num, unsigned index_num)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(track_num < object_->data.cue_sheet.num_tracks);
+			FLAC__ASSERT(index_num < object_->data.cue_sheet.tracks[track_num].num_indices);
+			return (bool)::FLAC__metadata_object_cuesheet_track_delete_index(object_, track_num, index_num);
+		}
+
+		bool CueSheet::set_track(unsigned i, const CueSheet::Track &track)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(i < object_->data.cue_sheet.num_tracks);
+			// We can safely const_cast since copy=true
+			return (bool)::FLAC__metadata_object_cuesheet_set_track(object_, i, const_cast< ::FLAC__StreamMetadata_CueSheet_Track*>(track.get_track()), /*copy=*/true);
+		}
+
+		bool CueSheet::insert_track(unsigned i, const CueSheet::Track &track)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(i <= object_->data.cue_sheet.num_tracks);
+			// We can safely const_cast since copy=true
+			return (bool)::FLAC__metadata_object_cuesheet_insert_track(object_, i, const_cast< ::FLAC__StreamMetadata_CueSheet_Track*>(track.get_track()), /*copy=*/true);
+		}
+
+		bool CueSheet::delete_track(unsigned i)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(i < object_->data.cue_sheet.num_tracks);
+			return (bool)::FLAC__metadata_object_cuesheet_delete_track(object_, i);
+		}
+
+		bool CueSheet::is_legal(bool check_cd_da_subset, const char **violation) const
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_cuesheet_is_legal(object_, check_cd_da_subset, violation);
 		}
 
 
