@@ -180,9 +180,9 @@
 		<term><option>-b</option> <replaceable>blocksize</replaceable></term>
 
 		<listitem>
-		  <para>Default is 1152 for -l 0, else 4608; should
-		    be 192/576/1152/2304/4608 (unless --lax is
-		    used)</para>
+		  <para>Default is 1152 for -l 0, else 4608; must be
+		    192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768
+		    (unless --lax is used)</para>
 		</listitem>
 	      </varlistentry>
 
