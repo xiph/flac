@@ -78,6 +78,49 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 
 	<P>
+		<A NAME="20020703">03-Jul-2002:</A>
+	</P>
+	<P>
+	<UL>
+		<LI>
+			<B>FLAC 1.0.3 released</B>&nbsp;&nbsp;Although by number only a 0.0.1 increment, this release is significant.  Remember, micro-revisions mean the FLAC format remains both forward and backward compatible, however, the libFLAC API has changed for the better.
+			<P>
+			New features:
+			<UL>
+				<LI>24-bit input support restored in <B><TT>flac</TT></B>.</LI>
+				<LI>Decoder speedup in <B><TT>libFLAC</TT></B>, which is directly passed on to the command-line decoder and plugins.</LI>
+				<LI>New <TT>-F</TT> option to <B><TT>flac</TT></B> to continue decoding in spite of errors.</LI>
+				<LI>Correctly set granulepos in Ogg packets so seeking Ogg FLAC streams will be easier.</LI>
+				<LI>New <A HREF="format.html#metadata_block_vorbis_comment">VORBIS_COMMENT</A> metadata block for tagging with Vorbis-style comments.</LI>
+				<LI>Vastly improved <B><TT>metaflac</TT></B>, now with many editing and tagging options.</LI>
+				<LI>Partial id3v1 support in Winamp plugins.</LI>
+				<LI>Updated Winamp 3 plugin.</LI>
+				<LI>Note: new semantics for -P option in <B><TT>flac</TT></B>.</LI>
+				<LI>Note: removed -R option in <B><TT>flac</TT></B>.</LI>
+			</UL>
+			<P>
+			New library features:
+			<UL>
+				<LI>Previously mentioned decoder speedup in <B><TT>libFLAC</TT></B>.</LI>
+				<LI>New metadata interface to <B><TT>libFLAC</TT></B> for manipulating metadata in FLAC files.</LI>
+				<LI>New <B><TT><A HREF="documentation.html#libflacpp">libFLAC++</A></TT></B> API, an object wrapper around <B><TT>libFLAC</TT></B>.</LI>
+				<LI>New <A HREF="format.html#metadata_block_vorbis_comment">VORBIS_COMMENT</A> metadata block for tagging with Vorbis-style comments.</LI>
+				<LI>Customizable metadata filtering by type in decoders.</LI>
+				<LI>Stream encoder can take an arbitrary list of metadata blocks, instead of just one SEEKTABLE and/or PADDING block.</LI>
+			</UL>
+			<P>
+			Bugs fixed:
+			<UL>
+				<LI>Fixed bug with using pipes under Windows.</LI>
+				<LI>Fixed several bugs in the plugins and made them more robust in general.</LI>
+				<LI>Fixed bug in <B><TT>flac</TT></B> where decoding to WAVE of a FLAC file with 0 for total_samples in the STREAMINFO block yielded a WAVE chunk of 0 size.</LI>
+				<LI>Fixed bug in Ogg packet numbering.</LI>
+			</UL>
+		</LI>
+	</UL>
+	</P>
+
+	<P>
 		<A NAME="20020213">13-Feb-2002:</A>
 	</P>
 	<P>
