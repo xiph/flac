@@ -28,23 +28,27 @@
 #include "encode.h"
 
 static int usage(const char *message, ...);
+static int encode_file(const char *infilename, const char *forced_outfilename);
+static int decode_file(const char *infilename, const char *forced_outfilename);
+
+bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
+bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+bool force_to_stdout = false;
+analysis_options aopts = { false, false };
+unsigned padding = 0;
+unsigned max_lpc_order = 8;
+unsigned qlp_coeff_precision = 0;
+uint64 skip = 0;
+int format_is_wave = -1, format_is_big_endian = -1, format_is_unsigned_samples = false;
+int format_channels = -1, format_bps = -1, format_sample_rate = -1;
+int blocksize = -1, min_residual_partition_order = -1, max_residual_partition_order = -1, rice_parameter_search_dist = -1;
+char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER */
+int num_requested_seek_points = -1; /* -1 => no -S options were given, 0 => -S- was given */
 
 int main(int argc, char *argv[])
 {
-	int i;
-	bool verify = false, verbose = true, lax = false, mode_decode = false, test_only = false, analyze = false;
-	bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
-	analysis_options aopts = { false, false };
-	unsigned padding = 0;
-	unsigned max_lpc_order = 8;
-	unsigned qlp_coeff_precision = 0;
-	uint64 skip = 0;
-	int format_is_wave = -1, format_is_big_endian = -1, format_is_unsigned_samples = false;
-	int format_channels = -1, format_bps = -1, format_sample_rate = -1;
-	int blocksize = -1, min_residual_partition_order = -1, max_residual_partition_order = -1, rice_parameter_search_dist = -1;
-	char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER */
-	int num_requested_seek_points = -1; /* -1 => no -S options were given, 0 => -S- was given */
-	FILE *encode_infile = 0;
+	int i, retval = 0;
+	bool mode_decode = false;
 
 	if(argc <= 1)
 		return usage(0);
@@ -63,6 +67,8 @@ int main(int argc, char *argv[])
 			mode_decode = true;
 			test_only = true;
 		}
+		else if(0 == strcmp(argv[i], "-c"))
+			force_to_stdout = true;
 		else if(0 == strcmp(argv[i], "-s"))
 			verbose = false;
 		else if(0 == strcmp(argv[i], "-s-"))
@@ -226,50 +232,9 @@ int main(int argc, char *argv[])
 			return usage("ERROR: invalid option '%s'\n", argv[i]);
 		}
 	}
-	if(i + (test_only? 1:2) != argc)
-		return usage("ERROR: invalid arguments (more/less than %d filename%s?)\n", (test_only? 1:2), (test_only? "":"s"));
 
-	/* tweak options based on the filenames; validate the values */
+	/* tweak options; validate the values */
 	if(!mode_decode) {
-		if(0 == strcmp(argv[i], "-")) {
-			encode_infile = stdin;
-		}
-		else {
-			if(0 == (encode_infile = fopen(argv[i], "rb"))) {
-				fprintf(stderr, "ERROR: can't open input file %s\n", argv[i]);
-				return 1;
-			}
-		}
-		if(format_is_wave < 0) {
-			/* lamely attempt to guess the file type based on the first 4 bytes (which is all ungetc will guarantee us) */
-			char head[4];
-			int h, n;
-			/* first set format based on name */
-			if(strstr(argv[i], ".wav") == argv[i] + (strlen(argv[i]) - strlen(".wav")))
-				format_is_wave = true;
-			else
-				format_is_wave = false;
-			if((n = fread(head, 1, 4, encode_infile)) < 4) {
-				if(format_is_wave)
-					fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", argv[i]);
-				format_is_wave = false;
-			}
-			else {
-				if(strncmp(head, "RIFF", 4)) {
-					if(format_is_wave)
-						fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", argv[i]);
-					format_is_wave = false;
-				}
-				else
-					format_is_wave = true;
-			}
-			for(h = n-1; h >= 0; h--)
-				ungetc(head[h], encode_infile);
-		}
-		if(!format_is_wave) {
-			if(format_is_big_endian < 0 || format_channels < 0 || format_bps < 0 || format_sample_rate < 0)
-				return usage("ERROR: for encoding a raw file you must specify { -fb or -fl }, -fc, -fp, and -fs\n");
-		}
 		if(blocksize < 0) {
 			if(max_lpc_order == 0)
 				blocksize = 1152;
@@ -292,21 +257,9 @@ int main(int argc, char *argv[])
 		}
 	}
 	else {
-		if(test_only) {
+		if(test_only || analyze) {
 			if(skip > 0)
-				return usage("ERROR: --skip is not allowed in test mode\n");
-		}
-		else if(!analyze) {
-			if(format_is_wave < 0) {
-				if(strstr(argv[i+1], ".wav") == argv[i+1] + (strlen(argv[i+1]) - strlen(".wav")))
-					format_is_wave = true;
-				else
-					format_is_wave = false;
-			}
-			if(!format_is_wave) {
-				if(format_is_big_endian < 0)
-					return usage("ERROR: for decoding to a raw file you must specify -fb or -fl\n");
-			}
+				return usage("ERROR: --skip is not allowed in %s mode\n", test_only? "test":"analysis");
 		}
 	}
 
@@ -331,18 +284,14 @@ int main(int argc, char *argv[])
 		return usage("ERROR: invalid value for -q '%u', must be 0 or >= %u\n", qlp_coeff_precision, FLAC__MIN_QLP_COEFF_PRECISION);
 	}
 
-	/* turn off verbosity if the output stream is going to stdout */
-	if(!test_only && 0 == strcmp(argv[i+1], "-"))
-		verbose = false;
-
 	if(verbose) {
-		printf("\n");
-		printf("flac %s, Copyright (C) 2000,2001 Josh Coalson\n", FLAC__VERSION_STRING);
-		printf("flac comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are\n");
-		printf("welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
+		fprintf(stderr, "\n");
+		fprintf(stderr, "flac %s, Copyright (C) 2000,2001 Josh Coalson\n", FLAC__VERSION_STRING);
+		fprintf(stderr, "flac comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are\n");
+		fprintf(stderr, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
 		if(!mode_decode) {
-			printf("options:%s -P %u -b %u%s -l %u%s%s -q %u -r %u,%u -R %u%s\n",
+			fprintf(stderr, "options:%s -P %u -b %u%s -l %u%s%s -q %u -r %u,%u -R %u%s\n",
 				lax?" --lax":"", padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
 				do_exhaustive_model_search?" -e":"", do_qlp_coeff_prec_search?" -p":"",
 				qlp_coeff_precision,
@@ -352,18 +301,46 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if(mode_decode)
-		if(format_is_wave)
-			return decode_wav(argv[i], test_only? 0 : argv[i+1], analyze, aopts, verbose, skip);
-		else
-			return decode_raw(argv[i], test_only? 0 : argv[i+1], analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
-	else
-		if(format_is_wave)
-			return encode_wav(encode_infile, argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
-		else
-			return encode_raw(encode_infile, argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+	if(mode_decode) {
+		bool first = true;
+		int save_format;
 
-	return 0;
+		if(i == argc)
+			retval = decode_file("-", 0);
+		else if(i + 2 == argc && 0 == strcmp(argv[i], "-"))
+			retval = decode_file("-", argv[i+1]);
+		else {
+			for(retval = 0; i < argc && retval == 0; i++) {
+				if(0 == strcmp(argv[i], "-") && !first)
+					continue;
+				save_format = format_is_wave;
+				retval = decode_file(argv[i], 0);
+				format_is_wave = save_format;
+				first = false;
+			}
+		}
+	}
+	else { /* encode */
+		bool first = true;
+		int save_format;
+
+		if(i == argc)
+			retval = encode_file("-", 0);
+		else if(i + 2 == argc && 0 == strcmp(argv[i], "-"))
+			retval = encode_file("-", argv[i+1]);
+		else {
+			for(retval = 0; i < argc && retval == 0; i++) {
+				if(0 == strcmp(argv[i], "-") && !first)
+					continue;
+				save_format = format_is_wave;
+				retval = encode_file(argv[i], 0);
+				format_is_wave = save_format;
+				first = false;
+			}
+		}
+	}
+
+	return retval;
 }
 
 int usage(const char *message, ...)
@@ -378,102 +355,225 @@ int usage(const char *message, ...)
 		va_end(args);
 
 	}
-	printf("==============================================================================\n");
-	printf("flac - Command-line FLAC encoder/decoder version %s\n", FLAC__VERSION_STRING);
-	printf("Copyright (C) 2000,2001  Josh Coalson\n");
-	printf("\n");
-	printf("This program is free software; you can redistribute it and/or\n");
-	printf("modify it under the terms of the GNU General Public License\n");
-	printf("as published by the Free Software Foundation; either version 2\n");
-	printf("of the License, or (at your option) any later version.\n");
-	printf("\n");
-	printf("This program is distributed in the hope that it will be useful,\n");
-	printf("but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
-	printf("MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n");
-	printf("GNU General Public License for more details.\n");
-	printf("\n");
-	printf("You should have received a copy of the GNU General Public License\n");
-	printf("along with this program; if not, write to the Free Software\n");
-	printf("Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.\n");
-	printf("==============================================================================\n");
-	printf("Usage:\n");
-	printf("  flac [options] infile outfile\n");
-	printf("\n");
-	printf("For encoding:\n");
-	printf("  infile may be a PCM RIFF WAVE file or raw samples\n");
-	printf("  outfile will be in FLAC format\n");
-	printf("For decoding, the reverse is be true\n");
-	printf("\n");
-	printf("infile may be - for stdin, outfile may be - for stdout\n");
-	printf("\n");
-	printf("If the unencoded filename ends with '.wav' or -fw is used, it's assumed to be\n");
-	printf("RIFF WAVE.  Otherwise, it's assumed to be raw samples and you have to specify\n");
-	printf("all the format options.  You can force a .wav file to be treated as a raw file\n");
-	printf("using -fr.\n");
-	printf("\n");
-	printf("generic options:\n");
-	printf("  -d : decode (default behavior is encode)\n");
-	printf("  -t : test (same as -d except no decoded file is written)\n");
-	printf("  -a : analyze (same as -d except an analysis file is written)\n");
-	printf("  -s : silent (do not write runtime encode/decode statistics to stdout)\n");
-	printf("  --skip samples : can be used both for encoding and decoding\n");
-	printf("analyze options:\n");
-	printf("  --a-rtext : include residual signal in text output\n");
-	printf("  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
-	printf("encoding options:\n");
-	printf("  --lax : allow encoder to generate non-Subset files\n");
-	printf("  -S { # | X | #x } : include a point or points in a SEEKTABLE\n");
-	printf("       #  : a specific sample number for a seek point\n");
-	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
-	printf("       #x : # evenly spaced seekpoints, the first being at sample 0\n");
-	printf("     You may use many -S options; the resulting SEEKTABLE will be the unique-\n");
-	printf("           ified union of all such values.\n");
-	printf("     With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.\n");
-	printf("     Note: -S #x will not work if the encoder can't determine the input size\n");
-	printf("           before starting.\n");
-	printf("     Note: if you use -S # and # is >= samples in the input, there will be\n");
-	printf("           either no seek point entered (if the input size is determinable\n");
-	printf("           before encoding starts) or a placeholder point (if input size is not\n");
-	printf("           determinable)\n");
-	printf("  -P # : write a PADDING block of # bytes (goes after SEEKTABLE)\n");
-	printf("         (0 => no PADDING block, default is -P 0)\n");
-	printf("  -b # : specify blocksize in samples; default is 1152 for -l 0, else 4608;\n");
-	printf("         must be 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768\n");
-	printf("         (unless --lax is used)\n");
-	printf("  -m   : try mid-side coding for each frame (stereo input only)\n");
-	printf("  -M   : loose mid-side coding for all frames (stereo input only)\n");
-	printf("  -0 .. -9 : fastest compression .. highest compression, default is -6\n");
-	printf("             these are synonyms for other options:\n");
-	printf("  -0   : synonymous with -l 0 -b 1152\n");
-	printf("  -1   : synonymous with -l 0 -b 1152 -M\n");
-	printf("  -2   : synonymous with -l 0 -b 1152 -m -r 4\n");
-	printf("  -3   : reserved\n");
-	printf("  -4   : synonymous with -l 8 -b 4608 \n");
-	printf("  -5   : synonymous with -l 8 -b 4608 -M\n");
-	printf("  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
-	printf("  -7   : reserved\n");
-	printf("  -8   : synonymous with -l 32 -b 4608 -m -r 4\n");
-	printf("  -9   : synonymous with -l 32 -m -e -r 16 -R 32 -p (very slow!)\n");
-	printf("  -e   : do exhaustive model search (expensive!)\n");
-	printf("  -l # : specify max LPC order; 0 => use only fixed predictors\n");
-	printf("  -p   : do exhaustive search of LP coefficient quantization (expensive!);\n");
-	printf("         overrides -q, does nothing if using -l 0\n");
-	printf("  -q # : specify precision in bits of quantized linear-predictor coefficients;\n");
-	printf("         0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
-	printf("  -r [#,]# : [min,]max residual partition order (# is 0..16; min defaults to 0;\n");
-	printf("         default is -r 0; above 4 doesn't usually help much)\n");
-	printf("  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much\n");
-	printf("  -V   : verify a correct encoding by decoding the output in parallel and\n");
-	printf("         comparing to the original\n");
-	printf("  -S-, -m-, -M-, -e-, -p-, -V-, --lax- can all be used to turn off a particular\n");
-	printf("  option\n");
-	printf("format options:\n");
-	printf("  -fb | -fl : big-endian | little-endian byte order\n");
-	printf("  -fc channels\n");
-	printf("  -fp bits_per_sample\n");
-	printf("  -fs sample_rate : in Hz\n");
-	printf("  -fu : unsigned samples (default is signed)\n");
-	printf("  -fr : force to raw format (even if filename ends in .wav)\n");
-	printf("  -fw : force to RIFF WAVE\n");
+	fprintf(stderr, "===============================================================================\n");
+	fprintf(stderr, "flac - Command-line FLAC encoder/decoder version %s\n", FLAC__VERSION_STRING);
+	fprintf(stderr, "Copyright (C) 2000,2001  Josh Coalson\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "This program is free software; you can redistribute it and/or\n");
+	fprintf(stderr, "modify it under the terms of the GNU General Public License\n");
+	fprintf(stderr, "as published by the Free Software Foundation; either version 2\n");
+	fprintf(stderr, "of the License, or (at your option) any later version.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "This program is distributed in the hope that it will be useful,\n");
+	fprintf(stderr, "but WITHOUT ANY WARRANTY; without even the implied warranty of\n");
+	fprintf(stderr, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n");
+	fprintf(stderr, "GNU General Public License for more details.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "You should have received a copy of the GNU General Public License\n");
+	fprintf(stderr, "along with this program; if not, write to the Free Software\n");
+	fprintf(stderr, "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.\n");
+	fprintf(stderr, "===============================================================================\n");
+	fprintf(stderr, "Usage:\n");
+	fprintf(stderr, "  flac [options] [infile [...]]\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "For encoding:\n");
+	fprintf(stderr, "  the input file(s) may be a PCM RIFF WAVE file or raw samples\n");
+	fprintf(stderr, "  the output file(s) will be in FLAC format\n");
+	fprintf(stderr, "For decoding, the reverse is true\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "A single 'infile' may be - for stdin.  No 'infile' implies stdin.  Use of\n");
+	fprintf(stderr, "stdin implies -c (write to stdout).  However, flac allows the special\n");
+	fprintf(stderr, "encoding/decoding forms:\n");
+	fprintf(stderr, "   flac [options] - outfilename   or  flac -d [options] - outfilename\n");
+	fprintf(stderr, "which is better than:\n");
+	fprintf(stderr, "   flac [options] > outfilename   or  flac -d [options] > outfilename\n");
+	fprintf(stderr, "since the former allows flac to seek backwards to write the STREAMINFO or\n");
+	fprintf(stderr, "RIFF WAVE header contents when necessary.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "If the unencoded filename ends with '.wav' or -fw is used, it's assumed to be\n");
+	fprintf(stderr, "RIFF WAVE.  Otherwise, flac will check for the presence of a RIFF header.  If\n");
+	fprintf(stderr, "any infile is raw you must specify the format options {-fb|fl} -fc -fp and -fs,\n");
+	fprintf(stderr, "which will apply to all raw files.  You can force a .wav file to be treated as\n");
+	fprintf(stderr, "a raw file using -fr.\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "generic options:\n");
+	fprintf(stderr, "  -d : decode (default behavior is encode)\n");
+	fprintf(stderr, "  -t : test (same as -d except no decoded file is written)\n");
+	fprintf(stderr, "  -a : analyze (same as -d except an analysis file is written)\n");
+	fprintf(stderr, "  -c : write output to stdout\n");
+	fprintf(stderr, "  -s : silent (do not write runtime encode/decode statistics)\n");
+	fprintf(stderr, "  --skip samples : can be used both for encoding and decoding\n");
+	fprintf(stderr, "analyze options:\n");
+	fprintf(stderr, "  --a-rtext : include residual signal in text output\n");
+	fprintf(stderr, "  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
+	fprintf(stderr, "encoding options:\n");
+	fprintf(stderr, "  --lax : allow encoder to generate non-Subset files\n");
+	fprintf(stderr, "  -S { # | X | #x } : include a point or points in a SEEKTABLE\n");
+	fprintf(stderr, "       #  : a specific sample number for a seek point\n");
+	fprintf(stderr, "       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
+	fprintf(stderr, "       #x : # evenly spaced seekpoints, the first being at sample 0\n");
+	fprintf(stderr, "     You may use many -S options; the resulting SEEKTABLE will be the unique-\n");
+	fprintf(stderr, "           ified union of all such values.\n");
+	fprintf(stderr, "     With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.\n");
+	fprintf(stderr, "     Note: -S #x will not work if the encoder can't determine the input size\n");
+	fprintf(stderr, "           before starting.\n");
+	fprintf(stderr, "     Note: if you use -S # and # is >= samples in the input, there will be\n");
+	fprintf(stderr, "           either no seek point entered (if the input size is determinable\n");
+	fprintf(stderr, "           before encoding starts) or a placeholder point (if input size is not\n");
+	fprintf(stderr, "           determinable)\n");
+	fprintf(stderr, "  -P # : write a PADDING block of # bytes (goes after SEEKTABLE)\n");
+	fprintf(stderr, "         (0 => no PADDING block, default is -P 0)\n");
+	fprintf(stderr, "  -b # : specify blocksize in samples; default is 1152 for -l 0, else 4608;\n");
+	fprintf(stderr, "         must be 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768\n");
+	fprintf(stderr, "         (unless --lax is used)\n");
+	fprintf(stderr, "  -m   : try mid-side coding for each frame (stereo input only)\n");
+	fprintf(stderr, "  -M   : loose mid-side coding for all frames (stereo input only)\n");
+	fprintf(stderr, "  -0 .. -9 : fastest compression .. highest compression, default is -6\n");
+	fprintf(stderr, "             these are synonyms for other options:\n");
+	fprintf(stderr, "  -0   : synonymous with -l 0 -b 1152\n");
+	fprintf(stderr, "  -1   : synonymous with -l 0 -b 1152 -M\n");
+	fprintf(stderr, "  -2   : synonymous with -l 0 -b 1152 -m -r 4\n");
+	fprintf(stderr, "  -3   : reserved\n");
+	fprintf(stderr, "  -4   : synonymous with -l 8 -b 4608 \n");
+	fprintf(stderr, "  -5   : synonymous with -l 8 -b 4608 -M\n");
+	fprintf(stderr, "  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
+	fprintf(stderr, "  -7   : reserved\n");
+	fprintf(stderr, "  -8   : synonymous with -l 32 -b 4608 -m -r 4\n");
+	fprintf(stderr, "  -9   : synonymous with -l 32 -m -e -r 16 -R 32 -p (very slow!)\n");
+	fprintf(stderr, "  -e   : do exhaustive model search (expensive!)\n");
+	fprintf(stderr, "  -l # : specify max LPC order; 0 => use only fixed predictors\n");
+	fprintf(stderr, "  -p   : do exhaustive search of LP coefficient quantization (expensive!);\n");
+	fprintf(stderr, "         overrides -q, does nothing if using -l 0\n");
+	fprintf(stderr, "  -q # : specify precision in bits of quantized linear-predictor coefficients;\n");
+	fprintf(stderr, "         0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
+	fprintf(stderr, "  -r [#,]# : [min,]max residual partition order (# is 0..16; min defaults to 0;\n");
+	fprintf(stderr, "         default is -r 0; above 4 doesn't usually help much)\n");
+	fprintf(stderr, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much\n");
+	fprintf(stderr, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
+	fprintf(stderr, "         comparing to the original\n");
+	fprintf(stderr, "  -S-, -m-, -M-, -e-, -p-, -V-, --lax- can all be used to turn off a particular\n");
+	fprintf(stderr, "  option\n");
+	fprintf(stderr, "format options:\n");
+	fprintf(stderr, "  -fb | -fl : big-endian | little-endian byte order\n");
+	fprintf(stderr, "  -fc channels\n");
+	fprintf(stderr, "  -fp bits_per_sample\n");
+	fprintf(stderr, "  -fs sample_rate : in Hz\n");
+	fprintf(stderr, "  -fu : unsigned samples (default is signed)\n");
+	fprintf(stderr, "  -fr : force to raw format (even if filename ends in .wav)\n");
+	fprintf(stderr, "  -fw : force to RIFF WAVE\n");
 	return 1;
+}
+
+int encode_file(const char *infilename, const char *forced_outfilename)
+{
+	FILE *encode_infile;
+	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
+	char *p;
+
+	if(0 == strcmp(infilename, "-")) {
+		encode_infile = stdin;
+	}
+	else {
+		if(0 == (encode_infile = fopen(infilename, "rb"))) {
+			fprintf(stderr, "ERROR: can't open input file %s\n", infilename);
+			return 1;
+		}
+	}
+
+	if(verbose)
+		fprintf(stderr, "%s:\n", infilename);
+
+	if(format_is_wave < 0) {
+		/* lamely attempt to guess the file type based on the first 4 bytes (which is all ungetc will guarantee us) */
+		char head[4];
+		int h, n;
+		/* first set format based on name */
+		if(strstr(infilename, ".wav") == infilename + (strlen(infilename) - strlen(".wav")))
+			format_is_wave = true;
+		else
+			format_is_wave = false;
+		if((n = fread(head, 1, 4, encode_infile)) < 4) {
+			if(format_is_wave)
+				fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
+			format_is_wave = false;
+		}
+		else {
+			if(strncmp(head, "RIFF", 4)) {
+				if(format_is_wave)
+					fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
+				format_is_wave = false;
+			}
+			else
+				format_is_wave = true;
+		}
+		for(h = n-1; h >= 0; h--)
+			ungetc(head[h], encode_infile);
+	}
+
+	if(!format_is_wave) {
+		if(format_is_big_endian < 0 || format_channels < 0 || format_bps < 0 || format_sample_rate < 0)
+			return usage("ERROR: for encoding a raw file you must specify { -fb or -fl }, -fc, -fp, and -fs\n");
+	}
+
+	if(encode_infile == stdin || force_to_stdout)
+		strcpy(outfilename, "-");
+	else {
+		strcpy(outfilename, infilename);
+		if(0 == (p = strrchr(outfilename, '.')))
+			strcat(outfilename, ".flac");
+		else {
+			if(0 == strcmp(p, ".flac"))
+				strcpy(p, "_new.flac");
+			else
+				strcpy(p, ".flac");
+		}
+	}
+	if(0 == forced_outfilename)
+		forced_outfilename = outfilename;
+
+	if(format_is_wave)
+		return encode_wav(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
+	else
+		return encode_raw(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+}
+
+int decode_file(const char *infilename, const char *forced_outfilename)
+{
+	static const char *suffixes[] = { ".wav", ".raw" };
+	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
+	char *p;
+
+	if(!test_only && !analyze) {
+		if(format_is_wave < 0) {
+			format_is_wave = true;
+		}
+		if(!format_is_wave) {
+			if(format_is_big_endian < 0)
+				return usage("ERROR: for decoding to a raw file you must specify -fb or -fl\n");
+		}
+	}
+
+	if(0 == strcmp(infilename, "-") || force_to_stdout)
+		strcpy(outfilename, "-");
+	else {
+		const char *suffix = suffixes[format_is_wave? 0:1];
+		strcpy(outfilename, infilename);
+		if(0 == (p = strrchr(outfilename, '.')))
+			strcat(outfilename, suffix);
+		else {
+			if(0 == strcmp(p, suffix)) {
+				strcpy(p, "_new");
+				strcat(p, suffix);
+			}
+			else
+				strcpy(p, suffix);
+		}
+	}
+	if(0 == forced_outfilename)
+		forced_outfilename = outfilename;
+
+	if(format_is_wave)
+		return decode_wav(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip);
+	else
+		return decode_raw(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 }

@@ -111,24 +111,24 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, anal
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
-			if(verbose) { printf("\n"); fflush(stdout); }
+			if(verbose) fprintf(stderr, "\n");
 			fprintf(stderr, "%s: ERROR while decoding frames, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto wav_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			if(verbose) { printf("\n"); fflush(stdout); }
+			if(verbose) fprintf(stderr, "\n");
 			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto wav_abort_;
 		}
 	}
 	else {
 		if(!FLAC__file_decoder_process_whole_file(decoder)) {
-			if(verbose) { printf("\n"); fflush(stdout); }
+			if(verbose) fprintf(stderr, "\n");
 			fprintf(stderr, "%s: ERROR while decoding data, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto wav_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			if(verbose) { printf("\n"); fflush(stdout); }
+			if(verbose) fprintf(stderr, "\n");
 			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto wav_abort_;
 		}
@@ -143,8 +143,7 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, anal
 	if(!stream_info.test_only)
 		fclose(stream_info.fout);
 	if(verbose)
-		printf("\n");
-	fflush(stdout);
+		fprintf(stderr, "\n");
 	if(analysis_mode)
 		analyze_finish(aopts);
 	if(md5_failure) {
@@ -153,7 +152,7 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, anal
 	}
 	else {
 		if(stream_info.test_only)
-			printf("%s: ok\n", infile);
+			fprintf(stderr, "%s: ok\n", infile);
 	}
 	return 0;
 wav_abort_:
@@ -224,24 +223,24 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, anal
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
-			if(verbose) { printf("\n"); fflush(stdout); }
+			if(verbose) fprintf(stderr, "\n");
 			fprintf(stderr, "%s: ERROR while decoding frames, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto raw_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			if(verbose) { printf("\n"); fflush(stdout); }
+			if(verbose) fprintf(stderr, "\n");
 			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto raw_abort_;
 		}
 	}
 	else {
 		if(!FLAC__file_decoder_process_whole_file(decoder)) {
-			if(verbose) { printf("\n"); fflush(stdout); }
+			if(verbose) fprintf(stderr, "\n");
 			fprintf(stderr, "%s: ERROR while decoding data, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto raw_abort_;
 		}
 		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
-			if(verbose) { printf("\n"); fflush(stdout); }
+			if(verbose) fprintf(stderr, "\n");
 			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
 			goto raw_abort_;
 		}
@@ -256,8 +255,7 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, anal
 	if(!stream_info.test_only)
 		fclose(stream_info.fout);
 	if(verbose)
-		printf("\n");
-	fflush(stdout);
+		fprintf(stderr, "\n");
 	if(analysis_mode)
 		analyze_finish(aopts);
 	if(md5_failure) {
@@ -266,7 +264,7 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, anal
 	}
 	else {
 		if(stream_info.test_only)
-			printf("%s: ok\n", infile);
+			fprintf(stderr, "%s: ok\n", infile);
 	}
 	return 0;
 raw_abort_:
@@ -504,17 +502,24 @@ void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorSt
 void print_stats(const stream_info_struct *stream_info)
 {
 	if(stream_info->verbose) {
-		printf("\r%s %u of %u samples, %6.2f%% complete",
-			stream_info->test_only? "tested" : stream_info->analysis_mode? "analyzed" : "wrote",
-			(unsigned)stream_info->samples_processed,
-			(unsigned)stream_info->total_samples,
+		if(stream_info->total_samples > 0) {
+			fprintf(stderr, "\r%s %u of %u samples, %6.2f%% complete",
+				stream_info->test_only? "tested" : stream_info->analysis_mode? "analyzed" : "wrote",
+				(unsigned)stream_info->samples_processed,
+				(unsigned)stream_info->total_samples,
 #ifdef _MSC_VER
-			/* with VC++ you have to spoon feed it the casting */
-			(double)(int64)stream_info->samples_processed / (double)(int64)stream_info->total_samples * 100.0
+				/* with VC++ you have to spoon feed it the casting */
+				(double)(int64)stream_info->samples_processed / (double)(int64)stream_info->total_samples * 100.0
 #else
-			(double)stream_info->samples_processed / (double)stream_info->total_samples * 100.0
+				(double)stream_info->samples_processed / (double)stream_info->total_samples * 100.0
 #endif
-		);
-		fflush(stdout);
+			);
+		}
+		else {
+			fprintf(stderr, "\r%s %u of ? samples, ?%% complete",
+				stream_info->test_only? "tested" : stream_info->analysis_mode? "analyzed" : "wrote",
+				(unsigned)stream_info->samples_processed
+			);
+		}
 	}
 }

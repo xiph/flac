@@ -296,17 +296,17 @@ wav_end_:
 	}
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0) {
 		print_stats(&encoder_wrapper);
-		printf("\n");
+		fprintf(stderr, "\n");
 	}
 	if(0 != encoder_wrapper.seek_table.points)
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not use %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
-		else {
-			fprintf(stderr, "Verify succeeded\n");
+		else if(encoder_wrapper.verbose) {
+			fprintf(stderr, "%s: Verify succeeded\n", infilename);
 		}
 	}
 	if(infile != stdin)
@@ -314,7 +314,7 @@ wav_end_:
 	return 0;
 wav_abort_:
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0)
-		printf("\n");
+		fprintf(stderr, "\n");
 	if(encoder_wrapper.encoder) {
 		if(encoder_wrapper.encoder->state == FLAC__ENCODER_OK)
 			FLAC__encoder_finish(encoder_wrapper.encoder);
@@ -324,11 +324,11 @@ wav_abort_:
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not use %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
-		else {
-			fprintf(stderr, "Verify succeeded\n");
+		else if(encoder_wrapper.verbose) {
+			fprintf(stderr, "%s: Verify succeeded\n", infilename);
 		}
 	}
 	if(infile != stdin)
@@ -383,7 +383,7 @@ int encode_raw(FILE *infile, const char *infilename, const char *outfilename, bo
 	}
 
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode <= 0)
-		printf("(No runtime statistics possible; please wait for encoding to finish...)\n");
+		fprintf(stderr, "(No runtime statistics possible; please wait for encoding to finish...)\n");
 
 	if(skip > 0) {
 		if(infile != stdin) {
@@ -444,17 +444,17 @@ int encode_raw(FILE *infile, const char *infilename, const char *outfilename, bo
 	}
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0) {
 		print_stats(&encoder_wrapper);
-		printf("\n");
+		fprintf(stderr, "\n");
 	}
 	if(0 != encoder_wrapper.seek_table.points)
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not use %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
-		else {
-			fprintf(stderr, "Verify succeeded\n");
+		else if(encoder_wrapper.verbose) {
+			fprintf(stderr, "%s: Verify succeeded\n", infilename);
 		}
 	}
 	if(infile != stdin)
@@ -462,7 +462,7 @@ int encode_raw(FILE *infile, const char *infilename, const char *outfilename, bo
 	return 0;
 raw_abort_:
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0)
-		printf("\n");
+		fprintf(stderr, "\n");
 	if(encoder_wrapper.encoder) {
 		if(encoder_wrapper.encoder->state == FLAC__ENCODER_OK)
 			FLAC__encoder_finish(encoder_wrapper.encoder);
@@ -472,11 +472,11 @@ raw_abort_:
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "Verify FAILED! (%s)  Do not use %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not use %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
-		else {
-			fprintf(stderr, "Verify succeeded\n");
+		else if(encoder_wrapper.verbose) {
+			fprintf(stderr, "%s: Verify succeeded\n", infilename);
 		}
 	}
 	if(infile != stdin)
@@ -979,7 +979,7 @@ void print_stats(const encoder_wrapper_struct *encoder_wrapper)
 #else
 	double progress = (double)encoder_wrapper->samples_written / (double)encoder_wrapper->total_samples_to_encode;
 #endif
-	printf("\r%0.2f%% complete: frame %u, wrote %u bytes, %u of %u samples, ratio = %5.3f",
+	fprintf(stderr, "\r%0.2f%% complete: frame %u, wrote %u bytes, %u of %u samples, ratio = %5.3f",
 		progress * 100.0, encoder_wrapper->current_frame,
 		(unsigned)encoder_wrapper->bytes_written, (unsigned)encoder_wrapper->samples_written, (unsigned)encoder_wrapper->total_samples_to_encode,
 #ifdef _MSC_VER
@@ -989,7 +989,6 @@ void print_stats(const encoder_wrapper_struct *encoder_wrapper)
 		(double)encoder_wrapper->bytes_written / ((double)encoder_wrapper->unencoded_size * progress)
 #endif
 	);
-	fflush(stdout);
 }
 
 bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok)
