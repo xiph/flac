@@ -28,18 +28,40 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp() */
 
-FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetadata_StreamInfo *block, const FLAC__StreamMetadata_StreamInfo *blockcopy);
+FLAC__bool mutils__compare_block_data_streaminfo(const FLAC__StreamMetadata_StreamInfo *block, const FLAC__StreamMetadata_StreamInfo *blockcopy);
 
-FLAC__bool compare_block_data_padding_(const FLAC__StreamMetadata_Padding *block, const FLAC__StreamMetadata_Padding *blockcopy, unsigned block_length);
+FLAC__bool mutils__compare_block_data_padding(const FLAC__StreamMetadata_Padding *block, const FLAC__StreamMetadata_Padding *blockcopy, unsigned block_length);
 
-FLAC__bool compare_block_data_application_(const FLAC__StreamMetadata_Application *block, const FLAC__StreamMetadata_Application *blockcopy, unsigned block_length);
+FLAC__bool mutils__compare_block_data_application(const FLAC__StreamMetadata_Application *block, const FLAC__StreamMetadata_Application *blockcopy, unsigned block_length);
 
-FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetadata_SeekTable *block, const FLAC__StreamMetadata_SeekTable *blockcopy);
+FLAC__bool mutils__compare_block_data_seektable(const FLAC__StreamMetadata_SeekTable *block, const FLAC__StreamMetadata_SeekTable *blockcopy);
 
-FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_VorbisComment *block, const FLAC__StreamMetadata_VorbisComment *blockcopy);
+FLAC__bool mutils__compare_block_data_vorbiscomment(const FLAC__StreamMetadata_VorbisComment *block, const FLAC__StreamMetadata_VorbisComment *blockcopy);
 
-FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueSheet *block, const FLAC__StreamMetadata_CueSheet *blockcopy);
+FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueSheet *block, const FLAC__StreamMetadata_CueSheet *blockcopy);
 
-FLAC__bool compare_block_(const FLAC__StreamMetadata *block, const FLAC__StreamMetadata *blockcopy);
+FLAC__bool mutils__compare_block_data_unknown(const FLAC__StreamMetadata_Unknown *block, const FLAC__StreamMetadata_Unknown *blockcopy, unsigned block_length);
+
+FLAC__bool mutils__compare_block(const FLAC__StreamMetadata *block, const FLAC__StreamMetadata *blockcopy);
+
+void mutils__init_metadata_blocks(
+	FLAC__StreamMetadata *streaminfo,
+	FLAC__StreamMetadata *padding,
+	FLAC__StreamMetadata *seektable,
+	FLAC__StreamMetadata *application1,
+	FLAC__StreamMetadata *application2,
+	FLAC__StreamMetadata *vorbiscomment,
+	FLAC__StreamMetadata *cuesheet
+);
+
+void mutils__free_metadata_blocks(
+	FLAC__StreamMetadata *streaminfo,
+	FLAC__StreamMetadata *padding,
+	FLAC__StreamMetadata *seektable,
+	FLAC__StreamMetadata *application1,
+	FLAC__StreamMetadata *application2,
+	FLAC__StreamMetadata *vorbiscomment,
+	FLAC__StreamMetadata *cuesheet
+);
 
 #endif
