@@ -161,9 +161,9 @@ byteSwap(FLAC__uint32 *buf, unsigned words)
 void
 MD5Init(struct MD5Context *ctx)
 {
-    FLAC__uint32 test = 1;
+	FLAC__uint32 test = 1;
 
-    is_big_endian_host_ = (*((FLAC__byte*)(&test)))? false : true;
+	is_big_endian_host_ = (*((FLAC__byte*)(&test)))? false : true;
 
 	ctx->buf[0] = 0x67452301;
 	ctx->buf[1] = 0xefcdab89;
