@@ -20,6 +20,7 @@
 #  include <config.h>
 #endif
 
+#include "vorbiscomment.h"
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
 #include "share/utf8.h"
