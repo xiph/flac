@@ -1669,15 +1669,12 @@ FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *de
 		encoder_wrapper->verify_fifo.needs_magic_hack = false;
 	}
 	else {
-		if(encoded_bytes <= *bytes) {
+		//@@@ if(encoded_bytes == 0)?  need some check for underflow so we don't deadlock
+		if(encoded_bytes < *bytes)
 			*bytes = encoded_bytes;
-			memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
-		}
-		else {
-			memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
-			encoder_wrapper->verify_fifo.encoded_signal += *bytes;
-			encoder_wrapper->verify_fifo.encoded_bytes -= *bytes;
-		}
+		memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
+		encoder_wrapper->verify_fifo.encoded_signal += *bytes;
+		encoder_wrapper->verify_fifo.encoded_bytes -= *bytes;
 	}
 
 	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
