@@ -48,7 +48,8 @@ namespace FLAC {
 		// methods.
 
 		//!
-		//! Base class for all metadata blocks.
+		//! \class Prototype metadata.h FLAC++/metadata.h
+		//! \brief Base class for all metadata block types.
 		//!
 		class Prototype {
 		protected:

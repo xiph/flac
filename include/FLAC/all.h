@@ -29,4 +29,7 @@
 #include "stream_decoder.h"
 #include "stream_encoder.h"
 
+/** \defgroup flac FLAC C API
+ */
+
 #endif
