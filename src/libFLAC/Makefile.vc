@@ -22,10 +22,10 @@ NASM=nasmw
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /D FLAC__PRECOMPUTE_PARTITION_SUMS /D FLAC__OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /D FLAC__OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /D FLAC__PRECOMPUTE_PARTITION_SUMS /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
