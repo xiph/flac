@@ -114,10 +114,10 @@
 		<B><TT>flac</TT></B> will be invoked one of two ways, depending on whether you are encoding or decoding:
 		<UL>
 		<LI>
-			Encoding: flac [-v] [--skip #] [&lt;format-options&gt;] [&lt;encoding options&gt;] inputfile outputfile
+			Encoding: flac [-s] [--skip #] [&lt;format-options&gt;] [&lt;encoding options&gt;] inputfile outputfile
 		</LI>
 		<LI>
-			Decoding: flac -d [-v] [--skip #] [&lt;format-options&gt;] inputfile outputfile
+			Decoding: flac -d [-s] [--skip #] [&lt;format-options&gt;] inputfile outputfile
 		</LI>
 		</UL>
 	</P>
@@ -321,9 +321,17 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-V
 			</TD>
 			<TD>
-				-m-, -e-, -p-, --lax- can all be used to turn off a particular option.
+				Verify the encoding process.  With this option, <B><TT>flac</TT></B> will create a parallel decoder that decodes the output of the encoder and compares the result against the original.  It will abort immediately with an error if a mismatch occurs.  <B><TT>-V</TT></B> increases the total encoding time but is guaranteed to catch any unforseen bug in the encoding process.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+			</TD>
+			<TD>
+				-m-, -e-, -p-, -V-, --lax- can all be used to turn off a particular option.
 			</TD>
 		</TR>
 	</TABLE>
