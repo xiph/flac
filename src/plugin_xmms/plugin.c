@@ -37,7 +37,7 @@
 
 #include "FLAC/all.h"
 #include "plugin_common/all.h"
-#include "share/replaygain.h"
+#include "share/grabbag.h"
 #include "configure.h"
 #include "wrap_id3.h"
 #include "charset.h"
@@ -494,9 +494,9 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 		double gain, peak;
-		if(FLAC__replaygain_load_from_vorbiscomment(metadata, flac_cfg.output.replaygain.album_mode, &gain, &peak)) {
+		if(grabbag__replaygain_load_from_vorbiscomment(metadata, flac_cfg.output.replaygain.album_mode, &gain, &peak)) {
 			file_info_.has_replaygain = true;
-			file_info_.replay_scale = FLAC__replaygain_compute_scale_factor(peak, gain, (double)flac_cfg.output.replaygain.preamp, /*prevent_clipping=*/!flac_cfg.output.replaygain.hard_limit);
+			file_info_.replay_scale = grabbag__replaygain_compute_scale_factor(peak, gain, (double)flac_cfg.output.replaygain.preamp, /*prevent_clipping=*/!flac_cfg.output.replaygain.hard_limit);
 		}
 	}
 }

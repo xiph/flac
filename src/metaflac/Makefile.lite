@@ -23,7 +23,7 @@ topdir = ../..
 
 PROGRAM_NAME = metaflac
 INCLUDES     = -I./include -I$(topdir)/include
-LIBS         = -lreplaygain -lFLAC -lgain_analysis -lgetopt -lutf8 -lfile_utils -lm
+LIBS         = -lgrabbag -lFLAC -lgain_analysis -lgetopt -lutf8 -lm
 
 OBJS = \
 	main.o

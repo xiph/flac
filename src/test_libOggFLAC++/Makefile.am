@@ -24,7 +24,13 @@ EXTRA_DIST = \
 CFLAGS = @CFLAGS@ @OGG_CFLAGS@
 
 noinst_PROGRAMS = test_libOggFLAC++
-test_libOggFLAC___LDADD = $(top_builddir)/src/libOggFLAC++/libOggFLAC++.la $(top_builddir)/src/libOggFLAC/libOggFLAC.la $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ -lm
+test_libOggFLAC___LDADD = \
+	$(top_builddir)/src/share/grabbag/grabbag.la \
+	$(top_builddir)/src/libOggFLAC++/libOggFLAC++.la \
+	$(top_builddir)/src/libOggFLAC/libOggFLAC.la \
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	@OGG_LIBS@ \
+	-lm
 test_libOggFLAC___SOURCES = \
 	decoders.cpp \
 	encoders.cpp \

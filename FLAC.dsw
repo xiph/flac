@@ -27,7 +27,7 @@ Package=<4>
     Project_Dep_Name flac_ren
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name file_utils
+    Project_Dep_Name grabbag
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name gain_analysis
@@ -78,7 +78,7 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name file_utils
+    Project_Dep_Name grabbag
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name gain_analysis
@@ -123,18 +123,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "file_utils"=.\src\share\file_utils\file_utils.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "gain_analysis"=.\src\share\gain_analysis\gain_analysis.dsp - Package Owner=<4>
 
 Package=<5>
@@ -155,6 +143,21 @@ Package=<5>
 
 Package=<4>
 {{{
+}}}
+
+###############################################################################
+
+Project: "grabbag"=.\src\share\grabbag\grabbag.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libFLAC
+    End Project Dependency
 }}}
 
 ###############################################################################

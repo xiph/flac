@@ -24,7 +24,7 @@ topdir = ../..
 PROGRAM_NAME = test_libOggFLAC
 #@@@ TODO: conditionalize ogg lib path and -logg
 INCLUDES     = -I$(topdir)/include
-LIBS         = -lOggFLAC -lFLAC -L$(HOME)/local/lib -logg -lfile_utils -lm
+LIBS         = -lgrabbag -lOggFLAC -lFLAC -L$(HOME)/local/lib -logg -lm
 OBJS = \
 	decoders.o \
 	encoders.o \

@@ -23,7 +23,7 @@
 #include "FLAC/file_decoder.h"
 #include "FLAC/seekable_stream_decoder.h"
 #include "FLAC/stream_decoder.h"
-#include "share/file_utils.h"
+#include "share/grabbag.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -2076,7 +2076,7 @@ FLAC__bool test_decoders()
 	if(!test_file_decoder())
 		return false;
 
-	(void) FLAC__file_utils_remove_file(flacfilename_);
+	(void) grabbag__file_remove_file(flacfilename_);
 	free_metadata_blocks_();
 
 	return true;

@@ -24,7 +24,11 @@ EXTRA_DIST = \
 	test_libFLAC++.dsp
 
 noinst_PROGRAMS = test_libFLAC++
-test_libFLAC___LDADD = $(top_builddir)/src/libFLAC++/libFLAC++.la $(top_builddir)/src/libFLAC/libFLAC.la -lm
+test_libFLAC___LDADD = \
+	$(top_builddir)/src/share/grabbag/grabbag.la \
+	$(top_builddir)/src/libFLAC++/libFLAC++.la \
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	-lm
 test_libFLAC___SOURCES = \
 	decoders.cpp \
 	encoders.cpp \

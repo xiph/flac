@@ -2,8 +2,10 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+SUBDIRS = grabbag
+
 EXTRA_DIST = \
-	file_utils.h \
 	gain_analysis.h \
 	getopt.h \
+	grabbag.h \
 	utf8.h

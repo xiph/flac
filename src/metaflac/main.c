@@ -27,7 +27,7 @@ more powerful operations yet to add:
 
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
-#include "share/replaygain.h"
+#include "share/grabbag.h"
 #include "share/utf8.h"
 #include <ctype.h>
 #include <locale.h>
@@ -45,10 +45,10 @@ more powerful operations yet to add:
 #endif
 
 /*
-   FLAC__share__getopt format struct; note we don't use short options so we just
+   share__getopt format struct; note we don't use short options so we just
    set the 'val' field to 0 everywhere to indicate a valid option.
 */
-static struct FLAC__share__option long_options_[] = {
+static struct share__option long_options_[] = {
 	/* global options */
 	{ "preserve-modtime", 0, 0, 0 },
 	{ "with-filename", 0, 0, 0 },
@@ -367,10 +367,10 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 	int option_index = 1;
 	FLAC__bool had_error = false;
 
-	while ((ret = FLAC__share__getopt_long(argc, argv, "", long_options_, &option_index)) != -1) {
+	while ((ret = share__getopt_long(argc, argv, "", long_options_, &option_index)) != -1) {
 		switch (ret) {
 			case 0:
-				had_error |= !parse_option(option_index, FLAC__share__optarg, options);
+				had_error |= !parse_option(option_index, share__optarg, options);
 				break;
 			case '?':
 			case ':':
@@ -383,22 +383,22 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 	}
 
 	if(options->prefix_with_filename == 2)
-		options->prefix_with_filename = (argc - FLAC__share__optind > 1);
+		options->prefix_with_filename = (argc - share__optind > 1);
 
-	if(FLAC__share__optind >= argc && !options->show_long_help && !options->show_version) {
+	if(share__optind >= argc && !options->show_long_help && !options->show_version) {
 		fprintf(stderr,"ERROR: you must specify at least one FLAC file;\n");
 		fprintf(stderr,"       metaflac cannot be used as a pipe\n");
 		had_error = true;
 	}
 
-	options->num_files = argc - FLAC__share__optind;
+	options->num_files = argc - share__optind;
 
 	if(options->num_files > 0) {
 		unsigned i = 0;
 		if(0 == (options->filenames = malloc(sizeof(char *) * options->num_files)))
 			die("out of memory allocating space for file names list");
-		while(FLAC__share__optind < argc)
-			options->filenames[i++] = local_strdup(argv[FLAC__share__optind++]);
+		while(share__optind < argc)
+			options->filenames[i++] = local_strdup(argv[share__optind++]);
 	}
 
 	if(options->args.checks.num_major_ops > 0) {
@@ -1679,7 +1679,7 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 				return false;
 			}
 		}
-		if(!FLAC__replaygain_is_valid_sample_frequency(sample_rate)) {
+		if(!grabbag__replaygain_is_valid_sample_frequency(sample_rate)) {
 			fprintf(stderr, "%s: ERROR: sample rate of %u Hz is not supported\n", filenames[i], sample_rate);
 			return false;
 		}
@@ -1690,7 +1690,7 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 	}
 	FLAC__ASSERT(bits_per_sample >= FLAC__MIN_BITS_PER_SAMPLE && bits_per_sample <= FLAC__MAX_BITS_PER_SAMPLE);
 
-	if(!FLAC__replaygain_init(sample_rate))
+	if(!grabbag__replaygain_init(sample_rate))
 		FLAC__ASSERT(0);
 
 	if(
@@ -1700,17 +1700,17 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 		die("out of memory allocating space for title gains/peaks");
 
 	for(i = 0; i < num_files; i++) {
-		if(0 != (error = FLAC__replaygain_analyze_file(filenames[i], title_gains+i, title_peaks+i))) {
+		if(0 != (error = grabbag__replaygain_analyze_file(filenames[i], title_gains+i, title_peaks+i))) {
 			fprintf(stderr, "%s: ERROR: during analysis (%s)\n", filenames[i], error);
 			free(title_gains);
 			free(title_peaks);
 			return false;
 		}
 	}
-	FLAC__replaygain_get_album(&album_gain, &album_peak);
+	grabbag__replaygain_get_album(&album_gain, &album_peak);
 
 	for(i = 0; i < num_files; i++) {
-		if(0 != (error = FLAC__replaygain_store_to_file(filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i], preserve_modtime))) {
+		if(0 != (error = grabbag__replaygain_store_to_file(filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i], preserve_modtime))) {
 			fprintf(stderr, "%s: ERROR: writing tags (%s)\n", filenames[i], error);
 			free(title_gains);
 			free(title_peaks);

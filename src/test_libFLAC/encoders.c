@@ -22,7 +22,7 @@
 #include "FLAC/file_encoder.h"
 #include "FLAC/seekable_stream_encoder.h"
 #include "FLAC/stream_encoder.h"
-#include "share/file_utils.h"
+#include "share/grabbag.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1123,7 +1123,7 @@ FLAC__bool test_encoders()
 	if(!test_file_encoder())
 		return false;
 
-	(void) FLAC__file_utils_remove_file(flacfilename_);
+	(void) grabbag__file_remove_file(flacfilename_);
 	free_metadata_blocks_();
 
 	return true;

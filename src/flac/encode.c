@@ -29,8 +29,7 @@
 #include <stdlib.h> /* for malloc */
 #include <string.h> /* for strcmp() */
 #include "FLAC/all.h"
-#include "share/file_utils.h"
-#include "share/replaygain.h"
+#include "share/grabbag.h"
 #include "encode.h"
 
 #ifdef HAVE_CONFIG_H
@@ -126,7 +125,7 @@ static int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int
 static int EncoderSession_finish_error(EncoderSession *e);
 static FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate);
 static FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], unsigned samples);
-static FLAC__bool convert_to_seek_table_template(char *requested_seek_points, int num_requested_seek_points, EncoderSession *e);
+static FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, EncoderSession *e);
 static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps);
 #ifdef FLAC__HAS_OGG
 static FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
@@ -790,7 +789,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	FLAC__ASSERT(!options.common.sector_align || infilesize >= 0);
 	FLAC__ASSERT(!options.common.replay_gain || options.common.skip == 0);
 	FLAC__ASSERT(!options.common.replay_gain || options.channels <= 2);
-	FLAC__ASSERT(!options.common.replay_gain || FLAC__replaygain_is_valid_sample_frequency(options.sample_rate));
+	FLAC__ASSERT(!options.common.replay_gain || grabbag__replaygain_is_valid_sample_frequency(options.sample_rate));
 
 	if(!
 		EncoderSession_construct(
@@ -994,7 +993,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 
 	e->is_stdout = (0 == strcmp(outfilename, "-"));
 
-	e->inbasefilename = FLAC__file_utils_get_basename(infilename);
+	e->inbasefilename = grabbag__file_get_basename(infilename);
 	e->outfilename = outfilename;
 
 	e->unencoded_size = 0;
@@ -1015,7 +1014,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	e->seek_table_template = 0;
 
 	if(e->is_stdout) {
-		e->fout = FLAC__file_utils_get_binary_stdout();
+		e->fout = grabbag__file_get_binary_stdout();
 	}
 #ifdef FLAC__HAS_OGG
 	else {
@@ -1192,12 +1191,12 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			fprintf(stderr, "%s: ERROR, number of channels (%u) must be 1 or 2 for --replay-gain\n", e->inbasefilename, channels);
 			return false;
 		}
-		if(!FLAC__replaygain_is_valid_sample_frequency(sample_rate)) {
+		if(!grabbag__replaygain_is_valid_sample_frequency(sample_rate)) {
 			fprintf(stderr, "%s: ERROR, invalid sample rate (%u) for --replay-gain\n", e->inbasefilename, sample_rate);
 			return false;
 		}
 		if(options.is_first_file) {
-			if(!FLAC__replaygain_init(sample_rate)) {
+			if(!grabbag__replaygain_init(sample_rate)) {
 				fprintf(stderr, "%s: ERROR initializing ReplayGain stage\n", e->inbasefilename);
 				return false;
 			}
@@ -1335,7 +1334,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], unsigned samples)
 {
 	if(e->replay_gain) {
-		if(!FLAC__replaygain_analyze(buffer, e->channels==2, e->bits_per_sample, samples))
+		if(!grabbag__replaygain_analyze(buffer, e->channels==2, e->bits_per_sample, samples))
 			fprintf(stderr, "%s: WARNING, error while calculating ReplayGain\n", e->inbasefilename);
 	}
 
@@ -1353,73 +1352,36 @@ FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const b
 	}
 }
 
-FLAC__bool convert_to_seek_table_template(char *requested_seek_points, int num_requested_seek_points, EncoderSession *e)
+FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, EncoderSession *e)
 {
-	unsigned i;
-	char *pt = requested_seek_points, *q;
-	FLAC__bool only_placeholders = false;
-	FLAC__bool needs_warning = false;
+	FLAC__bool only_placeholders;
+	FLAC__bool has_real_points;
 
 	if(num_requested_seek_points == 0)
 		return true;
 
-	if(num_requested_seek_points < 0) {
-		strcpy(requested_seek_points, "100x<");
-		num_requested_seek_points = 1;
-	}
+	if(num_requested_seek_points < 0)
+		requested_seek_points = "100x;";
 
-	if(e->is_stdout) {
+	if(e->is_stdout)
 		only_placeholders = true;
-	}
-#ifdef HAS_OGG
-	else if(e->is_ogg) {
+#ifdef FLAC__HAS_OGG
+	else if(e->use_ogg)
 		only_placeholders = true;
-	}
 #endif
+	else
+		only_placeholders = false;
 
-	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
-		q = strchr(pt, '<');
-		FLAC__ASSERT(0 != q);
-		*q++ = '\0';
-
-		if(0 == strcmp(pt, "X")) { /* -S X */
-			if(!FLAC__metadata_object_seektable_template_append_placeholders(e->seek_table_template, 1))
-				return false;
-		}
-		else if(!only_placeholders) {
-			if(pt[strlen(pt)-1] == 'x') { /* -S #x */
-				if(e->total_samples_to_encode > 0) { /* we can only do these if we know the number of samples to encode up front */
-					if(!FLAC__metadata_object_seektable_template_append_spaced_points(e->seek_table_template, atoi(pt), e->total_samples_to_encode))
-						return false;
-				}
-			}
-			else { /* -S # */
-				FLAC__uint64 n = (unsigned)atoi(pt);
-				if(!FLAC__metadata_object_seektable_template_append_point(e->seek_table_template, n))
-					return false;
-			}
-		}
-		else
-			needs_warning = true;
-
-		pt = q;
-	}
-
-	if(!FLAC__metadata_object_seektable_template_sort(e->seek_table_template, /*compact=*/true))
+	if(!grabbag__seektable_convert_specification_to_template(requested_seek_points, only_placeholders, e->total_samples_to_encode, e->sample_rate, e->seek_table_template, &has_real_points))
 		return false;
 
-	if(needs_warning) {
-		if(e->is_stdout) {
-			fprintf(stderr, "%s: WARNING, cannot write back seektable when encoding to stdout\n", e->inbasefilename);
-		}
-#ifdef HAS_OGG
-		else if(e->is_ogg) {
-			fprintf(stderr, "%s: WARNING, cannot write back seektable when encoding to Ogg\n", e->inbasefilename);
-		}
+	if(has_real_points) {
+		if(e->is_stdout)
+			fprintf(stderr, "%s: WARNING, cannot write back seekpoints when encoding to stdout\n", e->inbasefilename);
+#ifdef FLAC__HAS_OGG
+		else if(e->use_ogg)
+			fprintf(stderr, "%s: WARNING, cannot write back seekpoints when encoding to Ogg\n", e->inbasefilename);
 #endif
-		else {
-			FLAC__ASSERT(0);
-		}
 	}
 
 	return true;
