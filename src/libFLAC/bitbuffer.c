@@ -1306,6 +1306,42 @@ FLAC__bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__bo
 	}
 }
 
+FLAC__bool FLAC__bitbuffer_skip_bits_no_crc(FLAC__BitBuffer *bb, unsigned bits, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+{
+	/*
+	 * @@@ a slightly faster implementation is possible but
+	 * probably not that useful since this is only called a
+	 * couple of times in the metadata readers.
+	 */
+	FLAC__ASSERT(0 != bb);
+	FLAC__ASSERT(0 != bb->buffer);
+
+	if(bits > 0) {
+		const unsigned n = bb->consumed_bits & 7;
+	   	unsigned m;
+		FLAC__uint32 x;
+
+		if(n != 0) {
+			m = min(8-n, bits);
+			if(!FLAC__bitbuffer_read_raw_uint32(bb, &x, m, read_callback, client_data))
+				return false;
+			bits -= m;
+		}
+		m = bits / 8;
+		if(m > 0) {
+			if(!FLAC__bitbuffer_read_byte_block_aligned_no_crc(bb, 0, m, read_callback, client_data))
+				return false;
+			bits %= 8;
+		}
+		if(bits > 0) {
+			if(!FLAC__bitbuffer_read_raw_uint32(bb, &x, bits, read_callback, client_data))
+				return false;
+		}
+	}
+
+	return true;
+}
+
 FLAC__bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	/* to avoid a drastic speed penalty we don't:
@@ -1847,7 +1883,7 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32_little_endian(FLAC__BitB
 	return true;
 }
 
-FLAC__bool FLAC__bitbuffer_read_byte_block_aligned(FLAC__BitBuffer *bb, FLAC__byte *val, unsigned nvals, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_byte_block_aligned_no_crc(FLAC__BitBuffer *bb, FLAC__byte *val, unsigned nvals, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	FLAC__ASSERT(0 != bb);
 	FLAC__ASSERT(0 != bb->buffer);
