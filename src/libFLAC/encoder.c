@@ -1345,10 +1345,10 @@ bool encoder_set_partitioned_rice_(const uint32 abs_residual[], const uint32 abs
 		bits_ += best_partition_bits;
 	}
 	else {
-		unsigned partition, j, save_j, k;
+		unsigned partition, residual_sample, save_residual_sample, partition_sample;
 		unsigned mean, partition_samples;
 		const unsigned partitions = 1u << partition_order;
-		for(partition = j = 0; partition < partitions; partition++) {
+		for(partition = residual_sample = 0; partition < partitions; partition++) {
 			partition_samples = (residual_samples+predictor_order) >> partition_order;
 			if(partition == 0) {
 				if(partition_samples <= predictor_order)
@@ -1360,10 +1360,10 @@ bool encoder_set_partitioned_rice_(const uint32 abs_residual[], const uint32 abs
 #ifdef FLAC__PRECOMPUTE_PARTITION_SUMS
 			mean += abs_residual_partition_sums[partition];
 #else
-			save_j = j;
-			for(k = 0; k < partition_samples; j++, k++)
-				mean += abs_residual[j];
-			j = save_j;
+			save_residual_sample = residual_sample;
+			for(partition_sample = 0; partition_sample < partition_samples; residual_sample++, partition_sample++)
+				mean += abs_residual[residual_sample];
+			residual_sample = save_residual_sample;
 #endif
 			mean /= partition_samples;
 #ifdef FLAC__SYMMETRIC_RICE
@@ -1412,21 +1412,21 @@ bool encoder_set_partitioned_rice_(const uint32 abs_residual[], const uint32 abs
 				partition_bits = 0;
 #endif
 				partition_bits += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
-				save_j = j;
-				for(k = 0; k < partition_samples; j++, k++) {
+				save_residual_sample = residual_sample;
+				for(partition_sample = 0; partition_sample < partition_samples; residual_sample++, partition_sample++) {
 #ifdef VARIABLE_RICE_BITS
 #ifdef FLAC__SYMMETRIC_RICE
-					partition_bits += VARIABLE_RICE_BITS(abs_residual[j], rice_parameter);
+					partition_bits += VARIABLE_RICE_BITS(abs_residual[residual_sample], rice_parameter);
 #else
-					partition_bits += VARIABLE_RICE_BITS(abs_residual[j], rice_parameter_estimate);
+					partition_bits += VARIABLE_RICE_BITS(abs_residual[residual_sample], rice_parameter_estimate);
 #endif
 #else
-					partition_bits += FLAC__bitbuffer_rice_bits(residual[j], rice_parameter); /* NOTE: we will need to pass in residual[] instead of abs_residual[] */
+					partition_bits += FLAC__bitbuffer_rice_bits(residual[residual_sample], rice_parameter); /* NOTE: we will need to pass in residual[] instead of abs_residual[] */
 #endif
 				}
-				if(rice_parameter != max_rice_parameter)
-					j = save_j;
 #ifndef NO_RICE_SEARCH
+				if(rice_parameter != max_rice_parameter)
+					residual_sample = save_residual_sample;
 				if(partition_bits < best_partition_bits) {
 					best_rice_parameter = rice_parameter;
 					best_partition_bits = partition_bits;
