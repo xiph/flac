@@ -69,6 +69,15 @@ run_test_seeking ()
 	fi
 }
 
+echo "Checking for --ogg support in flac..."
+if flac --ogg --silent --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
+	has_ogg=yes;
+	echo "flac --ogg works"
+else
+	has_ogg=no;
+	echo "flac --ogg doesn't work"
+fi
+
 
 echo "Generating streams..."
 if [ ! -f noise.raw ] ; then
@@ -107,14 +116,18 @@ if run_test_seeking small.flac 1000 ; then : ; else
 	die "ERROR: during test_seeking"
 fi
 
-echo "testing tiny.ogg:"
-if run_test_seeking tiny.ogg 100 ; then : ; else
-	die "ERROR: during test_seeking"
+if [ $has_ogg = "yes" ] ; then
+
+	echo "testing tiny.ogg:"
+	if run_test_seeking tiny.ogg 100 ; then : ; else
+		die "ERROR: during test_seeking"
+	fi
+
+	echo "testing small.ogg:"
+	if run_test_seeking small.ogg 1000 ; then : ; else
+		die "ERROR: during test_seeking"
+	fi
+
 fi
 
-echo "testing small.ogg:"
-if run_test_seeking small.ogg 1000 ; then : ; else
-	die "ERROR: during test_seeking"
-fi
-
-rm tiny.flac tiny.ogg small.flac small.ogg
+rm -f tiny.flac tiny.ogg small.flac small.ogg
