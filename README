@@ -81,7 +81,7 @@ general, this should work:
 ./configure && make && make check && make install
 
 The 'make check' step is optional; omit it to skip all the tests,
-which can take several hours.
+which can take several hours and use around 70-80 megs of disk space.
 
 NOTE: Despite our best efforts it's entirely possible to have
 problems when using older versions of autoconf, automake, or
