@@ -871,35 +871,38 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned max_partition_or
 					max_lpc_order = encoder->max_lpc_order;
 				if(max_lpc_order > 0) {
 					FLAC__lpc_compute_autocorrelation(real_signal, frame_header->blocksize, max_lpc_order+1, autoc);
-					FLAC__lpc_compute_lp_coefficients(autoc, max_lpc_order, lp_coeff, lpc_error);
-					if(encoder->do_exhaustive_model_search) {
-						min_lpc_order = 1;
-					}
-					else {
-						unsigned guess_lpc_order = FLAC__lpc_compute_best_order(lpc_error, max_lpc_order, frame_header->blocksize, bits_per_sample);
-						min_lpc_order = max_lpc_order = guess_lpc_order;
-					}
-					if(encoder->do_qlp_coeff_prec_search) {
-						min_qlp_coeff_precision = FLAC__MIN_QLP_COEFF_PRECISION;
-						max_qlp_coeff_precision = min(32 - bits_per_sample - 1, (1u<<FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN)-1);
-					}
-					else {
-						min_qlp_coeff_precision = max_qlp_coeff_precision = encoder->qlp_coeff_precision;
-					}
-					for(lpc_order = min_lpc_order; lpc_order <= max_lpc_order; lpc_order++) {
-						lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize-lpc_order);
-						if(lpc_residual_bits_per_sample >= (real)bits_per_sample)
-							continue; /* don't even try */
-						rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
-						rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
-						if(rice_parameter >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
-							rice_parameter = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN) - 1;
-						for(qlp_coeff_precision = min_qlp_coeff_precision; qlp_coeff_precision <= max_qlp_coeff_precision; qlp_coeff_precision++) {
-							_candidate_bits = encoder_evaluate_lpc_subframe_(integer_signal, residual[!_best_subframe], encoder->guts->abs_residual, lp_coeff[lpc_order-1], frame_header->blocksize, bits_per_sample, lpc_order, qlp_coeff_precision, rice_parameter, max_partition_order, subframe[!_best_subframe]);
-							if(_candidate_bits > 0) { /* if == 0, there was a problem quantizing the lpcoeffs */
-								if(_candidate_bits < _best_bits) {
-									_best_subframe = !_best_subframe;
-									_best_bits = _candidate_bits;
+					/* if autoc[0] == 0.0, the signal is constant and we usually won't get here, but it can happen */
+					if(autoc[0] != 0.0) {
+						FLAC__lpc_compute_lp_coefficients(autoc, max_lpc_order, lp_coeff, lpc_error);
+						if(encoder->do_exhaustive_model_search) {
+							min_lpc_order = 1;
+						}
+						else {
+							unsigned guess_lpc_order = FLAC__lpc_compute_best_order(lpc_error, max_lpc_order, frame_header->blocksize, bits_per_sample);
+							min_lpc_order = max_lpc_order = guess_lpc_order;
+						}
+						if(encoder->do_qlp_coeff_prec_search) {
+							min_qlp_coeff_precision = FLAC__MIN_QLP_COEFF_PRECISION;
+							max_qlp_coeff_precision = min(32 - bits_per_sample - 1, (1u<<FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN)-1);
+						}
+						else {
+							min_qlp_coeff_precision = max_qlp_coeff_precision = encoder->qlp_coeff_precision;
+						}
+						for(lpc_order = min_lpc_order; lpc_order <= max_lpc_order; lpc_order++) {
+							lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize-lpc_order);
+							if(lpc_residual_bits_per_sample >= (real)bits_per_sample)
+								continue; /* don't even try */
+							rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
+							rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
+							if(rice_parameter >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
+								rice_parameter = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN) - 1;
+							for(qlp_coeff_precision = min_qlp_coeff_precision; qlp_coeff_precision <= max_qlp_coeff_precision; qlp_coeff_precision++) {
+								_candidate_bits = encoder_evaluate_lpc_subframe_(integer_signal, residual[!_best_subframe], encoder->guts->abs_residual, lp_coeff[lpc_order-1], frame_header->blocksize, bits_per_sample, lpc_order, qlp_coeff_precision, rice_parameter, max_partition_order, subframe[!_best_subframe]);
+								if(_candidate_bits > 0) { /* if == 0, there was a problem quantizing the lpcoeffs */
+									if(_candidate_bits < _best_bits) {
+										_best_subframe = !_best_subframe;
+										_best_bits = _candidate_bits;
+									}
 								}
 							}
 						}
