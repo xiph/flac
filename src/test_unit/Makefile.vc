@@ -27,6 +27,7 @@
 
 C_FILES= \
 	bitbuffer.c \
+	file_utils.c \
 	main.c \
 	metadata.c \
 	metadata_manip.c \

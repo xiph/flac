@@ -22,6 +22,7 @@ noinst_PROGRAMS = test_unit
 test_unit_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la -lm
 test_unit_SOURCES = \
 	bitbuffer.c \
+	file_utils.c \
 	main.c \
 	metadata.c \
 	metadata_manip.c \
