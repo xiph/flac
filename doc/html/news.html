@@ -78,7 +78,7 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 
 	<P>
-		<A NAME="20020910">10-Sep-2002:</A>
+		<A NAME="20020924">24-Sep-2002:</A>
 	</P>
 	<P>
 	<UL>
@@ -98,6 +98,7 @@
 				<LI>AIFF input support (thanks to Brady Patterson).</LI>
 				<LI>Small decoder speedup.</LI>
 				<LI><TT>--sector-align</TT> now supported for raw input files.</LI>
+				<LI>New -T, --tag options for adding Vorbis comments while encoding.</LI>
 				<LI>New --serial-number option for use with --ogg.</LI>
 				<LI>Automatically writes vendor string in Vorbis comments.</LI>
 				<LI>Drastically reduced memory requirements.</LI>
@@ -127,7 +128,7 @@
 				<LI>FLAC__stream_encoder_finish() now resets the defaults just like the stream decoders.</LI>
 				<LI>Drastically reduced memory requirements of encoders and decoders.</LI>
 				<LI>Encoder now automatically writes vendor string in VORBIS_COMMENT block.</LI>
-				<LI>MD5 speedup for 16bps mono/stereo signals on x86 (thanks to Miroslav Lichvar).</LI>
+				<LI>Encoding speedup of fixed predictors and MD5 speedup for 16bps mono/stereo signals on x86 (thanks to Miroslav Lichvar).</LI>
 				<LI>Fixed bug in metadata interface where a bps in STREAMINFO > 16 was incorrectly parsed.</LI>
 				<LI>Fixed bug where aborting stream decoder could cause infinite loop.</LI>
 				<LI>Behavior change: simplified decoder *_process() commands.</LI>
