@@ -106,5 +106,6 @@ const char *FLAC__MetaDataTypeString[] = {
 	"STREAMINFO",
 	"PADDING",
 	"APPLICATION",
-	"SEEKTABLE"
+	"SEEKTABLE",
+	"VORBIS_COMMENT"
 };

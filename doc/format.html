@@ -390,7 +390,10 @@
 					<TT>3</TT> : SEEKTABLE
 				</LI>
 				<LI>
-					<TT>3-127</TT> : reserved
+					<TT>4</TT> : VORBIS_COMMENT
+				</LI>
+				<LI>
+					<TT>5-127</TT> : reserved
 				</LI>
 				</UL>
 			</TD>
@@ -417,7 +420,7 @@
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A HREF="#metadata_block_streaminfo"><I>METADATA_BLOCK_STREAMINFO</I></A><BR>|| <A HREF="#metadata_block_padding"><I>METADATA_BLOCK_PADDING</I></A><BR>|| <A HREF="#metadata_block_application"><I>METADATA_BLOCK_APPLICATION</I></A><BR>|| <A HREF="#metadata_block_seektable"><I>METADATA_BLOCK_SEEKTABLE</I></A>
+				<A HREF="#metadata_block_streaminfo"><I>METADATA_BLOCK_STREAMINFO</I></A><BR>|| <A HREF="#metadata_block_padding"><I>METADATA_BLOCK_PADDING</I></A><BR>|| <A HREF="#metadata_block_application"><I>METADATA_BLOCK_APPLICATION</I></A><BR>|| <A HREF="#metadata_block_seektable"><I>METADATA_BLOCK_SEEKTABLE</I></A><BR>|| <A HREF="#metadata_block_vorbis_comment"><I>METADATA_BLOCK_VORBIS_COMMENT</I></A>
 			</TD>
 			<TD>
 				The block data must match the block type in the block header.
@@ -654,6 +657,26 @@
 					The previous two notes imply that there may be any number of placeholder points, but they must all occur at the end of the table.
 				</LI>
 				</UL>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_vorbis_comment"><FONT SIZE="+1"><B>METADATA_BLOCK_VORBIS_COMMENT</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				The contents of a vorbis comment packet as specified <A HREF="http://www.xiph.org/ogg/vorbis/doc/v-comment.html">here</A>, including the vendor string.  Note that the vorbis comment spec allows for on the order of 2 ^ 64 bytes of data where as the FLAC metadata block is limited to 2 ^ 24 bytes.  Given the stated purpose of vorbis comments, i.e. human-readable textual information, this limit is unlikely to be restrictive.
 			</TD>
 		</TR>
 	</TABLE>
