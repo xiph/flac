@@ -21,12 +21,6 @@
 #include<stdlib.h>
 #include<stdio.h>
 
-#if !defined(FLAC__NO_ASM) && defined(FLAC__CPU_IA32) && defined(FLAC__HAS_NASM) && !defined(FLAC__SSE_OS) && !defined(NO_VFORK)
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#endif
-
 const unsigned FLAC__CPUINFO_IA32_CPUID_CMOV = 0x00008000;
 const unsigned FLAC__CPUINFO_IA32_CPUID_MMX = 0x00800000;
 const unsigned FLAC__CPUINFO_IA32_CPUID_FXSR = 0x01000000;
@@ -53,33 +47,17 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		info->data.ia32.sse2 = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE2)? true : false;
 
 #ifndef FLAC__SSE_OS
-#ifndef NO_VFORK
-		if(info->data.ia32.sse == true || info->data.ia32.sse2 == true) {
-			int pid, status, sse;
-			pid = vfork();
-			if(!pid) {
-				FLAC__cpu_info_sse_test_asm_ia32();
-				exit(0);
-			}
-			sse = 0;
-			if(pid > 0) {
-				waitpid(pid, &status, 0);
-				if(WIFEXITED(status) && WEXITSTATUS(status) == 0)
-					sse = 1;        /* there was normal exit, no SIGILL */
-			}
-			if(!sse)
-				info->data.ia32.sse = info->data.ia32.sse2 = false;
-		}
-#else
-		/* we are assuming OS isn't supporting SSE */
-		info->data.ia32.sse = info->data.ia32.sse2 = false;
-#endif
+		info->data.ia32.fxsr = info->data.ia32.sse = info->data.ia32.sse2 = false;
 #endif
 
+#ifdef FLAC__USE_3DNOW
 		cpuid = FLAC__cpu_info_extended_amd_asm_ia32();
 		info->data.ia32._3dnow = (cpuid & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_3DNOW)? true : false;
 		info->data.ia32.ext3dnow = (cpuid & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXT3DNOW)? true : false;
 		info->data.ia32.extmmx = (cpuid & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX)? true : false;
+#else
+		info->data.ia32._3dnow = info->data.ia32.ext3dnow = info->data.ia32.extmmx = false;
+#endif
 	}
 #else
 	info->use_asm = false;
