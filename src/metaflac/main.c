@@ -29,6 +29,7 @@ more powerful operations yet to add:
 #include "FLAC/metadata.h"
 #include "share/utf8.h"
 #include <ctype.h>
+#include <locale.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -290,7 +291,7 @@ static FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC
 static FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
 static FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
 static FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMetadata *block, unsigned block_number);
-static void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool hexdump_application);
+static void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool raw, FLAC__bool hexdump_application);
 static void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__bool raw, FILE *f);
 static void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw, FILE *f);
 static FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *block, FLAC__bool *needs_write);
@@ -308,6 +309,7 @@ int main(int argc, char *argv[])
 	CommandLineOptions options;
 	int ret = 0;
 
+	setlocale(LC_ALL, "");
 	init_options(&options);
 
 	if(parse_options(argc, argv, &options))
@@ -1444,7 +1446,7 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 		if(!ok)
 			fprintf(stderr, "%s: ERROR: couldn't get block from chain\n", filename);
 		else if(passes_filter(options, FLAC__metadata_iterator_get_block(iterator), block_number))
-			write_metadata(filename, block, block_number, options->application_data_format_is_hexdump);
+			write_metadata(filename, block, block_number, !options->utf8_convert, options->application_data_format_is_hexdump);
 		block_number++;
 	} while(ok && FLAC__metadata_iterator_next(iterator));
 
@@ -1829,7 +1831,7 @@ FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMe
 	return matches_number && matches_type;
 }
 
-void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool hexdump_application)
+void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool raw, FLAC__bool hexdump_application)
 {
 	unsigned i;
 
@@ -1886,14 +1888,11 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 			PPR; printf("  vendor string: ");
-			if(0 != block->data.vorbis_comment.vendor_string.entry)
-				fwrite(block->data.vorbis_comment.vendor_string.entry, 1, block->data.vorbis_comment.vendor_string.length, stdout);
-			printf("\n");
+			write_vc_field(0, &block->data.vorbis_comment.vendor_string, raw, stdout);
 			PPR; printf("  comments: %u\n", block->data.vorbis_comment.num_comments);
 			for(i = 0; i < block->data.vorbis_comment.num_comments; i++) {
 				PPR; printf("    comment[%u]: ", i);
-				fwrite(block->data.vorbis_comment.comments[i].entry, 1, block->data.vorbis_comment.comments[i].length, stdout);
-				printf("\n");
+				write_vc_field(0, &block->data.vorbis_comment.comments[i], raw, stdout);
 			}
 			break;
 		default:
