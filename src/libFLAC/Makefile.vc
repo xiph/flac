@@ -17,6 +17,7 @@ C_FILES= \
 	fixed.c \
 	format.c \
 	lpc.c \
+	md5.c \
 	stream_decoder.c
 
 OBJS= $(C_FILES:.c=.obj)
