@@ -25,6 +25,7 @@
 #include "cpu.h"
 #include "crc.h"
 #include "fixed.h"
+#include "format.h"
 #include "lpc.h"
 #include "md5.h"
 #include "memory.h"
