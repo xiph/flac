@@ -280,7 +280,7 @@ void *play_loop_(void *arg)
 					file_info_.eof = true;
 					break;
 				}
-				else if(!FLAC__file_decoder_process_one_frame(decoder_)) {
+				else if(!FLAC__file_decoder_process_single(decoder_)) {
 					/*@@@ this should probably be a dialog */
 					fprintf(stderr, "libxmms-flac: READ ERROR processing frame\n");
 					file_info_.eof = true;
@@ -351,7 +351,7 @@ FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *decoder)
 	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK)
 		return false;
 
-	if(!FLAC__file_decoder_process_metadata(decoder))
+	if(!FLAC__file_decoder_process_until_end_of_metadata(decoder))
 		return false;
 
 	return true;

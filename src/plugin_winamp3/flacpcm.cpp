@@ -134,7 +134,7 @@ int FlacPcm::processData(MediaInfo *infos, ChunkList *chunk_list, bool *killswit
 			cleanup();
 			return 0;
 		}
-		if(!FLAC__seekable_stream_decoder_process_metadata(decoder)) {
+		if(!FLAC__seekable_stream_decoder_process_until_end_of_metadata(decoder)) {
 			cleanup();
 			return 0;
 		}
@@ -152,7 +152,7 @@ int FlacPcm::processData(MediaInfo *infos, ChunkList *chunk_list, bool *killswit
 			eof = true;
 			break;
 		}
-		else if(!FLAC__seekable_stream_decoder_process_one_frame(decoder)) {
+		else if(!FLAC__seekable_stream_decoder_process_single(decoder)) {
 			//@@@ how to do this?  MessageBox(mod_.hMainWindow, FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder_)], "READ ERROR processing frame", 0);
 			eof = true;
 			break;

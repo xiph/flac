@@ -450,7 +450,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 					done = 1;
 					break;
 				}
-				else if(!FLAC__file_decoder_process_one_frame(decoder_)) {
+				else if(!FLAC__file_decoder_process_single(decoder_)) {
 					MessageBox(mod_.hMainWindow, FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder_)], "READ ERROR processing frame", 0);
 					done = 1;
 					break;
@@ -559,7 +559,7 @@ FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *decoder)
 	}
 
 	file_info_.abort_flag = false;
-	if(!FLAC__file_decoder_process_metadata(decoder)) {
+	if(!FLAC__file_decoder_process_until_end_of_metadata(decoder)) {
 		MessageBox(mod_.hMainWindow, FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder)], "ERROR processing metadata", 0);
 		return false;
 	}
