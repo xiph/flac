@@ -367,6 +367,7 @@ FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(FLAC__StreamDec
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(id != 0);
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 
@@ -420,6 +421,7 @@ FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(FLAC__StreamDeco
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(id != 0);
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 
