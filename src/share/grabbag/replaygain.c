@@ -21,6 +21,7 @@
 #include "FLAC/assert.h"
 #include "FLAC/file_decoder.h"
 #include "FLAC/metadata.h"
+#include <locale.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,6 +77,7 @@ static void set_file_stats_(const char *filename, struct stat *stats)
 static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, const FLAC__byte *name, float value)
 {
 	char buffer[256];
+	char *saved_locale;
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 
 	FLAC__ASSERT(0 != block);
@@ -84,11 +86,18 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 	FLAC__ASSERT(0 != value);
 
 	buffer[sizeof(buffer)-1] = '\0';
+	/*
+	 * We need to save the old locale and switch to "C" because the locale
+	 * influences the formatting of %f and we want it a certain way.
+	 */
+	saved_locale = setlocale(LC_ALL, 0);
+	setlocale(LC_ALL, "C");
 #if defined _MSC_VER || defined __MINGW32__
 	_snprintf(buffer, sizeof(buffer)-1, format, name, value);
 #else
 	snprintf(buffer, sizeof(buffer)-1, format, name, value);
 #endif
+	setlocale(LC_ALL, saved_locale);
 
 	entry.entry = buffer;
 	entry.length = strlen(buffer);
