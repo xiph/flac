@@ -20,6 +20,7 @@
 #include <sys/utime.h> /* for utime() */
 #include <io.h> /* for chmod() */
 #else
+#include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
 #include <utime.h> /* for utime() */
 #include <unistd.h> /* for chown() */
 #endif
