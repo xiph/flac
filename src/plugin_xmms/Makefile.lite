@@ -24,7 +24,7 @@ topdir = ../..
 LIB_NAME  = libxmms-flac
 INCLUDES  = $(shell xmms-config --cflags) -I./include -I$(topdir)/include -I..
 # refer to the static libs explicitly
-LIBS = $(topdir)/obj/$(BUILD)/lib/libFLAC.a $(topdir)/obj/$(BUILD)/lib/libplugin_common.a $(topdir)/obj/$(BUILD)/lib/libgrabbag.a $(topdir)/obj/$(BUILD)/lib/libgain_analysis.a $(HOME)/local/lib/libid3.a -lstdc++ -lz
+LIBS = $(topdir)/obj/$(BUILD)/lib/libFLAC.a $(topdir)/obj/$(BUILD)/lib/libplugin_common.a $(topdir)/obj/$(BUILD)/lib/libgrabbag.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_analysis.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_synthesis.a $(HOME)/local/lib/libid3.a -lstdc++ -lz
 
 SRCS_C = \
 	charset.c \

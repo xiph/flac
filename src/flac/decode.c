@@ -31,6 +31,7 @@
 #include <string.h> /* for strcmp() */
 #include "FLAC/all.h"
 #include "share/grabbag.h"
+#include "share/replaygain_synthesis.h"
 #include "decode.h"
 
 #ifdef FLAC__HAS_OGG
@@ -46,6 +47,13 @@ typedef struct {
 	FLAC__bool is_aiff_out;
 	FLAC__bool is_wave_out;
 	FLAC__bool continue_through_decode_errors;
+
+	struct {
+		replaygain_synthesis_spec_t spec;
+		double scale;
+		DitherContext dither_context;
+	} replaygain;
+
 	FLAC__bool test_only;
 	FLAC__bool analysis_mode;
 	analysis_options aopts;
@@ -97,7 +105,7 @@ static FLAC__bool is_big_endian_host_;
 /*
  * local routines
  */
-static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, const char *infilename, const char *outfilename);
+static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
 static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, decode_options_t decode_options, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
@@ -144,6 +152,7 @@ int flac__decode_aiff(const char *infilename, const char *outfilename, FLAC__boo
 			/*is_aiff_out=*/true,
 			/*is_wave_out=*/false,
 			options.common.continue_through_decode_errors,
+			options.common.replaygain_synthesis_spec,
 			analysis_mode,
 			aopts,
 			&options.common.skip_specification,
@@ -179,6 +188,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 			/*is_aiff_out=*/false,
 			/*is_wave_out=*/true,
 			options.common.continue_through_decode_errors,
+			options.common.replaygain_synthesis_spec,
 			analysis_mode,
 			aopts,
 			&options.common.skip_specification,
@@ -217,6 +227,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 			/*is_aiff_out=*/false,
 			/*is_wave_out=*/false,
 			options.common.continue_through_decode_errors,
+			options.common.replaygain_synthesis_spec,
 			analysis_mode,
 			aopts,
 			&options.common.skip_specification,
@@ -236,7 +247,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	return DecoderSession_finish_ok(&decoder_session);
 }
 
-FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, const char *infilename, const char *outfilename)
+FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, const char *infilename, const char *outfilename)
 {
 #ifdef FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
@@ -248,6 +259,9 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->is_aiff_out = is_aiff_out;
 	d->is_wave_out = is_wave_out;
 	d->continue_through_decode_errors = continue_through_decode_errors;
+	d->replaygain.spec = replaygain_synthesis_spec;
+	d->replaygain.scale = 0.0;
+	/* d->replaygain.dither_context gets initialized later once we know the sample resolution */
 	d->test_only = (0 == outfilename);
 	d->analysis_mode = analysis_mode;
 	d->aopts = aopts;
@@ -338,6 +352,8 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 
 		if(!decode_options.use_first_serial_number)
 			OggFLAC__stream_decoder_set_serial_number(decoder_session->decoder.ogg.stream, decode_options.serial_number);
+		if (decoder_session->replaygain.spec.apply)
+			OggFLAC__stream_decoder_set_metadata_respond(decoder_session->decoder.ogg.stream, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
 		OggFLAC__stream_decoder_set_read_callback(decoder_session->decoder.ogg.stream, read_callback);
 		/*
@@ -369,6 +385,8 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 
 		FLAC__file_decoder_set_md5_checking(decoder_session->decoder.flac.file, true);
 		FLAC__file_decoder_set_filename(decoder_session->decoder.flac.file, infilename);
+		if (decoder_session->replaygain.spec.apply)
+			FLAC__file_decoder_set_metadata_respond(decoder_session->decoder.flac.file, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 		/*
 		 * The three ugly casts here are to 'downcast' the 'void *' argument of
 		 * the callback down to 'FLAC__FileDecoder *'.
@@ -800,7 +818,25 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 			flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->aopts, fout);
 		}
 		else if(!decoder_session->test_only) {
-			if(bps == 8) {
+			if (decoder_session->replaygain.spec.apply) {
+				const size_t n = FLAC__replaygain_synthesis__apply_gain(
+					u8buffer,
+					is_big_endian,
+					is_unsigned_samples,
+					buffer,
+					wide_samples,
+					channels,
+					bps, /* source_bps */
+					bps, /* target_bps */
+					decoder_session->replaygain.scale,
+					decoder_session->replaygain.spec.limiter == RGSS_LIMIT__HARD, /* hard_limit */
+					decoder_session->replaygain.spec.noise_shaping != NOISE_SHAPING_NONE, /* do_dithering */
+					&decoder_session->replaygain.dither_context
+				);
+				if(flac__utils_fwrite(u8buffer, 1, n, fout) != n)
+					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+			}
+			else if(bps == 8) {
 				if(is_unsigned_samples) {
 					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 						for(channel = 0; channel < channels; channel++, sample++)
@@ -1044,6 +1080,23 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 
 				if(!write_big_endian_uint32(decoder_session->fout, 0/*block_size*/))
 					decoder_session->abort_flag = true;
+			}
+		}
+	}
+	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+		if (decoder_session->replaygain.spec.apply) {
+			double gain, peak;
+			if (!(decoder_session->replaygain.spec.apply = grabbag__replaygain_load_from_vorbiscomment(metadata, decoder_session->replaygain.spec.use_album_gain, &gain, &peak))) {
+				fprintf(stderr, "%s: WARNING: can't get %s ReplayGain tag\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track");
+			}
+			else {
+				const char *ls[] = { "no", "peak", "hard" };
+				const char *ns[] = { "no", "low", "medium", "high" };
+				decoder_session->replaygain.scale = grabbag__replaygain_compute_scale_factor(peak, gain, decoder_session->replaygain.spec.preamp, decoder_session->replaygain.spec.limiter == RGSS_LIMIT__PEAK);
+				assert(decoder_session->bps > 0 && decoder_session->bps <= 32);
+				FLAC__replaygain_synthesis__init_dither_context(&decoder_session->replaygain.dither_context, decoder_session->bps, decoder_session->replaygain.spec.noise_shaping);
+				fprintf(stderr, "%s: INFO: applying %s ReplayGain (gain=%0.2fdB+preamp=%0.1fdB, %s noise shaping, %s limiting) to output\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track", gain, decoder_session->replaygain.spec.preamp, ns[decoder_session->replaygain.spec.noise_shaping], ls[decoder_session->replaygain.spec.limiter]);
+				fprintf(stderr, "%s: WARNING: applying ReplayGain is not lossless\n", decoder_session->inbasefilename);
 			}
 		}
 	}

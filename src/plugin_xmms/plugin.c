@@ -38,6 +38,7 @@
 #include "FLAC/all.h"
 #include "plugin_common/all.h"
 #include "share/grabbag.h"
+#include "share/replaygain_synthesis.h"
 #include "configure.h"
 #include "wrap_id3.h"
 #include "charset.h"
@@ -255,7 +256,7 @@ void FLAC_XMMS__play_file(char *filename)
 			return;
 		}
 	}
-	FLAC__plugin_common__init_dither_context(&file_info_.dither_context, file_info_.sample_format_bytes_per_sample * 8, flac_cfg.output.resolution.replaygain.noise_shaping);
+	FLAC__replaygain_synthesis__init_dither_context(&file_info_.dither_context, file_info_.sample_format_bytes_per_sample * 8, flac_cfg.output.resolution.replaygain.noise_shaping);
 	file_info_.is_playing = true;
 
 	if(flac_ip.output->open_audio(file_info_.sample_format, file_info_.sample_rate, file_info_.channels) == 0) {
@@ -501,19 +502,20 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 		sample_buffer_first_ = 0;
 	}
 	sample_buffer_start = sample_buffer_ + sample_buffer_last_ * channels * file_info->sample_format_bytes_per_sample;
-	if(file_info_.has_replaygain && flac_cfg.output.replaygain.enable) {
-		FLAC__plugin_common__apply_gain(
+	if(file_info->has_replaygain && flac_cfg.output.replaygain.enable) {
+		FLAC__replaygain_synthesis__apply_gain(
 				sample_buffer_start,
 				!is_big_endian_host_,
+				file_info->sample_format_bytes_per_sample == 1, /* unsigned_data_out */
 				buffer,
 				wide_samples,
 				channels,
 				bits_per_sample,
 				file_info->sample_format_bytes_per_sample * 8,
-				file_info_.replay_scale,
+				file_info->replay_scale,
 				flac_cfg.output.replaygain.hard_limit,
 				flac_cfg.output.resolution.replaygain.dither,
-				&file_info_.dither_context
+				&file_info->dither_context
 		);
 	}
 	else if(is_big_endian_host_) {
@@ -557,8 +559,8 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 		double gain, peak;
 		if(grabbag__replaygain_load_from_vorbiscomment(metadata, flac_cfg.output.replaygain.album_mode, &gain, &peak)) {
-			file_info_.has_replaygain = true;
-			file_info_.replay_scale = grabbag__replaygain_compute_scale_factor(peak, gain, (double)flac_cfg.output.replaygain.preamp, /*prevent_clipping=*/!flac_cfg.output.replaygain.hard_limit);
+			file_info->has_replaygain = true;
+			file_info->replay_scale = grabbag__replaygain_compute_scale_factor(peak, gain, (double)flac_cfg.output.replaygain.preamp, /*prevent_clipping=*/!flac_cfg.output.replaygain.hard_limit);
 		}
 	}
 }

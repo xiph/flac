@@ -21,14 +21,24 @@
 
 #include "analyze.h"
 #include "utils.h"
+#include "share/replaygain_synthesis.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 typedef struct {
+	FLAC__bool apply;
+	FLAC__bool use_album_gain; /* false => use track gain */
+	enum { RGSS_LIMIT__NONE, RGSS_LIMIT__PEAK, RGSS_LIMIT__HARD} limiter;
+	NoiseShaping noise_shaping;
+	double preamp;
+} replaygain_synthesis_spec_t;
+
+typedef struct {
 	FLAC__bool verbose;
 	FLAC__bool continue_through_decode_errors;
+	replaygain_synthesis_spec_t replaygain_synthesis_spec;
 #ifdef FLAC__HAS_OGG
 	FLAC__bool is_ogg;
 	FLAC__bool use_first_serial_number;

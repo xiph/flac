@@ -1825,6 +1825,8 @@ void ogg_stream_encoder_metadata_callback(const OggFLAC__StreamEncoder *encoder,
 
 void ogg_file_encoder_progress_callback(const OggFLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
 {
+	(void)encoder;
+
 	flac_file_encoder_progress_callback(0, bytes_written, samples_written, frames_written, total_frames_estimate, client_data);
 }
 

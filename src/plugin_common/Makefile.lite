@@ -5,7 +5,7 @@
 topdir = ../..
 
 LIB_NAME = libplugin_common
-INCLUDES = -I./include -I$(topdir)/include -I$(HOME)/local/include
+INCLUDES = -I$(topdir)/include -I$(HOME)/local/include
 DEFINES  = -DFLAC__HAS_ID3LIB -DID3LIB_MAJOR=3 -DID3LIB_MINOR=8 -DID3LIB_PATCH=0
 
 SRCS_C = \
@@ -14,7 +14,6 @@ SRCS_C = \
 	dither.c \
 	id3v1.c \
 	id3v2.c \
-	replaygain_synthesis.c \
 	vorbiscomment.c
 
 include $(topdir)/build/lib.mk

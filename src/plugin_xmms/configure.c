@@ -35,6 +35,7 @@
 #include <xmms/plugin.h>
 
 #include "plugin_common/locale_hack.h"
+#include "share/replaygain_synthesis.h" /* for NOISE_SHAPING_LOW */
 #include "charset.h"
 #include "configure.h"
 
@@ -68,7 +69,7 @@ flac_config_t flac_cfg = {
 			/* replaygain */
 			{
 				TRUE, /* dither */
-				1, /* noise_shaping */
+				NOISE_SHAPING_LOW, /* noise_shaping */
 				16 /* bps_out */
 			}
 		}

@@ -25,7 +25,7 @@ CFLAGS = @CFLAGS@ @OGG_CFLAGS@
 noinst_PROGRAMS = test_libOggFLAC++
 test_libOggFLAC___LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
-	$(top_builddir)/src/share/gain_analysis/libgain_analysis.la \
+	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
 	$(top_builddir)/src/libOggFLAC++/libOggFLAC++.la \
 	$(top_builddir)/src/libOggFLAC/libOggFLAC.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \

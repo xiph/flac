@@ -94,7 +94,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "gain_analysis.h"
+#include "replaygain_analysis.h"
 
 typedef unsigned short  Uint16_t;
 typedef signed short    Int16_t;
@@ -410,4 +410,4 @@ GetAlbumGain ( void )
     return analyzeResult ( B, sizeof(B)/sizeof(*B) );
 }
 
-/* end of gain_analysis.c */
+/* end of replaygain_analysis.c */

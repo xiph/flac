@@ -1,4 +1,4 @@
-/* plugin_common - Routines common to several plugins
+/* replaygain_synthesis - Routines for applying ReplayGain to a signal
  * Copyright (C) 2002,2003  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -199,7 +199,7 @@ static double scalar16_(const float* x, const float* y)
 }
 
 
-void FLAC__plugin_common__init_dither_context(DitherContext *d, int bits, int shapingtype)
+void FLAC__replaygain_synthesis__init_dither_context(DitherContext *d, int bits, int shapingtype)
 {
 	static unsigned char default_dither [] = { 92, 92, 88, 84, 81, 78, 74, 67,  0,  0 };
 	static const float*               F [] = { F44_0, F44_1, F44_2, F44_3 };
@@ -288,7 +288,7 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_d
 #endif
 
 
-int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__bool little_endian_data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context)
+size_t FLAC__replaygain_synthesis__apply_gain(FLAC__byte *data_out, FLAC__bool little_endian_data_out, FLAC__bool unsigned_data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context)
 {
 	static const FLAC__int32 conv_factors_[33] = {
 		-1, /* 0 bits-per-sample (not supported) */
@@ -375,12 +375,14 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__bool little_endi
 	const FLAC__int32 *input_;
 	double sample;
 	const unsigned bytes_per_sample = target_bps / 8;
-	unsigned inc = bytes_per_sample * channels, last_history_index = dither_context->LastHistoryIndex;
+	const unsigned last_history_index = dither_context->LastHistoryIndex;
 	NoiseShaping noise_shaping = dither_context->ShapingType;
 	FLAC__int64 val64;
 	FLAC__int32 val32;
+	FLAC__int32 uval32;
+	const FLAC__uint32 twiggle = 1u << (target_bps - 1);
 
-	FLAC__ASSERT(channels > 0 && channels <= FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS);
+	FLAC__ASSERT(channels > 0 && channels <= FLAC_SHARE__MAX_SUPPORTED_CHANNELS);
 	FLAC__ASSERT(source_bps >= 4);
 	FLAC__ASSERT(target_bps >= 4);
 	FLAC__ASSERT(source_bps <= 32);
@@ -388,9 +390,10 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__bool little_endi
 	FLAC__ASSERT((target_bps & 7) == 0);
 
 	for(channel = 0; channel < channels; channel++) {
+		const unsigned incr = bytes_per_sample * channels;
 		data_out = start + bytes_per_sample * channel;
 		input_ = input[channel];
-		for(i = 0; i < wide_samples; i++, data_out += inc) {
+		for(i = 0; i < wide_samples; i++, data_out += incr) {
 			sample = (double)input_[i] * multi_scale;
 
 			if(hard_limit) {
@@ -410,33 +413,36 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__bool little_endi
 			else if(val64 < hard_clip_factor)
 				val32 = (FLAC__int32)hard_clip_factor;
 
+			uval32 = (FLAC__uint32)val32;
+			if (unsigned_data_out)
+				uval32 ^= twiggle;
+
 			if (little_endian_data_out) {
 				switch(target_bps) {
-					case 8:
-						data_out[0] = val32 ^ 0x80;
-						break;
 					case 24:
-						data_out[2] = (FLAC__byte)(val32 >> 16);
+						data_out[2] = (FLAC__byte)(uval32 >> 16);
 						/* fall through */
 					case 16:
-						data_out[1] = (FLAC__byte)(val32 >> 8);
-						data_out[0] = (FLAC__byte)val32;
+						data_out[1] = (FLAC__byte)(uval32 >> 8);
+						/* fall through */
+					case 8:
+						data_out[0] = (FLAC__byte)uval32;
 						break;
 				}
 			}
 			else {
 				switch(target_bps) {
-					case 8:
-						data_out[0] = val32 ^ 0x80;
+					case 24:
+						data_out[0] = (FLAC__byte)(uval32 >> 16);
+						data_out[1] = (FLAC__byte)(uval32 >> 8);
+						data_out[2] = (FLAC__byte)uval32;
 						break;
 					case 16:
-						data_out[0] = (FLAC__byte)(val32 >> 8);
-						data_out[1] = (FLAC__byte)val32;
+						data_out[0] = (FLAC__byte)(uval32 >> 8);
+						data_out[1] = (FLAC__byte)uval32;
 						break;
-					case 24:
-						data_out[0] = (FLAC__byte)(val32 >> 16);
-						data_out[1] = (FLAC__byte)(val32 >> 8);
-						data_out[2] = (FLAC__byte)val32;
+					case 8:
+						data_out[0] = (FLAC__byte)uval32;
 						break;
 				}
 			}
@@ -444,5 +450,5 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__bool little_endi
 	}
 	dither_context->LastHistoryIndex = (last_history_index + wide_samples) % 32;
 
-	return data_out - start;
+	return wide_samples * channels * (target_bps/8);
 }

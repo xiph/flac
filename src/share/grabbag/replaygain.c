@@ -17,7 +17,7 @@
  */
 
 #include "share/grabbag.h"
-#include "share/gain_analysis.h"
+#include "share/replaygain_analysis.h"
 #include "FLAC/assert.h"
 #include "FLAC/file_decoder.h"
 #include "FLAC/metadata.h"

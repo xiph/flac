@@ -1,4 +1,4 @@
-#  plugin_common - Routines common to several plugins
+#  replaygain_synthesis - Routines for applying ReplayGain to a signal
 #  Copyright (C) 2002,2003  Josh Coalson
 # 
 #  This program is free software; you can redistribute it and/or
@@ -15,5 +15,4 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-noinst_HEADERS = \
-	fast_float_math_hack.h
+SUBDIRS = private

@@ -48,7 +48,10 @@ Package=<4>
     Project_Dep_Name grabbag_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gain_analysis_static
+    Project_Dep_Name replaygain_analysis_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name replaygain_synthesis_static
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name getopt_static
@@ -132,7 +135,10 @@ Package=<4>
     Project_Dep_Name grabbag_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gain_analysis_static
+    Project_Dep_Name replaygain_analysis_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name replaygain_synthesis_static
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name getopt_static
@@ -189,7 +195,10 @@ Package=<4>
     Project_Dep_Name grabbag_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gain_analysis_static
+    Project_Dep_Name replaygain_analysis_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name replaygain_synthesis_static
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name getopt_static
@@ -231,7 +240,19 @@ Package=<4>
 
 ###############################################################################
 
-Project: "gain_analysis_static"=.\src\share\gain_analysis\gain_analysis_static.dsp - Package Owner=<4>
+Project: "replaygain_analysis_static"=.\src\share\replaygain_analysis\replaygain_analysis_static.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "replaygain_synthesis_static"=.\src\share\replaygain_synthesis\replaygain_synthesis_static.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -267,7 +288,7 @@ Package=<4>
     Project_Dep_Name libFLAC_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gain_analysis_static
+    Project_Dep_Name replaygain_analysis_static
     End Project Dependency
 }}}
 
@@ -420,7 +441,7 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
-    Project_Dep_Name gain_analysis_static
+    Project_Dep_Name replaygain_analysis_static
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name getopt_static
@@ -446,6 +467,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name replaygain_synthesis_static
+    End Project Dependency
     Begin Project Dependency
     Project_Dep_Name libFLAC_static
     End Project Dependency

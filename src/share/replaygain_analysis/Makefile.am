@@ -4,13 +4,13 @@ AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = -I$(top_srcdir)/include/share
 
-noinst_LTLIBRARIES = libgain_analysis.la
+noinst_LTLIBRARIES = libreplaygain_analysis.la
 
-libgain_analysis_la_SOURCES = gain_analysis.c
+libreplaygain_analysis_la_SOURCES = replaygain_analysis.c
 
 EXTRA_DIST = \
 	Makefile.lite \
-	gain_analysis_static.dsp
+	replaygain_analysis_static.dsp
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

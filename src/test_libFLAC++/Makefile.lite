@@ -23,7 +23,7 @@ topdir = ../..
 
 PROGRAM_NAME = test_libFLAC++
 INCLUDES     = -I$(topdir)/include
-LIBS         = -lgrabbag -lgain_analysis -lFLAC++ -lFLAC -lm
+LIBS         = -lgrabbag -lreplaygain_analysis -lFLAC++ -lFLAC -lm
 SRCS_C = \
 	file_utils.c \
 	metadata_utils.c

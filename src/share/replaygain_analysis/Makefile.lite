@@ -4,11 +4,11 @@
 
 topdir = ../../..
 
-LIB_NAME = libgain_analysis
+LIB_NAME = libreplaygain_analysis
 INCLUDES = -I$(topdir)/include/share
 
 SRCS_C = \
-	gain_analysis.c
+	replaygain_analysis.c
 
 include $(topdir)/build/lib.mk
 

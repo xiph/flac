@@ -85,103 +85,104 @@ static struct share__option long_options_[] = {
 	/*
 	 * general options
 	 */
-	{ "help", 0, 0, 'h' },
-	{ "explain", 0, 0, 'H' },
-	{ "version", 0, 0, 'v' },
-	{ "decode", 0, 0, 'd' },
-	{ "analyze", 0, 0, 'a' },
-	{ "test", 0, 0, 't' },
-	{ "stdout", 0, 0, 'c' },
-	{ "silent", 0, 0, 's' },
-	{ "delete-input-file", 0, 0, 0 },
-	{ "output-prefix", 1, 0, 0 },
-	{ "output-name", 1, 0, 'o' },
-	{ "skip", 1, 0, 0 },
-	{ "until", 1, 0, 0 },
+	{ "help"             , share__no_argument, 0, 'h' },
+	{ "explain"          , share__no_argument, 0, 'H' },
+	{ "version"          , share__no_argument, 0, 'v' },
+	{ "decode"           , share__no_argument, 0, 'd' },
+	{ "analyze"          , share__no_argument, 0, 'a' },
+	{ "test"             , share__no_argument, 0, 't' },
+	{ "stdout"           , share__no_argument, 0, 'c' },
+	{ "silent"           , share__no_argument, 0, 's' },
+	{ "delete-input-file", share__no_argument, 0, 0 },
+	{ "output-prefix"    , share__required_argument, 0, 0 },
+	{ "output-name"      , share__required_argument, 0, 'o' },
+	{ "skip"             , share__required_argument, 0, 0 },
+	{ "until"            , share__required_argument, 0, 0 },
 
 	/*
 	 * decoding options
 	 */
-	{ "decode-through-errors", 0, 0, 'F' },
+	{ "decode-through-errors", share__no_argument, 0, 'F' },
+	{ "apply-replaygain-which-is-not-lossless", share__optional_argument, 0, 0 }, /* undocumented */
 
 	/*
 	 * encoding options
 	 */
-	{ "cuesheet", 1, 0, 0 },
-	{ "no-cued-seekpoints", 0, 0, 0 },
-	{ "tag", 1, 0, 'T' },
-	{ "compression-level-0", 0, 0, '0' },
-	{ "compression-level-1", 0, 0, '1' },
-	{ "compression-level-2", 0, 0, '2' },
-	{ "compression-level-3", 0, 0, '3' },
-	{ "compression-level-4", 0, 0, '4' },
-	{ "compression-level-5", 0, 0, '5' },
-	{ "compression-level-6", 0, 0, '6' },
-	{ "compression-level-7", 0, 0, '7' },
-	{ "compression-level-8", 0, 0, '8' },
-	{ "compression-level-9", 0, 0, '9' },
-	{ "best", 0, 0, '8' },
-	{ "fast", 0, 0, '0' },
-	{ "super-secret-totally-impractical-compression-level", 0, 0, 0 },
-	{ "verify", 0, 0, 'V' },
-	{ "force-aiff-format", 0, 0, 0 },
-	{ "force-raw-format", 0, 0, 0 },
-	{ "lax", 0, 0, 0 },
-	{ "replay-gain", 0, 0, 0 },
-	{ "sector-align", 0, 0, 0 },
-	{ "seekpoint", 1, 0, 'S' },
-	{ "padding", 1, 0, 'P' },
+	{ "cuesheet"                  , share__required_argument, 0, 0 },
+	{ "no-cued-seekpoints"        , share__no_argument, 0, 0 },
+	{ "tag"                       , share__required_argument, 0, 'T' },
+	{ "compression-level-0"       , share__no_argument, 0, '0' },
+	{ "compression-level-1"       , share__no_argument, 0, '1' },
+	{ "compression-level-2"       , share__no_argument, 0, '2' },
+	{ "compression-level-3"       , share__no_argument, 0, '3' },
+	{ "compression-level-4"       , share__no_argument, 0, '4' },
+	{ "compression-level-5"       , share__no_argument, 0, '5' },
+	{ "compression-level-6"       , share__no_argument, 0, '6' },
+	{ "compression-level-7"       , share__no_argument, 0, '7' },
+	{ "compression-level-8"       , share__no_argument, 0, '8' },
+	{ "compression-level-9"       , share__no_argument, 0, '9' },
+	{ "best"                      , share__no_argument, 0, '8' },
+	{ "fast"                      , share__no_argument, 0, '0' },
+	{ "super-secret-totally-impractical-compression-level", share__no_argument, 0, 0 },
+	{ "verify"                    , share__no_argument, 0, 'V' },
+	{ "force-aiff-format"         , share__no_argument, 0, 0 },
+	{ "force-raw-format"          , share__no_argument, 0, 0 },
+	{ "lax"                       , share__no_argument, 0, 0 },
+	{ "replay-gain"               , share__no_argument, 0, 0 },
+	{ "sector-align"              , share__no_argument, 0, 0 },
+	{ "seekpoint"                 , share__required_argument, 0, 'S' },
+	{ "padding"                   , share__required_argument, 0, 'P' },
 #ifdef FLAC__HAS_OGG
-	{ "ogg", 0, 0, 0 },
-	{ "serial-number", 1, 0, 0 },
+	{ "ogg"                       , share__no_argument, 0, 0 },
+	{ "serial-number"             , share__required_argument, 0, 0 },
 #endif
-	{ "blocksize", 1, 0, 'b' },
-	{ "exhaustive-model-search", 0, 0, 'e' },
-	{ "max-lpc-order", 1, 0, 'l' },
-	{ "mid-side", 0, 0, 'm' },
-	{ "adaptive-mid-side", 0, 0, 'M' },
-	{ "qlp-coeff-precision-search", 0, 0, 'p' },
-	{ "qlp-coeff-precision", 1, 0, 'q' },
-	{ "rice-partition-order", 1, 0, 'r' },
-	{ "endian", 1, 0, 0 },
-	{ "channels", 1, 0, 0 },
-	{ "bps", 1, 0, 0 },
-	{ "sample-rate", 1, 0, 0 },
-	{ "sign", 1, 0, 0 },
+	{ "blocksize"                 , share__required_argument, 0, 'b' },
+	{ "exhaustive-model-search"   , share__no_argument, 0, 'e' },
+	{ "max-lpc-order"             , share__required_argument, 0, 'l' },
+	{ "mid-side"                  , share__no_argument, 0, 'm' },
+	{ "adaptive-mid-side"         , share__no_argument, 0, 'M' },
+	{ "qlp-coeff-precision-search", share__no_argument, 0, 'p' },
+	{ "qlp-coeff-precision"       , share__required_argument, 0, 'q' },
+	{ "rice-partition-order"      , share__required_argument, 0, 'r' },
+	{ "endian"                    , share__required_argument, 0, 0 },
+	{ "channels"                  , share__required_argument, 0, 0 },
+	{ "bps"                       , share__required_argument, 0, 0 },
+	{ "sample-rate"               , share__required_argument, 0, 0 },
+	{ "sign"                      , share__required_argument, 0, 0 },
 
 	/*
 	 * analysis options
 	 */
-	{ "residual-gnu-plot", 0, 0, 0 },
-	{ "residual-text", 0, 0, 0 },
+	{ "residual-gnu-plot", share__no_argument, 0, 0 },
+	{ "residual-text", share__no_argument, 0, 0 },
 
 	/*
 	 * negatives
 	 */
-	{ "no-decode-through-errors", 0, 0, 0 },
-	{ "no-silent", 0, 0, 0 },
-	{ "no-seektable", 0, 0, 0 },
-	{ "no-delete-input-file", 0, 0, 0 },
-	{ "no-replay-gain", 0, 0, 0 },
-	{ "no-sector-align", 0, 0, 0 },
-	{ "no-lax", 0, 0, 0 },
+	{ "no-decode-through-errors"  , share__no_argument, 0, 0 },
+	{ "no-silent"                 , share__no_argument, 0, 0 },
+	{ "no-seektable"              , share__no_argument, 0, 0 },
+	{ "no-delete-input-file"      , share__no_argument, 0, 0 },
+	{ "no-replay-gain"            , share__no_argument, 0, 0 },
+	{ "no-sector-align"           , share__no_argument, 0, 0 },
+	{ "no-lax"                    , share__no_argument, 0, 0 },
 #ifdef FLAC__HAS_OGG
-	{ "no-ogg", 0, 0, 0 },
+	{ "no-ogg"                    , share__no_argument, 0, 0 },
 #endif
-	{ "no-exhaustive-model-search", 0, 0, 0 },
-	{ "no-mid-side", 0, 0, 0 },
-	{ "no-adaptive-mid-side", 0, 0, 0 },
-	{ "no-qlp-coeff-prec-search", 0, 0, 0 },
-	{ "no-padding", 0, 0, 0 },
-	{ "no-verify", 0, 0, 0 },
-	{ "no-residual-gnuplot", 0, 0, 0 },
-	{ "no-residual-text", 0, 0, 0 },
+	{ "no-exhaustive-model-search", share__no_argument, 0, 0 },
+	{ "no-mid-side"               , share__no_argument, 0, 0 },
+	{ "no-adaptive-mid-side"      , share__no_argument, 0, 0 },
+	{ "no-qlp-coeff-prec-search"  , share__no_argument, 0, 0 },
+	{ "no-padding"                , share__no_argument, 0, 0 },
+	{ "no-verify"                 , share__no_argument, 0, 0 },
+	{ "no-residual-gnuplot"       , share__no_argument, 0, 0 },
+	{ "no-residual-text"          , share__no_argument, 0, 0 },
 	/*
 	 * undocumented debugging options for the test suite
 	 */
-	{ "disable-constant-subframes", 0, 0, 0 },
-	{ "disable-fixed-subframes", 0, 0, 0 },
-	{ "disable-verbatim-subframes", 0, 0, 0 },
+	{ "disable-constant-subframes", share__no_argument, 0, 0 },
+	{ "disable-fixed-subframes"   , share__no_argument, 0, 0 },
+	{ "disable-verbatim-subframes", share__no_argument, 0, 0 },
 
 	{0, 0, 0, 0}
 };
@@ -199,6 +200,7 @@ static struct {
 	FLAC__bool verify;
 	FLAC__bool verbose;
 	FLAC__bool continue_through_decode_errors;
+	replaygain_synthesis_spec_t replaygain_synthesis_spec;
 	FLAC__bool lax;
 	FLAC__bool test_only;
 	FLAC__bool analyze;
@@ -520,6 +522,11 @@ FLAC__bool init_options()
 	option_values.verify = false;
 	option_values.verbose = true;
 	option_values.continue_through_decode_errors = false;
+	option_values.replaygain_synthesis_spec.apply = false;
+	option_values.replaygain_synthesis_spec.use_album_gain = true;
+	option_values.replaygain_synthesis_spec.limiter = RGSS_LIMIT__HARD;
+	option_values.replaygain_synthesis_spec.noise_shaping = NOISE_SHAPING_LOW;
+	option_values.replaygain_synthesis_spec.preamp = 0.0;
 	option_values.lax = false;
 	option_values.test_only = false;
 	option_values.analyze = false;
@@ -634,6 +641,31 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "until")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.until_specification = option_argument;
+		}
+		else if(0 == strcmp(long_option, "apply-replaygain-which-is-not-lossless")) {
+			option_values.replaygain_synthesis_spec.apply = true;
+			if (0 != option_argument) {
+				char *p;
+				option_values.replaygain_synthesis_spec.limiter = RGSS_LIMIT__NONE;
+				option_values.replaygain_synthesis_spec.noise_shaping = NOISE_SHAPING_NONE;
+				option_values.replaygain_synthesis_spec.preamp = strtod(option_argument, &p);
+				for ( ; *p; p++) {
+					if (*p == 'a')
+						option_values.replaygain_synthesis_spec.use_album_gain = true;
+					else if (*p == 't')
+						option_values.replaygain_synthesis_spec.use_album_gain = false;
+					else if (*p == 'l')
+						option_values.replaygain_synthesis_spec.limiter = RGSS_LIMIT__PEAK;
+					else if (*p == 'L')
+						option_values.replaygain_synthesis_spec.limiter = RGSS_LIMIT__HARD;
+					else if (*p == 'n' && p[1] >= '0' && p[1] <= '3') {
+						option_values.replaygain_synthesis_spec.noise_shaping = p[1] - '0';
+						p++;
+					}
+					else
+						return usage_error("ERROR: bad specification string \"%s\" for --%s\n", option_argument, long_option);
+				}
+			}
 		}
 		else if(0 == strcmp(long_option, "cuesheet")) {
 			FLAC__ASSERT(0 != option_argument);
@@ -1570,6 +1602,7 @@ int decode_file(const char *infilename)
 
 	common_options.verbose = option_values.verbose;
 	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
+	common_options.replaygain_synthesis_spec = option_values.replaygain_synthesis_spec;
 #ifdef FLAC__HAS_OGG
 	common_options.is_ogg = treat_as_ogg;
 	common_options.use_first_serial_number = !option_values.has_serial_number;

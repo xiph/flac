@@ -1,6 +1,8 @@
 /* flac - Command-line FLAC encoder/decoder
  */
 
+#include <string.h>
+
 #include "utils.h"
 
 /*	$OpenBSD: strlcpy.c,v 1.8 2003/06/17 21:56:24 millert Exp $

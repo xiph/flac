@@ -17,7 +17,7 @@
  */
 
 /*
- * This wraps the gain_analysis lib, which is LGPL.  This wrapper
+ * This wraps the replaygain_analysis lib, which is LGPL.  This wrapper
  * allows analysis of different input resolutions by automatically
  * scaling the input signal
  */

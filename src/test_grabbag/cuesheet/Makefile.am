@@ -26,7 +26,7 @@ test_cuesheet_SOURCES = \
 	main.c
 test_cuesheet_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
-	$(top_builddir)/src/share/gain_analysis/libgain_analysis.la \
+	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	-lm
 

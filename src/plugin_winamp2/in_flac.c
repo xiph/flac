@@ -26,6 +26,7 @@
 #include "FLAC/all.h"
 #include "plugin_common/all.h"
 #include "share/grabbag.h"
+#include "share/replaygain_synthesis.h"
 #include "config.h"
 #include "infobox.h"
 #include "tagz.h"
@@ -151,7 +152,7 @@ int play(char *fn)
 		cfg.resolution.normal.dither_24_to_16 ? min(file_info_.bits_per_sample, 16) : file_info_.bits_per_sample;
 
 	if (file_info_.has_replaygain && cfg.replaygain.enable && cfg.resolution.replaygain.dither)
-		FLAC__plugin_common__init_dither_context(&file_info_.dither_context, file_info_.bits_per_sample, cfg.resolution.replaygain.noise_shaping);
+		FLAC__replaygain_synthesis__init_dither_context(&file_info_.dither_context, file_info_.bits_per_sample, cfg.resolution.replaygain.noise_shaping);
 
 	maxlatency = mod_.outMod->Open(file_info_.sample_rate, file_info_.channels, file_info_.output_bits_per_sample, -1, -1);
 	if (maxlatency < 0) /* error opening device */
@@ -354,9 +355,10 @@ static DWORD WINAPI DecodeThread(void *unused)
 				unsigned i;
 
 				if(cfg.replaygain.enable && file_info_.has_replaygain) {
-					bytes = (int)FLAC__plugin_common__apply_gain(
+					bytes = (int)FLAC__replaygain_synthesis__apply_gain(
 						sample_buffer_,
 						true, /* little_endian_data_out */
+						target_bps == 8, /* unsigned_data_out */
 						reservoir_,
 						n,
 						channels,

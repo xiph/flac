@@ -19,7 +19,7 @@
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_INIT(src/flac/main.c)
-AM_INIT_AUTOMAKE(flac, 1.1.0)
+AM_INIT_AUTOMAKE(flac, CVS-20031217)
 
 # Don't automagically regenerate autoconf/automake generated files unless
 # explicitly requested.  Eases autobuilding -mdz
@@ -361,9 +361,10 @@ AC_OUTPUT( \
 	src/plugin_winamp3/Makefile \
 	src/plugin_xmms/Makefile \
 	src/share/Makefile \
-	src/share/gain_analysis/Makefile \
 	src/share/getopt/Makefile \
 	src/share/grabbag/Makefile \
+	src/share/replaygain_analysis/Makefile \
+	src/share/replaygain_synthesis/Makefile \
 	src/share/utf8/Makefile \
 	src/test_grabbag/Makefile \
 	src/test_grabbag/cuesheet/Makefile \

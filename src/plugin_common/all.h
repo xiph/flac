@@ -25,7 +25,6 @@
 #include "id3v1.h"
 #include "id3v2.h"
 #include "locale_hack.h"
-#include "replaygain_synthesis.h"
 #include "vorbiscomment.h"
 
 #endif

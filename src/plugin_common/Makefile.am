@@ -2,8 +2,6 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = include .
-
 INCLUDES = -I$(top_srcdir)/include @ID3LIB_CFLAGS@
 
 noinst_LTLIBRARIES = libplugin_common.la
@@ -17,7 +15,6 @@ noinst_HEADERS = \
 	id3v1.h \
 	id3v2.h \
 	locale_hack.h \
-	replaygain_synthesis.h \
 	vorbiscomment.h
 
 libplugin_common_la_SOURCES = \
@@ -26,7 +23,6 @@ libplugin_common_la_SOURCES = \
 	dither.c \
 	id3v1.c \
 	id3v2.c \
-	replaygain_synthesis.c \
 	vorbiscomment.c
 
 EXTRA_DIST = \

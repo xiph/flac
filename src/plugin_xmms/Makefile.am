@@ -59,7 +59,8 @@ endif
 libxmms_flac_la_LIBADD = \
 	$(top_builddir)/src/plugin_common/libplugin_common.la \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
-	$(top_builddir)/src/share/gain_analysis/libgain_analysis.la \
+	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
+	$(top_builddir)/src/share/replaygain_synthesis/libreplaygain_synthesis.la \
 	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	-L$(top_builddir)/src/libFLAC/.libs \

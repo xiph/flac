@@ -1,34 +1,34 @@
-# Microsoft Developer Studio Project File - Name="gain_analysis_static" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="replaygain_analysis_static" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=gain_analysis_static - Win32 Debug
+CFG=replaygain_analysis_static - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "gain_analysis_static.mak".
+!MESSAGE NMAKE /f "replaygain_analysis_static.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "gain_analysis_static.mak" CFG="gain_analysis_static - Win32 Debug"
+!MESSAGE NMAKE /f "replaygain_analysis_static.mak" CFG="replaygain_analysis_static - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "gain_analysis_static - Win32 Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "gain_analysis_static - Win32 Debug" (based on "Win32 (x86) Static Library")
+!MESSAGE "replaygain_analysis_static - Win32 Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "replaygain_analysis_static - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName "gain_analysis"
+# PROP Scc_ProjName "replaygain_analysis"
 # PROP Scc_LocalPath "..\..\.."
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "gain_analysis_static - Win32 Release"
+!IF  "$(CFG)" == "replaygain_analysis_static - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -51,7 +51,7 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo /nodefaultlib
 
-!ELSEIF  "$(CFG)" == "gain_analysis_static - Win32 Debug"
+!ELSEIF  "$(CFG)" == "replaygain_analysis_static - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -78,14 +78,14 @@ LIB32=link.exe -lib
 
 # Begin Target
 
-# Name "gain_analysis_static - Win32 Release"
-# Name "gain_analysis_static - Win32 Debug"
+# Name "replaygain_analysis_static - Win32 Release"
+# Name "replaygain_analysis_static - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "c"
 # Begin Source File
 
-SOURCE=.\gain_analysis.c
+SOURCE=.\replaygain_analysis.c
 # End Source File
 # End Group
 # Begin Group "Private Header Files"
@@ -101,7 +101,7 @@ SOURCE=.\gain_analysis.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\..\include\share\gain_analysis.h
+SOURCE=..\..\..\include\share\replaygain_analysis.h
 # End Source File
 # End Group
 # End Target
