@@ -20,7 +20,10 @@
 #include <stdio.h>
 
 #include "canonical_tag.h"
+#include "id3v2.h"
+#include "vorbiscomment.h"
 #include "FLAC/assert.h"
+#include "FLAC/metadata.h"
 
 static void local__safe_free(void *object)
 {
@@ -42,6 +45,17 @@ static void local__copy_field(char **dest, const char *src, unsigned n)
 	}
 	else
 		*dest = 0;
+}
+
+static FLAC__bool local__get_id3v1_tag_as_canonical(const char *filename, FLAC_Plugin__CanonicalTag *tag)
+{
+	FLAC_Plugin__Id3v1_Tag id3v1_tag;
+
+	if(FLAC_plugin__id3v1_tag_get(filename, &id3v1_tag)) {
+		FLAC_plugin__canonical_tag_convert_from_id3v1(tag, &id3v1_tag);
+		return true;
+	}
+	return false;
 }
 
 FLAC_Plugin__CanonicalTag *FLAC_plugin__canonical_tag_new()
@@ -132,4 +146,24 @@ void FLAC_plugin__canonical_tag_convert_from_id3v1(FLAC_Plugin__CanonicalTag *ob
 	}
 
 	object->genre = strdup(FLAC_plugin__id3v1_tag_get_genre_as_string(id3v1_tag->genre));
+}
+
+void FLAC_plugin__canonical_tag_get_combined(const char *filename, FLAC_Plugin__CanonicalTag *tag)
+{
+	FLAC_Plugin__CanonicalTag id3v1_tag, id3v2_tag;
+
+	FLAC_plugin__vorbiscomment_get(filename, tag);
+
+	FLAC_plugin__canonical_tag_init(&id3v2_tag);
+	(void)FLAC_plugin__id3v2_tag_get(filename, &id3v2_tag);
+
+	FLAC_plugin__canonical_tag_init(&id3v1_tag);
+	(void)local__get_id3v1_tag_as_canonical(filename, &id3v1_tag);
+
+	/* merge tags, preferring, in order: vorbis comments, id3v2, id3v1 */
+	FLAC_plugin__canonical_tag_merge(tag, &id3v2_tag);
+	FLAC_plugin__canonical_tag_merge(tag, &id3v1_tag);
+
+	FLAC_plugin__canonical_tag_clear(&id3v1_tag);
+	FLAC_plugin__canonical_tag_clear(&id3v2_tag);
 }

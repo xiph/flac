@@ -47,4 +47,9 @@ void FLAC_plugin__canonical_tag_merge(FLAC_Plugin__CanonicalTag *dest, FLAC_Plug
 
 void FLAC_plugin__canonical_tag_convert_from_id3v1(FLAC_Plugin__CanonicalTag *, const FLAC_Plugin__Id3v1_Tag *);
 
+/* Returns a merged tag based on any Vorbis comments, id3v2 tag, and id3v1.
+ * In case of overlaps the preceding precedence applies.
+ */
+void FLAC_plugin__canonical_tag_get_combined(const char *filename, FLAC_Plugin__CanonicalTag *tag);
+
 #endif
