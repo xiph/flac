@@ -29,7 +29,6 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 lib_LTLIBRARIES = libFLAC++.la
-CXXFLAGS = @CXXFLAGS@
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = libFLAC++.m4

@@ -16,7 +16,8 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 bin_PROGRAMS = flac
-CFLAGS = @CFLAGS@ @OGG_CFLAGS@
+
+AM_CFLAGS = @OGG_CFLAGS@
 
 if FLaC__HAS_OGG
 NEED_OGGFLAC_LIB = $(top_builddir)/src/libOggFLAC/libOggFLAC.la

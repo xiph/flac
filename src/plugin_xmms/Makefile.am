@@ -29,7 +29,8 @@ noinst_HEADERS = \
 	plugin.h \
 	tag.h
 
-CFLAGS = @CFLAGS@ @XMMS_CFLAGS@
+AM_CFLAGS = @XMMS_CFLAGS@
+
 INCLUDES = -I$(top_srcdir)/src
 if FLaC__INSTALL_XMMS_PLUGIN_LOCALLY
 xmmsinputplugindir = $(HOME)/.xmms/Plugins

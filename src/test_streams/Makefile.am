@@ -19,8 +19,6 @@ EXTRA_DIST = \
 	Makefile.lite \
 	test_streams.dsp
 
-CFLAGS = @CFLAGS@
-
 noinst_PROGRAMS = test_streams
 test_streams_SOURCES = \
 	main.c

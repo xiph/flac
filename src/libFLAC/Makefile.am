@@ -43,7 +43,8 @@ else
 CPUCFLAGS = -maltivec -mabi=altivec -force_cpusubtype_ALL -DFLAC__NO_ASM
 endif
 endif
-CFLAGS = @CFLAGS@ $(DEBUGCFLAGS) $(CPUCFLAGS)
+
+AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS)
 
 if FLaC__NO_ASM
 else

@@ -19,7 +19,8 @@ EXTRA_DIST = \
 	Makefile.lite \
 	test_seeking.dsp
 
-CFLAGS = @CFLAGS@ @OGG_CFLAGS@
+AM_CFLAGS = @OGG_CFLAGS@
+
 INCLUDES = 
 
 if FLaC__HAS_OGG

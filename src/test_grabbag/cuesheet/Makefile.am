@@ -19,8 +19,6 @@ EXTRA_DIST = \
 	Makefile.lite \
 	test_cuesheet.dsp
 
-CFLAGS = @CFLAGS@
-
 noinst_PROGRAMS = test_cuesheet
 test_cuesheet_SOURCES = \
 	main.c

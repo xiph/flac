@@ -20,7 +20,7 @@ EXTRA_DIST = \
 	README \
 	test_libOggFLAC++.dsp
 
-CFLAGS = @CFLAGS@ @OGG_CFLAGS@
+AM_CFLAGS = @OGG_CFLAGS@
 
 noinst_PROGRAMS = test_libOggFLAC++
 test_libOggFLAC___LDADD = \

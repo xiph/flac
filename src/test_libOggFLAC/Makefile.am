@@ -19,7 +19,8 @@ EXTRA_DIST = \
 	Makefile.lite \
 	test_libOggFLAC.dsp
 
-CFLAGS = @CFLAGS@ @OGG_CFLAGS@
+AM_CFLAGS = @OGG_CFLAGS@
+
 INCLUDES = 
 
 noinst_PROGRAMS = test_libOggFLAC
