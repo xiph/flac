@@ -82,6 +82,7 @@ static struct share__option long_options_[] = {
 	{ "set-vc-field", 1, 0, 0 },
 	{ "import-vc-from", 1, 0, 0 },
 	{ "export-vc-to", 1, 0, 0 },
+	{ "add-seekpoint", 1, 0, 0 },
 	{ "add-replay-gain", 0, 0, 0 },
 	{ "add-padding", 1, 0, 0 },
 	/* major operations */
@@ -130,6 +131,7 @@ typedef enum {
 	OP__SET_VC_FIELD,
 	OP__IMPORT_VC_FROM,
 	OP__EXPORT_VC_TO,
+	OP__ADD_SEEKPOINT,
 	OP__ADD_REPLAY_GAIN,
 	OP__ADD_PADDING,
 	OP__LIST,
@@ -201,6 +203,10 @@ typedef struct {
 } Argument_FromFile;
 
 typedef struct {
+	char *specification;
+} Argument_AddSeekpoint;
+
+typedef struct {
 	unsigned length;
 } Argument_AddPadding;
 
@@ -213,6 +219,7 @@ typedef struct {
 		Argument_VcFieldName vc_field_name;
 		Argument_VcField vc_field;
 		Argument_VcFilename vc_filename;
+		Argument_AddSeekpoint add_seekpoint;
 		Argument_AddPadding add_padding;
 	} argument;
 } Operation;
@@ -275,6 +282,7 @@ static FLAC__bool parse_uint64(const char *src, FLAC__uint64 *dest);
 static FLAC__bool parse_filename(const char *src, char **dest);
 static FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field, char **name, char **value, unsigned *length, const char **violation);
 static FLAC__bool parse_vorbis_comment_field_name(const char *field_ref, char **name, const char **violation);
+static FLAC__bool parse_add_seekpoint(const char *in, char **out, const char **violation);
 static FLAC__bool parse_add_padding(const char *in, unsigned *out);
 static FLAC__bool parse_block_number(const char *in, Argument_BlockNumber *out);
 static FLAC__bool parse_block_type(const char *in, Argument_BlockType *out);
@@ -616,6 +624,16 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
+	else if(0 == strcmp(opt, "add-seekpoint")) {
+		const char *violation;
+		op = append_shorthand_operation(options, OP__ADD_SEEKPOINT);
+		FLAC__ASSERT(0 != option_argument);
+		if(!parse_add_seekpoint(option_argument, &(op->argument.add_seekpoint.specification), &violation)) {
+			FLAC__ASSERT(0 != violation);
+			fprintf(stderr, "ERROR (--%s): malformed seekpoint specification \"%s\",\n       %s\n", opt, option_argument, violation);
+			ok = false;
+		}
+	}
 	else if(0 == strcmp(opt, "add-replay-gain")) {
 		(void) append_shorthand_operation(options, OP__ADD_REPLAY_GAIN);
 	}
@@ -733,6 +751,10 @@ void free_options(CommandLineOptions *options)
 			case OP__EXPORT_VC_TO:
 				if(0 != op->argument.vc_filename.value)
 					free(op->argument.vc_filename.value);
+				break;
+			case OP__ADD_SEEKPOINT:
+				if(0 != op->argument.add_seekpoint.specification)
+					free(op->argument.add_seekpoint.specification);
 				break;
 			default:
 				break;
@@ -1208,8 +1230,57 @@ static FLAC__bool parse_vorbis_comment_field_name(const char *field_ref, char **
 	return true;
 }
 
+FLAC__bool parse_add_seekpoint(const char *in, char **out, const char **violation)
+{
+	static const char *garbled_ = "garbled specification";
+	const unsigned n = strlen(in);
+
+	FLAC__ASSERT(0 != in);
+	FLAC__ASSERT(0 != out);
+
+	if(n == 0) {
+		*violation = "specification is empty";
+		return false;
+	}
+
+	if(n > strspn(in, "0123456789.Xsx")) {
+		*violation = "specification contains invalid character";
+		return false;
+	}
+
+	if(in[n-1] == 'X') {
+		if(n > 1) {
+			*violation = garbled_;
+			return false;
+		}
+	}
+	else if(in[n-1] == 's') {
+		if(n-1 > strspn(in, "0123456789.")) {
+			*violation = garbled_;
+			return false;
+		}
+	}
+	else if(in[n-1] == 'x') {
+		if(n-1 > strspn(in, "0123456789")) {
+			*violation = garbled_;
+			return false;
+		}
+	}
+	else {
+		if(n > strspn(in, "0123456789")) {
+			*violation = garbled_;
+			return false;
+		}
+	}
+
+	*out = local_strdup(in);
+	return true;
+}
+
 FLAC__bool parse_add_padding(const char *in, unsigned *out)
 {
+	FLAC__ASSERT(0 != in);
+	FLAC__ASSERT(0 != out);
 	*out = (unsigned)strtoul(in, 0, 10);
 	return *out < (1u << FLAC__STREAM_METADATA_LENGTH_LEN);
 }
