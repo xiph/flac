@@ -365,6 +365,7 @@ FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new();
  */
 FLAC_API void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder);
 
+
 /***********************************************************************
  *
  * Public class method prototypes
