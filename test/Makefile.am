@@ -50,6 +50,8 @@ TESTS = \
 EXTRA_DIST = \
 	Makefile.lite \
 	cuesheet.ok \
+	metaflac.flac.in \
+	metaflac.flac.ok \
 	test_libFLAC.sh \
 	test_libFLAC++.sh \
 	test_libOggFLAC.sh \
