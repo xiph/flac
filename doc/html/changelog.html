@@ -125,7 +125,7 @@
 		<LI>
 			plugins:
 			<UL>
-				<LI>Added support for HTTP streaming in XMMS plugin.</LI>
+				<LI>Added support for HTTP streaming in XMMS plugin.  <B>NOTE</B>: there is a <A HREF="http://bugs.xmms.org/show_bug.cgi?id=2038">bug</A> in the XMMS mpg123 plugin that hijacks FLAC streams; to fix it you will need to add the '.flac' extension to the list of exceptions in <TT>Input/mpg123/mpg123.c:is_our_file()</TT> in the XMMS sources and recompile.</LI>
 			</UL>
 		</LI>
 		<LI>
