@@ -64,7 +64,7 @@ typedef struct FLAC__EncoderPrivate {
 
 static bool encoder_resize_buffers_(FLAC__Encoder *encoder, unsigned new_size);
 static bool encoder_process_frame_(FLAC__Encoder *encoder, bool is_last_frame);
-static bool encoder_process_subframes_(FLAC__Encoder *encoder, bool is_last_frame, const FLAC__FrameHeader *frame_header, unsigned channels, const int32 *integer_signal[], const real *real_signal[], FLAC__BitBuffer *bitbuffer);
+static bool encoder_process_subframes_(FLAC__Encoder *encoder, bool is_last_frame, bool verbatim_only, const FLAC__FrameHeader *frame_header, unsigned channels, const int32 *integer_signal[], const real *real_signal[], FLAC__BitBuffer *bitbuffer);
 static unsigned encoder_evaluate_constant_subframe_(const int32 signal, unsigned bits_per_sample, FLAC__Subframe *subframe);
 static unsigned encoder_evaluate_fixed_subframe_(const int32 signal[], int32 residual[], uint32 abs_residual[], unsigned blocksize, unsigned bits_per_sample, unsigned order, unsigned rice_parameter, unsigned max_partition_order, FLAC__Subframe *subframe);
 static unsigned encoder_evaluate_lpc_subframe_(const int32 signal[], int32 residual[], uint32 abs_residual[], const real lp_coeff[], unsigned blocksize, unsigned bits_per_sample, unsigned order, unsigned qlp_coeff_precision, unsigned rice_parameter, unsigned max_partition_order, FLAC__Subframe *subframe);
@@ -88,6 +88,7 @@ const char *FLAC__EncoderStateString[] = {
 	"FLAC__ENCODER_INVALID_QLP_COEFF_PRECISION",
 	"FLAC__ENCODER_MID_SIDE_CHANNELS_MISMATCH",
 	"FLAC__ENCODER_MID_SIDE_SAMPLE_SIZE_MISMATCH",
+	"FLAC__ENCODER_ILLEGAL_MID_SIDE_FORCE",
 	"FLAC__ENCODER_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER",
 	"FLAC__ENCODER_NOT_STREAMABLE",
 	"FLAC__ENCODER_FRAMING_ERROR",
@@ -238,6 +239,9 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 
 	if(encoder->do_mid_side_stereo && encoder->bits_per_sample > 16)
 		return encoder->state = FLAC__ENCODER_MID_SIDE_SAMPLE_SIZE_MISMATCH;
+
+	if(encoder->force_mid_side_stereo && !encoder->do_mid_side_stereo)
+		return encoder->state = FLAC__ENCODER_ILLEGAL_MID_SIDE_FORCE;
 
 	if(encoder->bits_per_sample == 0 || encoder->bits_per_sample > FLAC__MAX_BITS_PER_SAMPLE)
 		return encoder->state = FLAC__ENCODER_INVALID_BITS_PER_SAMPLE;
@@ -535,7 +539,7 @@ bool encoder_process_frame_(FLAC__Encoder *encoder, bool is_last_frame)
 		return false;
 	}
 
-	if(!encoder_process_subframes_(encoder, is_last_frame, &frame_header, encoder->channels, encoder->guts->integer_signal, encoder->guts->real_signal, &encoder->guts->frame))
+	if(!encoder_process_subframes_(encoder, is_last_frame, encoder->force_mid_side_stereo, &frame_header, encoder->channels, encoder->guts->integer_signal, encoder->guts->real_signal, &encoder->guts->frame))
 		return false;
 
 	smallest_frame = &encoder->guts->frame;
@@ -563,48 +567,50 @@ bool encoder_process_frame_(FLAC__Encoder *encoder, bool is_last_frame)
 		integer_signal[1] = encoder->guts->integer_signal_mid_side[1]; /* side channel */
 		real_signal[0] = encoder->guts->real_signal_mid_side[0]; /* mid channel */
 		real_signal[1] = encoder->guts->real_signal_mid_side[1]; /* side channel */
-		if(!encoder_process_subframes_(encoder, is_last_frame, &frame_header, encoder->channels, integer_signal, real_signal, &encoder->guts->frame_mid_side))
+		if(!encoder_process_subframes_(encoder, is_last_frame, false, &frame_header, encoder->channels, integer_signal, real_signal, &encoder->guts->frame_mid_side))
 			return false;
 		if(encoder->guts->frame_mid_side.total_bits < smallest_frame->total_bits)
 			smallest_frame = &encoder->guts->frame_mid_side;
 
-		/* left-side */
-		frame_header.channel_assignment = FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE;
-		if(!FLAC__bitbuffer_clear(&encoder->guts->frame_left_side)) {
-			encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-			return false;
-		}
-		if(!FLAC__frame_add_header(&frame_header, encoder->streamable_subset, is_last_frame, &encoder->guts->frame_left_side)) {
-			encoder->state = FLAC__ENCODER_FRAMING_ERROR;
-			return false;
-		}
-		integer_signal[0] = encoder->guts->integer_signal[0]; /* left channel */
-		integer_signal[1] = encoder->guts->integer_signal_mid_side[1]; /* side channel */
-		real_signal[0] = encoder->guts->real_signal[0]; /* left channel */
-		real_signal[1] = encoder->guts->real_signal_mid_side[1]; /* side channel */
-		if(!encoder_process_subframes_(encoder, is_last_frame, &frame_header, encoder->channels, integer_signal, real_signal, &encoder->guts->frame_left_side))
-			return false;
-		if(encoder->guts->frame_left_side.total_bits < smallest_frame->total_bits)
-			smallest_frame = &encoder->guts->frame_left_side;
+		if(!encoder->force_mid_side_stereo) {
+			/* left-side */
+			frame_header.channel_assignment = FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE;
+			if(!FLAC__bitbuffer_clear(&encoder->guts->frame_left_side)) {
+				encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
+				return false;
+			}
+			if(!FLAC__frame_add_header(&frame_header, encoder->streamable_subset, is_last_frame, &encoder->guts->frame_left_side)) {
+				encoder->state = FLAC__ENCODER_FRAMING_ERROR;
+				return false;
+			}
+			integer_signal[0] = encoder->guts->integer_signal[0]; /* left channel */
+			integer_signal[1] = encoder->guts->integer_signal_mid_side[1]; /* side channel */
+			real_signal[0] = encoder->guts->real_signal[0]; /* left channel */
+			real_signal[1] = encoder->guts->real_signal_mid_side[1]; /* side channel */
+			if(!encoder_process_subframes_(encoder, is_last_frame, false, &frame_header, encoder->channels, integer_signal, real_signal, &encoder->guts->frame_left_side))
+				return false;
+			if(encoder->guts->frame_left_side.total_bits < smallest_frame->total_bits)
+				smallest_frame = &encoder->guts->frame_left_side;
 
-		/* right-side */
-		frame_header.channel_assignment = FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE;
-		if(!FLAC__bitbuffer_clear(&encoder->guts->frame_right_side)) {
-			encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
-			return false;
+			/* right-side */
+			frame_header.channel_assignment = FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE;
+			if(!FLAC__bitbuffer_clear(&encoder->guts->frame_right_side)) {
+				encoder->state = FLAC__ENCODER_MEMORY_ALLOCATION_ERROR;
+				return false;
+			}
+			if(!FLAC__frame_add_header(&frame_header, encoder->streamable_subset, is_last_frame, &encoder->guts->frame_right_side)) {
+				encoder->state = FLAC__ENCODER_FRAMING_ERROR;
+				return false;
+			}
+			integer_signal[0] = encoder->guts->integer_signal_mid_side[1]; /* side channel */
+			integer_signal[1] = encoder->guts->integer_signal[1]; /* right channel */
+			real_signal[0] = encoder->guts->real_signal_mid_side[1]; /* side channel */
+			real_signal[1] = encoder->guts->real_signal[1]; /* right channel */
+			if(!encoder_process_subframes_(encoder, is_last_frame, false, &frame_header, encoder->channels, integer_signal, real_signal, &encoder->guts->frame_right_side))
+				return false;
+			if(encoder->guts->frame_right_side.total_bits < smallest_frame->total_bits)
+				smallest_frame = &encoder->guts->frame_right_side;
 		}
-		if(!FLAC__frame_add_header(&frame_header, encoder->streamable_subset, is_last_frame, &encoder->guts->frame_right_side)) {
-			encoder->state = FLAC__ENCODER_FRAMING_ERROR;
-			return false;
-		}
-		integer_signal[0] = encoder->guts->integer_signal_mid_side[1]; /* side channel */
-		integer_signal[1] = encoder->guts->integer_signal[1]; /* right channel */
-		real_signal[0] = encoder->guts->real_signal_mid_side[1]; /* side channel */
-		real_signal[1] = encoder->guts->real_signal[1]; /* right channel */
-		if(!encoder_process_subframes_(encoder, is_last_frame, &frame_header, encoder->channels, integer_signal, real_signal, &encoder->guts->frame_right_side))
-			return false;
-		if(encoder->guts->frame_right_side.total_bits < smallest_frame->total_bits)
-			smallest_frame = &encoder->guts->frame_right_side;
 	}
 
 	/*
@@ -638,7 +644,7 @@ bool encoder_process_frame_(FLAC__Encoder *encoder, bool is_last_frame)
 	return true;
 }
 
-bool encoder_process_subframes_(FLAC__Encoder *encoder, bool is_last_frame, const FLAC__FrameHeader *frame_header, unsigned channels, const int32 *integer_signal[], const real *real_signal[], FLAC__BitBuffer *frame)
+bool encoder_process_subframes_(FLAC__Encoder *encoder, bool is_last_frame, bool verbatim_only, const FLAC__FrameHeader *frame_header, unsigned channels, const int32 *integer_signal[], const real *real_signal[], FLAC__BitBuffer *frame)
 {
 	real fixed_residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1];
 	real lpc_residual_bits_per_sample;
@@ -669,7 +675,7 @@ bool encoder_process_subframes_(FLAC__Encoder *encoder, bool is_last_frame, cons
 		/* verbatim subframe is the baseline against which we measure other compressed subframes */
 		best_bits = encoder_evaluate_verbatim_subframe_(frame_header->blocksize, frame_header->bits_per_sample, &(encoder->guts->best_subframe));
 
-		if(frame_header->blocksize >= FLAC__MAX_FIXED_ORDER) {
+		if(!verbatim_only && frame_header->blocksize >= FLAC__MAX_FIXED_ORDER) {
 			/* check for constant subframe */
 			guess_fixed_order = FLAC__fixed_compute_best_predictor(integer_signal[channel]+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
 			if(fixed_residual_bits_per_sample[1] == 0.0) {
