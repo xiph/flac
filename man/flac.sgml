@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>June 26, 2001</date>">
+  <!ENTITY dhdate      "<date>November 15, 2001</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -209,7 +209,7 @@
 		    of native-FLAC.  Ogg-FLAC streams are FLAC streams
 		    wrapped in an Ogg transport layer.  The resulting
 		    file should have an '.ogg' extension and will still
-		    be decodable by <TT><B>flac</B></TT>.<P></para>
+		    be decodable by flac.</para>
 		  <para>When decoding, force the input to be treated as
 		    Ogg-FLAC.  This is useful when piping input from
 		    stdin or when the filename does not end in '.ogg'.</para>
