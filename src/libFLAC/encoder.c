@@ -282,19 +282,21 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 
 	encoder->guts->input_capacity = 0;
 	for(i = 0; i < encoder->channels; i++) {
-		encoder->guts->integer_signal[i] = 0;
-		encoder->guts->real_signal[i] = 0;
+		encoder->guts->integer_signal_unaligned[i] = encoder->guts->integer_signal[i] = 0;
+		encoder->guts->real_signal_unaligned[i] = encoder->guts->real_signal[i] = 0;
 	}
 	for(i = 0; i < 2; i++) {
-		encoder->guts->integer_signal_mid_side[i] = 0;
-		encoder->guts->real_signal_mid_side[i] = 0;
+		encoder->guts->integer_signal_mid_side_unaligned[i] = encoder->guts->integer_signal_mid_side[i] = 0;
+		encoder->guts->real_signal_mid_side_unaligned[i] = encoder->guts->real_signal_mid_side[i] = 0;
 	}
 	for(i = 0; i < encoder->channels; i++) {
-		encoder->guts->residual_workspace[i][0] = encoder->guts->residual_workspace[i][1] = 0;
+		encoder->guts->residual_workspace_unaligned[i][0] = encoder->guts->residual_workspace[i][0] = 0;
+		encoder->guts->residual_workspace_unaligned[i][1] = encoder->guts->residual_workspace[i][1] = 0;
 		encoder->guts->best_subframe[i] = 0;
 	}
 	for(i = 0; i < 2; i++) {
-		encoder->guts->residual_workspace_mid_side[i][0] = encoder->guts->residual_workspace_mid_side[i][1] = 0;
+		encoder->guts->residual_workspace_mid_side_unaligned[i][0] = encoder->guts->residual_workspace_mid_side[i][0] = 0;
+		encoder->guts->residual_workspace_mid_side_unaligned[i][1] = encoder->guts->residual_workspace_mid_side[i][1] = 0;
 		encoder->guts->best_subframe_mid_side[i] = 0;
 	}
 	for(i = 0; i < encoder->channels; i++) {
@@ -305,9 +307,9 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 		encoder->guts->subframe_workspace_ptr_mid_side[i][0] = &encoder->guts->subframe_workspace_mid_side[i][0];
 		encoder->guts->subframe_workspace_ptr_mid_side[i][1] = &encoder->guts->subframe_workspace_mid_side[i][1];
 	}
-	encoder->guts->abs_residual = 0;
-	encoder->guts->abs_residual_partition_sums = 0;
-	encoder->guts->raw_bits_per_partition = 0;
+	encoder->guts->abs_residual_unaligned = encoder->guts->abs_residual = 0;
+	encoder->guts->abs_residual_partition_sums_unaligned = encoder->guts->abs_residual_partition_sums = 0;
+	encoder->guts->raw_bits_per_partition_unaligned = encoder->guts->raw_bits_per_partition = 0;
 	encoder->guts->current_frame_can_do_mid_side = true;
 	encoder->guts->loose_mid_side_stereo_frames_exact = (double)encoder->sample_rate * 0.4 / (double)encoder->blocksize;
 	encoder->guts->loose_mid_side_stereo_frames = (unsigned)(encoder->guts->loose_mid_side_stereo_frames_exact + 0.5);
@@ -1202,7 +1204,7 @@ unsigned encoder_precompute_partition_info_(const int32 residual[], uint32 abs_r
 	}
 
 	/* now merge for lower orders */
-	for(from_partition = 0; partition_order >= (int)min_partition_order; partition_order--) {
+	for(from_partition = 0, --partition_order; partition_order >= (int)min_partition_order; partition_order--) {
 #ifdef FLAC__PRECOMPUTE_PARTITION_SUMS
 		uint32 s;
 #endif
