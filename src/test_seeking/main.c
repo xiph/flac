@@ -29,6 +29,7 @@
 #else
 #include <sys/time.h>
 #endif
+#include <sys/stat.h> /* for stat() */
 #include "FLAC/assert.h"
 #include "FLAC/file_decoder.h"
 #ifdef FLAC__HAS_OGG
@@ -36,7 +37,10 @@
 #endif
 
 typedef struct {
+	FLAC__bool got_data;
 	FLAC__uint64 total_samples;
+	unsigned channels;
+	unsigned bits_per_sample;
 	FLAC__bool ignore_errors;
 	FLAC__bool error_occurred;
 } decoder_client_data_struct;
@@ -107,6 +111,16 @@ static FLAC__bool die_of_(const char *msg, const OggFLAC__FileDecoder *decoder)
 }
 #endif
 
+static off_t get_filesize_(const char *srcpath)
+{
+	struct stat srcstat;
+
+	if(0 == stat(srcpath, &srcstat))
+		return srcstat.st_size;
+	else
+		return -1;
+}
+
 static FLAC__StreamDecoderWriteStatus file_decoder_write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	decoder_client_data_struct *dcd = (decoder_client_data_struct*)client_data;
@@ -149,8 +163,12 @@ static void file_decoder_metadata_callback_(const FLAC__FileDecoder *decoder, co
 	if(dcd->error_occurred)
 		return;
 
-	if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO)
+	if (!dcd->got_data && metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+		dcd->got_data = true;
 		dcd->total_samples = metadata->data.stream_info.total_samples;
+		dcd->channels = metadata->data.stream_info.channels;
+		dcd->bits_per_sample = metadata->data.stream_info.bits_per_sample;
+	}
 }
 
 static void file_decoder_error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
@@ -170,13 +188,14 @@ static void file_decoder_error_callback_(const FLAC__FileDecoder *decoder, FLAC_
 	}
 }
 
-static FLAC__bool seek_barrage_native_flac(const char *filename, unsigned count)
+static FLAC__bool seek_barrage_native_flac(const char *filename, off_t filesize, unsigned count)
 {
 	FLAC__FileDecoder *decoder;
 	decoder_client_data_struct decoder_client_data;
 	unsigned i;
 	long int n;
 
+	decoder_client_data.got_data = false;
 	decoder_client_data.total_samples = 0;
 	decoder_client_data.ignore_errors = false;
 	decoder_client_data.error_occurred = false;
@@ -209,11 +228,20 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, unsigned count)
 		return die_f_("FLAC__file_decoder_process_until_end_of_metadata() FAILED", decoder);
 
 	printf("file's total_samples is %llu\n", decoder_client_data.total_samples);
-	if (decoder_client_data.total_samples == 0 || decoder_client_data.total_samples > (FLAC__uint64)RAND_MAX) {
-		printf("ERROR: must be 0 < total_samples < %u\n", (unsigned)RAND_MAX);
+	if (decoder_client_data.total_samples > (FLAC__uint64)RAND_MAX) {
+		printf("ERROR: must be total_samples < %u\n", (unsigned)RAND_MAX);
 		return false;
 	}
 	n = (long int)decoder_client_data.total_samples;
+
+	/* if we don't have a total samples count, just guess based on the file size */
+	/* @@@ should get it from last page's granulepos */
+	if(n == 0) {
+		/* 8 would imply no compression, 9 guarantees that we will get some samples off the end of the stream to test that case */
+		n = 9 * filesize / (decoder_client_data.channels * decoder_client_data.bits_per_sample);
+		if(n > RAND_MAX)
+			n = RAND_MAX;
+	}
 
 	printf("Begin seek barrage, count=%u\n", count);
 
@@ -228,6 +256,10 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, unsigned count)
 		else if (n >= 10 && i < 20) {
 			pos = n - 1 - (i-10);
 		}
+		/* for the third 10, seek past the end and make sure we fail properly as expected */
+		else if (i < 30) {
+			pos = n + (i-20);
+		}
 		else {
 #if !defined _MSC_VER && !defined __MINGW32__
 			pos = (FLAC__uint64)(random() % n);
@@ -238,18 +270,51 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, unsigned count)
 
 		printf("seek(%llu)... ", pos);
 		fflush(stdout);
-		if(!FLAC__file_decoder_seek_absolute(decoder, pos))
-			return die_f_("FLAC__file_decoder_seek_absolute() FAILED", decoder);
+		if(!FLAC__file_decoder_seek_absolute(decoder, pos)) {
+			if(pos < (FLAC__uint64)n && decoder_client_data.total_samples != 0)
+				return die_f_("FLAC__file_decoder_seek_absolute() FAILED", decoder);
+			else if(decoder_client_data.total_samples == 0)
+				printf("seek failed, assuming it was past EOF... ");
+			else
+				printf("seek past end failed as expected... ");
 
-		printf("decode_frame... ");
-		fflush(stdout);
-		if(!FLAC__file_decoder_process_single(decoder))
-			return die_f_("FLAC__file_decoder_process_single() FAILED", decoder);
+			/* hack to work around a deficiency in the seek API's bahavior */
+			/* seeking past EOF sets the file decoder state to non-OK and there's no ..._flush() or ..._reset() call to reset it */
+			if(!FLAC__file_decoder_finish(decoder))
+				return die_f_("FLAC__file_decoder_finish() FAILED", decoder);
 
-		printf("decode_frame... ");
-		fflush(stdout);
-		if(!FLAC__file_decoder_process_single(decoder))
-			return die_f_("FLAC__file_decoder_process_single() FAILED", decoder);
+			if(!FLAC__file_decoder_set_write_callback(decoder, file_decoder_write_callback_))
+				return die_f_("FLAC__file_decoder_set_write_callback() FAILED", decoder);
+
+			if(!FLAC__file_decoder_set_metadata_callback(decoder, file_decoder_metadata_callback_))
+				return die_f_("FLAC__file_decoder_set_metadata_callback() FAILED", decoder);
+
+			if(!FLAC__file_decoder_set_error_callback(decoder, file_decoder_error_callback_))
+				return die_f_("FLAC__file_decoder_set_error_callback() FAILED", decoder);
+
+			if(!FLAC__file_decoder_set_client_data(decoder, &decoder_client_data))
+				return die_f_("FLAC__file_decoder_set_client_data() FAILED", decoder);
+
+			if(!FLAC__file_decoder_set_filename(decoder, filename))
+				return die_f_("FLAC__file_decoder_set_filename() FAILED", decoder);
+
+			if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK)
+				return die_f_("FLAC__file_decoder_init() FAILED", decoder);
+
+			if(!FLAC__file_decoder_process_until_end_of_metadata(decoder))
+				return die_f_("FLAC__file_decoder_process_until_end_of_metadata() FAILED", decoder);
+		}
+		else {
+			printf("decode_frame... ");
+			fflush(stdout);
+			if(!FLAC__file_decoder_process_single(decoder))
+				return die_f_("FLAC__file_decoder_process_single() FAILED", decoder);
+
+			printf("decode_frame... ");
+			fflush(stdout);
+			if(!FLAC__file_decoder_process_single(decoder))
+				return die_f_("FLAC__file_decoder_process_single() FAILED", decoder);
+		}
 
 		printf("OK\n");
 		fflush(stdout);
@@ -261,13 +326,14 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, unsigned count)
 }
 
 #ifdef FLAC__HAS_OGG
-static FLAC__bool seek_barrage_ogg_flac(const char *filename, unsigned count)
+static FLAC__bool seek_barrage_ogg_flac(const char *filename, off_t filesize, unsigned count)
 {
 	OggFLAC__FileDecoder *decoder;
 	decoder_client_data_struct decoder_client_data;
 	unsigned i;
 	long int n;
 
+	decoder_client_data.got_data = false;
 	decoder_client_data.total_samples = 0;
 	decoder_client_data.ignore_errors = false;
 	decoder_client_data.error_occurred = false;
@@ -300,11 +366,19 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, unsigned count)
 		return die_of_("OggFLAC__file_decoder_process_until_end_of_metadata() FAILED", decoder);
 
 	printf("file's total_samples is %llu\n", decoder_client_data.total_samples);
-	if (decoder_client_data.total_samples == 0 || decoder_client_data.total_samples > (FLAC__uint64)RAND_MAX) {
-		printf("ERROR: must be 0 < total_samples < %u\n", (unsigned)RAND_MAX);
+	if (decoder_client_data.total_samples > (FLAC__uint64)RAND_MAX) {
+		printf("ERROR: must be total_samples < %u\n", (unsigned)RAND_MAX);
 		return false;
 	}
 	n = (long int)decoder_client_data.total_samples;
+
+	/* if we don't have a total samples count, just guess based on the file size */
+	if(n == 0) {
+		/* 8 would imply no compression, 9 guarantees that we will get some samples off the end of the stream to test that case */
+		n = 9 * filesize / (decoder_client_data.channels * decoder_client_data.bits_per_sample);
+		if(n > RAND_MAX)
+			n = RAND_MAX;
+	}
 
 	printf("Begin seek barrage, count=%u\n", count);
 
@@ -319,6 +393,10 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, unsigned count)
 		else if (n >= 10 && i < 20) {
 			pos = n - 1 - (i-10);
 		}
+		/* for the third 10, seek past the end and make sure we fail properly as expected */
+		else if (i < 30) {
+			pos = n + (i-20);
+		}
 		else {
 #if !defined _MSC_VER && !defined __MINGW32__
 			pos = (FLAC__uint64)(random() % n);
@@ -329,18 +407,50 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, unsigned count)
 
 		printf("seek(%llu)... ", pos);
 		fflush(stdout);
-		if(!OggFLAC__file_decoder_seek_absolute(decoder, pos))
-			return die_of_("OggFLAC__file_decoder_seek_absolute() FAILED", decoder);
+		if(!OggFLAC__file_decoder_seek_absolute(decoder, pos)) {
+			if(pos < (FLAC__uint64)n && decoder_client_data.total_samples != 0)
+				return die_of_("OggFLAC__file_decoder_seek_absolute() FAILED", decoder);
+			else if(decoder_client_data.total_samples == 0)
+				printf("seek failed, assuming it was past EOF... ");
+			else
+				printf("seek past end failed as expected... ");
+			/* hack to work around a deficiency in the seek API's bahavior */
+			/* seeking past EOF sets the file decoder state to non-OK and there's no ..._flush() or ..._reset() call to reset it */
+			if(!OggFLAC__file_decoder_finish(decoder))
+				return die_of_("OggFLAC__file_decoder_finish() FAILED", decoder);
 
-		printf("decode_frame... ");
-		fflush(stdout);
-		if(!OggFLAC__file_decoder_process_single(decoder))
-			return die_of_("OggFLAC__file_decoder_process_single() FAILED", decoder);
+			if(!OggFLAC__file_decoder_set_write_callback(decoder, (OggFLAC__FileDecoderWriteCallback)file_decoder_write_callback_))
+				return die_of_("OggFLAC__file_decoder_set_write_callback() FAILED", decoder);
 
-		printf("decode_frame... ");
-		fflush(stdout);
-		if(!OggFLAC__file_decoder_process_single(decoder))
-			return die_of_("OggFLAC__file_decoder_process_single() FAILED", decoder);
+			if(!OggFLAC__file_decoder_set_metadata_callback(decoder, (OggFLAC__FileDecoderMetadataCallback)file_decoder_metadata_callback_))
+				return die_of_("OggFLAC__file_decoder_set_metadata_callback() FAILED", decoder);
+
+			if(!OggFLAC__file_decoder_set_error_callback(decoder, (OggFLAC__FileDecoderErrorCallback)file_decoder_error_callback_))
+				return die_of_("OggFLAC__file_decoder_set_error_callback() FAILED", decoder);
+
+			if(!OggFLAC__file_decoder_set_client_data(decoder, &decoder_client_data))
+				return die_of_("OggFLAC__file_decoder_set_client_data() FAILED", decoder);
+
+			if(!OggFLAC__file_decoder_set_filename(decoder, filename))
+				return die_of_("OggFLAC__file_decoder_set_filename() FAILED", decoder);
+
+			if(OggFLAC__file_decoder_init(decoder) != OggFLAC__FILE_DECODER_OK)
+				return die_of_("OggFLAC__file_decoder_init() FAILED", decoder);
+
+			if(!OggFLAC__file_decoder_process_until_end_of_metadata(decoder))
+				return die_of_("OggFLAC__file_decoder_process_until_end_of_metadata() FAILED", decoder);
+		}
+		else {
+			printf("decode_frame... ");
+			fflush(stdout);
+			if(!OggFLAC__file_decoder_process_single(decoder))
+				return die_of_("OggFLAC__file_decoder_process_single() FAILED", decoder);
+
+			printf("decode_frame... ");
+			fflush(stdout);
+			if(!OggFLAC__file_decoder_process_single(decoder))
+				return die_of_("OggFLAC__file_decoder_process_single() FAILED", decoder);
+		}
 
 		printf("OK\n");
 		fflush(stdout);
@@ -356,6 +466,7 @@ int main(int argc, char *argv[])
 {
 	const char *filename;
 	unsigned count = 0;
+	off_t filesize;
 
 	static const char * const usage = "usage: test_seeking file.flac [#seeks]\n";
 
@@ -369,14 +480,14 @@ int main(int argc, char *argv[])
 	if (argc > 2)
 		count = strtoul(argv[2], 0, 10);
 
-	if (count < 20)
-		fprintf(stderr, "WARNING: random seeks don't kick in until after 20 preprogrammed ones\n");
+	if (count < 30)
+		fprintf(stderr, "WARNING: random seeks don't kick in until after 30 preprogrammed ones\n");
 
 #if !defined _MSC_VER && !defined __MINGW32__
 	{
 		struct timeval tv;
 
-		if(gettimeofday(&tv, 0) < 0) {
+		if (gettimeofday(&tv, 0) < 0) {
 			fprintf(stderr, "WARNING: couldn't seed RNG with time\n");
 			tv.tv_usec = 4321;
 		}
@@ -386,20 +497,26 @@ int main(int argc, char *argv[])
 	srand(time(0));
 #endif
 
+	filesize = get_filesize_(filename);
+	if (filesize < 0) {
+		fprintf(stderr, "ERROR: can't determine filesize for %s\n", filename);
+		return 1;
+	}
+
 	(void) signal(SIGINT, our_sigint_handler_);
 
 	{
 		FLAC__bool ok;
 		if (strlen(filename) > 4 && 0 == strcmp(filename+strlen(filename)-4, ".ogg")) {
 #ifdef FLAC__HAS_OGG
-			ok = seek_barrage_ogg_flac(filename, count);
+			ok = seek_barrage_ogg_flac(filename, filesize, count);
 #else
 			fprintf(stderr, "ERROR: Ogg FLAC not supported\n");
 			ok = false;
 #endif
 		}
 		else {
-			ok = seek_barrage_native_flac(filename, count);
+			ok = seek_barrage_native_flac(filename, filesize, count);
 		}
 		return ok? 0 : 2;
 	}
