@@ -13,7 +13,7 @@
 #
 # If both these apply try:
 #
-#hacks=cp /usr/share/libtool/ltmain.sh . && cp /usr/share/gettext/config.rpath .
+#hacks="cp /usr/share/libtool/ltmain.sh . && cp /usr/share/gettext/config.rpath ."
 #
 # Otherwise, this is the no-op:
 hacks=true
