@@ -71,4 +71,4 @@ clean :
 
 .PHONY : depend
 depend:
-	makedepend -- $(CFLAGS) $(INCLUDES) -- *.c
+	makedepend -fMakefile.lite -- $(CFLAGS) $(INCLUDES) -- *.c *.cc
