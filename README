@@ -85,7 +85,8 @@ overrides --sse-os.
 support, you can use this flag to enable some assembly routines
 which use 3DNOW! instructions.  There have been some reports that
 they may cause flac to crash, which is why it is not turned on
-by default.
+by default.  Note that --disable-asm-optimizations overrides
+--use-3dnow.
 
 
 ===========================
