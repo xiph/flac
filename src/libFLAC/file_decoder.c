@@ -388,7 +388,7 @@ void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErro
 
 bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 target_sample)
 {
-	long l, r, pos, last_pos = -1;
+	long lower_bound, upper_bound, pos, last_pos = -1;
 	unsigned approx_bytes_per_frame;
 	uint64 last_frame_sample = 0xffffffffffffffff;
 	bool needs_seek;
@@ -396,7 +396,7 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 
 	/* we are just guessing here, but we want to guess high, not low */
 	if(decoder->guts->stream_info.max_framesize > 0) {
-		approx_bytes_per_frame = decoder->guts->stream_info.max_framesize + 64;
+		approx_bytes_per_frame = decoder->guts->stream_info.max_framesize;
 	}
 	else if(!is_variable_blocksize_stream) {
 		/* note there are no () around 'decoder->guts->stream_info.bits_per_sample/8' to keep precision up since it's an integer calulation */
@@ -407,31 +407,35 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 
 	/* The file pointer is currently at the first frame plus any read
 	   ahead data, so first we get the file pointer, then subtract
-	   uncomsumed bytes to get the position (l) of the first frame
+	   uncomsumed bytes to get the position (lower_bound) of the first frame
 	   in the file */
-	if(-1 == (l = ftell(decoder->guts->file))) {
+	if(-1 == (lower_bound = ftell(decoder->guts->file))) {
 		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
-	l -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream) + 1;
-	if(l < 0)
-		l = 0;
+	lower_bound -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream);
+	if(lower_bound < 0)
+		lower_bound = 0;
+
+	/* calc the upper_bound, beyond which we never want to seek */
+	if(decoder->guts->stream_info.max_framesize > 0)
+		upper_bound = filesize - (decoder->guts->stream_info.max_framesize + 128 + 2); /* 128 for a possible ID3V1 tag, 2 for indexing differences */
+	else
+		upper_bound = filesize - ((decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 128 + 2);
 
 	/* Now we need to use the metadata and the filelength to search to the frame with the correct sample */
 #ifdef _MSC_VER
 	/* with VC++ you have to spoon feed it the casting */
-	pos = l + (long)((double)(int64)target_sample / (double)(int64)decoder->guts->stream_info.total_samples * (double)(filesize-l+1)) - approx_bytes_per_frame;
+	pos = lower_bound + (long)((double)(int64)target_sample / (double)(int64)decoder->guts->stream_info.total_samples * (double)(filesize-lower_bound-1)) - approx_bytes_per_frame;
 #else
-	pos = l + (long)((double)target_sample / (double)decoder->guts->stream_info.total_samples * (double)(filesize-l+1)) - approx_bytes_per_frame;
+	pos = lower_bound + (long)((double)target_sample / (double)decoder->guts->stream_info.total_samples * (double)(filesize-lower_bound-1)) - approx_bytes_per_frame;
 #endif
-	if(decoder->guts->stream_info.max_framesize > 0)
-		r = filesize - decoder->guts->stream_info.max_framesize - 2;
-	else
-		r = filesize - ((decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 64);
-	if(pos >= r)
-		pos = r-1;
-	if(pos < l)
-		pos = l;
+
+	/* clip the position to the bounds, lower bound takes precedence */
+	if(pos >= upper_bound)
+		pos = upper_bound-1;
+	if(pos < lower_bound)
+		pos = lower_bound;
 	needs_seek = true;
 
 	decoder->guts->target_sample = target_sample;
@@ -468,7 +472,7 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 					pos -= approx_bytes_per_frame;
 					needs_seek = true;
 				}
-				else {
+				else { /* target_sample >= this_frame_sample + this frame's blocksize */
 					last_pos = pos;
 					if(-1 == (pos = ftell(decoder->guts->file))) {
 						decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
@@ -478,8 +482,8 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 					needs_seek = false;
 				}
 			}
-			if(pos < l)
-				pos = l;
+			if(pos < lower_bound)
+				pos = lower_bound;
 			last_frame_sample = this_frame_sample;
 		}
 	}
