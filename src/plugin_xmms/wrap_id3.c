@@ -109,6 +109,9 @@ char *flac_format_song_title(char *filename)
 	input->file_path = filename;
 	input->file_ext = local__extname(filename);
 	ret = xmms_get_titlestring(flac_cfg.tag_override ? flac_cfg.tag_format : xmms_get_gentitle_format(), input);
+fprintf(stderr,"@@@@ override=%c\n",flac_cfg.tag_override?'y':'n');
+fprintf(stderr,"@@@@ fmt=%s\n",flac_cfg.tag_override ? flac_cfg.tag_format : xmms_get_gentitle_format());
+fprintf(stderr,"@@@@ ret=%s\n",ret);
 	g_free(input);
 
 	if (!ret) {

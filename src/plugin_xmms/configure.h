@@ -29,6 +29,14 @@ typedef struct {
 	gboolean convert_char_set;
 	gchar *file_char_set;
 	gchar *user_char_set;
+
+	struct {
+		gboolean enable;
+		gint preamp;
+		gboolean hard_limit;
+		gboolean dither;
+		guint noise_shaping; /* value must be one of NoiseShaping enum, c.f. plugin_common/replaygain_synthesis.h */
+	} replaygain;
 } flac_config_t;
 
 extern flac_config_t flac_cfg;

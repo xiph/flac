@@ -146,6 +146,20 @@ void FLAC_XMMS__init()
 	if(!xmms_cfg_read_string(cfg, "flac", "user_char_set", &flac_cfg.user_char_set))
 		flac_cfg.user_char_set = FLAC_plugin__charset_get_current();
 
+	/* replaygain */
+
+	xmms_cfg_read_boolean(cfg, "flac", "replaygain_enable", &flac_cfg.replaygain.enable);
+
+	if(!xmms_cfg_read_int(cfg, "flac", "replaygain_preamp", &flac_cfg.replaygain.preamp))
+		flac_cfg.replaygain.preamp = 0;
+
+	xmms_cfg_read_boolean(cfg, "flac", "replaygain_hard_limit", &flac_cfg.replaygain.hard_limit);
+
+	xmms_cfg_read_boolean(cfg, "flac", "replaygain_dither", &flac_cfg.replaygain.dither);
+
+	if(!xmms_cfg_read_int(cfg, "flac", "replaygain_noise_shaping", &flac_cfg.replaygain.noise_shaping))
+		flac_cfg.replaygain.noise_shaping = 1;
+
 	decoder_ = FLAC__file_decoder_new();
 }
 

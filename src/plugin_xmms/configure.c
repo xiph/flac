@@ -26,6 +26,7 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <pthread.h>
+#include <math.h>
 
 #include <xmms/configfile.h>
 #include <xmms/dirbrowser.h>
@@ -45,7 +46,15 @@ flac_config_t flac_cfg = {
 	NULL,
 	FALSE,
 	NULL,
-	NULL
+	NULL,
+	/* replaygain */
+	{
+		FALSE,
+		0,
+		TRUE,
+		TRUE,
+		1
+	}
 };
 
 
@@ -54,12 +63,15 @@ static GtkWidget *vbox, *notebook;
 
 static GtkWidget *title_tag_override, *title_tag_box, *title_tag_entry, *title_desc;
 static GtkWidget *convert_char_set, *fileCharacterSetEntry, *userCharacterSetEntry;
+static GtkWidget *replaygain_enable, *replaygain_preamp_hscale, *replaygain_preamp_label;
+static GtkObject *replaygain_preamp;
 
 static gchar *gtk_entry_get_text_1 (GtkWidget *widget);
 static void flac_configurewin_ok(GtkWidget * widget, gpointer data);
 static void configure_destroy(GtkWidget * w, gpointer data);
 static void title_tag_override_cb(GtkWidget * w, gpointer data);
 static void convert_char_set_cb(GtkWidget * w, gpointer data);
+static void replaygain_enable_cb(GtkWidget * w, gpointer data);
 
 static void flac_configurewin_ok(GtkWidget * widget, gpointer data)
 {
@@ -81,6 +93,12 @@ static void flac_configurewin_ok(GtkWidget * widget, gpointer data)
 	xmms_cfg_write_boolean(cfg, "flac", "convert_char_set", flac_cfg.convert_char_set);
 	xmms_cfg_write_string(cfg, "flac", "file_char_set", flac_cfg.file_char_set);
 	xmms_cfg_write_string(cfg, "flac", "user_char_set", flac_cfg.user_char_set);
+	/* replaygain */
+	xmms_cfg_write_boolean(cfg, "flac", "replaygain_enable", flac_cfg.replaygain.enable);
+	xmms_cfg_write_int(cfg, "flac", "replaygain_preamp", flac_cfg.replaygain.preamp);
+	xmms_cfg_write_boolean(cfg, "flac", "replaygain_hard_limit", flac_cfg.replaygain.hard_limit);
+	xmms_cfg_write_boolean(cfg, "flac", "replaygain_dither", flac_cfg.replaygain.dither);
+	xmms_cfg_write_int(cfg, "flac", "replaygain_noise_shaping", flac_cfg.replaygain.noise_shaping);
 	xmms_cfg_write_file(cfg, filename);
 	xmms_cfg_free(cfg);
 	g_free(filename);
@@ -111,9 +129,28 @@ static void convert_char_set_cb(GtkWidget *widget, gpointer data)
 	gtk_widget_set_sensitive(userCharacterSetEntry, flac_cfg.convert_char_set);
 }
 
+static void replaygain_enable_cb(GtkWidget *widget, gpointer data)
+{
+	(void)widget, (void)data; /* unused arguments */
+	flac_cfg.replaygain.enable = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(replaygain_enable));
+
+	gtk_widget_set_sensitive(replaygain_preamp_hscale, flac_cfg.replaygain.enable);
+}
+
+static void replaygain_preamp_cb(GtkWidget *widget, gpointer data)
+{
+	GString *gstring = g_string_new("");
+	(void)widget, (void)data; /* unused arguments */
+	flac_cfg.replaygain.preamp = (int) floor(GTK_ADJUSTMENT(replaygain_preamp)->value + 0.5);
+
+	g_string_sprintf(gstring, "%i dB", flac_cfg.replaygain.preamp);
+	gtk_label_set_text(GTK_LABEL(replaygain_preamp_label), _(gstring->str));
+}
+
 void FLAC_XMMS__configure(void)
 {
 	GtkWidget *title_frame, *title_tag_vbox, *title_tag_label;
+	GtkWidget *replaygain_frame, *replaygain_vbox;
 	GtkWidget *label, *hbox;
 	GtkWidget *bbox, *ok, *cancel;
 	GList *list;
@@ -137,7 +174,7 @@ void FLAC_XMMS__configure(void)
 
 	/* Title config.. */
 
-	title_frame = gtk_frame_new(_("ID3 Tags:"));
+	title_frame = gtk_frame_new(_("Tag Handling"));
 	gtk_container_border_width(GTK_CONTAINER(title_frame), 5);
 
 	title_tag_vbox = gtk_vbox_new(FALSE, 10);
@@ -199,6 +236,37 @@ void FLAC_XMMS__configure(void)
 	gtk_box_pack_start(GTK_BOX(title_tag_vbox), title_desc, FALSE, FALSE, 0);
 
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), title_frame, gtk_label_new(_("Title")));
+
+	/* ReplayGain config.. */
+
+	replaygain_frame = gtk_frame_new(_("ReplayGain"));
+	gtk_container_border_width(GTK_CONTAINER(replaygain_frame), 5);
+
+	replaygain_vbox = gtk_vbox_new(FALSE, 10);
+	gtk_container_border_width(GTK_CONTAINER(replaygain_vbox), 5);
+	gtk_container_add(GTK_CONTAINER(replaygain_frame), replaygain_vbox);
+
+	/* Preamp */
+
+	replaygain_enable = gtk_check_button_new_with_label(_("Enable ReplayGain processing"));
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(replaygain_enable), flac_cfg.replaygain.enable);
+	gtk_signal_connect(GTK_OBJECT(replaygain_enable), "clicked", replaygain_enable_cb, NULL);
+	gtk_box_pack_start(GTK_BOX(replaygain_vbox), replaygain_enable, FALSE, FALSE, 0);
+
+	hbox = gtk_hbox_new(FALSE,3);
+	gtk_container_add(GTK_CONTAINER(replaygain_vbox),hbox);
+	label = gtk_label_new(_("Preamp:"));
+	gtk_box_pack_start(GTK_BOX(hbox),label,FALSE,FALSE,0);
+	replaygain_preamp = gtk_adjustment_new(flac_cfg.replaygain.preamp, -24.0, +24.0, 1.0, 6.0, 6.0);
+	gtk_signal_connect(GTK_OBJECT(replaygain_preamp), "value-changed", replaygain_preamp_cb, NULL);
+	replaygain_preamp_hscale = gtk_hscale_new(GTK_ADJUSTMENT(replaygain_preamp));
+	gtk_widget_set_sensitive(replaygain_preamp_hscale, flac_cfg.replaygain.enable);
+	gtk_box_pack_start(GTK_BOX(hbox),replaygain_preamp_hscale,TRUE,TRUE,0);
+	replaygain_preamp_label = gtk_label_new(_("0 dB"));
+	gtk_box_pack_start(GTK_BOX(hbox),replaygain_preamp_label,FALSE,FALSE,0);
+	gtk_adjustment_value_changed(GTK_ADJUSTMENT(replaygain_preamp));
+
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), replaygain_frame, gtk_label_new(_("ReplayGain")));
 
 	/* Buttons */
 
