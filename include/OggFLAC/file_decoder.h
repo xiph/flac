@@ -530,23 +530,6 @@ OggFLAC_API unsigned OggFLAC__file_decoder_get_sample_rate(const OggFLAC__FileDe
  */
 OggFLAC_API unsigned OggFLAC__file_decoder_get_blocksize(const OggFLAC__FileDecoder *decoder);
 
-#if 0
-@@@@@@ this can never be made to work without writing a custom Ogg decoder; remove for release
-/** This is inherited from FLAC__FileDecoder; see
- *  FLAC__file_decoder_get_decode_position().
- *
- * \param  decoder   A decoder instance to query.
- * \param  position  Address at which to return the desired position.
- * \assert
- *    \code decoder != NULL \endcode
- *    \code position != NULL \endcode
- * \retval FLAC__bool
- *    \c true if successful, \c false if there was an error from
- *    the 'tell' callback.
- */
-OggFLAC_API FLAC__bool OggFLAC__file_decoder_get_decode_position(const OggFLAC__FileDecoder *decoder, FLAC__uint64 *position);
-#endif
-
 /** Initialize the decoder instance.
  *  Should be called after OggFLAC__file_decoder_new() and
  *  OggFLAC__file_decoder_set_*() but before any of the

@@ -456,16 +456,6 @@ OggFLAC_API unsigned OggFLAC__file_decoder_get_blocksize(const OggFLAC__FileDeco
 	return OggFLAC__seekable_stream_decoder_get_blocksize(decoder->private_->seekable_stream_decoder);
 }
 
-#if 0
-@@@@@@ this can never be made to work without writing a custom Ogg decoder; remove for release
-OggFLAC_API FLAC__bool OggFLAC__file_decoder_get_decode_position(const OggFLAC__FileDecoder *decoder, FLAC__uint64 *position)
-{
-	FLAC__ASSERT(0 != decoder);
-	FLAC__ASSERT(0 != decoder->private_);
-	return OggFLAC__seekable_stream_decoder_get_decode_position(decoder->private_->seekable_stream_decoder, position);
-}
-#endif
-
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_single(OggFLAC__FileDecoder *decoder)
 {
 	FLAC__bool ret;
