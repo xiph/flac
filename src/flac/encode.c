@@ -28,6 +28,11 @@
 #include <stdio.h> /* for FILE etc. */
 #include <stdlib.h> /* for malloc */
 #include <string.h> /* for strcmp() */
+#if defined _MSC_VER || defined __MINGW32__
+#include <time.h>
+#else
+#include <sys/time.h>
+#endif
 #include "FLAC/all.h"
 #include "share/grabbag.h"
 #include "encode.h"
@@ -1458,6 +1463,13 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 	e->blocksize = options.blocksize;
 	e->stats_mask = (options.do_exhaustive_model_search || options.do_qlp_coeff_prec_search)? 0x0f : 0x3f;
+
+	/* set a random serial number if one has not yet been specified */
+	if(!options.has_serial_number) {
+		srand(time(0));
+		options.serial_number = rand();
+		options.has_serial_number = true;
+	}
 
 #ifdef FLAC__HAS_OGG
 	if(e->use_ogg) {
