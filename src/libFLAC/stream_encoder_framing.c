@@ -283,7 +283,7 @@ FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsign
 		return false;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
+			if(!add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.contents->parameters, subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:
@@ -319,7 +319,7 @@ FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned r
 		return false;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
+			if(!add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.contents->parameters, subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:

@@ -62,7 +62,7 @@ static FLAC__bool read_subframe_constant_(FLAC__StreamDecoder *decoder, unsigned
 static FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, unsigned channel, unsigned bps, const unsigned order);
 static FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, unsigned bps, const unsigned order);
 static FLAC__bool read_subframe_verbatim_(FLAC__StreamDecoder *decoder, unsigned channel, unsigned bps);
-static FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigned predictor_order, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, FLAC__int32 *residual);
+static FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigned predictor_order, unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, FLAC__int32 *residual);
 static FLAC__bool read_zero_padding_(FLAC__StreamDecoder *decoder);
 static FLAC__bool read_callback_(FLAC__byte buffer[], unsigned *bytes, void *client_data);
 
@@ -83,6 +83,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__BitBuffer *input;
 	FLAC__int32 *output[FLAC__MAX_CHANNELS];
 	FLAC__int32 *residual[FLAC__MAX_CHANNELS];
+	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents[FLAC__MAX_CHANNELS];
 	unsigned output_capacity, output_channels;
 	FLAC__uint32 last_frame_number;
 	FLAC__uint64 samples_decoded;
@@ -93,7 +94,6 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__byte *metadata_filter_ids;
 	unsigned metadata_filter_ids_count, metadata_filter_ids_capacity; /* units for both are IDs, not bytes */
 	FLAC__Frame frame;
-	FLAC__EntropyCodingMethod_PartitionedRice allocated_ecm_pr;
 	FLAC__bool cached; /* true if there is a byte in lookahead */
 	FLAC__CPUInfo cpuinfo;
 	FLAC__byte header_warmup[2]; /* contains the sync code and reserved bits */
@@ -195,7 +195,9 @@ FLAC__StreamDecoder *FLAC__stream_decoder_new()
 	decoder->private_->output_capacity = 0;
 	decoder->private_->output_channels = 0;
 	decoder->private_->has_seek_table = false;
-	FLAC__format_entropy_coding_method_partitioned_rice_init(&decoder->private_->allocated_ecm_pr);
+
+	for(i = 0; i < FLAC__MAX_CHANNELS; i++)
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_init(&decoder->private_->partitioned_rice_contents[i]);
 
 	set_defaults_(decoder);
 
@@ -206,6 +208,8 @@ FLAC__StreamDecoder *FLAC__stream_decoder_new()
 
 void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder)
 {
+	unsigned i;
+
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
 	FLAC__ASSERT(0 != decoder->private_);
@@ -218,7 +222,8 @@ void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder)
 
 	FLAC__bitbuffer_delete(decoder->private_->input);
 
-	FLAC__format_entropy_coding_method_partitioned_rice_clear(&decoder->private_->allocated_ecm_pr);
+	for(i = 0; i < FLAC__MAX_CHANNELS; i++)
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(&decoder->private_->partitioned_rice_contents[i]);
 
 	free(decoder->private_);
 	free(decoder->protected_);
@@ -1641,6 +1646,7 @@ FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, unsigned channel, 
 			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &u32, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
 			subframe->entropy_coding_method.data.partitioned_rice.order = u32;
+			subframe->entropy_coding_method.data.partitioned_rice.contents = &decoder->private_->partitioned_rice_contents[channel];
 			break;
 		default:
 			decoder->protected_->state = FLAC__STREAM_DECODER_UNPARSEABLE_STREAM;
@@ -1650,7 +1656,7 @@ FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, unsigned channel, 
 	/* read residual */
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!read_residual_partitioned_rice_(decoder, order, &subframe->entropy_coding_method.data.partitioned_rice, decoder->private_->residual[channel]))
+			if(!read_residual_partitioned_rice_(decoder, order, subframe->entropy_coding_method.data.partitioned_rice.order, &decoder->private_->partitioned_rice_contents[channel], decoder->private_->residual[channel]))
 				return false;
 			break;
 		default:
@@ -1714,6 +1720,7 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, un
 			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &u32, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
 			subframe->entropy_coding_method.data.partitioned_rice.order = u32;
+			subframe->entropy_coding_method.data.partitioned_rice.contents = &decoder->private_->partitioned_rice_contents[channel];
 			break;
 		default:
 			decoder->protected_->state = FLAC__STREAM_DECODER_UNPARSEABLE_STREAM;
@@ -1723,7 +1730,7 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, un
 	/* read residual */
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!read_residual_partitioned_rice_(decoder, order, &subframe->entropy_coding_method.data.partitioned_rice, decoder->private_->residual[channel]))
+			if(!read_residual_partitioned_rice_(decoder, order, subframe->entropy_coding_method.data.partitioned_rice.order, &decoder->private_->partitioned_rice_contents[channel], decoder->private_->residual[channel]))
 				return false;
 			break;
 		default:
@@ -1762,27 +1769,24 @@ FLAC__bool read_subframe_verbatim_(FLAC__StreamDecoder *decoder, unsigned channe
 	return true;
 }
 
-FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigned predictor_order, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, FLAC__int32 *residual)
+FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigned predictor_order, unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, FLAC__int32 *residual)
 {
 	FLAC__uint32 rice_parameter;
 	int i;
 	unsigned partition, sample, u;
-	const unsigned partition_order = partitioned_rice->order;
 	const unsigned partitions = 1u << partition_order;
 	const unsigned partition_samples = partition_order > 0? decoder->private_->frame.header.blocksize >> partition_order : decoder->private_->frame.header.blocksize - predictor_order;
 
-	if(!FLAC__format_entropy_coding_method_partitioned_rice_ensure_size(&decoder->private_->allocated_ecm_pr, max(6, partition_order))) {
+	if(!FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(partitioned_rice_contents, max(6, partition_order))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}
-	partitioned_rice->parameters = decoder->private_->allocated_ecm_pr.parameters;
-	partitioned_rice->raw_bits = decoder->private_->allocated_ecm_pr.raw_bits;
 
 	sample = 0;
 	for(partition = 0; partition < partitions; partition++) {
 		if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
-		partitioned_rice->parameters[partition] = rice_parameter;
+		partitioned_rice_contents->parameters[partition] = rice_parameter;
 		if(rice_parameter < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
 #ifdef FLAC__SYMMETRIC_RICE
 			for(u = (partition_order == 0 || partition > 0)? 0 : predictor_order; u < partition_samples; u++, sample++) {
@@ -1800,7 +1804,7 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigne
 		else {
 			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
-			partitioned_rice->raw_bits[partition] = rice_parameter;
+			partitioned_rice_contents->raw_bits[partition] = rice_parameter;
 			for(u = (partition_order == 0 || partition > 0)? 0 : predictor_order; u < partition_samples; u++, sample++) {
 				if(!FLAC__bitbuffer_read_raw_int32(decoder->private_->input, &i, rice_parameter, read_callback_, decoder))
 					return false; /* the read_callback_ sets the state for us */

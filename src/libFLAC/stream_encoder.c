@@ -74,21 +74,21 @@ static FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_siz
 static FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, unsigned samples);
 static FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
 static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
-static FLAC__bool process_subframe_(FLAC__StreamEncoder *encoder, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool verbatim_only, const FLAC__FrameHeader *frame_header, unsigned subframe_bps, const FLAC__int32 integer_signal[], const FLAC__real real_signal[], FLAC__Subframe *subframe[2], FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice[2], FLAC__int32 *residual[2], unsigned *best_subframe, unsigned *best_bits);
+static FLAC__bool process_subframe_(FLAC__StreamEncoder *encoder, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool verbatim_only, const FLAC__FrameHeader *frame_header, unsigned subframe_bps, const FLAC__int32 integer_signal[], const FLAC__real real_signal[], FLAC__Subframe *subframe[2], FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents[2], FLAC__int32 *residual[2], unsigned *best_subframe, unsigned *best_bits);
 static FLAC__bool add_subframe_(FLAC__StreamEncoder *encoder, const FLAC__FrameHeader *frame_header, unsigned subframe_bps, const FLAC__Subframe *subframe, FLAC__BitBuffer *frame);
 static unsigned evaluate_constant_subframe_(const FLAC__int32 signal, unsigned subframe_bps, FLAC__Subframe *subframe);
-static unsigned evaluate_fixed_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int32 signal[], FLAC__int32 residual[], FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned raw_bits_per_partition[], unsigned blocksize, unsigned subframe_bps, unsigned order, unsigned rice_parameter, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool do_escape_coding, unsigned rice_parameter_search_dist, FLAC__Subframe *subframe, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice);
-static unsigned evaluate_lpc_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int32 signal[], FLAC__int32 residual[], FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned raw_bits_per_partition[], const FLAC__real lp_coeff[], unsigned blocksize, unsigned subframe_bps, unsigned order, unsigned qlp_coeff_precision, unsigned rice_parameter, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool do_escape_coding, unsigned rice_parameter_search_dist, FLAC__Subframe *subframe, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice);
+static unsigned evaluate_fixed_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int32 signal[], FLAC__int32 residual[], FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned raw_bits_per_partition[], unsigned blocksize, unsigned subframe_bps, unsigned order, unsigned rice_parameter, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool do_escape_coding, unsigned rice_parameter_search_dist, FLAC__Subframe *subframe, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents);
+static unsigned evaluate_lpc_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int32 signal[], FLAC__int32 residual[], FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned raw_bits_per_partition[], const FLAC__real lp_coeff[], unsigned blocksize, unsigned subframe_bps, unsigned order, unsigned qlp_coeff_precision, unsigned rice_parameter, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool do_escape_coding, unsigned rice_parameter_search_dist, FLAC__Subframe *subframe, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents);
 static unsigned evaluate_verbatim_subframe_(const FLAC__int32 signal[], unsigned blocksize, unsigned subframe_bps, FLAC__Subframe *subframe);
 static unsigned find_best_partition_order_(struct FLAC__StreamEncoderPrivate *private_, const FLAC__int32 residual[], FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned raw_bits_per_partition[], unsigned residual_samples, unsigned predictor_order, unsigned rice_parameter, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool do_escape_coding, unsigned rice_parameter_search_dist, FLAC__EntropyCodingMethod_PartitionedRice *best_partitioned_rice);
 static void precompute_partition_info_sums_(const FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned residual_samples, unsigned predictor_order, unsigned min_partition_order, unsigned max_partition_order);
 static void precompute_partition_info_escapes_(const FLAC__int32 residual[], unsigned raw_bits_per_partition[], unsigned residual_samples, unsigned predictor_order, unsigned min_partition_order, unsigned max_partition_order);
 #ifdef DONT_ESTIMATE_RICE_BITS
-static FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, unsigned *bits);
-static FLAC__bool set_partitioned_rice_with_precompute_(const FLAC__int32 residual[], const FLAC__uint64 abs_residual_partition_sums[], const unsigned raw_bits_per_partition[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, const FLAC__bool search_for_escapes, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, unsigned *bits);
+static FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, unsigned *bits);
+static FLAC__bool set_partitioned_rice_with_precompute_(const FLAC__int32 residual[], const FLAC__uint64 abs_residual_partition_sums[], const unsigned raw_bits_per_partition[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, const FLAC__bool search_for_escapes, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, unsigned *bits);
 #else
-static FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, unsigned *bits);
-static FLAC__bool set_partitioned_rice_with_precompute_(const FLAC__uint32 abs_residual[], const FLAC__uint64 abs_residual_partition_sums[], const unsigned raw_bits_per_partition[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, const FLAC__bool search_for_escapes, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, unsigned *bits);
+static FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, unsigned *bits);
+static FLAC__bool set_partitioned_rice_with_precompute_(const FLAC__uint32 abs_residual[], const FLAC__uint64 abs_residual_partition_sums[], const unsigned raw_bits_per_partition[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, const FLAC__bool search_for_escapes, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, unsigned *bits);
 #endif
 static unsigned get_wasted_bits_(FLAC__int32 signal[], unsigned samples);
 /* verify-related routines: */
@@ -119,10 +119,10 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__Subframe subframe_workspace_mid_side[2][2];
 	FLAC__Subframe *subframe_workspace_ptr[FLAC__MAX_CHANNELS][2];
 	FLAC__Subframe *subframe_workspace_ptr_mid_side[2][2];
-	FLAC__EntropyCodingMethod_PartitionedRice partitioned_rice_workspace[FLAC__MAX_CHANNELS][2];
-	FLAC__EntropyCodingMethod_PartitionedRice partitioned_rice_workspace_mid_side[FLAC__MAX_CHANNELS][2];
-	FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice_workspace_ptr[FLAC__MAX_CHANNELS][2];
-	FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice_workspace_ptr_mid_side[FLAC__MAX_CHANNELS][2];
+	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents_workspace[FLAC__MAX_CHANNELS][2];
+	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents_workspace_mid_side[FLAC__MAX_CHANNELS][2];
+	FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents_workspace_ptr[FLAC__MAX_CHANNELS][2];
+	FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents_workspace_ptr_mid_side[FLAC__MAX_CHANNELS][2];
 	unsigned best_subframe[FLAC__MAX_CHANNELS];       /* index into the above workspaces */
 	unsigned best_subframe_mid_side[2];
 	unsigned best_subframe_bits[FLAC__MAX_CHANNELS];  /* size in bits of the best subframe for each channel */
@@ -166,7 +166,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	 * declarations merely to save stack space during encoding.
 	 */
 	FLAC__real lp_coeff[FLAC__MAX_LPC_ORDER][FLAC__MAX_LPC_ORDER]; /* from process_subframe_() */
-	FLAC__EntropyCodingMethod_PartitionedRice partitioned_rice_extra[2]; /* from find_best_partition_order_() */
+	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents_extra[2]; /* from find_best_partition_order_() */
 	/*
 	 * The data for the verify section
 	 */
@@ -277,24 +277,24 @@ FLAC__StreamEncoder *FLAC__stream_encoder_new()
 		encoder->private_->subframe_workspace_ptr_mid_side[i][1] = &encoder->private_->subframe_workspace_mid_side[i][1];
 	}
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
-		encoder->private_->partitioned_rice_workspace_ptr[i][0] = &encoder->private_->partitioned_rice_workspace[i][0];
-		encoder->private_->partitioned_rice_workspace_ptr[i][1] = &encoder->private_->partitioned_rice_workspace[i][1];
+		encoder->private_->partitioned_rice_contents_workspace_ptr[i][0] = &encoder->private_->partitioned_rice_contents_workspace[i][0];
+		encoder->private_->partitioned_rice_contents_workspace_ptr[i][1] = &encoder->private_->partitioned_rice_contents_workspace[i][1];
 	}
 	for(i = 0; i < 2; i++) {
-		encoder->private_->partitioned_rice_workspace_ptr_mid_side[i][0] = &encoder->private_->partitioned_rice_workspace_mid_side[i][0];
-		encoder->private_->partitioned_rice_workspace_ptr_mid_side[i][1] = &encoder->private_->partitioned_rice_workspace_mid_side[i][1];
+		encoder->private_->partitioned_rice_contents_workspace_ptr_mid_side[i][0] = &encoder->private_->partitioned_rice_contents_workspace_mid_side[i][0];
+		encoder->private_->partitioned_rice_contents_workspace_ptr_mid_side[i][1] = &encoder->private_->partitioned_rice_contents_workspace_mid_side[i][1];
 	}
 
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
-		FLAC__format_entropy_coding_method_partitioned_rice_init(&encoder->private_->partitioned_rice_workspace[i][0]);
-		FLAC__format_entropy_coding_method_partitioned_rice_init(&encoder->private_->partitioned_rice_workspace[i][1]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_init(&encoder->private_->partitioned_rice_contents_workspace[i][0]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_init(&encoder->private_->partitioned_rice_contents_workspace[i][1]);
 	}
 	for(i = 0; i < 2; i++) {
-		FLAC__format_entropy_coding_method_partitioned_rice_init(&encoder->private_->partitioned_rice_workspace_mid_side[i][0]);
-		FLAC__format_entropy_coding_method_partitioned_rice_init(&encoder->private_->partitioned_rice_workspace_mid_side[i][1]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_init(&encoder->private_->partitioned_rice_contents_workspace_mid_side[i][0]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_init(&encoder->private_->partitioned_rice_contents_workspace_mid_side[i][1]);
 	}
 	for(i = 0; i < 2; i++)
-		FLAC__format_entropy_coding_method_partitioned_rice_init(&encoder->private_->partitioned_rice_extra[i]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_init(&encoder->private_->partitioned_rice_contents_extra[i]);
 
 	encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
 
@@ -318,15 +318,15 @@ void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 		FLAC__stream_decoder_delete(encoder->private_->verify.decoder);
 
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
-		FLAC__format_entropy_coding_method_partitioned_rice_clear(&encoder->private_->partitioned_rice_workspace[i][0]);
-		FLAC__format_entropy_coding_method_partitioned_rice_clear(&encoder->private_->partitioned_rice_workspace[i][1]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(&encoder->private_->partitioned_rice_contents_workspace[i][0]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(&encoder->private_->partitioned_rice_contents_workspace[i][1]);
 	}
 	for(i = 0; i < 2; i++) {
-		FLAC__format_entropy_coding_method_partitioned_rice_clear(&encoder->private_->partitioned_rice_workspace_mid_side[i][0]);
-		FLAC__format_entropy_coding_method_partitioned_rice_clear(&encoder->private_->partitioned_rice_workspace_mid_side[i][1]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(&encoder->private_->partitioned_rice_contents_workspace_mid_side[i][0]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(&encoder->private_->partitioned_rice_contents_workspace_mid_side[i][1]);
 	}
 	for(i = 0; i < 2; i++)
-		FLAC__format_entropy_coding_method_partitioned_rice_clear(&encoder->private_->partitioned_rice_extra[i]);
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(&encoder->private_->partitioned_rice_contents_extra[i]);
 
 	FLAC__bitbuffer_delete(encoder->private_->frame);
 	free(encoder->private_);
@@ -1448,7 +1448,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 	 */
 	if(do_independent) {
 		for(channel = 0; channel < encoder->protected_->channels; channel++) {
-			if(!process_subframe_(encoder, min_partition_order, max_partition_order, precompute_partition_sums, false, &frame_header, encoder->private_->subframe_bps[channel], encoder->private_->integer_signal[channel], encoder->private_->real_signal[channel], encoder->private_->subframe_workspace_ptr[channel], encoder->private_->partitioned_rice_workspace_ptr[channel], encoder->private_->residual_workspace[channel], encoder->private_->best_subframe+channel, encoder->private_->best_subframe_bits+channel))
+			if(!process_subframe_(encoder, min_partition_order, max_partition_order, precompute_partition_sums, false, &frame_header, encoder->private_->subframe_bps[channel], encoder->private_->integer_signal[channel], encoder->private_->real_signal[channel], encoder->private_->subframe_workspace_ptr[channel], encoder->private_->partitioned_rice_contents_workspace_ptr[channel], encoder->private_->residual_workspace[channel], encoder->private_->best_subframe+channel, encoder->private_->best_subframe_bits+channel))
 				return false;
 		}
 	}
@@ -1460,7 +1460,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 		FLAC__ASSERT(encoder->protected_->channels == 2);
 
 		for(channel = 0; channel < 2; channel++) {
-			if(!process_subframe_(encoder, min_partition_order, max_partition_order, precompute_partition_sums, false, &frame_header, encoder->private_->subframe_bps_mid_side[channel], encoder->private_->integer_signal_mid_side[channel], encoder->private_->real_signal_mid_side[channel], encoder->private_->subframe_workspace_ptr_mid_side[channel], encoder->private_->partitioned_rice_workspace_ptr_mid_side[channel], encoder->private_->residual_workspace_mid_side[channel], encoder->private_->best_subframe_mid_side+channel, encoder->private_->best_subframe_bits_mid_side+channel))
+			if(!process_subframe_(encoder, min_partition_order, max_partition_order, precompute_partition_sums, false, &frame_header, encoder->private_->subframe_bps_mid_side[channel], encoder->private_->integer_signal_mid_side[channel], encoder->private_->real_signal_mid_side[channel], encoder->private_->subframe_workspace_ptr_mid_side[channel], encoder->private_->partitioned_rice_contents_workspace_ptr_mid_side[channel], encoder->private_->residual_workspace_mid_side[channel], encoder->private_->best_subframe_mid_side+channel, encoder->private_->best_subframe_bits_mid_side+channel))
 				return false;
 		}
 	}
@@ -1579,7 +1579,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 	return true;
 }
 
-FLAC__bool process_subframe_(FLAC__StreamEncoder *encoder, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool verbatim_only, const FLAC__FrameHeader *frame_header, unsigned subframe_bps, const FLAC__int32 integer_signal[], const FLAC__real real_signal[], FLAC__Subframe *subframe[2], FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice[2], FLAC__int32 *residual[2], unsigned *best_subframe, unsigned *best_bits)
+FLAC__bool process_subframe_(FLAC__StreamEncoder *encoder, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool verbatim_only, const FLAC__FrameHeader *frame_header, unsigned subframe_bps, const FLAC__int32 integer_signal[], const FLAC__real real_signal[], FLAC__Subframe *subframe[2], FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents[2], FLAC__int32 *residual[2], unsigned *best_subframe, unsigned *best_bits)
 {
 	FLAC__real fixed_residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1];
 	FLAC__real lpc_residual_bits_per_sample;
@@ -1638,7 +1638,7 @@ FLAC__bool process_subframe_(FLAC__StreamEncoder *encoder, unsigned min_partitio
 #endif
 					rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
 				}
-				_candidate_bits = evaluate_fixed_subframe_(encoder, integer_signal, residual[!_best_subframe], encoder->private_->abs_residual, encoder->private_->abs_residual_partition_sums, encoder->private_->raw_bits_per_partition, frame_header->blocksize, subframe_bps, fixed_order, rice_parameter, min_partition_order, max_partition_order, precompute_partition_sums, encoder->protected_->do_escape_coding, encoder->protected_->rice_parameter_search_dist, subframe[!_best_subframe], partitioned_rice[!_best_subframe]);
+				_candidate_bits = evaluate_fixed_subframe_(encoder, integer_signal, residual[!_best_subframe], encoder->private_->abs_residual, encoder->private_->abs_residual_partition_sums, encoder->private_->raw_bits_per_partition, frame_header->blocksize, subframe_bps, fixed_order, rice_parameter, min_partition_order, max_partition_order, precompute_partition_sums, encoder->protected_->do_escape_coding, encoder->protected_->rice_parameter_search_dist, subframe[!_best_subframe], partitioned_rice_contents[!_best_subframe]);
 				if(_candidate_bits < _best_bits) {
 					_best_subframe = !_best_subframe;
 					_best_bits = _candidate_bits;
@@ -1685,7 +1685,7 @@ FLAC__bool process_subframe_(FLAC__StreamEncoder *encoder, unsigned min_partitio
 								rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
 							}
 							for(qlp_coeff_precision = min_qlp_coeff_precision; qlp_coeff_precision <= max_qlp_coeff_precision; qlp_coeff_precision++) {
-								_candidate_bits = evaluate_lpc_subframe_(encoder, integer_signal, residual[!_best_subframe], encoder->private_->abs_residual, encoder->private_->abs_residual_partition_sums, encoder->private_->raw_bits_per_partition, encoder->private_->lp_coeff[lpc_order-1], frame_header->blocksize, subframe_bps, lpc_order, qlp_coeff_precision, rice_parameter, min_partition_order, max_partition_order, precompute_partition_sums, encoder->protected_->do_escape_coding, encoder->protected_->rice_parameter_search_dist, subframe[!_best_subframe], partitioned_rice[!_best_subframe]);
+								_candidate_bits = evaluate_lpc_subframe_(encoder, integer_signal, residual[!_best_subframe], encoder->private_->abs_residual, encoder->private_->abs_residual_partition_sums, encoder->private_->raw_bits_per_partition, encoder->private_->lp_coeff[lpc_order-1], frame_header->blocksize, subframe_bps, lpc_order, qlp_coeff_precision, rice_parameter, min_partition_order, max_partition_order, precompute_partition_sums, encoder->protected_->do_escape_coding, encoder->protected_->rice_parameter_search_dist, subframe[!_best_subframe], partitioned_rice_contents[!_best_subframe]);
 								if(_candidate_bits > 0) { /* if == 0, there was a problem quantizing the lpcoeffs */
 									if(_candidate_bits < _best_bits) {
 										_best_subframe = !_best_subframe;
@@ -1748,7 +1748,7 @@ unsigned evaluate_constant_subframe_(const FLAC__int32 signal, unsigned subframe
 	return FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + subframe_bps;
 }
 
-unsigned evaluate_fixed_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int32 signal[], FLAC__int32 residual[], FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned raw_bits_per_partition[], unsigned blocksize, unsigned subframe_bps, unsigned order, unsigned rice_parameter, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool do_escape_coding, unsigned rice_parameter_search_dist, FLAC__Subframe *subframe, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice)
+unsigned evaluate_fixed_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int32 signal[], FLAC__int32 residual[], FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned raw_bits_per_partition[], unsigned blocksize, unsigned subframe_bps, unsigned order, unsigned rice_parameter, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool do_escape_coding, unsigned rice_parameter_search_dist, FLAC__Subframe *subframe, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents)
 {
 	unsigned i, residual_bits;
 	const unsigned residual_samples = blocksize - order;
@@ -1758,11 +1758,10 @@ unsigned evaluate_fixed_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int3
 	subframe->type = FLAC__SUBFRAME_TYPE_FIXED;
 
 	subframe->data.fixed.entropy_coding_method.type = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE;
+	subframe->data.fixed.entropy_coding_method.data.partitioned_rice.contents = partitioned_rice_contents;
 	subframe->data.fixed.residual = residual;
 
-	residual_bits = find_best_partition_order_(encoder->private_, residual, abs_residual, abs_residual_partition_sums, raw_bits_per_partition, residual_samples, order, rice_parameter, min_partition_order, max_partition_order, precompute_partition_sums, do_escape_coding, rice_parameter_search_dist, partitioned_rice);
-
-	subframe->data.fixed.entropy_coding_method.data.partitioned_rice = *partitioned_rice;
+	residual_bits = find_best_partition_order_(encoder->private_, residual, abs_residual, abs_residual_partition_sums, raw_bits_per_partition, residual_samples, order, rice_parameter, min_partition_order, max_partition_order, precompute_partition_sums, do_escape_coding, rice_parameter_search_dist, &subframe->data.fixed.entropy_coding_method.data.partitioned_rice);
 
 	subframe->data.fixed.order = order;
 	for(i = 0; i < order; i++)
@@ -1771,7 +1770,7 @@ unsigned evaluate_fixed_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int3
 	return FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + (order * subframe_bps) + residual_bits;
 }
 
-unsigned evaluate_lpc_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int32 signal[], FLAC__int32 residual[], FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned raw_bits_per_partition[], const FLAC__real lp_coeff[], unsigned blocksize, unsigned subframe_bps, unsigned order, unsigned qlp_coeff_precision, unsigned rice_parameter, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool do_escape_coding, unsigned rice_parameter_search_dist, FLAC__Subframe *subframe, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice)
+unsigned evaluate_lpc_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int32 signal[], FLAC__int32 residual[], FLAC__uint32 abs_residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned raw_bits_per_partition[], const FLAC__real lp_coeff[], unsigned blocksize, unsigned subframe_bps, unsigned order, unsigned qlp_coeff_precision, unsigned rice_parameter, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool do_escape_coding, unsigned rice_parameter_search_dist, FLAC__Subframe *subframe, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents)
 {
 	FLAC__int32 qlp_coeff[FLAC__MAX_LPC_ORDER];
 	unsigned i, residual_bits;
@@ -1790,11 +1789,10 @@ unsigned evaluate_lpc_subframe_(FLAC__StreamEncoder *encoder, const FLAC__int32 
 	subframe->type = FLAC__SUBFRAME_TYPE_LPC;
 
 	subframe->data.lpc.entropy_coding_method.type = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE;
+	subframe->data.lpc.entropy_coding_method.data.partitioned_rice.contents = partitioned_rice_contents;
 	subframe->data.lpc.residual = residual;
 
-	residual_bits = find_best_partition_order_(encoder->private_, residual, abs_residual, abs_residual_partition_sums, raw_bits_per_partition, residual_samples, order, rice_parameter, min_partition_order, max_partition_order, precompute_partition_sums, do_escape_coding, rice_parameter_search_dist, partitioned_rice);
-
-	subframe->data.fixed.entropy_coding_method.data.partitioned_rice = *partitioned_rice;
+	residual_bits = find_best_partition_order_(encoder->private_, residual, abs_residual, abs_residual_partition_sums, raw_bits_per_partition, residual_samples, order, rice_parameter, min_partition_order, max_partition_order, precompute_partition_sums, do_escape_coding, rice_parameter_search_dist, &subframe->data.fixed.entropy_coding_method.data.partitioned_rice);
 
 	subframe->data.lpc.order = order;
 	subframe->data.lpc.qlp_coeff_precision = qlp_coeff_precision;
@@ -1843,9 +1841,9 @@ unsigned find_best_partition_order_(FLAC__StreamEncoderPrivate *private_, const 
 
 		for(partition_order = (int)max_partition_order, sum = 0; partition_order >= (int)min_partition_order; partition_order--) {
 #ifdef DONT_ESTIMATE_RICE_BITS
-			if(!set_partitioned_rice_with_precompute_(residual, abs_residual_partition_sums+sum, raw_bits_per_partition+sum, residual_samples, predictor_order, rice_parameter, rice_parameter_search_dist, (unsigned)partition_order, do_escape_coding, &private_->partitioned_rice_extra[!best_parameters_index], &residual_bits))
+			if(!set_partitioned_rice_with_precompute_(residual, abs_residual_partition_sums+sum, raw_bits_per_partition+sum, residual_samples, predictor_order, rice_parameter, rice_parameter_search_dist, (unsigned)partition_order, do_escape_coding, &private_->partitioned_rice_contents_extra[!best_parameters_index], &residual_bits))
 #else
-			if(!set_partitioned_rice_with_precompute_(abs_residual, abs_residual_partition_sums+sum, raw_bits_per_partition+sum, residual_samples, predictor_order, rice_parameter, rice_parameter_search_dist, (unsigned)partition_order, do_escape_coding, &private_->partitioned_rice_extra[!best_parameters_index], &residual_bits))
+			if(!set_partitioned_rice_with_precompute_(abs_residual, abs_residual_partition_sums+sum, raw_bits_per_partition+sum, residual_samples, predictor_order, rice_parameter, rice_parameter_search_dist, (unsigned)partition_order, do_escape_coding, &private_->partitioned_rice_contents_extra[!best_parameters_index], &residual_bits))
 #endif
 			{
 				FLAC__ASSERT(best_residual_bits != 0);
@@ -1863,9 +1861,9 @@ unsigned find_best_partition_order_(FLAC__StreamEncoderPrivate *private_, const 
 		unsigned partition_order;
 		for(partition_order = min_partition_order; partition_order <= max_partition_order; partition_order++) {
 #ifdef DONT_ESTIMATE_RICE_BITS
-			if(!set_partitioned_rice_(abs_residual, residual, residual_samples, predictor_order, rice_parameter, rice_parameter_search_dist, partition_order, &private_->partitioned_rice_extra[!best_parameters_index], &residual_bits))
+			if(!set_partitioned_rice_(abs_residual, residual, residual_samples, predictor_order, rice_parameter, rice_parameter_search_dist, partition_order, &private_->partitioned_rice_contents_extra[!best_parameters_index], &residual_bits))
 #else
-			if(!set_partitioned_rice_(abs_residual, residual_samples, predictor_order, rice_parameter, rice_parameter_search_dist, partition_order, &private_->partitioned_rice_extra[!best_parameters_index], &residual_bits))
+			if(!set_partitioned_rice_(abs_residual, residual_samples, predictor_order, rice_parameter, rice_parameter_search_dist, partition_order, &private_->partitioned_rice_contents_extra[!best_parameters_index], &residual_bits))
 #endif
 			{
 				FLAC__ASSERT(best_residual_bits != 0);
@@ -1879,9 +1877,16 @@ unsigned find_best_partition_order_(FLAC__StreamEncoderPrivate *private_, const 
 		}
 	}
 
-	FLAC__format_entropy_coding_method_partitioned_rice_ensure_size(best_partitioned_rice, max(6, best_partitioned_rice->order));
-	memcpy(best_partitioned_rice->parameters, private_->partitioned_rice_extra[best_parameters_index].parameters, sizeof(unsigned)*(1<<(best_partitioned_rice->order)));
-	memcpy(best_partitioned_rice->raw_bits, private_->partitioned_rice_extra[best_parameters_index].raw_bits, sizeof(unsigned)*(1<<(best_partitioned_rice->order)));
+	/*
+	 * We are allowed to de-const the pointer based on our special knowledhe;
+	 * it is const to the outside world.
+	 */
+	{
+		FLAC__EntropyCodingMethod_PartitionedRiceContents* best_partitioned_rice_contents = (FLAC__EntropyCodingMethod_PartitionedRiceContents*)best_partitioned_rice->contents;
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(best_partitioned_rice_contents, max(6, best_partitioned_rice->order));
+		memcpy(best_partitioned_rice_contents->parameters, private_->partitioned_rice_contents_extra[best_parameters_index].parameters, sizeof(unsigned)*(1<<(best_partitioned_rice->order)));
+		memcpy(best_partitioned_rice_contents->raw_bits, private_->partitioned_rice_contents_extra[best_parameters_index].raw_bits, sizeof(unsigned)*(1<<(best_partitioned_rice->order)));
+	}
 
 	return best_residual_bits;
 }
@@ -1993,9 +1998,9 @@ void precompute_partition_info_escapes_(const FLAC__int32 residual[], unsigned r
 #endif
 
 #ifdef DONT_ESTIMATE_RICE_BITS
-FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, unsigned *bits)
+FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, unsigned *bits)
 #else
-FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, unsigned *bits)
+FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, unsigned *bits)
 #endif
 {
 	unsigned rice_parameter, partition_bits;
@@ -2008,9 +2013,8 @@ FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const unsign
 
 	FLAC__ASSERT(suggested_rice_parameter < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER);
 
-	partitioned_rice->order = partition_order;
-	FLAC__format_entropy_coding_method_partitioned_rice_ensure_size(partitioned_rice, max(6, partition_order));
-	parameters = partitioned_rice->parameters;
+	FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(partitioned_rice_contents, max(6, partition_order));
+	parameters = partitioned_rice_contents->parameters;
 
 	if(partition_order == 0) {
 		unsigned i;
@@ -2170,9 +2174,9 @@ FLAC__bool set_partitioned_rice_(const FLAC__uint32 abs_residual[], const unsign
 }
 
 #ifdef DONT_ESTIMATE_RICE_BITS
-FLAC__bool set_partitioned_rice_with_precompute_(const FLAC__int32 residual[], const FLAC__uint64 abs_residual_partition_sums[], const unsigned raw_bits_per_partition[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, const FLAC__bool search_for_escapes, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, unsigned *bits)
+FLAC__bool set_partitioned_rice_with_precompute_(const FLAC__int32 residual[], const FLAC__uint64 abs_residual_partition_sums[], const unsigned raw_bits_per_partition[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, const FLAC__bool search_for_escapes, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, unsigned *bits)
 #else
-FLAC__bool set_partitioned_rice_with_precompute_(const FLAC__uint32 abs_residual[], const FLAC__uint64 abs_residual_partition_sums[], const unsigned raw_bits_per_partition[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, const FLAC__bool search_for_escapes, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, unsigned *bits)
+FLAC__bool set_partitioned_rice_with_precompute_(const FLAC__uint32 abs_residual[], const FLAC__uint64 abs_residual_partition_sums[], const unsigned raw_bits_per_partition[], const unsigned residual_samples, const unsigned predictor_order, const unsigned suggested_rice_parameter, const unsigned rice_parameter_search_dist, const unsigned partition_order, const FLAC__bool search_for_escapes, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, unsigned *bits)
 #endif
 {
 	unsigned rice_parameter, partition_bits;
@@ -2186,10 +2190,9 @@ FLAC__bool set_partitioned_rice_with_precompute_(const FLAC__uint32 abs_residual
 
 	FLAC__ASSERT(suggested_rice_parameter < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER);
 
-	partitioned_rice->order = partition_order;
-	FLAC__format_entropy_coding_method_partitioned_rice_ensure_size(partitioned_rice, max(6, partition_order));
-	parameters = partitioned_rice->parameters;
-	raw_bits = partitioned_rice->raw_bits;
+	FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(partitioned_rice_contents, max(6, partition_order));
+	parameters = partitioned_rice_contents->parameters;
+	raw_bits = partitioned_rice_contents->raw_bits;
 
 	if(partition_order == 0) {
 		unsigned i;

@@ -177,12 +177,9 @@ typedef enum {
 extern const char * const FLAC__EntropyCodingMethodTypeString[];
 
 
-/** Header for a Rice partition.  (c.f. <A HREF="../format.html#partitioned_rice">format specification</A>)
+/** Contents of a Rice partitioned residual
  */
 typedef struct {
-
-	unsigned order;
-	/**< The partition order, i.e. # of contexts = 2 ^ \a order. */
 
 	unsigned *parameters;
 	/**< The Rice parameters for each context. */
@@ -195,6 +192,18 @@ typedef struct {
 	 * specified as an order, i.e. the number of array elements
 	 * allocated is 2 ^ \a capacity_by_order.
 	 */
+} FLAC__EntropyCodingMethod_PartitionedRiceContents;
+
+/** Header for a Rice partitioned residual.  (c.f. <A HREF="../format.html#partitioned_rice">format specification</A>)
+ */
+typedef struct {
+
+	unsigned order;
+	/**< The partition order, i.e. # of contexts = 2 ^ \a order. */
+
+	const FLAC__EntropyCodingMethod_PartitionedRiceContents *contents;
+	/**< The context's Rice parameters and/or raw bits. */
+
 } FLAC__EntropyCodingMethod_PartitionedRice;
 
 extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN; /**< == 4 (bits) */
