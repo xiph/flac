@@ -218,20 +218,21 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(FLAC__StreamDecoder *decoder)
 	decoder->private->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal;
 	/* now override with asm where appropriate */
 #ifndef FLAC__NO_ASM
-	FLAC__ASSERT(decoder->private->cpuinfo.use_asm);
+	if(decoder->private->cpuinfo.use_asm) {
 #ifdef FLAC__CPU_IA32
-	FLAC__ASSERT(decoder->private->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
+		FLAC__ASSERT(decoder->private->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #ifdef FLAC__HAS_NASM
-	if(decoder->private->cpuinfo.data.ia32.mmx) {
-		decoder->private->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
-		decoder->private->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32_mmx;
-	}
-	else {
-		decoder->private->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
-		decoder->private->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32;
-	}
+		if(decoder->private->cpuinfo.data.ia32.mmx) {
+			decoder->private->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
+			decoder->private->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32_mmx;
+		}
+		else {
+			decoder->private->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
+			decoder->private->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32;
+		}
 #endif
 #endif
+	}
 #endif
 
 	return decoder->protected->state;
