@@ -567,6 +567,67 @@ bool FLAC__bitbuffer_write_symmetric_rice_signed_guarded(FLAC__BitBuffer *bb, in
 	return true;
 }
 
+static unsigned silog21_(int v)
+{
+doit_:
+	if(v == 0) {
+		return 0;
+	}
+	else if(v > 0) {
+		unsigned l = 0;
+		while(v) {
+			l++;
+			v >>= 1;
+		}
+		return l+1;
+	}
+	else if(v == -1) {
+		return 2;
+	}
+	else {
+		v = -(++v);
+		goto doit_;
+	}
+}
+
+bool FLAC__bitbuffer_write_symmetric_rice_signed_escape(FLAC__BitBuffer *bb, int val, unsigned parameter)
+{
+	unsigned total_bits, val_bits;
+	uint32 pattern;
+unsigned x;
+
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+	assert(parameter <= 31);
+
+	val_bits = silog21_(val);
+	total_bits = 2 + parameter + 5 + val_bits;
+
+x=bb->total_bits;
+	if(total_bits <= 32) {
+		pattern = 3;
+		pattern <<= (parameter + 5);
+		pattern |= val_bits;
+		pattern <<= val_bits;
+		pattern |= (val & ((1 << val_bits) - 1));
+		if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, total_bits))
+			return false;
+	}
+	else {
+		/* write the '-0' escape code first */
+		if(!FLAC__bitbuffer_write_raw_uint32(bb, 3u << parameter, 2+parameter))
+			return false;
+		/* write the length */
+		if(!FLAC__bitbuffer_write_raw_uint32(bb, val_bits, 5))
+			return false;
+		/* write the value */
+		if(!FLAC__bitbuffer_write_raw_int32(bb, val, val_bits))
+			return false;
+	}
+fprintf(stderr,"wrote %u bits\n",bb->total_bits-x);
+	return true;
+}
+
 bool FLAC__bitbuffer_write_rice_signed(FLAC__BitBuffer *bb, int val, unsigned parameter)
 {
 	unsigned total_bits, interesting_bits, msbs, uval;

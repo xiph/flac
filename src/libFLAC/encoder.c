@@ -1054,19 +1054,45 @@ unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_r
 	return best_residual_bits;
 }
 
-static unsigned iilog2_(unsigned v)
+static unsigned silog21_(int v)
+{
+doit_:
+	if(v == 0) {
+		return 0;
+	}
+	else if(v > 0) {
+		unsigned l = 0;
+		while(v) {
+			l++;
+			v >>= 1;
+		}
+		return l+1;
+	}
+	else if(v == -1) {
+		return 2;
+	}
+	else {
+		v = -(++v);
+		goto doit_;
+	}
+}
+
+static unsigned uilog21_(unsigned v)
 {
 	unsigned l = 0;
-	assert(v > 0);
-	while(v >>= 1)
+	while(v) {
 		l++;
+		v >>= 1;
+	}
 	return l;
 }
+
+const double smult = 3.0;
+const unsigned rpdec = 0;
 
 static uint32 get_thresh_(const int32 residual[], const unsigned residual_samples)
 {
 	double sum, sos, r, stddev, mean;
-	const double smult = 2.0;
 	unsigned i;
 	uint32 thresh;
 
@@ -1079,7 +1105,7 @@ static uint32 get_thresh_(const int32 residual[], const unsigned residual_sample
 	mean = sum / residual_samples;
 	stddev = sqrt((sos - (sum * sum / residual_samples)) / (residual_samples-1));
 	thresh = mean+smult*stddev;
-	thresh = iilog2_(thresh);
+	thresh = (1u << uilog21_(thresh)) - 1;
 	return thresh;
 }
 
@@ -1094,11 +1120,10 @@ bool encoder_set_partitioned_rice_(const int32 residual[], const uint32 abs_resi
 
 	if(partition_order == 0) {
 		unsigned i;
+#ifdef SYMMETRIC_RICE
 		uint32 thresh = get_thresh_(residual, residual_samples);
-		const unsigned rpdec = 1;
 		bool cross = false;
 
-#ifdef SYMMETRIC_RICE
 		for(i=0;i<residual_samples;i++) {
 			if(abs_residual[i] >= thresh) {
 				cross = true;
@@ -1124,10 +1149,16 @@ bool encoder_set_partitioned_rice_(const int32 residual[], const uint32 abs_resi
 			for(i = 0; i < residual_samples; i++) {
 #ifdef VARIABLE_RICE_BITS
 #ifdef SYMMETRIC_RICE
-				if(cross && abs_residual[i] >= thresh)
-					bits_ += VARIABLE_RICE_BITS(0, rice_parameter) + 5 + iilog2_(abs_residual) + 1;
-				else
+				if(cross) {
+					unsigned escbits, normbits;
+					escbits = /* VARIABLE_RICE_BITS(0, rice_parameter) == 0 */ 5 + silog21_(residual[i]);
+					normbits = VARIABLE_RICE_BITS(abs_residual[i], rice_parameter);
+					bits += min(escbits, normbits);
+				}
+				else {
+					/*@@@ old way */
 					bits_ += VARIABLE_RICE_BITS(abs_residual[i], rice_parameter);
+				}
 #else
 				bits_ += VARIABLE_RICE_BITS(abs_residual[i], rice_parameter_estimate);
 #endif

@@ -19,6 +19,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <math.h>
 #include "private/encoder_framing.h"
 #include "private/crc.h"
 
@@ -319,16 +320,100 @@ bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__Entrop
 	return true;
 }
 
+static unsigned silog21_(int v)
+{
+doit_:
+	if(v == 0) {
+		return 0;
+	}
+	else if(v > 0) {
+		unsigned l = 0;
+		while(v) {
+			l++;
+			v >>= 1;
+		}
+		return l+1;
+	}
+	else if(v == -1) {
+		return 2;
+	}
+	else {
+		v = -(++v);
+		goto doit_;
+	}
+}
+
+static unsigned uilog21_(unsigned v)
+{
+	unsigned l = 0;
+	while(v) {
+		l++;
+		v >>= 1;
+	}
+	return l;
+}
+
+extern const double smult;
+
+static uint32 get_thresh_(const int32 residual[], const unsigned residual_samples)
+{
+	double sum, sos, r, stddev, mean;
+	unsigned i;
+	uint32 thresh;
+
+	sum = sos = 0.0;
+	for(i = 0; i < residual_samples; i++) {
+		r = (double)residual[i];
+		sum += r;
+		sos += r*r;
+	}
+	mean = sum / residual_samples;
+	stddev = sqrt((sos - (sum * sum / residual_samples)) / (residual_samples-1));
+	thresh = mean+smult*stddev;
+	thresh = (1u << uilog21_(thresh)) - 1;
+	return thresh;
+}
+
 bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned partition_order)
 {
 	if(partition_order == 0) {
 		unsigned i;
+#ifdef SYMMETRIC_RICE
+		uint32 thresh = get_thresh_(residual, residual_samples);
+		bool cross = false;
+
+		for(i=0;i<residual_samples;i++) {
+			uint32 a = (residual[i] < 0? -residual[i] : residual[i]);
+			if(a >= thresh) {
+				cross = true;
+				break;
+			}
+		}
+#endif
+
 		if(!FLAC__bitbuffer_write_raw_uint32(bb, rice_parameters[0], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 			return false;
 		for(i = 0; i < residual_samples; i++) {
 #ifdef SYMMETRIC_RICE
-			if(!FLAC__bitbuffer_write_symmetric_rice_signed(bb, residual[i], rice_parameters[0]))
-				return false;
+			if(cross) {
+				unsigned escbits, normbits;
+				uint32 a = (residual[i] < 0? -residual[i] : residual[i]);
+				escbits = 5 + silog21_(residual[i]);
+				normbits = a >> rice_parameters[0];
+				if(escbits < normbits) {
+fprintf(stderr,"ESCAPE, k=%u, r=%d, saved %u bits\n", rice_parameters[0], residual[i], normbits-escbits);
+					if(!FLAC__bitbuffer_write_symmetric_rice_signed_escape(bb, residual[i], rice_parameters[0]))
+						return false;
+				}
+				else {
+					if(!FLAC__bitbuffer_write_symmetric_rice_signed(bb, residual[i], rice_parameters[0]))
+						return false;
+				}
+			}
+			else {
+				if(!FLAC__bitbuffer_write_symmetric_rice_signed(bb, residual[i], rice_parameters[0]))
+					return false;
+			}
 #else
 			if(!FLAC__bitbuffer_write_rice_signed(bb, residual[i], rice_parameters[0]))
 				return false;
