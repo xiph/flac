@@ -1,0 +1,1331 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- Copyright (c)  2000,2001,2002  Josh Coalson -->
+<!-- Permission is granted to copy, distribute and/or modify this document -->
+<!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
+<!-- or any later version published by the Free Software Foundation; -->
+<!-- with no invariant sections. -->
+<!-- A copy of the license can be found at http://www.gnu.org/copyleft/fdl.html -->
+<HTML>
+<HEAD>
+	<TITLE>FLAC - format</TITLE>
+</HEAD>
+
+<BODY MARGINWIDTH="0" MARGINHEIGHT="0" LEFTMARGIN="0" RIGHTMARGIN="0" TOPMARGIN="0" BGCOLOR="#99CC99" TEXT="#000000" LINK="#336699" VLINK="#336699" ALINK="#336699">
+
+<TABLE BORDER=0 WIDTH="100%" CELLPADDING=1 CELLSPACING=0>
+	<TR>
+		<TD ALIGN="CENTER" BGCOLOR="#000000"><A HREF="http://flac.sourceforge.net/"><IMG SRC="images/logo.jpg" ALIGN=CENTER ALT="FLAC Logo" BORDER=0 HSPACE=0></a></TD>
+	</TR>
+</TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="25" ALT=""></TD></TR></TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
+	<TR>
+		<TD ALIGN="CENTER" BGCOLOR="#D3D4C5">
+			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
+				<TR>
+					<TD HEIGHT=22 BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="index.html">home</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="news.html">news</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="download.html">download</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="features.html">features</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="goals.html">goals</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;format&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="id.html">id</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="comparison.html">comparison</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="documentation.html">documentation</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="developers.html">developers</A>&nbsp;&nbsp;</TD>
+				</TR>
+			</TABLE>
+		</TD>
+	</TR>
+</TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
+	<TR>
+		<TD ALIGN="CENTER" BGCOLOR="#EEEED4">
+			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
+				<TR>
+					<TD HEIGHT=22 BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;english&nbsp;&nbsp;</TD><TD BGCOLOR="#EEEED4" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="ru/format.html">russian</A>&nbsp;&nbsp;</TD>
+				</TR>
+			</TABLE>
+		</TD>
+	</TR>
+</TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+
+<CENTER>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="15" ALT=""></TD></TR></TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">format</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		This is a detailed description of the FLAC format.
+	</P>
+	<P>
+		First, as the original developer I have to say that I am not a compression expert and I feel obligated to give credit where it is due.  FLAC owes a lot to the many people who have advanced the audio compression field so freely.  For instance:
+	</P>
+	<P>
+	<UL>
+		<LI>
+			<A HREF="http://svr-www.eng.cam.ac.uk/~ajr/">A. J. Robinson</A> for his work on <A HREF="http://svr-www.eng.cam.ac.uk/~ajr/GroupPubs/Robinson94-tr156/index.html">Shorten</A>; his code and paper are a good starting point on some of the basic methods used by FLAC.  FLAC expands on the fixed predictors used in shorten.
+		</LI>
+		<LI>
+			<A HREF="http://commsci.usc.edu/faculty/golomb.html">S. W. Golomb</A> and Robert F. Rice; their universal codes are used by FLAC's entropy coder.
+		</LI>
+		<LI>
+			N. Levinson and J. Durbin; the reference encoder uses an algorithm developed and refined by them for determining the LPC coefficients from the autocorrelation coefficients.
+		</LI>
+		<LI>
+			And of course, the main guy, <A HREF="http://www.digitalcentury.com/encyclo/update/shannon.html">Claude Shannon</A>
+		</LI>
+	</UL>
+	</P>
+	<P>
+		<A NAME="scope"><FONT SIZE="+1"><B><U>Scope</U></B></FONT></A>
+	</P>
+	<P>
+		It is a known fact that no algorithm can losslessly compress all possible input, so most compressors restrict themselves to a useful domain and try to work as well as possible within that domain.  FLAC's domain is audio data.  Though it can losslessly <B>code</B> any input, only certain kinds of input will get smaller.  FLAC exploits the fact that audio data typically has a high degree of sample-to-sample correlation.
+	</P>
+	<P>
+		Within the audio domain, there are many possible subdomains.  For example: low bitrate speech, high-bitrate multi-channel music, etc.  FLAC itself does not target a specific subdomain but many of the default parameters of the reference encoder are tuned to CD-quality music data (i.e. 44.1kHz, 2 channel, 16 bits per sample).  The effect of the encoding parameters on different kinds of audio data will be examined later.
+	</P>
+	<P>
+		<A NAME="architecture"><FONT SIZE="+1"><B><U>Architecture</U></B></FONT></A>
+	</P>
+	<P>
+		Similar to many audio coders, a FLAC encoder has the following stages:
+	</P>
+	<UL>
+		<P><LI>
+			<A HREF="#blocking">Blocking</A>.  The input is broken up into many contiguous blocks.  With FLAC, the blocks may vary in size.  The optimal size of the block is usually affected by many factors, including the sample rate, spectral characteristics over time, etc.  Though FLAC allows the block size to vary within a stream, the reference encoder uses a fixed block size.
+		</LI></P>
+		<P><LI>
+			<A HREF="#interchannel">Interchannel Decorrelation</A>.  In the case of stereo streams, the encoder will create mid and side signals based on the average and difference (respectively) of the left and right channels.  The encoder will then pass the best form of the signal to the next stage.
+		</LI></P>
+		<P><LI>
+			<A HREF="#prediction">Prediction</A>.  The block is passed through a prediction stage where the encoder tries to find a mathematical description (usually an approximate one) of the signal.  This description is typically much smaller than the raw signal itself.  Since the methods of prediction are known to both the encoder and decoder, only the parameters of the predictor need be included in the compressed stream.  FLAC currently uses four different classes of predictors (described in the <A HREF="#prediction">prediction</A> section), but the format has reserved space for additional methods.  FLAC allows the class of predictor to change from block to block, or even within the channels of a block.
+		</LI></P>
+		<LI><P>
+			<A HREF="#residualcoding">Residual coding</A>.  If the predictor does not describe the signal exactly, the difference between the original signal and the predicted signal (called the error or residual signal) must be coded losslessy.  If the predictor is effective, the residual signal will require fewer bits per sample than the original signal.  FLAC currently uses only one method for encoding the residual (see the <A HREF="#residualcoding">Residual coding</A> section), but the format has reserved space for additional methods.  FLAC allows the residual coding method to change from block to block, or even within the channels of a block.
+		</LI></P>
+	</UL>
+	<P>
+		In addition, FLAC specifies a metadata system, which allows arbitrary information about the stream to be included at the beginning of the stream.
+	</P>
+	<P>
+		<A NAME="definitions"><FONT SIZE="+1"><B><U>Definitions</U></B></FONT></A>
+	</P>
+	<P>
+		Many terms like "block" and "frame" are used to mean different things in differenct encoding schemes.  For example, a frame in MP3 corresponds to many samples across several channels, whereas an S/PDIF frame represents just one sample for each channel.  The definitions we use for FLAC follow.  Note that when we talk about blocks and subblocks we are refering to the raw unencoded audio data that is the input to the encoder, and when we talk about frames and subframes, we are refering to the FLAC-encoded data.
+	</P>
+	<UL>
+		<P><LI>
+			<B>Block</B>: One or more audio samples that span several channels.
+		</LI></P>
+		<P><LI>
+			<B>Subblock</B>: One or more audio samples within a channel.  So a block contains one subblock for each channel, and all subblocks contain the same number of samples.
+		</LI></P>
+		<P><LI>
+			<B>Blocksize</B>: The number of samples in any of a block's subblocks.  For example, a one second block sampled at 44.1KHz has a blocksize of 44100, regardless of the number of channels.
+		</LI></P>
+		<P><LI>
+			<B>Frame</B>: A frame header plus one or more subframes.
+		</LI></P>
+		<P><LI>
+			<B>Subframe</B>: A subframe header plus one or more encoded samples from a given channel.  All subframes within a frame will contain the same number of samples.
+		</LI></P>
+	</UL>
+	<P>
+		<A NAME="blocking"><FONT SIZE="+1"><B><U>Blocking</U></B></FONT></A>
+	</P>
+	<P>
+		The size used for blocking the audio data has a direct effect on the compression ratio.  If the block size is too small, the resulting large number of frames mean that excess bits will be wasted on frame headers.  If the block size is too large, the characteristics of the signal may vary so much that the encoder will be unable to find a good predictor.  In order to simplify encoder/decoder design, FLAC imposes a minimum block size of 16 samples, and a maximum block size of 65535 samples.  This range covers the optimal size for all of the audio data FLAC supports.
+	</P>
+	<P>
+		Currently the reference encoder uses a fixed block size, optimized on the sample rate of the input.  Future versions may vary the block size depending on the characteristics of the signal.
+	</P>
+	<P>
+		Blocked data is passed to the predictor stage one subblock (channel) at a time.  Each subblock is independently coded into a subframe, and the subframes are concatenated into a frame.  Because each channel is coded separately, it means that one channel of a stereo frame may be encoded as a constant subframe, and the other an LPC subframe.
+	</P>
+	<P>
+		<A NAME="interchannel"><FONT SIZE="+1"><B><U>Interchannel Decorrelation</U></B></FONT></A>
+	</P>
+	<P>
+		In stereo streams, in many cases there is an exploitable amount of correlation between the left and right channels.  FLAC allows the frames of stereo streams to have different channel assignments, and an encoder may choose to use the best representation on a frame-by-frame basis.
+	</P>
+	<UL>
+		<P><LI>
+			<B>Independent</B>.  The left and right channels are coded independently.
+		</LI></P>
+		<P><LI>
+			<B>Mid-side</B>.  The left and right channels are transformed into mid and side channels.  The mid channel is the midpoint (average) of the left and right signals, and the side is the difference signal (left minus right).
+		</LI></P>
+		<P><LI>
+			<B>Left-side</B>.  The left channel and side channel are coded.
+		</LI></P>
+		<P><LI>
+			<B>Right-side</B>.  The right channel and side channel are coded
+		</LI></P>
+	</UL>
+	<P>
+		Surprisingly, the left-side and right-side forms can be the most efficient in many frames, even though the raw number of bits per sample needed for the original signal is slightly more than that needed for independent or mid-side coding.
+	</P>
+	<P>
+		<A NAME="prediction"><FONT SIZE="+1"><B><U>Prediction</U></B></FONT></A>
+	</P>
+	<P>
+		FLAC uses four methods for modeling the input signal:
+	</P>
+	<UL>
+		<P><LI>
+			<B>Verbatim</B>.  This is essentially a zero-order predictor of the signal.  The predicted signal is zero, meaning the residual is the signal itself, and the compression is zero.  This is the baseline against which the other predictors are measured.  If you feed random data to the encoder, the verbatim predictor will probably be used for every subblock.  Since the raw signal is not actually passed through the residual coding stage (it is added to the stream 'verbatim'), the encoding results will not be the same as a zero-order linear predictor.
+		</LI></P>
+		<P><LI>
+			<B>Constant</B>.  This predictor is used whenever the subblock is pure DC ("digital silence"), i.e. a constant value throughout.  The signal is run-length encoded and added to the stream.
+		</LI></P>
+		<P><LI>
+			<B>Fixed linear predictor</B>.  FLAC uses a class of computationally-efficient fixed linear predictors (for a good description, see <A HREF="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</A> and <A HREF="http://svr-www.eng.cam.ac.uk/~ajr/GroupPubs/Robinson94-tr156/index.html">shorten</A>).  FLAC adds a fourth-order predictor to the zero-to-third-order predictors used by Shorten.  Since the predictors are fixed, the predictor order is the only parameter that needs to be stored in the compressed stream.  The error signal is then passed to the residual coder.
+		</LI></P>
+		<P><LI>
+			<B>FIR Linear prediction</B>.  For more accurate modeling (at a cost of slower encoding), FLAC supports up to 32nd order FIR linear prediction (again, for info on linear prediction, see <A HREF="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</A> and <A HREF="http://svr-www.eng.cam.ac.uk/~ajr/GroupPubs/Robinson94-tr156/index.html">shorten</A>).  The reference encoder uses the Levinson-Durbin method for calculating the LPC coefficients from the autocorrelation coefficients, and the coefficients are quantized before computing the residual.  Whereas encoders such as Shorten used a fixed quantization for the entire input, FLAC allows the quantized coefficient precision to vary from subframe to subframe.  The FLAC reference encoder estimates the optimal precision to use based on the block size and dynamic range of the original signal.
+		</LI></P>
+	</UL>
+	<P>
+		<A NAME="residualcoding"><FONT SIZE="+1"><B><U>Residual Coding</U></B></FONT></A>
+	</P>
+	<P>
+		FLAC currently defines two similar methods for the coding of the error signal from the prediction stage.  The error signal is coded using Rice codes in one of two ways: 1) the encoder estimates a single rice parameter based on the variance of the residual and Rice codes the entire residual using this parameter; 2) the residual is partitioned into several equal-length regions of contiguous samples, and each region is coded with its own Rice parameter based on the region's mean.  (Note that the first method is a special case of the second method with one partition, except the Rice parameter is based on the residual variance instead of the mean.)
+	</P>
+	<P>
+		The FLAC format has reserved space for other coding methods.  Some possiblities for volunteers would be to explore better context-modeling of the Rice parameter, or Huffman coding.  See <A HREF="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</A> and <A HREF="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</A> for descriptions of several universal codes.
+	</P>
+	<P>
+		<FONT SIZE="+1"><B><U>Format</U></B></FONT>
+	</P>
+	<P>
+		This section specifies the FLAC bitstream format.  FLAC has no format version information, but it does contain reserved space in several places.  Future versions of the format may use this reserved space safely without breaking the format of older streams.  Older decoders may choose to abort decoding or skip data encoded with newer methods.  Apart from reserved patterns, in places the format specifies invalid patterns, meaning that the patterns may never appear in any valid bitstream, in any prior, present, or future versions of the format.  These invalid patterns are usually used to make the synchronization mechanism more robust.
+	</P>
+	<P>
+		All numbers used in a FLAC bitstream are integers; there are no floating-point representations.  All numbers are big-endian coded.  All numbers are unsigned unless otherwise specified.
+	</P>
+	<P>
+		<A NAME="overview">A FLAC bitstream may be appended with ID3V1 data or prepended with ID3V2 data.  FLAC has no knowledge of such data, but the reference decoder knows how to skip an ID3 tag.</A>
+	</P>
+	<P>
+		Before the formal description of the stream, an overview might be helpful.
+	</P>
+	<UL>
+		<P><LI>
+			A FLAC bitstream consists of the "fLaC" marker at the beginning of the stream, followed by a mandatory metadata block (called the STREAMINFO block), any number of other metadata blocks, then the audio frames.
+		</LI></P>
+		<P><LI>
+			FLAC supports up to 128 kinds of metadata blocks; currently the following are defined:
+			<UL>
+				<LI><A NAME="def_STREAMINFO"><B>STREAMINFO</B>: This block has information about the whole stream, like sample rate, number of channels, total number of samples, etc.  It must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.</LI>
+				<LI><A NAME="def_APPLICATION"><B>APPLICATION</B>: This block is for use by third-party applications.  The only mandatory field is a 32-bit identifier.  This ID is granted upon request to an application by the FLAC maintainers.  The remainder is of the block is defined by the registered application.  Visit the <A HREF="id.html">registration page</A> if you would like to register an ID for your application with FLAC.</LI>
+				<LI><A NAME="def_PADDING"><B>PADDING</B>: This block allows for an arbitrary amount of padding.  The contents of a PADDING block have no meaning.  This block is useful when it is known that an APPLICATION block will be added after encoding; the user can instruct the encoder to reserve a PADDING block of the proper size so that the application may directly write over it later (which is relatively quick) instead of having to insert the APPLICATION block (which would normally require rewriting the entire file).</LI>
+				<LI><A NAME="def_SEEKTABLE"><B>SEEKTABLE</B>: This is an optional block for storing seek points.  It is possible to seek to any given sample in a FLAC stream without a seek table, but the delay can be unpredictable since the bitrate may vary widely within a stream.  By adding seek points to a stream, this delay can be significantly reduced.  Each seek point takes 18 bytes, so 1% resolution within a stream adds less than 2k.  There can be only one SEEKTABLE in a stream, but the table can have any number of seek points.  There is also a special 'placeholder' seekpoint which will be ignored by decoders but which can be used to reserve space for future seek point insertion.</LI>
+			</UL>
+		</LI></P>
+		<P><LI>
+			The audio data is composed of one or more audio frames.  Each frame consists of a frame header, which contains a sync code, info about the frame like the block size, sample rate, number of channels, et cetera, and an 8-bit CRC.  The frame header also contains either the sample number of the first sample in the frame (for variable-blocksize streams), or the frame number (for fixed-blocksize streams).  This allows for fast, sample-accurate seeking to be performed.  Following the frame header are encoded subframes, one for each channel, and finally, the frame is zero-padded to a byte boundary.  Each subframe has its own header that specifies how the subframe is encoded.
+		</LI></P>
+		<P><LI>
+			Since a decoder may start decoding in the middle of a stream, there must be a method to determine the start of a frame.  A 14-bit sync code begins each frame.  The sync code will not appear anywhere else in the frame header.  However, since it may appear in the subframes, the decoder has two other ways of ensuring a correct sync.  The first is to check that the rest of the frame header contains no invalid data.  Even this is not foolproof since valid header patterns can still occur within the subframes.  The decoder's final check is to generate an 8-bit CRC of the frame header and compare this to the CRC stored at the end of the frame header.
+		</LI></P>
+		<P><LI>
+			Again, since a decoder may start decoding at an arbitrary frame in the stream, each frame header must contain some basic information about the stream because the decoder may not have access to the STREAMINFO metadata block at the start of the stream.  This information includes sample rate, bits per sample, number of channels, etc.  Since the frame header is pure overhead, it has a direct effect on the compression ratio.  To keep the frame header as small as possible, FLAC uses lookup tables for the most commonly used values for frame parameters.  For instance, the sample rate part of the frame header is specified using 4 bits.  Eight of the bit patterns correspond to the commonly used sample rates of 8/16/22.05/24/32/44.1/48/96 kHz.  However, odd sample rates can be specified by using one of the 'hint' bit patterns, directing the decoder to find the exact sample rate at the end of the frame header.  The same method is used for specifying the block size and bits per sample.  In this way, the frame header size stays small for all of the most common forms of audio data.
+		</LI></P>
+		<P><LI>
+			Individual subframes (one for each channel) are coded separately within a frame, and appear serially in the stream.  In other words, the encoded audio data is NOT channel-interleaved.  This reduces decoder complexity at the cost of requiring larger decode buffers.  Each subframe has its own header specifying the attributes of the subframe, like prediction method and order, residual coding parameters, etc.  The header is followed by the encoded audio data for that channel.
+		</LI></P>
+		<P><LI>
+			<A NAME="subset">FLAC specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the blocking such that decoder buffer sizes can be easily determined.  "flac" generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
+			<UL>
+			<LI>
+				The blocksize bits in the <A HREF="#frame_header">frame header</A> must be 0001-0101 or 1000-1111, specifying a fixed-blocksize stream (the exception being the last block as described in the table).  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.
+			</LI>
+			<LI>
+				The bits-per-sample bits in the <A HREF="#frame_header">frame header</A> must be 001-110.
+			</LI>
+			<LI>
+				The sample rate bits in the <A HREF="#frame_header">frame header</A> must be 0001-1011.
+			</LI>
+			</UL>
+		</LI></P>
+	</UL>
+
+	<P>
+		The following tables constitute a formal description of the FLAC format.  Numbers in angle brackets indicate how many bits are used for a given field.
+	</P>
+
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="stream"><FONT SIZE="+1"><B>STREAM</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;32&gt;
+			</TD>
+			<TD>
+				"fLaC", the FLAC stream marker in ASCII, meaning byte 0 of the stream is 0x66, followed by 0x4C 0x61 0x43
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#metadata_block_streaminfo"><I>METADATA_BLOCK</I></A>
+			</TD>
+			<TD>
+				This is the mandatory STREAMINFO metadata block that has the basic properties of the stream
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#metadata_block"><I>METADATA_BLOCK</I></A>*
+			</TD>
+			<TD>
+				Zero or more metadata blocks
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#frame"><I>FRAME</I></A>+
+			</TD>
+			<TD>
+				One or more audio frames
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block"><FONT SIZE="+1"><B>METADATA_BLOCK</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#metadata_block_header"><I>METADATA_BLOCK_HEADER</I></A>
+			</TD>
+			<TD>
+				A block header that specifies the type and size of the metadata block data.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#metadata_block_data"><I>METADATA_BLOCK_DATA</I></A>
+			</TD>
+			<TD>
+				&nbsp;
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_header"><FONT SIZE="+1"><B>METADATA_BLOCK_HEADER</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;1&gt;
+			</TD>
+			<TD>
+				Last-metadata-block flag: '1' if this block is the last metadata block before the audio blocks, '0' otherwise.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;7&gt;
+			</TD>
+			<TD>
+				BLOCK_TYPE<BR>
+				<UL>
+				<LI>
+					<TT>0</TT> : STREAMINFO
+				</LI>
+				<LI>
+					<TT>1</TT> : PADDING
+				</LI>
+				<LI>
+					<TT>2</TT> : APPLICATION
+				</LI>
+				<LI>
+					<TT>3</TT> : SEEKTABLE
+				</LI>
+				<LI>
+					<TT>4</TT> : VORBIS_COMMENT
+				</LI>
+				<LI>
+					<TT>5-127</TT> : reserved
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;24&gt;
+			</TD>
+			<TD>
+				Length (in bytes) of metadata to follow (does not include the size of the METADATA_BLOCK_HEADER)
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_data"><FONT SIZE="+1"><B>METADATA_BLOCK_DATA</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#metadata_block_streaminfo"><I>METADATA_BLOCK_STREAMINFO</I></A><BR>|| <A HREF="#metadata_block_padding"><I>METADATA_BLOCK_PADDING</I></A><BR>|| <A HREF="#metadata_block_application"><I>METADATA_BLOCK_APPLICATION</I></A><BR>|| <A HREF="#metadata_block_seektable"><I>METADATA_BLOCK_SEEKTABLE</I></A><BR>|| <A HREF="#metadata_block_vorbis_comment"><I>METADATA_BLOCK_VORBIS_COMMENT</I></A>
+			</TD>
+			<TD>
+				The block data must match the block type in the block header.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_streaminfo"><FONT SIZE="+1"><B>METADATA_BLOCK_STREAMINFO</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;16&gt;
+			</TD>
+			<TD>
+				The minimum block size (in samples) used in the stream.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;16&gt;
+			</TD>
+			<TD>
+				The maximum block size (in samples) used in the stream.  (Minimum blocksize == maximum blocksize) implies a fixed-blocksize stream.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;24&gt;
+			</TD>
+			<TD>
+				The minimum frame size (in bytes) used in the stream.  May be 0 to imply the value is not known.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;24&gt;
+			</TD>
+			<TD>
+				The maximum frame size (in bytes) used in the stream.  May be 0 to imply the value is not known.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;20&gt;
+			</TD>
+			<TD>
+				Sample rate in Hz.  Though 20 bits are available, the maximum sample rate is limited by the structure of frame headers to 1048570Hz.  Also, a value of 0 is invalid.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;3&gt;
+			</TD>
+			<TD>
+				(number of channels)-1.  FLAC supports from 1 to 8 channels
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;5&gt;
+			</TD>
+			<TD>
+				(bits per sample)-1.  FLAC supports from 4 to 32 bits per sample.  Currently the reference encoder and decoders only support up to 24 bits per sample.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;36&gt;
+			</TD>
+			<TD>
+				Total samples in stream.  'Samples' means inter-channel sample, i.e. one second of 44.1Khz audio will have 44100 samples regardless of the number of channels.  A value of zero here means the number of total samples is unknown.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;128&gt;
+			</TD>
+			<TD>
+				MD5 signature of the unencoded audio data.  This allows the decoder to determine if an error exists in the audio data even when the error does not result in an invalid bitstream.
+			</TD>
+		</TR>
+		<TR>
+			<TD>
+			</TD>
+			<TD BGCOLOR="#F4F4CC">
+				<FONT SIZE="+1">NOTES</FONT><BR>
+				<UL>
+				<LI>
+					FLAC specifies a minimum block size of 16 and a maximum block size of 65535, meaning the bit patterns corresponding to the numbers 0-15 in the minimum blocksize and maximum blocksize fields are invalid.
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_padding"><FONT SIZE="+1"><B>METADATA_BLOCK_PADDING</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				n '0' bits (n must be a multiple of 8)
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_application"><FONT SIZE="+1"><B>METADATA_BLOCK_APPLICATION</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;32&gt;
+			</TD>
+			<TD>
+				Registered application ID.  (Visit the <A HREF="id.html">registration page</A> to register an ID with FLAC.)
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				Application data (n must be a multiple of 8)
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_seektable"><FONT SIZE="+1"><B>METADATA_BLOCK_SEEKTABLE</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#seekpoint"><I>SEEKPOINT</I></A>+
+			</TD>
+			<TD>
+				One or more seek points.
+			</TD>
+		</TR>
+		<TR>
+			<TD>
+			</TD>
+			<TD BGCOLOR="#F4F4CC">
+				<FONT SIZE="+1">NOTE</FONT><BR>
+				<UL>
+				<LI>
+					The number of seek points is implied by the metadata header 'length' field, i.e. equal to length / 18.
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="seekpoint"><FONT SIZE="+1"><B>SEEKPOINT</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;64&gt;
+			</TD>
+			<TD>
+				Sample number of first sample in the target frame, or 0xFFFFFFFFFFFFFFFF for a placeholder point.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;64&gt;
+			</TD>
+			<TD>
+				Offset (in bytes) from the first byte of the first frame header to the first byte of the target frame's header.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;16&gt;
+			</TD>
+			<TD>
+				Number of samples in the target frame.
+			</TD>
+		</TR>
+		<TR>
+			<TD>
+			</TD>
+			<TD BGCOLOR="#F4F4CC">
+				<FONT SIZE="+1">NOTES</FONT><BR>
+				<UL>
+				<LI>
+					For placeholder points, the second and third field values are undefined.
+				</LI>
+				<LI>
+					Seek points within a table must be sorted in ascending order by sample number.
+				</LI>
+				<LI>
+					Seek points within a table must be unique by sample number, with the exception of placeholder points.
+				</LI>
+				<LI>
+					The previous two notes imply that there may be any number of placeholder points, but they must all occur at the end of the table.
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_vorbis_comment"><FONT SIZE="+1"><B>METADATA_BLOCK_VORBIS_COMMENT</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				The contents of a vorbis comment packet as specified <A HREF="http://www.xiph.org/ogg/vorbis/doc/v-comment.html">here</A>, including the vendor string.  Note that the vorbis comment spec allows for on the order of 2 ^ 64 bytes of data where as the FLAC metadata block is limited to 2 ^ 24 bytes.  Given the stated purpose of vorbis comments, i.e. human-readable textual information, this limit is unlikely to be restrictive.  Also note that the 32-bit field lengths are little-endian coded according to the vorbis spec, as opposed to the usual big-endian coding of fixed-length integers in the rest of FLAC.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="frame"><FONT SIZE="+1"><B>FRAME</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#frame_header"><I>FRAME_HEADER</I></A>
+			</TD>
+			<TD>
+				&nbsp;
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#subframe"><I>SUBFRAME</I></A>+
+			</TD>
+			<TD>
+				One SUBFRAME per channel.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;?&gt;
+			</TD>
+			<TD>
+				Zero-padding to byte alignment.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#frame_footer"><I>FRAME_FOOTER</I></A>
+			</TD>
+			<TD>
+				&nbsp;
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="frame_header"><FONT SIZE="+1"><B>FRAME_HEADER</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;14&gt;
+			</TD>
+			<TD>
+				Sync code '<TT>11111111111110</TT>'
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;2&gt;
+			</TD>
+			<TD>
+				Reserved:<BR>
+				<UL>
+				<LI>
+					<TT>00</TT> : mandatory value
+				</LI>
+				<LI>
+					<TT>01-11</TT> : reserved for future use
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;4&gt;
+			</TD>
+			<TD>
+				Block size in inter-channel samples:<BR>
+				<UL>
+				<LI>
+					<TT>0000</TT> : get from STREAMINFO metadata block
+				</LI>
+				<LI>
+					<TT>0001</TT> : 192 samples
+				</LI>
+				<LI>
+					<TT>0010-0101</TT> : 576 * (2^(n-2)) samples, i.e. 576/1152/2304/4608
+				</LI>
+				<LI>
+					<TT>0110</TT> : get 8 bit (blocksize-1) from end of header
+				</LI>
+				<LI>
+					<TT>0111</TT> : get 16 bit (blocksize-1) from end of header
+				</LI>
+				<LI>
+					<TT>1000-1111</TT> : 256 * (2^(n-8)) samples, i.e. 256/512/1024/2048/4096/8192/16384/32768
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;4&gt;
+			</TD>
+			<TD>
+				Sample rate:<BR>
+				<UL>
+				<LI>
+					<TT>0000</TT> : get from STREAMINFO metadata block
+				</LI>
+				<LI>
+					<TT>0001-0011</TT> : reserved
+				</LI>
+				<LI>
+					<TT>0100</TT> : 8kHz
+				</LI>
+				<LI>
+					<TT>0101</TT> : 16kHz
+				</LI>
+				<LI>
+					<TT>0110</TT> : 22.05kHz
+				</LI>
+				<LI>
+					<TT>0111</TT> : 24kHz
+				</LI>
+				<LI>
+					<TT>1000</TT> : 32kHz
+				</LI>
+				<LI>
+					<TT>1001</TT> : 44.1kHz
+				</LI>
+				<LI>
+					<TT>1010</TT> : 48kHz
+				</LI>
+				<LI>
+					<TT>1011</TT> : 96kHz
+				</LI>
+				<LI>
+					<TT>1100</TT> : get 8 bit sample rate (in kHz) from end of header
+				</LI>
+				<LI>
+					<TT>1101</TT> : get 16 bit sample rate (in Hz) from end of header
+				</LI>
+				<LI>
+					<TT>1110</TT> : get 16 bit sample rate (in tens of Hz) from end of header
+				</LI>
+				<LI>
+					<TT>1111</TT> : invalid, to prevent sync-fooling string of 1s
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;4&gt;
+			</TD>
+			<TD>
+				Channel assignment
+				<UL>
+				<LI>
+					<TT>0000-0111</TT> : (number of independent channels)-1.  when == 0001, channel 0 is the left channel and channel 1 is the right
+				</LI>
+				<LI>
+					<TT>1000</TT> : left/side stereo: channel 0 is the left channel, channel 1 is the side(difference) channel
+				</LI>
+				<LI>
+					<TT>1001</TT> : right/side stereo: channel 0 is the side(difference) channel, channel 1 is the right channel
+				</LI>
+				<LI>
+					<TT>1010</TT> : mid/side stereo: channel 0 is the mid(average) channel, channel 1 is the side(difference) channel
+				</LI>
+				<LI>
+					<TT>1011-1111</TT> : reserved
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;3&gt;
+			</TD>
+			<TD>
+				Sample size in bits:<BR>
+				<UL>
+				<LI>
+					<TT>000</TT> : get from STREAMINFO metadata block
+				</LI>
+				<LI>
+					<TT>001</TT> : 8 bits per sample
+				</LI>
+				<LI>
+					<TT>010</TT> : 12 bits per sample
+				</LI>
+				<LI>
+					<TT>011</TT> : reserved
+				</LI>
+				<LI>
+					<TT>100</TT> : 16 bits per sample
+				</LI>
+				<LI>
+					<TT>101</TT> : 20 bits per sample
+				</LI>
+				<LI>
+					<TT>110</TT> : 24 bits per sample
+				</LI>
+				<LI>
+					<TT>111</TT> : reserved
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;1&gt;
+			</TD>
+			<TD>
+				Zero bit padding, to prevent sync-fooling string of 1s
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;?&gt;
+			</TD>
+			<TD>
+				if(variable blocksize)<BR>
+				&nbsp;&nbsp;&nbsp;&lt;8-56&gt;:"UTF-8" coded sample number (decoded number is 36 bits)<BR>
+				else<BR>
+				&nbsp;&nbsp;&nbsp;&lt;8-48&gt;:"UTF-8" coded frame number (decoded number is 31 bits)
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;?&gt;
+			</TD>
+			<TD>
+				if(blocksize bits == 011x)<BR>
+				&nbsp;&nbsp;&nbsp;8/16 bit (blocksize-1)
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;?&gt;
+			</TD>
+			<TD>
+				if(sample rate bits == 11xx)<BR>
+				&nbsp;&nbsp;&nbsp;8/16 bit sample rate
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;8&gt;
+			</TD>
+			<TD>
+				CRC-8 (polynomial = x^8 + x^2 + x^1 + x^0, initialized with 0) of everything before the crc, including the sync code
+			</TD>
+		</TR>
+		<TR>
+			<TD>
+			</TD>
+			<TD BGCOLOR="#F4F4CC">
+				<FONT SIZE="+1">NOTES</FONT><BR>
+				<UL>
+				<LI>
+					The blocksize bits 0000-0101 and 1000-1111 may only be used if the blocksize is fixed throughout the entire stream.  Blocksize bits 0110-0111 may be used in any case but the decoder will have to pessimistically guess that it is a variable-blocksize stream.  There is only one special case: the encoder may use blocksize bits 0110-0111 on the last frame of a fixed-blocksize stream, as long as the blocksize is not greater than the stream blocksize.
+				</LI>
+				<LI>
+					The "UTF-8" coding used for the sample/frame number is the same variable length code used to store compressed UCS-2, extended to handle larger input.
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="frame_footer"><FONT SIZE="+1"><B>FRAME_FOOTER</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;16&gt;
+			</TD>
+			<TD>
+				CRC-16 (polynomial = x^16 + x^15 + x^2 + x^0, initialized with 0) of everything before the crc, back to and including the frame header sync code
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="subframe"><FONT SIZE="+1"><B>SUBFRAME</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#subframe_header"><I>SUBFRAME_HEADER</I></A>
+			</TD>
+			<TD>
+				&nbsp;
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#subframe_constant"><I>SUBFRAME_CONSTANT</I></A><BR>|| <A HREF="#subframe_fixed"><I>SUBFRAME_FIXED</I></A><BR>|| <A HREF="#subframe_lpc"><I>SUBFRAME_LPC</I></A><BR>|| <A HREF="#subframe_verbatim"><I>SUBFRAME_VERBATIM</I></A>
+			</TD>
+			<TD VALIGN="TOP">
+				The SUBFRAME_HEADER specifies which one.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="subframe_header"><FONT SIZE="+1"><B>SUBFRAME_HEADER</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;1&gt;
+			</TD>
+			<TD>
+				Zero bit padding, to prevent sync-fooling string of 1s
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;6&gt;
+			</TD>
+			<TD>
+				Subframe type:
+				<UL>
+				<LI>
+					<TT>000000</TT> : <A HREF="#subframe_constant">SUBFRAME_CONSTANT</A>
+				</LI>
+				<LI>
+					<TT>000001</TT> : <A HREF="#subframe_verbatim">SUBFRAME_VERBATIM</A>
+				</LI>
+				<LI>
+					<TT>00001x</TT> : reserved
+				</LI>
+				<LI>
+					<TT>0001xx</TT> : reserved
+				</LI>
+				<LI>
+					<TT>001xxx</TT> : if(xxx <= 4) <A HREF="#subframe_fixed">SUBFRAME_FIXED</A>, xxx=order ; else reserved
+				</LI>
+				<LI>
+					<TT>01xxxx</TT> : reserved
+				</LI>
+				<LI>
+					<TT>1xxxxx</TT> : <A HREF="#subframe_lpc">SUBFRAME_LPC</A>, xxxxx=order-1
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;1+k&gt;
+			</TD>
+			<TD>
+				'Wasted bits-per-sample' flag:
+				<UL>
+				<LI>
+					<TT>0</TT> : no wasted bits-per-sample in source subblock, k=0
+				</LI>
+				<LI>
+					<TT>1</TT> : k wasted bits-per-sample in source subblock, k-1 follows, unary coded; i.e. k=3 => 001 follows, k=7 => 0000001 follows.
+				</LI>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="subframe_constant"><FONT SIZE="+1"><B>SUBFRAME_CONSTANT</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				Unencoded constant value of the subblock, n = frame's bits-per-sample.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="subframe_fixed"><FONT SIZE="+1"><B>SUBFRAME_FIXED</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				Unencoded warm-up samples (n = frame's bits-per-sample * predictor order).
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#residual"><I>RESIDUAL</I></A>
+			</TD>
+			<TD>
+				Encoded residual
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="subframe_lpc"><FONT SIZE="+1"><B>SUBFRAME_LPC</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				Unencoded warm-up samples (n = frame's bits-per-sample * lpc order).
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;4&gt;
+			</TD>
+			<TD>
+				(Quantized linear predictor coefficients' precision in bits)-1 (1111 = invalid).
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;5&gt;
+			</TD>
+			<TD>
+				Quantized linear predictor coefficient shift needed in bits (NOTE: this number is signed two's-complement).
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				Unencoded predictor coefficients (n = qlp coeff precision * lpc order) (NOTE: the coefficients are signed two's-complement).
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#residual"><I>RESIDUAL</I></A>
+			</TD>
+			<TD>
+				Encoded residual
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="subframe_verbatim"><FONT SIZE="+1"><B>SUBFRAME_VERBATIM</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n*i&gt;
+			</TD>
+			<TD>
+				Unencoded subblock; n = frame's bits-per-sample, i = frame's blocksize.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="residual"><FONT SIZE="+1"><B>RESIDUAL</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;2&gt;
+			</TD>
+			<TD>
+				Residual coding method:<BR>
+				<UL>
+				<LI>
+					<TT>00</TT> : partitioned rice coding
+				</LI>
+				<LI>
+					<TT>01-11</TT> : reserved
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#partitioned_rice"><I>RESIDUAL_CODING_METHOD_PARTITIONED_RICE</I></A>
+			</TD>
+			<TD>
+				&nbsp;
+			</TD>
+		</TR>
+		<TR>
+			<TD>
+			</TD>
+			<TD BGCOLOR="#F4F4CC">
+				<FONT SIZE="+1">NOTES</FONT><BR>
+				<UL>
+				<LI>
+					Currently, FLAC specifies only one entropy coding method.
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="partitioned_rice"><FONT SIZE="+1"><B>RESIDUAL_CODING_METHOD_PARTITIONED_RICE</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;4&gt;
+			</TD>
+			<TD>
+				Partition order.
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#rice_partition"><I>RICE_PARTITION</I></A>+
+			</TD>
+			<TD>
+				There will be 2^order partitions.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="rice_partition"><FONT SIZE="+1"><B>RICE_PARTITION</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;4(+5)&gt;
+			</TD>
+			<TD>
+				Encoding parameter:<BR>
+				<UL>
+				<LI>
+					<TT>0000-1110</TT> : Rice parameter.
+				</LI>
+				<LI>
+					<TT>1111</TT> : Escape code, meaning the partition is in unencoded binary form using n bits per sample; n follows as a 5-bit number.
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;?&gt;
+			</TD>
+			<TD>
+				Encoded residual.  The number of samples (n) in the partition is determined as follows:<BR>
+				<UL>
+				<LI>
+					if the partition order is zero, n = frame's blocksize
+				</LI>
+				<LI>
+					else if this is not the first partition of the subframe, n = (frame's blocksize / (2^partition order))
+				</LI>
+				<LI>
+					else n = (frame's blocksize / (2^partition order)) - predictor order
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+</TD></TR>
+</TABLE>
+
+
+</CENTER>
+
+<P>&nbsp;Copyright (c) 2000,2001,2002 Josh Coalson</P>
+
+</BODY>
+</HTML>

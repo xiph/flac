@@ -1,0 +1,189 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//RU">
+<!-- Copyright (c) 2000,2001,2002  Josh Coalson -->
+<!-- Permission is granted to copy, distribute and/or modify this document -->
+<!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
+<!-- or any later version published by the Free Software Foundation; -->
+<!-- with no invariant sections. -->
+<!-- A copy of the license can be found at http://www.gnu.org/copyleft/fdl.html -->
+<HTML>
+<HEAD>
+<META CHARSET="windows-1251">
+<TITLE>FLAC: новости</TITLE>
+</HEAD>
+
+<BODY>
+<CENTER><TABLE cellpadding=0 cellspacing=0 border=0>
+<TR>
+<TD align=center>|</TD>
+<TD height=22 align=center nowrap>
+&nbsp;<A HREF="index.html">начало</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;новости&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="download.html">файлы</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="features.html">характеристики</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="goals.html">цели</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="format.html">формат</A>&nbsp;</TD>
+<TD align=center>|</TD></TR>
+
+<TR>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="id.html">id</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="comparison.html">сравнение</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="developers.html">разработка</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="documentation.html">документация</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="links.html">ссылки</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;<A HREF="authors.html">авторы</A>&nbsp;</TD>
+<TD align=center>|</TD></TR>
+</TABLE></CENTER>
+
+<P><CENTER><TABLE cellpadding=0 cellspacing=0 border=0>
+<TR><TD align=center>|</TD>
+<TD height=22 align=center nowrap>
+&nbsp;<A HREF="../news.html">english</A>&nbsp;</TD>
+<TD align=center>|</TD>
+<TD align=center nowrap>
+&nbsp;русский</A>&nbsp;</TD>
+<TD align=center>|</TD></TR>
+</TABLE></CENTER></P>
+
+<CENTER><H2>FLAC: новости</H2></CENTER>
+
+<P><LI><B>13.02.2002</B><BR>
+Первая аппаратная реализация FLAC. <A HREF="http://www.phatnoise.com/">Phatnoise</A> стала первой коммерческой аппаратной платформой, поддерживающей FLAC. Для воспроизведения FLAC файлов плейером Phatbox выпущена прошивка.  Подробнее об этом на странице <A HREF="http://phatbox.sixpak.org/">Phatbox</A>.</P>
+
+<P><LI><B>03.12.2001</B><BR>
+Вышла версия <B>FLAC 1.0.2</B>. Релиз сделан для исправления проблемы, приводящей к "падению" плагинов. Ошибка также могла касаться пользователей <B><TT>libFLAC</B></TT>, которые использовали один экземпляр декодера файлов для нескольких файлов. Подробнее см. <A HREF="http://www.geocrawler.com/lists/3/SourceForge/7206/0/7231340">здесь</A>.</P>
+
+<P><LI><B>14.11.2001</B><BR>
+Вышла версия <B>FLAC 1.0.1</B>. Основной кодек не был изменен, но были добавлены несколько новых возможностей и исправлено несколько ошибок.</P>
+
+<P><BLOCKQUOTE><UL>
+
+<LI>Новые возможности для пользователей:</LI>
+
+<UL>
+<LI>Поддержка Ogg-FLAC, т.е. <B><TT>flac</TT></B> теперь может читать и создавать потоки с использованием транспортного уровня Ogg.</LI>
+
+<LI>Новый плагин для Winamp 3, основанный на Wasabi Beta 1 SDK.</LI>
+
+<LI>Новые утилиты для поддержки FLAC в Monkey Audio GUI; см. <A HREF="documentation.html#monkey">описание</A>.</LI>
+
+<LI>Поддержка Mac OS X. В разделе <A HREF="download.html">файлы</A> теперь есть скомпилированная версия для OS X.</LI>
+
+<LI>Поддержка Mingw32.</LI>
+
+<LI>Улучшена обработка специфичных для MS 'fmt' заголовков файлов WAVE.</LI>
+</UL>
+
+<LI>Новые возможности для разработчиков:</LI>
+
+<UL>
+<LI>
+Добавлен уровень SeekableStreamDecoder между StreamDecoder и FileDecoder. С его помощью удобнее использовать библиотеку <TT>libFLAC</TT> в ситуациях, когда неодостачно информации о декодируемом файле. Болле подробно все описано в разделе <A HREF="documentation.html#libflac">документация</A>. Интерфейс для StreamDecoder и FileDecoder остался прежним и, соответственно, сохранилась бинарная совместимость с libFLAC 1.0.</LI>
+
+<LI>Уменьшен размер стека необходимый кодеру.</LI>
+</UL>
+
+<LI>Исправленные ошибки:</LI>
+
+<UL>
+<LI>Существенная ошибка при кодировании raw ввода, приводящая к добавлению 12 лишних сэмплов к получаемому файлу. Кодирование из WAVE файлов работало правильно.</LI>
+
+<LI>Ошибка в <TT>libFLAC</TT>, связанная с установкой имени файла в stdin в декодере файлов.</LI>
+
+<LI>Ошибка в <TT>libFLAC</TT>, возникающая при множественных вызовах для установки имени файла и приводящая к утечке памяти.</LI>
+
+<LI><B><TT>metaflac</TT></B> правильно пропускает тег id3v2.</LI>
+
+<LI><B><TT>metaflac</TT></B> правильно пропускает большие блоки метаданных.</LI>
+</UL>
+
+</UL></BLOCKQUOTE></P>
+
+
+<P><LI><B>20.07.2001</B><BR>
+Вышла версия <B>FLAC 1.0</B>! Добавлено несколько новых возможностей, но в основном исправления ошибок.</P>
+
+<P><BLOCKQUOTE><UL>
+
+<LI>Новая опция '<TT>--sector-align</TT>' позволяет выравнивать группу кодируемых аудиофайлов на границу сектора в формате Audio-CD.</LI>
+
+<LI>Новая опция '<TT>--output-prefix</TT>' добавляет префикс ко всем выходным именам файлов (полезно, например, для сохранения результатов работы в другой каталог).</LI>
+
+<LI>Улучшенное автоопределение WAVE (больше не полагается на ungetc()).</LI>
+
+<LI>Более понятная статистика при кодировании/декодировании.</LI>
+
+<LI>Изменения в интерефейсе библиотеки <TT>libFLAC</TT> для более простой поддержки бинарной совместимости в будущем.</LI>
+
+<LI>Новая опция '<LI>--sse-os</LI>' в конфигурационном скрипте для использования более быстрых процедур, основанных на SSE.</LI>
+
+<LI>Еще одно (надеюсь последнее) исправление в плагине для Winamp 2.</LI>
+
+<LI>Немного улучшена оценка параметра Райса.</LI>
+
+<LI>Исправление ошибок, возникающих в очень редких ситуациях при кодировании.</LI>
+</UL></BLOCKQUOTE></P>
+
+
+<P><LI><B>07.06.2001</B></LI><BR>
+Вышла версия FLAC 0.10. Скорее всего это последняя бета версия. За последние два месяца было сделано много улучшений.</P>
+
+<P><BLOCKQUOTE><UL>
+	<LI>Скорость работы кодера и декодера значительно возросла. Основные процедуры написаны на ассемблере для IA-32.</LI>
+
+	<LI>Добавлен блок метаданных SEEKTABLE, содержащий информацию, позволяющую ускорить значительно ускорить поиск в потоке.</LI>
+
+	<LI>Модель поведения <B><TT>flac</TT></B> теперь аналогична <B><TT>gzip</TT></B>.</LI>
+
+	<LI>Опции -# настроены для получения наилучшего соотношения уровень/время сжатия. По умолчению установлено значение -5.</LI>
+
+	<LI>Неподдерживаемые блоки в WAVE-файле теперь пропускаются с предупреждением.</LI>
+
+	<LI>Добавлена опция <TT>--delete-input-file</TT>, позволяющая удалять входной файл после удачного кодирования/декодирования.</LI>
+
+	<LI>Изменен плагин для XMMS, чтобы нормально работала визуализация.</LI>
+
+	<LI>Исправлена ошибка, возникающая в потоковом декодере после поиска.</LI>
+</UL></BLOCKQUOTE></P>
+
+
+<P><LI><B>31.03.2001</B></LI><BR>
+Вышла версия 0.9. Исправлены плагины для Winamp и XMMS. Изменен формат (надеюсь, последний раз). Потеряна совместимость со всеми предыдущими версиями.</P>
+
+
+<P><LI><B>24.03.2001</B></LI><BR>
+Близится выход версии 0.9, в которой должен быть исправлен плагин для Winamp. Джош обратился через список рассылки, чтобы после выхода этой версии к нему обратились с пожеланиями (особенно радикальными, которые могут коснуться формата).</P>
+
+
+<P><LI><B>21.03.2001</B></LI><BR>
+Текущая версия FLAC - 0.8. Начат перевод документации.</P>
+
+
+<P><LI><B>10.12.2000</B></LI><BR>
+FLAC выложен на SourceForge. Посетите <A HREF="http://www.sourceforge.net/projects/flac/">страницу</A> проекта, чтобы подписаться на список расылки или стать разработчиком.</P>
+
+<P>&nbsp;Copyright (c) 2000,2001,2002 Josh Coalson</P>
+
+</BODY>
+</HTML>

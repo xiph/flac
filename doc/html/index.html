@@ -1,0 +1,294 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- Copyright (c)  2000,2001,2002  Josh Coalson -->
+<!-- Permission is granted to copy, distribute and/or modify this document -->
+<!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
+<!-- or any later version published by the Free Software Foundation; -->
+<!-- with no invariant sections. -->
+<!-- A copy of the license can be found at http://www.gnu.org/copyleft/fdl.html -->
+<HTML>
+<HEAD>
+	<TITLE>FLAC - Free Lossless Audio Codec</TITLE>
+</HEAD>
+
+<BODY MARGINWIDTH="0" MARGINHEIGHT="0" LEFTMARGIN="0" RIGHTMARGIN="0" TOPMARGIN="0" BGCOLOR="#99CC99" TEXT="#000000" LINK="#336699" VLINK="#336699" ALINK="#336699">
+
+<TABLE BORDER=0 WIDTH="100%" CELLPADDING=1 CELLSPACING=0>
+	<TR>
+		<TD ALIGN="CENTER" BGCOLOR="#000000"><A HREF="http://flac.sourceforge.net/"><IMG SRC="images/logo.jpg" ALIGN=CENTER ALT="FLAC Logo" BORDER=0 HSPACE=0></a></TD>
+	</TR>
+</TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="25" ALT=""></TD></TR></TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
+	<TR>
+		<TD ALIGN="CENTER" BGCOLOR="#D3D4C5">
+			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
+				<TR>
+					<TD HEIGHT=22 BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;home&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="news.html">news</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="download.html">download</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="features.html">features</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="goals.html">goals</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="format.html">format</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="id.html">id</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="comparison.html">comparison</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="documentation.html">documentation</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="developers.html">developers</A>&nbsp;&nbsp;</TD>
+				</TR>
+			</TABLE>
+		</TD>
+	</TR>
+</TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING=0 CELLSPACING=0 BORDER=0>
+	<TR>
+		<TD ALIGN="CENTER" BGCOLOR="#EEEED4">
+			<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0>
+				<TR>
+					<TD HEIGHT=22 BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;english&nbsp;&nbsp;</TD><TD BGCOLOR="#EEEED4" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#EEEED4" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="ru/index.html">russian</A>&nbsp;&nbsp;</TD>
+				</TR>
+			</TABLE>
+		</TD>
+	</TR>
+</TABLE>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="2" ALT=""></TD></TR></TABLE>
+
+<CENTER>
+
+<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#99CC99"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="15" ALT=""></TD></TR></TABLE>
+
+<TABLE cellspacing="0" cellpadding="3" border="0" width="100%" bgcolor="#99CC99">
+	<TR>
+		<TD align="center" valign="top">
+
+<TABLE WIDTH="100%">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">status</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>FLAC 1.0.3 is out.  This release includes a decoder speedup, 24-bit input support, more robust plugins, a new metadata block for Vorbis-style tags, a vastly improved metadata editor, and for developers, a new C++ object wrapper library around <B><TT>libFLAC</TT></B>, among other things.  For a complete list see <A HREF="news.html#20020703">here</A>.</P>
+	<P>Also note that <A HREF="http://www.phatnoise.com/">PhatNoise</A> now officially supports FLAC in both the PhatBox/Kenwood Music Keg firmware and the PhatNoise Music Manager software; see the announcement <A HREF="http://www.phatnoise.com/forum/showthread.php?threadid=74">here</A> for more info.</P>
+	<P>If you use FLAC and have suggestions or patches, please <A HREF="http://sourceforge.net/mail/?group_id=13478">join the mailing list</A> or <A HREF="http://sourceforge.net/project/memberlist.php?group_id=13478">developers group</A>.  Bugs can be filed <A HREF="http://sourceforge.net/bugs/?func=addbug&group_id=13478">here</A>, but make sure to check the <A HREF="documentation.html#bugs">known bugs</A> section first.</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+<TABLE WIDTH="100%">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">what is FLAC?</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+	FLAC stands for Free Lossless Audio Codec.  Grossly oversimplified, FLAC is similar to MP3, but lossless.  The FLAC project consists of:
+	</P>
+	<P>
+	<UL>
+		<LI>the stream format</LI>
+		<LI><B><TT>libFLAC</TT></B>, a library of reference encoders and decoders, and a metadata interface</LI>
+		<LI><B><TT>libFLAC++</TT></B>, an object wrapper around libFLAC</LI>
+		<LI><B><TT>flac</TT></B>, a command-line wrapper around libFLAC to encode and decode .flac files</LI>
+		<LI><B><TT>metaflac</TT></B>, a command-line metadata editor for .flac files</LI>
+		<LI>input plugins for various music players (Winamp, XMMS, and more in the works)</LI>
+	</UL>
+	</P>
+	<P>
+		"Free" means that the specification of the stream format is in the public domain (the FLAC project reserves the right to set the FLAC specification and certify compliance), and that neither the FLAC format nor any of the implemented encoding/decoding methods are covered by any patent.  It also means that the sources for <B><TT>libFLAC</TT></B> and <B><TT>libFLAC++</TT></B> are available under the <A HREF="http://www.opensource.org/licenses/lgpl-license.html">LGPL</A> and the sources for <B><TT>flac</TT></B>, <B><TT>metaflac</TT></B>, and the plugins are available under the <A HREF="http://www.opensource.org/licenses/gpl-license.html">GPL</A>.
+	</P>
+	<P>
+		FLAC compiles on many platforms: most Unixes (Linux, *BSD, Solaris, OS X), Windows, BeOS, and OS/2.  There are build systems for autoconf/automake, MSVC, Watcom C, and Project Builder.
+	</P>
+	<P>
+		See the <A HREF="features.html">features page</A>, <A HREF="documentation.html">documentation page</A>, or <A HREF="format.html">FLAC format page</A> for more info, the <A HREF="comparison.html">comparison page</A> to see how the reference encoder measures up, or the <A HREF="goals.html">goals page</A> for what the FLAC project hopes to achieve.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+
+<TABLE WIDTH="100%">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">download</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		Visit the <A HREF="download.html">download page</A> for links to the source code or pre-built binaries, or go directly to the <A HREF="http://www.sourceforge.net/projects/flac/">source</A> on SourceForge.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+
+<TABLE WIDTH="100%">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">documentation</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		The documentation is available online as well as in the distributions.  The general installation and usage documentation for <B><TT>flac</TT></B> and the plugins is <A HREF="documentation.html">here</A>.  For a detailed description of the FLAC format and reference encoder see the <A HREF="format.html">FLAC format page</A>.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+
+<TABLE WIDTH="100%">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B><FONT SIZE="+2">id registration</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		If you have an application that uses FLAC and would like it to be able to tag .flac files with custom metadata, visit the <A HREF="id.html">registration page</A> to register an ID for your application.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+
+</TD>
+
+
+<TD width="26%" valign="top" align="center">
+
+
+<TABLE WIDTH="95%">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD ALIGN="center"><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B>news</B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="news.html#20020703">03-Jul-2002</A> :<BR>&nbsp;&nbsp;Version 1.0.3 released<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="news.html#20020213">13-Feb-2002</A> :<BR>&nbsp;&nbsp;FLAC goes hardware<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="news.html#20011203">03-Dec-2001</A> :<BR>&nbsp;&nbsp;Version 1.0.2 released<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="news.html#20011114">14-Nov-2001</A> :<BR>&nbsp;&nbsp;Version 1.0.1 released<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="news.html#20010720">20-Jul-2001</A> :<BR>&nbsp;&nbsp;FLAC 1.0 is here!<BR></FONT></SMALL></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE><BR><P>
+
+
+<TABLE WIDTH="95%">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD ALIGN="center"><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<B>links</B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.sourceforge.net/projects/flac/">SourceForge project page</A><BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://freshmeat.net/projects/flac">Freshmeat page</A><BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.firstpr.com.au/audiocomp/lossless/">First Principles</A><BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><B>Hardware supporting FLAC:</B><BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.phatnoise.com/">PhatNoise</A> car audio system: <A HREF="http://www.phatnoise.com/forum/showthread.php?threadid=74">Phatbox + FLAC</A><BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><B>Software supporting FLAC:</B><BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.bagu.dhs.org/flac.html">Patch</A> for <A HREF="http://lly.org/~rcw/abcde/page/">abcde</A> (A Better CD Encoder)<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://easytag.sourceforge.net/">EasyTAG</A> versatile tagger<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://home.wanadoo.nl/~w.speek/flac.htm">FLAC frontend</A> (Windows GUI)<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://flac-tools.sourceforge.net/">flac-tools</A><BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.gstreamer.net/">GStreamer</A> streaming media framework<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://mediaxw.sourceforge.net/">MediaXW</A> includes FLAC DirectShow filter<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://rawrec.sourceforge.net/">rawrec/rawplay</A> recording/playback tools<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://rip.sourceforge.net/">rip</A> command-line ripper/encoder<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.icculus.org/SDL_sound/">SDL_sound</A> audio add-on to SDL<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://shnutils.etree.org/shntool/">shntool</A><BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.lammerts.org/software/soepkiptng/">Soepkip TNG</A> music playing daemon + web interface<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.cyclooctane.com/sonice/">sonice</A> FLAC to Vorbis transcoder<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.lameb.fsnet.co.uk/">Split_wav</A> WAV+CUE splitter<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.saunalahti.fi/~cse/html/tag.html">Tag</A> comprehensive tagger (<A HREF="http://home.wanadoo.nl/~w.speek/tag.htm">frontend</A> available)<BR></FONT></SMALL></TD></TR>
+<!-- not released yet...
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://arson.sourceforge.net/">Arson</A>: KDE ripper/burner<BR></FONT></SMALL></TD></TR>
+-->
+<!-- no FLAC support yet...
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://audacity.sourceforge.net/">Audacity</A> Cross-Platform Audio Editor<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://smurf.sourceforge.net/">Smurf</A> Sound Font Editor<BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.rm-r.net/~meff/otto2/">otto2</A><BR></FONT></SMALL></TD></TR>
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://cdwave.com/">CD Wave</A><BR></FONT></SMALL></TD></TR>
+etree.org?
+-->
+<!-- not open source yet...
+		<TR><TD BGCOLOR="#EEEED4"><SMALL><FONT FACE="Lucida,Verdana,Helvetica,Arial"><A HREF="http://www.baudline.com/">Baudline</A> signal analyzer<BR></FONT></SMALL></TD></TR>
+-->
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE><BR><P>
+
+
+<A HREF="http://sourceforge.net"><IMG SRC="http://sourceforge.net/sflogo.php?group_id=13478&amp;type=1" WIDTH="88" HEIGHT="31" BORDER="0" ALT="SourceForge Logo"></A><BR><P>
+
+<A HREF="http://www.eff.org/cafe/"><IMG SRC="images/cafebug.gif" ALT="CAFE Logo" BORDER=0></A><BR>
+
+
+<BR></FONT>
+</TD></TR></TABLE>
+
+
+</CENTER>
+
+<P>&nbsp;Copyright (c) 2000,2001,2002 Josh Coalson</P>
+
+</BODY>
+</HTML>
