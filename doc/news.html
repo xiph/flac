@@ -57,14 +57,19 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 
 	<P>
-		<A NAME="20010324">24-Mar-2001:</A>
+		<A NAME="20010331">31-Mar-2001:</A>
 	</P>
 	<P>
 	<UL>
 		<LI>
-			<B>FLAC 0.9 released.</B>&nbsp;&nbsp;A few more bug fixes and features:
+			<B>FLAC 0.9 released.</B>&nbsp;&nbsp;There were some format changes that broke backwards compatibility but these should be the last (see below).  Also, there have been several bug fixes and some new features:
 			<UL>
+				<LI>FLAC's sync code has been lengthened to 14 bits from 9 bits.  This should enable a faster and more robust synchronization mechanism.</LI>
+				<LI>Two reserved bits were added to the frame header.</LI>
+				<LI>A CRC-16 was added to the FLAC frame footer, and the decoder now does frame integrity checking based on the CRC.</LI>
+				<LI>The format now includes a new subframe field to indicate when a subblock has one or more 0 LSBs for all samples.  This increases compression on some kinds of data.</LI>
 				<LI>Added two options to the analysis mode, one for including the residual signal in the analysis file, and one for generating gnuplot files of each subframe's residual distribution with some statistics.  See the latest <A HREF="documentation.html#analysis_options">documentation</A>.</LI>
+				<LI>XMMS plugin now supports 8-bit files.</LI>
 				<LI>Fixed a bug in the Winamp2 plugin where the audio sounded garbled.</LI>
 				<LI>Fixed a bug in the Winamp2 plugin where Winamp would hang sporadically at the end of a track (c.f. <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=231197&group_id=13478&atid=113478">bug #231197</A>).</LI>
 			</UL>
