@@ -340,11 +340,11 @@ namespace FLAC {
 			bool process(const FLAC__int32 * const buffer[], unsigned samples);
 			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples);
 		protected:
-			virtual void progress_callback(FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate);
+			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);
 
 			::FLAC__FileEncoder *encoder_;
 		private:
-			static void progress_callback_(const ::FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
+			static void progress_callback_(const ::FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 
 			// Private and undefined so you can't use them:
 			File(const Stream &);

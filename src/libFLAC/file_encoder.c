@@ -45,6 +45,7 @@ typedef struct FLAC__FileEncoderPrivate {
 	void *client_data;
 	char *filename;
 	FLAC__uint64 bytes_written;
+	FLAC__uint64 samples_written;
 	unsigned total_frames_estimate;
 	FLAC__SeekableStreamEncoder *seekable_stream_encoder;
 	FILE *file;
@@ -156,6 +157,7 @@ FLAC__FileEncoderState FLAC__file_encoder_init(FLAC__FileEncoder *encoder)
 		return encoder->protected_->state = FLAC__FILE_ENCODER_ERROR_OPENING_FILE;
 
 	encoder->private_->bytes_written = 0;
+	encoder->private_->samples_written = 0;
 
 	FLAC__seekable_stream_encoder_set_seek_callback(encoder->private_->seekable_stream_encoder, seek_callback_);
 	FLAC__seekable_stream_encoder_set_write_callback(encoder->private_->seekable_stream_encoder, write_callback_);
@@ -663,8 +665,9 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__SeekableStreamEncoder
 
 	if(fwrite(buffer, sizeof(FLAC__byte), bytes, file_encoder->private_->file) == bytes) {
 		file_encoder->private_->bytes_written += bytes;
+		file_encoder->private_->samples_written += samples;
 		if(0 != file_encoder->private_->progress_callback && samples > 0)
-			file_encoder->private_->progress_callback(file_encoder, file_encoder->private_->bytes_written, current_frame+1, file_encoder->private_->total_frames_estimate, file_encoder->private_->client_data);
+			file_encoder->private_->progress_callback(file_encoder, file_encoder->private_->bytes_written, file_encoder->private_->samples_written, current_frame+1, file_encoder->private_->total_frames_estimate, file_encoder->private_->client_data);
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 	}
 	else

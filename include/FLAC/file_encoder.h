@@ -151,7 +151,7 @@ typedef struct {
 } FLAC__FileEncoder;
 
 /*@@@ document: */
-typedef void (*FLAC__FileEncoderProgressCallback)(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
+typedef void (*FLAC__FileEncoderProgressCallback)(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 
 
 /***********************************************************************

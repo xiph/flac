@@ -312,18 +312,18 @@ namespace FLAC {
 			return (bool)::FLAC__file_encoder_process_interleaved(encoder_, buffer, samples);
 		}
 
-		void File::progress_callback(FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate)
+		void File::progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate)
 		{
-			(void)bytes_written, (void)frames_written, (void)total_frames_estimate;
+			(void)bytes_written, (void)samples_written, (void)frames_written, (void)total_frames_estimate;
 		}
 
-		void File::progress_callback_(const ::FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
+		void File::progress_callback_(const ::FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
 			File *instance = reinterpret_cast<File *>(client_data);
 			FLAC__ASSERT(0 != instance);
-			instance->progress_callback(bytes_written, frames_written, total_frames_estimate);
+			instance->progress_callback(bytes_written, samples_written, frames_written, total_frames_estimate);
 		}
 
 	};

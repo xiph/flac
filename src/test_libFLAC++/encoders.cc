@@ -778,12 +778,12 @@ public:
 	~FileEncoder() { }
 
 	// from FLAC::Encoder::File
-	void progress_callback(FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate);
+	void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);
 
 	bool die(const char *msg = 0) const;
 };
 
-void FileEncoder::progress_callback(FLAC__uint64, unsigned, unsigned)
+void FileEncoder::progress_callback(FLAC__uint64, FLAC__uint64, unsigned, unsigned)
 {
 }
 

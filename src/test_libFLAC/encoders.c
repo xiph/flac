@@ -796,9 +796,9 @@ static FLAC__bool test_seekable_stream_encoder()
 	return true;
 }
 
-static void file_encoder_progress_callback_(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
+static void file_encoder_progress_callback_(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
 {
-	(void)encoder, (void)bytes_written, (void)frames_written, (void)total_frames_estimate, (void)client_data;
+	(void)encoder, (void)bytes_written, (void)samples_written, (void)frames_written, (void)total_frames_estimate, (void)client_data;
 }
 
 static FLAC__bool test_file_encoder()

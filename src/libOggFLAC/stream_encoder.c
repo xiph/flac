@@ -636,10 +636,10 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *unused
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 
 	while(ogg_stream_pageout(&encoder->private_->ogg.stream_state, &encoder->private_->ogg.page) != 0) {
-		if(encoder->private_->write_callback(encoder, encoder->private_->ogg.page.header, encoder->private_->ogg.page.header_len, samples, current_frame, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+		if(encoder->private_->write_callback(encoder, encoder->private_->ogg.page.header, encoder->private_->ogg.page.header_len, 0, current_frame, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 
-		if(encoder->private_->write_callback(encoder, encoder->private_->ogg.page.body, encoder->private_->ogg.page.body_len, samples, current_frame, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+		if(encoder->private_->write_callback(encoder, encoder->private_->ogg.page.body, encoder->private_->ogg.page.body_len, 0, current_frame, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 	}
 
