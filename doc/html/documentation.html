@@ -404,7 +404,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-F</TT>, <TT>--decode-through-errors</TT>
+				<TT>-F</TT>,<BR><TT>--decode-through-errors</TT>
 			</TD>
 			<TD>
 				By default <B><TT>flac</TT></B> stops decoding with an error and removes the partially decoded file if it encounters a bitstream error.  With <TT>-F</TT>, errors are still printed but <B><TT>flac</TT></B> will continue decoding to completion.  Note that errors may cause the decoded audio to be missing some samples or have silent sections.
@@ -609,7 +609,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-e</TT>, <TT>--exhaustive-model-search</TT>
+				<TT>-e</TT>,<BR><TT>--exhaustive-model-search</TT>
 			</TD>
 			<TD>
 				Exhaustive model search (expensive!).  Normally the encoder estimates the best model to use and encodes once based on the estimate.  With an exhaustive model search, the encoder will generate subframes for every order and use the smallest.  If the max LPC order is high this can significantly increase the encode time but can shave off another 0.5%.
@@ -633,7 +633,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-q #</TT>, <TT>--qlp-coeff-precision=#</TT>
+				<TT>-q #</TT>,<BR><TT>--qlp-coeff-precision=#</TT>
 			</TD>
 			<TD>
 				Specifies the precision of the quantized LP coefficients, in bits.  The default is <B><TT>-q 0</TT></B>, which means let the encoder decide based on the signal.  Unless you really know your input file it's best to leave this up to the encoder.
@@ -641,7 +641,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-p</TT>, <TT>--qlp-coeff-precision-search</TT>
+				<TT>-p</TT>,<BR><TT>--qlp-coeff-precision-search</TT>
 			</TD>
 			<TD>
 				Do exhaustive LP coefficient quantization optimization.  This option overrides any <B><TT>-q</TT></B> option.  It is expensive and typically will only improve the compression a tiny fraction of a percent.  <B><TT>-q</TT></B> has no effect when <B><TT>-l 0</TT></B> is used.
@@ -649,7 +649,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-r [#,]#</TT>, <TT>--rice-partition-order=[#,]#</TT>
+				<TT>-r [#,]#</TT>,<BR><TT>--rice-partition-order=[#,]#</TT>
 			</TD>
 			<TD>
 				Set the [min,]max residual partition order.  The min value defaults to 0 if unspecified.<P>
