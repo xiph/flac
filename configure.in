@@ -378,6 +378,8 @@ AC_OUTPUT( \
 	src/monkeys_audio_utilities/flac_ren/Makefile \
 	src/monkeys_audio_utilities/Makefile \
 	src/plugin_common/Makefile \
+	src/plugin_common/include/Makefile \
+	src/plugin_common/include/private/Makefile \
 	src/plugin_winamp2/Makefile \
 	src/plugin_winamp3/Makefile \
 	src/plugin_xmms/Makefile \
