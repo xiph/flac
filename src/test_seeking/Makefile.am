@@ -22,9 +22,13 @@ EXTRA_DIST = \
 CFLAGS = @CFLAGS@ @OGG_CFLAGS@
 INCLUDES = 
 
+if FLaC__HAS_OGG
+NEED_OGGFLAC_LIB = $(top_builddir)/src/libOggFLAC/libOggFLAC.la
+endif
+
 noinst_PROGRAMS = test_seeking
 test_seeking_LDADD = \
-	$(top_builddir)/src/libOggFLAC/libOggFLAC.la \
+	$(NEED_OGGFLAC_LIB) \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
 	-lm
