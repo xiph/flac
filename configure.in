@@ -230,7 +230,7 @@ fi
 AM_PATH_XMMS(0.9.5.1, , AC_MSG_WARN([*** XMMS >= 0.9.5.1 not installed - xmms support will not be built]))
 AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
 
-SHARE_LIBS='$(top_builddir)/src/share/libutf8.a $(top_builddir)/src/share/libgetopt.a'
+SHARE_LIBS='$(top_builddir)/src/share/libreplaygain.a $(top_builddir)/src/share/libgain_analysis.a $(top_builddir)/src/share/libgetopt.a $(top_builddir)/src/share/libutf8.a'
 
 dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_ICONV
@@ -382,6 +382,10 @@ AC_OUTPUT( \
 	src/plugin_winamp3/Makefile \
 	src/plugin_xmms/Makefile \
 	src/share/Makefile \
+	src/share/gain_analysis/Makefile \
+	src/share/getopt/Makefile \
+	src/share/replaygain/Makefile \
+	src/share/utf8/Makefile \
 	src/test_libFLAC/Makefile \
 	src/test_libFLAC++/Makefile \
 	src/test_libOggFLAC/Makefile \

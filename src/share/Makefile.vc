@@ -9,6 +9,9 @@ all:
 	cd getopt
 	nmake /f Makefile.vc
 	cd ..
+	cd replaygain
+	nmake /f Makefile.vc
+	cd ..
 	cd utf8
 	nmake /f Makefile.vc
 	cd ..
@@ -18,6 +21,9 @@ clean:
 	nmake /f Makefile.vc clean
 	cd ..
 	cd getopt
+	nmake /f Makefile.vc clean
+	cd ..
+	cd replaygain
 	nmake /f Makefile.vc clean
 	cd ..
 	cd utf8

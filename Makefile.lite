@@ -60,6 +60,7 @@ libOggFLAC++: libFLAC
 share:
 	(cd src/$@/gain_analysis ; $(MAKE) -f Makefile.lite $(CONFIG))
 	(cd src/$@/getopt ; $(MAKE) -f Makefile.lite $(CONFIG))
+	(cd src/$@/replaygain ; $(MAKE) -f Makefile.lite $(CONFIG))
 	(cd src/$@/utf8 ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 flac: libFLAC libOggFLAC share
@@ -100,6 +101,7 @@ clean:
 	-(cd src/libOggFLAC++ ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/share/gain_analysis ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/share/getopt ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/share/replaygain ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/share/utf8 ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/flac ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/metaflac ; $(MAKE) -f Makefile.lite clean)
