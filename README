@@ -78,22 +78,22 @@ speed and `configure' is pretty good about knowing what is
 supported, but you can use this option to build only from the
 C sources.
 
---sse-os : If you are building for an x86 CPU that supports
+--enable-sse : If you are building for an x86 CPU that supports
 SSE instructions, you can enable some of the faster routines
 if your operating system also supports SSE instructions.  flac
 can tell if the CPU supports the instructions but currently has
 no way to test if the OS does, so if it does, you must pass
 this argument to configure to use the SSE routines.  If flac
 crashes when built with this option you will have to go back and
-configure without --sse-os.  Note that --disable-asm-optimizations
-overrides --sse-os.
+configure without --enable-sse.  Note that
+--disable-asm-optimizations implies --disable-sse.
 
---use-3dnow : If you are building for an AMD CPU which has 3DNOW!
+--enable-3dnow : If you are building for an AMD CPU which has 3DNOW!
 support, you can use this flag to enable some assembly routines
 which use 3DNOW! instructions.  There have been some reports that
 they may cause flac to crash, which is why it is not turned on
 by default.  Note that --disable-asm-optimizations overrides
---use-3dnow.
+--enable-3dnow.
 
 
 ===========================
