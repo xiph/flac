@@ -1,0 +1,24 @@
+!include <win32.mak>
+
+!IFDEF DEBUG
+.c.obj:
+	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+!else
+.c.obj:
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
+!endif
+
+C_FILES= \
+	canonical_tag.c \
+	dither.c
+
+OBJS= $(C_FILES:.c=.obj)
+
+all: plugin-common.lib
+
+plugin-common.lib: $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
+
+clean:
+	-del *.obj *.pch
+	-del ..\..\obj\lib\plugin-common.lib ..\..\obj\lib\plugin-common.pdb
