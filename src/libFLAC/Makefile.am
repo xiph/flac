@@ -36,9 +36,11 @@ if FLaC__CPU_PPC
 # The -force_cpusubtype_ALL is needed to insert a ppc64 instruction
 # into cpu.c with an asm().
 if FLaC__SYS_DARWIN
-CPUCFLAGS = -faltivec -force_cpusubtype_ALL
+#@@@@@@ PPC optimizations temporarily disabled
+CPUCFLAGS = -faltivec -force_cpusubtype_ALL -DFLAC__NO_ASM
 else
-CPUCFLAGS = -maltivec -mabi=altivec -force_cpusubtype_ALL
+#@@@@@@ PPC optimizations temporarily disabled
+CPUCFLAGS = -maltivec -mabi=altivec -force_cpusubtype_ALL -DFLAC__NO_ASM
 endif
 endif
 CFLAGS = @CFLAGS@ $(DEBUGCFLAGS) $(CPUCFLAGS)
