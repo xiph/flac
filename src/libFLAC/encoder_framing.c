@@ -381,10 +381,11 @@ bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 re
 	else {
 		unsigned i, j, k = 0, k_last = 0;
 		unsigned partition_samples;
+		const unsigned default_partition_samples = (residual_samples+predictor_order) >> partition_order;
 		for(i = 0; i < (1u<<partition_order); i++) {
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, rice_parameters[i], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 				return false;
-			partition_samples = (residual_samples+predictor_order) >> partition_order;
+			partition_samples = default_partition_samples;
 			if(i == 0)
 				partition_samples -= predictor_order;
 			k += partition_samples;
