@@ -1,5 +1,5 @@
 #  test_streams - Simple test pattern generator
-#  Copyright (C) 2000,2001  Josh Coalson
+#  Copyright (C) 2000,2001,2002  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
