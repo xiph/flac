@@ -22,6 +22,12 @@ export LD_LIBRARY_PATH
 PATH=../src/flac:../obj/bin:$PATH
 BINS_PATH=../../test_files/bins
 
+flac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find flac executable" 1>&2 && exit 1)
+if [ $? != 0 ] ; then exit 1 ; fi
+
+#FLAC="valgrind --leak-check=yes --show-reachable=yes --logfile-fd=1 flac"
+FLAC=flac
+
 test -d ${BINS_PATH} || exit 77
 
 test_file ()
@@ -32,7 +38,7 @@ test_file ()
 	encode_options="$4"
 
 	echo -n "$name (--channels=$channels --bps=$bps $encode_options): encode..."
-	cmd="flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
+	cmd="$FLAC --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else
@@ -40,7 +46,7 @@ test_file ()
 		exit 1
 	fi
 	echo -n "decode..."
-	cmd="flac --silent --endian=big --sign=signed --decode --force-raw-format $name.flac";
+	cmd="$FLAC --silent --endian=big --sign=signed --decode --force-raw-format $name.flac";
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else
@@ -59,19 +65,26 @@ test_file ()
 }
 
 echo "Testing bins..."
-for f in b00 b01 b02 b03 ; do
-	for channels in 1 2 4 8 ; do
-		for bps in 8 16 24 ; do
-			for opt in 0 1 2 4 5 6 8 ; do
-				for extras in '' '-p' '-e' ; do
-					for blocksize in '' '--lax -b 32' '--lax -b 32768' '--lax -b 65535' ; do
-						test_file $BINS_PATH/$f $channels $bps "-$opt $extras $blocksize"
+for f in b00 b01 b02 b03 b04 ; do
+	binfile=$BINS_PATH/$f
+	if [ -f $binfile ] ; then
+		for disable in '' '--disable-verbatim-subframes --disable-constant-subframes' '--disable-verbatim-subframes --disable-constant-subframes --disable-fixed-subframes' ; do
+			for channels in 1 2 4 8 ; do
+				for bps in 8 16 24 ; do
+					for opt in 0 1 2 4 5 6 8 ; do
+						for extras in '' '-p' '-e' ; do
+							for blocksize in '' '--lax -b 32' '--lax -b 32768' '--lax -b 65535' ; do
+								test_file $binfile $channels $bps "-$opt $extras $blocksize $disable"
+							done
+						done
 					done
+					if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
+						test_file $binfile $channels $bps "-b 16384 -m -r 8 -l 32 -e -p $disable"
+					fi
 				done
 			done
-			if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
-				test_file $BINS_PATH/$f $channels $bps "-b 16384 -m -r 8 -l 32 -e -p"
-			fi
 		done
-	done
+	else
+		echo "$binfile not found, skipping."
+	fi
 done
