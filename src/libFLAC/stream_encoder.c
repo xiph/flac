@@ -1175,6 +1175,14 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_encoder_get_verify_decoder_state(
 		return FLAC__STREAM_DECODER_UNINITIALIZED;
 }
 
+FLAC_API const char *FLAC__stream_encoder_get_resolved_state_string(const FLAC__StreamEncoder *encoder)
+{
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR)
+		return FLAC__StreamEncoderStateString[encoder->protected_->state];
+	else
+		return FLAC__StreamDecoderStateString[FLAC__stream_decoder_get_state(encoder->private_->verify.decoder)];
+}
+
 FLAC_API void FLAC__stream_encoder_get_verify_decoder_error_stats(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got)
 {
 	FLAC__ASSERT(0 != encoder);
