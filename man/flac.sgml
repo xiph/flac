@@ -318,7 +318,7 @@
 		      <term><option>-9</option></term>
 		      
 		      <listitem>
-			<para>Synonymous with -l 32 -m -e -r 99 -p
+			<para>Synonymous with -l 32 -m -e -r 16 -p
 			  (very slow!)</para>
 		      </listitem>
 		    </varlistentry>
@@ -370,7 +370,7 @@
 		<term><option>-r</option> <replaceable>level</replaceable></term>
 
 		<listitem>
-		  <para>Rice parameter optimization level (0..99). 0
+		  <para>Residual partition order (0..16). 0
 		    => none, default is 0, above 4 doesn't usually
 		    help much)</para>
 		</listitem>

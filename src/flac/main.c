@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 	uint64 skip = 0;
 	int format_is_wave = -1, format_is_big_endian = -1, format_is_unsigned_samples = false;
 	int format_channels = -1, format_bps = -1, format_sample_rate = -1;
-	int blocksize = -1, rice_optimization_level = -1;
+	int blocksize = -1, min_residual_partition_order = -1, max_residual_partition_order = -1, rice_parameter_search_dist = -1;
 	char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER */
 	int num_requested_seek_points = -1; /* -1 => no -S options were given, 0 => -S- was given */
 
@@ -110,8 +110,19 @@ int main(int argc, char *argv[])
 			padding = atoi(argv[++i]);
 		else if(0 == strcmp(argv[i], "-q"))
 			qlp_coeff_precision = atoi(argv[++i]);
-		else if(0 == strcmp(argv[i], "-r"))
-			rice_optimization_level = atoi(argv[++i]);
+		else if(0 == strcmp(argv[i], "-r")) {
+			char *p = strchr(argv[++i], ',');
+			if(0 == p) {
+				min_residual_partition_order = 0;
+				max_residual_partition_order = atoi(argv[i]);
+			}
+			else {
+				min_residual_partition_order = atoi(argv[i]);
+				max_residual_partition_order = atoi(++p);
+			}
+		}
+		else if(0 == strcmp(argv[i], "-R"))
+			rice_parameter_search_dist = atoi(argv[++i]);
 		else if(0 == strcmp(argv[i], "-V"))
 			verify = true;
 		else if(0 == strcmp(argv[i], "-V-"))
@@ -141,7 +152,8 @@ int main(int argc, char *argv[])
 			do_mid_side = false;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
-			rice_optimization_level = 0;
+			min_residual_partition_order = max_residual_partition_order = 0;
+			rice_parameter_search_dist = 0;
 			max_lpc_order = 0;
 		}
 		else if(0 == strcmp(argv[i], "-1")) {
@@ -149,7 +161,8 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = true;
 			qlp_coeff_precision = 0;
-			rice_optimization_level = 0;
+			min_residual_partition_order = max_residual_partition_order = 0;
+			rice_parameter_search_dist = 0;
 			max_lpc_order = 0;
 		}
 		else if(0 == strcmp(argv[i], "-2")) {
@@ -157,6 +170,7 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
+			rice_parameter_search_dist = 0;
 			max_lpc_order = 0;
 		}
 		else if(0 == strcmp(argv[i], "-4")) {
@@ -164,7 +178,8 @@ int main(int argc, char *argv[])
 			do_mid_side = false;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
-			rice_optimization_level = 0;
+			min_residual_partition_order = max_residual_partition_order = 0;
+			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
 		else if(0 == strcmp(argv[i], "-5")) {
@@ -172,7 +187,8 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = true;
 			qlp_coeff_precision = 0;
-			rice_optimization_level = 0;
+			min_residual_partition_order = max_residual_partition_order = 0;
+			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
 		else if(0 == strcmp(argv[i], "-6")) {
@@ -180,6 +196,7 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
+			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
 		else if(0 == strcmp(argv[i], "-8")) {
@@ -187,6 +204,7 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
+			rice_parameter_search_dist = 0;
 			max_lpc_order = 32;
 		}
 		else if(0 == strcmp(argv[i], "-9")) {
@@ -194,7 +212,9 @@ int main(int argc, char *argv[])
 			do_mid_side = true;
 			loose_mid_side = false;
 			do_qlp_coeff_prec_search = true;
-			rice_optimization_level = 99;
+			min_residual_partition_order = 0;
+			max_residual_partition_order = 16;
+			rice_parameter_search_dist = 32;
 			max_lpc_order = 32;
 		}
 		else if(isdigit((int)(argv[i][1]))) {
@@ -225,15 +245,19 @@ int main(int argc, char *argv[])
 			else
 				blocksize = 4608;
 		}
-		if(rice_optimization_level < 0) {
+		if(min_residual_partition_order < 0) {
+			min_residual_partition_order = 0;
 			if(blocksize <= 1152)
-				rice_optimization_level = 4;
+				max_residual_partition_order = 4;
 			else if(blocksize <= 2304)
-				rice_optimization_level = 4;
+				max_residual_partition_order = 4;
 			else if(blocksize <= 4608)
-				rice_optimization_level = 4;
+				max_residual_partition_order = 4;
 			else
-				rice_optimization_level = 5;
+				max_residual_partition_order = 5;
+		}
+		if(rice_parameter_search_dist < 0) {
+			rice_parameter_search_dist = 0;
 		}
 	}
 	else {
@@ -287,10 +311,11 @@ int main(int argc, char *argv[])
 		printf("welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
 		if(!mode_decode) {
-			printf("options:%s -P %u -b %u%s -l %u%s%s -q %u -r %u%s\n",
+			printf("options:%s -P %u -b %u%s -l %u%s%s -q %u -r %u,%u -R %u%s\n",
 				lax?" --lax":"", padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
 				do_exhaustive_model_search?" -e":"", do_qlp_coeff_prec_search?" -p":"",
-				qlp_coeff_precision, (unsigned)rice_optimization_level,
+				qlp_coeff_precision,
+				(unsigned)min_residual_partition_order, (unsigned)max_residual_partition_order, (unsigned)rice_parameter_search_dist,
 				verify? " -V":""
 			);
 		}
@@ -303,9 +328,9 @@ int main(int argc, char *argv[])
 			return decode_raw(argv[i], test_only? 0 : argv[i+1], analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 	else
 		if(format_is_wave)
-			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
+			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
 		else
-			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
 	return 0;
 }
@@ -390,22 +415,23 @@ int usage(const char *message, ...)
 	printf("             these are synonyms for other options:\n");
 	printf("  -0   : synonymous with -l 0 -b 1152\n");
 	printf("  -1   : synonymous with -l 0 -b 1152 -M\n");
-	printf("  -2   : synonymous with -l 0 -b 1152 -m -r 2\n");
+	printf("  -2   : synonymous with -l 0 -b 1152 -m -r 4\n");
 	printf("  -3   : reserved\n");
 	printf("  -4   : synonymous with -l 8 -b 4608 \n");
 	printf("  -5   : synonymous with -l 8 -b 4608 -M\n");
 	printf("  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
 	printf("  -7   : reserved\n");
 	printf("  -8   : synonymous with -l 32 -b 4608 -m -r 4\n");
-	printf("  -9   : synonymous with -l 32 -m -e -r 99 -p (very slow!)\n");
+	printf("  -9   : synonymous with -l 32 -m -e -r 16 -R 32 -p (very slow!)\n");
 	printf("  -e   : do exhaustive model search (expensive!)\n");
 	printf("  -l # : specify max LPC order; 0 => use only fixed predictors\n");
 	printf("  -p   : do exhaustive search of LP coefficient quantization (expensive!);\n");
 	printf("         overrides -q, does nothing if using -l 0\n");
 	printf("  -q # : specify precision in bits of quantized linear-predictor coefficients;\n");
 	printf("         0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
-	printf("  -r # : rice parameter optimization level (# is 0..99, 0 => none, default is\n");
-	printf("         -r 0, above 4 doesn't usually help much)\n");
+	printf("  -r [#,]# : [min,]max residual partition order (# is 0..16; min defaults to 0;\n");
+	printf("         default is -r 0; above 4 doesn't usually help much)\n");
+	printf("  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much\n");
 	printf("  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	printf("         comparing to the original\n");
 	printf("  -S-, -m-, -M-, -e-, -p-, -V-, --lax- can all be used to turn off a particular\n");

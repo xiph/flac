@@ -68,7 +68,9 @@ typedef struct {
 	                                      /* qlp_coeff_precision+bits_per_sample must be < 32 */
 	bool     do_qlp_coeff_prec_search;    /* 0 => use qlp_coeff_precision, 1 => search around qlp_coeff_precision, take best */
 	bool     do_exhaustive_model_search;  /* 0 => use estimated bits per residual for scoring, 1 => generate all, take shortest */
-	unsigned rice_optimization_level;     /* 0 => estimate Rice parameter based on residual variance, 1-8 => partition residual, use parameter for each */
+	unsigned min_residual_partition_order; /* 0 => estimate Rice parameter based on residual variance; >0 => partition residual, use parameter for each */
+	unsigned max_residual_partition_order; /*      based on mean; min_ and max_ specify the min and max Rice partition order */
+	unsigned rice_parameter_search_dist;  /* 0 => try only calc'd parameter k; else try all [k-dist..k+dist] parameters, use best */
 	uint64   total_samples_estimate;      /* may be 0 if unknown.  this will be a placeholder in the metadata block until the actual total is calculated */
 	const FLAC__StreamMetaData_SeekTable *seek_table; /* optional seek_table to prepend, 0 => no seek table */
 	unsigned padding;                     /* size of PADDING block to add (goes after seek table); 0 => do not add a PADDING block */

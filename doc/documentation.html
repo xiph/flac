@@ -368,7 +368,7 @@
 				-9
 			</TD>
 			<TD>
-				Synonymous with -l 32 -b 4608 -m -e -r 99 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for a given blocksize.
+				Synonymous with -l 32 -b 4608 -m -e -r 16 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for a given blocksize.
 			</TD>
 		</TR>
 		<TR>
@@ -408,7 +408,7 @@
 				-r #
 			</TD>
 			<TD>
-				Do Rice parameter optimization.  By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is partitioned into 2^n pieces, each with its own Rice parameter.  Higher values of n yield diminishing returns.  The most bang for the buck is usually with <B><TT>-r 2</TT></B> (more for higher blocksizes).  This usually shaves off another 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <B><TT>-r 99</TT></B> to force the highest degree of optimization.
+				Do Rice parameter optimization.  By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is partitioned into 2^n pieces, each with its own Rice parameter.  Higher values of n yield diminishing returns.  The most bang for the buck is usually with <B><TT>-r 2</TT></B> (more for higher blocksizes).  This usually shaves off another 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <B><TT>-r 16</TT></B> to force the highest degree of optimization.
 			</TD>
 		</TR>
 		<TR>
