@@ -26,6 +26,7 @@
 #define FLAC__MIN_BLOCK_SIZE (16u)
 #define FLAC__MAX_BLOCK_SIZE (65535u)
 #define FLAC__MAX_CHANNELS (8u)
+#define FLAC__MIN_BITS_PER_SAMPLE (4u)
 /*NOTE: only up to 24 because of the current predictor coefficient quantization and the fact we use int32s for all work */
 #define FLAC__MAX_BITS_PER_SAMPLE (24u)
 /* the following is ((2 ** 20) - 1) div 10 */
