@@ -20,7 +20,7 @@ manpage.1: manpage.sgml
   <!ENTITY manfirstname "<firstname>dann</firstname>">
   <!ENTITY mansurname   "<surname>frazier</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY mandate      "<date>2004-01-17</date>">
+  <!ENTITY mandate      "<date>2004-09-14</date>">
   <!-- SECTION should be 1-8, maybe with subsection. Other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY mansection   "<manvolnum>1</manvolnum>">
@@ -194,7 +194,7 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--show-vc-vendor</option></term>
+        <term><option>--show-vendor-tag</option></term>
         <listitem>
           <para>
 	    Show the vendor string from the VORBIS_COMMENT block.
@@ -202,65 +202,63 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--show-vc-field=name</option></term>
+        <term><option>--show-tag=name</option></term>
         <listitem>
           <para>
-	    Show all Vorbis comment fields where the the field name matches
-	    'name'.
+	    Show all tags where the the field name matches 'name'.
 	  </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--remove-vc-field=name</option></term>
+        <term><option>--remove-tag=name</option></term>
         <listitem>
           <para>
-	    Remove all Vorbis comment fields whose field name is 'name'.
+	    Remove all tags whose field name is 'name'.
 	  </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--remove-vc-firstfield=name</option></term>
+        <term><option>--remove-first-tag=name</option></term>
         <listitem>
           <para>
-	    Remove first Vorbis comment field whose field name is 'name'.
+	    Remove first tag whose field name is 'name'.
 	  </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--remove-vc-all</option></term>
+        <term><option>--remove-all-tags</option></term>
         <listitem>
           <para>
-	    Remove all Vorbis comment fields, leaving only the vendor string
-	    in the VORBIS_COMMENT block.
+	    Remove all tags, leaving only the vendor string.
 	  </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><option>--set-vc-field=field</option></term>
+        <term><option>--set-tag=field</option></term>
         <listitem>
           <para>
-	    Add a Vorbis comment field.  The field must comply with the
+	    Add a tag.  The field must comply with the
 	    Vorbis comment spec, of the form "NAME=VALUE".  If there is
-	    currently no VORBIS_COMMENT block, one will be created.
+	    currently no tag block, one will be created.
 	  </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--import-vc-from=file</option></term>
+	<term><option>--import-tags-from=file</option></term>
         <listitem>
 	  <para>
-	    Import Vorbis comments from a file.  Use '-' for stdin.  Each
+	    Import tags from a file.  Use '-' for stdin.  Each
 	    line should be of the form NAME=VALUE.  Multi-line comments
-	    are currently not supported.  Specify --remove-vc-all and/or
-	    --no-utf8-convert before --import-vc-from if necessary.
+	    are currently not supported.  Specify --remove-all-tags and/or
+	    --no-utf8-convert before --import-tags-from if necessary.
 	  </para>
         </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--export-vc-to=file</option></term>
+	<term><option>--export-tags-to=file</option></term>
         <listitem>
 	  <para>
-	    Export Vorbis comments to a file.  Use '-' for stdin.  Each
+	    Export tags to a file.  Use '-' for stdin.  Each
 	    line will be of the form NAME=VALUE.  Specify
 	    --no-utf8-convert if necessary.
 	  </para>

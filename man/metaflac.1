@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "METAFLAC" "1" "29 July 2004" "" ""
+.TH "METAFLAC" "1" "14 September 2004" "" ""
 .SH NAME
 metaflac \- program to list, add, remove, or edit metadata in one or more FLAC files.
 .SH SYNOPSIS
@@ -61,36 +61,34 @@ Show the # of bits per sample from the STREAMINFO block.
 \fB--show-total-samples\fR
 Show the total # of samples from the STREAMINFO block.
 .TP
-\fB--show-vc-vendor\fR
+\fB--show-vendor-tag\fR
 Show the vendor string from the VORBIS_COMMENT block.
 .TP
-\fB--show-vc-field=name\fR
-Show all Vorbis comment fields where the the field name matches
-\&'name'.
+\fB--show-tag=name\fR
+Show all tags where the the field name matches 'name'.
 .TP
-\fB--remove-vc-field=name\fR
-Remove all Vorbis comment fields whose field name is 'name'.
+\fB--remove-tag=name\fR
+Remove all tags whose field name is 'name'.
 .TP
-\fB--remove-vc-firstfield=name\fR
-Remove first Vorbis comment field whose field name is 'name'.
+\fB--remove-first-tag=name\fR
+Remove first tag whose field name is 'name'.
 .TP
-\fB--remove-vc-all\fR
-Remove all Vorbis comment fields, leaving only the vendor string
-in the VORBIS_COMMENT block.
+\fB--remove-all-tags\fR
+Remove all tags, leaving only the vendor string.
 .TP
-\fB--set-vc-field=field\fR
-Add a Vorbis comment field.  The field must comply with the
+\fB--set-tag=field\fR
+Add a tag.  The field must comply with the
 Vorbis comment spec, of the form "NAME=VALUE".  If there is
-currently no VORBIS_COMMENT block, one will be created.
+currently no tag block, one will be created.
 .TP
-\fB--import-vc-from=file\fR
-Import Vorbis comments from a file.  Use '-' for stdin.  Each
+\fB--import-tags-from=file\fR
+Import tags from a file.  Use '-' for stdin.  Each
 line should be of the form NAME=VALUE.  Multi-line comments
-are currently not supported.  Specify --remove-vc-all and/or
---no-utf8-convert before --import-vc-from if necessary.
+are currently not supported.  Specify --remove-all-tags and/or
+--no-utf8-convert before --import-tags-from if necessary.
 .TP
-\fB--export-vc-to=file\fR
-Export Vorbis comments to a file.  Use '-' for stdin.  Each
+\fB--export-tags-to=file\fR
+Export tags to a file.  Use '-' for stdin.  Each
 line will be of the form NAME=VALUE.  Specify
 --no-utf8-convert if necessary.
 .TP
