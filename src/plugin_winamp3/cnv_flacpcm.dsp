@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 libFLAC.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib msacm32.lib winmm.lib /nologo /dll /machine:I386 /nodefaultlib:"libc.lib" /out:"../../obj/bin/cnv_flacpcm.wac" /libpath:"../../obj/lib"
+# ADD LINK32 libFLAC.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib msacm32.lib winmm.lib /nologo /dll /machine:I386 /out:"../../obj/bin/cnv_flacpcm.wac" /libpath:"../../obj/lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "cnv_flacpcm - Win32 Debug"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 libFLAC.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib msacm32.lib winmm.lib /nologo /dll /debug /machine:I386 /nodefaultlib:"libcd.lib" /out:"../../obj/bin/cnv_flacpcm.wac" /pdbtype:sept /libpath:"../../obj/lib"
+# ADD LINK32 libFLAC.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib msacm32.lib winmm.lib /nologo /dll /debug /machine:I386 /out:"../../obj/bin/cnv_flacpcm.wac" /pdbtype:sept /libpath:"../../obj/lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 

@@ -17,10 +17,7 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#if !defined _MSC_VER && !defined __MINGW32__
-/*@@@ don't know how to resolve errno without using LIBC.LIB; must use MSVCRT.LIB only for plugins */
 #include <errno.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -322,21 +319,16 @@ static FLAC__bool simple_iterator_prime_input_(FLAC__Metadata_SimpleIterator *it
 
 	if(read_only || 0 == (iterator->file = fopen(iterator->filename, "r+b"))) {
 		iterator->is_writable = false;
-#if !defined _MSC_VER && !defined __MINGW32__
-/*@@@ don't know how to resolve errno without using LIBC.LIB; must use MSVCRT.LIB only for plugins */
 		if(read_only || errno == EACCES) {
-#endif
 			if(0 == (iterator->file = fopen(iterator->filename, "rb"))) {
 				iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE;
 				return false;
 			}
-#if !defined _MSC_VER && !defined __MINGW32__
 		}
 		else {
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE;
 			return false;
 		}
-#endif
 	}
 	else {
 		iterator->is_writable = true;
@@ -2197,17 +2189,11 @@ unsigned seek_to_first_metadata_block_(FILE *f)
 	FLAC__ASSERT(FLAC__STREAM_SYNC_LENGTH == 4);
 
 	/* skip any id3v2 tag */
-#if !defined _MSC_VER && !defined __MINGW32__
-/*@@@ don't know how to resolve errno without using LIBC.LIB; must use MSVCRT.LIB only for plugins */
 	errno = 0;
-#endif
 	n = fread(buffer, 1, 4, f);
-#if !defined _MSC_VER && !defined __MINGW32__
-/*@@@ don't know how to resolve errno without using LIBC.LIB; must use MSVCRT.LIB only for plugins */
 	if(errno)
 		return 1;
 	else
-#endif
 	if(n != 4)
 		return 2;
 	else if(0 == memcmp(buffer, "ID3", 3)) {
@@ -2230,17 +2216,11 @@ unsigned seek_to_first_metadata_block_(FILE *f)
 			return 1;
 
 		/* read the stream sync code */
-#if !defined _MSC_VER && !defined __MINGW32__
-/*@@@ don't know how to resolve errno without using LIBC.LIB; must use MSVCRT.LIB only for plugins */
 		errno = 0;
-#endif
 		n = fread(buffer, 1, 4, f);
-#if !defined _MSC_VER && !defined __MINGW32__
-/*@@@ don't know how to resolve errno without using LIBC.LIB; must use MSVCRT.LIB only for plugins */
 		if(errno)
 			return 1;
 		else
-#endif
 		if(n != 4)
 			return 2;
 	}

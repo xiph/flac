@@ -381,7 +381,7 @@ SOURCE=..\..\include\FLAC\ordinals.h.in
 
 USERDEP__ORDIN="..\..\include\FLAC\ordinals.h.in"	
 # Begin Custom Build
-InputDir=\home\Administrator\msvc\flac\include\FLAC
+InputDir=..\..\include\FLAC
 InputPath=..\..\include\FLAC\ordinals.h.in
 
 "$(InputDir)\ordinals.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -393,7 +393,7 @@ InputPath=..\..\include\FLAC\ordinals.h.in
 
 USERDEP__ORDIN="..\..\include\FLAC\ordinals.h.in"	
 # Begin Custom Build
-InputDir=\home\Administrator\msvc\flac\include\FLAC
+InputDir=..\..\include\FLAC
 InputPath=..\..\include\FLAC\ordinals.h.in
 
 "$(InputDir)\ordinals.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"

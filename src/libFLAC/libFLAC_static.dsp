@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release_static"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I "..\..\include" /D VERSION=\"1.0.5_beta2\" /D "FLAC__NO_DLL" /D "FLAC__CPU_IA32" /D "FLAC__HAS_NASM" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /Op /I ".\include" /I "..\..\include" /D VERSION=\"1.0.5_beta2\" /D "FLAC__NO_DLL" /D "FLAC__CPU_IA32" /D "FLAC__HAS_NASM" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -49,7 +49,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nodefaultlib /nologo /out:"..\..\obj\release\lib/libFLAC_static.lib"
+# ADD LIB32 /nologo /nodefaultlib
 
 !ELSEIF  "$(CFG)" == "libFLAC_static - Win32 Debug"
 
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug_static"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I "..\..\include" /D VERSION=\"1.0.5_beta2\" /D "FLAC__NO_DLL" /D "FLAC__CPU_IA32" /D "FLAC__HAS_NASM" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".\include" /I "..\..\include" /D VERSION=\"1.0.5_beta2\" /D "FLAC__NO_DLL" /D "FLAC__CPU_IA32" /D "FLAC__HAS_NASM" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -72,7 +72,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nodefaultlib /nologo /out:"..\..\obj\debug\lib/libFLAC_static.lib"
+# ADD LIB32 /nologo /nodefaultlib
 
 !ENDIF 
 
@@ -374,7 +374,7 @@ SOURCE=..\..\include\FLAC\ordinals.h.in
 
 USERDEP__ORDIN="..\..\include\FLAC\ordinals.h.in"	
 # Begin Custom Build
-InputDir=\home\Administrator\msvc\flac\include\FLAC
+InputDir=..\..\include\FLAC
 InputPath=..\..\include\FLAC\ordinals.h.in
 
 "$(InputDir)\ordinals.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
@@ -386,7 +386,7 @@ InputPath=..\..\include\FLAC\ordinals.h.in
 
 USERDEP__ORDIN="..\..\include\FLAC\ordinals.h.in"	
 # Begin Custom Build
-InputDir=\home\Administrator\msvc\flac\include\FLAC
+InputDir=..\..\include\FLAC
 InputPath=..\..\include\FLAC\ordinals.h.in
 
 "$(InputDir)\ordinals.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
