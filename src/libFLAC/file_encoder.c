@@ -166,6 +166,10 @@ void FLAC__file_encoder_finish(FLAC__FileEncoder *encoder)
 
 	FLAC__ASSERT(0 != encoder->private_->seekable_stream_encoder);
 
+	/* FLAC__seekable_stream_encoder_finish() might write data so we must close the file after it. */
+
+	FLAC__seekable_stream_encoder_finish(encoder->private_->seekable_stream_encoder);
+
 	if(0 != encoder->private_->file) {
 		fclose(encoder->private_->file);
 		encoder->private_->file = 0;
@@ -179,8 +183,6 @@ void FLAC__file_encoder_finish(FLAC__FileEncoder *encoder)
 	set_defaults_(encoder);
 
 	encoder->protected_->state = FLAC__FILE_ENCODER_UNINITIALIZED;
-
-	return FLAC__seekable_stream_encoder_finish(encoder->private_->seekable_stream_encoder);
 }
 
 FLAC__bool FLAC__file_encoder_set_streamable_subset(FLAC__FileEncoder *encoder, FLAC__bool value)
