@@ -799,7 +799,7 @@ FLAC__StreamEncoderWriteStatus write_callback_(const OggFLAC__SeekableStreamEnco
 		 * 'current_frame' will drop back to 0.
 		 */
 		file_encoder->private_->frames_written = max(file_encoder->private_->frames_written, current_frame+1);
-		/*@@@@@@ We would like to add an '&& samples > 0' to the if
+		/*@@@ We would like to add an '&& samples > 0' to the if
 		 * clause here but currently because of the nature of our Ogg
 		 * writing implementation, 'samples' is always 0 (see
 		 * ogg_encoder_aspect.c).  The downside is extra progress

@@ -35,7 +35,7 @@
 #include "FLAC/assert.h"
 #include "protected/seekable_stream_decoder.h"
 #include "protected/stream_decoder.h"
-#include "../libFLAC/include/private/md5.h" /* @@@@@@ ugly hack, but how else to do?  we need to reuse the md5 code but don't want to expose it */
+#include "../libFLAC/include/private/md5.h" /* @@@ ugly hack, but how else to do?  we need to reuse the md5 code but don't want to expose it */
 
 /***********************************************************************
  *
