@@ -1155,7 +1155,7 @@ void print_error_with_state(const DecoderSession *d, const char *message)
 		flac__utils_printf(stderr, 1,
 			"\n"
 			"The FLAC stream may have been created by a more advanced encoder.  Try\n"
-			"  metaflac --show-vc-vendor %s\n"
+			"  metaflac --show-vendor-tag %s\n"
 			"If the version number is greater than %s, this decoder is probably\n"
 			"not able to decode the file.  If the version number is not, you may\n"
 			"have found a bug.  In this case please submit a bug report to\n"
