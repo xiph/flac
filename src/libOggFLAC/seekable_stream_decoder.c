@@ -380,7 +380,7 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_set_serial_number(OggFLA
 	FLAC__ASSERT(0 != decoder->protected_);
 	if(decoder->protected_->state != OggFLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
-	OggFLAC__ogg_decoder_aspect_set_serial_number(&decoder->protected_->ogg_decoder_aspect, value);
+	OggFLAC__stream_decoder_set_serial_number(decoder->private_->stream_decoder, value);
 	return true;
 }
 
@@ -836,13 +836,16 @@ FLAC__bool seek_to_absolute_sample_(OggFLAC__SeekableStreamDecoder *decoder, FLA
 {
 	FLAC__uint64 left_pos = 0, right_pos = stream_length;
 	FLAC__uint64 left_sample = 0, right_sample = decoder->private_->stream_info.total_samples;
+	FLAC__uint64 this_frame_sample = 0; /* only initialized to avoid compiler warning */
+	FLAC__uint64 pos; /* only initialized to avoid compiler warning */
+	FLAC__bool did_a_seek;
 	unsigned iteration = 0;
 
 	/* In the first iterations, we will calculate the target byte position 
 	 * by the distance from the target sample to left_sample and
 	 * right_sample.  After that, we will switch to binary search.
 	 */
-	static const unsigned BINARY_SEARCH_AFTER_ITERATION = 2;
+	unsigned BINARY_SEARCH_AFTER_ITERATION = 2;
 
 	/* We will switch to a linear search once our current sample is less
 	 * that this number of samples ahead of the target sample
@@ -854,11 +857,43 @@ FLAC__bool seek_to_absolute_sample_(OggFLAC__SeekableStreamDecoder *decoder, FLA
 	 */
 	if(right_sample == 0) {
 		right_sample = (FLAC__uint64)(-1);
-		iteration = BINARY_SEARCH_AFTER_ITERATION;
+		BINARY_SEARCH_AFTER_ITERATION = 0;
 	}
 
 	decoder->private_->target_sample = target_sample;
 	for( ; ; iteration++) {
+		if (iteration == 0 || this_frame_sample > target_sample || target_sample - this_frame_sample > LINEAR_SEARCH_WITHIN_SAMPLES) {
+			if (iteration >= BINARY_SEARCH_AFTER_ITERATION) {
+				/* sanity check to avoid infinite loop */
+				if (left_pos == right_pos) {
+					decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
+					return false;
+				}
+				pos = (right_pos + left_pos) / 2;
+			}
+			else {
+#if defined _MSC_VER || defined __MINGW32__
+				/* with MSVC you have to spoon feed it the casting */
+				pos = (FLAC__uint64)((double)(FLAC__int64)(target_sample - left_sample) / (double)(FLAC__int64)(right_sample - left_sample) * (double)(FLAC__int64)(right_pos - left_pos));
+#else
+				pos = (FLAC__uint64)((double)(target_sample - left_sample) / (double)(right_sample - left_sample) * (double)(right_pos - left_pos));
+#endif
+			}
+
+			/* physical seek */
+			if(decoder->private_->seek_callback(decoder, (FLAC__uint64)pos, decoder->private_->client_data) != OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK) {
+				decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
+				return false;
+			}
+			if(!OggFLAC__stream_decoder_flush(decoder->private_->stream_decoder)) {
+				decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
+				return false;
+			}
+			did_a_seek = true;
+		}
+		else
+			did_a_seek = false;
+
 		if(!OggFLAC__stream_decoder_process_single(decoder->private_->stream_decoder)) {
 			decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
 			return false;
@@ -868,22 +903,10 @@ FLAC__bool seek_to_absolute_sample_(OggFLAC__SeekableStreamDecoder *decoder, FLA
 			break;
 		}
 		else {
-			const FLAC__uint64 this_frame_sample = decoder->private_->last_frame.header.number.sample_number;
+			this_frame_sample = decoder->private_->last_frame.header.number.sample_number;
 			FLAC__ASSERT(decoder->private_->last_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 
-			if (this_frame_sample > target_sample || target_sample - this_frame_sample > LINEAR_SEARCH_WITHIN_SAMPLES) {
-				FLAC__uint64 pos;
-
-				if (iteration >= BINARY_SEARCH_AFTER_ITERATION)
-					pos = (right_pos + left_pos) / 2;
-				else
-#if defined _MSC_VER || defined __MINGW32__
-					/* with VC++ you have to spoon feed it the casting */
-					pos = (FLAC__uint64)((double)(FLAC__int64)(target_sample - left_sample) / (double)(FLAC__int64)(right_pos - left_pos));
-#else
-					pos = (FLAC__uint64)((double)(target_sample - left_sample) / (double)(right_pos - left_pos));
-#endif
-
+			if (did_a_seek) {
 				if (this_frame_sample <= target_sample) {
 					/* The 'equal' case should not happen, since
 					 * OggFLAC__stream_decoder_process_single()
@@ -899,16 +922,6 @@ FLAC__bool seek_to_absolute_sample_(OggFLAC__SeekableStreamDecoder *decoder, FLA
 				else if(this_frame_sample > target_sample) {
 					right_sample = this_frame_sample;
 					right_pos = pos;
-				}
-
-				/* physical seek */
-				if(decoder->private_->seek_callback(decoder, (FLAC__uint64)pos, decoder->private_->client_data) != OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK) {
-					decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
-					return false;
-				}
-				if(!OggFLAC__stream_decoder_flush(decoder->private_->stream_decoder)) {
-					decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
-					return false;
 				}
 			}
 		}
