@@ -663,9 +663,7 @@ FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder 
 	metadata_has_seektable = false;
 	metadata_has_vorbis_comment = false;
 	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
-		if(encoder->protected_->metadata[i]->type >= FLAC__METADATA_TYPE_UNDEFINED)
-			return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
-		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_STREAMINFO)
+		if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_STREAMINFO)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
 		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
 			if(metadata_has_seektable) /* only one is allowed */

@@ -623,7 +623,9 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			}
 			break;
 		default:
-			PPR; printf("SKIPPING block of unknown type\n");
+			PPR; printf("  data contents:\n");
+			if(0 != block->data.unknown.data)
+				hexdump(filename, block->data.unknown.data, block->length, "    ");
 			break;
 	}
 #undef PPR

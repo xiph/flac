@@ -100,7 +100,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__bool has_stream_info, has_seek_table;
 	FLAC__StreamMetadata stream_info;
 	FLAC__StreamMetadata seek_table;
-	FLAC__bool metadata_filter[FLAC__METADATA_TYPE_UNDEFINED];
+	FLAC__bool metadata_filter[128]; /* MAGIC number 128 == total number of metadata block types == 1 << 7 */
 	FLAC__byte *metadata_filter_ids;
 	unsigned metadata_filter_ids_count, metadata_filter_ids_capacity; /* units for both are IDs, not bytes */
 	FLAC__Frame frame;
@@ -390,7 +390,10 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_respond(FLAC__StreamDecode
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
-	FLAC__ASSERT(type < FLAC__METADATA_TYPE_UNDEFINED);
+	FLAC__ASSERT(type < (1u << FLAC__STREAM_METADATA_TYPE_LEN));
+	/* double protection */
+	if(type >= (1u << FLAC__STREAM_METADATA_TYPE_LEN))
+		return false;
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 	decoder->private_->metadata_filter[type] = true;
@@ -444,7 +447,10 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore(FLAC__StreamDecoder
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
-	FLAC__ASSERT(type < FLAC__METADATA_TYPE_UNDEFINED);
+	FLAC__ASSERT(type < (1u << FLAC__STREAM_METADATA_TYPE_LEN));
+	/* double protection */
+	if(type >= (1u << FLAC__STREAM_METADATA_TYPE_LEN))
+		return false;
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 	decoder->private_->metadata_filter[type] = false;
@@ -904,8 +910,20 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 					break;
 				case FLAC__METADATA_TYPE_STREAMINFO:
 				case FLAC__METADATA_TYPE_SEEKTABLE:
+					assert(0);
+					break;
 				default:
-					FLAC__ASSERT(0);
+					if(real_length > 0) {
+						if(0 == (block.data.unknown.data = (FLAC__byte*)malloc(real_length))) {
+							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+							return false;
+						}
+						if(!FLAC__bitbuffer_read_byte_block_aligned_no_crc(decoder->private_->input, block.data.unknown.data, real_length, read_callback_, decoder))
+							return false; /* the read_callback_ sets the state for us */
+					}
+					else
+						block.data.unknown.data = 0;
+					break;
 			}
 			decoder->private_->metadata_callback(decoder, &block, decoder->private_->client_data);
 
@@ -937,8 +955,11 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 					break;
 				case FLAC__METADATA_TYPE_STREAMINFO:
 				case FLAC__METADATA_TYPE_SEEKTABLE:
-				default:
 					FLAC__ASSERT(0);
+				default:
+					if(0 != block.data.unknown.data)
+						free(block.data.unknown.data);
+					break;
 			}
 		}
 	}

@@ -162,7 +162,9 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 			}
 			break;
 		default:
-			FLAC__ASSERT(0);
+			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.unknown.data, metadata->length))
+				return false;
+			break;
 	}
 
 	FLAC__ASSERT(FLAC__bitbuffer_is_byte_aligned(bb));

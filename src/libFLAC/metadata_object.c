@@ -332,11 +332,22 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 				object->length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
 				break;
 			case FLAC__METADATA_TYPE_PADDING:
+				/* calloc() took care of this for us:
+				object->length = 0;
+				*/
 				break;
 			case FLAC__METADATA_TYPE_APPLICATION:
 				object->length = FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8;
+				/* calloc() took care of this for us:
+				object->data.application.data = 0;
+				*/
 				break;
 			case FLAC__METADATA_TYPE_SEEKTABLE:
+				/* calloc() took care of this for us:
+				object->length = 0;
+				object->data.seek_table.num_points = 0;
+				object->data.seek_table.points = 0;
+				*/
 				break;
 			case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 				{
@@ -352,10 +363,11 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 				cuesheet_calculate_length_(object);
 				break;
 			default:
-				/* double protection: */
-				FLAC__ASSERT(0);
-				free(object);
-				return 0;
+				/* calloc() took care of this for us:
+				object->length = 0;
+				object->data.unknown.data = 0;
+				*/
+				break;
 		}
 	}
 
@@ -430,10 +442,11 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 				}
 				break;
 			default:
-				/* double protection: */
-				FLAC__ASSERT(0);
-				free(to);
-				return 0;
+				if(!copy_bytes_(&to->data.unknown.data, object->data.unknown.data, object->length)) {
+					FLAC__metadata_object_delete(to);
+					return 0;
+				}
+				break;
 		}
 	}
 
@@ -477,7 +490,11 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 			}
 			break;
 		default:
-			FLAC__ASSERT(0);
+			if(0 != object->data.unknown.data) {
+				free(object->data.unknown.data);
+				object->data.unknown.data = 0;
+			}
+			break;
 	}
 }
 
@@ -626,6 +643,17 @@ static FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueShe
 	return true;
 }
 
+static FLAC__bool compare_block_data_unknown_(const FLAC__StreamMetadata_Unknown *block1, const FLAC__StreamMetadata_Unknown *block2, unsigned block_length)
+{
+	FLAC__ASSERT(0 != block1);
+	FLAC__ASSERT(0 != block2);
+
+	if(0 != block1->data && 0 != block2->data)
+		return 0 == memcmp(block1->data, block2->data, block_length);
+	else
+		return block1->data == block2->data;
+}
+
 FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, const FLAC__StreamMetadata *block2)
 {
 	FLAC__ASSERT(0 != block1);
@@ -654,8 +682,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *b
 		case FLAC__METADATA_TYPE_CUESHEET:
 			return compare_block_data_cuesheet_(&block1->data.cue_sheet, &block2->data.cue_sheet);
 		default:
-			FLAC__ASSERT(0);
-			return false;
+			return compare_block_data_unknown_(&block1->data.unknown, &block2->data.unknown, block1->length);
 	}
 }
 
