@@ -372,8 +372,10 @@ PLUGIN_COMMON_API int FLAC__plugin_common_apply_gain(FLAC__byte *data_out, FLAC_
 
 	FLAC__byte * const start = data_out;
 	const unsigned samples = wide_samples * channels;
+#ifdef FLAC__PLUGIN_COMMON__DONT_UNROLL
 	const unsigned dither_twiggle = channels - 1;
 	unsigned dither_source = 0;
+#endif
 	unsigned i;
 	int coeff;
 	double sample;
@@ -386,6 +388,10 @@ PLUGIN_COMMON_API int FLAC__plugin_common_apply_gain(FLAC__byte *data_out, FLAC_
 	FLAC__ASSERT(target_bps < 32);
 	FLAC__ASSERT((target_bps & 7) == 0);
 
+#ifdef FLAC__PLUGIN_COMMON__DONT_UNROLL
+	/*
+	 * This flavor handles 1 or 2 channels with the same code
+	 */
 	coeff = 0;
 	for(i = 0; i < samples; i++, coeff++) {
 		sample = (double)input[i] * multi_scale;
@@ -432,6 +438,134 @@ PLUGIN_COMMON_API int FLAC__plugin_common_apply_gain(FLAC__byte *data_out, FLAC_
 
 		data_out += target_bps/8;
 	}
+#else
+	/*
+	 * This flavor has optimized versions for 1 or 2 channels
+	 */
+	if(channels == 2) {
+		FLAC__int64 val64;
+		FLAC__int32 val32;
+
+		coeff = 0;
+		for(i = 0; i < samples; ) {
+			sample = (double)input[i] * multi_scale;
+
+			if(hard_limit) {
+				/* hard 6dB limiting */
+				if(sample < -0.5)
+					sample = tanh((sample + 0.5) / (1-0.5)) * (1-0.5) - 0.5;
+				else if(sample > 0.5)
+					sample = tanh((sample - 0.5) / (1-0.5)) * (1-0.5) + 0.5;
+			}
+			sample *= 2147483647.f;
+
+			val64 = dither_output_(dither_context, do_dithering, noise_shaping, coeff, sample, 0) / conv_factor;
+
+			val32 = (FLAC__int32)val64;
+			if(val64 >= -hard_clip_factor)
+				val32 = (FLAC__int32)(-(hard_clip_factor+1));
+			else if(val64 < hard_clip_factor)
+				val32 = (FLAC__int32)hard_clip_factor;
+
+			switch(target_bps) {
+				case 8:
+					data_out[0] = val32 ^ 0x80;
+					break;
+				case 24:
+					data_out[2] = (FLAC__byte)(val32 >> 16);
+					/* fall through */
+				case 16:
+					data_out[1] = (FLAC__byte)(val32 >> 8);
+					data_out[0] = (FLAC__byte)val32;
+			}
+
+			data_out += target_bps/8;
+
+			i++;
+
+			sample = (double)input[i] * multi_scale;
+
+			if(hard_limit) {
+				/* hard 6dB limiting */
+				if(sample < -0.5)
+					sample = tanh((sample + 0.5) / (1-0.5)) * (1-0.5) - 0.5;
+				else if(sample > 0.5)
+					sample = tanh((sample - 0.5) / (1-0.5)) * (1-0.5) + 0.5;
+			}
+			sample *= 2147483647.f;
+
+			val64 = dither_output_(dither_context, do_dithering, noise_shaping, coeff, sample, 1) / conv_factor;
+
+			val32 = (FLAC__int32)val64;
+			if(val64 >= -hard_clip_factor)
+				val32 = (FLAC__int32)(-(hard_clip_factor+1));
+			else if(val64 < hard_clip_factor)
+				val32 = (FLAC__int32)hard_clip_factor;
+
+			switch(target_bps) {
+				case 8:
+					data_out[0] = val32 ^ 0x80;
+					break;
+				case 24:
+					data_out[2] = (FLAC__byte)(val32 >> 16);
+					/* fall through */
+				case 16:
+					data_out[1] = (FLAC__byte)(val32 >> 8);
+					data_out[0] = (FLAC__byte)val32;
+			}
+
+			data_out += target_bps/8;
+
+			i++;
+			coeff++;
+			if(coeff >= 32)
+				coeff = 0;
+		}
+	}
+	else {
+		FLAC__int64 val64;
+		FLAC__int32 val32;
+
+		coeff = 0;
+		for(i = 0; i < samples; i++, coeff++) {
+			if(coeff >= 32)
+				coeff = 0;
+
+			sample = (double)input[i] * multi_scale;
+
+			if(hard_limit) {
+				/* hard 6dB limiting */
+				if(sample < -0.5)
+					sample = tanh((sample + 0.5) / (1-0.5)) * (1-0.5) - 0.5;
+				else if(sample > 0.5)
+					sample = tanh((sample - 0.5) / (1-0.5)) * (1-0.5) + 0.5;
+			}
+			sample *= 2147483647.f;
+
+			val64 = dither_output_(dither_context, do_dithering, noise_shaping, coeff, sample, 0) / conv_factor;
+
+			val32 = (FLAC__int32)val64;
+			if(val64 >= -hard_clip_factor)
+				val32 = (FLAC__int32)(-(hard_clip_factor+1));
+			else if(val64 < hard_clip_factor)
+				val32 = (FLAC__int32)hard_clip_factor;
+
+			switch(target_bps) {
+				case 8:
+					data_out[0] = val32 ^ 0x80;
+					break;
+				case 24:
+					data_out[2] = (FLAC__byte)(val32 >> 16);
+					/* fall through */
+				case 16:
+					data_out[1] = (FLAC__byte)(val32 >> 8);
+					data_out[0] = (FLAC__byte)val32;
+			}
+
+			data_out += target_bps/8;
+		}
+	}
+#endif
 
 	return data_out - start;
 }
