@@ -98,14 +98,14 @@ check_exit
 check_flac
 
 # some flavors of /bin/sh (e.g. Darwin's) won't even handle quoted spaces, so we underscore:
-(set -x && run_metaflac --set-vc-field="ARTIST=The_artist_formerly_known_as_the_artist..." $flacfile)
+(set -x && run_metaflac --set-tag="ARTIST=The_artist_formerly_known_as_the_artist..." $flacfile)
 check_exit
 check_flac
 
 (set -x && run_metaflac --list --block-type=VORBIS_COMMENT $flacfile)
 check_exit
 
-(set -x && run_metaflac --set-vc-field="ARTIST=Chuck_Woolery" $flacfile)
+(set -x && run_metaflac --set-tag="ARTIST=Chuck_Woolery" $flacfile)
 check_exit
 check_flac
 
@@ -115,31 +115,31 @@ check_exit
 (set -x && run_metaflac --list --block-type=VORBIS_COMMENT $flacfile)
 check_exit
 
-(set -x && run_metaflac --set-vc-field="ARTIST=Vern" $flacfile)
+(set -x && run_metaflac --set-tag="ARTIST=Vern" $flacfile)
 check_exit
 check_flac
 
 (set -x && run_metaflac --list --block-type=VORBIS_COMMENT $flacfile)
 check_exit
 
-(set -x && run_metaflac --set-vc-field="TITLE=He_who_smelt_it_dealt_it" $flacfile)
+(set -x && run_metaflac --set-tag="TITLE=He_who_smelt_it_dealt_it" $flacfile)
 check_exit
 check_flac
 
 (set -x && run_metaflac --list --block-type=VORBIS_COMMENT $flacfile)
 check_exit
 
-(set -x && run_metaflac --show-vc-vendor --show-vc-field=ARTIST $flacfile)
+(set -x && run_metaflac --show-vendor-tag --show-tag=ARTIST $flacfile)
 check_exit
 
-(set -x && run_metaflac --remove-vc-firstfield=ARTIST $flacfile)
+(set -x && run_metaflac --remove-first-tag=ARTIST $flacfile)
 check_exit
 check_flac
 
 (set -x && run_metaflac --list --block-type=VORBIS_COMMENT $flacfile)
 check_exit
 
-(set -x && run_metaflac --remove-vc-field=ARTIST $flacfile)
+(set -x && run_metaflac --remove-tag=ARTIST $flacfile)
 check_exit
 check_flac
 
@@ -178,7 +178,7 @@ check_flac
 check_exit
 check_flac
 
-(set -x && run_metaflac --remove-vc-all $flacfile)
+(set -x && run_metaflac --remove-all-tags $flacfile)
 check_exit
 check_flac
 
@@ -218,55 +218,55 @@ check_flac
 check_exit
 check_flac
 
-(set -x && run_metaflac --set-vc-field="f=0123456789abcdefghij" $flacfile)
+(set -x && run_metaflac --set-tag="f=0123456789abcdefghij" $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && run_metaflac --remove-vc-all --set-vc-field="f=0123456789abcdefghi" $flacfile)
+(set -x && run_metaflac --remove-all-tags --set-tag="f=0123456789abcdefghi" $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && run_metaflac --remove-vc-all --set-vc-field="f=0123456789abcde" $flacfile)
+(set -x && run_metaflac --remove-all-tags --set-tag="f=0123456789abcde" $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && run_metaflac --remove-vc-all --set-vc-field="f=0" $flacfile)
+(set -x && run_metaflac --remove-all-tags --set-tag="f=0" $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && run_metaflac --remove-vc-all --set-vc-field="f=0123456789" $flacfile)
+(set -x && run_metaflac --remove-all-tags --set-tag="f=0123456789" $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && run_metaflac --remove-vc-all --set-vc-field="f=0123456789abcdefghi" $flacfile)
+(set -x && run_metaflac --remove-all-tags --set-tag="f=0123456789abcdefghi" $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && run_metaflac --remove-vc-all --set-vc-field="f=0123456789" $flacfile)
+(set -x && run_metaflac --remove-all-tags --set-tag="f=0123456789" $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && run_metaflac --remove-vc-all --set-vc-field="f=0123456789abcdefghij" $flacfile)
+(set -x && run_metaflac --remove-all-tags --set-tag="f=0123456789abcdefghij" $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && echo "TITLE=Tittle" | run_metaflac --import-vc-from=- $flacfile)
+(set -x && echo "TITLE=Tittle" | run_metaflac --import-tags-from=- $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --block-type=VORBIS_COMMENT $flacfile)
@@ -276,7 +276,7 @@ cat > vc.txt << EOF
 artist=Fartist
 artist=artits
 EOF
-(set -x && run_metaflac --import-vc-from=vc.txt $flacfile)
+(set -x && run_metaflac --import-tags-from=vc.txt $flacfile)
 check_exit
 check_flac
 (set -x && run_metaflac --list --block-type=VORBIS_COMMENT $flacfile)
