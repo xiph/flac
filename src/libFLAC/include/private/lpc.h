@@ -20,6 +20,7 @@
 #ifndef FLAC__PRIVATE__LPC_H
 #define FLAC__PRIVATE__LPC_H
 
+#include "FLAC/config.h"
 #include "FLAC/ordinals.h"
 
 #define FLAC__MAX_LPC_ORDER (32u)
@@ -37,7 +38,14 @@
  *	OUT autoc[0,lag-1]
  */
 void FLAC__lpc_compute_autocorrelation(const real data[], unsigned data_len, unsigned lag, real autoc[]);
-void FLAC__lpc_compute_autocorrelation_asm(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+#ifndef FLAC__NO_ASM
+#ifdef FLAC__CPU_IA32
+#ifdef FLAC__HAS_NASM
+void FLAC__lpc_compute_autocorrelation_asm_i386(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+void FLAC__lpc_compute_autocorrelation_asm_i386_sse(const real data[], unsigned data_len, unsigned lag, real autoc[]);
+#endif
+#endif
+#endif
 
 /*
  *	FLAC__lpc_compute_lp_coefficients()
@@ -113,6 +121,13 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const int32 data[], unsign
  *	OUT data[0,data_len-1]     original signal
  */
 void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
+#ifndef FLAC__NO_ASM
+#ifdef FLAC__CPU_IA32
+#ifdef FLAC__HAS_NASM
+void FLAC__lpc_restore_signal_asm_i386(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
+#endif
+#endif
+#endif
 
 /*
  *	FLAC__lpc_compute_expected_bits_per_residual_sample()

@@ -20,6 +20,7 @@
 #ifndef FLAC__PRIVATE__FIXED_H
 #define FLAC__PRIVATE__FIXED_H
 
+#include "FLAC/config.h"
 #include "FLAC/format.h"
 
 /*
@@ -35,6 +36,13 @@
  *	OUT residual_bits_per_sample[0,FLAC__MAX_FIXED_ORDER]
  */
 unsigned FLAC__fixed_compute_best_predictor(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+#ifndef FLAC__NO_ASM
+#ifdef FLAC__CPU_IA32
+#ifdef FLAC__HAS_NASM
+unsigned FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+#endif
+#endif
+#endif
 unsigned FLAC__fixed_compute_best_predictor_slow(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 
 /*
