@@ -84,7 +84,7 @@ endif
 
 $(RELEASE_DYNAMIC_LIB) : $(RELEASE_OBJS)
 ifeq ($(DARWIN_BUILD),yes)
-	$(LINKD) -o $@ $(RELEASE_OBJS) $(LFLAGS) $(LIBS) -lc
+	echo Not building dynamic lib, command is: $(LINKD) -o $@ $(RELEASE_OBJS) $(LFLAGS) $(LIBS) -lc
 else
 	$(LINKD) -o $@ $(RELEASE_OBJS) $(LFLAGS) $(LIBS)
 endif
