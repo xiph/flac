@@ -148,7 +148,7 @@ static void ogg_file_encoder_progress_callback(const OggFLAC__FileEncoder *encod
 static FLAC__StreamEncoderWriteStatus flac_stream_encoder_write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void flac_stream_encoder_metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
-static FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__uint64 lead_out_offset);
+static FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset);
 static void print_stats(const EncoderSession *encoder_session);
 static void print_error_with_state(const EncoderSession *e, const char *message);
 static void print_verify_error(EncoderSession *e);
@@ -1405,6 +1405,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	unsigned num_metadata;
 	FLAC__StreamMetadata padding, *cuesheet = 0;
 	FLAC__StreamMetadata *metadata[4];
+	const FLAC__bool is_cdda = (channels == 1 || channels == 2) && (bps == 16) && (sample_rate == 44100);
 
 	e->replay_gain = options.replay_gain;
 	e->channels = channels;
@@ -1431,7 +1432,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	if(channels != 2)
 		options.do_mid_side = options.loose_mid_side = false;
 
-	if(!parse_cuesheet_(&cuesheet, options.cuesheet_filename, e->inbasefilename, e->total_samples_to_encode))
+	if(!parse_cuesheet_(&cuesheet, options.cuesheet_filename, e->inbasefilename, is_cdda, e->total_samples_to_encode))
 		return false;
 
 	if(!convert_to_seek_table_template(options.requested_seek_points, options.num_requested_seek_points, options.cued_seekpoints? cuesheet : 0, e)) {
@@ -1881,7 +1882,7 @@ void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC_
 		print_stats(encoder_session);
 }
 
-FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__uint64 lead_out_offset)
+FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
 {
 	FILE *f;
 	unsigned last_line_read;
@@ -1900,7 +1901,7 @@ FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet
 		return false;
 	}
 
-	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, /*@@@is_cdda=*/true, lead_out_offset);
+	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, is_cdda, lead_out_offset);
 
 	fclose(f);
 
