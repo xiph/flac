@@ -125,20 +125,24 @@ FLAC__SeekableStreamDecoder *FLAC__seekable_stream_decoder_new()
 	if(decoder == 0) {
 		return 0;
 	}
+	memset(decoder, 0, sizeof(FLAC__SeekableStreamDecoder));
+
 	decoder->protected_ = (FLAC__SeekableStreamDecoderProtected*)malloc(sizeof(FLAC__SeekableStreamDecoderProtected));
 	if(decoder->protected_ == 0) {
 		free(decoder);
 		return 0;
 	}
+	memset(decoder->protected_, 0, sizeof(FLAC__SeekableStreamDecoderProtected));
+
 	decoder->private_ = (FLAC__SeekableStreamDecoderPrivate*)malloc(sizeof(FLAC__SeekableStreamDecoderPrivate));
 	if(decoder->private_ == 0) {
 		free(decoder->protected_);
 		free(decoder);
 		return 0;
 	}
+	memset(decoder->private_, 0, sizeof(FLAC__SeekableStreamDecoderPrivate));
 
 	decoder->private_->stream_decoder = FLAC__stream_decoder_new();
-
 	if(0 == decoder->private_->stream_decoder) {
 		free(decoder->private_);
 		free(decoder->protected_);

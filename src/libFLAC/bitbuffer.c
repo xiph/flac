@@ -254,6 +254,7 @@ FLAC__BitBuffer *FLAC__bitbuffer_new()
 	FLAC__BitBuffer *bb = (FLAC__BitBuffer*)malloc(sizeof(FLAC__BitBuffer));
 
 	if(0 != bb) {
+		memset(bb, 0, sizeof(FLAC__BitBuffer));
 		bb->buffer = 0;
 		bb->capacity = 0;
 		bb->blurbs = bb->bits = bb->total_bits = 0;
