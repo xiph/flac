@@ -136,13 +136,13 @@
 		</listitem>
 	      </varlistentry>
 
-              <varlistentry>
-	        <term><option>-c</option>, <option>--stdout</option>
-                </term>
-                <listitem>
-                  <para>Write output to stdout</para>
-                </listitem>
-              </varlistentry>
+	      <varlistentry>
+		<term><option>-c</option>, <option>--stdout</option>
+		</term>
+		<listitem>
+		  <para>Write output to stdout</para>
+		</listitem>
+	      </varlistentry>
 
 	      <varlistentry>
 		<term><option>-s</option>, <option>--silent</option>
