@@ -56,6 +56,7 @@ typedef struct {
 	FLAC__EncoderState state;             /* must be FLAC__ENCODER_UNINITIALIZED when passed to FLAC__encoder_init() */
 	bool     streamable_subset;
 	bool     do_mid_side_stereo;          /* 0 or 1; 1 only if channels==2 */
+	bool     force_mid_side_stereo;       /* 0 or 1; 1 only if channels==2 and do_mid_side_stereo==true */
 	unsigned channels;                    /* must be <= FLAC__MAX_CHANNELS */
 	unsigned bits_per_sample;             /* do not give the encoder wider data than what you specify here or bad things will happen! */
 	unsigned sample_rate;
