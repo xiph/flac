@@ -334,7 +334,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-o filename</TT>, <TT>--output-name=filename</TT>
+				<TT>-o filename</TT>,<BR><TT>--output-name=filename</TT>
 			</TD>
 			<TD>
 				Force the output file name (usually <TT><B>flac</B></TT> just changes the extension).  May only be used when encoding a single file.  May not be used in conjunction with <TT>--output-prefix</T>.
@@ -458,7 +458,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-S {#|X|#x}</TT>, <TT>--seekpoint={#|X|#x}</TT>
+				<TT>-S {#|X|#x}</TT>,<BR><TT>--seekpoint={#|X|#x}</TT>
 			</TD>
 			<TD>
 				Include a point or points in a SEEKTABLE:<BR>
@@ -513,7 +513,7 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-0 .. -8</TT>, <TT>--compression-level-0 .. --compression-level-8</TT>
+				<TT>-0 .. -8</TT>
 			</TD>
 			<TD>
 				Fastest compression .. highest compression.  The default is <TT>-5</TT>.
@@ -656,29 +656,6 @@
 				By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is iteratively partitioned into 2^min# .. 2^max# pieces, each with its own Rice parameter.  Higher values of max# yield diminishing returns.  The most bang for the buck is usually with <B><TT>-r 2,2</TT></B> (more for higher block sizes).  This usually shaves off about 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <B><TT>-r 0,16</TT></B> to force the highest degree of optimization.
 			</TD>
 		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>--no-adaptive-mid-side</TT><BR>
-				<TT>--no-decode-through-errors</TT><BR>
-				<TT>--no-delete-input-file</TT><BR>
-				<TT>--no-escape-coding</TT><BR>
-				<TT>--no-exhaustive-model-search</TT><BR>
-				<TT>--no-lax</TT><BR>
-				<TT>--no-mid-side</TT><BR>
-				<TT>--no-ogg</TT><BR>
-				<TT>--no-padding</TT><BR>
-				<TT>--no-qlp-coeff-precision-search</TT><BR>
-				<TT>--no-residual-gnuplot</TT><BR>
-				<TT>--no-residual-text</TT><BR>
-				<TT>--no-sector-align</TT><BR>
-				<TT>--no-seektable</TT><BR>
-				<TT>--no-silent</TT><BR>
-				<TT>--no-verify</TT><
-			</TD>
-			<TD>
-				can all be used to turn off a particular option.
-			</TD>
-		</TR>
 	</TABLE>
 	</TD></TR></TABLE>
 	</P>
@@ -736,6 +713,40 @@
 			</TD>
 			<TD>
 				Treat the input file (or output file if decoding) as a raw file, regardless of the extension.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="format_options"><FONT SIZE="+1"><B>Negative Options</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--no-adaptive-mid-side</TT><BR>
+				<TT>--no-decode-through-errors</TT><BR>
+				<TT>--no-delete-input-file</TT><BR>
+				<TT>--no-escape-coding</TT><BR>
+				<TT>--no-exhaustive-model-search</TT><BR>
+				<TT>--no-lax</TT><BR>
+				<TT>--no-mid-side</TT><BR>
+				<TT>--no-ogg</TT><BR>
+				<TT>--no-padding</TT><BR>
+				<TT>--no-qlp-coeff-precision-search</TT><BR>
+				<TT>--no-residual-gnuplot</TT><BR>
+				<TT>--no-residual-text</TT><BR>
+				<TT>--no-sector-align</TT><BR>
+				<TT>--no-seektable</TT><BR>
+				<TT>--no-silent</TT><BR>
+				<TT>--no-verify</TT>
+			</TD>
+			<TD>
+				can all be used to turn off a particular option.
 			</TD>
 		</TR>
 	</TABLE>
