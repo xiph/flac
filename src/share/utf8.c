@@ -233,7 +233,7 @@ int iconvert(const char *fromcode, const char *tocode,
 
 static char *current_charset = 0; /* means "US-ASCII" */
 
-void convert_set_charset(const char *charset)
+UTF8_API void convert_set_charset(const char *charset)
 {
 
 #ifdef HAVE_LANGINFO_CODESET
@@ -296,7 +296,7 @@ static int convert_string(const char *fromcode, const char *tocode,
   return 3;
 }
 
-int utf8_encode(const char *from, char **to)
+UTF8_API int utf8_encode(const char *from, char **to)
 {
   char *charset;
 
@@ -306,7 +306,7 @@ int utf8_encode(const char *from, char **to)
   return convert_string(charset, "UTF-8", from, to, '#');
 }
 
-int utf8_decode(const char *from, char **to)
+UTF8_API int utf8_decode(const char *from, char **to)
 {
   char *charset;
 

@@ -26,11 +26,6 @@
 #include "FLAC/all.h"
 #include "plugin_common/all.h"
 
-#ifdef max
-#undef max
-#endif
-#define max(a,b) ((a)>(b)?(a):(b))
-
 
 #define FLAC__DO_DITHER
 

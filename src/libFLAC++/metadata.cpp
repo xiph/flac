@@ -57,7 +57,7 @@ namespace FLAC {
 
 		};
 
-		Prototype *clone(const Prototype *object)
+		FLACPP_API Prototype *clone(const Prototype *object)
 		{
 			FLAC__ASSERT(0 != object);
 
@@ -745,7 +745,7 @@ namespace FLAC {
 		//
 		// ============================================================
 
-		bool get_streaminfo(const char *filename, StreamInfo &streaminfo)
+		FLACPP_API bool get_streaminfo(const char *filename, StreamInfo &streaminfo)
 		{
 			FLAC__ASSERT(0 != filename);
 

@@ -202,7 +202,7 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
  *
  ***************************************************************************/
 
-FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type)
+FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type)
 {
 	FLAC__StreamMetadata *object = malloc(sizeof(FLAC__StreamMetadata));
 	if(0 != object) {
@@ -234,7 +234,7 @@ FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type)
 	return object;
 }
 
-FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMetadata *object)
+FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMetadata *object)
 {
 	FLAC__StreamMetadata *to;
 
@@ -323,7 +323,7 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 	}
 }
 
-void FLAC__metadata_object_delete(FLAC__StreamMetadata *object)
+FLAC_API void FLAC__metadata_object_delete(FLAC__StreamMetadata *object)
 {
 	FLAC__metadata_object_delete_data(object);
 	free(object);
@@ -419,7 +419,7 @@ static FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_V
 	return true;
 }
 
-FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, const FLAC__StreamMetadata *block2)
+FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, const FLAC__StreamMetadata *block2)
 {
 	FLAC__ASSERT(0 != block1);
 	FLAC__ASSERT(0 != block2);
@@ -450,7 +450,7 @@ FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, co
 	}
 }
 
-FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, unsigned length, FLAC__bool copy)
+FLAC_API FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, unsigned length, FLAC__bool copy)
 {
 	FLAC__byte *save;
 
@@ -476,7 +476,7 @@ FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *obje
 	return true;
 }
 
-FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetadata *object, unsigned new_num_points)
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetadata *object, unsigned new_num_points)
 {
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
@@ -518,7 +518,7 @@ FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetadata *o
 	return true;
 }
 
-void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point)
+FLAC_API void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point)
 {
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
@@ -527,7 +527,7 @@ void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, uns
 	object->data.seek_table.points[point_num] = point;
 }
 
-FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point)
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point)
 {
 	int i;
 
@@ -547,7 +547,7 @@ FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetadata *ob
 	return true;
 }
 
-FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *object, unsigned point_num)
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *object, unsigned point_num)
 {
 	unsigned i;
 
@@ -562,7 +562,7 @@ FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *ob
 	return FLAC__metadata_object_seektable_resize_points(object, object->data.seek_table.num_points-1);
 }
 
-FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object)
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object)
 {
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
@@ -570,7 +570,7 @@ FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *
 	return FLAC__format_seektable_is_legal(&object->data.seek_table);
 }
 
-FLAC__bool FLAC__metadata_object_seektable_template_append_placeholders(FLAC__StreamMetadata *object, unsigned num)
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_placeholders(FLAC__StreamMetadata *object, unsigned num)
 {
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
@@ -582,7 +582,7 @@ FLAC__bool FLAC__metadata_object_seektable_template_append_placeholders(FLAC__St
 		return true;
 }
 
-FLAC__bool FLAC__metadata_object_seektable_template_append_point(FLAC__StreamMetadata *object, FLAC__uint64 sample_number)
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_point(FLAC__StreamMetadata *object, FLAC__uint64 sample_number)
 {
 	FLAC__StreamMetadata_SeekTable *seek_table;
 
@@ -601,7 +601,7 @@ FLAC__bool FLAC__metadata_object_seektable_template_append_point(FLAC__StreamMet
 	return true;
 }
 
-FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC__StreamMetadata *object, FLAC__uint64 sample_numbers[], unsigned num)
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC__StreamMetadata *object, FLAC__uint64 sample_numbers[], unsigned num)
 {
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
@@ -626,7 +626,7 @@ FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC__StreamMe
 	return true;
 }
 
-FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__StreamMetadata *object, unsigned num, FLAC__uint64 total_samples)
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__StreamMetadata *object, unsigned num, FLAC__uint64 total_samples)
 {
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
@@ -651,7 +651,7 @@ FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__S
 	return true;
 }
 
-FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *object, FLAC__bool compact)
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *object, FLAC__bool compact)
 {
 	unsigned unique;
 
@@ -663,12 +663,12 @@ FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *o
 	return !compact || FLAC__metadata_object_seektable_resize_points(object, unique);
 }
 
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
 {
 	return vorbiscomment_set_entry_(object, &object->data.vorbis_comment.vendor_string, &entry, copy);
 }
 
-FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetadata *object, unsigned new_num_comments)
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetadata *object, unsigned new_num_comments)
 {
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
@@ -712,12 +712,12 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetad
 	return true;
 }
 
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
 {
 	return vorbiscomment_set_entry_(object, &object->data.vorbis_comment.comments[comment_num], &entry, copy);
 }
 
-FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
 {
 	FLAC__StreamMetadata_VorbisComment *vc;
 
@@ -738,7 +738,7 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetada
 	return FLAC__metadata_object_vorbiscomment_set_comment(object, comment_num, entry, copy);
 }
 
-FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetadata *object, unsigned comment_num)
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetadata *object, unsigned comment_num)
 {
 	FLAC__StreamMetadata_VorbisComment *vc;
 
