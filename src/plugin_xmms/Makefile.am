@@ -52,5 +52,11 @@ endif
 # for fix info see:
 #   http://lists.freshrpms.net/pipermail/rpm-list/2002-April/000746.html
 # the workaround is the extra '-L$(top_builddir)/src/libFLAC/.libs'
-libxmms_flac_la_LIBADD = $(top_builddir)/src/plugin_common/libplugin_common.a $(top_builddir)/src/libFLAC/libFLAC.la -L$(top_builddir)/src/libFLAC/.libs @XMMS_LIBS@ @ID3LIB_LIBS@
+libxmms_flac_la_LIBADD = \
+	@SHARE_LIBS@ \
+	$(top_builddir)/src/plugin_common/libplugin_common.a \
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	-L$(top_builddir)/src/libFLAC/.libs \
+	@XMMS_LIBS@ \
+	@ID3LIB_LIBS@
 libxmms_flac_la_LDFLAGS = -module -avoid-version
