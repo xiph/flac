@@ -28,6 +28,7 @@
 #endif
 #define min(a,b) ((a)<(b)?(a):(b))
 
+const FLAC__byte *FLAC__VENDOR_STRING = "reference libFLAC " FLAC__VERSION_STRING " 20020823";
 const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
 const unsigned FLAC__STREAM_SYNC = 0x664C6143;
 const unsigned FLAC__STREAM_SYNC_LEN = 32; /* bits */;

@@ -131,16 +131,22 @@ extern "C" {
 #define FLAC__VERSION_STRING VERSION
 #endif
 
+/** The vendor string inserted by the encoder into the VORBIS_COMMENT block.
+ *  This is a nulL-terminated ASCII string; when inserted into the
+ *  VORBIS_COMMENT the trailing null is stripped.
+ */
+extern const FLAC__byte *FLAC__VENDOR_STRING;
+
 /** The byte string representation of the beginning of a FLAC stream. */
-extern const FLAC__byte FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */;
+extern const FLAC__byte FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */
 
 /** The 32-bit integer big-endian representation of the beginning of
  *  a FLAC stream.
  */
-extern const unsigned FLAC__STREAM_SYNC; /* = 0x664C6143 */;
+extern const unsigned FLAC__STREAM_SYNC; /* = 0x664C6143 */
 
 /** The length of the FLAC signature in bits. */
-extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */;
+extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */
 
 /** The length of the FLAC signature in bytes. */
 #define FLAC__STREAM_SYNC_LENGTH (4u)

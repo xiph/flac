@@ -533,6 +533,7 @@ void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 {
 	unsigned i;
+	FLAC__bool metadata_has_seektable, metadata_has_vorbis_comment;
 
 	FLAC__ASSERT(0 != encoder);
 
@@ -613,12 +614,22 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	/* validate metadata */
 	if(0 == encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 0)
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
+	metadata_has_seektable = false;
+	metadata_has_vorbis_comment = false;
 	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
 		if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_STREAMINFO)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
 		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+			if(metadata_has_seektable) /* only one is allowed */
+				return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
+			metadata_has_seektable = true;
 			if(!FLAC__format_seektable_is_legal(&encoder->protected_->metadata[i]->data.seek_table))
 				return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
+		}
+		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+			if(metadata_has_vorbis_comment) /* only one is allowed */
+				return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
+			metadata_has_vorbis_comment = true;
 		}
 	}
 
@@ -770,7 +781,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	if(encoder->protected_->verify)
 		encoder->private_->verify.state_hint = ENCODER_IN_METADATA;
 	encoder->private_->metadata.type = FLAC__METADATA_TYPE_STREAMINFO;
-	encoder->private_->metadata.is_last = (encoder->protected_->num_metadata_blocks == 0);
+	encoder->private_->metadata.is_last = false; /* we will have at a minimum a VORBIS_COMMENT afterwards */
 	encoder->private_->metadata.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
 	encoder->private_->metadata.data.stream_info.min_blocksize = encoder->protected_->blocksize; /* this encoder uses the same blocksize for the whole stream */
 	encoder->private_->metadata.data.stream_info.max_blocksize = encoder->protected_->blocksize;
@@ -800,6 +811,32 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	encoder->private_->metadata.data.stream_info.min_framesize = (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN) - 1;
 	/* ... and clear this to 0 */
 	encoder->private_->metadata.data.stream_info.total_samples = 0;
+
+	/*
+	 * Check to see if the supplied metadata contains a VORBIS_COMMENT;
+	 * if not, we will write an empty one (FLAC__add_metadata_block()
+	 * automatically supplies the vendor string).
+	 */
+	if(!metadata_has_vorbis_comment) {
+		FLAC__StreamMetadata vorbis_comment;
+		vorbis_comment.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
+		vorbis_comment.is_last = (encoder->protected_->num_metadata_blocks == 0);
+		vorbis_comment.length = 4 + 4; /* MAGIC NUMBER */
+		vorbis_comment.data.vorbis_comment.vendor_string.length = 0;
+		vorbis_comment.data.vorbis_comment.vendor_string.entry = 0;
+		vorbis_comment.data.vorbis_comment.num_comments = 0;
+		vorbis_comment.data.vorbis_comment.comments = 0;
+		if(!FLAC__bitbuffer_clear(encoder->private_->frame)) {
+			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
+			return false;
+		}
+		if(!FLAC__add_metadata_block(&vorbis_comment, encoder->private_->frame))
+			return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
+		if(!write_bitbuffer_(encoder, 0)) {
+			/* the above function sets the state for us in case of an error */
+			return encoder->protected_->state;
+		}
+	}
 
 	/*
 	 * write the user's metadata blocks

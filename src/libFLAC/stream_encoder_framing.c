@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <string.h> /* for strlen() */
 #include "private/stream_encoder_framing.h"
 #include "private/crc.h"
 #include "FLAC/assert.h"
@@ -33,6 +34,7 @@ static FLAC__bool add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC
 FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitBuffer *bb)
 {
 	unsigned i;
+	const unsigned vendor_string_length = (unsigned)strlen(FLAC__VENDOR_STRING);
 
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->is_last, FLAC__STREAM_METADATA_IS_LAST_LEN))
 		return false;
@@ -40,8 +42,16 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->type, FLAC__STREAM_METADATA_TYPE_LEN))
 		return false;
 
-	FLAC__ASSERT(metadata->length < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->length, FLAC__STREAM_METADATA_LENGTH_LEN))
+	/*
+	 * First, for VORBIS_COMMENTs, adjust the length to reflect our vendor string
+	 */
+	i = metadata->length;
+	if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+		i -= metadata->data.vorbis_comment.vendor_string.length;
+		i += vendor_string_length;
+	}
+	FLAC__ASSERT(i < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, i, FLAC__STREAM_METADATA_LENGTH_LEN))
 		return false;
 
 	switch(metadata->type) {
@@ -95,9 +105,9 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 			}
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-			if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, metadata->data.vorbis_comment.vendor_string.length))
+			if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, vendor_string_length))
 				return false;
-			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.vorbis_comment.vendor_string.entry, metadata->data.vorbis_comment.vendor_string.length))
+			if(!FLAC__bitbuffer_write_byte_block(bb, FLAC__VENDOR_STRING, vendor_string_length))
 				return false;
 			if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, metadata->data.vorbis_comment.num_comments))
 				return false;
