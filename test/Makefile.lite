@@ -23,6 +23,7 @@ all: clean
 	./test_libFLAC++.sh
 	./test_streams.sh
 	./test_bins.sh
+	./test_metaflac.sh
 
 debug: all
 

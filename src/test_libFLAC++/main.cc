@@ -24,13 +24,11 @@ int main(int argc, char *argv[])
 {
 	(void)argc, (void)argv;
 
-/*@@@@
 	if(!test_encoders())
 		return 1;
 
 	if(!test_decoders())
 		return 1;
-@@@@*/
 
 	if(!test_metadata())
 		return 1;

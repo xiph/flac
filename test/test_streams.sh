@@ -21,6 +21,8 @@ LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 PATH=../src/flac:../src/test_streams:../obj/bin:$PATH
 
+flac --help 1>/dev/null 2>/dev/null || echo "ERROR can't find flac executable" 1>&2 && exit 1
+
 echo "Generating streams..."
 if test_streams ; then : ; else
 	echo "ERROR during test_streams" 1>&2

@@ -20,14 +20,17 @@
 FLAC (http://flac.sourceforge.net/) is an Open Source lossless audio
 codec developed by Josh Coalson.
 
-FLAC is comprised of 1) `libFLAC', a library which implements
-reference encoders and decoders, licensed under the GNU Lesser
-General Public License (LGPL); 2) `flac', a command-line program for
-encoding and decoding files, licensed under the GNU General public
-License (GPL); 3) `metaflac', a command-line program for editing
-FLAC metadata, licensed under the GPL; 4) player plugins for XMMS
-and Winamp, licensed under the GPL; and 5) documentation, licensed
-under the GNU Free Documentation License.
+FLAC is comprised of
+  * `libFLAC', a library which implements reference encoders and
+    decoders, and a metadata interface, licensed under the GNU
+    Lesser General Public License (LGPL)
+  * `libFLAC++', a C++ object wrapper library around libFLAC
+  * `flac', a command-line program for encoding and decoding files,
+    licensed under the GNU General public License (GPL)
+  * `metaflac', a command-line program for editing FLAC metadata,
+    licensed under the GPL
+  * player plugins for XMMS and Winamp, licensed under the GPL
+  * documentation, licensed under the GNU Free Documentation License.
 
 ============
 FLAC - 1.0.3_beta
@@ -42,6 +45,7 @@ for full documentation.
 A brief description of the directory tree:
 
 	doc/       the HTML documentation
+	man/       the man page for `flac'
 	include/   public include files for libFLAC
 	src/       the source code and private headers
 	test/      the test scripts
@@ -128,7 +132,7 @@ building with MSVC.  Just 'nmake /f Makefile.vc'.  Currently
 the Makefile.vc for libFLAC is hardcoded to use nasm.  If
 you don't have nasm, or don't want any assembly optimizations,
 edit the makefile, adding '/D FLAC__NO_ASM', and delete the
-rules which compile the .s files.
+rules which compile the .nasm files.
 
 
 ====================

@@ -28,5 +28,5 @@ Other major contributors and their contributions:
 * IA-32 assembly versions of several libFLAC routines
 
 "Matt Zimmerman" <mdz@debian.org>
-* Libtool/autoconf/automake make system
+* Libtool/autoconf/automake make system, flac man page
 

@@ -344,6 +344,35 @@ static FLAC__bool test_stream_decoder()
 
 	printf("\n+++ libFLAC unit test: FLAC__StreamDecoder\n\n");
 
+	printf("testing FLAC__stream_decoder_new()... ");
+	decoder = FLAC__stream_decoder_new();
+	if(0 == decoder) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_delete()... ");
+	FLAC__stream_decoder_delete(decoder);
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_new()... ");
+	decoder = FLAC__stream_decoder_new();
+	if(0 == decoder) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_init()... ");
+	if(FLAC__stream_decoder_init(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
+		return die_s_(0, decoder);
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_delete()... ");
+	FLAC__stream_decoder_delete(decoder);
+	printf("OK\n");
+
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 
@@ -971,6 +1000,35 @@ static FLAC__bool test_seekable_stream_decoder()
 
 	printf("\n+++ libFLAC unit test: FLAC__SeekableStreamDecoder\n\n");
 
+	printf("testing FLAC__seekable_stream_decoder_new()... ");
+	decoder = FLAC__seekable_stream_decoder_new();
+	if(0 == decoder) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__seekable_stream_decoder_delete()... ");
+	FLAC__seekable_stream_decoder_delete(decoder);
+	printf("OK\n");
+
+	printf("testing FLAC__seekable_stream_decoder_new()... ");
+	decoder = FLAC__seekable_stream_decoder_new();
+	if(0 == decoder) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__seekable_stream_decoder_init()... ");
+	if(FLAC__seekable_stream_decoder_init(decoder) == FLAC__SEEKABLE_STREAM_DECODER_OK)
+		return die_ss_(0, decoder);
+	printf("OK\n");
+
+	printf("testing FLAC__seekable_stream_decoder_delete()... ");
+	FLAC__seekable_stream_decoder_delete(decoder);
+	printf("OK\n");
+
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 
@@ -1516,6 +1574,35 @@ static FLAC__bool test_file_decoder()
 	seekable_stream_decoder_client_data_struct decoder_client_data;
 
 	printf("\n+++ libFLAC unit test: FLAC__FileDecoder\n\n");
+
+	printf("testing FLAC__file_decoder_new()... ");
+	decoder = FLAC__file_decoder_new();
+	if(0 == decoder) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__file_decoder_delete()... ");
+	FLAC__file_decoder_delete(decoder);
+	printf("OK\n");
+
+	printf("testing FLAC__file_decoder_new()... ");
+	decoder = FLAC__file_decoder_new();
+	if(0 == decoder) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__file_decoder_init()... ");
+	if(FLAC__file_decoder_init(decoder) == FLAC__FILE_DECODER_OK)
+		return die_f_(0, decoder);
+	printf("OK\n");
+
+	printf("testing FLAC__file_decoder_delete()... ");
+	FLAC__file_decoder_delete(decoder);
+	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;

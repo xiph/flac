@@ -99,6 +99,7 @@ typedef struct {
  *           (*metadata_callback)()           (DEFAULT: NULL )
  *           (*error_callback)()              (DEFAULT: NULL )
  * void*       client_data                    (DEFAULT: NULL ) passed back through the callbacks
+ *          metadata_respond/ignore        By default, only the STREAMINFO block is returned via metadata_callback()
  */
 FLAC__SeekableStreamDecoder *FLAC__seekable_stream_decoder_new();
 void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *);
@@ -125,8 +126,6 @@ void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *);
  * will take on the defaults from the constructor.  NOTE that
  * FLAC__seekable_stream_decoder_flush() or FLAC__seekable_stream_decoder_reset()
  * do NOT reset the values to the constructor defaults.
-@@@@ update so that only _set_ methods that need to return FLAC__bool, else void; update documentation.html also
-@@@@ update defaults above and in documentation.html about the metadata_respond/ignore defaults
  */
 FLAC__bool FLAC__seekable_stream_decoder_set_md5_checking(FLAC__SeekableStreamDecoder *decoder, FLAC__bool value);
 FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderReadStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));

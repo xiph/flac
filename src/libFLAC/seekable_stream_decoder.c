@@ -153,9 +153,11 @@ void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *decoder)
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 
-	if(decoder->private_->stream_decoder != 0)
-		FLAC__stream_decoder_delete(decoder->private_->stream_decoder);
+	(void)FLAC__seekable_stream_decoder_finish(decoder);
+
+	FLAC__stream_decoder_delete(decoder->private_->stream_decoder);
 
 	free(decoder->private_);
 	free(decoder->protected_);
@@ -174,8 +176,6 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__Seekab
 
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_ALREADY_INITIALIZED;
-
-	decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_OK;
 
 	if(0 == decoder->private_->read_callback || 0 == decoder->private_->seek_callback || 0 == decoder->private_->tell_callback || 0 == decoder->private_->length_callback || 0 == decoder->private_->eof_callback)
 		return decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_INVALID_CALLBACK;
@@ -202,7 +202,7 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__Seekab
 	if(FLAC__stream_decoder_init(decoder->private_->stream_decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
 		return decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 
-	return decoder->protected_->state;
+	return decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_OK;
 }
 
 FLAC__bool FLAC__seekable_stream_decoder_finish(FLAC__SeekableStreamDecoder *decoder)

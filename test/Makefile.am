@@ -21,7 +21,8 @@ EXTRA_DIST = \
 	test_libFLAC.sh \
 	test_libFLAC++.sh \
 	test_streams.sh \
-	test_bins.sh
+	test_bins.sh \
+	test_metaflac.sh
 
 CLEANFILES = \
 	$(wildcard *.raw) $(wildcard *.flac) $(wildcard *.cmp) $(wildcard *.wav) \

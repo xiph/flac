@@ -313,6 +313,58 @@ static bool test_stream_decoder()
 
 	printf("\n+++ libFLAC++ unit test: FLAC::Decoder::Stream\n\n");
 
+	//
+	// test new -> delete
+	//
+	printf("allocating decoder instance... ");
+	decoder = new StreamDecoder();
+	if(0 == decoder) {
+		printf("FAILED, new returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing is_valid()... ");
+	if(!decoder->is_valid()) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("freeing decoder instance... ");
+	delete decoder;
+	printf("OK\n");
+
+	//
+	// test new -> init -> delete
+	//
+	printf("allocating decoder instance... ");
+	decoder = new StreamDecoder();
+	if(0 == decoder) {
+		printf("FAILED, new returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing is_valid()... ");
+	if(!decoder->is_valid()) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing init()... ");
+	if(decoder->init() != ::FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
+		return decoder->die();
+	printf("OK\n");
+
+	printf("freeing decoder instance... ");
+	delete decoder;
+	printf("OK\n");
+
+	//
+	// test normal usage
+	//
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 
@@ -940,6 +992,58 @@ static bool test_seekable_stream_decoder()
 
 	printf("\n+++ libFLAC++ unit test: FLAC::Decoder::SeekableStream\n\n");
 
+	//
+	// test new -> delete
+	//
+	printf("allocating decoder instance... ");
+	decoder = new SeekableStreamDecoder();
+	if(0 == decoder) {
+		printf("FAILED, new returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing is_valid()... ");
+	if(!decoder->is_valid()) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("freeing decoder instance... ");
+	delete decoder;
+	printf("OK\n");
+
+	//
+	// test new -> init -> delete
+	//
+	printf("allocating decoder instance... ");
+	decoder = new SeekableStreamDecoder();
+	if(0 == decoder) {
+		printf("FAILED, new returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing is_valid()... ");
+	if(!decoder->is_valid()) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing init()... ");
+	if(decoder->init() != ::FLAC__SEEKABLE_STREAM_DECODER_OK)
+		return decoder->die();
+	printf("OK\n");
+
+	printf("freeing decoder instance... ");
+	delete decoder;
+	printf("OK\n");
+
+	//
+	// test normal usage
+	//
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 
@@ -1520,6 +1624,58 @@ static bool test_file_decoder()
 
 	printf("\n+++ libFLAC++ unit test: FLAC::Decoder::File\n\n");
 
+	//
+	// test new -> delete
+	//
+	printf("allocating decoder instance... ");
+	decoder = new FileDecoder();
+	if(0 == decoder) {
+		printf("FAILED, new returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing is_valid()... ");
+	if(!decoder->is_valid()) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("freeing decoder instance... ");
+	delete decoder;
+	printf("OK\n");
+
+	//
+	// test new -> init -> delete
+	//
+	printf("allocating decoder instance... ");
+	decoder = new FileDecoder();
+	if(0 == decoder) {
+		printf("FAILED, new returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing is_valid()... ");
+	if(!decoder->is_valid()) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing init()... ");
+	if(decoder->init() != ::FLAC__SEEKABLE_STREAM_DECODER_OK)
+		return decoder->die();
+	printf("OK\n");
+
+	printf("freeing decoder instance... ");
+	delete decoder;
+	printf("OK\n");
+
+	//
+	// test normal usage
+	//
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 

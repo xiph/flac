@@ -306,13 +306,6 @@ bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
 	const char *temp;
 	FILE *f = fopen(filename, "rb");
 	memset(tag, 0, sizeof(id3v1_struct));
-#if 0
-@@@@
-strcpy(tag->title,"Sonata K.42");
-strcpy(tag->artist,"Domenico Scarlatti");
-strcpy(tag->album,"Narcisso Yepes Plays Scarlatti");
-sprintf(tag->description, "%s - %s", tag->artist, tag->title);
-#endif
 
 	/* set the title and description to the filename by default */
 	temp = strrchr(filename, '/');

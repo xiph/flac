@@ -58,17 +58,94 @@ FLAC__bool test_bitbuffer()
 
 	printf("\n+++ libFLAC unit test: bitbuffer\n\n");
 
-	printf("testing new... OK\n");
+	/*
+	 * test new -> delete
+	 */
+	printf("testing new... ");
+	bb = FLAC__bitbuffer_new();
+	if(0 == bb) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing delete... ");
+	FLAC__bitbuffer_delete(bb);
+	printf("OK\n");
+
+	/*
+	 * test new -> init -> delete
+	 */
+	printf("testing new... ");
+	bb = FLAC__bitbuffer_new();
+	if(0 == bb) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing init... ");
+	FLAC__bitbuffer_init(bb);
+	if(0 == bb) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing delete... ");
+	FLAC__bitbuffer_delete(bb);
+	printf("OK\n");
+
+	/*
+	 * test new -> init -> clear -> delete
+	 */
+	printf("testing new... ");
+	bb = FLAC__bitbuffer_new();
+	if(0 == bb) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing init... ");
+	FLAC__bitbuffer_init(bb);
+	if(0 == bb) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing clear... ");
+	FLAC__bitbuffer_clear(bb);
+	if(0 == bb) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing delete... ");
+	FLAC__bitbuffer_delete(bb);
+	printf("OK\n");
+
+	/*
+	 * test normal usage
+	 */
+	printf("testing new... ");
 	bb = FLAC__bitbuffer_new();
 	bb_zero = FLAC__bitbuffer_new();
 	bb_one = FLAC__bitbuffer_new();
 	bbcopy = FLAC__bitbuffer_new();
+	if(0 == bb || 0 == bb_zero || 0 == bb_one || 0 == bbcopy) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
 
-	printf("testing init... OK\n");
-	FLAC__bitbuffer_init(bb);
-	FLAC__bitbuffer_init(bb_zero);
-	FLAC__bitbuffer_init(bb_one);
-	FLAC__bitbuffer_init(bbcopy);
+	printf("testing init... ");
+	ok = FLAC__bitbuffer_init(bb) && FLAC__bitbuffer_init(bb_zero) && FLAC__bitbuffer_init(bb_one) && FLAC__bitbuffer_init(bbcopy);
+	printf("%s\n", ok?"OK":"FAILED");
+	if(!ok)
+		return false;
 
 	printf("testing clear... ");
 	ok = FLAC__bitbuffer_clear(bb) && FLAC__bitbuffer_clear(bb_zero) && FLAC__bitbuffer_clear(bb_one) && FLAC__bitbuffer_clear(bbcopy);

@@ -251,7 +251,15 @@ static FLAC__bool bitbuffer_read_from_client_(FLAC__BitBuffer *bb, FLAC__bool (*
 
 FLAC__BitBuffer *FLAC__bitbuffer_new()
 {
-	return (FLAC__BitBuffer*)malloc(sizeof(FLAC__BitBuffer));
+	FLAC__BitBuffer *bb = (FLAC__BitBuffer*)malloc(sizeof(FLAC__BitBuffer));
+
+	if(0 != bb) {
+		bb->buffer = 0;
+		bb->capacity = 0;
+		bb->blurbs = bb->bits = bb->total_bits = 0;
+		bb->consumed_blurbs = bb->consumed_bits = bb->total_consumed_bits = 0;
+	}
+	return bb;
 }
 
 void FLAC__bitbuffer_delete(FLAC__BitBuffer *bb)

@@ -27,11 +27,6 @@
 #
 # distclean: remove everything except what goes in the distribution
 #
-# The old 'debug' target is obsolete; configure the source tree with
-# ./configure --enable-debug to enable debugging and self-tests
-#
-# The old 'release' target is obsolete; this is now the default
-#
 
 
 SUBDIRS = doc include man src test

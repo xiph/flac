@@ -528,17 +528,9 @@ FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, co
 FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, unsigned length, FLAC__bool copy);
 
 /******************************************************************
- * FLAC__StreamMetadata_SeekPoint
- * ----------------------------------------------------------------
- * @@@@  You can
- * use the _resize function to alter it.  If the size shrinks,
- * elements will truncated; if it grows, new placeholder points
- * will be added to the end.
- */
-
-/******************************************************************
  * FLAC__StreamMetadata_SeekTable
  */
+/* If the size shrinks, elements will truncated; if it grows, new placeholder points will be added to the end. */
 FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetadata *object, unsigned new_num_points);
 void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point);
 FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point);

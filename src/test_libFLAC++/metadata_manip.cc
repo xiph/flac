@@ -237,7 +237,6 @@ void OurFileDecoder::metadata_callback(const ::FLAC__StreamMetadata *metadata)
 		}
 		else {
 			if(*our_metadata_.blocks[mc_our_block_number_] != metadata) {
-			//@@@@if(!::FLAC__metadata_object_is_equal(our_metadata_.blocks[mc_our_block_number_], metadata)) {
 				(void)die_("metadata block mismatch");
 				error_occurred_ = true;
 			}

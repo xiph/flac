@@ -202,7 +202,7 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
  *
  ***************************************************************************/
 
-/*@@@@move
+/*@@@move
 will return pointer to new empty object of type 'type', or 0 if malloc failed
 type is valid type
 */
@@ -238,7 +238,7 @@ FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type)
 	return object;
 }
 
-/*@@@@move
+/*@@@move
 return a pointer to a copy of 'object', or 0 if any malloc failed.  does a deep copy.  user gets ownership of object.
     FLAC__ASSERT(0 != object);
 */
@@ -331,7 +331,7 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 	}
 }
 
-/*@@@@move
+/*@@@move
 frees 'object'.  does a deep delete.
 */
 void FLAC__metadata_object_delete(FLAC__StreamMetadata *object)
@@ -458,7 +458,7 @@ FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, co
 	}
 }
 
-/*@@@@move
+/*@@@move
 sets the application data to 'data'.  if 'copy' is true, makes, copy, else takes ownership of pointer.  returns false if copy==true and malloc fails.
     FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_APPLICATION);
     FLAC__ASSERT((0 != data && length > 0) || (0 == data && length == 0 && copy == false));

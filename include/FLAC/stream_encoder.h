@@ -128,7 +128,6 @@ void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder);
  * will take on the defaults from the constructor.  NOTE that
  * FLAC__stream_encoder_finish() does NOT reset the values to the
  * constructor defaults.
-@@@@ update so that only _set_ methods that need to return FLAC__bool, else void
  */
 FLAC__bool FLAC__stream_encoder_set_streamable_subset(FLAC__StreamEncoder *encoder, FLAC__bool value);
 FLAC__bool FLAC__stream_encoder_set_do_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value);
