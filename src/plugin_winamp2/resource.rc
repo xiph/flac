@@ -145,7 +145,7 @@ BEGIN
     GROUPBOX        " Tag Editor  ",IDC_STATIC,2,63,220,30
     CONTROL         "Reserve space for &VorbisComment",IDC_RESERVE,"Button",
                     BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,8,76,125,10
-    GROUPBOX        " Misk  ",IDC_STATIC,2,96,220,72
+    GROUPBOX        " Miscellaneous  ",IDC_STATIC,2,96,220,72
     CONTROL         "&Show average bitrate while playing",IDC_BPS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,108,125,10
     CONTROL         "Stop on &all errors",IDC_ERRORS,"Button",

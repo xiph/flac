@@ -89,7 +89,7 @@ static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoder
 	file_info_struct *file_info = (file_info_struct*)client_data;
 	(void)decoder;
 
-	if (cfg.misk.stop_err || status!=FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
+	if (cfg.misc.stop_err || status!=FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
 		file_info->abort_flag = true;
 }
 

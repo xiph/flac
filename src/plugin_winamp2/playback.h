@@ -70,7 +70,7 @@ typedef struct {
 	} resolution;
 	struct {
 		FLAC__bool stop_err;
-	} misk;
+	} misc;
 } output_config_t;
 
 /*

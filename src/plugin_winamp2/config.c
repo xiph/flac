@@ -63,7 +63,7 @@ void ReadConfig()
 	RI(flac_cfg.tag.reserve_space, 1);
 
 	RI(flac_cfg.display.show_bps, 1);
-	RI(flac_cfg.output.misk.stop_err, 0);
+	RI(flac_cfg.output.misc.stop_err, 0);
 	RI(flac_cfg.output.replaygain.enable, 1);
 	RI(flac_cfg.output.replaygain.album_mode, 0);
 	RI(flac_cfg.output.replaygain.hard_limit, 0);
@@ -82,7 +82,7 @@ void WriteConfig()
 	WS(flac_cfg.title.sep);
 
 	WI(flac_cfg.display.show_bps);
-	WI(flac_cfg.output.misk.stop_err);
+	WI(flac_cfg.output.misc.stop_err);
 	WI(flac_cfg.output.replaygain.enable);
 	WI(flac_cfg.output.replaygain.album_mode);
 	WI(flac_cfg.output.replaygain.hard_limit);
@@ -119,7 +119,7 @@ static INT_PTR CALLBACK GeneralProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		Check(IDC_ID3V1, flac_cfg.title.read_v1);
 /*!		Check(IDC_RESERVE, flac_cfg.tag.reserve_space); */
 		Check(IDC_BPS, flac_cfg.display.show_bps);
-		Check(IDC_ERRORS, flac_cfg.output.misk.stop_err);
+		Check(IDC_ERRORS, flac_cfg.output.misc.stop_err);
 		return TRUE;
 	/* commands */
 	case WM_COMMAND:
@@ -136,7 +136,7 @@ static INT_PTR CALLBACK GeneralProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			flac_cfg.title.read_v1 = GetCheck(IDC_ID3V1);
 /*!			flac_cfg.tag.reserve_space = GetCheck(IDC_RESERVE); */
 			flac_cfg.display.show_bps = GetCheck(IDC_BPS);
-			flac_cfg.output.misk.stop_err = GetCheck(IDC_ERRORS);
+			flac_cfg.output.misc.stop_err = GetCheck(IDC_ERRORS);
 			break;
 		/* reset */
 		case IDC_RESET:
