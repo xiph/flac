@@ -18,9 +18,10 @@
 
 includedir = ${prefix}/include/OggFLAC
 
+# NOTE: file_decoder.h and seekable_stream_decoder.h are NOT ready
+# for distribution yet.
+
 include_HEADERS = \
 	all.h \
-	file_decoder.h \
-	seekable_stream_decoder.h \
 	stream_decoder.h \
 	stream_encoder.h

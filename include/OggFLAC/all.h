@@ -20,8 +20,10 @@
 #ifndef OggFLAC__ALL_H
 #define OggFLAC__ALL_H
 
-#include "file_decoder.h"
-#include "seekable_stream_decoder.h"
+/* NOTE: file_decoder.h and seekable_stream_decoder.h are NOT ready
+ * for distribution yet.
+ */
+
 #include "stream_decoder.h"
 #include "stream_encoder.h"
 
