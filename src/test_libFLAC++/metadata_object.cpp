@@ -177,7 +177,7 @@ static void init_metadata_blocks_()
 	cuesheet_.data.cue_sheet.tracks[0].indices[0].number = 0;
 	cuesheet_.data.cue_sheet.tracks[0].indices[1].offset = 1234567890;
 	cuesheet_.data.cue_sheet.tracks[0].indices[1].number = 1;
-	cuesheet_.data.cue_sheet.tracks[1].offset = 2345678901;
+	cuesheet_.data.cue_sheet.tracks[1].offset = 2345678901u;
 	cuesheet_.data.cue_sheet.tracks[1].number = 2;
 	memcpy(cuesheet_.data.cue_sheet.tracks[1].isrc, "ACBDE7654321", sizeof(cuesheet_.data.cue_sheet.tracks[1].isrc));
 	cuesheet_.data.cue_sheet.tracks[1].type = 1;
