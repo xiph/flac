@@ -698,6 +698,7 @@ cident FLAC__lpc_restore_signal_asm_i386:
 	test	ebx, ebx
 	jz	.end				; do nothing if data_len == 0
 
+.begin:
 	cmp	eax, byte 1
 	jg	short .x87_1more
 
@@ -901,6 +902,8 @@ cident FLAC__lpc_restore_signal_asm_i386_mmx:
 
 	test	ebx, ebx
 	jz	.end				; do nothing if data_len == 0
+	cmp	eax, 4
+	jb	near FLAC__lpc_restore_signal_asm_i386.begin
 
 	mov	edx, [esp + 28]
 	movd	mm6, [esp + 36]
