@@ -134,6 +134,21 @@
 	      </varlistentry>
 
 	      <varlistentry>
+		<term><option>-P</option> <replaceable>bytes</replaceable></term>
+
+		<listitem>
+		  <para>Tell the encoder to write a PADDING metadata
+		    block of the given length (in bytes) after the
+		    STREAMINFO block.  -P 0 implies no PADDING block,
+		    which is the default.  This is useful if you plan
+		    to tag the file later with an APPLICATION block;
+		    instead of having to rewrite the entire file later
+		    just to insert your block, you can write directly
+		    over the PADDING block.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term><option>-b</option> <replaceable>blocksize</replaceable></term>
 
 		<listitem>

@@ -202,6 +202,14 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-P #
+			</TD>
+			<TD>
+				  Tell the encoder to write a <TT>PADDING</TT> metadata block of the given length (in bytes) after the <TT>STREAMINFO</TT> block.  <TT>-P 0</TT> implies no <TT>PADDING</TT> block, which is the default.  This is useful if you plan to tag the file later with an <TT>APPLICATION</TT> block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the <TT>PADDING</TT> block.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 				-b #
 			</TD>
 			<TD>
