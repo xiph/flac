@@ -168,10 +168,14 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				/* fmt sub-chunk size */
 				if(!read_little_endian_uint32(infile, &xx, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
-				if(xx != 16) {
-					fprintf(stderr, "%s: ERROR: unsupported non-standard 'fmt ' sub-chunk has length %u != 16\n", encoder_wrapper.inbasefilename, (unsigned)xx);
+				if(xx < 16) {
+					fprintf(stderr, "%s: ERROR: found non-standard 'fmt ' sub-chunk which has length = %u\n", encoder_wrapper.inbasefilename, (unsigned)xx);
 					goto wav_abort_;
 				}
+				else if(xx != 16 && xx != 18) {
+					fprintf(stderr, "%s: WARNING: found non-standard 'fmt ' sub-chunk which has length = %u\n", encoder_wrapper.inbasefilename, (unsigned)xx);
+				}
+				data_bytes = xx;
 				/* compression code */
 				if(!read_little_endian_uint16(infile, &x, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
@@ -218,6 +222,22 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				}
 				bps = x;
 				is_unsigned_samples = (x == 8);
+
+				bytes_per_wide_sample = channels * (bps >> 3);
+
+				/* skip any extra data in the fmt sub-chunk */
+				data_bytes -= 16;
+				if(data_bytes > 0) {
+					unsigned left, need;
+					for(left = data_bytes; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
+						need = min(left, CHUNK_OF_SAMPLES);
+						if(fread(ucbuffer, 1, bytes_per_wide_sample * need, infile) < need) {
+							fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_wrapper.inbasefilename);
+							goto wav_abort_;
+						}
+						left -= need;
+					}
+				}
 
 				got_fmt_chunk = true;
 			}
