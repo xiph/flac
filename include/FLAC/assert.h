@@ -20,7 +20,7 @@
 #ifndef FLAC__ASSERT_H
 #define FLAC__ASSERT_H
 
-/* we need this since some compilers (like MSVC) leave asserts on release code (and we don't want to use their ASSERT) */
+/* we need this since some compilers (like MSVC) leave assert()s on release code (and we don't want to use their ASSERT) */
 #ifdef DEBUG
 #include <assert.h>
 #define FLAC__ASSERT(x) assert(x)
