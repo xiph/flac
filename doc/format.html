@@ -676,7 +676,7 @@
 				&lt;n&gt;
 			</TD>
 			<TD>
-				The contents of a vorbis comment packet as specified <A HREF="http://www.xiph.org/ogg/vorbis/doc/v-comment.html">here</A>, including the vendor string.  Note that the vorbis comment spec allows for on the order of 2 ^ 64 bytes of data where as the FLAC metadata block is limited to 2 ^ 24 bytes.  Given the stated purpose of vorbis comments, i.e. human-readable textual information, this limit is unlikely to be restrictive.
+				The contents of a vorbis comment packet as specified <A HREF="http://www.xiph.org/ogg/vorbis/doc/v-comment.html">here</A>, including the vendor string.  Note that the vorbis comment spec allows for on the order of 2 ^ 64 bytes of data where as the FLAC metadata block is limited to 2 ^ 24 bytes.  Given the stated purpose of vorbis comments, i.e. human-readable textual information, this limit is unlikely to be restrictive.  Also note that the 32-bit field lengths are little-endian coded according to the vorbis spec, as opposed to the usual big-endian coding of fixed-length integers in the rest of FLAC.
 			</TD>
 		</TR>
 	</TABLE>
