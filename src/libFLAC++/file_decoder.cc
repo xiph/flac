@@ -100,6 +100,36 @@ namespace FLAC {
 			return (bool)::FLAC__file_decoder_get_md5_checking(decoder_);
 		}
 
+		unsigned File::get_channels() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__file_decoder_get_channels(decoder_);
+		}
+
+		::FLAC__ChannelAssignment File::get_channel_assignment() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__file_decoder_get_channel_assignment(decoder_);
+		}
+
+		unsigned File::get_bits_per_sample() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__file_decoder_get_bits_per_sample(decoder_);
+		}
+
+		unsigned File::get_sample_rate() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__file_decoder_get_sample_rate(decoder_);
+		}
+
+		unsigned File::get_blocksize() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__file_decoder_get_blocksize(decoder_);
+		}
+
 		File::State File::init()
 		{
 			FLAC__ASSERT(0 != decoder_);

@@ -94,6 +94,36 @@ namespace FLAC {
 			return (bool)::FLAC__seekable_stream_decoder_get_md5_checking(decoder_);
 		}
 
+		unsigned SeekableStream::get_channels() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__seekable_stream_decoder_get_channels(decoder_);
+		}
+
+		::FLAC__ChannelAssignment SeekableStream::get_channel_assignment() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__seekable_stream_decoder_get_channel_assignment(decoder_);
+		}
+
+		unsigned SeekableStream::get_bits_per_sample() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__seekable_stream_decoder_get_bits_per_sample(decoder_);
+		}
+
+		unsigned SeekableStream::get_sample_rate() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__seekable_stream_decoder_get_sample_rate(decoder_);
+		}
+
+		unsigned SeekableStream::get_blocksize() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__seekable_stream_decoder_get_blocksize(decoder_);
+		}
+
 		SeekableStream::State SeekableStream::init()
 		{
 			FLAC__ASSERT(is_valid());
@@ -113,6 +143,18 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__seekable_stream_decoder_finish(decoder_);
+		}
+
+		bool SeekableStream::flush()
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__seekable_stream_decoder_flush(decoder_);
+		}
+
+		bool SeekableStream::reset()
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__seekable_stream_decoder_reset(decoder_);
 		}
 
 		bool SeekableStream::process_whole_stream()
