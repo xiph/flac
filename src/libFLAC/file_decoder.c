@@ -147,8 +147,8 @@ FLAC__FileDecoderState FLAC__file_decoder_init(FLAC__FileDecoder *decoder)
 
 	decoder->protected->state = FLAC__FILE_DECODER_OK;
 
-    if(0 == decoder->private->write_callback || 0 == decoder->private->metadata_callback || 0 == decoder->private->error_callback)
-        return decoder->protected->state = FLAC__FILE_DECODER_INVALID_CALLBACK;
+	if(0 == decoder->private->write_callback || 0 == decoder->private->metadata_callback || 0 == decoder->private->error_callback)
+		return decoder->protected->state = FLAC__FILE_DECODER_INVALID_CALLBACK;
 
 	decoder->private->file = 0;
 	decoder->private->stream_decoder = 0;
