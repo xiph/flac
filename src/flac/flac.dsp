@@ -101,10 +101,6 @@ SOURCE=.\encode.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\file.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\main.c
 # End Source File
 # Begin Source File
@@ -126,10 +122,6 @@ SOURCE=.\decode.h
 # Begin Source File
 
 SOURCE=.\encode.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\file.h
 # End Source File
 # Begin Source File
 
