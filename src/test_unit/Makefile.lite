@@ -21,7 +21,7 @@
 
 PROGRAM_NAME = test_unit
 INCLUDES     = -I../libFLAC/include -I../../include
-LIBS         = -lFLAC -lm -lefence
+LIBS         = -lFLAC -lm
 OBJS = \
 	bitbuffer.o \
 	decoders.o \
