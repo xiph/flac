@@ -194,6 +194,7 @@ static void free_metadata_blocks_()
 	free(application_.data.application.data);
 	free(vorbiscomment_.data.vorbis_comment.vendor_string.entry);
 	free(vorbiscomment_.data.vorbis_comment.comments[0].entry);
+	free(vorbiscomment_.data.vorbis_comment.comments[1].entry);
 	free(vorbiscomment_.data.vorbis_comment.comments);
 	free(cuesheet_.data.cue_sheet.tracks[0].indices);
 	free(cuesheet_.data.cue_sheet.tracks[1].indices);
@@ -376,6 +377,9 @@ bool test_metadata_object_streaminfo()
 	if(*dynamic_cast<FLAC::Metadata::StreamInfo *>(clone_) != block)
 		return die_("clone is not identical");
 	printf("OK\n");
+	printf("testing StreamInfo::~StreamInfo()... ");
+	delete clone_;
+	printf("OK\n");
 
 
 	printf("PASSED\n\n");
@@ -485,6 +489,9 @@ bool test_metadata_object_padding()
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::Padding *>(clone_) != block)
 		return die_("clone is not identical");
+	printf("OK\n");
+	printf("testing Padding::~Padding()... ");
+	delete clone_;
 	printf("OK\n");
 
 
@@ -604,6 +611,9 @@ bool test_metadata_object_application()
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::Application *>(clone_) != block)
 		return die_("clone is not identical");
+	printf("OK\n");
+	printf("testing Application::~Application()... ");
+	delete clone_;
 	printf("OK\n");
 
 
@@ -752,6 +762,9 @@ bool test_metadata_object_seektable()
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::SeekTable *>(clone_) != block)
 		return die_("clone is not identical");
+	printf("OK\n");
+	printf("testing SeekTable::~SeekTable()... ");
+	delete clone_;
 	printf("OK\n");
 
 
@@ -1038,6 +1051,9 @@ bool test_metadata_object_vorbiscomment()
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::VorbisComment *>(clone_) != block)
 		return die_("clone is not identical");
+	printf("OK\n");
+	printf("testing VorbisComment::~VorbisComment()... ");
+	delete clone_;
 	printf("OK\n");
 
 
@@ -1368,7 +1384,9 @@ bool test_metadata_object_cuesheet()
 	if(*dynamic_cast<FLAC::Metadata::CueSheet *>(clone_) != block)
 		return die_("clone is not identical");
 	printf("OK\n");
-
+	printf("testing CueSheet::~CueSheet()... ");
+	delete clone_;
+	printf("OK\n");
 
 	printf("PASSED\n\n");
 	return true;
