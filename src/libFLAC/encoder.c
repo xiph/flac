@@ -38,6 +38,11 @@
 #endif
 #define max(x,y) ((x)>(y)?(x):(y))
 
+#ifdef ESTIMATE_RICE_BITS
+#undef ESTIMATE_RICE_BITS
+#endif
+#define ESTIMATE_RICE_BITS(value, parameter) (2 + (parameter) + (((unsigned)((value) < 0? -(value) : (value))) >> (parameter)))
+
 typedef struct FLAC__EncoderPrivate {
 	unsigned input_capacity;                    /* current size (in samples) of the signal and residual buffers */
 	int32 *integer_signal[FLAC__MAX_CHANNELS];  /* the integer version of the input signal */
@@ -903,8 +908,15 @@ bool encoder_set_partitioned_rice_(const int32 residual[], const unsigned residu
 		unsigned i;
 		parameters[0] = rice_parameter;
 		bits_ += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
+#ifdef ESTIMATE_RICE_BITS
+		--rice_parameter;
+#endif
 		for(i = 0; i < residual_samples; i++)
+#ifdef ESTIMATE_RICE_BITS
+			bits_ += ESTIMATE_RICE_BITS(residual[i], rice_parameter);
+#else
 			bits_ += FLAC__bitbuffer_rice_bits(residual[i], rice_parameter);
+#endif
 	}
 	else {
 		unsigned i, j, k = 0, k_last = 0;
@@ -932,8 +944,15 @@ bool encoder_set_partitioned_rice_(const int32 residual[], const unsigned residu
 				parameter = max_parameter;
 			parameters[i] = parameter;
 			bits_ += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
+#ifdef ESTIMATE_RICE_BITS
+			--parameter;
+#endif
 			for(j = k_last; j < k; j++)
+#ifdef ESTIMATE_RICE_BITS
+				bits_ += ESTIMATE_RICE_BITS(residual[j], parameter);
+#else
 				bits_ += FLAC__bitbuffer_rice_bits(residual[j], parameter);
+#endif
 			k_last = k;
 		}
 	}
