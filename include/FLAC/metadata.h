@@ -102,7 +102,7 @@ extern "C" {
 
 /** \defgroup flac_metadata_level0 FLAC/metadata.h: metadata level 0 interface
  *  \ingroup flac_metadata
- * 
+ *
  *  \brief
  *  The level 0 interface consists of a single routine to read the
  *  STREAMINFO block.
@@ -132,7 +132,7 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetad
 
 /** \defgroup flac_metadata_level1 FLAC/metadata.h: metadata level 1 interface
  *  \ingroup flac_metadata
- * 
+ *
  * \brief
  * The level 1 interface provides read-write access to FLAC file metadata and
  * operates directly on the FLAC file.
@@ -185,10 +185,12 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetad
  * \{
  */
 
-/** \typedef FLAC__Metadata_SimpleIterator
- *  The opaque structure definition for the level 1 iterator type.
- */
 struct FLAC__Metadata_SimpleIterator;
+/** The opaque structure definition for the level 1 iterator type.
+ *  See the
+ *  \link flac_metadata_level1 metadata level 1 module \endlink
+ *  for a detailed description.
+ */
 typedef struct FLAC__Metadata_SimpleIterator FLAC__Metadata_SimpleIterator;
 
 /** Status type for FLAC__Metadata_SimpleIterator.
@@ -466,7 +468,7 @@ FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_SimpleIter
 
 /** \defgroup flac_metadata_level2 FLAC/metadata.h: metadata level 2 interface
  *  \ingroup flac_metadata
- * 
+ *
  * \brief
  * The level 2 interface provides read-write access to FLAC file metadata;
  * all metadata is read into memory, operated on in memory, and then written
@@ -516,16 +518,14 @@ FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_SimpleIter
  * \{
  */
 
-/** \typedef FLAC__Metadata_Chain
- *  The opaque structure definition for the level 2 chain type.
- */
 struct FLAC__Metadata_Chain;
+/** The opaque structure definition for the level 2 chain type.
+ */
 typedef struct FLAC__Metadata_Chain FLAC__Metadata_Chain;
 
-/** \typedef FLAC__Metadata_Iterator
- *  The opaque structure definition for the level 2 iterator type.
- */
 struct FLAC__Metadata_Iterator;
+/** The opaque structure definition for the level 2 iterator type.
+ */
 typedef struct FLAC__Metadata_Iterator FLAC__Metadata_Iterator;
 
 typedef enum {

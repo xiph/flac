@@ -37,59 +37,130 @@ extern "C" {
  *  \link flac_stream_encoder stream encoder \endlink module.
  */
 
-/** \defgroup flac_stream_encoder FLAC/stream_encoder.h: stream encoder interface
+/** \defgroup flac_encoder FLAC/*_encoder.h: encoder interfaces
  *  \ingroup flac
+ *
+ *  \brief
+ *  This module describes the single encoder layer provided by libFLAC.
+ *
+ * Currently there is only one level of encoder implementation which is at
+ * the stream level.  There is currently no file encoder because seeking
+ * within a file while encoding seemed like too obscure a feature.
+ */
+
+/** \defgroup flac_encoder FLAC/*_encoder.h: encoder interfaces
+ *  \ingroup flac
+ *
+ */
+
+/** \defgroup flac_stream_encoder FLAC/stream_encoder.h: stream encoder interface
+ *  \ingroup flac_encoder
  *
  *  \brief
  *  This module contains the functions which implement the stream
  *  encoder.
  *
- * The basic usage of a libFLAC encoder is as follows: 
+ * The basic usage of this encoder is as follows:
  * - The program creates an instance of an encoder using
  *   FLAC__stream_encoder_new().
  * - The program overrides the default settings and sets callbacks for
- *   reading, writing, error reporting, and metadata reporting using
+ *   writing and metadata reporting using
  *   FLAC__stream_encoder_set_*() functions.
  * - The program initializes the instance to validate the settings and
- *   prepare for encoding using FLAC__stream_encoder_init(). 
+ *   prepare for encoding using FLAC__stream_encoder_init().
  * - The program calls FLAC__stream_encoder_process() or
  *   FLAC__stream_encoder_process_interleaved() to encode data, which
- *   subsequently calls the callbacks. 
- * - The program finishes the instance with FLAC__stream_encoder_finish(),
- *   which flushes the input and output and resets the encoder to the
- *   unitialized state. 
+ *   subsequently calls the callbacks when there is encoder data ready
+ *   to be written.
+ * - The program finishes the encoding with FLAC__stream_encoder_finish(),
+ *   which causes the encoder to encode any data still in its input pipe,
+ *   call the metadata callback with the final encoding statistics, and
+ *   finally reset the encoder to the uninitialized state.
  * - The instance may be used again or deleted with
- *   FLAC__stream_encoder_delete(). 
+ *   FLAC__stream_encoder_delete().
+ *
+ * In more detail, the stream encoder functions similarly to the
+ * \link flac_stream_decoder stream decoder \endlink, but has fewer
+ * callbacks and more options.  Typically the user will create a new
+ * instance by calling FLAC__stream_encoder_new(), then set the necessary
+ * parameters and callbacks with FLAC__stream_encoder_set_*(), and
+ * initialize it by calling FLAC__stream_encoder_init().
+ *
+ * Unlike the decoders, the stream encoder has many options that can
+ * affect the speed and compression ratio.  When setting these parameters
+ * you should have some basic knowledge of the format (see the
+ * <A HREF="../documentation.html#format">user-level documentation</A>
+ * or the <A HREF="../format.html">formal description</A>).  The
+ * FLAC__stream_encoder_set_*() functions themselves do not validate the
+ * values as many are interdependent.  The FLAC__stream_encoder_init()
+ * function will do this, so make sure to pay attention to the state
+ * returned by FLAC__stream_encoder_init() to make sure that it is
+ * FLAC__STREAM_ENCODER_OK.  Any parameters that are not set before
+ * FLAC__stream_encoder_init() will take on the defaults from the
+ * constructor.
+ *
+ * The user must provide function pointers for the following callbacks:
+ *
+ * - Write callback - This function is called by the encoder anytime there
+ *   is raw encoded data to write.  It may include metadata mixed with
+ *   encoded audio frames and the data is not guaranteed to be aligned on
+ *   frame or metadata block boundaries.
+ * - Metadata callback - This function is called once at the end of
+ *   encoding with the populated STREAMINFO structure.  This is so file
+ *   encoders can seek back to the beginning of the file and write the
+ *   STREAMINFO block with the correct statistics after encoding (like
+ *   minimum/maximum frame size).
+ *
+ * The call to FLAC__stream_encoder_init() currently will also immediately
+ * call the write callback with the \c fLaC signature and all the encoded
+ * metadata.
+ *
+ * After initializing the instance, the user may feed audio data to the
+ * encoder in one of two ways:
+ *
+ * - Channel separate, through FLAC__stream_encoder_process() - The user
+ *   will pass an array of pointers to buffers, one for each channel, to
+ *   the encoder, each of the same length.  The samples need not be
+ *   block-aligned.
+ * - Channel interleaved, through
+ *   FLAC__stream_encoder_process_interleaved() - The user will pass a single
+ *   pointer to data that is channel-interleaved (i.e. channel0_sample0,
+ *   channel1_sample0, ... , channelN_sample0, channel0_sample1, ...).
+ *   Again, the samples need not be block-aligned but they must be
+ *   sample-aligned, i.e. the first value should be channel0_sample0 and
+ *   the last value channelN_sampleM.
+ *
+ * When the user is finished encoding data, it calls
+ * FLAC__stream_encoder_finish(), which causes the encoder to encode any
+ * data still in its input pipe, and call the metadata callback with the
+ * final encoding statistics.  Then the instance may be deleted with
+ * FLAC__stream_encoder_delete() or initialized again to encode another
+ * stream.
+ *
+ * For programs that write their own metadata, but that do not know the
+ * actual metadata until after encoding, it is advantageous to instruct
+ * the encoder to write a PADDING block of the correct size, so that
+ * instead of rewriting the whole stream after encoding, the program can
+ * just overwrite the PADDING block.  If only the maximum size of the
+ * metadata is known, the program can write a slightly larger padding
+ * block, then split it after encoding.
+ *
+ * Make sure you understand how lengths are calculated.  All FLAC metadata
+ * blocks have a 4 byte header which contains the type and length.  This
+ * length does not include the 4 bytes of the header.  See the format page
+ * for the specification of metadata blocks and their lengths.
  *
  * \note
  * The "set" functions may only be called when the encoder is in the
  * state FLAC__STREAM_ENCODER_UNINITIALIZED, i.e. after
  * FLAC__stream_encoder_new() or FLAC__stream_encoder_finish(), but
  * before FLAC__stream_encoder_init().  If this is the case they will
- * return true, otherwise false.
- *
- * \note
- * The "set" functions do not validate the values as many are
- * interdependent.  The FLAC__stream_encoder_init() function will do
- * this, so make sure to pay attention to the state returned by
- * FLAC__stream_encoder_init() to make sure that it is
- * FLAC__STREAM_ENCODER_OK.
- *
- * \note
- * Unlike the decoders, the stream encoder has many options that can
- * affect the speed and compression ratio.  When setting these parameters
- * you should have some basic knowledge of the format (see the
- * <A HREF="../documentation.html#format">user-level documentation</A>
- * or the <A HREF="../format.html">formal description</A>).
- *
- * \note
- * Any parameters that are not set before FLAC__stream_encoder_init()
- * will take on the defaults from the constructor.
+ * return \c true, otherwise \c false.
  *
  * \note
  * FLAC__stream_encoder_finish() resets all settings to the constructor
  * defaults, including the callbacks.
- * 
+ *
  * \{
  */
 
@@ -201,6 +272,8 @@ extern const char * const FLAC__StreamEncoderWriteStatusString[];
 struct FLAC__StreamEncoderProtected;
 struct FLAC__StreamEncoderPrivate;
 /** The opaque structure definition for the stream encoder type.
+ *  See the \link flac_stream_encoder stream encoder module \endlink
+ *  for a detailed description.
  */
 typedef struct {
 	struct FLAC__StreamEncoderProtected *protected_; /* avoid the C++ keyword 'protected' */
@@ -236,19 +309,6 @@ void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder);
  * Public class method prototypes
  *
  ***********************************************************************/
-
-/*
- * FLAC__bool   do_qlp_coeff_prec_search      (DEFAULT: false ) false => use qlp_coeff_precision, true => search around qlp_coeff_precision, take best
- * FLAC__bool   do_escape_coding              (DEFAULT: false ) true => search for escape codes in the entropy coding stage for slightly better compression
- * FLAC__bool   do_exhaustive_model_search    (DEFAULT: false ) false => use estimated bits per residual for scoring, true => generate all, take shortest
- * unsigned     min_residual_partition_order  (DEFAULT: 0     ) 0 => estimate Rice parameter based on residual variance; >0 => partition residual, use parameter
- * unsigned     max_residual_partition_order  (DEFAULT: 0     )      for each based on mean; min_ and max_ specify the min and max Rice partition order
- * unsigned     rice_parameter_search_dist    (DEFAULT: 0     ) 0 => try only calc'd parameter k; else try all [k-dist..k+dist] parameters, use best
- * FLAC__uint64 total_samples_estimate        (DEFAULT: 0     ) may be 0 if unknown.  acts as a placeholder in the STREAMINFO until the actual total is calculated
- * FLAC__StreamMetadata **metadata            (DEFAULT: NULL,0) optional metadata blocks to prepend.  STREAMINFO is not allowed since it is done internally.
- * + unsigned num_blocks
- * void*        client_data                   (DEFAULT: NULL  ) passed back through the callbacks
- */
 
 /** Set the "streamable subset" flag.  If \c true, the encoder will comply
  *  with the subset (see the format specification) and will check the
@@ -379,7 +439,9 @@ FLAC__bool FLAC__stream_encoder_set_max_lpc_order(FLAC__StreamEncoder *encoder, 
  */
 FLAC__bool FLAC__stream_encoder_set_qlp_coeff_precision(FLAC__StreamEncoder *encoder, unsigned value);
 
-/** Set the number of channels to be encoded.
+/** Set to \c false to use only the specified quantized linear predictor
+ *  coefficient precision, or \c true to search neighboring precision
+ *  values and use the best one.
  *
  * \default \c false
  * \param  encoder  An encoder instance to set.
@@ -391,7 +453,7 @@ FLAC__bool FLAC__stream_encoder_set_qlp_coeff_precision(FLAC__StreamEncoder *enc
  */
 FLAC__bool FLAC__stream_encoder_set_do_qlp_coeff_prec_search(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Set the number of channels to be encoded.
+/** Deprecated.  Setting this value has no effect.
  *
  * \default \c false
  * \param  encoder  An encoder instance to set.
@@ -403,7 +465,9 @@ FLAC__bool FLAC__stream_encoder_set_do_qlp_coeff_prec_search(FLAC__StreamEncoder
  */
 FLAC__bool FLAC__stream_encoder_set_do_escape_coding(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Set the number of channels to be encoded.
+/** Set to \c false to let the encoder estimate the best model order
+ *  based on the residual signal energy, or \c true to force the
+ *  encoder to evaluate all order models and select the best.
  *
  * \default \c false
  * \param  encoder  An encoder instance to set.
@@ -415,7 +479,18 @@ FLAC__bool FLAC__stream_encoder_set_do_escape_coding(FLAC__StreamEncoder *encode
  */
 FLAC__bool FLAC__stream_encoder_set_do_exhaustive_model_search(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Set the number of channels to be encoded.
+/** Set the minimum partition order to search when coding the residual.
+ *  This is used in tandem with
+ *  FLAC__stream_encoder_set_max_residual_partition_order().
+ *
+ *  The partition order determines the context size in the residual.
+ *  The context size will be approximately <tt>blocksize / (2 ^ order)</tt>.
+ *
+ *  Set both min and max values to \c 0 to force a single context,
+ *  whose Rice parameter is based on the residual signal variance.
+ *  Otherwise, set a min and max order, and the encoder will search
+ *  all orders, using the mean of each context for its Rice parameter,
+ *  and use the best.
  *
  * \default \c 0
  * \param  encoder  An encoder instance to set.
@@ -427,7 +502,18 @@ FLAC__bool FLAC__stream_encoder_set_do_exhaustive_model_search(FLAC__StreamEncod
  */
 FLAC__bool FLAC__stream_encoder_set_min_residual_partition_order(FLAC__StreamEncoder *encoder, unsigned value);
 
-/** Set the number of channels to be encoded.
+/** Set the minimum partition order to search when coding the residual.
+ *  This is used in tandem with
+ *  FLAC__stream_encoder_set_min_residual_partition_order().
+ *
+ *  The partition order determines the context size in the residual.
+ *  The context size will be approximately <tt>blocksize / (2 ^ order)</tt>.
+ *
+ *  Set both min and max values to \c 0 to force a single context,
+ *  whose Rice parameter is based on the residual signal variance.
+ *  Otherwise, set a min and max order, and the encoder will search
+ *  all orders, using the mean of each context for its Rice parameter,
+ *  and use the best.
  *
  * \default \c 0
  * \param  encoder  An encoder instance to set.
@@ -439,7 +525,7 @@ FLAC__bool FLAC__stream_encoder_set_min_residual_partition_order(FLAC__StreamEnc
  */
 FLAC__bool FLAC__stream_encoder_set_max_residual_partition_order(FLAC__StreamEncoder *encoder, unsigned value);
 
-/** Set the number of channels to be encoded.
+/** Deprecated.  Setting this value has no effect.
  *
  * \default \c 0
  * \param  encoder  An encoder instance to set.
@@ -451,7 +537,11 @@ FLAC__bool FLAC__stream_encoder_set_max_residual_partition_order(FLAC__StreamEnc
  */
 FLAC__bool FLAC__stream_encoder_set_rice_parameter_search_dist(FLAC__StreamEncoder *encoder, unsigned value);
 
-/** Set the number of channels to be encoded.
+/** Set an estimate of the total samples that will be encoded.
+ *  This is merely an estimate and may be set to \c 0 if unknown.
+ *  This value will be written to the STREAMINFO block before encoding,
+ *  and can remove the need for the caller to rewrite the value later
+ *  if the value is known before encoding.
  *
  * \default \c 0
  * \param  encoder  An encoder instance to set.
@@ -463,7 +553,14 @@ FLAC__bool FLAC__stream_encoder_set_rice_parameter_search_dist(FLAC__StreamEncod
  */
 FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *encoder, FLAC__uint64 value);
 
-/** Set the number of channels to be encoded.
+/** Set the metadata blocks to be emitted to the stream before encoding.
+ *  A value of \c NULL, \c 0 implies no metadata; otherwise, supply an
+ *  array of pointers to metadata blocks.  The array is non-const since
+ *  the encoder may need to change the \a is_last flag inside them.
+ *  Otherwise, the encoder will not modify or free the blocks.
+ *
+ *  The STREAMINFO block is always written and no STREAMINFO block may
+ *  occur in the supplied array.
  *
  * \default \c NULL, 0
  * \param  encoder  An encoder instance to set.
@@ -475,9 +572,16 @@ FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *
  */
 FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
-/** Set the number of channels to be encoded.
+/** Set the write callback.
+ *  The supplied function will be called by the encoder anytime there is raw
+ *  encoded data ready to write.  It may include metadata mixed with encoded
+ *  audio frames and the data is not guaranteed to be aligned on frame or
+ *  metadata block boundaries.
  *
- * \default \c NULL; the callback is mandatory and must be set before initialization
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
  * \param  encoder  An encoder instance to set.
  * \param  value    See above.
  * \assert
@@ -488,9 +592,17 @@ FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC_
  */
 FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data));
 
-/** Set the number of channels to be encoded.
+/** Set the metadata callback.
+ *  The supplied function will be called once at the end of encoding with
+ *  the populated STREAMINFO structure.  This is so file encoders can seek
+ *  back to the beginning of the file and write the STREAMINFO block with
+ *  the correct statistics after encoding (like minimum/maximum frame size
+ *  and total samples).
  *
- * \default \c NULL; the callback is mandatory and must be set before initialization
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
  * \param  encoder  An encoder instance to set.
  * \param  value    See above.
  * \assert
@@ -501,7 +613,9 @@ FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder,
  */
 FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encoder, void (*value)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data));
 
-/** Set the number of channels to be encoded.
+/** Set the client data to be passed back to callbacks.
+ *  This value will be supplied to callbacks in their \a client_data
+ *  argument.
  *
  * \default \c NULL
  * \param  encoder  An encoder instance to set.
@@ -513,45 +627,245 @@ FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encod
  */
 FLAC__bool FLAC__stream_encoder_set_client_data(FLAC__StreamEncoder *encoder, void *value);
 
-/*
- * Various "get" methods
+/** Get the current encoder state.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__StreamEncoderState
+ *    The current encoder state.
  */
 FLAC__StreamEncoderState FLAC__stream_encoder_get_state(const FLAC__StreamEncoder *encoder);
-FLAC__bool FLAC__stream_encoder_get_streamable_subset(const FLAC__StreamEncoder *encoder);
-FLAC__bool FLAC__stream_encoder_get_do_mid_side_stereo(const FLAC__StreamEncoder *encoder);
-FLAC__bool FLAC__stream_encoder_get_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder);
-unsigned   FLAC__stream_encoder_get_channels(const FLAC__StreamEncoder *encoder);
-unsigned   FLAC__stream_encoder_get_bits_per_sample(const FLAC__StreamEncoder *encoder);
-unsigned   FLAC__stream_encoder_get_sample_rate(const FLAC__StreamEncoder *encoder);
-unsigned   FLAC__stream_encoder_get_blocksize(const FLAC__StreamEncoder *encoder);
-unsigned   FLAC__stream_encoder_get_max_lpc_order(const FLAC__StreamEncoder *encoder);
-unsigned   FLAC__stream_encoder_get_qlp_coeff_precision(const FLAC__StreamEncoder *encoder);
-FLAC__bool FLAC__stream_encoder_get_do_qlp_coeff_prec_search(const FLAC__StreamEncoder *encoder);
-FLAC__bool FLAC__stream_encoder_get_do_escape_coding(const FLAC__StreamEncoder *encoder);
-FLAC__bool FLAC__stream_encoder_get_do_exhaustive_model_search(const FLAC__StreamEncoder *encoder);
-unsigned   FLAC__stream_encoder_get_min_residual_partition_order(const FLAC__StreamEncoder *encoder);
-unsigned   FLAC__stream_encoder_get_max_residual_partition_order(const FLAC__StreamEncoder *encoder);
-unsigned   FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC__StreamEncoder *encoder);
 
-/*
- * Initialize the instance; should be called after construction and
- * 'set' calls but before any of the 'process' calls.  Will set and
- * return the encoder state, which will be FLAC__STREAM_ENCODER_OK
- * if initialization succeeded.
+/** Get the "streamable subset" flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_streamable_subset().
+ */
+FLAC__bool FLAC__stream_encoder_get_streamable_subset(const FLAC__StreamEncoder *encoder);
+
+/** Get the "mid/side stereo coding" flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_get_do_mid_side_stereo().
+ */
+FLAC__bool FLAC__stream_encoder_get_do_mid_side_stereo(const FLAC__StreamEncoder *encoder);
+
+/** Get the "adaptive mid/side switching" flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_loose_mid_side_stereo().
+ */
+FLAC__bool FLAC__stream_encoder_get_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder);
+
+/** Get the number of input channels being processed.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_channels().
+ */
+unsigned FLAC__stream_encoder_get_channels(const FLAC__StreamEncoder *encoder);
+
+/** Get the input sample resolution setting.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_bits_per_sample().
+ */
+unsigned FLAC__stream_encoder_get_bits_per_sample(const FLAC__StreamEncoder *encoder);
+
+/** Get the input sample rate setting.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_sample_rate().
+ */
+unsigned FLAC__stream_encoder_get_sample_rate(const FLAC__StreamEncoder *encoder);
+
+/** Get the blocksize setting.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_blocksize().
+ */
+unsigned FLAC__stream_encoder_get_blocksize(const FLAC__StreamEncoder *encoder);
+
+/** Get the maximum LPC order setting.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_max_lpc_order().
+ */
+unsigned FLAC__stream_encoder_get_max_lpc_order(const FLAC__StreamEncoder *encoder);
+
+/** Get the quantized linear predictor coefficient precision setting.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_qlp_coeff_precision().
+ */
+unsigned FLAC__stream_encoder_get_qlp_coeff_precision(const FLAC__StreamEncoder *encoder);
+
+/** Get the qlp coefficient precision search flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_do_qlp_coeff_prec_search().
+ */
+FLAC__bool FLAC__stream_encoder_get_do_qlp_coeff_prec_search(const FLAC__StreamEncoder *encoder);
+
+/** Get the "escape coding" flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_do_escape_coding().
+ */
+FLAC__bool FLAC__stream_encoder_get_do_escape_coding(const FLAC__StreamEncoder *encoder);
+
+/** Get the exhaustive model search flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_do_exhaustive_model_search().
+ */
+FLAC__bool FLAC__stream_encoder_get_do_exhaustive_model_search(const FLAC__StreamEncoder *encoder);
+
+/** Get the minimum residual partition order setting.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_min_residual_partition_order().
+ */
+unsigned FLAC__stream_encoder_get_min_residual_partition_order(const FLAC__StreamEncoder *encoder);
+
+/** Get maximum residual partition order setting.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_max_residual_partition_order().
+ */
+unsigned FLAC__stream_encoder_get_max_residual_partition_order(const FLAC__StreamEncoder *encoder);
+
+/** Get the Rice parameter search distance setting.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_rice_parameter_search_dist().
+ */
+unsigned FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC__StreamEncoder *encoder);
+
+/** Initialize the encoder instance.
+ *  Should be called after FLAC__stream_encoder_new() and
+ *  FLAC__stream_encoder_set_*() but before FLAC__stream_encoder_process()
+ *  or FLAC__stream_encoder_process_interleaved().  Will set and return
+ *  the encoder state, which will be FLAC__STREAM_ENCODER_OK if
+ *  initialization succeeded.
+ *
+ *  The call to FLAC__stream_encoder_init() currently will also immediately
+ *  call the write callback with the \c fLaC signature and all the encoded
+ *  metadata.
+ *
+ * \param  encoder  An uninitialized encoder instance.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__StreamEncoderState
+ *    \c FLAC__STREAM_ENCODER_OK if initialization was successful; see
+ *    FLAC__StreamEncoderState for the meanings of other return values.
  */
 FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder);
 
-/*
- * Flush the encoding buffer, release resources, and return the encoder
- * state to FLAC__STREAM_ENCODER_UNINITIALIZED.  Note that this can
- * generate one or more write_callback()s before returning.
+/** Finish the encoding process.
+ *  Flushes the encoding buffer, releases resources, and returns the encoder
+ *  state to FLAC__STREAM_ENCODER_UNINITIALIZED.  Note that this can
+ *  generate one or more write callbacks before returning, and will
+ *  generate a metadata callback.
+ *
+ *  In the event of a prematurely-terminated encode, it is not strictly
+ *  necessary to call this immediately before FLAC__stream_encoder_delete()
+ *  but it is good practice to match every FLAC__stream_encoder_init()
+ *  with a FLAC__stream_encoder_finish().
+ *
+ * \param  encoder  An uninitialized encoder instance.
+ * \assert
+ *    \code encoder != NULL \endcode
  */
 void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder);
 
-/*
- * Methods for encoding the data
+/** Submit data for encoding.
+ *  This version allows you to supply the input data via an array of
+ *  pointers, each pointer pointing to an array of \a samples samples
+ *  representing one channel.  The samples need not be block-aligned,
+ *  but each channel should have the same number of samples.
+ *
+ * \param  encoder  An initialized encoder instance in the OK state.
+ * \param  buffer   An array of pointers to each channel's signal.
+ * \param  samples  The number of samples in one channel.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code FLAC__stream_encoder_get_state(encoder) == FLAC__STREAM_ENCODER_OK \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false; in this case, check the
+ *    encoder state with FLAC__stream_encoder_get_state() to see what
+ *    went wrong.
  */
 FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples);
+
+/** Submit data for encoding.
+ *  This version allows you to supply the input data where the channels
+ *  are interleaved into a single array (i.e. channel0_sample0,
+ *  channel1_sample0, ... , channelN_sample0, channel0_sample1, ...).
+ *  The samples need not be block-aligned but they must be
+ *  sample-aligned, i.e. the first value should be channel0_sample0
+ *  and the last value channelN_sampleM.
+ *
+ *
+ * \param  encoder  An initialized encoder instance in the OK state.
+ * \param  buffer   An array of channel-interleaved data (see above).
+ * \param  samples  The number of samples in one channel, the same as for
+ *                  FLAC__stream_encoder_process().  For example, if
+ *                  encoding two channels, \c 1000 \a samples corresponds
+ *                  to a \a buffer of 2000 values.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code FLAC__stream_encoder_get_state(encoder) == FLAC__STREAM_ENCODER_OK \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false; in this case, check the
+ *    encoder state with FLAC__stream_encoder_get_state() to see what
+ *    went wrong.
+ */
 FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples);
 
 /* \} */

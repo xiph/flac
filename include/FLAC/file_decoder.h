@@ -26,6 +26,80 @@
 extern "C" {
 #endif
 
+
+/** \file include/FLAC/file_decoder.h
+ *
+ *  \brief
+ *  This module contains the functions which implement the file
+ *  decoder.
+ *
+ *  See the detailed documentation in the
+ *  \link flac_file_decoder file decoder \endlink module.
+ */
+
+/** \defgroup flac_file_decoder FLAC/file_decoder.h: file decoder interface
+ *  \ingroup flac_decoder
+ *
+ *  \brief
+ *  This module contains the functions which implement the file
+ *  decoder.
+ *
+ * The basic usage of this decoder is as follows:
+ * - The program creates an instance of a decoder using
+ *   FLAC__file_decoder_new().
+ * - The program overrides the default settings and sets callbacks for
+ *   writing, error reporting, and metadata reporting using
+ *   FLAC__file_decoder_set_*() functions.
+ * - The program initializes the instance to validate the settings and
+ *   prepare for decoding using FLAC__file_decoder_init().
+ * - The program calls the FLAC__file_decoder_process_*() functions
+ *   to decode data, which subsequently calls the callbacks.
+ * - The program finishes the decoding with FLAC__file_decoder_finish(),
+ *   which flushes the input and output and resets the decoder to the
+ *   uninitialized state.
+ * - The instance may be used again or deleted with
+ *   FLAC__file_decoder_delete().
+ *
+ * The file decoder is a trivial wrapper around the
+ * \link flac_seekable_stream_decoder seekable stream decoder \endlink
+ * meant to simplfy the process of decoding from a standard file.  The
+ * file decoder supplies all but the Write/Metadata/Error callbacks.
+ * The user needs only to provide the path to the file and the file
+ * decoder handles the rest.
+ *
+ * Like the seekable stream decoder, seeking is exposed through the
+ * FLAC__file_decoder_seek_absolute() method.  At any point after the file
+ * decoder has been initialized, the user can call this function to seek to
+ * an exact sample within the file.  Subsequently, the first time the write
+ * callback is called it will be passed a (possibly partial) block starting
+ * at that sample.
+ *
+ * The file decoder also inherits MD5 signature checking from the seekable
+ * stream decoder.  If this is turned on before initialization,
+ * FLAC__file_decoder_finish() will report when the decoded MD5 signature
+ * does not match the one stored in the STREAMINFO block.  MD5 checking is
+ * automatically turned off if there is no signature in the STREAMINFO
+ * block or when a seek is attempted.
+ *
+ * \note
+ * The "set" functions may only be called when the decoder is in the
+ * state FLAC__FILE_DECODER_UNINITIALIZED, i.e. after
+ * FLAC__file_decoder_new() or FLAC__file_decoder_finish(), but
+ * before FLAC__file_decoder_init().  If this is the case they will
+ * return \c true, otherwise \c false.
+ *
+ * \note
+ * FLAC__file_decoder_finish() resets all settings to the constructor
+ * defaults, including the callbacks.
+ *
+ * \{
+ */
+
+
+/** State values for a FLAC__FileDecoder
+ *
+ *  The decoder's state can be obtained by calling FLAC__file_decoder_get_state().
+ */
 typedef enum {
     FLAC__FILE_DECODER_OK = 0,
 	FLAC__FILE_DECODER_END_OF_FILE,
@@ -153,6 +227,8 @@ FLAC__bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder);
 FLAC__bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder);
 
 FLAC__bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, FLAC__uint64 sample);
+
+/* \} */
 
 #ifdef __cplusplus
 }

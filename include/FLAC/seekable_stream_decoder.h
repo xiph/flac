@@ -27,6 +27,91 @@ extern "C" {
 #endif
 
 
+/** \file include/FLAC/seekable_stream_decoder.h
+ *
+ *  \brief
+ *  This module contains the functions which implement the seekable stream
+ *  decoder.
+ *
+ *  See the detailed documentation in the
+ *  \link flac_seekable_stream_decoder seekable stream decoder \endlink module.
+ */
+
+/** \defgroup flac_seekable_stream_decoder FLAC/seekable_stream_decoder.h: seekable stream decoder interface
+ *  \ingroup flac_decoder
+ *
+ *  \brief
+ *  This module contains the functions which implement the seekable stream
+ *  decoder.
+ *
+ * The basic usage of this decoder is as follows:
+ * - The program creates an instance of a decoder using
+ *   FLAC__seekable_stream_decoder_new().
+ * - The program overrides the default settings and sets callbacks for
+ *   reading, writing, seeking, error reporting, and metadata reporting
+ *   using FLAC__seekable_stream_decoder_set_*() functions.
+ * - The program initializes the instance to validate the settings and
+ *   prepare for decoding using FLAC__seekable_stream_decoder_init().
+ * - The program calls the FLAC__seekable_stream_decoder_process_*()
+ *   functions to decode data, which subsequently calls the callbacks.
+ * - The program finishes the decoding with
+ *   FLAC__seekable_stream_decoder_finish(), which flushes the input and
+ *   output and resets the decoder to the uninitialized state.
+ * - The instance may be used again or deleted with
+ *   FLAC__seekable_stream_decoder_delete().
+ *
+ * The seekable stream decoder is a wrapper around the
+ * \link flac_stream_decoder stream decoder \endlink which also provides
+ * seeking capability.  In addition to the Read/Write/Metadata/Error
+ * callbacks of the stream decoder, the user must also provide the following:
+ *
+ * - Seek callback - This function will be called when the decoder wants to
+ *   seek to an absolute position in the stream.
+ * - Tell callback - This function will be called when the decoder wants to
+ *   know the current absolute position of the stream.
+ * - Length callback - This function will be called when the decoder wants
+ *   to know length of the stream.  The seeking algorithm currently requires
+ *   that the overall stream length be known.
+ * - EOF callback - This function will be called when the decoder wants to
+ *   know if it is at the end of the stream.  This could be synthesized from
+ *   the tell and length callbacks but it may be more expensive that way, so
+ *   there is a separate callback for it.
+ *
+ * Seeking is exposed through the
+ * FLAC__seekable_stream_decoder_seek_absolute() method.  At any point after
+ * the seekable stream decoder has been initialized, the user can call this
+ * function to seek to an exact sample within the stream.  Subsequently, the
+ * first time the write callback is called it will be passed a (possibly
+ * partial) block starting at that sample.
+ *
+ * The seekable stream decoder also provides MD5 signature checking.  If
+ * this is turned on before initialization,
+ * FLAC__seekable_stream_decoder_finish() will report when the decoded MD5
+ * signature does not match the one stored in the STREAMINFO block.  MD5
+ * checking is automatically turned off (until the next
+ * FLAC__seekable_stream_decoder_reset()) if there is no signature in the
+ * STREAMINFO block or when a seek is attempted.
+ *
+ * \note
+ * The "set" functions may only be called when the decoder is in the
+ * state FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED, i.e. after
+ * FLAC__seekable_stream_decoder_new() or
+ * FLAC__seekable_stream_decoder_finish(), but before
+ * FLAC__seekable_stream_decoder_init().  If this is the case they will
+ * return \c true, otherwise \c false.
+ *
+ * \note
+ * FLAC__stream_decoder_finish() resets all settings to the constructor
+ * defaults, including the callbacks.
+ *
+ * \{
+ */
+
+
+/** State values for a FLAC__SeekableStreamDecoder
+ *
+ *  The decoder's state can be obtained by calling FLAC__seekable_tream_decoder_get_state().
+ */
 typedef enum {
     FLAC__SEEKABLE_STREAM_DECODER_OK = 0,
 	FLAC__SEEKABLE_STREAM_DECODER_SEEKING,
@@ -194,6 +279,8 @@ FLAC__bool FLAC__seekable_stream_decoder_process_one_frame(FLAC__SeekableStreamD
 FLAC__bool FLAC__seekable_stream_decoder_process_remaining_frames(FLAC__SeekableStreamDecoder *decoder);
 
 FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 sample);
+
+/* \} */
 
 #ifdef __cplusplus
 }

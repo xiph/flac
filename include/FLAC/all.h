@@ -56,6 +56,13 @@
  * encoder and plugins is available and is a useful source of
  * examples.
  *
+ * Aside from encoders and decoders, libFLAC provides a powerful
+ * metadata interface for manipulating metadata in FLAC files.  It
+ * allows the user to add, delete, and modify FLAC metadata blocks
+ * and it can automatically take advantage of PADDING blocks to avoid
+ * rewriting the entire FLAC file when changing the size of the
+ * metadata.
+ *
  * libFLAC usually only requires the standard C library and C math
  * library. In particular, threading is not used so there is no
  * dependency on a thread library. However, libFLAC does not use
@@ -78,7 +85,7 @@
  * \section getting_started Getting Started
  *
  * A good starting point for learning the API is to browse through
- * the <A HREF="modules.html">modules</A>.  Modules are logical 
+ * the <A HREF="modules.html">modules</A>.  Modules are logical
  * groupings of related functions or classes, which correspond roughly
  * to header files or sections of header files.  Each module includes a
  * detailed description of the general usage of its functions or
