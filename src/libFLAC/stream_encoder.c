@@ -51,6 +51,7 @@
 static void set_defaults_(FLAC__StreamEncoder *encoder);
 static void free_(FLAC__StreamEncoder *encoder);
 static FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size);
+static FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder);
 static FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
 static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
 static FLAC__bool process_subframe_(FLAC__StreamEncoder *encoder, unsigned min_partition_order, unsigned max_partition_order, FLAC__bool precompute_partition_sums, FLAC__bool verbatim_only, const FLAC__FrameHeader *frame_header, unsigned subframe_bps, const FLAC__int32 integer_signal[], const FLAC__real real_signal[], FLAC__Subframe *subframe[2], FLAC__int32 *residual[2], unsigned *best_subframe, unsigned *best_bits);
@@ -166,8 +167,8 @@ const char * const FLAC__StreamEncoderStateString[] = {
 };
 
 const char * const FLAC__StreamEncoderWriteStatusString[] = {
-	"FLAC__STREAM_ENCODER_WRITE_OK",
-	"FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR"
+	"FLAC__STREAM_ENCODER_WRITE_STATUS_OK",
+	"FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR"
 };
 
 /***********************************************************************
@@ -429,7 +430,12 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	 */
 	if(!FLAC__bitbuffer_write_raw_uint32(encoder->private_->frame, FLAC__STREAM_SYNC, FLAC__STREAM_SYNC_LEN))
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
+	if(!write_bitbuffer_(encoder))
+		return encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_WRITING;
 
+	/*
+	 * write the STREAMINFO metadata block
+	 */
 	encoder->private_->metadata.type = FLAC__METADATA_TYPE_STREAMINFO;
 	encoder->private_->metadata.is_last = (encoder->protected_->num_metadata_blocks == 0);
 	encoder->private_->metadata.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
@@ -443,40 +449,43 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	encoder->private_->metadata.data.stream_info.total_samples = encoder->protected_->total_samples_estimate; /* we will replace this later with the real total */
 	memset(encoder->private_->metadata.data.stream_info.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
 	MD5Init(&encoder->private_->md5context);
+	if(!FLAC__bitbuffer_clear(encoder->private_->frame)) {
+		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
+		return false;
+	}
 	if(!FLAC__add_metadata_block(&encoder->private_->metadata, encoder->private_->frame))
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
+	if(!write_bitbuffer_(encoder))
+		return encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_WRITING;
 
-	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
-		encoder->protected_->metadata[i]->is_last = (i == encoder->protected_->num_metadata_blocks - 1);
-		if(!FLAC__add_metadata_block(encoder->protected_->metadata[i], encoder->private_->frame))
-			return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
-	}
-
-	FLAC__ASSERT(FLAC__bitbuffer_is_byte_aligned(encoder->private_->frame));
-	{
-		const FLAC__byte *buffer;
-		unsigned bytes;
-
-		FLAC__bitbuffer_get_buffer(encoder->private_->frame, &buffer, &bytes);
-
-		if(encoder->private_->write_callback(encoder, buffer, bytes, 0, encoder->private_->current_frame_number, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_OK)
-			return encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_WRITING;
-
-		FLAC__bitbuffer_release_buffer(encoder->private_->frame);
-	}
-
-	/* now that the metadata block is written, we can init this to an absurdly-high value... */
+	/*
+	 * Now that the STREAMINFO block is written, we can init this to an
+	 * absurdly-high value...
+	 */
 	encoder->private_->metadata.data.stream_info.min_framesize = (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN) - 1;
 	/* ... and clear this to 0 */
 	encoder->private_->metadata.data.stream_info.total_samples = 0;
+
+	/*
+	 * write the user's metadata blocks
+	 */
+	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
+		encoder->protected_->metadata[i]->is_last = (i == encoder->protected_->num_metadata_blocks - 1);
+		if(!FLAC__bitbuffer_clear(encoder->private_->frame)) {
+			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
+			return false;
+		}
+		if(!FLAC__add_metadata_block(encoder->protected_->metadata[i], encoder->private_->frame))
+			return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
+		if(!write_bitbuffer_(encoder))
+			return encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_WRITING;
+	}
 
 	return encoder->protected_->state;
 }
 
 void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 {
-	unsigned i, channel;
-
 	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return;
@@ -1028,6 +1037,23 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size)
 	return ok;
 }
 
+FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder)
+{
+	const FLAC__byte *buffer;
+	unsigned bytes;
+
+	FLAC__ASSERT(FLAC__bitbuffer_is_byte_aligned(encoder->private_->frame));
+
+	FLAC__bitbuffer_get_buffer(encoder->private_->frame, &buffer, &bytes);
+
+	if(encoder->private_->write_callback(encoder, buffer, bytes, 0, encoder->private_->current_frame_number, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+		return false;
+
+	FLAC__bitbuffer_release_buffer(encoder->private_->frame);
+
+	return true;
+}
+
 FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame)
 {
 	const FLAC__byte *buffer;
@@ -1069,7 +1095,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame
 	 * Write it
 	 */
 	FLAC__bitbuffer_get_buffer(encoder->private_->frame, &buffer, &bytes);
-	if(encoder->private_->write_callback(encoder, buffer, bytes, encoder->protected_->blocksize, encoder->private_->current_frame_number, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_OK) {
+	if(encoder->private_->write_callback(encoder, buffer, bytes, encoder->protected_->blocksize, encoder->private_->current_frame_number, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_WRITING;
 		return false;
 	}

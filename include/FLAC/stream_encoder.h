@@ -114,8 +114,8 @@ extern "C" {
  *   minimum/maximum frame size).
  *
  * The call to FLAC__stream_encoder_init() currently will also immediately
- * call the write callback with the \c fLaC signature and all the encoded
- * metadata.
+ * call the write callback several times, once with the \c fLaC signature,
+ * and once for each encoded metadata block.
  *
  * After initializing the instance, the user may feed audio data to the
  * encoder in one of two ways:
@@ -249,10 +249,10 @@ extern const char * const FLAC__StreamEncoderStateString[];
  */
 typedef enum {
 
-	FLAC__STREAM_ENCODER_WRITE_OK = 0,
+	FLAC__STREAM_ENCODER_WRITE_STATUS_OK = 0,
 	/**< The write was OK and encoding can continue. */
 
-	FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR
+	FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR
 	/**< An unrecoverable error occurred.  The encoder will return from the process call. */
 
 } FLAC__StreamEncoderWriteStatus;
@@ -559,7 +559,8 @@ FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *
  *  A value of \c NULL, \c 0 implies no metadata; otherwise, supply an
  *  array of pointers to metadata blocks.  The array is non-const since
  *  the encoder may need to change the \a is_last flag inside them.
- *  Otherwise, the encoder will not modify or free the blocks.
+ *  Otherwise, the encoder will not modify or free the blocks.  It is up
+ *  to the caller to free the metadata blocks after encoding.
  *
  *  The STREAMINFO block is always written and no STREAMINFO block may
  *  occur in the supplied array.
@@ -805,8 +806,8 @@ unsigned FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC__StreamE
  *  initialization succeeded.
  *
  *  The call to FLAC__stream_encoder_init() currently will also immediately
- *  call the write callback with the \c fLaC signature and all the encoded
- *  metadata.
+ *  call the write callback several times, once with the \c fLaC signature,
+ *  and once for each encoded metadata block.
  *
  * \param  encoder  An uninitialized encoder instance.
  * \assert
