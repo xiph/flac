@@ -127,7 +127,12 @@ typedef struct {
 FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo)
 {
 	level0_client_data cd;
-	FLAC__FileDecoder *decoder = FLAC__file_decoder_new();
+	FLAC__FileDecoder *decoder;
+
+	FLAC__ASSERT(0 != filename);
+	FLAC__ASSERT(0 != streaminfo);
+
+	decoder = FLAC__file_decoder_new();
 
 	if(0 == decoder)
 		return false;
@@ -1110,10 +1115,6 @@ void FLAC__metadata_iterator_delete(FLAC__Metadata_Iterator *iterator)
 	free(iterator);
 }
 
-/*
- * Initialize the iterator to point to the first metadata block in the
- * given chain.
- */
 void FLAC__metadata_iterator_init(FLAC__Metadata_Iterator *iterator, FLAC__Metadata_Chain *chain)
 {
 	FLAC__ASSERT(0 != iterator);
@@ -1165,6 +1166,8 @@ FLAC__StreamMetadata *FLAC__metadata_iterator_get_block(FLAC__Metadata_Iterator 
 
 FLAC__bool FLAC__metadata_iterator_set_block(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block)
 {
+	FLAC__ASSERT(0 != iterator);
+	FLAC__ASSERT(0 != block);
 	return FLAC__metadata_iterator_delete_block(iterator, false) && FLAC__metadata_iterator_insert_block_after(iterator, block);
 }
 
@@ -1200,6 +1203,7 @@ FLAC__bool FLAC__metadata_iterator_insert_block_before(FLAC__Metadata_Iterator *
 
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->current);
+	FLAC__ASSERT(0 != block);
 
 	if(block->type == FLAC__METADATA_TYPE_STREAMINFO)
 		return false;
@@ -1224,6 +1228,7 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_Iterator *i
 
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->current);
+	FLAC__ASSERT(0 != block);
 
 	if(block->type == FLAC__METADATA_TYPE_STREAMINFO)
 		return false;
