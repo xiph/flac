@@ -333,6 +333,7 @@ int usage(const char *message, ...)
 	printf("generic options:\n");
 	printf("  -d : decode (default behavior is encode)\n");
 	printf("  -t : test (same as -d except no decoded file is written)\n");
+	printf("  -a : analyze (same as -d except an analysis file is written)\n");
 	printf("  -s : silent (do not write runtime encode/decode statistics to stdout)\n");
 	printf("  --skip samples : can be used both for encoding and decoding\n");
 	printf("encoding options:\n");
