@@ -182,6 +182,8 @@ void FLAC_XMMS__init()
 		flac_cfg.output.resolution.replaygain.bps_out = 16;
 
 	decoder_ = FLAC__file_decoder_new();
+
+	xmms_cfg_free(cfg);
 }
 
 int FLAC_XMMS__is_our_file(char *filename)
