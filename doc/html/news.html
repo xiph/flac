@@ -78,12 +78,16 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 
 	<P>
-		<A NAME="200301@@@@">@@@@-Jan-2003:</A>
+		<A NAME="20030126">26-Jan-2003:</A>
 	</P>
 	<P>
 	<UL>
 		<LI>
-			<B>FLAC 1.0.5 released</B>&nbsp;&nbsp;I didn't get everything in that I wanted, but it's high time for a release.  Here's what's new (see the latest <A HREF="http://flac.sourceforge.net/documentation.html#flac">documentation</A> for more):
+			<B>FLAC 1.1.0 released</B>&nbsp;&nbsp;I didn't get everything in that I wanted, but it's high time for a release.
+			<P>
+			Note that the minor version has incremented, meaning forward compatibility was broken (forward compatibility means an earlier decoder can play all streams made by a later decoder).  This is only because of a bug in 1.0.4 and prior where the decoder could not properly skip unknown metadata.  The stream format itself has not changed and FLAC is still fully backward-compatible.  All it means is that a FLAC file containing cue sheet metadata will not decode in older decoders.  This bug is fixed in 1.1.0.
+			<P>
+			Here's what's new:
 			<P>
 			General:
 			<UL>
