@@ -20,7 +20,7 @@
 
 	data_section
 
-cglobal FLAC__fixed_compute_best_predictor
+cglobal FLAC__fixed_compute_best_predictor_asm
 
 	code_section
 
@@ -63,34 +63,40 @@ cglobal FLAC__fixed_compute_best_predictor
 ;
 ; 	return order;
 ; }
-;@@@ NOTE: not tested yet!
 FLAC__fixed_compute_best_predictor_asm:
 
-	; esp + 28 == data[]
-	; esp + 32 == data_len
-	; esp + 36 == residual_bits_per_sample[]
+	; esp + 36 == data[]
+	; esp + 40 == data_len
+	; esp + 44 == residual_bits_per_sample[]
 
 	push	ebp
 	push	ebx
 	push	esi
 	push	edi
-	sub	esp, byte 8			; [esp + 0] == temp space for loading uint64s to FPU regs
+	sub	esp, byte 16
+	; qword [esp] == temp space for loading uint64s to FPU regs
+	; dword [esp] == last_error_0
+	; dword [esp + 4] == last_error_1
+	; dword [esp + 8] == last_error_2
+	; dword [esp + 12] == last_error_3
 
 	; eax == error
 	; ebx == &data[i]
+	; ecx == loop counter (i)
+	; edx == temp
+	; edi == save
+	; ebp == order
 	; mm0 == total_error_1:total_error_0
 	; mm1 == total_error_3:total_error_2
 	; mm2 == 0:total_error_4
 	; mm3/4 == 0:unpackarea
 	; mm5 == abs(error_1):abs(error_0)
 	; mm5 == abs(error_3):abs(error_2)
-	; mm6 == last_error_1:last_error_0
-	; mm7 == last_error_3:last_error_2
 
 	pxor	mm0, mm0			; total_error_1 = total_error_0 = 0
 	pxor	mm1, mm1			; total_error_3 = total_error_2 = 0
 	pxor	mm2, mm2			; total_error_4 = 0
-	mov	ebx, [esp + 28]			; ebx = data[]
+	mov	ebx, [esp + 36]			; ebx = data[]
 	mov	ecx, [ebx - 4]			; ecx == data[-1]  last_error_0 = data[-1]
 	mov	eax, [ebx - 8]			; eax == data[-2]
 	mov	ebp, [ebx - 16]			; ebp == data[-4]
@@ -105,14 +111,12 @@ FLAC__fixed_compute_best_predictor_asm:
 	sub	edi, eax
 	add	edi, ebx
 	sub	edi, ebp			; last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
-	mov	ebx, [esp + 28]			; ebx = data[]
-	movd	mm6, ecx			; mm6 = 0:last_error_0
-	movd	mm3, edx			; mm3 = 0:last_error_1
-	movd	mm7, esi			; mm7 = 0:last_error_2
-	movd	mm4, edi			; mm4 = 0:last_error_3
-	punpckldq	mm6, mm3		; mm6 = last_error_1:last_error_0
-	punpckldq	mm7, mm4		; mm7 = last_error_3:last_error_2
-	mov	ecx, [esp + 32]			; ecx = data_len
+	mov	ebx, [esp + 36]			; ebx = data[]
+	mov	[esp], ecx			; [esp] = last_error_0
+	mov	[esp + 4], edx			; [esp + 4] = last_error_1
+	mov	[esp + 8], esi			; [esp + 8] = last_error_2
+	mov	[esp + 12], edi			; [esp + 12] = last_error_3
+	mov	ecx, [esp + 40]			; ecx = data_len
 
 	; 	for(i = 0; i < data_len; i++) {
 	; 		error_0  = data[i]     ;                      save = error_0; total_error_0 += local_abs(error_0);
@@ -121,6 +125,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	; 		error_3 -= last_error_2; last_error_2 = save; save = error_3; total_error_3 += local_abs(error_3);
 	; 		error_4 -= last_error_3; last_error_3 = save;                 total_error_4 += local_abs(error_4);
 	; 	}
+	ALIGN 16
 .loop:
 	mov	eax, [ebx]			; eax = error_0 = data[i]
 	add	ebx, 4
@@ -129,12 +134,9 @@ FLAC__fixed_compute_best_predictor_asm:
 	neg	edx				; edx = -error_0
 	cmovns	eax, edx			; eax = abs(error_0)
 	movd	mm5, eax			; mm5 = 0:abs(error_0)
-	movd	edx, mm6			; edx = last_error_0
+	mov	edx, [esp]			; edx = last_error_0
 	mov	eax, edi			; eax = error(error_0)
-	movq	mm3, mm6			; mm3 = last_error_1:last_error_0
-	psrlq	mm3, 32				; mm3 = 0:last_error_1
-	movd	mm6, edi			; mm6 = 0:last_error_0(=save)
-	punpckldq	mm6, mm3		; mm6 = last_error_1:last_error_0(=save)
+	mov	[esp], edi			; [esp] == last_error_0 = save
 	sub	eax, edx			; error -= last_error_0
 	mov	edi, eax			; edi == save = error_1
 	mov	edx, eax			; edx = error_1
@@ -142,12 +144,9 @@ FLAC__fixed_compute_best_predictor_asm:
 	cmovns	eax, edx			; eax = abs(error_1)
 	movd	mm4, eax			; mm4 = 0:abs(error_1)
 	punpckldq	mm5, mm4		; mm5 = abs(error_1):abs(error_0)
-	movq	mm3, mm6			; mm3 = last_error_1:last_error_0
-	psrlq	mm3, 32				; mm3 = 0:last_error_1
-	movd	edx, mm3			; edx = last_error_1
+	mov	edx, [esp + 4]			; edx = last_error_1
 	mov	eax, edi			; eax = error(error_1)
-	movd	mm4, edi			; mm4 = 0:save
-	punpckldq	mm6, mm4		; mm6 = last_error_1(=save):last_error_0
+	mov	[esp + 4], edi			; [esp + 4] == last_error_1 = save
 	sub	eax, edx			; error -= last_error_1
 	mov	edi, eax			; edi == save = error_2
 	mov	edx, eax			; edx = error_2
@@ -155,12 +154,9 @@ FLAC__fixed_compute_best_predictor_asm:
 	neg	edx				; edx = -error_2
 	cmovns	eax, edx			; eax = abs(error_2)
 	movd	mm5, eax			; mm5 = 0:abs(error_2)
-	movd	edx, mm7			; edx = last_error_2
+	mov	edx, [esp + 8]			; edx = last_error_2
 	mov	eax, edi			; eax = error(error_2)
-	movq	mm3, mm7			; mm3 = last_error_3:last_error_2
-	psrlq	mm3, 32				; mm3 = 0:last_error_3
-	movd	mm7, edi			; mm7 = 0:last_error_2(=save)
-	punpckldq	mm7, mm3		; mm7 = last_error_3:last_error_2
+	mov	[esp + 8], edi			; [esp + 8] == last_error_2 = save
 	sub	eax, edx			; error -= last_error_2
 	mov	edi, eax			; edi == save = error_3
 	mov	edx, eax			; edx = error_3
@@ -168,12 +164,9 @@ FLAC__fixed_compute_best_predictor_asm:
 	cmovns	eax, edx			; eax = abs(error_3)
 	movd	mm4, eax			; mm4 = 0:abs(error_3)
 	punpckldq	mm5, mm4		; mm5 = abs(error_3):abs(error_2)
-	movq	mm3, mm7
-	psrlq	mm3, 32				; mm3 = 0:last_error_3
-	movd	edx, mm3			; edx = last_error_3
+	mov	edx, [esp + 12]			; edx = last_error_3
 	mov	eax, edi			; eax = error(error_3)
-	movd	mm4, edi			; mm4 = 0:save
-	punpckldq	mm7, mm4		; mm7 = last_error_3(=save):last_error_2
+	mov	[esp + 12], edi			; [esp + 12] == last_error_3 = save
 	sub	eax, edx			; error -= last_error_3
 	mov	edx, eax			; edx = error_4
 	paddd	mm1, mm5			; [CR] total_error_3 += abs(error_3) ; total_error_2 += abs(error_2)
@@ -242,16 +235,16 @@ FLAC__fixed_compute_best_predictor_asm:
 	; 	residual_bits_per_sample[3] = (real)((data_len > 0 && total_error_3 > 0) ? log(M_LN2 * (real)total_error_3  / (real) data_len) / M_LN2 : 0.0);
 	; 	residual_bits_per_sample[4] = (real)((data_len > 0 && total_error_4 > 0) ? log(M_LN2 * (real)total_error_4  / (real) data_len) / M_LN2 : 0.0);
 	xor	eax, eax
-	cmp	eax, [esp + 32]
+	cmp	eax, [esp + 40]
 	je	near .data_len_is_0
-	fild	dword [esp + 32]		; ST = data_len (NOTE: assumes data_len is <2gigs)
+	fild	dword [esp + 40]		; ST = data_len (NOTE: assumes data_len is <2gigs)
 .rbps_0:
 	test	ebx, ebx
 	jz	.total_error_0_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], ebx
-	mov	[esp + 4], eax			; [esp + 0] = (uint64)total_error_0
-	mov	ebx, [esp + 36]
+	mov	[esp + 4], eax			; [esp] = (uint64)total_error_0
+	mov	ebx, [esp + 44]
 	fild	qword [esp]			; ST = total_error_0 1.0 data_len
 	fdiv	st2				; ST = total_error_0/data_len 1.0 data_len
 	fldln2					; ST = ln2 total_error_0/data_len 1.0 data_len
@@ -260,14 +253,14 @@ FLAC__fixed_compute_best_predictor_asm:
 	fstp	dword [ebx]			; residual_bits_per_sample[0] = log2(ln2*total_error_0/data_len)   ST = data_len
 	jmp	short .rbps_1
 .total_error_0_is_0:
-	mov	ebx, [esp + 36]
+	mov	ebx, [esp + 44]
 	mov	[ebx], eax			; residual_bits_per_sample[0] = 0.0
 .rbps_1:
 	test	ecx, ecx
 	jz	.total_error_1_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], ecx
-	mov	[esp + 4], eax			; [esp + 0] = (uint64)total_error_1
+	mov	[esp + 4], eax			; [esp] = (uint64)total_error_1
 	fild	qword [esp]			; ST = total_error_1 1.0 data_len
 	fdiv	st2				; ST = total_error_1/data_len 1.0 data_len
 	fldln2					; ST = ln2 total_error_1/data_len 1.0 data_len
@@ -282,7 +275,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	jz	.total_error_2_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], edx
-	mov	[esp + 4], eax			; [esp + 0] = (uint64)total_error_2
+	mov	[esp + 4], eax			; [esp] = (uint64)total_error_2
 	fild	qword [esp]			; ST = total_error_2 1.0 data_len
 	fdiv	st2				; ST = total_error_2/data_len 1.0 data_len
 	fldln2					; ST = ln2 total_error_2/data_len 1.0 data_len
@@ -297,7 +290,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	jz	.total_error_3_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], esi
-	mov	[esp + 4], eax			; [esp + 0] = (uint64)total_error_3
+	mov	[esp + 4], eax			; [esp] = (uint64)total_error_3
 	fild	qword [esp]			; ST = total_error_3 1.0 data_len
 	fdiv	st2				; ST = total_error_3/data_len 1.0 data_len
 	fldln2					; ST = ln2 total_error_3/data_len 1.0 data_len
@@ -312,7 +305,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	jz	.total_error_4_is_0
 	fld1					; ST = 1.0 data_len
 	mov	[esp], edi
-	mov	[esp + 4], eax			; [esp + 0] = (uint64)total_error_4
+	mov	[esp + 4], eax			; [esp] = (uint64)total_error_4
 	fild	qword [esp]			; ST = total_error_4 1.0 data_len
 	fdiv	st2				; ST = total_error_4/data_len 1.0 data_len
 	fldln2					; ST = ln2 total_error_4/data_len 1.0 data_len
@@ -328,12 +321,12 @@ FLAC__fixed_compute_best_predictor_asm:
 .data_len_is_0:
 	; data_len == 0, so residual_bits_per_sample[*] = 0.0
 	mov	ecx, 5				; eax still == 0, ecx = # of dwords of 0 to store
-	mov	edi, [esp + 36]
+	mov	edi, [esp + 44]
 	rep stosd
 
 .end:
 	mov	eax, ebp			; return order
-	add	esp, byte 8
+	add	esp, byte 16
 	pop	edi
 	pop	esi
 	pop	ebx
