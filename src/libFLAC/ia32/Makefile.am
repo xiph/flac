@@ -21,7 +21,7 @@ SUFFIXES = .nasm .lo
 STRIP_FPIC = sh $(top_srcdir)/strip_fPIC.sh
 
 .nasm.lo:
-	$(LIBTOOL) --mode=compile $(STRIP_FPIC) $(NASM) -f $(OBJ_FORMAT) -d OBJ_FORMAT_$(OBJ_FORMAT) $< -o $@
+	$(LIBTOOL) --mode=compile $(STRIP_FPIC) $(NASM) -f $(OBJ_FORMAT) -d OBJ_FORMAT_$(OBJ_FORMAT) -i$(srcdir)/ $< -o $@
 
 noinst_LTLIBRARIES = libFLAC-asm.la
 libFLAC_asm_la_SOURCES = \
