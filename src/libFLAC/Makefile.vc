@@ -42,7 +42,8 @@ C_FILES= \
 	seek_table.c \
 	stream_decoder.c \
 	stream_encoder.c \
-	stream_encoder_framing.c
+	stream_encoder_framing.c \
+	utility.c
 
 NASM_FILES= \
 	ia32/cpu_asm.nasm \

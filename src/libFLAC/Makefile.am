@@ -51,4 +51,5 @@ libFLAC_la_SOURCES = \
 	seek_table.c \
 	stream_decoder.c \
 	stream_encoder.c \
-	stream_encoder_framing.c
+	stream_encoder_framing.c \
+	utility.c
