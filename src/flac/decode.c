@@ -152,7 +152,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 
 	if(stream_info.skip > 0) {
 #ifdef FLAC__HAS_OGG
-		if(stream_info.is_ogg) { //@@@ (move this check into main.c)
+		if(stream_info.is_ogg) { /*@@@ (move this check into main.c) */
 			fprintf(stderr, "%s: ERROR, can't skip when decoding Ogg-FLAC yet; convert to native-FLAC first\n", stream_info.inbasefilename);
 			goto wav_abort_;
 		}
@@ -338,7 +338,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 
 	if(stream_info.skip > 0) {
 #ifdef FLAC__HAS_OGG
-		if(stream_info.is_ogg) { //@@@ (move this check into main.c)
+		if(stream_info.is_ogg) { /*@@@ (move this check into main.c) */
 			fprintf(stderr, "%s: ERROR, can't skip when decoding Ogg-FLAC yet; convert to native-FLAC first\n", stream_info.inbasefilename);
 			goto raw_abort_;
 		}
