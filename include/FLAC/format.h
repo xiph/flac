@@ -345,17 +345,17 @@ typedef struct {
 
 /*****************************************************************************
  *
- *    128: Registered application ID
- *      n: Application data
- *-------- -----------------
- * 16+n/8  bytes total
+ *    32: Registered application ID
+ *     n: Application data
+ *------- -----------------
+ * 4+n/8  bytes total
  */
 typedef struct {
 	byte id[16];
 	byte *data;
 } FLAC__StreamMetaData_Application;
 
-extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /* = 128 bits */
+extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /* = 32 bits */
 
 /*****************************************************************************
  *
@@ -371,6 +371,8 @@ typedef struct {
 	unsigned length; /* in bytes */
 	union {
 		FLAC__StreamMetaData_StreamInfo stream_info;
+		FLAC__StreamMetaData_Padding padding;
+		FLAC__StreamMetaData_Application application;
 	} data;
 } FLAC__StreamMetaData;
 

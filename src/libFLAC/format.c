@@ -36,7 +36,7 @@ const unsigned FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN = 36; /* bits 
 const unsigned FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN = 128; /* bits */
 const unsigned FLAC__STREAM_METADATA_STREAMINFO_LENGTH = 34; /* bytes */
 
-const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN = 128; /* bits */
+const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN = 32; /* bits */
 
 const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN = 1; /* bits */
 const unsigned FLAC__STREAM_METADATA_TYPE_LEN = 7; /* bits */
