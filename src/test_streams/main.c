@@ -19,9 +19,16 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef _MSC_VER
 #include <sys/time.h>
+#endif
 #include "FLAC/assert.h"
 #include "FLAC/ordinals.h"
+
+#ifndef M_PI
+/* math.h in VC++ doesn't seem to have this (how Microsoft is that?) */
+#define M_PI 3.14159265358979323846
+#endif
 
 #ifdef _WIN32
 	static const char *mode = "wb";
@@ -380,20 +387,28 @@ foo:
 static FLAC__bool generate_noise(const char *fn, unsigned bytes)
 {
 	FILE *f;
-	struct timeval tv;
 	unsigned b;
+#ifndef _MSC_VER
+	struct timeval tv;
 
 	if(gettimeofday(&tv, 0) < 0) {
 		fprintf(stderr, "WARNING: couldn't seed RNG with time\n");
 		tv.tv_usec = 4321;
 	}
 	srandom(tv.tv_usec);
+#else
+	/* who has the patience to figure out how to do RNG with VC++? */
+#endif
 
 	if(0 == (f = fopen(fn, mode)))
 		return false;
 
 	for(b = 0; b < bytes; b++) {
+#ifndef _MSC_VER
 		FLAC__byte x = (FLAC__byte)(((unsigned)random()) & 0xff);
+#else
+		FLAC__byte x = (FLAC__byte)((((unsigned)generate_noise) >> 8) ^ (b * 17)); /* fake it */
+#endif
 		if(fwrite(&x, sizeof(x), 1, f) < 1)
 			goto foo;
 	}

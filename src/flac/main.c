@@ -24,6 +24,8 @@
 #ifndef _MSC_VER
 /* unlink is in stdio.h in VC++ */
 #include <unistd.h> /* for unlink() */
+#else
+#define strcasecmp stricmp
 #endif
 #include "FLAC/all.h"
 #include "analyze.h"
