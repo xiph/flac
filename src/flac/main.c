@@ -34,11 +34,11 @@
 #define strcasecmp stricmp
 #endif
 #include "FLAC/all.h"
+#include "share/file_utils.h"
 #include "share/replaygain.h"
 #include "analyze.h"
 #include "decode.h"
 #include "encode.h"
-#include "file.h"
 #include "vorbiscomment.h"
 
 #if 0
@@ -65,8 +65,11 @@ static void show_help();
 static void show_explain();
 static void format_mistake(const char *infilename, const char *wrong, const char *right);
 
-static int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_first_file, FLAC__bool is_last_file);
-static int decode_file(const char *infilename, const char *forced_outfilename);
+static int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file);
+static int decode_file(const char *infilename);
+
+static const char *get_encoded_outfilename(const char *infilename);
+static const char *get_decoded_outfilename(const char *infilename);
 
 static void die(const char *message);
 static char *local_strdup(const char *source);
@@ -258,8 +261,6 @@ static FLAC__int32 align_reservoir_0[588], align_reservoir_1[588]; /* for carryi
 static FLAC__int32 *align_reservoir[2] = { align_reservoir_0, align_reservoir_1 };
 static unsigned align_reservoir_samples = 0; /* 0 .. 587 */
 
-static const char *flac_suffix = ".flac", *ogg_suffix = ".ogg";
-
 
 int main(int argc, char *argv[])
 {
@@ -382,6 +383,8 @@ int do_it()
 				return usage_error("ERROR: --sector-align can only be done with a sample rate of 44100\n");
 		}
 		if(option_values.replay_gain) {
+			if(option_values.force_to_stdout)
+				return usage_error("ERROR: --replay-gain not allowed with -c/--stdout\n");
 			if(option_values.mode_decode)
 				return usage_error("ERROR: --replay-gain only allowed for encoding\n");
 			if(option_values.skip > 0)
@@ -390,8 +393,18 @@ int do_it()
 				return usage_error("ERROR: --replay-gain can only be done with mono/stereo input\n");
 			if(option_values.format_sample_rate >= 0 && !FLAC__replaygain_is_valid_sample_frequency(option_values.format_sample_rate))
 				return usage_error("ERROR: invalid sample rate used with --replay-gain\n");
-			if(option_values.padding < 0)
-				fprintf(stderr, "WARNING: --replay-gain may leave a small PADDING block even with --no-padding\n");
+			/*
+			 * We want to reserve padding space for the ReplayGain
+			 * tags that we will set later, to avoid rewriting the
+			 * whole file.
+			 */
+			if(option_values.padding < 0) {
+				fprintf(stderr, "NOTE: --replay-gain may leave a small PADDING block even with --no-padding\n");
+				option_values.padding = FLAC__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
+			}
+			else {
+				option_values.padding += FLAC__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
+			}
 		}
 		if(option_values.num_files > 1 && option_values.cmdline_forced_outfilename) {
 			return usage_error("ERROR: -o/--output-name cannot be used with multiple files\n");
@@ -437,7 +450,7 @@ int do_it()
 		FLAC__bool first = true;
 
 		if(option_values.num_files == 0) {
-			retval = decode_file("-", 0);
+			retval = decode_file("-");
 		}
 		else {
 			unsigned i;
@@ -446,7 +459,7 @@ int do_it()
 			for(i = 0, retval = 0; i < option_values.num_files; i++) {
 				if(0 == strcmp(option_values.filenames[i], "-") && !first)
 					continue;
-				retval |= decode_file(option_values.filenames[i], 0);
+				retval |= decode_file(option_values.filenames[i]);
 				first = false;
 			}
 		}
@@ -455,7 +468,7 @@ int do_it()
 		FLAC__bool first = true;
 
 		if(option_values.num_files == 0) {
-			retval = encode_file("-", 0, first, true);
+			retval = encode_file("-", first, true);
 		}
 		else {
 			unsigned i;
@@ -464,8 +477,21 @@ int do_it()
 			for(i = 0, retval = 0; i < option_values.num_files; i++) {
 				if(0 == strcmp(option_values.filenames[i], "-") && !first)
 					continue;
-				retval |= encode_file(option_values.filenames[i], 0, first, i == (option_values.num_files-1));
+				retval |= encode_file(option_values.filenames[i], first, i == (option_values.num_files-1));
 				first = false;
+			}
+			if(option_values.replay_gain && retval == 0) {
+				float album_gain, album_peak;
+				FLAC__replaygain_get_album(&album_gain, &album_peak);
+				for(i = 0; i < option_values.num_files; i++) {
+					const char *error, *outfilename = get_encoded_outfilename(option_values.filenames[i]);
+					if(0 == strcmp(option_values.filenames[i], "-"))
+						FLAC__ASSERT(0);
+					if(0 != (error = FLAC__replaygain_store_to_file_album(outfilename, album_gain, album_peak, /*preserve_modtime=*/true))) {
+						fprintf(stderr, "%s: ERROR writing ReplayGain album tags\n", outfilename);
+						retval = 1;
+					}
+				}
 			}
 		}
 	}
@@ -501,7 +527,7 @@ FLAC__bool init_options()
 	option_values.output_prefix = 0;
 	option_values.aopts.do_residual_text = false;
 	option_values.aopts.do_residual_gnuplot = false;
-	option_values.padding = -1;
+	option_values.padding = 4096;
 	option_values.max_lpc_order = 8;
 	option_values.qlp_coeff_precision = 0;
 	option_values.skip = 0;
@@ -608,18 +634,6 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "replay-gain")) {
 			option_values.replay_gain = true;
-			/*
-			 * We want to reserve space in the Vorbis comments
-			 * for the ReplayGain tags that we will set later.
-			 * Why do we store 100000.0 for the gain numbers
-			 * initially?  The gain field is variable length, so
-			 * if the real number causes the tag size to shrink,
-			 * we want it to shrink by at least 4 bytes so we can
-			 * backfill with PADDING to avoid rewriting the whole
-			 * file.
-			 */
-			if(0 != (violation = FLAC__replaygain_store_to_vorbiscomment(option_values.vorbis_comment, 100000.0, 0.0, 100000.0, 0.0)))
-				return usage_error("ERROR: (--replay-gain) %s\n", violation);
 		}
 		else if(0 == strcmp(long_option, "sector-align")) {
 			option_values.sector_align = true;
@@ -1209,7 +1223,8 @@ void show_explain()
 	printf("                               have the same resolution, sample rate, and\n");
 	printf("                               number of channels.  The sample rate must be\n");
 	printf("                               one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1,\n");
-	printf("                               or 48 kHz.\n");
+	printf("                               or 48 kHz.  NOTE: this option may also leave a\n");
+	printf("                               few extra bytes in the PADDING block.\n");
 	printf("  -S, --seekpoint={#|X|#x}     Include a point or points in a SEEKTABLE\n");
 	printf("       #  : a specific sample number for a seek point\n");
 	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
@@ -1322,24 +1337,23 @@ format_mistake(const char *infilename, const char *wrong, const char *right)
 	fprintf(stderr, "WARNING: %s is not a %s file; treating as a %s file\n", infilename, wrong, right);
 }
 
-int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_first_file, FLAC__bool is_last_file)
+int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file)
 {
 	FILE *encode_infile;
-	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
-	char *p;
 	FLAC__byte lookahead[12];
 	unsigned lookahead_length = 0;
 	FileFormat fmt= RAW;
 	int retval;
 	long infilesize;
 	encode_options_t common_options;
+	const char *outfilename = get_encoded_outfilename(infilename);
 
 	if(0 == strcmp(infilename, "-")) {
 		infilesize = -1;
-		encode_infile = file__get_binary_stdin();
+		encode_infile = FLAC__file_utils_get_binary_stdin();
 	}
 	else {
-		infilesize = flac__file_get_filesize(infilename);
+		infilesize = FLAC__file_utils_get_filesize(infilename);
 		if(0 == (encode_infile = fopen(infilename, "rb"))) {
 			fprintf(stderr, "ERROR: can't open input file %s\n", infilename);
 			return 1;
@@ -1384,27 +1398,10 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 			return usage_error("ERROR: for encoding a raw file you must specify a value for --endian, --sign, --channels, --bps, and --sample-rate\n");
 	}
 
-	if(encode_infile == stdin || option_values.force_to_stdout)
-		strcpy(outfilename, "-");
-	else {
-		const char *suffix = (option_values.use_ogg? ogg_suffix : flac_suffix);
-		strcpy(outfilename, option_values.output_prefix? option_values.output_prefix : "");
-		strcat(outfilename, infilename);
-		if(0 == (p = strrchr(outfilename, '.')))
-			strcat(outfilename, suffix);
-		else {
-			if(0 == strcmp(p, suffix)) {
-				strcpy(p, "_new");
-				strcat(p, suffix);
-			}
-			else
-				strcpy(p, suffix);
-		}
+	if(encode_infile == stdin || option_values.force_to_stdout) {
+		if(option_values.replay_gain)
+			return usage_error("ERROR: --replay-gain cannot be used when encoding to stdout\n");
 	}
-	if(0 == forced_outfilename)
-		forced_outfilename = outfilename;
-	if(0 != option_values.cmdline_forced_outfilename)
-		forced_outfilename = option_values.cmdline_forced_outfilename;
 
 	common_options.verbose = option_values.verbose;
 	common_options.skip = option_values.skip;
@@ -1450,7 +1447,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 		options.bps = option_values.format_bps;
 		options.sample_rate = option_values.format_sample_rate;
 
-		retval = flac__encode_raw(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, options);
+		retval = flac__encode_raw(encode_infile, infilesize, infilename, outfilename, lookahead, lookahead_length, options);
 	}
 	else {
 		wav_encode_options_t options;
@@ -1458,14 +1455,23 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 		options.common = common_options;
 
 		if(fmt == AIF)
-			retval = flac__encode_aif(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, options);
+			retval = flac__encode_aif(encode_infile, infilesize, infilename, outfilename, lookahead, lookahead_length, options);
 		else
-			retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, options);
+			retval = flac__encode_wav(encode_infile, infilesize, infilename, outfilename, lookahead, lookahead_length, options);
 	}
 
 	if(retval == 0 && strcmp(infilename, "-")) {
-		if(strcmp(forced_outfilename, "-"))
-			flac__file_copy_metadata(infilename, forced_outfilename);
+		if(strcmp(outfilename, "-")) {
+			if(option_values.replay_gain) {
+				float title_gain, title_peak;
+				const char *error;
+				FLAC__replaygain_get_title(&title_gain, &title_peak);
+				if(0 != (error = FLAC__replaygain_store_to_file_title(outfilename, title_gain, title_peak, /*preserve_modtime=*/true))) {
+					fprintf(stderr, "%s: ERROR writing ReplayGain title tags\n", outfilename);
+				}
+			}
+			FLAC__file_utils_copy_metadata(infilename, outfilename);
+		}
 		if(option_values.delete_input)
 			unlink(infilename);
 	}
@@ -1473,41 +1479,17 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	return retval;
 }
 
-int decode_file(const char *infilename, const char *forced_outfilename)
+int decode_file(const char *infilename)
 {
-	static const char *suffixes[] = { ".wav", ".raw", ".ana" };
-	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
-	char *p;
 	int retval;
 	FLAC__bool treat_as_ogg = false;
 	decode_options_t common_options;
+	const char *outfilename = get_decoded_outfilename(infilename);
 
 	if(!option_values.test_only && !option_values.analyze) {
 		if(option_values.force_raw_format && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0))
 			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian and --sign\n");
 	}
-
-	if(0 == strcmp(infilename, "-") || option_values.force_to_stdout)
-		strcpy(outfilename, "-");
-	else {
-		const char *suffix = suffixes[option_values.analyze? 2 : option_values.force_raw_format? 1 : 0];
-		strcpy(outfilename, option_values.output_prefix? option_values.output_prefix : "");
-		strcat(outfilename, infilename);
-		if(0 == (p = strrchr(outfilename, '.')))
-			strcat(outfilename, suffix);
-		else {
-			if(0 == strcmp(p, suffix)) {
-				strcpy(p, "_new");
-				strcat(p, suffix);
-			}
-			else
-				strcpy(p, suffix);
-		}
-	}
-	if(0 == forced_outfilename)
-		forced_outfilename = outfilename;
-	if(0 != option_values.cmdline_forced_outfilename)
-		forced_outfilename = option_values.cmdline_forced_outfilename;
 
 	if(option_values.use_ogg)
 		treat_as_ogg = true;
@@ -1537,7 +1519,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 
 		options.common = common_options;
 
-		retval = flac__decode_wav(infilename, option_values.test_only? 0 : forced_outfilename, option_values.analyze, option_values.aopts, options);
+		retval = flac__decode_wav(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
 	}
 	else {
 		raw_decode_options_t options;
@@ -1546,17 +1528,78 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 		options.is_big_endian = option_values.format_is_big_endian;
 		options.is_unsigned_samples = option_values.format_is_unsigned_samples;
 
-		retval = flac__decode_raw(infilename, option_values.test_only? 0 : forced_outfilename, option_values.analyze, option_values.aopts, options);
+		retval = flac__decode_raw(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
 	}
 
 	if(retval == 0 && strcmp(infilename, "-")) {
-		if(strcmp(forced_outfilename, "-"))
-			flac__file_copy_metadata(infilename, forced_outfilename);
+		if(strcmp(outfilename, "-"))
+			FLAC__file_utils_copy_metadata(infilename, outfilename);
 		if(option_values.delete_input && !option_values.test_only && !option_values.analyze)
 			unlink(infilename);
 	}
 
 	return retval;
+}
+
+const char *get_encoded_outfilename(const char *infilename)
+{
+	if(0 == option_values.cmdline_forced_outfilename) {
+		static char buffer[4096]; /* @@@ bad MAGIC NUMBER */
+
+		if(0 == strcmp(infilename, "-") || option_values.force_to_stdout) {
+			strcpy(buffer, "-");
+		}
+		else {
+			const char *suffix = (option_values.use_ogg? ".ogg" : ".flac");
+			char *p;
+			strcpy(buffer, option_values.output_prefix? option_values.output_prefix : "");
+			strcat(buffer, infilename);
+			if(0 == (p = strrchr(buffer, '.')))
+				strcat(buffer, suffix);
+			else {
+				if(0 == strcmp(p, suffix)) {
+					strcpy(p, "_new");
+					strcat(p, suffix);
+				}
+				else
+					strcpy(p, suffix);
+			}
+		}
+		return buffer;
+	}
+	else
+		return option_values.cmdline_forced_outfilename;
+}
+
+const char *get_decoded_outfilename(const char *infilename)
+{
+	if(0 == option_values.cmdline_forced_outfilename) {
+		static char buffer[4096]; /* @@@ bad MAGIC NUMBER */
+
+		if(0 == strcmp(infilename, "-") || option_values.force_to_stdout) {
+			strcpy(buffer, "-");
+		}
+		else {
+			static const char *suffixes[] = { ".wav", ".raw", ".ana" };
+			const char *suffix = suffixes[option_values.analyze? 2 : option_values.force_raw_format? 1 : 0];
+			char *p;
+			strcpy(buffer, option_values.output_prefix? option_values.output_prefix : "");
+			strcat(buffer, infilename);
+			if(0 == (p = strrchr(buffer, '.')))
+				strcat(buffer, suffix);
+			else {
+				if(0 == strcmp(p, suffix)) {
+					strcpy(p, "_new");
+					strcat(p, suffix);
+				}
+				else
+					strcpy(p, suffix);
+			}
+		}
+		return buffer;
+	}
+	else
+		return option_values.cmdline_forced_outfilename;
 }
 
 void die(const char *message)
