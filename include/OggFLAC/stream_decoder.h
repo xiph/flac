@@ -440,6 +440,19 @@ OggFLAC_API OggFLAC__StreamDecoderState OggFLAC__stream_decoder_get_state(const 
  */
 OggFLAC_API FLAC__StreamDecoderState OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(const OggFLAC__StreamDecoder *decoder);
 
+/** Get the current decoder state as a C string.
+ *  This version automatically resolves
+ *  \c OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR
+ *  by getting the FLAC stream decoder's state.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval const char *
+ *    The decoder state as a C string.  Do not modify the contents.
+ */
+OggFLAC_API const char *OggFLAC__stream_decoder_get_resolved_state_string(const OggFLAC__StreamDecoder *decoder);
+
 /** This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_get_channels()
  *
  * \param  decoder  A decoder instance to query.
