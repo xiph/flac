@@ -131,7 +131,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	movd	mm5, eax			; mm5 = 0:abs(error_0)
 	movd	edx, mm6			; edx = last_error_0
 	mov	eax, edi			; eax = error(error_0)
-	movaps	mm3, mm6			; mm3 = last_error_1:last_error_0
+	movq	mm3, mm6			; mm3 = last_error_1:last_error_0
 	psrlq	mm3, 32				; mm3 = 0:last_error_1
 	movd	mm6, edi			; mm6 = 0:last_error_0(=save)
 	punpckldq	mm6, mm3		; mm6 = last_error_1:last_error_0(=save)
@@ -142,7 +142,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	cmovns	eax, edx			; eax = abs(error_1)
 	movd	mm4, eax			; mm4 = 0:abs(error_1)
 	punpckldq	mm5, mm4		; mm5 = abs(error_1):abs(error_0)
-	movaps	mm3, mm6			; mm3 = last_error_1:last_error_0
+	movq	mm3, mm6			; mm3 = last_error_1:last_error_0
 	psrlq	mm3, 32				; mm3 = 0:last_error_1
 	movd	edx, mm3			; edx = last_error_1
 	mov	eax, edi			; eax = error(error_1)
@@ -157,7 +157,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	movd	mm5, eax			; mm5 = 0:abs(error_2)
 	movd	edx, mm7			; edx = last_error_2
 	mov	eax, edi			; eax = error(error_2)
-	movaps	mm3, mm7			; mm3 = last_error_3:last_error_2
+	movq	mm3, mm7			; mm3 = last_error_3:last_error_2
 	psrlq	mm3, 32				; mm3 = 0:last_error_3
 	movd	mm7, edi			; mm7 = 0:last_error_2(=save)
 	punpckldq	mm7, mm3		; mm7 = last_error_3:last_error_2
@@ -168,7 +168,7 @@ FLAC__fixed_compute_best_predictor_asm:
 	cmovns	eax, edx			; eax = abs(error_3)
 	movd	mm4, eax			; mm4 = 0:abs(error_3)
 	punpckldq	mm5, mm4		; mm5 = abs(error_3):abs(error_2)
-	movaps	mm3, mm7
+	movq	mm3, mm7
 	psrlq	mm3, 32				; mm3 = 0:last_error_3
 	movd	edx, mm3			; edx = last_error_3
 	mov	eax, edi			; eax = error(error_3)
@@ -195,11 +195,11 @@ FLAC__fixed_compute_best_predictor_asm:
 ; 	else
 ; 		order = 4;
 	movd	edi, mm2			; edi = total_error_4
-	movaps	mm4, mm1			; mm4 = total_error_3:total_error_2
+	movq	mm4, mm1			; mm4 = total_error_3:total_error_2
 	psrlq	mm4, 32				; mm4 = 0:total_error_3
 	movd	edx, mm1			; edx = total_error_2
 	movd	esi, mm4			; esi = total_error_3
-	movaps	mm3, mm0			; mm3 = total_error_1:total_error_0
+	movq	mm3, mm0			; mm3 = total_error_1:total_error_0
 	psrlq	mm3, 32				; mm3 = 0:total_error_1
 	movd	ebx, mm0			; ebx = total_error_0
 	movd	ecx, mm3			; ecx = total_error_1
