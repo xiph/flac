@@ -590,6 +590,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 		case FLAC__METADATA_TYPE_CUESHEET:
 			PPR; printf("  media catalog number: %s\n", block->data.cue_sheet.media_catalog_number);
 			PPR; printf("  lead-in: %llu\n", block->data.cue_sheet.lead_in);
+			PPR; printf("  is CD: %s\n", block->data.cue_sheet.is_cd? "true":"false");
 			PPR; printf("  number of tracks: %u\n", block->data.cue_sheet.num_tracks);
 			for(i = 0; i < block->data.cue_sheet.num_tracks; i++) {
 				const FLAC__StreamMetadata_CueSheet_Track *track = block->data.cue_sheet.tracks+i;
@@ -606,7 +607,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 				if(!is_leadout) {
 					PPR; printf("      ISRC: %s\n", track->isrc);
 					PPR; printf("      type: %s\n", track->type == 1? "DATA" : "AUDIO");
-					PPR; printf("      pre-emphasis: %s\n", track->pre_emphasis? "true" : "false");
+					PPR; printf("      pre-emphasis: %s\n", track->pre_emphasis? "true":"false");
 					PPR; printf("      number of index points: %u\n", track->num_indices);
 					for(j = 0; j < track->num_indices; j++) {
 						const FLAC__StreamMetadata_CueSheet_Index *index = track->indices+j;

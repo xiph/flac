@@ -663,12 +663,14 @@ namespace FLAC {
 
 			const char *get_media_catalog_number() const;
 			FLAC__uint64 get_lead_in() const;
+			bool get_is_cd() const;
 
 			unsigned get_num_tracks() const;
 			Track get_track(unsigned i) const;
 
 			void set_media_catalog_number(const char value[128]);
 			void set_lead_in(FLAC__uint64 value);
+			void set_is_cd(bool value);
 
 			void set_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
 

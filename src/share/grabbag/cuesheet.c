@@ -187,6 +187,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 	FLAC__StreamMetadata_CueSheet *cs = &cuesheet->data.cue_sheet;
 
 	cs->lead_in = is_cdda? 2 * 44100 /* The default lead-in size for CD-DA */ : 0;
+	cs->is_cd = is_cdda;
 
 	while(0 != fgets(buffer, sizeof(buffer), file)) {
 		(*last_line_read)++;
@@ -509,7 +510,7 @@ FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_mes
 	return cuesheet;
 }
 
-void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, const char *file_reference, FLAC__bool is_cdda)
+void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, const char *file_reference)
 {
 	const FLAC__StreamMetadata_CueSheet *cs;
 	unsigned track_num, index_num;
@@ -538,7 +539,7 @@ void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, co
 			const FLAC__StreamMetadata_CueSheet_Index *index = track->indices + index_num;
 
 			fprintf(file, "    INDEX %02u ", (unsigned)index->number);
-			if(is_cdda) {
+			if(cs->is_cd) {
 				const unsigned logical_frame = (track->offset + index->offset) / (44100 / 75);
 				unsigned m, s, f;
 				grabbag__cuesheet_frame_to_msf(logical_frame, &m, &s, &f);

@@ -192,11 +192,12 @@ static void init_metadata_blocks_()
 		(
 			FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
 			FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN +
 			FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
 			FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
 		) / 8 +
 		/* 2 tracks */
-		2 * (
+		3 * (
 			FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN +
 			FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN +
 			FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN +
@@ -215,10 +216,11 @@ static void init_metadata_blocks_()
 	memset(cuesheet_.data.cue_sheet.media_catalog_number, 0, sizeof(cuesheet_.data.cue_sheet.media_catalog_number));
 	cuesheet_.data.cue_sheet.media_catalog_number[0] = 'j';
 	cuesheet_.data.cue_sheet.media_catalog_number[1] = 'C';
-	cuesheet_.data.cue_sheet.lead_in = 159;
-	cuesheet_.data.cue_sheet.num_tracks = 2;
+	cuesheet_.data.cue_sheet.lead_in = 2 * 44100;
+	cuesheet_.data.cue_sheet.is_cd = true;
+	cuesheet_.data.cue_sheet.num_tracks = 3;
 	cuesheet_.data.cue_sheet.tracks = malloc_or_die_(cuesheet_.data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track));
-	cuesheet_.data.cue_sheet.tracks[0].offset = 1;
+	cuesheet_.data.cue_sheet.tracks[0].offset = 0;
 	cuesheet_.data.cue_sheet.tracks[0].number = 1;
 	memcpy(cuesheet_.data.cue_sheet.tracks[0].isrc, "ACBDE1234567", sizeof(cuesheet_.data.cue_sheet.tracks[0].isrc));
 	cuesheet_.data.cue_sheet.tracks[0].type = 0;
@@ -227,9 +229,9 @@ static void init_metadata_blocks_()
 	cuesheet_.data.cue_sheet.tracks[0].indices = malloc_or_die_(cuesheet_.data.cue_sheet.tracks[0].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
 	cuesheet_.data.cue_sheet.tracks[0].indices[0].offset = 0;
 	cuesheet_.data.cue_sheet.tracks[0].indices[0].number = 0;
-	cuesheet_.data.cue_sheet.tracks[0].indices[1].offset = 1234567890;
+	cuesheet_.data.cue_sheet.tracks[0].indices[1].offset = 123 * 588;
 	cuesheet_.data.cue_sheet.tracks[0].indices[1].number = 1;
-	cuesheet_.data.cue_sheet.tracks[1].offset = 12345678901;
+	cuesheet_.data.cue_sheet.tracks[1].offset = 1234 * 588;
 	cuesheet_.data.cue_sheet.tracks[1].number = 2;
 	memcpy(cuesheet_.data.cue_sheet.tracks[1].isrc, "ACBDE7654321", sizeof(cuesheet_.data.cue_sheet.tracks[1].isrc));
 	cuesheet_.data.cue_sheet.tracks[1].type = 1;
@@ -238,6 +240,9 @@ static void init_metadata_blocks_()
 	cuesheet_.data.cue_sheet.tracks[1].indices = malloc_or_die_(cuesheet_.data.cue_sheet.tracks[1].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
 	cuesheet_.data.cue_sheet.tracks[1].indices[0].offset = 0;
 	cuesheet_.data.cue_sheet.tracks[1].indices[0].number = 1;
+	cuesheet_.data.cue_sheet.tracks[2].offset = 12345 * 588;
+	cuesheet_.data.cue_sheet.tracks[2].number = 170;
+	cuesheet_.data.cue_sheet.tracks[2].num_indices = 0;
 }
 
 static void free_metadata_blocks_()

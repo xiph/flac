@@ -138,6 +138,7 @@ static void init_metadata_blocks_()
 		(
 			FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
 			FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN +
 			FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
 			FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
 		) / 8 +
@@ -162,6 +163,7 @@ static void init_metadata_blocks_()
 	cuesheet_.data.cue_sheet.media_catalog_number[0] = 'j';
 	cuesheet_.data.cue_sheet.media_catalog_number[1] = 'C';
 	cuesheet_.data.cue_sheet.lead_in = 159;
+	cuesheet_.data.cue_sheet.is_cd = true;
 	cuesheet_.data.cue_sheet.num_tracks = 2;
 	cuesheet_.data.cue_sheet.tracks = (FLAC__StreamMetadata_CueSheet_Track*)malloc_or_die_(cuesheet_.data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track));
 	cuesheet_.data.cue_sheet.tracks[0].offset = 1;
@@ -1166,6 +1168,7 @@ bool test_metadata_object_cuesheet()
 	expected_length = (
 		FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
 		FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN +
 		FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
 		FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
 	) / 8;
@@ -1254,6 +1257,11 @@ bool test_metadata_object_cuesheet()
 		return die_("value mismatch, expected 0");
 	printf("OK\n");
 
+	printf("testing CueSheet::get_is_cd()... ");
+	if(block.get_is_cd())
+		return die_("value mismatch, expected false");
+	printf("OK\n");
+
 	printf("testing CueSheet::get_num_tracks()... ");
 	if(block.get_num_tracks() != 0)
 		return die_("value mismatch, expected 0");
@@ -1273,6 +1281,12 @@ bool test_metadata_object_cuesheet()
 	printf("testing CueSheet::set_lead_in()... ");
 	block.set_lead_in(588);
 	if(block.get_lead_in() != 588)
+		return die_("value mismatch");
+	printf("OK\n");
+
+	printf("testing CueSheet::set_is_cd()... ");
+	block.set_is_cd(true);
+	if(!block.get_is_cd())
 		return die_("value mismatch");
 	printf("OK\n");
 

@@ -207,6 +207,7 @@ static void cuesheet_calculate_length_(FLAC__StreamMetadata *object)
 	object->length = (
 		FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
 		FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+		FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN +
 		FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
 		FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
 	) / 8;
@@ -584,6 +585,9 @@ static FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueShe
 		return false;
 
 	if(block1->lead_in != block2->lead_in)
+		return false;
+
+	if(block1->is_cd != block2->is_cd)
 		return false;
 
 	if(block1->num_tracks != block2->num_tracks)

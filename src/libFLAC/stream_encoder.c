@@ -680,7 +680,7 @@ FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder 
 			metadata_has_vorbis_comment = true;
 		}
 		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_CUESHEET) {
-			if(!FLAC__format_cuesheet_is_legal(&encoder->protected_->metadata[i]->data.cue_sheet, /*check_cd_da_subset=*/false, /*violation=*/0))
+			if(!FLAC__format_cuesheet_is_legal(&encoder->protected_->metadata[i]->data.cue_sheet, encoder->protected_->metadata[i]->data.cue_sheet.is_cd, /*violation=*/0))
 				return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
 		}
 	}

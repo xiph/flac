@@ -62,7 +62,7 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 		fprintf(stderr, "can't open file %s for writing\n", tmpfilename);
 		return 255;
 	}
-	grabbag__cuesheet_emit(fout, cuesheet, "\"dummy.wav\" WAVE", is_cdda);
+	grabbag__cuesheet_emit(fout, cuesheet, "\"dummy.wav\" WAVE");
 	fclose(fout);
 
 	/*
@@ -91,7 +91,7 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 		fprintf(stderr, "can't open file %s for writing\n", tmpfilename);
 		return 255;
 	}
-	grabbag__cuesheet_emit(fout, cuesheet, "\"dummy.wav\" WAVE", is_cdda);
+	grabbag__cuesheet_emit(fout, cuesheet, "\"dummy.wav\" WAVE");
 	fclose(fout);
 
 	return 0;
@@ -125,4 +125,3 @@ int main(int argc, char *argv[])
 
 	return do_cuesheet(argv[1], is_cdda, lead_out_offset);
 }
-FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, unsigned *last_line_read, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset);

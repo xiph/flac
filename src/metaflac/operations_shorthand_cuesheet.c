@@ -23,7 +23,7 @@
 #include <string.h>
 
 static FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet, const char *cs_filename, FLAC__bool *needs_write, FLAC__uint64 lead_out_offset, Argument_AddSeekpoint *add_seekpoint_link);
-static FLAC__bool export_cs_to(const char *filename, FLAC__StreamMetadata *cuesheet, const char *cs_filename);
+static FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cuesheet, const char *cs_filename);
 
 FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
 {
@@ -149,7 +149,7 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 	return true;
 }
 
-FLAC__bool export_cs_to(const char *filename, FLAC__StreamMetadata *cuesheet, const char *cs_filename)
+FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cuesheet, const char *cs_filename)
 {
 	FILE *f;
 
@@ -167,7 +167,7 @@ FLAC__bool export_cs_to(const char *filename, FLAC__StreamMetadata *cuesheet, co
 		return false;
 	}
 
-	grabbag__cuesheet_emit(f, cuesheet, "\"dummy.wav\" WAVE", /*@@@@is_cdda=*/true);
+	grabbag__cuesheet_emit(f, cuesheet, "\"dummy.wav\" WAVE");
 
 	if(f != stdout)
 		fclose(f);

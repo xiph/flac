@@ -830,6 +830,12 @@ namespace FLAC {
 			return object_->data.cue_sheet.lead_in;
 		}
 
+		bool CueSheet::get_is_cd() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.cue_sheet.is_cd? true : false;
+		}
+
 		unsigned CueSheet::get_num_tracks() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -855,6 +861,12 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			object_->data.cue_sheet.lead_in = value;
+		}
+
+		void CueSheet::set_is_cd(bool value)
+		{
+			FLAC__ASSERT(is_valid());
+			object_->data.cue_sheet.is_cd = value;
 		}
 
 		void CueSheet::set_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index)

@@ -227,6 +227,10 @@ FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueSheet *blo
 		printf("FAILED, lead_in mismatch, expected %llu, got %llu\n", block->lead_in, blockcopy->lead_in);
 		return false;
 	}
+	if(blockcopy->is_cd != block->is_cd) {
+		printf("FAILED, is_cd mismatch, expected %u, got %u\n", (unsigned)block->is_cd, (unsigned)blockcopy->is_cd);
+		return false;
+	}
 	if(blockcopy->num_tracks != block->num_tracks) {
 		printf("FAILED, num_tracks mismatch, expected %u, got %u\n", block->num_tracks, blockcopy->num_tracks);
 		return false;

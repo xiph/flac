@@ -658,13 +658,15 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_
 typedef struct {
 	char media_catalog_number[129]; /*@@@@ in the stream, the media_catalog_number will be 128 alphanumeric ascii characters; unused digits are padded out to the right with NUL characters.  in memory, the 129th character will be guaranteed to be a null character so that the whole string is always a valid C string.  CD-DA: 13 ascii digits ('0'-'9') plus 116 trailing '\0' characters */
 	FLAC__uint64 lead_in;	/*@@@@ length of lead-in in samples; required to compute some versions of CD TOC hashes; CD-DA says the lead-in must be digital silence and rippers don't save it by convention, so TRACK 00 is disallowed and instead we store only the length.  The lead-in is the number of samples up to the first index point of the first track, \b not INDEX 01 of the first track.  This is so applications can correctly compute a CD-DA TOC equivalent even when there is TRACK 01 INDEX 00 data. */
+	FLAC__bool is_cd; /* \c true if CUESHEET corresponds to a Compact Disc, else \c false */
 	unsigned num_tracks;
 	FLAC__StreamMetadata_CueSheet_Track *tracks;
 } FLAC__StreamMetadata_CueSheet;
 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN; /**< == 128*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN; /**< == 64 (bits) */
-extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN; /**< == @@@@259*8 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN; /**< == 1 (bit) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN; /**< == @@@@7+258*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN; /**< == 8 (bits) */
 
 
