@@ -96,7 +96,7 @@ typedef struct {
 
 static FLAC__bool is_big_endian_host;
 
-static unsigned char ucbuffer[CHUNK_OF_SAMPLES*FLAC__MAX_CHANNELS*((FLAC__MAX_BITS_PER_SAMPLE+7)/8)];
+static unsigned char ucbuffer[CHUNK_OF_SAMPLES*FLAC__MAX_CHANNELS*((FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE+7)/8)];
 static signed char *scbuffer = (signed char *)ucbuffer;
 static FLAC__uint16 *usbuffer = (FLAC__uint16 *)ucbuffer;
 static FLAC__int16 *ssbuffer = (FLAC__int16 *)ucbuffer;
