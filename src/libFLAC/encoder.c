@@ -88,6 +88,7 @@ static unsigned encoder_evaluate_fixed_subframe_(const int32 signal[], int32 res
 static unsigned encoder_evaluate_lpc_subframe_(const int32 signal[], int32 residual[], uint32 abs_residual[], uint32 abs_residual_partition_sums[], unsigned bits_per_residual_sample[], const real lp_coeff[], unsigned blocksize, unsigned subframe_bps, unsigned order, unsigned qlp_coeff_precision, unsigned rice_parameter, unsigned max_partition_order, FLAC__Subframe *subframe);
 static unsigned encoder_evaluate_verbatim_subframe_(const int32 signal[], unsigned blocksize, unsigned subframe_bps, FLAC__Subframe *subframe);
 static unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_residual[], uint32 abs_residual_partition_sums[], unsigned bits_per_residual_sample[], unsigned residual_samples, unsigned predictor_order, unsigned rice_parameter, unsigned max_partition_order, unsigned *best_partition_order, unsigned best_parameters[], unsigned best_raw_bits[]);
+static unsigned encoder_precompute_partition_sums_(uint32 abs_residual[], uint32 abs_residual_partition_sums[], unsigned residual_samples, unsigned predictor_order, unsigned max_partition_order);
 static bool encoder_set_partitioned_rice_(const uint32 abs_residual[], const uint32 abs_residual_partition_sums[], const unsigned bits_per_residual_sample[], const unsigned residual_samples, const unsigned predictor_order, unsigned rice_parameter, const unsigned partition_order, unsigned parameters[], unsigned raw_bits[], unsigned *bits);
 static unsigned encoder_get_wasted_bits_(int32 signal[], unsigned samples);
 
@@ -1132,9 +1133,8 @@ unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_r
 	int32 r;
 	int partition_order;
 	unsigned residual_bits, best_residual_bits = 0;
-	unsigned residual_sample, sum, merged_sum = 0;
+	unsigned residual_sample, sum;
 	unsigned best_parameters_index = 0, parameters[2][1 << FLAC__MAX_RICE_PARTITION_ORDER], raw_bits[2][1 << FLAC__MAX_RICE_PARTITION_ORDER];
-	const unsigned blocksize = residual_samples + predictor_order;
 
 	/* compute abs(residual) for use later */
 	for(residual_sample = 0; residual_sample < residual_samples; residual_sample++) {
@@ -1147,7 +1147,7 @@ unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_r
 		bits_per_residual_sample[residual_sample] = FLAC__bitmath_silog2(residual[residual_sample]);
 	}
 
-	max_partition_order = encoder_precompute_partition_sums(abs_residual, abs_residual_partition_sums, residual_samples, predictor_order, max_partition_order);
+	max_partition_order = encoder_precompute_partition_sums_(abs_residual, abs_residual_partition_sums, residual_samples, predictor_order, max_partition_order);
 
 	for(partition_order = (int)max_partition_order, sum = 0; partition_order >= 0; partition_order--) {
 		if(!encoder_set_partitioned_rice_(abs_residual, abs_residual_partition_sums+sum, bits_per_residual_sample, residual_samples, predictor_order, rice_parameter, (unsigned)partition_order, parameters[!best_parameters_index], raw_bits[!best_parameters_index], &residual_bits)) {
@@ -1167,27 +1167,13 @@ unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_r
 	return best_residual_bits;
 }
 
-unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_residual[], uint32 abs_residual_partition_sums[], unsigned bits_per_residual_sample[], unsigned residual_samples, unsigned predictor_order, unsigned rice_parameter, unsigned max_partition_order, unsigned *best_partition_order, unsigned best_parameters[], unsigned best_raw_bits[])
+unsigned encoder_precompute_partition_sums_(uint32 abs_residual[], uint32 abs_residual_partition_sums[], unsigned residual_samples, unsigned predictor_order, unsigned max_partition_order)
 {
-	int32 r;
 	int partition_order;
-	unsigned residual_bits, best_residual_bits = 0;
-	unsigned residual_sample, sum, merged_sum = 0;
-	unsigned best_parameters_index = 0, parameters[2][1 << FLAC__MAX_RICE_PARTITION_ORDER], raw_bits[2][1 << FLAC__MAX_RICE_PARTITION_ORDER];
+	unsigned sum, merged_sum = 0;
 	const unsigned blocksize = residual_samples + predictor_order;
 
-	/* compute abs(residual) for use later */
-	for(residual_sample = 0; residual_sample < residual_samples; residual_sample++) {
-		r = residual[residual_sample];
-		abs_residual[residual_sample] = (uint32)(r<0? -r : r);
-	}
-
-	/* compute silog2(residual) for use later */
-	for(residual_sample = 0; residual_sample < residual_samples; residual_sample++) {
-		bits_per_residual_sample[residual_sample] = FLAC__bitmath_silog2(residual[residual_sample]);
-	}
-
-	/* pre-compute partition sums */
+	/* first do the sums for max_partition_order */
 	for(partition_order = (int)max_partition_order; partition_order >= 0; partition_order--) {
 		unsigned partition, partition_sample, partition_samples, residual_sample;
 		uint32 abs_residual_partition_sum;
@@ -1212,6 +1198,8 @@ unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_r
 			break;
 		}
 	}
+
+	/* now merge partition sums for lower orders */
 	for(sum = 0; partition_order > 0; partition_order--) {
 		unsigned i;
 		uint32 s;
@@ -1223,22 +1211,7 @@ unsigned encoder_find_best_partition_order_(const int32 residual[], uint32 abs_r
 		}
 	}
 
-	for(partition_order = (int)max_partition_order, sum = 0; partition_order >= 0; partition_order--) {
-		if(!encoder_set_partitioned_rice_(abs_residual, abs_residual_partition_sums+sum, bits_per_residual_sample, residual_samples, predictor_order, rice_parameter, (unsigned)partition_order, parameters[!best_parameters_index], raw_bits[!best_parameters_index], &residual_bits)) {
-			assert(best_residual_bits != 0);
-			break;
-		}
-		sum += 1u << partition_order;
-		if(best_residual_bits == 0 || residual_bits < best_residual_bits) {
-			best_residual_bits = residual_bits;
-			*best_partition_order = partition_order;
-			best_parameters_index = !best_parameters_index;
-		}
-	}
-	memcpy(best_parameters, parameters[best_parameters_index], sizeof(unsigned)*(1<<(*best_partition_order)));
-	memcpy(best_raw_bits, raw_bits[best_parameters_index], sizeof(unsigned)*(1<<(*best_partition_order)));
-
-	return best_residual_bits;
+	return max_partition_order;
 }
 
 #ifdef VARIABLE_RICE_BITS
