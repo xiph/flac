@@ -619,6 +619,8 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow
 	mov	esi, [ebp + 20]
 	mov	edi, [ebp + 24]
 	mov	edx, [ebp + 28]
+	inc	edx
+	and	edx, byte -2
 	mov	eax, edx
 	neg	eax
 	and	esp, byte -8
@@ -639,7 +641,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow
 	cmp	esi, ecx
 	mov	eax, esi
 	ja	short .loop2_pre
-	align	16		;8 nops
+	align	16		;4 nops
 .loop1_i:
 	movd	mm0, [eax]
 	movd	mm2, [eax + 4]
@@ -706,6 +708,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow
 	jnz	short .loop2_i
 
 	mov	edi, [ebp + 32]
+	mov	edx, [ebp + 28]
 .loop3:
 	dec	edx
 	mov	eax, [esp + 4 * edx]
