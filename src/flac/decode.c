@@ -823,7 +823,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 			if (decoder_session->replaygain.apply) {
 				const size_t n = FLAC__replaygain_synthesis__apply_gain(
 					u8buffer,
-					is_big_endian,
+					!is_big_endian,
 					is_unsigned_samples,
 					buffer,
 					wide_samples,
