@@ -73,7 +73,7 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, bool
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
 
-	assert(!(test_only && analysis_mode));
+	assert(!(stream_info.test_only && stream_info.analysis_mode));
 
 	if(!stream_info.test_only) {
 		if(0 == strcmp(outfile, "-")) {
@@ -173,7 +173,7 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, bool
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
 
-	assert(!(test_only && analysis_mode));
+	assert(!(stream_info.test_only && stream_info.analysis_mode));
 
 	if(!stream_info.test_only) {
 		if(0 == strcmp(outfile, "-")) {
