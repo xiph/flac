@@ -42,27 +42,27 @@ static void *malloc_or_die_(size_t size)
 
 static void init_metadata_blocks_()
 {
-    streaminfo_.is_last = false;
-    streaminfo_.type = ::FLAC__METADATA_TYPE_STREAMINFO;
-    streaminfo_.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
-    streaminfo_.data.stream_info.min_blocksize = 576;
-    streaminfo_.data.stream_info.max_blocksize = 576;
-    streaminfo_.data.stream_info.min_framesize = 0;
-    streaminfo_.data.stream_info.max_framesize = 0;
-    streaminfo_.data.stream_info.sample_rate = 44100;
-    streaminfo_.data.stream_info.channels = 1;
-    streaminfo_.data.stream_info.bits_per_sample = 8;
-    streaminfo_.data.stream_info.total_samples = 0;
+	streaminfo_.is_last = false;
+	streaminfo_.type = ::FLAC__METADATA_TYPE_STREAMINFO;
+	streaminfo_.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
+	streaminfo_.data.stream_info.min_blocksize = 576;
+	streaminfo_.data.stream_info.max_blocksize = 576;
+	streaminfo_.data.stream_info.min_framesize = 0;
+	streaminfo_.data.stream_info.max_framesize = 0;
+	streaminfo_.data.stream_info.sample_rate = 44100;
+	streaminfo_.data.stream_info.channels = 1;
+	streaminfo_.data.stream_info.bits_per_sample = 8;
+	streaminfo_.data.stream_info.total_samples = 0;
 	memset(streaminfo_.data.stream_info.md5sum, 0, 16);
 
-    padding_.is_last = false;
-    padding_.type = ::FLAC__METADATA_TYPE_PADDING;
-    padding_.length = 1234;
+	padding_.is_last = false;
+	padding_.type = ::FLAC__METADATA_TYPE_PADDING;
+	padding_.length = 1234;
 
-    seektable_.is_last = false;
-    seektable_.type = ::FLAC__METADATA_TYPE_SEEKTABLE;
+	seektable_.is_last = false;
+	seektable_.type = ::FLAC__METADATA_TYPE_SEEKTABLE;
 	seektable_.data.seek_table.num_points = 2;
-    seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
+	seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
 	seektable_.data.seek_table.points = (::FLAC__StreamMetadata_SeekPoint*)malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(::FLAC__StreamMetadata_SeekPoint));
 	seektable_.data.seek_table.points[0].sample_number = 0;
 	seektable_.data.seek_table.points[0].stream_offset = 0;
@@ -71,16 +71,16 @@ static void init_metadata_blocks_()
 	seektable_.data.seek_table.points[1].stream_offset = 1000;
 	seektable_.data.seek_table.points[1].frame_samples = streaminfo_.data.stream_info.min_blocksize;
 
-    application_.is_last = false;
-    application_.type = ::FLAC__METADATA_TYPE_APPLICATION;
-    application_.length = 8;
+	application_.is_last = false;
+	application_.type = ::FLAC__METADATA_TYPE_APPLICATION;
+	application_.length = 8;
 	memcpy(application_.data.application.id, "\xfe\xdc\xba\x98", 4);
 	application_.data.application.data = (FLAC__byte*)malloc_or_die_(4);
 	memcpy(application_.data.application.data, "\xf0\xe1\xd2\xc3", 4);
 
-    vorbiscomment_.is_last = true;
-    vorbiscomment_.type = ::FLAC__METADATA_TYPE_VORBIS_COMMENT;
-    vorbiscomment_.length = (4 + 8) + 4 + (4 + 5) + (4 + 0);
+	vorbiscomment_.is_last = true;
+	vorbiscomment_.type = ::FLAC__METADATA_TYPE_VORBIS_COMMENT;
+	vorbiscomment_.length = (4 + 8) + 4 + (4 + 5) + (4 + 0);
 	vorbiscomment_.data.vorbis_comment.vendor_string.length = 5;
 	vorbiscomment_.data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc_or_die_(5);
 	memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, "name0", 8);
@@ -117,7 +117,7 @@ bool test_metadata_object_streaminfo()
 	if(block.get_length() != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block.get_length());
 		return false;
-    }
+	}
 	printf("OK\n");
 
 	printf("testing StreamInfo::StreamInfo(const StreamInfo &)... +\n");
@@ -299,7 +299,7 @@ bool test_metadata_object_padding()
 	if(block.get_length() != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block.get_length());
 		return false;
-    }
+	}
 	printf("OK\n");
 
 	printf("testing Padding::Padding(const Padding &)... +\n");
@@ -409,7 +409,7 @@ bool test_metadata_object_application()
 	if(block.get_length() != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block.get_length());
 		return false;
-    }
+	}
 	printf("OK\n");
 
 	printf("testing Application::Application(const Application &)... +\n");
@@ -528,7 +528,7 @@ bool test_metadata_object_seektable()
 	if(block.get_length() != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block.get_length());
 		return false;
-    }
+	}
 	printf("OK\n");
 
 	printf("testing SeekTable::SeekTable(const SeekTable &)... +\n");
@@ -790,7 +790,7 @@ bool test_metadata_object_vorbiscomment()
 	if(block.get_length() != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block.get_length());
 		return false;
-    }
+	}
 	printf("OK\n");
 
 	printf("testing VorbisComment::VorbisComment(const VorbisComment &)... +\n");

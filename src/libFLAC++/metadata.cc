@@ -950,7 +950,7 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_iterator_prev(iterator_);
 		}
 
-		::FLAC__MetadataType Iterator::get_block_type() const 
+		::FLAC__MetadataType Iterator::get_block_type() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__metadata_iterator_get_block_type(iterator_);

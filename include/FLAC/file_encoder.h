@@ -107,7 +107,7 @@ typedef enum {
 	FLAC__FILE_ENCODER_FATAL_ERROR_WHILE_WRITING,
 	/**< A fatal error occurred while writing to the encoded file. */
 
-    FLAC__FILE_ENCODER_ERROR_OPENING_FILE,
+	FLAC__FILE_ENCODER_ERROR_OPENING_FILE,
 	/**< An error occurred opening the output file for writing. */
 
 	FLAC__FILE_ENCODER_MEMORY_ALLOCATION_ERROR,

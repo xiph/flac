@@ -172,7 +172,7 @@ extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */
 typedef enum {
 	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE = 0
 	/**< Residual is coded by partitioning into contexts, each with it's own
-     * Rice parameter. */
+	 * Rice parameter. */
 } FLAC__EntropyCodingMethodType;
 
 /** Maps a FLAC__EntropyCodingMethodType to a C string.

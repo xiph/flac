@@ -81,7 +81,7 @@ extern "C" {
  * automatically turned off if there is no signature in the STREAMINFO
  * block or when a seek is attempted.
  *
- * Make sure to read the detailed descriptions of the 
+ * Make sure to read the detailed descriptions of the
  * \link flac_seekable_stream_decoder seekable stream decoder module \endlink
  * and \link flac_stream_decoder stream decoder module \endlink
  * since the file decoder inherits much of its behavior from them.
@@ -107,16 +107,16 @@ extern "C" {
  */
 typedef enum {
 
-    FLAC__FILE_DECODER_OK = 0,
+	FLAC__FILE_DECODER_OK = 0,
 	/**< The decoder is in the normal OK state. */
 
 	FLAC__FILE_DECODER_END_OF_FILE,
 	/**< The decoder has reached the end of the file. */
 
-    FLAC__FILE_DECODER_ERROR_OPENING_FILE,
+	FLAC__FILE_DECODER_ERROR_OPENING_FILE,
 	/**< An error occurred opening the input file. */
 
-    FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR,
+	FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR,
 	/**< An error occurred allocating memory. */
 
 	FLAC__FILE_DECODER_SEEK_ERROR,
@@ -125,18 +125,18 @@ typedef enum {
 	FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR,
 	/**< An error occurred in the underlying seekable stream decoder. */
 
-    FLAC__FILE_DECODER_ALREADY_INITIALIZED,
+	FLAC__FILE_DECODER_ALREADY_INITIALIZED,
 	/**< FLAC__file_decoder_init() was called when the decoder was already
 	 * initialized, usually because FLAC__file_decoder_finish() was not
-     * called.
+	 * called.
 	 */
 
-    FLAC__FILE_DECODER_INVALID_CALLBACK,
+	FLAC__FILE_DECODER_INVALID_CALLBACK,
 	/**< FLAC__file_decoder_init() was called without all callbacks
 	 * being set.
 	 */
 
-    FLAC__FILE_DECODER_UNINITIALIZED
+	FLAC__FILE_DECODER_UNINITIALIZED
 	/**< The decoder is in the uninitialized state. */
 
 } FLAC__FileDecoderState;

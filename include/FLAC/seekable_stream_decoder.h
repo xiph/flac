@@ -118,7 +118,7 @@ extern "C" {
  */
 typedef enum {
 
-    FLAC__SEEKABLE_STREAM_DECODER_OK = 0,
+	FLAC__SEEKABLE_STREAM_DECODER_OK = 0,
 	/**< The decoder is in the normal OK state. */
 
 	FLAC__SEEKABLE_STREAM_DECODER_SEEKING,
@@ -141,18 +141,18 @@ typedef enum {
 	 * callback returned an error.
 	 */
 
-    FLAC__SEEKABLE_STREAM_DECODER_ALREADY_INITIALIZED,
+	FLAC__SEEKABLE_STREAM_DECODER_ALREADY_INITIALIZED,
 	/**< FLAC__seekable_stream_decoder_init() was called when the
 	 * decoder was already initialized, usually because
 	 * FLAC__seekable_stream_decoder_finish() was not called.
 	 */
 
-    FLAC__SEEKABLE_STREAM_DECODER_INVALID_CALLBACK,
+	FLAC__SEEKABLE_STREAM_DECODER_INVALID_CALLBACK,
 	/**< FLAC__seekable_stream_decoder_init() was called without all
 	 * callbacks being set.
 	 */
 
-    FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED
+	FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED
 	/**< The decoder is in the uninitialized state. */
 
 } FLAC__SeekableStreamDecoderState;

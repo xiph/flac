@@ -69,7 +69,7 @@ static FLAC__bool check_seektable_(const FLAC__StreamMetadata *block, unsigned n
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
 		return false;
-    }
+	}
 	if(block->data.seek_table.num_points != num_points) {
 		printf("FAILED, expected %u point, got %u\n", num_points, block->data.seek_table.num_points);
 		return false;
@@ -93,14 +93,14 @@ static void entry_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, const ch
 {
 	entry->length = strlen(field);
 	entry->entry = (FLAC__byte*)malloc(entry->length);
-	FLAC__ASSERT(0 != entry->entry);	
+	FLAC__ASSERT(0 != entry->entry);
 	memcpy(entry->entry, field, entry->length);
 }
 
 static void entry_clone_(FLAC__StreamMetadata_VorbisComment_Entry *entry)
 {
 	FLAC__byte *x = (FLAC__byte*)malloc(entry->length);
-	FLAC__ASSERT(0 != x);	
+	FLAC__ASSERT(0 != x);
 	memcpy(x, entry->entry, entry->length);
 	entry->entry = x;
 }
@@ -206,7 +206,7 @@ FLAC__bool test_metadata_object()
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
 		return false;
-    }
+	}
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_clone()... ");
@@ -237,7 +237,7 @@ FLAC__bool test_metadata_object()
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
 		return false;
-    }
+	}
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_clone()... ");
@@ -268,7 +268,7 @@ FLAC__bool test_metadata_object()
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
 		return false;
-    }
+	}
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_clone()... ");
@@ -539,7 +539,7 @@ FLAC__bool test_metadata_object()
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
 		return false;
 
-    {
+	{
 		FLAC__uint64 nums[2] = { 3, 7 };
 		seekpoint_array[seekpoints++].sample_number = nums[0];
 		seekpoint_array[seekpoints++].sample_number = nums[1];
@@ -612,7 +612,7 @@ FLAC__bool test_metadata_object()
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
 		return false;
-    }
+	}
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_clone()... ");

@@ -192,22 +192,22 @@ namespace FLAC {
 			inline void set_reference(bool x) { is_reference_ = x; }
 		};
 
-		inline bool Prototype::operator==(const Prototype &object) const 
+		inline bool Prototype::operator==(const Prototype &object) const
 		{ return (bool)::FLAC__metadata_object_is_equal(object_, object.object_); }
 
-		inline bool Prototype::operator==(const ::FLAC__StreamMetadata &object) const 
+		inline bool Prototype::operator==(const ::FLAC__StreamMetadata &object) const
 		{ return (bool)::FLAC__metadata_object_is_equal(object_, &object); }
 
-		inline bool Prototype::operator==(const ::FLAC__StreamMetadata *object) const 
+		inline bool Prototype::operator==(const ::FLAC__StreamMetadata *object) const
 		{ return (bool)::FLAC__metadata_object_is_equal(object_, object); }
 
-		inline bool Prototype::operator!=(const Prototype &object) const 
+		inline bool Prototype::operator!=(const Prototype &object) const
 		{ return !operator==(object); }
 
-		inline bool Prototype::operator!=(const ::FLAC__StreamMetadata &object) const 
+		inline bool Prototype::operator!=(const ::FLAC__StreamMetadata &object) const
 		{ return !operator==(object); }
 
-		inline bool Prototype::operator!=(const ::FLAC__StreamMetadata *object) const 
+		inline bool Prototype::operator!=(const ::FLAC__StreamMetadata *object) const
 		{ return !operator==(object); }
 
 		inline bool Prototype::is_valid() const

@@ -132,7 +132,7 @@ void OggFLAC__stream_decoder_delete(OggFLAC__StreamDecoder *decoder)
 
 	OggFLAC__stream_decoder_finish(decoder);
 
-    FLAC__stream_decoder_delete(decoder->private_->FLAC_stream_decoder);
+	FLAC__stream_decoder_delete(decoder->private_->FLAC_stream_decoder);
 
 	free(decoder->private_);
 	free(decoder->protected_);
@@ -161,14 +161,14 @@ OggFLAC__StreamDecoderState OggFLAC__stream_decoder_init(OggFLAC__StreamDecoder 
 	if(ogg_sync_init(&decoder->private_->ogg.sync_state) != 0)
 		return decoder->protected_->state = OggFLAC__STREAM_DECODER_OGG_ERROR;
 
-    FLAC__stream_decoder_set_read_callback(decoder->private_->FLAC_stream_decoder, read_callback_);
-    FLAC__stream_decoder_set_write_callback(decoder->private_->FLAC_stream_decoder, write_callback_);
-    FLAC__stream_decoder_set_metadata_callback(decoder->private_->FLAC_stream_decoder, metadata_callback_);
-    FLAC__stream_decoder_set_error_callback(decoder->private_->FLAC_stream_decoder, error_callback_);
-    FLAC__stream_decoder_set_client_data(decoder->private_->FLAC_stream_decoder, decoder);
+	FLAC__stream_decoder_set_read_callback(decoder->private_->FLAC_stream_decoder, read_callback_);
+	FLAC__stream_decoder_set_write_callback(decoder->private_->FLAC_stream_decoder, write_callback_);
+	FLAC__stream_decoder_set_metadata_callback(decoder->private_->FLAC_stream_decoder, metadata_callback_);
+	FLAC__stream_decoder_set_error_callback(decoder->private_->FLAC_stream_decoder, error_callback_);
+	FLAC__stream_decoder_set_client_data(decoder->private_->FLAC_stream_decoder, decoder);
 
-    if(FLAC__stream_decoder_init(decoder->private_->FLAC_stream_decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
-        return decoder->protected_->state = OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR;
+	if(FLAC__stream_decoder_init(decoder->private_->FLAC_stream_decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
+		return decoder->protected_->state = OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR;
 
 	return decoder->protected_->state = OggFLAC__STREAM_DECODER_OK;
 }
@@ -448,7 +448,7 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *unused, 
 	 * We have to be careful not to read in more than the
 	 * FLAC__StreamDecoder says it has room for.  We know
 	 * that the size of the decoded data must be no more
-	 * than the encoded data we will read.	
+	 * than the encoded data we will read.
 	 */
 	ogg_bytes_to_read = min(*bytes, OGG_BYTES_CHUNK);
 	oggbuf = ogg_sync_buffer(&decoder->private_->ogg.sync_state, ogg_bytes_to_read);
@@ -456,7 +456,7 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *unused, 
 	if(decoder->private_->read_callback(decoder, oggbuf, &ogg_bytes_to_read, decoder->private_->client_data) != FLAC__STREAM_DECODER_READ_STATUS_CONTINUE) {
 		decoder->protected_->state = OggFLAC__STREAM_DECODER_READ_ERROR;
 		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
-	}   
+	}
 	ogg_bytes_read = ogg_bytes_to_read;
 
 	if(ogg_sync_wrote(&decoder->private_->ogg.sync_state, ogg_bytes_read) < 0) {

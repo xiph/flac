@@ -31,35 +31,35 @@ FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetadata_StreamInfo 
 	if(blockcopy->min_blocksize != block->min_blocksize) {
 		printf("FAILED, min_blocksize mismatch, expected %u, got %u\n", block->min_blocksize, blockcopy->min_blocksize);
 		return false;
-    }
+	}
 	if(blockcopy->max_blocksize != block->max_blocksize) {
 		printf("FAILED, max_blocksize mismatch, expected %u, got %u\n", block->max_blocksize, blockcopy->max_blocksize);
 		return false;
-    }
+	}
 	if(blockcopy->min_framesize != block->min_framesize) {
 		printf("FAILED, min_framesize mismatch, expected %u, got %u\n", block->min_framesize, blockcopy->min_framesize);
 		return false;
-    }
+	}
 	if(blockcopy->max_framesize != block->max_framesize) {
 		printf("FAILED, max_framesize mismatch, expected %u, got %u\n", block->max_framesize, blockcopy->max_framesize);
 		return false;
-    }
+	}
 	if(blockcopy->sample_rate != block->sample_rate) {
 		printf("FAILED, sample_rate mismatch, expected %u, got %u\n", block->sample_rate, blockcopy->sample_rate);
 		return false;
-    }
+	}
 	if(blockcopy->channels != block->channels) {
 		printf("FAILED, channels mismatch, expected %u, got %u\n", block->channels, blockcopy->channels);
 		return false;
-    }
+	}
 	if(blockcopy->bits_per_sample != block->bits_per_sample) {
 		printf("FAILED, bits_per_sample mismatch, expected %u, got %u\n", block->bits_per_sample, blockcopy->bits_per_sample);
 		return false;
-    }
+	}
 	if(blockcopy->total_samples != block->total_samples) {
 		printf("FAILED, total_samples mismatch, expected %llu, got %llu\n", block->total_samples, blockcopy->total_samples);
 		return false;
-    }
+	}
 	if(0 != memcmp(blockcopy->md5sum, block->md5sum, sizeof(block->md5sum))) {
 		printf("FAILED, md5sum mismatch, expected %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X, got %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n",
 			(unsigned)block->md5sum[0],
@@ -96,7 +96,7 @@ FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetadata_StreamInfo 
 			(unsigned)blockcopy->md5sum[15]
 		);
 		return false;
-    }
+	}
 	return true;
 }
 
@@ -125,7 +125,7 @@ FLAC__bool compare_block_data_application_(const FLAC__StreamMetadata_Applicatio
 			(unsigned)blockcopy->id[3]
 		);
 		return false;
-    }
+	}
 	if(0 == block->data || 0 == blockcopy->data) {
 		if(block->data != blockcopy->data) {
 			printf("FAILED, data mismatch (%s's data pointer is null)\n", 0==block->data?"original":"copy");
@@ -155,7 +155,7 @@ FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetadata_SeekTable *b
 	if(blockcopy->num_points != block->num_points) {
 		printf("FAILED, num_points mismatch, expected %u, got %u\n", block->num_points, blockcopy->num_points);
 		return false;
-    }
+	}
 	for(i = 0; i < block->num_points; i++) {
 		if(blockcopy->points[i].sample_number != block->points[i].sample_number) {
 			printf("FAILED, points[%u].sample_number mismatch, expected %llu, got %llu\n", i, block->points[i].sample_number, blockcopy->points[i].sample_number);
@@ -179,7 +179,7 @@ FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_VorbisCo
 	if(blockcopy->vendor_string.length != block->vendor_string.length) {
 		printf("FAILED, vendor_string.length mismatch, expected %u, got %u\n", block->vendor_string.length, blockcopy->vendor_string.length);
 		return false;
-    }
+	}
 	if(0 == block->vendor_string.entry || 0 == blockcopy->vendor_string.entry) {
 		if(block->vendor_string.entry != blockcopy->vendor_string.entry) {
 			printf("FAILED, vendor_string.entry mismatch\n");
@@ -189,11 +189,11 @@ FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_VorbisCo
 	else if(0 != memcmp(blockcopy->vendor_string.entry, block->vendor_string.entry, block->vendor_string.length)) {
 		printf("FAILED, vendor_string.entry mismatch\n");
 		return false;
-    }
+	}
 	if(blockcopy->num_comments != block->num_comments) {
 		printf("FAILED, num_comments mismatch, expected %u, got %u\n", block->num_comments, blockcopy->num_comments);
 		return false;
-    }
+	}
 	for(i = 0; i < block->num_comments; i++) {
 		if(blockcopy->comments[i].length != block->comments[i].length) {
 			printf("FAILED, comments[%u].length mismatch, expected %u, got %u\n", i, block->comments[i].length, blockcopy->comments[i].length);
@@ -220,15 +220,15 @@ FLAC__bool compare_block_(const FLAC__StreamMetadata *block, const FLAC__StreamM
 	if(blockcopy->type != block->type) {
 		printf("FAILED, type mismatch, expected %s, got %s\n", FLAC__MetadataTypeString[block->type], FLAC__MetadataTypeString[blockcopy->type]);
 		return false;
-    }
+	}
 	if(blockcopy->is_last != block->is_last) {
 		printf("FAILED, is_last mismatch, expected %u, got %u\n", (unsigned)block->is_last, (unsigned)blockcopy->is_last);
 		return false;
-    }
+	}
 	if(blockcopy->length != block->length) {
 		printf("FAILED, length mismatch, expected %u, got %u\n", block->length, blockcopy->length);
 		return false;
-    }
+	}
 	switch(block->type) {
 		case FLAC__METADATA_TYPE_STREAMINFO:
 			return compare_block_data_streaminfo_(&block->data.stream_info, &blockcopy->data.stream_info);

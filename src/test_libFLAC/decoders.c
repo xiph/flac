@@ -125,27 +125,27 @@ static void init_metadata_blocks_()
 	*/
 
 	/* min/max_framesize and md5sum don't get written at first, so we have to leave them 0 */
-    streaminfo_.is_last = false;
-    streaminfo_.type = FLAC__METADATA_TYPE_STREAMINFO;
-    streaminfo_.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
-    streaminfo_.data.stream_info.min_blocksize = 576;
-    streaminfo_.data.stream_info.max_blocksize = 576;
-    streaminfo_.data.stream_info.min_framesize = 0;
-    streaminfo_.data.stream_info.max_framesize = 0;
-    streaminfo_.data.stream_info.sample_rate = 44100;
-    streaminfo_.data.stream_info.channels = 1;
-    streaminfo_.data.stream_info.bits_per_sample = 8;
-    streaminfo_.data.stream_info.total_samples = 0;
+	streaminfo_.is_last = false;
+	streaminfo_.type = FLAC__METADATA_TYPE_STREAMINFO;
+	streaminfo_.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
+	streaminfo_.data.stream_info.min_blocksize = 576;
+	streaminfo_.data.stream_info.max_blocksize = 576;
+	streaminfo_.data.stream_info.min_framesize = 0;
+	streaminfo_.data.stream_info.max_framesize = 0;
+	streaminfo_.data.stream_info.sample_rate = 44100;
+	streaminfo_.data.stream_info.channels = 1;
+	streaminfo_.data.stream_info.bits_per_sample = 8;
+	streaminfo_.data.stream_info.total_samples = 0;
 	memset(streaminfo_.data.stream_info.md5sum, 0, 16);
 
-    padding_.is_last = false;
-    padding_.type = FLAC__METADATA_TYPE_PADDING;
-    padding_.length = 1234;
+	padding_.is_last = false;
+	padding_.type = FLAC__METADATA_TYPE_PADDING;
+	padding_.length = 1234;
 
-    seektable_.is_last = false;
-    seektable_.type = FLAC__METADATA_TYPE_SEEKTABLE;
+	seektable_.is_last = false;
+	seektable_.type = FLAC__METADATA_TYPE_SEEKTABLE;
 	seektable_.data.seek_table.num_points = 2;
-    seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
+	seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
 	seektable_.data.seek_table.points = malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint));
 	seektable_.data.seek_table.points[0].sample_number = 0;
 	seektable_.data.seek_table.points[0].stream_offset = 0;
@@ -154,16 +154,16 @@ static void init_metadata_blocks_()
 	seektable_.data.seek_table.points[1].stream_offset = 1000;
 	seektable_.data.seek_table.points[1].frame_samples = streaminfo_.data.stream_info.min_blocksize;
 
-    application1_.is_last = false;
-    application1_.type = FLAC__METADATA_TYPE_APPLICATION;
-    application1_.length = 8;
+	application1_.is_last = false;
+	application1_.type = FLAC__METADATA_TYPE_APPLICATION;
+	application1_.length = 8;
 	memcpy(application1_.data.application.id, "\xfe\xdc\xba\x98", 4);
 	application1_.data.application.data = malloc_or_die_(4);
 	memcpy(application1_.data.application.data, "\xf0\xe1\xd2\xc3", 4);
 
-    application2_.is_last = false;
-    application2_.type = FLAC__METADATA_TYPE_APPLICATION;
-    application2_.length = 4;
+	application2_.is_last = false;
+	application2_.type = FLAC__METADATA_TYPE_APPLICATION;
+	application2_.length = 4;
 	memcpy(application2_.data.application.id, "\x76\x54\x32\x10", 4);
 	application2_.data.application.data = 0;
 
@@ -206,7 +206,7 @@ static FLAC__bool generate_file_()
 	num_expected_ = 5;
 
 	if(!file_utils__generate_flacfile(flacfilename_, &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
-		return die_("creating the encoded file"); 
+		return die_("creating the encoded file");
 
 	return true;
 }
@@ -227,21 +227,21 @@ static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const FLAC__S
 
 	if(feof(dcd->file))
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
-    else if(*bytes > 0) {
-        unsigned bytes_read = fread(buffer, 1, *bytes, dcd->file);
-        if(bytes_read == 0) {
-            if(feof(dcd->file))
-                return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
-            else
-                return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
-        }
-        else {
-            *bytes = bytes_read;
-            return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
-        }
-    }
-    else
-        return FLAC__STREAM_DECODER_READ_STATUS_ABORT; /* abort to avoid a deadlock */
+	else if(*bytes > 0) {
+		unsigned bytes_read = fread(buffer, 1, *bytes, dcd->file);
+		if(bytes_read == 0) {
+			if(feof(dcd->file))
+				return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+			else
+				return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+		}
+		else {
+			*bytes = bytes_read;
+			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+		}
+	}
+	else
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT; /* abort to avoid a deadlock */
 }
 
 static FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
@@ -258,13 +258,13 @@ static FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const FLAC_
 	if(dcd->error_occurred)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-    if(
-        (frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER && frame->header.number.frame_number == 0) ||
-        (frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER && frame->header.number.sample_number == 0)
-    ) {
-        printf("content... ");
-        fflush(stdout);
-    }
+	if(
+		(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER && frame->header.number.frame_number == 0) ||
+		(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER && frame->header.number.sample_number == 0)
+	) {
+		printf("content... ");
+		fflush(stdout);
+	}
 
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }

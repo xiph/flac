@@ -154,7 +154,7 @@ extern "C" {
  * blocks to return.  Remember that some metadata blocks can be big so
  * filtering out the ones you don't use can reduce the memory requirements
  * of the decoder.  Also note the special forms
- * FLAC__stream_decoder_respond_application(id) and 
+ * FLAC__stream_decoder_respond_application(id) and
  * FLAC__stream_decoder_ignore_application(id) for filtering APPLICATION
  * blocks based on the application ID.
  *
@@ -726,7 +726,7 @@ FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
  *  called with the decoded metadata block or audio frame, unless an error
  *  occurred.  If the decoder loses sync it will call the error callback
  *  instead.
- * 
+ *
  * \param  decoder  An initialized decoder instance in the state
  *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC.
  * \assert
@@ -751,7 +751,7 @@ FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *decoder);
  *  As each metadata block is decoded, the metadata callback will be called
  *  with the decoded metadata.  If the decoder loses sync it will call the
  *  error callback.
- * 
+ *
  * \param  decoder  An initialized decoder instance in the state
  *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
  * \assert
@@ -776,7 +776,7 @@ FLAC__bool FLAC__stream_decoder_process_until_end_of_metadata(FLAC__StreamDecode
  *  As each metadata block and frame is decoded, the metadata or write
  *  callback will be called with the decoded metadata or frame.  If the
  *  decoder loses sync it will call the error callback.
- * 
+ *
  * \param  decoder  An initialized decoder instance in the state
  *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
  * \assert

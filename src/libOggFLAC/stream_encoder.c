@@ -126,7 +126,7 @@ void OggFLAC__stream_encoder_delete(OggFLAC__StreamEncoder *encoder)
 	FLAC__ASSERT(0 != encoder->private_->FLAC_stream_encoder);
 
 	(void)OggFLAC__stream_encoder_finish(encoder);
- 
+
 	FLAC__stream_encoder_delete(encoder->private_->FLAC_stream_encoder);
 
 	free(encoder->private_);

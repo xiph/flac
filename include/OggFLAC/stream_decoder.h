@@ -506,7 +506,7 @@ FLAC__bool OggFLAC__stream_decoder_reset(OggFLAC__StreamDecoder *decoder);
 
 /** Decode one metadata block or audio frame.
  *  This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_process_single()
- * 
+ *
  * \param  decoder  An initialized decoder instance in the state
  *                  \c OggFLAC__STREAM_DECODER_OK.
  * \assert
@@ -523,7 +523,7 @@ FLAC__bool OggFLAC__stream_decoder_process_single(OggFLAC__StreamDecoder *decode
 
 /** Decode until the end of the metadata.
  *  This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_process_until_end_of_metadata()
- * 
+ *
  * \param  decoder  An initialized decoder instance in the state
  *                  \c OggFLAC__STREAM_DECODER_OK.
  * \assert
@@ -540,7 +540,7 @@ FLAC__bool OggFLAC__stream_decoder_process_until_end_of_metadata(OggFLAC__Stream
 
 /** Decode until the end of the stream.
  *  This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_process_until_end_of_stream()
- * 
+ *
  * \param  decoder  An initialized decoder instance in the state
  *                  \c OggFLAC__STREAM_DECODER_OK.
  * \assert

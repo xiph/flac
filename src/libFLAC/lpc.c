@@ -147,7 +147,7 @@ redo_it:
 	else {
 		int log2cmax;
 
-		(void)frexp(cmax, &log2cmax);	
+		(void)frexp(cmax, &log2cmax);
 		log2cmax--;
 		*shift = (int)precision - log2cmax - 1;
 

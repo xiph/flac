@@ -319,7 +319,7 @@ static FLAC__bool generate_file_()
 		return die_("priming our metadata");
 
 	if(!file_utils__generate_flacfile(flacfile_, 0, 512 * 1024, &streaminfo, metadata, 1))
-		return die_("creating the encoded file"); 
+		return die_("creating the encoded file");
 
 	free(vorbiscomment.data.vorbis_comment.vendor_string.entry);
 
@@ -377,7 +377,7 @@ static FLAC__bool test_file_(const char *filename, void (*metadata_callback)(con
 static FLAC__bool change_stats_(const char *filename, FLAC__bool read_only)
 {
 	if(!file_utils__change_stats(filename, read_only))
-        return die_("during file_utils__change_stats()");
+		return die_("during file_utils__change_stats()");
 
 	return true;
 }
@@ -592,7 +592,7 @@ static FLAC__bool test_level_1_()
 
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
 		return false;
-	
+
 	printf("SV[P]PP\tprev\n");
 	if(!FLAC__metadata_simple_iterator_prev(iterator))
 		return die_("iterator ended early\n");

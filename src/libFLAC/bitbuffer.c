@@ -2081,7 +2081,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 						CRC16_UPDATE_BLURB(bb, save_blurb, bb->read_crc16);
 						break;
 					}
-				}	
+				}
 				else {
 					msbs += FLAC__BITS_PER_BLURB - cbits;
 					cbits = 0;
@@ -2171,7 +2171,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 							CRC16_UPDATE_BLURB(bb, save_blurb, bb->read_crc16);
 							break;
 						}
-					}	
+					}
 					else {
 						msbs += FLAC__BITS_PER_BLURB - cbits;
 						cbits = 0;

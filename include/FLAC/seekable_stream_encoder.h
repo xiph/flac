@@ -100,12 +100,12 @@ typedef enum {
 	 * FLAC__seekable_stream_encoder_finish() was not called.
 	 */
 
-    FLAC__SEEKABLE_STREAM_ENCODER_INVALID_CALLBACK,
+	FLAC__SEEKABLE_STREAM_ENCODER_INVALID_CALLBACK,
 	/**< FLAC__seekable_stream_encoder_init() was called without all
 	 * callbacks being set.
 	 */
 
-    FLAC__SEEKABLE_STREAM_ENCODER_INVALID_SEEKTABLE,
+	FLAC__SEEKABLE_STREAM_ENCODER_INVALID_SEEKTABLE,
 	/**< An invalid seek table was passed is the metadata to
 	 * FLAC__seekable_stream_encoder_set_metadata().
 	 */

@@ -186,7 +186,7 @@ FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_init(FLAC__Seekab
 	 * Initializing the stream encoder writes all the metadata, so we
 	 * save the stream offset now.
 	 */
-	encoder->private_->stream_offset = encoder->private_->bytes_written; 
+	encoder->private_->stream_offset = encoder->private_->bytes_written;
 
 	return encoder->protected_->state = FLAC__SEEKABLE_STREAM_ENCODER_OK;
 }
@@ -407,7 +407,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_metadata(FLAC__SeekableStreamEncode
 	if(0 != metadata && num_blocks > 0) {
 		unsigned i;
 		for(i = 0; i < num_blocks; i++) {
-			if(0 != metadata[i] && metadata[i]->type == FLAC__METADATA_TYPE_SEEKTABLE) {	
+			if(0 != metadata[i] && metadata[i]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
 				encoder->private_->seek_table = &metadata[i]->data.seek_table;
 				break; /* take only the first one */
 			}

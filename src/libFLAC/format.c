@@ -126,7 +126,7 @@ FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate)
 		sample_rate == 0 ||
 		sample_rate > FLAC__MAX_SAMPLE_RATE ||
 		(
-			sample_rate >= (1u << 16) && 
+			sample_rate >= (1u << 16) &&
 			!(sample_rate % 1000 == 0 || sample_rate % 10 == 0)
 		)
 	) {

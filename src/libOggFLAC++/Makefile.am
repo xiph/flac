@@ -32,4 +32,4 @@ libOggFLAC___la_LDFLAGS = -version-info 0:0:0
 
 libOggFLAC___la_SOURCES = \
 	stream_decoder.cc \
-	stream_encoder.cc 
+	stream_encoder.cc

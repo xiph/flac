@@ -37,4 +37,4 @@ libFLAC___la_SOURCES = \
 	seekable_stream_decoder.cc \
 	seekable_stream_encoder.cc \
 	stream_decoder.cc \
-	stream_encoder.cc 
+	stream_encoder.cc

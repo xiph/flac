@@ -314,7 +314,7 @@ static bool generate_file_()
 		return die_("priming our metadata");
 
 	if(!file_utils__generate_flacfile(flacfile_, 0, 512 * 1024, &streaminfo, metadata, 1))
-		return die_("creating the encoded file"); 
+		return die_("creating the encoded file");
 
 	free(vorbiscomment.data.vorbis_comment.vendor_string.entry);
 
@@ -363,7 +363,7 @@ static bool test_file_(const char *filename, bool ignore_metadata)
 static bool change_stats_(const char *filename, bool read_only)
 {
 	if(!file_utils__change_stats(filename, read_only))
-        return die_("during file_utils__change_stats()");
+		return die_("during file_utils__change_stats()");
 
 	return true;
 }
@@ -585,7 +585,7 @@ static bool test_level_1_()
 
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
-	
+
 	printf("SV[P]PP\tprev\n");
 	if(!iterator.prev())
 		return die_("iterator ended early\n");

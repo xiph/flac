@@ -1619,7 +1619,7 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_padding_(FILE *fil
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
 	n %= 1024;
-	
+
 	if(fwrite(buffer, 1, n, file) != n)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 
