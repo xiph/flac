@@ -647,7 +647,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 	qsort(seek_table->points, seek_table->num_points, sizeof(FLAC__StreamMetaData_SeekPoint), (int (*)(const void *, const void *))seekpoint_compare);
 
 	/* uniqify the seekpoints */
-	first = false;
+	first = true;
 	for(i = j = 0; i < seek_table->num_points; i++) {
 		if(!first) {
 			if(seek_table->points[i].sample_number == seek_table->points[j-1].sample_number)
