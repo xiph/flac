@@ -145,10 +145,11 @@ redo_it:
 		return 2;
 	}
 	else {
-		const int log2cmax = (int)floor(log(cmax) / M_LN2); /* this is a good estimate but may not be precise enough, so we have to check for corner cases later when shifting */
-		const int maxshift = (int)precision - log2cmax - 1;
+		int log2cmax;
 
-		*shift = maxshift;
+		(void)frexp(cmax, &log2cmax);	
+		log2cmax--;
+		*shift = (int)precision - log2cmax - 1;
 
 		if(*shift < min_shiftlimit || *shift > max_shiftlimit) {
 			return 1;
@@ -159,7 +160,7 @@ redo_it:
 		for(i = 0; i < order; i++) {
 			qlp_coeff[i] = (FLAC__int32)floor((double)lp_coeff[i] * (double)(1 << *shift));
 
-			/* check for corner cases mentioned in the comment for log2cmax above */
+			/* double-check the result */
 			if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
 #ifdef FLAC__OVERFLOW_DETECT
 				fprintf(stderr,"FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (double)lp_coeff[i] * (double)(1 << *shift), floor((double)lp_coeff[i] * (double)(1 << *shift)));
@@ -177,7 +178,7 @@ redo_it:
 		for(i = 0; i < order; i++) {
 			qlp_coeff[i] = (FLAC__int32)floor((double)lp_coeff[i] / (double)(1 << nshift));
 
-			/* check for corner cases mentioned in the comment for log2cmax above */
+			/* double-check the result */
 			if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
 #ifdef FLAC__OVERFLOW_DETECT
 				fprintf(stderr,"FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (double)lp_coeff[i] / (double)(1 << nshift), floor((double)lp_coeff[i] / (double)(1 << nshift)));
