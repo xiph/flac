@@ -103,7 +103,7 @@
 	</P>
 	<UL>
 		<P><LI>
-			<B>Lossless</B>: The encoding of audi (PCM) data incurs no loss of information, and the decoded audio is bit-for-bit identical to what went into the encoder.  Each frame contains a 16-bit CRC of the frame data for detecting transmission errors.  The integrity of the audio data is further insured by storing an <A HREF="http://userpages.umbc.edu/~mabzug1/cs/md5/md5.html">MD5 signature</A> of the original unencoded audio data in the file header, which can be compared against later during decoding or testing.
+			<B>Lossless</B>: The encoding of audio (PCM) data incurs no loss of information, and the decoded audio is bit-for-bit identical to what went into the encoder.  Each frame contains a 16-bit CRC of the frame data for detecting transmission errors.  The integrity of the audio data is further insured by storing an <A HREF="http://userpages.umbc.edu/~mabzug1/cs/md5/md5.html">MD5 signature</A> of the original unencoded audio data in the file header, which can be compared against later during decoding or testing.
 		</LI></P>
 		<P><LI>
 			<B>Fast</B>: FLAC is asymmetric in favor of decode speed.  Decoding requires only integer arithmetic, and is much less compute-intensive than for most perceptual codecs.  Real-time decode performance is easily achievable on even modest hardware.
