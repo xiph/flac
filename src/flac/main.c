@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h> /* for unlink() */
 #include "FLAC/all.h"
 #include "analyze.h"
 #include "decode.h"
@@ -33,7 +34,7 @@ static int decode_file(const char *infilename, const char *forced_outfilename);
 
 bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
 bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
-bool force_to_stdout = false;
+bool force_to_stdout = false, delete_input = false;
 analysis_options aopts = { false, false };
 unsigned padding = 0;
 unsigned max_lpc_order = 8;
@@ -84,6 +85,10 @@ int main(int argc, char *argv[])
 			num_requested_seek_points = 0;
 			requested_seek_points[0] = '\0';
 		}
+		else if(0 == strcmp(argv[i], "--delete-input-file"))
+			delete_input = true;
+		else if(0 == strcmp(argv[i], "--delete-input-file-"))
+			delete_input = false;
 		else if(0 == strcmp(argv[i], "--skip"))
 			skip = (uint64)atoi(argv[++i]); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
 		else if(0 == strcmp(argv[i], "--lax"))
@@ -318,8 +323,9 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
 		if(!mode_decode) {
-			fprintf(stderr, "options:%s -P %u -b %u%s -l %u%s%s -q %u -r %u,%u -R %u%s\n",
-				lax?" --lax":"", padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
+			fprintf(stderr, "options:%s%s -P %u -b %u%s -l %u%s%s -q %u -r %u,%u -R %u%s\n",
+				delete_input?" --delete-input-file":"", lax?" --lax":"",
+				padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
 				do_exhaustive_model_search?" -e":"", do_qlp_coeff_prec_search?" -p":"",
 				qlp_coeff_precision,
 				(unsigned)min_residual_partition_order, (unsigned)max_residual_partition_order, (unsigned)rice_parameter_search_dist,
@@ -430,6 +436,7 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -c : write output to stdout\n");
 	fprintf(stderr, "  -s : silent (do not write runtime encode/decode statistics)\n");
 	fprintf(stderr, "  --skip samples : can be used both for encoding and decoding\n");
+	fprintf(stderr, "  --delete-input-file : deletes the input file after a successful encode/decode\n");
 	fprintf(stderr, "analyze options:\n");
 	fprintf(stderr, "  --a-rtext : include residual signal in text output\n");
 	fprintf(stderr, "  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
@@ -478,8 +485,8 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
 	fprintf(stderr, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	fprintf(stderr, "         comparing to the original\n");
-	fprintf(stderr, "  -S-, -m-, -M-, -e-, -p-, -V-, --lax- can all be used to turn off a particular\n");
-	fprintf(stderr, "  option\n");
+	fprintf(stderr, "  -S-, -m-, -M-, -e-, -p-, -V-, --delete-input-file-, --lax- can all be used to\n");
+	fprintf(stderr, "  turn off a particular option\n");
 	fprintf(stderr, "format options:\n");
 	fprintf(stderr, "  -fb | -fl : big-endian | little-endian byte order\n");
 	fprintf(stderr, "  -fc channels\n");
@@ -564,8 +571,12 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 	else
 		retval = flac__encode_raw(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
-	if(retval == 0 && strcmp(infilename, "-") && strcmp(forced_outfilename, "-"))
-		flac__file_copy_metadata(infilename, forced_outfilename);
+	if(retval == 0 && strcmp(infilename, "-")) {
+		if(strcmp(forced_outfilename, "-"))
+			flac__file_copy_metadata(infilename, forced_outfilename);
+		if(delete_input)
+			unlink(infilename);
+	}
 
 	return retval;
 }
@@ -611,8 +622,12 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	else
 		retval = flac__decode_raw(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 
-	if(retval == 0 && strcmp(infilename, "-") && strcmp(forced_outfilename, "-"))
-		flac__file_copy_metadata(infilename, forced_outfilename);
+	if(retval == 0 && strcmp(infilename, "-")) {
+		if(strcmp(forced_outfilename, "-"))
+			flac__file_copy_metadata(infilename, forced_outfilename);
+		if(delete_input)
+			unlink(infilename);
+	}
 
 	return retval;
 }
