@@ -427,6 +427,13 @@ FLAC_API unsigned FLAC__file_decoder_get_blocksize(const FLAC__FileDecoder *deco
 	return FLAC__seekable_stream_decoder_get_blocksize(decoder->private_->seekable_stream_decoder);
 }
 
+FLAC_API FLAC__bool FLAC__file_decoder_get_decode_position(const FLAC__FileDecoder *decoder, FLAC__uint64 *position)
+{
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+	return FLAC__seekable_stream_decoder_get_decode_position(decoder->private_->seekable_stream_decoder, position);
+}
+
 FLAC_API FLAC__bool FLAC__file_decoder_process_single(FLAC__FileDecoder *decoder)
 {
 	FLAC__bool ret;

@@ -521,6 +521,9 @@ FLAC_API unsigned FLAC__file_decoder_get_sample_rate(const FLAC__FileDecoder *de
  */
 FLAC_API unsigned FLAC__file_decoder_get_blocksize(const FLAC__FileDecoder *decoder);
 
+/*@@@@ document */
+FLAC_API FLAC__bool FLAC__file_decoder_get_decode_position(const FLAC__FileDecoder *decoder, FLAC__uint64 *position);
+
 /** Initialize the decoder instance.
  *  Should be called after FLAC__file_decoder_new() and
  *  FLAC__file_decoder_set_*() but before any of the
