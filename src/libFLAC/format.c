@@ -59,7 +59,6 @@ const char *FLAC__EntropyCodingMethodTypeString[] = {
 
 const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN = 4; /* bits */
 const unsigned FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN = 5; /* bits */
-const unsigned FLAC__SUBFRAME_LPC_RICE_PARAMETER_LEN = 4; /* bits */
 
 const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BITS = 0x00;
 const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BITS = 0x02;
