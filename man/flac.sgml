@@ -81,6 +81,15 @@
 		</listitem>
 	      </varlistentry>
 
+              <varlistentry>
+	        <term><option>-c</option>
+                </term>
+                <listitem>
+                  <para>Encode from standard input, or decode to
+                  standard output</para>
+                </listitem>
+              </varlistentry>
+
 	      <varlistentry>
 		<term><option>-t</option>
 		</term>
