@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "in_flac_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /WX /GX /Ox /Og /Oi /Os /Op /Gf /Gy /I "include" /I ".." /I "..\..\include" /D "NDEBUG" /D VERSION=\"1.1.2-beta\" /D "in_flac_EXPORTS" /D "FLAC__NO_DLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "TAGZ_UNICODE" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /WX /GX /Ox /Og /Oi /Os /Op /Gf /Gy /I "include" /I ".." /I "..\..\include" /D "NDEBUG" /D VERSION=\"1.1.2\" /D "in_flac_EXPORTS" /D "FLAC__NO_DLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "TAGZ_UNICODE" /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "in_flac_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "include" /I ".." /I "..\..\include" /D "_DEBUG" /D "REAL_STDIO" /D VERSION=\"1.1.2-beta\" /D "in_flac_EXPORTS" /D "FLAC__NO_DLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "TAGZ_UNICODE" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "include" /I ".." /I "..\..\include" /D "_DEBUG" /D "REAL_STDIO" /D VERSION=\"1.1.2\" /D "in_flac_EXPORTS" /D "FLAC__NO_DLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "TAGZ_UNICODE" /YX /FD /GZ /c
 # SUBTRACT CPP /WX
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
