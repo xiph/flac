@@ -288,7 +288,7 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_d
 #endif
 
 
-size_t FLAC__replaygain_synthesis__apply_gain(FLAC__byte *data_out, FLAC__bool little_endian_data_out, FLAC__bool unsigned_data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context)
+size_t FLAC__replaygain_synthesis__apply_gain(FLAC__byte *data_out, FLAC__bool little_endian_data_out, FLAC__bool unsigned_data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const double scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context)
 {
 	static const FLAC__int32 conv_factors_[33] = {
 		-1, /* 0 bits-per-sample (not supported) */
