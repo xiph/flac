@@ -16,7 +16,7 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 flac.1: flac.sgml
-	docbook-to-man $< > $@
+	docbook-to-man $< > $@ || docbook2man $< > $@
 
 man_MANS = flac.1
 
