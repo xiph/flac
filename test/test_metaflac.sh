@@ -23,9 +23,24 @@ die ()
 	exit 1
 }
 
-LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
+if [ x = x"$1" ] ; then 
+	BUILD=debug
+else
+	BUILD="$1"
+fi
+
+LD_LIBRARY_PATH=../src/libFLAC/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../src/libOggFLAC/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../src/share/grabbag/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../src/share/getopt/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../src/share/replaygain_synthesis/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../src/share/utf8/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../obj/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/flac:../src/metaflac:../obj/release/bin:../obj/debug/bin:$PATH
+PATH=../src/flac:$PATH
+PATH=../src/metaflac:$PATH
+PATH=../obj/$BUILD/bin:$PATH
 
 flacfile=metaflac.flac
 

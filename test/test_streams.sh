@@ -23,9 +23,17 @@ die ()
 	exit 1
 }
 
-LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
+if [ x = x"$1" ] ; then 
+	BUILD=debug
+else
+	BUILD="$1"
+fi
+
+LD_LIBRARY_PATH=../obj/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/flac:../src/test_streams:../obj/release/bin:../obj/debug/bin:$PATH
+PATH=../src/flac:$PATH
+PATH=../src/test_streams:$PATH
+PATH=../obj/$BUILD/bin:$PATH
 
 flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 

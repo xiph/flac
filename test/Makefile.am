@@ -44,6 +44,7 @@ TESTS = \
 	./test_flac.sh \
 	./test_metaflac.sh \
 	./test_grabbag.sh \
+	./test_seeking.sh \
 	./test_streams.sh \
 	./test_bins.sh
 
@@ -59,6 +60,7 @@ EXTRA_DIST = \
 	test_flac.sh \
 	test_metaflac.sh \
 	test_grabbag.sh \
+	test_seeking.sh \
 	test_streams.sh \
 	test_bins.sh
 

@@ -23,9 +23,19 @@ die ()
 	exit 1
 }
 
-LD_LIBRARY_PATH=../src/libFLAC/.libs:../src/share/grabbag/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
+if [ x = x"$1" ] ; then 
+	BUILD=debug
+else
+	BUILD="$1"
+fi
+
+LD_LIBRARY_PATH=../src/libFLAC/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../src/share/grabbag/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../obj/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/test_grabbag/cuesheet:../obj/release/bin:../obj/debug/bin:$PATH
+PATH=../src/test_grabbag/cuesheet:$PATH
+PATH=../obj/$BUILD/bin:$PATH
 
 test_cuesheet -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_cuesheet executable"
 
