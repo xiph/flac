@@ -431,9 +431,41 @@ test_skip_until raw
 test_skip_until wav
 test_skip_until aiff
 
-#
+
+############################################################################
+# test 'fixup' code that happens when a FLAC file with total_samples == 0
+# in the STREAMINFO block is converted to WAVE or AIFF, requiring the
+# decoder go back and fix up the chunk headers
+############################################################################
+
+echo -n "WAVE fixup test... "
+echo -n "prepare... "
+convert_to_wav noise || die "ERROR creating reference WAVE"
+echo -n "encode... "
+cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
+echo -n "decode... "
+run_flac $wav_dopt fixup.flac -o fixup.wav || die "ERROR decoding FLAC file"
+echo -n "compare... "
+cmp noise.wav fixup.wav || die "ERROR: file mismatch"
+echo OK
+rm -f noise.wav fixup.wav fixup.flac
+
+echo -n "AIFF fixup test... "
+echo -n "prepare... "
+convert_to_aiff noise || die "ERROR creating reference AIFF"
+echo -n "encode... "
+cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
+echo -n "decode... "
+run_flac $wav_dopt fixup.flac -o fixup.aiff || die "ERROR decoding FLAC file"
+echo -n "compare... "
+cmp noise.aiff fixup.aiff || die "ERROR: file mismatch"
+echo OK
+rm -f noise.aiff fixup.aiff fixup.flac
+
+
+############################################################################
 # multi-file tests
-#
+############################################################################
 
 echo "Generating multiple input files from noise..."
 run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 noise.raw || die "ERROR generating FLAC file"
