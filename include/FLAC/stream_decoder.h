@@ -753,7 +753,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
  *
  *  Unless there is a fatal read error or end of stream, this function
  *  will return once one whole frame is decoded.  In other words, if the
- *  stream is not syncronized or points to a corrupt frame header, the
+ *  stream is not synchronized or points to a corrupt frame header, the
  *  decoder will continue to try and resync until it gets to a valid
  *  frame, then decode one frame, then return.  If the decoder points to
  *  frame whose frame CRC in the frame footer does not match the
