@@ -383,7 +383,7 @@ typedef struct {
  * 4+n/8  bytes total
  */
 typedef struct {
-	byte id[16];
+	byte id[4];
 	byte *data;
 } FLAC__StreamMetaData_Application;
 
