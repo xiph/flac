@@ -408,7 +408,7 @@ FLAC__bool FLAC__file_encoder_set_total_samples_estimate(FLAC__FileEncoder *enco
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__file_encoder_set_metadata(FLAC__FileEncoder *encoder, FLAC__FileMetadata **metadata, unsigned num_blocks);
+FLAC__bool FLAC__file_encoder_set_metadata(FLAC__FileEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
 /** Set the output file name encode to.
  *
