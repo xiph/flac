@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
 	int i;
 	bool verify = false, verbose = true, lax = false, mode_decode = false, test_only = false, analyze = false;
 	bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+	unsigned padding = 0;
 	unsigned max_lpc_order = 8;
 	unsigned qlp_coeff_precision = 0;
 	uint64 skip = 0;
@@ -62,7 +63,7 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "-s-"))
 			verbose = true;
 		else if(0 == strcmp(argv[i], "--skip"))
-			skip = (uint64)atoi(argv[++i]); /* takes a pretty damn big file to overflow atoi() here, but it could happen */
+			skip = (uint64)atoi(argv[++i]); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
 		else if(0 == strcmp(argv[i], "--lax"))
 			lax = true;
 		else if(0 == strcmp(argv[i], "--lax-"))
@@ -87,6 +88,8 @@ int main(int argc, char *argv[])
 			do_qlp_coeff_prec_search = true;
 		else if(0 == strcmp(argv[i], "-p-"))
 			do_qlp_coeff_prec_search = false;
+		else if(0 == strcmp(argv[i], "-P"))
+			padding = atoi(argv[++i]);
 		else if(0 == strcmp(argv[i], "-q"))
 			qlp_coeff_precision = atoi(argv[++i]);
 		else if(0 == strcmp(argv[i], "-r"))
@@ -278,9 +281,9 @@ int main(int argc, char *argv[])
 			return decode_raw(argv[i], test_only? 0 : argv[i+1], analyze, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 	else
 		if(format_is_wave)
-			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision);
+			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding);
 		else
-			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
 	return 0;
 }
@@ -338,6 +341,7 @@ int usage(const char *message, ...)
 	printf("  --skip samples : can be used both for encoding and decoding\n");
 	printf("encoding options:\n");
 	printf("  --lax : allow encoder to generate non-Subset files\n");
+	printf("  -P bytes : write a PADDING block of the given length (0 => no PADDING block, default is -P 0)\n");
 	printf("  -b blocksize : default is 1152 for -l 0, else 4608; should be 192/576/1152/2304/4608 (unless --lax is used)\n");
 	printf("  -m : try mid-side coding for each frame (stereo input only)\n");
 	printf("  -M : loose mid-side coding for all frames (stereo input only)\n");
