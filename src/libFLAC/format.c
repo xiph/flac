@@ -38,6 +38,11 @@ const unsigned FLAC__STREAM_METADATA_STREAMINFO_LENGTH = 34; /* bytes */
 
 const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN = 32; /* bits */
 
+const unsigned FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN = 64; /* bits */
+const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN = 64; /* bits */
+const unsigned FLAC__STREAM_METADATA_SEEKPOINT_BLOCK_OFFSET_LEN = 16; /* bits */
+const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LEN = 18; /* bytes */
+
 const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN = 1; /* bits */
 const unsigned FLAC__STREAM_METADATA_TYPE_LEN = 7; /* bits */
 const unsigned FLAC__STREAM_METADATA_LENGTH_LEN = 24; /* bits */
