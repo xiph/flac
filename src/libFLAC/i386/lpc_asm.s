@@ -213,8 +213,6 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse:
 
 	;	for(coeff = 0; coeff < lag; coeff++)
 	;		autoc[coeff] = 0.0;
-stmxcsr [esp+12]
-ret
 	xorps	xmm6, xmm6
 	xorps	xmm7, xmm7
 
