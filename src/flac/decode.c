@@ -349,7 +349,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 	stream_info->samples_processed += wide_samples;
 	stream_info->frame_counter++;
 
-	if(stream_info->verbose && !(stream_info->frame_counter & 0x1f))
+	if(stream_info->verbose && !(stream_info->frame_counter & 0x7f))
 		print_stats(stream_info);
 
 	if(stream_info->analysis_mode) {
