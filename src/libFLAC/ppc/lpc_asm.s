@@ -50,7 +50,7 @@ _FLAC__lpc_restore_signal_asm_ppc_altivec_16:
 ; coefficients and all relevant history stay in registers, so the outer loop
 ; has only one load from memory (the residual)
 
-; I haven't yet run this through simg4, so there may be some avoidable stalls,
+; I have not yet run this through simg4, so there may be some avoidable stalls,
 ; and there may be a somewhat more clever way to do the outer loop
 
 ; the branch mechanism may prevent dynamic loading; I still need to examine
