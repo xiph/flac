@@ -995,7 +995,7 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__MetaData_Chain *chain, FLAC__bool us
 					chain_delete_node_(chain, chain->tail);
 					FLAC__ASSERT(chain->current_length == chain->initial_length);
 				}
-				else if(chain->tail->data->length <= delta) {
+				else if(chain->tail->data->length >= delta) {
 					chain->tail->data->length -= delta;
 					chain->current_length -= delta;
 					FLAC__ASSERT(chain->current_length == chain->initial_length);
@@ -1019,7 +1019,15 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__MetaData_Chain *chain, FLAC__bool us
 	if(preserve_file_stats)
 		set_file_stats_(chain->filename, &stats);
 
-	chain->initial_length = chain->current_length;
+	/* recompute lengths and offsets if necessary */
+	if(chain->initial_length != chain->current_length) {
+		const FLAC__MetaData_Node *node;
+		chain->initial_length = chain->current_length;
+		chain->last_offset = chain->first_offset;
+		for(node = chain->head; node; node = node->next)
+			chain->last_offset += (4 + node->data->length); /*@@@ MAGIC NUMBER 4 = metadata header bytes */
+	}
+
 	return true;
 }
 
