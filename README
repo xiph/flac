@@ -117,6 +117,12 @@ they may cause flac to crash, which is why it is not turned on
 by default.  Note that --disable-asm-optimizations overrides
 --enable-3dnow.
 
+--with-ogg=
+--with-id3lib=
+--with-xmms-prefix=
+--with-libiconv-prefix=
+Use these if you have these packages but configure can't find them.
+
 
 ===============================================================================
 Building with Makefile.lite
