@@ -516,7 +516,7 @@ static FLAC__bool test_level_1_()
 
 	printf("[S]P\ttry to write over STREAMINFO block...\n");
 	if(!FLAC__metadata_simple_iterator_set_block(siterator, app, false))
-		printf("FLAC__metadata_simple_iterator_set_block() returned false like it should\n");
+		printf("\tFLAC__metadata_simple_iterator_set_block() returned false like it should\n");
 	else
 		return die_("FLAC__metadata_simple_iterator_set_block() returned true but shouldn't have");
 
@@ -1060,8 +1060,7 @@ static FLAC__bool test_level_2_()
 	if(!change_stats_(flacfile_, /*read-only=*/false))
 		return false;
 
-	printf("[S]P\tmodify STREAMINFO, write\n");
-
+	printf("create iterator\n");
 	if(0 == (iterator = FLAC__metadata_iterator_new()))
 		return die_("allocating memory for iterator");
 
@@ -1073,6 +1072,8 @@ static FLAC__bool test_level_2_()
 		return die_("getting block from iterator");
 
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_STREAMINFO);
+
+	printf("[S]P\tmodify STREAMINFO, write\n");
 
 	block->data.stream_info.sample_rate = 32000;
 	if(!replace_in_our_metadata_(block, our_current_position, /*copy=*/true))
@@ -1104,7 +1105,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, false, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1121,7 +1122,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, false, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1138,7 +1139,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, false, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1155,7 +1156,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, false, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1172,7 +1173,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, true, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1194,7 +1195,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, true, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1212,7 +1213,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, true, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1229,7 +1230,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, true, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1247,7 +1248,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, true, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1265,7 +1266,7 @@ static FLAC__bool test_level_2_()
 		return die_c_("FLAC__metadata_iterator_set_block(iterator, app)", FLAC__metadata_chain_status(chain));
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, true, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1371,7 +1372,7 @@ static FLAC__bool test_level_2_()
 	delete_from_our_metadata_(2);
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, true, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, 0, 0))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
@@ -1383,7 +1384,106 @@ static FLAC__bool test_level_2_()
 	delete_from_our_metadata_(1);
 
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, /*preserve_file_stats=*/false))
-		return die_c_("during FLAC__metadata_chain_write(chain, true, true)", FLAC__metadata_chain_status(chain));
+		return die_c_("during FLAC__metadata_chain_write(chain, true, false)", FLAC__metadata_chain_status(chain));
+	if(!compare_chain_(chain, 0, 0))
+		return false;
+	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
+		return false;
+
+	printf("create iterator\n");
+	if(0 == (iterator = FLAC__metadata_iterator_new()))
+		return die_("allocating memory for iterator");
+
+	our_current_position = 0;
+
+	FLAC__metadata_iterator_init(iterator, chain);
+
+	printf("[S]AP\tnext\n");
+	if(!FLAC__metadata_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("S[A]P\tdelete middle block, replace with padding\n");
+	if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)))
+		return die_("creating PADDING block");
+	padding->length = 71;
+	if(!replace_in_our_metadata_(padding, our_current_position--, /*copy=*/false))
+		return die_("copying object");
+	if(!FLAC__metadata_iterator_delete_block(iterator, /*replace_with_padding=*/true))
+		return die_c_("FLAC__metadata_iterator_delete_block(iterator, true)", FLAC__metadata_chain_status(chain));
+
+	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
+		return false;
+
+	printf("[S]PP\tnext\n");
+	if(!FLAC__metadata_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("S[P]P\tdelete middle block, don't replace with padding\n");
+	delete_from_our_metadata_(our_current_position--);
+	if(!FLAC__metadata_iterator_delete_block(iterator, /*replace_with_padding=*/false))
+		return die_c_("FLAC__metadata_iterator_delete_block(iterator, false)", FLAC__metadata_chain_status(chain));
+
+	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
+		return false;
+
+	printf("[S]P\tnext\n");
+	if(!FLAC__metadata_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("S[P]\tdelete last block, replace with padding\n");
+	if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)))
+		return die_("creating PADDING block");
+	padding->length = 219;
+	if(!replace_in_our_metadata_(padding, our_current_position--, /*copy=*/false))
+		return die_("copying object");
+	if(!FLAC__metadata_iterator_delete_block(iterator, /*replace_with_padding=*/true))
+		return die_c_("FLAC__metadata_iterator_delete_block(iterator, true)", FLAC__metadata_chain_status(chain));
+
+	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
+		return false;
+
+	printf("[S]P\tnext\n");
+	if(!FLAC__metadata_iterator_next(iterator))
+		return die_("iterator ended early\n");
+	our_current_position++;
+
+	printf("S[P]\tdelete last block, don't replace with padding\n");
+	delete_from_our_metadata_(our_current_position--);
+	if(!FLAC__metadata_iterator_delete_block(iterator, /*replace_with_padding=*/false))
+		return die_c_("FLAC__metadata_iterator_delete_block(iterator, false)", FLAC__metadata_chain_status(chain));
+
+	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
+		return false;
+
+	printf("[S]\tdelete STREAMINFO block, should fail\n");
+	if(FLAC__metadata_iterator_delete_block(iterator, /*replace_with_padding=*/false))
+		return die_("FLAC__metadata_iterator_delete_block() on STREAMINFO should have failed but didn't");
+
+	if(!compare_chain_(chain, our_current_position, FLAC__metadata_iterator_get_block(iterator)))
+		return false;
+
+	printf("delete iterator\n");
+	FLAC__metadata_iterator_delete(iterator);
+	our_current_position = 0;
+
+	printf("S\tmerge padding\n");
+	FLAC__metadata_chain_merge_padding(chain);
+
+	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
+		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
+	if(!compare_chain_(chain, 0, 0))
+		return false;
+	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
+		return false;
+
+	printf("S\tsort padding\n");
+	FLAC__metadata_chain_sort_padding(chain);
+
+	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/false, /*preserve_file_stats=*/false))
+		return die_c_("during FLAC__metadata_chain_write(chain, false, false)", FLAC__metadata_chain_status(chain));
 	if(!compare_chain_(chain, 0, 0))
 		return false;
 	if(!test_file_(flacfile_, decoder_metadata_callback_compare_))
