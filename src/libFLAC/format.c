@@ -169,6 +169,8 @@ unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table)
 	unsigned i, j;
 	FLAC__bool first;
 
+	FLAC__ASSERT(0 != seek_table);
+
 	/* sort the seekpoints */
 	qsort(seek_table->points, seek_table->num_points, sizeof(FLAC__StreamMetadata_SeekPoint), (int (*)(const void *, const void *))seekpoint_compare_);
 
