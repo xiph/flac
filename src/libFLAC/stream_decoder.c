@@ -910,7 +910,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 					break;
 				case FLAC__METADATA_TYPE_STREAMINFO:
 				case FLAC__METADATA_TYPE_SEEKTABLE:
-					assert(0);
+					FLAC__ASSERT(0);
 					break;
 				default:
 					if(real_length > 0) {
