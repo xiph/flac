@@ -26,6 +26,7 @@ all: clean
 	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libFLAC++.sh
 	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libOggFLAC.sh
 	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_libOggFLAC++.sh
+	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_flac.sh
 	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_metaflac.sh
 	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_grabbag.sh
 	$(FLAC__EXHAUSTIVE_TESTS) $(FLAC__VALGRIND) ./test_streams.sh

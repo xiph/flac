@@ -39,6 +39,7 @@ TESTS = \
 	./test_libFLAC.sh \
 	./test_libFLAC++.sh \
 	$(OGG_TESTS) \
+	./test_flac.sh \
 	./test_metaflac.sh \
 	./test_grabbag.sh \
 	./test_streams.sh \
@@ -51,6 +52,7 @@ EXTRA_DIST = \
 	test_libFLAC++.sh \
 	test_libOggFLAC.sh \
 	test_libOggFLAC++.sh \
+	test_flac.sh \
 	test_metaflac.sh \
 	test_grabbag.sh \
 	test_streams.sh \

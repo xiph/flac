@@ -34,109 +34,15 @@ run_flac ()
 }
 
 echo "Generating streams..."
-if test_streams ; then : ; else
-	echo "ERROR during test_streams" 1>&2
-	exit 1
-fi
-
-echo "Checking for --ogg support in flac..."
-if flac --ogg wacky1.wav 1>/dev/null 2>&1 ; then
-	has_ogg=yes;
-	echo "flac --ogg works"
-else
-	has_ogg=no;
-	echo "flac --ogg doesn't work"
-fi
-
-#
-# multi-file tests
-#
-echo "Generating multiple input files from noise..."
-if run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 noise.raw ; then : ; else
-	echo "ERROR generating FLAC file" 1>&2
-	exit 1
-fi
-if run_flac --decode --silent noise.flac ; then : ; else
-	echo "ERROR generating WAVE file" 1>&2
-	exit 1
-fi
-rm -f noise.flac
-mv noise.wav file0.wav
-cp file0.wav file1.wav
-cp file1.wav file2.wav
-
-test_multifile ()
-{
-	streamtype=$1
-	sector_align=$2
-	encode_options="$3"
-
-	if [ $streamtype = ogg ] ; then
-		suffix=ogg
-		encode_options="$encode_options --ogg"
-	else
-		suffix=flac
-	fi
-
-	if [ $sector_align = sector_align ] ; then
-		encode_options="$encode_options --sector-align"
-	fi
-
-	if run_flac $encode_options file0.wav file1.wav file2.wav ; then : ; else
-		echo "ERROR" 1>&2
+if [ ! -f wacky1.wav ] ; then
+	if test_streams ; then : ; else
+		echo "ERROR during test_streams" 1>&2
 		exit 1
 	fi
-	for n in 0 1 2 ; do
-		mv file$n.$suffix file${n}x.$suffix
-	done
-	if run_flac --decode file0x.$suffix file1x.$suffix file2x.$suffix ; then : ; else
-		echo "ERROR" 1>&2
-		exit 1
-	fi
-	if [ $sector_align != sector_align ] ; then
-		for n in 0 1 2 ; do
-			if cmp file$n.wav file${n}x.wav ; then : ; else
-				echo "ERROR: file mismatch on file #$n" 1>&2
-				exit 1
-			fi
-		done
-	fi
-	for n in 0 1 2 ; do
-		rm -f file${n}x.$suffix file${n}x.wav
-	done
-}
-
-echo "Testing multiple files without verify..."
-test_multifile flac no_sector_align ""
-
-echo "Testing multiple files with verify..."
-test_multifile flac no_sector_align "--verify"
-
-echo "Testing multiple files with --sector-align, without verify..."
-test_multifile flac sector_align ""
-
-echo "Testing multiple files with --sector-align, with verify..."
-test_multifile flac sector_align "--verify"
-
-if [ $has_ogg = "yes" ] ; then
-	echo "Testing multiple files with --ogg, without verify..."
-	test_multifile ogg no_sector_align ""
-
-	echo "Testing multiple files with --ogg, with verify..."
-	test_multifile ogg no_sector_align "--verify"
-
-	echo "Testing multiple files with --ogg and --sector-align, without verify..."
-	test_multifile ogg sector_align ""
-
-	echo "Testing multiple files with --ogg and --sector-align, with verify..."
-	test_multifile sector_align ogg "--verify"
-
-	echo "Testing multiple files with --ogg and --serial-number, with verify..."
-	test_multifile ogg no_sector_align "--serial-number=321 --verify"
 fi
 
 #
-# single-file tests
+# single-file test routines
 #
 
 test_file ()
