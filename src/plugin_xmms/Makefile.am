@@ -20,15 +20,26 @@
 #
 
 EXTRA_DIST = \
-	Makefile.lite
+	Makefile.lite \
+	id3_tag.c
 
 CFLAGS = @CFLAGS@ @XMMS_CFLAGS@
 xmmsinputplugindir = @XMMS_INPUT_PLUGIN_DIR@
+
 # Don't build a static library
 LIBTOOL = $(top_builddir)/libtool-disable-static
 
 xmmsinputplugin_LTLIBRARIES = libxmms-flac.la
-libxmms_flac_la_SOURCES = plugin.c
+
+plugin_sources = plugin.c wrap_id3.c configure.c charset.c
+id3v2_sources  = id3_tag.c
+
+if FLaC__HAS_ID3LIB
+libxmms_flac_la_SOURCES = $(plugin_sources) $(id3v2_sources)
+else
+libxmms_flac_la_SOURCES = $(plugin_sources)
+endif
+
 # work around the bug in libtool where its relinking fails with a different DESTDIR
 # for libtool bug info see:
 #   http://mail.gnu.org/pipermail/bug-libtool/2002-February/003018.html
@@ -37,5 +48,5 @@ libxmms_flac_la_SOURCES = plugin.c
 # for fix info see:
 #   http://lists.freshrpms.net/pipermail/rpm-list/2002-April/000746.html
 # the workaround is the extra '-L$(top_builddir)/src/libFLAC/.libs'
-libxmms_flac_la_LIBADD = $(top_builddir)/src/libFLAC/libFLAC.la -L$(top_builddir)/src/libFLAC/.libs @XMMS_LIBS@
+libxmms_flac_la_LIBADD = $(top_builddir)/src/libFLAC/libFLAC.la -L$(top_builddir)/src/libFLAC/.libs @XMMS_LIBS@ @ID3LIBS@
 libxmms_flac_la_LDFLAGS = -module -avoid-version

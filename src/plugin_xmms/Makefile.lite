@@ -24,7 +24,11 @@ INCLUDES  = $(shell xmms-config --cflags) -I./include -I../../include
 LIBS = ../../obj/lib/libFLAC.a
 
 OBJS = \
-	plugin.o
+	plugin.o \
+	configure.o \
+	wrap_id3.o \
+	charset.o
+
 
 include ../../build/lib.mk
 

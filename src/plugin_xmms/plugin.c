@@ -22,26 +22,24 @@
 #include <stdio.h>
 #include <glib.h>
 
-#include "xmms/plugin.h"
-#include "xmms/util.h"
+#include <xmms/plugin.h>
+#include <xmms/util.h>
+#include <xmms/configfile.h>
+#include <xmms/titlestring.h>
+
+#ifdef HAVE_LANGINFO_CODESET
+#include <langinfo.h>
+#endif
+
 #include "FLAC/all.h"
+#include "configure.h"
+#include "wrap_id3.h"
+#include "charset.h"
 
 #ifdef min
 #undef min
 #endif
 #define min(x,y) ((x)<(y)?(x):(y))
-
-typedef struct {
-	FLAC__byte raw[128];
-	char title[31];
-	char artist[31];
-	char album[31];
-	char comment[31];
-	unsigned year;
-	unsigned track; /* may be 0 if v1 (not v1.1) tag */
-	unsigned genre;
-	char description[1024]; /* the formatted description passed to xmms */
-} id3v1_struct;
 
 typedef struct {
 	FLAC__bool abort_flag;
@@ -67,7 +65,6 @@ static int  FLAC_XMMS__get_time();
 static void FLAC_XMMS__cleanup();
 static void FLAC_XMMS__get_song_info(char *filename, char **title, int *length);
 
-static FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
 static void *play_loop_(void *arg);
 static FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *decoder);
 static void safe_decoder_finish_(FLAC__FileDecoder *decoder);
@@ -76,15 +73,14 @@ static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *d
 static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
-
 InputPlugin flac_ip =
 {
 	NULL,
 	NULL,
 	"FLAC Player v" FLAC__VERSION_STRING,
 	FLAC_XMMS__init,
-	NULL,
-	NULL,
+	FLAC_XMMS__aboutbox,
+	FLAC_XMMS__configure,
 	FLAC_XMMS__is_our_file,
 	NULL,
 	FLAC_XMMS__play_file,
@@ -101,7 +97,7 @@ InputPlugin flac_ip =
 	NULL,
 	NULL,
 	FLAC_XMMS__get_song_info,
-	NULL,			/* file_info_box */
+	NULL,		/* file_info_box */
 	NULL
 };
 
@@ -122,6 +118,30 @@ InputPlugin *get_iplugin_info()
 
 void FLAC_XMMS__init()
 {
+	ConfigFile *cfg;
+
+	flac_cfg.tag_override = FALSE;
+	g_free(flac_cfg.tag_format);
+	flac_cfg.convert_char_set = FALSE;
+		
+	cfg = xmms_cfg_open_default_file();
+	xmms_cfg_read_boolean(cfg, "flac", "tag_override", &flac_cfg.tag_override);
+	if (!xmms_cfg_read_string(cfg, "flac", "tag_format",
+				  &flac_cfg.tag_format))
+		flac_cfg.tag_format = g_strdup("%p - %t");
+
+	xmms_cfg_read_boolean(cfg, "flac", "convert_char_set", &flac_cfg.convert_char_set);
+	if (!xmms_cfg_read_string(cfg, "flac", "file_char_set",
+				  &flac_cfg.file_char_set))
+	{
+		flac_cfg.file_char_set = get_current_charset();
+	}
+	if (!xmms_cfg_read_string(cfg, "flac", "user_char_set",
+				  &flac_cfg.user_char_set))
+	{
+		flac_cfg.user_char_set = get_current_charset();
+	}
+
 	decoder_ = FLAC__file_decoder_new();
 }
 
@@ -139,7 +159,7 @@ int FLAC_XMMS__is_our_file(char *filename)
 void FLAC_XMMS__play_file(char *filename)
 {
 	FILE *f;
-	id3v1_struct tag;
+	gchar *ret;
 
 	reservoir_samples_ = 0;
 	audio_error_ = false;
@@ -166,8 +186,10 @@ void FLAC_XMMS__play_file(char *filename)
 		return;
 	}
 
-	(void)get_id3v1_tag_(filename, &tag);
-	flac_ip.set_info(tag.description, file_info_.length_in_msec, file_info_.sample_rate * file_info_.channels * file_info_.bits_per_sample, file_info_.sample_rate, file_info_.channels);
+	ret = flac_format_song_title(filename);
+	flac_ip.set_info(ret, file_info_.length_in_msec, file_info_.sample_rate * file_info_.channels * file_info_.bits_per_sample, file_info_.sample_rate, file_info_.channels);
+
+	g_free(ret);
 
 	file_info_.seek_to_in_sec = -1;
 	file_info_.play_thread_open = true;
@@ -219,7 +241,6 @@ void FLAC_XMMS__cleanup()
 
 void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 {
-	id3v1_struct tag;
 	FLAC__StreamMetadata streaminfo;
 
 	if(0 == filename)
@@ -238,9 +259,7 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 	}
 
 	if(title) {
-		(void)get_id3v1_tag_(filename, &tag);
-		*title = g_malloc(strlen(tag.description)+1);
-		strcpy(*title, tag.description);
+		*title = flac_format_song_title(filename);
 	}
 	if(length_in_msec)
 		*length_in_msec = streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100);
@@ -249,52 +268,6 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 /***********************************************************************
  * local routines
  **********************************************************************/
-
-FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
-{
-	const char *temp;
-	FILE *f = fopen(filename, "rb");
-	memset(tag, 0, sizeof(id3v1_struct));
-
-	/* set the title and description to the filename by default */
-	temp = strrchr(filename, '/');
-	if(!temp)
-		temp = filename;
-	else
-		temp++;
-	strcpy(tag->description, temp);
-	*strrchr(tag->description, '.') = '\0';
-	strncpy(tag->title, tag->description, 30); tag->title[30] = '\0';
-
-	if(0 == f)
-		return false;
-	if(-1 == fseek(f, -128, SEEK_END)) {
-		fclose(f);
-		return false;
-	}
-	if(fread(tag->raw, 1, 128, f) < 128) {
-		fclose(f);
-		return false;
-	}
-	fclose(f);
-	if(strncmp(tag->raw, "TAG", 3))
-		return false;
-	else {
-		char year_str[5];
-
-		memcpy(tag->title, tag->raw+3, 30);
-		memcpy(tag->artist, tag->raw+33, 30);
-		memcpy(tag->album, tag->raw+63, 30);
-		memcpy(year_str, tag->raw+93, 4); year_str[4] = '\0'; tag->year = atoi(year_str);
-		memcpy(tag->comment, tag->raw+97, 30);
-		tag->genre = (unsigned)((FLAC__byte)tag->raw[127]);
-		tag->track = (unsigned)((FLAC__byte)tag->raw[126]);
-
-		sprintf(tag->description, "%s - %s", tag->artist, tag->title);
-
-		return true;
-	}
-}
 
 void *play_loop_(void *arg)
 {
@@ -463,3 +436,4 @@ void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorS
 	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
 		file_info->abort_flag = true;
 }
+
