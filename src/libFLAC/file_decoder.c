@@ -198,8 +198,10 @@ FLAC__bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
 		return true;
 	if(decoder->private_->file != 0 && decoder->private_->file != stdin)
 		fclose(decoder->private_->file);
-	if(0 != decoder->private_->filename)
+	if(0 != decoder->private_->filename) {
 		free(decoder->private_->filename);
+		decoder->private_->filename = 0;
+	}
 	if(decoder->private_->seekable_stream_decoder != 0) {
 		ok = FLAC__seekable_stream_decoder_finish(decoder->private_->seekable_stream_decoder);
 		FLAC__seekable_stream_decoder_delete(decoder->private_->seekable_stream_decoder);
@@ -221,12 +223,11 @@ FLAC__bool FLAC__file_decoder_set_filename(const FLAC__FileDecoder *decoder, con
 	FLAC__ASSERT(value != 0);
 	if(decoder->protected_->state != FLAC__FILE_DECODER_UNINITIALIZED)
 		return false;
-	if(0 != decoder->private_->filename)
+	if(0 != decoder->private_->filename) {
 		free(decoder->private_->filename);
-	if(0 == strcmp(value, "-")) {
 		decoder->private_->filename = 0;
 	}
-	else  {
+	if(0 != strcmp(value, "-")) {
 		if(0 == (decoder->private_->filename = (char*)malloc(strlen(value)+1))) {
 			decoder->protected_->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
 			return false;
@@ -432,7 +433,7 @@ FLAC__SeekableStreamDecoderLengthStatus length_callback_(const FLAC__SeekableStr
 	struct stat filestats;
 	(void)decoder;
 
-	if(stat(file_decoder->private_->filename, &filestats) != 0)
+	if(0 == file_decoder->private_->filename || stat(file_decoder->private_->filename, &filestats) != 0)
 		return FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR;
 	else {
 		*stream_length = (FLAC__uint64)filestats.st_size;
