@@ -60,8 +60,8 @@ extern const char *FLAC__StreamEncoderWriteStatusString[];
 struct FLAC__StreamEncoderProtected;
 struct FLAC__StreamEncoderPrivate;
 typedef struct {
-	struct FLAC__StreamEncoderProtected *protected;
-	struct FLAC__StreamEncoderPrivate *private;
+	struct FLAC__StreamEncoderProtected *protected_; /* avoid the C++ keyword 'protected' */
+	struct FLAC__StreamEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__StreamEncoder;
 
 /***********************************************************************

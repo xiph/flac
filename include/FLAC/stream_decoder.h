@@ -66,8 +66,8 @@ extern const char *FLAC__StreamDecoderErrorStatusString[];
 struct FLAC__StreamDecoderProtected;
 struct FLAC__StreamDecoderPrivate;
 typedef struct {
-	struct FLAC__StreamDecoderProtected *protected;
-	struct FLAC__StreamDecoderPrivate *private;
+	struct FLAC__StreamDecoderProtected *protected_; /* avoid the C++ keyword 'protected' */
+	struct FLAC__StreamDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__StreamDecoder;
 
 /***********************************************************************

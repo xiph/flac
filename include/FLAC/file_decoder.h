@@ -47,8 +47,8 @@ extern const char *FLAC__FileDecoderStateString[];
 struct FLAC__FileDecoderProtected;
 struct FLAC__FileDecoderPrivate;
 typedef struct {
-	struct FLAC__FileDecoderProtected *protected;
-	struct FLAC__FileDecoderPrivate *private;
+	struct FLAC__FileDecoderProtected *protected_; /* avoid the C++ keyword 'protected' */
+	struct FLAC__FileDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__FileDecoder;
 
 /***********************************************************************
