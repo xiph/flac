@@ -35,11 +35,11 @@
  *  metadata blocks in memory, and three progressively more powerful
  *  interfaces for traversing and editing metadata in FLAC files.
  *
- *  See the documentation for each interface
- *  \link flac_metadata here \endlink.
+ *  See the detailed documentation for each interface in the
+ *  \link flac_metadata metadata \endlink module.
  */
 
-/** \defgroup flac_metadata FLAC/metadata.h: FLAC metadata C interfaces
+/** \defgroup flac_metadata FLAC/metadata.h: metadata interfaces
  *  \ingroup flac
  *
  *  \brief
@@ -80,9 +80,22 @@
  *  front of the file.
  *
  *  In addition to the three interfaces, this module defines functions for
- *  creating and manipulating various metadata objects in memory.  Unless
- *  you will be using the level 1 or 2 interfaces to modify existing
- *  metadata you will not need these.
+ *  creating and manipulating various metadata objects in memory.  As we see
+ *  from the XXX Format XXX module, FLAC metadata blocks in memory are very primitive
+ *  structures for storing information in an efficient way.  Reading
+ *  information from the structures is easy but creating or modifying them
+ *  directly is more complex.  The metadata object routines here facilitate
+ *  this by taking care of the consistency and memory management drudgery.
+ *
+ *  Unless you will be using the level 1 or 2 interfaces to modify existing
+ *  metadata however, you will not probably not need these.
+ *
+ *  From a dependency standpoint, none of the encoders or decoders require
+ *  the metadata module (the only exception is
+ *  FLAC__metadata_object_seektable_is_legal() used by the stream encoder,
+ *  and this will eventually be fixed).  This is so that embedded users
+ *  can strip out the metadata module from libFLAC to reduce the size and
+ *  complexity.
  */
 
 #ifdef __cplusplus
@@ -90,7 +103,7 @@ extern "C" {
 #endif
 
 
-/** \defgroup flac_metadata_level0 FLAC/metadata.h: FLAC metadata C level 0 interface
+/** \defgroup flac_metadata_level0 FLAC/metadata.h: metadata level 0 interface
  *  \ingroup flac_metadata
  * 
  *  \brief
@@ -107,8 +120,9 @@ extern "C" {
  *
  * \param filename    The path to the FLAC file to read.
  * \param streaminfo  A pointer to space for the STREAMINFO block.
- * \pre   \code filename != NULL \endcode
- * \pre   \code streaminfo != NULL \endcode
+ * \assert
+ *    \code filename != NULL \endcode
+ *    \code streaminfo != NULL \endcode
  * \retval FLAC__bool
  *    \c true if a valid STREAMINFO block was read from \a filename.  Returns
  *    \c false if there was a memory allocation error, a file decoder error,
@@ -119,7 +133,7 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetad
 /* \} */
 
 
-/** \defgroup flac_metadata_level1 FLAC/metadata.h: FLAC metadata C level 1 interface
+/** \defgroup flac_metadata_level1 FLAC/metadata.h: metadata level 1 interface
  *  \ingroup flac_metadata
  * 
  * \brief
@@ -245,7 +259,8 @@ FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new();
 /** Free an iterator instance.  Deletes the object pointed to by \a iterator.
  *
  * \param iterator  A pointer to an existing iterator.
- * \pre   \code iterator != NULL \endcode
+ * \assert
+ *    \code iterator != NULL \endcode
  */
 void FLAC__metadata_simple_iterator_delete(FLAC__Metadata_SimpleIterator *iterator);
 
@@ -254,7 +269,8 @@ void FLAC__metadata_simple_iterator_delete(FLAC__Metadata_SimpleIterator *iterat
  *  to FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK.
  *
  * \param iterator  A pointer to an existing iterator.
- * \pre   \code iterator != NULL \endcode
+ * \assert
+ *    \code iterator != NULL \endcode
  * \retval FLAC__Metadata_SimpleIteratorStatus
  *    The current status of the iterator.
  */
@@ -267,11 +283,12 @@ FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__
  * \param iterator             A pointer to an existing iterator.
  * \param filename             The path to the FLAC file.
  * \param preserve_file_stats  See above.
- * \pre   \code iterator != NULL \endcode
- * \pre   \code filename != NULL \endcode
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \code filename != NULL \endcode
  * \retval FLAC__bool
- *   \c false if a memory allocation error occurs, the file can't be
- *   opened, or another error occurs, else \c true.
+ *    \c false if a memory allocation error occurs, the file can't be
+ *    opened, or another error occurs, else \c true.
  */
 FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *iterator, const char *filename, FLAC__bool preserve_file_stats);
 
@@ -280,9 +297,10 @@ FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *it
  *  FLAC__metadata_simple_iterator_insert_block_after() will fail.
  *
  * \param iterator             A pointer to an existing iterator.
- * \pre   \code iterator != NULL \endcode
+ * \assert
+ *    \code iterator != NULL \endcode
  * \retval FLAC__bool
- *   See above.
+ *    See above.
  */
 FLAC__bool FLAC__metadata_simple_iterator_is_writable(const FLAC__Metadata_SimpleIterator *iterator);
 
@@ -290,9 +308,10 @@ FLAC__bool FLAC__metadata_simple_iterator_is_writable(const FLAC__Metadata_Simpl
  *  already at the end.
  *
  * \param iterator  A pointer to an existing initialized iterator.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_simple_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_simple_iterator_init()
  * \retval FLAC__bool
  *    \c false if already at the last metadata block of the chain, else
  *    \c true.
@@ -303,9 +322,10 @@ FLAC__bool FLAC__metadata_simple_iterator_next(FLAC__Metadata_SimpleIterator *it
  *  already at the beginning.
  *
  * \param iterator  A pointer to an existing initialized iterator.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_simple_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_simple_iterator_init()
  * \retval FLAC__bool
  *    \c false if already at the first metadata block of the chain, else
  *    \c true.
@@ -317,9 +337,10 @@ FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIterator *it
  *  blocks.
  *
  * \param iterator  A pointer to an existing initialized iterator.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_simple_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_simple_iterator_init()
  * \retval FLAC__MetadataType
  *    The type of the metadata block at the current iterator position.
  */
@@ -334,9 +355,10 @@ FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Met
  *  when you are finished with it.
  *
  * \param iterator  A pointer to an existing initialized iterator.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_simple_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_simple_iterator_init()
  * \retval FLAC__StreamMetadata*
  *    The current metadata block.
  */
@@ -388,10 +410,11 @@ FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Metadata_Si
  * \param iterator     A pointer to an existing initialized iterator.
  * \param block        The block to set.
  * \param use_padding  See above.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_simple_iterator_init()
- * \pre   \code block != NULL \endcode
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_simple_iterator_init()
+ *    \code block != NULL \endcode
  * \retval FLAC__bool
  *    \c true if successful, else \c false.
  */
@@ -412,10 +435,11 @@ FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_SimpleIterato
  * \param iterator     A pointer to an existing initialized iterator.
  * \param block        The block to set.
  * \param use_padding  See above.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_simple_iterator_init()
- * \pre   \code block != NULL \endcode
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_simple_iterator_init()
+ *    \code block != NULL \endcode
  * \retval FLAC__bool
  *    \c true if successful, else \c false.
  */
@@ -431,9 +455,10 @@ FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Metadata_Simp
  *
  * \param iterator     A pointer to an existing initialized iterator.
  * \param use_padding  See above.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_simple_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_simple_iterator_init()
  * \retval FLAC__bool
  *    \c true if successful, else \c false.
  */
@@ -442,7 +467,7 @@ FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_SimpleIter
 /* \} */
 
 
-/** \defgroup flac_metadata_level2 FLAC/metadata.h: FLAC metadata C level 2 interface
+/** \defgroup flac_metadata_level2 FLAC/metadata.h: metadata level 2 interface
  *  \ingroup flac_metadata
  * 
  * \brief
@@ -567,7 +592,8 @@ FLAC__Metadata_Chain *FLAC__metadata_chain_new();
 /** Free a chain instance.  Deletes the object pointed to by \a chain.
  *
  * \param chain  A pointer to an existing chain.
- * \pre   \code chain != NULL \endcode
+ * \assert
+ *    \code chain != NULL \endcode
  */
 void FLAC__metadata_chain_delete(FLAC__Metadata_Chain *chain);
 
@@ -576,7 +602,8 @@ void FLAC__metadata_chain_delete(FLAC__Metadata_Chain *chain);
  *  status to FLAC__METADATA_CHAIN_STATUS_OK.
  *
  * \param chain    A pointer to an existing chain.
- * \pre   \code chain != NULL \endcode
+ * \assert
+ *    \code chain != NULL \endcode
  * \retval FLAC__Metadata_ChainStatus
  *    The current status of the chain.
  */
@@ -586,8 +613,9 @@ FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_Chain *cha
  *
  * \param chain    A pointer to an existing chain.
  * \param filename The path to the FLAC file to read.
- * \pre   \code chain != NULL \endcode
- * \pre   \code filename != NULL \endcode
+ * \assert
+ *    \code chain != NULL \endcode
+ *    \code filename != NULL \endcode
  * \retval FLAC__bool
  *    \c true if a valid list of metadata blocks was read from
  *    \a filename, else \c false.  On failure, check the status with
@@ -629,7 +657,8 @@ FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *fi
  * \param chain               A pointer to an existing chain.
  * \param use_padding         See above.
  * \param preserve_file_stats See above.
- * \pre   \code chain != NULL \endcode
+ * \assert
+ *    \code chain != NULL \endcode
  * \retval FLAC__bool
  *    \c true if the write succeeded, else \c false.  On failure,
  *    check the status with FLAC__metadata_chain_status().
@@ -645,7 +674,8 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool us
  * call.  You should delete the iterator and get a new one.
  *
  * \param chain               A pointer to an existing chain.
- * \pre   \code chain != NULL \endcode
+ * \assert
+ *    \code chain != NULL \endcode
  */
 void FLAC__metadata_chain_merge_padding(FLAC__Metadata_Chain *chain);
 
@@ -659,7 +689,8 @@ void FLAC__metadata_chain_merge_padding(FLAC__Metadata_Chain *chain);
  * call.  You should delete the iterator and get a new one.
  *
  * \param chain  A pointer to an existing chain.
- * \pre   \code chain != NULL \endcode
+ * \assert
+ *    \code chain != NULL \endcode
  */
 void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain);
 
@@ -676,7 +707,8 @@ FLAC__Metadata_Iterator *FLAC__metadata_iterator_new();
 /** Free an iterator instance.  Deletes the object pointed to by \a iterator.
  *
  * \param iterator  A pointer to an existing iterator.
- * \pre   \code iterator != NULL \endcode
+ * \assert
+ *    \code iterator != NULL \endcode
  */
 void FLAC__metadata_iterator_delete(FLAC__Metadata_Iterator *iterator);
 
@@ -685,8 +717,9 @@ void FLAC__metadata_iterator_delete(FLAC__Metadata_Iterator *iterator);
  *
  * \param iterator  A pointer to an existing iterator.
  * \param chain     A pointer to an existing and initialized (read) chain.
- * \pre   \code iterator != NULL \endcode
- * \pre   \code chain != NULL \endcode
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \code chain != NULL \endcode
  */
 void FLAC__metadata_iterator_init(FLAC__Metadata_Iterator *iterator, FLAC__Metadata_Chain *chain);
 
@@ -694,9 +727,10 @@ void FLAC__metadata_iterator_init(FLAC__Metadata_Iterator *iterator, FLAC__Metad
  *  already at the end.
  *
  * \param iterator  A pointer to an existing initialized iterator.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_iterator_init()
  * \retval FLAC__bool
  *    \c false if already at the last metadata block of the chain, else
  *    \c true.
@@ -707,9 +741,10 @@ FLAC__bool FLAC__metadata_iterator_next(FLAC__Metadata_Iterator *iterator);
  *  already at the beginning.
  *
  * \param iterator  A pointer to an existing initialized iterator.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_iterator_init()
  * \retval FLAC__bool
  *    \c false if already at the first metadata block of the chain, else
  *    \c true.
@@ -719,9 +754,10 @@ FLAC__bool FLAC__metadata_iterator_prev(FLAC__Metadata_Iterator *iterator);
 /** Get the type of the metadata block at the current position.
  *
  * \param iterator  A pointer to an existing initialized iterator.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_iterator_init()
  * \retval FLAC__MetadataType
  *    The type of the metadata block at the current iterator position.
  */
@@ -739,9 +775,10 @@ FLAC__MetadataType FLAC__metadata_iterator_get_block_type(const FLAC__Metadata_I
  * to delete a block use FLAC__metadata_iterator_delete_block().
  *
  * \param iterator  A pointer to an existing initialized iterator.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_iterator_init()
  * \retval FLAC__StreamMetadata*
  *    The current metadata block.
  */
@@ -753,10 +790,11 @@ FLAC__StreamMetadata *FLAC__metadata_iterator_get_block(FLAC__Metadata_Iterator 
  *
  * \param iterator  A pointer to an existing initialized iterator.
  * \param block     A pointer to a metadata block.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_iterator_init()
- * \pre   \code block != NULL \endcode
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_iterator_init()
+ *    \code block != NULL \endcode
  * \retval FLAC__bool
  *    \c false if the conditions in the above description are not met, or
  *    a memory allocation error occurs, otherwise \c true.
@@ -771,9 +809,10 @@ FLAC__bool FLAC__metadata_iterator_set_block(FLAC__Metadata_Iterator *iterator, 
  *
  * \param iterator              A pointer to an existing initialized iterator.
  * \param replace_with_padding  See above.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_iterator_init()
  * \retval FLAC__bool
  *    \c false if the conditions in the above description are not met,
  *    otherwise \c true.
@@ -789,9 +828,10 @@ FLAC__bool FLAC__metadata_iterator_delete_block(FLAC__Metadata_Iterator *iterato
  *
  * \param iterator  A pointer to an existing initialized iterator.
  * \param block     A pointer to a metadata block to insert.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_iterator_init()
  * \retval FLAC__bool
  *    \c false if the conditions in the above description are not met, or
  *    a memory allocation error occurs, otherwise \c true.
@@ -806,9 +846,10 @@ FLAC__bool FLAC__metadata_iterator_insert_block_before(FLAC__Metadata_Iterator *
  *
  * \param iterator  A pointer to an existing initialized iterator.
  * \param block     A pointer to a metadata block to insert.
- * \pre   \code iterator != NULL \endcode
- * \pre   \a iterator has been successfully initialized with
- *        FLAC__metadata_iterator_init()
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_iterator_init()
  * \retval FLAC__bool
  *    \c false if the conditions in the above description are not met, or
  *    a memory allocation error occurs, otherwise \c true.
@@ -818,7 +859,7 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_Iterator *i
 /* \} */
 
 
-/** \defgroup flac_metadata_object FLAC/metadata.h: FLAC metadata C object methods
+/** \defgroup flac_metadata_object FLAC/metadata.h: metadata object methods
  *  \ingroup flac_metadata
  *
  * \brief
@@ -857,15 +898,6 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_Iterator *i
  */
 
 
-/** \defgroup flac_metadata_object_common FLAC/metadata.h: FLAC metadata C object methods - common
- *  \ingroup flac_metadata_object
- *
- * \brief
- * These are common to all the types derived from FLAC__StreamMetadata.
- *
- * \{
- */
-
 /** Create a new metadata object instance of the given type.
  *
  *  The object will be "empty"; i.e. values and data pointers will be \c 0.
@@ -883,7 +915,8 @@ FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type);
  *  is responsible for freeing it with FLAC__metadata_object_delete().
  *
  * \param object  Pointer to object to copy.
- * \pre   \code object != NULL \endcode
+ * \assert
+ *    \code object != NULL \endcode
  * \retval FLAC__StreamMetadata*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
@@ -895,7 +928,8 @@ FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMetadata *ob
  *  object is also deleted.
  *
  * \param object  A pointer to an existing object.
- * \pre   \code object != NULL \endcode
+ * \assert
+ *    \code object != NULL \endcode
  */
 void FLAC__metadata_object_delete(FLAC__StreamMetadata *object);
 
@@ -907,23 +941,13 @@ void FLAC__metadata_object_delete(FLAC__StreamMetadata *object);
  *
  * \param block1  A pointer to an existing object.
  * \param block2  A pointer to an existing object.
- * \pre   \code block1 != NULL \endcode
- * \pre   \code block2 != NULL \endcode
+ * \assert
+ *    \code block1 != NULL \endcode
+ *    \code block2 != NULL \endcode
  * \retval FLAC__bool
  *    \c true if objects are identical, else \c false.
  */
 FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, const FLAC__StreamMetadata *block2);
-
-/* \} */
-
-/** \defgroup flac_metadata_object_application FLAC/metadata.h: FLAC metadata C object methods - APPLICATION
- *  \ingroup flac_metadata_object
- *
- * \brief
- * These are for manipulating APPLICATION blocks.
- *
- * \{
- */
 
 /** Sets the application data of an APPLICATION block.
  *
@@ -935,25 +959,15 @@ FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, co
  * \param data    A pointer to the data to set.
  * \param length  The length of \a data in bytes.
  * \param copy    See above.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_APPLICATION \endcode
- * \pre   \code (data != NULL && length > 0) ||
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_APPLICATION \endcode
+ *    \code (data != NULL && length > 0) ||
  * (data == NULL && length == 0 && copy == false) \endcode
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
  */
 FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, unsigned length, FLAC__bool copy);
-
-/* \} */
-
-/** \defgroup flac_metadata_object_seektable FLAC/metadata.h: FLAC metadata C object methods - SEEKTABLE
- *  \ingroup flac_metadata_object
- *
- * \brief
- * These are for manipulating SEEKTABLE blocks.
- *
- * \{
- */
 
 /** Resize the seekpoint array.
  *
@@ -962,9 +976,10 @@ FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *obje
  *
  * \param object          A pointer to an existing SEEKTABLE object.
  * \param new_num_points  The desired length of the array; may be \c 0.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
- * \pre   \code (object->data.seek_table.points == NULL && object->data.seek_table.num_points == 0) ||
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ *    \code (object->data.seek_table.points == NULL && object->data.seek_table.num_points == 0) ||
  * (object->data.seek_table.points != NULL && object->data.seek_table.num_points > 0) \endcode
  * \retval FLAC__bool
  *    \c false if memory allocation error, else \c true.
@@ -976,9 +991,10 @@ FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetadata *o
  * \param object     A pointer to an existing SEEKTABLE object.
  * \param point_num  Index into seekpoint array to set.
  * \param point      The point to set.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
- * \pre   \code object->data.seek_table.num_points > point_num \endcode
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ *    \code object->data.seek_table.num_points > point_num \endcode
  */
 void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point);
 
@@ -987,9 +1003,10 @@ void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, uns
  * \param object     A pointer to an existing SEEKTABLE object.
  * \param point_num  Index into seekpoint array to set.
  * \param point      The point to set.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
- * \pre   \code object->data.seek_table.num_points >= point_num \endcode
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ *    \code object->data.seek_table.num_points >= point_num \endcode
  * \retval FLAC__bool
  *    \c false if memory allocation error, else \c true.
  */
@@ -999,9 +1016,10 @@ FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetadata *ob
  *
  * \param object     A pointer to an existing SEEKTABLE object.
  * \param point_num  Index into seekpoint array to set.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
- * \pre   \code object->data.seek_table.num_points > point_num \endcode
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ *    \code object->data.seek_table.num_points > point_num \endcode
  * \retval FLAC__bool
  *    \c false if memory allocation error, else \c true.
  */
@@ -1012,23 +1030,13 @@ FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *ob
  *  seektable.
  *
  * \param object     A pointer to an existing SEEKTABLE object.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
  * \retval FLAC__bool
  *    \c false if seektable is illegal, else \c true.
  */
 FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object);
-
-/* \} */
-
-/** \defgroup flac_metadata_object_vorbiscomment FLAC/metadata.h: FLAC metadata C object methods - VORBIS_COMMENT
- *  \ingroup flac_metadata_object
- *
- * \brief
- * These are for manipulating VORBIS_COMMENT blocks.
- *
- * \{
- */
 
 /** Sets the vendor string in a VORBIS_COMMENT block.
  *
@@ -1039,9 +1047,10 @@ FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *
  * \param object  A pointer to an existing VORBIS_COMMENT object.
  * \param entry   The entry to set the vendor string to.
  * \param copy    See above.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
- * \pre   \code (entry->entry != NULL && entry->length > 0) ||
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ *    \code (entry->entry != NULL && entry->length > 0) ||
  * (entry->entry == NULL && entry->length == 0 && copy == false) \endcode
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
@@ -1055,9 +1064,10 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMet
  *
  * \param object            A pointer to an existing VORBIS_COMMENT object.
  * \param new_num_comments  The desired length of the array; may be \c 0.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
- * \pre   \code (object->data.vorbis_comment.comments == NULL && object->data.vorbis_comment.num_comments == 0) ||
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ *    \code (object->data.vorbis_comment.comments == NULL && object->data.vorbis_comment.num_comments == 0) ||
  * (object->data.vorbis_comment.comments != NULL && object->data.vorbis_comment.num_comments > 0) \endcode
  * \retval FLAC__bool
  *    \c false if memory allocation error, else \c true.
@@ -1074,9 +1084,10 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetad
  * \param comment_num  Index into comment array to set.
  * \param entry        The entry to set the comment to.
  * \param copy         See above.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
- * \pre   \code (entry->entry != NULL && entry->length > 0) ||
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ *    \code (entry->entry != NULL && entry->length > 0) ||
  * (entry->entry == NULL && entry->length == 0 && copy == false) \endcode
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
@@ -1096,10 +1107,11 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata 
  *                     \c object->data.vorbis_comment.num_comments .
  * \param entry        The comment to insert.
  * \param copy         See above.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
- * \pre   \code object->data.vorbis_comment.num_comments >= comment_num \endcode
- * \pre   \code (entry->entry != NULL && entry->length > 0) ||
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ *    \code object->data.vorbis_comment.num_comments >= comment_num \endcode
+ *    \code (entry->entry != NULL && entry->length > 0) ||
  * (entry->entry == NULL && entry->length == 0 && copy == false) \endcode
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
@@ -1114,17 +1126,16 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetada
  *
  * \param object       A pointer to an existing VORBIS_COMMENT object.
  * \param comment_num  The index of the comment to delete.
- * \pre   \code object != NULL \endcode
- * \pre   \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
- * \pre   \code object->data.vorbis_comment.num_comments > comment_num \endcode
- * \pre   \code (entry->entry != NULL && entry->length > 0) ||
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ *    \code object->data.vorbis_comment.num_comments > comment_num \endcode
+ *    \code (entry->entry != NULL && entry->length > 0) ||
  * (entry->entry == NULL && entry->length == 0 && copy == false) \endcode
  * \retval FLAC__bool
  *    \c false if realloc fails, else \c true.
  */
 FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetadata *object, unsigned comment_num);
-
-/* \} */
 
 /* \} */
 
