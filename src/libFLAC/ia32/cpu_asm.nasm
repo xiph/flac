@@ -22,7 +22,7 @@
 
 cglobal FLAC__cpu_info_asm_ia32
 cglobal FLAC__cpu_info_extended_amd_asm_ia32
-cglobal FLAC__cpu_info_sse_os_asm_ia32
+cglobal FLAC__cpu_info_sse_test_asm_ia32
 
 	code_section
 
@@ -81,20 +81,8 @@ cident FLAC__cpu_info_extended_amd_asm_ia32
 	pop	ebx
 	ret
 
-;WATCHOUT - DO NOT call this function until you have verified CPU support of
-;           SSE by inspecting the return value from FLAC__cpu_info_asm_ia32
-;NOTE - Since we're not in priv level 0 we can't just check CR4 bits 9 & 10,
-;       so right now we just assume there is no OS support.  If you know
-;       how to write code to trap a #UD exception in nasm so we can implement
-;       this function correctly, let us know!
-cident FLAC__cpu_info_sse_os_asm_ia32
-	push	ebx
-	mov	eax, 1
-	cpuid
-	mov	eax, 0		;we would like to 'move eax, cr4'
-	shr	eax, 9
-	and	eax, 3
+cident FLAC__cpu_info_sse_test_asm_ia32
+	xorps	xmm0, xmm0
 	pop	ebx
-	ret
 
 end
