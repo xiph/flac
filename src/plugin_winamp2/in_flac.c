@@ -1,6 +1,10 @@
 /* in_flac - Winamp2 FLAC input plugin
  * Copyright (C) 2000,2001,2002  Josh Coalson
  *
+ * dithering routine derived from (other GPLed source):
+ * mad - MPEG audio decoder
+ * Copyright (C) 2000-2001 Robert Leslie
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -24,6 +28,9 @@
 
 #include "in2.h"
 #include "FLAC/all.h"
+
+
+#define MAX_SUPPORTED_CHANNELS 2
 
 typedef struct {
 	FLAC__byte raw[128];
@@ -67,9 +74,9 @@ char lastfn_[MAX_PATH]; /* currently playing file (used for getting info on the 
 int decode_pos_ms_; /* current decoding position, in milliseconds */
 int paused_; /* are we paused? */
 int seek_needed_; /* if != -1, it is the point that the decode thread should seek to, in ms. */
-FLAC__int16 reservoir_[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max channels, another *2 for overflow */
-char sample_buffer_[576 * 2 * (16/8) * 2]; /* 2 for max channels, (16/8) for max bytes per sample, and 2 for who knows what */
-unsigned samples_in_reservoir_;
+FLAC__int32 reservoir_[FLAC__MAX_BLOCK_SIZE * 2/*for overflow*/ * MAX_SUPPORTED_CHANNELS];
+char sample_buffer_[576 * MAX_SUPPORTED_CHANNELS * (24/8) * 2]; /* (24/8) for max bytes per sample, and 2 for who knows what */
+unsigned wide_samples_in_reservoir_;
 static file_info_struct file_info_;
 static FLAC__FileDecoder *decoder_;
 
@@ -77,6 +84,173 @@ int killDecodeThread = 0;					/* the kill switch for the decode thread */
 HANDLE thread_handle = INVALID_HANDLE_VALUE;	/* the handle to the decode thread */
 
 DWORD WINAPI __stdcall DecodeThread(void *b); /* the decode thread procedure */
+
+
+/* 32-bit pseudo-random number generator */
+static inline FLAC__uint32 prng(FLAC__uint32 state)
+{
+	return (state * 0x0019660dL + 0x3c6ef35fL) & 0xffffffffL;
+}
+
+/* dither routine derived from MAD winamp plugin */
+
+typedef struct {
+	FLAC__int32 error[3];
+	FLAC__int32 random;
+} dither_state;
+
+static inline FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
+{
+	unsigned scalebits;
+	FLAC__int32 output, mask, random;
+
+	FLAC__ASSERT(source_bps < 32);
+	FLAC__ASSERT(target_bps <= 24);
+	FLAC__ASSERT(target_bps <= source_bps);
+
+	/* noise shape */
+	sample += dither->error[0] - dither->error[1] + dither->error[2];
+
+	dither->error[2] = dither->error[1];
+	dither->error[1] = dither->error[0] / 2;
+
+	/* bias */
+	output = sample + (1L << (source_bps - target_bps - 1));
+
+	scalebits = source_bps - target_bps;
+	mask = (1L << scalebits) - 1;
+
+	/* dither */
+	random = (FLAC__int32)prng(dither->random);
+	output += (random & mask) - (dither->random & mask);
+
+	dither->random = random;
+
+	/* clip */
+	if(output > MAX) {
+		output = MAX;
+
+		if(sample > MAX)
+			sample = MAX;
+	}
+	else if(output < MIN) {
+		output = MIN;
+
+		if(sample < MIN)
+			sample = MIN;
+	}
+
+	/* quantize */
+	output &= ~mask;
+
+	/* error feedback */
+	dither->error[0] = sample - output;
+
+	/* scale */
+	return output >> scalebits;
+}
+
+static unsigned pack_pcm(FLAC__byte *data, FLAC__int32 *input, unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
+{
+	static dither_state dither[MAX_SUPPORTED_CHANNELS];
+	FLAC__byte * const start = data;
+	FLAC__int32 sample;
+	const unsigned bytes_per_sample = target_bps / 8;
+	const unsigned samples = wide_samples * channels;
+
+	FLAC__ASSERT(MAX_SUPPORTED_CHANNELS == 2);
+	FLAC__ASSERT(channels > 0 && channels <= MAX_SUPPORTED_CHANNELS);
+	FLAC__ASSERT(source_bps < 32);
+	FLAC__ASSERT(target_bps <= 24);
+	FLAC__ASSERT(target_bps <= source_bps);
+	FLAC__ASSERT(source_bps & 7 == 0);
+	FLAC__ASSERT(target_bps & 7 == 0);
+
+	if(source_bps != target_bps) {
+		const FLAC__int32 MIN = source_bps == -(1L << source_bps);
+		const FLAC__int32 MAX = ~MIN; /*(1L << (source_bps-1)) - 1 */
+		const unsigned dither_twiggle = channels - 1;
+		unsigned dither_source = 0;
+
+		while(samples--) {
+			sample = linear_dither(source_bps, target_bps, *input++, &dither[dither_source], MIN, MAX);
+			dither_source ^= dither_twiggle;
+
+			switch(target_bps) {
+				case 8:
+					data[0] = sample ^ 0x80;
+					break;
+				case 24:
+					data[2] = sample >> 16;
+					/* fall through */
+				case 16:
+					data[1] = sample >> 8;
+					data[0] = sample >> 0;
+			}
+
+			data += bytes_per_sample;
+		}
+	}
+	else {
+		while(samples--) {
+			sample = *input++;
+
+			switch(target_bps) {
+				case 8:
+					data[0] = sample ^ 0x80;
+					break;
+				case 24:
+					data[2] = sample >> 16;
+					/* fall through */
+				case 16:
+					data[1] = sample >> 8;
+					data[0] = sample >> 0;
+			}
+
+			data += bytes_per_sample;
+		}
+	}
+
+	return data - start;
+}
+
+#if 0
+@@@@ incorporate this
+static void do_vis(char *data, int nch, int resolution, int position)
+{
+	static char vis_buffer[PCM_CHUNK * 2];
+	char *ptr;
+	int size, count;
+
+	/*
+	 * Winamp visuals may have problems accepting sample sizes larger than
+	 * 16 bits, so we reduce the sample size here if necessary.
+	 */
+
+	switch(resolution) {
+		case 32:
+		case 24:
+			size  = resolution / 8;
+			count = PCM_CHUNK * nch;
+
+			ptr = vis_buffer;
+			while(count--) {
+				data += size;
+				*ptr++ = data[-1] ^ 0x80;
+			}
+
+			data = vis_buffer;
+			resolution = 8;
+
+			/* fall through */
+		case 16:
+		case 8:
+		default:
+			module.SAAddPCMData(data,  nch, resolution, position);
+			module.VSAAddPCMData(data, nch, resolution, position);
+	}
+}
+#endif
 
 void config(HWND hwndParent)
 {
@@ -127,10 +301,10 @@ int play(char *fn)
 	paused_ = 0;
 	decode_pos_ms_ = 0;
 	seek_needed_ = -1;
-	samples_in_reservoir_ = 0;
+	wide_samples_in_reservoir_ = 0;
 
 	maxlatency = mod_.outMod->Open(file_info_.sample_rate, file_info_.channels, file_info_.bits_per_sample, -1, -1);
-	if (maxlatency < 0) { /* error opening device */
+	if(maxlatency < 0) { /* error opening device */
 		return 1;
 	}
 
@@ -168,9 +342,9 @@ int ispaused()
 
 void stop()
 {
-	if (thread_handle != INVALID_HANDLE_VALUE) {
+	if(thread_handle != INVALID_HANDLE_VALUE) {
 		killDecodeThread = 1;
-		if (WaitForSingleObject(thread_handle, INFINITE) == WAIT_TIMEOUT) {
+		if(WaitForSingleObject(thread_handle, INFINITE) == WAIT_TIMEOUT) {
 			MessageBox(mod_.hMainWindow, "error asking thread to die!\n", "error killing decode thread", 0);
 			TerminateThread(thread_handle, 0);
 		}
@@ -215,7 +389,7 @@ void getfileinfo(char *filename, char *title, int *length_in_msec)
 
 	if(0 == filename || filename[0] == '\0') {
 		filename = lastfn_;
-		if (length_in_msec) {
+		if(length_in_msec) {
 			*length_in_msec = getlength();
 			length_in_msec = 0; /* force skip in following code */
 		}
@@ -248,12 +422,12 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 {
 	int done = 0;
 
-	while (! *((int *)b) ) {
+	while(! *((int *)b) ) {
 		unsigned channels = file_info_.channels;
 		unsigned bits_per_sample = file_info_.bits_per_sample;
 		unsigned bytes_per_sample = (bits_per_sample+7)/8;
 		unsigned sample_rate = file_info_.sample_rate;
-		if (seek_needed_ != -1) {
+		if(seek_needed_ != -1) {
 			const double distance = (double)seek_needed_ / (double)getlength();
 			unsigned target_sample = (unsigned)(distance * (double)file_info_.total_samples);
 			if(FLAC__file_decoder_seek_absolute(decoder_, (FLAC__uint64)target_sample)) {
@@ -263,15 +437,15 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 				mod_.outMod->Flush(decode_pos_ms_);
 			}
 		}
-		if (done) {
-			if (!mod_.outMod->IsPlaying()) {
+		if(done) {
+			if(!mod_.outMod->IsPlaying()) {
 				PostMessage(mod_.hMainWindow, WM_WA_MPEG_EOF, 0, 0);
 				return 0;
 			}
 			Sleep(10);
 		}
-		else if (mod_.outMod->CanWrite() >= ((int)(576*channels*bytes_per_sample) << (mod_.dsp_isactive()?1:0))) {
-			while(samples_in_reservoir_ < 576) {
+		else if(mod_.outMod->CanWrite() >= ((int)(576*channels*bytes_per_sample) << (mod_.dsp_isactive()?1:0))) {
+			while(wide_samples_in_reservoir_ < 576) {
 				if(FLAC__file_decoder_get_state(decoder_) == FLAC__FILE_DECODER_END_OF_FILE) {
 					done = 1;
 					break;
@@ -283,28 +457,25 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 				}
 			}
 
-			if (samples_in_reservoir_ == 0) {
+			if(wide_samples_in_reservoir_ == 0) {
 				done = 1;
 			}
 			else {
-				unsigned i, n = min(samples_in_reservoir_, 576), delta;
-				int bytes;
-				signed short *ssbuffer = (signed short *)sample_buffer_;
+				const unsigned target_bps = 16;
+				const unsigned n = min(wide_samples_in_reservoir_, 576);
+				const unsigned delta = n * channels;
+				int bytes = (int)pack_pcm(sample_buffer_, reservoir_, n, channels, bits_per_sample, target_bps);
+				unsigned i;
 
-				for(i = 0; i < n*channels; i++)
-					ssbuffer[i] = reservoir_[i];
-				delta = i;
-				for( ; i < samples_in_reservoir_ * channels; i++)
+				for(i = delta; i < wide_samples_in_reservoir_ * channels; i++)
 					reservoir_[i-delta] = reservoir_[i];
-				samples_in_reservoir_ -= n;
+				wide_samples_in_reservoir_ -= n;
 
-				mod_.SAAddPCMData((char *)sample_buffer_, channels, bits_per_sample, decode_pos_ms_);
-				mod_.VSAAddPCMData((char *)sample_buffer_, channels, bits_per_sample, decode_pos_ms_);
+				mod_.SAAddPCMData((char *)sample_buffer_, channels, target_bps, decode_pos_ms_);
+				mod_.VSAAddPCMData((char *)sample_buffer_, channels, target_bps, decode_pos_ms_);
 				decode_pos_ms_ += (n*1000 + sample_rate/2)/sample_rate;
-				if (mod_.dsp_isactive())
-					bytes = mod_.dsp_dosamples((short *)sample_buffer_, n, bits_per_sample, channels, sample_rate) * (channels*bytes_per_sample);
-				else
-					bytes = n * channels * bytes_per_sample;
+				if(mod_.dsp_isactive())
+					bytes = mod_.dsp_dosamples((short *)sample_buffer_, n, target_bps, channels, sample_rate) * (channels*target_bps/8);
 				mod_.outMod->Write(sample_buffer_, bytes);
 			}
 		}
@@ -414,18 +585,18 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 {
 	file_info_struct *file_info_ = (file_info_struct *)client_data;
 	const unsigned bps = file_info_->bits_per_sample, channels = file_info_->channels, wide_samples = frame->header.blocksize;
-	unsigned wide_sample, sample, channel;
+	unsigned wide_sample, offset_sample, channel;
 
 	(void)decoder;
 
 	if(file_info_->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-	for(sample = samples_in_reservoir_ * channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-		for(channel = 0; channel < channels; channel++, sample++)
-			reservoir_[sample] = (FLAC__int16)buffer[channel][wide_sample];
+	for(offset_sample = wide_samples_in_reservoir_ * channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+		for(channel = 0; channel < channels; channel++, offset_sample++)
+			reservoir_[offset_sample] = buffer[channel][wide_sample];
 
-	samples_in_reservoir_ += wide_samples;
+	wide_samples_in_reservoir_ += wide_samples;
 
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
