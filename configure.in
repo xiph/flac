@@ -169,10 +169,24 @@ if test -n "$DOCBOOK_TO_MAN" ; then
 AC_DEFINE(FLAC__HAS_DOCBOOK_TO_MAN)
 fi
 
+# only matters for x86
 AC_CHECK_PROGS(NASM, nasm)
 AM_CONDITIONAL(FLaC__HAS_NASM, test -n "$NASM")
 if test -n "$NASM" ; then
 AC_DEFINE(FLAC__HAS_NASM)
+fi
+
+# only matters for PowerPC
+AC_CHECK_PROGS(AS, as)
+AC_CHECK_PROGS(GAS, gas)
+AM_CONDITIONAL(FLaC__HAS_AS, test -n "$AS")
+AM_CONDITIONAL(FLaC__HAS_GAS, test -n "$GAS")
+if test -n "$AS" ; then
+AC_DEFINE(FLAC__HAS_AS)
+fi
+if test -n "$GAS" ; then
+# funniest. macro. ever.
+AC_DEFINE(FLAC__HAS_GAS)
 fi
 
 OUR_CFLAGS_HEAD='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
@@ -196,7 +210,9 @@ AH_TEMPLATE(FLAC__EXHAUSTIVE_TESTS,  [define to run even more tests])
 AH_TEMPLATE(FLAC__VALGRIND_TESTING,  [define to enable use of Valgrind in testers])
 AH_TEMPLATE(FLAC__HAS_DOXYGEN,  [define if you have Doxygen])
 AH_TEMPLATE(FLAC__HAS_DOCBOOK_TO_MAN,  [define if you have docbook-to-man or docbook2man])
-AH_TEMPLATE(FLAC__HAS_NASM,  [define if you have the NASM assembler])
+AH_TEMPLATE(FLAC__HAS_NASM,  [define if you are compiling for x86 and have the NASM assembler])
+AH_TEMPLATE(FLAC__HAS_AS,  [define if you are compiling for PowerPC and have the 'as' assembler])
+AH_TEMPLATE(FLAC__HAS_GAS,  [define if you are compiling for PowerPC and have the 'gas' assembler])
 AH_TEMPLATE(FLAC__HAS_OGG,  [define if you have the ogg library])
 AH_TEMPLATE(FLAC__NO_ASM,  [define to disable use of assembly code])
 AH_TEMPLATE(FLAC__SSE_OS,  [define if your operating system supports SSE instructions])
@@ -209,6 +225,8 @@ AC_OUTPUT( \
 	src/libFLAC/Makefile \
 	src/libFLAC/ia32/Makefile \
 	src/libFLAC/ppc/Makefile \
+	src/libFLAC/ppc/as/Makefile \
+	src/libFLAC/ppc/gas/Makefile \
 	src/libFLAC/include/Makefile \
 	src/libFLAC/include/private/Makefile \
 	src/libFLAC/include/protected/Makefile \

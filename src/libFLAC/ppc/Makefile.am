@@ -28,6 +28,4 @@
 #  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#@@@@@@ We actually want to only compile one based on some configuration,
-#@@@@@@ so we'll eventually have to conditionalize the sub-Makefile.am's
 SUBDIRS = as gas

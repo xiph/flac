@@ -44,8 +44,13 @@ endif
 endif
 if FLaC__CPU_PPC
 ARCH_SUBDIRS = ppc
-#@@@@@@ need to conditionalize this to gas or as depending on configure
+if FLaC__HAS_AS
 libFLAC_la_LIBADD = ppc/as/libFLAC-asm.la
+else
+if FLaC__HAS_GAS
+libFLAC_la_LIBADD = ppc/gas/libFLAC-asm.la
+endif
+endif
 LOCAL_EXTRA_LDFLAGS = "-Wl,-read_only_relocs,warning"
 endif
 endif

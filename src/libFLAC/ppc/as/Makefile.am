@@ -28,6 +28,8 @@
 #  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+if FLaC__HAS_AS
+
 SUFFIXES = .s .lo
 
 STRIP_NON_ASM = sh $(top_srcdir)/strip_non_asm_libtool_args.sh
@@ -40,3 +42,10 @@ STRIP_NON_ASM = sh $(top_srcdir)/strip_non_asm_libtool_args.sh
 noinst_LTLIBRARIES = libFLAC-asm.la
 libFLAC_asm_la_SOURCES = \
 	lpc_asm.s
+
+else
+
+EXTRA_DIST = \
+	lpc_asm.s
+
+endif
