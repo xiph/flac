@@ -535,7 +535,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 {
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	FILE *fout = decoder_session->fout;
-	unsigned bps = decoder_session->bps, channels = decoder_session->channels;
+	const unsigned bps = frame->header.bits_per_sample, channels = frame->header.channels;
 	FLAC__bool is_big_endian = (decoder_session->is_wave_out? false : decoder_session->is_big_endian);
 	FLAC__bool is_unsigned_samples = (decoder_session->is_wave_out? bps<=8 : decoder_session->is_unsigned_samples);
 	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, byte;
@@ -550,6 +550,19 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 
 	if(decoder_session->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+
+	if(bps != decoder_session->bps) {
+		fprintf("ERROR, bits-per-sample is %u in frame but %u in STREAMINFO\n", bps, decoder_session->bps);
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+	if(channels != decoder_session->channels) {
+		fprintf("ERROR, channels is %u in frame but %u in STREAMINFO\n", channels, decoder_session->channels);
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+	if(frame->header.sample_rate != decoder_session->sample_rate) {
+		fprintf("ERROR, sample rate is %u in frame but %u in STREAMINFO\n", frame->header.sample_rate, decoder_session->sample_rate);
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
 
 	decoder_session->samples_processed += wide_samples;
 	decoder_session->frame_counter++;
