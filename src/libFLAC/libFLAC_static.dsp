@@ -208,6 +208,10 @@ SOURCE=.\fixed.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\float.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\format.c
 # End Source File
 # Begin Source File
@@ -277,6 +281,10 @@ SOURCE=.\include\private\crc.h
 # Begin Source File
 
 SOURCE=.\include\private\fixed.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\private\float.h
 # End Source File
 # Begin Source File
 

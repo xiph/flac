@@ -70,6 +70,7 @@ libFLAC_la_SOURCES = \
 	file_decoder.c \
 	file_encoder.c \
 	fixed.c \
+	float.c \
 	format.c \
 	lpc.c \
 	md5.c \
