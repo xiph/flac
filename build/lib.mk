@@ -29,8 +29,8 @@ DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).so
 
 all : release
 
-debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION="1.0devel" $(DEFINES) $(INCLUDES)
-release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -ffast-math -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -DVERSION="1.0devel" $(DEFINES) $(INCLUDES)
+debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=\"1.0devel\" $(DEFINES) $(INCLUDES)
+release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -ffast-math -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -DVERSION=\"1.0devel\" $(DEFINES) $(INCLUDES)
 
 LFLAGS  = -L$(LIBPATH)
 
@@ -49,7 +49,7 @@ $(DYNAMIC_LIB) : $(OBJS)
 	$(CC) $(CFLAGS) -E $< -o $@
 
 %.o : %.nasm
-	$(NASM) -f elf -d ELF -i ia32/ $< -o $@
+	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ $< -o $@
 
 .PHONY : clean
 clean :
