@@ -23,11 +23,16 @@ PATH=../src/flac:../src/metaflac:../obj/bin:$PATH
 
 flacfile=metaflac.flac
 
-flac --help 1>/dev/null 2>/dev/null || echo "ERROR can't find flac executable" 1>&2 && exit 1
-metaflac --help 1>/dev/null 2>/dev/null || echo "ERROR can't find metaflac executable" 1>&2 && exit 1
+flac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find flac executable" 1>&2 && exit 1)
+if [ $? != 0 ] ; then exit 1 ; fi
 
-echo "Generating streams..."
-if flac -V -0 -o $flacfile -fr -fb -fc 1 -fp 8 -fs 44100 `which metaflac` ; then : ; else
+metaflac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find metaflac executable" 1>&2 && exit 1)
+if [ $? != 0 ] ; then exit 1 ; fi
+
+echo "Generating stream..."
+if flac -V -0 -o $flacfile -fr -fb -fc 1 -fp 8 -fs 44100 /bin/sh ; then
+	chmod +w $flacfile
+else
 	echo "ERROR during generation" 1>&2
 	exit 1
 fi
@@ -43,11 +48,134 @@ check_exit ()
 
 check_flac ()
 {
-	if flac -t $flacfile ; then : ; else
-		echo "ERROR if $flacfile" 1>&2
+	if flac -s -t $flacfile ; then : ; else
+		echo "ERROR in $flacfile" 1>&2
 		exit 1
 	fi
 }
 
 check_flac
-metaflac --list $flacfile
+
+(set -x && metaflac --list $flacfile)
+check_exit
+
+(set -x &&
+metaflac \
+	--show-md5sum \
+	--show-min-blocksize \
+	--show-max-blocksize \
+	--show-min-framesize \
+	--show-max-framesize \
+	--show-sample-rate \
+	--show-channels \
+	--show-bps \
+	--show-total-samples \
+	$flacfile
+)
+check_exit
+
+(set -x && metaflac --preserve-modtime --add-padding=12345 $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --set-vc-field="ARTIST=The artist formerly known as the artist..." $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --set-vc-field="ARTIST=Chuck Woolery" $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --set-vc-field="ARTIST=Vern" $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --set-vc-field="TITLE=He who smelt it dealt it" $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --show-vc-vendor --show-vc-field=ARTIST $flacfile)
+check_exit
+
+(set -x && metaflac --remove-vc-firstfield=ARTIST $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove-vc-field=ARTIST $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --list --block-number=0 $flacfile)
+check_exit
+
+(set -x && metaflac --list --block-number=1,2,999 $flacfile)
+check_exit
+
+(set -x && metaflac --list --block-type=VORBIS_COMMENT,PADDING $flacfile)
+check_exit
+
+(set -x && metaflac --list --except-block-type=SEEKTABLE,VORBIS_COMMENT $flacfile)
+check_exit
+
+(set -x && metaflac --add-padding=4321 $flacfile $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --merge-padding $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --add-padding=0 $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --sort-padding $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --add-padding=0 $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove-vc-all $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove --block-number=1,99 --dont-use-padding $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove --block-number=99 --dont-use-padding $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove --block-type=PADDING $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove --block-type=PADDING --dont-use-padding $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --add-padding=0 $flacfile $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove --except-block-type=PADDING $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove-all $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove-all --dont-use-padding $flacfile)
+check_exit
+check_flac
+
+(set -x && metaflac --remove-all --dont-use-padding $flacfile)
+check_exit
+check_flac
+
+exit 0
+
