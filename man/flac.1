@@ -3,22 +3,24 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "10 January 2003" "" ""
+.TH "FLAC" "1" "29 July 2004" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
 
-\fBflac\fR [ \fB\fIOPTION\fB\fR ] \fB\fIinfile\fB\fR \fB\fI...\fB\fR
+\fBflac\fR [ \fB\fIoptions\fB\fR ] [ \fB\fIinfile.wav\fB\fR | \fB\fIinfile.aiff\fB\fR | \fB\fIinfile.raw\fB\fR | \fB-\fR\fI ...\fR ]
+
+
+\fBflac\fR [ \fB-d\fR | \fB--decode\fR | \fB-t\fR | \fB--test\fR | \fB-a\fR | \fB--analyze\fR ] [ \fB\fIOPTIONS\fB\fR ] [ \fB\fIinfile.flac\fB\fR\fI ...\fR ]
 
 .SH "DESCRIPTION"
 .PP
-This manual page documents briefly the
-\fBflac\fR command.
+\fBflac\fR is a command-line tool for
+encoding, decoding, testing and analyzing FLAC streams.
 .PP
-This manual page was written for the Debian GNU/Linux
-distribution because the original program does not have a
-manual page.  Instead, it has documentation in HTML
-format; see below.
+This manual page was originally written for the Debian GNU/Linux
+distribution because the original program did not have a
+manual page.
 .SH "OPTIONS"
 .PP
 A summary of options is included below.  For a complete
@@ -42,7 +44,7 @@ Test a flac encoded file (same as -d
 except no decoded file is written)
 .TP
 \fB-a, --analyze \fR
-Analyze a flac encoded file (same as -d
+Analyze a FLAC encoded file (same as -d
 except an analysis file is written)
 .TP
 \fB-c, --stdout \fR
@@ -51,6 +53,17 @@ Write output to stdout
 \fB-s, --silent \fR
 Silent mode (do not write runtime
 encode/decode statistics to stderr)
+.TP
+\fB--totally-silent \fR
+Do not print anything of any kind,
+including warnings or errors.  The exit
+code will be the only way to determine
+successful completion.
+.TP
+\fB-f, --force \fR
+Force overwriting of output files.  By default,
+flac warns that the output file already exists and
+continues to the next file.
 .TP
 \fB-o \fIfilename\fB, --output-name=\fIfilename\fB\fR
 Force the output file name (usually flac just
@@ -101,11 +114,13 @@ Ogg-FLAC.  This is useful when piping input from
 stdin or when the filename does not end in '.ogg'.
 .TP
 \fB--serial-number=\fI#\fB\fR
-When used with --ogg, specifies the serial
-number to use for the FLAC stream.  When encoding and
-no serial number is given, flac uses '0'.  When
-decoding and no number is given, flac uses the serial
-number of the first page.
+When used with --ogg, specifies the serial number to
+use for the first Ogg FLAC stream, which is then
+incremented for each additional stream.  When encoding and
+no serial number is given, flac uses a random number for
+the first stream, then increments it for each additional
+stream.  When decoding and no number is given, flac uses
+the serial number of the first page.
 .SS "ANALYSIS OPTIONS"
 .TP
 \fB--residual-text \fR
@@ -119,6 +134,20 @@ each file will contain the residual distribution
 of the subframe.  This will create a lot of
 files.
 .SS "DECODING OPTIONS"
+.TP
+\fB--cue=[\fI#.#\fB][-[\fI#.#\fB]]\fR
+Set the beginning and ending cuepoints to decode.
+The optional first #.# is the track and index point at
+which decoding will start; the default is the beginning
+of the stream.  The optional second #.# is the track
+and index point at which decoding will end; the default
+is the end of the stream.  If the seekpoint does not
+exist, the closest one before it (for the start point)
+or after it (for the end point) will be used.  If those
+don't exist, the start of the stream (for the start
+point) or end of the stream (for the end point) will be
+used.  The cuepoints are merely translated into sample
+numbers then used as --skip and --until.
 .TP
 \fB-F, --decode-through-errors \fR
 By default flac stops decoding with an error
