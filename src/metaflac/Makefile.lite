@@ -27,9 +27,9 @@ PROGRAM_NAME = metaflac
 INCLUDES = -I./include -I$(topdir)/include
 
 ifeq ($(DARWIN_BUILD),yes)
-EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libFLAC.a $(libdir)/libreplaygain_analysis.a $(libdir)/libgetopt.a $(libdir)/libutf8.a -lm
+EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libFLAC.a $(libdir)/libreplaygain_analysis.a $(libdir)/libgetopt.a $(libdir)/libutf8.a -L$(ICONV_LIB_DIR) -liconv -lm
 else
-LIBS = -lgrabbag -lFLAC -lreplaygain_analysis -lgetopt -lutf8 -lm
+LIBS = -lgrabbag -lFLAC -lreplaygain_analysis -lgetopt -lutf8 -L$(ICONV_LIB_DIR) -liconv -lm
 endif
 
 SRCS_C = \

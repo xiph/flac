@@ -27,9 +27,9 @@ PROGRAM_NAME = flac
 INCLUDES = -I./include -I$(topdir)/include -I$(OGG_INCLUDE_DIR)
 
 ifeq ($(DARWIN_BUILD),yes)
-EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libOggFLAC.a $(libdir)/libFLAC.a $(libdir)/libreplaygain_analysis.a $(libdir)/libreplaygain_synthesis.a $(libdir)/libgetopt.a $(libdir)/libutf8.a $(OGG_LIB_DIR)/libogg.a -lm
+EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libOggFLAC.a $(libdir)/libFLAC.a $(libdir)/libreplaygain_analysis.a $(libdir)/libreplaygain_synthesis.a $(libdir)/libgetopt.a $(libdir)/libutf8.a $(OGG_LIB_DIR)/libogg.a -L$(ICONV_LIB_DIR) -liconv -lm
 else
-LIBS = -lgrabbag -lOggFLAC -lFLAC -lreplaygain_analysis -lreplaygain_synthesis -lgetopt -lutf8 -lm -L$(OGG_LIB_DIR) -logg
+LIBS = -lgrabbag -lOggFLAC -lFLAC -lreplaygain_analysis -lreplaygain_synthesis -lgetopt -lutf8 -L$(OGG_LIB_DIR) -logg -L$(ICONV_LIB_DIR) -liconv -lm
 endif
 
 SRCS_C = \

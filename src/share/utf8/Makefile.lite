@@ -5,7 +5,7 @@
 topdir = ../../..
 
 LIB_NAME = libutf8
-INCLUDES = -I$(topdir)/include -I$(topdir)/include/share
+INCLUDES = -I$(topdir)/include -I$(topdir)/include/share -I$(ICONV_INCLUDE_DIR)
 
 SRCS_C = \
 	charset.c \
