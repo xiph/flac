@@ -1,0 +1,23 @@
+!include <win32.mak>
+
+!IFDEF DEBUG
+.c.obj:
+	$(cc) /GX $(cdebug) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+!else
+.c.obj:
+	$(cc) /O2 $(crelease) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
+!endif
+
+C_FILES= \
+	in_flac.c
+
+OBJS= $(C_FILES:.c=.obj)
+
+all: in_flac.dll
+
+in_flac.dll: $(OBJS)
+	link.exe /dll /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.dll $(OBJS) libFLAC.lib user32.lib kernel32.lib
+
+clean:
+	-del *.obj *.pch
+	-del ..\..\obj\bin\in_flac.*
