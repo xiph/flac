@@ -44,6 +44,7 @@ FLAC - 1.1.1 - Contents
 ===============================================================================
 
 - Introduction
+- Prerequisites
 - Building in a GNU environment
 - Building with Makefile.lite
 - Building with MSVC
@@ -69,6 +70,18 @@ A brief description of the directory tree:
 	man/          the man page for `flac'
 	src/          the source code and private headers
 	test/         the test scripts
+
+
+===============================================================================
+Prerequisites
+===============================================================================
+
+To build FLAC with support for Ogg FLAC you must have built and installed
+libogg according to the specific instructions below.  You must have
+libogg 1.1.2 or greater, or there will be seeking problems with Ogg FLAC.
+
+If you are building on x86 and want the assembly optimizations, you will
+need to have NASM installed according to the specific instructions below.
 
 
 ===============================================================================
