@@ -70,9 +70,9 @@ static void FLAC_XMMS__get_song_info(char *filename, char **title, int *length);
 static FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
 static void *play_loop_(void *arg);
 static FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *decoder);
-static FLAC__bool safe_decoder_finish_(FLAC__FileDecoder *decoder);
-static FLAC__bool safe_decoder_delete_(FLAC__FileDecoder *decoder);
-static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
+static void safe_decoder_finish_(FLAC__FileDecoder *decoder);
+static void safe_decoder_delete_(FLAC__FileDecoder *decoder);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
@@ -213,7 +213,7 @@ int FLAC_XMMS__get_time()
 
 void FLAC_XMMS__cleanup()
 {
-	safe_decoder_delete(decoder_);
+	safe_decoder_delete_(decoder_);
 	decoder_ = 0;
 }
 
@@ -228,7 +228,7 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 	if(!FLAC__metadata_get_streaminfo(filename, &streaminfo)) {
 		/* @@@ how to report the error? */
 		if(title) {
-			static const char *errtitle = "Invalid FLAC File: ");
+			static const char *errtitle = "Invalid FLAC File: ";
 			*title = g_malloc(strlen(errtitle) + 1 + strlen(filename) + 1 + 1);
 			sprintf(*title, "%s\"%s\"", errtitle, filename);
 		}
@@ -243,7 +243,7 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 		strcpy(*title, tag.description);
 	}
 	if(length_in_msec)
-		*length_in_msec = streaminfo.total_samples * 10 / (streaminfo.sample_rate / 100);
+		*length_in_msec = streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100);
 }
 
 /***********************************************************************
@@ -394,7 +394,7 @@ void safe_decoder_delete_(FLAC__FileDecoder *decoder)
 	}
 }
 
-FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	const unsigned bps = file_info->bits_per_sample, channels = file_info->channels, wide_samples = frame->header.blocksize;

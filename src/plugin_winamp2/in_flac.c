@@ -57,7 +57,7 @@ typedef struct {
 static FLAC__bool safe_decoder_init_(const char *infilename, FLAC__FileDecoder *decoder);
 static void safe_decoder_finish_(FLAC__FileDecoder *decoder);
 static void safe_decoder_delete_(FLAC__FileDecoder *decoder);
-static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
@@ -237,7 +237,7 @@ void getfileinfo(char *filename, char *title, int *length_in_ms)
 		strcpy(title, tag.description);
 	}
 	if(length_in_msec)
-		*length_in_msec = streaminfo.total_samples * 10 / (streaminfo.sample_rate / 100);
+		*length_in_msec = streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100);
 }
 
 void eq_set(int on, char data[10], int preamp)
@@ -407,7 +407,7 @@ void safe_decoder_delete_(FLAC__FileDecoder *decoder)
 	}
 }
 
-FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	file_info_struct *file_info_ = (file_info_struct *)client_data;
 	const unsigned bps = file_info_->bits_per_sample, channels = file_info_->channels, wide_samples = frame->header.blocksize;

@@ -89,7 +89,7 @@ int FlacPcm::getInfos(MediaInfo *infos)
 	if(!reader) return 0;
 
 	//@@@ to be really "clean" we should go through the reader instead of directly to the file...
-	if(!FLAC__metadata_get_streaminfo(infos->getFilename(), &stream_info))
+	if(!FLAC__metadata_get_streaminfo(infos->getFilename(), &streaminfo))
 		return 1;
 
 	id3v1_struct tag;
@@ -99,7 +99,7 @@ int FlacPcm::getInfos(MediaInfo *infos)
 	infos->setLength(lengthInMsec());
 	//@@@ infos->setTitle(Std::filename(infos->getFilename()));
 	infos->setTitle(tag.description);
-	infos->setInfo(StringPrintf("FLAC:<%ihz:%ibps:%dch>", stream_info.sample_rate, stream_info.bits_per_sample, stream_info.channels)); //@@@ fix later
+	infos->setInfo(StringPrintf("FLAC:<%ihz:%ibps:%dch>", streaminfo.data.stream_info.sample_rate, streaminfo.data.stream_info.bits_per_sample, streaminfo.data.stream_info.channels)); //@@@ fix later
 	if(has_tag) {
 		infos->setData("Title", tag.title);
 		infos->setData("Artist", tag.artist);
@@ -160,10 +160,10 @@ int FlacPcm::processData(MediaInfo *infos, ChunkList *chunk_list, bool *killswit
 		eof = true;
 	}
 	else {
-		const unsigned channels = stream_info.channels;
-		const unsigned bits_per_sample = stream_info.bits_per_sample;
+		const unsigned channels = streaminfo.data.stream_info.channels;
+		const unsigned bits_per_sample = streaminfo.data.stream_info.bits_per_sample;
 		const unsigned bytes_per_sample = (bits_per_sample+7)/8;
-		const unsigned sample_rate = stream_info.sample_rate;
+		const unsigned sample_rate = streaminfo.data.stream_info.sample_rate;
 		unsigned i, n = min(samples_in_reservoir, 576), delta;
 		signed short *ssbuffer = (signed short*)output;
 
@@ -192,11 +192,11 @@ int FlacPcm::processData(MediaInfo *infos, ChunkList *chunk_list, bool *killswit
 
 int FlacPcm::corecb_onSeeked(int newpos)
 {
-	if(stream_info.total_samples == 0 || newpos < 0)
+	if(streaminfo.data.stream_info.total_samples == 0 || newpos < 0)
 		return 1;
 
 	needs_seek = true;
-	seek_sample = (FLAC__uint64)((double)newpos / (double)lengthInMsec() * (double)(FLAC__int64)stream_info.total_samples);
+	seek_sample = (FLAC__uint64)((double)newpos / (double)lengthInMsec() * (double)(FLAC__int64)streaminfo.data.stream_info.total_samples);
 	return 0;
 }
 
@@ -257,7 +257,7 @@ FLAC__bool FlacPcm::eofCallback_(const FLAC__SeekableStreamDecoder *decoder, voi
 FLAC__StreamDecoderWriteStatus FlacPcm::writeCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
 {
 	FlacPcm *instance = (FlacPcm*)client_data;
-	const unsigned bps = instance->stream_info.bits_per_sample, channels = instance->stream_info.channels, wide_samples = frame->header.blocksize;
+	const unsigned bps = instance->streaminfo.data.stream_info.bits_per_sample, channels = instance->streaminfo.data.stream_info.channels, wide_samples = frame->header.blocksize;
 	unsigned wide_sample, sample, channel;
 
 	(void)decoder;
@@ -279,9 +279,9 @@ void FlacPcm::metadataCallback_(const FLAC__SeekableStreamDecoder *decoder, cons
 	FlacPcm *instance = (FlacPcm*)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		instance->stream_info = metadata->data.stream_info;
+		instance->streaminfo.data.stream_info = *metadata;
 
-		if(instance->stream_info.bits_per_sample != 16) {
+		if(instance->streaminfo.data.stream_info.bits_per_sample != 16) {
 			//@@@ how to do this?  MessageBox(mod.hMainWindow, "ERROR: plugin can only handle 16-bit samples\n", "ERROR: plugin can only handle 16-bit samples", 0);
 			instance->abort_flag = true;
 			return;

@@ -88,11 +88,11 @@ protected:
 	bool abort_flag;
 	svc_fileReader *reader;
 	FLAC__SeekableStreamDecoder *decoder;
-	FLAC__StreamMetadata_StreamInfo stream_info;
+	FLAC__StreamMetadata streaminfo;
 	FLAC__int16 reservoir[FLAC__MAX_BLOCK_SIZE * 2 * 2]; // *2 for max channels, another *2 for overflow
 	unsigned char output[576 * 2 * (16/8)]; // *2 for max channels, (16/8) for max bytes per sample
 
-	unsigned lengthInMsec() { return (unsigned)((FLAC__uint64)1000 * stream_info.total_samples / stream_info.sample_rate); }
+	unsigned lengthInMsec() { return (unsigned)((FLAC__uint64)1000 * streaminfo.data.stream_info.total_samples / streaminfo.data.stream_info.sample_rate); }
 private:
 	void cleanup();
 	static FLAC__SeekableStreamDecoderReadStatus readCallback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
