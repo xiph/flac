@@ -560,6 +560,7 @@ FLAC__bool FLAC__stream_decoder_process_whole_stream(FLAC__StreamDecoder *decode
 					return false; /* above function sets the status for us */
 				break;
 			case FLAC__STREAM_DECODER_END_OF_STREAM:
+			case FLAC__STREAM_DECODER_ABORTED:
 				return true;
 			default:
 				FLAC__ASSERT(0);
@@ -592,10 +593,9 @@ FLAC__bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder)
 					return false; /* above function sets the status for us */
 				break;
 			case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
-				return true;
 			case FLAC__STREAM_DECODER_READ_FRAME:
-				return true;
 			case FLAC__STREAM_DECODER_END_OF_STREAM:
+			case FLAC__STREAM_DECODER_ABORTED:
 				return true;
 			default:
 				FLAC__ASSERT(0);
@@ -626,6 +626,7 @@ FLAC__bool FLAC__stream_decoder_process_one_frame(FLAC__StreamDecoder *decoder)
 					return true; /* above function sets the status for us */
 				break;
 			case FLAC__STREAM_DECODER_END_OF_STREAM:
+			case FLAC__STREAM_DECODER_ABORTED:
 				return true;
 			default:
 				FLAC__ASSERT(0);
@@ -654,6 +655,7 @@ FLAC__bool FLAC__stream_decoder_process_remaining_frames(FLAC__StreamDecoder *de
 					return false; /* above function sets the status for us */
 				break;
 			case FLAC__STREAM_DECODER_END_OF_STREAM:
+			case FLAC__STREAM_DECODER_ABORTED:
 				return true;
 			default:
 				FLAC__ASSERT(0);
