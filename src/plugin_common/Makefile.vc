@@ -12,7 +12,8 @@ C_FILES= \
 	canonical_tag.c \
 	charset.c \
 	dither.c \
-	id3v1.c
+	id3v1.c \
+	id3v2.c
 
 OBJS= $(C_FILES:.c=.obj)
 

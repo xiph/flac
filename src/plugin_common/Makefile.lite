@@ -3,13 +3,15 @@
 #
 
 LIB_NAME = libplugin-common
-INCLUDES = -I../../include
+INCLUDES = -I../../include -I$(HOME)/local/include
+DEFINES  = -DFLAC__HAS_ID3LIB -DID3LIB_MAJOR=3 -DID3LIB_MINOR=8 -DID3LIB_PATCH=0
 
 OBJS = \
 	canonical_tag.o \
 	charset.o \
 	dither.o \
-	id3v1.o
+	id3v1.o \
+	id3v2.o
 
 include ../../build/lib.mk
 
