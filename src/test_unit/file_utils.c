@@ -85,19 +85,19 @@ FLAC__bool file_utils__remove_file(const char *filename)
 	return file_utils__change_stats(filename, /*read_only=*/false) && 0 == unlink(filename);
 }
 
-FLAC__bool file_utils__generate_file(const char *filename, unsigned length, const FLAC__StreamMetaData *streaminfo, int padding_length)
+FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned length, const FLAC__StreamMetaData *streaminfo, int padding_length)
 {
 	FLAC__int32 samples[1024];
 	FLAC__StreamEncoder *encoder;
 	encoder_client_struct encoder_client_data;
 	unsigned i, n;
 
-	FLAC__ASSERT(0 != filename);
+	FLAC__ASSERT(0 != output_filename);
 	FLAC__ASSERT(0 != streaminfo);
 	FLAC__ASSERT(streaminfo->type == FLAC__METADATA_TYPE_STREAMINFO);
 	FLAC__ASSERT((streaminfo->is_last && padding_length < 0) || (!streaminfo->is_last && padding_length >= 0));
 
-	if(0 == (encoder_client_data.file = fopen(filename, "wb")))
+	if(0 == (encoder_client_data.file = fopen(output_filename, "wb")))
 		return false;
 
 	encoder = FLAC__stream_encoder_new();
@@ -149,10 +149,10 @@ FLAC__bool file_utils__generate_file(const char *filename, unsigned length, cons
 		length -= n;
 	}
 
+	FLAC__stream_encoder_finish(encoder);
+
 	fclose(encoder_client_data.file);
 
-	if(FLAC__stream_encoder_get_state(encoder) == FLAC__STREAM_ENCODER_OK)
-		FLAC__stream_encoder_finish(encoder);
 	FLAC__stream_encoder_delete(encoder);
 
 	return true;
