@@ -175,11 +175,14 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(
 #if 0
 	/* @@@ MMX version needs bps check */
 	if(decoder->guts->cpuinfo.data.ia32.mmx && @@@bps check here@@@)
+{//@@@
 		decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386_mmx;
+fprintf(stderr,"@@@ got _asm_i386_mmx of lpc_restore_signal()\n");}
 	else
 #endif
-fprintf(stderr,"@@@ got _asm_i386 of lpc_restore_signal()\n");
+{//@@@
 		decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386;
+fprintf(stderr,"@@@ got _asm_i386 of lpc_restore_signal()\n");}
 #endif
 #endif
 #endif

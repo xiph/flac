@@ -336,24 +336,29 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 #ifdef FLAC__HAS_NASM
 #if 0
 	/* @@@ SSE version not working yet */
-	if(encoder->guts->cpuinfo.data.ia32.sse)
+	if(encoder->guts->cpuinfo.data.ia32.sse && encoder->max_lpc_order == 7)
+{//@@@
 		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse;
+fprintf(stderr,"@@@ got _asm_i386_sse of lpc_compute_autocorrelation()\n");}
 	else
 #endif
-fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");
+{//@@@
 		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
+fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");}
 	if(encoder->guts->cpuinfo.data.ia32.mmx && encoder->guts->cpuinfo.data.ia32.cmov)
-{
+{//@@@
 		encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov;
 fprintf(stderr,"@@@ got _asm_i386_mmx_cmov of fixed_compute_best_predictor()\n");}
 #if 0
 	/* @@@ MMX version needs bps check */
-	if(decoder->guts->cpuinfo.data.ia32.mmx && @@@bps check here@@@)
+	if(encoder->guts->cpuinfo.data.ia32.mmx && @@@bps check here@@@)
+{//@@@
 		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx;
+fprintf(stderr,"@@@ got _asm_i386_mmx of lpc_compute_residual_from_qlp_coefficients()\n");}
 	else
 #endif
-{
-	encoder->guts->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
+{//@@@
+		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
 fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_residual_from_qlp_coefficients()\n");}
 #endif
 #endif
