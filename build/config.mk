@@ -37,14 +37,4 @@ all default: $(DEFAULT_BUILD)
 
 VERSION=\"1.1.0\"
 
-ORDINALS_H = $(topdir)/include/FLAC/ordinals.h
-
-$(ORDINALS_H): $(ORDINALS_H).in
-	sed \
-		-e "s/@FLaC__SIZE16@/short/g" \
-		-e "s/@FLaC__SIZE32@/int/g" \
-		-e "s/@FLaC__SIZE64@/long long/g" \
-		-e "s/@FLaC__USIZE16@/unsigned short/g" \
-		-e "s/@FLaC__USIZE32@/unsigned int/g" \
-		-e "s/@FLaC__USIZE64@/unsigned long long/g" \
-		$< > $@
+CONFIG_CFLAGS=-DHAVE_INTTYPES_H

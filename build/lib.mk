@@ -55,9 +55,9 @@ else
 LINKD       = $(CC) -shared
 endif
 
-debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
-valgrind: CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -DFLAC__VALGRIND_TESTING -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
-release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -Winline -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+debug   : CFLAGS = -g -O0 -DDEBUG $(CONFIG_CFLAGS) $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+valgrind: CFLAGS = -g -O0 -DDEBUG $(CONFIG_CFLAGS) -DFLAC__VALGRIND_TESTING -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(CONFIG_CFLAGS) $(RELEASE_CFLAGS) -Wall -W -Winline -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
 LFLAGS  = -L$(LIBPATH)
 

@@ -32,18 +32,23 @@
 #ifndef FLAC__ORDINALS_H
 #define FLAC__ORDINALS_H
 
-#ifdef true
-#undef true
-#endif
-#ifdef false
-#undef false
-#endif
-#ifndef __cplusplus
-#define true 1
-#define false 0
+#ifdef HAVE_CONFIG_H
+#include <config.h>
 #endif
 
-typedef int FLAC__bool;
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#elif defined(HAVE_U_INT)
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#define uint8_t u_int8_t
+#define uint16_t u_int16_t
+#define uint32_t u_int32_t
+#define uint64_t u_int64_t
+#elif !defined(_MSC_VER)
+#error Unable to find fixed-size data types
+#endif
 
 typedef signed char FLAC__int8;
 typedef unsigned char FLAC__uint8;
@@ -56,15 +61,28 @@ typedef unsigned __int16 FLAC__uint16;
 typedef unsigned __int32 FLAC__uint32;
 typedef unsigned __int64 FLAC__uint64;
 #else
-typedef @FLaC__SIZE16@ FLAC__int16;
-typedef @FLaC__SIZE32@ FLAC__int32;
-typedef @FLaC__SIZE64@ FLAC__int64;
-typedef @FLaC__USIZE16@ FLAC__uint16;
-typedef @FLaC__USIZE32@ FLAC__uint32;
-typedef @FLaC__USIZE64@ FLAC__uint64;
+typedef int16_t FLAC__int16;
+typedef int32_t FLAC__int32;
+typedef int64_t FLAC__int64;
+typedef uint16_t FLAC__uint16;
+typedef uint32_t FLAC__uint32;
+typedef uint64_t FLAC__uint64;
 #endif
+
+typedef int FLAC__bool;
 
 typedef FLAC__uint8 FLAC__byte;
 typedef float FLAC__real;
+
+#ifdef true
+#undef true
+#endif
+#ifdef false
+#undef false
+#endif
+#ifndef __cplusplus
+#define true 1
+#define false 0
+#endif
 
 #endif

@@ -375,34 +375,7 @@ SOURCE=..\..\include\FLAC\metadata.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\FLAC\ordinals.h.in
-
-!IF  "$(CFG)" == "libFLAC_dynamic - Win32 Release"
-
-USERDEP__ORDIN="..\..\include\FLAC\ordinals.h.in"	
-# Begin Custom Build
-InputDir=..\..\include\FLAC
-InputPath=..\..\include\FLAC\ordinals.h.in
-
-"$(InputDir)\ordinals.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy "$(InputDir)\ordinals.h.in" "$(InputDir)\ordinals.h"
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "libFLAC_dynamic - Win32 Debug"
-
-USERDEP__ORDIN="..\..\include\FLAC\ordinals.h.in"	
-# Begin Custom Build
-InputDir=..\..\include\FLAC
-InputPath=..\..\include\FLAC\ordinals.h.in
-
-"$(InputDir)\ordinals.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy "$(InputDir)\ordinals.h.in" "$(InputDir)\ordinals.h"
-
-# End Custom Build
-
-!ENDIF 
-
+SOURCE=..\..\include\FLAC\ordinals.h
 # End Source File
 # Begin Source File
 

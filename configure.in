@@ -304,56 +304,6 @@ if test -n "$NASM" ; then
 AC_DEFINE(FLAC__HAS_NASM)
 fi
 
-dnl Check for type sizes
-
-AC_CHECK_SIZEOF(short)
-AC_CHECK_SIZEOF(int)
-AC_CHECK_SIZEOF(long)
-AC_CHECK_SIZEOF(long long)
-
-case 2 in
-	$ac_cv_sizeof_short) FLaC__SIZE16="short" ; FLaC__USIZE16="unsigned short";;
-	$ac_cv_sizeof_int) FLaC__SIZE16="int" ; FLaC__USIZE16="unsigned int";;
-esac
-
-case 4 in
-	$ac_cv_sizeof_short) FLaC__SIZE32="short" ; FLaC__USIZE32="unsigned short";;
-	$ac_cv_sizeof_int) FLaC__SIZE32="int" ; FLaC__USIZE32="unsigned int";;
-	$ac_cv_sizeof_long) FLaC__SIZE32="long" ; FLaC__USIZE32="unsigned long";;
-esac
-
-case 8 in
-	$ac_cv_sizeof_int) FLaC__SIZE64="int" ; FLaC__USIZE64="unsigned int";;
-	$ac_cv_sizeof_long) FLaC__SIZE64="long" ; FLaC__USIZE64="unsigned long";;
-	$ac_cv_sizeof_long_long) FLaC__SIZE64="long long" ; FLaC__USIZE64="unsigned long long";;
-esac
-
-if test -z "$FLaC__SIZE16"; then
-	AC_MSG_ERROR(No 16 bit type found on this platform!)
-fi
-if test -z "$FLaC__USIZE16"; then
-	AC_MSG_ERROR(No unsigned 16 bit type found on this platform!)
-fi
-if test -z "$FLaC__SIZE32"; then
-	AC_MSG_ERROR(No 32 bit type found on this platform!)
-fi
-if test -z "$FLaC__USIZE32"; then
-	AC_MSG_ERROR(No unsigned 32 bit type found on this platform!)
-fi
-if test -z "$FLaC__SIZE64"; then
-	AC_MSG_WARN(No 64 bit type found on this platform!)
-fi
-if test -z "$FLaC__USIZE64"; then
-	AC_MSG_ERROR(No unsigned 64 bit type found on this platform!)
-fi
-
-AC_SUBST(FLaC__SIZE16)
-AC_SUBST(FLaC__USIZE16)
-AC_SUBST(FLaC__SIZE32)
-AC_SUBST(FLaC__USIZE32)
-AC_SUBST(FLaC__SIZE64)
-AC_SUBST(FLaC__USIZE64)
-
 OUR_CFLAGS_HEAD='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
 if test x$debug = xtrue; then
 	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -g -O0 -DDEBUG"
@@ -424,7 +374,6 @@ AC_OUTPUT( \
 	src/test_streams/Makefile \
 	include/Makefile \
 	include/FLAC/Makefile \
-	include/FLAC/ordinals.h \
 	include/FLAC++/Makefile \
 	include/OggFLAC/Makefile \
 	include/OggFLAC++/Makefile \
