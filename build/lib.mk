@@ -28,19 +28,20 @@ CCC         = g++
 endif
 NASM        = nasm
 LINK        = ar cru
+LIBPATH     = ../../obj/lib
 ifeq ($(DARWIN_BUILD),yes)
-LINKD       = $(CC) -dynamiclib -flat_namespace -undefined suppress -install_name ../../obj/lib/libFLAC.dylib
-#LINKD       = $(CC) -dynamiclib -flat_namespace -undefined suppress -install_name ../../obj/lib/libFLAC.1.dylib -compatibility_version 3 -current_version 3.1
+STATIC_LIB_SUFFIX = a
+DYNAMIC_LIB_SUFFIX = dylib
+else
+STATIC_LIB_SUFFIX = a
+DYNAMIC_LIB_SUFFIX = so
+endif
+STATIC_LIB  = $(LIBPATH)/$(LIB_NAME).$(STATIC_LIB_SUFFIX)
+DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).$(DYNAMIC_LIB_SUFFIX)
+ifeq ($(DARWIN_BUILD),yes)
+LINKD       = $(CC) -dynamiclib -flat_namespace -undefined suppress -install_name $(DYNAMIC_LIB)
 else
 LINKD       = ld -G
-endif
-LIBPATH     = ../../obj/lib
-STATIC_LIB  = $(LIBPATH)/$(LIB_NAME).a
-ifeq ($(DARWIN_BUILD),yes)
-DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).dylib
-#DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).1.1.1.dylib
-else
-DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).so
 endif
 
 all : release
