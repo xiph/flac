@@ -1,5 +1,5 @@
 ; libFLAC - Free Lossless Audio Codec library
-; Copyright (C) 2001,2002  Josh Coalson
+; Copyright (C) 2001,2002,2003  Josh Coalson
 ;
 ; This library is free software; you can redistribute it and/or
 ; modify it under the terms of the GNU Library General Public

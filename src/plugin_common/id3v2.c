@@ -1,5 +1,5 @@
 /* plugin_common - Routines common to several plugins
- * Copyright (C) 2002  Daisuke Shimamura
+ * Copyright (C) 2002,2003  Daisuke Shimamura
  *
  * Almost from id3_tag.c - 2001/02/16
  *  EasyTAG - Tag editor for MP3 and OGG files
