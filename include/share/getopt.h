@@ -34,6 +34,23 @@
 #ifndef FLAC__SHARE__GETOPT_H
 #define FLAC__SHARE__GETOPT_H
 
+#if defined(unix) || defined(__CYGWIN__) || defined(__CYGWIN32__)
+#define GETOPT_API
+
+#else
+
+#ifdef GETOPT_API_EXPORTS
+#define	GETOPT_API	_declspec(dllexport)
+#else
+#define GETOPT_API	_declspec(dllimport)
+#define __LIBNAME__ "getopt.lib"
+#pragma comment(lib, __LIBNAME__)
+#undef __LIBNAME__
+
+#endif
+#endif
+
+
 /*[JEC] was:#ifndef __need_getopt*/
 /*[JEC] was:# define _GETOPT_H 1*/
 /*[JEC] was:#endif*/
@@ -48,7 +65,7 @@ extern "C" {
    Also, when `ordering' is RETURN_IN_ORDER,
    each non-option ARGV-element is returned here.  */
 
-extern char *FLAC__share__optarg;
+GETOPT_API extern char *FLAC__share__optarg;
 
 /* Index in ARGV of the next element to be scanned.
    This is used for communication to and from the caller
@@ -62,16 +79,16 @@ extern char *FLAC__share__optarg;
    Otherwise, `FLAC__share__optind' communicates from one call to the next
    how much of ARGV has been scanned so far.  */
 
-extern int FLAC__share__optind;
+GETOPT_API extern int FLAC__share__optind;
 
 /* Callers store zero here to inhibit the error message `FLAC__share__getopt' prints
    for unrecognized options.  */
 
-extern int FLAC__share__opterr;
+GETOPT_API extern int FLAC__share__opterr;
 
 /* Set to an option character which was unrecognized.  */
 
-extern int FLAC__share__optopt;
+GETOPT_API extern int FLAC__share__optopt;
 
 /*[JEC] was:#ifndef __need_getopt */
 /* Describe the long-named options requested by the application.
@@ -146,20 +163,20 @@ struct FLAC__share__option
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
-extern int FLAC__share__getopt (int __argc, char *const *__argv, const char *__shortopts);
+GETOPT_API extern int FLAC__share__getopt (int __argc, char *const *__argv, const char *__shortopts);
 /*[JEC] was:# else*/ /* not __GNU_LIBRARY__ */
 /*[JEC] was:extern int getopt ();*/
 /*[JEC] was:# endif*/ /* __GNU_LIBRARY__ */
 
 /*[JEC] was:# ifndef __need_getopt*/
-extern int FLAC__share__getopt_long (int __argc, char *const *__argv, const char *__shortopts,
+GETOPT_API extern int FLAC__share__getopt_long (int __argc, char *const *__argv, const char *__shortopts,
 		        const struct FLAC__share__option *__longopts, int *__longind);
-extern int FLAC__share__getopt_long_only (int __argc, char *const *__argv,
+GETOPT_API extern int FLAC__share__getopt_long_only (int __argc, char *const *__argv,
 			     const char *__shortopts,
 		             const struct FLAC__share__option *__longopts, int *__longind);
 
 /* Internal only.  Users should not call this directly.  */
-extern int FLAC__share___getopt_internal (int __argc, char *const *__argv,
+GETOPT_API extern int FLAC__share___getopt_internal (int __argc, char *const *__argv,
 			     const char *__shortopts,
 		             const struct FLAC__share__option *__longopts, int *__longind,
 			     int __long_only);

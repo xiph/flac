@@ -1,3 +1,22 @@
+#ifndef FLAC__SHARE__UTF8_H
+#define FLAC__SHARE__UTF8_H
+
+#if defined(unix) || defined(__CYGWIN__) || defined(__CYGWIN32__)
+#define UTF8_API
+
+#else
+
+#ifdef UTF8_API_EXPORTS
+#define	UTF8_API	_declspec(dllexport)
+#else
+#define UTF8_API	_declspec(dllimport)
+#define __LIBNAME__ "utf8.lib"
+#pragma comment(lib, __LIBNAME__)
+#undef __LIBNAME__
+
+#endif
+#endif
+
 
 /*
  * Convert a string between UTF-8 and the locale's charset.
@@ -17,7 +36,9 @@
  *   3 : unknown encoding (but still converted, using '?')
  */
 
-void convert_set_charset(const char *charset);
+UTF8_API void convert_set_charset(const char *charset);
 
-int utf8_encode(const char *from, char **to);
-int utf8_decode(const char *from, char **to);
+UTF8_API int utf8_encode(const char *from, char **to);
+UTF8_API int utf8_decode(const char *from, char **to);
+
+#endif

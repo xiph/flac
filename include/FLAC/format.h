@@ -20,6 +20,7 @@
 #ifndef FLAC__FORMAT_H
 #define FLAC__FORMAT_H
 
+#include "export.h"
 #include "ordinals.h"
 
 #ifdef __cplusplus
@@ -134,24 +135,24 @@ extern "C" {
  * This does not correspond to the shared library version number, which
  * is used to determine binary compatibility.
  */
-extern const char *FLAC__VERSION_STRING;
+extern FLAC_API const char *FLAC__VERSION_STRING;
 
 /** The vendor string inserted by the encoder into the VORBIS_COMMENT block.
  *  This is a nulL-terminated ASCII string; when inserted into the
  *  VORBIS_COMMENT the trailing null is stripped.
  */
-extern const char *FLAC__VENDOR_STRING;
+extern FLAC_API const char *FLAC__VENDOR_STRING;
 
 /** The byte string representation of the beginning of a FLAC stream. */
-extern const FLAC__byte FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */
+extern FLAC_API const FLAC__byte FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */
 
 /** The 32-bit integer big-endian representation of the beginning of
  *  a FLAC stream.
  */
-extern const unsigned FLAC__STREAM_SYNC; /* = 0x664C6143 */
+extern FLAC_API const unsigned FLAC__STREAM_SYNC; /* = 0x664C6143 */
 
 /** The length of the FLAC signature in bits. */
-extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */
+extern FLAC_API const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */
 
 /** The length of the FLAC signature in bytes. */
 #define FLAC__STREAM_SYNC_LENGTH (4u)
@@ -177,7 +178,7 @@ typedef enum {
  *  Using a FLAC__EntropyCodingMethodType as the index to this array will
  *  give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__EntropyCodingMethodTypeString[];
+extern FLAC_API const char * const FLAC__EntropyCodingMethodTypeString[];
 
 
 /** Contents of a Rice partitioned residual
@@ -209,11 +210,11 @@ typedef struct {
 
 } FLAC__EntropyCodingMethod_PartitionedRice;
 
-extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN; /**< == 4 (bits) */
-extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN; /**< == 4 (bits) */
-extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN; /**< == 5 (bits) */
+extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN; /**< == 4 (bits) */
+extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN; /**< == 4 (bits) */
+extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN; /**< == 5 (bits) */
 
-extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
+extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
 /**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN)-1 */
 
 /** Header for the entropy coding method.  (c.f. <A HREF="../format.html#residual">format specification</A>)
@@ -225,7 +226,7 @@ typedef struct {
 	} data;
 } FLAC__EntropyCodingMethod;
 
-extern const unsigned FLAC__ENTROPY_CODING_METHOD_TYPE_LEN; /**< == 2 (bits) */
+extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_TYPE_LEN; /**< == 2 (bits) */
 
 /*****************************************************************************/
 
@@ -242,7 +243,7 @@ typedef enum {
  *  Using a FLAC__SubframeType as the index to this array will
  *  give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__SubframeTypeString[];
+extern FLAC_API const char * const FLAC__SubframeTypeString[];
 
 
 /** CONSTANT subframe.  (c.f. <A HREF="../format.html#subframe_constant">format specification</A>)
@@ -301,8 +302,8 @@ typedef struct {
 	/**< The residual signal, length == (blocksize minus order) samples. */
 } FLAC__Subframe_LPC;
 
-extern const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN; /**< == 4 (bits) */
-extern const unsigned FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN; /**< == 5 (bits) */
+extern FLAC_API const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN; /**< == 4 (bits) */
+extern FLAC_API const unsigned FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN; /**< == 5 (bits) */
 
 
 /** FLAC subframe structure.  (c.f. <A HREF="../format.html#subframe">format specification</A>)
@@ -318,14 +319,14 @@ typedef struct {
 	unsigned wasted_bits;
 } FLAC__Subframe;
 
-extern const unsigned FLAC__SUBFRAME_ZERO_PAD_LEN; /**< == 1 (bit) */
-extern const unsigned FLAC__SUBFRAME_TYPE_LEN; /**< == 6 (bits) */
-extern const unsigned FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN; /**< == 1 (bit) */
+extern FLAC_API const unsigned FLAC__SUBFRAME_ZERO_PAD_LEN; /**< == 1 (bit) */
+extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_LEN; /**< == 6 (bits) */
+extern FLAC_API const unsigned FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN; /**< == 1 (bit) */
 
-extern const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK; /* = 0x00 */
-extern const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK; /* = 0x02 */
-extern const unsigned FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK; /* = 0x10 */
-extern const unsigned FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK; /* = 0x40 */
+extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK; /* = 0x00 */
+extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK; /* = 0x02 */
+extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK; /* = 0x10 */
+extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK; /* = 0x40 */
 
 /*****************************************************************************/
 
@@ -349,7 +350,7 @@ typedef enum {
  *  Using a FLAC__ChannelAssignment as the index to this array will
  *  give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__ChannelAssignmentString[];
+extern FLAC_API const char * const FLAC__ChannelAssignmentString[];
 
 /** An enumeration of the possible frame numbering methods. */
 typedef enum {
@@ -362,7 +363,7 @@ typedef enum {
  *  Using a FLAC__FrameNumberType as the index to this array will
  *  give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__FrameNumberTypeString[];
+extern FLAC_API const char * const FLAC__FrameNumberTypeString[];
 
 
 /** FLAC frame header structure.  (c.f. <A HREF="../format.html#frame_header">format specification</A>)
@@ -400,15 +401,15 @@ typedef struct {
 	 */
 } FLAC__FrameHeader;
 
-extern const unsigned FLAC__FRAME_HEADER_SYNC; /**< == 0x3ffe; the frame header sync code */
-extern const unsigned FLAC__FRAME_HEADER_SYNC_LEN; /**< == 14 (bits) */
-extern const unsigned FLAC__FRAME_HEADER_RESERVED_LEN; /**< == 2 (bits) */
-extern const unsigned FLAC__FRAME_HEADER_BLOCK_SIZE_LEN; /**< == 4 (bits) */
-extern const unsigned FLAC__FRAME_HEADER_SAMPLE_RATE_LEN; /**< == 4 (bits) */
-extern const unsigned FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN; /**< == 4 (bits) */
-extern const unsigned FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN; /**< == 3 (bits) */
-extern const unsigned FLAC__FRAME_HEADER_ZERO_PAD_LEN; /**< == 1 (bit) */
-extern const unsigned FLAC__FRAME_HEADER_CRC_LEN; /**< == 8 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_SYNC; /**< == 0x3ffe; the frame header sync code */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_SYNC_LEN; /**< == 14 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_RESERVED_LEN; /**< == 2 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_BLOCK_SIZE_LEN; /**< == 4 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_SAMPLE_RATE_LEN; /**< == 4 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN; /**< == 4 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN; /**< == 3 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_ZERO_PAD_LEN; /**< == 1 (bit) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_CRC_LEN; /**< == 8 (bits) */
 
 
 /** FLAC frame footer structure.  (c.f. <A HREF="../format.html#frame_footer">format specification</A>)
@@ -421,7 +422,7 @@ typedef struct {
 	 */
 } FLAC__FrameFooter;
 
-extern const unsigned FLAC__FRAME_FOOTER_CRC_LEN; /**< == 16 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_FOOTER_CRC_LEN; /**< == 16 (bits) */
 
 
 /** FLAC frame structure.  (c.f. <A HREF="../format.html#frame">format specification</A>)
@@ -466,7 +467,7 @@ typedef enum {
  *  Using a FLAC__MetadataType as the index to this array will
  *  give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__MetadataTypeString[];
+extern FLAC_API const char * const FLAC__MetadataTypeString[];
 
 
 /** FLAC STREAMINFO structure.  (c.f. <A HREF="../format.html#metadata_block_streaminfo">format specification</A>)
@@ -481,15 +482,15 @@ typedef struct {
 	FLAC__byte md5sum[16];
 } FLAC__StreamMetadata_StreamInfo;
 
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN; /**< == 16 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN; /**< == 16 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN; /**< == 24 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN; /**< == 24 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN; /**< == 20 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN; /**< == 3 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN; /**< == 5 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN; /**< == 36 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN; /**< == 128 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN; /**< == 16 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN; /**< == 16 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN; /**< == 24 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN; /**< == 24 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN; /**< == 20 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN; /**< == 3 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN; /**< == 5 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN; /**< == 36 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN; /**< == 128 (bits) */
 
 /** The total stream length of the STREAMINFO block in bytes. */
 #define FLAC__STREAM_METADATA_STREAMINFO_LENGTH (34u)
@@ -512,7 +513,7 @@ typedef struct {
 	FLAC__byte *data;
 } FLAC__StreamMetadata_Application;
 
-extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /**< == 32 (bits) */
 
 /** SeekPoint structure used in SEEKTABLE blocks.  (c.f. <A HREF="../format.html#seekpoint">format specification</A>)
  */
@@ -528,9 +529,9 @@ typedef struct {
 	/**< The number of samples in the target frame. */
 } FLAC__StreamMetadata_SeekPoint;
 
-extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN; /**< == 64 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN; /**< == 64 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN; /**< == 16 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN; /**< == 64 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN; /**< == 64 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN; /**< == 16 (bits) */
 
 /** The total stream length of a seek point in bytes. */
 #define FLAC__STREAM_METADATA_SEEKPOINT_LENGTH (18u)
@@ -539,7 +540,7 @@ extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN; /**< ==
  *  FLAC__StreamMetadataSeekPoint used to indicate a placeholder
  *  point (== 0xffffffffffffffff).
  */
-extern const FLAC__uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+extern FLAC_API const FLAC__uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
 
 
 /** FLAC SEEKTABLE structure.  (c.f. <A HREF="../format.html#metadata_block_seektable">format specification</A>)
@@ -567,7 +568,7 @@ typedef struct {
 	FLAC__byte *entry;
 } FLAC__StreamMetadata_VorbisComment_Entry;
 
-extern const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN; /**< == 32 (bits) */
 
 
 /** FLAC VORBIS_COMMENT structure.  (c.f. <A HREF="../format.html#metadata_block_vorbis_comment">format specification</A>)
@@ -578,7 +579,7 @@ typedef struct {
 	FLAC__StreamMetadata_VorbisComment_Entry *comments;
 } FLAC__StreamMetadata_VorbisComment;
 
-extern const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN; /**< == 32 (bits) */
 
 
 /** FLAC metadata block structure.  (c.f. <A HREF="../format.html#metadata_block">format specification</A>)
@@ -605,9 +606,9 @@ typedef struct {
 	 * to use. */
 } FLAC__StreamMetadata;
 
-extern const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN; /**< == 1 (bit) */
-extern const unsigned FLAC__STREAM_METADATA_TYPE_LEN; /**< == 7 (bits) */
-extern const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN; /**< == 1 (bit) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_TYPE_LEN; /**< == 7 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bits) */
 
 /** The total stream length of a metadata block header in bytes. */
 #define FLAC__STREAM_METADATA_HEADER_LENGTH (4u)
@@ -629,7 +630,7 @@ extern const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bits) */
  *    \c true if the given sample rate conforms to the specification, else
  *    \c false.
  */
-FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate);
+FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate);
 
 /** Check a seek table to see if it conforms to the FLAC specification.
  *  See the format specification for limits on the contents of the
@@ -641,7 +642,7 @@ FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate);
  * \retval FLAC__bool
  *    \c false if seek table is illegal, else \c true.
  */
-FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable *seek_table);
+FLAC_API FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable *seek_table);
 
 /** Sort a seek table's seek points according to the format specification.
  *  This includes a "unique-ification" step to remove duplicates, i.e.
@@ -655,7 +656,7 @@ FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable 
  * \retval unsigned
  *    The number of duplicate seek points converted into placeholders.
  */
-unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table);
+FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table);
 
 /* \} */
 

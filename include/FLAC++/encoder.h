@@ -20,6 +20,8 @@
 #ifndef FLACPP__ENCODER_H
 #define FLACPP__ENCODER_H
 
+#include "export.h"
+
 #include "FLAC/file_encoder.h"
 #include "FLAC/seekable_stream_encoder.h"
 #include "FLAC/stream_encoder.h"
@@ -75,9 +77,9 @@ namespace FLAC {
 
 		/** This class wraps the ::FLAC__StreamEncoder.
 		 */
-		class Stream {
+		class FLACPP_API Stream {
 		public:
-			class State {
+			class FLACPP_API State {
 			public:
 				inline State(::FLAC__StreamEncoderState state): state_(state) { }
 				inline operator ::FLAC__StreamEncoderState() const { return state_; }
@@ -168,9 +170,9 @@ namespace FLAC {
 
 		/** This class wraps the ::FLAC__SeekableStreamEncoder.
 		 */
-		class SeekableStream {
+		class FLACPP_API SeekableStream {
 		public:
-			class State {
+			class FLACPP_API State {
 			public:
 				inline State(::FLAC__SeekableStreamEncoderState state): state_(state) { }
 				inline operator ::FLAC__SeekableStreamEncoderState() const { return state_; }
@@ -262,9 +264,9 @@ namespace FLAC {
 
 		/** This class wraps the ::FLAC__FileEncoder.
 		 */
-		class File {
+		class FLACPP_API File {
 		public:
-			class State {
+			class FLACPP_API State {
 			public:
 				inline State(::FLAC__FileEncoderState state): state_(state) { }
 				inline operator ::FLAC__FileEncoderState() const { return state_; }

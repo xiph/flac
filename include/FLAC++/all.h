@@ -20,6 +20,8 @@
 #ifndef FLACPP__ALL_H
 #define FLACPP__ALL_H
 
+#include "export.h"
+
 #include "encoder.h"
 #include "decoder.h"
 #include "metadata.h"

@@ -20,6 +20,8 @@
 #ifndef FLAC__ALL_H
 #define FLAC__ALL_H
 
+#include "export.h"
+
 #include "assert.h"
 #include "file_decoder.h"
 #include "file_encoder.h"

@@ -20,6 +20,8 @@
 #ifndef OggFLACPP__ALL_H
 #define OggFLACPP__ALL_H
 
+#include "export.h"
+
 #include "encoder.h"
 #include "decoder.h"
 

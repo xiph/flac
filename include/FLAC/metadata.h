@@ -20,6 +20,7 @@
 #ifndef FLAC__METADATA_H
 #define FLAC__METADATA_H
 
+#include "export.h"
 #include "format.h"
 
 /******************************************************************************
@@ -125,7 +126,7 @@ extern "C" {
  *    \c false if there was a memory allocation error, a file decoder error,
  *    or the file contained no STREAMINFO block.
  */
-FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo);
+FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo);
 
 /* \} */
 
@@ -245,7 +246,7 @@ typedef enum {
  *  Using a FLAC__Metadata_SimpleIteratorStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__Metadata_SimpleIteratorStatusString[];
+extern FLAC_API const char * const FLAC__Metadata_SimpleIteratorStatusString[];
 
 
 /** Create a new iterator instance.
@@ -253,7 +254,7 @@ extern const char * const FLAC__Metadata_SimpleIteratorStatusString[];
  * \retval FLAC__Metadata_SimpleIterator*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new();
+FLAC_API FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new();
 
 /** Free an iterator instance.  Deletes the object pointed to by \a iterator.
  *
@@ -261,7 +262,7 @@ FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new();
  * \assert
  *    \code iterator != NULL \endcode
  */
-void FLAC__metadata_simple_iterator_delete(FLAC__Metadata_SimpleIterator *iterator);
+FLAC_API void FLAC__metadata_simple_iterator_delete(FLAC__Metadata_SimpleIterator *iterator);
 
 /** Get the current status of the iterator.  Call this after a function
  *  returns \c false to get the reason for the error.  Also resets the status
@@ -273,7 +274,7 @@ void FLAC__metadata_simple_iterator_delete(FLAC__Metadata_SimpleIterator *iterat
  * \retval FLAC__Metadata_SimpleIteratorStatus
  *    The current status of the iterator.
  */
-FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__Metadata_SimpleIterator *iterator);
+FLAC_API FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__Metadata_SimpleIterator *iterator);
 
 /** Initialize the iterator to point to the first metadata block in the
  *  given FLAC file.
@@ -294,7 +295,7 @@ FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__
  *    \c false if a memory allocation error occurs, the file can't be
  *    opened, or another error occurs, else \c true.
  */
-FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *iterator, const char *filename, FLAC__bool read_only, FLAC__bool preserve_file_stats);
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *iterator, const char *filename, FLAC__bool read_only, FLAC__bool preserve_file_stats);
 
 /** Returns \c true if the FLAC file is writable.  If \c false, calls to
  *  FLAC__metadata_simple_iterator_set_block() and
@@ -306,7 +307,7 @@ FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *it
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__metadata_simple_iterator_is_writable(const FLAC__Metadata_SimpleIterator *iterator);
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_is_writable(const FLAC__Metadata_SimpleIterator *iterator);
 
 /** Moves the iterator forward one metadata block, returning \c false if
  *  already at the end.
@@ -320,7 +321,7 @@ FLAC__bool FLAC__metadata_simple_iterator_is_writable(const FLAC__Metadata_Simpl
  *    \c false if already at the last metadata block of the chain, else
  *    \c true.
  */
-FLAC__bool FLAC__metadata_simple_iterator_next(FLAC__Metadata_SimpleIterator *iterator);
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_next(FLAC__Metadata_SimpleIterator *iterator);
 
 /** Moves the iterator backward one metadata block, returning \c false if
  *  already at the beginning.
@@ -334,7 +335,7 @@ FLAC__bool FLAC__metadata_simple_iterator_next(FLAC__Metadata_SimpleIterator *it
  *    \c false if already at the first metadata block of the chain, else
  *    \c true.
  */
-FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIterator *iterator);
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIterator *iterator);
 
 /** Get the type of the metadata block at the current position.  This
  *  avoids reading the actual block data which can save time for large
@@ -349,7 +350,7 @@ FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIterator *it
  *    The type of the metadata block at the current iterator position.
  */
 
-FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Metadata_SimpleIterator *iterator);
+FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Metadata_SimpleIterator *iterator);
 
 /** Get the metadata block at the current position.  You can modify the
  *  block but must use FLAC__metadata_simple_iterator_set_block() to
@@ -366,7 +367,7 @@ FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Met
  * \retval FLAC__StreamMetadata*
  *    The current metadata block.
  */
-FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Metadata_SimpleIterator *iterator);
+FLAC_API FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Metadata_SimpleIterator *iterator);
 
 /** Write a block back to the FLAC file.  This function tries to be
  *  as efficient as possible; how the block is actually written is
@@ -422,7 +423,7 @@ FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Metadata_Si
  * \retval FLAC__bool
  *    \c true if successful, else \c false.
  */
-FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, FLAC__bool use_padding);
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, FLAC__bool use_padding);
 
 /** This is similar to FLAC__metadata_simple_iterator_set_block()
  *  except that instead of writing over an existing block, it appends
@@ -447,7 +448,7 @@ FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_SimpleIterato
  * \retval FLAC__bool
  *    \c true if successful, else \c false.
  */
-FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, FLAC__bool use_padding);
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, FLAC__bool use_padding);
 
 /** Deletes the block at the current position.  This will cause the
  *  entire FLAC file to be rewritten, unless \a use_padding is \c true,
@@ -466,7 +467,7 @@ FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Metadata_Simp
  * \retval FLAC__bool
  *    \c true if successful, else \c false.
  */
-FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_SimpleIterator *iterator, FLAC__bool use_padding);
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_SimpleIterator *iterator, FLAC__bool use_padding);
 
 /* \} */
 
@@ -580,7 +581,7 @@ typedef enum {
  *  Using a FLAC__Metadata_ChainStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__Metadata_ChainStatusString[];
+extern FLAC_API const char * const FLAC__Metadata_ChainStatusString[];
 
 /*********** FLAC__Metadata_Chain ***********/
 
@@ -589,7 +590,7 @@ extern const char * const FLAC__Metadata_ChainStatusString[];
  * \retval FLAC__Metadata_Chain*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC__Metadata_Chain *FLAC__metadata_chain_new();
+FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new();
 
 /** Free a chain instance.  Deletes the object pointed to by \a chain.
  *
@@ -597,7 +598,7 @@ FLAC__Metadata_Chain *FLAC__metadata_chain_new();
  * \assert
  *    \code chain != NULL \endcode
  */
-void FLAC__metadata_chain_delete(FLAC__Metadata_Chain *chain);
+FLAC_API void FLAC__metadata_chain_delete(FLAC__Metadata_Chain *chain);
 
 /** Get the current status of the chain.  Call this after a function
  *  returns \c false to get the reason for the error.  Also resets the
@@ -609,7 +610,7 @@ void FLAC__metadata_chain_delete(FLAC__Metadata_Chain *chain);
  * \retval FLAC__Metadata_ChainStatus
  *    The current status of the chain.
  */
-FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_Chain *chain);
+FLAC_API FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_Chain *chain);
 
 /** Read all metadata from a FLAC file into the chain.
  *
@@ -623,7 +624,7 @@ FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_Chain *cha
  *    \a filename, else \c false.  On failure, check the status with
  *    FLAC__metadata_chain_status().
  */
-FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *filename);
+FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *filename);
 
 /** Write all metadata out to the FLAC file.  This function tries to be as
  *  efficient as possible; how the metadata is actually written is shown by
@@ -665,7 +666,7 @@ FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *fi
  *    \c true if the write succeeded, else \c false.  On failure,
  *    check the status with FLAC__metadata_chain_status().
  */
-FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats);
+FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats);
 
 /** Merge adjacent PADDING blocks into a single block.
  *
@@ -679,7 +680,7 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool us
  * \assert
  *    \code chain != NULL \endcode
  */
-void FLAC__metadata_chain_merge_padding(FLAC__Metadata_Chain *chain);
+FLAC_API void FLAC__metadata_chain_merge_padding(FLAC__Metadata_Chain *chain);
 
 /** This function will move all PADDING blocks to the end on the metadata,
  *  then merge them into a single block.
@@ -694,7 +695,7 @@ void FLAC__metadata_chain_merge_padding(FLAC__Metadata_Chain *chain);
  * \assert
  *    \code chain != NULL \endcode
  */
-void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain);
+FLAC_API void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain);
 
 
 /*********** FLAC__Metadata_Iterator ***********/
@@ -704,7 +705,7 @@ void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain);
  * \retval FLAC__Metadata_Iterator*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC__Metadata_Iterator *FLAC__metadata_iterator_new();
+FLAC_API FLAC__Metadata_Iterator *FLAC__metadata_iterator_new();
 
 /** Free an iterator instance.  Deletes the object pointed to by \a iterator.
  *
@@ -712,7 +713,7 @@ FLAC__Metadata_Iterator *FLAC__metadata_iterator_new();
  * \assert
  *    \code iterator != NULL \endcode
  */
-void FLAC__metadata_iterator_delete(FLAC__Metadata_Iterator *iterator);
+FLAC_API void FLAC__metadata_iterator_delete(FLAC__Metadata_Iterator *iterator);
 
 /** Initialize the iterator to point to the first metadata block in the
  *  given chain.
@@ -723,7 +724,7 @@ void FLAC__metadata_iterator_delete(FLAC__Metadata_Iterator *iterator);
  *    \code iterator != NULL \endcode
  *    \code chain != NULL \endcode
  */
-void FLAC__metadata_iterator_init(FLAC__Metadata_Iterator *iterator, FLAC__Metadata_Chain *chain);
+FLAC_API void FLAC__metadata_iterator_init(FLAC__Metadata_Iterator *iterator, FLAC__Metadata_Chain *chain);
 
 /** Moves the iterator forward one metadata block, returning \c false if
  *  already at the end.
@@ -737,7 +738,7 @@ void FLAC__metadata_iterator_init(FLAC__Metadata_Iterator *iterator, FLAC__Metad
  *    \c false if already at the last metadata block of the chain, else
  *    \c true.
  */
-FLAC__bool FLAC__metadata_iterator_next(FLAC__Metadata_Iterator *iterator);
+FLAC_API FLAC__bool FLAC__metadata_iterator_next(FLAC__Metadata_Iterator *iterator);
 
 /** Moves the iterator backward one metadata block, returning \c false if
  *  already at the beginning.
@@ -751,7 +752,7 @@ FLAC__bool FLAC__metadata_iterator_next(FLAC__Metadata_Iterator *iterator);
  *    \c false if already at the first metadata block of the chain, else
  *    \c true.
  */
-FLAC__bool FLAC__metadata_iterator_prev(FLAC__Metadata_Iterator *iterator);
+FLAC_API FLAC__bool FLAC__metadata_iterator_prev(FLAC__Metadata_Iterator *iterator);
 
 /** Get the type of the metadata block at the current position.
  *
@@ -763,7 +764,7 @@ FLAC__bool FLAC__metadata_iterator_prev(FLAC__Metadata_Iterator *iterator);
  * \retval FLAC__MetadataType
  *    The type of the metadata block at the current iterator position.
  */
-FLAC__MetadataType FLAC__metadata_iterator_get_block_type(const FLAC__Metadata_Iterator *iterator);
+FLAC_API FLAC__MetadataType FLAC__metadata_iterator_get_block_type(const FLAC__Metadata_Iterator *iterator);
 
 /** Get the metadata block at the current position.  You can modify
  *  the block in place but must write the chain before the changes
@@ -784,7 +785,7 @@ FLAC__MetadataType FLAC__metadata_iterator_get_block_type(const FLAC__Metadata_I
  * \retval FLAC__StreamMetadata*
  *    The current metadata block.
  */
-FLAC__StreamMetadata *FLAC__metadata_iterator_get_block(FLAC__Metadata_Iterator *iterator);
+FLAC_API FLAC__StreamMetadata *FLAC__metadata_iterator_get_block(FLAC__Metadata_Iterator *iterator);
 
 /** Set the metadata block at the current position, replacing the existing
  *  block.  The new block passed in becomes owned by the chain and it will be
@@ -801,7 +802,7 @@ FLAC__StreamMetadata *FLAC__metadata_iterator_get_block(FLAC__Metadata_Iterator 
  *    \c false if the conditions in the above description are not met, or
  *    a memory allocation error occurs, otherwise \c true.
  */
-FLAC__bool FLAC__metadata_iterator_set_block(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
+FLAC_API FLAC__bool FLAC__metadata_iterator_set_block(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
 
 /** Removes the current block from the chain.  If \a replace_with_padding is
  *  \c true, the block will instead be replaced with a padding block of equal
@@ -819,7 +820,7 @@ FLAC__bool FLAC__metadata_iterator_set_block(FLAC__Metadata_Iterator *iterator, 
  *    \c false if the conditions in the above description are not met,
  *    otherwise \c true.
  */
-FLAC__bool FLAC__metadata_iterator_delete_block(FLAC__Metadata_Iterator *iterator, FLAC__bool replace_with_padding);
+FLAC_API FLAC__bool FLAC__metadata_iterator_delete_block(FLAC__Metadata_Iterator *iterator, FLAC__bool replace_with_padding);
 
 /** Insert a new block before the current block.  You cannot insert a block
  *  before the first STREAMINFO block.  You cannot insert a STREAMINFO block
@@ -838,7 +839,7 @@ FLAC__bool FLAC__metadata_iterator_delete_block(FLAC__Metadata_Iterator *iterato
  *    \c false if the conditions in the above description are not met, or
  *    a memory allocation error occurs, otherwise \c true.
  */
-FLAC__bool FLAC__metadata_iterator_insert_block_before(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
+FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_before(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
 
 /** Insert a new block after the current block.  You cannot insert a STREAMINFO
  *  block as there can be only one, the one that already exists at the head when
@@ -856,7 +857,7 @@ FLAC__bool FLAC__metadata_iterator_insert_block_before(FLAC__Metadata_Iterator *
  *    \c false if the conditions in the above description are not met, or
  *    a memory allocation error occurs, otherwise \c true.
  */
-FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
+FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
 
 /* \} */
 
@@ -908,7 +909,7 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_Iterator *i
  * \retval FLAC__StreamMetadata*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type);
+FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type);
 
 /** Create a copy of an existing metadata object.
  *
@@ -922,7 +923,7 @@ FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type);
  * \retval FLAC__StreamMetadata*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMetadata *object);
+FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMetadata *object);
 
 /** Free a metadata object.  Deletes the object pointed to by \a object.
  *
@@ -933,7 +934,7 @@ FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMetadata *ob
  * \assert
  *    \code object != NULL \endcode
  */
-void FLAC__metadata_object_delete(FLAC__StreamMetadata *object);
+FLAC_API void FLAC__metadata_object_delete(FLAC__StreamMetadata *object);
 
 /** Compares two metadata objects.
  *
@@ -948,7 +949,7 @@ void FLAC__metadata_object_delete(FLAC__StreamMetadata *object);
  * \retval FLAC__bool
  *    \c true if objects are identical, else \c false.
  */
-FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, const FLAC__StreamMetadata *block2);
+FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, const FLAC__StreamMetadata *block2);
 
 /** Sets the application data of an APPLICATION block.
  *
@@ -968,7 +969,7 @@ FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, co
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, unsigned length, FLAC__bool copy);
+FLAC_API FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, unsigned length, FLAC__bool copy);
 
 /** Resize the seekpoint array.
  *
@@ -985,7 +986,7 @@ FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *obje
  * \retval FLAC__bool
  *    \c false if memory allocation error, else \c true.
  */
-FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetadata *object, unsigned new_num_points);
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetadata *object, unsigned new_num_points);
 
 /** Set a seekpoint in a seektable.
  *
@@ -997,7 +998,7 @@ FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetadata *o
  *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
  *    \code object->data.seek_table.num_points > point_num \endcode
  */
-void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point);
+FLAC_API void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point);
 
 /** Insert a seekpoint into a seektable.
  *
@@ -1011,7 +1012,7 @@ void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, uns
  * \retval FLAC__bool
  *    \c false if memory allocation error, else \c true.
  */
-FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point);
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point);
 
 /** Delete a seekpoint from a seektable.
  *
@@ -1024,7 +1025,7 @@ FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetadata *ob
  * \retval FLAC__bool
  *    \c false if memory allocation error, else \c true.
  */
-FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *object, unsigned point_num);
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *object, unsigned point_num);
 
 /** Check a seektable to see if it conforms to the FLAC specification.
  *  See the format specification for limits on the contents of the
@@ -1037,7 +1038,7 @@ FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *ob
  * \retval FLAC__bool
  *    \c false if seek table is illegal, else \c true.
  */
-FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object);
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object);
 
 /** Append a number of placeholder points to the end of a seek table.
  *
@@ -1054,7 +1055,7 @@ FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *
  * \retval FLAC__bool
  *    \c false if memory allocation fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_seektable_template_append_placeholders(FLAC__StreamMetadata *object, unsigned num);
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_placeholders(FLAC__StreamMetadata *object, unsigned num);
 
 /** Append a specific seek point template to the end of a seek table.
  *
@@ -1071,7 +1072,7 @@ FLAC__bool FLAC__metadata_object_seektable_template_append_placeholders(FLAC__St
  * \retval FLAC__bool
  *    \c false if memory allocation fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_seektable_template_append_point(FLAC__StreamMetadata *object, FLAC__uint64 sample_number);
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_point(FLAC__StreamMetadata *object, FLAC__uint64 sample_number);
 
 /** Append specific seek point templates to the end of a seek table.
  *
@@ -1089,7 +1090,7 @@ FLAC__bool FLAC__metadata_object_seektable_template_append_point(FLAC__StreamMet
  * \retval FLAC__bool
  *    \c false if memory allocation fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC__StreamMetadata *object, FLAC__uint64 sample_numbers[], unsigned num);
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC__StreamMetadata *object, FLAC__uint64 sample_numbers[], unsigned num);
 
 /** Append a set of evenly-spaced seek point templates to the end of a
  *  seek table.
@@ -1110,7 +1111,7 @@ FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC__StreamMe
  * \retval FLAC__bool
  *    \c false if memory allocation fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__StreamMetadata *object, unsigned num, FLAC__uint64 total_samples);
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__StreamMetadata *object, unsigned num, FLAC__uint64 total_samples);
 
 /** Sort a seek table's seek points according to the format specification,
  *  removing duplicates.
@@ -1127,7 +1128,7 @@ FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__S
  * \retval FLAC__bool
  *    \c false if realloc fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *object, FLAC__bool compact);
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *object, FLAC__bool compact);
 
 /** Sets the vendor string in a VORBIS_COMMENT block.
  *
@@ -1146,7 +1147,7 @@ FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *o
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
 /** Resize the comment array.
  *
@@ -1163,7 +1164,7 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMet
  * \retval FLAC__bool
  *    \c false if memory allocation error, else \c true.
  */
-FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetadata *object, unsigned new_num_comments);
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetadata *object, unsigned new_num_comments);
 
 /** Sets a comment in a VORBIS_COMMENT block.
  *
@@ -1183,7 +1184,7 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetad
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
 /** Insert a comment in a VORBIS_COMMENT block at the given index.
  *
@@ -1207,7 +1208,7 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata 
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
 
 /** Delete a comment in a VORBIS_COMMENT block at the given index.
  *
@@ -1226,7 +1227,7 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetada
  * \retval FLAC__bool
  *    \c false if realloc fails, else \c true.
  */
-FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetadata *object, unsigned comment_num);
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetadata *object, unsigned comment_num);
 
 /* \} */
 

@@ -20,6 +20,8 @@
 #ifndef OggFLAC__FILE_DECODER_H
 #define OggFLAC__FILE_DECODER_H
 
+#include "export.h"
+
 #include "FLAC/file_decoder.h"
 
 #ifdef __cplusplus
@@ -88,7 +90,7 @@ typedef enum {
  *  Using an OggFLAC__FileDecoderState as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const OggFLAC__FileDecoderStateString[];
+extern OggFLAC_API const char * const OggFLAC__FileDecoderStateString[];
 
 
 /***********************************************************************
@@ -126,7 +128,7 @@ typedef void (*OggFLAC__FileDecoderErrorCallback)(const OggFLAC__FileDecoder *de
  * \retval OggFLAC__FileDecoder*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-OggFLAC__FileDecoder *OggFLAC__file_decoder_new();
+OggFLAC_API OggFLAC__FileDecoder *OggFLAC__file_decoder_new();
 
 /** Free a decoder instance.  Deletes the object pointed to by \a decoder.
  *
@@ -134,7 +136,7 @@ OggFLAC__FileDecoder *OggFLAC__file_decoder_new();
  * \assert
  *    \code decoder != NULL \endcode
  */
-void OggFLAC__file_decoder_delete(OggFLAC__FileDecoder *decoder);
+OggFLAC_API void OggFLAC__file_decoder_delete(OggFLAC__FileDecoder *decoder);
 
 
 /***********************************************************************
@@ -157,7 +159,7 @@ void OggFLAC__file_decoder_delete(OggFLAC__FileDecoder *decoder);
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_md5_checking(OggFLAC__FileDecoder *decoder, FLAC__bool value);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_md5_checking(OggFLAC__FileDecoder *decoder, FLAC__bool value);
 
 /** Set the input file name to decode.
  *  This is inherited from FLAC__FileDecoder; see
@@ -173,7 +175,7 @@ FLAC__bool OggFLAC__file_decoder_set_md5_checking(OggFLAC__FileDecoder *decoder,
  *    \c false if the decoder is already initialized, or there was a memory
  *    allocation error, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_filename(OggFLAC__FileDecoder *decoder, const char *value);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_filename(OggFLAC__FileDecoder *decoder, const char *value);
 
 /** Set the write callback.
  *  This is inherited from FLAC__FileDecoder; see
@@ -191,7 +193,7 @@ FLAC__bool OggFLAC__file_decoder_set_filename(OggFLAC__FileDecoder *decoder, con
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_write_callback(OggFLAC__FileDecoder *decoder, OggFLAC__FileDecoderWriteCallback value);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_write_callback(OggFLAC__FileDecoder *decoder, OggFLAC__FileDecoderWriteCallback value);
 
 /** Set the metadata callback.
  *  This is inherited from FLAC__FileDecoder; see
@@ -209,7 +211,7 @@ FLAC__bool OggFLAC__file_decoder_set_write_callback(OggFLAC__FileDecoder *decode
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_metadata_callback(OggFLAC__FileDecoder *decoder, OggFLAC__FileDecoderMetadataCallback value);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_callback(OggFLAC__FileDecoder *decoder, OggFLAC__FileDecoderMetadataCallback value);
 
 /** Set the error callback.
  *  This is inherited from FLAC__FileDecoder; see
@@ -227,7 +229,7 @@ FLAC__bool OggFLAC__file_decoder_set_metadata_callback(OggFLAC__FileDecoder *dec
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_error_callback(OggFLAC__FileDecoder *decoder, OggFLAC__FileDecoderErrorCallback value);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_error_callback(OggFLAC__FileDecoder *decoder, OggFLAC__FileDecoderErrorCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data
@@ -241,7 +243,7 @@ FLAC__bool OggFLAC__file_decoder_set_error_callback(OggFLAC__FileDecoder *decode
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_client_data(OggFLAC__FileDecoder *decoder, void *value);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_client_data(OggFLAC__FileDecoder *decoder, void *value);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_set_metadata_respond().
@@ -256,7 +258,7 @@ FLAC__bool OggFLAC__file_decoder_set_client_data(OggFLAC__FileDecoder *decoder, 
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_metadata_respond(OggFLAC__FileDecoder *decoder, OggFLAC__MetadataType type);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond(OggFLAC__FileDecoder *decoder, OggFLAC__MetadataType type);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_set_metadata_respond_application().
@@ -271,7 +273,7 @@ FLAC__bool OggFLAC__file_decoder_set_metadata_respond(OggFLAC__FileDecoder *deco
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_metadata_respond_application(OggFLAC__FileDecoder *decoder, const FLAC__byte id[4]);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond_application(OggFLAC__FileDecoder *decoder, const FLAC__byte id[4]);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_set_metadata_respond_all().
@@ -284,7 +286,7 @@ FLAC__bool OggFLAC__file_decoder_set_metadata_respond_application(OggFLAC__FileD
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_metadata_respond_all(OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond_all(OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_set_metadata_ignore().
@@ -299,7 +301,7 @@ FLAC__bool OggFLAC__file_decoder_set_metadata_respond_all(OggFLAC__FileDecoder *
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_metadata_ignore(OggFLAC__FileDecoder *decoder, OggFLAC__MetadataType type);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore(OggFLAC__FileDecoder *decoder, OggFLAC__MetadataType type);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_set_metadata_ignore_application().
@@ -314,7 +316,7 @@ FLAC__bool OggFLAC__file_decoder_set_metadata_ignore(OggFLAC__FileDecoder *decod
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_application(OggFLAC__FileDecoder *decoder, const FLAC__byte id[4]);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_application(OggFLAC__FileDecoder *decoder, const FLAC__byte id[4]);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_set_metadata_ignore_all().
@@ -327,7 +329,7 @@ FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_application(OggFLAC__FileDe
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_all(OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_all(OggFLAC__FileDecoder *decoder);
 
 /** Get the current decoder state.
  *
@@ -337,7 +339,7 @@ FLAC__bool OggFLAC__file_decoder_set_metadata_ignore_all(OggFLAC__FileDecoder *d
  * \retval OggFLAC__FileDecoderState
  *    The current decoder state.
  */
-OggFLAC__FileDecoderState OggFLAC__file_decoder_get_state(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API OggFLAC__FileDecoderState OggFLAC__file_decoder_get_state(const OggFLAC__FileDecoder *decoder);
 
 /** Get the state of the underlying FLAC file decoder.
  *  Useful when the file decoder state is
@@ -349,7 +351,7 @@ OggFLAC__FileDecoderState OggFLAC__file_decoder_get_state(const OggFLAC__FileDec
  * \retval FLAC__FileDecoderState
  *    The FLAC file decoder state.
  */
-FLAC__FileDecoderState OggFLAC__file_decoder_get_FLAC_file_decoder_state(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__FileDecoderState OggFLAC__file_decoder_get_FLAC_file_decoder_state(const OggFLAC__FileDecoder *decoder);
 
 /** Get the state of the underlying FLAC file decoder's seekable stream decoder.
  *  Useful when the file decoder state is
@@ -362,7 +364,7 @@ FLAC__FileDecoderState OggFLAC__file_decoder_get_FLAC_file_decoder_state(const O
  * \retval FLAC__SeekableStreamDecoderState
  *    The FLAC seekable stream decoder state.
  */
-FLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_FLAC_seekable_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_FLAC_seekable_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
 
 /** Get the state of the underlying FLAC file decoder's stream decoder.
  *  Useful when the file decoder state is
@@ -376,7 +378,7 @@ FLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_FLAC_seekable_stream_
  * \retval FLAC__StreamDecoderState
  *    The FLAC stream decoder state.
  */
-FLAC__StreamDecoderState OggFLAC__file_decoder_get_FLAC_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__StreamDecoderState OggFLAC__file_decoder_get_FLAC_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_get_md5_checking().
@@ -387,7 +389,7 @@ FLAC__StreamDecoderState OggFLAC__file_decoder_get_FLAC_stream_decoder_state(con
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool OggFLAC__file_decoder_get_md5_checking(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_get_md5_checking(const OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_get_channels().
@@ -398,7 +400,7 @@ FLAC__bool OggFLAC__file_decoder_get_md5_checking(const OggFLAC__FileDecoder *de
  * \retval unsigned
  *    See above.
  */
-unsigned OggFLAC__file_decoder_get_channels(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API unsigned OggFLAC__file_decoder_get_channels(const OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_get_channel_assignment().
@@ -409,7 +411,7 @@ unsigned OggFLAC__file_decoder_get_channels(const OggFLAC__FileDecoder *decoder)
  * \retval OggFLAC__ChannelAssignment
  *    See above.
  */
-OggFLAC__ChannelAssignment OggFLAC__file_decoder_get_channel_assignment(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API OggFLAC__ChannelAssignment OggFLAC__file_decoder_get_channel_assignment(const OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_get_bits_per_sample().
@@ -420,7 +422,7 @@ OggFLAC__ChannelAssignment OggFLAC__file_decoder_get_channel_assignment(const Og
  * \retval unsigned
  *    See above.
  */
-unsigned OggFLAC__file_decoder_get_bits_per_sample(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API unsigned OggFLAC__file_decoder_get_bits_per_sample(const OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_get_sample_rate().
@@ -431,7 +433,7 @@ unsigned OggFLAC__file_decoder_get_bits_per_sample(const OggFLAC__FileDecoder *d
  * \retval unsigned
  *    See above.
  */
-unsigned OggFLAC__file_decoder_get_sample_rate(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API unsigned OggFLAC__file_decoder_get_sample_rate(const OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_get_blocksize().
@@ -442,7 +444,7 @@ unsigned OggFLAC__file_decoder_get_sample_rate(const OggFLAC__FileDecoder *decod
  * \retval unsigned
  *    See above.
  */
-unsigned OggFLAC__file_decoder_get_blocksize(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API unsigned OggFLAC__file_decoder_get_blocksize(const OggFLAC__FileDecoder *decoder);
 
 /** Initialize the decoder instance.
  *  Should be called after OggFLAC__file_decoder_new() and
@@ -458,7 +460,7 @@ unsigned OggFLAC__file_decoder_get_blocksize(const OggFLAC__FileDecoder *decoder
  *    \c OggFLAC__FILE_DECODER_OK if initialization was successful; see
  *    OggFLAC__FileDecoderState for the meanings of other return values.
  */
-OggFLAC__FileDecoderState OggFLAC__file_decoder_init(OggFLAC__FileDecoder *decoder);
+OggFLAC_API OggFLAC__FileDecoderState OggFLAC__file_decoder_init(OggFLAC__FileDecoder *decoder);
 
 /** Finish the decoding process.
  *  Flushes the decoding buffer, releases resources, resets the decoder
@@ -479,7 +481,7 @@ OggFLAC__FileDecoderState OggFLAC__file_decoder_init(OggFLAC__FileDecoder *decod
  *    signature does not match the one computed by the decoder; else
  *    \c true.
  */
-FLAC__bool OggFLAC__file_decoder_finish(OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_finish(OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_process_single().
@@ -490,7 +492,7 @@ FLAC__bool OggFLAC__file_decoder_finish(OggFLAC__FileDecoder *decoder);
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool OggFLAC__file_decoder_process_single(OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_single(OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_process_until_end_of_metadata().
@@ -501,7 +503,7 @@ FLAC__bool OggFLAC__file_decoder_process_single(OggFLAC__FileDecoder *decoder);
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool OggFLAC__file_decoder_process_until_end_of_metadata(OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_metadata(OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_process_until_end_of_stream().
@@ -512,7 +514,7 @@ FLAC__bool OggFLAC__file_decoder_process_until_end_of_metadata(OggFLAC__FileDeco
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool OggFLAC__file_decoder_process_until_end_of_file(OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_file(OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_process_remaining_frames().
@@ -523,7 +525,7 @@ FLAC__bool OggFLAC__file_decoder_process_until_end_of_file(OggFLAC__FileDecoder 
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool OggFLAC__file_decoder_process_remaining_frames(OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_remaining_frames(OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_seek_absolute().
@@ -535,7 +537,7 @@ FLAC__bool OggFLAC__file_decoder_process_remaining_frames(OggFLAC__FileDecoder *
  * \retval FLAC__bool
  *    \c true if successful, else \c false.
  */
-FLAC__bool OggFLAC__file_decoder_seek_absolute(OggFLAC__FileDecoder *decoder, FLAC__uint64 sample);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_seek_absolute(OggFLAC__FileDecoder *decoder, FLAC__uint64 sample);
 
 /* \} */
 

@@ -20,6 +20,8 @@
 #ifndef FLACPP__METADATA_H
 #define FLACPP__METADATA_H
 
+#include "export.h"
+
 #include "FLAC/metadata.h"
 
 // ===============================================================
@@ -87,7 +89,7 @@ namespace FLAC {
 
 		/** Base class for all metadata block types.
 		 */
-		class Prototype {
+		class FLACPP_API Prototype {
 		protected:
 			//@{
 			/** Constructs a copy of the given object.  This form
@@ -214,13 +216,13 @@ namespace FLAC {
 		{ return 0 != object_; }
 
 		/** Create a deep copy of an object and return it. */
-		Prototype *clone(const Prototype *);
+		FLACPP_API Prototype *clone(const Prototype *);
 
 
 		/** STREAMINFO metadata block.
 		 *  See <A HREF="../format.html#metadata_block_streaminfo">format specification</A>.
 		 */
-		class StreamInfo : public Prototype {
+		class FLACPP_API StreamInfo : public Prototype {
 		public:
 			StreamInfo();
 
@@ -288,7 +290,7 @@ namespace FLAC {
 		/** PADDING metadata block.
 		 *  See <A HREF="../format.html#metadata_block_padding">format specification</A>.
 		 */
-		class Padding : public Prototype {
+		class FLACPP_API Padding : public Prototype {
 		public:
 			Padding();
 
@@ -335,7 +337,7 @@ namespace FLAC {
 		/** APPLICATION metadata block.
 		 *  See <A HREF="../format.html#metadata_block_application">format specification</A>.
 		 */
-		class Application : public Prototype {
+		class FLACPP_API Application : public Prototype {
 		public:
 			Application();
 			//
@@ -388,7 +390,7 @@ namespace FLAC {
 		/** SEEKTABLE metadata block.
 		 *  See <A HREF="../format.html#metadata_block_seektable">format specification</A>.
 		 */
-		class SeekTable : public Prototype {
+		class FLACPP_API SeekTable : public Prototype {
 		public:
 			SeekTable();
 
@@ -448,7 +450,7 @@ namespace FLAC {
 		/** VORBIS_COMMENT metadata block.
 		 *  See <A HREF="../format.html#metadata_block_vorbis_comment">format specification</A>.
 		 */
-		class VorbisComment : public Prototype {
+		class FLACPP_API VorbisComment : public Prototype {
 		public:
 			/** Convenience class for encapsulating Vorbis comment
 			 *  entries.  An entry is a vendor string or a comment
@@ -474,7 +476,7 @@ namespace FLAC {
 			 *  Always check is_valid() after the constructor or operator=
 			 *  to make sure memory was properly allocated.
 			 */
-			class Entry {
+			class FLACPP_API Entry {
 			public:
 				Entry();
 				Entry(const char *field, unsigned field_length);
@@ -590,7 +592,7 @@ namespace FLAC {
 		 */
 
 	 	//! See FLAC__metadata_get_streaminfo().
-		bool get_streaminfo(const char *filename, StreamInfo &streaminfo);
+		FLACPP_API bool get_streaminfo(const char *filename, StreamInfo &streaminfo);
 
 		/* \} */
 
@@ -627,9 +629,9 @@ namespace FLAC {
 		/** This class is a wrapper around the FLAC__metadata_simple_iterator
 		 *  structures and methods; see ::FLAC__Metadata_SimpleIterator.
 		 */
-		class SimpleIterator {
+		class FLACPP_API SimpleIterator {
 		public:
-			class Status {
+			class FLACPP_API Status {
 			public:
 				inline Status(::FLAC__Metadata_SimpleIteratorStatus status): status_(status) { }
 				inline operator ::FLAC__Metadata_SimpleIteratorStatus() const { return status_; }
@@ -704,9 +706,9 @@ namespace FLAC {
 		/** This class is a wrapper around the FLAC__metadata_chain
 		 *  structures and methods; see ::FLAC__Metadata_Chain.
 		 */
-		class Chain {
+		class FLACPP_API Chain {
 		public:
-			class Status {
+			class FLACPP_API Status {
 			public:
 				inline Status(::FLAC__Metadata_ChainStatus status): status_(status) { }
 				inline operator ::FLAC__Metadata_ChainStatus() const { return status_; }
@@ -737,7 +739,7 @@ namespace FLAC {
 		/** This class is a wrapper around the FLAC__metadata_iterator
 		 *  structures and methods; see ::FLAC__Metadata_Iterator.
 		 */
-		class Iterator {
+		class FLACPP_API Iterator {
 		public:
 			Iterator();
 			virtual ~Iterator();

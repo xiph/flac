@@ -20,6 +20,7 @@
 #ifndef FLAC__SEEKABLE_STREAM_DECODER_H
 #define FLAC__SEEKABLE_STREAM_DECODER_H
 
+#include "export.h"
 #include "stream_decoder.h"
 
 #ifdef __cplusplus
@@ -162,7 +163,7 @@ typedef enum {
  *  Using a FLAC__SeekableStreamDecoderState as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__SeekableStreamDecoderStateString[];
+extern FLAC_API const char * const FLAC__SeekableStreamDecoderStateString[];
 
 
 /** Return values for the FLAC__SeekableStreamDecoder read callback.
@@ -182,7 +183,7 @@ typedef enum {
  *  Using a FLAC__SeekableStreamDecoderReadStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__SeekableStreamDecoderReadStatusString[];
+extern FLAC_API const char * const FLAC__SeekableStreamDecoderReadStatusString[];
 
 
 /** Return values for the FLAC__SeekableStreamDecoder seek callback.
@@ -202,7 +203,7 @@ typedef enum {
  *  Using a FLAC__SeekableStreamDecoderSeekStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__SeekableStreamDecoderSeekStatusString[];
+extern FLAC_API const char * const FLAC__SeekableStreamDecoderSeekStatusString[];
 
 
 /** Return values for the FLAC__SeekableStreamDecoder tell callback.
@@ -222,7 +223,7 @@ typedef enum {
  *  Using a FLAC__SeekableStreamDecoderTellStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__SeekableStreamDecoderTellStatusString[];
+extern FLAC_API const char * const FLAC__SeekableStreamDecoderTellStatusString[];
 
 
 /** Return values for the FLAC__SeekableStreamDecoder length callback.
@@ -242,7 +243,7 @@ typedef enum {
  *  Using a FLAC__SeekableStreamDecoderLengthStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__SeekableStreamDecoderLengthStatusString[];
+extern FLAC_API const char * const FLAC__SeekableStreamDecoderLengthStatusString[];
 
 
 /***********************************************************************
@@ -379,7 +380,7 @@ typedef void (*FLAC__SeekableStreamDecoderErrorCallback)(const FLAC__SeekableStr
  * \retval FLAC__SeekableStreamDecoder*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC__SeekableStreamDecoder *FLAC__seekable_stream_decoder_new();
+FLAC_API FLAC__SeekableStreamDecoder *FLAC__seekable_stream_decoder_new();
 
 /** Free a decoder instance.  Deletes the object pointed to by \a decoder.
  *
@@ -387,7 +388,7 @@ FLAC__SeekableStreamDecoder *FLAC__seekable_stream_decoder_new();
  * \assert
  *    \code decoder != NULL \endcode
  */
-void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *decoder);
 
 
 /***********************************************************************
@@ -413,7 +414,7 @@ void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *decoder);
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_md5_checking(FLAC__SeekableStreamDecoder *decoder, FLAC__bool value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_md5_checking(FLAC__SeekableStreamDecoder *decoder, FLAC__bool value);
 
 /** Set the read callback.
  *  This is inherited from FLAC__StreamDecoder; see
@@ -431,7 +432,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_md5_checking(FLAC__SeekableStreamDe
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderReadCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderReadCallback value);
 
 /** Set the seek callback.
  *  The supplied function will be called when the decoder needs to seek
@@ -450,7 +451,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamD
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderSeekCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderSeekCallback value);
 
 /** Set the tell callback.
  *  The supplied function will be called when the decoder wants to know
@@ -469,7 +470,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamD
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderTellCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderTellCallback value);
 
 /** Set the length callback.
  *  The supplied function will be called when the decoder wants to know
@@ -487,7 +488,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamD
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderLengthCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderLengthCallback value);
 
 /** Set the eof callback.
  *  The supplied function will be called when the decoder needs to know
@@ -505,7 +506,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStrea
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderEofCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderEofCallback value);
 
 /** Set the write callback.
  *  This is inherited from FLAC__StreamDecoder; see
@@ -523,7 +524,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(FLAC__SeekableStreamDe
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderWriteCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderWriteCallback value);
 
 /** Set the metadata callback.
  *  This is inherited from FLAC__StreamDecoder; see
@@ -541,7 +542,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStream
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderMetadataCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderMetadataCallback value);
 
 /** Set the error callback.
  *  This is inherited from FLAC__StreamDecoder; see
@@ -559,7 +560,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(FLAC__SeekableStr
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderErrorCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderErrorCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data
@@ -573,7 +574,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(FLAC__SeekableStream
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_client_data(FLAC__SeekableStreamDecoder *decoder, void *value);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_client_data(FLAC__SeekableStreamDecoder *decoder, void *value);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_set_metadata_respond().
@@ -588,7 +589,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_client_data(FLAC__SeekableStreamDec
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond(FLAC__SeekableStreamDecoder *decoder, FLAC__MetadataType type);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond(FLAC__SeekableStreamDecoder *decoder, FLAC__MetadataType type);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_set_metadata_respond_application().
@@ -603,7 +604,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond(FLAC__SeekableStre
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_application(FLAC__SeekableStreamDecoder *decoder, const FLAC__byte id[4]);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_application(FLAC__SeekableStreamDecoder *decoder, const FLAC__byte id[4]);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_set_metadata_respond_all().
@@ -616,7 +617,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_application(FLAC__
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_all(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_all(FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_set_metadata_ignore().
@@ -631,7 +632,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_all(FLAC__Seekable
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore(FLAC__SeekableStreamDecoder *decoder, FLAC__MetadataType type);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore(FLAC__SeekableStreamDecoder *decoder, FLAC__MetadataType type);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_set_metadata_ignore_application().
@@ -646,7 +647,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore(FLAC__SeekableStrea
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_application(FLAC__SeekableStreamDecoder *decoder, const FLAC__byte id[4]);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_application(FLAC__SeekableStreamDecoder *decoder, const FLAC__byte id[4]);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_set_metadata_ignore_all().
@@ -659,7 +660,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_application(FLAC__S
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(FLAC__SeekableStreamDecoder *decoder);
 
 /** Get the current decoder state.
  *
@@ -669,7 +670,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(FLAC__SeekableS
  * \retval FLAC__SeekableStreamDecoderState
  *    The current decoder state.
  */
-FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_state(const FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_state(const FLAC__SeekableStreamDecoder *decoder);
 
 /** Get the state of the underlying stream decoder.
  *  Useful when the seekable stream decoder state is
@@ -681,7 +682,7 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_state(const F
  * \retval FLAC__StreamDecoderState
  *    The stream decoder state.
  */
-FLAC__StreamDecoderState FLAC__seekable_stream_decoder_get_stream_decoder_state(const FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__StreamDecoderState FLAC__seekable_stream_decoder_get_stream_decoder_state(const FLAC__SeekableStreamDecoder *decoder);
 
 /** Get the "MD5 signature checking" flag.
  *  This is the value of the setting, not whether or not the decoder is
@@ -695,7 +696,7 @@ FLAC__StreamDecoderState FLAC__seekable_stream_decoder_get_stream_decoder_state(
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__seekable_stream_decoder_get_md5_checking(const FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_get_md5_checking(const FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_get_channels().
@@ -706,7 +707,7 @@ FLAC__bool FLAC__seekable_stream_decoder_get_md5_checking(const FLAC__SeekableSt
  * \retval unsigned
  *    See above.
  */
-unsigned FLAC__seekable_stream_decoder_get_channels(const FLAC__SeekableStreamDecoder *decoder);
+FLAC_API unsigned FLAC__seekable_stream_decoder_get_channels(const FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_get_channel_assignment().
@@ -717,7 +718,7 @@ unsigned FLAC__seekable_stream_decoder_get_channels(const FLAC__SeekableStreamDe
  * \retval FLAC__ChannelAssignment
  *    See above.
  */
-FLAC__ChannelAssignment FLAC__seekable_stream_decoder_get_channel_assignment(const FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__ChannelAssignment FLAC__seekable_stream_decoder_get_channel_assignment(const FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_get_bits_per_sample().
@@ -728,7 +729,7 @@ FLAC__ChannelAssignment FLAC__seekable_stream_decoder_get_channel_assignment(con
  * \retval unsigned
  *    See above.
  */
-unsigned FLAC__seekable_stream_decoder_get_bits_per_sample(const FLAC__SeekableStreamDecoder *decoder);
+FLAC_API unsigned FLAC__seekable_stream_decoder_get_bits_per_sample(const FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_get_sample_rate().
@@ -739,7 +740,7 @@ unsigned FLAC__seekable_stream_decoder_get_bits_per_sample(const FLAC__SeekableS
  * \retval unsigned
  *    See above.
  */
-unsigned FLAC__seekable_stream_decoder_get_sample_rate(const FLAC__SeekableStreamDecoder *decoder);
+FLAC_API unsigned FLAC__seekable_stream_decoder_get_sample_rate(const FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_get_blocksize().
@@ -750,7 +751,7 @@ unsigned FLAC__seekable_stream_decoder_get_sample_rate(const FLAC__SeekableStrea
  * \retval unsigned
  *    See above.
  */
-unsigned FLAC__seekable_stream_decoder_get_blocksize(const FLAC__SeekableStreamDecoder *decoder);
+FLAC_API unsigned FLAC__seekable_stream_decoder_get_blocksize(const FLAC__SeekableStreamDecoder *decoder);
 
 /** Initialize the decoder instance.
  *  Should be called after FLAC__seekable_stream_decoder_new() and
@@ -767,7 +768,7 @@ unsigned FLAC__seekable_stream_decoder_get_blocksize(const FLAC__SeekableStreamD
  *    successful; see FLAC__SeekableStreamDecoderState for the meanings
  *    of other return values.
  */
-FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__SeekableStreamDecoder *decoder);
 
 /** Finish the decoding process.
  *  Flushes the decoding buffer, releases resources, resets the decoder
@@ -789,7 +790,7 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__Seekab
  *    signature does not match the one computed by the decoder; else
  *    \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_finish(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_finish(FLAC__SeekableStreamDecoder *decoder);
 
 /** Flush the stream input.
  *  The decoder's input buffer will be cleared and the state set to
@@ -803,7 +804,7 @@ FLAC__bool FLAC__seekable_stream_decoder_finish(FLAC__SeekableStreamDecoder *dec
  *    \c true if successful, else \c false if a memory allocation
  *    or stream decoder error occurs.
  */
-FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *decoder);
 
 /** Reset the decoding process.
  *  The decoder's input buffer will be cleared and the state set to
@@ -820,7 +821,7 @@ FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *deco
  *    \c true if successful, else \c false if a memory allocation
  *    or stream decoder error occurs.
  */
-FLAC__bool FLAC__seekable_stream_decoder_reset(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_reset(FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_process_single().
@@ -831,7 +832,7 @@ FLAC__bool FLAC__seekable_stream_decoder_reset(FLAC__SeekableStreamDecoder *deco
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__seekable_stream_decoder_process_single(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_process_single(FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_process_until_end_of_metadata().
@@ -842,7 +843,7 @@ FLAC__bool FLAC__seekable_stream_decoder_process_single(FLAC__SeekableStreamDeco
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_metadata(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_metadata(FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
  *  FLAC__stream_decoder_process_until_end_of_stream().
@@ -853,7 +854,7 @@ FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_metadata(FLAC__See
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_stream(FLAC__SeekableStreamDecoder *decoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_stream(FLAC__SeekableStreamDecoder *decoder);
 
 /** Flush the input and seek to an absolute sample.
  *  Decoding will resume at the given sample.  Note that because of
@@ -866,7 +867,7 @@ FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_stream(FLAC__Seeka
  * \retval FLAC__bool
  *    \c true if successful, else \c false.
  */
-FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 sample);
+FLAC_API FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 sample);
 
 /* \} */
 

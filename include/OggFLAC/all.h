@@ -24,6 +24,8 @@
  * for distribution yet.
  */
 
+#include "export.h"
+
 #include "stream_decoder.h"
 #include "stream_encoder.h"
 

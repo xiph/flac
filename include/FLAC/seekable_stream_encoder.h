@@ -20,6 +20,7 @@
 #ifndef FLAC__SEEKABLE_STREAM_ENCODER_H
 #define FLAC__SEEKABLE_STREAM_ENCODER_H
 
+#include "export.h"
 #include "stream_encoder.h"
 
 #ifdef __cplusplus
@@ -148,7 +149,7 @@ typedef enum {
  *  Using a FLAC__SeekableStreamEncoderState as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__SeekableStreamEncoderStateString[];
+extern FLAC_API const char * const FLAC__SeekableStreamEncoderStateString[];
 
 
 /** Return values for the FLAC__SeekableStreamEncoder seek callback.
@@ -168,7 +169,7 @@ typedef enum {
  *  Using a FLAC__SeekableStreamEncoderSeekStatus as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const FLAC__SeekableStreamEncoderSeekStatusString[];
+extern FLAC_API const char * const FLAC__SeekableStreamEncoderSeekStatusString[];
 
 
 /***********************************************************************
@@ -233,7 +234,7 @@ typedef FLAC__StreamEncoderWriteStatus (*FLAC__SeekableStreamEncoderWriteCallbac
  * \retval FLAC__SeekableStreamEncoder*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC__SeekableStreamEncoder *FLAC__seekable_stream_encoder_new();
+FLAC_API FLAC__SeekableStreamEncoder *FLAC__seekable_stream_encoder_new();
 
 /** Free an encoder instance.  Deletes the object pointed to by \a encoder.
  *
@@ -241,7 +242,7 @@ FLAC__SeekableStreamEncoder *FLAC__seekable_stream_encoder_new();
  * \assert
  *    \code encoder != NULL \endcode
  */
-void FLAC__seekable_stream_encoder_delete(FLAC__SeekableStreamEncoder *encoder);
+FLAC_API void FLAC__seekable_stream_encoder_delete(FLAC__SeekableStreamEncoder *encoder);
 
 /***********************************************************************
  *
@@ -260,7 +261,7 @@ void FLAC__seekable_stream_encoder_delete(FLAC__SeekableStreamEncoder *encoder);
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_verify(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_verify(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_streamable_subset().
@@ -273,7 +274,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_verify(FLAC__SeekableStreamEncoder 
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_streamable_subset(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_streamable_subset(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_do_mid_side_stereo().
@@ -286,7 +287,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_streamable_subset(FLAC__SeekableStr
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_do_mid_side_stereo(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_do_mid_side_stereo(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_loose_mid_side_stereo().
@@ -299,7 +300,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_do_mid_side_stereo(FLAC__SeekableSt
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_loose_mid_side_stereo(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_loose_mid_side_stereo(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_channels().
@@ -312,7 +313,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_loose_mid_side_stereo(FLAC__Seekabl
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_channels(FLAC__SeekableStreamEncoder *encoder, unsigned value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_channels(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_bits_per_sample().
@@ -329,7 +330,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_channels(FLAC__SeekableStreamEncode
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_bits_per_sample(FLAC__SeekableStreamEncoder *encoder, unsigned value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_bits_per_sample(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_sample_rate().
@@ -342,7 +343,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_bits_per_sample(FLAC__SeekableStrea
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_sample_rate(FLAC__SeekableStreamEncoder *encoder, unsigned value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_sample_rate(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_blocksize().
@@ -355,7 +356,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_sample_rate(FLAC__SeekableStreamEnc
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_blocksize(FLAC__SeekableStreamEncoder *encoder, unsigned value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_blocksize(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_max_lpc_order().
@@ -368,7 +369,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_blocksize(FLAC__SeekableStreamEncod
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_max_lpc_order(FLAC__SeekableStreamEncoder *encoder, unsigned value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_max_lpc_order(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_qlp_coeff_precision().
@@ -385,7 +386,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_max_lpc_order(FLAC__SeekableStreamE
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_qlp_coeff_precision(FLAC__SeekableStreamEncoder *encoder, unsigned value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_qlp_coeff_precision(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_do_qlp_coeff_prec_search().
@@ -398,7 +399,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_qlp_coeff_precision(FLAC__SeekableS
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_do_qlp_coeff_prec_search(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_do_qlp_coeff_prec_search(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_do_escape_coding().
@@ -411,7 +412,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_do_qlp_coeff_prec_search(FLAC__Seek
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_do_escape_coding(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_do_escape_coding(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_do_exhaustive_model_search().
@@ -424,7 +425,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_do_escape_coding(FLAC__SeekableStre
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_do_exhaustive_model_search(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_do_exhaustive_model_search(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_min_residual_partition_order().
@@ -437,7 +438,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_do_exhaustive_model_search(FLAC__Se
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_min_residual_partition_order(FLAC__SeekableStreamEncoder *encoder, unsigned value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_min_residual_partition_order(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_max_residual_partition_order().
@@ -450,7 +451,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_min_residual_partition_order(FLAC__
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_max_residual_partition_order(FLAC__SeekableStreamEncoder *encoder, unsigned value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_max_residual_partition_order(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_rice_parameter_search_dist().
@@ -463,7 +464,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_max_residual_partition_order(FLAC__
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_rice_parameter_search_dist(FLAC__SeekableStreamEncoder *encoder, unsigned value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_rice_parameter_search_dist(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_total_samples_estimate().
@@ -476,7 +477,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_rice_parameter_search_dist(FLAC__Se
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_total_samples_estimate(FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_total_samples_estimate(FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 value);
 
 /** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_metadata().
@@ -508,7 +509,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_total_samples_estimate(FLAC__Seekab
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_metadata(FLAC__SeekableStreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_metadata(FLAC__SeekableStreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
 /** Set the seek callback.
  *  The supplied function will be called when the encoder needs to seek
@@ -527,7 +528,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_metadata(FLAC__SeekableStreamEncode
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderSeekCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderSeekCallback value);
 
 /** Set the write callback.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -545,7 +546,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamE
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_write_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderWriteCallback value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_write_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderWriteCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data
@@ -559,7 +560,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_write_callback(FLAC__SeekableStream
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_client_data(FLAC__SeekableStreamEncoder *encoder, void *value);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_client_data(FLAC__SeekableStreamEncoder *encoder, void *value);
 
 /** Get the current encoder state.
  *
@@ -569,7 +570,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_client_data(FLAC__SeekableStreamEnc
  * \retval FLAC__SeekableStreamEncoderState
  *    The current encoder state.
  */
-FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_get_state(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_get_state(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the state of the underlying stream encoder.
  *  Useful when the seekable stream encoder state is
@@ -581,7 +582,7 @@ FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_get_state(const F
  * \retval FLAC__StreamEncoderState
  *    The stream encoder state.
  */
-FLAC__StreamEncoderState FLAC__seekable_stream_encoder_get_stream_encoder_state(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__StreamEncoderState FLAC__seekable_stream_encoder_get_stream_encoder_state(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the state of the underlying stream encoder's verify decoder.
  *  Useful when the seekable stream encoder state is
@@ -594,7 +595,7 @@ FLAC__StreamEncoderState FLAC__seekable_stream_encoder_get_stream_encoder_state(
  * \retval FLAC__StreamDecoderState
  *    The stream encoder state.
  */
-FLAC__StreamDecoderState FLAC__seekable_stream_encoder_get_verify_decoder_state(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__StreamDecoderState FLAC__seekable_stream_encoder_get_verify_decoder_state(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get relevant values about the nature of a verify decoder error.
  *  Inherited from FLAC__stream_encoder_get_verify_decoder_error_stats().
@@ -614,7 +615,7 @@ FLAC__StreamDecoderState FLAC__seekable_stream_encoder_get_verify_decoder_state(
  * \assert
  *    \code encoder != NULL \endcode
  */
-void FLAC__seekable_stream_encoder_get_verify_decoder_error_stats(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
+FLAC_API void FLAC__seekable_stream_encoder_get_verify_decoder_error_stats(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
 
 /** Get the "verify" flag.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -626,7 +627,7 @@ void FLAC__seekable_stream_encoder_get_verify_decoder_error_stats(const FLAC__Se
  * \retval FLAC__bool
  *    See FLAC__seekable_stream_encoder_set_verify().
  */
-FLAC__bool FLAC__seekable_stream_encoder_get_verify(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_get_verify(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the "streamable subset" flag.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -638,7 +639,7 @@ FLAC__bool FLAC__seekable_stream_encoder_get_verify(const FLAC__SeekableStreamEn
  * \retval FLAC__bool
  *    See FLAC__seekable_stream_encoder_set_streamable_subset().
  */
-FLAC__bool FLAC__seekable_stream_encoder_get_streamable_subset(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_get_streamable_subset(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the "mid/side stereo coding" flag.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -650,7 +651,7 @@ FLAC__bool FLAC__seekable_stream_encoder_get_streamable_subset(const FLAC__Seeka
  * \retval FLAC__bool
  *    See FLAC__seekable_stream_encoder_get_do_mid_side_stereo().
  */
-FLAC__bool FLAC__seekable_stream_encoder_get_do_mid_side_stereo(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_get_do_mid_side_stereo(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the "adaptive mid/side switching" flag.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -662,7 +663,7 @@ FLAC__bool FLAC__seekable_stream_encoder_get_do_mid_side_stereo(const FLAC__Seek
  * \retval FLAC__bool
  *    See FLAC__seekable_stream_encoder_set_loose_mid_side_stereo().
  */
-FLAC__bool FLAC__seekable_stream_encoder_get_loose_mid_side_stereo(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_get_loose_mid_side_stereo(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the number of input channels being processed.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -674,7 +675,7 @@ FLAC__bool FLAC__seekable_stream_encoder_get_loose_mid_side_stereo(const FLAC__S
  * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_channels().
  */
-unsigned FLAC__seekable_stream_encoder_get_channels(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API unsigned FLAC__seekable_stream_encoder_get_channels(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the input sample resolution setting.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -686,7 +687,7 @@ unsigned FLAC__seekable_stream_encoder_get_channels(const FLAC__SeekableStreamEn
  * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_bits_per_sample().
  */
-unsigned FLAC__seekable_stream_encoder_get_bits_per_sample(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API unsigned FLAC__seekable_stream_encoder_get_bits_per_sample(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the input sample rate setting.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -698,7 +699,7 @@ unsigned FLAC__seekable_stream_encoder_get_bits_per_sample(const FLAC__SeekableS
  * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_sample_rate().
  */
-unsigned FLAC__seekable_stream_encoder_get_sample_rate(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API unsigned FLAC__seekable_stream_encoder_get_sample_rate(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the blocksize setting.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -710,7 +711,7 @@ unsigned FLAC__seekable_stream_encoder_get_sample_rate(const FLAC__SeekableStrea
  * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_blocksize().
  */
-unsigned FLAC__seekable_stream_encoder_get_blocksize(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API unsigned FLAC__seekable_stream_encoder_get_blocksize(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the maximum LPC order setting.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -722,7 +723,7 @@ unsigned FLAC__seekable_stream_encoder_get_blocksize(const FLAC__SeekableStreamE
  * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_max_lpc_order().
  */
-unsigned FLAC__seekable_stream_encoder_get_max_lpc_order(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API unsigned FLAC__seekable_stream_encoder_get_max_lpc_order(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the quantized linear predictor coefficient precision setting.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -734,7 +735,7 @@ unsigned FLAC__seekable_stream_encoder_get_max_lpc_order(const FLAC__SeekableStr
  * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_qlp_coeff_precision().
  */
-unsigned FLAC__seekable_stream_encoder_get_qlp_coeff_precision(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API unsigned FLAC__seekable_stream_encoder_get_qlp_coeff_precision(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the qlp coefficient precision search flag.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -746,7 +747,7 @@ unsigned FLAC__seekable_stream_encoder_get_qlp_coeff_precision(const FLAC__Seeka
  * \retval FLAC__bool
  *    See FLAC__seekable_stream_encoder_set_do_qlp_coeff_prec_search().
  */
-FLAC__bool FLAC__seekable_stream_encoder_get_do_qlp_coeff_prec_search(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_get_do_qlp_coeff_prec_search(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the "escape coding" flag.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -758,7 +759,7 @@ FLAC__bool FLAC__seekable_stream_encoder_get_do_qlp_coeff_prec_search(const FLAC
  * \retval FLAC__bool
  *    See FLAC__seekable_stream_encoder_set_do_escape_coding().
  */
-FLAC__bool FLAC__seekable_stream_encoder_get_do_escape_coding(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_get_do_escape_coding(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the exhaustive model search flag.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -770,7 +771,7 @@ FLAC__bool FLAC__seekable_stream_encoder_get_do_escape_coding(const FLAC__Seekab
  * \retval FLAC__bool
  *    See FLAC__seekable_stream_encoder_set_do_exhaustive_model_search().
  */
-FLAC__bool FLAC__seekable_stream_encoder_get_do_exhaustive_model_search(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_get_do_exhaustive_model_search(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the minimum residual partition order setting.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -782,7 +783,7 @@ FLAC__bool FLAC__seekable_stream_encoder_get_do_exhaustive_model_search(const FL
  * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_min_residual_partition_order().
  */
-unsigned FLAC__seekable_stream_encoder_get_min_residual_partition_order(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API unsigned FLAC__seekable_stream_encoder_get_min_residual_partition_order(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get maximum residual partition order setting.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -794,7 +795,7 @@ unsigned FLAC__seekable_stream_encoder_get_min_residual_partition_order(const FL
  * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_max_residual_partition_order().
  */
-unsigned FLAC__seekable_stream_encoder_get_max_residual_partition_order(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API unsigned FLAC__seekable_stream_encoder_get_max_residual_partition_order(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the Rice parameter search distance setting.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -806,7 +807,7 @@ unsigned FLAC__seekable_stream_encoder_get_max_residual_partition_order(const FL
  * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_rice_parameter_search_dist().
  */
-unsigned FLAC__seekable_stream_encoder_get_rice_parameter_search_dist(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API unsigned FLAC__seekable_stream_encoder_get_rice_parameter_search_dist(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the previously set estimate of the total samples to be encoded.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -818,7 +819,7 @@ unsigned FLAC__seekable_stream_encoder_get_rice_parameter_search_dist(const FLAC
  * \retval FLAC__uint64
  *    See FLAC__seekable_stream_encoder_set_total_samples_estimate().
  */
-FLAC__uint64 FLAC__seekable_stream_encoder_get_total_samples_estimate(const FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__uint64 FLAC__seekable_stream_encoder_get_total_samples_estimate(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Initialize the encoder instance.
  *  Should be called after FLAC__seekable_stream_encoder_new() and
@@ -838,7 +839,7 @@ FLAC__uint64 FLAC__seekable_stream_encoder_get_total_samples_estimate(const FLAC
  *    \c FLAC__SEEKABLE_STREAM_ENCODER_OK if initialization was successful; see
  *    FLAC__SeekableStreamEncoderState for the meanings of other return values.
  */
-FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_init(FLAC__SeekableStreamEncoder *encoder);
+FLAC_API FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_init(FLAC__SeekableStreamEncoder *encoder);
 
 /** Finish the encoding process.
  *  Flushes the encoding buffer, releases resources, resets the encoder
@@ -854,7 +855,7 @@ FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_init(FLAC__Seekab
  * \assert
  *    \code encoder != NULL \endcode
  */
-void FLAC__seekable_stream_encoder_finish(FLAC__SeekableStreamEncoder *encoder);
+FLAC_API void FLAC__seekable_stream_encoder_finish(FLAC__SeekableStreamEncoder *encoder);
 
 /** Submit data for encoding.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -871,7 +872,7 @@ void FLAC__seekable_stream_encoder_finish(FLAC__SeekableStreamEncoder *encoder);
  *    encoder state with FLAC__seekable_stream_encoder_get_state() to see what
  *    went wrong.
  */
-FLAC__bool FLAC__seekable_stream_encoder_process(FLAC__SeekableStreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_process(FLAC__SeekableStreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples);
 
 /** Submit data for encoding.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -891,7 +892,7 @@ FLAC__bool FLAC__seekable_stream_encoder_process(FLAC__SeekableStreamEncoder *en
  *    encoder state with FLAC__seekable_stream_encoder_get_state() to see what
  *    went wrong.
  */
-FLAC__bool FLAC__seekable_stream_encoder_process_interleaved(FLAC__SeekableStreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples);
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_process_interleaved(FLAC__SeekableStreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples);
 
 /* \} */
 

@@ -20,6 +20,8 @@
 #ifndef OggFLAC__STREAM_ENCODER_H
 #define OggFLAC__STREAM_ENCODER_H
 
+#include "export.h"
+
 #include "FLAC/stream_encoder.h"
 
 #ifdef __cplusplus
@@ -102,7 +104,7 @@ typedef enum {
  *  Using an OggFLAC__StreamEncoderState as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-extern const char * const OggFLAC__StreamEncoderStateString[];
+extern OggFLAC_API const char * const OggFLAC__StreamEncoderStateString[];
 
 
 /***********************************************************************
@@ -154,7 +156,7 @@ typedef FLAC__StreamEncoderWriteStatus (*OggFLAC__StreamEncoderWriteCallback)(co
  * \retval OggFLAC__StreamEncoder*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-OggFLAC__StreamEncoder *OggFLAC__stream_encoder_new();
+OggFLAC_API OggFLAC__StreamEncoder *OggFLAC__stream_encoder_new();
 
 /** Free an encoder instance.  Deletes the object pointed to by \a encoder.
  *
@@ -162,7 +164,7 @@ OggFLAC__StreamEncoder *OggFLAC__stream_encoder_new();
  * \assert
  *    \code encoder != NULL \endcode
  */
-void OggFLAC__stream_encoder_delete(OggFLAC__StreamEncoder *encoder);
+OggFLAC_API void OggFLAC__stream_encoder_delete(OggFLAC__StreamEncoder *encoder);
 
 
 /***********************************************************************
@@ -181,7 +183,7 @@ void OggFLAC__stream_encoder_delete(OggFLAC__StreamEncoder *encoder);
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_serial_number(OggFLAC__StreamEncoder *encoder, long serial_number);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_serial_number(OggFLAC__StreamEncoder *encoder, long serial_number);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_verify()
  *
@@ -193,7 +195,7 @@ FLAC__bool OggFLAC__stream_encoder_set_serial_number(OggFLAC__StreamEncoder *enc
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_verify(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_verify(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_streamable_subset()
  *
@@ -205,7 +207,7 @@ FLAC__bool OggFLAC__stream_encoder_set_verify(OggFLAC__StreamEncoder *encoder, F
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_streamable_subset(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_streamable_subset(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_do_mid_side_stereo()
  *
@@ -217,7 +219,7 @@ FLAC__bool OggFLAC__stream_encoder_set_streamable_subset(OggFLAC__StreamEncoder 
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_do_mid_side_stereo(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_do_mid_side_stereo(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_loose_mid_side_stereo()
  *
@@ -229,7 +231,7 @@ FLAC__bool OggFLAC__stream_encoder_set_do_mid_side_stereo(OggFLAC__StreamEncoder
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_loose_mid_side_stereo(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_loose_mid_side_stereo(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_channels()
  *
@@ -241,7 +243,7 @@ FLAC__bool OggFLAC__stream_encoder_set_loose_mid_side_stereo(OggFLAC__StreamEnco
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_channels(OggFLAC__StreamEncoder *encoder, unsigned value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_channels(OggFLAC__StreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_bits_per_sample()
  *
@@ -253,7 +255,7 @@ FLAC__bool OggFLAC__stream_encoder_set_channels(OggFLAC__StreamEncoder *encoder,
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_bits_per_sample(OggFLAC__StreamEncoder *encoder, unsigned value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_bits_per_sample(OggFLAC__StreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_sample_rate()
  *
@@ -265,7 +267,7 @@ FLAC__bool OggFLAC__stream_encoder_set_bits_per_sample(OggFLAC__StreamEncoder *e
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_sample_rate(OggFLAC__StreamEncoder *encoder, unsigned value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_sample_rate(OggFLAC__StreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_blocksize()
  *
@@ -277,7 +279,7 @@ FLAC__bool OggFLAC__stream_encoder_set_sample_rate(OggFLAC__StreamEncoder *encod
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_blocksize(OggFLAC__StreamEncoder *encoder, unsigned value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_blocksize(OggFLAC__StreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_max_lpc_order()
  *
@@ -289,7 +291,7 @@ FLAC__bool OggFLAC__stream_encoder_set_blocksize(OggFLAC__StreamEncoder *encoder
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_max_lpc_order(OggFLAC__StreamEncoder *encoder, unsigned value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_max_lpc_order(OggFLAC__StreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_qlp_coeff_precision()
  *
@@ -301,7 +303,7 @@ FLAC__bool OggFLAC__stream_encoder_set_max_lpc_order(OggFLAC__StreamEncoder *enc
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_qlp_coeff_precision(OggFLAC__StreamEncoder *encoder, unsigned value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_qlp_coeff_precision(OggFLAC__StreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_qlp_coeff_prec_search()
  *
@@ -313,7 +315,7 @@ FLAC__bool OggFLAC__stream_encoder_set_qlp_coeff_precision(OggFLAC__StreamEncode
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_do_qlp_coeff_prec_search(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_do_qlp_coeff_prec_search(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_do_escape_coding()
  *
@@ -325,7 +327,7 @@ FLAC__bool OggFLAC__stream_encoder_set_do_qlp_coeff_prec_search(OggFLAC__StreamE
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_do_escape_coding(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_do_escape_coding(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_do_exhaustive_model_search()
  *
@@ -337,7 +339,7 @@ FLAC__bool OggFLAC__stream_encoder_set_do_escape_coding(OggFLAC__StreamEncoder *
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_do_exhaustive_model_search(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_do_exhaustive_model_search(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_min_residual_partition_order()
  *
@@ -349,7 +351,7 @@ FLAC__bool OggFLAC__stream_encoder_set_do_exhaustive_model_search(OggFLAC__Strea
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_min_residual_partition_order(OggFLAC__StreamEncoder *encoder, unsigned value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_min_residual_partition_order(OggFLAC__StreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_max_residual_partition_order()
  *
@@ -361,7 +363,7 @@ FLAC__bool OggFLAC__stream_encoder_set_min_residual_partition_order(OggFLAC__Str
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_max_residual_partition_order(OggFLAC__StreamEncoder *encoder, unsigned value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_max_residual_partition_order(OggFLAC__StreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_rice_parameter_search_dist()
  *
@@ -373,7 +375,7 @@ FLAC__bool OggFLAC__stream_encoder_set_max_residual_partition_order(OggFLAC__Str
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_rice_parameter_search_dist(OggFLAC__StreamEncoder *encoder, unsigned value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_rice_parameter_search_dist(OggFLAC__StreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_total_samples_estimate()
  *
@@ -385,7 +387,7 @@ FLAC__bool OggFLAC__stream_encoder_set_rice_parameter_search_dist(OggFLAC__Strea
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_total_samples_estimate(OggFLAC__StreamEncoder *encoder, FLAC__uint64 value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_total_samples_estimate(OggFLAC__StreamEncoder *encoder, FLAC__uint64 value);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_metadata()
  *
@@ -398,7 +400,7 @@ FLAC__bool OggFLAC__stream_encoder_set_total_samples_estimate(OggFLAC__StreamEnc
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
 /** Set the write callback.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -423,7 +425,7 @@ FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncoder *encoder,
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_write_callback(OggFLAC__StreamEncoder *encoder, OggFLAC__StreamEncoderWriteCallback value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_write_callback(OggFLAC__StreamEncoder *encoder, OggFLAC__StreamEncoderWriteCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data
@@ -437,7 +439,7 @@ FLAC__bool OggFLAC__stream_encoder_set_write_callback(OggFLAC__StreamEncoder *en
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_encoder_set_client_data(OggFLAC__StreamEncoder *encoder, void *value);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_client_data(OggFLAC__StreamEncoder *encoder, void *value);
 
 /** Get the current encoder state.
  *
@@ -447,7 +449,7 @@ FLAC__bool OggFLAC__stream_encoder_set_client_data(OggFLAC__StreamEncoder *encod
  * \retval OggFLAC__StreamEncoderState
  *    The current encoder state.
  */
-OggFLAC__StreamEncoderState OggFLAC__stream_encoder_get_state(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API OggFLAC__StreamEncoderState OggFLAC__stream_encoder_get_state(const OggFLAC__StreamEncoder *encoder);
 
 /** Get the state of the underlying FLAC stream encoder.
  *  Useful when the stream encoder state is
@@ -459,7 +461,7 @@ OggFLAC__StreamEncoderState OggFLAC__stream_encoder_get_state(const OggFLAC__Str
  * \retval FLAC__StreamEncoderState
  *    The FLAC stream encoder state.
  */
-FLAC__StreamEncoderState OggFLAC__stream_encoder_get_FLAC_stream_encoder_state(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__StreamEncoderState OggFLAC__stream_encoder_get_FLAC_stream_encoder_state(const OggFLAC__StreamEncoder *encoder);
 
 /** Get the state of the underlying FLAC stream encoder's verify decoder.
  *  Useful when the stream encoder state is
@@ -472,7 +474,7 @@ FLAC__StreamEncoderState OggFLAC__stream_encoder_get_FLAC_stream_encoder_state(c
  * \retval FLAC__StreamDecoderState
  *    The FLAC verify decoder state.
  */
-FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_state(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_state(const OggFLAC__StreamEncoder *encoder);
 
 /** Get relevant values about the nature of a verify decoder error.
  *  Inherited from FLAC__stream_encoder_get_verify_decoder_error_stats().
@@ -497,7 +499,7 @@ FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_state(const 
  *    \code sample != NULL \endcode
  *    \code expected != NULL \endcode
  */
-void OggFLAC__stream_encoder_get_verify_decoder_error_stats(const OggFLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
+OggFLAC_API void OggFLAC__stream_encoder_get_verify_decoder_error_stats(const OggFLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_verify()
  *
@@ -507,7 +509,7 @@ void OggFLAC__stream_encoder_get_verify_decoder_error_stats(const OggFLAC__Strea
  * \retval FLAC__bool
  *    See OggFLAC__stream_encoder_set_verify().
  */
-FLAC__bool OggFLAC__stream_encoder_get_verify(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_get_verify(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_streamable_subset()
  *
@@ -517,7 +519,7 @@ FLAC__bool OggFLAC__stream_encoder_get_verify(const OggFLAC__StreamEncoder *enco
  * \retval FLAC__bool
  *    See OggFLAC__stream_encoder_set_streamable_subset().
  */
-FLAC__bool OggFLAC__stream_encoder_get_streamable_subset(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_get_streamable_subset(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_mid_side_stereo()
  *
@@ -527,7 +529,7 @@ FLAC__bool OggFLAC__stream_encoder_get_streamable_subset(const OggFLAC__StreamEn
  * \retval FLAC__bool
  *    See OggFLAC__stream_encoder_get_do_mid_side_stereo().
  */
-FLAC__bool OggFLAC__stream_encoder_get_do_mid_side_stereo(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_get_do_mid_side_stereo(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_loose_mid_side_stereo()
  *
@@ -537,7 +539,7 @@ FLAC__bool OggFLAC__stream_encoder_get_do_mid_side_stereo(const OggFLAC__StreamE
  * \retval FLAC__bool
  *    See OggFLAC__stream_encoder_set_loose_mid_side_stereo().
  */
-FLAC__bool OggFLAC__stream_encoder_get_loose_mid_side_stereo(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_get_loose_mid_side_stereo(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_channels()
  *
@@ -547,7 +549,7 @@ FLAC__bool OggFLAC__stream_encoder_get_loose_mid_side_stereo(const OggFLAC__Stre
  * \retval unsigned
  *    See OggFLAC__stream_encoder_set_channels().
  */
-unsigned OggFLAC__stream_encoder_get_channels(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API unsigned OggFLAC__stream_encoder_get_channels(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_bits_per_sample()
  *
@@ -557,7 +559,7 @@ unsigned OggFLAC__stream_encoder_get_channels(const OggFLAC__StreamEncoder *enco
  * \retval unsigned
  *    See OggFLAC__stream_encoder_set_bits_per_sample().
  */
-unsigned OggFLAC__stream_encoder_get_bits_per_sample(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API unsigned OggFLAC__stream_encoder_get_bits_per_sample(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_sample_rate()
  *
@@ -567,7 +569,7 @@ unsigned OggFLAC__stream_encoder_get_bits_per_sample(const OggFLAC__StreamEncode
  * \retval unsigned
  *    See OggFLAC__stream_encoder_set_sample_rate().
  */
-unsigned OggFLAC__stream_encoder_get_sample_rate(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API unsigned OggFLAC__stream_encoder_get_sample_rate(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_blocksize()
  *
@@ -577,7 +579,7 @@ unsigned OggFLAC__stream_encoder_get_sample_rate(const OggFLAC__StreamEncoder *e
  * \retval unsigned
  *    See OggFLAC__stream_encoder_set_blocksize().
  */
-unsigned OggFLAC__stream_encoder_get_blocksize(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API unsigned OggFLAC__stream_encoder_get_blocksize(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_max_lpc_order()
  *
@@ -587,7 +589,7 @@ unsigned OggFLAC__stream_encoder_get_blocksize(const OggFLAC__StreamEncoder *enc
  * \retval unsigned
  *    See OggFLAC__stream_encoder_set_max_lpc_order().
  */
-unsigned OggFLAC__stream_encoder_get_max_lpc_order(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API unsigned OggFLAC__stream_encoder_get_max_lpc_order(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_qlp_coeff_precision()
  *
@@ -597,7 +599,7 @@ unsigned OggFLAC__stream_encoder_get_max_lpc_order(const OggFLAC__StreamEncoder 
  * \retval unsigned
  *    See OggFLAC__stream_encoder_set_qlp_coeff_precision().
  */
-unsigned OggFLAC__stream_encoder_get_qlp_coeff_precision(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API unsigned OggFLAC__stream_encoder_get_qlp_coeff_precision(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_qlp_coeff_prec_search()
  *
@@ -607,7 +609,7 @@ unsigned OggFLAC__stream_encoder_get_qlp_coeff_precision(const OggFLAC__StreamEn
  * \retval FLAC__bool
  *    See OggFLAC__stream_encoder_set_do_qlp_coeff_prec_search().
  */
-FLAC__bool OggFLAC__stream_encoder_get_do_qlp_coeff_prec_search(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_get_do_qlp_coeff_prec_search(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_escape_coding()
  *
@@ -617,7 +619,7 @@ FLAC__bool OggFLAC__stream_encoder_get_do_qlp_coeff_prec_search(const OggFLAC__S
  * \retval FLAC__bool
  *    See OggFLAC__stream_encoder_set_do_escape_coding().
  */
-FLAC__bool OggFLAC__stream_encoder_get_do_escape_coding(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_get_do_escape_coding(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_exhaustive_model_search()
  *
@@ -627,7 +629,7 @@ FLAC__bool OggFLAC__stream_encoder_get_do_escape_coding(const OggFLAC__StreamEnc
  * \retval FLAC__bool
  *    See OggFLAC__stream_encoder_set_do_exhaustive_model_search().
  */
-FLAC__bool OggFLAC__stream_encoder_get_do_exhaustive_model_search(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_get_do_exhaustive_model_search(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_min_residual_partition_order()
  *
@@ -637,7 +639,7 @@ FLAC__bool OggFLAC__stream_encoder_get_do_exhaustive_model_search(const OggFLAC_
  * \retval unsigned
  *    See OggFLAC__stream_encoder_set_min_residual_partition_order().
  */
-unsigned OggFLAC__stream_encoder_get_min_residual_partition_order(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API unsigned OggFLAC__stream_encoder_get_min_residual_partition_order(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_man_residual_partition_order()
  *
@@ -647,7 +649,7 @@ unsigned OggFLAC__stream_encoder_get_min_residual_partition_order(const OggFLAC_
  * \retval unsigned
  *    See OggFLAC__stream_encoder_set_max_residual_partition_order().
  */
-unsigned OggFLAC__stream_encoder_get_max_residual_partition_order(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API unsigned OggFLAC__stream_encoder_get_max_residual_partition_order(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_rice_parameter_search_dist()
  *
@@ -657,7 +659,7 @@ unsigned OggFLAC__stream_encoder_get_max_residual_partition_order(const OggFLAC_
  * \retval unsigned
  *    See OggFLAC__stream_encoder_set_rice_parameter_search_dist().
  */
-unsigned OggFLAC__stream_encoder_get_rice_parameter_search_dist(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API unsigned OggFLAC__stream_encoder_get_rice_parameter_search_dist(const OggFLAC__StreamEncoder *encoder);
 
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_total_samples_estimate()
  *
@@ -667,7 +669,7 @@ unsigned OggFLAC__stream_encoder_get_rice_parameter_search_dist(const OggFLAC__S
  * \retval FLAC__uint64
  *    See OggFLAC__stream_encoder_get_total_samples_estimate().
  */
-FLAC__uint64 OggFLAC__stream_encoder_get_total_samples_estimate(const OggFLAC__StreamEncoder *encoder);
+OggFLAC_API FLAC__uint64 OggFLAC__stream_encoder_get_total_samples_estimate(const OggFLAC__StreamEncoder *encoder);
 
 /** Initialize the encoder instance.
  *  Should be called after OggFLAC__stream_encoder_new() and
@@ -687,7 +689,7 @@ FLAC__uint64 OggFLAC__stream_encoder_get_total_samples_estimate(const OggFLAC__S
  *    \c OggFLAC__STREAM_ENCODER_OK if initialization was successful; see
  *    OggFLAC__StreamEncoderState for the meanings of other return values.
  */
-OggFLAC__StreamEncoderState OggFLAC__stream_encoder_init(OggFLAC__StreamEncoder *encoder);
+OggFLAC_API OggFLAC__StreamEncoderState OggFLAC__stream_encoder_init(OggFLAC__StreamEncoder *encoder);
 
 /** Finish the encoding process.
  *  Flushes the encoding buffer, releases resources, resets the encoder
@@ -704,7 +706,7 @@ OggFLAC__StreamEncoderState OggFLAC__stream_encoder_init(OggFLAC__StreamEncoder 
  * \assert
  *    \code encoder != NULL \endcode
  */
-void OggFLAC__stream_encoder_finish(OggFLAC__StreamEncoder *encoder);
+OggFLAC_API void OggFLAC__stream_encoder_finish(OggFLAC__StreamEncoder *encoder);
 
 /** Submit data for encoding.
  * This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_process().
@@ -720,7 +722,7 @@ void OggFLAC__stream_encoder_finish(OggFLAC__StreamEncoder *encoder);
  *    encoder state with OggFLAC__stream_encoder_get_state() to see what
  *    went wrong.
  */
-FLAC__bool OggFLAC__stream_encoder_process(OggFLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_process(OggFLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples);
 
 /** Submit data for encoding.
  * This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_process_interleaved().
@@ -739,7 +741,7 @@ FLAC__bool OggFLAC__stream_encoder_process(OggFLAC__StreamEncoder *encoder, cons
  *    encoder state with OggFLAC__stream_encoder_get_state() to see what
  *    went wrong.
  */
-FLAC__bool OggFLAC__stream_encoder_process_interleaved(OggFLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples);
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_process_interleaved(OggFLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples);
 
 /* \} */
 

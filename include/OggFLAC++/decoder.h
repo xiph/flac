@@ -20,6 +20,8 @@
 #ifndef OggFLACPP__DECODER_H
 #define OggFLACPP__DECODER_H
 
+#include "export.h"
+
 #include "OggFLAC/stream_decoder.h"
 // we only need this for the state abstraction really...
 #include "FLAC++/decoder.h"
@@ -74,9 +76,9 @@ namespace OggFLAC {
 
 		/** This class wraps the ::OggFLAC__StreamDecoder.
 		 */
-		class Stream {
+		class OggFLACPP_API Stream {
 		public:
-			class State {
+			class OggFLACPP_API State {
 			public:
 				inline State(::OggFLAC__StreamDecoderState state): state_(state) { }
 				inline operator ::OggFLAC__StreamDecoderState() const { return state_; }
