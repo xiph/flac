@@ -906,14 +906,14 @@ bool encoder_set_partitioned_rice_(const int32 residual[], const unsigned residu
 
 	if(partition_order == 0) {
 		unsigned i;
+#ifdef ESTIMATE_RICE_BITS
+		const unsigned rice_parameter_estimate = rice_parameter-1;
+#endif
 		parameters[0] = rice_parameter;
 		bits_ += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
-#ifdef ESTIMATE_RICE_BITS
-		--rice_parameter;
-#endif
 		for(i = 0; i < residual_samples; i++)
 #ifdef ESTIMATE_RICE_BITS
-			bits_ += ESTIMATE_RICE_BITS(residual[i], rice_parameter);
+			bits_ += ESTIMATE_RICE_BITS(residual[i], rice_parameter_estimate);
 #else
 			bits_ += FLAC__bitbuffer_rice_bits(residual[i], rice_parameter);
 #endif
