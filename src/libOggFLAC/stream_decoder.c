@@ -402,6 +402,8 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_reset(OggFLAC__StreamDecoder *dec
 		return false;
 	}
 
+	OggFLAC__ogg_decoder_aspect_reset(&decoder->protected_->ogg_decoder_aspect);
+
 	if(!FLAC__stream_decoder_reset(decoder->private_->FLAC_stream_decoder)) {
 		decoder->protected_->state = OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR;
 		return false;
