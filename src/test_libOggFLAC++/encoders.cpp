@@ -398,7 +398,7 @@ public:
 ::OggFLAC__SeekableStreamEncoderReadStatus SeekableStreamEncoder::read_callback(FLAC__byte buffer[], unsigned *bytes)
 {
 	(void)buffer, (void)bytes;
-
+	::memset(buffer, 0, *bytes); /* init buffer to avoid valgrind errors */
 	return ::OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_CONTINUE;
 }
 

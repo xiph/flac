@@ -434,6 +434,7 @@ static FLAC__bool test_stream_encoder()
 OggFLAC__SeekableStreamEncoderReadStatus seekable_stream_encoder_read_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {
 	(void)encoder, (void)buffer, (void)bytes, (void)client_data;
+	memset(buffer, 0, *bytes); /* init buffer to avoid valgrind errors */
 	return OggFLAC__SEEKABLE_STREAM_ENCODER_READ_STATUS_CONTINUE;
 }
 
