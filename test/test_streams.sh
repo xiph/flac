@@ -30,6 +30,98 @@ if test_streams ; then : ; else
 	exit 1
 fi
 
+echo "Checking for --ogg support in flac..."
+if flac --ogg wacky1.wav 1>/dev/null 2>&1 ; then
+	has_ogg=yes;
+	echo "flac --ogg works"
+else
+	has_ogg=no;
+	echo "flac --ogg doesn't work"
+fi
+
+#
+# multi-file tests
+#
+echo "Generating multiple input files from noise..."
+if flac -V -s -fr -fb -fs 44100 -fp 16 -fc 2 noise.raw ; then : ; else
+	echo "ERROR generating FLAC file" 1>&2
+	exit 1
+fi
+if flac -d -s noise.flac ; then : ; else
+	echo "ERROR generating WAVE file" 1>&2
+	exit 1
+fi
+rm -f noise.flac
+mv noise.wav f0.wav
+cp f0.wav f1.wav
+cp f1.wav f2.wav
+
+test_multifile ()
+{
+	streamtype=$1
+	encode_options="$2"
+
+	if [ $streamtype = ogg ] ; then
+		suffix=ogg
+		encode_options="$encode_options --ogg"
+	else
+		suffix=flac
+	fi
+
+	if flac $encode_options f0.wav f1.wav f2.wav ; then : ; else
+		echo "ERROR" 1>&2
+		exit 1
+	fi
+	for n in 0 1 2 ; do
+		mv f$n.$suffix f${n}x.$suffix
+	done
+	if flac -d f0x.$suffix f1x.$suffix f2x.$suffix ; then : ; else
+		echo "ERROR" 1>&2
+		exit 1
+	fi
+	for n in 0 1 2 ; do
+		if cmp f$n.wav f${n}x.wav ; then : ; else
+			echo "ERROR: file mismatch on file #$n" 1>&2
+			exit 1
+		fi
+	done
+	for n in 0 1 2 ; do
+		rm -f f${n}x.$suffix f${n}x.wav
+	done
+}
+
+echo "Testing multiple files without verify..."
+test_multifile flac ""
+
+echo "Testing multiple files with verify..."
+test_multifile flac "-V"
+
+echo "Testing multiple files with --sector-align, without verify..."
+test_multifile flac "--sector-align"
+
+echo "Testing multiple files with --sector-align, with verify..."
+test_multifile flac "--sector-align -V"
+
+if [ $has_ogg = "yes" ] ; then
+	echo "Testing multiple files with --ogg, without verify..."
+	test_multifile ogg ""
+
+	echo "Testing multiple files with --ogg, with verify..."
+	test_multifile ogg "-V"
+
+	echo "Testing multiple files with --ogg and --sector-align, without verify..."
+	test_multifile flac "--ogg --sector-align"
+
+	echo "Testing multiple files with --ogg and --sector-align, with verify..."
+	test_multifile flac "--ogg --sector-align -V"
+fi
+
+exit 0
+
+#
+# single-file tests
+#
+
 test_file ()
 {
 	name=$1
