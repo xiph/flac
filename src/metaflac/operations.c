@@ -559,10 +559,9 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			break;
 		case FLAC__METADATA_TYPE_APPLICATION:
 			PPR; printf("  application ID: ");
-			for(i = 0; i < 4; i++) {
-				PPR; printf("%02x", block->data.application.id[i]);
-			}
-			PPR; printf("\n");
+			for(i = 0; i < 4; i++)
+				printf("%02x", block->data.application.id[i]);
+			printf("\n");
 			PPR; printf("  data contents:\n");
 			if(0 != block->data.application.data) {
 				if(hexdump_application)
