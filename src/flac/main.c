@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 	int i;
 	bool verify = false, verbose = true, lax = false, mode_decode = false, test_only = false, analyze = false;
 	bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
-	analysis_options aopts;
+	analysis_options aopts = { false, false };
 	unsigned padding = 0;
 	unsigned max_lpc_order = 8;
 	unsigned qlp_coeff_precision = 0;
@@ -42,11 +42,15 @@ int main(int argc, char *argv[])
 	int format_is_wave = -1, format_is_big_endian = -1, format_is_unsigned_samples = false;
 	int format_channels = -1, format_bps = -1, format_sample_rate = -1;
 	int blocksize = -1, min_residual_partition_order = -1, max_residual_partition_order = -1, rice_parameter_search_dist = -1;
+	char default_outfilename[4096]; /* @@@ bad MAGIC NUMBER*/
 	char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER */
 	int num_requested_seek_points = -1; /* -1 => no -S options were given, 0 => -S- was given */
+	FILE *encode_infile = 0;
 
+/*@@@
 	aopts.do_residual_text = false;
 	aopts.do_residual_gnuplot = false;
+*/
 
 	if(argc <= 1)
 		return usage(0);
@@ -233,11 +237,40 @@ int main(int argc, char *argv[])
 
 	/* tweak options based on the filenames; validate the values */
 	if(!mode_decode) {
+		if(0 == strcmp(argv[i], "-")) {
+			encode_infile = stdin;
+		}
+		else {
+			if(0 == (encode_infile = fopen(argv[i], "rb"))) {
+				fprintf(stderr, "ERROR: can't open input file %s\n", argv[i]);
+				return 1;
+			}
+		}
 		if(format_is_wave < 0) {
+			/* lamely attempt to guess the file type based on the first 4 bytes (which is all ungetc will guarantee us) */
+			char head[4];
+			int h, n;
+			/* first set format based on name */
 			if(strstr(argv[i], ".wav") == argv[i] + (strlen(argv[i]) - strlen(".wav")))
 				format_is_wave = true;
 			else
 				format_is_wave = false;
+			if((n = fread(head, 1, 4, encode_infile)) < 4) {
+				if(format_is_wave)
+					fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", argv[i]);
+				format_is_wave = false;
+			}
+			else {
+				if(strncmp(head, "RIFF", 4)) {
+					if(format_is_wave)
+						fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", argv[i]);
+					format_is_wave = false;
+				}
+				else
+					format_is_wave = true;
+			}
+			for(h = n-1; h >= 0; h--)
+				ungetc(head[h], encode_infile);
 		}
 		if(!format_is_wave) {
 			if(format_is_big_endian < 0 || format_channels < 0 || format_bps < 0 || format_sample_rate < 0)
@@ -332,9 +365,9 @@ int main(int argc, char *argv[])
 			return decode_raw(argv[i], test_only? 0 : argv[i+1], analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 	else
 		if(format_is_wave)
-			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
+			return encode_wav(encode_infile, argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
 		else
-			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+			return encode_raw(encode_infile, argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
 	return 0;
 }
