@@ -19,7 +19,7 @@ CFLAGS = @CFLAGS@
 INCLUDES = -I$(top_srcdir)/src/libFLAC/include
 
 noinst_PROGRAMS = test_libFLAC
-test_libFLAC = $(top_builddir)/src/libFLAC/libFLAC.la -lm
+test_libFLAC_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la -lm
 test_libFLAC_SOURCES = \
 	bitbuffer.c \
 	decoders.c \
