@@ -327,7 +327,7 @@ static FLAC__bool test_file_(const char *filename, void (*metadata_callback)(con
 		FLAC__file_decoder_delete(decoder);
 		return die_("initializing decoder\n");
 	}
-	if(!FLAC__file_decoder_process_whole_file(decoder)) {
+	if(!FLAC__file_decoder_process_until_end_of_file(decoder)) {
 		FLAC__file_decoder_finish(decoder);
 		FLAC__file_decoder_delete(decoder);
 		return die_("decoding file\n");

@@ -117,19 +117,20 @@ extern "C" {
  * Once the decoder is initialized, your program will call one of several
  * functions to start the decoding process:
  *
- * - FLAC__stream_decoder_process_whole_stream() - Tells the decoder to
- *   start and continue processing the stream until the read callback
+ * - FLAC__stream_decoder_process_single() - Tells the decoder to process at
+ *   most one metadata block or audio frame and return, calling either the
+ *   metadata callback or write callback, respectively, once.  If the decoder
+ *   loses sync it will return with only the error callback being called.
+ * - FLAC__stream_decoder_process_until_end_of_metadata() - Tells the decoder
+ *   to process the stream from the current location and stop upon reaching
+ *   the first audio frame.  The user will get one metadata, write, or error
+ *   callback per metadata block, audio frame, or sync error, respectively.
+ * - FLAC__stream_decoder_process_until_end_of_stream() - Tells the decoder
+ *   to process the stream from the current location until the read callback
  *   returns FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM or
- *   FLAC__STREAM_DECODER_READ_STATUS_ABORT.
- * - FLAC__stream_decoder_process_metadata() - Tells the decoder to start
- *   processing the stream and stop upon reaching the first audio frame.
- * - FLAC__stream_decoder_process_one_frame() - Tells the decoder to
- *   process one audio frame and return.  The decoder must have processed
- *   all metadata first before calling this function.
- * - FLAC__stream_decoder_process_remaining_frames() - Tells the decoder to
- *   process all remaining frames.  The decoder must have processed all
- *   metadata first but may also have processed frames with
- *   FLAC__stream_decoder_process_one_frame().
+ *   FLAC__STREAM_DECODER_READ_STATUS_ABORT.  The user will get one metadata,
+ *   write, or error callback per metadata block, audio frame, or sync error,
+ *   respectively.
  *
  * When the decoder has finished decoding (normally or through an abort),
  * the instance is finished by calling FLAC__stream_decoder_finish(), which
@@ -662,38 +663,42 @@ FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder);
  */
 FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
 
-/** Decode the entire stream.
- *  This version instructs the decoder to start and continue decoding
- *  the entire stream until the callbacks return a fatal error or the
- *  read callback returns \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
- *
- *  As the decoder needs more input it will call the read callback.
- *  As each metadata block and frame is decoded, the metadata or write
- *  callback will be called with the decoded metadata or frame.
- * 
- * \param  decoder  An initialized decoder instance in the state
- *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
- * \assert
- *    \code decoder != NULL \endcode
- *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA \endcode
- * \retval FLAC__bool
- *    \c false if any read or write error occurred (except
- *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
- *    in any case, check the decoder state with
- *    FLAC__stream_decoder_get_state() to see what went wrong or to
- *    check for lost synchronization (a sign of stream corruption).
- */
-FLAC__bool FLAC__stream_decoder_process_whole_stream(FLAC__StreamDecoder *decoder);
-
-/** Decode just the metadata.
- *  This version instructs the decoder to start decoding and stop after
- *  all the metadata has been read, or until the callbacks return a fatal
+/** Decode one metadata block or audio frame.
+ *  This version instructs the decoder to decode a either a single metadata
+ *  block or a single frame and stop, unless the callbacks return a fatal
  *  error or the read callback returns
  *  \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
  *
  *  As the decoder needs more input it will call the read callback.
+ *  Depending on what was decoded, the metadata or write callback will be
+ *  called with the decoded metadata block or audio frame, unless an error
+ *  occurred.  If the decoder loses sync it will call the error callback
+ *  instead.
+ * 
+ * \param  decoder  An initialized decoder instance in the state
+ *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC \endcode
+ * \retval FLAC__bool
+ *    \c false if any read or write error occurred (except
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    in any case, check the decoder state with
+ *    FLAC__stream_decoder_get_state() to see what went wrong or to
+ *    check for lost synchronization (a sign of stream corruption).
+ */
+FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *decoder);
+
+/** Decode until the end of the metadata.
+ *  This version instructs the decoder to decode from the current position
+ *  and continue until all the metadata has been read, or until the
+ *  callbacks return a fatal error or the read callback returns
+ *  \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
+ *
+ *  As the decoder needs more input it will call the read callback.
  *  As each metadata block is decoded, the metadata callback will be called
- *  with the decoded metadata.
+ *  with the decoded metadata.  If the decoder loses sync it will call the
+ *  error callback.
  * 
  * \param  decoder  An initialized decoder instance in the state
  *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
@@ -707,21 +712,24 @@ FLAC__bool FLAC__stream_decoder_process_whole_stream(FLAC__StreamDecoder *decode
  *    FLAC__stream_decoder_get_state() to see what went wrong or to
  *    check for lost synchronization (a sign of stream corruption).
  */
-FLAC__bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_process_until_end_of_metadata(FLAC__StreamDecoder *decoder);
 
-/** Decode one frame.
- *  This version instructs the decoder to decode a single frame and stop,
- *  or until the callbacks return a fatal error or the read callback returns
- *  \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
+/** Decode until the end of the stream.
+ *  This version instructs the decoder to decode from the current position
+ *  and continue until the end of stream (the read callback returns
+ *  \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM), or until the
+ *  callbacks return a fatal error.
  *
  *  As the decoder needs more input it will call the read callback.
- *  The write callback will be called with the decoded frame.
+ *  As each metadata block and frame is decoded, the metadata or write
+ *  callback will be called with the decoded metadata or frame.  If the
+ *  decoder loses sync it will call the error callback.
  * 
  * \param  decoder  An initialized decoder instance in the state
- *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC.
+ *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
  * \assert
  *    \code decoder != NULL \endcode
- *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC \endcode
+ *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
  *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
@@ -729,30 +737,7 @@ FLAC__bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder);
  *    FLAC__stream_decoder_get_state() to see what went wrong or to
  *    check for lost synchronization (a sign of stream corruption).
  */
-FLAC__bool FLAC__stream_decoder_process_one_frame(FLAC__StreamDecoder *decoder);
-
-/** Decode the remaining frames until end of stream.
- *  This version instructs the decoder to decode all remaining frames,
- *  until the callbacks return a fatal error or the read callback returns
- *  \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
- *
- *  As the decoder needs more input it will call the read callback.
- *  As each frame is decoded, the write callback will be called with the
- *  decoded frame.
- * 
- * \param  decoder  An initialized decoder instance in the state
- *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC.
- * \assert
- *    \code decoder != NULL \endcode
- *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC \endcode
- * \retval FLAC__bool
- *    \c false if any read or write error occurred (except
- *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
- *    in any case, check the decoder state with
- *    FLAC__stream_decoder_get_state() to see what went wrong or to
- *    check for lost synchronization (a sign of stream corruption).
- */
-FLAC__bool FLAC__stream_decoder_process_remaining_frames(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__StreamDecoder *decoder);
 
 /* \} */
 

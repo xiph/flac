@@ -292,8 +292,8 @@ bool StreamDecoder::test_respond()
 		return false;
 	}
 
-	printf("testing process_whole_stream()... ");
-	if(!process_whole_stream()) {
+	printf("testing process_until_end_of_stream()... ");
+	if(!process_until_end_of_stream()) {
 		State state = get_state();
 		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
 		return false;
@@ -404,13 +404,13 @@ static bool test_stream_decoder()
 	}
 	printf("OK\n");
 
-	printf("testing process_metadata()... ");
-	if(!decoder->process_metadata())
+	printf("testing process_until_end_of_metadata()... ");
+	if(!decoder->process_until_end_of_metadata())
 		return decoder->die("returned false");
 	printf("OK\n");
 
-	printf("testing process_one_frame()... ");
-	if(!decoder->process_one_frame())
+	printf("testing process_single()... ");
+	if(!decoder->process_single())
 		return decoder->die("returned false");
 	printf("OK\n");
 
@@ -420,14 +420,14 @@ static bool test_stream_decoder()
 	printf("OK\n");
 
 	decoder->ignore_errors_ = true;
-	printf("testing process_one_frame()... ");
-	if(!decoder->process_one_frame())
+	printf("testing process_single()... ");
+	if(!decoder->process_single())
 		return decoder->die("returned false");
 	printf("OK\n");
 	decoder->ignore_errors_ = false;
 
-	printf("testing process_remaining_frames()... ");
-	if(!decoder->process_remaining_frames())
+	printf("testing process_until_end_of_stream()... ");
+	if(!decoder->process_until_end_of_stream())
 		return decoder->die("returned false");
 	printf("OK\n");
 
@@ -488,8 +488,8 @@ static bool test_stream_decoder()
 	}
 	printf("OK\n");
 
-	printf("testing process_whole_stream()... ");
-	if(!decoder->process_whole_stream())
+	printf("testing process_until_end_of_stream()... ");
+	if(!decoder->process_until_end_of_stream())
 		return decoder->die("returned false");
 	printf("OK\n");
 
@@ -971,8 +971,8 @@ bool SeekableStreamDecoder::test_respond()
 		return false;
 	}
 
-	printf("testing process_whole_stream()... ");
-	if(!process_whole_stream()) {
+	printf("testing process_until_end_of_stream()... ");
+	if(!process_until_end_of_stream()) {
 		State state = get_state();
 		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__SeekableStreamDecoderState)state), state.as_cstring());
 		return false;
@@ -1078,6 +1078,10 @@ static bool test_seekable_stream_decoder()
 	FLAC::Decoder::SeekableStream::State state = decoder->get_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__SeekableStreamDecoderState)state), state.as_cstring());
 
+	printf("testing get_stream_decoder_state()... ");
+	FLAC::Decoder::Stream::State state_ = decoder->get_stream_decoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamDecoderState)state_), state_.as_cstring());
+
 	decoder->current_metadata_number_ = 0;
 	decoder->ignore_errors_ = false;
 	decoder->error_occurred_ = false;
@@ -1097,13 +1101,13 @@ static bool test_seekable_stream_decoder()
 	}
 	printf("OK\n");
 
-	printf("testing process_metadata()... ");
-	if(!decoder->process_metadata())
+	printf("testing process_until_end_of_metadata()... ");
+	if(!decoder->process_until_end_of_metadata())
 		return decoder->die("returned false");
 	printf("OK\n");
 
-	printf("testing process_one_frame()... ");
-	if(!decoder->process_one_frame())
+	printf("testing process_single()... ");
+	if(!decoder->process_single())
 		return decoder->die("returned false");
 	printf("OK\n");
 
@@ -1113,8 +1117,8 @@ static bool test_seekable_stream_decoder()
 	printf("OK\n");
 
 	decoder->ignore_errors_ = true;
-	printf("testing process_one_frame()... ");
-	if(!decoder->process_one_frame())
+	printf("testing process_single()... ");
+	if(!decoder->process_single())
 		return decoder->die("returned false");
 	printf("OK\n");
 	decoder->ignore_errors_ = false;
@@ -1124,8 +1128,8 @@ static bool test_seekable_stream_decoder()
 		return decoder->die("returned false");
 	printf("OK\n");
 
-	printf("testing process_remaining_frames()... ");
-	if(!decoder->process_remaining_frames())
+	printf("testing process_until_end_of_stream()... ");
+	if(!decoder->process_until_end_of_stream())
 		return decoder->die("returned false");
 	printf("OK\n");
 
@@ -1186,8 +1190,8 @@ static bool test_seekable_stream_decoder()
 	}
 	printf("OK\n");
 
-	printf("testing process_whole_stream()... ");
-	if(!decoder->process_whole_stream())
+	printf("testing process_until_end_of_stream()... ");
+	if(!decoder->process_until_end_of_stream())
 		return decoder->die("returned false");
 	printf("OK\n");
 
@@ -1603,8 +1607,8 @@ bool FileDecoder::test_respond()
 
 	current_metadata_number_ = 0;
 
-	printf("testing process_whole_file()... ");
-	if(!process_whole_file()) {
+	printf("testing process_until_end_of_file()... ");
+	if(!process_until_end_of_file()) {
 		State state = get_state();
 		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__FileDecoderState)state), state.as_cstring());
 		return false;
@@ -1717,6 +1721,14 @@ static bool test_file_decoder()
 	FLAC::Decoder::File::State state = decoder->get_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__FileDecoderState)state), state.as_cstring());
 
+	printf("testing get_seekable_stream_decoder_state()... ");
+	FLAC::Decoder::SeekableStream::State state_ = decoder->get_seekable_stream_decoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__SeekableStreamDecoderState)state_), state_.as_cstring());
+
+	printf("testing get_stream_decoder_state()... ");
+	FLAC::Decoder::Stream::State state__ = decoder->get_stream_decoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamDecoderState)state__), state__.as_cstring());
+
 	decoder->current_metadata_number_ = 0;
 	decoder->ignore_errors_ = false;
 	decoder->error_occurred_ = false;
@@ -1728,13 +1740,13 @@ static bool test_file_decoder()
 	}
 	printf("OK\n");
 
-	printf("testing process_metadata()... ");
-	if(!decoder->process_metadata())
+	printf("testing process_until_end_of_metadata()... ");
+	if(!decoder->process_until_end_of_metadata())
 		return decoder->die("returned false");
 	printf("OK\n");
 
-	printf("testing process_one_frame()... ");
-	if(!decoder->process_one_frame())
+	printf("testing process_single()... ");
+	if(!decoder->process_single())
 		return decoder->die("returned false");
 	printf("OK\n");
 
@@ -1743,8 +1755,8 @@ static bool test_file_decoder()
 		return decoder->die("returned false");
 	printf("OK\n");
 
-	printf("testing process_remaining_frames()... ");
-	if(!decoder->process_remaining_frames())
+	printf("testing process_until_end_of_file()... ");
+	if(!decoder->process_until_end_of_file())
 		return decoder->die("returned false");
 	printf("OK\n");
 

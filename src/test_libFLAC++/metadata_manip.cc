@@ -314,7 +314,7 @@ static bool test_file_(const char *filename, bool ignore_metadata)
 		decoder.finish();
 		return die_("initializing decoder\n");
 	}
-	if(!decoder.process_whole_file()) {
+	if(!decoder.process_until_end_of_file()) {
 		decoder.finish();
 		return die_("decoding file\n");
 	}

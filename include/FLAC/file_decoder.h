@@ -524,7 +524,7 @@ FLAC__FileDecoderState FLAC__file_decoder_init(FLAC__FileDecoder *decoder);
 FLAC__bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__SeekableStreamDecoder; see
- *  FLAC__seekable_stream_decoder_process_whole_stream().
+ *  FLAC__seekable_stream_decoder_process_single().
  *
  * \param  decoder  A decoder instance.
  * \assert
@@ -532,10 +532,10 @@ FLAC__bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder);
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_process_single(FLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__SeekableStreamDecoder; see
- *  FLAC__seekable_stream_decoder_process_metadata().
+ *  FLAC__seekable_stream_decoder_process_until_end_of_metadata().
  *
  * \param  decoder  A decoder instance.
  * \assert
@@ -543,10 +543,10 @@ FLAC__bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder);
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_process_until_end_of_metadata(FLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__SeekableStreamDecoder; see
- *  FLAC__seekable_stream_decoder_process_one_frame().
+ *  FLAC__seekable_stream_decoder_process_until_end_of_stream().
  *
  * \param  decoder  A decoder instance.
  * \assert
@@ -554,7 +554,7 @@ FLAC__bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder);
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder);
+FLAC__bool FLAC__file_decoder_process_until_end_of_file(FLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__SeekableStreamDecoder; see
  *  FLAC__seekable_stream_decoder_process_remaining_frames().

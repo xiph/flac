@@ -141,28 +141,22 @@ namespace FLAC {
 			return (bool)::FLAC__stream_decoder_reset(decoder_);
 		}
 
-		bool Stream::process_whole_stream()
+		bool Stream::process_single()
 		{
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__stream_decoder_process_whole_stream(decoder_);
+			return (bool)::FLAC__stream_decoder_process_single(decoder_);
 		}
 
-		bool Stream::process_metadata()
+		bool Stream::process_until_end_of_metadata()
 		{
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__stream_decoder_process_metadata(decoder_);
+			return (bool)::FLAC__stream_decoder_process_until_end_of_metadata(decoder_);
 		}
 
-		bool Stream::process_one_frame()
+		bool Stream::process_until_end_of_stream()
 		{
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__stream_decoder_process_one_frame(decoder_);
-		}
-
-		bool Stream::process_remaining_frames()
-		{
-			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__stream_decoder_process_remaining_frames(decoder_);
+			return (bool)::FLAC__stream_decoder_process_until_end_of_stream(decoder_);
 		}
 
 		::FLAC__StreamDecoderReadStatus Stream::read_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)

@@ -732,7 +732,7 @@ FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *deco
 FLAC__bool FLAC__seekable_stream_decoder_reset(FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
- *  FLAC__stream_decoder_process_whole_stream().
+ *  FLAC__stream_decoder_process_single().
  *
  * \param  decoder  A decoder instance.
  * \assert
@@ -740,10 +740,10 @@ FLAC__bool FLAC__seekable_stream_decoder_reset(FLAC__SeekableStreamDecoder *deco
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__seekable_stream_decoder_process_whole_stream(FLAC__SeekableStreamDecoder *decoder);
+FLAC__bool FLAC__seekable_stream_decoder_process_single(FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
- *  FLAC__stream_decoder_process_metadata().
+ *  FLAC__stream_decoder_process_until_end_of_metadata().
  *
  * \param  decoder  A decoder instance.
  * \assert
@@ -751,10 +751,10 @@ FLAC__bool FLAC__seekable_stream_decoder_process_whole_stream(FLAC__SeekableStre
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__seekable_stream_decoder_process_metadata(FLAC__SeekableStreamDecoder *decoder);
+FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_metadata(FLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see
- *  FLAC__stream_decoder_process_one_frame().
+ *  FLAC__stream_decoder_process_until_end_of_stream().
  *
  * \param  decoder  A decoder instance.
  * \assert
@@ -762,18 +762,7 @@ FLAC__bool FLAC__seekable_stream_decoder_process_metadata(FLAC__SeekableStreamDe
  * \retval FLAC__bool
  *    See above.
  */
-FLAC__bool FLAC__seekable_stream_decoder_process_one_frame(FLAC__SeekableStreamDecoder *decoder);
-
-/** This is inherited from FLAC__StreamDecoder; see
- *  FLAC__stream_decoder_process_remaining_frames().
- *
- * \param  decoder  A decoder instance.
- * \assert
- *    \code decoder != NULL \endcode
- * \retval FLAC__bool
- *    See above.
- */
-FLAC__bool FLAC__seekable_stream_decoder_process_remaining_frames(FLAC__SeekableStreamDecoder *decoder);
+FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_stream(FLAC__SeekableStreamDecoder *decoder);
 
 /** Flush the input and seek to an absolute sample.
  *  Decoding will resume at the given sample.  Note that because of

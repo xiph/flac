@@ -94,6 +94,18 @@ namespace FLAC {
 			return State(::FLAC__file_decoder_get_state(decoder_));
 		}
 
+		SeekableStream::State File::get_seekable_stream_decoder_state() const
+		{
+			FLAC__ASSERT(0 != decoder_);
+			return SeekableStream::State(::FLAC__file_decoder_get_seekable_stream_decoder_state(decoder_));
+		}
+
+		Stream::State File::get_stream_decoder_state() const
+		{
+			FLAC__ASSERT(0 != decoder_);
+			return Stream::State(::FLAC__file_decoder_get_stream_decoder_state(decoder_));
+		}
+
 		bool File::get_md5_checking() const
 		{
 			FLAC__ASSERT(0 != decoder_);
@@ -146,28 +158,22 @@ namespace FLAC {
 			return (bool)::FLAC__file_decoder_finish(decoder_);
 		}
 
-		bool File::process_whole_file()
+		bool File::process_single()
 		{
 			FLAC__ASSERT(0 != decoder_);
-			return (bool)::FLAC__file_decoder_process_whole_file(decoder_);
+			return (bool)::FLAC__file_decoder_process_single(decoder_);
 		}
 
-		bool File::process_metadata()
+		bool File::process_until_end_of_metadata()
 		{
 			FLAC__ASSERT(0 != decoder_);
-			return (bool)::FLAC__file_decoder_process_metadata(decoder_);
+			return (bool)::FLAC__file_decoder_process_until_end_of_metadata(decoder_);
 		}
 
-		bool File::process_one_frame()
+		bool File::process_until_end_of_file()
 		{
 			FLAC__ASSERT(0 != decoder_);
-			return (bool)::FLAC__file_decoder_process_one_frame(decoder_);
-		}
-
-		bool File::process_remaining_frames()
-		{
-			FLAC__ASSERT(0 != decoder_);
-			return (bool)::FLAC__file_decoder_process_remaining_frames(decoder_);
+			return (bool)::FLAC__file_decoder_process_until_end_of_file(decoder_);
 		}
 
 		bool File::seek_absolute(FLAC__uint64 sample)

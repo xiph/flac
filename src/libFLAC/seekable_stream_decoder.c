@@ -545,7 +545,7 @@ FLAC__bool FLAC__seekable_stream_decoder_reset(FLAC__SeekableStreamDecoder *deco
 	return true;
 }
 
-FLAC__bool FLAC__seekable_stream_decoder_process_whole_stream(FLAC__SeekableStreamDecoder *decoder)
+FLAC__bool FLAC__seekable_stream_decoder_process_single(FLAC__SeekableStreamDecoder *decoder)
 {
 	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
@@ -558,14 +558,14 @@ FLAC__bool FLAC__seekable_stream_decoder_process_whole_stream(FLAC__SeekableStre
 
 	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK);
 
-	ret = FLAC__stream_decoder_process_whole_stream(decoder->private_->stream_decoder);
+	ret = FLAC__stream_decoder_process_single(decoder->private_->stream_decoder);
 	if(!ret)
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 
 	return ret;
 }
 
-FLAC__bool FLAC__seekable_stream_decoder_process_metadata(FLAC__SeekableStreamDecoder *decoder)
+FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_metadata(FLAC__SeekableStreamDecoder *decoder)
 {
 	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
@@ -578,14 +578,14 @@ FLAC__bool FLAC__seekable_stream_decoder_process_metadata(FLAC__SeekableStreamDe
 
 	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK);
 
-	ret = FLAC__stream_decoder_process_metadata(decoder->private_->stream_decoder);
+	ret = FLAC__stream_decoder_process_until_end_of_metadata(decoder->private_->stream_decoder);
 	if(!ret)
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 
 	return ret;
 }
 
-FLAC__bool FLAC__seekable_stream_decoder_process_one_frame(FLAC__SeekableStreamDecoder *decoder)
+FLAC__bool FLAC__seekable_stream_decoder_process_until_end_of_stream(FLAC__SeekableStreamDecoder *decoder)
 {
 	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
@@ -598,27 +598,7 @@ FLAC__bool FLAC__seekable_stream_decoder_process_one_frame(FLAC__SeekableStreamD
 
 	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK);
 
-	ret = FLAC__stream_decoder_process_one_frame(decoder->private_->stream_decoder);
-	if(!ret)
-		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
-
-	return ret;
-}
-
-FLAC__bool FLAC__seekable_stream_decoder_process_remaining_frames(FLAC__SeekableStreamDecoder *decoder)
-{
-	FLAC__bool ret;
-	FLAC__ASSERT(0 != decoder);
-
-	if(decoder->private_->stream_decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM)
-		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
-
-	if(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
-		return true;
-
-	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK);
-
-	ret = FLAC__stream_decoder_process_remaining_frames(decoder->private_->stream_decoder);
+	ret = FLAC__stream_decoder_process_until_end_of_stream(decoder->private_->stream_decoder);
 	if(!ret)
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 
@@ -651,7 +631,7 @@ FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecod
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
 		return false;
 	}
-	if(!FLAC__stream_decoder_process_metadata(decoder->private_->stream_decoder)) {
+	if(!FLAC__stream_decoder_process_until_end_of_metadata(decoder->private_->stream_decoder)) {
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 		return false;
 	}
@@ -961,7 +941,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 				return false;
 			}
 		}
-		if(!FLAC__stream_decoder_process_one_frame(decoder->private_->stream_decoder)) {
+		if(!FLAC__stream_decoder_process_single(decoder->private_->stream_decoder)) {
 			decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
 			return false;
 		}
