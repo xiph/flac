@@ -275,4 +275,29 @@ check_exit
 
 rm vc.txt
 
+cs_in=cuesheets/good.000.cue
+cs_out=metaflac.cue
+cs_out2=metaflac2.cue
+(set -x && $METAFLAC --import-cuesheet-from="$cs_in" $flacfile)
+check_exit
+check_flac
+(set -x && $METAFLAC --export-cuesheet-to=$cs_out $flacfile)
+check_exit
+(set -x && $METAFLAC --remove --block-type=CUESHEET $flacfile)
+check_exit
+check_flac
+(set -x && $METAFLAC --import-cuesheet-from=$cs_out $flacfile)
+check_exit
+check_flac
+(set -x && $METAFLAC --export-cuesheet-to=$cs_out2 $flacfile)
+check_exit
+echo "comparing cuesheets:"
+if diff $cs_out $cs_out2 ; then : ; else
+	echo "ERROR, cuesheets should be identical"
+	exit 1
+fi
+echo identical
+
+rm -f $cs_out $cs_out2
+
 exit 0

@@ -59,5 +59,7 @@ CLEANFILES = \
 	$(wildcard ../../test_files/bins/*.raw) \
 	$(wildcard ../../test_files/bins/*.flac) \
 	$(wildcard ../../test_files/bins/*.cmp) \
-	$(wildcard *.diff)
-	$(wildcard *.log)
+	$(wildcard *.diff) \
+	$(wildcard *.log) \
+	$(wildcard *.cue) \
+	core
