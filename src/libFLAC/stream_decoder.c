@@ -296,8 +296,7 @@ FLAC_API void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	FLAC__ASSERT(0 != decoder);
 	if(decoder->protected_->state == FLAC__STREAM_DECODER_UNINITIALIZED)
 		return;
-	if(decoder->private_->has_seek_table) {
-		FLAC__ASSERT(0 != decoder->private_->seek_table.data.seek_table.points);
+	if(0 != decoder->private_->seek_table.data.seek_table.points) {
 		free(decoder->private_->seek_table.data.seek_table.points);
 		decoder->private_->seek_table.data.seek_table.points = 0;
 		decoder->private_->has_seek_table = false;
@@ -1030,7 +1029,8 @@ FLAC__bool read_metadata_seektable_(FLAC__StreamDecoder *decoder, FLAC__bool is_
 
 	decoder->private_->seek_table.data.seek_table.num_points = length / FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
 
-	if(0 == (decoder->private_->seek_table.data.seek_table.points = (FLAC__StreamMetadata_SeekPoint*)malloc(decoder->private_->seek_table.data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint)))) {
+	/* use realloc since we may pass through here several times (e.g. after seeking) */
+	if(0 == (decoder->private_->seek_table.data.seek_table.points = (FLAC__StreamMetadata_SeekPoint*)realloc(decoder->private_->seek_table.data.seek_table.points, decoder->private_->seek_table.data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint)))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}

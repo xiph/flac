@@ -392,8 +392,10 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 				}
 				break;
 			case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-				if(0 != to->data.vorbis_comment.vendor_string.entry)
+				if(0 != to->data.vorbis_comment.vendor_string.entry) {
 					free(to->data.vorbis_comment.vendor_string.entry);
+					to->data.vorbis_comment.vendor_string.entry = 0;
+				}
 				if(!copy_vcentry_(&to->data.vorbis_comment.vendor_string, &object->data.vorbis_comment.vendor_string)) {
 					FLAC__metadata_object_delete(to);
 					return 0;
@@ -446,16 +448,22 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 		case FLAC__METADATA_TYPE_PADDING:
 			break;
 		case FLAC__METADATA_TYPE_APPLICATION:
-			if(0 != object->data.application.data)
+			if(0 != object->data.application.data) {
 				free(object->data.application.data);
+				object->data.application.data = 0;
+			}
 			break;
 		case FLAC__METADATA_TYPE_SEEKTABLE:
-			if(0 != object->data.seek_table.points)
+			if(0 != object->data.seek_table.points) {
 				free(object->data.seek_table.points);
+				object->data.seek_table.points = 0;
+			}
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-			if(0 != object->data.vorbis_comment.vendor_string.entry)
+			if(0 != object->data.vorbis_comment.vendor_string.entry) {
 				free(object->data.vorbis_comment.vendor_string.entry);
+				object->data.vorbis_comment.vendor_string.entry = 0;
+			}
 			if(0 != object->data.vorbis_comment.comments) {
 				FLAC__ASSERT(object->data.vorbis_comment.num_comments > 0);
 				vorbiscomment_entry_array_delete_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
@@ -1144,7 +1152,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_delete_index(FLAC__Stre
 	track = &object->data.cue_sheet.tracks[track_num];
 
 	/* move all indices > index_num backward one space */
-	memmove(&track->indices[index_num], &track->indices[index_num+1], sizeof(FLAC__StreamMetadata_CueSheet_Track)*(track->num_indices-index_num-1));
+	memmove(&track->indices[index_num], &track->indices[index_num+1], sizeof(FLAC__StreamMetadata_CueSheet_Index)*(track->num_indices-index_num-1));
 
 	FLAC__metadata_object_cuesheet_track_resize_indices(object, track_num, track->num_indices-1);
 	cuesheet_calculate_length_(object);

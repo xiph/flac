@@ -730,9 +730,17 @@ FLAC__bool test_bitbuffer()
 	}
 	printf("OK\n");
 
-	printf("testing free... OK\n");
+	printf("testing free... ");
 	FLAC__bitbuffer_free(bb);
 	FLAC__bitbuffer_free(bbcopy);
+	printf("OK\n");
+
+	printf("testing delete... ");
+	FLAC__bitbuffer_delete(bb);
+	FLAC__bitbuffer_delete(bb_zero);
+	FLAC__bitbuffer_delete(bb_one);
+	FLAC__bitbuffer_delete(bbcopy);
+	printf("OK\n");
 
 	printf("\nPASSED!\n");
 	return true;

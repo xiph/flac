@@ -506,7 +506,7 @@ FLAC_API void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 
 	FLAC__stream_encoder_finish(encoder);
 
-	if(encoder->protected_->verify && 0 != encoder->private_->verify.decoder)
+	if(0 != encoder->private_->verify.decoder)
 		FLAC__stream_decoder_delete(encoder->private_->verify.decoder);
 
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {

@@ -294,8 +294,13 @@ void free_options(CommandLineOptions *options)
 	if(0 != options->args.arguments)
 		free(options->args.arguments);
 
-	if(0 != options->filenames)
+	if(0 != options->filenames) {
+		for(i = 0; i < options->num_files; i++) {
+			if(0 != options->filenames[i])
+				free(options->filenames[i]);
+		}
 		free(options->filenames);
+	}
 }
 
 /*

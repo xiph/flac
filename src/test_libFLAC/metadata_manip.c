@@ -482,6 +482,7 @@ static FLAC__bool test_level_1_()
 		return die_("mismatch in min_blocksize");
 	if(block->data.stream_info.max_blocksize != 576)
 		return die_("mismatch in max_blocksize");
+	FLAC__metadata_object_delete(block);
 
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("forward iterator ended early");
@@ -502,6 +503,7 @@ static FLAC__bool test_level_1_()
 	/* check to see if some basic data matches (c.f. generate_file_()) */
 	if(block->length != 1234)
 		return die_("bad PADDING length");
+	FLAC__metadata_object_delete(block);
 
 	if(FLAC__metadata_simple_iterator_next(iterator))
 		return die_("forward iterator returned true but should have returned false");

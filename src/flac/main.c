@@ -980,8 +980,14 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 
 void free_options()
 {
-	if(0 != option_values.filenames)
+	unsigned i;
+	if(0 != option_values.filenames) {
+		for(i = 0; i < option_values.num_files; i++) {
+			if(0 != option_values.filenames[i])
+				free(option_values.filenames[i]);
+		}
 		free(option_values.filenames);
+	}
 	if(0 != option_values.vorbis_comment)
 		FLAC__metadata_object_delete(option_values.vorbis_comment);
 }
