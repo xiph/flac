@@ -22,15 +22,21 @@ codec developed by Josh Coalson.
 
 FLAC is comprised of
   * `libFLAC', a library which implements reference encoders and
-    decoders, and a metadata interface, licensed under the GNU
-    Lesser General Public License (LGPL)
+    decoders, and a metadata interface
   * `libFLAC++', a C++ object wrapper library around libFLAC
-  * `flac', a command-line program for encoding and decoding files,
-    licensed under the GNU General public License (GPL)
-  * `metaflac', a command-line program for editing FLAC metadata,
-    licensed under the GPL
-  * player plugins for XMMS and Winamp, licensed under the GPL
-  * documentation, licensed under the GNU Free Documentation License.
+  * `libOggFLAC' and `libOggFLAC++', which provide encoders and
+    decoders for FLAC streams in an Ogg container
+  * `flac', a command-line program for encoding and decoding files
+  * `metaflac', a command-line program for editing FLAC metadata
+  * player plugins for XMMS and Winamp
+  * user and API documentation
+
+The libraries (libFLAC, libFLAC++, libOggFLAC, and libOggFLAC++) are
+licensed under the GNU Lesser General Public License (LGPL).  All other
+programs and plugins are licensed under the GNU General Public License
+(GPL).  The documentation is licensed under the GNU Free Documentation
+License (GFDL).
+
 
 ===============================================================================
 FLAC - 1.0.3 - Contents
