@@ -20,14 +20,14 @@
 #include <stdio.h>
 
 extern int test_metadata_object();
-extern int test_metadata_file_manipulation(const char *progname);
+extern int test_metadata_file_manipulation();
 
-int test_metadata(const char *progname)
+int test_metadata()
 {
 	if(0 != test_metadata_object())
 		return 1;
 
-	if(0 != test_metadata_file_manipulation(progname))
+	if(0 != test_metadata_file_manipulation())
 		return 1;
 
 	printf("\nPASSED!\n");
