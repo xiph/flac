@@ -103,33 +103,59 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-		<B><TT>flac</TT></B> is the command-line file encoder/decoder.  The input to the encoder and the output to the decoder must either be RIFF WAVE format, or raw interleaved sample data.  <B><TT>flac</TT></B> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.).  Another restriction (hopefully short-term) is that the input must be 8, 16, or 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder.
+		<B><TT>flac</TT></B> is the command-line file encoder/decoder.  The input to the encoder and the output to the decoder must either be RIFF WAVE format, or raw interleaved sample data.  <B><TT>flac</TT></B> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.).  Another restriction (hopefully short-term) is that the input must be 8, 16, or 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.
 	</P>
 	<P>
-		<B><TT>flac</TT></B> assumes that RIFF WAVE files will have the extension ".wav"; this may be overridden with a command-line option.  Other than this, <B><TT>flac</TT></B> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
+		<B><TT>flac</TT></B> assumes that RIFF WAVE files will have the extension ".wav"; this may be overridden with a command-line option.  For piped-in data, <B><TT>flac</TT></B> tries to determine the type by looking at the beginning of the file.  Other than this, <B><TT>flac</TT></B> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
 	</P>
 	<P>
-		Before going into the full command-line description, two other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-9</TT></B> that control the compression level actually are just synonyms for different groups of specific encoding options (described later).  You can get the same effect by using the same options.
+		Before going into the full command-line description, a few other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-9</TT></B> that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <B><TT>flac</TT></B> behaves similarly to gzip in the way it handles input and output files.
 	</P>
 	<P>
 		<B><TT>flac</TT></B> will be invoked one of four ways, depending on whether you are encoding, decoding, testing, or analyzing:
 		<UL>
 		<LI>
-			Encoding: flac [-s] [--skip #] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [<I><A HREF="#encoding_options">&lt;encoding options&gt;</A></I>] inputfile outputfile
+			Encoding: flac [-s] [--skip #] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [<I><A HREF="#encoding_options">&lt;encoding options&gt;</A></I>] [inputfile [...]]
 		</LI>
 		<LI>
-			Decoding: flac -d [-s] [--skip #] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] inputfile outputfile
+			Decoding: flac -d [-s] [--skip #] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [inputfile [...]]
 		</LI>
 		<LI>
-			Testing: flac -t [-s] inputfile
+			Testing: flac -t [-s] [inputfile [...]]
 		</LI>
 		<LI>
-			Analyzing: flac -a [-s] [--skip #] [<I><A HREF="#analysis_options">&lt;analysis-options&gt;</A></I>] inputfile outputfile
+			Analyzing: flac -a [-s] [--skip #] [<I><A HREF="#analysis_options">&lt;analysis-options&gt;</A></I>] [inputfile [...]]
 		</LI>
 		</UL>
 	</P>
 	<P>
-		In either case, <TT>inputfile</TT> may be "-" for stdin, and the <TT>outputfile</TT> "-" for stdout.  The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <B><TT>flac</TT></B> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE file the format options are not needed since they are read from the WAVE header.
+		In any case, if no <TT>inputfile</TT> is specified, stdin is assumed.  If only one inputfile is specified, it may be "-" for stdin.  When stdin is used as input, <B><TT>flac</TT></B> will write to stdout.  Otherwise <B><TT>flac</TT></B> will perform the desired operation on each input file to similarly named output files (meaning for encoding, the extension will be replaced with ".flac", or appended with ".flac" if the input file has no extension, and for decoding, the extension will be ".wav" for WAVE output and ".raw" for raw output).  The original file is not deleted.
+	</P>
+	<P>
+		There are special forms for encoding/decoding from stdin to a file:
+		<UL>
+		<LI>
+			flac [options] - outputfile
+		</LI>
+		<LI>
+			flac -d [options] - outputfile
+		</LI>
+		</UL>
+		which are better than
+		<UL>
+		<LI>
+			flac [options] &gt; outputfile
+		</LI>
+		<LI>
+			flac -d [options] &gt; outputfile
+		</LI>
+		</UL>
+		since the former allows flac to seek backwards to write the STREAMINFO or RIFF WAVE header contents when necessary.
+	</P>
+	<P>
+		Also, you can force output data to go to stdout using <TT>-c</TT>.
+	</P>
+	<P>The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <B><TT>flac</TT></B> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE file the format options are not needed since they are read from the WAVE header.
 	</P>
 	<P>
 		In test mode, <B><TT>flac</TT></B> acts just like in decode mode, except no output file is written.  Both decode and test modes detect errors in the stream, but they also detect when the MD5 signature of the decoded audio does not match the stored MD5 signature, even when the bitstream is valid.
@@ -164,6 +190,14 @@
 			</TD>
 			<TD>
 				Analyze (same as <B><TT>-d</TT></B> except an analysis file is written).  The exit codes are the same as in decode mode.  This option is mainly for developers; the output will be a text file that has data about each frame and subframe.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-c
+			</TD>
+			<TD>
+				Write output to stdout
 			</TD>
 		</TR>
 		<TR>
@@ -312,7 +346,7 @@
 				-2
 			</TD>
 			<TD>
-				Synonymous with -l 0 -b 1152 -m -r 2
+				Synonymous with -l 0 -b 1152 -m -r 4
 			</TD>
 		</TR>
 		<TR>
@@ -368,7 +402,7 @@
 				-9
 			</TD>
 			<TD>
-				Synonymous with -l 32 -b 4608 -m -e -r 16 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for a given blocksize.
+				Synonymous with -l 32 -b 4608 -m -e -r 16 -R 32 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for the given blocksize.
 			</TD>
 		</TR>
 		<TR>
@@ -405,10 +439,19 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				-r #
+				-r [#,]#
 			</TD>
 			<TD>
-				Do Rice parameter optimization.  By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is partitioned into 2^n pieces, each with its own Rice parameter.  Higher values of n yield diminishing returns.  The most bang for the buck is usually with <B><TT>-r 2</TT></B> (more for higher blocksizes).  This usually shaves off another 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <B><TT>-r 16</TT></B> to force the highest degree of optimization.
+				Set the [min,]max residual partition order.  The min value defaults to 0 if unspecified.<BR>
+				By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is iteratively partitioned into 2^min# .. 2^max# pieces, each with its own Rice parameter.  Higher values of max# yield diminishing returns.  The most bang for the buck is usually with <B><TT>-r 2,2</TT></B> (more for higher blocksizes).  This usually shaves off about 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <B><TT>-r 0,16</TT></B> to force the highest degree of optimization.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-R #
+			</TD>
+			<TD>
+				Set the Rice parameter search distance.  Defaults to 0.  The residual coder will search for the best Rice parameter +/- this number for each residual partition.  This option is expensive (run time for -R n will be almost 2n+1 times that of -R 0) and doesn't give much of a gain.
 			</TD>
 		</TR>
 		<TR>
