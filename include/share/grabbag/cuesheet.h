@@ -21,12 +21,19 @@
 #ifndef GRABBAG__CUESHEET_H
 #define GRABBAG__CUESHEET_H
 
+#include <stdio.h>
+#include "FLAC/metadata.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 unsigned grabbag__cuesheet_msf_to_frame(unsigned minutes, unsigned seconds, unsigned frames);
 void grabbag__cuesheet_frame_to_msf(unsigned frame, unsigned *minutes, unsigned *seconds, unsigned *frames);
+
+FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, unsigned *last_line_read, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset);
+
+void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, const char *file_reference, FLAC__bool is_cdda);
 
 #ifdef __cplusplus
 }
