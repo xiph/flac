@@ -237,37 +237,3 @@ FLAC__bool compare_block_(const FLAC__StreamMetaData *block, const FLAC__StreamM
 			return false;
 	}
 }
-
-FLAC__bool compare_seekpoint_array_(const FLAC__StreamMetaData_SeekPoint *seekpoint_array, const FLAC__StreamMetaData_SeekPoint *seekpoint_array_copy, unsigned num_points)
-{
-	if(0 != memcmp(seekpoint_array, seekpoint_array_copy, num_points * sizeof(FLAC__StreamMetaData_SeekPoint))) {
-		printf("FAILED, seekpoint mismatch\n");
-		return false;
-	}
-	return true;
-}
-
-FLAC__bool compare_vorbiscomment_entry_array_(const FLAC__StreamMetaData_VorbisComment_Entry *vorbiscomment_entry_array, const FLAC__StreamMetaData_VorbisComment_Entry *vorbiscomment_entry_array_copy, unsigned num_comments)
-{
-	unsigned i;
-
-	for(i = 0; i < num_comments; i++) {
-		if(vorbiscomment_entry_array[i].length != vorbiscomment_entry_array_copy[i].length) {
-			printf("FAILED, entry[%u].length mismatch\n", i);
-			return false;
-		}
-		if(0 == vorbiscomment_entry_array[i].entry || 0 == vorbiscomment_entry_array_copy[i].entry) {
-			if(vorbiscomment_entry_array[i].entry != vorbiscomment_entry_array_copy[i].entry) {
-				printf("FAILED, comments[%u].entry mismatch\n", i);
-				return false;
-			}
-		}
-		else {
-			if(0 != memcmp(vorbiscomment_entry_array[i].entry, vorbiscomment_entry_array_copy[i].entry, vorbiscomment_entry_array[i].length)) {
-				printf("FAILED, entry[%u].entry mismatch\n", i);
-				return false;
-			}
-		}
-	}
-	return true;
-}

@@ -40,8 +40,4 @@ FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetaData_VorbisCo
 
 FLAC__bool compare_block_(const FLAC__StreamMetaData *block, const FLAC__StreamMetaData *blockcopy);
 
-FLAC__bool compare_seekpoint_array_(const FLAC__StreamMetaData_SeekPoint *seekpoint_array, const FLAC__StreamMetaData_SeekPoint *seekpoint_array_copy, unsigned num_points);
-
-FLAC__bool compare_vorbiscomment_entry_array_(const FLAC__StreamMetaData_VorbisComment_Entry *vorbiscomment_entry_array, const FLAC__StreamMetaData_VorbisComment_Entry *vorbiscomment_entry_array_copy, unsigned num_comments);
-
 #endif
