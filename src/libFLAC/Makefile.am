@@ -59,12 +59,13 @@ if FLaC__CPU_PPC
 ARCH_SUBDIRS = ppc
 if FLaC__HAS_AS__TEMPORARILY_DISABLED
 libFLAC_la_LIBADD = ppc/as/libFLAC-asm.la
+LOCAL_EXTRA_LDFLAGS = "-Wl,-read_only_relocs,warning"
 else
 if FLaC__HAS_GAS__TEMPORARILY_DISABLED
 libFLAC_la_LIBADD = ppc/gas/libFLAC-asm.la
+LOCAL_EXTRA_LDFLAGS = ""
 endif
 endif
-LOCAL_EXTRA_LDFLAGS = "-Wl,-read_only_relocs,warning"
 endif
 endif
 

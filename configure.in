@@ -185,14 +185,17 @@ AC_DEFINE(FLAC__HAS_NASM)
 fi
 
 # only matters for PowerPC
-AC_CHECK_PROGS(AS, as)
-AC_CHECK_PROGS(GAS, gas)
-AM_CONDITIONAL(FLaC__HAS_AS, test -n "$AS")
-AM_CONDITIONAL(FLaC__HAS_GAS, test -n "$GAS")
-if test -n "$AS" ; then
+AC_CHECK_PROGS(AS, as, as)
+AC_CHECK_PROGS(GAS, gas, gas)
+
+test "$AS" = "as" && as --version | grep GNU >/dev/null && AS=gas
+
+AM_CONDITIONAL(FLaC__HAS_AS, test "$AS" = "as")
+AM_CONDITIONAL(FLaC__HAS_GAS, test "$AS" = "gas")
+if test "$AS" = "as" ; then
 AC_DEFINE(FLAC__HAS_AS)
 fi
-if test -n "$GAS" ; then
+if test "$AS" = "gas" ; then
 # funniest. macro. ever.
 AC_DEFINE(FLAC__HAS_GAS)
 fi
