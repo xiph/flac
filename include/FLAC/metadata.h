@@ -669,11 +669,10 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
  *
  * \param chain    A pointer to an existing chain.
  * \param handle   The I/O handle of the FLAC stream to read.  The
- *                 handle will be closed after the metadata is read.
+ *                 handle will NOT be closed after the metadata is read.
  * \param callbacks
  *                 A set of callbacks to use for I/O.  The mandatory
- *                 callbacks are \a read, \a seek, \a tell, and
- *                 \a close.
+ *                 callbacks are \a read, \a seek, and \a tell.
  * \assert
  *    \code chain != NULL \endcode
  * \retval FLAC__bool
