@@ -158,6 +158,9 @@ bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
 	bool ret;
 	assert(decoder != 0);
 
+	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_FILE)
+		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
+
 	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
@@ -174,6 +177,9 @@ bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder)
 {
 	bool ret;
 	assert(decoder != 0);
+
+	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_FILE)
+		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
 
 	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
@@ -192,6 +198,9 @@ bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder)
 	bool ret;
 	assert(decoder != 0);
 
+	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_FILE)
+		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
+
 	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
@@ -208,6 +217,9 @@ bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder)
 {
 	bool ret;
 	assert(decoder != 0);
+
+	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_FILE)
+		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
 
 	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
