@@ -529,37 +529,28 @@ FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetaData *obje
 /******************************************************************
  * FLAC__StreamMetaData_SeekPoint
  * ----------------------------------------------------------------
- * Note that we do not manipulate individual seek points as the
- * seek table holds a pointer to an array of seek points.  You can
- * use the _resize function to alter in.  If the size shrinks,
- * elements will truncated; if it grows, new elements will be added
- * to the end.
+ * @@@@  You can
+ * use the _resize function to alter it.  If the size shrinks,
+ * elements will truncated; if it grows, new placeholder points
+ * will be added to the end.
  */
-FLAC__StreamMetaData_SeekPoint *FLAC__metadata_object_seekpoint_array_new(unsigned num_points);
-FLAC__StreamMetaData_SeekPoint *FLAC__metadata_object_seekpoint_array_copy(const FLAC__StreamMetaData_SeekPoint *object_array, unsigned num_points);
-void FLAC__metadata_object_seekpoint_array_delete(FLAC__StreamMetaData_SeekPoint *object_array);
-FLAC__bool FLAC__metadata_object_seekpoint_array_resize(FLAC__StreamMetaData_SeekPoint **object_array, unsigned old_num_points, unsigned new_num_points);
 
 /******************************************************************
  * FLAC__StreamMetaData_SeekTable
  */
-FLAC__bool FLAC__metadata_object_seektable_set_points(FLAC__StreamMetaData *object, FLAC__StreamMetaData_SeekPoint *points, unsigned num_points, FLAC__bool copy);
-
-/******************************************************************
- * FLAC__StreamMetaData_VorbisComment_Entry
- * ----------------------------------------------------------------
- * This is similar to FLAC__StreamMetaData_SeekPoint.
- */
-FLAC__StreamMetaData_VorbisComment_Entry *FLAC__metadata_object_vorbiscomment_entry_array_new(unsigned num_comments);
-FLAC__StreamMetaData_VorbisComment_Entry *FLAC__metadata_object_vorbiscomment_entry_array_copy(const FLAC__StreamMetaData_VorbisComment_Entry *object_array, unsigned num_comments);
-void FLAC__metadata_object_vorbiscomment_entry_array_delete(FLAC__StreamMetaData_VorbisComment_Entry *object_array, unsigned num_comments);
-FLAC__bool FLAC__metadata_object_vorbiscomment_entry_array_resize(FLAC__StreamMetaData_VorbisComment_Entry **object_array, unsigned old_num_comments, unsigned new_num_comments);
+FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetaData *object, unsigned new_num_points);
+void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetaData *object, unsigned point_num, FLAC__StreamMetaData_SeekPoint point);
+FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetaData *object, unsigned point_num, FLAC__StreamMetaData_SeekPoint point);
+FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetaData *object, unsigned point_num);
 
 /******************************************************************
  * FLAC__StreamMetaData_VorbisComment
  */
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetaData *object, FLAC__byte *entry, unsigned length, FLAC__bool copy);
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_comments(FLAC__StreamMetaData *object, FLAC__StreamMetaData_VorbisComment_Entry *comments, unsigned num_comments, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetaData *object, FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetaData *object, unsigned new_num_comments);
+FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetaData *object, unsigned comment_num);
 
 #ifdef __cplusplus
 }
