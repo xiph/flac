@@ -70,6 +70,12 @@
  * dependency on a thread library. However, libFLAC does not use
  * global variables and should be thread-safe.
  *
+ * There is also a new libOggFLAC library which wraps around libFLAC
+ * to provide routines for encoding to and decoding from FLAC streams
+ * inside an Ogg container.  The interfaces are very similar or identical
+ * to their counterparts in libFLAC.  libOggFLAC is also licensed under
+ * the LGPL.
+ *
  * \section cpp_api FLAC C API
  *
  * The FLAC C++ API is a set of classes that encapsulate the
@@ -81,7 +87,11 @@
  * for the C++ API will be installed in your include area as
  * <include>/FLAC++/...
  *
- * libFLAC++ is also licensed under the
+ * There is also a new libOggFLAC++ library, which provides classes
+ * for encoding to and decoding from FLAC streams in an Ogg container.
+ * The classes are very similar to their counterparts in libFLAC++.
+ *
+ * Both libFLAC++ libOggFLAC++ are also licensed under the
  * <A HREF="http://www.gnu.org/copyleft/lesser.html">LGPL</A>.
  *
  * \section getting_started Getting Started

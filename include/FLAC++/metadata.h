@@ -560,17 +560,17 @@ namespace FLAC {
 			Entry get_vendor_string() const; // only the Entry's field name should be used
 			Entry get_comment(unsigned index) const;
 
-			//! See FLAC__metadata_object_vorbis_comment_set_vendor_string()
+			//! See FLAC__metadata_object_vorbiscomment_set_vendor_string()
 			//! \note Only the Entry's field name will be used.
 			bool set_vendor_string(const Entry &entry); // only the Entry's field name will be used
 
-			//! See FLAC__metadata_object_vorbis_comment_set_comment()
+			//! See FLAC__metadata_object_vorbiscomment_set_comment()
 			bool set_comment(unsigned index, const Entry &entry);
 
-			//! See FLAC__metadata_object_vorbis_comment_insert_comment()
+			//! See FLAC__metadata_object_vorbiscomment_insert_comment()
 			bool insert_comment(unsigned index, const Entry &entry);
 
-			//! See FLAC__metadata_object_vorbis_comment_delete_comment()
+			//! See FLAC__metadata_object_vorbiscomment_delete_comment()
 			bool delete_comment(unsigned index);
 		};
 
