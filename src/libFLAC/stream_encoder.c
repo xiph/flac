@@ -2378,7 +2378,11 @@ FLAC__StreamDecoderReadStatus verify_read_callback_(const FLAC__StreamDecoder *d
 	}
 	else {
 		if(encoded_bytes == 0) {
-			//@@@@ underflow happened, should we do something else here?  is this an assert failure?
+			/*
+			 * If we get here, a FIFO underflow has occurred,
+			 * which means there is a bug somewhere.
+			 */
+			FLAC__ASSERT(0);
 			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 		}
 		else if(encoded_bytes < *bytes)
