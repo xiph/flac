@@ -146,6 +146,7 @@ void FLAC__seekable_stream_encoder_delete(FLAC__SeekableStreamEncoder *encoder)
 	free(encoder);
 }
 
+
 /***********************************************************************
  *
  * Public class methods
