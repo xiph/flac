@@ -555,7 +555,6 @@ static FLAC__bool parse_double_(const FLAC__StreamMetadata_VorbisComment_Entry *
 	FLAC__ASSERT(0 != entry);
 	FLAC__ASSERT(0 != val);
 
-fprintf(stderr,"@@@@ tag=[");fwrite(entry->entry,1,entry->length,stderr);fprintf(stderr,"]\n");
 	p = (const char *)entry->entry;
 	q = strchr(p, '=');
 	if(0 == q)
@@ -563,14 +562,12 @@ fprintf(stderr,"@@@@ tag=[");fwrite(entry->entry,1,entry->length,stderr);fprintf
 	q++;
 	memset(s, 0, sizeof(s)-1);
 	strncpy(s, q, local_min(sizeof(s)-1, entry->length - (q-p)));
-fprintf(stderr,"@@@@ s=[%s]\n",s);
 
 	v = strtod(s, &end);
 	if(end == s)
 		return false;
 
 	*val = v;
-fprintf(stderr,"@@@@ v=[%0.12f]\n",v);
 	return true;
 }
 

@@ -2135,28 +2135,24 @@ FLAC__bool add_subframe_(
 {
 	switch(subframe->type) {
 		case FLAC__SUBFRAME_TYPE_CONSTANT:
-//@@@@fprintf(stderr,"@@@@ add CONSTANT, bps=%u\n",subframe_bps);
 			if(!FLAC__subframe_add_constant(&(subframe->data.constant), subframe_bps, subframe->wasted_bits, frame)) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING;
 				return false;
 			}
 			break;
 		case FLAC__SUBFRAME_TYPE_FIXED:
-//@@@@fprintf(stderr,"@@@@ add FIXED, bps=%u, order=%u\n",subframe_bps,subframe->data.fixed.order);
 			if(!FLAC__subframe_add_fixed(&(subframe->data.fixed), frame_header->blocksize - subframe->data.fixed.order, subframe_bps, subframe->wasted_bits, frame)) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING;
 				return false;
 			}
 			break;
 		case FLAC__SUBFRAME_TYPE_LPC:
-//@@@@fprintf(stderr,"@@@@ add LPC, bps=%u, order=%u, prec=%u, shift=%d\n",subframe_bps,subframe->data.lpc.order,subframe->data.lpc.qlp_coeff_precision,subframe->data.lpc.quantization_level);
 			if(!FLAC__subframe_add_lpc(&(subframe->data.lpc), frame_header->blocksize - subframe->data.lpc.order, subframe_bps, subframe->wasted_bits, frame)) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING;
 				return false;
 			}
 			break;
 		case FLAC__SUBFRAME_TYPE_VERBATIM:
-//@@@@fprintf(stderr,"@@@@ add VERBATIM, bps=%u\n",subframe_bps);
 			if(!FLAC__subframe_add_verbatim(&(subframe->data.verbatim), frame_header->blocksize, subframe_bps, subframe->wasted_bits, frame)) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING;
 				return false;
