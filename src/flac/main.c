@@ -572,6 +572,9 @@ int long_usage(const char *message, ...)
 	fprintf(out, "  -s : silent (do not write runtime encode/decode statistics)\n");
 	fprintf(out, "  -o filename : force the output file name (usually flac just changes the\n");
 	fprintf(out, "                extension)\n");
+	fprintf(out, "  --output-prefix string : prefix each output file name with the given string.\n");
+	fprintf(out, "    This can be useful for encoding/decoding files to a different directory.\n");
+	fprintf(out, "    Make sure if your string is a path name that it ends with a '/' slash.\n");
 	fprintf(out, "  --delete-input-file : deletes the input file after a successful encode/decode\n");
 	fprintf(out, "  --skip samples : can be used both for encoding and decoding\n");
 	fprintf(out, "analyze options:\n");
