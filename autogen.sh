@@ -1,3 +1,3 @@
 #!/bin/sh
 
-aclocal && autoconf && automake --foreign --include-deps --add-missing --copy
+gettextize --intl && aclocal && autoconf && autoheader && automake --foreign --include-deps --add-missing --copy
