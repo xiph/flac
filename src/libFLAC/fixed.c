@@ -130,33 +130,33 @@ unsigned FLAC__fixed_compute_best_predictor_slow(const int32 data[], unsigned da
 
 void FLAC__fixed_compute_residual(const int32 data[], unsigned data_len, unsigned order, int32 residual[])
 {
-	int i;
+	int i, idata_len = (int)data_len;
 
 	switch(order) {
 		case 0:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				residual[i] = data[i];
 			}
 			break;
 		case 1:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				residual[i] = data[i] - data[i-1];
 			}
 			break;
 		case 2:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				/* == data[i] - 2*data[i-1] + data[i-2] */
 				residual[i] = data[i] - (data[i-1] << 1) + data[i-2];
 			}
 			break;
 		case 3:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				/* == data[i] - 3*data[i-1] + 3*data[i-2] - data[i-3] */
 				residual[i] = data[i] - (((data[i-1]-data[i-2])<<1) + (data[i-1]-data[i-2])) - data[i-3];
 			}
 			break;
 		case 4:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				/* == data[i] - 4*data[i-1] + 6*data[i-2] - 4*data[i-3] + data[i-4] */
 				residual[i] = data[i] - ((data[i-1]+data[i-3])<<2) + ((data[i-2]<<2) + (data[i-2]<<1)) + data[i-4];
 			}
@@ -168,33 +168,33 @@ void FLAC__fixed_compute_residual(const int32 data[], unsigned data_len, unsigne
 
 void FLAC__fixed_restore_signal(const int32 residual[], unsigned data_len, unsigned order, int32 data[])
 {
-	int i;
+	int i, idata_len = (int)data_len;
 
 	switch(order) {
 		case 0:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				data[i] = residual[i];
 			}
 			break;
 		case 1:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				data[i] = residual[i] + data[i-1];
 			}
 			break;
 		case 2:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				/* == residual[i] + 2*data[i-1] - data[i-2] */
 				data[i] = residual[i] + (data[i-1]<<1) - data[i-2];
 			}
 			break;
 		case 3:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				/* residual[i] + 3*data[i-1] - 3*data[i-2]) + data[i-3] */
 				data[i] = residual[i] + (((data[i-1]-data[i-2])<<1) + (data[i-1]-data[i-2])) + data[i-3];
 			}
 			break;
 		case 4:
-			for(i = 0; i < data_len; i++) {
+			for(i = 0; i < idata_len; i++) {
 				/* == residual[i] + 4*data[i-1] - 6*data[i-2] + 4*data[i-3] - data[i-4] */
 				data[i] = residual[i] + ((data[i-1]+data[i-3])<<2) - ((data[i-2]<<2) + (data[i-2]<<1)) - data[i-4];
 			}
