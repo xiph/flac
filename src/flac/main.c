@@ -52,7 +52,8 @@ static void free_options();
 
 static int usage_error(const char *message, ...);
 static void short_usage();
-static void long_usage();
+static void show_help();
+static void show_explain();
 static void format_mistake(const char *infilename, const char *wrong, const char *right);
 
 static int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file);
@@ -70,7 +71,7 @@ static struct FLAC__share__option long_options_[] = {
 	/*
 	 * general options
 	 */
-	{ "help", 0, 0, 'H' },
+	{ "help", 0, 0, 'h' },
 	{ "decode", 0, 0, 'd' },
 	{ "analyze", 0, 0, 'a' },
 	{ "test", 0, 0, 't' },
@@ -173,7 +174,8 @@ static struct FLAC__share__option long_options_[] = {
  */
 
 static struct {
-	FLAC__bool show_long_help;
+	FLAC__bool show_help;
+	FLAC__bool show_explain;
 	FLAC__bool mode_decode;
 	FLAC__bool verify;
 	FLAC__bool verbose;
@@ -244,8 +246,12 @@ int do_it()
 {
 	int retval = 0;
 
-	if(option_values.show_long_help) {
-		long_usage();
+	if(option_values.show_explain) {
+		show_explain();
+		return 0;
+	}
+	else if(option_values.show_help) {
+		show_help();
 		return 0;
 	}
 	else {
@@ -304,7 +310,7 @@ int do_it()
 			return usage_error("ERROR: invalid blocksize '%u', must be >= %u and <= %u\n", (unsigned)option_values.blocksize, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
 		}
 		if(option_values.qlp_coeff_precision > 0 && option_values.qlp_coeff_precision < FLAC__MIN_QLP_COEFF_PRECISION) {
-			return usage_error("ERROR: invalid value for -q '%u', must be 0 or >= %u\n", option_values.qlp_coeff_precision, FLAC__MIN_QLP_COEFF_PRECISION);
+			return usage_error("ERROR: invalid value '%u' for qlp coeff precision, must be 0 or >= %u\n", option_values.qlp_coeff_precision, FLAC__MIN_QLP_COEFF_PRECISION);
 		}
 
 		if(option_values.sector_align) {
@@ -320,10 +326,10 @@ int do_it()
 				return usage_error("ERROR: --sector-align can only be done with a sample rate of 44100\n");
 		}
 		if(option_values.num_files > 1 && option_values.cmdline_forced_outfilename) {
-			return usage_error("ERROR: -o cannot be used with multiple files\n");
+			return usage_error("ERROR: -o/--output-name cannot be used with multiple files\n");
 		}
 		if(option_values.cmdline_forced_outfilename && option_values.output_prefix) {
-			return usage_error("ERROR: --output-prefix conflicts with -o\n");
+			return usage_error("ERROR: --output-prefix conflicts with -o/--output-name\n");
 		}
 	}
 	if(option_values.verbose) {
@@ -343,7 +349,7 @@ int do_it()
 #ifdef FLAC__HAS_OGG
 				"%s"
 #endif
-				"%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u -R %u%s\n",
+				"%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u%s\n",
 				option_values.delete_input?" --delete-input-file":"",
 				option_values.sector_align?" --sector-align":"",
 #ifdef FLAC__HAS_OGG
@@ -360,7 +366,6 @@ int do_it()
 				option_values.qlp_coeff_precision,
 				(unsigned)option_values.min_residual_partition_order,
 				(unsigned)option_values.max_residual_partition_order,
-				(unsigned)option_values.rice_parameter_search_dist,
 				option_values.verify? " -V":""
 			);
 		}
@@ -408,7 +413,8 @@ int do_it()
 
 void init_options()
 {
-	option_values.show_long_help = false;
+	option_values.show_help = false;
+	option_values.show_explain = false;
 	option_values.mode_decode = false;
 	option_values.verify = false;
 	option_values.verbose = true;
@@ -456,7 +462,7 @@ int parse_options(int argc, char *argv[])
 	int option_index = 1;
 	FLAC__bool had_error = false;
 	/*@@@ E and R: are deprecated */
-	const char *short_opts = "0123456789ab:cdeFHl:mMo:pP:q:r:sS:tV";
+	const char *short_opts = "0123456789ab:cdeFhHl:mMo:pP:q:r:sS:tV";
 
 	while ((short_option = FLAC__share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
 		switch (short_option) {
@@ -630,8 +636,11 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 	}
 	else {
 		switch(short_option) {
+			case 'h':
+				option_values.show_help = true;
+				break;
 			case 'H':
-				option_values.show_long_help = true;
+				option_values.show_explain = true;
 				break;
 			case 'd':
 				option_values.mode_decode = true;
@@ -832,7 +841,7 @@ int usage_error(const char *message, ...)
 {
 	va_list args;
 
-	FLAC__ASSERT(0);
+	FLAC__ASSERT(0 != message);
 
 	va_start(args, message);
 
@@ -867,74 +876,160 @@ static void usage_header()
 	printf("===============================================================================\n");
 }
 
+static void usage_summary()
+{
+	printf("Usage:\n");
+	printf("\n");
+	printf(" Encoding: flac [-s] [--skip #] [<encoding/format-options>] [INPUTFILE [...]]\n");
+	printf(" Decoding: flac -d [-s] [--skip #] [-F] [<format-options>] [INPUTFILE [...]]\n");
+	printf("  Testing: flac -t [-s] [INPUTFILE [...]]\n");
+	printf("Analyzing: flac -a [-s] [--skip #] [<analysis-options>] [INPUTFILE [...]]\n");
+	printf("\n");
+}
+
 void short_usage()
 {
 	usage_header();
 	printf("\n");
-	printf("This is the short help; for full help use 'flac --help'\n");
+	printf("This is the short help; for all options use 'flac --help'; for even more\n");
+	printf("instructions use 'flac --explain'\n");
 	printf("\n");
 	printf("To encode:\n");
-	printf("  flac [-#] [infile [...]]\n");
+	printf("  flac [-#] [INPUTFILE [...]]\n");
 	printf("\n");
 	printf("  -# is -0 (fastest compression) to -8 (highest compression); -5 is the default\n");
 	printf("\n");
 	printf("To decode:\n");
-	printf("  flac -d [infile [...]]\n");
+	printf("  flac -d [INPUTFILE [...]]\n");
 	printf("\n");
 	printf("To test:\n");
-	printf("  flac -t [infile [...]]\n");
+	printf("  flac -t [INPUTFILE [...]]\n");
 }
 
-void long_usage()
+void show_help()
 {
 	usage_header();
-	printf("Usage:\n");
-	printf("  flac [options] [infile [...]]\n");
-	printf("\n");
+	usage_summary();
+	printf("generic options:\n");
+	printf("  -h, --help                   show this screen\n");
+	printf("  -H, --explain                show detailed explanation of usage and options\n");
+	printf("  -d, --decode                 decode (the default behavior is to encode)\n");
+	printf("  -t, --test                   same as -d except no decoded file is written\n");
+	printf("  -a, --analyze                same as -d except an analysis file is written\n");
+	printf("  -c, --stdout                 write output to stdout\n");
+	printf("  -s, --silent                 do not write runtime encode/decode statistics\n");
+	printf("  -o, --output-name=FILENAME   force the output file name\n");
+	printf("      --output-prefix=STRING   prepend STRING to output names\n");
+	printf("      --delete-input-file      deletes after a successful encode/decode\n");
+	printf("      --skip=#                 skip the first # samples of each input file\n");
+	printf("analysis options:\n");
+	printf("      --residual-text          include residual signal in text output\n");
+	printf("      --residual-gnuplot       generate gnuplot files of residual distribution\n");
+	printf("decoding options:\n");
+	printf("  -F, --decode-through-errors  continue decoding through stream errors\n");
+	printf("encoding options:\n");
+#ifdef FLAC__HAS_OGG
+	printf("      --ogg                    output Ogg FLAC stream instead of native FLAC\n");
+#endif
+	printf("      --lax                    allow encoder to generate non-Subset files\n");
+	printf("      --sector-align           align multiple files on sector boundaries\n");
+	printf("  -V, --verify                 verify a correct encoding\n");
+	printf("  -S, --seekpoint={#|X|#x}     add seek point(s)\n");
+	printf("  -P, --padding=#              write a PADDING block of length #\n");
+	printf("  -b, --blocksize=#            specify blocksize in samples\n");
+	printf("  -m, --mid-side               try mid-side coding for each frame\n");
+	printf("  -M, --adaptive-mid-side      adaptive mid-side coding for all frames\n");
+	printf("  -0, --compression-level-0, --fast  synonymous with -l 0 -b 1152 -r 2,2\n");
+	printf("  -1, --compression-level-1          synonymous with -l 0 -b 1152 -M -r 2,2\n");
+	printf("  -2, --compression-level-2          synonymous with -l 0 -b 1152 -m -r 3\n");
+	printf("  -3, --compression-level-3          synonymous with -l 6 -b 4608 -r 3,3\n");
+	printf("  -4, --compression-level-4          synonymous with -l 8 -b 4608 -M -r 3,3\n");
+	printf("  -5, --compression-level-5          synonymous with -l 8 -b 4608 -m -r 3,3\n");
+	printf("  -6, --compression-level-6          synonymous with -l 8 -b 4608 -m -r 4\n");
+	printf("  -7, --compression-level-7          synonymous with -l 8 -b 4608 -m -e -r 6\n");
+	printf("  -8, --compression-level-8, --best  synonymous with -l 12 -b 4608 -m -e -r 6\n");
+	printf("  -e, --exhaustive-model-search      do exhaustive model search (expensive!)\n");
+#if 0
+	/*@@@ deprecated: */
+	printf("  -E, --escape-coding                do escape coding in the entropy coder\n");
+#endif
+	printf("  -l, --max-lpc-order=#              max LPC order; 0 => only fixed predictors\n");
+	printf("  -p, --qlp-coeff-precision-search   exhaustively search LP coeff quantization\n");
+	printf("  -q, --qlp-coeff-precision=#        specify precision in bits\n");
+	printf("  -r, --rice-partition-order=[#,]#   [min,]max residual partition order\n");
+#if 0
+	/*@@@ deprecated: */
+	printf("  -R, -rice-parameter-search-distance=#   Rice parameter search distance\n");
+#endif
+	printf("format options:\n");
+	printf("      --endian={big|little}    set byte order for samples\n");
+	printf("      --channels=#             number of channels\n");
+	printf("      --bps=#                  number of bits per sample\n");
+	printf("      --sample-rate=#          sample rate in Hz\n");
+	printf("      --sign={signed|unsigned} sign of samples\n");
+	printf("      --force-raw-input        force input to be treated as raw samples\n");
+}
+
+void show_explain()
+{
+	usage_header();
+	usage_summary();
 	printf("For encoding:\n");
-	printf("  the input file(s) may be a PCM RIFF WAVE file, AIFF file, or raw samples\n");
-	printf("  the output file(s) will be in FLAC format\n");
-	printf("For decoding, the reverse is true\n");
+	printf("  The input file(s) may be a PCM RIFF WAVE file, AIFF file, or raw samples.\n");
+	printf("  The output file(s) will be in native FLAC or Ogg FLAC format\n");
+	printf("For decoding, the reverse is true.\n");
 	printf("\n");
-	printf("A single 'infile' may be - for stdin.  No 'infile' implies stdin.  Use of\n");
+	printf("A single INPUTFILE may be - for stdin.  No INPUTFILE implies stdin.  Use of\n");
 	printf("stdin implies -c (write to stdout).  Normally you should use:\n");
 	printf("   flac [options] -o outfilename  or  flac -d [options] -o outfilename\n");
 	printf("instead of:\n");
 	printf("   flac [options] > outfilename   or  flac -d [options] > outfilename\n");
 	printf("since the former allows flac to seek backwards to write the STREAMINFO or\n");
-	printf("RIFF WAVE header contents when necessary.\n");
+	printf("WAVE/AIFF header contents when necessary.\n");
 	printf("\n");
-	printf("flac checks for the presence of a AIFF/RIFF WAVE header to decide whether or\n");
-	printf("not to treat an input file as AIFF/WAVE format or raw samples.  If any infile\n");
-	printf("is raw you must specify the format options {-fb|fl} -fc -fp and -fs, which will\n");
-	printf("apply to all raw files.  You can force AIFF/WAVE files to be treated as a raw\n");
+	printf("flac checks for the presence of a AIFF/WAVE header to decide whether or not to\n");
+	printf("treat an input file as AIFF/WAVE format or raw samples.  If any input file is\n");
+	printf("raw you must specify the format options {-fb|fl} -fc -fp and -fs, which will\n");
+	printf("apply to all raw files.  You can force AIFF/WAVE files to be treated as raw\n");
 	printf("files using -fr.\n");
 	printf("\n");
 	printf("generic options:\n");
-	printf("  -d : decode (default behavior is encode)\n");
-	printf("  -t : test (same as -d except no decoded file is written)\n");
-	printf("  -a : analyze (same as -d except an analysis file is written)\n");
-	printf("  -c : write output to stdout\n");
-	printf("  -s : silent (do not write runtime encode/decode statistics)\n");
-	printf("  -o filename : force the output file name (usually flac just changes the\n");
-	printf("                extension)\n");
-	printf("  --output-prefix string : prefix each output file name with the given string.\n");
-	printf("    This can be useful for encoding/decoding files to a different directory.\n");
-	printf("    Make sure if your string is a path name that it ends with a '/' slash.\n");
-	printf("  --delete-input-file : deletes the input file after a successful encode/decode\n");
-	printf("  --skip samples : can be used both for encoding and decoding\n");
-	printf("analyze options:\n");
-	printf("  --a-rtext : include residual signal in text output\n");
-	printf("  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
+	printf("  -h, --help                   show this screen\n");
+	printf("  -H, --explain                show detailed explanation of usage and options\n");
+	printf("  -d, --decode                 decode (the default behavior is to encode)\n");
+	printf("  -t, --test                   same as -d except no decoded file is written\n");
+	printf("  -a, --analyze                same as -d except an analysis file is written\n");
+	printf("  -c, --stdout                 write output to stdout\n");
+	printf("  -s, --silent                 do not write runtime encode/decode statistics\n");
+	printf("  -o, --output-name=FILENAME   force the output file name; usually flac just\n");
+	printf("                               changes the extension\n");
+	printf("      --output-prefix=STRING   prefix each output file name with the given\n");
+	printf("                               STRING.  This can be useful for encoding or\n");
+	printf("                               decoding files to a different directory.  Make\n");
+	printf("                               sure if your STRING is a path name that it ends\n");
+	printf("                               with a '/' slash.\n");
+	printf("      --delete-input-file      deletes after a successful encode/decode\n");
+	printf("      --skip=#                 skip the first # samples of each input file; can\n");
+	printf("                               be used both for encoding and decoding\n");
+	printf("analysis options:\n");
+	printf("      --residual-text          include residual signal in text output\n");
+	printf("      --residual-gnuplot       generate gnuplot files of residual distribution\n");
+	printf("                               of each subframe\n");
 	printf("decoding options:\n");
-	printf("  -F : force decoder to continue decoding through stream errors\n");
+	printf("  -F, --decode-through-errors  force the decoder to continue decoding through\n");
+	printf("                               stream errors; errors will still be printed, but\n");
+	printf("                               decoding won't stop.  Errors will manifest them-\n");
+	printf("                               selves as skips or silent sections in the audio.\n");
 	printf("encoding options:\n");
 #ifdef FLAC__HAS_OGG
-	printf("  --ogg : output Ogg-FLAC stream instead of native FLAC\n");
+	printf("      --ogg                    output Ogg FLAC stream instead of native FLAC\n");
 #endif
-	printf("  --lax : allow encoder to generate non-Subset files\n");
-	printf("  --sector-align : align encoding of multiple files on sector boundaries\n");
-	printf("  -S { # | X | #x } : include a point or points in a SEEKTABLE\n");
+	printf("      --lax                    allow encoder to generate non-Subset files\n");
+	printf("      --sector-align           align the encoding of multiple files on sector\n");
+	printf("                               boundaries\n");
+	printf("  -V, --verify                 verify a correct encoding by decoding the output\n");
+	printf("                               in parallel and comparing it to the original\n");
+	printf("  -S, --seekpoint={#|X|#x}     include a point or points in a SEEKTABLE\n");
 	printf("       #  : a specific sample number for a seek point\n");
 	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
 	printf("       #x : # evenly spaced seekpoints, the first being at sample 0\n");
@@ -947,56 +1042,58 @@ void long_usage()
 	printf("           either no seek point entered (if the input size is determinable\n");
 	printf("           before encoding starts) or a placeholder point (if input size is not\n");
 	printf("           determinable)\n");
-	printf("  -P # : write a PADDING block of length # (goes after SEEKTABLE)\n");
-	printf("         (# must be >= 0; default is -P-).  Note that the overall size in bytes\n");
-	printf("         of the PADDING block will be # + 4 because of the metadata header.\n");
-	printf("  -b # : specify blocksize in samples; default is 1152 for -l 0, else 4608;\n");
-	printf("         must be 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768\n");
-	printf("         (unless --lax is used)\n");
-	printf("  -m   : try mid-side coding for each frame (stereo input only)\n");
-	printf("  -M   : adaptive mid-side coding for all frames (stereo input only)\n");
-	printf("  -0 .. -8 : fastest compression .. highest compression, default is -5\n");
-	printf("             these are synonyms for other options:\n");
-	printf("  -0   : synonymous with -l 0 -b 1152 -r 2,2\n");
-	printf("  -1   : synonymous with -l 0 -b 1152 -M -r 2,2\n");
-	printf("  -2   : synonymous with -l 0 -b 1152 -m -r 3\n");
-	printf("  -3   : synonymous with -l 6 -b 4608 -r 3,3\n");
-	printf("  -4   : synonymous with -l 8 -b 4608 -M -r 3,3\n");
-	printf("  -5   : synonymous with -l 8 -b 4608 -m -r 3,3\n");
-	printf("  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
-	printf("  -7   : synonymous with -l 8 -b 4608 -m -e -r 6\n");
-	printf("  -8   : synonymous with -l 12 -b 4608 -m -e -r 6\n");
-	printf("  --fast, --best : synonymous with -0 and -8 respectively\n");
-	printf("  -e   : do exhaustive model search (expensive!)\n");
-	printf("  -E   : include escape coding in the entropy coder\n");
-	printf("  -l # : specify max LPC order; 0 => use only fixed predictors\n");
-	printf("  -p   : do exhaustive search of LP coefficient quantization (expensive!);\n");
-	printf("         overrides -q, does nothing if using -l 0\n");
-	printf("  -q # : specify precision in bits of quantized linear-predictor coefficients;\n");
-	printf("         0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
-	printf("  -r [#,]# : [min,]max residual partition order (# is 0..16; min defaults to 0;\n");
-	printf("         default is -r 0; above 4 doesn't usually help much)\n");
+	printf("  -P, --padding=#              write a PADDING block of length #; the PADDING\n");
+	printf("                               block goes after any SEEKTABLE block.  # must be\n");
+	printf("                               >= 0; the default is no PADDING).  Note that the\n");
+	printf("                               overall size in bytes of the PADDING block will\n");
+	printf("                               be # + 4 because of the metadata header.\n");
+	printf("  -b, --blocksize=#            specify the blocksize in samples; the default is\n");
+	printf("                               1152 for -l 0, else 4608; must be one of 192,\n");
+	printf("                               576, 1152, 2304, 4608, 256, 512, 1024, 2048,\n");
+	printf("                               4096, 8192, 16384, or 32768 (unless --lax is\n");
+	printf("                               used)\n");
+	printf("  -m, --mid-side               try mid-side coding for each frame (stereo only)\n");
+	printf("  -M, --adaptive-mid-side      adaptive mid-side coding for all frames (stereo\n");
+	printf("                               only)\n");
+	printf("  -0, --compression-level-0, --fast  synonymous with -l 0 -b 1152 -r 2,2\n");
+	printf("  -1, --compression-level-1          synonymous with -l 0 -b 1152 -M -r 2,2\n");
+	printf("  -2, --compression-level-2          synonymous with -l 0 -b 1152 -m -r 3\n");
+	printf("  -3, --compression-level-3          synonymous with -l 6 -b 4608 -r 3,3\n");
+	printf("  -4, --compression-level-4          synonymous with -l 8 -b 4608 -M -r 3,3\n");
+	printf("  -5, --compression-level-5          synonymous with -l 8 -b 4608 -m -r 3,3\n");
+	printf("                                     -5 is the default setting\n");
+	printf("  -6, --compression-level-6          synonymous with -l 8 -b 4608 -m -r 4\n");
+	printf("  -7, --compression-level-7          synonymous with -l 8 -b 4608 -m -e -r 6\n");
+	printf("  -8, --compression-level-8, --best  synonymous with -l 12 -b 4608 -m -e -r 6\n");
+	printf("  -e, --exhaustive-model-search      do exhaustive model search (expensive!)\n");
 #if 0
-@@@ removed because it doesnt work yet and is too dangerous for users
-	printf("  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
+	/*@@@ deprecated: */
+	printf("  -E, --escape-coding                do escape coding in the entropy coder\n");
 #endif
-	printf("  -V   : verify a correct encoding by decoding the output in parallel and\n");
-	printf("         comparing to the original\n");
-	printf("  -S-, -P-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-,%s --lax-,\n",
-#ifdef FLAC__HAS_OGG
-		" --ogg-,"
-#else
-		""
+	printf("  -l, --max-lpc-order=#              max LPC order; 0 => only fixed predictors\n");
+	printf("  -p, --qlp-coeff-precision-search   do exhaustive search of LP coefficient\n");
+	printf("                                     quantization (expensive!); overrides -q,\n");
+	printf("                                     does nothing if using -l 0\n");
+/*@@@@@@    ................................................................................*/
+	printf("  -q, --qlp-coeff-precision=#        specify precision in bits of quantized\n");
+	printf("                                     linear-predictor coefficients; 0 => let\n");
+	printf("                                     encoder decide (the minimun is %u, the\n", FLAC__MIN_QLP_COEFF_PRECISION);
+	printf("                                     default is -q 0)\n");
+	printf("  -r, --rice-partition-order=[#,]#   set [min,]max residual partition order\n");
+	printf("                                     (# is 0..16; min defaults to 0; the\n");
+	printf("                                     default is -r 0; above 4 doesn't usually\n");
+	printf("                                     help much)\n");
+#if 0
+	/*@@@ deprecated: */
+	printf("  -R, -rice-parameter-search-distance=#   Rice parameter search distance\n");
 #endif
-	);
-	printf("  --sector-align- can all be used to turn off a particular option\n");
 	printf("format options:\n");
-	printf("  -fb | -fl : big-endian | little-endian byte order\n");
-	printf("  -fc channels\n");
-	printf("  -fp bits_per_sample\n");
-	printf("  -fs sample_rate : in Hz\n");
-	printf("  -fu : unsigned samples (default is signed)\n");
-	printf("  -fr : force input to be treated as raw samples\n");
+	printf("      --endian={big|little}    set byte order for samples\n");
+	printf("      --channels=#             number of channels\n");
+	printf("      --bps=#                  number of bits per sample\n");
+	printf("      --sample-rate=#          sample rate in Hz\n");
+	printf("      --sign={signed|unsigned} sign of samples\n");
+	printf("      --force-raw-input        force input to be treated as raw samples\n");
 }
 
 void
@@ -1064,7 +1161,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 
 	if(fmt == RAW) {
 		if(option_values.format_is_big_endian < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0)
-			return usage_error("ERROR: for encoding a raw file you must specify { -fb or -fl }, -fc, -fp, and -fs\n");
+			return usage_error("ERROR: for encoding a raw file you must specify a value for --endian, --channels, --bps, and --sample-rate\n");
 	}
 
 	if(encode_infile == stdin || option_values.force_to_stdout)
@@ -1159,7 +1256,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 
 	if(!option_values.test_only && !option_values.analyze) {
 		if(option_values.force_raw_format && option_values.format_is_big_endian < 0)
-			return usage_error("ERROR: for decoding to a raw file you must specify -fb or -fl\n");
+			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian\n");
 	}
 
 	if(0 == strcmp(infilename, "-") || option_values.force_to_stdout)
@@ -1225,7 +1322,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	if(retval == 0 && strcmp(infilename, "-")) {
 		if(strcmp(forced_outfilename, "-"))
 			flac__file_copy_metadata(infilename, forced_outfilename);
-		if(option_values.delete_input)
+		if(option_values.delete_input && !option_values.test_only && !option_values.analyze)
 			unlink(infilename);
 	}
 
