@@ -55,14 +55,17 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 	}
 	if(!FLAC__metadata_object_cuesheet_is_legal(cuesheet, is_cdda, &error_message)) {
 		printf("pass1: illegal cuesheet: \"%s\"\n", error_message);
+		FLAC__metadata_object_delete(cuesheet);
 		return 1;
 	}
 	sprintf(tmpfilename, "%s.1", infilename);
 	if(0 == (fout = fopen(tmpfilename, "w"))) {
 		fprintf(stderr, "can't open file %s for writing\n", tmpfilename);
+		FLAC__metadata_object_delete(cuesheet);
 		return 255;
 	}
 	grabbag__cuesheet_emit(fout, cuesheet, "\"dummy.wav\" WAVE");
+	FLAC__metadata_object_delete(cuesheet);
 	fclose(fout);
 
 	/*
@@ -84,14 +87,17 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 	}
 	if(!FLAC__metadata_object_cuesheet_is_legal(cuesheet, is_cdda, &error_message)) {
 		printf("pass2: illegal cuesheet: \"%s\"\n", error_message);
+		FLAC__metadata_object_delete(cuesheet);
 		return 1;
 	}
 	sprintf(tmpfilename, "%s.2", infilename);
 	if(0 == (fout = fopen(tmpfilename, "w"))) {
 		fprintf(stderr, "can't open file %s for writing\n", tmpfilename);
+		FLAC__metadata_object_delete(cuesheet);
 		return 255;
 	}
 	grabbag__cuesheet_emit(fout, cuesheet, "\"dummy.wav\" WAVE");
+	FLAC__metadata_object_delete(cuesheet);
 	fclose(fout);
 
 	return 0;
