@@ -230,6 +230,29 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				-S { # | X | #x }
+			</TD>
+			<TD>
+				Include a point or points in a SEEKTABLE:<BR>
+				<UL>
+				<LI>
+					<TT>#&nbsp;</TT> : a specific sample number for a seek point
+				</LI>
+				<LI>
+					<TT>X&nbsp;</TT> : a placeholder point (always goes at the end of the SEEKTABLE)
+				</LI>
+				<LI>
+					<TT>#x</TT> : # evenly spaced seekpoints, the first being at sample 0
+				</LI>
+				</UL>
+				You may use many -S options; the resulting SEEKTABLE will be the unique-ified union of all such values.<BR>
+				With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.<BR>
+				NOTE: -S #x will not work if the encoder can't determine the input size before starting.<BR>
+				NOTE: if you use -S # and # is >= samples in the input, there will be either no seek point entered (if the input size is determinable before encoding starts) or a placeholder point (if input size is not determinable)<BR>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 				-P #
 			</TD>
 			<TD>
@@ -241,7 +264,7 @@
 				-b #
 			</TD>
 			<TD>
-				Set the blocksize.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608.  The current encoder uses the same blocksize for the entire stream.
+				Specify the blocksize in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The current encoder uses the same blocksize for the entire stream.
 			</TD>
 		</TR>
 		<TR>
@@ -273,7 +296,7 @@
 				-0
 			</TD>
 			<TD>
-				Synonymous with -l 0
+				Synonymous with -l 0 -b 1152
 			</TD>
 		</TR>
 		<TR>
@@ -281,7 +304,7 @@
 				-1
 			</TD>
 			<TD>
-				Synonymous with -l 0 -M
+				Synonymous with -l 0 -b 1152 -M
 			</TD>
 		</TR>
 		<TR>
@@ -289,7 +312,7 @@
 				-2
 			</TD>
 			<TD>
-				Synonymous with -l 0 -m -r # (where # is set based on the blocksize)
+				Synonymous with -l 0 -b 1152 -m -r 2
 			</TD>
 		</TR>
 		<TR>
@@ -305,7 +328,7 @@
 				-4
 			</TD>
 			<TD>
-				Synonymous with -l 8
+				Synonymous with -l 8 -b 4608
 			</TD>
 		</TR>
 		<TR>
@@ -313,7 +336,7 @@
 				-5
 			</TD>
 			<TD>
-				Synonymous with -l 8 -M
+				Synonymous with -l 8 -b 4608 -M
 			</TD>
 		</TR>
 		<TR>
@@ -321,7 +344,7 @@
 				-6
 			</TD>
 			<TD>
-				Synonymous with -l 8 -m -r # (where # is set based on the blocksize)
+				Synonymous with -l 8 -b 4608 -m -r 4
 			</TD>
 		</TR>
 		<TR>
@@ -337,7 +360,7 @@
 				-8
 			</TD>
 			<TD>
-				Synonymous with -l 32 -m -r # (where # is set based on the blocksize)
+				Synonymous with -l 32 -b 4608 -m -r 4
 			</TD>
 		</TR>
 		<TR>
@@ -345,7 +368,7 @@
 				-9
 			</TD>
 			<TD>
-				Synonymous with -l 32 -m -e -r 99 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for a given blocksize.
+				Synonymous with -l 32 -b 4608 -m -e -r 99 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for a given blocksize.
 			</TD>
 		</TR>
 		<TR>
@@ -400,7 +423,7 @@
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 			</TD>
 			<TD>
-				-m-, -e-, -p-, -V-, --lax- can all be used to turn off a particular option.
+				-S-, -m-, -e-, -p-, -V-, --lax- can all be used to turn off a particular option.
 			</TD>
 		</TR>
 	</TABLE>
