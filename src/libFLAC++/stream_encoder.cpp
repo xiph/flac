@@ -30,6 +30,7 @@
  */
 
 #include "FLAC++/encoder.h"
+#include "FLAC++/metadata.h"
 #include "FLAC/assert.h"
 
 #ifdef _MSC_VER
@@ -163,6 +164,17 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__stream_encoder_set_metadata(encoder_, metadata, num_blocks);
+		}
+
+		bool Stream::set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks)
+		{
+			FLAC__ASSERT(is_valid());
+			::FLAC__StreamMetadata *m[num_blocks];
+			for(unsigned i = 0; i < num_blocks; i++) {
+				// we can get away with this since we know the encoder will only correct the is_last flags
+				m[i] = const_cast< ::FLAC__StreamMetadata*>((::FLAC__StreamMetadata*)metadata[i]);
+			}
+			return (bool)::FLAC__stream_encoder_set_metadata(encoder_, m, num_blocks);
 		}
 
 		Stream::State Stream::get_state() const

@@ -38,6 +38,7 @@
 #include "FLAC/seekable_stream_encoder.h"
 #include "FLAC/stream_encoder.h"
 #include "decoder.h"
+#include "metadata.h"
 
 
 /** \file include/FLAC++/encoder.h
@@ -125,6 +126,7 @@ namespace FLAC {
 			bool set_rice_parameter_search_dist(unsigned value);
 			bool set_total_samples_estimate(FLAC__uint64 value);
 			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);
+			bool set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks);
 
 			State    get_state() const;
 			Decoder::Stream::State get_verify_decoder_state() const;
@@ -222,6 +224,7 @@ namespace FLAC {
 			bool set_rice_parameter_search_dist(unsigned value);
 			bool set_total_samples_estimate(FLAC__uint64 value);
 			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);
+			bool set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks);
 
 			State    get_state() const;
 			Stream::State get_stream_encoder_state() const;
@@ -322,6 +325,7 @@ namespace FLAC {
 			bool set_rice_parameter_search_dist(unsigned value);
 			bool set_total_samples_estimate(FLAC__uint64 value);
 			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);
+			bool set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks);
 			bool set_filename(const char *value);
 
 			State    get_state() const;
