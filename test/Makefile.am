@@ -25,7 +25,7 @@ EXTRA_DIST = \
 	test_bins.sh
 
 CLEANFILES = \
-	$(wildcard *.raw) $(wildcard *.flac) $(wildcard *.cmp) $(wildcard *.wav) \
+	$(wildcard *.raw) $(wildcard *.flac) $(wildcard *.ogg) $(wildcard *.cmp) $(wildcard *.wav) \
 	$(wildcard ../../test_files/bins/*.raw) \
 	$(wildcard ../../test_files/bins/*.flac) \
 	$(wildcard ../../test_files/bins/*.cmp) \
