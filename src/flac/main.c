@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 			do_qlp_coeff_prec_search = true;
 			min_residual_partition_order = 0;
 			max_residual_partition_order = 16;
-			rice_parameter_search_dist = 32;
+			rice_parameter_search_dist = 0;
 			max_lpc_order = 32;
 		}
 		else if(isdigit((int)(argv[i][1]))) {
@@ -465,7 +465,7 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
 	fprintf(stderr, "  -7   : synonymous with -l 8 -b 4608 -m -e -r 6\n");
 	fprintf(stderr, "  -8   : synonymous with -l 12 -b 4608 -m -e -r 6\n");
-	fprintf(stderr, "  -9   : synonymous with -l 32 -b 4608 -m -e -r 16 -R 32 -p (very slow!)\n");
+	fprintf(stderr, "  -9   : synonymous with -l 32 -b 4608 -m -e -r 16 -p (very slow!)\n");
 	fprintf(stderr, "  -e   : do exhaustive model search (expensive!)\n");
 	fprintf(stderr, "  -l # : specify max LPC order; 0 => use only fixed predictors\n");
 	fprintf(stderr, "  -p   : do exhaustive search of LP coefficient quantization (expensive!);\n");
