@@ -25,7 +25,7 @@ EXTRA_DIST = \
 
 noinst_PROGRAMS = test_libFLAC++
 test_libFLAC___LDADD = \
-	$(top_builddir)/src/share/grabbag/grabbag.la \
+	$(top_builddir)/src/share/grabbag/libgrabbag.a \
 	$(top_builddir)/src/libFLAC++/libFLAC++.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	-lm
