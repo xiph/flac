@@ -46,7 +46,7 @@ valgrind: FLAC__VALGRIND=FLAC__VALGRIND=yes
 release : FLAC__VALGRIND=FLAC__VALGRIND=no
 
 debug   : CONFIG = debug
-valgrind: CONFIG = valgrind
+valgrind: CONFIG = debug
 release : CONFIG = release
 
 debug   : all
