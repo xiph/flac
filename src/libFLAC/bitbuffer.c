@@ -33,6 +33,15 @@ static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 65536; /* bytes */
 #endif
 #define max(x,y) ((x)>(y)?(x):(y))
 
+static unsigned ilog2_(unsigned v)
+{
+	unsigned l = 0;
+	assert(v > 0);
+	while(v >>= 1)
+		l++;
+	return l;
+}
+
 static bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 {
 	byte *new_buffer;
@@ -391,43 +400,125 @@ bool FLAC__bitbuffer_write_raw_int64(FLAC__BitBuffer *bb, int64 val, unsigned bi
 	return FLAC__bitbuffer_write_raw_uint64(bb, (uint64)val, bits);
 }
 
-bool FLAC__bitbuffer_write_rice_signed(FLAC__BitBuffer *bb, int val, unsigned parameter)
+unsigned FLAC__bitbuffer_rice_bits(int val, unsigned parameter)
+{
+	unsigned msbs, uval;
+
+	/* convert signed to unsigned */
+	if(val < 0)
+		/* equivalent to
+		 *     (unsigned)(((--val) << 1) - 1);
+		 * but without the overflow problem at -MAXINT
+		 */
+		uval = (unsigned)(((-(++val)) << 1) + 1);
+	else
+		uval = (unsigned)(val << 1);
+
+	msbs = uval >> parameter;
+
+	return 1 + parameter + msbs;
+}
+
+unsigned FLAC__bitbuffer_golomb_bits_signed(int val, unsigned parameter)
+{
+	unsigned bits, msbs, uval;
+	unsigned k;
+
+	assert(parameter > 0);
+
+	/* convert signed to unsigned */
+	if(val < 0)
+		/* equivalent to
+		 *     (unsigned)(((--val) << 1) - 1);
+		 * but without the overflow problem at -MAXINT
+		 */
+		uval = (unsigned)(((-(++val)) << 1) + 1);
+	else
+		uval = (unsigned)(val << 1);
+
+	k = ilog2_(parameter);
+	if(parameter == 1u<<k) {
+		assert(k <= 30);
+
+		msbs = uval >> k;
+		bits = 1 + k + msbs;
+	}
+	else {
+		unsigned q, r, d;
+
+		d = (1 << (k+1)) - parameter;
+		q = uval / parameter;
+		r = uval - (q * parameter);
+
+		bits = 1 + q + k;
+		if(r >= d)
+			bits++;
+	}
+	return bits;
+}
+
+unsigned FLAC__bitbuffer_golomb_bits_unsigned(unsigned uval, unsigned parameter)
 {
 	unsigned bits, msbs;
+	unsigned k;
+
+	assert(parameter > 0);
+
+	k = ilog2_(parameter);
+	if(parameter == 1u<<k) {
+		assert(k <= 30);
+
+		msbs = uval >> k;
+		bits = 1 + k + msbs;
+	}
+	else {
+		unsigned q, r, d;
+
+		d = (1 << (k+1)) - parameter;
+		q = uval / parameter;
+		r = uval - (q * parameter);
+
+		bits = 1 + q + k;
+		if(r >= d)
+			bits++;
+	}
+	return bits;
+}
+
+bool FLAC__bitbuffer_write_rice_signed(FLAC__BitBuffer *bb, int val, unsigned parameter)
+{
+	unsigned bits, msbs, uval;
 	uint32 pattern;
 
 	assert(bb != 0);
 	assert(bb->buffer != 0);
+	assert(parameter <= 30);
 
-	/* init pattern with sign bit */
-	if(val < 0) {
-		pattern = 1;
-		val = -val;
-	}
+	/* convert signed to unsigned */
+	if(val < 0)
+		/* equivalent to
+		 *     (unsigned)(((--val) << 1) - 1);
+		 * but without the overflow problem at -MAXINT
+		 */
+		uval = (unsigned)(((-(++val)) << 1) + 1);
 	else
-		pattern = 0;
+		uval = (unsigned)(val << 1);
 
-	msbs = val >> parameter;
-	bits = 2 + parameter + msbs;
+	msbs = uval >> parameter;
+	bits = 1 + parameter + msbs;
+	pattern = 1 << parameter; /* the unary end bit */
+	pattern |= (uval & ((1<<parameter)-1)); /* the binary LSBs */
 
 	if(bits <= 32) {
-		pattern = (pattern << parameter) | (val & ((1<<parameter)-1));
-		pattern = (pattern << (msbs+1)) | 1;
 		if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, bits))
 			return false;
 	}
 	else {
-		/* write the sign bit */
-		if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, 1))
-			return false;
-		/* write the binary LSBs */
-		if(!FLAC__bitbuffer_write_raw_uint32(bb, val & ((1<<parameter)-1), parameter))
-			return false;
 		/* write the unary MSBs */
 		if(!FLAC__bitbuffer_write_zeroes(bb, msbs))
 			return false;
-		/* write the end bit */
-		if(!FLAC__bitbuffer_write_raw_uint32(bb, 1, 1))
+		/* write the unary end bit and binary LSBs */
+		if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, parameter+1))
 			return false;
 	}
 	return true;
@@ -435,28 +526,31 @@ bool FLAC__bitbuffer_write_rice_signed(FLAC__BitBuffer *bb, int val, unsigned pa
 
 bool FLAC__bitbuffer_write_rice_signed_guarded(FLAC__BitBuffer *bb, int val, unsigned parameter, unsigned max_bits, bool *overflow)
 {
-	unsigned bits, msbs;
+	unsigned bits, msbs, uval;
 	uint32 pattern;
 
 	assert(bb != 0);
 	assert(bb->buffer != 0);
+	assert(parameter <= 30);
 
 	*overflow = false;
 
-	/* init pattern with sign bit */
-	if(val < 0) {
-		pattern = 1;
-		val = -val;
-	}
+	/* convert signed to unsigned */
+	if(val < 0)
+		/* equivalent to
+		 *     (unsigned)(((--val) << 1) - 1);
+		 * but without the overflow problem at -MAXINT
+		 */
+		uval = (unsigned)(((-(++val)) << 1) + 1);
 	else
-		pattern = 0;
+		uval = (unsigned)(val << 1);
 
-	msbs = val >> parameter;
-	bits = 2 + parameter + msbs;
+	msbs = uval >> parameter;
+	bits = 1 + parameter + msbs;
+	pattern = 1 << parameter; /* the unary end bit */
+	pattern |= (uval & ((1<<parameter)-1)); /* the binary LSBs */
 
 	if(bits <= 32) {
-		pattern = (pattern << parameter) | (val & ((1<<parameter)-1));
-		pattern = (pattern << (msbs+1)) | 1;
 		if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, bits))
 			return false;
 	}
@@ -465,18 +559,138 @@ bool FLAC__bitbuffer_write_rice_signed_guarded(FLAC__BitBuffer *bb, int val, uns
 		return true;
 	}
 	else {
-		/* write the sign bit */
-		if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, 1))
-			return false;
-		/* write the binary LSBs */
-		if(!FLAC__bitbuffer_write_raw_uint32(bb, val & ((1<<parameter)-1), parameter))
-			return false;
 		/* write the unary MSBs */
 		if(!FLAC__bitbuffer_write_zeroes(bb, msbs))
 			return false;
-		/* write the end bit */
+		/* write the unary end bit and binary LSBs */
+		if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, parameter+1))
+			return false;
+	}
+	return true;
+}
+
+bool FLAC__bitbuffer_write_golomb_signed(FLAC__BitBuffer *bb, int val, unsigned parameter)
+{
+	unsigned bits, msbs, uval;
+	unsigned k;
+
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+	assert(parameter > 0);
+
+	/* convert signed to unsigned */
+	if(val < 0)
+		/* equivalent to
+		 *     (unsigned)(((--val) << 1) - 1);
+		 * but without the overflow problem at -MAXINT
+		 */
+		uval = (unsigned)(((-(++val)) << 1) + 1);
+	else
+		uval = (unsigned)(val << 1);
+
+	k = ilog2_(parameter);
+	if(parameter == 1u<<k) {
+		unsigned pattern;
+
+		assert(k <= 30);
+
+		msbs = uval >> k;
+		bits = 1 + k + msbs;
+		pattern = 1 << k; /* the unary end bit */
+		pattern |= (uval & ((1u<<k)-1)); /* the binary LSBs */
+
+		if(bits <= 32) {
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, bits))
+				return false;
+		}
+		else {
+			/* write the unary MSBs */
+			if(!FLAC__bitbuffer_write_zeroes(bb, msbs))
+				return false;
+			/* write the unary end bit and binary LSBs */
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, k+1))
+				return false;
+		}
+	}
+	else {
+		unsigned q, r, d;
+
+		d = (1 << (k+1)) - parameter;
+		q = uval / parameter;
+		r = uval - (q * parameter);
+		/* write the unary MSBs */
+		if(!FLAC__bitbuffer_write_zeroes(bb, q))
+			return false;
+		/* write the unary end bit */
 		if(!FLAC__bitbuffer_write_raw_uint32(bb, 1, 1))
 			return false;
+		/* write the binary LSBs */
+		if(r >= d) {
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, r+d, k+1))
+				return false;
+		}
+		else {
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, r, k))
+				return false;
+		}
+	}
+	return true;
+}
+
+bool FLAC__bitbuffer_write_golomb_unsigned(FLAC__BitBuffer *bb, unsigned uval, unsigned parameter)
+{
+	unsigned bits, msbs;
+	unsigned k;
+
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+	assert(parameter > 0);
+
+	k = ilog2_(parameter);
+	if(parameter == 1u<<k) {
+		unsigned pattern;
+
+		assert(k <= 30);
+
+		msbs = uval >> k;
+		bits = 1 + k + msbs;
+		pattern = 1 << k; /* the unary end bit */
+		pattern |= (uval & ((1u<<k)-1)); /* the binary LSBs */
+
+		if(bits <= 32) {
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, bits))
+				return false;
+		}
+		else {
+			/* write the unary MSBs */
+			if(!FLAC__bitbuffer_write_zeroes(bb, msbs))
+				return false;
+			/* write the unary end bit and binary LSBs */
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, pattern, k+1))
+				return false;
+		}
+	}
+	else {
+		unsigned q, r, d;
+
+		d = (1 << (k+1)) - parameter;
+		q = uval / parameter;
+		r = uval - (q * parameter);
+		/* write the unary MSBs */
+		if(!FLAC__bitbuffer_write_zeroes(bb, q))
+			return false;
+		/* write the unary end bit */
+		if(!FLAC__bitbuffer_write_raw_uint32(bb, 1, 1))
+			return false;
+		/* write the binary LSBs */
+		if(r >= d) {
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, r+d, k+1))
+				return false;
+		}
+		else {
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, r, k))
+				return false;
+		}
 	}
 	return true;
 }
@@ -791,18 +1005,13 @@ bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, int64 *val, unsigned bi
 
 bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
-	uint32 sign = 0, lsbs, msbs = 0;
-	unsigned bit;
+	uint32 lsbs, msbs = 0;
+	unsigned bit, uval;
 
 	assert(bb != 0);
 	assert(bb->buffer != 0);
+	assert(parameter <= 32);
 
-	/* read the sign bit */
-	if(!FLAC__bitbuffer_read_bit_to_uint32(bb, &sign, read_callback, client_data))
-		return false;
-	/* read the binary LSBs */
-	if(!FLAC__bitbuffer_read_raw_uint32(bb, &lsbs, parameter, read_callback, client_data))
-		return false;
 	/* read the unary MSBs and end bit */
 	while(1) {
 		if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
@@ -812,10 +1021,107 @@ bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned pa
 		else
 			msbs++;
 	}
+	/* read the binary LSBs */
+	if(!FLAC__bitbuffer_read_raw_uint32(bb, &lsbs, parameter, read_callback, client_data))
+		return false;
 	/* compose the value */
-	*val = (msbs << parameter) | lsbs;
-	if(sign)
-		*val = -(*val);
+	uval = (msbs << parameter) | lsbs;
+	if(uval & 1)
+		*val = -((int)(uval >> 1)) - 1;
+	else
+		*val = (int)(uval >> 1);
+
+	return true;
+}
+
+bool FLAC__bitbuffer_read_golomb_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+{
+	uint32 lsbs, msbs = 0;
+	unsigned bit, uval, k;
+
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+
+	k = ilog2_(parameter);
+
+	/* read the unary MSBs and end bit */
+	while(1) {
+		if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
+			return false;
+		if(bit)
+			break;
+		else
+			msbs++;
+	}
+	/* read the binary LSBs */
+	if(!FLAC__bitbuffer_read_raw_uint32(bb, &lsbs, k, read_callback, client_data))
+		return false;
+
+	if(parameter == 1u<<k) {
+		/* compose the value */
+		uval = (msbs << k) | lsbs;
+	}
+	else {
+		unsigned d = (1 << (k+1)) - parameter;
+		if(lsbs >= d) {
+			if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
+				return false;
+			lsbs <<= 1;
+			lsbs |= bit;
+			lsbs -= d;
+		}
+		/* compose the value */
+		uval = msbs * parameter + lsbs;
+	}
+
+	/* unfold unsigned to signed */
+	if(uval & 1)
+		*val = -((int)(uval >> 1)) - 1;
+	else
+		*val = (int)(uval >> 1);
+
+	return true;
+}
+
+bool FLAC__bitbuffer_read_golomb_unsigned(FLAC__BitBuffer *bb, unsigned *val, unsigned parameter, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+{
+	uint32 lsbs, msbs = 0;
+	unsigned bit, k;
+
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+
+	k = ilog2_(parameter);
+
+	/* read the unary MSBs and end bit */
+	while(1) {
+		if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
+			return false;
+		if(bit)
+			break;
+		else
+			msbs++;
+	}
+	/* read the binary LSBs */
+	if(!FLAC__bitbuffer_read_raw_uint32(bb, &lsbs, k, read_callback, client_data))
+		return false;
+
+	if(parameter == 1u<<k) {
+		/* compose the value */
+		*val = (msbs << k) | lsbs;
+	}
+	else {
+		unsigned d = (1 << (k+1)) - parameter;
+		if(lsbs >= d) {
+			if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
+				return false;
+			lsbs <<= 1;
+			lsbs |= bit;
+			lsbs -= d;
+		}
+		/* compose the value */
+		*val = msbs * parameter + lsbs;
+	}
 
 	return true;
 }
