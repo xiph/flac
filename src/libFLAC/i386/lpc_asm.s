@@ -102,11 +102,11 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386
 	fld	dword [eax]			; ST = d <- data[sample]
 	mov	edx, [esp + 32]			; edx <- lag (note the +4 due to the above 'push eax')
 	mov	ebx, edi			; ebx == &autoc[coeff] <- &autoc[0]
-	and	edx, 3				; edx <- lag % 4
+	and	edx, byte 3				; edx <- lag % 4
 	jz	.inner_start
-	cmp	edx, 1
+	cmp	edx, byte 1
 	je	.warmup_1
-	cmp	edx, 2
+	cmp	edx, byte 2
 	je	.warmup_2
 .warmup_3:
 	fld	st0				; ST = d d
@@ -1029,7 +1029,7 @@ cident FLAC__lpc_restore_signal_asm_i386_mmx
 
 	test	ebx, ebx
 	jz	near .end			; do nothing if data_len == 0
-	cmp	eax, 4
+	cmp	eax, byte 4
 	jb	near FLAC__lpc_restore_signal_asm_i386.begin
 
 	mov	edx, [esp + 28]
