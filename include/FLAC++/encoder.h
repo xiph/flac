@@ -96,7 +96,7 @@ namespace FLAC {
 				inline State(::FLAC__StreamEncoderState state): state_(state) { }
 				inline operator ::FLAC__StreamEncoderState() const { return state_; }
 				inline const char *as_cstring() const { return ::FLAC__StreamEncoderStateString[state_]; }
-				const char *resolved_as_cstring(const Stream &) const;
+				inline const char *resolved_as_cstring(const Stream &encoder) const { return ::FLAC__stream_encoder_get_resolved_state_string(encoder.encoder_); }
 			protected:
 				::FLAC__StreamEncoderState state_;
 			};
@@ -189,7 +189,7 @@ namespace FLAC {
 				inline State(::FLAC__SeekableStreamEncoderState state): state_(state) { }
 				inline operator ::FLAC__SeekableStreamEncoderState() const { return state_; }
 				inline const char *as_cstring() const { return ::FLAC__SeekableStreamEncoderStateString[state_]; }
-				const char *resolved_as_cstring(const SeekableStream &) const;
+				inline const char *resolved_as_cstring(const SeekableStream &encoder) const { return ::FLAC__seekable_stream_encoder_get_resolved_state_string(encoder.encoder_); }
 			protected:
 				::FLAC__SeekableStreamEncoderState state_;
 			};
@@ -283,7 +283,7 @@ namespace FLAC {
 				inline State(::FLAC__FileEncoderState state): state_(state) { }
 				inline operator ::FLAC__FileEncoderState() const { return state_; }
 				inline const char *as_cstring() const { return ::FLAC__FileEncoderStateString[state_]; }
-				const char *resolved_as_cstring(const File &) const;
+				inline const char *resolved_as_cstring(const File &encoder) const { return ::FLAC__file_encoder_get_resolved_state_string(encoder.encoder_); }
 			protected:
 				::FLAC__FileEncoderState state_;
 			};
