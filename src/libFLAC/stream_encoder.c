@@ -1298,7 +1298,7 @@ FLAC__bool stream_encoder_process_subframe_(FLAC__StreamEncoder *encoder, unsign
 				rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
 #endif
 				if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 					fprintf(stderr, "clipping rice_parameter (%u -> %u) @0\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
 #endif
 					rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
@@ -1344,7 +1344,7 @@ FLAC__bool stream_encoder_process_subframe_(FLAC__StreamEncoder *encoder, unsign
 							rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
 #endif
 							if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 								fprintf(stderr, "clipping rice_parameter (%u -> %u) @1\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
 #endif
 								rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
@@ -1680,7 +1680,7 @@ FLAC__bool stream_encoder_set_partitioned_rice_(const FLAC__uint32 abs_residual[
 				min_rice_parameter = suggested_rice_parameter - rice_parameter_search_dist;
 			max_rice_parameter = suggested_rice_parameter + rice_parameter_search_dist;
 			if(max_rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 				fprintf(stderr, "clipping rice_parameter (%u -> %u) @2\n", max_rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
 #endif
 				max_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
@@ -1759,7 +1759,7 @@ FLAC__bool stream_encoder_set_partitioned_rice_(const FLAC__uint32 abs_residual[
 				;
 #endif
 			if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 				fprintf(stderr, "clipping rice_parameter (%u -> %u) @3\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
 #endif
 				rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
@@ -1773,7 +1773,7 @@ FLAC__bool stream_encoder_set_partitioned_rice_(const FLAC__uint32 abs_residual[
 					min_rice_parameter = rice_parameter - rice_parameter_search_dist;
 				max_rice_parameter = rice_parameter + rice_parameter_search_dist;
 				if(max_rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 					fprintf(stderr, "clipping rice_parameter (%u -> %u) @4\n", max_rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
 #endif
 					max_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
@@ -1853,7 +1853,7 @@ FLAC__bool stream_encoder_set_partitioned_rice_with_precompute_(const FLAC__uint
 				min_rice_parameter = suggested_rice_parameter - rice_parameter_search_dist;
 			max_rice_parameter = suggested_rice_parameter + rice_parameter_search_dist;
 			if(max_rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 				fprintf(stderr, "clipping rice_parameter (%u -> %u) @5\n", max_rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
 #endif
 				max_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
@@ -1936,7 +1936,7 @@ FLAC__bool stream_encoder_set_partitioned_rice_with_precompute_(const FLAC__uint
 				;
 #endif
 			if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 				fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
 #endif
 				rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
@@ -1950,7 +1950,7 @@ FLAC__bool stream_encoder_set_partitioned_rice_with_precompute_(const FLAC__uint
 					min_rice_parameter = rice_parameter - rice_parameter_search_dist;
 				max_rice_parameter = rice_parameter + rice_parameter_search_dist;
 				if(max_rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 					fprintf(stderr, "clipping rice_parameter (%u -> %u) @7\n", max_rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
 #endif
 					max_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
