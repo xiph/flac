@@ -18,6 +18,10 @@
 bin_PROGRAMS = metaflac
 CFLAGS = @CFLAGS@
 
+EXTRA_DIST = \
+	Makefile.lite \
+	Makefile.vc
+
 metaflac_SOURCES = \
 	main.c
 metaflac_LDFLAGS = 

@@ -10,7 +10,14 @@ libutf8_a_SOURCES = charset.c charset.h iconvert.c utf8.c
 
 libgetopt_a_SOURCES = getopt.c getopt1.c
 
-EXTRA_DIST = charmaps.h makemap.c charset_test.c charsetmap.h
+EXTRA_DIST = \
+	Makefile.lite \
+	Makefile.vc \
+	README \
+	charmaps.h \
+	makemap.c \
+	charset_test.c \
+	charsetmap.h
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

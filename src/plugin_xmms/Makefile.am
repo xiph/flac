@@ -19,6 +19,9 @@
 # GNU makefile
 #
 
+EXTRA_DIST = \
+	Makefile.lite
+
 CFLAGS = @CFLAGS@ @XMMS_CFLAGS@
 xmmsinputplugindir = @XMMS_INPUT_PLUGIN_DIR@
 # Don't build a static library
