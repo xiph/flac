@@ -44,14 +44,42 @@ extern "C" {
  *  This module contains the functions which implement the seekable stream
  *  encoder.
  *
- * XXX (import)
+ * The basic usage of this encoder is as follows:
+ * - The program creates an instance of an encoder using
+ *   FLAC__seekable_stream_encoder_new().
+ * - The program overrides the default settings and sets callbacks using
+ *   FLAC__seekable_stream_encoder_set_*() functions.
+ * - The program initializes the instance to validate the settings and
+ *   prepare for encoding using FLAC__seekable_stream_encoder_init().
+ * - The program calls FLAC__seekable_stream_encoder_process() or
+ *   FLAC__seekable_stream_encoder_process_interleaved() to encode data, which
+ *   subsequently calls the callbacks when there is encoder data ready
+ *   to be written.
+ * - The program finishes the encoding with FLAC__seekable_stream_encoder_finish(),
+ *   which causes the encoder to encode any data still in its input pipe,
+ *   rewrite the metadata with the final encoding statistics, and finally
+ *   reset the encoder to the uninitialized state.
+ * - The instance may be used again or deleted with
+ *   FLAC__seekable_stream_encoder_delete().
  *
  * The seekable stream encoder is a wrapper around the
- * \link flac_stream_encoder stream encoder \endlink which (XXXimport)
+ * \link flac_stream_encoder stream encoder \endlink with callbacks for
+ * seeking the output.  This allows the encoder to go back and rewrite
+ * some of the metadata after encoding if necessary, and provides the
+ * metadata callback of the stream encoder internally.  However, you
+ * must provide a seek callback (see
+ * FLAC__seekable_stream_encoder_set_seek_callback()).
  *
  * Make sure to read the detailed description of the
  * \link flac_stream_encoder stream encoder module \endlink since the
  * seekable stream encoder inherits much of its behavior.
+ *
+ * \note
+ * If you are writing the FLAC data to a file, make sure it is open
+ * for update (e.g. mode "w+" for stdio streams).  This is because after
+ * the first encoding pass, the encoder will try to seek back to the
+ * beginning of the stream, to the STREAMINFO block, to write some data
+ * there.
  *
  * \note
  * The "set" functions may only be called when the encoder is in the

@@ -320,7 +320,7 @@ FLAC__bool FLAC__file_decoder_set_error_callback(FLAC__FileDecoder *decoder, FLA
  *  argument.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -429,7 +429,7 @@ FLAC__FileDecoderState FLAC__file_decoder_get_state(const FLAC__FileDecoder *dec
  *  Useful when the file decoder state is
  *  \c FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR.
  *
- * \param  decoder  An decoder instance to query.
+ * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__SeekableStreamDecoderState
@@ -442,7 +442,7 @@ FLAC__SeekableStreamDecoderState FLAC__file_decoder_get_seekable_stream_decoder_
  *  \c FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR and the seekable stream
  *  decoder state is \c FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR.
  *
- * \param  decoder  An decoder instance to query.
+ * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__StreamDecoderState

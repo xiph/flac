@@ -411,7 +411,7 @@ void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder);
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -431,7 +431,7 @@ FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, 
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -459,7 +459,7 @@ FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder,
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -477,7 +477,7 @@ FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decod
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -492,7 +492,7 @@ FLAC__bool FLAC__stream_decoder_set_error_callback(FLAC__StreamDecoder *decoder,
  *  argument.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode

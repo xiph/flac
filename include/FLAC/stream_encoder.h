@@ -66,8 +66,7 @@ extern "C" {
  * The basic usage of this encoder is as follows:
  * - The program creates an instance of an encoder using
  *   FLAC__stream_encoder_new().
- * - The program overrides the default settings and sets callbacks for
- *   writing and metadata reporting using
+ * - The program overrides the default settings and sets callbacks using
  *   FLAC__stream_encoder_set_*() functions.
  * - The program initializes the instance to validate the settings and
  *   prepare for encoding using FLAC__stream_encoder_init().

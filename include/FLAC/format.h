@@ -153,14 +153,6 @@ extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */
 
 
 /*****************************************************************************
- * @@@ REMOVE?
- * NOTE: Within the bitstream, all fixed-width numbers are big-endian coded.
- *       All numbers are unsigned unless otherwise noted.
- *
- *****************************************************************************/
-
-
-/*****************************************************************************
  *
  * Subframe structures
  *

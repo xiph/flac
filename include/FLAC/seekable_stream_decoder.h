@@ -442,7 +442,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamD
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -461,7 +461,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamD
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -479,7 +479,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamD
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -497,7 +497,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStrea
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -566,7 +566,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(FLAC__SeekableStream
  *  argument.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -675,7 +675,7 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_state(const F
  *  Useful when the seekable stream decoder state is
  *  \c FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR.
  *
- * \param  decoder  An decoder instance to query.
+ * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__StreamDecoderState
