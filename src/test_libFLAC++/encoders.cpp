@@ -390,7 +390,7 @@ public:
 
 ::FLAC__SeekableStreamEncoderTellStatus SeekableStreamEncoder::tell_callback(FLAC__uint64 *absolute_byte_offset)
 {
-	(void)absolute_byte_offset;
+	*absolute_byte_offset = 0;
 
 	return ::FLAC__SEEKABLE_STREAM_ENCODER_TELL_STATUS_OK;
 }

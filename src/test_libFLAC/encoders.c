@@ -424,7 +424,8 @@ FLAC__SeekableStreamEncoderSeekStatus seekable_stream_encoder_seek_callback_(con
 
 FLAC__SeekableStreamEncoderTellStatus seekable_stream_encoder_tell_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
 {
-	(void)encoder, (void)absolute_byte_offset, (void)client_data;
+	(void)encoder, (void)client_data;
+	*absolute_byte_offset = 0;
 	return FLAC__SEEKABLE_STREAM_ENCODER_TELL_STATUS_OK;
 }
 
