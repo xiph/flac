@@ -67,8 +67,7 @@
  *
  * By writing a little code and linking against libFLAC, it is
  * relatively easy to add FLAC support to another program.  The
- * library is licensed under the
- * <A HREF="http://www.gnu.org/copyleft/lesser.html">LGPL</A>.
+ * library is licensed under Xiph's BSD license.
  * Complete source code of libFLAC as well as the command-line
  * encoder and plugins is available and is a useful source of
  * examples.
@@ -89,7 +88,7 @@
  * to provide routines for encoding to and decoding from FLAC streams
  * inside an Ogg container.  The interfaces are very similar or identical
  * to their counterparts in libFLAC.  libOggFLAC is also licensed under
- * the LGPL.
+ * Xiph's BSD license.
  *
  * \section cpp_api FLAC C++ API
  *
@@ -106,8 +105,8 @@
  * for encoding to and decoding from FLAC streams in an Ogg container.
  * The classes are very similar to their counterparts in libFLAC++.
  *
- * Both libFLAC++ libOggFLAC++ are also licensed under the
- * <A HREF="http://www.gnu.org/copyleft/lesser.html">LGPL</A>.
+ * Both libFLAC++ libOggFLAC++ are also licensed under Xiph's BSD
+ * license.
  *
  * \section getting_started Getting Started
  *
