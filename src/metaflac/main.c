@@ -129,13 +129,14 @@ bool list(FILE *f, bool verbose)
 {
 	static byte buf[65536], *b;
 	FLAC__StreamMetaData metadata;
-	unsigned blocknum = 0, i;
+	unsigned blocknum = 0, byte_offset = 0, i;
 
 	/* read the stream sync code */
 	if(fread(buf, 1, 4, f) < 4 || memcmp(buf, sync_string_, 4)) {
 		fprintf(stderr, "ERROR: not a FLAC file (no '%s' header)\n", sync_string_);
 		return false;
 	}
+	byte_offset += 4;
 
 	/* read the metadata blocks */
 	do {
@@ -149,7 +150,8 @@ bool list(FILE *f, bool verbose)
 		metadata.length = unpack_uint32(buf+1, 3);
 
 		/* print header */
-		printf("METADATA block #%u:\n", blocknum);	
+		printf("METADATA block #%u\n", blocknum);
+		printf("byte offset: %u\n", byte_offset);
 		printf("type: %u (%s)\n", (unsigned)metadata.type, metadata.type<=FLAC__METADATA_TYPE_APPLICATION? metadata_type_string_[metadata.type] : "UNKNOWN");
 		printf("is last: %s\n", metadata.is_last? "true":"false");
 		printf("length: %u\n", metadata.length);
@@ -231,6 +233,7 @@ bool list(FILE *f, bool verbose)
 			printf("\n");
 
 		blocknum++;
+		byte_offset += (4 + metadata.length);
 	} while (!metadata.is_last);
 
 	return true;
