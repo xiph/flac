@@ -1455,7 +1455,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	if(!convert_to_seek_table_template(options.requested_seek_points, options.num_requested_seek_points, options.cued_seekpoints? cuesheet : 0, e)) {
 		flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for seek table\n", e->inbasefilename);
 		if(0 != cuesheet)
-			free(cuesheet);
+			FLAC__metadata_object_delete(cuesheet);
 		return false;
 	}
 
@@ -1510,7 +1510,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			if(OggFLAC__stream_encoder_init(e->encoder.ogg.stream) != FLAC__STREAM_ENCODER_OK) {
 				print_error_with_state(e, "ERROR initializing encoder");
 				if(0 != cuesheet)
-					free(cuesheet);
+					FLAC__metadata_object_delete(cuesheet);
 				return false;
 			}
 		}
@@ -1545,7 +1545,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			if(OggFLAC__file_encoder_init(e->encoder.ogg.file) != OggFLAC__FILE_ENCODER_OK) {
 				print_error_with_state(e, "ERROR initializing encoder");
 				if(0 != cuesheet)
-					free(cuesheet);
+					FLAC__metadata_object_delete(cuesheet);
 				return false;
 			}
 		}
@@ -1582,7 +1582,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		if(FLAC__stream_encoder_init(e->encoder.flac.stream) != FLAC__STREAM_ENCODER_OK) {
 			print_error_with_state(e, "ERROR initializing encoder");
 			if(0 != cuesheet)
-				free(cuesheet);
+				FLAC__metadata_object_delete(cuesheet);
 			return false;
 		}
 	}
@@ -1616,13 +1616,13 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		if(FLAC__file_encoder_init(e->encoder.flac.file) != FLAC__FILE_ENCODER_OK) {
 			print_error_with_state(e, "ERROR initializing encoder");
 			if(0 != cuesheet)
-				free(cuesheet);
+				FLAC__metadata_object_delete(cuesheet);
 			return false;
 		}
 	}
 
 	if(0 != cuesheet)
-		free(cuesheet);
+		FLAC__metadata_object_delete(cuesheet);
 
 	return true;
 }
