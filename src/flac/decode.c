@@ -491,7 +491,7 @@ FLAC__bool init(const char *infilename, stream_info_struct *stream_info)
 		 * the callback down to 'FLAC__StreamDecoder *'.  In C++ this would be
 		 * unnecessary but here the cast makes the C compiler happy.
 		 */
-		FLAC__stream_decoder_set_write_callback(stream_info->decoder.stream, (FLAC__StreamDecoderWriteStatus (*)(const FLAC__StreamDecoder *, const FLAC__Frame *, const FLAC__int32 *[], void *))write_callback);
+		FLAC__stream_decoder_set_write_callback(stream_info->decoder.stream, (FLAC__StreamDecoderWriteStatus (*)(const FLAC__StreamDecoder *, const FLAC__Frame *, const FLAC__int32 * const [], void *))write_callback);
 		FLAC__stream_decoder_set_metadata_callback(stream_info->decoder.stream, (void (*)(const FLAC__StreamDecoder *, const FLAC__StreamMetadata *, void *))metadata_callback);
 		FLAC__stream_decoder_set_error_callback(stream_info->decoder.stream, (void (*)(const FLAC__StreamDecoder *, FLAC__StreamDecoderErrorStatus, void *))error_callback);
 		FLAC__stream_decoder_set_client_data(stream_info->decoder.stream, stream_info);
