@@ -17,7 +17,8 @@
 #  Boston, MA  02111-1307, USA.
 
 # nasm build rule:
-%.lo: %.s
+SUFFIXES = .s .lo
+.s.lo:
 	$(NASM) -f elf -d ELF $< -o $@
 
 noinst_LTLIBRARIES = libFLAC-asm.la
