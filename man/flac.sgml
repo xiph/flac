@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>September 3, 2002</date>">
+  <!ENTITY dhdate      "<date>September 19, 2002</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -181,6 +181,33 @@
 		</listitem>
 	      </varlistentry>
 
+	      <varlistentry>
+		<term><option>--ogg</option></term>
+
+		<listitem>
+		  <para>When encoding, generate Ogg-FLAC output instead
+		    of native-FLAC.  Ogg-FLAC streams are FLAC streams
+		    wrapped in an Ogg transport layer.  The resulting
+		    file should have an '.ogg' extension and will still
+		    be decodable by flac.</para>
+		  <para>When decoding, force the input to be treated as
+		    Ogg-FLAC.  This is useful when piping input from
+		    stdin or when the filename does not end in '.ogg'.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>--serial-number</option>=<replaceable>#</replaceable></term>
+
+		<listitem>
+		  <para>When used with --ogg, specifies the serial
+		    number to use for the FLAC stream.  When encoding and
+		    no serial number is given, flac uses '0'.  When
+		    decoding and no number is given, flac uses the serial
+		    number of the first page.</para>
+		</listitem>
+	      </varlistentry>
+
 	    </variablelist>
 	  </refsect2>
 
@@ -248,33 +275,6 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>--ogg</option></term>
-
-		<listitem>
-		  <para>When encoding, generate Ogg-FLAC output instead
-		    of native-FLAC.  Ogg-FLAC streams are FLAC streams
-		    wrapped in an Ogg transport layer.  The resulting
-		    file should have an '.ogg' extension and will still
-		    be decodable by flac.</para>
-		  <para>When decoding, force the input to be treated as
-		    Ogg-FLAC.  This is useful when piping input from
-		    stdin or when the filename does not end in '.ogg'.</para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term><option>--ogg</option>=<replaceable>#</replaceable></term>
-
-		<listitem>
-		  <para>When used with --ogg, specifies the serial
-		    number to use for the FLAC stream.  When encoding and
-		    no serial number is given, flac uses '0'.  When
-		    decoding and no number is given, flac uses the serial
-		    number of the first page.</para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
 		<term><option>--lax</option></term>
 
 		<listitem>
@@ -332,6 +332,20 @@
 		    header bytes.  You can force no PADDING block at
 		    all to be written with -P-, which is the default.
 		    </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-T</option> <replaceable>FIELD=VALUE</replaceable>, <option>--tag</option>=<replaceable>FIELD=VALUE</replaceable></term>
+
+		<listitem>
+		  <para>Add a Vorbis comment.  The comment must adhere
+		    to the Vorbis comment spec; i.e. the FIELD must
+		    contain only legal characters, terminated by an
+		    'equals' sign.  Make sure to quote the comment if
+		    necessary.  This option may appear more than once
+		    to add several comments.  NOTE: all tags will be
+		    added to all encoded files.</para>
 		</listitem>
 	      </varlistentry>
 

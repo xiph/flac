@@ -1154,7 +1154,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 {
 	unsigned num_metadata;
 	FLAC__StreamMetadata padding;
-	FLAC__StreamMetadata *metadata[2];
+	FLAC__StreamMetadata *metadata[3];
 
 	if(channels != 2)
 		options.do_mid_side = options.loose_mid_side = false;
@@ -1165,6 +1165,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	}
 
 	num_metadata = 0;
+	metadata[num_metadata++] = options.vorbis_comment;
 	if(e->seek_table_template->data.seek_table.num_points > 0) {
 		e->seek_table_template->is_last = false; /* the encoder will set this for us */
 		metadata[num_metadata++] = e->seek_table_template;

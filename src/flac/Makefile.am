@@ -32,9 +32,11 @@ flac_SOURCES = \
 	encode.c \
 	file.c \
 	main.c \
+	vorbiscomment.c \
 	analyze.h \
 	decode.h \
 	encode.h \
-	file.h
+	file.h \
+	vorbiscomment.h
 
 flac_LDADD = $(NEED_OGGFLAC_LIB) $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ @SHARE_LIBS@ -lm

@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "03 September 2002" "" ""
+.TH "FLAC" "1" "19 September 2002" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -75,6 +75,24 @@ is left intact.
 Skip the specified number of samples at the
 beginning of the input file (can be used for both
 encoding and decoding)
+.TP
+\fB--ogg\fR
+When encoding, generate Ogg-FLAC output instead
+of native-FLAC.  Ogg-FLAC streams are FLAC streams
+wrapped in an Ogg transport layer.  The resulting
+file should have an '.ogg' extension and will still
+be decodable by flac.
+
+When decoding, force the input to be treated as
+Ogg-FLAC.  This is useful when piping input from
+stdin or when the filename does not end in '.ogg'.
+.TP
+\fB--serial-number=\fI#\fB\fR
+When used with --ogg, specifies the serial
+number to use for the FLAC stream.  When encoding and
+no serial number is given, flac uses '0'.  When
+decoding and no number is given, flac uses the serial
+number of the first page.
 .SS "ANALYSIS OPTIONS"
 .TP
 \fB--residual-text \fR
@@ -103,24 +121,6 @@ sections.
 Verify a correct encoding by decoding the
 output in parallel and comparing to the
 original
-.TP
-\fB--ogg\fR
-When encoding, generate Ogg-FLAC output instead
-of native-FLAC.  Ogg-FLAC streams are FLAC streams
-wrapped in an Ogg transport layer.  The resulting
-file should have an '.ogg' extension and will still
-be decodable by flac.
-
-When decoding, force the input to be treated as
-Ogg-FLAC.  This is useful when piping input from
-stdin or when the filename does not end in '.ogg'.
-.TP
-\fB--ogg=\fI#\fB\fR
-When used with --ogg, specifies the serial
-number to use for the FLAC stream.  When encoding and
-no serial number is given, flac uses '0'.  When
-decoding and no number is given, flac uses the serial
-number of the first page.
 .TP
 \fB--lax\fR
 Allow encoder to generate non-Subset
@@ -160,6 +160,15 @@ of the PADDING block will be 4 bytes longer than
 the length given because of the 4 metadata block
 header bytes.  You can force no PADDING block at
 all to be written with -P-, which is the default.
+.TP
+\fB-T \fIFIELD=VALUE\fB, --tag=\fIFIELD=VALUE\fB\fR
+Add a Vorbis comment.  The comment must adhere
+to the Vorbis comment spec; i.e. the FIELD must
+contain only legal characters, terminated by an
+\&'equals' sign.  Make sure to quote the comment if
+necessary.  This option may appear more than once
+to add several comments.  NOTE: all tags will be
+added to all encoded files.
 .TP
 \fB-b \fI#\fB, --blocksize=\fI#\fB\fR
 Specify the block size in samples.  The

@@ -19,7 +19,7 @@
 #ifndef flac__encode_h
 #define flac__encode_h
 
-#include "FLAC/ordinals.h"
+#include "FLAC/metadata.h"
 
 typedef struct {
 	FLAC__bool verbose;
@@ -51,6 +51,8 @@ typedef struct {
 	FLAC__int32 **align_reservoir;
 	unsigned *align_reservoir_samples;
 	FLAC__bool sector_align;
+
+	FLAC__StreamMetadata *vorbis_comment;
 } encode_options_t;
 
 typedef struct {

@@ -372,6 +372,23 @@
 				Skip over the first # of samples of the input.  This works for both encoding and decoding, but not testing.
 			</TD>
 		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--ogg</TT>
+			</TD>
+			<TD>
+				When encoding, generate Ogg-FLAC output instead of native-FLAC.  Ogg-FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <TT><B>flac</B></TT>.<P>
+				When decoding, force the input to be treated as Ogg-FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--serial-number=#</TT>
+			</TD>
+			<TD>
+				When used with --ogg, specifies the serial number to use the for the FLAC stream.  When encoding and no serial number is given, flac uses '0'.  When decoding and no number is given, flac uses the serial number of the first page.<P>
+			</TD>
+		</TR>
 	</TABLE>
 	</TD></TR></TABLE>
 	</P>
@@ -439,23 +456,6 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>--ogg</TT>
-			</TD>
-			<TD>
-				When encoding, generate Ogg-FLAC output instead of native-FLAC.  Ogg-FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <TT><B>flac</B></TT>.<P>
-				When decoding, force the input to be treated as Ogg-FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>--serial-number=#</TT>
-			</TD>
-			<TD>
-				When used with --ogg, specifies the serial number to use the for the FLAC stream.  When encoding and no serial number is given, flac uses '0'.  When decoding and no number is given, flac uses the serial number of the first page.<P>
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 				<TT>--lax</TT>
 			</TD>
 			<TD>
@@ -501,6 +501,14 @@
 			</TD>
 			<TD>
 				Tell the encoder to write a <TT>PADDING</TT> metadata block of the given length (in bytes) after the <TT>STREAMINFO</TT> block.  This is useful if you plan to tag the file later with an <TT>APPLICATION</TT> block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the <TT>PADDING</TT> block.  Note that the total length of the <TT>PADDING</TT> block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no <TT>PADDING</TT> block at all to be written with <TT>-P-</TT>, which is the default.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>-T FIELD=VALUE</TT>, <TT>--tag=FIELD=VALUE</TT>
+			</TD>
+			<TD>
+				Add a Vorbis comment.  The comment must adhere to the Vorbis comment spec; i.e. the FIELD must contain only legal characters, terminated by an 'equals' sign.  Make sure to quote the comment if necessary.  This option may appear more than once to add several comments.  NOTE: all tags will be added to all encoded files.
 			</TD>
 		</TR>
 		<TR>

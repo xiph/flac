@@ -17,6 +17,7 @@
  */
 
 #include <ctype.h>
+#include <locale.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +33,7 @@
 #include "decode.h"
 #include "encode.h"
 #include "file.h"
+#include "vorbiscomment.h"
 
 #if 0
 /*[JEC] was:#if HAVE_GETOPT_LONG*/
@@ -45,7 +47,7 @@ typedef enum { RAW, WAV, AIF } FileFormat;
 
 static int do_it();
 
-static void init_options();
+static FLAC__bool init_options();
 static int parse_options(int argc, char *argv[]);
 static int parse_option(int short_option, const char *long_option, const char *option_argument);
 static void free_options();
@@ -93,6 +95,7 @@ static struct FLAC__share__option long_options_[] = {
 	/*
 	 * encoding options
 	 */
+	{ "tag", 1, 0, 'T' },
 	{ "compression-level-0", 0, 0, '0' },
 	{ "compression-level-1", 0, 0, '1' },
 	{ "compression-level-2", 0, 0, '2' },
@@ -221,6 +224,8 @@ static struct {
 
 	unsigned num_files;
 	char **filenames;
+
+	FLAC__StreamMetadata *vorbis_comment;
 } option_values;
 
 
@@ -239,10 +244,15 @@ int main(int argc, char *argv[])
 {
 	int retval = 0;
 
-	init_options();
-
-	if((retval = parse_options(argc, argv)) == 0)
-		retval = do_it();
+	setlocale(LC_ALL, "");
+	if(!init_options()) {
+		fprintf(stderr, "ERROR: allocating memory\n");
+		retval = 1;
+	}
+	else {
+		if((retval = parse_options(argc, argv)) == 0)
+			retval = do_it();
+	}
 
 	free_options();
 
@@ -434,7 +444,7 @@ int do_it()
 	return retval;
 }
 
-void init_options()
+FLAC__bool init_options()
 {
 	option_values.show_help = false;
 	option_values.show_explain = false;
@@ -479,6 +489,11 @@ void init_options()
 
 	option_values.num_files = 0;
 	option_values.filenames = 0;
+
+	if(0 == (option_values.vorbis_comment = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)))
+		return false;
+
+	return true;
 }
 
 int parse_options(int argc, char *argv[])
@@ -487,7 +502,7 @@ int parse_options(int argc, char *argv[])
 	int option_index = 1;
 	FLAC__bool had_error = false;
 	/*@@@ E and R: are deprecated */
-	const char *short_opts = "0123456789ab:cdeFhHl:mMo:pP:q:r:sS:tvV";
+	const char *short_opts = "0123456789ab:cdeFhHl:mMo:pP:q:r:sS:tT:vV";
 
 	while ((short_option = FLAC__share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
 		switch (short_option) {
@@ -664,6 +679,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 	}
 	else {
+		const char *violation;
 		switch(short_option) {
 			case 'h':
 				option_values.show_help = true;
@@ -697,6 +713,11 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 'F':
 				option_values.continue_through_decode_errors = true;
+				break;
+			case 'T':
+				FLAC__ASSERT(0 != option_argument);
+				if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, &violation))
+					return usage_error("ERROR: (-T/--tag) %s\n", violation);
 				break;
 			case '0':
 				option_values.do_exhaustive_model_search = false;
@@ -867,6 +888,8 @@ void free_options()
 {
 	if(0 != option_values.filenames)
 		free(option_values.filenames);
+	if(0 != option_values.vorbis_comment)
+		FLAC__metadata_object_delete(option_values.vorbis_comment);
 }
 
 int usage_error(const char *message, ...)
@@ -975,6 +998,7 @@ void show_help()
 	printf("      --sector-align           Align multiple files on sector boundaries\n");
 	printf("  -S, --seekpoint={#|X|#x}     Add seek point(s)\n");
 	printf("  -P, --padding=#              Write a PADDING block of length #\n");
+	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment; may appear multiple times\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
 	printf("  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 2,2\n");
 	printf("  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3\n");
@@ -1145,6 +1169,10 @@ void show_explain()
 	printf("                               576, 1152, 2304, 4608, 256, 512, 1024, 2048,\n");
 	printf("                               4096, 8192, 16384, or 32768 (unless --lax is\n");
 	printf("                               used)\n");
+	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment.  Make sure to quote the\n");
+	printf("                               comment if necessary.  This option may appear\n");
+	printf("                               more than once to add several comments.  NOTE:\n");
+	printf("                               all tags will be added to all encoded files.\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
 	printf("  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 2,2\n");
 	printf("  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3\n");
@@ -1334,6 +1362,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	common_options.align_reservoir = align_reservoir;
 	common_options.align_reservoir_samples = &align_reservoir_samples;
 	common_options.sector_align = option_values.sector_align;
+	common_options.vorbis_comment = option_values.vorbis_comment;
 
 	if(fmt == RAW) {
 		raw_encode_options_t options;
