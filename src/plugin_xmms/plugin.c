@@ -399,7 +399,7 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 	(void)decoder;
 
 	if(file_info->abort_flag)
-		return FLAC__STREAM_DECODER_WRITE_ABORT;
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
 	if(bps == 8) {
 		for(sample = reservoir_samples_*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
@@ -413,12 +413,12 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 	}
 	else {
 		file_info->abort_flag = true;
-		return FLAC__STREAM_DECODER_WRITE_ABORT;
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 
 	reservoir_samples_ += wide_samples;
 
-	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
 void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
@@ -450,6 +450,6 @@ void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorS
 {
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	(void)decoder;
-	if(status != FLAC__STREAM_DECODER_ERROR_LOST_SYNC)
+	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
 		file_info->abort_flag = true;
 }

@@ -264,7 +264,7 @@ FLAC__StreamDecoderWriteStatus FlacPcm::writeCallback_(const FLAC__SeekableStrea
 	(void)decoder;
 
 	if(instance->abort_flag)
-		return FLAC__STREAM_DECODER_WRITE_ABORT;
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
 	for(sample = instance->samples_in_reservoir*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 		for(channel = 0; channel < channels; channel++, sample++)
@@ -272,7 +272,7 @@ FLAC__StreamDecoderWriteStatus FlacPcm::writeCallback_(const FLAC__SeekableStrea
 
 	instance->samples_in_reservoir += wide_samples;
 
-	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
 void FlacPcm::metadataCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
@@ -294,7 +294,7 @@ void FlacPcm::errorCallback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__S
 {
 	FlacPcm *instance = (FlacPcm*)client_data;
 	(void)decoder;
-	if(status != FLAC__STREAM_DECODER_ERROR_LOST_SYNC)
+	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
 		instance->abort_flag = true;
 }
 

@@ -563,22 +563,22 @@ FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder *decoder, 
 	*bytes = 0;
 
 	if (stream_info->abort_flag)
-		return FLAC__STREAM_DECODER_READ_ABORT;
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 
 	oggbuf = ogg_sync_buffer(&stream_info->ogg.oy, OGG_READ_BUFFER_SIZE);
 
 	(void)decoder; /* avoid compiler warning */
 
 	if(feof(fin))
-		return FLAC__STREAM_DECODER_READ_END_OF_STREAM;
+		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 
 	bytes_read = fread(oggbuf, 1, OGG_READ_BUFFER_SIZE, fin);
 
 	if(ferror(fin))
-		return FLAC__STREAM_DECODER_READ_ABORT;
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 
 	if(ogg_sync_wrote(&stream_info->ogg.oy, bytes_read) < 0)
-		return FLAC__STREAM_DECODER_READ_ABORT;
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 
 	while(ogg_sync_pageout(&stream_info->ogg.oy, &og) == 1) {
 		if(ogg_stream_pagein(&stream_info->ogg.os, &og) == 0) {
@@ -590,11 +590,11 @@ FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder *decoder, 
 				offset += op.bytes;
 			}
 		} else {
-			return FLAC__STREAM_DECODER_READ_ABORT;
+			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 		}
 	}
 
-	return FLAC__STREAM_DECODER_READ_CONTINUE;
+	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 }
 #endif
 
@@ -616,7 +616,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 	(void)decoder;
 
 	if(stream_info->abort_flag)
-		return FLAC__STREAM_DECODER_WRITE_ABORT;
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
 	stream_info->samples_processed += wide_samples;
 	stream_info->frame_counter++;
@@ -640,7 +640,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 						s8buffer[sample] = (FLAC__int8)(buffer[channel][wide_sample]);
 			}
 			if(fwrite(u8buffer, 1, sample, fout) != sample)
-				return FLAC__STREAM_DECODER_WRITE_ABORT;
+				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
 		else if(bps == 16) {
 			if(is_unsigned_samples) {
@@ -663,7 +663,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 				}
 			}
 			if(fwrite(u16buffer, 2, sample, fout) != sample)
-				return FLAC__STREAM_DECODER_WRITE_ABORT;
+				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
 		else if(bps == 24) {
 			if(is_unsigned_samples) {
@@ -709,13 +709,13 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 				}
 			}
 			if(fwrite(u8buffer, 3, sample, fout) != sample)
-				return FLAC__STREAM_DECODER_WRITE_ABORT;
+				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
 		else {
 			FLAC__ASSERT(0);
 		}
 	}
-	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
 void metadata_callback(const void *decoder, const FLAC__StreamMetaData *metadata, void *client_data)

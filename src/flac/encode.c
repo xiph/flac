@@ -1194,7 +1194,7 @@ FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *de
 		encoder_wrapper->verify_fifo.encoded_bytes -= *bytes;
 	}
 
-	return FLAC__STREAM_DECODER_READ_CONTINUE;
+	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 }
 
 FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
@@ -1224,7 +1224,7 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 			FLAC__ASSERT(l < r);
 			FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 			fprintf(stderr, "       Absolute sample=%u, frame=%u, channel=%u, sample=%u, expected %d, got %d\n", (unsigned)frame->header.number.sample_number + sample, (unsigned)frame->header.number.sample_number / FLAC__stream_decoder_get_blocksize(decoder), channel, sample, expect, got); /*@@@ WATCHOUT: 4GB limit */
-			return FLAC__STREAM_DECODER_WRITE_ABORT;
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
 	}
 	/* dequeue the frame from the fifo */
@@ -1234,7 +1234,7 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 		}
 	}
 	encoder_wrapper->verify_fifo.tail -= frame->header.blocksize;
-	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
 void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
