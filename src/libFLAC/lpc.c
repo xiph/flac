@@ -113,6 +113,9 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 {
 	unsigned i;
 	FLAC__real d, cmax = -1e32;
+	FLAC__int32 qmax, qmin;
+	const int max_shiftlimit = (1 << (FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN-1)) - 1;
+	const int min_shiftlimit = -max_shiftlimit - 1;
 
 	FLAC__ASSERT(bits_per_sample > 0);
 	FLAC__ASSERT(bits_per_sample <= sizeof(FLAC__int32)*8);
@@ -125,6 +128,9 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 
 	/* drop one bit for the sign; from here on out we consider only |lp_coeff[i]| */
 	precision--;
+	qmax = 1 << precision;
+	qmin = -qmax;
+	qmax--;
 
 	for(i = 0; i < order; i++) {
 		if(lp_coeff[i] == 0.0)
@@ -133,14 +139,14 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 		if(d > cmax)
 			cmax = d;
 	}
+redo_it:
 	if(cmax < 0.0) {
 		/* => coefficients are all 0, which means our constant-detect didn't work */
 		return 2;
 	}
 	else {
-		const int maxshift = (int)precision - (int)floor(log(cmax) / M_LN2) - 1;
-		const int max_shiftlimit = (1 << (FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN-1)) - 1;
-		const int min_shiftlimit = -max_shiftlimit - 1;
+		const int log2cmax = (int)floor(log(cmax) / M_LN2); /* this is a good estimate but may not be precise enough, so we have to check for corner cases later when shifting */
+		const int maxshift = (int)precision - log2cmax - 1;
 
 		*shift = maxshift;
 
@@ -150,8 +156,38 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 	}
 
 	if(*shift != 0) { /* just to avoid wasting time... */
-		for(i = 0; i < order; i++)
-			qlp_coeff[i] = (FLAC__int32)floor(lp_coeff[i] * (FLAC__real)(1 << *shift));
+		if(*shift > 0) {
+			for(i = 0; i < order; i++) {
+				qlp_coeff[i] = (FLAC__int32)floor((double)lp_coeff[i] * (double)(1 << *shift));
+
+				/* check for corner cases mentioned in the comment for log2cmax above */
+				if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
+#ifdef FLAC__OVERFLOW_DETECT
+					fprintf(stderr, "FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (double)lp_coeff[i] * (double)(1 << *shift), floor((double)lp_coeff[i] * (double)(1 << *shift)));
+#endif
+					cmax *= 2.0;
+					goto redo_it;
+				}
+			}
+		}
+		else { /* (*shift < 0) */
+			const int nshift = -(*shift);
+#ifdef FLAC__OVERFLOW_DETECT
+			fprintf(stderr, "FLAC__lpc_quantize_coefficients: negative shift = %d\n", *shift);
+#endif
+			for(i = 0; i < order; i++) {
+				qlp_coeff[i] = (FLAC__int32)floor((double)lp_coeff[i] / (double)(1 << nshift));
+
+				/* check for corner cases mentioned in the comment for log2cmax above */
+				if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
+#ifdef FLAC__OVERFLOW_DETECT
+					fprintf(stderr, "FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (double)lp_coeff[i] / (double)(1 << nshift), floor((double)lp_coeff[i] / (double)(1 << nshift)));
+#endif
+					cmax *= 2.0;
+					goto redo_it;
+				}
+			}
+		}
 	}
 	return 0;
 }
@@ -184,7 +220,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 data[], 
 #ifdef FLAC__OVERFLOW_DETECT
 			sumo += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*history);
 			if(sumo > 2147483647ll || sumo < -2147483648ll) {
-				fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
+				fprintf(stderr, "FLAC__lpc_compute_residual_from_qlp_coefficients: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
 			}
 #endif
 		}
@@ -229,7 +265,7 @@ void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, c
 #ifdef FLAC__OVERFLOW_DETECT
 			sumo += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*history);
 			if(sumo > 2147483647ll || sumo < -2147483648ll) {
-				fprintf(stderr,"FLAC__lpc_restore_signal: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
+				fprintf(stderr, "FLAC__lpc_restore_signal: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
 			}
 #endif
 		}
