@@ -32,10 +32,10 @@ FLAC is comprised of
   * user and API documentation
 
 The libraries (libFLAC, libFLAC++, libOggFLAC, and libOggFLAC++) are
-licensed under the GNU Lesser General Public License (LGPL).  All other
+licensed under Xiph.org's BSD-like license (see COPYING.Xiph).  All other
 programs and plugins are licensed under the GNU General Public License
-(GPL).  The documentation is licensed under the GNU Free Documentation
-License (GFDL).
+(see COPYING.GPL).  The documentation is licensed under the GNU Free
+Documentation License (see COPYING.FDL).
 
 
 ===============================================================================
