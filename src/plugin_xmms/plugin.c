@@ -47,6 +47,7 @@ typedef struct {
 	FLAC__bool abort_flag;
 	FLAC__bool is_playing;
 	FLAC__bool eof;
+	FLAC__bool play_thread_open; /* if true, is_playing must also be true */
 	unsigned total_samples;
 	unsigned bits_per_sample;
 	unsigned channels;
@@ -105,8 +106,8 @@ InputPlugin flac_ip =
 #define SAMPLES_PER_WRITE 512
 static FLAC__byte reservoir_[FLAC__MAX_BLOCK_SIZE * 2 * 2 * 2]; /* *2 for max bytes-per-sample, *2 for max channels, another *2 for overflow */
 static FLAC__byte output_[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max bytes-per-sample, *2 for max channels */
-static unsigned reservoir_samples_;
-static FLAC__FileDecoder *decoder_;
+static unsigned reservoir_samples_ = 0;
+static FLAC__FileDecoder *decoder_ = 0;
 static file_info_struct file_info_;
 static pthread_t decode_thread_;
 static FLAC__bool audio_error_ = false;
@@ -127,8 +128,8 @@ int FLAC_XMMS__is_our_file(char *filename)
 	char *ext;
 
 	ext = strrchr(filename, '.');
-	if (ext)
-		if (!strcasecmp(ext, ".flac") || !strcasecmp(ext, ".fla"))
+	if(ext)
+		if(!strcasecmp(ext, ".flac") || !strcasecmp(ext, ".fla"))
 			return 1;
 	return 0;
 }
@@ -138,6 +139,13 @@ void FLAC_XMMS__play_file(char *filename)
 	FILE *f;
 	id3v1_struct tag;
 
+	reservoir_samples_ = 0;
+	audio_error_ = false;
+	file_info_.abort_flag = false;
+	file_info_.is_playing = false;
+	file_info_.eof = false;
+	file_info_.play_thread_open = false;
+
 	if(0 == (f = fopen(filename, "r")))
 		return;
 	fclose(f);
@@ -145,14 +153,11 @@ void FLAC_XMMS__play_file(char *filename)
 	if(!decoder_init_(filename))
 		return;
 
-	reservoir_samples_ = 0;
-	audio_error_ = false;
 	file_info_.is_playing = true;
-	file_info_.eof = false;
 
-	if (flac_ip.output->open_audio(file_info_.sample_format, file_info_.sample_rate, file_info_.channels) == 0) {
+	if(flac_ip.output->open_audio(file_info_.sample_format, file_info_.sample_rate, file_info_.channels) == 0) {
 		audio_error_ = true;
-		if(decoder_ && FLAC__file_decoder_get_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(decoder_)
 			FLAC__file_decoder_finish(decoder_);
 		return;
 	}
@@ -161,6 +166,7 @@ void FLAC_XMMS__play_file(char *filename)
 	flac_ip.set_info(tag.description, file_info_.length_in_msec, file_info_.sample_rate * file_info_.channels * file_info_.bits_per_sample, file_info_.sample_rate, file_info_.channels);
 
 	file_info_.seek_to_in_sec = -1;
+	file_info_.play_thread_open = true;
 	pthread_create(&decode_thread_, NULL, play_loop_, NULL);
 }
 
@@ -168,9 +174,12 @@ void FLAC_XMMS__stop()
 {
 	if(file_info_.is_playing) {
 		file_info_.is_playing = false;
-		pthread_join(decode_thread_, NULL);
+		if(file_info_.play_thread_open) {
+			file_info_.play_thread_open = false;
+			pthread_join(decode_thread_, NULL);
+		}
 		flac_ip.output->close_audio();
-		if(decoder_ && FLAC__file_decoder_get_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(decoder_)
 			FLAC__file_decoder_finish(decoder_);
 	}
 }
@@ -201,8 +210,10 @@ int FLAC_XMMS__get_time()
 
 void FLAC_XMMS__cleanup()
 {
-	if(decoder_)
+	if(decoder_) {
 		FLAC__file_decoder_delete(decoder_);
+		decoder_ = 0;
+	}
 }
 
 void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
@@ -239,8 +250,7 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 
 		*length_in_msec = (int)tmp_file_info.length_in_msec;
 
-		if(FLAC__file_decoder_get_state(tmp_decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
-			FLAC__file_decoder_finish(tmp_decoder);
+		FLAC__file_decoder_finish(tmp_decoder);
 		FLAC__file_decoder_delete(tmp_decoder);
 	}
 }
@@ -297,7 +307,6 @@ FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
 
 void *play_loop_(void *arg)
 {
-
 	(void)arg;
 
 	while(file_info_.is_playing) {
@@ -336,7 +345,7 @@ void *play_loop_(void *arg)
 		}
 		else
 			xmms_usleep(10000);
-		if (file_info_.seek_to_in_sec != -1) {
+		if(file_info_.seek_to_in_sec != -1) {
 			const double distance = (double)file_info_.seek_to_in_sec * 1000.0 / (double)file_info_.length_in_msec;
 			unsigned target_sample = (unsigned)(distance * (double)file_info_.total_samples);
 			if(FLAC__file_decoder_seek_absolute(decoder_, (FLAC__uint64)target_sample)) {
@@ -346,9 +355,9 @@ void *play_loop_(void *arg)
 				reservoir_samples_ = 0;
 			}
 		}
-
 	}
-	if(decoder_ && FLAC__file_decoder_get_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
+
+	if(decoder_)
 		FLAC__file_decoder_finish(decoder_);
 
 	/* are these two calls necessary? */
@@ -372,8 +381,6 @@ FLAC__bool decoder_init_(const char *filename)
 	FLAC__file_decoder_set_client_data(decoder_, &file_info_);
 	if(FLAC__file_decoder_init(decoder_) != FLAC__FILE_DECODER_OK)
 		return false;
-
-	file_info_.abort_flag = false;
 
 	if(!FLAC__file_decoder_process_metadata(decoder_))
 		return false;
