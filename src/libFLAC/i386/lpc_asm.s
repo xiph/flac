@@ -102,7 +102,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386
 	fld	dword [eax]			; ST = d <- data[sample]
 	mov	edx, [esp + 32]			; edx <- lag (note the +4 due to the above 'push eax')
 	mov	ebx, edi			; ebx == &autoc[coeff] <- &autoc[0]
-	and	edx, byte 3				; edx <- lag % 4
+	and	edx, byte 3			; edx <- lag % 4
 	jz	.inner_start
 	cmp	edx, byte 1
 	je	.warmup_1
@@ -581,7 +581,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386
 	mov	ecx, [eax + 4]
 	imul	ecx, [esi - 8]
 	add	ebp, ecx
-	mov	ecx, [eax]		;there is one byte missing
+	mov	ecx, [eax]			; there is one byte missing
 	imul	ecx, [esi - 4]
 	add	ebp, ecx
 .jumper_0:
@@ -980,7 +980,7 @@ cident FLAC__lpc_restore_signal_asm_i386
 	mov	ecx, [eax + 4]
 	imul	ecx, [edi - 8]
 	add	ebp, ecx
-	mov	ecx, [eax]		;there is one byte missing
+	mov	ecx, [eax]			; there is one byte missing
 	imul	ecx, [edi - 4]
 	add	ebp, ecx
 .jumper_0:
