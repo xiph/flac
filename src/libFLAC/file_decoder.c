@@ -39,6 +39,7 @@ typedef struct FLAC__FileDecoderPrivate {
 	byte computed_md5sum[16]; /* this is the sum we computed from the decoded data */
 	/* the rest of these are only used for seeking: */
 	FLAC__StreamMetaData_StreamInfo stream_info; /* we keep this around so we can figure out how to seek quickly */
+	const FLAC__StreamMetaData_SeekTable *seek_table; /* we hold a pointer to the stream decoder's seek table for the same reason */
 	FLAC__Frame last_frame; /* holds the info of the last frame we seeked to */
 	uint64 target_sample;
 } FLAC__FileDecoderPrivate;
@@ -105,6 +106,7 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	decoder->guts->stream = 0;
 	decoder->guts->file = 0;
 	decoder->guts->filename = 0;
+	decoder->guts->seek_table = 0;
 
 	if(0 == strcmp(filename, "-")) {
 		decoder->guts->file = stdin;
@@ -372,6 +374,9 @@ void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMe
 		memcpy(file_decoder->guts->stored_md5sum, metadata->data.stream_info.md5sum, 16);
 		if(0 == memcmp(file_decoder->guts->stored_md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16))
 			file_decoder->check_md5 = false;
+	}
+	else if(metadata->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+		file_decoder->guts->seek_table = &metadata->data.seek_table;
 	}
 	if(file_decoder->state != FLAC__FILE_DECODER_SEEKING)
 		file_decoder->guts->metadata_callback(file_decoder, metadata, file_decoder->guts->client_data);
