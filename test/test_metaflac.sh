@@ -29,13 +29,18 @@ if [ $? != 0 ] ; then exit 1 ; fi
 metaflac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find metaflac executable" 1>&2 && exit 1)
 if [ $? != 0 ] ; then exit 1 ; fi
 
+#FLAC="valgrind --leak-check=yes --show-reachable=yes flac"
+FLAC=flac
+#METAFLAC="valgrind --leak-check=yes --show-reachable=yes metaflac"
+METAFLAC=metaflac
+
 echo "Generating stream..."
 if [ -f /bin/sh.exe ] ; then
 	inputfile=/bin/sh.exe
 else
 	inputfile=/bin/sh
 fi
-if flac --verify -0 --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=44100 $inputfile ; then
+if $FLAC --verify -0 --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=44100 $inputfile ; then
 	chmod +w $flacfile
 else
 	echo "ERROR during generation" 1>&2
@@ -53,7 +58,7 @@ check_exit ()
 
 check_flac ()
 {
-	if flac --silent --test $flacfile ; then : ; else
+	if $FLAC --silent --test $flacfile ; then : ; else
 		echo "ERROR in $flacfile" 1>&2
 		exit 1
 	fi
@@ -61,11 +66,11 @@ check_flac ()
 
 check_flac
 
-(set -x && metaflac --list $flacfile)
+(set -x && $METAFLAC --list $flacfile)
 check_exit
 
 (set -x &&
-metaflac \
+$METAFLAC \
 	--show-md5sum \
 	--show-min-blocksize \
 	--show-max-blocksize \
@@ -79,172 +84,172 @@ metaflac \
 )
 check_exit
 
-(set -x && metaflac --preserve-modtime --add-padding=12345 $flacfile)
+(set -x && $METAFLAC --preserve-modtime --add-padding=12345 $flacfile)
 check_exit
 check_flac
 
 # some flavors of /bin/sh (e.g. Darwin's) won't handle even quoted spaces, so we underscore:
-(set -x && metaflac --set-vc-field="ARTIST=The_artist_formerly_known_as_the_artist..." $flacfile)
+(set -x && $METAFLAC --set-vc-field="ARTIST=The_artist_formerly_known_as_the_artist..." $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --set-vc-field="ARTIST=Chuck_Woolery" $flacfile)
+(set -x && $METAFLAC --set-vc-field="ARTIST=Chuck_Woolery" $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --set-vc-field="ARTIST=Vern" $flacfile)
+(set -x && $METAFLAC --set-vc-field="ARTIST=Vern" $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --set-vc-field="TITLE=He_who_smelt_it_dealt_it" $flacfile)
+(set -x && $METAFLAC --set-vc-field="TITLE=He_who_smelt_it_dealt_it" $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --show-vc-vendor --show-vc-field=ARTIST $flacfile)
+(set -x && $METAFLAC --show-vc-vendor --show-vc-field=ARTIST $flacfile)
 check_exit
 
-(set -x && metaflac --remove-vc-firstfield=ARTIST $flacfile)
+(set -x && $METAFLAC --remove-vc-firstfield=ARTIST $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove-vc-field=ARTIST $flacfile)
+(set -x && $METAFLAC --remove-vc-field=ARTIST $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --list --block-number=0 $flacfile)
+(set -x && $METAFLAC --list --block-number=0 $flacfile)
 check_exit
 
-(set -x && metaflac --list --block-number=1,2,999 $flacfile)
+(set -x && $METAFLAC --list --block-number=1,2,999 $flacfile)
 check_exit
 
-(set -x && metaflac --list --block-type=VORBIS_COMMENT,PADDING $flacfile)
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT,PADDING $flacfile)
 check_exit
 
-(set -x && metaflac --list --except-block-type=SEEKTABLE,VORBIS_COMMENT $flacfile)
+(set -x && $METAFLAC --list --except-block-type=SEEKTABLE,VORBIS_COMMENT $flacfile)
 check_exit
 
-(set -x && metaflac --add-padding=4321 $flacfile $flacfile)
+(set -x && $METAFLAC --add-padding=4321 $flacfile $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --merge-padding $flacfile)
+(set -x && $METAFLAC --merge-padding $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --add-padding=0 $flacfile)
+(set -x && $METAFLAC --add-padding=0 $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --sort-padding $flacfile)
+(set -x && $METAFLAC --sort-padding $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --add-padding=0 $flacfile)
+(set -x && $METAFLAC --add-padding=0 $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove-vc-all $flacfile)
+(set -x && $METAFLAC --remove-vc-all $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove --block-number=1,99 --dont-use-padding $flacfile)
+(set -x && $METAFLAC --remove --block-number=1,99 --dont-use-padding $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove --block-number=99 --dont-use-padding $flacfile)
+(set -x && $METAFLAC --remove --block-number=99 --dont-use-padding $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove --block-type=PADDING $flacfile)
+(set -x && $METAFLAC --remove --block-type=PADDING $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove --block-type=PADDING --dont-use-padding $flacfile)
+(set -x && $METAFLAC --remove --block-type=PADDING --dont-use-padding $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --add-padding=0 $flacfile $flacfile)
+(set -x && $METAFLAC --add-padding=0 $flacfile $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove --except-block-type=PADDING $flacfile)
+(set -x && $METAFLAC --remove --except-block-type=PADDING $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove-all $flacfile)
+(set -x && $METAFLAC --remove-all $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove-all --dont-use-padding $flacfile)
+(set -x && $METAFLAC --remove-all --dont-use-padding $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --remove-all --dont-use-padding $flacfile)
+(set -x && $METAFLAC --remove-all --dont-use-padding $flacfile)
 check_exit
 check_flac
 
-(set -x && metaflac --set-vc-field="f=0123456789abcdefghij" $flacfile)
+(set -x && $METAFLAC --set-vc-field="f=0123456789abcdefghij" $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+(set -x && $METAFLAC --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789abcdefghi" $flacfile)
+(set -x && $METAFLAC --remove-vc-all --set-vc-field="f=0123456789abcdefghi" $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+(set -x && $METAFLAC --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789abcde" $flacfile)
+(set -x && $METAFLAC --remove-vc-all --set-vc-field="f=0123456789abcde" $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+(set -x && $METAFLAC --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && metaflac --remove-vc-all --set-vc-field="f=0" $flacfile)
+(set -x && $METAFLAC --remove-vc-all --set-vc-field="f=0" $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+(set -x && $METAFLAC --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789" $flacfile)
+(set -x && $METAFLAC --remove-vc-all --set-vc-field="f=0123456789" $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+(set -x && $METAFLAC --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789abcdefghi" $flacfile)
+(set -x && $METAFLAC --remove-vc-all --set-vc-field="f=0123456789abcdefghi" $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+(set -x && $METAFLAC --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789" $flacfile)
+(set -x && $METAFLAC --remove-vc-all --set-vc-field="f=0123456789" $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+(set -x && $METAFLAC --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && metaflac --remove-vc-all --set-vc-field="f=0123456789abcdefghij" $flacfile)
+(set -x && $METAFLAC --remove-vc-all --set-vc-field="f=0123456789abcdefghij" $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --except-block-type=STREAMINFO $flacfile)
+(set -x && $METAFLAC --list --except-block-type=STREAMINFO $flacfile)
 check_exit
 
-(set -x && echo "TITLE=Tittle" | metaflac --import-vc-from=- $flacfile)
+(set -x && echo "TITLE=Tittle" | $METAFLAC --import-vc-from=- $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --block-type=VORBIS_COMMENT $flacfile)
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT $flacfile)
 check_exit
 
 cat > vc.txt << EOF
 artist=Fartist
 artist=artits
 EOF
-(set -x && metaflac --import-vc-from=vc.txt $flacfile)
+(set -x && $METAFLAC --import-vc-from=vc.txt $flacfile)
 check_exit
 check_flac
-(set -x && metaflac --list --block-type=VORBIS_COMMENT $flacfile)
+(set -x && $METAFLAC --list --block-type=VORBIS_COMMENT $flacfile)
 check_exit
 
 rm vc.txt
