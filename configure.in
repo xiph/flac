@@ -1,3 +1,6 @@
+# note that for many of the conditionals we use the prefix FLaC__
+# instead of FLAC__ since autoconf triggers off 'AC_' in strings
+
 AC_INIT(src/flac/main.c)
 AM_INIT_AUTOMAKE(flac, 0.9)
 
@@ -10,17 +13,35 @@ chmod +x libtool-disable-static
 
 AC_PROG_MAKE_SET
 
+AC_CANONICAL_TARGET
+case $target_cpu in
+	i*86)	cpu_ia32=true ;;
+	powerpc)	cpu_ppc=true ;;
+	sparc)	cpu_sparc=true ;;
+esac
+AM_CONDITIONAL(FLaC__CPU_IA32, test x$cpu_ia32 = xtrue)
+AM_CONDITIONAL(FLaC__CPU_PPC, test x$cpu_ppc = xtrue)
+AM_CONDITIONAL(FLaC__CPU_SPARC, test x$cpu_sparc = xtrue)
+
+AM_CONDITIONAL(FLaC__ALIGN_MALLOC_DATA, test x$cpu_ia32 = xtrue)
+
+AC_ARG_ENABLE(asm-optimizations, [  --disable-asm-optimizations    Don't use any assembly optimization routines], asm_opt=no, asm_opt=yes)
+AM_CONDITIONAL(FLaC__NO_ASM, test x$asm_opt = xno)
+
 AC_ARG_ENABLE(debug,
-    [  --enable-debug    Turn on debugging],
-    [case "${enableval}" in
-	yes) debug=true ;;
-	no)  debug=false ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
-    esac],[debug=false])
+	[  --enable-debug                 Turn on debugging],
+	[case "${enableval}" in
+		yes) debug=true ;;
+		no)  debug=false ;;
+		*) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+	esac],[debug=false])
 AM_CONDITIONAL(DEBUG, test x$debug = xtrue)
 
 AM_PATH_XMMS(0.9.5.1, , AC_MSG_WARN([*** XMMS >= 0.9.5.1 not installed - xmms support will not be built]))
-AM_CONDITIONAL(XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
+AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
+
+AC_CHECK_PROGS(NASM, nasm)
+AM_CONDITIONAL(FLaC__HAS_NASM, test -n "$NASM")
 
 CFLAGS='-I./include -I $(top_srcdir)/include -Wall -W'
 if test x$debug = xtrue; then
@@ -38,4 +59,4 @@ AC_OUTPUT(	Makefile	\
 		src/test_streams/Makefile	\
 		src/test_unit/Makefile	\
 		test/Makefile	\
-    	)
+		)
