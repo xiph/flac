@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "30 October 2002" "" ""
+.TH "FLAC" "1" "02 December 2002" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -147,17 +147,20 @@ Align encoding of multiple CD format WAVE
 files on sector boundaries.  See the HTML
 documentation for more information.
 .TP
-\fB-S {\fI#\fB|\fIX\fB|\fI#x\fB}, --seekpoint={\fI#\fB|\fIX\fB|\fI#x\fB}\fR
+\fB-S {\fI#\fB|\fIX\fB|\fI#x\fB|\fI#s\fB}, --seekpoint={\fI#\fB|\fIX\fB|\fI#x\fB|\fI#s\fB}\fR
 Include a point or points in a SEEKTABLE.  Using #,
 a seek point at that sample number is added.  Using
 X, a placeholder point is added at the end of a the
 table.  Using #x, # evenly spaced seek points will
-be added, the first being at sample 0.  You may use
+be added, the first being at sample 0.  Using #s, a
+seekpoint will be added every # seconds (# does not
+have to be a whole number; it can be, for example, 9.5,
+meaning a seekpoint every 9.5 seconds).  You may use
 many -S options; the resulting SEEKTABLE will be the
 unique-ified union of all such values.  With no -S
 options, flac defaults to '-S 100x'.  Use --no-seektable
-for no SEEKTABLE.  Note: '-S #x' will not work if the
-encoder can't determine the input size before
+for no SEEKTABLE.  Note: '-S #x' and '-S #s' will not
+work if the encoder can't determine the input size before
 starting.  Note: if you use '-S #' and # is >=
 samples in the input, there will be either no seek
 point entered (if the input size is determinable
