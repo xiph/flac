@@ -432,6 +432,9 @@ static FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_V
 
 FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, const FLAC__StreamMetadata *block2)
 {
+	FLAC__ASSERT(0 != block1);
+	FLAC__ASSERT(0 != block2);
+
 	if(block1->type != block2->type) {
 		return false;
     }
@@ -458,15 +461,11 @@ FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, co
 	}
 }
 
-/*@@@move
-sets the application data to 'data'.  if 'copy' is true, makes, copy, else takes ownership of pointer.  returns false if copy==true and malloc fails.
-    FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_APPLICATION);
-    FLAC__ASSERT((0 != data && length > 0) || (0 == data && length == 0 && copy == false));
-*/
 FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, unsigned length, FLAC__bool copy)
 {
 	FLAC__byte *save;
 
+	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_APPLICATION);
 	FLAC__ASSERT((0 != data && length > 0) || (0 == data && length == 0 && copy == false));
 

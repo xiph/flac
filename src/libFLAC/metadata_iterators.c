@@ -487,6 +487,7 @@ FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_SimpleIterato
 
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(0 != block);
 
 	if(!iterator->is_writable) {
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE;
@@ -587,6 +588,7 @@ FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Metadata_Simp
 
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(0 != block);
 
 	if(!iterator->is_writable)
 		return false;
