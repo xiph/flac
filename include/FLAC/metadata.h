@@ -1034,6 +1034,13 @@ FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *ob
  */
 FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object);
 
+/* @@@@ document */
+FLAC__bool FLAC__metadata_object_seektable_template_append_placeholders(FLAC__StreamMetadata *object, unsigned num);
+FLAC__bool FLAC__metadata_object_seektable_template_append_point(FLAC__StreamMetadata *object, FLAC__uint64 sample_number);
+FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC__StreamMetadata *object, FLAC__uint64 sample_numbers[], unsigned num);
+FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__StreamMetadata *object, unsigned num, FLAC__uint64 total_samples);
+FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *object, FLAC__bool compact);
+
 /** Sets the vendor string in a VORBIS_COMMENT block.
  *
  *  If \a copy is \c true, a copy of the entry is stored; otherwise, the object
