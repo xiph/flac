@@ -27,9 +27,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_;
-static FLAC__StreamMetadata *metadata_sequence_[] = { &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_ };
-static const unsigned num_metadata_ = 5;
+static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_;
+static FLAC__StreamMetadata *metadata_sequence_[] = { &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_ };
+static const unsigned num_metadata_ = 6;
 static const char *flacfilename_ = "metadata.flac";
 
 static FLAC__bool die_s_(const char *msg, const FLAC__StreamEncoder *encoder)
@@ -161,7 +161,7 @@ static void init_metadata_blocks_()
 	memcpy(application2_.data.application.id, "\x76\x54\x32\x10", 4);
 	application2_.data.application.data = 0;
 
-	vorbiscomment_.is_last = true;
+	vorbiscomment_.is_last = false;
 	vorbiscomment_.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
 	vorbiscomment_.length = (4 + 8) + 4 + (4 + 5) + (4 + 0);
 	vorbiscomment_.data.vorbis_comment.vendor_string.length = 8;
@@ -174,6 +174,60 @@ static void init_metadata_blocks_()
 	memcpy(vorbiscomment_.data.vorbis_comment.comments[0].entry, "ab=cd", 5);
 	vorbiscomment_.data.vorbis_comment.comments[1].length = 0;
 	vorbiscomment_.data.vorbis_comment.comments[1].entry = 0;
+
+	cuesheet_.is_last = true;
+	cuesheet_.type = FLAC__METADATA_TYPE_CUESHEET;
+	cuesheet_.length =
+		/* cuesheet guts */
+		(
+			FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
+		) / 8 +
+		/* 2 tracks */
+		2 * (
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN
+		) / 8 +
+		/* 3 index points */
+		3 * (
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN
+		) / 8
+	;
+	memset(cuesheet_.data.cue_sheet.media_catalog_number, 0, sizeof(cuesheet_.data.cue_sheet.media_catalog_number));
+	cuesheet_.data.cue_sheet.media_catalog_number[0] = 'j';
+	cuesheet_.data.cue_sheet.media_catalog_number[1] = 'C';
+	cuesheet_.data.cue_sheet.lead_in = 159;
+	cuesheet_.data.cue_sheet.num_tracks = 2;
+	cuesheet_.data.cue_sheet.tracks = malloc_or_die_(cuesheet_.data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track));
+	cuesheet_.data.cue_sheet.tracks[0].offset = 1;
+	cuesheet_.data.cue_sheet.tracks[0].number = 1;
+	memcpy(cuesheet_.data.cue_sheet.tracks[0].isrc, "ACBDE1234567", sizeof(cuesheet_.data.cue_sheet.tracks[0].isrc));
+	cuesheet_.data.cue_sheet.tracks[0].type = 0;
+	cuesheet_.data.cue_sheet.tracks[0].pre_emphasis = 1;
+	cuesheet_.data.cue_sheet.tracks[0].num_indices = 2;
+	cuesheet_.data.cue_sheet.tracks[0].indices = malloc_or_die_(cuesheet_.data.cue_sheet.tracks[0].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet_.data.cue_sheet.tracks[0].indices[0].offset = 0;
+	cuesheet_.data.cue_sheet.tracks[0].indices[0].number = 0;
+	cuesheet_.data.cue_sheet.tracks[0].indices[1].offset = 1234567890;
+	cuesheet_.data.cue_sheet.tracks[0].indices[1].number = 1;
+	cuesheet_.data.cue_sheet.tracks[1].offset = 12345678901;
+	cuesheet_.data.cue_sheet.tracks[1].number = 2;
+	memcpy(cuesheet_.data.cue_sheet.tracks[1].isrc, "ACBDE7654321", sizeof(cuesheet_.data.cue_sheet.tracks[1].isrc));
+	cuesheet_.data.cue_sheet.tracks[1].type = 1;
+	cuesheet_.data.cue_sheet.tracks[1].pre_emphasis = 0;
+	cuesheet_.data.cue_sheet.tracks[1].num_indices = 1;
+	cuesheet_.data.cue_sheet.tracks[1].indices = malloc_or_die_(cuesheet_.data.cue_sheet.tracks[1].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet_.data.cue_sheet.tracks[1].indices[0].offset = 0;
+	cuesheet_.data.cue_sheet.tracks[1].indices[0].number = 1;
 }
 
 static void free_metadata_blocks_()
@@ -183,6 +237,9 @@ static void free_metadata_blocks_()
 	free(vorbiscomment_.data.vorbis_comment.vendor_string.entry);
 	free(vorbiscomment_.data.vorbis_comment.comments[0].entry);
 	free(vorbiscomment_.data.vorbis_comment.comments);
+	free(cuesheet_.data.cue_sheet.tracks[0].indices);
+	free(cuesheet_.data.cue_sheet.tracks[1].indices);
+	free(cuesheet_.data.cue_sheet.tracks);
 }
 
 static FLAC__StreamEncoderWriteStatus stream_encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)

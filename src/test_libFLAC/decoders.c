@@ -39,8 +39,8 @@ typedef struct {
 typedef stream_decoder_client_data_struct seekable_stream_decoder_client_data_struct;
 typedef stream_decoder_client_data_struct file_decoder_client_data_struct;
 
-static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_;
-static FLAC__StreamMetadata *expected_metadata_sequence_[6];
+static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_;
+static FLAC__StreamMetadata *expected_metadata_sequence_[7];
 static unsigned num_expected_;
 static const char *flacfilename_ = "metadata.flac";
 static unsigned flacfilesize_;
@@ -184,6 +184,60 @@ static void init_metadata_blocks_()
 		vorbiscomment_.data.vorbis_comment.comments[1].length = 0;
 		vorbiscomment_.data.vorbis_comment.comments[1].entry = 0;
 	}
+
+	cuesheet_.is_last = true;
+	cuesheet_.type = FLAC__METADATA_TYPE_CUESHEET;
+	cuesheet_.length =
+		/* cuesheet guts */
+		(
+			FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
+		) / 8 +
+		/* 2 tracks */
+		2 * (
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN
+		) / 8 +
+		/* 3 index points */
+		3 * (
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN +
+			FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN
+		) / 8
+	;
+	memset(cuesheet_.data.cue_sheet.media_catalog_number, 0, sizeof(cuesheet_.data.cue_sheet.media_catalog_number));
+	cuesheet_.data.cue_sheet.media_catalog_number[0] = 'j';
+	cuesheet_.data.cue_sheet.media_catalog_number[1] = 'C';
+	cuesheet_.data.cue_sheet.lead_in = 159;
+	cuesheet_.data.cue_sheet.num_tracks = 2;
+	cuesheet_.data.cue_sheet.tracks = malloc_or_die_(cuesheet_.data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track));
+	cuesheet_.data.cue_sheet.tracks[0].offset = 1;
+	cuesheet_.data.cue_sheet.tracks[0].number = 1;
+	memcpy(cuesheet_.data.cue_sheet.tracks[0].isrc, "ACBDE1234567", sizeof(cuesheet_.data.cue_sheet.tracks[0].isrc));
+	cuesheet_.data.cue_sheet.tracks[0].type = 0;
+	cuesheet_.data.cue_sheet.tracks[0].pre_emphasis = 1;
+	cuesheet_.data.cue_sheet.tracks[0].num_indices = 2;
+	cuesheet_.data.cue_sheet.tracks[0].indices = malloc_or_die_(cuesheet_.data.cue_sheet.tracks[0].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet_.data.cue_sheet.tracks[0].indices[0].offset = 0;
+	cuesheet_.data.cue_sheet.tracks[0].indices[0].number = 0;
+	cuesheet_.data.cue_sheet.tracks[0].indices[1].offset = 1234567890;
+	cuesheet_.data.cue_sheet.tracks[0].indices[1].number = 1;
+	cuesheet_.data.cue_sheet.tracks[1].offset = 12345678901;
+	cuesheet_.data.cue_sheet.tracks[1].number = 2;
+	memcpy(cuesheet_.data.cue_sheet.tracks[1].isrc, "ACBDE7654321", sizeof(cuesheet_.data.cue_sheet.tracks[1].isrc));
+	cuesheet_.data.cue_sheet.tracks[1].type = 1;
+	cuesheet_.data.cue_sheet.tracks[1].pre_emphasis = 0;
+	cuesheet_.data.cue_sheet.tracks[1].num_indices = 1;
+	cuesheet_.data.cue_sheet.tracks[1].indices = malloc_or_die_(cuesheet_.data.cue_sheet.tracks[1].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet_.data.cue_sheet.tracks[1].indices[0].offset = 0;
+	cuesheet_.data.cue_sheet.tracks[1].indices[0].number = 1;
 }
 
 static void free_metadata_blocks_()
@@ -193,6 +247,9 @@ static void free_metadata_blocks_()
 	free(vorbiscomment_.data.vorbis_comment.vendor_string.entry);
 	free(vorbiscomment_.data.vorbis_comment.comments[0].entry);
 	free(vorbiscomment_.data.vorbis_comment.comments);
+	free(cuesheet_.data.cue_sheet.tracks[0].indices);
+	free(cuesheet_.data.cue_sheet.tracks[1].indices);
+	free(cuesheet_.data.cue_sheet.tracks);
 }
 
 static FLAC__bool generate_file_()
@@ -204,7 +261,8 @@ static FLAC__bool generate_file_()
 	expected_metadata_sequence_[2] = &application1_;
 	expected_metadata_sequence_[3] = &application2_;
 	expected_metadata_sequence_[4] = &vorbiscomment_;
-	num_expected_ = 5;
+	expected_metadata_sequence_[5] = &cuesheet_;
+	num_expected_ = 6;
 
 	if(!file_utils__generate_flacfile(flacfilename_, &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
 		return die_("creating the encoded file");
@@ -564,6 +622,7 @@ static FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -602,6 +661,7 @@ static FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -625,6 +685,7 @@ static FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -649,6 +710,7 @@ static FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -677,6 +739,7 @@ static FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -793,6 +856,7 @@ static FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -830,6 +894,7 @@ static FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	printf("testing FLAC__stream_decoder_delete()... ");
 	FLAC__stream_decoder_delete(decoder);
@@ -1259,6 +1324,7 @@ static FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1297,6 +1363,7 @@ static FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1320,6 +1387,7 @@ static FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1344,6 +1412,7 @@ static FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1372,6 +1441,7 @@ static FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1488,6 +1558,7 @@ static FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1525,6 +1596,7 @@ static FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	printf("testing FLAC__seekable_stream_decoder_delete()... ");
 	FLAC__seekable_stream_decoder_delete(decoder);
@@ -1785,6 +1857,7 @@ static FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1823,6 +1896,7 @@ static FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1846,6 +1920,7 @@ static FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1870,6 +1945,7 @@ static FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -1898,6 +1974,7 @@ static FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -2014,6 +2091,7 @@ static FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
@@ -2051,6 +2129,7 @@ static FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	printf("testing FLAC__file_decoder_delete()... ");
 	FLAC__file_decoder_delete(decoder);
