@@ -74,6 +74,7 @@ typedef struct {
 	uint64 samples_written;
 	unsigned current_frame;
 	verify_fifo_struct verify_fifo;
+	FLAC__StreamMetaData_SeekTable seek_table;
 } encoder_wrapper_struct;
 
 static bool is_big_endian_host;
@@ -88,7 +89,10 @@ static int32 *input[FLAC__MAX_CHANNELS];
 
 /* local routines */
 static bool init(encoder_wrapper_struct *encoder_wrapper);
-static bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, encoder_wrapper_struct *encoder_wrapper);
+static bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper);
+static bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, uint64 stream_samples, unsigned blocksize, FLAC__StreamMetaData_SeekTable *seek_table);
+static void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, uint64 sample, uint64 stream_samples, uint64 blocksize);
+static int seekpoint_compare(const FLAC__StreamMetaData_SeekPoint *l, const FLAC__StreamMetaData_SeekPoint *r);
 static void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
 static FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
@@ -100,7 +104,7 @@ static void print_stats(const encoder_wrapper_struct *encoder_wrapper);
 static bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok);
 static bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok);
 
-int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding)
+int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	FILE *fin;
@@ -252,7 +256,7 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 	encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample - skip;
 	encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
 
-	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, &encoder_wrapper))
+	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
 		goto wav_abort_;
 
 	encoder_wrapper.verify_fifo.into_frames = true;
@@ -329,7 +333,7 @@ wav_abort_:
 	return 1;
 }
 
-int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
+int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	FILE *fin;
@@ -405,7 +409,7 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 		fseek(fin, 0, SEEK_SET);
 	}
 
-	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, &encoder_wrapper))
+	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
 		goto raw_abort_;
 
 	encoder_wrapper.verify_fifo.into_frames = true;
@@ -493,7 +497,7 @@ bool init(encoder_wrapper_struct *encoder_wrapper)
 	return true;
 }
 
-bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, encoder_wrapper_struct *encoder_wrapper)
+bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper)
 {
 	if(channels != 2)
 		do_mid_side = loose_mid_side = false;
@@ -525,6 +529,11 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 		}
 	}
 
+	if(!convert_to_seek_table(requested_seek_points, num_requested_seek_points, encoder_wrapper->total_samples_to_encode, blocksize, &encoder_wrapper->seek_table)) {
+		fprintf(stderr, "ERROR allocating seek table\n");
+		return false;
+	}
+
 	encoder_wrapper->encoder->streamable_subset = !lax;
 	encoder_wrapper->encoder->channels = channels;
 	encoder_wrapper->encoder->bits_per_sample = bps;
@@ -538,6 +547,7 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 	encoder_wrapper->encoder->do_qlp_coeff_prec_search = do_qlp_coeff_prec_search;
 	encoder_wrapper->encoder->rice_optimization_level = rice_optimization_level;
 	encoder_wrapper->encoder->total_samples_estimate = encoder_wrapper->total_samples_to_encode;
+	encoder_wrapper->encoder->seek_table = (encoder_wrapper->seek_table.num_points > 0)? &encoder_wrapper->seek_table : 0;
 	encoder_wrapper->encoder->padding = padding;
 
 	if(FLAC__encoder_init(encoder_wrapper->encoder, write_callback, metadata_callback, encoder_wrapper) != FLAC__ENCODER_OK) {
@@ -546,6 +556,113 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 	}
 
 	return true;
+}
+
+bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, uint64 stream_samples, unsigned blocksize, FLAC__StreamMetaData_SeekTable *seek_table)
+{
+	unsigned i, j, real_points, placeholders;
+	char *pt = requested_seek_points, *q;
+	bool first;
+
+	seek_table->num_points = 0;
+
+	if(num_requested_seek_points == 0)
+		return true;
+
+	if(num_requested_seek_points < 0) {
+		strcpy(requested_seek_points, ",100x");
+		num_requested_seek_points = 100;
+	}
+
+	/* first count how many individual seek point we may need */
+	real_points = placeholders = 0;
+	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
+		q = strchr(pt, ',');
+		assert(0 != q);
+		*q = '\0';
+
+		if(0 == strcmp(pt, "X")) { /* -S X */
+			placeholders++;
+		}
+		else if(pt[strlen(pt)-1] == 'x') { /* -S #x */
+			if(stream_samples > 0) /* we can only do these if we know the number of samples to encode up front */
+				real_points += (unsigned)atoi(pt);
+		}
+		else { /* -S # */
+			real_points++;
+		}
+		*q++ = ',';
+
+		pt = q;
+	}
+
+	/* make some space */
+	if(0 == (seek_table->points = (FLAC__StreamMetaData_SeekPoint*)malloc(sizeof(FLAC__StreamMetaData_SeekPoint) * (real_points+placeholders))))
+		return false;
+
+	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
+		q = strchr(pt, ',');
+		assert(0 != q);
+		*q++ = '\0';
+
+		if(0 == strcmp(pt, "X")) { /* -S X */
+			placeholders++;
+		}
+		else if(pt[strlen(pt)-1] == 'x') { /* -S #x */
+			if(stream_samples > 0) { /* we can only do these if we know the number of samples to encode up front */
+				unsigned j, n;
+				n = (unsigned)atoi(pt);
+				for(j = 0; j < n; j++)
+					append_point_to_seek_table(seek_table, stream_samples * (uint64)j / (uint64)n, stream_samples, blocksize);
+			}
+		}
+		else { /* -S # */
+			append_point_to_seek_table(seek_table, (uint64)atoi(pt), stream_samples, blocksize);
+		}
+
+		pt = q;
+	}
+
+	/* sort the seekpoints */
+	qsort(seek_table->points, seek_table->num_points, sizeof(FLAC__StreamMetaData_SeekPoint), (int (*)(const void *, const void *))seekpoint_compare);
+
+	/* uniqify the seekpoints */
+	first = false;
+	for(i = j = 0; i < seek_table->num_points; i++) {
+		if(!first) {
+			if(seek_table->points[i].sample_number == seek_table->points[j-1].sample_number)
+				continue;
+		}
+		first = false;
+		seek_table->points[j++] = seek_table->points[i];
+	}
+	seek_table->num_points = j;
+
+	/* append placeholders */
+	for(i = 0, j = seek_table->num_points; i < placeholders; i++, j++)
+		seek_table->points[j].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+	seek_table->num_points += placeholders;
+
+	return true;
+}
+
+void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, uint64 sample, uint64 stream_samples, uint64 blocksize)
+{
+	const uint64 target_sample = (sample / blocksize) * blocksize;
+
+	if(stream_samples == 0 || target_sample < stream_samples)
+		seek_table->points[seek_table->num_points++].sample_number = target_sample;
+}
+
+int seekpoint_compare(const FLAC__StreamMetaData_SeekPoint *l, const FLAC__StreamMetaData_SeekPoint *r)
+{
+	/* we don't just 'return l->sample_number - r->sample_number' since the result (int64) might overflow an 'int' */
+	if(l->sample_number == r->sample_number)
+		return 0;
+	else if(l->sample_number < r->sample_number)
+		return -1;
+	else
+		return 1;
 }
 
 void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper)

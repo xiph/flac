@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
 	int format_is_wave = -1, format_is_big_endian = -1, format_is_unsigned_samples = false;
 	int format_channels = -1, format_bps = -1, format_sample_rate = -1;
 	int blocksize = -1, rice_optimization_level = -1;
+	char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER */
+	int num_requested_seek_points = -1; /* -1 => no -S options were given, 0 => -S- was given */
 
 	aopts.do_residual_text = false;
 	aopts.do_residual_gnuplot = false;
@@ -67,6 +69,17 @@ int main(int argc, char *argv[])
 			verbose = false;
 		else if(0 == strcmp(argv[i], "-s-"))
 			verbose = true;
+		else if(0 == strcmp(argv[i], "-S")) {
+			if(num_requested_seek_points < 0)
+				num_requested_seek_points = 0;
+			num_requested_seek_points++;
+			strcat(requested_seek_points, argv[++i]);
+			strcat(requested_seek_points, "<");
+		}
+		else if(0 == strcmp(argv[i], "-S-")) {
+			num_requested_seek_points = 0;
+			requested_seek_points[0] = '\0';
+		}
 		else if(0 == strcmp(argv[i], "--skip"))
 			skip = (uint64)atoi(argv[++i]); /* @@@ takes a pretty damn big file to overflow atoi() here, but it could happen */
 		else if(0 == strcmp(argv[i], "--lax"))
@@ -290,9 +303,9 @@ int main(int argc, char *argv[])
 			return decode_raw(argv[i], test_only? 0 : argv[i+1], analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 	else
 		if(format_is_wave)
-			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding);
+			return encode_wav(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
 		else
-			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+			return encode_raw(argv[i], argv[i+1], verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
 	return 0;
 }
@@ -353,7 +366,16 @@ int usage(const char *message, ...)
 	printf("  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
 	printf("encoding options:\n");
 	printf("  --lax : allow encoder to generate non-Subset files\n");
-	printf("  -P bytes : write a PADDING block of the given length (0 => no PADDING block, default is -P 0)\n");
+	printf("  -S { # | X | #x } : include a point or points in a SEEKTABLE\n");
+	printf("       #  : a specific sample number for a seek point\n");
+	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
+	printf("       #x : # evenly spaced seekpoints, the first being at sample 0\n");
+	printf("     You may use many -S options; the resulting SEEKTABLE will be the union of all such values.\n");
+	printf("     With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.\n");
+	printf("     Note: -S #x will not work if the encoder can't determine the input size before starting.\n");
+	printf("     Note: if you use -S # and # is >= samples in the input, there will be either no seek point entered (if the input size\n");
+	printf("           is determinable) or a placeholder point (if input size is not determinable)\n");
+	printf("  -P bytes : write a PADDING block of the given length (goes after SEEKTABLE) (0 => no PADDING block, default is -P 0)\n");
 	printf("  -b blocksize : default is 1152 for -l 0, else 4608; should be 192/576/1152/2304/4608 (unless --lax is used)\n");
 	printf("  -m : try mid-side coding for each frame (stereo input only)\n");
 	printf("  -M : loose mid-side coding for all frames (stereo input only)\n");
@@ -375,7 +397,7 @@ int usage(const char *message, ...)
 	printf("  -q bits : precision of the quantized linear-predictor coefficients, 0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	printf("  -r level : rice parameter optimization level (level is 0..99, 0 => none, default is -r 0, above 4 doesn't usually help much)\n");
 	printf("  -V : verify a correct encoding by decoding the output in parallel and comparing to the original\n");
-	printf("  -m-, -M-, -e-, -p-, -V-, --lax- can all be used to turn off a particular option\n");
+	printf("  -S-, -m-, -M-, -e-, -p-, -V-, --lax- can all be used to turn off a particular option\n");
 	printf("format options:\n");
 	printf("  -fb | -fl : big-endian | little-endian byte order\n");
 	printf("  -fc channels\n");
