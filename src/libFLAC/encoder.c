@@ -65,7 +65,6 @@ typedef struct FLAC__EncoderPrivate {
 	uint32 *abs_residual_partition_sums;        /* workspace where the sum of abs(candidate residual) for each partition is stored */
 	unsigned *raw_bits_per_partition;           /* workspace where the sum of silog2(candidate residual) for each partition is stored */
 	FLAC__BitBuffer frame;                      /* the current frame being worked on */
-	bool current_frame_can_do_mid_side;         /* encoder sets this false when any given sample of a frame's side channel exceeds 16 bits */
 	double loose_mid_side_stereo_frames_exact;  /* exact number of frames the encoder will use before trying both independent and mid/side frames again */
 	unsigned loose_mid_side_stereo_frames;      /* rounded number of frames the encoder will use before trying both independent and mid/side frames again */
 	unsigned loose_mid_side_stereo_frame_count; /* number of frames using the current channel assignment */
@@ -314,7 +313,6 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	encoder->guts->abs_residual_unaligned = encoder->guts->abs_residual = 0;
 	encoder->guts->abs_residual_partition_sums_unaligned = encoder->guts->abs_residual_partition_sums = 0;
 	encoder->guts->raw_bits_per_partition_unaligned = encoder->guts->raw_bits_per_partition = 0;
-	encoder->guts->current_frame_can_do_mid_side = true;
 	encoder->guts->loose_mid_side_stereo_frames_exact = (double)encoder->sample_rate * 0.4 / (double)encoder->blocksize;
 	encoder->guts->loose_mid_side_stereo_frames = (unsigned)(encoder->guts->loose_mid_side_stereo_frames_exact + 0.5);
 	if(encoder->guts->loose_mid_side_stereo_frames == 0)
@@ -339,10 +337,24 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 #ifdef FLAC__HAS_NASM
 #if 0
 	/* @@@ SSE version not working yet */
-	if(encoder->guts->cpuinfo.data.ia32.sse && encoder->max_lpc_order == 7)
+	if(encoder->guts->cpuinfo.data.ia32.sse) {
+		if(encoder->max_lpc_order < 4)
 {//@@@
-		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse;
-fprintf(stderr,"@@@ got _asm_i386_sse of lpc_compute_autocorrelation()\n");}
+		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_4;
+fprintf(stderr,"@@@ got _asm_i386_sse_4 of lpc_compute_autocorrelation()\n");}
+		else if(encoder->max_lpc_order < 8)
+{//@@@
+		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_8;
+fprintf(stderr,"@@@ got _asm_i386_sse_8 of lpc_compute_autocorrelation()\n");}
+		else if(encoder->max_lpc_order < 12)
+{//@@@
+		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse_12;
+fprintf(stderr,"@@@ got _asm_i386_sse_12 of lpc_compute_autocorrelation()\n");}
+		else
+{//@@@
+			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
+fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");}
+	}
 	else
 #endif
 {//@@@
@@ -512,45 +524,52 @@ bool FLAC__encoder_process(FLAC__Encoder *encoder, const int32 *buf[], unsigned 
 {
 	unsigned i, j, channel;
 	int32 x, mid, side;
-	bool ms;
-	const bool ms0 = encoder->do_mid_side_stereo && encoder->channels == 2;
-	const int32 limitmask = (int32)(((uint32)(-1)) >> (33-encoder->bits_per_sample));
 	const unsigned channels = encoder->channels, blocksize = encoder->blocksize;
 
 	assert(encoder != 0);
 	assert(encoder->state == FLAC__ENCODER_OK);
 
 	j = 0;
-	ms = ms0 && encoder->guts->current_frame_can_do_mid_side;
-	do {
-		for(i = encoder->guts->current_sample_number; i < blocksize && j < samples; i++, j++) {
-			for(channel = 0; channel < channels; channel++) {
-				x = buf[channel][j];
-				encoder->guts->integer_signal[channel][i] = x;
-				encoder->guts->real_signal[channel][i] = (real)x;
+	if(encoder->do_mid_side_stereo && channels == 2) {
+		do {
+			for(i = encoder->guts->current_sample_number; i < blocksize && j < samples; i++, j++) {
+				x = mid = side = buf[0][j];
+				encoder->guts->integer_signal[0][i] = x;
+				encoder->guts->real_signal[0][i] = (real)x;
+				x = buf[1][j];
+				encoder->guts->integer_signal[1][i] = x;
+				encoder->guts->real_signal[1][i] = (real)x;
+				mid += x;
+				side -= x;
+				mid >>= 1; /* NOTE: not the same as 'mid = (buf[0][j] + buf[1][j]) / 2' ! */
+				encoder->guts->integer_signal_mid_side[1][i] = side;
+				encoder->guts->integer_signal_mid_side[0][i] = mid;
+				encoder->guts->real_signal_mid_side[1][i] = (real)side;
+				encoder->guts->real_signal_mid_side[0][i] = (real)mid;
+				encoder->guts->current_sample_number++;
 			}
-			if(ms) {
-				side = buf[0][j] - x; /* x still == buf[1][j] */
-				if(side & limitmask && ~side & limitmask) {
-					encoder->guts->current_frame_can_do_mid_side = false;
-					ms = false;
-				}
-				else {
-					mid = (buf[0][j] + x) >> 1; /* NOTE: not the same as 'mid = (buf[0][j] + x) / 2' ! */
-					encoder->guts->integer_signal_mid_side[0][i] = mid;
-					encoder->guts->integer_signal_mid_side[1][i] = side;
-					encoder->guts->real_signal_mid_side[0][i] = (real)mid;
-					encoder->guts->real_signal_mid_side[1][i] = (real)side;
-				}
+			if(i == blocksize) {
+				if(!encoder_process_frame_(encoder, false)) /* false => not last frame */
+					return false;
 			}
-			encoder->guts->current_sample_number++;
-		}
-		if(i == blocksize) {
-			if(!encoder_process_frame_(encoder, false)) /* false => not last frame */
-				return false;
-			ms = ms0;
-		}
-	} while(j < samples);
+		} while(j < samples);
+	}
+	else {
+		do {
+			for(i = encoder->guts->current_sample_number; i < blocksize && j < samples; i++, j++) {
+				for(channel = 0; channel < channels; channel++) {
+					x = buf[channel][j];
+					encoder->guts->integer_signal[channel][i] = x;
+					encoder->guts->real_signal[channel][i] = (real)x;
+				}
+				encoder->guts->current_sample_number++;
+			}
+			if(i == blocksize) {
+				if(!encoder_process_frame_(encoder, false)) /* false => not last frame */
+					return false;
+			}
+		} while(j < samples);
+	}
 
 	return true;
 }
@@ -559,50 +578,53 @@ bool FLAC__encoder_process(FLAC__Encoder *encoder, const int32 *buf[], unsigned 
 bool FLAC__encoder_process_interleaved(FLAC__Encoder *encoder, const int32 buf[], unsigned samples)
 {
 	unsigned i, j, k, channel;
-	int32 x, left = 0, mid, side;
-	bool ms;
-	const bool ms0 = encoder->do_mid_side_stereo && encoder->channels == 2;
-	const int32 limitmask = (int32)(((uint32)(-1)) >> (33-encoder->bits_per_sample));
+	int32 x, mid, side;
+	const unsigned channels = encoder->channels, blocksize = encoder->blocksize;
 
 	assert(encoder != 0);
 	assert(encoder->state == FLAC__ENCODER_OK);
 
 	j = k = 0;
-	ms = ms0 && encoder->guts->current_frame_can_do_mid_side;
-	do {
-		for(i = encoder->guts->current_sample_number; i < encoder->blocksize && j < samples; i++, j++) {
-			for(channel = 0; channel < encoder->channels; channel++) {
+	if(encoder->do_mid_side_stereo && channels == 2) {
+		do {
+			for(i = encoder->guts->current_sample_number; i < blocksize && j < samples; i++, j++) {
+				x = mid = side = buf[k++];
+				encoder->guts->integer_signal[0][i] = x;
+				encoder->guts->real_signal[0][i] = (real)x;
 				x = buf[k++];
-				encoder->guts->integer_signal[channel][i] = x;
-				encoder->guts->real_signal[channel][i] = (real)x;
-				if(ms) {
-					if(channel == 0) {
-						left = x;
-					}
-					else {
-						side = left - x;
-						if(side & limitmask && ~side & limitmask) {
-							encoder->guts->current_frame_can_do_mid_side = false;
-							ms = false;
-						}
-						else {
-							mid = (left + x) >> 1; /* NOTE: not the same as 'mid = (left + x) / 2' ! */
-							encoder->guts->integer_signal_mid_side[0][i] = mid;
-							encoder->guts->integer_signal_mid_side[1][i] = side;
-							encoder->guts->real_signal_mid_side[0][i] = (real)mid;
-							encoder->guts->real_signal_mid_side[1][i] = (real)side;
-						}
-					}
-				}
+				encoder->guts->integer_signal[1][i] = x;
+				encoder->guts->real_signal[1][i] = (real)x;
+				mid += x;
+				side -= x;
+				mid >>= 1; /* NOTE: not the same as 'mid = (left + right) / 2' ! */
+				encoder->guts->integer_signal_mid_side[1][i] = side;
+				encoder->guts->integer_signal_mid_side[0][i] = mid;
+				encoder->guts->real_signal_mid_side[1][i] = (real)side;
+				encoder->guts->real_signal_mid_side[0][i] = (real)mid;
+				encoder->guts->current_sample_number++;
 			}
-			encoder->guts->current_sample_number++;
-		}
-		if(i == encoder->blocksize) {
-			if(!encoder_process_frame_(encoder, false)) /* false => not last frame */
-				return false;
-			ms = ms0;
-		}
-	} while(j < samples);
+			if(i == blocksize) {
+				if(!encoder_process_frame_(encoder, false)) /* false => not last frame */
+					return false;
+			}
+		} while(j < samples);
+	}
+	else {
+		do {
+			for(i = encoder->guts->current_sample_number; i < blocksize && j < samples; i++, j++) {
+				for(channel = 0; channel < channels; channel++) {
+					x = buf[k++];
+					encoder->guts->integer_signal[channel][i] = x;
+					encoder->guts->real_signal[channel][i] = (real)x;
+				}
+				encoder->guts->current_sample_number++;
+			}
+			if(i == blocksize) {
+				if(!encoder_process_frame_(encoder, false)) /* false => not last frame */
+					return false;
+			}
+		} while(j < samples);
+	}
 
 	return true;
 }
@@ -654,7 +676,6 @@ bool encoder_process_frame_(FLAC__Encoder *encoder, bool is_last_frame)
 	/*
 	 * Get ready for the next frame
 	 */
-	encoder->guts->current_frame_can_do_mid_side = true;
 	encoder->guts->current_sample_number = 0;
 	encoder->guts->current_frame_number++;
 	encoder->guts->metadata.data.stream_info.total_samples += (uint64)encoder->blocksize;
@@ -720,10 +741,6 @@ bool encoder_process_subframes_(FLAC__Encoder *encoder, bool is_last_frame)
 		}
 	}
 	else {
-		do_independent = true;
-		do_mid_side = false;
-	}
-	if(do_mid_side && !encoder->guts->current_frame_can_do_mid_side) {
 		do_independent = true;
 		do_mid_side = false;
 	}
