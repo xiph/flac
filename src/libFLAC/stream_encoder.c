@@ -282,7 +282,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	if(encoder->protected_->bits_per_sample < FLAC__MIN_BITS_PER_SAMPLE || encoder->protected_->bits_per_sample > FLAC__MAX_BITS_PER_SAMPLE)
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_BITS_PER_SAMPLE;
 
-	if(encoder->protected_->sample_rate == 0 || encoder->protected_->sample_rate > FLAC__MAX_SAMPLE_RATE)
+	if(!FLAC__format_is_valid_sample_rate(encoder->protected_->sample_rate))
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_SAMPLE_RATE;
 
 	if(encoder->protected_->blocksize < FLAC__MIN_BLOCK_SIZE || encoder->protected_->blocksize > FLAC__MAX_BLOCK_SIZE)
@@ -461,7 +461,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_SEEK_TABLE;
 		seek_table_block.type = FLAC__METADATA_TYPE_SEEKTABLE;
 		seek_table_block.is_last = (encoder->protected_->padding == 0 && encoder->protected_->last_metadata_is_last);
-		seek_table_block.length = encoder->protected_->seek_table->num_points * FLAC__STREAM_METADATA_SEEKPOINT_LEN;
+		seek_table_block.length = encoder->protected_->seek_table->num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
 		seek_table_block.data.seek_table = *encoder->protected_->seek_table;
 		if(!FLAC__add_metadata_block(&seek_table_block, encoder->private_->frame))
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
