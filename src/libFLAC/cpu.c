@@ -41,8 +41,8 @@ fprintf(stderr,"@@@ !defined FLAC__NO_ASM && defined FLAC__HAS_NASM\n");
 		info->data.ia32.cmov = (cpuid & FLAC__CPUINFO_IA32_CPUID_CMOV)? true : false;
 		info->data.ia32.mmx = (cpuid & FLAC__CPUINFO_IA32_CPUID_MMX)? true : false;
 		info->data.ia32.fxsr = (cpuid & FLAC__CPUINFO_IA32_CPUID_FXSR)? true : false;
-		info->data.ia32.sse = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE)? true : false;
-		info->data.ia32.sse2 = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE2)? true : false;
+		info->data.ia32.sse = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE)? true : false; /* @@@ also need to check for operating system support */
+		info->data.ia32.sse2 = (cpuid & FLAC__CPUINFO_IA32_CPUID_SSE2)? true : false; /* @@@ also need to check for operating system support */
 fprintf(stderr,"@@@ \tcpuid=%08X\n",cpuid);
 fprintf(stderr,"@@@ \tcmov=%u\n",info->data.ia32.cmov);
 fprintf(stderr,"@@@ \tmmx=%u\n",info->data.ia32.mmx);
