@@ -290,17 +290,17 @@ FLAC__bool FLAC__bitbuffer_write_raw_uint32(FLAC__BitBuffer *bb, FLAC__uint32 va
 		n = 8 - bb->bits;
 		if(n == 8) { /* i.e. bb->bits == 0 */
 			if(bits < 8) {
-				bb->buffer[bb->bytes] = val;
+				bb->buffer[bb->bytes] = (FLAC__byte)val;
 				bb->bits = bits;
 				break;
 			}
 			else if(bits == 8) {
-				bb->buffer[bb->bytes++] = val;
+				bb->buffer[bb->bytes++] = (FLAC__byte)val;
 				break;
 			}
 			else {
 				k = bits - 8;
-				bb->buffer[bb->bytes++] = val >> k;
+				bb->buffer[bb->bytes++] = (FLAC__byte)(val >> k);
 				val &= (~(0xffffffff << k));
 				bits -= 8;
 			}
@@ -371,17 +371,17 @@ FLAC__bool FLAC__bitbuffer_write_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 va
 	while(bits > 0) {
 		if(bb->bits == 0) {
 			if(bits < 8) {
-				bb->buffer[bb->bytes] = val;
+				bb->buffer[bb->bytes] = (FLAC__byte)val;
 				bb->bits = bits;
 				break;
 			}
 			else if(bits == 8) {
-				bb->buffer[bb->bytes++] = val;
+				bb->buffer[bb->bytes++] = (FLAC__byte)val;
 				break;
 			}
 			else {
 				k = bits - 8;
-				bb->buffer[bb->bytes++] = val >> k;
+				bb->buffer[bb->bytes++] = (FLAC__byte)(val >> k);
 				val &= (~(0xffffffffffffffff << k));
 				bits -= 8;
 			}

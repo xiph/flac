@@ -247,7 +247,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					}
 					else {
 						unsigned left, need;
-						for(left = skip; left > 0; ) {
+						for(left = (unsigned)skip; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
 							need = min(left, CHUNK_OF_SAMPLES);
 							if(fread(ucbuffer, 1, bytes_per_wide_sample * need, infile) < need) {
 								fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_wrapper.inbasefilename);
@@ -258,10 +258,10 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					}
 				}
 
-				data_bytes -= skip * bytes_per_wide_sample;
+				data_bytes -= (unsigned)skip * bytes_per_wide_sample; /*@@@ WATCHOUT: 4GB limit */
 				encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample + *align_reservoir_samples;
 				if(sector_align) {
-					align_remainder = encoder_wrapper.total_samples_to_encode % 588;
+					align_remainder = (unsigned)(encoder_wrapper.total_samples_to_encode % 588);
 					if(is_last_file)
 						encoder_wrapper.total_samples_to_encode += (588-align_remainder); /* will pad with zeroes */
 					else
@@ -1058,7 +1058,7 @@ seektable_:
 		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
 			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].sample_number)) goto end_;
 			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].stream_offset)) goto end_;
-			if(!write_big_endian_uint16(f, encoder_wrapper->seek_table.points[i].frame_samples)) goto end_;
+			if(!write_big_endian_uint16(f, (FLAC__uint16)encoder_wrapper->seek_table.points[i].frame_samples)) goto end_;
 		}
 	}
 

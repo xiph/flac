@@ -506,6 +506,7 @@ void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErro
 
 FLAC__bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, FLAC__uint64 target_sample)
 {
+	/* @@@ we should really change long to off_t and start using lseek(); with fseek() we have the 2GB file limit. */
 	long first_frame_offset, lower_bound, upper_bound, pos = -1, last_pos = -1;
 	int i, lower_seek_point = -1, upper_seek_point = -1;
 	unsigned approx_bytes_per_frame;
@@ -563,7 +564,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, F
 				break;
 		}
 		if(i >= 0) { /* i.e. we found a suitable seek point... */
-			lower_bound = first_frame_offset + decoder->private->seek_table->points[i].stream_offset;
+			lower_bound = first_frame_offset + (long)decoder->private->seek_table->points[i].stream_offset;
 			lower_seek_point = i;
 		}
 
@@ -573,7 +574,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, F
 				break;
 		}
 		if(i < (int)decoder->private->seek_table->num_points) { /* i.e. we found a suitable seek point... */
-			upper_bound = first_frame_offset + decoder->private->seek_table->points[i].stream_offset;
+			upper_bound = first_frame_offset + (long)decoder->private->seek_table->points[i].stream_offset;
 			upper_seek_point = i;
 		}
 	}

@@ -365,12 +365,12 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 			if(is_unsigned_samples) {
 				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 					for(channel = 0; channel < channels; channel++, sample++)
-						u8buffer[sample] = buffer[channel][wide_sample] + 0x80;
+						u8buffer[sample] = (FLAC__uint8)(buffer[channel][wide_sample] + 0x80);
 			}
 			else {
 				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 					for(channel = 0; channel < channels; channel++, sample++)
-						s8buffer[sample] = buffer[channel][wide_sample];
+						s8buffer[sample] = (FLAC__int8)(buffer[channel][wide_sample]);
 			}
 			if(fwrite(u8buffer, 1, sample, fout) != sample)
 				return FLAC__STREAM_DECODER_WRITE_ABORT;
@@ -379,12 +379,12 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 			if(is_unsigned_samples) {
 				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 					for(channel = 0; channel < channels; channel++, sample++)
-						u16buffer[sample] = buffer[channel][wide_sample] + 0x8000;
+						u16buffer[sample] = (FLAC__uint16)(buffer[channel][wide_sample] + 0x8000);
 			}
 			else {
 				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 					for(channel = 0; channel < channels; channel++, sample++)
-						s16buffer[sample] = buffer[channel][wide_sample];
+						s16buffer[sample] = (FLAC__int16)(buffer[channel][wide_sample]);
 			}
 			if(is_big_endian != is_big_endian_host) {
 				unsigned char tmp;
