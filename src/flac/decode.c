@@ -1157,8 +1157,9 @@ void print_error_with_state(const DecoderSession *d, const char *message)
 			"The FLAC stream may have been created by a more advanced encoder.  Try\n"
 			"  metaflac --show-vendor-tag %s\n"
 			"If the version number is greater than %s, this decoder is probably\n"
-			"not able to decode the file.  If the version number is not, you may\n"
-			"have found a bug.  In this case please submit a bug report to\n"
+			"not able to decode the file.  If the version number is not, the file\n"
+			"may be corrupted, or you may have found a bug.  In this case please\n"
+			"submit a bug report to\n"
 			"    http://sourceforge.net/bugs/?func=addbug&group_id=13478\n"
 			"Make sure to include an email contact in the comment and/or use the\n"
 			"\"Monitor\" feature to monitor the bug status.\n",
