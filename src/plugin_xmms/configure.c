@@ -57,7 +57,7 @@ flac_config_t flac_cfg = {
 			FALSE, /* enable */
 			TRUE, /* album_mode */
 			0, /* preamp */
-			TRUE /* hard_limit */
+			FALSE /* hard_limit */
 		},
 		/* resolution */
 		{
@@ -350,9 +350,10 @@ void FLAC_XMMS__configure(void)
 	gtk_container_add(GTK_CONTAINER(replaygain_vbox),hbox);
 	label = gtk_label_new(_("Preamp:"));
 	gtk_box_pack_start(GTK_BOX(hbox),label,FALSE,FALSE,0);
-	replaygain_preamp = gtk_adjustment_new(flac_cfg.output.replaygain.preamp, -24.0, +24.0, 1.0, 6.0, 6.0);
+	replaygain_preamp = gtk_adjustment_new(flac_cfg.output.replaygain.preamp, -24.0, +24.0, 1.0, 6.0, 0.0);
 	gtk_signal_connect(GTK_OBJECT(replaygain_preamp), "value-changed", replaygain_preamp_cb, NULL);
 	replaygain_preamp_hscale = gtk_hscale_new(GTK_ADJUSTMENT(replaygain_preamp));
+	gtk_scale_set_draw_value(GTK_SCALE(replaygain_preamp_hscale), FALSE);
 	gtk_box_pack_start(GTK_BOX(hbox),replaygain_preamp_hscale,TRUE,TRUE,0);
 	replaygain_preamp_label = gtk_label_new(_("0 dB"));
 	gtk_box_pack_start(GTK_BOX(hbox),replaygain_preamp_label,FALSE,FALSE,0);
