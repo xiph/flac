@@ -58,9 +58,11 @@ extern "C" {
  *  This module contains the functions which implement the file
  *  decoder.
  *
- * The interface here is identical to FLAC's file decoder.  See the
- * defaults, including the callbacks.  See the \link flac_file_decoder
- * FLAC file decoder module \endlink for full documentation.
+ * The interface here is nearly identical to FLAC's file decoder,
+ * including the callbacks, with the addition of
+ * OggFLAC__file_decoder_set_serial_number().  See the
+ * \link flac_file_decoder FLAC file decoder module \endlink
+ * for full documentation.
  *
  * \{
  */
@@ -122,8 +124,40 @@ typedef struct {
 	struct OggFLAC__FileDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } OggFLAC__FileDecoder;
 
+/** Signature for the write callback.
+ *  See OggFLAC__file_decoder_set_write_callback()
+ *  and OggFLAC__SeekableStreamDecoderWriteCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  frame    The description of the decoded frame.
+ * \param  buffer   An array of pointers to decoded channels of data.
+ * \param  client_data  The callee's client data set through
+ *                      OggFLAC__file_decoder_set_client_data().
+ * \retval FLAC__StreamDecoderWriteStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamDecoderWriteStatus (*OggFLAC__FileDecoderWriteCallback)(const OggFLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+
+/** Signature for the metadata callback.
+ *  See OggFLAC__file_decoder_set_metadata_callback()
+ *  and OggFLAC__SeekableStreamDecoderMetadataCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  metadata The decoded metadata block.
+ * \param  client_data  The callee's client data set through
+ *                      OggFLAC__file_decoder_set_client_data().
+ */
 typedef void (*OggFLAC__FileDecoderMetadataCallback)(const OggFLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+
+/** Signature for the error callback.
+ *  See OggFLAC__file_decoder_set_error_callback()
+ *  and OggFLAC__SeekableStreamDecoderErrorCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  status   The error encountered by the decoder.
+ * \param  client_data  The callee's client data set through
+ *                      OggFLAC__file_decoder_set_client_data().
+ */
 typedef void (*OggFLAC__FileDecoderErrorCallback)(const OggFLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 
@@ -156,8 +190,6 @@ OggFLAC_API void OggFLAC__file_decoder_delete(OggFLAC__FileDecoder *decoder);
  * Public class method prototypes
  *
  ***********************************************************************/
-
-/*@@@inherit set_serial_number*/
 
 /** Set the "MD5 signature checking" flag.
  *  This is inherited from FLAC__FileDecoder; see
@@ -256,6 +288,21 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_error_callback(OggFLAC__FileDec
  *    \c false if the decoder is already initialized, else \c true.
  */
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_client_data(OggFLAC__FileDecoder *decoder, void *value);
+
+/** Set the serial number for the Ogg stream.
+ * The default behavior is to use the serial number of the first Ogg
+ * page.  Setting a serial number here will explicitly specify which
+ * stream is to be decoded.
+ *
+ * \default \c use serial number of first page
+ * \param  decoder        A decoder instance to set.
+ * \param  serial_number  See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_serial_number(OggFLAC__FileDecoder *decoder, long serial_number);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_set_metadata_respond().
@@ -392,6 +439,19 @@ OggFLAC_API FLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_FLAC_seek
  */
 OggFLAC_API FLAC__StreamDecoderState OggFLAC__file_decoder_get_FLAC_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
 
+/** Get the current decoder state as a C string.
+ *  This version automatically resolves
+ *  \c OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR
+ *  by getting the FLAC file decoder's state.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval const char *
+ *    The decoder state as a C string.  Do not modify the contents.
+ */
+OggFLAC_API const char *FLAC__file_decoder_get_resolved_state_string(const FLAC__FileDecoder *decoder);
+
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_get_md5_checking().
  *
@@ -457,6 +517,20 @@ OggFLAC_API unsigned OggFLAC__file_decoder_get_sample_rate(const OggFLAC__FileDe
  *    See above.
  */
 OggFLAC_API unsigned OggFLAC__file_decoder_get_blocksize(const OggFLAC__FileDecoder *decoder);
+
+/** This is inherited from FLAC__FileDecoder; see
+ *  FLAC__file_decoder_get_decode_position().
+ *
+ * \param  decoder   A decoder instance to query.
+ * \param  position  Address at which to return the desired position.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code position != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, \c false if there was an error from
+ *    the 'tell' callback.
+ */
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_get_decode_position(const OggFLAC__FileDecoder *decoder, FLAC__uint64 *position);
 
 /** Initialize the decoder instance.
  *  Should be called after OggFLAC__file_decoder_new() and
