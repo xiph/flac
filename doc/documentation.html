@@ -217,7 +217,7 @@
 		<B><TT>flac</TT></B> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files; this may be overridden with a command-line option; it also assumes that files ending in ".ogg" are Ogg-FLAC files.  Other than this, <B><TT>flac</TT></B> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient file systems like FAT-16).
 	</P>
 	<P>
-		Before going into the full command-line description, a few other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-8</TT></B> that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <B><TT>flac</TT></B> behaves similarly to gzip in the way it handles input and output files.
+		Before going into the full command-line description, a few other things help to sort it out: 1) <B><TT>flac</TT></B> encodes by default, so you must use <B>-d</B> to decode; 2) the options <B><TT>-0</TT></B> .. <B><TT>-8</TT></B> (or <B><TT>--fast</B></TT> and <B><TT>--best</B></TT>) that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <B><TT>flac</TT></B> behaves similarly to gzip in the way it handles input and output files.
 	</P>
 	<P>
 		<B><TT>flac</TT></B> will be invoked one of four ways, depending on whether you are encoding, decoding, testing, or analyzing:
@@ -554,6 +554,22 @@
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 12 -b 4608 -m -e -r 6</TT>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--fast</TT>
+			</TD>
+			<TD>
+				Fastest compression.  Currently synonymous with <TT>-0</TT>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>--best</TT>
+			</TD>
+			<TD>
+				Highest compression.  Currently synonymous with <TT>-8</TT>
 			</TD>
 		</TR>
 		<TR>

@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
 			aopts.do_residual_text = true;
 		else if(0 == strcmp(argv[i], "--a-rtext-"))
 			aopts.do_residual_text = false;
-		else if(0 == strcmp(argv[i], "-0")) {
+		else if(0 == strcmp(argv[i], "-0") || 0 == strcmp(argv[i], "--fast")) {
 			do_exhaustive_model_search = false;
 			do_escape_coding = false;
 			do_mid_side = false;
@@ -313,7 +313,7 @@ int main(int argc, char *argv[])
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
-		else if(0 == strcmp(argv[i], "-8")) {
+		else if(0 == strcmp(argv[i], "-8") || 0 == strcmp(argv[i], "--best")) {
 			do_exhaustive_model_search = true;
 			do_escape_coding = false;
 			do_mid_side = true;
@@ -614,6 +614,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
 	fprintf(out, "  -7   : synonymous with -l 8 -b 4608 -m -e -r 6\n");
 	fprintf(out, "  -8   : synonymous with -l 12 -b 4608 -m -e -r 6\n");
+	fprintf(out, "  --fast, --best : synonymous with -0 and -8 respectively\n");
 	fprintf(out, "  -e   : do exhaustive model search (expensive!)\n");
 	fprintf(out, "  -E   : include escape coding in the entropy coder\n");
 	fprintf(out, "  -l # : specify max LPC order; 0 => use only fixed predictors\n");

@@ -398,6 +398,24 @@
 	      </varlistentry>
 
 	      <varlistentry>
+		<term><option>--fast</option></term>
+
+		<listitem>
+		  <para>Fastest compression.  Currently
+		    synonymous with -0.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>--best</option></term>
+
+		<listitem>
+		  <para>Highest compression.  Currently
+		    synonymous with -8.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term><option>-e</option></term>
 
 		<listitem>
