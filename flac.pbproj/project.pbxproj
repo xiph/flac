@@ -844,7 +844,7 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = include;
 				OPTIMIZATION_CFLAGS = "-O3";
-				OTHER_CFLAGS = "-DFLAC__VERSION_STRING=\\\\\\\"1.0.4_beta\\\\\\\"";
+				OTHER_CFLAGS = "-DVERSION=\\\\\\\"1.0.4\\\\\\\"";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = flac;
@@ -1721,7 +1721,7 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = include;
 				OPTIMIZATION_CFLAGS = "-O3";
-				OTHER_CFLAGS = "-DFLAC__VERSION_STRING=\\\\\\\"1.0.4_beta\\\\\\\"";
+				OTHER_CFLAGS = "-DVERSION=\\\\\\\"1.0.4\\\\\\\"";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = metaflac;

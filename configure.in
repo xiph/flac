@@ -19,7 +19,7 @@
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_INIT(src/flac/main.c)
-AM_INIT_AUTOMAKE(flac, 1.0.4_beta)
+AM_INIT_AUTOMAKE(flac, 1.0.4)
 
 # Function to configure paths for id3lib; search for 'meat' to get to the end.
 # adapted from ogg.m4
