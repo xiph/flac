@@ -1,2 +1,0 @@
-This file exists to keep 'cvs update -P' from pruning this otherwise empty
-directory, since it is useful for the Makefile.list build system.
