@@ -65,7 +65,8 @@ static char lastfn_[MAX_PATH]; /* currently playing file (used for getting info 
 static int decode_pos_ms_; /* current decoding position, in milliseconds */
 
 #define SAMPLES_PER_WRITE 576
-static FLAC__int32 reservoir_[FLAC__MAX_BLOCK_SIZE * 2/*for overflow*/ * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
+static FLAC__int32 reservoir_[FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS][FLAC__MAX_BLOCK_SIZE * 2/*for overflow*/];
+static FLAC__int32 *reservoir__[FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS] = { reservoir_[0], reservoir_[1] }; /*@@@ kind of a hard-coded hack */
 static char sample_buffer_[SAMPLES_PER_WRITE * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS * (24/8) * 2]; /* (24/8) for max bytes per sample, and 2 for who knows what */
 static unsigned wide_samples_in_reservoir_;
 static file_info_struct file_info_;
@@ -350,7 +351,6 @@ static DWORD WINAPI DecodeThread(void *unused)
 			}
 			else {
 				const unsigned n = min(wide_samples_in_reservoir_, SAMPLES_PER_WRITE);
-				const unsigned delta = n * channels;
 				int bytes;
 				unsigned i;
 
@@ -359,12 +359,12 @@ static DWORD WINAPI DecodeThread(void *unused)
 						sample_buffer_,
 						true, /* little_endian_data_out */
 						target_bps == 8, /* unsigned_data_out */
-						reservoir_,
+						reservoir__,
 						n,
 						channels,
 						bits_per_sample,
 						target_bps,
-						(float)file_info_.replay_scale,
+						file_info_.replay_scale,
 						cfg.replaygain.hard_limit,
 						cfg.resolution.replaygain.dither,
 						&file_info_.dither_context
@@ -373,7 +373,7 @@ static DWORD WINAPI DecodeThread(void *unused)
 				else {
 					bytes = (int)FLAC__plugin_common__pack_pcm_signed_little_endian(
 						sample_buffer_,
-						reservoir_,
+						reservoir__,
 						n,
 						channels,
 						bits_per_sample,
@@ -381,8 +381,8 @@ static DWORD WINAPI DecodeThread(void *unused)
 					);
 				}
 
-				for(i = delta; i < wide_samples_in_reservoir_ * channels; i++)
-					reservoir_[i-delta] = reservoir_[i];
+				for (i = 0; i < channels; i++)
+					memmove(&reservoir_[i][0], &reservoir_[i][n], sizeof(reservoir_[0][0]) * (wide_samples_in_reservoir_ - n));
 				wide_samples_in_reservoir_ -= n;
 
 				do_vis(sample_buffer_, channels, target_bps, decode_pos_ms_, n);
@@ -505,16 +505,15 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 {
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	const unsigned channels = file_info->channels, wide_samples = frame->header.blocksize;
-	unsigned wide_sample, offset_sample, channel;
+	unsigned channel;
 
 	(void)decoder;
 
 	if(file_info->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-	for(offset_sample = wide_samples_in_reservoir_ * channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-		for(channel = 0; channel < channels; channel++, offset_sample++)
-			reservoir_[offset_sample] = buffer[channel][wide_sample];
+	for(channel = 0; channel < channels; channel++)
+		memcpy(&reservoir_[channel][wide_samples_in_reservoir_], buffer[channel], sizeof(buffer[0][0]) * wide_samples);
 
 	wide_samples_in_reservoir_ += wide_samples;
 
