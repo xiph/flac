@@ -35,7 +35,7 @@ EXTRA_DIST = \
 
 libOggFLAC_la_LIBADD = @OGG_LIBS@
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
-libOggFLAC_la_LDFLAGS = -version-info 1:1:0
+libOggFLAC_la_LDFLAGS = -version-info 1:2:0
 
 libOggFLAC_la_SOURCES = \
 	stream_decoder.c \
