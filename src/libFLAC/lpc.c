@@ -80,7 +80,8 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 	}
 }
 
-int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, int32 qlp_coeff[], int *bits)
+#if 0
+int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, int32 qlp_coeff[], int *shift)
 {
 	unsigned i;
 	real d, rprecision = (real)precision, maxlog = -1e99, minlog = 1e99;
@@ -109,15 +110,70 @@ int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsig
 	else if((rprecision-1.0) - maxlog >= (real)(precision+1))
 		rprecision = (real)precision + maxlog + 1.0;
 
-	*bits = (int)floor((rprecision-1.0) - maxlog); /* '-1' because bits can be negative and the sign bit costs 1 bit */
-	if(*bits > (int)precision || *bits <= -(int)precision) {
-		fprintf(stderr, "@@@ FLAC__lpc_quantize_coefficients(): ERROR: *bits=%d, maxlog=%f, minlog=%f, precision=%u, rprecision=%f\n", *bits, maxlog, minlog, precision, rprecision);
+	*shift = (int)floor((rprecision-1.0) - maxlog); /* '-1' because *shift can be negative and the sign bit costs 1 bit */
+	if(*shift > (int)precision || *shift <= -(int)precision) {
+		fprintf(stderr, "@@@ FLAC__lpc_quantize_coefficients(): ERROR: *shift=%d, maxlog=%f, minlog=%f, precision=%u, rprecision=%f\n", *shift, maxlog, minlog, precision, rprecision);
 		return 1;
 	}
 
-	if(*bits != 0) { /* just to avoid wasting time... */
+	if(*shift != 0) { /* just to avoid wasting time... */
 		for(i = 0; i < order; i++)
-			qlp_coeff[i] = (int32)floor(lp_coeff[i] * (real)(1 << *bits));
+			qlp_coeff[i] = (int32)floor(lp_coeff[i] * (real)(1 << *shift));
+	}
+	return 0;
+}
+#endif
+
+int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, int32 qlp_coeff[], int *shift)
+{
+	unsigned i;
+	real d, cmax = -1e99;//@@@, cmin = 1e99;
+
+	assert(bits_per_sample > 0);
+	assert(bits_per_sample <= sizeof(int32)*8);
+	assert(precision > 0);
+	assert(precision >= FLAC__MIN_QLP_COEFF_PRECISION);
+	assert(precision + bits_per_sample < sizeof(int32)*8);
+#ifdef NDEBUG
+	(void)bits_per_sample; /* silence compiler warning about unused parameter */
+#endif
+
+	/* drop one bit for the sign; from here on out we consider only |lp_coeff[i]| */
+	precision--;
+
+	for(i = 0; i < order; i++) {
+		if(lp_coeff[i] == 0.0)
+			continue;
+		d = fabs(lp_coeff[i]);
+		if(d > cmax)
+			cmax = d;
+//@@@		if(d < cmin)
+//@@@			cmin = d;
+	}
+//@@@	if(cmax < cmin)
+	if(cmax < 0) {
+		/* => coeffients are all 0, which means our constant-detect didn't work */
+fprintf(stderr,"@@@ LPCQ ERROR, all lpc_coeffs are 0\n");
+		return 2;
+	}
+	else {
+//@@@		const int minshift = (int)precision - floor(log(cmin) / M_LN2) - 1;
+		const int maxshift = (int)precision - floor(log(cmax) / M_LN2) - 1;
+//@@@		assert(maxshift >= minshift);
+		const int max_shiftlimit = (1 << (FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN-1)) - 1;
+		const int min_shiftlimit = -max_shiftlimit - 1;
+
+		*shift = maxshift;
+
+		if(*shift < min_shiftlimit || *shift > max_shiftlimit) {
+fprintf(stderr,"@@@ LPCQ ERROR, shift is outside shiftlimit\n");
+			return 1;
+		}
+	}
+
+	if(*shift != 0) { /* just to avoid wasting time... */
+		for(i = 0; i < order; i++)
+			qlp_coeff[i] = (int32)floor(lp_coeff[i] * (real)(1 << *shift));
 	}
 	return 0;
 }

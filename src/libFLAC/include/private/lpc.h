@@ -71,15 +71,15 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
  *	                          bit) of largest coefficient
  *	IN bits_per_sample > 0    bits per sample of the originial signal
  *	OUT qlp_coeff[0,order-1]  quantized coefficients
- *	OUT bits                  # of bits to shift right to get approximated
- *	                          LP coefficients.  NOTE: could be negative,
- *	                          but |*bits| will always be <= precision
+ *	OUT shift                 # of bits to shift right to get approximated
+ *	                          LP coefficients.  NOTE: could be negative.
  *	RETURN 0 => quantization OK
- *	       1 => coefficients vary too much to quantize to the desired
- *	            precision.  'bits' is unset
- *	       2 => coefficients are all zero, which is bad.  'bits' is unset
+ *	       1 => coefficients require too much shifting for *shift to
+ *              fit in the LPC subframe header.  'shift' is unset.
+ *         2 => coefficients are all zero, which is bad.  'shift' is
+ *              unset.
  */
-int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, int32 qlp_coeff[], int *bits);
+int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, int32 qlp_coeff[], int *shift);
 
 /*
  *	FLAC__lpc_compute_residual_from_qlp_coefficients()
