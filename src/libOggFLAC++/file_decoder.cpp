@@ -123,10 +123,10 @@ namespace OggFLAC {
 			return OggFLAC::Decoder::SeekableStream::State(::OggFLAC__file_decoder_get_seekable_stream_decoder_state(decoder_));
 		}
 
-		FLAC::Decoder::SeekableStream::State File::get_FLAC_seekable_stream_decoder_state() const
+		OggFLAC::Decoder::Stream::State File::get_stream_decoder_state() const
 		{
 			FLAC__ASSERT(is_valid());
-			return FLAC::Decoder::SeekableStream::State(::OggFLAC__file_decoder_get_FLAC_seekable_stream_decoder_state(decoder_));
+			return OggFLAC::Decoder::Stream::State(::OggFLAC__file_decoder_get_stream_decoder_state(decoder_));
 		}
 
 		FLAC::Decoder::Stream::State File::get_FLAC_stream_decoder_state() const

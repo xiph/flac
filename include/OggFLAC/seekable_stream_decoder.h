@@ -33,8 +33,7 @@
 #define OggFLAC__SEEKABLE_STREAM_DECODER_H
 
 #include "export.h"
-
-#include "FLAC/seekable_stream_decoder.h"
+#include "stream_decoder.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,22 +76,27 @@ typedef enum {
 	OggFLAC__SEEKABLE_STREAM_DECODER_OK = 0,
 	/**< The decoder is in the normal OK state. */
 
+	OggFLAC__SEEKABLE_STREAM_DECODER_SEEKING,
+	/**< The decoder is in the process of seeking. */
+
 	OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM,
 	/**< The decoder has reached the end of the stream. */
 
-	OggFLAC__SEEKABLE_STREAM_DECODER_OGG_ERROR,
-	/**< An error occurred in the underlying Ogg layer.  */
+	OggFLAC__SEEKABLE_STREAM_DECODER_MEMORY_ALLOCATION_ERROR,
+	/**< Memory allocation failed. */
 
-	OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR,
-	/**< An error occurred in the underlying FLAC seekable stream decoder;
-	 * check OggFLAC__seekable_stream_decoder_get_FLAC_seekable_stream_decoder_state().
+	OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR,
+	/**< An error occurred in the underlying stream decoder;
+	 * check OggFLAC__seekable_stream_decoder_get_stream_decoder_state().
 	 */
 
 	OggFLAC__SEEKABLE_STREAM_DECODER_READ_ERROR,
 	/**< The read callback returned an error. */
 
-	OggFLAC__SEEKABLE_STREAM_DECODER_MEMORY_ALLOCATION_ERROR,
-	/**< Memory allocation failed. */
+	OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR,
+	/**< An error occurred while seeking or the seek or tell
+	 * callback returned an error.
+	 */
 
 	OggFLAC__SEEKABLE_STREAM_DECODER_ALREADY_INITIALIZED,
 	/**< OggFLAC__seekable_stream_decoder_init() was called when the decoder was
@@ -114,6 +118,86 @@ typedef enum {
  *  will give the string equivalent.  The contents should not be modified.
  */
 extern OggFLAC_API const char * const OggFLAC__SeekableStreamDecoderStateString[];
+
+
+/** Return values for the OggFLAC__SeekableStreamDecoder read callback.
+ */
+typedef enum {
+
+	OggFLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK,
+	/**< The read was OK and decoding can continue. */
+
+	OggFLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The decoder will return from the process call. */
+
+} OggFLAC__SeekableStreamDecoderReadStatus;
+
+/** Maps a OggFLAC__SeekableStreamDecoderReadStatus to a C string.
+ *
+ *  Using a OggFLAC__SeekableStreamDecoderReadStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern OggFLAC_API const char * const OggFLAC__SeekableStreamDecoderReadStatusString[];
+
+
+/** Return values for the OggFLAC__SeekableStreamDecoder seek callback.
+ */
+typedef enum {
+
+	OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK,
+	/**< The seek was OK and decoding can continue. */
+
+	OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The decoder will return from the process call. */
+
+} OggFLAC__SeekableStreamDecoderSeekStatus;
+
+/** Maps a OggFLAC__SeekableStreamDecoderSeekStatus to a C string.
+ *
+ *  Using a OggFLAC__SeekableStreamDecoderSeekStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern OggFLAC_API const char * const OggFLAC__SeekableStreamDecoderSeekStatusString[];
+
+
+/** Return values for the OggFLAC__SeekableStreamDecoder tell callback.
+ */
+typedef enum {
+
+	OggFLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK,
+	/**< The tell was OK and decoding can continue. */
+
+	OggFLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The decoder will return from the process call. */
+
+} OggFLAC__SeekableStreamDecoderTellStatus;
+
+/** Maps a OggFLAC__SeekableStreamDecoderTellStatus to a C string.
+ *
+ *  Using a OggFLAC__SeekableStreamDecoderTellStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern OggFLAC_API const char * const OggFLAC__SeekableStreamDecoderTellStatusString[];
+
+
+/** Return values for the OggFLAC__SeekableStreamDecoder length callback.
+ */
+typedef enum {
+
+	OggFLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_OK,
+	/**< The length call was OK and decoding can continue. */
+
+	OggFLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The decoder will return from the process call. */
+
+} OggFLAC__SeekableStreamDecoderLengthStatus;
+
+/** Maps a OggFLAC__SeekableStreamDecoderLengthStatus to a C string.
+ *
+ *  Using a OggFLAC__SeekableStreamDecoderLengthStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern OggFLAC_API const char * const OggFLAC__SeekableStreamDecoderLengthStatusString[];
 
 
 /***********************************************************************
@@ -147,7 +231,7 @@ typedef struct {
  * \retval FLAC__SeekableStreamDecoderReadStatus
  *    The callee's return status.
  */
-typedef FLAC__SeekableStreamDecoderReadStatus (*OggFLAC__SeekableStreamDecoderReadCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+typedef OggFLAC__SeekableStreamDecoderReadStatus (*OggFLAC__SeekableStreamDecoderReadCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 
 /** Signature for the seek callback.
  *  See OggFLAC__seekable_stream_decoder_set_seek_callback() for more info.
@@ -160,7 +244,7 @@ typedef FLAC__SeekableStreamDecoderReadStatus (*OggFLAC__SeekableStreamDecoderRe
  * \retval FLAC__SeekableStreamDecoderSeekStatus
  *    The callee's return status.
  */
-typedef FLAC__SeekableStreamDecoderSeekStatus (*OggFLAC__SeekableStreamDecoderSeekCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+typedef OggFLAC__SeekableStreamDecoderSeekStatus (*OggFLAC__SeekableStreamDecoderSeekCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 
 /** Signature for the tell callback.
  *  See OggFLAC__seekable_stream_decoder_set_tell_callback() for more info.
@@ -173,7 +257,7 @@ typedef FLAC__SeekableStreamDecoderSeekStatus (*OggFLAC__SeekableStreamDecoderSe
  * \retval FLAC__SeekableStreamDecoderTellStatus
  *    The callee's return status.
  */
-typedef FLAC__SeekableStreamDecoderTellStatus (*OggFLAC__SeekableStreamDecoderTellCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
+typedef OggFLAC__SeekableStreamDecoderTellStatus (*OggFLAC__SeekableStreamDecoderTellCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 
 /** Signature for the length callback.
  *  See OggFLAC__seekable_stream_decoder_set_length_callback() for more info.
@@ -186,7 +270,7 @@ typedef FLAC__SeekableStreamDecoderTellStatus (*OggFLAC__SeekableStreamDecoderTe
  * \retval FLAC__SeekableStreamDecoderLengthStatus
  *    The callee's return status.
  */
-typedef FLAC__SeekableStreamDecoderLengthStatus (*OggFLAC__SeekableStreamDecoderLengthCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
+typedef OggFLAC__SeekableStreamDecoderLengthStatus (*OggFLAC__SeekableStreamDecoderLengthCallback)(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
 
 /** Signature for the EOF callback.
  *  See OggFLAC__seekable_stream_decoder_set_eof_callback() for more info.
@@ -550,22 +634,22 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_set_metadata_ignore_all(
  */
 OggFLAC_API OggFLAC__SeekableStreamDecoderState OggFLAC__seekable_stream_decoder_get_state(const OggFLAC__SeekableStreamDecoder *decoder);
 
-/** Get the state of the underlying FLAC seekable stream decoder.
+/** Get the state of the underlying stream decoder.
  *  Useful when the seekable stream decoder state is
- *  \c OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR.
+ *  \c OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR.
  *
  * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
- * \retval FLAC__SeekableStreamDecoderState
- *    The FLAC seekable stream decoder state.
+ * \retval OggFLAC__StreamDecoderState
+ *    The stream decoder state.
  */
-OggFLAC_API FLAC__SeekableStreamDecoderState OggFLAC__seekable_stream_decoder_get_FLAC_seekable_stream_decoder_state(const OggFLAC__SeekableStreamDecoder *decoder);
+OggFLAC_API OggFLAC__StreamDecoderState OggFLAC__seekable_stream_decoder_get_stream_decoder_state(const OggFLAC__SeekableStreamDecoder *decoder);
 
-/** Get the state of the underlying FLAC seekable stream decoder's stream decoder.
+/** Get the state of the underlying stream decoder's FLAC stream decoder.
  *  Useful when the seekable stream decoder state is
- *  \c OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR and the
- *  FLAC seekable stream decoder state is \c FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR
+ *  \c OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR and the
+ *  stream decoder state is \c OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR
  *
  * \param  decoder  A decoder instance to query.
  * \assert
@@ -577,8 +661,8 @@ OggFLAC_API FLAC__StreamDecoderState OggFLAC__seekable_stream_decoder_get_FLAC_s
 
 /** Get the current decoder state as a C string.
  *  This version automatically resolves
- *  \c OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR
- *  by getting the FLAC seekable stream decoder's state.
+ *  \c OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR
+ *  by getting the stream decoder's state.
  *
  * \param  decoder  A decoder instance to query.
  * \assert
@@ -654,6 +738,8 @@ OggFLAC_API unsigned OggFLAC__seekable_stream_decoder_get_sample_rate(const OggF
  */
 OggFLAC_API unsigned OggFLAC__seekable_stream_decoder_get_blocksize(const OggFLAC__SeekableStreamDecoder *decoder);
 
+#if 0
+@@@@@@ this can never be made to work without writing a custom Ogg decoder; remove for release
 /** Returns the decoder's current read position within the stream.
  *  This is inherited from FLAC__SeekableStreamDecoder; see
  *  FLAC__seekable_stream_decoder_get_decode_position().
@@ -667,7 +753,9 @@ OggFLAC_API unsigned OggFLAC__seekable_stream_decoder_get_blocksize(const OggFLA
  *    \c true if successful, \c false if there was an error from
  *    the 'tell' callback.
  */
+/*@@@@@@ probably does not work... is it used? */
 OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_get_decode_position(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *position);
+#endif
 
 /** Initialize the decoder instance.
  *  Should be called after OggFLAC__seekable_stream_decoder_new() and

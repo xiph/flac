@@ -111,10 +111,10 @@ namespace OggFLAC {
 			return State(::OggFLAC__seekable_stream_decoder_get_state(decoder_));
 		}
 
-		FLAC::Decoder::SeekableStream::State SeekableStream::get_FLAC_seekable_stream_decoder_state() const
+		OggFLAC::Decoder::Stream::State SeekableStream::get_stream_decoder_state() const
 		{
 			FLAC__ASSERT(is_valid());
-			return FLAC::Decoder::SeekableStream::State(::OggFLAC__seekable_stream_decoder_get_FLAC_seekable_stream_decoder_state(decoder_));
+			return OggFLAC::Decoder::Stream::State(::OggFLAC__seekable_stream_decoder_get_stream_decoder_state(decoder_));
 		}
 
 		FLAC::Decoder::Stream::State SeekableStream::get_FLAC_stream_decoder_state() const
@@ -216,7 +216,7 @@ namespace OggFLAC {
 			return (bool)::OggFLAC__seekable_stream_decoder_seek_absolute(decoder_, sample);
 		}
 
-		::FLAC__SeekableStreamDecoderReadStatus SeekableStream::read_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+		::OggFLAC__SeekableStreamDecoderReadStatus SeekableStream::read_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);
@@ -225,7 +225,7 @@ namespace OggFLAC {
 			return instance->read_callback(buffer, bytes);
 		}
 
-		::FLAC__SeekableStreamDecoderSeekStatus SeekableStream::seek_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
+		::OggFLAC__SeekableStreamDecoderSeekStatus SeekableStream::seek_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);
@@ -234,7 +234,7 @@ namespace OggFLAC {
 			return instance->seek_callback(absolute_byte_offset);
 		}
 
-		::FLAC__SeekableStreamDecoderTellStatus SeekableStream::tell_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+		::OggFLAC__SeekableStreamDecoderTellStatus SeekableStream::tell_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);
@@ -243,7 +243,7 @@ namespace OggFLAC {
 			return instance->tell_callback(absolute_byte_offset);
 		}
 
-		::FLAC__SeekableStreamDecoderLengthStatus SeekableStream::length_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
+		::OggFLAC__SeekableStreamDecoderLengthStatus SeekableStream::length_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);

@@ -118,7 +118,7 @@ extern OggFLAC_API const char * const OggFLAC__FileDecoderStateString[];
 
 /***********************************************************************
  *
- * class OggFLAC__FileDecoder : public FLAC__FileDecoder
+ * class OggFLAC__FileDecoder : public OggFLAC__SeekableStreamDecoder
  *
  ***********************************************************************/
 
@@ -421,27 +421,27 @@ OggFLAC_API OggFLAC__FileDecoderState OggFLAC__file_decoder_get_state(const OggF
  */
 OggFLAC_API OggFLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_seekable_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
 
-/** Get the state of the underlying FLAC seekable stream decoder.
+/** Get the state of the underlying stream decoder.
  *  Useful when the file decoder state is
  *  \c OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR
  *  and the seekable stream decoder state is
- *  \c OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR.
+ *  \c OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR.
  *
  * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
- * \retval FLAC__SeekableStreamDecoderState
- *    The FLAC seekable stream decoder state.
+ * \retval OggFLAC__StreamDecoderState
+ *    The stream decoder state.
  */
-OggFLAC_API FLAC__SeekableStreamDecoderState OggFLAC__file_decoder_get_FLAC_seekable_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API OggFLAC__StreamDecoderState OggFLAC__file_decoder_get_stream_decoder_state(const OggFLAC__FileDecoder *decoder);
 
 /** Get the state of the underlying FLAC stream decoder.
  *  Useful when the file decoder state is
  *  \c OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR
  *  and the seekable stream decoder state is
- *  \c OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR
- *  and the *  FLAC seekable stream decoder state is
- *  \c FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR.
+ *  \c OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR
+ *  and the stream decoder state is
+ *  \c OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR.
  *
  * \param  decoder  A decoder instance to query.
  * \assert
@@ -530,6 +530,8 @@ OggFLAC_API unsigned OggFLAC__file_decoder_get_sample_rate(const OggFLAC__FileDe
  */
 OggFLAC_API unsigned OggFLAC__file_decoder_get_blocksize(const OggFLAC__FileDecoder *decoder);
 
+#if 0
+@@@@@@ this can never be made to work without writing a custom Ogg decoder; remove for release
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_get_decode_position().
  *
@@ -543,6 +545,7 @@ OggFLAC_API unsigned OggFLAC__file_decoder_get_blocksize(const OggFLAC__FileDeco
  *    the 'tell' callback.
  */
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_get_decode_position(const OggFLAC__FileDecoder *decoder, FLAC__uint64 *position);
+#endif
 
 /** Initialize the decoder instance.
  *  Should be called after OggFLAC__file_decoder_new() and
@@ -614,8 +617,8 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_metadata(OggFL
  */
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_file(OggFLAC__FileDecoder *decoder);
 
-/** This is inherited from FLAC__FileDecoder; see
- *  FLAC__file_decoder_seek_absolute().
+/** This is inherited from OggFLAC__SeekableStreamDecoder; see
+ *  OggFLAC__seekable_stream_decoder_seek_absolute().
  *
  * \param  decoder  A decoder instance.
  * \param  sample   The target sample number to seek to.
