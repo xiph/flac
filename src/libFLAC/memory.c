@@ -18,7 +18,6 @@
  */
 
 #include <assert.h>
-#include <stdio.h> /*@@@ for stderr */
 #include "private/memory.h"
 
 void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address)
@@ -31,7 +30,6 @@ void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address)
 	/* align on 32-byte (256-bit) boundary */
 	x = malloc(bytes+31);
 	*aligned_address = (void*)(((unsigned)x + 31) & -32);
-fprintf(stderr, "FLAC__memory_alloc(unaligned=%p, aligned=%p)\n",x,*aligned_address);
 #else
 	x = malloc(bytes);
 	*aligned_address = x;
