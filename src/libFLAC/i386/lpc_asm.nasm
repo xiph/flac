@@ -157,7 +157,9 @@ FLAC__lpc_compute_autocorrelation_asm:
 	inc	ebp				; sample++
 	add	eax, byte 4			; &data[sample++]
 	dec	ecx
-	jnz	.outer_loop
+	jecxz	.outer_loop_end			; can't "jnz .outer_loop" because of distance
+	jmp	.outer_loop
+.outer_loop_end:
 
 	;	for(; sample < data_len; sample++) {
 	;		d = data[sample];
@@ -199,7 +201,7 @@ FLAC__lpc_compute_autocorrelation_asm:
 	pop	ebp
 	ret
 
-; NOTE: this SSE version is not even tested yet and only works for lag == 8
+;@@@ NOTE: this SSE version is not even tested yet and only works for lag == 8
 FLAC__lpc_compute_autocorrelation_sse:
 
 	; esp + 4 == data[]
@@ -222,8 +224,8 @@ FLAC__lpc_compute_autocorrelation_sse:
 	movaps	xmm1, xmm0			; xmm1 = data[0],data[0],data[0],data[0]
 	xorps	xmm3, xmm3			; xmm3 = 0,0,0,0
 .warmup:					; xmm3:xmm2 = data[sample-[7..0]]
-	movps	xmm4, xmm0
-	movps	xmm5, xmm1			; xmm5:xmm4 = xmm1:xmm0 = data[sample]*8
+	movaps	xmm4, xmm0
+	movaps	xmm5, xmm1			; xmm5:xmm4 = xmm1:xmm0 = data[sample]*8
 	mulps	xmm4, xmm2
 	mulps	xmm5, xmm3			; xmm5:xmm4 = xmm1:xmm0 * xmm3:xmm2
 	addps	xmm6, xmm4
@@ -242,13 +244,13 @@ FLAC__lpc_compute_autocorrelation_sse:
 	; now shift the lagged samples
 	movaps	xmm4, xmm2
 	movaps	xmm5, xmm3
-	shufps	xmm2, xmm4, 2103h		; xmm2
-	shufps	xmm3, xmm5, 2103h		; xmm2
+	shufps	xmm2, xmm4, 93h			; 93h=2-1-0-3 => xmm2 gets rotated left by one float
+	shufps	xmm3, xmm5, 93h			; 93h=2-1-0-3 => xmm3 gets rotated left by one float
 	movss	xmm3, xmm2
 	movss	xmm2, xmm0
 
-	movps	xmm4, xmm0
-	movps	xmm5, xmm1			; xmm5:xmm4 = xmm1:xmm0 = data[sample]*8
+	movaps	xmm4, xmm0
+	movaps	xmm5, xmm1			; xmm5:xmm4 = xmm1:xmm0 = data[sample]*8
 	mulps	xmm4, xmm2
 	mulps	xmm5, xmm3			; xmm5:xmm4 = xmm1:xmm0 * xmm3:xmm2
 	addps	xmm6, xmm4
