@@ -381,10 +381,10 @@ int do_it()
 			unsigned i;
 			if(option_values.num_files > 1)
 				option_values.cmdline_forced_outfilename = 0;
-			for(i = 0, retval = 0; i < option_values.num_files && retval == 0; i++) {
+			for(i = 0, retval = 0; i < option_values.num_files; i++) {
 				if(0 == strcmp(option_values.filenames[i], "-") && !first)
 					continue;
-				retval = decode_file(option_values.filenames[i], 0);
+				retval |= decode_file(option_values.filenames[i], 0);
 				first = false;
 			}
 		}
@@ -399,10 +399,10 @@ int do_it()
 			unsigned i;
 			if(option_values.num_files > 1)
 				option_values.cmdline_forced_outfilename = 0;
-			for(i = 0, retval = 0; i < option_values.num_files && retval == 0; i++) {
+			for(i = 0, retval = 0; i < option_values.num_files; i++) {
 				if(0 == strcmp(option_values.filenames[i], "-") && !first)
 					continue;
-				retval = encode_file(option_values.filenames[i], 0, i == (option_values.num_files-1));
+				retval |= encode_file(option_values.filenames[i], 0, i == (option_values.num_files-1));
 				first = false;
 			}
 		}
@@ -1092,7 +1092,6 @@ void show_explain()
 	printf("  -p, --qlp-coeff-precision-search   Do exhaustive search of LP coefficient\n");
 	printf("                                     quantization (expensive!); overrides -q;\n");
 	printf("                                     does nothing if using -l 0\n");
-/*@@@@@@    ................................................................................*/
 	printf("  -q, --qlp-coeff-precision=#        Specify precision in bits of quantized\n");
 	printf("                                     linear-predictor coefficients; 0 => let\n");
 	printf("                                     encoder decide (the minimun is %u, the\n", FLAC__MIN_QLP_COEFF_PRECISION);
