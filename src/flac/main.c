@@ -164,7 +164,7 @@ static struct FLAC__share__option long_options_[] = {
 	{ "--no-residual-gnuplot", 0, 0, 0 },
 	{ "--no-residual-text", 0, 0, 0 },
 
-    {0, 0, 0, 0}
+	{0, 0, 0, 0}
 };
 
 
@@ -454,26 +454,26 @@ void init_options()
 
 int parse_options(int argc, char *argv[])
 {
-    int short_option;
-    int option_index = 1;
+	int short_option;
+	int option_index = 1;
 	FLAC__bool had_error = false;
 	/*@@@ E and R: are deprecated */
 	const char *short_opts = "0123456789ab:cdeFHl:mMo:pP:q:r:sS:tV";
 
-    while ((short_option = FLAC__share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
-        switch (short_option) {
-            case 0: /* long option with no equivalent short option */
+	while ((short_option = FLAC__share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
+		switch (short_option) {
+			case 0: /* long option with no equivalent short option */
 				had_error |= (parse_option(short_option, long_options_[option_index].name, FLAC__share__optarg) != 0);
-                break;
+				break;
 			case '?':
 			case ':':
-                had_error = true;
-                break;
-            default: /* short option */
+				had_error = true;
+				break;
+			default: /* short option */
 				had_error |= (parse_option(short_option, 0, FLAC__share__optarg) != 0);
-                break;
-        }
-    }
+				break;
+		}
+	}
 
 	if(had_error) {
 		return 1;
