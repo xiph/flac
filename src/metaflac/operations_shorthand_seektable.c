@@ -79,9 +79,8 @@ FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Me
 
 	ok = populate_seekpoint_values(filename, block, needs_write);
 
-	if(ok) {
-		//@@@@ compact it
-	}
+	if(ok)
+		(void) FLAC__format_seektable_sort(&block->data.seek_table);
 
 	return ok;
 }
@@ -93,6 +92,7 @@ FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Me
 typedef struct {
 	FLAC__StreamMetadata_SeekTable *seektable_template;
 	FLAC__uint64 samples_written;
+	FLAC__uint64 audio_offset, last_offset;
 	unsigned first_seekpoint_to_check;
 	FLAC__bool error_occurred;
 	FLAC__StreamDecoderErrorStatus error_status;
@@ -102,48 +102,44 @@ static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *d
 {
 	ClientData *cd = (ClientData*)client_data;
 
+	(void)buffer;
 	FLAC__ASSERT(0 != cd);
 
 	if(!cd->error_occurred && cd->seektable_template->num_points > 0) {
 		const unsigned blocksize = frame->header.blocksize;
-		//@@@@
+		const FLAC__uint64 frame_first_sample = cd->samples_written;
+		const FLAC__uint64 frame_last_sample = frame_first_sample + (FLAC__uint64)blocksize - 1;
+		FLAC__uint64 test_sample;
+		unsigned i;
+		for(i = cd->first_seekpoint_to_check; i < cd->seektable_template->num_points; i++) {
+			test_sample = cd->seektable_template->points[i].sample_number;
+			if(test_sample > frame_last_sample) {
+				break;
+			}
+			else if(test_sample >= frame_first_sample) {
+				cd->seektable_template->points[i].sample_number = frame_first_sample;
+				cd->seektable_template->points[i].stream_offset = cd->last_offset - cd->audio_offset;
+				cd->seektable_template->points[i].frame_samples = blocksize;
+				cd->first_seekpoint_to_check++;
+				/* DO NOT: "break;" and here's why:
+				 * The seektable template may contain more than one target
+				 * sample for any given frame; we will keep looping, generating
+				 * duplicate seekpoints for them, and we'll clean it up later,
+				 * just before writing the seektable back to the metadata.
+				 */
+			}
+			else {
+				cd->first_seekpoint_to_check++;
+			}
+		}
 		cd->samples_written += blocksize;
+		if(!FLAC__file_decoder_get_decode_position(decoder, &cd->last_offset))
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 	}
 	else
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 }
-#if 0
-@@@@
-{
-	const unsigned blocksize = FLAC__stream_encoder_get_blocksize(encoder);
-	const FLAC__uint64 frame_first_sample = seekable_stream_encoder->private_->samples_written;
-	const FLAC__uint64 frame_last_sample = frame_first_sample + (FLAC__uint64)blocksize - 1;
-	FLAC__uint64 test_sample;
-	unsigned i;
-	for(i = seekable_stream_encoder->private_->first_seekpoint_to_check; i < seekable_stream_encoder->private_->seek_table->num_points; i++) {
-		test_sample = seekable_stream_encoder->private_->seek_table->points[i].sample_number;
-		if(test_sample > frame_last_sample) {
-			break;
-		}
-		else if(test_sample >= frame_first_sample) {
-			seekable_stream_encoder->private_->seek_table->points[i].sample_number = frame_first_sample;
-			seekable_stream_encoder->private_->seek_table->points[i].stream_offset = seekable_stream_encoder->private_->bytes_written - seekable_stream_encoder->private_->stream_offset;
-			seekable_stream_encoder->private_->seek_table->points[i].frame_samples = blocksize;
-			seekable_stream_encoder->private_->first_seekpoint_to_check++;
-			/* DO NOT: "break;" and here's why:
-			 * The seektable template may contain more than one target
-			 * sample for any given frame; we will keep looping, generating
-			 * duplicate seekpoints for them, and we'll clean it up later,
-			 * just before writing the seektable back to the metadata.
-			 */
-		}
-		else {
-			seekable_stream_encoder->private_->first_seekpoint_to_check++;
-		}
-	}
-}
-#endif
 
 static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
@@ -155,6 +151,7 @@ static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecode
 {
 	ClientData *cd = (ClientData*)client_data;
 
+	(void)decoder;
 	FLAC__ASSERT(0 != cd);
 
 	if(!cd->error_occurred) { /* don't let multiple errors overwrite the first one */
@@ -174,6 +171,7 @@ FLAC__bool populate_seekpoint_values(const char *filename, FLAC__StreamMetadata 
 
 	client_data.seektable_template = &block->data.seek_table;
 	client_data.samples_written = 0;
+	/* client_data.audio_offset must be determined later */
 	client_data.first_seekpoint_to_check = 0;
 	client_data.error_occurred = false;
 
@@ -197,6 +195,17 @@ FLAC__bool populate_seekpoint_values(const char *filename, FLAC__StreamMetadata 
 		ok = false;
 	}
 
+	if(ok && !FLAC__file_decoder_process_until_end_of_metadata(decoder)) {
+		fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file (%s)\n", filename, FLAC__file_decoder_get_resolved_state_string(decoder));
+		ok = false;
+	}
+
+	if(ok && !FLAC__file_decoder_get_decode_position(decoder, &client_data.audio_offset)) {
+		fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file\n", filename);
+		ok = false;
+	}
+	client_data.last_offset = client_data.audio_offset;
+
 	if(ok && !FLAC__file_decoder_process_until_end_of_file(decoder)) {
 		fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file (%s)\n", filename, FLAC__file_decoder_get_resolved_state_string(decoder));
 		ok = false;
@@ -207,6 +216,7 @@ FLAC__bool populate_seekpoint_values(const char *filename, FLAC__StreamMetadata 
 		ok = false;
 	}
 
+	*needs_write = true;
 	FLAC__file_decoder_delete(decoder);
 	return ok;
 }
