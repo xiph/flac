@@ -1125,6 +1125,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__Stre
 	return true;
 }
 
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_blank_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num)
+{
+	FLAC__StreamMetadata_CueSheet_Index index;
+	memset(&index, 0, sizeof(index));
+	return FLAC__metadata_object_cuesheet_track_index_index(object, track_num, index_num, &index);
+}
+
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_delete_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num)
 {
 	FLAC__StreamMetadata_CueSheet_Track *track;
@@ -1212,6 +1219,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_track(FLAC__StreamMeta
 	cs->tracks[track_num].indices = 0;
 
 	return FLAC__metadata_object_cuesheet_set_track(object, track_num, track, copy);
+}
+
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_blank_track(FLAC__StreamMetadata *object, unsigned track_num)
+{
+	FLAC__StreamMetadata_CueSheet_Track track;
+	memset(&track, 0, sizeof(track));
+	return FLAC__metadata_object_cuesheet_insert_track(object, track_num, &track, /*copy=*/false);
 }
 
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_delete_track(FLAC__StreamMetadata *object, unsigned track_num)
