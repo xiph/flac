@@ -87,5 +87,7 @@ AC_OUTPUT(	Makefile	\
 		src/plugin_xmms/Makefile	\
 		src/test_streams/Makefile	\
 		src/test_unit/Makefile	\
+		include/Makefile \
+		include/FLAC/Makefile \
 		test/Makefile	\
 		)
