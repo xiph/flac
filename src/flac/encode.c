@@ -1056,7 +1056,7 @@ bool write_big_endian_uint64(FILE *f, uint64 val)
 		byte *b = (byte *)&val, tmp;
 		tmp = b[0]; b[0] = b[7]; b[7] = tmp;
 		tmp = b[1]; b[1] = b[6]; b[6] = tmp;
-		tmp = b[2]; b[2] = b[5]; b[3] = tmp;
+		tmp = b[2]; b[2] = b[5]; b[5] = tmp;
 		tmp = b[3]; b[3] = b[4]; b[4] = tmp;
 	}
 	return fwrite(&val, 1, 8, f) == 8;
