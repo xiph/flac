@@ -279,6 +279,19 @@ static bool test_stream_encoder()
 	FLAC::Encoder::Stream::State state = encoder->get_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamEncoderState)state), state.as_cstring());
 
+	{
+		FLAC__uint64 absolute_sample;
+		unsigned frame_number;
+		unsigned channel;
+		unsigned sample;
+		FLAC__int32 expected;
+		FLAC__int32 got;
+
+		printf("testing get_verify_decoder_error_stats()... ");
+		encoder->get_verify_decoder_error_stats(&absolute_sample, &frame_number, &channel, &sample, &expected, &got);
+		printf("OK\n");
+	}
+
 	printf("testing get_verify()... ");
 	if(encoder->get_verify() != true) {
 		printf("FAILED, expected true, got false\n");
@@ -602,6 +615,19 @@ static bool test_seekable_stream_encoder()
 	FLAC::Decoder::Stream::State dstate = encoder->get_verify_decoder_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
 
+	{
+		FLAC__uint64 absolute_sample;
+		unsigned frame_number;
+		unsigned channel;
+		unsigned sample;
+		FLAC__int32 expected;
+		FLAC__int32 got;
+
+		printf("testing get_verify_decoder_error_stats()... ");
+		encoder->get_verify_decoder_error_stats(&absolute_sample, &frame_number, &channel, &sample, &expected, &got);
+		printf("OK\n");
+	}
+
 	printf("testing get_verify()... ");
 	if(encoder->get_verify() != true) {
 		printf("FAILED, expected true, got false\n");
@@ -752,14 +778,13 @@ public:
 	~FileEncoder() { }
 
 	// from FLAC::Encoder::File
-	void progress_callback(unsigned current_frame, unsigned total_frames_estimate);
+	void progress_callback(FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate);
 
 	bool die(const char *msg = 0) const;
 };
 
-void FileEncoder::progress_callback(unsigned current_frame, unsigned total_frames_estimate)
+void FileEncoder::progress_callback(FLAC__uint64, unsigned, unsigned)
 {
-	(void)current_frame, (void)total_frames_estimate;
 }
 
 bool FileEncoder::die(const char *msg) const
@@ -927,6 +952,19 @@ static bool test_file_encoder()
 	printf("testing get_verify_decoder_state()... ");
 	FLAC::Decoder::Stream::State dstate = encoder->get_verify_decoder_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
+
+	{
+		FLAC__uint64 absolute_sample;
+		unsigned frame_number;
+		unsigned channel;
+		unsigned sample;
+		FLAC__int32 expected;
+		FLAC__int32 got;
+
+		printf("testing get_verify_decoder_error_stats()... ");
+		encoder->get_verify_decoder_error_stats(&absolute_sample, &frame_number, &channel, &sample, &expected, &got);
+		printf("OK\n");
+	}
 
 	printf("testing get_verify()... ");
 	if(encoder->get_verify() != true) {

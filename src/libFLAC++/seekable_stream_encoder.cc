@@ -166,6 +166,12 @@ namespace FLAC {
 			return Decoder::Stream::State(::FLAC__seekable_stream_encoder_get_verify_decoder_state(encoder_));
 		}
 
+		void SeekableStream::get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__seekable_stream_encoder_get_verify_decoder_error_stats(encoder_, absolute_sample, frame_number, channel, sample, expected, got);
+		}
+
 		bool SeekableStream::get_verify() const
 		{
 			FLAC__ASSERT(is_valid());

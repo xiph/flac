@@ -691,6 +691,25 @@ FLAC__StreamEncoderState FLAC__stream_encoder_get_state(const FLAC__StreamEncode
  */
 FLAC__StreamDecoderState FLAC__stream_encoder_get_verify_decoder_state(const FLAC__StreamEncoder *encoder);
 
+/** Get relevant values about the nature of a verify decoder error.
+ *  Useful when the stream encoder state is
+ *  \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.  The arguments should
+ *  be addresses in which the stats will be returned, or NULL if value
+ *  is not desired.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \param  absolute_sample  The absolute sample number of the mismatch.
+ * \param  frame_number  The number of the frame in which the mismatch occurred.
+ * \param  channel       The channel in which the mismatch occurred.
+ * \param  sample        The number of the sample (relative to the frame) in
+ *                       which the mismatch occurred.
+ * \param  expected      The expected value for the sample in question.
+ * \param  got           The actual value returned by the decoder.
+ * \assert
+ *    \code encoder != NULL \endcode
+ */
+void FLAC__stream_encoder_get_verify_decoder_error_stats(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
+
 /** Get the "verify" flag.
  *
  * \param  encoder  An encoder instance to query.

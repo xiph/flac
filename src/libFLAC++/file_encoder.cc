@@ -178,6 +178,12 @@ namespace FLAC {
 			return Decoder::Stream::State(::FLAC__file_encoder_get_verify_decoder_state(encoder_));
 		}
 
+		void File::get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__file_encoder_get_verify_decoder_error_stats(encoder_, absolute_sample, frame_number, channel, sample, expected, got);
+		}
+
 		bool File::get_verify() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -306,18 +312,18 @@ namespace FLAC {
 			return (bool)::FLAC__file_encoder_process_interleaved(encoder_, buffer, samples);
 		}
 
-		void File::progress_callback(unsigned current_frame, unsigned total_frames_estimate)
+		void File::progress_callback(FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate)
 		{
-			(void)current_frame, (void)total_frames_estimate;
+			(void)bytes_written, (void)frames_written, (void)total_frames_estimate;
 		}
 
-		void File::progress_callback_(const ::FLAC__FileEncoder *encoder, unsigned current_frame, unsigned total_frames_estimate, void *client_data)
+		void File::progress_callback_(const ::FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
 			File *instance = reinterpret_cast<File *>(client_data);
 			FLAC__ASSERT(0 != instance);
-			instance->progress_callback(current_frame, total_frames_estimate);
+			instance->progress_callback(bytes_written, frames_written, total_frames_estimate);
 		}
 
 	};

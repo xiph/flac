@@ -119,6 +119,7 @@ namespace FLAC {
 
 			State    get_state() const;
 			Decoder::Stream::State get_verify_decoder_state() const;
+			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
 			bool     get_verify() const;
 			bool     get_streamable_subset() const;
 			bool     get_do_mid_side_stereo() const;
@@ -213,6 +214,7 @@ namespace FLAC {
 			State    get_state() const;
 			Stream::State get_stream_encoder_state() const;
 			Decoder::Stream::State get_verify_decoder_state() const;
+			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
 			bool     get_verify() const;
 			bool     get_streamable_subset() const;
 			bool     get_do_mid_side_stereo() const;
@@ -309,6 +311,7 @@ namespace FLAC {
 			SeekableStream::State get_seekable_stream_encoder_state() const;
 			Stream::State get_stream_encoder_state() const;
 			Decoder::Stream::State get_verify_decoder_state() const;
+			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
 			bool     get_verify() const;
 			bool     get_streamable_subset() const;
 			bool     get_do_mid_side_stereo() const;
@@ -337,11 +340,11 @@ namespace FLAC {
 			bool process(const FLAC__int32 * const buffer[], unsigned samples);
 			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples);
 		protected:
-			virtual void progress_callback(unsigned current_frame, unsigned total_frames_estimate);
+			virtual void progress_callback(FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate);
 
 			::FLAC__FileEncoder *encoder_;
 		private:
-			static void progress_callback_(const ::FLAC__FileEncoder *encoder, unsigned current_frame, unsigned total_frames_estimate, void *client_data);
+			static void progress_callback_(const ::FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 
 			// Private and undefined so you can't use them:
 			File(const Stream &);

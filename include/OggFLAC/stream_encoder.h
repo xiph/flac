@@ -438,6 +438,31 @@ FLAC__StreamEncoderState OggFLAC__stream_encoder_get_FLAC_stream_encoder_state(c
  */
 FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_state(const OggFLAC__StreamEncoder *encoder);
 
+/** Get relevant values about the nature of a verify decoder error.
+ *  Inherited from FLAC__stream_encoder_get_verify_decoder_error_stats().
+ *  Useful when the stream encoder state is
+ *  \c OggFLAC__STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR and the
+ *  FLAC stream encoder state is
+ *  \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \param  absolute_sample  The absolute sample number of the mismatch.
+ * \param  frame_number  The number of the frame in which the mismatch occurred.
+ * \param  channel       The channel in which the mismatch occurred.
+ * \param  sample        The number of the sample (relative to the frame) in
+ *                       which the mismatch occurred.
+ * \param  expected      The expected value for the sample in question.
+ * \param  got           The actual value returned by the decoder.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code absolute_sample != NULL \encode
+ *    \code frame_number != NULL \encode
+ *    \code channel != NULL \encode
+ *    \code sample != NULL \encode
+ *    \code expected != NULL \encode
+ */
+void OggFLAC__stream_encoder_get_verify_decoder_error_stats(const OggFLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
+
 /* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_verify()
  *
  * \param  encoder  An encoder instance to query.

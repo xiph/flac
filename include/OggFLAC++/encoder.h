@@ -121,6 +121,7 @@ namespace OggFLAC {
 			State    get_state() const;
 			FLAC::Encoder::Stream::State get_FLAC_stream_encoder_state() const;
 			FLAC::Decoder::Stream::State get_verify_decoder_state() const;
+			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
 			bool     get_verify() const;
 			bool     get_streamable_subset() const;
 			bool     get_do_mid_side_stereo() const;

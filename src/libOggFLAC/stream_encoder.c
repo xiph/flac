@@ -432,6 +432,13 @@ FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_state(const 
 	return FLAC__stream_encoder_get_verify_decoder_state(encoder->private_->FLAC_stream_encoder);
 }
 
+void OggFLAC__stream_encoder_get_verify_decoder_error_stats(const OggFLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	return FLAC__stream_encoder_get_verify_decoder_error_stats(encoder->private_->FLAC_stream_encoder, absolute_sample, frame_number, channel, sample, expected, got);
+}
+
 FLAC__bool OggFLAC__stream_encoder_get_verify(const OggFLAC__StreamEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);

@@ -61,8 +61,6 @@ typedef enum {
 	ENCODER_IN_AUDIO = 2
 } EncoderStateHint;
 
-/*@@@@ function for getting the error_stats */
-
 /***********************************************************************
  *
  * Private class method prototypes
@@ -511,6 +509,12 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 		if(FLAC__stream_decoder_init(encoder->private_->verify.decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR;
 	}
+	encoder->private_->verify.error_stats.absolute_sample = 0;
+	encoder->private_->verify.error_stats.frame_number = 0;
+	encoder->private_->verify.error_stats.channel = 0;
+	encoder->private_->verify.error_stats.sample = 0;
+	encoder->private_->verify.error_stats.expected = 0;
+	encoder->private_->verify.error_stats.got = 0;
 
 	/*
 	 * write the stream header
@@ -828,6 +832,23 @@ FLAC__StreamDecoderState FLAC__stream_encoder_get_verify_decoder_state(const FLA
 		return FLAC__stream_decoder_get_state(encoder->private_->verify.decoder);
 	else
 		return FLAC__STREAM_DECODER_UNINITIALIZED;
+}
+
+void FLAC__stream_encoder_get_verify_decoder_error_stats(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got)
+{
+	FLAC__ASSERT(0 != encoder);
+	if(0 != absolute_sample)
+		*absolute_sample = encoder->private_->verify.error_stats.absolute_sample;
+	if(0 != frame_number)
+		*frame_number = encoder->private_->verify.error_stats.frame_number;
+	if(0 != channel)
+		*channel = encoder->private_->verify.error_stats.channel;
+	if(0 != sample)
+		*sample = encoder->private_->verify.error_stats.sample;
+	if(0 != expected)
+		*expected = encoder->private_->verify.error_stats.expected;
+	if(0 != got)
+		*got = encoder->private_->verify.error_stats.got;
 }
 
 FLAC__bool FLAC__stream_encoder_get_verify(const FLAC__StreamEncoder *encoder)

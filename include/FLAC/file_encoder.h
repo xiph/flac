@@ -151,7 +151,7 @@ typedef struct {
 } FLAC__FileEncoder;
 
 /*@@@ document: */
-typedef void (*FLAC__FileEncoderProgressCallback)(const FLAC__FileEncoder *encoder, unsigned current_frame, unsigned total_frames_estimate, void *client_data);
+typedef void (*FLAC__FileEncoderProgressCallback)(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 
 
 /***********************************************************************
@@ -530,6 +530,28 @@ FLAC__StreamEncoderState FLAC__file_encoder_get_stream_encoder_state(const FLAC_
  *    The stream encoder state.
  */
 FLAC__StreamDecoderState FLAC__file_encoder_get_verify_decoder_state(const FLAC__FileEncoder *encoder);
+
+/** Get relevant values about the nature of a verify decoder error.
+ *  Inherited from FLAC__seekable_stream_encoder_get_verify_decoder_error_stats().
+ *  Useful when the file encoder state is
+ *  \c FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR and the seekable stream
+ *  encoder state is
+ *  \c FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR and the
+ *  stream encoder state is
+ *  \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \param  absolute_sample  The absolute sample number of the mismatch.
+ * \param  frame_number  The number of the frame in which the mismatch occurred.
+ * \param  channel       The channel in which the mismatch occurred.
+ * \param  sample        The number of the sample (relative to the frame) in
+ *                       which the mismatch occurred.
+ * \param  expected      The expected value for the sample in question.
+ * \param  got           The actual value returned by the decoder.
+ * \assert
+ *    \code encoder != NULL \endcode
+ */
+void FLAC__file_encoder_get_verify_decoder_error_stats(const FLAC__FileEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
 
 /** Get the "verify" flag.
  *  This is inherited from FLAC__SeekableStreamEncoder; see

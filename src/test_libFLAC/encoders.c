@@ -328,6 +328,19 @@ static FLAC__bool test_stream_encoder()
 	dstate = FLAC__stream_encoder_get_verify_decoder_state(encoder);
 	printf("returned state = %u (%s)... OK\n", (unsigned)dstate, FLAC__StreamDecoderStateString[dstate]);
 
+	{
+		FLAC__uint64 absolute_sample;
+		unsigned frame_number;
+		unsigned channel;
+		unsigned sample;
+		FLAC__int32 expected;
+		FLAC__int32 got;
+
+		printf("testing FLAC__stream_encoder_get_verify_decoder_error_stats()... ");
+		FLAC__stream_encoder_get_verify_decoder_error_stats(encoder, &absolute_sample, &frame_number, &channel, &sample, &expected, &got);
+		printf("OK\n");
+	}
+
 	printf("testing FLAC__stream_encoder_get_verify()... ");
 	if(FLAC__stream_encoder_get_verify(encoder) != true) {
 		printf("FAILED, expected true, got false\n");
@@ -626,6 +639,19 @@ static FLAC__bool test_seekable_stream_encoder()
 	dstate = FLAC__seekable_stream_encoder_get_verify_decoder_state(encoder);
 	printf("returned state = %u (%s)... OK\n", (unsigned)dstate, FLAC__StreamDecoderStateString[dstate]);
 
+	{
+		FLAC__uint64 absolute_sample;
+		unsigned frame_number;
+		unsigned channel;
+		unsigned sample;
+		FLAC__int32 expected;
+		FLAC__int32 got;
+
+		printf("testing FLAC__seekable_stream_encoder_get_verify_decoder_error_stats()... ");
+		FLAC__seekable_stream_encoder_get_verify_decoder_error_stats(encoder, &absolute_sample, &frame_number, &channel, &sample, &expected, &got);
+		printf("OK\n");
+	}
+
 	printf("testing FLAC__seekable_stream_encoder_get_verify()... ");
 	if(FLAC__seekable_stream_encoder_get_verify(encoder) != true) {
 		printf("FAILED, expected true, got false\n");
@@ -770,9 +796,9 @@ static FLAC__bool test_seekable_stream_encoder()
 	return true;
 }
 
-static void file_encoder_progress_callback_(const FLAC__FileEncoder *encoder, unsigned current_frame, unsigned total_frames_estimate, void *client_data)
+static void file_encoder_progress_callback_(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
 {
-	(void)encoder, (void)current_frame, (void)total_frames_estimate, (void)client_data;
+	(void)encoder, (void)bytes_written, (void)frames_written, (void)total_frames_estimate, (void)client_data;
 }
 
 static FLAC__bool test_file_encoder()
@@ -921,6 +947,19 @@ static FLAC__bool test_file_encoder()
 	printf("testing FLAC__file_encoder_get_verify_decoder_state()... ");
 	dstate = FLAC__file_encoder_get_verify_decoder_state(encoder);
 	printf("returned state = %u (%s)... OK\n", (unsigned)dstate, FLAC__StreamDecoderStateString[dstate]);
+
+	{
+		FLAC__uint64 absolute_sample;
+		unsigned frame_number;
+		unsigned channel;
+		unsigned sample;
+		FLAC__int32 expected;
+		FLAC__int32 got;
+
+		printf("testing FLAC__file_encoder_get_verify_decoder_error_stats()... ");
+		FLAC__file_encoder_get_verify_decoder_error_stats(encoder, &absolute_sample, &frame_number, &channel, &sample, &expected, &got);
+		printf("OK\n");
+	}
 
 	printf("testing FLAC__file_encoder_get_verify()... ");
 	if(FLAC__file_encoder_get_verify(encoder) != true) {
