@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>January 10, 2003</date>">
+  <!ENTITY dhdate      "<date>July 26, 2003</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -45,22 +45,35 @@
 	<refsynopsisdiv>
 	  <cmdsynopsis>
 	    <command>flac</command>
-
-	    <arg><option><replaceable>OPTION</replaceable></option></arg>
-	    <arg choice=plain><replaceable>infile</replaceable></arg>
-	    <arg choice=plain><replaceable>...</replaceable></arg>
+	    <arg choice=opt><replaceable>options</replaceable></arg>
+	    <group rep=repeat>
+               <arg><replaceable>infile.wav</replaceable></arg>
+               <arg><replaceable>infile.aiff</replaceable></arg>
+               <arg><replaceable>infile.raw</replaceable></arg>
+               <arg>-</arg>
+            </group>
+	  </cmdsynopsis>
+	  <cmdsynopsis>
+	    <command>flac</command>
+            <group>
+               <arg>-d</arg> <arg>--decode</arg>
+               <arg>-t</arg> <arg>--test</arg>
+               <arg>-a</arg> <arg>--analyze</arg>
+            </group>
+	    <arg choice=opt><replaceable>OPTIONS</replaceable></arg>
+	    <arg choice=opt rep=repeat><replaceable>infile.flac</replaceable></arg>
 	  </cmdsynopsis>
 	</refsynopsisdiv>
 	<refsect1>
 	  <title>DESCRIPTION</title>
 
-	  <para>This manual page documents briefly the
-	    <command>flac</command> command.</para>
+	  <para><command>flac</command> is a command-line tool for
+             encoding, decoding, testing and analyzing FLAC streams.
+          </para>
 
-	  <para>This manual page was written for the &debian;
-	    distribution because the original program does not have a
-	    manual page.  Instead, it has documentation in HTML
-	    format; see below.</para>
+	  <para>This manual page was originally written for the &debian;
+	    distribution because the original program did not have a
+	    manual page.</para>
 
 	</refsect1>
 	<refsect1>
