@@ -17,24 +17,531 @@
  */
 
 #include "decoders.h"
+#include "file_utils.h"
+#include "metadata_utils.h"
+#include "FLAC/assert.h"
+#include "FLAC/file_decoder.h"
+#include "FLAC/seekable_stream_decoder.h"
+#include "FLAC/stream_decoder.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-extern int test_file_decoder();
-extern int test_seekable_stream_decoder();
-extern int test_stream_decoder();
+typedef struct {
+	FILE *file;
+	unsigned current_metadata_number;
+	FLAC__bool error_occurred;
+} stream_decoder_client_data_struct;
 
-int test_decoders()
+static FLAC__StreamMetaData streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_;
+static FLAC__StreamMetaData *expected_metadata_sequence_[6];
+static unsigned num_expected_;
+static const char *flacfilename_ = "metadata.flac";
+
+static FLAC__bool die_(const char *msg)
 {
-	if(0 != test_stream_decoder())
-		return 1;
+	printf("ERROR: %s\n", msg);
+	return false;
+}
 
-	if(0 != test_seekable_stream_decoder())
-		return 1;
+static void *malloc_or_die_(size_t size)
+{
+	void *x = malloc(size);
+	if(0 == x) {
+		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (unsigned)size);
+		exit(1);
+	}
+	return x;
+}
 
-	if(0 != test_file_decoder())
-		return 1;
+static void init_metadata_blocks_()
+{
+	/*
+		most of the actual numbers and data in the blocks don't matter,
+		we just want to make sure the decoder parses them correctly
+
+		remember, the metadata interface gets tested after the decoders,
+		so we do all the metadata manipulation here without it.
+	*/
+
+	/* min/max_framesize and md5sum don't get written at first, so we have to leave them 0 */
+    streaminfo_.is_last = false;
+    streaminfo_.type = FLAC__METADATA_TYPE_STREAMINFO;
+    streaminfo_.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
+    streaminfo_.data.stream_info.min_blocksize = 576;
+    streaminfo_.data.stream_info.max_blocksize = 576;
+    streaminfo_.data.stream_info.min_framesize = 0;
+    streaminfo_.data.stream_info.max_framesize = 0;
+    streaminfo_.data.stream_info.sample_rate = 44100;
+    streaminfo_.data.stream_info.channels = 1;
+    streaminfo_.data.stream_info.bits_per_sample = 8;
+    streaminfo_.data.stream_info.total_samples = 0;
+	memset(streaminfo_.data.stream_info.md5sum, 0, 16);
+
+    padding_.is_last = false;
+    padding_.type = FLAC__METADATA_TYPE_PADDING;
+    padding_.length = 1234;
+
+    seektable_.is_last = false;
+    seektable_.type = FLAC__METADATA_TYPE_SEEKTABLE;
+	seektable_.data.seek_table.num_points = 2;
+    seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
+	seektable_.data.seek_table.points = malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(FLAC__StreamMetaData_SeekPoint));
+	seektable_.data.seek_table.points[0].sample_number = 0;
+	seektable_.data.seek_table.points[0].stream_offset = 0;
+	seektable_.data.seek_table.points[0].frame_samples = streaminfo_.data.stream_info.min_blocksize;
+	seektable_.data.seek_table.points[1].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+	seektable_.data.seek_table.points[1].stream_offset = 1000;
+	seektable_.data.seek_table.points[1].frame_samples = streaminfo_.data.stream_info.min_blocksize;
+
+    application1_.is_last = false;
+    application1_.type = FLAC__METADATA_TYPE_APPLICATION;
+    application1_.length = 8;
+	memcpy(application1_.data.application.id, "\xfe\xdc\xba\x98", 4);
+	application1_.data.application.data = malloc_or_die_(4);
+	memcpy(application1_.data.application.data, "\xf0\xe1\xd2\xc3", 4);
+
+    application2_.is_last = false;
+    application2_.type = FLAC__METADATA_TYPE_APPLICATION;
+    application2_.length = 4;
+	memcpy(application2_.data.application.id, "\x76\x54\x32\x10", 4);
+	application2_.data.application.data = 0;
+
+    vorbiscomment_.is_last = true;
+    vorbiscomment_.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
+    vorbiscomment_.length = (4 + 8) + 4 + (4 + 5) + (4 + 0);
+	vorbiscomment_.data.vorbis_comment.vendor_string.length = 8;
+	vorbiscomment_.data.vorbis_comment.vendor_string.entry = malloc_or_die_(8);
+	memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, "flac 1.x", 8);
+	vorbiscomment_.data.vorbis_comment.num_comments = 2;
+	vorbiscomment_.data.vorbis_comment.comments = malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetaData_VorbisComment_Entry));
+	vorbiscomment_.data.vorbis_comment.comments[0].length = 5;
+	vorbiscomment_.data.vorbis_comment.comments[0].entry = malloc_or_die_(5);
+	memcpy(vorbiscomment_.data.vorbis_comment.comments[0].entry, "ab=cd", 5);
+	vorbiscomment_.data.vorbis_comment.comments[1].length = 0;
+	vorbiscomment_.data.vorbis_comment.comments[1].entry = 0;
+}
+
+static void free_metadata_blocks_()
+{
+	free(seektable_.data.seek_table.points);
+	free(application1_.data.application.data);
+	free(vorbiscomment_.data.vorbis_comment.vendor_string.entry);
+	free(vorbiscomment_.data.vorbis_comment.comments[0].entry);
+	free(vorbiscomment_.data.vorbis_comment.comments);
+}
+
+static FLAC__bool generate_file_()
+{
+	printf("\n\ngenerating FLAC file for decoder tests...\n");
+
+	expected_metadata_sequence_[0] = &padding_;
+	expected_metadata_sequence_[1] = &seektable_;
+	expected_metadata_sequence_[2] = &application1_;
+	expected_metadata_sequence_[3] = &application2_;
+	expected_metadata_sequence_[4] = &vorbiscomment_;
+	num_expected_ = 5;
+
+	if(!file_utils__generate_flacfile(flacfilename_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
+		return die_("creating the encoded file"); 
+
+	return true;
+}
+
+FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+{
+	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
+
+	(void)decoder;
+
+	if(0 == dcd) {
+		printf("ERROR: client_data in read callback is NULL\n");
+		return FLAC__STREAM_DECODER_READ_ABORT;
+	}
+
+	if(dcd->error_occurred)
+		return FLAC__STREAM_DECODER_READ_ABORT;
+
+	if(feof(dcd->file))
+		return FLAC__STREAM_DECODER_READ_END_OF_STREAM;
+    else if(*bytes > 0) {
+        unsigned bytes_read = fread(buffer, 1, *bytes, dcd->file);
+        if(bytes_read == 0) {
+            if(feof(dcd->file))
+                return FLAC__STREAM_DECODER_READ_END_OF_STREAM;
+            else
+                return FLAC__STREAM_DECODER_READ_CONTINUE;
+        }
+        else {
+            *bytes = bytes_read;
+            return FLAC__STREAM_DECODER_READ_CONTINUE;
+        }
+    }
+    else
+        return FLAC__STREAM_DECODER_READ_ABORT; /* abort to avoid a deadlock */
+}
+
+FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+{
+	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
+
+	(void)decoder, (void)frame, (void)buffer;
+
+	if(0 == dcd) {
+		printf("ERROR: client_data in write callback is NULL\n");
+		return FLAC__STREAM_DECODER_WRITE_ABORT;
+	}
+
+	if(dcd->error_occurred)
+		return FLAC__STREAM_DECODER_WRITE_ABORT;
+
+    if(
+        (frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER && frame->header.number.frame_number == 0) ||
+        (frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER && frame->header.number.sample_number == 0)
+    ) {
+        printf("content... ");
+        fflush(stdout);
+    }
+
+	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
+}
+
+void stream_decoder_metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
+{
+	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
+
+	(void)decoder;
+
+	if(0 == dcd) {
+		printf("ERROR: client_data in metadata callback is NULL\n");
+		return;
+	}
+
+	if(dcd->error_occurred)
+		return;
+
+	printf("%d... ", dcd->current_metadata_number);
+	fflush(stdout);
+
+	if(dcd->current_metadata_number >= num_expected_) {
+		(void)die_("got more metadata blocks than expected");
+		dcd->error_occurred = true;
+	}
+	else {
+		if(!compare_block_(expected_metadata_sequence_[dcd->current_metadata_number], metadata)) {
+			(void)die_("metadata block mismatch");
+			dcd->error_occurred = true;
+		}
+	}
+	dcd->current_metadata_number++;
+}
+
+void stream_decoder_error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+{
+	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
+
+	(void)decoder;
+
+	printf("ERROR: got error callback: err = %u (%s)\n", (unsigned)status, FLAC__StreamDecoderErrorStatusString[status]);
+
+	if(0 == dcd) {
+		printf("ERROR: client_data in error callback is NULL\n");
+		return;
+	}
+
+	dcd->error_occurred = true;
+}
+
+FLAC__bool test_stream_decoder()
+{
+	FLAC__StreamDecoder *decoder;
+	FLAC__StreamDecoderState state;
+	stream_decoder_client_data_struct decoder_client_data;
+
+	printf("\n+++ unit test: FLAC__StreamDecoder\n\n");
+
+	num_expected_ = 0;
+	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+
+	printf("testing FLAC__stream_decoder_new()... ");
+	decoder = FLAC__stream_decoder_new();
+	if(0 == decoder) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_set_read_callback()... ");
+	if(!FLAC__stream_decoder_set_read_callback(decoder, stream_decoder_read_callback_)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_set_write_callback()... ");
+	if(!FLAC__stream_decoder_set_write_callback(decoder, stream_decoder_write_callback_)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_set_metadata_callback()... ");
+	if(!FLAC__stream_decoder_set_metadata_callback(decoder, stream_decoder_metadata_callback_)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_set_error_callback()... ");
+	if(!FLAC__stream_decoder_set_error_callback(decoder, stream_decoder_error_callback_)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_set_client_data()... ");
+	if(!FLAC__stream_decoder_set_client_data(decoder, &decoder_client_data)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_init()... ");
+	if((state = FLAC__stream_decoder_init(decoder)) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA) {
+		printf("FAILED, returned state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
+		return false;
+	}
+	printf("OK\n");
+
+	decoder_client_data.current_metadata_number = 0;
+	decoder_client_data.error_occurred = false;
+
+	printf("opening FLAC file... ");
+	decoder_client_data.file = fopen(flacfilename_, "rb");
+	if(0 == decoder_client_data.file) {
+		printf("ERROR\n");
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_process_metadata()... ");
+	if(!FLAC__stream_decoder_process_metadata(decoder)) {
+		state = FLAC__stream_decoder_get_state(decoder);
+		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_process_one_frame()... ");
+	if(!FLAC__stream_decoder_process_one_frame(decoder)) {
+		state = FLAC__stream_decoder_get_state(decoder);
+		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_process_remaining_frames()... ");
+	if(!FLAC__stream_decoder_process_remaining_frames(decoder)) {
+		state = FLAC__stream_decoder_get_state(decoder);
+		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_finish()... ");
+	FLAC__stream_decoder_finish(decoder);
+	printf("OK\n");
+
+
+	num_expected_ = 0;
+	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
+	expected_metadata_sequence_[num_expected_++] = &padding_;
+	expected_metadata_sequence_[num_expected_++] = &seektable_;
+	expected_metadata_sequence_[num_expected_++] = &application1_;
+	expected_metadata_sequence_[num_expected_++] = &application2_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+
+	printf("testing FLAC__stream_decoder_delete()... ");
+	FLAC__stream_decoder_delete(decoder);
+	printf("OK\n");
 
 	printf("\nPASSED!\n");
 
+	return true;
+}
+
+FLAC__bool test_seekable_stream_decoder()
+{
+	printf("\n+++ unit test: FLAC__SeekableStreamDecoder\n\n");
+
+	printf("\nPASSED!\n");
+
+	return true;
+}
+
+FLAC__bool test_file_decoder()
+{
+	printf("\n+++ unit test: FLAC__FileDecoder\n\n");
+
+	printf("\nPASSED!\n");
+
+	return true;
+}
+
+int test_decoders()
+{
+	init_metadata_blocks_();
+	if(!generate_file_())
+		return 1;
+
+	if(!test_stream_decoder())
+		return 1;
+
+	if(!test_seekable_stream_decoder())
+		return 1;
+
+	if(!test_file_decoder())
+		return 1;
+
+	(void) file_utils__remove_file(flacfilename_);
+	free_metadata_blocks_();
+
 	return 0;
 }
+#if 0
+extern const char *FLAC__StreamDecoderStateString[];
+
+typedef enum {
+	FLAC__STREAM_DECODER_READ_CONTINUE,
+	FLAC__STREAM_DECODER_READ_END_OF_STREAM,
+	FLAC__STREAM_DECODER_READ_ABORT
+} FLAC__StreamDecoderReadStatus;
+extern const char *FLAC__StreamDecoderReadStatusString[];
+
+typedef enum {
+	FLAC__STREAM_DECODER_WRITE_CONTINUE,
+	FLAC__STREAM_DECODER_WRITE_ABORT
+} FLAC__StreamDecoderWriteStatus;
+extern const char *FLAC__StreamDecoderWriteStatusString[];
+
+typedef enum {
+	FLAC__STREAM_DECODER_ERROR_LOST_SYNC,
+	FLAC__STREAM_DECODER_ERROR_BAD_HEADER,
+	FLAC__STREAM_DECODER_ERROR_FRAME_CRC_MISMATCH
+} FLAC__StreamDecoderErrorStatus;
+extern const char *FLAC__StreamDecoderErrorStatusString[];
+
+/***********************************************************************
+ *
+ * Class constructor/destructor
+ *
+ ***********************************************************************/
+
+/*
+ * Any parameters that are not set before FLAC__stream_decoder_init()
+ * will take on the defaults from the constructor, shown below.
+ * For more on what the parameters mean, see the documentation.
+ *
+ *        (*read_callback)()               (DEFAULT: NULL ) The callbacks are the only values that MUST be set before FLAC__stream_decoder_init()
+ *        (*write_callback)()              (DEFAULT: NULL )
+ *        (*metadata_callback)()           (DEFAULT: NULL )
+ *        (*error_callback)()              (DEFAULT: NULL )
+ * void*    client_data                    (DEFAULT: NULL ) passed back through the callbacks
+ */
+FLAC__StreamDecoder *FLAC__stream_decoder_new();
+void FLAC__stream_decoder_delete(FLAC__StreamDecoder *);
+
+/***********************************************************************
+ *
+ * Public class method prototypes
+ *
+ ***********************************************************************/
+
+/*
+ * Various "set" methods.  These may only be called when the decoder
+ * is in the state FLAC__STREAM_DECODER_UNINITIALIZED, i.e. after
+ * FLAC__stream_decoder_new() or FLAC__stream_decoder_finish(), but
+ * before FLAC__stream_decoder_init().  If this is the case they will
+ * return true, otherwise false.
+ *
+ * NOTE that these functions do not validate the values as many are
+ * interdependent.  The FLAC__stream_decoder_init() function will do
+ * this, so make sure to pay attention to the state returned by
+ * FLAC__stream_decoder_init().
+ *
+ * Any parameters that are not set before FLAC__stream_decoder_init()
+ * will take on the defaults from the constructor.  NOTE that
+ * FLAC__stream_decoder_flush() or FLAC__stream_decoder_reset() do
+ * NOT reset the values to the constructor defaults.
+@@@@ update so that only _set_ methods that need to return FLAC__bool, else void; update documentation.html also
+@@@@ update defaults above and in documentation.html about the metadata_respond/ignore defaults
+ */
+FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadStatus (*value)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));
+FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
+FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
+FLAC__bool FLAC__stream_decoder_set_error_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
+FLAC__bool FLAC__stream_decoder_set_client_data(FLAC__StreamDecoder *decoder, void *value);
+/*
+ * These deserve special attention.  By default, the decoder only calls the
+ * metadata_callback for the STREAMINFO block.  These functions allow you to
+ * tell the decoder explicitly which blocks to parse and return via the
+ * metadata_callback and/or which to skip.  Use a _respond_all(), _ignore() ...
+ * or _ignore_all(), _respond() ... sequence to exactly specify which blocks
+ * to return.  Remember that some metadata blocks can be big so filtering out
+ * the ones you don't use can reduce the memory requirements of the decoder.
+ * Also note the special forms _respond/_ignore_application(id) for filtering
+ * APPLICATION blocks based on the application ID.
+ *
+ * STREAMINFO and SEEKTABLE blocks are always parsed and used internally, but
+ * they still can legally be filtered from the metadata_callback here.
+ */
+FLAC__bool FLAC__stream_decoder_set_metadata_respond(FLAC__StreamDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(FLAC__StreamDecoder *decoder, const FLAC__byte id[4]);
+FLAC__bool FLAC__stream_decoder_set_metadata_respond_all(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore(FLAC__StreamDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(FLAC__StreamDecoder *decoder, const FLAC__byte id[4]);
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(FLAC__StreamDecoder *decoder);
+
+/*
+ * Methods to return the current stream decoder state, number
+ * of channels, channel assignment, bits-per-sample, sample
+ * rate in Hz, and blocksize in samples.  All but the decoder
+ * state will only be valid after decoding has started.
+ */
+FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__StreamDecoder *decoder);
+unsigned FLAC__stream_decoder_get_channels(const FLAC__StreamDecoder *decoder);
+FLAC__ChannelAssignment FLAC__stream_decoder_get_channel_assignment(const FLAC__StreamDecoder *decoder);
+unsigned FLAC__stream_decoder_get_bits_per_sample(const FLAC__StreamDecoder *decoder);
+unsigned FLAC__stream_decoder_get_sample_rate(const FLAC__StreamDecoder *decoder);
+unsigned FLAC__stream_decoder_get_blocksize(const FLAC__StreamDecoder *decoder);
+
+/*
+ * Initialize the instance; should be called after construction and
+ * 'set' calls but before any of the 'process' calls.  Will set and
+ * return the decoder state, which will be
+ * FLAC__STREAM_DECODER_SEARCH_FOR_METADATA if initialization
+ * succeeded.
+ */
+FLAC__StreamDecoderState FLAC__stream_decoder_init(FLAC__StreamDecoder *decoder);
+
+/*
+ * Flush the decoding buffer, release resources, and return the decoder
+ * state to FLAC__STREAM_DECODER_UNINITIALIZED.
+ */
+void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder);
+
+/*
+ * state control methods
+ */
+FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
+
+/*
+ * Methods for decoding the data
+ */
+FLAC__bool FLAC__stream_decoder_process_whole_stream(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_process_one_frame(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_process_remaining_frames(FLAC__StreamDecoder *decoder);
+
+#endif
