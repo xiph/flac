@@ -31,10 +31,9 @@ doc_DATA =  \
 	goals.html \
 	id.html \
 	index.html \
-	news.html \
-	api
+	news.html
 
-EXTRA_DIST = $(doc_DATA)
+EXTRA_DIST = $(doc_DATA) api
 
 # The install targets don't copy whole directories so we have to
 # handle 'api/' specially:
