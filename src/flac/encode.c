@@ -604,7 +604,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 
 	if(num_requested_seek_points < 0) {
 		strcpy(requested_seek_points, "100x<");
-		num_requested_seek_points = 100;
+		num_requested_seek_points = 1;
 	}
 
 	/* first count how many individual seek point we may need */
