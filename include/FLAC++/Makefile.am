@@ -20,4 +20,6 @@ includedir = ${prefix}/include/FLAC++
 
 include_HEADERS = \
 	all.h \
+	decoder.h \
+	encoder.h \
 	metadata.h
