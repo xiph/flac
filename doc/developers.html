@@ -67,10 +67,7 @@
 			Testing.  Since FLAC is still beta this is number 1.  If you are a lossless encoder you have to be absolutely lossless for all input.  The test suite has patterns that are designed to strain the encoder to the limit but more test cases would definitely help.
 		</LI>
 		<LI>
-			More input plugins.  Currently there are plugins for XMMS and Winamp.  More is better!
-		</LI>
-		<LI>
-			Speeding up the encoding.  Encoding speed at average compression is still a little slower than I would like.  Improvements to the reference encoder that don't drastically obfuscate the code would be welcome.
+			More input plugins.  Currently there are plugins for XMMS and Winamp; Freeamp is in the works.  More is better!
 		</LI>
 	</UL>
 	</P>
@@ -80,10 +77,7 @@
 	<P>
 	<UL>
 		<LI>
-			Improving the compression methods.  Some suggestions: on the entropy coding side, try context-modeling the Rice paramter, using general Golomb coding and Huffman coding.  On the prediction side, try some other methods for determining the LP coefficients (covariance method, Marple, Burg), or explore other kinds of modeling.
-		</LI>
-		<LI>
-			A faster seek algorithm in the file decoder.
+			Improving the compression methods.
 		</LI>
 		<LI>
 			Fix the MSVC makefiles to make libFLAC.dll (instead of just the .lib).
