@@ -92,6 +92,10 @@ extern "C" {
  * FLAC__seekable_stream_decoder_reset()) if there is no signature in the
  * STREAMINFO block or when a seek is attempted.
  *
+ * Make sure to read the detailed description of the
+ * \link flac_stream_decoder stream decoder module \endlink since the
+ * seekable stream decoder inherits much of its behavior.
+ *
  * \note
  * The "set" functions may only be called when the decoder is in the
  * state FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED, i.e. after
@@ -110,45 +114,136 @@ extern "C" {
 
 /** State values for a FLAC__SeekableStreamDecoder
  *
- *  The decoder's state can be obtained by calling FLAC__seekable_tream_decoder_get_state().
+ *  The decoder's state can be obtained by calling FLAC__seekable_stream_decoder_get_state().
  */
 typedef enum {
+
     FLAC__SEEKABLE_STREAM_DECODER_OK = 0,
+	/**< The decoder is in the normal OK state. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_SEEKING,
+	/**< The decoder is in the process of seeking. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM,
+	/**< The decoder has reached the end of the stream. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_MEMORY_ALLOCATION_ERROR,
+	/**< An error occurred allocating memory. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR,
+	/**< An error occurred in the underlying stream decoder. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_READ_ERROR,
+	/**< The read callback returned an error. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR,
+	/**< An error occurred while seeking or the seek or tell
+	 * callback returned an error.
+	 */
+
     FLAC__SEEKABLE_STREAM_DECODER_ALREADY_INITIALIZED,
+	/**< FLAC__seekable_stream_decoder_init() was called when the
+	 * decoder was already initialized, usually because
+	 * FLAC__seekable_stream_decoder_finish() was not called.
+	 */
+
     FLAC__SEEKABLE_STREAM_DECODER_INVALID_CALLBACK,
+	/**< FLAC__seekable_stream_decoder_init() was called without all
+	 * callbacks being set.
+	 */
+
     FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED
+	/**< The decoder is in the uninitialized state. */
+
 } FLAC__SeekableStreamDecoderState;
+
+/** Maps a FLAC__SeekableStreamDecoderState to a C string.
+ *
+ *  Using a FLAC__SeekableStreamDecoderState as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
 extern const char * const FLAC__SeekableStreamDecoderStateString[];
 
+
+/** Return values for the FLAC__SeekableStreamDecoder read callback.
+ */
 typedef enum {
+
 	FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK,
+	/**< The read was OK and decoding can continue. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The decoder will return from the process call. */
+
 } FLAC__SeekableStreamDecoderReadStatus;
+
+/** Maps a FLAC__SeekableStreamDecoderReadStatus to a C string.
+ *
+ *  Using a FLAC__SeekableStreamDecoderReadStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
 extern const char * const FLAC__SeekableStreamDecoderReadStatusString[];
 
+
+/** Return values for the FLAC__SeekableStreamDecoder seek callback.
+ */
 typedef enum {
+
 	FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK,
+	/**< The seek was OK and decoding can continue. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The decoder will return from the process call. */
+
 } FLAC__SeekableStreamDecoderSeekStatus;
+
+/** Maps a FLAC__SeekableStreamDecoderSeekStatus to a C string.
+ *
+ *  Using a FLAC__SeekableStreamDecoderSeekStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
 extern const char * const FLAC__SeekableStreamDecoderSeekStatusString[];
 
+
+/** Return values for the FLAC__SeekableStreamDecoder tell callback.
+ */
 typedef enum {
+
 	FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK,
+	/**< The tell was OK and decoding can continue. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The decoder will return from the process call. */
+
 } FLAC__SeekableStreamDecoderTellStatus;
+
+/** Maps a FLAC__SeekableStreamDecoderTellStatus to a C string.
+ *
+ *  Using a FLAC__SeekableStreamDecoderTellStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
 extern const char * const FLAC__SeekableStreamDecoderTellStatusString[];
 
+
+/** Return values for the FLAC__SeekableStreamDecoder length callback.
+ */
 typedef enum {
+
 	FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_OK,
+	/**< The length call was OK and decoding can continue. */
+
 	FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The decoder will return from the process call. */
+
 } FLAC__SeekableStreamDecoderLengthStatus;
+
+/** Maps a FLAC__SeekableStreamDecoderLengthStatus to a C string.
+ *
+ *  Using a FLAC__SeekableStreamDecoderLengthStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
 extern const char * const FLAC__SeekableStreamDecoderLengthStatusString[];
+
 
 /***********************************************************************
  *
@@ -158,10 +253,16 @@ extern const char * const FLAC__SeekableStreamDecoderLengthStatusString[];
 
 struct FLAC__SeekableStreamDecoderProtected;
 struct FLAC__SeekableStreamDecoderPrivate;
+/** The opaque structure definition for the seekable stream decoder type.
+ *  See the
+ *  \link flac_seekable_stream_decoder seekable stream decoder module \endlink
+ *  for a detailed description.
+ */
 typedef struct {
 	struct FLAC__SeekableStreamDecoderProtected *protected_; /* avoid the C++ keyword 'protected' */
 	struct FLAC__SeekableStreamDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__SeekableStreamDecoder;
+
 
 /***********************************************************************
  *
@@ -169,25 +270,24 @@ typedef struct {
  *
  ***********************************************************************/
 
-/*
- * Any parameters that are not set before FLAC__seekable_stream_decoder_init()
- * will take on the defaults from the constructor, shown below.
- * For more on what the parameters mean, see the documentation.
+/** Create a new seekable stream decoder instance.  The instance is created
+ *  with default settings; see the individual
+ *  FLAC__seekable_stream_decoder_set_*() functions for each setting's
+ *  default.
  *
- * FLAC__bool  md5_checking                   (DEFAULT: false) MD5 checking will be turned off if a seek is requested
- *           (*read_callback)()               (DEFAULT: NULL ) The callbacks are the only values that MUST be set before FLAC__seekable_stream_decoder_init()
- *           (*seek_callback)()               (DEFAULT: NULL )
- *           (*tell_callback)()               (DEFAULT: NULL )
- *           (*length_callback)()             (DEFAULT: NULL )
- *           (*eof_callback)()                (DEFAULT: NULL )
- *           (*write_callback)()              (DEFAULT: NULL )
- *           (*metadata_callback)()           (DEFAULT: NULL )
- *           (*error_callback)()              (DEFAULT: NULL )
- * void*       client_data                    (DEFAULT: NULL ) passed back through the callbacks
- *          metadata_respond/ignore        By default, only the STREAMINFO block is returned via metadata_callback()
+ * \retval FLAC__SeekableStreamDecoder*
+ *    \c NULL if there was an error allocating memory, else the new instance.
  */
 FLAC__SeekableStreamDecoder *FLAC__seekable_stream_decoder_new();
-void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *);
+
+/** Free a decoder instance.  Deletes the object pointed to by \a decoder.
+ *
+ * \param decoder  A pointer to an existing decoder.
+ * \assert
+ *    \code decoder != NULL \endcode
+ */
+void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *decoder);
+
 
 /***********************************************************************
  *
@@ -195,89 +295,475 @@ void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *);
  *
  ***********************************************************************/
 
-/*
- * Various "set" methods.  These may only be called when the decoder
- * is in the state FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED, i.e. after
- * FLAC__seekable_stream_decoder_new() or FLAC__seekable_stream_decoder_finish(),
- * but before FLAC__seekable_stream_decoder_init().  If this is the case they
- * will return true, otherwise false.
+/** Set the "MD5 signature checking" flag.  If \c true, the decoder will
+ *  compute the MD5 signature of the unencoded audio data while decoding
+ *  and compare it to the signature from the STREAMINFO block, if it
+ *  exists, during FLAC__seekable_stream_decoder_finish().
  *
- * NOTE that these functions do not validate the values as many are
- * interdependent.  The FLAC__seekable_stream_decoder_init() function will
- * do this, so make sure to pay attention to the state returned by
- * FLAC__seekable_stream_decoder_init().
+ *  MD5 signature checking will be turned off (until the next
+ *  FLAC__seekable_stream_decoder_reset()) if there is no signature in
+ *  the STREAMINFO block or when a seek is attempted.
  *
- * Any parameters that are not set before FLAC__seekable_stream_decoder_init()
- * will take on the defaults from the constructor.  NOTE that
- * FLAC__seekable_stream_decoder_flush() or FLAC__seekable_stream_decoder_reset()
- * do NOT reset the values to the constructor defaults.
+ * \default \c false
+ * \param  decoder  A decoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
  */
 FLAC__bool FLAC__seekable_stream_decoder_set_md5_checking(FLAC__SeekableStreamDecoder *decoder, FLAC__bool value);
+
+/** Set the read callback.
+ *  This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_read_callback().
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  decoder  A decoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderReadStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));
+
+/** Set the seek callback.
+ *  The supplied function will be called when the decoder needs to seek
+ *  the input stream.  The decoder will pass the absolute byte offset
+ *  to seek to, 0 meaning the beginning of the stream.
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  decoder  An decoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderSeekStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data));
+
+/** Set the tell callback.
+ *  The supplied function will be called when the decoder wants to know
+ *  the current position of the stream.  The callback should return the
+ *  byte offset from the beginning of the stream.
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  decoder  An decoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderTellStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data));
+
+/** Set the length callback.
+ *  The supplied function will be called when the decoder wants to know
+ *  the total length of the stream in bytes.
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  decoder  An decoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderLengthStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data));
+
+/** Set the eof callback.
+ *  The supplied function will be called when the decoder needs to know
+ *  if the end of the stream has been reached.
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  decoder  An decoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__bool (*value)(const FLAC__SeekableStreamDecoder *decoder, void *client_data));
+
+/** Set the write callback.
+ *  This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_write_callback().
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  decoder  A decoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data));
+
+/** Set the metadata callback.
+ *  This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_metadata_callback().
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  decoder  A decoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data));
+
+/** Set the error callback.
+ *  This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_error_callback().
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  decoder  A decoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
+
+/** Set the client data to be passed back to callbacks.
+ *  This value will be supplied to callbacks in their \a client_data
+ *  argument.
+ *
+ * \default \c NULL
+ * \param  decoder  An decoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_client_data(FLAC__SeekableStreamDecoder *decoder, void *value);
-/*
- * See the comments for the equivalent functions in stream_decoder.h
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_metadata_respond().
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \param  type     See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \a type is valid
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
  */
 FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond(FLAC__SeekableStreamDecoder *decoder, FLAC__MetadataType type);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_metadata_respond_application().
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \param  id       See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code id != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_application(FLAC__SeekableStreamDecoder *decoder, const FLAC__byte id[4]);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_metadata_respond_all().
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_all(FLAC__SeekableStreamDecoder *decoder);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_metadata_ignore().
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \param  type     See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \a type is valid
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore(FLAC__SeekableStreamDecoder *decoder, FLAC__MetadataType type);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_metadata_ignore_application().
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \param  id       See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code id != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_application(FLAC__SeekableStreamDecoder *decoder, const FLAC__byte id[4]);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_set_metadata_ignore_all().
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(FLAC__SeekableStreamDecoder *decoder);
 
-/*
- * Various "get" methods
+/** Get the current decoder state.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__SeekableStreamDecoderState
+ *    The current decoder state.
  */
 FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_state(const FLAC__SeekableStreamDecoder *decoder);
+
+/** Get the "MD5 signature checking" flag.
+ *  This is the value of the setting, not whether or not the decoder is
+ *  currently checking the MD5 (remember, it can be turned off automatically
+ *  by a seek).  When the decoder is reset the flag will be restored to the
+ *  value returned by this function.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_get_md5_checking(const FLAC__SeekableStreamDecoder *decoder);
-/*
- * Methods to return the current number of channels, channel assignment
- * bits-per-sample, sample rate in Hz, and blocksize in samples.  These
- * will only be valid after decoding has started.
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_get_channels().
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval unsigned
+ *    See above.
  */
 unsigned FLAC__seekable_stream_decoder_get_channels(const FLAC__SeekableStreamDecoder *decoder);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_get_channel_assignment().
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__ChannelAssignment
+ *    See above.
+ */
 FLAC__ChannelAssignment FLAC__seekable_stream_decoder_get_channel_assignment(const FLAC__SeekableStreamDecoder *decoder);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_get_bits_per_sample().
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval unsigned
+ *    See above.
+ */
 unsigned FLAC__seekable_stream_decoder_get_bits_per_sample(const FLAC__SeekableStreamDecoder *decoder);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_get_sample_rate().
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval unsigned
+ *    See above.
+ */
 unsigned FLAC__seekable_stream_decoder_get_sample_rate(const FLAC__SeekableStreamDecoder *decoder);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_get_blocksize().
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval unsigned
+ *    See above.
+ */
 unsigned FLAC__seekable_stream_decoder_get_blocksize(const FLAC__SeekableStreamDecoder *decoder);
 
-/*
- * Initialize the instance; should be called after construction and
- * 'set' calls but before any of the 'process' or 'seek' calls.  Will
- * set and return the decoder state, which will be
- *  FLAC__SEEKABLE_STREAM_DECODER_OK if initialization succeeded.
+/** Initialize the decoder instance.
+ *  Should be called after FLAC__seekable_stream_decoder_new() and
+ *  FLAC__seekable_stream_decoder_set_*() but before any of the
+ *  FLAC__seekable_stream_decoder_process_*() functions.  Will set and return
+ *  the decoder state, which will be FLAC__SEEKABLE_STREAM_DECODER_OK
+ *  if initialization succeeded.
+ *
+ * \param  decoder  An uninitialized decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__SeekableStreamDecoderState
+ *    \c FLAC__SEEKABLE_STREAM_DECODER_OK if initialization was
+ *    successful; see FLAC__SeekableStreamDecoderState for the meanings
+ *    of other return values.
  */
 FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__SeekableStreamDecoder *decoder);
 
-/*
- * Flush the decoding buffer, release resources, and return the decoder
- * state to FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED.  Only returns false if
- * md5_checking is set AND the stored MD5 sum is non-zero AND the stored
- * MD5 sum and computed MD5 sum do not match.
+/** Finish the decoding process.
+ *  Flushes the decoding buffer, releases resources, resets the decoder
+ *  settings to their defaults, and returns the decoder state to
+ *  FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED.
+ *
+ *  In the event of a prematurely-terminated decode, it is not strictly
+ *  necessary to call this immediately before
+ *  FLAC__seekable_stream_decoder_delete() but it is good practice to match
+ *  every FLAC__seekable_stream_decoder_init() with a
+ *  FLAC__seekable_stream_decoder_finish().
+ *
+ * \param  decoder  An uninitialized decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if MD5 checking is on AND a STREAMINFO block was available
+ *    AND the MD5 signature in the STREAMINFO block was non-zero AND the
+ *    signature does not match the one computed by the decoder; else
+ *    \c true.
  */
 FLAC__bool FLAC__seekable_stream_decoder_finish(FLAC__SeekableStreamDecoder *decoder);
 
-/*
- * state control methods
+/** Flush the stream input.
+ *  The decoder's input buffer will be cleared and the state set to
+ *  \c FLAC__SEEKABLE_STREAM_DECODER_OK.  This will also turn off MD5
+ *  checking.
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false if a memory allocation
+ *    or stream decoder error occurs.
  */
 FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *decoder);
+
+/** Reset the decoding process.
+ *  The decoder's input buffer will be cleared and the state set to
+ *  \c FLAC__SEEKABLE_STREAM_DECODER_OK.  This is similar to
+ *  FLAC__seekable_stream_decoder_finish() except that the settings are
+ *  preserved; there is no need to call FLAC__seekable_stream_decoder_init()
+ *  before decoding again.  MD5 checking will be restored to its original
+ *  setting.
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false if a memory allocation
+ *    or stream decoder error occurs.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_reset(FLAC__SeekableStreamDecoder *decoder);
 
-/*
- * Methods for decoding the data
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_process_whole_stream().
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
  */
 FLAC__bool FLAC__seekable_stream_decoder_process_whole_stream(FLAC__SeekableStreamDecoder *decoder);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_process_metadata().
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_process_metadata(FLAC__SeekableStreamDecoder *decoder);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_process_one_frame().
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_process_one_frame(FLAC__SeekableStreamDecoder *decoder);
+
+/** This is inherited from FLAC__StreamDecoder; see
+ *  FLAC__stream_decoder_process_remaining_frames().
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_process_remaining_frames(FLAC__SeekableStreamDecoder *decoder);
 
+/** Flush the input and seek to an absolute sample.
+ *  Decoding will resume at the given sample.  Note that because of
+ *  this, the next write callback may contain a partial block.
+ *
+ * \param  decoder  A decoder instance.
+ * \param  sample   The target sample number to seek to.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false.
+ */
 FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 sample);
 
 /* \} */

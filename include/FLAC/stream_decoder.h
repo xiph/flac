@@ -119,8 +119,8 @@ extern "C" {
  *
  * - FLAC__stream_decoder_process_whole_stream() - Tells the decoder to
  *   start and continue processing the stream until the read callback
- *   returns FLAC__STREAM_DECODER_READ_END_OF_STREAM or
- *   FLAC__STREAM_DECODER_READ_ABORT.
+ *   returns FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM or
+ *   FLAC__STREAM_DECODER_READ_STATUS_ABORT.
  * - FLAC__stream_decoder_process_metadata() - Tells the decoder to start
  *   processing the stream and stop upon reaching the first audio frame.
  * - FLAC__stream_decoder_process_one_frame() - Tells the decoder to
@@ -142,6 +142,23 @@ extern "C" {
  * flush the decoder using FLAC__stream_decoder_flush() and start feeding
  * data from the new position through the read callback.  The seekable
  * stream decoder does just this.
+ *
+ * The FLAC__stream_decoder_set_metadata_*() functions deserve special
+ * attention.  By default, the decoder only calls the metadata_callback for
+ * the STREAMINFO block.  These functions allow you to tell the decoder
+ * explicitly which blocks to parse and return via the metadata_callback
+ * and/or which to skip.  Use a FLAC__stream_decoder_respond_all(),
+ * FLAC__stream_decoder_ignore() ... or FLAC__stream_decoder_ignore_all(),
+ * FLAC__stream_decoder_respond() ... sequence to exactly specify which
+ * blocks to return.  Remember that some metadata blocks can be big so
+ * filtering out the ones you don't use can reduce the memory requirements
+ * of the decoder.  Also note the special forms
+ * FLAC__stream_decoder_respond_application(id) and 
+ * FLAC__stream_decoder_ignore_application(id) for filtering APPLICATION
+ * blocks based on the application ID.
+ *
+ * STREAMINFO and SEEKTABLE blocks are always parsed and used internally, but
+ * they still can legally be filtered from the metadata_callback.
  *
  * \note
  * The "set" functions may only be called when the decoder is in the
@@ -309,13 +326,13 @@ typedef struct {
  */
 FLAC__StreamDecoder *FLAC__stream_decoder_new();
 
-/** Free an decoder instance.  Deletes the object pointed to by \a decoder.
+/** Free a decoder instance.  Deletes the object pointed to by \a decoder.
  *
  * \param decoder  A pointer to an existing decoder.
  * \assert
  *    \code decoder != NULL \endcode
  */
-void FLAC__stream_decoder_delete(FLAC__StreamDecoder *);
+void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder);
 
 
 /***********************************************************************
@@ -426,70 +443,310 @@ FLAC__bool FLAC__stream_decoder_set_error_callback(FLAC__StreamDecoder *decoder,
  */
 FLAC__bool FLAC__stream_decoder_set_client_data(FLAC__StreamDecoder *decoder, void *value);
 
-/*
- * These deserve special attention.  By default, the decoder only calls the
- * metadata_callback for the STREAMINFO block.  These functions allow you to
- * tell the decoder explicitly which blocks to parse and return via the
- * metadata_callback and/or which to skip.  Use a _respond_all(), _ignore() ...
- * or _ignore_all(), _respond() ... sequence to exactly specify which blocks
- * to return.  Remember that some metadata blocks can be big so filtering out
- * the ones you don't use can reduce the memory requirements of the decoder.
- * Also note the special forms _respond/_ignore_application(id) for filtering
- * APPLICATION blocks based on the application ID.
+/** Direct the decoder to pass on all metadata blocks of type \a type.
  *
- * STREAMINFO and SEEKTABLE blocks are always parsed and used internally, but
- * they still can legally be filtered from the metadata_callback here.
- */
-/*
- *          metadata_respond/ignore        By default, only the STREAMINFO block is returned via metadata_callback()
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \param  type     See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \a type is valid
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
  */
 FLAC__bool FLAC__stream_decoder_set_metadata_respond(FLAC__StreamDecoder *decoder, FLAC__MetadataType type);
+
+/** Direct the decoder to pass on all APPLICATION metadata blocks of the
+ *  given \a id.
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \param  id       See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code id != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(FLAC__StreamDecoder *decoder, const FLAC__byte id[4]);
+
+/** Direct the decoder to pass on all metadata blocks of any type.
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__stream_decoder_set_metadata_respond_all(FLAC__StreamDecoder *decoder);
+
+/** Direct the decoder to filter out all metadata blocks of type \a type.
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \param  type     See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \a type is valid
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__stream_decoder_set_metadata_ignore(FLAC__StreamDecoder *decoder, FLAC__MetadataType type);
+
+/** Direct the decoder to filter out all APPLICATION metadata blocks of
+ *  the given \a id.
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \param  id       See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code id != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(FLAC__StreamDecoder *decoder, const FLAC__byte id[4]);
+
+/** Direct the decoder to filter out all metadata blocks of any type.
+ *
+ * \default By default, only the \c STREAMINFO block is returned via the
+ *          metadata callback.
+ * \param  decoder  A decoder instance to set.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
 FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(FLAC__StreamDecoder *decoder);
 
-/*
- * Methods to return the current stream decoder state, number
- * of channels, channel assignment, bits-per-sample, sample
- * rate in Hz, and blocksize in samples.  All but the decoder
- * state will only be valid after decoding has started.
+/** Get the current decoder state.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__StreamDecoderState
+ *    The current decoder state.
  */
 FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__StreamDecoder *decoder);
+
+/** Get the current number of channels in the stream being decoded.
+ *  Will only be valid after decoding has started and will contain the
+ *  value from the most recently decoded frame header.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval unsigned
+ *    See above.
+ */
 unsigned FLAC__stream_decoder_get_channels(const FLAC__StreamDecoder *decoder);
+
+/** Get the current channel assignment in the stream being decoded.
+ *  Will only be valid after decoding has started and will contain the
+ *  value from the most recently decoded frame header.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__ChannelAssignment
+ *    See above.
+ */
 FLAC__ChannelAssignment FLAC__stream_decoder_get_channel_assignment(const FLAC__StreamDecoder *decoder);
+
+/** Get the current sample resolution in the stream being decoded.
+ *  Will only be valid after decoding has started and will contain the
+ *  value from the most recently decoded frame header.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval unsigned
+ *    See above.
+ */
 unsigned FLAC__stream_decoder_get_bits_per_sample(const FLAC__StreamDecoder *decoder);
+
+/** Get the current sample rate in Hz of the stream being decoded.
+ *  Will only be valid after decoding has started and will contain the
+ *  value from the most recently decoded frame header.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval unsigned
+ *    See above.
+ */
 unsigned FLAC__stream_decoder_get_sample_rate(const FLAC__StreamDecoder *decoder);
+
+/** Get the current blocksize of the stream being decoded.
+ *  Will only be valid after decoding has started and will contain the
+ *  value from the most recently decoded frame header.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval unsigned
+ *    See above.
+ */
 unsigned FLAC__stream_decoder_get_blocksize(const FLAC__StreamDecoder *decoder);
 
-/*
- * Initialize the instance; should be called after construction and
- * 'set' calls but before any of the 'process' calls.  Will set and
- * return the decoder state, which will be
- * FLAC__STREAM_DECODER_SEARCH_FOR_METADATA if initialization
- * succeeded.
+/** Initialize the decoder instance.
+ *  Should be called after FLAC__stream_decoder_new() and
+ *  FLAC__stream_decoder_set_*() but before any of the
+ *  FLAC__stream_decoder_process_*() functions.  Will set and return the
+ *  decoder state, which will be FLAC__STREAM_DECODER_SEARCH_FOR_METADATA
+ *  if initialization succeeded.
+ *
+ * \param  decoder  An uninitialized decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__StreamDecoderState
+ *    \c FLAC__STREAM_DECODER_SEARCH_FOR_MEATADATA if initialization was
+ *    successful; see FLAC__StreamDecoderState for the meanings of other
+ *    return values.
  */
 FLAC__StreamDecoderState FLAC__stream_decoder_init(FLAC__StreamDecoder *decoder);
 
-/*
- * Flush the decoding buffer, release resources, and return the decoder
- * state to FLAC__STREAM_DECODER_UNINITIALIZED.
+/** Finish the decoding process.
+ *  Flushes the decoding buffer, releases resources, resets the decoder
+ *  settings to their defaults, and returns the decoder state to
+ *  FLAC__STREAM_DECODER_UNINITIALIZED.
+ *
+ *  In the event of a prematurely-terminated decode, it is not strictly
+ *  necessary to call this immediately before FLAC__stream_decoder_delete()
+ *  but it is good practice to match every FLAC__stream_decoder_init()
+ *  with a FLAC__stream_decoder_finish().
+ *
+ * \param  decoder  An uninitialized decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
  */
 void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder);
 
-/*
- * state control methods
+/** Flush the stream input.
+ *  The decoder's input buffer will be cleared and the state set to
+ *  \c FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC.
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false if a memory allocation
+ *    error occurs.
  */
 FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder);
+
+/** Reset the decoding process.
+ *  The decoder's input buffer will be cleared and the state set to
+ *  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.  This is similar to
+ *  FLAC__stream_decoder_finish() except that the settings are
+ *  preserved; there is no need to call FLAC__stream_decoder_init()
+ *  before decoding again.
+ *
+ * \param  decoder  A decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false if a memory allocation
+ *    error occurs.
+ */
 FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
 
-/*
- * Methods for decoding the data
+/** Decode the entire stream.
+ *  This version instructs the decoder to start and continue decoding
+ *  the entire stream until the callbacks return a fatal error or the
+ *  read callback returns \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
+ *
+ *  As the decoder needs more input it will call the read callback.
+ *  As each metadata block and frame is decoded, the metadata or write
+ *  callback will be called with the decoded metadata or frame.
+ * 
+ * \param  decoder  An initialized decoder instance in the state
+ *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA \endcode
+ * \retval FLAC__bool
+ *    \c false if any read or write error occurred (except
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    in any case, check the decoder state with
+ *    FLAC__stream_decoder_get_state() to see what went wrong or to
+ *    check for lost synchronization (a sign of stream corruption).
  */
 FLAC__bool FLAC__stream_decoder_process_whole_stream(FLAC__StreamDecoder *decoder);
+
+/** Decode just the metadata.
+ *  This version instructs the decoder to start decoding and stop after
+ *  all the metadata has been read, or until the callbacks return a fatal
+ *  error or the read callback returns
+ *  \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
+ *
+ *  As the decoder needs more input it will call the read callback.
+ *  As each metadata block is decoded, the metadata callback will be called
+ *  with the decoded metadata.
+ * 
+ * \param  decoder  An initialized decoder instance in the state
+ *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA \endcode
+ * \retval FLAC__bool
+ *    \c false if any read or write error occurred (except
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    in any case, check the decoder state with
+ *    FLAC__stream_decoder_get_state() to see what went wrong or to
+ *    check for lost synchronization (a sign of stream corruption).
+ */
 FLAC__bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder);
+
+/** Decode one frame.
+ *  This version instructs the decoder to decode a single frame and stop,
+ *  or until the callbacks return a fatal error or the read callback returns
+ *  \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
+ *
+ *  As the decoder needs more input it will call the read callback.
+ *  The write callback will be called with the decoded frame.
+ * 
+ * \param  decoder  An initialized decoder instance in the state
+ *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC \endcode
+ * \retval FLAC__bool
+ *    \c false if any read or write error occurred (except
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    in any case, check the decoder state with
+ *    FLAC__stream_decoder_get_state() to see what went wrong or to
+ *    check for lost synchronization (a sign of stream corruption).
+ */
 FLAC__bool FLAC__stream_decoder_process_one_frame(FLAC__StreamDecoder *decoder);
+
+/** Decode the remaining frames until end of stream.
+ *  This version instructs the decoder to decode all remaining frames,
+ *  until the callbacks return a fatal error or the read callback returns
+ *  \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
+ *
+ *  As the decoder needs more input it will call the read callback.
+ *  As each frame is decoded, the write callback will be called with the
+ *  decoded frame.
+ * 
+ * \param  decoder  An initialized decoder instance in the state
+ *                  \c FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC \endcode
+ * \retval FLAC__bool
+ *    \c false if any read or write error occurred (except
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    in any case, check the decoder state with
+ *    FLAC__stream_decoder_get_state() to see what went wrong or to
+ *    check for lost synchronization (a sign of stream corruption).
+ */
 FLAC__bool FLAC__stream_decoder_process_remaining_frames(FLAC__StreamDecoder *decoder);
 
 /* \} */

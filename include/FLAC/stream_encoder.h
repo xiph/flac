@@ -563,8 +563,9 @@ FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *
  *  occur in the supplied array.
  *
  * \default \c NULL, 0
- * \param  encoder  An encoder instance to set.
- * \param  value    See above.
+ * \param  encoder     An encoder instance to set.
+ * \param  metadata    See above.
+ * \param  num_blocks  See above.
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
@@ -808,10 +809,11 @@ unsigned FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC__StreamE
 FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder);
 
 /** Finish the encoding process.
- *  Flushes the encoding buffer, releases resources, and returns the encoder
- *  state to FLAC__STREAM_ENCODER_UNINITIALIZED.  Note that this can
- *  generate one or more write callbacks before returning, and will
- *  generate a metadata callback.
+ *  Flushes the encoding buffer, releases resources, resets the encoder
+ *  settings to their defaults, and returns the encoder state to
+ *  FLAC__STREAM_ENCODER_UNINITIALIZED.  Note that this can generate
+ *  one or more write callbacks before returning, and will generate
+ *  a metadata callback.
  *
  *  In the event of a prematurely-terminated encode, it is not strictly
  *  necessary to call this immediately before FLAC__stream_encoder_delete()
