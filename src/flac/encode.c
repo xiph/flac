@@ -95,6 +95,19 @@ static FLAC__int32 *input_[FLAC__MAX_CHANNELS];
 
 
 /*
+ * unpublished debug routines from the FLAC libs
+ */
+extern FLAC__bool FLAC__stream_encoder_disable_constant_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__stream_encoder_disable_fixed_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__file_encoder_disable_constant_subframes(FLAC__FileEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__file_encoder_disable_fixed_subframes(FLAC__FileEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__file_encoder_disable_verbatim_subframes(FLAC__FileEncoder *encoder, FLAC__bool value);
+extern FLAC__bool OggFLAC__stream_encoder_disable_constant_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool OggFLAC__stream_encoder_disable_fixed_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool OggFLAC__stream_encoder_disable_verbatim_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+
+/*
  * local routines
  */
 static FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool verbose, FILE *infile, const char *infilename, const char *outfilename);
@@ -1205,6 +1218,10 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		OggFLAC__stream_encoder_set_write_callback(e->encoder.ogg.stream, ogg_stream_encoder_write_callback);
 		OggFLAC__stream_encoder_set_client_data(e->encoder.ogg.stream, e);
 
+		OggFLAC__stream_encoder_disable_constant_subframes(e->encoder.ogg.stream, options.debug.disable_constant_subframes);
+		OggFLAC__stream_encoder_disable_fixed_subframes(e->encoder.ogg.stream, options.debug.disable_fixed_subframes);
+		OggFLAC__stream_encoder_disable_verbatim_subframes(e->encoder.ogg.stream, options.debug.disable_verbatim_subframes);
+
 		if(OggFLAC__stream_encoder_init(e->encoder.ogg.stream) != FLAC__STREAM_ENCODER_OK) {
 			print_error_with_state(e, "ERROR initializing encoder");
 			return false;
@@ -1235,6 +1252,10 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		FLAC__stream_encoder_set_metadata_callback(e->encoder.flac.stream, flac_stream_encoder_metadata_callback);
 		FLAC__stream_encoder_set_client_data(e->encoder.flac.stream, e);
 
+		FLAC__stream_encoder_disable_constant_subframes(e->encoder.flac.stream, options.debug.disable_constant_subframes);
+		FLAC__stream_encoder_disable_fixed_subframes(e->encoder.flac.stream, options.debug.disable_fixed_subframes);
+		FLAC__stream_encoder_disable_verbatim_subframes(e->encoder.flac.stream, options.debug.disable_verbatim_subframes);
+
 		if(FLAC__stream_encoder_init(e->encoder.flac.stream) != FLAC__STREAM_ENCODER_OK) {
 			print_error_with_state(e, "ERROR initializing encoder");
 			return false;
@@ -1262,6 +1283,10 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		FLAC__file_encoder_set_metadata(e->encoder.flac.file, (num_metadata > 0)? metadata : 0, num_metadata);
 		FLAC__file_encoder_set_progress_callback(e->encoder.flac.file, flac_file_encoder_progress_callback);
 		FLAC__file_encoder_set_client_data(e->encoder.flac.file, e);
+
+		FLAC__file_encoder_disable_constant_subframes(e->encoder.flac.file, options.debug.disable_constant_subframes);
+		FLAC__file_encoder_disable_fixed_subframes(e->encoder.flac.file, options.debug.disable_fixed_subframes);
+		FLAC__file_encoder_disable_verbatim_subframes(e->encoder.flac.file, options.debug.disable_verbatim_subframes);
 
 		if(FLAC__file_encoder_init(e->encoder.flac.file) != FLAC__FILE_ENCODER_OK) {
 			print_error_with_state(e, "ERROR initializing encoder");

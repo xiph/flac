@@ -53,6 +53,12 @@ typedef struct {
 	FLAC__bool sector_align;
 
 	FLAC__StreamMetadata *vorbis_comment;
+
+	struct {
+		FLAC__bool disable_constant_subframes;
+		FLAC__bool disable_fixed_subframes;
+		FLAC__bool disable_verbatim_subframes;
+	} debug;
 } encode_options_t;
 
 typedef struct {

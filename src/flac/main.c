@@ -171,6 +171,12 @@ static struct FLAC__share__option long_options_[] = {
 	{ "no-verify", 0, 0, 0 },
 	{ "no-residual-gnuplot", 0, 0, 0 },
 	{ "no-residual-text", 0, 0, 0 },
+	/*
+	 * undocumented debugging options for the test suite
+	 */
+	{ "disable-constant-subframes", 0, 0, 0 },
+	{ "disable-fixed-subframes", 0, 0, 0 },
+	{ "disable-verbatim-subframes", 0, 0, 0 },
 
 	{0, 0, 0, 0}
 };
@@ -226,6 +232,12 @@ static struct {
 	char **filenames;
 
 	FLAC__StreamMetadata *vorbis_comment;
+
+	struct {
+		FLAC__bool disable_constant_subframes;
+		FLAC__bool disable_fixed_subframes;
+		FLAC__bool disable_verbatim_subframes;
+	} debug;
 } option_values;
 
 
@@ -489,6 +501,10 @@ FLAC__bool init_options()
 	if(0 == (option_values.vorbis_comment = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)))
 		return false;
 
+	option_values.debug.disable_constant_subframes = false;
+	option_values.debug.disable_fixed_subframes = false;
+	option_values.debug.disable_verbatim_subframes = false;
+
 	return true;
 }
 
@@ -672,6 +688,15 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "no-residual-text")) {
 			option_values.aopts.do_residual_text = false;
+		}
+		else if(0 == strcmp(long_option, "disable-constant-subframes")) {
+			option_values.debug.disable_constant_subframes = true;
+		}
+		else if(0 == strcmp(long_option, "disable-fixed-subframes")) {
+			option_values.debug.disable_fixed_subframes = true;
+		}
+		else if(0 == strcmp(long_option, "disable-verbatim-subframes")) {
+			option_values.debug.disable_verbatim_subframes = true;
 		}
 	}
 	else {
@@ -1359,6 +1384,9 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	common_options.align_reservoir_samples = &align_reservoir_samples;
 	common_options.sector_align = option_values.sector_align;
 	common_options.vorbis_comment = option_values.vorbis_comment;
+	common_options.debug.disable_constant_subframes = option_values.debug.disable_constant_subframes;
+	common_options.debug.disable_fixed_subframes = option_values.debug.disable_fixed_subframes;
+	common_options.debug.disable_verbatim_subframes = option_values.debug.disable_verbatim_subframes;
 
 	if(fmt == RAW) {
 		raw_encode_options_t options;

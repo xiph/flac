@@ -31,6 +31,11 @@
  *
  ***********************************************************************/
 
+/* unpublished debug routines */
+extern FLAC__bool FLAC__stream_encoder_disable_constant_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__stream_encoder_disable_fixed_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+
 static void set_defaults_(OggFLAC__StreamEncoder *encoder);
 static FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
@@ -418,6 +423,40 @@ FLAC__bool OggFLAC__stream_encoder_set_client_data(OggFLAC__StreamEncoder *encod
 		return false;
 	encoder->private_->client_data = value;
 	return true;
+}
+
+/*
+ * These three functions are not static, but not publically exposed in
+ * include/FLAC/ either.  They are used by the test suite.
+ */
+FLAC__bool OggFLAC__stream_encoder_disable_constant_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__stream_encoder_disable_constant_subframes(encoder->private_->FLAC_stream_encoder, value);
+}
+
+FLAC__bool OggFLAC__stream_encoder_disable_fixed_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__stream_encoder_disable_fixed_subframes(encoder->private_->FLAC_stream_encoder, value);
+}
+
+FLAC__bool OggFLAC__stream_encoder_disable_verbatim_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__stream_encoder_disable_verbatim_subframes(encoder->private_->FLAC_stream_encoder, value);
 }
 
 OggFLAC__StreamEncoderState OggFLAC__stream_encoder_get_state(const OggFLAC__StreamEncoder *encoder)

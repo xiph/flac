@@ -35,6 +35,11 @@
  *
  ***********************************************************************/
 
+/* unpublished debug routines */
+extern FLAC__bool FLAC__stream_encoder_disable_constant_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__stream_encoder_disable_fixed_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+
 static void set_defaults_(FLAC__SeekableStreamEncoder *encoder);
 static FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
@@ -447,6 +452,40 @@ FLAC__bool FLAC__seekable_stream_encoder_set_client_data(FLAC__SeekableStreamEnc
 		return false;
 	encoder->private_->client_data = value;
 	return true;
+}
+
+/*
+ * These three functions are not static, but not publically exposed in
+ * include/FLAC/ either.  They are used by the test suite.
+ */
+FLAC__bool FLAC__seekable_stream_encoder_disable_constant_subframes(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__SEEKABLE_STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__stream_encoder_disable_constant_subframes(encoder->private_->stream_encoder, value);
+}
+
+FLAC__bool FLAC__seekable_stream_encoder_disable_fixed_subframes(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__SEEKABLE_STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__stream_encoder_disable_fixed_subframes(encoder->private_->stream_encoder, value);
+}
+
+FLAC__bool FLAC__seekable_stream_encoder_disable_verbatim_subframes(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__SEEKABLE_STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__stream_encoder_disable_verbatim_subframes(encoder->private_->stream_encoder, value);
 }
 
 FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_get_state(const FLAC__SeekableStreamEncoder *encoder)

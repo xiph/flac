@@ -17,6 +17,7 @@
  * Boston, MA  02111-1307, USA.
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy() */
@@ -80,7 +81,6 @@ static FLAC__bool process_subframe_(
 	unsigned min_partition_order,
 	unsigned max_partition_order,
 	FLAC__bool precompute_partition_sums,
-	FLAC__bool verbatim_only,
 	const FLAC__FrameHeader *frame_header,
 	unsigned subframe_bps,
 	const FLAC__int32 integer_signal[],
@@ -339,6 +339,9 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__bool use_wide_by_partition;      /* use slow 64-bit versions of some functions because of the min partition order and blocksize */
 	FLAC__bool use_wide_by_order;          /* use slow 64-bit versions of some functions because of the lpc order */
 	FLAC__bool precompute_partition_sums;  /* our initial guess as to whether precomputing the partitions sums will be a speed improvement */
+	FLAC__bool disable_constant_subframes;
+	FLAC__bool disable_fixed_subframes;
+	FLAC__bool disable_verbatim_subframes;
 	FLAC__StreamEncoderWriteCallback write_callback;
 	FLAC__StreamEncoderMetadataCallback metadata_callback;
 	void *client_data;
@@ -1135,6 +1138,37 @@ FLAC__bool FLAC__stream_encoder_set_client_data(FLAC__StreamEncoder *encoder, vo
 	return true;
 }
 
+/*
+ * These three functions are not static, but not publically exposed in
+ * include/FLAC/ either.  They are used by the test suite.
+ */
+FLAC__bool FLAC__stream_encoder_disable_constant_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private_->disable_constant_subframes = value;
+	return true;
+}
+
+FLAC__bool FLAC__stream_encoder_disable_fixed_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private_->disable_fixed_subframes = value;
+	return true;
+}
+
+FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private_->disable_verbatim_subframes = value;
+	return true;
+}
+
 FLAC__StreamEncoderState FLAC__stream_encoder_get_state(const FLAC__StreamEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -1419,6 +1453,9 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->protected_->metadata = 0;
 	encoder->protected_->num_metadata_blocks = 0;
 
+	encoder->private_->disable_constant_subframes = false;
+	encoder->private_->disable_fixed_subframes = false;
+	encoder->private_->disable_verbatim_subframes = false;
 	encoder->private_->write_callback = 0;
 	encoder->private_->metadata_callback = 0;
 	encoder->private_->client_data = 0;
@@ -1728,7 +1765,6 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 					min_partition_order,
 					max_partition_order,
 					precompute_partition_sums,
-					false,
 					&frame_header,
 					encoder->private_->subframe_bps[channel],
 					encoder->private_->integer_signal[channel],
@@ -1757,7 +1793,6 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 					min_partition_order,
 					max_partition_order,
 					precompute_partition_sums,
-					false,
 					&frame_header,
 					encoder->private_->subframe_bps_mid_side[channel],
 					encoder->private_->integer_signal_mid_side[channel],
@@ -1892,7 +1927,6 @@ FLAC__bool process_subframe_(
 	unsigned min_partition_order,
 	unsigned max_partition_order,
 	FLAC__bool precompute_partition_sums,
-	FLAC__bool verbatim_only,
 	const FLAC__FrameHeader *frame_header,
 	unsigned subframe_bps,
 	const FLAC__int32 integer_signal[],
@@ -1917,73 +1951,80 @@ FLAC__bool process_subframe_(
 
 	/* verbatim subframe is the baseline against which we measure other compressed subframes */
 	_best_subframe = 0;
-	_best_bits = evaluate_verbatim_subframe_(integer_signal, frame_header->blocksize, subframe_bps, subframe[_best_subframe]);
+	if(encoder->private_->disable_verbatim_subframes && frame_header->blocksize >= FLAC__MAX_FIXED_ORDER)
+		_best_bits = UINT_MAX;
+	else
+		_best_bits = evaluate_verbatim_subframe_(integer_signal, frame_header->blocksize, subframe_bps, subframe[_best_subframe]);
 
-	if(!verbatim_only && frame_header->blocksize >= FLAC__MAX_FIXED_ORDER) {
-		/* check for constant subframe */
+	if(frame_header->blocksize >= FLAC__MAX_FIXED_ORDER) {
+		unsigned signal_is_constant = false;
 		guess_fixed_order = encoder->private_->local_fixed_compute_best_predictor(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
-		if(fixed_residual_bits_per_sample[1] == 0.0) {
+		/* check for constant subframe */
+		if(!encoder->private_->disable_constant_subframes && fixed_residual_bits_per_sample[1] == 0.0) {
 			/* the above means integer_signal+FLAC__MAX_FIXED_ORDER is constant, now we just have to check the warmup samples */
-			unsigned i, signal_is_constant = true;
+			unsigned i;
+			signal_is_constant = true;
 			for(i = 1; i <= FLAC__MAX_FIXED_ORDER; i++) {
 				if(integer_signal[0] != integer_signal[i]) {
 					signal_is_constant = false;
 					break;
 				}
 			}
-			if(signal_is_constant) {
-				_candidate_bits = evaluate_constant_subframe_(integer_signal[0], subframe_bps, subframe[!_best_subframe]);
-				if(_candidate_bits < _best_bits) {
-					_best_subframe = !_best_subframe;
-					_best_bits = _candidate_bits;
-				}
+		}
+		if(signal_is_constant) {
+			_candidate_bits = evaluate_constant_subframe_(integer_signal[0], subframe_bps, subframe[!_best_subframe]);
+			if(_candidate_bits < _best_bits) {
+				_best_subframe = !_best_subframe;
+				_best_bits = _candidate_bits;
 			}
 		}
 		else {
-			/* encode fixed */
-			if(encoder->protected_->do_exhaustive_model_search) {
-				min_fixed_order = 0;
-				max_fixed_order = FLAC__MAX_FIXED_ORDER;
-			}
-			else {
-				min_fixed_order = max_fixed_order = guess_fixed_order;
-			}
-			for(fixed_order = min_fixed_order; fixed_order <= max_fixed_order; fixed_order++) {
-				if(fixed_residual_bits_per_sample[fixed_order] >= (FLAC__real)subframe_bps)
-					continue; /* don't even try */
-				rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > 0.0)? (unsigned)(fixed_residual_bits_per_sample[fixed_order]+0.5) : 0; /* 0.5 is for rounding */
-#ifndef FLAC__SYMMETRIC_RICE
-				rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
-#endif
-				if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef DEBUG_VERBOSE
-					fprintf(stderr, "clipping rice_parameter (%u -> %u) @0\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
-#endif
-					rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
+			if(!encoder->private_->disable_fixed_subframes || (encoder->protected_->max_lpc_order == 0 && _best_bits == UINT_MAX)) {
+				/* encode fixed */
+				if(encoder->protected_->do_exhaustive_model_search) {
+					min_fixed_order = 0;
+					max_fixed_order = FLAC__MAX_FIXED_ORDER;
 				}
-				_candidate_bits =
-					evaluate_fixed_subframe_(
-						encoder,
-						integer_signal,
-						residual[!_best_subframe],
-						encoder->private_->abs_residual,
-						encoder->private_->abs_residual_partition_sums,
-						encoder->private_->raw_bits_per_partition,
-						frame_header->blocksize,
-						subframe_bps,
-						fixed_order,
-						rice_parameter,
-						min_partition_order,
-						max_partition_order,
-						precompute_partition_sums,
-						encoder->protected_->do_escape_coding,
-						encoder->protected_->rice_parameter_search_dist,
-						subframe[!_best_subframe],
-						partitioned_rice_contents[!_best_subframe]
-					);
-				if(_candidate_bits < _best_bits) {
-					_best_subframe = !_best_subframe;
-					_best_bits = _candidate_bits;
+				else {
+					min_fixed_order = max_fixed_order = guess_fixed_order;
+				}
+				for(fixed_order = min_fixed_order; fixed_order <= max_fixed_order; fixed_order++) {
+					if(fixed_residual_bits_per_sample[fixed_order] >= (FLAC__real)subframe_bps)
+						continue; /* don't even try */
+					rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > 0.0)? (unsigned)(fixed_residual_bits_per_sample[fixed_order]+0.5) : 0; /* 0.5 is for rounding */
+#ifndef FLAC__SYMMETRIC_RICE
+					rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
+#endif
+					if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+#ifdef DEBUG_VERBOSE
+						fprintf(stderr, "clipping rice_parameter (%u -> %u) @0\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
+#endif
+						rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
+					}
+					_candidate_bits =
+						evaluate_fixed_subframe_(
+							encoder,
+							integer_signal,
+							residual[!_best_subframe],
+							encoder->private_->abs_residual,
+							encoder->private_->abs_residual_partition_sums,
+							encoder->private_->raw_bits_per_partition,
+							frame_header->blocksize,
+							subframe_bps,
+							fixed_order,
+							rice_parameter,
+							min_partition_order,
+							max_partition_order,
+							precompute_partition_sums,
+							encoder->protected_->do_escape_coding,
+							encoder->protected_->rice_parameter_search_dist,
+							subframe[!_best_subframe],
+							partitioned_rice_contents[!_best_subframe]
+						);
+					if(_candidate_bits < _best_bits) {
+						_best_subframe = !_best_subframe;
+						_best_bits = _candidate_bits;
+					}
 				}
 			}
 
@@ -2067,6 +2108,8 @@ FLAC__bool process_subframe_(
 		}
 	}
 
+	FLAC__ASSERT(_best_bits < UINT_MAX);
+
 	*best_subframe = _best_subframe;
 	*best_bits = _best_bits;
 
@@ -2083,24 +2126,28 @@ FLAC__bool add_subframe_(
 {
 	switch(subframe->type) {
 		case FLAC__SUBFRAME_TYPE_CONSTANT:
+//@@@@fprintf(stderr,"@@@@ add CONSTANT, bps=%u\n",subframe_bps);
 			if(!FLAC__subframe_add_constant(&(subframe->data.constant), subframe_bps, subframe->wasted_bits, frame)) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING;
 				return false;
 			}
 			break;
 		case FLAC__SUBFRAME_TYPE_FIXED:
+//@@@@fprintf(stderr,"@@@@ add FIXED, bps=%u, order=%u\n",subframe_bps,subframe->data.fixed.order);
 			if(!FLAC__subframe_add_fixed(&(subframe->data.fixed), frame_header->blocksize - subframe->data.fixed.order, subframe_bps, subframe->wasted_bits, frame)) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING;
 				return false;
 			}
 			break;
 		case FLAC__SUBFRAME_TYPE_LPC:
+//@@@@fprintf(stderr,"@@@@ add LPC, bps=%u, order=%u, prec=%u, shift=%d\n",subframe_bps,subframe->data.lpc.order,subframe->data.lpc.qlp_coeff_precision,subframe->data.lpc.quantization_level);
 			if(!FLAC__subframe_add_lpc(&(subframe->data.lpc), frame_header->blocksize - subframe->data.lpc.order, subframe_bps, subframe->wasted_bits, frame)) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING;
 				return false;
 			}
 			break;
 		case FLAC__SUBFRAME_TYPE_VERBATIM:
+//@@@@fprintf(stderr,"@@@@ add VERBATIM, bps=%u\n",subframe_bps);
 			if(!FLAC__subframe_add_verbatim(&(subframe->data.verbatim), frame_header->blocksize, subframe_bps, subframe->wasted_bits, frame)) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING;
 				return false;
