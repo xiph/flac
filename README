@@ -30,6 +30,9 @@ forthcoming, but in general, this should work:
 
 ./configure ; make ; make install
 
+To disable all assembly optimizations, pass the
+--disable-asm-optimizations flag to configure.
+
 
 ==================
 Building with MSVC
@@ -37,4 +40,8 @@ Building with MSVC
 
 There is no overall make system for MSVC but the individual
 source directories with a 'Makefile.vc' file in them allow
-building with MSVC.  Just 'nmake /f Makefile.vc'.
+building with MSVC.  Just 'nmake /f Makefile.vc'.  Currently
+the Makefile.vc for libFLAC is hardcoded to use nasm.  If
+you don't have nasm, or don't want any assembly optimizations,
+edit the makefile, adding '/D FLAC__NO_ASM' and delete the
+rules which compile the .s files.
