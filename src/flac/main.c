@@ -37,7 +37,7 @@ static int usage(const char *message, ...);
 static int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file);
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
-FLAC__bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
+FLAC__bool verify = false, verbose = true, lax = false, test_only = false, analyze = false, use_ogg = false;
 FLAC__bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_escape_coding = false, do_qlp_coeff_prec_search = false;
 FLAC__bool force_to_stdout = false, delete_input = false, sector_align = false;
 const char *cmdline_forced_outfilename = 0, *output_prefix = 0;
@@ -54,6 +54,8 @@ int num_requested_seek_points = -1; /* -1 => no -S options were given, 0 => -S- 
 FLAC__int32 align_reservoir_0[588], align_reservoir_1[588]; /* for carrying over samples from --sector-align */
 FLAC__int32 *align_reservoir[2] = { align_reservoir_0, align_reservoir_1 };
 unsigned align_reservoir_samples = 0; /* 0 .. 587 */
+
+static const char *flac_suffix = ".flac", *ogg_suffix = ".ogg";
 
 int main(int argc, char *argv[])
 {
@@ -110,6 +112,12 @@ int main(int argc, char *argv[])
 			lax = true;
 		else if(0 == strcmp(argv[i], "--lax-"))
 			lax = false;
+#ifdef FLaC__HAS_OGG
+		else if(0 == strcmp(argv[i], "--ogg"))
+			use_ogg = true;
+		else if(0 == strcmp(argv[i], "--ogg-"))
+			use_ogg = false;
+#endif
 		else if(0 == strcmp(argv[i], "-b"))
 			blocksize = atoi(argv[++i]);
 		else if(0 == strcmp(argv[i], "-e"))
@@ -371,8 +379,17 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
 		if(!mode_decode) {
-			fprintf(stderr, "options:%s%s%s -P %u -b %u%s -l %u%s%s%s -q %u -r %u,%u -R %u%s\n",
-				delete_input?" --delete-input-file":"", sector_align?" --sector-align":"", lax?" --lax":"",
+			fprintf(stderr,
+				"options:%s%s"
+#ifdef FLaC__HAS_OGG
+				"%s"
+#endif
+				"%s -P %u -b %u%s -l %u%s%s%s -q %u -r %u,%u -R %u%s\n",
+				delete_input?" --delete-input-file":"", sector_align?" --sector-align":"",
+#ifdef FLaC__HAS_OGG
+				ogg?" --ogg":"",
+#endif
+				lax?" --lax":"",
 				padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
 				do_exhaustive_model_search?" -e":"", do_escape_coding?" -E":"", do_qlp_coeff_prec_search?" -p":"",
 				qlp_coeff_precision,
@@ -492,6 +509,9 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  --a-rtext : include residual signal in text output\n");
 	fprintf(stderr, "  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
 	fprintf(stderr, "encoding options:\n");
+#ifdef FLaC__HAS_OGG
+	fprintf(stderr, "  --ogg : output Ogg-FLAC stream instead of native FLAC\n");
+#endif
 	fprintf(stderr, "  --lax : allow encoder to generate non-Subset files\n");
 	fprintf(stderr, "  --sector-align : align encoding of multiple files on sector boundaries\n");
 	fprintf(stderr, "  -S { # | X | #x } : include a point or points in a SEEKTABLE\n");
@@ -538,7 +558,13 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
 	fprintf(stderr, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	fprintf(stderr, "         comparing to the original\n");
-	fprintf(stderr, "  -S-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-, --lax-, --sector-align-\n");
+	fprintf(stderr, "  -S-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-,%s --lax-, --sector-align-\n",
+#ifdef FLaC__HAS_OGG
+		" --ogg-,"
+#else
+		""
+#endif
+	);
 	fprintf(stderr, "  can all be used to turn off a particular option\n");
 	fprintf(stderr, "format options:\n");
 	fprintf(stderr, "  -fb | -fl : big-endian | little-endian byte order\n");
@@ -561,6 +587,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	unsigned lookahead_length = 0;
 	int retval;
 	long infilesize;
+	encode_options_t common_options;
 
 	if(0 == strcmp(infilename, "-")) {
 		infilesize = -1;
@@ -611,15 +638,18 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	if(encode_infile == stdin || force_to_stdout)
 		strcpy(outfilename, "-");
 	else {
+		const char *suffix = (use_ogg? ogg_suffix : flac_suffix);
 		strcpy(outfilename, output_prefix? output_prefix : "");
 		strcat(outfilename, infilename);
 		if(0 == (p = strrchr(outfilename, '.')))
-			strcat(outfilename, ".flac");
+			strcat(outfilename, suffix);
 		else {
-			if(0 == strcmp(p, ".flac"))
-				strcpy(p, "_new.flac");
+			if(0 == strcmp(p, suffix)) {
+				strcpy(p, "_new");
+				strcat(p, suffix);
+			}
 			else
-				strcpy(p, ".flac");
+				strcpy(p, suffix);
 		}
 	}
 	if(0 == forced_outfilename)
@@ -627,10 +657,51 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	if(0 != cmdline_forced_outfilename)
 		forced_outfilename = cmdline_forced_outfilename;
 
-	if(format_is_wave)
-		retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, align_reservoir, &align_reservoir_samples, sector_align, is_last_file, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_escape_coding, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
-	else
-		retval = flac__encode_raw(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, is_last_file, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_escape_coding, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+	common_options.verbose = verbose;
+	common_options.skip = skip;
+	common_options.verify = verify;
+#ifdef FLaC__HAS_OGG
+	common_options.use_ogg = use_ogg;
+#endif
+	common_options.lax = lax;
+	common_options.do_mid_side = do_mid_side;
+	common_options.loose_mid_side = loose_mid_side;
+	common_options.do_exhaustive_model_search = do_exhaustive_model_search;
+	common_options.do_escape_coding = do_escape_coding;
+	common_options.do_qlp_coeff_prec_search = do_qlp_coeff_prec_search;
+	common_options.min_residual_partition_order = min_residual_partition_order;
+	common_options.max_residual_partition_order = max_residual_partition_order;
+	common_options.rice_parameter_search_dist = rice_parameter_search_dist;
+	common_options.max_lpc_order = max_lpc_order;
+	common_options.blocksize = (unsigned)blocksize;
+	common_options.qlp_coeff_precision = qlp_coeff_precision;
+	common_options.padding = padding;
+	common_options.requested_seek_points = requested_seek_points;
+	common_options.num_requested_seek_points = num_requested_seek_points;
+
+	if(format_is_wave) {
+		wav_encode_options_t options;
+
+		options.common = common_options;
+		options.is_last_file = is_last_file;
+		options.align_reservoir = align_reservoir;
+		options.align_reservoir_samples = &align_reservoir_samples;
+		options.sector_align = sector_align;
+
+		retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, options);
+	}
+	else {
+		raw_encode_options_t options;
+
+		options.common = common_options;
+		options.is_big_endian = format_is_big_endian;
+		options.is_unsigned_samples = format_is_unsigned_samples;
+		options.channels = format_channels;
+		options.bps = format_bps;
+		options.sample_rate = format_sample_rate;
+
+		retval = flac__encode_raw(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, options);
+	}
 
 	if(retval == 0 && strcmp(infilename, "-")) {
 		if(strcmp(forced_outfilename, "-"))
@@ -648,6 +719,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
 	char *p;
 	int retval;
+	decode_options_t common_options;
 
 	if(!test_only && !analyze) {
 		if(format_is_wave < 0) {
@@ -681,10 +753,28 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	if(0 != cmdline_forced_outfilename)
 		forced_outfilename = cmdline_forced_outfilename;
 
-	if(format_is_wave)
-		retval = flac__decode_wav(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip);
-	else
-		retval = flac__decode_raw(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
+	common_options.verbose = verbose;
+#ifdef FLaC__HAS_OGG
+	common_options.is_ogg = is_ogg;
+#endif
+	common_options.skip = skip;
+
+	if(format_is_wave) {
+		wav_decode_options_t options;
+
+		options.common = common_options;
+
+		retval = flac__decode_wav(infilename, test_only? 0 : forced_outfilename, analyze, aopts, options);
+	}
+	else {
+		raw_decode_options_t options;
+
+		options.common = common_options;
+		options.is_big_endian = format_is_big_endian;
+		options.is_unsigned_samples = format_is_unsigned_samples;
+
+		retval = flac__decode_raw(infilename, test_only? 0 : forced_outfilename, analyze, aopts, options);
+	}
 
 	if(retval == 0 && strcmp(infilename, "-")) {
 		if(strcmp(forced_outfilename, "-"))

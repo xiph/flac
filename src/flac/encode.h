@@ -21,7 +21,50 @@
 
 #include "FLAC/ordinals.h"
 
-int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__int32 *align_reservoir[], unsigned *align_reservoir_samples, FLAC__bool sector_align, FLAC__bool is_last_file, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_escape_coding, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points);
-int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__bool is_last_file, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_escape_coding, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate);
+typedef struct {
+	FLAC__bool verbose;
+	FLAC__uint64 skip;
+	FLAC__bool verify;
+#ifdef FLaC__HAS_OGG
+	FLAC__bool use_ogg;
+#endif
+	FLAC__bool lax;
+	FLAC__bool do_mid_side;
+	FLAC__bool loose_mid_side;
+	FLAC__bool do_exhaustive_model_search;
+	FLAC__bool do_escape_coding;
+	FLAC__bool do_qlp_coeff_prec_search;
+	unsigned min_residual_partition_order;
+	unsigned max_residual_partition_order;
+	unsigned rice_parameter_search_dist;
+	unsigned max_lpc_order;
+	unsigned blocksize;
+	unsigned qlp_coeff_precision;
+	unsigned padding;
+	char *requested_seek_points;
+	int num_requested_seek_points;
+} encode_options_t;
+
+typedef struct {
+	encode_options_t common;
+
+	FLAC__bool is_last_file;
+	FLAC__int32 **align_reservoir;
+	unsigned *align_reservoir_samples;
+	FLAC__bool sector_align;
+} wav_encode_options_t;
+
+typedef struct {
+	encode_options_t common;
+
+	FLAC__bool is_big_endian;
+	FLAC__bool is_unsigned_samples;
+	unsigned channels;
+	unsigned bps;
+	unsigned sample_rate;
+} raw_encode_options_t;
+
+int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, wav_encode_options_t options);
+int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, raw_encode_options_t options);
 
 #endif

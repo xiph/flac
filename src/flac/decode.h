@@ -21,8 +21,27 @@
 
 #include "analyze.h"
 
+typedef struct {
+	FLAC__bool verbose;
+#ifdef FLaC__HAS_OGG
+	FLAC__bool is_ogg;
+#endif
+	FLAC__uint64 skip;
+} decode_options_t;
+
+typedef struct {
+	decode_options_t common;
+} wav_decode_options_t;
+
+typedef struct {
+	decode_options_t common;
+
+	FLAC__bool is_big_endian;
+	FLAC__bool is_unsigned_samples;
+} raw_decode_options_t;
+
 /* outfile == 0 => test only */
-int flac__decode_wav(const char *infile, const char *outfile, FLAC__bool analysis_mode, analysis_options aopts, FLAC__bool verbose, FLAC__uint64 skip);
-int flac__decode_raw(const char *infile, const char *outfile, FLAC__bool analysis_mode, analysis_options aopts, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples);
+int flac__decode_wav(const char *infile, const char *outfile, FLAC__bool analysis_mode, analysis_options aopts, wav_decode_options_t options);
+int flac__decode_raw(const char *infile, const char *outfile, FLAC__bool analysis_mode, analysis_options aopts, raw_decode_options_t options);
 
 #endif

@@ -20,8 +20,10 @@
 #
 
 PROGRAM_NAME = flac
-INCLUDES     = -I./include -I../../include
-LIBS         = -lFLAC -lm
+#@@@OGG
+INCLUDES     = -I./include -I../../include -I$(HOME)/local/include
+#@@@OGG conditionalize -logg
+LIBS         = -lFLAC -lm -L$(HOME)/local/lib -logg
 
 OBJS = \
 	analyze.o \
