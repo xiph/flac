@@ -831,7 +831,7 @@ FLAC__bool seek_to_absolute_sample_(OggFLAC__SeekableStreamDecoder *decoder, FLA
 	FLAC__uint64 left_pos = 0, right_pos = stream_length;
 	FLAC__uint64 left_sample = 0, right_sample = decoder->private_->stream_info.total_samples;
 	FLAC__uint64 this_frame_sample = 0; /* only initialized to avoid compiler warning */
-	FLAC__uint64 pos; /* only initialized to avoid compiler warning */
+	FLAC__uint64 pos = 0; /* only initialized to avoid compiler warning */
 	FLAC__bool did_a_seek;
 	unsigned iteration = 0;
 
