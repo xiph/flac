@@ -21,18 +21,18 @@ SUFFIXES = .cpp
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.4\" -YX /Od /D "_DEBUG" $<
+	$(cc) -DFLAC__NO_DLL $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.4\" -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.4\" -YX -DNODEBUG $<
+	$(cc) -DFLAC__NO_DLL /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.4\" -YX -DNODEBUG $<
 !endif
 
 !IFDEF DEBUG
 .cpp.obj:
-	$(cc) /GR /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) -DFLAC__NO_DLL /GR /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .cpp.obj:
-	$(cc) /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) -DFLAC__NO_DLL /GR /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
