@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "20 August 2002" "" ""
+.TH "FLAC" "1" "03 September 2002" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -114,6 +114,13 @@ be decodable by flac.
 When decoding, force the input to be treated as
 Ogg-FLAC.  This is useful when piping input from
 stdin or when the filename does not end in '.ogg'.
+.TP
+\fB--ogg=\fI#\fB\fR
+When used with --ogg, specifies the serial
+number to use for the FLAC stream.  When encoding and
+no serial number is given, flac uses '0'.  When
+decoding and no number is given, flac uses the serial
+number of the first page.
 .TP
 \fB--lax\fR
 Allow encoder to generate non-Subset

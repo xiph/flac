@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>August 20, 2002</date>">
+  <!ENTITY dhdate      "<date>September 3, 2002</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -259,6 +259,18 @@
 		  <para>When decoding, force the input to be treated as
 		    Ogg-FLAC.  This is useful when piping input from
 		    stdin or when the filename does not end in '.ogg'.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>--ogg</option>=<replaceable>#</replaceable></term>
+
+		<listitem>
+		  <para>When used with --ogg, specifies the serial
+		    number to use for the FLAC stream.  When encoding and
+		    no serial number is given, flac uses '0'.  When
+		    decoding and no number is given, flac uses the serial
+		    number of the first page.</para>
 		</listitem>
 	      </varlistentry>
 
