@@ -514,7 +514,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8
 	; store autoc
 	mov	edx, [esp + 16]			; edx == autoc
 	movups	[edx], xmm5
-	movups	[edx + 4], xmm6
+	movups	[edx + 16], xmm6
 
 .end:
 	ret
@@ -587,8 +587,8 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
 	; store autoc
 	mov	edx, [esp + 16]			; edx == autoc
 	movups	[edx], xmm5
-	movups	[edx + 4], xmm6
-	movups	[edx + 8], xmm7
+	movups	[edx + 16], xmm6
+	movups	[edx + 32], xmm7
 
 .end:
 	ret
