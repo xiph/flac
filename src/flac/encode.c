@@ -578,6 +578,8 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 		if(feof(infile))
 			break;
 		if(xx == 0x20746d66 && !got_fmt_chunk) { /* "fmt " */
+			unsigned block_align;
+
 			/* fmt sub-chunk size */
 			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
@@ -623,14 +625,15 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			/* avg bytes per second (ignored) */
 			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
-			/* block align (ignored) */
+			/* block align */
 			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
+			block_align = x;
 			/* bits per sample */
 			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
 			if(x != 8 && x != 16 && x != 24) {
-				fprintf(stderr, "%s: ERROR: unsupported bits per sample %u\n", encoder_session.inbasefilename, (unsigned)x);
+				fprintf(stderr, "%s: ERROR: unsupported bits-per-sample %u\n", encoder_session.inbasefilename, (unsigned)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(options.common.sector_align && x != 16) {
@@ -638,6 +641,10 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			bps = x;
+			if(bps * channels != block_align * 8) {
+				fprintf(stderr, "%s: ERROR: unsupported block alignment (%u), for bits-per-sample=%u, channels=%u\n", encoder_session.inbasefilename, block_align, bps, channels);
+				return EncoderSession_finish_error(&encoder_session);
+			}
 			is_unsigned_samples = (x == 8);
 
 			/* skip any extra data in the fmt sub-chunk */
