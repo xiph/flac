@@ -153,6 +153,7 @@ static struct share__option long_options_[] = {
 	{ "bps"                       , share__required_argument, 0, 0 },
 	{ "sample-rate"               , share__required_argument, 0, 0 },
 	{ "sign"                      , share__required_argument, 0, 0 },
+	{ "input-size"                , share__required_argument, 0, 0 },
 
 	/*
 	 * analysis options
@@ -237,6 +238,7 @@ static struct {
 	int format_channels;
 	int format_bps;
 	int format_sample_rate;
+	long format_input_size;
 	int blocksize;
 	int min_residual_partition_order;
 	int max_residual_partition_order;
@@ -574,6 +576,7 @@ FLAC__bool init_options()
 	option_values.format_channels = -1;
 	option_values.format_bps = -1;
 	option_values.format_sample_rate = -1;
+	option_values.format_input_size = -1;
 	option_values.blocksize = -1;
 	option_values.min_residual_partition_order = -1;
 	option_values.max_residual_partition_order = -1;
@@ -660,6 +663,10 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "until")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.until_specification = option_argument;
+		}
+		else if(0 == strcmp(long_option, "input-size")) {
+			FLAC__ASSERT(0 != option_argument);
+			option_values.format_input_size = atol(option_argument);
 		}
 		else if(0 == strcmp(long_option, "cue")) {
 			FLAC__ASSERT(0 != option_argument);
@@ -1202,6 +1209,7 @@ void show_help()
 	printf("      --bps=#                  Number of bits per sample\n");
 	printf("      --sample-rate=#          Sample rate in Hz\n");
 	printf("      --sign={signed|unsigned} Sign of samples\n");
+	printf("      --input-size=#           Size of the raw input in bytes\n");
 	printf("      --force-aiff-format      Force decoding to AIFF format\n");
 	printf("      --force-raw-format       Treat input or output as raw samples\n");
 	printf("negative options:\n");
@@ -1420,6 +1428,15 @@ void show_explain()
 	printf("      --bps=#                  Number of bits per sample\n");
 	printf("      --sample-rate=#          Sample rate in Hz\n");
 	printf("      --sign={signed|unsigned} Sign of samples (the default is signed)\n");
+	printf("      --input-size=#           Size of the raw input in bytes.  If you are\n");
+	printf("                               encoding raw samples from stdin, you must set\n");
+	printf("                               this option in order to be able to use --skip,\n");
+	printf("                               --until, --cue-sheet, or other options that need\n");
+	printf("                               to know the size of the input beforehand.  If\n");
+	printf("                               the size given is greater than what is found in\n");
+	printf("                               the input stream, the encoder will complain\n");
+	printf("                               about an unexpected end-of-file.  If the size\n");
+	printf("                               given is less, samples will be truncated.\n");
 	printf("      --force-aiff-format      Force the decoder to output AIFF format.  This\n");
 	printf("                               option is not needed if the output filename (as\n");
 	printf("                               set by -o) ends with .aif or .aiff; this option\n");
@@ -1516,6 +1533,14 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				fmt= RAW;
 			}
 		}
+	}
+
+	if(option_values.format_input_size >= 0 && (fmt != RAW || infilesize >= 0)) {
+		flac__utils_printf(stderr, 1, "ERROR: can only use --input-size when encoding raw samples from stdin\n");
+		return 1;
+	}
+	else {
+		infilesize = option_values.format_input_size;
 	}
 
 	if(option_values.sector_align && fmt == RAW && infilesize < 0) {
