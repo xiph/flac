@@ -98,20 +98,24 @@ FLAC__SeekableStreamEncoder *FLAC__seekable_stream_encoder_new()
 	if(encoder == 0) {
 		return 0;
 	}
+	memset(encoder, 0, sizeof(FLAC__SeekableStreamEncoder));
+
 	encoder->protected_ = (FLAC__SeekableStreamEncoderProtected*)malloc(sizeof(FLAC__SeekableStreamEncoderProtected));
 	if(encoder->protected_ == 0) {
 		free(encoder);
 		return 0;
 	}
+	memset(encoder->protected_, 0, sizeof(FLAC__SeekableStreamEncoderProtected));
+
 	encoder->private_ = (FLAC__SeekableStreamEncoderPrivate*)malloc(sizeof(FLAC__SeekableStreamEncoderPrivate));
 	if(encoder->private_ == 0) {
 		free(encoder->protected_);
 		free(encoder);
 		return 0;
 	}
+	memset(encoder->private_, 0, sizeof(FLAC__SeekableStreamEncoderPrivate));
 
 	encoder->private_->stream_encoder = FLAC__stream_encoder_new();
-
 	if(0 == encoder->private_->stream_encoder) {
 		free(encoder->private_);
 		free(encoder->protected_);
@@ -202,6 +206,17 @@ void FLAC__seekable_stream_encoder_finish(FLAC__SeekableStreamEncoder *encoder)
 	set_defaults_(encoder);
 
 	encoder->protected_->state = FLAC__SEEKABLE_STREAM_ENCODER_UNINITIALIZED;
+}
+
+FLAC__bool FLAC__seekable_stream_encoder_set_verify(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	FLAC__ASSERT(0 != encoder->private_->stream_encoder);
+	if(encoder->protected_->state != FLAC__SEEKABLE_STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__stream_encoder_set_verify(encoder->private_->stream_encoder, value);
 }
 
 FLAC__bool FLAC__seekable_stream_encoder_set_streamable_subset(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value)
@@ -440,11 +455,25 @@ FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_get_state(const F
 	return encoder->protected_->state;
 }
 
-FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_get_stream_encoder_state(const FLAC__SeekableStreamEncoder *encoder)
+FLAC__StreamEncoderState FLAC__seekable_stream_encoder_get_stream_encoder_state(const FLAC__SeekableStreamEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
 	return FLAC__stream_encoder_get_state(encoder->private_->stream_encoder);
+}
+
+FLAC__StreamDecoderState FLAC__seekable_stream_encoder_get_verify_decoder_state(const FLAC__SeekableStreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	return FLAC__stream_encoder_get_verify_decoder_state(encoder->private_->stream_encoder);
+}
+
+FLAC__bool FLAC__seekable_stream_encoder_get_verify(const FLAC__SeekableStreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	return FLAC__stream_encoder_get_verify(encoder->private_->stream_encoder);
 }
 
 FLAC__bool FLAC__seekable_stream_encoder_get_streamable_subset(const FLAC__SeekableStreamEncoder *encoder)
@@ -563,7 +592,12 @@ FLAC__bool FLAC__seekable_stream_encoder_process(FLAC__SeekableStreamEncoder *en
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
-	return FLAC__stream_encoder_process(encoder->private_->stream_encoder, buffer, samples);
+	if(!FLAC__stream_encoder_process(encoder->private_->stream_encoder, buffer, samples)) {
+		encoder->protected_->state = FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR;
+		return false;
+	}
+	else
+		return true;
 }
 
 /* 'samples' is channel-wide samples, e.g. for 1 second at 44100Hz, 'samples' = 44100 regardless of the number of channels */
@@ -571,7 +605,12 @@ FLAC__bool FLAC__seekable_stream_encoder_process_interleaved(FLAC__SeekableStrea
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
-	return FLAC__stream_encoder_process_interleaved(encoder->private_->stream_encoder, buffer, samples);
+	if(!FLAC__stream_encoder_process_interleaved(encoder->private_->stream_encoder, buffer, samples)) {
+		encoder->protected_->state = FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR;
+		return false;
+	}
+	else
+		return true;
 }
 
 /***********************************************************************

@@ -23,6 +23,7 @@
 #include "FLAC/file_encoder.h"
 #include "FLAC/seekable_stream_encoder.h"
 #include "FLAC/stream_encoder.h"
+#include "decoder.h"
 
 // ===============================================================
 //
@@ -97,6 +98,7 @@ namespace FLAC {
 			bool is_valid() const;
 			inline operator bool() const { return is_valid(); }
 
+			bool set_verify(bool value);
 			bool set_streamable_subset(bool value);
 			bool set_do_mid_side_stereo(bool value);
 			bool set_loose_mid_side_stereo(bool value);
@@ -116,6 +118,8 @@ namespace FLAC {
 			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
 			State    get_state() const;
+			Decoder::Stream::State get_verify_decoder_state() const;
+			bool     get_verify() const;
 			bool     get_streamable_subset() const;
 			bool     get_do_mid_side_stereo() const;
 			bool     get_loose_mid_side_stereo() const;
@@ -187,6 +191,7 @@ namespace FLAC {
 			bool is_valid() const;
 			inline operator bool() const { return is_valid(); }
 
+			bool set_verify(bool value);
 			bool set_streamable_subset(bool value);
 			bool set_do_mid_side_stereo(bool value);
 			bool set_loose_mid_side_stereo(bool value);
@@ -207,6 +212,8 @@ namespace FLAC {
 
 			State    get_state() const;
 			Stream::State get_stream_encoder_state() const;
+			Decoder::Stream::State get_verify_decoder_state() const;
+			bool     get_verify() const;
 			bool     get_streamable_subset() const;
 			bool     get_do_mid_side_stereo() const;
 			bool     get_loose_mid_side_stereo() const;
@@ -278,6 +285,7 @@ namespace FLAC {
 			bool is_valid() const;
 			inline operator bool() const { return is_valid(); }
 
+			bool set_verify(bool value);
 			bool set_streamable_subset(bool value);
 			bool set_do_mid_side_stereo(bool value);
 			bool set_loose_mid_side_stereo(bool value);
@@ -300,6 +308,8 @@ namespace FLAC {
 			State    get_state() const;
 			SeekableStream::State get_seekable_stream_encoder_state() const;
 			Stream::State get_stream_encoder_state() const;
+			Decoder::Stream::State get_verify_decoder_state() const;
+			bool     get_verify() const;
 			bool     get_streamable_subset() const;
 			bool     get_do_mid_side_stereo() const;
 			bool     get_loose_mid_side_stereo() const;

@@ -21,6 +21,7 @@
 #define FLAC__STREAM_ENCODER_H
 
 #include "format.h"
+#include "stream_decoder.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -176,6 +177,16 @@ typedef enum {
 	FLAC__STREAM_ENCODER_OK = 0,
 	/**< The encoder is in the normal OK state. */
 
+	FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR,
+	/**< An error occurred in the underlying verify stream decoder;
+	 * check FLAC__stream_encoder_get_verify_decoder_state().
+	 */
+
+	FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA,
+	/**< The verify decoder detected a mismatch between the original
+	 * audio signal and the decoded audio signal.
+	 */
+
 	FLAC__STREAM_ENCODER_INVALID_CALLBACK,
 	/**< The encoder was initialized before setting all the required callbacks. */
 
@@ -315,6 +326,22 @@ void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder);
  * Public class method prototypes
  *
  ***********************************************************************/
+
+/** Set the "verify" flag.  If \c true, the encoder will verify it's own
+ *  encoded output by feeding it through an internal decoder and comparing
+ *  the original signal against the decoded signal.  If a mismatch occurs,
+ *  the process call will return \c false.  Note that this will slow the
+ *  encoding process by the extra time required for decoding and comparison.
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /** Set the "streamable subset" flag.  If \c true, the encoder will comply
  *  with the subset (see the format specification) and will check the
@@ -651,6 +678,28 @@ FLAC__bool FLAC__stream_encoder_set_client_data(FLAC__StreamEncoder *encoder, vo
  *    The current encoder state.
  */
 FLAC__StreamEncoderState FLAC__stream_encoder_get_state(const FLAC__StreamEncoder *encoder);
+
+/** Get the state of the verify stream decoder.
+ *  Useful when the stream encoder state is
+ *  \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__StreamDecoderState
+ *    The verify stream decoder state.
+ */
+FLAC__StreamDecoderState FLAC__stream_encoder_get_verify_decoder_state(const FLAC__StreamEncoder *encoder);
+
+/** Get the "verify" flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_verify().
+ */
+FLAC__bool FLAC__stream_encoder_get_verify(const FLAC__StreamEncoder *encoder);
 
 /** Get the "streamable subset" flag.
  *

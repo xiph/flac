@@ -40,6 +40,12 @@ namespace FLAC {
 			return 0 != encoder_;
 		}
 
+		bool Stream::set_verify(bool value)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_encoder_set_verify(encoder_, value);
+		}
+
 		bool Stream::set_streamable_subset(bool value)
 		{
 			FLAC__ASSERT(is_valid());
@@ -146,6 +152,18 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return State(::FLAC__stream_encoder_get_state(encoder_));
+		}
+
+		Decoder::Stream::State Stream::get_verify_decoder_state() const
+		{
+			FLAC__ASSERT(is_valid());
+			return Decoder::Stream::State(::FLAC__stream_encoder_get_verify_decoder_state(encoder_));
+		}
+
+		bool Stream::get_verify() const
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_encoder_get_verify(encoder_);
 		}
 
 		bool Stream::get_streamable_subset() const

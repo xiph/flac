@@ -57,7 +57,11 @@ static FLAC__bool die_ss_(const char *msg, const FLAC__SeekableStreamEncoder *en
 	printf(", state = %u (%s)\n", (unsigned)state, FLAC__SeekableStreamEncoderStateString[state]);
 	if(state == FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR) {
 		FLAC__StreamEncoderState state_ = FLAC__seekable_stream_encoder_get_stream_encoder_state(encoder);
-		printf("      stream encoder state = %u (%s)\n", (unsigned)state, FLAC__StreamEncoderStateString[state_]);
+		printf("      stream encoder state = %u (%s)\n", (unsigned)state_, FLAC__StreamEncoderStateString[state_]);
+		if(state_ == FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR) {
+			FLAC__StreamDecoderState dstate = FLAC__seekable_stream_encoder_get_verify_decoder_state(encoder);
+			printf("      verify decoder state = %u (%s)\n", (unsigned)dstate, FLAC__StreamDecoderStateString[dstate]);
+		}
 	}
 
 	return false;
@@ -75,10 +79,14 @@ static FLAC__bool die_f_(const char *msg, const FLAC__FileEncoder *encoder)
 	printf(", state = %u (%s)\n", (unsigned)state, FLAC__FileEncoderStateString[state]);
 	if(state == FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR) {
 		FLAC__SeekableStreamEncoderState state_ = FLAC__file_encoder_get_seekable_stream_encoder_state(encoder);
-		printf("      seekable stream encoder state = %u (%s)\n", (unsigned)state, FLAC__SeekableStreamEncoderStateString[state_]);
+		printf("      seekable stream encoder state = %u (%s)\n", (unsigned)state_, FLAC__SeekableStreamEncoderStateString[state_]);
 		if(state_ == FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR) {
 			FLAC__StreamEncoderState state__ = FLAC__file_encoder_get_stream_encoder_state(encoder);
-			printf("      stream encoder state = %u (%s)\n", (unsigned)state, FLAC__StreamEncoderStateString[state__]);
+			printf("      stream encoder state = %u (%s)\n", (unsigned)state__, FLAC__StreamEncoderStateString[state__]);
+			if(state__ == FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR) {
+				FLAC__StreamDecoderState dstate = FLAC__file_encoder_get_verify_decoder_state(encoder);
+				printf("      verify decoder state = %u (%s)\n", (unsigned)dstate, FLAC__StreamDecoderStateString[dstate]);
+			}
 		}
 	}
 
@@ -187,6 +195,7 @@ static FLAC__bool test_stream_encoder()
 {
 	FLAC__StreamEncoder *encoder;
 	FLAC__StreamEncoderState state;
+	FLAC__StreamDecoderState dstate;
 	FLAC__int32 samples[1024];
 	FLAC__int32 *samples_array[1] = { samples };
 	unsigned i;
@@ -199,6 +208,11 @@ static FLAC__bool test_stream_encoder()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
+	printf("OK\n");
+
+	printf("testing FLAC__stream_encoder_set_verify()... ");
+	if(!FLAC__stream_encoder_set_verify(encoder, true))
+		return die_s_("returned false", encoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_encoder_set_streamable_subset()... ");
@@ -309,6 +323,17 @@ static FLAC__bool test_stream_encoder()
 	printf("testing FLAC__stream_encoder_get_state()... ");
 	state = FLAC__stream_encoder_get_state(encoder);
 	printf("returned state = %u (%s)... OK\n", (unsigned)state, FLAC__StreamEncoderStateString[state]);
+
+	printf("testing FLAC__stream_encoder_get_verify_decoder_state()... ");
+	dstate = FLAC__stream_encoder_get_verify_decoder_state(encoder);
+	printf("returned state = %u (%s)... OK\n", (unsigned)dstate, FLAC__StreamDecoderStateString[dstate]);
+
+	printf("testing FLAC__stream_encoder_get_verify()... ");
+	if(FLAC__stream_encoder_get_verify(encoder) != true) {
+		printf("FAILED, expected true, got false\n");
+		return false;
+	}
+	printf("OK\n");
 
 	printf("testing FLAC__stream_encoder_get_streamable_subset()... ");
 	if(FLAC__stream_encoder_get_streamable_subset(encoder) != true) {
@@ -463,6 +488,8 @@ static FLAC__bool test_seekable_stream_encoder()
 {
 	FLAC__SeekableStreamEncoder *encoder;
 	FLAC__SeekableStreamEncoderState state;
+	FLAC__StreamEncoderState state_;
+	FLAC__StreamDecoderState dstate;
 	FLAC__int32 samples[1024];
 	FLAC__int32 *samples_array[1] = { samples };
 	unsigned i;
@@ -475,6 +502,11 @@ static FLAC__bool test_seekable_stream_encoder()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
+	printf("OK\n");
+
+	printf("testing FLAC__seekable_stream_encoder_set_verify()... ");
+	if(!FLAC__seekable_stream_encoder_set_verify(encoder, true))
+		return die_ss_("returned false", encoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_encoder_set_streamable_subset()... ");
@@ -585,6 +617,21 @@ static FLAC__bool test_seekable_stream_encoder()
 	printf("testing FLAC__seekable_stream_encoder_get_state()... ");
 	state = FLAC__seekable_stream_encoder_get_state(encoder);
 	printf("returned state = %u (%s)... OK\n", (unsigned)state, FLAC__SeekableStreamEncoderStateString[state]);
+
+	printf("testing FLAC__seekable_stream_encoder_get_stream_encoder_state()... ");
+	state_ = FLAC__seekable_stream_encoder_get_stream_encoder_state(encoder);
+	printf("returned state = %u (%s)... OK\n", (unsigned)state_, FLAC__StreamEncoderStateString[state_]);
+
+	printf("testing FLAC__seekable_stream_encoder_get_verify_decoder_state()... ");
+	dstate = FLAC__seekable_stream_encoder_get_verify_decoder_state(encoder);
+	printf("returned state = %u (%s)... OK\n", (unsigned)dstate, FLAC__StreamDecoderStateString[dstate]);
+
+	printf("testing FLAC__seekable_stream_encoder_get_verify()... ");
+	if(FLAC__seekable_stream_encoder_get_verify(encoder) != true) {
+		printf("FAILED, expected true, got false\n");
+		return false;
+	}
+	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_encoder_get_streamable_subset()... ");
 	if(FLAC__seekable_stream_encoder_get_streamable_subset(encoder) != true) {
@@ -732,6 +779,9 @@ static FLAC__bool test_file_encoder()
 {
 	FLAC__FileEncoder *encoder;
 	FLAC__FileEncoderState state;
+	FLAC__SeekableStreamEncoderState state_;
+	FLAC__StreamEncoderState state__;
+	FLAC__StreamDecoderState dstate;
 	FLAC__int32 samples[1024];
 	FLAC__int32 *samples_array[1] = { samples };
 	unsigned i;
@@ -744,6 +794,11 @@ static FLAC__bool test_file_encoder()
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
+	printf("OK\n");
+
+	printf("testing FLAC__file_encoder_set_verify()... ");
+	if(!FLAC__file_encoder_set_verify(encoder, true))
+		return die_f_("returned false", encoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_encoder_set_streamable_subset()... ");
@@ -854,6 +909,25 @@ static FLAC__bool test_file_encoder()
 	printf("testing FLAC__file_encoder_get_state()... ");
 	state = FLAC__file_encoder_get_state(encoder);
 	printf("returned state = %u (%s)... OK\n", (unsigned)state, FLAC__FileEncoderStateString[state]);
+
+	printf("testing FLAC__file_encoder_get_seekable_stream_encoder_state()... ");
+	state_ = FLAC__file_encoder_get_seekable_stream_encoder_state(encoder);
+	printf("returned state = %u (%s)... OK\n", (unsigned)state_, FLAC__SeekableStreamEncoderStateString[state_]);
+
+	printf("testing FLAC__file_encoder_get_stream_encoder_state()... ");
+	state__ = FLAC__file_encoder_get_stream_encoder_state(encoder);
+	printf("returned state = %u (%s)... OK\n", (unsigned)state__, FLAC__StreamEncoderStateString[state__]);
+
+	printf("testing FLAC__file_encoder_get_verify_decoder_state()... ");
+	dstate = FLAC__file_encoder_get_verify_decoder_state(encoder);
+	printf("returned state = %u (%s)... OK\n", (unsigned)dstate, FLAC__StreamDecoderStateString[dstate]);
+
+	printf("testing FLAC__file_encoder_get_verify()... ");
+	if(FLAC__file_encoder_get_verify(encoder) != true) {
+		printf("FAILED, expected true, got false\n");
+		return false;
+	}
+	printf("OK\n");
 
 	printf("testing FLAC__file_encoder_get_streamable_subset()... ");
 	if(FLAC__file_encoder_get_streamable_subset(encoder) != true) {

@@ -180,6 +180,11 @@ static bool test_stream_encoder()
 	}
 	printf("OK\n");
 
+	printf("testing set_verify()... ");
+	if(!encoder->set_verify(true))
+		return encoder->die("returned false");
+	printf("OK\n");
+
 	printf("testing set_streamable_subset()... ");
 	if(!encoder->set_streamable_subset(true))
 		return encoder->die("returned false");
@@ -273,6 +278,13 @@ static bool test_stream_encoder()
 	printf("testing get_state()... ");
 	FLAC::Encoder::Stream::State state = encoder->get_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamEncoderState)state), state.as_cstring());
+
+	printf("testing get_verify()... ");
+	if(encoder->get_verify() != true) {
+		printf("FAILED, expected true, got false\n");
+		return false;
+	}
+	printf("OK\n");
 
 	printf("testing get_streamable_subset()... ");
 	if(encoder->get_streamable_subset() != true) {
@@ -450,6 +462,10 @@ bool SeekableStreamEncoder::die(const char *msg) const
 	if(state == ::FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR) {
 		FLAC::Encoder::Stream::State state_ = get_stream_encoder_state();
 		printf("      stream encoder state = %u (%s)\n", (unsigned)((::FLAC__StreamEncoderState)state_), state_.as_cstring());
+		if(state_ == ::FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR) {
+			FLAC::Decoder::Stream::State dstate = get_verify_decoder_state();
+			printf("      verify decoder state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
+		}
 	}
 
 	return false;
@@ -477,6 +493,11 @@ static bool test_seekable_stream_encoder()
 		printf("FAILED, returned false\n");
 		return false;
 	}
+	printf("OK\n");
+
+	printf("testing set_verify()... ");
+	if(!encoder->set_verify(true))
+		return encoder->die("returned false");
 	printf("OK\n");
 
 	printf("testing set_streamable_subset()... ");
@@ -576,6 +597,17 @@ static bool test_seekable_stream_encoder()
 	printf("testing get_stream_encoder_state()... ");
 	FLAC::Encoder::Stream::State state_ = encoder->get_stream_encoder_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamEncoderState)state_), state_.as_cstring());
+
+	printf("testing get_verify_decoder_state()... ");
+	FLAC::Decoder::Stream::State dstate = encoder->get_verify_decoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
+
+	printf("testing get_verify()... ");
+	if(encoder->get_verify() != true) {
+		printf("FAILED, expected true, got false\n");
+		return false;
+	}
+	printf("OK\n");
 
 	printf("testing get_streamable_subset()... ");
 	if(encoder->get_streamable_subset() != true) {
@@ -746,6 +778,10 @@ bool FileEncoder::die(const char *msg) const
 		if(state_ == ::FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR) {
 			FLAC::Encoder::Stream::State state__ = get_stream_encoder_state();
 			printf("      stream encoder state = %u (%s)\n", (unsigned)((::FLAC__StreamEncoderState)state__), state__.as_cstring());
+			if(state__ == ::FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR) {
+				FLAC::Decoder::Stream::State dstate = get_verify_decoder_state();
+				printf("      verify decoder state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
+			}
 		}
 	}
 
@@ -774,6 +810,11 @@ static bool test_file_encoder()
 		printf("FAILED, returned false\n");
 		return false;
 	}
+	printf("OK\n");
+
+	printf("testing set_verify()... ");
+	if(!encoder->set_verify(true))
+		return encoder->die("returned false");
 	printf("OK\n");
 
 	printf("testing set_streamable_subset()... ");
@@ -882,6 +923,17 @@ static bool test_file_encoder()
 	printf("testing get_stream_encoder_state()... ");
 	FLAC::Encoder::Stream::State state__ = encoder->get_stream_encoder_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamEncoderState)state__), state__.as_cstring());
+
+	printf("testing get_verify_decoder_state()... ");
+	FLAC::Decoder::Stream::State dstate = encoder->get_verify_decoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
+
+	printf("testing get_verify()... ");
+	if(encoder->get_verify() != true) {
+		printf("FAILED, expected true, got false\n");
+		return false;
+	}
+	printf("OK\n");
 
 	printf("testing get_streamable_subset()... ");
 	if(encoder->get_streamable_subset() != true) {

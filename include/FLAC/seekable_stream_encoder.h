@@ -196,6 +196,19 @@ void FLAC__seekable_stream_encoder_delete(FLAC__SeekableStreamEncoder *encoder);
  ***********************************************************************/
 
 /** This is inherited from FLAC__StreamEncoder; see
+ *  FLAC__stream_encoder_set_verify().
+ *
+ * \default \c true
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC__bool FLAC__seekable_stream_encoder_set_verify(FLAC__SeekableStreamEncoder *encoder, FLAC__bool value);
+
+/** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_streamable_subset().
  *
  * \default \c true
@@ -503,6 +516,31 @@ FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_get_state(const F
  *    The stream encoder state.
  */
 FLAC__StreamEncoderState FLAC__seekable_stream_encoder_get_stream_encoder_state(const FLAC__SeekableStreamEncoder *encoder);
+
+/** Get the state of the underlying stream encoder's verify decoder.
+ *  Useful when the seekable stream encoder state is
+ *  \c FLAC__SEEKABLE_STREAM_ENCODER_STREAM_ENCODER_ERROR and the
+ *  stream encoder state is \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__StreamEncoderState
+ *    The stream encoder state.
+ */
+FLAC__StreamDecoderState FLAC__seekable_stream_encoder_get_verify_decoder_state(const FLAC__SeekableStreamEncoder *encoder);
+
+/** Get the "verify" flag.
+ *  This is inherited from FLAC__StreamEncoder; see
+ *  FLAC__stream_encoder_get_verify().
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__seekable_stream_encoder_set_verify().
+ */
+FLAC__bool FLAC__seekable_stream_encoder_get_verify(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Get the "streamable subset" flag.
  *  This is inherited from FLAC__StreamEncoder; see

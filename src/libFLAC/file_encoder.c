@@ -83,20 +83,24 @@ FLAC__FileEncoder *FLAC__file_encoder_new()
 	if(encoder == 0) {
 		return 0;
 	}
+	memset(encoder, 0, sizeof(FLAC__FileEncoder));
+
 	encoder->protected_ = (FLAC__FileEncoderProtected*)malloc(sizeof(FLAC__FileEncoderProtected));
 	if(encoder->protected_ == 0) {
 		free(encoder);
 		return 0;
 	}
+	memset(encoder->protected_, 0, sizeof(FLAC__FileEncoderProtected));
+
 	encoder->private_ = (FLAC__FileEncoderPrivate*)malloc(sizeof(FLAC__FileEncoderPrivate));
 	if(encoder->private_ == 0) {
 		free(encoder->protected_);
 		free(encoder);
 		return 0;
 	}
+	memset(encoder->private_, 0, sizeof(FLAC__FileEncoderPrivate));
 
 	encoder->private_->seekable_stream_encoder = FLAC__seekable_stream_encoder_new();
-
 	if(0 == encoder->private_->seekable_stream_encoder) {
 		free(encoder->private_);
 		free(encoder->protected_);
@@ -193,6 +197,17 @@ void FLAC__file_encoder_finish(FLAC__FileEncoder *encoder)
 	set_defaults_(encoder);
 
 	encoder->protected_->state = FLAC__FILE_ENCODER_UNINITIALIZED;
+}
+
+FLAC__bool FLAC__file_encoder_set_verify(FLAC__FileEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	FLAC__ASSERT(0 != encoder->private_->seekable_stream_encoder);
+	if(encoder->protected_->state != FLAC__FILE_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__seekable_stream_encoder_set_verify(encoder->private_->seekable_stream_encoder, value);
 }
 
 FLAC__bool FLAC__file_encoder_set_streamable_subset(FLAC__FileEncoder *encoder, FLAC__bool value)
@@ -445,6 +460,20 @@ FLAC__StreamEncoderState FLAC__file_encoder_get_stream_encoder_state(const FLAC_
 	return FLAC__seekable_stream_encoder_get_stream_encoder_state(encoder->private_->seekable_stream_encoder);
 }
 
+FLAC__StreamDecoderState FLAC__file_encoder_get_verify_decoder_state(const FLAC__FileEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	return FLAC__seekable_stream_encoder_get_verify_decoder_state(encoder->private_->seekable_stream_encoder);
+}
+
+FLAC__bool FLAC__file_encoder_get_verify(const FLAC__FileEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	return FLAC__seekable_stream_encoder_get_verify(encoder->private_->seekable_stream_encoder);
+}
+
 FLAC__bool FLAC__file_encoder_get_streamable_subset(const FLAC__FileEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -561,7 +590,12 @@ FLAC__bool FLAC__file_encoder_process(FLAC__FileEncoder *encoder, const FLAC__in
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
-	return FLAC__seekable_stream_encoder_process(encoder->private_->seekable_stream_encoder, buffer, samples);
+	if(!FLAC__seekable_stream_encoder_process(encoder->private_->seekable_stream_encoder, buffer, samples)) {
+		encoder->protected_->state = FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR;
+		return false;
+	}
+	else
+		return true;
 }
 
 /* 'samples' is channel-wide samples, e.g. for 1 second at 44100Hz, 'samples' = 44100 regardless of the number of channels */
@@ -569,7 +603,12 @@ FLAC__bool FLAC__file_encoder_process_interleaved(FLAC__FileEncoder *encoder, co
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
-	return FLAC__seekable_stream_encoder_process_interleaved(encoder->private_->seekable_stream_encoder, buffer, samples);
+	if(!FLAC__seekable_stream_encoder_process_interleaved(encoder->private_->seekable_stream_encoder, buffer, samples)) {
+		encoder->protected_->state = FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR;
+		return false;
+	}
+	else
+		return true;
 }
 
 
