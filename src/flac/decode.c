@@ -480,7 +480,7 @@ void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorSt
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	(void)decoder;
-	fprintf(stderr, "*** Got error code %d\n", status);
+	fprintf(stderr, "*** Got error code %d:%s\n", status, FLAC__StreamDecoderErrorStatusString[status]);
 	stream_info->abort_flag = true;
 }
 
