@@ -42,6 +42,7 @@ SRCS_C = \
 	decode.c \
 	encode.c \
 	main.c \
+	string.c \
 	utils.c \
 	vorbiscomment.c
 

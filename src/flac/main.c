@@ -38,6 +38,7 @@
 #include "analyze.h"
 #include "decode.h"
 #include "encode.h"
+#include "string.h" /* for strlcat() and strlcpy() */
 #include "utils.h"
 #include "vorbiscomment.h"
 
@@ -70,6 +71,7 @@ static int decode_file(const char *infilename);
 
 static const char *get_encoded_outfilename(const char *infilename);
 static const char *get_decoded_outfilename(const char *infilename);
+static const char *get_outfilename(const char *infilename, const char *suffix);
 
 static void die(const char *message);
 static char *local_strdup(const char *source);
@@ -488,6 +490,10 @@ int do_it()
 				grabbag__replaygain_get_album(&album_gain, &album_peak);
 				for(i = 0; i < option_values.num_files; i++) {
 					const char *error, *outfilename = get_encoded_outfilename(option_values.filenames[i]);
+					if(0 == outfilename) {
+						fprintf(stderr, "ERROR: filename too long: %s", option_values.filenames[i]);
+						return 1;
+					}
 					if(0 == strcmp(option_values.filenames[i], "-")) {
 						FLAC__ASSERT(0);
 						/* double protection */
@@ -1376,6 +1382,11 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	encode_options_t common_options;
 	const char *outfilename = get_encoded_outfilename(infilename);
 
+	if(0 == outfilename) {
+		fprintf(stderr, "ERROR: filename too long: %s", infilename);
+		return 1;
+	}
+
 	if(0 == strcmp(infilename, "-")) {
 		infilesize = -1;
 		encode_infile = grabbag__file_get_binary_stdin();
@@ -1524,6 +1535,11 @@ int decode_file(const char *infilename)
 	decode_options_t common_options;
 	const char *outfilename = get_decoded_outfilename(infilename);
 
+	if(0 == outfilename) {
+		fprintf(stderr, "ERROR: filename too long: %s", infilename);
+		return 1;
+	}
+
 	if(!option_values.test_only && !option_values.analyze) {
 		if(option_values.force_raw_format && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0))
 			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian and --sign\n");
@@ -1596,35 +1612,29 @@ int decode_file(const char *infilename)
 
 const char *get_encoded_outfilename(const char *infilename)
 {
-	if(0 == option_values.cmdline_forced_outfilename) {
-		static char buffer[4096]; /* @@@ bad MAGIC NUMBER */
-
-		if(0 == strcmp(infilename, "-") || option_values.force_to_stdout) {
-			strcpy(buffer, "-");
-		}
-		else {
-			const char *suffix = (option_values.use_ogg? ".ogg" : ".flac");
-			char *p;
-			strcpy(buffer, option_values.output_prefix? option_values.output_prefix : "");
-			strcat(buffer, infilename);
-			if(0 == (p = strrchr(buffer, '.')))
-				strcat(buffer, suffix);
-			else {
-				if(0 == strcmp(p, suffix)) {
-					strcpy(p, "_new");
-					strcat(p, suffix);
-				}
-				else
-					strcpy(p, suffix);
-			}
-		}
-		return buffer;
-	}
-	else
-		return option_values.cmdline_forced_outfilename;
+	const char *suffix = (option_values.use_ogg? ".ogg" : ".flac");
+	return get_outfilename(infilename, suffix);
 }
 
 const char *get_decoded_outfilename(const char *infilename)
+{
+	const char *suffix;
+	if(option_values.analyze) {
+		suffix = ".ana";
+	}
+	else if(option_values.force_raw_format) {
+		suffix = ".raw";
+	}
+	else if(option_values.force_aiff_format) {
+		suffix = ".aiff";
+	}
+	else {
+		suffix = ".wav";
+	}
+	return get_outfilename(infilename, suffix);
+}
+
+const char *get_outfilename(const char *infilename, const char *suffix)
 {
 	if(0 == option_values.cmdline_forced_outfilename) {
 		static char buffer[4096]; /* @@@ bad MAGIC NUMBER */
@@ -1633,25 +1643,26 @@ const char *get_decoded_outfilename(const char *infilename)
 			strcpy(buffer, "-");
 		}
 		else {
-			static const char *suffixes[] = { ".wav", ".aif", ".raw", ".ana" };
-			const char *suffix = suffixes[
-				option_values.analyze? 3 :
-				option_values.force_raw_format? 2 :
-				option_values.force_aiff_format? 1 :
-				0
-			];
 			char *p;
-			strcpy(buffer, option_values.output_prefix? option_values.output_prefix : "");
-			strcat(buffer, infilename);
-			if(0 == (p = strrchr(buffer, '.')))
-				strcat(buffer, suffix);
+			if (flac__strlcpy(buffer, option_values.output_prefix? option_values.output_prefix : "", sizeof buffer) >= sizeof buffer)
+				return 0;
+			if (flac__strlcat(buffer, infilename, sizeof buffer) >= sizeof buffer)
+				return 0;
+			if(0 == (p = strrchr(buffer, '.'))) {
+				if (flac__strlcat(buffer, suffix, sizeof buffer) >= sizeof buffer)
+					return 0;
+			}
 			else {
 				if(0 == strcmp(p, suffix)) {
-					strcpy(p, "_new");
-					strcat(p, suffix);
+					*p = '\0';
+					if (flac__strlcat(buffer, "_new", sizeof buffer) >= sizeof buffer)
+						return 0;
 				}
-				else
-					strcpy(p, suffix);
+				else {
+					*p = '\0';
+				}
+				if (flac__strlcat(buffer, suffix, sizeof buffer) >= sizeof buffer)
+					return 0;
 			}
 		}
 		return buffer;
