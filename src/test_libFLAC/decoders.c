@@ -105,179 +105,27 @@ static FLAC__bool die_f_(const char *msg, const FLAC__FileDecoder *decoder)
 	return false;
 }
 
-static void *malloc_or_die_(size_t size)
-{
-	void *x = malloc(size);
-	if(0 == x) {
-		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (unsigned)size);
-		exit(1);
-	}
-	return x;
-}
-
-static void *calloc_or_die_(size_t n, size_t size)
-{
-	void *x = calloc(n, size);
-	if(0 == x) {
-		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (unsigned)n * (unsigned)size);
-		exit(1);
-	}
-	return x;
-}
-
 static void init_metadata_blocks_()
 {
-	/*
-		most of the actual numbers and data in the blocks don't matter,
-		we just want to make sure the decoder parses them correctly
-
-		remember, the metadata interface gets tested after the decoders,
-		so we do all the metadata manipulation here without it.
-	*/
-
-	/* min/max_framesize and md5sum don't get written at first, so we have to leave them 0 */
-	streaminfo_.is_last = false;
-	streaminfo_.type = FLAC__METADATA_TYPE_STREAMINFO;
-	streaminfo_.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
-	streaminfo_.data.stream_info.min_blocksize = 576;
-	streaminfo_.data.stream_info.max_blocksize = 576;
-	streaminfo_.data.stream_info.min_framesize = 0;
-	streaminfo_.data.stream_info.max_framesize = 0;
-	streaminfo_.data.stream_info.sample_rate = 44100;
-	streaminfo_.data.stream_info.channels = 1;
-	streaminfo_.data.stream_info.bits_per_sample = 8;
-	streaminfo_.data.stream_info.total_samples = 0;
-	memset(streaminfo_.data.stream_info.md5sum, 0, 16);
-
-	padding_.is_last = false;
-	padding_.type = FLAC__METADATA_TYPE_PADDING;
-	padding_.length = 1234;
-
-	seektable_.is_last = false;
-	seektable_.type = FLAC__METADATA_TYPE_SEEKTABLE;
-	seektable_.data.seek_table.num_points = 2;
-	seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	seektable_.data.seek_table.points = malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint));
-	seektable_.data.seek_table.points[0].sample_number = 0;
-	seektable_.data.seek_table.points[0].stream_offset = 0;
-	seektable_.data.seek_table.points[0].frame_samples = streaminfo_.data.stream_info.min_blocksize;
-	seektable_.data.seek_table.points[1].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
-	seektable_.data.seek_table.points[1].stream_offset = 1000;
-	seektable_.data.seek_table.points[1].frame_samples = streaminfo_.data.stream_info.min_blocksize;
-
-	application1_.is_last = false;
-	application1_.type = FLAC__METADATA_TYPE_APPLICATION;
-	application1_.length = 8;
-	memcpy(application1_.data.application.id, "\xfe\xdc\xba\x98", 4);
-	application1_.data.application.data = malloc_or_die_(4);
-	memcpy(application1_.data.application.data, "\xf0\xe1\xd2\xc3", 4);
-
-	application2_.is_last = false;
-	application2_.type = FLAC__METADATA_TYPE_APPLICATION;
-	application2_.length = 4;
-	memcpy(application2_.data.application.id, "\x76\x54\x32\x10", 4);
-	application2_.data.application.data = 0;
-
-	{
-		const unsigned vendor_string_length = (unsigned)strlen(FLAC__VENDOR_STRING);
-		vorbiscomment_.is_last = true;
-		vorbiscomment_.type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
-		vorbiscomment_.length = (4 + vendor_string_length) + 4 + (4 + 5) + (4 + 0);
-		vorbiscomment_.data.vorbis_comment.vendor_string.length = vendor_string_length;
-		vorbiscomment_.data.vorbis_comment.vendor_string.entry = malloc_or_die_(vendor_string_length);
-		memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, FLAC__VENDOR_STRING, vendor_string_length);
-		vorbiscomment_.data.vorbis_comment.num_comments = 2;
-		vorbiscomment_.data.vorbis_comment.comments = malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
-		vorbiscomment_.data.vorbis_comment.comments[0].length = 5;
-		vorbiscomment_.data.vorbis_comment.comments[0].entry = malloc_or_die_(5);
-		memcpy(vorbiscomment_.data.vorbis_comment.comments[0].entry, "ab=cd", 5);
-		vorbiscomment_.data.vorbis_comment.comments[1].length = 0;
-		vorbiscomment_.data.vorbis_comment.comments[1].entry = 0;
-	}
-
-	cuesheet_.is_last = true;
-	cuesheet_.type = FLAC__METADATA_TYPE_CUESHEET;
-	cuesheet_.length =
-		/* cuesheet guts */
-		(
-			FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN
-		) / 8 +
-		/* 2 tracks */
-		3 * (
-			FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN
-		) / 8 +
-		/* 3 index points */
-		3 * (
-			FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN +
-			FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN
-		) / 8
-	;
-	memset(cuesheet_.data.cue_sheet.media_catalog_number, 0, sizeof(cuesheet_.data.cue_sheet.media_catalog_number));
-	cuesheet_.data.cue_sheet.media_catalog_number[0] = 'j';
-	cuesheet_.data.cue_sheet.media_catalog_number[1] = 'C';
-	cuesheet_.data.cue_sheet.lead_in = 2 * 44100;
-	cuesheet_.data.cue_sheet.is_cd = true;
-	cuesheet_.data.cue_sheet.num_tracks = 3;
-	cuesheet_.data.cue_sheet.tracks = calloc_or_die_(cuesheet_.data.cue_sheet.num_tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track));
-	cuesheet_.data.cue_sheet.tracks[0].offset = 0;
-	cuesheet_.data.cue_sheet.tracks[0].number = 1;
-	memcpy(cuesheet_.data.cue_sheet.tracks[0].isrc, "ACBDE1234567", sizeof(cuesheet_.data.cue_sheet.tracks[0].isrc));
-	cuesheet_.data.cue_sheet.tracks[0].type = 0;
-	cuesheet_.data.cue_sheet.tracks[0].pre_emphasis = 1;
-	cuesheet_.data.cue_sheet.tracks[0].num_indices = 2;
-	cuesheet_.data.cue_sheet.tracks[0].indices = malloc_or_die_(cuesheet_.data.cue_sheet.tracks[0].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
-	cuesheet_.data.cue_sheet.tracks[0].indices[0].offset = 0;
-	cuesheet_.data.cue_sheet.tracks[0].indices[0].number = 0;
-	cuesheet_.data.cue_sheet.tracks[0].indices[1].offset = 123 * 588;
-	cuesheet_.data.cue_sheet.tracks[0].indices[1].number = 1;
-	cuesheet_.data.cue_sheet.tracks[1].offset = 1234 * 588;
-	cuesheet_.data.cue_sheet.tracks[1].number = 2;
-	memcpy(cuesheet_.data.cue_sheet.tracks[1].isrc, "ACBDE7654321", sizeof(cuesheet_.data.cue_sheet.tracks[1].isrc));
-	cuesheet_.data.cue_sheet.tracks[1].type = 1;
-	cuesheet_.data.cue_sheet.tracks[1].pre_emphasis = 0;
-	cuesheet_.data.cue_sheet.tracks[1].num_indices = 1;
-	cuesheet_.data.cue_sheet.tracks[1].indices = malloc_or_die_(cuesheet_.data.cue_sheet.tracks[1].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
-	cuesheet_.data.cue_sheet.tracks[1].indices[0].offset = 0;
-	cuesheet_.data.cue_sheet.tracks[1].indices[0].number = 1;
-	cuesheet_.data.cue_sheet.tracks[2].offset = 12345 * 588;
-	cuesheet_.data.cue_sheet.tracks[2].number = 170;
-	cuesheet_.data.cue_sheet.tracks[2].num_indices = 0;
+	mutils__init_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_);
 }
 
 static void free_metadata_blocks_()
 {
-	free(seektable_.data.seek_table.points);
-	free(application1_.data.application.data);
-	free(vorbiscomment_.data.vorbis_comment.vendor_string.entry);
-	free(vorbiscomment_.data.vorbis_comment.comments[0].entry);
-	free(vorbiscomment_.data.vorbis_comment.comments);
-	free(cuesheet_.data.cue_sheet.tracks[0].indices);
-	free(cuesheet_.data.cue_sheet.tracks[1].indices);
-	free(cuesheet_.data.cue_sheet.tracks);
+	mutils__free_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_);
 }
 
 static FLAC__bool generate_file_()
 {
 	printf("\n\ngenerating FLAC file for decoder tests...\n");
 
-	expected_metadata_sequence_[0] = &padding_;
-	expected_metadata_sequence_[1] = &seektable_;
-	expected_metadata_sequence_[2] = &application1_;
-	expected_metadata_sequence_[3] = &application2_;
-	expected_metadata_sequence_[4] = &vorbiscomment_;
-	expected_metadata_sequence_[5] = &cuesheet_;
-	num_expected_ = 6;
+	num_expected_ = 0;
+	expected_metadata_sequence_[num_expected_++] = &padding_;
+	expected_metadata_sequence_[num_expected_++] = &seektable_;
+	expected_metadata_sequence_[num_expected_++] = &application1_;
+	expected_metadata_sequence_[num_expected_++] = &application2_;
+	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
+	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 
 	if(!file_utils__generate_flacfile(flacfilename_, &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
 		return die_("creating the encoded file");
@@ -365,7 +213,7 @@ static void stream_decoder_metadata_callback_(const FLAC__StreamDecoder *decoder
 		dcd->error_occurred = true;
 	}
 	else {
-		if(!compare_block_(expected_metadata_sequence_[dcd->current_metadata_number], metadata)) {
+		if(!mutils__compare_block(expected_metadata_sequence_[dcd->current_metadata_number], metadata)) {
 			(void)die_("metadata block mismatch");
 			dcd->error_occurred = true;
 		}
