@@ -3,6 +3,66 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
+Project: "all"=.\all.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name flac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name metaflac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name in_flac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name flac_mac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name flac_ren
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name getopt
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libFLAC
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libFLAC++
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC++
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name plugin_common
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name utf8
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libFLAC
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libFLAC++
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libOggFLAC
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libOggFLAC++
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "flac"=.\src\flac\flac.dsp - Package Owner=<4>
 
 Package=<5>
@@ -141,6 +201,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "metaflac"=.\src\metaflac\metaflac.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "plugin_common"=.\src\plugin_common\plugin_common.dsp - Package Owner=<4>
 
 Package=<5>
@@ -164,6 +236,66 @@ Package=<5>
 
 Package=<4>
 {{{
+}}}
+
+###############################################################################
+
+Project: "test_libFLAC"=.\src\test_libFLAC\test_libFLAC.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libFLAC
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_libFLAC++"=.\src\test_libFLAC++\test_libFLAC++.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libFLAC++
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_libOggFLAC"=.\src\test_libOggFLAC\test_libOggFLAC.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_libOggFLAC++"=.\src\test_libOggFLAC++\test_libOggFLAC++.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC++
+    End Project Dependency
 }}}
 
 ###############################################################################
