@@ -35,6 +35,7 @@ static int decode_file(const char *infilename, const char *forced_outfilename);
 bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
 bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
 bool force_to_stdout = false, delete_input = false;
+const char *cmdline_forced_outfilename = 0;
 analysis_options aopts = { false, false };
 unsigned padding = 0;
 unsigned max_lpc_order = 8;
@@ -113,6 +114,8 @@ int main(int argc, char *argv[])
 			loose_mid_side = do_mid_side = true;
 		else if(0 == strcmp(argv[i], "-M-"))
 			loose_mid_side = do_mid_side = false;
+		else if(0 == strcmp(argv[i], "-o"))
+			cmdline_forced_outfilename = argv[++i];
 		else if(0 == strcmp(argv[i], "-p"))
 			do_qlp_coeff_prec_search = true;
 		else if(0 == strcmp(argv[i], "-p-"))
@@ -338,11 +341,12 @@ int main(int argc, char *argv[])
 		bool first = true;
 		int save_format;
 
-		if(i == argc)
+		if(i == argc) {
 			retval = decode_file("-", 0);
-		else if(i + 2 == argc && 0 == strcmp(argv[i], "-"))
-			retval = decode_file("-", argv[i+1]);
+		}
 		else {
+			if(i + 1 != argc)
+				cmdline_forced_outfilename = 0;
 			for(retval = 0; i < argc && retval == 0; i++) {
 				if(0 == strcmp(argv[i], "-") && !first)
 					continue;
@@ -357,11 +361,12 @@ int main(int argc, char *argv[])
 		bool first = true;
 		int save_format;
 
-		if(i == argc)
+		if(i == argc) {
 			retval = encode_file("-", 0);
-		else if(i + 2 == argc && 0 == strcmp(argv[i], "-"))
-			retval = encode_file("-", argv[i+1]);
+		}
 		else {
+			if(i + 1 != argc)
+				cmdline_forced_outfilename = 0;
 			for(retval = 0; i < argc && retval == 0; i++) {
 				if(0 == strcmp(argv[i], "-") && !first)
 					continue;
@@ -415,10 +420,9 @@ int usage(const char *message, ...)
 	fprintf(stderr, "For decoding, the reverse is true\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "A single 'infile' may be - for stdin.  No 'infile' implies stdin.  Use of\n");
-	fprintf(stderr, "stdin implies -c (write to stdout).  However, flac allows the special\n");
-	fprintf(stderr, "encoding/decoding forms:\n");
-	fprintf(stderr, "   flac [options] - outfilename   or  flac -d [options] - outfilename\n");
-	fprintf(stderr, "which is better than:\n");
+	fprintf(stderr, "stdin implies -c (write to stdout).  Normally you should use:\n");
+	fprintf(stderr, "   flac [options] -o outfilename  or  flac -d [options] -o outfilename\n");
+	fprintf(stderr, "instead of:\n");
 	fprintf(stderr, "   flac [options] > outfilename   or  flac -d [options] > outfilename\n");
 	fprintf(stderr, "since the former allows flac to seek backwards to write the STREAMINFO or\n");
 	fprintf(stderr, "RIFF WAVE header contents when necessary.\n");
@@ -435,8 +439,10 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -a : analyze (same as -d except an analysis file is written)\n");
 	fprintf(stderr, "  -c : write output to stdout\n");
 	fprintf(stderr, "  -s : silent (do not write runtime encode/decode statistics)\n");
-	fprintf(stderr, "  --skip samples : can be used both for encoding and decoding\n");
+	fprintf(stderr, "  -o filename : force the output file name (usually flac just changes the\n");
+	fprintf(stderr, "                extension)\n");
 	fprintf(stderr, "  --delete-input-file : deletes the input file after a successful encode/decode\n");
+	fprintf(stderr, "  --skip samples : can be used both for encoding and decoding\n");
 	fprintf(stderr, "analyze options:\n");
 	fprintf(stderr, "  --a-rtext : include residual signal in text output\n");
 	fprintf(stderr, "  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
@@ -565,6 +571,8 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 	}
 	if(0 == forced_outfilename)
 		forced_outfilename = outfilename;
+	if(0 != cmdline_forced_outfilename)
+		forced_outfilename = cmdline_forced_outfilename;
 
 	if(format_is_wave)
 		retval = flac__encode_wav(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
@@ -616,6 +624,8 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	}
 	if(0 == forced_outfilename)
 		forced_outfilename = outfilename;
+	if(0 != cmdline_forced_outfilename)
+		forced_outfilename = cmdline_forced_outfilename;
 
 	if(format_is_wave)
 		retval = flac__decode_wav(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip);
