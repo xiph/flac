@@ -52,7 +52,7 @@ extern FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC_
 extern FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
 
 /* from operations_shorthand_cuesheet.c */
-extern FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool cued_seekpoints);
+extern FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
 
 
 FLAC__bool do_operations(const CommandLineOptions *options)
@@ -272,7 +272,12 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 	}
 
 	for(i = 0; i < options->ops.num_operations && ok; i++) {
-		ok &= do_shorthand_operation(filename, options->prefix_with_filename, chain, &options->ops.operations[i], &needs_write, options->utf8_convert);
+		/*
+		 * Do OP__ADD_SEEKPOINT last to avoid decoding twice if both
+		 * --add-seekpoint and --import-cuesheet-from are used.
+		 */
+		if(options->ops.operations[i].type != OP__ADD_SEEKPOINT)
+			ok &= do_shorthand_operation(filename, options->prefix_with_filename, chain, &options->ops.operations[i], &needs_write, options->utf8_convert);
 
 		/* The following seems counterintuitive but the meaning
 		 * of 'use_padding' is 'try to keep the overall metadata
@@ -283,6 +288,15 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 		 */
 		if(options->ops.operations[i].type == OP__ADD_PADDING)
 			use_padding = false;
+	}
+
+	/*
+	 * Do OP__ADD_SEEKPOINT last to avoid decoding twice if both
+	 * --add-seekpoint and --import-cuesheet-from are used.
+	 */
+	for(i = 0; i < options->ops.num_operations && ok; i++) {
+		if(options->ops.operations[i].type == OP__ADD_SEEKPOINT)
+			ok &= do_shorthand_operation(filename, options->prefix_with_filename, chain, &options->ops.operations[i], &needs_write, options->utf8_convert);
 	}
 
 	if(ok && needs_write) {
@@ -335,7 +349,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 			break;
 		case OP__IMPORT_CUESHEET_FROM:
 		case OP__EXPORT_CUESHEET_TO:
-			ok = do_shorthand_operation__cuesheet(filename, chain, operation, needs_write, /*@@@@cued_seekpoints=*/true);
+			ok = do_shorthand_operation__cuesheet(filename, chain, operation, needs_write);
 			break;
 		case OP__ADD_SEEKPOINT:
 			ok = do_shorthand_operation__add_seekpoints(filename, chain, operation->argument.add_seekpoint.specification, needs_write);
@@ -511,7 +525,7 @@ FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMe
 
 void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool raw, FLAC__bool hexdump_application)
 {
-	unsigned i;
+	unsigned i, j;
 
 /*@@@ yuck, should do this with a varargs function or something: */
 #define PPR if(filename)printf("%s:",filename);
@@ -575,7 +589,33 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			break;
 		case FLAC__METADATA_TYPE_CUESHEET:
 			PPR; printf("  media catalog number: %s\n", block->data.cue_sheet.media_catalog_number);
-			//@@@@ finish
+			PPR; printf("  lead-in: %llu\n", block->data.cue_sheet.lead_in);
+			PPR; printf("  number of tracks: %u\n", block->data.cue_sheet.num_tracks);
+			for(i = 0; i < block->data.cue_sheet.num_tracks; i++) {
+				const FLAC__StreamMetadata_CueSheet_Track *track = block->data.cue_sheet.tracks+i;
+				const FLAC__bool is_last = (i == block->data.cue_sheet.num_tracks-1);
+				const FLAC__bool is_leadout = is_last && track->num_indices == 0;
+				PPR; printf("    track[%u]\n", i);
+				PPR; printf("      offset: %llu\n", track->offset);
+				if(is_last) {
+					PPR; printf("      number: %u (%s)\n", (unsigned)track->number, is_leadout? "LEAD-OUT" : "INVALID");
+				}
+				else {
+					PPR; printf("      number: %u\n", (unsigned)track->number);
+				}
+				if(!is_leadout) {
+					PPR; printf("      ISRC: %s\n", track->isrc);
+					PPR; printf("      type: %s\n", track->type == 1? "DATA" : "AUDIO");
+					PPR; printf("      pre-emphasis: %s\n", track->pre_emphasis? "true" : "false");
+					PPR; printf("      number of index points: %u\n", track->num_indices);
+					for(j = 0; j < track->num_indices; j++) {
+						const FLAC__StreamMetadata_CueSheet_Index *index = track->indices+j;
+						PPR; printf("        index[%u]\n", j);
+						PPR; printf("          offset: %llu\n", index->offset);
+						PPR; printf("          number: %u\n", (unsigned)index->number);
+					}
+				}
+			}
 			break;
 		default:
 			PPR; printf("SKIPPING block of unknown type\n");

@@ -61,6 +61,7 @@ FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Me
 			;
 		if(!FLAC__metadata_iterator_insert_block_after(iterator, block)) {
 			fprintf(stderr, "%s: ERROR: adding new SEEKTABLE block to metadata, status =\"%s\"\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+			FLAC__metadata_object_delete(block);
 			return false;
 		}
 		/* iterator is left pointing to new block */

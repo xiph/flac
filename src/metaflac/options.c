@@ -36,6 +36,7 @@ struct share__option long_options_[] = {
 	{ "no-filename", 0, 0, 0 },
 	{ "no-utf8-convert", 0, 0, 0 },
 	{ "dont-use-padding", 0, 0, 0 },
+	{ "no-cued-seekpoints", 0, 0, 0 },
 	/* shorthand operations */
 	{ "show-md5sum", 0, 0, 0 },
 	{ "show-min-blocksize", 0, 0, 0 },
@@ -118,6 +119,7 @@ void init_options(CommandLineOptions *options)
 
 	options->utf8_convert = true;
 	options->use_padding = true;
+	options->cued_seekpoints = true;
 	options->show_long_help = false;
 	options->show_version = false;
 	options->application_data_format_is_hexdump = false;
@@ -190,7 +192,11 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 		}
 	}
 
-	//@@@@ check for only one FLAC file used with --import-cuesheet-from/--export-cuesheet-to
+	/* check for only one FLAC file used with --import-cuesheet-from/--export-cuesheet-to */
+	if((0 != find_shorthand_operation(options, OP__IMPORT_CUESHEET_FROM) || 0 != find_shorthand_operation(options, OP__EXPORT_CUESHEET_TO)) && options->num_files > 1) {
+		fprintf(stderr, "ERROR: you may only specify one FLAC file when using '--import-cuesheet-from' or '--export-cuesheet-to'\n");
+		had_error = true;
+	}
 
 	if(options->args.checks.has_block_type && options->args.checks.has_except_block_type) {
 		fprintf(stderr, "ERROR: you may not specify both '--block-type' and '--except-block-type'\n");
@@ -199,6 +205,21 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 
 	if(had_error)
 		short_usage(0);
+
+	/*
+	 * We need to create an OP__ADD_SEEKPOINT operation if there is
+	 * not one already,  and --import-cuesheet-from was specified but
+	 * --no-cued-seekpoints was not:
+	 */
+	if(options->cued_seekpoints) {
+		Operation *op = find_shorthand_operation(options, OP__IMPORT_CUESHEET_FROM);
+		if(0 != op) {
+			Operation *op2 = find_shorthand_operation(options, OP__ADD_SEEKPOINT);
+			if(0 == op2)
+				op2 = append_shorthand_operation(options, OP__ADD_SEEKPOINT);
+			op->argument.import_cuesheet_from.add_seekpoint_link = &(op2->argument.add_seekpoint);
+		}
+	}
 
 	return !had_error;
 }
@@ -230,10 +251,13 @@ void free_options(CommandLineOptions *options)
 				break;
 			case OP__IMPORT_VC_FROM:
 			case OP__EXPORT_VC_TO:
-			case OP__IMPORT_CUESHEET_FROM:
 			case OP__EXPORT_CUESHEET_TO:
 				if(0 != op->argument.filename.value)
 					free(op->argument.filename.value);
+				break;
+			case OP__IMPORT_CUESHEET_FROM:
+				if(0 != op->argument.import_cuesheet_from.filename)
+					free(op->argument.import_cuesheet_from.filename);
 				break;
 			case OP__ADD_SEEKPOINT:
 				if(0 != op->argument.add_seekpoint.specification)
@@ -299,6 +323,9 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	}
 	else if(0 == strcmp(opt, "dont-use-padding")) {
 		options->use_padding = false;
+	}
+	else if(0 == strcmp(opt, "no-cued-seekpoints")) {
+		options->cued_seekpoints = false;
 	}
 	else if(0 == strcmp(opt, "show-md5sum")) {
 		(void) append_shorthand_operation(options, OP__SHOW_MD5SUM);
@@ -472,9 +499,13 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		}
 	}
 	else if(0 == strcmp(opt, "import-cuesheet-from")) {
+		if(0 != find_shorthand_operation(options, OP__IMPORT_CUESHEET_FROM)) {
+			fprintf(stderr, "ERROR (--%s): may be specified only once\n", opt);
+			ok = false;
+		}
 		op = append_shorthand_operation(options, OP__IMPORT_CUESHEET_FROM);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_filename(option_argument, &(op->argument.filename.value))) {
+		if(!parse_filename(option_argument, &(op->argument.import_cuesheet_from.filename))) {
 			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
 			ok = false;
 		}
@@ -925,6 +956,9 @@ FLAC__bool parse_block_type(const char *in, Argument_BlockType *out)
 		}
 		else if(0 == strcmp(q, "VORBIS_COMMENT")) {
 			out->entries[entry++].type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
+		}
+		else if(0 == strcmp(q, "CUESHEET")) {
+			out->entries[entry++].type = FLAC__METADATA_TYPE_CUESHEET;
 		}
 		else {
 			free(s);

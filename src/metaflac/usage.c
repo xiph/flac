@@ -136,9 +136,9 @@ int long_usage(const char *message, ...)
 	fprintf(out, "                      Each line will be of the form NAME=VALUE.  Specify\n");
 	fprintf(out, "                      --no-utf8-convert if necessary.\n");
 	fprintf(out, "--import-cuesheet-from=file  Import a cuesheet from a file.  Only one FLAC\n");
-	fprintf(out, "                      file may be specified.  Seekpoints for all indices in\n");
-	fprintf(out, "                      the cuesheet will be added unless --no-cued-seekpoints\n");
-	fprintf(out, "                      is specified.\n");
+	fprintf(out, "                      file may be specified.  A seekpoint will be added for\n");
+	fprintf(out, "                      each index point in the cuesheet to the SEEKTABLE unless\n");
+	fprintf(out, "                      --no-cued-seekpoints is specified.\n");
 	fprintf(out, "--export-cuesheet-to=file  Export CUESHEET block to a cuesheet file, suitable\n");
 	fprintf(out, "                      for use by CD authoring software.  Use '-' for stdin.\n");
 	fprintf(out, "                      Only one FLAC file may be specified on the command line.\n");

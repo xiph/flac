@@ -136,6 +136,11 @@ typedef struct {
 } Argument_AddSeekpoint;
 
 typedef struct {
+	char *filename;
+	Argument_AddSeekpoint *add_seekpoint_link;
+} Argument_ImportCuesheetFrom;
+
+typedef struct {
 	unsigned length;
 } Argument_AddPadding;
 
@@ -148,6 +153,7 @@ typedef struct {
 		Argument_VcFieldName vc_field_name;
 		Argument_VcField vc_field;
 		Argument_Filename filename;
+		Argument_ImportCuesheetFrom import_cuesheet_from;
 		Argument_AddSeekpoint add_seekpoint;
 		Argument_AddPadding add_padding;
 	} argument;
@@ -168,6 +174,7 @@ typedef struct {
 	FLAC__bool prefix_with_filename;
 	FLAC__bool utf8_convert;
 	FLAC__bool use_padding;
+	FLAC__bool cued_seekpoints;
 	FLAC__bool show_long_help;
 	FLAC__bool show_version;
 	FLAC__bool application_data_format_is_hexdump;
