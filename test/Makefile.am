@@ -21,6 +21,8 @@ else
 TESTS_ENVIRONMENT = FLAC__EXHAUSTIVE_TESTS=no
 endif
 
+SUBDIRS = cuesheets
+
 if FLaC__HAS_OGG
 OGG_TESTS = \
 	./test_libOggFLAC.sh \
@@ -32,16 +34,19 @@ TESTS = \
 	./test_libFLAC++.sh \
 	$(OGG_TESTS) \
 	./test_metaflac.sh \
+	./test_grabbag.sh \
 	./test_streams.sh \
 	./test_bins.sh
 
 EXTRA_DIST = \
 	Makefile.lite \
+	cuesheet.ok \
 	test_libFLAC.sh \
 	test_libFLAC++.sh \
 	test_libOggFLAC.sh \
 	test_libOggFLAC++.sh \
 	test_metaflac.sh \
+	test_grabbag.sh \
 	test_streams.sh \
 	test_bins.sh
 
@@ -54,4 +59,5 @@ CLEANFILES = \
 	$(wildcard ../../test_files/bins/*.raw) \
 	$(wildcard ../../test_files/bins/*.flac) \
 	$(wildcard ../../test_files/bins/*.cmp) \
+	$(wildcard *.diff)
 	$(wildcard *.log)

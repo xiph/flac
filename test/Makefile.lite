@@ -27,6 +27,7 @@ all: clean
 	FLAC__EXHAUSTIVE_TESTS=yes ./test_libOggFLAC.sh
 	FLAC__EXHAUSTIVE_TESTS=yes ./test_libOggFLAC++.sh
 	FLAC__EXHAUSTIVE_TESTS=yes ./test_metaflac.sh
+	FLAC__EXHAUSTIVE_TESTS=yes ./test_grabbag.sh
 	FLAC__EXHAUSTIVE_TESTS=yes ./test_streams.sh
 	FLAC__EXHAUSTIVE_TESTS=yes ./test_bins.sh
 
@@ -35,4 +36,4 @@ debug: all
 release: all
 
 clean:
-	rm -f *.raw *.flac *.ogg *.cmp *.wav ../../test_files/bins/*.raw ../../test_files/bins/*.flac ../../test_files/bins/*.cmp *.log core
+	rm -f *.raw *.flac *.ogg *.cmp *.wav ../../test_files/bins/*.raw ../../test_files/bins/*.flac ../../test_files/bins/*.cmp *.diff *.log core
