@@ -54,6 +54,12 @@ static const char *verify_code_string[] = {
 	"FLAC__VERIFY_FAILED_IN_METADATA"
 };
 
+typedef enum {
+	ENCODER_IN_MAGIC = 0,
+	ENCODER_IN_METADATA = 1,
+	ENCODER_IN_AUDIO = 2
+} EncodeState;
+
 typedef struct {
 	FLAC__int32 *original[FLAC__MAX_CHANNELS];
 	unsigned size; /* of each original[] in samples */
@@ -61,7 +67,8 @@ typedef struct {
 	const FLAC__byte *encoded_signal;
 	unsigned encoded_signal_capacity;
 	unsigned encoded_bytes;
-	FLAC__bool into_frames;
+	EncodeState encode_state;
+	FLAC__bool needs_magic_hack;
 	verify_code result;
 	FLAC__StreamDecoder *decoder;
 } verify_fifo_struct;
@@ -87,7 +94,7 @@ typedef struct {
 	FLAC__uint64 stream_offset; /* i.e. number of bytes before the first byte of the the first frame's header */
 	unsigned current_frame;
 	verify_fifo_struct verify_fifo;
-	FLAC__StreamMetadata_SeekTable seek_table;
+	FLAC__StreamMetadata *seek_table;
 	unsigned first_seek_point_to_check;
 #ifdef FLAC__HAS_OGG
 	FLAC__bool use_ogg;
@@ -108,9 +115,7 @@ static FLAC__int32 *input[FLAC__MAX_CHANNELS];
 /* local routines */
 static FLAC__bool init(encoder_wrapper_struct *encoder_wrapper);
 static FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper);
-static FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, unsigned blocksize, FLAC__StreamMetadata_SeekTable *seek_table);
-static void append_point_to_seek_table(FLAC__StreamMetadata_SeekTable *seek_table, FLAC__uint64 sample, FLAC__uint64 stream_samples, FLAC__uint64 blocksize);
-static int seekpoint_compare(const FLAC__StreamMetadata_SeekPoint *l, const FLAC__StreamMetadata_SeekPoint *r);
+static FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, FLAC__StreamMetadata *seek_table);
 static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
 static void append_to_verify_fifo(encoder_wrapper_struct *encoder_wrapper, const FLAC__int32 * const input[], unsigned channels, unsigned wide_samples);
 static FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
@@ -150,11 +155,16 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 	encoder_wrapper.stream_offset = 0;
 	encoder_wrapper.inbasefilename = flac__file_get_basename(infilename);
 	encoder_wrapper.outfilename = outfilename;
-	encoder_wrapper.seek_table.points = 0;
+	encoder_wrapper.seek_table = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
 	encoder_wrapper.first_seek_point_to_check = 0;
 #ifdef FLAC__HAS_OGG
 	encoder_wrapper.use_ogg = options.common.use_ogg;
 #endif
+
+	if(0 == encoder_wrapper.seek_table) {
+		fprintf(stderr, "%s: ERROR allocating memory for seek table\n", encoder_wrapper.inbasefilename);
+		return 1;
+	}
 
 	(void)infilesize; /* silence compiler warning about unused parameter */
 	(void)lookahead; /* silence compiler warning about unused parameter */
@@ -352,7 +362,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 				if(!init_encoder(options.common, channels, bps, sample_rate, &encoder_wrapper))
 					status= ERROR;
 				else
-					encoder_wrapper.verify_fifo.into_frames = true;
+					encoder_wrapper.verify_fifo.encode_state = ENCODER_IN_AUDIO;
 			}
 
 			/* first do any samples in the reservoir */
@@ -503,8 +513,8 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 		fprintf(stderr, "\n");
 	}
 
-	if(0 != encoder_wrapper.seek_table.points)
-		free(encoder_wrapper.seek_table.points);
+	if(0 != encoder_wrapper.seek_table)
+		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
 		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
 		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
@@ -551,7 +561,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	encoder_wrapper.stream_offset = 0;
 	encoder_wrapper.inbasefilename = flac__file_get_basename(infilename);
 	encoder_wrapper.outfilename = outfilename;
-	encoder_wrapper.seek_table.points = 0;
+	encoder_wrapper.seek_table = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
 	encoder_wrapper.first_seek_point_to_check = 0;
 #ifdef FLAC__HAS_OGG
 	encoder_wrapper.use_ogg = options.common.use_ogg;
@@ -559,6 +569,11 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	(void)infilesize;
 	(void)lookahead;
 	(void)lookahead_length;
+
+	if(0 == encoder_wrapper.seek_table) {
+		fprintf(stderr, "%s: ERROR allocating memory for seek table\n", encoder_wrapper.inbasefilename);
+		return 1;
+	}
 
 	if(0 == strcmp(outfilename, "-")) {
 		encoder_wrapper.fout = file__get_binary_stdout();
@@ -701,7 +716,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			if(!init_encoder(options.common, channels, bps, sample_rate, &encoder_wrapper))
 				goto wav_abort_;
 
-			encoder_wrapper.verify_fifo.into_frames = true;
+			encoder_wrapper.verify_fifo.encode_state = ENCODER_IN_AUDIO;
 
 			/*
 			 * first do any samples in the reservoir
@@ -854,8 +869,8 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 		print_stats(&encoder_wrapper);
 		fprintf(stderr, "\n");
 	}
-	if(0 != encoder_wrapper.seek_table.points)
-		free(encoder_wrapper.seek_table.points);
+	if(0 != encoder_wrapper.seek_table)
+		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
 		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
 		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
@@ -882,8 +897,8 @@ wav_abort_:
 			ogg_stream_clear(&encoder_wrapper.ogg.os);
 #endif
 	}
-	if(0 != encoder_wrapper.seek_table.points)
-		free(encoder_wrapper.seek_table.points);
+	if(0 != encoder_wrapper.seek_table)
+		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
 		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
 		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
@@ -920,11 +935,16 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	encoder_wrapper.stream_offset = 0;
 	encoder_wrapper.inbasefilename = flac__file_get_basename(infilename);
 	encoder_wrapper.outfilename = outfilename;
-	encoder_wrapper.seek_table.points = 0;
+	encoder_wrapper.seek_table = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
 	encoder_wrapper.first_seek_point_to_check = 0;
 #ifdef FLAC__HAS_OGG
 	encoder_wrapper.use_ogg = options.common.use_ogg;
 #endif
+
+	if(0 == encoder_wrapper.seek_table) {
+		fprintf(stderr, "%s: ERROR allocating memory for seek table\n", encoder_wrapper.inbasefilename);
+		return 1;
+	}
 
 	if(0 == strcmp(outfilename, "-")) {
 		encoder_wrapper.fout = file__get_binary_stdout();
@@ -993,7 +1013,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	if(!init_encoder(options.common, options.channels, options.bps, options.sample_rate, &encoder_wrapper))
 		goto raw_abort_;
 
-	encoder_wrapper.verify_fifo.into_frames = true;
+	encoder_wrapper.verify_fifo.encode_state = ENCODER_IN_AUDIO;
 
 	/*
 	 * first do any samples in the reservoir
@@ -1111,8 +1131,8 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		print_stats(&encoder_wrapper);
 		fprintf(stderr, "\n");
 	}
-	if(0 != encoder_wrapper.seek_table.points)
-		free(encoder_wrapper.seek_table.points);
+	if(0 != encoder_wrapper.seek_table)
+		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
 		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
 		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
@@ -1139,8 +1159,8 @@ raw_abort_:
 			ogg_stream_clear(&encoder_wrapper.ogg.os);
 #endif
 	}
-	if(0 != encoder_wrapper.seek_table.points)
-		free(encoder_wrapper.seek_table.points);
+	if(0 != encoder_wrapper.seek_table)
+		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
 		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
 		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
@@ -1187,7 +1207,7 @@ FLAC__bool init(encoder_wrapper_struct *encoder_wrapper)
 FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper)
 {
 	unsigned i, num_metadata;
-	FLAC__StreamMetadata seek_table, padding;
+	FLAC__StreamMetadata padding;
 	FLAC__StreamMetadata *metadata[2];
 
 	if(channels != 2)
@@ -1203,7 +1223,7 @@ FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bp
 			}
 		}
 		encoder_wrapper->verify_fifo.tail = 0;
-		encoder_wrapper->verify_fifo.into_frames = false;
+		encoder_wrapper->verify_fifo.encode_state = ENCODER_IN_MAGIC;
 		encoder_wrapper->verify_fifo.result = FLAC__VERIFY_OK;
 
 		/* set up a stream decoder for verification */
@@ -1223,18 +1243,15 @@ FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bp
 		}
 	}
 
-	if(!convert_to_seek_table(options.requested_seek_points, options.num_requested_seek_points, encoder_wrapper->total_samples_to_encode, options.blocksize, &encoder_wrapper->seek_table)) {
-		fprintf(stderr, "%s: ERROR allocating seek table\n", encoder_wrapper->inbasefilename);
+	if(!convert_to_seek_table(options.requested_seek_points, options.num_requested_seek_points, encoder_wrapper->total_samples_to_encode, encoder_wrapper->seek_table)) {
+		fprintf(stderr, "%s: ERROR allocating memory for seek table\n", encoder_wrapper->inbasefilename);
 		return false;
 	}
 
 	num_metadata = 0;
-	if(encoder_wrapper->seek_table.num_points > 0) {
-		seek_table.is_last = false; /* the encoder will set this for us */
-		seek_table.type = FLAC__METADATA_TYPE_SEEKTABLE;
-		seek_table.length = encoder_wrapper->seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-		seek_table.data.seek_table = encoder_wrapper->seek_table;
-		metadata[num_metadata++] = &seek_table;
+	if(encoder_wrapper->seek_table->data.seek_table.num_points > 0) {
+		encoder_wrapper->seek_table->is_last = false; /* the encoder will set this for us */
+		metadata[num_metadata++] = encoder_wrapper->seek_table;
 	}
 	if(options.padding > 0) {
 		padding.is_last = false; /* the encoder will set this for us */
@@ -1275,13 +1292,10 @@ FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bp
 	return true;
 }
 
-FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, unsigned blocksize, FLAC__StreamMetadata_SeekTable *seek_table)
+FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, FLAC__StreamMetadata *seek_table)
 {
-	unsigned i, j, real_points, placeholders;
+	unsigned i, real_points, placeholders;
 	char *pt = requested_seek_points, *q;
-	FLAC__bool first;
-
-	seek_table->num_points = 0;
 
 	if(num_requested_seek_points == 0)
 		return true;
@@ -1314,80 +1328,34 @@ FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_
 	}
 	pt = requested_seek_points;
 
-	/* make some space */
-	if(0 == (seek_table->points = (FLAC__StreamMetadata_SeekPoint*)malloc(sizeof(FLAC__StreamMetadata_SeekPoint) * (real_points+placeholders))))
-		return false;
-
-	/* initialize the seek_table.  we set frame_samples to zero to signify the points have not yet been hit by a frame write yet. */
-	for(i = 0; i < real_points+placeholders; i++) {
-		seek_table->points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
-		seek_table->points[i].stream_offset = 0;
-		seek_table->points[i].frame_samples = 0;
-	}
-
 	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
 		q = strchr(pt, '<');
 		FLAC__ASSERT(0 != q);
 		*q++ = '\0';
 
 		if(0 == strcmp(pt, "X")) { /* -S X */
-			; /* we append placeholders later */
+			if(!FLAC__metadata_object_seektable_template_append_placeholders(seek_table, 1))
+				return false;
 		}
 		else if(pt[strlen(pt)-1] == 'x') { /* -S #x */
 			if(stream_samples > 0) { /* we can only do these if we know the number of samples to encode up front */
-				unsigned j, n;
-				n = (unsigned)atoi(pt);
-				for(j = 0; j < n; j++)
-					append_point_to_seek_table(seek_table, stream_samples * (FLAC__uint64)j / (FLAC__uint64)n, stream_samples, blocksize);
+				if(!FLAC__metadata_object_seektable_template_append_spaced_points(seek_table, atoi(pt), stream_samples))
+					return false;
 			}
 		}
 		else { /* -S # */
-			append_point_to_seek_table(seek_table, (FLAC__uint64)atoi(pt), stream_samples, blocksize);
+			FLAC__uint64 n = (unsigned)atoi(pt);
+			if(!FLAC__metadata_object_seektable_template_append_point(seek_table, n))
+				return false;
 		}
 
 		pt = q;
 	}
 
-	/* sort the seekpoints */
-	qsort(seek_table->points, seek_table->num_points, sizeof(FLAC__StreamMetadata_SeekPoint), (int (*)(const void *, const void *))seekpoint_compare);
-
-	/* uniquify the seekpoints */
-	first = true;
-	for(i = j = 0; i < seek_table->num_points; i++) {
-		if(!first) {
-			if(seek_table->points[i].sample_number == seek_table->points[j-1].sample_number)
-				continue;
-		}
-		first = false;
-		seek_table->points[j++] = seek_table->points[i];
-	}
-	seek_table->num_points = j;
-
-	/* append placeholders */
-	for(i = 0, j = seek_table->num_points; i < placeholders; i++, j++)
-		seek_table->points[j].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
-	seek_table->num_points += placeholders;
+	if(!FLAC__metadata_object_seektable_template_sort(seek_table, /*compact=*/true))
+		return false;
 
 	return true;
-}
-
-void append_point_to_seek_table(FLAC__StreamMetadata_SeekTable *seek_table, FLAC__uint64 sample, FLAC__uint64 stream_samples, FLAC__uint64 blocksize)
-{
-	const FLAC__uint64 target_sample = (sample / blocksize) * blocksize;
-
-	if(stream_samples == 0 || target_sample < stream_samples)
-		seek_table->points[seek_table->num_points++].sample_number = target_sample;
-}
-
-int seekpoint_compare(const FLAC__StreamMetadata_SeekPoint *l, const FLAC__StreamMetadata_SeekPoint *r)
-{
-	/* we don't just 'return l->sample_number - r->sample_number' since the result (FLAC__int64) might overflow an 'int' */
-	if(l->sample_number == r->sample_number)
-		return 0;
-	else if(l->sample_number < r->sample_number)
-		return -1;
-	else
-		return 1;
 }
 
 void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper)
@@ -1479,19 +1447,29 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 	const unsigned mask = (FLAC__stream_encoder_get_do_exhaustive_model_search(encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(encoder))? 0x1f : 0x7f;
 
 	/* mark the current seek point if hit (if stream_offset == 0 that means we're still writing metadata and haven't hit the first frame yet) */
-	if(encoder_wrapper->stream_offset > 0 && encoder_wrapper->seek_table.num_points > 0) {
-		FLAC__uint64 current_sample = (FLAC__uint64)current_frame * (FLAC__uint64)FLAC__stream_encoder_get_blocksize(encoder), test_sample;
+	if(encoder_wrapper->stream_offset > 0 && encoder_wrapper->seek_table->data.seek_table.num_points > 0) {
+		/*@@@ WATCHOUT: assumes the encoder is fixed-blocksize, which will be true indefinitely: */
+		const unsigned blocksize = FLAC__stream_encoder_get_blocksize(encoder);
+		const FLAC__uint64 frame_first_sample = (FLAC__uint64)current_frame * (FLAC__uint64)blocksize;
+		const FLAC__uint64 frame_last_sample = frame_first_sample + (FLAC__uint64)blocksize - 1;
+		FLAC__uint64 test_sample;
 		unsigned i;
-		for(i = encoder_wrapper->first_seek_point_to_check; i < encoder_wrapper->seek_table.num_points; i++) {
-			test_sample = encoder_wrapper->seek_table.points[i].sample_number;
-			if(test_sample > current_sample) {
+		for(i = encoder_wrapper->first_seek_point_to_check; i < encoder_wrapper->seek_table->data.seek_table.num_points; i++) {
+			test_sample = encoder_wrapper->seek_table->data.seek_table.points[i].sample_number;
+			if(test_sample > frame_last_sample) {
 				break;
 			}
-			else if(test_sample == current_sample) {
-				encoder_wrapper->seek_table.points[i].stream_offset = encoder_wrapper->bytes_written - encoder_wrapper->stream_offset;
-				encoder_wrapper->seek_table.points[i].frame_samples = FLAC__stream_encoder_get_blocksize(encoder);
+			else if(test_sample >= frame_first_sample) {
+				encoder_wrapper->seek_table->data.seek_table.points[i].sample_number = frame_first_sample;
+				encoder_wrapper->seek_table->data.seek_table.points[i].stream_offset = encoder_wrapper->bytes_written - encoder_wrapper->stream_offset;
+				encoder_wrapper->seek_table->data.seek_table.points[i].frame_samples = blocksize;
 				encoder_wrapper->first_seek_point_to_check++;
-				break;
+				/* DO NOT: "break;" and here's why:
+				 * The seektable template may contain more than one target
+				 * sample for any given frame; we will keep looping, generating
+				 * duplicate seekpoints for them, and we'll clean it up later,
+				 * just before writing the seektable back to the metadata.
+				 */
 			}
 			else {
 				encoder_wrapper->first_seek_point_to_check++;
@@ -1509,17 +1487,16 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 	if(encoder_wrapper->verify) {
 		encoder_wrapper->verify_fifo.encoded_signal = buffer;
 		encoder_wrapper->verify_fifo.encoded_bytes = bytes;
-		if(encoder_wrapper->verify_fifo.into_frames) {
-			if(!FLAC__stream_decoder_process_one_frame(encoder_wrapper->verify_fifo.decoder)) {
-				encoder_wrapper->verify_fifo.result = FLAC__VERIFY_FAILED_IN_FRAME;
+		if(encoder_wrapper->verify_fifo.encode_state > ENCODER_IN_MAGIC) {
+			if(!FLAC__stream_decoder_process_single(encoder_wrapper->verify_fifo.decoder)) {
+				encoder_wrapper->verify_fifo.result = encoder_wrapper->verify_fifo.encode_state > ENCODER_IN_METADATA? FLAC__VERIFY_FAILED_IN_FRAME : FLAC__VERIFY_FAILED_IN_METADATA;
+
 				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 			}
 		}
 		else {
-			if(!FLAC__stream_decoder_process_metadata(encoder_wrapper->verify_fifo.decoder)) {
-				encoder_wrapper->verify_fifo.result = FLAC__VERIFY_FAILED_IN_METADATA;
-				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-			}
+			encoder_wrapper->verify_fifo.encode_state = ENCODER_IN_METADATA;
+			encoder_wrapper->verify_fifo.needs_magic_hack = true;
 		}
 	}
 
@@ -1646,16 +1623,20 @@ framesize_:
 	if(fwrite(&b, 1, 1, f) != 1) goto seektable_;
 
 seektable_:
-	if(encoder_wrapper->seek_table.num_points > 0) {
+	if(encoder_wrapper->seek_table->data.seek_table.num_points > 0) {
 		long pos;
 		unsigned i;
 
+		(void)FLAC__metadata_object_seektable_template_sort(encoder_wrapper->seek_table, /*compact=*/false);
+
+		FLAC__ASSERT(FLAC__metadata_object_seektable_is_legal(encoder_wrapper->seek_table));
+
 		/* convert any unused seek points to placeholders */
-		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
-			if(encoder_wrapper->seek_table.points[i].sample_number == FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER)
+		for(i = 0; i < encoder_wrapper->seek_table->data.seek_table.num_points; i++) {
+			if(encoder_wrapper->seek_table->data.seek_table.points[i].sample_number == FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER)
 				break;
-			else if(encoder_wrapper->seek_table.points[i].frame_samples == 0)
-				encoder_wrapper->seek_table.points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+			else if(encoder_wrapper->seek_table->data.seek_table.points[i].frame_samples == 0)
+				encoder_wrapper->seek_table->data.seek_table.points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
 		}
 
 		/* the offset of the seek table data 'pos' should be after then stream sync and STREAMINFO block and SEEKTABLE header */
@@ -1663,10 +1644,10 @@ seektable_:
 		pos += metadata->length;
 		pos += (FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
 		fseek(f, pos, SEEK_SET);
-		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
-			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].sample_number)) goto end_;
-			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table.points[i].stream_offset)) goto end_;
-			if(!write_big_endian_uint16(f, (FLAC__uint16)encoder_wrapper->seek_table.points[i].frame_samples)) goto end_;
+		for(i = 0; i < encoder_wrapper->seek_table->data.seek_table.num_points; i++) {
+			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table->data.seek_table.points[i].sample_number)) goto end_;
+			if(!write_big_endian_uint64(f, encoder_wrapper->seek_table->data.seek_table.points[i].stream_offset)) goto end_;
+			if(!write_big_endian_uint16(f, (FLAC__uint16)encoder_wrapper->seek_table->data.seek_table.points[i].frame_samples)) goto end_;
 		}
 	}
 
@@ -1681,14 +1662,22 @@ FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *de
 	const unsigned encoded_bytes = encoder_wrapper->verify_fifo.encoded_bytes;
 	(void)decoder;
 
-	if(encoded_bytes <= *bytes) {
-		*bytes = encoded_bytes;
-		memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
+	if(encoder_wrapper->verify_fifo.needs_magic_hack) {
+		FLAC__ASSERT(*bytes >= FLAC__STREAM_SYNC_LENGTH);
+		*bytes = FLAC__STREAM_SYNC_LENGTH;
+		memcpy(buffer, FLAC__STREAM_SYNC_STRING, *bytes);
+		encoder_wrapper->verify_fifo.needs_magic_hack = false;
 	}
 	else {
-		memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
-		encoder_wrapper->verify_fifo.encoded_signal += *bytes;
-		encoder_wrapper->verify_fifo.encoded_bytes -= *bytes;
+		if(encoded_bytes <= *bytes) {
+			*bytes = encoded_bytes;
+			memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
+		}
+		else {
+			memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
+			encoder_wrapper->verify_fifo.encoded_signal += *bytes;
+			encoder_wrapper->verify_fifo.encoded_bytes -= *bytes;
+		}
 	}
 
 	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
