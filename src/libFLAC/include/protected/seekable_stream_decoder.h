@@ -35,7 +35,7 @@
 #include "FLAC/seekable_stream_decoder.h"
 
 typedef struct FLAC__SeekableStreamDecoderProtected {
-	FLAC__bool md5_checking; /* if true, generate MD5 signature of decoded data and compare against signature in the Encoding metadata block */
+	FLAC__bool md5_checking; /* if true, generate MD5 signature of decoded data and compare against signature in the STREAMINFO metadata block */
 	FLAC__SeekableStreamDecoderState state;
 } FLAC__SeekableStreamDecoderProtected;
 

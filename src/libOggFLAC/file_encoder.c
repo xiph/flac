@@ -794,15 +794,16 @@ FLAC__StreamEncoderWriteStatus write_callback_(const OggFLAC__SeekableStreamEnco
 	if(local__fwrite(buffer, sizeof(FLAC__byte), bytes, file_encoder->private_->file) == bytes) {
 		file_encoder->private_->bytes_written += bytes;
 		file_encoder->private_->samples_written += samples;
-		/* we keep a high watermark on the number of frames written because
-		 * when the encoder goes back to write metadata, 'current_frame'
-		 * will drop back to 0.
+		/* we keep a high watermark on the number of frames written
+		 * because when the encoder goes back to write metadata,
+		 * 'current_frame' will drop back to 0.
 		 */
 		file_encoder->private_->frames_written = max(file_encoder->private_->frames_written, current_frame+1);
-		/*@@@@@@ We would like to add an '&& samples > 0' to the if clause
-		 * here but currently because of the nature of Ogg writing 'samples'
-		 * is always 0 (see ogg_encoder_aspect.c).  The downside is extra
-		 * progress callbacks.
+		/*@@@@@@ We would like to add an '&& samples > 0' to the if
+		 * clause here but currently because of the nature of our Ogg
+		 * writing implementation, 'samples' is always 0 (see
+		 * ogg_encoder_aspect.c).  The downside is extra progress
+		 * callbacks.
 		 */
 		if(0 != file_encoder->private_->progress_callback)
 			file_encoder->private_->progress_callback(file_encoder, file_encoder->private_->bytes_written, file_encoder->private_->samples_written, file_encoder->private_->frames_written, file_encoder->private_->total_frames_estimate, file_encoder->private_->client_data);
