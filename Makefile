@@ -23,27 +23,27 @@ debug   : all
 release : all
 
 libFLAC:
-	(cd src/$@ ; make $(CONFIG))
+	(cd src/$@ ; $(MAKE) $(CONFIG))
 
 flac: libFLAC
-	(cd src/$@ ; make $(CONFIG))
+	(cd src/$@ ; $(MAKE) $(CONFIG))
 
 plugin_xmms: libFLAC
-	(cd src/$@ ; make $(CONFIG))
+	(cd src/$@ ; $(MAKE) $(CONFIG))
 
 test_streams: libFLAC
-	(cd src/$@ ; make $(CONFIG))
+	(cd src/$@ ; $(MAKE) $(CONFIG))
 
 test_unit: libFLAC
-	(cd src/$@ ; make $(CONFIG))
+	(cd src/$@ ; $(MAKE) $(CONFIG))
 
 test: debug
-	(cd test ; make)
+	(cd test ; $(MAKE))
 
 clean:
-	-(cd src/libFLAC ; make clean)
-	-(cd src/flac ; make clean)
-	-(cd src/plugin_xmms ; make clean)
-	-(cd src/test_streams ; make clean)
-	-(cd src/test_unit ; make clean)
-	-(cd test ; make clean)
+	-(cd src/libFLAC ; $(MAKE) clean)
+	-(cd src/flac ; $(MAKE) clean)
+	-(cd src/plugin_xmms ; $(MAKE) clean)
+	-(cd src/test_streams ; $(MAKE) clean)
+	-(cd src/test_unit ; $(MAKE) clean)
+	-(cd test ; $(MAKE) clean)
