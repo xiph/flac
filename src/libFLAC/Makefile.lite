@@ -3,7 +3,7 @@
 #
 
 LIB_NAME  = libFLAC
-INCLUDES  = -I./include -I../../include -DFOLDED_RICE
+INCLUDES  = -I./include -I../../include
 DEBUG_CFLAGS = -DFLAC_OVERFLOW_DETECT
 
 OBJS = \
