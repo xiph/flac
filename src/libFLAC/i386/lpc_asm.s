@@ -57,10 +57,10 @@ cglobal FLAC__lpc_restore_signal_asm_i386_mmx
 	ALIGN 16
 cident FLAC__lpc_compute_autocorrelation_asm_i386:
 
-	; esp + 20 == data[]
-	; esp + 24 == data_len
-	; esp + 28 == lag
 	; esp + 32 == autoc[]
+	; esp + 28 == lag
+	; esp + 24 == data_len
+	; esp + 20 == data[]
 
 	push	ebp
 	push	ebx
@@ -208,10 +208,10 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386:
 	ALIGN 16
 cident FLAC__lpc_compute_autocorrelation_asm_i386_sse:
 
-	; esp + 4 == data[]
-	; esp + 8 == data_len
-	; esp + 12 == lag
 	; esp + 16 == autoc[]
+	; esp + 12 == lag
+	; esp + 8 == data_len
+	; esp + 4 == data[]
 
 	;	for(coeff = 0; coeff < lag; coeff++)
 	;		autoc[coeff] = 0.0;
@@ -293,19 +293,21 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386:
 	push	esi
 	push	edi
 
-	mov	esi, [esp + 20]
-	mov	edi, [esp + 40]
-	mov	eax, [esp + 32]
-	mov	ebx, [esp + 24]
+	mov	esi, [esp + 20]			; esi = data[]
+	mov	edi, [esp + 40]			; edi = residual[]
+	mov	eax, [esp + 32]			; eax = order
+	mov	ebx, [esp + 24]			; ebx = data_len
 
+	test	ebx, ebx
+	jz	.end				; do nothing if data_len == 0
 .begin:
 	cmp	eax, byte 1
 	jg	short .i_1more
 
 	mov	ecx, [esp + 28]
-	mov	edx, [ecx]
-	mov	eax, [esi - 4]
-	mov	cl, [esp + 36]
+	mov	edx, [ecx]			; edx = qlp_coeff[0]
+	mov	eax, [esi - 4]			; eax = data[-1]
+	mov	cl, [esp + 36]			; cl = lp_quantization
 	ALIGN	16
 .i_1_loop_i:
 	imul	eax, edx
@@ -322,7 +324,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386:
 	jmp	.end
 
 .i_1more:
-	cmp	eax, byte 32		; for order <= 32 there is a faster routine
+	cmp	eax, byte 32			; for order <= 32 there is a faster routine
 	jbe	short .i_32
 
 	; This version is here just for completeness, since FLAC__MAX_LPC_ORDER == 32
@@ -361,7 +363,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386:
 	neg	eax
 	lea	edx, [eax + eax * 8 + .jumper_0]
 	inc	edx
-	mov	eax, [esp + 28]
+	mov	eax, [esp + 28]			; eax = qlp_coeff[]
 	xor	ebp, ebp
 	jmp	edx
 
@@ -499,17 +501,19 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx:
 	push	esi
 	push	edi
 
-	mov	esi, [esp + 20]
-	mov	edi, [esp + 40]
-	mov	eax, [esp + 32]
-	mov	ebx, [esp + 24]
+	mov	esi, [esp + 20]			; esi = data[]
+	mov	edi, [esp + 40]			; edi = residual[]
+	mov	eax, [esp + 32]			; eax = order
+	mov	ebx, [esp + 24]			; ebx = data_len
 
+	test	ebx, ebx
+	jz	near .end			; do nothing if data_len == 0
 	dec	ebx
 	test	ebx, ebx
 	jz	near .last_one
 
-	mov	edx, [esp + 28]
-	movd	mm6, [esp + 36]
+	mov	edx, [esp + 28]			; edx = qlp_coeff[]
+	movd	mm6, [esp + 36]			; mm6 = 0:lp_quantization
 	mov	ebp, esp
 
 	and	esp, 0xfffffff8
@@ -649,6 +653,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx:
 	inc	ebx
 	jnz	near FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386.begin
 
+.end:
 	pop	edi
 	pop	esi
 	pop	ebx
@@ -685,10 +690,13 @@ cident FLAC__lpc_restore_signal_asm_i386:
 	push	esi
 	push	edi
 
-	mov	esi, [esp + 20]
-	mov	edi, [esp + 40]
-	mov	eax, [esp + 32]
-	mov	ebx, [esp + 24]
+	mov	esi, [esp + 20]			; esi = residual[]
+	mov	edi, [esp + 40]			; edi = data[]
+	mov	eax, [esp + 32]			; eax = order
+	mov	ebx, [esp + 24]			; ebx = data_len
+
+	test	ebx, ebx
+	jz	.end				; do nothing if data_len == 0
 
 	cmp	eax, byte 1
 	jg	short .x87_1more
@@ -711,7 +719,7 @@ cident FLAC__lpc_restore_signal_asm_i386:
 	jmp	.end
 
 .x87_1more:
-	cmp	eax, byte 32		; for order <= 32 there is a faster routine
+	cmp	eax, byte 32			; for order <= 32 there is a faster routine
 	jbe	short .x87_32
 
 	; This version is here just for completeness, since FLAC__MAX_LPC_ORDER == 32
@@ -891,6 +899,9 @@ cident FLAC__lpc_restore_signal_asm_i386_mmx:
 	mov	eax, [esp + 32]
 	mov	ebx, [esp + 24]
 
+	test	ebx, ebx
+	jz	.end				; do nothing if data_len == 0
+
 	mov	edx, [esp + 28]
 	movd	mm6, [esp + 36]
 	mov	ebp, esp
@@ -994,6 +1005,7 @@ cident FLAC__lpc_restore_signal_asm_i386_mmx:
 	emms
 	mov	esp, ebp
 
+.end:
 	pop	edi
 	pop	esi
 	pop	ebx
