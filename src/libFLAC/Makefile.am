@@ -29,10 +29,21 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 lib_LTLIBRARIES = libFLAC.la
+DEBUGCFLAGS = 
+CPUCFLAGS = 
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
 endif
-CFLAGS = @CFLAGS@ $(DEBUGCFLAGS)
+if FLaC__CPU_PPC
+# The -force_cpusubtype_ALL is needed to insert a ppc64 instruction
+# into cpu.c with an asm().
+if FLaC__SYS_DARWIN
+CPUCFLAGS= -faltivec -force_cpusubtype_ALL
+else
+CPUCFLAGS= -maltivec -mabi=altivec -force_cpusubtype_ALL
+endif
+endif
+CFLAGS = @CFLAGS@ $(DEBUGCFLAGS) $(CPUCFLAGS)
 
 if FLaC__NO_ASM
 else

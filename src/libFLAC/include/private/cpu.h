@@ -57,6 +57,7 @@ typedef struct {
 
 typedef struct {
 	FLAC__bool altivec;
+	FLAC__bool ppc64;
 } FLAC__CPUInfo_PPC;
 
 extern const unsigned FLAC__CPUINFO_IA32_CPUID_CMOV;

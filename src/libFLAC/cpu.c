@@ -30,8 +30,8 @@
  */
 
 #include "private/cpu.h"
-#include<stdlib.h>
-#include<stdio.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -39,9 +39,32 @@
 
 #if defined FLAC__CPU_PPC
 #if !defined FLAC__NO_ASM
-#if defined __APPLE__ && defined __MACH__
+#if defined FLAC__SYS_DARWIN
 #include <sys/sysctl.h>
-#endif /* __APPLE__ && __MACH__ */
+#include <mach/mach.h>
+#include <mach/mach_host.h>
+#include <mach/host_info.h>
+#include <mach/machine.h>
+#ifndef CPU_SUBTYPE_POWERPC_970
+#define CPU_SUBTYPE_POWERPC_970 ((cpu_subtype_t) 100)
+#endif
+#else /* FLAC__SYS_DARWIN */
+#include <signal.h>
+#include <setjmp.h>
+
+static sigjmp_buf jmpbuf;
+static volatile sig_atomic_t canjump = 0;
+
+static void sigill_handler (int sig)
+{
+	if (!canjump) {
+		signal (sig, SIG_DFL);
+		raise (sig);
+	}
+	canjump = 0;
+	siglongjmp (jmpbuf, 1);
+}
+#endif /* FLAC__SYS_DARWIN */
 #endif /* FLAC__NO_ASM */
 #endif /* FLAC__CPU_PPC */
 
@@ -91,7 +114,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #if !defined FLAC__NO_ASM
 	info->use_asm = true;
 #ifdef FLAC__USE_ALTIVEC
-#if defined __APPLE__ && defined __MACH__
+#if defined FLAC__SYS_DARWIN
 	{
 		int selectors[2] = { CTL_HW, HW_VECTORUNIT };
 		int result = 0;
@@ -100,12 +123,51 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 
 		info->data.ppc.altivec = error==0 ? result!=0 : 0;
 	}
-#else /* __APPLE__ && __MACH__ */
-	/* don't know of any other thread-safe way to check */
-	info->data.ppc.altivec = 0;
-#endif /* __APPLE__ && __MACH__ */
+	{
+		host_basic_info_data_t hostInfo;
+		mach_msg_type_number_t infoCount;
+
+		infoCount = HOST_BASIC_INFO_COUNT;
+		host_info(mach_host_self(), HOST_BASIC_INFO, (host_info_t)&hostInfo, &infoCount);
+
+		info->data.ppc.ppc64 = (hostInfo.cpu_type == CPU_TYPE_POWERPC) && (hostInfo.cpu_subtype == CPU_SUBTYPE_POWERPC_970);
+	}
+#else /* FLAC__SYS_DARWIN */
+	{
+		/* no Darwin, do it the brute-force way */
+		/* this is borrowed from MPlayer from the libmpeg2 library */
+		info->data.ppc.altivec = 0;
+		info->data.ppc.ppc64 = 0;
+
+		signal (SIGILL, sigill_handler);
+		if (!sigsetjmp (jmpbuf, 1)) {
+			canjump = 1;
+
+			asm volatile (
+				"mtspr 256, %0\n\t"
+				"vand %%v0, %%v0, %%v0"
+				:
+				: "r" (-1)
+			);
+
+			info->data.ppc.altivec = 1;
+		}
+		canjump = 0;
+		if (!sigsetjmp (jmpbuf, 1)) {
+			int x = 0;
+			canjump = 1;
+
+			/* PPC64 hardware implements the cntlzd instruction */
+			asm volatile ("cntlzd %0, %1" : "=r" (x) : "r" (x) );
+
+			info->data.ppc.ppc64 = 1;
+		}
+		signal (SIGILL, SIG_DFL);
+	}
+#endif /* FLAC__SYS_DARWIN */
 #else /* FLAC__USE_ALTIVEC */
 	info->data.ppc.altivec = 0;
+	info->data.ppc.ppc64 = 0;
 #endif /* FLAC__USE_ALTIVEC */
 #else /* FLAC__NO_ASM */
 	info->use_asm = false;
