@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef flac__string_h
-#define flac__string_h
+#ifndef flac__local_string_utils_h
+#define flac__local_string_utils_h
 
 #include <stdlib.h> /* for size_t */
 

@@ -38,7 +38,7 @@
 #include "analyze.h"
 #include "decode.h"
 #include "encode.h"
-#include "string.h" /* for strlcat() and strlcpy() */
+#include "local_string_utils.h" /* for flac__strlcat() and flac__strlcpy() */
 #include "utils.h"
 #include "vorbiscomment.h"
 

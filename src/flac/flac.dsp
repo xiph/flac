@@ -105,7 +105,7 @@ SOURCE=.\main.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\string.c
+SOURCE=.\local_string_utils.c
 # End Source File
 # Begin Source File
 

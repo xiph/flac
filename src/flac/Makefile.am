@@ -31,7 +31,7 @@ flac_SOURCES = \
 	decode.c \
 	encode.c \
 	main.c \
-	string.c \
+	local_string_utils.c \
 	utils.c \
 	vorbiscomment.c \
 	analyze.h \
