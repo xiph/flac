@@ -142,7 +142,7 @@ if test x$debug = xtrue; then
 else
 	CFLAGS="$CFLAGS -O3 -DNDEBUG"
 	if test x$GCC = xyes; then
-		CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-loops -finline-functions -Winline -DFLAC__INLINE=__inline__"
+		CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-loops -finline-functions -Winline -DFLaC__INLINE=__inline__"
 	fi
 fi
 CFLAGS="$CFLAGS $SAVE_CFLAGS"

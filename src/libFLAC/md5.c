@@ -28,8 +28,8 @@
 
 #include "private/md5.h"
 
-#ifndef FLAC__INLINE
-#define FLAC__INLINE
+#ifndef FLaC__INLINE
+#define FLaC__INLINE
 #endif
 
 static FLAC__bool is_big_endian_host_;
@@ -53,7 +53,7 @@ static FLAC__bool is_big_endian_host_;
  * reflect the addition of 16 longwords of new data.  MD5Update blocks
  * the data and converts bytes into longwords for this routine.
  */
-FLAC__INLINE
+FLaC__INLINE
 void
 MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16])
 {
@@ -140,7 +140,7 @@ MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16])
 
 #endif
 
-FLAC__INLINE
+FLaC__INLINE
 void
 byteSwap(FLAC__uint32 *buf, unsigned words)
 {
