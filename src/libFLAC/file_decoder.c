@@ -72,13 +72,11 @@ typedef struct FLAC__FileDecoderPrivate {
 
 const char *FLAC__FileDecoderStateString[] = {
 	"FLAC__FILE_DECODER_OK",
-	"FLAC__FILE_DECODER_SEEKING",
 	"FLAC__FILE_DECODER_END_OF_FILE",
 	"FLAC__FILE_DECODER_ERROR_OPENING_FILE",
 	"FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR",
 	"FLAC__FILE_DECODER_SEEK_ERROR",
-	"FLAC__FILE_DECODER_STREAM_ERROR",
-	"FLAC__FILE_DECODER_STREAM_DECODER_ERROR",
+	"FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_DECODER_ERROR",
 	"FLAC__FILE_DECODER_ALREADY_INITIALIZED",
 	"FLAC__FILE_DECODER_INVALID_CALLBACK",
 	"FLAC__FILE_DECODER_UNINITIALIZED"
@@ -188,7 +186,7 @@ FLAC__FileDecoderState FLAC__file_decoder_init(FLAC__FileDecoder *decoder)
 	FLAC__seekable_stream_decoder_set_client_data(decoder->private_->seekable_stream_decoder, decoder);
 
 	if(FLAC__seekable_stream_decoder_init(decoder->private_->seekable_stream_decoder) != FLAC__SEEKABLE_STREAM_DECODER_OK)
-		return decoder->protected_->state = FLAC__FILE_DECODER_STREAM_DECODER_ERROR; /*@@@ change this to FLAC__FILE_DECODER_SEEKABLE_STREAM_ERROR in next minor-revision */
+		return decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
 
 	return decoder->protected_->state;
 }
@@ -388,7 +386,7 @@ FLAC__bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
 
 	ret = FLAC__seekable_stream_decoder_process_whole_stream(decoder->private_->seekable_stream_decoder);
 	if(!ret)
-		decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_ERROR;
+		decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -408,7 +406,7 @@ FLAC__bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder)
 
 	ret = FLAC__seekable_stream_decoder_process_metadata(decoder->private_->seekable_stream_decoder);
 	if(!ret)
-		decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_ERROR;
+		decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -428,7 +426,7 @@ FLAC__bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder)
 
 	ret = FLAC__seekable_stream_decoder_process_one_frame(decoder->private_->seekable_stream_decoder);
 	if(!ret)
-		decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_ERROR;
+		decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -448,7 +446,7 @@ FLAC__bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decode
 
 	ret = FLAC__seekable_stream_decoder_process_remaining_frames(decoder->private_->seekable_stream_decoder);
 	if(!ret)
-		decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_ERROR;
+		decoder->protected_->state = FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR;
 
 	return ret;
 }

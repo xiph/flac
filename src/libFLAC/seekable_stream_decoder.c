@@ -75,7 +75,7 @@ const char *FLAC__SeekableStreamDecoderStateString[] = {
 	"FLAC__SEEKABLE_STREAM_DECODER_SEEKING",
 	"FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM",
 	"FLAC__SEEKABLE_STREAM_DECODER_MEMORY_ALLOCATION_ERROR",
-	"FLAC__SEEKABLE_STREAM_DECODER_STREAM_ERROR",
+	"FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR",
 	"FLAC__SEEKABLE_STREAM_DECODER_READ_ERROR",
 	"FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR",
     "FLAC__SEEKABLE_STREAM_DECODER_ALREADY_INITIALIZED",
@@ -209,7 +209,7 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__Seekab
 	FLAC__stream_decoder_set_client_data(decoder->private_->stream_decoder, decoder);
 
 	if(FLAC__stream_decoder_init(decoder->private_->stream_decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
-		return decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_ERROR;
+		return decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 
 	return decoder->protected_->state;
 }
@@ -448,7 +448,7 @@ FLAC__bool FLAC__seekable_stream_decoder_process_whole_stream(FLAC__SeekableStre
 
 	ret = FLAC__stream_decoder_process_whole_stream(decoder->private_->stream_decoder);
 	if(!ret)
-		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_ERROR;
+		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -468,7 +468,7 @@ FLAC__bool FLAC__seekable_stream_decoder_process_metadata(FLAC__SeekableStreamDe
 
 	ret = FLAC__stream_decoder_process_metadata(decoder->private_->stream_decoder);
 	if(!ret)
-		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_ERROR;
+		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -488,7 +488,7 @@ FLAC__bool FLAC__seekable_stream_decoder_process_one_frame(FLAC__SeekableStreamD
 
 	ret = FLAC__stream_decoder_process_one_frame(decoder->private_->stream_decoder);
 	if(!ret)
-		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_ERROR;
+		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -508,7 +508,7 @@ FLAC__bool FLAC__seekable_stream_decoder_process_remaining_frames(FLAC__Seekable
 
 	ret = FLAC__stream_decoder_process_remaining_frames(decoder->private_->stream_decoder);
 	if(!ret)
-		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_ERROR;
+		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 
 	return ret;
 }
@@ -526,7 +526,7 @@ FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecod
 	decoder->protected_->md5_checking = false;
 
 	if(!FLAC__stream_decoder_reset(decoder->private_->stream_decoder)) {
-		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_ERROR;
+		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 		return false;
 	}
 	/* get the file length */
@@ -540,7 +540,7 @@ FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecod
 		return false;
 	}
 	if(!FLAC__stream_decoder_process_metadata(decoder->private_->stream_decoder)) {
-		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_ERROR;
+		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 		return false;
 	}
 	if(sample > decoder->private_->stream_info.total_samples) {
@@ -784,7 +784,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 				return false;
 			}
 			if(!FLAC__stream_decoder_flush(decoder->private_->stream_decoder)) {
-				decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_ERROR;
+				decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 				return false;
 			}
 		}
