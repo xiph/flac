@@ -277,14 +277,16 @@ FLAC_API FLAC__bool FLAC__format_cuesheet_is_legal(const FLAC__StreamMetadata_Cu
 			return false;
 		}
 
-		if(cue_sheet->tracks[i].num_indices == 0) {
-			if(violation) *violation = "cue sheet track must have at least one index point";
-			return false;
-		}
+		if(i < cue_sheet->num_tracks - 1) {
+			if(cue_sheet->tracks[i].num_indices == 0) {
+				if(violation) *violation = "cue sheet track must have at least one index point";
+				return false;
+			}
 
-		if(cue_sheet->tracks[i].indices[0].number > 1) {
-			if(violation) *violation = "cue sheet track's first index number must be 0 or 1";
-			return false;
+			if(cue_sheet->tracks[i].indices[0].number > 1) {
+				if(violation) *violation = "cue sheet track's first index number must be 0 or 1";
+				return false;
+			}
 		}
 
 		for(j = 0; j < cue_sheet->tracks[i].num_indices; j++) {
