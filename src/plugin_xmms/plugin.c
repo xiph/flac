@@ -537,7 +537,7 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 		file_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
 		file_info->channels = metadata->data.stream_info.channels;
 		file_info->sample_rate = metadata->data.stream_info.sample_rate;
-		file_info->length_in_msec = file_info->total_samples * 10 / (file_info->sample_rate / 100);
+		file_info->length_in_msec = (FLAC__uint64)file_info->total_samples * 10 / (file_info->sample_rate / 100);
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 		double gain, peak;
