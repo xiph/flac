@@ -20,14 +20,8 @@
 #ifndef OggFLAC__ALL_H
 #define OggFLAC__ALL_H
 
-#include "assert.h"
 #include "file_decoder.h"
-#include "file_encoder.h"
-#include "format.h"
-#include "metadata.h"
-#include "ordinals.h"
 #include "seekable_stream_decoder.h"
-#include "seekable_stream_encoder.h"
 #include "stream_decoder.h"
 #include "stream_encoder.h"
 
