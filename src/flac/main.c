@@ -40,14 +40,14 @@ static int decode_file(const char *infilename, const char *forced_outfilename);
 
 FLAC__bool verify = false, verbose = true, lax = false, test_only = false, analyze = false, use_ogg = false;
 FLAC__bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_escape_coding = false, do_qlp_coeff_prec_search = false;
-FLAC__bool force_to_stdout = false, delete_input = false, sector_align = false;
+FLAC__bool force_to_stdout = false, force_raw_format = false, delete_input = false, sector_align = false;
 const char *cmdline_forced_outfilename = 0, *output_prefix = 0;
 analysis_options aopts = { false, false };
 unsigned padding = 0;
 unsigned max_lpc_order = 8;
 unsigned qlp_coeff_precision = 0;
 FLAC__uint64 skip = 0;
-int format_is_wave = -1, format_is_big_endian = -1, format_is_unsigned_samples = false;
+int format_is_big_endian = -1, format_is_unsigned_samples = false;
 int format_channels = -1, format_bps = -1, format_sample_rate = -1;
 int blocksize = -1, min_residual_partition_order = -1, max_residual_partition_order = -1, rice_parameter_search_dist = -1;
 char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER */
@@ -183,9 +183,7 @@ int main(int argc, char *argv[])
 		else if(0 == strcmp(argv[i], "-fu"))
 			format_is_unsigned_samples = true;
 		else if(0 == strcmp(argv[i], "-fr"))
-			format_is_wave = false;
-		else if(0 == strcmp(argv[i], "-fw"))
-			format_is_wave = true;
+			force_raw_format = true;
 		else if(0 == strcmp(argv[i], "--a-rgp"))
 			aopts.do_residual_gnuplot = true;
 		else if(0 == strcmp(argv[i], "--a-rgp-"))
@@ -404,7 +402,6 @@ int main(int argc, char *argv[])
 
 	if(mode_decode) {
 		FLAC__bool first = true;
-		int save_format;
 
 		if(i == argc) {
 			retval = decode_file("-", 0);
@@ -415,16 +412,13 @@ int main(int argc, char *argv[])
 			for(retval = 0; i < argc && retval == 0; i++) {
 				if(0 == strcmp(argv[i], "-") && !first)
 					continue;
-				save_format = format_is_wave;
 				retval = decode_file(argv[i], 0);
-				format_is_wave = save_format;
 				first = false;
 			}
 		}
 	}
 	else { /* encode */
 		FLAC__bool first = true;
-		int save_format;
 
 		if(i == argc) {
 			retval = encode_file("-", 0, true);
@@ -435,9 +429,7 @@ int main(int argc, char *argv[])
 			for(retval = 0; i < argc && retval == 0; i++) {
 				if(0 == strcmp(argv[i], "-") && !first)
 					continue;
-				save_format = format_is_wave;
 				retval = encode_file(argv[i], 0, i == (argc-1));
-				format_is_wave = save_format;
 				first = false;
 			}
 		}
@@ -527,11 +519,11 @@ int long_usage(const char *message, ...)
 	fprintf(stderr, "since the former allows flac to seek backwards to write the STREAMINFO or\n");
 	fprintf(stderr, "RIFF WAVE header contents when necessary.\n");
 	fprintf(stderr, "\n");
-	fprintf(stderr, "If the unencoded filename ends with '.wav' or -fw is used, it's assumed to be\n");
-	fprintf(stderr, "RIFF WAVE.  Otherwise, flac will check for the presence of a RIFF header.  If\n");
-	fprintf(stderr, "any infile is raw you must specify the format options {-fb|fl} -fc -fp and -fs,\n");
-	fprintf(stderr, "which will apply to all raw files.  You can force a .wav file to be treated as\n");
-	fprintf(stderr, "a raw file using -fr.\n");
+	fprintf(stderr, "flac checks for the presence of a RIFF WAVE header to decide whether or not\n");
+	fprintf(stderr, "to treat an input file as WAVE format or raw samples.  If any infile is raw\n");
+	fprintf(stderr, "you must specify the format options {-fb|fl} -fc -fp and -fs, which will\n");
+	fprintf(stderr, "apply to all raw files.  You can force WAVE files to be treated as a raw files\n");
+	fprintf(stderr, "using -fr.\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "generic options:\n");
 	fprintf(stderr, "  -d : decode (default behavior is encode)\n");
@@ -609,8 +601,7 @@ int long_usage(const char *message, ...)
 	fprintf(stderr, "  -fp bits_per_sample\n");
 	fprintf(stderr, "  -fs sample_rate : in Hz\n");
 	fprintf(stderr, "  -fu : unsigned samples (default is signed)\n");
-	fprintf(stderr, "  -fr : force to raw format (even if filename ends in .wav)\n");
-	fprintf(stderr, "  -fw : force to RIFF WAVE\n");
+	fprintf(stderr, "  -fr : force input to be treated as raw samples\n");
 
 	return message? 1 : 0;
 }
@@ -622,6 +613,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	char *p;
 	FLAC__byte lookahead[12];
 	unsigned lookahead_length = 0;
+	FLAC__bool treat_as_wave = false;
 	int retval;
 	long infilesize;
 	encode_options_t common_options;
@@ -638,36 +630,36 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 		}
 	}
 
-	if(sector_align && !format_is_wave && infilesize < 0) {
+	if(!force_raw_format) {
+		/* first set format based on name */
+		if(0 == strcasecmp(infilename+(strlen(infilename)-4), ".wav"))
+			treat_as_wave = true;
+		else
+			treat_as_wave = false;
+
+		/* attempt to guess the file type based on the first 12 bytes */
+		if((lookahead_length = fread(lookahead, 1, 12, encode_infile)) < 12) {
+			if(treat_as_wave)
+				fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
+			treat_as_wave = false;
+		}
+		else {
+			if(strncmp(lookahead, "RIFF", 4) || strncmp(lookahead+8, "WAVE", 4)) {
+				if(treat_as_wave)
+					fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
+				treat_as_wave = false;
+			}
+			else
+				treat_as_wave = true;
+		}
+	}
+
+	if(sector_align && !treat_as_wave && infilesize < 0) {
 		fprintf(stderr, "ERROR: can't --sector-align when the input size is unknown\n");
 		return 1;
 	}
 
-	if(format_is_wave < 0) {
-		/* first set format based on name */
-		if(0 == strcasecmp(infilename+(strlen(infilename)-4), ".wav"))
-			format_is_wave = true;
-		else
-			format_is_wave = false;
-
-		/* attempt to guess the file type based on the first 12 bytes */
-		if((lookahead_length = fread(lookahead, 1, 12, encode_infile)) < 12) {
-			if(format_is_wave)
-				fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
-			format_is_wave = false;
-		}
-		else {
-			if(strncmp(lookahead, "RIFF", 4) || strncmp(lookahead+8, "WAVE", 4)) {
-				if(format_is_wave)
-					fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
-				format_is_wave = false;
-			}
-			else
-				format_is_wave = true;
-		}
-	}
-
-	if(!format_is_wave) {
+	if(!treat_as_wave) {
 		if(format_is_big_endian < 0 || format_channels < 0 || format_bps < 0 || format_sample_rate < 0)
 			return long_usage("ERROR: for encoding a raw file you must specify { -fb or -fl }, -fc, -fp, and -fs\n");
 	}
@@ -716,7 +708,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	common_options.requested_seek_points = requested_seek_points;
 	common_options.num_requested_seek_points = num_requested_seek_points;
 
-	if(format_is_wave) {
+	if(treat_as_wave) {
 		wav_encode_options_t options;
 
 		options.common = common_options;
@@ -759,19 +751,14 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	decode_options_t common_options;
 
 	if(!test_only && !analyze) {
-		if(format_is_wave < 0) {
-			format_is_wave = true;
-		}
-		if(!format_is_wave) {
-			if(format_is_big_endian < 0)
-				return long_usage("ERROR: for decoding to a raw file you must specify -fb or -fl\n");
-		}
+		if(force_raw_format && format_is_big_endian < 0)
+			return long_usage("ERROR: for decoding to a raw file you must specify -fb or -fl\n");
 	}
 
 	if(0 == strcmp(infilename, "-") || force_to_stdout)
 		strcpy(outfilename, "-");
 	else {
-		const char *suffix = suffixes[analyze? 2 : format_is_wave? 0 : 1];
+		const char *suffix = suffixes[analyze? 2 : force_raw_format? 1 : 0];
 		strcpy(outfilename, output_prefix? output_prefix : "");
 		strcat(outfilename, infilename);
 		if(0 == (p = strrchr(outfilename, '.')))
@@ -796,7 +783,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 #endif
 	common_options.skip = skip;
 
-	if(format_is_wave) {
+	if(!force_raw_format) {
 		wav_decode_options_t options;
 
 		options.common = common_options;
