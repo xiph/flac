@@ -778,7 +778,7 @@ void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMe
 
 		FLAC__ASSERT(FLAC__format_seektable_is_legal(seekable_stream_encoder->private_->seek_table));
 
-		if(seekable_stream_encoder->private_->seek_callback(seekable_stream_encoder, seekable_stream_encoder->private_->seektable_offset, seekable_stream_encoder->private_->client_data) != FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK) {
+		if(seekable_stream_encoder->private_->seek_callback(seekable_stream_encoder, seekable_stream_encoder->private_->seektable_offset + FLAC__STREAM_METADATA_HEADER_LENGTH, seekable_stream_encoder->private_->client_data) != FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK) {
 			seekable_stream_encoder->protected_->state = FLAC__SEEKABLE_STREAM_ENCODER_SEEK_ERROR;
 			return;
 		}
