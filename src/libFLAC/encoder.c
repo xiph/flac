@@ -23,6 +23,7 @@
 #include <string.h> /* for memcpy() */
 #include "FLAC/encoder.h"
 #include "private/bitbuffer.h"
+#include "private/bitmath.h"
 #include "private/crc.h"
 #include "private/encoder_framing.h"
 #include "private/fixed.h"
@@ -68,6 +69,7 @@ typedef struct FLAC__EncoderPrivate {
 	unsigned current_sample_number;
 	unsigned current_frame_number;
 	struct MD5Context md5context;
+	bool use_slow;                              /* use slow 64-bit versions of some functions */
 	FLAC__EncoderWriteStatus (*write_callback)(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 	void (*metadata_callback)(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
 	void *client_data;
@@ -360,6 +362,11 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	encoder->guts->loose_mid_side_stereo_frame_count = 0;
 	encoder->guts->current_sample_number = 0;
 	encoder->guts->current_frame_number = 0;
+
+	if(encoder->bits_per_sample + FLAC__bitmath_ilog2(encoder->blocksize)+1 > 30)
+		encoder->guts->use_slow = true;
+	else
+		encoder->guts->use_slow = false;
 
 	if(!encoder_resize_buffers_(encoder, encoder->blocksize)) {
 		/* the above function sets the state for us in case of an error */
@@ -868,7 +875,10 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned max_partition_or
 
 	if(!verbatim_only && frame_header->blocksize >= FLAC__MAX_FIXED_ORDER) {
 		/* check for constant subframe */
-		guess_fixed_order = FLAC__fixed_compute_best_predictor(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
+		if(encoder->guts->use_slow)
+			guess_fixed_order = FLAC__fixed_compute_best_predictor_slow(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
+		else
+			guess_fixed_order = FLAC__fixed_compute_best_predictor(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
 		if(fixed_residual_bits_per_sample[1] == 0.0) {
 			/* the above means integer_signal+FLAC__MAX_FIXED_ORDER is constant, now we just have to check the warmup samples */
 			unsigned i, signal_is_constant = true;
