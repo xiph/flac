@@ -146,7 +146,8 @@ FLAC_API const char * const FLAC__MetadataTypeString[] = {
 	"PADDING",
 	"APPLICATION",
 	"SEEKTABLE",
-	"VORBIS_COMMENT"
+	"VORBIS_COMMENT",
+	"CUESHEET"
 };
 
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate)

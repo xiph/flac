@@ -33,7 +33,7 @@ static FLAC__bool add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC
 
 FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitBuffer *bb)
 {
-	unsigned i;
+	unsigned i, j;
 	const unsigned vendor_string_length = (unsigned)strlen(FLAC__VENDOR_STRING);
 
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->is_last, FLAC__STREAM_METADATA_IS_LAST_LEN))
@@ -117,6 +117,44 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 					return false;
 				if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.vorbis_comment.comments[i].entry, metadata->data.vorbis_comment.comments[i].length))
 					return false;
+			}
+			break;
+		case FLAC__METADATA_TYPE_CUESHEET:
+			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN % 8 == 0);
+			if(!FLAC__bitbuffer_write_byte_block(bb, (const FLAC__byte*)metadata->data.cue_sheet.media_catalog_number, FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN/8))
+				return false;
+			if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.cue_sheet.lead_in, FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN))
+				return false;
+			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.cue_sheet.num_tracks, FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN))
+				return false;
+			for(i = 0; i < metadata->data.cue_sheet.num_tracks; i++) {
+				const FLAC__StreamMetadata_CueSheet_Track *track = metadata->data.cue_sheet.tracks + i;
+
+				if(!FLAC__bitbuffer_write_raw_uint64(bb, track->offset, FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, track->number, FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN))
+					return false;
+				FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN % 8 == 0);
+				if(!FLAC__bitbuffer_write_byte_block(bb, (const FLAC__byte*)track->isrc, FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN/8))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, track->type, FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, track->pre_emphasis, FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_zeroes(bb, FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, track->num_indices, FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN))
+					return false;
+				for(j = 0; j < track->num_indices; j++) {
+					const FLAC__StreamMetadata_CueSheet_Index *index = track->indices + j;
+
+					if(!FLAC__bitbuffer_write_raw_uint64(bb, index->offset, FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN))
+						return false;
+					if(!FLAC__bitbuffer_write_raw_uint32(bb, index->number, FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN))
+						return false;
+					if(!FLAC__bitbuffer_write_zeroes(bb, FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN))
+						return false;
+				}
 			}
 			break;
 		default:
