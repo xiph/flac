@@ -895,8 +895,10 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 	 * Write STREAMINFO stats
 	 */
 	simple_ogg_page__init(&page);
-	if(!simple_ogg_page__get_at(encoder, encoder->protected_->streaminfo_offset, &page, encoder->private_->seek_callback, encoder->private_->read_callback, encoder->private_->client_data))
+	if(!simple_ogg_page__get_at(encoder, encoder->protected_->streaminfo_offset, &page, encoder->private_->seek_callback, encoder->private_->read_callback, encoder->private_->client_data)) {
+		simple_ogg_page__clear(&page);
 		return; /* state already set */
+	}
 	/*
 	 * MD5 signature
 	 */
@@ -916,6 +918,7 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 
 		if(md5_offset + 16 > (unsigned)page.body_len) {
 			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_OGG_ERROR;
+			simple_ogg_page__clear(&page);
 			return;
 		}
 		memcpy(page.body + md5_offset, metadata->data.stream_info.md5sum, 16);
@@ -939,6 +942,7 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 
 		if(total_samples_byte_offset + 5 > (unsigned)page.body_len) {
 			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_OGG_ERROR;
+			simple_ogg_page__clear(&page);
 			return;
 		}
 		b[0] = (FLAC__byte)page.body[total_samples_byte_offset] & 0xF0;
@@ -962,6 +966,7 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 
 		if(min_framesize_offset + 6 > (unsigned)page.body_len) {
 			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_OGG_ERROR;
+			simple_ogg_page__clear(&page);
 			return;
 		}
 		b[0] = (FLAC__byte)((min_framesize >> 16) & 0xFF);
@@ -972,6 +977,11 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 		b[5] = (FLAC__byte)(max_framesize & 0xFF);
 		memcpy(page.body + min_framesize_offset, b, 6);
 	}
+	if(!simple_ogg_page__set_at(encoder, encoder->protected_->streaminfo_offset, &page, encoder->private_->seek_callback, encoder->private_->write_callback, encoder->private_->client_data)) {
+		simple_ogg_page__clear(&page);
+		return; /* state already set */
+	}
+	simple_ogg_page__clear(&page);
 
 	/*
 	 * Write seektable
@@ -985,11 +995,14 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 		FLAC__ASSERT(FLAC__format_seektable_is_legal(encoder->private_->seek_table));
 
 		simple_ogg_page__init(&page);
-		if(!simple_ogg_page__get_at(encoder, encoder->protected_->seektable_offset, &page, encoder->private_->seek_callback, encoder->private_->read_callback, encoder->private_->client_data))
+		if(!simple_ogg_page__get_at(encoder, encoder->protected_->seektable_offset, &page, encoder->private_->seek_callback, encoder->private_->read_callback, encoder->private_->client_data)) {
+			simple_ogg_page__clear(&page);
 			return; /* state already set */
+		}
 
 		if(FLAC__STREAM_METADATA_HEADER_LENGTH + (18*encoder->private_->seek_table->num_points) > (unsigned)page.body_len) {
 			encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_OGG_ERROR;
+			simple_ogg_page__clear(&page);
 			return;
 		}
 
@@ -1019,13 +1032,16 @@ void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMet
 			b[16] = (FLAC__byte)x; x >>= 8;
 			if(encoder->private_->write_callback(encoder, b, 18, 0, 0, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
 				encoder->protected_->state = OggFLAC__SEEKABLE_STREAM_ENCODER_WRITE_ERROR;
+				simple_ogg_page__clear(&page);
 				return;
 			}
 			memcpy(p, b, 18);
 		}
 
-		if(!simple_ogg_page__set_at(encoder, encoder->protected_->seektable_offset, &page, encoder->private_->seek_callback, encoder->private_->write_callback, encoder->private_->client_data))
+		if(!simple_ogg_page__set_at(encoder, encoder->protected_->seektable_offset, &page, encoder->private_->seek_callback, encoder->private_->write_callback, encoder->private_->client_data)) {
+			simple_ogg_page__clear(&page);
 			return; /* state already set */
+		}
 		simple_ogg_page__clear(&page);
 	}
 }
