@@ -1,5 +1,5 @@
 #  libFLAC - Free Lossless Audio Codec library
-#  Copyright (C) 2001,2002,2003,2004  Josh Coalson
+#  Copyright (C) 2004  Josh Coalson
 #
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions
@@ -28,58 +28,15 @@
 #  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-lib_LTLIBRARIES = libFLAC.la
-if DEBUG
-DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
-endif
-CFLAGS = @CFLAGS@ $(DEBUGCFLAGS)
+SUFFIXES = .s .lo
 
-if FLaC__NO_ASM
-else
-if FLaC__CPU_IA32
-if FLaC__HAS_NASM
-ARCH_SUBDIRS = ia32
-libFLAC_la_LIBADD = ia32/libFLAC-asm.la
-endif
-endif
-if FLaC__CPU_PPC
-ARCH_SUBDIRS = ppc
-#@@@@@@ need to conditionalize this to gas or as depending on configure
-libFLAC_la_LIBADD = ppc/as/libFLAC-asm.la
-LOCAL_EXTRA_LDFLAGS = "-Wl,-read_only_relocs,warning"
-endif
-endif
+STRIP_NON_ASM = sh $(top_srcdir)/strip_non_asm_libtool_args.sh
 
-SUBDIRS = $(ARCH_SUBDIRS) include .
+# For some unknown reason libtool can't figure out the tag for 'as', so
+# we fake it with --tag=CC and strip out unwanted options.
+.s.lo:
+	$(LIBTOOL) --tag=CC --mode=compile $(STRIP_NON_ASM) as -force_cpusubtype_ALL -o $@ $<
 
-m4datadir = $(datadir)/aclocal
-m4data_DATA = libFLAC.m4
-
-EXTRA_DIST = \
-	Makefile.lite \
-	libFLAC_dynamic.dsp \
-	libFLAC_static.dsp \
-	libFLAC.m4
-
-# see 'http://www.gnu.org/software/libtool/manual.html#SEC35' for numbering convention
-libFLAC_la_LDFLAGS = -version-info 6:1:0 -lm $(LOCAL_EXTRA_LDFLAGS)
-libFLAC_la_SOURCES = \
-	bitbuffer.c \
-	bitmath.c \
-	cpu.c \
-	crc.c \
-	file_decoder.c \
-	file_encoder.c \
-	fixed.c \
-	float.c \
-	format.c \
-	lpc.c \
-	md5.c \
-	memory.c \
-	metadata_iterators.c \
-	metadata_object.c \
-	seekable_stream_decoder.c \
-	seekable_stream_encoder.c \
-	stream_decoder.c \
-	stream_encoder.c \
-	stream_encoder_framing.c
+noinst_LTLIBRARIES = libFLAC-asm.la
+libFLAC_asm_la_SOURCES = \
+	lpc_asm.s

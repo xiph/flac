@@ -49,7 +49,7 @@ DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
 ifeq ($(DARWIN_BUILD),yes)
 SRCS_S = \
-	ppc/lpc_asm.s
+	ppc/as/lpc_asm.s
 else
 ifeq ($(SOLARIS_BUILD),yes)
 else
