@@ -151,52 +151,26 @@ not an x86, change -DFLAC__CPU_IA32 to -DFLAC__CPU_UNKNOWN.
 Building with MSVC
 ===============================================================================
 
-There are two ways to build with MSVC:
+There are now .dsp projects and a master FLAC.dsw workspace to build
+all the libraries and executables.
 
-  1. Project Files
-  ----------------
-  Prerequisite: you must have the Ogg libraries installed as described
-  later.
+Prerequisite: you must have the Ogg libraries installed as described
+later.
 
-  Prerequisite: you must have nasm installed, and have the environment
-  variable FLAC_NASM set to the full path to nasmw.exe, e.g
+Prerequisite: you must have nasm installed, and have the environment
+variable FLAC_NASM set to the full path to nasmw.exe, e.g
 
-    C:\nasm\nasmw.exe
+C:\nasm\nasmw.exe
 
-  To build everything, run Developer Studio, do File|Open Workspace,
-  and open FLAC.dsw.  Switch to the 'Files' tab, select 'all files'
-  from the tree, do right-mouse-button and 'Set as active project'.
-  The default build mode will probably be Debug; to change to release
-  do Build|Set Active Configuration and select 'all - Win32 Release'.
-  Then do Project|Build.  This will build all libraries both statically
-  (e.g. obj\debug\lib\libFLAC_static.lib) and as DLLs (e.g.
-  obj\debug\bin\libFLAC.dll), and it will build all binaries, statically
-  linked (e.g. obj\debug\bin\flac.exe).
+To build everything, run Developer Studio, do File|Open Workspace,
+and open FLAC.dsw.  Select "Build | Set active configuration..."
+from the menu, then in the dialog, select "All - Win32 Release" (or
+Debug if you prefer).  Click "Ok" then hit F7 to build. This will build
+all libraries both statically (e.g. obj\release\lib\libFLAC_static.lib)
+and as DLLs (e.g.  obj\release\bin\libFLAC.dll), and it will build all
+binaries, statically linked (e.g. obj\release\bin\flac.exe).
 
-  2. nmake
-  --------
-  Prerequisite: you must have the Ogg libraries installed as described
-  later.
-
-  Prerequisite: you must have nasm installed and nasmw.exe must be in
-  your path.
-
-  To build everything, open a Command window, cd to the top-level
-  directory (where this README is) and do
-
-    nmake /f Makefile.vc
-
-  This will recur into all the source directories in the right order
-  and build everything.  The libraries will be build only as static
-  libs.  You need only to install the binaries.  To clean up everything
-  you can do
-
-    nmake /f Makefile.vc clean
-
-  from the top level directory, or any directory which has a
-  Makefile.vc
-
-Everything will end up in the 'obj' directory.  DLLs and .exe files
+Everything will end up in the "obj" directory.  DLLs and .exe files
 are all that are needed and can be copied to an installation area and
 added to the PATH.  The plugins have to be copied to their appropriate
 place in the player area.  For Winamp2 this is <winamp2-dir>\Plugins

@@ -14,7 +14,6 @@ libgrabbag_a_SOURCES = \
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	grabbag_static.dsp
 
 debug:

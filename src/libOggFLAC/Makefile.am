@@ -29,7 +29,6 @@ m4data_DATA = libOggFLAC.m4
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	libOggFLAC_dynamic.dsp \
 	libOggFLAC_static.dsp \
 	libOggFLAC.m4

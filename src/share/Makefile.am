@@ -19,5 +19,4 @@ SUBDIRS = gain_analysis getopt grabbag utf8
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	README

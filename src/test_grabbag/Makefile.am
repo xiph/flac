@@ -18,5 +18,4 @@
 SUBDIRS = cuesheet
 
 EXTRA_DIST = \
-	Makefile.lite \
-	Makefile.vc
+	Makefile.lite

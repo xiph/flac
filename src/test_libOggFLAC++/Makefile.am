@@ -17,7 +17,6 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	README \
 	test_libOggFLAC++.dsp
 

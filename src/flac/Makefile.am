@@ -24,7 +24,6 @@ endif
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	flac.dsp
 
 flac_SOURCES = \

@@ -20,7 +20,6 @@ CFLAGS = @CFLAGS@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	metaflac.dsp
 
 metaflac_SOURCES = \

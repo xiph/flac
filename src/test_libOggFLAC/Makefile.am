@@ -17,7 +17,6 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	test_libOggFLAC.dsp
 
 CFLAGS = @CFLAGS@ @OGG_CFLAGS@

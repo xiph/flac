@@ -31,7 +31,6 @@ libplugin_common_a_SOURCES = \
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	README \
 	plugin_common_static.dsp
 

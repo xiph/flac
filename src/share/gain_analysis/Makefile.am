@@ -10,7 +10,6 @@ libgain_analysis_a_SOURCES = gain_analysis.c
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	gain_analysis_static.dsp
 
 debug:

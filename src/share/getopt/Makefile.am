@@ -10,7 +10,6 @@ libgetopt_a_SOURCES = getopt.c getopt1.c
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	getopt_static.dsp
 
 debug:

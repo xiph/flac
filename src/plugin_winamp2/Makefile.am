@@ -18,7 +18,6 @@
 SUBDIRS = include
 
 EXTRA_DIST = \
-	Makefile.vc \
 	config.h \
 	config.c \
 	in_flac.c \

@@ -19,7 +19,6 @@ CFLAGS = @CFLAGS@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	README \
 	test_libFLAC++.dsp
 

@@ -43,5 +43,4 @@ SUBDIRS = \
 	test_streams
 
 EXTRA_DIST = \
-	Makefile.lite \
-	Makefile.vc
+	Makefile.lite

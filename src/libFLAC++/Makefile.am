@@ -24,7 +24,6 @@ m4data_DATA = libFLAC++.m4
 
 EXTRA_DIST = \
 	Makefile.lite \
-	Makefile.vc \
 	libFLAC++_dynamic.dsp \
 	libFLAC++_static.dsp \
 	libFLAC++.m4
