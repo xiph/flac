@@ -1,5 +1,5 @@
-#  test_libFLAC - Unit tester for libFLAC
-#  Copyright (C) 2000,2001,2002  Josh Coalson
+#  test_libFLAC++ - Unit tester for libFLAC++
+#  Copyright (C) 2002  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -16,23 +16,19 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 CFLAGS = @CFLAGS@
-INCLUDES = -I$(top_srcdir)/src/libFLAC/include
 
-noinst_PROGRAMS = test_libFLAC
-test_libFLAC = $(top_builddir)/src/libFLAC/libFLAC.la -lm
-test_libFLAC_SOURCES = \
-	bitbuffer.c \
-	decoders.c \
-	encoders.c \
+noinst_PROGRAMS = test_libFLAC++
+test_libFLAC___LDADD = $(top_builddir)/src/libFLAC++/libFLAC++.la $(top_builddir)/src/libFLAC/libFLAC.la -lm
+test_libFLAC___SOURCES = \
+	decoders.cc \
+	encoders.cc \
 	file_utils.c \
-	main.c \
-	metadata.c \
-	metadata_manip.c \
-	metadata_object.c \
-	metadata_utils.c \
+	main.cc \
+	metadata.cc \
+	metadata_manip.cc \
+	metadata_object.cc \
 	bitbuffer.h \
 	decoders.h \
 	encoders.h \
 	file_utils.h \
-	metadata.h \
-	metadata_utils.h
+	metadata.h

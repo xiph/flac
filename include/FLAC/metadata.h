@@ -24,7 +24,7 @@
 
 /******************************************************************************
 	(For an example of how all these routines are used, see the source
-	code for the unit tests in src/test_unit/metadata_*.c, or metaflac
+	code for the unit tests in src/test_libFLAC/metadata_*.c, or metaflac
 	in src/metaflac/)
 ******************************************************************************/
 
@@ -146,7 +146,7 @@ typedef enum {
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR,
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_INTERNAL_ERROR
 } FLAC__MetaData_SimpleIteratorStatus;
-extern const char *FLAC__MetaData_SimpleIteratorStatusString[];
+extern const char * const FLAC__MetaData_SimpleIteratorStatusString[];
 
 /*
  * Constructor/destructor
@@ -335,7 +335,7 @@ typedef enum {
 	FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR,
 	FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR
 } FLAC__MetaData_ChainStatus;
-extern const char *FLAC__MetaData_ChainStatusString[];
+extern const char * const FLAC__MetaData_ChainStatusString[];
 
 /*********** FLAC__MetaData_Chain ***********/
 
@@ -518,6 +518,8 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__MetaData_Iterator *i
 FLAC__StreamMetaData *FLAC__metadata_object_new(FLAC__MetaDataType type);
 FLAC__StreamMetaData *FLAC__metadata_object_copy(const FLAC__StreamMetaData *object);
 void FLAC__metadata_object_delete(FLAC__StreamMetaData *object);
+/* Does a deep comparison of the block data */
+FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetaData *block1, const FLAC__StreamMetaData *block2);
 
 /******************************************************************
  * FLAC__StreamMetaData_Application

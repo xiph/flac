@@ -68,7 +68,7 @@ const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN = 5; /* bits
 
 const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER = 15; /* == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN)-1 */
 
-const char *FLAC__EntropyCodingMethodTypeString[] = {
+const char * const FLAC__EntropyCodingMethodTypeString[] = {
 	"PARTITIONED_RICE"
 };
 
@@ -84,26 +84,26 @@ const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK = 0x02;
 const unsigned FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK = 0x10;
 const unsigned FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK = 0x40;
 
-const char *FLAC__SubframeTypeString[] = {
+const char * const FLAC__SubframeTypeString[] = {
 	"CONSTANT",
 	"VERBATIM",
 	"FIXED",
 	"LPC"
 };
 
-const char *FLAC__ChannelAssignmentString[] = {
+const char * const FLAC__ChannelAssignmentString[] = {
 	"INDEPENDENT",
 	"LEFT_SIDE",
 	"RIGHT_SIDE",
 	"MID_SIDE"
 };
 
-const char *FLAC__FrameNumberTypeString[] = {
+const char * const FLAC__FrameNumberTypeString[] = {
 	"FRAME_NUMBER_TYPE_FRAME_NUMBER",
 	"FRAME_NUMBER_TYPE_SAMPLE_NUMBER"
 };
 
-const char *FLAC__MetaDataTypeString[] = {
+const char * const FLAC__MetaDataTypeString[] = {
 	"STREAMINFO",
 	"PADDING",
 	"APPLICATION",

@@ -1,4 +1,4 @@
-#  test_unit - Simple FLAC unit tester
+#  test_libFLAC - Unit tester for libFLAC
 #  Copyright (C) 2000,2001,2002  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
@@ -19,12 +19,13 @@
 # GNU makefile
 #
 
-PROGRAM_NAME = test_unit
+PROGRAM_NAME = test_libFLAC
 INCLUDES     = -I../libFLAC/include -I../../include
 LIBS         = -lFLAC -lm
 OBJS = \
 	bitbuffer.o \
 	decoders.o \
+	encoders.o \
 	file_utils.o \
 	main.o \
 	metadata.o \

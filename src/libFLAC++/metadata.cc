@@ -61,7 +61,8 @@ namespace FLAC {
 		// Prototype
 		//
 
-		Prototype::Prototype(::FLAC__StreamMetaData *object, bool copy)
+		Prototype::Prototype(::FLAC__StreamMetaData *object, bool copy):
+		object_(0)
 		{
 			FLAC__ASSERT(0 != object);
 			clear();

@@ -1,4 +1,4 @@
-/* test_libFLAC - Unit tester for libFLAC
+/* test_libFLAC++ - Unit tester for libFLAC++
  * Copyright (C) 2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 extern int test_metadata_object();
 extern int test_metadata_file_manipulation();
 
-FLAC__bool test_metadata()
+bool test_metadata()
 {
 	if(!test_metadata_object())
 		return false;

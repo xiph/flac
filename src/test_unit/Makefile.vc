@@ -1,4 +1,4 @@
-#  test_unit - Simple FLAC unit tester
+#  test_libFLAC - Unit tester for libFLAC
 #  Copyright (C) 2001,2002  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 C_FILES= \
 	bitbuffer.c \
 	decoders.c \
+	encoders.c \
 	file_utils.c \
 	main.c \
 	metadata.c \
@@ -37,11 +38,11 @@ C_FILES= \
 
 OBJS= $(C_FILES:.c=.obj)
 
-all: test_unit.exe
+all: test_libFLAC.exe
 
-test_unit.exe: $(OBJS)
+test_libFLAC.exe: $(OBJS)
 	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) libFLAC.lib
 
 clean:
 	-del *.obj *.pch
-	-del ..\..\obj\bin\test_unit.exe
+	-del ..\..\obj\bin\test_libFLAC.exe

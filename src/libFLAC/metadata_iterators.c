@@ -111,37 +111,54 @@ static FLAC__MetaData_ChainStatus get_equivalent_status_(FLAC__MetaData_SimpleIt
  *
  ***************************************************************************/
 
-static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
+typedef struct {
+	FLAC__bool got_error;
+	FLAC__bool got_streaminfo;
+	FLAC__StreamMetaData_StreamInfo *streaminfo;
+} level0_client_data;
+
 FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetaData_StreamInfo *streaminfo)
 {
+	level0_client_data cd;
 	FLAC__FileDecoder *decoder = FLAC__file_decoder_new();
 
 	if(0 == decoder)
 		return false;
+
+	cd.got_error = false;
+	cd.got_streaminfo = false;
+	cd.streaminfo = streaminfo;
 
 	FLAC__file_decoder_set_md5_checking(decoder, false);
 	FLAC__file_decoder_set_filename(decoder, filename);
 	FLAC__file_decoder_set_write_callback(decoder, write_callback_);
 	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback_);
 	FLAC__file_decoder_set_error_callback(decoder, error_callback_);
-	FLAC__file_decoder_set_client_data(decoder, &streaminfo);
+	FLAC__file_decoder_set_client_data(decoder, &cd);
 
-	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK)
+	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK || cd.got_error) {
+		FLAC__file_decoder_finish(decoder);
+		FLAC__file_decoder_delete(decoder);
 		return false;
+	}
 
-	if(!FLAC__file_decoder_process_metadata(decoder))
+	if(!FLAC__file_decoder_process_metadata(decoder) || cd.got_error) {
+		FLAC__file_decoder_finish(decoder);
+		FLAC__file_decoder_delete(decoder);
 		return false;
+	}
 
 	FLAC__file_decoder_finish(decoder);
 	FLAC__file_decoder_delete(decoder);
 
-	return 0 != streaminfo; /* the metadata_callback_() will set streaminfo to 0 on an error */
+	return !cd.got_error && cd.got_streaminfo;
 }
 
-FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	(void)decoder, (void)frame, (void)buffer, (void)client_data;
 
@@ -150,20 +167,22 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 
 void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
 {
-	FLAC__StreamMetaData_StreamInfo **streaminfo = (FLAC__StreamMetaData_StreamInfo **)client_data;
+	level0_client_data *cd = (level0_client_data *)client_data;
 	(void)decoder;
 
-	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO && 0 != *streaminfo)
-		**streaminfo = metadata->data.stream_info;
+	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO && 0 != cd->streaminfo) {
+		*(cd->streaminfo) = metadata->data.stream_info;
+		cd->got_streaminfo = true;
+	}
 }
 
 void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
-	FLAC__StreamMetaData_StreamInfo **streaminfo = (FLAC__StreamMetaData_StreamInfo **)client_data;
+	level0_client_data *cd = (level0_client_data *)client_data;
 	(void)decoder;
 
 	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
-		*streaminfo = 0;
+		cd->got_error = true;
 }
 
 
@@ -193,7 +212,7 @@ struct FLAC__MetaData_SimpleIterator {
 	unsigned length;
 };
 
-const char *FLAC__MetaData_SimpleIteratorStatusString[] = {
+const char * const FLAC__MetaData_SimpleIteratorStatusString[] = {
 	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK",
 	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT",
 	"FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE",
@@ -694,7 +713,7 @@ struct FLAC__MetaData_Iterator {
 	FLAC__MetaData_Node *current;
 };
 
-const char *FLAC__MetaData_ChainStatusString[] = {
+const char * const FLAC__MetaData_ChainStatusString[] = {
 	"FLAC__METADATA_CHAIN_STATUS_OK",
 	"FLAC__METADATA_CHAIN_STATUS_ILLEGAL_INPUT",
 	"FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE",

@@ -142,7 +142,7 @@ typedef struct FLAC__StreamEncoderPrivate {
  *
  ***********************************************************************/
 
-const char *FLAC__StreamEncoderStateString[] = {
+const char * const FLAC__StreamEncoderStateString[] = {
 	"FLAC__STREAM_ENCODER_OK",
 	"FLAC__STREAM_ENCODER_INVALID_CALLBACK",
 	"FLAC__STREAM_ENCODER_INVALID_NUMBER_OF_CHANNELS",
@@ -164,7 +164,7 @@ const char *FLAC__StreamEncoderStateString[] = {
 	"FLAC__STREAM_ENCODER_UNINITIALIZED"
 };
 
-const char *FLAC__StreamEncoderWriteStatusString[] = {
+const char * const FLAC__StreamEncoderWriteStatusString[] = {
 	"FLAC__STREAM_ENCODER_WRITE_OK",
 	"FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR"
 };
@@ -473,7 +473,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 
 	FLAC__ASSERT(FLAC__bitbuffer_is_byte_aligned(encoder->private_->frame));
 	{
-		FLAC__byte *buffer;
+		const FLAC__byte *buffer;
 		unsigned bytes;
 
 		FLAC__bitbuffer_get_buffer(encoder->private_->frame, &buffer, &bytes);
@@ -799,7 +799,7 @@ unsigned FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC__StreamE
 	return encoder->protected_->rice_parameter_search_dist;
 }
 
-FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 *buf[], unsigned samples)
+FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples)
 {
 	unsigned i, j, channel;
 	FLAC__int32 x, mid, side;
@@ -812,15 +812,15 @@ FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC
 	if(encoder->protected_->do_mid_side_stereo && channels == 2) {
 		do {
 			for(i = encoder->private_->current_sample_number; i < blocksize && j < samples; i++, j++) {
-				x = mid = side = buf[0][j];
+				x = mid = side = buffer[0][j];
 				encoder->private_->integer_signal[0][i] = x;
 				encoder->private_->real_signal[0][i] = (FLAC__real)x;
-				x = buf[1][j];
+				x = buffer[1][j];
 				encoder->private_->integer_signal[1][i] = x;
 				encoder->private_->real_signal[1][i] = (FLAC__real)x;
 				mid += x;
 				side -= x;
-				mid >>= 1; /* NOTE: not the same as 'mid = (buf[0][j] + buf[1][j]) / 2' ! */
+				mid >>= 1; /* NOTE: not the same as 'mid = (buffer[0][j] + buffer[1][j]) / 2' ! */
 				encoder->private_->integer_signal_mid_side[1][i] = side;
 				encoder->private_->integer_signal_mid_side[0][i] = mid;
 				encoder->private_->real_signal_mid_side[1][i] = (FLAC__real)side;
@@ -837,7 +837,7 @@ FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC
 		do {
 			for(i = encoder->private_->current_sample_number; i < blocksize && j < samples; i++, j++) {
 				for(channel = 0; channel < channels; channel++) {
-					x = buf[channel][j];
+					x = buffer[channel][j];
 					encoder->private_->integer_signal[channel][i] = x;
 					encoder->private_->real_signal[channel][i] = (FLAC__real)x;
 				}
@@ -854,7 +854,7 @@ FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC
 }
 
 /* 'samples' is channel-wide samples, e.g. for 1 second at 44100Hz, 'samples' = 44100 regardless of the number of channels */
-FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buf[], unsigned samples)
+FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples)
 {
 	unsigned i, j, k, channel;
 	FLAC__int32 x, mid, side;
@@ -867,10 +867,10 @@ FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder
 	if(encoder->protected_->do_mid_side_stereo && channels == 2) {
 		do {
 			for(i = encoder->private_->current_sample_number; i < blocksize && j < samples; i++, j++) {
-				x = mid = side = buf[k++];
+				x = mid = side = buffer[k++];
 				encoder->private_->integer_signal[0][i] = x;
 				encoder->private_->real_signal[0][i] = (FLAC__real)x;
-				x = buf[k++];
+				x = buffer[k++];
 				encoder->private_->integer_signal[1][i] = x;
 				encoder->private_->real_signal[1][i] = (FLAC__real)x;
 				mid += x;
@@ -892,7 +892,7 @@ FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder
 		do {
 			for(i = encoder->private_->current_sample_number; i < blocksize && j < samples; i++, j++) {
 				for(channel = 0; channel < channels; channel++) {
-					x = buf[k++];
+					x = buffer[k++];
 					encoder->private_->integer_signal[channel][i] = x;
 					encoder->private_->real_signal[channel][i] = (FLAC__real)x;
 				}
@@ -977,8 +977,7 @@ FLAC__bool stream_encoder_process_frame_(FLAC__StreamEncoder *encoder, FLAC__boo
 	/*
 	 * Accumulate raw signal to the MD5 signature
 	 */
-	/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-	if(!FLAC__MD5Accumulate(&encoder->private_->md5context, encoder->private_->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize, (encoder->protected_->bits_per_sample+7) / 8)) {
+	if(!FLAC__MD5Accumulate(&encoder->private_->md5context, (const FLAC__int32 * const *)encoder->private_->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize, (encoder->protected_->bits_per_sample+7) / 8)) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}

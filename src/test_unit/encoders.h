@@ -16,21 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "metadata.h"
-#include <stdio.h>
+#ifndef FLAC__TEST_LIBFLAC_ENCODERS_H
+#define FLAC__TEST_LIBFLAC_ENCODERS_H
 
-extern int test_metadata_object();
-extern int test_metadata_file_manipulation();
+#include "FLAC/ordinals.h"
 
-FLAC__bool test_metadata()
-{
-	if(!test_metadata_object())
-		return false;
+FLAC__bool test_encoders();
 
-	if(!test_metadata_file_manipulation())
-		return false;
-
-	printf("\nPASSED!\n");
-
-	return true;
-}
+#endif

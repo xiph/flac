@@ -221,7 +221,7 @@ MD5Update(struct MD5Context *ctx, md5byte const *buf, unsigned len)
  * Convert the incoming audio signal to a byte stream and MD5Update it.
  */
 FLAC__bool
-FLAC__MD5Accumulate(struct MD5Context *ctx, const FLAC__int32 *signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
+FLAC__MD5Accumulate(struct MD5Context *ctx, const FLAC__int32 * const signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
 {
 	unsigned channel, sample, a_byte;
 	FLAC__int32 a_word;

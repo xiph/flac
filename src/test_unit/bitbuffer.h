@@ -1,4 +1,4 @@
-/* test_unit - Simple FLAC unit tester
+/* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2000,2001,2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -16,9 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef FLAC__TEST_UNIT_BITBUFFER_H
-#define FLAC__TEST_UNIT_BITBUFFER_H
+#ifndef FLAC__TEST_LIBFLAC_BITBUFFER_H
+#define FLAC__TEST_LIBFLAC_BITBUFFER_H
 
-int test_bitbuffer();
+#include "FLAC/ordinals.h"
+
+FLAC__bool test_bitbuffer();
 
 #endif

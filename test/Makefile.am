@@ -15,9 +15,11 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-TESTS = ./test_unit.sh ./test_streams.sh ./test_bins.sh
+TESTS = ./test_libFLAC.sh ./test_libFLAC++.sh ./test_streams.sh ./test_bins.sh
 
-EXTRA_DIST = test_unit.sh \
+EXTRA_DIST = \
+	test_libFLAC.sh \
+	test_libFLAC++.sh \
 	test_streams.sh \
 	test_bins.sh
 

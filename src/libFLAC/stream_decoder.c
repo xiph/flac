@@ -68,7 +68,7 @@ static FLAC__bool read_callback_(FLAC__byte buffer[], unsigned *bytes, void *cli
 
 typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__StreamDecoderReadStatus (*read_callback)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
-	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
+	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 	void (*metadata_callback)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 	void (*error_callback)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 	void (*local_lpc_restore_signal)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
@@ -99,7 +99,7 @@ typedef struct FLAC__StreamDecoderPrivate {
  *
  ***********************************************************************/
 
-const char *FLAC__StreamDecoderStateString[] = {
+const char * const FLAC__StreamDecoderStateString[] = {
 	"FLAC__STREAM_DECODER_SEARCH_FOR_METADATA",
 	"FLAC__STREAM_DECODER_READ_METADATA",
 	"FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC",
@@ -113,18 +113,18 @@ const char *FLAC__StreamDecoderStateString[] = {
 	"FLAC__STREAM_DECODER_UNINITIALIZED"
 };
 
-const char *FLAC__StreamDecoderReadStatusString[] = {
+const char * const FLAC__StreamDecoderReadStatusString[] = {
 	"FLAC__STREAM_DECODER_READ_STATUS_CONTINUE",
 	"FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM",
 	"FLAC__STREAM_DECODER_READ_STATUS_ABORT"
 };
 
-const char *FLAC__StreamDecoderWriteStatusString[] = {
+const char * const FLAC__StreamDecoderWriteStatusString[] = {
 	"FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE",
 	"FLAC__STREAM_DECODER_WRITE_STATUS_ABORT"
 };
 
-const char *FLAC__StreamDecoderErrorStatusString[] = {
+const char * const FLAC__StreamDecoderErrorStatusString[] = {
 	"FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC",
 	"FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER",
 	"FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH"
@@ -302,7 +302,7 @@ FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, 
 	return true;
 }
 
-FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data))
+FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data))
 {
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
@@ -1247,8 +1247,7 @@ FLAC__bool stream_decoder_read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *
 	decoder->private_->samples_decoded = decoder->private_->frame.header.number.sample_number + decoder->private_->frame.header.blocksize;
 
 	/* write it */
-	/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 3 here: */
-	if(decoder->private_->write_callback(decoder, &decoder->private_->frame, decoder->private_->output, decoder->private_->client_data) != FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE)
+	if(decoder->private_->write_callback(decoder, &decoder->private_->frame, (const FLAC__int32 * const *)decoder->private_->output, decoder->private_->client_data) != FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE)
 		return false;
 
 	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;

@@ -1,4 +1,4 @@
-/* test_unit - Simple FLAC unit tester
+/* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -47,6 +47,42 @@ static unsigned flacfilesize_;
 static FLAC__bool die_(const char *msg)
 {
 	printf("ERROR: %s\n", msg);
+	return false;
+}
+
+static FLAC__bool die_s_(const char *msg, const FLAC__StreamDecoder *decoder)
+{
+	FLAC__StreamDecoderState state = FLAC__stream_decoder_get_state(decoder);
+
+	if(msg)
+		printf("FAILED, %s, state = %u (%s)\n", msg, (unsigned)state, FLAC__StreamDecoderStateString[state]);
+	else
+		printf("FAILED, state = %u (%s)\n", (unsigned)state, FLAC__StreamDecoderStateString[state]);
+
+	return false;
+}
+
+static FLAC__bool die_ss_(const char *msg, const FLAC__SeekableStreamDecoder *decoder)
+{
+	FLAC__SeekableStreamDecoderState state = FLAC__seekable_stream_decoder_get_state(decoder);
+
+	if(msg)
+		printf("FAILED, %s, state = %u (%s)\n", msg, (unsigned)state, FLAC__SeekableStreamDecoderStateString[state]);
+	else
+		printf("FAILED, state = %u (%s)\n", (unsigned)state, FLAC__SeekableStreamDecoderStateString[state]);
+
+	return false;
+}
+
+static FLAC__bool die_f_(const char *msg, const FLAC__FileDecoder *decoder)
+{
+	FLAC__FileDecoderState state = FLAC__file_decoder_get_state(decoder);
+
+	if(msg)
+		printf("FAILED, %s, state = %u (%s)\n", msg, (unsigned)state, FLAC__FileDecoderStateString[state]);
+	else
+		printf("FAILED, state = %u (%s)\n", (unsigned)state, FLAC__FileDecoderStateString[state]);
+
 	return false;
 }
 
@@ -187,11 +223,11 @@ static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const FLAC__S
         return FLAC__STREAM_DECODER_READ_STATUS_ABORT; /* abort to avoid a deadlock */
 }
 
-static FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+static FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
 
-	(void)decoder, (void)frame, (void)buffer;
+	(void)decoder, (void)buffer;
 
 	if(0 == dcd) {
 		printf("ERROR: client_data in write callback is NULL\n");
@@ -261,65 +297,46 @@ static void stream_decoder_error_callback_(const FLAC__StreamDecoder *decoder, F
 
 static FLAC__bool stream_decoder_test_respond_(FLAC__StreamDecoder *decoder, stream_decoder_client_data_struct *dcd)
 {
-	FLAC__StreamDecoderState state;
+	if(!FLAC__stream_decoder_set_read_callback(decoder, stream_decoder_read_callback_))
+		return die_s_("at FLAC__stream_decoder_set_read_callback(), returned false", decoder);
 
-	if(!FLAC__stream_decoder_set_read_callback(decoder, stream_decoder_read_callback_)) {
-		printf("FAILED at FLAC__stream_decoder_set_read_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_write_callback(decoder, stream_decoder_write_callback_))
+		return die_s_("at FLAC__stream_decoder_set_write_callback(), returned false", decoder);
 
-	if(!FLAC__stream_decoder_set_write_callback(decoder, stream_decoder_write_callback_)) {
-		printf("FAILED at FLAC__stream_decoder_set_write_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_callback(decoder, stream_decoder_metadata_callback_))
+		return die_s_("at FLAC__stream_decoder_set_metadata_callback(), returned false", decoder);
 
-	if(!FLAC__stream_decoder_set_metadata_callback(decoder, stream_decoder_metadata_callback_)) {
-		printf("FAILED at FLAC__stream_decoder_set_metadata_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_error_callback(decoder, stream_decoder_error_callback_))
+		return die_s_("at FLAC__stream_decoder_set_error_callback(), returned false", decoder);
 
-	if(!FLAC__stream_decoder_set_error_callback(decoder, stream_decoder_error_callback_)) {
-		printf("FAILED at FLAC__stream_decoder_set_error_callback(), returned false\n");
-		return false;
-	}
-
-	if(!FLAC__stream_decoder_set_client_data(decoder, dcd)) {
-		printf("FAILED at FLAC__stream_decoder_set_client_data(), returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_client_data(decoder, dcd))
+		return die_s_("at FLAC__stream_decoder_set_client_data(), returned false", decoder);
 
 	printf("testing FLAC__stream_decoder_init()... ");
-	if((state = FLAC__stream_decoder_init(decoder)) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA) {
-		printf("FAILED, returned state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
-	}
+	if(FLAC__stream_decoder_init(decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
+		return die_s_(0, decoder);
 	printf("OK\n");
 
 	dcd->current_metadata_number = 0;
 
-	printf("rewinding input... ");
 	if(fseek(dcd->file, 0, SEEK_SET) < 0) {
-		printf("FAILED, errno = %d\n", errno);
+		printf("FAILED rewinding input, errno = %d\n", errno);
 		return false;
 	}
-	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_process_whole_stream()... ");
-	if(!FLAC__stream_decoder_process_whole_stream(decoder)) {
-		state = FLAC__stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__stream_decoder_process_whole_stream(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_finish()... ");
 	FLAC__stream_decoder_finish(decoder);
 	printf("OK\n");
 
-	return true;;
+	return true;
 }
 
-FLAC__bool test_stream_decoder()
+static FLAC__bool test_stream_decoder()
 {
 	FLAC__StreamDecoder *decoder;
 	FLAC__StreamDecoderState state;
@@ -339,45 +356,33 @@ FLAC__bool test_stream_decoder()
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_read_callback()... ");
-	if(!FLAC__stream_decoder_set_read_callback(decoder, stream_decoder_read_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_read_callback(decoder, stream_decoder_read_callback_))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_write_callback()... ");
-	if(!FLAC__stream_decoder_set_write_callback(decoder, stream_decoder_write_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_write_callback(decoder, stream_decoder_write_callback_))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_callback()... ");
-	if(!FLAC__stream_decoder_set_metadata_callback(decoder, stream_decoder_metadata_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_callback(decoder, stream_decoder_metadata_callback_))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_error_callback()... ");
-	if(!FLAC__stream_decoder_set_error_callback(decoder, stream_decoder_error_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_error_callback(decoder, stream_decoder_error_callback_))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_client_data()... ");
-	if(!FLAC__stream_decoder_set_client_data(decoder, &decoder_client_data)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_client_data(decoder, &decoder_client_data))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_init()... ");
-	if((state = FLAC__stream_decoder_init(decoder)) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA) {
-		printf("FAILED, returned state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
-	}
+	if(FLAC__stream_decoder_init(decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
+		return die_s_(0, decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_get_state()... ");
@@ -397,45 +402,30 @@ FLAC__bool test_stream_decoder()
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_process_metadata()... ");
-	if(!FLAC__stream_decoder_process_metadata(decoder)) {
-		state = FLAC__stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__stream_decoder_process_metadata(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_process_one_frame()... ");
-	if(!FLAC__stream_decoder_process_one_frame(decoder)) {
-		state = FLAC__stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__stream_decoder_process_one_frame(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_flush()... ");
-	if(!FLAC__stream_decoder_flush(decoder)) {
-		state = FLAC__stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__stream_decoder_flush(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	decoder_client_data.ignore_errors = true;
 	printf("testing FLAC__stream_decoder_process_one_frame()... ");
-	if(!FLAC__stream_decoder_process_one_frame(decoder)) {
-		state = FLAC__stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__stream_decoder_process_one_frame(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 	decoder_client_data.ignore_errors = false;
 
 	printf("testing FLAC__stream_decoder_process_remaining_frames()... ");
-	if(!FLAC__stream_decoder_process_remaining_frames(decoder)) {
-		state = FLAC__stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__stream_decoder_process_remaining_frames(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_get_channels()... ");
@@ -499,11 +489,8 @@ FLAC__bool test_stream_decoder()
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_process_whole_stream()... ");
-	if(!FLAC__stream_decoder_process_whole_stream(decoder)) {
-		state = FLAC__stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__stream_decoder_process_whole_stream(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_finish()... ");
@@ -515,10 +502,8 @@ FLAC__bool test_stream_decoder()
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -530,40 +515,34 @@ FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore VORBIS_COMMENT
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore(VORBIS_COMMENT)... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -574,24 +553,20 @@ FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -601,24 +576,20 @@ FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -629,31 +600,25 @@ FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION id of app#1 & app#2
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_application(of app block #2)... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_application(decoder, application2_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_application(decoder, application2_.data.application.id))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -663,48 +628,40 @@ FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond VORBIS_COMMENT
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond(VORBIS_COMMENT)... ");
-	if(!FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -712,55 +669,45 @@ FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION id of app#1 & app#2
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_application(of app block #2)... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_application(decoder, application2_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_application(decoder, application2_.data.application.id))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -768,31 +715,25 @@ FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION, respond APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!FLAC__stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -803,38 +744,32 @@ FLAC__bool test_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION, ignore APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_all(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!FLAC__stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/* done, now leave the sequence the way we found it... */
 	num_expected_ = 0;
@@ -954,7 +889,7 @@ static FLAC__bool seekable_stream_decoder_eof_callback_(const FLAC__SeekableStre
 	return feof(dcd->file);
 }
 
-static FLAC__StreamDecoderWriteStatus seekable_stream_decoder_write_callback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+static FLAC__StreamDecoderWriteStatus seekable_stream_decoder_write_callback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	(void)decoder;
 	return stream_decoder_write_callback_(0, frame, buffer, client_data);
@@ -974,63 +909,39 @@ static void seekable_stream_decoder_error_callback_(const FLAC__SeekableStreamDe
 
 static FLAC__bool seekable_stream_decoder_test_respond_(FLAC__SeekableStreamDecoder *decoder, seekable_stream_decoder_client_data_struct *dcd)
 {
-	FLAC__SeekableStreamDecoderState state;
+	if(!FLAC__seekable_stream_decoder_set_read_callback(decoder, seekable_stream_decoder_read_callback_))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_read_callback(), returned false", decoder);
 
-	if(!FLAC__seekable_stream_decoder_set_read_callback(decoder, seekable_stream_decoder_read_callback_)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_read_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_seek_callback(decoder, seekable_stream_decoder_seek_callback_))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_seek_callback(), returned false", decoder);
 
-	if(!FLAC__seekable_stream_decoder_set_seek_callback(decoder, seekable_stream_decoder_seek_callback_)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_seek_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_tell_callback(decoder, seekable_stream_decoder_tell_callback_))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_tell_callback(), returned false", decoder);
 
-	if(!FLAC__seekable_stream_decoder_set_tell_callback(decoder, seekable_stream_decoder_tell_callback_)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_tell_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_length_callback(decoder, seekable_stream_decoder_length_callback_))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_length_callback(), returned false", decoder);
 
-	if(!FLAC__seekable_stream_decoder_set_length_callback(decoder, seekable_stream_decoder_length_callback_)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_length_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_eof_callback(decoder, seekable_stream_decoder_eof_callback_))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_eof_callback(), returned false", decoder);
 
-	if(!FLAC__seekable_stream_decoder_set_eof_callback(decoder, seekable_stream_decoder_eof_callback_)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_eof_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_write_callback(decoder, seekable_stream_decoder_write_callback_))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_write_callback(), returned false", decoder);
 
-	if(!FLAC__seekable_stream_decoder_set_write_callback(decoder, seekable_stream_decoder_write_callback_)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_write_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_callback(decoder, seekable_stream_decoder_metadata_callback_))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_metadata_callback(), returned false", decoder);
 
-	if(!FLAC__seekable_stream_decoder_set_metadata_callback(decoder, seekable_stream_decoder_metadata_callback_)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_metadata_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_error_callback(decoder, seekable_stream_decoder_error_callback_))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_error_callback(), returned false", decoder);
 
-	if(!FLAC__seekable_stream_decoder_set_error_callback(decoder, seekable_stream_decoder_error_callback_)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_error_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_client_data(decoder, dcd))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_client_data(), returned false", decoder);
 
-	if(!FLAC__seekable_stream_decoder_set_client_data(decoder, dcd)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_client_data(), returned false\n");
-		return false;
-	}
-
-	if(!FLAC__seekable_stream_decoder_set_md5_checking(decoder, true)) {
-		printf("FAILED at FLAC__seekable_stream_decoder_set_md5_checking(), returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_md5_checking(decoder, true))
+		return die_ss_("at FLAC__seekable_stream_decoder_set_md5_checking(), returned false", decoder);
 
 	printf("testing FLAC__seekable_stream_decoder_init()... ");
-	if((state = FLAC__seekable_stream_decoder_init(decoder)) != FLAC__SEEKABLE_STREAM_DECODER_OK) {
-		printf("FAILED, returned state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(FLAC__seekable_stream_decoder_init(decoder) != FLAC__SEEKABLE_STREAM_DECODER_OK)
+		return die_ss_(0, decoder);
 	printf("OK\n");
 
 	dcd->current_metadata_number = 0;
@@ -1041,21 +952,18 @@ static FLAC__bool seekable_stream_decoder_test_respond_(FLAC__SeekableStreamDeco
 	}
 
 	printf("testing FLAC__seekable_stream_decoder_process_whole_stream()... ");
-	if(!FLAC__seekable_stream_decoder_process_whole_stream(decoder)) {
-		state = FLAC__seekable_stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_process_whole_stream(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_finish()... ");
 	(void) FLAC__seekable_stream_decoder_finish(decoder);
 	printf("OK\n");
 
-	return true;;
+	return true;
 }
 
-FLAC__bool test_seekable_stream_decoder()
+static FLAC__bool test_seekable_stream_decoder()
 {
 	FLAC__SeekableStreamDecoder *decoder;
 	FLAC__SeekableStreamDecoderState state;
@@ -1075,80 +983,58 @@ FLAC__bool test_seekable_stream_decoder()
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_read_callback()... ");
-	if(!FLAC__seekable_stream_decoder_set_read_callback(decoder, seekable_stream_decoder_read_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_read_callback(decoder, seekable_stream_decoder_read_callback_))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_seek_callback()... ");
-	if(!FLAC__seekable_stream_decoder_set_seek_callback(decoder, seekable_stream_decoder_seek_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_seek_callback(decoder, seekable_stream_decoder_seek_callback_))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_tell_callback()... ");
-	if(!FLAC__seekable_stream_decoder_set_tell_callback(decoder, seekable_stream_decoder_tell_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_tell_callback(decoder, seekable_stream_decoder_tell_callback_))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_length_callback()... ");
-	if(!FLAC__seekable_stream_decoder_set_length_callback(decoder, seekable_stream_decoder_length_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_length_callback(decoder, seekable_stream_decoder_length_callback_))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_eof_callback()... ");
-	if(!FLAC__seekable_stream_decoder_set_eof_callback(decoder, seekable_stream_decoder_eof_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_eof_callback(decoder, seekable_stream_decoder_eof_callback_))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_write_callback()... ");
-	if(!FLAC__seekable_stream_decoder_set_write_callback(decoder, seekable_stream_decoder_write_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_write_callback(decoder, seekable_stream_decoder_write_callback_))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_callback()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_callback(decoder, seekable_stream_decoder_metadata_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_callback(decoder, seekable_stream_decoder_metadata_callback_))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_error_callback()... ");
-	if(!FLAC__seekable_stream_decoder_set_error_callback(decoder, seekable_stream_decoder_error_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_error_callback(decoder, seekable_stream_decoder_error_callback_))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_client_data()... ");
-	if(!FLAC__seekable_stream_decoder_set_client_data(decoder, &decoder_client_data)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_client_data(decoder, &decoder_client_data))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_md5_checking()... ");
-	if(!FLAC__seekable_stream_decoder_set_md5_checking(decoder, true)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_md5_checking(decoder, true))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_init()... ");
-	if((state = FLAC__seekable_stream_decoder_init(decoder)) != FLAC__SEEKABLE_STREAM_DECODER_OK) {
-		printf("FAILED, returned state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(FLAC__seekable_stream_decoder_init(decoder) != FLAC__SEEKABLE_STREAM_DECODER_OK)
+		return die_ss_(0, decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_get_state()... ");
@@ -1175,53 +1061,35 @@ FLAC__bool test_seekable_stream_decoder()
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_process_metadata()... ");
-	if(!FLAC__seekable_stream_decoder_process_metadata(decoder)) {
-		state = FLAC__seekable_stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_process_metadata(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_process_one_frame()... ");
-	if(!FLAC__seekable_stream_decoder_process_one_frame(decoder)) {
-		state = FLAC__seekable_stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_process_one_frame(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_flush()... ");
-	if(!FLAC__seekable_stream_decoder_flush(decoder)) {
-		state = FLAC__seekable_stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_flush(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	decoder_client_data.ignore_errors = true;
 	printf("testing FLAC__seekable_stream_decoder_process_one_frame()... ");
-	if(!FLAC__seekable_stream_decoder_process_one_frame(decoder)) {
-		state = FLAC__seekable_stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_process_one_frame(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 	decoder_client_data.ignore_errors = false;
 
 	printf("testing FLAC__seekable_stream_decoder_seek_absolute()... ");
-	if(!FLAC__seekable_stream_decoder_seek_absolute(decoder, 0)) {
-		state = FLAC__seekable_stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_seek_absolute(decoder, 0))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_process_remaining_frames()... ");
-	if(!FLAC__seekable_stream_decoder_process_remaining_frames(decoder)) {
-		state = FLAC__seekable_stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_process_remaining_frames(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_get_channels()... ");
@@ -1268,26 +1136,22 @@ FLAC__bool test_seekable_stream_decoder()
 	}
 
 	printf("testing FLAC__seekable_stream_decoder_reset()... ");
-	if(!FLAC__seekable_stream_decoder_reset(decoder)) {
-		state = FLAC__seekable_stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_reset(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	decoder_client_data.current_metadata_number = 0;
 
+	printf("rewinding input... ");
 	if(fseek(decoder_client_data.file, 0, SEEK_SET) < 0) {
-		printf("FAILED rewinding input, errno = %d\n", errno);
+		printf("FAILED, errno = %d\n", errno);
 		return false;
 	}
+	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_process_whole_stream()... ");
-	if(!FLAC__seekable_stream_decoder_process_whole_stream(decoder)) {
-		state = FLAC__seekable_stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__SeekableStreamDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_process_whole_stream(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_finish()... ");
@@ -1299,10 +1163,8 @@ FLAC__bool test_seekable_stream_decoder()
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1314,40 +1176,34 @@ FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore VORBIS_COMMENT
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore(VORBIS_COMMENT)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1358,24 +1214,20 @@ FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1385,24 +1237,20 @@ FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1413,31 +1261,25 @@ FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION id of app#1 & app#2
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_application(of app block #2)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application2_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application2_.data.application.id))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1447,48 +1289,40 @@ FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond VORBIS_COMMENT
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond(VORBIS_COMMENT)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1496,55 +1330,45 @@ FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION id of app#1 & app#2
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_application(of app block #2)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application2_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application2_.data.application.id))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1552,31 +1376,25 @@ FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION, respond APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1587,38 +1405,32 @@ FLAC__bool test_seekable_stream_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION, ignore APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__seekable_stream_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
+		return die_ss_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/* done, now leave the sequence the way we found it... */
 	num_expected_ = 0;
@@ -1640,7 +1452,7 @@ FLAC__bool test_seekable_stream_decoder()
 	return true;
 }
 
-static FLAC__StreamDecoderWriteStatus file_decoder_write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+static FLAC__StreamDecoderWriteStatus file_decoder_write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	(void)decoder;
 	return stream_decoder_write_callback_(0, frame, buffer, client_data);
@@ -1660,63 +1472,44 @@ static void file_decoder_error_callback_(const FLAC__FileDecoder *decoder, FLAC_
 
 static FLAC__bool file_decoder_test_respond_(FLAC__FileDecoder *decoder, file_decoder_client_data_struct *dcd)
 {
-	FLAC__FileDecoderState state;
+	if(!FLAC__file_decoder_set_write_callback(decoder, file_decoder_write_callback_))
+		return die_f_("at FLAC__file_decoder_set_write_callback(), returned false", decoder);
 
-	if(!FLAC__file_decoder_set_write_callback(decoder, file_decoder_write_callback_)) {
-		printf("FAILED at FLAC__file_decoder_set_write_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_callback(decoder, file_decoder_metadata_callback_))
+		return die_f_("at FLAC__file_decoder_set_metadata_callback(), returned false", decoder);
 
-	if(!FLAC__file_decoder_set_metadata_callback(decoder, file_decoder_metadata_callback_)) {
-		printf("FAILED at FLAC__file_decoder_set_metadata_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_error_callback(decoder, file_decoder_error_callback_))
+		return die_f_("at FLAC__file_decoder_set_error_callback(), returned false", decoder);
 
-	if(!FLAC__file_decoder_set_error_callback(decoder, file_decoder_error_callback_)) {
-		printf("FAILED at FLAC__file_decoder_set_error_callback(), returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_client_data(decoder, dcd))
+		return die_f_("at FLAC__file_decoder_set_client_data(), returned false", decoder);
 
-	if(!FLAC__file_decoder_set_client_data(decoder, dcd)) {
-		printf("FAILED at FLAC__file_decoder_set_client_data(), returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_filename(decoder, flacfilename_))
+		return die_f_("at FLAC__file_decoder_set_filename(), returned false", decoder);
 
-	if(!FLAC__file_decoder_set_filename(decoder, flacfilename_)) {
-		printf("FAILED at FLAC__file_decoder_set_filename(), returned false\n");
-		return false;
-	}
-
-	if(!FLAC__file_decoder_set_md5_checking(decoder, true)) {
-		printf("FAILED at FLAC__file_decoder_set_md5_checking(), returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_md5_checking(decoder, true))
+		return die_f_("at FLAC__file_decoder_set_md5_checking(), returned false", decoder);
 
 	printf("testing FLAC__file_decoder_init()... ");
-	if((state = FLAC__file_decoder_init(decoder)) != FLAC__FILE_DECODER_OK) {
-		printf("FAILED, returned state = %u (%s)\n", state, FLAC__FileDecoderStateString[state]);
-		return false;
-	}
+	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK)
+		return die_f_(0, decoder);
 	printf("OK\n");
 
 	dcd->current_metadata_number = 0;
 
 	printf("testing FLAC__file_decoder_process_whole_file()... ");
-	if(!FLAC__file_decoder_process_whole_file(decoder)) {
-		state = FLAC__file_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__FileDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__file_decoder_process_whole_file(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_finish()... ");
 	(void) FLAC__file_decoder_finish(decoder);
 	printf("OK\n");
 
-	return true;;
+	return true;
 }
 
-FLAC__bool test_file_decoder()
+static FLAC__bool test_file_decoder()
 {
 	FLAC__FileDecoder *decoder;
 	FLAC__FileDecoderState state;
@@ -1736,52 +1529,38 @@ FLAC__bool test_file_decoder()
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_write_callback()... ");
-	if(!FLAC__file_decoder_set_write_callback(decoder, file_decoder_write_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_write_callback(decoder, file_decoder_write_callback_))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_callback()... ");
-	if(!FLAC__file_decoder_set_metadata_callback(decoder, file_decoder_metadata_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_callback(decoder, file_decoder_metadata_callback_))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_error_callback()... ");
-	if(!FLAC__file_decoder_set_error_callback(decoder, file_decoder_error_callback_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_error_callback(decoder, file_decoder_error_callback_))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_client_data()... ");
-	if(!FLAC__file_decoder_set_client_data(decoder, &decoder_client_data)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_client_data(decoder, &decoder_client_data))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_filename()... ");
-	if(!FLAC__file_decoder_set_filename(decoder, flacfilename_)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_filename(decoder, flacfilename_))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_md5_checking()... ");
-	if(!FLAC__file_decoder_set_md5_checking(decoder, true)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_md5_checking(decoder, true))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_init()... ");
-	if((state = FLAC__file_decoder_init(decoder)) != FLAC__FILE_DECODER_OK) {
-		printf("FAILED, returned state = %u (%s)\n", state, FLAC__FileDecoderStateString[state]);
-		return false;
-	}
+	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK)
+		return die_f_(0, decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_get_state()... ");
@@ -1800,35 +1579,23 @@ FLAC__bool test_file_decoder()
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_process_metadata()... ");
-	if(!FLAC__file_decoder_process_metadata(decoder)) {
-		state = FLAC__file_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__FileDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__file_decoder_process_metadata(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_process_one_frame()... ");
-	if(!FLAC__file_decoder_process_one_frame(decoder)) {
-		state = FLAC__file_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__FileDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__file_decoder_process_one_frame(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_seek_absolute()... ");
-	if(!FLAC__file_decoder_seek_absolute(decoder, 0)) {
-		state = FLAC__file_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__FileDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__file_decoder_seek_absolute(decoder, 0))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_process_remaining_frames()... ");
-	if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
-		state = FLAC__file_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__FileDecoderStateString[state]);
-		return false;
-	}
+	if(!FLAC__file_decoder_process_remaining_frames(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_get_channels()... ");
@@ -1883,10 +1650,8 @@ FLAC__bool test_file_decoder()
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__file_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1898,40 +1663,34 @@ FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore VORBIS_COMMENT
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__file_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore(VORBIS_COMMENT)... ");
-	if(!FLAC__file_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1942,24 +1701,20 @@ FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__file_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!FLAC__file_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1969,24 +1724,20 @@ FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__file_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -1997,31 +1748,25 @@ FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION id of app#1 & app#2
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__file_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_application(of app block #2)... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_application(decoder, application2_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_application(decoder, application2_.data.application.id))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -2031,48 +1776,40 @@ FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond VORBIS_COMMENT
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_respond(VORBIS_COMMENT)... ");
-	if(!FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -2080,55 +1817,45 @@ FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!FLAC__file_decoder_set_metadata_respond_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION id of app#1 & app#2
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!FLAC__file_decoder_set_metadata_respond_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_application(of app block #2)... ");
-	if(!FLAC__file_decoder_set_metadata_respond_application(decoder, application2_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_application(decoder, application2_.data.application.id))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -2136,31 +1863,25 @@ FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * respond all, ignore APPLICATION, respond APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!FLAC__file_decoder_set_metadata_respond_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!FLAC__file_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!FLAC__file_decoder_set_metadata_respond_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
@@ -2171,38 +1892,32 @@ FLAC__bool test_file_decoder()
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/*
 	 * ignore all, respond APPLICATION, ignore APPLICATION id of app#1
 	 */
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_all(decoder))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	printf("testing FLAC__file_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!FLAC__file_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id)) {
-		printf("FAILED, returned false\n");
-		return false;
-	}
+	if(!FLAC__file_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
+		return die_f_("returned false", decoder);
 	printf("OK\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
 	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return 1;
+		return false;
 
 	/* done, now leave the sequence the way we found it... */
 	num_expected_ = 0;
@@ -2219,52 +1934,26 @@ FLAC__bool test_file_decoder()
 
 	printf("\nPASSED!\n");
 
-	printf("\nPASSED!\n");
-
 	return true;
 }
 
-int test_decoders()
+FLAC__bool test_decoders()
 {
 	init_metadata_blocks_();
 	if(!generate_file_())
-		return 1;
+		return false;
 
 	if(!test_stream_decoder())
-		return 1;
+		return false;
 
 	if(!test_seekable_stream_decoder())
-		return 1;
+		return false;
 
 	if(!test_file_decoder())
-		return 1;
+		return false;
 
 	(void) file_utils__remove_file(flacfilename_);
 	free_metadata_blocks_();
 
-	return 0;
+	return true;
 }
-#if 0
-typedef enum {
-    FLAC__FILE_DECODER_OK = 0,
-	FLAC__FILE_DECODER_END_OF_FILE,
-    FLAC__FILE_DECODER_ERROR_OPENING_FILE,
-    FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR,
-	FLAC__FILE_DECODER_SEEK_ERROR,
-	FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR,
-    FLAC__FILE_DECODER_ALREADY_INITIALIZED,
-    FLAC__FILE_DECODER_INVALID_CALLBACK,
-    FLAC__FILE_DECODER_UNINITIALIZED
-} FLAC__FileDecoderState;
-extern const char *FLAC__FileDecoderStateString[];
-
-/*
- * Methods for decoding the data
- */
-FLAC__bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder);
-FLAC__bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder);
-FLAC__bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder);
-FLAC__bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder);
-
-FLAC__bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, FLAC__uint64 sample);
-#endif

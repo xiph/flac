@@ -494,7 +494,7 @@
 				F59E59BF01972D3E01A8006D,
 			);
 			isa = PBXGroup;
-			path = test_unit;
+			path = test_libFLAC;
 			refType = 4;
 		};
 		F59E59BD01972D3E01A8006D = {
@@ -1061,7 +1061,7 @@
 		};
 		F5F561EF019B58E101A8006D = {
 			isa = PBXExecutableFileReference;
-			path = test_unit;
+			path = test_libFLAC;
 			refType = 3;
 		};
 		F5F561F0019B58E101A8006D = {
@@ -1139,7 +1139,7 @@
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
-				PRODUCT_NAME = test_unit;
+				PRODUCT_NAME = test_libFLAC;
 				REZ_EXECUTABLE = YES;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
@@ -1147,9 +1147,9 @@
 			dependencies = (
 			);
 			isa = PBXToolTarget;
-			name = test_unit;
+			name = test_libFLAC;
 			productInstallPath = /usr/local/bin;
-			productName = test_unit;
+			productName = test_libFLAC;
 			productReference = F5F561EF019B58E101A8006D;
 			shouldUseHeadermap = 0;
 		};

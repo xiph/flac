@@ -136,7 +136,7 @@ namespace FLAC {
 			return (bool)::FLAC__stream_encoder_set_total_samples_estimate(encoder_, value);
 		}
 
-		bool Stream::set_metadata(FLAC__StreamMetaData **metadata, unsigned num_blocks)
+		bool Stream::set_metadata(::FLAC__StreamMetaData **metadata, unsigned num_blocks)
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__stream_encoder_set_metadata(encoder_, metadata, num_blocks);
@@ -241,9 +241,9 @@ namespace FLAC {
 		Stream::State Stream::init()
 		{
 			FLAC__ASSERT(is_valid());
-			FLAC__stream_encoder_set_write_callback(encoder_, write_callback_);
-			FLAC__stream_encoder_set_metadata_callback(encoder_, metadata_callback_);
-			FLAC__stream_encoder_set_client_data(encoder_, (void*)this);
+			::FLAC__stream_encoder_set_write_callback(encoder_, write_callback_);
+			::FLAC__stream_encoder_set_metadata_callback(encoder_, metadata_callback_);
+			::FLAC__stream_encoder_set_client_data(encoder_, (void*)this);
 			return State(::FLAC__stream_encoder_init(encoder_));
 		}
 
@@ -253,16 +253,16 @@ namespace FLAC {
 			::FLAC__stream_encoder_finish(encoder_);
 		}
 
-		bool Stream::process(const FLAC__int32 *buf[], unsigned samples)
+		bool Stream::process(const FLAC__int32 * const buffer[], unsigned samples)
 		{
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__stream_encoder_process(encoder_, buf, samples);
+			return (bool)::FLAC__stream_encoder_process(encoder_, buffer, samples);
 		}
 
-		bool Stream::process_interleaved(const FLAC__int32 buf[], unsigned samples)
+		bool Stream::process_interleaved(const FLAC__int32 buffer[], unsigned samples)
 		{
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__stream_encoder_process_interleaved(encoder_, buf, samples);
+			return (bool)::FLAC__stream_encoder_process_interleaved(encoder_, buffer, samples);
 		}
 
 		::FLAC__StreamEncoderWriteStatus Stream::write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)

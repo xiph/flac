@@ -1,4 +1,4 @@
-/* test_unit - Simple FLAC unit tester
+/* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -27,7 +27,7 @@ static FLAC__byte *make_dummydata_(FLAC__byte *dummydata, unsigned len)
 {
 	FLAC__byte *ret;
 
-	if(0 == (ret = malloc(len))) {
+	if(0 == (ret = (FLAC__byte*)malloc(len))) {
 		printf("FAILED, malloc error\n");
 		exit(1);
 	}
@@ -92,14 +92,14 @@ static FLAC__bool check_seektable_(const FLAC__StreamMetaData *block, unsigned n
 static void entry_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, const char *field)
 {
 	entry->length = strlen(field);
-	entry->entry = malloc(entry->length);
+	entry->entry = (FLAC__byte*)malloc(entry->length);
 	FLAC__ASSERT(0 != entry->entry);	
 	memcpy(entry->entry, field, entry->length);
 }
 
 static void entry_clone_(FLAC__StreamMetaData_VorbisComment_Entry *entry)
 {
-	FLAC__byte *x = malloc(entry->length);
+	FLAC__byte *x = (FLAC__byte*)malloc(entry->length);
 	FLAC__ASSERT(0 != x);	
 	memcpy(x, entry->entry, entry->length);
 	entry->entry = x;
@@ -140,7 +140,7 @@ static void vc_resize_(FLAC__StreamMetaData *block, unsigned num)
 		}
 	}
 	else {
-		vc->comments = realloc(vc->comments, sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*num);
+		vc->comments = (FLAC__StreamMetaData_VorbisComment_Entry*)realloc(vc->comments, sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*num);
 		FLAC__ASSERT(0 != vc->comments);
 		if(num > vc->num_comments)
 			memset(vc->comments+vc->num_comments, 0, sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*(num-vc->num_comments));
@@ -183,7 +183,7 @@ static void vc_delete_(FLAC__StreamMetaData *block, unsigned pos)
 	vc_calc_len_(block);
 }
 
-int test_metadata_object()
+FLAC__bool test_metadata_object()
 {
 	FLAC__StreamMetaData *block, *blockcopy, *vorbiscomment;
 	FLAC__StreamMetaData_SeekPoint seekpoint_array[4];
@@ -200,12 +200,12 @@ int test_metadata_object()
 	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_STREAMINFO);
 	if(0 == block) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	expected_length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
+		return false;
     }
 	printf("OK\n");
 
@@ -213,10 +213,10 @@ int test_metadata_object()
 	blockcopy = FLAC__metadata_object_copy(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(block, blockcopy))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -231,12 +231,12 @@ int test_metadata_object()
 	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
 	if(0 == block) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	expected_length = 0;
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
+		return false;
     }
 	printf("OK\n");
 
@@ -244,10 +244,10 @@ int test_metadata_object()
 	blockcopy = FLAC__metadata_object_copy(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(block, blockcopy))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -262,12 +262,12 @@ int test_metadata_object()
 	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_APPLICATION);
 	if(0 == block) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	expected_length = FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8;
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
+		return false;
     }
 	printf("OK\n");
 
@@ -275,10 +275,10 @@ int test_metadata_object()
 	blockcopy = FLAC__metadata_object_copy(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(block, blockcopy))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -288,16 +288,16 @@ int test_metadata_object()
 	printf("testing FLAC__metadata_object_application_set_data(copy)... ");
 	if(!FLAC__metadata_object_application_set_data(block, dummydata, sizeof(dummydata), true/*copy*/)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	expected_length = (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8) + sizeof(dummydata);
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
+		return false;
 	}
 	if(0 != memcmp(block->data.application.data, dummydata, sizeof(dummydata))) {
 		printf("FAILED, data mismatch\n");
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 
@@ -305,10 +305,10 @@ int test_metadata_object()
 	blockcopy = FLAC__metadata_object_copy(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(block, blockcopy))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -318,16 +318,16 @@ int test_metadata_object()
 	printf("testing FLAC__metadata_object_application_set_data(own)... ");
 	if(!FLAC__metadata_object_application_set_data(block, make_dummydata_(dummydata, sizeof(dummydata)), sizeof(dummydata), false/*own*/)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	expected_length = (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8) + sizeof(dummydata);
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
+		return false;
 	}
 	if(0 != memcmp(block->data.application.data, dummydata, sizeof(dummydata))) {
 		printf("FAILED, data mismatch\n");
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 
@@ -335,10 +335,10 @@ int test_metadata_object()
 	blockcopy = FLAC__metadata_object_copy(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(block, blockcopy))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -360,19 +360,19 @@ int test_metadata_object()
 	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
 	if(0 == block) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, 0))
-		return 1;
+		return false;
 
 	printf("testing FLAC__metadata_object_copy()... ");
 	blockcopy = FLAC__metadata_object_copy(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(block, blockcopy))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -383,24 +383,24 @@ int test_metadata_object()
 	printf("testing FLAC__metadata_object_seektable_resize_points(grow to %u)...", seekpoints);
 	if(!FLAC__metadata_object_seektable_resize_points(block, seekpoints)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
-		return 1;
+		return false;
 
 	seekpoints = 1;
 	printf("testing FLAC__metadata_object_seektable_resize_points(shrink to %u)...", seekpoints);
 	if(!FLAC__metadata_object_seektable_resize_points(block, seekpoints)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
-		return 1;
+		return false;
 
 	printf("testing FLAC__metadata_object_seektable_is_legal()...");
 	if(!FLAC__metadata_object_seektable_is_legal(block)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 
@@ -408,58 +408,58 @@ int test_metadata_object()
 	printf("testing FLAC__metadata_object_seektable_resize_points(shrink to %u)...", seekpoints);
 	if(!FLAC__metadata_object_seektable_resize_points(block, seekpoints)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, 0))
-		return 1;
+		return false;
 
 	seekpoints++;
 	printf("testing FLAC__metadata_object_seektable_insert_point() on empty array...");
 	if(!FLAC__metadata_object_seektable_insert_point(block, 0, seekpoint_array[0])) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
-		return 1;
+		return false;
 
 	seekpoint_array[0].sample_number = 1;
 	seekpoints++;
 	printf("testing FLAC__metadata_object_seektable_insert_point() on beginning of non-empty array...");
 	if(!FLAC__metadata_object_seektable_insert_point(block, 0, seekpoint_array[0])) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
-		return 1;
+		return false;
 
 	seekpoint_array[1].sample_number = 2;
 	seekpoints++;
 	printf("testing FLAC__metadata_object_seektable_insert_point() on middle of non-empty array...");
 	if(!FLAC__metadata_object_seektable_insert_point(block, 1, seekpoint_array[1])) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
-		return 1;
+		return false;
 
 	seekpoint_array[3].sample_number = 3;
 	seekpoints++;
 	printf("testing FLAC__metadata_object_seektable_insert_point() on end of non-empty array...");
 	if(!FLAC__metadata_object_seektable_insert_point(block, 3, seekpoint_array[3])) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
-		return 1;
+		return false;
 
 	printf("testing FLAC__metadata_object_copy()... ");
 	blockcopy = FLAC__metadata_object_copy(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(block, blockcopy))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -471,33 +471,33 @@ int test_metadata_object()
 	printf("testing FLAC__metadata_object_seektable_delete_point() on middle of array...");
 	if(!FLAC__metadata_object_seektable_delete_point(block, 2)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
-		return 1;
+		return false;
 
 	seekpoints--;
 	printf("testing FLAC__metadata_object_seektable_delete_point() on end of array...");
 	if(!FLAC__metadata_object_seektable_delete_point(block, 2)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
-		return 1;
+		return false;
 
 	seekpoints--;
 	printf("testing FLAC__metadata_object_seektable_delete_point() on beginning of array...");
 	if(!FLAC__metadata_object_seektable_delete_point(block, 0)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array+1))
-		return 1;
+		return false;
 
 	printf("testing FLAC__metadata_object_seektable_set_point()...");
 	FLAC__metadata_object_seektable_set_point(block, 0, seekpoint_array[0]);
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
-		return 1;
+		return false;
 
 
 
@@ -507,12 +507,12 @@ int test_metadata_object()
 	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	if(0 == block) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	expected_length = (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN + FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8;
 	if(block->length != expected_length) {
 		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length);
-		return 1;
+		return false;
     }
 	printf("OK\n");
 
@@ -520,90 +520,90 @@ int test_metadata_object()
 	vorbiscomment = FLAC__metadata_object_copy(block);
 	if(0 == vorbiscomment) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	vc_resize_(vorbiscomment, 2);
 	printf("testing FLAC__metadata_object_vorbiscomment_resize_comments(grow to %u)...", vorbiscomment->data.vorbis_comment.num_comments);
 	if(!FLAC__metadata_object_vorbiscomment_resize_comments(block, vorbiscomment->data.vorbis_comment.num_comments)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	vc_resize_(vorbiscomment, 1);
 	printf("testing FLAC__metadata_object_vorbiscomment_resize_comments(shrink to %u)...", vorbiscomment->data.vorbis_comment.num_comments);
 	if(!FLAC__metadata_object_vorbiscomment_resize_comments(block, vorbiscomment->data.vorbis_comment.num_comments)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	vc_resize_(vorbiscomment, 0);
 	printf("testing FLAC__metadata_object_vorbiscomment_resize_comments(shrink to %u)...", vorbiscomment->data.vorbis_comment.num_comments);
 	if(!FLAC__metadata_object_vorbiscomment_resize_comments(block, vorbiscomment->data.vorbis_comment.num_comments)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(copy) on empty array...");
 	vc_insert_new_(&entry, vorbiscomment, 0, "name1=field1");
 	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 0, entry, /*copy=*/true)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(copy) on beginning of non-empty array...");
 	vc_insert_new_(&entry, vorbiscomment, 0, "name2=field2");
 	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 0, entry, /*copy=*/true)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(copy) on middle of non-empty array...");
 	vc_insert_new_(&entry, vorbiscomment, 1, "name3=field3");
 	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 1, entry, /*copy=*/true)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(copy) on end of non-empty array...");
 	vc_insert_new_(&entry, vorbiscomment, 3, "name4=field4");
 	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 3, entry, /*copy=*/true)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_copy()... ");
 	blockcopy = FLAC__metadata_object_copy(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(block, blockcopy))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -614,44 +614,44 @@ int test_metadata_object()
 	vc_delete_(vorbiscomment, 2);
 	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 2)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on end of array...");
 	vc_delete_(vorbiscomment, 2);
 	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 2)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on beginning of array...");
 	vc_delete_(vorbiscomment, 0);
 	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 0)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_set_comment(copy)...");
 	vc_set_new_(&entry, vorbiscomment, 0, "name5=field5");
 	FLAC__metadata_object_vorbiscomment_set_comment(block, 0, entry, /*copy=*/true);
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_set_vendor_string(copy)...");
 	vc_set_vs_new_(&entry, vorbiscomment, "name6=field6");
 	FLAC__metadata_object_vorbiscomment_set_vendor_string(block, entry, /*copy=*/true);
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -664,7 +664,7 @@ int test_metadata_object()
 	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	if(0 == block) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 
@@ -672,10 +672,10 @@ int test_metadata_object()
 	vorbiscomment = FLAC__metadata_object_copy(block);
 	if(0 == vorbiscomment) {
 		printf("FAILED, returned NULL\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(own) on empty array...");
@@ -683,10 +683,10 @@ int test_metadata_object()
 	entry_clone_(&entry);
 	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 0, entry, /*copy=*/false)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(own) on beginning of non-empty array...");
@@ -694,10 +694,10 @@ int test_metadata_object()
 	entry_clone_(&entry);
 	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 0, entry, /*copy=*/false)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(own) on middle of non-empty array...");
@@ -705,10 +705,10 @@ int test_metadata_object()
 	entry_clone_(&entry);
 	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 1, entry, /*copy=*/false)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_insert_comment(own) on end of non-empty array...");
@@ -716,40 +716,40 @@ int test_metadata_object()
 	entry_clone_(&entry);
 	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, 3, entry, /*copy=*/false)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on middle of array...");
 	vc_delete_(vorbiscomment, 2);
 	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 2)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on end of array...");
 	vc_delete_(vorbiscomment, 2);
 	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 2)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_delete_comment() on beginning of array...");
 	vc_delete_(vorbiscomment, 0);
 	if(!FLAC__metadata_object_vorbiscomment_delete_comment(block, 0)) {
 		printf("FAILED, returned false\n");
-		return 1;
+		return false;
 	}
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_set_comment(own)...");
@@ -757,7 +757,7 @@ int test_metadata_object()
 	entry_clone_(&entry);
 	FLAC__metadata_object_vorbiscomment_set_comment(block, 0, entry, /*copy=*/false);
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_vorbiscomment_set_vendor_string(own)...");
@@ -765,7 +765,7 @@ int test_metadata_object()
 	entry_clone_(&entry);
 	FLAC__metadata_object_vorbiscomment_set_vendor_string(block, entry, /*copy=*/false);
 	if(!compare_block_(vorbiscomment, block))
-		return 1;
+		return false;
 	printf("OK\n");
 
 	printf("testing FLAC__metadata_object_delete()... ");
@@ -774,60 +774,5 @@ int test_metadata_object()
 	printf("OK\n");
 
 
-	return 0;
+	return true;
 }
-
-#if 0
-int test_metadata_object_pp()
-{
-	FLAC::Metadata::Prototype *block, *blockcopy;
-	FLAC__StreamMetaData_SeekPoint *seekpoint_array, *seekpoint_array_copy;
-	FLAC__StreamMetaData_VorbisComment_Entry *vorbiscomment_entry_array, *vorbiscomment_entry_array_copy;
-	unsigned expected_length;
-	static FLAC__byte dummydata[4] = { 'a', 'b', 'c', 'd' };
-
-	printf("\n+++ unit test: metadata objects (libFLAC++)\n\n");
-
-
-	printf("testing STREAMINFO\n");
-
-	printf("testing FLAC::Metadata::StreamInfo::StreamInfo()... ");
-	block = new FLAC::Metadata::StreamInfo();
-	if(0 == block) {
-		printf("FAILED, new returned NULL\n");
-		return 1;
-	}
-	if(!block->is_valid()) {
-		printf("FAILED, !block->is_valid()\n");
-		return 1;
-	}
-	if(block->is_valid() != *block) {
-		printf("FAILED, FLAC::Metadata::Prototype::operator bool() is broken\n");
-		return 1;
-	}
-	expected_length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
-	if(block->length() != expected_length) {
-		printf("FAILED, bad length, expected %u, got %u\n", expected_length, block->length());
-		return 1;
-    }
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = new FLAC::Metadata::StreamInfo(block);
-	if(0 == blockcopy) {
-		printf("FAILED, new returned NULL\n");
-		return 1;
-	}
-	if(!compare_block_(block, blockcopy))
-		return 1;
-	printf("OK\n");
-
-	printf("testing FLAC__metadata_object_delete()... ");
-	FLAC__metadata_object_delete(blockcopy);
-	FLAC__metadata_object_delete(block);
-	printf("OK\n");
-
-
-	return 0;
-}
-#endif

@@ -1,4 +1,4 @@
-/* test_libFLAC - Unit tester for libFLAC
+/* test_libFLAC++ - Unit tester for libFLAC++
  * Copyright (C) 2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -16,21 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "metadata.h"
-#include <stdio.h>
+#ifndef FLAC__TEST_LIBFLACPP_ENCODERS_H
+#define FLAC__TEST_LIBFLACPP_ENCODERS_H
 
-extern int test_metadata_object();
-extern int test_metadata_file_manipulation();
+bool test_encoders();
 
-FLAC__bool test_metadata()
-{
-	if(!test_metadata_object())
-		return false;
-
-	if(!test_metadata_file_manipulation())
-		return false;
-
-	printf("\nPASSED!\n");
-
-	return true;
-}
+#endif

@@ -1,4 +1,4 @@
-/* test_unit - Simple FLAC unit tester
+/* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2000,2001,2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -47,7 +47,7 @@ static FLAC__bool dummy_read_callback(FLAC__byte buffer[], unsigned *bytes, void
 	return true;
 }
 
-int test_bitbuffer()
+FLAC__bool test_bitbuffer()
 {
 	FLAC__BitBuffer *bb, *bb_zero, *bb_one, *bbcopy;
 	FLAC__bool ok;
@@ -74,13 +74,13 @@ int test_bitbuffer()
 	ok = FLAC__bitbuffer_clear(bb) && FLAC__bitbuffer_clear(bb_zero) && FLAC__bitbuffer_clear(bb_one) && FLAC__bitbuffer_clear(bbcopy);
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok)
-		return 1;
+		return false;
 
 	printf("setting up bb_one... ");
 	ok = FLAC__bitbuffer_write_raw_uint32(bb_one, 1, 7) && FLAC__bitbuffer_read_raw_uint32(bb_one, &i, 6, dummy_read_callback, 0);
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok)
-		return 1;
+		return false;
 	FLAC__bitbuffer_dump(bb_one, stdout);
 
 	printf("capacity = %u\n", bb->capacity);
@@ -103,27 +103,27 @@ int test_bitbuffer()
 	if(!ok) {
 		printf("FAILED\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)) {
 		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1));
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->bits != 0) {
 		printf("FAILED bit count %u != 0\n", bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->total_bits != 8*bb->blurbs+bb->bits) {
 		printf("FAILED total_bits count %u != %u (%u:%u)\n", bb->total_bits, 8*bb->blurbs+bb->bits, bb->blurbs, bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(memcmp(bb->buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 	FLAC__bitbuffer_dump(bb, stdout);
@@ -133,27 +133,27 @@ int test_bitbuffer()
 	if(!ok) {
 		printf("FAILED\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)) {
 		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1));
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->bits != 6) {
 		printf("FAILED bit count %u != 6\n", bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->total_bits != 8*bb->blurbs+bb->bits) {
 		printf("FAILED total_bits count %u != %u (%u:%u)\n", bb->total_bits, 8*bb->blurbs+bb->bits, bb->blurbs, bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(memcmp(bb->buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb->buffer[bb->blurbs] != 0x3d) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 	FLAC__bitbuffer_dump(bb, stdout);
@@ -163,27 +163,27 @@ int test_bitbuffer()
 	if(!ok) {
 		printf("FAILED\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)) {
 		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1));
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->bits != 6) {
 		printf("FAILED bit count %u != 6\n", bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->total_bits != 8*bb->blurbs+bb->bits) {
 		printf("FAILED total_bits count %u != %u (%u:%u)\n", bb->total_bits, 8*bb->blurbs+bb->bits, bb->blurbs, bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(memcmp(bb->buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb->buffer[bb->blurbs] != 0x3d) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 	FLAC__bitbuffer_dump(bb, stdout);
@@ -193,27 +193,27 @@ int test_bitbuffer()
 	if(!ok) {
 		printf("FAILED\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)) {
 		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1));
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->bits != 7) {
 		printf("FAILED bit count %u != 7\n", bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->total_bits != 8*bb->blurbs+bb->bits) {
 		printf("FAILED total_bits count %u != %u (%u:%u)\n", bb->total_bits, 8*bb->blurbs+bb->bits, bb->blurbs, bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(memcmp(bb->buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb->buffer[bb->blurbs] != 0x7b) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 	FLAC__bitbuffer_dump(bb, stdout);
@@ -225,27 +225,27 @@ int test_bitbuffer()
 	if(!ok) {
 		printf("FAILED\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)+1) {
 		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1)+1);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->bits != 0) {
 		printf("FAILED bit count %u != 0\n", bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->total_bits != 8*bb->blurbs+bb->bits) {
 		printf("FAILED total_bits count %u != %u (%u:%u)\n", bb->total_bits, 8*bb->blurbs+bb->bits, bb->blurbs, bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(memcmp(bb->buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb->buffer[bb->blurbs-1] != 0xf7) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 	FLAC__bitbuffer_dump(bb, stdout);
@@ -257,27 +257,27 @@ int test_bitbuffer()
 	if(!ok) {
 		printf("FAILED\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)+1) {
 		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1)+1);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->bits != 4) {
 		printf("FAILED bit count %u != 4\n", bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->total_bits != 8*bb->blurbs+bb->bits) {
 		printf("FAILED total_bits count %u != %u (%u:%u)\n", bb->total_bits, 8*bb->blurbs+bb->bits, bb->blurbs, bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(memcmp(bb->buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb->buffer[bb->blurbs] != 0x08) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 	FLAC__bitbuffer_dump(bb, stdout);
@@ -289,27 +289,27 @@ int test_bitbuffer()
 	if(!ok) {
 		printf("FAILED\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)+2) {
 		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1)+2);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->bits != 4) {
 		printf("FAILED bit count %u != 4\n", bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->total_bits != 8*bb->blurbs+bb->bits) {
 		printf("FAILED total_bits count %u != %u (%u:%u)\n", bb->total_bits, 8*bb->blurbs+bb->bits, bb->blurbs, bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(memcmp(bb->buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb->buffer[bb->blurbs-1] != 0x8a || bb->buffer[bb->blurbs] != 0x0a) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 	FLAC__bitbuffer_dump(bb, stdout);
@@ -320,27 +320,27 @@ int test_bitbuffer()
 	if(!ok) {
 		printf("FAILED\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->blurbs != sizeof(test_pattern1)+4) {
 		printf("FAILED byte count %u != %u\n", bb->blurbs, sizeof(test_pattern1)+4);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->bits != 5) {
 		printf("FAILED bit count %u != 5\n", bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->total_bits != 8*bb->blurbs+bb->bits) {
 		printf("FAILED total_bits count %u != %u (%u:%u)\n", bb->total_bits, 8*bb->blurbs+bb->bits, bb->blurbs, bb->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	if(memcmp(bb->buffer, test_pattern1, sizeof(FLAC__byte)*sizeof(test_pattern1)) != 0 || bb->buffer[bb->blurbs-3] != 0x8a || bb->buffer[bb->blurbs-2] != 0xaa || bb->buffer[bb->blurbs-1] != 0xaa || bb->buffer[bb->blurbs] != 0x15) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 	FLAC__bitbuffer_dump(bb, stdout);
@@ -352,7 +352,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x0000007F)... ");
@@ -362,7 +362,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x00000080)... ");
@@ -372,7 +372,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x000007FF)... ");
@@ -382,7 +382,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x00000800)... ");
@@ -392,7 +392,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x0000FFFF)... ");
@@ -402,7 +402,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x00010000)... ");
@@ -412,7 +412,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x001FFFFF)... ");
@@ -422,7 +422,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x00200000)... ");
@@ -432,7 +432,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x03FFFFFF)... ");
@@ -442,7 +442,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x04000000)... ");
@@ -452,7 +452,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint32(0x7FFFFFFF)... ");
@@ -462,7 +462,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x0000000000000000)... ");
@@ -472,7 +472,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x000000000000007F)... ");
@@ -482,7 +482,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x0000000000000080)... ");
@@ -492,7 +492,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x00000000000007FF)... ");
@@ -502,7 +502,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x0000000000000800)... ");
@@ -512,7 +512,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x000000000000FFFF)... ");
@@ -522,7 +522,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x0000000000010000)... ");
@@ -532,7 +532,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x00000000001FFFFF)... ");
@@ -542,7 +542,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x0000000000200000)... ");
@@ -552,7 +552,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x0000000003FFFFFF)... ");
@@ -562,7 +562,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x0000000004000000)... ");
@@ -572,7 +572,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x000000007FFFFFFF)... ");
@@ -582,7 +582,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x0000000080000000)... ");
@@ -592,7 +592,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing utf8_uint64(0x0000000FFFFFFFFF)... ");
@@ -602,7 +602,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 
 	printf("testing grow... ");
@@ -615,7 +615,7 @@ int test_bitbuffer()
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
 		FLAC__bitbuffer_dump(bb, stdout);
-		return 1;
+		return false;
 	}
 	printf("capacity = %u\n", bb->capacity);
 
@@ -625,31 +625,31 @@ int test_bitbuffer()
 		printf("FAILED\n");
 		FLAC__bitbuffer_dump(bb, stdout);
 		FLAC__bitbuffer_dump(bbcopy, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->blurbs != bbcopy->blurbs) {
 		printf("FAILED byte count %u != %u\n", bb->blurbs, bbcopy->blurbs);
 		FLAC__bitbuffer_dump(bb, stdout);
 		FLAC__bitbuffer_dump(bbcopy, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->bits != bbcopy->bits) {
 		printf("FAILED bit count %u != %u\n", bb->bits, bbcopy->bits);
 		FLAC__bitbuffer_dump(bb, stdout);
 		FLAC__bitbuffer_dump(bbcopy, stdout);
-		return 1;
+		return false;
 	}
 	if(bb->total_bits != bbcopy->total_bits) {
 		printf("FAILED total_bits count %u != %u\n", bb->total_bits, bbcopy->total_bits);
 		FLAC__bitbuffer_dump(bb, stdout);
 		FLAC__bitbuffer_dump(bbcopy, stdout);
-		return 1;
+		return false;
 	}
 	if(memcmp(bb->buffer, bbcopy->buffer, sizeof(FLAC__byte)*bb->capacity) != 0) {
 		printf("FAILED pattern match\n");
 		FLAC__bitbuffer_dump(bb, stdout);
 		FLAC__bitbuffer_dump(bbcopy, stdout);
-		return 1;
+		return false;
 	}
 	printf("OK\n");
 
@@ -658,5 +658,5 @@ int test_bitbuffer()
 	FLAC__bitbuffer_free(bbcopy);
 
 	printf("\nPASSED!\n");
-	return 0;
+	return true;
 }

@@ -1,0 +1,73 @@
+#  test_libFLAC++ - Unit tester for libFLAC++
+#  Copyright (C) 2002  Josh Coalson
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+!include <win32.mak>
+
+SUFFIXES = .cpp
+
+!IFDEF DEBUG
+.c.obj:
+	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3\" -YX /Od /D "_DEBUG" $<
+!else
+.c.obj:
+	$(cc) /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0.3\" -YX -DNODEBUG $<
+!endif
+
+!IFDEF DEBUG
+.cc.obj:
+	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+!else
+.cc.obj:
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
+!endif
+
+C_FILES= \
+	file_utils.c
+
+CC_FILES= \
+	decoders.cc \
+	encoders.cc \
+	main.cc \
+	metadata.cc \
+	metadata_manip.cc \
+	metadata_object.cc
+
+OBJS= $(C_FILES:.c=.obj)
+OBJS= $(CC_FILES:.cc=.obj)
+
+# can't figure out how to get it to take .cc so we just hack it for now:
+decoders.obj: decoders.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP decoders.cc
+encoders.obj: encoders.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP encoders.cc
+main.obj: main.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP main.cc
+metadata.obj: metadata.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata.cc
+metadata_manip.obj: metadata_manip.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata_manip.cc
+metadata_object.obj: metadata_object.cc
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG /TP metadata_object.cc
+
+all: test_libFLAC++.exe
+
+test_libFLAC++.exe: $(OBJS)
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) libFLAC++.lib libFLAC.lib
+
+clean:
+	-del *.obj *.pch
+	-del ..\..\obj\bin\test_libFLAC++.exe

@@ -19,4 +19,4 @@ if FLaC__HAS_XMMS
 XMMS_DIRS = plugin_xmms
 endif
 
-SUBDIRS = libFLAC libFLAC++ share flac metaflac $(XMMS_DIRS) test_streams test_unit
+SUBDIRS = libFLAC libFLAC++ share flac metaflac $(XMMS_DIRS) test_libFLAC test_libFLAC++ test_streams

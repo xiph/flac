@@ -40,27 +40,27 @@ typedef enum {
 	FLAC__STREAM_DECODER_INVALID_CALLBACK,
 	FLAC__STREAM_DECODER_UNINITIALIZED
 } FLAC__StreamDecoderState;
-extern const char *FLAC__StreamDecoderStateString[];
+extern const char * const FLAC__StreamDecoderStateString[];
 
 typedef enum {
 	FLAC__STREAM_DECODER_READ_STATUS_CONTINUE,
 	FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM,
 	FLAC__STREAM_DECODER_READ_STATUS_ABORT
 } FLAC__StreamDecoderReadStatus;
-extern const char *FLAC__StreamDecoderReadStatusString[];
+extern const char * const FLAC__StreamDecoderReadStatusString[];
 
 typedef enum {
 	FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE,
 	FLAC__STREAM_DECODER_WRITE_STATUS_ABORT
 } FLAC__StreamDecoderWriteStatus;
-extern const char *FLAC__StreamDecoderWriteStatusString[];
+extern const char * const FLAC__StreamDecoderWriteStatusString[];
 
 typedef enum {
 	FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC,
 	FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER,
 	FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH
 } FLAC__StreamDecoderErrorStatus;
-extern const char *FLAC__StreamDecoderErrorStatusString[];
+extern const char * const FLAC__StreamDecoderErrorStatusString[];
 
 /***********************************************************************
  *
@@ -121,7 +121,7 @@ void FLAC__stream_decoder_delete(FLAC__StreamDecoder *);
 @@@@ update defaults above and in documentation.html about the metadata_respond/ignore defaults
  */
 FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadStatus (*value)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));
-FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
+FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data));
 FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
 FLAC__bool FLAC__stream_decoder_set_error_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
 FLAC__bool FLAC__stream_decoder_set_client_data(FLAC__StreamDecoder *decoder, void *value);

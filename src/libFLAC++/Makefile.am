@@ -17,12 +17,12 @@
 #  Boston, MA  02111-1307, USA.
 
 lib_LTLIBRARIES = libFLAC++.la
-CFLAGS = @CFLAGS@
+CXXFLAGS = @CXXFLAGS@
 
-#@@@@ fix this
-libFLAC++_la_LDFLAGS = -version-info 2:1:1
+# see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
+libFLAC___la_LDFLAGS = -version-info 1:0:0
 
-libFLAC++_la_SOURCES = \
+libFLAC___la_SOURCES = \
 	file_decoder.cc \
 	metadata.cc \
 	seekable_stream_decoder.cc \

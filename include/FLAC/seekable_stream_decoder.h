@@ -39,31 +39,31 @@ typedef enum {
     FLAC__SEEKABLE_STREAM_DECODER_INVALID_CALLBACK,
     FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED
 } FLAC__SeekableStreamDecoderState;
-extern const char *FLAC__SeekableStreamDecoderStateString[];
+extern const char * const FLAC__SeekableStreamDecoderStateString[];
 
 typedef enum {
 	FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK,
 	FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR
 } FLAC__SeekableStreamDecoderReadStatus;
-extern const char *FLAC__SeekableStreamDecoderReadStatusString[];
+extern const char * const FLAC__SeekableStreamDecoderReadStatusString[];
 
 typedef enum {
 	FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK,
 	FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR
 } FLAC__SeekableStreamDecoderSeekStatus;
-extern const char *FLAC__SeekableStreamDecoderSeekStatusString[];
+extern const char * const FLAC__SeekableStreamDecoderSeekStatusString[];
 
 typedef enum {
 	FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK,
 	FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR
 } FLAC__SeekableStreamDecoderTellStatus;
-extern const char *FLAC__SeekableStreamDecoderTellStatusString[];
+extern const char * const FLAC__SeekableStreamDecoderTellStatusString[];
 
 typedef enum {
 	FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_OK,
 	FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR
 } FLAC__SeekableStreamDecoderLengthStatus;
-extern const char *FLAC__SeekableStreamDecoderLengthStatusString[];
+extern const char * const FLAC__SeekableStreamDecoderLengthStatusString[];
 
 /***********************************************************************
  *
@@ -134,7 +134,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamD
 FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderTellStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data));
 FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderLengthStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data));
 FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__bool (*value)(const FLAC__SeekableStreamDecoder *decoder, void *client_data));
-FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data));
 FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
 FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
 FLAC__bool FLAC__seekable_stream_decoder_set_client_data(FLAC__SeekableStreamDecoder *decoder, void *value);

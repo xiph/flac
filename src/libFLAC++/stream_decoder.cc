@@ -174,7 +174,7 @@ namespace FLAC {
 			return instance->read_callback(buffer, bytes);
 		}
 
-		::FLAC__StreamDecoderWriteStatus Stream::write_callback_(const ::FLAC__StreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+		::FLAC__StreamDecoderWriteStatus Stream::write_callback_(const ::FLAC__StreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 		{
 			(void)decoder;
 			FLAC__ASSERT(0 != client_data);

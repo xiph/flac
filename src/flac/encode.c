@@ -111,11 +111,11 @@ static FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_req
 static void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, FLAC__uint64 sample, FLAC__uint64 stream_samples, FLAC__uint64 blocksize);
 static int seekpoint_compare(const FLAC__StreamMetaData_SeekPoint *l, const FLAC__StreamMetaData_SeekPoint *r);
 static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
-static void append_to_verify_fifo(encoder_wrapper_struct *encoder_wrapper, const FLAC__int32 *input[], unsigned channels, unsigned wide_samples);
+static void append_to_verify_fifo(encoder_wrapper_struct *encoder_wrapper, const FLAC__int32 * const input[], unsigned channels, unsigned wide_samples);
 static FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
-static FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const encoder_wrapper_struct *encoder_wrapper);
@@ -311,11 +311,9 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				 * first do any samples in the reservoir
 				 */
 				if(options.sector_align && *options.align_reservoir_samples > 0) {
-					/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-					append_to_verify_fifo(&encoder_wrapper, options.align_reservoir, channels, *options.align_reservoir_samples);
+					append_to_verify_fifo(&encoder_wrapper, (const FLAC__int32 * const *)options.align_reservoir, channels, *options.align_reservoir_samples);
 
-					/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-					if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, options.align_reservoir, *options.align_reservoir_samples)) {
+					if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)options.align_reservoir, *options.align_reservoir_samples)) {
 						fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
 						goto wav_abort_;
 					}
@@ -358,8 +356,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 							unsigned wide_samples = bytes_read / bytes_per_wide_sample;
 							format_input(input, wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
 
-							/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-							if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
+							if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)input, wide_samples)) {
 								fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
 								goto wav_abort_;
 							}
@@ -381,11 +378,9 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 							data_bytes = wide_samples * bytes_per_wide_sample;
 							for(channel = 0; channel < channels; channel++)
 								memset(input[channel], 0, data_bytes);
-							/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-							append_to_verify_fifo(&encoder_wrapper, input, channels, wide_samples);
+							append_to_verify_fifo(&encoder_wrapper, (const FLAC__int32 * const *)input, channels, wide_samples);
 
-							/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-							if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
+							if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)input, wide_samples)) {
 								fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
 								goto wav_abort_;
 							}
@@ -596,8 +591,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 			unsigned wide_samples = bytes_read / bytes_per_wide_sample;
 			format_input(input, wide_samples, options.is_big_endian, options.is_unsigned_samples, options.channels, options.bps, &encoder_wrapper);
 
-			/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-			if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
+			if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)input, wide_samples)) {
 				fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
 				goto raw_abort_;
 			}
@@ -960,16 +954,15 @@ void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_
 		FLAC__ASSERT(0);
 	}
 
-	/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-	append_to_verify_fifo(encoder_wrapper, dest, channels, wide_samples);
+	append_to_verify_fifo(encoder_wrapper, (const FLAC__int32 * const *)dest, channels, wide_samples);
 }
 
-void append_to_verify_fifo(encoder_wrapper_struct *encoder_wrapper, const FLAC__int32 *src[], unsigned channels, unsigned wide_samples)
+void append_to_verify_fifo(encoder_wrapper_struct *encoder_wrapper, const FLAC__int32 * const input[], unsigned channels, unsigned wide_samples)
 {
 	if(encoder_wrapper->verify) {
 		unsigned channel;
 		for(channel = 0; channel < channels; channel++)
-			memcpy(&encoder_wrapper->verify_fifo.original[channel][encoder_wrapper->verify_fifo.tail], src[channel], sizeof(FLAC__int32) * wide_samples);
+			memcpy(&encoder_wrapper->verify_fifo.original[channel][encoder_wrapper->verify_fifo.tail], input[channel], sizeof(FLAC__int32) * wide_samples);
 		encoder_wrapper->verify_fifo.tail += wide_samples;
 		FLAC__ASSERT(encoder_wrapper->verify_fifo.tail <= encoder_wrapper->verify_fifo.size);
 	}
@@ -1197,7 +1190,7 @@ FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *de
 	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 }
 
-FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	unsigned channel, l, r;

@@ -84,7 +84,7 @@ extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */;
 typedef enum {
 	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE = 0
 } FLAC__EntropyCodingMethodType;
-extern const char *FLAC__EntropyCodingMethodTypeString[];
+extern const char * const FLAC__EntropyCodingMethodTypeString[];
 
 /*****************************************************************************
  *
@@ -126,7 +126,7 @@ typedef enum {
 	FLAC__SUBFRAME_TYPE_FIXED = 2,
 	FLAC__SUBFRAME_TYPE_LPC = 3
 } FLAC__SubframeType;
-extern const char *FLAC__SubframeTypeString[];
+extern const char * const FLAC__SubframeTypeString[];
 
 /*****************************************************************************
  *
@@ -233,13 +233,13 @@ typedef enum {
 	FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE = 2,
 	FLAC__CHANNEL_ASSIGNMENT_MID_SIDE = 3
 } FLAC__ChannelAssignment;
-extern const char *FLAC__ChannelAssignmentString[];
+extern const char * const FLAC__ChannelAssignmentString[];
 
 typedef enum {
 	FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER,
 	FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER
 } FLAC__FrameNumberType;
-extern const char *FLAC__FrameNumberTypeString[];
+extern const char * const FLAC__FrameNumberTypeString[];
 
 /*****************************************************************************
  *
@@ -351,7 +351,7 @@ typedef enum {
 	FLAC__METADATA_TYPE_SEEKTABLE = 3,
 	FLAC__METADATA_TYPE_VORBIS_COMMENT = 4
 } FLAC__MetaDataType;
-extern const char *FLAC__MetaDataTypeString[];
+extern const char * const FLAC__MetaDataTypeString[];
 
 /*****************************************************************************
  *

@@ -19,7 +19,8 @@
 # GNU makefile
 #
 all: clean
-	./test_unit.sh
+	./test_libFLAC.sh
+	./test_libFLAC++.sh
 	./test_streams.sh
 	./test_bins.sh
 

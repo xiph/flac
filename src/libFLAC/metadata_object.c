@@ -340,6 +340,124 @@ void FLAC__metadata_object_delete(FLAC__StreamMetaData *object)
 	free(object);
 }
 
+static FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetaData_StreamInfo *block1, const FLAC__StreamMetaData_StreamInfo *block2)
+{
+	if(block1->min_blocksize != block2->min_blocksize)
+		return false;
+	if(block1->max_blocksize != block2->max_blocksize)
+		return false;
+	if(block1->min_framesize != block2->min_framesize)
+		return false;
+	if(block1->max_framesize != block2->max_framesize)
+		return false;
+	if(block1->sample_rate != block2->sample_rate)
+		return false;
+	if(block1->channels != block2->channels)
+		return false;
+	if(block1->bits_per_sample != block2->bits_per_sample)
+		return false;
+	if(block1->total_samples != block2->total_samples)
+		return false;
+	if(0 != memcmp(block1->md5sum, block2->md5sum, 16))
+		return false;
+	return true;
+}
+
+static FLAC__bool compare_block_data_application_(const FLAC__StreamMetaData_Application *block1, const FLAC__StreamMetaData_Application *block2, unsigned block_length)
+{
+	FLAC__ASSERT(0 != block1);
+	FLAC__ASSERT(0 != block2);
+	FLAC__ASSERT(block_length >= sizeof(block1->id));
+
+	if(0 != memcmp(block1->id, block2->id, sizeof(block1->id)))
+		return false;
+	if(0 != block1->data && 0 != block2->data)
+		return 0 == memcmp(block1->data, block2->data, block_length - sizeof(block1->id));
+	else
+		return block1->data == block2->data;
+}
+
+static FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetaData_SeekTable *block1, const FLAC__StreamMetaData_SeekTable *block2)
+{
+	unsigned i;
+
+	FLAC__ASSERT(0 != block1);
+	FLAC__ASSERT(0 != block2);
+
+	if(block1->num_points != block2->num_points)
+		return false;
+
+	if(0 != block1->points && 0 != block2->points) {
+		for(i = 0; i < block1->num_points; i++) {
+			if(block1->points[i].sample_number != block2->points[i].sample_number)
+				return false;
+			if(block1->points[i].stream_offset != block2->points[i].stream_offset)
+				return false;
+			if(block1->points[i].frame_samples != block2->points[i].frame_samples)
+				return false;
+		}
+		return true;
+	}
+	else
+		return block1->points == block2->points;
+}
+
+static FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetaData_VorbisComment *block1, const FLAC__StreamMetaData_VorbisComment *block2)
+{
+	unsigned i;
+
+	if(block1->vendor_string.length != block2->vendor_string.length)
+		return false;
+
+	if(0 != block1->vendor_string.entry && 0 != block2->vendor_string.entry) {
+		if(0 != memcmp(block1->vendor_string.entry, block2->vendor_string.entry, block1->vendor_string.length))
+			return false;
+	}
+	else if(block1->vendor_string.entry != block2->vendor_string.entry)
+		return false;
+
+	if(block1->num_comments != block2->num_comments)
+		return false;
+
+	for(i = 0; i < block1->num_comments; i++) {
+		if(0 != block1->comments[i].entry && 0 != block2->comments[i].entry) {
+			if(0 != memcmp(block1->comments[i].entry, block2->comments[i].entry, block1->comments[i].length))
+				return false;
+		}
+		else if(block1->comments[i].entry != block2->comments[i].entry)
+			return false;
+	}
+	return true;
+}
+
+FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetaData *block1, const FLAC__StreamMetaData *block2)
+{
+	if(block1->type != block2->type) {
+		return false;
+    }
+	if(block1->is_last != block2->is_last) {
+		return false;
+    }
+	if(block1->length != block2->length) {
+		return false;
+    }
+	switch(block1->type) {
+		case FLAC__METADATA_TYPE_STREAMINFO:
+			return compare_block_data_streaminfo_(&block1->data.stream_info, &block2->data.stream_info);
+		case FLAC__METADATA_TYPE_PADDING:
+			return true; /* we don't compare the padding guts */
+		case FLAC__METADATA_TYPE_APPLICATION:
+			return compare_block_data_application_(&block1->data.application, &block2->data.application, block1->length);
+		case FLAC__METADATA_TYPE_SEEKTABLE:
+			return compare_block_data_seektable_(&block1->data.seek_table, &block2->data.seek_table);
+		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+			return compare_block_data_vorbiscomment_(&block1->data.vorbis_comment, &block2->data.vorbis_comment);
+		default:
+			FLAC__ASSERT(0);
+			return false;
+	}
+}
+
 /*@@@@move
 sets the application data to 'data'.  if 'copy' is true, makes, copy, else takes ownership of pointer.  returns false if copy==true and malloc fails.
     FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_APPLICATION);

@@ -37,7 +37,7 @@ typedef enum {
     FLAC__FILE_DECODER_INVALID_CALLBACK,
     FLAC__FILE_DECODER_UNINITIALIZED
 } FLAC__FileDecoderState;
-extern const char *FLAC__FileDecoderStateString[];
+extern const char * const FLAC__FileDecoderStateString[];
 
 /***********************************************************************
  *
@@ -99,7 +99,7 @@ void FLAC__file_decoder_delete(FLAC__FileDecoder *);
  */
 FLAC__bool FLAC__file_decoder_set_md5_checking(FLAC__FileDecoder *decoder, FLAC__bool value);
 FLAC__bool FLAC__file_decoder_set_filename(FLAC__FileDecoder *decoder, const char *value); /* 'value' may not be 0; use "-" for stdin */
-FLAC__bool FLAC__file_decoder_set_write_callback(FLAC__FileDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
+FLAC__bool FLAC__file_decoder_set_write_callback(FLAC__FileDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data));
 FLAC__bool FLAC__file_decoder_set_metadata_callback(FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
 FLAC__bool FLAC__file_decoder_set_error_callback(FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
 FLAC__bool FLAC__file_decoder_set_client_data(FLAC__FileDecoder *decoder, void *value);

@@ -232,7 +232,7 @@ namespace FLAC {
 			return instance->eof_callback();
 		}
 
-		FLAC__StreamDecoderWriteStatus SeekableStream::write_callback_(const ::FLAC__SeekableStreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+		FLAC__StreamDecoderWriteStatus SeekableStream::write_callback_(const ::FLAC__SeekableStreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);

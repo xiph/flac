@@ -1,4 +1,4 @@
-/* test_unit - Simple FLAC unit tester
+/* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2000,2001,2002  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -18,21 +18,23 @@
 
 #include "bitbuffer.h"
 #include "decoders.h"
+#include "encoders.h"
 #include "metadata.h"
 
 int main(int argc, char *argv[])
 {
 	(void)argc, (void)argv;
 
-	if(0 != test_bitbuffer())
+	if(!test_bitbuffer())
 		return 1;
 
-	if(0 != test_decoders())
+	if(!test_encoders())
 		return 1;
 
-	/* the encoder is tested relatively well in the file_utils */
+	if(!test_decoders())
+		return 1;
 
-	if(0 != test_metadata())
+	if(!test_metadata())
 		return 1;
 
 	return 0;

@@ -52,24 +52,26 @@ typedef struct {
 	unsigned channels;
 	unsigned sample_rate;
 	unsigned length_in_ms;
-} stream_info_struct;
+} file_info_struct;
 
-static FLAC__bool stream_init(const char *infilename);
-static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
-static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
-static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+static FLAC__bool safe_decoder_init_(const char *infilename, FLAC__FileDecoder *decoder);
+static void safe_decoder_finish_(FLAC__FileDecoder *decoder);
+static void safe_decoder_delete_(FLAC__FileDecoder *decoder);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
+static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
+static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
 
-In_Module mod; /* the output module (declared near the bottom of this file) */
-char lastfn[MAX_PATH]; /* currently playing file (used for getting info on the current file) */
-int decode_pos_ms; /* current decoding position, in milliseconds */
-int paused; /* are we paused? */
-int seek_needed; /* if != -1, it is the point that the decode thread should seek to, in ms. */
-FLAC__int16 reservoir[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max channels, another *2 for overflow */
-char sample_buffer[576 * 2 * (16/8) * 2]; /* 2 for max channels, (16/8) for max bytes per sample, and 2 for who knows what */
-unsigned samples_in_reservoir;
-static stream_info_struct stream_info;
-static FLAC__FileDecoder *decoder;
+In_Module mod_; /* the output module (declared near the bottom of this file) */
+char lastfn_[MAX_PATH]; /* currently playing file (used for getting info on the current file) */
+int decode_pos_ms_; /* current decoding position, in milliseconds */
+int paused_; /* are we paused? */
+int seek_needed_; /* if != -1, it is the point that the decode thread should seek to, in ms. */
+FLAC__int16 reservoir_[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max channels, another *2 for overflow */
+char sample_buffer_[576 * 2 * (16/8) * 2]; /* 2 for max channels, (16/8) for max bytes per sample, and 2 for who knows what */
+unsigned samples_in_reservoir_;
+static file_info_struct file_info_;
+static FLAC__FileDecoder *decoder_;
 
 int killDecodeThread = 0;					/* the kill switch for the decode thread */
 HANDLE thread_handle = INVALID_HANDLE_VALUE;	/* the handle to the decode thread */
@@ -88,15 +90,14 @@ void about(HWND hwndParent)
 
 void init()
 {
-	decoder = FLAC__file_decoder_new();
+	decoder_ = FLAC__file_decoder_new();
+	strcpy(lastfn_, "");
 }
 
 void quit()
 {
-	if(decoder) {
-		FLAC__file_decoder_delete(decoder);
-		decoder = 0;
-	}
+	safe_decoder_delete_(decoder_);
+	decoder_ = 0;
 }
 
 int isourfile(char *fn) { return 0; }
@@ -108,7 +109,7 @@ int play(char *fn)
 	int thread_id;
 	HANDLE input_file = INVALID_HANDLE_VALUE;
 
-	if(0 == decoder) {
+	if(0 == decoder_) {
 		return 1;
 	}
 
@@ -118,30 +119,30 @@ int play(char *fn)
 	}
 	CloseHandle(input_file);
 
-	if(!stream_init(fn)) {
+	if(!safe_decoder_init_(fn, decoder_)) {
 		return 1;
 	}
 
-	strcpy(lastfn, fn);
-	paused = 0;
-	decode_pos_ms = 0;
-	seek_needed = -1;
-	samples_in_reservoir = 0;
+	strcpy(lastfn_, fn);
+	paused_ = 0;
+	decode_pos_ms_ = 0;
+	seek_needed_ = -1;
+	samples_in_reservoir_ = 0;
 
-	maxlatency = mod.outMod->Open(stream_info.sample_rate, stream_info.channels, stream_info.bits_per_sample, -1, -1);
+	maxlatency = mod_.outMod->Open(file_info_.sample_rate, file_info_.channels, file_info_.bits_per_sample, -1, -1);
 	if (maxlatency < 0) { /* error opening device */
 		return 1;
 	}
 
 	/* dividing by 1000 for the first parameter of setinfo makes it */
 	/* display 'H'... for hundred.. i.e. 14H Kbps. */
-	mod.SetInfo((stream_info.sample_rate*stream_info.bits_per_sample*stream_info.channels)/1000, stream_info.sample_rate/1000, stream_info.channels, 1);
+	mod_.SetInfo((file_info_.sample_rate*file_info_.bits_per_sample*file_info_.channels)/1000, file_info_.sample_rate/1000, file_info_.channels, 1);
 
 	/* initialize vis stuff */
-	mod.SAVSAInit(maxlatency, stream_info.sample_rate);
-	mod.VSASetInfo(stream_info.sample_rate, stream_info.channels);
+	mod_.SAVSAInit(maxlatency, file_info_.sample_rate);
+	mod_.VSASetInfo(file_info_.sample_rate, file_info_.channels);
 
-	mod.outMod->SetVolume(-666); /* set the output plug-ins default volume */
+	mod_.outMod->SetVolume(-666); /* set the output plug-ins default volume */
 
 	killDecodeThread = 0;
 	thread_handle = (HANDLE) CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) DecodeThread, (void *) &killDecodeThread, 0, &thread_id);
@@ -151,18 +152,18 @@ int play(char *fn)
 
 void pause()
 {
-	paused = 1;
-	mod.outMod->Pause(1);
+	paused_ = 1;
+	mod_.outMod->Pause(1);
 }
 
 void unpause()
 {
-	paused = 0;
-	mod.outMod->Pause(0);
+	paused_ = 0;
+	mod_.outMod->Pause(0);
 }
 int ispaused()
 {
-	return paused;
+	return paused_;
 }
 
 void stop()
@@ -170,37 +171,36 @@ void stop()
 	if (thread_handle != INVALID_HANDLE_VALUE) {
 		killDecodeThread = 1;
 		if (WaitForSingleObject(thread_handle, INFINITE) == WAIT_TIMEOUT) {
-			MessageBox(mod.hMainWindow, "error asking thread to die!\n", "error killing decode thread", 0);
+			MessageBox(mod_.hMainWindow, "error asking thread to die!\n", "error killing decode thread", 0);
 			TerminateThread(thread_handle, 0);
 		}
 		CloseHandle(thread_handle);
 		thread_handle = INVALID_HANDLE_VALUE;
 	}
-	if(decoder)
-		FLAC__file_decoder_finish(decoder);
+	safe_decoder_finish_(decoder_);
 
-	mod.outMod->Close();
+	mod_.outMod->Close();
 
-	mod.SAVSADeInit();
+	mod_.SAVSADeInit();
 }
 
 int getlength()
 {
-	return (int)stream_info.length_in_ms;
+	return (int)file_info_.length_in_ms;
 }
 
 int getoutputtime()
 {
-	return decode_pos_ms+(mod.outMod->GetOutputTime()-mod.outMod->GetWrittenTime());
+	return decode_pos_ms_ + (mod_.outMod->GetOutputTime() - mod_.outMod->GetWrittenTime());
 }
 
 void setoutputtime(int time_in_ms)
 {
-	seek_needed = time_in_ms;
+	seek_needed_ = time_in_ms;
 }
 
-void setvolume(int volume) { mod.outMod->SetVolume(volume); }
-void setpan(int pan) { mod.outMod->SetPan(pan); }
+void setvolume(int volume) { mod_.outMod->SetVolume(volume); }
+void setpan(int pan) { mod_.outMod->SetPan(pan); }
 
 int infoDlg(char *fn, HWND hwnd)
 {
@@ -211,41 +211,33 @@ int infoDlg(char *fn, HWND hwnd)
 void getfileinfo(char *filename, char *title, int *length_in_ms)
 {
 	id3v1_struct tag;
+	FLAC__StreamMetaData_StreamInfo streaminfo;
 
-	if (!filename || !*filename) { /* currently playing file */
+	if(0 == filename) {
+		filename = lastfn_;
 		if (length_in_ms) {
 			*length_in_ms = getlength();
 			length_in_ms = 0; /* force skip in following code */
 		}
-		if (title && lastfn && lastfn[0]) {
-			filename = lastfn;
+	}
+
+	if(!FLAC__metadata_get_streaminfo(filename, &streaminfo)) {
+		MessageBox(mod_.hMainWindow, filename, "ERROR: invalid/missing FLAC metadata", 0);
+		if(title) {
+			static const char *errtitle = "Invalid FLAC File: ");
+			sprintf(title, "%s\"%s\"", errtitle, filename);
 		}
+		if(length_in_msec)
+			*length_in_msec = -1;
+		return;
 	}
 
-	if (length_in_ms) {
-		FLAC__FileDecoder *tmp_decoder = FLAC__file_decoder_new();
-		stream_info_struct tmp_stream_info;
-		tmp_stream_info.abort_flag = false;
-		FLAC__file_decoder_set_md5_checking(tmp_decoder, false);
-		FLAC__file_decoder_set_filename(tmp_decoder, filename);
-		FLAC__file_decoder_set_write_callback(tmp_decoder, write_callback);
-		FLAC__file_decoder_set_metadata_callback(tmp_decoder, metadata_callback);
-		FLAC__file_decoder_set_error_callback(tmp_decoder, error_callback);
-		FLAC__file_decoder_set_client_data(tmp_decoder, &tmp_stream_info);
-		if(FLAC__file_decoder_init(tmp_decoder) != FLAC__FILE_DECODER_OK)
-			return;
-		if(!FLAC__file_decoder_process_metadata(tmp_decoder))
-			return;
-
-		*length_in_ms = (int)tmp_stream_info.length_in_ms;
-
-		FLAC__file_decoder_finish(tmp_decoder);
-		FLAC__file_decoder_delete(tmp_decoder);
-	}
-	if (title) {
+	if(title) {
 		(void)get_id3v1_tag_(filename, &tag);
 		strcpy(title, tag.description);
 	}
+	if(length_in_msec)
+		*length_in_msec = streaminfo.total_samples * 10 / (streaminfo.sample_rate / 100);
 }
 
 void eq_set(int on, char data[10], int preamp)
@@ -257,60 +249,60 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 	int done = 0;
 
 	while (! *((int *)b) ) {
-		unsigned channels = stream_info.channels;
-		unsigned bits_per_sample = stream_info.bits_per_sample;
+		unsigned channels = file_info_.channels;
+		unsigned bits_per_sample = file_info_.bits_per_sample;
 		unsigned bytes_per_sample = (bits_per_sample+7)/8;
-		unsigned sample_rate = stream_info.sample_rate;
-		if (seek_needed != -1) {
-			const double distance = (double)seek_needed / (double)getlength();
-			unsigned target_sample = (unsigned)(distance * (double)stream_info.total_samples);
-			if(FLAC__file_decoder_seek_absolute(decoder, (FLAC__uint64)target_sample)) {
-				decode_pos_ms = (int)(distance * (double)getlength());
-				seek_needed = -1;
+		unsigned sample_rate = file_info_.sample_rate;
+		if (seek_needed_ != -1) {
+			const double distance = (double)seek_needed_ / (double)getlength();
+			unsigned target_sample = (unsigned)(distance * (double)file_info_.total_samples);
+			if(FLAC__file_decoder_seek_absolute(decoder_, (FLAC__uint64)target_sample)) {
+				decode_pos_ms_ = (int)(distance * (double)getlength());
+				seek_needed_ = -1;
 				done = 0;
-				mod.outMod->Flush(decode_pos_ms);
+				mod_.outMod->Flush(decode_pos_ms_);
 			}
 		}
 		if (done) {
-			if (!mod.outMod->IsPlaying()) {
-				PostMessage(mod.hMainWindow, WM_WA_MPEG_EOF, 0, 0);
+			if (!mod_.outMod->IsPlaying()) {
+				PostMessage(mod_.hMainWindow, WM_WA_MPEG_EOF, 0, 0);
 				return 0;
 			}
 			Sleep(10);
 		}
-		else if (mod.outMod->CanWrite() >= ((int)(576*channels*bytes_per_sample) << (mod.dsp_isactive()?1:0))) {
-			while(samples_in_reservoir < 576) {
-				if(FLAC__file_decoder_get_state(decoder) == FLAC__FILE_DECODER_END_OF_FILE) {
+		else if (mod_.outMod->CanWrite() >= ((int)(576*channels*bytes_per_sample) << (mod_.dsp_isactive()?1:0))) {
+			while(samples_in_reservoir_ < 576) {
+				if(FLAC__file_decoder_get_state(decoder_) == FLAC__FILE_DECODER_END_OF_FILE) {
 					done = 1;
 					break;
 				}
-				else if(!FLAC__file_decoder_process_one_frame(decoder))
+				else if(!FLAC__file_decoder_process_one_frame(decoder_))
 					break;
 			}
 
-			if (samples_in_reservoir == 0) {
+			if (samples_in_reservoir_ == 0) {
 				done = 1;
 			}
 			else {
-				unsigned i, n = min(samples_in_reservoir, 576), delta;
+				unsigned i, n = min(samples_in_reservoir_, 576), delta;
 				int bytes;
-				signed short *ssbuffer = (signed short *)sample_buffer;
+				signed short *ssbuffer = (signed short *)sample_buffer_;
 
 				for(i = 0; i < n*channels; i++)
-					ssbuffer[i] = reservoir[i];
+					ssbuffer[i] = reservoir_[i];
 				delta = i;
-				for( ; i < samples_in_reservoir*channels; i++)
-					reservoir[i-delta] = reservoir[i];
-				samples_in_reservoir -= n;
+				for( ; i < samples_in_reservoir_ * channels; i++)
+					reservoir_[i-delta] = reservoir_[i];
+				samples_in_reservoir_ -= n;
 
-				mod.SAAddPCMData((char *)sample_buffer, channels, bits_per_sample, decode_pos_ms);
-				mod.VSAAddPCMData((char *)sample_buffer, channels, bits_per_sample, decode_pos_ms);
-				decode_pos_ms += (n*1000 + sample_rate/2)/sample_rate;
-				if (mod.dsp_isactive())
-					bytes = mod.dsp_dosamples((short *)sample_buffer, n, bits_per_sample, channels, sample_rate) * (channels*bytes_per_sample);
+				mod_.SAAddPCMData((char *)sample_buffer_, channels, bits_per_sample, decode_pos_ms_);
+				mod_.VSAAddPCMData((char *)sample_buffer_, channels, bits_per_sample, decode_pos_ms_);
+				decode_pos_ms_ += (n*1000 + sample_rate/2)/sample_rate;
+				if (mod_.dsp_isactive())
+					bytes = mod_.dsp_dosamples((short *)sample_buffer_, n, bits_per_sample, channels, sample_rate) * (channels*bytes_per_sample);
 				else
 					bytes = n * channels * bytes_per_sample;
-				mod.outMod->Write(sample_buffer, bytes);
+				mod_.outMod->Write(sample_buffer_, bytes);
 			}
 		}
 		else Sleep(20);
@@ -320,7 +312,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 
 
 
-In_Module mod =
+In_Module mod_ =
 {
 	IN_VER,
 	"Reference FLAC Player v" FLAC__VERSION_STRING,
@@ -365,80 +357,102 @@ In_Module mod =
 
 __declspec( dllexport ) In_Module * winampGetInModule2()
 {
-	return &mod;
+	return &mod_;
 }
 
 
 /***********************************************************************
  * local routines
  **********************************************************************/
-FLAC__bool stream_init(const char *infilename)
+FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *decoder)
 {
-	FLAC__file_decoder_set_md5_checking(decoder, false);
-	FLAC__file_decoder_set_filename(decoder, infilename);
-	FLAC__file_decoder_set_write_callback(decoder, write_callback);
-	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback);
-	FLAC__file_decoder_set_error_callback(decoder, error_callback);
-	FLAC__file_decoder_set_client_data(decoder, &stream_info);
-	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK) {
-		MessageBox(mod.hMainWindow, "ERROR initializing decoder, state = %d\n", "ERROR initializing decoder", 0);
+	if(decoder == 0) {
+		MessageBox(mod_.hMainWindow, "Decoder instance is NULL", "ERROR initializing decoder", 0);
 		return false;
 	}
 
-	stream_info.abort_flag = false;
+	safe_decoder_finish_(decoder);
+
+	FLAC__file_decoder_set_md5_checking(decoder, false);
+	FLAC__file_decoder_set_filename(decoder, filename);
+	FLAC__file_decoder_set_write_callback(decoder, write_callback_);
+	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback_);
+	FLAC__file_decoder_set_error_callback(decoder, error_callback_);
+	FLAC__file_decoder_set_client_data(decoder, &file_info_);
+	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK) {
+		MessageBox(mod_.hMainWindow, FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder)], "ERROR initializing decoder", 0);
+		return false;
+	}
+
+	file_info_.abort_flag = false;
 	if(!FLAC__file_decoder_process_metadata(decoder)) {
+		MessageBox(mod_.hMainWindow, FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder)], "ERROR processing metadata", 0);
 		return false;
 	}
 
 	return true;
 }
 
-FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+void safe_decoder_finish_(FLAC__FileDecoder *decoder)
 {
-	stream_info_struct *stream_info = (stream_info_struct *)client_data;
-	const unsigned bps = stream_info->bits_per_sample, channels = stream_info->channels, wide_samples = frame->header.blocksize;
+	if(decoder && FLAC__file_decoder_get_state(decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
+		FLAC__file_decoder_finish(decoder);
+}
+
+void safe_decoder_delete_(FLAC__FileDecoder *decoder)
+{
+	if(decoder) {
+		safe_decoder_finish_(decoder);
+		FLAC__file_decoder_delete(decoder);
+	}
+}
+
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data)
+{
+	file_info_struct *file_info_ = (file_info_struct *)client_data;
+	const unsigned bps = file_info_->bits_per_sample, channels = file_info_->channels, wide_samples = frame->header.blocksize;
 	unsigned wide_sample, sample, channel;
 
 	(void)decoder;
 
-	if(stream_info->abort_flag)
+	if(file_info_->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-	for(sample = samples_in_reservoir*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+	for(sample = samples_in_reservoir_ * channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 		for(channel = 0; channel < channels; channel++, sample++)
-			reservoir[sample] = (FLAC__int16)buffer[channel][wide_sample];
+			reservoir_[sample] = (FLAC__int16)buffer[channel][wide_sample];
 
-	samples_in_reservoir += wide_samples;
+	samples_in_reservoir_ += wide_samples;
 
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
+void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
 {
-	stream_info_struct *stream_info = (stream_info_struct *)client_data;
+	file_info_struct *file_info_ = (file_info_struct *)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		FLAC__ASSERT(metadata->data.stream_info.total_samples < 0x100000000); /* this plugin can only handle < 4 gigasamples */
-		stream_info->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xffffffff);
-		stream_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
-		stream_info->channels = metadata->data.stream_info.channels;
-		stream_info->sample_rate = metadata->data.stream_info.sample_rate;
+		file_info_->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xffffffff);
+		file_info_->bits_per_sample = metadata->data.stream_info.bits_per_sample;
+		file_info_->channels = metadata->data.stream_info.channels;
+		file_info_->sample_rate = metadata->data.stream_info.sample_rate;
 
-		if(stream_info->bits_per_sample != 16) {
-			MessageBox(mod.hMainWindow, "ERROR: plugin can only handle 16-bit samples\n", "ERROR: plugin can only handle 16-bit samples", 0);
-			stream_info->abort_flag = true;
+		if(file_info_->bits_per_sample != 16) {
+			MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 16-bit samples\n", "ERROR: plugin can only handle 16-bit samples", 0);
+			file_info_->abort_flag = true;
 			return;
 		}
-		stream_info->length_in_ms = stream_info->total_samples * 10 / (stream_info->sample_rate / 100);
+		file_info_->length_in_ms = file_info_->total_samples * 10 / (file_info_->sample_rate / 100);
 	}
 }
 
-void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
-	stream_info_struct *stream_info = (stream_info_struct *)client_data;
+	file_info_struct *file_info_ = (file_info_struct *)client_data;
 	(void)decoder;
 	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
-		stream_info->abort_flag = true;
+		file_info_->abort_flag = true;
 }
 
 FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)

@@ -48,13 +48,13 @@ typedef enum {
 	FLAC__STREAM_ENCODER_ALREADY_INITIALIZED,
 	FLAC__STREAM_ENCODER_UNINITIALIZED
 } FLAC__StreamEncoderState;
-extern const char *FLAC__StreamEncoderStateString[];
+extern const char * const FLAC__StreamEncoderStateString[];
 
 typedef enum {
 	FLAC__STREAM_ENCODER_WRITE_OK = 0,
 	FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR
 } FLAC__StreamEncoderWriteStatus;
-extern const char *FLAC__StreamEncoderWriteStatusString[];
+extern const char * const FLAC__StreamEncoderWriteStatusString[];
 
 /***********************************************************************
  *
@@ -189,8 +189,8 @@ void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder);
 /*
  * Methods for encoding the data
  */
-FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 *buf[], unsigned samples);
-FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buf[], unsigned samples);
+FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples);
+FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], unsigned samples);
 
 #ifdef __cplusplus
 }

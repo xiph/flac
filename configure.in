@@ -28,6 +28,7 @@ AM_PROG_LIBTOOL
 sed -e 's/^build_old_libs=yes/build_old_libs=no/' libtool > libtool-disable-static
 chmod +x libtool-disable-static
 
+AC_PROG_CXX
 AC_PROG_MAKE_SET
 
 dnl check for getopt in standard library
@@ -163,17 +164,17 @@ AC_SUBST(FLaC__USIZE64)
 
 AC_SUBST(SHARE_LIBS)
 
-SAVE_CFLAGS="$CFLAGS"
-CFLAGS='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
+OUR_CFLAGS_HEAD='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
 if test x$debug = xtrue; then
-	CFLAGS="$CFLAGS -g -O0 -DDEBUG"
+	OUR_CFLAGS_TAIL="-g -O0 -DDEBUG"
 else
-	CFLAGS="$CFLAGS -O3 -DNDEBUG"
+	OUR_CFLAGS_TAIL="-O3 -DNDEBUG"
 	if test x$GCC = xyes; then
-		CFLAGS="$CFLAGS -fomit-frame-pointer -funroll-loops -finline-functions -Wall -W -Winline -DFLaC__INLINE=__inline__"
+		OUR_CFLAGS_TAIL="$OUR_CFLAGS_TAIL -fomit-frame-pointer -funroll-loops -finline-functions -Wall -W -Winline -DFLaC__INLINE=__inline__"
 	fi
 fi
-CFLAGS="$CFLAGS $SAVE_CFLAGS"
+CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS $OUR_CFLAGS_TAIL"
+CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS $OUR_CFLAGS_TAIL"
 
 AC_OUTPUT(	Makefile	\
 	src/Makefile	\
@@ -182,12 +183,14 @@ AC_OUTPUT(	Makefile	\
 	src/libFLAC/include/Makefile	\
 	src/libFLAC/include/private/Makefile	\
 	src/libFLAC/include/protected/Makefile	\
+	src/libFLAC++/Makefile	\
 	src/flac/Makefile	\
 	src/metaflac/Makefile	\
 	src/plugin_xmms/Makefile	\
 	src/share/Makefile	\
+	src/test_libFLAC/Makefile	\
+	src/test_libFLAC++/Makefile	\
 	src/test_streams/Makefile	\
-	src/test_unit/Makefile	\
 	include/Makefile \
 	include/FLAC/Makefile \
 	include/FLAC/ordinals.h \
