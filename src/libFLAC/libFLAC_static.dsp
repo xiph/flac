@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release_static"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /Op /I ".\include" /I "..\..\include" /D VERSION=\"1.1.0\" /D "FLAC__NO_DLL" /D "FLAC__CPU_IA32" /D "FLAC__HAS_NASM" /D "FLAC__USE_3DNOW" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /Op /I ".\include" /I "..\..\include" /D VERSION=\"1.1.1\" /D "FLAC__NO_DLL" /D "FLAC__CPU_IA32" /D "FLAC__HAS_NASM" /D "FLAC__USE_3DNOW" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug_static"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".\include" /I "..\..\include" /D VERSION=\"1.1.0\" /D "FLAC__NO_DLL" /D "FLAC__CPU_IA32" /D "FLAC__HAS_NASM" /D "FLAC__USE_3DNOW" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".\include" /I "..\..\include" /D VERSION=\"1.1.1\" /D "FLAC__NO_DLL" /D "FLAC__CPU_IA32" /D "FLAC__HAS_NASM" /D "FLAC__USE_3DNOW" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -97,7 +97,7 @@ USERDEP__CPU_A="ia32/cpu_asm.nasm"
 InputPath=.\ia32\cpu_asm.nasm
 
 "ia32/cpu_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
 
 # End Custom Build
 
@@ -108,7 +108,7 @@ USERDEP__CPU_A="ia32/cpu_asm.nasm"
 InputPath=.\ia32\cpu_asm.nasm
 
 "ia32/cpu_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
 
 # End Custom Build
 
@@ -126,7 +126,7 @@ USERDEP__FIXED="ia32/fixed_asm.nasm"
 InputPath=.\ia32\fixed_asm.nasm
 
 "ia32/fixed_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
 
 # End Custom Build
 
@@ -137,7 +137,7 @@ USERDEP__FIXED="ia32/fixed_asm.nasm"
 InputPath=.\ia32\fixed_asm.nasm
 
 "ia32/fixed_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj
 
 # End Custom Build
 
@@ -155,7 +155,7 @@ USERDEP__LPC_A="ia32/lpc_asm.nasm"
 InputPath=.\ia32\lpc_asm.nasm
 
 "ia32/lpc_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
 
 # End Custom Build
 
@@ -166,7 +166,7 @@ USERDEP__LPC_A="ia32/lpc_asm.nasm"
 InputPath=.\ia32\lpc_asm.nasm
 
 "ia32/lpc_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	"%FLAC_NASM%" -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj
 
 # End Custom Build
 
