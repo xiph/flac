@@ -16,18 +16,25 @@ test_file ()
 	bps=$3
 	encode_options="$4"
 
-	echo "### ENCODE $name ########################################" >> ./encode.log
 	echo -n "$name: encode..."
-	if flac -s -fb -fs 44100 -fp $bps -fc $channels -0 -l 8 -m -e $encode_options $name.raw $name.flac 2>>./encode.log ; then : ; else
+	cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options $name.raw $name.flac"
+	echo "### ENCODE $name #######################################################" >> ./streams.log
+	echo "###    cmd=$cmd" >> ./streams.log
+	if $cmd 1>/dev/null 2>>./streams.log ; then : ; else
 		echo "ERROR during encode of $name" 1>&2
 		exit 1
 	fi
-	echo "### DECODE $name ########################################" >> ./decode.log
 	echo -n "decode..."
-	if flac -s -fb -d -fr $name.flac $name.cmp 2>>./decode.log ; then : ; else
+	cmd="flac -s -fb -d -fr $name.flac $name.cmp";
+	echo "### DECODE $name #######################################################" >> ./streams.log
+	echo "###    cmd=$cmd" >> ./streams.log
+	if $cmd 2>>./streams.log ; then : ; else
 		echo "ERROR during decode of $name" 1>&2
 		exit 1
 	fi
+	ls -1l $name.raw >> ./streams.log
+	ls -1l $name.flac >> ./streams.log
+	ls -1l $name.cmp >> ./streams.log
 	echo -n "compare..."
 	if cmp $name.raw $name.cmp ; then : ; else
 		echo "ERROR during compare of $name" 1>&2
@@ -37,34 +44,66 @@ test_file ()
 }
 
 echo "Testing small files..."
-test_file test01 1 16
-test_file test02 2 16
-test_file test03 1 16
-test_file test04 2 16
+test_file test01 1 16 "-0 -l 8 -m -e"
+test_file test02 2 16 "-0 -l 8 -m -e"
+test_file test03 1 16 "-0 -l 8 -m -e"
+test_file test04 2 16 "-0 -l 8 -m -e"
 
 echo "Testing 8-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd8-$b 1 8 "-q 15"
+	test_file fsd8-$b 1 8 "-0 -l 8 -m -e -q 15"
 done
 
 echo "Testing 16-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd16-$b 1 16 "-q 15"
+	test_file fsd16-$b 1 16 "-0 -l 8 -m -e -q 15"
 done
 
 echo "Testing sine wave streams..."
-for b in 01 02 03 04 05 ; do
-	test_file sine-$b 1 16 ""
+for b in 00 01 02 03 04 ; do
+	test_file sine-$b 1 16 "-0 -l 8 -m -e"
+done
+for b in 10 11 12 13 14 15 16 17 18 19 ; do
+	test_file sine-$b 2 16 "-0 -l 8 -m -e"
 done
 
 echo "Testing some frame header variations..."
-test_file sine-02 1 16 "--lax -b 16"
-test_file sine-02 1 16 "--lax -b 65535"
-test_file sine-02 1 16 "-b 16"
-test_file sine-02 1 16 "-b 65535"
-test_file sine-02 1 16 "--lax -fs 9"
-test_file sine-02 1 16 "--lax -fs 90"
-test_file sine-02 1 16 "--lax -fs 90000"
-test_file sine-02 1 16 "-fs 9"
-test_file sine-02 1 16 "-fs 90"
-test_file sine-02 1 16 "-fs 90000"
+test_file sine-01 1 16 "-0 -l 8 -m -e --lax -b 16"
+test_file sine-01 1 16 "-0 -l 8 -m -e --lax -b 65535"
+test_file sine-01 1 16 "-0 -l 8 -m -e -b 16"
+test_file sine-01 1 16 "-0 -l 8 -m -e -b 65535"
+test_file sine-01 1 16 "-0 -l 8 -m -e --lax -fs 9"
+test_file sine-01 1 16 "-0 -l 8 -m -e --lax -fs 90"
+test_file sine-01 1 16 "-0 -l 8 -m -e --lax -fs 90000"
+test_file sine-01 1 16 "-0 -l 8 -m -e -fs 9"
+test_file sine-01 1 16 "-0 -l 8 -m -e -fs 90"
+test_file sine-01 1 16 "-0 -l 8 -m -e -fs 90000"
+
+echo "Testing option variations..."
+for f in 00 01 02 03 04 ; do
+	for opt in 0 1 2 4 5 6 8 ; do
+		for extras in fr p e ; do
+			test_file sine-$f 1 16 "-$opt -$extras"
+		done
+	done
+done
+for f in 10 11 12 13 14 15 16 17 18 19 ; do
+	for opt in 0 1 2 4 5 6 8 ; do
+		for extras in fr p e ; do
+			test_file sine-$f 2 16 "-$opt -$extras"
+		done
+	done
+done
+
+echo "Testing noise..."
+for opt in 0 1 2 4 5 6 8 ; do
+	for extras in fr p e ; do
+		for blocksize in '' '-b 32' '-b 32768' '-b 65535' ; do
+			for channels in 1 2 4 ; do
+				for bps in 8 16 ; do
+					test_file noise $channels $bps "-$opt -$extras $blocksize"
+				done
+			done
+		done
+	done
+done
