@@ -31,7 +31,7 @@
 #include "encode.h"
 #include "file.h"
 #ifdef FLAC__HAS_OGG
-#include "ogg/ogg.h"
+#include "OggFLAC/stream_encoder.h"
 #endif
 
 #ifdef min
@@ -41,44 +41,6 @@
 
 /* this MUST be >= 588 so that sector aligning can take place with one read */
 #define CHUNK_OF_SAMPLES 2048
-
-typedef enum {
-	FLAC__VERIFY_OK,
-	FLAC__VERIFY_FAILED_IN_FRAME,
-	FLAC__VERIFY_FAILED_IN_METADATA
-} verify_code;
-
-static const char *verify_code_string[] = {
-	"FLAC__VERIFY_OK",
-	"FLAC__VERIFY_FAILED_IN_FRAME",
-	"FLAC__VERIFY_FAILED_IN_METADATA"
-};
-
-typedef enum {
-	ENCODER_IN_MAGIC = 0,
-	ENCODER_IN_METADATA = 1,
-	ENCODER_IN_AUDIO = 2
-} EncodeState;
-
-typedef struct {
-	FLAC__int32 *original[FLAC__MAX_CHANNELS];
-	unsigned size; /* of each original[] in samples */
-	unsigned tail; /* in wide samples */
-	const FLAC__byte *encoded_signal;
-	unsigned encoded_signal_capacity;
-	unsigned encoded_bytes;
-	EncodeState encode_state;
-	FLAC__bool needs_magic_hack;
-	verify_code result;
-	FLAC__StreamDecoder *decoder;
-} verify_fifo_struct;
-
-#ifdef FLAC__HAS_OGG
-typedef struct {
-	ogg_stream_state os;
-	ogg_page og;
-} ogg_info_struct;
-#endif
 
 typedef struct {
 	const char *inbasefilename;
@@ -93,12 +55,12 @@ typedef struct {
 	FLAC__uint64 samples_written;
 	FLAC__uint64 stream_offset; /* i.e. number of bytes before the first byte of the the first frame's header */
 	unsigned current_frame;
-	verify_fifo_struct verify_fifo;
 	FLAC__StreamMetadata *seek_table;
 	unsigned first_seek_point_to_check;
+	FLAC__bool verify_failed;
 #ifdef FLAC__HAS_OGG
 	FLAC__bool use_ogg;
-	ogg_info_struct ogg;
+	OggFLAC__StreamEncoder *ogg_encoder;
 #endif
 } encoder_wrapper_struct;
 
@@ -116,14 +78,9 @@ static FLAC__int32 *input[FLAC__MAX_CHANNELS];
 static FLAC__bool init(encoder_wrapper_struct *encoder_wrapper);
 static FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper);
 static FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, FLAC__StreamMetadata *seek_table);
-static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
-static void append_to_verify_fifo(encoder_wrapper_struct *encoder_wrapper, const FLAC__int32 * const input[], unsigned channels, unsigned wide_samples);
+static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps);
 static FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
-static FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
-static FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
-static void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-static void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const encoder_wrapper_struct *encoder_wrapper);
 static FLAC__bool read_little_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn);
 static FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn);
@@ -157,8 +114,10 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 	encoder_wrapper.outfilename = outfilename;
 	encoder_wrapper.seek_table = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
 	encoder_wrapper.first_seek_point_to_check = 0;
+	encoder_wrapper.verify_failed = false;
 #ifdef FLAC__HAS_OGG
 	encoder_wrapper.use_ogg = options.common.use_ogg;
+	encoder_wrapper.ogg_encoder = 0;
 #endif
 
 	if(0 == encoder_wrapper.seek_table) {
@@ -361,16 +320,14 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 
 				if(!init_encoder(options.common, channels, bps, sample_rate, &encoder_wrapper))
 					status= ERROR;
-				else
-					encoder_wrapper.verify_fifo.encode_state = ENCODER_IN_AUDIO;
 			}
 
 			/* first do any samples in the reservoir */
 			if(status==NORMAL && options.common.sector_align && *options.common.align_reservoir_samples>0U) {
-				append_to_verify_fifo(&encoder_wrapper, (const FLAC__int32 *const *)options.common.align_reservoir, channels, *options.common.align_reservoir_samples);
 
 				if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 *const *)options.common.align_reservoir, *options.common.align_reservoir_samples)) {
 					fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+					encoder_wrapper.verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 					status= ERROR;
 				}
 			}
@@ -406,10 +363,11 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 					}
 					else {
 						unsigned int frames= bytes_read/bytes_per_frame;
-						format_input(input, frames, true, false, channels, bps, &encoder_wrapper);
+						format_input(input, frames, true, false, channels, bps);
 
 						if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 *const *)input, frames)) {
 							fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+							encoder_wrapper.verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 							status= ERROR;
 						}
 						else
@@ -429,10 +387,10 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 						info_align_zero= pad_frames;
 						for(i= 0U; i<channels; ++i)
 							memset(input[i], 0, pad_frames*(bps>>3));
-						append_to_verify_fifo(&encoder_wrapper, (const FLAC__int32 *const *)input, channels, pad_frames);
 
 						if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 *const *)input, pad_frames)) {
 							fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+							encoder_wrapper.verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 							status= ERROR;
 						}
 					}
@@ -450,7 +408,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 							fprintf(stderr, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_wrapper.inbasefilename, (unsigned int)bytes_read, (unsigned int)encoder_wrapper.total_samples_to_encode, (unsigned int)encoder_wrapper.samples_written);
 						else {
 							info_align_carry= *options.common.align_reservoir_samples;
-							format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, true, false, channels, bps, &encoder_wrapper);
+							format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, true, false, channels, bps);
 						}
 					}
 				}
@@ -502,10 +460,6 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 	if(encoder_wrapper.encoder) {
 		FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
-#ifdef FLAC__HAS_OGG
-		if(encoder_wrapper.use_ogg)
-			ogg_stream_clear(&encoder_wrapper.ogg.os);
-#endif
 	}
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0) {
 		if(status==DONE)
@@ -516,10 +470,8 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 	if(0 != encoder_wrapper.seek_table)
 		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
-		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
-		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
-		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "Verify FAILED! (%s)  Do not trust %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+		if(encoder_wrapper.verify_failed) {
+			fprintf(stderr, "Verify FAILED!  Do not trust %s\n", outfilename);
 			status= MISMATCH;
 		}
 	}
@@ -563,8 +515,10 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	encoder_wrapper.outfilename = outfilename;
 	encoder_wrapper.seek_table = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
 	encoder_wrapper.first_seek_point_to_check = 0;
+	encoder_wrapper.verify_failed = false;
 #ifdef FLAC__HAS_OGG
 	encoder_wrapper.use_ogg = options.common.use_ogg;
+	encoder_wrapper.ogg_encoder = 0;
 #endif
 	(void)infilesize;
 	(void)lookahead;
@@ -716,16 +670,13 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			if(!init_encoder(options.common, channels, bps, sample_rate, &encoder_wrapper))
 				goto wav_abort_;
 
-			encoder_wrapper.verify_fifo.encode_state = ENCODER_IN_AUDIO;
-
 			/*
 			 * first do any samples in the reservoir
 			 */
 			if(options.common.sector_align && *options.common.align_reservoir_samples > 0) {
-				append_to_verify_fifo(&encoder_wrapper, (const FLAC__int32 * const *)options.common.align_reservoir, channels, *options.common.align_reservoir_samples);
-
 				if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)options.common.align_reservoir, *options.common.align_reservoir_samples)) {
 					fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+					encoder_wrapper.verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 					goto wav_abort_;
 				}
 			}
@@ -765,10 +716,11 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					}
 					else {
 						unsigned wide_samples = bytes_read / bytes_per_wide_sample;
-						format_input(input, wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
+						format_input(input, wide_samples, false, is_unsigned_samples, channels, bps);
 
 						if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)input, wide_samples)) {
 							fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+							encoder_wrapper.verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 							goto wav_abort_;
 						}
 						data_bytes -= bytes_read;
@@ -789,10 +741,10 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 						data_bytes = wide_samples * (bps >> 3);
 						for(channel = 0; channel < channels; channel++)
 							memset(input[channel], 0, data_bytes);
-						append_to_verify_fifo(&encoder_wrapper, (const FLAC__int32 * const *)input, channels, wide_samples);
 
 						if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)input, wide_samples)) {
 							fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+							encoder_wrapper.verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 							goto wav_abort_;
 						}
 					}
@@ -811,7 +763,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 						}
 						else {
 							info_align_carry = *options.common.align_reservoir_samples;
-							format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
+							format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, false, is_unsigned_samples, channels, bps);
 						}
 					}
 				}
@@ -860,10 +812,6 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	if(encoder_wrapper.encoder) {
 		FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
-#ifdef FLAC__HAS_OGG
-		if(encoder_wrapper.use_ogg)
-			ogg_stream_clear(&encoder_wrapper.ogg.os);
-#endif
 	}
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0) {
 		print_stats(&encoder_wrapper);
@@ -872,10 +820,8 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	if(0 != encoder_wrapper.seek_table)
 		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
-		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
-		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
-		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "Verify FAILED! (%s)  Do not trust %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+		if(encoder_wrapper.verify_failed) {
+			fprintf(stderr, "Verify FAILED!  Do not trust %s\n", outfilename);
 			return 1;
 		}
 	}
@@ -892,18 +838,12 @@ wav_abort_:
 	if(encoder_wrapper.encoder) {
 		FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
-#ifdef FLAC__HAS_OGG
-		if(encoder_wrapper.use_ogg)
-			ogg_stream_clear(&encoder_wrapper.ogg.os);
-#endif
 	}
 	if(0 != encoder_wrapper.seek_table)
 		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
-		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
-		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
-		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "Verify FAILED! (%s)  Do not trust %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+		if(encoder_wrapper.verify_failed) {
+			fprintf(stderr, "Verify FAILED!  Do not trust %s\n", outfilename);
 			return 1;
 		}
 	}
@@ -937,8 +877,10 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	encoder_wrapper.outfilename = outfilename;
 	encoder_wrapper.seek_table = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
 	encoder_wrapper.first_seek_point_to_check = 0;
+	encoder_wrapper.verify_failed = false;
 #ifdef FLAC__HAS_OGG
 	encoder_wrapper.use_ogg = options.common.use_ogg;
+	encoder_wrapper.ogg_encoder = 0;
 #endif
 
 	if(0 == encoder_wrapper.seek_table) {
@@ -1013,16 +955,13 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	if(!init_encoder(options.common, options.channels, options.bps, options.sample_rate, &encoder_wrapper))
 		goto raw_abort_;
 
-	encoder_wrapper.verify_fifo.encode_state = ENCODER_IN_AUDIO;
-
 	/*
 	 * first do any samples in the reservoir
 	 */
 	if(options.common.sector_align && *options.common.align_reservoir_samples > 0) {
-		append_to_verify_fifo(&encoder_wrapper, (const FLAC__int32 * const *)options.common.align_reservoir, options.channels, *options.common.align_reservoir_samples);
-
 		if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)options.common.align_reservoir, *options.common.align_reservoir_samples)) {
 			fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+			encoder_wrapper.verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 			goto raw_abort_;
 		}
 	}
@@ -1070,10 +1009,11 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		}
 		else {
 			unsigned wide_samples = bytes_read / bytes_per_wide_sample;
-			format_input(input, wide_samples, options.is_big_endian, options.is_unsigned_samples, options.channels, options.bps, &encoder_wrapper);
+			format_input(input, wide_samples, options.is_big_endian, options.is_unsigned_samples, options.channels, options.bps);
 
 			if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)input, wide_samples)) {
 				fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+				encoder_wrapper.verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 				goto raw_abort_;
 			}
 		}
@@ -1092,10 +1032,10 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 				data_bytes = wide_samples * (options.bps >> 3);
 				for(channel = 0; channel < options.channels; channel++)
 					memset(input[channel], 0, data_bytes);
-				append_to_verify_fifo(&encoder_wrapper, (const FLAC__int32 * const *)input, options.channels, wide_samples);
 
 				if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, (const FLAC__int32 * const *)input, wide_samples)) {
 					fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper.encoder)]);
+					encoder_wrapper.verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper.encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 					goto raw_abort_;
 				}
 			}
@@ -1113,7 +1053,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 				}
 				else {
 					info_align_carry = *options.common.align_reservoir_samples;
-					format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, false, options.is_unsigned_samples, options.channels, options.bps, &encoder_wrapper);
+					format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, false, options.is_unsigned_samples, options.channels, options.bps);
 				}
 			}
 		}
@@ -1122,10 +1062,6 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	if(encoder_wrapper.encoder) {
 		FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
-#ifdef FLAC__HAS_OGG
-		if(encoder_wrapper.use_ogg)
-			ogg_stream_clear(&encoder_wrapper.ogg.os);
-#endif
 	}
 	if(encoder_wrapper.verbose && encoder_wrapper.total_samples_to_encode > 0) {
 		print_stats(&encoder_wrapper);
@@ -1134,10 +1070,8 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	if(0 != encoder_wrapper.seek_table)
 		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
-		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
-		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
-		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "Verify FAILED! (%s)  Do not trust %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+		if(encoder_wrapper.verify_failed) {
+			fprintf(stderr, "Verify FAILED!  Do not trust %s\n", outfilename);
 			return 1;
 		}
 	}
@@ -1154,18 +1088,12 @@ raw_abort_:
 	if(encoder_wrapper.encoder) {
 		FLAC__stream_encoder_finish(encoder_wrapper.encoder);
 		FLAC__stream_encoder_delete(encoder_wrapper.encoder);
-#ifdef FLAC__HAS_OGG
-		if(encoder_wrapper.use_ogg)
-			ogg_stream_clear(&encoder_wrapper.ogg.os);
-#endif
 	}
 	if(0 != encoder_wrapper.seek_table)
 		FLAC__metadata_object_delete(encoder_wrapper.seek_table);
 	if(options.common.verify) {
-		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
-		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
-		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "Verify FAILED! (%s)  Do not trust %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+		if(encoder_wrapper.verify_failed) {
+			fprintf(stderr, "Verify FAILED!  Do not trust %s\n", outfilename);
 			return 1;
 		}
 	}
@@ -1191,57 +1119,17 @@ FLAC__bool init(encoder_wrapper_struct *encoder_wrapper)
 		return false;
 	}
 
-#ifdef FLAC__HAS_OGG
-	if(encoder_wrapper->use_ogg) {
-		if(ogg_stream_init(&encoder_wrapper->ogg.os, 0) != 0) {
-			fprintf(stderr, "%s: ERROR initializing the Ogg stream\n", encoder_wrapper->inbasefilename);
-			FLAC__stream_encoder_delete(encoder_wrapper->encoder);
-			return false;
-		}
-	}
-#endif
-
 	return true;
 }
 
 FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper)
 {
-	unsigned i, num_metadata;
+	unsigned num_metadata;
 	FLAC__StreamMetadata padding;
 	FLAC__StreamMetadata *metadata[2];
 
 	if(channels != 2)
 		options.do_mid_side = options.loose_mid_side = false;
-
-	if(encoder_wrapper->verify) {
-		/* set up the fifo which will hold the original signal to compare against */
-		encoder_wrapper->verify_fifo.size = options.blocksize + CHUNK_OF_SAMPLES;
-		for(i = 0; i < channels; i++) {
-			if(0 == (encoder_wrapper->verify_fifo.original[i] = (FLAC__int32*)malloc(sizeof(FLAC__int32) * encoder_wrapper->verify_fifo.size))) {
-				fprintf(stderr, "%s: ERROR allocating verify buffers\n", encoder_wrapper->inbasefilename);
-				return false;
-			}
-		}
-		encoder_wrapper->verify_fifo.tail = 0;
-		encoder_wrapper->verify_fifo.encode_state = ENCODER_IN_MAGIC;
-		encoder_wrapper->verify_fifo.result = FLAC__VERIFY_OK;
-
-		/* set up a stream decoder for verification */
-		encoder_wrapper->verify_fifo.decoder = FLAC__stream_decoder_new();
-		if(0 == encoder_wrapper->verify_fifo.decoder) {
-			fprintf(stderr, "%s: ERROR creating the verify decoder instance\n", encoder_wrapper->inbasefilename);
-			return false;
-		}
-		FLAC__stream_decoder_set_read_callback(encoder_wrapper->verify_fifo.decoder, verify_read_callback);
-		FLAC__stream_decoder_set_write_callback(encoder_wrapper->verify_fifo.decoder, verify_write_callback);
-		FLAC__stream_decoder_set_metadata_callback(encoder_wrapper->verify_fifo.decoder, verify_metadata_callback);
-		FLAC__stream_decoder_set_error_callback(encoder_wrapper->verify_fifo.decoder, verify_error_callback);
-		FLAC__stream_decoder_set_client_data(encoder_wrapper->verify_fifo.decoder, encoder_wrapper);
-		if(FLAC__stream_decoder_init(encoder_wrapper->verify_fifo.decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA) {
-			fprintf(stderr, "%s: ERROR initializing decoder, state = %d:%s\n", encoder_wrapper->inbasefilename, FLAC__stream_decoder_get_state(encoder_wrapper->verify_fifo.decoder), FLAC__StreamDecoderStateString[FLAC__stream_decoder_get_state(encoder_wrapper->verify_fifo.decoder)]);
-			return false;
-		}
-	}
 
 	if(!convert_to_seek_table(options.requested_seek_points, options.num_requested_seek_points, encoder_wrapper->total_samples_to_encode, encoder_wrapper->seek_table)) {
 		fprintf(stderr, "%s: ERROR allocating memory for seek table\n", encoder_wrapper->inbasefilename);
@@ -1260,6 +1148,7 @@ FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bp
 		metadata[num_metadata++] = &padding;
 	}
 
+	FLAC__stream_encoder_set_verify(encoder_wrapper->encoder, options.verify);
 	FLAC__stream_encoder_set_streamable_subset(encoder_wrapper->encoder, !options.lax);
 	FLAC__stream_encoder_set_do_mid_side_stereo(encoder_wrapper->encoder, options.do_mid_side);
 	FLAC__stream_encoder_set_loose_mid_side_stereo(encoder_wrapper->encoder, options.loose_mid_side);
@@ -1283,6 +1172,7 @@ FLAC__bool init_encoder(encode_options_t options, unsigned channels, unsigned bp
 
 	if(FLAC__stream_encoder_init(encoder_wrapper->encoder) != FLAC__STREAM_ENCODER_OK) {
 		fprintf(stderr, "%s: ERROR initializing encoder, state = %d:%s\n", encoder_wrapper->inbasefilename, FLAC__stream_encoder_get_state(encoder_wrapper->encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(encoder_wrapper->encoder)]);
+		encoder_wrapper->verify_failed = (FLAC__stream_encoder_get_state(encoder_wrapper->encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA);
 		return false;
 	}
 
@@ -1358,7 +1248,7 @@ FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_
 	return true;
 }
 
-void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper)
+void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps)
 {
 	unsigned wide_sample, sample, channel, byte;
 
@@ -1426,19 +1316,6 @@ void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_
 	else {
 		FLAC__ASSERT(0);
 	}
-
-	append_to_verify_fifo(encoder_wrapper, (const FLAC__int32 * const *)dest, channels, wide_samples);
-}
-
-void append_to_verify_fifo(encoder_wrapper_struct *encoder_wrapper, const FLAC__int32 * const input[], unsigned channels, unsigned wide_samples)
-{
-	if(encoder_wrapper->verify) {
-		unsigned channel;
-		for(channel = 0; channel < channels; channel++)
-			memcpy(&encoder_wrapper->verify_fifo.original[channel][encoder_wrapper->verify_fifo.tail], input[channel], sizeof(FLAC__int32) * wide_samples);
-		encoder_wrapper->verify_fifo.tail += wide_samples;
-		FLAC__ASSERT(encoder_wrapper->verify_fifo.tail <= encoder_wrapper->verify_fifo.size);
-	}
 }
 
 FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
@@ -1484,66 +1361,10 @@ FLAC__StreamEncoderWriteStatus write_callback(const FLAC__StreamEncoder *encoder
 	if(samples && encoder_wrapper->verbose && encoder_wrapper->total_samples_to_encode > 0 && !(current_frame & mask))
 		print_stats(encoder_wrapper);
 
-	if(encoder_wrapper->verify) {
-		encoder_wrapper->verify_fifo.encoded_signal = buffer;
-		encoder_wrapper->verify_fifo.encoded_bytes = bytes;
-		if(encoder_wrapper->verify_fifo.encode_state > ENCODER_IN_MAGIC) {
-			if(!FLAC__stream_decoder_process_single(encoder_wrapper->verify_fifo.decoder)) {
-				encoder_wrapper->verify_fifo.result = encoder_wrapper->verify_fifo.encode_state > ENCODER_IN_METADATA? FLAC__VERIFY_FAILED_IN_FRAME : FLAC__VERIFY_FAILED_IN_METADATA;
-
-				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-			}
-		}
-		else {
-			encoder_wrapper->verify_fifo.encode_state = ENCODER_IN_METADATA;
-			encoder_wrapper->verify_fifo.needs_magic_hack = true;
-		}
-	}
-
-#ifdef FLAC__HAS_OGG
-	if(encoder_wrapper->use_ogg) {
-		ogg_packet op;
-
-		memset(&op, 0, sizeof(op));
-		op.packet = (unsigned char *)buffer;
-		op.granulepos = encoder_wrapper->samples_written - 1;
-		/*@@@ WATCHOUT:
-		 * this depends on the behavior of libFLAC that we will get one
-		 * write_callback first with all the metadata (and 'samples'
-		 * will be 0), then one write_callback for each frame.
-		 */
-		op.packetno = (samples == 0? -1 : (int)encoder_wrapper->current_frame);
-		op.bytes = bytes;
-
-		if (encoder_wrapper->bytes_written == bytes)
-			op.b_o_s = 1;
-
-		if (encoder_wrapper->total_samples_to_encode == encoder_wrapper->samples_written)
-			op.e_o_s = 1;
-
-		ogg_stream_packetin(&encoder_wrapper->ogg.os, &op);
-
-		while(ogg_stream_pageout(&encoder_wrapper->ogg.os, &encoder_wrapper->ogg.og) != 0) {
-			int written;
-			written = fwrite(encoder_wrapper->ogg.og.header, 1, encoder_wrapper->ogg.og.header_len, encoder_wrapper->fout);
-			if (written != encoder_wrapper->ogg.og.header_len)
-				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-
-			written = fwrite(encoder_wrapper->ogg.og.body, 1, encoder_wrapper->ogg.og.body_len, encoder_wrapper->fout);
-			if (written != encoder_wrapper->ogg.og.body_len)
-				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-		}
-
+	if(fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_wrapper->fout) == bytes)
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
-	}
 	else
-#endif
-	{
-		if(fwrite(buffer, sizeof(FLAC__byte), bytes, encoder_wrapper->fout) == bytes)
-			return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
-		else
-			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-	}
+		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 }
 
 void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
@@ -1656,83 +1477,18 @@ end_:
 	return;
 }
 
-FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
-{
-	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
-	const unsigned encoded_bytes = encoder_wrapper->verify_fifo.encoded_bytes;
-	(void)decoder;
-
-	if(encoder_wrapper->verify_fifo.needs_magic_hack) {
-		FLAC__ASSERT(*bytes >= FLAC__STREAM_SYNC_LENGTH);
-		*bytes = FLAC__STREAM_SYNC_LENGTH;
-		memcpy(buffer, FLAC__STREAM_SYNC_STRING, *bytes);
-		encoder_wrapper->verify_fifo.needs_magic_hack = false;
-	}
-	else {
-		//@@@ if(encoded_bytes == 0)?  need some check for underflow so we don't deadlock
-		if(encoded_bytes < *bytes)
-			*bytes = encoded_bytes;
-		memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
-		encoder_wrapper->verify_fifo.encoded_signal += *bytes;
-		encoder_wrapper->verify_fifo.encoded_bytes -= *bytes;
-	}
-
-	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
-}
-
+#if 0
 FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
-	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
-	unsigned channel, l, r;
-	const unsigned channels = FLAC__stream_decoder_get_channels(decoder);
-	const unsigned bytes_per_block = sizeof(FLAC__int32) * FLAC__stream_decoder_get_blocksize(decoder);
-
-	for(channel = 0; channel < channels; channel++) {
-		if(0 != memcmp(buffer[channel], encoder_wrapper->verify_fifo.original[channel], bytes_per_block)) {
-			unsigned sample = 0;
-			int expect = 0, got = 0;
 			fprintf(stderr, "\n%s: ERROR: mismatch in decoded data, verify FAILED!\n", encoder_wrapper->inbasefilename);
 			fprintf(stderr, "       Please submit a bug report to\n");
 			fprintf(stderr, "           http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
 			fprintf(stderr, "       Make sure to include an email contact in the comment and/or use the\n");
 			fprintf(stderr, "       \"Monitor\" feature to monitor the bug status.\n");
-			for(l = 0, r = FLAC__stream_decoder_get_blocksize(decoder); l < r; l++) {
-				if(buffer[channel][l] != encoder_wrapper->verify_fifo.original[channel][l]) {
-					sample = l;
-					expect = (int)encoder_wrapper->verify_fifo.original[channel][l];
-					got = (int)buffer[channel][l];
-					break;
-				}
-			}
-			FLAC__ASSERT(l < r);
-			FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
-			fprintf(stderr, "       Absolute sample=%u, frame=%u, channel=%u, sample=%u, expected %d, got %d\n", (unsigned)frame->header.number.sample_number + sample, (unsigned)frame->header.number.sample_number / FLAC__stream_decoder_get_blocksize(decoder), channel, sample, expect, got); /*@@@ WATCHOUT: 4GB limit */
-			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-		}
-	}
-	/* dequeue the frame from the fifo */
-	for(channel = 0; channel < channels; channel++) {
-		for(l = 0, r = frame->header.blocksize; r < encoder_wrapper->verify_fifo.tail; l++, r++) {
-			encoder_wrapper->verify_fifo.original[channel][l] = encoder_wrapper->verify_fifo.original[channel][r];
-		}
-	}
-	encoder_wrapper->verify_fifo.tail -= frame->header.blocksize;
-	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
-}
 
-void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
-{
-	(void)decoder;
-	(void)metadata;
-	(void)client_data;
+			fprintf(stderr, "       Absolute sample=%u, frame=%u, channel=%u, sample=%u, expected %d, got %d\n", (unsigned)frame->header.number.sample_number + sample, (unsigned)frame->header.number.sample_number / FLAC__stream_decoder_get_blocksize(decoder), channel, sample, expect, got);
 }
-
-void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
-{
-	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
-	(void)decoder;
-	fprintf(stderr, "\n%s: ERROR: verification decoder returned error %d:%s\n", encoder_wrapper->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
-}
+#endif
 
 void print_stats(const encoder_wrapper_struct *encoder_wrapper)
 {
@@ -1748,7 +1504,7 @@ void print_stats(const encoder_wrapper_struct *encoder_wrapper)
 	if(encoder_wrapper->samples_written == encoder_wrapper->total_samples_to_encode) {
 		fprintf(stderr, "\r%s:%s wrote %u bytes, ratio=%0.3f",
 			encoder_wrapper->inbasefilename,
-			encoder_wrapper->verify? (encoder_wrapper->verify_fifo.result == FLAC__VERIFY_OK? " Verify OK," : " Verify FAILED!") : "",
+			encoder_wrapper->verify? (encoder_wrapper->verify_failed? " Verify FAILED!" : " Verify OK,") : "",
 			(unsigned)encoder_wrapper->bytes_written,
 			ratio
 		);
