@@ -162,8 +162,8 @@ namespace OggFLAC {
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 
-#ifdef _MSC_VER
-		//@@@@@@ lame hack: some MSVC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
+#if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
+		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
 		public:
 #endif
 			::OggFLAC__StreamEncoder *encoder_;
@@ -263,8 +263,8 @@ namespace OggFLAC {
 			virtual ::FLAC__SeekableStreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset) = 0;
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
 
-#ifdef _MSC_VER
-		//@@@@@@ lame hack: some MSVC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
+#if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
+		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
 		public:
 #endif
 			::OggFLAC__SeekableStreamEncoder *encoder_;
@@ -365,8 +365,8 @@ namespace OggFLAC {
 		protected:
 			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);
 
-#ifdef _MSC_VER
-		//@@@@@@ lame hack: some MSVC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
+#if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
+		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
 		public:
 #endif
 			::OggFLAC__FileEncoder *encoder_;

@@ -141,8 +141,8 @@ namespace FLAC {
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
-#ifdef _MSC_VER
-		//@@@@@@ lame hack: some MSVC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
+#if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
+		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
 		public:
 #endif
 			::FLAC__StreamDecoder *decoder_;
@@ -236,8 +236,8 @@ namespace FLAC {
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
-#ifdef _MSC_VER
-		//@@@@@@ lame hack: some MSVC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
+#if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
+		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
 		public:
 #endif
 			::FLAC__SeekableStreamDecoder *decoder_;
@@ -329,8 +329,8 @@ namespace FLAC {
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
-#ifdef _MSC_VER
-		//@@@@@@ lame hack: some MSVC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
+#if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96)))
+		//@@@@@@ lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
 		public:
 #endif
 			::FLAC__FileDecoder *decoder_;
