@@ -20,7 +20,7 @@
 #ifndef FLAC__FILE_DECODER_H
 #define FLAC__FILE_DECODER_H
 
-#include "stream_decoder.h"
+#include "seekable_stream_decoder.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -388,6 +388,31 @@ FLAC__bool FLAC__file_decoder_set_metadata_ignore_all(FLAC__FileDecoder *decoder
  *    The current decoder state.
  */
 FLAC__FileDecoderState FLAC__file_decoder_get_state(const FLAC__FileDecoder *decoder);
+
+/** Get the state of the underlying seekable stream decoder.
+ *  Useful when the file decoder state is
+ *  \c FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR.
+ *
+ * \param  decoder  An decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__SeekableStreamDecoderState
+ *    The seekable stream decoder state.
+ */
+FLAC__SeekableStreamDecoderState FLAC__file_decoder_get_seekable_stream_decoder_state(const FLAC__FileDecoder *decoder);
+
+/** Get the state of the underlying stream decoder.
+ *  Useful when the file decoder state is
+ *  \c FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR and the seekable stream
+ *  decoder state is \c FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR.
+ *
+ * \param  decoder  An decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__SeekableStreamDecoderState
+ *    The seekable stream decoder state.
+ */
+FLAC__StreamDecoderState FLAC__file_decoder_get_stream_decoder_state(const FLAC__FileDecoder *decoder);
 
 /** Get the "MD5 signature checking" flag.
  *  This is inherited from FLAC__SeekableStreamDecoder; see

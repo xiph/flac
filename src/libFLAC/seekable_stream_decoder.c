@@ -83,9 +83,9 @@ const char * const FLAC__SeekableStreamDecoderStateString[] = {
 	"FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR",
 	"FLAC__SEEKABLE_STREAM_DECODER_READ_ERROR",
 	"FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR",
-    "FLAC__SEEKABLE_STREAM_DECODER_ALREADY_INITIALIZED",
-    "FLAC__SEEKABLE_STREAM_DECODER_INVALID_CALLBACK",
-    "FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED"
+	"FLAC__SEEKABLE_STREAM_DECODER_ALREADY_INITIALIZED",
+	"FLAC__SEEKABLE_STREAM_DECODER_INVALID_CALLBACK",
+	"FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED"
 };
 
 const char * const FLAC__SeekableStreamDecoderReadStatusString[] = {
@@ -107,6 +107,7 @@ const char * const FLAC__SeekableStreamDecoderLengthStatusString[] = {
 	"FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_OK",
 	"FLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR"
 };
+
 
 /***********************************************************************
  *
@@ -444,6 +445,13 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_state(const F
 	return decoder->protected_->state;
 }
 
+FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_stream_decoder_state(const FLAC__SeekableStreamDecoder *decoder)
+{
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+	return FLAC__stream_decoder_get_state(decoder->private_->stream_decoder);
+}
+
 FLAC__bool FLAC__seekable_stream_decoder_get_md5_checking(const FLAC__SeekableStreamDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
@@ -453,37 +461,37 @@ FLAC__bool FLAC__seekable_stream_decoder_get_md5_checking(const FLAC__SeekableSt
 
 unsigned FLAC__seekable_stream_decoder_get_channels(const FLAC__SeekableStreamDecoder *decoder)
 {
-    FLAC__ASSERT(0 != decoder);
-    FLAC__ASSERT(0 != decoder->private_);
-    return FLAC__stream_decoder_get_channels(decoder->private_->stream_decoder);
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+	return FLAC__stream_decoder_get_channels(decoder->private_->stream_decoder);
 }
 
 FLAC__ChannelAssignment FLAC__seekable_stream_decoder_get_channel_assignment(const FLAC__SeekableStreamDecoder *decoder)
 {
-    FLAC__ASSERT(0 != decoder);
-    FLAC__ASSERT(0 != decoder->private_);
-    return FLAC__stream_decoder_get_channel_assignment(decoder->private_->stream_decoder);
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+	return FLAC__stream_decoder_get_channel_assignment(decoder->private_->stream_decoder);
 }
 
 unsigned FLAC__seekable_stream_decoder_get_bits_per_sample(const FLAC__SeekableStreamDecoder *decoder)
 {
-    FLAC__ASSERT(0 != decoder);
-    FLAC__ASSERT(0 != decoder->private_);
-    return FLAC__stream_decoder_get_bits_per_sample(decoder->private_->stream_decoder);
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+	return FLAC__stream_decoder_get_bits_per_sample(decoder->private_->stream_decoder);
 }
 
 unsigned FLAC__seekable_stream_decoder_get_sample_rate(const FLAC__SeekableStreamDecoder *decoder)
 {
-    FLAC__ASSERT(0 != decoder);
-    FLAC__ASSERT(0 != decoder->private_);
-    return FLAC__stream_decoder_get_sample_rate(decoder->private_->stream_decoder);
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+	return FLAC__stream_decoder_get_sample_rate(decoder->private_->stream_decoder);
 }
 
 unsigned FLAC__seekable_stream_decoder_get_blocksize(const FLAC__SeekableStreamDecoder *decoder)
 {
-    FLAC__ASSERT(0 != decoder);
-    FLAC__ASSERT(0 != decoder->private_);
-    return FLAC__stream_decoder_get_blocksize(decoder->private_->stream_decoder);
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->private_);
+	return FLAC__stream_decoder_get_blocksize(decoder->private_->stream_decoder);
 }
 
 FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *decoder)

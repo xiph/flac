@@ -996,6 +996,7 @@ static FLAC__bool test_seekable_stream_decoder()
 {
 	FLAC__SeekableStreamDecoder *decoder;
 	FLAC__SeekableStreamDecoderState state;
+	FLAC__StreamDecoderState sstate;
 	seekable_stream_decoder_client_data_struct decoder_client_data;
 
 	printf("\n+++ libFLAC unit test: FLAC__SeekableStreamDecoder\n\n");
@@ -1098,6 +1099,10 @@ static FLAC__bool test_seekable_stream_decoder()
 	printf("testing FLAC__seekable_stream_decoder_get_state()... ");
 	state = FLAC__seekable_stream_decoder_get_state(decoder);
 	printf("returned state = %u (%s)... OK\n", state, FLAC__SeekableStreamDecoderStateString[state]);
+
+	printf("testing FLAC__seekable_stream_decoder_get_stream_decoder_state()... ");
+	sstate = FLAC__seekable_stream_decoder_get_stream_decoder_state(decoder);
+	printf("returned state = %u (%s)... OK\n", sstate, FLAC__StreamDecoderStateString[sstate]);
 
 	decoder_client_data.current_metadata_number = 0;
 	decoder_client_data.ignore_errors = false;
@@ -1571,6 +1576,8 @@ static FLAC__bool test_file_decoder()
 {
 	FLAC__FileDecoder *decoder;
 	FLAC__FileDecoderState state;
+	FLAC__SeekableStreamDecoderState ssstate;
+	FLAC__StreamDecoderState sstate;
 	seekable_stream_decoder_client_data_struct decoder_client_data;
 
 	printf("\n+++ libFLAC unit test: FLAC__FileDecoder\n\n");
@@ -1653,6 +1660,14 @@ static FLAC__bool test_file_decoder()
 	printf("testing FLAC__file_decoder_get_state()... ");
 	state = FLAC__file_decoder_get_state(decoder);
 	printf("returned state = %u (%s)... OK\n", state, FLAC__FileDecoderStateString[state]);
+
+	printf("testing FLAC__file_decoder_get_seekable_stream_decoder_state()... ");
+	ssstate = FLAC__file_decoder_get_seekable_stream_decoder_state(decoder);
+	printf("returned state = %u (%s)... OK\n", ssstate, FLAC__SeekableStreamDecoderStateString[ssstate]);
+
+	printf("testing FLAC__file_decoder_get_stream_decoder_state()... ");
+	sstate = FLAC__file_decoder_get_stream_decoder_state(decoder);
+	printf("returned state = %u (%s)... OK\n", sstate, FLAC__StreamDecoderStateString[sstate]);
 
 	decoder_client_data.current_metadata_number = 0;
 	decoder_client_data.ignore_errors = false;

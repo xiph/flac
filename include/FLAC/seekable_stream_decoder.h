@@ -570,6 +570,18 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(FLAC__SeekableS
  */
 FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_get_state(const FLAC__SeekableStreamDecoder *decoder);
 
+/** Get the state of the underlying stream decoder.
+ *  Useful when the seekable stream decoder state is
+ *  \c FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR.
+ *
+ * \param  decoder  An decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__StreamDecoderState
+ *    The stream decoder state.
+ */
+FLAC__StreamDecoderState FLAC__seekable_stream_decoder_get_stream_decoder_state(const FLAC__SeekableStreamDecoder *decoder);
+
 /** Get the "MD5 signature checking" flag.
  *  This is the value of the setting, not whether or not the decoder is
  *  currently checking the MD5 (remember, it can be turned off automatically
