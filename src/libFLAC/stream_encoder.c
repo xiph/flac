@@ -21,7 +21,6 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy() */
 #include "FLAC/assert.h"
-#include "FLAC/metadata.h" /* for FLAC__metadata_object_seektable_is_legal() */
 #include "protected/stream_encoder.h"
 #include "private/bitbuffer.h"
 #include "private/bitmath.h"
@@ -279,7 +278,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	if(encoder->protected_->bits_per_sample < FLAC__MIN_BITS_PER_SAMPLE || encoder->protected_->bits_per_sample > FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE)
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_BITS_PER_SAMPLE;
 
-	if(!FLAC__format_is_valid_sample_rate(encoder->protected_->sample_rate))
+	if(!FLAC__format_sample_rate_is_valid(encoder->protected_->sample_rate))
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_SAMPLE_RATE;
 
 	if(encoder->protected_->blocksize < FLAC__MIN_BLOCK_SIZE || encoder->protected_->blocksize > FLAC__MAX_BLOCK_SIZE)
@@ -337,7 +336,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 		if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_STREAMINFO)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
 		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
-			if(!FLAC__metadata_object_seektable_is_legal(encoder->protected_->metadata[i]))
+			if(!FLAC__format_seektable_is_legal(&encoder->protected_->metadata[i]->data.seek_table))
 				return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
 		}
 	}

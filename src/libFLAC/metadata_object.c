@@ -575,27 +575,10 @@ FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *ob
 
 FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object)
 {
-	unsigned i;
-	FLAC__uint64 prev_sample_number = 0;
-	FLAC__bool got_prev = false;
-
 	FLAC__ASSERT(0 != object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
 
-	{
-		const FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
-
-		for(i = 0; i < seek_table->num_points; i++) {
-			if(got_prev) {
-				if(seek_table->points[i].sample_number <= prev_sample_number)
-					return false;
-			}
-			prev_sample_number = seek_table->points[i].sample_number;
-			got_prev = true;
-		}
-	}
-
-	return true;
+	return FLAC__format_seektable_is_legal(&object->data.seek_table);
 }
 
 FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
