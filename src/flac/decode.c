@@ -323,6 +323,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 		print_stats(stream_info);
 
 	if(stream_info->analysis_mode) {
+		unsigned i;
 		fprintf(fout, "frame=%u\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", stream_info->frame_counter-1, frame->header.blocksize, frame->header.sample_rate, frame->header.channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
 		for(channel = 0; channel < channels; channel++) {
 			const FLAC__Subframe *subframe = frame->subframes+channel;
@@ -333,9 +334,13 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 					break;
 				case FLAC__SUBFRAME_TYPE_FIXED:
 					fprintf(fout, "\torder=%u\tpartition_order=%u\n", subframe->data.fixed.order, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order); /*@@@ assumes method is partitioned-rice */
+					for(i = 0; i < subframe->data.fixed.order; i++)
+						fprintf(fout, "\twarmup[%u]=%d\n", i, subframe->data.fixed.warmup[i]);
 					break;
 				case FLAC__SUBFRAME_TYPE_LPC:
 					fprintf(fout, "\torder=%u\tpartition_order=%u\tqlp_coeff_precision=%u\tquantization_level=%d\n", subframe->data.lpc.order, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level); /*@@@ assumes method is partitioned-rice */
+					for(i = 0; i < subframe->data.lpc.order; i++)
+						fprintf(fout, "\twarmup[%u]=%d\n", i, subframe->data.lpc.warmup[i]);
 					break;
 				case FLAC__SUBFRAME_TYPE_VERBATIM:
 					fprintf(fout, "\n");
