@@ -714,7 +714,7 @@ FLAC__bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 		decoder->private_->seek_table.is_last = last_block;
 		decoder->private_->seek_table.length = length;
 
-		decoder->private_->seek_table.data.seek_table.num_points = length / FLAC__STREAM_METADATA_SEEKPOINT_LEN;
+		decoder->private_->seek_table.data.seek_table.num_points = length / FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
 
 		if(0 == (decoder->private_->seek_table.data.seek_table.points = (FLAC__StreamMetaData_SeekPoint*)malloc(decoder->private_->seek_table.data.seek_table.num_points * sizeof(FLAC__StreamMetaData_SeekPoint)))) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
