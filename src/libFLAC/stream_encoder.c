@@ -2956,7 +2956,14 @@ FLAC__bool set_partitioned_rice_(
 				mean >>= 1;
 			}
 #else
-			/* calc rice_parameter ala LOCO-I */
+			/* we are basically calculating the size in bits of the
+			 * average residual magnitude in the partition:
+			 *   rice_parameter = floor(log2(mean/partition_samples))
+			 * 'mean' is not a good name for the variable, it is
+			 * actually the sum of magnitudes of all residual values
+			 * in the partition, so the actual mean is
+			 * mean/partition_samples
+			 */
 			for(rice_parameter = 0, k = partition_samples; k < mean; rice_parameter++, k <<= 1)
 				;
 #endif
@@ -3162,7 +3169,14 @@ FLAC__bool set_partitioned_rice_with_precompute_(
 				mean >>= 1;
 			}
 #else
-			/* calc rice_parameter ala LOCO-I */
+			/* we are basically calculating the size in bits of the
+			 * average residual magnitude in the partition:
+			 *   rice_parameter = floor(log2(mean/partition_samples))
+			 * 'mean' is not a good name for the variable, it is
+			 * actually the sum of magnitudes of all residual values
+			 * in the partition, so the actual mean is
+			 * mean/partition_samples
+			 */
 			for(rice_parameter = 0, k = partition_samples; k < mean; rice_parameter++, k <<= 1)
 				;
 #endif
