@@ -1,5 +1,6 @@
 # Configure paths for libFLAC++
 # "Inspired" by ogg.m4
+# Caller must first run AM_PATH_LIBFLAC
 
 dnl AM_PATH_LIBFLACPP([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for libFLAC++, and define LIBFLACPP_CFLAGS and LIBFLACPP_LIBS
@@ -8,10 +9,10 @@ AC_DEFUN(AM_PATH_LIBFLACPP,
 [dnl 
 dnl Get the cflags and libraries
 dnl
-AC_ARG_WITH(libFLAC++,[  --with-libFLAC++=PFX   Prefix where libFLAC++ is installed (optional)], libFLACPP_prefix="$withval", libFLACPP_prefix="")
-AC_ARG_WITH(libFLAC++-libraries,[  --with-libFLAC++-libraries=DIR   Directory where libFLAC++ library is installed (optional)], libFLACPP_libraries="$withval", libFLACPP_libraries="")
-AC_ARG_WITH(libFLAC++-includes,[  --with-libFLAC++-includes=DIR   Directory where libFLAC++ header files are installed (optional)], libFLACPP_includes="$withval", libFLACPP_includes="")
-AC_ARG_ENABLE(libFLAC++test, [  --disable-libFLAC++test       Do not try to compile and run a test libFLAC++ program],, enable_libFLACPPtest=yes)
+AC_ARG_WITH(libFLACPP,[  --with-libFLACPP=PFX   Prefix where libFLAC++ is installed (optional)], libFLACPP_prefix="$withval", libFLACPP_prefix="")
+AC_ARG_WITH(libFLACPP-libraries,[  --with-libFLACPP-libraries=DIR   Directory where libFLAC++ library is installed (optional)], libFLACPP_libraries="$withval", libFLACPP_libraries="")
+AC_ARG_WITH(libFLACPP-includes,[  --with-libFLACPP-includes=DIR   Directory where libFLAC++ header files are installed (optional)], libFLACPP_includes="$withval", libFLACPP_includes="")
+AC_ARG_ENABLE(libFLACPPtest, [  --disable-libFLACPPtest       Do not try to compile and run a test libFLAC++ program],, enable_libFLACPPtest=yes)
 
   if test "x$libFLACPP_libraries" != "x" ; then
     LIBFLACPP_LIBS="-L$libFLACPP_libraries"
@@ -21,7 +22,7 @@ AC_ARG_ENABLE(libFLAC++test, [  --disable-libFLAC++test       Do not try to comp
     LIBFLACPP_LIBS="-L$prefix/lib"
   fi
 
-  LIBFLACPP_LIBS="$LIBFLACPP_LIBS -lFLAC++"
+  LIBFLACPP_LIBS="$LIBFLACPP_LIBS -lFLAC++ $LIBFLAC_LIBS"
 
   if test "x$libFLACPP_includes" != "x" ; then
     LIBFLACPP_CFLAGS="-I$libFLACPP_includes"
@@ -30,6 +31,8 @@ AC_ARG_ENABLE(libFLAC++test, [  --disable-libFLAC++test       Do not try to comp
   elif test "$prefix" != "xNONE"; then
     LIBFLACPP_CFLAGS="-I$prefix/include"
   fi
+
+  LIBFLACPP_CFLAGS="$LIBFLACPP_CFLAGS $LIBFLAC_CFLAGS"
 
   AC_MSG_CHECKING(for libFLAC++)
   no_libFLACPP=""

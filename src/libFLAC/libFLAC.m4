@@ -21,7 +21,7 @@ AC_ARG_ENABLE(libFLACtest, [  --disable-libFLACtest       Do not try to compile 
     LIBFLAC_LIBS="-L$prefix/lib"
   fi
 
-  LIBFLAC_LIBS="$LIBFLAC_LIBS -lFLAC"
+  LIBFLAC_LIBS="$LIBFLAC_LIBS -lFLAC -lm"
 
   if test "x$libFLAC_includes" != "x" ; then
     LIBFLAC_CFLAGS="-I$libFLAC_includes"
