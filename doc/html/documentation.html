@@ -263,6 +263,14 @@
 	<P>
 		Also, you can force output data to go to stdout using <TT>-c</TT>.
 	</P>
+	<P>
+		To encode or decode files that start with a dash, use <TT>--</TT> to signal the end of options, to keep the filenames themselves from being treated as options:
+		<UL>
+		<LI>
+			<TT>flac -V -- -01-filename.wav</TT>
+		</LI>
+		</UL>
+	</P>
 	<P>The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <B><TT>flac</TT></B> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE or AIFF file the format options are not needed since they are read from the AIFF/WAVE header.
 	</P>
 	<P>
