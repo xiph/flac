@@ -377,6 +377,13 @@ static bool test_stream_encoder()
 	}
 	printf("OK\n");
 
+	printf("testing get_total_samples_estimate()... ");
+	if(encoder->get_total_samples_estimate() != streaminfo_.data.stream_info.total_samples) {
+		printf("FAILED, expected %llu, got %llu\n", streaminfo_.data.stream_info.total_samples, encoder->get_total_samples_estimate());
+		return false;
+	}
+	printf("OK\n");
+
 	/* init the dummy sample buffer */
 	for(i = 0; i < sizeof(samples) / sizeof(FLAC__int32); i++)
 		samples[i] = i & 7;
@@ -673,6 +680,13 @@ static bool test_seekable_stream_encoder()
 	}
 	printf("OK\n");
 
+	printf("testing get_total_samples_estimate()... ");
+	if(encoder->get_total_samples_estimate() != streaminfo_.data.stream_info.total_samples) {
+		printf("FAILED, expected %llu, got %llu\n", streaminfo_.data.stream_info.total_samples, encoder->get_total_samples_estimate());
+		return false;
+	}
+	printf("OK\n");
+
 	/* init the dummy sample buffer */
 	for(i = 0; i < sizeof(samples) / sizeof(FLAC__int32); i++)
 		samples[i] = i & 7;
@@ -706,10 +720,15 @@ public:
 	~FileEncoder() { }
 
 	// from FLAC::Encoder::File
-	//@@@@ progress callback
+	void progress_callback(unsigned current_frame, unsigned total_frames_estimate);
 
 	bool die(const char *msg = 0) const;
 };
+
+void FileEncoder::progress_callback(unsigned current_frame, unsigned total_frames_estimate)
+{
+	(void)current_frame, (void)total_frames_estimate;
+}
 
 bool FileEncoder::die(const char *msg) const
 {
@@ -963,6 +982,13 @@ static bool test_file_encoder()
 	printf("testing get_rice_parameter_search_dist()... ");
 	if(encoder->get_rice_parameter_search_dist() != 0) {
 		printf("FAILED, expected %u, got %u\n", 0, encoder->get_rice_parameter_search_dist());
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing get_total_samples_estimate()... ");
+	if(encoder->get_total_samples_estimate() != streaminfo_.data.stream_info.total_samples) {
+		printf("FAILED, expected %llu, got %llu\n", streaminfo_.data.stream_info.total_samples, encoder->get_total_samples_estimate());
 		return false;
 	}
 	printf("OK\n");

@@ -41,9 +41,12 @@ static FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__SeekableStream
  ***********************************************************************/
 
 typedef struct FLAC__FileEncoderPrivate {
-	FILE *file;
+	FLAC__FileEncoderProgressCallback progress_callback;
+	void *client_data;
 	char *filename;
+	unsigned total_frames_estimate;
 	FLAC__SeekableStreamEncoder *seekable_stream_encoder;
+	FILE *file;
 } FLAC__FileEncoderPrivate;
 
 /***********************************************************************
@@ -153,6 +156,13 @@ FLAC__FileEncoderState FLAC__file_encoder_init(FLAC__FileEncoder *encoder)
 
 	if(FLAC__seekable_stream_encoder_init(encoder->private_->seekable_stream_encoder) != FLAC__SEEKABLE_STREAM_ENCODER_OK)
 		return encoder->protected_->state = FLAC__FILE_ENCODER_SEEKABLE_STREAM_ENCODER_ERROR;
+
+	{
+		unsigned blocksize = FLAC__file_encoder_get_blocksize(encoder);
+
+		FLAC__ASSERT(blocksize != 0);
+		encoder->private_->total_frames_estimate = (FLAC__file_encoder_get_total_samples_estimate(encoder) + blocksize - 1) / blocksize;
+	}
 
 	return encoder->protected_->state = FLAC__FILE_ENCODER_OK;
 }
@@ -392,6 +402,28 @@ FLAC__bool FLAC__file_encoder_set_filename(FLAC__FileEncoder *encoder, const cha
 	return true;
 }
 
+FLAC__bool FLAC__file_encoder_set_progress_callback(FLAC__FileEncoder *encoder, FLAC__FileEncoderProgressCallback value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__FILE_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private_->progress_callback = value;
+	return true;
+}
+
+FLAC__bool FLAC__file_encoder_set_client_data(FLAC__FileEncoder *encoder, void *value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__FILE_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private_->client_data = value;
+	return true;
+}
+
 FLAC__FileEncoderState FLAC__file_encoder_get_state(const FLAC__FileEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -518,6 +550,13 @@ unsigned FLAC__file_encoder_get_rice_parameter_search_dist(const FLAC__FileEncod
 	return FLAC__seekable_stream_encoder_get_rice_parameter_search_dist(encoder->private_->seekable_stream_encoder);
 }
 
+FLAC__uint64 FLAC__file_encoder_get_total_samples_estimate(const FLAC__FileEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	return FLAC__seekable_stream_encoder_get_total_samples_estimate(encoder->private_->seekable_stream_encoder);
+}
+
 FLAC__bool FLAC__file_encoder_process(FLAC__FileEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -545,6 +584,9 @@ void set_defaults_(FLAC__FileEncoder *encoder)
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
 
+	encoder->private_->progress_callback = 0;
+	encoder->private_->client_data = 0;
+	encoder->private_->total_frames_estimate = 0;
 	encoder->private_->filename = 0;
 }
 
@@ -570,8 +612,11 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__SeekableStreamEncoder
 
 	FLAC__ASSERT(0 != file_encoder);
 
-	if(fwrite(buffer, sizeof(FLAC__byte), bytes, file_encoder->private_->file) == bytes)
+	if(fwrite(buffer, sizeof(FLAC__byte), bytes, file_encoder->private_->file) == bytes) {
+		if(0 != file_encoder->private_->progress_callback)
+			file_encoder->private_->progress_callback(file_encoder, current_frame, file_encoder->private_->total_frames_estimate, file_encoder->private_->client_data);
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+	}
 	else
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 }

@@ -413,6 +413,13 @@ static FLAC__bool test_stream_encoder()
 	}
 	printf("OK\n");
 
+	printf("testing FLAC__stream_encoder_get_total_samples_estimate()... ");
+	if(FLAC__stream_encoder_get_total_samples_estimate(encoder) != streaminfo_.data.stream_info.total_samples) {
+		printf("FAILED, expected %llu, got %llu\n", streaminfo_.data.stream_info.total_samples, FLAC__stream_encoder_get_total_samples_estimate(encoder));
+		return false;
+	}
+	printf("OK\n");
+
 	/* init the dummy sample buffer */
 	for(i = 0; i < sizeof(samples) / sizeof(FLAC__int32); i++)
 		samples[i] = i & 7;
@@ -682,6 +689,13 @@ static FLAC__bool test_seekable_stream_encoder()
 	}
 	printf("OK\n");
 
+	printf("testing FLAC__seekable_stream_encoder_get_total_samples_estimate()... ");
+	if(FLAC__seekable_stream_encoder_get_total_samples_estimate(encoder) != streaminfo_.data.stream_info.total_samples) {
+		printf("FAILED, expected %llu, got %llu\n", streaminfo_.data.stream_info.total_samples, FLAC__seekable_stream_encoder_get_total_samples_estimate(encoder));
+		return false;
+	}
+	printf("OK\n");
+
 	/* init the dummy sample buffer */
 	for(i = 0; i < sizeof(samples) / sizeof(FLAC__int32); i++)
 		samples[i] = i & 7;
@@ -707,6 +721,11 @@ static FLAC__bool test_seekable_stream_encoder()
 	printf("\nPASSED!\n");
 
 	return true;
+}
+
+static void file_encoder_progress_callback_(const FLAC__FileEncoder *encoder, unsigned current_frame, unsigned total_frames_estimate, void *client_data)
+{
+	(void)encoder, (void)current_frame, (void)total_frames_estimate, (void)client_data;
 }
 
 static FLAC__bool test_file_encoder()
@@ -814,6 +833,16 @@ static FLAC__bool test_file_encoder()
 
 	printf("testing FLAC__file_encoder_set_filename()... ");
 	if(!FLAC__file_encoder_set_filename(encoder, flacfilename_))
+		return die_f_("returned false", encoder);
+	printf("OK\n");
+
+	printf("testing FLAC__file_encoder_set_progress_callback()... ");
+	if(!FLAC__file_encoder_set_progress_callback(encoder, file_encoder_progress_callback_))
+		return die_f_("returned false", encoder);
+	printf("OK\n");
+
+	printf("testing FLAC__file_encoder_set_client_data()... ");
+	if(!FLAC__file_encoder_set_client_data(encoder, 0))
 		return die_f_("returned false", encoder);
 	printf("OK\n");
 
@@ -925,6 +954,13 @@ static FLAC__bool test_file_encoder()
 	printf("testing FLAC__file_encoder_get_rice_parameter_search_dist()... ");
 	if(FLAC__file_encoder_get_rice_parameter_search_dist(encoder) != 0) {
 		printf("FAILED, expected %u, got %u\n", 0, FLAC__file_encoder_get_rice_parameter_search_dist(encoder));
+		return false;
+	}
+	printf("OK\n");
+
+	printf("testing FLAC__file_encoder_get_total_samples_estimate()... ");
+	if(FLAC__file_encoder_get_total_samples_estimate(encoder) != streaminfo_.data.stream_info.total_samples) {
+		printf("FAILED, expected %llu, got %llu\n", streaminfo_.data.stream_info.total_samples, FLAC__file_encoder_get_total_samples_estimate(encoder));
 		return false;
 	}
 	printf("OK\n");

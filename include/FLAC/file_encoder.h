@@ -150,6 +150,9 @@ typedef struct {
 	struct FLAC__FileEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__FileEncoder;
 
+/*@@@ document: */
+typedef void (*FLAC__FileEncoderProgressCallback)(const FLAC__FileEncoder *encoder, unsigned current_frame, unsigned total_frames_estimate, void *client_data);
+
 
 /***********************************************************************
  *
@@ -431,6 +434,41 @@ FLAC__bool FLAC__file_encoder_set_metadata(FLAC__FileEncoder *encoder, FLAC__Str
  */
 FLAC__bool FLAC__file_encoder_set_filename(FLAC__FileEncoder *encoder, const char *value);
 
+/** Set the progress callback.
+ *  The supplied function will be called when the encoder has finished
+ *  writing a frame.  The \c total_frames_estimate argument to the callback
+ *  will be based on the value from
+ *  FLAC__file_encoder_set_total_samples_estimate().
+ *
+ * \note
+ * Unlike most other callbacks, the progress callback is \b not mandatory
+ * and need not be set before initialization.
+ *
+ * \default \c NULL
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC__bool FLAC__file_encoder_set_progress_callback(FLAC__FileEncoder *encoder, FLAC__FileEncoderProgressCallback value);
+
+/** Set the client data to be passed back to callbacks.
+ *  This value will be supplied to callbacks in their \a client_data
+ *  argument.
+ *
+ * \default \c NULL
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC__bool FLAC__file_encoder_set_client_data(FLAC__FileEncoder *encoder, void *value);
+
 /** Get the current encoder state.
  *
  * \param  encoder  An encoder instance to query.
@@ -509,7 +547,7 @@ FLAC__bool FLAC__file_encoder_get_loose_mid_side_stereo(const FLAC__FileEncoder 
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__file_encoder_set_channels().
  */
 unsigned FLAC__file_encoder_get_channels(const FLAC__FileEncoder *encoder);
@@ -521,7 +559,7 @@ unsigned FLAC__file_encoder_get_channels(const FLAC__FileEncoder *encoder);
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__file_encoder_set_bits_per_sample().
  */
 unsigned FLAC__file_encoder_get_bits_per_sample(const FLAC__FileEncoder *encoder);
@@ -533,7 +571,7 @@ unsigned FLAC__file_encoder_get_bits_per_sample(const FLAC__FileEncoder *encoder
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__file_encoder_set_sample_rate().
  */
 unsigned FLAC__file_encoder_get_sample_rate(const FLAC__FileEncoder *encoder);
@@ -545,7 +583,7 @@ unsigned FLAC__file_encoder_get_sample_rate(const FLAC__FileEncoder *encoder);
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__file_encoder_set_blocksize().
  */
 unsigned FLAC__file_encoder_get_blocksize(const FLAC__FileEncoder *encoder);
@@ -557,7 +595,7 @@ unsigned FLAC__file_encoder_get_blocksize(const FLAC__FileEncoder *encoder);
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__file_encoder_set_max_lpc_order().
  */
 unsigned FLAC__file_encoder_get_max_lpc_order(const FLAC__FileEncoder *encoder);
@@ -569,7 +607,7 @@ unsigned FLAC__file_encoder_get_max_lpc_order(const FLAC__FileEncoder *encoder);
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__file_encoder_set_qlp_coeff_precision().
  */
 unsigned FLAC__file_encoder_get_qlp_coeff_precision(const FLAC__FileEncoder *encoder);
@@ -617,7 +655,7 @@ FLAC__bool FLAC__file_encoder_get_do_exhaustive_model_search(const FLAC__FileEnc
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__file_encoder_set_min_residual_partition_order().
  */
 unsigned FLAC__file_encoder_get_min_residual_partition_order(const FLAC__FileEncoder *encoder);
@@ -629,7 +667,7 @@ unsigned FLAC__file_encoder_get_min_residual_partition_order(const FLAC__FileEnc
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__file_encoder_set_max_residual_partition_order().
  */
 unsigned FLAC__file_encoder_get_max_residual_partition_order(const FLAC__FileEncoder *encoder);
@@ -641,10 +679,22 @@ unsigned FLAC__file_encoder_get_max_residual_partition_order(const FLAC__FileEnc
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__file_encoder_set_rice_parameter_search_dist().
  */
 unsigned FLAC__file_encoder_get_rice_parameter_search_dist(const FLAC__FileEncoder *encoder);
+
+/** Get the previously set estimate of the total samples to be encoded.
+ *  This is inherited from FLAC__SeekableStreamEncoder; see
+ *  FLAC__seekable_stream_encoder_get_total_samples_estimate().
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__uint64
+ *    See FLAC__file_encoder_set_total_samples_estimate().
+ */
+FLAC__uint64 FLAC__file_encoder_get_total_samples_estimate(const FLAC__FileEncoder *encoder);
 
 /** Initialize the encoder instance.
  *  Should be called after FLAC__file_encoder_new() and

@@ -256,9 +256,17 @@ namespace FLAC {
 			return ::FLAC__file_encoder_get_rice_parameter_search_dist(encoder_);
 		}
 
+		FLAC__uint64 File::get_total_samples_estimate() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__file_encoder_get_total_samples_estimate(encoder_);
+		}
+
 		File::State File::init()
 		{
 			FLAC__ASSERT(is_valid());
+			::FLAC__file_encoder_set_progress_callback(encoder_, progress_callback_);
+			::FLAC__file_encoder_set_client_data(encoder_, (void*)this);
 			return State(::FLAC__file_encoder_init(encoder_));
 		}
 
@@ -278,6 +286,20 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__file_encoder_process_interleaved(encoder_, buffer, samples);
+		}
+
+		void File::progress_callback(unsigned current_frame, unsigned total_frames_estimate)
+		{
+			(void)current_frame, (void)total_frames_estimate;
+		}
+
+		void File::progress_callback_(const ::FLAC__FileEncoder *encoder, unsigned current_frame, unsigned total_frames_estimate, void *client_data)
+		{
+			(void)encoder;
+			FLAC__ASSERT(0 != client_data);
+			File *instance = reinterpret_cast<File *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			instance->progress_callback(current_frame, total_frames_estimate);
 		}
 
 	};

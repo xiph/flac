@@ -131,6 +131,7 @@ namespace FLAC {
 			unsigned get_min_residual_partition_order() const;
 			unsigned get_max_residual_partition_order() const;
 			unsigned get_rice_parameter_search_dist() const;
+			FLAC__uint64 get_total_samples_estimate() const;
 
 			// Initialize the instance; as with the C interface,
 			// init() should be called after construction and 'set'
@@ -221,6 +222,7 @@ namespace FLAC {
 			unsigned get_min_residual_partition_order() const;
 			unsigned get_max_residual_partition_order() const;
 			unsigned get_rice_parameter_search_dist() const;
+			FLAC__uint64 get_total_samples_estimate() const;
 
 			// Initialize the instance; as with the C interface,
 			// init() should be called after construction and 'set'
@@ -313,6 +315,7 @@ namespace FLAC {
 			unsigned get_min_residual_partition_order() const;
 			unsigned get_max_residual_partition_order() const;
 			unsigned get_rice_parameter_search_dist() const;
+			FLAC__uint64 get_total_samples_estimate() const;
 
 			// Initialize the instance; as with the C interface,
 			// init() should be called after construction and 'set'
@@ -324,11 +327,11 @@ namespace FLAC {
 			bool process(const FLAC__int32 * const buffer[], unsigned samples);
 			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples);
 		protected:
-			//@@@@ progress callback
+			virtual void progress_callback(unsigned current_frame, unsigned total_frames_estimate);
 
 			::FLAC__FileEncoder *encoder_;
 		private:
-			//@@@@ progress callback
+			static void progress_callback_(const ::FLAC__FileEncoder *encoder, unsigned current_frame, unsigned total_frames_estimate, void *client_data);
 
 			// Private and undefined so you can't use them:
 			File(const Stream &);
