@@ -31,7 +31,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 	FLAC__StreamMetadata *cuesheet = 0;
 	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
 	FLAC__uint64 lead_out_offset = 0;
-	FLAC__bool is_cdda;
+	FLAC__bool is_cdda = false;
 
 	if(0 == iterator)
 		die("out of memory allocating iterator");
