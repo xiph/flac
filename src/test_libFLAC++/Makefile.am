@@ -17,6 +17,8 @@
 
 CFLAGS = @CFLAGS@
 
+EXTRA_DIST = README
+
 noinst_PROGRAMS = test_libFLAC++
 test_libFLAC___LDADD = $(top_builddir)/src/libFLAC++/libFLAC++.la $(top_builddir)/src/libFLAC/libFLAC.la -lm
 test_libFLAC___SOURCES = \
