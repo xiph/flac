@@ -276,8 +276,11 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 					done = 1;
 					break;
 				}
-				else if(!FLAC__file_decoder_process_one_frame(decoder_))
+				else if(!FLAC__file_decoder_process_one_frame(decoder_)) {
+					MessageBox(mod_.hMainWindow, FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder_)], "READ ERROR processing frame", 0);
+					done = 1;
 					break;
+				}
 			}
 
 			if (samples_in_reservoir_ == 0) {

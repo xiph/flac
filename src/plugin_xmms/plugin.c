@@ -307,8 +307,12 @@ void *play_loop_(void *arg)
 					file_info_.eof = true;
 					break;
 				}
-				else if(!FLAC__file_decoder_process_one_frame(decoder_))
+				else if(!FLAC__file_decoder_process_one_frame(decoder_)) {
+					/*@@@ this should probably be a dialog */
+					fprintf(stderr, "libxmms-flac: READ ERROR processing frame\n");
+					file_info_.eof = true;
 					break;
+				}
 			}
 			if(reservoir_samples_ > 0) {
 				const unsigned channels = file_info_.channels;
