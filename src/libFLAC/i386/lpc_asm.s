@@ -883,112 +883,112 @@ cident FLAC__lpc_restore_signal_asm_i386
 	neg	eax
 	lea	edx, [eax + eax * 8 + .jumper_0]
 	inc	edx
-	mov	eax, [esp + 28]
+	mov	eax, [esp + 28]			; eax = qlp_coeff[]
 	xor	ebp, ebp
 	jmp	edx
 
-	mov	ecx, [eax + 124]
-	imul	ecx, [edi - 128]
-	add	ebp, ecx
-	mov	ecx, [eax + 120]
-	imul	ecx, [edi - 124]
-	add	ebp, ecx
-	mov	ecx, [eax + 116]
-	imul	ecx, [edi - 120]
-	add	ebp, ecx
-	mov	ecx, [eax + 112]
-	imul	ecx, [edi - 116]
-	add	ebp, ecx
-	mov	ecx, [eax + 108]
-	imul	ecx, [edi - 112]
-	add	ebp, ecx
-	mov	ecx, [eax + 104]
-	imul	ecx, [edi - 108]
-	add	ebp, ecx
-	mov	ecx, [eax + 100]
-	imul	ecx, [edi - 104]
-	add	ebp, ecx
-	mov	ecx, [eax + 96]
-	imul	ecx, [edi - 100]
-	add	ebp, ecx
-	mov	ecx, [eax + 92]
-	imul	ecx, [edi - 96]
-	add	ebp, ecx
-	mov	ecx, [eax + 88]
-	imul	ecx, [edi - 92]
-	add	ebp, ecx
-	mov	ecx, [eax + 84]
-	imul	ecx, [edi - 88]
-	add	ebp, ecx
-	mov	ecx, [eax + 80]
-	imul	ecx, [edi - 84]
-	add	ebp, ecx
-	mov	ecx, [eax + 76]
-	imul	ecx, [edi - 80]
-	add	ebp, ecx
-	mov	ecx, [eax + 72]
-	imul	ecx, [edi - 76]
-	add	ebp, ecx
-	mov	ecx, [eax + 68]
-	imul	ecx, [edi - 72]
-	add	ebp, ecx
-	mov	ecx, [eax + 64]
-	imul	ecx, [edi - 68]
-	add	ebp, ecx
-	mov	ecx, [eax + 60]
-	imul	ecx, [edi - 64]
-	add	ebp, ecx
-	mov	ecx, [eax + 56]
-	imul	ecx, [edi - 60]
-	add	ebp, ecx
-	mov	ecx, [eax + 52]
-	imul	ecx, [edi - 56]
-	add	ebp, ecx
-	mov	ecx, [eax + 48]
-	imul	ecx, [edi - 52]
-	add	ebp, ecx
-	mov	ecx, [eax + 44]
-	imul	ecx, [edi - 48]
-	add	ebp, ecx
-	mov	ecx, [eax + 40]
-	imul	ecx, [edi - 44]
-	add	ebp, ecx
-	mov	ecx, [eax + 36]
-	imul	ecx, [edi - 40]
-	add	ebp, ecx
-	mov	ecx, [eax + 32]
-	imul	ecx, [edi - 36]
-	add	ebp, ecx
-	mov	ecx, [eax + 28]
-	imul	ecx, [edi - 32]
-	add	ebp, ecx
-	mov	ecx, [eax + 24]
-	imul	ecx, [edi - 28]
-	add	ebp, ecx
-	mov	ecx, [eax + 20]
-	imul	ecx, [edi - 24]
-	add	ebp, ecx
-	mov	ecx, [eax + 16]
-	imul	ecx, [edi - 20]
-	add	ebp, ecx
-	mov	ecx, [eax + 12]
-	imul	ecx, [edi - 16]
-	add	ebp, ecx
-	mov	ecx, [eax + 8]
-	imul	ecx, [edi - 12]
-	add	ebp, ecx
-	mov	ecx, [eax + 4]
-	imul	ecx, [edi - 8]
-	add	ebp, ecx
-	mov	ecx, [eax]			; there is one byte missing
-	imul	ecx, [edi - 4]
-	add	ebp, ecx
+	mov	ecx, [eax + 124]		; ecx =  qlp_coeff[31]
+	imul	ecx, [edi - 128]		; ecx =  qlp_coeff[31] * data[i-32]
+	add	ebp, ecx			; sum += qlp_coeff[31] * data[i-32]
+	mov	ecx, [eax + 120]		; ecx =  qlp_coeff[30]
+	imul	ecx, [edi - 124]		; ecx =  qlp_coeff[30] * data[i-31]
+	add	ebp, ecx			; sum += qlp_coeff[30] * data[i-31]
+	mov	ecx, [eax + 116]		; ecx =  qlp_coeff[29]
+	imul	ecx, [edi - 120]		; ecx =  qlp_coeff[29] * data[i-30]
+	add	ebp, ecx			; sum += qlp_coeff[29] * data[i-30]
+	mov	ecx, [eax + 112]		; ecx =  qlp_coeff[28]
+	imul	ecx, [edi - 116]		; ecx =  qlp_coeff[28] * data[i-29]
+	add	ebp, ecx			; sum += qlp_coeff[28] * data[i-29]
+	mov	ecx, [eax + 108]		; ecx =  qlp_coeff[27]
+	imul	ecx, [edi - 112]		; ecx =  qlp_coeff[27] * data[i-28]
+	add	ebp, ecx			; sum += qlp_coeff[27] * data[i-28]
+	mov	ecx, [eax + 104]		; ecx =  qlp_coeff[26]
+	imul	ecx, [edi - 108]		; ecx =  qlp_coeff[26] * data[i-27]
+	add	ebp, ecx			; sum += qlp_coeff[26] * data[i-27]
+	mov	ecx, [eax + 100]		; ecx =  qlp_coeff[25]
+	imul	ecx, [edi - 104]		; ecx =  qlp_coeff[25] * data[i-26]
+	add	ebp, ecx			; sum += qlp_coeff[25] * data[i-26]
+	mov	ecx, [eax + 96]			; ecx =  qlp_coeff[24]
+	imul	ecx, [edi - 100]		; ecx =  qlp_coeff[24] * data[i-25]
+	add	ebp, ecx			; sum += qlp_coeff[24] * data[i-25]
+	mov	ecx, [eax + 92]			; ecx =  qlp_coeff[23]
+	imul	ecx, [edi - 96]			; ecx =  qlp_coeff[23] * data[i-24]
+	add	ebp, ecx			; sum += qlp_coeff[23] * data[i-24]
+	mov	ecx, [eax + 88]			; ecx =  qlp_coeff[22]
+	imul	ecx, [edi - 92]			; ecx =  qlp_coeff[22] * data[i-23]
+	add	ebp, ecx			; sum += qlp_coeff[22] * data[i-23]
+	mov	ecx, [eax + 84]			; ecx =  qlp_coeff[21]
+	imul	ecx, [edi - 88]			; ecx =  qlp_coeff[21] * data[i-22]
+	add	ebp, ecx			; sum += qlp_coeff[21] * data[i-22]
+	mov	ecx, [eax + 80]			; ecx =  qlp_coeff[20]
+	imul	ecx, [edi - 84]			; ecx =  qlp_coeff[20] * data[i-21]
+	add	ebp, ecx			; sum += qlp_coeff[20] * data[i-21]
+	mov	ecx, [eax + 76]			; ecx =  qlp_coeff[19]
+	imul	ecx, [edi - 80]			; ecx =  qlp_coeff[19] * data[i-20]
+	add	ebp, ecx			; sum += qlp_coeff[19] * data[i-20]
+	mov	ecx, [eax + 72]			; ecx =  qlp_coeff[18]
+	imul	ecx, [edi - 76]			; ecx =  qlp_coeff[18] * data[i-19]
+	add	ebp, ecx			; sum += qlp_coeff[18] * data[i-19]
+	mov	ecx, [eax + 68]			; ecx =  qlp_coeff[17]
+	imul	ecx, [edi - 72]			; ecx =  qlp_coeff[17] * data[i-18]
+	add	ebp, ecx			; sum += qlp_coeff[17] * data[i-18]
+	mov	ecx, [eax + 64]			; ecx =  qlp_coeff[16]
+	imul	ecx, [edi - 68]			; ecx =  qlp_coeff[16] * data[i-17]
+	add	ebp, ecx			; sum += qlp_coeff[16] * data[i-17]
+	mov	ecx, [eax + 60]			; ecx =  qlp_coeff[15]
+	imul	ecx, [edi - 64]			; ecx =  qlp_coeff[15] * data[i-16]
+	add	ebp, ecx			; sum += qlp_coeff[15] * data[i-16]
+	mov	ecx, [eax + 56]			; ecx =  qlp_coeff[14]
+	imul	ecx, [edi - 60]			; ecx =  qlp_coeff[14] * data[i-15]
+	add	ebp, ecx			; sum += qlp_coeff[14] * data[i-15]
+	mov	ecx, [eax + 52]			; ecx =  qlp_coeff[13]
+	imul	ecx, [edi - 56]			; ecx =  qlp_coeff[13] * data[i-14]
+	add	ebp, ecx			; sum += qlp_coeff[13] * data[i-14]
+	mov	ecx, [eax + 48]			; ecx =  qlp_coeff[12]
+	imul	ecx, [edi - 52]			; ecx =  qlp_coeff[12] * data[i-13]
+	add	ebp, ecx			; sum += qlp_coeff[12] * data[i-13]
+	mov	ecx, [eax + 44]			; ecx =  qlp_coeff[11]
+	imul	ecx, [edi - 48]			; ecx =  qlp_coeff[11] * data[i-12]
+	add	ebp, ecx			; sum += qlp_coeff[11] * data[i-12]
+	mov	ecx, [eax + 40]			; ecx =  qlp_coeff[10]
+	imul	ecx, [edi - 44]			; ecx =  qlp_coeff[10] * data[i-11]
+	add	ebp, ecx			; sum += qlp_coeff[10] * data[i-11]
+	mov	ecx, [eax + 36]			; ecx =  qlp_coeff[ 9]
+	imul	ecx, [edi - 40]			; ecx =  qlp_coeff[ 9] * data[i-10]
+	add	ebp, ecx			; sum += qlp_coeff[ 9] * data[i-10]
+	mov	ecx, [eax + 32]			; ecx =  qlp_coeff[ 8]
+	imul	ecx, [edi - 36]			; ecx =  qlp_coeff[ 8] * data[i- 9]
+	add	ebp, ecx			; sum += qlp_coeff[ 8] * data[i- 9]
+	mov	ecx, [eax + 28]			; ecx =  qlp_coeff[ 7]
+	imul	ecx, [edi - 32]			; ecx =  qlp_coeff[ 7] * data[i- 8]
+	add	ebp, ecx			; sum += qlp_coeff[ 7] * data[i- 8]
+	mov	ecx, [eax + 24]			; ecx =  qlp_coeff[ 6]
+	imul	ecx, [edi - 28]			; ecx =  qlp_coeff[ 6] * data[i- 7]
+	add	ebp, ecx			; sum += qlp_coeff[ 6] * data[i- 7]
+	mov	ecx, [eax + 20]			; ecx =  qlp_coeff[ 5]
+	imul	ecx, [edi - 24]			; ecx =  qlp_coeff[ 5] * data[i- 6]
+	add	ebp, ecx			; sum += qlp_coeff[ 5] * data[i- 6]
+	mov	ecx, [eax + 16]			; ecx =  qlp_coeff[ 4]
+	imul	ecx, [edi - 20]			; ecx =  qlp_coeff[ 4] * data[i- 5]
+	add	ebp, ecx			; sum += qlp_coeff[ 4] * data[i- 5]
+	mov	ecx, [eax + 12]			; ecx =  qlp_coeff[ 3]
+	imul	ecx, [edi - 16]			; ecx =  qlp_coeff[ 3] * data[i- 4]
+	add	ebp, ecx			; sum += qlp_coeff[ 3] * data[i- 4]
+	mov	ecx, [eax + 8]			; ecx =  qlp_coeff[ 2]
+	imul	ecx, [edi - 12]			; ecx =  qlp_coeff[ 2] * data[i- 3]
+	add	ebp, ecx			; sum += qlp_coeff[ 2] * data[i- 3]
+	mov	ecx, [eax + 4]			; ecx =  qlp_coeff[ 1]
+	imul	ecx, [edi - 8]			; ecx =  qlp_coeff[ 1] * data[i- 2]
+	add	ebp, ecx			; sum += qlp_coeff[ 1] * data[i- 2]
+	mov	ecx, [eax]			; ecx =  qlp_coeff[ 0]
+	imul	ecx, [edi - 4]			; ecx =  qlp_coeff[ 0] * data[i- 1]
+	add	ebp, ecx			; sum += qlp_coeff[ 0] * data[i- 1]
 .jumper_0:
 
 	mov	cl, [esp + 36]
-	sar	ebp, cl
-	add	ebp, [esi + edi]
-	mov	[edi], ebp
+	sar	ebp, cl				; ebp = (sum >> lp_quantization)
+	add	ebp, [esi + edi]		; ebp = residual[i] + (sum >> lp_quantization)
+	mov	[edi], ebp			; data[i] = residual[i] + (sum >> lp_quantization)
 	add	edi, byte 4
 
 	dec	ebx
