@@ -82,26 +82,26 @@ test_file sine-01 1 16 "-0 -l 8 -m -e -fs 90000"
 echo "Testing option variations..."
 for f in 00 01 02 03 04 ; do
 	for opt in 0 1 2 4 5 6 8 ; do
-		for extras in fr p e ; do
-			test_file sine-$f 1 16 "-$opt -$extras"
+		for extras in '' '-p' '-e' ; do
+			test_file sine-$f 1 16 "-$opt $extras"
 		done
 	done
 done
 for f in 10 11 12 13 14 15 16 17 18 19 ; do
 	for opt in 0 1 2 4 5 6 8 ; do
-		for extras in fr p e ; do
-			test_file sine-$f 2 16 "-$opt -$extras"
+		for extras in '' '-p' '-e' ; do
+			test_file sine-$f 2 16 "-$opt $extras"
 		done
 	done
 done
 
 echo "Testing noise..."
 for opt in 0 1 2 4 5 6 8 ; do
-	for extras in fr p e ; do
+	for extras in '' '-p' '-e' ; do
 		for blocksize in '' '-b 32' '-b 32768' '-b 65535' ; do
 			for channels in 1 2 4 ; do
 				for bps in 8 16 ; do
-					test_file noise $channels $bps "-$opt -$extras $blocksize"
+					test_file noise $channels $bps "-$opt $extras $blocksize"
 				done
 			done
 		done
