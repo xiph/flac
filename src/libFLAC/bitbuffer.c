@@ -24,6 +24,14 @@
 #include "private/bitmath.h"
 #include "private/crc.h"
 
+/*
+ * Along the way you will see two versions of some functions, selected
+ * by a FLAC__NO_MANUAL_INLINING macro.  One is the simplified, more
+ * readable, and slow version, and the other is the same function
+ * where crucial parts have been manually inlined and are much faster.
+ *
+ */
+
 /* This should be at least twice as large as the largest number of bytes required to represent any 'number' (in any encoding) you are going to read. */
 static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 65536; /* bytes */
 
@@ -1045,7 +1053,7 @@ bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, uint64 *val, bool (
 	}
 }
 
-bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, const unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 #ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned i;
@@ -1085,6 +1093,7 @@ bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, unsigned 
 			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
 			bb->consumed_bytes++;
 			bb->consumed_bits = 0;
+			/* we hold off updating bb->total_consumed_bits until the end */
 		}
 		else {
 			*val = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits)) >> (i-bits_);
@@ -1100,11 +1109,13 @@ bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, unsigned 
 		FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
 		bb->consumed_bytes++;
 		/* bb->consumed_bits is already 0 */
+		/* we hold off updating bb->total_consumed_bits until the end */
 	}
 	if(bits_ > 0) {
 		v <<= bits_;
 		v |= (bb->buffer[bb->consumed_bytes] >> (8-bits_));
 		bb->consumed_bits = bits_;
+		/* we hold off updating bb->total_consumed_bits until the end */
 	}
 	bb->total_consumed_bits += bits;
 	*val = v;
@@ -1112,35 +1123,100 @@ bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, uint32 *val, unsigned 
 }
 #endif
 
-bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, int32 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, int32 *val, const unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+#ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned i;
-	uint32 x;
+	uint32 v;
 
 	assert(bb != 0);
 	assert(bb->buffer != 0);
 
 	assert(bits <= 32);
 
-	x = 0;
+	v = 0;
 	for(i = 0; i < bits; i++) {
-		if(!FLAC__bitbuffer_read_bit_to_uint32(bb, &x, read_callback, client_data))
+		if(!FLAC__bitbuffer_read_bit_to_uint32(bb, &v, read_callback, client_data))
 			return false;
 	}
+
 	/* fix the sign */
 	i = 32 - bits;
 	if(i) {
-		x <<= i;
-		*val = (int32)x;
+		v <<= i;
+		*val = (int32)v;
 		*val >>= i;
 	}
 	else
-		*val = (int32)x;
+		*val = (int32)v;
 
 	return true;
 }
+#else
+{
+	unsigned i, bits_ = bits;
+	uint32 v = 0;
 
-bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, uint64 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+
+	assert(bits <= 32);
+	assert((bb->capacity*8) * 2 >= bits);
+
+	while(bb->total_consumed_bits + bits > bb->total_bits) {
+		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
+			return false;
+	}
+	if(bb->consumed_bits) {
+		i = 8 - bb->consumed_bits;
+		if(i <= bits_) {
+			v = bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits);
+			bits_ -= i;
+			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+			bb->consumed_bytes++;
+			bb->consumed_bits = 0;
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+		else {
+			*val = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits)) >> (i-bits_);
+			bb->consumed_bits += bits_;
+			bb->total_consumed_bits += bits_;
+			return true;
+		}
+	}
+	while(bits_ >= 8) {
+		v <<= 8;
+		v |= bb->buffer[bb->consumed_bytes];
+		bits_ -= 8;
+		FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+		bb->consumed_bytes++;
+		/* bb->consumed_bits is already 0 */
+		/* we hold off updating bb->total_consumed_bits until the end */
+	}
+	if(bits_ > 0) {
+		v <<= bits_;
+		v |= (bb->buffer[bb->consumed_bytes] >> (8-bits_));
+		bb->consumed_bits = bits_;
+		/* we hold off updating bb->total_consumed_bits until the end */
+	}
+	bb->total_consumed_bits += bits;
+
+	/* fix the sign */
+	i = 32 - bits;
+	if(i) {
+		v <<= i;
+		*val = (int32)v;
+		*val >>= i;
+	}
+	else
+		*val = (int32)v;
+
+	return true;
+}
+#endif
+
+bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, uint64 *val, const unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+#ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned i;
 
@@ -1156,36 +1232,152 @@ bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, uint64 *val, unsigned 
 	}
 	return true;
 }
+#else
+{
+	unsigned i, bits_ = bits;
+	uint64 v = 0;
 
-bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, int64 *val, unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+
+	assert(bits <= 64);
+	assert((bb->capacity*8) * 2 >= bits);
+
+	while(bb->total_consumed_bits + bits > bb->total_bits) {
+		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
+			return false;
+	}
+	if(bb->consumed_bits) {
+		i = 8 - bb->consumed_bits;
+		if(i <= bits_) {
+			v = bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits);
+			bits_ -= i;
+			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+			bb->consumed_bytes++;
+			bb->consumed_bits = 0;
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+		else {
+			*val = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits)) >> (i-bits_);
+			bb->consumed_bits += bits_;
+			bb->total_consumed_bits += bits_;
+			return true;
+		}
+	}
+	while(bits_ >= 8) {
+		v <<= 8;
+		v |= bb->buffer[bb->consumed_bytes];
+		bits_ -= 8;
+		FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+		bb->consumed_bytes++;
+		/* bb->consumed_bits is already 0 */
+		/* we hold off updating bb->total_consumed_bits until the end */
+	}
+	if(bits_ > 0) {
+		v <<= bits_;
+		v |= (bb->buffer[bb->consumed_bytes] >> (8-bits_));
+		bb->consumed_bits = bits_;
+		/* we hold off updating bb->total_consumed_bits until the end */
+	}
+	bb->total_consumed_bits += bits;
+	*val = v;
+	return true;
+}
+#endif
+
+bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, int64 *val, const unsigned bits, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+#ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned i;
-	uint64 x;
+	uint64 v;
 
 	assert(bb != 0);
 	assert(bb->buffer != 0);
 
 	assert(bits <= 64);
 
-	x = 0;
+	v = 0;
 	for(i = 0; i < bits; i++) {
-		if(!FLAC__bitbuffer_read_bit_to_uint64(bb, &x, read_callback, client_data))
+		if(!FLAC__bitbuffer_read_bit_to_uint64(bb, &v, read_callback, client_data))
 			return false;
 	}
 	/* fix the sign */
 	i = 64 - bits;
 	if(i) {
-		x <<= i;
-		*val = (int64)x;
+		v <<= i;
+		*val = (int64)v;
 		*val >>= i;
 	}
 	else
-		*val = (int64)x;
+		*val = (int64)v;
 
 	return true;
 }
+#else
+{
+	unsigned i, bits_ = bits;
+	uint64 v = 0;
+
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+
+	assert(bits <= 64);
+	assert((bb->capacity*8) * 2 >= bits);
+
+	while(bb->total_consumed_bits + bits > bb->total_bits) {
+		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
+			return false;
+	}
+	if(bb->consumed_bits) {
+		i = 8 - bb->consumed_bits;
+		if(i <= bits_) {
+			v = bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits);
+			bits_ -= i;
+			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+			bb->consumed_bytes++;
+			bb->consumed_bits = 0;
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+		else {
+			*val = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits)) >> (i-bits_);
+			bb->consumed_bits += bits_;
+			bb->total_consumed_bits += bits_;
+			return true;
+		}
+	}
+	while(bits_ >= 8) {
+		v <<= 8;
+		v |= bb->buffer[bb->consumed_bytes];
+		bits_ -= 8;
+		FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+		bb->consumed_bytes++;
+		/* bb->consumed_bits is already 0 */
+		/* we hold off updating bb->total_consumed_bits until the end */
+	}
+	if(bits_ > 0) {
+		v <<= bits_;
+		v |= (bb->buffer[bb->consumed_bytes] >> (8-bits_));
+		bb->consumed_bits = bits_;
+		/* we hold off updating bb->total_consumed_bits until the end */
+	}
+	bb->total_consumed_bits += bits;
+
+	/* fix the sign */
+	i = 64 - bits;
+	if(i) {
+		v <<= i;
+		*val = (int64)v;
+		*val >>= i;
+	}
+	else
+		*val = (int64)v;
+
+	return true;
+}
+#endif
 
 bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+#ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned bit, val_ = 0;
 
@@ -1203,28 +1395,89 @@ bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, boo
 	*val = val_;
 	return true;
 }
+#else
+{
+	unsigned i, val_ = 0;
+	unsigned total_bytes_ = (bb->total_bits + 7) / 8;
+	byte b;
+
+	assert(bb != 0);
+	assert(bb->buffer != 0);
+
+	if(bb->consumed_bits) {
+		b = bb->buffer[bb->consumed_bytes] << bb->consumed_bits;
+		if(b) {
+			for(i = 0; !(b & 0x80); i++)
+				b <<= 1;
+			*val = i;
+			i++;
+			bb->consumed_bits += i;
+			bb->total_consumed_bits += i;
+			if(bb->consumed_bits == 8) {
+				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+				bb->consumed_bytes++;
+				bb->consumed_bits = 0;
+			}
+			return true;
+		}
+		else {
+			val_ = 8 - bb->consumed_bits;
+			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+			bb->consumed_bytes++;
+			bb->consumed_bits = 0;
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+	}
+	while(1) {
+		if(bb->consumed_bytes >= total_bytes_) {
+			if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
+				return false;
+			total_bytes_ = (bb->total_bits + 7) / 8;
+		}
+		b = bb->buffer[bb->consumed_bytes];
+		if(b) {
+			for(i = 0; !(b & 0x80); i++)
+				b <<= 1;
+			val_ += i;
+			i++;
+			bb->consumed_bits = i;
+			*val = val_;
+			if(i == 8) {
+				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+				bb->consumed_bytes++;
+				bb->consumed_bits = 0;
+			}
+			bb->total_consumed_bits += (++val_);
+			return true;
+		}
+		else {
+			val_ += 8;
+			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+			bb->consumed_bytes++;
+			/* bb->consumed_bits is already 0 */
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+	}
+	return true;
+}
+#endif
 
 bool FLAC__bitbuffer_read_symmetric_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	uint32 sign = 0, lsbs = 0, msbs = 0;
-	unsigned bit;
 
 	assert(bb != 0);
 	assert(bb->buffer != 0);
 	assert(parameter <= 31);
 
 	/* read the unary MSBs and end bit */
-	while(1) {
-		if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
-			return false;
-		if(bit)
-			break;
-		else
-			msbs++;
-	}
+	if(!FLAC__bitbuffer_read_unary_unsigned(bb, &msbs, read_callback, client_data))
+		return false;
+
 	/* read the sign bit */
 	if(!FLAC__bitbuffer_read_bit_to_uint32(bb, &sign, read_callback, client_data))
 		return false;
+
 	/* read the binary LSBs */
 	if(!FLAC__bitbuffer_read_raw_uint32(bb, &lsbs, parameter, read_callback, client_data))
 		return false;
@@ -1240,24 +1493,20 @@ bool FLAC__bitbuffer_read_symmetric_rice_signed(FLAC__BitBuffer *bb, int *val, u
 bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, bool (*read_callback)(byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	uint32 lsbs = 0, msbs = 0;
-	unsigned bit, uval;
+	unsigned uval;
 
 	assert(bb != 0);
 	assert(bb->buffer != 0);
 	assert(parameter <= 31);
 
 	/* read the unary MSBs and end bit */
-	while(1) {
-		if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
-			return false;
-		if(bit)
-			break;
-		else
-			msbs++;
-	}
+	if(!FLAC__bitbuffer_read_unary_unsigned(bb, &msbs, read_callback, client_data))
+		return false;
+
 	/* read the binary LSBs */
 	if(!FLAC__bitbuffer_read_raw_uint32(bb, &lsbs, parameter, read_callback, client_data))
 		return false;
+
 	/* compose the value */
 	uval = (msbs << parameter) | lsbs;
 	if(uval & 1)
@@ -1279,14 +1528,9 @@ bool FLAC__bitbuffer_read_golomb_signed(FLAC__BitBuffer *bb, int *val, unsigned 
 	k = FLAC__bitmath_ilog2(parameter);
 
 	/* read the unary MSBs and end bit */
-	while(1) {
-		if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
-			return false;
-		if(bit)
-			break;
-		else
-			msbs++;
-	}
+	if(!FLAC__bitbuffer_read_unary_unsigned(bb, &msbs, read_callback, client_data))
+		return false;
+
 	/* read the binary LSBs */
 	if(!FLAC__bitbuffer_read_raw_uint32(bb, &lsbs, k, read_callback, client_data))
 		return false;
@@ -1328,14 +1572,9 @@ bool FLAC__bitbuffer_read_golomb_unsigned(FLAC__BitBuffer *bb, unsigned *val, un
 	k = FLAC__bitmath_ilog2(parameter);
 
 	/* read the unary MSBs and end bit */
-	while(1) {
-		if(!FLAC__bitbuffer_read_bit(bb, &bit, read_callback, client_data))
-			return false;
-		if(bit)
-			break;
-		else
-			msbs++;
-	}
+	if(!FLAC__bitbuffer_read_unary_unsigned(bb, &msbs, read_callback, client_data))
+		return false;
+
 	/* read the binary LSBs */
 	if(!FLAC__bitbuffer_read_raw_uint32(bb, &lsbs, k, read_callback, client_data))
 		return false;
