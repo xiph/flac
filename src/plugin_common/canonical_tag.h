@@ -70,26 +70,11 @@ FLAC__bool FLAC_plugin__canonical_remove(FLAC_Plugin__CanonicalTag *tag, const w
 void FLAC_plugin__canonical_remove_all(FLAC_Plugin__CanonicalTag *tag, const wchar_t *name);
 
 /* enumeration */
-static __inline unsigned FLAC_plugin__canonical_get_count(FLAC_Plugin__CanonicalTag *tag)
-{
-	return tag->count;
-}
-static __inline FLAC__tag_iterator FLAC_plugin__canonical_first(FLAC_Plugin__CanonicalTag *tag)
-{
-	return tag->head;
-}
-static __inline FLAC__tag_iterator FLAC_plugin__canonical_next(FLAC__tag_iterator it)
-{
-	return it->next;
-}
-static __inline wchar_t *FLAC_plugin__canonical_get_name(FLAC__tag_iterator it)
-{
-	return it->name;
-}
-static __inline wchar_t *FLAC_plugin__canonical_get_value(FLAC__tag_iterator it)
-{
-	return it->value;
-}
+unsigned FLAC_plugin__canonical_get_count(FLAC_Plugin__CanonicalTag *tag);
+FLAC__tag_iterator FLAC_plugin__canonical_first(FLAC_Plugin__CanonicalTag *tag);
+FLAC__tag_iterator FLAC_plugin__canonical_next(FLAC__tag_iterator it);
+wchar_t *FLAC_plugin__canonical_get_name(FLAC__tag_iterator it);
+wchar_t *FLAC_plugin__canonical_get_value(FLAC__tag_iterator it);
 
 /* returns a new string containing the current entry in UTF-8 in "NAME=VALUE" form */
 char *FLAC_plugin__canonical_get_formatted(FLAC__tag_iterator it);

@@ -573,6 +573,30 @@ char *FLAC_plugin__canonical_get_formatted(FLAC__tag_iterator it)
 }
 
 /*
+ * enumeration
+ */
+unsigned FLAC_plugin__canonical_get_count(FLAC_Plugin__CanonicalTag *tag)
+{
+	return tag->count;
+}
+FLAC__tag_iterator FLAC_plugin__canonical_first(FLAC_Plugin__CanonicalTag *tag)
+{
+	return tag->head;
+}
+FLAC__tag_iterator FLAC_plugin__canonical_next(FLAC__tag_iterator it)
+{
+	return it->next;
+}
+wchar_t *FLAC_plugin__canonical_get_name(FLAC__tag_iterator it)
+{
+	return it->name;
+}
+wchar_t *FLAC_plugin__canonical_get_value(FLAC__tag_iterator it)
+{
+	return it->value;
+}
+
+/*
  *  merging
  */
 
