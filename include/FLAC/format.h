@@ -341,6 +341,7 @@ extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_LENGTH; /* = 34 bytes */
  * n/8  bytes total
  */
 typedef struct {
+	int dummy; /* conceptually this is an empty struct since we don't store the padding bytes */
 } FLAC__StreamMetaData_Padding;
 
 /*****************************************************************************
