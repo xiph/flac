@@ -78,6 +78,6 @@ typedef long long int int64;
 typedef unsigned long long uint64;
 #endif
 typedef uint8 byte;
-typedef double real;
+typedef float real;
 
 #endif
