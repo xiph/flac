@@ -29,6 +29,13 @@
 #include "in2.h"
 #include "FLAC/all.h"
 
+#ifdef max
+#undef max
+#endif
+#define max(a,b) ((a)>(b)?(a):(b))
+
+
+#define FLAC__DO_DITHER
 
 #define MAX_SUPPORTED_CHANNELS 2
 
@@ -87,7 +94,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b); /* the decode thread procedure */
 
 
 /* 32-bit pseudo-random number generator */
-static /*inline*/ FLAC__uint32 prng(FLAC__uint32 state)
+static __inline FLAC__uint32 prng(FLAC__uint32 state)
 {
 	return (state * 0x0019660dL + 0x3c6ef35fL) & 0xffffffffL;
 }
@@ -99,7 +106,7 @@ typedef struct {
 	FLAC__int32 random;
 } dither_state;
 
-static /*inline*/ FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
+static __inline FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
 {
 	unsigned scalebits;
 	FLAC__int32 output, mask, random;
@@ -282,6 +289,11 @@ int play(char *fn)
 	int maxlatency;
 	int thread_id;
 	HANDLE input_file = INVALID_HANDLE_VALUE;
+#ifdef FLAC__DO_DITHER
+	const unsigned output_bits_per_sample = 16;
+#else
+	const unsigned output_bits_per_sample = file_info_.bits_per_sample;
+#endif
 
 	if(0 == decoder_) {
 		return 1;
@@ -303,7 +315,7 @@ int play(char *fn)
 	seek_needed_ = -1;
 	wide_samples_in_reservoir_ = 0;
 
-	maxlatency = mod_.outMod->Open(file_info_.sample_rate, file_info_.channels, file_info_.bits_per_sample, -1, -1);
+	maxlatency = mod_.outMod->Open(file_info_.sample_rate, file_info_.channels, output_bits_per_sample, -1, -1);
 	if(maxlatency < 0) { /* error opening device */
 		return 1;
 	}
@@ -461,7 +473,11 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 				done = 1;
 			}
 			else {
+#ifdef FLAC__DO_DITHER
 				const unsigned target_bps = 16;
+#else
+				const unsigned target_bps = bits_per_sample;
+#endif
 				const unsigned n = min(wide_samples_in_reservoir_, 576);
 				const unsigned delta = n * channels;
 				int bytes = (int)pack_pcm(sample_buffer_, reservoir_, n, channels, bits_per_sample, target_bps);
@@ -564,6 +580,11 @@ FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *decoder)
 		return false;
 	}
 
+	if(file_info_.abort_flag) {
+		/* metadata callback already popped up the error dialog */
+		return false;
+	}
+
 	return true;
 }
 
@@ -612,11 +633,19 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 		file_info_->channels = metadata->data.stream_info.channels;
 		file_info_->sample_rate = metadata->data.stream_info.sample_rate;
 
-		if(file_info_->bits_per_sample != 16) {
-			MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 16-bit samples\n", "ERROR: plugin can only handle 16-bit samples", 0);
+#ifdef FLAC__DO_DITHER
+		if(file_info_->bits_per_sample != 16 && file_info_->bits_per_sample != 24) {
+			MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 16/24-bit samples\n", "ERROR: plugin can only handle 16/24-bit samples", 0);
 			file_info_->abort_flag = true;
 			return;
 		}
+#else
+		if(file_info_->bits_per_sample != 8 && file_info_->bits_per_sample != 16 && file_info_->bits_per_sample != 24) {
+			MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16/24-bit samples\n", "ERROR: plugin can only handle 8/16/24-bit samples", 0);
+			file_info_->abort_flag = true;
+			return;
+		}
+#endif
 		file_info_->length_in_ms = file_info_->total_samples * 10 / (file_info_->sample_rate / 100);
 	}
 }
