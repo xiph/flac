@@ -889,7 +889,7 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned min_partition_or
 {
 	real fixed_residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1];
 	real lpc_residual_bits_per_sample;
-	real autoc[FLAC__MAX_LPC_ORDER+1];
+	real autoc[FLAC__MAX_LPC_ORDER+1]; /* WATCHOUT: the size is important even though encoder->max_lpc_order might be less; some asm routines need all the space */
 	real lp_coeff[FLAC__MAX_LPC_ORDER][FLAC__MAX_LPC_ORDER];
 	real lpc_error[FLAC__MAX_LPC_ORDER];
 	unsigned min_lpc_order, max_lpc_order, lpc_order;
