@@ -92,7 +92,7 @@ int flac__decode_wav(const char *infile, const char *outfile, bool analysis_mode
 	}
 
 	if(analysis_mode)
-		analyze_init(aopts);
+		flac__analyze_init(aopts);
 
 	if(!init(infile, &stream_info))
 		goto wav_abort_;
@@ -145,7 +145,7 @@ int flac__decode_wav(const char *infile, const char *outfile, bool analysis_mode
 	if(verbose)
 		fprintf(stderr, "\n");
 	if(analysis_mode)
-		analyze_finish(aopts);
+		flac__analyze_finish(aopts);
 	if(md5_failure) {
 		fprintf(stderr, "%s: WARNING, MD5 signature mismatch\n", infile);
 		return 1;
@@ -166,7 +166,7 @@ wav_abort_:
 		unlink(outfile);
 	}
 	if(analysis_mode)
-		analyze_finish(aopts);
+		flac__analyze_finish(aopts);
 	return 1;
 }
 
@@ -205,7 +205,7 @@ int flac__decode_raw(const char *infile, const char *outfile, bool analysis_mode
 	}
 
 	if(analysis_mode)
-		analyze_init(aopts);
+		flac__analyze_init(aopts);
 
 	if(!init(infile, &stream_info))
 		goto raw_abort_;
@@ -258,7 +258,7 @@ int flac__decode_raw(const char *infile, const char *outfile, bool analysis_mode
 	if(verbose)
 		fprintf(stderr, "\n");
 	if(analysis_mode)
-		analyze_finish(aopts);
+		flac__analyze_finish(aopts);
 	if(md5_failure) {
 		fprintf(stderr, "%s: WARNING, MD5 signature mismatch\n", infile);
 		return 1;
@@ -279,7 +279,7 @@ raw_abort_:
 		unlink(outfile);
 	}
 	if(analysis_mode)
-		analyze_finish(aopts);
+		flac__analyze_finish(aopts);
 	return 1;
 }
 
@@ -353,7 +353,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 		print_stats(stream_info);
 
 	if(stream_info->analysis_mode) {
-		analyze_frame(frame, stream_info->frame_counter-1, stream_info->aopts, fout);
+		flac__analyze_frame(frame, stream_info->frame_counter-1, stream_info->aopts, fout);
 	}
 	else if(!stream_info->test_only) {
 		if(bps == 8) {

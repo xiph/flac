@@ -24,8 +24,8 @@ typedef struct {
 	bool do_residual_gnuplot;
 } analysis_options;
 
-void analyze_init(analysis_options aopts);
-void analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analysis_options aopts, FILE *fout);
-void analyze_finish(analysis_options aopts);
+void flac__analyze_init(analysis_options aopts);
+void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analysis_options aopts, FILE *fout);
+void flac__analyze_finish(analysis_options aopts);
 
 #endif

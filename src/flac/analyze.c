@@ -46,14 +46,14 @@ static void update_stats(subframe_stats_t *stats, int32 residual, unsigned incr)
 static void compute_stats(subframe_stats_t *stats);
 static bool dump_stats(const subframe_stats_t *stats, const char *filename);
 
-void analyze_init(analysis_options aopts)
+void flac__analyze_init(analysis_options aopts)
 {
 	if(aopts.do_residual_gnuplot) {
 		init_stats(&all_);
 	}
 }
 
-void analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analysis_options aopts, FILE *fout)
+void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analysis_options aopts, FILE *fout)
 {
 	const unsigned channels = frame->header.channels;
 	char outfilename[1024];
@@ -130,7 +130,7 @@ void analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analysis_opt
 	}
 }
 
-void analyze_finish(analysis_options aopts)
+void flac__analyze_finish(analysis_options aopts)
 {
 	if(aopts.do_residual_gnuplot) {
 		compute_stats(&all_);
