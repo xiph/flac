@@ -83,14 +83,13 @@ int FLAC_Info::Open(char *url)
 	(void)get_id3v1_tag_(filename, &tag_);
 
 	file_info_struct tmp_file_info;
-	FLAC__FileDecoder *tmp_decoder = FLAC__file_decoder_get_new_instance();
+	FLAC__FileDecoder *tmp_decoder = FLAC__file_decoder_new();
 	if(0 == tmp_decoder) {
 		length_in_msec_ = -1;
 		return 1;
 	}
 	tmp_file_info.abort_flag = false;
-	tmp_decoder->check_md5 = false; /* turn off MD5 checking in the decoder */
-	if(FLAC__file_decoder_init(tmp_decoder, filename, write_callback_, metadata_callback_, error_callback_, &tmp_file_info) != FLAC__FILE_DECODER_OK) {
+	if(FLAC__file_decoder_init(tmp_decoder, false /*md5_check*/, filename, write_callback_, metadata_callback_, error_callback_, &tmp_file_info) != FLAC__FILE_DECODER_OK) {
 		length_in_msec_ = -1;
 		return 1;
 	}
@@ -101,9 +100,9 @@ int FLAC_Info::Open(char *url)
 
 	length_in_msec_ = (int)tmp_file_info.length_in_msec;
 
-	if(tmp_decoder->state != FLAC__FILE_DECODER_UNINITIALIZED)
+	if(FLAC__file_decoder_state(tmp_decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
 		FLAC__file_decoder_finish(tmp_decoder);
-	FLAC__file_decoder_free_instance(tmp_decoder);
+	FLAC__file_decoder_delete(tmp_decoder);
 
 	return 0;
 }
@@ -146,7 +145,7 @@ class FLAC_Source : public WInputSource
 
 FLAC_Source::FLAC_Source() : WInputSource()
 {
-	decoder_ = FLAC__file_decoder_get_new_instance();
+	decoder_ = FLAC__file_decoder_new();
 	file_info_.length_in_msec = -1;
 	audio_error_ = false;
 }
@@ -154,7 +153,7 @@ FLAC_Source::FLAC_Source() : WInputSource()
 FLAC_Source::~FLAC_Source()
 {
 	if(decoder_)
-		FLAC__file_decoder_free_instance(decoder_);
+		FLAC__file_decoder_delete(decoder_);
 }
 
 void FLAC_Source::GetTitle(char *buf, int maxlen)
@@ -214,7 +213,7 @@ int FLAC_Source::GetSamples(char *sample_buffer, int bytes, int *bps, int *nch, 
 		const unsigned wide_samples = bytes / channels / bytes_per_sample;
 if(bytes&0x3)fprintf(stderr,"@@@ Got odd buffer size request\n");
 		while(reservoir_samples_ < wide_samples) {
-			if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE) {
+			if(FLAC__file_decoder_state(decoder) == FLAC__FILE_DECODER_END_OF_FILE) {
 				file_info_.eof = true;
 				break;
 			}
@@ -257,7 +256,7 @@ int FLAC_Source::SetPosition(int position)
 
 void FLAC_Source::cleanup()
 {
-	if(decoder_ && decoder_->state != FLAC__FILE_DECODER_UNINITIALIZED)
+	if(decoder_ && FLAC__file_decoder_state(decoder_) != FLAC__FILE_DECODER_UNINITIALIZED)
 		FLAC__file_decoder_finish(decoder_);
 
 	reservoir_samples_ = 0;
@@ -323,9 +322,7 @@ bool decoder_init_(const char *filename)
 	if(decoder_ == 0)
 		return false;
 
-	decoder_->check_md5 = false; /* turn off MD5 checking in the decoder */
-
-	if(FLAC__file_decoder_init(decoder_, filename, write_callback_, metadata_callback_, error_callback_, &file_info_) != FLAC__FILE_DECODER_OK)
+	if(FLAC__file_decoder_init(decoder_, false /*md5_check*/, filename, write_callback_, metadata_callback_, error_callback_, &file_info_) != FLAC__FILE_DECODER_OK)
 		return false;
 
 	file_info_.abort_flag = false;
