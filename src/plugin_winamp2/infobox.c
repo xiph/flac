@@ -183,7 +183,7 @@ static wchar_t *AnsiToWide(const char *src)
 
 	len = strlen(src) + 1;
 	/* copy */
-	dest = malloc(len*sizeof(wchar_t));
+	dest = (wchar_t*)malloc(len*sizeof(wchar_t));
 	if (dest) mbstowcs(dest, src, len);
 	return dest;
 }

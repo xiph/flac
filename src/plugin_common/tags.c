@@ -265,7 +265,7 @@ FLAC__bool FLAC_plugin__tags_add_tag_utf8(FLAC__StreamMetadata *tags, const char
 		const size_t value_len = strlen(value);
 		const size_t separator_len = strlen(separator);
 		FLAC__byte *new_entry;
-		if(0 == (new_entry = realloc(entry->entry, entry->length + value_len + separator_len + 1)))
+		if(0 == (new_entry = (FLAC__byte*)realloc(entry->entry, entry->length + value_len + separator_len + 1)))
 			return false;
 		memcpy(new_entry+entry->length, separator, separator_len);
 		entry->length += separator_len;

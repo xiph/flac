@@ -1131,7 +1131,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
 		const size_t nn = strlen(field_name);
 		const size_t nv = strlen(field_value);
 		entry->length = nn + 1 /*=*/ + nv;
-		if(0 == (entry->entry = malloc(entry->length+1)))
+		if(0 == (entry->entry = (FLAC__byte*)malloc(entry->length+1)))
 			return false;
 		memcpy(entry->entry, field_name, nn);
 		entry->entry[nn] = '=';
@@ -1158,9 +1158,9 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair
 		FLAC__ASSERT(0 != eq);
 		if(0 == eq)
 			return false; /* double protection */
-		if(0 == (*field_name = malloc(nn+1)))
+		if(0 == (*field_name = (char*)malloc(nn+1)))
 			return false;
-		if(0 == (*field_value = malloc(nv+1))) {
+		if(0 == (*field_value = (char*)malloc(nv+1))) {
 			free(*field_name);
 			return false;
 		}

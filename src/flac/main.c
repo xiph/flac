@@ -631,7 +631,7 @@ int parse_options(int argc, char *argv[])
 
 	if(option_values.num_files > 0) {
 		unsigned i = 0;
-		if(0 == (option_values.filenames = malloc(sizeof(char *) * option_values.num_files)))
+		if(0 == (option_values.filenames = (char**)malloc(sizeof(char*) * option_values.num_files)))
 			die("out of memory allocating space for file names list");
 		while(share__optind < argc)
 			option_values.filenames[i++] = local_strdup(argv[share__optind++]);
