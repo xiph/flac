@@ -77,6 +77,7 @@ namespace FLAC {
 		 *  Brief XXX.
 		 *
 		 * Detailed stream decoder XXX.
+		 *
 		 * \{
 		 */
 
@@ -160,6 +161,7 @@ namespace FLAC {
 		 *  Brief XXX.
 		 *
 		 * Detailed seekable stream decoder XXX.
+		 *
 		 * \{
 		 */
 
@@ -253,6 +255,7 @@ namespace FLAC {
 		 *  Brief XXX.
 		 *
 		 * Detailed file decoder XXX.
+		 *
 		 * \{
 		 */
 

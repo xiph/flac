@@ -470,7 +470,7 @@ FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_state(const 
  */
 void OggFLAC__stream_encoder_get_verify_decoder_error_stats(const OggFLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_verify()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_verify()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -480,7 +480,7 @@ void OggFLAC__stream_encoder_get_verify_decoder_error_stats(const OggFLAC__Strea
  */
 FLAC__bool OggFLAC__stream_encoder_get_verify(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_streamable_subset()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_streamable_subset()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -490,7 +490,7 @@ FLAC__bool OggFLAC__stream_encoder_get_verify(const OggFLAC__StreamEncoder *enco
  */
 FLAC__bool OggFLAC__stream_encoder_get_streamable_subset(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_mid_side_stereo()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_mid_side_stereo()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -500,7 +500,7 @@ FLAC__bool OggFLAC__stream_encoder_get_streamable_subset(const OggFLAC__StreamEn
  */
 FLAC__bool OggFLAC__stream_encoder_get_do_mid_side_stereo(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_loose_mid_side_stereo()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_loose_mid_side_stereo()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -510,7 +510,7 @@ FLAC__bool OggFLAC__stream_encoder_get_do_mid_side_stereo(const OggFLAC__StreamE
  */
 FLAC__bool OggFLAC__stream_encoder_get_loose_mid_side_stereo(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_channels()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_channels()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -520,7 +520,7 @@ FLAC__bool OggFLAC__stream_encoder_get_loose_mid_side_stereo(const OggFLAC__Stre
  */
 unsigned OggFLAC__stream_encoder_get_channels(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_bits_per_sample()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_bits_per_sample()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -530,7 +530,7 @@ unsigned OggFLAC__stream_encoder_get_channels(const OggFLAC__StreamEncoder *enco
  */
 unsigned OggFLAC__stream_encoder_get_bits_per_sample(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_sample_rate()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_sample_rate()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -540,7 +540,7 @@ unsigned OggFLAC__stream_encoder_get_bits_per_sample(const OggFLAC__StreamEncode
  */
 unsigned OggFLAC__stream_encoder_get_sample_rate(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_blocksize()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_blocksize()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -550,7 +550,7 @@ unsigned OggFLAC__stream_encoder_get_sample_rate(const OggFLAC__StreamEncoder *e
  */
 unsigned OggFLAC__stream_encoder_get_blocksize(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_max_lpc_order()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_max_lpc_order()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -560,7 +560,7 @@ unsigned OggFLAC__stream_encoder_get_blocksize(const OggFLAC__StreamEncoder *enc
  */
 unsigned OggFLAC__stream_encoder_get_max_lpc_order(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_qlp_coeff_precision()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_qlp_coeff_precision()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -570,7 +570,7 @@ unsigned OggFLAC__stream_encoder_get_max_lpc_order(const OggFLAC__StreamEncoder 
  */
 unsigned OggFLAC__stream_encoder_get_qlp_coeff_precision(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_qlp_coeff_prec_search()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_qlp_coeff_prec_search()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -580,7 +580,7 @@ unsigned OggFLAC__stream_encoder_get_qlp_coeff_precision(const OggFLAC__StreamEn
  */
 FLAC__bool OggFLAC__stream_encoder_get_do_qlp_coeff_prec_search(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_escape_coding()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_escape_coding()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -590,7 +590,7 @@ FLAC__bool OggFLAC__stream_encoder_get_do_qlp_coeff_prec_search(const OggFLAC__S
  */
 FLAC__bool OggFLAC__stream_encoder_get_do_escape_coding(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_exhaustive_model_search()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_do_exhaustive_model_search()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -600,7 +600,7 @@ FLAC__bool OggFLAC__stream_encoder_get_do_escape_coding(const OggFLAC__StreamEnc
  */
 FLAC__bool OggFLAC__stream_encoder_get_do_exhaustive_model_search(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_min_residual_partition_order()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_min_residual_partition_order()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -610,7 +610,7 @@ FLAC__bool OggFLAC__stream_encoder_get_do_exhaustive_model_search(const OggFLAC_
  */
 unsigned OggFLAC__stream_encoder_get_min_residual_partition_order(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_man_residual_partition_order()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_man_residual_partition_order()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -620,7 +620,7 @@ unsigned OggFLAC__stream_encoder_get_min_residual_partition_order(const OggFLAC_
  */
 unsigned OggFLAC__stream_encoder_get_max_residual_partition_order(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_rice_parameter_search_dist()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_rice_parameter_search_dist()
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -630,7 +630,7 @@ unsigned OggFLAC__stream_encoder_get_max_residual_partition_order(const OggFLAC_
  */
 unsigned OggFLAC__stream_encoder_get_rice_parameter_search_dist(const OggFLAC__StreamEncoder *encoder);
 
-/* This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_total_samples_estimate()
+/** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_get_total_samples_estimate()
  *
  * \param  encoder  An encoder instance to set.
  * \assert
