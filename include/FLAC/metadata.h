@@ -24,7 +24,8 @@
 
 /******************************************************************************
 	(For an example of how all these routines are used, see the source
-	code to metaflac.)
+	code for the unit tests in src/test_unit/metadata_*.c, or metaflac
+	in src/metaflac/)
 ******************************************************************************/
 
 /******************************************************************************
@@ -45,11 +46,11 @@
 	the whole file is read into memory and manipulated before writing
 	out again.
 
-	What do we mean by efficient?  When writing metadata back to a FLAC file
-	it is possible to grow or shrink the metadata such that the entire file
-	must be rewritten.  However, if the size remains the same during changes
-	or PADDING blocks are utilized, only the metadata needs to be rewritten,
-	which is much faster.
+	What do we mean by efficient?  When writing metadata back to a FLAC
+	file it is possible to grow or shrink the metadata such that the entire
+	file must be rewritten.  However, if the size remains the same during
+	changes or PADDING blocks are utilized, only the metadata needs to be
+	overwritten, which is much faster.
 
 	Efficient means the whole file is rewritten at most one time, and only
 	when necessary.  Level 1 is not efficient only in the case that you
@@ -95,8 +96,9 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetaD
  *    read the actual blocks themselves.  _next() is relatively fast.
  *    _prev() is slower since it needs to search forward from the front
  *    of the file.
- * Use _get_block_type() or _get_block() to access the actual data.  The
- *    returned object is yours to modify and free.
+ * Use _get_block_type() or _get_block() to access the actual data at
+ *    the current iterator position.  The returned object is yours to
+ *    modify and free.
  * Use _set_block() to write a modified block back.  You must have write
  *    permission to the original file.  Make sure to read the whole
  *    comment to _set_block() below.
@@ -298,6 +300,11 @@ FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__MetaData_SimpleIter
  *
  * NOTE: Do not modify the is_last, length, or type fields of returned
  *       FLAC__MetaDataType objects.  These are managed automatically.
+ *
+ * NOTE: The metadata objects returned by _get_bloca()k are owned by the
+ *       chain; do not FLAC__metadata_object_delete() them.  In the
+ *       same way, blocks passed to _set_block() become owned by the
+ *       chain and will be deleted when the chain is deleted.
  */
 
 /*
@@ -352,15 +359,26 @@ FLAC__bool FLAC__metadata_chain_read(FLAC__MetaData_Chain *chain, const char *fi
  * If the current chain is the same size as the existing metadata, the new
  * data is written in place.
  *
- * If the current chain is longer than the existing metadata, the entire
- * FLAC file must be rewritten.
+ * If the current chain is longer than the existing metadata, and
+ * 'use_padding' is true, and the last block is a PADDING block of
+ * sufficient length, the function will truncate the final padding block
+ * so that the overall size of the metadata is the same as the existing
+ * metadata, and then just rewrite the metadata.  Otherwise, if not all of
+ * the above conditions are met, the entire FLAC file must be rewritten.
+ * If you want to use padding this way it is a good idea to call
+ * FLAC__metadata_chain_sort_padding() first so that you have the maximum
+ * amount of padding to work with, unless you need to preserve ordering
+ * of the PADDING blocks for some reason.
  *
  * If the current chain is shorter than the existing metadata, and
- * use_padding is true, a PADDING block is added to the end of the new
- * data to make it the same size as the existing data (if possible, see
- * the note to FLAC__metadata_simple_iterator_set_block() about the four
- * byte limit) and the new data is written in place.  If use_padding is
- * false, the entire FLAC file is rewritten.
+ * use_padding is true, and the final block is a PADDING block, the padding
+ * is extended to make the overall size the same as the existing data.  If
+ * use_padding is true and the last block is not a PADDING block, a new
+ * PADDING block is added to the end of the new data to make it the same
+ * size as the existing data (if possible, see the note to
+ * FLAC__metadata_simple_iterator_set_block() about the four byte limit)
+ * and the new data is written in place.  If none of the above apply or
+ * use_padding is false, the entire FLAC file is rewritten.
  *
  * If 'preserve_file_stats' is true, the owner and modification time will
  * be preserved even if the FLAC file is written.
@@ -428,6 +446,13 @@ FLAC__MetaDataType FLAC__metadata_iterator_get_block_type(const FLAC__MetaData_I
 FLAC__StreamMetaData *FLAC__metadata_iterator_get_block(FLAC__MetaData_Iterator *iterator);
 
 /*
+ * Set the metadata block at the current position, replacing the existing
+ * block.  The new block passed in becomes owned by the chain and will be
+ * deleted when the chain is deleted.
+ */
+FLAC__bool FLAC__metadata_iterator_set_block(FLAC__MetaData_Iterator *iterator, FLAC__StreamMetaData *block);
+
+/*
  * Removes the current block from the chain.  If replace_with_padding is
  * true, the block will instead be replaced with a padding block of equal
  * size.  You can not delete the STREAMINFO block.  The iterator will be
@@ -458,7 +483,7 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__MetaData_Iterator *i
 	to have the function make it's own copy of the data, or to false to
 	give the object ownership of your data.  In the latter case your pointer
 	must be freeable by free() and will be free()d when the object is
-	_delete()d.
+	FLAC__metadata_object_delete()d.
 
 	The _new and _copy function will return NULL in the case of a memory
 	allocation error, otherwise a new object.  The _set_ functions return
