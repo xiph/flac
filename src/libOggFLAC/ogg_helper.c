@@ -90,10 +90,10 @@ FLAC__bool simple_ogg_page__get_at(OggFLAC__SeekableStreamEncoder *encoder, FLAC
 	static const unsigned OGG_MAX_HEADER_LEN = 27/*OGG_HEADER_FIXED_PORTION_LEN*/ + 255;
 	FLAC__byte crc[4];
 
-	FLAC__ASSERT(page->header = 0);
-	FLAC__ASSERT(page->header_len = 0);
-	FLAC__ASSERT(page->body = 0);
-	FLAC__ASSERT(page->body_len = 0);
+	FLAC__ASSERT(page->header == 0);
+	FLAC__ASSERT(page->header_len == 0);
+	FLAC__ASSERT(page->body == 0);
+	FLAC__ASSERT(page->body_len == 0);
 
 	/* move the stream pointer to the supposed beginning of the page */
 	if(seek_callback(encoder, position, client_data) != FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK) {
