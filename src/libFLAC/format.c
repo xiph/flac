@@ -21,6 +21,12 @@
 #include <stdlib.h> /* for qsort() */
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
+#include "private/format.h"
+
+#ifdef min
+#undef min
+#endif
+#define min(a,b) ((a)<(b)?(a):(b))
 
 const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
 const unsigned FLAC__STREAM_SYNC = 0x664C6143;
@@ -194,4 +200,74 @@ unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table)
 	}
 
 	return j;
+}
+
+unsigned FLAC__format_get_max_rice_partition_order(unsigned blocksize, unsigned predictor_order)
+{
+	return
+		FLAC__format_get_max_rice_partition_order_from_blocksize_limited_max_and_predictor_order(
+			FLAC__format_get_max_rice_partition_order_from_blocksize(blocksize),
+			blocksize,
+			predictor_order
+		);
+}
+
+unsigned FLAC__format_get_max_rice_partition_order_from_blocksize(unsigned blocksize)
+{
+	unsigned max_rice_partition_order = 0;
+	while(!(blocksize & 1)) {
+		max_rice_partition_order++;
+		blocksize >>= 1;
+	}
+	return min(FLAC__MAX_RICE_PARTITION_ORDER, max_rice_partition_order);
+}
+
+unsigned FLAC__format_get_max_rice_partition_order_from_blocksize_limited_max_and_predictor_order(unsigned limit, unsigned blocksize, unsigned predictor_order)
+{
+	unsigned max_rice_partition_order = limit;
+
+	while(max_rice_partition_order > 0 && (blocksize >> max_rice_partition_order) <= predictor_order)
+		max_rice_partition_order--;
+
+	FLAC__ASSERT(blocksize >> max_rice_partition_order > predictor_order);
+
+	return max_rice_partition_order;
+}
+
+void FLAC__format_entropy_coding_method_partitioned_rice_init(FLAC__EntropyCodingMethod_PartitionedRice *object)
+{
+	FLAC__ASSERT(0 != object);
+
+	object->order = 0;
+	object->parameters = 0;
+	object->raw_bits = 0;
+	object->capacity_by_order = 0;
+}
+
+void FLAC__format_entropy_coding_method_partitioned_rice_clear(FLAC__EntropyCodingMethod_PartitionedRice *object)
+{
+	FLAC__ASSERT(0 != object);
+
+	if(0 != object->parameters)
+		free(object->parameters);
+	if(0 != object->raw_bits)
+		free(object->raw_bits);
+	FLAC__format_entropy_coding_method_partitioned_rice_init(object);
+}
+
+FLAC__bool FLAC__format_entropy_coding_method_partitioned_rice_ensure_size(FLAC__EntropyCodingMethod_PartitionedRice *object, unsigned max_partition_order)
+{
+	FLAC__ASSERT(0 != object);
+
+	FLAC__ASSERT(object->capacity_by_order > 0 || (0 == object->parameters && 0 == object->raw_bits));
+
+	if(object->capacity_by_order < max_partition_order) {
+		if(0 == (object->parameters = realloc(object->parameters, sizeof(unsigned)*(1 << max_partition_order))))
+			return false;
+		if(0 == (object->raw_bits = realloc(object->raw_bits, sizeof(unsigned)*(1 << max_partition_order))))
+			return false;
+		object->capacity_by_order = max_partition_order;
+	}
+
+	return true;
 }
