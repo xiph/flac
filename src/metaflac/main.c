@@ -130,7 +130,7 @@ int usage(const char *message, ...)
 bool list(FILE *f, bool verbose)
 {
 	byte buf[65536];
-	byte *b;
+	byte *b = buf;
 	FLAC__StreamMetaData metadata;
 	unsigned blocknum = 0, byte_offset = 0, i;
 
@@ -235,7 +235,7 @@ bool list(FILE *f, bool verbose)
 			case FLAC__METADATA_TYPE_SEEKTABLE:
 				printf("seek points: %u\n", metadata.data.seek_table.num_points);
 				for(i = 0; i < metadata.data.seek_table.num_points; i++, b += SEEKPOINT_LEN_) {
-					printf("\tpoint %d: sample_number=%llu, stream_offset=%llu, block_offset=%u\n", i, unpack_uint64(b, 8), unpack_uint64(b+8, 8), unpack_uint32(b+16, 2));
+					printf("\tpoint %d: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, unpack_uint64(b, 8), unpack_uint64(b+8, 8), unpack_uint32(b+16, 2));
 				}
 				break;
 			default:
