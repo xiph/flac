@@ -77,6 +77,7 @@ typedef struct OggFLAC__SeekableStreamDecoderPrivate {
 
 OggFLAC_API const char * const OggFLAC__SeekableStreamDecoderStateString[] = {
 	"OggFLAC__SEEKABLE_STREAM_DECODER_OK",
+	"OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM",
 	"OggFLAC__SEEKABLE_STREAM_DECODER_OGG_ERROR",
 	"OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR",
 	"OggFLAC__SEEKABLE_STREAM_DECODER_READ_ERROR",
@@ -503,30 +504,77 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_reset(OggFLAC__SeekableS
 
 OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_process_single(OggFLAC__SeekableStreamDecoder *decoder)
 {
+	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
-	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__seekable_stream_decoder_process_single(decoder->private_->FLAC_seekable_stream_decoder);
+
+	if(FLAC__seekable_stream_decoder_get_state(decoder->private_->FLAC_seekable_stream_decoder) == FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
+		decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
+
+	if(decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
+		return true;
+
+	FLAC__ASSERT(decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_OK);
+
+	ret = FLAC__seekable_stream_decoder_process_single(decoder->private_->FLAC_seekable_stream_decoder);
+	if(!ret)
+		decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR;
+
+	return ret;
 }
 
 OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_process_until_end_of_metadata(OggFLAC__SeekableStreamDecoder *decoder)
 {
+	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
-	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__seekable_stream_decoder_process_until_end_of_metadata(decoder->private_->FLAC_seekable_stream_decoder);
+
+	if(FLAC__seekable_stream_decoder_get_state(decoder->private_->FLAC_seekable_stream_decoder) == FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
+		decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
+
+	if(decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
+		return true;
+
+	FLAC__ASSERT(decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_OK);
+
+	ret = FLAC__seekable_stream_decoder_process_until_end_of_metadata(decoder->private_->FLAC_seekable_stream_decoder);
+	if(!ret)
+		decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR;
+
+	return ret;
 }
 
 OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_process_until_end_of_stream(OggFLAC__SeekableStreamDecoder *decoder)
 {
+	FLAC__bool ret;
 	FLAC__ASSERT(0 != decoder);
-	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__seekable_stream_decoder_process_until_end_of_stream(decoder->private_->FLAC_seekable_stream_decoder);
+
+	if(FLAC__seekable_stream_decoder_get_state(decoder->private_->FLAC_seekable_stream_decoder) == FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
+		decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
+
+	if(decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM)
+		return true;
+
+	FLAC__ASSERT(decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_OK);
+
+	ret = FLAC__seekable_stream_decoder_process_until_end_of_stream(decoder->private_->FLAC_seekable_stream_decoder);
+	if(!ret)
+		decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR;
+
+	return ret;
 }
 
 OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_seek_absolute(OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 sample)
 {
 	FLAC__ASSERT(0 != decoder);
-	FLAC__ASSERT(0 != decoder->private_);
-	return FLAC__seekable_stream_decoder_seek_absolute(decoder->private_->FLAC_seekable_stream_decoder, sample);
+	FLAC__ASSERT(decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_OK || decoder->protected_->state == OggFLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM);
+
+	if(!FLAC__seekable_stream_decoder_seek_absolute(decoder->private_->FLAC_seekable_stream_decoder, sample)) {
+		decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR;
+		return false;
+	}
+	else {
+		decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_OK;
+		return true;
+	}
 }
 
 

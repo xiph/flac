@@ -89,6 +89,9 @@ typedef enum {
 	OggFLAC__STREAM_DECODER_OK = 0,
 	/**< The decoder is in the normal OK state. */
 
+	OggFLAC__STREAM_DECODER_END_OF_STREAM,
+	/**< The decoder has reached the end of the stream. */
+
 	OggFLAC__STREAM_DECODER_OGG_ERROR,
 	/**< An error occurred in the underlying Ogg layer.  */
 
