@@ -205,6 +205,15 @@ This will create everything and leave it in the build/ directory.
 Don't worry about the rest of the stuff that is in build/ or
 the stuff that was already there before building.
 
+The Project Builder project requires that you have libiconv and
+libogg in /sw, ala fink.  If you don't, you'll need to install
+them somewhere and change the path to them in the Library Paths
+section of several targets.
+
+It also assumes the CPU supports Altivec instructions.  If it does
+not, you will also have to add -DFLAC__NO_ASM to the CFLAGS in the
+libFLAC target.
+
 There currently is no install procedure; you will have to
 manually copy the tools to wherever you need them.
 
