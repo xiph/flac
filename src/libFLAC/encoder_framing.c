@@ -230,20 +230,20 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	return true;
 }
 
-bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	bool ok;
 
 	ok =
 		FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN) &&
 		(wasted_bits? FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1) : true) &&
-		FLAC__bitbuffer_write_raw_int32(bb, subframe->value, bits_per_sample)
+		FLAC__bitbuffer_write_raw_int32(bb, subframe->value, subframe_bps)
 	;
 
 	return ok;
 }
 
-bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 
@@ -254,7 +254,7 @@ bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned res
 			return false;
 
 	for(i = 0; i < subframe->order; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], bits_per_sample))
+		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], subframe_bps))
 			return false;
 
 	if(!subframe_add_entropy_coding_method_(bb, &subframe->entropy_coding_method))
@@ -271,7 +271,7 @@ bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned res
 	return true;
 }
 
-bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 
@@ -282,7 +282,7 @@ bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residua
 			return false;
 
 	for(i = 0; i < subframe->order; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], bits_per_sample))
+		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], subframe_bps))
 			return false;
 
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, subframe->qlp_coeff_precision-1, FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
@@ -307,7 +307,7 @@ bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residua
 	return true;
 }
 
-bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned bits_per_sample, unsigned wasted_bits, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 	const int32 *signal = subframe->data;
@@ -319,7 +319,7 @@ bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsign
 			return false;
 
 	for(i = 0; i < samples; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, signal[i], bits_per_sample))
+		if(!FLAC__bitbuffer_write_raw_int32(bb, signal[i], subframe_bps))
 			return false;
 
 	return true;
