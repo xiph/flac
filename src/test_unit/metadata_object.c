@@ -397,6 +397,13 @@ int test_metadata_object()
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
 		return 1;
 
+	printf("testing FLAC__metadata_object_seektable_is_legal()...");
+	if(!FLAC__metadata_object_seektable_is_legal(block)) {
+		printf("FAILED, returned false\n");
+		return 1;
+	}
+	printf("OK\n");
+
 	seekpoints = 0;
 	printf("testing FLAC__metadata_object_seektable_resize_points(shrink to %u)...", seekpoints);
 	if(!FLAC__metadata_object_seektable_resize_points(block, seekpoints)) {
