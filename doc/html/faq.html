@@ -80,8 +80,7 @@
 
 	<P>
 		<B>General</B>
-	</P>
-	<P>
+	<BR>
 	<UL>
 		<LI>
 			<A HREF="#joke"><B>Your codec seems to have the momentum of a runaway freight train.  Why is it so popular?</B></A>
@@ -130,8 +129,7 @@
 
 	<P>
 		<B>Tools</B>
-	</P>
-	<P>
+	<BR>
 	<UL>
 		<LI>
 			<A HREF="#tools__option_blocking"><B>How do I encode a file that starts with a dash?</B></A>
@@ -147,8 +145,7 @@
 
 	<P>
 		<B>API</B>
-	</P>
-	<P>
+	<BR>
 	<UL>
 		<LI>
 			<A HREF="#api__frame_length"><B>How can I determine the encoded frame length?</B></A>
@@ -158,139 +155,168 @@
 
 	<P>
 		<B>Project</B>
-	</P>
-	<P>
+	<BR>
 	<UL>
 	</UL>
 	</P>
 
-	<P>
+	<H2>
 		<B>General</B>
-	</P>
+	</H2>
 	<P>
 		<A NAME="joke"><B>Your codec seems to have the momentum of a runaway freight train.  Why is it so popular?</B></A>
-		<BR>
+	</P>
+	<P>
 		Just kidding.  Only real questions here.
 	</P>
 	<P>
 		<A NAME="general__tagging"><B>What kinds of tags does FLAC support?</B></A>
-		<BR>
+	</P>
+	<P>
 		FLAC has it's own native tagging system which is identical to that of Vorbis.  They are called alternately "FLAC tags" and "Vorbis comments".  It is the only tagging system required and guaranteed to be supported by FLAC implementations.
-		<BR>
+	</P>
+	<P>
 		Out of convenience, some plugins and implementations allow and also read other kinds of tags.  For example, the official FLAC Winamp and XMMS plugins can also read ID3 v1 and v2 tags in addition to FLAC tags.  The reference decoder knows how to skip ID3 tags so that they don't interfere with decoding.  But you should not expect any tags beside FLAC tags to be supported in all applications; some implementations may not even be able to decode a FLAC file with ID3 tags.
 	</P>
 	<P>
 		<A NAME="general__native_vs_ogg"><B>What is the difference between (native) FLAC and Ogg FLAC?</B></A>
-		<BR>
+	</P>
+	<P>
 		You can think of an audio codec as having two layers.  The inside layer is the raw compressed data, and the outside layer is the "container" or "transport layer" that breaks the compressed data into pieces so it can be seeked through, edited, etc.
-		<BR>
+	</P>
+	<P>
 		"Native" FLAC is the compressed FLAC data stored in a very minimalist container, designed to be very efficient at storing single audio streams.
-		<BR>
+	</P>
+	<P>
 		Ogg FLAC is the compressed FLAC data stored in an <A HREF="http://xiph.org/ogg/vorbis/doc/oggstream.html">Ogg container</A>.  Ogg is a much more powerful transport layer that enables mixing several kinds of different streams (audio, data, metadata, etc).  The overhead is slightly higher than with native FLAC.
-		<BR>
+	</P>
+	<P>
 		In either case, the compressed FLAC data is the same and one can be converted to the other without re-encoding.
 	</P>
 	<P>
 		<A NAME="general__native_or_ogg"><B>Which should I use, (native) FLAC or Ogg FLAC?</B></A>
-		<BR>
+	</P>
+	<P>
 		The short answer right now is probably "native FLAC".  If all you are doing is compressing audio to be played back later, native FLAC will do everything you need, is more widely supported, and will yield smaller files.  If you plan to edit the compressed audio, or want to multiplex the audio with video later in an Ogg container, Ogg FLAC is a better choice.
-		<BR>
+	</P>
+	<P>
 		Note that seeking in Ogg FLAC is not yet supported but will be in the next release.
 	</P>
 	<P>
 		<A NAME="general__no_cuesheet_tags"><B>Why aren't PERFORMER/TITLE/etc tags stored in the FLAC CUESHEET block?</B></A>
-		<BR>
+	</P>
+	<P>
 		This has turned out to be a pretty polarizing issue and requires a long explanation.
-		<BR>
+	</P>
+	<P>
 		The original purpose of a cue sheet in CD authoring software was to lay out the disc, essentially specifying how the audio will be organized on the disc; some of the information ends up as the CD table of contents: the track numbers and locations, and the index points.  Later CD-TEXT was added.  But CD-TEXT is a very complex spec, and actually goes in the CD subcode data.  It is internationalized, not through Unicode, but with several different character sets, some of them multi-byte.  It even allows for graphics.  In cue sheets, the TITLE/PERFORMER/etc tags are just a limited shorthand for authoring, but when you rip, you almost never parse the CD-TEXT, you get it from another database, and it doesn't really belong in the FLAC CUESHEET block.
-		<BR>
+	</P>
+	<P>
 		For FLAC the intention is that applications can calculate the CDDB or CDindex ID from the CUESHEET block and look it up in an online or local database just like CD players do.  But if you really want it in the file itself, the track metadata really should be stored separate from the CUESHEET, and already can be because of FLAC's metadata system.  There just isn't one specified yet because as soon as it is, people will say that it's not flexible enough.  From experience (and you can see this come up time and time again in many lists), anyone who is going to the trouble of keeping a lossless collection in the first place will already be picky about metadata, and it is hard to come up with a standard that will please even the majority.  That is the big problem with metadata and is why Xiph has deferred on it, waiting for someone to come up with a good metadata spec that can me multiplexed together with data.
-		<BR>
+	</P>
+	<P>
 		Some players (for example Foobar2000) allow you to store the CDDB data as FLAC tags and can parse that.
 	</P>
 	<P>
 		<A NAME="general__asymmetry"><B>Why do the encoder settings have a big effect on the encoding time but not the decoding time?</B></A>
-		<BR>
+	</P>
+	<P>
 		It's hard to explain without going into the codec design, but to oversimplify, the encoder is looking for functions that approximate the signal.  Higher settings make the encoder search more to find better approximations.  The functions are themselves encoded in the FLAC file.  Decoding only requires computing the one function, and the complexity of the function is vary stable.  This is by design, to make decoding easier, and is one of the things that makes FLAC easy to implement in hardware.
 	</P>
 	<P>
 		<A NAME="general__alternatives"><B>Why use FLAC instead of other codecs that compress more?</B></A>
-		<BR>
+	</P>
+	<P>
 		For most users, a small difference in filesize is usually far outweighed by FLAC's advantages: open patent free codec, portable open source (BSD) reference implementation, documented API, multi-platform support, hardware support, multi-channel support, etc.  Improving FLAC to get a little more compression is not worth making it more complex and more compute-intensive to decode, and hence, less likely to be supported in hardware.
 	</P>
 	<P>
 		<A NAME="general__encode_faster"><B>Why can't you make FLAC encode faster?</B></A>
-		<BR>
+	</P>
+	<P>
 		FLAC already encodes pretty fast.  It is faster than real-time even on weak systems and is not much slower than even the fastest codecs.  And it is usually faster than the CD ripping process with which it is usually paired, meaning even if it went faster, it would not speed up the ripping-encoding process anyway.
-		<BR>
+	</P>
+	<P>
 		Part of the reason is that FLAC is asymmetric <A HREF="#general__asymmetry">(see also)</A>.  That means that it is optimized for decoding speed at the expense of encoding speed, because it makes it easier to decode on low-powered hardware, and because you only encode once but you decode many times.  
 	</P>
 	<P>
 		<A NAME="general__lossless_trust"><B>How can I be sure FLAC is lossless?</B></A>
 		<BR>
 		<A NAME="general__testing"><B>How much testing has been done on FLAC?</B></A>
-		<BR>
+	</P>
+	<P>
 		First, FLAC is probably the only lossless compressor that has a published and comprehensive test suite.  With the others you rely on the author's personal testing or the longevity of the program.  But with FLAC you can check out the whole test suite and run it on any version you like, or alter it to test your own data.  The test suite checks every function in the API, as well as running many thousands of streams through an encode-decode-verify process, to test every nook and cranny of the system.  Even on a fast machine the full test suite takes hours.  The full test suite must pass on several platforms before a release is made.
-		<BR>
+	</P>
+	<P>
 		Second, you can always use the <TT>-V</TT> option with <TT>flac</TT> (also supported by most GUI frontends) to verify while encoding.  With this option, a decoder is run in parallel to the encoder and its output is compared against the original input.  If a difference is found <TT>flac</TT> will stop with an error.
-		<BR>
+	</P>
+	<P>
 		Finally, FLAC is used by many people and has been judged stable enough by many software and hardware makers to be incorporated into their products.
 	</P>
 	<P>
 		<A NAME="general__wave_flac_wave"><B>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</B></A>
 		<BR>
 		<A NAME="general__skipped_subchunk"><B>I compressed a WAVE file to FLAC and it said "warning: skipping unknown sub-chunk LIST".  Why?</B></A>
-		<BR>
+	</P>
+	<P>
 		WAVE is a complicated standard; many kinds of data besides audio data can be put in it.  Most likely what has happened is that the application that created the original WAVE file also added some extra information for it's own use, which FLAC does not store or recreate.  But the audio data in the two WAVE files will be identical.  There are other tools to compare just the audio content of two WAVE files; <A HREF="http://www.exactaudiocopy.de/">ExactAudioCopy</A> has such a feature.  <A HREF="#general__two_bytes_short">(see also)</A>
-		<BR>
+	</P>
+	<P>
 		For the more technically inclined, FLAC only stores what is in the 'fmt ' and 'data' sub-chunks.
 	</P>
 	<P>
 		<A NAME="general__two_bytes_short"><B>I decoded a FLAC file and the WAVE is 2 bytes shorter than the original.  Why?</B></A>
-		<BR>
+	</P>
+	<P>
 		The difference is probably an 18-byte 'fmt ' subchunk in the original WAVE vs. a 16-byte one in the decoded WAVE.  With WAVE there is more than one way to right identical formatting information, but FLAC always writes the most common form.  <A HREF="#general__wave_flac_wave">(see also)</A>
 	</P>
 	<P>
 		<A NAME="general__lowest_bitrate"><B>What is the lowest bitrate achieveable with FLAC?</B></A>
-		<BR>
+	</P>
+	<P>
 		With FLAC you do not specify a bitrate like with some lossy codecs.  It's more like specifying a quality with Vorbis or MPC, except with FLAC the quality is always "lossless" and the resulting bitrate is roughly proportional to the amount of information in the original signal.  You cannot control the bitrate and the result can be from around 100% of the input rate (if you are encoding noise), down to almost 0 (encoding silence).
 	</P>
 
-	<P>
+	<H2>
 		<B>Tools</B>
-	</P>
+	</H2>
 	<P>
 		<A NAME="tools__option_blocking"><B>How do I encode a file that starts with a dash?</B></A>
-		<BR>
+	</P>
+	<P>
 		When using <TT>flac</TT> to encode on the command-line, a file that starts with a dash will be treated as an option, but there is a simple workaround.  Use <TT>--</TT> to signal the end of options and the beginning of filenames, like so:
-		<BR>
+	</P>
+	<P>
 		<TT>flac -V -- -01-name.wav</TT>
 	</P>
 	<P>
 		<A NAME="tools__long_meta_edits"><B>Why does it take so long to edit some FLAC files with metaflac?</B></A>
-		<BR>
+	</P>
+	<P>
 		Since metadata is stored at the beginning of a FLAC file, changing the length of it can sometimes cause the whole file to be rewritten.  You can avoid this by adding padding with <TT>flac</TT> when you encode, or with <TT>metaflac</TT> after encoding.  By default, <TT>flac</TT> adds 4k of padding; you can change this amount if you need more or less.
 	</P>
 	<P>
 		<A NAME="tools__not_streamable"><B>Why did I get "ERROR initializing encoder, state = 14:FLAC__STREAM_ENCODER_NOT_STREAMABLE"?</B></A>
-		<BR>
+	</P>
+	<P>
 		You specified encoding options that are outside the <A HREF="format.html#subset">Streamable subset</A>.  If that is what you really wanted, you must also use <TT>flac --lax</TT>.
 	</P>
 
-	<P>
+	<H2>
 		<B>API</B>
-	</P>
+	</H2>
 	<P>
 		<A NAME="api__frame_length"><B>How can I determine the encoded frame length?</B></A>
-		<BR>
+	</P>
+	<P>
 		With native FLAC, it is not possible to determine the frame length without decoding.  Probably if I had it all to do again I would have constrained the possible block sizes, which would have made it more practical to put the frame length in the frame header.
-		<BR>
+	</P>
+	<P>
 		With Ogg FLAC, it can be calculated from the Ogg page header.
 	</P>
 
-	<P>
+	<H2>
 		<B>Project</B>
-	</P>
+	</H2>
 
 	</FONT>
 	</TD></TR>
