@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	if(0 != test_bitbuffer())
 		return 1;
 
-	if(0 != test_metadata())
+	if(0 != test_metadata(argv[0]))
 		return 1;
 
 	return 0;

@@ -19,6 +19,6 @@
 #ifndef FLAC__TEST_UNIT_METADATA_H
 #define FLAC__TEST_UNIT_METADATA_H
 
-int test_metadata();
+int test_metadata(const char *progname);
 
 #endif
