@@ -183,7 +183,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 	unsigned linelen, forced_leadout_track_num = 0;
 	FLAC__uint64 forced_leadout_track_offset = 0;
 	int in_track_num = -1, in_index_num = -1;
-	FLAC__bool disc_has_catalog = false, track_has_flags, track_has_isrc, has_forced_leadout = false;
+	FLAC__bool disc_has_catalog = false, track_has_flags = false, track_has_isrc = false, has_forced_leadout = false;
 	FLAC__StreamMetadata_CueSheet *cs = &cuesheet->data.cue_sheet;
 
 	cs->lead_in = is_cdda? 2 * 44100 /* The default lead-in size for CD-DA */ : 0;
