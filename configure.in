@@ -265,7 +265,7 @@ main ()
 	fclose(output);
 	exit(0);
 }
-], . conftest.id3; echo "${ID3LIB_MAJOR}.${ID3LIB_MINOR}.${ID3LIB_PATCH}", AC_MSG_WARN(could not determine id3lib version),[echo $ac_n "cross compiling; assuming ${ID3LIB_MAJOR}.${ID3LIB_MINOR}.${ID3LIB_PATCH} $ac_c"])
+], . ./conftest.id3; echo "${ID3LIB_MAJOR}.${ID3LIB_MINOR}.${ID3LIB_PATCH}", AC_MSG_WARN(could not determine id3lib version),[echo $ac_n "cross compiling; assuming ${ID3LIB_MAJOR}.${ID3LIB_MINOR}.${ID3LIB_PATCH} $ac_c"])
 AC_DEFINE_UNQUOTED(ID3LIB_MAJOR, $ID3LIB_MAJOR)
 AC_DEFINE_UNQUOTED(ID3LIB_MINOR, $ID3LIB_MINOR)
 AC_DEFINE_UNQUOTED(ID3LIB_PATCH, $ID3LIB_PATCH)

@@ -112,8 +112,8 @@
 				<LI>UTF-8 support in Vorbis comments.</LI>
 				<LI>New --import-vc-from and --export-vc-to commands for importing/exporting Vorbis comments from/to a file.  For example, the following can be used to copy tags back and forth:<BR>
 					<TT>
-					metaflac --export-vc-to=- --no-utf8-convert file.flac | vorbiscomment --raw -w -c file.ogg<BR>
-					vorbiscomment -l --raw file.ogg | metaflac --import-vc-from=- --no-utf8-convert file.flac<BR>
+					metaflac --export-vc-to=- --no-utf8-convert file.flac | vorbiscomment --raw -w file.ogg<BR>
+					vorbiscomment --raw -l file.ogg | metaflac --import-vc-from=- --no-utf8-convert file.flac<BR>
 					</TT>
 				</LI>
 				<LI>Fixed <A HREF="http://sourceforge.net/tracker/index.php?func=detail&aid=606796&group_id=13478&atid=113478">bug #606796</A> where <B><TT>metaflac</TT></B> was failing on read-only files.</LI>
@@ -199,7 +199,7 @@
 	<P>
 	<UL>
 		<LI>
-			<B>FLAC goes hardware!</B>&nbsp;&nbsp;<A HREF="http://www.phatnoise.com/">Phatnoise</A> has become the first commercial hardware platform to support FLAC.  Firmware is now available for the Phatbox player to play FLAC files.  See <A HREF="http://www.phatnoise.com/forum/showthread.php?threadid=74">here</A> for details.
+			<B>FLAC goes hardware!</B>&nbsp;&nbsp;<A HREF="http://www.phatnoise.com/">Phatnoise</A> has become the first commercial hardware platform to support FLAC.  Firmware is now available for the Phatbox player to play FLAC files.  See <A HREF="http://www.phatnoise.com/technology/encoding.php">here</A> for details.
 		</LI>
 	</UL>
 	</P>

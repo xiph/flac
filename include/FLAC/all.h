@@ -78,7 +78,7 @@
  * to their counterparts in libFLAC.  libOggFLAC is also licensed under
  * the LGPL.
  *
- * \section cpp_api FLAC C API
+ * \section cpp_api FLAC C++ API
  *
  * The FLAC C++ API is a set of classes that encapsulate the
  * structures and functions in libFLAC.  They provide slightly more

@@ -305,8 +305,8 @@
 		    be added, the first being at sample 0.  You may use
 		    many -S options; the resulting SEEKTABLE will be the
 		    unique-ified union of all such values.  With no -S
-		    options, flac defaults to '-S 100x'.  Use -S- for
-		    no SEEKTABLE.  Note: '-S #x' will not work if the
+		    options, flac defaults to '-S 100x'.  Use --no-seektable
+		    for no SEEKTABLE.  Note: '-S #x' will not work if the
 		    encoder can't determine the input size before
 		    starting.  Note: if you use '-S #' and # is >=
 		    samples in the input, there will be either no seek
@@ -330,8 +330,8 @@
 		    of the PADDING block will be 4 bytes longer than
 		    the length given because of the 4 metadata block
 		    header bytes.  You can force no PADDING block at
-		    all to be written with -P-, which is the default.
-		    </para>
+		    all to be written with --no-padding, which is the
+		    default.</para>
 		</listitem>
 	      </varlistentry>
 
