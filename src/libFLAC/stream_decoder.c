@@ -817,7 +817,7 @@ FLAC__bool stream_decoder_frame_sync_(FLAC__StreamDecoder *decoder)
 		}
 		if(first) {
 			decoder->private_->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->private_->client_data);
-			first = 0;
+			first = false;
 		}
 	}
 
