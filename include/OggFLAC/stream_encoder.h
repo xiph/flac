@@ -202,7 +202,11 @@ OggFLAC_API void OggFLAC__stream_encoder_delete(OggFLAC__StreamEncoder *encoder)
 
 /** Set the serial number for the FLAC stream.
  *
- * \default \c NULL, 0
+ * \note
+ * It is recommended to set a serial number explicitly as the default of '0'
+ * may collide with other streams.
+ *
+ * \default \c 0
  * \param  encoder        An encoder instance to set.
  * \param  serial_number  See above.
  * \assert
