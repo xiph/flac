@@ -125,26 +125,28 @@ void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *);
  * will take on the defaults from the constructor.  NOTE that
  * FLAC__seekable_stream_decoder_flush() or FLAC__seekable_stream_decoder_reset()
  * do NOT reset the values to the constructor defaults.
+@@@@ update so that only _set_ methods that need to return FLAC__bool, else void; update documentation.html also
+@@@@ update defaults above and in documentation.html about the metadata_respond/ignore defaults
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_md5_checking(const FLAC__SeekableStreamDecoder *decoder, FLAC__bool value);
-FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(const FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderReadStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));
-FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(const FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderSeekStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data));
-FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(const FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderTellStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data));
-FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(const FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderLengthStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data));
-FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(const FLAC__SeekableStreamDecoder *decoder, FLAC__bool (*value)(const FLAC__SeekableStreamDecoder *decoder, void *client_data));
-FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(const FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
-FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(const FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
-FLAC__bool FLAC__seekable_stream_decoder_set_client_data(const FLAC__SeekableStreamDecoder *decoder, void *value);
+FLAC__bool FLAC__seekable_stream_decoder_set_md5_checking(FLAC__SeekableStreamDecoder *decoder, FLAC__bool value);
+FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderReadStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderSeekStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderTellStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderLengthStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__bool (*value)(const FLAC__SeekableStreamDecoder *decoder, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_client_data(FLAC__SeekableStreamDecoder *decoder, void *value);
 /*
  * See the comments for the equivalent functions in stream_decoder.h
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond(const FLAC__SeekableStreamDecoder *decoder, FLAC__MetaDataType type);
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_application(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte id[4]);
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_all(const FLAC__SeekableStreamDecoder *decoder);
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore(const FLAC__SeekableStreamDecoder *decoder, FLAC__MetaDataType type);
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_application(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte id[4]);
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(const FLAC__SeekableStreamDecoder *decoder);
+FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond(FLAC__SeekableStreamDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_application(FLAC__SeekableStreamDecoder *decoder, const FLAC__byte id[4]);
+FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_all(FLAC__SeekableStreamDecoder *decoder);
+FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore(FLAC__SeekableStreamDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_application(FLAC__SeekableStreamDecoder *decoder, const FLAC__byte id[4]);
+FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(FLAC__SeekableStreamDecoder *decoder);
 
 /*
  * Various "get" methods

@@ -117,12 +117,14 @@ void FLAC__stream_decoder_delete(FLAC__StreamDecoder *);
  * will take on the defaults from the constructor.  NOTE that
  * FLAC__stream_decoder_flush() or FLAC__stream_decoder_reset() do
  * NOT reset the values to the constructor defaults.
+@@@@ update so that only _set_ methods that need to return FLAC__bool, else void; update documentation.html also
+@@@@ update defaults above and in documentation.html about the metadata_respond/ignore defaults
  */
-FLAC__bool FLAC__stream_decoder_set_read_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadStatus (*value)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));
-FLAC__bool FLAC__stream_decoder_set_write_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
-FLAC__bool FLAC__stream_decoder_set_metadata_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
-FLAC__bool FLAC__stream_decoder_set_error_callback(const FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
-FLAC__bool FLAC__stream_decoder_set_client_data(const FLAC__StreamDecoder *decoder, void *value);
+FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadStatus (*value)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));
+FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data));
+FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data));
+FLAC__bool FLAC__stream_decoder_set_error_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
+FLAC__bool FLAC__stream_decoder_set_client_data(FLAC__StreamDecoder *decoder, void *value);
 /*
  * These deserve special attention.  By default, the decoder only calls the
  * metadata_callback for the STREAMINFO block.  These functions allow you to
@@ -137,12 +139,12 @@ FLAC__bool FLAC__stream_decoder_set_client_data(const FLAC__StreamDecoder *decod
  * STREAMINFO and SEEKTABLE blocks are always parsed and used internally, but
  * they still can legally be filtered from the metadata_callback here.
  */
-FLAC__bool FLAC__stream_decoder_set_metadata_respond(const FLAC__StreamDecoder *decoder, FLAC__MetaDataType type);
-FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(const FLAC__StreamDecoder *decoder, FLAC__byte id[4]);
-FLAC__bool FLAC__stream_decoder_set_metadata_respond_all(const FLAC__StreamDecoder *decoder);
-FLAC__bool FLAC__stream_decoder_set_metadata_ignore(const FLAC__StreamDecoder *decoder, FLAC__MetaDataType type);
-FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(const FLAC__StreamDecoder *decoder, FLAC__byte id[4]);
-FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(const FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_set_metadata_respond(FLAC__StreamDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(FLAC__StreamDecoder *decoder, const FLAC__byte id[4]);
+FLAC__bool FLAC__stream_decoder_set_metadata_respond_all(FLAC__StreamDecoder *decoder);
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore(FLAC__StreamDecoder *decoder, FLAC__MetaDataType type);
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(FLAC__StreamDecoder *decoder, const FLAC__byte id[4]);
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(FLAC__StreamDecoder *decoder);
 
 /*
  * Methods to return the current stream decoder state, number
