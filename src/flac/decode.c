@@ -607,7 +607,6 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 	FLAC__bool is_unsigned_samples = (stream_info->is_wave_out? bps<=8 : stream_info->is_unsigned_samples);
 	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, byte;
 	static FLAC__int8 s8buffer[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(FLAC__int32)]; /* WATCHOUT: can be up to 2 megs */
-	/* WATCHOUT: we say 'sizeof(FLAC__int32)' above instead of '(FLAC__MAX_BITS_PER_SAMPLE+7)/8' because we have to use an array FLAC__int32 even for 24 bps */
 	FLAC__uint8  *u8buffer  = (FLAC__uint8  *)s8buffer;
 	FLAC__int16  *s16buffer = (FLAC__int16  *)s8buffer;
 	FLAC__uint16 *u16buffer = (FLAC__uint16 *)s8buffer;
