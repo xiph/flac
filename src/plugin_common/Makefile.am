@@ -9,11 +9,17 @@ noinst_LIBRARIES = libplugin-common.a
 noinst_HEADERS = \
 	all.h \
 	canonical_tag.h \
-	dither.h
+	charset.h \
+	dither.h \
+	id3v1.h \
+	id3v2.h
 
 libplugin_common_a_SOURCES = \
 	canonical_tag.c \
-	dither.c
+	charset.c \
+	dither.c \
+	id3v1.c \
+	id3v2.c
 
 EXTRA_DIST = \
 	Makefile.lite \

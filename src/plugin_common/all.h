@@ -1,10 +1,6 @@
 /* plugin_common - Routines common to several plugins
  * Copyright (C) 2002  Josh Coalson
  *
- * dithering routine derived from (other GPLed source):
- * mad - MPEG audio decoder
- * Copyright (C) 2000-2001 Robert Leslie
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -24,6 +20,10 @@
 #define FLAC__PLUGIN_COMMON__ALL_H
 
 #include "canonical_tag.h"
+#include "charset.h"
 #include "dither.h"
+#include "id3v1.h"
+#include "id3v2.h"
+#include "locale_hack.h"
 
 #endif

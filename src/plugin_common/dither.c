@@ -29,10 +29,6 @@
 #define max(a,b) ((a)>(b)?(a):(b))
 
 
-#define FLAC__DO_DITHER
-
-#define MAX_SUPPORTED_CHANNELS 2
-
 #if defined _MSC_VER || defined __MINGW32__
 #define FLAC__INLINE __inline
 #else
@@ -103,16 +99,16 @@ static FLAC__INLINE FLAC__int32 linear_dither(unsigned source_bps, unsigned targ
 	return output >> scalebits;
 }
 
-unsigned FLAC__plugin_common__pack_pcm(FLAC__byte *data, FLAC__int32 *input, unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
+unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, FLAC__int32 *input, unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
 {
-	static dither_state dither[MAX_SUPPORTED_CHANNELS];
+	static dither_state dither[FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
 	FLAC__byte * const start = data;
 	FLAC__int32 sample;
 	unsigned samples = wide_samples * channels;
 	const unsigned bytes_per_sample = target_bps / 8;
 
-	FLAC__ASSERT(MAX_SUPPORTED_CHANNELS == 2);
-	FLAC__ASSERT(channels > 0 && channels <= MAX_SUPPORTED_CHANNELS);
+	FLAC__ASSERT(FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS == 2);
+	FLAC__ASSERT(channels > 0 && channels <= FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS);
 	FLAC__ASSERT(source_bps < 32);
 	FLAC__ASSERT(target_bps <= 24);
 	FLAC__ASSERT(target_bps <= source_bps);

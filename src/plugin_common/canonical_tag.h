@@ -1,10 +1,6 @@
 /* plugin_common - Routines common to several plugins
  * Copyright (C) 2002  Josh Coalson
  *
- * dithering routine derived from (other GPLed source):
- * mad - MPEG audio decoder
- * Copyright (C) 2000-2001 Robert Leslie
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -22,5 +18,27 @@
 
 #ifndef FLAC__PLUGIN_COMMON__CANONICAL_TAG_H
 #define FLAC__PLUGIN_COMMON__CANONICAL_TAG_H
+
+#include "id3v1.h"
+
+typedef struct {
+	char *title;
+	char *artist;
+	char *performer;
+	char *album;
+	char *year_recorded;
+	char *year_performed;
+	char *track_number;
+	char *tracks_in_album;
+	char *genre;
+	char *comment;
+} FLAC_Plugin__CanonicalTag;
+
+FLAC_Plugin__CanonicalTag *FLAC_plugin__canonical_tag_new();
+void FLAC_plugin__canonical_tag_delete(FLAC_Plugin__CanonicalTag *);
+void FLAC_plugin__canonical_tag_init(FLAC_Plugin__CanonicalTag *);
+void FLAC_plugin__canonical_tag_clear(FLAC_Plugin__CanonicalTag *);
+
+void FLAC_plugin__canonical_tag_convert_from_id3v1(FLAC_Plugin__CanonicalTag *, const FLAC_Plugin__Id3v1_Tag *);
 
 #endif

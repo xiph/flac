@@ -1,10 +1,6 @@
 /* plugin_common - Routines common to several plugins
  * Copyright (C) 2002  Josh Coalson
  *
- * dithering routine derived from (other GPLed source):
- * mad - MPEG audio decoder
- * Copyright (C) 2000-2001 Robert Leslie
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -25,6 +21,8 @@
 
 #include "FLAC/ordinals.h"
 
-unsigned FLAC__plugin_common__pack_pcm(FLAC__byte *data, FLAC__int32 *input, unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps);
+#define FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS 2
+
+unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, FLAC__int32 *input, unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps);
 
 #endif
