@@ -155,7 +155,7 @@ static FLAC__bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 		bb->consumed_bits = 0;
 		bb->total_consumed_bits = FLAC__BLURBS_TO_BITS(new_capacity);
 	}
-	free(bb->buffer); // we've already asserted above that (bb->buffer != 0)
+	free(bb->buffer); /* we've already asserted above that (bb->buffer != 0) */
 	bb->buffer = new_buffer;
 	bb->capacity = new_capacity;
 	return true;
@@ -467,9 +467,8 @@ FLAC__uint16 FLAC__bitbuffer_get_write_crc16(const FLAC__BitBuffer *bb)
 FLAC__byte FLAC__bitbuffer_get_write_crc8(const FLAC__BitBuffer *bb)
 {
 	FLAC__ASSERT(0 != bb);
-	//@@@ WHY WAS THIS HERE? FLAC__ASSERT(bb->blurbs == 0);
-	FLAC__ASSERT(bb->buffer[0] == 0xff); /* MAGIC NUMBER for the first byte of the sync code */
 	FLAC__ASSERT((bb->bits & 7) == 0); /* assert that we're byte-aligned */
+	FLAC__ASSERT(bb->buffer[0] == 0xff); /* MAGIC NUMBER for the first byte of the sync code */
 #if FLAC__BITS_PER_BLURB == 8
 	return FLAC__crc8(bb->buffer, bb->blurbs);
 #elif FLAC__BITS_PER_BLURB == 32
@@ -1419,7 +1418,7 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, FLA
 			return false;
 	}
 #if FLAC__BITS_PER_BLURB > 8
-	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { /*@@@ comment on why this is here*/
 #endif
 		if(bb->consumed_bits) {
 			i = FLAC__BITS_PER_BLURB - bb->consumed_bits;
@@ -1537,7 +1536,7 @@ FLAC__bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, FLAC__int32 *val,
 			return false;
 	}
 #if FLAC__BITS_PER_BLURB > 8
-	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { /*@@@ comment on why this is here*/
 #endif
 		if(bb->consumed_bits) {
 			i = FLAC__BITS_PER_BLURB - bb->consumed_bits;
@@ -1650,7 +1649,7 @@ FLAC__bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *va
 			return false;
 	}
 #if FLAC__BITS_PER_BLURB > 8
-	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { /*@@@ comment on why this is here*/
 #endif
 		if(bb->consumed_bits) {
 			i = FLAC__BITS_PER_BLURB - bb->consumed_bits;
@@ -1749,7 +1748,7 @@ FLAC__bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 *val,
 			return false;
 	}
 #if FLAC__BITS_PER_BLURB > 8
-	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { /*@@@ comment on why this is here*/
 #endif
 		if(bb->consumed_bits) {
 			i = FLAC__BITS_PER_BLURB - bb->consumed_bits;
@@ -1897,7 +1896,7 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb,
 	FLAC__ASSERT(bb->buffer != 0);
 
 #if FLAC__BITS_PER_BLURB > 8
-	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { /*@@@ comment on why this is here*/
 #endif
 		if(bb->consumed_bits) {
 			b = bb->buffer[bb->consumed_blurbs] << bb->consumed_bits;
@@ -2442,7 +2441,7 @@ void FLAC__bitbuffer_dump(const FLAC__BitBuffer *bb, FILE *out)
 	}
 	else {
 		fprintf(out, "bitbuffer: capacity=%u blurbs=%u bits=%u total_bits=%u consumed: blurbs=%u, bits=%u, total_bits=%u\n", bb->capacity, bb->blurbs, bb->bits, bb->total_bits, bb->consumed_blurbs, bb->consumed_bits, bb->total_consumed_bits);
-return;//@@@
+return;/*@@@*/
 		for(i = 0; i < bb->blurbs; i++) {
 			fprintf(out, "%08X: ", i);
 			for(j = 0; j < FLAC__BITS_PER_BLURB; j++)
