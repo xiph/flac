@@ -1,4 +1,4 @@
-/* in_flac - Winamp FLAC input plugin
+/* in_flac - Winamp2 FLAC input plugin
  * Copyright (C) 2000,2001  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
