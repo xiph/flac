@@ -33,10 +33,11 @@
 #define OggFLAC__PROTECTED__STREAM_ENCODER_H
 
 #include "OggFLAC/stream_encoder.h"
+#include "private/ogg_encoder_aspect.h"
 
 typedef struct OggFLAC__StreamEncoderProtected {
 	OggFLAC__StreamEncoderState state;
-	long serial_number;
+	OggFLAC__OggEncoderAspect ogg_encoder_aspect;
 } OggFLAC__StreamEncoderProtected;
 
 #endif

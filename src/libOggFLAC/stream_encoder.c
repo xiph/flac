@@ -31,10 +31,8 @@
 
 #include <stdio.h>
 #include <stdlib.h> /* for calloc() */
-#include <string.h> /* for memcpy() */
-#include <ogg/ogg.h>
 #include "FLAC/assert.h"
-#include "OggFLAC/stream_decoder.h"
+#include "OggFLAC/stream_encoder.h"
 #include "protected/stream_encoder.h"
 
 /***********************************************************************
@@ -64,13 +62,6 @@ typedef struct OggFLAC__StreamEncoderPrivate {
 	OggFLAC__StreamEncoderMetadataCallback metadata_callback;
 	void *client_data;
 	FLAC__StreamEncoder *FLAC_stream_encoder;
-	/* internal vars (all the above are class settings) */
-	FLAC__bool is_first_packet;
-	FLAC__uint64 samples_written;
-	struct {
-		ogg_stream_state stream_state;
-		ogg_page page;
-	} ogg;
 } OggFLAC__StreamEncoderPrivate;
 
 
@@ -166,8 +157,8 @@ OggFLAC_API OggFLAC__StreamEncoderState OggFLAC__stream_encoder_init(OggFLAC__St
 	if(0 == encoder->private_->write_callback || 0 == encoder->private_->metadata_callback)
 		return encoder->protected_->state = OggFLAC__STREAM_ENCODER_INVALID_CALLBACK;
 
-	if(ogg_stream_init(&encoder->private_->ogg.stream_state, encoder->protected_->serial_number) != 0)
-		return encoder->protected_->state = OggFLAC__STREAM_ENCODER_OGG_ERROR;
+	if(!OggFLAC__ogg_encoder_aspect_init(&encoder->protected_->ogg_encoder_aspect))
+			return encoder->protected_->state = OggFLAC__STREAM_ENCODER_OGG_ERROR;
 
 	FLAC__stream_encoder_set_write_callback(encoder->private_->FLAC_stream_encoder, write_callback_);
 	FLAC__stream_encoder_set_metadata_callback(encoder->private_->FLAC_stream_encoder, metadata_callback_);
@@ -175,9 +166,6 @@ OggFLAC_API OggFLAC__StreamEncoderState OggFLAC__stream_encoder_init(OggFLAC__St
 
 	if(FLAC__stream_encoder_init(encoder->private_->FLAC_stream_encoder) != FLAC__STREAM_ENCODER_OK)
 		return encoder->protected_->state = OggFLAC__STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR;
-
-	encoder->private_->is_first_packet = true;
-	encoder->private_->samples_written = 0;
 
 	return encoder->protected_->state = OggFLAC__STREAM_ENCODER_OK;
 }
@@ -195,7 +183,7 @@ OggFLAC_API void OggFLAC__stream_encoder_finish(OggFLAC__StreamEncoder *encoder)
 
 	FLAC__stream_encoder_finish(encoder->private_->FLAC_stream_encoder);
 
-	(void)ogg_stream_clear(&encoder->private_->ogg.stream_state);
+	OggFLAC__ogg_encoder_aspect_finish(&encoder->protected_->ogg_encoder_aspect);
 
 	set_defaults_(encoder);
 
@@ -210,7 +198,7 @@ OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_serial_number(OggFLAC__Stream
 	FLAC__ASSERT(0 != encoder->private_->FLAC_stream_encoder);
 	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
-	encoder->protected_->serial_number = value;
+	OggFLAC__ogg_encoder_aspect_set_serial_number(&encoder->protected_->ogg_encoder_aspect, value);
 	return true;
 }
 
@@ -685,50 +673,18 @@ void set_defaults_(OggFLAC__StreamEncoder *encoder)
 	encoder->private_->write_callback = 0;
 	encoder->private_->metadata_callback = 0;
 	encoder->private_->client_data = 0;
-	encoder->protected_->serial_number = 0;
+	OggFLAC__ogg_encoder_aspect_set_defaults(&encoder->protected_->ogg_encoder_aspect);
 }
 
 FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *unused, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	OggFLAC__StreamEncoder *encoder = (OggFLAC__StreamEncoder*)client_data;
-	ogg_packet packet;
 	const FLAC__uint64 total_samples_estimate = FLAC__stream_encoder_get_total_samples_estimate(encoder->private_->FLAC_stream_encoder);
 
 	(void)unused;
 	FLAC__ASSERT(encoder->private_->FLAC_stream_encoder == unused);
 
-	encoder->private_->samples_written += samples;
-
-	memset(&packet, 0, sizeof(packet));
-	packet.packet = (unsigned char *)buffer;
-	packet.granulepos = encoder->private_->samples_written;
-	/* WATCHOUT:
-	 * This depends on the behavior of FLAC__StreamEncoder that 'samples'
-	 * will be 0 for metadata writes.
-	 */
-	packet.packetno = (samples == 0? -1 : (int)current_frame);
-	packet.bytes = bytes;
-
-	if(encoder->private_->is_first_packet) {
-		packet.b_o_s = 1;
-		encoder->private_->is_first_packet = false;
-	}
-
-	if(total_samples_estimate > 0 && total_samples_estimate == encoder->private_->samples_written)
-		packet.e_o_s = 1;
-
-	if(ogg_stream_packetin(&encoder->private_->ogg.stream_state, &packet) != 0)
-		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-
-	while(ogg_stream_pageout(&encoder->private_->ogg.stream_state, &encoder->private_->ogg.page) != 0) {
-		if(encoder->private_->write_callback(encoder, encoder->private_->ogg.page.header, encoder->private_->ogg.page.header_len, 0, current_frame, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
-			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-
-		if(encoder->private_->write_callback(encoder, encoder->private_->ogg.page.body, encoder->private_->ogg.page.body_len, 0, current_frame, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
-			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-	}
-
-	return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+	return OggFLAC__ogg_encoder_aspect_write_callback_wrapper(&encoder->protected_->ogg_encoder_aspect, total_samples_estimate, buffer, bytes, samples, current_frame, (OggFLAC__OggEncoderAspectWriteCallbackProxy)encoder->private_->write_callback, encoder, encoder->private_->client_data);
 }
 
 void metadata_callback_(const FLAC__StreamEncoder *unused, const FLAC__StreamMetadata *metadata, void *client_data)
