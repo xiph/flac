@@ -70,7 +70,7 @@ typedef struct OggFLAC__FileEncoderPrivate {
 	char *filename;
 	FLAC__uint64 bytes_written;
 	FLAC__uint64 samples_written;
-	FLAC__uint64 frames_written;
+	unsigned frames_written;
 	unsigned total_frames_estimate;
 	OggFLAC__SeekableStreamEncoder *seekable_stream_encoder;
 	FILE *file;
