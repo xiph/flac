@@ -1535,12 +1535,14 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 	}
 
-	if(option_values.format_input_size >= 0 && (fmt != RAW || infilesize >= 0)) {
-		flac__utils_printf(stderr, 1, "ERROR: can only use --input-size when encoding raw samples from stdin\n");
-		return 1;
-	}
-	else {
-		infilesize = option_values.format_input_size;
+	if(option_values.format_input_size >= 0) {
+	   	if (fmt != RAW || infilesize >= 0) {
+			flac__utils_printf(stderr, 1, "ERROR: can only use --input-size when encoding raw samples from stdin\n");
+			return 1;
+		}
+		else {
+			infilesize = option_values.format_input_size;
+		}
 	}
 
 	if(option_values.sector_align && fmt == RAW && infilesize < 0) {
