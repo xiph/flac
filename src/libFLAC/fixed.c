@@ -80,7 +80,7 @@ unsigned FLAC__fixed_compute_best_predictor_slow(const int32 data[], unsigned da
 	int32 last_error_1 = data[-1] - data[-2];
 	int32 last_error_2 = last_error_1 - (data[-2] - data[-3]);
 	int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
-	int32 error_0, save;
+	int32 error, save;
 	/* total_error_* are 64-bits to avoid overflow when encoding
 	 * erratic signals when the bits-per-sample and blocksize are
 	 * large.
