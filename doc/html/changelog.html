@@ -92,6 +92,7 @@
 		<LI>
 			General:
 			<UL>
+				<LI>Sped up encoding when not using LPC (i.e. when using <TT>flac</TT> options <TT>-0</TT>, <TT>-1</TT>, <TT>-2</TT>, or <TT>-l 0</TT>).</LI>
 			</UL>
 		</LI>
 		<LI>
@@ -129,7 +130,8 @@
 		<LI>
 			libraries:
 			<UL>
-				<LI>libFLAC, libOggFLAC: Can now be compiled to use only integer instructions, including encoding.  The decoder is almost completely integer anyway but there were a couple places that needed a fixed-point replacement.  There is no fixed-point version of LPC analysis yet, so if libFLAC is compiled integer-only, it will behave as if the max LPC order is 0 (i.e. used fixed predictors only).</LI>
+				<LI>libFLAC: Sped up encoding when not using LPC (i.e. <TT>max_lpc_order == 0</TT>).</LI>
+				<LI>libFLAC, libOggFLAC: Can now be compiled to use only integer instructions, including encoding.  The decoder is almost completely integer anyway but there were a couple places that needed a fixed-point replacement.  There is no fixed-point version of LPC analysis yet, so if libFLAC is compiled integer-only, the encoder will behave as if the max LPC order is 0 (i.e. used fixed predictors only).  LPC decoding is supported in all cases as it always was integer-only.</LI>
 			</UL>
 		</LI>
 		<LI>
