@@ -75,7 +75,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], unsigned data_le
 void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], FLAC__real error[])
 {
 	unsigned i, j;
-	FLAC__real r, err, ref[FLAC__MAX_LPC_ORDER], lpc[FLAC__MAX_LPC_ORDER];
+	double r, err, ref[FLAC__MAX_LPC_ORDER], lpc[FLAC__MAX_LPC_ORDER];
 
 	FLAC__ASSERT(0 < max_order);
 	FLAC__ASSERT(max_order <= FLAC__MAX_LPC_ORDER);
@@ -93,7 +93,7 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned max_or
 		/* Update LPC coefficients and total error. */
 		lpc[i]=r;
 		for(j = 0; j < (i>>1); j++) {
-			FLAC__real tmp = lpc[j];
+			double tmp = lpc[j];
 			lpc[j] += r * lpc[i-1-j];
 			lpc[i-1-j] += r * tmp;
 		}
@@ -104,15 +104,15 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned max_or
 
 		/* save this order */
 		for(j = 0; j <= i; j++)
-			lp_coeff[i][j] = -lpc[j]; /* negate FIR filter coeff to get predictor coeff */
-		error[i] = err;
+			lp_coeff[i][j] = (FLAC__real)(-lpc[j]); /* negate FIR filter coeff to get predictor coeff */
+		error[i] = (FLAC__real)err;
 	}
 }
 
 int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, FLAC__int32 qlp_coeff[], int *shift)
 {
 	unsigned i;
-	FLAC__real d, cmax = -1e32;
+	double d, cmax = -1e32;
 	FLAC__int32 qmax, qmin;
 	const int max_shiftlimit = (1 << (FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN-1)) - 1;
 	const int min_shiftlimit = -max_shiftlimit - 1;
@@ -163,7 +163,7 @@ redo_it:
 				/* check for corner cases mentioned in the comment for log2cmax above */
 				if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
 #ifdef FLAC__OVERFLOW_DETECT
-					fprintf(stderr, "FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (double)lp_coeff[i] * (double)(1 << *shift), floor((double)lp_coeff[i] * (double)(1 << *shift)));
+					fprintf(stderr,"FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (double)lp_coeff[i] * (double)(1 << *shift), floor((double)lp_coeff[i] * (double)(1 << *shift)));
 #endif
 					cmax *= 2.0;
 					goto redo_it;
@@ -172,16 +172,14 @@ redo_it:
 		}
 		else { /* (*shift < 0) */
 			const int nshift = -(*shift);
-#ifdef FLAC__OVERFLOW_DETECT
-			fprintf(stderr, "FLAC__lpc_quantize_coefficients: negative shift = %d\n", *shift);
-#endif
+			fprintf(stderr,"FLAC__lpc_quantize_coefficients: negative shift = %d\n", *shift);
 			for(i = 0; i < order; i++) {
 				qlp_coeff[i] = (FLAC__int32)floor((double)lp_coeff[i] / (double)(1 << nshift));
 
 				/* check for corner cases mentioned in the comment for log2cmax above */
 				if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
 #ifdef FLAC__OVERFLOW_DETECT
-					fprintf(stderr, "FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (double)lp_coeff[i] / (double)(1 << nshift), floor((double)lp_coeff[i] / (double)(1 << nshift)));
+					fprintf(stderr,"FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (double)lp_coeff[i] / (double)(1 << nshift), floor((double)lp_coeff[i] / (double)(1 << nshift)));
 #endif
 					cmax *= 2.0;
 					goto redo_it;
@@ -220,7 +218,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 data[], 
 #ifdef FLAC__OVERFLOW_DETECT
 			sumo += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*history);
 			if(sumo > 2147483647ll || sumo < -2147483648ll) {
-				fprintf(stderr, "FLAC__lpc_compute_residual_from_qlp_coefficients: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
+				fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
 			}
 #endif
 		}
@@ -265,7 +263,7 @@ void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, c
 #ifdef FLAC__OVERFLOW_DETECT
 			sumo += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*history);
 			if(sumo > 2147483647ll || sumo < -2147483648ll) {
-				fprintf(stderr, "FLAC__lpc_restore_signal: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
+				fprintf(stderr,"FLAC__lpc_restore_signal: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
 			}
 #endif
 		}
@@ -284,38 +282,38 @@ void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, c
 
 FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample(FLAC__real lpc_error, unsigned total_samples)
 {
-	FLAC__real error_scale;
+	double error_scale;
 
 	FLAC__ASSERT(total_samples > 0);
 
 	error_scale = 0.5 * M_LN2 * M_LN2 / (FLAC__real)total_samples;
 
 	if(lpc_error > 0.0) {
-		FLAC__real bps = 0.5 * log(error_scale * lpc_error) / M_LN2;
+		FLAC__real bps = (FLAC__real)((double)0.5 * log(error_scale * lpc_error) / M_LN2);
 		if(bps >= 0.0)
 			return bps;
 		else
 			return 0.0;
 	}
 	else if(lpc_error < 0.0) { /* error should not be negative but can happen due to inadequate float resolution */
-		return 1e32;
+		return (FLAC__real)1e32;
 	}
 	else {
 		return 0.0;
 	}
 }
 
-FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(FLAC__real lpc_error, FLAC__real error_scale)
+FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(FLAC__real lpc_error, double error_scale)
 {
 	if(lpc_error > 0.0) {
-		FLAC__real bps = 0.5 * log(error_scale * lpc_error) / M_LN2;
+		FLAC__real bps = (FLAC__real)((double)0.5 * log(error_scale * lpc_error) / M_LN2);
 		if(bps >= 0.0)
 			return bps;
 		else
 			return 0.0;
 	}
 	else if(lpc_error < 0.0) { /* error should not be negative but can happen due to inadequate float resolution */
-		return 1e32;
+		return (FLAC__real)1e32;
 	}
 	else {
 		return 0.0;
@@ -325,7 +323,8 @@ FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(
 unsigned FLAC__lpc_compute_best_order(const FLAC__real lpc_error[], unsigned max_order, unsigned total_samples, unsigned bits_per_signal_sample)
 {
 	unsigned order, best_order;
-	FLAC__real best_bits, tmp_bits, error_scale;
+	FLAC__real best_bits, tmp_bits;
+	double error_scale;
 
 	FLAC__ASSERT(max_order > 0);
 	FLAC__ASSERT(total_samples > 0);
