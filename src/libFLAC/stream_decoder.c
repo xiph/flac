@@ -941,6 +941,7 @@ FLAC__bool stream_decoder_read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *
 	decoder->protected->sample_rate = decoder->private->frame.header.sample_rate;
 	decoder->protected->blocksize = decoder->private->frame.header.blocksize;
 
+	FLAC__ASSERT(decoder->private->frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 	decoder->private->samples_decoded = decoder->private->frame.header.number.sample_number + decoder->private->frame.header.blocksize;
 
 	/* write it */
@@ -1154,6 +1155,7 @@ FLAC__bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 			decoder->protected->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 			return true;
 		}
+		decoder->private->frame.header.number_type = FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER;
 		decoder->private->frame.header.number.sample_number = xx;
 	}
 	else {
@@ -1168,6 +1170,7 @@ FLAC__bool stream_decoder_read_frame_header_(FLAC__StreamDecoder *decoder)
 		}
 		decoder->private->last_frame_number = x;
 		if(decoder->private->has_stream_info) {
+			decoder->private->frame.header.number_type = FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER;
 			decoder->private->frame.header.number.sample_number = (FLAC__int64)decoder->private->stream_info.data.stream_info.min_blocksize * (FLAC__int64)x;
 		}
 		else {

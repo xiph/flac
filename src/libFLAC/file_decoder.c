@@ -441,6 +441,8 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decode
 		FLAC__uint64 next_frame_sample = this_frame_sample + (FLAC__uint64)frame->header.blocksize;
 		FLAC__uint64 target_sample = file_decoder->private->target_sample;
 
+		FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
+
 		file_decoder->private->last_frame = *frame; /* save the frame in the private */
 		if(this_frame_sample <= target_sample && target_sample < next_frame_sample) { /* we hit our target frame */
 			unsigned delta = (unsigned)(target_sample - this_frame_sample);
@@ -639,6 +641,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, F
 		}
 		else { /* we need to narrow the search */
 			FLAC__uint64 this_frame_sample = decoder->private->last_frame.header.number.sample_number;
+			FLAC__ASSERT(decoder->private->last_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 			if(this_frame_sample == last_frame_sample) {
 				/* our last move backwards wasn't big enough */
 				pos -= (last_pos - pos);

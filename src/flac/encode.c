@@ -1112,6 +1112,7 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 				}
 			}
 			FLAC__ASSERT(l < r);
+			FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 			fprintf(stderr, "       Absolute sample=%u, frame=%u, channel=%u, sample=%u, expected %d, got %d\n", (unsigned)frame->header.number.sample_number + sample, (unsigned)frame->header.number.sample_number / FLAC__stream_decoder_get_blocksize(decoder), channel, sample, expect, got); /*@@@ WATCHOUT: 4GB limit */
 			return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}

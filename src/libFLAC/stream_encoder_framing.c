@@ -222,6 +222,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, 0, FLAC__FRAME_HEADER_ZERO_PAD_LEN))
 		return false;
 
+	FLAC__ASSERT(header->number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER);
 	if(!FLAC__bitbuffer_write_utf8_uint32(bb, header->number.frame_number))
 		return false;
 
