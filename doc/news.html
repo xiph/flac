@@ -65,10 +65,10 @@
 			<B>FLAC 0.8 released.</B>&nbsp;&nbsp;This release is a result of extensive testing and fixes several bugs encountered when pushing the encoder to the limit.  I'm pretty confident in the stability of the encoder/decoder now for all kinds of input.  There have also been several features added.  Here is a complete list of the changes since 0.7:
 			<UL>
 				<LI>Created a new utility called <B><TT>metaflac</TT></B>.  It is a metadata editor for .flac files.  Right now it just lists the contents of the metadata blocks but eventually it will allow update/insertion/deletion.</LI>
-				<LI>Added two new metadata blocks: PADDING which has an obvious function, and APPLICATION, which is meant to be open to third party applications.  See the <A HREF="format.html#def_APPLICATION">latest format docs</A> for more info.</LI>
+				<LI>Added two new metadata blocks: PADDING which has an obvious function, and APPLICATION, which is meant to be open to third party applications.  See the <A HREF="format.html#def_APPLICATION">latest format docs</A> for more info, or the new <A HREF="id.html">id registration page</A>.</LI>
 				<LI>Added a <B><TT>-P</TT></B> option to <B><TT>flac</TT></B> to reserve a PADDING block when encoding.</LI>
 				<LI>Added support for 24-bit files to <B><TT>flac</TT></B> (the FLAC format always supported it).</LI>
-				<LI>Started the Winamp3 plugin.@@@</LI>
+				<LI>Started the Winamp3 plugin.</LI>
 				<LI>Greatly expanded the test suite, adding more streams (24-bit streams, noise streams, non-audio streams, more patterns) and more option combinations to the encoder.  The test suite runs about 30 streams and over 5000 encodings now.</LI>
 				<LI>Fixed a bug in <B><TT>libFLAC</B></TT> that happened when using an exhaustive LPC coefficient quantization search with 8 bps input.</LI>
 				<LI>Fixed a bug in <B><TT>libFLAC</B></TT> where the error estimation in the fixed predictor could overflow.</LI>
