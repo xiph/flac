@@ -43,11 +43,11 @@ fi
 # multi-file tests
 #
 echo "Generating multiple input files from noise..."
-if flac -V -s -fr -fb -fs 44100 -fp 16 -fc 2 noise.raw ; then : ; else
+if flac --verify --silent --force-raw-input --endian=big --sample-rate=44100 --bps=16 --channels=2 noise.raw ; then : ; else
 	echo "ERROR generating FLAC file" 1>&2
 	exit 1
 fi
-if flac -d -s noise.flac ; then : ; else
+if flac --decode --silent noise.flac ; then : ; else
 	echo "ERROR generating WAVE file" 1>&2
 	exit 1
 fi
@@ -75,7 +75,7 @@ test_multifile ()
 	for n in 0 1 2 ; do
 		mv file$n.$suffix file${n}x.$suffix
 	done
-	if flac -d file0x.$suffix file1x.$suffix file2x.$suffix ; then : ; else
+	if flac --decode file0x.$suffix file1x.$suffix file2x.$suffix ; then : ; else
 		echo "ERROR" 1>&2
 		exit 1
 	fi
@@ -94,26 +94,26 @@ echo "Testing multiple files without verify..."
 test_multifile flac ""
 
 echo "Testing multiple files with verify..."
-test_multifile flac "-V"
+test_multifile flac "--verify"
 
 #@@@@echo "Testing multiple files with --sector-align, without verify..."
 #@@@@test_multifile flac "--sector-align"
 
 #@@@@echo "Testing multiple files with --sector-align, with verify..."
-#@@@@test_multifile flac "--sector-align -V"
+#@@@@test_multifile flac "--sector-align --verify"
 
 if [ $has_ogg = "yes" ] ; then
 	echo "Testing multiple files with --ogg, without verify..."
 	test_multifile ogg ""
 
 	echo "Testing multiple files with --ogg, with verify..."
-	test_multifile ogg "-V"
+	test_multifile ogg "--verify"
 
 	#@@@@echo "Testing multiple files with --ogg and --sector-align, without verify..."
 	#@@@@test_multifile ogg "--sector-align"
 
 	#@@@@echo "Testing multiple files with --ogg and --sector-align, with verify..."
-	#@@@@test_multifile ogg "--sector-align -V"
+	#@@@@test_multifile ogg "--sector-align --verify"
 fi
 
 #
@@ -128,7 +128,7 @@ test_file ()
 	encode_options="$4"
 
 	echo -n "$name: encode..."
-	cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options $name.raw"
+	cmd="flac --verify --silent --force-raw-input --endian=big --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.raw"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else
@@ -136,7 +136,7 @@ test_file ()
 		exit 1
 	fi
 	echo -n "decode..."
-	cmd="flac -s -fb -d -fr -o $name.cmp $name.flac"
+	cmd="flac --silent --endian=big --decode --force-raw-input --output-name=$name.cmp $name.flac"
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else
@@ -169,7 +169,7 @@ test_file_piped ()
 
 	echo -n "$name: encode via pipes..."
 	if [ $is_win = yes ] ; then
-		cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options -c $name.raw"
+		cmd="flac --verify --silent --force-raw-input --endian=big --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --stdout $name.raw"
 		echo "### ENCODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if $cmd 1>$name.flac 2>>./streams.log ; then : ; else
@@ -177,7 +177,7 @@ test_file_piped ()
 			exit 1
 		fi
 	else
-		cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options -c -"
+		cmd="flac --verify --silent --force-raw-input --endian=big --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --stdout -"
 		echo "### ENCODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if cat $name.raw | $cmd 1>$name.flac 2>>./streams.log ; then : ; else
@@ -187,7 +187,7 @@ test_file_piped ()
 	fi
 	echo -n "decode via pipes..."
 	if [ $is_win = yes ] ; then
-		cmd="flac -s -fb -d -fr -c $name.flac"
+		cmd="flac --silent --endian=big --decode --force-raw-input --stdout $name.flac"
 		echo "### DECODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if $cmd 1>$name.cmp 2>>./streams.log ; then : ; else
@@ -195,7 +195,7 @@ test_file_piped ()
 			exit 1
 		fi
 	else
-		cmd="flac -s -fb -d -fr -c -"
+		cmd="flac --silent --endian=big --decode --force-raw-input --stdout -"
 		echo "### DECODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if cat $name.flac | $cmd 1>$name.cmp 2>>./streams.log ; then : ; else
@@ -218,64 +218,64 @@ echo "Testing noise through pipes..."
 test_file_piped noise 1 8 "-0"
 
 echo "Testing small files..."
-test_file test01 1 16 "-0 -l 16 -m -e -p"
-test_file test02 2 16 "-0 -l 16 -m -e -p"
-test_file test03 1 16 "-0 -l 16 -m -e -p"
-test_file test04 2 16 "-0 -l 16 -m -e -p"
+test_file test01 1 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
+test_file test02 2 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
+test_file test03 1 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
+test_file test04 2 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
 
 echo "Testing 8-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd8-$b 1 8 "-0 -l 16 -m -e -p"
+	test_file fsd8-$b 1 8 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
 done
 
 echo "Testing 16-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd16-$b 1 16 "-0 -l 16 -m -e -p"
+	test_file fsd16-$b 1 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
 done
 
 echo "Testing 24-bit full-scale deflection streams..."
 for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd24-$b 1 24 "-0 -l 16 -m -e -p"
+	test_file fsd24-$b 1 24 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
 done
 
 echo "Testing 16-bit wasted-bits-per-sample streams..."
 for b in 01 ; do
-	test_file wbps16-$b 1 16 "-0 -l 16 -m -e -p"
+	test_file wbps16-$b 1 16 "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search --qlp-coeff-precision-search"
 done
 
 for bps in 16 24 ; do
 	echo "Testing $bps-bit sine wave streams..."
 	for b in 00 01 02 03 04 ; do
-		test_file sine${bps}-$b 1 $bps "-0 -l 16 -m -e"
+		test_file sine${bps}-$b 1 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search"
 	done
 	for b in 10 11 12 13 14 15 16 17 18 19 ; do
-		test_file sine${bps}-$b 2 $bps "-0 -l 16 -m -e"
+		test_file sine${bps}-$b 2 $bps "-0 --max-lpc-order=16 --mid-side --exhaustive-model-search"
 	done
 done
 
 echo "Testing some frame header variations..."
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -b 16"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -b 65535"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p -b 16"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p -b 65535"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -fs 9"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -fs 90"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p --lax -fs 90000"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p -fs 9"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p -fs 90"
-test_file sine16-01 1 16 "-0 -l 8 -m -e -p -fs 90000"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --blocksize=16"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --blocksize=65535"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --blocksize=16"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --blocksize=65535"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --sample-rate=9"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --sample-rate=90"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --lax --sample-rate=90000"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --sample-rate=9"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --sample-rate=90"
+test_file sine16-01 1 16 "-0 --max-lpc-order=8 --mid-side --exhaustive-model-search --qlp-coeff-precision-search --sample-rate=90000"
 
 echo "Testing option variations..."
 for f in 00 01 02 03 04 ; do
 	for opt in 0 1 2 4 5 6 8 ; do
-		for extras in '' '-p' '-e' ; do
+		for extras in '' '--qlp-coeff-precision-search' '--exhaustive-model-search' ; do
 			test_file sine16-$f 1 16 "-$opt $extras"
 		done
 	done
 done
 for f in 10 11 12 13 14 15 16 17 18 19 ; do
 	for opt in 0 1 2 4 5 6 8 ; do
-		for extras in '' '-p' '-e' ; do
+		for extras in '' '--qlp-coeff-precision-search' '--exhaustive-model-search' ; do
 			test_file sine16-$f 2 16 "-$opt $extras"
 		done
 	done
@@ -283,8 +283,8 @@ done
 
 echo "Testing noise..."
 for opt in 0 1 2 3 4 5 6 7 8 ; do
-	for extras in '' '-p' '-e' ; do
-		for blocksize in '' '-b 32' '-b 32768' '-b 65535' ; do
+	for extras in '' '--qlp-coeff-precision-search' '--exhaustive-model-search' ; do
+		for blocksize in '' '--blocksize=32' '--blocksize=32768' '--blocksize=65535' ; do
 			for channels in 1 2 4 8 ; do
 				for bps in 8 16 24 ; do
 					test_file noise $channels $bps "-$opt $extras $blocksize"

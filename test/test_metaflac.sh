@@ -30,7 +30,7 @@ metaflac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find metaflac exec
 if [ $? != 0 ] ; then exit 1 ; fi
 
 echo "Generating stream..."
-if flac -V -0 -o $flacfile -fr -fb -fc 1 -fp 8 -fs 44100 /bin/sh ; then
+if flac --verify -0 --output-name=$flacfile --force-raw-input --endian=big --channels=1 --bps=8 --sample-rate=44100 /bin/sh ; then
 	chmod +w $flacfile
 else
 	echo "ERROR during generation" 1>&2
@@ -48,7 +48,7 @@ check_exit ()
 
 check_flac ()
 {
-	if flac -s -t $flacfile ; then : ; else
+	if flac --silent --test $flacfile ; then : ; else
 		echo "ERROR in $flacfile" 1>&2
 		exit 1
 	fi
