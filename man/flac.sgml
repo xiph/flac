@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>May 16, 2002</date>">
+  <!ENTITY dhdate      "<date>June 04, 2002</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -191,6 +191,27 @@
 		    each file will contain the residual distribution
 		    of the subframe.  This will create a lot of
 		    files.</para>
+		</listitem>
+	      </varlistentry>
+
+	    </variablelist>
+	  </refsect2>
+
+	  <refsect2>
+	    <title>Decoding Options</title>
+
+	    <variablelist>
+	      <varlistentry>
+		<term><option>-F</option>
+		</term>
+		<listitem>
+		  <para>By default flac stops decoding with an error
+		    and removes the partially decoded file if it
+		    encounters a bitstream error.  With -F, errors are
+		    still printed but flac will continue decoding to
+		    completion.  Note that errors may cause the decoded
+		    audio to be missing some samples or have silent
+		    sections.</para>
 		</listitem>
 	      </varlistentry>
 
@@ -479,15 +500,6 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-R</option> <replaceable>#</replaceable></term>
-
-		<listitem>
-		  <para>Set the Rice parameter search distance.
-		    Default is 0.</para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
 		<term><option>-V</option></term>
 
 		<listitem>
@@ -498,7 +510,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-S-</option> <option>-P-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-E-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option> <option>--ogg-</option>
+		<term><option>-F-</option> <option>-S-</option> <option>-P-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-E-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option> <option>--ogg-</option>
 		</term>
 
 		<listitem>

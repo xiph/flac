@@ -38,7 +38,7 @@ static int long_usage(const char *message, ...);
 static int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file);
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
-FLAC__bool verify = false, verbose = true, lax = false, test_only = false, analyze = false, use_ogg = false;
+FLAC__bool verify = false, verbose = true, continue_through_decode_errors = false, lax = false, test_only = false, analyze = false, use_ogg = false;
 FLAC__bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_escape_coding = false, do_qlp_coeff_prec_search = false;
 FLAC__bool force_to_stdout = false, force_raw_format = false, delete_input = false, sector_align = false;
 const char *cmdline_forced_outfilename = 0, *output_prefix = 0;
@@ -84,6 +84,10 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-c"))
 			force_to_stdout = true;
+		else if(0 == strcmp(argv[i], "-F"))
+			continue_through_decode_errors = true;
+		else if(0 == strcmp(argv[i], "-F-"))
+			continue_through_decode_errors = false;
 		else if(0 == strcmp(argv[i], "-s"))
 			verbose = false;
 		else if(0 == strcmp(argv[i], "-s-"))
@@ -194,7 +198,7 @@ int main(int argc, char *argv[])
 				max_residual_partition_order = atoi(++p);
 			}
 		}
-		else if(0 == strcmp(argv[i], "-R")) {
+		else if(0 == strcmp(argv[i], "--old-unworking-do-not-use-R")) {
 			if(++i >= argc)
 				return long_usage("ERROR: must specify a value with -R\n");
 			rice_parameter_search_dist = atoi(argv[i]);
@@ -589,6 +593,8 @@ int long_usage(const char *message, ...)
 	fprintf(out, "analyze options:\n");
 	fprintf(out, "  --a-rtext : include residual signal in text output\n");
 	fprintf(out, "  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
+	fprintf(out, "decoding options:\n");
+	fprintf(out, "  -F : force decoder to continue decoding through stream errors\n");
 	fprintf(out, "encoding options:\n");
 #ifdef FLAC__HAS_OGG
 	fprintf(out, "  --ogg : output Ogg-FLAC stream instead of native FLAC\n");
@@ -637,7 +643,10 @@ int long_usage(const char *message, ...)
 	fprintf(out, "         0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	fprintf(out, "  -r [#,]# : [min,]max residual partition order (# is 0..16; min defaults to 0;\n");
 	fprintf(out, "         default is -r 0; above 4 doesn't usually help much)\n");
+#if 0
+@@@ removed because it doesnt work yet and is too dangerous for users
 	fprintf(out, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
+#endif
 	fprintf(out, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	fprintf(out, "         comparing to the original\n");
 	fprintf(out, "  -S-, -P-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-,%s --lax-,\n",
@@ -846,6 +855,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 #endif
 
 	common_options.verbose = verbose;
+	common_options.continue_through_decode_errors = continue_through_decode_errors;
 #ifdef FLAC__HAS_OGG
 	common_options.is_ogg = treat_as_ogg;
 #endif

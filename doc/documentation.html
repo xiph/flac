@@ -226,7 +226,7 @@
 			Encoding: flac [-s] [--skip #] [-V] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [<I><A HREF="#encoding_options">&lt;encoding options&gt;</A></I>] [inputfile [...]]
 		</LI>
 		<LI>
-			Decoding: flac -d [-s] [--skip #] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [inputfile [...]]
+			Decoding: flac -d [-s] [--skip #] [-F] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [inputfile [...]]
 		</LI>
 		<LI>
 			Testing: flac -t [-s] [inputfile [...]]
@@ -381,6 +381,25 @@
 			</TD>
 			<TD>
 				Generates a gnuplot file for every subframe; each file will contain the residual distribution of the subframe.  This will create a <B>lot</B> of files.
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="decoding_options"><FONT SIZE="+1"><B>Decoding Options</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>-F</TT>
+			</TD>
+			<TD>
+				By default <B><TT>flac</TT></B> stops decoding with an error and removes the partially decoded file if it encounters a bitstream error.  With <TT>-F</TT>, errors are still printed but <B><TT>flac</TT></B> will continue decoding to completion.  Note that errors may cause the decoded audio to be missing some samples or have silent sections.
 			</TD>
 		</TR>
 	</TABLE>
@@ -623,14 +642,6 @@
 		</TR>
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<TT>-R #</TT>
-			</TD>
-			<TD>
-				Set the Rice parameter search distance.  Defaults to 0.  The residual coder will search for the best Rice parameter +/- this number for each residual partition.  This option is expensive (run time for -R n will typically be (2n)*30% over that of -R 0) and doesn't give much of a gain.  As a matter of fact, none of the -0..-8 options currently use it since -R > 1 is not consistently better like it should be.
-			</TD>
-		</TR>
-		<TR>
-			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 				<TT>-V</TT>
 			</TD>
 			<TD>
@@ -641,7 +652,7 @@
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 			</TD>
 			<TD>
-				<TT>-S-</TT>, <TT>-P-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-E-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--delete-input-file-</TT>, <TT>--lax-</TT>, <TT>--sector-align-</TT> can all be used to turn off a particular option.
+				<TT>-F-</TT>, <TT>-S-</TT>, <TT>-P-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-E-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--delete-input-file-</TT>, <TT>--lax-</TT>, <TT>--sector-align-</TT> can all be used to turn off a particular option.
 			</TD>
 		</TR>
 	</TABLE>
