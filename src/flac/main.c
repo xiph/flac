@@ -936,9 +936,6 @@ void show_help()
 	printf("      --sector-align           Align multiple files on sector boundaries\n");
 	printf("  -S, --seekpoint={#|X|#x}     Add seek point(s)\n");
 	printf("  -P, --padding=#              Write a PADDING block of length #\n");
-	printf("  -b, --blocksize=#            Specify blocksize in samples\n");
-	printf("  -m, --mid-side               Try mid-side coding for each frame\n");
-	printf("  -M, --adaptive-mid-side      Adaptive mid-side coding for all frames\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
 	printf("  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 2,2\n");
 	printf("  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3\n");
@@ -948,6 +945,9 @@ void show_help()
 	printf("  -6, --compression-level-6          Synonymous with -l 8 -b 4608 -m -r 4\n");
 	printf("  -7, --compression-level-7          Synonymous with -l 8 -b 4608 -m -e -r 6\n");
 	printf("  -8, --compression-level-8, --best  Synonymous with -l 12 -b 4608 -m -e -r 6\n");
+	printf("  -b, --blocksize=#                  Specify blocksize in samples\n");
+	printf("  -m, --mid-side                     Try mid-side coding for each frame\n");
+	printf("  -M, --adaptive-mid-side            Adaptive mid-side coding for all frames\n");
 	printf("  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)\n");
 #if 0
 	/*@@@ deprecated: */
@@ -1039,18 +1039,37 @@ void show_explain()
 	printf("      --skip=#                 Skip the first # samples of each input file; can\n");
 	printf("                               be used both for encoding and decoding\n");
 	printf("analysis options:\n");
-	printf("      --residual-text          Include residual signal in text output.  This will make the file very big, much larger than even the decoded file.\n");
+	printf("      --residual-text          Include residual signal in text output.  This\n");
+	printf("                               will make the file very big, much larger than\n");
+	printf("                               even the decoded file.\n");
 	printf("      --residual-gnuplot       Generate gnuplot files of residual distribution\n");
 	printf("                               of each subframe\n");
 	printf("decoding options:\n");
-	printf("  -F, --decode-through-errors  By default flac stops decoding with an error and removes the partially decoded file if it encounters a bitstream error.  With -F, errors are still printed but flac will continue decoding to completion.  Note that errors may cause the decoded audio to be missing some samples or have silent sections.\n");
+	printf("  -F, --decode-through-errors  By default flac stops decoding with an error\n");
+	printf("                               and removes the partially decoded file if it\n");
+	printf("                               encounters a bitstream error.  With -F, errors\n");
+	printf("                               are still printed but flac will continue\n");
+	printf("                               decoding to completion.  Note that errors may\n");
+	printf("                               cause the decoded audio to be missing some\n");
+	printf("                               samples or have silent sections.\n");
 	printf("encoding options:\n");
-	printf("  -V, --verify                 Verify a correct encoding by decoding the output in parallel and comparing to the original\n");
+	printf("  -V, --verify                 Verify a correct encoding by decoding the\n");
+	printf("                               output in parallel and comparing to the\n");
+	printf("                               original\n");
 #ifdef FLAC__HAS_OGG
-	printf("      --ogg                    When encoding, generate Ogg-FLAC output instead of native-FLAC.  Ogg-FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by flac.  When decoding, force the input to be treated as Ogg-FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.\n");
+	printf("      --ogg                    When encoding, generate Ogg-FLAC output instead\n");
+	printf("                               of native-FLAC.  Ogg-FLAC streams are FLAC\n");
+	printf("                               streams wrapped in an Ogg transport layer.  The\n");
+	printf("                               resulting file should have an '.ogg' extension\n");
+	printf("                               and will still be decodable by flac.  When\n");
+	printf("                               decoding, force the input to be treated as\n");
+	printf("                               Ogg-FLAC.  This is useful when piping input\n");
+	printf("                               from stdin or when the filename does not end in\n");
+	printf("                               '.ogg'.\n");
 #endif
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
-	printf("      --sector-align           Align encoding of multiple CD format WAVE files on sector boundaries.\n");
+	printf("      --sector-align           Align encoding of multiple CD format WAVE files\n");
+	printf("                               on sector boundaries.\n");
 	printf("  -S, --seekpoint={#|X|#x}     Include a point or points in a SEEKTABLE\n");
 	printf("       #  : a specific sample number for a seek point\n");
 	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
@@ -1064,15 +1083,23 @@ void show_explain()
 	printf("           either no seek point entered (if the input size is determinable\n");
 	printf("           before encoding starts) or a placeholder point (if input size is not\n");
 	printf("           determinable)\n");
-	printf("  -P, --padding=#              Tell the encoder to write a PADDING metadata block of the given length (in bytes) after the STREAMINFO block.  This is useful if you plan to tag the file later with an APPLICATION block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the PADDING block.  Note that the total length of the PADDING block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no PADDING block at all to be written with -P-, which is the default.\n");
+	printf("  -P, --padding=#              Tell the encoder to write a PADDING metadata\n");
+	printf("                               block of the given length (in bytes) after the\n");
+	printf("                               STREAMINFO block.  This is useful if you plan\n");
+	printf("                               to tag the file later with an APPLICATION\n");
+	printf("                               block; instead of having to rewrite the entire\n");
+	printf("                               file later just to insert your block, you can\n");
+	printf("                               write directly over the PADDING block.  Note\n");
+	printf("                               that the total length of the PADDING block will\n");
+	printf("                               be 4 bytes longer than the length given because\n");
+	printf("                               of the 4 metadata block header bytes.  You can\n");
+	printf("                               force no PADDING block at all to be written with\n");
+	printf("                               --no-padding, which is the default.\n");
 	printf("  -b, --blocksize=#            Specify the blocksize in samples; the default is\n");
 	printf("                               1152 for -l 0, else 4608; must be one of 192,\n");
 	printf("                               576, 1152, 2304, 4608, 256, 512, 1024, 2048,\n");
 	printf("                               4096, 8192, 16384, or 32768 (unless --lax is\n");
 	printf("                               used)\n");
-	printf("  -m, --mid-side               Try mid-side coding for each frame (stereo only)\n");
-	printf("  -M, --adaptive-mid-side      Adaptive mid-side coding for all frames (stereo\n");
-	printf("                               only)\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
 	printf("  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 2,2\n");
 	printf("  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3\n");
@@ -1083,10 +1110,19 @@ void show_explain()
 	printf("  -6, --compression-level-6          Synonymous with -l 8 -b 4608 -m -r 4\n");
 	printf("  -7, --compression-level-7          Synonymous with -l 8 -b 4608 -m -e -r 6\n");
 	printf("  -8, --compression-level-8, --best  Synonymous with -l 12 -b 4608 -m -e -r 6\n");
+	printf("  -m, --mid-side                     Try mid-side coding for each frame\n");
+	printf("                                     (stereo only)\n");
+	printf("  -M, --adaptive-mid-side            Adaptive mid-side coding for all frames\n");
+	printf("                                     (stereo only)\n");
 	printf("  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)\n");
 #if 0
 	/*@@@ deprecated: */
-	printf("  -E, --escape-coding                Do escape coding in the entropy coder.  This causes the encoder to use an unencoded representation of the residual in a partition if it is smaller.  It increases the runtime and usually results in an improvement of less than 1%.\n");
+	printf("  -E, --escape-coding                Do escape coding in the entropy coder.\n");
+	printf("                                     This causes the encoder to use an\n");
+	printf("                                     unencoded representation of the residual\n");
+	printf("                                     in a partition if it is smaller.  It\n");
+	printf("                                     increases the runtime and usually results\n");
+	printf("                                     in an improvement of less than 1%.\n");
 #endif
 	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors\n");
 	printf("  -p, --qlp-coeff-precision-search   Do exhaustive search of LP coefficient\n");
