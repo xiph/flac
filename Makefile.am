@@ -38,4 +38,11 @@ SUBDIRS = doc include man src test
 
 DISTCLEANFILES = libtool-disable-static
 
+EXTRA_DIST = \
+	COPYING.FDL \
+	COPYING.GPL \
+	COPYING.LGPL \
+	autogen.sh \
+	strip_fPIC.sh
+
 AUTOMAKE_OPTIONS = foreign
