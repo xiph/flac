@@ -314,7 +314,6 @@
 		</listitem>
 	      </varlistentry>
 
-	    <variablelist>
 	      <varlistentry>
 		<term><option>-F</option>, <option>--decode-through-errors</option>
 		</term>
