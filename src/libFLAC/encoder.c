@@ -44,6 +44,9 @@
 #define M_LN2 0.69314718055994530942
 #endif
 
+double smult;
+unsigned rpdec;
+
 typedef struct FLAC__EncoderPrivate {
 	unsigned input_capacity;                    /* current size (in samples) of the signal and residual buffers */
 	int32 *integer_signal[FLAC__MAX_CHANNELS];  /* the integer version of the input signal */
@@ -320,6 +323,11 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 			return encoder->state = FLAC__ENCODER_NOT_STREAMABLE;
 	}
 
+{unsigned r = encoder->rice_optimization_level;
+smult=(double)(r / 10);
+rpdec=r % 10;
+encoder->rice_optimization_level=0;
+}
 	if(encoder->rice_optimization_level >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN))
 		encoder->rice_optimization_level = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN) - 1;
 
@@ -1087,9 +1095,6 @@ static unsigned uilog21_(unsigned v)
 	return l;
 }
 
-const double smult = 3.0;
-const unsigned rpdec = 0;
-
 static uint32 get_thresh_(const int32 residual[], const unsigned residual_samples)
 {
 	double sum, sos, r, stddev, mean;
@@ -1106,7 +1111,7 @@ static uint32 get_thresh_(const int32 residual[], const unsigned residual_sample
 	stddev = sqrt((sos - (sum * sum / residual_samples)) / (residual_samples-1));
 	thresh = mean+smult*stddev;
 	thresh = (1u << uilog21_(thresh)) - 1;
-	return thresh;
+	return smult>0.0? thresh : 0;
 }
 
 #ifdef VARIABLE_RICE_BITS
@@ -1151,9 +1156,9 @@ bool encoder_set_partitioned_rice_(const int32 residual[], const uint32 abs_resi
 #ifdef SYMMETRIC_RICE
 				if(cross) {
 					unsigned escbits, normbits;
-					escbits = /* VARIABLE_RICE_BITS(0, rice_parameter) == 0 */ 5 + silog21_(residual[i]);
+					escbits = /* VARIABLE_RICE_BITS(-0, rice_parameter) == 0 */ 5 + silog21_(residual[i]);
 					normbits = VARIABLE_RICE_BITS(abs_residual[i], rice_parameter);
-					bits += min(escbits, normbits);
+					bits_ += min(escbits, normbits);
 				}
 				else {
 					/*@@@ old way */

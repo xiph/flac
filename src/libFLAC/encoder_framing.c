@@ -401,7 +401,7 @@ bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const int32 re
 				escbits = 5 + silog21_(residual[i]);
 				normbits = a >> rice_parameters[0];
 				if(escbits < normbits) {
-fprintf(stderr,"ESCAPE, k=%u, r=%d, saved %u bits\n", rice_parameters[0], residual[i], normbits-escbits);
+fprintf(stderr,"ESCAPE, k=%u, r=%d, escbits=%u, normbits=%u, saved %u bits\n", rice_parameters[0], residual[i], escbits, normbits, normbits-escbits);
 					if(!FLAC__bitbuffer_write_symmetric_rice_signed_escape(bb, residual[i], rice_parameters[0]))
 						return false;
 				}
