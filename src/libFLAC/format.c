@@ -40,9 +40,12 @@ const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN = 32; /* bits */
 const unsigned FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN = 64; /* bits */
 const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN = 64; /* bits */
 const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN = 16; /* bits */
-const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LEN = 18; /* bytes */
+const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LENGTH = 18; /* bytes */
 
 const FLAC__uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER = 0xffffffffffffffff;
+
+const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN = 32; /* bits */
+const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN = 32; /* bits */
 
 const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN = 1; /* bits */
 const unsigned FLAC__STREAM_METADATA_TYPE_LEN = 7; /* bits */
@@ -109,3 +112,19 @@ const char *FLAC__MetaDataTypeString[] = {
 	"SEEKTABLE",
 	"VORBIS_COMMENT"
 };
+
+FLAC__bool FLAC__format_is_valid_sample_rate(unsigned sample_rate)
+{
+	if(
+		sample_rate == 0 ||
+		sample_rate > FLAC__MAX_SAMPLE_RATE ||
+		(
+			sample_rate >= (1u << 16) && 
+			!(sample_rate % 1000 == 0 || sample_rate % 10 == 0)
+		)
+	) {
+		return false;
+	}
+	else
+		return true;
+}
