@@ -106,7 +106,7 @@ endif
 
 .PHONY : clean
 clean :
-	-rm -f *.o $(OBJPATH)/*/lib/$(STATIC_LIB_NAME) $(OBJPATH)/*/lib/$(DYNAMIC_LIB_NAME) $(ORDINALS_H)
+	-rm -f $(DEBUG_OBJS) $(RELEASE_OBJS) $(OBJPATH)/*/lib/$(STATIC_LIB_NAME) $(OBJPATH)/*/lib/$(DYNAMIC_LIB_NAME) $(ORDINALS_H)
 
 .PHONY : depend
 depend:

@@ -84,7 +84,7 @@ $(RELEASE_PROGRAM) : $(RELEASE_OBJS)
 
 .PHONY : clean
 clean :
-	-rm -f *.o $(OBJPATH)/*/bin/$(PROGRAM_NAME)
+	-rm -f $(DEBUG_OBJS) $(RELEASE_OBJS) $(OBJPATH)/*/bin/$(PROGRAM_NAME)
 
 .PHONY : depend
 depend:
