@@ -59,10 +59,10 @@ cglobal FLAC__lpc_restore_signal_asm_ia32_mmx
 ;
 	ALIGN 16
 cident FLAC__lpc_compute_autocorrelation_asm_ia32
-	;[esp + 24] == autoc[]
-	;[esp + 20] == lag
-	;[esp + 16] == data_len
-	;[esp + 12] == data[]
+	;[esp + 28] == autoc[]
+	;[esp + 24] == lag
+	;[esp + 20] == data_len
+	;[esp + 16] == data[]
 
 	;ASSERT(lag > 0)
 	;ASSERT(lag <= 33)
@@ -71,21 +71,22 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 .begin:
 	push	esi
 	push	edi
+	push	ebx
 
 	;	for(coeff = 0; coeff < lag; coeff++)
 	;		autoc[coeff] = 0.0;
-	mov	edi, [esp + 24]			; edi == autoc
-	mov	ecx, [esp + 20]			; ecx = # of dwords (=lag) of 0 to write
+	mov	edi, [esp + 28]			; edi == autoc
+	mov	ecx, [esp + 24]			; ecx = # of dwords (=lag) of 0 to write
 	xor	eax, eax
 	rep	stosd
 
 	;	const unsigned limit = data_len - lag;
-	mov	eax, [esp + 20]			; eax == lag
-	mov	ecx, [esp + 16]
+	mov	eax, [esp + 24]			; eax == lag
+	mov	ecx, [esp + 20]
 	sub	ecx, eax			; ecx == limit
 
-	mov	edi, [esp + 24]			; edi == autoc
-	mov	esi, [esp + 12]			; esi == data
+	mov	edi, [esp + 28]			; edi == autoc
+	mov	esi, [esp + 16]			; esi == data
 	inc	ecx				; we are looping <= limit so we add one to the counter
 
 	;	for(sample = 0; sample <= limit; sample++) {
@@ -97,7 +98,11 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 	; each iteration is 11 bytes so we need (-eax)*11, so we do (-12*eax + eax)
 	lea	edx, [eax + eax*2]
 	neg	edx
-	lea	edx, [eax + edx*4 + .jumper1_0]
+	lea	edx, [eax + edx*4 + .jumper1_0 - .get_eip1]
+	call	.get_eip1
+.get_eip1:
+	pop	ebx
+	add	edx, ebx
 	inc	edx				; compensate for the shorter opcode on the last iteration
 	inc	edx				; compensate for the shorter opcode on the last iteration
 	inc	edx				; compensate for the shorter opcode on the last iteration
@@ -254,7 +259,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 	;		for(coeff = 0; coeff < data_len - sample; coeff++)
 	;			autoc[coeff] += d * data[sample+coeff];
 	;	}
-	mov	ecx, [esp + 20]			; ecx <- lag
+	mov	ecx, [esp + 24]			; ecx <- lag
 	dec	ecx				; ecx <- lag - 1
 	jz	near .end			; skip loop if 0 (i.e. lag == 1)
 
@@ -263,7 +268,11 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 	; each iteration is 11 bytes so we need (-eax)*11, so we do (-12*eax + eax)
 	lea	edx, [eax + eax*2]
 	neg	edx
-	lea	edx, [eax + edx*4 + .jumper2_0]
+	lea	edx, [eax + edx*4 + .jumper2_0 - .get_eip2]
+	call	.get_eip2
+.get_eip2:
+	pop	ebx
+	add	edx, ebx
 	inc	edx				; compensate for the shorter opcode on the last iteration
 	inc	edx				; compensate for the shorter opcode on the last iteration
 	inc	edx				; compensate for the shorter opcode on the last iteration
@@ -409,6 +418,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 .loop2_end:
 
 .end:
+	pop	ebx
 	pop	edi
 	pop	esi
 	ret
@@ -804,7 +814,11 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32
 .i_32:
 	sub	edi, esi
 	neg	eax
-	lea	edx, [eax + eax * 8 + .jumper_0]
+	lea	edx, [eax + eax * 8 + .jumper_0 - .get_eip0]
+	call	.get_eip0
+.get_eip0:
+	pop	eax
+	add	edx, eax
 	inc	edx
 	mov	eax, [esp + 28]			; eax = qlp_coeff[]
 	xor	ebp, ebp
@@ -1203,7 +1217,11 @@ cident FLAC__lpc_restore_signal_asm_ia32
 .x87_32:
 	sub	esi, edi
 	neg	eax
-	lea	edx, [eax + eax * 8 + .jumper_0]
+	lea	edx, [eax + eax * 8 + .jumper_0 - .get_eip0]
+	call	.get_eip0
+.get_eip0:
+	pop	eax
+	add	edx, eax
 	inc	edx				; compensate for the shorter opcode on the last iteration
 	mov	eax, [esp + 28]			; eax = qlp_coeff[]
 	xor	ebp, ebp
