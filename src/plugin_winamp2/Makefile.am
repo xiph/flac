@@ -24,6 +24,8 @@ EXTRA_DIST = \
 	in_flac.dsp \
 	infobox.c \
 	infobox.h \
+	playback.c \
+	playback.h \
 	resource.h \
 	resource.rc \
 	tagz.cpp \
