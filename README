@@ -40,7 +40,7 @@ Documentation License (see COPYING.FDL).
 
 
 ===============================================================================
-FLAC - 1.1.1-beta1 - Contents
+FLAC - 1.1.1 - Contents
 ===============================================================================
 
 - Introduction
@@ -57,7 +57,7 @@ Introduction
 
 This is the source release for the FLAC project.  See
 
-	doc/index.html
+	doc/html/index.html
 
 for full documentation.
 

@@ -35,6 +35,6 @@ all default: $(DEFAULT_BUILD)
 # GNU makefile fragment for emulating stuff normally done by configure
 #
 
-VERSION=\"1.1.1-beta1\"
+VERSION=\"1.1.1\"
 
 CONFIG_CFLAGS=-DHAVE_INTTYPES_H
