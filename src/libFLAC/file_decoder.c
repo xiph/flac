@@ -395,7 +395,7 @@ void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErro
 bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 target_sample)
 {
 	long first_frame_offset, lower_bound, upper_bound, pos = -1, last_pos = -1;
-	int i, lower_seek_point = -1;
+	int i, lower_seek_point = -1, upper_seek_point = -1;
 	unsigned approx_bytes_per_frame;
 	uint64 last_frame_sample = 0xffffffffffffffff;
 	bool needs_seek;
