@@ -1504,6 +1504,15 @@ void write_metadata(const char *filename, FLAC__StreamMetaData *block, unsigned 
 			}
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+			PPR; printf("  vendor string: ");
+			fwrite(block->data.vorbis_comment.vendor_string.entry, 1, block->data.vorbis_comment.vendor_string.length, stdout);
+			printf("\n");
+			PPR; printf("  comments: %u\n", block->data.vorbis_comment.num_comments);
+			for(i = 0; i < block->data.vorbis_comment.num_comments; i++) {
+				PPR; printf("    comment[%u]: ", i);
+				fwrite(block->data.vorbis_comment.comments[i].entry, 1, block->data.vorbis_comment.comments[i].length, stdout);
+				printf("\n");
+			}
 			break;
 		default:
 			PPR; printf("SKIPPING block of unknown type\n");
