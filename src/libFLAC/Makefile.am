@@ -11,6 +11,7 @@ endif
 
 libFLAC_la_SOURCES = \
 	bitbuffer.c \
+	bitmath.c \
 	crc.c \
 	encoder.c \
 	encoder_framing.c \

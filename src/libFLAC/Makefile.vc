@@ -10,6 +10,7 @@
 
 C_FILES= \
 	bitbuffer.c \
+	bitmath.c \
 	crc.c \
 	encoder.c \
 	encoder_framing.c \

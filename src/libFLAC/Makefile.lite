@@ -8,6 +8,7 @@ DEBUG_CFLAGS = -DFLAC_OVERFLOW_DETECT
 
 OBJS = \
 	bitbuffer.o \
+	bitmath.o \
 	crc.o \
 	encoder.o \
 	encoder_framing.o \
