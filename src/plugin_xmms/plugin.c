@@ -123,6 +123,7 @@ static FLAC__FileDecoder *decoder_ = 0;
 static file_info_struct file_info_;
 static pthread_t decode_thread_;
 static FLAC__bool audio_error_ = false;
+static FLAC__bool is_big_endian_host_;
 
 #define BITRATE_HIST_SEGMENT_MSEC 500
 /* 500ms * 50 = 25s should be enough */
@@ -139,6 +140,9 @@ InputPlugin *get_iplugin_info()
 void FLAC_XMMS__init()
 {
 	ConfigFile *cfg;
+	FLAC__uint32 test = 1;
+ 
+	is_big_endian_host_ = (*((FLAC__byte*)(&test)))? false : true;
 
 	flac_cfg.title.tag_override = FALSE;
 	g_free(flac_cfg.title.tag_format);
@@ -225,7 +229,7 @@ void FLAC_XMMS__play_file(char *filename)
 			file_info_.sample_format_bytes_per_sample = 1;
 		}
 		else if(flac_cfg.output.resolution.replaygain.bps_out == 16) {
-			file_info_.sample_format = FMT_S16_LE;
+			file_info_.sample_format = (is_big_endian_host_) ? FMT_S16_BE : FMT_S16_LE;
 			file_info_.sample_format_bytes_per_sample = 2;
 		}
 		else {
@@ -241,7 +245,7 @@ void FLAC_XMMS__play_file(char *filename)
 			file_info_.sample_format_bytes_per_sample = 1;
 		}
 		else if(file_info_.bits_per_sample == 16 || (file_info_.bits_per_sample == 24 && flac_cfg.output.resolution.normal.dither_24_to_16)) {
-			file_info_.sample_format = FMT_S16_LE;
+			file_info_.sample_format = (is_big_endian_host_) ? FMT_S16_BE : FMT_S16_LE;
 			file_info_.sample_format_bytes_per_sample = 2;
 		}
 		else {
@@ -500,6 +504,7 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 	if(file_info_.has_replaygain && flac_cfg.output.replaygain.enable) {
 		FLAC__plugin_common__apply_gain(
 				sample_buffer_start,
+				!is_big_endian_host_,
 				buffer,
 				wide_samples,
 				channels,
@@ -509,6 +514,16 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 				flac_cfg.output.replaygain.hard_limit,
 				flac_cfg.output.resolution.replaygain.dither,
 				&file_info_.dither_context
+		);
+	}
+	else if(is_big_endian_host_) {
+		FLAC__plugin_common__pack_pcm_signed_big_endian(
+			sample_buffer_start,
+			buffer,
+			wide_samples,
+			channels,
+			bits_per_sample,
+			file_info->sample_format_bytes_per_sample * 8
 		);
 	}
 	else {

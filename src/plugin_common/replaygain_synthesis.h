@@ -44,6 +44,6 @@ typedef struct {
 void FLAC__plugin_common__init_dither_context(DitherContext *dither, int bits, int shapingtype);
 
 /* scale = (float) pow(10., (double)replaygain * 0.05); */
-int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context);
+int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__bool little_endian_data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context);
 
 #endif

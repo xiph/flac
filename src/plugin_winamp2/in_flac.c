@@ -356,6 +356,7 @@ static DWORD WINAPI DecodeThread(void *unused)
 				if(cfg.replaygain.enable && file_info_.has_replaygain) {
 					bytes = (int)FLAC__plugin_common__apply_gain(
 						sample_buffer_,
+						true, /* little_endian_data_out */
 						reservoir_,
 						n,
 						channels,

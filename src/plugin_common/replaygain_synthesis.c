@@ -288,7 +288,7 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_d
 #endif
 
 
-int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context)
+int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__bool little_endian_data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context)
 {
 	static const FLAC__int32 conv_factors_[33] = {
 		-1, /* 0 bits-per-sample (not supported) */
@@ -410,16 +410,35 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, const FLAC__int32 * co
 			else if(val64 < hard_clip_factor)
 				val32 = (FLAC__int32)hard_clip_factor;
 
-			switch(target_bps) {
-				case 8:
-					data_out[0] = val32 ^ 0x80;
-					break;
-				case 24:
-					data_out[2] = (FLAC__byte)(val32 >> 16);
-					/* fall through */
-				case 16:
-					data_out[1] = (FLAC__byte)(val32 >> 8);
-					data_out[0] = (FLAC__byte)val32;
+			if (little_endian_data_out) {
+				switch(target_bps) {
+					case 8:
+						data_out[0] = val32 ^ 0x80;
+						break;
+					case 24:
+						data_out[2] = (FLAC__byte)(val32 >> 16);
+						/* fall through */
+					case 16:
+						data_out[1] = (FLAC__byte)(val32 >> 8);
+						data_out[0] = (FLAC__byte)val32;
+						break;
+				}
+			}
+			else {
+				switch(target_bps) {
+					case 8:
+						data_out[0] = val32 ^ 0x80;
+						break;
+					case 16:
+						data_out[0] = (FLAC__byte)(val32 >> 8);
+						data_out[1] = (FLAC__byte)val32;
+						break;
+					case 24:
+						data_out[0] = (FLAC__byte)(val32 >> 16);
+						data_out[1] = (FLAC__byte)(val32 >> 8);
+						data_out[2] = (FLAC__byte)val32;
+						break;
+				}
 			}
 		}
 	}
