@@ -38,7 +38,7 @@ static int encode_file(const char *infilename, const char *forced_outfilename, F
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
 FLAC__bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
-FLAC__bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+FLAC__bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_escape_coding = false, do_qlp_coeff_prec_search = false;
 FLAC__bool force_to_stdout = false, delete_input = false, sector_align = false;
 const char *cmdline_forced_outfilename = 0, *output_prefix = 0;
 analysis_options aopts = { false, false };
@@ -116,6 +116,10 @@ int main(int argc, char *argv[])
 			do_exhaustive_model_search = true;
 		else if(0 == strcmp(argv[i], "-e-"))
 			do_exhaustive_model_search = false;
+		else if(0 == strcmp(argv[i], "-E"))
+			do_escape_coding = true;
+		else if(0 == strcmp(argv[i], "-E-"))
+			do_escape_coding = false;
 		else if(0 == strcmp(argv[i], "-l"))
 			max_lpc_order = atoi(argv[++i]);
 		else if(0 == strcmp(argv[i], "-m")) {
@@ -181,6 +185,7 @@ int main(int argc, char *argv[])
 			aopts.do_residual_text = false;
 		else if(0 == strcmp(argv[i], "-0")) {
 			do_exhaustive_model_search = false;
+			do_escape_coding = false;
 			do_mid_side = false;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
@@ -190,6 +195,7 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-1")) {
 			do_exhaustive_model_search = false;
+			do_escape_coding = false;
 			do_mid_side = true;
 			loose_mid_side = true;
 			qlp_coeff_precision = 0;
@@ -199,6 +205,7 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-2")) {
 			do_exhaustive_model_search = false;
+			do_escape_coding = false;
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
@@ -209,6 +216,7 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-3")) {
 			do_exhaustive_model_search = false;
+			do_escape_coding = false;
 			do_mid_side = false;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
@@ -218,6 +226,7 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-4")) {
 			do_exhaustive_model_search = false;
+			do_escape_coding = false;
 			do_mid_side = true;
 			loose_mid_side = true;
 			qlp_coeff_precision = 0;
@@ -227,6 +236,7 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-5")) {
 			do_exhaustive_model_search = false;
+			do_escape_coding = false;
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
@@ -236,6 +246,7 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-6")) {
 			do_exhaustive_model_search = false;
+			do_escape_coding = false;
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
@@ -246,6 +257,7 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-7")) {
 			do_exhaustive_model_search = true;
+			do_escape_coding = false;
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
@@ -256,6 +268,7 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-8")) {
 			do_exhaustive_model_search = true;
+			do_escape_coding = false;
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
@@ -266,6 +279,7 @@ int main(int argc, char *argv[])
 		}
 		else if(0 == strcmp(argv[i], "-9")) {
 			do_exhaustive_model_search = true;
+			do_escape_coding = true;
 			do_mid_side = true;
 			loose_mid_side = false;
 			do_qlp_coeff_prec_search = true;
@@ -357,10 +371,10 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
 		if(!mode_decode) {
-			fprintf(stderr, "options:%s%s%s -P %u -b %u%s -l %u%s%s -q %u -r %u,%u -R %u%s\n",
+			fprintf(stderr, "options:%s%s%s -P %u -b %u%s -l %u%s%s%s -q %u -r %u,%u -R %u%s\n",
 				delete_input?" --delete-input-file":"", sector_align?" --sector-align":"", lax?" --lax":"",
 				padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
-				do_exhaustive_model_search?" -e":"", do_qlp_coeff_prec_search?" -p":"",
+				do_exhaustive_model_search?" -e":"", do_escape_coding?" -E":"", do_qlp_coeff_prec_search?" -p":"",
 				qlp_coeff_precision,
 				(unsigned)min_residual_partition_order, (unsigned)max_residual_partition_order, (unsigned)rice_parameter_search_dist,
 				verify? " -V":""
@@ -511,8 +525,9 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
 	fprintf(stderr, "  -7   : synonymous with -l 8 -b 4608 -m -e -r 6\n");
 	fprintf(stderr, "  -8   : synonymous with -l 12 -b 4608 -m -e -r 6\n");
-	fprintf(stderr, "  -9   : synonymous with -l 32 -b 4608 -m -e -r 16 -p (very slow!)\n");
+	fprintf(stderr, "  -9   : synonymous with -l 32 -b 4608 -m -e -E -r 16 -p (very slow!)\n");
 	fprintf(stderr, "  -e   : do exhaustive model search (expensive!)\n");
+	fprintf(stderr, "  -E   : include escape coding in the entropy coder\n");
 	fprintf(stderr, "  -l # : specify max LPC order; 0 => use only fixed predictors\n");
 	fprintf(stderr, "  -p   : do exhaustive search of LP coefficient quantization (expensive!);\n");
 	fprintf(stderr, "         overrides -q, does nothing if using -l 0\n");
@@ -523,7 +538,7 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
 	fprintf(stderr, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	fprintf(stderr, "         comparing to the original\n");
-	fprintf(stderr, "  -S-, -m-, -M-, -e-, -p-, -V-, --delete-input-file-, --lax-, --sector-align-\n");
+	fprintf(stderr, "  -S-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-, --lax-, --sector-align-\n");
 	fprintf(stderr, "  can all be used to turn off a particular option\n");
 	fprintf(stderr, "format options:\n");
 	fprintf(stderr, "  -fb | -fl : big-endian | little-endian byte order\n");
@@ -613,9 +628,9 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 		forced_outfilename = cmdline_forced_outfilename;
 
 	if(format_is_wave)
-		retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, align_reservoir, &align_reservoir_samples, sector_align, is_last_file, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
+		retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, align_reservoir, &align_reservoir_samples, sector_align, is_last_file, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_escape_coding, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
 	else
-		retval = flac__encode_raw(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, is_last_file, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+		retval = flac__encode_raw(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, is_last_file, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_escape_coding, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 
 	if(retval == 0 && strcmp(infilename, "-")) {
 		if(strcmp(forced_outfilename, "-"))
