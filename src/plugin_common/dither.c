@@ -99,15 +99,16 @@ static FLAC__INLINE FLAC__int32 linear_dither(unsigned source_bps, unsigned targ
 	return output >> scalebits;
 }
 
-unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, FLAC__int32 *input, unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
+unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
 {
 	static dither_state dither[FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
 	FLAC__byte * const start = data;
 	FLAC__int32 sample;
-	unsigned samples = wide_samples * channels;
+	const FLAC__int32 *input_;
+	unsigned samples, channel;
 	const unsigned bytes_per_sample = target_bps / 8;
+	unsigned inc = bytes_per_sample * channels;
 
-	FLAC__ASSERT(FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS == 2);
 	FLAC__ASSERT(channels > 0 && channels <= FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS);
 	FLAC__ASSERT(source_bps < 32);
 	FLAC__ASSERT(target_bps <= 24);
@@ -116,47 +117,57 @@ unsigned FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, FL
 	FLAC__ASSERT((target_bps & 7) == 0);
 
 	if(source_bps != target_bps) {
-		const FLAC__int32 MIN = -(1L << source_bps);
+		const FLAC__int32 MIN = -(1L << (source_bps - 1));
 		const FLAC__int32 MAX = ~MIN; /*(1L << (source_bps-1)) - 1 */
-		const unsigned dither_twiggle = channels - 1;
-		unsigned dither_source = 0;
 
-		while(samples--) {
-			sample = linear_dither(source_bps, target_bps, *input++, &dither[dither_source], MIN, MAX);
-			dither_source ^= dither_twiggle;
+		for(channel = 0; channel < channels; channel++) {
+			
+			samples = wide_samples;
+			data = start + bytes_per_sample * channel;
+			input_ = input[channel];
 
-			switch(target_bps) {
-				case 8:
-					data[0] = sample ^ 0x80;
-					break;
-				case 24:
-					data[2] = (FLAC__byte)(sample >> 16);
-					/* fall through */
-				case 16:
-					data[1] = (FLAC__byte)(sample >> 8);
-					data[0] = (FLAC__byte)sample;
+			while(samples--) {
+				sample = linear_dither(source_bps, target_bps, *input_++, &dither[channel], MIN, MAX);
+
+				switch(target_bps) {
+					case 8:
+						data[0] = sample ^ 0x80;
+						break;
+					case 24:
+						data[2] = (FLAC__byte)(sample >> 16);
+						/* fall through */
+					case 16:
+						data[1] = (FLAC__byte)(sample >> 8);
+						data[0] = (FLAC__byte)sample;
+				}
+
+				data += inc;
 			}
-
-			data += bytes_per_sample;
 		}
 	}
 	else {
-		while(samples--) {
-			sample = *input++;
+		for(channel = 0; channel < channels; channel++) {
+			samples = wide_samples;
+			data = start + bytes_per_sample * channel;
+			input_ = input[channel];
 
-			switch(target_bps) {
-				case 8:
-					data[0] = sample ^ 0x80;
-					break;
-				case 24:
-					data[2] = (FLAC__byte)(sample >> 16);
-					/* fall through */
-				case 16:
-					data[1] = (FLAC__byte)(sample >> 8);
-					data[0] = (FLAC__byte)sample;
+			while(samples--) {
+				sample = *input_++;
+
+				switch(target_bps) {
+					case 8:
+						data[0] = sample ^ 0x80;
+						break;
+					case 24:
+						data[2] = (FLAC__byte)(sample >> 16);
+						/* fall through */
+					case 16:
+						data[1] = (FLAC__byte)(sample >> 8);
+						data[0] = (FLAC__byte)sample;
+				}
+
+				data += inc;
 			}
-
-			data += bytes_per_sample;
 		}
 	}
 

@@ -61,6 +61,7 @@ typedef struct {
 	unsigned length_in_msec;
 	gchar *title;
 	AFormat sample_format;
+	unsigned sample_format_bytes_per_sample;
 	int seek_to_in_sec;
 	FLAC__bool has_replaygain;
 	double replay_scale;
@@ -114,9 +115,9 @@ InputPlugin flac_ip =
 };
 
 #define SAMPLES_PER_WRITE 512
-static FLAC__int32 reservoir_[FLAC__MAX_BLOCK_SIZE * 2/*for overflow*/ * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
-static FLAC__byte sample_buffer_[SAMPLES_PER_WRITE * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS * (24/8)]; /* (24/8) for max bytes per sample */
-static unsigned wide_samples_in_reservoir_ = 0;
+#define SAMPLE_BUFFER_SIZE ((FLAC__MAX_BLOCK_SIZE + SAMPLES_PER_WRITE) * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS * (24/8))
+static FLAC__byte sample_buffer_[SAMPLE_BUFFER_SIZE];
+static unsigned sample_buffer_first_, sample_buffer_last_;
 
 static FLAC__FileDecoder *decoder_ = 0;
 static file_info_struct file_info_;
@@ -198,7 +199,7 @@ void FLAC_XMMS__play_file(char *filename)
 {
 	FILE *f;
 
-	wide_samples_in_reservoir_ = 0;
+	sample_buffer_first_ = sample_buffer_last_ = 0;
 	audio_error_ = false;
 	file_info_.abort_flag = false;
 	file_info_.is_playing = false;
@@ -216,9 +217,39 @@ void FLAC_XMMS__play_file(char *filename)
 	if(!safe_decoder_init_(filename, decoder_))
 		return;
 
-	if(file_info_.has_replaygain && flac_cfg.output.replaygain.enable && flac_cfg.output.resolution.replaygain.dither)
-		FLAC__plugin_common__init_dither_context(&file_info_.dither_context, file_info_.bits_per_sample, flac_cfg.output.resolution.replaygain.noise_shaping);
-
+	if(file_info_.has_replaygain && flac_cfg.output.replaygain.enable) {
+		if(flac_cfg.output.resolution.replaygain.bps_out == 8) {
+			file_info_.sample_format = FMT_U8;
+			file_info_.sample_format_bytes_per_sample = 1;
+		}
+		else if(flac_cfg.output.resolution.replaygain.bps_out == 16) {
+			file_info_.sample_format = FMT_S16_LE;
+			file_info_.sample_format_bytes_per_sample = 2;
+		}
+		else {
+			/*@@@ need some error here like wa2: MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16-bit samples\n", "ERROR: plugin can only handle 8/16-bit samples", 0); */
+			fprintf(stderr, "libxmms-flac: can't handle %d bit output\n", flac_cfg.output.resolution.replaygain.bps_out);
+			safe_decoder_finish_(decoder_);
+			return;
+		}
+	}
+	else {
+		if(file_info_.bits_per_sample == 8) {
+			file_info_.sample_format = FMT_U8;
+			file_info_.sample_format_bytes_per_sample = 1;
+		}
+		else if(file_info_.bits_per_sample == 16 || (file_info_.bits_per_sample == 24 && flac_cfg.output.resolution.normal.dither_24_to_16)) {
+			file_info_.sample_format = FMT_S16_LE;
+			file_info_.sample_format_bytes_per_sample = 2;
+		}
+		else {
+			/*@@@ need some error here like wa2: MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16-bit samples\n", "ERROR: plugin can only handle 8/16-bit samples", 0); */
+			fprintf(stderr, "libxmms-flac: can't handle %d bit output\n", file_info_.bits_per_sample);
+			safe_decoder_finish_(decoder_);
+			return;
+		}
+	}
+	FLAC__plugin_common__init_dither_context(&file_info_.dither_context, file_info_.sample_format_bytes_per_sample * 8, flac_cfg.output.resolution.replaygain.noise_shaping);
 	file_info_.is_playing = true;
 
 	if(flac_ip.output->open_audio(file_info_.sample_format, file_info_.sample_rate, file_info_.channels) == 0) {
@@ -317,10 +348,10 @@ void *play_loop_(void *arg)
 
 	while(file_info_.is_playing) {
 		if(!file_info_.eof) {
-			while(wide_samples_in_reservoir_ < SAMPLES_PER_WRITE) {
+			while(sample_buffer_last_ - sample_buffer_first_ < SAMPLES_PER_WRITE) {
 				unsigned s;
 
-				s = wide_samples_in_reservoir_;
+				s = sample_buffer_last_ - sample_buffer_first_;
 				if(FLAC__file_decoder_get_state(decoder_) == FLAC__FILE_DECODER_END_OF_FILE) {
 					file_info_.eof = true;
 					break;
@@ -331,57 +362,24 @@ void *play_loop_(void *arg)
 					file_info_.eof = true;
 					break;
 				}
-				blocksize = wide_samples_in_reservoir_ - s;
+				blocksize = sample_buffer_last_ - sample_buffer_first_ - s;
 				decode_position_frame_last = decode_position_frame;
 				if(!FLAC__file_decoder_get_decode_position(decoder_, &decode_position_frame))
 					decode_position_frame = 0;
 			}
-			if(wide_samples_in_reservoir_ > 0) {
-				const unsigned channels = file_info_.channels;
-				const unsigned bits_per_sample = file_info_.bits_per_sample;
-				const unsigned n = min(wide_samples_in_reservoir_, SAMPLES_PER_WRITE);
-				const unsigned delta = n * channels;
-				int bytes;
-				unsigned i, written_time, bh_index_w;
+			if(sample_buffer_last_ - sample_buffer_first_ > 0) {
+				const unsigned n = min(sample_buffer_last_ - sample_buffer_first_, SAMPLES_PER_WRITE);
+				int bytes = n * file_info_.channels * file_info_.sample_format_bytes_per_sample;
+				FLAC__byte *sample_buffer_start = sample_buffer_ + sample_buffer_first_ * file_info_.channels * file_info_.sample_format_bytes_per_sample;
+				unsigned written_time, bh_index_w;
 				FLAC__uint64 decode_position;
 
-				if(flac_cfg.output.replaygain.enable && file_info_.has_replaygain) {
-					bytes = (int)FLAC__plugin_common__apply_gain(
-						sample_buffer_,
-						reservoir_,
-						n,
-						channels,
-						bits_per_sample,
-						flac_cfg.output.resolution.replaygain.bps_out,
-						file_info_.replay_scale,
-						flac_cfg.output.replaygain.hard_limit,
-						flac_cfg.output.resolution.replaygain.dither,
-						(NoiseShaping)flac_cfg.output.resolution.replaygain.noise_shaping,
-						&file_info_.dither_context
-					);
-				}
-				else {
-					bytes = (int)FLAC__plugin_common__pack_pcm_signed_little_endian(
-						sample_buffer_,
-						reservoir_,
-						n,
-						channels,
-						bits_per_sample,
-						flac_cfg.output.resolution.normal.dither_24_to_16?
-							min(bits_per_sample, 16) :
-							bits_per_sample
-					);
-				}
-
-				for(i = delta; i < wide_samples_in_reservoir_ * channels; i++)
-					reservoir_[i-delta] = reservoir_[i];
-				wide_samples_in_reservoir_ -= n;
-
-				flac_ip.add_vis_pcm(flac_ip.output->written_time(), file_info_.sample_format, channels, bytes, sample_buffer_);
+				sample_buffer_first_ += n;
+				flac_ip.add_vis_pcm(flac_ip.output->written_time(), file_info_.sample_format, file_info_.channels, bytes, sample_buffer_start);
 				while(flac_ip.output->buffer_free() < (int)bytes && file_info_.is_playing && file_info_.seek_to_in_sec == -1)
 					xmms_usleep(10000);
 				if(file_info_.is_playing && file_info_.seek_to_in_sec == -1)
-					flac_ip.output->write_audio(sample_buffer_, bytes);
+					flac_ip.output->write_audio(sample_buffer_start, bytes);
 
 				/* compute current bitrate */
 
@@ -389,7 +387,7 @@ void *play_loop_(void *arg)
 				bh_index_w = written_time / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE;
 				if(bh_index_w != bh_index_last_w) {
 					bh_index_last_w = bh_index_w;
-					decode_position = decode_position_frame - (double)wide_samples_in_reservoir_ * (double)(decode_position_frame - decode_position_frame_last) / (double)blocksize;
+					decode_position = decode_position_frame - (double)(sample_buffer_last_ - sample_buffer_first_) * (double)(decode_position_frame - decode_position_frame_last) / (double)blocksize;
 					bitrate_history_[(bh_index_w + BITRATE_HIST_SIZE - 1) % BITRATE_HIST_SIZE] =
 						decode_position > decode_position_last && written_time > written_time_last ?
 							8000 * (decode_position - decode_position_last) / (written_time - written_time_last) :
@@ -415,7 +413,7 @@ void *play_loop_(void *arg)
 					decode_position_frame = 0;
 				file_info_.seek_to_in_sec = -1;
 				file_info_.eof = false;
-				wide_samples_in_reservoir_ = 0;
+				sample_buffer_first_ = sample_buffer_last_ = 0;
 			}
 		}
 		else {
@@ -483,18 +481,46 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 {
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	const unsigned channels = file_info->channels, wide_samples = frame->header.blocksize;
-	unsigned wide_sample, offset_sample, channel;
+	const unsigned bits_per_sample = file_info->bits_per_sample;
+	FLAC__byte *sample_buffer_start;
 
 	(void)decoder;
 
 	if(file_info->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-	for(offset_sample = wide_samples_in_reservoir_ * channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-		for(channel = 0; channel < channels; channel++, offset_sample++)
-			reservoir_[offset_sample] = buffer[channel][wide_sample];
+	if((sample_buffer_last_ + wide_samples) > (SAMPLE_BUFFER_SIZE / (channels * file_info->sample_format_bytes_per_sample))) {
+		memmove(sample_buffer_, sample_buffer_ + sample_buffer_first_ * channels * file_info->sample_format_bytes_per_sample, (sample_buffer_last_ - sample_buffer_first_) * channels * file_info->sample_format_bytes_per_sample);
+		sample_buffer_last_ -= sample_buffer_first_;
+		sample_buffer_first_ = 0;
+	}
+	sample_buffer_start = sample_buffer_ + sample_buffer_last_ * channels * file_info->sample_format_bytes_per_sample;
+	if(file_info_.has_replaygain && flac_cfg.output.replaygain.enable) {
+		FLAC__plugin_common__apply_gain(
+				sample_buffer_start,
+				buffer,
+				wide_samples,
+				channels,
+				bits_per_sample,
+				file_info->sample_format_bytes_per_sample * 8,
+				file_info_.replay_scale,
+				flac_cfg.output.replaygain.hard_limit,
+				flac_cfg.output.resolution.replaygain.dither,
+				&file_info_.dither_context
+		);
+	}
+	else {
+		FLAC__plugin_common__pack_pcm_signed_little_endian(
+			sample_buffer_start,
+			buffer,
+			wide_samples,
+			channels,
+			bits_per_sample,
+			file_info->sample_format_bytes_per_sample * 8
+		);
+	}
 
-	wide_samples_in_reservoir_ += wide_samples;
+	sample_buffer_last_ += wide_samples;
 
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
@@ -509,32 +535,6 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 		file_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
 		file_info->channels = metadata->data.stream_info.channels;
 		file_info->sample_rate = metadata->data.stream_info.sample_rate;
-
-#ifdef FLAC__DO_DITHER
-		if(file_info->bits_per_sample == 8) {
-			file_info->sample_format = FMT_S8;
-		}
-		else if(file_info->bits_per_sample == 16 || file_info->bits_per_sample == 24) {
-			file_info->sample_format = FMT_S16_LE;
-		}
-		else {
-			/*@@@ need some error here like wa2: MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16/24-bit samples\n", "ERROR: plugin can only handle 8/16/24-bit samples", 0); */
-			file_info->abort_flag = true;
-			return;
-		}
-#else
-		if(file_info->bits_per_sample == 8) {
-			file_info->sample_format = FMT_S8;
-		}
-		else if(file_info->bits_per_sample == 16) {
-			file_info->sample_format = FMT_S16_LE;
-		}
-		else {
-			/*@@@ need some error here like wa2: MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16-bit samples\n", "ERROR: plugin can only handle 8/16-bit samples", 0); */
-			file_info->abort_flag = true;
-			return;
-		}
-#endif
 		file_info->length_in_msec = file_info->total_samples * 10 / (file_info->sample_rate / 100);
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {

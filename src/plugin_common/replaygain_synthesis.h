@@ -22,6 +22,13 @@
 #include "defs.h"
 #include "FLAC/ordinals.h"
 
+typedef enum {
+	NOISE_SHAPING_NONE = 0,
+	NOISE_SHAPING_LOW = 1,
+	NOISE_SHAPING_MEDUIM = 2,
+	NOISE_SHAPING_HIGH = 3
+} NoiseShaping;
+
 typedef struct {
 	const float*  FilterCoeff;
 	FLAC__uint64  Mask;
@@ -30,18 +37,13 @@ typedef struct {
 	float         ErrorHistory     [FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS] [16];  /* 16th order Noise shaping */
 	float         DitherHistory    [FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS] [16];
 	int           LastRandomNumber [FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
+	unsigned      LastHistoryIndex;
+	NoiseShaping  ShapingType;
 } DitherContext;
-
-typedef enum {
-	NOISE_SHAPING_NONE = 0,
-	NOISE_SHAPING_LOW = 1,
-	NOISE_SHAPING_MEDUIM = 2,
-	NOISE_SHAPING_HIGH = 3
-} NoiseShaping;
 
 void FLAC__plugin_common__init_dither_context(DitherContext *dither, int bits, int shapingtype);
 
 /* scale = (float) pow(10., (double)replaygain * 0.05); */
-int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, NoiseShaping noise_shaping, DitherContext *dither_context);
+int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context);
 
 #endif

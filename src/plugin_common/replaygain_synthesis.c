@@ -208,6 +208,7 @@ void FLAC__plugin_common__init_dither_context(DitherContext *d, int bits, int sh
 
 	if (shapingtype < 0) shapingtype = 0;
 	if (shapingtype > 3) shapingtype = 3;
+	d->ShapingType = (NoiseShaping)shapingtype;
 	index = bits - 11 - shapingtype;
 	if (index < 0) index = 0;
 	if (index > 9) index = 9;
@@ -219,6 +220,7 @@ void FLAC__plugin_common__init_dither_context(DitherContext *d, int bits, int sh
 	d->Mask   = ((FLAC__uint64)-1) << (32 - bits);
 	d->Add    = 0.5     * ((1L << (32 - bits)) - 1);
 	d->Dither = 0.01f*default_dither[index] / (((FLAC__int64)1) << bits);
+	d->LastHistoryIndex = 0;
 }
 
 /*
@@ -286,7 +288,7 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_d
 #endif
 
 
-int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, NoiseShaping noise_shaping, DitherContext *dither_context)
+int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context)
 {
 	static const FLAC__int32 conv_factors_[33] = {
 		-1, /* 0 bits-per-sample (not supported) */
@@ -369,16 +371,15 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, un
 	const double multi_scale = scale / (double)(1u << (source_bps-1));
 
 	FLAC__byte * const start = data_out;
-	const unsigned samples = wide_samples * channels;
-#ifdef FLAC__PLUGIN_COMMON__DONT_UNROLL
-	const unsigned dither_twiggle = channels - 1;
-	unsigned dither_source = 0;
-#endif
-	unsigned i;
-	int coeff;
+	unsigned i, channel;
+	const FLAC__int32 *input_;
 	double sample;
+	const unsigned bytes_per_sample = target_bps / 8;
+	unsigned inc = bytes_per_sample * channels, last_history_index = dither_context->LastHistoryIndex;
+	NoiseShaping noise_shaping = dither_context->ShapingType;
+	FLAC__int64 val64;
+	FLAC__int32 val32;
 
-	FLAC__ASSERT(FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS == 2);
 	FLAC__ASSERT(channels > 0 && channels <= FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS);
 	FLAC__ASSERT(source_bps >= 4);
 	FLAC__ASSERT(target_bps >= 4);
@@ -386,67 +387,11 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, un
 	FLAC__ASSERT(target_bps < 32);
 	FLAC__ASSERT((target_bps & 7) == 0);
 
-#ifdef FLAC__PLUGIN_COMMON__DONT_UNROLL
-	/*
-	 * This flavor handles 1 or 2 channels with the same code
-	 */
-	coeff = 0;
-	for(i = 0; i < samples; i++, coeff++) {
-		sample = (double)input[i] * multi_scale;
-
-		if(hard_limit) {
-			/* hard 6dB limiting */
-			if(sample < -0.5)
-				sample = tanh((sample + 0.5) / (1-0.5)) * (1-0.5) - 0.5;
-			else if(sample > 0.5)
-				sample = tanh((sample - 0.5) / (1-0.5)) * (1-0.5) + 0.5;
-		}
-		sample *= 2147483647.f;
-
-		{
-			FLAC__int64 val64;
-			FLAC__int32 val32;
-
-			if(coeff >= (32<<dither_twiggle))
-				coeff = 0;
-
-			/* 'coeff>>dither_twiggle' is the same as 'coeff/channels' */
-			val64 = dither_output_(dither_context, do_dithering, noise_shaping, coeff>>dither_twiggle, sample, dither_source) / conv_factor;
-
-			dither_source ^= dither_twiggle;
-
-			val32 = (FLAC__int32)val64;
-			if(val64 >= -hard_clip_factor)
-				val32 = (FLAC__int32)(-(hard_clip_factor+1));
-			else if(val64 < hard_clip_factor)
-				val32 = (FLAC__int32)hard_clip_factor;
-
-			switch(target_bps) {
-				case 8:
-					data_out[0] = val32 ^ 0x80;
-					break;
-				case 24:
-					data_out[2] = (FLAC__byte)(val32 >> 16);
-					/* fall through */
-				case 16:
-					data_out[1] = (FLAC__byte)(val32 >> 8);
-					data_out[0] = (FLAC__byte)val32;
-			}
-		}
-
-		data_out += target_bps/8;
-	}
-#else
-	/*
-	 * This flavor has optimized versions for 1 or 2 channels
-	 */
-	if(channels == 2) {
-		FLAC__int64 val64;
-		FLAC__int32 val32;
-
-		coeff = 0;
-		for(i = 0; i < samples; ) {
-			sample = (double)input[i] * multi_scale;
+	for(channel = 0; channel < channels; channel++) {
+		data_out = start + bytes_per_sample * channel;
+		input_ = input[channel];
+		for(i = 0; i < wide_samples; i++, data_out += inc) {
+			sample = (double)input_[i] * multi_scale;
 
 			if(hard_limit) {
 				/* hard 6dB limiting */
@@ -457,7 +402,7 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, un
 			}
 			sample *= 2147483647.f;
 
-			val64 = dither_output_(dither_context, do_dithering, noise_shaping, coeff, sample, 0) / conv_factor;
+			val64 = dither_output_(dither_context, do_dithering, noise_shaping, (i + last_history_index) % 32, sample, channel) / conv_factor;
 
 			val32 = (FLAC__int32)val64;
 			if(val64 >= -hard_clip_factor)
@@ -476,94 +421,9 @@ int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, un
 					data_out[1] = (FLAC__byte)(val32 >> 8);
 					data_out[0] = (FLAC__byte)val32;
 			}
-
-			data_out += target_bps/8;
-
-			i++;
-
-			sample = (double)input[i] * multi_scale;
-
-			if(hard_limit) {
-				/* hard 6dB limiting */
-				if(sample < -0.5)
-					sample = tanh((sample + 0.5) / (1-0.5)) * (1-0.5) - 0.5;
-				else if(sample > 0.5)
-					sample = tanh((sample - 0.5) / (1-0.5)) * (1-0.5) + 0.5;
-			}
-			sample *= 2147483647.f;
-
-			val64 = dither_output_(dither_context, do_dithering, noise_shaping, coeff, sample, 1) / conv_factor;
-
-			val32 = (FLAC__int32)val64;
-			if(val64 >= -hard_clip_factor)
-				val32 = (FLAC__int32)(-(hard_clip_factor+1));
-			else if(val64 < hard_clip_factor)
-				val32 = (FLAC__int32)hard_clip_factor;
-
-			switch(target_bps) {
-				case 8:
-					data_out[0] = val32 ^ 0x80;
-					break;
-				case 24:
-					data_out[2] = (FLAC__byte)(val32 >> 16);
-					/* fall through */
-				case 16:
-					data_out[1] = (FLAC__byte)(val32 >> 8);
-					data_out[0] = (FLAC__byte)val32;
-			}
-
-			data_out += target_bps/8;
-
-			i++;
-			coeff++;
-			if(coeff >= 32)
-				coeff = 0;
 		}
 	}
-	else {
-		FLAC__int64 val64;
-		FLAC__int32 val32;
-
-		coeff = 0;
-		for(i = 0; i < samples; i++, coeff++) {
-			if(coeff >= 32)
-				coeff = 0;
-
-			sample = (double)input[i] * multi_scale;
-
-			if(hard_limit) {
-				/* hard 6dB limiting */
-				if(sample < -0.5)
-					sample = tanh((sample + 0.5) / (1-0.5)) * (1-0.5) - 0.5;
-				else if(sample > 0.5)
-					sample = tanh((sample - 0.5) / (1-0.5)) * (1-0.5) + 0.5;
-			}
-			sample *= 2147483647.f;
-
-			val64 = dither_output_(dither_context, do_dithering, noise_shaping, coeff, sample, 0) / conv_factor;
-
-			val32 = (FLAC__int32)val64;
-			if(val64 >= -hard_clip_factor)
-				val32 = (FLAC__int32)(-(hard_clip_factor+1));
-			else if(val64 < hard_clip_factor)
-				val32 = (FLAC__int32)hard_clip_factor;
-
-			switch(target_bps) {
-				case 8:
-					data_out[0] = val32 ^ 0x80;
-					break;
-				case 24:
-					data_out[2] = (FLAC__byte)(val32 >> 16);
-					/* fall through */
-				case 16:
-					data_out[1] = (FLAC__byte)(val32 >> 8);
-					data_out[0] = (FLAC__byte)val32;
-			}
-
-			data_out += target_bps/8;
-		}
-	}
-#endif
+	dither_context->LastHistoryIndex = (last_history_index + wide_samples) % 32;
 
 	return data_out - start;
 }
