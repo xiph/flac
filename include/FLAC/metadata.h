@@ -1084,7 +1084,8 @@ FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_It
  *
  * \param type  Type of object to create
  * \retval FLAC__StreamMetadata*
- *    \c NULL if there was an error allocating memory, else the new instance.
+ *    \c NULL if there was an error allocating memory or the type code is
+ *    greater than FLAC__MAX_METADATA_TYPE_CODE, else the new instance.
  */
 FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type);
 

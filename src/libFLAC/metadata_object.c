@@ -334,7 +334,12 @@ static FLAC__bool cuesheet_set_track_(FLAC__StreamMetadata *object, FLAC__Stream
 
 FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type)
 {
-	FLAC__StreamMetadata *object = (FLAC__StreamMetadata*)calloc(1, sizeof(FLAC__StreamMetadata));
+	FLAC__StreamMetadata *object;
+
+	if(type > FLAC__MAX_METADATA_TYPE_CODE)
+		return 0;
+
+	object = (FLAC__StreamMetadata*)calloc(1, sizeof(FLAC__StreamMetadata));
 	if(0 != object) {
 		object->is_last = false;
 		object->type = type;

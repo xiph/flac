@@ -88,6 +88,9 @@ extern "C" {
 	format specification.  There is nothing to tune here.
 */
 
+/** The largest legal metadata type code. */
+#define FLAC__MAX_METADATA_TYPE_CODE (126u)
+
 /** The minimum block size, in samples, permitted by the format. */
 #define FLAC__MIN_BLOCK_SIZE (16u)
 
