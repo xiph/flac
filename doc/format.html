@@ -27,6 +27,7 @@
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="features.html">features</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="goals.html">goals</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;format&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="id.html">id</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="comparison.html">comparison</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="documentation.html">documentation</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="developers.html">developers</A>&nbsp;&nbsp;</TD>
@@ -215,7 +216,12 @@
 			A FLAC bitstream consists of the "fLaC" marker at the beginning of the stream, followed by a mandatory metadata block (called the STREAMINFO block), any number of other metadata blocks, then the audio frames.
 		</LI></P>
 		<P><LI>
-			FLAC supports up to 128 kinds of metadata blocks, but currently only one is defined.  This is the STREAMINFO block, which has info about the whole stream like sample rate, number of channels, total number of samples, etc.  This block must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.
+			FLAC supports up to 128 kinds of metadata blocks; currently the following are defined:
+			<UL>
+				<A NAME="def_STREAMINFO"><LI><B>STREAMINFO</B>: This block has information about the whole stream, like sample rate, number of channels, total number of samples, etc.  It must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.</LI>
+				<A NAME="def_APPLICATION"><LI><B>APPLICATION</B>: This block is for use by third-party applications.  The only mandatory field is a 32-bit identifier.  This ID is granted upon request to an application by the FLAC maintainers.  The remainder is of the block is defined by the registered application.  Visit the <A HREF="id.html">registration page</A> if you would like to register an ID for your application with FLAC.</LI>
+				<A NAME="def_PADDING"><LI><B>PADDING</B>: This block allows for an arbitrary amount of padding.  The contents of a PADDING block have no meaning.  This block useful when it is known that an APPLICATION block will be added after encoding; the user can instruct the encoder to reserve a PADDING block of the proper size so that the application may directly write over it later (which is relatively quick) instead of having to insert the APPLICATION block (which would normally require rewriting the entire file).</LI>
+			</UL>
 		</LI></P>
 		<P><LI>
 			The audio data is composed of one or more audio frames.  Each frame consists of a frame header, which contains a sync code, info about the frame like the block size, sample rate, number of channels, et cetera, and an 8-bit CRC.  The frame header also contains either the sample number of the first sample in the frame (for variable-blocksize streams), or the frame number (for fixed-blocksize streams).  This allows for fast, sample-accurate seeking to be performed.  Following the frame header are encoded subframes, one for each channel, and finally, the frame is zero-padded to a byte boundary.  Each subframe has its own header that specifies how the subframe is encoded.
@@ -525,7 +531,7 @@
 				&lt;32&gt;
 			</TD>
 			<TD>
-				Registered application ID
+				Registered application ID.  (Visit the <A HREF="id.html">registration page</A> to register an ID with FLAC.)
 			</TD>
 		</TR>
 		<TR>
