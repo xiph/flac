@@ -58,6 +58,7 @@ libOggFLAC++: libFLAC
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 share:
+	(cd src/$@/file_utils ; $(MAKE) -f Makefile.lite $(CONFIG))
 	(cd src/$@/gain_analysis ; $(MAKE) -f Makefile.lite $(CONFIG))
 	(cd src/$@/getopt ; $(MAKE) -f Makefile.lite $(CONFIG))
 	(cd src/$@/replaygain ; $(MAKE) -f Makefile.lite $(CONFIG))
@@ -99,6 +100,7 @@ clean:
 	-(cd src/libFLAC++ ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/libOggFLAC ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/libOggFLAC++ ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/share/file_utils ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/share/gain_analysis ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/share/getopt ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/share/replaygain ; $(MAKE) -f Makefile.lite clean)

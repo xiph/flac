@@ -31,7 +31,6 @@ C_FILES= \
 	analyze.c \
 	decode.c \
 	encode.c \
-	file.c \
 	main.c \
 	vorbiscomment.c
 
@@ -40,7 +39,7 @@ OBJS= $(C_FILES:.c=.obj)
 all: flac.exe
 
 flac.exe: $(OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) replaygain.lib libOggFLAC.lib libFLAC.lib ogg_static.lib gain_analysis.lib getopt.lib utf8.lib
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) replaygain.lib libOggFLAC.lib libFLAC.lib ogg_static.lib gain_analysis.lib getopt.lib utf8.lib file_utils.lib
 
 clean:
 	-del *.obj *.pch

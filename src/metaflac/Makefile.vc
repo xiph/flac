@@ -33,7 +33,7 @@ OBJS= $(C_FILES:.c=.obj)
 all: metaflac.exe
 
 metaflac.exe: $(OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) replaygain.lib libFLAC.lib gain_analysis.lib getopt.lib utf8.lib
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) replaygain.lib libFLAC.lib gain_analysis.lib getopt.lib utf8.lib file_utils.lib
 
 clean:
 	-del *.obj *.pch

@@ -3,6 +3,9 @@
 # It's less hassle to spell it all out that to figure out how to do it right with nmake:
 
 all:
+	cd file_utils
+	nmake /f Makefile.vc
+	cd ..
 	cd gain_analysis
 	nmake /f Makefile.vc
 	cd ..
@@ -17,6 +20,9 @@ all:
 	cd ..
 
 clean:
+	cd file_utils
+	nmake /f Makefile.vc clean
+	cd ..
 	cd gain_analysis
 	nmake /f Makefile.vc clean
 	cd ..

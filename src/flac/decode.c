@@ -30,8 +30,8 @@
 #include <stdio.h> /* for FILE et al. */
 #include <string.h> /* for strcmp() */
 #include "FLAC/all.h"
+#include "share/file_utils.h"
 #include "decode.h"
-#include "file.h"
 
 #ifdef FLAC__HAS_OGG
 #include "OggFLAC/stream_decoder.h"
@@ -206,7 +206,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->aopts = aopts;
 	d->skip = skip;
 
-	d->inbasefilename = flac__file_get_basename(infilename);
+	d->inbasefilename = FLAC__file_utils_get_basename(infilename);
 	d->outfilename = outfilename;
 
 	d->samples_processed = 0;
@@ -229,7 +229,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	if(!d->test_only) {
 		if(0 == strcmp(outfilename, "-")) {
-			d->fout = file__get_binary_stdout();
+			d->fout = FLAC__file_utils_get_binary_stdout();
 		}
 		else {
 			if(0 == (d->fout = fopen(outfilename, "wb"))) {
@@ -243,7 +243,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 #ifdef FLAC__HAS_OGG
 	if(d->is_ogg) {
 		if (0 == strcmp(infilename, "-")) {
-			d->fin = file__get_binary_stdin();
+			d->fin = FLAC__file_utils_get_binary_stdin();
 		} else {
 			if (0 == (d->fin = fopen(infilename, "rb"))) {
 				fprintf(stderr, "%s: ERROR: can't open input file %s\n", d->inbasefilename, infilename);
