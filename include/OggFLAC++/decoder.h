@@ -144,6 +144,10 @@ namespace OggFLAC {
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
+#ifdef _MSC_VER
+		//@@@@@@ lame hack: some MSVC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
+		public:
+#endif
 			::OggFLAC__StreamDecoder *decoder_;
 		private:
 			static ::FLAC__StreamDecoderReadStatus read_callback_(const ::OggFLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
@@ -236,6 +240,10 @@ namespace OggFLAC {
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
+#ifdef _MSC_VER
+		//@@@@@@ lame hack: some MSVC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
+		public:
+#endif
 			::OggFLAC__SeekableStreamDecoder *decoder_;
 		private:
 			static ::FLAC__SeekableStreamDecoderReadStatus read_callback_(const ::OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
@@ -326,6 +334,10 @@ namespace OggFLAC {
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
+#ifdef _MSC_VER
+		//@@@@@@ lame hack: some MSVC versions can't see a protected decoder_ from nested State::resolved_as_cstring(); fix properly later
+		public:
+#endif
 			::OggFLAC__FileDecoder *decoder_;
 		private:
 			static ::FLAC__StreamDecoderWriteStatus write_callback_(const ::OggFLAC__FileDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);

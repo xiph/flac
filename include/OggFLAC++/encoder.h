@@ -162,6 +162,10 @@ namespace OggFLAC {
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 
+#ifdef _MSC_VER
+		//@@@@@@ lame hack: some MSVC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
+		public:
+#endif
 			::OggFLAC__StreamEncoder *encoder_;
 		private:
 			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
@@ -259,6 +263,10 @@ namespace OggFLAC {
 			virtual ::FLAC__SeekableStreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset) = 0;
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
 
+#ifdef _MSC_VER
+		//@@@@@@ lame hack: some MSVC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
+		public:
+#endif
 			::OggFLAC__SeekableStreamEncoder *encoder_;
 		private:
 			static ::FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
@@ -357,6 +365,10 @@ namespace OggFLAC {
 		protected:
 			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);
 
+#ifdef _MSC_VER
+		//@@@@@@ lame hack: some MSVC versions can't see a protected encoder_ from nested State::resolved_as_cstring(); fix properly later
+		public:
+#endif
 			::OggFLAC__FileEncoder *encoder_;
 		private:
 			static void progress_callback_(const ::OggFLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
