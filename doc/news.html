@@ -27,6 +27,7 @@
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="features.html">features</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="goals.html">goals</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="format.html">format</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
+					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="id.html">id</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="comparison.html">comparison</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="documentation.html">documentation</A>&nbsp;&nbsp;</TD><TD BGCOLOR="#D3D4C5" ALIGN=CENTER>|</TD>
 					<TD           BGCOLOR="#D3D4C5" ALIGN=CENTER NOWRAP>&nbsp;&nbsp;<A CLASS="topnav" HREF="developers.html">developers</A>&nbsp;&nbsp;</TD>
@@ -54,6 +55,33 @@
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+
+	<P>
+		<A NAME="20010305">05-Mar-2001:</A>
+	</P>
+	<P>
+	<UL>
+		<LI>
+			<B>FLAC 0.8 released.</B>&nbsp;&nbsp;This release is a result of extensive testing and fixes several bugs encountered when pushing the encoder to the limit.  I'm pretty confident in the stability of the encoder/decoder now for all kinds of input.  There have also been several features added.  Here is a complete list of the changes since 0.7:
+			<UL>
+				<LI>Created a new utility called <B><TT>metaflac</TT></B>.  It is a metadata editor for .flac files.  Right now it just lists the contents of the metadata blocks but eventually it will allow update/insertion/deletion.</LI>
+				<LI>Added two new metadata blocks: PADDING which has an obvious function, and APPLICATION, which is meant to be open to third party applications.  See the <A HREF="format.html#def_APPLICATION">latest format docs</A> for more info.</LI>
+				<LI>Added a <B><TT>-P</TT></B> option to <B><TT>flac</TT></B> to reserve a PADDING block when encoding.</LI>
+				<LI>Added support for 24-bit files to <B><TT>flac</TT></B> (the FLAC format always supported it).</LI>
+				<LI>Started the Winamp3 plugin.@@@</LI>
+				<LI>Greatly expanded the test suite, adding more streams (24-bit streams, noise streams, non-audio streams, more patterns) and more option combinations to the encoder.  The test suite runs about 30 streams and over 5000 encodings now.</LI>
+				<LI>Fixed a bug in <B><TT>libFLAC</B></TT> that happened when using an exhaustive LPC coefficient quantization search with 8 bps input.</LI>
+				<LI>Fixed a bug in <B><TT>libFLAC</B></TT> where the error estimation in the fixed predictor could overflow.</LI>
+				<LI>Fixed a bug in <B><TT>libFLAC</B></TT> where LPC was attempted even when the autocorrelation coefficients implied it wouldn't help.</LI>
+				<LI>Reworked the LPC coefficient quantizer, which also fixed another bug that might occur in rare cases.</LI>
+				<LI>Really fixed the '-V overflow' bug (c.f. <A HREF="http://sourceforge.net/bugs/?func=detailbug&bug_id=131976&group_id=13478">bug #131976</A>).</LI>
+				<LI>Fixed a bug in <B><TT>flac</B></TT> related to the decode buffer sizing.</LI>
+			</UL>
+			FLAC is very close to being ready for an official release.  The only known problems left are with the Winamp plugins, which should be fixed soon, and pipes with MSVC.
+		</LI>
+	</UL>
+	</P>
+
 	<P>
 		<A NAME="20010212">12-Feb-2001:</A>
 	</P>
@@ -72,6 +100,7 @@
 		</LI>
 	</UL>
 	</P>
+
 	<P>
 		<A NAME="20010128">28-Jan-2001:</A>
 	</P>
@@ -88,6 +117,7 @@
 		</LI>
 	</UL>
 	</P>
+
 	<P>
 		<A NAME="20010115">15-Jan-2001:</A>
 	</P>
@@ -102,6 +132,7 @@
 		</LI>
 	</UL>
 	</P>
+
 	<P>
 		<A NAME="20001223">23-Dec-2000:</A>
 	</P>
@@ -110,6 +141,7 @@
 		<LI><B>FLAC 0.4 released.</B>&nbsp;&nbsp;This version fixes a bug in the constant subframe detection.  More importantly, a verify option (-V) has been added to <B><TT>flac</TT></B> that verifies the encoding process.  With this option turned on, <B><TT>flac</TT></B> will create a parallel decoder while encoding to make sure that the encoded output decodes to exactly match the original input.  In this way, any unknown bug in the encoder will be caught and <B><TT>flac</TT></B> will abort with an error message.</LI>
 	</UL>
 	</P>
+
 	<P>
 		<A NAME="20001210">10-Dec-2000:</A>
 	</P>
