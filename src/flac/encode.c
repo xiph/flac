@@ -394,6 +394,9 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 			}
 		}
 	}
+	else {
+		fseek(fin, 0, SEEK_SET);
+	}
 
 	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
 		goto raw_abort_;
