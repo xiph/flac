@@ -152,6 +152,10 @@ bool StreamEncoder::die(const char *msg) const
 		printf("FAILED");
 
 	printf(", state = %u (%s)\n", (unsigned)((::FLAC__StreamEncoderState)state), state.as_cstring());
+	if(state == ::FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR) {
+		FLAC::Decoder::Stream::State dstate = get_verify_decoder_state();
+		printf("      verify decoder state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
+	}
 
 	return false;
 }
@@ -278,6 +282,10 @@ static bool test_stream_encoder()
 	printf("testing get_state()... ");
 	FLAC::Encoder::Stream::State state = encoder->get_state();
 	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamEncoderState)state), state.as_cstring());
+
+	printf("testing get_verify_decoder_state()... ");
+	FLAC::Decoder::Stream::State dstate = encoder->get_verify_decoder_state();
+	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
 
 	{
 		FLAC__uint64 absolute_sample;
