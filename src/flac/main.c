@@ -265,8 +265,8 @@ int main(int argc, char *argv[])
 		printf("welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
 		if(!mode_decode) {
-			printf("options:%s -b %u%s -l %u%s%s -q %u -r %u%s\n",
-				lax?" --lax":"", (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
+			printf("options:%s -P %u -b %u%s -l %u%s%s -q %u -r %u%s\n",
+				lax?" --lax":"", padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
 				do_exhaustive_model_search?" -e":"", do_qlp_coeff_prec_search?" -p":"",
 				qlp_coeff_precision, (unsigned)rice_optimization_level,
 				verify? " -V":""
