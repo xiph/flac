@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "01 February 2005" "" ""
+.TH "FLAC" "1" "02 February 2005" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -166,7 +166,12 @@ original
 .TP
 \fB--lax\fR
 Allow encoder to generate non-Subset
-files.
+files.  The resulting FLAC file may not be
+streamable or might have trouble being played
+in all players (especially hardware devices),
+so you should only use this option in
+combination with custom encoding options meant
+for archival.
 .TP
 \fB--replay-gain\fR
 Calculate ReplayGain values and store in
