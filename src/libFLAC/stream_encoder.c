@@ -2108,7 +2108,11 @@ FLAC__bool process_subframe_(
 		}
 	}
 
-	FLAC__ASSERT(_best_bits < UINT_MAX);
+	/* under rare circumstances this can happen when all but lpc subframe types are disabled: */
+	if(_best_bits == UINT_MAX) {
+		FLAC__ASSERT(_best_subframe == 0);
+		_best_bits = evaluate_verbatim_subframe_(integer_signal, frame_header->blocksize, subframe_bps, subframe[_best_subframe]);
+	}
 
 	*best_subframe = _best_subframe;
 	*best_bits = _best_bits;
