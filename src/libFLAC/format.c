@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h> /* for qsort() */
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
 
@@ -138,7 +139,10 @@ FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable 
 
 	for(i = 0; i < seek_table->num_points; i++) {
 		if(got_prev) {
-			if(seek_table->points[i].sample_number <= prev_sample_number)
+			if(
+				seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER &&
+				seek_table->points[i].sample_number <= prev_sample_number
+			)
 				return false;
 		}
 		prev_sample_number = seek_table->points[i].sample_number;
@@ -146,4 +150,46 @@ FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable 
 	}
 
 	return true;
+}
+
+/* used as the sort predicate for qsort() */
+static int seekpoint_compare_(const FLAC__StreamMetadata_SeekPoint *l, const FLAC__StreamMetadata_SeekPoint *r)
+{
+	/* we don't just 'return l->sample_number - r->sample_number' since the result (FLAC__int64) might overflow an 'int' */
+	if(l->sample_number == r->sample_number)
+		return 0;
+	else if(l->sample_number < r->sample_number)
+		return -1;
+	else
+		return 1;
+}
+
+unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table)
+{
+	unsigned i, j;
+	FLAC__bool first;
+
+	/* sort the seekpoints */
+	qsort(seek_table->points, seek_table->num_points, sizeof(FLAC__StreamMetadata_SeekPoint), (int (*)(const void *, const void *))seekpoint_compare_);
+
+	/* uniquify the seekpoints */
+	first = true;
+	for(i = j = 0; i < seek_table->num_points; i++) {
+		if(seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER) {
+			if(!first) {
+				if(seek_table->points[i].sample_number == seek_table->points[j-1].sample_number)
+					continue;
+			}
+		}
+		first = false;
+		seek_table->points[j++] = seek_table->points[i];
+	}
+
+	for(; j < seek_table->num_points; j++) {
+		seek_table->points[j].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+		seek_table->points[j].stream_offset = 0;
+		seek_table->points[j].frame_samples = 0;
+	}
+
+	return j;
 }

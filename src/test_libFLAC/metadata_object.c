@@ -186,7 +186,7 @@ static void vc_delete_(FLAC__StreamMetadata *block, unsigned pos)
 FLAC__bool test_metadata_object()
 {
 	FLAC__StreamMetadata *block, *blockcopy, *vorbiscomment;
-	FLAC__StreamMetadata_SeekPoint seekpoint_array[4];
+	FLAC__StreamMetadata_SeekPoint seekpoint_array[8];
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	unsigned i, expected_length, seekpoints;
 	static FLAC__byte dummydata[4] = { 'a', 'b', 'c', 'd' };
@@ -349,7 +349,7 @@ FLAC__bool test_metadata_object()
 
 	printf("testing SEEKTABLE\n");
 
-	for(i = 0; i < 4; i++) {
+	for(i = 0; i < sizeof(seekpoint_array) / sizeof(FLAC__StreamMetadata_SeekPoint); i++) {
 		seekpoint_array[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
 		seekpoint_array[i].stream_offset = 0;
 		seekpoint_array[i].frame_samples = 0;
@@ -499,6 +499,105 @@ FLAC__bool test_metadata_object()
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
 		return false;
 
+	printf("testing FLAC__metadata_object_delete()... ");
+	FLAC__metadata_object_delete(block);
+	printf("OK\n");
+
+	/* seektable template functions */
+
+	for(i = 0; i < sizeof(seekpoint_array) / sizeof(FLAC__StreamMetadata_SeekPoint); i++) {
+		seekpoint_array[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+		seekpoint_array[i].stream_offset = 0;
+		seekpoint_array[i].frame_samples = 0;
+	}
+
+	seekpoints = 0;
+	printf("testing FLAC__metadata_object_new()... ");
+	block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE);
+	if(0 == block) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	if(!check_seektable_(block, seekpoints, 0))
+		return false;
+
+	seekpoints += 2;
+	printf("testing FLAC__metadata_object_seekpoint_template_append_placeholders()... ");
+	if(!FLAC__metadata_object_seektable_template_append_placeholders(block, 2)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return false;
+
+	seekpoint_array[seekpoints++].sample_number = 7;
+	printf("testing FLAC__metadata_object_seekpoint_template_append_point()... ");
+	if(!FLAC__metadata_object_seektable_template_append_point(block, 7)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return false;
+
+    {
+		FLAC__uint64 nums[2] = { 3, 7 };
+		seekpoint_array[seekpoints++].sample_number = nums[0];
+		seekpoint_array[seekpoints++].sample_number = nums[1];
+		printf("testing FLAC__metadata_object_seekpoint_template_append_points()... ");
+		if(!FLAC__metadata_object_seektable_template_append_points(block, nums, sizeof(nums)/sizeof(FLAC__uint64))) {
+			printf("FAILED, returned false\n");
+			return false;
+		}
+		if(!check_seektable_(block, seekpoints, seekpoint_array))
+			return false;
+	}
+
+	seekpoint_array[seekpoints++].sample_number = 0;
+	seekpoint_array[seekpoints++].sample_number = 10;
+	seekpoint_array[seekpoints++].sample_number = 20;
+	printf("testing FLAC__metadata_object_seekpoint_template_append_spaced_points()... ");
+	if(!FLAC__metadata_object_seektable_template_append_spaced_points(block, 3, 30)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return false;
+
+	seekpoints--;
+	seekpoint_array[0].sample_number = 0;
+	seekpoint_array[1].sample_number = 3;
+	seekpoint_array[2].sample_number = 7;
+	seekpoint_array[3].sample_number = 10;
+	seekpoint_array[4].sample_number = 20;
+	seekpoint_array[5].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+	seekpoint_array[6].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+	printf("testing FLAC__metadata_object_seekpoint_template_sort(compact=true)... ");
+	if(!FLAC__metadata_object_seektable_template_sort(block, /*compact=*/true)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!FLAC__metadata_object_seektable_is_legal(block)) {
+		printf("FAILED, seek table is illegal\n");
+		return false;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return false;
+
+	printf("testing FLAC__metadata_object_seekpoint_template_sort(compact=false)... ");
+	if(!FLAC__metadata_object_seektable_template_sort(block, /*compact=*/false)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!FLAC__metadata_object_seektable_is_legal(block)) {
+		printf("FAILED, seek table is illegal\n");
+		return false;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return false;
+
+	printf("testing FLAC__metadata_object_delete()... ");
+	FLAC__metadata_object_delete(block);
+	printf("OK\n");
 
 
 	printf("testing VORBIS_COMMENT\n");

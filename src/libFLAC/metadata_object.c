@@ -202,10 +202,6 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
  *
  ***************************************************************************/
 
-/*@@@move
-will return pointer to new empty object of type 'type', or 0 if malloc failed
-type is valid type
-*/
 FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type)
 {
 	FLAC__StreamMetadata *object = malloc(sizeof(FLAC__StreamMetadata));
@@ -238,10 +234,6 @@ FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type)
 	return object;
 }
 
-/*@@@move
-return a pointer to a copy of 'object', or 0 if any malloc failed.  does a deep copy.  user gets ownership of object.
-    FLAC__ASSERT(0 != object);
-*/
 FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMetadata *object)
 {
 	FLAC__StreamMetadata *to;
@@ -331,9 +323,6 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 	}
 }
 
-/*@@@move
-frees 'object'.  does a deep delete.
-*/
 void FLAC__metadata_object_delete(FLAC__StreamMetadata *object)
 {
 	FLAC__metadata_object_delete_data(object);
@@ -437,13 +426,13 @@ FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, co
 
 	if(block1->type != block2->type) {
 		return false;
-    }
+	}
 	if(block1->is_last != block2->is_last) {
 		return false;
-    }
+	}
 	if(block1->length != block2->length) {
 		return false;
-    }
+	}
 	switch(block1->type) {
 		case FLAC__METADATA_TYPE_STREAMINFO:
 			return compare_block_data_streaminfo_(&block1->data.stream_info, &block2->data.stream_info);
@@ -579,6 +568,99 @@ FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
 
 	return FLAC__format_seektable_is_legal(&object->data.seek_table);
+}
+
+FLAC__bool FLAC__metadata_object_seektable_template_append_placeholders(FLAC__StreamMetadata *object, unsigned num)
+{
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
+
+	if(num > 0)
+		/* WATCHOUT: we rely on the fact that growing the array adds PLACEHOLDERS at the end */
+		return FLAC__metadata_object_seektable_resize_points(object, object->data.seek_table.num_points + num);
+	else
+		return true;
+}
+
+FLAC__bool FLAC__metadata_object_seektable_template_append_point(FLAC__StreamMetadata *object, FLAC__uint64 sample_number)
+{
+	FLAC__StreamMetadata_SeekTable *seek_table;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
+
+	seek_table = &object->data.seek_table;
+
+	if(!FLAC__metadata_object_seektable_resize_points(object, seek_table->num_points + 1))
+		return false;
+
+	seek_table->points[seek_table->num_points - 1].sample_number = sample_number;
+	seek_table->points[seek_table->num_points - 1].stream_offset = 0;
+	seek_table->points[seek_table->num_points - 1].frame_samples = 0;
+
+	return true;
+}
+
+FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC__StreamMetadata *object, FLAC__uint64 sample_numbers[], unsigned num)
+{
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
+	FLAC__ASSERT(0 != sample_numbers || num == 0);
+
+	if(num > 0) {
+		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
+		unsigned i, j;
+
+		i = seek_table->num_points;
+
+		if(!FLAC__metadata_object_seektable_resize_points(object, seek_table->num_points + num))
+			return false;
+
+		for(j = 0; j < num; i++, j++) {
+			seek_table->points[i].sample_number = sample_numbers[j];
+			seek_table->points[i].stream_offset = 0;
+			seek_table->points[i].frame_samples = 0;
+		}
+	}
+
+	return true;
+}
+
+FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__StreamMetadata *object, unsigned num, FLAC__uint64 total_samples)
+{
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
+	FLAC__ASSERT(total_samples > 0);
+
+	if(num > 0) {
+		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
+		unsigned i, j;
+
+		i = seek_table->num_points;
+
+		if(!FLAC__metadata_object_seektable_resize_points(object, seek_table->num_points + num))
+			return false;
+
+		for(j = 0; j < num; i++, j++) {
+			seek_table->points[i].sample_number = total_samples * (FLAC__uint64)j / (FLAC__uint64)num;
+			seek_table->points[i].stream_offset = 0;
+			seek_table->points[i].frame_samples = 0;
+		}
+	}
+
+	return true;
+}
+
+FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *object, FLAC__bool compact)
+{
+	unsigned unique;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
+
+	unique = FLAC__format_seektable_sort(&object->data.seek_table);
+
+	return !compact || FLAC__metadata_object_seektable_resize_points(object, unique);
 }
 
 FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)

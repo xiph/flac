@@ -626,6 +626,9 @@ FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate);
  */
 FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable *object);
 
+/* @@@@ document */
+unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table);
+
 /* \} */
 
 #ifdef __cplusplus
