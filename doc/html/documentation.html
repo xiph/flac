@@ -132,7 +132,7 @@
 		FLAC defines several types of metadata blocks (see the <A HREF="format.html">format</A> page for the complete list).  Metadata blocks can be any length and new ones can be defined.  A decoder is allowed to skip any metadata types it does not understand.  Only one is mandatory: the STREAMINFO block.  This block has information like the sample rate, number of channels, etc., and data that can help the decoder manage its buffers, like the minimum and maximum data rate and minimum and maximum block size.  Also included in the STREAMINFO block is the MD5 signature of the <I>unencoded</I> audio data.  This is useful for checking an entire stream for transmission errors.
 	</P>
 	<P>
-		Other blocks allow for padding, seek tables, and application-specific data.  You can see <B><TT>flac</TT></B> options below for adding PADDING blocks or specifying seek points.  FLAC does not require seek points for seeking but they can speed up seeks, or be used for cueing in editing applications.
+		Other blocks allow for padding, seek tables, tags, cuesheets, and application-specific data.  You can see <B><TT>flac</TT></B> options below for adding PADDING blocks or specifying seek points.  FLAC does not require seek points for seeking but they can speed up seeks, or be used for cueing in editing applications.
 	<P>
 	</P>
 		Also, if you have a need of a custom metadata block, you can define your own and request an ID <A HREF="id.html">here</A>.  Then you can reserve a PADDING block of the correct size when encoding, and overwrite the padding block with your APPLICATION block after encoding.  The resulting stream will be FLAC compatible; decoders that are aware of your metadata can use it and the rest will safely ignore it.
@@ -226,7 +226,7 @@
 			Encoding: flac [<I><A HREF="#general_options">&lt;general-options&gt;</A></I>] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [<I><A HREF="#encoding_options">&lt;encoding options&gt;</A></I>] [inputfile [...]]
 		</LI>
 		<LI>
-			Decoding: flac -d [<I><A HREF="#general_options">&lt;general-options&gt;</A></I>] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [FLACfile [...]]
+			Decoding: flac -d [<I><A HREF="#general_options">&lt;general-options&gt;</A></I>] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [<I><A HREF="#decoding_options">&lt;decoding options&gt;</A></I>]  [FLACfile [...]]
 		</LI>
 		<LI>
 			Testing: flac -t [<I><A HREF="#general_options">&lt;general-options&gt;</A></I>] [FLACfile [...]]
@@ -372,7 +372,7 @@
 				Skip over the first # of samples of the input.  This works for both encoding and decoding, but not testing.  The alternative form <TT>mm:ss.ss</TT> can be used to specify minutes, seconds, and fractions of a second.<P>
 				Examples:<P>
 				<TT>--skip=123</TT> : skip the first 123 samples of the input<P>
-				<TT>--skip=1:23.45</TT> : skip the first 1 minute and 23.45 samples of the input
+				<TT>--skip=1:23.45</TT> : skip the first 1 minute and 23.45 seconds of the input
 			</TD>
 		</TR>
 		<TR>
@@ -380,11 +380,11 @@
 				<TT>--until={#|[+|-]mm:ss.ss}</TT>
 			</TD>
 			<TD>
-				Stop at the given sample number for each input file.  This works for both encoding and decoding, but not testing.  The given sample number is not included in the decoded output.  The alternative form <TT>mm:ss.ss</TT> can be used to specify minutes, seconds, and fractions of a second.  If a <TT>+</TT> sign is at the beginning, the --until point is relative to the --skip point.  If a <TT>-</TT> sign is at the beginning, the --until point is relative to end of the audio.<P>
+				Stop at the given sample number for each input file.  This works for both encoding and decoding, but not testing.  The given sample number is not included in the decoded output.  The alternative form <TT>mm:ss.ss</TT> can be used to specify minutes, seconds, and fractions of a second.  If a <TT>+</TT> sign is at the beginning, the <TT>--until</TT> point is relative to the <TT>--skip</TT> point.  If a <TT>-</TT> sign is at the beginning, the <TT>--until</TT> point is relative to end of the audio.<P>
 				Examples:<P>
 				<TT>--until=123</TT> : decode only the first 123 samples of the input (samples 0-122, stopping at 123)<P>
 				<TT>--until=1:23.45</TT> : decode only the first 1 minute and 23.45 seconds of the input<P>
-				<TT>--skip=1:00 --until=+1:23.45</TT> : decode 1:00 to 2:23.45<P>
+				<TT>--skip=1:00 --until=+1:23.45</TT> : decode 1:00.00 to 2:23.45<P>
 				<TT>--until=-1:23.45</TT> : decode everything except the last 1 minute and 23.45 seconds<P>
 				<TT>--until=-0:00</TT> : decode until the end of the input (the same as not specifying <TT>--until</TT>)
 			</TD>
@@ -493,7 +493,7 @@
 				<TT>--cuesheet=FILENAME</TT>
 			</TD>
 			<TD>
-				Import the given cuesheet file and store it in a CUESHEET metadata block.  This option may only be used when encoding a single file.  A seekpoint will be added for each index point in the cuesheet to the SEEKTABLE unless --no-cued-seekpoints is specified.<P>
+				Import the given cuesheet file and store it in a <A HREF="format.html#def_CUESHEET">CUESHEET</A> metadata block.  This option may only be used when encoding a single file.  A seekpoint will be added for each index point in the cuesheet to the <A HREF="format.html#def_SEEKTABLE">SEEKTABLE</A> unless <TT>--no-cued-seekpoints</TT> is specified.<P>
 				The cuesheet file must be of the sort written by <A HREF="http://www.goldenhawk.com/cdrwin.htm">CDRwin</A>, <A HREF="http://www.dcsoft.com/prod03.htm">CDRcue</A>, <A HREF="http://www.exactaudiocopy.de/">EAC</A>, et al.
 			</TD>
 		</TR>
