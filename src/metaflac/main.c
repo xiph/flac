@@ -1484,9 +1484,9 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			PPR; printf("  total samples: %llu\n", block->data.stream_info.total_samples);
 			PPR; printf("  MD5 signature: ");
 			for(i = 0; i < 16; i++) {
-				PPR; printf("%02x", block->data.stream_info.md5sum[i]);
+				printf("%02x", (unsigned)block->data.stream_info.md5sum[i]);
 			}
-			PPR; printf("\n");
+			printf("\n");
 			break;
 		case FLAC__METADATA_TYPE_PADDING:
 			/* nothing to print */
@@ -1508,7 +1508,12 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 		case FLAC__METADATA_TYPE_SEEKTABLE:
 			PPR; printf("  seek points: %u\n", block->data.seek_table.num_points);
 			for(i = 0; i < block->data.seek_table.num_points; i++) {
-				PPR; printf("    point %d: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, block->data.seek_table.points[i].sample_number, block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
+				if(block->data.seek_table.points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER) {
+					PPR; printf("    point %d: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, block->data.seek_table.points[i].sample_number, block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
+				}
+				else {
+					PPR; printf("    point %d: PLACEHOLDER\n", i);
+				}
 			}
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
