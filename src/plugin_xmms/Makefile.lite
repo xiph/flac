@@ -23,7 +23,7 @@ topdir = ../..
 
 LIB_NAME  = libxmms-flac
 INCLUDES  = $(shell xmms-config --cflags) -I./include -I$(topdir)/include -I..
-LIBS = $(topdir)/obj/lib/libFLAC.a $(topdir)/obj/lib/libplugin_common.a
+LIBS = $(topdir)/obj/lib/libFLAC.a $(topdir)/obj/lib/libplugin_common.a $(HOME)/local/lib/libid3.a -lstdc++ -lz
 
 OBJS = \
 	charset.o \
