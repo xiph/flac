@@ -43,10 +43,10 @@ test_file ()
 		exit 1
 	fi
 	echo -n "decode..."
-	cmd="flac -s -fb -d -fr -c $name.flac"
+	cmd="flac -s -fb -d -fr -o $name.cmp $name.flac"
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
-	if $cmd > $name.cmp 2>>./streams.log ; then : ; else
+	if $cmd 2>>./streams.log ; then : ; else
 		echo "ERROR during decode of $name" 1>&2
 		exit 1
 	fi
