@@ -1471,7 +1471,7 @@ bool encoder_set_partitioned_rice_(const uint32 abs_residual[], const uint32 abs
 	return true;
 }
 
-static unsigned encoder_get_wasted_bits_(int32 signal[], unsigned samples)
+unsigned encoder_get_wasted_bits_(int32 signal[], unsigned samples)
 {
 	unsigned i, shift;
 	int32 x = 0;
