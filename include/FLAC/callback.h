@@ -32,10 +32,6 @@
 #ifndef FLAC__CALLBACK_H
 #define FLAC__CALLBACK_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "ordinals.h"
 #include <stdlib.h> /* for size_t */
 
