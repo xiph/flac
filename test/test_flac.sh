@@ -38,6 +38,12 @@ run_flac ()
 	fi
 }
 
+if [ `env | grep -ic '^comspec='` != 0 ] ; then
+	is_win=yes
+else
+	is_win=no
+fi
+
 echo "Checking for --ogg support in flac..."
 if flac --ogg --silent --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
 	has_ogg=yes;
@@ -513,8 +519,15 @@ echo "Testing seek extremes:"
 
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 noise.raw || die "ERROR generating FLAC file"
 
-total_samples=`metaflac --show-total-samples noise.flac`
-[ $? = 0 ] || die "ERROR getting total sample count from noise.flac"
+if [ $is_win = no ] ; then
+	total_samples=`metaflac --show-total-samples noise.flac`
+	[ $? = 0 ] || die "ERROR getting total sample count from noise.flac"
+else
+	# some flavors of cygwin don't seem to treat the \x0d as a word
+	# separator, so we hard code it.  we'll just have to fix it later
+	# if we change the way noise.flac is made.
+	total_samples=393216
+fi
 
 echo -n "Testing --skip=0... "
 run_flac $wav_dopt --skip=0 -o z.wav noise.flac || die "ERROR decoding FLAC file noise.flac"
@@ -710,26 +723,52 @@ fi
 ############################################################################
 
 echo -n "WAVE fixup test... "
+
 echo -n "prepare... "
 convert_to_wav noise || die "ERROR creating reference WAVE"
+
 echo -n "encode... "
-cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
+# the pipe from 'cat' to 'flac' does not work on cygwin because of the EOF/
+# binary-mode stdin problem, so we use an undocumented option to metaflac to
+# set the total sample count to 0
+if [ $is_win = yes ] ; then
+	run_flac $raw_eopt noise.raw -o fixup.flac || die "ERROR generating FLAC file"
+	metaflac --set-total-samples=0 fixup.flac 2> /dev/null
+else
+	cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
+fi
+
 echo -n "decode... "
 run_flac $wav_dopt fixup.flac -o fixup.wav || die "ERROR decoding FLAC file"
+
 echo -n "compare... "
 cmp noise.wav fixup.wav || die "ERROR: file mismatch"
+
 echo OK
 rm -f noise.wav fixup.wav fixup.flac
 
 echo -n "AIFF fixup test... "
+
 echo -n "prepare... "
 convert_to_aiff noise || die "ERROR creating reference AIFF"
+
 echo -n "encode... "
-cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
+# the pipe from 'cat' to 'flac' does not work on cygwin because of the EOF/
+# binary-mode stdin problem, so we use an undocumented option to metaflac to
+# set the total sample count to 0
+if [ $is_win = yes ] ; then
+	run_flac $raw_eopt noise.raw -o fixup.flac || die "ERROR generating FLAC file"
+	metaflac --set-total-samples=0 fixup.flac 2> /dev/null
+else
+	cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
+fi
+
 echo -n "decode... "
 run_flac $wav_dopt fixup.flac -o fixup.aiff || die "ERROR decoding FLAC file"
+
 echo -n "compare... "
 cmp noise.aiff fixup.aiff || die "ERROR: file mismatch"
+
 echo OK
 rm -f noise.aiff fixup.aiff fixup.flac
 
