@@ -1385,10 +1385,10 @@ void FLAC__metadata_object_delete(FLAC__StreamMetaData *object)
 	free(object);
 }
 
-/*@@@@ Allow setting pointer to 0 to free, or let length be 0 also.   fix everywhere */
 FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetaData *object, FLAC__byte *data, unsigned length, FLAC__bool copy)
 {
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_APPLICATION);
+	FLAC__ASSERT(0 != data || (length == 0 && copy == false));
 
 	if(0 != object->data.application.data)
 		free(object->data.application.data);
@@ -1460,6 +1460,7 @@ FLAC__bool FLAC__metadata_object_seekpoint_array_resize(FLAC__StreamMetaData_See
 FLAC__bool FLAC__metadata_object_seektable_set_points(FLAC__StreamMetaData *object, FLAC__StreamMetaData_SeekPoint *points, unsigned num_points, FLAC__bool copy)
 {
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
+	FLAC__ASSERT(0 != points || (num_points == 0 && copy == false));
 
 	object->data.seek_table.num_points = num_points;
 
@@ -1555,6 +1556,7 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_entry_array_resize(FLAC__StreamMe
 FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetaData *object, FLAC__byte *entry, unsigned length, FLAC__bool copy)
 {
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	FLAC__ASSERT(0 != entry || (length == 0 && copy == false));
 
 	if(0 != object->data.vorbis_comment.vendor_string.entry)
 		free(object->data.vorbis_comment.vendor_string.entry);
@@ -1582,6 +1584,7 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_set_comments(FLAC__StreamMetaData
 	unsigned i;
 
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	FLAC__ASSERT(0 != comments || (num_comments == 0 && copy == false));
 
 	object->data.vorbis_comment.num_comments = num_comments;
 
