@@ -610,7 +610,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 	/* first count how many individual seek point we may need */
 	real_points = placeholders = 0;
 	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
-		q = strchr(pt, ',');
+		q = strchr(pt, '<');
 		assert(0 != q);
 		*q = '\0';
 
@@ -624,7 +624,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 		else { /* -S # */
 			real_points++;
 		}
-		*q++ = ',';
+		*q++ = '<';
 
 		pt = q;
 	}
@@ -641,7 +641,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 	}
 
 	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
-		q = strchr(pt, ',');
+		q = strchr(pt, '<');
 		assert(0 != q);
 		*q++ = '\0';
 
