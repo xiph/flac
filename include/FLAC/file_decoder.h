@@ -451,7 +451,17 @@ FLAC_API FLAC__SeekableStreamDecoderState FLAC__file_decoder_get_seekable_stream
  */
 FLAC_API FLAC__StreamDecoderState FLAC__file_decoder_get_stream_decoder_state(const FLAC__FileDecoder *decoder);
 
-/*@@@@ document */
+/** Get the current decoder state as a C string.
+ *  This version automatically resolves
+ *  \c FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR by getting the
+ *  seekable stream decoder's state.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval const char *
+ *    The decoder state as a C string.  Do not modify the contents.
+ */
 FLAC_API const char *FLAC__file_decoder_get_resolved_state_string(const FLAC__FileDecoder *decoder);
 
 /** Get the "MD5 signature checking" flag.
@@ -521,7 +531,18 @@ FLAC_API unsigned FLAC__file_decoder_get_sample_rate(const FLAC__FileDecoder *de
  */
 FLAC_API unsigned FLAC__file_decoder_get_blocksize(const FLAC__FileDecoder *decoder);
 
-/*@@@@ document */
+/** This is inherited from FLAC__SeekableStreamDecoder; see
+ *  FLAC__seekable_stream_decoder_get_decode_position().
+ *
+ * \param  decoder   A decoder instance to query.
+ * \param  position  Address at which to return the desired position.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code position != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, \c false if there was an error from
+ *    the 'tell' callback.
+ */
 FLAC_API FLAC__bool FLAC__file_decoder_get_decode_position(const FLAC__FileDecoder *decoder, FLAC__uint64 *position);
 
 /** Initialize the decoder instance.

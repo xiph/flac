@@ -745,7 +745,17 @@ FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_get_state(const FLAC__Str
  */
 FLAC_API FLAC__StreamDecoderState FLAC__stream_encoder_get_verify_decoder_state(const FLAC__StreamEncoder *encoder);
 
-/*@@@@ document */
+/** Get the current encoder state as a C string.
+ *  This version automatically resolves
+ *  \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR by getting the
+ *  verify decoder's state.
+ *
+ * \param  encoder  A encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval const char *
+ *    The encoder state as a C string.  Do not modify the contents.
+ */
 FLAC_API const char *FLAC__stream_encoder_get_resolved_state_string(const FLAC__StreamEncoder *encoder);
 
 /** Get relevant values about the nature of a verify decoder error.
