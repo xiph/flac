@@ -627,10 +627,20 @@ bool encoder_process_subframes_(FLAC__Encoder *encoder, bool is_last_frame, cons
 			/* check for constant subframe */
 			guess_fixed_order = FLAC__fixed_compute_best_predictor(integer_signal[channel]+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
 			if(fixed_residual_bits_per_sample[1] == 0.0) {
-				candidate_bits = encoder_evaluate_constant_subframe_(integer_signal[channel][0], frame_header->bits_per_sample, &(encoder->guts->candidate_subframe));
-				if(candidate_bits < best_bits) {
-					encoder_promote_candidate_subframe_(encoder);
-					best_bits = candidate_bits;
+				/* the above means integer_signal[channel]+FLAC__MAX_FIXED_ORDER is constant, now we just have to check the warmup samples */
+				unsigned i, signal_is_constant = true;
+				for(i = 1; i <= FLAC__MAX_FIXED_ORDER; i++) {
+					if(integer_signal[channel][0] != integer_signal[channel][i]) {
+						signal_is_constant = false;
+						break;
+					}
+				}
+				if(signal_is_constant) {
+					candidate_bits = encoder_evaluate_constant_subframe_(integer_signal[channel][0], frame_header->bits_per_sample, &(encoder->guts->candidate_subframe));
+					if(candidate_bits < best_bits) {
+						encoder_promote_candidate_subframe_(encoder);
+						best_bits = candidate_bits;
+					}
 				}
 			}
 			else {
