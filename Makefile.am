@@ -38,6 +38,8 @@ EXTRA_DIST = \
 	COPYING.GPL \
 	COPYING.LGPL \
 	autogen.sh \
+	depcomp \
+	flac.pbproj \
 	strip_fPIC.sh
 
 AUTOMAKE_OPTIONS = foreign
