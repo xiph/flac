@@ -111,7 +111,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "getopt"=.\src\share\getopt.dsp - Package Owner=<4>
+Project: "getopt"=.\src\share\getopt\getopt.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -228,7 +228,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "utf8"=.\src\share\utf8.dsp - Package Owner=<4>
+Project: "utf8"=.\src\share\utf8\utf8.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
