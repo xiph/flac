@@ -293,8 +293,31 @@ typedef struct {
 	struct FLAC__StreamEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__StreamEncoder;
 
-/*@@@@ document: */
+/** Signature for the write callback.
+ *  See FLAC__stream_encoder_set_write_callback() for more info.
+ *
+ * \param  encoder  The encoder instance calling the callback.
+ * \param  buffer   An array of encoded data of length \a bytes.
+ * \param  bytes    The byte length of \a buffer.
+ * \param  samples  The number of samples encoded by \a buffer.
+ *                  \c 0 has a special meaning; see
+ *                  FLAC__stream_encoder_set_write_callback().
+ * \param  current_frame  The number of the current frame being encoded.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__stream_encoder_set_client_data().
+ * \retval FLAC__StreamDecoderWriteStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamEncoderWriteStatus (*FLAC__StreamEncoderWriteCallback)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+
+/** Signature for the metadata callback.
+ *  See FLAC__stream_encoder_set_metadata_callback() for more info.
+ *
+ * \param  encoder      The encoder instance calling the callback.
+ * \param  metadata     The final populated STREAMINFO block.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__stream_encoder_set_client_data().
+ */
 typedef void (*FLAC__StreamEncoderMetadataCallback)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
 
 

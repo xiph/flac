@@ -88,7 +88,6 @@ typedef enum {
  *  Using an OggFLAC__FileDecoderState as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-/* @@@@ double-check mapping */
 extern const char * const OggFLAC__FileDecoderStateString[];
 
 
@@ -109,7 +108,6 @@ typedef struct {
 	struct OggFLAC__FileDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } OggFLAC__FileDecoder;
 
-/* @@@@ document */
 typedef FLAC__StreamDecoderWriteStatus (*OggFLAC__FileDecoderWriteCallback)(const OggFLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 typedef void (*OggFLAC__FileDecoderMetadataCallback)(const OggFLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 typedef void (*OggFLAC__FileDecoderErrorCallback)(const OggFLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);

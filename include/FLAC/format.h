@@ -614,19 +614,30 @@ extern const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bits) */
  */
 FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate);
 
-/** Check a seektable to see if it conforms to the FLAC specification.
+/** Check a seek table to see if it conforms to the FLAC specification.
  *  See the format specification for limits on the contents of the
- *  seektable.
+ *  seek table.
  *
- * \param object  A pointer to a seek table to be checked.
+ * \param seek_table  A pointer to a seek table to be checked.
  * \assert
- *    \code object != NULL \endcode
+ *    \code seek_table != NULL \endcode
  * \retval FLAC__bool
  *    \c false if seek table is illegal, else \c true.
  */
-FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable *object);
+FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable *seek_table);
 
-/* @@@@ document */
+/** Sort a seek table's seek points according to the format specification.
+ *  This includes a "unique-ification" step to remove duplicates, i.e.
+ *  seek points with identical \a sample_number values.  Duplicate seek
+ *  points are converted into placeholder points and sorted to the end of
+ *  the table.
+ *
+ * \param seek_table  A pointer to a seek table to be sorted.
+ * \assert
+ *    \code seek_table != NULL \endcode
+ * \retval unsigned
+ *    The number of duplicate seek points converted into placeholders.
+ */
 unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table);
 
 /* \} */

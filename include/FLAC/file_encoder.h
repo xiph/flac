@@ -129,7 +129,6 @@ typedef enum {
  *  Using a FLAC__FileEncoderState as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-/* @@@@ double-check mapping */
 extern const char * const FLAC__FileEncoderStateString[];
 
 
@@ -150,7 +149,18 @@ typedef struct {
 	struct FLAC__FileEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__FileEncoder;
 
-/*@@@ document: */
+/** Signature for the progress callback.
+ *  See FLAC__file_encoder_set_progress_callback() for more info.
+ *
+ * \param  encoder          The encoder instance calling the callback.
+ * \param  bytes_written    Bytes written so far.
+ * \param  samples_written  Samples written so far.
+ * \param  frames_written   Frames written so far.
+ * \param  total_frames_estimate  The estimate of the total number of
+ *                                frames to be written.
+ * \param  client_data      The callee's client data set through
+ *                          FLAC__file_encoder_set_client_data().
+ */
 typedef void (*FLAC__FileEncoderProgressCallback)(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 
 

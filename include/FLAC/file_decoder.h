@@ -166,9 +166,40 @@ typedef struct {
 	struct FLAC__FileDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__FileDecoder;
 
-/* @@@@ document */
+/** Signature for the write callback.
+ *  See FLAC__file_decoder_set_write_callback()
+ *  and FLAC__SeekableStreamDecoderWriteCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  frame    The description of the decoded frame.
+ * \param  buffer   An array of pointers to decoded channels of data.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__file_decoder_set_client_data().
+ * \retval FLAC__StreamDecoderWriteStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamDecoderWriteStatus (*FLAC__FileDecoderWriteCallback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+
+/** Signature for the metadata callback.
+ *  See FLAC__file_decoder_set_metadata_callback()
+ *  and FLAC__SeekableStreamDecoderMetadataCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  metadata The decoded metadata block.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__file_decoder_set_client_data().
+ */
 typedef void (*FLAC__FileDecoderMetadataCallback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+
+/** Signature for the error callback.
+ *  See FLAC__file_decoder_set_error_callback()
+ *  and FLAC__SeekableStreamDecoderErrorCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  status   The error encountered by the decoder.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__file_decoder_set_client_data().
+ */
 typedef void (*FLAC__FileDecoderErrorCallback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 

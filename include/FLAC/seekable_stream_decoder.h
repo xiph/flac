@@ -263,14 +263,105 @@ typedef struct {
 	struct FLAC__SeekableStreamDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__SeekableStreamDecoder;
 
-/*@@@ document */
+/** Signature for the read callback.
+ *  See FLAC__seekable_stream_decoder_set_read_callback()
+ *  and FLAC__StreamDecoderReadCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  buffer   A pointer to a location for the callee to store
+ *                  data to be decoded.
+ * \param  bytes    A pointer to the size of the buffer.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_decoder_set_client_data().
+ * \retval FLAC__SeekableStreamDecoderReadStatus
+ *    The callee's return status.
+ */
 typedef FLAC__SeekableStreamDecoderReadStatus (*FLAC__SeekableStreamDecoderReadCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+
+/** Signature for the seek callback.
+ *  See FLAC__seekable_stream_decoder_set_seek_callback() for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  absolute_byte_offset  The offset from the beginning of the stream
+ *                               to seek to.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_decoder_set_client_data().
+ * \retval FLAC__SeekableStreamDecoderSeekStatus
+ *    The callee's return status.
+ */
 typedef FLAC__SeekableStreamDecoderSeekStatus (*FLAC__SeekableStreamDecoderSeekCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+
+/** Signature for the tell callback.
+ *  See FLAC__seekable_stream_decoder_set_tell_callback() for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  absolute_byte_offset  A pointer to storage for the current offset
+ *                               from the beginning of the stream.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_decoder_set_client_data().
+ * \retval FLAC__SeekableStreamDecoderTellStatus
+ *    The callee's return status.
+ */
 typedef FLAC__SeekableStreamDecoderTellStatus (*FLAC__SeekableStreamDecoderTellCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
+
+/** Signature for the length callback.
+ *  See FLAC__seekable_stream_decoder_set_length_callback() for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  stream_length  A pointer to storage for the length of the stream
+ *                        in bytes.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_decoder_set_client_data().
+ * \retval FLAC__SeekableStreamDecoderLengthStatus
+ *    The callee's return status.
+ */
 typedef FLAC__SeekableStreamDecoderLengthStatus (*FLAC__SeekableStreamDecoderLengthCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
+
+/** Signature for the EOF callback.
+ *  See FLAC__seekable_stream_decoder_set_eof_callback() for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_decoder_set_client_data().
+ * \retval FLAC__bool
+ *    \c true if the currently at the end of the stream, else \c false.
+ */
 typedef FLAC__bool (*FLAC__SeekableStreamDecoderEofCallback)(const FLAC__SeekableStreamDecoder *decoder, void *client_data);
+
+/** Signature for the write callback.
+ *  See FLAC__seekable_stream_decoder_set_write_callback()
+ *  and FLAC__StreamDecoderWriteCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  frame    The description of the decoded frame.
+ * \param  buffer   An array of pointers to decoded channels of data.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_decoder_set_client_data().
+ * \retval FLAC__StreamDecoderWriteStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamDecoderWriteStatus (*FLAC__SeekableStreamDecoderWriteCallback)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+
+/** Signature for the metadata callback.
+ *  See FLAC__seekable_stream_decoder_set_metadata_callback()
+ *  and FLAC__StreamDecoderMetadataCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  metadata The decoded metadata block.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_decoder_set_client_data().
+ */
 typedef void (*FLAC__SeekableStreamDecoderMetadataCallback)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+
+/** Signature for the error callback.
+ *  See FLAC__seekable_stream_decoder_set_error_callback()
+ *  and FLAC__StreamDecoderErrorCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  status   The error encountered by the decoder.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_decoder_set_client_data().
+ */
 typedef void (*FLAC__SeekableStreamDecoderErrorCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 

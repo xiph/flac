@@ -26,7 +26,7 @@
 /** \defgroup oggflacpp OggFLAC C++ API
  *
  * The OggFLAC C++ API is the interface to libOggFLAC++, a set of classes
- * that encapsulate the encoders and decoders interfaces in libOggFLAC.
+ * that encapsulate the encoders and decoders in libOggFLAC.
  *
  */
 

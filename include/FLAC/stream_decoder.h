@@ -311,9 +311,61 @@ typedef struct {
 	struct FLAC__StreamDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__StreamDecoder;
 
+/** Signature for the read callback.
+ *  See FLAC__stream_decoder_set_read_callback() for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  buffer   A pointer to a location for the callee to store
+ *                  data to be decoded.
+ * \param  bytes    A pointer to the size of the buffer.  On entry
+ *                  to the callback, it contains the maximum number
+ *                  of bytes that may be stored in \a buffer.  The
+ *                  callee must set it to the actual number of bytes
+ *                  stored before returning.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__stream_decoder_set_client_data().
+ * \retval FLAC__StreamDecoderReadStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamDecoderReadStatus (*FLAC__StreamDecoderReadCallback)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+
+/** Signature for the write callback.
+ *  See FLAC__stream_decoder_set_write_callback() for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  frame    The description of the decoded frame.  See
+ *                  FLAC__Frame.
+ * \param  buffer   An array of pointers to decoded channels of data.
+ *                  Each pointer will point to an array of signed
+ *                  samples of length \a frame->header.blocksize.
+ *                  Currently, the channel order has no meaning
+ *                  except for stereo streams; in this case channel
+ *                  0 is left and 1 is right.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__stream_decoder_set_client_data().
+ * \retval FLAC__StreamDecoderWriteStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamDecoderWriteStatus (*FLAC__StreamDecoderWriteCallback)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+
+/** Signature for the metadata callback.
+ *  See FLAC__stream_decoder_set_metadata_callback() for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  metadata The decoded metadata block.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__stream_decoder_set_client_data().
+ */
 typedef void (*FLAC__StreamDecoderMetadataCallback)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+
+/** Signature for the error callback.
+ *  See FLAC__stream_decoder_set_error_callback() for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  status   The error encountered by the decoder.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__stream_decoder_set_client_data().
+ */
 typedef void (*FLAC__StreamDecoderErrorCallback)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 
@@ -367,7 +419,7 @@ void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder);
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadCallback);
+FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadCallback value);
 
 /** Set the write callback.
  *  The supplied function will be called when the decoder has decoded a
@@ -387,7 +439,7 @@ FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, 
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteCallback);
+FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteCallback value);
 
 /** Set the metadata callback.
  *  The supplied function will be called when the decoder has decoded a
@@ -415,7 +467,7 @@ FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder,
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderMetadataCallback);
+FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderMetadataCallback value);
 
 /** Set the error callback.
  *  The supplied function will be called whenever an error occurs during
@@ -433,7 +485,7 @@ FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decod
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__stream_decoder_set_error_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorCallback);
+FLAC__bool FLAC__stream_decoder_set_error_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data
@@ -682,7 +734,7 @@ FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
  *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
- *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
  *    in any case, check the decoder state with
  *    FLAC__stream_decoder_get_state() to see what went wrong or to
  *    check for lost synchronization (a sign of stream corruption).
@@ -707,7 +759,7 @@ FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *decoder);
  *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
- *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
  *    in any case, check the decoder state with
  *    FLAC__stream_decoder_get_state() to see what went wrong or to
  *    check for lost synchronization (a sign of stream corruption).
@@ -732,7 +784,7 @@ FLAC__bool FLAC__stream_decoder_process_until_end_of_metadata(FLAC__StreamDecode
  *    \code FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
- *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
  *    in any case, check the decoder state with
  *    FLAC__stream_decoder_get_state() to see what went wrong or to
  *    check for lost synchronization (a sign of stream corruption).

@@ -41,11 +41,11 @@ extern "C" {
  *  \ingroup oggflac
  *
  *  \brief
- *  This module describes the three decoder layers provided by libOggFLAC.
+ *  This module describes the decoder layers provided by libOggFLAC.
  *
- * libOggFLAC provides the same three layers of access as libFLAC and the
- * interface is identical.  See the \link flac_decoder FLAC decoder module
- * \endlink for full documentation.
+ * libOggFLAC currently provides the same stream layer access as libFLAC;
+ * the interface is identical.  See the \link flac_decoder FLAC
+ * decoder module \endlink for full documentation.
  */
 
 /** \defgroup oggflac_stream_decoder OggFLAC/stream_decoder.h: stream decoder interface
@@ -55,8 +55,8 @@ extern "C" {
  *  This module contains the functions which implement the stream
  *  decoder.
  *
- * The interface here is identical to FLAC's stream decoder.  See the
- * defaults, including the callbacks.  See the \link flac_stream_decoder
+ * The interface here is identical to FLAC's stream decoder,
+ * including the callbacks.  See the \link flac_stream_decoder
  * FLAC stream decoder module \endlink for full documentation.
  *
  * \{
@@ -125,9 +125,55 @@ typedef struct {
 	struct OggFLAC__StreamDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } OggFLAC__StreamDecoder;
 
+/** Signature for the read callback.
+ *  See OggFLAC__stream_decoder_set_read_callback()
+ *  and FLAC__StreamDecoderReadCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  buffer   A pointer to a location for the callee to store
+ *                  data to be decoded.
+ * \param  bytes    A pointer to the size of the buffer.
+ * \param  client_data  The callee's client data set through
+ *                      OggFLAC__stream_decoder_set_client_data().
+ * \retval FLAC__StreamDecoderReadStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamDecoderReadStatus (*OggFLAC__StreamDecoderReadCallback)(const OggFLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+
+/** Signature for the write callback.
+ *  See OggFLAC__stream_decoder_set_write_callback()
+ *  and FLAC__StreamDecoderWriteCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  frame    The description of the decoded frame.
+ * \param  buffer   An array of pointers to decoded channels of data.
+ * \param  client_data  The callee's client data set through
+ *                      OggFLAC__stream_decoder_set_client_data().
+ * \retval FLAC__StreamDecoderWriteStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamDecoderWriteStatus (*OggFLAC__StreamDecoderWriteCallback)(const OggFLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+
+/** Signature for the metadata callback.
+ *  See OggFLAC__stream_decoder_set_metadata_callback()
+ *  and FLAC__StreamDecoderMetadataCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  metadata The decoded metadata block.
+ * \param  client_data  The callee's client data set through
+ *                      OggFLAC__stream_decoder_set_client_data().
+ */
 typedef void (*OggFLAC__StreamDecoderMetadataCallback)(const OggFLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+
+/** Signature for the error callback.
+ *  See OggFLAC__stream_decoder_set_error_callback()
+ *  and FLAC__StreamDecoderErrorCallback for more info.
+ *
+ * \param  decoder  The decoder instance calling the callback.
+ * \param  status   The error encountered by the decoder.
+ * \param  client_data  The callee's client data set through
+ *                      OggFLAC__stream_decoder_set_client_data().
+ */
 typedef void (*OggFLAC__StreamDecoderErrorCallback)(const OggFLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 
@@ -176,7 +222,7 @@ void OggFLAC__stream_decoder_delete(OggFLAC__StreamDecoder *decoder);
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_decoder_set_read_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderReadCallback);
+FLAC__bool OggFLAC__stream_decoder_set_read_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderReadCallback value);
 
 /** Set the write callback.
  * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_write_callback()
@@ -193,7 +239,7 @@ FLAC__bool OggFLAC__stream_decoder_set_read_callback(OggFLAC__StreamDecoder *dec
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_decoder_set_write_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderWriteCallback);
+FLAC__bool OggFLAC__stream_decoder_set_write_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderWriteCallback value);
 
 /** Set the metadata callback.
  * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_metadata_callback()
@@ -210,7 +256,7 @@ FLAC__bool OggFLAC__stream_decoder_set_write_callback(OggFLAC__StreamDecoder *de
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_decoder_set_metadata_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderMetadataCallback);
+FLAC__bool OggFLAC__stream_decoder_set_metadata_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderMetadataCallback value);
 
 /** Set the error callback.
  * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_error_callback()
@@ -227,7 +273,7 @@ FLAC__bool OggFLAC__stream_decoder_set_metadata_callback(OggFLAC__StreamDecoder 
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool OggFLAC__stream_decoder_set_error_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderErrorCallback);
+FLAC__bool OggFLAC__stream_decoder_set_error_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderErrorCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data
@@ -468,7 +514,7 @@ FLAC__bool OggFLAC__stream_decoder_reset(OggFLAC__StreamDecoder *decoder);
  *    \code OggFLAC__stream_decoder_get_state(decoder) == OggFLAC__STREAM_DECODER_OK \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
- *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
  *    in any case, check the decoder state with
  *    OggFLAC__stream_decoder_get_state() to see what went wrong or to
  *    check for lost synchronization (a sign of stream corruption).
@@ -485,7 +531,7 @@ FLAC__bool OggFLAC__stream_decoder_process_single(OggFLAC__StreamDecoder *decode
  *    \code OggFLAC__stream_decoder_get_state(decoder) == OggFLAC__STREAM_DECODER_OK \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
- *    \c OggFLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    \c OggFLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
  *    in any case, check the decoder state with
  *    OggFLAC__stream_decoder_get_state() to see what went wrong or to
  *    check for lost synchronization (a sign of stream corruption).
@@ -502,7 +548,7 @@ FLAC__bool OggFLAC__stream_decoder_process_until_end_of_metadata(OggFLAC__Stream
  *    \code OggFLAC__stream_decoder_get_state(decoder) == OggFLAC__STREAM_DECODER_OK \endcode
  * \retval FLAC__bool
  *    \c false if any read or write error occurred (except
- *    \c OggFLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c false;
+ *    \c OggFLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
  *    in any case, check the decoder state with
  *    OggFLAC__stream_decoder_get_state() to see what went wrong or to
  *    check for lost synchronization (a sign of stream corruption).

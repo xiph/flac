@@ -41,11 +41,11 @@ extern "C" {
  *  \ingroup oggflac
  *
  *  \brief
- *  This module describes the three encoder layers provided by libOggFLAC.
+ *  This module describes the encoder layers provided by libOggFLAC.
  *
- * libOggFLAC provides the same three layers of access as libFLAC and the
- * interface is identical.  See the \link flac_encoder FLAC encoder module
- * \endlink for full documentation.
+ * libOggFLAC currently provides the same stream layer access as libFLAC;
+ * the interface is nearly identical.  See the \link flac_encoder FLAC
+ * encoder module \endlink for full documentation.
  */
 
 /** \defgroup oggflac_stream_encoder OggFLAC/stream_encoder.h: stream encoder interface
@@ -55,8 +55,8 @@ extern "C" {
  *  This module contains the functions which implement the stream
  *  encoder.
  *
- * The interface here is identical to FLAC's stream encoder.  See the
- * defaults, including the callbacks.  See the \link flac_stream_encoder
+ * The interface here is nearly identical to FLAC's stream encoder,
+ * including the callbacks.  See the \link flac_stream_encoder
  * FLAC stream encoder module \endlink for full documentation.
  *
  * \{
@@ -122,7 +122,22 @@ typedef struct {
 	struct OggFLAC__StreamEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } OggFLAC__StreamEncoder;
 
-/*@@@@ document: */
+/** Signature for the write callback.
+ *  See OggFLAC__stream_encoder_set_write_callback()
+ *  and FLAC__StreamEncoderWriteCallback for more info.
+ *
+ * \param  encoder  The encoder instance calling the callback.
+ * \param  buffer   An array of encoded data of length \a bytes.
+ * \param  bytes    The byte length of \a buffer.
+ * \param  samples  The number of samples encoded by \a buffer.
+ *                  \c 0 has a special meaning; see
+ *                  OggFLAC__stream_encoder_set_write_callback().
+ * \param  current_frame  The number of current frame being encoded.
+ * \param  client_data  The callee's client data set through
+ *                      OggFLAC__stream_encoder_set_client_data().
+ * \retval FLAC__StreamEncoderWriteStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamEncoderWriteStatus (*OggFLAC__StreamEncoderWriteCallback)(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 
 
@@ -374,6 +389,8 @@ FLAC__bool OggFLAC__stream_encoder_set_total_samples_estimate(OggFLAC__StreamEnc
 FLAC__bool OggFLAC__stream_encoder_set_metadata(OggFLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
 /** Set the write callback.
+ *  This is inherited from FLAC__StreamEncoder; see
+ *  FLAC__stream_encoder_set_write_callback().
  *
  * \note
  * Unlike the FLAC stream encoder write callback, the Ogg stream
@@ -462,11 +479,11 @@ FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_state(const 
  * \param  got           The actual value returned by the decoder.
  * \assert
  *    \code encoder != NULL \endcode
- *    \code absolute_sample != NULL \encode
- *    \code frame_number != NULL \encode
- *    \code channel != NULL \encode
- *    \code sample != NULL \encode
- *    \code expected != NULL \encode
+ *    \code absolute_sample != NULL \endcode
+ *    \code frame_number != NULL \endcode
+ *    \code channel != NULL \endcode
+ *    \code sample != NULL \endcode
+ *    \code expected != NULL \endcode
  */
 void OggFLAC__stream_encoder_get_verify_decoder_error_stats(const OggFLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
 

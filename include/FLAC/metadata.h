@@ -1034,11 +1034,94 @@ FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *ob
  */
 FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object);
 
-/* @@@@ document */
+/** Append a number of placeholder points to the end of a seek table.
+ *
+ * \note
+ * As with the other ..._seektable_template_... functions, you should
+ * call FLAC__metadata_object_seektable_template_sort() when finished
+ * to make the seek table legal.
+ *
+ * \param object  A pointer to an existing SEEKTABLE object.
+ * \param num     The number of placeholder points to append.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ * \retval FLAC__bool
+ *    \c false if memory allocation fails, else \c true.
+ */
 FLAC__bool FLAC__metadata_object_seektable_template_append_placeholders(FLAC__StreamMetadata *object, unsigned num);
+
+/** Append a specific seek point template to the end of a seek table.
+ *
+ * \note
+ * As with the other ..._seektable_template_... functions, you should
+ * call FLAC__metadata_object_seektable_template_sort() when finished
+ * to make the seek table legal.
+ *
+ * \param object  A pointer to an existing SEEKTABLE object.
+ * \param sample_number  The sample number of the seek point template.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ * \retval FLAC__bool
+ *    \c false if memory allocation fails, else \c true.
+ */
 FLAC__bool FLAC__metadata_object_seektable_template_append_point(FLAC__StreamMetadata *object, FLAC__uint64 sample_number);
+
+/** Append specific seek point templates to the end of a seek table.
+ *
+ * \note
+ * As with the other ..._seektable_template_... functions, you should
+ * call FLAC__metadata_object_seektable_template_sort() when finished
+ * to make the seek table legal.
+ *
+ * \param object  A pointer to an existing SEEKTABLE object.
+ * \param sample_numbers  An array of sample numbers for the seek points.
+ * \param num     The number of seek point templates to append.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ * \retval FLAC__bool
+ *    \c false if memory allocation fails, else \c true.
+ */
 FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC__StreamMetadata *object, FLAC__uint64 sample_numbers[], unsigned num);
+
+/** Append a set of evenly-spaced seek point templates to the end of a
+ *  seek table.
+ *
+ * \note
+ * As with the other ..._seektable_template_... functions, you should
+ * call FLAC__metadata_object_seektable_template_sort() when finished
+ * to make the seek table legal.
+ *
+ * \param object  A pointer to an existing SEEKTABLE object.
+ * \param num     The number of placeholder points to append.
+ * \param total_samples  The total number of samples to be encoded;
+ *                       the seekpoints will be spaced approximately
+ *                       \a total_samples / \a num samples apart.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ * \retval FLAC__bool
+ *    \c false if memory allocation fails, else \c true.
+ */
 FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__StreamMetadata *object, unsigned num, FLAC__uint64 total_samples);
+
+/** Sort a seek table's seek points according to the format specification,
+ *  removing duplicates.
+ *
+ * \param object   A pointer to a seek table to be sorted.
+ * \param compact  If \c false, behaves like FLAC__format_seektable_sort().
+ *                 If \c true, duplicates are deleted and the seek table is
+ *                 shrunk appropriately; the number of placeholder points
+ *                 present in the seek table will be the same after the call
+ *                 as before.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ * \retval FLAC__bool
+ *    \c false if realloc fails, else \c true.
+ */
 FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *object, FLAC__bool compact);
 
 /** Sets the vendor string in a VORBIS_COMMENT block.

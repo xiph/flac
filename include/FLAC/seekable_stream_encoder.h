@@ -120,7 +120,6 @@ typedef enum {
  *  Using a FLAC__SeekableStreamEncoderState as the index to this array
  *  will give the string equivalent.  The contents should not be modified.
  */
-/* @@@@ double-check mapping */
 extern const char * const FLAC__SeekableStreamEncoderStateString[];
 
 
@@ -161,8 +160,35 @@ typedef struct {
 	struct FLAC__SeekableStreamEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__SeekableStreamEncoder;
 
-/*@@@ document: */
+/** Signature for the seek callback.
+ *  See FLAC__seekable_stream_encoder_set_seek_callback() for more info.
+ *
+ * \param  encoder  The encoder instance calling the callback.
+ * \param  absolute_byte_offset  The offset from the beginning of the stream
+ *                               to seek to.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_encoder_set_client_data().
+ * \retval FLAC__SeekableStreamEncoderSeekStatus
+ *    The callee's return status.
+ */
 typedef FLAC__SeekableStreamEncoderSeekStatus (*FLAC__SeekableStreamEncoderSeekCallback)(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+
+/** Signature for the write callback.
+ *  See FLAC__seekable_stream_encoder_set_write_callback()
+ *  and FLAC__StreamEncoderWriteCallback for more info.
+ *
+ * \param  encoder  The encoder instance calling the callback.
+ * \param  buffer   An array of encoded data of length \a bytes.
+ * \param  bytes    The byte length of \a buffer.
+ * \param  samples  The number of samples encoded by \a buffer.
+ *                  \c 0 has a special meaning; see
+ *                  FLAC__stream_encoder_set_write_callback().
+ * \param  current_frame  The number of current frame being encoded.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_encoder_set_client_data().
+ * \retval FLAC__StreamEncoderWriteStatus
+ *    The callee's return status.
+ */
 typedef FLAC__StreamEncoderWriteStatus (*FLAC__SeekableStreamEncoderWriteCallback)(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 
 
