@@ -92,16 +92,21 @@
 		<LI>
 			General:
 			<UL>
-				<LI>First official FLAC-&gt;Ogg bitstream mapping standardized (see new <A HREF="ogg_mapping.html">FLAC-to-Ogg mapping specification</A>)</LI>
 				<LI>Ogg FLAC seeking now works</LI>
-				<LI>New PPC optimizations almost double the decoding speed on OS X</LI>
+				<LI>New optimizations almost double the decoding speed on PowerPC (e.g. Mac G4/G5)</LI>
 				<LI>A native OS X release thanks to updated Project Builder and autotools files</LI>
 			</UL>
 		</LI>
 		<LI>
 			FLAC format:
 			<UL>
-				<LI>Made invalid the metadata block type 127 so that audio frames can always be distinguished from metadata by seeing 0xff as the first byte.</LI>
+				<LI>Made invalid the metadata block type 127 so that audio frames can always be distinguished from metadata by seeing 0xff as the first byte.  (This was also required for the Ogg FLAC mapping.)</LI>
+			</UL>
+		</LI>
+		<LI>
+			Ogg FLAC format:
+			<UL>
+				<LI>First official FLAC-&gt;Ogg bitstream mapping standardized (see new <A HREF="ogg_mapping.html">FLAC-to-Ogg mapping specification</A>)</LI>
 			</UL>
 		</LI>
 		<LI>
