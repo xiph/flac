@@ -1643,7 +1643,7 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 {
 	FLAC__StreamMetadata streaminfo;
 	float *title_gains = 0, *title_peaks = 0;
-	float album_gain = 0.0, album_peak = 0.0;
+	float album_gain, album_peak;
 	unsigned sample_rate = 0;
 	unsigned bits_per_sample = 0;
 	unsigned channels = 0;
@@ -1706,10 +1706,8 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 			free(title_peaks);
 			return false;
 		}
-		if(title_peaks[i] > album_peak)
-			album_peak = title_peaks[i];
 	}
-	album_gain = FLAC__replaygain_get_album_gain();
+	FLAC__replaygain_get_album(&album_gain, &album_peak);
 
 	for(i = 0; i < num_files; i++) {
 		if(0 != (error = FLAC__replaygain_store_to_file(filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i], preserve_modtime))) {
