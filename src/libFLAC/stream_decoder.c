@@ -921,13 +921,13 @@ FLAC__bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 		block.type = type;
 		block.length = length;
 
-		if(type == FLAC__METADATA_TYPE_APPLICATION && decoder->private_->metadata_filter_ids_count > 0) {
+		if(type == FLAC__METADATA_TYPE_APPLICATION) {
 			if(!FLAC__bitbuffer_read_byte_block_aligned(decoder->private_->input, block.data.application.id, FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
 
 			real_length -= FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8;
 
-			if(stream_decoder_has_id_filtered_(decoder, block.data.application.id))
+			if(decoder->private_->metadata_filter_ids_count > 0 && stream_decoder_has_id_filtered_(decoder, block.data.application.id))
 				skip_it = !skip_it;
 		}
 
