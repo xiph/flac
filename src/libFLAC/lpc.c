@@ -28,6 +28,8 @@
 #define M_LN2 0.69314718055994530942
 #endif
 
+#define LOCAL_FABS (x) ((x)<0.0? -(x):(x))
+
 void FLAC__lpc_compute_autocorrelation(const real data[], unsigned data_len, unsigned lag, real autoc[])
 {
 	/* a readable, but slower, version */
@@ -102,7 +104,7 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 
 		/* save this order */
 		for(j = 0; j <= i; j++)
-			lp_coeff[i][j] = -lpc[j]; /* negate to get FIR filter coeffs */
+			lp_coeff[i][j] = -lpc[j]; /* negate FIR filter coeff to get predictor coeff */
 		error[i] = err;
 	}
 }
@@ -127,7 +129,7 @@ int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsig
 	for(i = 0; i < order; i++) {
 		if(lp_coeff[i] == 0.0)
 			continue;
-		d = fabs(lp_coeff[i]);
+		d = LOCAL_FABS(lp_coeff[i]);
 		if(d > cmax)
 			cmax = d;
 	}
