@@ -17,6 +17,7 @@
  */
 
 #include "bitbuffer.h"
+#include "metadata.h"
 
 int main(int argc, char *argv[])
 {
@@ -24,5 +25,9 @@ int main(int argc, char *argv[])
 
 	if(0 != test_bitbuffer())
 		return 1;
+
+	if(0 != test_metadata())
+		return 1;
+
 	return 0;
 }

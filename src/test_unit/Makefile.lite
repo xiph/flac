@@ -24,7 +24,8 @@ INCLUDES     = -I../libFLAC/include -I../../include
 LIBS         = -lFLAC -lm
 OBJS = \
 	bitbuffer.o \
-	main.o
+	main.o \
+	metadata.o
 
 include ../../build/exe.mk
 
