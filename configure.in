@@ -30,8 +30,12 @@ chmod +x libtool-disable-static
 
 AC_PROG_MAKE_SET
 
+dnl check for getopt in standard library
+dnl AC_CHECK_FUNCS(getopt_long , , [LIBOBJS="$LIBOBJS getopt.o getopt1.o"] )
+AC_CHECK_FUNCS(getopt_long, [], [])
+
 AC_CANONICAL_HOST
-case $host_cpu in
+case "$host_cpu" in
 	i*86)	cpu_ia32=true ; AC_DEFINE(FLAC__CPU_IA32) ;;
 	powerpc)	cpu_ppc=true ; AC_DEFINE(FLAC__CPU_PPC) ;;
 	sparc)	cpu_sparc=true ; AC_DEFINE(FLAC__CPU_SPARC) ;;
@@ -99,6 +103,8 @@ fi
 AM_PATH_XMMS(0.9.5.1, , AC_MSG_WARN([*** XMMS >= 0.9.5.1 not installed - xmms support will not be built]))
 AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
 
+SHARE_LIBS='$(top_builddir)/src/share/libutf8.a $(top_builddir)/src/share/libgetopt.a'
+
 AC_CHECK_PROGS(NASM, nasm)
 AM_CONDITIONAL(FLaC__HAS_NASM, test -n "$NASM")
 if test -n "$NASM" ; then
@@ -155,8 +161,10 @@ AC_SUBST(FLaC__USIZE32)
 AC_SUBST(FLaC__SIZE64)
 AC_SUBST(FLaC__USIZE64)
 
+AC_SUBST(SHARE_LIBS)
+
 SAVE_CFLAGS="$CFLAGS"
-CFLAGS='-I$(top_builddir) -I$(srcdir)/include -I $(top_srcdir)/include -I$(top_builddir)/include/FLAC'
+CFLAGS='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
 if test x$debug = xtrue; then
 	CFLAGS="$CFLAGS -g -O0 -DDEBUG"
 else
@@ -177,11 +185,14 @@ AC_OUTPUT(	Makefile	\
 	src/flac/Makefile	\
 	src/metaflac/Makefile	\
 	src/plugin_xmms/Makefile	\
+	src/share/Makefile	\
 	src/test_streams/Makefile	\
 	src/test_unit/Makefile	\
 	include/Makefile \
 	include/FLAC/Makefile \
 	include/FLAC/ordinals.h \
+	include/FLAC++/Makefile \
+	include/share/Makefile \
 	doc/Makefile \
 	doc/images/Makefile \
 	doc/ru/Makefile \
