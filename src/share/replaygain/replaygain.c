@@ -19,12 +19,64 @@
 #include "share/replaygain.h"
 #include "share/gain_analysis.h"
 #include "FLAC/assert.h"
-#include "FLAC/format.h"
+#include "FLAC/file_decoder.h"
+#include "FLAC/metadata.h"
+#include <stdio.h>
+#include <string.h>
 
 #ifdef local_min
 #undef local_min
 #endif
 #define local_min(a,b) ((a)<(b)?(a):(b))
+
+static const FLAC__byte *tag_title_gain_ = "REPLAYGAIN_TRACK_GAIN";
+static const FLAC__byte *tag_title_peak_ = "REPLAYGAIN_TRACK_PEAK";
+static const FLAC__byte *tag_album_gain_ = "REPLAYGAIN_ALBUM_GAIN";
+static const FLAC__byte *tag_album_peak_ = "REPLAYGAIN_ALBUM_PEAK";
+static const char *peak_format_ = "%s=%1.8f";
+static const char *gain_format_ = "%s=%+2.2f dB";
+
+static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, const FLAC__byte *name, float value)
+{
+	char buffer[256];
+	FLAC__StreamMetadata_VorbisComment_Entry entry;
+
+	FLAC__ASSERT(0 != block);
+	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	FLAC__ASSERT(0 != name);
+	FLAC__ASSERT(0 != value);
+
+	buffer[sizeof(buffer)-1] = '\0';
+	snprintf(buffer, sizeof(buffer)-1, format, name, value);
+
+	entry.entry = buffer;
+	entry.length = strlen(buffer);
+
+	return FLAC__metadata_object_vorbiscomment_insert_comment(block, block->data.vorbis_comment.num_comments, entry, /*copy=*/true);
+}
+
+REPLAYGAIN_API FLAC__bool FLAC__replaygain_is_valid_sample_frequency(unsigned sample_frequency)
+{
+	static const unsigned valid_sample_rates[] = {
+		8000,
+		11025,
+		12000,
+		16000,
+		22050,
+		24000,
+		32000,
+		44100,
+		48000
+	};
+	static const unsigned n_valid_sample_rates = sizeof(valid_sample_rates) / sizeof(valid_sample_rates[0]);
+
+	unsigned i;
+
+	for(i = 0; i < n_valid_sample_rates; i++)
+		if(sample_frequency == valid_sample_rates[i])
+			return true;
+	return false;
+}
 
 REPLAYGAIN_API FLAC__bool FLAC__replaygain_init(unsigned sample_frequency)
 {
@@ -33,9 +85,10 @@ REPLAYGAIN_API FLAC__bool FLAC__replaygain_init(unsigned sample_frequency)
 
 REPLAYGAIN_API FLAC__bool FLAC__replaygain_analyze(const FLAC__int32 * const input[], FLAC__bool is_stereo, unsigned bps, unsigned samples)
 {
-	static Float_t lbuffer[4096], rbuffer[4096];
+	/* using a small buffer improves data locality; we'd like it to fit easily in the dcache */
+	static Float_t lbuffer[2048], rbuffer[2048];
 	static const unsigned nbuffer = sizeof(lbuffer) / sizeof(lbuffer[0]);
-	unsigned i;
+	unsigned i, j;
 
 	FLAC__ASSERT(bps >= 4 && bps <= 32);
 	FLAC__ASSERT(FLAC__MIN_BITS_PER_SAMPLE == 4);
@@ -43,11 +96,12 @@ REPLAYGAIN_API FLAC__bool FLAC__replaygain_analyze(const FLAC__int32 * const inp
 
 	if(bps == 16) {
 		if(is_stereo) {
+			j = 0;
 			while(samples > 0) {
 				const unsigned n = local_min(samples, nbuffer);
-				for(i = 0; i < n; i++) {
-					lbuffer[i] = (Float_t)input[0][i];
-					rbuffer[i] = (Float_t)input[1][i];
+				for(i = 0; i < n; i++, j++) {
+					lbuffer[i] = (Float_t)input[0][j];
+					rbuffer[i] = (Float_t)input[1][j];
 				}
 				samples -= n;
 				if(AnalyzeSamples(lbuffer, rbuffer, n, 2) != GAIN_ANALYSIS_OK)
@@ -55,10 +109,11 @@ REPLAYGAIN_API FLAC__bool FLAC__replaygain_analyze(const FLAC__int32 * const inp
 			}
 		}
 		else {
+			j = 0;
 			while(samples > 0) {
 				const unsigned n = local_min(samples, nbuffer);
-				for(i = 0; i < n; i++)
-					lbuffer[i] = (Float_t)input[0][i];
+				for(i = 0; i < n; i++, j++)
+					lbuffer[i] = (Float_t)input[0][j];
 				samples -= n;
 				if(AnalyzeSamples(lbuffer, 0, n, 1) != GAIN_ANALYSIS_OK)
 					return false;
@@ -73,11 +128,12 @@ REPLAYGAIN_API FLAC__bool FLAC__replaygain_analyze(const FLAC__int32 * const inp
 		);
 
 		if(is_stereo) {
+			j = 0;
 			while(samples > 0) {
 				const unsigned n = local_min(samples, nbuffer);
-				for(i = 0; i < n; i++) {
-					lbuffer[i] = (Float_t)(scale * (double)input[0][i]);
-					rbuffer[i] = (Float_t)(scale * (double)input[1][i]);
+				for(i = 0; i < n; i++, j++) {
+					lbuffer[i] = (Float_t)(scale * (double)input[0][j]);
+					rbuffer[i] = (Float_t)(scale * (double)input[1][j]);
 				}
 				samples -= n;
 				if(AnalyzeSamples(lbuffer, rbuffer, n, 2) != GAIN_ANALYSIS_OK)
@@ -85,10 +141,11 @@ REPLAYGAIN_API FLAC__bool FLAC__replaygain_analyze(const FLAC__int32 * const inp
 			}
 		}
 		else {
+			j = 0;
 			while(samples > 0) {
 				const unsigned n = local_min(samples, nbuffer);
-				for(i = 0; i < n; i++)
-					lbuffer[i] = (Float_t)(scale * (double)input[0][i]);
+				for(i = 0; i < n; i++, j++)
+					lbuffer[i] = (Float_t)(scale * (double)input[0][j]);
 				samples -= n;
 				if(AnalyzeSamples(lbuffer, 0, n, 1) != GAIN_ANALYSIS_OK)
 					return false;
@@ -101,10 +158,222 @@ REPLAYGAIN_API FLAC__bool FLAC__replaygain_analyze(const FLAC__int32 * const inp
 
 REPLAYGAIN_API float FLAC__replaygain_get_album_gain()
 {
-	return GetAlbumGain();
+	return (float)GetAlbumGain();
 }
 
 REPLAYGAIN_API float FLAC__replaygain_get_title_gain()
 {
-	return GetTitleGain();
+	return (float)GetTitleGain();
+}
+
+
+typedef struct {
+	unsigned channels;
+	unsigned bits_per_sample;
+	unsigned sample_rate;
+	FLAC__int32 peak;
+	FLAC__bool error;
+} DecoderInstance;
+
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+{
+	DecoderInstance *instance = (DecoderInstance*)client_data;
+	const unsigned bits_per_sample = frame->header.bits_per_sample;
+	const unsigned channels = frame->header.channels;
+	const unsigned sample_rate = frame->header.sample_rate;
+	const unsigned samples = frame->header.blocksize;
+	unsigned channel, sample;
+
+	(void)decoder;
+
+	if(
+		!instance->error &&
+		(channels == 2 || channels == 1) &&
+		bits_per_sample == instance->bits_per_sample &&
+		channels == instance->channels &&
+		sample_rate == instance->sample_rate
+	) {
+		for(channel = 0; channel < channels; channel++)
+			for(sample = 0; sample < samples; sample++)
+				if(instance->peak < buffer[channel][sample])
+					instance->peak = buffer[channel][sample];
+
+		instance->error = !FLAC__replaygain_analyze(buffer, channels==2, bits_per_sample, samples);
+	}
+	else {
+		instance->error = true;
+	}
+
+	if(!instance->error)
+		return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+	else
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+}
+
+static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+{
+	DecoderInstance *instance = (DecoderInstance*)client_data;
+
+	(void)decoder;
+
+	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+		instance->bits_per_sample = metadata->data.stream_info.bits_per_sample;
+		instance->channels = metadata->data.stream_info.channels;
+		instance->sample_rate = metadata->data.stream_info.sample_rate;
+
+		if(instance->channels != 1 && instance->channels != 2) {
+			instance->error = true;
+			return;
+		}
+
+		if(!FLAC__replaygain_is_valid_sample_frequency(instance->sample_rate)) {
+			instance->error = true;
+			return;
+		}
+	}
+}
+
+static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+{
+	DecoderInstance *instance = (DecoderInstance*)client_data;
+
+	(void)decoder, (void)status;
+
+	instance->error = true;
+}
+
+REPLAYGAIN_API const char *FLAC__replaygain_analyze_file(const char *filename, float *title_gain, float *title_peak)
+{
+	DecoderInstance instance;
+	FLAC__FileDecoder *decoder = FLAC__file_decoder_new();
+
+	if(0 == decoder)
+		return "memory allocation error";
+
+	instance.peak = 0;
+	instance.error = false;
+
+	/* It does these three by default but lets be explicit: */
+	FLAC__file_decoder_set_md5_checking(decoder, false);
+	FLAC__file_decoder_set_metadata_ignore_all(decoder);
+	FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_STREAMINFO);
+
+	FLAC__file_decoder_set_filename(decoder, filename);
+	FLAC__file_decoder_set_write_callback(decoder, write_callback_);
+	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback_);
+	FLAC__file_decoder_set_error_callback(decoder, error_callback_);
+	FLAC__file_decoder_set_client_data(decoder, &instance);
+
+	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK) {
+		FLAC__file_decoder_delete(decoder);
+		return "initializing decoder";
+	}
+
+	if(!FLAC__file_decoder_process_until_end_of_file(decoder) || instance.error) {
+		FLAC__file_decoder_delete(decoder);
+		return "decoding file";
+	}
+
+	FLAC__file_decoder_delete(decoder);
+
+	*title_gain = FLAC__replaygain_get_title_gain();
+	*title_peak = (double)instance.peak / (double)(1u << (instance.bits_per_sample-1));
+
+	return 0;
+}
+
+REPLAYGAIN_API const char *FLAC__replaygain_store_to_vorbiscomment(FLAC__StreamMetadata *block, float album_gain, float album_peak, float title_gain, float title_peak)
+{
+	FLAC__ASSERT(0 != block);
+	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+	if(
+		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, tag_title_gain_) < 0 ||
+		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, tag_title_peak_) < 0 ||
+		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, tag_album_gain_) < 0 ||
+		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, tag_album_peak_) < 0
+	)
+		return "memory allocation error";
+
+	if(
+		!append_tag_(block, peak_format_, tag_title_peak_, title_peak) ||
+		!append_tag_(block, gain_format_, tag_title_gain_, title_gain) ||
+		!append_tag_(block, peak_format_, tag_album_peak_, album_peak) ||
+		!append_tag_(block, gain_format_, tag_album_gain_, album_gain)
+	)
+		return "memory allocation error";
+
+	return 0;
+}
+
+REPLAYGAIN_API const char *FLAC__replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak, FLAC__bool preserve_modtime)
+{
+	FLAC__Metadata_Chain *chain;
+	FLAC__Metadata_Iterator *iterator;
+	FLAC__StreamMetadata *block;
+	const char *error;
+	FLAC__bool found_vc_block = false;
+
+	if(0 == (chain = FLAC__metadata_chain_new()))
+		return "memory allocation error";
+
+	if(!FLAC__metadata_chain_read(chain, filename)) {
+		error = FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)];
+		FLAC__metadata_chain_delete(chain);
+		return error;
+	}
+
+	if(0 == (iterator = FLAC__metadata_iterator_new())) {
+		FLAC__metadata_chain_delete(chain);
+		return "memory allocation error";
+	}
+
+	FLAC__metadata_iterator_init(iterator, chain);
+
+	do {
+		block = FLAC__metadata_iterator_get_block(iterator);
+		if(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT)
+			found_vc_block = true;
+	} while(!found_vc_block && FLAC__metadata_iterator_next(iterator));
+
+	if(!found_vc_block) {
+		/* create a new block */
+		block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
+		if(0 == block) {
+			FLAC__metadata_chain_delete(chain);
+			FLAC__metadata_iterator_delete(iterator);
+			return "memory allocation error";
+		}
+		while(FLAC__metadata_iterator_next(iterator))
+			;
+		if(!FLAC__metadata_iterator_insert_block_after(iterator, block)) {
+			error = FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)];
+			FLAC__metadata_chain_delete(chain);
+			FLAC__metadata_iterator_delete(iterator);
+			return error;
+		}
+		/* iterator is left pointing to new block */
+		FLAC__ASSERT(FLAC__metadata_iterator_get_block(iterator) == block);
+	}
+
+	FLAC__metadata_iterator_delete(iterator);
+
+	FLAC__ASSERT(0 != block);
+	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+	if(0 != (error = FLAC__replaygain_store_to_vorbiscomment(block, album_gain, album_peak, title_gain, title_peak))) {
+		FLAC__metadata_chain_delete(chain);
+		FLAC__metadata_iterator_delete(iterator);
+		return error;
+	}
+
+	FLAC__metadata_chain_sort_padding(chain);
+	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, preserve_modtime)) {
+		FLAC__metadata_chain_delete(chain);
+		return FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)];
+	}
+
+	FLAC__metadata_chain_delete(chain);
+
+	return 0;
 }

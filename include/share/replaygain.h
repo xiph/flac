@@ -41,11 +41,13 @@
 #endif
 #endif
 
-#include "FLAC/ordinals.h"
+#include "FLAC/metadata.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+REPLAYGAIN_API FLAC__bool FLAC__replaygain_is_valid_sample_frequency(unsigned sample_frequency);
 
 REPLAYGAIN_API FLAC__bool FLAC__replaygain_init(unsigned sample_frequency);
 
@@ -54,6 +56,11 @@ REPLAYGAIN_API FLAC__bool FLAC__replaygain_analyze(const FLAC__int32 * const inp
 
 REPLAYGAIN_API float FLAC__replaygain_get_album_gain();
 REPLAYGAIN_API float FLAC__replaygain_get_title_gain();
+
+/* These three functions return an error string on error, or NULL if successful */
+REPLAYGAIN_API const char *FLAC__replaygain_analyze_file(const char *filename, float *title_gain, float *title_peak);
+REPLAYGAIN_API const char *FLAC__replaygain_store_to_vorbiscomment(FLAC__StreamMetadata *block, float album_gain, float album_peak, float title_gain, float title_peak);
+REPLAYGAIN_API const char *FLAC__replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak, FLAC__bool preserve_modtime);
 
 #ifdef __cplusplus
 }
