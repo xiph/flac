@@ -127,7 +127,7 @@ int usage(const char *message, ...)
 
 bool list(FILE *f, bool verbose)
 {
-	static byte buf[65536], *b;
+	byte buf[65536], *b;
 	FLAC__StreamMetaData metadata;
 	unsigned blocknum = 0, byte_offset = 0, i;
 
