@@ -61,9 +61,9 @@ static int  FLAC_XMMS__get_time();
 static void FLAC_XMMS__cleanup();
 static void FLAC_XMMS__get_song_info(char *filename, char **title, int *length);
 
+static bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
 static void *play_loop_(void *arg);
 static bool decoder_init_(const char *filename);
-static bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
 static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
 static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
@@ -240,6 +240,52 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
  * local routines
  **********************************************************************/
 
+bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
+{
+	const char *temp;
+	FILE *f = fopen(filename, "rb");
+	memset(tag, 0, sizeof(id3v1_struct));
+
+	/* set the title and description to the filename by default */
+	temp = strrchr(filename, '/');
+	if(!temp)
+		temp = filename;
+	else
+		temp++;
+	strcpy(tag->description, temp);
+	*strrchr(tag->description, '.') = '\0';
+	strncpy(tag->title, tag->description, 30); tag->title[30] = '\0';
+
+	if(0 == f)
+		return false;
+	if(-1 == fseek(f, -128, SEEK_END)) {
+		fclose(f);
+		return false;
+	}
+	if(fread(tag->raw, 1, 128, f) < 128) {
+		fclose(f);
+		return false;
+	}
+	fclose(f);
+	if(strncmp(tag->raw, "TAG", 3))
+		return false;
+	else {
+		char year_str[5];
+
+		memcpy(tag->title, tag->raw+3, 30);
+		memcpy(tag->artist, tag->raw+33, 30);
+		memcpy(tag->album, tag->raw+63, 30);
+		memcpy(year_str, tag->raw+93, 4); year_str[4] = '\0'; tag->year = atoi(year_str);
+		memcpy(tag->comment, tag->raw+97, 30);
+		tag->genre = (unsigned)((byte)tag->raw[127]);
+		tag->track = (unsigned)((byte)tag->raw[126]);
+
+		sprintf(tag->description, "%s - %s", tag->artist, tag->title);
+
+		return true;
+	}
+}
+
 #ifndef RESERVOIR_TEST
 void *play_loop_(void *arg)
 {
@@ -294,7 +340,7 @@ void *play_loop_(void *arg)
 
 	while(file_info_.is_playing) {
 		if(!file_info_.eof) {
-			while(samples_in_reservoir < 576) {
+			while(reservoir_samples_ < 576) {
 				if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE) {
 					file_info_.eof = true;
 					break;
@@ -303,9 +349,9 @@ void *play_loop_(void *arg)
 					break;
 			}
 			if(reservoir_samples_ > 0) {
-				unsigned i, n = min(samples_in_reservoir, 576), delta;
-				unsigned bytes = reservoir_samples_ * ((file_info_.bits_per_sample+7)/8) * file_info_.channels;
 				const unsigned channels = file_info_.channels;
+				unsigned i, n = min(reservoir_samples_, 576), delta;
+				unsigned bytes = n * ((file_info_.bits_per_sample+7)/8) * channels;
 
 				for(i = 0; i < n*channels; i++)
 					output_[i] = reservoir_[i];
@@ -367,51 +413,6 @@ bool decoder_init_(const char *filename)
 		return false;
 
 	return true;
-}
-
-bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
-{
-	const char *temp;
-	FILE *f = fopen(filename, "rb");
-	memset(tag, 0, sizeof(id3v1_struct));
-
-	/* set the description to the filename by default */
-	temp = strrchr(filename, '/');
-	if(!temp)
-		temp = filename;
-	else
-		temp++;
-	strcpy(tag->description, temp);
-	*strrchr(tag->description, '.') = '\0';
-
-	if(0 == f)
-		return false;
-	if(-1 == fseek(f, -128, SEEK_END)) {
-		fclose(f);
-		return false;
-	}
-	if(fread(tag->raw, 1, 128, f) < 128) {
-		fclose(f);
-		return false;
-	}
-	fclose(f);
-	if(strncmp(tag->raw, "TAG", 3))
-		return false;
-	else {
-		char year_str[5];
-
-		memcpy(tag->title, tag->raw+3, 30);
-		memcpy(tag->artist, tag->raw+33, 30);
-		memcpy(tag->album, tag->raw+63, 30);
-		memcpy(year_str, tag->raw+93, 4); year_str[4] = '\0'; tag->year = atoi(year_str);
-		memcpy(tag->comment, tag->raw+97, 30);
-		tag->genre = (unsigned)((byte)tag->raw[127]);
-		tag->track = (unsigned)((byte)tag->raw[126]);
-
-		sprintf(tag->description, "%s - %s", tag->artist, tag->title);
-
-		return true;
-	}
 }
 
 #ifndef RESERVOIR_TEST
