@@ -20,9 +20,9 @@
 
 %ifdef WIN32
 	%define FLAC__PUBLIC_NEEDS_UNDERSCORE
-	%idefine code_section section .text align=16 class=CODE use32
-	%idefine data_section section .data align=16 class=DATA use32
-	%idefine bss_section  section .bss  align=16 class=DATA use32
+	%idefine code_section section .text align=32 class=CODE use32
+	%idefine data_section section .data align=32 class=DATA use32
+	%idefine bss_section  section .bss  align=32 class=DATA use32
 %elifdef AOUT
 	%define FLAC__PUBLIC_NEEDS_UNDERSCORE
 	%idefine code_section section .text
@@ -38,14 +38,16 @@
 
 %imacro cglobal 1
 	%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
-		%define %1 _%1
+		global _%1
+	%else
+		global %1
 	%endif
-	global %1
 %endmacro
 
 %imacro cextern 1
 	%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
-		%define %1 _%1
+		extern _%1
+	%else
+		extern %1
 	%endif
-	extern %1
 %endmacro
