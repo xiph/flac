@@ -83,7 +83,7 @@ int test_bitbuffer()
 		return 1;
 	FLAC__bitbuffer_dump(bb_one, stdout);
 
-	//@@@printf("capacity = %u\n", bb->capacity);
+	printf("capacity = %u\n", bb->capacity);
 
 	printf("testing zeroes, raw_uint32*... ");
 	ok =
