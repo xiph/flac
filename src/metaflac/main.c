@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 
 	if(list_mode) {
 		for(first_file = i; i < argc; i++) {
-			FILE *f = fopen(argv[i], "r");
+			FILE *f = fopen(argv[i], "rb");
 
 			if(0 == f) {
 				fprintf(stderr, "ERROR opening %s\n", argv[i]);
