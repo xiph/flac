@@ -76,7 +76,7 @@
 			FLAC is patent free.  The FLAC format or encoding/decoding methods are not covered by any patents.
 		</LI></P>
 		<P><LI>
-			FLAC is lossless.  The encoding of PCM data incurs no loss of information, and the decoded audio is bit-for-bit identical to what went into the encoder.
+			FLAC is lossless.  The encoding of PCM data incurs no loss of information, and the decoded audio is bit-for-bit identical to what went into the encoder.  The integrity of the audio data is further insured by storing an <A HREF="http://userpages.umbc.edu/~mabzug1/cs/md5/md5.html">MD5 signature</A> of the original unencoded audio data in the file header, which can be compared against later during decoding or testing.
 		</LI></P>
 		<P><LI>
 			FLAC is designed to compress audio data.  Technically, <B><TT>flac</TT></B> can "compress" other kinds of data losslessly (if you pass it in as a mono 8-bit raw file), but the output files tend to be bigger.
@@ -91,7 +91,7 @@
 			FLAC is asymmetric in favor of decode speed.  Decoding requires only integer arithmetic, and is much less compute-intensive than for most perceptual codecs.  Real-time decode performance is easily achievable on even modest hardare.
 		</LI></P>
 		<P><LI>
-			FLAC is suitable for archiving, since there is no information loss.  You are not locked into the format since there is no generation loss if you decide to convert your data to another format in the future.  In addition, <B><TT>flac</TT></B> has a verify option that decodes the encoded stream in parallel with the encoding process and compares the result to the original, aborting with an error if there is a mismatch.
+			FLAC is suitable for archiving, since there is no information loss.  You are not locked into the format since there is no generation loss if you decide to convert your data to another format in the future.  In addition to the MD5 signatures, <B><TT>flac</TT></B> has a verify option that decodes the encoded stream in parallel with the encoding process and compares the result to the original, aborting with an error if there is a mismatch.
 		</LI></P>
 		<P><LI>
 			FLAC is suitable for streaming.  Each FLAC frame contains enough data to decode that frame.  FLAC does not even rely on previous or following frames.  FLAC uses sync codes and CRCs (similar to MPEG and other formats), which, along with framing, allow decoders to pick up in the middle of a stream with a minimum of delay.
