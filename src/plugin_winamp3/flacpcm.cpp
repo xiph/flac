@@ -48,7 +48,7 @@
 
 #include "flacpcm.h"
 extern "C" {
-#include "FLAC/utility.h"
+#include "FLAC/metadata.h"
 };
 
 
@@ -89,7 +89,7 @@ int FlacPcm::getInfos(MediaInfo *infos)
 	if(!reader) return 0;
 
 	//@@@ to be really "clean" we should go through the reader instead of directly to the file...
-	if(!FLAC__utility_get_streaminfo(infos->getFilename(), &stream_info))
+	if(!FLAC__metadata_get_streaminfo(infos->getFilename(), &stream_info))
 		return 1;
 
 	id3v1_struct tag;
