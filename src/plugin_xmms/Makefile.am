@@ -20,13 +20,11 @@
 #
 
 EXTRA_DIST = \
-	Makefile.lite \
-	id3_tag.c
+	Makefile.lite
 
 noinst_HEADERS = \
 	charset.h \
 	configure.h \
-	id3_tag.h \
 	wrap_id3.h
 
 INCLUDES = ./include
@@ -39,7 +37,7 @@ LIBTOOL = $(top_builddir)/libtool-disable-static
 
 xmmsinputplugin_LTLIBRARIES = libxmms-flac.la
 
-plugin_sources = configure.c charset.c plugin.c wrap_id3.c
+plugin_sources = charset.c configure.c plugin.c wrap_id3.c
 
 if FLaC__HAS_ID3LIB
 libxmms_flac_la_SOURCES = $(plugin_sources)
