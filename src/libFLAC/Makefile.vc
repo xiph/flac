@@ -22,10 +22,10 @@ NASM=nasmw
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /D FLAC__OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /D NO_VFORK /D FLAC__OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /D NO_VFORK /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
@@ -60,7 +60,7 @@ ordinals: ../../include/FLAC/ordinals.h
 	sed -e 's/@FLaC__SIZE16@/short/g' -e 's/@FLaC__SIZE32@/int/g' -e 's/@FLaC__SIZE64@/long long/g' -e 's/@FLaC__USIZE16@/unsigned short/g' -e 's/@FLaC__USIZE32@/unsigned int/g' -e 's/@FLaC__USIZE64@/unsigned long long/g' ../../include/FLAC/ordinals.h.in > ../../include/FLAC/ordinals.h
 
 libFLAC.lib: $(OBJS)
-	link.exe -lib -out:../../obj/lib/$*.lib $(OBJS)
+	link.exe -lib /nodefaultlib -out:../../obj/lib/$*.lib $(OBJS)
 
 ia32/cpu_asm.obj: ia32/cpu_asm.nasm
 	$(NASM) -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj
