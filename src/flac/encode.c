@@ -1351,8 +1351,9 @@ FLAC__bool convert_to_seek_table_template(char *requested_seek_points, int num_r
 			fprintf(stderr, "%s: WARNING, cannot write back seektable when encoding to Ogg\n", e->inbasefilename);
 		}
 #endif
-		else
+		else {
 			FLAC__ASSERT(0);
+		}
 	}
 
 	return true;
