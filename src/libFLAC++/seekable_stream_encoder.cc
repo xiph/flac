@@ -244,6 +244,12 @@ namespace FLAC {
 			return ::FLAC__seekable_stream_encoder_get_rice_parameter_search_dist(encoder_);
 		}
 
+		FLAC__uint64 SeekableStream::get_total_samples_estimate() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__seekable_stream_encoder_get_total_samples_estimate(encoder_);
+		}
+
 		SeekableStream::State SeekableStream::init()
 		{
 			FLAC__ASSERT(is_valid());

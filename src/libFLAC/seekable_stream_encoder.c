@@ -552,6 +552,13 @@ unsigned FLAC__seekable_stream_encoder_get_rice_parameter_search_dist(const FLAC
 	return FLAC__stream_encoder_get_rice_parameter_search_dist(encoder->private_->stream_encoder);
 }
 
+FLAC__uint64 FLAC__seekable_stream_encoder_get_total_samples_estimate(const FLAC__SeekableStreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	return FLAC__stream_encoder_get_total_samples_estimate(encoder->private_->stream_encoder);
+}
+
 FLAC__bool FLAC__seekable_stream_encoder_process(FLAC__SeekableStreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples)
 {
 	FLAC__ASSERT(0 != encoder);

@@ -238,6 +238,12 @@ namespace FLAC {
 			return ::FLAC__stream_encoder_get_rice_parameter_search_dist(encoder_);
 		}
 
+		FLAC__uint64 Stream::get_total_samples_estimate() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_get_total_samples_estimate(encoder_);
+		}
+
 		Stream::State Stream::init()
 		{
 			FLAC__ASSERT(is_valid());

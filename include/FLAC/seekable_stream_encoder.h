@@ -547,7 +547,7 @@ FLAC__bool FLAC__seekable_stream_encoder_get_loose_mid_side_stereo(const FLAC__S
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_channels().
  */
 unsigned FLAC__seekable_stream_encoder_get_channels(const FLAC__SeekableStreamEncoder *encoder);
@@ -559,7 +559,7 @@ unsigned FLAC__seekable_stream_encoder_get_channels(const FLAC__SeekableStreamEn
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_bits_per_sample().
  */
 unsigned FLAC__seekable_stream_encoder_get_bits_per_sample(const FLAC__SeekableStreamEncoder *encoder);
@@ -571,7 +571,7 @@ unsigned FLAC__seekable_stream_encoder_get_bits_per_sample(const FLAC__SeekableS
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_sample_rate().
  */
 unsigned FLAC__seekable_stream_encoder_get_sample_rate(const FLAC__SeekableStreamEncoder *encoder);
@@ -583,7 +583,7 @@ unsigned FLAC__seekable_stream_encoder_get_sample_rate(const FLAC__SeekableStrea
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_blocksize().
  */
 unsigned FLAC__seekable_stream_encoder_get_blocksize(const FLAC__SeekableStreamEncoder *encoder);
@@ -595,7 +595,7 @@ unsigned FLAC__seekable_stream_encoder_get_blocksize(const FLAC__SeekableStreamE
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_max_lpc_order().
  */
 unsigned FLAC__seekable_stream_encoder_get_max_lpc_order(const FLAC__SeekableStreamEncoder *encoder);
@@ -607,7 +607,7 @@ unsigned FLAC__seekable_stream_encoder_get_max_lpc_order(const FLAC__SeekableStr
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_qlp_coeff_precision().
  */
 unsigned FLAC__seekable_stream_encoder_get_qlp_coeff_precision(const FLAC__SeekableStreamEncoder *encoder);
@@ -655,7 +655,7 @@ FLAC__bool FLAC__seekable_stream_encoder_get_do_exhaustive_model_search(const FL
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_min_residual_partition_order().
  */
 unsigned FLAC__seekable_stream_encoder_get_min_residual_partition_order(const FLAC__SeekableStreamEncoder *encoder);
@@ -667,7 +667,7 @@ unsigned FLAC__seekable_stream_encoder_get_min_residual_partition_order(const FL
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_max_residual_partition_order().
  */
 unsigned FLAC__seekable_stream_encoder_get_max_residual_partition_order(const FLAC__SeekableStreamEncoder *encoder);
@@ -679,10 +679,22 @@ unsigned FLAC__seekable_stream_encoder_get_max_residual_partition_order(const FL
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__bool
+ * \retval unsigned
  *    See FLAC__seekable_stream_encoder_set_rice_parameter_search_dist().
  */
 unsigned FLAC__seekable_stream_encoder_get_rice_parameter_search_dist(const FLAC__SeekableStreamEncoder *encoder);
+
+/** Get the previously set estimate of the total samples to be encoded.
+ *  This is inherited from FLAC__StreamEncoder; see
+ *  FLAC__stream_encoder_get_total_samples_estimate().
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__uint64
+ *    See FLAC__seekable_stream_encoder_set_total_samples_estimate().
+ */
+FLAC__uint64 FLAC__seekable_stream_encoder_get_total_samples_estimate(const FLAC__SeekableStreamEncoder *encoder);
 
 /** Initialize the encoder instance.
  *  Should be called after FLAC__seekable_stream_encoder_new() and

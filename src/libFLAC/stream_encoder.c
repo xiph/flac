@@ -791,6 +791,12 @@ unsigned FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC__StreamE
 	return encoder->protected_->rice_parameter_search_dist;
 }
 
+FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC__StreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	return encoder->protected_->total_samples_estimate;
+}
+
 FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples)
 {
 	unsigned i, j, channel;
