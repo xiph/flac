@@ -311,6 +311,12 @@ if test -n "$DOXYGEN" ; then
 AC_DEFINE(FLAC__HAS_DOXYGEN)
 fi
 
+AC_CHECK_PROGS(DOCBOOK_TO_MAN, docbook-to-man docbook2man)
+AM_CONDITIONAL(FLaC__HAS_DOCBOOK_TO_MAN, test -n "$DOCBOOK_TO_MAN")
+if test -n "$DOCBOOK_TO_MAN" ; then
+AC_DEFINE(FLAC__HAS_DOCBOOK_TO_MAN)
+fi
+
 AC_CHECK_PROGS(NASM, nasm)
 AM_CONDITIONAL(FLaC__HAS_NASM, test -n "$NASM")
 if test -n "$NASM" ; then
@@ -337,6 +343,7 @@ AH_TEMPLATE(FLAC__CPU_SPARC,  [define if building for SPARC])
 AH_TEMPLATE(FLAC__EXHAUSTIVE_TESTS,  [define to run even more tests])
 AH_TEMPLATE(FLAC__VALGRIND_TESTING,  [define to enable use of Valgrind in testers])
 AH_TEMPLATE(FLAC__HAS_DOXYGEN,  [define if you have Doxygen])
+AH_TEMPLATE(FLAC__HAS_DOCBOOK_TO_MAN,  [define if you have docbook-to-man or docbook2man])
 AH_TEMPLATE(FLAC__HAS_ID3LIB,  [define if you have the id3lib library])
 AH_TEMPLATE(FLAC__HAS_NASM,  [define if you have the NASM assembler])
 AH_TEMPLATE(FLAC__HAS_OGG,  [define if you have the ogg library])
