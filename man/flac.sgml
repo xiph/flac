@@ -1,0 +1,450 @@
+<!doctype refentry PUBLIC "-//Davenport//DTD DocBook V3.0//EN" [
+
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "<firstname>Matt</firstname>">
+  <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
+  <!-- Please adjust the date whenever revising the manpage. -->
+  <!ENTITY dhdate      "<date>January 29, 2001</date>">
+  <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
+       allowed: see man(7), man(1). -->
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhemail     "<email>mdz@debian.org</email>">
+  <!ENTITY dhusername  "Matt Zimmerman">
+  <!ENTITY dhucpackage "<refentrytitle>FLAC</refentrytitle>">
+  <!ENTITY dhpackage   "flac">
+
+  <!ENTITY debian      "<productname>Debian GNU/Linux</productname>">
+  <!ENTITY gnu         "<acronym>GNU</acronym>">
+]>
+
+<refentry>
+  <docinfo>
+    <address>
+	&dhemail;
+    </address>
+    <author>
+	&dhfirstname;
+	&dhsurname;
+      </author>
+	<copyright>
+		    <year>2000</year>
+		    <holder>&dhusername;</holder>
+	</copyright>
+	    &dhdate;
+	</docinfo>
+  <refmeta>
+      &dhucpackage;
+
+      &dhsection;
+    </refmeta>
+      <refnamediv>
+		   <refname>&dhpackage;</refname>
+
+	<refpurpose>Free Lossless Audio Coder</refpurpose>
+      </refnamediv>
+	<refsynopsisdiv>
+	  <cmdsynopsis>
+	    <command>flac</command>
+
+	    <arg><option><replaceable>OPTION</replaceable></option></arg>
+	    <arg choice=plain><replaceable>infile</replaceable></arg>
+	    <arg choice=plain><replaceable>outfile</replaceable></arg>
+	  </cmdsynopsis>
+	</refsynopsisdiv>
+	<refsect1>
+	  <title>DESCRIPTION</title>
+
+	  <para>This manual page documents briefly the
+	    <command>flac</command> command.</para>
+
+	  <para>This manual page was written for the &debian;
+	    distribution because the original program does not have a
+	    manual page.  Instead, it has documentation in HTML
+	    format; see below.</para>
+
+	</refsect1>
+	<refsect1>
+	  <title>OPTIONS</title>
+
+	  <para>A summary of options is included below.  For a complete
+	  description, see the HTML documentation.</para>
+
+	  <refsect2>
+	    <title>Generic Options</title>
+
+	    <variablelist>
+	      <varlistentry>
+		<term><option>-d</option>
+		</term>
+		<listitem>
+		  <para>Decode (default behavior is encode)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-t</option>
+		</term>
+		<listitem>
+		  <para>Test a flac encoded file (same as -d
+		    except no decoded file is written)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-a</option>
+		</term>
+		<listitem>
+		  <para>Analyze a flac encoded file (same as -d
+		    except an analysis file is written)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-s</option>
+		</term>
+		<listitem>
+		  <para>Silent mode (do not write runtime
+		    encode/decode statistics to stdout)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>--skip</option> <replaceable>samples</replaceable></term>
+		<listitem>
+		  <para>Skip the specified number of samples at the
+		    beginning of the input file (can be used for both
+		    encoding and decoding)</para>
+		</listitem>
+	      </varlistentry>
+
+	    </variablelist>
+	  </refsect2>
+
+	  <refsect2>
+	    <title>Encoding Options</title>
+
+	    <variablelist>
+	      <varlistentry>
+		<term><option>--lax</option></term>
+
+		<listitem>
+		  <para>Allow encoder to generate non-Subset
+		    files</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-b</option> <replaceable>blocksize</replaceable></term>
+
+		<listitem>
+		  <para>Default is 1152 for -l 0, else 4608; should
+		    be 192/576/1152/2304/4608 (unless --lax is
+		    used)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-m</option></term>
+
+		<listitem>
+		  <para>Try mid-side coding for each frame (stereo
+		    input only)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-m</option></term>
+
+		<listitem>
+		  <para>Loose mid-side coding for all frames (stereo
+		    input only)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-0</option>..<option>-9</option></term>
+
+		<listitem>
+		  <para>Fastest compression..highest compression
+		    (default is -6).  These are synonyms for other
+		    options:</para>
+
+		  <variablelist>
+		    <varlistentry>
+		      <term><option>-0</option></term>
+		      
+		      <listitem>
+			<para>Synonymous with -l 0</para>
+		      </listitem>
+		    </varlistentry>
+		    
+		    <varlistentry>
+		      <term><option>-1</option></term>
+		      
+		      <listitem>
+			<para>Synonymous with -l 0 -M</para>
+		      </listitem>
+		    </varlistentry>
+		    
+		    <varlistentry>
+		      <term><option>-2</option></term>
+		      
+		      <listitem>
+			<para>Synonymous with -l 0 -m -r # (# is
+			  automatically determined by the block
+			  size)</para>
+		      </listitem>
+		    </varlistentry>
+
+		    <varlistentry>
+		      <term><option>-3</option></term>
+		      
+		      <listitem>
+			<para>Reserved</para>
+		      </listitem>
+		    </varlistentry>
+
+		    <varlistentry>
+		      <term><option>-4</option></term>
+		      
+		      <listitem>
+			<para>Synonymous with -l 8</para>
+		      </listitem>
+		    </varlistentry>
+		    
+		    <varlistentry>
+		      <term><option>-5</option></term>
+		      
+		      <listitem>
+			<para>Synonymous with -l 8 -M</para>
+		      </listitem>
+		    </varlistentry>
+
+		    <varlistentry>
+		      <term><option>-6</option></term>
+		      
+		      <listitem>
+			<para>Synonymous with -l 8 -m -r # (# is
+			  automatically determined by the block
+			  size)</para>
+		      </listitem>
+		    </varlistentry>
+		    
+		    <varlistentry>
+		      <term><option>-7</option></term>
+		      
+		      <listitem>
+			<para>Reserved</para>
+		      </listitem>
+		    </varlistentry>
+		    
+		    <varlistentry>
+		      <term><option>-8</option></term>
+		      
+		      <listitem>
+			<para>Synonymous with -l 32 -m -r # (# is
+			  automatically determined by the block
+			  size)</para>
+		      </listitem>
+		    </varlistentry>
+		    
+		    <varlistentry>
+		      <term><option>-9</option></term>
+		      
+		      <listitem>
+			<para>Synonymous with -l 32 -m -e -r 99 -p
+			  (very slow!)</para>
+		      </listitem>
+		    </varlistentry>
+		  </variablelist>
+		  
+		</listitem>
+
+
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-e</option></term>
+
+		<listitem>
+		  <para>Do exhaustive model search
+		    (expensive!)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-l</option> <replaceable>max_lpc_order</replaceable></term>
+
+		<listitem>
+		  <para>0 => use only fixed predictors</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-p</option></term>
+
+		<listitem>
+		  <para>Do exhaustive search of LP coefficient
+		    quantization (expensive!).  Overrides -q</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-q</option> <replaceable>bits</replaceable></term>
+
+		<listitem>
+		  <para>Precision of the quantized linear-predictor
+		    coefficients, 0 => let encoder decide (min is 5,
+		    default is 0)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-r</option> <replaceable>level</replaceable></term>
+
+		<listitem>
+		  <para>Rice parameter optimization level (0..99). 0
+		    => none, default is 0, above 4 doesn't usually
+		    help much)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-V</option></term>
+
+		<listitem>
+		  <para>Verify a correct encoding by decoding the
+		    output in parallel and comparing to the
+		    original</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-p-</option> <option>-V-</option> <option>--lax-</option>
+		</term>
+
+		<listitem>
+		  <para>These flags can be used to invert the sense
+		    of the corresponding normal option.</para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+
+	  </refsect2>
+	  <refsect2>
+	    <title>Format Options</title>
+
+	    <variablelist>
+	      <varlistentry>
+		<term><option>-fb</option></term>
+
+		<listitem>
+		  <para>Big-endian byte order</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-fl</option></term>
+
+		<listitem>
+		  <para>Little-endian byte order</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-fc</option>
+		  <replaceable>channels</replaceable></term>
+
+		<listitem>
+		  <para>Set number of channels.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-fp</option>
+		  <replaceable>bits_per_sample</replaceable></term>
+
+		<listitem>
+		  <para>Set bits per sample.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-fs</option>
+		  <replaceable>sample_rate</replaceable></term>
+
+		<listitem>
+		  <para>Set sample rate (in Hz).</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-fu</option></term>
+
+		<listitem>
+		  <para>Unsigned samples (default is signed)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-fr</option></term>
+
+		<listitem>
+		  <para>Force to raw format (even if filename ends
+		    in <filename>.wav</filename>).</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-fw</option></term>
+
+		<listitem>
+		  <para>Force to RIFF WAVE.</para>
+		</listitem>
+	      </varlistentry>
+
+	    </variablelist>
+	  </refsect2>
+
+	</refsect1>
+	  <refsect1>
+	    <title>SEE ALSO</title>
+
+	    <para>The programs are documented fully by HTML format
+	      documentation, available in
+	      <filename>/usr/share/doc/flac/html</filename> on
+		&debian; systems.</para>
+	  </refsect1>
+	  <refsect1>
+	    <title>AUTHOR</title>
+
+	    <para>This manual page was written by &dhusername; &dhemail; for
+	      the &debian; system (but may be used by others).</para>
+
+	    <!-- <para>Permission is granted to copy, distribute and/or modify
+	    this document under the terms of the <acronym>GNU</acronym> Free
+	    Documentation License, Version 1.1 or any later version
+	    published by the Free Software Foundation; with no Invariant
+	    Sections, no Front-Cover Texts and no Back-Cover Texts.  A copy
+	    of the license can be found under
+	  <filename>/usr/share/common-licenses/FDL</filename>.</para> -->
+
+	</refsect1>
+      </refentry>
+
+	<!-- Keep this comment at the end of the file
+	      Local variables:
+	      mode: sgml
+	      sgml-omittag:t
+	      sgml-shorttag:t
+	      sgml-minimize-attributes:nil
+	      sgml-always-quote-attributes:t
+	      sgml-indent-step:2
+	      sgml-indent-data:t
+	      sgml-parent-document:nil
+	      sgml-default-dtd-file:nil
+	      sgml-exposed-tags:nil
+	      sgml-local-catalogs:nil
+	      sgml-local-ecat-files:nil
+	      End:
+	      -->
