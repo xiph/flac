@@ -36,7 +36,7 @@ LIBTOOL = $(top_builddir)/libtool-disable-static
 
 xmmsinputplugin_LTLIBRARIES = libxmms-flac.la
 
-plugin_sources = charset.c configure.c plugin.c wrap_id3.c
+plugin_sources = charset.c configure.c plugin.c wrap_id3.c fileinfo.c
 
 if FLaC__HAS_ID3LIB
 libxmms_flac_la_SOURCES = $(plugin_sources)

@@ -47,6 +47,7 @@
 #endif
 #define min(x,y) ((x)<(y)?(x):(y))
 
+extern void FLAC_XMMS__file_info_box(char *filename);
 
 typedef struct {
 	FLAC__bool abort_flag;
@@ -108,7 +109,7 @@ InputPlugin flac_ip =
 	NULL,
 	NULL,
 	FLAC_XMMS__get_song_info,
-	NULL,		/* file_info_box */
+	FLAC_XMMS__file_info_box,
 	NULL
 };
 

@@ -29,6 +29,7 @@ OBJS = \
 	charset.o \
 	configure.o \
 	plugin.o \
+	fileinfo.o \
 	wrap_id3.o
 
 include $(topdir)/build/lib.mk
