@@ -65,6 +65,7 @@ extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */;
 typedef enum {
 	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE = 0
 } FLAC__EntropyCodingMethodType;
+extern const char *FLAC__EntropyCodingMethodTypeString[];
 
 /*****************************************************************************
  *
@@ -102,6 +103,7 @@ typedef enum {
 	FLAC__SUBFRAME_TYPE_FIXED = 2,
 	FLAC__SUBFRAME_TYPE_LPC = 3
 } FLAC__SubframeType;
+extern const char *FLAC__SubframeTypeString[];
 
 /*****************************************************************************
  *
@@ -201,6 +203,7 @@ typedef enum {
 	FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE = 2,
 	FLAC__CHANNEL_ASSIGNMENT_MID_SIDE = 3
 } FLAC__ChannelAssignment;
+extern const char *FLAC__ChannelAssignmentString[];
 
 /*****************************************************************************
  *
@@ -290,6 +293,7 @@ typedef struct {
 typedef enum {
 	FLAC__METADATA_TYPE_ENCODING = 0
 } FLAC__MetaDataType;
+extern const char *FLAC__MetaDataTypeString[];
 
 /*****************************************************************************
  *

@@ -56,6 +56,10 @@ const unsigned FLAC__ENTROPY_CODING_METHOD_TYPE_LEN = 2; /* bits */
 const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN = 4; /* bits */
 const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN = 4; /* bits */
 
+const char *FLAC__EntropyCodingMethodTypeString[] = {
+	"PARTITIONED_RICE"
+};
+
 const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN = 4; /* bits */
 const unsigned FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN = 5; /* bits */
 const unsigned FLAC__SUBFRAME_LPC_RICE_PARAMETER_LEN = 4; /* bits */
@@ -65,3 +69,21 @@ const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BITS = 0x02;
 const unsigned FLAC__SUBFRAME_TYPE_FIXED_BITS = 0x10;
 const unsigned FLAC__SUBFRAME_TYPE_LPC_BITS = 0x40;
 const unsigned FLAC__SUBFRAME_TYPE_LEN = 8; /* bits */
+
+const char *FLAC__SubframeTypeString[] = {
+	"CONSTANT",
+	"VERBATIM",
+	"FIXED",
+	"LPC"
+};
+
+const char *FLAC__ChannelAssignmentString[] = {
+	"INDEPENDENT",
+	"LEFT_SIDE",
+	"RIGHT_SIDE",
+	"MID_SIDE"
+};
+
+const char *FLAC__MetaDataTypeString[] = {
+	"ENCODING"
+};
