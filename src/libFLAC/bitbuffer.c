@@ -1425,7 +1425,7 @@ bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, boo
 			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
 			bb->consumed_bytes++;
 			bb->consumed_bits = 0;
-			/* we hold off updating bb->total_consumed_bits until the end */
+			bb->total_consumed_bits += val_;
 		}
 	}
 	while(1) {
@@ -1447,7 +1447,7 @@ bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, boo
 				bb->consumed_bytes++;
 				bb->consumed_bits = 0;
 			}
-			bb->total_consumed_bits += (++val_);
+			bb->total_consumed_bits += i;
 			return true;
 		}
 		else {
@@ -1456,6 +1456,7 @@ bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, boo
 			bb->consumed_bytes++;
 			/* bb->consumed_bits is already 0 */
 			/* we hold off updating bb->total_consumed_bits until the end */
+			bb->total_consumed_bits += 8;
 		}
 	}
 }
