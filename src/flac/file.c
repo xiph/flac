@@ -25,6 +25,7 @@
 #include <unistd.h> /* for chown() */
 #endif
 #include <sys/stat.h> /* for stat() */
+#include <string.h> /* for strrchr() */
 #include "file.h"
 
 void flac__file_copy_metadata(const char *srcpath, const char *destpath)
@@ -52,4 +53,17 @@ off_t flac__file_get_filesize(const char *srcpath)
 		return srcstat.st_size;
 	else
 		return -1;
+}
+
+const char *flac__file_get_basename(const char *srcpath)
+{
+	const char *p;
+
+	p = strrchr(srcpath, '\\');
+	if(0 == p) {
+		p = strrchr(srcpath, '/');
+		if(0 == p)
+			return srcpath;
+	}
+	return ++p;
 }

@@ -529,9 +529,6 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 		}
 	}
 
-	if(verbose)
-		fprintf(stderr, "%s:\n", infilename);
-
 	if(format_is_wave < 0) {
 		/* first set format based on name */
 		if(0 == strcasecmp(infilename+(strlen(infilename)-4), ".wav"))
@@ -591,7 +588,7 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 			unlink(infilename);
 	}
 
-	return retval;
+	return 0;
 }
 
 int decode_file(const char *infilename, const char *forced_outfilename)
@@ -644,5 +641,5 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 			unlink(infilename);
 	}
 
-	return retval;
+	return 0;
 }

@@ -22,11 +22,13 @@
 #else
 # include <unistd.h>
 #endif
+#include <math.h> /* for floor() */
 #include <stdio.h> /* for FILE et al. */
 #include <stdlib.h> /* for malloc */
 #include <string.h> /* for strcmp() */
 #include "FLAC/all.h"
 #include "encode.h"
+#include "file.h"
 
 #ifdef min
 #undef min
@@ -60,6 +62,7 @@ typedef struct {
 } verify_fifo_struct;
 
 typedef struct {
+	const char *inbasefilename;
 	FILE *fout;
 	const char *outfilename;
 	FLAC__StreamEncoder *encoder;
@@ -100,8 +103,8 @@ static FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDe
 static void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const encoder_wrapper_struct *encoder_wrapper);
-static bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok);
-static bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok);
+static bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok, const char *fn);
+static bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok, const char *fn);
 static bool write_big_endian_uint16(FILE *f, uint16 val);
 static bool write_big_endian_uint64(FILE *f, uint64 val);
 
@@ -121,6 +124,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	encoder_wrapper.bytes_written = 0;
 	encoder_wrapper.samples_written = 0;
 	encoder_wrapper.stream_offset = 0;
+	encoder_wrapper.inbasefilename = flac__file_get_basename(infilename);
 	encoder_wrapper.outfilename = outfilename;
 	encoder_wrapper.seek_table.points = 0;
 	encoder_wrapper.first_seek_point_to_check = 0;
@@ -133,9 +137,9 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	}
 	else {
 		if(0 == (encoder_wrapper.fout = fopen(outfilename, "wb"))) {
-			fprintf(stderr, "ERROR: can't open output file %s\n", outfilename);
+			fprintf(stderr, "%s: ERROR: can't open output file %s\n", encoder_wrapper.inbasefilename, outfilename);
 			fclose(infile);
-			return false;
+			return 1;
 		}
 	}
 
@@ -146,56 +150,56 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	 * lookahead[] already has "RIFFxxxxWAVE", do sub-chunks
 	 */
 	while(!feof(infile)) {
-		if(!read_little_endian_uint32(infile, &xx, true))
+		if(!read_little_endian_uint32(infile, &xx, true, encoder_wrapper.inbasefilename))
 			goto wav_abort_;
 		if(feof(infile))
 			break;
 		if(xx == 0x20746d66) { /* "fmt " */
 			if(got_fmt_chunk) {
-				fprintf(stderr, "WARNING: skipping extra 'fmt ' sub-chunk\n");
+				fprintf(stderr, "%s: WARNING: skipping extra 'fmt ' sub-chunk\n", encoder_wrapper.inbasefilename);
 			}
 			else {
 				/* fmt sub-chunk size */
-				if(!read_little_endian_uint32(infile, &xx, false))
+				if(!read_little_endian_uint32(infile, &xx, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
 				if(xx != 16) {
-					fprintf(stderr, "ERROR: unsupported non-standard 'fmt ' sub-chunk has length %u != 16\n", (unsigned)xx);
+					fprintf(stderr, "%s: ERROR: unsupported non-standard 'fmt ' sub-chunk has length %u != 16\n", encoder_wrapper.inbasefilename, (unsigned)xx);
 					goto wav_abort_;
 				}
 				/* compression code */
-				if(!read_little_endian_uint16(infile, &x, false))
+				if(!read_little_endian_uint16(infile, &x, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
 				if(x != 1) {
-					fprintf(stderr, "ERROR: unsupported compression type %u\n", (unsigned)x);
+					fprintf(stderr, "%s: ERROR: unsupported compression type %u\n", encoder_wrapper.inbasefilename, (unsigned)x);
 					goto wav_abort_;
 				}
 				/* number of channels */
-				if(!read_little_endian_uint16(infile, &x, false))
+				if(!read_little_endian_uint16(infile, &x, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
 				if(x == 0 || x > FLAC__MAX_CHANNELS) {
-					fprintf(stderr, "ERROR: unsupported number channels %u\n", (unsigned)x);
+					fprintf(stderr, "%s: ERROR: unsupported number channels %u\n", encoder_wrapper.inbasefilename, (unsigned)x);
 					goto wav_abort_;
 				}
 				channels = x;
 				/* sample rate */
-				if(!read_little_endian_uint32(infile, &xx, false))
+				if(!read_little_endian_uint32(infile, &xx, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
 				if(xx == 0 || xx > FLAC__MAX_SAMPLE_RATE) {
-					fprintf(stderr, "ERROR: unsupported sample rate %u\n", (unsigned)xx);
+					fprintf(stderr, "%s: ERROR: unsupported sample rate %u\n", encoder_wrapper.inbasefilename, (unsigned)xx);
 					goto wav_abort_;
 				}
 				sample_rate = xx;
 				/* avg bytes per second (ignored) */
-				if(!read_little_endian_uint32(infile, &xx, false))
+				if(!read_little_endian_uint32(infile, &xx, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
 				/* block align (ignored) */
-				if(!read_little_endian_uint16(infile, &x, false))
+				if(!read_little_endian_uint16(infile, &x, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
 				/* bits per sample */
-				if(!read_little_endian_uint16(infile, &x, false))
+				if(!read_little_endian_uint16(infile, &x, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
 				if(x != 8 && x != 16) {
-					fprintf(stderr, "ERROR: unsupported bits per sample %u\n", (unsigned)x);
+					fprintf(stderr, "%s: ERROR: unsupported bits per sample %u\n", encoder_wrapper.inbasefilename, (unsigned)x);
 					goto wav_abort_;
 				}
 				bps = x;
@@ -206,15 +210,15 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 		}
 		else if(xx == 0x61746164) { /* "data" */
 			if(got_data_chunk) {
-				fprintf(stderr, "WARNING: skipping extra 'data' sub-chunk\n");
+				fprintf(stderr, "%s: WARNING: skipping extra 'data' sub-chunk\n", encoder_wrapper.inbasefilename);
 			}
 			else if(!got_fmt_chunk) {
-				fprintf(stderr, "ERROR: got data sub-chunk before fmt sub-chunk\n");
+				fprintf(stderr, "%s: ERROR: got data sub-chunk before fmt sub-chunk\n", encoder_wrapper.inbasefilename);
 				goto wav_abort_;
 			}
 			else {
 				/* data size */
-				if(!read_little_endian_uint32(infile, &xx, false))
+				if(!read_little_endian_uint32(infile, &xx, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
 				data_bytes = xx;
 
@@ -223,7 +227,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				if(skip > 0) {
 					if(infile != stdin) {
 						if(-1 == fseek(infile, bytes_per_wide_sample * (unsigned)skip, SEEK_CUR)) {
-							fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
+							fprintf(stderr, "%s: ERROR during seek while skipping samples\n", encoder_wrapper.inbasefilename);
 							goto wav_abort_;
 						}
 					}
@@ -232,7 +236,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 						for(left = skip; left > 0; ) {
 							need = min(left, CHUNK_OF_SAMPLES);
 							if(fread(ucbuffer, 1, bytes_per_wide_sample * need, infile) < need) {
-								fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
+								fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_wrapper.inbasefilename);
 								goto wav_abort_;
 							}
 							left -= need;
@@ -253,17 +257,17 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					bytes_read = fread(ucbuffer, sizeof(unsigned char), min(data_bytes, CHUNK_OF_SAMPLES * bytes_per_wide_sample), infile);
 					if(bytes_read == 0) {
 						if(ferror(infile)) {
-							fprintf(stderr, "ERROR reading from %s\n", infilename);
+							fprintf(stderr, "%s: ERROR during read\n", encoder_wrapper.inbasefilename);
 							goto wav_abort_;
 						}
 						else if(feof(infile)) {
-							fprintf(stderr, "WARNING: unexpected EOF from %s, expected %u samples, got %u samples\n", infilename, (unsigned)encoder_wrapper.total_samples_to_encode, (unsigned)encoder_wrapper.samples_written);
+							fprintf(stderr, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_wrapper.inbasefilename, (unsigned)encoder_wrapper.total_samples_to_encode, (unsigned)encoder_wrapper.samples_written);
 							data_bytes = 0;
 						}
 					}
 					else {
 						if(bytes_read % bytes_per_wide_sample != 0) {
-							fprintf(stderr, "ERROR, got partial sample from input file %s\n", infilename);
+							fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_wrapper.inbasefilename);
 							goto wav_abort_;
 						}
 						else {
@@ -272,7 +276,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 
 							/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
 							if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
-								fprintf(stderr, "ERROR during encoding, state = %d:%s\n", FLAC__stream_encoder_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper.encoder)]);
+								fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper.encoder)]);
 								goto wav_abort_;
 							}
 							data_bytes -= bytes_read;
@@ -283,13 +287,13 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			}
 		}
 		else {
-			fprintf(stderr, "WARNING: skipping unknown sub-chunk '%c%c%c%c'\n", (char)(xx&255), (char)((xx>>8)&255), (char)((xx>>16)&255), (char)(xx>>24));
+			fprintf(stderr, "%s: WARNING: skipping unknown sub-chunk '%c%c%c%c'\n", encoder_wrapper.inbasefilename, (char)(xx&255), (char)((xx>>8)&255), (char)((xx>>16)&255), (char)(xx>>24));
 			/* sub-chunk size */
-			if(!read_little_endian_uint32(infile, &xx, false))
+			if(!read_little_endian_uint32(infile, &xx, false, encoder_wrapper.inbasefilename))
 				goto wav_abort_;
 			if(infile != stdin) {
 				if(-1 == fseek(infile, xx, SEEK_CUR)) {
-					fprintf(stderr, "ERROR seeking ahead while skipping unsupported sub-chunk in input file %s\n", infilename);
+					fprintf(stderr, "%s: ERROR during seek while skipping unsupported sub-chunk\n", encoder_wrapper.inbasefilename);
 					goto wav_abort_;
 				}
 			}
@@ -299,7 +303,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				for(left = xx; left > 0; ) {
 					need = min(left, chunk);
 					if(fread(ucbuffer, 1, need, infile) < need) {
-						fprintf(stderr, "ERROR seeking while skipping unsupported sub-chunk in input file %s\n", infilename);
+						fprintf(stderr, "%s: ERROR during read while skipping unsupported sub-chunk\n", encoder_wrapper.inbasefilename);
 						goto wav_abort_;
 					}
 					left -= need;
@@ -323,11 +327,8 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
 		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not trust %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "Verify FAILED! (%s)  Do not trust %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
-		}
-		else if(encoder_wrapper.verbose) {
-			fprintf(stderr, "%s: Verify succeeded\n", infilename);
 		}
 	}
 	if(infile != stdin)
@@ -347,11 +348,8 @@ wav_abort_:
 		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
 		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not trust %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "Verify FAILED! (%s)  Do not trust %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
-		}
-		else if(encoder_wrapper.verbose) {
-			fprintf(stderr, "%s: Verify succeeded\n", infilename);
 		}
 	}
 	if(infile != stdin)
@@ -372,6 +370,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	encoder_wrapper.bytes_written = 0;
 	encoder_wrapper.samples_written = 0;
 	encoder_wrapper.stream_offset = 0;
+	encoder_wrapper.inbasefilename = flac__file_get_basename(infilename);
 	encoder_wrapper.outfilename = outfilename;
 	encoder_wrapper.seek_table.points = 0;
 	encoder_wrapper.first_seek_point_to_check = 0;
@@ -383,7 +382,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		if(0 == (encoder_wrapper.fout = fopen(outfilename, "wb"))) {
 			fprintf(stderr, "ERROR: can't open output file %s\n", outfilename);
 			fclose(infile);
-			return false;
+			return 1;
 		}
 	}
 
@@ -409,7 +408,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 			lookahead_length = 0;
 			if(infile != stdin) {
 				if(-1 == fseek(infile, (long)skip_bytes, SEEK_SET)) {
-					fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
+					fprintf(stderr, "%s: ERROR during seek while skipping samples\n", encoder_wrapper.inbasefilename);
 					goto raw_abort_;
 				}
 			}
@@ -419,7 +418,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 				for(left = skip_bytes; left > 0; ) {
 					need = min(left, chunk);
 					if(fread(ucbuffer, 1, need, infile) < need) {
-						fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
+						fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_wrapper.inbasefilename);
 						goto raw_abort_;
 					}
 					left -= need;
@@ -446,7 +445,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 			memcpy(ucbuffer, lookahead, lookahead_length);
 			bytes_read = fread(ucbuffer+lookahead_length, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample - lookahead_length, infile) + lookahead_length;
 			if(ferror(infile)) {
-				fprintf(stderr, "ERROR reading from %s\n", infilename);
+				fprintf(stderr, "%s: ERROR during read\n", encoder_wrapper.inbasefilename);
 				goto raw_abort_;
 			}
 			lookahead_length = 0;
@@ -456,12 +455,12 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 
 		if(bytes_read == 0) {
 			if(ferror(infile)) {
-				fprintf(stderr, "ERROR reading from %s\n", infilename);
+				fprintf(stderr, "%s: ERROR during read\n", encoder_wrapper.inbasefilename);
 				goto raw_abort_;
 			}
 		}
 		else if(bytes_read % bytes_per_wide_sample != 0) {
-			fprintf(stderr, "ERROR, got partial sample from input file %s\n", infilename);
+			fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_wrapper.inbasefilename);
 			goto raw_abort_;
 		}
 		else {
@@ -470,7 +469,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 
 			/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
 			if(!FLAC__stream_encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
-				fprintf(stderr, "ERROR during encoding, state = %d:%s\n", FLAC__stream_encoder_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper.encoder)]);
+				fprintf(stderr, "%s: ERROR during encoding, state = %d:%s\n", encoder_wrapper.inbasefilename, FLAC__stream_encoder_state(encoder_wrapper.encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper.encoder)]);
 				goto raw_abort_;
 			}
 		}
@@ -491,11 +490,8 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
 		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not trust %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "Verify FAILED! (%s)  Do not trust %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
-		}
-		else if(encoder_wrapper.verbose) {
-			fprintf(stderr, "%s: Verify succeeded\n", infilename);
 		}
 	}
 	if(infile != stdin)
@@ -515,11 +511,8 @@ raw_abort_:
 		FLAC__stream_decoder_finish(encoder_wrapper.verify_fifo.decoder);
 		FLAC__stream_decoder_delete(encoder_wrapper.verify_fifo.decoder);
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not trust %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "Verify FAILED! (%s)  Do not trust %s\n", verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
-		}
-		else if(encoder_wrapper.verbose) {
-			fprintf(stderr, "%s: Verify succeeded\n", infilename);
 		}
 	}
 	if(infile != stdin)
@@ -540,7 +533,7 @@ bool init(encoder_wrapper_struct *encoder_wrapper)
 
 	encoder_wrapper->encoder = FLAC__stream_encoder_new();
 	if(0 == encoder_wrapper->encoder) {
-		fprintf(stderr, "ERROR creating the encoder instance\n");
+		fprintf(stderr, "%s: ERROR creating the encoder instance\n", encoder_wrapper->inbasefilename);
 		return false;
 	}
 
@@ -559,7 +552,7 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 		encoder_wrapper->verify_fifo.size = blocksize + CHUNK_OF_SAMPLES;
 		for(i = 0; i < channels; i++) {
 			if(0 == (encoder_wrapper->verify_fifo.original[i] = (int32*)malloc(sizeof(int32) * encoder_wrapper->verify_fifo.size))) {
-				fprintf(stderr, "ERROR allocating verify buffers\n");
+				fprintf(stderr, "%s: ERROR allocating verify buffers\n", encoder_wrapper->inbasefilename);
 				return false;
 			}
 		}
@@ -570,22 +563,22 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 		/* set up a stream decoder for verification */
 		encoder_wrapper->verify_fifo.decoder = FLAC__stream_decoder_new();
 		if(0 == encoder_wrapper->verify_fifo.decoder) {
-			fprintf(stderr, "ERROR creating the verify decoder instance\n");
+			fprintf(stderr, "%s: ERROR creating the verify decoder instance\n", encoder_wrapper->inbasefilename);
 			return false;
 		}
 		if(FLAC__stream_decoder_init(encoder_wrapper->verify_fifo.decoder, verify_read_callback, verify_write_callback, verify_metadata_callback, verify_error_callback, encoder_wrapper) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA) {
-			fprintf(stderr, "ERROR initializing decoder, state = %d:%s\n", FLAC__stream_decoder_state(encoder_wrapper->verify_fifo.decoder), FLAC__StreamDecoderStateString[FLAC__stream_decoder_state(encoder_wrapper->verify_fifo.decoder)]);
+			fprintf(stderr, "%s: ERROR initializing decoder, state = %d:%s\n", encoder_wrapper->inbasefilename, FLAC__stream_decoder_state(encoder_wrapper->verify_fifo.decoder), FLAC__StreamDecoderStateString[FLAC__stream_decoder_state(encoder_wrapper->verify_fifo.decoder)]);
 			return false;
 		}
 	}
 
 	if(!convert_to_seek_table(requested_seek_points, num_requested_seek_points, encoder_wrapper->total_samples_to_encode, blocksize, &encoder_wrapper->seek_table)) {
-		fprintf(stderr, "ERROR allocating seek table\n");
+		fprintf(stderr, "%s: ERROR allocating seek table\n", encoder_wrapper->inbasefilename);
 		return false;
 	}
 
 	if(FLAC__stream_encoder_init(encoder_wrapper->encoder, !lax, do_mid_side, loose_mid_side, channels, bps, sample_rate, blocksize, max_lpc_order, qlp_coeff_precision, do_qlp_coeff_prec_search, do_exhaustive_model_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, encoder_wrapper->total_samples_to_encode, (encoder_wrapper->seek_table.num_points > 0)? &encoder_wrapper->seek_table : 0, padding, true /*last_metadata_is_last*/, write_callback, metadata_callback, encoder_wrapper) != FLAC__STREAM_ENCODER_OK) {
-		fprintf(stderr, "ERROR initializing encoder, state = %d:%s\n", FLAC__stream_encoder_state(encoder_wrapper->encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper->encoder)]);
+		fprintf(stderr, "%s: ERROR initializing encoder, state = %d:%s\n", encoder_wrapper->inbasefilename, FLAC__stream_encoder_state(encoder_wrapper->encoder), FLAC__StreamEncoderStateString[FLAC__stream_encoder_state(encoder_wrapper->encoder)]);
 		return false;
 	}
 
@@ -965,7 +958,7 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 
 	for(channel = 0; channel < channels; channel++) {
 		if(0 != memcmp(buffer[channel], encoder_wrapper->verify_fifo.original[channel], bytes_per_block)) {
-			fprintf(stderr, "\nERROR: mismatch in decoded data, verify FAILED!\n");
+			fprintf(stderr, "\n%s: ERROR: mismatch in decoded data, verify FAILED!\n", encoder_wrapper->inbasefilename);
 			fprintf(stderr, "       Please submit a bug report to\n");
 			fprintf(stderr, "           http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
 			fprintf(stderr, "       Make sure to include an email contact in the comment and/or use the\n");
@@ -992,45 +985,49 @@ void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__St
 
 void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
+	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	(void)decoder;
-	(void)client_data;
-	fprintf(stderr, "\nERROR: verification decoder returned error %d:%s\n", status, FLAC__StreamDecoderErrorStatusString[status]);
+	fprintf(stderr, "\n%s: ERROR: verification decoder returned error %d:%s\n", encoder_wrapper->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
 }
 
 void print_stats(const encoder_wrapper_struct *encoder_wrapper)
 {
 #ifdef _MSC_VER
 	/* with VC++ you have to spoon feed it the casting */
-	double progress = (double)(int64)encoder_wrapper->samples_written / (double)(int64)encoder_wrapper->total_samples_to_encode;
+	const double progress = (double)(int64)encoder_wrapper->samples_written / (double)(int64)encoder_wrapper->total_samples_to_encode;
+	const double ratio = (double)(int64)encoder_wrapper->bytes_written / ((double)(int64)encoder_wrapper->unencoded_size * progress);
 #else
-	double progress = (double)encoder_wrapper->samples_written / (double)encoder_wrapper->total_samples_to_encode;
+	const double progress = (double)encoder_wrapper->samples_written / (double)encoder_wrapper->total_samples_to_encode;
+	const double ratio = (double)encoder_wrapper->bytes_written / ((double)encoder_wrapper->unencoded_size * progress);
 #endif
-	fprintf(stderr, "\r%0.2f%% complete: frame %u, wrote %u bytes (%u/%u samples), r=%5.3f",
-		progress * 100.0, encoder_wrapper->current_frame,
-		(unsigned)encoder_wrapper->bytes_written, (unsigned)encoder_wrapper->samples_written, (unsigned)encoder_wrapper->total_samples_to_encode,
-#ifdef _MSC_VER
-		/* with VC++ you have to spoon feed it the casting */
-		(double)(int64)encoder_wrapper->bytes_written / ((double)(int64)encoder_wrapper->unencoded_size * progress)
-#else
-		(double)encoder_wrapper->bytes_written / ((double)encoder_wrapper->unencoded_size * progress)
-#endif
-	);
+
+	if(encoder_wrapper->samples_written == encoder_wrapper->total_samples_to_encode) {
+		fprintf(stderr, "\r%s:%s wrote %u bytes, ratio=%0.3f",
+			encoder_wrapper->inbasefilename,
+			encoder_wrapper->verify? (encoder_wrapper->verify_fifo.result == FLAC__VERIFY_OK? " Verify OK," : " Verify FAILED!") : "",
+			(unsigned)encoder_wrapper->bytes_written,
+			ratio
+		);
+	}
+	else {
+		fprintf(stderr, "\r%s: %u%% complete, ratio=%0.3f", encoder_wrapper->inbasefilename, (unsigned)floor(progress * 100.0 + 0.5), ratio);
+	}
 }
 
-bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok)
+bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok, const char *fn)
 {
 	size_t bytes_read = fread(val, 1, 2, f);
 
 	if(bytes_read == 0) {
 		if(!eof_ok) {
-			fprintf(stderr, "ERROR: unexpected EOF\n");
+			fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 			return false;
 		}
 		else
 			return true;
 	}
 	else if(bytes_read < 2) {
-		fprintf(stderr, "ERROR: unexpected EOF\n");
+		fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 		return false;
 	}
 	else {
@@ -1042,20 +1039,20 @@ bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok)
 	}
 }
 
-bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok)
+bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok, const char *fn)
 {
 	size_t bytes_read = fread(val, 1, 4, f);
 
 	if(bytes_read == 0) {
 		if(!eof_ok) {
-			fprintf(stderr, "ERROR: unexpected EOF\n");
+			fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 			return false;
 		}
 		else
 			return true;
 	}
 	else if(bytes_read < 4) {
-		fprintf(stderr, "ERROR: unexpected EOF\n");
+		fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 		return false;
 	}
 	else {
