@@ -576,7 +576,7 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		goto foo;
 	if(fwrite("AIFFCOMM\000\000\000\022", 1, 12, f) < 12)
 		goto foo;
-	if(!write_big_endian_uint16(f, channels))
+	if(!write_big_endian_uint16(f, (FLAC__uint16)channels))
 		goto foo;
 	if(!write_big_endian_uint32(f, samples))
 		goto foo;
@@ -619,7 +619,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 		goto foo;
 	if(fwrite("WAVEfmt \020\000\000\000\001\000", 1, 14, f) < 14)
 		goto foo;
-	if(!write_little_endian_uint16(f, channels))
+	if(!write_little_endian_uint16(f, (FLAC__uint16)channels))
 		goto foo;
 	if(!write_little_endian_uint32(f, sample_rate))
 		goto foo;

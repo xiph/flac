@@ -540,7 +540,7 @@ void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, co
 
 			fprintf(file, "    INDEX %02u ", (unsigned)index->number);
 			if(cs->is_cd) {
-				const unsigned logical_frame = (track->offset + index->offset) / (44100 / 75);
+				const unsigned logical_frame = (unsigned)((track->offset + index->offset) / (44100 / 75));
 				unsigned m, s, f;
 				grabbag__cuesheet_frame_to_msf(logical_frame, &m, &s, &f);
 				fprintf(file, "%02u:%02u:%02u\n", m, s, f);

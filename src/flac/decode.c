@@ -782,7 +782,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 		const FLAC__uint64 input_samples_passed = skip + decoder_session->samples_processed;
 		FLAC__ASSERT(until >= input_samples_passed);
 		if(input_samples_passed + wide_samples > until)
-			wide_samples = until - input_samples_passed;
+			wide_samples = (unsigned)(until - input_samples_passed);
 	}
 
 	if(wide_samples > 0) {
@@ -994,7 +994,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 					decoder_session->abort_flag = true;
 			}
 			else {
-				const FLAC__uint32 aligned_data_size = (data_size+1) & (~1U);
+				const FLAC__uint32 aligned_data_size = (FLAC__uint32)((data_size+1) & (~1U));
 
 				if(flac__utils_fwrite("FORM", 1, 4, decoder_session->fout) != 4)
 					decoder_session->abort_flag = true;
@@ -1017,7 +1017,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 				if(decoder_session->wave_chunk_size_fixup.needs_fixup)
 					decoder_session->wave_chunk_size_fixup.frames_offset = ftell(decoder_session->fout);
 
-				if(!write_big_endian_uint32(decoder_session->fout, decoder_session->total_samples))
+				if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)decoder_session->total_samples))
 					decoder_session->abort_flag = true;
 
 				if(!write_big_endian_uint16(decoder_session->fout, (FLAC__uint16)(decoder_session->bps)))
