@@ -60,13 +60,13 @@
 	<P>
 	<UL>
 		<LI>the stream format</LI>
-		<LI>libFLAC, which implements a reference encoder, stream decoder, and file decoder</LI>
-		<LI>flac, which is a command-line wrapper around libFLAC to encode and decode .flac files</LI>
+		<LI>libFLAC, a library which implements a reference encoder, stream decoder, and file decoder</LI>
+		<LI><B><TT>flac</TT></B>, which is a command-line wrapper around libFLAC to encode and decode .flac files</LI>
 		<LI>input plugins for various music players (Winamp, XMMS, and more in the works)</LI>
 	</UL>
 	</P>
 	<P>
-		"Free" means that the specification of the stream format is in the public domain (the FLAC project reserves the right to set the FLAC specification and certify compliance), and that neither the FLAC format nor any of the implemented encoding/decoding methods are covered by any patent.  It also means that the source for libFLAC is available under the <A HREF="http://www.opensource.org/licenses/lgpl-license.html">LGPL</A> and the sources for flac and the plugins are available under the <A HREF="http://www.opensource.org/licenses/gpl-license.html">GPL</A>.
+		"Free" means that the specification of the stream format is in the public domain (the FLAC project reserves the right to set the FLAC specification and certify compliance), and that neither the FLAC format nor any of the implemented encoding/decoding methods are covered by any patent.  It also means that the source for libFLAC is available under the <A HREF="http://www.opensource.org/licenses/lgpl-license.html">LGPL</A> and the sources for <B><TT>flac</TT></B> and the plugins are available under the <A HREF="http://www.opensource.org/licenses/gpl-license.html">GPL</A>.
 	</P>
 	<P>
 		What FLAC is:
@@ -79,19 +79,19 @@
 			FLAC is lossless.  The encoding of PCM data incurs no loss of information, and the decoded audio is bit-for-bit identical to what went into the encoder.
 		</LI></P>
 		<P><LI>
-			FLAC is designed to compress audio data.  Technically, flac can "compress" other kinds of data losslessly (if you pass it in as a mono 8-bit raw file), but the output files tend to be bigger.
+			FLAC is designed to compress audio data.  Technically, <B><TT>flac</TT></B> can "compress" other kinds of data losslessly (if you pass it in as a mono 8-bit raw file), but the output files tend to be bigger.
 		</LI></P>
 		<P><LI>
 			The compression capabilities of FLAC are extendable, meaning that new methods can be added to future versions of the format without breaking older streams or decoders.
 		</LI></P>
 		<P><LI>
-			The currently implemented compression methods in the reference encoder yield streams on par or smaller than shorten.  The encoding time is variable, but is generally between that of <A HREF="http://www.softsound.com/Shorten.html">shorten</A>, and that of, say, <A HREF="http://www.mp3dev.org/mp3/">LAME</A>.  The most aggressive compression however can be quite slow.  For more info see the <A HREF="comparison.html">comparison page</A>.
+			The currently implemented compression methods in the reference encoder yield streams smaller than shorten.  The encoding time is variable, but is generally between that of <A HREF="http://www.softsound.com/Shorten.html">shorten</A>, and that of, say, <A HREF="http://www.mp3dev.org/mp3/">LAME</A>.  The most aggressive compression however can be quite slow.  For more info see the <A HREF="comparison.html">comparison page</A>.
 		</LI></P>
 		<P><LI>
 			FLAC is asymmetric in favor of decode speed.  Decoding requires only integer arithmetic, and is much less compute-intensive than for most perceptual codecs.  Real-time decode performance is easily achievable on even modest hardare.
 		</LI></P>
 		<P><LI>
-			FLAC is suitable for archiving, since there is no information loss.  You are not locked into the format since there is no generation loss if you decide to convert your data to another format in the future.
+			FLAC is suitable for archiving, since there is no information loss.  You are not locked into the format since there is no generation loss if you decide to convert your data to another format in the future.  In addition, <B><TT>flac</TT></B> has a verify option that decodes the encoded stream in parallel with the encoding process and compares the result to the original, aborting with an error if there is a mismatch.
 		</LI></P>
 		<P><LI>
 			FLAC is suitable for streaming.  Each FLAC frame contains enough data to decode that frame.  FLAC does not even rely on previous or following frames.  FLAC uses sync codes and CRCs (similar to MPEG and other formats), which, along with framing, allow decoders to pick up in the middle of a stream with a minimum of delay.
