@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+/* we only use some typedefs, #defines, and enums from here: */
 #include "FLAC/all.h"
 
 static const char *sync_string_ = "fLaC"; /* DUPLICATE:FLAC__STREAM_SYNC_STRING */
@@ -36,7 +37,7 @@ static const char *metadata_type_string_[] = { /* DUPLICATE:FLAC__MetaDataTypeSt
 	"APPLICATION",
 	"SEEKTABLE"
 };
-static const unsigned SEEKPOINT_LEN_ = 18; /* DUPLICATE:FLAC__STREAM_METADATA_SEEKPOINT_LEN */
+static const unsigned SEEKPOINT_LEN_ = 18; /* DUPLICATE:FLAC__STREAM_METADATA_SEEKPOINT_LENGTH */
 
 static int usage(const char *message, ...);
 static FLAC__bool list(FILE *f, FLAC__bool verbose);
@@ -233,7 +234,7 @@ FLAC__bool list(FILE *f, FLAC__bool verbose)
 				}
 				break;
 			case FLAC__METADATA_TYPE_APPLICATION:
-				memcpy(buf, metadata.data.application.id, 4);
+				memcpy(metadata.data.application.id, buf, 4);
 				metadata.data.application.data = buf+4;
 				break;
 			case FLAC__METADATA_TYPE_SEEKTABLE:
