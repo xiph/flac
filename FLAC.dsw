@@ -84,7 +84,7 @@ Package=<4>
     Project_Dep_Name utf8_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name test_grabbag
+    Project_Dep_Name test_cuesheet
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name test_libFLAC
@@ -156,7 +156,7 @@ Package=<4>
     Project_Dep_Name utf8_static
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name test_grabbag
+    Project_Dep_Name test_cuesheet
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name test_libFLAC
@@ -453,7 +453,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "test_grabbag"=.\src\test_grabbag\test_grabbag.dsp - Package Owner=<4>
+Project: "test_cuesheet"=.\src\test_grabbag\cuesheet\test_cuesheet.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
