@@ -287,126 +287,126 @@
 				<A NAME="general_options"><FONT SIZE="+1"><B>General Options</B></FONT></A>
 			</TD>
 		</TR>
-		<A NAME="flac_options_version">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_version">
 				<TT>-v</TT>, <TT>--version</TT>
 			</TD>
 			<TD>
 				Show the <B><TT>flac</TT></B> version number.
 			</TD>
 		</TR>
-		<A NAME="flac_options_help">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_help">
 				<TT>-h</TT>, <TT>--help</TT>
 			</TD>
 			<TD>
 				Show basic usage and a list of all options.  Running <B><TT>flac</TT></B> without arguments shows the short help screen by default.
 			</TD>
 		</TR>
-		<A NAME="flac_options_explain">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_explain">
 				<TT>-H</TT>, <TT>--explain</TT>
 			</TD>
 			<TD>
 				Show detailed explanation of usage and all options.  Running <B><TT>flac</TT></B> without arguments shows the short help screen by default.
 			</TD>
 		</TR>
-		<A NAME="flac_options_decode">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_decode">
 				<TT>-d</TT>, <TT>--decode</TT>
 			</TD>
 			<TD>
 				Decode (<B><TT>flac</TT></B> encodes by default).  <B><TT>flac</TT></B> will exit with an exit code of <TT>1</TT> (and print a message, even in silent mode) if there were any errors during decoding, including when the MD5 checksum does not match the decoded output.  Otherwise the exit code will be <TT>0</TT>.
 			</TD>
 		</TR>
-		<A NAME="flac_options_test">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_test">
 				<TT>-t</TT>, <TT>--test</TT>
 			</TD>
 			<TD>
 				Test (same as <B><TT>-d</TT></B> except no decoded file is written).  The exit codes are the same as in decode mode.
 			</TD>
 		</TR>
-		<A NAME="flac_options_analyze">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_analyze">
 				<TT>-a</TT>, <TT>--analyze</TT>
 			</TD>
 			<TD>
 				Analyze (same as <B><TT>-d</TT></B> except an analysis file is written).  The exit codes are the same as in decode mode.  This option is mainly for developers; the output will be a text file that has data about each frame and subframe.
 			</TD>
 		</TR>
-		<A NAME="flac_options_stdout">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_stdout">
 				<TT>-c</TT>, <TT>--stdout</TT>
 			</TD>
 			<TD>
 				Write output to stdout.
 			</TD>
 		</TR>
-		<A NAME="flac_options_silent">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_silent">
 				<TT>-s</TT>, <TT>--silent</TT>
 			</TD>
 			<TD>
 				Silent: do not show encoding/decoding statistics.
 			</TD>
 		</TR>
-		<A NAME="flac_options_totally_silent">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_totally_silent">
 				<TT>--totally-silent</TT>
 			</TD>
 			<TD>
 				Do not print anything of any kind, including warnings or errors.  The exit code will be the only way to determine successful completion.
 			</TD>
 		</TR>
-		<A NAME="flac_options_force">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_force">
 				<TT>-f</TT>, <TT>--force</TT>
 			</TD>
 			<TD>
 				Force overwriting of output files.  By default, <TT><B>flac</B></TT> warns that the output file already exists and continues to the next file.
 			</TD>
 		</TR>
-		<A NAME="flac_options_output_name">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_output_name">
 				<TT>-o filename</TT>,<BR><TT>--output-name=filename</TT>
 			</TD>
 			<TD>
 				Force the output file name (usually <TT><B>flac</B></TT> just changes the extension).  May only be used when encoding a single file.  May not be used in conjunction with <TT>--output-prefix</T>.
 			</TD>
 		</TR>
-		<A NAME="flac_options_output_prefix">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_output_prefix">
 				<TT>--output-prefix=string</TT>
 			</TD>
 			<TD>
 				Prefix each output file name with the given string.  This can be useful for encoding/decoding files to a different directory.  Make sure if your string is a path name that it ends with a trailing '<TT>/</TT>' slash.
 			</TD>
 		</TR>
-		<A NAME="flac_options_delete_input_file">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_delete_input_file">
 				<TT>--delete-input-file</TT>
 			</TD>
 			<TD>
 				Automatically delete the input file after a successful encode or decode.  If there was an error (including a verify error) the input file is left intact.
 			</TD>
 		</TR>
-		<A NAME="flac_options_skip">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_skip">
 				<TT>--skip={#|mm:ss.ss}</TT>
 			</TD>
 			<TD>
@@ -416,9 +416,9 @@
 				<TT>--skip=1:23.45</TT> : skip the first 1 minute and 23.45 seconds of the input
 			</TD>
 		</TR>
-		<A NAME="flac_options_until">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_until">
 				<TT>--until={#|[+|-]mm:ss.ss}</TT>
 			</TD>
 			<TD>
@@ -431,9 +431,9 @@
 				<TT>--until=-0:00</TT> : decode until the end of the input (the same as not specifying <TT>--until</TT>)
 			</TD>
 		</TR>
-		<A NAME="flac_options_ogg">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_ogg">
 				<TT>--ogg</TT>
 			</TD>
 			<TD>
@@ -442,9 +442,9 @@
 				<B>NOTE:</B> Ogg FLAC files created prior to <B><TT>flac</TT></B> 1.1.1 used an ad-hoc mapping and do not support seeking.  They should be decoded and re-encoded with <B><TT>flac</TT></B> 1.1.1 or later.
 			</TD>
 		</TR>
-		<A NAME="flac_options_serial_number">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_serial_number">
 				<TT>--serial-number=#</TT>
 			</TD>
 			<TD>
@@ -462,18 +462,18 @@
 				<A NAME="analysis_options"><FONT SIZE="+1"><B>Analysis Options</B></FONT></A>
 			</TD>
 		</TR>
-		<A NAME="flac_options_residual_text">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_residual_text">
 				<TT>--residual-text</TT>
 			</TD>
 			<TD>
 				Includes the residual signal in the analysis file.  This will make the file <B>very</B> big, much larger than even the decoded file.
 			</TD>
 		</TR>
-		<A NAME="flac_options_residual_gnuplot">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_residual_gnuplot">
 				<TT>--residual-gnuplot</TT>
 			</TD>
 			<TD>
@@ -491,9 +491,9 @@
 				<A NAME="decoding_options"><FONT SIZE="+1"><B>Decoding Options</B></FONT></A>
 			</TD>
 		</TR>
-		<A NAME="flac_options_cue">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_cue">
 				<TT>--cue=[#.#][-[#.#]]</TT>
 			</TD>
 			<TD>
@@ -506,9 +506,9 @@
 				<TT>--cue=2.1-2.4</TT> : decode from track 2, index 1, up to, but not including, track 2, index 4<P>
 			</TD>
 		</TR>
-		<A NAME="flac_options_decode_through_errors">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_decode_through_errors">
 				<TT>-F</TT>,<BR><TT>--decode-through-errors</TT>
 			</TD>
 			<TD>
@@ -516,9 +516,9 @@
 			</TD>
 		</TR>
 		<!-- @@@ undocumented, also not in the man page yet
-		<A NAME="flac_options_apply_replaygain_which_is_not_lossless">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_apply_replaygain_which_is_not_lossless">
 				<TT>--apply-replaygain_which_is_not_lossless[=&lt;specification&gt;]</TT>
 			</TD>
 			<TD>
@@ -569,27 +569,27 @@
 				<A NAME="encoding_options"><FONT SIZE="+1"><B>Encoding Options</B></FONT></A>
 			</TD>
 		</TR>
-		<A NAME="flac_options_verify">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_verify">
 				<TT>-V</TT>, <TT>--verify</TT>
 			</TD>
 			<TD>
 				Verify the encoding process.  With this option, <B><TT>flac</TT></B> will create a parallel decoder that decodes the output of the encoder and compares the result against the original.  It will abort immediately with an error if a mismatch occurs.  <B><TT>-V</TT></B> increases the total encoding time but is guaranteed to catch any unforseen bug in the encoding process.
 			</TD>
 		</TR>
-		<A NAME="flac_options_lax">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_lax">
 				<TT>--lax</TT>
 			</TD>
 			<TD>
 				Allow encoder to generate non-<A HREF="format.html#subset">Subset</A> files.  The resulting FLAC file may not be streamable, so you should only use this option in combination with custom encoding options meant for archival.  File decoders will still be able play (and seek in) such files.
 			</TD>
 		</TR>
-		<A NAME="flac_options_replay_gain">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_replay_gain">
 				<TT>--replay-gain</TT>
 			</TD>
 			<TD>
@@ -597,9 +597,9 @@
 				Note that this option cannot be used when encoding to standard output (stdout).
 			</TD>
 		</TR>
-		<A NAME="flac_options_cuesheet">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_cuesheet">
 				<TT>--cuesheet=FILENAME</TT>
 			</TD>
 			<TD>
@@ -607,9 +607,9 @@
 				The cuesheet file must be of the sort written by <A HREF="http://www.goldenhawk.com/cdrwin.htm">CDRwin</A>, <A HREF="http://www.dcsoft.com/prod03.htm">CDRcue</A>, <A HREF="http://www.exactaudiocopy.de/">EAC</A>, et al.
 			</TD>
 		</TR>
-		<A NAME="flac_options_sector_align">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_sector_align">
 				<TT>--sector-align</TT>
 			</TD>
 			<TD>
@@ -618,9 +618,9 @@
 				<B>WARNING:</B> The ordering of files is important!  If you give a command like '<TT>flac --sector-align *.wav</TT>' the shell may not expand the wildcard to the order you expect.  To be safe you should '<TT>echo *.wav</TT>' first to confirm the order, or be explicit like '<TT>flac --sector-align 8.wav 9.wav 10.wav</TT>'.
 			</TD>
 		</TR>
-		<A NAME="flac_options_seekpoint">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_seekpoint">
 				<TT>-S {#|X|#x|#s}</TT>,<BR><TT>--seekpoint={#|X|#x|#s}</TT>
 			</TD>
 			<TD>
@@ -645,198 +645,198 @@
 				<B>NOTE:</B> if you use -S # and # is &gt;= samples in the input, there will be either no seek point entered (if the input size is determinable before encoding starts) or a placeholder point (if input size is not determinable).<BR>
 			</TD>
 		</TR>
-		<A NAME="flac_options_padding">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_padding">
 				<TT>-P #</TT>, <TT>--padding=#</TT>
 			</TD>
 			<TD>
 				Tell the encoder to write a <TT>PADDING</TT> metadata block of the given length (in bytes) after the <TT>STREAMINFO</TT> block.  This is useful if you plan to tag the file later with an <TT>APPLICATION</TT> block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the <TT>PADDING</TT> block.  Note that the total length of the <TT>PADDING</TT> block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no <TT>PADDING</TT> block at all to be written with <TT>--no-padding</TT>.  The encoder writes a PADDING block of 4096 bytes by default.
 			</TD>
 		</TR>
-		<A NAME="flac_options_tag">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_tag">
 				<TT>-T FIELD=VALUE</TT>, <TT>--tag=FIELD=VALUE</TT>
 			</TD>
 			<TD>
 				Add a FLAC tag.  The comment must adhere to the Vorbis comment spec (which FLAC tags implement), i.e. the FIELD must contain only legal characters, terminated by an 'equals' sign.  Make sure to quote the comment if necessary.  This option may appear more than once to add several comments.  NOTE: all tags will be added to all encoded files.
 			</TD>
 		</TR>
-		<A NAME="flac_options_blocksize">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_blocksize">
 				<TT>-b #</TT>, <TT>--blocksize=#</TT>
 			</TD>
 			<TD>
 				Specify the block size in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The reference encoder uses the same block size for the entire stream.
 			</TD>
 		</TR>
-		<A NAME="flac_options_mid_side">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_mid_side">
 				<TT>-m</TT>, <TT>--mid-side</TT>
 			</TD>
 			<TD>
 				Enable mid-side coding (only for stereo streams).  Tends to increase compression by a few percent on average.  For each block both the stereo pair and mid-side versions of the block will be encoded, and smallest resulting frame will be stored.  Currently mid-side encoding is only available when bits-per-sample &lt;= 16.
 			</TD>
 		</TR>
-		<A NAME="flac_options_adaptive_mid_side">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_adaptive_mid_side">
 				<TT>-M</TT>, <TT>--adaptive-mid-side</TT>
 			</TD>
 			<TD>
 				Enable adaptive mid-side coding (only for stereo streams).  Like <TT>-m</TT> but the encoder adaptively switches between independent and mid-side coding, which is faster but yields less compression than <TT>-m</TT> (which does an exhaustive search).
 			</TD>
 		</TR>
-		<A NAME="flac_options_levels">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_levels">
 				<TT>-0 .. -8</TT>
 			</TD>
 			<TD>
 				Fastest compression .. highest compression.  The default is <TT>-5</TT>.
 			</TD>
 		</TR>
-		<A NAME="flac_options_level_0">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_level_0">
 				<TT>-0</TT>, <TT>--compression-level-0</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 0 -b 1152 -r 2,2</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_level_1">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_level_1">
 				<TT>-1</TT>, <TT>--compression-level-1</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 0 -b 1152 -M -r 2,2</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_level_2">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_level_2">
 				<TT>-2</TT>, <TT>--compression-level-2</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 0 -b 1152 -m -r 3</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_level_3">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_level_3">
 				<TT>-3</TT>, <TT>--compression-level-3</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 6 -b 4608 -r 3,3</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_level_4">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_level_4">
 				<TT>-4</TT>, <TT>--compression-level-4</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 8 -b 4608 -M -r 3,3</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_level_5">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_level_5">
 				<TT>-5</TT>, <TT>--compression-level-5</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 8 -b 4608 -m -r 3,3</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_level_6">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_level_6">
 				<TT>-6</TT>, <TT>--compression-level-6</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 8 -b 4608 -m -r 4</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_level_7">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_level_7">
 				<TT>-7</TT>, <TT>--compression-level-7</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 8 -b 4608 -m -e -r 6</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_level_8">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_level_8">
 				<TT>-8</TT>, <TT>--compression-level-8</TT>
 			</TD>
 			<TD>
 				Synonymous with <TT>-l 12 -b 4608 -m -e -r 6</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_fast">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_fast">
 				<TT>--fast</TT>
 			</TD>
 			<TD>
 				Fastest compression.  Currently synonymous with <TT>-0</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_best">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_best">
 				<TT>--best</TT>
 			</TD>
 			<TD>
 				Highest compression.  Currently synonymous with <TT>-8</TT>
 			</TD>
 		</TR>
-		<A NAME="flac_options_exhaustive_model_search">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_exhaustive_model_search">
 				<TT>-e</TT>,<BR><TT>--exhaustive-model-search</TT>
 			</TD>
 			<TD>
 				Exhaustive model search (expensive!).  Normally the encoder estimates the best model to use and encodes once based on the estimate.  With an exhaustive model search, the encoder will generate subframes for every order and use the smallest.  If the max LPC order is high this can significantly increase the encode time but can shave off another 0.5%.
 			</TD>
 		</TR>
-		<A NAME="flac_options_max_lpc_order">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_max_lpc_order">
 				<TT>-l #</TT>, <TT>--max-lpc-order=#</TT>
 			</TD>
 			<TD>
 				Specifies the maximum LPC order.  This number must be &lt;= 32.  If 0, the encoder will not attempt generic linear prediction, and use only fixed predictors.  Using fixed predictors is faster but usually results in files being 5-10% larger.
 			</TD>
 		</TR>
-		<A NAME="flac_options_qlp_coeff_precision">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_qlp_coeff_precision">
 				<TT>-q #</TT>,<BR><TT>--qlp-coeff-precision=#</TT>
 			</TD>
 			<TD>
 				Specifies the precision of the quantized LP coefficients, in bits.  The default is <B><TT>-q 0</TT></B>, which means let the encoder decide based on the signal.  Unless you really know your input file it's best to leave this up to the encoder.
 			</TD>
 		</TR>
-		<A NAME="flac_options_qlp_coeff_precision_search">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_qlp_coeff_precision_search">
 				<TT>-p</TT>,<BR><TT>--qlp-coeff-precision-search</TT>
 			</TD>
 			<TD>
 				Do exhaustive LP coefficient quantization optimization.  This option overrides any <B><TT>-q</TT></B> option.  It is expensive and typically will only improve the compression a tiny fraction of a percent.  <B><TT>-q</TT></B> has no effect when <B><TT>-l 0</TT></B> is used.
 			</TD>
 		</TR>
-		<A NAME="flac_options_rice_partition_order">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_rice_partition_order">
 				<TT>-r [#,]#</TT>,<BR><TT>--rice-partition-order=[#,]#</TT>
 			</TD>
 			<TD>
@@ -855,63 +855,63 @@
 				<A NAME="format_options"><FONT SIZE="+1"><B>Format Options</B></FONT></A>
 			</TD>
 		</TR>
-		<A NAME="flac_options_endian">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_endian">
 				<TT>--endian={big|little}</TT>
 			</TD>
 			<TD>
 				Specify big-endian or little-endian byte order in the raw file.
 			</TD>
 		</TR>
-		<A NAME="flac_options_channels">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_channels">
 				<TT>--channels=#</TT>
 			</TD>
 			<TD>
 				Specify the number of channels in the raw file.
 			</TD>
 		</TR>
-		<A NAME="flac_options_bps">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_bps">
 				<TT>--bps=#</TT>
 			</TD>
 			<TD>
 				Specify the number of bits per sample in the raw file.
 			</TD>
 		</TR>
-		<A NAME="flac_options_sample_rate">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_sample_rate">
 				<TT>--sample-rate=#</TT>
 			</TD>
 			<TD>
 				Specify the sample rate of the raw file.
 			</TD>
 		</TR>
-		<A NAME="flac_options_sign">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_sign">
 				<TT>--sign={signed|unsigned}</TT>
 			</TD>
 			<TD>
 				Specify that the samples in the raw file are signed or unsigned (the default is signed).
 			</TD>
 		</TR>
-		<A NAME="flac_options_force_aiff_format">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_force_aiff_format">
 				<TT>--force-aiff-format</TT>
 			</TD>
 			<TD>
 				Force the decoder to output AIFF format.  This option is not needed if the output filename (as set by -o) ends with .aiff.  Also, this option has no effect when encoding since input AIFF is auto-detected.
 			</TD>
 		</TR>
-		<A NAME="flac_options_force_raw_format">
 		<TR>
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A NAME="flac_options_force_raw_format">
 				<TT>--force-raw-format</TT>
 			</TD>
 			<TD>
