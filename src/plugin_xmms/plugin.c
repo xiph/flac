@@ -48,6 +48,7 @@ typedef struct {
 	unsigned channels;
 	unsigned sample_rate;
 	unsigned length_in_msec;
+	AFormat sample_format;
 	int seek_to_in_sec;
 } file_info_struct;
 
@@ -97,9 +98,9 @@ InputPlugin flac_ip =
 	NULL
 };
 
-static int16 reservoir_[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max channels, another *2 for overflow */
+static byte reservoir_[FLAC__MAX_BLOCK_SIZE * 2 * 2 * 2]; /* *2 for max bytes-per-sample, *2 for max channels, another *2 for overflow */
 #ifdef RESERVOIR_TEST
-static int16 output_[FLAC__MAX_BLOCK_SIZE * 2]; /* *2 for max channels */
+static byte output_[FLAC__MAX_BLOCK_SIZE * 2 * 2]; /* *2 for max bytes-per-sample, *2 for max channels */
 #endif
 static unsigned reservoir_samples_;
 static FLAC__FileDecoder *decoder_;
@@ -146,7 +147,7 @@ void FLAC_XMMS__play_file(char *filename)
 	file_info_.is_playing = true;
 	file_info_.eof = false;
 
-	if (flac_ip.output->open_audio(FMT_S16_NE, file_info_.sample_rate, file_info_.channels) == 0) {
+	if (flac_ip.output->open_audio(file_info_.sample_format, file_info_.sample_rate, file_info_.channels) == 0) {
 		audio_error_ = true;
 		if(decoder_ && decoder_->state != FLAC__FILE_DECODER_UNINITIALIZED)
 			FLAC__file_decoder_finish(decoder_);
@@ -297,11 +298,11 @@ void *play_loop_(void *arg)
 			(void)FLAC__file_decoder_process_one_frame(decoder_);
 			if(reservoir_samples_ > 0) {
 				unsigned bytes = reservoir_samples_ * ((file_info_.bits_per_sample+7)/8) * file_info_.channels;
-				flac_ip.add_vis_pcm(flac_ip.output->written_time(), FMT_S16_NE, file_info_.channels, bytes, (char*)reservoir_);
+				flac_ip.add_vis_pcm(flac_ip.output->written_time(), file_info_.sample_format, file_info_.channels, bytes, reservoir_);
 				while(flac_ip.output->buffer_free() < (int)bytes && file_info_.is_playing && file_info_.seek_to_in_sec == -1)
 					xmms_usleep(10000);
 				if(file_info_.is_playing && file_info_.seek_to_in_sec == -1)
-					flac_ip.output->write_audio((char*)reservoir_, bytes);
+					flac_ip.output->write_audio(reservoir_, bytes);
 				reservoir_samples_ = 0;
 			}
 			else {
@@ -350,21 +351,22 @@ void *play_loop_(void *arg)
 			}
 			if(reservoir_samples_ > 0) {
 				const unsigned channels = file_info_.channels;
+				const unsigned bytes_per_sample = (file_info_.bits_per_sample+7)/8;
 				unsigned i, n = min(reservoir_samples_, 576), delta;
-				unsigned bytes = n * ((file_info_.bits_per_sample+7)/8) * channels;
+				unsigned bytes = n * bytes_per_sample * channels;
 
-				for(i = 0; i < n*channels; i++)
+				for(i = 0; i < bytes; i++)
 					output_[i] = reservoir_[i];
 				delta = i;
-				for( ; i < reservoir_samples_*channels; i++)
+				for( ; i < reservoir_samples_*bytes_per_sample*channels; i++)
 					reservoir[i-delta] = reservoir[i];
 				reservoir_samples_ -= n;
 
-				flac_ip.add_vis_pcm(flac_ip.output->written_time(), FMT_S16_NE, channels, bytes, (char*)output_);
+				flac_ip.add_vis_pcm(flac_ip.output->written_time(), file_info_.sample_format, channels, bytes, output_);
 				while(flac_ip.output->buffer_free() < (int)bytes && file_info_.is_playing && file_info_.seek_to_in_sec == -1)
 					xmms_usleep(10000);
 				if(file_info_.is_playing && file_info_.seek_to_in_sec == -1)
-					flac_ip.output->write_audio((char*)output_, bytes);
+					flac_ip.output->write_audio(output_, bytes);
 			}
 			else {
 				file_info_.eof = true;
@@ -421,17 +423,28 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	const unsigned bps = file_info->bits_per_sample, channels = file_info->channels, wide_samples = frame->header.blocksize;
 	unsigned wide_sample, sample, channel;
+	int8 *scbuffer = (int8*)reservoir_;
+	int16 *ssbuffer = (int16*)reservoir_;
 
 	(void)decoder;
 
 	if(file_info->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_ABORT;
 
-	assert(bps == 16);
-
-	for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-		for(channel = 0; channel < channels; channel++, sample++)
-			reservoir_[sample] = (int16)buffer[channel][wide_sample];
+	if(bps == 8) {
+		for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+			for(channel = 0; channel < channels; channel++, sample++)
+				scbuffer[sample] = (int8)buffer[channel][wide_sample];
+	}
+	else if(bps == 16) {
+		for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+			for(channel = 0; channel < channels; channel++, sample++)
+				ssbuffer[sample] = (int16)buffer[channel][wide_sample];
+	}
+	else {
+		file_info->abort_flag = true;
+		return FLAC__STREAM_DECODER_WRITE_ABORT;
+	}
 
 	reservoir_samples_ = wide_samples;
 
@@ -443,17 +456,28 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	const unsigned bps = file_info->bits_per_sample, channels = file_info->channels, wide_samples = frame->header.blocksize;
 	unsigned wide_sample, sample, channel;
+	int8 *scbuffer = (int8*)reservoir_;
+	int16 *ssbuffer = (int16*)reservoir_;
 
 	(void)decoder;
 
 	if(file_info->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_ABORT;
 
-	assert(bps == 16);
-
-	for(sample = reservoir_samples_*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-		for(channel = 0; channel < channels; channel++, sample++)
-			reservoir_[sample] = (int16)buffer[channel][wide_sample];
+	if(bps == 8) {
+		for(sample = reservoir_samples_*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+			for(channel = 0; channel < channels; channel++, sample++)
+				scbuffer[sample] = (int8)buffer[channel][wide_sample];
+	}
+	else if(bps == 16) {
+		for(sample = reservoir_samples_*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+			for(channel = 0; channel < channels; channel++, sample++)
+				ssbuffer[sample] = (int16)buffer[channel][wide_sample];
+	}
+	else {
+		file_info->abort_flag = true;
+		return FLAC__STREAM_DECODER_WRITE_ABORT;
+	}
 
 	reservoir_samples_ += wide_samples;
 
@@ -472,7 +496,13 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 		file_info->channels = metadata->data.stream_info.channels;
 		file_info->sample_rate = metadata->data.stream_info.sample_rate;
 
-		if(file_info->bits_per_sample != 16) {
+		if(file_info->bits_per_sample == 8) {
+			file_info->sample_format = FMT_S8;
+		}
+		else if(file_info->bits_per_sample == 16) {
+			file_info->sample_format = FMT_S16_NE;
+		}
+		else {
 			file_info->abort_flag = true;
 			return;
 		}
