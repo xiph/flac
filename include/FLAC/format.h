@@ -31,8 +31,14 @@ extern "C" {
 #define FLAC__MAX_BLOCK_SIZE (65535u)
 #define FLAC__MAX_CHANNELS (8u)
 #define FLAC__MIN_BITS_PER_SAMPLE (4u)
-/*NOTE: only up to 24 because of the current predictor coefficient quantization and the fact we use FLAC__int32s for all work */
-#define FLAC__MAX_BITS_PER_SAMPLE (24u)
+#define FLAC__MAX_BITS_PER_SAMPLE (32u)
+/*
+ * NOTE: the above value is the limit of the FLAC format.  However, the
+ * reference encoder/decoder is currently limited to 24 bits because of
+ * prevalent 32-bit math, so make sure and use the following value when
+ * appropriate:
+ */
+#define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (24u)
 /* the following is ((2 ** 16) - 1) * 10; see format.html as to why */
 #define FLAC__MAX_SAMPLE_RATE (655350u)
 #define FLAC__MAX_LPC_ORDER (32u)
