@@ -114,12 +114,9 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__
 
 FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool streamable_subset, FLAC__bool is_last_block, FLAC__BitBuffer *bb)
 {
-	unsigned u, crc8_start, blocksize_hint, sample_rate_hint;
-	FLAC__byte crc8;
+	unsigned u, blocksize_hint, sample_rate_hint;
 
-	FLAC__ASSERT(bb->bits == 0); /* assert that we're byte-aligned before writing */
-
-	crc8_start = bb->bytes;
+	FLAC__ASSERT(FLAC__bitbuffer_is_byte_aligned(bb));
 
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__FRAME_HEADER_SYNC, FLAC__FRAME_HEADER_SYNC_LEN))
 		return false;
@@ -246,10 +243,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 	}
 
 	/* write the CRC */
-	FLAC__ASSERT(bb->buffer[crc8_start] == 0xff); /* MAGIC NUMBER for the first byte of the sync code */
-	FLAC__ASSERT(bb->bits == 0); /* assert that we're byte-aligned */
-	crc8 = FLAC__crc8(bb->buffer+crc8_start, bb->bytes-crc8_start);
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, crc8, FLAC__FRAME_HEADER_CRC_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__bitbuffer_get_write_crc8(bb), FLAC__FRAME_HEADER_CRC_LEN))
 		return false;
 
 	return true;

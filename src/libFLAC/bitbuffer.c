@@ -32,10 +32,44 @@
  *
  */
 
-/* This should be at least twice as large as the largest number of bytes required to represent any 'number' (in any encoding) you are going to read. */
-static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 65536; /* bytes */
+/*
+ * This should be at least twice as large as the largest number of blurbs
+ * required to represent any 'number' (in any encoding) you are going to
+ * read.  With FLAC this is on the order of maybe a few hundred bits.
+ * If the buffer is smaller than that, the decoder won't be able to read
+ * in a whole number that is in a variable length encoding (e.g. Rice).
+ *
+ * The number we are actually using here is based on what would be the
+ * approximate maximum size of a verbatim frame at the default block size,
+ * for CD audio (4096 sample * 4 bytes per sample), plus some wiggle room.
+ * 32kbytes sounds reasonable.  For kicks we subtract out 64 bytes for any
+ * alignment or malloc overhead.
+ *
+ * Increase this number to decrease the number of read callbacks, at the
+ * expense of using more memory.  Or decrease for the reverse effect,
+ * keeping in mind the limit from the first paragraph.
+ */
+static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = ((65536 - 64) * 8) / FLAC__BITS_PER_BLURB; /* blurbs */
 
-#define BYTE_BIT_TO_MASK(b) (((FLAC__byte)'\x80') >> (b))
+#if FLAC__BITS_PER_BLURB == 8
+#define FLAC__BITS_PER_BLURB_LOG2 3
+#define FLAC__BYTES_PER_BLURB 1
+#define FLAC__BLURB_ALL_ONES ((FLAC__byte)0xff)
+#define FLAC__BLURB_TOP_BIT_ONE ((FLAC__byte)0x80)
+#define BLURB_BIT_TO_MASK(b) (((FLAC__blurb)'\x80') >> (b))
+#define CRC16_UPDATE_BLURB(bb, blurb, crc) FLAC__CRC16_UPDATE((blurb), (crc));
+#elif FLAC__BITS_PER_BLURB == 32
+#define FLAC__BITS_PER_BLURB_LOG2 5
+#define FLAC__BYTES_PER_BLURB 4
+#define FLAC__BLURB_ALL_ONES ((FLAC__uint32)0xffffffff)
+#define FLAC__BLURB_TOP_BIT_ONE ((FLAC__uint32)0x80000000)
+#define BLURB_BIT_TO_MASK(b) (((FLAC__blurb)0x80000000) >> (b))
+#define CRC16_UPDATE_BLURB(bb, blurb, crc) crc16_update_blurb((bb), (blurb));
+#else
+/* ERROR, only sizes of 8 and 32 are supported */
+#endif
+
+#define FLAC__BLURBS_TO_BITS(blurbs) ((blurbs) << FLAC__BITS_PER_BLURB_LOG2)
 
 #ifdef min
 #undef min
@@ -50,9 +84,58 @@ static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = 65536; /* bytes */
 #define FLaC__INLINE
 #endif
 
+struct FLAC__BitBuffer {
+	FLAC__blurb *buffer;
+	unsigned capacity; /* in blurbs */
+	unsigned blurbs, bits;
+	unsigned total_bits; /* must always == FLAC__BITS_PER_BLURB*blurbs+bits */
+	unsigned consumed_blurbs, consumed_bits;
+	unsigned total_consumed_bits; /* must always == FLAC__BITS_PER_BLURB*consumed_blurbs+consumed_bits */
+	FLAC__uint16 read_crc16;
+#if FLAC__BITS_PER_BLURB == 32
+	unsigned crc16_align;
+#endif
+	FLAC__blurb save_head, save_tail;
+};
+
+static void crc16_update_blurb(FLAC__BitBuffer *bb, FLAC__blurb blurb)
+{
+#if FLAC__BITS_PER_BLURB == 32
+	if(bb->crc16_align == 0) {
+		FLAC__CRC16_UPDATE(blurb >> 24, bb->read_crc16);
+		FLAC__CRC16_UPDATE((blurb >> 16) & 0xff, bb->read_crc16);
+		FLAC__CRC16_UPDATE((blurb >> 8) & 0xff, bb->read_crc16);
+		FLAC__CRC16_UPDATE(blurb & 0xff, bb->read_crc16);
+	}
+	else if(bb->crc16_align == 8) {
+		FLAC__CRC16_UPDATE((blurb >> 16) & 0xff, bb->read_crc16);
+		FLAC__CRC16_UPDATE((blurb >> 8) & 0xff, bb->read_crc16);
+		FLAC__CRC16_UPDATE(blurb & 0xff, bb->read_crc16);
+	}
+	else if(bb->crc16_align == 16) {
+		FLAC__CRC16_UPDATE((blurb >> 8) & 0xff, bb->read_crc16);
+		FLAC__CRC16_UPDATE(blurb & 0xff, bb->read_crc16);
+	}
+	else if(bb->crc16_align == 24) {
+		FLAC__CRC16_UPDATE(blurb & 0xff, bb->read_crc16);
+	}
+	bb->crc16_align = 0;
+#else
+	(void)bb; (void)blurb;
+	FLAC__ASSERT(false);
+#endif
+}
+
+/*
+ * WATCHOUT: The current implentation is not friendly to shrinking, i.e. it
+ * does not shift left what is consumed, it just chops off the end, whether
+ * there is unconsumed data there or not.  This is OK because currently we
+ * never shrink the buffer, but if this ever changes, we'll have to do some
+ * fixups here.
+ */
 static FLAC__bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 {
-	FLAC__byte *new_buffer;
+	FLAC__blurb *new_buffer;
 
 	FLAC__ASSERT(bb != 0);
 	FLAC__ASSERT(bb->buffer != 0);
@@ -60,20 +143,20 @@ static FLAC__bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 	if(bb->capacity == new_capacity)
 		return true;
 
-	new_buffer = (FLAC__byte*)malloc(sizeof(FLAC__byte) * new_capacity);
+	new_buffer = (FLAC__blurb*)malloc(sizeof(FLAC__blurb) * new_capacity);
 	if(new_buffer == 0)
 		return false;
-	memset(new_buffer, 0, new_capacity);
-	memcpy(new_buffer, bb->buffer, sizeof(FLAC__byte)*min(bb->bytes+(bb->bits?1:0), new_capacity));
-	if(new_capacity < bb->bytes+(bb->bits?1:0)) {
-		bb->bytes = new_capacity;
+	memset(new_buffer, 0, sizeof(FLAC__blurb) * new_capacity);
+	memcpy(new_buffer, bb->buffer, sizeof(FLAC__blurb)*min(bb->blurbs+(bb->bits?1:0), new_capacity));
+	if(new_capacity < bb->blurbs+(bb->bits?1:0)) {
+		bb->blurbs = new_capacity;
 		bb->bits = 0;
-		bb->total_bits = (new_capacity<<3);
+		bb->total_bits = FLAC__BLURBS_TO_BITS(new_capacity);
 	}
-	if(new_capacity < bb->consumed_bytes+(bb->consumed_bits?1:0)) {
-		bb->consumed_bytes = new_capacity;
+	if(new_capacity < bb->consumed_blurbs+(bb->consumed_bits?1:0)) {
+		bb->consumed_blurbs = new_capacity;
 		bb->consumed_bits = 0;
-		bb->total_consumed_bits = (new_capacity<<3);
+		bb->total_consumed_bits = FLAC__BLURBS_TO_BITS(new_capacity);
 	}
 	free(bb->buffer); // we've already asserted above that (bb->buffer != 0)
 	bb->buffer = new_buffer;
@@ -81,13 +164,13 @@ static FLAC__bool bitbuffer_resize_(FLAC__BitBuffer *bb, unsigned new_capacity)
 	return true;
 }
 
-static FLAC__bool bitbuffer_grow_(FLAC__BitBuffer *bb, unsigned min_bytes_to_add)
+static FLAC__bool bitbuffer_grow_(FLAC__BitBuffer *bb, unsigned min_blurbs_to_add)
 {
 	unsigned new_capacity;
 
-	FLAC__ASSERT(min_bytes_to_add > 0);
+	FLAC__ASSERT(min_blurbs_to_add > 0);
 
-	new_capacity = max(bb->capacity * 4, bb->capacity + min_bytes_to_add);
+	new_capacity = max(bb->capacity * 2, bb->capacity + min_blurbs_to_add);
 	return bitbuffer_resize_(bb, new_capacity);
 }
 
@@ -96,8 +179,8 @@ static FLAC__bool bitbuffer_ensure_size_(FLAC__BitBuffer *bb, unsigned bits_to_a
 	FLAC__ASSERT(bb != 0);
 	FLAC__ASSERT(bb->buffer != 0);
 
-	if((bb->capacity<<3) < bb->total_bits + bits_to_add)
-		return bitbuffer_grow_(bb, (bits_to_add>>3)+2);
+	if(FLAC__BLURBS_TO_BITS(bb->capacity) < bb->total_bits + bits_to_add)
+		return bitbuffer_grow_(bb, (bits_to_add >> FLAC__BITS_PER_BLURB_LOG2) + 2);
 	else
 		return true;
 }
@@ -105,74 +188,123 @@ static FLAC__bool bitbuffer_ensure_size_(FLAC__BitBuffer *bb, unsigned bits_to_a
 static FLAC__bool bitbuffer_read_from_client_(FLAC__BitBuffer *bb, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	unsigned bytes;
+	FLAC__byte *target;
 
 	/* first shift the unconsumed buffer data toward the front as much as possible */
-	if(bb->total_consumed_bits >= 8) {
-		unsigned l = 0, r = bb->consumed_bytes, r_end = bb->bytes;
+	if(bb->total_consumed_bits >= FLAC__BITS_PER_BLURB) {
+		unsigned l = 0, r = bb->consumed_blurbs, r_end = bb->blurbs + (bb->bits? 1:0);
 		for( ; r < r_end; l++, r++)
 			bb->buffer[l] = bb->buffer[r];
 		for( ; l < r_end; l++)
 			bb->buffer[l] = 0;
-		bb->bytes -= bb->consumed_bytes;
-		bb->total_bits -= (bb->consumed_bytes<<3);
-		bb->consumed_bytes = 0;
+		bb->blurbs -= bb->consumed_blurbs;
+		bb->total_bits -= FLAC__BLURBS_TO_BITS(bb->consumed_blurbs);
+		bb->consumed_blurbs = 0;
 		bb->total_consumed_bits = bb->consumed_bits;
 	}
+
 	/* grow if we need to */
 	if(bb->capacity <= 1) {
 		if(!bitbuffer_resize_(bb, 16))
 			return false;
 	}
+
+	/* set the target for reading, taking into account blurb alignment */
+#if FLAC__BITS_PER_BLURB == 8
+	/* blurb == byte, so no gyrations necessary: */
+	target = bb->buffer + bb->blurbs;
+	bytes = bb->capacity - bb->blurbs;
+#elif FLAC__BITS_PER_BLURB == 32
+	/* @@@ WATCHOUT: code currently only works for big-endian: */
+	FLAC__ASSERT((bb->bits & 7) == 0);
+	target = (FLAC__byte*)(bb->buffer + bb->blurbs) + (bb->bits >> 3);
+	bytes = ((bb->capacity - bb->blurbs) << 2) - (bb->bits >> 3); /* i.e. (bb->capacity - bb->blurbs) * FLAC__BYTES_PER_BLURB - (bb->bits / 8) */
+#else
+	FLAC__ASSERT(false); /* ERROR, only sizes of 8 and 32 are supported */
+#endif
+
 	/* finally, read in some data */
-	bytes = bb->capacity - bb->bytes;
-	if(!read_callback(bb->buffer+bb->bytes, &bytes, client_data))
+	if(!read_callback(target, &bytes, client_data))
 		return false;
-	bb->bytes += bytes;
-	bb->total_bits += (bytes<<3);
+
+	/* now we have to handle partial blurb cases: */
+#if FLAC__BITS_PER_BLURB == 8
+	/* blurb == byte, so no gyrations necessary: */
+	bb->blurbs += bytes;
+	bb->total_bits += FLAC__BLURBS_TO_BITS(bytes);
+#elif FLAC__BITS_PER_BLURB == 32
+	/* @@@ WATCHOUT: code currently only works for big-endian: */
+	{
+		const unsigned aligned_bytes = (bb->bits >> 3) + bytes;
+		bb->blurbs += (aligned_bytes >> 2); /* i.e. aligned_bytes / FLAC__BYTES_PER_BLURB */
+		bb->bits = (aligned_bytes & 3u) << 3; /* i.e. (aligned_bytes % FLAC__BYTES_PER_BLURB) * 8 */
+		bb->total_bits += (bytes << 3);
+	}
+#else
+	FLAC__ASSERT(false); /* ERROR, only sizes of 8 and 32 are supported */
+#endif
 	return true;
 }
 
-void FLAC__bitbuffer_init(FLAC__BitBuffer *bb)
+/***********************************************************************
+ *
+ * Class constructor/destructor
+ *
+ ***********************************************************************/
+
+FLAC__BitBuffer *FLAC__bitbuffer_new()
+{
+	return (FLAC__BitBuffer*)malloc(sizeof(FLAC__BitBuffer));
+}
+
+void FLAC__bitbuffer_delete(FLAC__BitBuffer *bb)
+{
+	FLAC__ASSERT(bb != 0);
+
+	FLAC__bitbuffer_free(bb);
+	free(bb);
+}
+
+/***********************************************************************
+ *
+ * Public class methods
+ *
+ ***********************************************************************/
+
+FLAC__bool FLAC__bitbuffer_init(FLAC__BitBuffer *bb)
 {
 	FLAC__ASSERT(bb != 0);
 
 	bb->buffer = 0;
 	bb->capacity = 0;
-	bb->bytes = bb->bits = bb->total_bits = 0;
-	bb->consumed_bytes = bb->consumed_bits = bb->total_consumed_bits = 0;
+	bb->blurbs = bb->bits = bb->total_bits = 0;
+	bb->consumed_blurbs = bb->consumed_bits = bb->total_consumed_bits = 0;
+
+	return FLAC__bitbuffer_clear(bb);
 }
 
 FLAC__bool FLAC__bitbuffer_init_from(FLAC__BitBuffer *bb, const FLAC__byte buffer[], unsigned bytes)
 {
 	FLAC__ASSERT(bb != 0);
-	FLAC__bitbuffer_init(bb);
+	FLAC__ASSERT(bytes > 0);
 
-	if(bytes == 0)
-		return true;
-	else {
-		FLAC__ASSERT(buffer != 0);
-		bb->buffer = (FLAC__byte*)malloc(sizeof(FLAC__byte)*bytes);
-		if(bb->buffer == 0)
-			return false;
-		memcpy(bb->buffer, buffer, sizeof(FLAC__byte)*bytes);
-		bb->capacity = bb->bytes = bytes;
-		bb->bits = 0;
-		bb->total_bits = (bytes<<3);
-		bb->consumed_bytes = bb->consumed_bits = bb->total_consumed_bits = 0;
-		return true;
-	}
-}
+	if(!FLAC__bitbuffer_init(bb))
+		return false;
 
-void FLAC__bitbuffer_init_read_crc16(FLAC__BitBuffer *bb, FLAC__uint16 seed)
-{
-	FLAC__ASSERT(bb != 0);
+	if(!bitbuffer_ensure_size_(bb, bytes << 3))
+		return false;
 
-	bb->read_crc16 = seed;
+	FLAC__ASSERT(buffer != 0);
+	/* @@@ WATCHOUT: code currently only works for 8-bits-per-blurb inclusive-or big-endian: */
+	memcpy((FLAC__byte*)bb->buffer, buffer, sizeof(FLAC__byte)*bytes);
+	bb->blurbs = bytes / FLAC__BYTES_PER_BLURB;
+	bb->bits = (bytes % FLAC__BYTES_PER_BLURB) << 3;
+	bb->total_bits = bytes << 3;
+	return true;
 }
 
 FLAC__bool FLAC__bitbuffer_concatenate_aligned(FLAC__BitBuffer *dest, const FLAC__BitBuffer *src)
 {
-	static const FLAC__byte mask_[9] = { 0x00, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f, 0x7f, 0xff };
 	unsigned bits_to_add = src->total_bits - src->total_consumed_bits;
 
 	FLAC__ASSERT(dest != 0);
@@ -185,20 +317,20 @@ FLAC__bool FLAC__bitbuffer_concatenate_aligned(FLAC__BitBuffer *dest, const FLAC
 	if(!bitbuffer_ensure_size_(dest, bits_to_add))
 		return false;
 	if(dest->bits == 0) {
-		memcpy(dest->buffer+dest->bytes, src->buffer+src->consumed_bytes, src->bytes-src->consumed_bytes + ((src->bits)? 1:0));
+		memcpy(dest->buffer+dest->blurbs, src->buffer+src->consumed_blurbs, sizeof(FLAC__blurb)*(src->blurbs-src->consumed_blurbs + ((src->bits)? 1:0)));
 	}
-	else if(dest->bits + bits_to_add > 8) {
-		dest->buffer[dest->bytes] <<= (8 - dest->bits);
-		dest->buffer[dest->bytes] |= (src->buffer[src->consumed_bytes] & mask_[8-dest->bits]);
-		memcpy(dest->buffer+dest->bytes+1, src->buffer+src->consumed_bytes+1, src->bytes-src->consumed_bytes-1 + ((src->bits)? 1:0));
+	else if(dest->bits + bits_to_add > FLAC__BITS_PER_BLURB) {
+		dest->buffer[dest->blurbs] <<= (FLAC__BITS_PER_BLURB - dest->bits);
+		dest->buffer[dest->blurbs] |= (src->buffer[src->consumed_blurbs] & ((1u << (FLAC__BITS_PER_BLURB-dest->bits)) - 1));
+		memcpy(dest->buffer+dest->blurbs+1, src->buffer+src->consumed_blurbs+1, sizeof(FLAC__blurb)*(src->blurbs-src->consumed_blurbs-1 + ((src->bits)? 1:0)));
 	}
 	else {
-		dest->buffer[dest->bytes] <<= bits_to_add;
-		dest->buffer[dest->bytes] |= (src->buffer[src->consumed_bytes] & mask_[bits_to_add]);
+		dest->buffer[dest->blurbs] <<= bits_to_add;
+		dest->buffer[dest->blurbs] |= (src->buffer[src->consumed_blurbs] & ((1u << bits_to_add) - 1));
 	}
 	dest->bits = src->bits;
 	dest->total_bits += bits_to_add;
-	dest->bytes = dest->total_bits / 8;
+	dest->blurbs = dest->total_bits / FLAC__BITS_PER_BLURB;
 
 	return true;
 }
@@ -211,24 +343,24 @@ void FLAC__bitbuffer_free(FLAC__BitBuffer *bb)
 		free(bb->buffer);
 	bb->buffer = 0;
 	bb->capacity = 0;
-	bb->bytes = bb->bits = bb->total_bits = 0;
-	bb->consumed_bytes = bb->consumed_bits = bb->total_consumed_bits = 0;
+	bb->blurbs = bb->bits = bb->total_bits = 0;
+	bb->consumed_blurbs = bb->consumed_bits = bb->total_consumed_bits = 0;
 }
 
 FLAC__bool FLAC__bitbuffer_clear(FLAC__BitBuffer *bb)
 {
 	if(bb->buffer == 0) {
 		bb->capacity = FLAC__BITBUFFER_DEFAULT_CAPACITY;
-		bb->buffer = (FLAC__byte*)malloc(sizeof(FLAC__byte) * bb->capacity);
+		bb->buffer = (FLAC__blurb*)malloc(sizeof(FLAC__blurb) * bb->capacity);
 		if(bb->buffer == 0)
 			return false;
 		memset(bb->buffer, 0, bb->capacity);
 	}
 	else {
-		memset(bb->buffer, 0, bb->bytes + (bb->bits?1:0));
+		memset(bb->buffer, 0, bb->blurbs + (bb->bits?1:0));
 	}
-	bb->bytes = bb->bits = bb->total_bits = 0;
-	bb->consumed_bytes = bb->consumed_bits = bb->total_consumed_bits = 0;
+	bb->blurbs = bb->bits = bb->total_bits = 0;
+	bb->consumed_blurbs = bb->consumed_bits = bb->total_consumed_bits = 0;
 	return true;
 }
 
@@ -242,15 +374,160 @@ FLAC__bool FLAC__bitbuffer_clone(FLAC__BitBuffer *dest, const FLAC__BitBuffer *s
 	if(dest->capacity < src->capacity)
 		if(!bitbuffer_resize_(dest, src->capacity))
 			return false;
-	memcpy(dest->buffer, src->buffer, sizeof(FLAC__byte)*min(src->capacity, src->bytes+1));
-	dest->bytes = src->bytes;
+	memcpy(dest->buffer, src->buffer, sizeof(FLAC__blurb)*min(src->capacity, src->blurbs+1));
+	dest->blurbs = src->blurbs;
 	dest->bits = src->bits;
 	dest->total_bits = src->total_bits;
-	dest->consumed_bytes = src->consumed_bytes;
+	dest->consumed_blurbs = src->consumed_blurbs;
 	dest->consumed_bits = src->consumed_bits;
 	dest->total_consumed_bits = src->total_consumed_bits;
 	dest->read_crc16 = src->read_crc16;
 	return true;
+}
+
+void FLAC__bitbuffer_reset_read_crc16(FLAC__BitBuffer *bb, FLAC__uint16 seed)
+{
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT((bb->consumed_bits & 7) == 0);
+
+	bb->read_crc16 = seed;
+#if FLAC__BITS_PER_BLURB == 8
+	/* no need to do anything */
+#elif FLAC__BITS_PER_BLURB == 32
+	bb->crc16_align = bb->consumed_bits;
+#else
+	FLAC__ASSERT(false); /* ERROR, only sizes of 8 and 32 are supported */
+#endif
+}
+
+FLAC__uint16 FLAC__bitbuffer_get_read_crc16(FLAC__BitBuffer *bb)
+{
+	FLAC__ASSERT(bb != 0);
+	FLAC__ASSERT(bb->buffer != 0);
+	FLAC__ASSERT((bb->bits & 7) == 0);
+	FLAC__ASSERT((bb->consumed_bits & 7) == 0);
+
+#if FLAC__BITS_PER_BLURB == 8
+	/* no need to do anything */
+#elif FLAC__BITS_PER_BLURB == 32
+	/*@@@ BUG: even though this probably can't happen with FLAC, need to fix the case where we are called here for the very first blurb and crc16_align is > 0 */
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) {
+		if(bb->consumed_bits == 8) {
+			const FLAC__blurb blurb = bb->buffer[bb->consumed_blurbs];
+			FLAC__CRC16_UPDATE(blurb >> 24, bb->read_crc16);
+		}
+		else if(bb->consumed_bits == 16) {
+			const FLAC__blurb blurb = bb->buffer[bb->consumed_blurbs];
+			FLAC__CRC16_UPDATE(blurb >> 24, bb->read_crc16);
+			FLAC__CRC16_UPDATE((blurb >> 16) & 0xff, bb->read_crc16);
+		}
+		else if(bb->consumed_bits == 24) {
+			const FLAC__blurb blurb = bb->buffer[bb->consumed_blurbs];
+			FLAC__CRC16_UPDATE(blurb >> 24, bb->read_crc16);
+			FLAC__CRC16_UPDATE((blurb >> 16) & 0xff, bb->read_crc16);
+			FLAC__CRC16_UPDATE((blurb >> 8) & 0xff, bb->read_crc16);
+		}
+	}
+	else {
+		if(bb->consumed_bits == 8) {
+			const FLAC__blurb blurb = bb->buffer[bb->consumed_blurbs];
+			FLAC__CRC16_UPDATE(blurb >> (bb->bits-8), bb->read_crc16);
+		}
+		else if(bb->consumed_bits == 16) {
+			const FLAC__blurb blurb = bb->buffer[bb->consumed_blurbs];
+			FLAC__CRC16_UPDATE(blurb >> (bb->bits-8), bb->read_crc16);
+			FLAC__CRC16_UPDATE((blurb >> (bb->bits-16)) & 0xff, bb->read_crc16);
+		}
+		else if(bb->consumed_bits == 24) {
+			const FLAC__blurb blurb = bb->buffer[bb->consumed_blurbs];
+			FLAC__CRC16_UPDATE(blurb >> (bb->bits-8), bb->read_crc16);
+			FLAC__CRC16_UPDATE((blurb >> (bb->bits-16)) & 0xff, bb->read_crc16);
+			FLAC__CRC16_UPDATE((blurb >> (bb->bits-24)) & 0xff, bb->read_crc16);
+		}
+	}
+	bb->crc16_align = bb->consumed_bits;
+#else
+	FLAC__ASSERT(false); /* ERROR, only sizes of 8 and 32 are supported */
+#endif
+	return bb->read_crc16;
+}
+
+FLAC__uint16 FLAC__bitbuffer_get_write_crc16(const FLAC__BitBuffer *bb)
+{
+	FLAC__ASSERT((bb->bits & 7) == 0); /* assert that we're byte-aligned */
+
+#if FLAC__BITS_PER_BLURB == 8
+	return FLAC__crc16(bb->buffer, bb->blurbs);
+#elif FLAC__BITS_PER_BLURB == 32
+	/* @@@ WATCHOUT: code currently only works for big-endian: */
+	return FLAC__crc16((FLAC__byte*)(bb->buffer), (bb->blurbs * FLAC__BYTES_PER_BLURB) + (bb->bits >> 3));
+#else
+	FLAC__ASSERT(false); /* ERROR, only sizes of 8 and 32 are supported */
+#endif
+}
+
+FLAC__byte FLAC__bitbuffer_get_write_crc8(const FLAC__BitBuffer *bb)
+{
+	FLAC__ASSERT(bb->blurbs == 0);
+	FLAC__ASSERT(bb->buffer[0] == 0xff); /* MAGIC NUMBER for the first byte of the sync code */
+	FLAC__ASSERT((bb->bits & 7) == 0); /* assert that we're byte-aligned */
+#if FLAC__BITS_PER_BLURB == 8
+	return FLAC__crc8(bb->buffer, bb->blurbs);
+#elif FLAC__BITS_PER_BLURB == 32
+	/* @@@ WATCHOUT: code currently only works for big-endian: */
+	return FLAC__crc8((FLAC__byte*)(bb->buffer), (bb->blurbs * FLAC__BYTES_PER_BLURB) + (bb->bits >> 3));
+#else
+	FLAC__ASSERT(false); /* ERROR, only sizes of 8 and 32 are supported */
+#endif
+}
+
+FLAC__bool FLAC__bitbuffer_is_byte_aligned(const FLAC__BitBuffer *bb)
+{
+	return ((bb->bits & 7) == 0);
+}
+
+FLAC__bool FLAC__bitbuffer_is_consumed_byte_aligned(const FLAC__BitBuffer *bb)
+{
+	return ((bb->consumed_bits & 7) == 0);
+}
+
+unsigned FLAC__bitbuffer_bits_left_for_byte_alignment(const FLAC__BitBuffer *bb)
+{
+	return 8 - (bb->consumed_bits & 7);
+}
+
+unsigned FLAC__bitbuffer_get_input_bytes_unconsumed(const FLAC__BitBuffer *bb)
+{
+	FLAC__ASSERT((bb->consumed_bits & 7) == 0 && (bb->bits & 7) == 0);
+	return (bb->total_bits - bb->total_consumed_bits) >> 3;
+}
+
+void FLAC__bitbuffer_get_buffer(FLAC__BitBuffer *bb, const FLAC__byte **buffer, unsigned *bytes)
+{
+	FLAC__ASSERT((bb->consumed_bits & 7) == 0 && (bb->bits & 7) == 0);
+#if FLAC__BITS_PER_BLURB == 8
+	*buffer = bb->buffer + bb->consumed_blurbs;
+	*bytes = bb->blurbs - bb->consumed_blurbs;
+#elif FLAC__BITS_PER_BLURB == 32
+	/* @@@ WATCHOUT: code currently only works for big-endian: */
+	*buffer = (FLAC__byte*)(bb->buffer + bb->consumed_blurbs) + (bb->consumed_bits >> 3);
+	*bytes = (bb->total_bits - bb->total_consumed_bits) >> 3;
+#else
+	FLAC__ASSERT(false); /* ERROR, only sizes of 8 and 32 are supported */
+#endif
+}
+
+void FLAC__bitbuffer_release_buffer(FLAC__BitBuffer *bb)
+{
+#if FLAC__BITS_PER_BLURB == 8
+	(void)bb;
+#elif FLAC__BITS_PER_BLURB == 32
+	/* @@@ WATCHOUT: code currently only works for big-endian: */
+	(void)bb;
+#else
+	FLAC__ASSERT(false); /* ERROR, only sizes of 8 and 32 are supported */
+#endif
 }
 
 FLAC__bool FLAC__bitbuffer_write_zeroes(FLAC__BitBuffer *bb, unsigned bits)
@@ -266,12 +543,12 @@ FLAC__bool FLAC__bitbuffer_write_zeroes(FLAC__BitBuffer *bb, unsigned bits)
 		return false;
 	bb->total_bits += bits;
 	while(bits > 0) {
-		n = min(8 - bb->bits, bits);
-		bb->buffer[bb->bytes] <<= n;
+		n = min(FLAC__BITS_PER_BLURB - bb->bits, bits);
+		bb->buffer[bb->blurbs] <<= n;
 		bits -= n;
 		bb->bits += n;
-		if(bb->bits == 8) {
-			bb->bytes++;
+		if(bb->bits == FLAC__BITS_PER_BLURB) {
+			bb->blurbs++;
 			bb->bits = 0;
 		}
 	}
@@ -289,7 +566,7 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_write_raw_uint32(FLAC__BitBuffer *bb, FL
 	if(bits == 0)
 		return true;
 	/* inline the size check so we don't incure a function call unnecessarily */
-	if((bb->capacity<<3) < bb->total_bits + bits) {
+	if(FLAC__BLURBS_TO_BITS(bb->capacity) < bb->total_bits + bits) {
 		if(!bitbuffer_ensure_size_(bb, bits))
 			return false;
 	}
@@ -297,29 +574,30 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_write_raw_uint32(FLAC__BitBuffer *bb, FL
 		val &= (~(0xffffffff << bits)); /* zero-out unused bits */
 	bb->total_bits += bits;
 	while(bits > 0) {
-		n = 8 - bb->bits;
-		if(n == 8) { /* i.e. bb->bits == 0 */
-			if(bits < 8) {
-				bb->buffer[bb->bytes] = (FLAC__byte)val;
+		n = FLAC__BITS_PER_BLURB - bb->bits;
+		if(n == FLAC__BITS_PER_BLURB) { /* i.e. bb->bits == 0 */
+			if(bits < FLAC__BITS_PER_BLURB) {
+				bb->buffer[bb->blurbs] = (FLAC__blurb)val;
 				bb->bits = bits;
 				break;
 			}
-			else if(bits == 8) {
-				bb->buffer[bb->bytes++] = (FLAC__byte)val;
+			else if(bits == FLAC__BITS_PER_BLURB) {
+				bb->buffer[bb->blurbs++] = (FLAC__blurb)val;
 				break;
 			}
 			else {
-				k = bits - 8;
-				bb->buffer[bb->bytes++] = (FLAC__byte)(val >> k);
+				k = bits - FLAC__BITS_PER_BLURB;
+				bb->buffer[bb->blurbs++] = (FLAC__blurb)(val >> k);
+				/* we know k < 32 so no need to protect against the gcc bug mentioned above */
 				val &= (~(0xffffffff << k));
-				bits -= 8;
+				bits -= FLAC__BITS_PER_BLURB;
 			}
 		}
 		else if(bits <= n) {
-			bb->buffer[bb->bytes] <<= bits;
-			bb->buffer[bb->bytes] |= val;
+			bb->buffer[bb->blurbs] <<= bits;
+			bb->buffer[bb->blurbs] |= val;
 			if(bits == n) {
-				bb->bytes++;
+				bb->blurbs++;
 				bb->bits = 0;
 			}
 			else
@@ -328,11 +606,12 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_write_raw_uint32(FLAC__BitBuffer *bb, FL
 		}
 		else {
 			k = bits - n;
-			bb->buffer[bb->bytes] <<= n;
-			bb->buffer[bb->bytes] |= (val>>k);
+			bb->buffer[bb->blurbs] <<= n;
+			bb->buffer[bb->blurbs] |= (val >> k);
+			/* we know n > 0 so k < 32 so no need to protect against the gcc bug mentioned above */
 			val &= (~(0xffffffff << k));
 			bits -= n;
-			bb->bytes++;
+			bb->blurbs++;
 			bb->bits = 0;
 		}
 	}
@@ -380,32 +659,34 @@ FLAC__bool FLAC__bitbuffer_write_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 va
 	bb->total_bits += bits;
 	while(bits > 0) {
 		if(bb->bits == 0) {
-			if(bits < 8) {
-				bb->buffer[bb->bytes] = (FLAC__byte)val;
+			if(bits < FLAC__BITS_PER_BLURB) {
+				bb->buffer[bb->blurbs] = (FLAC__blurb)val;
 				bb->bits = bits;
 				break;
 			}
-			else if(bits == 8) {
-				bb->buffer[bb->bytes++] = (FLAC__byte)val;
+			else if(bits == FLAC__BITS_PER_BLURB) {
+				bb->buffer[bb->blurbs++] = (FLAC__blurb)val;
 				break;
 			}
 			else {
-				k = bits - 8;
-				bb->buffer[bb->bytes++] = (FLAC__byte)(val >> k);
+				k = bits - FLAC__BITS_PER_BLURB;
+				bb->buffer[bb->blurbs++] = (FLAC__blurb)(val >> k);
+				/* we know k < 64 so no need to protect against the gcc bug mentioned above */
 				val &= (~(0xffffffffffffffff << k));
-				bits -= 8;
+				bits -= FLAC__BITS_PER_BLURB;
 			}
 		}
 		else {
-			n = min(8 - bb->bits, bits);
+			n = min(FLAC__BITS_PER_BLURB - bb->bits, bits);
 			k = bits - n;
-			bb->buffer[bb->bytes] <<= n;
-			bb->buffer[bb->bytes] |= (val>>k);
+			bb->buffer[bb->blurbs] <<= n;
+			bb->buffer[bb->blurbs] |= (val >> k);
+			/* we know n > 0 so k < 64 so no need to protect against the gcc bug mentioned above */
 			val &= (~(0xffffffffffffffff << k));
 			bits -= n;
 			bb->bits += n;
-			if(bb->bits == 8) {
-				bb->bytes++;
+			if(bb->bits == FLAC__BITS_PER_BLURB) {
+				bb->blurbs++;
 				bb->bits = 0;
 			}
 		}
@@ -451,6 +732,7 @@ unsigned FLAC__bitbuffer_rice_bits(int val, unsigned parameter)
 	return 1 + parameter + msbs;
 }
 
+#if 0 /* UNUSED */
 unsigned FLAC__bitbuffer_golomb_bits_signed(int val, unsigned parameter)
 {
 	unsigned bits, msbs, uval;
@@ -516,7 +798,9 @@ unsigned FLAC__bitbuffer_golomb_bits_unsigned(unsigned uval, unsigned parameter)
 	}
 	return bits;
 }
+#endif /* UNUSED */
 
+#ifdef FLAC__SYMMETRIC_RICE
 FLAC__bool FLAC__bitbuffer_write_symmetric_rice_signed(FLAC__BitBuffer *bb, int val, unsigned parameter)
 {
 	unsigned total_bits, interesting_bits, msbs;
@@ -555,6 +839,7 @@ FLAC__bool FLAC__bitbuffer_write_symmetric_rice_signed(FLAC__BitBuffer *bb, int 
 	return true;
 }
 
+#if 0 /* UNUSED */
 FLAC__bool FLAC__bitbuffer_write_symmetric_rice_signed_guarded(FLAC__BitBuffer *bb, int val, unsigned parameter, unsigned max_bits, FLAC__bool *overflow)
 {
 	unsigned total_bits, interesting_bits, msbs;
@@ -598,6 +883,7 @@ FLAC__bool FLAC__bitbuffer_write_symmetric_rice_signed_guarded(FLAC__BitBuffer *
 	}
 	return true;
 }
+#endif /* UNUSED */
 
 FLAC__bool FLAC__bitbuffer_write_symmetric_rice_signed_escape(FLAC__BitBuffer *bb, int val, unsigned parameter)
 {
@@ -633,6 +919,7 @@ FLAC__bool FLAC__bitbuffer_write_symmetric_rice_signed_escape(FLAC__BitBuffer *b
 	}
 	return true;
 }
+#endif /* ifdef FLAC__SYMMETRIC_RICE */
 
 FLAC__bool FLAC__bitbuffer_write_rice_signed(FLAC__BitBuffer *bb, int val, unsigned parameter)
 {
@@ -674,6 +961,7 @@ FLAC__bool FLAC__bitbuffer_write_rice_signed(FLAC__BitBuffer *bb, int val, unsig
 	return true;
 }
 
+#if 0 /* UNUSED */
 FLAC__bool FLAC__bitbuffer_write_rice_signed_guarded(FLAC__BitBuffer *bb, int val, unsigned parameter, unsigned max_bits, FLAC__bool *overflow)
 {
 	unsigned total_bits, interesting_bits, msbs, uval;
@@ -719,7 +1007,9 @@ FLAC__bool FLAC__bitbuffer_write_rice_signed_guarded(FLAC__BitBuffer *bb, int va
 	}
 	return true;
 }
+#endif /* UNUSED */
 
+#if 0 /* UNUSED */
 FLAC__bool FLAC__bitbuffer_write_golomb_signed(FLAC__BitBuffer *bb, int val, unsigned parameter)
 {
 	unsigned total_bits, msbs, uval;
@@ -845,6 +1135,7 @@ FLAC__bool FLAC__bitbuffer_write_golomb_unsigned(FLAC__BitBuffer *bb, unsigned u
 	}
 	return true;
 }
+#endif /* UNUSED */
 
 FLAC__bool FLAC__bitbuffer_write_utf8_uint32(FLAC__BitBuffer *bb, FLAC__uint32 val)
 {
@@ -950,8 +1241,8 @@ FLAC__bool FLAC__bitbuffer_write_utf8_uint64(FLAC__BitBuffer *bb, FLAC__uint64 v
 FLAC__bool FLAC__bitbuffer_zero_pad_to_byte_boundary(FLAC__BitBuffer *bb)
 {
 	/* 0-pad to byte boundary */
-	if(bb->bits != 0)
-		return FLAC__bitbuffer_write_zeroes(bb, 8 - bb->bits);
+	if(bb->bits & 7u)
+		return FLAC__bitbuffer_write_zeroes(bb, 8 - (bb->bits & 7u));
 	else
 		return true;
 }
@@ -966,7 +1257,7 @@ FLAC__bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__bo
 
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
-			*val = (bb->buffer[bb->consumed_bytes] & BYTE_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
+			*val = (bb->buffer[bb->consumed_blurbs] & BLURB_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
 			return true;
 		}
 		else {
@@ -986,11 +1277,11 @@ FLAC__bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__bo
 
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
-			*val = (bb->buffer[bb->consumed_bytes] & BYTE_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
+			*val = (bb->buffer[bb->consumed_blurbs] & BLURB_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
 			bb->consumed_bits++;
-			if(bb->consumed_bits == 8) {
-				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-				bb->consumed_bytes++;
+			if(bb->consumed_bits == FLAC__BITS_PER_BLURB) {
+				CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+				bb->consumed_blurbs++;
 				bb->consumed_bits = 0;
 			}
 			bb->total_consumed_bits++;
@@ -1014,11 +1305,11 @@ FLAC__bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, FLAC__uint32 
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
 			*val <<= 1;
-			*val |= (bb->buffer[bb->consumed_bytes] & BYTE_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
+			*val |= (bb->buffer[bb->consumed_blurbs] & BLURB_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
 			bb->consumed_bits++;
-			if(bb->consumed_bits == 8) {
-				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-				bb->consumed_bytes++;
+			if(bb->consumed_bits == FLAC__BITS_PER_BLURB) {
+				CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+				bb->consumed_blurbs++;
 				bb->consumed_bits = 0;
 			}
 			bb->total_consumed_bits++;
@@ -1042,11 +1333,11 @@ FLAC__bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, FLAC__uint64 
 	while(1) {
 		if(bb->total_consumed_bits < bb->total_bits) {
 			*val <<= 1;
-			*val |= (bb->buffer[bb->consumed_bytes] & BYTE_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
+			*val |= (bb->buffer[bb->consumed_blurbs] & BLURB_BIT_TO_MASK(bb->consumed_bits))? 1 : 0;
 			bb->consumed_bits++;
-			if(bb->consumed_bits == 8) {
-				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-				bb->consumed_bytes++;
+			if(bb->consumed_bits == FLAC__BITS_PER_BLURB) {
+				CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+				bb->consumed_blurbs++;
 				bb->consumed_bits = 0;
 			}
 			bb->total_consumed_bits++;
@@ -1085,46 +1376,77 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, FLA
 	FLAC__ASSERT(bb->buffer != 0);
 
 	FLAC__ASSERT(bits <= 32);
-	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
+	FLAC__ASSERT((bb->capacity*FLAC__BITS_PER_BLURB) * 2 >= bits);
+
+	if(bits == 0) {
+		*val = 0;
+		return true;
+	}
 
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
 			return false;
 	}
-	if(bb->consumed_bits) {
-		i = 8 - bb->consumed_bits;
-		if(i <= bits_) {
-			v = bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits);
-			bits_ -= i;
-			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-			bb->consumed_bytes++;
-			bb->consumed_bits = 0;
-			/* we hold off updating bb->total_consumed_bits until the end */
+#if FLAC__BITS_PER_BLURB > 8
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+#endif
+		if(bb->consumed_bits) {
+			i = FLAC__BITS_PER_BLURB - bb->consumed_bits;
+			if(i <= bits_) {
+				v = bb->buffer[bb->consumed_blurbs] & (FLAC__BLURB_ALL_ONES >> bb->consumed_bits);
+				bits_ -= i;
+				CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+				bb->consumed_blurbs++;
+				bb->consumed_bits = 0;
+				/* we hold off updating bb->total_consumed_bits until the end */
+			}
+			else {
+				*val = (bb->buffer[bb->consumed_blurbs] & (FLAC__BLURB_ALL_ONES >> bb->consumed_bits)) >> (i-bits_);
+				bb->consumed_bits += bits_;
+				bb->total_consumed_bits += bits_;
+				return true;
+			}
 		}
-		else {
-			*val = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits)) >> (i-bits_);
-			bb->consumed_bits += bits_;
-			bb->total_consumed_bits += bits_;
+#if FLAC__BITS_PER_BLURB == 32
+		/* note that we know bits_ cannot be > 32 because of previous assertions */
+		if(bits_ == FLAC__BITS_PER_BLURB) {
+			v = bb->buffer[bb->consumed_blurbs];
+			CRC16_UPDATE_BLURB(bb, v, bb->read_crc16);
+			bb->consumed_blurbs++;
+			/* bb->consumed_bits is already 0 */
+			bb->total_consumed_bits += bits;
+			*val = v;
 			return true;
 		}
+#else
+		while(bits_ >= FLAC__BITS_PER_BLURB) {
+			v <<= FLAC__BITS_PER_BLURB;
+			v |= bb->buffer[bb->consumed_blurbs];
+			bits_ -= FLAC__BITS_PER_BLURB;
+			CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+			bb->consumed_blurbs++;
+			/* bb->consumed_bits is already 0 */
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+#endif
+		if(bits_ > 0) {
+			v <<= bits_;
+			v |= (bb->buffer[bb->consumed_blurbs] >> (FLAC__BITS_PER_BLURB-bits_));
+			bb->consumed_bits = bits_;
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+		bb->total_consumed_bits += bits;
+		*val = v;
+#if FLAC__BITS_PER_BLURB > 8
 	}
-	while(bits_ >= 8) {
-		v <<= 8;
-		v |= bb->buffer[bb->consumed_bytes];
-		bits_ -= 8;
-		FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-		bb->consumed_bytes++;
-		/* bb->consumed_bits is already 0 */
-		/* we hold off updating bb->total_consumed_bits until the end */
+	else {
+		*val = 0;
+		for(i = 0; i < bits; i++) {
+			if(!FLAC__bitbuffer_read_bit_to_uint32(bb, val, read_callback, client_data))
+				return false;
+		}
 	}
-	if(bits_ > 0) {
-		v <<= bits_;
-		v |= (bb->buffer[bb->consumed_bytes] >> (8-bits_));
-		bb->consumed_bits = bits_;
-		/* we hold off updating bb->total_consumed_bits until the end */
-	}
-	bb->total_consumed_bits += bits;
-	*val = v;
+#endif
 	return true;
 }
 #endif
@@ -1172,7 +1494,7 @@ FLAC__bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, FLAC__int32 *val,
 	FLAC__ASSERT(bb->buffer != 0);
 
 	FLAC__ASSERT(bits <= 32);
-	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
+	FLAC__ASSERT((bb->capacity*FLAC__BITS_PER_BLURB) * 2 >= bits);
 
 	if(bits == 0) {
 		*val = 0;
@@ -1183,43 +1505,67 @@ FLAC__bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, FLAC__int32 *val,
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
 			return false;
 	}
-	if(bb->consumed_bits) {
-		i = 8 - bb->consumed_bits;
-		if(i <= bits_) {
-			v = bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits);
-			bits_ -= i;
-			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-			bb->consumed_bytes++;
-			bb->consumed_bits = 0;
+#if FLAC__BITS_PER_BLURB > 8
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+#endif
+		if(bb->consumed_bits) {
+			i = FLAC__BITS_PER_BLURB - bb->consumed_bits;
+			if(i <= bits_) {
+				v = bb->buffer[bb->consumed_blurbs] & (FLAC__BLURB_ALL_ONES >> bb->consumed_bits);
+				bits_ -= i;
+				CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+				bb->consumed_blurbs++;
+				bb->consumed_bits = 0;
+				/* we hold off updating bb->total_consumed_bits until the end */
+			}
+			else {
+				/* bits_ must be < FLAC__BITS_PER_BLURB-1 if we get to here */
+				v = (bb->buffer[bb->consumed_blurbs] & (FLAC__BLURB_ALL_ONES >> bb->consumed_bits));
+				v <<= (32-i);
+				*val = (FLAC__int32)v;
+				*val >>= (32-bits_);
+				bb->consumed_bits += bits_;
+				bb->total_consumed_bits += bits_;
+				return true;
+			}
+		}
+#if FLAC__BITS_PER_BLURB == 32
+		/* note that we know bits_ cannot be > 32 because of previous assertions */
+		if(bits_ == FLAC__BITS_PER_BLURB) {
+			v = bb->buffer[bb->consumed_blurbs];
+			bits_ = 0;
+			CRC16_UPDATE_BLURB(bb, v, bb->read_crc16);
+			bb->consumed_blurbs++;
+			/* bb->consumed_bits is already 0 */
 			/* we hold off updating bb->total_consumed_bits until the end */
 		}
-		else {
-			/* bits_ must be < 7 if we get to here */
-			v = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits));
-			v <<= (32-i);
-			*val = (FLAC__int32)v;
-			*val >>= (32-bits_);
-			bb->consumed_bits += bits_;
-			bb->total_consumed_bits += bits_;
-			return true;
+#else
+		while(bits_ >= FLAC__BITS_PER_BLURB) {
+			v <<= FLAC__BITS_PER_BLURB;
+			v |= bb->buffer[bb->consumed_blurbs];
+			bits_ -= FLAC__BITS_PER_BLURB;
+			CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+			bb->consumed_blurbs++;
+			/* bb->consumed_bits is already 0 */
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+#endif
+		if(bits_ > 0) {
+			v <<= bits_;
+			v |= (bb->buffer[bb->consumed_blurbs] >> (FLAC__BITS_PER_BLURB-bits_));
+			bb->consumed_bits = bits_;
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+		bb->total_consumed_bits += bits;
+#if FLAC__BITS_PER_BLURB > 8
+	}
+	else {
+		for(i = 0; i < bits; i++) {
+			if(!FLAC__bitbuffer_read_bit_to_uint32(bb, &v, read_callback, client_data))
+				return false;
 		}
 	}
-	while(bits_ >= 8) {
-		v <<= 8;
-		v |= bb->buffer[bb->consumed_bytes];
-		bits_ -= 8;
-		FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-		bb->consumed_bytes++;
-		/* bb->consumed_bits is already 0 */
-		/* we hold off updating bb->total_consumed_bits until the end */
-	}
-	if(bits_ > 0) {
-		v <<= bits_;
-		v |= (bb->buffer[bb->consumed_bytes] >> (8-bits_));
-		bb->consumed_bits = bits_;
-		/* we hold off updating bb->total_consumed_bits until the end */
-	}
-	bb->total_consumed_bits += bits;
+#endif
 
 	/* fix the sign */
 	i = 32 - bits;
@@ -1261,46 +1607,64 @@ FLAC__bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *va
 	FLAC__ASSERT(bb->buffer != 0);
 
 	FLAC__ASSERT(bits <= 64);
-	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
+	FLAC__ASSERT((bb->capacity*FLAC__BITS_PER_BLURB) * 2 >= bits);
+
+	if(bits == 0) {
+		*val = 0;
+		return true;
+	}
 
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
 			return false;
 	}
-	if(bb->consumed_bits) {
-		i = 8 - bb->consumed_bits;
-		if(i <= bits_) {
-			v = bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits);
-			bits_ -= i;
-			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-			bb->consumed_bytes++;
-			bb->consumed_bits = 0;
+#if FLAC__BITS_PER_BLURB > 8
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+#endif
+		if(bb->consumed_bits) {
+			i = FLAC__BITS_PER_BLURB - bb->consumed_bits;
+			if(i <= bits_) {
+				v = bb->buffer[bb->consumed_blurbs] & (FLAC__BLURB_ALL_ONES >> bb->consumed_bits);
+				bits_ -= i;
+				CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+				bb->consumed_blurbs++;
+				bb->consumed_bits = 0;
+				/* we hold off updating bb->total_consumed_bits until the end */
+			}
+			else {
+				*val = (bb->buffer[bb->consumed_blurbs] & (FLAC__BLURB_ALL_ONES >> bb->consumed_bits)) >> (i-bits_);
+				bb->consumed_bits += bits_;
+				bb->total_consumed_bits += bits_;
+				return true;
+			}
+		}
+		while(bits_ >= FLAC__BITS_PER_BLURB) {
+			v <<= FLAC__BITS_PER_BLURB;
+			v |= bb->buffer[bb->consumed_blurbs];
+			bits_ -= FLAC__BITS_PER_BLURB;
+			CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+			bb->consumed_blurbs++;
+			/* bb->consumed_bits is already 0 */
 			/* we hold off updating bb->total_consumed_bits until the end */
 		}
-		else {
-			*val = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits)) >> (i-bits_);
-			bb->consumed_bits += bits_;
-			bb->total_consumed_bits += bits_;
-			return true;
+		if(bits_ > 0) {
+			v <<= bits_;
+			v |= (bb->buffer[bb->consumed_blurbs] >> (FLAC__BITS_PER_BLURB-bits_));
+			bb->consumed_bits = bits_;
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+		bb->total_consumed_bits += bits;
+		*val = v;
+#if FLAC__BITS_PER_BLURB > 8
+	}
+	else {
+		*val = 0;
+		for(i = 0; i < bits; i++) {
+			if(!FLAC__bitbuffer_read_bit_to_uint64(bb, val, read_callback, client_data))
+				return false;
 		}
 	}
-	while(bits_ >= 8) {
-		v <<= 8;
-		v |= bb->buffer[bb->consumed_bytes];
-		bits_ -= 8;
-		FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-		bb->consumed_bytes++;
-		/* bb->consumed_bits is already 0 */
-		/* we hold off updating bb->total_consumed_bits until the end */
-	}
-	if(bits_ > 0) {
-		v <<= bits_;
-		v |= (bb->buffer[bb->consumed_bytes] >> (8-bits_));
-		bb->consumed_bits = bits_;
-		/* we hold off updating bb->total_consumed_bits until the end */
-	}
-	bb->total_consumed_bits += bits;
-	*val = v;
+#endif
 	return true;
 }
 #endif
@@ -1342,49 +1706,66 @@ FLAC__bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 *val,
 	FLAC__ASSERT(bb->buffer != 0);
 
 	FLAC__ASSERT(bits <= 64);
-	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
+	FLAC__ASSERT((bb->capacity*FLAC__BITS_PER_BLURB) * 2 >= bits);
+
+	if(bits == 0) {
+		*val = 0;
+		return true;
+	}
 
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
 			return false;
 	}
-	if(bb->consumed_bits) {
-		i = 8 - bb->consumed_bits;
-		if(i <= bits_) {
-			v = bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits);
-			bits_ -= i;
-			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-			bb->consumed_bytes++;
-			bb->consumed_bits = 0;
+#if FLAC__BITS_PER_BLURB > 8
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+#endif
+		if(bb->consumed_bits) {
+			i = FLAC__BITS_PER_BLURB - bb->consumed_bits;
+			if(i <= bits_) {
+				v = bb->buffer[bb->consumed_blurbs] & (FLAC__BLURB_ALL_ONES >> bb->consumed_bits);
+				bits_ -= i;
+				CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+				bb->consumed_blurbs++;
+				bb->consumed_bits = 0;
+				/* we hold off updating bb->total_consumed_bits until the end */
+			}
+			else {
+				/* bits_ must be < FLAC__BITS_PER_BLURB-1 if we get to here */
+				v = (bb->buffer[bb->consumed_blurbs] & (FLAC__BLURB_ALL_ONES >> bb->consumed_bits));
+				v <<= (64-i);
+				*val = (FLAC__int64)v;
+				*val >>= (64-bits_);
+				bb->consumed_bits += bits_;
+				bb->total_consumed_bits += bits_;
+				return true;
+			}
+		}
+		while(bits_ >= FLAC__BITS_PER_BLURB) {
+			v <<= FLAC__BITS_PER_BLURB;
+			v |= bb->buffer[bb->consumed_blurbs];
+			bits_ -= FLAC__BITS_PER_BLURB;
+			CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+			bb->consumed_blurbs++;
+			/* bb->consumed_bits is already 0 */
 			/* we hold off updating bb->total_consumed_bits until the end */
 		}
-		else {
-			/* bits_ must be < 7 if we get to here */
-			v = (bb->buffer[bb->consumed_bytes] & (0xff >> bb->consumed_bits));
-			v <<= (64-i);
-			*val = (FLAC__int64)v;
-			*val >>= (64-bits_);
-			bb->consumed_bits += bits_;
-			bb->total_consumed_bits += bits_;
-			return true;
+		if(bits_ > 0) {
+			v <<= bits_;
+			v |= (bb->buffer[bb->consumed_blurbs] >> (FLAC__BITS_PER_BLURB-bits_));
+			bb->consumed_bits = bits_;
+			/* we hold off updating bb->total_consumed_bits until the end */
+		}
+		bb->total_consumed_bits += bits;
+#if FLAC__BITS_PER_BLURB > 8
+	}
+	else {
+		for(i = 0; i < bits; i++) {
+			if(!FLAC__bitbuffer_read_bit_to_uint64(bb, &v, read_callback, client_data))
+				return false;
 		}
 	}
-	while(bits_ >= 8) {
-		v <<= 8;
-		v |= bb->buffer[bb->consumed_bytes];
-		bits_ -= 8;
-		FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-		bb->consumed_bytes++;
-		/* bb->consumed_bits is already 0 */
-		/* we hold off updating bb->total_consumed_bits until the end */
-	}
-	if(bits_ > 0) {
-		v <<= bits_;
-		v |= (bb->buffer[bb->consumed_bytes] >> (8-bits_));
-		bb->consumed_bits = bits_;
-		/* we hold off updating bb->total_consumed_bits until the end */
-	}
-	bb->total_consumed_bits += bits;
+#endif
 
 	/* fix the sign */
 	i = 64 - bits;
@@ -1422,70 +1803,88 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb,
 #else
 {
 	unsigned i, val_ = 0;
-	unsigned total_bytes_ = (bb->total_bits + 7) / 8;
-	FLAC__byte b;
+	unsigned total_blurbs_ = (bb->total_bits + (FLAC__BITS_PER_BLURB-1)) / FLAC__BITS_PER_BLURB;
+	FLAC__blurb b;
 
 	FLAC__ASSERT(bb != 0);
 	FLAC__ASSERT(bb->buffer != 0);
 
-	if(bb->consumed_bits) {
-		b = bb->buffer[bb->consumed_bytes] << bb->consumed_bits;
-		if(b) {
-			for(i = 0; !(b & 0x80); i++)
-				b <<= 1;
-			*val = i;
-			i++;
-			bb->consumed_bits += i;
-			bb->total_consumed_bits += i;
-			if(bb->consumed_bits == 8) {
-				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-				bb->consumed_bytes++;
-				bb->consumed_bits = 0;
+#if FLAC__BITS_PER_BLURB > 8
+	if(bb->bits == 0 || bb->consumed_blurbs < bb->blurbs) { //@@@ comment on why this is here
+#endif
+		if(bb->consumed_bits) {
+			b = bb->buffer[bb->consumed_blurbs] << bb->consumed_bits;
+			if(b) {
+				for(i = 0; !(b & FLAC__BLURB_TOP_BIT_ONE); i++)
+					b <<= 1;
+				*val = i;
+				i++;
+				bb->consumed_bits += i;
+				bb->total_consumed_bits += i;
+				if(bb->consumed_bits == FLAC__BITS_PER_BLURB) {
+					CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+					bb->consumed_blurbs++;
+					bb->consumed_bits = 0;
+				}
+				return true;
 			}
-			return true;
+			else {
+				val_ = FLAC__BITS_PER_BLURB - bb->consumed_bits;
+				CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+				bb->consumed_blurbs++;
+				bb->consumed_bits = 0;
+				bb->total_consumed_bits += val_;
+			}
 		}
-		else {
-			val_ = 8 - bb->consumed_bits;
-			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-			bb->consumed_bytes++;
-			bb->consumed_bits = 0;
-			bb->total_consumed_bits += val_;
+		while(1) {
+			if(bb->consumed_blurbs >= total_blurbs_) {
+				if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
+					return false;
+				total_blurbs_ = (bb->total_bits + (FLAC__BITS_PER_BLURB-1)) / FLAC__BITS_PER_BLURB;
+			}
+			b = bb->buffer[bb->consumed_blurbs];
+			if(b) {
+				for(i = 0; !(b & FLAC__BLURB_TOP_BIT_ONE); i++)
+					b <<= 1;
+				val_ += i;
+				i++;
+				bb->consumed_bits = i;
+				*val = val_;
+				if(i == FLAC__BITS_PER_BLURB) {
+					CRC16_UPDATE_BLURB(bb, bb->buffer[bb->consumed_blurbs], bb->read_crc16);
+					bb->consumed_blurbs++;
+					bb->consumed_bits = 0;
+				}
+				bb->total_consumed_bits += i;
+				return true;
+			}
+			else {
+				val_ += FLAC__BITS_PER_BLURB;
+				CRC16_UPDATE_BLURB(bb, 0, bb->read_crc16);
+				bb->consumed_blurbs++;
+				/* bb->consumed_bits is already 0 */
+				bb->total_consumed_bits += FLAC__BITS_PER_BLURB;
+			}
 		}
+#if FLAC__BITS_PER_BLURB > 8
 	}
-	while(1) {
-		if(bb->consumed_bytes >= total_bytes_) {
-			if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
+	else {
+		while(1) {
+			if(!FLAC__bitbuffer_read_bit(bb, &i, read_callback, client_data))
 				return false;
-			total_bytes_ = (bb->total_bits + 7) / 8;
+			if(i)
+				break;
+			else
+				val_++;
 		}
-		b = bb->buffer[bb->consumed_bytes];
-		if(b) {
-			for(i = 0; !(b & 0x80); i++)
-				b <<= 1;
-			val_ += i;
-			i++;
-			bb->consumed_bits = i;
-			*val = val_;
-			if(i == 8) {
-				FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
-				bb->consumed_bytes++;
-				bb->consumed_bits = 0;
-			}
-			bb->total_consumed_bits += i;
-			return true;
-		}
-		else {
-			val_ += 8;
-			FLAC__CRC16_UPDATE(0, bb->read_crc16);
-			bb->consumed_bytes++;
-			/* bb->consumed_bits is already 0 */
-			/* we hold off updating bb->total_consumed_bits until the end */
-			bb->total_consumed_bits += 8;
-		}
+		*val = val_;
+		return true;
 	}
+#endif
 }
 #endif
 
+#ifdef FLAC__SYMMETRIC_RICE
 FLAC__bool FLAC__bitbuffer_read_symmetric_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	FLAC__uint32 sign = 0, lsbs = 0, msbs = 0;
@@ -1513,6 +1912,7 @@ FLAC__bool FLAC__bitbuffer_read_symmetric_rice_signed(FLAC__BitBuffer *bb, int *
 
 	return true;
 }
+#endif /* ifdef FLAC__SYMMETRIC_RICE */
 
 FLAC__bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
@@ -1541,6 +1941,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsig
 	return true;
 }
 
+#if 0 /* UNUSED */
 FLAC__bool FLAC__bitbuffer_read_golomb_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
 {
 	FLAC__uint32 lsbs = 0, msbs = 0;
@@ -1622,6 +2023,7 @@ FLAC__bool FLAC__bitbuffer_read_golomb_unsigned(FLAC__BitBuffer *bb, unsigned *v
 
 	return true;
 }
+#endif /* UNUSED */
 
 /* on return, if *val == 0xffffffff then the utf-8 sequence was invalid, but the return value will be true */
 FLAC__bool FLAC__bitbuffer_read_utf8_uint32(FLAC__BitBuffer *bb, FLAC__uint32 *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data, FLAC__byte *raw, unsigned *rawlen)
@@ -1744,20 +2146,20 @@ void FLAC__bitbuffer_dump(const FLAC__BitBuffer *bb, FILE *out)
 		fprintf(out, "bitbuffer is NULL\n");
 	}
 	else {
-		fprintf(out, "bitbuffer: capacity=%u bytes=%u bits=%u total_bits=%u consumed: bytes=%u, bits=%u, total_bits=%u\n", bb->capacity, bb->bytes, bb->bits, bb->total_bits, bb->consumed_bytes, bb->consumed_bits, bb->total_consumed_bits);
-		for(i = 0; i < bb->bytes; i++) {
+		fprintf(out, "bitbuffer: capacity=%u blurbs=%u bits=%u total_bits=%u consumed: blurbs=%u, bits=%u, total_bits=%u\n", bb->capacity, bb->blurbs, bb->bits, bb->total_bits, bb->consumed_blurbs, bb->consumed_bits, bb->total_consumed_bits);
+		for(i = 0; i < bb->blurbs; i++) {
 			fprintf(out, "%08X: ", i);
-			for(j = 0; j < 8; j++)
-				if(i*8+j < bb->total_consumed_bits)
+			for(j = 0; j < FLAC__BITS_PER_BLURB; j++)
+				if(i*FLAC__BITS_PER_BLURB+j < bb->total_consumed_bits)
 					fprintf(out, ".");
 				else
-					fprintf(out, "%01u", bb->buffer[i] & (1 << (8-j-1)) ? 1:0);
+					fprintf(out, "%01u", bb->buffer[i] & (1 << (FLAC__BITS_PER_BLURB-j-1)) ? 1:0);
 			fprintf(out, "\n");
 		}
 		if(bb->bits > 0) {
 			fprintf(out, "%08X: ", i);
 			for(j = 0; j < bb->bits; j++)
-				if(i*8+j < bb->total_consumed_bits)
+				if(i*FLAC__BITS_PER_BLURB+j < bb->total_consumed_bits)
 					fprintf(out, ".");
 				else
 					fprintf(out, "%01u", bb->buffer[i] & (1 << (bb->bits-j-1)) ? 1:0);
