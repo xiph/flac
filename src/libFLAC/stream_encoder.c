@@ -21,7 +21,7 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy() */
 #include "FLAC/assert.h"
-#include "FLAC/seek_table.h"
+#include "FLAC/metadata.h" /* for FLAC__metadata_object_seektable_is_legal() */
 #include "protected/stream_encoder.h"
 #include "private/bitbuffer.h"
 #include "private/bitmath.h"
@@ -337,7 +337,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 		if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_STREAMINFO)
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
 		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
-			if(!FLAC__seek_table_is_valid(&encoder->protected_->metadata[i]->data.seek_table))
+			if(!FLAC__metadata_object_seektable_is_legal(encoder->protected_->metadata[i]))
 				return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
 		}
 	}
