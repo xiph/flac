@@ -215,34 +215,34 @@ bool FLAC__frame_add_header(const FLAC__FrameHeader *header, bool streamable_sub
 	return true;
 }
 
-bool FLAC__subframe_add_constant(unsigned bits_per_sample, const FLAC__SubframeHeader *subframe, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned bits_per_sample, FLAC__BitBuffer *bb)
 {
 	bool ok;
 
 	ok =
-		FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_HEADER_TYPE_CONSTANT, FLAC__SUBFRAME_HEADER_TYPE_LEN) &&
-		FLAC__bitbuffer_write_raw_int32(bb, subframe->data.constant.value, bits_per_sample)
+		FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_CONSTANT_BITS, FLAC__SUBFRAME_TYPE_LEN) &&
+		FLAC__bitbuffer_write_raw_int32(bb, subframe->value, bits_per_sample)
 	;
 
 	return ok;
 }
 
-bool FLAC__subframe_add_fixed(const int32 residual[], unsigned residual_samples, unsigned bits_per_sample, const FLAC__SubframeHeader *subframe, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned bits_per_sample, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_HEADER_TYPE_FIXED | (subframe->data.fixed.order<<1), FLAC__SUBFRAME_HEADER_TYPE_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_FIXED_BITS | (subframe->order<<1), FLAC__SUBFRAME_TYPE_LEN))
 		return false;
 
-	for(i = 0; i < subframe->data.fixed.order; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->data.fixed.warmup[i], bits_per_sample))
+	for(i = 0; i < subframe->order; i++)
+		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], bits_per_sample))
 			return false;
 
-	if(!subframe_add_entropy_coding_method_(bb, &subframe->data.fixed.entropy_coding_method))
+	if(!subframe_add_entropy_coding_method_(bb, &subframe->entropy_coding_method))
 		return false;
-	switch(subframe->data.fixed.entropy_coding_method.type) {
+	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!subframe_add_residual_partitioned_rice_(bb, residual, residual_samples, subframe->data.fixed.order, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.parameters, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order))
+			if(!subframe_add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:
@@ -252,30 +252,30 @@ bool FLAC__subframe_add_fixed(const int32 residual[], unsigned residual_samples,
 	return true;
 }
 
-bool FLAC__subframe_add_lpc(const int32 residual[], unsigned residual_samples, unsigned bits_per_sample, const FLAC__SubframeHeader *subframe, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned bits_per_sample, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_HEADER_TYPE_LPC | ((subframe->data.lpc.order-1)<<1), FLAC__SUBFRAME_HEADER_TYPE_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_LPC_BITS | ((subframe->order-1)<<1), FLAC__SUBFRAME_TYPE_LEN))
 		return false;
 
-	for(i = 0; i < subframe->data.lpc.order; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->data.lpc.warmup[i], bits_per_sample))
+	for(i = 0; i < subframe->order; i++)
+		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], bits_per_sample))
 			return false;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, subframe->data.lpc.qlp_coeff_precision-1, FLAC__SUBFRAME_HEADER_LPC_QLP_COEFF_PRECISION_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, subframe->qlp_coeff_precision-1, FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
 		return false;
-	if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->data.lpc.quantization_level, FLAC__SUBFRAME_HEADER_LPC_QLP_SHIFT_LEN))
+	if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->quantization_level, FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN))
 		return false;
-	for(i = 0; i < subframe->data.lpc.order; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->data.lpc.qlp_coeff[i], subframe->data.lpc.qlp_coeff_precision))
+	for(i = 0; i < subframe->order; i++)
+		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->qlp_coeff[i], subframe->qlp_coeff_precision))
 			return false;
 
-	if(!subframe_add_entropy_coding_method_(bb, &subframe->data.lpc.entropy_coding_method))
+	if(!subframe_add_entropy_coding_method_(bb, &subframe->entropy_coding_method))
 		return false;
-	switch(subframe->data.lpc.entropy_coding_method.type) {
+	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!subframe_add_residual_partitioned_rice_(bb, residual, residual_samples, subframe->data.lpc.order, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.parameters, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order))
+			if(!subframe_add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.parameters, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:
@@ -285,11 +285,12 @@ bool FLAC__subframe_add_lpc(const int32 residual[], unsigned residual_samples, u
 	return true;
 }
 
-bool FLAC__subframe_add_verbatim(const int32 signal[], unsigned samples, unsigned bits_per_sample, FLAC__BitBuffer *bb)
+bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned bits_per_sample, FLAC__BitBuffer *bb)
 {
 	unsigned i;
+	const int32 *signal = subframe->data;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_HEADER_TYPE_VERBATIM, FLAC__SUBFRAME_HEADER_TYPE_LEN))
+	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_VERBATIM_BITS, FLAC__SUBFRAME_TYPE_LEN))
 		return false;
 
 	for(i = 0; i < samples; i++)

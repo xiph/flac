@@ -86,7 +86,7 @@ static void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsi
 static FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data);
-static FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
 static void verify_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void verify_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const encoder_wrapper_struct *encoder_wrapper);
@@ -688,7 +688,7 @@ FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *de
 	return FLAC__STREAM_DECODER_READ_CONTINUE;
 }
 
-FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	unsigned channel, l, r;
@@ -702,11 +702,11 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 	}
 	/* dequeue the frame from the fifo */
 	for(channel = 0; channel < decoder->channels; channel++) {
-		for(l = 0, r = header->blocksize; r < encoder_wrapper->verify_fifo.tail; l++, r++) {
+		for(l = 0, r = frame->header.blocksize; r < encoder_wrapper->verify_fifo.tail; l++, r++) {
 			encoder_wrapper->verify_fifo.original[channel][l] = encoder_wrapper->verify_fifo.original[channel][r];
 		}
 	}
-	encoder_wrapper->verify_fifo.tail -= header->blocksize;
+	encoder_wrapper->verify_fifo.tail -= frame->header.blocksize;
 	return FLAC__STREAM_DECODER_WRITE_CONTINUE;
 }
 

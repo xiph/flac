@@ -51,7 +51,7 @@ static bool is_big_endian_host;
 static bool init(const char *infile, stream_info_struct *stream_info);
 static bool write_little_endian_uint16(FILE *f, uint16 val);
 static bool write_little_endian_uint32(FILE *f, uint32 val);
-static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
 static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const stream_info_struct *stream_info);
@@ -290,14 +290,14 @@ bool write_little_endian_uint32(FILE *f, uint32 val)
 	return fwrite(b, 1, 4, f) == 4;
 }
 
-FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	FILE *fout = stream_info->fout;
 	unsigned bps = stream_info->bps, channels = stream_info->channels;
 	bool is_big_endian = (stream_info->is_wave_out? false : stream_info->is_big_endian);
 	bool is_unsigned_samples = (stream_info->is_wave_out? bps==8 : stream_info->is_unsigned_samples);
-	unsigned wide_samples = header->blocksize, wide_sample, sample, channel, byte;
+	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, byte;
 	static signed char scbuffer[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * ((FLAC__MAX_BITS_PER_SAMPLE+7)>>3)]; /* WATCHOUT: can be up to 2 megs */
 	unsigned char *ucbuffer = (unsigned char *)scbuffer;
 	signed short *ssbuffer = (signed short *)scbuffer;

@@ -26,7 +26,7 @@
 #include "private/md5.h"
 
 typedef struct FLAC__FileDecoderPrivate {
-	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data);
+	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
 	void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 	void (*error_callback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 	void *client_data;
@@ -37,12 +37,12 @@ typedef struct FLAC__FileDecoderPrivate {
 	byte computed_md5sum[16]; /* this is the sum we computed from the decoded data */
 	/* the rest of these are only used for seeking: */
 	FLAC__StreamMetaData_Encoding metadata; /* we keep this around so we can figure out how to seek quickly */
-	FLAC__FrameHeader last_frame_header; /* holds the info of the last frame we seeked to */
+	FLAC__Frame last_frame; /* holds the info of the last frame we seeked to */
 	uint64 target_sample;
 } FLAC__FileDecoderPrivate;
 
 static FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data);
-static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
 static void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 target_sample);
@@ -76,7 +76,7 @@ void FLAC__file_decoder_free_instance(FLAC__FileDecoder *decoder)
 FLAC__FileDecoderState FLAC__file_decoder_init(
 	FLAC__FileDecoder *decoder,
 	const char *filename,
-	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data),
+	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data),
 	void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data),
 	void (*error_callback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data),
 	void *client_data
@@ -291,17 +291,17 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder,
 		return FLAC__STREAM_DECODER_READ_ABORT; /* abort to avoid a deadlock */
 }
 
-FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data)
 {
 	FLAC__FileDecoder *file_decoder = (FLAC__FileDecoder *)client_data;
 	(void)decoder;
 
 	if(file_decoder->state == FLAC__FILE_DECODER_SEEKING) {
-		uint64 this_frame_sample = header->number.sample_number;
-		uint64 next_frame_sample = this_frame_sample + (uint64)header->blocksize;
+		uint64 this_frame_sample = frame->header.number.sample_number;
+		uint64 next_frame_sample = this_frame_sample + (uint64)frame->header.blocksize;
 		uint64 target_sample = file_decoder->guts->target_sample;
 
-		file_decoder->guts->last_frame_header = *header; /* save the header in the guts */
+		file_decoder->guts->last_frame = *frame; /* save the frame in the guts */
 		if(this_frame_sample <= target_sample && target_sample < next_frame_sample) { /* we hit our target frame */
 			unsigned delta = (unsigned)(target_sample - this_frame_sample);
 			/* kick out of seek mode */
@@ -310,16 +310,16 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decode
 			if(delta > 0) {
 				unsigned channel;
 				const int32 *newbuffer[FLAC__MAX_CHANNELS];
-				for(channel = 0; channel < header->channels; channel++)
+				for(channel = 0; channel < frame->header.channels; channel++)
 					newbuffer[channel] = buffer[channel] + delta;
-				file_decoder->guts->last_frame_header.blocksize -= delta;
-				file_decoder->guts->last_frame_header.number.sample_number += (uint64)delta;
+				file_decoder->guts->last_frame.header.blocksize -= delta;
+				file_decoder->guts->last_frame.header.number.sample_number += (uint64)delta;
 				/* write the relevant samples */
-				return file_decoder->guts->write_callback(file_decoder, &file_decoder->guts->last_frame_header, newbuffer, file_decoder->guts->client_data);
+				return file_decoder->guts->write_callback(file_decoder, &file_decoder->guts->last_frame, newbuffer, file_decoder->guts->client_data);
 			}
 			else {
 				/* write the relevant samples */
-				return file_decoder->guts->write_callback(file_decoder, header, buffer, file_decoder->guts->client_data);
+				return file_decoder->guts->write_callback(file_decoder, frame, buffer, file_decoder->guts->client_data);
 			}
 		}
 		else {
@@ -328,10 +328,10 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decode
 	}
 	else {
 		if(file_decoder->check_md5) {
-			if(!FLAC__MD5Accumulate(&file_decoder->guts->md5context, buffer, header->channels, header->blocksize, (header->bits_per_sample+7) / 8))
+			if(!FLAC__MD5Accumulate(&file_decoder->guts->md5context, buffer, frame->header.channels, frame->header.blocksize, (frame->header.bits_per_sample+7) / 8))
 				return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}
-		return file_decoder->guts->write_callback(file_decoder, header, buffer, file_decoder->guts->client_data);
+		return file_decoder->guts->write_callback(file_decoder, frame, buffer, file_decoder->guts->client_data);
 	}
 }
 
@@ -416,7 +416,7 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 			break;
 		}
 		else { /* we need to narrow the search */
-			uint64 this_frame_sample = decoder->guts->last_frame_header.number.sample_number;
+			uint64 this_frame_sample = decoder->guts->last_frame.header.number.sample_number;
 			if(this_frame_sample == last_frame_sample) {
 				/* our last move backwards wasn't big enough */
 				pos -= (last_pos - pos);
@@ -425,7 +425,7 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 			else {
 				if(target_sample < this_frame_sample) {
 					last_pos = pos;
-					approx_bytes_per_frame = decoder->guts->last_frame_header.blocksize * decoder->guts->last_frame_header.channels * decoder->guts->last_frame_header.bits_per_sample/8 + 64;
+					approx_bytes_per_frame = decoder->guts->last_frame.header.blocksize * decoder->guts->last_frame.header.channels * decoder->guts->last_frame.header.bits_per_sample/8 + 64;
 					pos -= approx_bytes_per_frame;
 					needs_seek = true;
 				}

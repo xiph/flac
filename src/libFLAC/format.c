@@ -56,12 +56,12 @@ const unsigned FLAC__ENTROPY_CODING_METHOD_TYPE_LEN = 2; /* bits */
 const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN = 4; /* bits */
 const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN = 4; /* bits */
 
-const unsigned FLAC__SUBFRAME_HEADER_LPC_QLP_COEFF_PRECISION_LEN = 4; /* bits */
-const unsigned FLAC__SUBFRAME_HEADER_LPC_QLP_SHIFT_LEN = 5; /* bits */
-const unsigned FLAC__SUBFRAME_HEADER_LPC_RICE_PARAMETER_LEN = 4; /* bits */
+const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN = 4; /* bits */
+const unsigned FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN = 5; /* bits */
+const unsigned FLAC__SUBFRAME_LPC_RICE_PARAMETER_LEN = 4; /* bits */
 
-const unsigned FLAC__SUBFRAME_HEADER_TYPE_CONSTANT = 0x00;
-const unsigned FLAC__SUBFRAME_HEADER_TYPE_VERBATIM = 0x02;
-const unsigned FLAC__SUBFRAME_HEADER_TYPE_FIXED = 0x10;
-const unsigned FLAC__SUBFRAME_HEADER_TYPE_LPC = 0x40;
-const unsigned FLAC__SUBFRAME_HEADER_TYPE_LEN = 8; /* bits */
+const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BITS = 0x00;
+const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BITS = 0x02;
+const unsigned FLAC__SUBFRAME_TYPE_FIXED_BITS = 0x10;
+const unsigned FLAC__SUBFRAME_TYPE_LPC_BITS = 0x40;
+const unsigned FLAC__SUBFRAME_TYPE_LEN = 8; /* bits */

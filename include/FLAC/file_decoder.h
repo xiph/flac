@@ -49,7 +49,7 @@ void FLAC__file_decoder_free_instance(FLAC__FileDecoder *decoder);
 FLAC__FileDecoderState FLAC__file_decoder_init(
 	FLAC__FileDecoder *decoder,
 	const char *filename,
-	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__FrameHeader *header, const int32 *buffer[], void *client_data),
+	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data),
 	void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data),
 	void (*error_callback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data),
 	void *client_data

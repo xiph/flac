@@ -109,13 +109,15 @@ typedef enum {
  */
 typedef struct {
 	int32 value;
-} FLAC__SubframeHeader_Constant;
+} FLAC__Subframe_Constant;
 
 /*****************************************************************************
  *
  * n*i: unencoded signal; n = frame's bits-per-sample, i = frame's blocksize
  */
-/* There is no (trivial) for structure FLAC__SubframeHeader_Verbatim */
+typedef struct {
+	int32 *data;
+} FLAC__Subframe_Verbatim;
 
 /*****************************************************************************
  *
@@ -128,7 +130,8 @@ typedef struct {
 	FLAC__EntropyCodingMethod entropy_coding_method;
 	unsigned order;
 	int32 warmup[FLAC__MAX_FIXED_ORDER];
-} FLAC__SubframeHeader_Fixed;
+	int32 *residual;
+} FLAC__Subframe_Fixed;
 
 /*****************************************************************************
  *
@@ -147,10 +150,11 @@ typedef struct {
 	int quantization_level;
 	int32 qlp_coeff[FLAC__MAX_LPC_ORDER];
 	int32 warmup[FLAC__MAX_LPC_ORDER];
-} FLAC__SubframeHeader_LPC;
+	int32 *residual;
+} FLAC__Subframe_LPC;
 
-extern const unsigned FLAC__SUBFRAME_HEADER_LPC_QLP_COEFF_PRECISION_LEN; /* = 4 bits */
-extern const unsigned FLAC__SUBFRAME_HEADER_LPC_QLP_SHIFT_LEN; /* = 5 bits */
+extern const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN; /* = 4 bits */
+extern const unsigned FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN; /* = 5 bits */
 
 /*****************************************************************************
  *
@@ -164,27 +168,23 @@ extern const unsigned FLAC__SUBFRAME_HEADER_LPC_QLP_SHIFT_LEN; /* = 5 bits */
  *       001xxxx0: reserved
  *       01xxxxx0: lpc, xxxxx=order-1
  *       1xxxxxxx: invalid, to prevent sync-fooling string of 1s (use to check for erroneous sync)
- *  ?: subframe-specific header (c.f. FLAC__SubframeHeader_*)
+ *  ?: subframe-specific data (c.f. FLAC__Subframe_*)
  */
 typedef struct {
 	FLAC__SubframeType type;
 	union {
-		FLAC__SubframeHeader_Constant constant;
-		FLAC__SubframeHeader_Fixed fixed;
-		FLAC__SubframeHeader_LPC lpc;
-	} data; /* data will be undefined for FLAC__SUBFRAME_TYPE_VERBATIM */
-} FLAC__SubframeHeader;
-
-extern const unsigned FLAC__SUBFRAME_HEADER_TYPE_CONSTANT; /* = 0x00 */
-extern const unsigned FLAC__SUBFRAME_HEADER_TYPE_VERBATIM; /* = 0x02 */
-extern const unsigned FLAC__SUBFRAME_HEADER_TYPE_FIXED; /* = 0x10 */
-extern const unsigned FLAC__SUBFRAME_HEADER_TYPE_LPC; /* = 0x40 */
-extern const unsigned FLAC__SUBFRAME_HEADER_TYPE_LEN; /* = 8 bits */
-
-typedef struct {
-	FLAC__SubframeHeader header;
-	const int32 *data;
+		FLAC__Subframe_Constant constant;
+		FLAC__Subframe_Fixed fixed;
+		FLAC__Subframe_LPC lpc;
+		FLAC__Subframe_Verbatim verbatim;
+	} data;
 } FLAC__Subframe;
+
+extern const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BITS; /* = 0x00 */
+extern const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BITS; /* = 0x02 */
+extern const unsigned FLAC__SUBFRAME_TYPE_FIXED_BITS; /* = 0x10 */
+extern const unsigned FLAC__SUBFRAME_TYPE_LPC_BITS; /* = 0x40 */
+extern const unsigned FLAC__SUBFRAME_TYPE_LEN; /* = 8 bits */
 
 /*****************************************************************************/
 
