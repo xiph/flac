@@ -489,7 +489,7 @@ bool init(encoder_wrapper_struct *encoder_wrapper)
 
 bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, encoder_wrapper_struct *encoder_wrapper)
 {
-	if(channels != 2 /*@@@ not necessary? || bps > 16*/)
+	if(channels != 2)
 		do_mid_side = loose_mid_side = false;
 
 	if(encoder_wrapper->verify) {
@@ -742,11 +742,6 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 		if(0 != memcmp(buffer[channel], encoder_wrapper->verify_fifo.original[channel], sizeof(int32) * decoder->blocksize)) {
 			fprintf(stderr, "\nERROR: mismatch in decoded data, verify FAILED!\n");
 			fprintf(stderr, "       Please submit a bug report to http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
-/*@@@ remove before 0.8 release:
-for(l=0;l<decoder->blocksize;l++)
-if(buffer[channel][l]!=encoder_wrapper->verify_fifo.original[channel][l])break;
-fprintf(stderr,"@@@channel=%u, sample=%u, expected %08x, got %08x\n",channel,l,encoder_wrapper->verify_fifo.original[channel][l],buffer[channel][l]);
-*/
 			return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}
 	}
