@@ -94,8 +94,9 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 	if(ogg_stream_packetin(&aspect->stream_state, &packet) != 0)
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 
+	/*@@@@@@ can't figure out a way to pass a useful number for 'samples' to the write_callback, so we'll just pass 0 */
 #ifdef FLAC__ONE_FLAC_FRAME_PER_OGG_PAGE
-	/* WATCHOUT: a FLAC frame may not be able to fit in a single Ogg page */
+	/* WATCHOUT: a FLAC frame still may not be able to fit in a single Ogg page */
 	while(ogg_stream_flush(&aspect->stream_state, &aspect->page) != 0) {
 		if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
