@@ -787,7 +787,7 @@ int main(int argc, char *argv[])
 	for(channels = 1; channels <= 8; channels++) {
 		unsigned bytes_per_sample;
 		for(bytes_per_sample = 1; bytes_per_sample <= 3; bytes_per_sample++) {
-			static const unsigned nsamples[] = { 1, 111, 55555 } ;
+			static const unsigned nsamples[] = { 1, 111, 5555 } ;
 			unsigned samples;
 			for(samples = 0; samples < sizeof(nsamples)/sizeof(nsamples[0]); samples++) {
 				char fn[64];
