@@ -20,7 +20,6 @@
 #ifndef FLAC__PRIVATE__FIXED_H
 #define FLAC__PRIVATE__FIXED_H
 
-#include "FLAC/config.h"
 #include "FLAC/format.h"
 
 /*

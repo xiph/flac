@@ -20,7 +20,6 @@
 #ifndef FLAC__PRIVATE__CPU_H
 #define FLAC__PRIVATE__CPU_H
 
-#include "FLAC/config.h"
 #include "FLAC/ordinals.h"
 
 typedef enum {
