@@ -212,10 +212,10 @@
 	</P>
 	<UL>
 		<P><LI>
-			A FLAC bitstream consists of the "fLaC" marker at the beginning of the stream, followed by a mandatory metadata block (called the 'Encoding' block), any number of other metadata blocks, then the audio frames.
+			A FLAC bitstream consists of the "fLaC" marker at the beginning of the stream, followed by a mandatory metadata block (called the STREAMINFO block), any number of other metadata blocks, then the audio frames.
 		</LI></P>
 		<P><LI>
-			FLAC supports up to 128 kinds of metadata blocks, but currently only one is defined.  This is the 'Encoding' block, which has info about the whole stream like sample rate, number of channels, total number of samples, etc.  This block must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.
+			FLAC supports up to 128 kinds of metadata blocks, but currently only one is defined.  This is the STREAMINFO block, which has info about the whole stream like sample rate, number of channels, total number of samples, etc.  This block must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.
 		</LI></P>
 		<P><LI>
 			The audio data is composed of one or more audio frames.  Each frame consists of a frame header, which contains a sync code, info about the frame like the block size, sample rate, number of channels, et cetera, and an 8-bit CRC.  The frame header also contains either the sample number of the first sample in the frame (for variable-blocksize streams), or the frame number (for fixed-blocksize streams).  This allows for fast, sample-accurate seeking to be performed.  Following the frame header are encoded subframes, one for each channel, and finally, the frame is zero-padded to a byte boundary.  Each subframe has its own header that specifies how the subframe is encoded.
@@ -224,7 +224,7 @@
 			Since a decoder may start decoding in the middle of a stream, there must be a method to determine the start of a frame.  A 9-bit sync code begins every frame.  The sync code will not appear anywhere else in the frame header.  However, since it may appear in the subframes, the decoder has two other ways of ensuring a correct sync.  The first is to check that the rest of the frame header contains no invalid data.  Even this is not foolproof since valid header patterns can still occur within the subframes.  The decoder's final check is to generate an 8-bit CRC of the frame header and compare this to the CRC stored at the end of the frame header.
 		</LI></P>
 		<P><LI>
-			Again, since a decoder may start decoding at an arbitrary frame in the stream, each frame header must contain some basic information about the stream because the decoder may not have access to the ENCODING metadata block at the start of the stream.  This information includes sample rate, bits per sample, number of channels, etc.  Since the frame header is pure overhead, it has a direct effect on the compression ratio.  To keep the frame header as small as possible, FLAC uses lookup tables for the most commonly used values for frame parameters.  For instance, the sample rate part of the frame header is specified using 4 bits.  Eight of the bit patterns correspond to the commonly used sample rates of 8/16/22.05/24/32/44.1/48/96 kHz.  However, odd sample rates can be specified by using one of the 'hint' bit patterns, directing the decoder to find the exact sample rate at the end of the frame header.  The same method is used for specifying the block size and bits per sample.  In this way, the frame header size stays small for all of the most common forms of audio data.
+			Again, since a decoder may start decoding at an arbitrary frame in the stream, each frame header must contain some basic information about the stream because the decoder may not have access to the STREAMINFO metadata block at the start of the stream.  This information includes sample rate, bits per sample, number of channels, etc.  Since the frame header is pure overhead, it has a direct effect on the compression ratio.  To keep the frame header as small as possible, FLAC uses lookup tables for the most commonly used values for frame parameters.  For instance, the sample rate part of the frame header is specified using 4 bits.  Eight of the bit patterns correspond to the commonly used sample rates of 8/16/22.05/24/32/44.1/48/96 kHz.  However, odd sample rates can be specified by using one of the 'hint' bit patterns, directing the decoder to find the exact sample rate at the end of the frame header.  The same method is used for specifying the block size and bits per sample.  In this way, the frame header size stays small for all of the most common forms of audio data.
 		</LI></P>
 		<P><LI>
 			Individual subframes (one for each channel) are coded separately within a frame, and appear serially in the stream.  In other words, the encoded audio data is NOT channel-interleaved.  This reduces decoder complexity at the cost of requiring larger decode buffers.  Each subframe has its own header specifying the attributes of the subframe, like prediction method and order, residual coding parameters, etc.  The header is followed by the encoded audio data for that channel.
@@ -233,7 +233,7 @@
 			FLAC specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the blocking such that decoder buffer sizes can be easily determined.  "flac" generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
 			<UL>
 			<LI>
-				The blocksize bits in the <A HREF="#frame_header">frame header</A> must be 001-101, specifying a fixed-blocksize stream (the exception being the last block as described in the table).  This also means that the Encoding metadata block must specify equal mininum and maximum blocksizes.
+				The blocksize bits in the <A HREF="#frame_header">frame header</A> must be 001-101, specifying a fixed-blocksize stream (the exception being the last block as described in the table).  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.
 			</LI>
 			<LI>
 				The bits-per-sample bits in the <A HREF="#frame_header">frame header</A> must be 001-110.
@@ -272,10 +272,10 @@
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A HREF="#metadata_encoding_block"><I>METADATA_ENCODING_BLOCK</I></A>
+				<A HREF="#metadata_streaminfo_block"><I>METADATA_BLOCK</I></A>
 			</TD>
 			<TD>
-				This is the mandatory metadata block that has the basic properties of the stream
+				This is the mandatory STREAMINFO metadata block that has the basic properties of the stream
 			</TD>
 		</TR>
 		<TR>
@@ -331,34 +331,6 @@
 	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
 		<TR>
 			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="metadata_encoding_block"><FONT SIZE="+1"><B>METADATA_ENCODING_BLOCK</B></FONT></A>
-			</TD>
-		</TR>
-		<TR>
-			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A HREF="#metadata_block_header"><I>METADATA_BLOCK_HEADER</I></A>
-			</TD>
-			<TD>
-				A block header that specifies the ENCODING BLOCK
-			</TD>
-		</TR>
-		<TR>
-			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A HREF="#metadata_block_encoding"><I>METADATA_BLOCK_ENCODING</I></A>
-			</TD>
-			<TD>
-				&nbsp;
-			</TD>
-		</TR>
-	</TABLE>
-	</TD></TR></TABLE>
-	</P>
-
-	<P>
-	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
-	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
-		<TR>
-			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
 				<A NAME="metadata_block_header"><FONT SIZE="+1"><B>METADATA_BLOCK_HEADER</B></FONT></A>
 			</TD>
 		</TR>
@@ -378,10 +350,16 @@
 				BLOCK_TYPE<BR>
 				<UL>
 				<LI>
-					<TT>0</TT> : ENCODING
+					<TT>0</TT> : STREAMINFO
 				</LI>
 				<LI>
-					<TT>1-127</TT> : reserved
+					<TT>1</TT> : PADDING
+				</LI>
+				<LI>
+					<TT>2</TT> : APPLICATION
+				</LI>
+				<LI>
+					<TT>3-127</TT> : reserved
 				</LI>
 				</UL>
 			</TD>
@@ -392,18 +370,6 @@
 			</TD>
 			<TD>
 				Length (in bytes) of metadata to follow (does not include the size of the METADATA_BLOCK_HEADER)
-			</TD>
-		</TR>
-		<TR>
-			<TD>
-			</TD>
-			<TD BGCOLOR="#F4F4CC">
-				<FONT SIZE="+1">NOTES</FONT><BR>
-				<UL>
-				<LI>
-					Currently, FLAC specifies only one metadata block, the ENCODING block.  Its presence as the first metadata block in the stream is mandatory.
-				</LI>
-				</UL>
 			</TD>
 		</TR>
 	</TABLE>
@@ -420,10 +386,10 @@
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A HREF="#metadata_block_encoding"><I>METADATA_BLOCK_ENCODING</I></A>
+				<A HREF="#metadata_block_streaminfo"><I>METADATA_BLOCK_STREAMINFO</I></A><BR>|| <A HREF="#metadata_block_padding"><I>METADATA_BLOCK_PADDING</I></A><BR>|| <A HREF="#metadata_block_application"><I>METADATA_BLOCK_APPLICATION</I></A>
 			</TD>
 			<TD>
-				Currently, FLAC specifies only one metadata block, the ENCODING block.
+				The block data must match the block type in the block header.
 			</TD>
 		</TR>
 	</TABLE>
@@ -435,7 +401,7 @@
 	<TABLE WIDTH="100%" BORDER="1">
 		<TR>
 			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="metadata_block_encoding"><FONT SIZE="+1"><B>METADATA_BLOCK_ENCODING</B></FONT></A>
+				<A NAME="metadata_block_streaminfo"><FONT SIZE="+1"><B>METADATA_BLOCK_STREAMINFO</B></FONT></A>
 			</TD>
 		</TR>
 		<TR>
@@ -528,6 +494,54 @@
 
 	<P>
 	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_padding"><FONT SIZE="+1"><B>METADATA_BLOCK_PADDING</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				n '0' bits (n must be a multiple of 8)
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="metadata_block_application"><FONT SIZE="+1"><B>METADATA_BLOCK_APPLICATION</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;128&gt;
+			</TD>
+			<TD>
+				Registered application ID
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;n&gt;
+			</TD>
+			<TD>
+				Application data (n must be a multiple of 8)
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
 	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
 		<TR>
 			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
@@ -586,7 +600,7 @@
 				block size in channel-wide samples:<BR>
 				<UL>
 				<LI>
-					<TT>000</TT> : get from ENCODING metadata block
+					<TT>000</TT> : get from STREAMINFO metadata block
 				</LI>
 				<LI>
 					<TT>001</TT> : 192 samples
@@ -611,7 +625,7 @@
 				sample rate:<BR>
 				<UL>
 				<LI>
-					<TT>0000</TT> : get from ENCODING metadata block
+					<TT>0000</TT> : get from STREAMINFO metadata block
 				</LI>
 				<LI>
 					<TT>0001-0011</TT> : reserved
@@ -688,7 +702,7 @@
 				sample size in bits:<BR>
 				<UL>
 				<LI>
-					<TT>000</TT> : get from ENCODING metadata block
+					<TT>000</TT> : get from STREAMINFO metadata block
 				</LI>
 				<LI>
 					<TT>001</TT> : 8 bits per sample
