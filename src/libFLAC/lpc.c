@@ -75,7 +75,7 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 
 		/* save this order */
 		for(j = 0; j <= i; j++)
-			lp_coeff[i][j] = -lpc[j]; /* N.B. why do we have to negate here? */
+			lp_coeff[i][j] = -lpc[j]; /* negate to get FIR filter coeffs */
 		error[i] = err;
 	}
 }
