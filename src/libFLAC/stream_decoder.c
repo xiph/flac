@@ -2045,6 +2045,22 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigne
 	const unsigned partitions = 1u << partition_order;
 	const unsigned partition_samples = partition_order > 0? decoder->private_->frame.header.blocksize >> partition_order : decoder->private_->frame.header.blocksize - predictor_order;
 
+	/* sanity checks */
+	if(partition_order == 0) {
+		if(decoder->private_->frame.header.blocksize < predictor_order) {
+			decoder->private_->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC, decoder->private_->client_data);
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
+		}
+	}
+	else {
+		if(partition_samples < predictor_order) {
+			decoder->private_->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC, decoder->private_->client_data);
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
+		}
+	}
+
 	if(!FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(partitioned_rice_contents, max(6, partition_order))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
