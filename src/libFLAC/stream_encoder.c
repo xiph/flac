@@ -917,7 +917,7 @@ FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder 
 	 *
 	 * WATCHOUT: libOggFLAC depends on us to write this block after the
 	 * STREAMINFO since that's what the mapping requires.  (In the case
-	 * that metadata_has_vorbis_comment it true it will have already
+	 * that metadata_has_vorbis_comment is true it will have already
 	 * insured that the metadata list is properly ordered.)
 	 */
 	if(!metadata_has_vorbis_comment) {
