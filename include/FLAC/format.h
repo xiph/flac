@@ -114,6 +114,11 @@ extern "C" {
  */
 #define FLAC__MIN_QLP_COEFF_PRECISION (5u)
 
+/** The maximum quantized linear predictor coefficient precision
+ *  permitted by the format.
+ */
+#define FLAC__MAX_QLP_COEFF_PRECISION (15u)
+
 /** The maximum order of the fixed predictors permitted by the format. */
 #define FLAC__MAX_FIXED_ORDER (4u)
 
