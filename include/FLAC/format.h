@@ -56,11 +56,19 @@ extern const FLAC__byte FLAC__STREAM_SYNC_STRING[4]; /* = "fLaC" */;
 extern const unsigned FLAC__STREAM_SYNC; /* = 0x664C6143 */;
 extern const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */;
 
+#define FLAC__STREAM_SYNC_LENGTH (4u)
+
 
 /*****************************************************************************
  *
  * NOTE: Within the bitstream, all fixed-width numbers are big-endian coded.
  *       All numbers are unsigned unless otherwise noted.
+ *
+ * NOTE: It's not the best convention, but symbols ending in _LEN are in bits
+ *       and _LENGTH are in bytes.  _LENGTH symbols are #defines instead of
+ *       global variables because they are usually when declaring arrays and
+ *       some compilers require compile-time knowledge of array sizes when
+ *       declared on the stack.
  *
  *****************************************************************************/
 
@@ -378,7 +386,8 @@ extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN; /* = 3 bits
 extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN; /* = 5 bits */
 extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN; /* = 36 bits */
 extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN; /* = 128 bits */
-extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_LENGTH; /* = 34 bytes */
+
+#define FLAC__STREAM_METADATA_STREAMINFO_LENGTH (34u)
 
 /*****************************************************************************
  *
@@ -422,7 +431,8 @@ typedef struct {
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN; /* = 64 bits */
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN; /* = 64 bits */
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN; /* = 16 bits */
-extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LENGTH; /* = 18 bytes */
+
+#define FLAC__STREAM_METADATA_SEEKPOINT_LENGTH (18u)
 
 extern const FLAC__uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER; /* = 0xffffffffffffffff */
 
@@ -495,9 +505,11 @@ typedef struct {
 	} data;
 } FLAC__StreamMetaData;
 
-extern const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN; /* = 1 bits */
+extern const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN; /* = 1 bit */
 extern const unsigned FLAC__STREAM_METADATA_TYPE_LEN; /* = 7 bits */
 extern const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /* = 24 bits */
+
+#define FLAC__STREAM_METADATA_HEADER_LENGTH (4u)
 
 /*****************************************************************************/
 
