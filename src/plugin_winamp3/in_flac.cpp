@@ -266,7 +266,7 @@ void FLAC_Source::cleanup()
 	file_info_.length_in_msec = -1;
 }
 
- 
+
 /***********************************************************************
  * local routines
  **********************************************************************/
@@ -384,14 +384,14 @@ void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorS
 		file_info->abort_flag = true;
 }
 
- 
+
 /***********************************************************************
  * C-level interface
  **********************************************************************/
 
 static int C_level__FLAC_is_mine_(char *filename)
 {
-	return 0; 
+	return 0;
 }
 
 static WInputSource *C_level__FLAC_create_()

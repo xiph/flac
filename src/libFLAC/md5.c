@@ -147,7 +147,7 @@ FLAC__MD5Accumulate(struct MD5Context *ctx, const int32 *signal[], unsigned chan
 }
 
 /*
- * Final wrapup - pad to 64-byte boundary with the bit pattern 
+ * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
 void

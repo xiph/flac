@@ -1,10 +1,10 @@
 
 /* Winamp 3 Player core api v0.1
 ** (c)2000 nullsoft jcf/ct/dk
-** Notes: 
-**			Keep in mind that this header file is subject to change prior to the 
-**		release of Winamp 3.  The ability to configure plug-ins has yet to be 
-**		added and is the first and foremost concern of the engineering team.		
+** Notes:
+**			Keep in mind that this header file is subject to change prior to the
+**		release of Winamp 3.  The ability to configure plug-ins has yet to be
+**		added and is the first and foremost concern of the engineering team.
 */
 
 #ifndef __CORE_API_H
@@ -71,7 +71,7 @@ class WPlayer_callback
 {
   public:
 	/* GetReader
-	** Allows your Input Source and Output Filter plugins to request a reader from Winamp, 
+	** Allows your Input Source and Output Filter plugins to request a reader from Winamp,
 	** so you don't have to worry about opening files or streams
 	*/
     virtual WReader *GetReader(char *url)=0;
@@ -152,7 +152,7 @@ class WInputInfo
 	** the useful information into member elements for quick access by other functions
 	*/
 	virtual int  Open(char *url) { return 1; }
-	
+
 	/* GetTitle
 	** Called by Winamp to get the decoded title about the file opened
 	** i.e. id3 title name, etc...
@@ -170,17 +170,17 @@ class WInputInfo
 	** returns -1 if length is undefined/infinite
 	*/
 	virtual int  GetLength(void) { return -1; };
-											 
+
 	/* GetMetaData
 	** Fetches metadata by attribute name (Artist, Album, Bitrate, etc...)
 	** attribute names are non case-sensitive.
 	** returns size of data
 	*/
-	virtual int  GetMetaData(char *name, char *data, int data_len) { if (data&&data_len>0) *data=0; return 0; } 																						
-																												
+	virtual int  GetMetaData(char *name, char *data, int data_len) { if (data&&data_len>0) *data=0; return 0; }
+
 	/* ~WInputInfo
 	** WInputInfo virtual destructor
-	*/    
+	*/
 	virtual ~WInputInfo() { };
 };
 
@@ -191,19 +191,19 @@ class WInputInfo
 
 
 
-/* WINAMP Output Filter NOTIFY MESSAGES 
+/* WINAMP Output Filter NOTIFY MESSAGES
 **	Messages returned to notify Output Filter plug-ins of events
 */
 
 typedef enum {
-	
+
 	/* WOFNM_FILETITLECHANGE
-	** Sent when the song changes 
+	** Sent when the song changes
 	** param1=new filename song
 	** param2=new title song
 	*/
 	WOFNM_FILETITLECHANGE=1024,
-	
+
 	/* WOFNM_ENDOFDECODE
 	** Sent when decoding ends
 	*/
@@ -214,12 +214,12 @@ typedef enum {
 
 
 
-class WOutputFilter 
+class WOutputFilter
 {
   protected:
 	/* WOutputFilter
 	** WOutputFilter constructor
-	*/    
+	*/
 	WOutputFilter() { m_next=NULL; };
 
   public:
@@ -262,17 +262,17 @@ class WOutputFilter
 	/* FlushSamples
 	** Flushes output buffers so that all is written
 	*/
-	virtual void FlushSamples(bool *killswitch) { }; 
+	virtual void FlushSamples(bool *killswitch) { };
 
 	/* Restart
 	** Called by Winamp after a seek
 	*/
-	virtual void Restart(void) { } 
+	virtual void Restart(void) { }
 
 	/* GetLatency
 	** Returns < 0 for a final output latency, > 0 for an additive
 	*/
-	virtual int  GetLatency(void) { return 0; } 
+	virtual int  GetLatency(void) { return 0; }
 
 	/* Pause
 	** Suspends output
@@ -290,7 +290,7 @@ class WOutputFilter
 	** Sets the volume (0 to 255)
 	** return 1 if volume successfully modified
 	*/
-	virtual int SetVolume(int volume) { return 0; } 
+	virtual int SetVolume(int volume) { return 0; }
 
 	/* SetPan
 	** Sets Left-Right sound balance (-127 to 127)
@@ -358,7 +358,7 @@ class WInputSource
 	** Sets the volume (0 to 255)
 	** Return 1 if volume has been set
 	*/
-	virtual int SetVolume(int volume) { return 0; }; 
+	virtual int SetVolume(int volume) { return 0; };
 
 	/* SetPan
 	** Sets Left-Right sound balance (-127 to 127)
@@ -369,7 +369,7 @@ class WInputSource
 	/* SetPosition
 	** Sets position in ms. returns 0 on success, 1 if seek impossible
 	*/
-	virtual int SetPosition(int)=0; 
+	virtual int SetPosition(int)=0;
 
 	/* Pause
 	** Suspends input
@@ -408,7 +408,7 @@ class WInputSource
 
 
 
-class WReader 
+class WReader
 {
   protected:
 
@@ -416,7 +416,7 @@ class WReader
 	** WReader constructor
 	*/
 	WReader() { }
-  
+
   public:
 
 	/* m_player
@@ -432,28 +432,28 @@ class WReader
 	/* Open
 	** Used to open a file, return 0 on success
 	*/
-	virtual int Open(char *url, bool *killswitch)=0; 
+	virtual int Open(char *url, bool *killswitch)=0;
 
 	/* Read
 	** Returns number of BYTES read (if < length then eof or killswitch)
 	*/
-	virtual int Read(char *buffer, int length, bool *killswitch)=0; 
-																
+	virtual int Read(char *buffer, int length, bool *killswitch)=0;
+
 	/* GetLength
 	** Returns length of the entire file in BYTES, return -1 on unknown/infinite (as for a stream)
 	*/
-	virtual int GetLength(void)=0; 
-	
+	virtual int GetLength(void)=0;
+
 	/* CanSeek
 	** Returns 1 if you can skip ahead in the file, 0 if not
 	*/
 	virtual int CanSeek(void)=0;
-	
+
 	/* Seek
 	** Jump to a certain absolute position
 	*/
 	virtual int Seek(int position, bool *killswitch)=0;
-	
+
 	/* GetHeader
 	** Retrieve header. Used in read_http to retrieve the HTTP header
 	*/
@@ -475,83 +475,83 @@ class WReader
 #define OF_VER		0x100
 
 
-typedef struct 
+typedef struct
 {
 	/* version
 	** Version revision number
 	*/
 	int version;
-	
+
 	/* description
 	** Text description of the reader plug-in
 	*/
 	char *description;
-	
+
 	/* create
 	** Function pointer to create a reader module
 	*/
 	WReader *(*create)();
-	
+
 	/* ismine
 	** Determines whether or not a file should be read by this plug-in
 	*/
 	int (*ismine)(char *url);
-	
+
 } reader_source;
 
 
 
 
-typedef struct 
+typedef struct
 {
 	/* version
 	** Version revision number
-	*/	  
+	*/
 	int version;
 
 	/* description
 	** Text description of the input plug-in
-	*/  
+	*/
 	char *description;
 
 	/* extension_list
 	** Defines all the supported filetypes by this input plug-in
 	** In semicolon delimited format ("ext;desc;ext;desc" etc).
-	*/  
-	char *extension_list; 
+	*/
+	char *extension_list;
 
 	/* ismine
 	** called before extension checks, to allow detection of tone://,http://, etc
 	** Determines whether or not a file type should be decoded by this plug-in
-	*/	  
+	*/
 	int (*ismine)(char *filename);
 
 	/* create
 	** Function pointer to create a decoder module
-	*/ 
+	*/
 	WInputSource *(*create)(void);
 
 	/* createinfo
 	** Function pointer to create a decoder module information
-	*/	  
+	*/
 	WInputInfo *(*createinfo)(void);
 
 } input_source;
 
 
 
-typedef struct 
+typedef struct
 {
 	/* version
 	** Version revision number
 	*/
 	int version;
-	
+
 	/* description
 	** Text description of the output plug-in
-	*/	  
+	*/
 	char *description;
-	
+
 	/* create
 	** Function pointer to create an Output Filter
 	*/

@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/* 
+/*
  * WATCHOUT - this is meant to be very lightweight an not even dependent
  * on libFLAC, so there are a couple places where FLAC__* variables are
  * duplicated here.  Look for 'DUPLICATE:' in comments.

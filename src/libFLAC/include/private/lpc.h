@@ -51,7 +51,7 @@ void FLAC__lpc_compute_autocorrelation(const real data[], unsigned data_len, uns
  *	*** IMPORTANT:
  *	*** lp_coeff[0,max_order-1][max_order,FLAC__MAX_LPC_ORDER-1] are untouched
  *	OUT error[0,max_order-1]                   error for each order
- *	
+ *
  *	Example: if max_order is 9, the LP coefficients for order 9 will be
  *	         in lp_coeff[8][0,8], the LP coefficients for order 8 will be
  *			 in lp_coeff[7][0,7], etc.
