@@ -85,7 +85,7 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 
 	for(i = 0; i < max_order; i++) {
 		/* Sum up this iteration's reflection coefficient. */
-		r =- autoc[i+1];
+		r = -autoc[i+1];
 		for(j = 0; j < i; j++)
 			r -= lpc[j] * autoc[i-j];
 		ref[i] = (r/=err);
@@ -101,6 +101,7 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 			lpc[j] += lpc[j] * r;
 
 		err *= (1.0 - r * r);
+if(err<0.0)fprintf(stderr,"@@@ err went negative, order=%u (%f,%f)\n",i,err,r);
 
 		/* save this order */
 		for(j = 0; j <= i; j++)
@@ -112,7 +113,7 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, int32 qlp_coeff[], int *shift)
 {
 	unsigned i;
-	real d, cmax = -1e99;
+	real d, cmax = -1e10;
 
 	assert(bits_per_sample > 0);
 	assert(bits_per_sample <= sizeof(int32)*8);
@@ -248,19 +249,38 @@ void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const i
 
 real FLAC__lpc_compute_expected_bits_per_residual_sample(real lpc_error, unsigned total_samples)
 {
-	real escale;
+	real error_scale;
 
-	assert(lpc_error >= 0.0); /* the error can never be negative */
 	assert(total_samples > 0);
 
-	escale = 0.5 * M_LN2 * M_LN2 / (real)total_samples;
+	error_scale = 0.5 * M_LN2 * M_LN2 / (real)total_samples;
 
 	if(lpc_error > 0.0) {
-		real bps = 0.5 * log(escale * lpc_error) / M_LN2;
+		real bps = 0.5 * log(error_scale * lpc_error) / M_LN2;
 		if(bps >= 0.0)
 			return bps;
 		else
 			return 0.0;
+	}
+	else if(lpc_error < 0.0) { /* error should not be negative but can happen due to inadequate float resolution */
+		return 1e10;
+	}
+	else {
+		return 0.0;
+	}
+}
+
+real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(real lpc_error, real error_scale)
+{
+	if(lpc_error > 0.0) {
+		real bps = 0.5 * log(error_scale * lpc_error) / M_LN2;
+		if(bps >= 0.0)
+			return bps;
+		else
+			return 0.0;
+	}
+	else if(lpc_error < 0.0) { /* error should not be negative but can happen due to inadequate float resolution */
+		return 1e10;
 	}
 	else {
 		return 0.0;
@@ -271,14 +291,18 @@ unsigned FLAC__lpc_compute_best_order(const real lpc_error[], unsigned max_order
 {
 	unsigned order, best_order;
 	real best_bits, tmp_bits;
+	const error_scale;
 
 	assert(max_order > 0);
+	assert(total_samples > 0);
+
+	error_scale = 0.5 * M_LN2 * M_LN2 / (real)total_samples;
 
 	best_order = 0;
-	best_bits = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[0], total_samples) * (real)total_samples;
+	best_bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[0], error_scale) * (real)total_samples;
 
 	for(order = 1; order < max_order; order++) {
-		tmp_bits = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[order], total_samples) * (real)(total_samples - order) + (real)(order * bits_per_signal_sample);
+		tmp_bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[order], error_scale) * (real)(total_samples - order) + (real)(order * bits_per_signal_sample);
 		if(tmp_bits < best_bits) {
 			best_order = order;
 			best_bits = tmp_bits;
