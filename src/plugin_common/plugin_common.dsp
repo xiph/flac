@@ -114,12 +114,20 @@ SOURCE=.\id3v2.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\replaygain_synthesis.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\vorbiscomment.c
 # End Source File
 # End Group
 # Begin Group "Private Header Files"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\include\private\fast_float_math_hack.h
+# End Source File
 # End Group
 # Begin Group "Protected Header Files"
 
@@ -155,6 +163,10 @@ SOURCE=.\id3v1.h
 # Begin Source File
 
 SOURCE=.\locale_hack.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\replaygain_synthesis.h
 # End Source File
 # Begin Source File
 
