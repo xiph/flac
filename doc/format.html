@@ -175,16 +175,16 @@
 	</P>
 	<UL>
 		<P><LI>
-			<B>Verbatim</B>.  This is essentially a zero-order predictor of the signal.  The predictor of the signal is the signal itself, so the compression is zero.  This is the baseline against which the other predictors are measured.  If you feed random data to the encoder, the verbatim predictor will probably be used for every subblock.  Since the raw signal is not actually passed through the residual coding stage (it is added to the stream 'verbatim'), the encoding results will not be the same as a zero-order linear predictor.
+			<B>Verbatim</B>.  This is essentially a zero-order predictor of the signal.  The predicted signal is zero, meaning the residual is the signal itself, and the compression is zero.  This is the baseline against which the other predictors are measured.  If you feed random data to the encoder, the verbatim predictor will probably be used for every subblock.  Since the raw signal is not actually passed through the residual coding stage (it is added to the stream 'verbatim'), the encoding results will not be the same as a zero-order linear predictor.
 		</LI></P>
 		<P><LI>
-			<B>Constant</B>.  This predictor is used whenever the subblock contains digital silence, i.e. a constant value throughout.  The signal is run-length encoded and added to the stream.
+			<B>Constant</B>.  This predictor is used whenever the subblock is pure DC ("digital silence"), i.e. a constant value throughout.  The signal is run-length encoded and added to the stream.
 		</LI></P>
 		<P><LI>
-			<B>Fixed linear predictor</B>.  FLAC uses a class of computationally-efficient fixed linear predictors (for a good description, see <A HREF="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</A> and <A HREF="http://svr-www.eng.cam.ac.uk/~ajr/GroupPubs/Robinson94-tr156/index.html">shorten</A>).  FLAC adds a fourth-order predictor to the zero-to-third-order predictors used by shorten.  Since the predictors are fixed, the predictor order is the only parameter that needs to be stored in the compressed stream.  The error signal is then passed to the residual coder.
+			<B>Fixed linear predictor</B>.  FLAC uses a class of computationally-efficient fixed linear predictors (for a good description, see <A HREF="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</A> and <A HREF="http://svr-www.eng.cam.ac.uk/~ajr/GroupPubs/Robinson94-tr156/index.html">shorten</A>).  FLAC adds a fourth-order predictor to the zero-to-third-order predictors used by Shorten.  Since the predictors are fixed, the predictor order is the only parameter that needs to be stored in the compressed stream.  The error signal is then passed to the residual coder.
 		</LI></P>
 		<P><LI>
-			<B>FIR Linear prediction</B>.  For more accurate modeling (at a cost of slower encoding), FLAC supports up to 32nd order FIR linear prediction (again, for info on linear prediction, see <A HREF="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</A> and <A HREF="http://svr-www.eng.cam.ac.uk/~ajr/GroupPubs/Robinson94-tr156/index.html">shorten</A>).  The reference encoder uses the Levinson-Durbin method for calculating the LPC coefficients from the autocorrelation coefficients, and the coefficients are quantized before computing the residual.  Whereas encoders such as shorten used a fixed quantization for the entire input, FLAC allows the quantized coefficient precision to vary from subframe to subframe.  The FLAC reference encoder estimates the optimal precision to use based on the block size and dynamic range of the original signal.
+			<B>FIR Linear prediction</B>.  For more accurate modeling (at a cost of slower encoding), FLAC supports up to 32nd order FIR linear prediction (again, for info on linear prediction, see <A HREF="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</A> and <A HREF="http://svr-www.eng.cam.ac.uk/~ajr/GroupPubs/Robinson94-tr156/index.html">shorten</A>).  The reference encoder uses the Levinson-Durbin method for calculating the LPC coefficients from the autocorrelation coefficients, and the coefficients are quantized before computing the residual.  Whereas encoders such as Shorten used a fixed quantization for the entire input, FLAC allows the quantized coefficient precision to vary from subframe to subframe.  The FLAC reference encoder estimates the optimal precision to use based on the block size and dynamic range of the original signal.
 		</LI></P>
 	</UL>
 	<P>
@@ -227,7 +227,7 @@
 			The audio data is composed of one or more audio frames.  Each frame consists of a frame header, which contains a sync code, info about the frame like the block size, sample rate, number of channels, et cetera, and an 8-bit CRC.  The frame header also contains either the sample number of the first sample in the frame (for variable-blocksize streams), or the frame number (for fixed-blocksize streams).  This allows for fast, sample-accurate seeking to be performed.  Following the frame header are encoded subframes, one for each channel, and finally, the frame is zero-padded to a byte boundary.  Each subframe has its own header that specifies how the subframe is encoded.
 		</LI></P>
 		<P><LI>
-			Since a decoder may start decoding in the middle of a stream, there must be a method to determine the start of a frame.  A 9-bit sync code begins every frame.  The sync code will not appear anywhere else in the frame header.  However, since it may appear in the subframes, the decoder has two other ways of ensuring a correct sync.  The first is to check that the rest of the frame header contains no invalid data.  Even this is not foolproof since valid header patterns can still occur within the subframes.  The decoder's final check is to generate an 8-bit CRC of the frame header and compare this to the CRC stored at the end of the frame header.
+			Since a decoder may start decoding in the middle of a stream, there must be a method to determine the start of a frame.  A 14-bit sync code begins each frame.  The sync code will not appear anywhere else in the frame header.  However, since it may appear in the subframes, the decoder has two other ways of ensuring a correct sync.  The first is to check that the rest of the frame header contains no invalid data.  Even this is not foolproof since valid header patterns can still occur within the subframes.  The decoder's final check is to generate an 8-bit CRC of the frame header and compare this to the CRC stored at the end of the frame header.
 		</LI></P>
 		<P><LI>
 			Again, since a decoder may start decoding at an arbitrary frame in the stream, each frame header must contain some basic information about the stream because the decoder may not have access to the STREAMINFO metadata block at the start of the stream.  This information includes sample rate, bits per sample, number of channels, etc.  Since the frame header is pure overhead, it has a direct effect on the compression ratio.  To keep the frame header as small as possible, FLAC uses lookup tables for the most commonly used values for frame parameters.  For instance, the sample rate part of the frame header is specified using 4 bits.  Eight of the bit patterns correspond to the commonly used sample rates of 8/16/22.05/24/32/44.1/48/96 kHz.  However, odd sample rates can be specified by using one of the 'hint' bit patterns, directing the decoder to find the exact sample rate at the end of the frame header.  The same method is used for specifying the block size and bits per sample.  In this way, the frame header size stays small for all of the most common forms of audio data.
@@ -239,7 +239,7 @@
 			FLAC specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the blocking such that decoder buffer sizes can be easily determined.  "flac" generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
 			<UL>
 			<LI>
-				The blocksize bits in the <A HREF="#frame_header">frame header</A> must be 001-101, specifying a fixed-blocksize stream (the exception being the last block as described in the table).  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.
+				The blocksize bits in the <A HREF="#frame_header">frame header</A> must be 0001-0101 or 1000-1111, specifying a fixed-blocksize stream (the exception being the last block as described in the table).  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.
 			</LI>
 			<LI>
 				The bits-per-sample bits in the <A HREF="#frame_header">frame header</A> must be 001-110.
@@ -471,7 +471,7 @@
 				&lt;36&gt;
 			</TD>
 			<TD>
-				Total samples in stream.  'Samples' means channel-wide sample, i.e. one second of 44.1Khz audio will have 44100 samples regardless of the number of channels.  A value of zero here means the number of total samples is unknown.
+				Total samples in stream.  'Samples' means inter-channel sample, i.e. one second of 44.1Khz audio will have 44100 samples regardless of the number of channels.  A value of zero here means the number of total samples is unknown.
 			</TD>
 		</TR>
 		<TR>
@@ -578,6 +578,14 @@
 				Zero-padding to byte alignment.
 			</TD>
 		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<A HREF="#frame_footer"><I>FRAME_FOOTER</I></A>
+			</TD>
+			<TD>
+				&nbsp;
+			</TD>
+		</TR>
 	</TABLE>
 	</TD></TR></TABLE>
 	</P>
@@ -592,33 +600,24 @@
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				&lt;9&gt;
+				&lt;14&gt;
 			</TD>
 			<TD>
-				sync code '<TT>111111110</TT>'
+				Sync code '<TT>11111111111110</TT>'
 			</TD>
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				&lt;3&gt;
+				&lt;2&gt;
 			</TD>
 			<TD>
-				block size in channel-wide samples:<BR>
+				Reserved:<BR>
 				<UL>
 				<LI>
-					<TT>000</TT> : get from STREAMINFO metadata block
+					<TT>00</TT> : mandatory value
 				</LI>
 				<LI>
-					<TT>001</TT> : 192 samples
-				</LI>
-				<LI>
-					<TT>010-101</TT> : 576 * (2^(n-2)) samples, i.e. 576/1152/2304/4608
-				</LI>
-				<LI>
-					<TT>110</TT> : get 8 bit (blocksize-1) from end of header
-				</LI>
-				<LI>
-					<TT>111</TT> : get 16 bit (blocksize-1) from end of header
+					<TT>01-11</TT> : reserved for future use
 				</LI>
 				</UL>
 			</TD>
@@ -628,7 +627,35 @@
 				&lt;4&gt;
 			</TD>
 			<TD>
-				sample rate:<BR>
+				Block size in inter-channel samples:<BR>
+				<UL>
+				<LI>
+					<TT>0000</TT> : get from STREAMINFO metadata block
+				</LI>
+				<LI>
+					<TT>0001</TT> : 192 samples
+				</LI>
+				<LI>
+					<TT>0010-0101</TT> : 576 * (2^(n-2)) samples, i.e. 576/1152/2304/4608
+				</LI>
+				<LI>
+					<TT>0110</TT> : get 8 bit (blocksize-1) from end of header
+				</LI>
+				<LI>
+					<TT>0111</TT> : get 16 bit (blocksize-1) from end of header
+				</LI>
+				<LI>
+					<TT>1000-1111</TT> : 256 * (2^(n-8)) samples, i.e. 256/512/1024/2048/4096/8192/16384/32768
+				</LI>
+				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;4&gt;
+			</TD>
+			<TD>
+				Sample rate:<BR>
 				<UL>
 				<LI>
 					<TT>0000</TT> : get from STREAMINFO metadata block
@@ -680,7 +707,7 @@
 				&lt;4&gt;
 			</TD>
 			<TD>
-				channel assignment
+				Channel assignment
 				<UL>
 				<LI>
 					<TT>0000-0111</TT> : (number of independent channels)-1.  when == 0001, channel 0 is the left channel and channel 1 is the right
@@ -705,7 +732,7 @@
 				&lt;3&gt;
 			</TD>
 			<TD>
-				sample size in bits:<BR>
+				Sample size in bits:<BR>
 				<UL>
 				<LI>
 					<TT>000</TT> : get from STREAMINFO metadata block
@@ -739,7 +766,7 @@
 				&lt;1&gt;
 			</TD>
 			<TD>
-				zero bit padding, to prevent sync-fooling string of 1s
+				Zero bit padding, to prevent sync-fooling string of 1s
 			</TD>
 		</TR>
 		<TR>
@@ -776,7 +803,7 @@
 				&lt;8&gt;
 			</TD>
 			<TD>
-				CRC-8 (polynomial = x^8 + x^2 + x + 1) of everything before the crc, including the sync code
+				CRC-8 (polynomial = x^8 + x^2 + x^1 + x^0, initialized with 0) of everything before the crc, including the sync code
 			</TD>
 		</TR>
 		<TR>
@@ -786,12 +813,32 @@
 				<FONT SIZE="+1">NOTES</FONT><BR>
 				<UL>
 				<LI>
-					The blocksize bits 000-101 may only be used if the blocksize is fixed throughout the entire stream.  Blocksize bits 110-111 may be used in any case but the decoder will have to pessimistically guess that it is a variable-blocksize stream.  There is only one special case: the encoder may use blocksize bits 110-111 on the last frame of a fixed-blocksize stream, as long as the blocksize is not greater than the stream blocksize.
+					The blocksize bits 0000-0101 and 1000-1111 may only be used if the blocksize is fixed throughout the entire stream.  Blocksize bits 0110-0111 may be used in any case but the decoder will have to pessimistically guess that it is a variable-blocksize stream.  There is only one special case: the encoder may use blocksize bits 0110-0111 on the last frame of a fixed-blocksize stream, as long as the blocksize is not greater than the stream blocksize.
 				</LI>
 				<LI>
 					The "UTF-8" coding used for the sample/frame number is the same variable length code used to store compressed UCS-2, extended to handle larger input.
 				</LI>
 				</UL>
+			</TD>
+		</TR>
+	</TABLE>
+	</TD></TR></TABLE>
+	</P>
+
+	<P>
+	<TABLE WIDTH="100%" BORDER="0" CELLSPACING="0" CELLPADDING="0" BGCOLOR="#EEEED4"><TR><TD>
+	<TABLE WIDTH="100%" BORDER="1" BGCOLOR="#EEEED4">
+		<TR>
+			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
+				<A NAME="frame_footer"><FONT SIZE="+1"><B>FRAME_FOOTER</B></FONT></A>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;16&gt;
+			</TD>
+			<TD>
+				CRC-16 (polynomial = x^16 + x^15 + x^2 + x^0, initialized with 0) of everything before the crc, back to and including the frame header sync code
 			</TD>
 		</TR>
 	</TABLE>
@@ -836,39 +883,56 @@
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				&lt;8&gt;
+				&lt;1&gt;
+			</TD>
+			<TD>
+				Zero bit padding, to prevent sync-fooling string of 1s
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;6&gt;
 			</TD>
 			<TD>
 				Subframe type:
 				<UL>
 				<LI>
-					<TT>xxxxxxx1</TT> : invalid, to prevent sync-fooling string of 1s
+					<TT>000000</TT> : <A HREF="#subframe_constant">SUBFRAME_CONSTANT</A>
 				</LI>
 				<LI>
-					<TT>00000000</TT> : <A HREF="#subframe_constant">SUBFRAME_CONSTANT</A>
+					<TT>000001</TT> : <A HREF="#subframe_verbatim">SUBFRAME_VERBATIM</A>
 				</LI>
 				<LI>
-					<TT>00000010</TT> : <A HREF="#subframe_verbatim">SUBFRAME_VERBATIM</A>
+					<TT>00001x</TT> : reserved
 				</LI>
 				<LI>
-					<TT>000001x0</TT> : reserved
+					<TT>0001xx</TT> : reserved
 				</LI>
 				<LI>
-					<TT>00001xx0</TT> : reserved
+					<TT>001xxx</TT> : if(xxx <= 4) <A HREF="#subframe_fixed">SUBFRAME_FIXED</A>, xxx=order ; else reserved
 				</LI>
 				<LI>
-					<TT>0001xxx0</TT> : if(xxx <= 4) <A HREF="#subframe_fixed">SUBFRAME_FIXED</A>, xxx=order ; else reserved
+					<TT>01xxxx</TT> : reserved
 				</LI>
 				<LI>
-					<TT>001xxxx0</TT> : reserved
-				</LI>
-				<LI>
-					<TT>01xxxxx0</TT> : <A HREF="#subframe_lpc">SUBFRAME_LPC</A>, xxxxx=order-1
-				</LI>
-				<LI>
-					<TT>1xxxxxxx</TT> : invalid, to prevent sync-fooling string of 1s
+					<TT>1xxxxx</TT> : <A HREF="#subframe_lpc">SUBFRAME_LPC</A>, xxxxx=order-1
 				</LI>
 				</UL>
+			</TD>
+		</TR>
+		<TR>
+			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				&lt;1+k&gt;
+			</TD>
+			<TD>
+				'Wasted bits-per-sample' flag:
+				<UL>
+				<LI>
+					<TT>0</TT> : no wasted bits-per-sample in source subblock, k=0
+				</LI>
+				<LI>
+					<TT>1</TT> : k wasted bits-per-sample in source subblock, k-1 follows, unary coded; i.e. k=3 => 001 follows, k=7 => 0000001 follows.
+				</LI>
 			</TD>
 		</TR>
 	</TABLE>
@@ -944,7 +1008,7 @@
 				&lt;4&gt;
 			</TD>
 			<TD>
-				(quantized linear predictor coefficients' precision in bits)-1 (1111 = invalid).
+				(Quantized linear predictor coefficients' precision in bits)-1 (1111 = invalid).
 			</TD>
 		</TR>
 		<TR>
