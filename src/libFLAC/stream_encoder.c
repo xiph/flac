@@ -117,8 +117,8 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__bool use_wide_by_partition;                 /* use slow 64-bit versions of some functions because of the min partition order and blocksize */
 	FLAC__bool use_wide_by_order;                     /* use slow 64-bit versions of some functions because of the lpc order */
 	FLAC__bool precompute_partition_sums;             /* our initial guess as to whether precomputing the partitions sums will be a speed improvement */
-	FLAC__StreamEncoderWriteStatus (*write_callback)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
-	void (*metadata_callback)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
+	FLAC__StreamEncoderWriteCallback write_callback;
+	FLAC__StreamEncoderMetadataCallback metadata_callback;
 	void *client_data;
 	/* unaligned (original) pointers to allocated data */
 	FLAC__int32 *integer_signal_unaligned[FLAC__MAX_CHANNELS];
@@ -666,7 +666,7 @@ FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC_
 	return true;
 }
 
-FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data))
+FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteCallback value)
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != value);
@@ -676,7 +676,7 @@ FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder,
 	return true;
 }
 
-FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encoder, void (*value)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data))
+FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderMetadataCallback value)
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != value);

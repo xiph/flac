@@ -263,6 +263,16 @@ typedef struct {
 	struct FLAC__SeekableStreamDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__SeekableStreamDecoder;
 
+/*@@@ document */
+typedef FLAC__SeekableStreamDecoderReadStatus (*FLAC__SeekableStreamDecoderReadCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+typedef FLAC__SeekableStreamDecoderSeekStatus (*FLAC__SeekableStreamDecoderSeekCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+typedef FLAC__SeekableStreamDecoderTellStatus (*FLAC__SeekableStreamDecoderTellCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
+typedef FLAC__SeekableStreamDecoderLengthStatus (*FLAC__SeekableStreamDecoderLengthCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
+typedef FLAC__bool (*FLAC__SeekableStreamDecoderEofCallback)(const FLAC__SeekableStreamDecoder *decoder, void *client_data);
+typedef FLAC__StreamDecoderWriteStatus (*FLAC__SeekableStreamDecoderWriteCallback)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+typedef void (*FLAC__SeekableStreamDecoderMetadataCallback)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+typedef void (*FLAC__SeekableStreamDecoderErrorCallback)(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+
 
 /***********************************************************************
  *
@@ -330,7 +340,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_md5_checking(FLAC__SeekableStreamDe
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderReadStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderReadCallback value);
 
 /** Set the seek callback.
  *  The supplied function will be called when the decoder needs to seek
@@ -349,7 +359,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_read_callback(FLAC__SeekableStreamD
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderSeekStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderSeekCallback value);
 
 /** Set the tell callback.
  *  The supplied function will be called when the decoder wants to know
@@ -368,7 +378,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_seek_callback(FLAC__SeekableStreamD
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderTellStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderTellCallback value);
 
 /** Set the length callback.
  *  The supplied function will be called when the decoder wants to know
@@ -386,7 +396,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_tell_callback(FLAC__SeekableStreamD
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderLengthStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderLengthCallback value);
 
 /** Set the eof callback.
  *  The supplied function will be called when the decoder needs to know
@@ -404,7 +414,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_length_callback(FLAC__SeekableStrea
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__bool (*value)(const FLAC__SeekableStreamDecoder *decoder, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderEofCallback value);
 
 /** Set the write callback.
  *  This is inherited from FLAC__StreamDecoder; see
@@ -422,7 +432,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_eof_callback(FLAC__SeekableStreamDe
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderWriteCallback value);
 
 /** Set the metadata callback.
  *  This is inherited from FLAC__StreamDecoder; see
@@ -440,7 +450,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_write_callback(FLAC__SeekableStream
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderMetadataCallback value);
 
 /** Set the error callback.
  *  This is inherited from FLAC__StreamDecoder; see
@@ -458,7 +468,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_callback(FLAC__SeekableStr
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(FLAC__SeekableStreamDecoder *decoder, void (*value)(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
+FLAC__bool FLAC__seekable_stream_decoder_set_error_callback(FLAC__SeekableStreamDecoder *decoder, FLAC__SeekableStreamDecoderErrorCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data

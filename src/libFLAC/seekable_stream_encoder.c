@@ -46,8 +46,8 @@ static void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__S
  ***********************************************************************/
 
 typedef struct FLAC__SeekableStreamEncoderPrivate {
-	FLAC__SeekableStreamEncoderSeekStatus (*seek_callback)(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
-	FLAC__StreamEncoderWriteStatus (*write_callback)(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+	FLAC__SeekableStreamEncoderSeekCallback seek_callback;
+	FLAC__SeekableStreamEncoderWriteCallback write_callback;
 	void *client_data;
 	FLAC__StreamEncoder *stream_encoder;
 	FLAC__StreamMetadata_SeekTable *seek_table;
@@ -400,7 +400,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_metadata(FLAC__SeekableStreamEncode
 	return FLAC__stream_encoder_set_metadata(encoder->private_->stream_encoder, metadata, num_blocks);
 }
 
-FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderSeekStatus (*value)(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data))
+FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderSeekCallback value)
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
@@ -411,7 +411,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamE
 	return true;
 }
 
-FLAC__bool FLAC__seekable_stream_encoder_set_write_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data))
+FLAC__bool FLAC__seekable_stream_encoder_set_write_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderWriteCallback value)
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);

@@ -166,6 +166,11 @@ typedef struct {
 	struct FLAC__FileDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__FileDecoder;
 
+/* @@@@ document */
+typedef FLAC__StreamDecoderWriteStatus (*FLAC__FileDecoderWriteCallback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+typedef void (*FLAC__FileDecoderMetadataCallback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+typedef void (*FLAC__FileDecoderErrorCallback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+
 
 /***********************************************************************
  *
@@ -241,7 +246,7 @@ FLAC__bool FLAC__file_decoder_set_filename(FLAC__FileDecoder *decoder, const cha
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__file_decoder_set_write_callback(FLAC__FileDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data));
+FLAC__bool FLAC__file_decoder_set_write_callback(FLAC__FileDecoder *decoder, FLAC__FileDecoderWriteCallback value);
 
 /** Set the metadata callback.
  *  This is inherited from FLAC__SeekableStreamDecoder; see
@@ -259,7 +264,7 @@ FLAC__bool FLAC__file_decoder_set_write_callback(FLAC__FileDecoder *decoder, FLA
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__file_decoder_set_metadata_callback(FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data));
+FLAC__bool FLAC__file_decoder_set_metadata_callback(FLAC__FileDecoder *decoder, FLAC__FileDecoderMetadataCallback value);
 
 /** Set the error callback.
  *  This is inherited from FLAC__SeekableStreamDecoder; see
@@ -277,7 +282,7 @@ FLAC__bool FLAC__file_decoder_set_metadata_callback(FLAC__FileDecoder *decoder, 
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__file_decoder_set_error_callback(FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data));
+FLAC__bool FLAC__file_decoder_set_error_callback(FLAC__FileDecoder *decoder, FLAC__FileDecoderErrorCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data

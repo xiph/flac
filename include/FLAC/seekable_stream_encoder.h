@@ -161,6 +161,10 @@ typedef struct {
 	struct FLAC__SeekableStreamEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } FLAC__SeekableStreamEncoder;
 
+/*@@@ document: */
+typedef FLAC__SeekableStreamEncoderSeekStatus (*FLAC__SeekableStreamEncoderSeekCallback)(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+typedef FLAC__StreamEncoderWriteStatus (*FLAC__SeekableStreamEncoderWriteCallback)(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+
 
 /***********************************************************************
  *
@@ -444,7 +448,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_metadata(FLAC__SeekableStreamEncode
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderSeekStatus (*value)(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data));
+FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderSeekCallback value);
 
 /** Set the write callback.
  *  This is inherited from FLAC__StreamEncoder; see
@@ -462,7 +466,7 @@ FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamE
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC__bool FLAC__seekable_stream_encoder_set_write_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data));
+FLAC__bool FLAC__seekable_stream_encoder_set_write_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderWriteCallback value);
 
 /** Set the client data to be passed back to callbacks.
  *  This value will be supplied to callbacks in their \a client_data

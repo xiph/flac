@@ -56,9 +56,9 @@ static void error_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__St
  ***********************************************************************/
 
 typedef struct FLAC__FileDecoderPrivate {
-	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
-	void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-	void (*error_callback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+	FLAC__FileDecoderWriteCallback write_callback;
+	FLAC__FileDecoderMetadataCallback metadata_callback;
+	FLAC__FileDecoderErrorCallback error_callback;
 	void *client_data;
 	FILE *file;
 	char *filename; /* == NULL if stdin */
@@ -244,7 +244,7 @@ FLAC__bool FLAC__file_decoder_set_filename(FLAC__FileDecoder *decoder, const cha
 	return true;
 }
 
-FLAC__bool FLAC__file_decoder_set_write_callback(FLAC__FileDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data))
+FLAC__bool FLAC__file_decoder_set_write_callback(FLAC__FileDecoder *decoder, FLAC__FileDecoderWriteCallback value)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
@@ -255,7 +255,7 @@ FLAC__bool FLAC__file_decoder_set_write_callback(FLAC__FileDecoder *decoder, FLA
 	return true;
 }
 
-FLAC__bool FLAC__file_decoder_set_metadata_callback(FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data))
+FLAC__bool FLAC__file_decoder_set_metadata_callback(FLAC__FileDecoder *decoder, FLAC__FileDecoderMetadataCallback value)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
@@ -266,7 +266,7 @@ FLAC__bool FLAC__file_decoder_set_metadata_callback(FLAC__FileDecoder *decoder, 
 	return true;
 }
 
-FLAC__bool FLAC__file_decoder_set_error_callback(FLAC__FileDecoder *decoder, void (*value)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data))
+FLAC__bool FLAC__file_decoder_set_error_callback(FLAC__FileDecoder *decoder, FLAC__FileDecoderErrorCallback value)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);

@@ -67,10 +67,10 @@ static FLAC__bool read_callback_(FLAC__byte buffer[], unsigned *bytes, void *cli
  ***********************************************************************/
 
 typedef struct FLAC__StreamDecoderPrivate {
-	FLAC__StreamDecoderReadStatus (*read_callback)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
-	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
-	void (*metadata_callback)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-	void (*error_callback)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+	FLAC__StreamDecoderReadCallback read_callback;
+	FLAC__StreamDecoderWriteCallback write_callback;
+	FLAC__StreamDecoderMetadataCallback metadata_callback;
+	FLAC__StreamDecoderErrorCallback error_callback;
 	void (*local_lpc_restore_signal)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
 	void (*local_lpc_restore_signal_16bit)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
 	void *client_data;
@@ -293,7 +293,7 @@ void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	decoder->protected_->state = FLAC__STREAM_DECODER_UNINITIALIZED;
 }
 
-FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadStatus (*value)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data))
+FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderReadCallback value)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
@@ -304,7 +304,7 @@ FLAC__bool FLAC__stream_decoder_set_read_callback(FLAC__StreamDecoder *decoder, 
 	return true;
 }
 
-FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteStatus (*value)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data))
+FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderWriteCallback value)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
@@ -315,7 +315,7 @@ FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder,
 	return true;
 }
 
-FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data))
+FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderMetadataCallback value)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
@@ -326,7 +326,7 @@ FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decod
 	return true;
 }
 
-FLAC__bool FLAC__stream_decoder_set_error_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data))
+FLAC__bool FLAC__stream_decoder_set_error_callback(FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorCallback value)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
