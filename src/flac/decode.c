@@ -43,6 +43,7 @@ typedef struct {
 	unsigned sample_rate;
 	bool verbose;
 	uint64 skip;
+	bool skip_count_too_high;
 	uint64 samples_processed;
 	unsigned frame_counter;
 } stream_info_struct;
@@ -72,6 +73,7 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, anal
 	stream_info.is_wave_out = true;
 	stream_info.verbose = verbose;
 	stream_info.skip = skip;
+	stream_info.skip_count_too_high = false;
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
 
@@ -98,6 +100,10 @@ int decode_wav(const char *infile, const char *outfile, bool analysis_mode, anal
 	if(skip > 0) {
 		if(!FLAC__file_decoder_process_metadata(decoder)) {
 			fprintf(stderr, "%s: ERROR while decoding metadata, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			goto wav_abort_;
+		}
+		if(stream_info.skip_count_too_high) {
+			fprintf(stderr, "%s: ERROR trying to skip more samples than in stream\n", infile);
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_seek_absolute(decoder, skip)) {
@@ -180,6 +186,7 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, anal
 	stream_info.is_unsigned_samples = is_unsigned_samples;
 	stream_info.verbose = verbose;
 	stream_info.skip = skip;
+	stream_info.skip_count_too_high = false;
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
 
@@ -206,6 +213,10 @@ int decode_raw(const char *infile, const char *outfile, bool analysis_mode, anal
 	if(skip > 0) {
 		if(!FLAC__file_decoder_process_metadata(decoder)) {
 			fprintf(stderr, "%s: ERROR while decoding metadata, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			goto raw_abort_;
+		}
+		if(stream_info.skip_count_too_high) {
+			fprintf(stderr, "%s: ERROR trying to skip more samples than in stream\n", infile);
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_seek_absolute(decoder, skip)) {
@@ -441,7 +452,13 @@ void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaD
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		stream_info->total_samples = metadata->data.stream_info.total_samples - stream_info->skip;
+		/* remember, metadata->data.stream_info.total_samples can be 0, meaning 'unknown' */
+		if(metadata->data.stream_info.total_samples > 0 && stream_info->skip >= metadata->data.stream_info.total_samples) {
+			stream_info->total_samples = 0;
+			stream_info->skip_count_too_high = true;
+		}
+		else
+			stream_info->total_samples = metadata->data.stream_info.total_samples - stream_info->skip;
 		stream_info->bps = metadata->data.stream_info.bits_per_sample;
 		stream_info->channels = metadata->data.stream_info.channels;
 		stream_info->sample_rate = metadata->data.stream_info.sample_rate;
