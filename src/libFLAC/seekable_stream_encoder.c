@@ -714,7 +714,7 @@ void metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMe
 
 	(void)encoder; /* silence compiler warning about unused parameter */
 
-	/*@@@ reopen callback here? */
+	/*@@@ reopen callback here?  The docs currently require user to open files in update mode from the start */
 
 	/* All this is based on intimate knowledge of the stream header
 	 * layout, but a change to the header format that would break this

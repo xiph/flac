@@ -695,7 +695,7 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigne
 	if(size <= decoder->private_->output_capacity && channels <= decoder->private_->output_channels)
 		return true;
 
-	/* @@@@ should change to use realloc() */
+	/* simply using realloc() is not practical because the number of channels may change mid-stream */
 
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
 		if(0 != decoder->private_->output[i]) {
