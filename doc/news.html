@@ -63,6 +63,7 @@
 			<B>FLAC 0.6 released.</B>&nbsp;&nbsp;The encoder is now much faster.  The -m option has been sped up by 4x and -r improved, meaning that in the default compression mode (-6), encoding should be at least 3 times faster.  Other changes:
 			<UL>
 				<LI>Some bugs related to <B><TT>flac</TT></B> and pipes were fixed (see <A HREF="http://www.geocrawler.com/lists/3/SourceForge/7206/0/5013495/">here</A> for the discussion).</LI>
+				<LI>A "loose mid-side" (<TT>-M</TT>) option to the encoder has been added, which adaptively switches between independent and mid-side coding, instead of the exhaustive search that <TT>-m</TT> does.
 				<LI>An analyze mode (<B><TT>-a</TT></B>) has been added to <B><TT>flac</TT></B>.  This is useful mainly for developers; currently it will dump info about each frame and subframe to a file.  It's a text file in a format that can be easily processed by scripts; a separate analysis program is in the works.</LI>
 				<LI>The source now has an autoconf/libtool-based build system.  This should allow the source to build "out-of-the-box" on many more platforms.</LI>
 			</UL>
