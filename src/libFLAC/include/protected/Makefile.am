@@ -17,6 +17,7 @@
 #  Boston, MA  02111-1307, USA.
 
 noinst_HEADERS = \
+	all.h \
 	file_decoder.h \
 	seekable_stream_decoder.h \
 	stream_decoder.h \
