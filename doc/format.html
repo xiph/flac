@@ -81,7 +81,7 @@
 		<A NAME="scope"><FONT SIZE="+1"><B><U>Scope</U></B></FONT></A>
 	</P>
 	<P>
-		It is a known fact that no algorithm can losslessly compress all possible input, so most compressors restrict themselves to a useful domain and try to work as well as possible within that domain.  FLAC's domain is audio data.  Though it can losslessly code any input, only certain kinds of input will get smaller.  FLAC exploits the fact that audio data typically has a high degree of sample-to-sample correlation.
+		It is a known fact that no algorithm can losslessly compress all possible input, so most compressors restrict themselves to a useful domain and try to work as well as possible within that domain.  FLAC's domain is audio data.  Though it can losslessly <B>code</B> any input, only certain kinds of input will get smaller.  FLAC exploits the fact that audio data typically has a high degree of sample-to-sample correlation.
 	</P>
 	<P>
 		Within the audio domain, there are many possible subdomains.  For example: low bitrate speech, high-bitrate multi-channel music, etc.  FLAC itself does not target a specific subdomain but many of the default parameters of the reference encoder are tuned to CD-quality music data (i.e. 44.1kHz, 2 channel, 16 bits per sample).  The effect of the encoding parameters on different kinds of audio data will be examined later.
