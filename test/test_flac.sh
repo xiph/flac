@@ -54,6 +54,42 @@ if [ ! -f wacky1.wav ] ; then
 fi
 
 ############################################################################
+# test that flac doesn't automatically overwrite files unless -f is used
+############################################################################
+
+echo "Try encoding to a file that exists; should fail"
+cp wacky1.wav exist.wav
+touch exist.flac
+if run_flac -s -0 exist.wav ; then
+	die "ERROR: it should have failed but didn't"
+else
+	echo "OK, it failed as it should"
+fi
+
+echo "Try encoding with -f to a file that exists; should succeed"
+if run_flac -s -0 --force exist.wav ; then
+	echo "OK, it succeeded as it should"
+else
+	die "ERROR: it should have succeeded but didn't"
+fi
+
+echo "Try decoding to a file that exists; should fail"
+if run_flac -s -d exist.flac ; then
+	die "ERROR: it should have failed but didn't"
+else
+	echo "OK, it failed as it should"
+fi
+
+echo "Try decoding with -f to a file that exists; should succeed"
+if run_flac -s -d -f exist.flac ; then
+	echo "OK, it succeeded as it should"
+else
+	die "ERROR: it should have succeeded but didn't"
+fi
+
+rm -f exist.wav exist.flac
+
+############################################################################
 # basic 'round-trip' tests of various kinds of streams
 ############################################################################
 
@@ -64,9 +100,9 @@ rt_test_raw ()
 	bytes_per_sample=`echo $f | awk -F- '{print $3}'`
 	bps=`expr $bytes_per_sample '*' 8`
 	echo -n "round-trip test ($f) encode... "
-	run_flac --silent --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $f -o rt.flac || die "ERROR"
+	run_flac --silent --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $f -o rt.flac || die "ERROR"
 	echo -n "decode... "
-	run_flac --silent --decode --force-raw-format --endian=little --sign=signed -o rt.raw rt.flac || die "ERROR"
+	run_flac --silent --force --decode --force-raw-format --endian=little --sign=signed -o rt.raw rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.raw || die "ERROR: file mismatch"
 	echo "OK"
@@ -77,9 +113,9 @@ rt_test_wav ()
 {
 	f="$1"
 	echo -n "round-trip test ($f) encode... "
-	run_flac --silent --verify $f -o rt.flac || die "ERROR"
+	run_flac --silent --force --verify $f -o rt.flac || die "ERROR"
 	echo -n "decode... "
-	run_flac --silent --decode -o rt.wav rt.flac || die "ERROR"
+	run_flac --silent --force --decode -o rt.wav rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.wav || die "ERROR: file mismatch"
 	echo "OK"
@@ -90,9 +126,9 @@ rt_test_aiff ()
 {
 	f="$1"
 	echo -n "round-trip test ($f) encode... "
-	run_flac --silent --verify $f -o rt.flac || die "ERROR"
+	run_flac --silent --force --verify $f -o rt.flac || die "ERROR"
 	echo -n "decode... "
-	run_flac --silent --decode -o rt.aiff rt.flac || die "ERROR"
+	run_flac --silent --force --decode -o rt.aiff rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.aiff || die "ERROR: file mismatch"
 	echo "OK"
@@ -126,8 +162,8 @@ dd if=master.raw ibs=1 count=39 of=50c.until39.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=10 count=30 of=50c.skip10.until40.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=10 count=29 of=50c.skip10.until39.raw 2>/dev/null || $dddie
 
-wav_eopt="--silent --verify --lax"
-wav_dopt="--silent --decode"
+wav_eopt="--silent --force --verify --lax"
+wav_dopt="--silent --force --decode"
 
 raw_eopt="$wav_eopt --force-raw-format --endian=big --sign=signed --sample-rate=10 --bps=8 --channels=1"
 raw_dopt="$wav_dopt --force-raw-format --endian=big --sign=signed"
@@ -482,8 +518,8 @@ rm -f noise.aiff fixup.aiff fixup.flac
 ############################################################################
 
 echo "Generating multiple input files from noise..."
-run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 noise.raw || die "ERROR generating FLAC file"
-run_flac --decode --silent noise.flac || die "ERROR generating WAVE file"
+run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 noise.raw || die "ERROR generating FLAC file"
+run_flac --decode --force --silent noise.flac || die "ERROR generating WAVE file"
 rm -f noise.flac
 mv noise.wav file0.wav
 cp file0.wav file1.wav
@@ -506,11 +542,11 @@ test_multifile ()
 		encode_options="$encode_options --sector-align"
 	fi
 
-	run_flac $encode_options file0.wav file1.wav file2.wav || die "ERROR"
+	run_flac --force $encode_options file0.wav file1.wav file2.wav || die "ERROR"
 	for n in 0 1 2 ; do
 		mv file$n.$suffix file${n}x.$suffix
 	done
-	run_flac --decode file0x.$suffix file1x.$suffix file2x.$suffix || die "ERROR"
+	run_flac --force --decode file0x.$suffix file1x.$suffix file2x.$suffix || die "ERROR"
 	if [ $sector_align != sector_align ] ; then
 		for n in 0 1 2 ; do
 			cmp file$n.wav file${n}x.wav || die "ERROR: file mismatch on file #$n"
