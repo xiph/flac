@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy() */
-#include "FLAC/config.h"
 #include "FLAC/encoder.h"
 #include "FLAC/seek_table.h"
 #include "private/bitbuffer.h"
@@ -326,25 +325,26 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
 	encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor;
 	/* now override with asm where appropriate */
-	if(encoder->guts->cpuinfo.use_asm) {
+#ifndef FLAC__NO_ASM
+	assert(encoder->guts->cpuinfo.use_asm);
 #ifdef FLAC__CPU_IA32
-		assert(encoder->guts->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
+	assert(encoder->guts->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #ifdef FLAC__HAS_NASM
 #if 0
-		/* @@@ SSE version not working yet */
-		if(encoder->guts->cpuinfo.data.ia32.sse)
-			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse;
-		else
+	/* @@@ SSE version not working yet */
+	if(encoder->guts->cpuinfo.data.ia32.sse)
+		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse;
+	else
 #endif
 fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");
-			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
-		if(encoder->guts->cpuinfo.data.ia32.mmx && encoder->guts->cpuinfo.data.ia32.cmov)
+		encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
+	if(encoder->guts->cpuinfo.data.ia32.mmx && encoder->guts->cpuinfo.data.ia32.cmov)
 {
-			encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov;
+		encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov;
 fprintf(stderr,"@@@ got _asm_i386_mmx_cmov of fixed_compute_best_predictor()\n");}
 #endif
 #endif
-	}
+#endif
 
 	if(encoder->bits_per_sample + FLAC__bitmath_ilog2(encoder->blocksize)+1 > 30)
 		encoder->guts->use_slow = true;
