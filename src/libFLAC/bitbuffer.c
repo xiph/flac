@@ -63,6 +63,25 @@
  */
 static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = ((65536 - 64) * 8) / FLAC__BITS_PER_BLURB; /* blurbs */
 
+static const unsigned char byte_to_unary_table[] = {
+	8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
+	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
 #if FLAC__BITS_PER_BLURB == 8
 #define FLAC__BITS_PER_BLURB_LOG2 3
 #define FLAC__BYTES_PER_BLURB 1
@@ -70,6 +89,7 @@ static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = ((65536 - 64) * 8) / FL
 #define FLAC__BLURB_TOP_BIT_ONE ((FLAC__byte)0x80)
 #define BLURB_BIT_TO_MASK(b) (((FLAC__blurb)'\x80') >> (b))
 #define CRC16_UPDATE_BLURB(bb, blurb, crc) FLAC__CRC16_UPDATE((blurb), (crc));
+#define FLAC__ALIGNED_BLURB_UNARY(blurb) (byte_to_unary_table[blurb])
 #elif FLAC__BITS_PER_BLURB == 32
 #define FLAC__BITS_PER_BLURB_LOG2 5
 #define FLAC__BYTES_PER_BLURB 4
@@ -77,6 +97,7 @@ static const unsigned FLAC__BITBUFFER_DEFAULT_CAPACITY = ((65536 - 64) * 8) / FL
 #define FLAC__BLURB_TOP_BIT_ONE ((FLAC__uint32)0x80000000)
 #define BLURB_BIT_TO_MASK(b) (((FLAC__blurb)0x80000000) >> (b))
 #define CRC16_UPDATE_BLURB(bb, blurb, crc) crc16_update_blurb((bb), (blurb));
+#define FLAC__ALIGNED_BLURB_UNARY(blurb) ((blurb) <= 0xff ? byte_to_unary_table[blurb] + 24 : ((blurb) <= 0xffff ? byte_to_unary_table[(blurb) >> 8] + 16 : ((blurb) <= 0xffffff ? byte_to_unary_table[(blurb) >> 16] + 8 : byte_to_unary_table[(blurb) >> 24])))
 #else
 /* ERROR, only sizes of 8 and 32 are supported */
 #endif
@@ -2109,114 +2130,16 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 	if(nvals == 0)
 		return true;
 
+	cbits = bb->consumed_bits;
 	i = bb->consumed_blurbs;
-	/*
-	 * We unroll the main loop to take care of partially consumed blurbs here.
-	 */
-	if(bb->consumed_bits > 0) {
-		save_blurb = blurb = buffer[i];
-		cbits = bb->consumed_bits;
-		blurb <<= cbits;
-
-		while(1) {
-			if(state == 0) {
-				if(blurb) {
-					for(j = 0; !(blurb & FLAC__BLURB_TOP_BIT_ONE); j++)
-						blurb <<= 1;
-					msbs += j;
-
-					/* dispose of the unary end bit */
-					blurb <<= 1;
-					j++;
-					cbits += j;
-
-					uval = 0;
-					lsbs_left = parameter;
-					state++;
-					if(cbits == FLAC__BITS_PER_BLURB) {
-						cbits = 0;
-						CRC16_UPDATE_BLURB(bb, save_blurb, bb->read_crc16);
-						break;
-					}
-				}
-				else {
-					msbs += FLAC__BITS_PER_BLURB - cbits;
-					cbits = 0;
-					CRC16_UPDATE_BLURB(bb, save_blurb, bb->read_crc16);
-					break;
-				}
-			}
-			else {
-				const unsigned available_bits = FLAC__BITS_PER_BLURB - cbits;
-				if(lsbs_left >= available_bits) {
-					uval <<= available_bits;
-					uval |= (blurb >> cbits);
-					cbits = 0;
-					CRC16_UPDATE_BLURB(bb, save_blurb, bb->read_crc16);
-
-					if(lsbs_left == available_bits) {
-						/* compose the value */
-						uval |= (msbs << parameter);
-						if(uval & 1)
-							vals[val_i++] = -((int)(uval >> 1)) - 1;
-						else
-							vals[val_i++] = (int)(uval >> 1);
-						if(val_i == nvals)
-							break;
-
-						msbs = 0;
-						state = 0;
-					}
-
-					lsbs_left -= available_bits;
-					break;
-				}
-				else {
-					uval <<= lsbs_left;
-					uval |= (blurb >> (FLAC__BITS_PER_BLURB - lsbs_left));
-					blurb <<= lsbs_left;
-					cbits += lsbs_left;
-
-					/* compose the value */
-					uval |= (msbs << parameter);
-					if(uval & 1)
-						vals[val_i++] = -((int)(uval >> 1)) - 1;
-					else
-						vals[val_i++] = (int)(uval >> 1);
-					if(val_i == nvals) {
-						/* back up one if we exited the for loop because we read all nvals but the end came in the middle of a blurb */
-						i--;
-						break;
-					}
-
-					msbs = 0;
-					state = 0;
-				}
-			}
-		}
-		i++;
-
-		bb->consumed_blurbs = i;
-		bb->consumed_bits = cbits;
-		bb->total_consumed_bits = (i << FLAC__BITS_PER_BLURB_LOG2) | cbits;
-	}
-
-	/*
-	 * Now that we are blurb-aligned the logic is slightly simpler
-	 */
 	while(val_i < nvals) {
-		for( ; i < bb->blurbs && val_i < nvals; i++) {
-			save_blurb = blurb = buffer[i];
-			cbits = 0;
+		for( ; i < bb->blurbs; i++) {
+			blurb = (save_blurb = buffer[i]) << cbits;
 			while(1) {
 				if(state == 0) {
 					if(blurb) {
-						for(j = 0; !(blurb & FLAC__BLURB_TOP_BIT_ONE); j++)
-							blurb <<= 1;
+						j = FLAC__ALIGNED_BLURB_UNARY(blurb);
 						msbs += j;
-
-						/* dispose of the unary end bit */
-						blurb <<= 1;
 						j++;
 						cbits += j;
 
@@ -2228,6 +2151,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 							CRC16_UPDATE_BLURB(bb, save_blurb, bb->read_crc16);
 							break;
 						}
+						blurb <<= j;
 					}
 					else {
 						msbs += FLAC__BITS_PER_BLURB - cbits;
@@ -2247,12 +2171,11 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 						if(lsbs_left == available_bits) {
 							/* compose the value */
 							uval |= (msbs << parameter);
-							if(uval & 1)
-								vals[val_i++] = -((int)(uval >> 1)) - 1;
-							else
-								vals[val_i++] = (int)(uval >> 1);
-							if(val_i == nvals)
-								break;
+							vals[val_i++] = (int)(uval >> 1 ^ -(int)(uval & 1));
+							if(val_i == nvals) {
+								i++;
+								goto break2;
+							}
 
 							msbs = 0;
 							state = 0;
@@ -2262,22 +2185,16 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 						break;
 					}
 					else {
+						cbits += lsbs_left;
 						uval <<= lsbs_left;
 						uval |= (blurb >> (FLAC__BITS_PER_BLURB - lsbs_left));
 						blurb <<= lsbs_left;
-						cbits += lsbs_left;
 
 						/* compose the value */
 						uval |= (msbs << parameter);
-						if(uval & 1)
-							vals[val_i++] = -((int)(uval >> 1)) - 1;
-						else
-							vals[val_i++] = (int)(uval >> 1);
-						if(val_i == nvals) {
-							/* back up one if we exited the for loop because we read all nvals but the end came in the middle of a blurb */
-							i--;
-							break;
-						}
+						vals[val_i++] = (int)(uval >> 1 ^ -(int)(uval & 1));
+						if(val_i == nvals)
+							goto break2;
 
 						msbs = 0;
 						state = 0;
@@ -2285,6 +2202,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 				}
 			}
 		}
+break2:
 		bb->consumed_blurbs = i;
 		bb->consumed_bits = cbits;
 		bb->total_consumed_bits = (i << FLAC__BITS_PER_BLURB_LOG2) | cbits;
