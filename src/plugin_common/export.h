@@ -19,7 +19,7 @@
 #ifndef FLAC__PLUGIN_COMMON__EXPORT_H
 #define FLAC__PLUGIN_COMMON__EXPORT_H
 
-#if defined(unix) || defined(__CYGWIN__) || defined(__CYGWIN32__)
+#if defined(FLAC__NO_DLL) || defined(unix) || defined(__CYGWIN__) || defined(__CYGWIN32__)
 #define PLUGIN_COMMON_API
 
 #else
