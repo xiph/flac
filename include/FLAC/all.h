@@ -37,7 +37,8 @@
  * highly interconnected; this introduction should give you a top
  * level idea of the structure and how to find the information you
  * need.  As a prerequisite you should have at least a basic
- * knowledge of the FLAC format, documented XXXhereXXX.
+ * knowledge of the FLAC format, documented
+ * <A HREF="../format.html">here</A>.
  *
  * The FLAC C API is the interface to libFLAC, a set of structures
  * describing the components of FLAC streams, and functions for
@@ -55,10 +56,11 @@
  * <include>/FLAC++/...
  *
  * A good starting point for learning the API is to browse through
- * the XXX modules XXX.  Modules are logical groupings of related
- * functions or classes, which correspond roughly to header files
- * or sections of header files.  Each module includes a detailed
- * description of the general usage of its functions or classes.
+ * the <A HREF="modules.html">modules</A>.  Modules are logical 
+ * groupings of related functions or classes, which correspond roughly
+ * to header files or sections of header files.  Each module includes a
+ * detailed description of the general usage of its functions or
+ * classes.
  *
  * From there you can go on to look at the documentation of
  * individual functions.  You can see different views of the individual
@@ -72,7 +74,7 @@
  * encoding and decoding streams, as well as manipulating FLAC
  * metadata in files.
  *
- * You should start with the XXX Format XXX module as all other modules
+ * You should start with the format components as all other modules
  * are dependent on it.
  */
 

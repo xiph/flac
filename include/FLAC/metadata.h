@@ -81,7 +81,7 @@
  *
  *  In addition to the three interfaces, this module defines functions for
  *  creating and manipulating various metadata objects in memory.  As we see
- *  from the XXX Format XXX module, FLAC metadata blocks in memory are very primitive
+ *  from the Format module, FLAC metadata blocks in memory are very primitive
  *  structures for storing information in an efficient way.  Reading
  *  information from the structures is easy but creating or modifying them
  *  directly is more complex.  The metadata object routines here facilitate

@@ -45,18 +45,19 @@ extern "C" {
  *  of FLAC format components in memory.  These are the basic
  *  structures used by the rest of the interfaces.
  *
- *  First, you should be familiar with the XXX FLAC format XXX.  Many
- *  of the values here follow directly from the specification.  As a
- *  user of libFLAC, the interesting parts really are the structures
- *  that describe the frame header and metadata blocks.
+ *  First, you should be familiar with the
+ *  <A HREF="../format.html">FLAC format</A>.  Many of the values here
+ *  follow directly from the specification.  As a user of libFLAC, the
+ *  interesting parts really are the structures that describe the frame
+ *  header and metadata blocks.
  *
  *  The format structures here are very primitive, designed to store
  *  information in an efficient way.  Reading information from the
  *  structures is easy but creating or modifying them directly is
  *  more complex.  For the most part, as a user of a library, editing
  *  is not necessary; however, for metadata blocks it is, so there are
- *  convenience functions provided in the XXX metadata XXX module
- *  to simplify the manipulation of metadata blocks.
+ *  convenience functions provided in the metadata module to simplify
+ *  the manipulation of metadata blocks.
  *
  * \note
  * It's not the best convention, but symbols ending in _LEN are in bits
@@ -100,7 +101,8 @@ extern "C" {
 #define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (24u)
 
 /** The maximum sample rate permitted by the format.  The value is
- *  ((2 ** 16) - 1) * 10; see XXX format.html XXX as to why.
+ *  ((2 ^ 16) - 1) * 10; see <A HREF="../format.html">FLAC format</A>
+ *  as to why.
  */
 #define FLAC__MAX_SAMPLE_RATE (655350u)
 
@@ -175,12 +177,12 @@ typedef enum {
 extern const char * const FLAC__EntropyCodingMethodTypeString[];
 
 
-/** Header for a Rice partition.  (XXX format XXX)
+/** Header for a Rice partition.  (c.f. <A HREF="../format.html#partitioned_rice">format specification</A>)
  */
 typedef struct {
 
 	unsigned order;
-	/**< The partition order, i.e. # of contexts = 2 ** order. */
+	/**< The partition order, i.e. # of contexts = 2 ^ order. */
 
 	unsigned parameters[1 << FLAC__MAX_RICE_PARTITION_ORDER];
 	/**< The Rice parameters for each context. */
@@ -197,7 +199,7 @@ extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN; /**<
 extern const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
 /**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN)-1 */
 
-/** Header for the entropy coding method.  (XXX format XXX)
+/** Header for the entropy coding method.  (c.f. <A HREF="../format.html#residual">format specification</A>)
  */
 typedef struct {
 	FLAC__EntropyCodingMethodType type;
@@ -226,21 +228,21 @@ typedef enum {
 extern const char * const FLAC__SubframeTypeString[];
 
 
-/** CONSTANT subframe.  (XXX format XXX)
+/** CONSTANT subframe.  (c.f. <A HREF="../format.html#subframe_constant">format specification</A>)
  */
 typedef struct {
 	FLAC__int32 value; /**< The constant signal value. */
 } FLAC__Subframe_Constant;
 
 
-/** VERBATIM subframe.  (XXX format XXX)
+/** VERBATIM subframe.  (c.f. <A HREF="../format.html#subframe_verbatim">format specification</A>)
  */
 typedef struct {
 	const FLAC__int32 *data; /**< A pointer to verbatim signal. */
 } FLAC__Subframe_Verbatim;
 
 
-/** FIXED subframe.  (XXX format XXX)
+/** FIXED subframe.  (c.f. <A HREF="../format.html#subframe_fixed">format specification</A>)
  */
 typedef struct {
 	FLAC__EntropyCodingMethod entropy_coding_method;
@@ -257,7 +259,7 @@ typedef struct {
 } FLAC__Subframe_Fixed;
 
 
-/** LPC subframe.  (XXX format XXX)
+/** LPC subframe.  (c.f. <A HREF="../format.html#subframe_lpc">format specification</A>)
  */
 typedef struct {
 	FLAC__EntropyCodingMethod entropy_coding_method;
@@ -286,7 +288,7 @@ extern const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN; /**< == 4 (bit
 extern const unsigned FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN; /**< == 5 (bits) */
 
 
-/** FLAC subframe structure.  (XXX format XXX)
+/** FLAC subframe structure.  (c.f. <A HREF="../format.html#subframe">format specification</A>)
  */
 typedef struct {
 	FLAC__SubframeType type;
@@ -346,7 +348,7 @@ typedef enum {
 extern const char * const FLAC__FrameNumberTypeString[];
 
 
-/** FLAC frame header structure.  (XXX format XXX)
+/** FLAC frame header structure.  (c.f. <A HREF="../format.html#frame_header">format specification</A>)
  */
 typedef struct {
 	unsigned blocksize;
@@ -375,9 +377,9 @@ typedef struct {
 	 * use the \a number_type value to determine which to use. */
 
 	FLAC__uint8 crc;
-	/**< CRC-8 (polynomial = x^8 + x^2 + x^1 + x^0, initialized with 0) of the
-	 * raw frame header bytes, meaning everything before the CRC byte including
-	 * the sync code.
+	/**< CRC-8 (polynomial = x^8 + x^2 + x^1 + x^0, initialized with 0)
+	 * of the raw frame header bytes, meaning everything before the CRC byte
+	 * including the sync code.
 	 */
 } FLAC__FrameHeader;
 
@@ -392,12 +394,12 @@ extern const unsigned FLAC__FRAME_HEADER_ZERO_PAD_LEN; /**< == 1 (bit) */
 extern const unsigned FLAC__FRAME_HEADER_CRC_LEN; /**< == 8 (bits) */
 
 
-/** FLAC frame footer structure.  (XXX format XXX)
+/** FLAC frame footer structure.  (c.f. <A HREF="../format.html#frame_footer">format specification</A>)
  */
 typedef struct {
 	FLAC__uint16 crc;
-	/**< CRC-16 (polynomial = x^16 + x^15 + x^2 + x^0, initialized with 0)
-	 * of the bytes before the crc, back to and including the frame header
+	/**< CRC-16 (polynomial = x^16 + x^15 + x^2 + x^0, initialized with
+	 * 0) of the bytes before the crc, back to and including the frame header
 	 * sync code.
 	 */
 } FLAC__FrameFooter;
@@ -405,7 +407,7 @@ typedef struct {
 extern const unsigned FLAC__FRAME_FOOTER_CRC_LEN; /**< == 16 (bits) */
 
 
-/** FLAC frame structure.  (XXX format XXX)
+/** FLAC frame structure.  (c.f. <A HREF="../format.html#frame">format specification</A>)
  */
 typedef struct {
 	FLAC__FrameHeader header;
@@ -438,7 +440,7 @@ typedef enum {
  */
 extern const char * const FLAC__MetadataTypeString[];
 
-/** FLAC STREAMINFO structure.  (XXX format XXX)
+/** FLAC STREAMINFO structure.  (c.f. <A HREF="../format.html#metadata_block_streaminfo">format specification</A>)
  */
 typedef struct {
 	unsigned min_blocksize, max_blocksize;
@@ -463,7 +465,7 @@ extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN; /**< == 128 (
 /** The total stream length of the STREAMINFO block in bytes. */
 #define FLAC__STREAM_METADATA_STREAMINFO_LENGTH (34u)
 
-/** FLAC PADDING structure.  (XXX format XXX)
+/** FLAC PADDING structure.  (c.f. <A HREF="../format.html#metadata_block_padding">format specification</A>)
  */
 typedef struct {
 	int dummy;
@@ -474,7 +476,7 @@ typedef struct {
 } FLAC__StreamMetadata_Padding;
 
 
-/** FLAC APPLICATION structure.  (XXX format XXX)
+/** FLAC APPLICATION structure.  (c.f. <A HREF="../format.html#metadata_block_application">format specification</A>)
  */
 typedef struct {
 	FLAC__byte id[4];
@@ -483,7 +485,7 @@ typedef struct {
 
 extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /**< == 32 (bits) */
 
-/** SeekPoint structure used in SEEKTABLE blocks.  (XXX format XXX)
+/** SeekPoint structure used in SEEKTABLE blocks.  (c.f. <A HREF="../format.html#seekpoint">format specification</A>)
  */
 typedef struct {
 	FLAC__uint64 sample_number;
@@ -511,7 +513,7 @@ extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN; /**< ==
 extern const FLAC__uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
 
 
-/** FLAC SEEKTABLE structure.  (XXX format XXX)
+/** FLAC SEEKTABLE structure.  (c.f. <A HREF="../format.html#metadata_block_seektable">format specification</A>)
  *
  * \note From the format specification:
  * - The seek points must be sorted by ascending sample number.
@@ -529,7 +531,7 @@ typedef struct {
 } FLAC__StreamMetadata_SeekTable;
 
 
-/** Vorbis comment entry structure used in VORBIS_COMMENT blocks.  (XXX format XXX)
+/** Vorbis comment entry structure used in VORBIS_COMMENT blocks.  (c.f. <A HREF="../format.html#metadata_block_vorbis_comment">format specification</A>)
  */
 typedef struct {
 	FLAC__uint32 length;
@@ -539,7 +541,7 @@ typedef struct {
 extern const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN; /**< == 32 (bits) */
 
 
-/** FLAC VORBIS_COMMENT structure.  (XXX format XXX)
+/** FLAC VORBIS_COMMENT structure.  (c.f. <A HREF="../format.html#metadata_block_vorbis_comment">format specification</A>)
  */
 typedef struct {
 	FLAC__StreamMetadata_VorbisComment_Entry vendor_string;
