@@ -38,6 +38,7 @@ typedef struct {
 	utils__SkipUntilSpecification until_specification;
 } decode_options_t;
 
+/* used for AIFF also */
 typedef struct {
 	decode_options_t common;
 } wav_decode_options_t;
@@ -50,6 +51,7 @@ typedef struct {
 } raw_decode_options_t;
 
 /* outfile == 0 => test only */
+int flac__decode_aiff(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, wav_decode_options_t options);
 int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, wav_decode_options_t options);
 int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, raw_decode_options_t options);
 
