@@ -100,6 +100,88 @@
 	</UL>
 	</P>
 	<P>
+		<A NAME="toc"><FONT SIZE="+1"><B><U>Table of Contents</U></B></FONT></A>
+	</P>
+	<P>
+	<UL>
+		<LI><A HREF="#scope">Scope</A></LI>
+		<LI><A HREF="#architecture">Architecture</A></LI>
+		<LI><A HREF="#definitions">Definitions</A></LI>
+		<LI><A HREF="#blocking">Blocking</A></LI>
+		<LI><A HREF="#interchannel">Interchannel Decorrelation</A></LI>
+		<LI><A HREF="#prediction">Prediction</A></LI>
+		<LI><A HREF="#residualcoding">Residual Coding</A></LI>
+		<LI><A HREF="#format_overview">Format</A></LI>
+		<LI><A HREF="#subset">FLAC Subset</A></LI>
+		<LI>Specification
+			<UL>
+				<LI><A HREF="#stream">STREAM</A>
+					<UL>
+						<LI><A HREF="#metadata_block">METADATA_BLOCK</A>
+							<UL>
+								<LI><A HREF="#metadata_block_header">METADATA_BLOCK_HEADER</A></LI>
+								<LI><A HREF="#metadata_block_data">METADATA_BLOCK_DATA</A>
+									<UL>
+										<LI><A HREF="#metadata_block_streaminfo">METADATA_BLOCK_STREAMINFO</A></LI>
+										<LI><A HREF="#metadata_block_padding">METADATA_BLOCK_PADDING</A></LI>
+										<LI><A HREF="#metadata_block_application">METADATA_BLOCK_APPLICATION</A></LI>
+										<LI><A HREF="#metadata_block_seektable">METADATA_BLOCK_SEEKTABLE</A>
+											<UL>
+												<LI><A HREF="#seekpoint">SEEKPOINT</A></LI>
+											</UL>
+										</LI>
+										<LI><A HREF="#metadata_block_vorbis_comment">METADATA_BLOCK_VORBIS_COMMENT</A></LI>
+										<LI><A HREF="#metadata_block_cuesheet">METADATA_BLOCK_CUESHEET</A>
+											<UL>
+												<LI><A HREF="#cuesheet_track">CUESHEET_TRACK</A>
+													<UL>
+														<LI><A HREF="#cuesheet_track_index">CUESHEET_TRACK_INDEX</A></LI>
+													</UL>
+												</LI>
+											</UL>
+										</LI>
+									</UL>
+								</LI>
+							</UL>
+						</LI>
+					</UL>
+				</LI>
+				<LI>
+					<UL>
+						<LI><A HREF="#frame">FRAME</A>
+							<UL>
+								<LI><A HREF="#frame_header">FRAME_HEADER</A></LI>
+								<LI><A HREF="#frame_footer">FRAME_FOOTER</A></LI>
+								<LI><A HREF="#subframe">SUBFRAME</A>
+									<UL>
+										<LI><A HREF="#subframe_header">SUBFRAME_HEADER</A></LI>
+										<LI><A HREF="#subframe_constant">SUBFRAME_CONSTANT</A></LI>
+										<LI><A HREF="#subframe_fixed">SUBFRAME_FIXED</A></LI>
+										<LI><A HREF="#subframe_lpc">SUBFRAME_LPC</A></LI>
+										<LI><A HREF="#subframe_verbatim">SUBFRAME_VERBATIM</A>
+											<UL>
+												<LI><A HREF="#residual">RESIDUAL</A>
+													<UL>
+														<LI><A HREF="#partitioned_rice">RESIDUAL_CODING_METHOD_PARTITIONED_RICE</A>
+															<UL>
+																<LI><A HREF="#rice_partition">RICE_PARTITION</A></LI>
+															</UL>
+														</LI>
+													</UL>
+												</LI>
+											</UL>
+										</LI>
+									</UL>
+								</LI>
+							</UL>
+						</LI>
+					</UL>
+				</LI>
+			</UL>
+		</LI>
+	</UL>
+	</P>
+	<P>
 		<A NAME="scope"><FONT SIZE="+1"><B><U>Scope</U></B></FONT></A>
 	</P>
 	<P>
@@ -219,7 +301,7 @@
 		The FLAC format has reserved space for other coding methods.  Some possiblities for volunteers would be to explore better context-modeling of the Rice parameter, or Huffman coding.  See <A HREF="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</A> and <A HREF="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</A> for descriptions of several universal codes.
 	</P>
 	<P>
-		<FONT SIZE="+1"><B><U>Format</U></B></FONT>
+		<A NAME="format_overview"><FONT SIZE="+1"><B><U>Format</U></B></FONT>
 	</P>
 	<P>
 		This section specifies the FLAC bitstream format.  FLAC has no format version information, but it does contain reserved space in several places.  Future versions of the format may use this reserved space safely without breaking the format of older streams.  Older decoders may choose to abort decoding or skip data encoded with newer methods.  Apart from reserved patterns, in places the format specifies invalid patterns, meaning that the patterns may never appear in any valid bitstream, in any prior, present, or future versions of the format.  These invalid patterns are usually used to make the synchronization mechanism more robust.
@@ -228,7 +310,7 @@
 		All numbers used in a FLAC bitstream are integers; there are no floating-point representations.  All numbers are big-endian coded.  All numbers are unsigned unless otherwise specified.
 	</P>
 	<P>
-		<A NAME="overview">A FLAC bitstream may be appended with ID3V1 data or prepended with ID3V2 data.  FLAC has no knowledge of such data, but the reference decoder knows how to skip an ID3 tag.</A>
+		A FLAC bitstream may be appended with ID3V1 data or prepended with ID3V2 data.  FLAC has no knowledge of such data, but the reference decoder knows how to skip an ID3 tag.</A>
 	</P>
 	<P>
 		Before the formal description of the stream, an overview might be helpful.
