@@ -29,10 +29,4 @@ flac_SOURCES = \
 	encode.h \
 	file.h
 
-if FLaC__HAS_OGG
-flac_LDFLAGS = -lm
-else
-flac_LDFLAGS = -lm -logg
-endif
-
-flac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la
+flac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la -lm
