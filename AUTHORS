@@ -21,6 +21,9 @@ FLAC (http://flac.sourceforge.net/) is an Open Source lossless audio
 codec developed by Josh Coalson.
 
 Other major contributors and their contributions:
+"Andrey Astafiev" <andrei@tvcell.ru>
+* Russian translation of the HTML documentation
+
 "Miroslav Lichvar" <mirator@upcase.inf.upol.cz>
 * IA-32 assembly versions of several libFLAC routines
 
