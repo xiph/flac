@@ -1213,6 +1213,7 @@
 				F5A50B9606B5992501707A2A,
 				F5A50B9706B5992501707A2A,
 				F5A50B9806B5992501707A2A,
+				F5F3FDB606B6EABC01D13CEE,
 			);
 			isa = PBXFrameworksBuildPhase;
 			name = "Frameworks & Libraries";
@@ -1287,6 +1288,7 @@
 				F5A50B9D06B599C901707A2A,
 				F5A50B9E06B599C901707A2A,
 				F5A50B9F06B599C901707A2A,
+				F5F3FDB706B6EAD201D13CEE,
 			);
 			isa = PBXFrameworksBuildPhase;
 			name = "Frameworks & Libraries";
@@ -2240,6 +2242,7 @@
 			productRefGroup = F59E59C301972D3E01A8006D;
 			projectDirPath = "";
 			targets = (
+				F5F7D57006B6E75301AAAA86,
 				F59E59C501972D3E01A8006D,
 				F5CA9EC702D18601011525B7,
 				F54AFE6506B46AC4014FDB82,
@@ -2453,6 +2456,7 @@
 				F59E599601972D3D01A8006D,
 				F51C735F0199C42101A8006D,
 				F54AFE7506B46DD3014FDB82,
+				F5F7D56D06B6E75301AAAA86,
 			);
 			isa = PBXGroup;
 			path = libFLAC;
@@ -2725,6 +2729,7 @@
 		};
 		F59E59C301972D3E01A8006D = {
 			children = (
+				F5F7D56F06B6E75301AAAA86,
 				F59E59C401972D3E01A8006D,
 				F5CA9EC502D18601011525B7,
 				F54AFE6406B46AC4014FDB82,
@@ -2766,7 +2771,7 @@
 				HEADER_SEARCH_PATHS = "src/libFLAC/include include";
 				LIBRARY_STYLE = STATIC;
 				OPTIMIZATION_CFLAGS = "-O3";
-				OTHER_CFLAGS = "-DVERSION=\\\\\\\"1.1.1-beta1\\\\\\\" -DHAVE_INTTYPES_H";
+				OTHER_CFLAGS = "-DVERSION=\\\\\\\"1.1.1-beta1\\\\\\\" -DHAVE_INTTYPES_H -DFLAC__CPU_PPC -DFLAC__USE_ALTIVEC -DFLAC__ALIGN_MALLOC_DATA";
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOL_FLAGS = "";
 				OTHER_REZFLAGS = "";
@@ -3130,6 +3135,7 @@
 				F5A50B3E06B5952301707A2A,
 				F5830B7A06B59DF90175F08C,
 				F59E5A1D0197363A01A8006D,
+				F5F3FDB206B6E9AE01D13CEE,
 			);
 			isa = PBXFrameworksBuildPhase;
 			name = "Frameworks & Libraries";
@@ -3502,8 +3508,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				F5F9157806B5911B01999A91,
-				F5D3C6B802D18D00015C5FF8,
 				F5D3C68C02D189F1015C5FF8,
+				F5D3C6B802D18D00015C5FF8,
+				F5F3FDB506B6EA9401D13CEE,
 			);
 			isa = PBXFrameworksBuildPhase;
 			name = "Frameworks & Libraries";
@@ -4038,6 +4045,42 @@
 			settings = {
 			};
 		};
+		F5F3FDB206B6E9AE01D13CEE = {
+			fileRef = F5F7D56F06B6E75301AAAA86;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F5F3FDB306B6E9E701D13CEE = {
+			fileRef = F5F7D56F06B6E75301AAAA86;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F5F3FDB406B6EA3E01D13CEE = {
+			fileRef = F5F7D56F06B6E75301AAAA86;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F5F3FDB506B6EA9401D13CEE = {
+			fileRef = F5F7D56F06B6E75301AAAA86;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F5F3FDB606B6EABC01D13CEE = {
+			fileRef = F5F7D56F06B6E75301AAAA86;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F5F3FDB706B6EAD201D13CEE = {
+			fileRef = F5F7D56F06B6E75301AAAA86;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
 		F5F561E5019B56E401A8006D = {
 			isa = PBXExecutableFileReference;
 			path = metaflac;
@@ -4105,6 +4148,7 @@
 				F5F9157906B5914D01999A91,
 				F5830B7E06B59ECD0175F08C,
 				F5F561ED019B579901A8006D,
+				F5F3FDB306B6E9E701D13CEE,
 			);
 			isa = PBXFrameworksBuildPhase;
 			name = "Frameworks & Libraries";
@@ -4279,6 +4323,7 @@
 			files = (
 				F5F9157706B590B901999A91,
 				F5F561FD019B58E101A8006D,
+				F5F3FDB406B6EA3E01D13CEE,
 			);
 			isa = PBXFrameworksBuildPhase;
 			name = "Frameworks & Libraries";
@@ -4290,6 +4335,88 @@
 			};
 		};
 		F5F561FE019B58E101A8006D = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXRezBuildPhase;
+			name = "ResourceManager Resources";
+		};
+		F5F7D56D06B6E75301AAAA86 = {
+			children = (
+				F5F7D56E06B6E75301AAAA86,
+			);
+			isa = PBXGroup;
+			path = ppc;
+			refType = 4;
+		};
+		F5F7D56E06B6E75301AAAA86 = {
+			isa = PBXFileReference;
+			path = lpc_asm.s;
+			refType = 4;
+		};
+		F5F7D56F06B6E75301AAAA86 = {
+			isa = PBXLibraryReference;
+			path = "libFLAC-asm.a";
+			refType = 3;
+		};
+		F5F7D57006B6E75301AAAA86 = {
+			buildPhases = (
+				F5F7D57106B6E75301AAAA86,
+				F5F7D57206B6E75301AAAA86,
+				F5F7D57406B6E75301AAAA86,
+				F5F7D57506B6E75301AAAA86,
+			);
+			buildSettings = {
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				LIBRARY_STYLE = STATIC;
+				OTHER_CFLAGS = "-force_cpusubtype_ALL";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOL_FLAGS = "";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = "libFLAC-asm.a";
+				REZ_EXECUTABLE = YES;
+				SECTORDER_FLAGS = "";
+				WARNING_CFLAGS = "-Wmost -Wno-four-char-constants -Wno-unknown-pragmas";
+			};
+			dependencies = (
+			);
+			isa = PBXLibraryTarget;
+			name = "libFLAC-asm";
+			productInstallPath = /usr/local/lib;
+			productName = "libFLAC-asm";
+			productReference = F5F7D56F06B6E75301AAAA86;
+			shouldUseHeadermap = 0;
+		};
+		F5F7D57106B6E75301AAAA86 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXHeadersBuildPhase;
+			name = Headers;
+		};
+		F5F7D57206B6E75301AAAA86 = {
+			buildActionMask = 2147483647;
+			files = (
+				F5F7D57306B6E75301AAAA86,
+			);
+			isa = PBXSourcesBuildPhase;
+			name = Sources;
+		};
+		F5F7D57306B6E75301AAAA86 = {
+			fileRef = F5F7D56E06B6E75301AAAA86;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		F5F7D57406B6E75301AAAA86 = {
+			buildActionMask = 2147483647;
+			files = (
+			);
+			isa = PBXFrameworksBuildPhase;
+			name = "Frameworks & Libraries";
+		};
+		F5F7D57506B6E75301AAAA86 = {
 			buildActionMask = 2147483647;
 			files = (
 			);
