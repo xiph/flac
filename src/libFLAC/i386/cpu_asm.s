@@ -27,7 +27,7 @@ cglobal FLAC__cpu_info_asm_i386
 ; **********************************************************************
 ;
 	ALIGN 16
-cident FLAC__cpu_info_asm_i386:
+cident FLAC__cpu_info_asm_i386
 
 	push	ebx
 

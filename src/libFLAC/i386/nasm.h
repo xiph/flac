@@ -53,9 +53,6 @@
 %endmacro
 
 %imacro cident 1
-	%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
-		_%1
-	%else
-		%1
-	%endif
+_%1:
+%1:
 %endmacro

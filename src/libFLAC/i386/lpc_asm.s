@@ -55,7 +55,7 @@ cglobal FLAC__lpc_restore_signal_asm_i386_mmx
 ; }
 ;
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_i386:
+cident FLAC__lpc_compute_autocorrelation_asm_i386
 
 	; esp + 32 == autoc[]
 	; esp + 28 == lag
@@ -206,7 +206,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386:
 
 ;@@@ NOTE: this SSE version is not even tested yet and only works for lag == 8
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_i386_sse:
+cident FLAC__lpc_compute_autocorrelation_asm_i386_sse
 
 	; esp + 16 == autoc[]
 	; esp + 12 == lag
@@ -280,7 +280,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse:
 ;	}
 ;
 	ALIGN	16
-cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386:
+cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386
 	;[esp + 40]	residual[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order
@@ -488,7 +488,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386:
 ; the channel must be <= 16.  Especially note that this routine cannot be used
 ; for side-channel coded 16bps channels since the effective bps is 17.
 	ALIGN	16
-cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx:
+cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx
 	;[esp + 40]	residual[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order
@@ -677,7 +677,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx:
 ; 	}
 ; }
 	ALIGN	16
-cident FLAC__lpc_restore_signal_asm_i386:
+cident FLAC__lpc_restore_signal_asm_i386
 	;[esp + 40]	data[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order
@@ -882,7 +882,7 @@ cident FLAC__lpc_restore_signal_asm_i386:
 ; the channel must be <= 16.  Especially note that this routine cannot be used
 ; for side-channel coded 16bps channels since the effective bps is 17.
 	ALIGN	16
-cident FLAC__lpc_restore_signal_asm_i386_mmx:
+cident FLAC__lpc_restore_signal_asm_i386_mmx
 	;[esp + 40]	data[]
 	;[esp + 36]	lp_quantization
 	;[esp + 32]	order
