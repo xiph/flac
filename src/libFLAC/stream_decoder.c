@@ -698,7 +698,7 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigne
 
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
 		if(0 != decoder->private_->output[i]) {
-			free(decoder->private_->output[i]);
+			free(decoder->private_->output[i]-4);
 			decoder->private_->output[i] = 0;
 		}
 		if(0 != decoder->private_->residual[i]) {
