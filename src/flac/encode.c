@@ -216,7 +216,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				/* sample rate */
 				if(!read_little_endian_uint32(infile, &xx, false, encoder_wrapper.inbasefilename))
 					goto wav_abort_;
-				if(!FLAC__format_is_valid_sample_rate(xx)) {
+				if(!FLAC__format_sample_rate_is_valid(xx)) {
 					fprintf(stderr, "%s: ERROR: unsupported sample rate %u\n", encoder_wrapper.inbasefilename, (unsigned)xx);
 					goto wav_abort_;
 				}

@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include "FLAC/assert.h"
 #include "FLAC/format.h"
 
 const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
@@ -111,7 +112,7 @@ const char * const FLAC__MetadataTypeString[] = {
 	"VORBIS_COMMENT"
 };
 
-FLAC__bool FLAC__format_is_valid_sample_rate(unsigned sample_rate)
+FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate)
 {
 	if(
 		sample_rate == 0 ||
@@ -125,4 +126,24 @@ FLAC__bool FLAC__format_is_valid_sample_rate(unsigned sample_rate)
 	}
 	else
 		return true;
+}
+
+FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable *seek_table)
+{
+	unsigned i;
+	FLAC__uint64 prev_sample_number = 0;
+	FLAC__bool got_prev = false;
+
+	FLAC__ASSERT(0 != seek_table);
+
+	for(i = 0; i < seek_table->num_points; i++) {
+		if(got_prev) {
+			if(seek_table->points[i].sample_number <= prev_sample_number)
+				return false;
+		}
+		prev_sample_number = seek_table->points[i].sample_number;
+		got_prev = true;
+	}
+
+	return true;
 }

@@ -270,7 +270,7 @@ namespace FLAC {
 		void StreamInfo::set_sample_rate(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			FLAC__ASSERT(FLAC__format_is_valid_sample_rate(value));
+			FLAC__ASSERT(FLAC__format_sample_rate_is_valid(value));
 			object_->data.stream_info.sample_rate = value;
 		}
 

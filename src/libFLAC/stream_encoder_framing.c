@@ -58,7 +58,7 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 			FLAC__ASSERT(metadata->data.stream_info.max_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.max_framesize, FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN))
 				return false;
-			FLAC__ASSERT(FLAC__format_is_valid_sample_rate(metadata->data.stream_info.sample_rate));
+			FLAC__ASSERT(FLAC__format_sample_rate_is_valid(metadata->data.stream_info.sample_rate));
 			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.sample_rate, FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN))
 				return false;
 			FLAC__ASSERT(metadata->data.stream_info.channels > 0);
@@ -157,7 +157,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))
 		return false;
 
-	FLAC__ASSERT(FLAC__format_is_valid_sample_rate(header->sample_rate));
+	FLAC__ASSERT(FLAC__format_sample_rate_is_valid(header->sample_rate));
 	sample_rate_hint = 0;
 	switch(header->sample_rate) {
 		case  8000: u = 4; break;
