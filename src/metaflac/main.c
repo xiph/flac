@@ -16,11 +16,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-/*@@@
-more powerful operations yet to add:
-	add a seektable, using same args as flac
-*/
-
 #if HAVE_CONFIG_H
 #  include <config.h>
 #endif

@@ -367,7 +367,7 @@ CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS"
 CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS"
 
 AM_CONFIG_HEADER(config.h)
-AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA,  [define if XXX])
+AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA,  [define to align allocated memory on 32-byte boundaries])
 AH_TEMPLATE(FLAC__CPU_IA32,  [define if building for ia32/i386])
 AH_TEMPLATE(FLAC__CPU_PPC,  [define if building for PowerPC])
 AH_TEMPLATE(FLAC__CPU_SPARC,  [define if building for SPARC])

@@ -61,8 +61,6 @@ release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -D
 
 LFLAGS  = -L$(LIBPATH)
 
-#@@@ OBJS = $(SRCS_C:%.c=%.o) $(SRCS_CC:%.cc=%.o) $(SRCS_CPP:%.cpp=%.o) $(SRCS_NASM:%.nasm=%.o)
-#@@@ OBJS = $(SRCS_C:%.c=%.$(BUILD).o) $(SRCS_CC:%.cc=%.$(BUILD).o) $(SRCS_CPP:%.cpp=%.$(BUILD).o) $(SRCS_NASM:%.nasm=%.$(BUILD).o)
 DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o)
 RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o)
 

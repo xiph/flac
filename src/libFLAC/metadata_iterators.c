@@ -1395,7 +1395,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_streaminfo_(FILE *f
 
 	b = buffer;
 
-	/* @@@ we are using hardcoded numbers for simplicity but we should
+	/* we are using hardcoded numbers for simplicity but we should
 	 * probably eventually write a bit-level unpacker and use the
 	 * _STREAMINFO_ constants.
 	 */
@@ -1468,7 +1468,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_seektable_(FILE *fi
 	for(i = 0; i < block->num_points; i++) {
 		if(fread(buffer, 1, FLAC__STREAM_METADATA_SEEKPOINT_LENGTH, file) != FLAC__STREAM_METADATA_SEEKPOINT_LENGTH)
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
-		/*@@@ some MAGIC NUMBERs here */
+		/* some MAGIC NUMBERs here */
 		block->points[i].sample_number = unpack_uint64_(buffer, 8);
 		block->points[i].stream_offset = unpack_uint64_(buffer+8, 8);
 		block->points[i].frame_samples = unpack_uint32_(buffer+16, 2);
@@ -1731,7 +1731,7 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_streaminfo_(FILE *
 
 	FLAC__ASSERT(0 != file);
 
-	/* @@@ we are using hardcoded numbers for simplicity but we should
+	/* we are using hardcoded numbers for simplicity but we should
 	 * probably eventually write a bit-level packer and use the
 	 * _STREAMINFO_ constants.
 	 */
@@ -1800,7 +1800,7 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_seektable_(FILE *f
 	FLAC__ASSERT(0 != file);
 
 	for(i = 0; i < block->num_points; i++) {
-		/*@@@ some MAGIC NUMBERs here */
+		/* some MAGIC NUMBERs here */
 		pack_uint64_(block->points[i].sample_number, buffer, 8);
 		pack_uint64_(block->points[i].stream_offset, buffer+8, 8);
 		pack_uint32_(block->points[i].frame_samples, buffer+16, 2);
@@ -2274,7 +2274,7 @@ FLAC__bool simple_iterator_copy_file_postfix_(FLAC__Metadata_SimpleIterator *ite
 		 * if code == -1, it means the last block was deleted so
 		 *   we have to set the is_last flag of the previous block
 		 */
-		/*@@@ MAGIC NUMBERs here; we know the is_last flag is the high bit of the byte at this location */
+		/* MAGIC NUMBERs here; we know the is_last flag is the high bit of the byte at this location */
 		FLAC__byte x;
 		if(0 != fseek(*tempfile, fixup_is_last_flag_offset, SEEK_SET)) {
 			cleanup_tempfile_(tempfile, tempfilename);

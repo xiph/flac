@@ -728,6 +728,7 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bit
  *
  *****************************************************************************/
 
+/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Tests that a sample rate is valid for FLAC.  Since the rules for valid
  *  sample rates are slightly complex, they are encapsulated in this function.
  *
@@ -738,6 +739,7 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bit
  */
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate);
 
+/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Check a seek table to see if it conforms to the FLAC specification.
  *  See the format specification for limits on the contents of the
  *  seek table.
@@ -750,6 +752,7 @@ FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate);
  */
 FLAC_API FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable *seek_table);
 
+/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Sort a seek table's seek points according to the format specification.
  *  This includes a "unique-ification" step to remove duplicates, i.e.
  *  seek points with identical \a sample_number values.  Duplicate seek
@@ -764,7 +767,7 @@ FLAC_API FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_S
  */
 FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table);
 
-/* @@@@ add to unit tests */
+/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Check a cue sheet to see if it conforms to the FLAC specification.
  *  See the format specification for limits on the contents of the
  *  cue sheet.
