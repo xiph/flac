@@ -22,11 +22,25 @@
 
 #include "FLAC/metadata.h"
 
+// ===============================================================
+//
+//  Full documentation for the metadata interface can be found
+//  in the C layer in include/FLAC/metadata.h
+//
+// ===============================================================
+
+
 namespace FLAC {
 	namespace Metadata {
 
+		// ============================================================
+		//
+		//  Metadata objects
+		//
+		// ============================================================
+
 		// NOTE: When the get_*() methods return you a const pointer,
-		// absolutely DO NOT write into it.  Always use the set_*()
+		// DO NOT disobey and write into it.  Always use the set_*()
 		// methods.
 
 		// base class for all metadata blocks
@@ -35,14 +49,29 @@ namespace FLAC {
 			Prototype(::FLAC__StreamMetaData *object, bool copy);
 			virtual ~Prototype();
 
+			void operator=(const Prototype &);
+			void operator=(const ::FLAC__StreamMetaData &);
+			void operator=(const ::FLAC__StreamMetaData *);
+
+			virtual void clear();
+
 			::FLAC__StreamMetaData *object_;
 		public:
+			friend class SimpleIterator;
+			friend class Iterator;
+
 			inline bool is_valid() const { return 0 != object_; }
 			inline operator bool() const { return is_valid(); }
 
 			bool get_is_last() const;
 			FLAC__MetaDataType get_type() const;
 			unsigned get_length() const; // NOTE: does not include the header, per spec
+		private:
+			Prototype(); // Private and undefined so use can't use it
+
+			// These are used only by Iterator
+			bool is_reference_;
+			inline void set_reference(bool x) { is_reference_ = x; }
 		};
 
 		class StreamInfo : public Prototype {
@@ -50,6 +79,10 @@ namespace FLAC {
 			StreamInfo();
 			StreamInfo(::FLAC__StreamMetaData *object, bool copy = false);
 			~StreamInfo();
+
+			inline void operator=(const StreamInfo &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
 
 			unsigned get_min_blocksize() const;
 			unsigned get_max_blocksize() const;
@@ -77,6 +110,10 @@ namespace FLAC {
 			Padding();
 			Padding(::FLAC__StreamMetaData *object, bool copy = false);
 			~Padding();
+
+			inline void operator=(const Padding &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
 		};
 
 		class Application : public Prototype {
@@ -84,6 +121,10 @@ namespace FLAC {
 			Application();
 			Application(::FLAC__StreamMetaData *object, bool copy = false);
 			~Application();
+
+			inline void operator=(const Application &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
 
 			const FLAC__byte *get_id() const;
 			const FLAC__byte *get_data() const;
@@ -97,6 +138,10 @@ namespace FLAC {
 			SeekTable();
 			SeekTable(::FLAC__StreamMetaData *object, bool copy = false);
 			~SeekTable();
+
+			inline void operator=(const SeekTable &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
 		};
 
 		class VorbisComment : public Prototype {
@@ -104,6 +149,174 @@ namespace FLAC {
 			VorbisComment();
 			VorbisComment(::FLAC__StreamMetaData *object, bool copy = false);
 			~VorbisComment();
+
+			inline void operator=(const VorbisComment &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
+		};
+
+		// ============================================================
+		//
+		//  Level 0
+		//
+		// ============================================================
+
+		bool get_streaminfo(const char *filename, StreamInfo &streaminfo);
+
+		// ============================================================
+		//
+		//  Level 1
+		//
+		//  ----------------------------------------------------------
+		//
+		//  The flow through the iterator in the C++ layer is similar
+		//  to the C layer:
+		//
+		//    * Create a SimpleIterator instance
+		//    * Check SimpleIterator::is_valid()
+		//    * Call SimpleIterator::init() and check the return
+		//    * Traverse and/or edit.  Edits are written to file
+		//      immediately.
+		//    * Destroy the SimpleIterator instance
+		//
+		//  ----------------------------------------------------------
+		//
+		//  The ownership of pointers in the C++ layer follows that in
+		//  the C layer, i.e.
+		//    * The objects returned by get_block() are yours to
+		//      modify, but changes are not reflected in the FLAC file
+		//      until you call set_block().  The objects are also
+		//      yours to delete; they are not automatically deleted
+		//      when passed to set_block() or insert_block_after().
+		//
+		// ============================================================
+
+		class SimpleIterator {
+		public:
+			class Status {
+			public:
+				inline Status(::FLAC__MetaData_SimpleIteratorStatus status): status_(status) { }
+				inline operator ::FLAC__MetaData_SimpleIteratorStatus() const { return status_; }
+				inline const char *as_cstring() const { return ::FLAC__MetaData_SimpleIteratorStatusString[status_]; }
+			protected:
+				::FLAC__MetaData_SimpleIteratorStatus status_;
+			};
+
+			SimpleIterator();
+			virtual ~SimpleIterator();
+
+			bool init(const char *filename, bool preserve_file_stats = false);
+
+			bool is_valid() const;
+			inline operator bool() const { return is_valid(); }
+			Status status();
+			bool is_writable() const;
+
+			bool next();
+			bool prev();
+
+			::FLAC__MetaDataType get_block_type() const;
+			Prototype *get_block();
+			bool set_block(Prototype *block, bool use_padding = true);
+			bool insert_block_after(Prototype *block, bool use_padding = true);
+			bool delete_block(bool use_padding = true);
+
+		protected:
+			::FLAC__MetaData_SimpleIterator *iterator_;
+			void clear();
+		};
+
+		// ============================================================
+		//
+		//  Level 2
+		//
+		//  ----------------------------------------------------------
+		//
+		//  The flow through the iterator in the C++ layer is similar
+		//  to the C layer:
+		//
+		//    * Create a Chain instance
+		//    * Check Chain::is_valid()
+		//    * Call Chain::read() and check the return
+		//    * Traverse and/or edit with an Iterator or with
+		//      Chain::merge_padding() or Chain::sort_padding()
+		//    * Write changes back to FLAC file with Chain::write()
+		//    * Destroy the Chain instance
+		//
+		//  ----------------------------------------------------------
+		//
+		//  The ownership of pointers in the C++ layer follows that in
+		//  the C layer, i.e.
+		//    * The objects returned by Iterator::get_block() are
+		//      owned by the iterator and should not be deleted.
+		//      When you modify the block, you are directly editing
+		//      what's in the chain and do not need to call
+		//      Iterator::set_block().  However the changes will not
+		//      be reflected in the FLAC file until the chain is
+		//      written with Chain::write().
+		//
+		//    * When you pass an object to Iterator::set_block(),
+		//      Iterator::insert_block_before(), or
+		//      Iterator::insert_block_after(), the iterator takes
+		//      ownership of the block and it will be deleted with the
+		//      chain.
+		//
+		// ============================================================
+
+		class Chain {
+		public:
+			class Status {
+			public:
+				inline Status(::FLAC__MetaData_ChainStatus status): status_(status) { }
+				inline operator ::FLAC__MetaData_ChainStatus() const { return status_; }
+				inline const char *as_cstring() const { return ::FLAC__MetaData_ChainStatusString[status_]; }
+			protected:
+				::FLAC__MetaData_ChainStatus status_;
+			};
+
+			Chain();
+			virtual ~Chain();
+
+			friend class Iterator;
+
+			bool is_valid() const;
+			inline operator bool() const { return is_valid(); }
+			Status status();
+
+			bool read(const char *filename);
+			bool write(bool use_padding = true, bool preserve_file_stats = false);
+
+			void merge_padding();
+			void sort_padding();
+
+		protected:
+			::FLAC__MetaData_Chain *chain_;
+			virtual void clear();
+		};
+
+		class Iterator {
+		public:
+			Iterator();
+			virtual ~Iterator();
+
+			bool is_valid() const;
+			inline operator bool() const { return is_valid(); }
+
+			void init(Chain *chain);
+
+			bool next();
+			bool prev();
+
+			::FLAC__MetaDataType get_block_type() const;
+			Prototype *get_block();
+			bool set_block(Prototype *block);
+			bool delete_block(bool replace_with_padding);
+			bool insert_block_before(Prototype *block);
+			bool insert_block_after(Prototype *block);
+
+		protected:
+			::FLAC__MetaData_Iterator *iterator_;
+			virtual void clear();
 		};
 
 	};

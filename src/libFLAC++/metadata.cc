@@ -24,6 +24,38 @@
 namespace FLAC {
 	namespace Metadata {
 
+		// local utility routines
+
+		namespace local {
+
+			Prototype *construct_block(::FLAC__StreamMetaData *object)
+			{
+				Prototype *ret = 0;
+				switch(object->type) {
+					case FLAC__METADATA_TYPE_STREAMINFO:
+						ret = new StreamInfo(object, /*copy=*/false);
+						break;
+					case FLAC__METADATA_TYPE_PADDING:
+						ret = new Padding(object, /*copy=*/false);
+						break;
+					case FLAC__METADATA_TYPE_APPLICATION:
+						ret = new Application(object, /*copy=*/false);
+						break;
+					case FLAC__METADATA_TYPE_SEEKTABLE:
+						ret = new SeekTable(object, /*copy=*/false);
+						break;
+					case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+						ret = new VorbisComment(object, /*copy=*/false);
+						break;
+					default:
+						FLAC__ASSERT(0);
+						break;
+				}
+				return ret;
+			}
+
+		};
+
 		//
 		// Prototype
 		//
@@ -31,13 +63,46 @@ namespace FLAC {
 		Prototype::Prototype(::FLAC__StreamMetaData *object, bool copy)
 		{
 			FLAC__ASSERT(0 != object);
+			clear();
 			object_ = copy? ::FLAC__metadata_object_copy(object) : object;
+			is_reference_ = false;
 		}
 
 		Prototype::~Prototype()
 		{
+			clear();
+		}
+
+		void Prototype::clear()
+		{
 			if(0 != object_)
 				FLAC__metadata_object_delete(object_);
+			object_ = 0;
+		}
+
+		void Prototype::operator=(const Prototype &object)
+		{
+			clear();
+			is_reference_ = object.is_reference_;
+			if(is_reference_)
+				object_ = object.object_;
+			else
+				object_ = ::FLAC__metadata_object_copy(object.object_);
+		}
+
+		void Prototype::operator=(const ::FLAC__StreamMetaData &object)
+		{
+			clear();
+			is_reference_ = false;
+			object_ = ::FLAC__metadata_object_copy(&object);
+		}
+
+		void Prototype::operator=(const ::FLAC__StreamMetaData *object)
+		{
+			FLAC__ASSERT(0 != object);
+			clear();
+			is_reference_ = false;
+			object_ = ::FLAC__metadata_object_copy(object);
 		}
 
 		bool Prototype::get_is_last() const
@@ -278,6 +343,276 @@ namespace FLAC {
 
 		VorbisComment::~VorbisComment()
 		{ }
+
+
+		// ============================================================
+		//
+		//  Level 0
+		//
+		// ============================================================
+
+		bool get_streaminfo(const char *filename, StreamInfo &streaminfo)
+		{
+			FLAC__ASSERT(0 != filename);
+
+			FLAC__StreamMetaData s;
+
+			if(FLAC__metadata_get_streaminfo(filename, &s.data.stream_info)) {
+				streaminfo = s;
+				return true;
+			}
+			else
+				return false;
+		}
+
+
+		// ============================================================
+		//
+		//  Level 1
+		//
+		// ============================================================
+
+		SimpleIterator::SimpleIterator():
+		iterator_(::FLAC__metadata_simple_iterator_new())
+		{ }
+
+		SimpleIterator::~SimpleIterator()
+		{
+			clear();
+		}
+
+		void SimpleIterator::clear()
+		{
+			if(0 != iterator_)
+				FLAC__metadata_simple_iterator_delete(iterator_);
+			iterator_ = 0;
+		}
+
+		bool SimpleIterator::init(const char *filename, bool preserve_file_stats)
+		{
+			FLAC__ASSERT(0 != filename);
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_init(iterator_, filename, preserve_file_stats);
+		}
+
+		bool SimpleIterator::is_valid() const
+		{
+			return 0 != iterator_;
+		}
+
+		SimpleIterator::Status SimpleIterator::status()
+		{
+			FLAC__ASSERT(is_valid());
+			return Status(::FLAC__metadata_simple_iterator_status(iterator_));
+		}
+
+		bool SimpleIterator::is_writable() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_is_writable(iterator_);
+		}
+
+		bool SimpleIterator::next()
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_next(iterator_);
+		}
+
+		bool SimpleIterator::prev()
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_prev(iterator_);
+		}
+
+		::FLAC__MetaDataType SimpleIterator::get_block_type() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_get_block_type(iterator_);
+		}
+
+		Prototype *SimpleIterator::get_block()
+		{
+			FLAC__ASSERT(is_valid());
+			return local::construct_block(::FLAC__metadata_simple_iterator_get_block(iterator_));
+		}
+
+		bool SimpleIterator::set_block(Prototype *block, bool use_padding)
+		{
+			FLAC__ASSERT(0 != block);
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_set_block(iterator_, block->object_, use_padding);
+		}
+
+		bool SimpleIterator::insert_block_after(Prototype *block, bool use_padding)
+		{
+			FLAC__ASSERT(0 != block);
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_insert_block_after(iterator_, block->object_, use_padding);
+		}
+
+		bool SimpleIterator::delete_block(bool use_padding)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_delete_block(iterator_, use_padding);
+		}
+
+
+		// ============================================================
+		//
+		//  Level 2
+		//
+		// ============================================================
+
+		Chain::Chain():
+		chain_(::FLAC__metadata_chain_new())
+		{ }
+
+		Chain::~Chain()
+		{
+			clear();
+		}
+
+		void Chain::clear()
+		{
+			if(0 != chain_)
+				FLAC__metadata_chain_delete(chain_);
+			chain_ = 0;
+		}
+
+		bool Chain::is_valid() const
+		{
+			return 0 != chain_;
+		}
+
+		Chain::Status Chain::status()
+		{
+			FLAC__ASSERT(is_valid());
+			return Status(::FLAC__metadata_chain_status(chain_));
+		}
+
+		bool Chain::read(const char *filename)
+		{
+			FLAC__ASSERT(0 != filename);
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_chain_read(chain_, filename);
+		}
+
+		bool Chain::write(bool use_padding, bool preserve_file_stats)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_chain_write(chain_, use_padding, preserve_file_stats);
+		}
+
+		void Chain::merge_padding()
+		{
+			FLAC__ASSERT(is_valid());
+			::FLAC__metadata_chain_merge_padding(chain_);
+		}
+
+		void Chain::sort_padding()
+		{
+			FLAC__ASSERT(is_valid());
+			::FLAC__metadata_chain_sort_padding(chain_);
+		}
+
+
+		Iterator::Iterator():
+		iterator_(::FLAC__metadata_iterator_new())
+		{ }
+
+		Iterator::~Iterator()
+		{
+			clear();
+		}
+
+		void Iterator::clear()
+		{
+			if(0 != iterator_)
+				FLAC__metadata_iterator_delete(iterator_);
+			iterator_ = 0;
+		}
+
+		bool Iterator::is_valid() const
+		{
+			return 0 != iterator_;
+		}
+
+		void Iterator::init(Chain *chain)
+		{
+			FLAC__ASSERT(0 != chain);
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(chain->is_valid());
+			::FLAC__metadata_iterator_init(iterator_, chain->chain_);
+		}
+
+		bool Iterator::next()
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_iterator_next(iterator_);
+		}
+
+		bool Iterator::prev()
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_iterator_prev(iterator_);
+		}
+
+		::FLAC__MetaDataType Iterator::get_block_type() const 
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_iterator_get_block_type(iterator_);
+		}
+
+		Prototype *Iterator::get_block()
+		{
+			FLAC__ASSERT(is_valid());
+			Prototype *block = local::construct_block(::FLAC__metadata_iterator_get_block(iterator_));
+			if(0 != block)
+				block->set_reference(true);
+			return block;
+		}
+
+		bool Iterator::set_block(Prototype *block)
+		{
+			FLAC__ASSERT(0 != block);
+			FLAC__ASSERT(is_valid());
+			bool ret = ::FLAC__metadata_iterator_set_block(iterator_, block->object_);
+			if(ret) {
+				block->set_reference(true);
+				delete block;
+			}
+			return ret;
+		}
+
+		bool Iterator::delete_block(bool replace_with_padding)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_iterator_delete_block(iterator_, replace_with_padding);
+		}
+
+		bool Iterator::insert_block_before(Prototype *block)
+		{
+			FLAC__ASSERT(0 != block);
+			FLAC__ASSERT(is_valid());
+			bool ret = ::FLAC__metadata_iterator_insert_block_before(iterator_, block->object_);
+			if(ret) {
+				block->set_reference(true);
+				delete block;
+			}
+			return ret;
+		}
+
+		bool Iterator::insert_block_after(Prototype *block)
+		{
+			FLAC__ASSERT(0 != block);
+			FLAC__ASSERT(is_valid());
+			bool ret = ::FLAC__metadata_iterator_insert_block_after(iterator_, block->object_);
+			if(ret) {
+				block->set_reference(true);
+				delete block;
+			}
+			return ret;
+		}
 
 	};
 };
