@@ -39,6 +39,7 @@ EXTRA_DIST = \
 	Makefile.lite \
 	autogen.sh \
 	depcomp \
+	ltmain.sh \
 	strip_fPIC.sh
 
 AUTOMAKE_OPTIONS = foreign
