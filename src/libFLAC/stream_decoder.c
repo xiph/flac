@@ -54,7 +54,7 @@ static FLAC__bool stream_decoder_read_subframe_constant_(FLAC__StreamDecoder *de
 static FLAC__bool stream_decoder_read_subframe_fixed_(FLAC__StreamDecoder *decoder, unsigned channel, unsigned bps, const unsigned order);
 static FLAC__bool stream_decoder_read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, unsigned bps, const unsigned order);
 static FLAC__bool stream_decoder_read_subframe_verbatim_(FLAC__StreamDecoder *decoder, unsigned channel, unsigned bps);
-static FLAC__bool stream_decoder_read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigned predictor_order, unsigned partition_order, FLAC__int32 *residual);
+static FLAC__bool stream_decoder_read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigned predictor_order, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, FLAC__int32 *residual);
 static FLAC__bool stream_decoder_read_zero_padding_(FLAC__StreamDecoder *decoder);
 static FLAC__bool read_callback_(FLAC__byte buffer[], unsigned *bytes, void *client_data);
 
@@ -249,8 +249,9 @@ void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	}
 	FLAC__bitbuffer_free(&decoder->private->input);
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
+		/* WATCHOUT: FLAC__lpc_restore_signal_asm_ia32_mmx() requires that the output arrays have a buffer of up to 3 zeroes in front (at negative indices) for alignment purposes; we use 4 to keep the data well-aligned. */
 		if(decoder->private->output[i] != 0) {
-			free(decoder->private->output[i]);
+			free(decoder->private->output[i]-4);
 			decoder->private->output[i] = 0;
 		}
 		if(decoder->private->residual[i] != 0) {
@@ -258,6 +259,8 @@ void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 			decoder->private->residual[i] = 0;
 		}
 	}
+	decoder->private->output_capacity = 0;
+	decoder->private->output_channels = 0;
 	decoder->protected->state = FLAC__STREAM_DECODER_UNINITIALIZED;
 }
 
@@ -532,12 +535,14 @@ FLAC__bool stream_decoder_allocate_output_(FLAC__StreamDecoder *decoder, unsigne
 	}
 
 	for(i = 0; i < channels; i++) {
-		tmp = (FLAC__int32*)malloc(sizeof(FLAC__int32)*size);
+		/* WATCHOUT: FLAC__lpc_restore_signal_asm_ia32_mmx() requires that the output arrays have a buffer of up to 3 zeroes in front (at negative indices) for alignment purposes; we use 4 to keep the data well-aligned. */
+		tmp = (FLAC__int32*)malloc(sizeof(FLAC__int32)*(size+4));
 		if(tmp == 0) {
 			decoder->protected->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
-		decoder->private->output[i] = tmp;
+		memset(tmp, 0, sizeof(FLAC__int32)*4);
+		decoder->private->output[i] = tmp + 4;
 
 		tmp = (FLAC__int32*)malloc(sizeof(FLAC__int32)*size);
 		if(tmp == 0) {
@@ -1344,7 +1349,7 @@ FLAC__bool stream_decoder_read_subframe_fixed_(FLAC__StreamDecoder *decoder, uns
 	/* read residual */
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!stream_decoder_read_residual_partitioned_rice_(decoder, order, subframe->entropy_coding_method.data.partitioned_rice.order, decoder->private->residual[channel]))
+			if(!stream_decoder_read_residual_partitioned_rice_(decoder, order, &subframe->entropy_coding_method.data.partitioned_rice, decoder->private->residual[channel]))
 				return false;
 			break;
 		default:
@@ -1417,7 +1422,7 @@ FLAC__bool stream_decoder_read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsig
 	/* read residual */
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!stream_decoder_read_residual_partitioned_rice_(decoder, order, subframe->entropy_coding_method.data.partitioned_rice.order, decoder->private->residual[channel]))
+			if(!stream_decoder_read_residual_partitioned_rice_(decoder, order, &subframe->entropy_coding_method.data.partitioned_rice, decoder->private->residual[channel]))
 				return false;
 			break;
 		default:
@@ -1456,11 +1461,12 @@ FLAC__bool stream_decoder_read_subframe_verbatim_(FLAC__StreamDecoder *decoder, 
 	return true;
 }
 
-FLAC__bool stream_decoder_read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigned predictor_order, unsigned partition_order, FLAC__int32 *residual)
+FLAC__bool stream_decoder_read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigned predictor_order, FLAC__EntropyCodingMethod_PartitionedRice *partitioned_rice, FLAC__int32 *residual)
 {
 	FLAC__uint32 rice_parameter;
 	int i;
 	unsigned partition, sample, u;
+	const unsigned partition_order = partitioned_rice->order;
 	const unsigned partitions = 1u << partition_order;
 	const unsigned partition_samples = partition_order > 0? decoder->private->frame.header.blocksize >> partition_order : decoder->private->frame.header.blocksize - predictor_order;
 
@@ -1468,6 +1474,7 @@ FLAC__bool stream_decoder_read_residual_partitioned_rice_(FLAC__StreamDecoder *d
 	for(partition = 0; partition < partitions; partition++) {
 		if(!FLAC__bitbuffer_read_raw_uint32(&decoder->private->input, &rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN, read_callback_, decoder))
 			return false; /* the read_callback_ sets the state for us */
+		partitioned_rice->parameters[partition] = rice_parameter;
 		if(rice_parameter < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
 			for(u = (partition_order == 0 || partition > 0)? 0 : predictor_order; u < partition_samples; u++, sample++) {
 #ifdef FLAC__SYMMETRIC_RICE
@@ -1483,6 +1490,7 @@ FLAC__bool stream_decoder_read_residual_partitioned_rice_(FLAC__StreamDecoder *d
 		else {
 			if(!FLAC__bitbuffer_read_raw_uint32(&decoder->private->input, &rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
+			partitioned_rice->raw_bits[partition] = rice_parameter;
 			for(u = (partition_order == 0 || partition > 0)? 0 : predictor_order; u < partition_samples; u++, sample++) {
 				if(!FLAC__bitbuffer_read_raw_int32(&decoder->private->input, &i, rice_parameter, read_callback_, decoder))
 					return false; /* the read_callback_ sets the state for us */
