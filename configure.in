@@ -217,21 +217,22 @@ fi
 CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS $OUR_CFLAGS_TAIL"
 CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS $OUR_CFLAGS_TAIL"
 
-AC_OUTPUT(	Makefile	\
-	src/Makefile	\
-	src/libFLAC/Makefile	\
-	src/libFLAC/ia32/Makefile	\
-	src/libFLAC/include/Makefile	\
-	src/libFLAC/include/private/Makefile	\
-	src/libFLAC/include/protected/Makefile	\
-	src/libFLAC++/Makefile	\
-	src/flac/Makefile	\
-	src/metaflac/Makefile	\
-	src/plugin_xmms/Makefile	\
-	src/share/Makefile	\
-	src/test_libFLAC/Makefile	\
-	src/test_libFLAC++/Makefile	\
-	src/test_streams/Makefile	\
+AC_OUTPUT( \
+	Makefile \
+	src/Makefile \
+	src/libFLAC/Makefile \
+	src/libFLAC/ia32/Makefile \
+	src/libFLAC/include/Makefile \
+	src/libFLAC/include/private/Makefile \
+	src/libFLAC/include/protected/Makefile \
+	src/libFLAC++/Makefile \
+	src/flac/Makefile \
+	src/metaflac/Makefile \
+	src/plugin_xmms/Makefile \
+	src/share/Makefile \
+	src/test_libFLAC/Makefile \
+	src/test_libFLAC++/Makefile \
+	src/test_streams/Makefile \
 	include/Makefile \
 	include/FLAC/Makefile \
 	include/FLAC/ordinals.h \
@@ -242,5 +243,5 @@ AC_OUTPUT(	Makefile	\
 	doc/html/images/Makefile \
 	doc/html/ru/Makefile \
 	man/Makefile \
-	test/Makefile	\
+	test/Makefile \
 )
