@@ -33,8 +33,12 @@
 #include "encode.h"
 #include "file.h"
 
+typedef enum { RAW, WAV, AIF } FileFormat;
+
 static int short_usage(const char *message, ...);
 static int long_usage(const char *message, ...);
+static void format_mistake(const char *infilename, const char *wrong, const char *right);
+
 static int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file);
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
@@ -409,8 +413,10 @@ int main(int argc, char *argv[])
 			return long_usage("ERROR: --sector-align not allowed with --skip\n");
 		else if(format_channels >= 0 && format_channels != 2)
 			return long_usage("ERROR: --sector-align can only be done with stereo input\n");
-		else if(format_sample_rate >= 0 && format_sample_rate != 2)
-			return long_usage("ERROR: --sector-align can only be done with sample rate of 44100\n");
+		else if(format_bps >= 0 && format_bps != 16)
+			return long_usage("ERROR: --sector-align can only be done with 16-bit samples\n");
+		else if(format_sample_rate >= 0 && format_sample_rate != 44100)
+			return long_usage("ERROR: --sector-align can only be done with a sample rate of 44100\n");
 	}
 	if(argc - i > 1 && cmdline_forced_outfilename) {
 		return long_usage("ERROR: -o cannot be used with multiple files\n");
@@ -559,7 +565,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "  flac [options] [infile [...]]\n");
 	fprintf(out, "\n");
 	fprintf(out, "For encoding:\n");
-	fprintf(out, "  the input file(s) may be a PCM RIFF WAVE file or raw samples\n");
+	fprintf(out, "  the input file(s) may be a PCM RIFF WAVE file, AIFF file, or raw samples\n");
 	fprintf(out, "  the output file(s) will be in FLAC format\n");
 	fprintf(out, "For decoding, the reverse is true\n");
 	fprintf(out, "\n");
@@ -571,11 +577,11 @@ int long_usage(const char *message, ...)
 	fprintf(out, "since the former allows flac to seek backwards to write the STREAMINFO or\n");
 	fprintf(out, "RIFF WAVE header contents when necessary.\n");
 	fprintf(out, "\n");
-	fprintf(out, "flac checks for the presence of a RIFF WAVE header to decide whether or not\n");
-	fprintf(out, "to treat an input file as WAVE format or raw samples.  If any infile is raw\n");
-	fprintf(out, "you must specify the format options {-fb|fl} -fc -fp and -fs, which will\n");
-	fprintf(out, "apply to all raw files.  You can force WAVE files to be treated as a raw files\n");
-	fprintf(out, "using -fr.\n");
+	fprintf(out, "flac checks for the presence of a AIFF/RIFF WAVE header to decide whether or\n");
+	fprintf(out, "not to treat an input file as AIFF/WAVE format or raw samples.  If any infile\n");
+	fprintf(out, "is raw you must specify the format options {-fb|fl} -fc -fp and -fs, which will\n");
+	fprintf(out, "apply to all raw files.  You can force AIFF/WAVE files to be treated as a raw\n");
+	fprintf(out, "files using -fr.\n");
 	fprintf(out, "\n");
 	fprintf(out, "generic options:\n");
 	fprintf(out, "  -d : decode (default behavior is encode)\n");
@@ -668,6 +674,13 @@ int long_usage(const char *message, ...)
 	return message? 1 : 0;
 }
 
+void
+format_mistake(const char *infilename, const char *wrong, const char *right)
+{
+	fprintf(stderr, "WARNING: %s is not a %s file; treating as a %s file\n",
+		infilename, wrong, right);
+}
+
 int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file)
 {
 	FILE *encode_infile;
@@ -675,7 +688,7 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	char *p;
 	FLAC__byte lookahead[12];
 	unsigned lookahead_length = 0;
-	FLAC__bool treat_as_wave = false;
+	FileFormat fmt= RAW;
 	int retval;
 	long infilesize;
 	encode_options_t common_options;
@@ -694,34 +707,38 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 
 	if(!force_raw_format) {
 		/* first set format based on name */
-		if(0 == strcasecmp(infilename+(strlen(infilename)-4), ".wav"))
-			treat_as_wave = true;
-		else
-			treat_as_wave = false;
+		if(strlen(infilename) > 3 && 0 == strcasecmp(infilename+(strlen(infilename)-4), ".wav"))
+			fmt= WAV;
+		else if(strlen(infilename) > 3 && 0 == strcasecmp(infilename+(strlen(infilename)-4), ".aif"))
+			fmt= AIF;
+		else if(strlen(infilename) > 4 && 0 == strcasecmp(infilename+(strlen(infilename)-5), ".aiff"))
+			fmt= AIF;
 
 		/* attempt to guess the file type based on the first 12 bytes */
 		if((lookahead_length = fread(lookahead, 1, 12, encode_infile)) < 12) {
-			if(treat_as_wave)
-				fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
-			treat_as_wave = false;
+			if(fmt != RAW)
+				format_mistake(infilename, fmt == AIF ? "AIFF" : "WAVE", "raw");
+			fmt= RAW;
 		}
 		else {
-			if(strncmp(lookahead, "RIFF", 4) || strncmp(lookahead+8, "WAVE", 4)) {
-				if(treat_as_wave)
-					fprintf(stderr, "WARNING: %s is not a WAVE file, treating as a raw file\n", infilename);
-				treat_as_wave = false;
+			if(!strncmp(lookahead, "RIFF", 4) && !strncmp(lookahead+8, "WAVE", 4))
+				fmt= WAV;
+			else if(!strncmp(lookahead, "FORM", 4) && !strncmp(lookahead+8, "AIFF", 4))
+				fmt= AIF;
+			else {
+				if(fmt != RAW)
+					format_mistake(infilename, fmt == AIF ? "AIFF" : "WAVE", "raw");
+				fmt= RAW;
 			}
-			else
-				treat_as_wave = true;
 		}
 	}
 
-	if(sector_align && !treat_as_wave && infilesize < 0) {
+	if(sector_align && fmt == RAW && infilesize < 0) {
 		fprintf(stderr, "ERROR: can't --sector-align when the input size is unknown\n");
 		return 1;
 	}
 
-	if(!treat_as_wave) {
+	if(fmt == RAW) {
 		if(format_is_big_endian < 0 || format_channels < 0 || format_bps < 0 || format_sample_rate < 0)
 			return long_usage("ERROR: for encoding a raw file you must specify { -fb or -fl }, -fc, -fp, and -fs\n");
 	}
@@ -769,19 +786,12 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	common_options.padding = padding;
 	common_options.requested_seek_points = requested_seek_points;
 	common_options.num_requested_seek_points = num_requested_seek_points;
+	common_options.is_last_file = is_last_file;
+	common_options.align_reservoir = align_reservoir;
+	common_options.align_reservoir_samples = &align_reservoir_samples;
+	common_options.sector_align = sector_align;
 
-	if(treat_as_wave) {
-		wav_encode_options_t options;
-
-		options.common = common_options;
-		options.is_last_file = is_last_file;
-		options.align_reservoir = align_reservoir;
-		options.align_reservoir_samples = &align_reservoir_samples;
-		options.sector_align = sector_align;
-
-		retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, options);
-	}
-	else {
+	if(fmt == RAW) {
 		raw_encode_options_t options;
 
 		options.common = common_options;
@@ -792,6 +802,16 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 		options.sample_rate = format_sample_rate;
 
 		retval = flac__encode_raw(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, options);
+	}
+	else {
+		wav_encode_options_t options;
+
+		options.common = common_options;
+
+		if(fmt == AIF)
+			retval = flac__encode_aif(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, options);
+		else
+			retval = flac__encode_wav(encode_infile, infilesize, infilename, forced_outfilename, lookahead, lookahead_length, options);
 	}
 
 	if(retval == 0 && strcmp(infilename, "-")) {
