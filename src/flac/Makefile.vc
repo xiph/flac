@@ -5,7 +5,7 @@
 	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /O2 -DNODEBUG $<
+	$(cc) /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \

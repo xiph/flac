@@ -5,7 +5,7 @@
 	$(cc) /D FLAC_OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) $(cdebug) $(cflags) /O2 /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
