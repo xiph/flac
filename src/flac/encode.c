@@ -302,7 +302,7 @@ wav_end_:
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not use %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not trust %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
 		else if(encoder_wrapper.verbose) {
@@ -324,7 +324,7 @@ wav_abort_:
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not use %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not trust %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
 		else if(encoder_wrapper.verbose) {
@@ -450,7 +450,7 @@ int encode_raw(FILE *infile, const char *infilename, const char *outfilename, bo
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not use %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not trust %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
 		else if(encoder_wrapper.verbose) {
@@ -472,7 +472,7 @@ raw_abort_:
 		free(encoder_wrapper.seek_table.points);
 	if(verify) {
 		if(encoder_wrapper.verify_fifo.result != FLAC__VERIFY_OK) {
-			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not use %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
+			fprintf(stderr, "%s: Verify FAILED! (%s)  Do not trust %s\n", infilename, verify_code_string[encoder_wrapper.verify_fifo.result], outfilename);
 			return 1;
 		}
 		else if(encoder_wrapper.verbose) {
