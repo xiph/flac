@@ -19,7 +19,7 @@
 # GNU makefile fragment for emulating stuff normally done by configure
 #
 
-VERSION=\"1.0.3\"
+VERSION=\"1.0.3_beta\"
 
 ORDINALS_H = ../../include/FLAC/ordinals.h
 

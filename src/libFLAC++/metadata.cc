@@ -29,7 +29,7 @@ namespace FLAC {
 
 		namespace local {
 
-			Prototype *construct_block(::FLAC__StreamMetaData *object)
+			Prototype *construct_block(::FLAC__StreamMetadata *object)
 			{
 				Prototype *ret = 0;
 				switch(object->type) {
@@ -57,17 +57,59 @@ namespace FLAC {
 
 		};
 
+		Prototype *clone(const Prototype *object)
+		{
+			const StreamInfo *streaminfo = dynamic_cast<const StreamInfo *>(object);
+			const Padding *padding = dynamic_cast<const Padding *>(object);
+			const Application *application = dynamic_cast<const Application *>(object);
+			const SeekTable *seektable = dynamic_cast<const SeekTable *>(object);
+			const VorbisComment *vorbiscomment = dynamic_cast<const VorbisComment *>(object);
+
+			if(0 != streaminfo)
+				return new StreamInfo(*streaminfo);
+			else if(0 != padding)
+				return new Padding(*padding);
+			else if(0 != application)
+				return new Application(*application);
+			else if(0 != seektable)
+				return new SeekTable(*seektable);
+			else if(0 != vorbiscomment)
+				return new VorbisComment(*vorbiscomment);
+			else {
+				FLAC__ASSERT(0);
+				return 0;
+			}
+		}
+
 		//
 		// Prototype
 		//
 
-		Prototype::Prototype(::FLAC__StreamMetaData *object, bool copy):
-		object_(0)
+		Prototype::Prototype(const Prototype &object):
+		object_(::FLAC__metadata_object_clone(object.object_)),
+		is_reference_(false)
+		{
+			FLAC__ASSERT(object.is_valid());
+		}
+
+		Prototype::Prototype(const ::FLAC__StreamMetadata &object):
+		object_(::FLAC__metadata_object_clone(&object)),
+		is_reference_(false)
+		{
+		}
+
+		Prototype::Prototype(const ::FLAC__StreamMetadata *object):
+		object_(::FLAC__metadata_object_clone(object)),
+		is_reference_(false)
 		{
 			FLAC__ASSERT(0 != object);
-			clear();
-			object_ = copy? ::FLAC__metadata_object_copy(object) : object;
-			is_reference_ = false;
+		}
+
+		Prototype::Prototype(::FLAC__StreamMetadata *object, bool copy):
+		object_(copy? ::FLAC__metadata_object_clone(object) : object),
+		is_reference_(false)
+		{
+			FLAC__ASSERT(0 != object);
 		}
 
 		Prototype::~Prototype()
@@ -77,34 +119,32 @@ namespace FLAC {
 
 		void Prototype::clear()
 		{
-			if(0 != object_)
+			if(0 != object_ && !is_reference_)
 				FLAC__metadata_object_delete(object_);
 			object_ = 0;
 		}
 
 		void Prototype::operator=(const Prototype &object)
 		{
+			FLAC__ASSERT(object.is_valid());
 			clear();
-			is_reference_ = object.is_reference_;
-			if(is_reference_)
-				object_ = object.object_;
-			else
-				object_ = ::FLAC__metadata_object_copy(object.object_);
+			is_reference_ = false;
+			object_ = ::FLAC__metadata_object_clone(object.object_);
 		}
 
-		void Prototype::operator=(const ::FLAC__StreamMetaData &object)
+		void Prototype::operator=(const ::FLAC__StreamMetadata &object)
 		{
 			clear();
 			is_reference_ = false;
-			object_ = ::FLAC__metadata_object_copy(&object);
+			object_ = ::FLAC__metadata_object_clone(&object);
 		}
 
-		void Prototype::operator=(const ::FLAC__StreamMetaData *object)
+		void Prototype::operator=(const ::FLAC__StreamMetadata *object)
 		{
 			FLAC__ASSERT(0 != object);
 			clear();
 			is_reference_ = false;
-			object_ = ::FLAC__metadata_object_copy(object);
+			object_ = ::FLAC__metadata_object_clone(object);
 		}
 
 		bool Prototype::get_is_last() const
@@ -113,7 +153,7 @@ namespace FLAC {
 			return (bool)object_->is_last;
 		}
 
-		FLAC__MetaDataType Prototype::get_type() const
+		FLAC__MetadataType Prototype::get_type() const
 		{
 			FLAC__ASSERT(is_valid());
 			return object_->type;
@@ -125,6 +165,12 @@ namespace FLAC {
 			return object_->length;
 		}
 
+		void Prototype::set_is_last(bool value)
+		{
+			FLAC__ASSERT(is_valid());
+			object_->is_last = value;
+		}
+
 
 		//
 		// StreamInfo
@@ -132,10 +178,6 @@ namespace FLAC {
 
 		StreamInfo::StreamInfo():
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_STREAMINFO), /*copy=*/false)
-		{ }
-
-		StreamInfo::StreamInfo(::FLAC__StreamMetaData *object, bool copy):
-		Prototype(object, copy)
 		{ }
 
 		StreamInfo::~StreamInfo()
@@ -271,10 +313,6 @@ namespace FLAC {
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING), /*copy=*/false)
 		{ }
 
-		Padding::Padding(::FLAC__StreamMetaData *object, bool copy):
-		Prototype(object, copy)
-		{ }
-
 		Padding::~Padding()
 		{ }
 
@@ -293,10 +331,6 @@ namespace FLAC {
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_APPLICATION), /*copy=*/false)
 		{ }
 
-		Application::Application(::FLAC__StreamMetaData *object, bool copy):
-		Prototype(object, copy)
-		{ }
-
 		Application::~Application()
 		{ }
 
@@ -312,11 +346,17 @@ namespace FLAC {
 			return object_->data.application.data;
 		}
 
-		void Application::set_id(FLAC__byte value[4])
+		void Application::set_id(const FLAC__byte value[4])
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(0 != value);
 			memcpy(object_->data.application.id, value, 4);
+		}
+
+		bool Application::set_data(const FLAC__byte *data, unsigned length)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_application_set_data(object_, (FLAC__byte*)data, length, true);
 		}
 
 		bool Application::set_data(FLAC__byte *data, unsigned length, bool copy)
@@ -334,10 +374,6 @@ namespace FLAC {
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE), /*copy=*/false)
 		{ }
 
-		SeekTable::SeekTable(::FLAC__StreamMetaData *object, bool copy):
-		Prototype(object, copy)
-		{ }
-
 		SeekTable::~SeekTable()
 		{ }
 
@@ -347,21 +383,21 @@ namespace FLAC {
 			return object_->data.seek_table.num_points;
 		}
 
-		::FLAC__StreamMetaData_SeekPoint SeekTable::get_point(unsigned index) const
+		::FLAC__StreamMetadata_SeekPoint SeekTable::get_point(unsigned index) const
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index < object_->data.seek_table.num_points);
 			return object_->data.seek_table.points[index];
 		}
 
-		void SeekTable::set_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point)
+		void SeekTable::set_point(unsigned index, const ::FLAC__StreamMetadata_SeekPoint &point)
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index < object_->data.seek_table.num_points);
 			::FLAC__metadata_object_seektable_set_point(object_, index, point);
 		}
 
-		bool SeekTable::insert_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point)
+		bool SeekTable::insert_point(unsigned index, const ::FLAC__StreamMetadata_SeekPoint &point)
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index <= object_->data.seek_table.num_points);
@@ -405,16 +441,16 @@ namespace FLAC {
 
 		VorbisComment::Entry::Entry(const Entry &entry)
 		{
+			FLAC__ASSERT(entry.is_valid());
 			zero();
-			if(entry.is_valid())
-				construct((const char *)entry.entry_.entry, entry.entry_.length);
+			construct((const char *)entry.entry_.entry, entry.entry_.length);
 		}
 
 		void VorbisComment::Entry::operator=(const Entry &entry)
 		{
+			FLAC__ASSERT(entry.is_valid());
 			clear();
-			if(entry.is_valid())
-				construct((const char *)entry.entry_.entry, entry.entry_.length);
+			construct((const char *)entry.entry_.entry, entry.entry_.length);
 		}
 
 		VorbisComment::Entry::~Entry()
@@ -445,7 +481,7 @@ namespace FLAC {
 			return field_value_length_;
 		}
 
-		::FLAC__StreamMetaData_VorbisComment_Entry VorbisComment::Entry::get_entry() const
+		::FLAC__StreamMetadata_VorbisComment_Entry VorbisComment::Entry::get_entry() const
 		{
 			FLAC__ASSERT(is_valid());
 			return entry_;
@@ -477,14 +513,12 @@ namespace FLAC {
 			clear_entry();
 
 			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_length))) {
-				clear();
 				is_valid_ = false;
 			}
 			else {
 				entry_.length = field_length;
 				memcpy(entry_.entry, field, field_length);
-				parse_field();
-				is_valid_ = true;
+				(void) parse_field();
 			}
 
 			return is_valid_;
@@ -498,13 +532,11 @@ namespace FLAC {
 			clear_field_name();
 
 			if(0 == (field_name_ = strdup(field_name))) {
-				clear();
 				is_valid_ = false;
 			}
 			else {
 				field_name_length_ = strlen(field_name_);
 				compose_field();
-				is_valid_ = true;
 			}
 
 			return is_valid_;
@@ -518,14 +550,12 @@ namespace FLAC {
 			clear_field_value();
 
 			if(0 == (field_value_ = (char *)malloc(field_value_length))) {
-				clear();
 				is_valid_ = false;
 			}
 			else {
 				field_value_length_ = field_value_length;
 				memcpy(field_value_, field_value, field_value_length);
 				compose_field();
-				is_valid_ = true;
 			}
 
 			return is_valid_;
@@ -533,7 +563,7 @@ namespace FLAC {
 
 		void VorbisComment::Entry::zero()
 		{
-			is_valid_ = false;
+			is_valid_ = true;
 			entry_.length = 0;
 			entry_.entry = 0;
 			field_name_ = 0;
@@ -547,13 +577,12 @@ namespace FLAC {
 			clear_entry();
 			clear_field_name();
 			clear_field_value();
-			is_valid_ = false;
+			is_valid_ = true;
 		}
 
 		void VorbisComment::Entry::clear_entry()
 		{
 			if(0 != entry_.entry) {
-				FLAC__ASSERT(entry_.length == 0);
 				free(entry_.entry);
 				entry_.entry = 0;
 				entry_.length = 0;
@@ -563,7 +592,6 @@ namespace FLAC {
 		void VorbisComment::Entry::clear_field_name()
 		{
 			if(0 != field_name_) {
-				FLAC__ASSERT(field_name_length_ == 0);
 				free(field_name_);
 				field_name_ = 0;
 				field_name_length_ = 0;
@@ -573,7 +601,6 @@ namespace FLAC {
 		void VorbisComment::Entry::clear_field_value()
 		{
 			if(0 != field_value_) {
-				FLAC__ASSERT(field_name_length_ == 0);
 				free(field_value_);
 				field_value_ = 0;
 				field_value_length_ = 0;
@@ -582,21 +609,14 @@ namespace FLAC {
 
 		void VorbisComment::Entry::construct(const char *field, unsigned field_length)
 		{
-			set_field(field, field_length);
-			if(is_valid_) {
+			if(set_field(field, field_length))
 				parse_field();
-			}
 		}
 
 		void VorbisComment::Entry::construct(const char *field_name, const char *field_value, unsigned field_value_length)
 		{
-			set_field_name(field_name);
-			if(is_valid_) {
-				set_field_value(field_value, field_value_length);
-				if(is_valid_) {
-					compose_field();
-				}
-			}
+			if(set_field_name(field_name) && set_field_value(field_value, field_value_length))
+				compose_field();
 		}
 
 		void VorbisComment::Entry::compose_field()
@@ -604,14 +624,14 @@ namespace FLAC {
 			clear_entry();
 
 			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_name_length_ + 1 + field_value_length_))) {
-				clear();
+				is_valid_ = false;
 			}
 			else {
 				memcpy(entry_.entry, field_name_, field_name_length_);
 				entry_.length += field_name_length_;
 				memcpy(entry_.entry + entry_.length, "=", 1);
 				entry_.length += 1;
-				memcpy(entry_.entry, field_value_, field_value_length_);
+				memcpy(entry_.entry + entry_.length, field_value_, field_value_length_);
 				entry_.length += field_value_length_;
 				is_valid_ = true;
 			}
@@ -624,25 +644,32 @@ namespace FLAC {
 
 			const char *p = (const char *)memchr(entry_.entry, '=', entry_.length);
 
-			if(0 == p) {
-				clear();
-				return;
-			}
+			if(0 == p)
+				p = (const char *)entry_.entry + entry_.length;
 
-			if(0 == (field_name_ = (char *)malloc(p - (const char *)entry_.entry + 1))) { // +1 for the trailing \0
-				clear();
+			field_name_length_ = p - (const char *)entry_.entry;
+			if(0 == (field_name_ = (char *)malloc(field_name_length_ + 1))) { // +1 for the trailing \0
+				is_valid_ = false;
 				return;
 			}
-			field_name_length_ = p - (const char *)entry_.entry;
 			memcpy(field_name_, entry_.entry, field_name_length_);
 			field_name_[field_name_length_] = '\0';
 
-			if(0 == (field_value_ = (char *)malloc(entry_.length - field_name_length_ - 1))) {
-				clear();
-				return;
+			if(entry_.length - field_name_length_ == 0) {
+				field_value_length_ = 0;
+				if(0 == (field_value_ = (char *)malloc(0))) {
+					is_valid_ = false;
+					return;
+				}
 			}
-			field_value_length_ = entry_.length - field_name_length_ - 1;
-			memcpy(field_value_, ++p, field_value_length_);
+			else {
+				field_value_length_ = entry_.length - field_name_length_ - 1;
+				if(0 == (field_value_ = (char *)malloc(field_value_length_))) {
+					is_valid_ = false;
+					return;
+				}
+				memcpy(field_value_, ++p, field_value_length_);
+			}
 
 			is_valid_ = true;
 		}
@@ -654,10 +681,6 @@ namespace FLAC {
 
 		VorbisComment::VorbisComment():
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT), /*copy=*/false)
-		{ }
-
-		VorbisComment::VorbisComment(::FLAC__StreamMetaData *object, bool copy):
-		Prototype(object, copy)
 		{ }
 
 		VorbisComment::~VorbisComment()
@@ -679,13 +702,17 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index < object_->data.vorbis_comment.num_comments);
-			return Entry((const char *)object_->data.vorbis_comment.vendor_string.entry, object_->data.vorbis_comment.vendor_string.length);
+			return Entry((const char *)object_->data.vorbis_comment.comments[index].entry, object_->data.vorbis_comment.comments[index].length);
 		}
 
 		bool VorbisComment::set_vendor_string(const VorbisComment::Entry &entry)
 		{
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__metadata_object_vorbiscomment_set_vendor_string(object_, entry.get_entry(), /*copy=*/true);
+			// vendor_string is a special kind of entry
+			::FLAC__StreamMetadata_VorbisComment_Entry vendor_string;
+			vendor_string.length = entry.get_field_name_length();
+			vendor_string.entry = (FLAC__byte*)entry.get_field_name(); // we can cheat on const-ness because we make a copy below:
+			return (bool)::FLAC__metadata_object_vorbiscomment_set_vendor_string(object_, vendor_string, /*copy=*/true);
 		}
 
 		bool VorbisComment::set_comment(unsigned index, const VorbisComment::Entry &entry)
@@ -720,9 +747,9 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(0 != filename);
 
-			FLAC__StreamMetaData s;
+			::FLAC__StreamMetadata s;
 
-			if(FLAC__metadata_get_streaminfo(filename, &s.data.stream_info)) {
+			if(::FLAC__metadata_get_streaminfo(filename, &s.data.stream_info)) {
 				streaminfo = s;
 				return true;
 			}
@@ -789,7 +816,7 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_simple_iterator_prev(iterator_);
 		}
 
-		::FLAC__MetaDataType SimpleIterator::get_block_type() const
+		::FLAC__MetadataType SimpleIterator::get_block_type() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__metadata_simple_iterator_get_block_type(iterator_);
@@ -922,7 +949,7 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_iterator_prev(iterator_);
 		}
 
-		::FLAC__MetaDataType Iterator::get_block_type() const 
+		::FLAC__MetadataType Iterator::get_block_type() const 
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__metadata_iterator_get_block_type(iterator_);

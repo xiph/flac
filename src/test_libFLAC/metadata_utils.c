@@ -26,7 +26,7 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp() */
 
-FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetaData_StreamInfo *block, const FLAC__StreamMetaData_StreamInfo *blockcopy)
+FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetadata_StreamInfo *block, const FLAC__StreamMetadata_StreamInfo *blockcopy)
 {
 	if(blockcopy->min_blocksize != block->min_blocksize) {
 		printf("FAILED, min_blocksize mismatch, expected %u, got %u\n", block->min_blocksize, blockcopy->min_blocksize);
@@ -100,14 +100,14 @@ FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetaData_StreamInfo 
 	return true;
 }
 
-FLAC__bool compare_block_data_padding_(const FLAC__StreamMetaData_Padding *block, const FLAC__StreamMetaData_Padding *blockcopy, unsigned block_length)
+FLAC__bool compare_block_data_padding_(const FLAC__StreamMetadata_Padding *block, const FLAC__StreamMetadata_Padding *blockcopy, unsigned block_length)
 {
 	/* we don't compare the padding guts */
 	(void)block, (void)blockcopy, (void)block_length;
 	return true;
 }
 
-FLAC__bool compare_block_data_application_(const FLAC__StreamMetaData_Application *block, const FLAC__StreamMetaData_Application *blockcopy, unsigned block_length)
+FLAC__bool compare_block_data_application_(const FLAC__StreamMetadata_Application *block, const FLAC__StreamMetadata_Application *blockcopy, unsigned block_length)
 {
 	if(block_length < sizeof(block->id)) {
 		printf("FAILED, bad block length = %u\n", block_length);
@@ -149,7 +149,7 @@ FLAC__bool compare_block_data_application_(const FLAC__StreamMetaData_Applicatio
 	return true;
 }
 
-FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetaData_SeekTable *block, const FLAC__StreamMetaData_SeekTable *blockcopy)
+FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetadata_SeekTable *block, const FLAC__StreamMetadata_SeekTable *blockcopy)
 {
 	unsigned i;
 	if(blockcopy->num_points != block->num_points) {
@@ -173,7 +173,7 @@ FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetaData_SeekTable *b
 	return true;
 }
 
-FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetaData_VorbisComment *block, const FLAC__StreamMetaData_VorbisComment *blockcopy)
+FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_VorbisComment *block, const FLAC__StreamMetadata_VorbisComment *blockcopy)
 {
 	unsigned i;
 	if(blockcopy->vendor_string.length != block->vendor_string.length) {
@@ -215,10 +215,10 @@ FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetaData_VorbisCo
 	return true;
 }
 
-FLAC__bool compare_block_(const FLAC__StreamMetaData *block, const FLAC__StreamMetaData *blockcopy)
+FLAC__bool compare_block_(const FLAC__StreamMetadata *block, const FLAC__StreamMetadata *blockcopy)
 {
 	if(blockcopy->type != block->type) {
-		printf("FAILED, type mismatch, expected %s, got %s\n", FLAC__MetaDataTypeString[block->type], FLAC__MetaDataTypeString[blockcopy->type]);
+		printf("FAILED, type mismatch, expected %s, got %s\n", FLAC__MetadataTypeString[block->type], FLAC__MetadataTypeString[blockcopy->type]);
 		return false;
     }
 	if(blockcopy->is_last != block->is_last) {

@@ -52,7 +52,7 @@ namespace FLAC {
 			return (bool)::FLAC__file_decoder_set_filename(decoder_, value);
 		}
 
-		bool File::set_metadata_respond(::FLAC__MetaDataType type)
+		bool File::set_metadata_respond(::FLAC__MetadataType type)
 		{
 			FLAC__ASSERT(0 != decoder_);
 			return (bool)::FLAC__file_decoder_set_metadata_respond(decoder_, type);
@@ -70,7 +70,7 @@ namespace FLAC {
 			return (bool)::FLAC__file_decoder_set_metadata_respond_all(decoder_);
 		}
 
-		bool File::set_metadata_ignore(::FLAC__MetaDataType type)
+		bool File::set_metadata_ignore(::FLAC__MetadataType type)
 		{
 			FLAC__ASSERT(0 != decoder_);
 			return (bool)::FLAC__file_decoder_set_metadata_ignore(decoder_, type);
@@ -185,7 +185,7 @@ namespace FLAC {
 			return instance->write_callback(frame, buffer);
 		}
 
-		void File::metadata_callback_(const ::FLAC__FileDecoder *decoder, const ::FLAC__StreamMetaData *metadata, void *client_data)
+		void File::metadata_callback_(const ::FLAC__FileDecoder *decoder, const ::FLAC__StreamMetadata *metadata, void *client_data)
 		{
 			(void) decoder;
 			FLAC__ASSERT(0 != client_data);

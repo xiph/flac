@@ -94,7 +94,7 @@ static FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder *de
  * actually never used in the callbacks.
  */
 static FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
-static void metadata_callback(const void *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
+static void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback(const void *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const stream_info_struct *stream_info);
 
@@ -492,7 +492,7 @@ FLAC__bool init(const char *infilename, stream_info_struct *stream_info)
 		 * unnecessary but here the cast makes the C compiler happy.
 		 */
 		FLAC__stream_decoder_set_write_callback(stream_info->decoder.stream, (FLAC__StreamDecoderWriteStatus (*)(const FLAC__StreamDecoder *, const FLAC__Frame *, const FLAC__int32 *[], void *))write_callback);
-		FLAC__stream_decoder_set_metadata_callback(stream_info->decoder.stream, (void (*)(const FLAC__StreamDecoder *, const FLAC__StreamMetaData *, void *))metadata_callback);
+		FLAC__stream_decoder_set_metadata_callback(stream_info->decoder.stream, (void (*)(const FLAC__StreamDecoder *, const FLAC__StreamMetadata *, void *))metadata_callback);
 		FLAC__stream_decoder_set_error_callback(stream_info->decoder.stream, (void (*)(const FLAC__StreamDecoder *, FLAC__StreamDecoderErrorStatus, void *))error_callback);
 		FLAC__stream_decoder_set_client_data(stream_info->decoder.stream, stream_info);
 
@@ -521,7 +521,7 @@ FLAC__bool init(const char *infilename, stream_info_struct *stream_info)
 		 * the callback down to 'FLAC__FileDecoder *'.
 		 */
 		FLAC__file_decoder_set_write_callback(stream_info->decoder.file, (FLAC__StreamDecoderWriteStatus (*)(const FLAC__FileDecoder *, const FLAC__Frame *, const FLAC__int32 * const [], void *))write_callback);
-		FLAC__file_decoder_set_metadata_callback(stream_info->decoder.file, (void (*)(const FLAC__FileDecoder *, const FLAC__StreamMetaData *, void *))metadata_callback);
+		FLAC__file_decoder_set_metadata_callback(stream_info->decoder.file, (void (*)(const FLAC__FileDecoder *, const FLAC__StreamMetadata *, void *))metadata_callback);
 		FLAC__file_decoder_set_error_callback(stream_info->decoder.file, (void (*)(const FLAC__FileDecoder *, FLAC__StreamDecoderErrorStatus, void *))error_callback);
 		FLAC__file_decoder_set_client_data(stream_info->decoder.file, stream_info);
 
@@ -755,7 +755,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-void metadata_callback(const void *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
+void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	(void)decoder;
@@ -856,7 +856,7 @@ void print_stats(const stream_info_struct *stream_info)
 	}
 }
 #if 0
-void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data)
+void metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
 	FLAC__byte b;

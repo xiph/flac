@@ -26,8 +26,8 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
-static ::FLAC__StreamMetaData streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_;
-static ::FLAC__StreamMetaData *metadata_sequence_[] = { &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_ };
+static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_;
+static ::FLAC__StreamMetadata *metadata_sequence_[] = { &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_ };
 static const unsigned num_metadata_ = 5;
 
 static void *malloc_or_die_(size_t size)
@@ -72,7 +72,7 @@ static void init_metadata_blocks_()
     seektable_.type = ::FLAC__METADATA_TYPE_SEEKTABLE;
 	seektable_.data.seek_table.num_points = 2;
     seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	seektable_.data.seek_table.points = (::FLAC__StreamMetaData_SeekPoint*)malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(::FLAC__StreamMetaData_SeekPoint));
+	seektable_.data.seek_table.points = (::FLAC__StreamMetadata_SeekPoint*)malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(::FLAC__StreamMetadata_SeekPoint));
 	seektable_.data.seek_table.points[0].sample_number = 0;
 	seektable_.data.seek_table.points[0].stream_offset = 0;
 	seektable_.data.seek_table.points[0].frame_samples = streaminfo_.data.stream_info.min_blocksize;
@@ -100,7 +100,7 @@ static void init_metadata_blocks_()
 	vorbiscomment_.data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc_or_die_(8);
 	memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, "flac 1.x", 8);
 	vorbiscomment_.data.vorbis_comment.num_comments = 2;
-	vorbiscomment_.data.vorbis_comment.comments = (::FLAC__StreamMetaData_VorbisComment_Entry*)malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(::FLAC__StreamMetaData_VorbisComment_Entry));
+	vorbiscomment_.data.vorbis_comment.comments = (::FLAC__StreamMetadata_VorbisComment_Entry*)malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(::FLAC__StreamMetadata_VorbisComment_Entry));
 	vorbiscomment_.data.vorbis_comment.comments[0].length = 5;
 	vorbiscomment_.data.vorbis_comment.comments[0].entry = (FLAC__byte*)malloc_or_die_(5);
 	memcpy(vorbiscomment_.data.vorbis_comment.comments[0].entry, "ab=cd", 5);
@@ -124,7 +124,7 @@ public:
 
 	// from FLAC::Encoder::Stream
 	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame);
-	void metadata_callback(const ::FLAC__StreamMetaData *metadata);
+	void metadata_callback(const ::FLAC__StreamMetadata *metadata);
 
 	bool die(const char *msg = 0) const;
 };
@@ -136,7 +136,7 @@ public:
 	return ::FLAC__STREAM_ENCODER_WRITE_OK;
 }
 
-void StreamEncoder::metadata_callback(const ::FLAC__StreamMetaData *metadata)
+void StreamEncoder::metadata_callback(const ::FLAC__StreamMetadata *metadata)
 {
 	(void)metadata;
 }
@@ -160,7 +160,7 @@ static bool test_stream_encoder()
 	FLAC__int32 *samples_array[1] = { samples };
 	unsigned i;
 
-	printf("\n+++ unit test: FLAC::Encoder::Stream\n\n");
+	printf("\n+++ libFLAC++ unit test: FLAC::Encoder::Stream\n\n");
 
 	printf("allocating encoder instance... ");
 	encoder = new StreamEncoder();

@@ -37,7 +37,7 @@ static FLAC__byte *make_dummydata_(FLAC__byte *dummydata, unsigned len)
 	return ret;
 }
 
-static FLAC__bool compare_seekpoint_array_(const FLAC__StreamMetaData_SeekPoint *from, const FLAC__StreamMetaData_SeekPoint *to, unsigned n)
+static FLAC__bool compare_seekpoint_array_(const FLAC__StreamMetadata_SeekPoint *from, const FLAC__StreamMetadata_SeekPoint *to, unsigned n)
 {
 	unsigned i;
 
@@ -62,7 +62,7 @@ static FLAC__bool compare_seekpoint_array_(const FLAC__StreamMetaData_SeekPoint 
 	return true;
 }
 
-static FLAC__bool check_seektable_(const FLAC__StreamMetaData *block, unsigned num_points, const FLAC__StreamMetaData_SeekPoint *array)
+static FLAC__bool check_seektable_(const FLAC__StreamMetadata *block, unsigned num_points, const FLAC__StreamMetadata_SeekPoint *array)
 {
 	const unsigned expected_length = num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
 
@@ -89,7 +89,7 @@ static FLAC__bool check_seektable_(const FLAC__StreamMetaData *block, unsigned n
 	return true;
 }
 
-static void entry_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, const char *field)
+static void entry_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field)
 {
 	entry->length = strlen(field);
 	entry->entry = (FLAC__byte*)malloc(entry->length);
@@ -97,7 +97,7 @@ static void entry_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, const ch
 	memcpy(entry->entry, field, entry->length);
 }
 
-static void entry_clone_(FLAC__StreamMetaData_VorbisComment_Entry *entry)
+static void entry_clone_(FLAC__StreamMetadata_VorbisComment_Entry *entry)
 {
 	FLAC__byte *x = (FLAC__byte*)malloc(entry->length);
 	FLAC__ASSERT(0 != x);	
@@ -105,9 +105,9 @@ static void entry_clone_(FLAC__StreamMetaData_VorbisComment_Entry *entry)
 	entry->entry = x;
 }
 
-static void vc_calc_len_(FLAC__StreamMetaData *block)
+static void vc_calc_len_(FLAC__StreamMetadata *block)
 {
-	const FLAC__StreamMetaData_VorbisComment *vc = &block->data.vorbis_comment;
+	const FLAC__StreamMetadata_VorbisComment *vc = &block->data.vorbis_comment;
 	unsigned i;
 
 	block->length = FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8;
@@ -119,9 +119,9 @@ static void vc_calc_len_(FLAC__StreamMetaData *block)
 	}
 }
 
-static void vc_resize_(FLAC__StreamMetaData *block, unsigned num)
+static void vc_resize_(FLAC__StreamMetadata *block, unsigned num)
 {
-	FLAC__StreamMetaData_VorbisComment *vc = &block->data.vorbis_comment;
+	FLAC__StreamMetadata_VorbisComment *vc = &block->data.vorbis_comment;
 
 	if(vc->num_comments != 0) {
 		FLAC__ASSERT(0 != vc->comments);
@@ -140,43 +140,43 @@ static void vc_resize_(FLAC__StreamMetaData *block, unsigned num)
 		}
 	}
 	else {
-		vc->comments = (FLAC__StreamMetaData_VorbisComment_Entry*)realloc(vc->comments, sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*num);
+		vc->comments = (FLAC__StreamMetadata_VorbisComment_Entry*)realloc(vc->comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*num);
 		FLAC__ASSERT(0 != vc->comments);
 		if(num > vc->num_comments)
-			memset(vc->comments+vc->num_comments, 0, sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*(num-vc->num_comments));
+			memset(vc->comments+vc->num_comments, 0, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(num-vc->num_comments));
 	}
 
 	vc->num_comments = num;
 	vc_calc_len_(block);
 }
 
-static void vc_set_vs_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__StreamMetaData *block, const char *field)
+static void vc_set_vs_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__StreamMetadata *block, const char *field)
 {
 	entry_new_(entry, field);
 	block->data.vorbis_comment.vendor_string = *entry;
 	vc_calc_len_(block);
 }
 
-static void vc_set_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__StreamMetaData *block, unsigned pos, const char *field)
+static void vc_set_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__StreamMetadata *block, unsigned pos, const char *field)
 {
 	entry_new_(entry, field);
 	block->data.vorbis_comment.comments[pos] = *entry;
 	vc_calc_len_(block);
 }
 
-static void vc_insert_new_(FLAC__StreamMetaData_VorbisComment_Entry *entry, FLAC__StreamMetaData *block, unsigned pos, const char *field)
+static void vc_insert_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__StreamMetadata *block, unsigned pos, const char *field)
 {
 	vc_resize_(block, block->data.vorbis_comment.num_comments+1);
-	memmove(&block->data.vorbis_comment.comments[pos+1], &block->data.vorbis_comment.comments[pos], sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*(block->data.vorbis_comment.num_comments-1-pos));
+	memmove(&block->data.vorbis_comment.comments[pos+1], &block->data.vorbis_comment.comments[pos], sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(block->data.vorbis_comment.num_comments-1-pos));
 	vc_set_new_(entry, block, pos, field);
 	vc_calc_len_(block);
 }
 
-static void vc_delete_(FLAC__StreamMetaData *block, unsigned pos)
+static void vc_delete_(FLAC__StreamMetadata *block, unsigned pos)
 {
 	if(0 != block->data.vorbis_comment.comments[pos].entry)
 		free(block->data.vorbis_comment.comments[pos].entry);
-	memmove(&block->data.vorbis_comment.comments[pos], &block->data.vorbis_comment.comments[pos+1], sizeof(FLAC__StreamMetaData_VorbisComment_Entry)*(block->data.vorbis_comment.num_comments-pos-1));
+	memmove(&block->data.vorbis_comment.comments[pos], &block->data.vorbis_comment.comments[pos+1], sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(block->data.vorbis_comment.num_comments-pos-1));
 	block->data.vorbis_comment.comments[block->data.vorbis_comment.num_comments-1].entry = 0;
 	block->data.vorbis_comment.comments[block->data.vorbis_comment.num_comments-1].length = 0;
 	vc_resize_(block, block->data.vorbis_comment.num_comments-1);
@@ -185,13 +185,13 @@ static void vc_delete_(FLAC__StreamMetaData *block, unsigned pos)
 
 FLAC__bool test_metadata_object()
 {
-	FLAC__StreamMetaData *block, *blockcopy, *vorbiscomment;
-	FLAC__StreamMetaData_SeekPoint seekpoint_array[4];
-	FLAC__StreamMetaData_VorbisComment_Entry entry;
+	FLAC__StreamMetadata *block, *blockcopy, *vorbiscomment;
+	FLAC__StreamMetadata_SeekPoint seekpoint_array[4];
+	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	unsigned i, expected_length, seekpoints;
 	static FLAC__byte dummydata[4] = { 'a', 'b', 'c', 'd' };
 
-	printf("\n+++ unit test: metadata objects (libFLAC)\n\n");
+	printf("\n+++ libFLAC unit test: metadata objects\n\n");
 
 
 	printf("testing STREAMINFO\n");
@@ -209,8 +209,8 @@ FLAC__bool test_metadata_object()
     }
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
 		return false;
@@ -240,8 +240,8 @@ FLAC__bool test_metadata_object()
     }
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
 		return false;
@@ -271,8 +271,8 @@ FLAC__bool test_metadata_object()
     }
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
 		return false;
@@ -301,8 +301,8 @@ FLAC__bool test_metadata_object()
 	}
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
 		return false;
@@ -331,8 +331,8 @@ FLAC__bool test_metadata_object()
 	}
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
 		return false;
@@ -365,8 +365,8 @@ FLAC__bool test_metadata_object()
 	if(!check_seektable_(block, seekpoints, 0))
 		return false;
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
 		return false;
@@ -452,8 +452,8 @@ FLAC__bool test_metadata_object()
 	if(!check_seektable_(block, seekpoints, seekpoint_array))
 		return false;
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
 		return false;
@@ -516,8 +516,8 @@ FLAC__bool test_metadata_object()
     }
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	vorbiscomment = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	vorbiscomment = FLAC__metadata_object_clone(block);
 	if(0 == vorbiscomment) {
 		printf("FAILED, returned NULL\n");
 		return false;
@@ -596,8 +596,8 @@ FLAC__bool test_metadata_object()
 		return false;
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	blockcopy = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	blockcopy = FLAC__metadata_object_clone(block);
 	if(0 == blockcopy) {
 		printf("FAILED, returned NULL\n");
 		return false;
@@ -668,8 +668,8 @@ FLAC__bool test_metadata_object()
 	}
 	printf("OK\n");
 
-	printf("testing FLAC__metadata_object_copy()... ");
-	vorbiscomment = FLAC__metadata_object_copy(block);
+	printf("testing FLAC__metadata_object_clone()... ");
+	vorbiscomment = FLAC__metadata_object_clone(block);
 	if(0 == vorbiscomment) {
 		printf("FAILED, returned NULL\n");
 		return false;

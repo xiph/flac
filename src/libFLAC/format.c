@@ -103,7 +103,7 @@ const char * const FLAC__FrameNumberTypeString[] = {
 	"FRAME_NUMBER_TYPE_SAMPLE_NUMBER"
 };
 
-const char * const FLAC__MetaDataTypeString[] = {
+const char * const FLAC__MetadataTypeString[] = {
 	"STREAMINFO",
 	"PADDING",
 	"APPLICATION",

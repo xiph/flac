@@ -30,7 +30,7 @@
 static FLAC__bool subframe_add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method);
 static FLAC__bool subframe_add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order);
 
-FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitBuffer *bb)
 {
 	unsigned i;
 

@@ -22,6 +22,6 @@
 
 #include "FLAC/metadata.h"
 
-void FLAC__metadata_object_delete_data(FLAC__StreamMetaData *object);
+void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object);
 
 #endif

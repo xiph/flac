@@ -135,7 +135,7 @@ typedef struct {
 } Argument_BlockNumber;
 
 typedef struct {
-	FLAC__MetaDataType type;
+	FLAC__MetadataType type;
 	char application_id[4]; /* only relevant if type == FLAC__STREAM_METADATA_TYPE_APPLICATION */
 	FLAC__bool filter_application_by_id;
 } Argument_BlockTypeEntry;
@@ -226,25 +226,25 @@ static FLAC__bool parse_application_data_format(const char *in, FLAC__bool *out)
 static FLAC__bool do_operations(const CommandLineOptions *options);
 static FLAC__bool do_major_operation(const CommandLineOptions *options);
 static FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOptions *options);
-static FLAC__bool do_major_operation__list(const char *filename, FLAC__MetaData_Chain *chain, const CommandLineOptions *options);
-static FLAC__bool do_major_operation__append(FLAC__MetaData_Chain *chain, const CommandLineOptions *options);
-static FLAC__bool do_major_operation__remove(FLAC__MetaData_Chain *chain, const CommandLineOptions *options);
-static FLAC__bool do_major_operation__remove_all(FLAC__MetaData_Chain *chain, const CommandLineOptions *options);
+static FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *chain, const CommandLineOptions *options);
+static FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const CommandLineOptions *options);
+static FLAC__bool do_major_operation__remove(FLAC__Metadata_Chain *chain, const CommandLineOptions *options);
+static FLAC__bool do_major_operation__remove_all(FLAC__Metadata_Chain *chain, const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations(const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations_on_file(const char *fielname, const CommandLineOptions *options);
-static FLAC__bool do_shorthand_operation(const char *filename, FLAC__MetaData_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
-static FLAC__bool do_shorthand_operation__add_padding(FLAC__MetaData_Chain *chain, unsigned length, FLAC__bool *needs_write);
-static FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__MetaData_Chain *chain, OperationType op);
-static FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__MetaData_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
-static FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMetaData *block, unsigned block_number);
-static void write_metadata(const char *filename, FLAC__StreamMetaData *block, unsigned block_number, FLAC__bool hexdump_application);
-static void write_vc_field(const char *filename, const FLAC__StreamMetaData_VorbisComment_Entry *entry);
-static void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetaData_VorbisComment_Entry entry[], unsigned num_entries);
-static FLAC__bool remove_vc_all(FLAC__StreamMetaData *block, FLAC__bool *needs_write);
-static FLAC__bool remove_vc_field(FLAC__StreamMetaData *block, const char *field_name, FLAC__bool *needs_write);
-static FLAC__bool remove_vc_firstfield(FLAC__StreamMetaData *block, const char *field_name, FLAC__bool *needs_write);
-static FLAC__bool set_vc_field(FLAC__StreamMetaData *block, const Argument_VcField *field, FLAC__bool *needs_write);
-static FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetaData_VorbisComment_Entry *entry);
+static FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
+static FLAC__bool do_shorthand_operation__add_padding(FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write);
+static FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, OperationType op);
+static FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
+static FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMetadata *block, unsigned block_number);
+static void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool hexdump_application);
+static void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry);
+static void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries);
+static FLAC__bool remove_vc_all(FLAC__StreamMetadata *block, FLAC__bool *needs_write);
+static FLAC__bool remove_vc_field(FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
+static FLAC__bool remove_vc_firstfield(FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
+static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write);
+static FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetadata_VorbisComment_Entry *entry);
 static void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent);
 
 int main(int argc, char *argv[])
@@ -1056,13 +1056,13 @@ FLAC__bool do_major_operation(const CommandLineOptions *options)
 FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOptions *options)
 {
 	FLAC__bool ok = true, needs_write = false;
-	FLAC__MetaData_Chain *chain = FLAC__metadata_chain_new();
+	FLAC__Metadata_Chain *chain = FLAC__metadata_chain_new();
 
 	if(0 == chain)
 		die("out of memory allocating chain");
 
 	if(!FLAC__metadata_chain_read(chain, filename)) {
-		fprintf(stderr, "ERROR: reading metadata, status = \"%s\"\n", FLAC__MetaData_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+		fprintf(stderr, "ERROR: reading metadata, status = \"%s\"\n", FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
 		return false;
 	}
 
@@ -1100,7 +1100,7 @@ FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOpt
 			FLAC__metadata_chain_sort_padding(chain);
 		ok = FLAC__metadata_chain_write(chain, options->use_padding, options->preserve_modtime);
 		if(!ok)
-			fprintf(stderr, "ERROR: writing FLAC file %s, error = %s\n", filename, FLAC__MetaData_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+			fprintf(stderr, "ERROR: writing FLAC file %s, error = %s\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
 	}
 
 	FLAC__metadata_chain_delete(chain);
@@ -1108,10 +1108,10 @@ FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOpt
 	return ok;
 }
 
-FLAC__bool do_major_operation__list(const char *filename, FLAC__MetaData_Chain *chain, const CommandLineOptions *options)
+FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *chain, const CommandLineOptions *options)
 {
-	FLAC__MetaData_Iterator *iterator = FLAC__metadata_iterator_new();
-	FLAC__StreamMetaData *block;
+	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
+	FLAC__StreamMetadata *block;
 	FLAC__bool ok = true;
 	unsigned block_number;
 
@@ -1136,16 +1136,16 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__MetaData_Chain *
 	return ok;
 }
 
-FLAC__bool do_major_operation__append(FLAC__MetaData_Chain *chain, const CommandLineOptions *options)
+FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const CommandLineOptions *options)
 {
 	(void) chain, (void) options;
 	fprintf(stderr, "ERROR: --append not implemented yet\n"); /*@@@*/
 	return false;
 }
 
-FLAC__bool do_major_operation__remove(FLAC__MetaData_Chain *chain, const CommandLineOptions *options)
+FLAC__bool do_major_operation__remove(FLAC__Metadata_Chain *chain, const CommandLineOptions *options)
 {
-	FLAC__MetaData_Iterator *iterator = FLAC__metadata_iterator_new();
+	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
 	FLAC__bool ok = true;
 	unsigned block_number;
 
@@ -1166,9 +1166,9 @@ FLAC__bool do_major_operation__remove(FLAC__MetaData_Chain *chain, const Command
 	return ok;
 }
 
-FLAC__bool do_major_operation__remove_all(FLAC__MetaData_Chain *chain, const CommandLineOptions *options)
+FLAC__bool do_major_operation__remove_all(FLAC__Metadata_Chain *chain, const CommandLineOptions *options)
 {
-	FLAC__MetaData_Iterator *iterator = FLAC__metadata_iterator_new();
+	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
 	FLAC__bool ok = true;
 
 	if(0 == iterator)
@@ -1200,13 +1200,13 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 {
 	unsigned i;
 	FLAC__bool ok = true, needs_write = false;
-	FLAC__MetaData_Chain *chain = FLAC__metadata_chain_new();
+	FLAC__Metadata_Chain *chain = FLAC__metadata_chain_new();
 
 	if(0 == chain)
 		die("out of memory allocating chain");
 
 	if(!FLAC__metadata_chain_read(chain, filename)) {
-		fprintf(stderr, "ERROR: reading metadata, status = \"%s\"\n", FLAC__MetaData_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+		fprintf(stderr, "ERROR: reading metadata, status = \"%s\"\n", FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
 		return false;
 	}
 
@@ -1218,7 +1218,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 			FLAC__metadata_chain_sort_padding(chain);
 		ok = FLAC__metadata_chain_write(chain, options->use_padding, options->preserve_modtime);
 		if(!ok)
-			fprintf(stderr, "ERROR: writing FLAC file %s, error = %s\n", filename, FLAC__MetaData_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+			fprintf(stderr, "ERROR: writing FLAC file %s, error = %s\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
 	}
 
 	FLAC__metadata_chain_delete(chain);
@@ -1226,7 +1226,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 	return ok;
 }
 
-FLAC__bool do_shorthand_operation(const char *filename, FLAC__MetaData_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
+FLAC__bool do_shorthand_operation(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
 {
 	FLAC__bool ok = true;
 
@@ -1262,10 +1262,10 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__MetaData_Chain *ch
 	return ok;
 }
 
-FLAC__bool do_shorthand_operation__add_padding(FLAC__MetaData_Chain *chain, unsigned length, FLAC__bool *needs_write)
+FLAC__bool do_shorthand_operation__add_padding(FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write)
 {
-	FLAC__StreamMetaData *padding = 0;
-	FLAC__MetaData_Iterator *iterator = FLAC__metadata_iterator_new();
+	FLAC__StreamMetadata *padding = 0;
+	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
 
 	if(0 == iterator)
 		die("out of memory allocating iterator");
@@ -1282,7 +1282,7 @@ FLAC__bool do_shorthand_operation__add_padding(FLAC__MetaData_Chain *chain, unsi
 	padding->length = length;
 
 	if(!FLAC__metadata_iterator_insert_block_after(iterator, padding)) {
-		fprintf(stderr, "ERROR: adding new PADDING block to metadata, status =\"%s\"\n", FLAC__MetaData_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+		fprintf(stderr, "ERROR: adding new PADDING block to metadata, status =\"%s\"\n", FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
 		FLAC__metadata_object_delete(padding);
 		return false;
 	}
@@ -1291,12 +1291,12 @@ FLAC__bool do_shorthand_operation__add_padding(FLAC__MetaData_Chain *chain, unsi
 	return true;
 }
 
-FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__MetaData_Chain *chain, OperationType op)
+FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__Metadata_Chain *chain, OperationType op)
 {
 	unsigned i;
 	FLAC__bool ok = true;
-	FLAC__StreamMetaData *block;
-	FLAC__MetaData_Iterator *iterator = FLAC__metadata_iterator_new();
+	FLAC__StreamMetadata *block;
+	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
 
 	if(0 == iterator)
 		die("out of memory allocating iterator");
@@ -1352,11 +1352,11 @@ FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__MetaDa
 	return ok;
 }
 
-FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__MetaData_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
+FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
 {
 	FLAC__bool ok = true, found_vc_block = false;
-	FLAC__StreamMetaData *block = 0;
-	FLAC__MetaData_Iterator *iterator = FLAC__metadata_iterator_new();
+	FLAC__StreamMetadata *block = 0;
+	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
 
 	if(0 == iterator)
 		die("out of memory allocating iterator");
@@ -1377,7 +1377,7 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Me
 		while(FLAC__metadata_iterator_next(iterator))
 			;
 		if(!FLAC__metadata_iterator_insert_block_after(iterator, block)) {
-			fprintf(stderr, "ERROR: adding new VORBIS_COMMENT block to metadata, status =\"%s\"\n", FLAC__MetaData_ChainStatusString[FLAC__metadata_chain_status(chain)]);
+			fprintf(stderr, "ERROR: adding new VORBIS_COMMENT block to metadata, status =\"%s\"\n", FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
 			return false;
 		}
 		/* iterator is left pointing to new block */
@@ -1415,7 +1415,7 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Me
 	return ok;
 }
 
-FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMetaData *block, unsigned block_number)
+FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMetadata *block, unsigned block_number)
 {
 	unsigned i, j;
 	FLAC__bool matches_number = false, matches_type = false;
@@ -1453,14 +1453,14 @@ FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMe
 	return matches_number && matches_type;
 }
 
-void write_metadata(const char *filename, FLAC__StreamMetaData *block, unsigned block_number, FLAC__bool hexdump_application)
+void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool hexdump_application)
 {
 	unsigned i;
 
 /*@@@ yuck, should do this with a varargs function or something: */
 #define PPR if(filename)printf("%s:",filename);
 	PPR; printf("METADATA block #%u\n", block_number);
-	PPR; printf("  type: %u (%s)\n", (unsigned)block->type, block->type<=FLAC__METADATA_TYPE_VORBIS_COMMENT? FLAC__MetaDataTypeString[block->type] : "UNKNOWN");
+	PPR; printf("  type: %u (%s)\n", (unsigned)block->type, block->type<=FLAC__METADATA_TYPE_VORBIS_COMMENT? FLAC__MetadataTypeString[block->type] : "UNKNOWN");
 	PPR; printf("  is last: %s\n", block->is_last? "true":"false");
 	PPR; printf("  length: %u\n", block->length);
 
@@ -1521,7 +1521,7 @@ void write_metadata(const char *filename, FLAC__StreamMetaData *block, unsigned 
 #undef PPR
 }
 
-void write_vc_field(const char *filename, const FLAC__StreamMetaData_VorbisComment_Entry *entry)
+void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry)
 {
 	if(filename)
 		printf("%s:", filename);
@@ -1529,7 +1529,7 @@ void write_vc_field(const char *filename, const FLAC__StreamMetaData_VorbisComme
 	printf("\n");
 }
 
-void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetaData_VorbisComment_Entry entry[], unsigned num_entries)
+void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries)
 {
 	unsigned i;
 	const unsigned field_name_length = strlen(field_name);
@@ -1540,7 +1540,7 @@ void write_vc_fields(const char *filename, const char *field_name, const FLAC__S
 	}
 }
 
-FLAC__bool remove_vc_all(FLAC__StreamMetaData *block, FLAC__bool *needs_write)
+FLAC__bool remove_vc_all(FLAC__StreamMetadata *block, FLAC__bool *needs_write)
 {
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
@@ -1559,7 +1559,7 @@ FLAC__bool remove_vc_all(FLAC__StreamMetaData *block, FLAC__bool *needs_write)
 	return true;
 }
 
-FLAC__bool remove_vc_field(FLAC__StreamMetaData *block, const char *field_name, FLAC__bool *needs_write)
+FLAC__bool remove_vc_field(FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write)
 {
 	FLAC__bool ok = true;
 	const unsigned field_name_length = strlen(field_name);
@@ -1581,7 +1581,7 @@ FLAC__bool remove_vc_field(FLAC__StreamMetaData *block, const char *field_name, 
 	return ok;
 }
 
-FLAC__bool remove_vc_firstfield(FLAC__StreamMetaData *block, const char *field_name, FLAC__bool *needs_write)
+FLAC__bool remove_vc_firstfield(FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write)
 {
 	const unsigned field_name_length = strlen(field_name);
 	unsigned i;
@@ -1603,9 +1603,9 @@ FLAC__bool remove_vc_firstfield(FLAC__StreamMetaData *block, const char *field_n
 	return true;
 }
 
-FLAC__bool set_vc_field(FLAC__StreamMetaData *block, const Argument_VcField *field, FLAC__bool *needs_write)
+FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write)
 {
-	FLAC__StreamMetaData_VorbisComment_Entry entry;
+	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__ASSERT(0 != field);
@@ -1623,7 +1623,7 @@ FLAC__bool set_vc_field(FLAC__StreamMetaData *block, const Argument_VcField *fie
 	}
 }
 
-FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetaData_VorbisComment_Entry *entry)
+FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetadata_VorbisComment_Entry *entry)
 {
 	return (0 != memchr(entry->entry, '=', entry->length) && 0 == strncmp(field_name, entry->entry, field_name_length));
 }

@@ -80,7 +80,7 @@ namespace FLAC {
 			bool set_max_residual_partition_order(unsigned value);
 			bool set_rice_parameter_search_dist(unsigned value);
 			bool set_total_samples_estimate(FLAC__uint64 value);
-			bool set_metadata(::FLAC__StreamMetaData **metadata, unsigned num_blocks);
+			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);
 
 			State    get_state() const;
 			bool     get_streamable_subset() const;
@@ -110,12 +110,12 @@ namespace FLAC {
 			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples);
 		protected:
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
-			virtual void metadata_callback(const ::FLAC__StreamMetaData *metadata) = 0;
+			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
 
 			::FLAC__StreamEncoder *encoder_;
 		private:
 			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
-			static void metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetaData *metadata, void *client_data);
+			static void metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetadata *metadata, void *client_data);
 
 			// Private and undefined so you can't use them:
 			Stream(const Stream &);

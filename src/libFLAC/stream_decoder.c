@@ -69,7 +69,7 @@ static FLAC__bool read_callback_(FLAC__byte buffer[], unsigned *bytes, void *cli
 typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__StreamDecoderReadStatus (*read_callback)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
-	void (*metadata_callback)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
+	void (*metadata_callback)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 	void (*error_callback)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 	void (*local_lpc_restore_signal)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
 	void (*local_lpc_restore_signal_16bit)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
@@ -81,8 +81,8 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__uint32 last_frame_number;
 	FLAC__uint64 samples_decoded;
 	FLAC__bool has_stream_info, has_seek_table;
-	FLAC__StreamMetaData stream_info;
-	FLAC__StreamMetaData seek_table;
+	FLAC__StreamMetadata stream_info;
+	FLAC__StreamMetadata seek_table;
 	FLAC__bool metadata_filter[FLAC__METADATA_TYPE_VORBIS_COMMENT+1];
 	FLAC__byte *metadata_filter_ids;
 	unsigned metadata_filter_ids_count, metadata_filter_ids_capacity; /* units for both are IDs, not bytes */
@@ -313,7 +313,7 @@ FLAC__bool FLAC__stream_decoder_set_write_callback(FLAC__StreamDecoder *decoder,
 	return true;
 }
 
-FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data))
+FLAC__bool FLAC__stream_decoder_set_metadata_callback(FLAC__StreamDecoder *decoder, void (*value)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data))
 {
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
@@ -346,7 +346,7 @@ FLAC__bool FLAC__stream_decoder_set_client_data(FLAC__StreamDecoder *decoder, vo
 	return true;
 }
 
-FLAC__bool FLAC__stream_decoder_set_metadata_respond(FLAC__StreamDecoder *decoder, FLAC__MetaDataType type)
+FLAC__bool FLAC__stream_decoder_set_metadata_respond(FLAC__StreamDecoder *decoder, FLAC__MetadataType type)
 {
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
@@ -399,7 +399,7 @@ FLAC__bool FLAC__stream_decoder_set_metadata_respond_all(FLAC__StreamDecoder *de
 	return true;
 }
 
-FLAC__bool FLAC__stream_decoder_set_metadata_ignore(FLAC__StreamDecoder *decoder, FLAC__MetaDataType type)
+FLAC__bool FLAC__stream_decoder_set_metadata_ignore(FLAC__StreamDecoder *decoder, FLAC__MetadataType type)
 {
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
@@ -888,7 +888,7 @@ FLAC__bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 
 		decoder->private_->seek_table.data.seek_table.num_points = length / FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
 
-		if(0 == (decoder->private_->seek_table.data.seek_table.points = (FLAC__StreamMetaData_SeekPoint*)malloc(decoder->private_->seek_table.data.seek_table.num_points * sizeof(FLAC__StreamMetaData_SeekPoint)))) {
+		if(0 == (decoder->private_->seek_table.data.seek_table.points = (FLAC__StreamMetadata_SeekPoint*)malloc(decoder->private_->seek_table.data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint)))) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
@@ -920,7 +920,7 @@ FLAC__bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 	else {
 		FLAC__bool skip_it = !decoder->private_->metadata_filter[type];
 		unsigned real_length = length;
-		FLAC__StreamMetaData block;
+		FLAC__StreamMetadata block;
 
 		block.is_last = last_block;
 		block.type = type;
@@ -983,7 +983,7 @@ FLAC__bool stream_decoder_read_metadata_(FLAC__StreamDecoder *decoder)
 
 					/* read comments */
 					if(block.data.vorbis_comment.num_comments > 0) {
-						if(0 == (block.data.vorbis_comment.comments = malloc(block.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetaData_VorbisComment_Entry)))) {
+						if(0 == (block.data.vorbis_comment.comments = malloc(block.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
 							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 							return false;
 						}

@@ -28,16 +28,16 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp() */
 
-FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetaData_StreamInfo *block, const FLAC__StreamMetaData_StreamInfo *blockcopy);
+FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetadata_StreamInfo *block, const FLAC__StreamMetadata_StreamInfo *blockcopy);
 
-FLAC__bool compare_block_data_padding_(const FLAC__StreamMetaData_Padding *block, const FLAC__StreamMetaData_Padding *blockcopy, unsigned block_length);
+FLAC__bool compare_block_data_padding_(const FLAC__StreamMetadata_Padding *block, const FLAC__StreamMetadata_Padding *blockcopy, unsigned block_length);
 
-FLAC__bool compare_block_data_application_(const FLAC__StreamMetaData_Application *block, const FLAC__StreamMetaData_Application *blockcopy, unsigned block_length);
+FLAC__bool compare_block_data_application_(const FLAC__StreamMetadata_Application *block, const FLAC__StreamMetadata_Application *blockcopy, unsigned block_length);
 
-FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetaData_SeekTable *block, const FLAC__StreamMetaData_SeekTable *blockcopy);
+FLAC__bool compare_block_data_seektable_(const FLAC__StreamMetadata_SeekTable *block, const FLAC__StreamMetadata_SeekTable *blockcopy);
 
-FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetaData_VorbisComment *block, const FLAC__StreamMetaData_VorbisComment *blockcopy);
+FLAC__bool compare_block_data_vorbiscomment_(const FLAC__StreamMetadata_VorbisComment *block, const FLAC__StreamMetadata_VorbisComment *blockcopy);
 
-FLAC__bool compare_block_(const FLAC__StreamMetaData *block, const FLAC__StreamMetaData *blockcopy);
+FLAC__bool compare_block_(const FLAC__StreamMetadata *block, const FLAC__StreamMetadata *blockcopy);
 
 #endif

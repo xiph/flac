@@ -350,8 +350,8 @@ typedef enum {
 	FLAC__METADATA_TYPE_APPLICATION = 2,
 	FLAC__METADATA_TYPE_SEEKTABLE = 3,
 	FLAC__METADATA_TYPE_VORBIS_COMMENT = 4
-} FLAC__MetaDataType;
-extern const char * const FLAC__MetaDataTypeString[];
+} FLAC__MetadataType;
+extern const char * const FLAC__MetadataTypeString[];
 
 /*****************************************************************************
  *
@@ -375,7 +375,7 @@ typedef struct {
 	unsigned bits_per_sample;
 	FLAC__uint64 total_samples;
 	FLAC__byte md5sum[16];
-} FLAC__StreamMetaData_StreamInfo;
+} FLAC__StreamMetadata_StreamInfo;
 
 extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN; /* = 16 bits */
 extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN; /* = 16 bits */
@@ -398,7 +398,7 @@ extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN; /* = 128 bits
 typedef struct {
 	int dummy; /* conceptually this is an empty struct since we don't store the padding bytes */
 	           /* empty structs are allowed by C++ but not C, hence the 'dummy' */
-} FLAC__StreamMetaData_Padding;
+} FLAC__StreamMetadata_Padding;
 
 /*****************************************************************************
  *
@@ -410,7 +410,7 @@ typedef struct {
 typedef struct {
 	FLAC__byte id[4];
 	FLAC__byte *data;
-} FLAC__StreamMetaData_Application;
+} FLAC__StreamMetadata_Application;
 
 extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /* = 32 bits */
 
@@ -426,7 +426,7 @@ typedef struct {
 	FLAC__uint64 sample_number;
 	FLAC__uint64 stream_offset;
 	unsigned frame_samples;
-} FLAC__StreamMetaData_SeekPoint;
+} FLAC__StreamMetadata_SeekPoint;
 
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN; /* = 64 bits */
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN; /* = 64 bits */
@@ -451,8 +451,8 @@ extern const FLAC__uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER; /* = 0xff
  */
 typedef struct {
 	unsigned num_points;
-	FLAC__StreamMetaData_SeekPoint *points;
-} FLAC__StreamMetaData_SeekTable;
+	FLAC__StreamMetadata_SeekPoint *points;
+} FLAC__StreamMetadata_SeekTable;
 
 /*****************************************************************************
  *
@@ -464,7 +464,7 @@ typedef struct {
 typedef struct {
 	FLAC__uint32 length;
 	FLAC__byte *entry;
-} FLAC__StreamMetaData_VorbisComment_Entry;
+} FLAC__StreamMetadata_VorbisComment_Entry;
 
 extern const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN; /* = 32 bits */
 
@@ -477,33 +477,33 @@ extern const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN; /* 
  * (32+m+n)/8  bytes total
  */
 typedef struct {
-	FLAC__StreamMetaData_VorbisComment_Entry vendor_string;
+	FLAC__StreamMetadata_VorbisComment_Entry vendor_string;
 	FLAC__uint32 num_comments;
-	FLAC__StreamMetaData_VorbisComment_Entry *comments;
-} FLAC__StreamMetaData_VorbisComment;
+	FLAC__StreamMetadata_VorbisComment_Entry *comments;
+} FLAC__StreamMetadata_VorbisComment;
 
 extern const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN; /* = 32 bits */
 
 /*****************************************************************************
  *
  *  1: =1 if this is the last meta-data block, else =0
- *  7: meta-data type (c.f. FLAC__MetaDataType)
+ *  7: meta-data type (c.f. FLAC__MetadataType)
  * 24: length (in bytes) of the block-specific data to follow
  *---- -----------------
  *  4  bytes total
  */
 typedef struct {
-	FLAC__MetaDataType type;
+	FLAC__MetadataType type;
 	FLAC__bool is_last;
 	unsigned length; /* in bytes */
 	union {
-		FLAC__StreamMetaData_StreamInfo stream_info;
-		FLAC__StreamMetaData_Padding padding;
-		FLAC__StreamMetaData_Application application;
-		FLAC__StreamMetaData_SeekTable seek_table;
-		FLAC__StreamMetaData_VorbisComment vorbis_comment;
+		FLAC__StreamMetadata_StreamInfo stream_info;
+		FLAC__StreamMetadata_Padding padding;
+		FLAC__StreamMetadata_Application application;
+		FLAC__StreamMetadata_SeekTable seek_table;
+		FLAC__StreamMetadata_VorbisComment vorbis_comment;
 	} data;
-} FLAC__StreamMetaData;
+} FLAC__StreamMetadata;
 
 extern const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN; /* = 1 bit */
 extern const unsigned FLAC__STREAM_METADATA_TYPE_LEN; /* = 7 bits */

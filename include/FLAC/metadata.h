@@ -80,11 +80,11 @@ extern "C" {
  * Only one routine to read the STREAMINFO.  Skips any ID3v2 tag at the
  * head of the file.  Useful for file-based player plugins.
  *
- * Provide the address of a FLAC__StreamMetaData_StreamInfo object to
+ * Provide the address of a FLAC__StreamMetadata_StreamInfo object to
  * fill.
  */
 
-FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetaData_StreamInfo *streaminfo);
+FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata_StreamInfo *streaminfo);
 
 
 /***********************************************************************
@@ -118,7 +118,7 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetaD
  *       this time.
  *
  * NOTE: Do not modify the is_last, length, or type fields of returned
- *       FLAC__MetaDataType objects.  These are managed automatically.
+ *       FLAC__MetadataType objects.  These are managed automatically.
  *
  * NOTE: If any of the modification functions (_set_block, _delete_block,
  *       _insert_block_after, etc) return false, you should delete the
@@ -128,8 +128,8 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetaD
 /*
  * opaque structure definition
  */
-struct FLAC__MetaData_SimpleIterator;
-typedef struct FLAC__MetaData_SimpleIterator FLAC__MetaData_SimpleIterator;
+struct FLAC__Metadata_SimpleIterator;
+typedef struct FLAC__Metadata_SimpleIterator FLAC__Metadata_SimpleIterator;
 
 typedef enum {
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK = 0,
@@ -145,49 +145,49 @@ typedef enum {
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_UNLINK_ERROR,
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR,
 	FLAC__METADATA_SIMPLE_ITERATOR_STATUS_INTERNAL_ERROR
-} FLAC__MetaData_SimpleIteratorStatus;
-extern const char * const FLAC__MetaData_SimpleIteratorStatusString[];
+} FLAC__Metadata_SimpleIteratorStatus;
+extern const char * const FLAC__Metadata_SimpleIteratorStatusString[];
 
 /*
  * Constructor/destructor
  */
-FLAC__MetaData_SimpleIterator *FLAC__metadata_simple_iterator_new();
-void FLAC__metadata_simple_iterator_delete(FLAC__MetaData_SimpleIterator *iterator);
+FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new();
+void FLAC__metadata_simple_iterator_delete(FLAC__Metadata_SimpleIterator *iterator);
 
 /*
  * Get the current status of the iterator.  Call this after a function
  * returns false to get the reason for the error.  Also resets the status
  * to FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK
  */
-FLAC__MetaData_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__MetaData_SimpleIterator *iterator);
+FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_status(FLAC__Metadata_SimpleIterator *iterator);
 
 /*
  * Initialize the iterator to point to the first metadata block in the
  * given FLAC file.  If 'preserve_file_stats' is true, the owner and
  * modification time will be preserved even if the FLAC file is written.
  */
-FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__MetaData_SimpleIterator *iterator, const char *filename, FLAC__bool preserve_file_stats);
+FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIterator *iterator, const char *filename, FLAC__bool preserve_file_stats);
 
 /*
  * Returns true if the FLAC file is writable.  If false, calls to
  * FLAC__metadata_simple_iterator_set_block() and
  * FLAC__metadata_simple_iterator_insert_block_after() will fail.
  */
-FLAC__bool FLAC__metadata_simple_iterator_is_writable(const FLAC__MetaData_SimpleIterator *iterator);
+FLAC__bool FLAC__metadata_simple_iterator_is_writable(const FLAC__Metadata_SimpleIterator *iterator);
 
 /*
  * These move the iterator forwards or backwards, returning false if
  * already at the end.
  */
-FLAC__bool FLAC__metadata_simple_iterator_next(FLAC__MetaData_SimpleIterator *iterator);
-FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__MetaData_SimpleIterator *iterator);
+FLAC__bool FLAC__metadata_simple_iterator_next(FLAC__Metadata_SimpleIterator *iterator);
+FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIterator *iterator);
 
 /*
  * Get the type of the metadata block at the current position.  This
  * avoids reading the actual block data which can save time for large
  * blocks.
  */
-FLAC__MetaDataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__MetaData_SimpleIterator *iterator);
+FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Metadata_SimpleIterator *iterator);
 
 /*
  * Get the metadata block at the current position.  You can modify the
@@ -197,7 +197,7 @@ FLAC__MetaDataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Met
  * You must call FLAC__metadata_object_delete() on the returned object
  * when you are finished with it.
  */
-FLAC__StreamMetaData *FLAC__metadata_simple_iterator_get_block(FLAC__MetaData_SimpleIterator *iterator);
+FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Metadata_SimpleIterator *iterator);
 
 /*
  * Write a block back to the FLAC file.  This function tries to be
@@ -243,7 +243,7 @@ FLAC__StreamMetaData *FLAC__metadata_simple_iterator_get_block(FLAC__MetaData_Si
  * After writing the block, the iterator will remain in the same
  * place, i.e. pointing to the new block.
  */
-FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__MetaData_SimpleIterator *iterator, FLAC__StreamMetaData *block, FLAC__bool use_padding);
+FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, FLAC__bool use_padding);
 
 /*
  * This is similar to FLAC__metadata_simple_iterator_set_block()
@@ -258,7 +258,7 @@ FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__MetaData_SimpleIterato
  * After writing the block, the iterator will be pointing to the
  * new block.
  */
-FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__MetaData_SimpleIterator *iterator, FLAC__StreamMetaData *block, FLAC__bool use_padding);
+FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, FLAC__bool use_padding);
 
 /*
  * Deletes the block at the current position.  This will cause the
@@ -269,7 +269,7 @@ FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__MetaData_Simp
  *
  * You may not delete the STREAMINFO block.
  */
-FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__MetaData_SimpleIterator *iterator, FLAC__bool use_padding);
+FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_SimpleIterator *iterator, FLAC__bool use_padding);
 
 
 /***********************************************************************
@@ -304,7 +304,7 @@ FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__MetaData_SimpleIter
  *       FLAC__metadata_chain_write().
  *
  * NOTE: Do not modify the is_last, length, or type fields of returned
- *       FLAC__MetaDataType objects.  These are managed automatically.
+ *       FLAC__MetadataType objects.  These are managed automatically.
  *
  * NOTE: The metadata objects returned by _get_bloca()k are owned by the
  *       chain; do not FLAC__metadata_object_delete() them.  In the
@@ -315,10 +315,10 @@ FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__MetaData_SimpleIter
 /*
  * opaque structure definitions
  */
-struct FLAC__MetaData_Chain;
-typedef struct FLAC__MetaData_Chain FLAC__MetaData_Chain;
-struct FLAC__MetaData_Iterator;
-typedef struct FLAC__MetaData_Iterator FLAC__MetaData_Iterator;
+struct FLAC__Metadata_Chain;
+typedef struct FLAC__Metadata_Chain FLAC__Metadata_Chain;
+struct FLAC__Metadata_Iterator;
+typedef struct FLAC__Metadata_Iterator FLAC__Metadata_Iterator;
 
 typedef enum {
 	FLAC__METADATA_CHAIN_STATUS_OK = 0,
@@ -334,28 +334,28 @@ typedef enum {
 	FLAC__METADATA_CHAIN_STATUS_UNLINK_ERROR,
 	FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR,
 	FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR
-} FLAC__MetaData_ChainStatus;
-extern const char * const FLAC__MetaData_ChainStatusString[];
+} FLAC__Metadata_ChainStatus;
+extern const char * const FLAC__Metadata_ChainStatusString[];
 
-/*********** FLAC__MetaData_Chain ***********/
+/*********** FLAC__Metadata_Chain ***********/
 
 /*
  * Constructor/destructor
  */
-FLAC__MetaData_Chain *FLAC__metadata_chain_new();
-void FLAC__metadata_chain_delete(FLAC__MetaData_Chain *chain);
+FLAC__Metadata_Chain *FLAC__metadata_chain_new();
+void FLAC__metadata_chain_delete(FLAC__Metadata_Chain *chain);
 
 /*
  * Get the current status of the chain.  Call this after a function
  * returns false to get the reason for the error.  Also resets the status
  * to FLAC__METADATA_CHAIN_STATUS_OK
  */
-FLAC__MetaData_ChainStatus FLAC__metadata_chain_status(FLAC__MetaData_Chain *chain);
+FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_Chain *chain);
 
 /*
  * Read all metadata into the chain
  */
-FLAC__bool FLAC__metadata_chain_read(FLAC__MetaData_Chain *chain, const char *filename);
+FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *filename);
 
 /*
  * Write all metadata out to the FLAC file.  This function tries to be as
@@ -389,7 +389,7 @@ FLAC__bool FLAC__metadata_chain_read(FLAC__MetaData_Chain *chain, const char *fi
  * If 'preserve_file_stats' is true, the owner and modification time will
  * be preserved even if the FLAC file is written.
  */
-FLAC__bool FLAC__metadata_chain_write(FLAC__MetaData_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats);
+FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats);
 
 /*
  * This function will merge adjacent PADDING blocks into a single block.
@@ -400,7 +400,7 @@ FLAC__bool FLAC__metadata_chain_write(FLAC__MetaData_Chain *chain, FLAC__bool us
  * NOTE: Any iterator on the current chain will become invalid after this
  * call.  You should delete the iterator and get a new one.
  */
-void FLAC__metadata_chain_merge_padding(FLAC__MetaData_Chain *chain);
+void FLAC__metadata_chain_merge_padding(FLAC__Metadata_Chain *chain);
 
 /*
  * This function will move all PADDING blocks to the end on the metadata,
@@ -412,34 +412,34 @@ void FLAC__metadata_chain_merge_padding(FLAC__MetaData_Chain *chain);
  * NOTE: Any iterator on the current chain will become invalid after this
  * call.  You should delete the iterator and get a new one.
  */
-void FLAC__metadata_chain_sort_padding(FLAC__MetaData_Chain *chain);
+void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain);
 
 
-/*********** FLAC__MetaData_Iterator ***********/
+/*********** FLAC__Metadata_Iterator ***********/
 
 /*
  * Constructor/destructor
  */
-FLAC__MetaData_Iterator *FLAC__metadata_iterator_new();
-void FLAC__metadata_iterator_delete(FLAC__MetaData_Iterator *iterator);
+FLAC__Metadata_Iterator *FLAC__metadata_iterator_new();
+void FLAC__metadata_iterator_delete(FLAC__Metadata_Iterator *iterator);
 
 /*
  * Initialize the iterator to point to the first metadata block in the
  * given chain.
  */
-void FLAC__metadata_iterator_init(FLAC__MetaData_Iterator *iterator, FLAC__MetaData_Chain *chain);
+void FLAC__metadata_iterator_init(FLAC__Metadata_Iterator *iterator, FLAC__Metadata_Chain *chain);
 
 /*
  * These move the iterator forwards or backwards, returning false if
  * already at the end.
  */
-FLAC__bool FLAC__metadata_iterator_next(FLAC__MetaData_Iterator *iterator);
-FLAC__bool FLAC__metadata_iterator_prev(FLAC__MetaData_Iterator *iterator);
+FLAC__bool FLAC__metadata_iterator_next(FLAC__Metadata_Iterator *iterator);
+FLAC__bool FLAC__metadata_iterator_prev(FLAC__Metadata_Iterator *iterator);
 
 /*
  * Get the type of the metadata block at the current position.
  */
-FLAC__MetaDataType FLAC__metadata_iterator_get_block_type(const FLAC__MetaData_Iterator *iterator);
+FLAC__MetadataType FLAC__metadata_iterator_get_block_type(const FLAC__Metadata_Iterator *iterator);
 
 /*
  * Get the metadata block at the current position.  You can modify
@@ -452,14 +452,14 @@ FLAC__MetaDataType FLAC__metadata_iterator_get_block_type(const FLAC__MetaData_I
  * Do not call FLAC__metadata_object_delete() on the returned object;
  * to delete a block use FLAC__metadata_iterator_delete_block().
  */
-FLAC__StreamMetaData *FLAC__metadata_iterator_get_block(FLAC__MetaData_Iterator *iterator);
+FLAC__StreamMetadata *FLAC__metadata_iterator_get_block(FLAC__Metadata_Iterator *iterator);
 
 /*
  * Set the metadata block at the current position, replacing the existing
  * block.  The new block passed in becomes owned by the chain and will be
  * deleted when the chain is deleted.
  */
-FLAC__bool FLAC__metadata_iterator_set_block(FLAC__MetaData_Iterator *iterator, FLAC__StreamMetaData *block);
+FLAC__bool FLAC__metadata_iterator_set_block(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
 
 /*
  * Removes the current block from the chain.  If replace_with_padding is
@@ -468,7 +468,7 @@ FLAC__bool FLAC__metadata_iterator_set_block(FLAC__MetaData_Iterator *iterator, 
  * left pointing to the block before the one just 'deleted', even if
  * 'replace_with_padding' is true.
  */
-FLAC__bool FLAC__metadata_iterator_delete_block(FLAC__MetaData_Iterator *iterator, FLAC__bool replace_with_padding);
+FLAC__bool FLAC__metadata_iterator_delete_block(FLAC__Metadata_Iterator *iterator, FLAC__bool replace_with_padding);
 
 /*
  * Insert a new block before or after the current block.  You cannot
@@ -477,8 +477,8 @@ FLAC__bool FLAC__metadata_iterator_delete_block(FLAC__MetaData_Iterator *iterato
  * already exists at the head when you read in a chain.  The iterator
  * will be left pointing to the new block.
  */
-FLAC__bool FLAC__metadata_iterator_insert_block_before(FLAC__MetaData_Iterator *iterator, FLAC__StreamMetaData *block);
-FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__MetaData_Iterator *iterator, FLAC__StreamMetaData *block);
+FLAC__bool FLAC__metadata_iterator_insert_block_before(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
+FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
 
 
 /******************************************************************************
@@ -496,13 +496,13 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__MetaData_Iterator *i
 	as the data pointer to a _set_ function as long as then length argument
 	is 0 and the copy argument is 'false'.
 
-	The _new and _copy function will return NULL in the case of a memory
+	The _new and _clone function will return NULL in the case of a memory
 	allocation error, otherwise a new object.  The _set_ functions return
 	false in the case of a memory allocation error.
 
 	We don't have the convenience of C++ here, so note that the library
 	relies on you to keep the types straight.  In other words, if you pass,
-	for example, a FLAC__StreamMetaData* that represents a STREAMINFO block
+	for example, a FLAC__StreamMetadata* that represents a STREAMINFO block
 	to FLAC__metadata_object_application_set_data(), you will get an
 	assertion failure.
 
@@ -513,23 +513,23 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__MetaData_Iterator *i
 
 
 /******************************************************************
- * Common to all the types derived from FLAC__StreamMetaData:
+ * Common to all the types derived from FLAC__StreamMetadata:
  */
-FLAC__StreamMetaData *FLAC__metadata_object_new(FLAC__MetaDataType type);
-FLAC__StreamMetaData *FLAC__metadata_object_copy(const FLAC__StreamMetaData *object);
-void FLAC__metadata_object_delete(FLAC__StreamMetaData *object);
+FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type);
+FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMetadata *object);
+void FLAC__metadata_object_delete(FLAC__StreamMetadata *object);
 /* Does a deep comparison of the block data */
-FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetaData *block1, const FLAC__StreamMetaData *block2);
+FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *block1, const FLAC__StreamMetadata *block2);
 
 /******************************************************************
- * FLAC__StreamMetaData_Application
+ * FLAC__StreamMetadata_Application
  * ----------------------------------------------------------------
  * Note: 'length' is in bytes.
  */
-FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetaData *object, FLAC__byte *data, unsigned length, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, unsigned length, FLAC__bool copy);
 
 /******************************************************************
- * FLAC__StreamMetaData_SeekPoint
+ * FLAC__StreamMetadata_SeekPoint
  * ----------------------------------------------------------------
  * @@@@  You can
  * use the _resize function to alter it.  If the size shrinks,
@@ -538,22 +538,22 @@ FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetaData *obje
  */
 
 /******************************************************************
- * FLAC__StreamMetaData_SeekTable
+ * FLAC__StreamMetadata_SeekTable
  */
-FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetaData *object, unsigned new_num_points);
-void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetaData *object, unsigned point_num, FLAC__StreamMetaData_SeekPoint point);
-FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetaData *object, unsigned point_num, FLAC__StreamMetaData_SeekPoint point);
-FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetaData *object, unsigned point_num);
+FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMetadata *object, unsigned new_num_points);
+void FLAC__metadata_object_seektable_set_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point);
+FLAC__bool FLAC__metadata_object_seektable_insert_point(FLAC__StreamMetadata *object, unsigned point_num, FLAC__StreamMetadata_SeekPoint point);
+FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetadata *object, unsigned point_num);
 
 /******************************************************************
- * FLAC__StreamMetaData_VorbisComment
+ * FLAC__StreamMetadata_VorbisComment
  */
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetaData *object, FLAC__StreamMetaData_VorbisComment_Entry entry, FLAC__bool copy);
-FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetaData *object, unsigned new_num_comments);
-FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry entry, FLAC__bool copy);
-FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry entry, FLAC__bool copy);
-FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetaData *object, unsigned comment_num);
-FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetaData *object);
+FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetadata *object, unsigned new_num_comments);
+FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy);
+FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetadata *object, unsigned comment_num);
+FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetadata *object);
 
 #ifdef __cplusplus
 }

@@ -274,7 +274,7 @@ FLAC__StreamDecoderWriteStatus FlacPcm::writeCallback_(const FLAC__SeekableStrea
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-void FlacPcm::metadataCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
+void FlacPcm::metadataCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	FlacPcm *instance = (FlacPcm*)client_data;
 	(void)decoder;

@@ -73,7 +73,7 @@ static FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *de
 static FLAC__bool safe_decoder_finish_(FLAC__FileDecoder *decoder);
 static FLAC__bool safe_decoder_delete_(FLAC__FileDecoder *decoder);
 static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
-static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
+static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 
@@ -220,7 +220,7 @@ void FLAC_XMMS__cleanup()
 void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 {
 	id3v1_struct tag;
-	FLAC__StreamMetaData_StreamInfo streaminfo;
+	FLAC__StreamMetadata_StreamInfo streaminfo;
 
 	if(0 == filename)
 		filename = "";
@@ -427,7 +427,7 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder,
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
+void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	(void)decoder;

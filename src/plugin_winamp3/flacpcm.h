@@ -88,7 +88,7 @@ protected:
 	bool abort_flag;
 	svc_fileReader *reader;
 	FLAC__SeekableStreamDecoder *decoder;
-	FLAC__StreamMetaData_StreamInfo stream_info;
+	FLAC__StreamMetadata_StreamInfo stream_info;
 	FLAC__int16 reservoir[FLAC__MAX_BLOCK_SIZE * 2 * 2]; // *2 for max channels, another *2 for overflow
 	unsigned char output[576 * 2 * (16/8)]; // *2 for max channels, (16/8) for max bytes per sample
 
@@ -101,7 +101,7 @@ private:
 	static FLAC__SeekableStreamDecoderLengthStatus lengthCallback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
 	static FLAC__bool eofCallback_(const FLAC__SeekableStreamDecoder *decoder, void *client_data);
 	static FLAC__StreamDecoderWriteStatus writeCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *buffer[], void *client_data);
-	static void metadataCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
+	static void metadataCallback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 	static void errorCallback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 };
 #endif

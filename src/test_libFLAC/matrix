@@ -42,8 +42,8 @@ d		use_padding, last block is not padding, delta is < 4
 e		use_padding, last block is not padding, delta is >= 4
 f		use_padding, last block is padding
 
-void FLAC__metadata_chain_merge_padding(FLAC__MetaData_Chain *chain);
-void FLAC__metadata_chain_sort_padding(FLAC__MetaData_Chain *chain);
+void FLAC__metadata_chain_merge_padding(FLAC__Metadata_Chain *chain);
+void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain);
 
 S:34	A:1234
 a:shrink A->30	write nopad

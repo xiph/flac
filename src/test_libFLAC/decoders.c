@@ -38,8 +38,8 @@ typedef struct {
 typedef stream_decoder_client_data_struct seekable_stream_decoder_client_data_struct;
 typedef stream_decoder_client_data_struct file_decoder_client_data_struct;
 
-static FLAC__StreamMetaData streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_;
-static FLAC__StreamMetaData *expected_metadata_sequence_[6];
+static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_;
+static FLAC__StreamMetadata *expected_metadata_sequence_[6];
 static unsigned num_expected_;
 static const char *flacfilename_ = "metadata.flac";
 static unsigned flacfilesize_;
@@ -128,7 +128,7 @@ static void init_metadata_blocks_()
     seektable_.type = FLAC__METADATA_TYPE_SEEKTABLE;
 	seektable_.data.seek_table.num_points = 2;
     seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	seektable_.data.seek_table.points = malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(FLAC__StreamMetaData_SeekPoint));
+	seektable_.data.seek_table.points = malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint));
 	seektable_.data.seek_table.points[0].sample_number = 0;
 	seektable_.data.seek_table.points[0].stream_offset = 0;
 	seektable_.data.seek_table.points[0].frame_samples = streaminfo_.data.stream_info.min_blocksize;
@@ -156,7 +156,7 @@ static void init_metadata_blocks_()
 	vorbiscomment_.data.vorbis_comment.vendor_string.entry = malloc_or_die_(8);
 	memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, "flac 1.x", 8);
 	vorbiscomment_.data.vorbis_comment.num_comments = 2;
-	vorbiscomment_.data.vorbis_comment.comments = malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetaData_VorbisComment_Entry));
+	vorbiscomment_.data.vorbis_comment.comments = malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
 	vorbiscomment_.data.vorbis_comment.comments[0].length = 5;
 	vorbiscomment_.data.vorbis_comment.comments[0].entry = malloc_or_die_(5);
 	memcpy(vorbiscomment_.data.vorbis_comment.comments[0].entry, "ab=cd", 5);
@@ -248,7 +248,7 @@ static FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const FLAC_
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-static void stream_decoder_metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
+static void stream_decoder_metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
 
@@ -342,7 +342,7 @@ static FLAC__bool test_stream_decoder()
 	FLAC__StreamDecoderState state;
 	stream_decoder_client_data_struct decoder_client_data;
 
-	printf("\n+++ unit test: FLAC__StreamDecoder\n\n");
+	printf("\n+++ libFLAC unit test: FLAC__StreamDecoder\n\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
@@ -895,7 +895,7 @@ static FLAC__StreamDecoderWriteStatus seekable_stream_decoder_write_callback_(co
 	return stream_decoder_write_callback_(0, frame, buffer, client_data);
 }
 
-static void seekable_stream_decoder_metadata_callback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
+static void seekable_stream_decoder_metadata_callback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	(void)decoder;
 	stream_decoder_metadata_callback_(0, metadata, client_data);
@@ -969,7 +969,7 @@ static FLAC__bool test_seekable_stream_decoder()
 	FLAC__SeekableStreamDecoderState state;
 	seekable_stream_decoder_client_data_struct decoder_client_data;
 
-	printf("\n+++ unit test: FLAC__SeekableStreamDecoder\n\n");
+	printf("\n+++ libFLAC unit test: FLAC__SeekableStreamDecoder\n\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
@@ -1458,7 +1458,7 @@ static FLAC__StreamDecoderWriteStatus file_decoder_write_callback_(const FLAC__F
 	return stream_decoder_write_callback_(0, frame, buffer, client_data);
 }
 
-static void file_decoder_metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data)
+static void file_decoder_metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	(void)decoder;
 	stream_decoder_metadata_callback_(0, metadata, client_data);
@@ -1515,7 +1515,7 @@ static FLAC__bool test_file_decoder()
 	FLAC__FileDecoderState state;
 	seekable_stream_decoder_client_data_struct decoder_client_data;
 
-	printf("\n+++ unit test: FLAC__FileDecoder\n\n");
+	printf("\n+++ libFLAC unit test: FLAC__FileDecoder\n\n");
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;

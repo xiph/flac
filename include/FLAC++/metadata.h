@@ -39,6 +39,10 @@ namespace FLAC {
 		//
 		// ============================================================
 
+		class Prototype;
+
+		Prototype *clone(const Prototype *);
+
 		// NOTE: When the get_*() methods return you a const pointer,
 		// DO NOT disobey and write into it.  Always use the set_*()
 		// methods.
@@ -46,24 +50,27 @@ namespace FLAC {
 		// base class for all metadata blocks
 		class Prototype {
 		protected:
-			Prototype(::FLAC__StreamMetaData *object, bool copy);
+			Prototype(const Prototype &object); // this form always copies object.object_
+			Prototype(const ::FLAC__StreamMetadata &object); // this form always copies
+			Prototype(const ::FLAC__StreamMetadata *object); // this form always copies
+			Prototype(::FLAC__StreamMetadata *object, bool copy); // this form allows you to pass ownership to the Prototype using copy=false
 
 			void operator=(const Prototype &);
-			void operator=(const ::FLAC__StreamMetaData &);
-			void operator=(const ::FLAC__StreamMetaData *);
-
-			inline bool operator==(const Prototype &) const;
-			inline bool operator==(const ::FLAC__StreamMetaData &) const;
-			inline bool operator==(const ::FLAC__StreamMetaData *) const;
-			inline bool operator!=(const Prototype &) const;
-			inline bool operator!=(const ::FLAC__StreamMetaData &) const;
-			inline bool operator!=(const ::FLAC__StreamMetaData *) const;
+			void operator=(const ::FLAC__StreamMetadata &); // this form always copies
+			void operator=(const ::FLAC__StreamMetadata *); // this form always copies
 
 			virtual void clear();
 
-			::FLAC__StreamMetaData *object_;
+			::FLAC__StreamMetadata *object_;
 		public:
 			virtual ~Prototype();
+
+			inline bool operator==(const Prototype &) const;
+			inline bool operator==(const ::FLAC__StreamMetadata &) const;
+			inline bool operator==(const ::FLAC__StreamMetadata *) const;
+			inline bool operator!=(const Prototype &) const;
+			inline bool operator!=(const ::FLAC__StreamMetadata &) const;
+			inline bool operator!=(const ::FLAC__StreamMetadata *) const;
 
 			friend class SimpleIterator;
 			friend class Iterator;
@@ -71,8 +78,10 @@ namespace FLAC {
 			inline bool is_valid() const;
 
 			bool get_is_last() const;
-			FLAC__MetaDataType get_type() const;
+			FLAC__MetadataType get_type() const;
 			unsigned get_length() const; // NOTE: does not include the header, per spec
+
+			void set_is_last(bool);
 		private:
 			Prototype(); // Private and undefined so you can't use it
 
@@ -84,19 +93,19 @@ namespace FLAC {
 		inline bool Prototype::operator==(const Prototype &object) const 
 		{ return ::FLAC__metadata_object_is_equal(object_, object.object_); }
 
-		inline bool Prototype::operator==(const ::FLAC__StreamMetaData &object) const 
+		inline bool Prototype::operator==(const ::FLAC__StreamMetadata &object) const 
 		{ return ::FLAC__metadata_object_is_equal(object_, &object); }
 
-		inline bool Prototype::operator==(const ::FLAC__StreamMetaData *object) const 
+		inline bool Prototype::operator==(const ::FLAC__StreamMetadata *object) const 
 		{ return ::FLAC__metadata_object_is_equal(object_, object); }
 
 		inline bool Prototype::operator!=(const Prototype &object) const 
 		{ return !operator==(object); }
 
-		inline bool Prototype::operator!=(const ::FLAC__StreamMetaData &object) const 
+		inline bool Prototype::operator!=(const ::FLAC__StreamMetadata &object) const 
 		{ return !operator==(object); }
 
-		inline bool Prototype::operator!=(const ::FLAC__StreamMetaData *object) const 
+		inline bool Prototype::operator!=(const ::FLAC__StreamMetadata *object) const 
 		{ return !operator==(object); }
 
 		inline bool Prototype::is_valid() const
@@ -106,19 +115,22 @@ namespace FLAC {
 		class StreamInfo : public Prototype {
 		public:
 			StreamInfo();
-			StreamInfo(::FLAC__StreamMetaData *object, bool copy = false);
+			inline StreamInfo(const StreamInfo &object): Prototype(object) { }
+			inline StreamInfo(const ::FLAC__StreamMetadata &object): Prototype(object) { }
+			inline StreamInfo(const ::FLAC__StreamMetadata *object): Prototype(object) { }
+			inline StreamInfo(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 			~StreamInfo();
 
 			inline void operator=(const StreamInfo &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
 
 			inline bool operator==(const StreamInfo &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata *object) const { return Prototype::operator==(object); }
 			inline bool operator!=(const StreamInfo &object) const { return Prototype::operator!=(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
 
 			unsigned get_min_blocksize() const;
 			unsigned get_max_blocksize() const;
@@ -144,19 +156,22 @@ namespace FLAC {
 		class Padding : public Prototype {
 		public:
 			Padding();
-			Padding(::FLAC__StreamMetaData *object, bool copy = false);
+			inline Padding(const Padding &object): Prototype(object) { }
+			inline Padding(const ::FLAC__StreamMetadata &object): Prototype(object) { }
+			inline Padding(const ::FLAC__StreamMetadata *object): Prototype(object) { }
+			inline Padding(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 			~Padding();
 
 			inline void operator=(const Padding &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
 
 			inline bool operator==(const Padding &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata *object) const { return Prototype::operator==(object); }
 			inline bool operator!=(const Padding &object) const { return Prototype::operator!=(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
 
 			void set_length(unsigned length);
 		};
@@ -164,49 +179,56 @@ namespace FLAC {
 		class Application : public Prototype {
 		public:
 			Application();
-			Application(::FLAC__StreamMetaData *object, bool copy = false);
+			inline Application(const Application &object): Prototype(object) { }
+			inline Application(const ::FLAC__StreamMetadata &object): Prototype(object) { }
+			inline Application(const ::FLAC__StreamMetadata *object): Prototype(object) { }
+			inline Application(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 			~Application();
 
 			inline void operator=(const Application &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
 
 			inline bool operator==(const Application &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata *object) const { return Prototype::operator==(object); }
 			inline bool operator!=(const Application &object) const { return Prototype::operator!=(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
 
 			const FLAC__byte *get_id() const;
 			const FLAC__byte *get_data() const;
 
-			void set_id(FLAC__byte value[4]);
-			bool set_data(FLAC__byte *data, unsigned length, bool copy = false);
+			void set_id(const FLAC__byte value[4]);
+			bool set_data(const FLAC__byte *data, unsigned length); // this form always copies
+			bool set_data(FLAC__byte *data, unsigned length, bool copy);
 		};
 
 		class SeekTable : public Prototype {
 		public:
 			SeekTable();
-			SeekTable(::FLAC__StreamMetaData *object, bool copy = false);
+			inline SeekTable(const SeekTable &object): Prototype(object) { }
+			inline SeekTable(const ::FLAC__StreamMetadata &object): Prototype(object) { }
+			inline SeekTable(const ::FLAC__StreamMetadata *object): Prototype(object) { }
+			inline SeekTable(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 			~SeekTable();
 
 			inline void operator=(const SeekTable &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
 
 			inline bool operator==(const SeekTable &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata *object) const { return Prototype::operator==(object); }
 			inline bool operator!=(const SeekTable &object) const { return Prototype::operator!=(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
 
 			unsigned get_num_points() const;
-			::FLAC__StreamMetaData_SeekPoint get_point(unsigned index) const;
+			::FLAC__StreamMetadata_SeekPoint get_point(unsigned index) const;
 
-			void set_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point);
-			bool insert_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point);
+			void set_point(unsigned index, const ::FLAC__StreamMetadata_SeekPoint &point);
+			bool insert_point(unsigned index, const ::FLAC__StreamMetadata_SeekPoint &point);
 			bool delete_point(unsigned index);
 
 			bool is_legal() const;
@@ -230,7 +252,7 @@ namespace FLAC {
 				unsigned get_field_name_length() const;
 				unsigned get_field_value_length() const;
 
-				::FLAC__StreamMetaData_VorbisComment_Entry get_entry() const;
+				::FLAC__StreamMetadata_VorbisComment_Entry get_entry() const;
 				const char *get_field() const;
 				const char *get_field_name() const;
 				const char *get_field_value() const;
@@ -240,7 +262,7 @@ namespace FLAC {
 				bool set_field_value(const char *field_value, unsigned field_value_length);
 			protected:
 				bool is_valid_;
-				::FLAC__StreamMetaData_VorbisComment_Entry entry_;
+				::FLAC__StreamMetadata_VorbisComment_Entry entry_;
 				char *field_name_;
 				unsigned field_name_length_;
 				char *field_value_;
@@ -258,25 +280,28 @@ namespace FLAC {
 			};
 
 			VorbisComment();
-			VorbisComment(::FLAC__StreamMetaData *object, bool copy = false);
+			inline VorbisComment(const VorbisComment &object): Prototype(object) { }
+			inline VorbisComment(const ::FLAC__StreamMetadata &object): Prototype(object) { }
+			inline VorbisComment(const ::FLAC__StreamMetadata *object): Prototype(object) { }
+			inline VorbisComment(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 			~VorbisComment();
 
 			inline void operator=(const VorbisComment &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetaData *object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
+			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
 
 			inline bool operator==(const VorbisComment &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator==(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata *object) const { return Prototype::operator==(object); }
 			inline bool operator!=(const VorbisComment &object) const { return Prototype::operator!=(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData &object) const { return Prototype::operator==(object); }
-			inline bool operator!=(const ::FLAC__StreamMetaData *object) const { return Prototype::operator==(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
 
 			unsigned get_num_comments() const;
-			Entry get_vendor_string() const;
+			Entry get_vendor_string() const; // only the Entry's field name should be used
 			Entry get_comment(unsigned index) const;
 
-			bool set_vendor_string(const Entry &entry);
+			bool set_vendor_string(const Entry &entry); // only the Entry's field name will be used
 			bool set_comment(unsigned index, const Entry &entry);
 			bool insert_comment(unsigned index, const Entry &entry);
 			bool delete_comment(unsigned index);
@@ -324,11 +349,11 @@ namespace FLAC {
 		public:
 			class Status {
 			public:
-				inline Status(::FLAC__MetaData_SimpleIteratorStatus status): status_(status) { }
-				inline operator ::FLAC__MetaData_SimpleIteratorStatus() const { return status_; }
-				inline const char *as_cstring() const { return ::FLAC__MetaData_SimpleIteratorStatusString[status_]; }
+				inline Status(::FLAC__Metadata_SimpleIteratorStatus status): status_(status) { }
+				inline operator ::FLAC__Metadata_SimpleIteratorStatus() const { return status_; }
+				inline const char *as_cstring() const { return ::FLAC__Metadata_SimpleIteratorStatusString[status_]; }
 			protected:
-				::FLAC__MetaData_SimpleIteratorStatus status_;
+				::FLAC__Metadata_SimpleIteratorStatus status_;
 			};
 
 			SimpleIterator();
@@ -343,14 +368,14 @@ namespace FLAC {
 			bool next();
 			bool prev();
 
-			::FLAC__MetaDataType get_block_type() const;
+			::FLAC__MetadataType get_block_type() const;
 			Prototype *get_block();
 			bool set_block(Prototype *block, bool use_padding = true);
 			bool insert_block_after(Prototype *block, bool use_padding = true);
 			bool delete_block(bool use_padding = true);
 
 		protected:
-			::FLAC__MetaData_SimpleIterator *iterator_;
+			::FLAC__Metadata_SimpleIterator *iterator_;
 			void clear();
 		};
 
@@ -396,11 +421,11 @@ namespace FLAC {
 		public:
 			class Status {
 			public:
-				inline Status(::FLAC__MetaData_ChainStatus status): status_(status) { }
-				inline operator ::FLAC__MetaData_ChainStatus() const { return status_; }
-				inline const char *as_cstring() const { return ::FLAC__MetaData_ChainStatusString[status_]; }
+				inline Status(::FLAC__Metadata_ChainStatus status): status_(status) { }
+				inline operator ::FLAC__Metadata_ChainStatus() const { return status_; }
+				inline const char *as_cstring() const { return ::FLAC__Metadata_ChainStatusString[status_]; }
 			protected:
-				::FLAC__MetaData_ChainStatus status_;
+				::FLAC__Metadata_ChainStatus status_;
 			};
 
 			Chain();
@@ -418,7 +443,7 @@ namespace FLAC {
 			void sort_padding();
 
 		protected:
-			::FLAC__MetaData_Chain *chain_;
+			::FLAC__Metadata_Chain *chain_;
 			virtual void clear();
 		};
 
@@ -434,7 +459,7 @@ namespace FLAC {
 			bool next();
 			bool prev();
 
-			::FLAC__MetaDataType get_block_type() const;
+			::FLAC__MetadataType get_block_type() const;
 			Prototype *get_block();
 			bool set_block(Prototype *block);
 			bool delete_block(bool replace_with_padding);
@@ -442,7 +467,7 @@ namespace FLAC {
 			bool insert_block_after(Prototype *block);
 
 		protected:
-			::FLAC__MetaData_Iterator *iterator_;
+			::FLAC__Metadata_Iterator *iterator_;
 			virtual void clear();
 		};
 

@@ -136,7 +136,7 @@ namespace FLAC {
 			return (bool)::FLAC__stream_encoder_set_total_samples_estimate(encoder_, value);
 		}
 
-		bool Stream::set_metadata(::FLAC__StreamMetaData **metadata, unsigned num_blocks)
+		bool Stream::set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks)
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__stream_encoder_set_metadata(encoder_, metadata, num_blocks);
@@ -274,7 +274,7 @@ namespace FLAC {
 			return instance->write_callback(buffer, bytes, samples, current_frame);
 		}
 
-		void Stream::metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetaData *metadata, void *client_data)
+		void Stream::metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetadata *metadata, void *client_data)
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);

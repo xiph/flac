@@ -97,7 +97,7 @@ typedef struct {
  * unsigned     max_residual_partition_order  (DEFAULT: 0     )      for each based on mean; min_ and max_ specify the min and max Rice partition order
  * unsigned     rice_parameter_search_dist    (DEFAULT: 0     ) 0 => try only calc'd parameter k; else try all [k-dist..k+dist] parameters, use best
  * FLAC__uint64 total_samples_estimate        (DEFAULT: 0     ) may be 0 if unknown.  acts as a placeholder in the STREAMINFO until the actual total is calculated
- * FLAC__StreamMetaData **metadata            (DEFAULT: NULL,0) optional metadata blocks to prepend.  STREAMINFO is not allowed since it is done internally.
+ * FLAC__StreamMetadata **metadata            (DEFAULT: NULL,0) optional metadata blocks to prepend.  STREAMINFO is not allowed since it is done internally.
  * + unsigned num_blocks
  *            (*write_callback)()             (DEFAULT: NULL  ) The callbacks are the only values that MUST be set before FLAC__stream_encoder_init()
  *            (*metadata_callback)()          (DEFAULT: NULL  )
@@ -146,9 +146,9 @@ FLAC__bool FLAC__stream_encoder_set_min_residual_partition_order(FLAC__StreamEnc
 FLAC__bool FLAC__stream_encoder_set_max_residual_partition_order(FLAC__StreamEncoder *encoder, unsigned value);
 FLAC__bool FLAC__stream_encoder_set_rice_parameter_search_dist(FLAC__StreamEncoder *encoder, unsigned value);
 FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *encoder, FLAC__uint64 value);
-FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetaData **metadata, unsigned num_blocks);
+FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
 FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data));
-FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encoder, void (*value)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data));
+FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encoder, void (*value)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data));
 FLAC__bool FLAC__stream_encoder_set_client_data(FLAC__StreamEncoder *encoder, void *value);
 
 /*

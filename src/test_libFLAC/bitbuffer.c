@@ -56,7 +56,7 @@ FLAC__bool test_bitbuffer()
 
 	FLAC__ASSERT(FLAC__BITS_PER_BLURB == 8);
 
-	printf("\n+++ unit test: bitbuffer\n\n");
+	printf("\n+++ libFLAC unit test: bitbuffer\n\n");
 
 	printf("testing new... OK\n");
 	bb = FLAC__bitbuffer_new();
