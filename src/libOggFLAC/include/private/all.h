@@ -35,5 +35,6 @@
 #include "ogg_decoder_aspect.h"
 #include "ogg_encoder_aspect.h"
 #include "ogg_helper.h"
+#include "ogg_mapping.h"
 
 #endif
