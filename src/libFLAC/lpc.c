@@ -20,6 +20,7 @@
 #include <math.h>
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
+#include "private/bitmath.h"
 #include "private/lpc.h"
 #if defined DEBUG || defined FLAC__OVERFLOW_DETECT || defined FLAC__OVERFLOW_DETECT_VERBOSE
 #include <stdio.h>
@@ -109,7 +110,7 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned max_or
 	}
 }
 
-int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, FLAC__int32 qlp_coeff[], int *shift)
+int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order, unsigned precision, FLAC__int32 qlp_coeff[], int *shift)
 {
 	unsigned i;
 	double d, cmax = -1e32;
@@ -117,14 +118,8 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 	const int max_shiftlimit = (1 << (FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN-1)) - 1;
 	const int min_shiftlimit = -max_shiftlimit - 1;
 
-	FLAC__ASSERT(bits_per_sample > 0);
-	FLAC__ASSERT(bits_per_sample <= sizeof(FLAC__int32)*8);
 	FLAC__ASSERT(precision > 0);
 	FLAC__ASSERT(precision >= FLAC__MIN_QLP_COEFF_PRECISION);
-	FLAC__ASSERT(precision + bits_per_sample < sizeof(FLAC__int32)*8);
-#ifdef NDEBUG
-	(void)bits_per_sample; /* silence compiler warning about unused parameter */
-#endif
 
 	/* drop one bit for the sign; from here on out we consider only |lp_coeff[i]| */
 	precision--;
@@ -152,7 +147,13 @@ redo_it:
 		*shift = (int)precision - log2cmax - 1;
 
 		if(*shift < min_shiftlimit || *shift > max_shiftlimit) {
-			return 1;
+#if 0
+			/*@@@ this does not seem to help at all, but was not extensively tested either: */
+			if(*shift > max_shiftlimit)
+				*shift = max_shiftlimit;
+			else
+#endif
+				return 1;
 		}
 	}
 
@@ -243,6 +244,39 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 data[], 
 	*/
 }
 
+void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
+{
+	unsigned i, j;
+	FLAC__int64 sum;
+	const FLAC__int32 *history;
+
+#ifdef FLAC__OVERFLOW_DETECT_VERBOSE
+	fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients_wide: data_len=%d, order=%u, lpq=%d",data_len,order,lp_quantization);
+	for(i=0;i<order;i++)
+		fprintf(stderr,", q[%u]=%d",i,qlp_coeff[i]);
+	fprintf(stderr,"\n");
+#endif
+	FLAC__ASSERT(order > 0);
+
+	for(i = 0; i < data_len; i++) {
+		sum = 0;
+		history = data;
+		for(j = 0; j < order; j++)
+			sum += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*(--history));
+#ifdef FLAC__OVERFLOW_DETECT
+		if(FLAC__bitmath_silog2_wide(sum >> lp_quantization) > 32) {
+			fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients_wide: OVERFLOW, i=%u, sum=%lld\n", i, sum >> lp_quantization);
+			break;
+		}
+		if(FLAC__bitmath_silog2_wide((FLAC__int64)(*data) - (sum >> lp_quantization)) > 32) {
+			fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients_wide: OVERFLOW, i=%u, data=%d, sum=%lld, residual=%lld\n", i, *data, sum >> lp_quantization, (FLAC__int64)(*data) - (sum >> lp_quantization));
+			break;
+		}
+#endif
+		*(residual++) = *(data++) - (FLAC__int32)(sum >> lp_quantization);
+	}
+}
+
 void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[])
 {
 #ifdef FLAC__OVERFLOW_DETECT
@@ -292,6 +326,39 @@ void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, c
 		data[i] = residual[i] + (sum >> lp_quantization);
 	}
 	*/
+}
+
+void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[])
+{
+	unsigned i, j;
+	FLAC__int64 sum;
+	const FLAC__int32 *history;
+
+#ifdef FLAC__OVERFLOW_DETECT_VERBOSE
+	fprintf(stderr,"FLAC__lpc_restore_signal_wide: data_len=%d, order=%u, lpq=%d",data_len,order,lp_quantization);
+	for(i=0;i<order;i++)
+		fprintf(stderr,", q[%u]=%d",i,qlp_coeff[i]);
+	fprintf(stderr,"\n");
+#endif
+	FLAC__ASSERT(order > 0);
+
+	for(i = 0; i < data_len; i++) {
+		sum = 0;
+		history = data;
+		for(j = 0; j < order; j++)
+			sum += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*(--history));
+#ifdef FLAC__OVERFLOW_DETECT
+		if(FLAC__bitmath_silog2_wide(sum >> lp_quantization) > 32) {
+			fprintf(stderr,"FLAC__lpc_restore_signal_wide: OVERFLOW, i=%u, sum=%lld\n", i, sum >> lp_quantization);
+			break;
+		}
+		if(FLAC__bitmath_silog2_wide((FLAC__int64)(*residual) + (sum >> lp_quantization)) > 32) {
+			fprintf(stderr,"FLAC__lpc_restore_signal_wide: OVERFLOW, i=%u, residual=%d, sum=%lld, data=%lld\n", i, *residual, sum >> lp_quantization, (FLAC__int64)(*residual) + (sum >> lp_quantization));
+			break;
+		}
+#endif
+		*(data++) = *(residual++) + (FLAC__int32)(sum >> lp_quantization);
+	}
 }
 
 FLAC__real FLAC__lpc_compute_expected_bits_per_residual_sample(FLAC__real lpc_error, unsigned total_samples)

@@ -80,7 +80,6 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned max_or
  *	IN FLAC__MIN_QLP_COEFF_PRECISION < precision
  *	                          desired precision (in bits, including sign
  *	                          bit) of largest coefficient
- *	IN bits_per_sample > 0    bits per sample of the originial signal
  *	OUT qlp_coeff[0,order-1]  quantized coefficients
  *	OUT shift                 # of bits to shift right to get approximated
  *	                          LP coefficients.  NOTE: could be negative.
@@ -90,7 +89,7 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned max_or
  *         2 => coefficients are all zero, which is bad.  'shift' is
  *              unset.
  */
-int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order, unsigned precision, unsigned bits_per_sample, FLAC__int32 qlp_coeff[], int *shift);
+int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order, unsigned precision, FLAC__int32 qlp_coeff[], int *shift);
 
 /*
  *	FLAC__lpc_compute_residual_from_qlp_coefficients()
@@ -106,6 +105,7 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
  *	OUT residual[0,data_len-1] residual signal
  */
 void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
+void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
 #ifndef FLAC__NO_ASM
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
@@ -131,6 +131,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx(const FLAC__i
  *	OUT data[0,data_len-1]     original signal
  */
 void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
+void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
 #ifndef FLAC__NO_ASM
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
