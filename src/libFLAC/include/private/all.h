@@ -22,6 +22,7 @@
 
 #include "bitbuffer.h"
 #include "bitmath.h"
+#include "cpu.h"
 #include "crc.h"
 #include "encoder_framing.h"
 #include "fixed.h"
