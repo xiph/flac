@@ -56,7 +56,7 @@ if [ -f /bin/sh.exe ] ; then
 else
 	inputfile=/bin/sh
 fi
-if run_flac --verify -0 --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=44100 $inputfile ; then
+if run_flac --force --verify -0 --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=44100 $inputfile ; then
 	chmod +w $flacfile
 else
 	die "ERROR during generation"
