@@ -1,7 +1,7 @@
-#  FLAC - Free Lossless Audio Codec
-#  Copyright (C) 2001,2002  Josh Coalson
+#  test_grabbag - Simple testers for the grabbag library
+#  Copyright (C) 2002  Josh Coalson
 #
-#  This program is part of FLAC; you can redistribute it and/or
+#  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
@@ -15,32 +15,21 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-if FLaC__HAS_XMMS
-XMMS_DIRS = plugin_xmms
-endif
+.PHONY: cuesheet
+all: cuesheet
 
-if FLaC__HAS_OGG
-OGGFLAC_DIRS = libOggFLAC libOggFLAC++
-OGGFLAC_TEST_DIRS = test_libOggFLAC test_libOggFLAC++
-endif
+DEFAULT_CONFIG = release
 
-SUBDIRS = \
-	libFLAC \
-	libFLAC++ \
-	$(OGGFLAC_DIRS) \
-	share \
-	flac \
-	metaflac \
-	monkeys_audio_utilities \
-	plugin_common \
-	$(XMMS_DIRS) \
-	plugin_winamp2 \
-	plugin_winamp3 \
-	test_grabbag \
-	test_libFLAC \
-	test_libFLAC++ \
-	$(OGGFLAC_TEST_DIRS) \
-	test_streams
+CONFIG = $(DEFAULT_CONFIG)
 
-EXTRA_DIST = \
-	Makefile.vc
+debug   : CONFIG = debug
+release : CONFIG = release
+
+debug   : all
+release : all
+
+cuesheet:
+	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
+
+clean:
+	-(cd cuesheet ; $(MAKE) -f Makefile.lite clean)

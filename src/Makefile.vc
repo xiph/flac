@@ -33,6 +33,9 @@ all:
 	cd monkeys_audio_utilities
 	nmake /f Makefile.vc
 	cd ..
+	cd test_grabbag
+	nmake /f Makefile.vc
+	cd ..
 	cd test_libFLAC
 	nmake /f Makefile.vc
 	cd ..
@@ -78,6 +81,9 @@ clean:
 	nmake /f Makefile.vc clean
 	cd ..
 	cd monkeys_audio_utilities
+	nmake /f Makefile.vc clean
+	cd ..
+	cd test_grabbag
 	nmake /f Makefile.vc clean
 	cd ..
 	cd test_libFLAC

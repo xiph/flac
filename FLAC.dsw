@@ -84,6 +84,9 @@ Package=<4>
     Project_Dep_Name utf8_static
     End Project Dependency
     Begin Project Dependency
+    Project_Dep_Name test_grabbag
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name test_libFLAC
     End Project Dependency
     Begin Project Dependency
@@ -151,6 +154,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name utf8_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_grabbag
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name test_libFLAC
@@ -442,6 +448,21 @@ Package=<4>
 {{{
     Begin Project Dependency
     Project_Dep_Name libFLAC_static
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_grabbag"=.\src\test_grabbag\test_grabbag.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name grabbag_static
     End Project Dependency
 }}}
 
