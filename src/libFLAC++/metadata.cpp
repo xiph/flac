@@ -52,7 +52,7 @@ namespace FLAC {
 						ret = new CueSheet(object, /*copy=*/false);
 						break;
 					default:
-						FLAC__ASSERT(0);
+						ret = new Unknown(object, /*copy=*/false);
 						break;
 				}
 				return ret;
@@ -70,6 +70,7 @@ namespace FLAC {
 			const SeekTable *seektable = dynamic_cast<const SeekTable *>(object);
 			const VorbisComment *vorbiscomment = dynamic_cast<const VorbisComment *>(object);
 			const CueSheet *cuesheet = dynamic_cast<const CueSheet *>(object);
+			const Unknown *unknown = dynamic_cast<const Unknown *>(object);
 
 			if(0 != streaminfo)
 				return new StreamInfo(*streaminfo);
@@ -83,6 +84,8 @@ namespace FLAC {
 				return new VorbisComment(*vorbiscomment);
 			else if(0 != cuesheet)
 				return new CueSheet(*cuesheet);
+			else if(0 != unknown)
+				return new Unknown(*unknown);
 			else {
 				FLAC__ASSERT(0);
 				return 0;
@@ -922,6 +925,36 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__metadata_object_cuesheet_is_legal(object_, check_cd_da_subset, violation);
+		}
+
+
+		//
+		// Unknown
+		//
+
+		Unknown::Unknown():
+		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_APPLICATION), /*copy=*/false)
+		{ }
+
+		Unknown::~Unknown()
+		{ }
+
+		const FLAC__byte *Unknown::get_data() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.application.data;
+		}
+
+		bool Unknown::set_data(const FLAC__byte *data, unsigned length)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_application_set_data(object_, (FLAC__byte*)data, length, true);
+		}
+
+		bool Unknown::set_data(FLAC__byte *data, unsigned length, bool copy)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_application_set_data(object_, data, length, copy);
 		}
 
 
