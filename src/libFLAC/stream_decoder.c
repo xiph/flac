@@ -34,6 +34,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	void (*metadata_callback)(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
 	void (*error_callback)(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 	void (*local_lpc_restore_signal)(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
+	void (*local_lpc_restore_signal_16bit)(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
 	void *client_data;
 	FLAC__BitBuffer input;
 	int32 *output[FLAC__MAX_CHANNELS];
@@ -166,23 +167,23 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(
 	FLAC__cpu_info(&decoder->guts->cpuinfo);
 	/* first default to the non-asm routines */
 	decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal;
+	decoder->guts->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal;
 	/* now override with asm where appropriate */
 #ifndef FLAC__NO_ASM
 	FLAC__ASSERT(decoder->guts->cpuinfo.use_asm);
 #ifdef FLAC__CPU_IA32
 	FLAC__ASSERT(decoder->guts->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #ifdef FLAC__HAS_NASM
-#if 0
-	/* @@@ MMX version needs bps check */
-	if(decoder->guts->cpuinfo.data.ia32.mmx && @@@bps check here@@@)
-{//@@@
-		decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386_mmx;
-fprintf(stderr,"@@@ got _asm_i386_mmx of lpc_restore_signal()\n");}
-	else
-#endif
-{//@@@
+	if(decoder->guts->cpuinfo.data.ia32.mmx) {
 		decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386;
-fprintf(stderr,"@@@ got _asm_i386 of lpc_restore_signal()\n");}
+		decoder->guts->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_i386_mmx;
+fprintf(stderr,"@@@ got _asm_i386_mmx of lpc_restore_signal()\n");
+	}
+	else {
+		decoder->guts->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_i386;
+		decoder->guts->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_i386;
+fprintf(stderr,"@@@ got _asm_i386 of lpc_restore_signal()\n");
+	}
 #endif
 #endif
 #endif
@@ -1301,7 +1302,10 @@ bool stream_decoder_read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned ch
 
 	/* decode the subframe */
 	memcpy(decoder->guts->output[channel], subframe->warmup, sizeof(int32) * order);
-	decoder->guts->local_lpc_restore_signal(decoder->guts->residual[channel], decoder->guts->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->guts->output[channel]+order);
+	if(bps <= 16 && subframe->qlp_coeff_precision <= 16)
+		decoder->guts->local_lpc_restore_signal_16bit(decoder->guts->residual[channel], decoder->guts->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->guts->output[channel]+order);
+	else
+		decoder->guts->local_lpc_restore_signal(decoder->guts->residual[channel], decoder->guts->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->guts->output[channel]+order);
 
 	return true;
 }

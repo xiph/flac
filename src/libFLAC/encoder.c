@@ -77,6 +77,7 @@ typedef struct FLAC__EncoderPrivate {
 	unsigned (*local_fixed_compute_best_predictor)(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 	void (*local_lpc_compute_autocorrelation)(const real data[], unsigned data_len, unsigned lag, real autoc[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients)(const int32 data[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 residual[]);
+	void (*local_lpc_compute_residual_from_qlp_coefficients_16bit)(const int32 data[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 residual[]);
 	bool use_slow;                              /* use slow 64-bit versions of some functions */
 	FLAC__EncoderWriteStatus (*write_callback)(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 	void (*metadata_callback)(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
@@ -329,6 +330,7 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
 	encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor;
 	encoder->guts->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients;
+	encoder->guts->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients;
 	/* now override with asm where appropriate */
 #ifndef FLAC__NO_ASM
 	FLAC__ASSERT(encoder->guts->cpuinfo.use_asm);
@@ -364,17 +366,16 @@ fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");}
 {//@@@
 		encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov;
 fprintf(stderr,"@@@ got _asm_i386_mmx_cmov of fixed_compute_best_predictor()\n");}
-#if 0
-	/* @@@ MMX version needs bps check */
-	if(encoder->guts->cpuinfo.data.ia32.mmx && @@@bps check here@@@)
-{//@@@
-		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx;
-fprintf(stderr,"@@@ got _asm_i386_mmx of lpc_compute_residual_from_qlp_coefficients()\n");}
-	else
-#endif
-{//@@@
+	if(encoder->guts->cpuinfo.data.ia32.mmx) {
 		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
-fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_residual_from_qlp_coefficients()\n");}
+		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx;
+fprintf(stderr,"@@@ got _asm_i386_mmx of lpc_compute_residual_from_qlp_coefficients()\n");
+	}
+	else {
+		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
+		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386;
+fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_residual_from_qlp_coefficients()\n");
+	}
 #endif
 #endif
 #endif
@@ -1101,7 +1102,10 @@ unsigned encoder_evaluate_lpc_subframe_(FLAC__Encoder *encoder, const int32 sign
 	if(ret != 0)
 		return 0; /* this is a hack to indicate to the caller that we can't do lp at this order on this subframe */
 
-	encoder->guts->local_lpc_compute_residual_from_qlp_coefficients(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
+	if(subframe_bps <= 16 && qlp_coeff_precision <= 16)
+		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients_16bit(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
+	else
+		encoder->guts->local_lpc_compute_residual_from_qlp_coefficients(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
 
 	subframe->type = FLAC__SUBFRAME_TYPE_LPC;
 
