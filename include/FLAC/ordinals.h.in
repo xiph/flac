@@ -36,7 +36,7 @@ typedef int FLAC__bool;
 typedef signed char FLAC__int8;
 typedef unsigned char FLAC__uint8;
 
-#if defined _MSC_VER || defined __MINGW32__
+#if defined _MSC_VER
 typedef __int16 FLAC__int16;
 typedef __int32 FLAC__int32;
 typedef __int64 FLAC__int64;
