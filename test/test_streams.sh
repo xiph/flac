@@ -18,18 +18,18 @@ test_file ()
 	encode_options="$4"
 
 	echo -n "$name: encode..."
-	cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options $name.raw $name.flac"
+	cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options $name.raw"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
-	if $cmd 1>/dev/null 2>>./streams.log ; then : ; else
+	if $cmd 2>>./streams.log ; then : ; else
 		echo "ERROR during encode of $name" 1>&2
 		exit 1
 	fi
 	echo -n "decode..."
-	cmd="flac -s -fb -d -fr $name.flac $name.cmp";
+	cmd="flac -s -fb -d -fr -c $name.flac"
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
-	if $cmd 2>>./streams.log ; then : ; else
+	if $cmd > $name.cmp 2>>./streams.log ; then : ; else
 		echo "ERROR during decode of $name" 1>&2
 		exit 1
 	fi
