@@ -1452,7 +1452,7 @@ bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, boo
 		}
 		else {
 			val_ += 8;
-			FLAC__CRC16_UPDATE(bb->buffer[bb->consumed_bytes], bb->read_crc16);
+			FLAC__CRC16_UPDATE(0, bb->read_crc16);
 			bb->consumed_bytes++;
 			/* bb->consumed_bits is already 0 */
 			/* we hold off updating bb->total_consumed_bits until the end */
