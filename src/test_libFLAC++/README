@@ -7,3 +7,6 @@ NOTE: the following files are copied from the ../test_libFLAC directory:
 
 It's too much of a pain to make a convenience library for these and CVS
 can't do soft links, so we put up with having two copies of these sources.
+
+metadata_utils.c and metadata_utils.h have trivial changes for use in this
+package.

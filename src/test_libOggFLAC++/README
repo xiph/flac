@@ -2,6 +2,9 @@ NOTE: the following files are copied from the ../test_libOggFLAC directory:
 
 	file_utils.c
 	file_utils.h
+
+NOTE: the following files are copied from the ../test_libFLAC++ directory:
+
 	metadata_utils.c
 	metadata_utils.h
 
