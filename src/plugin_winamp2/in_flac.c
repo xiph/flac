@@ -289,7 +289,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 
 				mod.SAAddPCMData((char *)sample_buffer,channels,bits_per_sample,decode_pos_ms);
 				mod.VSAAddPCMData((char *)sample_buffer,channels,bits_per_sample,decode_pos_ms);
-				decode_pos_ms+=(576*1000)/sample_rate;
+				decode_pos_ms+=(n*1000 + sample_rate/2)/sample_rate;
 				if (mod.dsp_isactive())
 					l=mod.dsp_dosamples((short *)sample_buffer,n/channels/bytes_per_sample,bits_per_sample,channels,sample_rate) * (channels*bytes_per_sample);
 				mod.outMod->Write(sample_buffer,l);
@@ -380,7 +380,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 {
 	stream_info_struct *stream_info = (stream_info_struct *)client_data;
 	const unsigned bps = stream_info->bits_per_sample, channels = stream_info->channels, wide_samples = frame->header.blocksize;
-	unsigned wide_sample, sample, channel, offset;
+	unsigned wide_sample, sample, channel;
 
 	(void)decoder;
 
@@ -389,7 +389,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, 
 
 	for(sample = samples_in_reservoir*channels, wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 		for(channel = 0; channel < channels; channel++, sample++)
-			reservoir[offset+sample] = (int16)buffer[channel][wide_sample];
+			reservoir[sample] = (int16)buffer[channel][wide_sample];
 
 	samples_in_reservoir += wide_samples;
 
