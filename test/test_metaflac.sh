@@ -17,17 +17,20 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+die ()
+{
+	echo $* 1>&2
+	exit 1
+}
+
 LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 PATH=../src/flac:../src/metaflac:../obj/release/bin:../obj/debug/bin:$PATH
 
 flacfile=metaflac.flac
 
-flac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find flac executable" 1>&2 && exit 1)
-if [ $? != 0 ] ; then exit 1 ; fi
-
-metaflac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find metaflac executable" 1>&2 && exit 1)
-if [ $? != 0 ] ; then exit 1 ; fi
+flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
+metaflac --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac executable"
 
 run_flac ()
 {
@@ -56,25 +59,18 @@ fi
 if run_flac --verify -0 --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=44100 $inputfile ; then
 	chmod +w $flacfile
 else
-	echo "ERROR during generation" 1>&2
-	exit 1
+	die "ERROR during generation"
 fi
 
 check_exit ()
 {
 	exit_code=$?
-	if [ $exit_code != 0 ] ; then
-		echo "ERROR, exit code = $exit_code" 1>&2
-		exit 1
-	fi
+	[ $exit_code = 0 ] || die "ERROR, exit code = $exit_code"
 }
 
 check_flac ()
 {
-	if run_flac --silent --test $flacfile ; then : ; else
-		echo "ERROR in $flacfile" 1>&2
-		exit 1
-	fi
+	run_flac --silent --test $flacfile || die "ERROR in $flacfile" 1>&2
 }
 
 check_flac
@@ -305,10 +301,7 @@ check_flac
 (set -x && run_metaflac --export-cuesheet-to=$cs_out2 $flacfile)
 check_exit
 echo "comparing cuesheets:"
-if diff $cs_out $cs_out2 ; then : ; else
-	echo "ERROR, cuesheets should be identical"
-	exit 1
-fi
+diff $cs_out $cs_out2 || die "ERROR, cuesheets should be identical"
 echo identical
 
 rm -f $cs_out $cs_out2

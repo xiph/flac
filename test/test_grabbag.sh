@@ -17,12 +17,17 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+die ()
+{
+	echo $* 1>&2
+	exit 1
+}
+
 LD_LIBRARY_PATH=../src/libFLAC/.libs:../src/share/grabbag/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 PATH=../src/test_grabbag/cuesheet:../obj/release/bin:../obj/debug/bin:$PATH
 
-test_cuesheet -h 1>/dev/null 2>/dev/null || (echo "ERROR can't find test_cuesheet executable" 1>&2 && exit 1)
-if [ $? != 0 ] ; then exit 1 ; fi
+test_cuesheet -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_cuesheet executable"
 
 run_test_cuesheet ()
 {
@@ -55,8 +60,7 @@ for cuesheet in $bad_cuesheets ; do
 	run_test_cuesheet $cuesheet $good_leadout cdda >> $log 2>&1
 	exit_code=$?
 	if [ "$exit_code" = 255 ] ; then
-		echo "Error: test script is broken"
-		exit 1
+		die "Error: test script is broken"
 	fi
 	cuesheet_pass1=${cuesheet}.1
 	cuesheet_pass2=${cuesheet}.2
@@ -71,24 +75,14 @@ for cuesheet in $good_cuesheets ; do
 	run_test_cuesheet $cuesheet $good_leadout cdda >> $log 2>&1
 	exit_code=$?
 	if [ "$exit_code" = 255 ] ; then
-		echo "Error: test script is broken"
-		exit 1
+		die "Error: test script is broken"
 	elif [ "$exit_code" != 0 ] ; then
-		echo "Error: good cuesheet is broken"
-		exit 1
+		die "Error: good cuesheet is broken"
 	fi
 	cuesheet_pass1=${cuesheet}.1
 	cuesheet_pass2=${cuesheet}.2
-	diff $cuesheet_pass1 $cuesheet_pass2 >> $log 2>&1
-	if [ $? != 0 ] ; then
-		echo "Error: pass1 and pass2 output differ"
-		exit 1
-	fi
+	diff $cuesheet_pass1 $cuesheet_pass2 >> $log 2>&1 || die "Error: pass1 and pass2 output differ"
 	rm -f $cuesheet_pass1 $cuesheet_pass2
 done
 
-diff cuesheet.ok $log > cuesheet.diff
-if [ $? != 0 ] ; then
-	echo "Error: .log file does not match .ok file, see cuesheet.diff"
-	exit 1
-fi
+diff cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"

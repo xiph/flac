@@ -17,6 +17,12 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+die ()
+{
+	echo $* 1>&2
+	exit 1
+}
+
 LD_LIBRARY_PATH=../src/libOggFLAC/.libs../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 PATH=../src/test_libOggFLAC:../obj/release/bin:../obj/debug/bin:$PATH
@@ -31,7 +37,4 @@ run_test_libOggFLAC ()
 	fi
 }
 
-if run_test_libOggFLAC ; then : ; else
-	echo "ERROR during test_libOggFLAC" 1>&2
-	exit 1
-fi
+run_test_libOggFLAC || die "ERROR during test_libOggFLAC"

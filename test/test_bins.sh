@@ -17,13 +17,18 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+die ()
+{
+	echo $* 1>&2
+	exit 1
+}
+
 LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 PATH=../src/flac:../obj/release/bin:../obj/debug/bin:$PATH
 BINS_PATH=../../test_files/bins
 
-flac --help 1>/dev/null 2>/dev/null || (echo "ERROR can't find flac executable" 1>&2 && exit 1)
-if [ $? != 0 ] ; then exit 1 ; fi
+flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 
 run_flac ()
 {
@@ -47,26 +52,21 @@ test_file ()
 	cmd="run_flac --verify --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
-	if $cmd 2>>./streams.log ; then : ; else
-		echo "ERROR during encode of $name" 1>&2
-		exit 1
-	fi
+	$cmd 2>>./streams.log || die "ERROR during encode of $name"
+
 	echo -n "decode..."
 	cmd="run_flac --silent --endian=big --sign=signed --decode --force-raw-format $name.flac";
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
-	if $cmd 2>>./streams.log ; then : ; else
-		echo "ERROR during decode of $name" 1>&2
-		exit 1
-	fi
+	$cmd 2>>./streams.log || die "ERROR during decode of $name"
+
 	ls -1l $name.bin >> ./streams.log
 	ls -1l $name.flac >> ./streams.log
 	ls -1l $name.raw >> ./streams.log
+
 	echo -n "compare..."
-	if cmp $name.bin $name.raw ; then : ; else
-		echo "ERROR during compare of $name" 1>&2
-		exit 1
-	fi
+	cmp $name.bin $name.raw || die "ERROR during compare of $name"
+
 	echo OK
 }
 
