@@ -60,6 +60,7 @@ typedef struct FLAC__SeekableStreamEncoderPrivate {
 	unsigned first_seekpoint_to_check;
 	FLAC__uint64 stream_offset, seektable_offset;
 	FLAC__uint64 bytes_written;
+	FLAC__uint64 samples_written;
 } FLAC__SeekableStreamEncoderPrivate;
 
 /***********************************************************************
@@ -176,6 +177,7 @@ FLAC_API FLAC__SeekableStreamEncoderState FLAC__seekable_stream_encoder_init(FLA
 	encoder->private_->stream_offset = 0;
 	encoder->private_->seektable_offset = 0;
 	encoder->private_->bytes_written = 0;
+	encoder->private_->samples_written = 0;
 
 	FLAC__stream_encoder_set_write_callback(encoder->private_->stream_encoder, write_callback_);
 	FLAC__stream_encoder_set_metadata_callback(encoder->private_->stream_encoder, metadata_callback_);
@@ -693,9 +695,8 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *encode
 	 * frame yet)
 	 */
 	if(0 != seekable_stream_encoder->private_->seek_table && seekable_stream_encoder->private_->stream_offset > 0 && seekable_stream_encoder->private_->seek_table->num_points > 0) {
-		/*@@@ WATCHOUT: assumes the encoder is fixed-blocksize, which will be true indefinitely: */
 		const unsigned blocksize = FLAC__stream_encoder_get_blocksize(encoder);
-		const FLAC__uint64 frame_first_sample = (FLAC__uint64)current_frame * (FLAC__uint64)blocksize;
+		const FLAC__uint64 frame_first_sample = seekable_stream_encoder->private_->samples_written;
 		const FLAC__uint64 frame_last_sample = frame_first_sample + (FLAC__uint64)blocksize - 1;
 		FLAC__uint64 test_sample;
 		unsigned i;
@@ -724,8 +725,10 @@ FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *encode
 
 	status = seekable_stream_encoder->private_->write_callback(seekable_stream_encoder, buffer, bytes, samples, current_frame, seekable_stream_encoder->private_->client_data);
 
-	if(status == FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+	if(status == FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
 		seekable_stream_encoder->private_->bytes_written += bytes;
+		seekable_stream_encoder->private_->samples_written += samples;
+	}
 	else
 		seekable_stream_encoder->protected_->state = FLAC__SEEKABLE_STREAM_ENCODER_WRITE_ERROR;
 
