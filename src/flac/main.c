@@ -475,7 +475,7 @@ int usage(const char *message, ...)
 	fprintf(stderr, "         0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	fprintf(stderr, "  -r [#,]# : [min,]max residual partition order (# is 0..16; min defaults to 0;\n");
 	fprintf(stderr, "         default is -r 0; above 4 doesn't usually help much)\n");
-	fprintf(stderr, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much\n");
+	fprintf(stderr, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
 	fprintf(stderr, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	fprintf(stderr, "         comparing to the original\n");
 	fprintf(stderr, "  -S-, -m-, -M-, -e-, -p-, -V-, --lax- can all be used to turn off a particular\n");
