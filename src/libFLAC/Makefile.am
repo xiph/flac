@@ -45,6 +45,7 @@ endif
 if FLaC__CPU_PPC
 ARCH_SUBDIRS = ppc
 libFLAC_la_LIBADD = ppc/libFLAC-asm.la
+LOCAL_EXTRA_LDFLAGS = "-Wl,-read_only_relocs,warning"
 endif
 endif
 
@@ -60,7 +61,7 @@ EXTRA_DIST = \
 	libFLAC.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
-libFLAC_la_LDFLAGS = -version-info 5:2:1 -lm
+libFLAC_la_LDFLAGS = -version-info 5:2:1 -lm $(LOCAL_EXTRA_LDFLAGS)
 libFLAC_la_SOURCES = \
 	bitbuffer.c \
 	bitmath.c \

@@ -45,6 +45,6 @@ EXTRA_DIST = \
 	config.rpath \
 	depcomp \
 	ltmain.sh \
-	strip_fPIC.sh
+	strip_non_asm_libtool_args.sh
 
 AUTOMAKE_OPTIONS = foreign
