@@ -78,6 +78,67 @@
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 
 	<P>
+		<A NAME="200301@@@@">@@@@-Jan-2003:</A>
+	</P>
+	<P>
+	<UL>
+		<LI>
+			<B>FLAC 1.0.5 released</B>&nbsp;&nbsp;I didn't get everything in that I wanted, but it's high time for a release.  Here's what's new (see the latest <A HREF="http://flac.sourceforge.net/documentation.html#flac">documentation</A> for more):
+			<P>
+			General:
+			<UL>
+				<LI>All code is now <A HREF="http://developer.kde.org/~sewardj/">Valgrind</A>-clean!</LI>
+				<LI>New <A HREF="format.html#def_CUESHEET">CUESHEET</A> metadata block for storing CD TOC and index point information.  Now a CD can be completely backed up to a single FLAC file for archival.</LI>
+				<LI><A HREF="http://www.replaygain.org/">ReplayGain</A> support.</LI>
+				<LI>Better compression of 24-bit files.</LI>
+				<LI>More complete AIFF support.</LI>
+				<LI>3DNow! optimizations enabled by default.</LI>
+				<LI>Complete MSVC build system with .dsp projects for everything, which can build both static libs and DLLs, and in debug or release mode, all in the same source tree.</LI>
+			</UL>
+			<P>
+			<B><TT>flac</TT></B>:
+			<UL>
+				<LI>Can now decode FLAC to AIFF; new <TT>--force-aiff-format</TT> option.</LI>
+				<LI>New <TT>--cuesheet</TT> option for reading and storing a cuesheet when encoding a whole CD.  Automatically creates seek points for track and index points unless <TT>--no-cued-seekpoints</TT> is used.</LI>
+				<LI>New <TT>--replay-gain</TT> option for calculating ReplayGain values and storing them as tags.</LI>
+				<LI>New <TT>--until</TT> option complements <TT>--skip</TT> to stop decoding at a specified point in the stream.</LI>
+				<LI><TT>--skip</TT> and <TT>--until</TT> now also accept mm:ss.ss format.</LI>
+				<LI>New <TT>-S #s</TT> flavor to specify seekpoints every '#' number of seconds.</LI>
+				<LI><B><TT>flac</TT></B> now defaults to <TT>-S 10s</TT> instead of <TT>-S 100x</TT> for the seek table.</LI>
+				<LI><B><TT>flac</TT></B> now adds a 4k PADDING block by default (turn off with <TT>--no-padding</TT>).</LI>
+				<LI>Fixed a bug with --skip and AIFF-to-FLAC encoding.</LI>
+				<LI>Fixed a bug where decoding a FLAC file whose total_samples==0 in the STREAMINFO would corrupt the WAVE header.</LI>
+			</UL>
+			<P>
+			<B><TT>metaflac</TT></B>:
+			<UL>
+				<LI>New <TT>--import-cuesheet-from</TT> option for reading and storing a cuesheet to a FLAC-encoded CD.  Automatically creates seek points for track and index points unless <TT>--no-cued-seekpoints</TT> is used.</LI>
+				<LI>New <TT>--export-cuesheet-to</TT> option for writing a cuesheet from a FLAC file for use with CD authoring software.</LI>
+				<LI>New <TT>--add-replay-gain</TT> option for calculating ReplayGain values and storing them as tags.</LI>
+				<LI>New <TT>--add-seekpoint</TT> option to add seekpoints to an existing FLAC file.  Includes new <TT>--add-seekpoint=#s</TT> flavor to add seekpoints every '#' number of seconds.</LI>
+			</UL>
+			<P>
+			XMMS plugin:
+			<UL>
+				<LI>ReplayGain support with customizable noise shaping, pre-amp, and optional hard limiter.</LI>
+				<LI>New Vorbis comment editor.</LI>
+				<LI>File info now works.</LI>
+				<LI>Bitrate now shows the smoothed instantaneous bitrate.</LI>
+				<LI>Uses the ARTIST tag if there is no PERFORMER tag.</LI>
+			</UL>
+			<P>
+			Libraries (developers take note!):
+			<UL>
+				<LI>All code and tests are instrumented for Valgrind.  All tests run Valgrind-clean, meaning no memory leaks or buffer over/under-runs.</LI>
+				<LI>Separate 64-bit datapath through the filter in <B><TT>libFLAC</TT></B> for better compression of &gt;16 bps files.</LI>
+				<LI><TT>FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)</TT> now sets the vendor string.</LI>
+				<LI>The documentation on the usage of <TT>FLAC::Iterator::get_block()</TT> in <B><TT>libFLAC++</TT></B> has an important correction.  If you use this class make sure to read <A HREF="api/group__flacpp__metadata__level2.html">this</A>.</LI>
+			</UL>
+		</LI>
+	</UL>
+	</P>
+
+	<P>
 		<A NAME="20020924">24-Sep-2002:</A>
 	</P>
 	<P>
