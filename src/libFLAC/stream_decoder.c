@@ -23,6 +23,7 @@
 #include "FLAC/assert.h"
 #include "protected/stream_decoder.h"
 #include "private/bitbuffer.h"
+#include "private/bitmath.h"
 #include "private/cpu.h"
 #include "private/crc.h"
 #include "private/fixed.h"
