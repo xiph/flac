@@ -82,6 +82,10 @@ general, this should work:
 
 The 'make check' step is optional; omit it to skip all the tests,
 which can take several hours and use around 70-80 megs of disk space.
+Even though it will stop with an explicit message on any failure, it
+does print out a lot of stuff so you might want to capture the output
+to a file if you're having a problem.  Also, don't run 'make check'
+as root because it confuses some of the tests.
 
 NOTE: Despite our best efforts it's entirely possible to have
 problems when using older versions of autoconf, automake, or
