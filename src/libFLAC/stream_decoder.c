@@ -1312,7 +1312,7 @@ bool stream_decoder_read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder
 			return false; /* the read_callback_ sets the state for us */
 		if(rice_parameter < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
 			for(u = (partition_order == 0 || partition > 0)? 0 : predictor_order; u < partition_samples; u++, sample++) {
-#ifdef SYMMETRIC_RICE
+#ifdef FLAC__SYMMETRIC_RICE
 				if(!FLAC__bitbuffer_read_symmetric_rice_signed(&decoder->guts->input, &i, rice_parameter, read_callback_, decoder))
 					return false; /* the read_callback_ sets the state for us */
 #else

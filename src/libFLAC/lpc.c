@@ -129,14 +129,14 @@ int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsig
 
 void FLAC__lpc_compute_residual_from_qlp_coefficients(const int32 data[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 residual[])
 {
-#ifdef FLAC_OVERFLOW_DETECT
+#ifdef FLAC__OVERFLOW_DETECT
 	int64 sumo;
 #endif
 	unsigned i, j;
 	int32 sum;
 	const int32 *history;
 
-#ifdef FLAC_OVERFLOW_DETECT_VERBOSE
+#ifdef FLAC__OVERFLOW_DETECT_VERBOSE
 	fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients: data_len=%d, order=%u, lpq=%d",data_len,order,lp_quantization);
 	for(i=0;i<order;i++)
 		fprintf(stderr,", q[%u]=%d",i,qlp_coeff[i]);
@@ -145,14 +145,14 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const int32 data[], unsign
 	assert(order > 0);
 
 	for(i = 0; i < data_len; i++) {
-#ifdef FLAC_OVERFLOW_DETECT
+#ifdef FLAC__OVERFLOW_DETECT
 		sumo = 0;
 #endif
 		sum = 0;
 		history = data;
 		for(j = 0; j < order; j++) {
 			sum += qlp_coeff[j] * (*(--history));
-#ifdef FLAC_OVERFLOW_DETECT
+#ifdef FLAC__OVERFLOW_DETECT
 			sumo += (int64)qlp_coeff[j] * (int64)(*history);
 			if(sumo > 2147483647ll || sumo < -2147483648ll) {
 				fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
@@ -174,14 +174,14 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const int32 data[], unsign
 
 void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[])
 {
-#ifdef FLAC_OVERFLOW_DETECT
+#ifdef FLAC__OVERFLOW_DETECT
 	int64 sumo;
 #endif
 	unsigned i, j;
 	int32 sum;
 	const int32 *history;
 
-#ifdef FLAC_OVERFLOW_DETECT_VERBOSE
+#ifdef FLAC__OVERFLOW_DETECT_VERBOSE
 	fprintf(stderr,"FLAC__lpc_restore_signal: data_len=%d, order=%u, lpq=%d",data_len,order,lp_quantization);
 	for(i=0;i<order;i++)
 		fprintf(stderr,", q[%u]=%d",i,qlp_coeff[i]);
@@ -190,14 +190,14 @@ void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const i
 	assert(order > 0);
 
 	for(i = 0; i < data_len; i++) {
-#ifdef FLAC_OVERFLOW_DETECT
+#ifdef FLAC__OVERFLOW_DETECT
 		sumo = 0;
 #endif
 		sum = 0;
 		history = data;
 		for(j = 0; j < order; j++) {
 			sum += qlp_coeff[j] * (*(--history));
-#ifdef FLAC_OVERFLOW_DETECT
+#ifdef FLAC__OVERFLOW_DETECT
 			sumo += (int64)qlp_coeff[j] * (int64)(*history);
 			if(sumo > 2147483647ll || sumo < -2147483648ll) {
 				fprintf(stderr,"FLAC__lpc_restore_signal: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);

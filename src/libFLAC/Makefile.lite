@@ -4,7 +4,7 @@
 
 LIB_NAME  = libFLAC
 INCLUDES  = -I./include -I../../include
-DEBUG_CFLAGS = -DFLAC_OVERFLOW_DETECT
+DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
 OBJS = \
 	bitbuffer.o \
