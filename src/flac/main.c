@@ -583,7 +583,7 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 
 int decode_file(const char *infilename, const char *forced_outfilename)
 {
-	static const char *suffixes[] = { ".wav", ".raw" };
+	static const char *suffixes[] = { ".wav", ".raw", ".ana" };
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
 	char *p;
 	int retval;
@@ -601,7 +601,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	if(0 == strcmp(infilename, "-") || force_to_stdout)
 		strcpy(outfilename, "-");
 	else {
-		const char *suffix = suffixes[format_is_wave? 0:1];
+		const char *suffix = suffixes[analyze? 2 : format_is_wave? 0 : 1];
 		strcpy(outfilename, infilename);
 		if(0 == (p = strrchr(outfilename, '.')))
 			strcat(outfilename, suffix);
