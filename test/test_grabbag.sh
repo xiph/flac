@@ -19,7 +19,7 @@
 
 LD_LIBRARY_PATH=../src/libFLAC/.libs:../src/share/grabbag/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/test_cuesheet:../obj/release/b:../obj/debug/bin:$PATH
+PATH=../src/test_grabbag/cuesheet:../obj/release/b:../obj/debug/bin:$PATH
 
 test_cuesheet -h 1>/dev/null 2>/dev/null || (echo "ERROR can't find test_cuesheet executable" 1>&2 && exit 1)
 if [ $? != 0 ] ; then exit 1 ; fi
