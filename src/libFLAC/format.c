@@ -37,9 +37,9 @@ FLAC_API const char *FLAC__VERSION_STRING = VERSION;
 
 #if defined _MSC_VER || defined __MINW32__
 /* yet one more hack because of MSVC6: */
-FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC 1.0.5_beta2 20030102";
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC 1.0.5_beta2 20030114";
 #else
-FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " VERSION " 20030102";
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " VERSION " 20030114";
 #endif
 
 FLAC_API const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
