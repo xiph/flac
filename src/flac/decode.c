@@ -26,6 +26,7 @@
 #else
 # include <unistd.h>
 #endif
+#include <errno.h>
 #include <math.h> /* for floor() */
 #include <stdio.h> /* for FILE et al. */
 #include <string.h> /* for strcmp() */
@@ -866,6 +867,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 	FLAC__uint16 *u16buffer = (FLAC__uint16 *)s8buffer;
 	FLAC__int32  *s32buffer = (FLAC__int32  *)s8buffer;
 	FLAC__uint32 *u32buffer = (FLAC__uint32 *)s8buffer;
+	size_t bytes_to_write = 0;
 
 	(void)decoder;
 
@@ -918,7 +920,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 		}
 		else if(!decoder_session->test_only) {
 			if (decoder_session->replaygain.apply) {
-				const size_t n = FLAC__replaygain_synthesis__apply_gain(
+				bytes_to_write = FLAC__replaygain_synthesis__apply_gain(
 					u8buffer,
 					!is_big_endian,
 					is_unsigned_samples,
@@ -932,8 +934,6 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 					decoder_session->replaygain.spec.noise_shaping != NOISE_SHAPING_NONE, /* do_dithering */
 					&decoder_session->replaygain.dither_context
 				);
-				if(flac__utils_fwrite(u8buffer, 1, n, fout) != n)
-					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 			}
 			else if(bps == 8) {
 				if(is_unsigned_samples) {
@@ -946,8 +946,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 						for(channel = 0; channel < channels; channel++, sample++)
 							s8buffer[sample] = (FLAC__int8)(buffer[channel][wide_sample]);
 				}
-				if(flac__utils_fwrite(u8buffer, 1, sample, fout) != sample)
-					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+				bytes_to_write = sample;
 			}
 			else if(bps == 16) {
 				if(is_unsigned_samples) {
@@ -969,8 +968,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 						u8buffer[byte+1] = tmp;
 					}
 				}
-				if(flac__utils_fwrite(u16buffer, 2, sample, fout) != sample)
-					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+				bytes_to_write = 2 * sample;
 			}
 			else if(bps == 24) {
 				if(is_unsigned_samples) {
@@ -1015,13 +1013,20 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 						byte++;
 					}
 				}
-				if(flac__utils_fwrite(u8buffer, 3, sample, fout) != sample)
-					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+				bytes_to_write = 3 * sample;
 			}
 			else {
 				FLAC__ASSERT(0);
 			}
 		}
+	}
+	FLAC__ASSERT(bytes_to_write > 0);
+	if(flac__utils_fwrite(u8buffer, 1, bytes_to_write, fout) != bytes_to_write) {
+		/* if a pipe closed when writing to stdout, we let it go without an error message */
+		if(errno == EPIPE && decoder_session->fout == stdout)
+			decoder_session->aborting_due_to_until = true;
+		decoder_session->abort_flag = true;
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
@@ -1128,49 +1133,43 @@ void error_callback(const void *decoder, FLAC__StreamDecoderErrorStatus status, 
 void print_error_with_state(const DecoderSession *d, const char *message)
 {
 	const int ilen = strlen(d->inbasefilename) + 1;
+	const char *state_string;
 
 	flac__utils_printf(stderr, 1, "\n%s: %s\n", d->inbasefilename, message);
 
 #ifdef FLAC__HAS_OGG
 	if(d->is_ogg) {
-		const OggFLAC__FileDecoderState ofd_state = OggFLAC__file_decoder_get_state(d->decoder.ogg.file);
-		if(ofd_state != OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR) {
-			flac__utils_printf(stderr, 1, "%*s state = %d:%s\n", ilen, "", (int)ofd_state, OggFLAC__FileDecoderStateString[ofd_state]);
-		}
-		else {
-			const OggFLAC__SeekableStreamDecoderState ossd_state = OggFLAC__file_decoder_get_seekable_stream_decoder_state(d->decoder.ogg.file);
-			if(ossd_state != OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
-				flac__utils_printf(stderr, 1, "%*s state = %d:%s\n", ilen, "", (int)ossd_state, OggFLAC__SeekableStreamDecoderStateString[ossd_state]);
-			}
-			else {
-				const OggFLAC__StreamDecoderState osd_state = OggFLAC__file_decoder_get_state(d->decoder.ogg.file);
-				if(osd_state != OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR) {
-					flac__utils_printf(stderr, 1, "%*s state = %d:%s\n", ilen, "", (int)osd_state, OggFLAC__StreamDecoderStateString[osd_state]);
-				}
-				else {
-					const FLAC__StreamDecoderState fsd_state = OggFLAC__file_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.file);
-					flac__utils_printf(stderr, 1, "%*s state = %d:%s\n", ilen, "", (int)fsd_state, FLAC__StreamDecoderStateString[fsd_state]);
-				}
-			}
-		}
+		state_string = OggFLAC__file_decoder_get_resolved_state_string(d->decoder.ogg.file);
 	}
 	else
 #endif
 	{
-		const FLAC__FileDecoderState ffd_state = FLAC__file_decoder_get_state(d->decoder.flac.file);
-		if(ffd_state != FLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR) {
-			flac__utils_printf(stderr, 1, "%*s state = %d:%s\n", ilen, "", (int)ffd_state, FLAC__FileDecoderStateString[ffd_state]);
-		}
-		else {
-			const FLAC__SeekableStreamDecoderState fssd_state = FLAC__file_decoder_get_seekable_stream_decoder_state(d->decoder.flac.file);
-			if(fssd_state != FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
-				flac__utils_printf(stderr, 1, "%*s state = %d:%s\n", ilen, "", (int)fssd_state, FLAC__SeekableStreamDecoderStateString[fssd_state]);
-			}
-			else {
-				const FLAC__StreamDecoderState fsd_state = FLAC__file_decoder_get_stream_decoder_state(d->decoder.flac.file);
-				flac__utils_printf(stderr, 1, "%*s state = %d:%s\n", ilen, "", (int)fsd_state, FLAC__StreamDecoderStateString[fsd_state]);
-			}
-		}
+		state_string = FLAC__file_decoder_get_resolved_state_string(d->decoder.flac.file);
+	}
+
+	flac__utils_printf(stderr, 1, "%*s state = %s\n", ilen, "", state_string);
+
+	/* print out some more info for some errors: */
+	if (0 == strcmp(state_string, FLAC__StreamDecoderStateString[FLAC__STREAM_DECODER_UNPARSEABLE_STREAM])) {
+		flac__utils_printf(stderr, 1,
+			"\n"
+			"The FLAC stream may have been created by a more advanced encoder.  Try\n"
+			"  metaflac --show-vc-vendor %s\n"
+			"If the version number is greater than %s, this decoder is probably\n"
+			"not able to decode the file.  If the version number is not, you may\n"
+			"have found a bug.  In this case please submit a bug report to\n"
+			"    http://sourceforge.net/bugs/?func=addbug&group_id=13478\n"
+			"Make sure to include an email contact in the comment and/or use the\n"
+			"\"Monitor\" feature to monitor the bug status.\n",
+			d->inbasefilename, FLAC__VERSION_STRING
+		);
+	}
+	else if (0 == strcmp(state_string, FLAC__FileDecoderStateString[FLAC__FILE_DECODER_ERROR_OPENING_FILE]) || 0 == strcmp(state_string, OggFLAC__FileDecoderStateString[OggFLAC__FILE_DECODER_ERROR_OPENING_FILE])) {
+		flac__utils_printf(stderr, 1,
+			"\n"
+			"An error occurred opening the input file; it is likely that it does not exist\n"
+			"or is not readable.\n"
+		);
 	}
 }
 
