@@ -81,7 +81,85 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-		See the <A HREF="format.html#scope">Scope</A>, <A HREF="format.html#architecture">Architecture</A>, <A HREF="format.html#definitions">Definitions</A>, and <A HREF="format.html#overview">Overview</A> sections of the <A HREF="format.html">format page</A> for a good introduction.  This section will be expanded in the future.
+		<B><TT>flac</TT></B> has been tuned so that the default options yield a good speed vs. compression tradeoff for many kinds of input.  However, if you are looking to maximize the compression rate or speed, or want to use the full power of FLAC's metadata system, this section is for you.  If not, just skip to the <A HREF="#flac">next section</A>.
+	</P>
+	<P>
+		The basic structure of a FLAC stream is:
+		<UL>
+			<LI>The four byte string "fLaC"</LI>
+			<LI>The <A HREF="format.html#def_STREAMINFO">STREAMINFO</A> metadata block</LI>
+			<LI>Zero or more other metadata blocks</LI>
+			<LI>One or more audio frames</LI>
+		</UL>
+	</P>
+	<P>
+		The first four bytes are to identify the FLAC stream.  The metadata that follows contains all the information about the stream except for the audio data itself.  After the metadata comes the encoded audio data.
+	</P>
+	<P>
+		<B>METADATA</B>
+	</P>
+	<P>
+		FLAC defines several types of metadata blocks (see the <A HREF="format.html">format</A> page for the complete list.  Metadata blocks can be any length and new ones can be defined.  A decoder is allowed to skip any metadata types it does not understand.  Only one is mandatory: the STREAMINFO block.  This block has information like the sample rate, number of channels, etc., and data that can help the decoder manage its buffers, like the minimum and maximum data rate and minimum and maximum block size.  Also included in the STREAMINFO block is the MD5 signature of the <I>unencoded</I> audio data.  This is useful for checking an entire stream for transmission errors.
+	</P>
+	<P>
+		Other blocks allow for padding, seek tables, and application-specific data.  You can see <B><TT>flac</TT></B> options below for adding PADDING blocks or specifying seek points.  FLAC does not require seek points for seeking but they can speed up seeks, or be used for cueing in editing applications.
+	<P>
+	</P>
+		Also, if you have a need of a custom metadata block, you can define your own and request an ID <A HREF="id.html">here</A>.  Then you can reserve a PADDING block of the correct size when encoding, and overwrite the padding block with your APPLICATION block after encoding.  The resulting stream will be FLAC compatible; decoders that are aware of your metadata can use it and the rest will safely ignore it.
+	</P>
+	<P>
+		<B>AUDIO DATA</B>
+	</P>
+	<P>
+		After the metadata comes the encoded audio data.  Audio data and metadata are not interleaved.  Like most audio codecs, FLAC splits the unencoded audio data into blocks, and encodes each block separately.  The encoded block is packed into a frame and appended to the stream.  The reference encoder uses a single block size for the whole stream but the FLAC format does not require it.
+	</P>
+	<P>
+		<B>BLOCKING</B>
+	</P>
+	<P>
+		The block size is an important parameter to encoding.  If it is too small, the frame overhead will lower the compression.  If it is too large, the modeling stage of the compressor will not be able to generate an efficient model.  Understanding FLAC's modeling will help you to improve compression for some kinds of input by varying the block size.  In the most general case, using linear prediction on 44.1kHz audio, the optimal block size will be between 2-6 ksamples.  <B><TT>flac</TT></B> defaults to a block size of 4608 in this case.  Using the fast fixed predictors, a smaller block size is usually preferable because of the smaller frame header.
+	</P>
+	<P>
+		<B>INTER-CHANNEL DECORRELATION</B>
+	</P>
+	<P>
+		In the case of stereo input, once the data is blocked it is optionally passed through an inter-channel decorrelation stage.  The left and right channels are converted to center and side channels through the following transformation: mid = (left + right) / 2, side = left - right.  This is a lossless process, unlike joint stereo.  For normal CD audio this can result in significant extra compression.  <B><TT>flac</TT></B> has two options for this: <TT>-m</TT> always compresses both the left-right and mid-side versions of the block and takes the smallest frame, and <TT>-M</TT>, which adaptively switches between left-right and mid-side.
+	</P>
+	<P>
+		<B>MODELING</B>
+	</P>
+	<P>
+		In the next stage, the encoder tries to approximate the signal with a function in such a way that when the approximation is subracted, the result (called the <I>residual</I>, <I>residue</I>, or <I>error</I>) requires fewer bits-per-sample to encode.  The function's parameters also have to be transmitted so they should not be so complex as to eat up the savings.  FLAC has two methods of forming approximations: 1) fitting a simple polynomial to the signal; and 2) general linear predictive coding (LPC).  I will not go into the details here, only some generalities that involve the encoding options.
+	</P>
+	<P>
+		First, fixed polynomial prediction (specified with <TT>-l 0</TT>) is much faster, but less accurate than LPC.  The higher the maximum LPC order, the slower, but more accurate, the model will be.  However, there are diminishing returns with increasing orders.  Also, at some point (around order 9) the part of the encoder that guesses what is the best order to use will start to get it wrong and the compression will actually decrease slightly; at that point you will have to you will have to use the exhaustive search option <TT>-e</TT> to overcome this, which is significantly slower.
+	</P>
+	<P>
+		Second, the parameters for the fixed predictors can be transmitted in 3 bits whereas the parameters for the LPC model depend on the bits-per-sample and LPC order.  This means the frame header length varies depending on the method and order you choose and can affect the optimal block size.
+	</P>
+	<P>
+		<B>RESIDUAL CODING</B>
+	</P>
+	<P>
+		Once the model is generated, the encoder subracts the approximation from the original signal to get the residual (error) signal.  The error signal is then losslessly coded.  To do this, FLAC takes advantage of the fact that the error signal generally has a Laplacian (two-sided geometric) distribution, and that there are a set of special Huffman codes called Rice codes that can be used to efficiently encode these kind of signals quickly and without needing a dictionary.
+	</P>
+	<P>
+		Rice coding involves finding a single parameter that matches a signal's distribution, then using that parameter to generate the codes.  As the distribution changes, the optimal parameter changes, so FLAC supports a method that allows the parameter to change as needed.  The residual can be broken into several <I>contexts</I> or <I>partitions</I>, each with it's own Rice parameter.  <B><TT>flac</TT></B> allows you to specify how the partitioning is done with the <TT>-r</TT> option.  The residual can be broken into 2^<I>n</I> partitions, by using the option <TT>-r n,n</TT>.  The parameter <I>n</I> is called the <I>partition order</I>.  Furthermore, the encoder can be made to search through <I>m</I> to <I>n</I> partition orders, taking the best one, by specifying <TT>-r m,n</TT>.  Generally, the choice of n does not affect encoding speed but m,n does.  The larger the difference between m and n, the more time it will take the encoder to search for the best order.  The block size will also affect the optimal order.
+	</P>
+	<P>
+		<B>FRAMING</B>
+	</P>
+	<P>
+		An audio frame is preceded by a frame header and trailed by a frame footer.  The header starts with a sync code, and contains the minimum information necessary for a decoder to play the stream, like sample rate, bits per sample, etc.  It also contains the block or sample number and an 8-bit CRC of the frame header.  The sync code, frame header CRC, and block/sample number allow resynchronization and seeking even in the absence of seek points.  The frame footer contains a 16-bit CRC of the entire encoded frame for error detection.  If the reference decoder detects a CRC error it will generate a silent block.
+	</P>
+	<P>
+		<B>MISCELLANEOUS</B>
+	</P>
+	<P>
+		In order to support come common types of metadata, the reference decoder knows how to skip ID3V1 and ID3V2 tags so it is safe to tag FLAC files in this way.  ID3V2 tags must come at the beginning of the file (before the "fLaC" marker) and ID3V1 tags must come at the end of the file.
+	</P>
+	<P>
+		<B><TT>flac</TT></B> has a verify option <TT>-V</TT> that verifies the output while encoding.  With this option, a decoder is run in parallel to the encoder and its output is compared against the original input.  If a difference is found <B><TT>flac</TT></B> will stop with an error.
 	</P>
 	</FONT>
 	</TD></TR>
@@ -96,7 +174,7 @@
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
 		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<B><FONT SIZE="+2">flac</FONT></B>
+		<A NAME="flac"><B><FONT SIZE="+2">flac</FONT></B>
 		</FONT></TD></TR>
 	</TABLE>
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
@@ -115,7 +193,7 @@
 		<B><TT>flac</TT></B> will be invoked one of four ways, depending on whether you are encoding, decoding, testing, or analyzing:
 		<UL>
 		<LI>
-			Encoding: flac [-s] [--skip #] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [<I><A HREF="#encoding_options">&lt;encoding options&gt;</A></I>] [inputfile [...]]
+			Encoding: flac [-s] [--skip #] [-V] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [<I><A HREF="#encoding_options">&lt;encoding options&gt;</A></I>] [inputfile [...]]
 		</LI>
 		<LI>
 			Decoding: flac -d [-s] [--skip #] [<I><A HREF="#format_options">&lt;format-options&gt;</A></I>] [inputfile [...]]
@@ -314,7 +392,7 @@
 				-b #
 			</TD>
 			<TD>
-				Specify the blocksize in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The reference encoder uses the same blocksize for the entire stream.
+				Specify the block size in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The reference encoder uses the same block size for the entire stream.
 			</TD>
 		</TR>
 		<TR>
@@ -418,7 +496,7 @@
 				-9
 			</TD>
 			<TD>
-				Synonymous with -l 32 -b 4608 -m -e -r 16 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for the given blocksize.
+				Synonymous with -l 32 -b 4608 -m -e -r 16 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for the given block size.
 			</TD>
 		</TR>
 		<TR>
@@ -459,7 +537,7 @@
 			</TD>
 			<TD>
 				Set the [min,]max residual partition order.  The min value defaults to 0 if unspecified.<BR>
-				By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is iteratively partitioned into 2^min# .. 2^max# pieces, each with its own Rice parameter.  Higher values of max# yield diminishing returns.  The most bang for the buck is usually with <B><TT>-r 2,2</TT></B> (more for higher blocksizes).  This usually shaves off about 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <B><TT>-r 0,16</TT></B> to force the highest degree of optimization.
+				By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is iteratively partitioned into 2^min# .. 2^max# pieces, each with its own Rice parameter.  Higher values of max# yield diminishing returns.  The most bang for the buck is usually with <B><TT>-r 2,2</TT></B> (more for higher block sizes).  This usually shaves off about 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <B><TT>-r 0,16</TT></B> to force the highest degree of optimization.
 			</TD>
 		</TR>
 		<TR>
