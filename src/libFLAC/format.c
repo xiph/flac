@@ -185,10 +185,10 @@ unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table)
 		seek_table->points[j++] = seek_table->points[i];
 	}
 
-	for(; j < seek_table->num_points; j++) {
-		seek_table->points[j].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
-		seek_table->points[j].stream_offset = 0;
-		seek_table->points[j].frame_samples = 0;
+	for(i = j; i < seek_table->num_points; i++) {
+		seek_table->points[i].sample_number = FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER;
+		seek_table->points[i].stream_offset = 0;
+		seek_table->points[i].frame_samples = 0;
 	}
 
 	return j;
