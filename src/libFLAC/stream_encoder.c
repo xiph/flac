@@ -48,6 +48,7 @@
  *
  ***********************************************************************/
 
+static void stream_encoder_set_defaults_(FLAC__StreamEncoder *encoder);
 static FLAC__bool stream_encoder_resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size);
 static FLAC__bool stream_encoder_process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
 static FLAC__bool stream_encoder_process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
@@ -202,30 +203,9 @@ FLAC__StreamEncoder *FLAC__stream_encoder_new()
 		return 0;
 	}
 
+	stream_encoder_set_defaults_(encoder);
+
 	encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
-
-	encoder->protected_->streamable_subset = true;
-	encoder->protected_->do_mid_side_stereo = false;
-	encoder->protected_->loose_mid_side_stereo = false;
-	encoder->protected_->channels = 2;
-	encoder->protected_->bits_per_sample = 16;
-	encoder->protected_->sample_rate = 44100;
-	encoder->protected_->blocksize = 1152;
-	encoder->protected_->max_lpc_order = 0;
-	encoder->protected_->qlp_coeff_precision = 0;
-	encoder->protected_->do_qlp_coeff_prec_search = false;
-	encoder->protected_->do_exhaustive_model_search = false;
-	encoder->protected_->do_escape_coding = false;
-	encoder->protected_->min_residual_partition_order = 0;
-	encoder->protected_->max_residual_partition_order = 0;
-	encoder->protected_->rice_parameter_search_dist = 0;
-	encoder->protected_->total_samples_estimate = 0;
-	encoder->protected_->metadata = 0;
-	encoder->protected_->num_metadata_blocks = 0;
-
-	encoder->private_->write_callback = 0;
-	encoder->private_->metadata_callback = 0;
-	encoder->private_->client_data = 0;
 
 	return encoder;
 }
@@ -554,11 +534,14 @@ void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	}
 	FLAC__bitbuffer_free(encoder->private_->frame);
 
+	stream_encoder_set_defaults_(encoder);
+
 	encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
 }
 
 FLAC__bool FLAC__stream_encoder_set_streamable_subset(FLAC__StreamEncoder *encoder, FLAC__bool value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->streamable_subset = value;
@@ -567,6 +550,7 @@ FLAC__bool FLAC__stream_encoder_set_streamable_subset(FLAC__StreamEncoder *encod
 
 FLAC__bool FLAC__stream_encoder_set_do_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->do_mid_side_stereo = value;
@@ -575,6 +559,7 @@ FLAC__bool FLAC__stream_encoder_set_do_mid_side_stereo(FLAC__StreamEncoder *enco
 
 FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->loose_mid_side_stereo = value;
@@ -583,6 +568,7 @@ FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamEncoder *e
 
 FLAC__bool FLAC__stream_encoder_set_channels(FLAC__StreamEncoder *encoder, unsigned value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->channels = value;
@@ -591,6 +577,7 @@ FLAC__bool FLAC__stream_encoder_set_channels(FLAC__StreamEncoder *encoder, unsig
 
 FLAC__bool FLAC__stream_encoder_set_bits_per_sample(FLAC__StreamEncoder *encoder, unsigned value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->bits_per_sample = value;
@@ -599,6 +586,7 @@ FLAC__bool FLAC__stream_encoder_set_bits_per_sample(FLAC__StreamEncoder *encoder
 
 FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *encoder, unsigned value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->sample_rate = value;
@@ -607,6 +595,7 @@ FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *encoder, un
 
 FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *encoder, unsigned value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->blocksize = value;
@@ -615,6 +604,7 @@ FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *encoder, unsi
 
 FLAC__bool FLAC__stream_encoder_set_max_lpc_order(FLAC__StreamEncoder *encoder, unsigned value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->max_lpc_order = value;
@@ -623,6 +613,7 @@ FLAC__bool FLAC__stream_encoder_set_max_lpc_order(FLAC__StreamEncoder *encoder, 
 
 FLAC__bool FLAC__stream_encoder_set_qlp_coeff_precision(FLAC__StreamEncoder *encoder, unsigned value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->qlp_coeff_precision = value;
@@ -631,6 +622,7 @@ FLAC__bool FLAC__stream_encoder_set_qlp_coeff_precision(FLAC__StreamEncoder *enc
 
 FLAC__bool FLAC__stream_encoder_set_do_qlp_coeff_prec_search(FLAC__StreamEncoder *encoder, FLAC__bool value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->do_qlp_coeff_prec_search = value;
@@ -639,6 +631,7 @@ FLAC__bool FLAC__stream_encoder_set_do_qlp_coeff_prec_search(FLAC__StreamEncoder
 
 FLAC__bool FLAC__stream_encoder_set_do_escape_coding(FLAC__StreamEncoder *encoder, FLAC__bool value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->do_escape_coding = value;
@@ -647,6 +640,7 @@ FLAC__bool FLAC__stream_encoder_set_do_escape_coding(FLAC__StreamEncoder *encode
 
 FLAC__bool FLAC__stream_encoder_set_do_exhaustive_model_search(FLAC__StreamEncoder *encoder, FLAC__bool value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->do_exhaustive_model_search = value;
@@ -655,6 +649,7 @@ FLAC__bool FLAC__stream_encoder_set_do_exhaustive_model_search(FLAC__StreamEncod
 
 FLAC__bool FLAC__stream_encoder_set_min_residual_partition_order(FLAC__StreamEncoder *encoder, unsigned value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->min_residual_partition_order = value;
@@ -663,6 +658,7 @@ FLAC__bool FLAC__stream_encoder_set_min_residual_partition_order(FLAC__StreamEnc
 
 FLAC__bool FLAC__stream_encoder_set_max_residual_partition_order(FLAC__StreamEncoder *encoder, unsigned value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->max_residual_partition_order = value;
@@ -671,6 +667,7 @@ FLAC__bool FLAC__stream_encoder_set_max_residual_partition_order(FLAC__StreamEnc
 
 FLAC__bool FLAC__stream_encoder_set_rice_parameter_search_dist(FLAC__StreamEncoder *encoder, unsigned value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->rice_parameter_search_dist = value;
@@ -679,6 +676,7 @@ FLAC__bool FLAC__stream_encoder_set_rice_parameter_search_dist(FLAC__StreamEncod
 
 FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *encoder, FLAC__uint64 value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->total_samples_estimate = value;
@@ -687,6 +685,7 @@ FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *
 
 FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->metadata = metadata;
@@ -696,6 +695,8 @@ FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC_
 
 FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data))
 {
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != value);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->private_->write_callback = value;
@@ -704,6 +705,8 @@ FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder,
 
 FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encoder, void (*value)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data))
 {
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != value);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->private_->metadata_callback = value;
@@ -712,6 +715,7 @@ FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encod
 
 FLAC__bool FLAC__stream_encoder_set_client_data(FLAC__StreamEncoder *encoder, void *value)
 {
+	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->private_->client_data = value;
@@ -720,81 +724,97 @@ FLAC__bool FLAC__stream_encoder_set_client_data(FLAC__StreamEncoder *encoder, vo
 
 FLAC__StreamEncoderState FLAC__stream_encoder_get_state(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->state;
 }
 
 FLAC__bool FLAC__stream_encoder_get_streamable_subset(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->streamable_subset;
 }
 
 FLAC__bool FLAC__stream_encoder_get_do_mid_side_stereo(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->do_mid_side_stereo;
 }
 
 FLAC__bool FLAC__stream_encoder_get_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->loose_mid_side_stereo;
 }
 
 unsigned FLAC__stream_encoder_get_channels(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->channels;
 }
 
 unsigned FLAC__stream_encoder_get_bits_per_sample(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->bits_per_sample;
 }
 
 unsigned FLAC__stream_encoder_get_sample_rate(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->sample_rate;
 }
 
 unsigned FLAC__stream_encoder_get_blocksize(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->blocksize;
 }
 
 unsigned FLAC__stream_encoder_get_max_lpc_order(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->max_lpc_order;
 }
 
 unsigned FLAC__stream_encoder_get_qlp_coeff_precision(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->qlp_coeff_precision;
 }
 
 FLAC__bool FLAC__stream_encoder_get_do_qlp_coeff_prec_search(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->do_qlp_coeff_prec_search;
 }
 
 FLAC__bool FLAC__stream_encoder_get_do_escape_coding(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->do_escape_coding;
 }
 
 FLAC__bool FLAC__stream_encoder_get_do_exhaustive_model_search(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->do_exhaustive_model_search;
 }
 
 unsigned FLAC__stream_encoder_get_min_residual_partition_order(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->min_residual_partition_order;
 }
 
 unsigned FLAC__stream_encoder_get_max_residual_partition_order(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->max_residual_partition_order;
 }
 
 unsigned FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC__StreamEncoder *encoder)
 {
+	FLAC__ASSERT(0 != encoder);
 	return encoder->protected_->rice_parameter_search_dist;
 }
 
@@ -905,6 +925,34 @@ FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder
 	}
 
 	return true;
+}
+
+void stream_encoder_set_defaults_(FLAC__StreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+
+	encoder->protected_->streamable_subset = true;
+	encoder->protected_->do_mid_side_stereo = false;
+	encoder->protected_->loose_mid_side_stereo = false;
+	encoder->protected_->channels = 2;
+	encoder->protected_->bits_per_sample = 16;
+	encoder->protected_->sample_rate = 44100;
+	encoder->protected_->blocksize = 1152;
+	encoder->protected_->max_lpc_order = 0;
+	encoder->protected_->qlp_coeff_precision = 0;
+	encoder->protected_->do_qlp_coeff_prec_search = false;
+	encoder->protected_->do_exhaustive_model_search = false;
+	encoder->protected_->do_escape_coding = false;
+	encoder->protected_->min_residual_partition_order = 0;
+	encoder->protected_->max_residual_partition_order = 0;
+	encoder->protected_->rice_parameter_search_dist = 0;
+	encoder->protected_->total_samples_estimate = 0;
+	encoder->protected_->metadata = 0;
+	encoder->protected_->num_metadata_blocks = 0;
+
+	encoder->private_->write_callback = 0;
+	encoder->private_->metadata_callback = 0;
+	encoder->private_->client_data = 0;
 }
 
 FLAC__bool stream_encoder_resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size)
