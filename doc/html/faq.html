@@ -109,6 +109,9 @@
 			<A HREF="#general__no_cuesheet_tags"><B>Why aren't PERFORMER/TITLE/etc tags stored in the FLAC CUESHEET block?</B></A>
 		</LI>
 		<LI>
+			<A HREF="#general__no_wave_metadata"><B>Why doesn't FLAC store all WAVE metadata?</B></A>
+		</LI>
+		<LI>
 			<A HREF="#general__asymmetry"><B>Why do the encoder settings have a big effect on the encoding time but not the decoding time?</B></A>
 		</LI>
 		<LI>
@@ -247,9 +250,6 @@
 		The short answer right now is probably "native FLAC".  If all you are doing is compressing audio to be played back later, native FLAC will do everything you need, is more widely supported, and will yield smaller files.  If you plan to edit the compressed audio, or want to multiplex the audio with video later in an Ogg container, Ogg FLAC is a better choice.
 	</P>
 	<P>
-		Note that seeking in Ogg FLAC is not yet supported but will be in the next release.
-	</P>
-	<P>
 		<A NAME="general__no_cuesheet_tags"><B>Why aren't PERFORMER/TITLE/etc tags stored in the FLAC CUESHEET block?</B></A>
 	</P>
 	<P>
@@ -263,6 +263,18 @@
 	</P>
 	<P>
 		Some players (for example Foobar2000) allow you to store the CDDB data as FLAC tags and can parse that.
+	</P>
+	<P>
+		<A NAME="general__no_wave_metadata"><B>Why doesn't FLAC store all WAVE metadata?</B></A>
+	</P>
+	<P>
+		FLAC is a general-purpose audio format, not just a compressed WAVE file format.  There's a subtle difference.  WAVE is a complicated standard; many kinds of data besides audio data can be put in it.  FLAC's purpose is not to reproduce a WAVE file, including all the non-audio data that is in it, it is to losslessly compress the audio.
+	</P>
+	<P>
+		People have asked for that in FLAC, but if it were added, then what about similar formats like AIFF?  <B><TT>flac</TT></B> can extract and compress audio data in an AIFF file also.  AIFF is widely used on the Mac.  AIFF users have asked that all AIFF metadata be stored for the same reasons.  And it doesn't end there, other uncompressed formats exist.
+	</P>
+	<P>
+		Also, it would add a lot of complexity to FLAC because non-audio data has to go in the metadata section which is at the beginning of the FLAC file.  But in WAVE and AIFF it can go before or after the audio, so the encoding would have to make multiple passes and also store the chunk hierarchy to be able to reproduce it.
 	</P>
 	<P>
 		<A NAME="general__asymmetry"><B>Why do the encoder settings have a big effect on the encoding time but not the decoding time?</B></A>
@@ -361,6 +373,9 @@
 	</P>
 	<P>
 		For the more technically inclined, FLAC only stores what is in the 'fmt ' and 'data' sub-chunks of a WAVE file.
+	</P>
+	<P>
+		<A HREF="#general__no_wave_metadata">(see also)</A>
 	</P>
 	<P>
 		<A NAME="tools__two_bytes_short"><B>I decoded a FLAC file and the WAVE is 2 bytes shorter than the original.  Why?</B></A>

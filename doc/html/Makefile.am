@@ -28,6 +28,7 @@ doc_DATA =  \
 	documentation.html \
 	download.html \
 	faq.html \
+	favicon.ico \
 	features.html \
 	format.html \
 	goals.html \

@@ -16,6 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +31,9 @@
 #endif
 #include "FLAC/assert.h"
 #include "FLAC/file_decoder.h"
+#ifdef FLAC__HAS_OGG
 #include "OggFLAC/file_decoder.h"
+#endif
 
 typedef struct {
 	FLAC__uint64 total_samples;
@@ -73,6 +79,7 @@ static FLAC__bool die_f_(const char *msg, const FLAC__FileDecoder *decoder)
 	return false;
 }
 
+#ifdef FLAC__HAS_OGG
 static FLAC__bool die_of_(const char *msg, const OggFLAC__FileDecoder *decoder)
 {
 	OggFLAC__FileDecoderState state = OggFLAC__file_decoder_get_state(decoder);
@@ -98,6 +105,7 @@ static FLAC__bool die_of_(const char *msg, const OggFLAC__FileDecoder *decoder)
 
 	return false;
 }
+#endif
 
 static FLAC__StreamDecoderWriteStatus file_decoder_write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
@@ -252,6 +260,7 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, unsigned count)
 	return true;
 }
 
+#ifdef FLAC__HAS_OGG
 static FLAC__bool seek_barrage_ogg_flac(const char *filename, unsigned count)
 {
 	OggFLAC__FileDecoder *decoder;
@@ -341,6 +350,7 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, unsigned count)
 
 	return true;
 }
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -380,10 +390,17 @@ int main(int argc, char *argv[])
 
 	{
 		FLAC__bool ok;
-		if (strlen(filename) > 4 && 0 == strcmp(filename+strlen(filename)-4, ".ogg"))
+		if (strlen(filename) > 4 && 0 == strcmp(filename+strlen(filename)-4, ".ogg")) {
+#ifdef FLAC__HAS_OGG
 			ok = seek_barrage_ogg_flac(filename, count);
-		else
+#else
+			fprintf(stderr, "ERROR: Ogg FLAC not supported\n");
+			ok = false;
+#endif
+		}
+		else {
 			ok = seek_barrage_native_flac(filename, count);
+		}
 		return ok? 0 : 2;
 	}
 }
