@@ -149,19 +149,19 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const int32 data[], unsign
 			sum += qlp_coeff[j] * (*(--history));
 #ifdef FLAC_OVERFLOW_DETECT
 			sumo += (int64)qlp_coeff[j] * (int64)(*history);
-			if(sumo > 2147483647ll || sumo < -2147483648ll)
-				fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients: OVERFLOW, sumo=%lld\n",sumo);
+			if(sumo > 2147483647ll || sumo < -2147483648ll) {
+				fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
+			}
 #endif
 		}
 		*(residual++) = *(data++) - (sum >> lp_quantization);
 	}
 
-	/* Here's a slightly slower but clearer version:
+	/* Here's a slower but clearer version:
 	for(i = 0; i < data_len; i++) {
 		sum = 0;
-		history = &(data[i]);
 		for(j = 0; j < order; j++)
-			sum += qlp_coeff[j] * (*(--history));
+			sum += qlp_coeff[j] * data[i-j-1];
 		residual[i] = data[i] - (sum >> lp_quantization);
 	}
 	*/
@@ -173,7 +173,8 @@ void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const i
 	int64 sumo;
 #endif
 	unsigned i, j;
-	int32 sum, *history;
+	int32 sum;
+	const int32 *history;
 
 #ifdef FLAC_OVERFLOW_DETECT_VERBOSE
 	fprintf(stderr,"FLAC__lpc_restore_signal: data_len=%d, order=%u, lpq=%d",data_len,order,lp_quantization);
@@ -188,17 +189,27 @@ void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const i
 		sumo = 0;
 #endif
 		sum = 0;
-		history = data+i;
+		history = data;
 		for(j = 0; j < order; j++) {
 			sum += qlp_coeff[j] * (*(--history));
 #ifdef FLAC_OVERFLOW_DETECT
 			sumo += (int64)qlp_coeff[j] * (int64)(*history);
-			if(sumo > 2147483647ll || sumo < -2147483648ll)
-				fprintf(stderr,"FLAC__lpc_restore_signal: OVERFLOW, sumo=%lld\n",sumo);
+			if(sumo > 2147483647ll || sumo < -2147483648ll) {
+				fprintf(stderr,"FLAC__lpc_restore_signal: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%lld\n",i,j,qlp_coeff[j],*history,sumo);
+			}
 #endif
 		}
+		*(data++) = *(residual++) + (sum >> lp_quantization);
+	}
+
+	/* Here's a slower but clearer version:
+	for(i = 0; i < data_len; i++) {
+		sum = 0;
+		for(j = 0; j < order; j++)
+			sum += qlp_coeff[j] * data[i-j-1];
 		data[i] = residual[i] + (sum >> lp_quantization);
 	}
+	*/
 }
 
 real FLAC__lpc_compute_expected_bits_per_residual_sample(real lpc_error, unsigned total_samples)
@@ -210,10 +221,16 @@ real FLAC__lpc_compute_expected_bits_per_residual_sample(real lpc_error, unsigne
 
 	escale = 0.5 * M_LN2 * M_LN2 / (real)total_samples;
 
-	if(lpc_error > 0.0)
-		return 0.5 * log(escale * lpc_error) / M_LN2;
-	else
+	if(lpc_error > 0.0) {
+		real bps = 0.5 * log(escale * lpc_error) / M_LN2;
+		if(bps >= 0.0)
+			return bps;
+		else
+			return 0.0;
+	}
+	else {
 		return 0.0;
+	}
 }
 
 unsigned FLAC__lpc_compute_best_order(const real lpc_error[], unsigned max_order, unsigned total_samples, unsigned bits_per_signal_sample)
