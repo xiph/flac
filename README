@@ -1,5 +1,5 @@
 ==========
-FLAC - 0.3
+FLAC - 0.4
 ==========
 
 This is the source release for the FLAC project.  The
@@ -33,6 +33,10 @@ directory.  To run the tests, just 'make test'.
 
 Everything can be built in either debug or release mode.
 See the Makefiles for details.
+
+The default make rule does not attempt to build the XMMS
+plugin, so if you want that also, run 'make plugin_xmms'
+after 'make'.
 
 
 ==================

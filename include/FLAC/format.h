@@ -36,7 +36,7 @@
 #define FLAC__MAX_FIXED_ORDER (4u)
 #define FLAC__MAX_RICE_PARTITION_ORDER (15u)
 
-#define FLAC__VERSION_STRING "0.3"
+#define FLAC__VERSION_STRING "0.4"
 extern const unsigned FLAC__MAJOR_VERSION;
 extern const unsigned FLAC__MINOR_VERSION;
 
