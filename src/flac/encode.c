@@ -1291,7 +1291,7 @@ FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_
 		num_requested_seek_points = 1;
 	}
 
-	/* first count how many individual seek point we may need */
+	/* first count how many individual seek points we may need */
 	real_points = placeholders = 0;
 	for(i = 0; i < (unsigned)num_requested_seek_points; i++) {
 		q = strchr(pt, '<');
@@ -1351,7 +1351,7 @@ FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_
 	/* sort the seekpoints */
 	qsort(seek_table->points, seek_table->num_points, sizeof(FLAC__StreamMetadata_SeekPoint), (int (*)(const void *, const void *))seekpoint_compare);
 
-	/* uniqify the seekpoints */
+	/* uniquify the seekpoints */
 	first = true;
 	for(i = j = 0; i < seek_table->num_points; i++) {
 		if(!first) {
