@@ -49,6 +49,7 @@ extern FLAC__bool FLAC__seekable_stream_encoder_disable_verbatim_subframes(FLAC_
 
 static void set_defaults_(FLAC__FileEncoder *encoder);
 static FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+static FLAC__SeekableStreamEncoderTellStatus tell_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 static FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 
 /***********************************************************************
@@ -174,6 +175,7 @@ FLAC_API FLAC__FileEncoderState FLAC__file_encoder_init(FLAC__FileEncoder *encod
 	encoder->private_->samples_written = 0;
 
 	FLAC__seekable_stream_encoder_set_seek_callback(encoder->private_->seekable_stream_encoder, seek_callback_);
+	FLAC__seekable_stream_encoder_set_tell_callback(encoder->private_->seekable_stream_encoder, tell_callback_);
 	FLAC__seekable_stream_encoder_set_write_callback(encoder->private_->seekable_stream_encoder, write_callback_);
 	FLAC__seekable_stream_encoder_set_client_data(encoder->private_->seekable_stream_encoder, encoder);
 
@@ -709,6 +711,26 @@ FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamE
 		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_ERROR;
 	else
 		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK;
+}
+
+FLAC__SeekableStreamEncoderSeekStatus tell_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+{
+	FLAC__FileEncoder *file_encoder = (FLAC__FileEncoder*)client_data;
+	long offset;
+
+	(void)encoder;
+
+	FLAC__ASSERT(0 != file_encoder);
+
+	offset = ftell(file_encoder->private_->file);
+
+	if(offset < 0) {
+		return FLAC__SEEKABLE_STREAM_ENCODER_TELL_STATUS_ERROR;
+	}
+	else {
+		*absolute_byte_offset = (FLAC__uint64)offset;
+		return FLAC__SEEKABLE_STREAM_ENCODER_TELL_STATUS_OK;
+	}
 }
 
 #ifdef FLAC__VALGRIND_TESTING

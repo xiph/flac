@@ -290,6 +290,7 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			::FLAC__seekable_stream_encoder_set_seek_callback(encoder_, seek_callback_);
+			::FLAC__seekable_stream_encoder_set_tell_callback(encoder_, tell_callback_);
 			::FLAC__seekable_stream_encoder_set_write_callback(encoder_, write_callback_);
 			::FLAC__seekable_stream_encoder_set_client_data(encoder_, (void*)this);
 			return State(::FLAC__seekable_stream_encoder_init(encoder_));
@@ -320,6 +321,15 @@ namespace FLAC {
 			SeekableStream *instance = reinterpret_cast<SeekableStream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			return instance->seek_callback(absolute_byte_offset);
+		}
+
+		::FLAC__SeekableStreamEncoderTellStatus SeekableStream::tell_callback_(const ::FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+		{
+			(void)encoder;
+			FLAC__ASSERT(0 != client_data);
+			SeekableStream *instance = reinterpret_cast<SeekableStream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->tell_callback(absolute_byte_offset);
 		}
 
 		::FLAC__StreamEncoderWriteStatus SeekableStream::write_callback_(const ::FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)

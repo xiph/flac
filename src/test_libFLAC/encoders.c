@@ -422,6 +422,12 @@ FLAC__SeekableStreamEncoderSeekStatus seekable_stream_encoder_seek_callback_(con
 	return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK;
 }
 
+FLAC__SeekableStreamEncoderTellStatus seekable_stream_encoder_tell_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+{
+	(void)encoder, (void)absolute_byte_offset, (void)client_data;
+	return FLAC__SEEKABLE_STREAM_ENCODER_TELL_STATUS_OK;
+}
+
 FLAC__StreamEncoderWriteStatus seekable_stream_encoder_write_callback_(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	(void)encoder, (void)buffer, (void)bytes, (void)samples, (void)current_frame, (void)client_data;
@@ -542,6 +548,11 @@ static FLAC__bool test_seekable_stream_encoder()
 
 	printf("testing FLAC__seekable_stream_encoder_set_seek_callback()... ");
 	if(!FLAC__seekable_stream_encoder_set_seek_callback(encoder, seekable_stream_encoder_seek_callback_))
+		return die_ss_("returned false", encoder);
+	printf("OK\n");
+
+	printf("testing FLAC__seekable_stream_encoder_set_tell_callback()... ");
+	if(!FLAC__seekable_stream_encoder_set_tell_callback(encoder, seekable_stream_encoder_tell_callback_))
 		return die_ss_("returned false", encoder);
 	printf("OK\n");
 

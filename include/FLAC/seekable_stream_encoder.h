@@ -77,11 +77,12 @@ extern "C" {
  *
  * The seekable stream encoder is a wrapper around the
  * \link flac_stream_encoder stream encoder \endlink with callbacks for
- * seeking the output.  This allows the encoder to go back and rewrite
- * some of the metadata after encoding if necessary, and provides the
- * metadata callback of the stream encoder internally.  However, you
- * must provide a seek callback (see
- * FLAC__seekable_stream_encoder_set_seek_callback()).
+ * seeking the output and reporting the output stream position.  This
+ * allows the encoder to go back and rewrite some of the metadata after
+ * encoding if necessary, and provides the metadata callback of the stream
+ * encoder internally.  However, you must provide seek and tell callbacks
+ * (see FLAC__seekable_stream_encoder_set_seek_callback() and
+ * FLAC__seekable_stream_encoder_set_tell_callback()).
  *
  * Make sure to read the detailed description of the
  * \link flac_stream_encoder stream encoder module \endlink since the
@@ -135,6 +136,9 @@ typedef enum {
 	FLAC__SEEKABLE_STREAM_ENCODER_SEEK_ERROR,
 	/**< The seek callback returned an error. */
 
+	FLAC__SEEKABLE_STREAM_ENCODER_TELL_ERROR,
+	/**< The tell callback returned an error. */
+
 	FLAC__SEEKABLE_STREAM_ENCODER_ALREADY_INITIALIZED,
 	/**< FLAC__seekable_stream_encoder_init() was called when the encoder was
 	 * already initialized, usually because
@@ -184,6 +188,26 @@ typedef enum {
 extern FLAC_API const char * const FLAC__SeekableStreamEncoderSeekStatusString[];
 
 
+/** Return values for the FLAC__SeekableStreamEncoder tell callback.
+ */
+typedef enum {
+
+	FLAC__SEEKABLE_STREAM_ENCODER_TELL_STATUS_OK,
+	/**< The tell was OK and encoding can continue. */
+
+	FLAC__SEEKABLE_STREAM_ENCODER_TELL_STATUS_ERROR
+	/**< An unrecoverable error occurred.  The encoder will return from the process call. */
+
+} FLAC__SeekableStreamEncoderTellStatus;
+
+/** Maps a FLAC__SeekableStreamEncoderTellStatus to a C string.
+ *
+ *  Using a FLAC__SeekableStreamEncoderTellStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern FLAC_API const char * const FLAC__SeekableStreamEncoderTellStatusString[];
+
+
 /***********************************************************************
  *
  * class FLAC__SeekableStreamEncoder
@@ -213,6 +237,28 @@ typedef struct {
  *    The callee's return status.
  */
 typedef FLAC__SeekableStreamEncoderSeekStatus (*FLAC__SeekableStreamEncoderSeekCallback)(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+
+/** Signature for the tell callback.
+ *  See FLAC__seekable_stream_encoder_set_tell_callback() for more info.
+ *
+ * \warning
+ * The callback must return the true current byte offset of the output to
+ * which the encoder is writing.  If you are buffering the output, make
+ * sure and take this into account.  If you are writing directly to a
+ * FILE* from your write callback, ftell() is sufficient.  If you are
+ * writing directly to a file descriptor from your write callback, you
+ * can use lseek(fd, SEEK_CUR, 0).  The encoder may later seek back to
+ * these points to rewrite metadata after encoding.
+ *
+ * \param  encoder  The encoder instance calling the callback.
+ * \param  absolute_byte_offset  The address at which to store the current
+ *                               position of the output.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__seekable_stream_encoder_set_client_data().
+ * \retval FLAC__SeekableStreamEncoderTellStatus
+ *    The callee's return status.
+ */
+typedef FLAC__SeekableStreamEncoderTellStatus (*FLAC__SeekableStreamEncoderTellCallback)(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 
 /** Signature for the write callback.
  *  See FLAC__seekable_stream_encoder_set_write_callback()
@@ -541,6 +587,24 @@ FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_metadata(FLAC__SeekableStr
  *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_seek_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderSeekCallback value);
+
+/** Set the tell callback.
+ *  The supplied function will be called when the encoder needs to know
+ *  the current position of the output stream.
+ *
+ * \note
+ * The callback is mandatory and must be set before initialization.
+ *
+ * \default \c NULL
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code value != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_tell_callback(FLAC__SeekableStreamEncoder *encoder, FLAC__SeekableStreamEncoderTellCallback value);
 
 /** Set the write callback.
  *  This is inherited from FLAC__StreamEncoder; see

@@ -36,6 +36,7 @@
 
 typedef struct FLAC__SeekableStreamEncoderProtected {
 	FLAC__SeekableStreamEncoderState state;
+	FLAC__uint64 streaminfo_offset, seektable_offset, audio_offset;
 } FLAC__SeekableStreamEncoderProtected;
 
 #endif
