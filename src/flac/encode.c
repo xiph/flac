@@ -295,7 +295,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			}
 			data_bytes= xx;
 			pad= (data_bytes & 1U) ? true : false;
-			data_bytes-= 8U;
+			data_bytes-= 8U; /* discount the offset and block size fields */
 
 			/* offset */
 			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
@@ -333,7 +333,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 
 				/* do 1<<30 bytes at a time, since 1<<30 is a nice round number, and */
 				/* is guaranteed to be less than LONG_MAX */
-				for(; remaining>0U; remaining-= remaining>(1U<<30) ? remaining : (1U<<30))
+				while(remaining>0U)
 				{
 					unsigned long skip= (unsigned long)(remaining % (1U<<30));
 
@@ -346,6 +346,8 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 						}
 						skip-= need;
 					}
+
+					remaining-= skip;
 				}
 			}
 
@@ -431,7 +433,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 
 				/* do 1<<30 bytes at a time, since 1<<30 is a nice round number, and */
 				/* is guaranteed to be less than LONG_MAX */
-				for(; remaining>0U; remaining-= remaining>(1U<<30) ? remaining : (1U<<30))
+				while(remaining>0U)
 				{
 					unsigned long skip= (unsigned long)(remaining % (1U<<30));
 
@@ -444,6 +446,8 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 						}
 						skip-= need;
 					}
+
+					remaining-= skip;
 				}
 			}
 
