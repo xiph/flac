@@ -42,6 +42,7 @@ SRCS_C = \
 	decode.c \
 	encode.c \
 	main.c \
+	utils.c \
 	vorbiscomment.c
 
 include $(topdir)/build/exe.mk

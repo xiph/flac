@@ -32,6 +32,7 @@ C_FILES= \
 	decode.c \
 	encode.c \
 	main.c \
+	utils.c \
 	vorbiscomment.c
 
 OBJS= $(C_FILES:.c=.obj)

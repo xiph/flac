@@ -32,10 +32,12 @@ flac_SOURCES = \
 	decode.c \
 	encode.c \
 	main.c \
+	utils.c \
 	vorbiscomment.c \
 	analyze.h \
 	decode.h \
 	encode.h \
+	utils.h \
 	vorbiscomment.h
 
 flac_LDADD = \
