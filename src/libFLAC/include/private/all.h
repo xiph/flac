@@ -27,5 +27,6 @@
 #include "fixed.h"
 #include "lpc.h"
 #include "md5.h"
+#include "memory.h"
 
 #endif
