@@ -38,6 +38,15 @@ run_flac ()
 	fi
 }
 
+run_metaflac ()
+{
+	if [ x"$FLAC__VALGRIND" = xyes ] ; then
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 metaflac $* 4>>test_metaflac.valgrind.log
+	else
+		metaflac $*
+	fi
+}
+
 if [ `env | grep -ic '^comspec='` != 0 ] ; then
 	is_win=yes
 else
@@ -520,7 +529,7 @@ echo "Testing seek extremes:"
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 noise.raw || die "ERROR generating FLAC file"
 
 if [ $is_win = no ] ; then
-	total_samples=`metaflac --show-total-samples noise.flac`
+	total_samples=`run_metaflac --show-total-samples noise.flac`
 	[ $? = 0 ] || die "ERROR getting total sample count from noise.flac"
 else
 	# some flavors of cygwin don't seem to treat the \x0d as a word
@@ -733,7 +742,7 @@ echo -n "encode... "
 # set the total sample count to 0
 if [ $is_win = yes ] ; then
 	run_flac $raw_eopt noise.raw -o fixup.flac || die "ERROR generating FLAC file"
-	metaflac --set-total-samples=0 fixup.flac 2> /dev/null
+	run_metaflac --set-total-samples=0 fixup.flac 2> /dev/null
 else
 	cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
 fi
@@ -758,7 +767,7 @@ echo -n "encode... "
 # set the total sample count to 0
 if [ $is_win = yes ] ; then
 	run_flac $raw_eopt noise.raw -o fixup.flac || die "ERROR generating FLAC file"
-	metaflac --set-total-samples=0 fixup.flac 2> /dev/null
+	run_metaflac --set-total-samples=0 fixup.flac 2> /dev/null
 else
 	cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
 fi
