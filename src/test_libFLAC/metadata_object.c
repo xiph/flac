@@ -202,6 +202,8 @@ static void vc_resize_(FLAC__StreamMetadata *block, unsigned num)
 
 static void vc_set_vs_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__StreamMetadata *block, const char *field)
 {
+	if(0 != block->data.vorbis_comment.vendor_string.entry)
+		free(block->data.vorbis_comment.vendor_string.entry);
 	entry_new_(entry, field);
 	block->data.vorbis_comment.vendor_string = *entry;
 	vc_calc_len_(block);
@@ -209,6 +211,8 @@ static void vc_set_vs_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC
 
 static void vc_set_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__StreamMetadata *block, unsigned pos, const char *field)
 {
+	if(0 != block->data.vorbis_comment.comments[pos].entry)
+		free(block->data.vorbis_comment.comments[pos].entry);
 	entry_new_(entry, field);
 	block->data.vorbis_comment.comments[pos] = *entry;
 	vc_calc_len_(block);
@@ -218,6 +222,7 @@ static void vc_insert_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC
 {
 	vc_resize_(block, block->data.vorbis_comment.num_comments+1);
 	memmove(&block->data.vorbis_comment.comments[pos+1], &block->data.vorbis_comment.comments[pos], sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(block->data.vorbis_comment.num_comments-1-pos));
+	memset(&block->data.vorbis_comment.comments[pos], 0, sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
 	vc_set_new_(entry, block, pos, field);
 	vc_calc_len_(block);
 }
