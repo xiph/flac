@@ -67,6 +67,7 @@ typedef struct {
 	FLAC__uint64 samples_processed;
 	unsigned frame_counter;
 	FLAC__bool abort_flag;
+	FLAC__bool aborting_due_to_until; /* true if we intentionally abort decoding prematurely because we hit the --until point */
 
 	struct {
 		FLAC__bool needs_fixup;
@@ -276,6 +277,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->samples_processed = 0;
 	d->frame_counter = 0;
 	d->abort_flag = false;
+	d->aborting_due_to_until = false;
 
 	d->wave_chunk_size_fixup.needs_fixup = false;
 
@@ -452,12 +454,12 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 			print_error_with_state(d, "ERROR seeking while skipping bytes");
 			return false;
 		}
-		if(!FLAC__file_decoder_process_until_end_of_file(d->decoder.flac.file)) {
+		if(!FLAC__file_decoder_process_until_end_of_file(d->decoder.flac.file) && !d->aborting_due_to_until) {
 			if(d->verbose) fprintf(stderr, "\n");
 			print_error_with_state(d, "ERROR while decoding frames");
 			return false;
 		}
-		if(FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_END_OF_FILE) {
+		if(FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_END_OF_FILE && !d->aborting_due_to_until) {
 			if(d->verbose) fprintf(stderr, "\n");
 			print_error_with_state(d, "ERROR during decoding");
 			return false;
@@ -466,12 +468,12 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 	else {
 #ifdef FLAC__HAS_OGG
 		if(d->is_ogg) {
-			if(!OggFLAC__stream_decoder_process_until_end_of_stream(d->decoder.ogg.stream)) {
+			if(!OggFLAC__stream_decoder_process_until_end_of_stream(d->decoder.ogg.stream) && !d->aborting_due_to_until) {
 				if(d->verbose) fprintf(stderr, "\n");
 				print_error_with_state(d, "ERROR while decoding data");
 				return false;
 			}
-			if(OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA && OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_END_OF_STREAM) {
+			if(OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA && OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(d->decoder.ogg.stream) != FLAC__STREAM_DECODER_END_OF_STREAM && !d->aborting_due_to_until) {
 				if(d->verbose) fprintf(stderr, "\n");
 				print_error_with_state(d, "ERROR during decoding");
 				return false;
@@ -480,12 +482,12 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		else
 #endif
 		{
-			if(!FLAC__file_decoder_process_until_end_of_file(d->decoder.flac.file)) {
+			if(!FLAC__file_decoder_process_until_end_of_file(d->decoder.flac.file) && !d->aborting_due_to_until) {
 				if(d->verbose) fprintf(stderr, "\n");
 				print_error_with_state(d, "ERROR while decoding data");
 				return false;
 			}
-			if(FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_END_OF_FILE) {
+			if(FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_END_OF_FILE && !d->aborting_due_to_until) {
 				if(d->verbose) fprintf(stderr, "\n");
 				print_error_with_state(d, "ERROR during decoding");
 				return false;
@@ -520,7 +522,7 @@ int DecoderSession_finish_ok(DecoderSession *d)
 #endif
 	{
 		if(d->decoder.flac.file) {
-			md5_failure = !FLAC__file_decoder_finish(d->decoder.flac.file);
+			md5_failure = !FLAC__file_decoder_finish(d->decoder.flac.file) && !d->aborting_due_to_until;
 			print_stats(d);
 			FLAC__file_decoder_delete(d->decoder.flac.file);
 		}
@@ -807,6 +809,11 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 		FLAC__ASSERT(until >= input_samples_passed);
 		if(input_samples_passed + wide_samples > until)
 			wide_samples = (unsigned)(until - input_samples_passed);
+		if (wide_samples == 0) {
+			decoder_session->abort_flag = true;
+			decoder_session->aborting_due_to_until = true;
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		}
 	}
 
 	if(wide_samples > 0) {
