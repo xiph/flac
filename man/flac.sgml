@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>June 04, 2002</date>">
+  <!ENTITY dhdate      "<date>August 13, 2002</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -74,32 +74,31 @@
 
 	    <variablelist>
 	      <varlistentry>
-		<term><option>-H</option>
+		<term><option>-h</option>, <option>--help</option>
 		</term>
 		<listitem>
-		  <para>Show detailed help screen</para>
+		  <para>Show basic usage and a list of all options</para>
 		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-d</option>
+		<term><option>-H</option>, <option>--explain</option>
 		</term>
 		<listitem>
-		  <para>Decode (default behavior is encode)</para>
+		  <para>Show detailed explanation of usage and all options</para>
 		</listitem>
 	      </varlistentry>
 
-              <varlistentry>
-	        <term><option>-c</option>
-                </term>
-                <listitem>
-                  <para>Encode from standard input, or decode to
-                  standard output</para>
-                </listitem>
-              </varlistentry>
+	      <varlistentry>
+		<term><option>-d</option>, <option>--decode</option>
+		</term>
+		<listitem>
+		  <para>Decode (the default behavior is to encode)</para>
+		</listitem>
+	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-t</option>
+		<term><option>-t</option>, <option>--test</option>
 		</term>
 		<listitem>
 		  <para>Test a flac encoded file (same as -d
@@ -108,7 +107,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-a</option>
+		<term><option>-a</option>, <option>--analyze</option>
 		</term>
 		<listitem>
 		  <para>Analyze a flac encoded file (same as -d
@@ -116,17 +115,25 @@
 		</listitem>
 	      </varlistentry>
 
+              <varlistentry>
+	        <term><option>-c</option>, <option>--stdout</option>
+                </term>
+                <listitem>
+                  <para>Write output to stdout</para>
+                </listitem>
+              </varlistentry>
+
 	      <varlistentry>
-		<term><option>-s</option>
+		<term><option>-s</option>, <option>--silent</option>
 		</term>
 		<listitem>
 		  <para>Silent mode (do not write runtime
-		    encode/decode statistics to stdout)</para>
+		    encode/decode statistics to stderr)</para>
 		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-o</option> <replaceable>filename</replaceable></term>
+		<term><option>-o</option> <replaceable>filename</replaceable>, <option>--output-name</option>=<replaceable>filename</replaceable></term>
 		<listitem>
 		  <para>Force the output file name (usually flac just
 		    changes the extension).  May only be used when
@@ -136,10 +143,10 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>--output-prefix</option> <replaceable>string</replaceable></term>
+		<term><option>--output-prefix</option>=<replaceable>string</replaceable></term>
 		<listitem>
 		  <para>Prefix each output file name with the given
-		    string.  This can be useful for encoding/decoding
+		    string.  This can be useful for encoding or decoding
 		    files to a different directory.  Make sure if your
 		    string is a path name that it ends with a trailing
 		    `/' (slash).</para>
@@ -158,7 +165,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>--skip</option> <replaceable>samples</replaceable></term>
+		<term><option>--skip</option>=<replaceable>#</replaceable></term>
 		<listitem>
 		  <para>Skip the specified number of samples at the
 		    beginning of the input file (can be used for both
@@ -174,7 +181,7 @@
 
 	    <variablelist>
 	      <varlistentry>
-		<term><option>--a-rtext</option>
+		<term><option>--residual-text</option>
 		</term>
 		<listitem>
 		  <para>Includes the residual signal in the analysis
@@ -184,7 +191,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>--a-rgp</option>
+		<term><option>--residual-gnuplot</option>
 		</term>
 		<listitem>
 		  <para>Generates a gnuplot file for every subframe;
@@ -202,7 +209,7 @@
 
 	    <variablelist>
 	      <varlistentry>
-		<term><option>-F</option>
+		<term><option>-F</option>, <option>--decode-through-errors</option>
 		</term>
 		<listitem>
 		  <para>By default flac stops decoding with an error
@@ -222,6 +229,16 @@
 	    <title>Encoding Options</title>
 
 	    <variablelist>
+	      <varlistentry>
+		<term><option>-V</option>, <option>--verify</option></term>
+
+		<listitem>
+		  <para>Verify a correct encoding by decoding the
+		    output in parallel and comparing to the
+		    original</para>
+		</listitem>
+	      </varlistentry>
+
 	      <varlistentry>
 		<term><option>--ogg</option></term>
 
@@ -257,7 +274,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-S</option> <replaceable>{ # | X | #x }</replaceable></term>
+		<term><option>-S</option> {<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>}, <option>--seekpoint</option>={<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>}</term>
 
 		<listitem>
 		  <para>
@@ -280,7 +297,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-P</option> <replaceable>bytes</replaceable></term>
+		<term><option>-P</option> <replaceable>#</replaceable>, <option>--padding</option>=<replaceable>#</replaceable></term>
 
 		<listitem>
 		  <para>Tell the encoder to write a PADDING metadata
@@ -299,17 +316,18 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-b</option> <replaceable>blocksize</replaceable></term>
+		<term><option>-b</option> <replaceable>#</replaceable>, <option>--blocksize</option>=<replaceable>#</replaceable></term>
 
 		<listitem>
-		  <para>Default is 1152 for -l 0, else 4608; must be
-		    192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768
-		    (unless --lax is used)</para>
+		  <para>Specify the block size in samples.  The
+		    default is 1152 for -l 0, else 4608; must be one of
+		    192, 576, 1152, 2304, 4608, 256, 512, 1024, 2048,
+		    4096, 8192, 16384, or 32768 (unless --lax is used)</para>
 		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-m</option></term>
+		<term><option>-m</option>, <option>--mid-side</option></term>
 
 		<listitem>
 		  <para>Try mid-side coding for each frame (stereo
@@ -318,16 +336,16 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-M</option></term>
+		<term><option>-M</option>, <option>--adaptive-mid-side</option></term>
 
 		<listitem>
-		  <para>Loose mid-side coding for all frames (stereo
+		  <para>Adaptive mid-side coding for all frames (stereo
 		    input only)</para>
 		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-0</option>..<option>-8</option></term>
+		<term><option>-0</option>..<option>-8</option>, <option>--compression-level-0</option>..<option>--compression-level-8</option></term>
 
 		<listitem>
 		  <para>Fastest compression..highest compression
@@ -336,7 +354,7 @@
 
 		  <variablelist>
 		    <varlistentry>
-		      <term><option>-0</option></term>
+		      <term><option>-0</option>, <option>--compression-level-0</option></term>
 
 		      <listitem>
 			<para>Synonymous with -l 0 -b 1152 -r 2,2
@@ -345,7 +363,7 @@
 		    </varlistentry>
 
 		    <varlistentry>
-		      <term><option>-1</option></term>
+		      <term><option>-1</option>, <option>--compression-level-1</option></term>
 
 		      <listitem>
 			<para>Synonymous with -l 0 -b 1152 -M -r 2,2
@@ -354,7 +372,7 @@
 		    </varlistentry>
 
 		    <varlistentry>
-		      <term><option>-2</option></term>
+		      <term><option>-2</option>, <option>--compression-level-2</option></term>
 
 		      <listitem>
 			<para>Synonymous with -l 0 -b 1152 -m -r 3
@@ -363,7 +381,7 @@
 		    </varlistentry>
 
 		    <varlistentry>
-		      <term><option>-3</option></term>
+		      <term><option>-3</option>, <option>--compression-level-3</option></term>
 
 		      <listitem>
 			<para>Synonymous with -l 6 -b 4608 -r 3,3
@@ -372,7 +390,7 @@
 		    </varlistentry>
 
 		    <varlistentry>
-		      <term><option>-4</option></term>
+		      <term><option>-4</option>, <option>--compression-level-4</option></term>
 
 		      <listitem>
 			<para>Synonymous with -l 8 -b 4608 -M -r 3,3
@@ -381,7 +399,7 @@
 		    </varlistentry>
 
 		    <varlistentry>
-		      <term><option>-5</option></term>
+		      <term><option>-5</option>, <option>--compression-level-5</option></term>
 
 		      <listitem>
 			<para>Synonymous with -l 8 -b 4608 -m -r 3,3
@@ -390,7 +408,7 @@
 		    </varlistentry>
 
 		    <varlistentry>
-		      <term><option>-6</option></term>
+		      <term><option>-6</option>, <option>--compression-level-6</option></term>
 
 		      <listitem>
 			<para>Synonymous with -l 8 -b 4608 -m -r 4
@@ -399,7 +417,7 @@
 		    </varlistentry>
 
 		    <varlistentry>
-		      <term><option>-7</option></term>
+		      <term><option>-7</option>, <option>--compression-level-7</option></term>
 
 		      <listitem>
 			<para>Synonymous with -l 8 -b 4608 -m -e -r 6
@@ -408,7 +426,7 @@
 		    </varlistentry>
 
 		    <varlistentry>
-		      <term><option>-8</option></term>
+		      <term><option>-8</option>, <option>--compression-level-8</option></term>
 
 		      <listitem>
 			<para>Synonymous with -l 12 -b 4608 -m -e -r 6
@@ -418,7 +436,6 @@
 		  </variablelist>
 
 		</listitem>
-
 
 	      </varlistentry>
 
@@ -441,7 +458,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-e</option></term>
+		<term><option>-e</option>, <option>--exhaustive-model-search</option></term>
 
 		<listitem>
 		  <para>Do exhaustive model search
@@ -450,7 +467,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-E</option></term>
+		<term><option>-E</option>, <option>--escape-coding</option></term>
 
 		<listitem>
 		  <para>Do escape coding in the entropy coder.  This
@@ -462,25 +479,25 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-l</option> <replaceable>max_lpc_order</replaceable></term>
+		<term><option>-l</option> <replaceable>#</replaceable>, <option>--max-lpc-order</option>=<replaceable>#</replaceable></term>
 
 		<listitem>
-		  <para>0 => use only fixed predictors</para>
+		  <para>Set the maximum LPC order; 0 means use only the fixed predictors</para>
 		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-p</option></term>
+		<term><option>-p</option>, <option>--qlp-coeff-precision-search</option></term>
 
 		<listitem>
 		  <para>Do exhaustive search of LP coefficient
-		    quantization (expensive!).  Overrides -q,
+		    quantization (expensive!).  Overrides -q;
 		    does nothing if using -l 0</para>
 		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-q</option> <replaceable>bits</replaceable></term>
+		<term><option>-q</option> <replaceable>#</replaceable>, <option>--qlp-coeff-precision</option>=<replaceable>#</replaceable></term>
 
 		<listitem>
 		  <para>Precision of the quantized linear-predictor
@@ -490,7 +507,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-r</option> <replaceable>[level,]level</replaceable></term>
+		<term><option>-r</option> [<replaceable>#</replaceable>,]<replaceable>#</replaceable>, <option>--rice-partition-order</option>=[<replaceable>#</replaceable>,]<replaceable>#</replaceable></term>
 
 		<listitem>
 		  <para>Set the [min,]max residual partition order
@@ -499,25 +516,6 @@
 		</listitem>
 	      </varlistentry>
 
-	      <varlistentry>
-		<term><option>-V</option></term>
-
-		<listitem>
-		  <para>Verify a correct encoding by decoding the
-		    output in parallel and comparing to the
-		    original</para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term><option>-F-</option> <option>-S-</option> <option>-P-</option> <option>-m-</option> <option>-M-</option> <option>-e-</option> <option>-E-</option> <option>-p-</option> <option>-V-</option> <option>--delete-input-file-</option> <option>--lax-</option> <option>--ogg-</option>
-		</term>
-
-		<listitem>
-		  <para>These flags can be used to invert the sense
-		    of the corresponding normal option.</para>
-		</listitem>
-	      </varlistentry>
 	    </variablelist>
 
 	  </refsect2>
@@ -526,24 +524,15 @@
 
 	    <variablelist>
 	      <varlistentry>
-		<term><option>-fb</option></term>
+		<term><option>--endian</option>={<replaceable>big</replaceable>|<replaceable>little</replaceable>}</term>
 
 		<listitem>
-		  <para>Big-endian byte order</para>
+		  <para>Set the byte order for samples</para>
 		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-fl</option></term>
-
-		<listitem>
-		  <para>Little-endian byte order</para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term><option>-fc</option>
-		  <replaceable>channels</replaceable></term>
+		<term><option>--channels</option>=<replaceable>#</replaceable></term>
 
 		<listitem>
 		  <para>Set number of channels.</para>
@@ -551,8 +540,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-fp</option>
-		  <replaceable>bits_per_sample</replaceable></term>
+		<term><option>--bps</option>=<replaceable>#</replaceable></term>
 
 		<listitem>
 		  <para>Set bits per sample.</para>
@@ -560,8 +548,7 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-fs</option>
-		  <replaceable>sample_rate</replaceable></term>
+		<term><option>--sample-rate</option>=<replaceable>#</replaceable></term>
 
 		<listitem>
 		  <para>Set sample rate (in Hz).</para>
@@ -569,23 +556,53 @@
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-fu</option></term>
+		<term><option>--sign</option>={<replaceable>signed</replaceable>|<replaceable>unsigned</replaceable>}</term>
 
 		<listitem>
-		  <para>Unsigned samples (default is signed)</para>
+		  <para>Set the sign of samples (the default is signed).</para>
 		</listitem>
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><option>-fr</option></term>
+		<term><option>--force-raw-input</option></term>
 
 		<listitem>
-		  <para>Force to raw format (even if filename ends
+		  <para>Force input to be treated as raw samples (even if filename ends
 		    in <filename>.wav</filename>).</para>
 		</listitem>
 	      </varlistentry>
 
 	    </variablelist>
+	  </refsect2>
+
+	  <refsect2>
+	    <title>Negative Options</title>
+
+	    <variablelist>
+	      <varlistentry>
+		<term><option>--no-adaptive-mid-side</option></term>
+		<term><option>--no-decode-through-errors</option></term>
+		<term><option>--no-delete-input-file</option></term>
+		<term><option>--no-escape-coding</option></term>
+		<term><option>--no-exhaustive-model-search</option></term>
+		<term><option>--no-lax</option></term>
+		<term><option>--no-mid-side</option></term>
+		<term><option>--no-ogg</option></term>
+		<term><option>--no-padding</option></term>
+		<term><option>--no-qlp-coeff-precision-search</option></term>
+		<term><option>--no-residual-gnuplot</option></term>
+		<term><option>--no-residual-text</option></term>
+		<term><option>--no-sector-align</option></term>
+		<term><option>--no-seektable</option></term>
+		<term><option>--no-silent</option></term>
+		<term><option>--no-verify</option></term>
+		<listitem>
+		  <para>These flags can be used to invert the sense
+		    of the corresponding normal option.</para>
+		</listitem>
+	      </varlistentry>
+	    </variablelist>
+
 	  </refsect2>
 
 	</refsect1>
