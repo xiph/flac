@@ -1,4 +1,4 @@
-/* plugin_common - Routines common to several plugins
+/* replaygain_synthesis - Routines for applying ReplayGain to a signal
  * Copyright (C) 2002,2003,2004  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
