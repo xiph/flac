@@ -456,6 +456,33 @@ FLAC__bool FLAC__metadata_object_seektable_delete_point(FLAC__StreamMetaData *ob
 	return FLAC__metadata_object_seektable_resize_points(object, object->data.seek_table.num_points-1);
 }
 
+FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetaData *object)
+{
+	unsigned i;
+	FLAC__uint64 last_sample_number = 0;
+	FLAC__bool got_last = false;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
+
+	{
+		const FLAC__StreamMetaData_SeekTable *seek_table = &object->data.seek_table;
+
+		for(i = 0; i < seek_table->num_points; i++) {
+			if(seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER) {
+				if(got_last) {
+					if(seek_table->points[i].sample_number <= last_sample_number)
+						return false;
+				}
+				last_sample_number = seek_table->points[i].sample_number;
+				got_last = true;
+			}
+		}
+	}
+
+	return true;
+}
+
 FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetaData *object, FLAC__StreamMetaData_VorbisComment_Entry entry, FLAC__bool copy)
 {
 	return vorbiscomment_set_entry_(object, &object->data.vorbis_comment.vendor_string, &entry, copy);

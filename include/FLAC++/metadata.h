@@ -151,6 +151,8 @@ namespace FLAC {
 			void set_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point);
 			bool insert_point(unsigned index, const ::FLAC__StreamMetaData_SeekPoint &point);
 			bool delete_point(unsigned index);
+
+			bool is_legal() const;
 		};
 
 		class VorbisComment : public Prototype {

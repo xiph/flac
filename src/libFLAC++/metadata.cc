@@ -374,6 +374,12 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_object_seektable_delete_point(object_, index);
 		}
 
+		bool SeekTable::is_legal() const
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_seektable_is_legal(object_);
+		}
+
 
 		//
 		// VorbisComment::Entry

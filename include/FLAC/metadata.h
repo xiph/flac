@@ -551,6 +551,7 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetaD
 FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry entry, FLAC__bool copy);
 FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__StreamMetaData_VorbisComment_Entry entry, FLAC__bool copy);
 FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetaData *object, unsigned comment_num);
+FLAC__bool FLAC__metadata_object_seektable_is_legal(const FLAC__StreamMetaData *object);
 
 #ifdef __cplusplus
 }
