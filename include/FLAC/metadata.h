@@ -69,6 +69,10 @@
 	level 1 or 2 to modify existing metadata you will not need these.
 ******************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /***********************************************************************
  * level 0
@@ -483,7 +487,9 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__MetaData_Iterator *i
 	to have the function make it's own copy of the data, or to false to
 	give the object ownership of your data.  In the latter case your pointer
 	must be freeable by free() and will be free()d when the object is
-	FLAC__metadata_object_delete()d.
+	FLAC__metadata_object_delete()d.  It is legal to pass a null pointer
+	as the data pointer to a _set_ function as long as then length argument
+	is 0 and the copy argument is 'false'.
 
 	The _new and _copy function will return NULL in the case of a memory
 	allocation error, otherwise a new object.  The _set_ functions return
@@ -549,5 +555,9 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_entry_array_resize(FLAC__StreamMe
  */
 FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__StreamMetaData *object, FLAC__byte *entry, unsigned length, FLAC__bool copy);
 FLAC__bool FLAC__metadata_object_vorbiscomment_set_comments(FLAC__StreamMetaData *object, FLAC__StreamMetaData_VorbisComment_Entry *comments, unsigned num_comments, FLAC__bool copy);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
