@@ -2119,7 +2119,7 @@ FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 	while(offset > 0) {
 		long need = (long)min(offset, LONG_MAX);
 	   	if(fseek(f, need, SEEK_CUR) < 0) {
-			need = min(offset, sizeof(dump));
+			need = (long)min(offset, sizeof(dump));
 			if(fread(dump, need, 1, f) < 1)
 				return false;
 		}
