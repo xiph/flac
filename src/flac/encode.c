@@ -81,7 +81,7 @@ static int32 *input[FLAC__MAX_CHANNELS];
 
 /* local routines */
 static bool init(encoder_wrapper_struct *encoder_wrapper);
-static bool init_encoder(bool lax, bool do_mid_side, bool force_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper);
+static bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper);
 static void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, encoder_wrapper_struct *encoder_wrapper);
 static FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void metadata_callback(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
@@ -93,7 +93,7 @@ static void print_stats(const encoder_wrapper_struct *encoder_wrapper);
 static bool read_little_endian_uint16(FILE *f, uint16 *val, bool eof_ok);
 static bool read_little_endian_uint32(FILE *f, uint32 *val, bool eof_ok);
 
-int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool force_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision)
+int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	FILE *fin;
@@ -245,7 +245,7 @@ int encode_wav(const char *infile, const char *outfile, bool verbose, uint64 ski
 	encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample - skip;
 	encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
 
-	if(!init_encoder(lax, do_mid_side, force_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
+	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
 		goto wav_abort_;
 
 	encoder_wrapper.verify_fifo.into_frames = true;
@@ -322,7 +322,7 @@ wav_abort_:
 	return 1;
 }
 
-int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool force_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
+int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, bool is_big_endian, bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	FILE *fin;
@@ -395,7 +395,7 @@ int encode_raw(const char *infile, const char *outfile, bool verbose, uint64 ski
 		}
 	}
 
-	if(!init_encoder(lax, do_mid_side, force_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
+	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, rice_optimization_level, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, &encoder_wrapper))
 		goto raw_abort_;
 
 	encoder_wrapper.verify_fifo.into_frames = true;
@@ -483,10 +483,10 @@ bool init(encoder_wrapper_struct *encoder_wrapper)
 	return true;
 }
 
-bool init_encoder(bool lax, bool do_mid_side, bool force_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper)
+bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, encoder_wrapper_struct *encoder_wrapper)
 {
 	if(channels != 2 || bps > 16)
-		do_mid_side = force_mid_side = false;
+		do_mid_side = loose_mid_side = false;
 
 	if(encoder_wrapper->verify) {
 		unsigned i;
@@ -523,7 +523,7 @@ bool init_encoder(bool lax, bool do_mid_side, bool force_mid_side, bool do_exhau
 	encoder_wrapper->encoder->qlp_coeff_precision = qlp_coeff_precision;
 	encoder_wrapper->encoder->max_lpc_order = max_lpc_order;
 	encoder_wrapper->encoder->do_mid_side_stereo = do_mid_side;
-	encoder_wrapper->encoder->force_mid_side_stereo = force_mid_side;
+	encoder_wrapper->encoder->loose_mid_side_stereo = loose_mid_side;
 	encoder_wrapper->encoder->do_exhaustive_model_search = do_exhaustive_model_search;
 	encoder_wrapper->encoder->do_qlp_coeff_prec_search = do_qlp_coeff_prec_search;
 	encoder_wrapper->encoder->rice_optimization_level = rice_optimization_level;
