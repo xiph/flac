@@ -29,7 +29,7 @@
 #
 
 
-SUBDIRS = build doc include man src test
+SUBDIRS = doc include man src test
 
 DISTCLEANFILES = libtool-disable-static
 
@@ -37,9 +37,9 @@ EXTRA_DIST = \
 	COPYING.FDL \
 	COPYING.GPL \
 	COPYING.LGPL \
-	Doxyfile \
 	Makefile.lite \
 	autogen.sh \
+	build \
 	depcomp \
 	flac.pbproj \
 	strip_fPIC.sh

@@ -104,12 +104,12 @@ AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
 
 SHARE_LIBS='$(top_builddir)/src/share/libutf8.a $(top_builddir)/src/share/libgetopt.a'
 
-dnl check for i18n(internationalization)
+dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_WITH_NLS
 AM_ICONV
 AM_LANGINFO_CODESET
 
-dnl check id3lib librairies
+dnl check id3lib libraries
 LIBS_save_blah_blah_blah=$LIBS
 LIBS=""
 AC_SEARCH_LIBS(ID3Tag_Link,"id3" "id3 -lstdc++" "id3 -lz" "id3 -lz -lstdc++",
@@ -238,8 +238,9 @@ AC_OUTPUT(	Makefile	\
 	include/FLAC++/Makefile \
 	include/share/Makefile \
 	doc/Makefile \
-	doc/images/Makefile \
-	doc/ru/Makefile \
+	doc/html/Makefile \
+	doc/html/images/Makefile \
+	doc/html/ru/Makefile \
 	man/Makefile \
 	test/Makefile	\
 )
