@@ -50,9 +50,13 @@ AM_CONDITIONAL(FLaC__CPU_IA32, test x$cpu_ia32 = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test x$cpu_ppc = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test x$cpu_sparc = xtrue)
 case "$host" in
+	*-pc-linux-gnu) sys_linux=true ; AC_DEFINE(FLAC__SYS_LINUX) ;;
+	*-*-darwin*) sys_darwin=true ; AC_DEFINE(FLAC__SYS_DARWIN) ;;
 	i386-*-openbsd3.[[0-3]]) OBJ_FORMAT=aoutb ;;
 	*) OBJ_FORMAT=elf ;;
 esac
+AM_CONDITIONAL(FLaC__SYS_DARWIN, test x$sys_darwin = xtrue)
+AM_CONDITIONAL(FLaC__SYS_LINUX, test x$sys_linux = xtrue)
 AC_SUBST(OBJ_FORMAT)
 
 if test x$cpu_ia32 = xtrue ; then
@@ -206,6 +210,8 @@ AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA,  [define to align allocated memory on 32-by
 AH_TEMPLATE(FLAC__CPU_IA32,  [define if building for ia32/i386])
 AH_TEMPLATE(FLAC__CPU_PPC,  [define if building for PowerPC])
 AH_TEMPLATE(FLAC__CPU_SPARC,  [define if building for SPARC])
+AH_TEMPLATE(FLAC__SYS_DARWIN,  [define if building for Darwin / MacOS X])
+AH_TEMPLATE(FLAC__SYS_LINUX,  [define if building for Linux])
 AH_TEMPLATE(FLAC__EXHAUSTIVE_TESTS,  [define to run even more tests])
 AH_TEMPLATE(FLAC__VALGRIND_TESTING,  [define to enable use of Valgrind in testers])
 AH_TEMPLATE(FLAC__HAS_DOXYGEN,  [define if you have Doxygen])
