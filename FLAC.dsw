@@ -158,6 +158,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libFLAC
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name gain_analysis
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -279,18 +282,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "utf8"=.\src\share\utf8\utf8.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "test_libFLAC"=.\src\test_libFLAC\test_libFLAC.dsp - Package Owner=<4>
 
 Package=<5>
@@ -306,7 +297,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "test_libFLAC++"=.\src\test_libFLAC++\test_libFLAC++.dsp - Package Owner=<4>
+Project: "test_libFLAC++"=".\src\test_libFLAC++\test_libFLAC++.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -336,7 +327,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "test_libOggFLAC++"=.\src\test_libOggFLAC++\test_libOggFLAC++.dsp - Package Owner=<4>
+Project: "test_libOggFLAC++"=".\src\test_libOggFLAC++\test_libOggFLAC++.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -347,6 +338,18 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libOggFLAC++
     End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "utf8"=.\src\share\utf8\utf8.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
 }}}
 
 ###############################################################################
