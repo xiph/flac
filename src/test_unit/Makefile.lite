@@ -27,7 +27,8 @@ OBJS = \
 	main.o \
 	metadata.o \
 	metadata_manip.o \
-	metadata_object.o
+	metadata_object.o \
+	metadata_utils.o
 
 include ../../build/exe.mk
 

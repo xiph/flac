@@ -30,7 +30,8 @@ C_FILES= \
 	main.c \
 	metadata.c \
 	metadata_manip.c \
-	metadata_object.c
+	metadata_object.c \
+	metadata_utils.c
 
 OBJS= $(C_FILES:.c=.obj)
 
