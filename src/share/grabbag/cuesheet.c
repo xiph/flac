@@ -334,6 +334,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 				track->indices[track->num_indices-1].number = in_index_num;
 			}
 			else if(0 == FLAC__STRCASECMP(field, "ISRC")) {
+				char *l, *r;
 				if(track_has_isrc) {
 					*error_message = "found multiple ISRC commands";
 					return false;
@@ -346,6 +347,12 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					*error_message = "ISRC is missing ISRC number";
 					return false;
 				}
+				/* strip out dashes */
+				for(l = r = field; *r; r++) {
+					if(*r != '-')
+						*l++ = *r;
+				}
+				*l = '\0';
 				if(strlen(field) != 12 || strspn(field, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789") < 5 || strspn(field+5, "1234567890") != 7) {
 					*error_message = "invalid ISRC number";
 					return false;
