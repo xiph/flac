@@ -1223,7 +1223,7 @@ bool stream_decoder_read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned ch
 	/* read qlp coeff precision */
 	if(!FLAC__bitbuffer_read_raw_uint32(&decoder->guts->input, &u32, FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN, read_callback_, decoder))
 		return false; /* the read_callback_ sets the state for us */
-	if(u32 == (1 << FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN) - 1) {
+	if(u32 == (1u << FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN) - 1) {
 		decoder->guts->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_LOST_SYNC, decoder->guts->client_data);
 		decoder->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
