@@ -33,6 +33,9 @@ Other major contributors and their contributions:
 "Daisuke Shimamura" <Daisuke_Shimamura@nifty.com>
 * id3 v1/v2 and i18n support in the XMMS plugin
 
+"X-Fixer" <x-fixer@narod.ru>
+* Configuration system, tag editing, and file info in the Winamp2 plugin
+
 "Matt Zimmerman" <mdz@debian.org>
 * Libtool/autoconf/automake make system, flac man page
 
