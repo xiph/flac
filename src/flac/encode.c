@@ -1933,10 +1933,10 @@ void print_stats(const EncoderSession *encoder_session)
 #if defined _MSC_VER || defined __MINGW32__
 	/* with VC++ you have to spoon feed it the casting */
 	const double progress = (double)(FLAC__int64)samples_written / (double)(FLAC__int64)encoder_session->total_samples_to_encode;
-	const double ratio = (double)(FLAC__int64)encoder_session->bytes_written / ((double)(FLAC__int64)encoder_session->unencoded_size * progress);
+	const double ratio = (double)(FLAC__int64)encoder_session->bytes_written / ((double)(FLAC__int64)encoder_session->unencoded_size * min(1.0, progress));
 #else
 	const double progress = (double)samples_written / (double)encoder_session->total_samples_to_encode;
-	const double ratio = (double)encoder_session->bytes_written / ((double)encoder_session->unencoded_size * max(1.0, progress));
+	const double ratio = (double)encoder_session->bytes_written / ((double)encoder_session->unencoded_size * min(1.0, progress));
 #endif
 
 	if(encoder_session->silent)
