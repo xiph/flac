@@ -150,10 +150,8 @@ not an x86, change -DFLAC__CPU_IA32 to -DFLAC__CPU_UNKNOWN.
 Building with MSVC
 ===============================================================================
 
-@@@@ write instructions for FLAC.dsw and *.dsp, need %NASW% set to
-@@@@ full path to nasmw.exe, location of ogg static libs and headers
-
 There are two ways to build with MSVC:
+@@@@Prerequisite: Ogg headers/libs
 
   1. Project Files
   Prerequisite: you must have nasm installed, and have the environment
@@ -163,8 +161,9 @@ There are two ways to build with MSVC:
   To build everything, run Developer Studio, do File|Open Workspace,
   and open FLAC.dsw.  Switch to the 'Files' tab, select 'all files'
   from the tree, do right-mouse-button and 'Set as active project'.
-  @@@@Debug/Release@@@@  Then do Project|Build.  The libraries will
-  be built as both libs@@@@ and DLLs.
+  The default build mode will probably be Debug; to change to release
+  do Build|Set Active Configuration and select 'all - Win32 Release'.
+  Then do Project|Build.  The libraries will be built as both .libs and DLLs.
 
   2. nmake
   Prerequisite: you must have nasm installed and nasmw.exe must be in
@@ -187,8 +186,8 @@ There are two ways to build with MSVC:
 Everything will end up in the 'obj' directory.  DLLs and .exe files
 are all that are needed and can be copied to an installation area an
 added to the PATH.  The plugins have to be copied to their appropriate
-place in the player area.  For Winamp2 this is <winamp2-dir>\Plugins@@@@
-and for Winamp3 this is @@@@.
+place in the player area.  For Winamp2 this is <winamp2-dir>\Plugins
+and for Winamp3 this is <winamp3-dir>\Wacs.
 
 
 ===============================================================================
