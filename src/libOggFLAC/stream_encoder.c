@@ -79,7 +79,7 @@ typedef struct OggFLAC__StreamEncoderPrivate {
  *
  ***********************************************************************/
 
-const OggFLAC_API char * const OggFLAC__StreamEncoderStateString[] = {
+OggFLAC_API const char * const OggFLAC__StreamEncoderStateString[] = {
 	"OggFLAC__STREAM_ENCODER_OK",
 	"OggFLAC__STREAM_ENCODER_OGG_ERROR",
 	"OggFLAC__STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR",
@@ -490,6 +490,14 @@ OggFLAC_API FLAC__StreamDecoderState OggFLAC__stream_encoder_get_verify_decoder_
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
 	return FLAC__stream_encoder_get_verify_decoder_state(encoder->private_->FLAC_stream_encoder);
+}
+
+OggFLAC_API const char *OggFLAC__stream_encoder_get_resolved_state_string(const OggFLAC__StreamEncoder *encoder)
+{
+	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_FLAC_STREAM_ENCODER_ERROR)
+		return OggFLAC__StreamEncoderStateString[encoder->protected_->state];
+	else
+		return FLAC__stream_encoder_get_resolved_state_string(encoder->private_->FLAC_stream_encoder);
 }
 
 OggFLAC_API void OggFLAC__stream_encoder_get_verify_decoder_error_stats(const OggFLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got)
