@@ -196,10 +196,15 @@ if test x$sse_os = xtrue ; then
 AC_DEFINE(FLAC__SSE_OS)
 fi
 
-use_3dnow=yes
-AC_ARG_ENABLE(3dnow, [  --disable-3dnow                 Disable 3DNOW! optimizations], use_3dnow=no, use_3dnow=yes)
-AM_CONDITIONAL(FLaC__USE_3DNOW, test x$use_3dnow = xyes)
-if test x$use_3dnow = xyes ; then
+AC_ARG_ENABLE(3dnow,
+[  --disable-3dnow                Disable 3DNOW! optimizations],
+[case "${enableval}" in
+	yes) use_3dnow=true ;;
+	no)  use_3dnow=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-3dnow) ;;
+esac],[use_3dnow=true])
+AM_CONDITIONAL(FLaC__USE_3DNOW, test x$use_3dnow = xtrue)
+if test x$use_3dnow = xtrue ; then
 AC_DEFINE(FLAC__USE_3DNOW)
 fi
 
