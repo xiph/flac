@@ -28,6 +28,7 @@
 
 typedef struct {
 	FLAC__bool verbose;
+	FLAC__bool silent;
 	utils__SkipUntilSpecification skip_specification;
 	utils__SkipUntilSpecification until_specification;
 	FLAC__bool verify;

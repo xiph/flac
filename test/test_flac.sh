@@ -60,28 +60,28 @@ fi
 echo "Try encoding to a file that exists; should fail"
 cp wacky1.wav exist.wav
 touch exist.flac
-if run_flac -s -0 exist.wav ; then
+if run_flac --totally-silent -0 exist.wav ; then
 	die "ERROR: it should have failed but didn't"
 else
 	echo "OK, it failed as it should"
 fi
 
 echo "Try encoding with -f to a file that exists; should succeed"
-if run_flac -s -0 --force exist.wav ; then
+if run_flac --totally-silent -0 --force exist.wav ; then
 	echo "OK, it succeeded as it should"
 else
 	die "ERROR: it should have succeeded but didn't"
 fi
 
 echo "Try decoding to a file that exists; should fail"
-if run_flac -s -d exist.flac ; then
+if run_flac --totally-silent -d exist.flac ; then
 	die "ERROR: it should have failed but didn't"
 else
 	echo "OK, it failed as it should"
 fi
 
 echo "Try decoding with -f to a file that exists; should succeed"
-if run_flac -s -d -f exist.flac ; then
+if run_flac --totally-silent -d -f exist.flac ; then
 	echo "OK, it succeeded as it should"
 else
 	die "ERROR: it should have succeeded but didn't"

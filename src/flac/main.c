@@ -94,6 +94,7 @@ static struct share__option long_options_[] = {
 	{ "test"             , share__no_argument, 0, 't' },
 	{ "stdout"           , share__no_argument, 0, 'c' },
 	{ "silent"           , share__no_argument, 0, 's' },
+	{ "totally-silent"   , share__no_argument, 0, 0 },
 	{ "force"            , share__no_argument, 0, 'f' },
 	{ "delete-input-file", share__no_argument, 0, 0 },
 	{ "output-prefix"    , share__required_argument, 0, 0 },
@@ -203,6 +204,7 @@ static struct {
 	FLAC__bool mode_decode;
 	FLAC__bool verify;
 	FLAC__bool verbose;
+	FLAC__bool silent;
 	FLAC__bool force_file_overwrite;
 	FLAC__bool continue_through_decode_errors;
 	replaygain_synthesis_spec_t replaygain_synthesis_spec;
@@ -274,7 +276,7 @@ int main(int argc, char *argv[])
 
 	setlocale(LC_ALL, "");
 	if(!init_options()) {
-		fprintf(stderr, "ERROR: allocating memory\n");
+		if(!option_values.silent) fprintf(stderr, "ERROR: allocating memory\n");
 		retval = 1;
 	}
 	else {
@@ -305,7 +307,7 @@ int do_it()
 	}
 	else {
 		if(option_values.num_files == 0) {
-			short_usage();
+			if(!option_values.silent) short_usage();
 			return 0;
 		}
 
@@ -418,7 +420,7 @@ int do_it()
 			 * whole file.
 			 */
 			if(option_values.padding < 0) {
-				fprintf(stderr, "NOTE: --replay-gain may leave a small PADDING block even with --no-padding\n");
+				if(!option_values.silent) fprintf(stderr, "NOTE: --replay-gain may leave a small PADDING block even with --no-padding\n");
 				option_values.padding = GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
 			}
 			else {
@@ -508,17 +510,17 @@ int do_it()
 				for(i = 0; i < option_values.num_files; i++) {
 					const char *error, *outfilename = get_encoded_outfilename(option_values.filenames[i]);
 					if(0 == outfilename) {
-						fprintf(stderr, "ERROR: filename too long: %s", option_values.filenames[i]);
+						if(!option_values.silent) fprintf(stderr, "ERROR: filename too long: %s", option_values.filenames[i]);
 						return 1;
 					}
 					if(0 == strcmp(option_values.filenames[i], "-")) {
 						FLAC__ASSERT(0);
 						/* double protection */
-						fprintf(stderr, "internal error\n");
+						if(!option_values.silent) fprintf(stderr, "internal error\n");
 						return 2;
 					}
 					if(0 != (error = grabbag__replaygain_store_to_file_album(outfilename, album_gain, album_peak, /*preserve_modtime=*/true))) {
-						fprintf(stderr, "%s: ERROR writing ReplayGain album tags\n", outfilename);
+						if(!option_values.silent) fprintf(stderr, "%s: ERROR writing ReplayGain album tags\n", outfilename);
 						retval = 1;
 					}
 				}
@@ -536,6 +538,7 @@ FLAC__bool init_options()
 	option_values.mode_decode = false;
 	option_values.verify = false;
 	option_values.verbose = true;
+	option_values.silent = false;
 	option_values.force_file_overwrite = false;
 	option_values.continue_through_decode_errors = false;
 	option_values.replaygain_synthesis_spec.apply = false;
@@ -644,7 +647,11 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 
 	if(short_option == 0) {
 		FLAC__ASSERT(0 != long_option);
-		if(0 == strcmp(long_option, "delete-input-file")) {
+		if(0 == strcmp(long_option, "totally-silent")) {
+			option_values.verbose = false;
+			option_values.silent = true;
+		}
+		else if(0 == strcmp(long_option, "delete-input-file")) {
 			option_values.delete_input = true;
 		}
 		else if(0 == strcmp(long_option, "output-prefix")) {
@@ -775,6 +782,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "no-silent")) {
 			option_values.verbose = true;
+			option_values.silent = false;
 		}
 		else if(0 == strcmp(long_option, "no-force")) {
 			option_values.force_file_overwrite = false;
@@ -1064,17 +1072,19 @@ void free_options()
 
 int usage_error(const char *message, ...)
 {
-	va_list args;
+	if(!option_values.silent) {
+		va_list args;
 
-	FLAC__ASSERT(0 != message);
+		FLAC__ASSERT(0 != message);
 
-	va_start(args, message);
+		va_start(args, message);
 
-	(void) vfprintf(stderr, message, args);
+		(void) vfprintf(stderr, message, args);
 
-	va_end(args);
+		va_end(args);
 
-	printf("Type \"flac\" for a usage summary or \"flac --help\" for all options\n");
+		printf("Type \"flac\" for a usage summary or \"flac --help\" for all options\n");
+	}
 
 	return 1;
 }
@@ -1149,6 +1159,7 @@ void show_help()
 	printf("  -a, --analyze                Same as -d except an analysis file is written\n");
 	printf("  -c, --stdout                 Write output to stdout\n");
 	printf("  -s, --silent                 Do not write runtime encode/decode statistics\n");
+	printf("      --totally-silent         Do not print anything, including errors\n");
 	printf("  -f, --force                  Force overwriting of output files\n");
 	printf("  -o, --output-name=FILENAME   Force the output file name\n");
 	printf("      --output-prefix=STRING   Prepend STRING to output names\n");
@@ -1253,6 +1264,9 @@ void show_explain()
 	printf("  -a, --analyze                Same as -d except an analysis file is written\n");
 	printf("  -c, --stdout                 Write output to stdout\n");
 	printf("  -s, --silent                 Do not write runtime encode/decode statistics\n");
+	printf("      --totally-silent         Do not print anything of any kind, including\n");
+	printf("                               warnings or errors.  The exit code will be the\n");
+	printf("                               only way to determine successful completion.\n");
 	printf("  -f, --force                  Force overwriting of output files\n");
 	printf("  -o, --output-name=FILENAME   Force the output file name; usually flac just\n");
 	printf("                               changes the extension.  May only be used when\n");
@@ -1440,10 +1454,9 @@ void show_explain()
 	printf("      --no-verify\n");
 }
 
-void
-format_mistake(const char *infilename, const char *wrong, const char *right)
+void format_mistake(const char *infilename, const char *wrong, const char *right)
 {
-	fprintf(stderr, "WARNING: %s is not a %s file; treating as a %s file\n", infilename, wrong, right);
+	if(!option_values.silent) fprintf(stderr, "WARNING: %s is not a %s file; treating as a %s file\n", infilename, wrong, right);
 }
 
 int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file)
@@ -1458,7 +1471,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	const char *outfilename = get_encoded_outfilename(infilename);
 
 	if(0 == outfilename) {
-		fprintf(stderr, "ERROR: filename too long: %s", infilename);
+		if(!option_values.silent) fprintf(stderr, "ERROR: filename too long: %s", infilename);
 		return 1;
 	}
 
@@ -1467,7 +1480,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	 * Use grabbag__file_get_filesize() as a cheap way to check.
 	 */
 	if(!option_values.test_only && !option_values.force_file_overwrite && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
-		fprintf(stderr, "ERROR: output file %s already exists, use -f to override\n", outfilename);
+		if(!option_values.silent) fprintf(stderr, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
 	}
 
@@ -1478,7 +1491,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	else {
 		infilesize = grabbag__file_get_filesize(infilename);
 		if(0 == (encode_infile = fopen(infilename, "rb"))) {
-			fprintf(stderr, "ERROR: can't open input file %s\n", infilename);
+			if(!option_values.silent) fprintf(stderr, "ERROR: can't open input file %s\n", infilename);
 			return 1;
 		}
 	}
@@ -1512,7 +1525,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 
 	if(option_values.sector_align && fmt == RAW && infilesize < 0) {
-		fprintf(stderr, "ERROR: can't --sector-align when the input size is unknown\n");
+		if(!option_values.silent) fprintf(stderr, "ERROR: can't --sector-align when the input size is unknown\n");
 		return 1;
 	}
 
@@ -1536,6 +1549,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		common_options.until_specification.is_relative = true;
 
 	common_options.verbose = option_values.verbose;
+	common_options.silent = option_values.silent;
 	common_options.verify = option_values.verify;
 #ifdef FLAC__HAS_OGG
 	common_options.use_ogg = option_values.use_ogg;
@@ -1605,7 +1619,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				const char *error;
 				grabbag__replaygain_get_title(&title_gain, &title_peak);
 				if(0 != (error = grabbag__replaygain_store_to_file_title(outfilename, title_gain, title_peak, /*preserve_modtime=*/true))) {
-					fprintf(stderr, "%s: ERROR writing ReplayGain title tags\n", outfilename);
+					if(!option_values.silent) fprintf(stderr, "%s: ERROR writing ReplayGain title tags\n", outfilename);
 				}
 			}
 			grabbag__file_copy_metadata(infilename, outfilename);
@@ -1625,7 +1639,7 @@ int decode_file(const char *infilename)
 	const char *outfilename = get_decoded_outfilename(infilename);
 
 	if(0 == outfilename) {
-		fprintf(stderr, "ERROR: filename too long: %s", infilename);
+		if(!option_values.silent) fprintf(stderr, "ERROR: filename too long: %s", infilename);
 		return 1;
 	}
 
@@ -1634,7 +1648,7 @@ int decode_file(const char *infilename)
 	 * Use grabbag__file_get_filesize() as a cheap way to check.
 	 */
 	if(!option_values.test_only && !option_values.force_file_overwrite && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
-		fprintf(stderr, "ERROR: output file %s already exists, use -f to override\n", outfilename);
+		if(!option_values.silent) fprintf(stderr, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
 	}
 
@@ -1652,7 +1666,7 @@ int decode_file(const char *infilename)
 
 #ifndef FLAC__HAS_OGG
 	if(treat_as_ogg) {
-		fprintf(stderr, "%s: Ogg support has not been built into this copy of flac\n", infilename);
+		if(!option_values.silent) fprintf(stderr, "%s: Ogg support has not been built into this copy of flac\n", infilename);
 		return 1;
 	}
 #endif
@@ -1675,6 +1689,7 @@ int decode_file(const char *infilename)
 		common_options.has_cue_specification = false;
 
 	common_options.verbose = option_values.verbose;
+	common_options.silent = option_values.silent;
 	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
 	common_options.replaygain_synthesis_spec = option_values.replaygain_synthesis_spec;
 #ifdef FLAC__HAS_OGG
@@ -1781,7 +1796,7 @@ const char *get_outfilename(const char *infilename, const char *suffix)
 void die(const char *message)
 {
 	FLAC__ASSERT(0 != message);
-	fprintf(stderr, "ERROR: %s\n", message);
+	if(!option_values.silent) fprintf(stderr, "ERROR: %s\n", message);
 	exit(1);
 }
 

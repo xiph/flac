@@ -44,6 +44,7 @@ typedef struct {
 #endif
 
 	FLAC__bool verbose;
+	FLAC__bool silent;
 	FLAC__bool is_aiff_out;
 	FLAC__bool is_wave_out;
 	FLAC__bool continue_through_decode_errors;
@@ -105,20 +106,20 @@ static FLAC__bool is_big_endian_host_;
 /*
  * local routines
  */
-static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename);
+static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool silent, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
 static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, decode_options_t decode_options, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
 static int DecoderSession_finish_ok(DecoderSession *d);
 static int DecoderSession_finish_error(DecoderSession *d);
-static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
+static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input, FLAC__bool silent);
 static FLAC__bool write_necessary_headers(DecoderSession *decoder_session);
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val);
 static FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_big_endian_uint32(FILE *f, FLAC__uint32 val);
 static FLAC__bool write_sane_extended(FILE *f, unsigned val);
-static FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out, unsigned riff_offset, unsigned data_offset, unsigned frames_offset, FLAC__uint32 total_samples, unsigned channels, unsigned bps);
+static FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out, unsigned riff_offset, unsigned data_offset, unsigned frames_offset, FLAC__uint32 total_samples, unsigned channels, unsigned bps, FLAC__bool silent);
 /*
  * We use 'void *' so that we can use the same callbacks for the
  * FLAC__StreamDecoder and FLAC__FileDecoder.  The 'decoder' argument is
@@ -147,6 +148,7 @@ int flac__decode_aiff(const char *infilename, const char *outfilename, FLAC__boo
 			/*is_ogg=*/false,
 #endif
 			options.common.verbose,
+			options.common.silent,
 			/*is_aiff_out=*/true,
 			/*is_wave_out=*/false,
 			options.common.continue_through_decode_errors,
@@ -184,6 +186,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 			/*is_ogg=*/false,
 #endif
 			options.common.verbose,
+			options.common.silent,
 			/*is_aiff_out=*/false,
 			/*is_wave_out=*/true,
 			options.common.continue_through_decode_errors,
@@ -224,6 +227,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 			/*is_ogg=*/false,
 #endif
 			options.common.verbose,
+			options.common.silent,
 			/*is_aiff_out=*/false,
 			/*is_wave_out=*/false,
 			options.common.continue_through_decode_errors,
@@ -248,7 +252,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	return DecoderSession_finish_ok(&decoder_session);
 }
 
-FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename)
+FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool silent, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename)
 {
 #ifdef FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
@@ -257,6 +261,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 #endif
 
 	d->verbose = verbose;
+	d->silent = silent;
 	d->is_aiff_out = is_aiff_out;
 	d->is_wave_out = is_wave_out;
 	d->continue_through_decode_errors = continue_through_decode_errors;
@@ -296,7 +301,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 		}
 		else {
 			if(0 == (d->fout = fopen(outfilename, "wb"))) {
-				fprintf(stderr, "%s: ERROR: can't open output file %s\n", d->inbasefilename, outfilename);
+				if(!d->silent) fprintf(stderr, "%s: ERROR: can't open output file %s\n", d->inbasefilename, outfilename);
 				DecoderSession_destroy(d, /*error_occurred=*/true);
 				return false;
 			}
@@ -329,7 +334,7 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 		decoder_session->decoder.ogg.file = OggFLAC__file_decoder_new();
 
 		if(0 == decoder_session->decoder.ogg.file) {
-			fprintf(stderr, "%s: ERROR creating the decoder instance\n", decoder_session->inbasefilename);
+			if(!decoder_session->silent) fprintf(stderr, "%s: ERROR creating the decoder instance\n", decoder_session->inbasefilename);
 			return false;
 		}
 
@@ -365,7 +370,7 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 		decoder_session->decoder.flac.file = FLAC__file_decoder_new();
 
 		if(0 == decoder_session->decoder.flac.file) {
-			fprintf(stderr, "%s: ERROR creating the decoder instance\n", decoder_session->inbasefilename);
+			if(!decoder_session->silent) fprintf(stderr, "%s: ERROR creating the decoder instance\n", decoder_session->inbasefilename);
 			return false;
 		}
 
@@ -534,15 +539,14 @@ int DecoderSession_finish_ok(DecoderSession *d)
 	if(d->analysis_mode)
 		flac__analyze_finish(d->aopts);
 	if(md5_failure) {
-		fprintf(stderr, "\r%s: WARNING, MD5 signature mismatch\n", d->inbasefilename);
+		if(!d->silent) fprintf(stderr, "\r%s: WARNING, MD5 signature mismatch\n", d->inbasefilename);
 	}
 	else {
-		if(d->verbose)
-			fprintf(stderr, "\r%s: %s         \n", d->inbasefilename, d->test_only? "ok           ":d->analysis_mode?"done           ":"done");
+		if(d->verbose) fprintf(stderr, "\r%s: %s         \n", d->inbasefilename, d->test_only? "ok           ":d->analysis_mode?"done           ":"done");
 	}
 	DecoderSession_destroy(d, /*error_occurred=*/false);
 	if((d->is_wave_out || d->is_aiff_out) && d->wave_chunk_size_fixup.needs_fixup)
-		if(!fixup_wave_chunk_size(d->outfilename, d->is_wave_out, d->wave_chunk_size_fixup.riff_offset, d->wave_chunk_size_fixup.data_offset, d->wave_chunk_size_fixup.frames_offset, (FLAC__uint32)d->samples_processed, d->channels, d->bps))
+		if(!fixup_wave_chunk_size(d->outfilename, d->is_wave_out, d->wave_chunk_size_fixup.riff_offset, d->wave_chunk_size_fixup.data_offset, d->wave_chunk_size_fixup.frames_offset, (FLAC__uint32)d->samples_processed, d->channels, d->bps, d->silent))
 			return 1;
 	return 0;
 }
@@ -570,7 +574,7 @@ int DecoderSession_finish_error(DecoderSession *d)
 	return 1;
 }
 
-FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input)
+FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input, FLAC__bool silent)
 {
 	/* convert from mm:ss.sss to sample number if necessary */
 	flac__utils_canonicalize_skip_until_specification(spec, sample_rate);
@@ -583,7 +587,7 @@ FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec,
 
 	/* in any other case the total samples in the input must be known */
 	if(total_samples_in_input == 0) {
-		fprintf(stderr, "%s: ERROR, cannot use --until when FLAC metadata has total sample count of 0\n", inbasefilename);
+		if(!silent) fprintf(stderr, "%s: ERROR, cannot use --until when FLAC metadata has total sample count of 0\n", inbasefilename);
 		return false;
 	}
 
@@ -600,15 +604,15 @@ FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec,
 
 	/* error check */
 	if(spec->value.samples < 0) {
-		fprintf(stderr, "%s: ERROR, --until value is before beginning of input\n", inbasefilename);
+		if(!silent) fprintf(stderr, "%s: ERROR, --until value is before beginning of input\n", inbasefilename);
 		return false;
 	}
 	if((FLAC__uint64)spec->value.samples <= skip) {
-		fprintf(stderr, "%s: ERROR, --until value is before --skip point\n", inbasefilename);
+		if(!silent) fprintf(stderr, "%s: ERROR, --until value is before --skip point\n", inbasefilename);
 		return false;
 	}
 	if((FLAC__uint64)spec->value.samples > total_samples_in_input) {
-		fprintf(stderr, "%s: ERROR, --until value is after end of input\n", inbasefilename);
+		if(!silent) fprintf(stderr, "%s: ERROR, --until value is after end of input\n", inbasefilename);
 		return false;
 	}
 
@@ -623,16 +627,16 @@ FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
 		FLAC__uint64 data_size = decoder_session->total_samples * decoder_session->channels * ((decoder_session->bps+7)/8);
 		if(decoder_session->total_samples == 0) {
 			if(decoder_session->fout == stdout) {
-				fprintf(stderr, "%s: WARNING, don't have accurate sample count available for %s header.\n", decoder_session->inbasefilename, fmt_desc);
-				fprintf(stderr, "             Generated %s file will have a data chunk size of 0.  Try\n", fmt_desc);
-				fprintf(stderr, "             decoding directly to a file instead.\n");
+				if(!decoder_session->silent) fprintf(stderr, "%s: WARNING, don't have accurate sample count available for %s header.\n", decoder_session->inbasefilename, fmt_desc);
+				if(!decoder_session->silent) fprintf(stderr, "             Generated %s file will have a data chunk size of 0.  Try\n", fmt_desc);
+				if(!decoder_session->silent) fprintf(stderr, "             decoding directly to a file instead.\n");
 			}
 			else {
 				decoder_session->wave_chunk_size_fixup.needs_fixup = true;
 			}
 		}
 		if(data_size >= 0xFFFFFFDC) {
-			fprintf(stderr, "%s: ERROR: stream is too big to fit in a single %s file chunk\n", decoder_session->inbasefilename, fmt_desc);
+			if(!decoder_session->silent) fprintf(stderr, "%s: ERROR: stream is too big to fit in a single %s file chunk\n", decoder_session->inbasefilename, fmt_desc);
 			return false;
 		}
 		if(decoder_session->is_wave_out) {
@@ -804,7 +808,7 @@ FLAC__bool write_sane_extended(FILE *f, unsigned val)
 	return true;
 }
 
-FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out, unsigned riff_offset, unsigned data_offset, unsigned frames_offset, FLAC__uint32 total_samples, unsigned channels, unsigned bps)
+FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out, unsigned riff_offset, unsigned data_offset, unsigned frames_offset, FLAC__uint32 total_samples, unsigned channels, unsigned bps, FLAC__bool silent)
 {
 	const char *fmt_desc = (is_wave_out? "WAVE" : "AIFF");
 	FLAC__bool (*write_it)(FILE *, FLAC__uint32) = (is_wave_out? write_little_endian_uint32 : write_big_endian_uint32);
@@ -812,7 +816,7 @@ FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out
 	FLAC__uint32 data_size, aligned_data_size;
 
 	if(0 == f) {
-		fprintf(stderr, "ERROR, couldn't open file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
+		if(!silent) fprintf(stderr, "ERROR, couldn't open file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 		return false;
 	}
 
@@ -821,34 +825,34 @@ FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out
 		aligned_data_size++;
 
 	if(fseek(f, riff_offset, SEEK_SET) < 0) {
-		fprintf(stderr, "ERROR, couldn't seek in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
+		if(!silent) fprintf(stderr, "ERROR, couldn't seek in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 		fclose(f);
 		return false;
 	}
 	if(!write_it(f, aligned_data_size + (is_wave_out? 36 : 46))) {
-		fprintf(stderr, "ERROR, couldn't write size in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
+		if(!silent) fprintf(stderr, "ERROR, couldn't write size in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 		fclose(f);
 		return false;
 	}
 	if(!is_wave_out) {
 		if(fseek(f, frames_offset, SEEK_SET) < 0) {
-			fprintf(stderr, "ERROR, couldn't seek in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
+			if(!silent) fprintf(stderr, "ERROR, couldn't seek in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 			fclose(f);
 			return false;
 		}
 		if(!write_it(f, total_samples)) {
-			fprintf(stderr, "ERROR, couldn't write size in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
+			if(!silent) fprintf(stderr, "ERROR, couldn't write size in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 			fclose(f);
 			return false;
 		}
 	}
 	if(fseek(f, data_offset, SEEK_SET) < 0) {
-		fprintf(stderr, "ERROR, couldn't seek in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
+		if(!silent) fprintf(stderr, "ERROR, couldn't seek in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 		fclose(f);
 		return false;
 	}
 	if(!write_it(f, data_size + (is_wave_out? 0 : 8))) {
-		fprintf(stderr, "ERROR, couldn't write size in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
+		if(!silent) fprintf(stderr, "ERROR, couldn't write size in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 		fclose(f);
 		return false;
 	}
@@ -877,15 +881,15 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
 	if(bps != decoder_session->bps) {
-		fprintf(stderr, "%s: ERROR, bits-per-sample is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, bps, decoder_session->bps);
+		if(!decoder_session->silent) fprintf(stderr, "%s: ERROR, bits-per-sample is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, bps, decoder_session->bps);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 	if(channels != decoder_session->channels) {
-		fprintf(stderr, "%s: ERROR, channels is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, channels, decoder_session->channels);
+		if(!decoder_session->silent) fprintf(stderr, "%s: ERROR, channels is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, channels, decoder_session->channels);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 	if(frame->header.sample_rate != decoder_session->sample_rate) {
-		fprintf(stderr, "%s: ERROR, sample rate is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, frame->header.sample_rate, decoder_session->sample_rate);
+		if(!decoder_session->silent) fprintf(stderr, "%s: ERROR, sample rate is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, frame->header.sample_rate, decoder_session->sample_rate);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 
@@ -1046,12 +1050,12 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 
 		/* remember, metadata->data.stream_info.total_samples can be 0, meaning 'unknown' */
 		if(metadata->data.stream_info.total_samples > 0 && skip >= metadata->data.stream_info.total_samples) {
-			fprintf(stderr, "%s: ERROR trying to --skip more samples than in stream\n", decoder_session->inbasefilename);
+			if(!decoder_session->silent) fprintf(stderr, "%s: ERROR trying to --skip more samples than in stream\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
 		else if(metadata->data.stream_info.total_samples == 0 && skip > 0) {
-			fprintf(stderr, "%s: ERROR, can't --skip when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
+			if(!decoder_session->silent) fprintf(stderr, "%s: ERROR, can't --skip when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
@@ -1059,7 +1063,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 		decoder_session->total_samples = metadata->data.stream_info.total_samples - skip;
 
 		/* note that we use metadata->data.stream_info.total_samples instead of decoder_session->total_samples */
-		if(!canonicalize_until_specification(decoder_session->until_specification, decoder_session->inbasefilename, decoder_session->sample_rate, skip, metadata->data.stream_info.total_samples)) {
+		if(!canonicalize_until_specification(decoder_session->until_specification, decoder_session->inbasefilename, decoder_session->sample_rate, skip, metadata->data.stream_info.total_samples, decoder_session->silent)) {
 			decoder_session->abort_flag = true;
 			return;
 		}
@@ -1073,7 +1077,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 		}
 
 		if(decoder_session->bps != 8 && decoder_session->bps != 16 && decoder_session->bps != 24) {
-			fprintf(stderr, "%s: ERROR: bits per sample is not 8/16/24\n", decoder_session->inbasefilename);
+			if(!decoder_session->silent) fprintf(stderr, "%s: ERROR: bits per sample is not 8/16/24\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
@@ -1081,7 +1085,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 	else if(metadata->type == FLAC__METADATA_TYPE_CUESHEET) {
 		/* remember, at this point, decoder_session->total_samples can be 0, meaning 'unknown' */
 		if(decoder_session->total_samples == 0) {
-			fprintf(stderr, "%s: ERROR can't use --cue when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
+			if(!decoder_session->silent) fprintf(stderr, "%s: ERROR can't use --cue when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
@@ -1105,7 +1109,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 		if (decoder_session->replaygain.spec.apply) {
 			double gain, peak;
 			if (!(decoder_session->replaygain.apply = grabbag__replaygain_load_from_vorbiscomment(metadata, decoder_session->replaygain.spec.use_album_gain, &gain, &peak))) {
-				fprintf(stderr, "%s: WARNING: can't get %s ReplayGain tag\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track");
+				if(!decoder_session->silent) fprintf(stderr, "%s: WARNING: can't get %s ReplayGain tag\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track");
 			}
 			else {
 				const char *ls[] = { "no", "peak", "hard" };
@@ -1113,8 +1117,8 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 				decoder_session->replaygain.scale = grabbag__replaygain_compute_scale_factor(peak, gain, decoder_session->replaygain.spec.preamp, decoder_session->replaygain.spec.limiter == RGSS_LIMIT__PEAK);
 				FLAC__ASSERT(decoder_session->bps > 0 && decoder_session->bps <= 32);
 				FLAC__replaygain_synthesis__init_dither_context(&decoder_session->replaygain.dither_context, decoder_session->bps, decoder_session->replaygain.spec.noise_shaping);
-				fprintf(stderr, "%s: INFO: applying %s ReplayGain (gain=%0.2fdB+preamp=%0.1fdB, %s noise shaping, %s limiting) to output\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track", gain, decoder_session->replaygain.spec.preamp, ns[decoder_session->replaygain.spec.noise_shaping], ls[decoder_session->replaygain.spec.limiter]);
-				fprintf(stderr, "%s: WARNING: applying ReplayGain is not lossless\n", decoder_session->inbasefilename);
+				if(!decoder_session->silent) fprintf(stderr, "%s: INFO: applying %s ReplayGain (gain=%0.2fdB+preamp=%0.1fdB, %s noise shaping, %s limiting) to output\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track", gain, decoder_session->replaygain.spec.preamp, ns[decoder_session->replaygain.spec.noise_shaping], ls[decoder_session->replaygain.spec.limiter]);
+				if(!decoder_session->silent) fprintf(stderr, "%s: WARNING: applying ReplayGain is not lossless\n", decoder_session->inbasefilename);
 			}
 		}
 	}
@@ -1124,7 +1128,7 @@ void error_callback(const void *decoder, FLAC__StreamDecoderErrorStatus status, 
 {
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	(void)decoder;
-	fprintf(stderr, "%s: *** Got error code %d:%s\n", decoder_session->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
+	if(!decoder_session->silent) fprintf(stderr, "%s: *** Got error code %d:%s\n", decoder_session->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
 	if(!decoder_session->continue_through_decode_errors)
 		decoder_session->abort_flag = true;
 }
@@ -1132,6 +1136,9 @@ void error_callback(const void *decoder, FLAC__StreamDecoderErrorStatus status, 
 void print_error_with_state(const DecoderSession *d, const char *message)
 {
 	const int ilen = strlen(d->inbasefilename) + 1;
+
+	if(d->silent)
+		return;
 
 	fprintf(stderr, "\n%s: %s\n", d->inbasefilename, message);
 

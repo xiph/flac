@@ -59,6 +59,7 @@ typedef struct {
 #endif
 	FLAC__bool verify;
 	FLAC__bool verbose;
+	FLAC__bool silent;
 	FLAC__bool is_stdout;
 	const char *inbasefilename;
 	const char *outfilename;
@@ -131,14 +132,14 @@ extern FLAC__bool OggFLAC__file_encoder_disable_verbatim_subframes(OggFLAC__File
 /*
  * local routines
  */
-static FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool verbose, FILE *infile, const char *infilename, const char *outfilename);
+static FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool verbose, FLAC__bool silent, FILE *infile, const char *infilename, const char *outfilename);
 static void EncoderSession_destroy(EncoderSession *e);
 static int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_align_zero);
 static int EncoderSession_finish_error(EncoderSession *e);
 static FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate);
 static FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], unsigned samples);
 static FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, FLAC__StreamMetadata *cuesheet, EncoderSession *e);
-static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
+static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input, FLAC__bool silent);
 static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps);
 #ifdef FLAC__HAS_OGG
 static FLAC__StreamEncoderWriteStatus ogg_stream_encoder_write_callback(const OggFLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
@@ -148,15 +149,15 @@ static void ogg_file_encoder_progress_callback(const OggFLAC__FileEncoder *encod
 static FLAC__StreamEncoderWriteStatus flac_stream_encoder_write_callback(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 static void flac_stream_encoder_metadata_callback(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
-static FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset);
+static FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset, FLAC__bool silent);
 static void print_stats(const EncoderSession *encoder_session);
 static void print_error_with_state(const EncoderSession *e, const char *message);
 static void print_verify_error(EncoderSession *e);
-static FLAC__bool read_little_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn);
-static FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn);
-static FLAC__bool read_big_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn);
-static FLAC__bool read_big_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn);
-static FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn);
+static FLAC__bool read_little_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent);
+static FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent);
+static FLAC__bool read_big_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent);
+static FLAC__bool read_big_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent);
+static FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent);
 
 /*
  * public routines
@@ -186,6 +187,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 #endif
 			options.common.verify,
 			options.common.verbose,
+			options.common.silent,
 			infile,
 			infilename,
 			outfilename
@@ -203,7 +205,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 		if(feof(infile) || ((c= fread(chunk_id, 1U, 4U, infile)), c==0U && feof(infile)))
 			break;
 		else if(c<4U || feof(infile)) {
-			fprintf(stderr, "%s: ERROR: incomplete chunk identifier\n", encoder_session.inbasefilename);
+			if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: incomplete chunk identifier\n", encoder_session.inbasefilename);
 			return EncoderSession_finish_error(&encoder_session);
 		}
 
@@ -211,56 +213,57 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			unsigned long skip;
 
 			/* COMM chunk size */
-			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			else if(xx<18U) {
-				fprintf(stderr, "%s: ERROR: non-standard 'COMM' chunk has length = %u\n", encoder_session.inbasefilename, (unsigned int)xx);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: non-standard 'COMM' chunk has length = %u\n", encoder_session.inbasefilename, (unsigned int)xx);
 				return EncoderSession_finish_error(&encoder_session);
 			}
-			else if(xx!=18U)
-				fprintf(stderr, "%s: WARNING: non-standard 'COMM' chunk has length = %u\n", encoder_session.inbasefilename, (unsigned int)xx);
+			else if(xx!=18U) {
+				if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: non-standard 'COMM' chunk has length = %u\n", encoder_session.inbasefilename, (unsigned int)xx);
+			}
 			skip= (xx-18U)+(xx & 1U);
 
 			/* number of channels */
-			if(!read_big_endian_uint16(infile, &x, false, encoder_session.inbasefilename))
+			if(!read_big_endian_uint16(infile, &x, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			else if(x==0U || x>FLAC__MAX_CHANNELS) {
-				fprintf(stderr, "%s: ERROR: unsupported number channels %u\n", encoder_session.inbasefilename, (unsigned int)x);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: unsupported number channels %u\n", encoder_session.inbasefilename, (unsigned int)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(options.common.sector_align && x!=2U) {
-				fprintf(stderr, "%s: ERROR: file has %u channels, must be 2 for --sector-align\n", encoder_session.inbasefilename, (unsigned int)x);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: file has %u channels, must be 2 for --sector-align\n", encoder_session.inbasefilename, (unsigned int)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			channels= x;
 
 			/* number of sample frames */
-			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			sample_frames= xx;
 
 			/* bits per sample */
-			if(!read_big_endian_uint16(infile, &x, false, encoder_session.inbasefilename))
+			if(!read_big_endian_uint16(infile, &x, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			else if(x!=8U && x!=16U && x!=24U) {
-				fprintf(stderr, "%s: ERROR: unsupported bits per sample %u\n", encoder_session.inbasefilename, (unsigned int)x);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: unsupported bits per sample %u\n", encoder_session.inbasefilename, (unsigned int)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(options.common.sector_align && x!=16U) {
-				fprintf(stderr, "%s: ERROR: file has %u bits per sample, must be 16 for --sector-align\n", encoder_session.inbasefilename, (unsigned int)x);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: file has %u bits per sample, must be 16 for --sector-align\n", encoder_session.inbasefilename, (unsigned int)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			bps= x;
 
 			/* sample rate */
-			if(!read_sane_extended(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_sane_extended(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			else if(!FLAC__format_sample_rate_is_valid(xx)) {
-				fprintf(stderr, "%s: ERROR: unsupported sample rate %u\n", encoder_session.inbasefilename, (unsigned int)xx);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: unsupported sample rate %u\n", encoder_session.inbasefilename, (unsigned int)xx);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(options.common.sector_align && xx!=44100U) {
-				fprintf(stderr, "%s: ERROR: file's sample rate is %u, must be 44100 for --sector-align\n", encoder_session.inbasefilename, (unsigned int)xx);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: file's sample rate is %u, must be 44100 for --sector-align\n", encoder_session.inbasefilename, (unsigned int)xx);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			sample_rate= xx;
@@ -270,7 +273,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			while(skip>0U && fseek(infile, skip, SEEK_CUR)<0) {
 				unsigned int need= min(skip, sizeof ucbuffer_);
 				if(fread(ucbuffer_, 1U, need, infile)<need) {
-					fprintf(stderr, "%s: ERROR during read while skipping extra COMM data\n", encoder_session.inbasefilename);
+					if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read while skipping extra COMM data\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 				skip-= need;
@@ -294,15 +297,15 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			FLAC__bool pad= false;
 
 			if(got_comm_chunk==false) {
-				fprintf(stderr, "%s: ERROR: got 'SSND' chunk before 'COMM' chunk\n", encoder_session.inbasefilename);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: got 'SSND' chunk before 'COMM' chunk\n", encoder_session.inbasefilename);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 
 			/* SSND chunk size */
-			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			else if(xx!=(sample_frames*bytes_per_frame + 8U)) {
-				fprintf(stderr, "%s: ERROR: SSND chunk size inconsistent with sample frame count\n", encoder_session.inbasefilename);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: SSND chunk size inconsistent with sample frame count\n", encoder_session.inbasefilename);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			data_bytes= xx;
@@ -310,19 +313,19 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			data_bytes-= 8U; /* discount the offset and block size fields */
 
 			/* offset */
-			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			else if(xx!=0U) {
-				fprintf(stderr, "%s: ERROR: offset is %u; must be 0\n", encoder_session.inbasefilename, (unsigned int)xx);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: offset is %u; must be 0\n", encoder_session.inbasefilename, (unsigned int)xx);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			offset= xx;
 
 			/* block size */
-			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			else if(xx!=0U) {
-				fprintf(stderr, "%s: ERROR: block size is %u; must be 0\n", encoder_session.inbasefilename, (unsigned int)xx);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: block size is %u; must be 0\n", encoder_session.inbasefilename, (unsigned int)xx);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			block_size= xx;
@@ -335,7 +338,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			 * now that we know the input size, canonicalize the
 			 * --until string to an absolute sample number:
 			 */
-			if(!canonicalize_until_specification(&options.common.until_specification, encoder_session.inbasefilename, sample_rate, encoder_session.skip, total_samples_in_input))
+			if(!canonicalize_until_specification(&options.common.until_specification, encoder_session.inbasefilename, sample_rate, encoder_session.skip, total_samples_in_input, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			encoder_session.until = (FLAC__uint64)options.common.until_specification.value.samples;
 			FLAC__ASSERT(!options.common.sector_align || encoder_session.until == 0);
@@ -353,7 +356,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 					while(skip>0 && fseek(infile, skip, SEEK_CUR)<0) {
 						unsigned int need= min(skip, sizeof ucbuffer_);
 						if(fread(ucbuffer_, 1U, need, infile)<need) {
-							fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+							if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
 							return EncoderSession_finish_error(&encoder_session);
 						}
 						skip-= need;
@@ -411,17 +414,17 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 
 				if(bytes_read==0U) {
 					if(ferror(infile)) {
-						fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+						if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
 						return EncoderSession_finish_error(&encoder_session);
 					}
 					else if(feof(infile)) {
-						fprintf(stderr, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned int)encoder_session.total_samples_to_encode, (unsigned int)encoder_session.samples_written);
+						if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned int)encoder_session.total_samples_to_encode, (unsigned int)encoder_session.samples_written);
 						data_bytes= 0;
 					}
 				}
 				else {
 					if(bytes_read % bytes_per_frame != 0U) {
-						fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_session.inbasefilename);
+						if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_session.inbasefilename);
 						return EncoderSession_finish_error(&encoder_session);
 					}
 					else {
@@ -453,7 +456,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 					while(skip>0 && fseek(infile, skip, SEEK_CUR)<0) {
 						unsigned int need= min(skip, sizeof ucbuffer_);
 						if(fread(ucbuffer_, 1U, need, infile)<need) {
-							fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+							if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
 							return EncoderSession_finish_error(&encoder_session);
 						}
 						skip-= need;
@@ -487,11 +490,12 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 
 						FLAC__ASSERT(CHUNK_OF_SAMPLES>=588U);
 						if(bytes_read==0U && ferror(infile)) {
-							fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+							if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
 							return EncoderSession_finish_error(&encoder_session);
 						}
-						else if(bytes_read != (*options.common.align_reservoir_samples) * bytes_per_frame)
-							fprintf(stderr, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned int)bytes_read, (unsigned int)encoder_session.total_samples_to_encode, (unsigned int)encoder_session.samples_written);
+						else if(bytes_read != (*options.common.align_reservoir_samples) * bytes_per_frame) {
+							if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned int)bytes_read, (unsigned int)encoder_session.total_samples_to_encode, (unsigned int)encoder_session.samples_written);
+						}
 						else {
 							info_align_carry= *options.common.align_reservoir_samples;
 							format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, true, false, channels, bps);
@@ -504,7 +508,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 				unsigned char tmp;
 
 				if(fread(&tmp, 1U, 1U, infile)<1U) {
-					fprintf(stderr, "%s: ERROR during read of SSND pad byte\n", encoder_session.inbasefilename);
+					if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read of SSND pad byte\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
@@ -512,15 +516,18 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			got_ssnd_chunk= true;
 		}
 		else { /* other chunk */
-			if(!strncmp(chunk_id, "COMM", 4))
-				fprintf(stderr, "%s: WARNING: skipping extra 'COMM' chunk\n", encoder_session.inbasefilename);
-			else if(!strncmp(chunk_id, "SSND", 4))
-				fprintf(stderr, "%s: WARNING: skipping extra 'SSND' chunk\n", encoder_session.inbasefilename);
-			else
-				fprintf(stderr, "%s: WARNING: skipping unknown chunk '%s'\n", encoder_session.inbasefilename, chunk_id);
+			if(!strncmp(chunk_id, "COMM", 4)) {
+				if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: skipping extra 'COMM' chunk\n", encoder_session.inbasefilename);
+			}
+			else if(!strncmp(chunk_id, "SSND", 4)) {
+				if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: skipping extra 'SSND' chunk\n", encoder_session.inbasefilename);
+			}
+			else {
+				if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: skipping unknown chunk '%s'\n", encoder_session.inbasefilename, chunk_id);
+			}
 
 			/* chunk size */
-			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			else {
 				unsigned long skip= xx+(xx & 1U);
@@ -539,7 +546,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 	}
 
 	if(got_ssnd_chunk==false && sample_frames!=0U) {
-		fprintf(stderr, "%s: ERROR: missing SSND chunk\n", encoder_session.inbasefilename);
+		if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: missing SSND chunk\n", encoder_session.inbasefilename);
 		return EncoderSession_finish_error(&encoder_session);
 	}
 
@@ -572,6 +579,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 #endif
 			options.common.verify,
 			options.common.verbose,
+			options.common.silent,
 			infile,
 			infilename,
 			outfilename
@@ -583,7 +591,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 	 * lookahead[] already has "RIFFxxxxWAVE", do sub-chunks
 	 */
 	while(!feof(infile)) {
-		if(!read_little_endian_uint32(infile, &xx, true, encoder_session.inbasefilename))
+		if(!read_little_endian_uint32(infile, &xx, true, encoder_session.inbasefilename, encoder_session.silent))
 			return EncoderSession_finish_error(&encoder_session);
 		if(feof(infile))
 			break;
@@ -591,68 +599,68 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			unsigned block_align;
 
 			/* fmt sub-chunk size */
-			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			if(xx < 16) {
-				fprintf(stderr, "%s: ERROR: found non-standard 'fmt ' sub-chunk which has length = %u\n", encoder_session.inbasefilename, (unsigned)xx);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: found non-standard 'fmt ' sub-chunk which has length = %u\n", encoder_session.inbasefilename, (unsigned)xx);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(xx != 16 && xx != 18) {
-				fprintf(stderr, "%s: WARNING: found non-standard 'fmt ' sub-chunk which has length = %u\n", encoder_session.inbasefilename, (unsigned)xx);
+				if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: found non-standard 'fmt ' sub-chunk which has length = %u\n", encoder_session.inbasefilename, (unsigned)xx);
 			}
 			data_bytes = xx;
 			/* compression code */
-			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename))
+			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			if(x != 1) {
-				fprintf(stderr, "%s: ERROR: unsupported compression type %u\n", encoder_session.inbasefilename, (unsigned)x);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: unsupported compression type %u\n", encoder_session.inbasefilename, (unsigned)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			/* number of channels */
-			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename))
+			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			if(x == 0 || x > FLAC__MAX_CHANNELS) {
-				fprintf(stderr, "%s: ERROR: unsupported number channels %u\n", encoder_session.inbasefilename, (unsigned)x);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: unsupported number channels %u\n", encoder_session.inbasefilename, (unsigned)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(options.common.sector_align && x != 2) {
-				fprintf(stderr, "%s: ERROR: file has %u channels, must be 2 for --sector-align\n", encoder_session.inbasefilename, (unsigned)x);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: file has %u channels, must be 2 for --sector-align\n", encoder_session.inbasefilename, (unsigned)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			channels = x;
 			/* sample rate */
-			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			if(!FLAC__format_sample_rate_is_valid(xx)) {
-				fprintf(stderr, "%s: ERROR: unsupported sample rate %u\n", encoder_session.inbasefilename, (unsigned)xx);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: unsupported sample rate %u\n", encoder_session.inbasefilename, (unsigned)xx);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(options.common.sector_align && xx != 44100) {
-				fprintf(stderr, "%s: ERROR: file's sample rate is %u, must be 44100 for --sector-align\n", encoder_session.inbasefilename, (unsigned)xx);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: file's sample rate is %u, must be 44100 for --sector-align\n", encoder_session.inbasefilename, (unsigned)xx);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			sample_rate = xx;
 			/* avg bytes per second (ignored) */
-			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			/* block align */
-			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename))
+			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			block_align = x;
 			/* bits per sample */
-			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename))
+			if(!read_little_endian_uint16(infile, &x, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			if(x != 8 && x != 16 && x != 24) {
-				fprintf(stderr, "%s: ERROR: unsupported bits-per-sample %u\n", encoder_session.inbasefilename, (unsigned)x);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: unsupported bits-per-sample %u\n", encoder_session.inbasefilename, (unsigned)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(options.common.sector_align && x != 16) {
-				fprintf(stderr, "%s: ERROR: file has %u bits per sample, must be 16 for --sector-align\n", encoder_session.inbasefilename, (unsigned)x);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: file has %u bits per sample, must be 16 for --sector-align\n", encoder_session.inbasefilename, (unsigned)x);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			bps = x;
 			if(bps * channels != block_align * 8) {
-				fprintf(stderr, "%s: ERROR: unsupported block alignment (%u), for bits-per-sample=%u, channels=%u\n", encoder_session.inbasefilename, block_align, bps, channels);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: unsupported block alignment (%u), for bits-per-sample=%u, channels=%u\n", encoder_session.inbasefilename, block_align, bps, channels);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			is_unsigned_samples = (x == 8);
@@ -664,7 +672,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				for(left = data_bytes; left > 0; ) {
 					need = min(left, CHUNK_OF_SAMPLES);
 					if(fread(ucbuffer_, 1U, need, infile) < need) {
-						fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+						if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
 						return EncoderSession_finish_error(&encoder_session);
 					}
 					left -= need;
@@ -686,7 +694,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			FLAC__uint64 total_samples_in_input, trim = 0;
 
 			/* data size */
-			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			data_bytes = xx;
 
@@ -700,7 +708,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			 * now that we know the input size, canonicalize the
 			 * --until string to an absolute sample number:
 			 */
-			if(!canonicalize_until_specification(&options.common.until_specification, encoder_session.inbasefilename, sample_rate, encoder_session.skip, total_samples_in_input))
+			if(!canonicalize_until_specification(&options.common.until_specification, encoder_session.inbasefilename, sample_rate, encoder_session.skip, total_samples_in_input, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			encoder_session.until = (FLAC__uint64)options.common.until_specification.value.samples;
 			FLAC__ASSERT(!options.common.sector_align || encoder_session.until == 0);
@@ -712,7 +720,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					for(left = (unsigned)encoder_session.skip; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
 						need = min(left, CHUNK_OF_SAMPLES);
 						if(fread(ucbuffer_, bytes_per_wide_sample, need, infile) < need) {
-							fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+							if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
 							return EncoderSession_finish_error(&encoder_session);
 						}
 						left -= need;
@@ -773,17 +781,17 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				bytes_read = fread(ucbuffer_, sizeof(unsigned char), min(data_bytes, CHUNK_OF_SAMPLES * bytes_per_wide_sample), infile);
 				if(bytes_read == 0) {
 					if(ferror(infile)) {
-						fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+						if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
 						return EncoderSession_finish_error(&encoder_session);
 					}
 					else if(feof(infile)) {
-						fprintf(stderr, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
+						if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
 						data_bytes = 0;
 					}
 				}
 				else {
 					if(bytes_read % bytes_per_wide_sample != 0) {
-						fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_session.inbasefilename);
+						if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_session.inbasefilename);
 						return EncoderSession_finish_error(&encoder_session);
 					}
 					else {
@@ -806,7 +814,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					for(left = (unsigned)trim; left > 0; ) { /*@@@ WATCHOUT: 4GB limit */
 						need = min(left, CHUNK_OF_SAMPLES);
 						if(fread(ucbuffer_, bytes_per_wide_sample, need, infile) < need) {
-							fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+							if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
 							return EncoderSession_finish_error(&encoder_session);
 						}
 						left -= need;
@@ -839,11 +847,11 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 						FLAC__ASSERT(CHUNK_OF_SAMPLES >= 588);
 						bytes_read = fread(ucbuffer_, sizeof(unsigned char), (*options.common.align_reservoir_samples) * bytes_per_wide_sample, infile);
 						if(bytes_read == 0 && ferror(infile)) {
-							fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+							if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
 							return EncoderSession_finish_error(&encoder_session);
 						}
 						else if(bytes_read != (*options.common.align_reservoir_samples) * bytes_per_wide_sample) {
-							fprintf(stderr, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)bytes_read, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
+							if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)bytes_read, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
 							data_bytes = 0;
 						}
 						else {
@@ -858,14 +866,14 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 		}
 		else {
 			if(xx == 0x20746d66 && got_fmt_chunk) { /* "fmt " */
-				fprintf(stderr, "%s: WARNING: skipping extra 'fmt ' sub-chunk\n", encoder_session.inbasefilename);
+				if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: skipping extra 'fmt ' sub-chunk\n", encoder_session.inbasefilename);
 			}
 			else if(xx == 0x61746164) { /* "data" */
 				if(got_data_chunk) {
-					fprintf(stderr, "%s: WARNING: skipping extra 'data' sub-chunk\n", encoder_session.inbasefilename);
+					if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: skipping extra 'data' sub-chunk\n", encoder_session.inbasefilename);
 				}
 				else if(!got_fmt_chunk) {
-					fprintf(stderr, "%s: ERROR: got 'data' sub-chunk before 'fmt' sub-chunk\n", encoder_session.inbasefilename);
+					if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: got 'data' sub-chunk before 'fmt' sub-chunk\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 				else {
@@ -873,10 +881,10 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				}
 			}
 			else {
-				fprintf(stderr, "%s: WARNING: skipping unknown sub-chunk '%c%c%c%c'\n", encoder_session.inbasefilename, (char)(xx&255), (char)((xx>>8)&255), (char)((xx>>16)&255), (char)(xx>>24));
+				if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: skipping unknown sub-chunk '%c%c%c%c'\n", encoder_session.inbasefilename, (char)(xx&255), (char)((xx>>8)&255), (char)((xx>>16)&255), (char)(xx>>24));
 			}
 			/* sub-chunk size */
-			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename, encoder_session.silent))
 				return EncoderSession_finish_error(&encoder_session);
 			if(fseek(infile, xx, SEEK_CUR) < 0) {
 				/* can't seek input, read ahead manually... */
@@ -885,7 +893,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				for(left = xx; left > 0; ) {
 					need = min(left, chunk);
 					if(fread(ucbuffer_, 1, need, infile) < need) {
-						fprintf(stderr, "%s: ERROR during read while skipping unsupported sub-chunk\n", encoder_session.inbasefilename);
+						if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read while skipping unsupported sub-chunk\n", encoder_session.inbasefilename);
 						return EncoderSession_finish_error(&encoder_session);
 					}
 					left -= need;
@@ -923,6 +931,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 #endif
 			options.common.verify,
 			options.common.verbose,
+			options.common.silent,
 			infile,
 			infilename,
 			outfilename
@@ -951,7 +960,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	 * now that we know the input size, canonicalize the
 	 * --until strings to a number of samples:
 	 */
-	if(!canonicalize_until_specification(&options.common.until_specification, encoder_session.inbasefilename, options.sample_rate, encoder_session.skip, total_samples_in_input))
+	if(!canonicalize_until_specification(&options.common.until_specification, encoder_session.inbasefilename, options.sample_rate, encoder_session.skip, total_samples_in_input, encoder_session.silent))
 		return EncoderSession_finish_error(&encoder_session);
 	encoder_session.until = (FLAC__uint64)options.common.until_specification.value.samples;
 	FLAC__ASSERT(!options.common.sector_align || encoder_session.until == 0);
@@ -988,7 +997,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 				for(left = skip_bytes; left > 0; ) {
 					need = min(left, chunk);
 					if(fread(ucbuffer_, 1, need, infile) < need) {
-						fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
+						if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
 						return EncoderSession_finish_error(&encoder_session);
 					}
 					left -= need;
@@ -1039,7 +1048,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 				memcpy(ucbuffer_, lookahead, lookahead_length);
 				bytes_read = fread(ucbuffer_+lookahead_length, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample - lookahead_length, infile) + lookahead_length;
 				if(ferror(infile)) {
-					fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+					if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 				lookahead_length = 0;
@@ -1049,12 +1058,12 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 
 			if(bytes_read == 0) {
 				if(ferror(infile)) {
-					fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+					if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
 			else if(bytes_read % bytes_per_wide_sample != 0) {
-				fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_session.inbasefilename);
+				if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_session.inbasefilename);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 			else {
@@ -1084,7 +1093,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 					if(wanted > 0) {
 						bytes_read += fread(ucbuffer_+lookahead_length, sizeof(unsigned char), wanted, infile);
 						if(ferror(infile)) {
-							fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+							if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
 							return EncoderSession_finish_error(&encoder_session);
 						}
 					}
@@ -1096,17 +1105,17 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 
 			if(bytes_read == 0) {
 				if(ferror(infile)) {
-					fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+					if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 				else if(feof(infile)) {
-					fprintf(stderr, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
+					if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
 					total_input_bytes_read = max_input_bytes;
 				}
 			}
 			else {
 				if(bytes_read % bytes_per_wide_sample != 0) {
-					fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_session.inbasefilename);
+					if(!encoder_session.silent) fprintf(stderr, "%s: ERROR: got partial sample\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 				else {
@@ -1148,11 +1157,11 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 				FLAC__ASSERT(CHUNK_OF_SAMPLES >= 588);
 				bytes_read = fread(ucbuffer_, sizeof(unsigned char), (*options.common.align_reservoir_samples) * bytes_per_wide_sample, infile);
 				if(bytes_read == 0 && ferror(infile)) {
-					fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
+					if(!encoder_session.silent) fprintf(stderr, "%s: ERROR during read\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 				else if(bytes_read != (*options.common.align_reservoir_samples) * bytes_per_wide_sample) {
-					fprintf(stderr, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)bytes_read, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
+					if(!encoder_session.silent) fprintf(stderr, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)bytes_read, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
 				}
 				else {
 					info_align_carry = *options.common.align_reservoir_samples;
@@ -1165,7 +1174,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	return EncoderSession_finish_ok(&encoder_session, info_align_carry, info_align_zero);
 }
 
-FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool verbose, FILE *infile, const char *infilename, const char *outfilename)
+FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool verbose, FLAC__bool silent, FILE *infile, const char *infilename, const char *outfilename)
 {
 	unsigned i;
 	FLAC__uint32 test = 1;
@@ -1191,6 +1200,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 #endif
 	e->verify = verify;
 	e->verbose = verbose;
+	e->silent = silent;
 
 	e->is_stdout = (0 == strcmp(outfilename, "-"));
 
@@ -1221,7 +1231,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	}
 
 	if(0 == (e->seek_table_template = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE))) {
-		fprintf(stderr, "%s: ERROR allocating memory for seek table\n", e->inbasefilename);
+		if(!e->silent) fprintf(stderr, "%s: ERROR allocating memory for seek table\n", e->inbasefilename);
 		return false;
 	}
 
@@ -1230,7 +1240,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 		if(e->is_stdout) {
 			e->encoder.ogg.stream = OggFLAC__stream_encoder_new();
 			if(0 == e->encoder.ogg.stream) {
-				fprintf(stderr, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
+				if(!e->silent) fprintf(stderr, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
 				EncoderSession_destroy(e);
 				return false;
 			}
@@ -1238,7 +1248,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 		else {
 			e->encoder.ogg.file = OggFLAC__file_encoder_new();
 			if(0 == e->encoder.ogg.file) {
-				fprintf(stderr, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
+				if(!e->silent) fprintf(stderr, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
 				EncoderSession_destroy(e);
 				return false;
 			}
@@ -1249,7 +1259,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	if(e->is_stdout) {
 		e->encoder.flac.stream = FLAC__stream_encoder_new();
 		if(0 == e->encoder.flac.stream) {
-			fprintf(stderr, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
+			if(!e->silent) fprintf(stderr, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
 			EncoderSession_destroy(e);
 			return false;
 		}
@@ -1257,7 +1267,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	else {
 		e->encoder.flac.file = FLAC__file_encoder_new();
 		if(0 == e->encoder.flac.file) {
-			fprintf(stderr, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
+			if(!e->silent) fprintf(stderr, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
 			EncoderSession_destroy(e);
 			return false;
 		}
@@ -1354,10 +1364,12 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 		ret = 1;
 	}
 	else {
-		if(info_align_carry >= 0)
-			fprintf(stderr, "%s: INFO: sector alignment causing %d samples to be carried over\n", e->inbasefilename, info_align_carry);
-		if(info_align_zero >= 0)
-			fprintf(stderr, "%s: INFO: sector alignment causing %d zero samples to be appended\n", e->inbasefilename, info_align_zero);
+		if(info_align_carry >= 0) {
+			if(!e->silent) fprintf(stderr, "%s: INFO: sector alignment causing %d samples to be carried over\n", e->inbasefilename, info_align_carry);
+		}
+		if(info_align_zero >= 0) {
+			if(!e->silent) fprintf(stderr, "%s: INFO: sector alignment causing %d zero samples to be appended\n", e->inbasefilename, info_align_zero);
+		}
 	}
 
 	EncoderSession_destroy(e);
@@ -1414,16 +1426,16 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 	if(e->replay_gain) {
 		if(channels != 1 && channels != 2) {
-			fprintf(stderr, "%s: ERROR, number of channels (%u) must be 1 or 2 for --replay-gain\n", e->inbasefilename, channels);
+			if(!e->silent) fprintf(stderr, "%s: ERROR, number of channels (%u) must be 1 or 2 for --replay-gain\n", e->inbasefilename, channels);
 			return false;
 		}
 		if(!grabbag__replaygain_is_valid_sample_frequency(sample_rate)) {
-			fprintf(stderr, "%s: ERROR, invalid sample rate (%u) for --replay-gain\n", e->inbasefilename, sample_rate);
+			if(!e->silent) fprintf(stderr, "%s: ERROR, invalid sample rate (%u) for --replay-gain\n", e->inbasefilename, sample_rate);
 			return false;
 		}
 		if(options.is_first_file) {
 			if(!grabbag__replaygain_init(sample_rate)) {
-				fprintf(stderr, "%s: ERROR initializing ReplayGain stage\n", e->inbasefilename);
+				if(!e->silent) fprintf(stderr, "%s: ERROR initializing ReplayGain stage\n", e->inbasefilename);
 				return false;
 			}
 		}
@@ -1432,11 +1444,11 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	if(channels != 2)
 		options.do_mid_side = options.loose_mid_side = false;
 
-	if(!parse_cuesheet_(&cuesheet, options.cuesheet_filename, e->inbasefilename, is_cdda, e->total_samples_to_encode))
+	if(!parse_cuesheet_(&cuesheet, options.cuesheet_filename, e->inbasefilename, is_cdda, e->total_samples_to_encode, e->silent))
 		return false;
 
 	if(!convert_to_seek_table_template(options.requested_seek_points, options.num_requested_seek_points, options.cued_seekpoints? cuesheet : 0, e)) {
-		fprintf(stderr, "%s: ERROR allocating memory for seek table\n", e->inbasefilename);
+		if(!e->silent) fprintf(stderr, "%s: ERROR allocating memory for seek table\n", e->inbasefilename);
 		if(0 != cuesheet)
 			free(cuesheet);
 		return false;
@@ -1613,8 +1625,9 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], unsigned samples)
 {
 	if(e->replay_gain) {
-		if(!grabbag__replaygain_analyze(buffer, e->channels==2, e->bits_per_sample, samples))
-			fprintf(stderr, "%s: WARNING, error while calculating ReplayGain\n", e->inbasefilename);
+		if(!grabbag__replaygain_analyze(buffer, e->channels==2, e->bits_per_sample, samples)) {
+			if(!e->silent) fprintf(stderr, "%s: WARNING, error while calculating ReplayGain\n", e->inbasefilename);
+		}
 	}
 
 #ifdef FLAC__HAS_OGG
@@ -1671,14 +1684,15 @@ FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int
 	}
 
 	if(has_real_points) {
-		if(e->is_stdout)
-			fprintf(stderr, "%s: WARNING, cannot write back seekpoints when encoding to stdout\n", e->inbasefilename);
+		if(e->is_stdout) {
+			if(!e->silent) fprintf(stderr, "%s: WARNING, cannot write back seekpoints when encoding to stdout\n", e->inbasefilename);
+		}
 	}
 
 	return true;
 }
 
-FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input)
+FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input, FLAC__bool silent)
 {
 	/* convert from mm:ss.sss to sample number if necessary */
 	flac__utils_canonicalize_skip_until_specification(spec, sample_rate);
@@ -1691,7 +1705,7 @@ FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec,
 
 	/* in any other case the total samples in the input must be known */
 	if(total_samples_in_input == 0) {
-		fprintf(stderr, "%s: ERROR, cannot use --until when input length is unknown\n", inbasefilename);
+		if(!silent) fprintf(stderr, "%s: ERROR, cannot use --until when input length is unknown\n", inbasefilename);
 		return false;
 	}
 
@@ -1708,15 +1722,15 @@ FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec,
 
 	/* error check */
 	if(spec->value.samples < 0) {
-		fprintf(stderr, "%s: ERROR, --until value is before beginning of input\n", inbasefilename);
+		if(!silent) fprintf(stderr, "%s: ERROR, --until value is before beginning of input\n", inbasefilename);
 		return false;
 	}
 	if((FLAC__uint64)spec->value.samples <= skip) {
-		fprintf(stderr, "%s: ERROR, --until value is before --skip point\n", inbasefilename);
+		if(!silent) fprintf(stderr, "%s: ERROR, --until value is before --skip point\n", inbasefilename);
 		return false;
 	}
 	if((FLAC__uint64)spec->value.samples > total_samples_in_input) {
-		fprintf(stderr, "%s: ERROR, --until value is after end of input\n", inbasefilename);
+		if(!silent) fprintf(stderr, "%s: ERROR, --until value is after end of input\n", inbasefilename);
 		return false;
 	}
 
@@ -1882,7 +1896,7 @@ void flac_file_encoder_progress_callback(const FLAC__FileEncoder *encoder, FLAC_
 		print_stats(encoder_session);
 }
 
-FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
+FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset, FLAC__bool silent)
 {
 	FILE *f;
 	unsigned last_line_read;
@@ -1892,12 +1906,12 @@ FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet
 		return true;
 
 	if(lead_out_offset == 0) {
-		fprintf(stderr, "%s: ERROR cannot import cuesheet when the number of input samples to encode is unknown\n", inbasefilename);
+		if(!silent) fprintf(stderr, "%s: ERROR cannot import cuesheet when the number of input samples to encode is unknown\n", inbasefilename);
 		return false;
 	}
 
 	if(0 == (f = fopen(cuesheet_filename, "r"))) {
-		fprintf(stderr, "%s: ERROR opening cuesheet \"%s\" for reading\n", inbasefilename, cuesheet_filename);
+		if(!silent) fprintf(stderr, "%s: ERROR opening cuesheet \"%s\" for reading\n", inbasefilename, cuesheet_filename);
 		return false;
 	}
 
@@ -1906,7 +1920,7 @@ FLAC__bool parse_cuesheet_(FLAC__StreamMetadata **cuesheet, const char *cuesheet
 	fclose(f);
 
 	if(0 == *cuesheet) {
-		fprintf(stderr, "%s: ERROR parsing cuesheet \"%s\" on line %u: %s\n", inbasefilename, cuesheet_filename, last_line_read, error_message);
+		if(!silent) fprintf(stderr, "%s: ERROR parsing cuesheet \"%s\" on line %u: %s\n", inbasefilename, cuesheet_filename, last_line_read, error_message);
 		return false;
 	}
 
@@ -1925,6 +1939,9 @@ void print_stats(const EncoderSession *encoder_session)
 	const double ratio = (double)encoder_session->bytes_written / ((double)encoder_session->unencoded_size * max(1.0, progress));
 #endif
 
+	if(encoder_session->silent)
+		return;
+
 	if(samples_written == encoder_session->total_samples_to_encode) {
 		fprintf(stderr, "\r%s:%s wrote %u bytes, ratio=%0.3f",
 			encoder_session->inbasefilename,
@@ -1942,6 +1959,9 @@ void print_error_with_state(const EncoderSession *e, const char *message)
 {
 	const int ilen = strlen(e->inbasefilename) + 1;
 	const char *state_string;
+
+	if(e->silent)
+		return;
 
 	fprintf(stderr, "\n%s: %s\n", e->inbasefilename, message);
 
@@ -1975,6 +1995,9 @@ void print_verify_error(EncoderSession *e)
 	FLAC__int32 expected;
 	FLAC__int32 got;
 
+	if(e->silent)
+		return;
+
 #ifdef FLAC__HAS_OGG
 	if(e->use_ogg) {
 		if(e->is_stdout) {
@@ -2002,20 +2025,20 @@ void print_verify_error(EncoderSession *e)
 	fprintf(stderr, "Verify FAILED!  Do not trust %s\n", e->outfilename);
 }
 
-FLAC__bool read_little_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn)
+FLAC__bool read_little_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent)
 {
 	size_t bytes_read = fread(val, 1, 2, f);
 
 	if(bytes_read == 0) {
 		if(!eof_ok) {
-			fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
+			if(!silent) fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 			return false;
 		}
 		else
 			return true;
 	}
 	else if(bytes_read < 2) {
-		fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
+		if(!silent) fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 		return false;
 	}
 	else {
@@ -2027,20 +2050,20 @@ FLAC__bool read_little_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_
 	}
 }
 
-FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn)
+FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent)
 {
 	size_t bytes_read = fread(val, 1, 4, f);
 
 	if(bytes_read == 0) {
 		if(!eof_ok) {
-			fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
+			if(!silent) fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 			return false;
 		}
 		else
 			return true;
 	}
 	else if(bytes_read < 4) {
-		fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
+		if(!silent) fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 		return false;
 	}
 	else {
@@ -2053,8 +2076,7 @@ FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_
 	}
 }
 
-FLAC__bool
-read_big_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn)
+FLAC__bool read_big_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent)
 {
 	unsigned char buf[4];
 	size_t bytes_read= fread(buf, 1, 2, f);
@@ -2062,7 +2084,7 @@ read_big_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char
 	if(bytes_read==0U && eof_ok)
 		return true;
 	else if(bytes_read<2U) {
-		fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
+		if(!silent) fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 		return false;
 	}
 
@@ -2072,8 +2094,7 @@ read_big_endian_uint16(FILE *f, FLAC__uint16 *val, FLAC__bool eof_ok, const char
 	return true;
 }
 
-FLAC__bool
-read_big_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn)
+FLAC__bool read_big_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent)
 {
 	unsigned char buf[4];
 	size_t bytes_read= fread(buf, 1, 4, f);
@@ -2081,7 +2102,7 @@ read_big_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char
 	if(bytes_read==0U && eof_ok)
 		return true;
 	else if(bytes_read<4U) {
-		fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
+		if(!silent) fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 		return false;
 	}
 
@@ -2092,8 +2113,7 @@ read_big_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char
 	return true;
 }
 
-FLAC__bool
-read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn)
+FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn, FLAC__bool silent)
 	/* Read an IEEE 754 80-bit (aka SANE) extended floating point value from 'f',
 	 * convert it into an integral value and store in 'val'.  Return false if only
 	 * between 1 and 9 bytes remain in 'f', if 0 bytes remain in 'f' and 'eof_ok' is
@@ -2111,11 +2131,11 @@ read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn
 	if(bytes_read==0U && eof_ok)
 		return true;
 	else if(bytes_read<10U) {
-		fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
+		if(!silent) fprintf(stderr, "%s: ERROR: unexpected EOF\n", fn);
 		return false;
 	}
 	else if((buf[0]>>7)==1U || e<0 || e>63) {
-		fprintf(stderr, "%s: ERROR: invalid floating-point value\n", fn);
+		if(!silent) fprintf(stderr, "%s: ERROR: invalid floating-point value\n", fn);
 		return false;
 	}
 

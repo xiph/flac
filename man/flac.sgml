@@ -154,6 +154,17 @@
 	      </varlistentry>
 
 	      <varlistentry>
+		<term><option>--totally-silent</option>
+		</term>
+		<listitem>
+		  <para>Do not print anything of any kind,
+		    including warnings or errors.  The exit
+		    code will be the only way to determine
+		    successful completion.</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term><option>-f</option>, <option>--force</option>
 		</term>
 		<listitem>
