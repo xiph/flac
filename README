@@ -54,6 +54,10 @@ FLAC - 1.0.5-beta1 - Contents
 Introduction
 ===============================================================================
 
+@@@@ NOTE @@@@
+This is a beta release.  The CUESHEET metadata block specification has not
+been finalized.
+
 This is the source release for the FLAC project.  See
 
 	doc/index.html
