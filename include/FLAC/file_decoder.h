@@ -414,7 +414,7 @@ FLAC__SeekableStreamDecoderState FLAC__file_decoder_get_seekable_stream_decoder_
  * \param  decoder  An decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
- * \retval FLAC__SeekableStreamDecoderState
+ * \retval FLAC__StreamDecoderState
  *    The seekable stream decoder state.
  */
 FLAC__StreamDecoderState FLAC__file_decoder_get_stream_decoder_state(const FLAC__FileDecoder *decoder);

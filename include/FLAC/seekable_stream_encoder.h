@@ -525,7 +525,7 @@ FLAC__StreamEncoderState FLAC__seekable_stream_encoder_get_stream_encoder_state(
  * \param  encoder  An encoder instance to query.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__StreamEncoderState
+ * \retval FLAC__StreamDecoderState
  *    The stream encoder state.
  */
 FLAC__StreamDecoderState FLAC__seekable_stream_encoder_get_verify_decoder_state(const FLAC__SeekableStreamEncoder *encoder);
