@@ -1738,10 +1738,11 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, un
 
 	/* decode the subframe */
 	memcpy(decoder->private_->output[channel], subframe->warmup, sizeof(FLAC__int32) * order);
-	if(bps <= 16 && subframe->qlp_coeff_precision <= 16)
-		decoder->private_->local_lpc_restore_signal_16bit(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
-	else if(bps + subframe->qlp_coeff_precision + order <= 32)
-		decoder->private_->local_lpc_restore_signal(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
+	if(bps + subframe->qlp_coeff_precision + FLAC__bitmath_ilog2(order) <= 32)
+		if(bps <= 16 && subframe->qlp_coeff_precision <= 16)
+			decoder->private_->local_lpc_restore_signal_16bit(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
+		else
+			decoder->private_->local_lpc_restore_signal(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
 	else
 		decoder->private_->local_lpc_restore_signal_64bit(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
 

@@ -2267,10 +2267,11 @@ unsigned evaluate_lpc_subframe_(
 	if(ret != 0)
 		return 0; /* this is a hack to indicate to the caller that we can't do lp at this order on this subframe */
 
-	if(subframe_bps <= 16 && qlp_coeff_precision <= 16)
-		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
-	else if(subframe_bps + qlp_coeff_precision + order <= 32)
-		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
+	if(subframe_bps + qlp_coeff_precision + FLAC__bitmath_ilog2(order) <= 32)
+		if(subframe_bps <= 16 && qlp_coeff_precision <= 16)
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
+		else
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
 	else
 		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
 
