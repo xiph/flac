@@ -17,9 +17,9 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-LD_LIBRARY_PATH=../src/libOggFLAC/.libs../src/libFLAC/.libs:../obj/lib:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../src/libOggFLAC/.libs../src/libFLAC/.libs:../obj/release/lib:../obj/debug/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
-PATH=../src/test_libOggFLAC:../obj/bin:$PATH
+PATH=../src/test_libOggFLAC:../obj/release/b:../obj/debug/bin:$PATH
 export PATH
 
 if test_libOggFLAC ; then : ; else
