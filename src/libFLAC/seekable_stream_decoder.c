@@ -131,6 +131,15 @@ FLAC__SeekableStreamDecoder *FLAC__seekable_stream_decoder_new()
 		return 0;
 	}
 
+	decoder->private_->stream_decoder = FLAC__stream_decoder_new();
+
+	if(0 == decoder->private_->stream_decoder) {
+		free(decoder->private_);
+		free(decoder->protected_);
+		free(decoder);
+		return 0;
+	}
+
 	decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED;
 
 	decoder->private_->read_callback = 0;
@@ -151,6 +160,9 @@ void FLAC__seekable_stream_decoder_delete(FLAC__SeekableStreamDecoder *decoder)
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
+
+	if(decoder->private_->stream_decoder != 0)
+		FLAC__stream_decoder_delete(decoder->private_->stream_decoder);
 
 	free(decoder->private_);
 	free(decoder->protected_);
@@ -178,7 +190,6 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__Seekab
 	if(0 == decoder->private_->write_callback || 0 == decoder->private_->metadata_callback || 0 == decoder->private_->error_callback)
 		return decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_INVALID_CALLBACK;
 
-	decoder->private_->stream_decoder = 0;
 	decoder->private_->seek_table = 0;
 
 	/* We initialize the MD5Context even though we may never use it.  This is
@@ -188,11 +199,6 @@ FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLAC__Seekab
 	 * cleaned up properly.
 	 */
 	MD5Init(&decoder->private_->md5context);
-
-	decoder->private_->stream_decoder = FLAC__stream_decoder_new();
-
-	if(0 == decoder->private_->stream_decoder)
-		return decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 
 	FLAC__stream_decoder_set_read_callback(decoder->private_->stream_decoder, read_callback_);
 	FLAC__stream_decoder_set_write_callback(decoder->private_->stream_decoder, write_callback_);
@@ -211,21 +217,28 @@ FLAC__bool FLAC__seekable_stream_decoder_finish(FLAC__SeekableStreamDecoder *dec
 	FLAC__bool md5_failed = false;
 
 	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->private_ != 0);
+	FLAC__ASSERT(decoder->protected_ != 0);
+
 	if(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return true;
+
+	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
+
 	/* see the comment in FLAC__seekable_stream_decoder_init() as to why we
 	 * always call MD5Final()
 	 */
 	MD5Final(decoder->private_->computed_md5sum, &decoder->private_->md5context);
-	if(decoder->private_->stream_decoder != 0) {
-		FLAC__stream_decoder_finish(decoder->private_->stream_decoder);
-		FLAC__stream_decoder_delete(decoder->private_->stream_decoder);
-	}
+
+	FLAC__stream_decoder_finish(decoder->private_->stream_decoder);
+
 	if(decoder->protected_->md5_checking) {
 		if(memcmp(decoder->private_->stored_md5sum, decoder->private_->computed_md5sum, 16))
 			md5_failed = true;
 	}
+
 	decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED;
+
 	return !md5_failed;
 }
 
@@ -343,6 +356,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond(const FLAC__Seekab
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
 	return FLAC__stream_decoder_set_metadata_respond(decoder->private_->stream_decoder, type);
@@ -353,6 +367,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_application(const 
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
 	return FLAC__stream_decoder_set_metadata_respond_application(decoder->private_->stream_decoder, id);
@@ -363,6 +378,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_respond_all(const FLAC__Se
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
 	return FLAC__stream_decoder_set_metadata_respond_all(decoder->private_->stream_decoder);
@@ -373,6 +389,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore(const FLAC__Seekabl
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
 	return FLAC__stream_decoder_set_metadata_ignore(decoder->private_->stream_decoder, type);
@@ -383,6 +400,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_application(const F
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
 	return FLAC__stream_decoder_set_metadata_ignore_application(decoder->private_->stream_decoder, id);
@@ -393,6 +411,7 @@ FLAC__bool FLAC__seekable_stream_decoder_set_metadata_ignore_all(const FLAC__See
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(decoder->private_ != 0);
 	FLAC__ASSERT(decoder->protected_ != 0);
+	FLAC__ASSERT(decoder->private_->stream_decoder != 0);
 	if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
 		return false;
 	return FLAC__stream_decoder_set_metadata_ignore_all(decoder->private_->stream_decoder);
