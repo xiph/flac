@@ -26,6 +26,7 @@
 !endif
 
 C_FILES= \
+	config.c \
 	in_flac.c
 
 OBJS= $(C_FILES:.c=.obj)
