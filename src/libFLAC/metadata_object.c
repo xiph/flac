@@ -1173,7 +1173,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair
 	return true;
 }
 
-FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(FLAC__StreamMetadata_VorbisComment_Entry entry, const char *field_name, unsigned field_name_length)
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC__StreamMetadata_VorbisComment_Entry entry, const char *field_name, unsigned field_name_length)
 {
 	FLAC__ASSERT(0 != entry.entry && entry.length > 0);
 	{

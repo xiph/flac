@@ -1553,7 +1553,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
  *    \c false if memory allocation fails or \a entry does not comply with the
  *    Vorbis comment specification, else \c true.
  */
-FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry entry, char **field_name, char **field_value);
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair(const FLAC__StreamMetadata_VorbisComment_Entry entry, char **field_name, char **field_value);
 
 /** Check if the given Vorbis comment entry's field name matches the given
  *  field name.
@@ -1567,7 +1567,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair
  * \retval FLAC__bool
  *    \c true if the field names match, else \c false
  */
-FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(FLAC__StreamMetadata_VorbisComment_Entry entry, const char *field_name, unsigned field_name_length);
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC__StreamMetadata_VorbisComment_Entry entry, const char *field_name, unsigned field_name_length);
 
 /** Find a Vorbis comment with the given field name.
  *
