@@ -168,12 +168,26 @@ namespace FLAC {
 		bool File::set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks)
 		{
 			FLAC__ASSERT(is_valid());
+#ifdef _MSC_VER
+			// MSVC++ can't handle:
+			// ::FLAC__StreamMetadata *m[num_blocks];
+			// so we do this ugly workaround
+			::FLAC__StreamMetadata **m = new ::FLAC__StreamMetadata*[num_blocks];
+#else
 			::FLAC__StreamMetadata *m[num_blocks];
+#endif
 			for(unsigned i = 0; i < num_blocks; i++) {
 				// we can get away with this since we know the encoder will only correct the is_last flags
 				m[i] = const_cast< ::FLAC__StreamMetadata*>((::FLAC__StreamMetadata*)metadata[i]);
 			}
+#ifdef _MSC_VER
+			// complete the hack
+			const bool ok = (bool)::FLAC__file_encoder_set_metadata(encoder_, m, num_blocks);
+			delete [] m;
+			return ok;
+#else
 			return (bool)::FLAC__file_encoder_set_metadata(encoder_, m, num_blocks);
+#endif
 		}
 
 		bool File::set_filename(const char *value)
