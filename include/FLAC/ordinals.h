@@ -58,7 +58,6 @@ typedef uint64_t FLAC__uint64;
 typedef int FLAC__bool;
 
 typedef FLAC__uint8 FLAC__byte;
-typedef float FLAC__real;
 
 #ifdef true
 #undef true

@@ -48,7 +48,7 @@
 #endif
 #define local_abs(x) ((unsigned)((x)<0? -(x) : (x)))
 
-unsigned FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+unsigned FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
 {
 	FLAC__int32 last_error_0 = data[-1];
 	FLAC__int32 last_error_1 = data[-1] - data[-2];
@@ -85,16 +85,16 @@ unsigned FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], unsigned d
 	FLAC__ASSERT(data_len > 0 || total_error_2 == 0);
 	FLAC__ASSERT(data_len > 0 || total_error_3 == 0);
 	FLAC__ASSERT(data_len > 0 || total_error_4 == 0);
-	residual_bits_per_sample[0] = (FLAC__real)((total_error_0 > 0) ? log(M_LN2 * (double)total_error_0 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[1] = (FLAC__real)((total_error_1 > 0) ? log(M_LN2 * (double)total_error_1 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[2] = (FLAC__real)((total_error_2 > 0) ? log(M_LN2 * (double)total_error_2 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[3] = (FLAC__real)((total_error_3 > 0) ? log(M_LN2 * (double)total_error_3 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[4] = (FLAC__real)((total_error_4 > 0) ? log(M_LN2 * (double)total_error_4 / (double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[0] = (FLAC__float)((total_error_0 > 0) ? log(M_LN2 * (FLAC__double)total_error_0 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[1] = (FLAC__float)((total_error_1 > 0) ? log(M_LN2 * (FLAC__double)total_error_1 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[2] = (FLAC__float)((total_error_2 > 0) ? log(M_LN2 * (FLAC__double)total_error_2 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[3] = (FLAC__float)((total_error_3 > 0) ? log(M_LN2 * (FLAC__double)total_error_3 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[4] = (FLAC__float)((total_error_4 > 0) ? log(M_LN2 * (FLAC__double)total_error_4 / (FLAC__double)data_len) / M_LN2 : 0.0);
 
 	return order;
 }
 
-unsigned FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+unsigned FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
 {
 	FLAC__int32 last_error_0 = data[-1];
 	FLAC__int32 last_error_1 = data[-1] - data[-2];
@@ -137,17 +137,17 @@ unsigned FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], unsig
 	FLAC__ASSERT(data_len > 0 || total_error_4 == 0);
 #if defined _MSC_VER || defined __MINGW32__
 	/* with VC++ you have to spoon feed it the casting */
-	residual_bits_per_sample[0] = (FLAC__real)((total_error_0 > 0) ? log(M_LN2 * (double)(FLAC__int64)total_error_0 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[1] = (FLAC__real)((total_error_1 > 0) ? log(M_LN2 * (double)(FLAC__int64)total_error_1 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[2] = (FLAC__real)((total_error_2 > 0) ? log(M_LN2 * (double)(FLAC__int64)total_error_2 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[3] = (FLAC__real)((total_error_3 > 0) ? log(M_LN2 * (double)(FLAC__int64)total_error_3 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[4] = (FLAC__real)((total_error_4 > 0) ? log(M_LN2 * (double)(FLAC__int64)total_error_4 / (double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[0] = (FLAC__float)((total_error_0 > 0) ? log(M_LN2 * (FLAC__double)(FLAC__int64)total_error_0 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[1] = (FLAC__float)((total_error_1 > 0) ? log(M_LN2 * (FLAC__double)(FLAC__int64)total_error_1 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[2] = (FLAC__float)((total_error_2 > 0) ? log(M_LN2 * (FLAC__double)(FLAC__int64)total_error_2 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[3] = (FLAC__float)((total_error_3 > 0) ? log(M_LN2 * (FLAC__double)(FLAC__int64)total_error_3 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[4] = (FLAC__float)((total_error_4 > 0) ? log(M_LN2 * (FLAC__double)(FLAC__int64)total_error_4 / (FLAC__double)data_len) / M_LN2 : 0.0);
 #else
-	residual_bits_per_sample[0] = (FLAC__real)((total_error_0 > 0) ? log(M_LN2 * (double)total_error_0 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[1] = (FLAC__real)((total_error_1 > 0) ? log(M_LN2 * (double)total_error_1 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[2] = (FLAC__real)((total_error_2 > 0) ? log(M_LN2 * (double)total_error_2 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[3] = (FLAC__real)((total_error_3 > 0) ? log(M_LN2 * (double)total_error_3 / (double)data_len) / M_LN2 : 0.0);
-	residual_bits_per_sample[4] = (FLAC__real)((total_error_4 > 0) ? log(M_LN2 * (double)total_error_4 / (double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[0] = (FLAC__float)((total_error_0 > 0) ? log(M_LN2 * (FLAC__double)total_error_0 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[1] = (FLAC__float)((total_error_1 > 0) ? log(M_LN2 * (FLAC__double)total_error_1 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[2] = (FLAC__float)((total_error_2 > 0) ? log(M_LN2 * (FLAC__double)total_error_2 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[3] = (FLAC__float)((total_error_3 > 0) ? log(M_LN2 * (FLAC__double)total_error_3 / (FLAC__double)data_len) / M_LN2 : 0.0);
+	residual_bits_per_sample[4] = (FLAC__float)((total_error_4 > 0) ? log(M_LN2 * (FLAC__double)total_error_4 / (FLAC__double)data_len) / M_LN2 : 0.0);
 #endif
 
 	return order;

@@ -35,6 +35,7 @@
 #include "FLAC/assert.h"
 #include "protected/seekable_stream_decoder.h"
 #include "protected/stream_decoder.h"
+#include "../libFLAC/include/private/float.h" /* @@@ ugly hack, but how else to do?  we need to reuse the float formats but don't want to expose it */
 #include "../libFLAC/include/private/md5.h" /* @@@ ugly hack, but how else to do?  we need to reuse the md5 code but don't want to expose it */
 
 /***********************************************************************
@@ -864,9 +865,9 @@ FLAC__bool seek_to_absolute_sample_(OggFLAC__SeekableStreamDecoder *decoder, FLA
 			else {
 #if defined _MSC_VER || defined __MINGW32__
 				/* with MSVC you have to spoon feed it the casting */
-				pos = (FLAC__uint64)((double)(FLAC__int64)(target_sample - left_sample) / (double)(FLAC__int64)(right_sample - left_sample) * (double)(FLAC__int64)(right_pos - left_pos));
+				pos = (FLAC__uint64)((FLAC__double)(FLAC__int64)(target_sample - left_sample) / (FLAC__double)(FLAC__int64)(right_sample - left_sample) * (FLAC__double)(FLAC__int64)(right_pos - left_pos));
 #else
-				pos = (FLAC__uint64)((double)(target_sample - left_sample) / (double)(right_sample - left_sample) * (double)(right_pos - left_pos));
+				pos = (FLAC__uint64)((FLAC__double)(target_sample - left_sample) / (FLAC__double)(right_sample - left_sample) * (FLAC__double)(right_pos - left_pos));
 #endif
 				/* @@@ TODO: might want to limit pos to some distance
 				 * before EOF, to make sure we land before the last frame,

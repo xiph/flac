@@ -35,6 +35,7 @@
 #include "FLAC/assert.h"
 #include "protected/seekable_stream_decoder.h"
 #include "protected/stream_decoder.h"
+#include "private/float.h" /* for FLAC__double */
 #include "private/md5.h"
 
 /* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
@@ -951,9 +952,9 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 			const FLAC__uint64 range_bytes = upper_bound - lower_bound;
 #if defined _MSC_VER || defined __MINGW32__
 			/* with VC++ you have to spoon feed it the casting */
-			pos = (FLAC__int64)lower_bound + (FLAC__int64)((double)(FLAC__int64)target_offset / (double)(FLAC__int64)range_samples * (double)(FLAC__int64)(range_bytes-1)) - approx_bytes_per_frame;
+			pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)(FLAC__int64)target_offset / (FLAC__double)(FLAC__int64)range_samples * (FLAC__double)(FLAC__int64)(range_bytes-1)) - approx_bytes_per_frame;
 #else
-			pos = (FLAC__int64)lower_bound + (FLAC__int64)((double)target_offset / (double)range_samples * (double)(range_bytes-1)) - approx_bytes_per_frame;
+			pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)target_offset / (FLAC__double)range_samples * (FLAC__double)(range_bytes-1)) - approx_bytes_per_frame;
 #endif
 		}
 	}
@@ -966,9 +967,9 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 	if(pos < 0 && total_samples > 0) {
 #if defined _MSC_VER || defined __MINGW32__
 		/* with VC++ you have to spoon feed it the casting */
-		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((double)(FLAC__int64)target_sample / (double)(FLAC__int64)total_samples * (double)(FLAC__int64)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
+		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((FLAC__double)(FLAC__int64)target_sample / (FLAC__double)(FLAC__int64)total_samples * (FLAC__double)(FLAC__int64)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
 #else
-		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((double)target_sample / (double)total_samples * (double)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
+		pos = (FLAC__int64)first_frame_offset + (FLAC__int64)((FLAC__double)target_sample / (FLAC__double)total_samples * (FLAC__double)(stream_length-first_frame_offset-1)) - approx_bytes_per_frame;
 #endif
 	}
 
