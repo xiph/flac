@@ -117,7 +117,6 @@ AM_CONDITIONAL(FLaC__HAS_XMMS, test x$XMMS_INPUT_PLUGIN_DIR != x)
 SHARE_LIBS='$(top_builddir)/src/share/libutf8.a $(top_builddir)/src/share/libgetopt.a'
 
 dnl check for i18n(internationalization); these are from libiconv/gettext
-AM_GNU_GETTEXT
 AM_ICONV
 AM_LANGINFO_CODESET
 
@@ -229,7 +228,7 @@ fi
 CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS $OUR_CFLAGS_TAIL"
 CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS $OUR_CFLAGS_TAIL"
 
-AC_OUTPUT( po/Makefile.in m4/Makefile intl/Makefile \
+AC_OUTPUT( \
 	Makefile \
 	src/Makefile \
 	src/libFLAC/Makefile \

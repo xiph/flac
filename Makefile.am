@@ -28,11 +28,11 @@
 # distclean: remove everything except what goes in the distribution
 #
 
-SUBDIRS = intl m4  doc include man src test build flac.pbproj obj po
+SUBDIRS = doc include man src test build flac.pbproj obj
 
 DISTCLEANFILES = libtool-disable-static
 
-EXTRA_DIST = config.rpath mkinstalldirs  \
+EXTRA_DIST = \
 	COPYING.FDL \
 	COPYING.GPL \
 	COPYING.LGPL \
@@ -42,5 +42,3 @@ EXTRA_DIST = config.rpath mkinstalldirs  \
 	strip_fPIC.sh
 
 AUTOMAKE_OPTIONS = foreign
-
-ACLOCAL_AMFLAGS = -I m4
