@@ -285,7 +285,8 @@
 
 		<listitem>
 		  <para>Do exhaustive search of LP coefficient
-		    quantization (expensive!).  Overrides -q</para>
+		    quantization (expensive!).  Overrides -q,
+		    does nothing if using -l 0</para>
 		</listitem>
 	      </varlistentry>
 

@@ -355,7 +355,7 @@ int usage(const char *message, ...)
 	printf("  -9 : synonymous with -l 32 -m -e -r 99 -p (very slow!)\n");
 	printf("  -e : do exhaustive model search (expensive!)\n");
 	printf("  -l max_lpc_order : 0 => use only fixed predictors\n");
-	printf("  -p : do exhaustive search of LP coefficient quantization (expensive!); overrides -q\n");
+	printf("  -p : do exhaustive search of LP coefficient quantization (expensive!); overrides -q, does nothing if using -l 0\n");
 	printf("  -q bits : precision of the quantized linear-predictor coefficients, 0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	printf("  -r level : rice parameter optimization level (level is 0..99, 0 => none, default is -r 0, above 4 doesn't usually help much)\n");
 	printf("  -V : verify a correct encoding by decoding the output in parallel and comparing to the original\n");
