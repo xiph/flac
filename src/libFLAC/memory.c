@@ -81,6 +81,28 @@ FLAC__bool FLAC__memory_alloc_aligned_uint32_array(unsigned elements, FLAC__uint
 	}
 }
 
+FLAC__bool FLAC__memory_alloc_aligned_uint64_array(unsigned elements, FLAC__uint64 **unaligned_pointer, FLAC__uint64 **aligned_pointer)
+{
+	FLAC__uint64 *pa, *pu; /* aligned pointer, unaligned pointer */
+
+	FLAC__ASSERT(elements > 0);
+	FLAC__ASSERT(0 != unaligned_pointer);
+	FLAC__ASSERT(0 != aligned_pointer);
+	FLAC__ASSERT(unaligned_pointer != aligned_pointer);
+
+	pu = (FLAC__uint64*)FLAC__memory_alloc_aligned(sizeof(FLAC__uint64) * elements, (void*)&pa);
+	if(0 == pu) {
+		return false;
+	}
+	else {
+		if(*unaligned_pointer != 0)
+			free(*unaligned_pointer);
+		*unaligned_pointer = pu;
+		*aligned_pointer = pa;
+		return true;
+	}
+}
+
 FLAC__bool FLAC__memory_alloc_aligned_unsigned_array(unsigned elements, unsigned **unaligned_pointer, unsigned **aligned_pointer)
 {
 	unsigned *pa, *pu; /* aligned pointer, unaligned pointer */
