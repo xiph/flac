@@ -628,6 +628,7 @@ bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_p
 
 		pt = q;
 	}
+	pt = requested_seek_points;
 
 	/* make some space */
 	if(0 == (seek_table->points = (FLAC__StreamMetaData_SeekPoint*)malloc(sizeof(FLAC__StreamMetaData_SeekPoint) * (real_points+placeholders))))
