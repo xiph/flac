@@ -35,7 +35,8 @@ doc_DATA =  \
 	index.html \
 	license.html \
 	links.html \
-	news.html
+	news.html \
+	ogg_mapping.html
 
 if FLaC__HAS_DOXYGEN
 EXTRA_DIST = $(doc_DATA) api
