@@ -478,11 +478,16 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *unused, 
 	ogg_bytes_to_read = min(*bytes, OGG_BYTES_CHUNK);
 	oggbuf = ogg_sync_buffer(&decoder->private_->ogg.sync_state, ogg_bytes_to_read);
 
-	if(decoder->private_->read_callback(decoder, (FLAC__byte*)oggbuf, &ogg_bytes_to_read, decoder->private_->client_data) != FLAC__STREAM_DECODER_READ_STATUS_CONTINUE) {
+	if(0 == oggbuf) {
+		decoder->protected_->state = OggFLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+	}
+
+	ogg_bytes_read = ogg_bytes_to_read;
+	if(decoder->private_->read_callback(decoder, (FLAC__byte*)oggbuf, &ogg_bytes_read, decoder->private_->client_data) != FLAC__STREAM_DECODER_READ_STATUS_CONTINUE) {
 		decoder->protected_->state = OggFLAC__STREAM_DECODER_READ_ERROR;
 		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 	}
-	ogg_bytes_read = ogg_bytes_to_read;
 
 	if(ogg_sync_wrote(&decoder->private_->ogg.sync_state, ogg_bytes_read) < 0) {
 		decoder->protected_->state = OggFLAC__STREAM_DECODER_READ_ERROR;
