@@ -706,16 +706,16 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder,
 	FLAC__SeekableStreamDecoder *seekable_stream_decoder = (FLAC__SeekableStreamDecoder *)client_data;
 	(void)decoder;
 	if(seekable_stream_decoder->private_->eof_callback(seekable_stream_decoder, seekable_stream_decoder->private_->client_data)) {
+		*bytes = 0;
 		seekable_stream_decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 	}
 	else if(*bytes > 0) {
-		unsigned bytes_read = *bytes;
-		if(seekable_stream_decoder->private_->read_callback(seekable_stream_decoder, buffer, &bytes_read, seekable_stream_decoder->private_->client_data) != FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK) {
+		if(seekable_stream_decoder->private_->read_callback(seekable_stream_decoder, buffer, bytes, seekable_stream_decoder->private_->client_data) != FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK) {
 			seekable_stream_decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_READ_ERROR;
 			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 		}
-		if(bytes_read == 0) {
+		if(*bytes == 0) {
 			if(seekable_stream_decoder->private_->eof_callback(seekable_stream_decoder, seekable_stream_decoder->private_->client_data)) {
 				seekable_stream_decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM;
 				return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
@@ -724,7 +724,6 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder,
 				return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 		}
 		else {
-			*bytes = bytes_read;
 			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 		}
 	}
