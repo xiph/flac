@@ -382,7 +382,8 @@ int usage(const char *message, ...)
 	printf("  -P # : write a PADDING block of # bytes (goes after SEEKTABLE)\n");
 	printf("         (0 => no PADDING block, default is -P 0)\n");
 	printf("  -b # : specify blocksize in samples; default is 1152 for -l 0, else 4608;\n");
-	printf("         should be 192/576/1152//4608 (unless --lax is used)\n");
+	printf("         must be 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768\n");
+	printf("         (unless --lax is used)\n");
 	printf("  -m   : try mid-side coding for each frame (stereo input only)\n");
 	printf("  -M   : loose mid-side coding for all frames (stereo input only)\n");
 	printf("  -0 .. -9 : fastest compression .. highest compression, default is -6\n");
