@@ -16,22 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "file_utils.h"
 #include "metadata_utils.h"
 #include "FLAC/assert.h"
 #include "FLAC/file_decoder.h"
 #include "FLAC/metadata.h"
-#include "FLAC/stream_encoder.h"
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp() */
-#if defined _MSC_VER || defined __MINGW32__
-#include <io.h> /* for chmod(), unlink */
-#endif
-#include <sys/stat.h> /* for stat(), chmod() */
-#if defined _WIN32 && !defined __CYGWIN__
-#else
-#include <unistd.h> /* for unlink() */
-#endif
 
 /******************************************************************************
 	The general strategy of these tests (for interface levels 1 and 2) is
@@ -47,10 +39,6 @@
 typedef struct {
 	FLAC__bool error_occurred;
 } decoder_client_struct;
-
-typedef struct {
-	FILE *file;
-} encoder_client_struct;
 
 typedef struct {
 	FLAC__StreamMetaData *blocks[64];
@@ -273,34 +261,9 @@ static void decoder_metadata_callback_compare_(const FLAC__FileDecoder *decoder,
 	mc_our_block_number_++;
 }
 
-static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
+static FLAC__bool generate_file_()
 {
-	encoder_client_struct *ecd = (encoder_client_struct*)client_data;
-
-	(void)encoder, (void)samples, (void)current_frame;
-
-	if(fwrite(buffer, 1, bytes, ecd->file) != bytes)
-		return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
-	else
-		return FLAC__STREAM_ENCODER_WRITE_OK;
-}
-
-static void encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data)
-{
-	(void)encoder, (void)metadata, (void)client_data;
-}
-
-static FLAC__bool generate_file_(const char *input_filename)
-{
-	FLAC__StreamEncoder *encoder;
 	FLAC__StreamMetaData streaminfo, padding;
-	encoder_client_struct encoder_client_data;
-	FILE *file;
-	FLAC__byte buffer[4096];
-	FLAC__int32 samples[4096];
-	unsigned i, n;
-
-	FLAC__ASSERT(0 != input_filename);
 
 	printf("generating FLAC file for test\n");
 
@@ -327,75 +290,8 @@ static FLAC__bool generate_file_(const char *input_filename)
 	if(!insert_to_our_metadata_(&streaminfo, 0, /*copy=*/true) || !insert_to_our_metadata_(&padding, 1, /*copy=*/true))
 		return die_("priming our metadata");
 
-	if(0 == (file = fopen(input_filename, "rb")))
-		return die_("opening input file");
-	if(0 == (encoder_client_data.file = fopen(flacfile_, "wb"))) {
-		fclose(file);
-		return die_("opening output file");
-	}
-
-	encoder = FLAC__stream_encoder_new();
-	if(0 == encoder) {
-		fclose(file);
-		fclose(encoder_client_data.file);
-		return die_("creating the encoder instance"); 
-	}
-
-	FLAC__stream_encoder_set_streamable_subset(encoder, true);
-	FLAC__stream_encoder_set_do_mid_side_stereo(encoder, false);
-	FLAC__stream_encoder_set_loose_mid_side_stereo(encoder, false);
-	FLAC__stream_encoder_set_channels(encoder, streaminfo.data.stream_info.channels);
-	FLAC__stream_encoder_set_bits_per_sample(encoder, streaminfo.data.stream_info.bits_per_sample);
-	FLAC__stream_encoder_set_sample_rate(encoder, streaminfo.data.stream_info.sample_rate);
-	FLAC__stream_encoder_set_blocksize(encoder, streaminfo.data.stream_info.min_blocksize);
-	FLAC__stream_encoder_set_max_lpc_order(encoder, 0);
-	FLAC__stream_encoder_set_qlp_coeff_precision(encoder, 0);
-	FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder, false);
-	FLAC__stream_encoder_set_do_escape_coding(encoder, false);
-	FLAC__stream_encoder_set_do_exhaustive_model_search(encoder, false);
-	FLAC__stream_encoder_set_min_residual_partition_order(encoder, 0);
-	FLAC__stream_encoder_set_max_residual_partition_order(encoder, 0);
-	FLAC__stream_encoder_set_rice_parameter_search_dist(encoder, 0);
-	FLAC__stream_encoder_set_total_samples_estimate(encoder, streaminfo.data.stream_info.total_samples);
-	FLAC__stream_encoder_set_seek_table(encoder, 0);
-	FLAC__stream_encoder_set_padding(encoder, padding.length);
-	FLAC__stream_encoder_set_last_metadata_is_last(encoder, true);
-	FLAC__stream_encoder_set_write_callback(encoder, encoder_write_callback_);
-	FLAC__stream_encoder_set_metadata_callback(encoder, encoder_metadata_callback_);
-	FLAC__stream_encoder_set_client_data(encoder, &encoder_client_data);
-
-	if(FLAC__stream_encoder_init(encoder) != FLAC__STREAM_ENCODER_OK) {
-		fclose(file);
-		fclose(encoder_client_data.file);
-		return die_("initializing encoder");
-	}
-
-	while(!feof(file)) {
-		n = fread(buffer, 1, sizeof(buffer), file);
-		if(n > 0) {
-			for(i = 0; i < n; i++)
-				samples[i] = (FLAC__int32)((signed char)buffer[i]);
-
-			/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-			if(!FLAC__stream_encoder_process_interleaved(encoder, samples, n)) {
-				fclose(file);
-				fclose(encoder_client_data.file);
-				return die_("during encoding");
-			}
-		}
-		else if(!feof(file)) {
-			fclose(file);
-			fclose(encoder_client_data.file);
-			return die_("reading input file");
-		}
-	}
-
-	fclose(file);
-	fclose(encoder_client_data.file);
-
-	if(FLAC__stream_encoder_get_state(encoder) == FLAC__STREAM_ENCODER_OK)
-		FLAC__stream_encoder_finish(encoder);
-	FLAC__stream_encoder_delete(encoder);
+	if(!file_utils__generate_file(flacfile_, 512 * 1024, &streaminfo, padding.length))
+		return die_("creating the encoded file"); 
 
 	return true;
 }
@@ -450,24 +346,8 @@ static FLAC__bool test_file_(const char *filename, void (*metadata_callback)(con
 
 static FLAC__bool change_stats_(const char *filename, FLAC__bool read_only)
 {
-	struct stat stats;
-
-	if(0 == stat(filename, &stats)) {
-		if(read_only) {
-			stats.st_mode &= ~S_IWUSR;
-			stats.st_mode &= ~S_IWGRP;
-			stats.st_mode &= ~S_IWOTH;
-		}
-		else {
-			stats.st_mode |= S_IWUSR;
-			stats.st_mode |= S_IWGRP;
-			stats.st_mode |= S_IWOTH;
-		}
-		if(0 != chmod(filename, stats.st_mode))
-			return die_("during chmod()");
-	}
-	else
-		return die_("during stat()");
+	if(!file_utils__change_stats(filename, read_only))
+        return die_("during file_utils__change_stats()");
 
 	return true;
 }
@@ -477,19 +357,19 @@ static FLAC__bool remove_file_(const char *filename)
 	while(our_metadata_.num_blocks > 0)
 		delete_from_our_metadata_(0);
 
-	if(!change_stats_(filename, /*read_only=*/false) || 0 != unlink(filename))
+	if(!file_utils__remove_file(filename))
 		return die_("removing file");
 
 	return true;
 }
 
-static FLAC__bool test_level_0_(const char *progname)
+static FLAC__bool test_level_0_()
 {
 	FLAC__StreamMetaData_StreamInfo streaminfo;
 
 	printf("\n\n++++++ testing level 0 interface\n");
 
-	if(!generate_file_(progname))
+	if(!generate_file_())
 		return false;
 
 	if(!test_file_(flacfile_, decoder_metadata_callback_null_))
@@ -516,7 +396,7 @@ static FLAC__bool test_level_0_(const char *progname)
 	return true;
 }
 
-static FLAC__bool test_level_1_(const char *progname)
+static FLAC__bool test_level_1_()
 {
 	FLAC__MetaData_SimpleIterator *siterator;
 	FLAC__StreamMetaData *block, *app, *padding;
@@ -529,7 +409,7 @@ static FLAC__bool test_level_1_(const char *progname)
 
 	printf("simple iterator on read-only file\n");
 
-	if(!generate_file_(progname))
+	if(!generate_file_())
 		return false;
 
 	if(!change_stats_(flacfile_, /*read_only=*/true))
@@ -1140,7 +1020,7 @@ static FLAC__bool test_level_1_(const char *progname)
 	return true;
 }
 
-static FLAC__bool test_level_2_(const char *progname)
+static FLAC__bool test_level_2_()
 {
 	FLAC__MetaData_Iterator *iterator;
 	FLAC__MetaData_Chain *chain;
@@ -1152,7 +1032,7 @@ static FLAC__bool test_level_2_(const char *progname)
 
 	printf("generate read-only file\n");
 
-	if(!generate_file_(progname))
+	if(!generate_file_())
 		return false;
 
 	if(!change_stats_(flacfile_, /*read_only=*/true))
@@ -1519,19 +1399,19 @@ static FLAC__bool test_level_2_(const char *progname)
 	return true;
 }
 
-int test_metadata_file_manipulation(const char *progname)
+int test_metadata_file_manipulation()
 {
 	printf("\n+++ unit test: metadata manipulation\n\n");
 
 	our_metadata_.num_blocks = 0;
 
-	if(!test_level_0_(progname))
+	if(!test_level_0_())
 		return 1;
 
-	if(!test_level_1_(progname))
+	if(!test_level_1_())
 		return 1;
 
-	if(!test_level_2_(progname))
+	if(!test_level_2_())
 		return 1;
 
 	return 0;
