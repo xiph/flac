@@ -499,6 +499,8 @@ FLAC__bool FLAC__seekable_stream_decoder_flush(FLAC__SeekableStreamDecoder *deco
 		return false;
 	}
 
+	decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_OK;
+
 	return true;
 }
 
