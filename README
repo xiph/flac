@@ -57,7 +57,14 @@ general, this should work:
 
 ./configure && make && make install
 
-If it doesn't, see the next section on Makefile.lite.
+NOTE: automake 1.5 has a bug which will affect the x86 assembly
+part of the build.  If you have automake 1.5 and have x86
+assembly optimizations turned on, you will need to get a newer
+version of automake or patch your /usr/bin/automake using the
+included 'automake-1.5.patch' file.
+
+If you still can't get it to work, see the next section on
+Makefile.lite.
 
 There are a few FLAC-specific arguments you can give to
 `configure':
