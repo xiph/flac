@@ -101,7 +101,6 @@ void FLAC__lpc_compute_lp_coefficients(const real autoc[], unsigned max_order, r
 			lpc[j] += lpc[j] * r;
 
 		err *= (1.0 - r * r);
-if(err<0.0)fprintf(stderr,"@@@ err went negative, order=%u (%f,%f)\n",i,err,r);
 
 		/* save this order */
 		for(j = 0; j <= i; j++)
