@@ -353,8 +353,6 @@ AC_OUTPUT( \
 	src/monkeys_audio_utilities/flac_mac/Makefile \
 	src/monkeys_audio_utilities/flac_ren/Makefile \
 	src/plugin_common/Makefile \
-	src/plugin_common/include/Makefile \
-	src/plugin_common/include/private/Makefile \
 	src/plugin_winamp2/Makefile \
 	src/plugin_winamp2/include/Makefile \
 	src/plugin_winamp2/include/winamp2/Makefile \
@@ -365,6 +363,8 @@ AC_OUTPUT( \
 	src/share/grabbag/Makefile \
 	src/share/replaygain_analysis/Makefile \
 	src/share/replaygain_synthesis/Makefile \
+	src/share/replaygain_synthesis/include/Makefile \
+	src/share/replaygain_synthesis/include/private/Makefile \
 	src/share/utf8/Makefile \
 	src/test_grabbag/Makefile \
 	src/test_grabbag/cuesheet/Makefile \
