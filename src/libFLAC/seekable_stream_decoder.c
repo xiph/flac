@@ -404,7 +404,7 @@ FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableStreamDecod
 	FLAC__uint64 length;
 
 	FLAC__ASSERT(decoder != 0);
-	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK);
+	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK || decoder->protected_->state == END_OF_STREAM);
 
 	decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEKING;
 

@@ -359,16 +359,10 @@ FLAC__bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decode
 	return ret;
 }
 
-/***********************************************************************
- *
- * Private class methods
- *
- ***********************************************************************/
-
 FLAC__bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, FLAC__uint64 sample)
 {
 	FLAC__ASSERT(decoder != 0);
-	FLAC__ASSERT(decoder->protected_->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->protected_->state == FLAC__FILE_DECODER_OK || decoder->protected_->state == FLAC__FILE_DECODER_END_OF_FILE);
 
 	if(decoder->private_->filename == 0) { /* means the file is stdin... */
 		decoder->protected_->state = FLAC__FILE_DECODER_SEEK_ERROR;
@@ -379,9 +373,17 @@ FLAC__bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, FLAC__ui
 		decoder->protected_->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
-	else
+	else {
+		decoder->protected_->state = FLAC__FILE_DECODER_OK;
 		return true;
+	}
 }
+
+/***********************************************************************
+ *
+ * Private class methods
+ *
+ ***********************************************************************/
 
 FLAC__SeekableStreamDecoderReadStatus read_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {
