@@ -115,7 +115,7 @@ static FLAC__bool audio_error_ = false;
 
 InputPlugin *get_iplugin_info()
 {
-	flac_ip.description = g_strdup_printf("FLAC Player v%s", FLAC__VERSION_STRING);
+	flac_ip.description = g_strdup_printf("Reference FLAC Player v%s", FLAC__VERSION_STRING);
 	return &flac_ip;
 }
 
