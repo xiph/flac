@@ -422,7 +422,7 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_metadata(OggFL
 	return FLAC__file_decoder_process_until_end_of_metadata(decoder->private_->FLAC_file_decoder);
 }
 
-OggFLAC_API FLAC__bool OggFLAC__filfiless_until_end_of_file(OggFLAC__FileDecoder *decoder)
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_file(OggFLAC__FileDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);

@@ -1642,7 +1642,7 @@ static bool test_file_decoder()
 	printf("OK\n");
 
 	printf("testing init()... ");
-	if(decoder->init() != ::FLAC__SEEKABLE_STREAM_DECODER_OK)
+	if(decoder->init() != ::FLAC__FILE_DECODER_OK)
 		return decoder->die();
 	printf("OK\n");
 

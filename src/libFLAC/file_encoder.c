@@ -31,10 +31,9 @@
 
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
-#include <string.h> /* for memcpy() */
+#include <string.h> /* for strlen(), strcpy() */
 #include "FLAC/assert.h"
 #include "protected/file_encoder.h"
-#include "protected/seekable_stream_encoder.h"
 
 /***********************************************************************
  *
@@ -713,7 +712,7 @@ FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamE
 		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK;
 }
 
-FLAC__SeekableStreamEncoderSeekStatus tell_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+FLAC__SeekableStreamEncoderTellStatus tell_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
 {
 	FLAC__FileEncoder *file_encoder = (FLAC__FileEncoder*)client_data;
 	long offset;

@@ -583,7 +583,7 @@ OggFLAC_API FLAC__StreamDecoderState OggFLAC__seekable_stream_decoder_get_FLAC_s
  * \retval const char *
  *    The decoder state as a C string.  Do not modify the contents.
  */
-OggFLAC_API const char *FLAC__seekable_stream_decoder_get_resolved_state_string(const FLAC__SeekableStreamDecoder *decoder);
+OggFLAC_API const char *OggFLAC__seekable_stream_decoder_get_resolved_state_string(const OggFLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__SeekableStreamDecoder; see
  *  FLAC__seekable_stream_decoder_get_md5_checking().

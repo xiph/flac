@@ -82,7 +82,7 @@ void OggFLAC__ogg_decoder_aspect_flush(OggFLAC__OggDecoderAspect *aspect)
 
 void OggFLAC__ogg_decoder_aspect_reset(OggFLAC__OggDecoderAspect *aspect)
 {
-	(void)ogg_stream_reset(&aspect->sync_state);
+	(void)ogg_stream_reset(&aspect->stream_state);
 	(void)ogg_sync_reset(&aspect->sync_state);
 }
 
