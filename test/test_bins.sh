@@ -64,7 +64,7 @@ for f in b00 b01 b02 b03 ; do
 		for bps in 8 16 24 ; do
 			for opt in 0 1 2 4 5 6 8 ; do
 				for extras in '' '-p' '-e' ; do
-					for blocksize in '' '-b 32' '--lax -b 32768' '--lax -b 65535' ; do
+					for blocksize in '' '--lax -b 32' '--lax -b 32768' '--lax -b 65535' ; do
 						test_file $BINS_PATH/$f $channels $bps "-$opt $extras $blocksize"
 					done
 				done

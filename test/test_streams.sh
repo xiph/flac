@@ -279,7 +279,6 @@ for bps in 8 16 24 ; do
 done
 
 echo "Testing some frame header variations..."
-test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p -b $max_lpc_order"
 test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax -b $max_lpc_order"
 test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax -b 65535"
 test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=9"
@@ -317,7 +316,7 @@ for channels in 1 2 4 8 ; do
 	for bps in 8 16 24 ; do
 		for opt in 0 1 2 3 4 5 6 7 8 ; do
 			for extras in '' '-p' '-e' ; do
-				for blocksize in '' '-b 32' '--lax -b 32768' '--lax -b 65535' ; do
+				for blocksize in '' '--lax -b 32' '--lax -b 32768' '--lax -b 65535' ; do
 					test_file noise $channels $bps "-$opt $extras $blocksize"
 				done
 			done
