@@ -320,7 +320,8 @@ typedef struct {
 typedef enum {
 	FLAC__METADATA_TYPE_STREAMINFO = 0,
 	FLAC__METADATA_TYPE_PADDING = 1,
-	FLAC__METADATA_TYPE_APPLICATION = 2
+	FLAC__METADATA_TYPE_APPLICATION = 2,
+	FLAC__METADATA_TYPE_SEEKTABLE = 3
 } FLAC__MetaDataType;
 extern const char *FLAC__MetaDataTypeString[];
 
@@ -367,6 +368,7 @@ extern const unsigned FLAC__STREAM_METADATA_STREAMINFO_LENGTH; /* = 34 bytes */
  */
 typedef struct {
 	int dummy; /* conceptually this is an empty struct since we don't store the padding bytes */
+	           /* empty structs are allowed by C++ but not C, hence the 'dummy' */
 } FLAC__StreamMetaData_Padding;
 
 /*****************************************************************************
@@ -385,6 +387,42 @@ extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /* = 32 bits */
 
 /*****************************************************************************
  *
+ *  64: sample number
+ *  64: offset, in bytes, from beginning of first frame to target frame
+ *  16: offset, in samples, from the first sample in the target frame to the target sample
+ *----- -----------------
+ *  18  bytes total
+ */
+typedef struct {
+	uint64 sample_number;
+	uint64 stream_offset;
+	unsigned block_offset;
+} FLAC__StreamMetaData_SeekPoint;
+
+extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN; /* = 64 bits */
+extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN; /* = 64 bits */
+extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_BLOCK_OFFSET_LEN; /* = 16 bits */
+extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LEN; /* = 18 bytes */
+
+/*****************************************************************************
+ *
+ *      0: num_points is implied by the metadata block 'length' field (i.e. num_points = length / 18)
+ * n*18*8: seek points (n = num_points, 18 is the size of a seek point in bytes)
+ * ------- -----------------
+ *   n*18  bytes total
+ *
+ * NOTE: the seek points must be sorted by ascending sample number.
+ * NOTE: each seek point's sample number must be unique within the table.
+ * NOTE: existence of a SEEKTABLE block implies a correct setting of total_samples in the stream_info block.
+ * NOTE: behavior is undefined when more than one SEEKTABLE block is present in a stream.
+ */
+typedef struct {
+	unsigned num_points;
+	FLAC__StreamMetaData_SeekPoint *points;
+} FLAC__StreamMetaData_SeekTable;
+
+/*****************************************************************************
+ *
  *  1: =1 if this is the last meta-data block, else =0
  *  7: meta-data type (c.f. FLAC__MetaDataType)
  * 24: length (in bytes) of the block-specific data to follow
@@ -399,6 +437,7 @@ typedef struct {
 		FLAC__StreamMetaData_StreamInfo stream_info;
 		FLAC__StreamMetaData_Padding padding;
 		FLAC__StreamMetaData_Application application;
+		FLAC__StreamMetaData_SeekTable seek_table;
 	} data;
 } FLAC__StreamMetaData;
 
