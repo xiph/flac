@@ -27,7 +27,11 @@
 !endif
 
 CC_FILES= \
-	metadata.cc
+	file_decoder.cc \
+	metadata.cc \
+	seekable_stream_decoder.cc \
+	stream_decoder.cc \
+	stream_encoder.cc
 
 OBJS= $(CC_FILES:.cc=.obj)
 

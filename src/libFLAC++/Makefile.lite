@@ -24,7 +24,11 @@ LIB_NAME = libFLAC++
 INCLUDES = -I../../include
 
 OBJS = \
-	metadata.o
+	file_decoder.o \
+	metadata.o \
+	seekable_stream_decoder.o \
+	stream_decoder.o \
+	stream_encoder.o
 
 include ../../build/lib.mk
 

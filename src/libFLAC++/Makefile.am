@@ -19,7 +19,12 @@
 lib_LTLIBRARIES = libFLAC++.la
 CFLAGS = @CFLAGS@
 
+#@@@@ fix this
 libFLAC++_la_LDFLAGS = -version-info 2:1:1
 
 libFLAC++_la_SOURCES = \
-	metadata.c
+	file_decoder.cc \
+	metadata.cc \
+	seekable_stream_decoder.cc \
+	stream_decoder.cc \
+	stream_encoder.cc 
