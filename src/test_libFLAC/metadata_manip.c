@@ -428,7 +428,7 @@ static FLAC__bool test_level_1_()
 
 	printf("is writable = %u\n", (unsigned)FLAC__metadata_simple_iterator_is_writable(iterator));
 	if(FLAC__metadata_simple_iterator_is_writable(iterator))
-		return die_("iterator claims file is writable when it should not be\n");
+		return die_("iterator claims file is writable when tester thinks it should not be; are you running as root?\n");
 
 	printf("iterate forwards\n");
 
