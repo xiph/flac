@@ -40,8 +40,8 @@ EXTRA_DIST = \
 	libOggFLAC++_static.dsp \
 	libOggFLAC++.m4
 
-# see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
-libOggFLAC___la_LDFLAGS = -version-info 0:4:0
+# see 'http://www.gnu.org/software/libtool/manual.html#SEC35' for numbering convention
+libOggFLAC___la_LDFLAGS = -version-info 1:0:1
 libOggFLAC___la_LIBADD = ../libOggFLAC/libOggFLAC.la
 
 libOggFLAC___la_SOURCES = \

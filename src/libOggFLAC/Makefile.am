@@ -46,8 +46,8 @@ EXTRA_DIST = \
 	libOggFLAC.m4
 
 libOggFLAC_la_LIBADD = @OGG_LIBS@ ../libFLAC/libFLAC.la
-# see 'http://www.gnu.org/software/libtool/manual.html#Versioning' for numbering convention
-libOggFLAC_la_LDFLAGS = -version-info 1:2:0
+# see 'http://www.gnu.org/software/libtool/manual.html#SEC35' for numbering convention
+libOggFLAC_la_LDFLAGS = -version-info 2:0:1
 
 libOggFLAC_la_SOURCES = \
 	file_decoder.c \
