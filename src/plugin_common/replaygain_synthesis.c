@@ -225,14 +225,14 @@ void FLAC__plugin_common__init_dither_context(DitherContext *d, int bits, int sh
  * the following is based on parts of wavegain.c
  */
 
-static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool noise_shaping, int shapingtype, int i, double Sum, int k)
+static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_dithering, int shapingtype, int i, double Sum, int k)
 {
 	double doubletmp, Sum2;
 	FLAC__int64 val;
 
 #define ROUND64(x)   ( doubletmp = (x) + d->Add + (FLAC__int64)0x001FFFFD80000000L, *(FLAC__int64*)(&doubletmp) - (FLAC__int64)0x433FFFFD80000000L )
 
-	if(noise_shaping) {
+	if(do_dithering) {
 		if(shapingtype == 0) {
 			double  tmp = random_equi_(d->Dither);
 			Sum2 = tmp - d->LastRandomNumber [k];
@@ -256,8 +256,6 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool nois
 }
 
 #if 0
-	Init_Dither (&dither_, settings->outbitwidth, settings->shapingtype)
-
 	float        peak = 0.f,
 	             new_peak,
 	             factor_clip
@@ -288,7 +286,7 @@ static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool nois
 #endif
 
 
-PLUGIN_COMMON_API int FLAC__plugin_common_apply_gain(FLAC__byte *data_out, FLAC__int32 *input, unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, NoiseShaping noise_shaping, DitherContext *dither_context)
+PLUGIN_COMMON_API int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, NoiseShaping noise_shaping, DitherContext *dither_context)
 {
 	static const FLAC__int32 conv_factors_[33] = {
 		-1, /* 0 bits-per-sample (not supported) */

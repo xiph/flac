@@ -44,6 +44,6 @@ typedef enum {
 PLUGIN_COMMON_API void FLAC__plugin_common__init_dither_context(DitherContext *dither, int bits, int shapingtype);
 
 /* scale = (float) pow(10., (double)replaygain * 0.05); */
-PLUGIN_COMMON_API int FLAC__plugin_common_apply_gain(FLAC__byte *data_out, FLAC__int32 *input, unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, NoiseShaping noise_shaping, DitherContext *dither_context);
+PLUGIN_COMMON_API int FLAC__plugin_common__apply_gain(FLAC__byte *data_out, FLAC__int32 *input, unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const float scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, NoiseShaping noise_shaping, DitherContext *dither_context);
 
 #endif
