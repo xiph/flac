@@ -29,10 +29,6 @@ CC          = gcc
 CCC         = g++
 endif
 NASM        = nasm
-# override to -dynamic on OSX
-ifeq ($(DARWIN_BUILD),yes)
-LINKAGE     = -dynamic
-endif
 LINK        = $(CC) $(LINKAGE)
 OBJPATH     = $(topdir)/obj
 BINPATH     = $(OBJPATH)/$(BUILD)/bin
@@ -58,11 +54,21 @@ debug   : $(ORDINALS_H) $(DEBUG_PROGRAM)
 valgrind: $(ORDINALS_H) $(DEBUG_PROGRAM)
 release : $(ORDINALS_H) $(RELEASE_PROGRAM)
 
+# by default on OS X we link with static libs as much as possible
+
 $(DEBUG_PROGRAM) : $(DEBUG_OBJS)
+ifeq ($(DARWIN_BUILD),yes)
+	$(LINK) -o $@ $(DEBUG_OBJS) $(EXPLICIT_LIBS)
+else
 	$(LINK) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS)
+endif
 
 $(RELEASE_PROGRAM) : $(RELEASE_OBJS)
+ifeq ($(DARWIN_BUILD),yes)
+	$(LINK) -o $@ $(RELEASE_OBJS) $(EXPLICIT_LIBS)
+else
 	$(LINK) -o $@ $(RELEASE_OBJS) $(LFLAGS) $(LIBS)
+endif
 
 %.debug.o %.release.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@

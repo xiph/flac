@@ -20,21 +20,16 @@
 #
 
 topdir = ../..
+libdir = $(topdir)/obj/$(BUILD)/lib
 
 PROGRAM_NAME = flac
+
+INCLUDES = -I./include -I$(topdir)/include -I$(OGG_INCLUDE_DIR)
+
 ifeq ($(DARWIN_BUILD),yes)
-INCLUDES     = -I./include -I$(topdir)/include
-LIBS         = -lgrabbag -lFLAC -lreplaygain_analysis -lreplaygain_synthesis -lgetopt -lutf8 -lc -lm
+EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libOggFLAC.a $(libdir)/libFLAC.a $(libdir)/libreplaygain_analysis.a $(libdir)/libreplaygain_synthesis.a $(libdir)/libgetopt.a $(libdir)/libutf8.a $(OGG_LIB_DIR)/libogg.a -lm
 else
-#@@@ TODO: conditionalize ogg includes, defines, and -logg
-ifeq ($(SOLARIS_BUILD),yes)
-INCLUDES     = -I./include -I$(topdir)/include -I$(HOME)/local/include -DFLAC__HAS_OGG
-LIBS         = -lgrabbag -lOggFLAC -lFLAC -lreplaygain_analysis -lreplaygain_synthesis -lgetopt -lutf8 -lm -L$(HOME)/local/lib -logg
-else
-#@@@ TODO: conditionalize ogg includes, defines, and -logg
-INCLUDES     = -I./include -I$(topdir)/include -I$(HOME)/local/include -DFLAC__HAS_OGG
-LIBS         = -lgrabbag -lOggFLAC -lFLAC -lreplaygain_analysis -lreplaygain_synthesis -lgetopt -lutf8 -lm -L$(HOME)/local/lib -logg
-endif
+LIBS = -lgrabbag -lOggFLAC -lFLAC -lreplaygain_analysis -lreplaygain_synthesis -lgetopt -lutf8 -lm -L$(OGG_LIB_DIR) -logg
 endif
 
 SRCS_C = \

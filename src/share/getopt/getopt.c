@@ -125,7 +125,7 @@
    Also, when `ordering' is RETURN_IN_ORDER,
    each non-option ARGV-element is returned here.  */
 
-char *share__optarg;
+char *share__optarg = 0; /*[JEC] initialize to avoid being a 'Common' symbol */
 
 /* Index in ARGV of the next element to be scanned.
    This is used for communication to and from the caller
@@ -146,7 +146,7 @@ int share__optind = 1;
    causes problems with re-calling getopt as programs generally don't
    know that. */
 
-int share____getopt_initialized;
+static int share____getopt_initialized = 0;
 
 /* The next char to be scanned in the option-element
    in which the last option character we returned was found.

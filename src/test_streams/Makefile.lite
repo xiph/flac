@@ -20,10 +20,14 @@
 #
 
 topdir = ../..
+libdir = $(topdir)/obj/$(BUILD)/lib
 
 PROGRAM_NAME = test_streams
-INCLUDES     = -I./include -I$(topdir)/include
-LIBS         = -lm
+
+INCLUDES = -I./include -I$(topdir)/include
+
+LIBS = -lm
+
 SRCS_C = \
 	main.c
 

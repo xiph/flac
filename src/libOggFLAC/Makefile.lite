@@ -44,7 +44,7 @@ else
 DEFINES =
 endif
 endif
-INCLUDES = -I./include -I$(topdir)/include -I$(HOME)/local/include
+INCLUDES = -I./include -I$(topdir)/include -I$(OGG_INCLUDE_DIR)
 DEBUG_CFLAGS = 
 
 SRCS_C = \

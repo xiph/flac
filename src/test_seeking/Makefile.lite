@@ -20,10 +20,18 @@
 #
 
 topdir = ../..
+libdir = $(topdir)/obj/$(BUILD)/lib
 
 PROGRAM_NAME = test_seeking
-INCLUDES     = -I../libFLAC/include -I$(topdir)/include
-LIBS         = -lOggFLAC -lFLAC -L$(HOME)/local/lib -logg -lm
+
+INCLUDES = -I../libFLAC/include -I$(topdir)/include
+
+ifeq ($(DARWIN_BUILD),yes)
+EXPLICIT_LIBS = $(libdir)/libOggFLAC.a $(libdir)/libFLAC.a $(OGG_LIB_DIR)/libogg.a -lm
+else
+LIBS = -lOggFLAC -lFLAC -L$(OGG_LIB_DIR) -logg -lm
+endif
+
 SRCS_C = \
 	main.c
 

@@ -25,9 +25,14 @@ debug    : BUILD = debug
 valgrind : BUILD = debug
 release  : BUILD = release
 
+# override LINKAGE on OS X until we figure out how to get 'cc -static' to work
+ifeq ($(DARWIN_BUILD),yes)
+LINKAGE = 
+else
 debug    : LINKAGE = -static
 valgrind : LINKAGE = -dynamic
 release  : LINKAGE = -static
+endif
 
 all default: $(DEFAULT_BUILD)
 
@@ -37,4 +42,7 @@ all default: $(DEFAULT_BUILD)
 
 VERSION=\"1.1.1\"
 
-CONFIG_CFLAGS=-D_GNU_SOURCE -DHAVE_INTTYPES_H -DHAVE_WCSDUP -DHAVE_WCSCASECMP
+CONFIG_CFLAGS=-D_GNU_SOURCE -DHAVE_INTTYPES_H -DHAVE_WCSDUP -DHAVE_WCSCASECMP -DFLAC__HAS_OGG
+
+OGG_INCLUDE_DIR=$(HOME)/local.ogg/include
+OGG_LIB_DIR=$(HOME)/local.ogg/lib

@@ -20,11 +20,18 @@
 #
 
 topdir = ../..
+libdir = $(topdir)/obj/$(BUILD)/lib
 
 PROGRAM_NAME = test_libOggFLAC
-#@@@ TODO: conditionalize ogg lib path and -logg
-INCLUDES     = -I$(topdir)/include
-LIBS         = -lgrabbag -lreplaygain_analysis -lOggFLAC -lFLAC -L$(HOME)/local/lib -logg -lm
+
+INCLUDES = -I$(topdir)/include
+
+ifeq ($(DARWIN_BUILD),yes)
+EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libOggFLAC.a $(libdir)/libFLAC.a $(OGG_LIB_DIR)/libogg.a -lm
+else
+LIBS = -lgrabbag -lreplaygain_analysis -lOggFLAC -lFLAC -L$(OGG_LIB_DIR) -logg -lm
+endif
+
 SRCS_C = \
 	decoders.c \
 	encoders.c \

@@ -20,10 +20,18 @@
 #
 
 topdir = ../..
+libdir = $(topdir)/obj/$(BUILD)/lib
 
 PROGRAM_NAME = test_libFLAC
-INCLUDES     = -I../libFLAC/include -I$(topdir)/include
-LIBS         = -lgrabbag -lreplaygain_analysis -lFLAC -lm
+
+INCLUDES = -I../libFLAC/include -I$(topdir)/include
+
+ifeq ($(DARWIN_BUILD),yes)
+EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libFLAC.a -lm
+else
+LIBS = -lgrabbag -lreplaygain_analysis -lFLAC -lm
+endif
+
 SRCS_C = \
 	bitbuffer.c \
 	decoders.c \

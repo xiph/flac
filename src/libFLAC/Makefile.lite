@@ -36,7 +36,7 @@ topdir = ../..
 
 LIB_NAME = libFLAC
 ifeq ($(DARWIN_BUILD),yes)
-DEFINES = -DFLAC__NO_NASM -DFLAC__ALIGN_MALLOC_DATA
+DEFINES = -DFLAC__CPU_PPC -DFLAC__USE_ALTIVEC -DFLAC__ALIGN_MALLOC_DATA
 else
 ifeq ($(SOLARIS_BUILD),yes)
 DEFINES = -DFLAC__NO_NASM -DFLAC__ALIGN_MALLOC_DATA
@@ -48,6 +48,8 @@ INCLUDES = -I./include -I$(topdir)/include
 DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
 ifeq ($(DARWIN_BUILD),yes)
+SRCS_S = \
+	ppc/lpc_asm.s
 else
 ifeq ($(SOLARIS_BUILD),yes)
 else

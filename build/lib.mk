@@ -28,6 +28,7 @@ else
 CC          = gcc
 CCC         = g++
 endif
+AS          = as
 NASM        = nasm
 LINK        = ar cru
 OBJPATH     = $(topdir)/obj
@@ -61,8 +62,8 @@ release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -D
 
 LFLAGS  = -L$(LIBPATH)
 
-DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o)
-RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o)
+DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o) $(SRCS_S:%.s=%.debug.o)
+RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o) $(SRCS_S:%.s=%.release.o)
 
 debug   : $(ORDINALS_H) $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
 valgrind: $(ORDINALS_H) $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
@@ -76,7 +77,7 @@ $(RELEASE_STATIC_LIB): $(RELEASE_OBJS)
 
 $(DEBUG_DYNAMIC_LIB) : $(DEBUG_OBJS)
 ifeq ($(DARWIN_BUILD),yes)
-	$(LINKD) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS) -lc
+	echo Not building dynamic lib, command is: $(LINKD) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS) -lc
 else
 	$(LINKD) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS)
 endif
@@ -100,6 +101,14 @@ endif
 	$(CCC) $(CFLAGS) -E $< -o $@
 %.debug.i %.release.i : %.cpp
 	$(CCC) $(CFLAGS) -E $< -o $@
+
+%.debug.o %.release.o : %.s
+ifeq ($(DARWIN_BUILD),yes)
+	#$(CC) -c -arch ppc -Wall -force_cpusubtype_ALL $< -o $@
+	$(AS) -arch ppc -force_cpusubtype_ALL $< -o $@
+else
+	$(AS) $< -o $@
+endif
 
 %.debug.o %.release.o : %.nasm
 	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ $< -o $@
