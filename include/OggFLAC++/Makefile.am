@@ -16,9 +16,9 @@
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA  02111-1307, USA.
 
-includedir = ${prefix}/include/OggFLAC++
+oggflaccppincludedir = $(includedir)/OggFLAC++
 
-include_HEADERS = \
+oggflaccppinclude_HEADERS = \
 	all.h \
 	decoder.h \
 	encoder.h

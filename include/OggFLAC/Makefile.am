@@ -16,12 +16,12 @@
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA  02111-1307, USA.
 
-includedir = ${prefix}/include/OggFLAC
+oggflaccincludedir = $(includedir)/OggFLAC
 
 # NOTE: file_decoder.h and seekable_stream_decoder.h are NOT ready
 # for distribution yet.
 
-include_HEADERS = \
+oggflaccinclude_HEADERS = \
 	all.h \
 	stream_decoder.h \
 	stream_encoder.h
