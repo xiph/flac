@@ -35,10 +35,18 @@
 #include <xmms/util.h>
 #include <xmms/plugin.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "configure.h"
 #include "plugin_common/locale_hack.h"
 #include "FLAC/format.h"
 #include "plugin.h"
+
+#ifndef HAVE_SOCKLEN_T
+typedef unsigned int socklen_t;
+#endif
 
 #define min(x,y) ((x)<(y)?(x):(y))
 #define min3(x,y,z) (min(x,y)<(z)?min(x,y):(z))
@@ -696,6 +704,7 @@ static void *http_buffer_loop(void *arg)
 	g_free(url);
 	
 	pthread_exit(NULL);
+	return NULL; /* avoid compiler warning */
 }
 
 int flac_http_open(gchar * _url, guint64 _offset)
