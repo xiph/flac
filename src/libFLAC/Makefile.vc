@@ -1,16 +1,19 @@
 !include <win32.mak>
 
+NASM=nasmw
+
 !IFDEF DEBUG
 .c.obj:
-	$(cc) /D FLAC__PRECOMPUTE_PARTITION_SUMS /D FLAC__OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /D FLAC__PRECOMPUTE_PARTITION_SUMS /D FLAC__OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /D FLAC__PRECOMPUTE_PARTITION_SUMS /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /D FLAC__CPU_IA32 /D FLAC__HAS_NASM /D FLAC__PRECOMPUTE_PARTITION_SUMS /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
 	bitbuffer.c \
 	bitmath.c \
+	cpu.c \
 	crc.c \
 	encoder.c \
 	encoder_framing.c \
@@ -19,16 +22,29 @@ C_FILES= \
 	format.c \
 	lpc.c \
 	md5.c \
+	memory.c \
 	seek_table.c \
 	stream_decoder.c
 
-OBJS= $(C_FILES:.c=.obj)
+NASM_FILES= \
+	i386/cpu_asm.nasm \
+	i386/fixed_asm.nasm \
+	i386/lpc_asm.nasm
+
+OBJS= $(C_FILES:.c=.obj) $(NASM_FILES:.nasm=.obj)
 
 all: libFLAC.lib
 
 libFLAC.lib: $(OBJS)
 	link.exe -lib -out:../../obj/lib/$*.lib $(OBJS)
 
+i386/cpu_asm.obj: i386/cpu_asm.nasm
+	$(NASM) -f win32 -d WIN32 -i i386/ i386/cpu_asm.nasm -o i386/cpu_asm.obj
+i386/fixed_asm.obj: i386/fixed_asm.nasm
+	$(NASM) -f win32 -d WIN32 -i i386/ i386/fixed_asm.nasm -o i386/fixed_asm.obj
+i386/lpc_asm.obj: i386/lpc_asm.nasm
+	$(NASM) -f win32 -d WIN32 -i i386/ i386/lpc_asm.nasm -o i386/lpc_asm.obj
+
 clean:
-	-del *.obj *.pch
+	-del *.obj i386\*.obj *.pch
 	-del ..\..\obj\lib\libFLAC.lib ..\..\obj\lib\libFLAC.pdb
