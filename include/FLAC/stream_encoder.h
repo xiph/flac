@@ -57,16 +57,27 @@ extern "C" {
  *  \brief
  *  This module describes the two encoder layers provided by libFLAC.
  *
- * For encoding FLAC streams, libFLAC provides two layers of access.  The
- * lowest layer is stream-level encoding, and the highest is file-level
- * encoding.  The interfaces are described in the \link flac_stream_encoder
- * stream encoder \endlink and \link flac_file_encoder file encoder \endlink
- * modules respectively.  Typically you will choose the highest layer that
- * your output source will support.
- *
+ * For encoding FLAC streams, libFLAC provides three layers of access.  The
+ * lowest layer is non-seekable stream-level encoding, the next is seekable
+ * stream-level encoding, and the highest layer is file-level encoding.  The
+ * interfaces are described in the \link flac_stream_encoder stream encoder
+ * \endlink, \link flac_seekable_stream_encoder seekable stream encoder
+ * \endlink, and \link flac_file_encoder file encoder \endlink modules
+ * respectively.  Typically you will choose the highest layer that your input
+ * source will support.
  * The stream encoder relies on callbacks for writing the data and
  * metadata. The file encoder provides these callbacks internally and you
  * need only supply the filename.
+ *
+ * The stream encoder relies on callbacks for writing the data and has no
+ * provisions for seeking the output.  The seekable stream encoder wraps
+ * the stream encoder and also automaticallay handles the writing back of
+ * metadata discovered while encoding.  However, you must provide extra
+ * callbacks for seek-related operations on your output, like seek and
+ * tell.  The file encoder wraps the seekable stream encoder and supplies
+ * all of the callbacks internally, simplifying the processing of standard
+ * files.  The only callback exposed is for progress reporting, and that
+ * is optional.
  */
 
 /** \defgroup flac_stream_encoder FLAC/stream_encoder.h: stream encoder interface

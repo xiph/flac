@@ -68,7 +68,8 @@ extern "C" {
  *
  *  \brief
  *  This module contains the functions which implement the stream
- *  encoder.
+ *  encoder.  The Ogg stream encoder is derived
+ *  from the FLAC stream encoder.
  *
  * The interface here is nearly identical to FLAC's stream encoder,
  * including the callbacks, with the addition of
