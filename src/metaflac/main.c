@@ -155,7 +155,7 @@ bool list(FILE *f, bool verbose)
 		/* print header */
 		printf("METADATA block #%u\n", blocknum);
 		printf("byte offset: %u\n", byte_offset);
-		printf("type: %u (%s)\n", (unsigned)metadata.type, metadata.type<=FLAC__METADATA_TYPE_APPLICATION? metadata_type_string_[metadata.type] : "UNKNOWN");
+		printf("type: %u (%s)\n", (unsigned)metadata.type, metadata.type<=FLAC__METADATA_TYPE_SEEKTABLE? metadata_type_string_[metadata.type] : "UNKNOWN");
 		printf("is last: %s\n", metadata.is_last? "true":"false");
 		printf("length: %u\n", metadata.length);
 
@@ -204,7 +204,7 @@ bool list(FILE *f, bool verbose)
 		switch(metadata.type) {
 			case FLAC__METADATA_TYPE_STREAMINFO:
 				printf("minumum blocksize: %u samples\n", metadata.data.stream_info.min_blocksize);
-				printf("maxumum blocksize: %u samples\n", metadata.data.stream_info.max_blocksize);
+				printf("maximum blocksize: %u samples\n", metadata.data.stream_info.max_blocksize);
 				printf("minimum framesize: %u bytes\n", metadata.data.stream_info.min_framesize);
 				printf("maximum framesize: %u bytes\n", metadata.data.stream_info.max_framesize);
 				printf("sample_rate: %u Hz\n", metadata.data.stream_info.sample_rate);
