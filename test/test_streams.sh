@@ -1,14 +1,14 @@
 #!/bin/sh
 
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../obj/lib
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/libFLAC/.libs
 export LD_LIBRARY_PATH
 
-if ../obj/bin/test_streams ; then : ; else
+if ../src/test_streams/test_streams ; then : ; else
 	echo "ERROR during test_streams" 1>&2
 	exit 1
 fi
 
-FLAC=../obj/bin/flac
+FLAC=../src/flac/flac
 
 test_file ()
 {
