@@ -114,9 +114,11 @@ extern FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEn
 extern FLAC__bool FLAC__file_encoder_disable_constant_subframes(FLAC__FileEncoder *encoder, FLAC__bool value);
 extern FLAC__bool FLAC__file_encoder_disable_fixed_subframes(FLAC__FileEncoder *encoder, FLAC__bool value);
 extern FLAC__bool FLAC__file_encoder_disable_verbatim_subframes(FLAC__FileEncoder *encoder, FLAC__bool value);
+#ifdef FLAC__HAS_OGG
 extern FLAC__bool OggFLAC__stream_encoder_disable_constant_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 extern FLAC__bool OggFLAC__stream_encoder_disable_fixed_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
 extern FLAC__bool OggFLAC__stream_encoder_disable_verbatim_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
+#endif
 
 /*
  * local routines
