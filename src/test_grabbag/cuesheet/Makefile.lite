@@ -23,7 +23,7 @@ topdir = ../../..
 
 PROGRAM_NAME = test_cuesheet
 INCLUDES     = -I./include -I$(topdir)/include
-LIBS         = -lgrabbag -lFLAC -lm
+LIBS         = -lgrabbag -lgain_analysis -lFLAC -lm
 SRCS_C = \
 	main.c
 

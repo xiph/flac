@@ -33,7 +33,7 @@ OBJS= $(C_FILES:.c=.obj)
 all: test_cuesheet.exe
 
 test_cuesheet.exe: $(OBJS)
-	link.exe /libpath:"..\..\..\obj\release\lib" -out:../../../obj/release/bin/$*.exe $(OBJS) grabbag_static.lib libFLAC_static.lib
+	link.exe /libpath:"..\..\..\obj\release\lib" -out:../../../obj/release/bin/$*.exe $(OBJS) grabbag_static.lib gain_analysis_static.lib libFLAC_static.lib
 
 clean:
 	-del *.obj *.pch

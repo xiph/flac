@@ -24,7 +24,7 @@ topdir = ../..
 PROGRAM_NAME = test_libOggFLAC
 #@@@ TODO: conditionalize ogg lib path and -logg
 INCLUDES     = -I$(topdir)/include
-LIBS         = -lgrabbag -lOggFLAC -lFLAC -L$(HOME)/local/lib -logg -lm
+LIBS         = -lgrabbag -lgain_analysis -lOggFLAC -lFLAC -L$(HOME)/local/lib -logg -lm
 SRCS_C = \
 	decoders.c \
 	encoders.c \

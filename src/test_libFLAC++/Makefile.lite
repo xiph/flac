@@ -23,7 +23,7 @@ topdir = ../..
 
 PROGRAM_NAME = test_libFLAC++
 INCLUDES     = -I$(topdir)/include
-LIBS         = -lgrabbag -lFLAC++ -lFLAC -lm
+LIBS         = -lgrabbag -lgain_analysis -lFLAC++ -lFLAC -lm
 SRCS_CPP = \
 	decoders.cpp \
 	encoders.cpp \

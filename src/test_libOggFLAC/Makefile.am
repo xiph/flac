@@ -26,6 +26,7 @@ INCLUDES =
 noinst_PROGRAMS = test_libOggFLAC
 test_libOggFLAC_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.a \
+	$(top_builddir)/src/share/gain_analysis/libgain_analysis.a \
 	$(top_builddir)/src/libOggFLAC/libOggFLAC.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
