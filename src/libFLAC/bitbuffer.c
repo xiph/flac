@@ -2193,7 +2193,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 								i++;
 								goto break2;
 							}
-							*(++vals);
+							++vals;
 
 							msbs = 0;
 							state = 0;
@@ -2214,7 +2214,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[
 						--val_i;
 						if(val_i == 0)
 							goto break2;
-						*(++vals);
+						++vals;
 
 						msbs = 0;
 						state = 0;
