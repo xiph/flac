@@ -2,10 +2,10 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) /D "_LIB" -DFLAC__NO_DLL /GX $(cdebug) $(cflags) /I "..\..\..\include" /I "..\..\..\include\share" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /D "_LIB" -DFLAC__NO_DLL /GX $(cdebug) $(cflags) /I "..\..\..\include\share" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /D "_LIB" -DFLAC__NO_DLL /O2 $(crelease) $(cflags) /I "..\..\..\include" /I "..\..\..\include\share" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /D "_LIB" -DFLAC__NO_DLL /O2 $(crelease) $(cflags) /I "..\..\..\include\share" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
