@@ -380,11 +380,7 @@ int do_it()
 			else
 				sprintf(padopt, " %d", option_values.padding);
 			fprintf(stderr,
-				"options:%s%s"
-#ifdef FLAC__HAS_OGG
-				"%s"
-#endif
-				"%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u%s\n",
+				"options:%s%s%s%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u%s\n",
 				option_values.delete_input?" --delete-input-file":"",
 				option_values.sector_align?" --sector-align":"",
 				option_values.use_ogg?" --ogg":"",
