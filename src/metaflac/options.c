@@ -55,7 +55,7 @@ struct share__option long_options_[] = {
 	{ "set-sample-rate", 1, 0, 0 }, /* undocumented */
 	{ "set-channels", 1, 0, 0 }, /* undocumented */
 	{ "set-bps", 1, 0, 0 }, /* undocumented */
-	{ "set-total-samples", 1, 0, 0 }, /* undocumented */
+	{ "set-total-samples", 1, 0, 0 }, /* undocumented */ /* WATCHOUT: used by test/test_flac.sh on windows */
 	{ "show-vendor-tag", 0, 0, 0 }, 
 	{ "show-tag", 1, 0, 0 }, 
 	{ "remove-all-tags", 0, 0, 0 }, 
