@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "02 December 2002" "" ""
+.TH "FLAC" "1" "20 December 2002" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -23,7 +23,7 @@ format; see below.
 .PP
 A summary of options is included below.  For a complete
 description, see the HTML documentation.
-.SS "GENERIC OPTIONS"
+.SS "GENERAL OPTIONS"
 .TP
 \fB-v, --version \fR
 Show the flac version number
@@ -71,10 +71,23 @@ successful encode or decode.  If there was an
 error (including a verify error) the input file
 is left intact.
 .TP
-\fB--skip=\fI#\fB\fR
-Skip the specified number of samples at the
-beginning of the input file (can be used for both
-encoding and decoding)
+\fB--skip={\fI#\fB|\fImm:ss.ss\fB}\fR
+Skip over the first number of samples of the input.
+This works for both encoding and decoding, but not
+testing.  The alternative form mm:ss.ss can be used
+to specify minutes, seconds, and fractions of a
+second.
+.TP
+\fB--until={\fI#\fB|[\fI+\fB|\fI-\fB]\fImm:ss.ss\fB}\fR
+Stop at the given sample number for each input file.
+This works for both encoding and decoding, but not testing.
+The given sample number is not included in the decoded
+output.  The alternative form mm:ss.ss can be used to
+specify minutes, seconds, and fractions of a second.  If a
+`+' (plus) sign is at the beginning, the --until point is
+relative to the --skip point.  If a `-' (minus) sign is at
+the beginning, the --until point is relative to end of the
+audio.
 .TP
 \fB--ogg\fR
 When encoding, generate Ogg-FLAC output instead
@@ -141,6 +154,13 @@ few extra bytes in a PADDING block as the exact
 size of the tags is not known until all files
 are processed.  Note that this option cannot be
 used when encoding to standard output (stdout).
+.TP
+\fB--cuesheet=\fIfilename\fB\fR
+Import the given cuesheet file and store it in a
+CUESHEET metadata block.  This option may only be used
+when encoding a single file.  A seekpoint will be added
+for each index point in the cuesheet to the SEEKTABLE
+unless --no-cued-seekpoints is specified.
 .TP
 \fB--sector-align\fR
 Align encoding of multiple CD format WAVE
@@ -284,6 +304,12 @@ Set sample rate (in Hz).
 \fB--sign={\fIsigned\fB|\fIunsigned\fB}\fR
 Set the sign of samples (the default is signed).
 .TP
+\fB--force-aiff-format\fR
+Force the decoder to output AIFF format.  This option
+is not needed if the output filename (as set by -o) ends
+with \fI.aiff\fR.  Also, this option has no
+effect when encoding since input AIFF is auto-detected.
+.TP
 \fB--force-raw-format\fR
 Force input (when encoding) or output (when decoding)
 to be treated as raw samples (even if filename ends
@@ -324,6 +350,8 @@ in \fI.wav\fR).
 These flags can be used to invert the sense
 of the corresponding normal option.
 .SH "SEE ALSO"
+.PP
+metaflac(1).
 .PP
 The programs are documented fully by HTML format
 documentation, available in
