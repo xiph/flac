@@ -35,6 +35,6 @@ all default: $(DEFAULT_BUILD)
 # GNU makefile fragment for emulating stuff normally done by configure
 #
 
-VERSION=\"CVS-20031217\"
+VERSION=\"CVS-20040316\"
 
 CONFIG_CFLAGS=-DHAVE_INTTYPES_H
