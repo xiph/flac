@@ -92,7 +92,7 @@ static FLAC__int32 *input[FLAC__MAX_CHANNELS];
 
 /* local routines */
 static FLAC__bool init(encoder_wrapper_struct *encoder_wrapper);
-static FLAC__bool init_encoder(FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper);
+static FLAC__bool init_encoder(FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_escape_coding, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper);
 static FLAC__bool convert_to_seek_table(char *requested_seek_points, int num_requested_seek_points, FLAC__uint64 stream_samples, unsigned blocksize, FLAC__StreamMetaData_SeekTable *seek_table);
 static void append_point_to_seek_table(FLAC__StreamMetaData_SeekTable *seek_table, FLAC__uint64 sample, FLAC__uint64 stream_samples, FLAC__uint64 blocksize);
 static int seekpoint_compare(const FLAC__StreamMetaData_SeekPoint *l, const FLAC__StreamMetaData_SeekPoint *r);
@@ -110,7 +110,7 @@ static FLAC__bool read_little_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bo
 static FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_big_endian_uint64(FILE *f, FLAC__uint64 val);
 
-int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__int32 *align_reservoir[], unsigned *align_reservoir_samples, FLAC__bool sector_align, FLAC__bool is_last_file, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
+int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__int32 *align_reservoir[], unsigned *align_reservoir_samples, FLAC__bool sector_align, FLAC__bool is_last_file, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_escape_coding, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	FLAC__bool is_unsigned_samples = false;
@@ -271,7 +271,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 				/* +44 for the size of the WAV headers; this is just an estimate for the progress indicator and doesn't need to be exact */
 				encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44;
 
-				if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
+				if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_escape_coding, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
 					goto wav_abort_;
 
 				encoder_wrapper.verify_fifo.into_frames = true;
@@ -459,7 +459,7 @@ wav_abort_:
 	return 1;
 }
 
-int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__bool is_last_file, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
+int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, FLAC__bool is_last_file, FLAC__bool verbose, FLAC__uint64 skip, FLAC__bool verify, FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_escape_coding, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned sample_rate)
 {
 	encoder_wrapper_struct encoder_wrapper;
 	size_t bytes_read;
@@ -537,7 +537,7 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 		fseek(infile, 0, SEEK_SET);
 	}
 
-	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
+	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_escape_coding, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
 		goto raw_abort_;
 
 	encoder_wrapper.verify_fifo.into_frames = true;
@@ -643,7 +643,7 @@ FLAC__bool init(encoder_wrapper_struct *encoder_wrapper)
 	return true;
 }
 
-FLAC__bool init_encoder(FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper)
+FLAC__bool init_encoder(FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose_mid_side, FLAC__bool do_exhaustive_model_search, FLAC__bool do_escape_coding, FLAC__bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper)
 {
 	unsigned i;
 
@@ -695,6 +695,7 @@ FLAC__bool init_encoder(FLAC__bool lax, FLAC__bool do_mid_side, FLAC__bool loose
 	FLAC__stream_encoder_set_max_lpc_order(encoder_wrapper->encoder, max_lpc_order);
 	FLAC__stream_encoder_set_qlp_coeff_precision(encoder_wrapper->encoder, qlp_coeff_precision);
 	FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder_wrapper->encoder, do_qlp_coeff_prec_search);
+	FLAC__stream_encoder_set_do_escape_coding(encoder_wrapper->encoder, do_escape_coding);
 	FLAC__stream_encoder_set_do_exhaustive_model_search(encoder_wrapper->encoder, do_exhaustive_model_search);
 	FLAC__stream_encoder_set_min_residual_partition_order(encoder_wrapper->encoder, min_residual_partition_order);
 	FLAC__stream_encoder_set_max_residual_partition_order(encoder_wrapper->encoder, max_residual_partition_order);
@@ -1095,11 +1096,23 @@ FLAC__StreamDecoderWriteStatus verify_write_callback(const FLAC__StreamDecoder *
 
 	for(channel = 0; channel < channels; channel++) {
 		if(0 != memcmp(buffer[channel], encoder_wrapper->verify_fifo.original[channel], bytes_per_block)) {
+			unsigned sample = 0;
+			int expect = 0, got = 0;
 			fprintf(stderr, "\n%s: ERROR: mismatch in decoded data, verify FAILED!\n", encoder_wrapper->inbasefilename);
 			fprintf(stderr, "       Please submit a bug report to\n");
 			fprintf(stderr, "           http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
 			fprintf(stderr, "       Make sure to include an email contact in the comment and/or use the\n");
 			fprintf(stderr, "       \"Monitor\" feature to monitor the bug status.\n");
+			for(l = 0, r = FLAC__stream_decoder_get_blocksize(decoder); l < r; l++) {
+				if(buffer[channel][l] != encoder_wrapper->verify_fifo.original[channel][l]) {
+					sample = l;
+					expect = (int)encoder_wrapper->verify_fifo.original[channel][l];
+					got = (int)buffer[channel][l];
+					break;
+				}
+			}
+			FLAC__ASSERT(l < r);
+			fprintf(stderr, "       Absolute sample=%u, frame=%u, channel=%u, sample=%u, expected %d, got %d\n", (unsigned)frame->header.number.sample_number + sample, (unsigned)frame->header.number.sample_number / FLAC__stream_decoder_get_blocksize(decoder), channel, sample, expect, got); /*@@@ WATCHOUT: 4GB limit */
 			return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}
 	}
