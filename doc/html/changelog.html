@@ -155,6 +155,7 @@
 					<UL>
 						<LI><B>Changed:</B> Metadata object interface now maintains a trailing NULL on Vorbis comment values for convenience.</LI>
 						<LI><B>Changed:</B> Metadata object interface now validates all Vorbis comment entries on input and returns false if an entry does not conform to the Vorbis comment spec.</LI>
+						<LI><B>Changed:</B> All Metadata objects' operator=() methods now return a reference to themselves.</LI>
 						<LI><B>Added</B> methods to FLAC::Metadata::VorbisComment::Entry for setting comment values from null-terminated strings:
 							<UL>
 								<LI>Entry(const char *field)</LI>
@@ -164,6 +165,8 @@
 							</UL>
 						</LI>
 						<LI><B>Changed</B> the signature of FLAC::Metadata::VorbisComment::get_vendor_string() and FLAC::Metadata::VorbisComment::set_vendor_string() to use a UTF-8, NUL-terminated string <TT>const FLAC__byte *</TT> for the vendor string instead of <TT>FLAC::Metadata::VorbisComment::Entry</TT>.</LI>
+						<LI><B>Added</B> FLAC::Metadata::*::assign() to all Metadata objects.</LI>
+						<LI><B>Added</B> bool FLAC::Metadata::get_tags(const char *filename, VorbisComment &tags)</LI>
 					</UL>
 				</LI>
 				<LI>

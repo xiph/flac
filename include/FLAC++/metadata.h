@@ -126,10 +126,15 @@ namespace FLAC {
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
-			void operator=(const Prototype &);
-			void operator=(const ::FLAC__StreamMetadata &);
-			void operator=(const ::FLAC__StreamMetadata *);
+			Prototype &operator=(const Prototype &);
+			Prototype &operator=(const ::FLAC__StreamMetadata &);
+			Prototype &operator=(const ::FLAC__StreamMetadata *);
 			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			Prototype &assign_object(::FLAC__StreamMetadata *object, bool copy);
 
 			/** Deletes the underlying ::FLAC__StreamMetadata object.
 			 */
@@ -278,10 +283,15 @@ namespace FLAC {
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
-			inline void operator=(const StreamInfo &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
+			inline StreamInfo &operator=(const StreamInfo &object) { Prototype::operator=(object); return *this; }
+			inline StreamInfo &operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); return *this; }
+			inline StreamInfo &operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); return *this; }
 			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline StreamInfo &assign(::FLAC__StreamMetadata *object, bool copy) { Prototype::assign_object(object, copy); return *this; }
 
 			//@{
 			/** Check for equality, performing a deep compare by following pointers. */
@@ -346,10 +356,15 @@ namespace FLAC {
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
-			inline void operator=(const Padding &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
+			inline Padding &operator=(const Padding &object) { Prototype::operator=(object); return *this; }
+			inline Padding &operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); return *this; }
+			inline Padding &operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); return *this; }
 			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline Padding &assign(::FLAC__StreamMetadata *object, bool copy) { Prototype::assign_object(object, copy); return *this; }
 
 			//@{
 			/** Check for equality, performing a deep compare by following pointers. */
@@ -393,10 +408,15 @@ namespace FLAC {
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
-			inline void operator=(const Application &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
+			inline Application &operator=(const Application &object) { Prototype::operator=(object); return *this; }
+			inline Application &operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); return *this; }
+			inline Application &operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); return *this; }
 			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline Application &assign(::FLAC__StreamMetadata *object, bool copy) { Prototype::assign_object(object, copy); return *this; }
 
 			//@{
 			/** Check for equality, performing a deep compare by following pointers. */
@@ -446,10 +466,15 @@ namespace FLAC {
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
-			inline void operator=(const SeekTable &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
+			inline SeekTable &operator=(const SeekTable &object) { Prototype::operator=(object); return *this; }
+			inline SeekTable &operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); return *this; }
+			inline SeekTable &operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); return *this; }
 			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline SeekTable &assign(::FLAC__StreamMetadata *object, bool copy) { Prototype::assign_object(object, copy); return *this; }
 
 			//@{
 			/** Check for equality, performing a deep compare by following pointers. */
@@ -527,7 +552,7 @@ namespace FLAC {
 
 				Entry(const Entry &entry);
 
-				void operator=(const Entry &entry);
+				Entry &operator=(const Entry &entry);
 
 				virtual ~Entry();
 
@@ -588,10 +613,15 @@ namespace FLAC {
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
-			inline void operator=(const VorbisComment &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
+			inline VorbisComment &operator=(const VorbisComment &object) { Prototype::operator=(object); return *this; }
+			inline VorbisComment &operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); return *this; }
+			inline VorbisComment &operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); return *this; }
 			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline VorbisComment &assign(::FLAC__StreamMetadata *object, bool copy) { Prototype::assign_object(object, copy); return *this; }
 
 			//@{
 			/** Check for equality, performing a deep compare by following pointers. */
@@ -645,7 +675,7 @@ namespace FLAC {
 				Track();
 				Track(const ::FLAC__StreamMetadata_CueSheet_Track *track);
 				Track(const Track &track);
-				void operator=(const Track &track);
+				Track &operator=(const Track &track);
 
 				virtual ~Track();
 
@@ -693,10 +723,15 @@ namespace FLAC {
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
-			inline void operator=(const CueSheet &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
+			inline CueSheet &operator=(const CueSheet &object) { Prototype::operator=(object); return *this; }
+			inline CueSheet &operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); return *this; }
+			inline CueSheet &operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); return *this; }
 			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline CueSheet &assign(::FLAC__StreamMetadata *object, bool copy) { Prototype::assign_object(object, copy); return *this; }
 
 			//@{
 			/** Check for equality, performing a deep compare by following pointers. */
@@ -771,10 +806,15 @@ namespace FLAC {
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
-			inline void operator=(const Unknown &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); }
-			inline void operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); }
+			inline Unknown &operator=(const Unknown &object) { Prototype::operator=(object); return *this; }
+			inline Unknown &operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); return *this; }
+			inline Unknown &operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); return *this; }
 			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline Unknown &assign(::FLAC__StreamMetadata *object, bool copy) { Prototype::assign_object(object, copy); return *this; }
 
 			//@{
 			/** Check for equality, performing a deep compare by following pointers. */
@@ -817,6 +857,7 @@ namespace FLAC {
 
 	 	//! See FLAC__metadata_get_tags().
 		FLACPP_API bool get_tags(const char *filename, VorbisComment *&tags);
+		FLACPP_API bool get_tags(const char *filename, VorbisComment &tags);
 
 		/* \} */
 

@@ -152,27 +152,39 @@ namespace FLAC {
 			object_ = 0;
 		}
 
-		void Prototype::operator=(const Prototype &object)
+		Prototype &Prototype::operator=(const Prototype &object)
 		{
 			FLAC__ASSERT(object.is_valid());
 			clear();
 			is_reference_ = false;
 			object_ = ::FLAC__metadata_object_clone(object.object_);
+			return *this;
 		}
 
-		void Prototype::operator=(const ::FLAC__StreamMetadata &object)
+		Prototype &Prototype::operator=(const ::FLAC__StreamMetadata &object)
 		{
 			clear();
 			is_reference_ = false;
 			object_ = ::FLAC__metadata_object_clone(&object);
+			return *this;
 		}
 
-		void Prototype::operator=(const ::FLAC__StreamMetadata *object)
+		Prototype &Prototype::operator=(const ::FLAC__StreamMetadata *object)
 		{
 			FLAC__ASSERT(0 != object);
 			clear();
 			is_reference_ = false;
 			object_ = ::FLAC__metadata_object_clone(object);
+			return *this;
+		}
+
+		Prototype &Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy)
+		{
+			FLAC__ASSERT(0 != object);
+			clear();
+			object_ = (copy? ::FLAC__metadata_object_clone(object) : object);
+			is_reference_ = false;
+			return *this;
 		}
 
 		bool Prototype::get_is_last() const
@@ -486,11 +498,12 @@ namespace FLAC {
 			construct((const char *)entry.entry_.entry, entry.entry_.length);
 		}
 
-		void VorbisComment::Entry::operator=(const Entry &entry)
+		VorbisComment::Entry &VorbisComment::Entry::operator=(const Entry &entry)
 		{
 			FLAC__ASSERT(entry.is_valid());
 			clear();
 			construct((const char *)entry.entry_.entry, entry.entry_.length);
+			return *this;
 		}
 
 		VorbisComment::Entry::~Entry()
@@ -830,11 +843,12 @@ namespace FLAC {
 		object_(::FLAC__metadata_object_cuesheet_track_clone(track.object_))
 		{ }
 
-		void CueSheet::Track::operator=(const Track &track)
+		CueSheet::Track &CueSheet::Track::operator=(const Track &track)
 		{
 			if(0 != object_)
 				::FLAC__metadata_object_cuesheet_track_delete(object_);
 			object_ = ::FLAC__metadata_object_cuesheet_track_clone(track.object_);
+			return *this;
 		}
 
 		CueSheet::Track::~Track()
@@ -1054,6 +1068,20 @@ namespace FLAC {
 
 			if(::FLAC__metadata_get_tags(filename, &object)) {
 				tags = new VorbisComment(object, /*copy=*/false);
+				return true;
+			}
+			else
+				return false;
+		}
+
+		FLACPP_API bool get_tags(const char *filename, VorbisComment &tags)
+		{
+			FLAC__ASSERT(0 != filename);
+
+			::FLAC__StreamMetadata *object;
+
+			if(::FLAC__metadata_get_tags(filename, &object)) {
+				tags.assign(object, /*copy=*/false);
 				return true;
 			}
 			else
