@@ -32,7 +32,7 @@ test_cuesheet -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_cuesheet 
 run_test_cuesheet ()
 {
 	if [ "$FLAC__VALGRIND" = yes ] ; then
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=10 --logfile-fd=4 test_cuesheet $* 4>>valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 test_cuesheet $* 4>>valgrind.log
 	else
 		test_cuesheet $*
 	fi

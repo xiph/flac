@@ -35,7 +35,7 @@ metaflac --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac execut
 run_flac ()
 {
 	if [ "$FLAC__VALGRIND" = yes ] ; then
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=10 --logfile-fd=4 flac $* 4>>valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 flac $* 4>>valgrind.log
 	else
 		flac $*
 	fi
@@ -44,7 +44,7 @@ run_flac ()
 run_metaflac ()
 {
 	if [ "$FLAC__VALGRIND" = yes ] ; then
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=10 --logfile-fd=4 metaflac $* 4>>valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 metaflac $* 4>>valgrind.log
 	else
 		metaflac $*
 	fi
