@@ -391,22 +391,24 @@ extern const unsigned FLAC__STREAM_METADATA_APPLICATION_ID_LEN; /* = 32 bits */
 
 /*****************************************************************************
  *
- *  64: sample number
- *  64: offset, in bytes, from beginning of first frame to target frame
- *  16: offset, in samples, from the first sample in the target frame to the target sample
+ *  64: sample number of target frame
+ *  64: offset, in bytes, of target frame with respect to beginning of first frame
+ *  16: number of samples in the target frame
  *----- -----------------
  *  18  bytes total
  */
 typedef struct {
 	uint64 sample_number;
 	uint64 stream_offset;
-	unsigned block_offset;
+	unsigned frame_samples;
 } FLAC__StreamMetaData_SeekPoint;
 
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN; /* = 64 bits */
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN; /* = 64 bits */
-extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_BLOCK_OFFSET_LEN; /* = 16 bits */
+extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN; /* = 16 bits */
 extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LEN; /* = 18 bytes */
+
+extern const uint64 FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER; /* = 0xffffffffffffffff */
 
 /*****************************************************************************
  *
@@ -416,6 +418,7 @@ extern const unsigned FLAC__STREAM_METADATA_SEEKPOINT_LEN; /* = 18 bytes */
  *   n*18  bytes total
  *
  * NOTE: the seek points must be sorted by ascending sample number.
+ * NOTE: each seek point's sample number must be the first sample of the target frame.
  * NOTE: each seek point's sample number must be unique within the table.
  * NOTE: existence of a SEEKTABLE block implies a correct setting of total_samples in the stream_info block.
  * NOTE: behavior is undefined when more than one SEEKTABLE block is present in a stream.
