@@ -694,7 +694,6 @@ FLAC__StreamDecoderReadStatus verify_read_callback(const FLAC__StreamDecoder *de
 		memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
 	}
 	else {
-fprintf(stderr,"@@@ verify_read_callback: encoded_bytes=%u, *bytes=%u\n",encoded_bytes,*bytes);
 		memcpy(buffer, encoder_wrapper->verify_fifo.encoded_signal, *bytes);
 		encoder_wrapper->verify_fifo.encoded_signal += *bytes;
 		encoder_wrapper->verify_fifo.encoded_bytes -= *bytes;
