@@ -35,7 +35,11 @@
 #define FLAC__INLINE
 #endif
 
-/* 32-bit pseudo-random number generator */
+/* 32-bit pseudo-random number generator
+ *
+ * @@@ According to Miroslav, this one is poor quality, the one from the
+ * @@@ original replaygain code is much better
+ */
 static FLAC__INLINE FLAC__uint32 prng(FLAC__uint32 state)
 {
 	return (state * 0x0019660dL + 0x3c6ef35fL) & 0xffffffffL;
