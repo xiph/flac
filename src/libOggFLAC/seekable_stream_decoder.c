@@ -48,6 +48,7 @@ static FLAC__bool eof_callback_(const FLAC__SeekableStreamDecoder *decoder, void
 static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void metadata_callback_(const FLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+static OggFLAC__OggDecoderAspectReadStatus read_callback_proxy_(const void *void_decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 
 
 /***********************************************************************
@@ -604,8 +605,14 @@ FLAC__SeekableStreamDecoderReadStatus read_callback_(const FLAC__SeekableStreamD
 
 	(void)unused;
 
-	switch(OggFLAC__ogg_decoder_aspect_read_callback_wrapper(&decoder->protected_->ogg_decoder_aspect, buffer, bytes, (OggFLAC__OggDecoderAspectReadCallbackProxy)decoder->private_->read_callback, decoder, decoder->private_->client_data)) {
+	switch(OggFLAC__ogg_decoder_aspect_read_callback_wrapper(&decoder->protected_->ogg_decoder_aspect, buffer, bytes, read_callback_proxy_, decoder, decoder->private_->client_data)) {
 		case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_OK:
+			return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK;
+		/* we don't really have a way to handle lost sync via read
+		 * callback so we'll let it pass and let the underlying
+		 * FLAC decoder catch the error
+		 */
+		case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC:
 			return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK;
 		case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM:
 			return FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK;
@@ -674,4 +681,23 @@ void error_callback_(const FLAC__SeekableStreamDecoder *unused, FLAC__StreamDeco
 	OggFLAC__SeekableStreamDecoder *decoder = (OggFLAC__SeekableStreamDecoder*)client_data;
 	(void)unused;
 	decoder->private_->error_callback(decoder, status, decoder->private_->client_data);
+}
+
+OggFLAC__OggDecoderAspectReadStatus read_callback_proxy_(const void *void_decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+{
+	OggFLAC__SeekableStreamDecoder *decoder = (OggFLAC__SeekableStreamDecoder*)void_decoder;
+
+	switch(decoder->private_->read_callback(decoder, buffer, bytes, client_data)) {
+		case FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK:
+			if (*bytes == 0)
+				return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM;
+			else
+				return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
+		case FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR:
+			return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT;
+		default:
+			/* double protection: */
+			FLAC__ASSERT(0);
+			return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT;
+	}
 }
