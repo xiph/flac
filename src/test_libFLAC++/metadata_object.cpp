@@ -80,10 +80,10 @@ static void init_metadata_blocks_()
 
 	vorbiscomment_.is_last = true;
 	vorbiscomment_.type = ::FLAC__METADATA_TYPE_VORBIS_COMMENT;
-	vorbiscomment_.length = (4 + 8) + 4 + (4 + 5) + (4 + 0);
+	vorbiscomment_.length = (4 + 5) + 4 + (4 + 12) + (4 + 12);
 	vorbiscomment_.data.vorbis_comment.vendor_string.length = 5;
 	vorbiscomment_.data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc_or_die_(5);
-	memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, "name0", 8);
+	memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, "name0", 5);
 	vorbiscomment_.data.vorbis_comment.num_comments = 2;
 	vorbiscomment_.data.vorbis_comment.comments = (::FLAC__StreamMetadata_VorbisComment_Entry*)malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(::FLAC__StreamMetadata_VorbisComment_Entry));
 	vorbiscomment_.data.vorbis_comment.comments[0].length = 12;
