@@ -21,6 +21,8 @@
 all: clean
 	./test_libFLAC.sh
 	./test_libFLAC++.sh
+	./test_libOggFLAC.sh
+	./test_libOggFLAC++.sh
 	./test_metaflac.sh
 	./test_streams.sh
 	./test_bins.sh

@@ -1,5 +1,7 @@
+#!/bin/sh
+
 #  FLAC - Free Lossless Audio Codec
-#  Copyright (C) 2001,2002  Josh Coalson
+#  Copyright (C) 2002  Josh Coalson
 #
 #  This program is part of FLAC; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -15,30 +17,12 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-if FLaC__HAS_XMMS
-XMMS_DIRS = plugin_xmms
-endif
+LD_LIBRARY_PATH=../src/libOggFLAC/.libs../src/libFLAC/.libs:../obj/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH
+PATH=../src/test_libOggFLAC:../obj/bin:$PATH
+export PATH
 
-if FLaC__HAS_OGG
-OGGFLAC_DIRS = libOggFLAC libOggFLAC++
-#@@@@ tests not written yet: test_libOggFLAC++
-OGGFLAC_TEST_DIRS = test_libOggFLAC
-endif
-
-EXTRA_DIST = \
-	monkeys_audio_utilities \
-	plugin_winamp2 \
-	plugin_winamp3
-
-SUBDIRS = \
-	libFLAC \
-	libFLAC++ \
-	$(OGGFLAC_DIRS) \
-	share \
-	flac \
-	metaflac \
-	$(XMMS_DIRS) \
-	test_libFLAC \
-	test_libFLAC++ \
-	$(OGGFLAC_TEST_DIRS) \
-	test_streams
+if test_libOggFLAC ; then : ; else
+	echo "ERROR during test_libOggFLAC" 1>&2
+	exit 1
+fi

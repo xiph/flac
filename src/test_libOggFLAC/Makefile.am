@@ -1,7 +1,7 @@
-#  FLAC - Free Lossless Audio Codec
-#  Copyright (C) 2001,2002  Josh Coalson
+#  test_libOggFLAC - Unit tester for libOggFLAC
+#  Copyright (C) 2002  Josh Coalson
 #
-#  This program is part of FLAC; you can redistribute it and/or
+#  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
@@ -15,30 +15,22 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-if FLaC__HAS_XMMS
-XMMS_DIRS = plugin_xmms
-endif
-
-if FLaC__HAS_OGG
-OGGFLAC_DIRS = libOggFLAC libOggFLAC++
-#@@@@ tests not written yet: test_libOggFLAC++
-OGGFLAC_TEST_DIRS = test_libOggFLAC
-endif
-
 EXTRA_DIST = \
-	monkeys_audio_utilities \
-	plugin_winamp2 \
-	plugin_winamp3
+	Makefile.lite \
+	Makefile.vc
 
-SUBDIRS = \
-	libFLAC \
-	libFLAC++ \
-	$(OGGFLAC_DIRS) \
-	share \
-	flac \
-	metaflac \
-	$(XMMS_DIRS) \
-	test_libFLAC \
-	test_libFLAC++ \
-	$(OGGFLAC_TEST_DIRS) \
-	test_streams
+CFLAGS = @CFLAGS@ @OGG_CFLAGS@
+INCLUDES = 
+
+noinst_PROGRAMS = test_libOggFLAC
+test_libOggFLAC_LDADD = $(top_builddir)/src/libOggFLAC/libOggFLAC.la $(top_builddir)/src/libOggFLAC/libFLAC.la @OGG_LIBS@ -lm
+test_libOggFLAC_SOURCES = \
+	decoders.c \
+	encoders.c \
+	file_utils.c \
+	main.c \
+	metadata_utils.c \
+	decoders.h \
+	encoders.h \
+	file_utils.h \
+	metadata_utils.h
