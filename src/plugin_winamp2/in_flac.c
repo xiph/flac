@@ -99,8 +99,8 @@ int play(char *fn)
 	}
 
 	input_file = CreateFile(fn, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (input_file == INVALID_HANDLE_VALUE) {
-		return 1;
+	if(input_file == INVALID_HANDLE_VALUE) {
+		return -1;
 	}
 	CloseHandle(input_file);
 
