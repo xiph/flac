@@ -22,7 +22,7 @@
 #include "analyze.h"
 
 /* outfile == 0 => test only */
-int decode_wav(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip);
-int decode_raw(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples);
+int flac__decode_wav(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip);
+int flac__decode_raw(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples);
 
 #endif

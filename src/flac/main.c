@@ -558,9 +558,9 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 		forced_outfilename = outfilename;
 
 	if(format_is_wave)
-		return encode_wav(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
+		return flac__encode_wav(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
 	else
-		return encode_raw(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+		return flac__encode_raw(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
 }
 
 int decode_file(const char *infilename, const char *forced_outfilename)
@@ -599,7 +599,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 		forced_outfilename = outfilename;
 
 	if(format_is_wave)
-		return decode_wav(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip);
+		return flac__decode_wav(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip);
 	else
-		return decode_raw(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
+		return flac__decode_raw(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
 }

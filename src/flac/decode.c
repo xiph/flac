@@ -59,7 +59,7 @@ static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__Stre
 static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void print_stats(const stream_info_struct *stream_info);
 
-int decode_wav(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip)
+int flac__decode_wav(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip)
 {
 	bool md5_failure = false;
 	stream_info_struct stream_info;
@@ -170,7 +170,7 @@ wav_abort_:
 	return 1;
 }
 
-int decode_raw(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples)
+int flac__decode_raw(const char *infile, const char *outfile, bool analysis_mode, analysis_options aopts, bool verbose, uint64 skip, bool is_big_endian, bool is_unsigned_samples)
 {
 	bool md5_failure = false;
 	stream_info_struct stream_info;
