@@ -143,6 +143,8 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetad
 
 	FLAC__file_decoder_set_md5_checking(decoder, false);
 	FLAC__file_decoder_set_filename(decoder, filename);
+	FLAC__file_decoder_set_metadata_ignore_all(decoder);
+	FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_STREAMINFO);
 	FLAC__file_decoder_set_write_callback(decoder, write_callback_);
 	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback_);
 	FLAC__file_decoder_set_error_callback(decoder, error_callback_);
@@ -155,7 +157,7 @@ FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetad
 	}
 
 	/* the first thing decoded must be the STREAMINFO block: */
-	if(!FLAC__file_decoder_process_single(decoder) || cd.got_error) {
+	if(!FLAC__file_decoder_process_until_end_of_metadata(decoder) || cd.got_error) {
 		FLAC__file_decoder_finish(decoder);
 		FLAC__file_decoder_delete(decoder);
 		return false;
@@ -1396,7 +1398,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_streaminfo_(FILE *f
 	block->max_framesize = unpack_uint32_(b, 3); b += 3;
 	block->sample_rate = (unpack_uint32_(b, 2) << 4) | ((unsigned)(b[2] & 0xf0) >> 4);
 	block->channels = (unsigned)((b[2] & 0x0e) >> 1) + 1;
-	block->bits_per_sample = ((((unsigned)(b[2] & 0x01)) << 1) | (((unsigned)(b[3] & 0xf0)) >> 4)) + 1;
+	block->bits_per_sample = ((((unsigned)(b[2] & 0x01)) << 4) | (((unsigned)(b[3] & 0xf0)) >> 4)) + 1;
 	block->total_samples = (((FLAC__uint64)(b[3] & 0x0f)) << 32) | unpack_uint64_(b+4, 4);
 	memcpy(block->md5sum, b+8, 16);
 
