@@ -405,7 +405,7 @@ int usage(const char *message, ...)
 	printf("         0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	printf("  -r # : rice parameter optimization level (# is 0..99, 0 => none, default is\n");
 	printf("         -r 0, above 4 doesn't usually help much)\n");
-	printf("  -V   : verify a correct encoding by decoding the output in parallel and\n")
+	printf("  -V   : verify a correct encoding by decoding the output in parallel and\n");
 	printf("         comparing to the original\n");
 	printf("  -S-, -m-, -M-, -e-, -p-, -V-, --lax- can all be used to turn off a particular\n");
 	printf("  option\n");
