@@ -216,6 +216,9 @@ AC_ARG_ENABLE(exhaustive-tests,
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-exhaustive-tests) ;;
 esac],[exhaustive_tests=false])
 AM_CONDITIONAL(FLaC__EXHAUSTIVE_TESTS, test x$exhaustive_tests = xtrue)
+if test x$exhaustive_tests = xtrue ; then
+AC_DEFINE(FLAC__EXHAUSTIVE_TESTS)
+fi
 
 AC_ARG_ENABLE(valgrind-testing,
 [  --enable-valgrind-testing      Run all tests inside Valgrind],
@@ -225,6 +228,9 @@ AC_ARG_ENABLE(valgrind-testing,
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-valgrind-testing) ;;
 esac],[valgrind_testing=false])
 AM_CONDITIONAL(FLaC__VALGRIND_TESTING, test x$valgrind_testing = xtrue)
+if test x$valgrind_testing = xtrue ; then
+AC_DEFINE(FLAC__VALGRIND_TESTING)
+fi
 
 dnl check for ogg library
 XIPH_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
