@@ -204,8 +204,7 @@ int FlacPcm::corecb_onSeeked(int newpos)
 void FlacPcm::cleanup()
 {
 	if(decoder) {
-		if(FLAC__seekable_stream_decoder_get_state(decoder) != FLAC__SEEKABLE_STREAM_DECODER_UNINITIALIZED)
-			FLAC__seekable_stream_decoder_finish(decoder);
+		FLAC__seekable_stream_decoder_finish(decoder);
 		FLAC__seekable_stream_decoder_delete(decoder);
 		decoder = 0;
 	}

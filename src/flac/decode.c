@@ -213,8 +213,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 #ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(stream_info.decoder.stream) {
-			if(FLAC__stream_decoder_get_state(stream_info.decoder.stream) != FLAC__STREAM_DECODER_UNINITIALIZED)
-				FLAC__stream_decoder_finish(stream_info.decoder.stream);
+			FLAC__stream_decoder_finish(stream_info.decoder.stream);
 			md5_failure = false;
 			print_stats(&stream_info);
 			FLAC__stream_decoder_delete(stream_info.decoder.stream);
@@ -224,8 +223,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 #endif
 	{
 		if(stream_info.decoder.file) {
-			if(FLAC__file_decoder_get_state(stream_info.decoder.file) != FLAC__FILE_DECODER_UNINITIALIZED)
-				md5_failure = !FLAC__file_decoder_finish(stream_info.decoder.file);
+			md5_failure = !FLAC__file_decoder_finish(stream_info.decoder.file);
 			print_stats(&stream_info);
 			FLAC__file_decoder_delete(stream_info.decoder.file);
 		}
@@ -252,8 +250,7 @@ wav_abort_:
 #ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(stream_info.decoder.stream) {
-			if(FLAC__stream_decoder_get_state(stream_info.decoder.stream) != FLAC__STREAM_DECODER_UNINITIALIZED)
-				FLAC__stream_decoder_finish(stream_info.decoder.stream);
+			FLAC__stream_decoder_finish(stream_info.decoder.stream);
 			FLAC__stream_decoder_delete(stream_info.decoder.stream);
 		}
 	}
@@ -261,8 +258,7 @@ wav_abort_:
 #endif
 	{
 		if(stream_info.decoder.file) {
-			if(FLAC__file_decoder_get_state(stream_info.decoder.file) != FLAC__FILE_DECODER_UNINITIALIZED)
-				FLAC__file_decoder_finish(stream_info.decoder.file);
+			FLAC__file_decoder_finish(stream_info.decoder.file);
 			FLAC__file_decoder_delete(stream_info.decoder.file);
 		}
 	}
@@ -403,8 +399,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 #ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(stream_info.decoder.stream) {
-			if(FLAC__stream_decoder_get_state(stream_info.decoder.stream) != FLAC__STREAM_DECODER_UNINITIALIZED)
-				FLAC__stream_decoder_finish(stream_info.decoder.stream);
+			FLAC__stream_decoder_finish(stream_info.decoder.stream);
 			md5_failure = false;
 			print_stats(&stream_info);
 			FLAC__stream_decoder_delete(stream_info.decoder.stream);
@@ -414,8 +409,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 #endif
 	{
 		if(stream_info.decoder.file) {
-			if(FLAC__file_decoder_get_state(stream_info.decoder.file) != FLAC__FILE_DECODER_UNINITIALIZED)
-				md5_failure = !FLAC__file_decoder_finish(stream_info.decoder.file);
+			md5_failure = !FLAC__file_decoder_finish(stream_info.decoder.file);
 			print_stats(&stream_info);
 			FLAC__file_decoder_delete(stream_info.decoder.file);
 		}
@@ -442,8 +436,7 @@ raw_abort_:
 #ifdef FLAC__HAS_OGG
 	if(stream_info.is_ogg) {
 		if(stream_info.decoder.stream) {
-			if(FLAC__stream_decoder_get_state(stream_info.decoder.stream) != FLAC__STREAM_DECODER_UNINITIALIZED)
-				FLAC__stream_decoder_finish(stream_info.decoder.stream);
+			FLAC__stream_decoder_finish(stream_info.decoder.stream);
 			FLAC__stream_decoder_delete(stream_info.decoder.stream);
 		}
 	}
@@ -451,8 +444,7 @@ raw_abort_:
 #endif
 	{
 		if(stream_info.decoder.file) {
-			if(FLAC__file_decoder_get_state(stream_info.decoder.file) != FLAC__FILE_DECODER_UNINITIALIZED)
-				FLAC__file_decoder_finish(stream_info.decoder.file);
+			FLAC__file_decoder_finish(stream_info.decoder.file);
 			FLAC__file_decoder_delete(stream_info.decoder.file);
 		}
 	}
