@@ -29,8 +29,11 @@
 #ifdef false
 #undef false
 #endif
-#ifdef byte
-#undef byte
+#ifdef int8
+#undef int8
+#endif
+#ifdef uint8
+#undef uint8
 #endif
 #ifdef int16
 #undef int16
@@ -50,6 +53,9 @@
 #ifdef uint64
 #undef uint64
 #endif
+#ifdef byte
+#undef byte
+#endif
 #ifdef real
 #undef real
 #endif
@@ -58,10 +64,11 @@
 #define false 0
 
 typedef int bool;
-typedef unsigned char byte;
-typedef short int16;
+typedef signed char int8;
+typedef unsigned char uint8;
+typedef signed short int16;
 typedef unsigned short uint16;
-typedef int int32;
+typedef signed int int32;
 typedef unsigned int uint32;
 #if defined _WIN32 && !defined __CYGWIN__
 typedef __int64 int64;
@@ -70,6 +77,7 @@ typedef unsigned __int64 uint64;
 typedef long long int int64;
 typedef unsigned long long uint64;
 #endif
+typedef uint8 byte;
 typedef double real;
 
 #endif
