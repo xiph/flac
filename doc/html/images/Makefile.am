@@ -22,7 +22,6 @@ docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/html/images
 doc_DATA = \
 	1x1.gif \
 	cafebug.gif \
-	logo.jpg \
 	logo100.gif \
 	logo130.gif
 
