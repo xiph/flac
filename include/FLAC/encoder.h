@@ -69,6 +69,7 @@ typedef struct {
 	bool     do_exhaustive_model_search;  /* 0 => use estimated bits per residual for scoring, 1 => generate all, take shortest */
 	unsigned rice_optimization_level;     /* 0 => estimate Rice parameter based on residual variance, 1-8 => partition residual, use parameter for each */
 	uint64   total_samples_estimate;      /* may be 0 if unknown.  this will be a placeholder in the metadata block until the actual total is calculated */
+	unsigned padding;                     /* size of PADDING block to add; 0 => do not add a PADDING block */
 } FLAC__Encoder;
 
 
