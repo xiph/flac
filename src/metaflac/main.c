@@ -127,7 +127,8 @@ int usage(const char *message, ...)
 
 bool list(FILE *f, bool verbose)
 {
-	byte buf[65536], *b;
+	byte buf[65536];
+	byte *b;
 	FLAC__StreamMetaData metadata;
 	unsigned blocknum = 0, byte_offset = 0, i;
 
@@ -239,7 +240,7 @@ bool list(FILE *f, bool verbose)
 	return true;
 }
 
-static uint32 unpack_uint32(byte *b, unsigned bytes)
+uint32 unpack_uint32(byte *b, unsigned bytes)
 {
 	uint32 ret = 0;
 	unsigned i;
@@ -250,7 +251,7 @@ static uint32 unpack_uint32(byte *b, unsigned bytes)
 	return ret;
 }
 
-static uint64 unpack_uint64(byte *b, unsigned bytes)
+uint64 unpack_uint64(byte *b, unsigned bytes)
 {
 	uint64 ret = 0;
 	unsigned i;
