@@ -19,7 +19,9 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#if !defined _MSC_VER && !defined __MINGW32__
+#if defined _MSC_VER || defined __MINGW32__
+#include <time.h>
+#else
 #include <sys/time.h>
 #endif
 #include "FLAC/assert.h"
