@@ -911,63 +911,85 @@ void show_help()
 	usage_header();
 	usage_summary();
 	printf("generic options:\n");
-	printf("  -h, --help                   show this screen\n");
-	printf("  -H, --explain                show detailed explanation of usage and options\n");
-	printf("  -d, --decode                 decode (the default behavior is to encode)\n");
-	printf("  -t, --test                   same as -d except no decoded file is written\n");
-	printf("  -a, --analyze                same as -d except an analysis file is written\n");
-	printf("  -c, --stdout                 write output to stdout\n");
-	printf("  -s, --silent                 do not write runtime encode/decode statistics\n");
-	printf("  -o, --output-name=FILENAME   force the output file name\n");
-	printf("      --output-prefix=STRING   prepend STRING to output names\n");
-	printf("      --delete-input-file      deletes after a successful encode/decode\n");
-	printf("      --skip=#                 skip the first # samples of each input file\n");
+	printf("  -h, --help                   Show this screen\n");
+	printf("  -H, --explain                Show detailed explanation of usage and options\n");
+	printf("  -d, --decode                 Decode (the default behavior is to encode)\n");
+	printf("  -t, --test                   Same as -d except no decoded file is written\n");
+	printf("  -a, --analyze                Same as -d except an analysis file is written\n");
+	printf("  -c, --stdout                 Write output to stdout\n");
+	printf("  -s, --silent                 Do not write runtime encode/decode statistics\n");
+	printf("  -o, --output-name=FILENAME   Force the output file name\n");
+	printf("      --output-prefix=STRING   Prepend STRING to output names\n");
+	printf("      --delete-input-file      Deletes after a successful encode/decode\n");
+	printf("      --skip=#                 Skip the first # samples of each input file\n");
 	printf("analysis options:\n");
-	printf("      --residual-text          include residual signal in text output\n");
-	printf("      --residual-gnuplot       generate gnuplot files of residual distribution\n");
+	printf("      --residual-text          Include residual signal in text output\n");
+	printf("      --residual-gnuplot       Generate gnuplot files of residual distribution\n");
 	printf("decoding options:\n");
-	printf("  -F, --decode-through-errors  continue decoding through stream errors\n");
+	printf("  -F, --decode-through-errors  Continue decoding through stream errors\n");
 	printf("encoding options:\n");
+	printf("  -V, --verify                 Verify a correct encoding\n");
 #ifdef FLAC__HAS_OGG
-	printf("      --ogg                    output Ogg FLAC stream instead of native FLAC\n");
+	printf("      --ogg                    Use Ogg as transport layer\n");
 #endif
-	printf("      --lax                    allow encoder to generate non-Subset files\n");
-	printf("      --sector-align           align multiple files on sector boundaries\n");
-	printf("  -V, --verify                 verify a correct encoding\n");
-	printf("  -S, --seekpoint={#|X|#x}     add seek point(s)\n");
-	printf("  -P, --padding=#              write a PADDING block of length #\n");
-	printf("  -b, --blocksize=#            specify blocksize in samples\n");
-	printf("  -m, --mid-side               try mid-side coding for each frame\n");
-	printf("  -M, --adaptive-mid-side      adaptive mid-side coding for all frames\n");
-	printf("  -0, --compression-level-0, --fast  synonymous with -l 0 -b 1152 -r 2,2\n");
-	printf("  -1, --compression-level-1          synonymous with -l 0 -b 1152 -M -r 2,2\n");
-	printf("  -2, --compression-level-2          synonymous with -l 0 -b 1152 -m -r 3\n");
-	printf("  -3, --compression-level-3          synonymous with -l 6 -b 4608 -r 3,3\n");
-	printf("  -4, --compression-level-4          synonymous with -l 8 -b 4608 -M -r 3,3\n");
-	printf("  -5, --compression-level-5          synonymous with -l 8 -b 4608 -m -r 3,3\n");
-	printf("  -6, --compression-level-6          synonymous with -l 8 -b 4608 -m -r 4\n");
-	printf("  -7, --compression-level-7          synonymous with -l 8 -b 4608 -m -e -r 6\n");
-	printf("  -8, --compression-level-8, --best  synonymous with -l 12 -b 4608 -m -e -r 6\n");
-	printf("  -e, --exhaustive-model-search      do exhaustive model search (expensive!)\n");
+	printf("      --lax                    Allow encoder to generate non-Subset files\n");
+	printf("      --sector-align           Align multiple files on sector boundaries\n");
+	printf("  -S, --seekpoint={#|X|#x}     Add seek point(s)\n");
+	printf("  -P, --padding=#              Write a PADDING block of length #\n");
+	printf("  -b, --blocksize=#            Specify blocksize in samples\n");
+	printf("  -m, --mid-side               Try mid-side coding for each frame\n");
+	printf("  -M, --adaptive-mid-side      Adaptive mid-side coding for all frames\n");
+	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
+	printf("  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 2,2\n");
+	printf("  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3\n");
+	printf("  -3, --compression-level-3          Synonymous with -l 6 -b 4608 -r 3,3\n");
+	printf("  -4, --compression-level-4          Synonymous with -l 8 -b 4608 -M -r 3,3\n");
+	printf("  -5, --compression-level-5          Synonymous with -l 8 -b 4608 -m -r 3,3\n");
+	printf("  -6, --compression-level-6          Synonymous with -l 8 -b 4608 -m -r 4\n");
+	printf("  -7, --compression-level-7          Synonymous with -l 8 -b 4608 -m -e -r 6\n");
+	printf("  -8, --compression-level-8, --best  Synonymous with -l 12 -b 4608 -m -e -r 6\n");
+	printf("  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)\n");
 #if 0
 	/*@@@ deprecated: */
-	printf("  -E, --escape-coding                do escape coding in the entropy coder\n");
+	printf("  -E, --escape-coding                Do escape coding in the entropy coder\n");
 #endif
-	printf("  -l, --max-lpc-order=#              max LPC order; 0 => only fixed predictors\n");
-	printf("  -p, --qlp-coeff-precision-search   exhaustively search LP coeff quantization\n");
-	printf("  -q, --qlp-coeff-precision=#        specify precision in bits\n");
-	printf("  -r, --rice-partition-order=[#,]#   [min,]max residual partition order\n");
+	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors\n");
+	printf("  -p, --qlp-coeff-precision-search   Exhaustively search LP coeff quantization\n");
+	printf("  -q, --qlp-coeff-precision=#        Specify precision in bits\n");
+	printf("  -r, --rice-partition-order=[#,]#   Set [min,]max residual partition order\n");
 #if 0
 	/*@@@ deprecated: */
 	printf("  -R, -rice-parameter-search-distance=#   Rice parameter search distance\n");
 #endif
 	printf("format options:\n");
-	printf("      --endian={big|little}    set byte order for samples\n");
-	printf("      --channels=#             number of channels\n");
-	printf("      --bps=#                  number of bits per sample\n");
-	printf("      --sample-rate=#          sample rate in Hz\n");
-	printf("      --sign={signed|unsigned} sign of samples\n");
-	printf("      --force-raw-input        force input to be treated as raw samples\n");
+	printf("      --endian={big|little}    Set byte order for samples\n");
+	printf("      --channels=#             Number of channels\n");
+	printf("      --bps=#                  Number of bits per sample\n");
+	printf("      --sample-rate=#          Sample rate in Hz\n");
+	printf("      --sign={signed|unsigned} Sign of samples\n");
+	printf("      --force-raw-input        Force input to be treated as raw samples\n");
+	printf("negative options:\n");
+	printf("      --no-adaptive-mid-side\n");
+	printf("      --no-decode-through-errors\n");
+	printf("      --no-delete-input-file\n");
+#if 0
+/* @@@ deprecated: */
+	printf("      --no-escape-coding\n");
+#endif
+	printf("      --no-exhaustive-model-search\n");
+	printf("      --no-lax\n");
+	printf("      --no-mid-side\n");
+#ifdef FLAC__HAS_OGG
+	printf("      --no-ogg\n");
+#endif
+	printf("      --no-padding\n");
+	printf("      --no-qlp-coeff-prec-search\n");
+	printf("      --no-residual-gnuplot\n");
+	printf("      --no-residual-text\n");
+	printf("      --no-sector-align\n");
+	printf("      --no-seektable\n");
+	printf("      --no-silent\n");
+	printf("      --no-verify\n");
 }
 
 void show_explain()
@@ -994,42 +1016,42 @@ void show_explain()
 	printf("files using -fr.\n");
 	printf("\n");
 	printf("generic options:\n");
-	printf("  -h, --help                   show this screen\n");
-	printf("  -H, --explain                show detailed explanation of usage and options\n");
-	printf("  -d, --decode                 decode (the default behavior is to encode)\n");
-	printf("  -t, --test                   same as -d except no decoded file is written\n");
-	printf("  -a, --analyze                same as -d except an analysis file is written\n");
-	printf("  -c, --stdout                 write output to stdout\n");
-	printf("  -s, --silent                 do not write runtime encode/decode statistics\n");
-	printf("  -o, --output-name=FILENAME   force the output file name; usually flac just\n");
-	printf("                               changes the extension\n");
-	printf("      --output-prefix=STRING   prefix each output file name with the given\n");
+	printf("  -h, --help                   Show basic usage a list of all options\n");
+	printf("  -H, --explain                Show this screen\n");
+	printf("  -d, --decode                 Decode (the default behavior is to encode)\n");
+	printf("  -t, --test                   Same as -d except no decoded file is written\n");
+	printf("  -a, --analyze                Same as -d except an analysis file is written\n");
+	printf("  -c, --stdout                 Write output to stdout\n");
+	printf("  -s, --silent                 Do not write runtime encode/decode statistics\n");
+	printf("  -o, --output-name=FILENAME   Force the output file name; usually flac just\n");
+	printf("                               changes the extension.  May only be used when\n");
+	printf("                               encoding a single file.  May not be used in\n");
+	printf("                               conjunction with --output-prefix.\n");
+	printf("      --output-prefix=STRING   Prefix each output file name with the given\n");
 	printf("                               STRING.  This can be useful for encoding or\n");
 	printf("                               decoding files to a different directory.  Make\n");
 	printf("                               sure if your STRING is a path name that it ends\n");
 	printf("                               with a '/' slash.\n");
-	printf("      --delete-input-file      deletes after a successful encode/decode\n");
-	printf("      --skip=#                 skip the first # samples of each input file; can\n");
+	printf("      --delete-input-file      Automatically delete the input file after a\n");
+	printf("                               successful encode or decode.  If there was an\n");
+	printf("                               error (including a verify error) the input file\n");
+	printf("                               is left intact.\n");
+	printf("      --skip=#                 Skip the first # samples of each input file; can\n");
 	printf("                               be used both for encoding and decoding\n");
 	printf("analysis options:\n");
-	printf("      --residual-text          include residual signal in text output\n");
-	printf("      --residual-gnuplot       generate gnuplot files of residual distribution\n");
+	printf("      --residual-text          Include residual signal in text output.  This will make the file very big, much larger than even the decoded file.\n");
+	printf("      --residual-gnuplot       Generate gnuplot files of residual distribution\n");
 	printf("                               of each subframe\n");
 	printf("decoding options:\n");
-	printf("  -F, --decode-through-errors  force the decoder to continue decoding through\n");
-	printf("                               stream errors; errors will still be printed, but\n");
-	printf("                               decoding won't stop.  Errors will manifest them-\n");
-	printf("                               selves as skips or silent sections in the audio.\n");
+	printf("  -F, --decode-through-errors  By default flac stops decoding with an error and removes the partially decoded file if it encounters a bitstream error.  With -F, errors are still printed but flac will continue decoding to completion.  Note that errors may cause the decoded audio to be missing some samples or have silent sections.\n");
 	printf("encoding options:\n");
+	printf("  -V, --verify                 Verify a correct encoding by decoding the output in parallel and comparing to the original\n");
 #ifdef FLAC__HAS_OGG
-	printf("      --ogg                    output Ogg FLAC stream instead of native FLAC\n");
+	printf("      --ogg                    When encoding, generate Ogg-FLAC output instead of native-FLAC.  Ogg-FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by flac.  When decoding, force the input to be treated as Ogg-FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.\n");
 #endif
-	printf("      --lax                    allow encoder to generate non-Subset files\n");
-	printf("      --sector-align           align the encoding of multiple files on sector\n");
-	printf("                               boundaries\n");
-	printf("  -V, --verify                 verify a correct encoding by decoding the output\n");
-	printf("                               in parallel and comparing it to the original\n");
-	printf("  -S, --seekpoint={#|X|#x}     include a point or points in a SEEKTABLE\n");
+	printf("      --lax                    Allow encoder to generate non-Subset files\n");
+	printf("      --sector-align           Align encoding of multiple CD format WAVE files on sector boundaries.\n");
+	printf("  -S, --seekpoint={#|X|#x}     Include a point or points in a SEEKTABLE\n");
 	printf("       #  : a specific sample number for a seek point\n");
 	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
 	printf("       #x : # evenly spaced seekpoints, the first being at sample 0\n");
@@ -1042,44 +1064,40 @@ void show_explain()
 	printf("           either no seek point entered (if the input size is determinable\n");
 	printf("           before encoding starts) or a placeholder point (if input size is not\n");
 	printf("           determinable)\n");
-	printf("  -P, --padding=#              write a PADDING block of length #; the PADDING\n");
-	printf("                               block goes after any SEEKTABLE block.  # must be\n");
-	printf("                               >= 0; the default is no PADDING).  Note that the\n");
-	printf("                               overall size in bytes of the PADDING block will\n");
-	printf("                               be # + 4 because of the metadata header.\n");
-	printf("  -b, --blocksize=#            specify the blocksize in samples; the default is\n");
+	printf("  -P, --padding=#              Tell the encoder to write a PADDING metadata block of the given length (in bytes) after the STREAMINFO block.  This is useful if you plan to tag the file later with an APPLICATION block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the PADDING block.  Note that the total length of the PADDING block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no PADDING block at all to be written with -P-, which is the default.\n");
+	printf("  -b, --blocksize=#            Specify the blocksize in samples; the default is\n");
 	printf("                               1152 for -l 0, else 4608; must be one of 192,\n");
 	printf("                               576, 1152, 2304, 4608, 256, 512, 1024, 2048,\n");
 	printf("                               4096, 8192, 16384, or 32768 (unless --lax is\n");
 	printf("                               used)\n");
-	printf("  -m, --mid-side               try mid-side coding for each frame (stereo only)\n");
-	printf("  -M, --adaptive-mid-side      adaptive mid-side coding for all frames (stereo\n");
+	printf("  -m, --mid-side               Try mid-side coding for each frame (stereo only)\n");
+	printf("  -M, --adaptive-mid-side      Adaptive mid-side coding for all frames (stereo\n");
 	printf("                               only)\n");
-	printf("  -0, --compression-level-0, --fast  synonymous with -l 0 -b 1152 -r 2,2\n");
-	printf("  -1, --compression-level-1          synonymous with -l 0 -b 1152 -M -r 2,2\n");
-	printf("  -2, --compression-level-2          synonymous with -l 0 -b 1152 -m -r 3\n");
-	printf("  -3, --compression-level-3          synonymous with -l 6 -b 4608 -r 3,3\n");
-	printf("  -4, --compression-level-4          synonymous with -l 8 -b 4608 -M -r 3,3\n");
-	printf("  -5, --compression-level-5          synonymous with -l 8 -b 4608 -m -r 3,3\n");
+	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
+	printf("  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 2,2\n");
+	printf("  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3\n");
+	printf("  -3, --compression-level-3          Synonymous with -l 6 -b 4608 -r 3,3\n");
+	printf("  -4, --compression-level-4          Synonymous with -l 8 -b 4608 -M -r 3,3\n");
+	printf("  -5, --compression-level-5          Synonymous with -l 8 -b 4608 -m -r 3,3\n");
 	printf("                                     -5 is the default setting\n");
-	printf("  -6, --compression-level-6          synonymous with -l 8 -b 4608 -m -r 4\n");
-	printf("  -7, --compression-level-7          synonymous with -l 8 -b 4608 -m -e -r 6\n");
-	printf("  -8, --compression-level-8, --best  synonymous with -l 12 -b 4608 -m -e -r 6\n");
-	printf("  -e, --exhaustive-model-search      do exhaustive model search (expensive!)\n");
+	printf("  -6, --compression-level-6          Synonymous with -l 8 -b 4608 -m -r 4\n");
+	printf("  -7, --compression-level-7          Synonymous with -l 8 -b 4608 -m -e -r 6\n");
+	printf("  -8, --compression-level-8, --best  Synonymous with -l 12 -b 4608 -m -e -r 6\n");
+	printf("  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)\n");
 #if 0
 	/*@@@ deprecated: */
-	printf("  -E, --escape-coding                do escape coding in the entropy coder\n");
+	printf("  -E, --escape-coding                Do escape coding in the entropy coder.  This causes the encoder to use an unencoded representation of the residual in a partition if it is smaller.  It increases the runtime and usually results in an improvement of less than 1%.\n");
 #endif
-	printf("  -l, --max-lpc-order=#              max LPC order; 0 => only fixed predictors\n");
-	printf("  -p, --qlp-coeff-precision-search   do exhaustive search of LP coefficient\n");
-	printf("                                     quantization (expensive!); overrides -q,\n");
+	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors\n");
+	printf("  -p, --qlp-coeff-precision-search   Do exhaustive search of LP coefficient\n");
+	printf("                                     quantization (expensive!); overrides -q;\n");
 	printf("                                     does nothing if using -l 0\n");
 /*@@@@@@    ................................................................................*/
-	printf("  -q, --qlp-coeff-precision=#        specify precision in bits of quantized\n");
+	printf("  -q, --qlp-coeff-precision=#        Specify precision in bits of quantized\n");
 	printf("                                     linear-predictor coefficients; 0 => let\n");
 	printf("                                     encoder decide (the minimun is %u, the\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	printf("                                     default is -q 0)\n");
-	printf("  -r, --rice-partition-order=[#,]#   set [min,]max residual partition order\n");
+	printf("  -r, --rice-partition-order=[#,]#   Set [min,]max residual partition order\n");
 	printf("                                     (# is 0..16; min defaults to 0; the\n");
 	printf("                                     default is -r 0; above 4 doesn't usually\n");
 	printf("                                     help much)\n");
@@ -1088,12 +1106,34 @@ void show_explain()
 	printf("  -R, -rice-parameter-search-distance=#   Rice parameter search distance\n");
 #endif
 	printf("format options:\n");
-	printf("      --endian={big|little}    set byte order for samples\n");
-	printf("      --channels=#             number of channels\n");
-	printf("      --bps=#                  number of bits per sample\n");
-	printf("      --sample-rate=#          sample rate in Hz\n");
-	printf("      --sign={signed|unsigned} sign of samples\n");
-	printf("      --force-raw-input        force input to be treated as raw samples\n");
+	printf("      --endian={big|little}    Set byte order for samples\n");
+	printf("      --channels=#             Number of channels\n");
+	printf("      --bps=#                  Number of bits per sample\n");
+	printf("      --sample-rate=#          Sample rate in Hz\n");
+	printf("      --sign={signed|unsigned} Sign of samples (the default is signed)\n");
+	printf("      --force-raw-input        Force input to be treated as raw samples\n");
+	printf("negative options:\n");
+	printf("      --no-adaptive-mid-side\n");
+	printf("      --no-decode-through-errors\n");
+	printf("      --no-delete-input-file\n");
+#if 0
+/* @@@ deprecated: */
+	printf("      --no-escape-coding\n");
+#endif
+	printf("      --no-exhaustive-model-search\n");
+	printf("      --no-lax\n");
+	printf("      --no-mid-side\n");
+#ifdef FLAC__HAS_OGG
+	printf("      --no-ogg\n");
+#endif
+	printf("      --no-padding\n");
+	printf("      --no-qlp-coeff-prec-search\n");
+	printf("      --no-residual-gnuplot\n");
+	printf("      --no-residual-text\n");
+	printf("      --no-sector-align\n");
+	printf("      --no-seektable\n");
+	printf("      --no-silent\n");
+	printf("      --no-verify\n");
 }
 
 void
