@@ -1,5 +1,5 @@
-#ifndef FLAC__SHARE__UTF8_H
-#define FLAC__SHARE__UTF8_H
+#ifndef SHARE__UTF8_H
+#define SHARE__UTF8_H
 
 #if defined(FLAC__NO_DLL) || defined(unix) || defined(__CYGWIN__) || defined(__CYGWIN32__)
 #define UTF8_API

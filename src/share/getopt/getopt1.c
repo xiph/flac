@@ -80,30 +80,30 @@
 #endif
 
 GETOPT_API int
-FLAC__share__getopt_long (argc, argv, options, long_options, opt_index)
+share__getopt_long (argc, argv, options, long_options, opt_index)
      int argc;
      char *const *argv;
      const char *options;
-     const struct FLAC__share__option *long_options;
+     const struct share__option *long_options;
      int *opt_index;
 {
-  return FLAC__share___getopt_internal (argc, argv, options, long_options, opt_index, 0);
+  return share___getopt_internal (argc, argv, options, long_options, opt_index, 0);
 }
 
-/* Like FLAC__share__getopt_long, but '-' as well as '--' can indicate a long option.
+/* Like share__getopt_long, but '-' as well as '--' can indicate a long option.
    If an option that starts with '-' (not '--') doesn't match a long option,
    but does match a short option, it is parsed as a short option
    instead.  */
 
 GETOPT_API int
-FLAC__share__getopt_long_only (argc, argv, options, long_options, opt_index)
+share__getopt_long_only (argc, argv, options, long_options, opt_index)
      int argc;
      char *const *argv;
      const char *options;
-     const struct FLAC__share__option *long_options;
+     const struct share__option *long_options;
      int *opt_index;
 {
-  return FLAC__share___getopt_internal (argc, argv, options, long_options, opt_index, 1);
+  return share___getopt_internal (argc, argv, options, long_options, opt_index, 1);
 }
 
 
@@ -123,9 +123,9 @@ main (argc, argv)
 
   while (1)
     {
-      int this_option_optind = FLAC__share__optind ? FLAC__share__optind : 1;
+      int this_option_optind = share__optind ? share__optind : 1;
       int option_index = 0;
-      static struct FLAC__share__option long_options[] =
+      static struct share__option long_options[] =
       {
 	{"add", 1, 0, 0},
 	{"append", 0, 0, 0},
@@ -136,7 +136,7 @@ main (argc, argv)
 	{0, 0, 0, 0}
       };
 
-      c = FLAC__share__getopt_long (argc, argv, "abc:d:0123456789",
+      c = share__getopt_long (argc, argv, "abc:d:0123456789",
 		       long_options, &option_index);
       if (c == -1)
 	break;
@@ -145,8 +145,8 @@ main (argc, argv)
 	{
 	case 0:
 	  printf ("option %s", long_options[option_index].name);
-	  if (FLAC__share__optarg)
-	    printf (" with arg %s", FLAC__share__optarg);
+	  if (share__optarg)
+	    printf (" with arg %s", share__optarg);
 	  printf ("\n");
 	  break;
 
@@ -175,11 +175,11 @@ main (argc, argv)
 	  break;
 
 	case 'c':
-	  printf ("option c with value `%s'\n", FLAC__share__optarg);
+	  printf ("option c with value `%s'\n", share__optarg);
 	  break;
 
 	case 'd':
-	  printf ("option d with value `%s'\n", FLAC__share__optarg);
+	  printf ("option d with value `%s'\n", share__optarg);
 	  break;
 
 	case '?':
@@ -190,11 +190,11 @@ main (argc, argv)
 	}
     }
 
-  if (FLAC__share__optind < argc)
+  if (share__optind < argc)
     {
       printf ("non-option ARGV-elements: ");
-      while (FLAC__share__optind < argc)
-	printf ("%s ", argv[FLAC__share__optind++]);
+      while (share__optind < argc)
+	printf ("%s ", argv[share__optind++]);
       printf ("\n");
     }
 
