@@ -233,7 +233,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse
 	xorps	xmm3, xmm3			; xmm3 = 0,0,0,0
 .warmup:					; xmm3:xmm2 == data[sample-7],data[sample-6],...,data[sample]
 	mulps	xmm0, xmm2
-	mulps	xmm1, xmm3			; xmm5:xmm4 = xmm1:xmm0 * xmm3:xmm2
+	mulps	xmm1, xmm3			; xmm1:xmm0 = xmm1:xmm0 * xmm3:xmm2
 	addps	xmm6, xmm0
 	addps	xmm7, xmm1			; xmm7:xmm6 += xmm1:xmm0 * xmm3:xmm2
 	dec	edx
@@ -253,7 +253,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse
 	movaps	xmm1, xmm0			; (2) xmm1 = data[sample],data[sample],data[sample],data[sample]
 	movss	xmm2, xmm0			; (6)
 	mulps	xmm1, xmm3			; (8)
-	mulps	xmm0, xmm2			; (7) xmm5:xmm4 = xmm1:xmm0 * xmm3:xmm2
+	mulps	xmm0, xmm2			; (7) xmm1:xmm0 = xmm1:xmm0 * xmm3:xmm2
 	addps	xmm7, xmm1			; (10)
 	addps	xmm6, xmm0			; (9) xmm7:xmm6 += xmm1:xmm0 * xmm3:xmm2
 	dec	edx
