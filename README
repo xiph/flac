@@ -32,9 +32,21 @@ FLAC is comprised of
   * player plugins for XMMS and Winamp, licensed under the GPL
   * documentation, licensed under the GNU Free Documentation License.
 
-============
-FLAC - 1.0.3
-============
+===============================================================================
+FLAC - 1.0.3 - Contents
+===============================================================================
+
+- Introduction
+- Building in a GNU environment
+- Building with Makefile.lite
+- Building with MSVC
+- Building on Mac OS X
+- Note to embedded developers
+
+
+===============================================================================
+Introduction
+===============================================================================
 
 This is the source release for the FLAC project.  See
 
@@ -52,9 +64,9 @@ A brief description of the directory tree:
 	test/         the test scripts
 
 
-=============================
+===============================================================================
 Building in a GNU environment
-=============================
+===============================================================================
 
 FLAC uses autoconf and libtool for configuring and building.
 Better documentation for these will be forthcoming, but in
@@ -97,9 +109,9 @@ by default.  Note that --disable-asm-optimizations overrides
 --enable-3dnow.
 
 
-===========================
+===============================================================================
 Building with Makefile.lite
-===========================
+===============================================================================
 
 There is a more lightweight build system for do-it-yourself-ers.
 It is also useful if configure isn't working, which may be the
@@ -119,9 +131,9 @@ you don't have nasm, remove -DFLAC__HAS_NASM.  If your target is
 not an x86, change -DFLAC__CPU_IA32 to -DFLAC__CPU_UNKNOWN.
 
 
-==================
+===============================================================================
 Building with MSVC
-==================
+===============================================================================
 
 There is no overall make system for MSVC but the individual
 source directories with a 'Makefile.vc' file in them allow
@@ -132,9 +144,9 @@ edit the makefile, adding '/D FLAC__NO_ASM', and delete the
 rules which compile the .nasm files.
 
 
-====================
+===============================================================================
 Building on Mac OS X
-====================
+===============================================================================
 
 If you have Fink, the Gnu flow above should work.  Otherwise,
 there is a Project Builder project in the top-level source
@@ -150,3 +162,30 @@ the stuff that was already there before building.
 
 There currently is no install procedure; you will have to
 manually copy the tools to wherever you need them.
+
+
+===============================================================================
+Note to embedded developers
+===============================================================================
+
+libFLAC has grown larger over time as more functionality has been
+included, but much of it may be unnecessary for a particular embedded
+implementation.  Unused parts may be pruned by some simple editing of
+configure.in and src/libFLAC/Makefile.am; the following dependency
+graph shows which modules may be pruned without breaking things
+further down:
+
+file_encoder.h
+	stream_encoder.h
+		format.h
+
+file_decoder.h
+	seekable_stream_decoder.h
+		stream_decoder.h
+			format.h
+
+metadata.h
+	format.h
+
+There is a section dedicated to embedded use in the libFLAC API
+HTML documentation (see doc/html/api/index.html).
