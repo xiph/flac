@@ -844,7 +844,7 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = include;
 				OPTIMIZATION_CFLAGS = "-O3";
-				OTHER_CFLAGS = "-DVERSION=\\\\\\\"CVS-20040316\\\\\\\" -DHAVE_INTTYPES_H";
+				OTHER_CFLAGS = "-DVERSION=\\\\\\\"1.1.1-beta1\\\\\\\" -DHAVE_INTTYPES_H";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = flac;
@@ -1721,7 +1721,7 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = include;
 				OPTIMIZATION_CFLAGS = "-O3";
-				OTHER_CFLAGS = "-DVERSION=\\\\\\\"CVS-20040316\\\\\\\" -DHAVE_INTTYPES_H";
+				OTHER_CFLAGS = "-DVERSION=\\\\\\\"1.1.1-beta1\\\\\\\" -DHAVE_INTTYPES_H";
 				OTHER_LDFLAGS = "";
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = metaflac;
