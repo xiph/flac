@@ -27,6 +27,16 @@ cglobal FLAC__lpc_compute_autocorrelation_asm
 ; **********************************************************************
 ;
 ; void FLAC__lpc_compute_autocorrelation_asm(const real data[], unsigned data_len, unsigned lag, real autoc[])
+; {
+; 	real d;
+; 	unsigned i;
+;
+; 	while(lag--) {
+; 		for(i = lag, d = 0.0; i < data_len; i++)
+; 			d += data[i] * data[i - lag];
+; 		autoc[lag] = d;
+; 	}
+; }
 ;
 FLAC__lpc_compute_autocorrelation_asm:
 
@@ -60,6 +70,48 @@ FLAC__lpc_compute_autocorrelation_asm:
 	faddp	st1				; d += data[i]*data[i-lag]  ST = d
 	inc	eax
 	inc	ebx
+	cmp	ebx, ecx
+	jae	short .inner_end
+	fld	qword [esi + ebx * 8]		; ST = data[i] d
+	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
+	faddp	st1				; d += data[i]*data[i-lag]  ST = d
+	inc	eax
+	inc	ebx
+	cmp	ebx, ecx
+	jae	short .inner_end
+	fld	qword [esi + ebx * 8]		; ST = data[i] d
+	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
+	faddp	st1				; d += data[i]*data[i-lag]  ST = d
+	inc	eax
+	inc	ebx
+	cmp	ebx, ecx
+	jae	short .inner_end
+	fld	qword [esi + ebx * 8]		; ST = data[i] d
+	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
+	faddp	st1				; d += data[i]*data[i-lag]  ST = d
+	inc	eax
+	inc	ebx
+	cmp	ebx, ecx
+	jae	short .inner_end
+	fld	qword [esi + ebx * 8]		; ST = data[i] d
+	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
+	faddp	st1				; d += data[i]*data[i-lag]  ST = d
+	inc	eax
+	inc	ebx
+	cmp	ebx, ecx
+	jae	short .inner_end
+	fld	qword [esi + ebx * 8]		; ST = data[i] d
+	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
+	faddp	st1				; d += data[i]*data[i-lag]  ST = d
+	inc	eax
+	inc	ebx
+	cmp	ebx, ecx
+	jae	short .inner_end
+	fld	qword [esi + ebx * 8]		; ST = data[i] d
+	fmul	qword [esi + eax * 8]		; ST = data[i]*data[i-lag] d
+	faddp	st1				; d += data[i]*data[i-lag]  ST = d
+	inc	eax
+	inc	ebx
 	jmp	.inner_loop
 .inner_end:
 
@@ -78,17 +130,3 @@ FLAC__lpc_compute_autocorrelation_asm:
 	ret
 
 end
-;	void FLAC__lpc_compute_autocorrelation_asm(const real data[], unsigned data_len, unsigned lag, real autoc[])
-;	{
-;		real d;
-;		unsigned i;
-;	
-;		assert(lag > 0);
-;		assert(lag <= data_len);
-;	
-;		while(lag--) {
-;			for(i = lag, d = 0.0; i < data_len; i++)
-;				d += data[i] * data[i - lag];
-;			autoc[lag] = d;
-;		}
-;	}
