@@ -903,7 +903,9 @@ FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_It
 
 /** Create a new metadata object instance of the given type.
  *
- *  The object will be "empty"; i.e. values and data pointers will be \c 0.
+ *  The object will be "empty"; i.e. values and data pointers will be \c 0,
+ *  with the exception of FLAC__METADATA_TYPE_VORBIS_COMMENT, which will have
+ *  the vendor string set (but zero comments).
  *
  * \param type  Type of object to create
  * \retval FLAC__StreamMetadata*
@@ -1228,6 +1230,69 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__Str
  *    \c false if realloc fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetadata *object, unsigned comment_num);
+
+/*@@@@ needs unit test still */
+/** Check if the given Vorbis comment entry's field name matches the given
+ *  field name.
+ *
+ * \param entry              A pointer to an existing Vorbis comment entry.
+ * \param field_name         The field name to check.
+ * \param field_name_length  The length of \a field_name, not including the
+ *                           terminating \c NULL.
+ * \assert
+ *    \code entry != NULL \endcode
+ *    \code (entry->entry != NULL && entry->length > 0)
+ * \retval FLAC__bool
+ *    \c true if the field names match, else \c false
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, unsigned field_name_length);
+
+/*@@@@ needs unit test still */
+/** Find a Vorbis comment with the given field name.
+ *
+ *  The search begins at entry number \a offset; use and offset of 0 to
+ *  search from the beginning of the comment array.
+ *
+ * \param object      A pointer to an existing VORBIS_COMMENT object.
+ * \param offset      The offset into the comment array from where to start
+ *                    the search.
+ * \param field_name  The field name of the comment to find.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ * \retval int
+ *    The offset in the comment array of the first comment whose field
+ *    name matches \a field_name, or \c -1 if no match was found.
+ */
+FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(FLAC__StreamMetadata *object, unsigned offset, const char *field_name);
+
+/*@@@@ needs unit test still */
+/** Remove first Vorbis comment matching the given field name.
+ *
+ * \param object      A pointer to an existing VORBIS_COMMENT object.
+ * \param field_name  The field name of comment to delete.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ * \retval int
+ *    \c -1 for memory allocation error, \c 0 for no matching entries,
+ *    \c 1 for one matching entry deleted.
+ */
+FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entry_matching(FLAC__StreamMetadata *object, const char *field_name);
+
+/*@@@@ needs unit test still */
+/** Remove all Vorbis comments matching the given field name.
+ *
+ * \param object      A pointer to an existing VORBIS_COMMENT object.
+ * \param field_name  The field name of comments to delete.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ * \retval int
+ *    \c -1 for memory allocation error, \c 0 for no matching entries,
+ *    else the number of matching entries deleted.
+ */
+FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entries_matching(FLAC__StreamMetadata *object, const char *field_name);
 
 /* \} */
 

@@ -213,7 +213,18 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 			case FLAC__METADATA_TYPE_SEEKTABLE:
 				break;
 			case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-				object->length = (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN + FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8;
+				{
+					object->data.vorbis_comment.vendor_string.length = (unsigned)strlen(FLAC__VENDOR_STRING);
+					if(!copy_bytes_(&object->data.vorbis_comment.vendor_string.entry, (const FLAC__byte*)FLAC__VENDOR_STRING, object->data.vorbis_comment.vendor_string.length)) {
+						free(object);
+						return 0;
+					}
+					object->length =
+						(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8) +
+						object->data.vorbis_comment.vendor_string.length +
+						(FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN/8)
+					;
+				}
 				break;
 			default:
 				/* double protection: */
@@ -257,6 +268,8 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 				}
 				break;
 			case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+				if(0 != to->data.vorbis_comment.vendor_string.entry)
+					free(to->data.vorbis_comment.vendor_string.entry);
 				if(!copy_vcentry_(&to->data.vorbis_comment.vendor_string, &object->data.vorbis_comment.vendor_string)) {
 					FLAC__metadata_object_delete(to);
 					return 0;
@@ -750,4 +763,73 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__Str
 	vc->comments[vc->num_comments-1].entry = 0;
 
 	return FLAC__metadata_object_vorbiscomment_resize_comments(object, vc->num_comments-1);
+}
+
+FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field_name, unsigned field_name_length)
+{
+	const FLAC__byte *eq = memchr(entry->entry, '=', entry->length);
+#if defined _MSC_VER || defined __MINGW32__
+#define FLAC__STRNCASECMP strnicmp
+#else
+#define FLAC__STRNCASECMP strncasecmp
+#endif
+	return (0 != eq && (unsigned)(eq-entry->entry) == field_name_length && 0 == FLAC__STRNCASECMP(field_name, entry->entry, field_name_length));
+#undef FLAC__STRNCASECMP
+}
+
+FLAC_API int FLAC__metadata_object_vorbiscomment_find_entry_from(FLAC__StreamMetadata *object, unsigned offset, const char *field_name)
+{
+	const unsigned field_name_length = strlen(field_name);
+	unsigned i;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+	for(i = offset; i < object->data.vorbis_comment.num_comments; i++) {
+		if(FLAC__metadata_object_vorbiscomment_entry_matches(object->data.vorbis_comment.comments + i, field_name, field_name_length))
+			return (int)i;
+	}
+
+	return -1;
+}
+
+FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entry_matching(FLAC__StreamMetadata *object, const char *field_name)
+{
+	const unsigned field_name_length = strlen(field_name);
+	unsigned i;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+	for(i = 0; i < object->data.vorbis_comment.num_comments; i++) {
+		if(FLAC__metadata_object_vorbiscomment_entry_matches(object->data.vorbis_comment.comments + i, field_name, field_name_length)) {
+			if(!FLAC__metadata_object_vorbiscomment_delete_comment(object, i))
+				return -1;
+			else
+				return 1;
+		}
+	}
+
+	return 0;
+}
+
+FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entries_matching(FLAC__StreamMetadata *object, const char *field_name)
+{
+	FLAC__bool ok = true;
+	unsigned matching = 0;
+	const unsigned field_name_length = strlen(field_name);
+	int i;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+	/* must delete from end to start otherwise it will interfere with our iteration */
+	for(i = (int)object->data.vorbis_comment.num_comments - 1; ok && i >= 0; i--) {
+		if(FLAC__metadata_object_vorbiscomment_entry_matches(object->data.vorbis_comment.comments + i, field_name, field_name_length)) {
+			matching++;
+			ok &= FLAC__metadata_object_vorbiscomment_delete_comment(object, (unsigned)i);
+		}
+	}
+
+	return ok? (int)matching : -1;
 }
