@@ -34,18 +34,6 @@
 
 #define FLAC__DO_DITHER
 
-typedef struct {
-	FLAC__byte raw[128];
-	char title[31];
-	char artist[31];
-	char album[31];
-	char comment[31];
-	unsigned year;
-	unsigned track; /* may be 0 if v1 (not v1.1) tag */
-	unsigned genre;
-	char description[1024]; /* the formatted description passed to player */
-} id3v1_struct;
-
 BOOL WINAPI _DllMainCRTStartup(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 {
 	return TRUE;
@@ -69,7 +57,7 @@ static void safe_decoder_delete_(FLAC__FileDecoder *decoder);
 static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
-static FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag);
+static void get_description_(const char *filename, char *description, unsigned max_size);
 
 In_Module mod_; /* the output module (declared near the bottom of this file) */
 char lastfn_[MAX_PATH]; /* currently playing file (used for getting info on the current file) */
@@ -90,11 +78,9 @@ HANDLE thread_handle = INVALID_HANDLE_VALUE;	/* the handle to the decode thread 
 DWORD WINAPI __stdcall DecodeThread(void *b); /* the decode thread procedure */
 
 
-#if 0
-@@@@ incorporate this
-static void do_vis(char *data, int nch, int resolution, int position)
+static void do_vis(char *data, int nch, int resolution, int position, unsigned samples)
 {
-	static char vis_buffer[PCM_CHUNK * 2];
+	static char vis_buffer[SAMPLES_PER_WRITE * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
 	char *ptr;
 	int size, count;
 
@@ -107,7 +93,7 @@ static void do_vis(char *data, int nch, int resolution, int position)
 		case 32:
 		case 24:
 			size  = resolution / 8;
-			count = PCM_CHUNK * nch;
+			count = samples * nch;
 
 			ptr = vis_buffer;
 			while(count--) {
@@ -122,11 +108,10 @@ static void do_vis(char *data, int nch, int resolution, int position)
 		case 16:
 		case 8:
 		default:
-			module.SAAddPCMData(data,  nch, resolution, position);
-			module.VSAAddPCMData(data, nch, resolution, position);
+			mod_.SAAddPCMData(data, nch, resolution, position);
+			mod_.VSAAddPCMData(data, nch, resolution, position);
 	}
 }
-#endif
 
 void config(HWND hwndParent)
 {
@@ -259,13 +244,12 @@ void setpan(int pan) { mod_.outMod->SetPan(pan); }
 
 int infoDlg(char *fn, HWND hwnd)
 {
-	/* TODO: implement info dialog. */
+	/* @@@TODO: implement info dialog. */
 	return 0;
 }
 
 void getfileinfo(char *filename, char *title, int *length_in_msec)
 {
-	id3v1_struct tag;
 	FLAC__StreamMetadata streaminfo;
 
 	if(0 == filename || filename[0] == '\0') {
@@ -288,8 +272,7 @@ void getfileinfo(char *filename, char *title, int *length_in_msec)
 	}
 
 	if(title) {
-		(void)get_id3v1_tag_(filename, &tag);
-		strcpy(title, tag.description);
+		get_description_(filename, title, MAX_PATH);
 	}
 	if(length_in_msec)
 		*length_in_msec = (int)(streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100));
@@ -355,8 +338,7 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 					reservoir_[i-delta] = reservoir_[i];
 				wide_samples_in_reservoir_ -= n;
 
-				mod_.SAAddPCMData((char *)sample_buffer_, channels, target_bps, decode_pos_ms_);
-				mod_.VSAAddPCMData((char *)sample_buffer_, channels, target_bps, decode_pos_ms_);
+				do_vis((char *)sample_buffer_, channels, target_bps, decode_pos_ms_, n);
 				decode_pos_ms_ += (n*1000 + sample_rate/2)/sample_rate;
 				if(mod_.dsp_isactive())
 					bytes = mod_.dsp_dosamples((short *)sample_buffer_, n, target_bps, channels, sample_rate) * (channels*target_bps/8);
@@ -526,48 +508,56 @@ void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorS
 		file_info->abort_flag = true;
 }
 
-FLAC__bool get_id3v1_tag_(const char *filename, id3v1_struct *tag)
+static FLAC__bool local__is_blank(const char *s)
 {
-	const char *temp;
-	FILE *f = fopen(filename, "rb");
-	memset(tag, 0, sizeof(id3v1_struct));
+	return 0 == s || *s == '\0';
+}
 
-	/* set the title and description to the filename by default */
-	temp = strrchr(filename, '/');
-	if(!temp)
-		temp = filename;
-	else
-		temp++;
-	strcpy(tag->description, temp);
-	*strrchr(tag->description, '.') = '\0';
-	strncpy(tag->title, tag->description, 30); tag->title[30] = '\0';
+void get_description_(const char *filename, char *description, unsigned max_size)
+{
+	FLAC_Plugin__CanonicalTag tag;
 
-	if(0 == f)
-		return false;
-	if(-1 == fseek(f, -128, SEEK_END)) {
-		fclose(f);
-		return false;
+	FLAC_plugin__canonical_tag_init(&tag);
+	FLAC_plugin__canonical_tag_get_combined(filename, &tag);
+
+	/* @@@ when config window is done, add code here for converting to user charset ala plugin_xmms */
+
+	if(local__is_blank(tag.performer) && local__is_blank(tag.composer) && local__is_blank(tag.title)) {
+		/* set the description to the filename */
+		char *p;
+		const char *temp = strrchr(filename, '\\');
+		if(0 == temp)
+			temp = strrchr(filename, '/');
+		if(0 == temp)
+			temp = filename;
+		else
+			temp++;
+		strncpy(description, temp, max_size);
+		description[max_size-1] = '\0';
+		if(0 != (p = strrchr(description, '.')))
+			*p = '\0';
 	}
-	if(fread(tag->raw, 1, 128, f) < 128) {
-		fclose(f);
-		return false;
-	}
-	fclose(f);
-	if(strncmp(tag->raw, "TAG", 3))
-		return false;
 	else {
-		char year_str[5];
+		char *artist = tag.performer[0]? tag.performer : tag.composer[0]? tag.composer : "Unknown Artist";
+		char *title = tag.title[0]? tag.title : "Untitled";
 
-		memcpy(tag->title, tag->raw+3, 30);
-		memcpy(tag->artist, tag->raw+33, 30);
-		memcpy(tag->album, tag->raw+63, 30);
-		memcpy(year_str, tag->raw+93, 4); year_str[4] = '\0'; tag->year = atoi(year_str);
-		memcpy(tag->comment, tag->raw+97, 30);
-		tag->genre = (unsigned)((FLAC__byte)tag->raw[127]);
-		tag->track = (unsigned)((FLAC__byte)tag->raw[126]);
-
-		sprintf(tag->description, "%s - %s", tag->artist[0]? tag->artist : "Unknown Artist", tag->title[0]? tag->title : "Untitled");
-
-		return true;
+		/* there's no snprintf in VC6 so we get sloppy */
+#if 0
+		snprintf(description, max_size, "%s - %s", artist, title);
+#else
+		const unsigned needed = strlen(artist) + strlen(title) + 3 + 1;
+		if(needed <= max_size)
+			sprintf(description, "%s - %s", artist, title);
+		else {
+			char *p = malloc(needed);
+			if(0 != p) {
+				sprintf(p, "%s - %s", artist, title);
+				p[max_size-1] = '\0';
+				strcpy(description, p);
+			}
+		}
+#endif
 	}
+		
+	FLAC_plugin__canonical_tag_clear(&tag);
 }
