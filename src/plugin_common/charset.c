@@ -140,7 +140,7 @@ int FLAC_plugin__charset_test_conversion (char *from, char *to)
 		return 0;
 	}
 	iconv_close(cd);
-	return ;
+	return 1;
 }
 #else
 int FLAC_plugin__charset_test_conversion (char *from, char *to)
