@@ -27,7 +27,7 @@
 # clean   : remove all non-distro files
 #
 
-all: libFLAC flac metaflac test_streams test_unit
+all: libFLAC libFLAC++ share flac metaflac test_streams test_unit
 
 DEFAULT_CONFIG = release
 
@@ -40,6 +40,12 @@ debug   : all
 release : all
 
 libFLAC:
+	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
+
+libFLAC++: libFLAC
+	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
+
+share:
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 flac: libFLAC
@@ -62,6 +68,8 @@ test: debug
 
 clean:
 	-(cd src/libFLAC ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/libFLAC++ ; $(MAKE) -f Makefile.lite clean)
+	-(cd src/share ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/flac ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/metaflac ; $(MAKE) -f Makefile.lite clean)
 	-(cd src/plugin_xmms ; $(MAKE) -f Makefile.lite clean)
