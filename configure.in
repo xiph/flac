@@ -208,6 +208,15 @@ if test x$use_3dnow = xtrue ; then
 AC_DEFINE(FLAC__USE_3DNOW)
 fi
 
+AC_ARG_ENABLE(local-xmms-plugin,
+[  --enable-local-xmms-plugin     Install XMMS plugin to ~/.xmms/Plugins instead of system location],
+[case "${enableval}" in
+	yes) install_xmms_plugin_locally=true ;;
+	no)  install_xmms_plugin_locally=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-local-xmms-plugin) ;;
+esac],[install_xmms_plugin_locally=false])
+AM_CONDITIONAL(FLaC__INSTALL_XMMS_PLUGIN_LOCALLY, test x$install_xmms_plugin_locally = xtrue)
+
 AC_ARG_ENABLE(exhaustive-tests,
 [  --enable-exhaustive-tests      Enable exhaustive testing],
 [case "${enableval}" in

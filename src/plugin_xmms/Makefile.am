@@ -29,7 +29,11 @@ noinst_HEADERS = \
 
 CFLAGS = @CFLAGS@ @ID3LIB_CFLAGS@ @XMMS_CFLAGS@
 INCLUDES = -I$(top_srcdir)/src
+if FLaC__INSTALL_XMMS_PLUGIN_LOCALLY
+xmmsinputplugindir = $(HOME)/.xmms/Plugins
+else
 xmmsinputplugindir = @XMMS_INPUT_PLUGIN_DIR@
+endif
 
 # Don't build a static library
 LIBTOOL = $(top_builddir)/libtool-disable-static
