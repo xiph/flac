@@ -322,7 +322,7 @@
 				-0 .. -9
 			</TD>
 			<TD>
-				Fastest compression .. highest compression.  The default is <TT>-6</TT>.
+				Fastest compression .. highest compression.  The default is <TT>-5</TT>.
 			</TD>
 		</TR>
 		<TR>
@@ -338,7 +338,7 @@
 				-1
 			</TD>
 			<TD>
-				Synonymous with -l 0 -b 1152 -M
+				Synonymous with -l 0 -b 1152 -M -r 2,2
 			</TD>
 		</TR>
 		<TR>
@@ -346,7 +346,7 @@
 				-2
 			</TD>
 			<TD>
-				Synonymous with -l 0 -b 1152 -m -r 4
+				Synonymous with -l 0 -b 1152 -m -r 3
 			</TD>
 		</TR>
 		<TR>
@@ -354,7 +354,7 @@
 				-3
 			</TD>
 			<TD>
-				Reserved
+				Synonymous with -l 6 -b 4608 -r 3,3
 			</TD>
 		</TR>
 		<TR>
@@ -362,7 +362,7 @@
 				-4
 			</TD>
 			<TD>
-				Synonymous with -l 8 -b 4608
+				Synonymous with -l 8 -b 4608 -M -r 3,3
 			</TD>
 		</TR>
 		<TR>
@@ -370,7 +370,7 @@
 				-5
 			</TD>
 			<TD>
-				Synonymous with -l 8 -b 4608 -M
+				Synonymous with -l 8 -b 4608 -m -r 3,3
 			</TD>
 		</TR>
 		<TR>
@@ -386,7 +386,7 @@
 				-7
 			</TD>
 			<TD>
-				Reserved
+				Synonymous with -l 8 -b 4608 -m -e -r 6
 			</TD>
 		</TR>
 		<TR>
@@ -394,7 +394,7 @@
 				-8
 			</TD>
 			<TD>
-				Synonymous with -l 32 -b 4608 -m -r 4
+				Synonymous with -l 12 -b 4608 -m -e -r 6
 			</TD>
 		</TR>
 		<TR>
@@ -451,7 +451,7 @@
 				-R #
 			</TD>
 			<TD>
-				Set the Rice parameter search distance.  Defaults to 0.  The residual coder will search for the best Rice parameter +/- this number for each residual partition.  This option is expensive (run time for -R n will be almost 2n+1 times that of -R 0) and doesn't give much of a gain.
+				Set the Rice parameter search distance.  Defaults to 0.  The residual coder will search for the best Rice parameter +/- this number for each residual partition.  This option is expensive (run time for -R n will typically be (2n)*30% over that of -R 0) and doesn't give much of a gain.  As a matter of fact, none of the -0..-9 options currently use it since -R > 1 is not consistently better like it should be.
 			</TD>
 		</TR>
 		<TR>

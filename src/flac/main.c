@@ -32,7 +32,7 @@ static int encode_file(const char *infilename, const char *forced_outfilename);
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
 bool verify = false, verbose = true, lax = false, test_only = false, analyze = false;
-bool do_mid_side = true, loose_mid_side = false, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
+bool do_mid_side = true, loose_mid_side = true, do_exhaustive_model_search = false, do_qlp_coeff_prec_search = false;
 bool force_to_stdout = false;
 analysis_options aopts = { false, false };
 unsigned padding = 0;
@@ -98,10 +98,12 @@ int main(int argc, char *argv[])
 			do_exhaustive_model_search = false;
 		else if(0 == strcmp(argv[i], "-l"))
 			max_lpc_order = atoi(argv[++i]);
-		else if(0 == strcmp(argv[i], "-m"))
+		else if(0 == strcmp(argv[i], "-m")) {
 			do_mid_side = true;
+			loose_mid_side = false;
+		}
 		else if(0 == strcmp(argv[i], "-m-"))
-			do_mid_side = false;
+			do_mid_side = loose_mid_side = false;
 		else if(0 == strcmp(argv[i], "-M"))
 			loose_mid_side = do_mid_side = true;
 		else if(0 == strcmp(argv[i], "-M-"))
@@ -183,19 +185,28 @@ int main(int argc, char *argv[])
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 0;
 		}
-		else if(0 == strcmp(argv[i], "-4")) {
+		else if(0 == strcmp(argv[i], "-3")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = false;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
-			min_residual_partition_order = max_residual_partition_order = 0;
+			min_residual_partition_order = max_residual_partition_order = 3;
+			rice_parameter_search_dist = 0;
+			max_lpc_order = 6;
+		}
+		else if(0 == strcmp(argv[i], "-4")) {
+			do_exhaustive_model_search = false;
+			do_mid_side = true;
+			loose_mid_side = true;
+			qlp_coeff_precision = 0;
+			min_residual_partition_order = max_residual_partition_order = 3;
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
 		else if(0 == strcmp(argv[i], "-5")) {
 			do_exhaustive_model_search = false;
 			do_mid_side = true;
-			loose_mid_side = true;
+			loose_mid_side = false;
 			qlp_coeff_precision = 0;
 			min_residual_partition_order = max_residual_partition_order = 3;
 			rice_parameter_search_dist = 0;
@@ -211,13 +222,25 @@ int main(int argc, char *argv[])
 			rice_parameter_search_dist = 0;
 			max_lpc_order = 8;
 		}
-		else if(0 == strcmp(argv[i], "-8")) {
-			do_exhaustive_model_search = false;
+		else if(0 == strcmp(argv[i], "-7")) {
+			do_exhaustive_model_search = true;
 			do_mid_side = true;
 			loose_mid_side = false;
 			qlp_coeff_precision = 0;
+			min_residual_partition_order = 0;
+			min_residual_partition_order = 6;
 			rice_parameter_search_dist = 0;
-			max_lpc_order = 32;
+			max_lpc_order = 8;
+		}
+		else if(0 == strcmp(argv[i], "-8")) {
+			do_exhaustive_model_search = true;
+			do_mid_side = true;
+			loose_mid_side = false;
+			qlp_coeff_precision = 0;
+			min_residual_partition_order = 0;
+			min_residual_partition_order = 6;
+			rice_parameter_search_dist = 0;
+			max_lpc_order = 12;
 		}
 		else if(0 == strcmp(argv[i], "-9")) {
 			do_exhaustive_model_search = true;
@@ -247,13 +270,13 @@ int main(int argc, char *argv[])
 		}
 		if(min_residual_partition_order < 0) {
 			if(blocksize <= 1152)
-				max_residual_partition_order = 3;
+				max_residual_partition_order = 2;
 			else if(blocksize <= 2304)
-				max_residual_partition_order = 4;
+				max_residual_partition_order = 3;
 			else if(blocksize <= 4608)
-				max_residual_partition_order = 4;
+				max_residual_partition_order = 3;
 			else
-				max_residual_partition_order = 5;
+				max_residual_partition_order = 4;
 			min_residual_partition_order = max_residual_partition_order;
 		}
 		if(rice_parameter_search_dist < 0) {
@@ -437,13 +460,13 @@ int usage(const char *message, ...)
 	fprintf(stderr, "  -0   : synonymous with -l 0 -b 1152\n");
 	fprintf(stderr, "  -1   : synonymous with -l 0 -b 1152 -M -r 2,2\n");
 	fprintf(stderr, "  -2   : synonymous with -l 0 -b 1152 -m -r 3\n");
-	fprintf(stderr, "  -3   : reserved\n");
-	fprintf(stderr, "  -4   : synonymous with -l 8 -b 4608\n");
-	fprintf(stderr, "  -5   : synonymous with -l 8 -b 4608 -M -r 3,3\n");
+	fprintf(stderr, "  -3   : synonymous with -l 6 -b 4608 -r 3,3\n");
+	fprintf(stderr, "  -4   : synonymous with -l 8 -b 4608 -M -r 3,3\n");
+	fprintf(stderr, "  -5   : synonymous with -l 8 -b 4608 -m -r 3,3\n");
 	fprintf(stderr, "  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
-	fprintf(stderr, "  -7   : reserved\n");
-	fprintf(stderr, "  -8   : synonymous with -l 32 -b 4608 -m -r 4\n");
-	fprintf(stderr, "  -9   : synonymous with -l 32 -m -e -r 16 -R 32 -p (very slow!)\n");
+	fprintf(stderr, "  -7   : synonymous with -l 8 -b 4608 -m -e -r 6\n");
+	fprintf(stderr, "  -8   : synonymous with -l 12 -b 4608 -m -e -r 6\n");
+	fprintf(stderr, "  -9   : synonymous with -l 32 -b 4608 -m -e -r 16 -R 32 -p (very slow!)\n");
 	fprintf(stderr, "  -e   : do exhaustive model search (expensive!)\n");
 	fprintf(stderr, "  -l # : specify max LPC order; 0 => use only fixed predictors\n");
 	fprintf(stderr, "  -p   : do exhaustive search of LP coefficient quantization (expensive!);\n");
