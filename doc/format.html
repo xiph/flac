@@ -160,7 +160,7 @@
 		The size used for blocking the audio data has a direct effect on the compression ratio.  If the block size is too small, the resulting large number of frames mean that excess bits will be wasted on frame headers.  If the block size is too large, the characteristics of the signal may vary so much that the encoder will be unable to find a good predictor.  In order to simplify encoder/decoder design, FLAC imposes a minimum block size of 16 samples, and a maximum block size of 65535 samples.  This range covers the optimal size for all of the audio data FLAC supports.
 	</P>
 	<P>
-		Currently the reference encoder uses a fixed block size, optimized on the sample rate of the input.  Future version may vary the block size depending on the characteristics of the signal.
+		Currently the reference encoder uses a fixed block size, optimized on the sample rate of the input.  Future versions may vary the block size depending on the characteristics of the signal.
 	</P>
 	<P>
 		Blocked data is passed to the predictor stage one subblock (channel) at a time.  Each subblock is independently coded into a subframe, and the subframes are concatenated into a frame.  Because each channel is coded separately, it means that one channel of a stereo frame may be encoded as a constant subframe, and the other an LPC subframe.
@@ -227,7 +227,7 @@
 		All numbers used in a FLAC bitstream are integers; there are no floating-point representations.  All numbers are big-endian coded.  All numbers are unsigned unless otherwise specified.
 	</P>
 	<P>
-		<A NAME="overview">A FLAC bitstream may be appended with ID3V1 data or prepended with ID3V2 data.  FLAC has no knowledge of such data, but the reference decoder knows how to skip an ID3 tag.  The input plugins support ID3V1 tags</A>
+		<A NAME="overview">A FLAC bitstream may be appended with ID3V1 data or prepended with ID3V2 data.  FLAC has no knowledge of such data, but the reference decoder knows how to skip an ID3 tag.</A>
 	</P>
 	<P>
 		Before the formal description of the stream, an overview might be helpful.
@@ -241,7 +241,7 @@
 			<UL>
 				<LI><A NAME="def_STREAMINFO"><B>STREAMINFO</B>: This block has information about the whole stream, like sample rate, number of channels, total number of samples, etc.  It must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.</LI>
 				<LI><A NAME="def_APPLICATION"><B>APPLICATION</B>: This block is for use by third-party applications.  The only mandatory field is a 32-bit identifier.  This ID is granted upon request to an application by the FLAC maintainers.  The remainder is of the block is defined by the registered application.  Visit the <A HREF="id.html">registration page</A> if you would like to register an ID for your application with FLAC.</LI>
-				<LI><A NAME="def_PADDING"><B>PADDING</B>: This block allows for an arbitrary amount of padding.  The contents of a PADDING block have no meaning.  This block useful when it is known that an APPLICATION block will be added after encoding; the user can instruct the encoder to reserve a PADDING block of the proper size so that the application may directly write over it later (which is relatively quick) instead of having to insert the APPLICATION block (which would normally require rewriting the entire file).</LI>
+				<LI><A NAME="def_PADDING"><B>PADDING</B>: This block allows for an arbitrary amount of padding.  The contents of a PADDING block have no meaning.  This block is useful when it is known that an APPLICATION block will be added after encoding; the user can instruct the encoder to reserve a PADDING block of the proper size so that the application may directly write over it later (which is relatively quick) instead of having to insert the APPLICATION block (which would normally require rewriting the entire file).</LI>
 				<LI><A NAME="def_SEEKTABLE"><B>SEEKTABLE</B>: This is an optional block for storing seek points.  It is possible to seek to any given sample in a FLAC stream without a seek table, but the delay can be unpredictable since the bitrate may vary widely within a stream.  By adding seek points to a stream, this delay can be significantly reduced.  Each seek point takes 18 bytes, so 1% resolution within a stream adds less than 2k.  There can be only one SEEKTABLE in a stream, but the table can have any number of seek points.  There is also a special 'placeholder' seekpoint which will be ignored by decoders but which can be used to reserve space for future seek point insertion.</LI>
 			</UL>
 		</LI></P>
@@ -581,7 +581,7 @@
 		</TR>
 		<TR>
 			<TD ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
-				<A HREF="#metadata_block_seekpoint"><I>SEEKPOINT</I></A>+
+				<A HREF="#seekpoint"><I>SEEKPOINT</I></A>+
 			</TD>
 			<TD>
 				One or more seek points.
@@ -608,7 +608,7 @@
 	<TABLE WIDTH="100%" BORDER="1">
 		<TR>
 			<TD COLSPAN="2" BGCOLOR="#D3D4C5">
-				<A NAME="metadata_block_seekpoint"><FONT SIZE="+1"><B>METADATA_BLOCK_SEEKPOINT</B></FONT></A>
+				<A NAME="seekpoint"><FONT SIZE="+1"><B>SEEKPOINT</B></FONT></A>
 			</TD>
 		</TR>
 		<TR>
