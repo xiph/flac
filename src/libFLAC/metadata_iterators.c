@@ -88,19 +88,19 @@ static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_unknown_cb_(
 
 static FLAC__bool write_metadata_block_header_(FILE *file, FLAC__Metadata_SimpleIteratorStatus *status, const FLAC__StreamMetadata *block);
 static FLAC__bool write_metadata_block_data_(FILE *file, FLAC__Metadata_SimpleIteratorStatus *status, const FLAC__StreamMetadata *block);
-static FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_streaminfo_(FILE *file, const FLAC__StreamMetadata_StreamInfo *block);
-static FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_padding_(FILE *file, const FLAC__StreamMetadata_Padding *block, unsigned block_length);
-static FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_application_(FILE *file, const FLAC__StreamMetadata_Application *block, unsigned block_length);
-static FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_seektable_(FILE *file, const FLAC__StreamMetadata_SeekTable *block);
-static FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_vorbis_comment_(FILE *file, const FLAC__StreamMetadata_VorbisComment *block);
-static FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *file, const FLAC__StreamMetadata_CueSheet *block);
-static FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_unknown_(FILE *file, const FLAC__StreamMetadata_Unknown *block, unsigned block_length);
+static FLAC__bool write_metadata_block_header_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata *block);
+static FLAC__bool write_metadata_block_data_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata *block);
+static FLAC__bool write_metadata_block_data_streaminfo_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_StreamInfo *block);
+static FLAC__bool write_metadata_block_data_padding_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Padding *block, unsigned block_length);
+static FLAC__bool write_metadata_block_data_application_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Application *block, unsigned block_length);
+static FLAC__bool write_metadata_block_data_seektable_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_SeekTable *block);
+static FLAC__bool write_metadata_block_data_vorbis_comment_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_VorbisComment *block);
+static FLAC__bool write_metadata_block_data_cuesheet_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_CueSheet *block);
+static FLAC__bool write_metadata_block_data_unknown_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Unknown *block, unsigned block_length);
+
 static FLAC__bool write_metadata_block_stationary_(FLAC__Metadata_SimpleIterator *iterator, const FLAC__StreamMetadata *block);
 static FLAC__bool write_metadata_block_stationary_with_padding_(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, unsigned padding_length, FLAC__bool padding_is_last);
 static FLAC__bool rewrite_whole_file_(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, FLAC__bool append);
-
-static FLAC__bool chain_rewrite_chain_(FLAC__Metadata_Chain *chain);
-static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *tempfile_path_prefix);
 
 static void simple_iterator_push_(FLAC__Metadata_SimpleIterator *iterator);
 static FLAC__bool simple_iterator_pop_(FLAC__Metadata_SimpleIterator *iterator);
@@ -113,7 +113,9 @@ static FLAC__bool simple_iterator_copy_file_prefix_(FLAC__Metadata_SimpleIterato
 static FLAC__bool simple_iterator_copy_file_postfix_(FLAC__Metadata_SimpleIterator *iterator, FILE **tempfile, char **tempfilename, int fixup_is_last_code, long fixup_is_last_flag_offset, FLAC__bool backup);
 
 static FLAC__bool copy_n_bytes_from_file_(FILE *file, FILE *tempfile, unsigned bytes/*@@@ 4G limit*/, FLAC__Metadata_SimpleIteratorStatus *status);
+static FLAC__bool copy_n_bytes_from_file_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOHandle temp_handle, FLAC__IOCallback_Write temp_write_cb, unsigned bytes/*@@@ 4G limit*/, FLAC__Metadata_SimpleIteratorStatus *status);
 static FLAC__bool copy_remaining_bytes_from_file_(FILE *file, FILE *tempfile, FLAC__Metadata_SimpleIteratorStatus *status);
+static FLAC__bool copy_remaining_bytes_from_file_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOCallback_Eof eof_cb, FLAC__IOHandle temp_handle, FLAC__IOCallback_Write temp_write_cb, FLAC__Metadata_SimpleIteratorStatus *status);
 
 static FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix, FILE **tempfile, char **tempfilename, FLAC__Metadata_SimpleIteratorStatus *status);
 static FLAC__bool transport_tempfile_(const char *filename, FILE **tempfile, char **tempfilename, FLAC__Metadata_SimpleIteratorStatus *status);
@@ -773,7 +775,9 @@ FLAC_API const char * const FLAC__Metadata_ChainStatusString[] = {
 	"FLAC__METADATA_CHAIN_STATUS_UNLINK_ERROR",
 	"FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR",
 	"FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR",
-	"FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS"
+	"FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS",
+	"FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH",
+	"FLAC__METADATA_CHAIN_STATUS_WRONG_WRITE_CALL"
 };
 
 
@@ -943,6 +947,67 @@ static FLAC__bool chain_merge_adjacent_padding_(FLAC__Metadata_Chain *chain, FLA
 		return false;
 }
 
+/* Returns the new length of the chain, or 0 if there was an error. */
+/* WATCHOUT: This can get called multiple times before a write, so
+ * it should still work when this happens.
+ */
+/* WATCHOUT: Make sure to also update the logic in
+ * FLAC__metadata_chain_check_if_tempfile_needed() if the logic here changes.
+ */
+static unsigned chain_prepare_for_write_(FLAC__Metadata_Chain *chain, FLAC__bool use_padding)
+{
+	unsigned current_length = chain_calculate_length_(chain);
+
+	if(use_padding) {
+		/* if the metadata shrank and the last block is padding, we just extend the last padding block */
+		if(current_length < chain->initial_length && chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
+			const unsigned delta = chain->initial_length - current_length;
+			chain->tail->data->length += delta;
+			current_length += delta;
+			FLAC__ASSERT(current_length == chain->initial_length);
+		}
+		/* if the metadata shrank more than 4 bytes then there's room to add another padding block */
+		else if(current_length + FLAC__STREAM_METADATA_HEADER_LENGTH <= chain->initial_length) {
+			FLAC__StreamMetadata *padding;
+			FLAC__Metadata_Node *node;
+			if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING))) {
+				chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
+				return 0;
+			}
+			padding->length = chain->initial_length - (FLAC__STREAM_METADATA_HEADER_LENGTH + current_length);
+			if(0 == (node = node_new_())) {
+				FLAC__metadata_object_delete(padding);
+				chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
+				return 0;
+			}
+			node->data = padding;
+			chain_append_node_(chain, node);
+			current_length = chain_calculate_length_(chain);
+			FLAC__ASSERT(current_length == chain->initial_length);
+		}
+		/* if the metadata grew but the last block is padding, try cutting the padding to restore the original length so we don't have to rewrite the whole file */
+		else if(current_length > chain->initial_length) {
+			const unsigned delta = current_length - chain->initial_length;
+			if(chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
+				/* if the delta is exactly the size of the last padding block, remove the padding block */
+				if(chain->tail->data->length + FLAC__STREAM_METADATA_HEADER_LENGTH == delta) {
+					chain_delete_node_(chain, chain->tail);
+					current_length = chain_calculate_length_(chain);
+					FLAC__ASSERT(current_length == chain->initial_length);
+				}
+				/* if there is at least 'delta' bytes of padding, trim the padding down */
+				else if(chain->tail->data->length >= delta) {
+					chain->tail->data->length -= delta;
+					current_length -= delta;
+					FLAC__ASSERT(current_length == chain->initial_length);
+				}
+			}
+		}
+	}
+
+	return current_length;
+}
+
 static FLAC__bool chain_read_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOCallback_Seek seek_cb, FLAC__IOCallback_Tell tell_cb, FLAC__IOCallback_Close close_cb)
 {
 	FLAC__Metadata_Node *node;
@@ -1029,6 +1094,164 @@ static FLAC__bool chain_read_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle han
 	return true;
 }
 
+static FLAC__bool chain_rewrite_metadata_in_place_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, FLAC__IOCallback_Seek seek_cb, FLAC__IOCallback_Close close_cb)
+{
+	FLAC__Metadata_Node *node;
+
+	FLAC__ASSERT(0 != chain);
+	FLAC__ASSERT(0 != chain->head);
+
+	if(0 != seek_cb(handle, chain->first_offset, SEEK_SET)) {
+		(void)close_cb(handle);
+		chain->status = FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR;
+		return false;
+	}
+
+	for(node = chain->head; node; node = node->next) {
+		if(!write_metadata_block_header_cb_(handle, write_cb, node->data)) {
+			(void)close_cb(handle);
+			chain->status = FLAC__METADATA_CHAIN_STATUS_WRITE_ERROR;
+			return false;
+		}
+		if(!write_metadata_block_data_cb_(handle, write_cb, node->data)) {
+			(void)close_cb(handle);
+			chain->status = FLAC__METADATA_CHAIN_STATUS_WRITE_ERROR;
+			return false;
+		}
+	}
+
+	/*FLAC__ASSERT(fflush(), ftell() == chain->last_offset);*/
+
+	(void)close_cb(handle);
+
+	chain->status = FLAC__METADATA_CHAIN_STATUS_OK;
+	return true;
+}
+
+static FLAC__bool chain_rewrite_metadata_in_place_(FLAC__Metadata_Chain *chain)
+{
+	FILE *file;
+
+	FLAC__ASSERT(0 != chain->filename);
+
+	if(0 == (file = fopen(chain->filename, "r+b"))) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
+		return false;
+	}
+
+	/* chain_rewrite_metadata_in_place_cb_() sets chain->status and closes the file for us */
+	return chain_rewrite_metadata_in_place_cb_(chain, (FLAC__IOHandle)file, (FLAC__IOCallback_Write)fwrite, fseek_wrapper_, (FLAC__IOCallback_Close)fclose);
+}
+
+static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *tempfile_path_prefix)
+{
+	FILE *f, *tempfile;
+	char *tempfilename;
+	FLAC__Metadata_SimpleIteratorStatus status;
+	const FLAC__Metadata_Node *node;
+
+	FLAC__ASSERT(0 != chain);
+	FLAC__ASSERT(0 != chain->filename);
+	FLAC__ASSERT(0 != chain->head);
+
+	/* copy the file prefix (data up to first metadata block */
+	if(0 == (f = fopen(chain->filename, "rb"))) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
+		return false;
+	}
+	if(!open_tempfile_(chain->filename, tempfile_path_prefix, &tempfile, &tempfilename, &status)) {
+		chain->status = get_equivalent_status_(status);
+		cleanup_tempfile_(&tempfile, &tempfilename);
+		return false;
+	}
+	if(!copy_n_bytes_from_file_(f, tempfile, chain->first_offset, &status)) {
+		chain->status = get_equivalent_status_(status);
+		cleanup_tempfile_(&tempfile, &tempfilename);
+		return false;
+	}
+
+	/* write the metadata */
+	for(node = chain->head; node; node = node->next) {
+		if(!write_metadata_block_header_(tempfile, &status, node->data)) {
+			chain->status = get_equivalent_status_(status);
+			return false;
+		}
+		if(!write_metadata_block_data_(tempfile, &status, node->data)) {
+			chain->status = get_equivalent_status_(status);
+			return false;
+		}
+	}
+	/*FLAC__ASSERT(fflush(), ftell() == chain->last_offset);*/
+
+	/* copy the file postfix (everything after the metadata) */
+	if(0 != fseek(f, chain->last_offset, SEEK_SET)) {
+		cleanup_tempfile_(&tempfile, &tempfilename);
+		chain->status = FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR;
+		return false;
+	}
+	if(!copy_remaining_bytes_from_file_(f, tempfile, &status)) {
+		cleanup_tempfile_(&tempfile, &tempfilename);
+		chain->status = get_equivalent_status_(status);
+		return false;
+	}
+
+	/* move the tempfile on top of the original */
+	(void)fclose(f);
+	if(!transport_tempfile_(chain->filename, &tempfile, &tempfilename, &status))
+		return false;
+
+	return true;
+}
+
+static FLAC__bool chain_rewrite_file_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOCallback_Seek seek_cb, FLAC__IOCallback_Eof eof_cb, FLAC__IOCallback_Close close_cb, FLAC__IOHandle temp_handle, FLAC__IOCallback_Write temp_write_cb, FLAC__IOCallback_Close temp_close_cb)
+{
+	FLAC__Metadata_SimpleIteratorStatus status;
+	const FLAC__Metadata_Node *node;
+
+	FLAC__ASSERT(0 != chain);
+	FLAC__ASSERT(0 == chain->filename);
+	FLAC__ASSERT(0 != chain->head);
+
+	/* copy the file prefix (data up to first metadata block */
+	if(!copy_n_bytes_from_file_cb_(handle, read_cb, temp_handle, temp_write_cb, chain->first_offset, &status)) {
+		(void)temp_close_cb(temp_handle);
+		chain->status = get_equivalent_status_(status);
+		return false;
+	}
+
+	/* write the metadata */
+	for(node = chain->head; node; node = node->next) {
+		if(!write_metadata_block_header_cb_(temp_handle, temp_write_cb, node->data)) {
+			(void)temp_close_cb(temp_handle);
+			chain->status = FLAC__METADATA_CHAIN_STATUS_WRITE_ERROR;
+			return false;
+		}
+		if(!write_metadata_block_data_cb_(temp_handle, temp_write_cb, node->data)) {
+			(void)temp_close_cb(temp_handle);
+			chain->status = FLAC__METADATA_CHAIN_STATUS_WRITE_ERROR;
+			return false;
+		}
+	}
+	/*FLAC__ASSERT(fflush(), ftell() == chain->last_offset);*/
+
+	/* copy the file postfix (everything after the metadata) */
+	if(0 != seek_cb(handle, chain->last_offset, SEEK_SET)) {
+		(void)temp_close_cb(temp_handle);
+		chain->status = FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR;
+		return false;
+	}
+	if(!copy_remaining_bytes_from_file_cb_(handle, read_cb, eof_cb, temp_handle, temp_write_cb, &status)) {
+		(void)temp_close_cb(temp_handle);
+		chain->status = get_equivalent_status_(status);
+		return false;
+	}
+
+	(void)close_cb(handle);
+	(void)temp_close_cb(temp_handle);
+
+	return true;
+}
+
 FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new()
 {
 	FLAC__Metadata_Chain *chain = (FLAC__Metadata_Chain*)calloc(1, sizeof(FLAC__Metadata_Chain));
@@ -1088,8 +1311,6 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
 
 FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks)
 {
-	FILE *file;
-
 	FLAC__ASSERT(0 != chain);
 
 	chain_clear_(chain);
@@ -1105,6 +1326,40 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chai
 	return true;
 }
 
+FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata_Chain *chain, FLAC__bool use_padding)
+{
+	/* This does all the same checks that are in chain_prepare_for_write_()
+	 * but doesn't actually alter the chain.  Make sure to update the logic
+	 * here if chain_prepare_for_write_() changes.
+	 */
+	const unsigned current_length = chain_calculate_length_(chain);
+
+	FLAC__ASSERT(0 != chain);
+
+	if(use_padding) {
+		/* if the metadata shrank and the last block is padding, we just extend the last padding block */
+		if(current_length < chain->initial_length && chain->tail->data->type == FLAC__METADATA_TYPE_PADDING)
+			return false;
+		/* if the metadata shrank more than 4 bytes then there's room to add another padding block */
+		else if(current_length + FLAC__STREAM_METADATA_HEADER_LENGTH <= chain->initial_length)
+			return false;
+		/* if the metadata grew but the last block is padding, try cutting the padding to restore the original length so we don't have to rewrite the whole file */
+		else if(current_length > chain->initial_length) {
+			const unsigned delta = current_length - chain->initial_length;
+			if(chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
+				/* if the delta is exactly the size of the last padding block, remove the padding block */
+				if(chain->tail->data->length + FLAC__STREAM_METADATA_HEADER_LENGTH == delta)
+					return false;
+				/* if there is at least 'delta' bytes of padding, trim the padding down */
+				else if(chain->tail->data->length >= delta)
+					return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats)
 {
 	struct stat stats;
@@ -1113,67 +1368,117 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC
 
 	FLAC__ASSERT(0 != chain);
 
-	current_length = chain_calculate_length_(chain);
-
-	if(use_padding) {
-		if(current_length < chain->initial_length && chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
-			const unsigned delta = chain->initial_length - current_length;
-			chain->tail->data->length += delta;
-			current_length += delta;
-			FLAC__ASSERT(current_length == chain->initial_length);
-		}
-		else if(current_length + FLAC__STREAM_METADATA_HEADER_LENGTH <= chain->initial_length) {
-			FLAC__StreamMetadata *padding;
-			FLAC__Metadata_Node *node;
-			if(0 == (padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING))) {
-				chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
-				return false;
-			}
-			padding->length = chain->initial_length - (FLAC__STREAM_METADATA_HEADER_LENGTH + current_length);
-			if(0 == (node = node_new_())) {
-				FLAC__metadata_object_delete(padding);
-				chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
-				return false;
-			}
-			node->data = padding;
-			chain_append_node_(chain, node);
-			current_length = chain_calculate_length_(chain);
-			FLAC__ASSERT(current_length == chain->initial_length);
-		}
-		else if(current_length > chain->initial_length) {
-			const unsigned delta = current_length - chain->initial_length;
-			if(chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
-				if(chain->tail->data->length + FLAC__STREAM_METADATA_HEADER_LENGTH == delta) {
-					chain_delete_node_(chain, chain->tail);
-					current_length = chain_calculate_length_(chain);
-					FLAC__ASSERT(current_length == chain->initial_length);
-				}
-				else if(chain->tail->data->length >= delta) {
-					chain->tail->data->length -= delta;
-					current_length -= delta;
-					FLAC__ASSERT(current_length == chain->initial_length);
-				}
-			}
-		}
+	if (0 == chain->filename) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH;
+		return false;
 	}
+
+	current_length = chain_prepare_for_write_(chain, use_padding);
+
+	/* a return value of 0 means there was an error; chain->status is already set */
+	if (0 == current_length)
+		return false;
 
 	if(preserve_file_stats)
 		get_file_stats_(chain->filename, &stats);
 
 	if(current_length == chain->initial_length) {
-		if(!chain_rewrite_chain_(chain))
+		if(!chain_rewrite_metadata_in_place_(chain))
 			return false;
 	}
 	else {
 		if(!chain_rewrite_file_(chain, tempfile_path_prefix))
 			return false;
+
+		/* recompute lengths and offsets */
+		{
+			const FLAC__Metadata_Node *node;
+			chain->initial_length = current_length;
+			chain->last_offset = chain->first_offset;
+			for(node = chain->head; node; node = node->next)
+				chain->last_offset += (FLAC__STREAM_METADATA_HEADER_LENGTH + node->data->length);
+		}
 	}
 
 	if(preserve_file_stats)
 		set_file_stats_(chain->filename, &stats);
 
-	/* recompute lengths and offsets if necessary */
-	if(chain->initial_length != current_length) {
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks)
+{
+	unsigned current_length;
+
+	FLAC__ASSERT(0 != chain);
+
+	if (0 != chain->filename) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH;
+		return false;
+	}
+
+	if (0 == callbacks.write || 0 == callbacks.seek || 0 == callbacks.close) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS;
+		return false;
+	}
+
+	if (FLAC__metadata_chain_check_if_tempfile_needed(chain, use_padding)) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_WRONG_WRITE_CALL;
+		return false;
+	}
+
+	current_length = chain_prepare_for_write_(chain, use_padding);
+
+	/* a return value of 0 means there was an error; chain->status is already set */
+	if (0 == current_length)
+		return false;
+
+	FLAC__ASSERT(current_length == chain->initial_length);
+
+	if(!chain_rewrite_metadata_in_place_cb_(chain, handle, callbacks.write, callbacks.seek, callbacks.close))
+		return false;
+
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks_and_tempfile(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks, FLAC__IOHandle temp_handle, FLAC__IOCallbacks temp_callbacks)
+{
+	unsigned current_length;
+
+	FLAC__ASSERT(0 != chain);
+
+	if (0 != chain->filename) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH;
+		return false;
+	}
+
+	if (0 == callbacks.read || 0 == callbacks.seek || 0 == callbacks.eof || 0 == callbacks.close) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS;
+		return false;
+	}
+	if (0 == temp_callbacks.write || 0 == callbacks.close) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS;
+		return false;
+	}
+
+	if (!FLAC__metadata_chain_check_if_tempfile_needed(chain, use_padding)) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_WRONG_WRITE_CALL;
+		return false;
+	}
+
+	current_length = chain_prepare_for_write_(chain, use_padding);
+
+	/* a return value of 0 means there was an error; chain->status is already set */
+	if (0 == current_length)
+		return false;
+
+	FLAC__ASSERT(current_length != chain->initial_length);
+
+	if(!chain_rewrite_file_cb_(chain, handle, callbacks.read, callbacks.seek, callbacks.eof, callbacks.close, temp_handle, temp_callbacks.write, temp_callbacks.close))
+		return false;
+
+	/* recompute lengths and offsets */
+	{
 		const FLAC__Metadata_Node *node;
 		chain->initial_length = current_length;
 		chain->last_offset = chain->first_offset;
@@ -1784,16 +2089,10 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_unknown_cb_(FLAC__I
 
 FLAC__bool write_metadata_block_header_(FILE *file, FLAC__Metadata_SimpleIteratorStatus *status, const FLAC__StreamMetadata *block)
 {
-	FLAC__byte buffer[FLAC__STREAM_METADATA_HEADER_LENGTH];
-
 	FLAC__ASSERT(0 != file);
 	FLAC__ASSERT(0 != status);
-	FLAC__ASSERT(block->length < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
 
-	buffer[0] = (block->is_last? 0x80 : 0) | (FLAC__byte)block->type;
-	pack_uint32_(block->length, buffer + 1, 3);
-
-	if(local__fwrite(buffer, 1, FLAC__STREAM_METADATA_HEADER_LENGTH, file) != FLAC__STREAM_METADATA_HEADER_LENGTH) {
+	if(!write_metadata_block_header_cb_((FLAC__IOHandle)file, (FLAC__IOCallback_Write)fwrite, block)) {
 		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 		return false;
 	}
@@ -1806,39 +2105,58 @@ FLAC__bool write_metadata_block_data_(FILE *file, FLAC__Metadata_SimpleIteratorS
 	FLAC__ASSERT(0 != file);
 	FLAC__ASSERT(0 != status);
 
-	switch(block->type) {
-		case FLAC__METADATA_TYPE_STREAMINFO:
-			*status = write_metadata_block_data_streaminfo_(file, &block->data.stream_info);
-			break;
-		case FLAC__METADATA_TYPE_PADDING:
-			*status = write_metadata_block_data_padding_(file, &block->data.padding, block->length);
-			break;
-		case FLAC__METADATA_TYPE_APPLICATION:
-			*status = write_metadata_block_data_application_(file, &block->data.application, block->length);
-			break;
-		case FLAC__METADATA_TYPE_SEEKTABLE:
-			*status = write_metadata_block_data_seektable_(file, &block->data.seek_table);
-			break;
-		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-			*status = write_metadata_block_data_vorbis_comment_(file, &block->data.vorbis_comment);
-			break;
-		case FLAC__METADATA_TYPE_CUESHEET:
-			*status = write_metadata_block_data_cuesheet_(file, &block->data.cue_sheet);
-			break;
-		default:
-			*status = write_metadata_block_data_unknown_(file, &block->data.unknown, block->length);
-			break;
+	if (write_metadata_block_data_cb_((FLAC__IOHandle)file, (FLAC__IOCallback_Write)fwrite, block)) {
+		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+		return true;
 	}
-	return (*status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
+	else {
+		*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+		return false;
+	}
 }
 
-FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_streaminfo_(FILE *file, const FLAC__StreamMetadata_StreamInfo *block)
+FLAC__bool write_metadata_block_header_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata *block)
+{
+	FLAC__byte buffer[FLAC__STREAM_METADATA_HEADER_LENGTH];
+
+	FLAC__ASSERT(block->length < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
+
+	buffer[0] = (block->is_last? 0x80 : 0) | (FLAC__byte)block->type;
+	pack_uint32_(block->length, buffer + 1, 3);
+
+	if(write_cb(buffer, 1, FLAC__STREAM_METADATA_HEADER_LENGTH, handle) != FLAC__STREAM_METADATA_HEADER_LENGTH)
+		return false;
+
+	return true;
+}
+
+FLAC__bool write_metadata_block_data_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata *block)
+{
+	FLAC__ASSERT(0 != block);
+
+	switch(block->type) {
+		case FLAC__METADATA_TYPE_STREAMINFO:
+			return write_metadata_block_data_streaminfo_cb_(handle, write_cb, &block->data.stream_info);
+		case FLAC__METADATA_TYPE_PADDING:
+			return write_metadata_block_data_padding_cb_(handle, write_cb, &block->data.padding, block->length);
+		case FLAC__METADATA_TYPE_APPLICATION:
+			return write_metadata_block_data_application_cb_(handle, write_cb, &block->data.application, block->length);
+		case FLAC__METADATA_TYPE_SEEKTABLE:
+			return write_metadata_block_data_seektable_cb_(handle, write_cb, &block->data.seek_table);
+		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
+			return write_metadata_block_data_vorbis_comment_cb_(handle, write_cb, &block->data.vorbis_comment);
+		case FLAC__METADATA_TYPE_CUESHEET:
+			return write_metadata_block_data_cuesheet_cb_(handle, write_cb, &block->data.cue_sheet);
+		default:
+			return write_metadata_block_data_unknown_cb_(handle, write_cb, &block->data.unknown, block->length);
+	}
+}
+
+FLAC__bool write_metadata_block_data_streaminfo_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_StreamInfo *block)
 {
 	FLAC__byte buffer[FLAC__STREAM_METADATA_STREAMINFO_LENGTH];
 	const unsigned channels1 = block->channels - 1;
 	const unsigned bps1 = block->bits_per_sample - 1;
-
-	FLAC__ASSERT(0 != file);
 
 	/* we are using hardcoded numbers for simplicity but we should
 	 * probably eventually write a bit-level packer and use the
@@ -1855,72 +2173,66 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_streaminfo_(FILE *
 	pack_uint32_((FLAC__uint32)block->total_samples, buffer+14, 4);
 	memcpy(buffer+18, block->md5sum, 16);
 
-	if(local__fwrite(buffer, 1, FLAC__STREAM_METADATA_STREAMINFO_LENGTH, file) != FLAC__STREAM_METADATA_STREAMINFO_LENGTH)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(buffer, 1, FLAC__STREAM_METADATA_STREAMINFO_LENGTH, handle) != FLAC__STREAM_METADATA_STREAMINFO_LENGTH)
+		return false;
 
-	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+	return true;
 }
 
-FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_padding_(FILE *file, const FLAC__StreamMetadata_Padding *block, unsigned block_length)
+FLAC__bool write_metadata_block_data_padding_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Padding *block, unsigned block_length)
 {
 	unsigned i, n = block_length;
 	FLAC__byte buffer[1024];
-
-	FLAC__ASSERT(0 != file);
 
 	(void)block;
 
 	memset(buffer, 0, 1024);
 
 	for(i = 0; i < n/1024; i++)
-		if(local__fwrite(buffer, 1, 1024, file) != 1024)
-			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+		if(write_cb(buffer, 1, 1024, handle) != 1024)
+			return false;
 
 	n %= 1024;
 
-	if(local__fwrite(buffer, 1, n, file) != n)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(buffer, 1, n, handle) != n)
+		return false;
 
-	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+	return true;
 }
 
-FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_application_(FILE *file, const FLAC__StreamMetadata_Application *block, unsigned block_length)
+FLAC__bool write_metadata_block_data_application_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Application *block, unsigned block_length)
 {
 	const unsigned id_bytes = FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8;
 
-	FLAC__ASSERT(0 != file);
-
-	if(local__fwrite(block->id, 1, id_bytes, file) != id_bytes)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(block->id, 1, id_bytes, handle) != id_bytes)
+		return false;
 
 	block_length -= id_bytes;
 
-	if(local__fwrite(block->data, 1, block_length, file) != block_length)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(block->data, 1, block_length, handle) != block_length)
+		return false;
 
-	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+	return true;
 }
 
-FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_seektable_(FILE *file, const FLAC__StreamMetadata_SeekTable *block)
+FLAC__bool write_metadata_block_data_seektable_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_SeekTable *block)
 {
 	unsigned i;
 	FLAC__byte buffer[FLAC__STREAM_METADATA_SEEKPOINT_LENGTH];
-
-	FLAC__ASSERT(0 != file);
 
 	for(i = 0; i < block->num_points; i++) {
 		/* some MAGIC NUMBERs here */
 		pack_uint64_(block->points[i].sample_number, buffer, 8);
 		pack_uint64_(block->points[i].stream_offset, buffer+8, 8);
 		pack_uint32_(block->points[i].frame_samples, buffer+16, 2);
-		if(local__fwrite(buffer, 1, FLAC__STREAM_METADATA_SEEKPOINT_LENGTH, file) != FLAC__STREAM_METADATA_SEEKPOINT_LENGTH)
-			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+		if(write_cb(buffer, 1, FLAC__STREAM_METADATA_SEEKPOINT_LENGTH, handle) != FLAC__STREAM_METADATA_SEEKPOINT_LENGTH)
+			return false;
 	}
 
-	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+	return true;
 }
 
-FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_vorbis_comment_(FILE *file, const FLAC__StreamMetadata_VorbisComment *block)
+FLAC__bool write_metadata_block_data_vorbis_comment_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_VorbisComment *block)
 {
 	unsigned i;
 	const unsigned entry_length_len = FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8;
@@ -1928,30 +2240,29 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_vorbis_comment_(FI
 	FLAC__byte buffer[4]; /* magic number is asserted below */
 
 	FLAC__ASSERT(max(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN, FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8 == 4);
-	FLAC__ASSERT(0 != file);
 
 	pack_uint32_little_endian_(block->vendor_string.length, buffer, entry_length_len);
-	if(local__fwrite(buffer, 1, entry_length_len, file) != entry_length_len)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
-	if(local__fwrite(block->vendor_string.entry, 1, block->vendor_string.length, file) != block->vendor_string.length)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(buffer, 1, entry_length_len, handle) != entry_length_len)
+		return false;
+	if(write_cb(block->vendor_string.entry, 1, block->vendor_string.length, handle) != block->vendor_string.length)
+		return false;
 
 	pack_uint32_little_endian_(block->num_comments, buffer, num_comments_len);
-	if(local__fwrite(buffer, 1, num_comments_len, file) != num_comments_len)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(buffer, 1, num_comments_len, handle) != num_comments_len)
+		return false;
 
 	for(i = 0; i < block->num_comments; i++) {
 		pack_uint32_little_endian_(block->comments[i].length, buffer, entry_length_len);
-		if(local__fwrite(buffer, 1, entry_length_len, file) != entry_length_len)
-			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
-		if(local__fwrite(block->comments[i].entry, 1, block->comments[i].length, file) != block->comments[i].length)
-			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+		if(write_cb(buffer, 1, entry_length_len, handle) != entry_length_len)
+			return false;
+		if(write_cb(block->comments[i].entry, 1, block->comments[i].length, handle) != block->comments[i].length)
+			return false;
 	}
 
-	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+	return true;
 }
 
-FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *file, const FLAC__StreamMetadata_CueSheet *block)
+FLAC__bool write_metadata_block_data_cuesheet_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_CueSheet *block)
 {
 	unsigned i, j, len;
 	FLAC__byte buffer[1024]; /* asserted below that this is big enough */
@@ -1961,32 +2272,30 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *fi
 	FLAC__ASSERT(sizeof(buffer) >= (FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN + FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN)/8);
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN/8);
 
-	FLAC__ASSERT(0 != file);
-
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN / 8;
-	if(local__fwrite(block->media_catalog_number, 1, len, file) != len)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(block->media_catalog_number, 1, len, handle) != len)
+		return false;
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN / 8;
 	pack_uint64_(block->lead_in, buffer, len);
-	if(local__fwrite(buffer, 1, len, file) != len)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
 
 	FLAC__ASSERT((FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN + FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN) % 8 == 0);
 	len = (FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN + FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN) / 8;
 	memset(buffer, 0, len);
 	if(block->is_cd)
 		buffer[0] |= 0x80;
-	if(local__fwrite(buffer, 1, len, file) != len)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN / 8;
 	pack_uint32_(block->num_tracks, buffer, len);
-	if(local__fwrite(buffer, 1, len, file) != len)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
 
 	for(i = 0; i < block->num_tracks; i++) {
 		FLAC__StreamMetadata_CueSheet_Track *track = block->tracks + i;
@@ -1994,32 +2303,32 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *fi
 		FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN % 8 == 0);
 		len = FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN / 8;
 		pack_uint64_(track->offset, buffer, len);
-		if(local__fwrite(buffer, 1, len, file) != len)
-			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+		if(write_cb(buffer, 1, len, handle) != len)
+			return false;
 
 		FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN % 8 == 0);
 		len = FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN / 8;
 		pack_uint32_(track->number, buffer, len);
-		if(local__fwrite(buffer, 1, len, file) != len)
-			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+		if(write_cb(buffer, 1, len, handle) != len)
+			return false;
 
 		FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN % 8 == 0);
 		len = FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN / 8;
-		if(local__fwrite(track->isrc, 1, len, file) != len)
-			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+		if(write_cb(track->isrc, 1, len, handle) != len)
+			return false;
 
 		FLAC__ASSERT((FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN) % 8 == 0);
 		len = (FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN + FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN) / 8;
 		memset(buffer, 0, len);
 		buffer[0] = (track->type << 7) | (track->pre_emphasis << 6);
-		if(local__fwrite(buffer, 1, len, file) != len)
-			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+		if(write_cb(buffer, 1, len, handle) != len)
+			return false;
 
 		FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN % 8 == 0);
 		len = FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN / 8;
 		pack_uint32_(track->num_indices, buffer, len);
-		if(local__fwrite(buffer, 1, len, file) != len)
-			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+		if(write_cb(buffer, 1, len, handle) != len)
+			return false;
 
 		for(j = 0; j < track->num_indices; j++) {
 			FLAC__StreamMetadata_CueSheet_Index *index = track->indices + j;
@@ -2027,34 +2336,32 @@ FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_cuesheet_(FILE *fi
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN % 8 == 0);
 			len = FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN / 8;
 			pack_uint64_(index->offset, buffer, len);
-			if(local__fwrite(buffer, 1, len, file) != len)
-				return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+			if(write_cb(buffer, 1, len, handle) != len)
+				return false;
 
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN % 8 == 0);
 			len = FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN / 8;
 			pack_uint32_(index->number, buffer, len);
-			if(local__fwrite(buffer, 1, len, file) != len)
-				return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+			if(write_cb(buffer, 1, len, handle) != len)
+				return false;
 
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN % 8 == 0);
 			len = FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN / 8;
 			memset(buffer, 0, len);
-			if(local__fwrite(buffer, 1, len, file) != len)
-				return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+			if(write_cb(buffer, 1, len, handle) != len)
+				return false;
 		}
 	}
 
-	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+	return true;
 }
 
-FLAC__Metadata_SimpleIteratorStatus write_metadata_block_data_unknown_(FILE *file, const FLAC__StreamMetadata_Unknown *block, unsigned block_length)
+FLAC__bool write_metadata_block_data_unknown_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Unknown *block, unsigned block_length)
 {
-	FLAC__ASSERT(0 != file);
+	if(write_cb(block->data, 1, block_length, handle) != block_length)
+		return false;
 
-	if(local__fwrite(block->data, 1, block_length, file) != block_length)
-		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
-
-	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+	return true;
 }
 
 FLAC__bool write_metadata_block_stationary_(FLAC__Metadata_SimpleIterator *iterator, const FLAC__StreamMetadata *block)
@@ -2168,103 +2475,6 @@ FLAC__bool rewrite_whole_file_(FLAC__Metadata_SimpleIterator *iterator, FLAC__St
 
 	if(append)
 		return FLAC__metadata_simple_iterator_next(iterator);
-
-	return true;
-}
-
-FLAC__bool chain_rewrite_chain_(FLAC__Metadata_Chain *chain)
-{
-	FILE *f;
-	FLAC__Metadata_Node *node;
-	FLAC__Metadata_SimpleIteratorStatus status;
-
-	FLAC__ASSERT(0 != chain);
-	FLAC__ASSERT(0 != chain->filename);
-	FLAC__ASSERT(0 != chain->head);
-
-	if(0 == (f = fopen(chain->filename, "r+b"))) {
-		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
-		return false;
-	}
-	if(0 != fseek(f, chain->first_offset, SEEK_SET)) {
-		chain->status = FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR;
-		return false;
-	}
-
-	for(node = chain->head; node; node = node->next) {
-		if(!write_metadata_block_header_(f, &status, node->data)) {
-			chain->status = get_equivalent_status_(status);
-			return false;
-		}
-		if(!write_metadata_block_data_(f, &status, node->data)) {
-			chain->status = get_equivalent_status_(status);
-			return false;
-		}
-	}
-
-	/*FLAC__ASSERT(fflush(), ftell() == chain->last_offset);*/
-
-	(void)fclose(f);
-
-	return true;
-}
-
-FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *tempfile_path_prefix)
-{
-	FILE *f, *tempfile;
-	char *tempfilename;
-	FLAC__Metadata_SimpleIteratorStatus status;
-	const FLAC__Metadata_Node *node;
-
-	FLAC__ASSERT(0 != chain);
-	FLAC__ASSERT(0 != chain->filename);
-	FLAC__ASSERT(0 != chain->head);
-
-	/* copy the file prefix (data up to first metadata block */
-	if(0 == (f = fopen(chain->filename, "rb"))) {
-		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
-		return false;
-	}
-	if(!open_tempfile_(chain->filename, tempfile_path_prefix, &tempfile, &tempfilename, &status)) {
-		chain->status = get_equivalent_status_(status);
-		cleanup_tempfile_(&tempfile, &tempfilename);
-		return false;
-	}
-	if(!copy_n_bytes_from_file_(f, tempfile, chain->first_offset, &status)) {
-		chain->status = get_equivalent_status_(status);
-		cleanup_tempfile_(&tempfile, &tempfilename);
-		return false;
-	}
-
-	/* write the metadata */
-	for(node = chain->head; node; node = node->next) {
-		if(!write_metadata_block_header_(tempfile, &status, node->data)) {
-			chain->status = get_equivalent_status_(status);
-			return false;
-		}
-		if(!write_metadata_block_data_(tempfile, &status, node->data)) {
-			chain->status = get_equivalent_status_(status);
-			return false;
-		}
-	}
-	/*FLAC__ASSERT(fflush(), ftell() == chain->last_offset);*/
-
-	/* copy the file postfix (everything after the metadata) */
-	if(0 != fseek(f, chain->last_offset, SEEK_SET)) {
-		cleanup_tempfile_(&tempfile, &tempfilename);
-		chain->status = FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR;
-		return false;
-	}
-	if(!copy_remaining_bytes_from_file_(f, tempfile, &status)) {
-		cleanup_tempfile_(&tempfile, &tempfilename);
-		chain->status = get_equivalent_status_(status);
-		return false;
-	}
-
-	/* move the tempfile on top of the original */
-	(void)fclose(f);
-	if(!transport_tempfile_(chain->filename, &tempfile, &tempfilename, &status))
-		return false;
 
 	return true;
 }
@@ -2469,6 +2679,27 @@ FLAC__bool copy_n_bytes_from_file_(FILE *file, FILE *tempfile, unsigned bytes/*@
 	return true;
 }
 
+FLAC__bool copy_n_bytes_from_file_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOHandle temp_handle, FLAC__IOCallback_Write temp_write_cb, unsigned bytes/*@@@ 4G limit*/, FLAC__Metadata_SimpleIteratorStatus *status)
+{
+	FLAC__byte buffer[8192];
+	unsigned n;
+
+	while(bytes > 0) {
+		n = min(sizeof(buffer), bytes);
+		if(read_cb(buffer, 1, n, handle) != n) {
+			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+			return false;
+		}
+		if(temp_write_cb(buffer, 1, n, temp_handle) != n) {
+			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+			return false;
+		}
+		bytes -= n;
+	}
+
+	return true;
+}
+
 FLAC__bool copy_remaining_bytes_from_file_(FILE *file, FILE *tempfile, FLAC__Metadata_SimpleIteratorStatus *status)
 {
 	FLAC__byte buffer[8192];
@@ -2481,6 +2712,26 @@ FLAC__bool copy_remaining_bytes_from_file_(FILE *file, FILE *tempfile, FLAC__Met
 			return false;
 		}
 		if(n > 0 && local__fwrite(buffer, 1, n, tempfile) != n) {
+			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+FLAC__bool copy_remaining_bytes_from_file_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOCallback_Eof eof_cb, FLAC__IOHandle temp_handle, FLAC__IOCallback_Write temp_write_cb, FLAC__Metadata_SimpleIteratorStatus *status)
+{
+	FLAC__byte buffer[8192];
+	size_t n;
+
+	while(!eof_cb(handle)) {
+		n = read_cb(buffer, 1, sizeof(buffer), handle);
+		if(n == 0 && !eof_cb(handle)) {
+			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+			return false;
+		}
+		if(n > 0 && temp_write_cb(buffer, 1, n, temp_handle) != n) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_WRITE_ERROR;
 			return false;
 		}

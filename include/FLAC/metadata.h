@@ -588,8 +588,26 @@ typedef enum {
 	FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR,
 	/**< The caller violated an assertion or an unexpected error occurred */
 
-	FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS
+	FLAC__METADATA_CHAIN_STATUS_INVALID_CALLBACKS,
 	/**< One or more of the required callbacks was NULL */
+
+	FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH,
+	/**< FLAC__metadata_chain_write() was called on a chain read by
+	 *   FLAC__metadata_chain_read_with_callbacks(), or
+	 *   FLAC__metadata_chain_write_with_callbacks() or
+	 *   FLAC__metadata_chain_write_with_callbacks_and_tempfile() was
+	 *   called on a chain read by FLAC__metadata_chain_read().  Matching
+	 *   read/write methods must always be used. */
+
+	FLAC__METADATA_CHAIN_STATUS_WRONG_WRITE_CALL
+	/**< FLAC__metadata_chain_write_with_callbacks() was called when the
+	 *   chain write requires a tempfile; use
+	 *   FLAC__metadata_chain_write_with_callbacks_and_tempfile() instead.
+	 *   Or, FLAC__metadata_chain_write_with_callbacks_and_tempfile() was
+	 *   called when the chain write does not require a tempfile; use
+	 *   FLAC__metadata_chain_write_with_callbacks() instead.
+	 *   Always check FLAC__metadata_chain_check_if_tempfile_needed()
+	 *   before writing via callbacks. */
 
 } FLAC__Metadata_ChainStatus;
 
@@ -645,6 +663,10 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
 
 /** Read all metadata from a FLAC stream into the chain via I/O callbacks.
  *
+ *  The \a handle need only be open for reading, but must be seekable.
+ *  The equivalent minimum stdio fopen() file mode is \c "r" (or \c "rb"
+ *  for Windows).
+ *
  * \param chain    A pointer to an existing chain.
  * \param handle   The I/O handle of the FLAC stream to read.  The
  *                 handle will be closed after the metadata is read.
@@ -660,6 +682,9 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
  *    FLAC__metadata_chain_status().
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);
+
+/* @@@@@@ document */
+FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata_Chain *chain, FLAC__bool use_padding);
 
 /** Write all metadata out to the FLAC file.  This function tries to be as
  *  efficient as possible; how the metadata is actually written is shown by
@@ -702,6 +727,12 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chai
  *    check the status with FLAC__metadata_chain_status().
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats);
+
+/* @@@@@@ document */
+FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);
+
+/* @@@@@@ document */
+FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks_and_tempfile(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks, FLAC__IOHandle temp_handle, FLAC__IOCallbacks temp_callbacks);
 
 /** Merge adjacent PADDING blocks into a single block.
  *
