@@ -110,11 +110,12 @@ static bool write_big_endian_uint64(FILE *f, uint64 val);
 int encode_wav(FILE *infile, const char *infilename, const char *outfilename, bool verbose, uint64 skip, bool verify, bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned min_residual_partition_order, unsigned max_residual_partition_order, unsigned rice_parameter_search_dist, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned padding, char *requested_seek_points, int num_requested_seek_points)
 {
 	encoder_wrapper_struct encoder_wrapper;
-	bool is_unsigned_samples;
-	unsigned channels, bps, sample_rate, data_bytes;
+	bool is_unsigned_samples = false;
+	unsigned channels = 0, bps = 0, sample_rate = 0, data_bytes;
 	size_t bytes_per_wide_sample, bytes_read;
 	uint16 x;
 	uint32 xx;
+	bool got_fmt_chunk = false, got_data_chunk = false;
 
 	encoder_wrapper.encoder = 0;
 	encoder_wrapper.verify = verify;
@@ -162,131 +163,155 @@ int encode_wav(FILE *infile, const char *infilename, const char *outfilename, bo
 		goto wav_abort_;
 	}
 
-	/* do the format sub-chunk */
-	if(!read_little_endian_uint32(infile, &xx, false))
-		goto wav_abort_;
-	if(xx != 0x20746d66) { /* "fmt " */
-		fprintf(stderr, "ERROR: no format sub-chunk\n");
-		goto wav_abort_;
-	}
-	/* fmt chunk size */
-	if(!read_little_endian_uint32(infile, &xx, false))
-		goto wav_abort_;
-	if(xx != 16) {
-		fprintf(stderr, "ERROR: unsupported chunk\n");
-		goto wav_abort_;
-	}
-	/* compression code */
-	if(!read_little_endian_uint16(infile, &x, false))
-		goto wav_abort_;
-	if(x != 1) {
-		fprintf(stderr, "ERROR: unsupported compression type %u\n", (unsigned)x);
-		goto wav_abort_;
-	}
-	/* number of channels */
-	if(!read_little_endian_uint16(infile, &x, false))
-		goto wav_abort_;
-	if(x == 0 || x > FLAC__MAX_CHANNELS) {
-		fprintf(stderr, "ERROR: unsupported number channels %u\n", (unsigned)x);
-		goto wav_abort_;
-	}
-	channels = x;
-	/* sample rate */
-	if(!read_little_endian_uint32(infile, &xx, false))
-		goto wav_abort_;
-	if(xx == 0 || xx > FLAC__MAX_SAMPLE_RATE) {
-		fprintf(stderr, "ERROR: unsupported sample rate %u\n", (unsigned)xx);
-		goto wav_abort_;
-	}
-	sample_rate = xx;
-	/* avg bytes per second (ignored) */
-	if(!read_little_endian_uint32(infile, &xx, false))
-		goto wav_abort_;
-	/* block align (ignored) */
-	if(!read_little_endian_uint16(infile, &x, false))
-		goto wav_abort_;
-	/* bits per sample */
-	if(!read_little_endian_uint16(infile, &x, false))
-		goto wav_abort_;
-	if(x != 8 && x != 16) {
-		fprintf(stderr, "ERROR: unsupported bits per sample %u\n", (unsigned)x);
-		goto wav_abort_;
-	}
-	bps = x;
-	is_unsigned_samples = (x == 8);
-
-	/* do the data sub-chunk */
-	if(!read_little_endian_uint32(infile, &xx, false))
-		goto wav_abort_;
-	if(xx != 0x61746164) { /* "data" */
-		fprintf(stderr, "ERROR: no data sub-chunk\n");
-		goto wav_abort_;
-	}
-	/* data size */
-	if(!read_little_endian_uint32(infile, &xx, false))
-		goto wav_abort_;
-	data_bytes = xx;
-
-	bytes_per_wide_sample = channels * (bps >> 3);
-
-	if(skip > 0) {
-		if(infile != stdin) {
-			if(-1 == fseek(infile, bytes_per_wide_sample * (unsigned)skip, SEEK_CUR)) {
-				fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
-				goto wav_abort_;
+	/* do sub-chunks */
+	while(!feof(infile)) {
+		if(!read_little_endian_uint32(infile, &xx, true))
+			goto wav_abort_;
+		if(feof(infile))
+			break;
+		if(xx == 0x20746d66) { /* "fmt " */
+			if(got_fmt_chunk) {
+				fprintf(stderr, "WARNING: skipping extra 'fmt ' sub-chunk\n");
 			}
-		}
-		else {
-			int64 left;
-			unsigned need;
-			for(left = (int64)skip; left > 0; left -= CHUNK_OF_SAMPLES) {
-				need = min(left, CHUNK_OF_SAMPLES);
-				if(fread(ucbuffer, 1, bytes_per_wide_sample * need, infile) < need) {
-					fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
+			else {
+				/* fmt chunk size */
+				if(!read_little_endian_uint32(infile, &xx, false))
+					goto wav_abort_;
+				if(xx != 16) {
+					fprintf(stderr, "ERROR: unsupported chunk\n");
 					goto wav_abort_;
 				}
+				/* compression code */
+				if(!read_little_endian_uint16(infile, &x, false))
+					goto wav_abort_;
+				if(x != 1) {
+					fprintf(stderr, "ERROR: unsupported compression type %u\n", (unsigned)x);
+					goto wav_abort_;
+				}
+				/* number of channels */
+				if(!read_little_endian_uint16(infile, &x, false))
+					goto wav_abort_;
+				if(x == 0 || x > FLAC__MAX_CHANNELS) {
+					fprintf(stderr, "ERROR: unsupported number channels %u\n", (unsigned)x);
+					goto wav_abort_;
+				}
+				channels = x;
+				/* sample rate */
+				if(!read_little_endian_uint32(infile, &xx, false))
+					goto wav_abort_;
+				if(xx == 0 || xx > FLAC__MAX_SAMPLE_RATE) {
+					fprintf(stderr, "ERROR: unsupported sample rate %u\n", (unsigned)xx);
+					goto wav_abort_;
+				}
+				sample_rate = xx;
+				/* avg bytes per second (ignored) */
+				if(!read_little_endian_uint32(infile, &xx, false))
+					goto wav_abort_;
+				/* block align (ignored) */
+				if(!read_little_endian_uint16(infile, &x, false))
+					goto wav_abort_;
+				/* bits per sample */
+				if(!read_little_endian_uint16(infile, &x, false))
+					goto wav_abort_;
+				if(x != 8 && x != 16) {
+					fprintf(stderr, "ERROR: unsupported bits per sample %u\n", (unsigned)x);
+					goto wav_abort_;
+				}
+				bps = x;
+				is_unsigned_samples = (x == 8);
+
+				got_fmt_chunk = true;
 			}
 		}
-	}
-
-	encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample - skip;
-	encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
-
-	if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
-		goto wav_abort_;
-
-	encoder_wrapper.verify_fifo.into_frames = true;
-
-	while(data_bytes > 0) {
-		bytes_read = fread(ucbuffer, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample, infile);
-		if(bytes_read == 0) {
-			if(ferror(infile)) {
-				fprintf(stderr, "ERROR reading from %s\n", infilename);
-				goto wav_abort_;
+		else if(xx == 0x61746164) { /* "data" */
+			if(got_data_chunk) {
+				fprintf(stderr, "WARNING: skipping extra 'data' sub-chunk\n");
 			}
-			else if(feof(infile))
-				break;
-		}
-		else {
-			if(bytes_read > data_bytes)
-				bytes_read = data_bytes; /* chop off anything after the end of the data chunk */
-			if(bytes_read % bytes_per_wide_sample != 0) {
-				fprintf(stderr, "ERROR, got partial sample from input file %s\n", infilename);
+			else if(!got_fmt_chunk) {
+				fprintf(stderr, "ERROR: got data sub-chunk before fmt sub-chunk\n");
 				goto wav_abort_;
 			}
 			else {
-				unsigned wide_samples = bytes_read / bytes_per_wide_sample;
-				format_input(wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
-
-				/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
-				if(!FLAC__encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
-					fprintf(stderr, "ERROR during encoding, state = %d:%s\n", encoder_wrapper.encoder->state, FLAC__EncoderStateString[encoder_wrapper.encoder->state]);
+				/* data size */
+				if(!read_little_endian_uint32(infile, &xx, false))
 					goto wav_abort_;
+				data_bytes = xx;
+
+				bytes_per_wide_sample = channels * (bps >> 3);
+
+				if(skip > 0) {
+					if(infile != stdin) {
+						if(-1 == fseek(infile, bytes_per_wide_sample * (unsigned)skip, SEEK_CUR)) {
+							fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
+							goto wav_abort_;
+						}
+					}
+					else {
+						int64 left;
+						unsigned need;
+						for(left = (int64)skip; left > 0; left -= CHUNK_OF_SAMPLES) {
+							need = min(left, CHUNK_OF_SAMPLES);
+							if(fread(ucbuffer, 1, bytes_per_wide_sample * need, infile) < need) {
+								fprintf(stderr, "ERROR seeking while skipping samples in input file %s\n", infilename);
+								goto wav_abort_;
+							}
+						}
+					}
 				}
-				data_bytes -= bytes_read;
+
+				encoder_wrapper.total_samples_to_encode = data_bytes / bytes_per_wide_sample - skip;
+				encoder_wrapper.unencoded_size = encoder_wrapper.total_samples_to_encode * bytes_per_wide_sample + 44; /* 44 for the size of the WAV headers */
+
+				if(!init_encoder(lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, blocksize, qlp_coeff_precision, channels, bps, sample_rate, padding, requested_seek_points, num_requested_seek_points, &encoder_wrapper))
+					goto wav_abort_;
+
+				encoder_wrapper.verify_fifo.into_frames = true;
+
+				while(data_bytes > 0) {
+					bytes_read = fread(ucbuffer, sizeof(unsigned char), CHUNK_OF_SAMPLES * bytes_per_wide_sample, infile);
+					if(bytes_read == 0) {
+						if(ferror(infile)) {
+							fprintf(stderr, "ERROR reading from %s\n", infilename);
+							goto wav_abort_;
+						}
+						else if(feof(infile))
+							break;
+					}
+					else {
+						if(bytes_read > data_bytes)
+							bytes_read = data_bytes; /* chop off anything after the end of the data chunk */
+						if(bytes_read % bytes_per_wide_sample != 0) {
+							fprintf(stderr, "ERROR, got partial sample from input file %s\n", infilename);
+							goto wav_abort_;
+						}
+						else {
+							unsigned wide_samples = bytes_read / bytes_per_wide_sample;
+							format_input(wide_samples, false, is_unsigned_samples, channels, bps, &encoder_wrapper);
+
+							/* NOTE: some versions of GCC can't figure out const-ness right and will give you an 'incompatible pointer type' warning on arg 2 here: */
+							if(!FLAC__encoder_process(encoder_wrapper.encoder, input, wide_samples)) {
+								fprintf(stderr, "ERROR during encoding, state = %d:%s\n", encoder_wrapper.encoder->state, FLAC__EncoderStateString[encoder_wrapper.encoder->state]);
+								goto wav_abort_;
+							}
+							data_bytes -= bytes_read;
+						}
+					}
+				}
+				got_data_chunk = true;
+			}
+		}
+		else {
+			fprintf(stderr, "WARNING: skipping unknown sub-chunk '%c%c%c%c'\n", (char)(xx&255), (char)((xx>>8)&255), (char)((xx>>16)&255), (char)(xx>>24));
+			/* chunk size */
+			if(!read_little_endian_uint32(infile, &xx, false))
+				goto wav_abort_;
+			if(-1 == fseek(infile, xx, SEEK_CUR)) {
+				fprintf(stderr, "ERROR seeking ahead while skipping unsupported sub-chunk in input file %s\n", infilename);
+				goto wav_abort_;
 			}
 		}
 	}
+
 
 wav_end_:
 	if(encoder_wrapper.encoder) {
@@ -766,7 +791,7 @@ void format_input(unsigned wide_samples, bool is_big_endian, bool is_unsigned_sa
 FLAC__EncoderWriteStatus write_callback(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	encoder_wrapper_struct *encoder_wrapper = (encoder_wrapper_struct *)client_data;
-	unsigned mask = (encoder->do_exhaustive_model_search || encoder->do_qlp_coeff_prec_search)? 0x07 : 0x1f;
+	unsigned mask = (encoder->do_exhaustive_model_search || encoder->do_qlp_coeff_prec_search)? 0x1f : 0x7f;
 
 	/* mark the current seek point if hit (if stream_offset == 0 that means we're still writing metadata and haven't hit the first frame yet) */
 	if(encoder_wrapper->stream_offset > 0 && encoder_wrapper->seek_table.num_points > 0) {
