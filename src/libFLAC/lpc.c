@@ -104,8 +104,8 @@ int FLAC__lpc_quantize_coefficients(const real lp_coeff[], unsigned order, unsig
 		if(d > cmax)
 			cmax = d;
 	}
-	if(cmax < 0) {
-		/* => coeffients are all 0, which means our constant-detect didn't work */
+	if(cmax < 0.0) {
+		/* => coefficients are all 0, which means our constant-detect didn't work */
 		return 2;
 	}
 	else {
