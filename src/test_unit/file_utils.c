@@ -85,7 +85,7 @@ FLAC__bool file_utils__remove_file(const char *filename)
 	return file_utils__change_stats(filename, /*read_only=*/false) && 0 == unlink(filename);
 }
 
-FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned length, const FLAC__StreamMetaData *streaminfo, int padding_length)
+FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned length, const FLAC__StreamMetaData *streaminfo, FLAC__StreamMetaData **metadata, unsigned num_metadata)
 {
 	FLAC__int32 samples[1024];
 	FLAC__StreamEncoder *encoder;
@@ -95,7 +95,7 @@ FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned l
 	FLAC__ASSERT(0 != output_filename);
 	FLAC__ASSERT(0 != streaminfo);
 	FLAC__ASSERT(streaminfo->type == FLAC__METADATA_TYPE_STREAMINFO);
-	FLAC__ASSERT((streaminfo->is_last && padding_length < 0) || (!streaminfo->is_last && padding_length >= 0));
+	FLAC__ASSERT((streaminfo->is_last && num_metadata == 0) || (!streaminfo->is_last && num_metadata > 0));
 
 	if(0 == (encoder_client_data.file = fopen(output_filename, "wb")))
 		return false;
@@ -122,9 +122,7 @@ FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned l
 	FLAC__stream_encoder_set_max_residual_partition_order(encoder, 0);
 	FLAC__stream_encoder_set_rice_parameter_search_dist(encoder, 0);
 	FLAC__stream_encoder_set_total_samples_estimate(encoder, streaminfo->data.stream_info.total_samples);
-	FLAC__stream_encoder_set_seek_table(encoder, 0);
-	FLAC__stream_encoder_set_padding(encoder, padding_length);
-	FLAC__stream_encoder_set_last_metadata_is_last(encoder, true);
+	FLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
 	FLAC__stream_encoder_set_write_callback(encoder, encoder_write_callback_);
 	FLAC__stream_encoder_set_metadata_callback(encoder, encoder_metadata_callback_);
 	FLAC__stream_encoder_set_client_data(encoder, &encoder_client_data);

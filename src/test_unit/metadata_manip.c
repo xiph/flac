@@ -264,6 +264,7 @@ static void decoder_metadata_callback_compare_(const FLAC__FileDecoder *decoder,
 static FLAC__bool generate_file_()
 {
 	FLAC__StreamMetaData streaminfo, padding;
+	FLAC__StreamMetaData *metadata[1];
 
 	printf("generating FLAC file for test\n");
 
@@ -287,10 +288,12 @@ static FLAC__bool generate_file_()
 	padding.type = FLAC__METADATA_TYPE_PADDING;
 	padding.length = 1234;
 
+	metadata[0] = &padding;
+
 	if(!insert_to_our_metadata_(&streaminfo, 0, /*copy=*/true) || !insert_to_our_metadata_(&padding, 1, /*copy=*/true))
 		return die_("priming our metadata");
 
-	if(!file_utils__generate_flacfile(flacfile_, 512 * 1024, &streaminfo, padding.length))
+	if(!file_utils__generate_flacfile(flacfile_, 512 * 1024, &streaminfo, metadata, 1))
 		return die_("creating the encoded file"); 
 
 	return true;
