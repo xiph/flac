@@ -125,6 +125,7 @@ void FLAC__lpc_restore_signal(const int32 residual[], unsigned data_len, const i
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
 void FLAC__lpc_restore_signal_asm_i386(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
+void FLAC__lpc_restore_signal_asm_i386_mmx(const int32 residual[], unsigned data_len, const int32 qlp_coeff[], unsigned order, int lp_quantization, int32 data[]);
 #endif
 #endif
 #endif
@@ -140,6 +141,7 @@ void FLAC__lpc_restore_signal_asm_i386(const int32 residual[], unsigned data_len
  *	RETURN                expected bits per sample
  */
 real FLAC__lpc_compute_expected_bits_per_residual_sample(real lpc_error, unsigned total_samples);
+real FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(real lpc_error, real error_scale);
 
 /*
  *	FLAC__lpc_compute_best_order()
