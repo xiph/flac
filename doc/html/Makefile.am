@@ -27,6 +27,7 @@ doc_DATA =  \
 	developers.html \
 	documentation.html \
 	download.html \
+	faq.html \
 	features.html \
 	format.html \
 	goals.html \

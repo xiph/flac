@@ -36,6 +36,7 @@ EXTRA_DIST = \
 	COPYING.FDL \
 	COPYING.GPL \
 	COPYING.LGPL \
+	COPYING.Xiph \
 	FLAC.dsw \
 	Makefile.lite \
 	all.dsp \
