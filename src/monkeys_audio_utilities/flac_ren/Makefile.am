@@ -17,4 +17,5 @@
 
 EXTRA_DIST = \
 	Makefile.vc \
+	flac_ren.dsp \
 	main.c
