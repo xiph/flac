@@ -48,7 +48,7 @@ test_file ()
 	bps=$3
 	encode_options="$4"
 
-	echo -n "$name (--channels=$channels --bps=$bps $encode_options): encode..."
+	echo -n "$name.bin (--channels=$channels --bps=$bps $encode_options): encode..."
 	cmd="run_flac --verify --silent --force --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
@@ -72,8 +72,8 @@ test_file ()
 
 echo "Testing bins..."
 for f in b00 b01 b02 b03 b04 ; do
-	binfile=$BINS_PATH/$f.bin
-	if [ -f $binfile ] ; then
+	binfile=$BINS_PATH/$f
+	if [ -f $binfile.bin ] ; then
 		for disable in '' '--disable-verbatim-subframes --disable-constant-subframes' '--disable-verbatim-subframes --disable-constant-subframes --disable-fixed-subframes' ; do
 			for channels in 1 2 4 8 ; do
 				for bps in 8 16 24 ; do
