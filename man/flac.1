@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "29 December 2002" "" ""
+.TH "FLAC" "1" "02 January 2003" "" ""
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
@@ -178,7 +178,7 @@ have to be a whole number; it can be, for example, 9.5,
 meaning a seekpoint every 9.5 seconds).  You may use
 many -S options; the resulting SEEKTABLE will be the
 unique-ified union of all such values.  With no -S
-options, flac defaults to '-S 100x'.  Use --no-seektable
+options, flac defaults to '-S 10s'.  Use --no-seektable
 for no SEEKTABLE.  Note: '-S #x' and '-S #s' will not
 work if the encoder can't determine the input size before
 starting.  Note: if you use '-S #' and # is >=
