@@ -31,14 +31,8 @@
 
 #include <stdlib.h> /* for calloc() */
 #include <string.h> /* for memset() */
-#include <ogg/ogg.h>
 #include "FLAC/assert.h"
 #include "protected/stream_decoder.h"
-
-#ifdef min
-#undef min
-#endif
-#define min(x,y) ((x)<(y)?(x):(y))
 
 /***********************************************************************
  *
@@ -66,11 +60,6 @@ typedef struct OggFLAC__StreamDecoderPrivate {
 	OggFLAC__StreamDecoderErrorCallback error_callback;
 	void *client_data;
 	FLAC__StreamDecoder *FLAC_stream_decoder;
-	struct {
-		ogg_stream_state stream_state;
-		ogg_sync_state sync_state;
-		FLAC__bool need_serial_number;
-	} ogg;
 } OggFLAC__StreamDecoderPrivate;
 
 /***********************************************************************
@@ -79,7 +68,7 @@ typedef struct OggFLAC__StreamDecoderPrivate {
  *
  ***********************************************************************/
 
-const OggFLAC_API char * const OggFLAC__StreamDecoderStateString[] = {
+OggFLAC_API const char * const OggFLAC__StreamDecoderStateString[] = {
 	"OggFLAC__STREAM_DECODER_OK",
 	"OggFLAC__STREAM_DECODER_OGG_ERROR",
 	"OggFLAC__STREAM_DECODER_READ_ERROR",
@@ -165,12 +154,7 @@ OggFLAC_API OggFLAC__StreamDecoderState OggFLAC__stream_decoder_init(OggFLAC__St
 	if(0 == decoder->private_->read_callback || 0 == decoder->private_->write_callback || 0 == decoder->private_->metadata_callback || 0 == decoder->private_->error_callback)
 		return decoder->protected_->state = OggFLAC__STREAM_DECODER_INVALID_CALLBACK;
 
-	decoder->private_->ogg.need_serial_number = decoder->protected_->use_first_serial_number;
-	/* we will determine the serial number later if necessary */
-	if(ogg_stream_init(&decoder->private_->ogg.stream_state, decoder->protected_->serial_number) != 0)
-		return decoder->protected_->state = OggFLAC__STREAM_DECODER_OGG_ERROR;
-
-	if(ogg_sync_init(&decoder->private_->ogg.sync_state) != 0)
+	if(!OggFLAC__ogg_decoder_aspect_init(&decoder->protected_->ogg_decoder_aspect))
 		return decoder->protected_->state = OggFLAC__STREAM_DECODER_OGG_ERROR;
 
 	FLAC__stream_decoder_set_read_callback(decoder->private_->FLAC_stream_decoder, read_callback_);
@@ -198,8 +182,7 @@ OggFLAC_API void OggFLAC__stream_decoder_finish(OggFLAC__StreamDecoder *decoder)
 
 	FLAC__stream_decoder_finish(decoder->private_->FLAC_stream_decoder);
 
-	(void)ogg_sync_clear(&decoder->private_->ogg.sync_state);
-	(void)ogg_stream_clear(&decoder->private_->ogg.stream_state);
+	OggFLAC__ogg_decoder_aspect_finish(&decoder->protected_->ogg_decoder_aspect);
 
 	set_defaults_(decoder);
 
@@ -268,8 +251,7 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_serial_number(OggFLAC__Stream
 	FLAC__ASSERT(0 != decoder->protected_);
 	if(decoder->protected_->state != OggFLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
-	decoder->protected_->use_first_serial_number = false;
-	decoder->protected_->serial_number = value;
+	OggFLAC__ogg_decoder_aspect_set_serial_number(&decoder->protected_->ogg_decoder_aspect, value);
 	return true;
 }
 
@@ -347,6 +329,14 @@ OggFLAC_API FLAC__StreamDecoderState OggFLAC__stream_decoder_get_FLAC_stream_dec
 	return FLAC__stream_decoder_get_state(decoder->private_->FLAC_stream_decoder);
 }
 
+OggFLAC_API const char *OggFLAC__stream_decoder_get_resolved_state_string(const OggFLAC__StreamDecoder *decoder)
+{
+	if(decoder->protected_->state != OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR)
+		return OggFLAC__StreamDecoderStateString[decoder->protected_->state];
+	else
+		return FLAC__StreamDecoderStateString[FLAC__stream_decoder_get_state(decoder->private_->FLAC_stream_decoder)];
+}
+
 OggFLAC_API unsigned OggFLAC__stream_decoder_get_channels(const OggFLAC__StreamDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
@@ -388,7 +378,7 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_flush(OggFLAC__StreamDecoder *dec
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
 
-	(void)ogg_sync_clear(&decoder->private_->ogg.sync_state);
+	OggFLAC__ogg_decoder_aspect_flush(&decoder->protected_->ogg_decoder_aspect);
 
 	if(!FLAC__stream_decoder_flush(decoder->private_->FLAC_stream_decoder)) {
 		decoder->protected_->state = OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR;
@@ -456,70 +446,32 @@ void set_defaults_(OggFLAC__StreamDecoder *decoder)
 	decoder->private_->metadata_callback = 0;
 	decoder->private_->error_callback = 0;
 	decoder->private_->client_data = 0;
-	decoder->protected_->use_first_serial_number = true;
+	OggFLAC__ogg_decoder_aspect_set_defaults(&decoder->protected_->ogg_decoder_aspect);
 }
 
 FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *unused, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {
-	static const unsigned OGG_BYTES_CHUNK = 8192;
 	OggFLAC__StreamDecoder *decoder = (OggFLAC__StreamDecoder*)client_data;
-	unsigned ogg_bytes_to_read, ogg_bytes_read;
-	ogg_page page;
-	char *oggbuf;
 
 	(void)unused;
 
-	/*
-	 * We have to be careful not to read in more than the
-	 * FLAC__StreamDecoder says it has room for.  We know
-	 * that the size of the decoded data must be no more
-	 * than the encoded data we will read.
-	 */
-	ogg_bytes_to_read = min(*bytes, OGG_BYTES_CHUNK);
-	oggbuf = ogg_sync_buffer(&decoder->private_->ogg.sync_state, ogg_bytes_to_read);
-
-	if(0 == oggbuf) {
-		decoder->protected_->state = OggFLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
-	}
-
-	ogg_bytes_read = ogg_bytes_to_read;
-	{
-		FLAC__StreamDecoderReadStatus read_status = decoder->private_->read_callback(decoder, (FLAC__byte*)oggbuf, &ogg_bytes_read, decoder->private_->client_data);
-		if(read_status != FLAC__STREAM_DECODER_READ_STATUS_CONTINUE) {
-			if(read_status == FLAC__STREAM_DECODER_READ_STATUS_ABORT)
-				decoder->protected_->state = OggFLAC__STREAM_DECODER_READ_ERROR;
-			return read_status;
-		}
-	}
-
-	if(ogg_sync_wrote(&decoder->private_->ogg.sync_state, ogg_bytes_read) < 0) {
-		decoder->protected_->state = OggFLAC__STREAM_DECODER_READ_ERROR;
-		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
-	}
-
-	*bytes = 0;
-	while(ogg_sync_pageout(&decoder->private_->ogg.sync_state, &page) == 1) {
-		/* grab the serial number if necessary */
-		if(decoder->private_->ogg.need_serial_number) {
-			decoder->private_->ogg.stream_state.serialno = decoder->protected_->serial_number = ogg_page_serialno(&page);
-			decoder->private_->ogg.need_serial_number = false;
-		}
-		if(ogg_stream_pagein(&decoder->private_->ogg.stream_state, &page) == 0) {
-			ogg_packet packet;
-
-			while(ogg_stream_packetout(&decoder->private_->ogg.stream_state, &packet) == 1) {
-				memcpy(buffer, packet.packet, packet.bytes);
-				*bytes += packet.bytes;
-				buffer += packet.bytes;
-			}
-		} else {
+	switch(OggFLAC__ogg_decoder_aspect_read_callback_wrapper(&decoder->protected_->ogg_decoder_aspect, buffer, bytes, (OggFLAC__OggDecoderAspectReadCallbackProxy)decoder->private_->read_callback, decoder, decoder->private_->client_data)) {
+		case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_OK:
+			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+		case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM:
+			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+		case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT:
+		case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_ERROR:
 			decoder->protected_->state = OggFLAC__STREAM_DECODER_READ_ERROR;
 			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
-		}
+		case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR:
+			decoder->protected_->state = OggFLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+		default:
+			FLAC__ASSERT(0);
+			/* double protection */
+			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 	}
-
-	return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 }
 
 FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *unused, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
