@@ -227,7 +227,7 @@
 		<A NAME="general__asymmetry"><B>Why do the encoder settings have a big effect on the encoding time but not the decoding time?</B></A>
 	</P>
 	<P>
-		It's hard to explain without going into the codec design, but to oversimplify, the encoder is looking for functions that approximate the signal.  Higher settings make the encoder search more to find better approximations.  The functions are themselves encoded in the FLAC file.  Decoding only requires computing the one chosen function, and the complexity of the function is vary stable.  This is by design, to make decoding easier, and is one of the things that makes FLAC easy to implement in hardware.
+		It's hard to explain without going into the codec design, but to oversimplify, the encoder is looking for functions that approximate the signal.  Higher settings make the encoder search more to find better approximations.  The functions are themselves encoded in the FLAC file.  Decoding only requires computing the one chosen function, and the complexity of the function is very stable.  This is by design, to make decoding easier, and is one of the things that makes FLAC easy to implement in hardware.
 	</P>
 	<P>
 		<A NAME="general__alternatives"><B>Why use FLAC instead of other codecs that compress more?</B></A>
