@@ -197,6 +197,15 @@ namespace FLAC {
 			 *   \code is_valid() \endcode
 			 */
 			void set_is_last(bool);
+
+			/** Returns a pointer to the underlying ::FLAC__StreamMetadata
+			 *  object.  This can be useful for plugging any holes between
+			 *  the C++ and C interfaces.
+			 *
+			 * \assert
+			 *   \code is_valid() \endcode
+			 */
+			inline operator const ::FLAC__StreamMetadata *() const;
 		private:
 			/** Private and undefined so you can't use it. */
 			Prototype();
@@ -226,6 +235,9 @@ namespace FLAC {
 
 		inline bool Prototype::is_valid() const
 		{ return 0 != object_; }
+
+		inline Prototype::operator const ::FLAC__StreamMetadata *() const
+		{ return object_; }
 
 		/** Create a deep copy of an object and return it. */
 		FLACPP_API Prototype *clone(const Prototype *);
