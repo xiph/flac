@@ -64,7 +64,7 @@ void local_strcat(char **dest, const char *source)
 	if(nsource == 0)
 		return;
 
-	*dest = realloc(*dest, ndest + nsource + 1);
+	*dest = (char*)realloc(*dest, ndest + nsource + 1);
 	if(0 == *dest)
 		die("out of memory growing string");
 	strcpy((*dest)+ndest, source);

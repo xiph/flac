@@ -183,7 +183,7 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 
 	if(options->num_files > 0) {
 		unsigned i = 0;
-		if(0 == (options->filenames = malloc(sizeof(char *) * options->num_files)))
+		if(0 == (options->filenames = (char**)malloc(sizeof(char*) * options->num_files)))
 			die("out of memory allocating space for file names list");
 		while(share__optind < argc)
 			options->filenames[i++] = local_strdup(argv[share__optind++]);
@@ -655,14 +655,14 @@ void append_new_operation(CommandLineOptions *options, Operation operation)
 {
 	if(options->ops.capacity == 0) {
 		options->ops.capacity = 50;
-		if(0 == (options->ops.operations = malloc(sizeof(Operation) * options->ops.capacity)))
+		if(0 == (options->ops.operations = (Operation*)malloc(sizeof(Operation) * options->ops.capacity)))
 			die("out of memory allocating space for option list");
 		memset(options->ops.operations, 0, sizeof(Operation) * options->ops.capacity);
 	}
 	if(options->ops.capacity <= options->ops.num_operations) {
 		unsigned original_capacity = options->ops.capacity;
 		options->ops.capacity *= 4;
-		if(0 == (options->ops.operations = realloc(options->ops.operations, sizeof(Operation) * options->ops.capacity)))
+		if(0 == (options->ops.operations = (Operation*)realloc(options->ops.operations, sizeof(Operation) * options->ops.capacity)))
 			die("out of memory allocating space for option list");
 		memset(options->ops.operations + original_capacity, 0, sizeof(Operation) * (options->ops.capacity - original_capacity));
 	}
@@ -674,14 +674,14 @@ void append_new_argument(CommandLineOptions *options, Argument argument)
 {
 	if(options->args.capacity == 0) {
 		options->args.capacity = 50;
-		if(0 == (options->args.arguments = malloc(sizeof(Argument) * options->args.capacity)))
+		if(0 == (options->args.arguments = (Argument*)malloc(sizeof(Argument) * options->args.capacity)))
 			die("out of memory allocating space for option list");
 		memset(options->args.arguments, 0, sizeof(Argument) * options->args.capacity);
 	}
 	if(options->args.capacity <= options->args.num_arguments) {
 		unsigned original_capacity = options->args.capacity;
 		options->args.capacity *= 4;
-		if(0 == (options->args.arguments = realloc(options->args.arguments, sizeof(Argument) * options->args.capacity)))
+		if(0 == (options->args.arguments = (Argument*)realloc(options->args.arguments, sizeof(Argument) * options->args.capacity)))
 			die("out of memory allocating space for option list");
 		memset(options->args.arguments + original_capacity, 0, sizeof(Argument) * (options->args.capacity - original_capacity));
 	}
@@ -897,7 +897,7 @@ FLAC__bool parse_block_number(const char *in, Argument_BlockNumber *out)
 
 	/* make space */
 	FLAC__ASSERT(out->num_entries > 0);
-	if(0 == (out->entries = malloc(sizeof(unsigned) * out->num_entries)))
+	if(0 == (out->entries = (unsigned*)malloc(sizeof(unsigned) * out->num_entries)))
 		die("out of memory allocating space for option list");
 
 	/* load 'em up */
@@ -936,7 +936,7 @@ FLAC__bool parse_block_type(const char *in, Argument_BlockType *out)
 
 	/* make space */
 	FLAC__ASSERT(out->num_entries > 0);
-	if(0 == (out->entries = malloc(sizeof(Argument_BlockTypeEntry) * out->num_entries)))
+	if(0 == (out->entries = (Argument_BlockTypeEntry*)malloc(sizeof(Argument_BlockTypeEntry) * out->num_entries)))
 		die("out of memory allocating space for option list");
 
 	/* load 'em up */
