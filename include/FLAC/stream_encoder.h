@@ -41,7 +41,7 @@ typedef enum {
 	FLAC__STREAM_ENCODER_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER,
 	FLAC__STREAM_ENCODER_NOT_STREAMABLE,
 	FLAC__STREAM_ENCODER_FRAMING_ERROR,
-	FLAC__STREAM_ENCODER_INVALID_SEEK_TABLE,
+	FLAC__STREAM_ENCODER_INVALID_METADATA,
 	FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING,
 	FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_WRITING, /* that is, the write_callback returned an error */
 	FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR,
@@ -80,30 +80,28 @@ typedef struct {
  * will take on the defaults from the constructor, shown below.
  * For more on what the parameters mean, see the documentation.
  *
- * FLAC__bool   streamable_subset              (DEFAULT: true ) true to limit encoder to generating a Subset stream, else false
- * FLAC__bool   do_mid_side_stereo             (DEFAULT: false) if true then channels must be 2
- * FLAC__bool   loose_mid_side_stereo          (DEFAULT: false) if true then do_mid_side_stereo must be true
- * unsigned     channels                       (DEFAULT: 2    ) must be <= FLAC__MAX_CHANNELS
- * unsigned     bits_per_sample                (DEFAULT: 16   ) do not give the encoder wider data than what you specify here or bad things will happen!
- * unsigned     sample_rate                    (DEFAULT: 44100)
- * unsigned     blocksize                      (DEFAULT: 1152 )
- * unsigned     max_lpc_order                  (DEFAULT: 0    ) 0 => encoder will not try general LPC, only fixed predictors; must be <= FLAC__MAX_LPC_ORDER
- * unsigned     qlp_coeff_precision            (DEFAULT: 0    ) >= FLAC__MIN_QLP_COEFF_PRECISION, or 0 to let encoder select based on blocksize;
- *                                                          qlp_coeff_precision+bits_per_sample must be < 32
- * FLAC__bool   do_qlp_coeff_prec_search       (DEFAULT: false) false => use qlp_coeff_precision, true => search around qlp_coeff_precision, take best
- * FLAC__bool   do_escape_coding               (DEFAULT: false) true => search for escape codes in the entropy coding stage for slightly better compression
- * FLAC__bool   do_exhaustive_model_search     (DEFAULT: false) false => use estimated bits per residual for scoring, true => generate all, take shortest
- * unsigned     min_residual_partition_order   (DEFAULT: 0    ) 0 => estimate Rice parameter based on residual variance; >0 => partition residual, use parameter
- * unsigned     max_residual_partition_order   (DEFAULT: 0    )      for each based on mean; min_ and max_ specify the min and max Rice partition order
- * unsigned     rice_parameter_search_dist     (DEFAULT: 0    ) 0 => try only calc'd parameter k; else try all [k-dist..k+dist] parameters, use best
- * FLAC__uint64 total_samples_estimate         (DEFAULT: 0    ) may be 0 if unknown.  acts as a placeholder in the STREAMINFO until the actual total is calculated
- * const FLAC__StreamMetaData_SeekTable *seek_table  (DEFAULT: NULL) optional seek_table to prepend, NULL => no seek table
- * int          padding                        (DEFAULT: -1   ) length of PADDING block to add (goes after seek table); -1 => do not add a PADDING block
- * FLAC__bool   last_metadata_is_last          (DEFAULT: true ) the value the encoder will use for the 'is_last' flag of the last metadata block it writes; set
- *                                                          this to false if you will be adding more metadata blocks before the audio frames, else true
- *            (*write_callback)()              (DEFAULT: NULL ) The callbacks are the only values that MUST be set before FLAC__stream_encoder_init()
- *            (*metadata_callback)()           (DEFAULT: NULL )
- * void*        client_data                    (DEFAULT: NULL ) passed back through the callbacks
+ * FLAC__bool   streamable_subset             (DEFAULT: true  ) true to limit encoder to generating a Subset stream, else false
+ * FLAC__bool   do_mid_side_stereo            (DEFAULT: false ) if true then channels must be 2
+ * FLAC__bool   loose_mid_side_stereo         (DEFAULT: false ) if true then do_mid_side_stereo must be true
+ * unsigned     channels                      (DEFAULT: 2     ) must be <= FLAC__MAX_CHANNELS
+ * unsigned     bits_per_sample               (DEFAULT: 16    ) do not give the encoder wider data than what you specify here or bad things will happen!
+ * unsigned     sample_rate                   (DEFAULT: 44100 )
+ * unsigned     blocksize                     (DEFAULT: 1152  )
+ * unsigned     max_lpc_order                 (DEFAULT: 0     ) 0 => encoder will not try general LPC, only fixed predictors; must be <= FLAC__MAX_LPC_ORDER
+ * unsigned     qlp_coeff_precision           (DEFAULT: 0     ) >= FLAC__MIN_QLP_COEFF_PRECISION, or 0 to let encoder select based on blocksize;
+ *                                                              qlp_coeff_precision+bits_per_sample must be < 32
+ * FLAC__bool   do_qlp_coeff_prec_search      (DEFAULT: false ) false => use qlp_coeff_precision, true => search around qlp_coeff_precision, take best
+ * FLAC__bool   do_escape_coding              (DEFAULT: false ) true => search for escape codes in the entropy coding stage for slightly better compression
+ * FLAC__bool   do_exhaustive_model_search    (DEFAULT: false ) false => use estimated bits per residual for scoring, true => generate all, take shortest
+ * unsigned     min_residual_partition_order  (DEFAULT: 0     ) 0 => estimate Rice parameter based on residual variance; >0 => partition residual, use parameter
+ * unsigned     max_residual_partition_order  (DEFAULT: 0     )      for each based on mean; min_ and max_ specify the min and max Rice partition order
+ * unsigned     rice_parameter_search_dist    (DEFAULT: 0     ) 0 => try only calc'd parameter k; else try all [k-dist..k+dist] parameters, use best
+ * FLAC__uint64 total_samples_estimate        (DEFAULT: 0     ) may be 0 if unknown.  acts as a placeholder in the STREAMINFO until the actual total is calculated
+ * FLAC__StreamMetaData **metadata            (DEFAULT: NULL,0) optional metadata blocks to prepend.  STREAMINFO is not allowed since it is done internally.
+ * + unsigned num_blocks
+ *            (*write_callback)()             (DEFAULT: NULL  ) The callbacks are the only values that MUST be set before FLAC__stream_encoder_init()
+ *            (*metadata_callback)()          (DEFAULT: NULL  )
+ * void*        client_data                   (DEFAULT: NULL  ) passed back through the callbacks
  */
 FLAC__StreamEncoder *FLAC__stream_encoder_new();
 void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder);
@@ -148,9 +146,7 @@ FLAC__bool FLAC__stream_encoder_set_min_residual_partition_order(FLAC__StreamEnc
 FLAC__bool FLAC__stream_encoder_set_max_residual_partition_order(FLAC__StreamEncoder *encoder, unsigned value);
 FLAC__bool FLAC__stream_encoder_set_rice_parameter_search_dist(FLAC__StreamEncoder *encoder, unsigned value);
 FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *encoder, FLAC__uint64 value);
-FLAC__bool FLAC__stream_encoder_set_seek_table(FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData_SeekTable *value);
-FLAC__bool FLAC__stream_encoder_set_padding(FLAC__StreamEncoder *encoder, int value);
-FLAC__bool FLAC__stream_encoder_set_last_metadata_is_last(FLAC__StreamEncoder *encoder, FLAC__bool value);
+FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetaData **metadata, unsigned num_blocks);
 FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteStatus (*value)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data));
 FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encoder, void (*value)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data));
 FLAC__bool FLAC__stream_encoder_set_client_data(FLAC__StreamEncoder *encoder, void *value);

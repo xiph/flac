@@ -156,7 +156,7 @@ const char *FLAC__StreamEncoderStateString[] = {
 	"FLAC__STREAM_ENCODER_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER",
 	"FLAC__STREAM_ENCODER_NOT_STREAMABLE",
 	"FLAC__STREAM_ENCODER_FRAMING_ERROR",
-	"FLAC__STREAM_ENCODER_INVALID_SEEK_TABLE",
+	"FLAC__STREAM_ENCODER_INVALID_METADATA",
 	"FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING",
 	"FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_WRITING",
 	"FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR",
@@ -221,9 +221,8 @@ FLAC__StreamEncoder *FLAC__stream_encoder_new()
 	encoder->protected_->max_residual_partition_order = 0;
 	encoder->protected_->rice_parameter_search_dist = 0;
 	encoder->protected_->total_samples_estimate = 0;
-	encoder->protected_->seek_table = 0;
-	encoder->protected_->padding = -1;
-	encoder->protected_->last_metadata_is_last = true;
+	encoder->protected_->metadata = 0;
+	encoder->protected_->num_metadata_blocks = 0;
 
 	encoder->private_->write_callback = 0;
 	encoder->private_->metadata_callback = 0;
@@ -254,8 +253,6 @@ void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 {
 	unsigned i;
-	FLAC__StreamMetaData padding_block;
-	FLAC__StreamMetaData seek_table_block;
 
 	FLAC__ASSERT(encoder != 0);
 
@@ -332,6 +329,18 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 		encoder->protected_->max_residual_partition_order = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN) - 1;
 	if(encoder->protected_->min_residual_partition_order >= encoder->protected_->max_residual_partition_order)
 		encoder->protected_->min_residual_partition_order = encoder->protected_->max_residual_partition_order;
+
+	/* validate metadata */
+	if(0 == encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 0)
+		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
+	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
+		if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_STREAMINFO)
+			return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
+		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+			if(!FLAC__seek_table_is_valid(&encoder->protected_->metadata[i]->data.seek_table))
+				return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_METADATA;
+		}
+	}
 
 	encoder->private_->input_capacity = 0;
 	for(i = 0; i < encoder->protected_->channels; i++) {
@@ -441,7 +450,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 
 	encoder->private_->metadata.type = FLAC__METADATA_TYPE_STREAMINFO;
-	encoder->private_->metadata.is_last = (encoder->protected_->seek_table == 0 && encoder->protected_->padding < 0 && encoder->protected_->last_metadata_is_last);
+	encoder->private_->metadata.is_last = (encoder->protected_->num_metadata_blocks == 0);
 	encoder->private_->metadata.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
 	encoder->private_->metadata.data.stream_info.min_blocksize = encoder->protected_->blocksize; /* this encoder uses the same blocksize for the whole stream */
 	encoder->private_->metadata.data.stream_info.max_blocksize = encoder->protected_->blocksize;
@@ -456,23 +465,9 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	if(!FLAC__add_metadata_block(&encoder->private_->metadata, encoder->private_->frame))
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 
-	if(0 != encoder->protected_->seek_table) {
-		if(!FLAC__seek_table_is_valid(encoder->protected_->seek_table))
-			return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_SEEK_TABLE;
-		seek_table_block.type = FLAC__METADATA_TYPE_SEEKTABLE;
-		seek_table_block.is_last = (encoder->protected_->padding < 0 && encoder->protected_->last_metadata_is_last);
-		seek_table_block.length = encoder->protected_->seek_table->num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-		seek_table_block.data.seek_table = *encoder->protected_->seek_table;
-		if(!FLAC__add_metadata_block(&seek_table_block, encoder->private_->frame))
-			return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
-	}
-
-	/* add a PADDING block if requested */
-	if(encoder->protected_->padding >= 0) {
-		padding_block.type = FLAC__METADATA_TYPE_PADDING;
-		padding_block.is_last = encoder->protected_->last_metadata_is_last;
-		padding_block.length = (unsigned)encoder->protected_->padding;
-		if(!FLAC__add_metadata_block(&padding_block, encoder->private_->frame))
+	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
+		encoder->protected_->metadata[i]->is_last = (i == encoder->protected_->num_metadata_blocks - 1);
+		if(!FLAC__add_metadata_block(encoder->protected_->metadata[i], encoder->private_->frame))
 			return encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 	}
 
@@ -691,27 +686,12 @@ FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__StreamEncoder *
 	return true;
 }
 
-FLAC__bool FLAC__stream_encoder_set_seek_table(FLAC__StreamEncoder *encoder, const FLAC__StreamMetaData_SeekTable *value)
+FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetaData **metadata, unsigned num_blocks)
 {
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
-	encoder->protected_->seek_table = value;
-	return true;
-}
-
-FLAC__bool FLAC__stream_encoder_set_padding(FLAC__StreamEncoder *encoder, int value)
-{
-	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
-		return false;
-	encoder->protected_->padding = value;
-	return true;
-}
-
-FLAC__bool FLAC__stream_encoder_set_last_metadata_is_last(FLAC__StreamEncoder *encoder, FLAC__bool value)
-{
-	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
-		return false;
-	encoder->protected_->last_metadata_is_last = value;
+	encoder->protected_->metadata = metadata;
+	encoder->protected_->num_metadata_blocks = num_blocks;
 	return true;
 }
 
