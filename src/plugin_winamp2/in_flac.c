@@ -22,12 +22,12 @@
 #include <math.h>
 #include <stdio.h>
 
-#include "in2.h"
+#include "winamp2/in2.h"
 #include "FLAC/all.h"
 #include "plugin_common/all.h"
+#include "share/grabbag.h"
+#include "config.h"
 
-
-#define FLAC__DO_DITHER
 
 BOOL WINAPI _DllMainCRTStartup(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 {
@@ -41,10 +41,15 @@ typedef struct {
 	FLAC__bool abort_flag;
 	unsigned total_samples;
 	unsigned bits_per_sample;
+	unsigned output_bits_per_sample;
 	unsigned channels;
 	unsigned sample_rate;
 	unsigned length_in_msec;
+	DitherContext dither_context;
+	FLAC__bool has_replaygain;
+	double replay_scale;
 } file_info_struct;
+
 
 static FLAC__bool safe_decoder_init_(const char *infilename, FLAC__FileDecoder *decoder);
 static void safe_decoder_finish_(FLAC__FileDecoder *decoder);
@@ -54,65 +59,34 @@ static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__Str
 static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static void get_description_(const char *filename, char *description, unsigned max_size);
 
-In_Module mod_; /* the output module (declared near the bottom of this file) */
-char lastfn_[MAX_PATH]; /* currently playing file (used for getting info on the current file) */
-int decode_pos_ms_; /* current decoding position, in milliseconds */
-int paused_; /* are we paused? */
-int seek_needed_; /* if != -1, it is the point that the decode thread should seek to, in ms. */
+In_Module mod_; /* the input module (declared near the bottom of this file) */
+char ini_name[MAX_PATH];
+flac_config_t flac_cfg;
+
+static char lastfn_[MAX_PATH]; /* currently playing file (used for getting info on the current file) */
+static int decode_pos_ms_; /* current decoding position, in milliseconds */
+static int paused_; /* are we paused? */
+static int seek_needed_; /* if != -1, it is the point that the decode thread should seek to, in ms. */
 
 #define SAMPLES_PER_WRITE 576
-FLAC__int32 reservoir_[FLAC__MAX_BLOCK_SIZE * 2/*for overflow*/ * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
-char sample_buffer_[SAMPLES_PER_WRITE * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS * (24/8) * 2]; /* (24/8) for max bytes per sample, and 2 for who knows what */
-unsigned wide_samples_in_reservoir_;
+static FLAC__int32 reservoir_[FLAC__MAX_BLOCK_SIZE * 2/*for overflow*/ * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
+static char sample_buffer_[SAMPLES_PER_WRITE * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS * (24/8) * 2]; /* (24/8) for max bytes per sample, and 2 for who knows what */
+static unsigned wide_samples_in_reservoir_;
 static file_info_struct file_info_;
 static FLAC__FileDecoder *decoder_;
 
-int killDecodeThread = 0;					/* the kill switch for the decode thread */
-HANDLE thread_handle = INVALID_HANDLE_VALUE;	/* the handle to the decode thread */
+static volatile int killDecodeThread = 0; /* the kill switch for the decode thread */
+HANDLE thread_handle = INVALID_HANDLE_VALUE; /* the handle to the decode thread */
 
-DWORD WINAPI __stdcall DecodeThread(void *b); /* the decode thread procedure */
+static DWORD WINAPI DecodeThread(void *b); /* the decode thread procedure */
 
-
-static void do_vis(char *data, int nch, int resolution, int position, unsigned samples)
-{
-	static char vis_buffer[SAMPLES_PER_WRITE * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
-	char *ptr;
-	int size, count;
-
-	/*
-	 * Winamp visuals may have problems accepting sample sizes larger than
-	 * 16 bits, so we reduce the sample size here if necessary.
-	 */
-
-	switch(resolution) {
-		case 32:
-		case 24:
-			size  = resolution / 8;
-			count = samples * nch;
-
-			ptr = vis_buffer;
-			while(count--) {
-				data += size;
-				*ptr++ = data[-1] ^ 0x80;
-			}
-
-			data = vis_buffer;
-			resolution = 8;
-
-			/* fall through */
-		case 16:
-		case 8:
-		default:
-			mod_.SAAddPCMData(data, nch, resolution, position);
-			mod_.VSAAddPCMData(data, nch, resolution, position);
-	}
-}
 
 void config(HWND hwndParent)
 {
-	MessageBox(hwndParent, "No configuration.", "Configuration", MB_OK);
-	/* if we had a configuration we'd want to write it here :) */
+	if (DoConfig(hwndParent))
+		WriteConfig();
 }
+
 void about(HWND hwndParent)
 {
 	MessageBox(hwndParent, "Winamp FLAC Plugin v" VERSION ", by Josh Coalson\nSee http://flac.sourceforge.net/", "About FLAC Plugin", MB_OK);
@@ -120,12 +94,22 @@ void about(HWND hwndParent)
 
 void init()
 {
+	char *p;
+
 	decoder_ = FLAC__file_decoder_new();
 	strcpy(lastfn_, "");
+	// read config
+	GetModuleFileName(NULL, ini_name, sizeof(ini_name));
+	p = strrchr(ini_name, '.');
+	if (!p) p = ini_name + strlen(ini_name);
+	strcpy(p, ".ini");
+
+	ReadConfig();
 }
 
 void quit()
 {
+	WriteConfig();
 	safe_decoder_delete_(decoder_);
 	decoder_ = 0;
 }
@@ -137,52 +121,48 @@ int play(char *fn)
 {
 	int maxlatency;
 	int thread_id;
-	HANDLE input_file = INVALID_HANDLE_VALUE;
-	unsigned output_bits_per_sample;
+	HANDLE input_file;
 
-	if(0 == decoder_) {
+	if(0 == decoder_)
 		return 1;
-	}
 
 	input_file = CreateFile(fn, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if(input_file == INVALID_HANDLE_VALUE) {
+	if(input_file == INVALID_HANDLE_VALUE)
 		return -1;
-	}
 	CloseHandle(input_file);
 
-	if(!safe_decoder_init_(fn, decoder_)) {
+	file_info_.abort_flag = false;
+	file_info_.has_replaygain = false;
+	if(!safe_decoder_init_(fn, decoder_))
 		return 1;
-	}
-
-#ifdef FLAC__DO_DITHER
-	output_bits_per_sample = min(file_info_.bits_per_sample, 16);
-#else
-	output_bits_per_sample = file_info_.bits_per_sample;
-#endif
 
 	strcpy(lastfn_, fn);
-	paused_ = 0;
-	decode_pos_ms_ = 0;
-	seek_needed_ = -1;
 	wide_samples_in_reservoir_ = 0;
+	file_info_.output_bits_per_sample = file_info_.has_replaygain && flac_cfg.output.replaygain.enable ?
+		flac_cfg.output.resolution.replaygain.dither ? flac_cfg.output.resolution.replaygain.bps_out : file_info_.bits_per_sample :
+		flac_cfg.output.resolution.normal.dither_24_to_16 ? min(file_info_.bits_per_sample, 16) : file_info_.bits_per_sample;
 
-	maxlatency = mod_.outMod->Open(file_info_.sample_rate, file_info_.channels, output_bits_per_sample, -1, -1);
-	if(maxlatency < 0) { /* error opening device */
+	if (file_info_.has_replaygain && flac_cfg.output.replaygain.enable && flac_cfg.output.resolution.replaygain.dither)
+		FLAC__plugin_common__init_dither_context(&file_info_.dither_context, file_info_.bits_per_sample, flac_cfg.output.resolution.replaygain.noise_shaping);
+
+	maxlatency = mod_.outMod->Open(file_info_.sample_rate, file_info_.channels, file_info_.output_bits_per_sample, -1, -1);
+	if(maxlatency < 0) /* error opening device */
 		return 1;
-	}
 
 	/* dividing by 1000 for the first parameter of setinfo makes it */
 	/* display 'H'... for hundred.. i.e. 14H Kbps. */
 	mod_.SetInfo((file_info_.sample_rate*file_info_.bits_per_sample*file_info_.channels)/1000, file_info_.sample_rate/1000, file_info_.channels, 1);
-
 	/* initialize vis stuff */
 	mod_.SAVSAInit(maxlatency, file_info_.sample_rate);
 	mod_.VSASetInfo(file_info_.sample_rate, file_info_.channels);
+	/* set the output plug-ins default volume */
+	mod_.outMod->SetVolume(-666);
 
-	mod_.outMod->SetVolume(-666); /* set the output plug-ins default volume */
-
+	paused_ = 0;
+	decode_pos_ms_ = 0;
+	seek_needed_ = -1;
 	killDecodeThread = 0;
-	thread_handle = (HANDLE) CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) DecodeThread, (void *) &killDecodeThread, 0, &thread_id);
+	thread_handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) DecodeThread, NULL, 0, &thread_id);
 
 	return 0;
 }
@@ -208,7 +188,7 @@ void stop()
 {
 	if(thread_handle != INVALID_HANDLE_VALUE) {
 		killDecodeThread = 1;
-		if(WaitForSingleObject(thread_handle, INFINITE) == WAIT_TIMEOUT) {
+		if(WaitForSingleObject(thread_handle, 2000) == WAIT_TIMEOUT) {
 			MessageBox(mod_.hMainWindow, "error asking thread to die!\n", "error killing decode thread", 0);
 			TerminateThread(thread_handle, 0);
 		}
@@ -243,6 +223,14 @@ void setpan(int pan) { mod_.outMod->SetPan(pan); }
 int infoDlg(char *fn, HWND hwnd)
 {
 	/* @@@TODO: implement info dialog. */
+	if (!stricmp(fn, lastfn_)) {
+		char buffer[512];
+		sprintf(buffer, "%s\nLength: %d:%02d, ReplayGain: %spresent\n%dHz, %d channel(s), %dbps (%dbps on output)",
+			lastfn_, file_info_.length_in_msec/60000, (file_info_.length_in_msec/1000)%60, file_info_.has_replaygain ? "" : "not ",
+			file_info_.sample_rate, file_info_.channels, file_info_.bits_per_sample, file_info_.output_bits_per_sample);
+		MessageBox(hwnd, buffer, "FLAC Info", 0);
+	}
+
 	return 0;
 }
 
@@ -250,7 +238,7 @@ void getfileinfo(char *filename, char *title, int *length_in_msec)
 {
 	FLAC__StreamMetadata streaminfo;
 
-	if(0 == filename || filename[0] == '\0') {
+	if (!filename || !*filename) {
 		filename = lastfn_;
 		if(length_in_msec) {
 			*length_in_msec = getlength();
@@ -276,23 +264,56 @@ void getfileinfo(char *filename, char *title, int *length_in_msec)
 		*length_in_msec = (int)(streaminfo.data.stream_info.total_samples * 10 / (streaminfo.data.stream_info.sample_rate / 100));
 }
 
-void eq_set(int on, char data[10], int preamp)
+void eq_set(int on, char data[10], int preamp) {}
+
+static void do_vis(char *data, int nch, int resolution, int position, unsigned samples)
 {
+	static char vis_buffer[SAMPLES_PER_WRITE * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
+	char *ptr;
+	int size, count;
+
+	/*
+	 * Winamp visuals may have problems accepting sample sizes larger than
+	 * 16 bits, so we reduce the sample size here if necessary.
+	 */
+
+	switch(resolution) {
+		case 32:
+		case 24:
+			size  = resolution / 8;
+			count = samples * nch;
+			data += size - 1;
+
+			ptr = vis_buffer;
+			while(count--) {
+				*ptr++ = data[0] ^ 0x80;
+				data += size;
+			}
+
+			data = vis_buffer;
+			resolution = 8;
+
+			/* fall through */
+		case 16:
+		case 8:
+		default:
+			mod_.SAAddPCMData(data, nch, resolution, position);
+			mod_.VSAAddPCMData(data, nch, resolution, position);
+	}
 }
 
-DWORD WINAPI __stdcall DecodeThread(void *b)
+static DWORD WINAPI DecodeThread(void *unused)
 {
 	int done = 0;
 
-	while(! *((int *)b) ) {
+	(void)unused;
+
+	while(!killDecodeThread) {
 		const unsigned channels = file_info_.channels;
 		const unsigned bits_per_sample = file_info_.bits_per_sample;
-#ifdef FLAC__DO_DITHER
-		const unsigned target_bps = min(bits_per_sample, 16);
-#else
-		const unsigned target_bps = bits_per_sample;
-#endif
+		const unsigned target_bps = file_info_.output_bits_per_sample;
 		const unsigned sample_rate = file_info_.sample_rate;
+
 		if(seek_needed_ != -1) {
 			const double distance = (double)seek_needed_ / (double)getlength();
 			const unsigned target_sample = (unsigned)(distance * (double)file_info_.total_samples);
@@ -329,14 +350,40 @@ DWORD WINAPI __stdcall DecodeThread(void *b)
 			else {
 				const unsigned n = min(wide_samples_in_reservoir_, SAMPLES_PER_WRITE);
 				const unsigned delta = n * channels;
-				int bytes = (int)FLAC__plugin_common__pack_pcm_signed_little_endian(sample_buffer_, reservoir_, n, channels, bits_per_sample, target_bps);
+				int bytes;
 				unsigned i;
+
+				if(flac_cfg.output.replaygain.enable && file_info_.has_replaygain) {
+					bytes = (int)FLAC__plugin_common__apply_gain(
+						sample_buffer_,
+						reservoir_,
+						n,
+						channels,
+						bits_per_sample,
+						target_bps,
+						(float)file_info_.replay_scale,
+						flac_cfg.output.replaygain.hard_limit,
+						flac_cfg.output.resolution.replaygain.dither,
+						(NoiseShaping)flac_cfg.output.resolution.replaygain.noise_shaping,
+						&file_info_.dither_context
+					);
+				}
+				else {
+					bytes = (int)FLAC__plugin_common__pack_pcm_signed_little_endian(
+						sample_buffer_,
+						reservoir_,
+						n,
+						channels,
+						bits_per_sample,
+						target_bps
+					);
+				}
 
 				for(i = delta; i < wide_samples_in_reservoir_ * channels; i++)
 					reservoir_[i-delta] = reservoir_[i];
 				wide_samples_in_reservoir_ -= n;
 
-				do_vis((char *)sample_buffer_, channels, target_bps, decode_pos_ms_, n);
+				do_vis(sample_buffer_, channels, target_bps, decode_pos_ms_, n);
 				decode_pos_ms_ += (n*1000 + sample_rate/2)/sample_rate;
 				if(mod_.dsp_isactive())
 					bytes = mod_.dsp_dosamples((short *)sample_buffer_, n, target_bps, channels, sample_rate) * (channels*target_bps/8);
@@ -413,8 +460,11 @@ FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *decoder)
 
 	FLAC__file_decoder_set_md5_checking(decoder, false);
 	FLAC__file_decoder_set_filename(decoder, filename);
-	FLAC__file_decoder_set_write_callback(decoder, write_callback_);
+	FLAC__file_decoder_set_metadata_ignore_all(decoder);
+	FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_STREAMINFO);
+	FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback_);
+	FLAC__file_decoder_set_write_callback(decoder, write_callback_);
 	FLAC__file_decoder_set_error_callback(decoder, error_callback_);
 	FLAC__file_decoder_set_client_data(decoder, &file_info_);
 	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK) {
@@ -422,16 +472,13 @@ FLAC__bool safe_decoder_init_(const char *filename, FLAC__FileDecoder *decoder)
 		return false;
 	}
 
-	file_info_.abort_flag = false;
 	if(!FLAC__file_decoder_process_until_end_of_metadata(decoder)) {
 		MessageBox(mod_.hMainWindow, FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder)], "ERROR processing metadata", 0);
 		return false;
 	}
 
-	if(file_info_.abort_flag) {
-		/* metadata callback already popped up the error dialog */
-		return false;
-	}
+	if(file_info_.abort_flag)
+		return false;                                       /* metadata callback already popped up the error dialog */
 
 	return true;
 }
@@ -474,6 +521,7 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 {
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	(void)decoder;
+
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		FLAC__ASSERT(metadata->data.stream_info.total_samples < 0x100000000); /* this plugin can only handle < 4 gigasamples */
 		file_info->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xffffffff);
@@ -481,20 +529,19 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 		file_info->channels = metadata->data.stream_info.channels;
 		file_info->sample_rate = metadata->data.stream_info.sample_rate;
 
-#ifdef FLAC__DO_DITHER
 		if(file_info->bits_per_sample != 8 && file_info->bits_per_sample != 16 && file_info->bits_per_sample != 24) {
 			MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16/24-bit samples\n", "ERROR: plugin can only handle 8/16/24-bit samples", 0);
 			file_info->abort_flag = true;
 			return;
 		}
-#else
-		if(file_info->bits_per_sample != 8 && file_info->bits_per_sample != 16 && file_info->bits_per_sample != 24) {
-			MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16/24-bit samples\n", "ERROR: plugin can only handle 8/16/24-bit samples", 0);
-			file_info->abort_flag = true;
-			return;
-		}
-#endif
 		file_info->length_in_msec = file_info->total_samples * 10 / (file_info->sample_rate / 100);
+	}
+	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+		double gain, peak;
+		if(grabbag__replaygain_load_from_vorbiscomment(metadata, flac_cfg.output.replaygain.album_mode, &gain, &peak)) {
+			file_info_.has_replaygain = true;
+			file_info_.replay_scale = grabbag__replaygain_compute_scale_factor(peak, gain, (double)flac_cfg.output.replaygain.preamp, /*prevent_clipping=*/!flac_cfg.output.replaygain.hard_limit);
+		}
 	}
 }
 

@@ -1,0 +1,124 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Russian resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+#ifdef _WIN32
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CONFIG DIALOG DISCARDABLE  0, 0, 227, 193
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "FLAC Configuration"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        " ReplayGain  ",IDC_STATIC,4,2,220,57
+    CONTROL         "&Enable ReplayGain",IDC_ENABLE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,15,77,10
+    CONTROL         "&Album mode",IDC_ALBUM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,27,55,10
+    CONTROL         "6dB &hard limiter",IDC_LIMITER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,125,27,64,10
+    LTEXT           "&Preamp",IDC_STATIC,10,44,25,8
+    CONTROL         "Slider1",IDC_PREAMP,"msctls_trackbar32",TBS_NOTICKS | 
+                    WS_TABSTOP,38,43,154,12
+    RTEXT           "",IDC_PA,196,44,21,8
+    GROUPBOX        " Resolution  ",IDC_STATIC,3,62,220,96
+    GROUPBOX        " Without ReplayGain ",IDC_STATIC,9,71,209,30
+    CONTROL         "&Dither 24bps to 16bps",IDC_DITHER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,84,85,10
+    GROUPBOX        " With ReplayGain ",IDC_STATIC,9,104,209,48
+    CONTROL         "E&nable dithering",IDC_DITHERRG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,18,116,67,10
+    LTEXT           "Dither &to",IDC_STATIC,18,135,28,8
+    COMBOBOX        IDC_TO,52,132,39,43,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    LTEXT           "Noise &shaping",IDC_STATIC,115,135,46,8
+    COMBOBOX        IDC_SHAPE,166,132,46,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,65,176,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,119,176,50,14
+    PUSHBUTTON      "Reset",IDC_RESET,173,176,50,14
+    LTEXT           "Note: pressing OK will stop FLAC playback",IDC_STATIC,4,
+                    162,135,8
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_CONFIG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 220
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 186
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Russian resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
