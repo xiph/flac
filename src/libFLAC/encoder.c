@@ -21,11 +21,13 @@
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy() */
+#include "FLAC/config.h"
 #include "FLAC/encoder.h"
 #include "FLAC/seek_table.h"
 #include "private/bitbuffer.h"
 #include "private/bitmath.h"
 #include "private/crc.h"
+#include "private/cpu.h"
 #include "private/encoder_framing.h"
 #include "private/fixed.h"
 #include "private/lpc.h"
@@ -73,6 +75,9 @@ typedef struct FLAC__EncoderPrivate {
 	unsigned current_sample_number;
 	unsigned current_frame_number;
 	struct MD5Context md5context;
+	FLAC__CPUInfo cpuinfo;
+	unsigned (*local_fixed_compute_best_predictor)(const int32 data[], unsigned data_len, real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+	void (*local_lpc_compute_autocorrelation)(const real data[], unsigned data_len, unsigned lag, real autoc[]);
 	bool use_slow;                              /* use slow 64-bit versions of some functions */
 	FLAC__EncoderWriteStatus (*write_callback)(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 	void (*metadata_callback)(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data);
@@ -312,6 +317,32 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	encoder->guts->loose_mid_side_stereo_frame_count = 0;
 	encoder->guts->current_sample_number = 0;
 	encoder->guts->current_frame_number = 0;
+
+	/*
+	 * get the CPU info and set the function pointers
+	 */
+	FLAC__cpu_info(&encoder->guts->cpuinfo);
+	/* first default to the non-asm routines */
+	encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
+	encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor;
+	/* now override with asm where appropriate */
+	if(encoder->guts->cpuinfo.use_asm) {
+#ifdef FLAC__CPU_IA32
+		assert(encoder->guts->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
+#if 0
+		/* @@@ SSE version not working yet */
+		if(encoder->guts->cpuinfo.data.ia32.sse)
+			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386_sse;
+		else
+#endif
+fprintf(stderr,"@@@ got _asm_i386 of lpc_compute_autocorrelation()\n");
+			encoder->guts->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_i386;
+		if(encoder->guts->cpuinfo.data.ia32.mmx && encoder->guts->cpuinfo.data.ia32.cmov)
+{
+			encoder->guts->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_i386_mmx_cmov;
+fprintf(stderr,"@@@ got _asm_i386_mmx_cmov of fixed_compute_best_predictor()\n");}
+#endif
+	}
 
 	if(encoder->bits_per_sample + FLAC__bitmath_ilog2(encoder->blocksize)+1 > 30)
 		encoder->guts->use_slow = true;
@@ -849,7 +880,7 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned min_partition_or
 		if(encoder->guts->use_slow)
 			guess_fixed_order = FLAC__fixed_compute_best_predictor_slow(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
 		else
-			guess_fixed_order = FLAC__fixed_compute_best_predictor(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
+			guess_fixed_order = encoder->guts->local_fixed_compute_best_predictor(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
 		if(fixed_residual_bits_per_sample[1] == 0.0) {
 			/* the above means integer_signal+FLAC__MAX_FIXED_ORDER is constant, now we just have to check the warmup samples */
 			unsigned i, signal_is_constant = true;
@@ -899,7 +930,7 @@ bool encoder_process_subframe_(FLAC__Encoder *encoder, unsigned min_partition_or
 				else
 					max_lpc_order = encoder->max_lpc_order;
 				if(max_lpc_order > 0) {
-					FLAC__lpc_compute_autocorrelation(real_signal, frame_header->blocksize, max_lpc_order+1, autoc);
+					encoder->guts->local_lpc_compute_autocorrelation(real_signal, frame_header->blocksize, max_lpc_order+1, autoc);
 					/* if autoc[0] == 0.0, the signal is constant and we usually won't get here, but it can happen */
 					if(autoc[0] != 0.0) {
 						FLAC__lpc_compute_lp_coefficients(autoc, max_lpc_order, lp_coeff, lpc_error);
