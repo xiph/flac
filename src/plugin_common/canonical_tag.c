@@ -29,9 +29,6 @@
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
 
-#if 0
-#define __USE_GNU /*@@@@@@ needed on glibc systems to get wcsdup() and wcscasecmp() */
-#endif
 #include <wchar.h>
 
 /*
