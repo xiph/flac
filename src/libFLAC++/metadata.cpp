@@ -69,6 +69,7 @@ namespace FLAC {
 			const Application *application = dynamic_cast<const Application *>(object);
 			const SeekTable *seektable = dynamic_cast<const SeekTable *>(object);
 			const VorbisComment *vorbiscomment = dynamic_cast<const VorbisComment *>(object);
+			const CueSheet *cuesheet = dynamic_cast<const CueSheet *>(object);
 
 			if(0 != streaminfo)
 				return new StreamInfo(*streaminfo);
@@ -80,6 +81,8 @@ namespace FLAC {
 				return new SeekTable(*seektable);
 			else if(0 != vorbiscomment)
 				return new VorbisComment(*vorbiscomment);
+			else if(0 != cuesheet)
+				return new CueSheet(*cuesheet);
 			else {
 				FLAC__ASSERT(0);
 				return 0;
@@ -781,7 +784,7 @@ namespace FLAC {
 			return object_->indices[i];
 		}
 
-		void CueSheet::Track::set_isrc(char value[12])
+		void CueSheet::Track::set_isrc(const char value[12])
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(0 != value);
@@ -796,12 +799,12 @@ namespace FLAC {
 			object_->type = value;
 		}
 
-		void CueSheet::Track::set_index(unsigned i, const ::FLAC__StreamMetadata_CueSheet_Index &index)
-		{
-			FLAC__ASSERT(is_valid());
-			FLAC__ASSERT(i < object_->num_indices);
-			object_->indices[i] = index;
-		}
+ 		void CueSheet::Track::set_index(unsigned i, const ::FLAC__StreamMetadata_CueSheet_Index &index)
+ 		{
+ 			FLAC__ASSERT(is_valid());
+ 			FLAC__ASSERT(i < object_->num_indices);
+ 			object_->indices[i] = index;
+ 		}
 
 
 		//
@@ -815,6 +818,18 @@ namespace FLAC {
 		CueSheet::~CueSheet()
 		{ }
 
+		const char *CueSheet::get_media_catalog_number() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.cue_sheet.media_catalog_number;
+		}
+
+		FLAC__uint64 CueSheet::get_lead_in() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.cue_sheet.lead_in;
+		}
+
 		unsigned CueSheet::get_num_tracks() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -826,6 +841,28 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(i < object_->data.cue_sheet.num_tracks);
 			return Track(object_->data.cue_sheet.tracks + i);
+		}
+
+		void CueSheet::set_media_catalog_number(const char value[128])
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(0 != value);
+			memcpy(object_->data.cue_sheet.media_catalog_number, value, 128);
+			object_->data.cue_sheet.media_catalog_number[128] = '\0';
+		}
+
+		void CueSheet::set_lead_in(FLAC__uint64 value)
+		{
+			FLAC__ASSERT(is_valid());
+			object_->data.cue_sheet.lead_in = value;
+		}
+
+		void CueSheet::set_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(track_num < object_->data.cue_sheet.num_tracks);
+			FLAC__ASSERT(index_num < object_->data.cue_sheet.tracks[track_num].num_indices);
+			object_->data.cue_sheet.tracks[track_num].indices[index_num] = index;
 		}
 
 		bool CueSheet::insert_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index)

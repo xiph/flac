@@ -613,11 +613,13 @@ namespace FLAC {
 
 				inline void set_offset(FLAC__uint64 value) { object_->offset = value; }
 				inline void set_number(FLAC__byte value) { object_->number = value; }
-				void set_isrc(char value[12]);
+				void set_isrc(const char value[12]);
 				void set_type(unsigned value);
 				inline void set_pre_emphasis(bool value) { object_->pre_emphasis = value? 1 : 0; }
 
-				void set_index(unsigned i, const ::FLAC__StreamMetadata_CueSheet_Index &index);
+ 				void set_index(unsigned i, const ::FLAC__StreamMetadata_CueSheet_Index &index);
+				//@@@@ It's awkward but to insert/delete index points
+				//@@@@ you must use the routines in the CueSheet class.
 			};
 
 			CueSheet();
@@ -665,8 +667,10 @@ namespace FLAC {
 			unsigned get_num_tracks() const;
 			Track get_track(unsigned i) const;
 
-			void set_media_catalog_number(char value[128]);
-			void set_offset(FLAC__uint64 value);
+			void set_media_catalog_number(const char value[128]);
+			void set_lead_in(FLAC__uint64 value);
+
+			void set_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
 
 			//! See FLAC__metadata_object_cuesheet_track_insert_index()
 			bool insert_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
