@@ -63,7 +63,7 @@ void analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analysis_opt
 	fprintf(fout, "frame=%u\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
 	for(channel = 0; channel < channels; channel++) {
 		const FLAC__Subframe *subframe = frame->subframes+channel;
-		fprintf(fout, "\tsubframe=%u\ttype=%s", channel, FLAC__SubframeTypeString[subframe->type]);
+		fprintf(fout, "\tsubframe=%u\twasted_bits=%u\ttype=%s", channel, subframe->wasted_bits, FLAC__SubframeTypeString[subframe->type]);
 		switch(subframe->type) {
 			case FLAC__SUBFRAME_TYPE_CONSTANT:
 				fprintf(fout, "\tvalue=%d\n", subframe->data.constant.value);
