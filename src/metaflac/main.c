@@ -1095,12 +1095,28 @@ FLAC__bool parse_uint32(const char *src, FLAC__uint32 *dest)
 	return true;
 }
 
+/* There's no stroull() in MSVC6 so we just write a specialized one */
+static FLAC__uint64 local__strtoull(const char *src)
+{
+	FLAC__uint64 ret = 0;
+	int c;
+	FLAC__ASSERT(0 != src);
+	while(0 != (c = *src++)) {
+		c -= '0';
+		if(c >= 0 && c <= 9)
+			ret = (ret * 10) + c;
+		else
+			break;
+	}
+	return ret;
+}
+
 FLAC__bool parse_uint64(const char *src, FLAC__uint64 *dest)
 {
 	FLAC__ASSERT(0 != src);
 	if(strlen(src) == 0 || strspn(src, "0123456789") != strlen(src))
 		return false;
-	*dest = strtoull(src, 0, 10);
+	*dest = local__strtoull(src);
 	return true;
 }
 
