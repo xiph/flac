@@ -1,14 +1,13 @@
 #!/bin/sh
 
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../src/libFLAC/.libs
+LD_LIBRARY_PATH=../src/libFLAC/.libs:../obj/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
+PATH=../src/flac:../src/test_streams:../obj/bin:$PATH
 
-if ../src/test_streams/test_streams ; then : ; else
+if test_streams ; then : ; else
 	echo "ERROR during test_streams" 1>&2
 	exit 1
 fi
-
-FLAC=../src/flac/flac
 
 test_file ()
 {
@@ -19,13 +18,13 @@ test_file ()
 
 	echo "### ENCODE $name ########################################" >> ./encode.log
 	echo -n "$name: encode..."
-	if $FLAC -s -fb -fs 44100 -fp $bps -fc $channels -0 -l 8 -m -e $encode_options $name.raw $name.flac 2>>./encode.log ; then : ; else
+	if flac -s -fb -fs 44100 -fp $bps -fc $channels -0 -l 8 -m -e $encode_options $name.raw $name.flac 2>>./encode.log ; then : ; else
 		echo "ERROR during encode of $name" 1>&2
 		exit 1
 	fi
 	echo "### DECODE $name ########################################" >> ./decode.log
 	echo -n "decode..."
-	if $FLAC -s -fb -d -fr $name.flac $name.cmp 2>>./decode.log ; then : ; else
+	if flac -s -fb -d -fr $name.flac $name.cmp 2>>./decode.log ; then : ; else
 		echo "ERROR during decode of $name" 1>&2
 		exit 1
 	fi
