@@ -308,7 +308,8 @@ rm -f $cs_out $cs_out2
 
 echo -n "Testing FLAC file with unknown metadata... "
 cp -p metaflac.flac.in $flacfile
-run_metaflac --remove --block-number=4 --dont-use-padding $flacfile
+# remove the VORBIS_COMMENT block so vendor string changes don't interfere with the comparison:
+run_metaflac --remove --block-type=VORBIS_COMMENT --dont-use-padding $flacfile
 cmp $flacfile metaflac.flac.ok || die "ERROR, $flacfile and metaflac.flac.ok differ"
 echo OK
 
