@@ -39,4 +39,4 @@ flac_SOURCES = \
 	file.h \
 	vorbiscomment.h
 
-flac_LDADD = $(NEED_OGGFLAC_LIB) $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ @SHARE_LIBS@ -lm
+flac_LDADD = $(NEED_OGGFLAC_LIB) $(top_builddir)/src/libFLAC/libFLAC.la @OGG_LIBS@ @SHARE_LIBS@ @LIBICONV@ -lm

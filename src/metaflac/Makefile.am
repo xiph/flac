@@ -26,4 +26,4 @@ metaflac_SOURCES = \
 	main.c
 metaflac_LDFLAGS = 
 
-metaflac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @SHARE_LIBS@ -lm
+metaflac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @SHARE_LIBS@ @LIBICONV@ -lm
