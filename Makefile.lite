@@ -30,8 +30,8 @@
 
 topdir = .
 
-.PHONY: doc libFLAC libFLAC++ libOggFLAC libOggFLAC++ share plugin_common plugin_xmms flac metaflac test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
-all: doc libFLAC libFLAC++ libOggFLAC libOggFLAC++ share plugin_common plugin_xmms flac metaflac test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
+.PHONY: all doc src libFLAC libFLAC++ libOggFLAC libOggFLAC++ share plugin_common plugin_xmms flac metaflac test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_streams
+all: doc src
 
 DEFAULT_CONFIG = release
 
@@ -47,6 +47,9 @@ release : all
 
 doc:
 	(cd $@ ; $(MAKE) -f Makefile.lite)
+
+src:
+	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 libFLAC:
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
@@ -104,19 +107,5 @@ testr: release
 
 clean:
 	-(cd doc ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/libFLAC ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/libFLAC++ ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/libOggFLAC ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/libOggFLAC++ ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/share ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/flac ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/metaflac ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/plugin_common ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/plugin_xmms ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/test_grabbag ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/test_libFLAC ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/test_libFLAC++ ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/test_libOggFLAC ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/test_libOggFLAC++ ; $(MAKE) -f Makefile.lite clean)
-	-(cd src/test_streams ; $(MAKE) -f Makefile.lite clean)
+	-(cd src ; $(MAKE) -f Makefile.lite clean)
 	-(cd test ; $(MAKE) -f Makefile.lite clean)
