@@ -29,6 +29,7 @@
 #include <stdlib.h> /* for malloc */
 #include <string.h> /* for strcmp() */
 #include "FLAC/all.h"
+#include "share/replaygain.h"
 #include "encode.h"
 #include "file.h"
 
@@ -58,6 +59,10 @@ typedef struct {
 	const char *inbasefilename;
 	const char *outfilename;
 
+	FLAC__bool replay_gain;
+	unsigned channels;
+	unsigned bits_per_sample;
+	unsigned sample_rate;
 	FLAC__uint64 unencoded_size;
 	FLAC__uint64 total_samples_to_encode;
 	FLAC__uint64 bytes_written;
@@ -783,6 +788,9 @@ int flac__encode_raw(FILE *infile, long infilesize, const char *infilename, cons
 	FLAC__ASSERT(!options.common.sector_align || options.bps == 16);
 	FLAC__ASSERT(!options.common.sector_align || options.sample_rate == 44100);
 	FLAC__ASSERT(!options.common.sector_align || infilesize >= 0);
+	FLAC__ASSERT(!options.common.replay_gain || options.common.skip == 0);
+	FLAC__ASSERT(!options.common.replay_gain || options.channels <= 2);
+	FLAC__ASSERT(!options.common.replay_gain || FLAC__replaygain_is_valid_sample_frequency(options.sample_rate));
 
 	if(!
 		EncoderSession_construct(
@@ -1174,6 +1182,22 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__StreamMetadata padding;
 	FLAC__StreamMetadata *metadata[3];
 
+	e->replay_gain = option.common.replay_gain;
+	e->channels = channels;
+	e->bits_per_sample = bps;
+	e->sample_rate = sample_rate;
+
+	if(e->replay_gain) {
+		if(channels != 1 && channels != 2) {
+			fprintf(stderr, "%s: ERROR, number of channels (%u) must be 1 or 2 for --replay-gain\n", e->inbasefilename, channels);
+			return false;
+		}
+		if(!FLAC__replaygain_is_valid_sample_frequency(sample_rate)) {
+			fprintf(stderr, "%s: ERROR, invalid sample rate (%u) for --replay-gain\n", e->inbasefilename, sample_rate);
+			return false;
+		}
+	}
+
 	if(channels != 2)
 		options.do_mid_side = options.loose_mid_side = false;
 
@@ -1304,6 +1328,11 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], unsigned samples)
 {
+	if(e->replay_gain) {
+		if(!FLAC__replaygain_analyze(buffer, e->channels==2, e->bits_per_sample, samples))
+			fprintf(stderr, "%s: WARNING, error while calculating ReplayGain\n", e->inbasefilename);
+	}
+
 #ifdef FLAC__HAS_OGG
 	if(e->use_ogg) {
 		return OggFLAC__stream_encoder_process(e->encoder.ogg.stream, buffer, samples);

@@ -50,10 +50,12 @@ typedef struct {
 	char *requested_seek_points;
 	int num_requested_seek_points;
 
-	/* options related to --sector-align */
+	/* options related to --replay-gain and --sector-align */
+	FLAC__bool is_first_file;
 	FLAC__bool is_last_file;
 	FLAC__int32 **align_reservoir;
 	unsigned *align_reservoir_samples;
+	FLAC__bool replay_gain;
 	FLAC__bool sector_align;
 
 	FLAC__StreamMetadata *vorbis_comment;

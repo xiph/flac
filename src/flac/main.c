@@ -34,6 +34,7 @@
 #define strcasecmp stricmp
 #endif
 #include "FLAC/all.h"
+#include "share/replaygain.h"
 #include "analyze.h"
 #include "decode.h"
 #include "encode.h"
@@ -64,7 +65,7 @@ static void show_help();
 static void show_explain();
 static void format_mistake(const char *infilename, const char *wrong, const char *right);
 
-static int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file);
+static int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_first_file, FLAC__bool is_last_file);
 static int decode_file(const char *infilename, const char *forced_outfilename);
 
 static void die(const char *message);
@@ -117,6 +118,7 @@ static struct FLAC__share__option long_options_[] = {
 	{ "verify", 0, 0, 'V' },
 	{ "force-raw-format", 0, 0, 0 },
 	{ "lax", 0, 0, 0 },
+	{ "replay-gain", 0, 0, 0 },
 	{ "sector-align", 0, 0, 0 },
 	{ "seekpoint", 1, 0, 'S' },
 	{ "padding", 1, 0, 'P' },
@@ -159,6 +161,7 @@ static struct FLAC__share__option long_options_[] = {
 	{ "no-silent", 0, 0, 0 },
 	{ "no-seektable", 0, 0, 0 },
 	{ "no-delete-input-file", 0, 0, 0 },
+	{ "no-replay-gain", 0, 0, 0 },
 	{ "no-sector-align", 0, 0, 0 },
 	{ "no-lax", 0, 0, 0 },
 #ifdef FLAC__HAS_OGG
@@ -213,6 +216,7 @@ static struct {
 	FLAC__bool force_to_stdout;
 	FLAC__bool force_raw_format;
 	FLAC__bool delete_input;
+	FLAC__bool replay_gain;
 	FLAC__bool sector_align;
 	const char *cmdline_forced_outfilename;
 	const char *output_prefix;
@@ -368,14 +372,26 @@ int do_it()
 		if(option_values.sector_align) {
 			if(option_values.mode_decode)
 				return usage_error("ERROR: --sector-align only allowed for encoding\n");
-			else if(option_values.skip > 0)
+			if(option_values.skip > 0)
 				return usage_error("ERROR: --sector-align not allowed with --skip\n");
-			else if(option_values.format_channels >= 0 && option_values.format_channels != 2)
+			if(option_values.format_channels >= 0 && option_values.format_channels != 2)
 				return usage_error("ERROR: --sector-align can only be done with stereo input\n");
-			else if(option_values.format_bps >= 0 && option_values.format_bps != 16)
+			if(option_values.format_bps >= 0 && option_values.format_bps != 16)
 				return usage_error("ERROR: --sector-align can only be done with 16-bit samples\n");
-			else if(option_values.format_sample_rate >= 0 && option_values.format_sample_rate != 44100)
+			if(option_values.format_sample_rate >= 0 && option_values.format_sample_rate != 44100)
 				return usage_error("ERROR: --sector-align can only be done with a sample rate of 44100\n");
+		}
+		if(option_values.replay_gain) {
+			if(option_values.mode_decode)
+				return usage_error("ERROR: --replay-gain only allowed for encoding\n");
+			if(option_values.skip > 0)
+				return usage_error("ERROR: --replay-gain not allowed with --skip\n");
+			if(option_values.format_channels > 2)
+				return usage_error("ERROR: --replay-gain can only be done with mono/stereo input\n");
+			if(option_values.format_sample_rate >= 0 && !FLAC__replaygain_is_valid_sample_frequency(option_values.format_sample_rate))
+				return usage_error("ERROR: invalid sample rate used with --replay-gain\n");
+			if(option_values.padding < 0)
+				fprintf(stderr, "WARNING: --replay-gain may leave a small PADDING block even with --no-padding\n");
 		}
 		if(option_values.num_files > 1 && option_values.cmdline_forced_outfilename) {
 			return usage_error("ERROR: -o/--output-name cannot be used with multiple files\n");
@@ -439,7 +455,7 @@ int do_it()
 		FLAC__bool first = true;
 
 		if(option_values.num_files == 0) {
-			retval = encode_file("-", 0, true);
+			retval = encode_file("-", 0, first, true);
 		}
 		else {
 			unsigned i;
@@ -448,7 +464,7 @@ int do_it()
 			for(i = 0, retval = 0; i < option_values.num_files; i++) {
 				if(0 == strcmp(option_values.filenames[i], "-") && !first)
 					continue;
-				retval |= encode_file(option_values.filenames[i], 0, i == (option_values.num_files-1));
+				retval |= encode_file(option_values.filenames[i], 0, first, i == (option_values.num_files-1));
 				first = false;
 			}
 		}
@@ -479,6 +495,7 @@ FLAC__bool init_options()
 	option_values.force_to_stdout = false;
 	option_values.force_raw_format = false;
 	option_values.delete_input = false;
+	option_values.replay_gain = false;
 	option_values.sector_align = false;
 	option_values.cmdline_forced_outfilename = 0;
 	option_values.output_prefix = 0;
@@ -589,6 +606,21 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "lax")) {
 			option_values.lax = true;
 		}
+		else if(0 == strcmp(long_option, "replay-gain")) {
+			option_values.replay_gain = true;
+			/*
+			 * We want to reserve space in the Vorbis comments
+			 * for the ReplayGain tags that we will set later.
+			 * Why do we store 100000.0 for the gain numbers
+			 * initially?  The gain field is variable length, so
+			 * if the real number causes the tag size to shrink,
+			 * we want it to shrink by at least 4 bytes so we can
+			 * backfill with PADDING to avoid rewriting the whole
+			 * file.
+			 */
+			if(0 != (violation = FLAC__replaygain_store_to_vorbiscomment(option_values.vorbis_comment, 100000.0, 0.0, 100000.0, 0.0)))
+				return usage_error("ERROR: (--replay-gain) %s\n", violation);
+		}
 		else if(0 == strcmp(long_option, "sector-align")) {
 			option_values.sector_align = true;
 		}
@@ -652,6 +684,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "no-delete-input-file")) {
 			option_values.delete_input = false;
+		}
+		else if(0 == strcmp(long_option, "no-replay-gain")) {
+			option_values.replay_gain = false;
 		}
 		else if(0 == strcmp(long_option, "no-sector-align")) {
 			option_values.sector_align = false;
@@ -1022,6 +1057,7 @@ void show_help()
 #endif
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align multiple files on sector boundaries\n");
+	printf("      --replay-gain            Calculate ReplayGain & store in Vorbis comments\n");
 	printf("  -S, --seekpoint={#|X|#x}     Add seek point(s)\n");
 	printf("  -P, --padding=#              Write a PADDING block of length #\n");
 	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment; may appear multiple times\n");
@@ -1073,6 +1109,7 @@ void show_help()
 #endif
 	printf("      --no-padding\n");
 	printf("      --no-qlp-coeff-prec-search\n");
+	printf("      --no-replay-gain\n");
 	printf("      --no-residual-gnuplot\n");
 	printf("      --no-residual-text\n");
 	printf("      --no-sector-align\n");
@@ -1165,6 +1202,14 @@ void show_explain()
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align encoding of multiple CD format WAVE files\n");
 	printf("                               on sector boundaries.\n");
+	printf("      --replay-gain            Calculate ReplayGain values and store in Vorbis\n");
+	printf("                               comments.  Title gains/peaks will be computed\n");
+	printf("                               for each file, and an album gain/peak will be\n");
+	printf("                               computed for all files.  All input files must\n");
+	printf("                               have the same resolution, sample rate, and\n");
+	printf("                               number of channels.  The sample rate must be\n");
+	printf("                               one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1,\n");
+	printf("                               or 48 kHz.\n");
 	printf("  -S, --seekpoint={#|X|#x}     Include a point or points in a SEEKTABLE\n");
 	printf("       #  : a specific sample number for a seek point\n");
 	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
@@ -1277,7 +1322,7 @@ format_mistake(const char *infilename, const char *wrong, const char *right)
 	fprintf(stderr, "WARNING: %s is not a %s file; treating as a %s file\n", infilename, wrong, right);
 }
 
-int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_last_file)
+int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bool is_first_file, FLAC__bool is_last_file)
 {
 	FILE *encode_infile;
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
@@ -1384,9 +1429,11 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	common_options.padding = option_values.padding;
 	common_options.requested_seek_points = option_values.requested_seek_points;
 	common_options.num_requested_seek_points = option_values.num_requested_seek_points;
+	common_options.is_first_file = is_first_file;
 	common_options.is_last_file = is_last_file;
 	common_options.align_reservoir = align_reservoir;
 	common_options.align_reservoir_samples = &align_reservoir_samples;
+	common_options.replay_gain = option_values.replay_gain;
 	common_options.sector_align = option_values.sector_align;
 	common_options.vorbis_comment = option_values.vorbis_comment;
 	common_options.debug.disable_constant_subframes = option_values.debug.disable_constant_subframes;
