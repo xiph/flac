@@ -308,11 +308,11 @@ static FLAC__bool simple_iterator_prime_input_(FLAC__Metadata_SimpleIterator *it
 			}
 #if !defined _MSC_VER && !defined __MINGW32__
 		}
-#endif
 		else {
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ERROR_OPENING_FILE;
 			return false;
 		}
+#endif
 	}
 	else {
 		iterator->is_writable = true;
