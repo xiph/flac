@@ -1524,7 +1524,7 @@ FLAC__bool do_shorthand_operations(const CommandLineOptions *options)
 FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLineOptions *options)
 {
 	unsigned i;
-	FLAC__bool ok = true, needs_write = false;
+	FLAC__bool ok = true, needs_write = false, use_padding = options->use_padding;
 	FLAC__Metadata_Chain *chain = FLAC__metadata_chain_new();
 
 	if(0 == chain)
@@ -1535,13 +1535,24 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 		return false;
 	}
 
-	for(i = 0; i < options->ops.num_operations && ok; i++)
+	for(i = 0; i < options->ops.num_operations && ok; i++) {
 		ok &= do_shorthand_operation(options->prefix_with_filename? filename : 0, chain, &options->ops.operations[i], &needs_write, options->utf8_convert);
 
+		/* The following seems counterintuitive but the meaning
+		 * of 'use_padding' is 'try to keep the overall metadata
+		 * to its original size, adding or truncating extra
+		 * padding if necessary' which is why we need to turn it
+		 * off in this case.  If we don't, the extra padding block
+		 * will just be truncated.
+		 */
+		if(options->ops.operations[i].type == OP__ADD_PADDING)
+			use_padding = false;
+	}
+
 	if(ok && needs_write) {
-		if(options->use_padding)
+		if(use_padding)
 			FLAC__metadata_chain_sort_padding(chain);
-		ok = FLAC__metadata_chain_write(chain, options->use_padding, options->preserve_modtime);
+		ok = FLAC__metadata_chain_write(chain, use_padding, options->preserve_modtime);
 		if(!ok)
 			fprintf(stderr, "%s: ERROR: writing FLAC file, error = %s\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
 	}
@@ -1620,9 +1631,11 @@ FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metad
 	if(!FLAC__metadata_iterator_insert_block_after(iterator, padding)) {
 		fprintf(stderr, "%s: ERROR: adding new PADDING block to metadata, status =\"%s\"\n", filename, FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)]);
 		FLAC__metadata_object_delete(padding);
+		FLAC__metadata_iterator_delete(iterator);
 		return false;
 	}
 
+	FLAC__metadata_iterator_delete(iterator);
 	*needs_write = true;
 	return true;
 }
@@ -1790,6 +1803,7 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__Me
 			break;
 	};
 
+	FLAC__metadata_iterator_delete(iterator);
 	return ok;
 }
 
