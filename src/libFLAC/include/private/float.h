@@ -50,6 +50,10 @@
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 typedef double FLAC__double;
 typedef float FLAC__float;
+/*
+ * WATCHOUT: changing FLAC__real will change the signatures of many
+ * functions that have assembly language equivalents and break them.
+ */
 typedef float FLAC__real;
 #else
 /*
