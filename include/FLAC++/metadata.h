@@ -908,7 +908,13 @@ namespace FLAC {
 			Status status();
 
 			bool read(const char *filename);
+			bool read(FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);
+
+			bool check_if_tempfile_needed(bool use_padding);
+
 			bool write(bool use_padding = true, bool preserve_file_stats = false);
+			bool write(bool use_padding, ::FLAC__IOHandle handle, ::FLAC__IOCallbacks callbacks);
+			bool write(bool use_padding, ::FLAC__IOHandle handle, ::FLAC__IOCallbacks callbacks, ::FLAC__IOHandle temp_handle, ::FLAC__IOCallbacks temp_callbacks);
 
 			void merge_padding();
 			void sort_padding();

@@ -1122,10 +1122,34 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_chain_read(chain_, filename);
 		}
 
+		bool Chain::read(FLAC__IOHandle handle, ::FLAC__IOCallbacks callbacks)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_chain_read_with_callbacks(chain_, handle, callbacks);
+		}
+
+		bool Chain::check_if_tempfile_needed(bool use_padding)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_chain_check_if_tempfile_needed(chain_, use_padding);
+		}
+
 		bool Chain::write(bool use_padding, bool preserve_file_stats)
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__metadata_chain_write(chain_, use_padding, preserve_file_stats);
+		}
+
+		bool Chain::write(bool use_padding, ::FLAC__IOHandle handle, ::FLAC__IOCallbacks callbacks)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_chain_write_with_callbacks(chain_, use_padding, handle, callbacks);
+		}
+
+		bool Chain::write(bool use_padding, ::FLAC__IOHandle handle, ::FLAC__IOCallbacks callbacks, ::FLAC__IOHandle temp_handle, ::FLAC__IOCallbacks temp_callbacks)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_chain_write_with_callbacks_and_tempfile(chain_, use_padding, handle, callbacks, temp_handle, temp_callbacks);
 		}
 
 		void Chain::merge_padding()
