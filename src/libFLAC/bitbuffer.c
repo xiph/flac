@@ -277,7 +277,8 @@ bool FLAC__bitbuffer_write_raw_uint32(FLAC__BitBuffer *bb, uint32 val, unsigned 
 		return true;
 	if(!bitbuffer_ensure_size_(bb, bits))
 		return false;
-	val &= (~(0xffffffffu << bits)); /* zero-out unused bits */
+	if(bits < 32) /* @@@ gcc seems to require this because the following line causes incorrect results when bits==32; investigate */
+		val &= (~(0xffffffff << bits)); /* zero-out unused bits */
 	bb->total_bits += bits;
 	while(bits > 0) {
 		n = 8 - bb->bits;
