@@ -2450,7 +2450,7 @@ void FLAC__bitbuffer_dump(const FLAC__BitBuffer *bb, FILE *out)
 	}
 	else {
 		fprintf(out, "bitbuffer: capacity=%u blurbs=%u bits=%u total_bits=%u consumed: blurbs=%u, bits=%u, total_bits=%u\n", bb->capacity, bb->blurbs, bb->bits, bb->total_bits, bb->consumed_blurbs, bb->consumed_bits, bb->total_consumed_bits);
-return;/*@@@*/
+
 		for(i = 0; i < bb->blurbs; i++) {
 			fprintf(out, "%08X: ", i);
 			for(j = 0; j < FLAC__BITS_PER_BLURB; j++)
