@@ -1,0 +1,14 @@
+#
+# GNU makefile
+#
+
+LIB_NAME = libgetopt
+INCLUDES = -I../../include/share
+
+OBJS = \
+	getopt.o \
+	getopt1.o
+
+include ../../build/lib.mk
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
