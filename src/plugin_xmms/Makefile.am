@@ -26,6 +26,5 @@ LIBTOOL = $(top_builddir)/libtool-disable-static
 
 xmmsinputplugin_LTLIBRARIES = libxmms-flac.la
 libxmms_flac_la_SOURCES = plugin.c
-libxmms_flac_la_LIBS = $(top_builddir)/src/libFLAC/libFLAC.la
-libxmms_flac_la_LIBADD = @XMMS_LIBS@
+libxmms_flac_la_LIBADD = @XMMS_LIBS@ $(top_builddir)/src/libFLAC/libFLAC.la
 libxmms_flac_la_LDFLAGS = -module -avoid-version
