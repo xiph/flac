@@ -1,0 +1,40 @@
+#  test_streams - Simple test pattern generator
+#  Copyright (C) 2001  Josh Coalson
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+!include <win32.mak>
+
+!IFDEF DEBUG
+.c.obj:
+	$(cc) $(cdebug) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0\" -YX /Od /D "_DEBUG" $<
+!else
+.c.obj:
+	$(cc) /O2 $(crelease) $(cflags) /I "..\..\include" /I ".\include" -DSTRICT -DVERSION=\"1.0\" -YX -DNODEBUG $<
+!endif
+
+C_FILES= \
+	main.c
+
+OBJS= $(C_FILES:.c=.obj)
+
+all: test_streams.exe
+
+test_streams.exe: $(OBJS)
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS)
+
+clean:
+	-del *.obj *.pch
+	-del ..\..\obj\bin\test_streams.exe
