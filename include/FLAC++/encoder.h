@@ -62,10 +62,10 @@ namespace FLAC {
 		//  ----------------------------------------------------------
 		//
 		//  The only real difference here is that instead of passing
-		//  in C function pointers for callbacks, you inherit from
-		//  stream and provide implementations for the callbacks in
-		//  the derived class; because of this there is no need for a
-		//  'client_data' property.
+		//  in C function pointers for callbacks, you inherit from the
+		//  encoder class and provide implementations for the callbacks
+		//  in the derived class; because of this there is no need for
+		//  a 'client_data' property.
 		//
 		// ============================================================
 
