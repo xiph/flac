@@ -1077,6 +1077,11 @@ FLAC__bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, FLAC__uint32 *va
 	FLAC__ASSERT(bits <= 32);
 	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
 
+	if(bits == 0) {
+		*val = 0;
+		return true;
+	}
+
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
 			return false;
@@ -1130,6 +1135,11 @@ FLAC__bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, FLAC__int32 *val,
 
 	FLAC__ASSERT(bits <= 32);
 
+	if(bits == 0) {
+		*val = 0;
+		return true;
+	}
+
 	v = 0;
 	for(i = 0; i < bits; i++) {
 		if(!FLAC__bitbuffer_read_bit_to_uint32(bb, &v, read_callback, client_data))
@@ -1158,6 +1168,11 @@ FLAC__bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, FLAC__int32 *val,
 
 	FLAC__ASSERT(bits <= 32);
 	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
+
+	if(bits == 0) {
+		*val = 0;
+		return true;
+	}
 
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
@@ -1243,6 +1258,11 @@ FLAC__bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *va
 	FLAC__ASSERT(bits <= 64);
 	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
 
+	if(bits == 0) {
+		*val = 0;
+		return true;
+	}
+
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
 			return false;
@@ -1296,6 +1316,11 @@ FLAC__bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 *val,
 
 	FLAC__ASSERT(bits <= 64);
 
+	if(bits == 0) {
+		*val = 0;
+		return true;
+	}
+
 	v = 0;
 	for(i = 0; i < bits; i++) {
 		if(!FLAC__bitbuffer_read_bit_to_uint64(bb, &v, read_callback, client_data))
@@ -1323,6 +1348,11 @@ FLAC__bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 *val,
 
 	FLAC__ASSERT(bits <= 64);
 	FLAC__ASSERT((bb->capacity*8) * 2 >= bits);
+
+	if(bits == 0) {
+		*val = 0;
+		return true;
+	}
 
 	while(bb->total_consumed_bits + bits > bb->total_bits) {
 		if(!bitbuffer_read_from_client_(bb, read_callback, client_data))
