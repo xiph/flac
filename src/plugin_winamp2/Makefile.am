@@ -26,4 +26,6 @@ EXTRA_DIST = \
 	infobox.c \
 	infobox.h \
 	resource.h \
-	resource.rc
+	resource.rc \
+	tagz.cpp \
+	tagz.h
