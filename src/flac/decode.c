@@ -16,6 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #if defined _WIN32 && !defined __CYGWIN__
 /* where MSVC puts unlink() */
 # include <io.h>
@@ -28,6 +32,7 @@
 #include "FLAC/all.h"
 #include "decode.h"
 #include "file.h"
+
 #ifdef FLAC__HAS_OGG
 #include "OggFLAC/stream_decoder.h"
 #endif

@@ -23,6 +23,10 @@
 #include "FLAC/format.h"
 #include "private/format.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef min
 #undef min
 #endif

@@ -27,6 +27,10 @@
 #include <xmms/configfile.h>
 #include <xmms/titlestring.h>
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef HAVE_LANGINFO_CODESET
 #include <langinfo.h>
 #endif

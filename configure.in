@@ -343,6 +343,22 @@ fi
 CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS $OUR_CFLAGS_TAIL"
 CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS $OUR_CFLAGS_TAIL"
 
+AM_CONFIG_HEADER(config.h)
+AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA,  [define if XXX])
+AH_TEMPLATE(FLAC__CPU_IA32,  [define if building for ia32/i386])
+AH_TEMPLATE(FLAC__CPU_PPC,  [define if building for PowerPC])
+AH_TEMPLATE(FLAC__CPU_SPARC,  [define if building for SPARC])
+AH_TEMPLATE(FLAC__EXHAUSTIVE_TESTS,  [define to XXX])
+AH_TEMPLATE(FLAC__HAS_ID3LIB,  [define if you have the id3lib library])
+AH_TEMPLATE(FLAC__HAS_NASM,  [define if you have the NASM assembler])
+AH_TEMPLATE(FLAC__HAS_OGG,  [define if you have the ogg library])
+AH_TEMPLATE(FLAC__NO_ASM,  [define to disable use of assembly code])
+AH_TEMPLATE(FLAC__SSE_OS,  [define to enable use of SSE instructions])
+AH_TEMPLATE(FLAC__USE_3DNOW,  [define to enable use of 3Dnow! instructions])
+AH_TEMPLATE(ID3LIB_MAJOR,  [define to major version number of id3lib])
+AH_TEMPLATE(ID3LIB_MINOR,  [define to minor version number of id3lib])
+AH_TEMPLATE(ID3LIB_PATCH,  [define to patch level of id3lib])
+
 AC_OUTPUT( \
 	Makefile \
 	src/Makefile \

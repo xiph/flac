@@ -31,6 +31,11 @@
 #include "FLAC/all.h"
 #include "encode.h"
 #include "file.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef FLAC__HAS_OGG
 #include "OggFLAC/stream_encoder.h"
 #endif

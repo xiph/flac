@@ -21,6 +21,10 @@
 
 #include "FLAC/metadata.h"
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 typedef struct {
 	FLAC__bool verbose;
 	FLAC__uint64 skip;

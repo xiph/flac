@@ -16,7 +16,7 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 bin_PROGRAMS = metaflac
-CFLAGS = @CFLAGS@
+CFLAGS = @ CFLAGS@ 
 
 EXTRA_DIST = \
 	Makefile.lite \
@@ -26,4 +26,4 @@ metaflac_SOURCES = \
 	main.c
 metaflac_LDFLAGS = 
 
-metaflac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @SHARE_LIBS@ @LIBICONV@ -lm
+metaflac_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la @ SHARE_LIBS@  @ LIBICONV@  -lm
