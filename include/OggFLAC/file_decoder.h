@@ -77,6 +77,9 @@ typedef enum {
 	OggFLAC__FILE_DECODER_OK = 0,
 	/**< The decoder is in the normal OK state. */
 
+	OggFLAC__FILE_DECODER_OGG_ERROR,
+	/**< An error occurred in the underlying Ogg layer.  */
+
 	OggFLAC__FILE_DECODER_FLAC_FILE_DECODER_ERROR,
 	/**< An error occurred in the underlying FLAC file decoder;
 	 * check OggFLAC__file_decoder_get_FLAC_file_decoder_state().
@@ -317,7 +320,7 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_serial_number(OggFLAC__FileDeco
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond(OggFLAC__FileDecoder *decoder, OggFLAC__MetadataType type);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond(OggFLAC__FileDecoder *decoder, FLAC__MetadataType type);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_set_metadata_respond_application().
@@ -360,7 +363,7 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_respond_all(OggFLAC__F
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore(OggFLAC__FileDecoder *decoder, OggFLAC__MetadataType type);
+OggFLAC_API FLAC__bool OggFLAC__file_decoder_set_metadata_ignore(OggFLAC__FileDecoder *decoder, FLAC__MetadataType type);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_set_metadata_ignore_application().
@@ -483,7 +486,7 @@ OggFLAC_API unsigned OggFLAC__file_decoder_get_channels(const OggFLAC__FileDecod
  * \retval OggFLAC__ChannelAssignment
  *    See above.
  */
-OggFLAC_API OggFLAC__ChannelAssignment OggFLAC__file_decoder_get_channel_assignment(const OggFLAC__FileDecoder *decoder);
+OggFLAC_API FLAC__ChannelAssignment OggFLAC__file_decoder_get_channel_assignment(const OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_get_bits_per_sample().
@@ -601,17 +604,6 @@ OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_metadata(OggFL
  *    See above.
  */
 OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_until_end_of_file(OggFLAC__FileDecoder *decoder);
-
-/** This is inherited from FLAC__FileDecoder; see
- *  FLAC__file_decoder_process_remaining_frames().
- *
- * \param  decoder  A decoder instance.
- * \assert
- *    \code decoder != NULL \endcode
- * \retval FLAC__bool
- *    See above.
- */
-OggFLAC_API FLAC__bool OggFLAC__file_decoder_process_remaining_frames(OggFLAC__FileDecoder *decoder);
 
 /** This is inherited from FLAC__FileDecoder; see
  *  FLAC__file_decoder_seek_absolute().

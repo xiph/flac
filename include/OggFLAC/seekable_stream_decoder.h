@@ -77,10 +77,16 @@ typedef enum {
 	OggFLAC__SEEKABLE_STREAM_DECODER_OK = 0,
 	/**< The decoder is in the normal OK state. */
 
+	OggFLAC__SEEKABLE_STREAM_DECODER_OGG_ERROR,
+	/**< An error occurred in the underlying Ogg layer.  */
+
 	OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR,
 	/**< An error occurred in the underlying FLAC seekable stream decoder;
 	 * check OggFLAC__seekable_stream_decoder_get_FLAC_seekable_stream_decoder_state().
 	 */
+
+	OggFLAC__SEEKABLE_STREAM_DECODER_READ_ERROR,
+	/**< The read callback returned an error. */
 
 	OggFLAC__SEEKABLE_STREAM_DECODER_INVALID_CALLBACK,
 	/**< The decoder was initialized before setting all the required callbacks. */
@@ -458,7 +464,7 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_set_serial_number(OggFLA
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_set_metadata_respond(OggFLAC__SeekableStreamDecoder *decoder, OggFLAC__MetadataType type);
+OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_set_metadata_respond(OggFLAC__SeekableStreamDecoder *decoder, FLAC__MetadataType type);
 
 /** This is inherited from FLAC__SeekableStreamDecoder; see
  *  FLAC__seekable_stream_decoder_set_metadata_respond_application().
@@ -501,7 +507,7 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_set_metadata_respond_all
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_set_metadata_ignore(OggFLAC__SeekableStreamDecoder *decoder, OggFLAC__MetadataType type);
+OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_set_metadata_ignore(OggFLAC__SeekableStreamDecoder *decoder, FLAC__MetadataType type);
 
 /** This is inherited from FLAC__SeekableStreamDecoder; see
  *  FLAC__seekable_stream_decoder_set_metadata_ignore_application().
@@ -610,7 +616,7 @@ OggFLAC_API unsigned OggFLAC__seekable_stream_decoder_get_channels(const OggFLAC
  * \retval OggFLAC__ChannelAssignment
  *    See above.
  */
-OggFLAC_API OggFLAC__ChannelAssignment OggFLAC__seekable_stream_decoder_get_channel_assignment(const OggFLAC__SeekableStreamDecoder *decoder);
+OggFLAC_API FLAC__ChannelAssignment OggFLAC__seekable_stream_decoder_get_channel_assignment(const OggFLAC__SeekableStreamDecoder *decoder);
 
 /** This is inherited from FLAC__SeekableStreamDecoder; see
  *  FLAC__seekable_stream_decoder_get_bits_per_sample().
