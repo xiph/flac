@@ -135,20 +135,12 @@ static struct share__option long_options_[] = {
 #endif
 	{ "blocksize", 1, 0, 'b' },
 	{ "exhaustive-model-search", 0, 0, 'e' },
-#if 0
-	/* @@@ deprecated: */
-	{ "escape-coding", 0, 0, 'E' },
-#endif
 	{ "max-lpc-order", 1, 0, 'l' },
 	{ "mid-side", 0, 0, 'm' },
 	{ "adaptive-mid-side", 0, 0, 'M' },
 	{ "qlp-coeff-precision-search", 0, 0, 'p' },
 	{ "qlp-coeff-precision", 1, 0, 'q' },
 	{ "rice-partition-order", 1, 0, 'r' },
-#if 0
-	/* @@@ deprecated: */
-	{ "rice-parameter-search-distance", 1, 0, 'R' },
-#endif
 	{ "endian", 1, 0, 0 },
 	{ "channels", 1, 0, 0 },
 	{ "bps", 1, 0, 0 },
@@ -175,10 +167,6 @@ static struct share__option long_options_[] = {
 	{ "no-ogg", 0, 0, 0 },
 #endif
 	{ "no-exhaustive-model-search", 0, 0, 0 },
-#if 0
-	/* @@@ deprecated: */
-	{ "no-escape-coding", 0, 0, 0 },
-#endif
 	{ "no-mid-side", 0, 0, 0 },
 	{ "no-adaptive-mid-side", 0, 0, 0 },
 	{ "no-qlp-coeff-prec-search", 0, 0, 0 },
@@ -243,7 +231,7 @@ static struct {
 	int min_residual_partition_order;
 	int max_residual_partition_order;
 	int rice_parameter_search_dist;
-	char requested_seek_points[50000]; /* @@@ bad MAGIC NUMBER but buffer overflow is checked */
+	char requested_seek_points[50000]; /* bad MAGIC NUMBER but buffer overflow is checked */
 	int num_requested_seek_points; /* -1 => no -S options were given, 0 => -S- was given */
 	const char *cuesheet_filename;
 	FLAC__bool cued_seekpoints;
@@ -584,7 +572,6 @@ int parse_options(int argc, char *argv[])
 	int short_option;
 	int option_index = 1;
 	FLAC__bool had_error = false;
-	/*@@@ E and R: are deprecated */
 	const char *short_opts = "0123456789ab:cdeFhHl:mMo:pP:q:r:sS:tT:vV";
 
 	while ((short_option = share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
@@ -754,12 +741,6 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "no-exhaustive-model-search")) {
 			option_values.do_exhaustive_model_search = false;
 		}
-#if 0
-		/* @@@ deprecated: */
-		else if(0 == strcmp(long_option, "no-escape-coding")) {
-			option_values.do_escape_coding = false;
-		}
-#endif
 		else if(0 == strcmp(long_option, "no-mid-side")) {
 			option_values.do_mid_side = option_values.loose_mid_side = false;
 		}
@@ -1139,18 +1120,10 @@ void show_help()
 	printf("  -m, --mid-side                     Try mid-side coding for each frame\n");
 	printf("  -M, --adaptive-mid-side            Adaptive mid-side coding for all frames\n");
 	printf("  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)\n");
-#if 0
-	/*@@@ deprecated: */
-	printf("  -E, --escape-coding                Do escape coding in the entropy coder\n");
-#endif
 	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors\n");
 	printf("  -p, --qlp-coeff-precision-search   Exhaustively search LP coeff quantization\n");
 	printf("  -q, --qlp-coeff-precision=#        Specify precision in bits\n");
 	printf("  -r, --rice-partition-order=[#,]#   Set [min,]max residual partition order\n");
-#if 0
-	/*@@@ deprecated: */
-	printf("  -R, -rice-parameter-search-distance=#   Rice parameter search distance\n");
-#endif
 	printf("format options:\n");
 	printf("      --endian={big|little}    Set byte order for samples\n");
 	printf("      --channels=#             Number of channels\n");
@@ -1163,10 +1136,6 @@ void show_help()
 	printf("      --no-adaptive-mid-side\n");
 	printf("      --no-decode-through-errors\n");
 	printf("      --no-delete-input-file\n");
-#if 0
-/* @@@ deprecated: */
-	printf("      --no-escape-coding\n");
-#endif
 	printf("      --no-exhaustive-model-search\n");
 	printf("      --no-lax\n");
 	printf("      --no-mid-side\n");
@@ -1345,15 +1314,6 @@ void show_explain()
 	printf("  -M, --adaptive-mid-side            Adaptive mid-side coding for all frames\n");
 	printf("                                     (stereo only)\n");
 	printf("  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)\n");
-#if 0
-	/*@@@ deprecated: */
-	printf("  -E, --escape-coding                Do escape coding in the entropy coder.\n");
-	printf("                                     This causes the encoder to use an\n");
-	printf("                                     unencoded representation of the residual\n");
-	printf("                                     in a partition if it is smaller.  It\n");
-	printf("                                     increases the runtime and usually results\n");
-	printf("                                     in an improvement of less than 1%.\n");
-#endif
 	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors\n");
 	printf("  -p, --qlp-coeff-precision-search   Do exhaustive search of LP coefficient\n");
 	printf("                                     quantization (expensive!); overrides -q;\n");
@@ -1366,10 +1326,6 @@ void show_explain()
 	printf("                                     (# is 0..16; min defaults to 0; the\n");
 	printf("                                     default is -r 0; above 4 doesn't usually\n");
 	printf("                                     help much)\n");
-#if 0
-	/*@@@ deprecated: */
-	printf("  -R, -rice-parameter-search-distance=#   Rice parameter search distance\n");
-#endif
 	printf("format options:\n");
 	printf("      --endian={big|little}    Set byte order for samples\n");
 	printf("      --channels=#             Number of channels\n");
@@ -1387,10 +1343,6 @@ void show_explain()
 	printf("      --no-adaptive-mid-side\n");
 	printf("      --no-decode-through-errors\n");
 	printf("      --no-delete-input-file\n");
-#if 0
-/* @@@ deprecated: */
-	printf("      --no-escape-coding\n");
-#endif
 	printf("      --no-exhaustive-model-search\n");
 	printf("      --no-lax\n");
 	printf("      --no-mid-side\n");
@@ -1482,7 +1434,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative)
 		return usage_error("ERROR: invalid value for --skip\n");
 
-	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) //@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code
+	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) /*@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
 		return usage_error("ERROR: invalid value for --until\n");
 	/* if there is no "--until" we want to default to "--until=-0" */
 	if(0 == option_values.until_specification)
@@ -1594,7 +1546,7 @@ int decode_file(const char *infilename)
 	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative)
 		return usage_error("ERROR: invalid value for --skip\n");
 
-	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) //@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code
+	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) /*@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
 		return usage_error("ERROR: invalid value for --until\n");
 	/* if there is no "--until" we want to default to "--until=-0" */
 	if(0 == option_values.until_specification)
