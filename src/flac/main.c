@@ -1334,9 +1334,9 @@ void show_explain()
 	printf("      --sign={signed|unsigned} Sign of samples (the default is signed)\n");
 	printf("      --force-aiff-format      Force the decoder to output AIFF format.  This\n");
 	printf("                               option is not needed if the output filename (as\n");
-	printf("                               set by -o) ends with .aiff; this option has no\n");
-	printf("                               effect when encoding since input AIFF is auto-\n");
-	printf("                               detected.\n");
+	printf("                               set by -o) ends with .aif or .aiff; this option\n");
+	printf("                               has no effect when encoding since input AIFF is\n");
+	printf("                               auto-detected.\n");
 	printf("      --force-raw-format       Force input (when encoding) or output (when\n");
 	printf("                               decoding) to be treated as raw samples\n");
 	printf("negative options:\n");
@@ -1633,7 +1633,7 @@ const char *get_decoded_outfilename(const char *infilename)
 			strcpy(buffer, "-");
 		}
 		else {
-			static const char *suffixes[] = { ".wav", ".aiff", ".raw", ".ana" };
+			static const char *suffixes[] = { ".wav", ".aif", ".raw", ".ana" };
 			const char *suffix = suffixes[
 				option_values.analyze? 3 :
 				option_values.force_raw_format? 2 :
