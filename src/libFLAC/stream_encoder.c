@@ -344,7 +344,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__StreamMetadata metadata;
 	unsigned current_sample_number;
 	unsigned current_frame_number;
-	struct MD5Context md5context;
+	struct FLAC__MD5Context md5context;
 	FLAC__CPUInfo cpuinfo;
 	unsigned (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 	void (*local_lpc_compute_autocorrelation)(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[]);
@@ -858,7 +858,7 @@ FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder 
 	encoder->private_->metadata.data.stream_info.bits_per_sample = encoder->protected_->bits_per_sample;
 	encoder->private_->metadata.data.stream_info.total_samples = encoder->protected_->total_samples_estimate; /* we will replace this later with the real total */
 	memset(encoder->private_->metadata.data.stream_info.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
-	MD5Init(&encoder->private_->md5context);
+	FLAC__MD5Init(&encoder->private_->md5context);
 	if(!FLAC__bitbuffer_clear(encoder->private_->frame))
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 	if(!FLAC__add_metadata_block(&encoder->private_->metadata, encoder->private_->frame))
@@ -935,7 +935,7 @@ FLAC_API void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 		}
 	}
 
-	MD5Final(encoder->private_->metadata.data.stream_info.md5sum, &encoder->private_->md5context);
+	FLAC__MD5Final(encoder->private_->metadata.data.stream_info.md5sum, &encoder->private_->md5context);
 
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		encoder->private_->metadata_callback(encoder, &encoder->private_->metadata, encoder->private_->client_data);
@@ -1867,7 +1867,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 
 		frame_header.channel_assignment = channel_assignment;
 
-		if(!FLAC__frame_add_header(&frame_header, encoder->protected_->streamable_subset, is_last_frame, encoder->private_->frame)) {
+		if(!FLAC__frame_add_header(&frame_header, encoder->protected_->streamable_subset, encoder->private_->frame)) {
 			encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 			return false;
 		}
@@ -1921,7 +1921,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 			return false;
 	}
 	else {
-		if(!FLAC__frame_add_header(&frame_header, encoder->protected_->streamable_subset, is_last_frame, encoder->private_->frame)) {
+		if(!FLAC__frame_add_header(&frame_header, encoder->protected_->streamable_subset, encoder->private_->frame)) {
 			encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 			return false;
 		}

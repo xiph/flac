@@ -68,7 +68,7 @@ typedef struct OggFLAC__SeekableStreamDecoderPrivate {
 	void *client_data;
 	OggFLAC__StreamDecoder *stream_decoder;
 	FLAC__bool do_md5_checking; /* initially gets protected_->md5_checking but is turned off after a seek */
-	struct MD5Context md5context;
+	struct FLAC__MD5Context md5context;
 	FLAC__byte stored_md5sum[16]; /* this is what is stored in the metadata */
 	FLAC__byte computed_md5sum[16]; /* this is the sum we computed from the decoded data */
 	/* the rest of these are only used for seeking: */
@@ -205,13 +205,13 @@ OggFLAC_API OggFLAC__SeekableStreamDecoderState OggFLAC__seekable_stream_decoder
 
 	decoder->private_->do_md5_checking = decoder->protected_->md5_checking;
 
-	/* We initialize the MD5Context even though we may never use it.  This is
-	 * because md5 checking may be turned on to start and then turned off if a
-	 * seek occurs.  So we always init the context here and finalize it in
+	/* We initialize the FLAC__MD5Context even though we may never use it.  This
+	 * is because md5 checking may be turned on to start and then turned off if
+	 * a seek occurs.  So we always init the context here and finalize it in
 	 * OggFLAC__seekable_stream_decoder_finish() to make sure things are always
 	 * cleaned up properly.
 	 */
-	MD5Init(&decoder->private_->md5context);
+	FLAC__MD5Init(&decoder->private_->md5context);
 
 	OggFLAC__stream_decoder_set_read_callback(decoder->private_->stream_decoder, read_callback_);
 	OggFLAC__stream_decoder_set_write_callback(decoder->private_->stream_decoder, write_callback_);
@@ -246,9 +246,9 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_finish(OggFLAC__Seekable
 	FLAC__ASSERT(0 != decoder->private_->stream_decoder);
 
 	/* see the comment in OggFLAC__seekable_stream_decoder_init() as to why we
-	 * always call MD5Final()
+	 * always call FLAC__MD5Final()
 	 */
-	MD5Final(decoder->private_->computed_md5sum, &decoder->private_->md5context);
+	FLAC__MD5Final(decoder->private_->computed_md5sum, &decoder->private_->md5context);
 
 	OggFLAC__stream_decoder_finish(decoder->private_->stream_decoder);
 
@@ -579,13 +579,13 @@ OggFLAC_API FLAC__bool OggFLAC__seekable_stream_decoder_reset(OggFLAC__SeekableS
 
 	decoder->private_->do_md5_checking = decoder->protected_->md5_checking;
 
-	/* We initialize the MD5Context even though we may never use it.  This is
-	 * because md5 checking may be turned on to start and then turned off if a
-	 * seek occurs.  So we always init the context here and finalize it in
+	/* We initialize the FLAC__MD5Context even though we may never use it.  This
+	 * is because md5 checking may be turned on to start and then turned off if
+	 * a seek occurs.  So we always init the context here and finalize it in
 	 * OggFLAC__seekable_stream_decoder_finish() to make sure things are always
 	 * cleaned up properly.
 	 */
-	MD5Init(&decoder->private_->md5context);
+	FLAC__MD5Init(&decoder->private_->md5context);
 
 	decoder->protected_->state = OggFLAC__SEEKABLE_STREAM_DECODER_OK;
 
@@ -877,7 +877,12 @@ FLAC__bool seek_to_absolute_sample_(OggFLAC__SeekableStreamDecoder *decoder, FLA
 				if (iteration >= BINARY_SEARCH_AFTER_ITERATION)
 					pos = (right_pos + left_pos) / 2;
 				else
+#if defined _MSC_VER || defined __MINGW32__
+					/* with VC++ you have to spoon feed it the casting */
+					pos = (FLAC__uint64)((double)(FLAC__int64)(target_sample - left_sample) / (double)(FLAC__int64)(right_pos - left_pos));
+#else
 					pos = (FLAC__uint64)((double)(target_sample - left_sample) / (double)(right_pos - left_pos));
+#endif
 
 				if (this_frame_sample <= target_sample) {
 					/* The 'equal' case should not happen, since
