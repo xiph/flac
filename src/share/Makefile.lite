@@ -3,7 +3,7 @@
 #
 
 LIB_NAME = libgetopt
-INCLUDES = -I../../include/share
+INCLUDES = -I../../include
 
 OBJS = \
 	getopt.o \
