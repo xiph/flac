@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	for(i = 1; i < argc; i++) {
 		if(argv[i][0] != '-' || argv[i][1] == 0)
 			break;
-		if(0 == strcmp(argv[i], "-H"))
+		if(0 == strcmp(argv[i], "-H") || 0 == strcmp(argv[i], "--help"))
 			return long_usage(0);
 		else if(0 == strcmp(argv[i], "-d"))
 			mode_decode = true;
@@ -474,7 +474,7 @@ int short_usage(const char *message, ...)
 	}
 	usage_header();
 	fprintf(stderr, "\n");
-	fprintf(stderr, "This is the short help; for full help use 'flac -H'\n");
+	fprintf(stderr, "This is the short help; for full help use 'flac --help'\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "To encode:\n");
 	fprintf(stderr, "  flac [-#] [infile [...]]\n");
@@ -492,6 +492,7 @@ int short_usage(const char *message, ...)
 
 int long_usage(const char *message, ...)
 {
+	FILE *out = (message? stderr : stdout);
 	va_list args;
 
 	if(message) {
@@ -503,105 +504,105 @@ int long_usage(const char *message, ...)
 
 	}
 	usage_header();
-	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "  flac [options] [infile [...]]\n");
-	fprintf(stderr, "\n");
-	fprintf(stderr, "For encoding:\n");
-	fprintf(stderr, "  the input file(s) may be a PCM RIFF WAVE file or raw samples\n");
-	fprintf(stderr, "  the output file(s) will be in FLAC format\n");
-	fprintf(stderr, "For decoding, the reverse is true\n");
-	fprintf(stderr, "\n");
-	fprintf(stderr, "A single 'infile' may be - for stdin.  No 'infile' implies stdin.  Use of\n");
-	fprintf(stderr, "stdin implies -c (write to stdout).  Normally you should use:\n");
-	fprintf(stderr, "   flac [options] -o outfilename  or  flac -d [options] -o outfilename\n");
-	fprintf(stderr, "instead of:\n");
-	fprintf(stderr, "   flac [options] > outfilename   or  flac -d [options] > outfilename\n");
-	fprintf(stderr, "since the former allows flac to seek backwards to write the STREAMINFO or\n");
-	fprintf(stderr, "RIFF WAVE header contents when necessary.\n");
-	fprintf(stderr, "\n");
-	fprintf(stderr, "flac checks for the presence of a RIFF WAVE header to decide whether or not\n");
-	fprintf(stderr, "to treat an input file as WAVE format or raw samples.  If any infile is raw\n");
-	fprintf(stderr, "you must specify the format options {-fb|fl} -fc -fp and -fs, which will\n");
-	fprintf(stderr, "apply to all raw files.  You can force WAVE files to be treated as a raw files\n");
-	fprintf(stderr, "using -fr.\n");
-	fprintf(stderr, "\n");
-	fprintf(stderr, "generic options:\n");
-	fprintf(stderr, "  -d : decode (default behavior is encode)\n");
-	fprintf(stderr, "  -t : test (same as -d except no decoded file is written)\n");
-	fprintf(stderr, "  -a : analyze (same as -d except an analysis file is written)\n");
-	fprintf(stderr, "  -c : write output to stdout\n");
-	fprintf(stderr, "  -s : silent (do not write runtime encode/decode statistics)\n");
-	fprintf(stderr, "  -o filename : force the output file name (usually flac just changes the\n");
-	fprintf(stderr, "                extension)\n");
-	fprintf(stderr, "  --delete-input-file : deletes the input file after a successful encode/decode\n");
-	fprintf(stderr, "  --skip samples : can be used both for encoding and decoding\n");
-	fprintf(stderr, "analyze options:\n");
-	fprintf(stderr, "  --a-rtext : include residual signal in text output\n");
-	fprintf(stderr, "  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
-	fprintf(stderr, "encoding options:\n");
+	fprintf(out, "Usage:\n");
+	fprintf(out, "  flac [options] [infile [...]]\n");
+	fprintf(out, "\n");
+	fprintf(out, "For encoding:\n");
+	fprintf(out, "  the input file(s) may be a PCM RIFF WAVE file or raw samples\n");
+	fprintf(out, "  the output file(s) will be in FLAC format\n");
+	fprintf(out, "For decoding, the reverse is true\n");
+	fprintf(out, "\n");
+	fprintf(out, "A single 'infile' may be - for stdin.  No 'infile' implies stdin.  Use of\n");
+	fprintf(out, "stdin implies -c (write to stdout).  Normally you should use:\n");
+	fprintf(out, "   flac [options] -o outfilename  or  flac -d [options] -o outfilename\n");
+	fprintf(out, "instead of:\n");
+	fprintf(out, "   flac [options] > outfilename   or  flac -d [options] > outfilename\n");
+	fprintf(out, "since the former allows flac to seek backwards to write the STREAMINFO or\n");
+	fprintf(out, "RIFF WAVE header contents when necessary.\n");
+	fprintf(out, "\n");
+	fprintf(out, "flac checks for the presence of a RIFF WAVE header to decide whether or not\n");
+	fprintf(out, "to treat an input file as WAVE format or raw samples.  If any infile is raw\n");
+	fprintf(out, "you must specify the format options {-fb|fl} -fc -fp and -fs, which will\n");
+	fprintf(out, "apply to all raw files.  You can force WAVE files to be treated as a raw files\n");
+	fprintf(out, "using -fr.\n");
+	fprintf(out, "\n");
+	fprintf(out, "generic options:\n");
+	fprintf(out, "  -d : decode (default behavior is encode)\n");
+	fprintf(out, "  -t : test (same as -d except no decoded file is written)\n");
+	fprintf(out, "  -a : analyze (same as -d except an analysis file is written)\n");
+	fprintf(out, "  -c : write output to stdout\n");
+	fprintf(out, "  -s : silent (do not write runtime encode/decode statistics)\n");
+	fprintf(out, "  -o filename : force the output file name (usually flac just changes the\n");
+	fprintf(out, "                extension)\n");
+	fprintf(out, "  --delete-input-file : deletes the input file after a successful encode/decode\n");
+	fprintf(out, "  --skip samples : can be used both for encoding and decoding\n");
+	fprintf(out, "analyze options:\n");
+	fprintf(out, "  --a-rtext : include residual signal in text output\n");
+	fprintf(out, "  --a-rgp : generate gnuplot files of residual distribution of each subframe\n");
+	fprintf(out, "encoding options:\n");
 #ifdef FLaC__HAS_OGG
-	fprintf(stderr, "  --ogg : output Ogg-FLAC stream instead of native FLAC\n");
+	fprintf(out, "  --ogg : output Ogg-FLAC stream instead of native FLAC\n");
 #endif
-	fprintf(stderr, "  --lax : allow encoder to generate non-Subset files\n");
-	fprintf(stderr, "  --sector-align : align encoding of multiple files on sector boundaries\n");
-	fprintf(stderr, "  -S { # | X | #x } : include a point or points in a SEEKTABLE\n");
-	fprintf(stderr, "       #  : a specific sample number for a seek point\n");
-	fprintf(stderr, "       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
-	fprintf(stderr, "       #x : # evenly spaced seekpoints, the first being at sample 0\n");
-	fprintf(stderr, "     You may use many -S options; the resulting SEEKTABLE will be the unique-\n");
-	fprintf(stderr, "           ified union of all such values.\n");
-	fprintf(stderr, "     With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.\n");
-	fprintf(stderr, "     Note: -S #x will not work if the encoder can't determine the input size\n");
-	fprintf(stderr, "           before starting.\n");
-	fprintf(stderr, "     Note: if you use -S # and # is >= samples in the input, there will be\n");
-	fprintf(stderr, "           either no seek point entered (if the input size is determinable\n");
-	fprintf(stderr, "           before encoding starts) or a placeholder point (if input size is not\n");
-	fprintf(stderr, "           determinable)\n");
-	fprintf(stderr, "  -P # : write a PADDING block of # bytes (goes after SEEKTABLE)\n");
-	fprintf(stderr, "         (0 => no PADDING block, default is -P 0)\n");
-	fprintf(stderr, "  -b # : specify blocksize in samples; default is 1152 for -l 0, else 4608;\n");
-	fprintf(stderr, "         must be 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768\n");
-	fprintf(stderr, "         (unless --lax is used)\n");
-	fprintf(stderr, "  -m   : try mid-side coding for each frame (stereo input only)\n");
-	fprintf(stderr, "  -M   : loose mid-side coding for all frames (stereo input only)\n");
-	fprintf(stderr, "  -0 .. -8 : fastest compression .. highest compression, default is -5\n");
-	fprintf(stderr, "             these are synonyms for other options:\n");
-	fprintf(stderr, "  -0   : synonymous with -l 0 -b 1152 -r 2,2\n");
-	fprintf(stderr, "  -1   : synonymous with -l 0 -b 1152 -M -r 2,2\n");
-	fprintf(stderr, "  -2   : synonymous with -l 0 -b 1152 -m -r 3\n");
-	fprintf(stderr, "  -3   : synonymous with -l 6 -b 4608 -r 3,3\n");
-	fprintf(stderr, "  -4   : synonymous with -l 8 -b 4608 -M -r 3,3\n");
-	fprintf(stderr, "  -5   : synonymous with -l 8 -b 4608 -m -r 3,3\n");
-	fprintf(stderr, "  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
-	fprintf(stderr, "  -7   : synonymous with -l 8 -b 4608 -m -e -r 6\n");
-	fprintf(stderr, "  -8   : synonymous with -l 12 -b 4608 -m -e -r 6\n");
-	fprintf(stderr, "  -e   : do exhaustive model search (expensive!)\n");
-	fprintf(stderr, "  -E   : include escape coding in the entropy coder\n");
-	fprintf(stderr, "  -l # : specify max LPC order; 0 => use only fixed predictors\n");
-	fprintf(stderr, "  -p   : do exhaustive search of LP coefficient quantization (expensive!);\n");
-	fprintf(stderr, "         overrides -q, does nothing if using -l 0\n");
-	fprintf(stderr, "  -q # : specify precision in bits of quantized linear-predictor coefficients;\n");
-	fprintf(stderr, "         0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
-	fprintf(stderr, "  -r [#,]# : [min,]max residual partition order (# is 0..16; min defaults to 0;\n");
-	fprintf(stderr, "         default is -r 0; above 4 doesn't usually help much)\n");
-	fprintf(stderr, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
-	fprintf(stderr, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
-	fprintf(stderr, "         comparing to the original\n");
-	fprintf(stderr, "  -S-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-,%s --lax-, --sector-align-\n",
+	fprintf(out, "  --lax : allow encoder to generate non-Subset files\n");
+	fprintf(out, "  --sector-align : align encoding of multiple files on sector boundaries\n");
+	fprintf(out, "  -S { # | X | #x } : include a point or points in a SEEKTABLE\n");
+	fprintf(out, "       #  : a specific sample number for a seek point\n");
+	fprintf(out, "       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
+	fprintf(out, "       #x : # evenly spaced seekpoints, the first being at sample 0\n");
+	fprintf(out, "     You may use many -S options; the resulting SEEKTABLE will be the unique-\n");
+	fprintf(out, "           ified union of all such values.\n");
+	fprintf(out, "     With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.\n");
+	fprintf(out, "     Note: -S #x will not work if the encoder can't determine the input size\n");
+	fprintf(out, "           before starting.\n");
+	fprintf(out, "     Note: if you use -S # and # is >= samples in the input, there will be\n");
+	fprintf(out, "           either no seek point entered (if the input size is determinable\n");
+	fprintf(out, "           before encoding starts) or a placeholder point (if input size is not\n");
+	fprintf(out, "           determinable)\n");
+	fprintf(out, "  -P # : write a PADDING block of # bytes (goes after SEEKTABLE)\n");
+	fprintf(out, "         (0 => no PADDING block, default is -P 0)\n");
+	fprintf(out, "  -b # : specify blocksize in samples; default is 1152 for -l 0, else 4608;\n");
+	fprintf(out, "         must be 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768\n");
+	fprintf(out, "         (unless --lax is used)\n");
+	fprintf(out, "  -m   : try mid-side coding for each frame (stereo input only)\n");
+	fprintf(out, "  -M   : loose mid-side coding for all frames (stereo input only)\n");
+	fprintf(out, "  -0 .. -8 : fastest compression .. highest compression, default is -5\n");
+	fprintf(out, "             these are synonyms for other options:\n");
+	fprintf(out, "  -0   : synonymous with -l 0 -b 1152 -r 2,2\n");
+	fprintf(out, "  -1   : synonymous with -l 0 -b 1152 -M -r 2,2\n");
+	fprintf(out, "  -2   : synonymous with -l 0 -b 1152 -m -r 3\n");
+	fprintf(out, "  -3   : synonymous with -l 6 -b 4608 -r 3,3\n");
+	fprintf(out, "  -4   : synonymous with -l 8 -b 4608 -M -r 3,3\n");
+	fprintf(out, "  -5   : synonymous with -l 8 -b 4608 -m -r 3,3\n");
+	fprintf(out, "  -6   : synonymous with -l 8 -b 4608 -m -r 4\n");
+	fprintf(out, "  -7   : synonymous with -l 8 -b 4608 -m -e -r 6\n");
+	fprintf(out, "  -8   : synonymous with -l 12 -b 4608 -m -e -r 6\n");
+	fprintf(out, "  -e   : do exhaustive model search (expensive!)\n");
+	fprintf(out, "  -E   : include escape coding in the entropy coder\n");
+	fprintf(out, "  -l # : specify max LPC order; 0 => use only fixed predictors\n");
+	fprintf(out, "  -p   : do exhaustive search of LP coefficient quantization (expensive!);\n");
+	fprintf(out, "         overrides -q, does nothing if using -l 0\n");
+	fprintf(out, "  -q # : specify precision in bits of quantized linear-predictor coefficients;\n");
+	fprintf(out, "         0 => let encoder decide (min is %u, default is -q 0)\n", FLAC__MIN_QLP_COEFF_PRECISION);
+	fprintf(out, "  -r [#,]# : [min,]max residual partition order (# is 0..16; min defaults to 0;\n");
+	fprintf(out, "         default is -r 0; above 4 doesn't usually help much)\n");
+	fprintf(out, "  -R # : Rice parameter search distance (# is 0..32; above 2 doesn't help much)\n");
+	fprintf(out, "  -V   : verify a correct encoding by decoding the output in parallel and\n");
+	fprintf(out, "         comparing to the original\n");
+	fprintf(out, "  -S-, -m-, -M-, -e-, -E-, -p-, -V-, --delete-input-file-,%s --lax-, --sector-align-\n",
 #ifdef FLaC__HAS_OGG
 		" --ogg-,"
 #else
 		""
 #endif
 	);
-	fprintf(stderr, "  can all be used to turn off a particular option\n");
-	fprintf(stderr, "format options:\n");
-	fprintf(stderr, "  -fb | -fl : big-endian | little-endian byte order\n");
-	fprintf(stderr, "  -fc channels\n");
-	fprintf(stderr, "  -fp bits_per_sample\n");
-	fprintf(stderr, "  -fs sample_rate : in Hz\n");
-	fprintf(stderr, "  -fu : unsigned samples (default is signed)\n");
-	fprintf(stderr, "  -fr : force input to be treated as raw samples\n");
+	fprintf(out, "  can all be used to turn off a particular option\n");
+	fprintf(out, "format options:\n");
+	fprintf(out, "  -fb | -fl : big-endian | little-endian byte order\n");
+	fprintf(out, "  -fc channels\n");
+	fprintf(out, "  -fp bits_per_sample\n");
+	fprintf(out, "  -fs sample_rate : in Hz\n");
+	fprintf(out, "  -fu : unsigned samples (default is signed)\n");
+	fprintf(out, "  -fr : force input to be treated as raw samples\n");
 
 	return message? 1 : 0;
 }
