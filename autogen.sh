@@ -19,4 +19,4 @@
 hacks=true
 #
 
-aclocal && autoconf && autoheader && $hacks && automake --foreign --include-deps --add-missing --copy
+aclocal-1.6 && autoconf && autoheader && $hacks && automake-1.6 --foreign --include-deps --add-missing --copy

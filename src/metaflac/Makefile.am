@@ -39,10 +39,10 @@ metaflac_SOURCES = \
 metaflac_LDFLAGS = 
 
 metaflac_LDADD = \
-	$(top_builddir)/src/share/grabbag/libgrabbag.a \
-	$(top_builddir)/src/share/gain_analysis/libgain_analysis.a \
+	$(top_builddir)/src/share/grabbag/libgrabbag.la \
+	$(top_builddir)/src/share/gain_analysis/libgain_analysis.la \
 	$(top_builddir)/src/share/getopt/libgetopt.a \
-	$(top_builddir)/src/share/utf8/libutf8.a \
+	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@LIBICONV@ \
 	-lm

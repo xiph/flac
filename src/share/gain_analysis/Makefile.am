@@ -4,9 +4,9 @@ AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = -I$(top_srcdir)/include/share
 
-noinst_LIBRARIES = libgain_analysis.a
+noinst_LTLIBRARIES = libgain_analysis.la
 
-libgain_analysis_a_SOURCES = gain_analysis.c
+libgain_analysis_la_SOURCES = gain_analysis.c
 
 EXTRA_DIST = \
 	Makefile.lite \

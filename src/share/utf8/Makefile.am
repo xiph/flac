@@ -4,9 +4,9 @@ AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = -I$(top_srcdir)/include/share
 
-noinst_LIBRARIES = libutf8.a
+noinst_LTLIBRARIES = libutf8.la
 
-libutf8_a_SOURCES = charset.c charset.h iconvert.c utf8.c
+libutf8_la_SOURCES = charset.c charset.h iconvert.c utf8.c
 
 EXTRA_DIST = \
 	Makefile.lite \

@@ -4,9 +4,9 @@ AUTOMAKE_OPTIONS = foreign
 
 INCLUDES = -I$(top_srcdir)/include
 
-noinst_LIBRARIES = libgrabbag.a
+noinst_LTLIBRARIES = libgrabbag.la
 
-libgrabbag_a_SOURCES = \
+libgrabbag_la_SOURCES = \
 	cuesheet.c \
 	file.c \
 	replaygain.c \
