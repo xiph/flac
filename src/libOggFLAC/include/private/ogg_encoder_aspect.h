@@ -46,6 +46,15 @@ typedef struct OggFLAC__OggEncoderAspect {
 	ogg_page page;
 	FLAC__bool is_first_packet;
 	FLAC__uint64 samples_written;
+	/*
+	 * This is sum total of 'bytes' that have come through the write
+	 * callback proxy since init time.  It can be checked to get an
+	 * un-Ogg-buffered current file position.
+	 */
+#if 0
+	/*@@@@@@ not used, get rid of it? */
+	FLAC__uint64 bytes_written;
+#endif
 } OggFLAC__OggEncoderAspect;
 
 void OggFLAC__ogg_encoder_aspect_set_serial_number(OggFLAC__OggEncoderAspect *aspect, long value);
