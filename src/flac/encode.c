@@ -499,12 +499,12 @@ bool init(encoder_wrapper_struct *encoder_wrapper)
 
 bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhaustive_model_search, bool do_qlp_coeff_prec_search, unsigned rice_optimization_level, unsigned max_lpc_order, unsigned blocksize, unsigned qlp_coeff_precision, unsigned channels, unsigned bps, unsigned sample_rate, unsigned padding, char *requested_seek_points, int num_requested_seek_points, encoder_wrapper_struct *encoder_wrapper)
 {
+	unsigned i;
+
 	if(channels != 2)
 		do_mid_side = loose_mid_side = false;
 
 	if(encoder_wrapper->verify) {
-		unsigned i;
-
 		/* set up the fifo which will hold the original signal to compare against */
 		encoder_wrapper->verify_fifo.size = blocksize + CHUNK_OF_SAMPLES;
 		for(i = 0; i < channels; i++) {
@@ -532,6 +532,17 @@ bool init_encoder(bool lax, bool do_mid_side, bool loose_mid_side, bool do_exhau
 	if(!convert_to_seek_table(requested_seek_points, num_requested_seek_points, encoder_wrapper->total_samples_to_encode, blocksize, &encoder_wrapper->seek_table)) {
 		fprintf(stderr, "ERROR allocating seek table\n");
 		return false;
+	}
+
+	if(encoder_wrapper->verbose && encoder_wrapper->seek_table.num_points > 0) {
+		printf("seek points:");
+		for(i = 0; i < encoder_wrapper->seek_table.num_points; i++) {
+			if(encoder_wrapper->seek_table.points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER)
+				printf(" %llu", encoder_wrapper->seek_table.points[i].sample_number);
+			else
+				printf(" X");
+		}
+		printf("\n");
 	}
 
 	encoder_wrapper->encoder->streamable_subset = !lax;
