@@ -59,7 +59,7 @@
 	2, which allows you to edit all the metadata for a file in memory and
 	write it out all at once.
 
-	WATCHOUT: levels 1 and 2 do not support id3v2 tags at the front of the
+	@@@@WATCHOUT: levels 1 and 2 do not support id3v2 tags at the front of the
 	file.  You will get an error that it is not a valid FLAC file.
 ******************************************************************************/
 
@@ -442,7 +442,10 @@ FLAC__MetaDataType FLAC__metadata_iterator_get_block_type(const FLAC__MetaData_I
 /*
  * Get the metadata block at the current position.  You can modify
  * the block in place but must write the chain before the changes
- * are reflected to the FLAC file.
+ * are reflected to the FLAC file.  You do not need to call
+ * FLAC__metadata_iterator_set_block() to reflect the changes;
+ * the pointer returned by FLAC__metadata_iterator_get_block()
+ * points directly into the chain.
  *
  * Do not call FLAC__metadata_object_delete() on the returned object;
  * to delete a block use FLAC__metadata_iterator_delete_block().
