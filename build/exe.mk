@@ -30,13 +30,15 @@ PROGRAM     = $(BINPATH)/$(PROGRAM_NAME)
 
 all : release
 
-debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=\"1.0devel\" $(DEFINES) $(INCLUDES)
-release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -ffast-math -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -DVERSION=\"1.0devel\" $(DEFINES) $(INCLUDES)
+include ../../build/config.mk
+
+debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -ffast-math -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
 LFLAGS  = -L$(LIBPATH)
 
-debug   : $(PROGRAM)
-release : $(PROGRAM)
+debug   : $(ORDINALS_H) $(PROGRAM)
+release : $(ORDINALS_H) $(PROGRAM)
 
 $(PROGRAM) : $(OBJS)
 	$(LINK) -o $@ $(OBJS) $(LFLAGS) $(LIBS)

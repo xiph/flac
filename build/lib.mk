@@ -29,13 +29,15 @@ DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).so
 
 all : release
 
-debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=\"1.0devel\" $(DEFINES) $(INCLUDES)
-release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -ffast-math -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -DVERSION=\"1.0devel\" $(DEFINES) $(INCLUDES)
+include ../../build/config.mk
+
+debug   : CFLAGS = -g -O0 -DDEBUG $(DEBUG_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -ffast-math -finline-functions -DNDEBUG $(RELEASE_CFLAGS) -Wall -W -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
 LFLAGS  = -L$(LIBPATH)
 
-debug   : $(STATIC_LIB) $(DYNAMIC_LIB)
-release : $(STATIC_LIB) $(DYNAMIC_LIB)
+debug   : $(ORDINALS_H) $(STATIC_LIB) $(DYNAMIC_LIB)
+release : $(ORDINALS_H) $(STATIC_LIB) $(DYNAMIC_LIB)
 
 $(STATIC_LIB) : $(OBJS)
 	$(LINK) $@ $(OBJS)
@@ -53,7 +55,7 @@ $(DYNAMIC_LIB) : $(OBJS)
 
 .PHONY : clean
 clean :
-	-rm -f $(OBJS) $(STATIC_LIB) $(DYNAMIC_LIB)
+	-rm -f $(OBJS) $(STATIC_LIB) $(DYNAMIC_LIB) $(ORDINALS_H)
 
 .PHONY : depend
 depend:
