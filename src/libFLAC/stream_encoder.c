@@ -333,6 +333,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	unsigned (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], unsigned data_len, FLAC__real residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 	void (*local_lpc_compute_autocorrelation)(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients)(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
+	void (*local_lpc_compute_residual_from_qlp_coefficients_64bit)(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients_16bit)(const FLAC__int32 data[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
 	FLAC__bool use_wide_by_block;          /* use slow 64-bit versions of some functions because of the block size */
 	FLAC__bool use_wide_by_partition;      /* use slow 64-bit versions of some functions because of the min partition order and blocksize */
@@ -577,7 +578,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 		if(encoder->protected_->bits_per_sample < 16) {
 			/* @@@ need some data about how to set this here w.r.t. blocksize and sample rate */
 			/* @@@ until then we'll make a guess */
-			encoder->protected_->qlp_coeff_precision = max(5, 2 + encoder->protected_->bits_per_sample / 2);
+			encoder->protected_->qlp_coeff_precision = max(FLAC__MIN_QLP_COEFF_PRECISION, 2 + encoder->protected_->bits_per_sample / 2);
 		}
 		else if(encoder->protected_->bits_per_sample == 16) {
 			if(encoder->protected_->blocksize <= 192)
@@ -596,10 +597,16 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 				encoder->protected_->qlp_coeff_precision = 13;
 		}
 		else {
-			encoder->protected_->qlp_coeff_precision = min(13, 8*sizeof(FLAC__int32) - encoder->protected_->bits_per_sample - 1 - 2); /* @@@ -2 to keep things 32-bit safe */
+			if(encoder->protected_->blocksize <= 384)
+				encoder->protected_->qlp_coeff_precision = FLAC__MAX_QLP_COEFF_PRECISION-2;
+			else if(encoder->protected_->blocksize <= 1152)
+				encoder->protected_->qlp_coeff_precision = FLAC__MAX_QLP_COEFF_PRECISION-1;
+			else
+				encoder->protected_->qlp_coeff_precision = FLAC__MAX_QLP_COEFF_PRECISION;
 		}
+		FLAC__ASSERT(encoder->protected_->qlp_coeff_precision <= FLAC__MAX_QLP_COEFF_PRECISION);
 	}
-	else if(encoder->protected_->qlp_coeff_precision < FLAC__MIN_QLP_COEFF_PRECISION || encoder->protected_->qlp_coeff_precision >= (1u<<FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
+	else if(encoder->protected_->qlp_coeff_precision < FLAC__MIN_QLP_COEFF_PRECISION || encoder->protected_->qlp_coeff_precision > FLAC__MAX_QLP_COEFF_PRECISION)
 		return encoder->protected_->state = FLAC__STREAM_ENCODER_INVALID_QLP_COEFF_PRECISION;
 
 	if(encoder->protected_->streamable_subset) {
@@ -710,6 +717,7 @@ FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder)
 	encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
 	encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor;
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients;
+	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide;
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients;
 	/* now override with asm where appropriate */
 #ifndef FLAC__NO_ASM
@@ -1495,7 +1503,11 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size)
 
 	ok = true;
 
-	/* WATCHOUT: FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx() requires that the input arrays (in our case the integer signals) have a buffer of up to 3 zeroes in front (at negative indices) for alignment purposes; we use 4 to keep the data well-aligned. */
+	/* WATCHOUT: FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx()
+	 * requires that the input arrays (in our case the integer signals)
+	 * have a buffer of up to 3 zeroes in front (at negative indices) for
+	 * alignment purposes; we use 4 to keep the data well-aligned.
+	 */
 
 	for(i = 0; ok && i < encoder->protected_->channels; i++) {
 		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_size+4, &encoder->private_->integer_signal_unaligned[i], &encoder->private_->integer_signal[i]);
@@ -1993,13 +2005,6 @@ FLAC__bool process_subframe_(
 							unsigned guess_lpc_order = FLAC__lpc_compute_best_order(lpc_error, max_lpc_order, frame_header->blocksize, subframe_bps);
 							min_lpc_order = max_lpc_order = guess_lpc_order;
 						}
-						if(encoder->protected_->do_qlp_coeff_prec_search) {
-							min_qlp_coeff_precision = FLAC__MIN_QLP_COEFF_PRECISION;
-							max_qlp_coeff_precision = min(8*sizeof(FLAC__int32) - subframe_bps - 1 - 2, (1u<<FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN)-1); /* -2 to keep things 32-bit safe */
-						}
-						else {
-							min_qlp_coeff_precision = max_qlp_coeff_precision = encoder->protected_->qlp_coeff_precision;
-						}
 						for(lpc_order = min_lpc_order; lpc_order <= max_lpc_order; lpc_order++) {
 							lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize-lpc_order);
 							if(lpc_residual_bits_per_sample >= (FLAC__real)subframe_bps)
@@ -2013,6 +2018,17 @@ FLAC__bool process_subframe_(
 								fprintf(stderr, "clipping rice_parameter (%u -> %u) @1\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
 #endif
 								rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
+							}
+							if(encoder->protected_->do_qlp_coeff_prec_search) {
+								min_qlp_coeff_precision = FLAC__MIN_QLP_COEFF_PRECISION;
+								/* ensure a 32-bit datapath throughout for 16bps or less */
+								if(subframe_bps <= 16)
+									max_qlp_coeff_precision = min(32 - subframe_bps - lpc_order, FLAC__MAX_QLP_COEFF_PRECISION);
+								else
+									max_qlp_coeff_precision = FLAC__MAX_QLP_COEFF_PRECISION;
+							}
+							else {
+								min_qlp_coeff_precision = max_qlp_coeff_precision = encoder->protected_->qlp_coeff_precision;
 							}
 							for(qlp_coeff_precision = min_qlp_coeff_precision; qlp_coeff_precision <= max_qlp_coeff_precision; qlp_coeff_precision++) {
 								_candidate_bits =
@@ -2199,14 +2215,16 @@ unsigned evaluate_lpc_subframe_(
 		qlp_coeff_precision = min(qlp_coeff_precision, 32 - subframe_bps - FLAC__bitmath_ilog2(order));
 	}
 
-	ret = FLAC__lpc_quantize_coefficients(lp_coeff, order, qlp_coeff_precision, subframe_bps, qlp_coeff, &quantization);
+	ret = FLAC__lpc_quantize_coefficients(lp_coeff, order, qlp_coeff_precision, qlp_coeff, &quantization);
 	if(ret != 0)
 		return 0; /* this is a hack to indicate to the caller that we can't do lp at this order on this subframe */
 
 	if(subframe_bps <= 16 && qlp_coeff_precision <= 16)
 		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
-	else
+	else if(subframe_bps + qlp_coeff_precision + order <= 32)
 		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
+	else
+		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit(signal+order, residual_samples, qlp_coeff, order, quantization, residual);
 
 	subframe->type = FLAC__SUBFRAME_TYPE_LPC;
 
