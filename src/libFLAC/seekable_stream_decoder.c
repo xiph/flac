@@ -644,7 +644,7 @@ FLAC_API FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableSt
 	FLAC__uint64 length;
 
 	FLAC__ASSERT(0 != decoder);
-	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK || decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM);
+	FLAC__ASSERT(decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_OK /*@@@@@ why shouldn't you be able to do this? || decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM*/);
 
 	decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEKING;
 
@@ -669,7 +669,7 @@ FLAC_API FLAC__bool FLAC__seekable_stream_decoder_seek_absolute(FLAC__SeekableSt
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR;
 		return false;
 	}
-	if(decoder->private_->stream_info.total_samples > 0 && sample > decoder->private_->stream_info.total_samples) {
+	if(decoder->private_->stream_info.total_samples > 0 && sample >= decoder->private_->stream_info.total_samples) {
 		decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
 		return false;
 	}
@@ -982,8 +982,8 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 		else { /* we need to narrow the search */
 			FLAC__uint64 this_frame_sample = decoder->private_->last_frame.header.number.sample_number;
 			FLAC__ASSERT(decoder->private_->last_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
-			if(this_frame_sample == last_frame_sample) {
-				/* our last move backwards wasn't big enough */
+			if(this_frame_sample == last_frame_sample && pos < last_pos) {
+				/* our last move backwards wasn't big enough, double it */
 				pos -= (last_pos - pos);
 				needs_seek = true;
 			}
@@ -1004,6 +1004,14 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 					pos = (FLAC__int32)upos;
 					pos -= FLAC__stream_decoder_get_input_bytes_unconsumed(decoder->private_->stream_decoder);
 					needs_seek = false;
+					/*
+					 * if we haven't hit the target frame yet and our position hasn't changed,
+					 * it means we're at the end of the stream and the seek target does not exist.
+					 */
+					if(last_pos == pos) {
+						decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
+						return false;
+					}
 				}
 			}
 			if(pos < (FLAC__int64)lower_bound)
