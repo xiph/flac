@@ -42,6 +42,7 @@ typedef enum {
 	FLAC__ENCODER_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER,
 	FLAC__ENCODER_NOT_STREAMABLE,
 	FLAC__ENCODER_FRAMING_ERROR,
+	FLAC__ENCODER_INVALID_SEEK_TABLE,
 	FLAC__ENCODER_FATAL_ERROR_WHILE_ENCODING,
 	FLAC__ENCODER_FATAL_ERROR_WHILE_WRITING, /* that is, the write_callback returned an error */
 	FLAC__ENCODER_MEMORY_ALLOCATION_ERROR
@@ -69,7 +70,8 @@ typedef struct {
 	bool     do_exhaustive_model_search;  /* 0 => use estimated bits per residual for scoring, 1 => generate all, take shortest */
 	unsigned rice_optimization_level;     /* 0 => estimate Rice parameter based on residual variance, 1-8 => partition residual, use parameter for each */
 	uint64   total_samples_estimate;      /* may be 0 if unknown.  this will be a placeholder in the metadata block until the actual total is calculated */
-	unsigned padding;                     /* size of PADDING block to add; 0 => do not add a PADDING block */
+	const FLAC__StreamMetaData_SeekTable *seek_table; /* optional seek_table to prepend, 0 => no seek table */
+	unsigned padding;                     /* size of PADDING block to add (goes after seek table); 0 => do not add a PADDING block */
 } FLAC__Encoder;
 
 

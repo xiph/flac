@@ -81,6 +81,16 @@ bool FLAC__add_metadata_block(const FLAC__StreamMetaData *metadata, FLAC__BitBuf
 			if(!FLAC__bitbuffer_write_zeroes(bb, metadata->length * 8))
 				return false;
 			break;
+		case FLAC__METADATA_TYPE_SEEKTABLE:
+			for(i = 0; i < metadata->data.seek_table.num_points; i++) {
+				if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.seek_table.points[i].sample_number, FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.seek_table.points[i].stream_offset, FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.seek_table.points[i].frame_samples, FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN))
+					return false;
+			}
+			break;
 		default:
 			assert(0);
 	}

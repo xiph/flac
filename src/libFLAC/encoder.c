@@ -22,6 +22,7 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy() */
 #include "FLAC/encoder.h"
+#include "FLAC/seek_table.h"
 #include "private/bitbuffer.h"
 #include "private/bitmath.h"
 #include "private/crc.h"
@@ -265,6 +266,7 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 {
 	unsigned i;
 	FLAC__StreamMetaData padding;
+	FLAC__StreamMetaData seek_table;
 
 	assert(sizeof(int) >= 4); /* we want to die right away if this is not true */
 	assert(encoder != 0);
@@ -400,7 +402,7 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 		return encoder->state = FLAC__ENCODER_FRAMING_ERROR;
 
 	encoder->guts->metadata.type = FLAC__METADATA_TYPE_STREAMINFO;
-	encoder->guts->metadata.is_last = (encoder->padding == 0);
+	encoder->guts->metadata.is_last = (encoder->seek_table == 0 && encoder->padding == 0);
 	encoder->guts->metadata.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
 	encoder->guts->metadata.data.stream_info.min_blocksize = encoder->blocksize; /* this encoder uses the same blocksize for the whole stream */
 	encoder->guts->metadata.data.stream_info.max_blocksize = encoder->blocksize;
@@ -414,6 +416,17 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	MD5Init(&encoder->guts->md5context);
 	if(!FLAC__add_metadata_block(&encoder->guts->metadata, &encoder->guts->frame))
 		return encoder->state = FLAC__ENCODER_FRAMING_ERROR;
+
+	if(0 != encoder->seek_table) {
+		if(!FLAC__seek_table_is_valid(encoder->seek_table))
+			return encoder->state = FLAC__ENCODER_INVALID_SEEK_TABLE;
+		seek_table.type = FLAC__METADATA_TYPE_SEEKTABLE;
+		seek_table.is_last = (encoder->padding == 0);
+		seek_table.length = encoder->seek_table->num_points * FLAC__STREAM_METADATA_SEEKPOINT_LEN;
+		seek_table.data.seek_table = *encoder->seek_table;
+		if(!FLAC__add_metadata_block(&seek_table, &encoder->guts->frame))
+			return encoder->state = FLAC__ENCODER_FRAMING_ERROR;
+	}
 
 	/* add a PADDING block if requested */
 	if(encoder->padding > 0) {
