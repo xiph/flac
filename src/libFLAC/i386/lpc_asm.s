@@ -21,7 +21,9 @@
 	data_section
 
 cglobal FLAC__lpc_compute_autocorrelation_asm_i386
-cglobal FLAC__lpc_compute_autocorrelation_asm_i386_sse
+cglobal FLAC__lpc_compute_autocorrelation_asm_i386_sse_4
+cglobal FLAC__lpc_compute_autocorrelation_asm_i386_sse_8
+cglobal FLAC__lpc_compute_autocorrelation_asm_i386_sse_12
 cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386
 cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx
 cglobal FLAC__lpc_restore_signal_asm_i386
@@ -56,11 +58,13 @@ cglobal FLAC__lpc_restore_signal_asm_i386_mmx
 ;
 	ALIGN 16
 cident FLAC__lpc_compute_autocorrelation_asm_i386
-
 	;[esp + 32] == autoc[]
 	;[esp + 28] == lag
 	;[esp + 24] == data_len
 	;[esp + 20] == data[]
+
+	;ASSERT(lag > 0)
+	;ASSERT(lag <= data_len)
 
 .begin:
 	push	ebp
@@ -205,22 +209,20 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386
 	pop	ebp
 	ret
 
-;@@@ NOTE: this SSE version is not even tested yet and only works for lag == 8
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_i386_sse
-
+cident FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_4
 	;[esp + 16] == autoc[]
 	;[esp + 12] == lag
 	;[esp + 8] == data_len
 	;[esp + 4] == data[]
 
-	cmp	[esp + 12], 8
-	jne	near FLAC__lpc_compute_autocorrelation_asm_i386.begin
+	;ASSERT(lag > 0)
+	;ASSERT(lag <= 4)
+	;ASSERT(lag <= data_len)
 
 	;	for(coeff = 0; coeff < lag; coeff++)
 	;		autoc[coeff] = 0.0;
-	xorps	xmm6, xmm6
-	xorps	xmm7, xmm7
+	xorps	xmm5, xmm5
 
 	mov	edx, [esp + 8]			; edx == data_len
 	mov	eax, [esp + 4]			; eax == &data[sample] <- &data[0]
@@ -228,20 +230,66 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse
 	movss	xmm0, [eax]			; xmm0 = 0,0,0,data[0]
 	add	eax, 4
 	movaps	xmm2, xmm0			; xmm2 = 0,0,0,data[0]
-	shufps	xmm0, xmm0, 0			; xmm0 = data[0],data[0],data[0],data[0]
-	movaps	xmm1, xmm0			; xmm1 = data[0],data[0],data[0],data[0]
+	shufps	xmm0, xmm0, 0			; xmm0 == data[sample],data[sample],data[sample],data[sample] = data[0],data[0],data[0],data[0]
+.warmup:					; xmm2 == data[sample-3],data[sample-2],data[sample-1],data[sample]
+	mulps	xmm0, xmm2			; xmm0 = xmm0 * xmm2
+	addps	xmm5, xmm0			; xmm5 += xmm0 * xmm2
+	dec	edx
+	jz	.loop_end
+	ALIGN 16
+.loop_start:
+	; start by reading the next sample
+	movss	xmm0, [eax]			; xmm0 = 0,0,0,data[sample]
+	add	eax, 4
+	shufps	xmm0, xmm0, 0			; xmm0 = data[sample],data[sample],data[sample],data[sample]
+	shufps	xmm2, xmm2, 93h			; 93h=2-1-0-3 => xmm2 gets rotated left by one float
+	movss	xmm2, xmm0
+	mulps	xmm0, xmm2			; xmm0 = xmm0 * xmm2
+	addps	xmm5, xmm0			; xmm5 += xmm0 * xmm2
+	dec	edx
+	jnz	.loop_start
+.loop_end:
+	; store autoc
+	mov	edx, [esp + 16]			; edx == autoc
+	movups	[edx], xmm5
+
+.end:
+	ret
+
+	ALIGN 16
+cident FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_8
+	;[esp + 16] == autoc[]
+	;[esp + 12] == lag
+	;[esp + 8] == data_len
+	;[esp + 4] == data[]
+
+	;ASSERT(lag > 0)
+	;ASSERT(lag <= 8)
+	;ASSERT(lag <= data_len)
+
+	;	for(coeff = 0; coeff < lag; coeff++)
+	;		autoc[coeff] = 0.0;
+	xorps	xmm5, xmm5
+	xorps	xmm6, xmm6
+
+	mov	edx, [esp + 8]			; edx == data_len
+	mov	eax, [esp + 4]			; eax == &data[sample] <- &data[0]
+
+	movss	xmm0, [eax]			; xmm0 = 0,0,0,data[0]
+	add	eax, 4
+	movaps	xmm2, xmm0			; xmm2 = 0,0,0,data[0]
+	shufps	xmm0, xmm0, 0			; xmm0 == data[sample],data[sample],data[sample],data[sample] = data[0],data[0],data[0],data[0]
+	movaps	xmm1, xmm0			; xmm1 == data[sample],data[sample],data[sample],data[sample] = data[0],data[0],data[0],data[0]
 	xorps	xmm3, xmm3			; xmm3 = 0,0,0,0
 .warmup:					; xmm3:xmm2 == data[sample-7],data[sample-6],...,data[sample]
 	mulps	xmm0, xmm2
 	mulps	xmm1, xmm3			; xmm1:xmm0 = xmm1:xmm0 * xmm3:xmm2
-	addps	xmm6, xmm0
-	addps	xmm7, xmm1			; xmm7:xmm6 += xmm1:xmm0 * xmm3:xmm2
+	addps	xmm5, xmm0
+	addps	xmm6, xmm1			; xmm6:xmm5 += xmm1:xmm0 * xmm3:xmm2
 	dec	edx
-	;* there's no need to even check for this because we know that lag == 8
-	;* and data_len >= lag, so our 1-sample warmup cannot finish the loop
-	; jz	.loop_end
+	jz	.loop_end
 	ALIGN 16
-.loop_8:
+.loop_start:
 	; start by reading the next sample
 	movss	xmm0, [eax]			; xmm0 = 0,0,0,data[sample]
 	; here we reorder the instructions; see the (#) indexes for a logical order
@@ -254,15 +302,89 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse
 	movss	xmm2, xmm0			; (6)
 	mulps	xmm1, xmm3			; (8)
 	mulps	xmm0, xmm2			; (7) xmm1:xmm0 = xmm1:xmm0 * xmm3:xmm2
-	addps	xmm7, xmm1			; (10)
-	addps	xmm6, xmm0			; (9) xmm7:xmm6 += xmm1:xmm0 * xmm3:xmm2
+	addps	xmm6, xmm1			; (10)
+	addps	xmm5, xmm0			; (9) xmm6:xmm5 += xmm1:xmm0 * xmm3:xmm2
 	dec	edx
-	jnz	.loop_8
+	jnz	.loop_start
 .loop_end:
 	; store autoc
 	mov	edx, [esp + 16]			; edx == autoc
-	movups	[edx], xmm6
-	movups	[edx + 4], xmm7
+	movups	[edx], xmm5
+	movups	[edx + 4], xmm6
+
+.end:
+	ret
+
+	ALIGN 16
+cident FLAC__lpc_compute_autocorrelation_asm_i386_sse_lag_12
+	;[esp + 16] == autoc[]
+	;[esp + 12] == lag
+	;[esp + 8] == data_len
+	;[esp + 4] == data[]
+
+	;ASSERT(lag > 0)
+	;ASSERT(lag <= 12)
+	;ASSERT(lag <= data_len)
+
+	;	for(coeff = 0; coeff < lag; coeff++)
+	;		autoc[coeff] = 0.0;
+	xorps	xmm5, xmm5
+	xorps	xmm6, xmm6
+	xorps	xmm7, xmm7
+
+	mov	edx, [esp + 8]			; edx == data_len
+	mov	eax, [esp + 4]			; eax == &data[sample] <- &data[0]
+
+	movss	xmm0, [eax]			; xmm0 = 0,0,0,data[0]
+	add	eax, 4
+	movaps	xmm2, xmm0			; xmm2 = 0,0,0,data[0]
+	shufps	xmm0, xmm0, 0			; xmm0 == data[sample],data[sample],data[sample],data[sample] = data[0],data[0],data[0],data[0]
+	xorps	xmm3, xmm3			; xmm3 = 0,0,0,0
+	xorps	xmm4, xmm4			; xmm4 = 0,0,0,0
+.warmup:					; xmm3:xmm2 == data[sample-7],data[sample-6],...,data[sample]
+	movaps	xmm1, xmm0
+	mulps	xmm1, xmm2
+	addps	xmm5, xmm1
+	movaps	xmm1, xmm0
+	mulps	xmm1, xmm3
+	addps	xmm6, xmm1
+	mulps	xmm0, xmm4
+	addps	xmm7, xmm0			; xmm7:xmm6:xmm5 += xmm0:xmm0:xmm0 * xmm4:xmm3:xmm2
+	dec	edx
+	jz	.loop_end
+	ALIGN 16
+.loop_start:
+	; start by reading the next sample
+	movss	xmm0, [eax]			; xmm0 = 0,0,0,data[sample]
+	add	eax, 4
+	shufps	xmm0, xmm0, 0			; xmm0 = data[sample],data[sample],data[sample],data[sample]
+
+	; shift xmm4:xmm3:xmm2 left by one float
+	shufps	xmm2, xmm2, 93h			; 93h=2-1-0-3 => xmm2 gets rotated left by one float
+	shufps	xmm3, xmm3, 93h			; 93h=2-1-0-3 => xmm3 gets rotated left by one float
+	shufps	xmm4, xmm4, 93h			; 93h=2-1-0-3 => xmm4 gets rotated left by one float
+	movss	xmm4, xmm3
+	movss	xmm3, xmm2
+	movss	xmm2, xmm0
+
+	; xmm7:xmm6:xmm5 += xmm0:xmm0:xmm0 * xmm3:xmm3:xmm2
+	movaps	xmm1, xmm0
+	mulps	xmm1, xmm2
+	addps	xmm5, xmm1
+	movaps	xmm1, xmm0
+	mulps	xmm1, xmm3
+	addps	xmm6, xmm1
+	mulps	xmm0, xmm4
+	addps	xmm7, xmm0
+
+	dec	edx
+	jnz	.loop_start
+.loop_end:
+	; store autoc
+	mov	edx, [esp + 16]			; edx == autoc
+	movups	[edx], xmm5
+	movups	[edx + 4], xmm6
+	movups	[edx + 8], xmm7
 
 .end:
 	ret
@@ -284,6 +406,8 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386
 	;[esp + 28]	qlp_coeff[]
 	;[esp + 24]	data_len
 	;[esp + 20]	data[]
+
+	;ASSERT(order > 0)
 
 	push	ebp
 	push	ebx
@@ -493,6 +617,8 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_i386_mmx
 	;[esp + 24]	data_len
 	;[esp + 20]	data[]
 
+	;ASSERT(order > 0)
+
 	push	ebp
 	push	ebx
 	push	esi
@@ -681,6 +807,8 @@ cident FLAC__lpc_restore_signal_asm_i386
 	;[esp + 28]	qlp_coeff[]
 	;[esp + 24]	data_len
 	;[esp + 20]	residual[]
+
+	;ASSERT(order > 0)
 
 	push	ebp
 	push	ebx
@@ -886,6 +1014,8 @@ cident FLAC__lpc_restore_signal_asm_i386_mmx
 	;[esp + 28]	qlp_coeff[]
 	;[esp + 24]	data_len
 	;[esp + 20]	residual[]
+
+	;ASSERT(order > 0)
 
 	push	ebp
 	push	ebx
