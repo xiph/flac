@@ -275,7 +275,7 @@ void init_options(CommandLineOptions *options)
 {
 	options->preserve_modtime = false;
 
-	/* '2' is hack to mean "use default if not forced on command line" */
+	/* '2' is a hack to mean "use default if not forced on command line" */
 	FLAC__ASSERT(true != 2);
 	options->prefix_with_filename = 2;
 
