@@ -77,7 +77,13 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-	FLAC stands for Free Lossless Audio Codec.  The FLAC project consists of:
+		FLAC stands for Free Lossless Audio Codec.  Grossly oversimplified, FLAC is similar to MP3, but lossless, meaning that audio is compressed in FLAC without throwing away any information.  This is similar to how Zip works, except with FLAC you will get much better compression because it is designed specifically for audio, and you can play back compressed FLAC files in your favorite player (or your car or home stereo, see links to the right for supported devices) just like you would an MP3 file.
+	</P>
+	<P>
+		FLAC is supported on most operating systems, including Windows, "unix" (Linux, *BSD, Solaris, OS X, IRIX), BeOS, OS/2, and Amiga.  There are build systems for autotools, MSVC, Watcom C, and Project Builder.
+	</P>
+	<P>
+		The FLAC project consists of:
 	</P>
 	<P>
 	<UL>
@@ -92,14 +98,11 @@
 		"Free" means that the specification of the stream format is fully open to the public to be used for any purpose (the FLAC project reserves the right to set the FLAC specification and certify compliance), and that neither the FLAC format nor any of the implemented encoding/decoding methods are covered by any known patent.  It also means that all the source code is available under open-source licenses.
 	</P>
 	<P>
-		FLAC compiles on many platforms: most Unixes (Linux, *BSD, Solaris, OS X), Windows, BeOS, and OS/2.  There are build systems for autoconf/automake, MSVC, Watcom C, and Project Builder.
-	</P>
-	<P>
 		Notable features of FLAC:
 	</P>
 	<UL>
 		<P><LI>
-			<B>Lossless</B>: The encoding of PCM data incurs no loss of information, and the decoded audio is bit-for-bit identical to what went into the encoder.  Each frame contains a 16-bit CRC of the frame data for detecting transmission errors.  The integrity of the audio data is further insured by storing an <A HREF="http://userpages.umbc.edu/~mabzug1/cs/md5/md5.html">MD5 signature</A> of the original unencoded audio data in the file header, which can be compared against later during decoding or testing.
+			<B>Lossless</B>: The encoding of audi (PCM) data incurs no loss of information, and the decoded audio is bit-for-bit identical to what went into the encoder.  Each frame contains a 16-bit CRC of the frame data for detecting transmission errors.  The integrity of the audio data is further insured by storing an <A HREF="http://userpages.umbc.edu/~mabzug1/cs/md5/md5.html">MD5 signature</A> of the original unencoded audio data in the file header, which can be compared against later during decoding or testing.
 		</LI></P>
 		<P><LI>
 			<B>Fast</B>: FLAC is asymmetric in favor of decode speed.  Decoding requires only integer arithmetic, and is much less compute-intensive than for most perceptual codecs.  Real-time decode performance is easily achievable on even modest hardware.
