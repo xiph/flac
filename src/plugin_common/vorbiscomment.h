@@ -22,7 +22,9 @@
 #include "export.h"
 
 #include "canonical_tag.h"
+#include "FLAC/ordinals.h"
 
 PLUGIN_COMMON_API void FLAC_plugin__vorbiscomment_get(const char *filename, FLAC_Plugin__CanonicalTag *tag);
+PLUGIN_COMMON_API FLAC__bool FLAC_plugin__vorbiscomment_set(const char *filename, FLAC_Plugin__CanonicalTag *tag);
 
 #endif

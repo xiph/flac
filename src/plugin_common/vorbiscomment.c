@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -51,6 +52,38 @@ static void local__vcentry_parse_value(const FLAC__StreamMetadata_VorbisComment_
 	}
 }
 
+static void local__vc_change_field(FLAC__StreamMetadata *block, const char *name, const char *value)
+{
+	int i, l;
+	char *s;
+
+	/* find last */
+	for (l = -1; (i = FLAC__metadata_object_vorbiscomment_find_entry_from(block, l + 1, name)) != -1; l = i)
+		;
+			
+	if(!value || !strlen(value)) {
+		if (l != -1)
+			FLAC__metadata_object_vorbiscomment_delete_comment(block, l);
+		return;
+	}
+
+	s = malloc(strlen(name) + strlen(value) + 2);
+	if(s) {
+		FLAC__StreamMetadata_VorbisComment_Entry entry;
+
+		sprintf(s, "%s=%s", name, value);
+
+		entry.length = strlen(s);
+		entry.entry = s;
+		
+		if(l == -1)
+			FLAC__metadata_object_vorbiscomment_insert_comment(block, block->data.vorbis_comment.num_comments, entry, /*copy=*/true);
+		else
+			FLAC__metadata_object_vorbiscomment_set_comment(block, l, entry, /*copy=*/true);
+		free(s);
+	}
+}
+
 void FLAC_plugin__vorbiscomment_get(const char *filename, FLAC_Plugin__CanonicalTag *tag)
 {
 	FLAC__Metadata_SimpleIterator *iterator = FLAC__metadata_simple_iterator_new();
@@ -78,6 +111,8 @@ void FLAC_plugin__vorbiscomment_get(const char *filename, FLAC_Plugin__Canonical
 								local__vcentry_parse_value(&vc->comments[i], &tag->genre);
 							else if(local__vcentry_matches("description", &vc->comments[i]))
 								local__vcentry_parse_value(&vc->comments[i], &tag->comment);
+							else if(local__vcentry_matches("date", &vc->comments[i]))
+								local__vcentry_parse_value(&vc->comments[i], &tag->year_recorded);
 						}
 						FLAC__metadata_object_delete(block);
 						got_vorbis_comments = true;
@@ -87,4 +122,59 @@ void FLAC_plugin__vorbiscomment_get(const char *filename, FLAC_Plugin__Canonical
 		}
 		FLAC__metadata_simple_iterator_delete(iterator);
 	}
+}
+
+FLAC__bool FLAC_plugin__vorbiscomment_set(const char *filename, FLAC_Plugin__CanonicalTag *tag)
+{
+	FLAC__bool got_vorbis_comments = false;
+	FLAC__Metadata_SimpleIterator *iterator = FLAC__metadata_simple_iterator_new();
+	FLAC__StreamMetadata *block;
+		
+	if(!iterator || !FLAC__metadata_simple_iterator_init(iterator, filename, /*read_only=*/false, /*preserve_file_stats=*/true))
+		return false;
+
+	do {
+		if(FLAC__metadata_simple_iterator_get_block_type(iterator) == FLAC__METADATA_TYPE_VORBIS_COMMENT)
+			got_vorbis_comments = true;
+	} while (!got_vorbis_comments && FLAC__metadata_simple_iterator_next(iterator));
+
+	if(!got_vorbis_comments) {
+		/* create a new block */
+		block = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+		if(!block) {
+			FLAC__metadata_simple_iterator_delete(iterator);
+			return false;
+		}
+	}
+	else
+		block = FLAC__metadata_simple_iterator_get_block(iterator);
+
+	local__vc_change_field(block, "ARTIST", tag->composer);
+	local__vc_change_field(block, "PERFORMER", tag->performer);
+	local__vc_change_field(block, "ALBUM", tag->album);
+	local__vc_change_field(block, "TITLE", tag->title);
+	local__vc_change_field(block, "TRACKNUMBER", tag->track_number);
+	local__vc_change_field(block, "GENRE", tag->genre);
+	local__vc_change_field(block, "DESCRIPTION", tag->comment);
+	local__vc_change_field(block, "DATE", tag->year_recorded);
+
+	if(!got_vorbis_comments) {
+		if(!FLAC__metadata_simple_iterator_insert_block_after(iterator, block, /*use_padding=*/true)) {
+			FLAC__metadata_object_delete(block);
+			FLAC__metadata_simple_iterator_delete(iterator);
+			return false;
+		}
+	}
+	else {
+		if(!FLAC__metadata_simple_iterator_set_block(iterator, block, /*use_padding=*/true)) {
+			FLAC__metadata_object_delete(block);
+			FLAC__metadata_simple_iterator_delete(iterator);
+			return false;
+		}
+	}
+
+	FLAC__metadata_object_delete(block);
+	FLAC__metadata_simple_iterator_delete(iterator);
+	return true;
 }
