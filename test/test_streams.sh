@@ -287,9 +287,9 @@ test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax -b 65535"
 test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=9"
 test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=90"
 test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=90000"
-test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --sample-rate=9"
-test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --sample-rate=90"
-test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --sample-rate=90000"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=9"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=90"
+test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=90000"
 
 echo "Testing option variations..."
 for f in 00 01 02 03 04 ; do
