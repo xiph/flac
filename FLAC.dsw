@@ -27,6 +27,30 @@ Package=<4>
 
 ###############################################################################
 
+Project: "flac_mac"=.\src\monkeys_audio_utilities\flac_mac\flac_mac.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "flac_ren"=.\src\monkeys_audio_utilities\flac_ren\flac_ren.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "getopt"=.\src\share\getopt.dsp - Package Owner=<4>
 
 Package=<5>
