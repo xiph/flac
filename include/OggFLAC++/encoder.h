@@ -93,6 +93,7 @@ namespace OggFLAC {
 			bool is_valid() const;
 			inline operator bool() const { return is_valid(); }
 
+			bool set_serial_number(long value);
 			bool set_verify(bool value);
 			bool set_streamable_subset(bool value);
 			bool set_do_mid_side_stereo(bool value);

@@ -40,6 +40,12 @@ namespace OggFLAC {
 			return 0 != decoder_;
 		}
 
+		bool Stream::set_serial_number(long value)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::OggFLAC__stream_decoder_set_serial_number(decoder_, value);
+		}
+
 		bool Stream::set_metadata_respond(::FLAC__MetadataType type)
 		{
 			FLAC__ASSERT(is_valid());

@@ -388,6 +388,11 @@ static bool test_stream_decoder()
 	}
 	printf("OK\n");
 
+	printf("testing set_serial_number()... ");
+	if(!decoder->set_serial_number(file_utils__serial_number))
+		return decoder->die("returned false");
+	printf("OK\n");
+
 	printf("testing init()... ");
 	if(decoder->init() != ::OggFLAC__STREAM_DECODER_OK)
 		return decoder->die();

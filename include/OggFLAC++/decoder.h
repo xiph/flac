@@ -91,6 +91,7 @@ namespace OggFLAC {
 			bool is_valid() const;
 			inline operator bool() const { return is_valid(); }
 
+			bool set_serial_number(long value);
 			bool set_metadata_respond(::FLAC__MetadataType type);
 			bool set_metadata_respond_application(const FLAC__byte id[4]);
 			bool set_metadata_respond_all();

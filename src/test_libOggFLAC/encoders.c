@@ -164,6 +164,11 @@ static FLAC__bool test_stream_encoder()
 	}
 	printf("OK\n");
 
+	printf("testing OggFLAC__stream_encoder_set_serial_number()... ");
+	if(!OggFLAC__stream_encoder_set_serial_number(encoder, file_utils__serial_number))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
 	printf("testing OggFLAC__stream_encoder_set_verify()... ");
 	if(!OggFLAC__stream_encoder_set_verify(encoder, true))
 		return die_s_("returned false", encoder);

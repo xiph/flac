@@ -214,7 +214,7 @@ void OggFLAC__stream_decoder_delete(OggFLAC__StreamDecoder *decoder);
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -231,7 +231,7 @@ FLAC__bool OggFLAC__stream_decoder_set_read_callback(OggFLAC__StreamDecoder *dec
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -248,7 +248,7 @@ FLAC__bool OggFLAC__stream_decoder_set_write_callback(OggFLAC__StreamDecoder *de
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -265,7 +265,7 @@ FLAC__bool OggFLAC__stream_decoder_set_metadata_callback(OggFLAC__StreamDecoder 
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -280,7 +280,7 @@ FLAC__bool OggFLAC__stream_decoder_set_error_callback(OggFLAC__StreamDecoder *de
  *  argument.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -288,6 +288,21 @@ FLAC__bool OggFLAC__stream_decoder_set_error_callback(OggFLAC__StreamDecoder *de
  *    \c false if the decoder is already initialized, else \c true.
  */
 FLAC__bool OggFLAC__stream_decoder_set_client_data(OggFLAC__StreamDecoder *decoder, void *value);
+
+/** Set the serial number for the Ogg stream.
+ * The default behavior is to use the serial number of the first Ogg
+ * page.  Setting a serial number here will explicitly define which
+ * stream is to be decoded.
+ *
+ * \default \c use serial number of first page
+ * \param  decoder        A decoder instance to set.
+ * \param  serial_number  See above.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
+FLAC__bool OggFLAC__stream_decoder_set_serial_number(OggFLAC__StreamDecoder *decoder, long serial_number);
 
 /** Direct the decoder to pass on all metadata blocks of type \a type.
  * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_metadata_respond()
@@ -391,7 +406,7 @@ OggFLAC__StreamDecoderState OggFLAC__stream_decoder_get_state(const OggFLAC__Str
  *  Useful when the stream decoder state is
  *  \c OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR.
  *
- * \param  decoder  An decoder instance to query.
+ * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__StreamDecoderState

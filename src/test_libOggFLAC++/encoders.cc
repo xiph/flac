@@ -181,6 +181,11 @@ static bool test_stream_encoder()
 	}
 	printf("OK\n");
 
+	printf("testing set_serial_number()... ");
+	if(!encoder->set_serial_number(file_utils__serial_number))
+		return encoder->die("returned false");
+	printf("OK\n");
+
 	printf("testing set_verify()... ");
 	if(!encoder->set_verify(true))
 		return encoder->die("returned false");

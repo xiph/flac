@@ -27,6 +27,8 @@ typedef struct {
 	FLAC__bool verify;
 #ifdef FLAC__HAS_OGG
 	FLAC__bool use_ogg;
+	FLAC__bool has_serial_number;
+	long serial_number;
 #endif
 	FLAC__bool lax;
 	FLAC__bool do_mid_side;

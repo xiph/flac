@@ -26,6 +26,8 @@ typedef struct {
 	FLAC__bool continue_through_decode_errors;
 #ifdef FLAC__HAS_OGG
 	FLAC__bool is_ogg;
+	FLAC__bool use_first_serial_number;
+	long serial_number;
 #endif
 	FLAC__uint64 skip;
 } decode_options_t;

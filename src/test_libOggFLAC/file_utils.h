@@ -21,6 +21,8 @@
 
 #include "FLAC/format.h"
 
+extern const long file_utils__serial_number;
+
 FLAC__bool file_utils__change_stats(const char *filename, FLAC__bool read_only);
 
 FLAC__bool file_utils__remove_file(const char *filename);

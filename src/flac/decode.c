@@ -91,7 +91,7 @@ static FLAC__bool is_big_endian_host_;
  */
 static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool verbose, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool analysis_mode, analysis_options aopts, FLAC__uint64 skip, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
-static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, const char *infilename);
+static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, decode_options_t decode_options, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
 static int DecoderSession_finish_ok(DecoderSession *d);
 static int DecoderSession_finish_error(DecoderSession *d);
@@ -140,7 +140,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 	)
 		return 1;
 
-	if(!DecoderSession_init_decoder(&decoder_session, infilename))
+	if(!DecoderSession_init_decoder(&decoder_session, options.common, infilename))
 		return DecoderSession_finish_error(&decoder_session);
 
 	if(!DecoderSession_process(&decoder_session))
@@ -176,7 +176,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	)
 		return 1;
 
-	if(!DecoderSession_init_decoder(&decoder_session, infilename))
+	if(!DecoderSession_init_decoder(&decoder_session, options.common, infilename))
 		return DecoderSession_finish_error(&decoder_session);
 
 	if(!DecoderSession_process(&decoder_session))
@@ -268,7 +268,7 @@ void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred)
 #endif
 }
 
-FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const char *infilename)
+FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_options_t decode_options, const char *infilename)
 {
 	FLAC__uint32 test = 1;
 
@@ -282,6 +282,9 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 			fprintf(stderr, "%s: ERROR creating the decoder instance\n", decoder_session->inbasefilename);
 			return false;
 		}
+
+		if(!decode_options.use_first_serial_number)
+			OggFLAC__stream_decoder_set_serial_number(decoder_session->decoder.ogg.stream, decode_options.serial_number);
 
 		OggFLAC__stream_decoder_set_read_callback(decoder_session->decoder.ogg.stream, read_callback);
 		/*
@@ -300,6 +303,8 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 		}
 	}
 	else
+#else
+	(void)decode_options;
 #endif
 	{
 		decoder_session->decoder.flac.file = FLAC__file_decoder_new();
@@ -552,15 +557,15 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
 	if(bps != decoder_session->bps) {
-		fprintf("ERROR, bits-per-sample is %u in frame but %u in STREAMINFO\n", bps, decoder_session->bps);
+		fprintf(stderr, "ERROR, bits-per-sample is %u in frame but %u in STREAMINFO\n", bps, decoder_session->bps);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 	if(channels != decoder_session->channels) {
-		fprintf("ERROR, channels is %u in frame but %u in STREAMINFO\n", channels, decoder_session->channels);
+		fprintf(stderr, "ERROR, channels is %u in frame but %u in STREAMINFO\n", channels, decoder_session->channels);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 	if(frame->header.sample_rate != decoder_session->sample_rate) {
-		fprintf("ERROR, sample rate is %u in frame but %u in STREAMINFO\n", frame->header.sample_rate, decoder_session->sample_rate);
+		fprintf(stderr, "ERROR, sample rate is %u in frame but %u in STREAMINFO\n", frame->header.sample_rate, decoder_session->sample_rate);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 

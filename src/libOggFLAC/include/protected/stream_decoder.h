@@ -24,6 +24,8 @@
 
 typedef struct OggFLAC__StreamDecoderProtected {
 	OggFLAC__StreamDecoderState state;
+	FLAC__bool use_first_serial_number;
+	long serial_number;
 } OggFLAC__StreamDecoderProtected;
 
 #endif

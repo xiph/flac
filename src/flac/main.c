@@ -114,6 +114,7 @@ static struct FLAC__share__option long_options_[] = {
 	{ "padding", 1, 0, 'P' },
 #ifdef FLAC__HAS_OGG
 	{ "ogg", 0, 0, 0 },
+	{ "serial-number", 1, 0, 0 },
 #endif
 	{ "blocksize", 1, 0, 'b' },
 	{ "exhaustive-model-search", 0, 0, 'e' },
@@ -188,6 +189,8 @@ static struct {
 	FLAC__bool test_only;
 	FLAC__bool analyze;
 	FLAC__bool use_ogg;
+	FLAC__bool has_serial_number; /* true iff --serial-number was used */
+	long serial_number; /* this is the Ogg serial number and is unused for native FLAC */
 	FLAC__bool do_mid_side;
 	FLAC__bool loose_mid_side;
 	FLAC__bool do_exhaustive_model_search;
@@ -374,9 +377,7 @@ int do_it()
 				"%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u%s\n",
 				option_values.delete_input?" --delete-input-file":"",
 				option_values.sector_align?" --sector-align":"",
-#ifdef FLAC__HAS_OGG
 				option_values.use_ogg?" --ogg":"",
-#endif
 				option_values.lax?" --lax":"",
 				padopt,
 				(unsigned)option_values.blocksize,
@@ -445,6 +446,8 @@ void init_options()
 	option_values.test_only = false;
 	option_values.analyze = false;
 	option_values.use_ogg = false;
+	option_values.has_serial_number = false;
+	option_values.serial_number = 0;
 	option_values.do_mid_side = true;
 	option_values.loose_mid_side = false;
 	option_values.do_exhaustive_model_search = false;
@@ -560,6 +563,10 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 #ifdef FLAC__HAS_OGG
 		else if(0 == strcmp(long_option, "ogg")) {
 			option_values.use_ogg = true;
+		}
+		else if(0 == strcmp(long_option, "serial-number")) {
+			option_values.has_serial_number = true;
+			option_values.serial_number = atol(option_argument);
 		}
 #endif
 		else if(0 == strcmp(long_option, "endian")) {
@@ -962,6 +969,7 @@ void show_help()
 	printf("  -V, --verify                 Verify a correct encoding\n");
 #ifdef FLAC__HAS_OGG
 	printf("      --ogg                    Use Ogg as transport layer\n");
+	printf("      --serial-number          Serial number to use for the FLAC stream\n");
 #endif
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align multiple files on sector boundaries\n");
@@ -1098,6 +1106,11 @@ void show_explain()
 	printf("                               Ogg-FLAC.  This is useful when piping input\n");
 	printf("                               from stdin or when the filename does not end in\n");
 	printf("                               '.ogg'.\n");
+	printf("      --serial-number          Serial number to use for the FLAC stream.  When\n");
+	printf("                               encoding and no serial number is given, flac\n");
+	printf("                               uses '0'.  When decoding and no number is\n");
+	printf("                               given, flac uses the serial number of the first\n");
+	printf("                               page.\n");
 #endif
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align encoding of multiple CD format WAVE files\n");
@@ -1299,6 +1312,8 @@ int encode_file(const char *infilename, const char *forced_outfilename, FLAC__bo
 	common_options.verify = option_values.verify;
 #ifdef FLAC__HAS_OGG
 	common_options.use_ogg = option_values.use_ogg;
+	common_options.has_serial_number = option_values.has_serial_number;
+	common_options.serial_number = option_values.serial_number;
 #endif
 	common_options.lax = option_values.lax;
 	common_options.do_mid_side = option_values.do_mid_side;
@@ -1407,6 +1422,8 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
 #ifdef FLAC__HAS_OGG
 	common_options.is_ogg = treat_as_ogg;
+	common_options.use_first_serial_number = !option_values.has_serial_number;
+	common_options.serial_number = option_values.serial_number;
 #endif
 	common_options.skip = option_values.skip;
 

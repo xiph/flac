@@ -151,7 +151,7 @@ OggFLAC__StreamEncoderState OggFLAC__stream_encoder_init(OggFLAC__StreamEncoder 
 	if(0 == encoder->private_->write_callback)
 		return encoder->protected_->state = OggFLAC__STREAM_ENCODER_INVALID_CALLBACK;
 
-	if(ogg_stream_init(&encoder->private_->ogg.stream_state, /*@@@serialno=*/0) != 0)
+	if(ogg_stream_init(&encoder->private_->ogg.stream_state, encoder->protected_->serial_number) != 0)
 		return encoder->protected_->state = OggFLAC__STREAM_ENCODER_OGG_ERROR;
 
 	FLAC__stream_encoder_set_write_callback(encoder->private_->FLAC_stream_encoder, write_callback_);
@@ -185,6 +185,18 @@ void OggFLAC__stream_encoder_finish(OggFLAC__StreamEncoder *encoder)
 	set_defaults_(encoder);
 
 	encoder->protected_->state = OggFLAC__STREAM_ENCODER_UNINITIALIZED;
+}
+
+FLAC__bool OggFLAC__stream_encoder_set_serial_number(OggFLAC__StreamEncoder *encoder, long value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	FLAC__ASSERT(0 != encoder->private_->FLAC_stream_encoder);
+	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected_->serial_number = value;
+	return true;
 }
 
 FLAC__bool OggFLAC__stream_encoder_set_verify(OggFLAC__StreamEncoder *encoder, FLAC__bool value)
@@ -603,6 +615,7 @@ void set_defaults_(OggFLAC__StreamEncoder *encoder)
 
 	encoder->private_->write_callback = 0;
 	encoder->private_->client_data = 0;
+	encoder->protected_->serial_number = 0;
 }
 
 FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__StreamEncoder *unused, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)

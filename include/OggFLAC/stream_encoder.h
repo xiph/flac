@@ -171,6 +171,18 @@ void OggFLAC__stream_encoder_delete(OggFLAC__StreamEncoder *encoder);
  *
  ***********************************************************************/
 
+/** Set the serial number for the FLAC stream.
+ *
+ * \default \c NULL, 0
+ * \param  encoder        An encoder instance to set.
+ * \param  serial_number  See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC__bool OggFLAC__stream_encoder_set_serial_number(OggFLAC__StreamEncoder *encoder, long serial_number);
+
 /** This is inherited from FLAC__StreamEncoder; see FLAC__stream_encoder_set_verify()
  *
  * \default \c false

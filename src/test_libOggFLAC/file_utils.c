@@ -35,6 +35,8 @@
 #endif
 #define min(a,b) ((a)<(b)?(a):(b))
 
+const long file_utils__serial_number = 12345;
+
 typedef struct {
 	FILE *file;
 } encoder_client_struct;
@@ -108,6 +110,7 @@ FLAC__bool file_utils__generate_oggflacfile(const char *output_filename, unsigne
 		return false;
 	}
 
+	OggFLAC__stream_encoder_set_serial_number(encoder, file_utils__serial_number);
 	OggFLAC__stream_encoder_set_verify(encoder, true);
 	OggFLAC__stream_encoder_set_streamable_subset(encoder, true);
 	OggFLAC__stream_encoder_set_do_mid_side_stereo(encoder, false);

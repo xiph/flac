@@ -151,6 +151,8 @@ void OggFLAC__seekable_stream_decoder_delete(OggFLAC__SeekableStreamDecoder *dec
  *
  ***********************************************************************/
 
+/*@@@inherit set_serial_number*/
+
 /** Set the "MD5 signature checking" flag.
  *  This is inherited from FLAC__SeekableStreamDecoder; see
  *  FLAC__seekable_stream_decoder_set_md5_checking().
@@ -191,7 +193,7 @@ FLAC__bool OggFLAC__seekable_stream_decoder_set_read_callback(OggFLAC__SeekableS
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -209,7 +211,7 @@ FLAC__bool OggFLAC__seekable_stream_decoder_set_seek_callback(OggFLAC__SeekableS
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -227,7 +229,7 @@ FLAC__bool OggFLAC__seekable_stream_decoder_set_tell_callback(OggFLAC__SeekableS
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -245,7 +247,7 @@ FLAC__bool OggFLAC__seekable_stream_decoder_set_length_callback(OggFLAC__Seekabl
  * The callback is mandatory and must be set before initialization.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -314,7 +316,7 @@ FLAC__bool OggFLAC__seekable_stream_decoder_set_error_callback(OggFLAC__Seekable
  *  argument.
  *
  * \default \c NULL
- * \param  decoder  An decoder instance to set.
+ * \param  decoder  A decoder instance to set.
  * \param  value    See above.
  * \assert
  *    \code decoder != NULL \endcode
@@ -423,7 +425,7 @@ OggFLAC__SeekableStreamDecoderState OggFLAC__seekable_stream_decoder_get_state(c
  *  Useful when the seekable stream decoder state is
  *  \c OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR.
  *
- * \param  decoder  An decoder instance to query.
+ * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__SeekableStreamDecoderState
@@ -436,7 +438,7 @@ FLAC__SeekableStreamDecoderState OggFLAC__seekable_stream_decoder_get_FLAC_seeka
  *  \c OggFLAC__SEEKABLE_STREAM_DECODER_FLAC_SEEKABLE_STREAM_DECODER_ERROR and the
  *  FLAC seekable stream decoder state is \c FLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR
  *
- * \param  decoder  An decoder instance to query.
+ * \param  decoder  A decoder instance to query.
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__StreamDecoderState

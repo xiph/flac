@@ -1181,6 +1181,8 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 #ifdef FLAC__HAS_OGG
 	if(e->use_ogg) {
+		if(options.has_serial_number)
+			OggFLAC__stream_encoder_set_serial_number(e->encoder.ogg.stream, options.serial_number);
 		OggFLAC__stream_encoder_set_verify(e->encoder.ogg.stream, options.verify);
 		OggFLAC__stream_encoder_set_streamable_subset(e->encoder.ogg.stream, !options.lax);
 		OggFLAC__stream_encoder_set_do_mid_side_stereo(e->encoder.ogg.stream, options.do_mid_side);

@@ -24,6 +24,7 @@
 
 typedef struct OggFLAC__StreamEncoderProtected {
 	OggFLAC__StreamEncoderState state;
+	long serial_number;
 } OggFLAC__StreamEncoderProtected;
 
 #endif
