@@ -30,8 +30,6 @@ OBJS = \
 	bitmath.o \
 	cpu.o \
 	crc.o \
-	encoder.o \
-	encoder_framing.o \
 	file_decoder.o \
 	fixed.o \
 	format.o \
@@ -40,6 +38,8 @@ OBJS = \
 	memory.o \
 	seek_table.o \
 	stream_decoder.o \
+	stream_encoder.o \
+	stream_encoder_framing.o \
 	i386/cpu_asm.o \
 	i386/fixed_asm.o \
 	i386/lpc_asm.o

@@ -42,8 +42,6 @@ libFLAC_la_SOURCES = \
 	bitmath.c \
 	cpu.c \
 	crc.c \
-	encoder.c \
-	encoder_framing.c \
 	file_decoder.c \
 	fixed.c \
 	format.c \
@@ -51,4 +49,6 @@ libFLAC_la_SOURCES = \
 	md5.c \
 	memory.c \
 	seek_table.c \
-	stream_decoder.c
+	stream_decoder.c \
+	stream_encoder.c \
+	stream_encoder_framing.c

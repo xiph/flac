@@ -31,35 +31,75 @@ typedef enum {
 	FLAC__FILE_DECODER_SEEK_ERROR,
 	FLAC__FILE_DECODER_STREAM_ERROR,
 	FLAC__FILE_DECODER_MD5_ERROR,
+	FLAC__FILE_DECODER_STREAM_DECODER_ERROR,
+    FLAC__FILE_DECODER_ALREADY_INITIALIZED,
     FLAC__FILE_DECODER_UNINITIALIZED
 } FLAC__FileDecoderState;
 extern const char *FLAC__FileDecoderStateString[];
 
+/***********************************************************************
+ *
+ * class FLAC__FileDecoder : public FLAC__StreamDecoder
+ *
+ ***********************************************************************/
+
+struct FLAC__FileDecoderProtected;
 struct FLAC__FileDecoderPrivate;
 typedef struct {
-	/* this field may not change once FLAC__file_decoder_init() is called */
-	bool check_md5; /* if true, generate MD5 signature of decoded data and compare against signature in the Encoding metadata block */
-
-	FLAC__FileDecoderState state; /* must be FLAC__FILE_DECODER_UNINITIALIZED when passed to FLAC__file_decoder_init() */
-	struct FLAC__FileDecoderPrivate *guts; /* must be 0 when passed to FLAC__file_decoder_init() */
+	struct FLAC__FileDecoderProtected *protected;
+	struct FLAC__FileDecoderPrivate *private;
 } FLAC__FileDecoder;
 
-FLAC__FileDecoder *FLAC__file_decoder_get_new_instance();
-void FLAC__file_decoder_free_instance(FLAC__FileDecoder *decoder);
+/***********************************************************************
+ *
+ * Class constructor/destructor
+ *
+ ***********************************************************************/
+
+FLAC__FileDecoder *FLAC__file_decoder_new();
+void FLAC__file_decoder_delete(FLAC__FileDecoder *);
+
+/***********************************************************************
+ *
+ * Public class method prototypes
+ *
+ ***********************************************************************/
+
+/*
+ * Initialize the instance; should be called after construction and
+ * before any other calls.  Will set and return the decoder state,
+ * which will be FLAC__FILE_DECODER_OK if initialization succeeded.
+ */
 FLAC__FileDecoderState FLAC__file_decoder_init(
 	FLAC__FileDecoder *decoder,
+	bool check_md5,
 	const char *filename,
 	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data),
 	void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data),
 	void (*error_callback)(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data),
 	void *client_data
 );
-/* only returns false if check_md5 is set AND the stored MD5 sum is non-zero AND the stored MD5 sum and computed MD5 sum do not match */
+/*
+ * only returns false if check_md5 is set AND the stored MD5 sum
+ * is non-zero AND the stored MD5 sum and computed MD5 sum do not
+ * match
+ */
 bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder);
+
+/*
+ * methods to return the file decoder state and check_md5 flag
+ */
+FLAC__FileDecoderState FLAC__file_decoder_state(const FLAC__FileDecoder *decoder);
+bool FLAC__file_decoder_check_md5(const FLAC__FileDecoder *decoder);
+
+/*
+ * methods for decoding the data
+ */
 bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder);
 bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder);
 bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder);
 bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder);
+
 bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample);
 
 #endif

@@ -22,7 +22,18 @@
 
 #include "FLAC/stream_decoder.h"
 
-/* only useful to the file_decoder */
-unsigned FLAC__stream_decoder_input_bytes_unconsumed(FLAC__StreamDecoder *decoder);
+typedef struct FLAC__StreamDecoderProtected {
+	FLAC__StreamDecoderState state;
+	unsigned channels;
+	FLAC__ChannelAssignment channel_assignment;
+	unsigned bits_per_sample;
+	unsigned sample_rate; /* in Hz */
+	unsigned blocksize; /* in samples (per channel) */
+} FLAC__StreamDecoderProtected;
+
+/*
+ * return the number of input bytes consumed
+ */
+unsigned FLAC__stream_decoder_input_bytes_unconsumed(const FLAC__StreamDecoder *decoder);
 
 #endif

@@ -22,9 +22,27 @@
 #include <string.h> /* for strcmp() */
 #include <sys/stat.h> /* for stat() */
 #include "FLAC/assert.h"
-#include "FLAC/file_decoder.h"
+#include "protected/file_decoder.h"
 #include "protected/stream_decoder.h"
 #include "private/md5.h"
+
+/***********************************************************************
+ *
+ * Private class method prototypes
+ *
+ ***********************************************************************/
+
+static FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
+static void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
+static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+static bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 target_sample);
+
+/***********************************************************************
+ *
+ * Private class data
+ *
+ ***********************************************************************/
 
 typedef struct FLAC__FileDecoderPrivate {
 	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
@@ -33,7 +51,7 @@ typedef struct FLAC__FileDecoderPrivate {
 	void *client_data;
 	FILE *file;
 	char *filename; /* == NULL if stdin */
-	FLAC__StreamDecoder *stream;
+	FLAC__StreamDecoder *stream_decoder;
 	struct MD5Context md5context;
 	byte stored_md5sum[16]; /* this is what is stored in the metadata */
 	byte computed_md5sum[16]; /* this is the sum we computed from the decoded data */
@@ -44,11 +62,11 @@ typedef struct FLAC__FileDecoderPrivate {
 	uint64 target_sample;
 } FLAC__FileDecoderPrivate;
 
-static FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data);
-static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data);
-static void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data);
-static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
-static bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 target_sample);
+/***********************************************************************
+ *
+ * Public static class data
+ *
+ ***********************************************************************/
 
 const char *FLAC__FileDecoderStateString[] = {
 	"FLAC__FILE_DECODER_OK",
@@ -58,26 +76,64 @@ const char *FLAC__FileDecoderStateString[] = {
 	"FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR",
 	"FLAC__FILE_DECODER_SEEK_ERROR",
 	"FLAC__FILE_DECODER_STREAM_ERROR",
+	"FLAC__FILE_DECODER_STREAM_DECODER_ERROR",
+	"FLAC__FILE_DECODER_ALREADY_INITIALIZED",
 	"FLAC__FILE_DECODER_UNINITIALIZED"
 };
 
-FLAC__FileDecoder *FLAC__file_decoder_get_new_instance()
+/***********************************************************************
+ *
+ * Class constructor/destructor
+ *
+ ***********************************************************************/
+
+FLAC__FileDecoder *FLAC__file_decoder_new()
 {
-	FLAC__FileDecoder *decoder = (FLAC__FileDecoder*)malloc(sizeof(FLAC__FileDecoder));
-	if(decoder != 0) {
-		decoder->state = FLAC__FILE_DECODER_UNINITIALIZED;
-		decoder->guts = 0;
+	FLAC__FileDecoder *decoder;
+
+	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
+
+	decoder = (FLAC__FileDecoder*)malloc(sizeof(FLAC__FileDecoder));
+	if(decoder == 0) {
+		return 0;
 	}
+	decoder->protected = (FLAC__FileDecoderProtected*)malloc(sizeof(FLAC__FileDecoderProtected));
+	if(decoder->protected == 0) {
+		free(decoder);
+		return 0;
+	}
+	decoder->private = (FLAC__FileDecoderPrivate*)malloc(sizeof(FLAC__FileDecoderPrivate));
+	if(decoder->private == 0) {
+		free(decoder->protected);
+		free(decoder);
+		return 0;
+	}
+
+	decoder->protected->state = FLAC__FILE_DECODER_UNINITIALIZED;
+
 	return decoder;
 }
 
-void FLAC__file_decoder_free_instance(FLAC__FileDecoder *decoder)
+void FLAC__file_decoder_delete(FLAC__FileDecoder *decoder)
 {
+	FLAC__ASSERT(decoder != 0);
+	FLAC__ASSERT(decoder->protected != 0);
+	FLAC__ASSERT(decoder->private != 0);
+
+	free(decoder->private);
+	free(decoder->protected);
 	free(decoder);
 }
 
+/***********************************************************************
+ *
+ * Public class methods
+ *
+ ***********************************************************************/
+
 FLAC__FileDecoderState FLAC__file_decoder_init(
 	FLAC__FileDecoder *decoder,
+	bool check_md5,
 	const char *filename,
 	FLAC__StreamDecoderWriteStatus (*write_callback)(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const int32 *buffer[], void *client_data),
 	void (*metadata_callback)(const FLAC__FileDecoder *decoder, const FLAC__StreamMetaData *metadata, void *client_data),
@@ -85,41 +141,39 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	void *client_data
 )
 {
-	FLAC__ASSERT(sizeof(int) >= 4); /* we want to die right away if this is not true */
 	FLAC__ASSERT(decoder != 0);
 	FLAC__ASSERT(write_callback != 0);
 	FLAC__ASSERT(metadata_callback != 0);
 	FLAC__ASSERT(error_callback != 0);
-	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_UNINITIALIZED);
-	FLAC__ASSERT(decoder->guts == 0);
 
-	decoder->state = FLAC__FILE_DECODER_OK;
+	if(decoder->protected->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		return decoder->protected->state = FLAC__FILE_DECODER_ALREADY_INITIALIZED;
 
-	decoder->guts = (FLAC__FileDecoderPrivate*)malloc(sizeof(FLAC__FileDecoderPrivate));
-	if(decoder->guts == 0)
-		return decoder->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
+	decoder->protected->state = FLAC__FILE_DECODER_OK;
 
-	decoder->guts->write_callback = write_callback;
-	decoder->guts->metadata_callback = metadata_callback;
-	decoder->guts->error_callback = error_callback;
-	decoder->guts->client_data = client_data;
-	decoder->guts->stream = 0;
-	decoder->guts->file = 0;
-	decoder->guts->filename = 0;
-	decoder->guts->seek_table = 0;
+	decoder->protected->check_md5 = check_md5;
+
+	decoder->private->write_callback = write_callback;
+	decoder->private->metadata_callback = metadata_callback;
+	decoder->private->error_callback = error_callback;
+	decoder->private->client_data = client_data;
+	decoder->private->file = 0;
+	decoder->private->stream_decoder = 0;
+	decoder->private->filename = 0;
+	decoder->private->seek_table = 0;
 
 	if(0 == strcmp(filename, "-")) {
-		decoder->guts->file = stdin;
+		decoder->private->file = stdin;
 	}
 	else {
-		if(0 == (decoder->guts->filename = (char*)malloc(strlen(filename)+1)))
-			return decoder->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
-		strcpy(decoder->guts->filename, filename);
-		decoder->guts->file = fopen(filename, "rb");
+		if(0 == (decoder->private->filename = (char*)malloc(strlen(filename)+1)))
+			return decoder->protected->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR;
+		strcpy(decoder->private->filename, filename);
+		decoder->private->file = fopen(filename, "rb");
 	}
 
-	if(decoder->guts->file == 0)
-		return decoder->state = FLAC__FILE_DECODER_ERROR_OPENING_FILE;
+	if(decoder->private->file == 0)
+		return decoder->protected->state = FLAC__FILE_DECODER_ERROR_OPENING_FILE;
 
 	/* We initialize the MD5Context even though we may never use it.  This is
 	 * because check_md5 may be turned on to start and then turned off if a
@@ -127,13 +181,13 @@ FLAC__FileDecoderState FLAC__file_decoder_init(
 	 * FLAC__file_decoder_finish() to make sure things are always cleaned up
 	 * properly.
 	 */
-	MD5Init(&decoder->guts->md5context);
+	MD5Init(&decoder->private->md5context);
 
-	decoder->guts->stream = FLAC__stream_decoder_get_new_instance();
-	if(FLAC__stream_decoder_init(decoder->guts->stream, read_callback_, write_callback_, metadata_callback_, error_callback_, decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
-		return decoder->state = FLAC__FILE_DECODER_MEMORY_ALLOCATION_ERROR; /* this is based on internal knowledge of FLAC__stream_decoder_init() */
+	decoder->private->stream_decoder = FLAC__stream_decoder_new();
+	if(FLAC__stream_decoder_init(decoder->private->stream_decoder, read_callback_, write_callback_, metadata_callback_, error_callback_, decoder) != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA)
+		return decoder->protected->state = FLAC__FILE_DECODER_STREAM_DECODER_ERROR;
 
-	return decoder->state;
+	return decoder->protected->state;
 }
 
 bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
@@ -141,30 +195,36 @@ bool FLAC__file_decoder_finish(FLAC__FileDecoder *decoder)
 	bool md5_failed = false;
 
 	FLAC__ASSERT(decoder != 0);
-	if(decoder->state == FLAC__FILE_DECODER_UNINITIALIZED)
+	if(decoder->protected->state == FLAC__FILE_DECODER_UNINITIALIZED)
 		return true;
-	if(decoder->guts != 0) {
-		if(decoder->guts->file != 0 && decoder->guts->file != stdin)
-			fclose(decoder->guts->file);
-		if(0 != decoder->guts->filename)
-			free(decoder->guts->filename);
-		/* see the comment in FLAC__file_decoder_init() as to why we always
-		 * call MD5Final()
-		 */
-		MD5Final(decoder->guts->computed_md5sum, &decoder->guts->md5context);
-		if(decoder->guts->stream != 0) {
-			FLAC__stream_decoder_finish(decoder->guts->stream);
-			FLAC__stream_decoder_free_instance(decoder->guts->stream);
-		}
-		if(decoder->check_md5) {
-			if(memcmp(decoder->guts->stored_md5sum, decoder->guts->computed_md5sum, 16))
-				md5_failed = true;
-		}
-		free(decoder->guts);
-		decoder->guts = 0;
+	if(decoder->private->file != 0 && decoder->private->file != stdin)
+		fclose(decoder->private->file);
+	if(0 != decoder->private->filename)
+		free(decoder->private->filename);
+	/* see the comment in FLAC__file_decoder_init() as to why we always
+	 * call MD5Final()
+	 */
+	MD5Final(decoder->private->computed_md5sum, &decoder->private->md5context);
+	if(decoder->private->stream_decoder != 0) {
+		FLAC__stream_decoder_finish(decoder->private->stream_decoder);
+		FLAC__stream_decoder_delete(decoder->private->stream_decoder);
 	}
-	decoder->state = FLAC__FILE_DECODER_UNINITIALIZED;
+	if(decoder->protected->check_md5) {
+		if(memcmp(decoder->private->stored_md5sum, decoder->private->computed_md5sum, 16))
+			md5_failed = true;
+	}
+	decoder->protected->state = FLAC__FILE_DECODER_UNINITIALIZED;
 	return !md5_failed;
+}
+
+FLAC__FileDecoderState FLAC__file_decoder_state(const FLAC__FileDecoder *decoder)
+{
+	return decoder->protected->state;
+}
+
+bool FLAC__file_decoder_check_md5(const FLAC__FileDecoder *decoder)
+{
+	return decoder->protected->check_md5;
 }
 
 bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
@@ -172,17 +232,17 @@ bool FLAC__file_decoder_process_whole_file(FLAC__FileDecoder *decoder)
 	bool ret;
 	FLAC__ASSERT(decoder != 0);
 
-	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_STREAM)
-		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
+	if(decoder->private->stream_decoder->protected->state == FLAC__STREAM_DECODER_END_OF_STREAM)
+		decoder->protected->state = FLAC__FILE_DECODER_END_OF_FILE;
 
-	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
+	if(decoder->protected->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
-	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->protected->state == FLAC__FILE_DECODER_OK);
 
-	ret = FLAC__stream_decoder_process_whole_stream(decoder->guts->stream);
+	ret = FLAC__stream_decoder_process_whole_stream(decoder->private->stream_decoder);
 	if(!ret)
-		decoder->state = FLAC__FILE_DECODER_STREAM_ERROR;
+		decoder->protected->state = FLAC__FILE_DECODER_STREAM_ERROR;
 
 	return ret;
 }
@@ -192,17 +252,17 @@ bool FLAC__file_decoder_process_metadata(FLAC__FileDecoder *decoder)
 	bool ret;
 	FLAC__ASSERT(decoder != 0);
 
-	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_STREAM)
-		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
+	if(decoder->private->stream_decoder->protected->state == FLAC__STREAM_DECODER_END_OF_STREAM)
+		decoder->protected->state = FLAC__FILE_DECODER_END_OF_FILE;
 
-	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
+	if(decoder->protected->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
-	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->protected->state == FLAC__FILE_DECODER_OK);
 
-	ret = FLAC__stream_decoder_process_metadata(decoder->guts->stream);
+	ret = FLAC__stream_decoder_process_metadata(decoder->private->stream_decoder);
 	if(!ret)
-		decoder->state = FLAC__FILE_DECODER_STREAM_ERROR;
+		decoder->protected->state = FLAC__FILE_DECODER_STREAM_ERROR;
 
 	return ret;
 }
@@ -212,17 +272,17 @@ bool FLAC__file_decoder_process_one_frame(FLAC__FileDecoder *decoder)
 	bool ret;
 	FLAC__ASSERT(decoder != 0);
 
-	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_STREAM)
-		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
+	if(decoder->private->stream_decoder->protected->state == FLAC__STREAM_DECODER_END_OF_STREAM)
+		decoder->protected->state = FLAC__FILE_DECODER_END_OF_FILE;
 
-	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
+	if(decoder->protected->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
-	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->protected->state == FLAC__FILE_DECODER_OK);
 
-	ret = FLAC__stream_decoder_process_one_frame(decoder->guts->stream);
+	ret = FLAC__stream_decoder_process_one_frame(decoder->private->stream_decoder);
 	if(!ret)
-		decoder->state = FLAC__FILE_DECODER_STREAM_ERROR;
+		decoder->protected->state = FLAC__FILE_DECODER_STREAM_ERROR;
 
 	return ret;
 }
@@ -232,20 +292,26 @@ bool FLAC__file_decoder_process_remaining_frames(FLAC__FileDecoder *decoder)
 	bool ret;
 	FLAC__ASSERT(decoder != 0);
 
-	if(decoder->guts->stream->state == FLAC__STREAM_DECODER_END_OF_STREAM)
-		decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
+	if(decoder->private->stream_decoder->protected->state == FLAC__STREAM_DECODER_END_OF_STREAM)
+		decoder->protected->state = FLAC__FILE_DECODER_END_OF_FILE;
 
-	if(decoder->state == FLAC__FILE_DECODER_END_OF_FILE)
+	if(decoder->protected->state == FLAC__FILE_DECODER_END_OF_FILE)
 		return true;
 
-	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->protected->state == FLAC__FILE_DECODER_OK);
 
-	ret = FLAC__stream_decoder_process_remaining_frames(decoder->guts->stream);
+	ret = FLAC__stream_decoder_process_remaining_frames(decoder->private->stream_decoder);
 	if(!ret)
-		decoder->state = FLAC__FILE_DECODER_STREAM_ERROR;
+		decoder->protected->state = FLAC__FILE_DECODER_STREAM_ERROR;
 
 	return ret;
 }
+
+/***********************************************************************
+ *
+ * Private class methods
+ *
+ ***********************************************************************/
 
 bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample)
 {
@@ -253,39 +319,39 @@ bool FLAC__file_decoder_seek_absolute(FLAC__FileDecoder *decoder, uint64 sample)
 	struct stat filestats;
 
 	FLAC__ASSERT(decoder != 0);
-	FLAC__ASSERT(decoder->state == FLAC__FILE_DECODER_OK);
+	FLAC__ASSERT(decoder->protected->state == FLAC__FILE_DECODER_OK);
 
-	if(decoder->guts->filename == 0) { /* means the file is stdin... */
-		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
+	if(decoder->private->filename == 0) { /* means the file is stdin... */
+		decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
 
-	decoder->state = FLAC__FILE_DECODER_SEEKING;
+	decoder->protected->state = FLAC__FILE_DECODER_SEEKING;
 
 	/* turn off md5 checking if a seek is attempted */
-	decoder->check_md5 = false;
+	decoder->protected->check_md5 = false;
 
-	if(!FLAC__stream_decoder_reset(decoder->guts->stream)) {
-		decoder->state = FLAC__FILE_DECODER_STREAM_ERROR;
+	if(!FLAC__stream_decoder_reset(decoder->private->stream_decoder)) {
+		decoder->protected->state = FLAC__FILE_DECODER_STREAM_ERROR;
 		return false;
 	}
 	/* get the file length */
-	if(stat(decoder->guts->filename, &filestats) != 0) {
-		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
+	if(stat(decoder->private->filename, &filestats) != 0) {
+		decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
 	filesize = filestats.st_size;
 	/* rewind */
-	if(0 != fseek(decoder->guts->file, 0, SEEK_SET)) {
-		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
+	if(0 != fseek(decoder->private->file, 0, SEEK_SET)) {
+		decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
-	if(!FLAC__stream_decoder_process_metadata(decoder->guts->stream)) {
-		decoder->state = FLAC__FILE_DECODER_STREAM_ERROR;
+	if(!FLAC__stream_decoder_process_metadata(decoder->private->stream_decoder)) {
+		decoder->protected->state = FLAC__FILE_DECODER_STREAM_ERROR;
 		return false;
 	}
-	if(sample > decoder->guts->stream_info.total_samples) {
-		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
+	if(sample > decoder->private->stream_info.total_samples) {
+		decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
 
@@ -296,15 +362,15 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder,
 {
 	FLAC__FileDecoder *file_decoder = (FLAC__FileDecoder *)client_data;
 	(void)decoder;
-	if(feof(file_decoder->guts->file)) {
-		file_decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
+	if(feof(file_decoder->private->file)) {
+		file_decoder->protected->state = FLAC__FILE_DECODER_END_OF_FILE;
 		return FLAC__STREAM_DECODER_READ_END_OF_STREAM;
 	}
 	else if(*bytes > 0) {
-		size_t bytes_read = fread(buffer, sizeof(byte), *bytes, file_decoder->guts->file);
+		size_t bytes_read = fread(buffer, sizeof(byte), *bytes, file_decoder->private->file);
 		if(bytes_read == 0) {
-			if(feof(file_decoder->guts->file)) {
-				file_decoder->state = FLAC__FILE_DECODER_END_OF_FILE;
+			if(feof(file_decoder->private->file)) {
+				file_decoder->protected->state = FLAC__FILE_DECODER_END_OF_FILE;
 				return FLAC__STREAM_DECODER_READ_END_OF_STREAM;
 			}
 			else
@@ -324,30 +390,30 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decode
 	FLAC__FileDecoder *file_decoder = (FLAC__FileDecoder *)client_data;
 	(void)decoder;
 
-	if(file_decoder->state == FLAC__FILE_DECODER_SEEKING) {
+	if(file_decoder->protected->state == FLAC__FILE_DECODER_SEEKING) {
 		uint64 this_frame_sample = frame->header.number.sample_number;
 		uint64 next_frame_sample = this_frame_sample + (uint64)frame->header.blocksize;
-		uint64 target_sample = file_decoder->guts->target_sample;
+		uint64 target_sample = file_decoder->private->target_sample;
 
-		file_decoder->guts->last_frame = *frame; /* save the frame in the guts */
+		file_decoder->private->last_frame = *frame; /* save the frame in the private */
 		if(this_frame_sample <= target_sample && target_sample < next_frame_sample) { /* we hit our target frame */
 			unsigned delta = (unsigned)(target_sample - this_frame_sample);
 			/* kick out of seek mode */
-			file_decoder->state = FLAC__FILE_DECODER_OK;
+			file_decoder->protected->state = FLAC__FILE_DECODER_OK;
 			/* shift out the samples before target_sample */
 			if(delta > 0) {
 				unsigned channel;
 				const int32 *newbuffer[FLAC__MAX_CHANNELS];
 				for(channel = 0; channel < frame->header.channels; channel++)
 					newbuffer[channel] = buffer[channel] + delta;
-				file_decoder->guts->last_frame.header.blocksize -= delta;
-				file_decoder->guts->last_frame.header.number.sample_number += (uint64)delta;
+				file_decoder->private->last_frame.header.blocksize -= delta;
+				file_decoder->private->last_frame.header.number.sample_number += (uint64)delta;
 				/* write the relevant samples */
-				return file_decoder->guts->write_callback(file_decoder, &file_decoder->guts->last_frame, newbuffer, file_decoder->guts->client_data);
+				return file_decoder->private->write_callback(file_decoder, &file_decoder->private->last_frame, newbuffer, file_decoder->private->client_data);
 			}
 			else {
 				/* write the relevant samples */
-				return file_decoder->guts->write_callback(file_decoder, frame, buffer, file_decoder->guts->client_data);
+				return file_decoder->private->write_callback(file_decoder, frame, buffer, file_decoder->private->client_data);
 			}
 		}
 		else {
@@ -355,11 +421,11 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decode
 		}
 	}
 	else {
-		if(file_decoder->check_md5) {
-			if(!FLAC__MD5Accumulate(&file_decoder->guts->md5context, buffer, frame->header.channels, frame->header.blocksize, (frame->header.bits_per_sample+7) / 8))
+		if(file_decoder->protected->check_md5) {
+			if(!FLAC__MD5Accumulate(&file_decoder->private->md5context, buffer, frame->header.channels, frame->header.blocksize, (frame->header.bits_per_sample+7) / 8))
 				return FLAC__STREAM_DECODER_WRITE_ABORT;
 		}
-		return file_decoder->guts->write_callback(file_decoder, frame, buffer, file_decoder->guts->client_data);
+		return file_decoder->private->write_callback(file_decoder, frame, buffer, file_decoder->private->client_data);
 	}
 }
 
@@ -369,18 +435,18 @@ void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMe
 	(void)decoder;
 
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		file_decoder->guts->stream_info = metadata->data.stream_info;
+		file_decoder->private->stream_info = metadata->data.stream_info;
 		/* save the MD5 signature for comparison later */
-		memcpy(file_decoder->guts->stored_md5sum, metadata->data.stream_info.md5sum, 16);
-		if(0 == memcmp(file_decoder->guts->stored_md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16))
-			file_decoder->check_md5 = false;
+		memcpy(file_decoder->private->stored_md5sum, metadata->data.stream_info.md5sum, 16);
+		if(0 == memcmp(file_decoder->private->stored_md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16))
+			file_decoder->protected->check_md5 = false;
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_SEEKTABLE) {
-		file_decoder->guts->seek_table = &metadata->data.seek_table;
+		file_decoder->private->seek_table = &metadata->data.seek_table;
 	}
 
-	if(file_decoder->state != FLAC__FILE_DECODER_SEEKING)
-		file_decoder->guts->metadata_callback(file_decoder, metadata, file_decoder->guts->client_data);
+	if(file_decoder->protected->state != FLAC__FILE_DECODER_SEEKING)
+		file_decoder->private->metadata_callback(file_decoder, metadata, file_decoder->private->client_data);
 }
 
 void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
@@ -388,8 +454,8 @@ void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErro
 	FLAC__FileDecoder *file_decoder = (FLAC__FileDecoder *)client_data;
 	(void)decoder;
 
-	if(file_decoder->state != FLAC__FILE_DECODER_SEEKING)
-		file_decoder->guts->error_callback(file_decoder, status, file_decoder->guts->client_data);
+	if(file_decoder->protected->state != FLAC__FILE_DECODER_SEEKING)
+		file_decoder->private->error_callback(file_decoder, status, file_decoder->private->client_data);
 }
 
 bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 target_sample)
@@ -399,18 +465,18 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	unsigned approx_bytes_per_frame;
 	uint64 last_frame_sample = 0xffffffffffffffff;
 	bool needs_seek;
-	const bool is_variable_blocksize_stream = (decoder->guts->stream_info.min_blocksize != decoder->guts->stream_info.max_blocksize);
+	const bool is_variable_blocksize_stream = (decoder->private->stream_info.min_blocksize != decoder->private->stream_info.max_blocksize);
 
 	/* we are just guessing here, but we want to guess high, not low */
-	if(decoder->guts->stream_info.max_framesize > 0) {
-		approx_bytes_per_frame = decoder->guts->stream_info.max_framesize;
+	if(decoder->private->stream_info.max_framesize > 0) {
+		approx_bytes_per_frame = decoder->private->stream_info.max_framesize;
 	}
 	else if(!is_variable_blocksize_stream) {
-		/* note there are no () around 'decoder->guts->stream_info.bits_per_sample/8' to keep precision up since it's an integer calulation */
-		approx_bytes_per_frame = decoder->guts->stream_info.min_blocksize * decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample/8 + 64;
+		/* note there are no () around 'decoder->private->stream_info.bits_per_sample/8' to keep precision up since it's an integer calulation */
+		approx_bytes_per_frame = decoder->private->stream_info.min_blocksize * decoder->private->stream_info.channels * decoder->private->stream_info.bits_per_sample/8 + 64;
 	}
 	else
-		approx_bytes_per_frame = 1152 * decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample/8 + 64;
+		approx_bytes_per_frame = 1152 * decoder->private->stream_info.channels * decoder->private->stream_info.bits_per_sample/8 + 64;
 
 	/*
 	 * The file pointer is currently at the first frame plus any read
@@ -418,11 +484,11 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	 * uncomsumed bytes to get the position of the first frame in the
 	 * file.
 	 */
-	if(-1 == (first_frame_offset = ftell(decoder->guts->file))) {
-		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
+	if(-1 == (first_frame_offset = ftell(decoder->private->file))) {
+		decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
-	first_frame_offset -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream);
+	first_frame_offset -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->private->stream_decoder);
 	FLAC__ASSERT(first_frame_offset >= 0);
 
 	/*
@@ -434,34 +500,34 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	lower_bound = first_frame_offset;
 
 	/* calc the upper_bound, beyond which we never want to seek */
-	if(decoder->guts->stream_info.max_framesize > 0)
-		upper_bound = filesize - (decoder->guts->stream_info.max_framesize + 128 + 2); /* 128 for a possible ID3V1 tag, 2 for indexing differences */
+	if(decoder->private->stream_info.max_framesize > 0)
+		upper_bound = filesize - (decoder->private->stream_info.max_framesize + 128 + 2); /* 128 for a possible ID3V1 tag, 2 for indexing differences */
 	else
-		upper_bound = filesize - ((decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 128 + 2);
+		upper_bound = filesize - ((decoder->private->stream_info.channels * decoder->private->stream_info.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 128 + 2);
 
 	/*
 	 * Now we refine the bounds if we have a seektable with
 	 * suitable points.  Note that according to the spec they
 	 * must be ordered by ascending sample number.
 	 */
-	if(0 != decoder->guts->seek_table) {
+	if(0 != decoder->private->seek_table) {
 		/* find the closest seek point <= target_sample, if it exists */
-		for(i = (int)decoder->guts->seek_table->num_points - 1; i >= 0; i--) {
-			if(decoder->guts->seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER && decoder->guts->seek_table->points[i].sample_number <= target_sample)
+		for(i = (int)decoder->private->seek_table->num_points - 1; i >= 0; i--) {
+			if(decoder->private->seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER && decoder->private->seek_table->points[i].sample_number <= target_sample)
 				break;
 		}
 		if(i >= 0) { /* i.e. we found a suitable seek point... */
-			lower_bound = first_frame_offset + decoder->guts->seek_table->points[i].stream_offset;
+			lower_bound = first_frame_offset + decoder->private->seek_table->points[i].stream_offset;
 			lower_seek_point = i;
 		}
 
 		/* find the closest seek point > target_sample, if it exists */
-		for(i = 0; i < (int)decoder->guts->seek_table->num_points; i++) {
-			if(decoder->guts->seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER && decoder->guts->seek_table->points[i].sample_number > target_sample)
+		for(i = 0; i < (int)decoder->private->seek_table->num_points; i++) {
+			if(decoder->private->seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER && decoder->private->seek_table->points[i].sample_number > target_sample)
 				break;
 		}
-		if(i < (int)decoder->guts->seek_table->num_points) { /* i.e. we found a suitable seek point... */
-			upper_bound = first_frame_offset + decoder->guts->seek_table->points[i].stream_offset;
+		if(i < (int)decoder->private->seek_table->num_points) { /* i.e. we found a suitable seek point... */
+			upper_bound = first_frame_offset + decoder->private->seek_table->points[i].stream_offset;
 			upper_seek_point = i;
 		}
 	}
@@ -472,12 +538,12 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	 */
 	if(lower_seek_point >= 0) {
 		/* first see if our sample is within a few frames of the lower seekpoint */
-		if(decoder->guts->seek_table->points[lower_seek_point].sample_number <= target_sample && target_sample < decoder->guts->seek_table->points[lower_seek_point].sample_number + (decoder->guts->seek_table->points[lower_seek_point].frame_samples * 4)) {
+		if(decoder->private->seek_table->points[lower_seek_point].sample_number <= target_sample && target_sample < decoder->private->seek_table->points[lower_seek_point].sample_number + (decoder->private->seek_table->points[lower_seek_point].frame_samples * 4)) {
 			pos = lower_bound;
 		}
 		else if(upper_seek_point >= 0) {
-			const uint64 target_offset = target_sample - decoder->guts->seek_table->points[lower_seek_point].sample_number;
-			const uint64 range_samples = decoder->guts->seek_table->points[upper_seek_point].sample_number - decoder->guts->seek_table->points[lower_seek_point].sample_number;
+			const uint64 target_offset = target_sample - decoder->private->seek_table->points[lower_seek_point].sample_number;
+			const uint64 range_samples = decoder->private->seek_table->points[upper_seek_point].sample_number - decoder->private->seek_table->points[lower_seek_point].sample_number;
 			const long range_bytes = upper_bound - lower_bound;
 #ifdef _MSC_VER
 			/* with VC++ you have to spoon feed it the casting */
@@ -491,9 +557,9 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 		/* We need to use the metadata and the filelength to estimate the position of the frame with the correct sample */
 #ifdef _MSC_VER
 		/* with VC++ you have to spoon feed it the casting */
-		pos = first_frame_offset + (long)((double)(int64)target_sample / (double)(int64)decoder->guts->stream_info.total_samples * (double)(filesize-first_frame_offset-1)) - approx_bytes_per_frame;
+		pos = first_frame_offset + (long)((double)(int64)target_sample / (double)(int64)decoder->private->stream_info.total_samples * (double)(filesize-first_frame_offset-1)) - approx_bytes_per_frame;
 #else
-		pos = first_frame_offset + (long)((double)target_sample / (double)decoder->guts->stream_info.total_samples * (double)(filesize-first_frame_offset-1)) - approx_bytes_per_frame;
+		pos = first_frame_offset + (long)((double)target_sample / (double)decoder->private->stream_info.total_samples * (double)(filesize-first_frame_offset-1)) - approx_bytes_per_frame;
 #endif
 	}
 
@@ -504,28 +570,28 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 		pos = lower_bound;
 	needs_seek = true;
 
-	decoder->guts->target_sample = target_sample;
+	decoder->private->target_sample = target_sample;
 	while(1) {
 		if(needs_seek) {
-			if(-1 == fseek(decoder->guts->file, pos, SEEK_SET)) {
-				decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
+			if(-1 == fseek(decoder->private->file, pos, SEEK_SET)) {
+				decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 				return false;
 			}
-			if(!FLAC__stream_decoder_flush(decoder->guts->stream)) {
-				decoder->state = FLAC__FILE_DECODER_STREAM_ERROR;
+			if(!FLAC__stream_decoder_flush(decoder->private->stream_decoder)) {
+				decoder->protected->state = FLAC__FILE_DECODER_STREAM_ERROR;
 				return false;
 			}
 		}
-		if(!FLAC__stream_decoder_process_one_frame(decoder->guts->stream)) {
-			decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
+		if(!FLAC__stream_decoder_process_one_frame(decoder->private->stream_decoder)) {
+			decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 			return false;
 		}
 		/* our write callback will change the state when it gets to the target frame */
-		if(decoder->state != FLAC__FILE_DECODER_SEEKING) {
+		if(decoder->protected->state != FLAC__FILE_DECODER_SEEKING) {
 			break;
 		}
 		else { /* we need to narrow the search */
-			uint64 this_frame_sample = decoder->guts->last_frame.header.number.sample_number;
+			uint64 this_frame_sample = decoder->private->last_frame.header.number.sample_number;
 			if(this_frame_sample == last_frame_sample) {
 				/* our last move backwards wasn't big enough */
 				pos -= (last_pos - pos);
@@ -534,17 +600,17 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 			else {
 				if(target_sample < this_frame_sample) {
 					last_pos = pos;
-					approx_bytes_per_frame = decoder->guts->last_frame.header.blocksize * decoder->guts->last_frame.header.channels * decoder->guts->last_frame.header.bits_per_sample/8 + 64;
+					approx_bytes_per_frame = decoder->private->last_frame.header.blocksize * decoder->private->last_frame.header.channels * decoder->private->last_frame.header.bits_per_sample/8 + 64;
 					pos -= approx_bytes_per_frame;
 					needs_seek = true;
 				}
 				else { /* target_sample >= this_frame_sample + this frame's blocksize */
 					last_pos = pos;
-					if(-1 == (pos = ftell(decoder->guts->file))) {
-						decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
+					if(-1 == (pos = ftell(decoder->private->file))) {
+						decoder->protected->state = FLAC__FILE_DECODER_SEEK_ERROR;
 						return false;
 					}
-					pos -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream);
+					pos -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->private->stream_decoder);
 					needs_seek = false;
 				}
 			}

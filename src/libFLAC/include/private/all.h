@@ -24,10 +24,10 @@
 #include "bitmath.h"
 #include "cpu.h"
 #include "crc.h"
-#include "encoder_framing.h"
 #include "fixed.h"
 #include "lpc.h"
 #include "md5.h"
 #include "memory.h"
+#include "stream_encoder_framing.h"
 
 #endif

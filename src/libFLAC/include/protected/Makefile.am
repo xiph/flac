@@ -16,4 +16,7 @@
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA  02111-1307, USA.
 
-noinst_HEADERS = stream_decoder.h
+noinst_HEADERS = \
+	file_decoder.h \
+	stream_decoder.h \
+	stream_encoder.h

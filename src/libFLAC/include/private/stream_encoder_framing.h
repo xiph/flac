@@ -17,8 +17,8 @@
  * Boston, MA  02111-1307, USA.
  */
 
-#ifndef FLAC__PRIVATE__ENCODER_FRAMING_H
-#define FLAC__PRIVATE__ENCODER_FRAMING_H
+#ifndef FLAC__PRIVATE__STREAM_ENCODER_FRAMING_H
+#define FLAC__PRIVATE__STREAM_ENCODER_FRAMING_H
 
 #include "FLAC/format.h"
 #include "bitbuffer.h"

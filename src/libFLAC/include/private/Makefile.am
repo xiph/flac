@@ -16,13 +16,14 @@
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA  02111-1307, USA.
 
-noinst_HEADERS = bitbuffer.h \
+noinst_HEADERS = \
 	all.h \
+	bitbuffer.h \
 	bitmath.h \
 	cpu.h \
 	crc.h \
-	encoder_framing.h \
 	fixed.h \
 	lpc.h \
 	md5.h \
-	memory.h
+	memory.h \
+	stream_encoder_framing.h

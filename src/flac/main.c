@@ -513,7 +513,7 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
 	char *p;
 	byte lookahead[12];
-	unsigned lookahead_length;
+	unsigned lookahead_length = 0;
 	int retval;
 	long infilesize;
 

@@ -18,7 +18,7 @@
  */
 
 #include <stdio.h>
-#include "private/encoder_framing.h"
+#include "private/stream_encoder_framing.h"
 #include "private/crc.h"
 #include "FLAC/assert.h"
 

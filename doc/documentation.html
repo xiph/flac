@@ -756,24 +756,27 @@
 		The basic usage of <B><TT>libFLAC</TT></B> is as follows:
 		<OL>
 			<LI>The program creates an instance of a decoder or encoder.</LI>
-			<LI>The program initialized the instance and provides <B><TT>libFLAC</TT></B> with callbacks for reading, writing, error reporting, and metadata reporting.</LI>
-			<LI>The program calls <B><TT>libFLAC</TT></B> to encode or decode data, which subsequently calls the callbacks.</LI>
-			<LI>The program finalizes the instance, which flushes the input and output.</LI>
+			<LI>The program initializes the instance and provides <B><TT>libFLAC</TT></B> with callbacks for reading, writing, error reporting, and metadata reporting.</LI>
+			<LI>The program calls <B><TT>libFLAC</TT></B> functions to encode or decode data, which subsequently calls the callbacks.</LI>
+			<LI>The program finishes the instance, which flushes the input and output.</LI>
 		</OL>
 	</P>
 	<P>
-		For decoding, <B><TT>libFLAC</TT></B> provides two layers of access.  The lowest layer is stream-level decoding, and the highest level is file-level decoding, which is a wrapper around the stream decoder.  The interfaces are described in <TT>stream_decoder.h</TT> and <TT>file_decoder.h</TT> respectively.  The file decoder supplies the read callback internally and provides seek functions.  Currently there is only one level of encoder implementation which is at the stream level (<TT>encoder.h</TT>).  Structures and constants related to the format are defined in <TT>format.h</TT>.
+		For decoding, <B><TT>libFLAC</TT></B> provides two layers of access.  The lowest layer is stream-level decoding, and the highest level is file-level decoding, which is a wrapper around the stream decoder.  The interfaces are described in <TT>stream_decoder.h</TT> and <TT>file_decoder.h</TT> respectively.  The file decoder supplies the read callback internally and provides seek functions.  Currently there is only one level of encoder implementation which is at the stream level (<TT>stream_encoder.h</TT>).  There is no currently no file encoder because seeking within a file while encoding seemed like too obscure a feature.
+	</P>
+	<P>
+		Structures and constants related to the format are defined in <TT>format.h</TT>.
 	</P>
 	<P>
 		<B>STREAM DECODER</B>
 	</P>
 	<P>
-		First we discuss the stream decoder.  The instance type is <TT>FLAC__StreamDecoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__stream_decoder_get_new_instance()</TT>, then call <TT>FLAC__stream_decoder_init()</TT> with the addresses of the required callbacks.  The program can also supply a client_data pointer to <TT>FLAC__stream_decoder_init()</TT> which will be included when calling the callbacks.
+		First we discuss the stream decoder.  The instance type is <TT>FLAC__StreamDecoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__stream_decoder_new()</TT>, then call <TT>FLAC__stream_decoder_init()</TT> with the addresses of the required callbacks.  The program can also supply a client_data pointer to <TT>FLAC__stream_decoder_init()</TT> which will be included when calling the callbacks.
 		<UL>
-			<LI>Read callback - This function will be called when the decoder needs more input data.  The address of the buffer to be filled is supplied, along with the number of bytes the buffer can hold.  The callback may choose to supply less data and modify the byte count but must be careful not to overflow the buffer.  The callback then returns a status code chosen from FLAC__StreamDecoderReadStatusString[].</LI>
+			<LI>Read callback - This function will be called when the decoder needs more input data.  The address of the buffer to be filled is supplied, along with the number of bytes the buffer can hold.  The callback may choose to supply less data and modify the byte count but must be careful not to overflow the buffer.  The callback then returns a status code chosen from FLAC__StreamDecoderReadStatus.</LI>
 			<LI>Write callback - This function will be called when the decoder has decoded a single frame of data.  The decoder will pass the frame metadata as well as an array of pointers (one for each channel) pointing to the decoded audio.</LI>
 			<LI>Metadata callback - This function will be called when the decoder has decoded a metadata block.  There will always be one STREAMINFO block per stream, followed by zero or more other metadata blocks.  These will be supplied by the decoder in the same order as they appear in the stream and always before the first audio frame.</LI>
-			<LI>Error callback - This function will be called whenever an error is encountered.</LI>
+			<LI>Error callback - This function will be called whenever an error occurs during decoding.</LI>
 		</UL>
 	</P>
 	<P>
@@ -786,7 +789,7 @@
 		</UL>
 	</P>
 	<P>
-		When the decoder has finished decoding (normally or through an abort), the instance is finished by calling <TT>FLAC__stream_decoder_finish()</TT>, which ensures the decoder is in the correct state and frees memory.
+		When the decoder has finished decoding (normally or through an abort), the instance is finished by calling <TT>FLAC__stream_decoder_finish()</TT>, which ensures the decoder is in the correct state and frees memory.  Then the instance may be deleted with <TT>FLAC__stream_decoder_delete()</TT> or initialized again to decode another stream.
 	</P>
 	<P>
 		Note that the stream decoder has no real concept of stream position, it just converts data.  To seek within a stream the callbacks have only to flush the decoder using <TT>FLAC__stream_decoder_flush()</TT> and start feeding data from the new position through the read callback.  The file decoder does just this.
@@ -795,19 +798,19 @@
 		<B>FILE DECODER</B>
 	</P>
 	<P>
-		The file decoder is a wrapper around the stream decoder meant to simplfy the process of decoding from a file.  The instance type is <TT>FLAC__FileDecoder</TT>.  The flow and callbacks are similar to that of the stream decoder.  However, a file path replaces the read callback argument during initialization.  The program need only provide the path to the file and the file decoder handles the read callbacks.  The remaining callbacks and process functions are analogous to their stream decoder counterparts.
+		The file decoder is a wrapper around the stream decoder meant to simplfy the process of decoding from a file.  The instance type is <TT>FLAC__FileDecoder</TT>.  The flow and callbacks are similar to that of the stream decoder.  However, a file path replaces the read callback argument during initialization.  The program needs only to provide the path to the file and the file decoder handles the read callbacks.  The remaining callbacks and process functions are analogous to their stream decoder counterparts.
 	</P>
 	<P>
 		Since the file decoder manages the input automatically, it also can provide seeking.  This is exposed through the <TT>FLAC__file_decoder_seek_absolute()</TT> method.  At any point after the file decoder has been initialized, the program can call this function to seek to an exact sample within the file.  Subsequently, the first time the write callback is called it will contain a (possibly partial) block starting at that sample.
 	</P>
 	<P>
-		<B>ENCODER</B>
+		<B>STREAM ENCODER</B>
 	</P>
 	<P>
-		The encoder functions similarly to the stream decoder.  Currently there is no file encoder but some of the code from <B><TT>flac</TT></B> may be incorporated to do this.  The instance type is <TT>FLAC__Encoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__encoder_get_new_instance().  Once the instance is created, but before initialization with <TT>FLAC__encoder_init()</TT>, the program should set the required encoding parameters directly.
+		The stream encoder functions similarly to the stream decoder, but has fewer callbacks and more options.  The instance type is <TT>FLAC__StreamEncoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__stream_encoder_new(), then initialize it by calling <TT>FLAC__stream_encoder_init()</TT>.
 	</P>
 	<P>
-		Unlike the decoding process, FLAC encoding has many options that can affect the speed and compression ratio.  There are so many in fact that they are not passed as parameters to <TT>FLAC__encoder_init()</TT>, they are written directly to encoder instance public variables by the program.  When the program calls <TT>FLAC__encoder_init()</TT> the encoder will validate the values.  When setting these parameters you should have some basic knowledge of the format (see the <A HREF="#format">user-level documentation</A> or the <A HREF="format.html">formal description</A>) but the required parameters are summarized here:
+		Unlike the decoding process, FLAC encoding has many options that can affect the speed and compression ratio.  When the program calls <TT>FLAC__stream_encoder_init()</TT> the encoder will validate the values, so you should make sure to check the returned state to see that it is FLAC__STREAM_ENCODER_OK.  When setting these parameters you should have some basic knowledge of the format (see the <A HREF="#format">user-level documentation</A> or the <A HREF="format.html">formal description</A>) but the required parameters are summarized here:
 		<UL>
 			<LI><B><TT>streamable_subset</TT></B> - true to force the encoder to generate a <A HREF="format.html#subset">Subset stream</A>, else false.</LI>
 			<LI><B><TT>do_mid_side_stereo</TT></B> - true to try mid-side encoding on stereo input, else false.  <TT>channels</TT> must be 2.</LI>
@@ -826,25 +829,24 @@
 			<LI><B><TT>seek_table</TT></B> - Optional seek table to prepend; NULL implies no seek table.</LI>
 			<LI><B><TT>padding</TT></B> - Size of PADDING block to add (goes after seek table); 0 implies do not add a PADDING block.</LI>
 		</UL>
-		Note that these parameters must be set before <TT>FLAC__encoder_init()</TT> and must not be changed anytime thereafter.
 	</P>
 	<P>
-		After setting the parameters the program should call <TT>FLAC__encoder_init()</TT> to validate them and register the following callbacks:
+		The program must also give <TT>FLAC__stream_encoder_init()</TT> addresses for the following callbacks:
 		<UL>
 			<LI>Write callback - This function is called anytime there is raw encoded data to write.  It may include metadata mixed with encoded audio frames and the data is not guaranteed to be aligned on frame or metadata block boundaries.</LI>
 			<LI>Metadata callback - This function is called once at the end of encoding with the populated STREAMINFO structure.  This is so file encoders can seek back to the beginning of the file and write the STREAMINFO block with the correct statistics after encoding (like minimum/maximum frame size).</LI>
 		</UL>
-		The call to <TT>FLAC__encoder_init()</TT> currently will also immediately call the write callback with the "fLaC" signature and all the encoded metadata.
+		The call to <TT>FLAC__stream_encoder_init()</TT> currently will also immediately call the write callback with the "fLaC" signature and all the encoded metadata.
 	</P>
 	<P>
 		After initializing the instance, the program may feed audio data to the encoder in one of two ways:
 		<UL>
-			<LI>Channel separate, through <B><TT>FLAC__encoder_process()</TT></B> - The program will pass an array of pointers to buffers, one for each channel, to the encoder, each of the same length.  The samples need not be block-aligned.</LI>
-			<LI>Channel interleaved, through <B><TT>FLAC__encoder_process_interleaved()</TT></B> - The program will pass a single pointer to data that is channel-interleaved (i.e. <TT>channel0_sample0, channel1_sample0, ... , channelN_sample0, channel0_sample1, ...</TT>).  Again, the samples need not be block-aligned but they must be sample-aligned, i.e. the first value should be channel0_sampleX and the last value channelN_sampleY.</LI>
+			<LI>Channel separate, through <B><TT>FLAC__stream_encoder_process()</TT></B> - The program will pass an array of pointers to buffers, one for each channel, to the encoder, each of the same length.  The samples need not be block-aligned.</LI>
+			<LI>Channel interleaved, through <B><TT>FLAC__stream_encoder_process_interleaved()</TT></B> - The program will pass a single pointer to data that is channel-interleaved (i.e. <TT>channel0_sample0, channel1_sample0, ... , channelN_sample0, channel0_sample1, ...</TT>).  Again, the samples need not be block-aligned but they must be sample-aligned, i.e. the first value should be channel0_sampleX and the last value channelN_sampleY.</LI>
 		</UL>
 	</P>
 	<P>
-		When the program is finished encoding data, it calls <TT>FLAC__encoder_finish()</TT>, which causes the encoder to encode any data still in its input pipe, and call the metadata callback with the correct encoding statistics.
+		When the program is finished encoding data, it calls <TT>FLAC__stream_encoder_finish()</TT>, which causes the encoder to encode any data still in its input pipe, and call the metadata callback with the correct encoding statistics.  Then the instance may be deleted with <TT>FLAC__stream_encoder_delete()</TT> or initialized again to encode another stream.
 	</P>
 	<P>
 		<B>MISCELLANEOUS</B>
@@ -859,7 +861,7 @@
 		For programs that write their own APPLICATION metadata, it is advantageous to instruct the encoder to write a PADDING block of the correct size, so that instead of rewriting the whole stream after encoding, the program can just overwrite the PADDING block.  If only the maximum size of the APPLICATION block is known, the program can write a slightly larger padding block, then split it after encoding into an APPLICATION block and a PADDING block.
 	</P>
 	<P>
-		In the case where the size of the APPLICATION block data is known ahead of time, the required size of the padding block can be easily calculated.  If the APPLICATION block data length in bytes (not including the APPLICATION metadata block header) is N bytes, the size given to the FLAC__Encoder instance before initialization is simply N+4.  This accounts for the extra space needed to store the APPLICATION ID.
+		In the case where the size of the APPLICATION block data is known ahead of time, the required size of the padding block can be easily calculated.  If the APPLICATION block data length in bytes (not including the APPLICATION metadata block header) is N bytes, the size given to the FLAC__StreamEncoder instance before initialization is simply N+4.  This accounts for the extra space needed to store the APPLICATION ID.
 	</P>
 	<P>
 		In the case where only the maximum size is known, say, to be N bytes, the required padding size would be N+8.  Four for the APPLICATION ID as before, and four for the extra PADDING block that will fill up the remainder.  At the end of the encoding, when the APPLICATION block data length is known, say, to be M bytes, the original PADDING block would be overwritten with the APPLICATION block and a PADDING block of size N-M.

@@ -31,6 +31,7 @@ typedef enum {
 	FLAC__STREAM_DECODER_ABORTED,
 	FLAC__STREAM_DECODER_UNPARSEABLE_STREAM,
 	FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR,
+	FLAC__STREAM_DECODER_ALREADY_INITIALIZED,
 	FLAC__STREAM_DECODER_UNINITIALIZED
 } FLAC__StreamDecoderState;
 extern const char *FLAC__StreamDecoderStateString[];
@@ -55,20 +56,40 @@ typedef enum {
 } FLAC__StreamDecoderErrorStatus;
 extern const char *FLAC__StreamDecoderErrorStatusString[];
 
+/***********************************************************************
+ *
+ * class FLAC__StreamDecoder
+ *
+ ***********************************************************************/
+
+struct FLAC__StreamDecoderProtected;
 struct FLAC__StreamDecoderPrivate;
 typedef struct {
-	/* these fields are read-only and valid as of the last write_callback() */
-	unsigned channels;
-	FLAC__ChannelAssignment channel_assignment;
-	unsigned bits_per_sample;
-	unsigned sample_rate; /* in Hz */
-	unsigned blocksize; /* in samples (per channel) */
-	FLAC__StreamDecoderState state; /* must be FLAC__STREAM_DECODER_UNINITIALIZED when passed to FLAC__stream_decoder_init() */
-	struct FLAC__StreamDecoderPrivate *guts; /* must be 0 when passed to FLAC__stream_decoder_init() */
+	struct FLAC__StreamDecoderProtected *protected;
+	struct FLAC__StreamDecoderPrivate *private;
 } FLAC__StreamDecoder;
 
-FLAC__StreamDecoder *FLAC__stream_decoder_get_new_instance();
-void FLAC__stream_decoder_free_instance(FLAC__StreamDecoder *decoder);
+/***********************************************************************
+ *
+ * Class constructor/destructor
+ *
+ ***********************************************************************/
+
+FLAC__StreamDecoder *FLAC__stream_decoder_new();
+void FLAC__stream_decoder_delete(FLAC__StreamDecoder *);
+
+/***********************************************************************
+ *
+ * Public class method prototypes
+ *
+ ***********************************************************************/
+
+/*
+ * Initialize the instance; should be called after construction and
+ * before any other calls.  Will set and return the decoder state which
+ * will be FLAC__STREAM_DECODER_SEARCH_FOR_METADATA if initialization
+ * succeeded.
+ */
 FLAC__StreamDecoderState FLAC__stream_decoder_init(
 	FLAC__StreamDecoder *decoder,
 	FLAC__StreamDecoderReadStatus (*read_callback)(const FLAC__StreamDecoder *decoder, byte buffer[], unsigned *bytes, void *client_data),
@@ -78,8 +99,28 @@ FLAC__StreamDecoderState FLAC__stream_decoder_init(
 	void *client_data
 );
 void FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder);
+
+/*
+ * methods to return the stream decoder state, number of channels,
+ * channel assignment, bits-per-sample, sample rate in Hz, and
+ * blocksize in samples.
+ */
+FLAC__StreamDecoderState FLAC__stream_decoder_state(const FLAC__StreamDecoder *decoder);
+unsigned FLAC__stream_decoder_channels(const FLAC__StreamDecoder *decoder);
+FLAC__ChannelAssignment FLAC__stream_decoder_channel_assignment(const FLAC__StreamDecoder *decoder);
+unsigned FLAC__stream_decoder_bits_per_sample(const FLAC__StreamDecoder *decoder);
+unsigned FLAC__stream_decoder_sample_rate(const FLAC__StreamDecoder *decoder);
+unsigned FLAC__stream_decoder_blocksize(const FLAC__StreamDecoder *decoder);
+
+/*
+ * state control methods
+ */
 bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder);
 bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder);
+
+/*
+ * methods for decoding the data
+ */
 bool FLAC__stream_decoder_process_whole_stream(FLAC__StreamDecoder *decoder);
 bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder);
 bool FLAC__stream_decoder_process_one_frame(FLAC__StreamDecoder *decoder);

@@ -99,7 +99,7 @@ int flac__decode_wav(const char *infile, const char *outfile, bool analysis_mode
 
 	if(skip > 0) {
 		if(!FLAC__file_decoder_process_metadata(decoder)) {
-			fprintf(stderr, "%s: ERROR while decoding metadata, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR while decoding metadata, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto wav_abort_;
 		}
 		if(stream_info.skip_count_too_high) {
@@ -107,38 +107,38 @@ int flac__decode_wav(const char *infile, const char *outfile, bool analysis_mode
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_seek_absolute(decoder, skip)) {
-			fprintf(stderr, "%s: ERROR seeking while skipping bytes, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR seeking while skipping bytes, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto wav_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
 			if(verbose) fprintf(stderr, "\n");
-			fprintf(stderr, "%s: ERROR while decoding frames, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR while decoding frames, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto wav_abort_;
 		}
-		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
+		if(FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_END_OF_FILE) {
 			if(verbose) fprintf(stderr, "\n");
-			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto wav_abort_;
 		}
 	}
 	else {
 		if(!FLAC__file_decoder_process_whole_file(decoder)) {
 			if(verbose) fprintf(stderr, "\n");
-			fprintf(stderr, "%s: ERROR while decoding data, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR while decoding data, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto wav_abort_;
 		}
-		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
+		if(FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_END_OF_FILE) {
 			if(verbose) fprintf(stderr, "\n");
-			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto wav_abort_;
 		}
 	}
 
 	if(decoder) {
-		if(decoder->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
 			md5_failure = !FLAC__file_decoder_finish(decoder);
 		print_stats(&stream_info);
-		FLAC__file_decoder_free_instance(decoder);
+		FLAC__file_decoder_delete(decoder);
 	}
 	if(0 != stream_info.fout && stream_info.fout != stdout)
 		fclose(stream_info.fout);
@@ -157,9 +157,9 @@ int flac__decode_wav(const char *infile, const char *outfile, bool analysis_mode
 	return 0;
 wav_abort_:
 	if(decoder) {
-		if(decoder->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
 			FLAC__file_decoder_finish(decoder);
-		FLAC__file_decoder_free_instance(decoder);
+		FLAC__file_decoder_delete(decoder);
 	}
 	if(0 != stream_info.fout && stream_info.fout != stdout) {
 		fclose(stream_info.fout);
@@ -212,7 +212,7 @@ int flac__decode_raw(const char *infile, const char *outfile, bool analysis_mode
 
 	if(skip > 0) {
 		if(!FLAC__file_decoder_process_metadata(decoder)) {
-			fprintf(stderr, "%s: ERROR while decoding metadata, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR while decoding metadata, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto raw_abort_;
 		}
 		if(stream_info.skip_count_too_high) {
@@ -220,38 +220,38 @@ int flac__decode_raw(const char *infile, const char *outfile, bool analysis_mode
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_seek_absolute(decoder, skip)) {
-			fprintf(stderr, "%s: ERROR seeking while skipping bytes, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR seeking while skipping bytes, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto raw_abort_;
 		}
 		if(!FLAC__file_decoder_process_remaining_frames(decoder)) {
 			if(verbose) fprintf(stderr, "\n");
-			fprintf(stderr, "%s: ERROR while decoding frames, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR while decoding frames, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto raw_abort_;
 		}
-		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
+		if(FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_END_OF_FILE) {
 			if(verbose) fprintf(stderr, "\n");
-			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto raw_abort_;
 		}
 	}
 	else {
 		if(!FLAC__file_decoder_process_whole_file(decoder)) {
 			if(verbose) fprintf(stderr, "\n");
-			fprintf(stderr, "%s: ERROR while decoding data, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR while decoding data, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto raw_abort_;
 		}
-		if(decoder->state != FLAC__FILE_DECODER_OK && decoder->state != FLAC__FILE_DECODER_END_OF_FILE) {
+		if(FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_END_OF_FILE) {
 			if(verbose) fprintf(stderr, "\n");
-			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+			fprintf(stderr, "%s: ERROR during decoding, state=%d:%s\n", infile, FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 			goto raw_abort_;
 		}
 	}
 
 	if(decoder) {
-		if(decoder->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
 			md5_failure = !FLAC__file_decoder_finish(decoder);
 		print_stats(&stream_info);
-		FLAC__file_decoder_free_instance(decoder);
+		FLAC__file_decoder_delete(decoder);
 	}
 	if(0 != stream_info.fout && stream_info.fout != stdout)
 		fclose(stream_info.fout);
@@ -270,9 +270,9 @@ int flac__decode_raw(const char *infile, const char *outfile, bool analysis_mode
 	return 0;
 raw_abort_:
 	if(decoder) {
-		if(decoder->state != FLAC__FILE_DECODER_UNINITIALIZED)
+		if(FLAC__file_decoder_state(decoder) != FLAC__FILE_DECODER_UNINITIALIZED)
 			FLAC__file_decoder_finish(decoder);
-		FLAC__file_decoder_free_instance(decoder);
+		FLAC__file_decoder_delete(decoder);
 	}
 	if(0 != stream_info.fout && stream_info.fout != stdout) {
 		fclose(stream_info.fout);
@@ -289,15 +289,14 @@ bool init(const char *infile, stream_info_struct *stream_info)
 
 	is_big_endian_host = (*((byte*)(&test)))? false : true;
 
-	decoder = FLAC__file_decoder_get_new_instance();
+	decoder = FLAC__file_decoder_new();
 	if(0 == decoder) {
 		fprintf(stderr, "ERROR creating the decoder instance\n");
 		return false;
 	}
-	decoder->check_md5 = true;
 
-	if(FLAC__file_decoder_init(decoder, infile, write_callback, metadata_callback, error_callback, stream_info) != FLAC__FILE_DECODER_OK) {
-		fprintf(stderr, "ERROR initializing decoder, state=%d:%s\n", decoder->state, FLAC__FileDecoderStateString[decoder->state]);
+	if(FLAC__file_decoder_init(decoder, true /*check_md5*/, infile, write_callback, metadata_callback, error_callback, stream_info) != FLAC__FILE_DECODER_OK) {
+		fprintf(stderr, "ERROR initializing decoder, state=%d:%s\n", FLAC__file_decoder_state(decoder), FLAC__FileDecoderStateString[FLAC__file_decoder_state(decoder)]);
 		return false;
 	}
 

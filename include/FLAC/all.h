@@ -21,11 +21,11 @@
 #define FLAC__ALL_H
 
 #include "assert.h"
-#include "encoder.h"
 #include "file_decoder.h"
 #include "format.h"
 #include "ordinals.h"
 #include "seek_table.h"
 #include "stream_decoder.h"
+#include "stream_encoder.h"
 
 #endif
