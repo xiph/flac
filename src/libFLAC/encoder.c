@@ -246,6 +246,7 @@ void FLAC__encoder_free_instance(FLAC__Encoder *encoder)
 FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWriteStatus (*write_callback)(const FLAC__Encoder *encoder, const byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data), void (*metadata_callback)(const FLAC__Encoder *encoder, const FLAC__StreamMetaData *metadata, void *client_data), void *client_data)
 {
 	unsigned i;
+	FLAC__StreamMetaData padding;
 
 	assert(sizeof(int) >= 4); /* we want to die right away if this is not true */
 	assert(encoder != 0);
@@ -376,21 +377,30 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 	if(!FLAC__bitbuffer_write_raw_uint32(&encoder->guts->frame, FLAC__STREAM_SYNC, FLAC__STREAM_SYNC_LEN))
 		return encoder->state = FLAC__ENCODER_FRAMING_ERROR;
 
-	encoder->guts->metadata.type = FLAC__METADATA_TYPE_ENCODING;
-	encoder->guts->metadata.is_last = true;
-	encoder->guts->metadata.length = FLAC__STREAM_METADATA_ENCODING_LENGTH;
-	encoder->guts->metadata.data.encoding.min_blocksize = encoder->blocksize; /* this encoder uses the same blocksize for the whole stream */
-	encoder->guts->metadata.data.encoding.max_blocksize = encoder->blocksize;
-	encoder->guts->metadata.data.encoding.min_framesize = 0; /* we don't know this yet; have to fill it in later */
-	encoder->guts->metadata.data.encoding.max_framesize = 0; /* we don't know this yet; have to fill it in later */
-	encoder->guts->metadata.data.encoding.sample_rate = encoder->sample_rate;
-	encoder->guts->metadata.data.encoding.channels = encoder->channels;
-	encoder->guts->metadata.data.encoding.bits_per_sample = encoder->bits_per_sample;
-	encoder->guts->metadata.data.encoding.total_samples = encoder->total_samples_estimate; /* we will replace this later with the real total */
-	memset(encoder->guts->metadata.data.encoding.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
+	encoder->guts->metadata.type = FLAC__METADATA_TYPE_STREAMINFO;
+	encoder->guts->metadata.is_last = (encoder->padding == 0);
+	encoder->guts->metadata.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
+	encoder->guts->metadata.data.stream_info.min_blocksize = encoder->blocksize; /* this encoder uses the same blocksize for the whole stream */
+	encoder->guts->metadata.data.stream_info.max_blocksize = encoder->blocksize;
+	encoder->guts->metadata.data.stream_info.min_framesize = 0; /* we don't know this yet; have to fill it in later */
+	encoder->guts->metadata.data.stream_info.max_framesize = 0; /* we don't know this yet; have to fill it in later */
+	encoder->guts->metadata.data.stream_info.sample_rate = encoder->sample_rate;
+	encoder->guts->metadata.data.stream_info.channels = encoder->channels;
+	encoder->guts->metadata.data.stream_info.bits_per_sample = encoder->bits_per_sample;
+	encoder->guts->metadata.data.stream_info.total_samples = encoder->total_samples_estimate; /* we will replace this later with the real total */
+	memset(encoder->guts->metadata.data.stream_info.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
 	MD5Init(&encoder->guts->md5context);
 	if(!FLAC__add_metadata_block(&encoder->guts->metadata, &encoder->guts->frame))
 		return encoder->state = FLAC__ENCODER_FRAMING_ERROR;
+
+	/* add a PADDING block if requested */
+	if(encoder->padding > 0) {
+		padding.type = FLAC__METADATA_TYPE_PADDING;
+		padding.is_last = true;
+		padding.length = encoder->padding;
+		if(!FLAC__add_metadata_block(&padding, &encoder->guts->frame))
+			return encoder->state = FLAC__ENCODER_FRAMING_ERROR;
+	}
 
 	assert(encoder->guts->frame.bits == 0); /* assert that we're byte-aligned before writing */
 	assert(encoder->guts->frame.total_consumed_bits == 0); /* assert that no reading of the buffer was done */
@@ -398,9 +408,9 @@ FLAC__EncoderState FLAC__encoder_init(FLAC__Encoder *encoder, FLAC__EncoderWrite
 		return encoder->state = FLAC__ENCODER_FATAL_ERROR_WHILE_WRITING;
 
 	/* now that the metadata block is written, we can init this to an absurdly-high value... */
-	encoder->guts->metadata.data.encoding.min_framesize = (1u << FLAC__STREAM_METADATA_ENCODING_MIN_FRAME_SIZE_LEN) - 1;
+	encoder->guts->metadata.data.stream_info.min_framesize = (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN) - 1;
 	/* ... and clear this to 0 */
-	encoder->guts->metadata.data.encoding.total_samples = 0;
+	encoder->guts->metadata.data.stream_info.total_samples = 0;
 
 	return encoder->state;
 }
@@ -416,7 +426,7 @@ void FLAC__encoder_finish(FLAC__Encoder *encoder)
 		encoder->blocksize = encoder->guts->current_sample_number;
 		encoder_process_frame_(encoder, true); /* true => is last frame */
 	}
-	MD5Final(encoder->guts->metadata.data.encoding.md5sum, &encoder->guts->md5context);
+	MD5Final(encoder->guts->metadata.data.stream_info.md5sum, &encoder->guts->md5context);
 	encoder->guts->metadata_callback(encoder, &encoder->guts->metadata, encoder->guts->client_data);
 	if(encoder->guts != 0) {
 		for(i = 0; i < encoder->channels; i++) {
@@ -602,9 +612,9 @@ bool encoder_process_frame_(FLAC__Encoder *encoder, bool is_last_frame)
 	encoder->guts->current_frame_can_do_mid_side = true;
 	encoder->guts->current_sample_number = 0;
 	encoder->guts->current_frame_number++;
-	encoder->guts->metadata.data.encoding.total_samples += (uint64)encoder->blocksize;
-	encoder->guts->metadata.data.encoding.min_framesize = min(encoder->guts->frame.bytes, encoder->guts->metadata.data.encoding.min_framesize);
-	encoder->guts->metadata.data.encoding.max_framesize = max(encoder->guts->frame.bytes, encoder->guts->metadata.data.encoding.max_framesize);
+	encoder->guts->metadata.data.stream_info.total_samples += (uint64)encoder->blocksize;
+	encoder->guts->metadata.data.stream_info.min_framesize = min(encoder->guts->frame.bytes, encoder->guts->metadata.data.stream_info.min_framesize);
+	encoder->guts->metadata.data.stream_info.max_framesize = max(encoder->guts->frame.bytes, encoder->guts->metadata.data.stream_info.max_framesize);
 
 	return true;
 }
