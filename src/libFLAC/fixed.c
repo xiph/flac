@@ -80,7 +80,7 @@ unsigned FLAC__fixed_compute_best_predictor_slow(const int32 data[], unsigned da
 	int32 last_error_1 = data[-1] - data[-2];
 	int32 last_error_2 = last_error_1 - (data[-2] - data[-3]);
 	int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
-	int32 error_0, error_1, error_2, error_3, error_4;
+	int32 error_0, save;
 	/* total_error_* are 64-bits to avoid overflow when encoding
 	 * erratic signals when the bits-per-sample and blocksize are
 	 * large.
@@ -89,16 +89,11 @@ unsigned FLAC__fixed_compute_best_predictor_slow(const int32 data[], unsigned da
 	unsigned i, order;
 
 	for(i = 0; i < data_len; i++) {
-		error_0 = data[i]               ; total_error_0 += local_abs(error_0);
-		error_1 = error_0 - last_error_0; total_error_1 += local_abs(error_1);
-		error_2 = error_1 - last_error_1; total_error_2 += local_abs(error_2);
-		error_3 = error_2 - last_error_2; total_error_3 += local_abs(error_3);
-		error_4 = error_3 - last_error_3; total_error_4 += local_abs(error_4);
-
-		last_error_0 = error_0;
-		last_error_1 = error_1;
-		last_error_2 = error_2;
-		last_error_3 = error_3;
+		error  = data[i]     ; total_error_0 += local_abs(error);                      save = error;
+		error -= last_error_0; total_error_1 += local_abs(error); last_error_0 = save; save = error;
+		error -= last_error_1; total_error_2 += local_abs(error); last_error_1 = save; save = error;
+		error -= last_error_2; total_error_3 += local_abs(error); last_error_2 = save; save = error;
+		error -= last_error_3; total_error_4 += local_abs(error); last_error_3 = save;
 	}
 
 	if(total_error_0 < min(min(min(total_error_1, total_error_2), total_error_3), total_error_4))
