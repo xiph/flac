@@ -146,23 +146,23 @@ struct share__option
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
-extern int share__getopt (int __argc, char *const *__argv, const char *__shortopts);
+extern int share__getopt (int argc, char *const *argv, const char *shortopts);
 /*[JEC] was:# else*/ /* not __GNU_LIBRARY__ */
 /*[JEC] was:extern int getopt ();*/
 /*[JEC] was:# endif*/ /* __GNU_LIBRARY__ */
 
 /*[JEC] was:# ifndef __need_getopt*/
-extern int share__getopt_long (int __argc, char *const *__argv, const char *__shortopts,
-		        const struct share__option *__longopts, int *__longind);
-extern int share__getopt_long_only (int __argc, char *const *__argv,
-			     const char *__shortopts,
-		             const struct share__option *__longopts, int *__longind);
+extern int share__getopt_long (int argc, char *const *argv, const char *shortopts,
+		        const struct share__option *longopts, int *longind);
+extern int share__getopt_long_only (int argc, char *const *argv,
+			     const char *shortopts,
+		             const struct share__option *longopts, int *longind);
 
 /* Internal only.  Users should not call this directly.  */
-extern int share___getopt_internal (int __argc, char *const *__argv,
-			     const char *__shortopts,
-		             const struct share__option *__longopts, int *__longind,
-			     int __long_only);
+extern int share___getopt_internal (int argc, char *const *argv,
+			     const char *shortopts,
+		             const struct share__option *longopts, int *longind,
+			     int long_only);
 /*[JEC] was:# endif*/
 /*[JEC] was:#else*/ /* not __STDC__ */
 /*[JEC] was:extern int getopt ();*/
