@@ -172,7 +172,6 @@ static bool compare_chain_(FLAC::Metadata::Chain &chain, unsigned current_positi
 {
 	unsigned i;
 	FLAC::Metadata::Iterator iterator;
-	FLAC::Metadata::Prototype *block;
 	bool next_ok = true;
 
 	printf("\tcomparing chain... ");
@@ -185,6 +184,8 @@ static bool compare_chain_(FLAC::Metadata::Chain &chain, unsigned current_positi
 
 	i = 0;
 	do {
+		FLAC::Metadata::Prototype *block;
+
 		printf("%u... ", i);
 		fflush(stdout);
 
@@ -194,6 +195,7 @@ static bool compare_chain_(FLAC::Metadata::Chain &chain, unsigned current_positi
 		if(*block != *our_metadata_.blocks[i])
 			return die_("metadata block mismatch");
 
+		delete block;
 		i++;
 		next_ok = iterator.next();
 	} while(i < our_metadata_.num_blocks && next_ok);
@@ -422,6 +424,9 @@ static bool test_level_1_()
 	FLAC__byte data[1000];
 	unsigned our_current_position = 0;
 
+	// initialize 'data' to avoid Valgrind errors
+	memset(data, 0, sizeof(data));
+
 	printf("\n\n++++++ testing level 1 interface\n");
 
 	/************************************************************/
@@ -474,6 +479,7 @@ static bool test_level_1_()
 		return die_("mismatch in min_blocksize");
 	if(streaminfo->get_max_blocksize() != 576)
 		return die_("mismatch in max_blocksize");
+	// we will delete streaminfo a little later when we're really done with it...
 
 	if(!iterator.next())
 		return die_("forward iterator ended early");
@@ -494,6 +500,7 @@ static bool test_level_1_()
 	/* check to see if some basic data matches (c.f. generate_file_()) */
 	if(block->get_length() != 1234)
 		return die_("bad PADDING length");
+	delete block;
 
 	if(iterator.next())
 		return die_("forward iterator returned true but should have returned false");
@@ -512,6 +519,7 @@ static bool test_level_1_()
 		printf("PASSED.  iterator.set_block() returned false like it should\n");
 	else
 		return die_("iterator.set_block() returned true but shouldn't have");
+	delete streaminfo;
 	}
 
 	/************************************************************/
@@ -1083,6 +1091,9 @@ static bool test_level_2_()
 	FLAC__byte data[2000];
 	unsigned our_current_position;
 
+	// initialize 'data' to avoid Valgrind errors
+	memset(data, 0, sizeof(data));
+
 	printf("\n\n++++++ testing level 2 interface\n");
 
 	printf("generate read-only file\n");
@@ -1137,11 +1148,14 @@ static bool test_level_2_()
 	streaminfo->set_sample_rate(32000);
 	if(!replace_in_our_metadata_(block, our_current_position, /*copy=*/true))
 		return die_("copying object");
+	delete block;
 
 	if(!chain.write(/*use_padding=*/false, /*preserve_file_stats=*/true))
 		return die_c_("during chain.write(false, true)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1163,6 +1177,7 @@ static bool test_level_2_()
 	app->set_id((const unsigned char *)"duh");
 	if(!app->set_data(data, block->get_length()-(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8), true))
 		return die_("setting APPLICATION data");
+	delete block;
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
 		return die_("copying object");
 	if(!iterator.set_block(app))
@@ -1170,8 +1185,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/false, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(false, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1187,8 +1204,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/false, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(false, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1204,8 +1223,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/false, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(false, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1221,8 +1242,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/false, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(false, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1238,8 +1261,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/true, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(true, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1260,8 +1285,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/true, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(true, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1278,8 +1305,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/true, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(true, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1295,8 +1324,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/true, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(true, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1313,8 +1344,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/true, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(true, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1331,8 +1364,10 @@ static bool test_level_2_()
 
 	if(!chain.write(/*use_padding=*/true, /*preserve_file_stats=*/false))
 		return die_c_("during chain.write(true, false)", chain.status());
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 	if(!test_file_(flacfile_, /*ignore_metadata=*/false))
 		return false;
 
@@ -1366,8 +1401,10 @@ static bool test_level_2_()
 	if(!iterator.insert_block_after(padding))
 		return die_("iterator.insert_block_after(padding)");
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	printf("SV[P]A\tinsert PADDING before\n");
 	if(0 == (padding = dynamic_cast<FLAC::Metadata::Padding *>(FLAC::Metadata::clone(our_metadata_.blocks[our_current_position]))))
@@ -1378,8 +1415,10 @@ static bool test_level_2_()
 	if(!iterator.insert_block_before(padding))
 		return die_("iterator.insert_block_before(padding)");
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	printf("SV[P]PA\tinsert PADDING before\n");
 	if(0 == (padding = dynamic_cast<FLAC::Metadata::Padding *>(FLAC::Metadata::clone(our_metadata_.blocks[our_current_position]))))
@@ -1390,8 +1429,10 @@ static bool test_level_2_()
 	if(!iterator.insert_block_before(padding))
 		return die_("iterator.insert_block_before(padding)");
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	printf("SV[P]PPA\tnext\n");
 	if(!iterator.next())
@@ -1417,8 +1458,10 @@ static bool test_level_2_()
 	if(!iterator.insert_block_after(padding))
 		return die_("iterator.insert_block_after(padding)");
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	printf("SVPPPA[P]\tinsert PADDING before\n");
 	if(0 == (padding = dynamic_cast<FLAC::Metadata::Padding *>(FLAC::Metadata::clone(our_metadata_.blocks[2]))))
@@ -1429,8 +1472,10 @@ static bool test_level_2_()
 	if(!iterator.insert_block_before(padding))
 		return die_("iterator.insert_block_before(padding)");
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	}
 	our_current_position = 0;
@@ -1492,8 +1537,10 @@ static bool test_level_2_()
 	if(!iterator.delete_block(/*replace_with_padding=*/true))
 		return die_c_("iterator.delete_block(true)", chain.status());
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	printf("S[V]PP\tnext\n");
 	if(!iterator.next())
@@ -1505,8 +1552,10 @@ static bool test_level_2_()
 	if(!iterator.delete_block(/*replace_with_padding=*/false))
 		return die_c_("iterator.delete_block(false)", chain.status());
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	printf("S[V]P\tnext\n");
 	if(!iterator.next())
@@ -1522,8 +1571,10 @@ static bool test_level_2_()
 	if(!iterator.delete_block(/*replace_with_padding=*/true))
 		return die_c_("iterator.delete_block(true)", chain.status());
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	printf("S[V]P\tnext\n");
 	if(!iterator.next())
@@ -1535,8 +1586,10 @@ static bool test_level_2_()
 	if(!iterator.delete_block(/*replace_with_padding=*/false))
 		return die_c_("iterator.delete_block(false)", chain.status());
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	printf("S[V]\tprev\n");
 	if(!iterator.prev())
@@ -1547,8 +1600,10 @@ static bool test_level_2_()
 	if(iterator.delete_block(/*replace_with_padding=*/false))
 		return die_("iterator.delete_block() on STREAMINFO should have failed but didn't");
 
-	if(!compare_chain_(chain, our_current_position, iterator.get_block()))
+	block = iterator.get_block();
+	if(!compare_chain_(chain, our_current_position, block))
 		return false;
+	delete block;
 
 	}
 	our_current_position = 0;
