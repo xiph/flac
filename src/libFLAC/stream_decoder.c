@@ -343,6 +343,7 @@ FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder)
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}
+	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 
 	return true;
 }
