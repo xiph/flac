@@ -120,7 +120,7 @@
 			<B>Suitable for archiving</B>: FLAC is an open format, and there is no generation loss if you need to convert your data to another format in the future.  In addition to the frame CRCs and MD5 signature, <B><TT>flac</TT></B> has a verify option that decodes the encoded stream in parallel with the encoding process and compares the result to the original, aborting with an error if there is a mismatch.
 		</LI></P>
 		<P><LI>
-			<B>Convenient CD archiving</B>: FLAC has a metadata block for storing a CD table of contents and all track and index points.  For instance, you can rip a CD to a single file, then import the CD's extracted cue sheet while encoding to yield a single file representation of the entire CD.  If your original CD is damaged, the cue sheet can be exported later in order to burn an exact copy.
+			<B>Convenient CD archiving</B>: FLAC has a <A HREF="format.html#def_CUESHEET">"cue sheet"</a> metadata block for storing a CD table of contents and all track and index points.  For instance, you can rip a CD to a single file, then import the CD's extracted cue sheet while encoding to yield a single file representation of the entire CD.  If your original CD is damaged, the cue sheet can be exported later in order to burn an exact copy.
 		</LI></P>
 		<P><LI>
 			<B>Error resistant</B>: Because of FLAC's framing, stream errors limit the damage to the frame in which the error occurred, typically a small fraction of a second worth of data.  Contrast this with some other lossless codecs, in which a single error destroys the remainder of the stream.

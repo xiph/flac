@@ -522,7 +522,7 @@ static FLAC__bool test_level_1_()
 	printf("testing FLAC__metadata_simple_iterator_set_block() on read-only file...\n");
 
 	if(!FLAC__metadata_simple_iterator_set_block(iterator, (FLAC__StreamMetadata*)99, false))
-		printf("PASSED.  FLAC__metadata_simple_iterator_set_block() returned false like it should\n");
+		printf("OK: FLAC__metadata_simple_iterator_set_block() returned false like it should\n");
 	else
 		return die_("FLAC__metadata_simple_iterator_set_block() returned true but shouldn't have");
 
