@@ -22,10 +22,10 @@ NASM=nasmw
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) /D "_LIB" -DVERSION=\"1.0.5_beta2\" -DFLAC__NO_DLL -DFLAC__CPU_IA32 -DFLAC__HAS_NASM -DFLAC__OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I ".\include" /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /D "_LIB" -DVERSION=\"1.1.0\" -DFLAC__NO_DLL -DFLAC__CPU_IA32 -DFLAC__HAS_NASM -DFLAC__OVERFLOW_DETECT /GX $(cdebug) $(cflags) /I ".\include" /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /D "_LIB" -DVERSION=\"1.0.5_beta2\" -DFLAC__NO_DLL -DFLAC__CPU_IA32 -DFLAC__HAS_NASM /O2 $(crelease) $(cflags) /I ".\include" /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /D "_LIB" -DVERSION=\"1.1.0\" -DFLAC__NO_DLL -DFLAC__CPU_IA32 -DFLAC__HAS_NASM /O2 $(crelease) $(cflags) /I ".\include" /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \

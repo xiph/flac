@@ -39,7 +39,7 @@ License (GFDL).
 
 
 ===============================================================================
-FLAC - 1.0.5_beta2 - Contents
+FLAC - 1.1.0 - Contents
 ===============================================================================
 
 - Introduction
@@ -53,10 +53,6 @@ FLAC - 1.0.5_beta2 - Contents
 ===============================================================================
 Introduction
 ===============================================================================
-
-@@@@ NOTE @@@@
-This is a beta release.  The CUESHEET metadata block specification has not
-been finalized.
 
 This is the source release for the FLAC project.  See
 
