@@ -1209,6 +1209,10 @@ FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__MetaData_Iterator *i
  *
  ***************************************************************************/
 
+/*@@@@move
+will return pointer to new empty object of type 'type', or 0 if malloc failed
+type is valid type
+*/
 FLAC__StreamMetaData *FLAC__metadata_object_new(FLAC__MetaDataType type)
 {
 	FLAC__StreamMetaData *object = malloc(sizeof(FLAC__StreamMetaData));
@@ -1231,7 +1235,10 @@ FLAC__StreamMetaData *FLAC__metadata_object_new(FLAC__MetaDataType type)
 				object->length = (FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN + FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8;
 				break;
 			default:
+				/* double protection: */
 				FLAC__ASSERT(0);
+				free(object);
+				return 0;
 		}
 	}
 
@@ -1269,6 +1276,10 @@ static FLAC__bool copy_vcentry_(FLAC__StreamMetaData_VorbisComment_Entry *to, co
 	return true;
 }
 
+/*@@@@move
+return a pointer to a copy of 'object', or 0 if any malloc failed.  does a deep copy.  user gets ownership of object.
+    FLAC__ASSERT(0 != object);
+*/
 FLAC__StreamMetaData *FLAC__metadata_object_copy(const FLAC__StreamMetaData *object)
 {
 	FLAC__StreamMetaData *to;
@@ -1305,34 +1316,25 @@ FLAC__StreamMetaData *FLAC__metadata_object_copy(const FLAC__StreamMetaData *obj
 					FLAC__metadata_object_delete(to);
 					return 0;
 				}
-				to->data.vorbis_comment.num_comments = object->data.vorbis_comment.num_comments;
 				if(object->data.vorbis_comment.num_comments == 0) {
 					FLAC__ASSERT(0 == object->data.vorbis_comment.comments);
 					to->data.vorbis_comment.comments = 0;
 				}
 				else {
 					FLAC__ASSERT(0 != object->data.vorbis_comment.comments);
-					if(0 == (to->data.vorbis_comment.comments = malloc(object->data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetaData_VorbisComment_Entry*)))) {
+					to->data.vorbis_comment.comments = FLAC__metadata_object_vorbiscomment_entry_array_copy(object->data.vorbis_comment.comments);
+					if(0 == to->data.vorbis_comment.comments) {
 						FLAC__metadata_object_delete(to);
 						return 0;
 					}
 				}
-				/* Need to do this to set the pointers inside the comments to 0.
-				 * In case of an error in the following loop, the object will be
-				 * deleted and we don't want the destructor freeing uninitialized
-				 * pointers.
-				 */
-				if(0 != to->data.vorbis_comment.comments)
-					memset(to->data.vorbis_comment.comments, 0, object->data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetaData_VorbisComment_Entry*));
-				for(i = 0; i < object->data.vorbis_comment.num_comments; i++) {
-					if(!copy_vcentry_(to->data.vorbis_comment.comments+i, object->data.vorbis_comment.comments+i)) {
-						FLAC__metadata_object_delete(to);
-						return 0;
-					}
-				}
+				to->data.vorbis_comment.num_comments = object->data.vorbis_comment.num_comments;
 				break;
 			default:
+				/* double protection: */
 				FLAC__ASSERT(0);
+				free(to);
+				return 0;
 		}
 	}
 
@@ -1360,24 +1362,30 @@ void FLAC__metadata_object_delete_data_(FLAC__StreamMetaData *object)
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 			if(0 != object->data.vorbis_comment.vendor_string.entry)
 				free(object->data.vorbis_comment.vendor_string.entry);
-			for(i = 0; i < object->data.vorbis_comment.num_comments; i++) {
-				if(0 != object->data.vorbis_comment.comments[i].entry)
-					free(object->data.vorbis_comment.comments[i].entry);
+			if(0 != object->data.vorbis_comment.comments) {
+				FLAC__ASSERT(object->data.vorbis_comment.num_comments > 0);
+				FLAC__metadata_object_vorbiscomment_entry_array_delete(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
 			}
-			if(0 != object->data.vorbis_comment.comments)
-				free(object->data.vorbis_comment.comments);
 			break;
 		default:
 			FLAC__ASSERT(0);
 	}
 }
 
+/*@@@@move
+frees 'object'.  does a deep delete.
+*/
 void FLAC__metadata_object_delete(FLAC__StreamMetaData *object)
 {
 	FLAC__metadata_object_delete_data_(object);
 	free(object);
 }
 
+/*@@@@move
+sets the application data to 'data'.  if 'copy' is true, makes, copy, else takes ownership of pointer.  returns false if copy==true and malloc fails.
+    FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_APPLICATION);
+    FLAC__ASSERT((0 != data && length > 0) || (0 == data && length == 0 && copy == false));
+*/
 FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetaData *object, FLAC__byte *data, unsigned length, FLAC__bool copy)
 {
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_APPLICATION);
@@ -1397,6 +1405,10 @@ FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetaData *obje
 	return true;
 }
 
+/*@@@@move
+creates an array of seekpoints (FLAC__StreamMetaData_SeekPoint).  returns pointer to new array, or NULL if malloc fails.
+num_points > 0.
+*/
 FLAC__StreamMetaData_SeekPoint *FLAC__metadata_object_seekpoint_array_new(unsigned num_points)
 {
 	FLAC__StreamMetaData_SeekPoint *object_array;
@@ -1411,6 +1423,11 @@ FLAC__StreamMetaData_SeekPoint *FLAC__metadata_object_seekpoint_array_new(unsign
 	return object_array;
 }
 
+/*@@@@move
+return pointer to copy of seekpoint array, or NULL if malloc fails.
+num_points > 0
+object_array != NULL
+*/
 FLAC__StreamMetaData_SeekPoint *FLAC__metadata_object_seekpoint_array_copy(const FLAC__StreamMetaData_SeekPoint *object_array, unsigned num_points)
 {
 	FLAC__StreamMetaData_SeekPoint *return_array;
@@ -1426,6 +1443,10 @@ FLAC__StreamMetaData_SeekPoint *FLAC__metadata_object_seekpoint_array_copy(const
 	return return_array;
 }
 
+/*@@@@move
+frees object array.
+object_array != NULL
+*/
 void FLAC__metadata_object_seekpoint_array_delete(FLAC__StreamMetaData_SeekPoint *object_array)
 {
 	FLAC__ASSERT(0 != object_array);
@@ -1510,11 +1531,16 @@ FLAC__StreamMetaData_VorbisComment_Entry *FLAC__metadata_object_vorbiscomment_en
 
 	if(0 != return_array) {
 		unsigned i;
+
+		/* Need to do this to set the pointers inside the comments to 0.
+		 * In case of an error in the following loop, the object will be
+		 * deleted and we don't want the destructor freeing uninitialized
+		 * pointers.
+		 */
+		memset(return_array, 0, num_comments * sizeof(FLAC__StreamMetaData_VorbisComment_Entry));
+
 		for(i = 0; i < num_comments; i++) {
-			return_array[i].length = object_array[i].length;
-			if(object_array[i].length == 0)
-				return_array[i].entry = 0;
-			else if(!copy_bytes_(&(return_array[i].entry), object_array[i].entry, object_array[i].length)) {
+			if(!copy_vcentry_(return_array+i, object_array+i)) {
 				FLAC__metadata_object_vorbiscomment_entry_array_delete(return_array, num_comments);
 				return 0;
 			}
@@ -1635,6 +1661,18 @@ FLAC__bool FLAC__metadata_object_vorbiscomment_set_comments(FLAC__StreamMetaData
 	}
 
 	return true;
+}
+
+FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__byte *entry, unsigned length, FLAC__bool copy)
+{
+}
+
+FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetaData *object, unsigned comment_num, FLAC__byte *entry, unsigned length, FLAC__bool copy)
+{
+}
+
+FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__StreamMetaData *object, unsigned comment_num)
+{
 }
 
 
@@ -2631,249 +2669,3 @@ FLAC__MetaData_ChainStatus get_equivalent_status_(FLAC__MetaData_SimpleIteratorS
 			return FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR;
 	}
 }
-#if 0
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-FLAC__bool list(FILE *f, FLAC__bool verbose)
-{
-	FLAC__byte buf[65536];
-	FLAC__byte *b = buf;
-	FLAC__StreamMetaData metadata;
-	unsigned blocknum = 0, byte_offset = 0, i;
-
-	/* skip any id3v2 tag */
-	if(fread(buf, 1, 4, f) < 4) {
-		fprintf(stderr, "ERROR: not a FLAC file\n");
-		return false;
-	}
-	if(0 == memcmp(buf, "ID3", 3)) {
-		unsigned tag_length = 0;
-
-		/* skip to the tag length */
-		if(fseek(f, 2, SEEK_CUR) < 0) {
-			fprintf(stderr, "ERROR: bad ID3v2 tag\n");
-			return false;
-		}
-
-		/* read the length */
-		for(i = 0; i < 4; i++) {
-			if(fread(buf, 1, 1, f) < 1 || buf[0] & 0x80) {
-				fprintf(stderr, "ERROR: bad ID3v2 tag\n");
-				return false;
-			}
-			tag_length <<= 7;
-			tag_length |= (buf[0] & 0x7f);
-		}
-
-		/* skip the rest of the tag */
-		if(fseek(f, tag_length, SEEK_CUR) < 0) {
-			fprintf(stderr, "ERROR: bad ID3v2 tag\n");
-			return false;
-		}
-
-		/* read the stream sync code */
-		if(fread(buf, 1, 4, f) < 4) {
-			fprintf(stderr, "ERROR: not a FLAC file (no '%s' header)\n", sync_string_);
-			return false;
-		}
-	}
-
-	/* check the stream sync code */
-	if(memcmp(buf, sync_string_, 4)) {
-		fprintf(stderr, "ERROR: not a FLAC file (no '%s' header)\n", sync_string_);
-		return false;
-	}
-	byte_offset += 4;
-
-	/* read the metadata blocks */
-	do {
-		/* read the metadata block header */
-		if(fread(buf, 1, 4, f) < 4) {
-			fprintf(stderr, "ERROR: short count reading metadata block header\n");
-			return false;
-		}
-		metadata.is_last = (buf[0] & 0x80)? true:false;
-		metadata.type = (FLAC__MetaDataType)(buf[0] & 0x7f);
-		metadata.length = unpack_uint32(buf+1, 3);
-
-		/* print header */
-		printf("METADATA block #%u\n", blocknum);
-		printf("  byte offset: %u\n", byte_offset);
-		printf("  type: %u (%s)\n", (unsigned)metadata.type, metadata.type<=FLAC__METADATA_TYPE_SEEKTABLE? metadata_type_string_[metadata.type] : "UNKNOWN");
-		printf("  is last: %s\n", metadata.is_last? "true":"false");
-		printf("  length: %u\n", metadata.length);
-
-		if(metadata.length > sizeof(buf)) {
-			printf("  SKIPPING large block\n");
-			if(fseek(f, metadata.length, SEEK_CUR) < 0) {
-				fprintf(stderr, "ERROR: short count skipping metadata block data\n");
-				return false;
-			}
-			continue;
-		}
-
-		/* read the metadata block data */
-		if(fread(buf, 1, metadata.length, f) < metadata.length) {
-			fprintf(stderr, "ERROR: short count reading metadata block data\n");
-			return false;
-		}
-		switch(metadata.type) {
-			case FLAC__METADATA_TYPE_STREAMINFO:
-				b = buf;
-				metadata.data.stream_info.min_blocksize = unpack_uint32(b, 2); b += 2;
-				metadata.data.stream_info.max_blocksize = unpack_uint32(b, 2); b += 2;
-				metadata.data.stream_info.min_framesize = unpack_uint32(b, 3); b += 3;
-				metadata.data.stream_info.max_framesize = unpack_uint32(b, 3); b += 3;
-				metadata.data.stream_info.sample_rate = (unpack_uint32(b, 2) << 4) | ((unsigned)(b[2] & 0xf0) >> 4);
-				metadata.data.stream_info.channels = (unsigned)((b[2] & 0x0e) >> 1) + 1;
-				metadata.data.stream_info.bits_per_sample = ((((unsigned)(b[2] & 0x01)) << 1) | (((unsigned)(b[3] & 0xf0)) >> 4)) + 1;
-				metadata.data.stream_info.total_samples = (((FLAC__uint64)(b[3] & 0x0f)) << 32) | unpack_uint64(b+4, 4);
-				memcpy(metadata.data.stream_info.md5sum, b+8, 16);
-				break;
-			case FLAC__METADATA_TYPE_PADDING:
-				if(verbose) {
-					/* dump contents */
-				}
-				break;
-			case FLAC__METADATA_TYPE_APPLICATION:
-				memcpy(metadata.data.application.id, buf, 4);
-				metadata.data.application.data = buf+4;
-				break;
-			case FLAC__METADATA_TYPE_SEEKTABLE:
-				metadata.data.seek_table.num_points = metadata.length / SEEKPOINT_LEN_;
-				b = buf; /* we leave the points in buf for printing later */
-				break;
-			default:
-				printf("SKIPPING block of unknown type\n");
-				continue;
-		}
-
-		/* print data */
-		switch(metadata.type) {
-			case FLAC__METADATA_TYPE_STREAMINFO:
-				printf("  minumum blocksize: %u samples\n", metadata.data.stream_info.min_blocksize);
-				printf("  maximum blocksize: %u samples\n", metadata.data.stream_info.max_blocksize);
-				printf("  minimum framesize: %u bytes\n", metadata.data.stream_info.min_framesize);
-				printf("  maximum framesize: %u bytes\n", metadata.data.stream_info.max_framesize);
-				printf("  sample_rate: %u Hz\n", metadata.data.stream_info.sample_rate);
-				printf("  channels: %u\n", metadata.data.stream_info.channels);
-				printf("  bits-per-sample: %u\n", metadata.data.stream_info.bits_per_sample);
-				printf("  total samples: %llu\n", metadata.data.stream_info.total_samples);
-				printf("  MD5 signature: ");
-				for(i = 0; i < 16; i++)
-					printf("%02x", metadata.data.stream_info.md5sum[i]);
-				printf("\n");
-				break;
-			case FLAC__METADATA_TYPE_PADDING:
-				if(verbose) {
-					printf("  pad contents:\n");
-					hexdump(buf, metadata.length, "    ");
-				}
-				break;
-			case FLAC__METADATA_TYPE_APPLICATION:
-				printf("  application ID: ");
-				for(i = 0; i < 4; i++)
-					printf("%02x", metadata.data.application.id[i]);
-				printf("\n");
-				if(verbose) {
-					printf("  data contents:\n");
-					hexdump(metadata.data.application.data, metadata.length, "    ");
-				}
-				break;
-			case FLAC__METADATA_TYPE_SEEKTABLE:
-				printf("  seek points: %u\n", metadata.data.seek_table.num_points);
-				if(verbose) {
-					for(i = 0; i < metadata.data.seek_table.num_points; i++, b += SEEKPOINT_LEN_)
-						printf("    point %d: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, unpack_uint64(b, 8), unpack_uint64(b+8, 8), unpack_uint32(b+16, 2));
-				}
-				break;
-			default:
-				FLAC__ASSERT(0);
-		}
-
-		blocknum++;
-		byte_offset += (4 + metadata.length);
-	} while (!metadata.is_last);
-
-	return true;
-}
-
-FLAC__uint32 unpack_uint32(FLAC__byte *b, unsigned bytes)
-{
-	FLAC__uint32 ret = 0;
-	unsigned i;
-
-	for(i = 0; i < bytes; i++)
-		ret = (ret << 8) | (FLAC__uint32)(*b++);
-
-	return ret;
-}
-
-FLAC__uint64 unpack_uint64(FLAC__byte *b, unsigned bytes)
-{
-	FLAC__uint64 ret = 0;
-	unsigned i;
-
-	for(i = 0; i < bytes; i++)
-		ret = (ret << 8) | (FLAC__uint64)(*b++);
-
-	return ret;
-}
-
-void hexdump(const FLAC__byte *buf, unsigned bytes, const char *indent)
-{
-	unsigned i, left = bytes;
-	const FLAC__byte *b = buf;
-
-	for(i = 0; i < bytes; i += 16) {
-		printf("%s%08X: "
-			"%02X %02X %02X %02X %02X %02X %02X %02X "
-			"%02X %02X %02X %02X %02X %02X %02X %02X "
-			"%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\n",
-			indent, i,
-			left >  0? (unsigned char)b[ 0] : 0,
-			left >  1? (unsigned char)b[ 1] : 0,
-			left >  2? (unsigned char)b[ 2] : 0,
-			left >  3? (unsigned char)b[ 3] : 0,
-			left >  4? (unsigned char)b[ 4] : 0,
-			left >  5? (unsigned char)b[ 5] : 0,
-			left >  6? (unsigned char)b[ 6] : 0,
-			left >  7? (unsigned char)b[ 7] : 0,
-			left >  8? (unsigned char)b[ 8] : 0,
-			left >  9? (unsigned char)b[ 9] : 0,
-			left > 10? (unsigned char)b[10] : 0,
-			left > 11? (unsigned char)b[11] : 0,
-			left > 12? (unsigned char)b[12] : 0,
-			left > 13? (unsigned char)b[13] : 0,
-			left > 14? (unsigned char)b[14] : 0,
-			left > 15? (unsigned char)b[15] : 0,
-			(left >  0) ? (isprint(b[ 0]) ? b[ 0] : '.') : ' ',
-			(left >  1) ? (isprint(b[ 1]) ? b[ 1] : '.') : ' ',
-			(left >  2) ? (isprint(b[ 2]) ? b[ 2] : '.') : ' ',
-			(left >  3) ? (isprint(b[ 3]) ? b[ 3] : '.') : ' ',
-			(left >  4) ? (isprint(b[ 4]) ? b[ 4] : '.') : ' ',
-			(left >  5) ? (isprint(b[ 5]) ? b[ 5] : '.') : ' ',
-			(left >  6) ? (isprint(b[ 6]) ? b[ 6] : '.') : ' ',
-			(left >  7) ? (isprint(b[ 7]) ? b[ 7] : '.') : ' ',
-			(left >  8) ? (isprint(b[ 8]) ? b[ 8] : '.') : ' ',
-			(left >  9) ? (isprint(b[ 9]) ? b[ 9] : '.') : ' ',
-			(left > 10) ? (isprint(b[10]) ? b[10] : '.') : ' ',
-			(left > 11) ? (isprint(b[11]) ? b[11] : '.') : ' ',
-			(left > 12) ? (isprint(b[12]) ? b[12] : '.') : ' ',
-			(left > 13) ? (isprint(b[13]) ? b[13] : '.') : ' ',
-			(left > 14) ? (isprint(b[14]) ? b[14] : '.') : ' ',
-			(left > 15) ? (isprint(b[15]) ? b[15] : '.') : ' '
-		);
-		left -= 16;
-		b += 16;
-   }
-}
-#endif
