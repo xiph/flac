@@ -72,7 +72,7 @@ test_file ()
 
 echo "Testing bins..."
 for f in b00 b01 b02 b03 b04 ; do
-	binfile=$BINS_PATH/$f
+	binfile=$BINS_PATH/$f.bin
 	if [ -f $binfile ] ; then
 		for disable in '' '--disable-verbatim-subframes --disable-constant-subframes' '--disable-verbatim-subframes --disable-constant-subframes --disable-fixed-subframes' ; do
 			for channels in 1 2 4 8 ; do
