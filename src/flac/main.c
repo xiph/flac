@@ -25,6 +25,7 @@
 #include "analyze.h"
 #include "decode.h"
 #include "encode.h"
+#include "file.h"
 
 static int usage(const char *message, ...);
 static int encode_file(const char *infilename, const char *forced_outfilename);
@@ -495,6 +496,7 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 	FILE *encode_infile;
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
 	char *p;
+	int retval;
 
 	if(0 == strcmp(infilename, "-")) {
 		encode_infile = stdin;
@@ -558,9 +560,14 @@ int encode_file(const char *infilename, const char *forced_outfilename)
 		forced_outfilename = outfilename;
 
 	if(format_is_wave)
-		return flac__encode_wav(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
+		retval = flac__encode_wav(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points);
 	else
-		return flac__encode_raw(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+		retval = flac__encode_raw(encode_infile, infilename, forced_outfilename, verbose, skip, verify, lax, do_mid_side, loose_mid_side, do_exhaustive_model_search, do_qlp_coeff_prec_search, min_residual_partition_order, max_residual_partition_order, rice_parameter_search_dist, max_lpc_order, (unsigned)blocksize, qlp_coeff_precision, padding, requested_seek_points, num_requested_seek_points, format_is_big_endian, format_is_unsigned_samples, format_channels, format_bps, format_sample_rate);
+
+	if(retval == 0 && strcmp(infilename, "-") && strcmp(forced_outfilename, "-"))
+		flac__file_copy_metadata(infilename, forced_outfilename);
+
+	return retval;
 }
 
 int decode_file(const char *infilename, const char *forced_outfilename)
@@ -568,6 +575,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	static const char *suffixes[] = { ".wav", ".raw" };
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
 	char *p;
+	int retval;
 
 	if(!test_only && !analyze) {
 		if(format_is_wave < 0) {
@@ -599,7 +607,12 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 		forced_outfilename = outfilename;
 
 	if(format_is_wave)
-		return flac__decode_wav(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip);
+		retval = flac__decode_wav(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip);
 	else
-		return flac__decode_raw(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
+		retval = flac__decode_raw(infilename, test_only? 0 : forced_outfilename, analyze, aopts, verbose, skip, format_is_big_endian, format_is_unsigned_samples);
+
+	if(retval == 0 && strcmp(infilename, "-") && strcmp(forced_outfilename, "-"))
+		flac__file_copy_metadata(infilename, forced_outfilename);
+
+	return retval;
 }
