@@ -236,10 +236,14 @@ void FLAC__replaygain_synthesis__init_dither_context(DitherContext *d, int bits,
 
 static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_dithering, int shapingtype, int i, double Sum, int k)
 {
-	double doubletmp, Sum2;
+	union {
+		double d;
+		FLAC__int64 i;
+	} doubletmp;
+	double Sum2;
 	FLAC__int64 val;
 
-#define ROUND64(x)   ( doubletmp = (x) + d->Add + (FLAC__int64)FLAC__I64L(0x001FFFFD80000000), *(FLAC__int64*)(&doubletmp) - (FLAC__int64)FLAC__I64L(0x433FFFFD80000000) )
+#define ROUND64(x)   ( doubletmp.d = (x) + d->Add + (FLAC__int64)FLAC__I64L(0x001FFFFD80000000), doubletmp.i - (FLAC__int64)FLAC__I64L(0x433FFFFD80000000) )
 
 	if(do_dithering) {
 		if(shapingtype == 0) {
