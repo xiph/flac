@@ -146,7 +146,7 @@
 		In the next stage, the encoder tries to approximate the signal with a function in such a way that when the approximation is subracted, the result (called the <I>residual</I>, <I>residue</I>, or <I>error</I>) requires fewer bits-per-sample to encode.  The function's parameters also have to be transmitted so they should not be so complex as to eat up the savings.  FLAC has two methods of forming approximations: 1) fitting a simple polynomial to the signal; and 2) general linear predictive coding (LPC).  I will not go into the details here, only some generalities that involve the encoding options.
 	</P>
 	<P>
-		First, fixed polynomial prediction (specified with <TT>-l 0</TT>) is much faster, but less accurate than LPC.  The higher the maximum LPC order, the slower, but more accurate, the model will be.  However, there are diminishing returns with increasing orders.  Also, at some point (around order 9) the part of the encoder that guesses what is the best order to use will start to get it wrong and the compression will actually decrease slightly; at that point you will have to you will have to use the exhaustive search option <TT>-e</TT> to overcome this, which is significantly slower.
+		First, fixed polynomial prediction (specified with <TT>-l 0</TT>) is much faster, but less accurate than LPC.  The higher the maximum LPC order, the slower, but more accurate, the model will be.  However, there are diminishing returns with increasing orders.  Also, at some point (usually around order 9) the part of the encoder that guesses what is the best order to use will start to get it wrong and the compression will actually decrease slightly; at that point you will have to you will have to use the exhaustive search option <TT>-e</TT> to overcome this, which is significantly slower.
 	</P>
 	<P>
 		Second, the parameters for the fixed predictors can be transmitted in 3 bits whereas the parameters for the LPC model depend on the bits-per-sample and LPC order.  This means the frame header length varies depending on the method and order you choose and can affect the optimal block size.
@@ -528,7 +528,7 @@
 				<TT>-9</TT>
 			</TD>
 			<TD>
-				Synonymous with <TT>-l 32 -b 4608 -m -e -r 16 -p</TT>.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for the given block size.  It is more of a theoretical option without much practical use, since <TT>-8</TT> will get you within tiny fractions of a percent of <TT>-9</TT> and much faster.
+				Synonymous with <TT>-l 32 -b 4608 -m -e -E -r 16 -p</TT>.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for the given block size.  It is more of a theoretical option without much practical use, since <TT>-8</TT> will get you within tiny fractions of a percent of <TT>-9</TT> and much faster.
 			</TD>
 		</TR>
 		<TR>
@@ -537,6 +537,14 @@
 			</TD>
 			<TD>
 				Exhaustive model search (expensive!).  Normally the encoder estimates the best model to use and encodes once based on the estimate.  With an exhaustive model search, the encoder will generate subframes for every order and use the smallest.  If the max LPC order is high this can significantly increase the encode time but can shave off another 0.5%.
+			</TD>
+		</TR>
+		<TR>
+			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
+				<TT>-E</TT>
+			</TD>
+			<TD>
+				Do escape coding in the entropy coder.  This causes the encoder to use an unencoded representation of the residual in a partition if it is smaller.  It increases the runtime and usually results in an improvement of less than 1%.
 			</TD>
 		</TR>
 		<TR>
@@ -592,7 +600,7 @@
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 			</TD>
 			<TD>
-				<TT>-S-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--delete-input-file-</TT>, <TT>--lax-</TT>, <TT>--sector-align-</TT> can all be used to turn off a particular option.
+				<TT>-S-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-E-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--delete-input-file-</TT>, <TT>--lax-</TT>, <TT>--sector-align-</TT> can all be used to turn off a particular option.
 			</TD>
 		</TR>
 	</TABLE>
@@ -845,6 +853,7 @@
 			<LI><B><TT>max_lpc_order</TT></B> - 0 implies encoder will not try general LPC, only fixed predictors; must be &lt;= <TT>FLAC__MAX_LPC_ORDER</TT>.</LI>
 			<LI><B><TT>qlp_coeff_precision</TT></B> - must be &gt;= <TT>FLAC__MIN_QLP_COEFF_PRECISION</TT>, or 0 to let encoder select based on blocksize.  In the current imlementation <TT>qlp_coeff_precision</TT>+<TT>bits_per_sample</TT> must be &lt; 32.</LI>
 			<LI><B><TT>do_qlp_coeff_prec_search</TT></B> - false to use <TT>qlp_coeff_precision</TT>; true to search around <TT>qlp_coeff_precision</TT> and take best.</LI>
+			<LI><B><TT>do_escape_coding</TT></B> - true => search for escape codes in the entropy coding stage for slightly better compression.</LI>
 			<LI><B><TT>do_exhaustive_model_search</TT></B> - false to use estimated bits per residual for scoring; true to generate all and take shortest.</LI>
 			<LI><B><TT>min_residual_partition_order</TT></B>, <B><TT>max_residual_partition_order</TT></B> - 0 to estimate Rice parameter based on residual variance; &gt; 0 to partition the residual and use parameter for each based on mean; <TT>min_residual_partition_order</TT> and <TT>max_residual_partition_order</TT> specify the min and max Rice partition order.</LI>
 			<LI><B><TT>rice_parameter_search_dist</TT></B> - 0 to try only calculated parameter k; else try all [k-<TT>rice_parameter_search_dist</TT>..k+<TT>rice_parameter_search_dist</TT>] parameters and use the best.</LI>

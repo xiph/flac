@@ -363,7 +363,7 @@
 		      <term><option>-9</option></term>
 
 		      <listitem>
-			<para>Synonymous with -l 32 -b 4608 -m -e -r 16 -p
+			<para>Synonymous with -l 32 -b 4608 -m -e -E -r 16 -p
 			  (very slow!)</para>
 		      </listitem>
 		    </varlistentry>
@@ -380,6 +380,18 @@
 		<listitem>
 		  <para>Do exhaustive model search
 		    (expensive!)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-E</option></term>
+
+		<listitem>
+		  <para>Do escape coding in the entropy coder.  This
+		    causes the encoder to use an unencoded representation
+		    of the residual in a partition if it is smaller.  It
+		    increases the runtime and usually results in an
+		    improvement of less than 1%.</para>
 		</listitem>
 	      </varlistentry>
 
