@@ -55,12 +55,12 @@ OBJS = $(ASM_OBJS) \
 	lpc.o \
 	md5.o \
 	memory.o \
+	metadata.o \
 	seek_table.o \
 	seekable_stream_decoder.o \
 	stream_decoder.o \
 	stream_encoder.o \
-	stream_encoder_framing.o \
-	utility.o
+	stream_encoder_framing.o
 
 include ../../build/lib.mk
 
