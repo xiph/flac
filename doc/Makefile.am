@@ -31,3 +31,6 @@ doc_DATA = \
 	FLAC.tag
 
 EXTRA_DIST = Doxyfile Makefile.lite $(doc_DATA)
+
+clean-local:
+	rm -rf FLAC.tag html/api doxytmp
