@@ -20,10 +20,14 @@
 #
 
 PROGRAM_NAME = flac
-#@@@OGG
+ifeq ($(DARWIN_BUILD),yes)
+INCLUDES     = -I./include -I../../include
+LIBS         = -lFLAC -lc -lm
+else
+#@@@ TODO: conditionalize ogg includes, defines, and -logg
 INCLUDES     = -I./include -I../../include -I$(HOME)/local/include -DFLAC__HAS_OGG
-#@@@OGG conditionalize -logg
 LIBS         = -lFLAC -lm -L$(HOME)/local/lib -logg
+endif
 
 OBJS = \
 	analyze.o \

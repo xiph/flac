@@ -21,11 +21,23 @@
 #
 
 LIB_NAME  = libFLAC
+ifeq ($(DARWIN_BUILD),yes)
+DEFINES = -DFLAC__NO_NASM -DFLAC__ALIGN_MALLOC_DATA
+else
 DEFINES = -DFLAC__CPU_IA32 -DFLAC__HAS_NASM -DFLAC__ALIGN_MALLOC_DATA
+endif
 INCLUDES  = -I./include -I../../include
 DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
-OBJS = \
+ifeq ($(DARWIN_BUILD),yes)
+else
+ASM_OBJS = \
+	ia32/cpu_asm.o \
+	ia32/fixed_asm.o \
+	ia32/lpc_asm.o
+endif
+
+OBJS = $(ASM_OBJS) \
 	bitbuffer.o \
 	bitmath.o \
 	cpu.o \
@@ -41,10 +53,7 @@ OBJS = \
 	stream_decoder.o \
 	stream_encoder.o \
 	stream_encoder_framing.o \
-	utility.o \
-	ia32/cpu_asm.o \
-	ia32/fixed_asm.o \
-	ia32/lpc_asm.o
+	utility.o
 
 include ../../build/lib.mk
 

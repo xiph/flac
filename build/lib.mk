@@ -19,13 +19,27 @@
 # GNU makefile fragment for building a library
 #
 
+ifeq ($(DARWIN_BUILD),yes)
+CC          = cc
+else
 CC          = gcc
+endif
 NASM        = nasm
 LINK        = ar cru
+ifeq ($(DARWIN_BUILD),yes)
+LINKD       = $(CC) -dynamiclib -flat_namespace -undefined suppress -install_name ../../obj/lib/libFLAC.dylib
+#LINKD       = $(CC) -dynamiclib -flat_namespace -undefined suppress -install_name ../../obj/lib/libFLAC.1.dylib -compatibility_version 3 -current_version 3.1
+else
 LINKD       = ld -G
+endif
 LIBPATH     = ../../obj/lib
 STATIC_LIB  = $(LIBPATH)/$(LIB_NAME).a
+ifeq ($(DARWIN_BUILD),yes)
+DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).dylib
+#DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).1.1.1.dylib
+else
 DYNAMIC_LIB = $(LIBPATH)/$(LIB_NAME).so
+endif
 
 all : release
 
@@ -40,10 +54,14 @@ debug   : $(ORDINALS_H) $(STATIC_LIB) $(DYNAMIC_LIB)
 release : $(ORDINALS_H) $(STATIC_LIB) $(DYNAMIC_LIB)
 
 $(STATIC_LIB) : $(OBJS)
-	$(LINK) $@ $(OBJS)
+	$(LINK) $@ $(OBJS) && ranlib $@
 
 $(DYNAMIC_LIB) : $(OBJS)
+ifeq ($(DARWIN_BUILD),yes)
+	$(LINKD) -o $@ $(OBJS) $(LFLAGS) $(LIBS) -lc
+else
 	$(LINKD) -o $@ $(OBJS) $(LFLAGS) $(LIBS)
+endif
 
 %.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@

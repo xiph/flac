@@ -19,11 +19,19 @@
 # GNU makefile fragment for building an executable
 #
 
+ifeq ($(DARWIN_BUILD),yes)
+CC          = cc
+else
 CC          = gcc
+endif
 NASM        = nasm
-# LINKAGE can be forced to -static or -dynamic from invocation if desired, but it defaults to -static
+# LINKAGE can be forced to -static or -dynamic from invocation if desired, but it defaults to -static except on OSX
+ifeq ($(DARWIN_BUILD),yes)
+LINKAGE     = -dynamic
+else
 LINKAGE     = -static
-LINK        = gcc $(LINKAGE)
+endif
+LINK        = $(CC) $(LINKAGE)
 BINPATH     = ../../obj/bin
 LIBPATH     = ../../obj/lib
 PROGRAM     = $(BINPATH)/$(PROGRAM_NAME)
