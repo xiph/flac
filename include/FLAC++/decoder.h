@@ -147,10 +147,18 @@ namespace FLAC {
 
 			State get_state() const;
 			bool get_md5_checking() const;
+			unsigned get_channels() const;
+			::FLAC__ChannelAssignment get_channel_assignment() const;
+			unsigned get_bits_per_sample() const;
+			unsigned get_sample_rate() const;
+			unsigned get_blocksize() const;
 
 			State init();
 
 			bool finish();
+
+			bool flush();
+			bool reset();
 
 			bool process_whole_stream();
 			bool process_metadata();
@@ -218,6 +226,11 @@ namespace FLAC {
 
 			State get_state() const;
 			bool get_md5_checking() const;
+			unsigned get_channels() const;
+			::FLAC__ChannelAssignment get_channel_assignment() const;
+			unsigned get_bits_per_sample() const;
+			unsigned get_sample_rate() const;
+			unsigned get_blocksize() const;
 
 			State init();
 
