@@ -31,7 +31,7 @@
 
 /** \mainpage
  *
- * \section intro Introduction.
+ * \section intro Introduction
  *
  * This is the documentation for the FLAC C and C++ APIs.  It is
  * highly interconnected; this introduction should give you a top
@@ -40,11 +40,28 @@
  * knowledge of the FLAC format, documented
  * <A HREF="../format.html">here</A>.
  *
+ * \section c_api FLAC C API
+ *
  * The FLAC C API is the interface to libFLAC, a set of structures
  * describing the components of FLAC streams, and functions for
  * encoding and decoding streams, as well as manipulating FLAC
  * metadata in files.  The public include files will be installed
  * in your include area as <include>/FLAC/...
+ *
+ * By writing a little code and linking against libFLAC, it is
+ * relatively easy to add FLAC support to another program.  The
+ * library is licensed under the
+ * <A HREF="http://www.gnu.org/copyleft/lesser.html">LGPL</A>.
+ * Complete source code of libFLAC as well as the command-line
+ * encoder and plugins is available and is a useful source of
+ * examples.
+ *
+ * libFLAC usually only requires the standard C library and C math
+ * library. In particular, threading is not used so there is no
+ * dependency on a thread library. However, libFLAC does not use
+ * global variables and should be thread-safe.
+ *
+ * \section cpp_api FLAC C API
  *
  * The FLAC C++ API is a set of classes that encapsulate the
  * structures and functions in libFLAC.  They provide slightly more
@@ -54,6 +71,11 @@
  * can be used as a supplement.  The public include files
  * for the C++ API will be installed in your include area as
  * <include>/FLAC++/...
+ *
+ * libFLAC++ is also licensed under the
+ * <A HREF="http://www.gnu.org/copyleft/lesser.html">LGPL</A>.
+ *
+ * \section getting_started Getting Started
  *
  * A good starting point for learning the API is to browse through
  * the <A HREF="modules.html">modules</A>.  Modules are logical 

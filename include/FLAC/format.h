@@ -552,13 +552,7 @@ typedef struct {
 extern const unsigned FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN; /**< == 32 (bits) */
 
 
-/*****************************************************************************
- *
- *  1: =1 if this is the last meta-data block, else =0
- *  7: meta-data type (c.f. FLAC__MetadataType)
- * 24: length (in bytes) of the block-specific data to follow
- *---- -----------------
- *  4  bytes total
+/** FLAC metadata block structure.  (c.f. <A HREF="../format.html#metadata_block">format specification</A>)
  */
 typedef struct {
 	FLAC__MetadataType type;
