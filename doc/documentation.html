@@ -62,7 +62,15 @@
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
 	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
 	<P>
-		This page describes the user-level view of the FLAC format (for a more detailed explanation see the <A HREF="format.html">format page</A>).  It also contains the user documentation for <B><TT>flac</TT></B>, which is the command-line file encoder/decoder, <B><TT>metaflac</TT></B>, the FLAC metadata editor, and the <A HREF="#plugins">input plugins</A>.
+		This page is broken up into the following sections:
+		<UL>
+			<LI><A HREF="#format">format</A> - the user-level view of the FLAC format (for a more detailed explanation see the <A HREF="format.html">format page</A>).</LI>
+			<LI><A HREF="#flac">flac</A> - the usage of the command-line file encoder/decoder <B><TT>flac</TT></B>.</LI>
+			<LI><A HREF="#metaflac">metaflac</A> - the usage of the command-line FLAC metadata editor <B><TT>metaflac</TT></B>.</LI>
+			<LI><A HREF="#plugins">plugins</A> - documentation for the various input plugins.</LI>
+			<LI><A HREF="#libflac">libFLAC API</A> - for developers who want to add FLAC support to their programs.</LI>
+			<LI><A HREF="#bugs">bugs</A> - known bugs.</LI>
+		</UL>
 	</P>
 	<P>
 		Keep in mind that the online version of this document will always apply to the latest release.  For older releases, check the documentation included with the release package.
@@ -80,7 +88,7 @@
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
 		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<B><FONT SIZE="+2">format</FONT></B>
+		<A NAME="format"><B><FONT SIZE="+2">format</FONT></B>
 		</FONT></TD></TR>
 	</TABLE>
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
@@ -652,7 +660,7 @@
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
 		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<B><FONT SIZE="+2">metaflac</FONT></B>
+		<A NAME="metaflac"><B><FONT SIZE="+2">metaflac</FONT></B>
 		</FONT></TD></TR>
 	</TABLE>
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
@@ -685,7 +693,7 @@
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
 		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<A NAME="plugins"><B><FONT SIZE="+2">xmms plugin</FONT></B></A>
+		<A NAME="plugins"><A NAME="xmms_plugin"><B><FONT SIZE="+2">xmms plugin</FONT></B></A>
 		</FONT></TD></TR>
 	</TABLE>
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
@@ -707,7 +715,7 @@
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
 		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<B><FONT SIZE="+2">winamp plugin</FONT></B>
+		<A NAME="winamp_plugin"><B><FONT SIZE="+2">winamp plugin</FONT></B>
 		</FONT></TD></TR>
 	</TABLE>
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
@@ -729,7 +737,147 @@
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
 	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
 		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
-		<B><FONT SIZE="+2">known bugs</FONT></B>
+		<A NAME="libflac"><B><FONT SIZE="+2">libFLAC</FONT></B>
+		</FONT></TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#EEEED4">
+	<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+	<P>
+		The FLAC library <B><TT>libFLAC</TT></B> is a C implementation of reference encoders and decoders.  By linking against <B><TT>libFLAC</TT></B> and writing a little code, it is relatively easy to add FLAC support to another program.  The library is licensed under the <A HREF="http://www.gnu.org/copyleft/lesser.html">LGPL</A>.  Complete source code of <B><TT>libFLAC</TT></B> as well as the command-line encoder and plugins is available and is a useful source of examples.
+	</P>
+	<P>
+		<B><TT>libFLAC</TT></B> usually only requires the standard C library and C math library.  In particular, threading is not used so there is no dependency on a thread library.  However, <B><TT>libFLAC</TT></B> does not use global variables and should be thread-safe.
+	</P>
+	<P>
+		The <B><TT>libFLAC</TT></B> interface is described in the public header files in the include/FLAC directory.  The public headers and the compiled library are all that is needed to compile and link against the library.  Note that none of the code in src/libFLAC/, including the private header files in src/libFLAC/include/ is required.
+	</P>
+	<P>
+		The basic usage of <B><TT>libFLAC</TT></B> is as follows:
+		<OL>
+			<LI>The program creates an instance of a decoder or encoder.</LI>
+			<LI>The program initialized the instance and provides <B><TT>libFLAC</TT></B> with callbacks for reading, writing, error reporting, and metadata reporting.</LI>
+			<LI>The program calls <B><TT>libFLAC</TT></B> to encode or decode data, which subsequently calls the callbacks.</LI>
+			<LI>The program finalizes the instance, which flushes the input and output.</LI>
+		</OL>
+	</P>
+	<P>
+		For decoding, <B><TT>libFLAC</TT></B> provides two layers of access.  The lowest layer is stream-level decoding, and the highest level is file-level decoding, which is a wrapper around the stream decoder.  The interfaces are described in <TT>stream_decoder.h</TT> and <TT>file_decoder.h</TT> respectively.  The file decoder supplies the read callback internally and provides seek functions.  Currently there is only one level of encoder implementation which is at the stream level (<TT>encoder.h</TT>).  Structures and constants related to the format are defined in <TT>format.h</TT>.
+	</P>
+	<P>
+		<B>STREAM DECODER</B>
+	</P>
+	<P>
+		First we discuss the stream decoder.  The instance type is <TT>FLAC__StreamDecoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__stream_decoder_get_new_instance()</TT>, then call <TT>FLAC__stream_decoder_init()</TT> with the addresses of the required callbacks.  The program can also supply a client_data pointer to <TT>FLAC__stream_decoder_init()</TT> which will be included when calling the callbacks.
+		<UL>
+			<LI>Read callback - This function will be called when the decoder needs more input data.  The address of the buffer to be filled is supplied, along with the number of bytes the buffer can hold.  The callback may choose to supply less data and modify the byte count but must be careful not to overflow the buffer.  The callback then returns a status code chosen from FLAC__StreamDecoderReadStatusString[].</LI>
+			<LI>Write callback - This function will be called when the decoder has decoded a single frame of data.  The decoder will pass the frame metadata as well as an array of pointers (one for each channel) pointing to the decoded audio.</LI>
+			<LI>Metadata callback - This function will be called when the decoder has decoded a metadata block.  There will always be one STREAMINFO block per stream, followed by zero or more other metadata blocks.  These will be supplied by the decoder in the same order as they appear in the stream and always before the first audio frame.</LI>
+			<LI>Error callback - This function will be called whenever an error is encountered.</LI>
+		</UL>
+	</P>
+	<P>
+		Once the decoder is initialized, the program will call one of several functions to stimulate the decoding process:
+		<UL>
+			<LI><B><TT>FLAC__stream_decoder_process_whole_stream()</TT></B> - Tells the decoder to start and continue processing the stream until the read callback says <TT>FLAC__STREAM_DECODER_READ_END_OF_STREAM</TT> or <TT>FLAC__STREAM_DECODER_READ_ABORT</TT>.</LI>
+			<LI><B><TT>FLAC__stream_decoder_process_metadata()</TT></B> - Tells the decoder to start processing the stream and stop upon reaching the first audio frame.</LI>
+			<LI><B><TT>FLAC__stream_decoder_process_one_frame()</TT></B> - Tells the decoder to process one audio frame and return.  The decoder must have processed all metadata first before calling this function.</LI>
+			<LI><B><TT>FLAC__stream_decoder_process_remaining_frames()</TT></B> - Tells the decoder to process all remaining frames.  The decoder must have processed all metadata first but may also have processed frames with <TT>FLAC__stream_decoder_process_one_frame()</TT>.</LI>
+		</UL>
+	</P>
+	<P>
+		When the decoder has finished decoding (normally or through an abort), the instance is finished by calling <TT>FLAC__stream_decoder_finish()</TT>, which ensures the decoder is in the correct state and frees memory.
+	</P>
+	<P>
+		Note that the stream decoder has no real concept of stream position, it just converts data.  To seek within a stream the callbacks have only to flush the decoder using <TT>FLAC__stream_decoder_flush()</TT> and start feeding data from the new position through the read callback.  The file decoder does just this.
+	</P>
+	<P>
+		<B>FILE DECODER</B>
+	</P>
+	<P>
+		The file decoder is a wrapper around the stream decoder meant to simplfy the process of decoding from a file.  The instance type is <TT>FLAC__FileDecoder</TT>.  The flow and callbacks are similar to that of the stream decoder.  However, a file path replaces the read callback argument during initialization.  The program need only provide the path to the file and the file decoder handles the read callbacks.  The remaining callbacks and process functions are analogous to their stream decoder counterparts.
+	</P>
+	<P>
+		Since the file decoder manages the input automatically, it also can provide seeking.  This is exposed through the <TT>FLAC__file_decoder_seek_absolute()</TT> method.  At any point after the file decoder has been initialized, the program can call this function to seek to an exact sample within the file.  Subsequently, the first time the write callback is called it will contain a (possibly partial) block starting at that sample.
+	</P>
+	<P>
+		<B>ENCODER</B>
+	</P>
+	<P>
+		The encoder functions similarly to the stream decoder.  Currently there is no file encoder but some of the code from <B><TT>flac</TT></B> may be incorporated to do this.  The instance type is <TT>FLAC__Encoder</TT>.  Typically the program will create a new instance by calling <TT>FLAC__encoder_get_new_instance().  Once the instance is created, but before initialization with <TT>FLAC__encoder_init()</TT>, the program should set the required encoding parameters directly.
+	</P>
+	<P>
+		Unlike the decoding process, FLAC encoding has many options that can affect the speed and compression ratio.  There are so many in fact that they are not passed as parameters to <TT>FLAC__encoder_init()</TT>, they are written directly to encoder instance public variables by the program.  When the program calls <TT>FLAC__encoder_init()</TT> the encoder will validate the values.  When setting these parameters you should have some basic knowledge of the format (see the <A HREF="#format">user-level documentation</A> or the <A HREF="format.html">formal description</A>) but the required parameters are summarized here:
+		<UL>
+			<LI><B><TT>streamable_subset</TT></B> - true to force the encoder to generate a <A HREF="format.html#subset">Subset stream</A>, else false.</LI>
+			<LI><B><TT>do_mid_side_stereo</TT></B> - true to try mid-side encoding on stereo input, else false.  <TT>channels</TT> must be 2.</LI>
+			<LI><B><TT>loose_mid_side_stereo</TT></B> - true to do adaptive mid-side switching, else false.  <TT>do_mid_side_stereo</TT> must be true.</LI>
+			<LI><B><TT>channels</TT></B> - must be &lt;= <TT>FLAC__MAX_CHANNELS</TT>.</LI>
+			<LI><B><TT>bits_per_sample</TT></B> - do not give the encoder wider data than what you specify here or bad things will happen.</LI>
+			<LI><B><TT>sample_rate</TT></B> - must be &lt;= <TT>FLAC__MAX_SAMPLE_RATE</TT>.</LI>
+			<LI><B><TT>blocksize</TT></B> - must be between <TT>FLAC__MIN_BLOCKSIZE</TT> and <TT>FLAC__MAX_BLOCKSIZE</TT>.</LI>
+			<LI><B><TT>max_lpc_order</TT></B> - 0 implies encoder will not try general LPC, only fixed predictors; must be &lt;= <TT>FLAC__MAX_LPC_ORDER</TT>.</LI>
+			<LI><B><TT>qlp_coeff_precision</TT></B> - must be &gt;= <TT>FLAC__MIN_QLP_COEFF_PRECISION</TT>, or 0 to let encoder select based on blocksize.  In the current imlementation <TT>qlp_coeff_precision</TT>+<TT>bits_per_sample</TT> must be &lt; 32.</LI>
+			<LI><B><TT>do_qlp_coeff_prec_search</TT></B> - false to use <TT>qlp_coeff_precision</TT>; true to search around <TT>qlp_coeff_precision</TT> and take best.</LI>
+			<LI><B><TT>do_exhaustive_model_search</TT></B> - false to use estimated bits per residual for scoring; true to generate all and take shortest.</LI>
+			<LI><B><TT>min_residual_partition_order</TT></B>, <B><TT>max_residual_partition_order</TT></B> - 0 to estimate Rice parameter based on residual variance; &gt; 0 to partition the residual and use parameter for each based on mean; <TT>min_residual_partition_order</TT> and <TT>max_residual_partition_order</TT> specify the min and max Rice partition order.</LI>
+			<LI><B><TT>rice_parameter_search_dist</TT></B> - 0 to try only calculated parameter k; else try all [k-<TT>rice_parameter_search_dist</TT>..k+<TT>rice_parameter_search_dist</TT>] parameters and use the best.</LI>
+			<LI><B><TT>total_samples_estimate</TT></B> - May be set to 0 if unknown.  Otherwise, set this to the number of samples to be encoded.  This will allow the STREAMINFO block to be more accurate during the first pass in the event that the encoder can't seek back to the beginning of the output file to write the updated STREAMINFO block.</LI>
+			<LI><B><TT>seek_table</TT></B> - Optional seek table to prepend; NULL implies no seek table.</LI>
+			<LI><B><TT>padding</TT></B> - Size of PADDING block to add (goes after seek table); 0 implies do not add a PADDING block.</LI>
+		</UL>
+		Note that these parameters must be set before <TT>FLAC__encoder_init()</TT> and must not be changed anytime thereafter.
+	</P>
+	<P>
+		After setting the parameters the program should call <TT>FLAC__encoder_init()</TT> to validate them and register the following callbacks:
+		<UL>
+			<LI>Write callback - This function is called anytime there is raw encoded data to write.  It may include metadata mixed with encoded audio frames and the data is not guaranteed to be aligned on frame or metadata block boundaries.</LI>
+			<LI>Metadata callback - This function is called once at the end of encoding with the populated STREAMINFO structure.  This is so file encoders can seek back to the beginning of the file and write the STREAMINFO block with the correct statistics after encoding (like minimum/maximum frame size).</LI>
+		</UL>
+		The call to <TT>FLAC__encoder_init()</TT> currently will also immediately call the write callback with the "fLaC" signature and all the encoded metadata.
+	</P>
+	<P>
+		After initializing the instance, the program may feed audio data to the encoder in one of two ways:
+		<UL>
+			<LI>Channel separate, through <B><TT>FLAC__encoder_process()</TT></B> - The program will pass an array of pointers to buffers, one for each channel, to the encoder, each of the same length.  The samples need not be block-aligned.</LI>
+			<LI>Channel interleaved, through <B><TT>FLAC__encoder_process_interleaved()</TT></B> - The program will pass a single pointer to data that is channel-interleaved (i.e. <TT>channel0_sample0, channel1_sample0, ... , channelN_sample0, channel0_sample1, ...</TT>).  Again, the samples need not be block-aligned but they must be sample-aligned, i.e. the first value should be channel0_sampleX and the last value channelN_sampleY.</LI>
+		</UL>
+	</P>
+	<P>
+		When the program is finished encoding data, it calls <TT>FLAC__encoder_finish()</TT>, which causes the encoder to encode any data still in its input pipe, and call the metadata callback with the correct encoding statistics.
+	</P>
+	<P>
+		<B>MISCELLANEOUS</B>
+	</P>
+	<P>
+		It should be noted that any time an array of pointers to audio data is passed, the channel order currently only has meaning for stereo streams.  Channel 0 corresponds to the left channel and channel 1 corresponds to the right channel.
+	</P>
+	<P>
+		<B>METADATA</B>
+	</P>
+	<P>
+		For programs that write their own APPLICATION metadata, it is advantageous to instruct the encoder to write a PADDING block of the correct size, so that instead of rewriting the whole stream after encoding, the program can just overwrite the PADDING block.  If only the maximum size of the APPLICATION block is known, the program can write a slightly larger padding block, then split it after encoding into an APPLICATION block and a PADDING block.
+	</P>
+	<P>
+		In the case where the size of the APPLICATION block data is known ahead of time, the required size of the padding block can be easily calculated.  If the APPLICATION block data length in bytes (not including the APPLICATION metadata block header) is N bytes, the size given to the FLAC__Encoder instance before initialization is simply N+4.  This accounts for the extra space needed to store the APPLICATION ID.
+	</P>
+	<P>
+		In the case where only the maximum size is known, say, to be N bytes, the required padding size would be N+8.  Four for the APPLICATION ID as before, and four for the extra PADDING block that will fill up the remainder.  At the end of the encoding, when the APPLICATION block data length is known, say, to be M bytes, the original PADDING block would be overwritten with the APPLICATION block and a PADDING block of size N-M.
+	</P>
+	</FONT>
+	</TD></TR>
+	</TABLE>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+</TD></TR>
+</TABLE>
+
+
+<TABLE WIDTH="100%" CELLPADDING="5" CELLSPACING="5" BORDER="0">
+<TR><TD>
+	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
+	<TABLE CELLSPACING="0" CELLPADDING="3" WIDTH="100%" BORDER="0" BGCOLOR="#D3D4C5">
+		<TR><TD><FONT FACE="Lucida,Verdana,Helvetica,Arial">
+		<A NAME="bugs"><B><FONT SIZE="+2">known bugs</FONT></B>
 		</FONT></TD></TR>
 	</TABLE>
 	<TABLE WIDTH="100%" CELLPADDING="0" CELLSPACING="0" BORDER="0"><TR BGCOLOR="#000000"><TD><IMG SRC="images/1x1.gif" WIDTH="1" HEIGHT="1" ALT=""></TD></TR></TABLE>
