@@ -430,7 +430,8 @@ FLAC__bool FLAC__stream_decoder_process_metadata(FLAC__StreamDecoder *decoder)
 				break;
 			case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
 				return true;
-				break;
+			case FLAC__STREAM_DECODER_READ_FRAME:
+				return true;
 			case FLAC__STREAM_DECODER_END_OF_STREAM:
 				return true;
 			default:
