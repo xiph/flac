@@ -61,6 +61,43 @@ test_file ()
 	echo OK
 }
 
+test_file_piped ()
+{
+	name=$1
+	channels=$2
+	bps=$3
+	encode_options="$4"
+
+	echo -n "$name: encode via pipes..."
+	cmd="flac -V -s -fr -fb -fs 44100 -fp $bps -fc $channels $encode_options -c -"
+	echo "### ENCODE $name #######################################################" >> ./streams.log
+	echo "###    cmd=$cmd" >> ./streams.log
+	if cat $name.raw | $cmd 1>$name.flac 2>>./streams.log ; then : ; else
+		echo "ERROR during encode of $name" 1>&2
+		exit 1
+	fi
+	echo -n "decode via pipes..."
+	cmd="flac -s -fb -d -fr -c -"
+	echo "### DECODE $name #######################################################" >> ./streams.log
+	echo "###    cmd=$cmd" >> ./streams.log
+	if cat $name.flac | $cmd 1>$name.cmp 2>>./streams.log ; then : ; else
+		echo "ERROR during decode of $name" 1>&2
+		exit 1
+	fi
+	ls -1l $name.raw >> ./streams.log
+	ls -1l $name.flac >> ./streams.log
+	ls -1l $name.cmp >> ./streams.log
+	echo -n "compare..."
+	if cmp $name.raw $name.cmp ; then : ; else
+		echo "ERROR during compare of $name" 1>&2
+		exit 1
+	fi
+	echo OK
+}
+
+echo "Testing noise through pipes..."
+test_file_piped noise 1 8 "-0"
+
 echo "Testing small files..."
 test_file test01 1 16 "-0 -l 16 -m -e -p"
 test_file test02 2 16 "-0 -l 16 -m -e -p"
