@@ -273,7 +273,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 				/* is guaranteed to be less than LONG_MAX */
 				for(; remaining>0U; remaining-= remaining>(1U<<30) ? remaining : (1U<<30))
 				{
-					unsigned long skip= remaining % (1U<<30);
+					unsigned long skip= (unsigned long)(remaining % (1U<<30));
 
 					FLAC__ASSERT(skip<=LONG_MAX);
 					while(skip>0 && fseek(infile, skip, SEEK_CUR)<0) {
@@ -1683,7 +1683,7 @@ read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn
 
 	for(i= 0U; i<8U; ++i)
 		p|= (FLAC__uint64)(buf[i+2])<<(56U-i*8);
-	*val= (FLAC__uint32)(p>>shift)+(p>>(shift-1) & 0x1);
+	*val= (FLAC__uint32)((p>>shift)+(p>>(shift-1) & 0x1));
 
 	return true;
 }

@@ -485,21 +485,21 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *unused, 
 
 FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *unused, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
-    OggFLAC__StreamDecoder *decoder = (OggFLAC__StreamDecoder*)client_data;
+	OggFLAC__StreamDecoder *decoder = (OggFLAC__StreamDecoder*)client_data;
 	(void)unused;
 	return decoder->private_->write_callback(decoder, frame, buffer, decoder->private_->client_data);
 }
 
 void metadata_callback_(const FLAC__StreamDecoder *unused, const FLAC__StreamMetadata *metadata, void *client_data)
 {
-    OggFLAC__StreamDecoder *decoder = (OggFLAC__StreamDecoder*)client_data;
+	OggFLAC__StreamDecoder *decoder = (OggFLAC__StreamDecoder*)client_data;
 	(void)unused;
-	return decoder->private_->metadata_callback(decoder, metadata, decoder->private_->client_data);
+	decoder->private_->metadata_callback(decoder, metadata, decoder->private_->client_data);
 }
 
 void error_callback_(const FLAC__StreamDecoder *unused, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
-    OggFLAC__StreamDecoder *decoder = (OggFLAC__StreamDecoder*)client_data;
+	OggFLAC__StreamDecoder *decoder = (OggFLAC__StreamDecoder*)client_data;
 	(void)unused;
-	return decoder->private_->error_callback(decoder, status, decoder->private_->client_data);
+	decoder->private_->error_callback(decoder, status, decoder->private_->client_data);
 }

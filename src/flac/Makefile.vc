@@ -39,7 +39,7 @@ OBJS= $(C_FILES:.c=.obj)
 all: flac.exe
 
 flac.exe: $(OBJS)
-	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) libFLAC.lib ogg_static.lib getopt.lib
+	link.exe /libpath:"..\..\obj\lib" -out:../../obj/bin/$*.exe $(OBJS) libOggFLAC.lib libFLAC.lib ogg_static.lib getopt.lib
 
 clean:
 	-del *.obj *.pch

@@ -40,7 +40,7 @@ test_file ()
 		exit 1
 	fi
 	echo -n "decode..."
-	cmd="flac --silent --endian=big --decode --force-raw-format $name.flac";
+	cmd="flac --silent --endian=big --sign=signed --decode --force-raw-format $name.flac";
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else

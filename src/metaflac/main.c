@@ -1757,7 +1757,13 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 FLAC__bool field_name_matches_entry(const char *field_name, unsigned field_name_length, const FLAC__StreamMetadata_VorbisComment_Entry *entry)
 {
 	FLAC__byte *eq = memchr(entry->entry, '=', entry->length);
-	return (0 != eq && (unsigned)(eq-entry->entry) == field_name_length && 0 == strncasecmp(field_name, entry->entry, field_name_length));
+#if defined _MSC_VER || defined __MINGW32__
+#define FLAC__STRNCASECMP strnicmp
+#else
+#define FLAC__STRNCASECMP strncasecmp
+#endif
+	return (0 != eq && (unsigned)(eq-entry->entry) == field_name_length && 0 == FLAC__STRNCASECMP(field_name, entry->entry, field_name_length));
+#undef FLAC__STRNCASECMP
 }
 
 void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent)

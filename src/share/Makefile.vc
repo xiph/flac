@@ -2,19 +2,24 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" -DSTRICT -YX /Od /D "_DEBUG" $<
+	$(cc) /D "_LIB" /GX $(cdebug) $(cflags) /I "..\..\include" /I "..\..\include\share" -DSTRICT -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" -DSTRICT -YX -DNODEBUG $<
+	$(cc) /D "_LIB" /O2 $(crelease) $(cflags) /I "..\..\include" /I "..\..\include\share" -DSTRICT -YX -DNODEBUG $<
 !endif
 
 C_FILES= \
 	getopt.c \
 	getopt1.c
 
+UTF8_C_FILES= \
+	charset.c \
+	iconvert.c \
+	utf8.c
+
 OBJS= $(C_FILES:.c=.obj)
 
-UTF8_OBJS=charset.o iconvert.o utf8.o
+UTF8_OBJS= $(UTF8_C_FILES:.c=.obj)
 
 all: getopt.lib utf8.lib
 

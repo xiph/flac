@@ -2958,7 +2958,7 @@ FLAC__StreamDecoderWriteStatus verify_write_callback_(const FLAC__StreamDecoder 
 			FLAC__ASSERT(i < blocksize);
 			FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 			encoder->private_->verify.error_stats.absolute_sample = frame->header.number.sample_number + sample;
-			encoder->private_->verify.error_stats.frame_number = frame->header.number.sample_number / blocksize;
+			encoder->private_->verify.error_stats.frame_number = (unsigned)(frame->header.number.sample_number / blocksize);
 			encoder->private_->verify.error_stats.channel = channel;
 			encoder->private_->verify.error_stats.sample = sample;
 			encoder->private_->verify.error_stats.expected = expect;

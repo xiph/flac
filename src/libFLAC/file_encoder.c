@@ -170,7 +170,7 @@ FLAC__FileEncoderState FLAC__file_encoder_init(FLAC__FileEncoder *encoder)
 		unsigned blocksize = FLAC__file_encoder_get_blocksize(encoder);
 
 		FLAC__ASSERT(blocksize != 0);
-		encoder->private_->total_frames_estimate = (FLAC__file_encoder_get_total_samples_estimate(encoder) + blocksize - 1) / blocksize;
+		encoder->private_->total_frames_estimate = (unsigned)((FLAC__file_encoder_get_total_samples_estimate(encoder) + blocksize - 1) / blocksize);
 	}
 
 	return encoder->protected_->state = FLAC__FILE_ENCODER_OK;
@@ -476,7 +476,7 @@ void FLAC__file_encoder_get_verify_decoder_error_stats(const FLAC__FileEncoder *
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
-	return FLAC__seekable_stream_encoder_get_verify_decoder_error_stats(encoder->private_->seekable_stream_encoder, absolute_sample, frame_number, channel, sample, expected, got);
+	FLAC__seekable_stream_encoder_get_verify_decoder_error_stats(encoder->private_->seekable_stream_encoder, absolute_sample, frame_number, channel, sample, expected, got);
 }
 
 FLAC__bool FLAC__file_encoder_get_verify(const FLAC__FileEncoder *encoder)
@@ -649,7 +649,7 @@ FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamE
 
 	FLAC__ASSERT(0 != file_encoder);
 
-	if(fseek(file_encoder->private_->file, absolute_byte_offset, SEEK_SET) < 0)
+	if(fseek(file_encoder->private_->file, (long)absolute_byte_offset, SEEK_SET) < 0)
 		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_ERROR;
 	else
 		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK;

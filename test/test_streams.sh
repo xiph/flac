@@ -143,7 +143,7 @@ test_file ()
 		exit 1
 	fi
 	echo -n "decode..."
-	cmd="flac --silent --endian=big --decode --force-raw-format --output-name=$name.cmp $name.flac"
+	cmd="flac --silent --endian=big --sign=signed --decode --force-raw-format --output-name=$name.cmp $name.flac"
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	if $cmd 2>>./streams.log ; then : ; else
@@ -194,7 +194,7 @@ test_file_piped ()
 	fi
 	echo -n "decode via pipes..."
 	if [ $is_win = yes ] ; then
-		cmd="flac --silent --endian=big --decode --force-raw-format --stdout $name.flac"
+		cmd="flac --silent --endian=big --sign=signed --decode --force-raw-format --stdout $name.flac"
 		echo "### DECODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if $cmd 1>$name.cmp 2>>./streams.log ; then : ; else
@@ -202,7 +202,7 @@ test_file_piped ()
 			exit 1
 		fi
 	else
-		cmd="flac --silent --endian=big --decode --force-raw-format --stdout -"
+		cmd="flac --silent --endian=big --sign=signed --decode --force-raw-format --stdout -"
 		echo "### DECODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
 		if cat $name.flac | $cmd 1>$name.cmp 2>>./streams.log ; then : ; else
