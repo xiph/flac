@@ -57,10 +57,10 @@ cglobal FLAC__lpc_restore_signal_asm_i386_mmx
 	ALIGN 16
 cident FLAC__lpc_compute_autocorrelation_asm_i386
 
-	; esp + 32 == autoc[]
-	; esp + 28 == lag
-	; esp + 24 == data_len
-	; esp + 20 == data[]
+	;[esp + 32] == autoc[]
+	;[esp + 28] == lag
+	;[esp + 24] == data_len
+	;[esp + 20] == data[]
 
 	push	ebp
 	push	ebx
@@ -208,10 +208,10 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386
 	ALIGN 16
 cident FLAC__lpc_compute_autocorrelation_asm_i386_sse
 
-	; esp + 16 == autoc[]
-	; esp + 12 == lag
-	; esp + 8 == data_len
-	; esp + 4 == data[]
+	;[esp + 16] == autoc[]
+	;[esp + 12] == lag
+	;[esp + 8] == data_len
+	;[esp + 4] == data[]
 
 	;	for(coeff = 0; coeff < lag; coeff++)
 	;		autoc[coeff] = 0.0;
@@ -227,45 +227,38 @@ cident FLAC__lpc_compute_autocorrelation_asm_i386_sse
 	shufps	xmm0, xmm0, 0			; xmm0 = data[0],data[0],data[0],data[0]
 	movaps	xmm1, xmm0			; xmm1 = data[0],data[0],data[0],data[0]
 	xorps	xmm3, xmm3			; xmm3 = 0,0,0,0
-.warmup:					; xmm3:xmm2 = data[sample-[7..0]]
-	movaps	xmm4, xmm0
-	movaps	xmm5, xmm1			; xmm5:xmm4 = xmm1:xmm0 = data[sample]*8
-	mulps	xmm4, xmm2
-	mulps	xmm5, xmm3			; xmm5:xmm4 = xmm1:xmm0 * xmm3:xmm2
-	addps	xmm6, xmm4
-	addps	xmm7, xmm5			; xmm7:xmm6 += xmm1:xmm0 * xmm3:xmm2
+.warmup:					; xmm3:xmm2 == data[sample-7],data[sample-6],...,data[sample]
+	mulps	xmm0, xmm2
+	mulps	xmm1, xmm3			; xmm5:xmm4 = xmm1:xmm0 * xmm3:xmm2
+	addps	xmm6, xmm0
+	addps	xmm7, xmm1			; xmm7:xmm6 += xmm1:xmm0 * xmm3:xmm2
 	dec	edx
 	;* there's no need to even check for this because we know that lag == 8
 	;* and data_len >= lag, so our 1-sample warmup cannot finish the loop
 	; jz	.loop_end
 	ALIGN 16
 .loop_8:
-	; read the next sample
+	; start by reading the next sample
 	movss	xmm0, [eax]			; xmm0 = 0,0,0,data[sample]
-	add	eax, 4
-	shufps	xmm0, xmm0, 0			; xmm0 = data[sample],data[sample],data[sample],data[sample]
-	movaps	xmm1, xmm0			; xmm1 = data[sample],data[sample],data[sample],data[sample]
-	; now shift the lagged samples
-	movaps	xmm4, xmm2
-	movaps	xmm5, xmm3
-	shufps	xmm2, xmm4, 93h			; 93h=2-1-0-3 => xmm2 gets rotated left by one float
-	shufps	xmm3, xmm5, 93h			; 93h=2-1-0-3 => xmm3 gets rotated left by one float
-	movss	xmm3, xmm2
-	movss	xmm2, xmm0
-
-	movaps	xmm4, xmm0
-	movaps	xmm5, xmm1			; xmm5:xmm4 = xmm1:xmm0 = data[sample]*8
-	mulps	xmm4, xmm2
-	mulps	xmm5, xmm3			; xmm5:xmm4 = xmm1:xmm0 * xmm3:xmm2
-	addps	xmm6, xmm4
-	addps	xmm7, xmm5			; xmm7:xmm6 += xmm1:xmm0 * xmm3:xmm2
+	; here we reorder the instructions; see the (#) indexes for a logical order
+	shufps	xmm2, xmm2, 93h			; (3) 93h=2-1-0-3 => xmm2 gets rotated left by one float
+	add	eax, 4				; (0)
+	shufps	xmm3, xmm3, 93h			; (4) 93h=2-1-0-3 => xmm3 gets rotated left by one float
+	shufps	xmm0, xmm0, 0			; (1) xmm0 = data[sample],data[sample],data[sample],data[sample]
+	movss	xmm3, xmm2			; (5)
+	movaps	xmm1, xmm0			; (2) xmm1 = data[sample],data[sample],data[sample],data[sample]
+	movss	xmm2, xmm0			; (6)
+	mulps	xmm1, xmm3			; (8)
+	mulps	xmm0, xmm2			; (7) xmm5:xmm4 = xmm1:xmm0 * xmm3:xmm2
+	addps	xmm7, xmm1			; (10)
+	addps	xmm6, xmm0			; (9) xmm7:xmm6 += xmm1:xmm0 * xmm3:xmm2
 	dec	edx
 	jnz	.loop_8
 .loop_end:
 	; store autoc
 	mov	edx, [esp + 16]			; edx == autoc
-	movups	xmm6, [edx]
-	movups	xmm7, [edx + 4]
+	movups	[edx], xmm6
+	movups	[edx + 4], xmm7
 
 .end:
 	ret
