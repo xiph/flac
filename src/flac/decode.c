@@ -93,7 +93,7 @@ static void error_callback(const void *decoder, FLAC__StreamDecoderErrorStatus s
 static void print_stats(const stream_info_struct *stream_info);
 
 
-int flac__decode_wav(const char *infile, const char *outfile, FLAC__bool analysis_mode, analysis_options aopts, wav_decode_options_t options)
+int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, wav_decode_options_t options)
 {
 	FLAC__bool md5_failure = false;
 	stream_info_struct stream_info;
@@ -101,7 +101,7 @@ int flac__decode_wav(const char *infile, const char *outfile, FLAC__bool analysi
 	stream_info.abort_flag = false;
 	stream_info.analysis_mode = analysis_mode;
 	stream_info.aopts = aopts;
-	stream_info.test_only = (outfile == 0);
+	stream_info.test_only = (outfilename == 0);
 	stream_info.is_wave_out = true;
 	stream_info.verbose = options.common.verbose;
 	stream_info.skip = options.common.skip;
@@ -112,18 +112,18 @@ int flac__decode_wav(const char *infile, const char *outfile, FLAC__bool analysi
 	stream_info.is_ogg = options.common.is_ogg;
 #endif
 	stream_info.decoder.file = 0; /* this zeroes stream_info.decoder.stream also */
-	stream_info.inbasefilename = flac__file_get_basename(infile);
+	stream_info.inbasefilename = flac__file_get_basename(infilename);
 	stream_info.fout = 0; /* initialized with an open file later if necessary */
 
 	FLAC__ASSERT(!(stream_info.test_only && stream_info.analysis_mode));
 
 	if(!stream_info.test_only) {
-		if(0 == strcmp(outfile, "-")) {
+		if(0 == strcmp(outfilename, "-")) {
 			stream_info.fout = stdout;
 		}
 		else {
-			if(0 == (stream_info.fout = fopen(outfile, "wb"))) {
-				fprintf(stderr, "%s: ERROR: can't open output file %s\n", stream_info.inbasefilename, outfile);
+			if(0 == (stream_info.fout = fopen(outfilename, "wb"))) {
+				fprintf(stderr, "%s: ERROR: can't open output file %s\n", stream_info.inbasefilename, outfilename);
 				return 1;
 			}
 		}
@@ -131,11 +131,11 @@ int flac__decode_wav(const char *infile, const char *outfile, FLAC__bool analysi
 
 #ifdef FLaC__HAS_OGG
 	if(stream_info.is_ogg) {
-		if (0 == strcmp(infile, "-")) {
+		if (0 == strcmp(infilename, "-")) {
 			stream_info.fin = stdin;
 		} else {
-			if (0 == (stream_info.fin = fopen(infile, "rb"))) {
-				fprintf(stderr, "%s: ERROR: can't open input file %s\n", stream_info.inbasefilename, infile);
+			if (0 == (stream_info.fin = fopen(infilename, "rb"))) {
+				fprintf(stderr, "%s: ERROR: can't open input file %s\n", stream_info.inbasefilename, infilename);
 				if(stream_info.fout != stdout)
 					fclose(stream_info.fout);
 				return 1;
@@ -147,7 +147,7 @@ int flac__decode_wav(const char *infile, const char *outfile, FLAC__bool analysi
 	if(analysis_mode)
 		flac__analyze_init(aopts);
 
-	if(!init(infile, &stream_info))
+	if(!init(infilename, &stream_info))
 		goto wav_abort_;
 
 	if(stream_info.skip > 0) {
@@ -268,7 +268,7 @@ wav_abort_:
 	}
 	if(0 != stream_info.fout && stream_info.fout != stdout) {
 		fclose(stream_info.fout);
-		unlink(outfile);
+		unlink(outfilename);
 	}
 #ifdef FLaC__HAS_OGG
 	if(stream_info.is_ogg) {
@@ -281,7 +281,7 @@ wav_abort_:
 	return 1;
 }
 
-int flac__decode_raw(const char *infile, const char *outfile, FLAC__bool analysis_mode, analysis_options aopts, raw_decode_options_t options)
+int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, raw_decode_options_t options)
 {
 	FLAC__bool md5_failure = false;
 	stream_info_struct stream_info;
@@ -289,7 +289,7 @@ int flac__decode_raw(const char *infile, const char *outfile, FLAC__bool analysi
 	stream_info.abort_flag = false;
 	stream_info.analysis_mode = analysis_mode;
 	stream_info.aopts = aopts;
-	stream_info.test_only = (outfile == 0);
+	stream_info.test_only = (outfilename == 0);
 	stream_info.is_wave_out = false;
 	stream_info.is_big_endian = options.is_big_endian;
 	stream_info.is_unsigned_samples = options.is_unsigned_samples;
@@ -299,21 +299,21 @@ int flac__decode_raw(const char *infile, const char *outfile, FLAC__bool analysi
 	stream_info.samples_processed = 0;
 	stream_info.frame_counter = 0;
 #ifdef FLaC__HAS_OGG
-	stream_info.is_ogg = is_ogg;
+	stream_info.is_ogg = options.common.is_ogg;
 #endif
 	stream_info.decoder.file = 0; /* this zeroes stream_info.decoder.stream also */
-	stream_info.inbasefilename = flac__file_get_basename(infile);
+	stream_info.inbasefilename = flac__file_get_basename(infilename);
 	stream_info.fout = 0; /* initialized with an open file later if necessary */
 
 	FLAC__ASSERT(!(stream_info.test_only && stream_info.analysis_mode));
 
 	if(!stream_info.test_only) {
-		if(0 == strcmp(outfile, "-")) {
+		if(0 == strcmp(outfilename, "-")) {
 			stream_info.fout = stdout;
 		}
 		else {
-			if(0 == (stream_info.fout = fopen(outfile, "wb"))) {
-				fprintf(stderr, "%s: ERROR: can't open output file %s\n", stream_info.inbasefilename, outfile);
+			if(0 == (stream_info.fout = fopen(outfilename, "wb"))) {
+				fprintf(stderr, "%s: ERROR: can't open output file %s\n", stream_info.inbasefilename, outfilename);
 				return 1;
 			}
 		}
@@ -321,11 +321,11 @@ int flac__decode_raw(const char *infile, const char *outfile, FLAC__bool analysi
 
 #ifdef FLaC__HAS_OGG
 	if(stream_info.is_ogg) {
-		if (0 == strcmp(infile, "-")) {
+		if (0 == strcmp(infilename, "-")) {
 			stream_info.fin = stdin;
 		} else {
-			if (0 == (stream_info.fin = fopen(infile, "rb"))) {
-				fprintf(stderr, "%s: ERROR: can't open input file %s\n", stream_info.inbasefilename, infile);
+			if (0 == (stream_info.fin = fopen(infilename, "rb"))) {
+				fprintf(stderr, "%s: ERROR: can't open input file %s\n", stream_info.inbasefilename, infilename);
 				if(stream_info.fout != stdout)
 					fclose(stream_info.fout);
 				return 1;
@@ -337,7 +337,7 @@ int flac__decode_raw(const char *infile, const char *outfile, FLAC__bool analysi
 	if(analysis_mode)
 		flac__analyze_init(aopts);
 
-	if(!init(infile, &stream_info))
+	if(!init(infilename, &stream_info))
 		goto raw_abort_;
 
 	if(stream_info.skip > 0) {
@@ -458,7 +458,7 @@ raw_abort_:
 	}
 	if(0 != stream_info.fout && stream_info.fout != stdout) {
 		fclose(stream_info.fout);
-		unlink(outfile);
+		unlink(outfilename);
 	}
 #ifdef FLaC__HAS_OGG
 	if(stream_info.is_ogg) {
@@ -487,7 +487,6 @@ FLAC__bool init(const char *infilename, stream_info_struct *stream_info)
 		}
 
 		FLAC__stream_decoder_set_read_callback(stream_info->decoder.stream, read_callback);
-................................................................................
 		/*
 		 * The three ugly casts here are to 'downcast' the 'void *' argument of
 		 * the callback down to 'FLAC__StreamDecoder *'.  In C++ this would be
@@ -578,22 +577,22 @@ FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder *decoder, 
 
 	(void)decoder; /* avoid compiler warning */
 
-	if (feof(fin))
+	if(feof(fin))
 		return FLAC__STREAM_DECODER_READ_END_OF_STREAM;
 
 	bytes_read = fread(oggbuf, 1, OGG_READ_BUFFER_SIZE, fin);
 
-	if (ferror(fin))
+	if(ferror(fin))
 		return FLAC__STREAM_DECODER_READ_ABORT;
 
-	if (ogg_sync_wrote(&stream_info->ogg.oy, bytes_read) < 0)
+	if(ogg_sync_wrote(&stream_info->ogg.oy, bytes_read) < 0)
 		return FLAC__STREAM_DECODER_READ_ABORT;
 
-	while (ogg_sync_pageout(&stream_info->ogg.oy, &og) == 1) {
-		if (ogg_stream_pagein(&stream_info->ogg.os, &og) == 0) {
+	while(ogg_sync_pageout(&stream_info->ogg.oy, &og) == 1) {
+		if(ogg_stream_pagein(&stream_info->ogg.os, &og) == 0) {
 			ogg_packet op;
 
-			while (ogg_stream_packetout(&stream_info->ogg.os, &op) == 1) {
+			while(ogg_stream_packetout(&stream_info->ogg.os, &op) == 1) {
 				memcpy(buffer + offset, op.packet, op.bytes);
 				*bytes += op.bytes;
 				offset += op.bytes;

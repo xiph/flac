@@ -21,7 +21,7 @@
 
 PROGRAM_NAME = flac
 #@@@OGG
-INCLUDES     = -I./include -I../../include -I$(HOME)/local/include
+INCLUDES     = -I./include -I../../include -I$(HOME)/local/include -DFLaC__HAS_OGG
 #@@@OGG conditionalize -logg
 LIBS         = -lFLAC -lm -L$(HOME)/local/lib -logg
 

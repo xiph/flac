@@ -388,7 +388,7 @@ int main(int argc, char *argv[])
 				"%s -P %u -b %u%s -l %u%s%s%s -q %u -r %u,%u -R %u%s\n",
 				delete_input?" --delete-input-file":"", sector_align?" --sector-align":"",
 #ifdef FLaC__HAS_OGG
-				ogg?" --ogg":"",
+				use_ogg?" --ogg":"",
 #endif
 				lax?" --lax":"",
 				padding, (unsigned)blocksize, loose_mid_side?" -M":do_mid_side?" -m":"", max_lpc_order,
@@ -748,6 +748,7 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	char outfilename[4096]; /* @@@ bad MAGIC NUMBER */
 	char *p;
 	int retval;
+	FLAC__bool treat_as_ogg = false;
 	decode_options_t common_options;
 
 	if(!test_only && !analyze) {
@@ -777,9 +778,23 @@ int decode_file(const char *infilename, const char *forced_outfilename)
 	if(0 != cmdline_forced_outfilename)
 		forced_outfilename = cmdline_forced_outfilename;
 
+	if(use_ogg)
+		treat_as_ogg = true;
+	else if(0 == strcasecmp(infilename+(strlen(infilename)-4), ".ogg"))
+		treat_as_ogg = true;
+	else
+		treat_as_ogg = false;
+
+#ifndef FLaC__HAS_OGG
+	if(treat_as_ogg) {
+		fprintf(stderr, "%s: Ogg support has not been built into this copy of flac\n", infilename);
+		return 1;
+	}
+#endif
+
 	common_options.verbose = verbose;
 #ifdef FLaC__HAS_OGG
-	common_options.is_ogg = is_ogg;
+	common_options.is_ogg = treat_as_ogg;
 #endif
 	common_options.skip = skip;
 
