@@ -282,7 +282,7 @@
 				You may use many -S options; the resulting SEEKTABLE will be the unique-ified union of all such values.<BR>
 				With no -S options, flac defaults to '-S 100x'.  Use -S- for no SEEKTABLE.<BR>
 				NOTE: -S #x will not work if the encoder can't determine the input size before starting.<BR>
-				NOTE: if you use -S # and # is >= samples in the input, there will be either no seek point entered (if the input size is determinable before encoding starts) or a placeholder point (if input size is not determinable)<BR>
+				NOTE: if you use -S # and # is >= samples in the input, there will be either no seek point entered (if the input size is determinable before encoding starts) or a placeholder point (if input size is not determinable).<BR>
 			</TD>
 		</TR>
 		<TR>
@@ -298,7 +298,7 @@
 				-b #
 			</TD>
 			<TD>
-				Specify the blocksize in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The current encoder uses the same blocksize for the entire stream.
+				Specify the blocksize in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The reference encoder uses the same blocksize for the entire stream.
 			</TD>
 		</TR>
 		<TR>
@@ -402,7 +402,7 @@
 				-9
 			</TD>
 			<TD>
-				Synonymous with -l 32 -b 4608 -m -e -r 16 -R 32 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for the given blocksize.
+				Synonymous with -l 32 -b 4608 -m -e -r 16 -p.  This is painfully slow but gives you the maximum compression <B><TT>flac</TT></B> can do for the given blocksize.
 			</TD>
 		</TR>
 		<TR>
@@ -466,7 +466,7 @@
 			<TD NOWRAP ALIGN="RIGHT" VALIGN="TOP" BGCOLOR="#F4F4CC">
 			</TD>
 			<TD>
-				-S-, -m-, -e-, -p-, -V-, --lax- can all be used to turn off a particular option.
+				<TT>-S-</TT>, <TT>-m-</TT>, <TT>-e-</TT>, <TT>-p-</TT>, <TT>-V-</TT>, <TT>--lax-</TT> can all be used to turn off a particular option.
 			</TD>
 		</TR>
 	</TABLE>
