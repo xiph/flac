@@ -19,15 +19,18 @@
 
 !IFDEF DEBUG
 .c.obj:
-	$(cc) -DFLAC__NO_DLL /GX $(cdebug) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" /I ".." -DSTRICT -DVERSION=\"1.0.5_beta2\" -YX /Od /D "_DEBUG" $<
+	$(cc) -DFLAC__NO_DLL /GX $(cdebug) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" /I ".." -DSTRICT -DVERSION=\"1.1.0\" -YX /Od /D "_DEBUG" $<
 !else
 .c.obj:
-	$(cc) -DFLAC__NO_DLL /O2 $(crelease) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" /I ".." -DSTRICT -DVERSION=\"1.0.5_beta2\" -YX -DNODEBUG $<
+	$(cc) -DFLAC__NO_DLL /O2 $(crelease) $(cflags) $(cvarsdll) /I "..\..\include" /I ".\include" /I ".." -DSTRICT -DVERSION=\"1.1.0\" -YX -DNODEBUG $<
+.rc.res:
+	$(rc) $<
 !endif
 
 C_FILES= \
 	config.c \
-	in_flac.c
+	in_flac.c \
+	infobox.c
 
 OBJS= $(C_FILES:.c=.obj)
 
