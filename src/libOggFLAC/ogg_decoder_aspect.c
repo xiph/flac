@@ -91,13 +91,6 @@ void OggFLAC__ogg_decoder_aspect_reset(OggFLAC__OggDecoderAspect *aspect)
 	aspect->have_working_page = false;
 }
 
-/*@@@@@@ needed? */
-unsigned OggFLAC__ogg_decoder_aspect_get_unconsumed_bytes(OggFLAC__OggDecoderAspect *aspect)
-{
-	FLAC__ASSERT(0 != aspect);
-	return aspect->sync_state.fill - aspect->sync_state.returned;
-}
-
 OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wrapper(OggFLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], unsigned *bytes, OggFLAC__OggDecoderAspectReadCallbackProxy read_callback, void *decoder, void *client_data)
 {
 	static const unsigned OGG_BYTES_CHUNK = 8192;
