@@ -61,7 +61,7 @@ flac_config_t flac_cfg = {
 		"", /* proxy_user */
 		"", /* proxy_pass */
 		FALSE, /* save_http_stream */
-		"", /* save_http_path */
+		FALSE, /* save_http_path */
 		FALSE, /* cast_title_streaming */
 		FALSE /* use_udp_channel */
 	},
