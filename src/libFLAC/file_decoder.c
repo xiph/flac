@@ -378,6 +378,7 @@ void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMe
 	else if(metadata->type == FLAC__METADATA_TYPE_SEEKTABLE) {
 		file_decoder->guts->seek_table = &metadata->data.seek_table;
 	}
+
 	if(file_decoder->state != FLAC__FILE_DECODER_SEEKING)
 		file_decoder->guts->metadata_callback(file_decoder, metadata, file_decoder->guts->client_data);
 }
@@ -393,7 +394,8 @@ void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErro
 
 bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 target_sample)
 {
-	long lower_bound, upper_bound, pos, last_pos = -1;
+	long first_frame_offset, lower_bound, upper_bound, pos = -1, last_pos = -1;
+	int i, lower_seek_point = -1;
 	unsigned approx_bytes_per_frame;
 	uint64 last_frame_sample = 0xffffffffffffffff;
 	bool needs_seek;
@@ -410,17 +412,26 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	else
 		approx_bytes_per_frame = 1152 * decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample/8 + 64;
 
-	/* The file pointer is currently at the first frame plus any read
-	   ahead data, so first we get the file pointer, then subtract
-	   uncomsumed bytes to get the position (lower_bound) of the first frame
-	   in the file */
-	if(-1 == (lower_bound = ftell(decoder->guts->file))) {
+	/*
+	 * The file pointer is currently at the first frame plus any read
+	 * ahead data, so first we get the file pointer, then subtract
+	 * uncomsumed bytes to get the position of the first frame in the
+	 * file.
+	 */
+	if(-1 == (first_frame_offset = ftell(decoder->guts->file))) {
 		decoder->state = FLAC__FILE_DECODER_SEEK_ERROR;
 		return false;
 	}
-	lower_bound -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream);
-	if(lower_bound < 0)
-		lower_bound = 0;
+	first_frame_offset -= FLAC__stream_decoder_input_bytes_unconsumed(decoder->guts->stream);
+	assert(first_frame_offset >= 0);
+
+	/*
+	 * First, we set an upper and lower bound on where in the
+	 * file we will search.  For now we assume the worst case
+	 * scenario, which is our best guess at the beginning of
+	 * the first and last frames.
+	 */
+	lower_bound = first_frame_offset;
 
 	/* calc the upper_bound, beyond which we never want to seek */
 	if(decoder->guts->stream_info.max_framesize > 0)
@@ -428,13 +439,63 @@ bool seek_to_absolute_sample_(FLAC__FileDecoder *decoder, long filesize, uint64 
 	else
 		upper_bound = filesize - ((decoder->guts->stream_info.channels * decoder->guts->stream_info.bits_per_sample * FLAC__MAX_BLOCK_SIZE) / 8 + 128 + 2);
 
-	/* Now we need to use the metadata and the filelength to search to the frame with the correct sample */
+	/*
+	 * Now we refine the bounds if we have a seektable with
+	 * suitable points.  Note that according to the spec they
+	 * must be ordered by ascending sample number.
+	 */
+	if(0 != decoder->guts->seek_table) {
+		/* find the closest seek point <= target_sample, if it exists */
+		for(i = (int)decoder->guts->seek_table->num_points - 1; i >= 0; i--) {
+			if(decoder->guts->seek_table->points[i].sample_number <= target_sample)
+				break;
+		}
+		if(i >= 0) { /* i.e. we found a suitable seek point... */
+			lower_bound = first_frame_offset + decoder->guts->seek_table->points[i].stream_offset;
+			lower_seek_point = i;
+		}
+
+		/* find the closest seek point > target_sample, if it exists */
+		for(i = 0; i < (int)decoder->guts->seek_table->num_points; i++) {
+			if(decoder->guts->seek_table->points[i].sample_number > target_sample)
+				break;
+		}
+		if(i < (int)decoder->guts->seek_table->num_points) { /* i.e. we found a suitable seek point... */
+			upper_bound = first_frame_offset + decoder->guts->seek_table->points[i].stream_offset;
+			upper_seek_point = i;
+		}
+	}
+
+	/*
+	 * Now guess at where within those bounds our target
+	 * sample will be.
+	 */
+	if(lower_seek_point >= 0) {
+		/* first see if our sample is within a few frames of the lower seekpoint */
+		if(decoder->guts->seek_table->points[lower_seek_point].sample_number <= target_sample && target_sample < decoder->guts->seek_table->points[lower_seek_point].sample_number + (decoder->guts->seek_table->points[lower_seek_point].frame_samples * 4)) {
+			pos = lower_bound;
+		}
+		else if(upper_seek_point >= 0) {
+			const uint64 target_offset = target_sample - decoder->guts->seek_table->points[lower_seek_point].sample_number;
+			const uint64 range_samples = decoder->guts->seek_table->points[upper_seek_point].sample_number - decoder->guts->seek_table->points[lower_seek_point].sample_number;
+			const long range_bytes = upper_bound - lower_bound;
 #ifdef _MSC_VER
-	/* with VC++ you have to spoon feed it the casting */
-	pos = lower_bound + (long)((double)(int64)target_sample / (double)(int64)decoder->guts->stream_info.total_samples * (double)(filesize-lower_bound-1)) - approx_bytes_per_frame;
+			/* with VC++ you have to spoon feed it the casting */
+			pos = lower_bound + (long)((double)(int64)target_offset / (double)(int64)range_samples * (double)(range_bytes-1)) - approx_bytes_per_frame;
 #else
-	pos = lower_bound + (long)((double)target_sample / (double)decoder->guts->stream_info.total_samples * (double)(filesize-lower_bound-1)) - approx_bytes_per_frame;
+			pos = lower_bound + (long)((double)target_offset / (double)range_samples * (double)(range_bytes-1)) - approx_bytes_per_frame;
 #endif
+		}
+	}
+	if(pos < 0) {
+		/* We need to use the metadata and the filelength to estimate the position of the frame with the correct sample */
+#ifdef _MSC_VER
+		/* with VC++ you have to spoon feed it the casting */
+		pos = first_frame_offset + (long)((double)(int64)target_sample / (double)(int64)decoder->guts->stream_info.total_samples * (double)(filesize-first_frame_offset-1)) - approx_bytes_per_frame;
+#else
+		pos = first_frame_offset + (long)((double)target_sample / (double)decoder->guts->stream_info.total_samples * (double)(filesize-first_frame_offset-1)) - approx_bytes_per_frame;
+#endif
+	}
 
 	/* clip the position to the bounds, lower bound takes precedence */
 	if(pos >= upper_bound)
