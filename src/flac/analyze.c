@@ -70,7 +70,8 @@ void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analys
 				fprintf(fout, "\tvalue=%d\n", subframe->data.constant.value);
 				break;
 			case FLAC__SUBFRAME_TYPE_FIXED:
-				fprintf(fout, "\torder=%u\tpartition_order=%u\n", subframe->data.fixed.order, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order); /*@@@ assumes method is partitioned-rice */
+				FLAC__ASSERT(subframe->data.fixed.entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE);
+				fprintf(fout, "\torder=%u\tpartition_order=%u\n", subframe->data.fixed.order, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < subframe->data.fixed.order; i++)
 					fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.fixed.warmup[i]);
 				if(aopts.do_residual_text) {
@@ -87,7 +88,8 @@ void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analys
 				}
 				break;
 			case FLAC__SUBFRAME_TYPE_LPC:
-				fprintf(fout, "\torder=%u\tpartition_order=%u\tqlp_coeff_precision=%u\tquantization_level=%d\n", subframe->data.lpc.order, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level); /*@@@ assumes method is partitioned-rice */
+				FLAC__ASSERT(subframe->data.lpc.entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE);
+				fprintf(fout, "\torder=%u\tpartition_order=%u\tqlp_coeff_precision=%u\tquantization_level=%d\n", subframe->data.lpc.order, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level);
 				for(i = 0; i < subframe->data.lpc.order; i++)
 					fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.lpc.warmup[i]);
 				if(aopts.do_residual_text) {
