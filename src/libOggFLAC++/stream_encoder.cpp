@@ -334,7 +334,7 @@ namespace OggFLAC {
 			FLAC__ASSERT(0 != client_data);
 			Stream *instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
-			return instance->metadata_callback(metadata);
+			instance->metadata_callback(metadata);
 		}
 
 	};

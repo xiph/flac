@@ -367,7 +367,6 @@ static DWORD WINAPI DecodeThread(void *unused)
 						(float)file_info_.replay_scale,
 						cfg.replaygain.hard_limit,
 						cfg.resolution.replaygain.dither,
-						(NoiseShaping)cfg.resolution.replaygain.noise_shaping,
 						&file_info_.dither_context
 					);
 				}
