@@ -1172,7 +1172,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__
  */
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__StreamMetadata *object, unsigned new_num_comments);
 
-/*@@@@ code and docs need to assert on track_num */
 /** Sets a comment in a VORBIS_COMMENT block.
  *
  *  If \a copy is \c true, a copy of the entry is stored; otherwise, the object
@@ -1186,6 +1185,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
  * \assert
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT \endcode
+ *    \code comment_num < object->data.vorbis_comment.num_comments \endcode
  *    \code (entry->entry != NULL && entry->length > 0) ||
  * (entry->entry == NULL && entry->length == 0 && copy == false) \endcode
  * \retval FLAC__bool
@@ -1370,7 +1370,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num, FLAC__StreamMetadata_CueSheet_Index index);
 
-/*@@@@ add to unit tests */
 /** Insert a blank index point in a CUESHEET track at the given index.
  *
  *  A blank index point is one in which all field values are zero.
@@ -1431,7 +1430,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_delete_index(FLAC__Stre
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMetadata *object, unsigned new_num_tracks);
 
-/*@@@@ code and docs need to assert on track_num */
 /** Sets a track in a CUESHEET block.
  *
  *  If \a copy is \c true, a copy of the track is stored; otherwise, the object
@@ -1447,6 +1445,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
  * \assert
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ *    \code track_num < object->data.cue_sheet.num_tracks \endcode
  *    \code (track->indices != NULL && track->num_indices > 0) ||
  * (track->indices == NULL && track->num_indices == 0)
  * \retval FLAC__bool
@@ -1478,7 +1477,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_set_track(FLAC__StreamMetadat
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_insert_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track *track, FLAC__bool copy);
 
-/*@@@@ add to unit tests */
 /** Insert a blank track in a CUESHEET block at the given index.
  *
  *  A blank track is one in which all field values are zero.

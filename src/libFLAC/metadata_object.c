@@ -949,6 +949,9 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__StreamMetadata *object, unsigned comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
 {
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(comment_num < object->data.vorbis_comment.num_comments);
+
 	return vorbiscomment_set_entry_(object, &object->data.vorbis_comment.comments[comment_num], &entry, copy);
 }
 
@@ -1235,6 +1238,9 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_set_track(FLAC__StreamMetadata *object, unsigned track_num, FLAC__StreamMetadata_CueSheet_Track *track, FLAC__bool copy)
 {
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(track_num < object->data.cue_sheet.num_tracks);
+
 	return cuesheet_set_track_(object, object->data.cue_sheet.tracks + track_num, track, copy);
 }
 
