@@ -140,7 +140,7 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 			cmax = d;
 	}
 redo_it:
-	if(cmax < 0.0) {
+	if(cmax <= 0.0) {
 		/* => coefficients are all 0, which means our constant-detect didn't work */
 		return 2;
 	}
