@@ -76,8 +76,10 @@ static FLAC__bool test_stream_encoder()
 	FLAC__StreamEncoderState state_;
 	FLAC__StreamDecoderState dstate;
 	FLAC__int32 samples[1024];
-	FLAC__int32 *samples_array[1] = { samples };
+	FLAC__int32 *samples_array[1];
 	unsigned i;
+
+	samples_array[0] = samples;
 
 	printf("\n+++ libOggFLAC unit test: OggFLAC__StreamEncoder\n\n");
 

@@ -1404,9 +1404,9 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			fmt= RAW;
 		}
 		else {
-			if(!strncmp(lookahead, "RIFF", 4) && !strncmp(lookahead+8, "WAVE", 4))
+			if(!strncmp((const char *)lookahead, "RIFF", 4) && !strncmp((const char *)lookahead+8, "WAVE", 4))
 				fmt= WAV;
-			else if(!strncmp(lookahead, "FORM", 4) && !strncmp(lookahead+8, "AIFF", 4))
+			else if(!strncmp((const char *)lookahead, "FORM", 4) && !strncmp((const char *)lookahead+8, "AIFF", 4))
 				fmt= AIF;
 			else {
 				if(fmt != RAW)

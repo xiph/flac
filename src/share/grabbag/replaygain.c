@@ -99,7 +99,7 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 #endif
 	setlocale(LC_ALL, saved_locale);
 
-	entry.entry = buffer;
+	entry.entry = (FLAC__byte *)buffer;
 	entry.length = strlen(buffer);
 
 	return FLAC__metadata_object_vorbiscomment_insert_comment(block, block->data.vorbis_comment.num_comments, entry, /*copy=*/true);
@@ -384,8 +384,8 @@ const char *grabbag__replaygain_store_to_vorbiscomment_album(FLAC__StreamMetadat
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
 	if(
-		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, tag_album_gain_) < 0 ||
-		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, tag_album_peak_) < 0
+		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, (const char *)tag_album_gain_) < 0 ||
+		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, (const char *)tag_album_peak_) < 0
 	)
 		return "memory allocation error";
 
@@ -404,8 +404,8 @@ const char *grabbag__replaygain_store_to_vorbiscomment_title(FLAC__StreamMetadat
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
 	if(
-		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, tag_title_gain_) < 0 ||
-		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, tag_title_peak_) < 0
+		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, (const char *)tag_title_gain_) < 0 ||
+		FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, (const char *)tag_title_peak_) < 0
 	)
 		return "memory allocation error";
 
@@ -587,9 +587,9 @@ FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadat
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
-	if(0 > (gain_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, album_mode? tag_album_gain_ : tag_title_gain_)))
+	if(0 > (gain_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)(album_mode? tag_album_gain_ : tag_title_gain_))))
 		return false;
-	if(0 > (peak_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, album_mode? tag_album_peak_ : tag_title_peak_)))
+	if(0 > (peak_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)(album_mode? tag_album_peak_ : tag_title_peak_))))
 		return false;
 
 	if(!parse_double_(block->data.vorbis_comment.comments + gain_offset, gain))

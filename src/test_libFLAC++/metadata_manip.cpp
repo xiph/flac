@@ -42,7 +42,7 @@ class OurFileDecoder: public FLAC::Decoder::File {
 public:
 	inline OurFileDecoder(bool ignore_metadata): ignore_metadata_(ignore_metadata), error_occurred_(false) { }
 
-	bool ignore_metadata_;;
+	bool ignore_metadata_;
 	bool error_occurred_;
 protected:
 	::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]);

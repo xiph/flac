@@ -179,10 +179,10 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 	FLAC__ASSERT(0 != needs_write);
 
 	if(raw) {
-		entry.entry = field->field;
+		entry.entry = (FLAC__byte *)field->field;
 	}
 	else if(utf8_encode(field->field, &converted) >= 0) {
-		entry.entry = converted;
+		entry.entry = (FLAC__byte *)converted;
 		needs_free = true;
 	}
 	else {
@@ -190,7 +190,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 		return false;
 	}
 
-	entry.length = strlen(entry.entry);
+	entry.length = strlen((const char *)entry.entry);
 
 	if(!FLAC__metadata_object_vorbiscomment_insert_comment(block, block->data.vorbis_comment.num_comments, entry, /*copy=*/true)) {
 		if(needs_free)

@@ -1159,7 +1159,7 @@ FLAC__bool read_metadata_cuesheet_(FLAC__StreamDecoder *decoder, FLAC__StreamMet
 	memset(obj, 0, sizeof(FLAC__StreamMetadata_CueSheet));
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN % 8 == 0);
-	if(!FLAC__bitbuffer_read_byte_block_aligned_no_crc(decoder->private_->input, obj->media_catalog_number, FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN/8, read_callback_, decoder))
+	if(!FLAC__bitbuffer_read_byte_block_aligned_no_crc(decoder->private_->input, (FLAC__byte*)obj->media_catalog_number, FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN/8, read_callback_, decoder))
 		return false; /* the read_callback_ sets the state for us */
 
 	if(!FLAC__bitbuffer_read_raw_uint64(decoder->private_->input, &obj->lead_in, FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN, read_callback_, decoder))
@@ -1191,7 +1191,7 @@ FLAC__bool read_metadata_cuesheet_(FLAC__StreamDecoder *decoder, FLAC__StreamMet
 			track->number = (FLAC__byte)x;
 
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN % 8 == 0);
-			if(!FLAC__bitbuffer_read_byte_block_aligned_no_crc(decoder->private_->input, track->isrc, FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN/8, read_callback_, decoder))
+			if(!FLAC__bitbuffer_read_byte_block_aligned_no_crc(decoder->private_->input, (FLAC__byte*)track->isrc, FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN/8, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
 
 			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN, read_callback_, decoder))

@@ -88,7 +88,7 @@ char* FLAC_plugin__charset_convert_string (const char *string, char *from, char 
 	outptr = out;
 
 retry:
-	if (iconv(cd, &input, &length, &outptr, &outleft) == -1)
+	if (iconv(cd, (char**)&input, &length, &outptr, &outleft) == -1)
 	{
 		int used;
 		switch (errno)

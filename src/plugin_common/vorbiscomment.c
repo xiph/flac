@@ -32,7 +32,7 @@ static int local__vcentry_matches(const char *field_name, const FLAC__StreamMeta
 #endif
 	const FLAC__byte *eq = memchr(entry->entry, '=', entry->length);
 	const unsigned field_name_length = strlen(field_name);
-	return (0 != eq && (unsigned)(eq-entry->entry) == field_name_length && 0 == FLAC__STRNCASECMP(field_name, entry->entry, field_name_length));
+	return (0 != eq && (unsigned)(eq-entry->entry) == field_name_length && 0 == FLAC__STRNCASECMP(field_name, (const char *)entry->entry, field_name_length));
 }
 
 static void local__vcentry_parse_value(const FLAC__StreamMetadata_VorbisComment_Entry *entry, char **dest)
@@ -74,7 +74,7 @@ static void local__vc_change_field(FLAC__StreamMetadata *block, const char *name
 		sprintf(s, "%s=%s", name, value);
 
 		entry.length = strlen(s);
-		entry.entry = s;
+		entry.entry = (FLAC__byte *)s;
 		
 		if(l == -1)
 			FLAC__metadata_object_vorbiscomment_insert_comment(block, block->data.vorbis_comment.num_comments, entry, /*copy=*/true);
