@@ -1750,7 +1750,7 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 		if(decoder->private_->has_stream_info) {
 			FLAC__ASSERT(decoder->private_->stream_info.data.stream_info.min_blocksize == decoder->private_->stream_info.data.stream_info.max_blocksize);
 			decoder->private_->frame.header.number.sample_number = (FLAC__uint64)decoder->private_->stream_info.data.stream_info.min_blocksize * (FLAC__uint64)x;
-			decoder->private_->last_block_size = (FLAC__uint64)decoder->private_->frame.header.blocksize;
+			decoder->private_->last_block_size = decoder->private_->frame.header.blocksize;
 		}
 		else if(blocksize_hint) {
 			if(decoder->private_->last_block_size)
@@ -1760,7 +1760,7 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 		}
 		else {
 			decoder->private_->frame.header.number.sample_number = (FLAC__uint64)decoder->private_->frame.header.blocksize * (FLAC__uint64)x;
-			decoder->private_->last_block_size = (FLAC__uint64)decoder->private_->frame.header.blocksize;
+			decoder->private_->last_block_size = decoder->private_->frame.header.blocksize;
 		}
 	}
 
