@@ -48,45 +48,45 @@ more powerful operations yet to add:
 */
 static struct FLAC__share__option long_options_[] = {
 	/* global options */
-    { "preserve-modtime", 0, 0, 0 },
-    { "with-filename", 0, 0, 0 },
-    { "no-filename", 0, 0, 0 },
-    { "no-utf8-convert", 0, 0, 0 },
-    { "dont-use-padding", 0, 0, 0 },
+	{ "preserve-modtime", 0, 0, 0 },
+	{ "with-filename", 0, 0, 0 },
+	{ "no-filename", 0, 0, 0 },
+	{ "no-utf8-convert", 0, 0, 0 },
+	{ "dont-use-padding", 0, 0, 0 },
 	/* shorthand operations */
-    { "show-md5sum", 0, 0, 0 },
-    { "show-min-blocksize", 0, 0, 0 },
-    { "show-max-blocksize", 0, 0, 0 },
-    { "show-min-framesize", 0, 0, 0 },
-    { "show-max-framesize", 0, 0, 0 },
-    { "show-sample-rate", 0, 0, 0 },
-    { "show-channels", 0, 0, 0 },
-    { "show-bps", 0, 0, 0 },
-    { "show-total-samples", 0, 0, 0 },
-    { "show-vc-vendor", 0, 0, 0 },
-    { "show-vc-field", 1, 0, 0 },
-    { "remove-vc-all", 0, 0, 0 },
-    { "remove-vc-field", 1, 0, 0 },
-    { "remove-vc-firstfield", 1, 0, 0 },
-    { "set-vc-field", 1, 0, 0 },
-    { "add-padding", 1, 0, 0 },
+	{ "show-md5sum", 0, 0, 0 },
+	{ "show-min-blocksize", 0, 0, 0 },
+	{ "show-max-blocksize", 0, 0, 0 },
+	{ "show-min-framesize", 0, 0, 0 },
+	{ "show-max-framesize", 0, 0, 0 },
+	{ "show-sample-rate", 0, 0, 0 },
+	{ "show-channels", 0, 0, 0 },
+	{ "show-bps", 0, 0, 0 },
+	{ "show-total-samples", 0, 0, 0 },
+	{ "show-vc-vendor", 0, 0, 0 },
+	{ "show-vc-field", 1, 0, 0 },
+	{ "remove-vc-all", 0, 0, 0 },
+	{ "remove-vc-field", 1, 0, 0 },
+	{ "remove-vc-firstfield", 1, 0, 0 },
+	{ "set-vc-field", 1, 0, 0 },
+	{ "add-padding", 1, 0, 0 },
 	/* major operations */
-    { "help", 0, 0, 0 },
-    { "version", 0, 0, 0 },
-    { "list", 0, 0, 0 },
-    { "append", 0, 0, 0 },
-    { "remove", 0, 0, 0 },
-    { "remove-all", 0, 0, 0 },
-    { "merge-padding", 0, 0, 0 },
-    { "sort-padding", 0, 0, 0 },
+	{ "help", 0, 0, 0 },
+	{ "version", 0, 0, 0 },
+	{ "list", 0, 0, 0 },
+	{ "append", 0, 0, 0 },
+	{ "remove", 0, 0, 0 },
+	{ "remove-all", 0, 0, 0 },
+	{ "merge-padding", 0, 0, 0 },
+	{ "sort-padding", 0, 0, 0 },
 	/* major operation arguments */
-    { "block-number", 1, 0, 0 },
-    { "block-type", 1, 0, 0 },
-    { "except-block-type", 1, 0, 0 },
-    { "data-format", 1, 0, 0 },
-    { "application-data-format", 1, 0, 0 },
-    { "from-file", 1, 0, 0 },
-    {0, 0, 0, 0}
+	{ "block-number", 1, 0, 0 },
+	{ "block-type", 1, 0, 0 },
+	{ "except-block-type", 1, 0, 0 },
+	{ "data-format", 1, 0, 0 },
+	{ "application-data-format", 1, 0, 0 },
+	{ "from-file", 1, 0, 0 },
+	{0, 0, 0, 0}
 };
 
 typedef enum {
@@ -311,24 +311,24 @@ void init_options(CommandLineOptions *options)
 
 FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 {
-    int ret;
-    int option_index = 1;
+	int ret;
+	int option_index = 1;
 	FLAC__bool had_error = false;
 
-    while ((ret = FLAC__share__getopt_long(argc, argv, "", long_options_, &option_index)) != -1) {
-        switch (ret) {
-            case 0:
+	while ((ret = FLAC__share__getopt_long(argc, argv, "", long_options_, &option_index)) != -1) {
+		switch (ret) {
+			case 0:
 				had_error |= !parse_option(option_index, FLAC__share__optarg, options);
-                break;
+				break;
 			case '?':
 			case ':':
-                had_error = true;
-                break;
-            default:
+				had_error = true;
+				break;
+			default:
 				FLAC__ASSERT(0);
 				break;
-        }
-    }
+		}
+	}
 
 	if(options->prefix_with_filename == 2)
 		options->prefix_with_filename = (argc - FLAC__share__optind > 1);
@@ -378,52 +378,52 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	Argument *arg;
 	FLAC__bool ok = true;
 
-    if(0 == strcmp(opt, "preserve-modtime")) {
+	if(0 == strcmp(opt, "preserve-modtime")) {
 		options->preserve_modtime = true;
 	}
-    else if(0 == strcmp(opt, "with-filename")) {
+	else if(0 == strcmp(opt, "with-filename")) {
 		options->prefix_with_filename = true;
 	}
-    else if(0 == strcmp(opt, "no-filename")) {
+	else if(0 == strcmp(opt, "no-filename")) {
 		options->prefix_with_filename = false;
 	}
-    else if(0 == strcmp(opt, "no-utf8-convert")) {
+	else if(0 == strcmp(opt, "no-utf8-convert")) {
 		options->utf8_convert = false;
 	}
-    else if(0 == strcmp(opt, "dont-use-padding")) {
+	else if(0 == strcmp(opt, "dont-use-padding")) {
 		options->use_padding = false;
 	}
-    else if(0 == strcmp(opt, "show-md5sum")) {
+	else if(0 == strcmp(opt, "show-md5sum")) {
 		(void) append_shorthand_operation(options, OP__SHOW_MD5SUM);
 	}
-    else if(0 == strcmp(opt, "show-min-blocksize")) {
+	else if(0 == strcmp(opt, "show-min-blocksize")) {
 		(void) append_shorthand_operation(options, OP__SHOW_MIN_BLOCKSIZE);
 	}
-    else if(0 == strcmp(opt, "show-max-blocksize")) {
+	else if(0 == strcmp(opt, "show-max-blocksize")) {
 		(void) append_shorthand_operation(options, OP__SHOW_MAX_BLOCKSIZE);
 	}
-    else if(0 == strcmp(opt, "show-min-framesize")) {
+	else if(0 == strcmp(opt, "show-min-framesize")) {
 		(void) append_shorthand_operation(options, OP__SHOW_MIN_FRAMESIZE);
 	}
-    else if(0 == strcmp(opt, "show-max-framesize")) {
+	else if(0 == strcmp(opt, "show-max-framesize")) {
 		(void) append_shorthand_operation(options, OP__SHOW_MAX_FRAMESIZE);
 	}
-    else if(0 == strcmp(opt, "show-sample-rate")) {
+	else if(0 == strcmp(opt, "show-sample-rate")) {
 		(void) append_shorthand_operation(options, OP__SHOW_SAMPLE_RATE);
 	}
-    else if(0 == strcmp(opt, "show-channels")) {
+	else if(0 == strcmp(opt, "show-channels")) {
 		(void) append_shorthand_operation(options, OP__SHOW_CHANNELS);
 	}
-    else if(0 == strcmp(opt, "show-bps")) {
+	else if(0 == strcmp(opt, "show-bps")) {
 		(void) append_shorthand_operation(options, OP__SHOW_BPS);
 	}
-    else if(0 == strcmp(opt, "show-total-samples")) {
+	else if(0 == strcmp(opt, "show-total-samples")) {
 		(void) append_shorthand_operation(options, OP__SHOW_TOTAL_SAMPLES);
 	}
-    else if(0 == strcmp(opt, "show-vc-vendor")) {
+	else if(0 == strcmp(opt, "show-vc-vendor")) {
 		(void) append_shorthand_operation(options, OP__SHOW_VC_VENDOR);
 	}
-    else if(0 == strcmp(opt, "show-vc-field")) {
+	else if(0 == strcmp(opt, "show-vc-field")) {
 		const char *violation;
 		op = append_shorthand_operation(options, OP__SHOW_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
@@ -433,10 +433,10 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-    else if(0 == strcmp(opt, "remove-vc-all")) {
+	else if(0 == strcmp(opt, "remove-vc-all")) {
 		(void) append_shorthand_operation(options, OP__REMOVE_VC_ALL);
 	}
-    else if(0 == strcmp(opt, "remove-vc-field")) {
+	else if(0 == strcmp(opt, "remove-vc-field")) {
 		const char *violation;
 		op = append_shorthand_operation(options, OP__REMOVE_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
@@ -446,7 +446,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-    else if(0 == strcmp(opt, "remove-vc-firstfield")) {
+	else if(0 == strcmp(opt, "remove-vc-firstfield")) {
 		const char *violation;
 		op = append_shorthand_operation(options, OP__REMOVE_VC_FIRSTFIELD);
 		FLAC__ASSERT(0 != option_argument);
@@ -456,7 +456,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-    else if(0 == strcmp(opt, "set-vc-field")) {
+	else if(0 == strcmp(opt, "set-vc-field")) {
 		const char *violation;
 		op = append_shorthand_operation(options, OP__SET_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
@@ -466,7 +466,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-    else if(0 == strcmp(opt, "add-padding")) {
+	else if(0 == strcmp(opt, "add-padding")) {
 		op = append_shorthand_operation(options, OP__ADD_PADDING);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_add_padding(option_argument, &(op->argument.add_padding.length))) {
@@ -474,31 +474,31 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-    else if(0 == strcmp(opt, "help")) {
+	else if(0 == strcmp(opt, "help")) {
 		options->show_long_help = true;
 	}
-    else if(0 == strcmp(opt, "version")) {
+	else if(0 == strcmp(opt, "version")) {
 		options->show_version = true;
 	}
-    else if(0 == strcmp(opt, "list")) {
+	else if(0 == strcmp(opt, "list")) {
 		(void) append_major_operation(options, OP__LIST);
 	}
-    else if(0 == strcmp(opt, "append")) {
+	else if(0 == strcmp(opt, "append")) {
 		(void) append_major_operation(options, OP__APPEND);
 	}
-    else if(0 == strcmp(opt, "remove")) {
+	else if(0 == strcmp(opt, "remove")) {
 		(void) append_major_operation(options, OP__REMOVE);
 	}
-    else if(0 == strcmp(opt, "remove-all")) {
+	else if(0 == strcmp(opt, "remove-all")) {
 		(void) append_major_operation(options, OP__REMOVE_ALL);
 	}
-    else if(0 == strcmp(opt, "merge-padding")) {
+	else if(0 == strcmp(opt, "merge-padding")) {
 		(void) append_major_operation(options, OP__MERGE_PADDING);
 	}
-    else if(0 == strcmp(opt, "sort-padding")) {
+	else if(0 == strcmp(opt, "sort-padding")) {
 		(void) append_major_operation(options, OP__SORT_PADDING);
 	}
-    else if(0 == strcmp(opt, "block-number")) {
+	else if(0 == strcmp(opt, "block-number")) {
 		arg = append_argument(options, ARG__BLOCK_NUMBER);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_block_number(option_argument, &(arg->value.block_number))) {
@@ -506,7 +506,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-    else if(0 == strcmp(opt, "block-type")) {
+	else if(0 == strcmp(opt, "block-type")) {
 		arg = append_argument(options, ARG__BLOCK_TYPE);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_block_type(option_argument, &(arg->value.block_type))) {
@@ -515,7 +515,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		}
 		options->args.checks.has_block_type = true;
 	}
-    else if(0 == strcmp(opt, "except-block-type")) {
+	else if(0 == strcmp(opt, "except-block-type")) {
 		arg = append_argument(options, ARG__EXCEPT_BLOCK_TYPE);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_block_type(option_argument, &(arg->value.block_type))) {
@@ -524,7 +524,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		}
 		options->args.checks.has_except_block_type = true;
 	}
-    else if(0 == strcmp(opt, "data-format")) {
+	else if(0 == strcmp(opt, "data-format")) {
 		arg = append_argument(options, ARG__DATA_FORMAT);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_data_format(option_argument, &(arg->value.data_format))) {
@@ -532,14 +532,14 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-    else if(0 == strcmp(opt, "application-data-format")) {
+	else if(0 == strcmp(opt, "application-data-format")) {
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_application_data_format(option_argument, &(options->application_data_format_is_hexdump))) {
 			fprintf(stderr, "ERROR: illegal application data format \"%s\"\n", option_argument);
 			ok = false;
 		}
 	}
-    else if(0 == strcmp(opt, "from-file")) {
+	else if(0 == strcmp(opt, "from-file")) {
 		arg = append_argument(options, ARG__FROM_FILE);
 		FLAC__ASSERT(0 != option_argument);
 		arg->value.from_file.file_name = local_strdup(option_argument);
@@ -707,24 +707,24 @@ static void usage_header(FILE *out)
 
 static void usage_summary(FILE *out)
 {
-    fprintf(out, "Usage:\n");
-    fprintf(out, "  metaflac [options] [operations] FLACfile [FLACfile ...]\n");
-    fprintf(out, "\n");
-    fprintf(out, "Use metaflac to list, add, remove, or edit metadata in one or more FLAC files.\n");
-    fprintf(out, "You may perform one major operation, or many shorthand operations at a time.\n");
-    fprintf(out, "\n");
-    fprintf(out, "Options:\n");
-    fprintf(out, "--preserve-modtime    Preserve the original modification time in spite of edits\n");
-    fprintf(out, "--with-filename       Prefix each output line with the FLAC file name\n");
-    fprintf(out, "                      (the default if more than one FLAC file is specified)\n");
-    fprintf(out, "--no-filename         Do not prefix each output line with the FLAC file name\n");
-    fprintf(out, "                      (the default if only one FLAC file is specified)\n");
-    fprintf(out, "--no-utf8-convert     Do not convert Vorbis comments from UTF-8 to local charset,\n");
-    fprintf(out, "                      or vice versa.  This is useful for scripts.\n");
-    fprintf(out, "--dont-use-padding    By default metaflac tries to use padding where possible\n");
-    fprintf(out, "                      to avoid rewriting the entire file if the metadata size\n");
-    fprintf(out, "                      changes.  Use this option to tell metaflac to not take\n");
-    fprintf(out, "                      advantage of padding this way.\n");
+	fprintf(out, "Usage:\n");
+	fprintf(out, "  metaflac [options] [operations] FLACfile [FLACfile ...]\n");
+	fprintf(out, "\n");
+	fprintf(out, "Use metaflac to list, add, remove, or edit metadata in one or more FLAC files.\n");
+	fprintf(out, "You may perform one major operation, or many shorthand operations at a time.\n");
+	fprintf(out, "\n");
+	fprintf(out, "Options:\n");
+	fprintf(out, "--preserve-modtime    Preserve the original modification time in spite of edits\n");
+	fprintf(out, "--with-filename       Prefix each output line with the FLAC file name\n");
+	fprintf(out, "                      (the default if more than one FLAC file is specified)\n");
+	fprintf(out, "--no-filename         Do not prefix each output line with the FLAC file name\n");
+	fprintf(out, "                      (the default if only one FLAC file is specified)\n");
+	fprintf(out, "--no-utf8-convert     Do not convert Vorbis comments from UTF-8 to local charset,\n");
+	fprintf(out, "                      or vice versa.  This is useful for scripts.\n");
+	fprintf(out, "--dont-use-padding    By default metaflac tries to use padding where possible\n");
+	fprintf(out, "                      to avoid rewriting the entire file if the metadata size\n");
+	fprintf(out, "                      changes.  Use this option to tell metaflac to not take\n");
+	fprintf(out, "                      advantage of padding this way.\n");
 }
 
 int short_usage(const char *message, ...)
@@ -762,126 +762,126 @@ int long_usage(const char *message, ...)
 
 	}
 	usage_header(out);
-    fprintf(out, "\n");
+	fprintf(out, "\n");
 	usage_summary(out);
-    fprintf(out, "\n");
-    fprintf(out, "Shorthand operations:\n");
-    fprintf(out, "--show-md5sum         Show the MD5 signature from the STREAMINFO block.\n");
-    fprintf(out, "--show-min-blocksize  Show the minimum block size from the STREAMINFO block.\n");
-    fprintf(out, "--show-max-blocksize  Show the maximum block size from the STREAMINFO block.\n");
-    fprintf(out, "--show-min-framesize  Show the minimum frame size from the STREAMINFO block.\n");
-    fprintf(out, "--show-max-framesize  Show the maximum frame size from the STREAMINFO block.\n");
-    fprintf(out, "--show-sample-rate    Show the sample rate from the STREAMINFO block.\n");
-    fprintf(out, "--show-channels       Show the number of channels from the STREAMINFO block.\n");
-    fprintf(out, "--show-bps            Show the # of bits per sample from the STREAMINFO block.\n");
-    fprintf(out, "--show-total-samples  Show the total # of samples from the STREAMINFO block.\n");
-    fprintf(out, "\n");
-    fprintf(out, "--show-vc-vendor      Show the vendor string from the VORBIS_COMMENT block.\n");
-    fprintf(out, "--show-vc-field=name  Show all Vorbis comment fields where the the field name\n");
-    fprintf(out, "                      matches 'name'.\n");
-    fprintf(out, "--remove-vc-field=name\n");
-    fprintf(out, "                      Remove all Vorbis comment fields whose field name is\n");
-    fprintf(out, "                      'name'.\n");
-    fprintf(out, "--remove-vc-firstfield=name\n");
-    fprintf(out, "                      Remove first Vorbis comment field whose field name is\n");
-    fprintf(out, "                      'name'.\n");
-    fprintf(out, "--remove-vc-all       Remove all Vorbis comment fields, leaving only the\n");
-    fprintf(out, "                      vendor string in the VORBIS_COMMENT block.\n");
-    fprintf(out, "--set-vc-field=field  Add a Vorbis comment field.  The field must comply with\n");
-    fprintf(out, "                      the Vorbis comment spec, of the form \"NAME=VALUE\".  If\n");
-    fprintf(out, "                      there is currently no VORBIS_COMMENT block, one will be\n");
-    fprintf(out, "                      created.\n");
-    fprintf(out, "--add-padding=length  Add a padding block of the given length (in bytes).\n");
-    fprintf(out, "                      The overall length of the new block will be 4 + length;\n");
-    fprintf(out, "                      the extra 4 bytes is for the metadata block header.\n");
-    fprintf(out, "\n");
-    fprintf(out, "Major operations:\n");
-    fprintf(out, "--version\n");
-    fprintf(out, "    Show the metaflac version number.\n");
-    fprintf(out, "--list\n");
-    fprintf(out, "    List the contents of one or more metadata blocks to stdout.  By default,\n");
-    fprintf(out, "    all metadata blocks are listed in text format.  Use the following options\n");
-    fprintf(out, "    to change this behavior:\n");
-    fprintf(out, "\n");
-    fprintf(out, "    --block-number=#[,#[...]]\n");
-    fprintf(out, "    An optional comma-separated list of block numbers to display.  The first\n");
-    fprintf(out, "    block, the STREAMINFO block, is block 0.\n");
-    fprintf(out, "\n");
-    fprintf(out, "    --block-type=type[,type[...]]\n");
-    fprintf(out, "    --except-block-type=type[,type[...]]\n");
-    fprintf(out, "    An optional comma-separated list of block types to included or ignored\n");
-    fprintf(out, "    with this option.  Use only one of --block-type or --except-block-type.\n");
-    fprintf(out, "    The valid block types are: STREAMINFO, PADDING, APPLICATION, SEEKTABLE,\n");
-    fprintf(out, "    VORBIS_COMMENT.  You may narrow down the types of APPLICATION blocks\n");
-    fprintf(out, "    displayed as follows:\n");
-    fprintf(out, "        APPLICATION:abcd        The APPLICATION block(s) whose textual repre-\n");
-    fprintf(out, "                                sentation of the 4-byte ID is \"abcd\"\n");
-    fprintf(out, "        APPLICATION:0xXXXXXXXX  The APPLICATION block(s) whose hexadecimal big-\n");
-    fprintf(out, "                                endian representation of the 4-byte ID is\n");
-    fprintf(out, "                                \"0xXXXXXXXX\".  For the example \"abcd\" above the\n");
-    fprintf(out, "                                hexadecimal equivalalent is 0x61626364\n");
-    fprintf(out, "\n");
-    fprintf(out, "    NOTE: if both --block-number and --[except-]block-type are specified,\n");
-    fprintf(out, "          the result is the logical AND of both arguments.\n");
-    fprintf(out, "\n");
+	fprintf(out, "\n");
+	fprintf(out, "Shorthand operations:\n");
+	fprintf(out, "--show-md5sum         Show the MD5 signature from the STREAMINFO block.\n");
+	fprintf(out, "--show-min-blocksize  Show the minimum block size from the STREAMINFO block.\n");
+	fprintf(out, "--show-max-blocksize  Show the maximum block size from the STREAMINFO block.\n");
+	fprintf(out, "--show-min-framesize  Show the minimum frame size from the STREAMINFO block.\n");
+	fprintf(out, "--show-max-framesize  Show the maximum frame size from the STREAMINFO block.\n");
+	fprintf(out, "--show-sample-rate    Show the sample rate from the STREAMINFO block.\n");
+	fprintf(out, "--show-channels       Show the number of channels from the STREAMINFO block.\n");
+	fprintf(out, "--show-bps            Show the # of bits per sample from the STREAMINFO block.\n");
+	fprintf(out, "--show-total-samples  Show the total # of samples from the STREAMINFO block.\n");
+	fprintf(out, "\n");
+	fprintf(out, "--show-vc-vendor      Show the vendor string from the VORBIS_COMMENT block.\n");
+	fprintf(out, "--show-vc-field=name  Show all Vorbis comment fields where the the field name\n");
+	fprintf(out, "                      matches 'name'.\n");
+	fprintf(out, "--remove-vc-field=name\n");
+	fprintf(out, "                      Remove all Vorbis comment fields whose field name is\n");
+	fprintf(out, "                      'name'.\n");
+	fprintf(out, "--remove-vc-firstfield=name\n");
+	fprintf(out, "                      Remove first Vorbis comment field whose field name is\n");
+	fprintf(out, "                      'name'.\n");
+	fprintf(out, "--remove-vc-all       Remove all Vorbis comment fields, leaving only the\n");
+	fprintf(out, "                      vendor string in the VORBIS_COMMENT block.\n");
+	fprintf(out, "--set-vc-field=field  Add a Vorbis comment field.  The field must comply with\n");
+	fprintf(out, "                      the Vorbis comment spec, of the form \"NAME=VALUE\".  If\n");
+	fprintf(out, "                      there is currently no VORBIS_COMMENT block, one will be\n");
+	fprintf(out, "                      created.\n");
+	fprintf(out, "--add-padding=length  Add a padding block of the given length (in bytes).\n");
+	fprintf(out, "                      The overall length of the new block will be 4 + length;\n");
+	fprintf(out, "                      the extra 4 bytes is for the metadata block header.\n");
+	fprintf(out, "\n");
+	fprintf(out, "Major operations:\n");
+	fprintf(out, "--version\n");
+	fprintf(out, "    Show the metaflac version number.\n");
+	fprintf(out, "--list\n");
+	fprintf(out, "    List the contents of one or more metadata blocks to stdout.  By default,\n");
+	fprintf(out, "    all metadata blocks are listed in text format.  Use the following options\n");
+	fprintf(out, "    to change this behavior:\n");
+	fprintf(out, "\n");
+	fprintf(out, "    --block-number=#[,#[...]]\n");
+	fprintf(out, "    An optional comma-separated list of block numbers to display.  The first\n");
+	fprintf(out, "    block, the STREAMINFO block, is block 0.\n");
+	fprintf(out, "\n");
+	fprintf(out, "    --block-type=type[,type[...]]\n");
+	fprintf(out, "    --except-block-type=type[,type[...]]\n");
+	fprintf(out, "    An optional comma-separated list of block types to included or ignored\n");
+	fprintf(out, "    with this option.  Use only one of --block-type or --except-block-type.\n");
+	fprintf(out, "    The valid block types are: STREAMINFO, PADDING, APPLICATION, SEEKTABLE,\n");
+	fprintf(out, "    VORBIS_COMMENT.  You may narrow down the types of APPLICATION blocks\n");
+	fprintf(out, "    displayed as follows:\n");
+	fprintf(out, "        APPLICATION:abcd        The APPLICATION block(s) whose textual repre-\n");
+	fprintf(out, "                                sentation of the 4-byte ID is \"abcd\"\n");
+	fprintf(out, "        APPLICATION:0xXXXXXXXX  The APPLICATION block(s) whose hexadecimal big-\n");
+	fprintf(out, "                                endian representation of the 4-byte ID is\n");
+	fprintf(out, "                                \"0xXXXXXXXX\".  For the example \"abcd\" above the\n");
+	fprintf(out, "                                hexadecimal equivalalent is 0x61626364\n");
+	fprintf(out, "\n");
+	fprintf(out, "    NOTE: if both --block-number and --[except-]block-type are specified,\n");
+	fprintf(out, "          the result is the logical AND of both arguments.\n");
+	fprintf(out, "\n");
 #if 0
 	/*@@@ not implemented yet */
-    fprintf(out, "    --data-format=binary|text\n");
-    fprintf(out, "    By default a human-readable text representation of the data is displayed.\n");
-    fprintf(out, "    You may specify --data-format=binary to dump the raw binary form of each\n");
-    fprintf(out, "    metadata block.  The output can be read in using a subsequent call to\n");
-    fprintf(out, "    "metaflac --append --from-file=..."\n");
-    fprintf(out, "\n");
+	fprintf(out, "    --data-format=binary|text\n");
+	fprintf(out, "    By default a human-readable text representation of the data is displayed.\n");
+	fprintf(out, "    You may specify --data-format=binary to dump the raw binary form of each\n");
+	fprintf(out, "    metadata block.  The output can be read in using a subsequent call to\n");
+	fprintf(out, "    "metaflac --append --from-file=..."\n");
+	fprintf(out, "\n");
 #endif
-    fprintf(out, "    --application-data-format=hexdump|text\n");
-    fprintf(out, "    If the application block you are displaying contains binary data but your\n");
-    fprintf(out, "    --data-format=text, you can display a hex dump of the application data\n");
-    fprintf(out, "    contents instead using --application-data-format=hexdump\n");
-    fprintf(out, "\n");
+	fprintf(out, "    --application-data-format=hexdump|text\n");
+	fprintf(out, "    If the application block you are displaying contains binary data but your\n");
+	fprintf(out, "    --data-format=text, you can display a hex dump of the application data\n");
+	fprintf(out, "    contents instead using --application-data-format=hexdump\n");
+	fprintf(out, "\n");
 #if 0
 	/*@@@ not implemented yet */
-    fprintf(out, "--append\n");
-    fprintf(out, "    Insert a metadata block from a file.  The input file must be in the same\n");
-    fprintf(out, "    format as generated with --list.\n");
-    fprintf(out, "\n");
-    fprintf(out, "    --block-number=#\n");
-    fprintf(out, "    Specify the insertion point (defaults to last block).  The new block will\n");
-    fprintf(out, "    be added after the given block number.  This prevents the illegal insertion\n");
-    fprintf(out, "    of a block before the first STREAMINFO block.  You may not --append another\n");
-    fprintf(out, "    STREAMINFO block.\n");
-    fprintf(out, "\n");
-    fprintf(out, "    --from-file=filename\n");
-    fprintf(out, "    Mandatory 'option' to specify the input file containing the block contents.\n");
-    fprintf(out, "\n");
-    fprintf(out, "    --data-format=binary|text\n");
-    fprintf(out, "    By default the block contents are assumed to be in binary format.  You can\n");
-    fprintf(out, "    override this by specifying --data-format=text\n");
-    fprintf(out, "\n");
+	fprintf(out, "--append\n");
+	fprintf(out, "    Insert a metadata block from a file.  The input file must be in the same\n");
+	fprintf(out, "    format as generated with --list.\n");
+	fprintf(out, "\n");
+	fprintf(out, "    --block-number=#\n");
+	fprintf(out, "    Specify the insertion point (defaults to last block).  The new block will\n");
+	fprintf(out, "    be added after the given block number.  This prevents the illegal insertion\n");
+	fprintf(out, "    of a block before the first STREAMINFO block.  You may not --append another\n");
+	fprintf(out, "    STREAMINFO block.\n");
+	fprintf(out, "\n");
+	fprintf(out, "    --from-file=filename\n");
+	fprintf(out, "    Mandatory 'option' to specify the input file containing the block contents.\n");
+	fprintf(out, "\n");
+	fprintf(out, "    --data-format=binary|text\n");
+	fprintf(out, "    By default the block contents are assumed to be in binary format.  You can\n");
+	fprintf(out, "    override this by specifying --data-format=text\n");
+	fprintf(out, "\n");
 #endif
-    fprintf(out, "--remove\n");
-    fprintf(out, "    Remove one or more metadata blocks from the metadata.  Unless\n");
-    fprintf(out, "    --dont-use-padding is specified, the blocks will be replaced with padding.\n");
-    fprintf(out, "    You may not remove the STREAMINFO block.\n");
-    fprintf(out, "\n");
-    fprintf(out, "    --block-number=#[,#[...]]\n");
-    fprintf(out, "    --block-type=type[,type[...]]\n");
-    fprintf(out, "    --except-block-type=type[,type[...]]\n");
-    fprintf(out, "    See --list above for usage.\n");
-    fprintf(out, "\n");
-    fprintf(out, "    NOTE: if both --block-number and --[except-]block-type are specified,\n");
-    fprintf(out, "          the result is the logical AND of both arguments.\n");
-    fprintf(out, "\n");
-    fprintf(out, "--remove-all\n");
-    fprintf(out, "    Remove all metadata blocks (except the STREAMINFO block) from the\n");
-    fprintf(out, "    metadata.  Unless --dont-use-padding is specified, the blocks will be\n");
-    fprintf(out, "    replaced with padding.\n");
-    fprintf(out, "\n");
-    fprintf(out, "--merge-padding\n");
-    fprintf(out, "    Merge adjacent PADDING blocks into single blocks.\n");
-    fprintf(out, "\n");
-    fprintf(out, "--sort-padding\n");
-    fprintf(out, "    Move all PADDING blocks to the end of the metadata and merge them into a\n");
-    fprintf(out, "    single block.\n");
+	fprintf(out, "--remove\n");
+	fprintf(out, "    Remove one or more metadata blocks from the metadata.  Unless\n");
+	fprintf(out, "    --dont-use-padding is specified, the blocks will be replaced with padding.\n");
+	fprintf(out, "    You may not remove the STREAMINFO block.\n");
+	fprintf(out, "\n");
+	fprintf(out, "    --block-number=#[,#[...]]\n");
+	fprintf(out, "    --block-type=type[,type[...]]\n");
+	fprintf(out, "    --except-block-type=type[,type[...]]\n");
+	fprintf(out, "    See --list above for usage.\n");
+	fprintf(out, "\n");
+	fprintf(out, "    NOTE: if both --block-number and --[except-]block-type are specified,\n");
+	fprintf(out, "          the result is the logical AND of both arguments.\n");
+	fprintf(out, "\n");
+	fprintf(out, "--remove-all\n");
+	fprintf(out, "    Remove all metadata blocks (except the STREAMINFO block) from the\n");
+	fprintf(out, "    metadata.  Unless --dont-use-padding is specified, the blocks will be\n");
+	fprintf(out, "    replaced with padding.\n");
+	fprintf(out, "\n");
+	fprintf(out, "--merge-padding\n");
+	fprintf(out, "    Merge adjacent PADDING blocks into single blocks.\n");
+	fprintf(out, "\n");
+	fprintf(out, "--sort-padding\n");
+	fprintf(out, "    Move all PADDING blocks to the end of the metadata and merge them into a\n");
+	fprintf(out, "    single block.\n");
 
 	return message? 1 : 0;
 }
