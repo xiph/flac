@@ -131,7 +131,7 @@ static void free_metadata_blocks_()
 static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	(void)encoder, (void)buffer, (void)bytes, (void)samples, (void)current_frame, (void)client_data;
-	return FLAC__STREAM_ENCODER_WRITE_OK;
+	return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 }
 
 static void encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)

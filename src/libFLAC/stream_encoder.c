@@ -597,9 +597,12 @@ FLAC__bool FLAC__stream_encoder_set_do_escape_coding(FLAC__StreamEncoder *encode
 	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
-	/*@@@ deprecated:
+#if 0
+	/*@@@ deprecated: */
 	encoder->protected_->do_escape_coding = value;
-	*/
+#else
+	(void)value;
+#endif
 	return true;
 }
 
@@ -635,9 +638,12 @@ FLAC__bool FLAC__stream_encoder_set_rice_parameter_search_dist(FLAC__StreamEncod
 	FLAC__ASSERT(0 != encoder);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
-	/*@@@ deprecated:
+#if 0
+	/*@@@ deprecated: */
 	encoder->protected_->rice_parameter_search_dist = value;
-	*/
+#else
+	(void)value;
+#endif
 	return true;
 }
 

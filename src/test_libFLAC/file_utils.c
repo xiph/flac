@@ -46,9 +46,9 @@ static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const FLAC__Stream
 	(void)encoder, (void)samples, (void)current_frame;
 
 	if(fwrite(buffer, 1, bytes, ecd->file) != bytes)
-		return FLAC__STREAM_ENCODER_WRITE_FATAL_ERROR;
+		return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 	else
-		return FLAC__STREAM_ENCODER_WRITE_OK;
+		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 }
 
 static void encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data)
