@@ -47,6 +47,7 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 	 */
 	i = metadata->length;
 	if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+		FLAC__ASSERT(metadata->data.vorbis_comment.vendor_string.length == 0 || 0 != metadata->data.vorbis_comment.vendor_string.entry);
 		i -= metadata->data.vorbis_comment.vendor_string.length;
 		i += vendor_string_length;
 	}
