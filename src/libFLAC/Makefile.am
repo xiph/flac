@@ -34,6 +34,7 @@ endif
 
 SUBDIRS = $(ARCH_SUBDIRS) include .
 
+#@@@@ fix this
 libFLAC_la_LDFLAGS = -version-info 2:1:1
 
 libFLAC_la_SOURCES = \

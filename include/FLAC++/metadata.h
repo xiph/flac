@@ -67,7 +67,7 @@ namespace FLAC {
 			FLAC__MetaDataType get_type() const;
 			unsigned get_length() const; // NOTE: does not include the header, per spec
 		private:
-			Prototype(); // Private and undefined so use can't use it
+			Prototype(); // Private and undefined so you can't use it
 
 			// These are used only by Iterator
 			bool is_reference_;
