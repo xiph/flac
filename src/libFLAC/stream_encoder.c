@@ -2235,9 +2235,7 @@ FLAC__bool process_subframe_(
 						continue; /* don't even try */
 					rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > FLAC__FP_ZERO)? (unsigned)FLAC__fixedpoint_trunc(fixed_residual_bits_per_sample[fixed_order]+FLAC__FP_ONE_HALF) : 0; /* 0.5 is for rounding */
 #endif
-#ifndef FLAC__SYMMETRIC_RICE
 					rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
-#endif
 					if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
 #ifdef DEBUG_VERBOSE
 						fprintf(stderr, "clipping rice_parameter (%u -> %u) @0\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
@@ -2295,9 +2293,7 @@ FLAC__bool process_subframe_(
 							if(lpc_residual_bits_per_sample >= (FLAC__double)subframe_bps)
 								continue; /* don't even try */
 							rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
-#ifndef FLAC__SYMMETRIC_RICE
 							rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
-#endif
 							if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
 #ifdef DEBUG_VERBOSE
 								fprintf(stderr, "clipping rice_parameter (%u -> %u) @1\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
@@ -2895,23 +2891,15 @@ FLAC__bool set_partitioned_rice_(
 		for(rice_parameter = min_rice_parameter; rice_parameter <= max_rice_parameter; rice_parameter++) {
 #endif
 #ifdef VARIABLE_RICE_BITS
-#ifdef FLAC__SYMMETRIC_RICE
-			partition_bits = (2+rice_parameter) * residual_samples;
-#else
 			const unsigned rice_parameter_estimate = rice_parameter-1;
 			partition_bits = (1+rice_parameter) * residual_samples;
-#endif
 #else
 			partition_bits = 0;
 #endif
 			partition_bits += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
 			for(i = 0; i < residual_samples; i++) {
 #ifdef VARIABLE_RICE_BITS
-#ifdef FLAC__SYMMETRIC_RICE
-				partition_bits += VARIABLE_RICE_BITS(abs_residual[i], rice_parameter);
-#else
 				partition_bits += VARIABLE_RICE_BITS(abs_residual[i], rice_parameter_estimate);
-#endif
 #else
 				partition_bits += FLAC__bitbuffer_rice_bits(residual[i], rice_parameter); /* NOTE: we will need to pass in residual[] in addition to abs_residual[] */
 #endif
@@ -2944,18 +2932,6 @@ FLAC__bool set_partitioned_rice_(
 			for(partition_sample = 0; partition_sample < partition_samples; residual_sample++, partition_sample++)
 				mean += abs_residual[residual_sample];
 			residual_sample = save_residual_sample;
-#ifdef FLAC__SYMMETRIC_RICE
-			mean += partition_samples >> 1; /* for rounding effect */
-			mean /= partition_samples;
-
-			/* calc rice_parameter = floor(log2(mean)) */
-			rice_parameter = 0;
-			mean>>=1;
-			while(mean) {
-				rice_parameter++;
-				mean >>= 1;
-			}
-#else
 			/* we are basically calculating the size in bits of the
 			 * average residual magnitude in the partition:
 			 *   rice_parameter = floor(log2(mean/partition_samples))
@@ -2966,7 +2942,6 @@ FLAC__bool set_partitioned_rice_(
 			 */
 			for(rice_parameter = 0, k = partition_samples; k < mean; rice_parameter++, k <<= 1)
 				;
-#endif
 			if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
 #ifdef DEBUG_VERBOSE
 				fprintf(stderr, "clipping rice_parameter (%u -> %u) @3\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
@@ -2995,12 +2970,8 @@ FLAC__bool set_partitioned_rice_(
 			for(rice_parameter = min_rice_parameter; rice_parameter <= max_rice_parameter; rice_parameter++) {
 #endif
 #ifdef VARIABLE_RICE_BITS
-#ifdef FLAC__SYMMETRIC_RICE
-				partition_bits = (2+rice_parameter) * partition_samples;
-#else
 				const unsigned rice_parameter_estimate = rice_parameter-1;
 				partition_bits = (1+rice_parameter) * partition_samples;
-#endif
 #else
 				partition_bits = 0;
 #endif
@@ -3008,11 +2979,7 @@ FLAC__bool set_partitioned_rice_(
 				save_residual_sample = residual_sample;
 				for(partition_sample = 0; partition_sample < partition_samples; residual_sample++, partition_sample++) {
 #ifdef VARIABLE_RICE_BITS
-#ifdef FLAC__SYMMETRIC_RICE
-					partition_bits += VARIABLE_RICE_BITS(abs_residual[residual_sample], rice_parameter);
-#else
 					partition_bits += VARIABLE_RICE_BITS(abs_residual[residual_sample], rice_parameter_estimate);
-#endif
 #else
 					partition_bits += FLAC__bitbuffer_rice_bits(residual[residual_sample], rice_parameter); /* NOTE: we will need to pass in residual[] in addition to abs_residual[] */
 #endif
@@ -3104,23 +3071,15 @@ FLAC__bool set_partitioned_rice_with_precompute_(
 		for(rice_parameter = min_rice_parameter; rice_parameter <= max_rice_parameter; rice_parameter++) {
 #endif
 #ifdef VARIABLE_RICE_BITS
-#ifdef FLAC__SYMMETRIC_RICE
-			partition_bits = (2+rice_parameter) * residual_samples;
-#else
 			const unsigned rice_parameter_estimate = rice_parameter-1;
 			partition_bits = (1+rice_parameter) * residual_samples;
-#endif
 #else
 			partition_bits = 0;
 #endif
 			partition_bits += FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
 			for(i = 0; i < residual_samples; i++) {
 #ifdef VARIABLE_RICE_BITS
-#ifdef FLAC__SYMMETRIC_RICE
-				partition_bits += VARIABLE_RICE_BITS(abs_residual[i], rice_parameter);
-#else
 				partition_bits += VARIABLE_RICE_BITS(abs_residual[i], rice_parameter_estimate);
-#endif
 #else
 				partition_bits += FLAC__bitbuffer_rice_bits(residual[i], rice_parameter); /* NOTE: we will need to pass in residual[] instead of abs_residual[] */
 #endif
@@ -3157,18 +3116,6 @@ FLAC__bool set_partitioned_rice_with_precompute_(
 					partition_samples -= predictor_order;
 			}
 			mean = abs_residual_partition_sums[partition];
-#ifdef FLAC__SYMMETRIC_RICE
-			mean += partition_samples >> 1; /* for rounding effect */
-			mean /= partition_samples;
-
-			/* calc rice_parameter = floor(log2(mean)) */
-			rice_parameter = 0;
-			mean>>=1;
-			while(mean) {
-				rice_parameter++;
-				mean >>= 1;
-			}
-#else
 			/* we are basically calculating the size in bits of the
 			 * average residual magnitude in the partition:
 			 *   rice_parameter = floor(log2(mean/partition_samples))
@@ -3179,7 +3126,6 @@ FLAC__bool set_partitioned_rice_with_precompute_(
 			 */
 			for(rice_parameter = 0, k = partition_samples; k < mean; rice_parameter++, k <<= 1)
 				;
-#endif
 			if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
 #ifdef DEBUG_VERBOSE
 				fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
@@ -3208,12 +3154,8 @@ FLAC__bool set_partitioned_rice_with_precompute_(
 			for(rice_parameter = min_rice_parameter; rice_parameter <= max_rice_parameter; rice_parameter++) {
 #endif
 #ifdef VARIABLE_RICE_BITS
-#ifdef FLAC__SYMMETRIC_RICE
-				partition_bits = (2+rice_parameter) * partition_samples;
-#else
 				const unsigned rice_parameter_estimate = rice_parameter-1;
 				partition_bits = (1+rice_parameter) * partition_samples;
-#endif
 #else
 				partition_bits = 0;
 #endif
@@ -3221,11 +3163,7 @@ FLAC__bool set_partitioned_rice_with_precompute_(
 				save_residual_sample = residual_sample;
 				for(partition_sample = 0; partition_sample < partition_samples; residual_sample++, partition_sample++) {
 #ifdef VARIABLE_RICE_BITS
-#ifdef FLAC__SYMMETRIC_RICE
-					partition_bits += VARIABLE_RICE_BITS(abs_residual[residual_sample], rice_parameter);
-#else
 					partition_bits += VARIABLE_RICE_BITS(abs_residual[residual_sample], rice_parameter_estimate);
-#endif
 #else
 					partition_bits += FLAC__bitbuffer_rice_bits(residual[residual_sample], rice_parameter); /* NOTE: we will need to pass in residual[] instead of abs_residual[] */
 #endif

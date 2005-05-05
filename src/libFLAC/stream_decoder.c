@@ -2101,18 +2101,10 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigne
 			return false; /* the read_callback_ sets the state for us */
 		partitioned_rice_contents->parameters[partition] = rice_parameter;
 		if(rice_parameter < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-#ifdef FLAC__SYMMETRIC_RICE
-			for(u = (partition_order == 0 || partition > 0)? 0 : predictor_order; u < partition_samples; u++, sample++) {
-				if(!FLAC__bitbuffer_read_symmetric_rice_signed(decoder->private_->input, &i, rice_parameter, read_callback_, decoder))
-					return false; /* the read_callback_ sets the state for us */
-				residual[sample] = i;
-			}
-#else
 			u = (partition_order == 0 || partition > 0)? partition_samples : partition_samples - predictor_order;
 			if(!FLAC__bitbuffer_read_rice_signed_block(decoder->private_->input, residual + sample, u, rice_parameter, read_callback_, decoder))
 				return false; /* the read_callback_ sets the state for us */
 			sample += u;
-#endif
 		}
 		else {
 			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN, read_callback_, decoder))

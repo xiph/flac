@@ -443,13 +443,8 @@ FLAC__bool add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32
 			return false;
 		if(rice_parameters[0] < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
 			for(i = 0; i < residual_samples; i++) {
-#ifdef FLAC__SYMMETRIC_RICE
-				if(!FLAC__bitbuffer_write_symmetric_rice_signed(bb, residual[i], rice_parameters[0]))
-					return false;
-#else
 				if(!FLAC__bitbuffer_write_rice_signed(bb, residual[i], rice_parameters[0]))
 					return false;
-#endif
 			}
 		}
 		else {
@@ -475,13 +470,8 @@ FLAC__bool add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32
 			k += partition_samples;
 			if(rice_parameters[i] < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
 				for(j = k_last; j < k; j++) {
-#ifdef FLAC__SYMMETRIC_RICE
-					if(!FLAC__bitbuffer_write_symmetric_rice_signed(bb, residual[j], rice_parameters[i]))
-						return false;
-#else
 					if(!FLAC__bitbuffer_write_rice_signed(bb, residual[j], rice_parameters[i]))
 						return false;
-#endif
 				}
 			}
 			else {
