@@ -88,3 +88,6 @@ NEGATIVE cuesheets/bad.235.FLAC_leadout_offset_not_211680000.cue
 pass1: parse error, line 1: "FLAC__lead-out offset does not match end-of-stream offset"
 POSITIVE cuesheets/good.000.cue
 POSITIVE cuesheets/good.001.cue
+POSITIVE cuesheets/good.002.dos_format.cue
+POSITIVE cuesheets/good.003.missing_final_newline.cue
+POSITIVE cuesheets/good.004.dos_format.missing_final_newline.cue

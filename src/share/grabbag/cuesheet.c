@@ -202,7 +202,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 #define FLAC__STRCASECMP strcasecmp
 #endif
 	char buffer[4096], *line, *field;
-	unsigned linelen, forced_leadout_track_num = 0;
+	unsigned forced_leadout_track_num = 0;
 	FLAC__uint64 forced_leadout_track_offset = 0;
 	int in_track_num = -1, in_index_num = -1;
 	FLAC__bool disc_has_catalog = false, track_has_flags = false, track_has_isrc = false, has_forced_leadout = false;
@@ -215,10 +215,12 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 		(*last_line_read)++;
 		line = buffer;
 
-		linelen = strlen(line);
-		if(line[linelen-1] != '\n') {
-			*error_message = "line too long";
-			return false;
+		{
+			size_t linelen = strlen(line);
+			if((linelen == sizeof(buffer)-1) && line[linelen-1] != '\n') {
+				*error_message = "line too long";
+				return false;
+			}
 		}
 
 		if(0 != (field = local__get_field_(&line, /*allow_quotes=*/false))) {
