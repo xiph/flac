@@ -254,17 +254,51 @@ FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *se
 	return j;
 }
 
+/*
+ * also disallows non-shortest-form encodings, c.f.
+ *   http://www.unicode.org/versions/corrigendum1.html
+ * and a more clear explanation at the end of this section:
+ *   http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+ */
 static __inline unsigned utf8len_(const FLAC__byte *utf8)
 {
 	FLAC__ASSERT(0 != utf8);
-	if ((utf8[0] & 0x80) == 0)
+	if ((utf8[0] & 0x80) == 0) {
 		return 1;
-	else if ((utf8[0] & 0xE0) == 0xC0 && (utf8[1] & 0xC0) == 0x80)
+	}
+	else if ((utf8[0] & 0xE0) == 0xC0 && (utf8[1] & 0xC0) == 0x80) {
+		if ((utf8[0] & 0x01) == 0xC0) /* overlong sequence check */
+			return 0;
 		return 2;
-	else if ((utf8[0] & 0xF0) == 0xE0 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80)
+	}
+	else if ((utf8[0] & 0xF0) == 0xE0 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80) {
+		if (utf8[0] == 0xE0 && (utf8[1] & 0xE0) == 0x80) /* overlong sequence check */
+			return 0;
+		/* illegal surrogates check (U+D800...U+DFFF and U+FFFE...U+FFFF) */
+		if (utf8[0] == 0xED && (utf8[1] & 0xE0) == 0xA0) /* D800-DFFF */
+			return 0;
+		if (utf8[0] == 0xEF && utf8[1] == 0xBF && (utf8[2] & 0xFE) == 0xBE) /* FFFE-FFFF */
+			return 0;
 		return 3;
-	else
+	}
+	else if ((utf8[0] & 0xF8) == 0xF0 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80) {
+		if (utf8[0] == 0xF0 && (utf8[1] & 0xF0) == 0x80) /* overlong sequence check */
+			return 0;
+		return 4;
+	}
+	else if ((utf8[0] & 0xFC) == 0xF8 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80 && (utf8[4] & 0xC0) == 0x80) {
+		if (utf8[0] == 0xF8 && (utf8[1] & 0xF8) == 0x80) /* overlong sequence check */
+			return 0;
+		return 5;
+	}
+	else if ((utf8[0] & 0xFE) == 0xFC && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80 && (utf8[4] & 0xC0) == 0x80 && (utf8[5] & 0xC0) == 0x80) {
+		if (utf8[0] == 0xFC && (utf8[1] & 0xFC) == 0x80) /* overlong sequence check */
+			return 0;
+		return 6;
+	}
+	else {
 		return 0;
+	}
 }
 
 FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_name_is_legal(const char *name)
@@ -364,11 +398,12 @@ FLAC_API FLAC__bool FLAC__format_cuesheet_is_legal(const FLAC__StreamMetadata_Cu
 		}
 
 		if(check_cd_da_subset && cue_sheet->tracks[i].offset % 588 != 0) {
-			if(violation)
+			if(violation) {
 				if(i == cue_sheet->num_tracks-1) /* the lead-out track... */
 					*violation = "CD-DA cue sheet lead-out offset must be evenly divisible by 588 samples";
 				else
 					*violation = "CD-DA cue sheet track offset must be evenly divisible by 588 samples";
+			}
 			return false;
 		}
 
