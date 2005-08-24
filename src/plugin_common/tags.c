@@ -33,18 +33,53 @@ static __inline unsigned local__wide_strlen(const FLAC__uint16 *s)
 	return n;
 }
 
+/*
+ * also disallows non-shortest-form encodings, c.f.
+ *   http://www.unicode.org/versions/corrigendum1.html
+ * and a more clear explanation at the end of this section:
+ *   http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
+ */
 static __inline unsigned local__utf8len(const FLAC__byte *utf8)
 {
 	FLAC__ASSERT(0 != utf8);
-	if ((utf8[0] & 0x80) == 0)
+	if ((utf8[0] & 0x80) == 0) {
 		return 1;
-	else if ((utf8[0] & 0xE0) == 0xC0 && (utf8[1] & 0xC0) == 0x80)
+	}
+	else if ((utf8[0] & 0xE0) == 0xC0 && (utf8[1] & 0xC0) == 0x80) {
+		if ((utf8[0] & 0x01) == 0xC0) /* overlong sequence check */
+			return 0;
 		return 2;
-	else if ((utf8[0] & 0xF0) == 0xE0 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80)
+	}
+	else if ((utf8[0] & 0xF0) == 0xE0 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80) {
+		if (utf8[0] == 0xE0 && (utf8[1] & 0xE0) == 0x80) /* overlong sequence check */
+			return 0;
+		/* illegal surrogates check (U+D800...U+DFFF and U+FFFE...U+FFFF) */
+		if (utf8[0] == 0xED && (utf8[1] & 0xE0) == 0xA0) /* D800-DFFF */
+			return 0;
+		if (utf8[0] == 0xEF && utf8[1] == 0xBF && (utf8[2] & 0xFE) == 0xBE) /* FFFE-FFFF */
+			return 0;
 		return 3;
-	else
+	}
+	else if ((utf8[0] & 0xF8) == 0xF0 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80) {
+		if (utf8[0] == 0xF0 && (utf8[1] & 0xF0) == 0x80) /* overlong sequence check */
+			return 0;
+		return 4;
+	}
+	else if ((utf8[0] & 0xFC) == 0xF8 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80 && (utf8[4] & 0xC0) == 0x80) {
+		if (utf8[0] == 0xF8 && (utf8[1] & 0xF8) == 0x80) /* overlong sequence check */
+			return 0;
+		return 5;
+	}
+	else if ((utf8[0] & 0xFE) == 0xFC && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80 && (utf8[4] & 0xC0) == 0x80 && (utf8[5] & 0xC0) == 0x80) {
+		if (utf8[0] == 0xFC && (utf8[1] & 0xFC) == 0x80) /* overlong sequence check */
+			return 0;
+		return 6;
+	}
+	else {
 		return 0;
+	}
 }
+
 
 static __inline unsigned local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__uint16 *ucs2)
 {
@@ -58,6 +93,8 @@ static __inline unsigned local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__uint1
 		*ucs2 = (*utf8 & 0x3F)<<6 | (*(utf8+1) & 0x3F);
 	else if (len == 3)
 		*ucs2 = (*utf8 & 0x1F)<<12 | (*(utf8+1) & 0x3F)<<6 | (*(utf8+2) & 0x3F);
+	else
+		*ucs2 = '?';
 
 	return len;
 }
@@ -71,8 +108,8 @@ static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, unsigned lengt
 
 	/* calculate length */
 	{
-		const char *s, *end;
-		for (s=src, end=src+length; s<end; chars++) {
+		const unsigned char *s, *end;
+		for (s=(const unsigned char *)src, end=s+length; s<end; chars++) {
 			const unsigned n = local__utf8len(s);
 			if (n == 0)
 				return 0;
@@ -90,9 +127,10 @@ static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, unsigned lengt
 
 	/* convert */
 	{
+		const unsigned char *s = (const unsigned char *)src;
 		FLAC__uint16 *u = out;
 		for ( ; chars; chars--)
-			src += local__utf8_to_ucs2(src, u++);
+			s += local__utf8_to_ucs2(s, u++);
 	}
 
 	return out;
@@ -148,7 +186,7 @@ static char *local__convert_ucs2_to_utf8(const FLAC__uint16 *src, unsigned lengt
 
 	/* convert */
 	{
-		char *u = out;
+		unsigned char *u = (unsigned char *)out;
 		for ( ; *src; src++)
 			u += local__ucs2_to_utf8(*src, u);
 		local__ucs2_to_utf8(*src, u);
@@ -226,7 +264,7 @@ void FLAC_plugin__tags_destroy(FLAC__StreamMetadata **tags)
 const char *FLAC_plugin__tags_get_tag_utf8(const FLAC__StreamMetadata *tags, const char *name)
 {
 	const int i = FLAC__metadata_object_vorbiscomment_find_entry_from(tags, /*offset=*/0, name);
-	return (i < 0? 0 : strchr(tags->data.vorbis_comment.comments[i].entry, '=')+1);
+	return (i < 0? 0 : strchr((const char *)tags->data.vorbis_comment.comments[i].entry, '=')+1);
 }
 
 FLAC__uint16 *FLAC_plugin__tags_get_tag_ucs2(const FLAC__StreamMetadata *tags, const char *name)
