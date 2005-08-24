@@ -1161,8 +1161,7 @@ void print_error_with_state(const DecoderSession *d, const char *message)
 			"may be corrupted, or you may have found a bug.  In this case please\n"
 			"submit a bug report to\n"
 			"    http://sourceforge.net/bugs/?func=addbug&group_id=13478\n"
-			"Make sure to include an email contact in the comment and/or use the\n"
-			"\"Monitor\" feature to monitor the bug status.\n",
+			"Make sure to use the \"Monitor\" feature to monitor the bug status.\n",
 			d->inbasefilename, FLAC__VERSION_STRING
 		);
 	}

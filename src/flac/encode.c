@@ -1986,8 +1986,7 @@ void print_verify_error(EncoderSession *e)
 	flac__utils_printf(stderr, 1, "       a problem with your hardware.  If it does, keep the bad FLAC file and\n");
 	flac__utils_printf(stderr, 1, "       submit a bug report to:\n");
 	flac__utils_printf(stderr, 1, "           http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
-	flac__utils_printf(stderr, 1, "       Make sure to include an email contact in the comment and/or use the\n");
-	flac__utils_printf(stderr, 1, "       \"Monitor\" feature to monitor the bug status.\n");
+	flac__utils_printf(stderr, 1, "       Make sure to use the \"Monitor\" feature to monitor the bug status.\n");
 	flac__utils_printf(stderr, 1, "Verify FAILED!  Do not trust %s\n", e->outfilename);
 }
 
