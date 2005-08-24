@@ -35,7 +35,7 @@ const unsigned OggFLAC__MAPPING_PACKET_TYPE_LEN = 8; /* bits */
 
 const FLAC__byte OggFLAC__MAPPING_FIRST_HEADER_PACKET_TYPE = 0x7f;
 
-const FLAC__byte * const OggFLAC__MAPPING_MAGIC = "FLAC";
+const FLAC__byte * const OggFLAC__MAPPING_MAGIC = (const FLAC__byte * const)"FLAC";
 
 const unsigned OggFLAC__MAPPING_VERSION_MAJOR_LEN = 8; /* bits */
 const unsigned OggFLAC__MAPPING_VERSION_MINOR_LEN = 8; /* bits */

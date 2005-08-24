@@ -41,10 +41,10 @@
 #endif
 #define local_max(a,b) ((a)>(b)?(a):(b))
 
-static const FLAC__byte *tag_title_gain_ = "REPLAYGAIN_TRACK_GAIN";
-static const FLAC__byte *tag_title_peak_ = "REPLAYGAIN_TRACK_PEAK";
-static const FLAC__byte *tag_album_gain_ = "REPLAYGAIN_ALBUM_GAIN";
-static const FLAC__byte *tag_album_peak_ = "REPLAYGAIN_ALBUM_PEAK";
+static const FLAC__byte * const tag_title_gain_ = (const FLAC__byte * const)"REPLAYGAIN_TRACK_GAIN";
+static const FLAC__byte * const tag_title_peak_ = (const FLAC__byte * const)"REPLAYGAIN_TRACK_PEAK";
+static const FLAC__byte * const tag_album_gain_ = (const FLAC__byte * const)"REPLAYGAIN_ALBUM_GAIN";
+static const FLAC__byte * const tag_album_peak_ = (const FLAC__byte * const)"REPLAYGAIN_ALBUM_PEAK";
 static const char *peak_format_ = "%s=%1.8f";
 static const char *gain_format_ = "%s=%+2.2f dB";
 

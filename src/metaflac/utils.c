@@ -225,7 +225,7 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 			 */
 			char *converted;
 
-			if(utf8_decode(entry->entry, &converted) >= 0) {
+			if(utf8_decode((const char *)entry->entry, &converted) >= 0) {
 				(void) local_fwrite(converted, 1, strlen(converted), f);
 				free(converted);
 			}

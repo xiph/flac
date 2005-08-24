@@ -1073,16 +1073,16 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__St
 
 		field_name_length = eq-entry.entry;
 
-		if((i = vorbiscomment_find_entry_from_(object, 0, entry.entry, field_name_length)) >= 0) {
+		if((i = vorbiscomment_find_entry_from_(object, 0, (const char *)entry.entry, field_name_length)) >= 0) {
 			unsigned index = (unsigned)i;
 			if(!FLAC__metadata_object_vorbiscomment_set_comment(object, index, entry, copy))
 				return false;
 			if(all && (index+1 < object->data.vorbis_comment.num_comments)) {
-				for(i = vorbiscomment_find_entry_from_(object, index+1, entry.entry, field_name_length); i >= 0; ) {
+				for(i = vorbiscomment_find_entry_from_(object, index+1, (const char *)entry.entry, field_name_length); i >= 0; ) {
 					if(!FLAC__metadata_object_vorbiscomment_delete_comment(object, (unsigned)i))
 						return false;
 					if((unsigned)i < object->data.vorbis_comment.num_comments)
-						i = vorbiscomment_find_entry_from_(object, (unsigned)i, entry.entry, field_name_length);
+						i = vorbiscomment_find_entry_from_(object, (unsigned)i, (const char *)entry.entry, field_name_length);
 					else
 						i = -1;
 				}
@@ -1124,7 +1124,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
 
 	if(!FLAC__format_vorbiscomment_entry_name_is_legal(field_name))
 		return false;
-	if(!FLAC__format_vorbiscomment_entry_value_is_legal(field_value, (unsigned)(-1)))
+	if(!FLAC__format_vorbiscomment_entry_value_is_legal((const FLAC__byte *)field_value, (unsigned)(-1)))
 		return false;
 
 	{
