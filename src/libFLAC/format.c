@@ -364,7 +364,11 @@ FLAC_API FLAC__bool FLAC__format_cuesheet_is_legal(const FLAC__StreamMetadata_Cu
 		}
 
 		if(check_cd_da_subset && cue_sheet->tracks[i].offset % 588 != 0) {
-			if(violation) *violation = "CD-DA cue sheet track offset must be evenly divisible by 588 samples";
+			if(violation)
+				if(i == cue_sheet->num_tracks-1) /* the lead-out track... */
+					*violation = "CD-DA cue sheet lead-out offset must be evenly divisible by 588 samples";
+				else
+					*violation = "CD-DA cue sheet track offset must be evenly divisible by 588 samples";
 			return false;
 		}
 
