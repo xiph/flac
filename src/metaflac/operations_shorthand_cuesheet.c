@@ -132,6 +132,17 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 		return false;
 	}
 
+	if(!FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/false, &error_message)) {
+		fprintf(stderr, "%s: ERROR parsing cuesheet \"%s\": %s\n", filename, cs_filename, error_message);
+		return false;
+	}
+
+	/* if we're expecting CDDA, warn about non-compliance */
+	if(is_cdda && !FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/true, &error_message)) {
+		fprintf(stderr, "%s: WARNING cuesheet \"%s\" is not audio CD compliant: %s\n", filename, cs_filename, error_message);
+		(*cuesheet)->data.cue_sheet.is_cd = false;
+	}
+
 	/* add seekpoints for each index point if required */
 	if(0 != seekpoint_specification) {
 		char spec[128];
