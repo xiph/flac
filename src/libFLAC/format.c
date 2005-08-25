@@ -267,7 +267,7 @@ static __inline unsigned utf8len_(const FLAC__byte *utf8)
 		return 1;
 	}
 	else if ((utf8[0] & 0xE0) == 0xC0 && (utf8[1] & 0xC0) == 0x80) {
-		if ((utf8[0] & 0x01) == 0xC0) /* overlong sequence check */
+		if ((utf8[0] & 0xFE) == 0xC0) /* overlong sequence check */
 			return 0;
 		return 2;
 	}
