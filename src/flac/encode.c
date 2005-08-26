@@ -160,9 +160,7 @@ static FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset);
 /*
  * public routines
  */
-int
-flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const char *outfilename,
-	const FLAC__byte *lookahead, unsigned lookahead_length, wav_encode_options_t options)
+int flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, wav_encode_options_t options, FLAC__bool is_aifc)
 {
 	EncoderSession encoder_session;
 	FLAC__uint16 x;
@@ -170,6 +168,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 	unsigned int channels= 0U, bps= 0U, sample_rate= 0U, sample_frames= 0U;
 	FLAC__bool got_comm_chunk= false, got_ssnd_chunk= false;
 	int info_align_carry= -1, info_align_zero= -1;
+	FLAC__bool is_big_endian_pcm = true;
 
 	(void)infilesize; /* silence compiler warning about unused parameter */
 	(void)lookahead; /* silence compiler warning about unused parameter */
@@ -205,20 +204,21 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			return EncoderSession_finish_error(&encoder_session);
 		}
 
-		if(got_comm_chunk==false && !strncmp(chunk_id, "COMM", 4)) { /* common chunk */
+		if(got_comm_chunk==false && !memcmp(chunk_id, "COMM", 4)) { /* common chunk */
 			unsigned long skip;
+			const FLAC__uint32 minimum_comm_size = (is_aifc? 22 : 18);
 
 			/* COMM chunk size */
 			if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
-			else if(xx<18U) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: non-standard 'COMM' chunk has length = %u\n", encoder_session.inbasefilename, (unsigned int)xx);
+			else if(xx<minimum_comm_size) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: non-standard %s 'COMM' chunk has length = %u\n", encoder_session.inbasefilename, is_aifc? "AIFF-C" : "AIFF", (unsigned int)xx);
 				return EncoderSession_finish_error(&encoder_session);
 			}
-			else if(xx!=18U) {
-				flac__utils_printf(stderr, 1, "%s: WARNING: non-standard 'COMM' chunk has length = %u\n", encoder_session.inbasefilename, (unsigned int)xx);
+			else if(!is_aifc && xx!=minimum_comm_size) {
+				flac__utils_printf(stderr, 1, "%s: WARNING: non-standard %s 'COMM' chunk has length = %u, expected %u\n", encoder_session.inbasefilename, is_aifc? "AIFF-C" : "AIFF", (unsigned int)xx, minimum_comm_size);
 			}
-			skip= (xx-18U)+(xx & 1U);
+			skip= (xx-minimum_comm_size)+(xx & 1U);
 
 			/* number of channels */
 			if(!read_big_endian_uint16(infile, &x, false, encoder_session.inbasefilename))
@@ -264,6 +264,20 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			}
 			sample_rate= xx;
 
+			/* check compression type for AIFF-C */
+			if(is_aifc) {
+				if(!read_big_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
+					return EncoderSession_finish_error(&encoder_session);
+				if(xx == 0x736F7774) /* "sowt" */
+					is_big_endian_pcm = false;
+				else if(xx == 0x4E4F4E45) /* "NONE" */
+					; /* nothing to do, we already default to big-endian */
+				else {
+					flac__utils_printf(stderr, 1, "%s: ERROR: can't handle AIFF-C compression type \"%c%c%c%c\"\n", encoder_session.inbasefilename, (char)(xx>>24), (char)((xx>>16)&8), (char)((xx>>8)&8), (char)(xx&8));
+					return EncoderSession_finish_error(&encoder_session);
+				}
+			}
+
 			/* skip any extra data in the COMM chunk */
 			if(!fskip_ahead(infile, skip)) {
 				flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping extra COMM data\n", encoder_session.inbasefilename);
@@ -281,7 +295,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 
 			got_comm_chunk= true;
 		}
-		else if(got_ssnd_chunk==false && !strncmp(chunk_id, "SSND", 4)) { /* sound data chunk */
+		else if(got_ssnd_chunk==false && !memcmp(chunk_id, "SSND", 4)) { /* sound data chunk */
 			unsigned int offset= 0U, block_size= 0U, align_remainder= 0U, data_bytes;
 			size_t bytes_per_frame= channels*(bps>>3);
 			FLAC__uint64 total_samples_in_input, trim = 0;
@@ -408,7 +422,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 					}
 					else {
 						unsigned int frames= bytes_read/bytes_per_frame;
-						format_input(input_, frames, true, false, channels, bps);
+						format_input(input_, frames, is_big_endian_pcm, /*is_unsigned_samples=*/false, channels, bps);
 
 						if(!EncoderSession_process(&encoder_session, (const FLAC__int32 *const *)input_, frames)) {
 							print_error_with_state(&encoder_session, "ERROR during encoding");
@@ -460,7 +474,7 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 						}
 						else {
 							info_align_carry= *options.common.align_reservoir_samples;
-							format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, true, false, channels, bps);
+							format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, is_big_endian_pcm, /*is_unsigned_samples=*/false, channels, bps);
 						}
 					}
 				}
@@ -478,10 +492,10 @@ flac__encode_aif(FILE *infile, long infilesize, const char *infilename, const ch
 			got_ssnd_chunk= true;
 		}
 		else { /* other chunk */
-			if(!strncmp(chunk_id, "COMM", 4)) {
+			if(!memcmp(chunk_id, "COMM", 4)) {
 				flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'COMM' chunk\n", encoder_session.inbasefilename);
 			}
-			else if(!strncmp(chunk_id, "SSND", 4)) {
+			else if(!memcmp(chunk_id, "SSND", 4)) {
 				flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'SSND' chunk\n", encoder_session.inbasefilename);
 			}
 			else {
@@ -746,7 +760,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 					}
 					else {
 						unsigned wide_samples = bytes_read / bytes_per_wide_sample;
-						format_input(input_, wide_samples, false, is_unsigned_samples, channels, bps);
+						format_input(input_, wide_samples, /*is_big_endian=*/false, is_unsigned_samples, channels, bps);
 
 						if(!EncoderSession_process(&encoder_session, (const FLAC__int32 * const *)input_, wide_samples)) {
 							print_error_with_state(&encoder_session, "ERROR during encoding");
@@ -799,7 +813,7 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 						}
 						else {
 							info_align_carry = *options.common.align_reservoir_samples;
-							format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, false, is_unsigned_samples, channels, bps);
+							format_input(options.common.align_reservoir, *options.common.align_reservoir_samples, /*is_big_endian=*/false, is_unsigned_samples, channels, bps);
 						}
 					}
 				}

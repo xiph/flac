@@ -1239,7 +1239,8 @@ void show_explain()
 	usage_header();
 	usage_summary();
 	printf("For encoding:\n");
-	printf("  The input file(s) may be a PCM RIFF WAVE file, AIFF file, or raw samples.\n");
+	printf("  The input file(s) may be a PCM RIFF WAVE file, AIFF (or uncompressed AIFF-C)\n");
+	printf("  file, or raw samples.\n");
 	printf("  The output file(s) will be in native FLAC or Ogg FLAC format\n");
 	printf("For decoding, the reverse is true.\n");
 	printf("\n");
@@ -1475,7 +1476,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	FILE *encode_infile;
 	FLAC__byte lookahead[12];
 	unsigned lookahead_length = 0;
-	FileFormat fmt= RAW;
+	FileFormat fmt = RAW;
+	FLAC__bool is_aifc = false;
 	int retval;
 	long infilesize;
 	encode_options_t common_options;
@@ -1527,6 +1529,10 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				fmt= WAV;
 			else if(!strncmp((const char *)lookahead, "FORM", 4) && !strncmp((const char *)lookahead+8, "AIFF", 4))
 				fmt= AIF;
+			else if(!strncmp((const char *)lookahead, "FORM", 4) && !strncmp((const char *)lookahead+8, "AIFC", 4)) {
+				fmt= AIF;
+				is_aifc = true;
+			}
 			else {
 				if(fmt != RAW)
 					format_mistake(infilename, fmt == AIF ? "AIFF" : "WAVE", "raw");
@@ -1626,7 +1632,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		options.common = common_options;
 
 		if(fmt == AIF)
-			retval = flac__encode_aif(encode_infile, infilesize, infilename, outfilename, lookahead, lookahead_length, options);
+			retval = flac__encode_aif(encode_infile, infilesize, infilename, outfilename, lookahead, lookahead_length, options, is_aifc);
 		else
 			retval = flac__encode_wav(encode_infile, infilesize, infilename, outfilename, lookahead, lookahead_length, options);
 	}
