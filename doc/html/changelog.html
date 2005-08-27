@@ -86,6 +86,8 @@
 					<li>Add support for encoding from non-compressed AIFF-C (<a href="https://sourceforge.net/tracker/?func=detail&atid=113478&aid=1090933&group_id=13478">SF #1090933</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now only issues a warning, not an error (see <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=31282">here</a>).</li>
 					<li>Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.</li>
+					<li>Fixed a bug with --sector-align where appended samples were not always totally silent (<a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1237707&group_id=13478&atid=113478">SF #1237707</a>).</li>
+					<li>Fixed bugs with --sector-align and raw input files.</li>
 				</ul>
 			</li>
 			<li>
