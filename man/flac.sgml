@@ -397,7 +397,7 @@
 		<term><option>--sector-align</option></term>
 
 		<listitem>
-		  <para>Align encoding of multiple CD format WAVE
+		  <para>Align encoding of multiple CD format
 		    files on sector boundaries.  See the HTML
 		    documentation for more information.</para>
 		</listitem>
