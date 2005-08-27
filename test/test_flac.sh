@@ -184,7 +184,7 @@ done
 # first make some chopped-up raw files
 #
 echo "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMN" > master.raw
-dddie="die ERROR: creating files for --skip/--until tests"
+dddie="die ERROR: creating files with dd"
 dd if=master.raw ibs=1 count=50 of=50c.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=10 count=40 of=50c.skip10.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=11 count=39 of=50c.skip11.raw 2>/dev/null || $dddie
@@ -213,47 +213,47 @@ raw_dopt="$wav_dopt --force-raw-format --endian=big --sign=signed"
 #
 convert_to_wav ()
 {
-	run_flac $raw_eopt $1.raw || die "ERROR converting $1.raw to WAVE"
-	run_flac $wav_dopt $1.flac || die "ERROR converting $1.raw to WAVE"
+	run_flac "$2" $1.raw || die "ERROR converting $1.raw to WAVE"
+	run_flac "$3" $1.flac || die "ERROR converting $1.raw to WAVE"
 }
-convert_to_wav 50c
-convert_to_wav 50c.skip10
-convert_to_wav 50c.skip11
-convert_to_wav 50c.skip20
-convert_to_wav 50c.skip30
-convert_to_wav 50c.skip40
-convert_to_wav 50c.until10
-convert_to_wav 50c.until20
-convert_to_wav 50c.until30
-convert_to_wav 50c.until39
-convert_to_wav 50c.until40
-convert_to_wav 50c.skip10.until30
-convert_to_wav 50c.skip10.until39
-convert_to_wav 50c.skip10.until40
-convert_to_wav 50c.skip20.until30
-convert_to_wav 50c.skip20.until40
+convert_to_wav 50c "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip10 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip11 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip20 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip30 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip40 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.until10 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.until20 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.until30 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.until39 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.until40 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip10.until30 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip10.until39 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip10.until40 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip20.until30 "$raw_eopt" "$wav_dopt"
+convert_to_wav 50c.skip20.until40 "$raw_eopt" "$wav_dopt"
 
 convert_to_aiff ()
 {
-	run_flac $raw_eopt $1.raw || die "ERROR converting $1.raw to AIFF"
-	run_flac $wav_dopt $1.flac -o $1.aiff || die "ERROR converting $1.raw to AIFF"
+	run_flac "$2" $1.raw || die "ERROR converting $1.raw to AIFF"
+	run_flac "$3" $1.flac -o $1.aiff || die "ERROR converting $1.raw to AIFF"
 }
-convert_to_aiff 50c
-convert_to_aiff 50c.skip10
-convert_to_aiff 50c.skip11
-convert_to_aiff 50c.skip20
-convert_to_aiff 50c.skip30
-convert_to_aiff 50c.skip40
-convert_to_aiff 50c.until10
-convert_to_aiff 50c.until20
-convert_to_aiff 50c.until30
-convert_to_aiff 50c.until39
-convert_to_aiff 50c.until40
-convert_to_aiff 50c.skip10.until30
-convert_to_aiff 50c.skip10.until39
-convert_to_aiff 50c.skip10.until40
-convert_to_aiff 50c.skip20.until30
-convert_to_aiff 50c.skip20.until40
+convert_to_aiff 50c "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip10 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip11 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip20 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip30 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip40 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.until10 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.until20 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.until30 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.until39 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.until40 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip10.until30 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip10.until39 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip10.until40 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip20.until30 "$raw_eopt" "$wav_dopt"
+convert_to_aiff 50c.skip20.until40 "$raw_eopt" "$wav_dopt"
 
 test_skip_until ()
 {
@@ -545,13 +545,13 @@ echo "testing seek extremes:"
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 noise.raw || die "ERROR generating FLAC file"
 
 if [ $is_win = no ] ; then
-	total_samples=`run_metaflac --show-total-samples noise.flac`
+	total_noise_cdda_samples=`run_metaflac --show-total-samples noise.flac`
 	[ $? = 0 ] || die "ERROR getting total sample count from noise.flac"
 else
 	# some flavors of cygwin don't seem to treat the \x0d as a word
 	# separator, so we hard code it.  we'll just have to fix it later
 	# if we change the way noise.flac is made.
-	total_samples=393216
+	total_noise_cdda_samples=393216
 fi
 
 echo -n "testing --skip=0... "
@@ -559,7 +559,7 @@ run_flac $wav_dopt --skip=0 -o z.wav noise.flac || die "ERROR decoding FLAC file
 echo OK
 
 for delta in 2 1 ; do
-	n=`expr $total_samples - $delta`
+	n=`expr $total_noise_cdda_samples - $delta`
 	echo -n "testing --skip=$n... "
 	run_flac $wav_dopt --skip=$n -o z.wav noise.flac || die "ERROR decoding FLAC file noise.flac"
 	echo OK
@@ -769,7 +769,7 @@ fi
 echo -n "WAVE fixup test... "
 
 echo -n "prepare... "
-convert_to_wav noise || die "ERROR creating reference WAVE"
+convert_to_wav noise "$raw_eopt" "$wav_dopt" || die "ERROR creating reference WAVE"
 
 echo -n "encode... "
 # the pipe from 'cat' to 'flac' does not work on cygwin because of the EOF/
@@ -794,7 +794,7 @@ rm -f noise.wav fixup.wav fixup.flac
 echo -n "AIFF fixup test... "
 
 echo -n "prepare... "
-convert_to_aiff noise || die "ERROR creating reference AIFF"
+convert_to_aiff noise "$raw_eopt" "$wav_dopt" || die "ERROR creating reference AIFF"
 
 echo -n "encode... "
 # the pipe from 'cat' to 'flac' does not work on cygwin because of the EOF/
@@ -822,18 +822,73 @@ rm -f noise.aiff fixup.aiff fixup.flac
 ############################################################################
 
 echo "Generating multiple input files from noise..."
-run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 noise.raw || die "ERROR generating FLAC file"
+multifile_format_decode="--endian=big --sign=signed"
+multifile_format_encode="$multifile_format_decode --sample-rate=44100 --bps=16 --channels=2"
+run_flac --verify --force --silent --force-raw-format $multifile_format_encode noise.raw || die "ERROR generating FLAC file"
 run_flac --decode --force --silent noise.flac || die "ERROR generating WAVE file"
+run_flac --decode --force --silent noise.flac -o noise.aiff || die "ERROR generating AIFF file"
 rm -f noise.flac
-mv noise.wav file0.wav
-cp file0.wav file1.wav
-cp file1.wav file2.wav
+cp noise.wav file0.wav
+cp noise.wav file1.wav
+cp noise.wav file2.wav
+rm -f noise.wav
+cp noise.aiff file0.aiff
+cp noise.aiff file1.aiff
+cp noise.aiff file2.aiff
+rm -f noise.aiff
+cp noise.raw file0.raw
+cp noise.raw file1.raw
+cp noise.raw file2.raw
+# create authoritative sector-aligned files for comparison
+file0_samples=`expr \( $total_noise_cdda_samples / 588 \) \* 588`
+file0_remainder=`expr $total_noise_cdda_samples - $file0_samples`
+file1_samples=`expr \( \( $file0_remainder + $total_noise_cdda_samples \) / 588 \) \* 588`
+file1_remainder=`expr $file0_remainder + $total_noise_cdda_samples - $file1_samples`
+file1_samples=`expr $file1_samples - $file0_remainder`
+file2_samples=`expr \( \( $file1_remainder + $total_noise_cdda_samples \) / 588 \) \* 588`
+file2_remainder=`expr $file1_remainder + $total_noise_cdda_samples - $file2_samples`
+file2_samples=`expr $file2_samples - $file1_remainder`
+if [ $file2_remainder != '0' ] ; then
+	file2_samples=`expr $file2_samples + $file2_remainder`
+	file2_remainder=`expr 588 - $file2_remainder`
+fi
+
+dd if=file0.raw ibs=4 count=$file0_samples of=file0s.raw 2>/dev/null || $dddie
+dd if=file0.raw ibs=4 count=$file0_remainder of=file1s.raw skip=$file0_samples 2>/dev/null || $dddie
+dd if=file1.raw ibs=4 count=$file1_samples of=z.raw 2>/dev/null || $dddie
+cat z.raw >> file1s.raw || die "ERROR: cat-ing sector-aligned files"
+dd if=file1.raw ibs=4 count=$file1_remainder of=file2s.raw skip=$file1_samples 2>/dev/null || $dddie
+dd if=file2.raw ibs=4 count=$file2_samples of=z.raw 2>/dev/null || $dddie
+cat z.raw >> file2s.raw || die "ERROR: cat-ing sector-aligned files"
+dd if=/dev/zero ibs=4 count=$file2_remainder of=z.raw 2>/dev/null || $dddie
+cat z.raw >> file2s.raw || die "ERROR: cat-ing sector-aligned files"
+rm -f z.raw
+
+convert_to_wav file0s "$multifile_format_encode --force" "--silent --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
+convert_to_wav file1s "$multifile_format_encode --force" "--silent --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
+convert_to_wav file2s "$multifile_format_encode --force" "--silent --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
+
+convert_to_aiff file0s "$multifile_format_encode --force" "--silent --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
+convert_to_aiff file1s "$multifile_format_encode --force" "--silent --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
+convert_to_aiff file2s "$multifile_format_encode --force" "--silent --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
 
 test_multifile ()
 {
-	streamtype=$1
-	sector_align=$2
-	encode_options="$3"
+	input_type=$1
+	streamtype=$2
+	sector_align=$3
+	encode_options="$4"
+
+	extra_encode_options=""
+	extra_decode_options=""
+	if [ $input_type = "raw" ] ; then
+		extra_encode_options="--force-raw-format $multifile_format_encode"
+		extra_decode_options="--force-raw-format $multifile_format_decode"
+	else
+		if [ $input_type = "aiff" ] ; then
+			extra_decode_options="--force-aiff-format"
+		fi
+	fi
 
 	if [ $streamtype = ogg ] ; then
 		suffix=ogg
@@ -846,46 +901,52 @@ test_multifile ()
 		encode_options="$encode_options --sector-align"
 	fi
 
-	run_flac --force $encode_options file0.wav file1.wav file2.wav || die "ERROR"
+	run_flac --force $encode_options $extra_encode_options file0.$input_type file1.$input_type file2.$input_type || die "ERROR"
 	for n in 0 1 2 ; do
 		mv file$n.$suffix file${n}x.$suffix
 	done
-	run_flac --force --decode file0x.$suffix file1x.$suffix file2x.$suffix || die "ERROR"
+	run_flac --force --decode $extra_decode_options file0x.$suffix file1x.$suffix file2x.$suffix || die "ERROR"
 	if [ $sector_align != sector_align ] ; then
 		for n in 0 1 2 ; do
-			cmp file$n.wav file${n}x.wav || die "ERROR: file mismatch on file #$n"
+			cmp file$n.$input_type file${n}x.$input_type || die "ERROR: file mismatch on file #$n"
+		done
+	else
+		for n in 0 1 2 ; do
+			cmp file${n}s.$input_type file${n}x.$input_type || die "ERROR: file mismatch on file #$n"
 		done
 	fi
 	for n in 0 1 2 ; do
-		rm -f file${n}x.$suffix file${n}x.wav
+		rm -f file${n}x.$suffix file${n}x.$input_type
 	done
 }
 
-echo "Testing multiple files without verify..."
-test_multifile flac no_sector_align ""
+for input_type in raw wav aiff ; do
+	echo "Testing multiple $input_type files without verify..."
+	test_multifile $input_type flac no_sector_align ""
 
-echo "Testing multiple files with verify..."
-test_multifile flac no_sector_align "--verify"
+	echo "Testing multiple $input_type files with verify..."
+	test_multifile $input_type flac no_sector_align "--verify"
 
-echo "Testing multiple files with --sector-align, without verify..."
-test_multifile flac sector_align ""
+	echo "Testing multiple $input_type files with --sector-align, without verify..."
+	test_multifile $input_type flac sector_align ""
 
-echo "Testing multiple files with --sector-align, with verify..."
-test_multifile flac sector_align "--verify"
+	echo "Testing multiple $input_type files with --sector-align, with verify..."
+	test_multifile $input_type flac sector_align "--verify"
 
-if [ $has_ogg = "yes" ] ; then
-	echo "Testing multiple files with --ogg, without verify..."
-	test_multifile ogg no_sector_align ""
+	if [ $has_ogg = "yes" ] ; then
+		echo "Testing multiple $input_type files with --ogg, without verify..."
+		test_multifile $input_type ogg no_sector_align ""
 
-	echo "Testing multiple files with --ogg, with verify..."
-	test_multifile ogg no_sector_align "--verify"
+		echo "Testing multiple $input_type files with --ogg, with verify..."
+		test_multifile $input_type ogg no_sector_align "--verify"
 
-	echo "Testing multiple files with --ogg and --sector-align, without verify..."
-	test_multifile ogg sector_align ""
+		echo "Testing multiple $input_type files with --ogg and --sector-align, without verify..."
+		test_multifile $input_type ogg sector_align ""
 
-	echo "Testing multiple files with --ogg and --sector-align, with verify..."
-	test_multifile sector_align ogg "--verify"
+		echo "Testing multiple $input_type files with --ogg and --sector-align, with verify..."
+		test_multifile $input_type ogg sector_align "--verify"
 
-	echo "Testing multiple files with --ogg and --serial-number, with verify..."
-	test_multifile ogg no_sector_align "--serial-number=321 --verify"
-fi
+		echo "Testing multiple $input_type files with --ogg and --serial-number, with verify..."
+		test_multifile $input_type ogg no_sector_align "--serial-number=321 --verify"
+	fi
+done
