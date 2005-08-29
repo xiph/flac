@@ -194,7 +194,7 @@ int flac__encode_aif(FILE *infile, long infilesize, const char *infilename, cons
 
 	while(1) {
 		size_t c= 0U;
-		char chunk_id[4];
+		char chunk_id[5] = { '\0', '\0', '\0', '\0', '\0' }; /* one extra byte for terminating NUL so we can also treat it like a C string */
 
 		/* chunk identifier; really conservative about behavior of fread() and feof() */
 		if(feof(infile) || ((c= fread(chunk_id, 1U, 4U, infile)), c==0U && feof(infile)))
