@@ -484,7 +484,7 @@ static int http_connect (gchar *url_, gboolean head, guint64 offset)
 						       flac_cfg.stream.use_udp_channel ? udpspace : "");
 				if (offset && !head) {
 					gchar *temp_dead = temp;
-					temp = g_strconcat ("%sRange: %ll-\r\n", temp, offset);
+					temp = g_strdup_printf ("%sRange: %llu-\r\n", temp, offset);
 					fprintf (stderr, "%s", temp);
 					g_free (temp_dead);
 				}
