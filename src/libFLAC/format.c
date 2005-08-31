@@ -63,7 +63,7 @@ FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " VERSION " 200502
 
 FLAC_API const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
 FLAC_API const unsigned FLAC__STREAM_SYNC = 0x664C6143;
-FLAC_API const unsigned FLAC__STREAM_SYNC_LEN = 32; /* bits */;
+FLAC_API const unsigned FLAC__STREAM_SYNC_LEN = 32; /* bits */
 
 FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN = 16; /* bits */
 FLAC_API const unsigned FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN = 16; /* bits */
