@@ -20,6 +20,7 @@
 #include "usage.h"
 #include "utils.h"
 #include "FLAC/assert.h"
+#include "share/grabbag/replaygain.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,6 +77,7 @@ struct share__option long_options_[] = {
 	{ "export-cuesheet-to", 1, 0, 0 },
 	{ "add-seekpoint", 1, 0, 0 },
 	{ "add-replay-gain", 0, 0, 0 },
+	{ "remove-replay-gain", 0, 0, 0 },
 	{ "add-padding", 1, 0, 0 },
 	/* major operations */
 	{ "help", 0, 0, 0 },
@@ -567,6 +569,19 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	}
 	else if(0 == strcmp(opt, "add-replay-gain")) {
 		(void) append_shorthand_operation(options, OP__ADD_REPLAY_GAIN);
+	}
+	else if(0 == strcmp(opt, "remove-replay-gain")) {
+		const FLAC__byte * const tags[4] = {
+			GRABBAG__REPLAYGAIN_TAG_TITLE_GAIN,
+			GRABBAG__REPLAYGAIN_TAG_TITLE_PEAK,
+			GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN,
+			GRABBAG__REPLAYGAIN_TAG_ALBUM_PEAK
+		};
+		size_t i;
+		for(i = 0; i < sizeof(tags)/sizeof(tags[0]); i++) {
+			op = append_shorthand_operation(options, OP__REMOVE_VC_FIELD);
+			op->argument.vc_field_name.value = local_strdup((const char *)tags[i]);
+		}
 	}
 	else if(0 == strcmp(opt, "add-padding")) {
 		op = append_shorthand_operation(options, OP__ADD_PADDING);

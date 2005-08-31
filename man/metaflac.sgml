@@ -304,6 +304,14 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
+	<term><option>--remove-replay-gain</option></term>
+        <listitem>
+	  <para>
+	    Removes the ReplayGain tags.
+	  </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
 	<term><option>--add-seekpoint</option>={<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>|<replaceable>#s</replaceable>}</term>
 	<listitem>
 	  <para>

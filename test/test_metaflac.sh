@@ -324,6 +324,14 @@ rm -f $cs_out $cs_out2
 (set -x && run_metaflac --add-replay-gain $flacfile)
 check_exit
 check_flac
+(set -x && run_metaflac --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
+
+(set -x && run_metaflac --remove-replay-gain $flacfile)
+check_exit
+check_flac
+(set -x && run_metaflac --list --block-type=VORBIS_COMMENT $flacfile)
+check_exit
 
 echo -n "Testing FLAC file with unknown metadata... "
 cp -p metaflac.flac.in $flacfile

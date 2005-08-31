@@ -35,6 +35,11 @@ extern "C" {
 
 extern const unsigned GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
 
+extern const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_TITLE_GAIN; /* = "REPLAYGAIN_TRACK_GAIN" */
+extern const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_TITLE_PEAK; /* = "REPLAYGAIN_TRACK_PEAK" */
+extern const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN; /* = "REPLAYGAIN_ALBUM_GAIN" */
+extern const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_ALBUM_PEAK; /* = "REPLAYGAIN_ALBUM_PEAK" */
+
 FLAC__bool grabbag__replaygain_is_valid_sample_frequency(unsigned sample_frequency);
 
 FLAC__bool grabbag__replaygain_init(unsigned sample_frequency);

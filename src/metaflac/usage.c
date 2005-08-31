@@ -149,6 +149,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "                      must have the same resolution, sample rate, and number\n");
 	fprintf(out, "                      of channels.  The sample rate must be one of 8, 11.025,\n");
 	fprintf(out, "                      12, 16, 22.05, 24, 32, 44.1, or 48 kHz.\n");
+	fprintf(out, "--remove-replay-gain  Removes the ReplayGain tags.\n");
 	fprintf(out, "--add-seekpoint={#|X|#x|#s}  Add seek points to a SEEKTABLE block\n");
 	fprintf(out, "       #  : a specific sample number for a seek point\n");
 	fprintf(out, "       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");
