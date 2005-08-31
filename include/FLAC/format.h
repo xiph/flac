@@ -153,7 +153,7 @@ extern "C" {
 extern FLAC_API const char *FLAC__VERSION_STRING;
 
 /** The vendor string inserted by the encoder into the VORBIS_COMMENT block.
- *  This is a nulL-terminated ASCII string; when inserted into the
+ *  This is a NUL-terminated ASCII string; when inserted into the
  *  VORBIS_COMMENT the trailing null is stripped.
  */
 extern FLAC_API const char *FLAC__VENDOR_STRING;
@@ -473,7 +473,7 @@ typedef enum {
 	/**< <A HREF="../format.html#metadata_block_seektable">SEEKTABLE</A> block */
 
 	FLAC__METADATA_TYPE_VORBIS_COMMENT = 4,
-	/**< <A HREF="../format.html#metadata_block_vorbis_comment">VORBISCOMMENT</A> block */
+	/**< <A HREF="../format.html#metadata_block_vorbis_comment">VORBISCOMMENT</A> block (a.k.a. FLAC tags) */
 
 	FLAC__METADATA_TYPE_CUESHEET = 5,
 	/**< <A HREF="../format.html#metadata_block_cuesheet">CUESHEET</A> block */

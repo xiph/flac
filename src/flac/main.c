@@ -1181,9 +1181,9 @@ void show_help()
 	printf("  -V, --verify                 Verify a correct encoding\n");
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align multiple files on sector boundaries\n");
-	printf("      --replay-gain            Calculate ReplayGain & store in Vorbis comments\n");
+	printf("      --replay-gain            Calculate ReplayGain & store in FLAC tags\n");
 	printf("      --cuesheet=FILENAME      Import cuesheet and store in CUESHEET block\n");
-	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment; may appear multiple times\n");
+	printf("  -T, --tag=FIELD=VALUE        Add a FLAC tag; may appear multiple times\n");
 	printf("  -S, --seekpoint={#|X|#x|#s}  Add seek point(s)\n");
 	printf("  -P, --padding=#              Write a PADDING block of length #\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
@@ -1345,8 +1345,8 @@ void show_explain()
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --sector-align           Align encoding of multiple CD format WAVE files\n");
 	printf("                               on sector boundaries.\n");
-	printf("      --replay-gain            Calculate ReplayGain values and store in Vorbis\n");
-	printf("                               comments.  Title gains/peaks will be computed\n");
+	printf("      --replay-gain            Calculate ReplayGain values and store them as\n");
+	printf("                               FLAC tags.  Title gains/peaks will be computed\n");
 	printf("                               for each file, and an album gain/peak will be\n");
 	printf("                               computed for all files.  All input files must\n");
 	printf("                               have the same resolution, sample rate, and\n");
@@ -1360,7 +1360,7 @@ void show_explain()
 	printf("                               seekpoint will be added for each index point in\n");
 	printf("                               the cuesheet to the SEEKTABLE unless\n");
 	printf("                               --no-cued-seekpoints is specified.\n");
-	printf("  -T, --tag=FIELD=VALUE        Add a Vorbis comment.  Make sure to quote the\n");
+	printf("  -T, --tag=FIELD=VALUE        Add a FLAC tag.  Make sure to quote the\n");
 	printf("                               comment if necessary.  This option may appear\n");
 	printf("                               more than once to add several comments.  NOTE:\n");
 	printf("                               all tags will be added to all encoded files.\n");

@@ -363,8 +363,8 @@
 		<term><option>--replay-gain</option></term>
 
 		<listitem>
-		  <para>Calculate ReplayGain values and store in
-		    Vorbis comments, similar to vorbisgain.  Title
+		  <para>Calculate ReplayGain values and store them
+		    as FLAC tags, similar to vorbisgain.  Title
 		    gains/peaks will be computed for each input
 		    file, and an album gain/peak will be computed
 		    for all files.  All input files must have the
@@ -453,8 +453,8 @@
 		<term><option>-T</option> <replaceable>FIELD=VALUE</replaceable>, <option>--tag</option>=<replaceable>FIELD=VALUE</replaceable></term>
 
 		<listitem>
-		  <para>Add a Vorbis comment.  The comment must adhere
-		    to the Vorbis comment spec; i.e. the FIELD must
+		  <para>Add a FLAC tag.  The comment must adhere to
+		    the Vorbis comment spec; i.e. the FIELD must
 		    contain only legal characters, terminated by an
 		    'equals' sign.  Make sure to quote the comment if
 		    necessary.  This option may appear more than once

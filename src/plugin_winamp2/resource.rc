@@ -143,7 +143,7 @@ BEGIN
     CONTROL         "Read ID3v&1 tags",IDC_ID3V1,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,147,43,70,10
     GROUPBOX        " Tag Editor  ",IDC_STATIC,2,63,220,30
-    CONTROL         "Reserve space for &VorbisComment",IDC_RESERVE,"Button",
+    CONTROL         "Reserve space for &FLAC tags",IDC_RESERVE,"Button",
                     BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,8,76,125,10
     GROUPBOX        " Miscellaneous  ",IDC_STATIC,2,96,220,72
     CONTROL         "&Show average bitrate while playing",IDC_BPS,"Button",
