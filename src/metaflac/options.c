@@ -556,12 +556,14 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			fprintf(stderr, "ERROR (--%s): malformed seekpoint specification \"%s\",\n       %s\n", opt, option_argument, violation);
 			ok = false;
 		}
-		op = find_shorthand_operation(options, OP__ADD_SEEKPOINT);
-		if(0 == op)
-			op = append_shorthand_operation(options, OP__ADD_SEEKPOINT);
-		local_strcat(&(op->argument.add_seekpoint.specification), spec);
-		local_strcat(&(op->argument.add_seekpoint.specification), ";");
-		free(spec);
+		else {
+			op = find_shorthand_operation(options, OP__ADD_SEEKPOINT);
+			if(0 == op)
+				op = append_shorthand_operation(options, OP__ADD_SEEKPOINT);
+			local_strcat(&(op->argument.add_seekpoint.specification), spec);
+			local_strcat(&(op->argument.add_seekpoint.specification), ";");
+			free(spec);
+		}
 	}
 	else if(0 == strcmp(opt, "add-replay-gain")) {
 		(void) append_shorthand_operation(options, OP__ADD_REPLAY_GAIN);
