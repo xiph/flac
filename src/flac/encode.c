@@ -2008,10 +2008,13 @@ void print_verify_error(EncoderSession *e)
 	flac__utils_printf(stderr, 1, "       usually overclocking or bad RAM.  Delete %s\n", e->inbasefilename);
 	flac__utils_printf(stderr, 1, "       and repeat the flac command exactly as before.  If it does not give a\n");
 	flac__utils_printf(stderr, 1, "       verify error in the exact same place each time you try it, then there is\n");
-	flac__utils_printf(stderr, 1, "       a problem with your hardware.  If it does, keep the bad FLAC file and\n");
-	flac__utils_printf(stderr, 1, "       submit a bug report to:\n");
-	flac__utils_printf(stderr, 1, "           http://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
-	flac__utils_printf(stderr, 1, "       Make sure to use the \"Monitor\" feature to monitor the bug status.\n");
+	flac__utils_printf(stderr, 1, "       a problem with your hardware; please see the FAQ:\n");
+	flac__utils_printf(stderr, 1, "           http://flac.sourceforge.net/faq.html#tools__hardware_prob\n");
+	flac__utils_printf(stderr, 1, "       If it does fail in the exact same place every time, keep the bad FLAC\n");
+	flac__utils_printf(stderr, 1, "       file and submit a bug report to:\n");
+	flac__utils_printf(stderr, 1, "           https://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
+	flac__utils_printf(stderr, 1, "       Make sure to upload the FLAC file and use the \"Monitor\" feature to\n");
+	flac__utils_printf(stderr, 1, "       monitor the bug status.\n");
 	flac__utils_printf(stderr, 1, "Verify FAILED!  Do not trust %s\n", e->outfilename);
 }
 
