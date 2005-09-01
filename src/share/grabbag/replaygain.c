@@ -581,7 +581,7 @@ static FLAC__bool parse_double_(const FLAC__StreamMetadata_VorbisComment_Entry *
 	return true;
 }
 
-FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadata *block, FLAC__bool album_mode, double *gain, double *peak)
+FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadata *block, FLAC__bool album_mode, FLAC__bool strict, double *gain, double *peak)
 {
 	int gain_offset, peak_offset;
 
@@ -589,14 +589,14 @@ FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadat
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
 	if(0 > (gain_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)(album_mode? GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN : GRABBAG__REPLAYGAIN_TAG_TITLE_GAIN))))
-		return false;
+		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, gain, peak);
 	if(0 > (peak_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)(album_mode? GRABBAG__REPLAYGAIN_TAG_ALBUM_PEAK : GRABBAG__REPLAYGAIN_TAG_TITLE_PEAK))))
-		return false;
+		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, gain, peak);
 
 	if(!parse_double_(block->data.vorbis_comment.comments + gain_offset, gain))
-		return false;
+		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, gain, peak);
 	if(!parse_double_(block->data.vorbis_comment.comments + peak_offset, peak))
-		return false;
+		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, gain, peak);
 
 	return true;
 }

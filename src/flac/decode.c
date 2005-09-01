@@ -1106,8 +1106,8 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 		if (decoder_session->replaygain.spec.apply) {
 			double gain, peak;
-			if (!(decoder_session->replaygain.apply = grabbag__replaygain_load_from_vorbiscomment(metadata, decoder_session->replaygain.spec.use_album_gain, &gain, &peak))) {
-				flac__utils_printf(stderr, 1, "%s: WARNING: can't get %s ReplayGain tag\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track");
+			if (!(decoder_session->replaygain.apply = grabbag__replaygain_load_from_vorbiscomment(metadata, decoder_session->replaygain.spec.use_album_gain, /*strict=*/false, &gain, &peak))) {
+				flac__utils_printf(stderr, 1, "%s: WARNING: can't get %s (or even %s) ReplayGain tags\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track", decoder_session->replaygain.spec.use_album_gain? "track":"album");
 			}
 			else {
 				const char *ls[] = { "no", "peak", "hard" };
