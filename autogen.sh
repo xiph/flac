@@ -39,4 +39,4 @@ hacks=true
 #   http://lists.gnu.org/archive/html/libtool/2003-11/msg00131.html
 #
 
-aclocal && libtoolize && autoconf && autoheader && $hacks && automake --foreign --include-deps --add-missing --copy
+aclocal -I m4 && libtoolize && autoconf && autoheader && $hacks && automake --foreign --include-deps --add-missing --copy

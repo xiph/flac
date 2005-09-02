@@ -32,6 +32,8 @@ AM_PROG_LIBTOOL
 sed -e 's/^build_old_libs=yes/build_old_libs=no/' libtool > libtool-disable-static
 chmod +x libtool-disable-static
 
+AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
+
 AM_PROG_AS
 AC_PROG_CXX
 AC_PROG_MAKE_SET
