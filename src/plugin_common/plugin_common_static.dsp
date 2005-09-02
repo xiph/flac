@@ -93,6 +93,10 @@ SOURCE=.\dither.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\replaygain.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\tags.c
 # End Source File
 # End Group
@@ -114,6 +118,10 @@ SOURCE=.\dither.h
 # Begin Source File
 
 SOURCE=.\locale_hack.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\replaygain.h
 # End Source File
 # Begin Source File
 

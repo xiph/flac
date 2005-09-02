@@ -27,11 +27,13 @@ noinst_HEADERS = \
 	defs.h \
 	dither.h \
 	locale_hack.h \
+	replaygain.h \
 	tags.h
 
 libplugin_common_la_SOURCES = \
 	charset.c \
 	dither.c \
+	replaygain.c \
 	tags.c
 
 EXTRA_DIST = \

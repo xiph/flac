@@ -28,6 +28,7 @@ DEFINES  =
 SRCS_C = \
 	charset.c \
 	dither.c \
+	replaygain.c \
 	tags.c
 
 include $(topdir)/build/lib.mk
