@@ -44,7 +44,8 @@
 #include "FLAC/format.h"
 #include "plugin.h"
 
-#ifndef HAVE_SOCKLEN_T
+/* on FreeBSD we get socklen_t from <sys/socket.h> */
+#if (!defined HAVE_SOCKLEN_T) && !defined(__FreeBSD__)
 typedef unsigned int socklen_t;
 #endif
 
