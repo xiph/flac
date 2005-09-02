@@ -220,7 +220,8 @@ void FLAC_XMMS__init()
 	is_big_endian_host_ = (*((FLAC__byte*)(&test)))? false : true;
 
 	flac_cfg.title.tag_override = FALSE;
-	g_free(flac_cfg.title.tag_format);
+	if (flac_cfg.title.tag_format)
+		g_free(flac_cfg.title.tag_format);
 	flac_cfg.title.convert_char_set = FALSE;
 
 	cfg = xmms_cfg_open_default_file();
@@ -262,14 +263,24 @@ void FLAC_XMMS__init()
 	xmms_cfg_read_int(cfg, "flac", "stream.http_buffer_size", &flac_cfg.stream.http_buffer_size);
 	xmms_cfg_read_int(cfg, "flac", "stream.http_prebuffer", &flac_cfg.stream.http_prebuffer);
 	xmms_cfg_read_boolean(cfg, "flac", "stream.use_proxy", &flac_cfg.stream.use_proxy);
-	xmms_cfg_read_string(cfg, "flac", "stream.proxy_host", &flac_cfg.stream.proxy_host);
+	if(flac_cfg.stream.proxy_host)
+		g_free(flac_cfg.stream.proxy_host);
+	if(!xmms_cfg_read_string(cfg, "flac", "stream.proxy_host", &flac_cfg.stream.proxy_host))
+		flac_cfg.stream.proxy_host = g_strdup("");
 	xmms_cfg_read_int(cfg, "flac", "stream.proxy_port", &flac_cfg.stream.proxy_port);
 	xmms_cfg_read_boolean(cfg, "flac", "stream.proxy_use_auth", &flac_cfg.stream.proxy_use_auth);
+	if(flac_cfg.stream.proxy_user)
+		g_free(flac_cfg.stream.proxy_user);
+	flac_cfg.stream.proxy_user = NULL;
 	xmms_cfg_read_string(cfg, "flac", "stream.proxy_user", &flac_cfg.stream.proxy_user);
+	if(flac_cfg.stream.proxy_pass)
+		g_free(flac_cfg.stream.proxy_pass);
+	flac_cfg.stream.proxy_pass = NULL;
 	xmms_cfg_read_string(cfg, "flac", "stream.proxy_pass", &flac_cfg.stream.proxy_pass);
 	xmms_cfg_read_boolean(cfg, "flac", "stream.save_http_stream", &flac_cfg.stream.save_http_stream);
-	if (!xmms_cfg_read_string(cfg, "flac", "stream.save_http_path", &flac_cfg.stream.save_http_path) ||
-		 ! *flac_cfg.stream.save_http_path) {
+	if (flac_cfg.stream.save_http_path)
+		g_free (flac_cfg.stream.save_http_path);
+	if (!xmms_cfg_read_string(cfg, "flac", "stream.save_http_path", &flac_cfg.stream.save_http_path) || ! *flac_cfg.stream.save_http_path) {
 		if (flac_cfg.stream.save_http_path)
 			g_free (flac_cfg.stream.save_http_path);
 		flac_cfg.stream.save_http_path = homedir();
