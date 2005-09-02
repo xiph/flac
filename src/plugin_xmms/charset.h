@@ -21,8 +21,8 @@
  */
 
 
-#ifndef __CHARSET_H__
-#define __CHARSET_H__
+#ifndef FLAC__PLUGIN_XMMS__CHARSET_H
+#define FLAC__PLUGIN_XMMS__CHARSET_H
 
 
 /***************

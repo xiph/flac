@@ -15,8 +15,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __HTTP_H__
-#define __HTTP_H__
+#ifndef FLAC__PLUGIN_XMMS__HTTP_H
+#define FLAC__PLUGIN_XMMS__HTTP_H
 
 extern int flac_http_open(gchar * url, guint64 offset);
 extern void flac_http_close(void);
