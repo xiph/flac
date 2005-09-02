@@ -29,13 +29,15 @@
 #include "FLAC/metadata.h"
 #include "charset.h"
 #include "configure.h"
-#include "plugin_common/tags.h"
 #include "plugin_common/locale_hack.h"
+#include "plugin_common/replaygain.h"
+#include "plugin_common/tags.h"
 
 static GtkWidget *window = NULL;
 static GList *genre_list = NULL;
 static GtkWidget *filename_entry, *tag_frame;
 static GtkWidget *title_entry, *artist_entry, *album_entry, *date_entry, *tracknum_entry, *comment_entry;
+static GtkWidget *replaygain_track_gain, *replaygain_album_gain, *replaygain_track_peak, *replaygain_album_peak;
 static GtkWidget *genre_combo;
 static GtkWidget *flac_samplerate, *flac_channels, *flac_bits_per_sample, *flac_blocksize, *flac_filesize, *flac_samples, *flac_bitrate;
 
@@ -229,6 +231,37 @@ static void show_file_info()
 	}
 }
 
+static void show_replaygain()
+{
+	/* known limitation: If only one of gain and peak is set, neither will be shown. This is true for
+	 * both track and album replaygain tags. Written so it will be easy to fix, with some trouble.  */
+
+	gtk_label_set_text(GTK_LABEL(replaygain_track_gain), "");
+	gtk_label_set_text(GTK_LABEL(replaygain_album_gain), "");
+	gtk_label_set_text(GTK_LABEL(replaygain_track_peak), "");
+	gtk_label_set_text(GTK_LABEL(replaygain_album_peak), "");
+
+	double track_gain, track_peak, album_gain, album_peak;
+	FLAC__bool track_gain_set, track_peak_set, album_gain_set, album_peak_set;
+
+	FLAC_plugin__replaygain_get_from_file(
+		current_filename,
+		&track_gain, &track_gain_set,
+		&album_gain, &album_gain_set,
+		&track_peak, &track_peak_set,
+		&album_peak, &album_peak_set
+	);
+
+	if(track_gain_set)
+		  label_set_text(replaygain_track_gain, _("ReplayGain Track Gain: %+2.2f dB"), track_gain);
+	if(album_gain_set)
+		  label_set_text(replaygain_album_gain, _("ReplayGain Album Gain: %+2.2f dB"), album_gain);
+	if(track_peak_set)
+		  label_set_text(replaygain_track_peak, _("ReplayGain Track Peak: %1.8f"), track_peak);
+	if(album_peak_set)
+		  label_set_text(replaygain_album_peak, _("ReplayGain Album Peak: %1.8f"), album_peak);
+}
+
 void FLAC_XMMS__file_info_box(char *filename)
 {
 	unsigned i;
@@ -397,6 +430,26 @@ void FLAC_XMMS__file_info_box(char *filename)
 		gtk_label_set_justify(GTK_LABEL(flac_bitrate), GTK_JUSTIFY_LEFT);
 		gtk_box_pack_start(GTK_BOX(flac_box), flac_bitrate, FALSE, FALSE, 0);
 
+		replaygain_track_gain = gtk_label_new("");
+		gtk_misc_set_alignment(GTK_MISC(replaygain_track_gain), 0, 0);
+		gtk_label_set_justify(GTK_LABEL(replaygain_track_gain), GTK_JUSTIFY_LEFT);
+		gtk_box_pack_start(GTK_BOX(flac_box), replaygain_track_gain, FALSE, FALSE, 0);
+
+		replaygain_album_gain = gtk_label_new("");
+		gtk_misc_set_alignment(GTK_MISC(replaygain_album_gain), 0, 0);
+		gtk_label_set_justify(GTK_LABEL(replaygain_album_gain), GTK_JUSTIFY_LEFT);
+		gtk_box_pack_start(GTK_BOX(flac_box), replaygain_album_gain, FALSE, FALSE, 0);
+
+		replaygain_track_peak = gtk_label_new("");
+		gtk_misc_set_alignment(GTK_MISC(replaygain_track_peak), 0, 0);
+		gtk_label_set_justify(GTK_LABEL(replaygain_track_peak), GTK_JUSTIFY_LEFT);
+		gtk_box_pack_start(GTK_BOX(flac_box), replaygain_track_peak, FALSE, FALSE, 0);
+
+		replaygain_album_peak = gtk_label_new("");
+		gtk_misc_set_alignment(GTK_MISC(replaygain_album_peak), 0, 0);
+		gtk_label_set_justify(GTK_LABEL(replaygain_album_peak), GTK_JUSTIFY_LEFT);
+		gtk_box_pack_start(GTK_BOX(flac_box), replaygain_album_peak, FALSE, FALSE, 0);
+
 		gtk_widget_show_all(window);
 	}
 
@@ -419,6 +472,7 @@ void FLAC_XMMS__file_info_box(char *filename)
 
 	show_tag();
 	show_file_info();
+	show_replaygain();
 
 	gtk_widget_set_sensitive(tag_frame, TRUE);
 }
