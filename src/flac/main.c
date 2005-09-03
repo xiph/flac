@@ -347,6 +347,8 @@ int do_it()
 					return usage_error("ERROR: --until is not allowed in test mode\n");
 				if(0 != option_values.cue_specification)
 					return usage_error("ERROR: --cue is not allowed in test mode\n");
+				if(0 != option_values.analyze)
+					return usage_error("ERROR: analysis mode (-a/--analyze) and test mode (-t/--test) cannot be used together\n");
 			}
 		}
 
