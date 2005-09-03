@@ -68,8 +68,10 @@ run_metaflac ()
 echo "Generating stream..."
 if [ -f /bin/sh.exe ] ; then
 	inputfile=/bin/sh.exe
-else
+elif [ -f /bin/sh ] ; then
 	inputfile=/bin/sh
+else
+	inputfile="$0"
 fi
 if run_flac --force --verify -0 --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=44100 $inputfile ; then
 	chmod +w $flacfile
