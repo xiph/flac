@@ -118,6 +118,7 @@
 				<ul>
 					<li>libFLAC: Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.</li>
 					<li>libFLAC: Fixed UTF-8 decoder to disallow non-shortest-form and surrogate sequences (see <a href="http://www.unicode.org/versions/corrigendum1.html">here</a>).</li>
+					<li>libFLAC: Fixed a bug in the return value for <span class="argument">FLAC__stream_decoder_set_metadata_respond_application()</span> and <span class="argument">FLAC__stream_decoder_set_metadata_ignore_application()</span> when there was a memory allocation error (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1235005&amp;group_id=13478&amp;atid=113478">SF #1235005</a>).</li>
 				</ul>
 			</li>
 			<li>
