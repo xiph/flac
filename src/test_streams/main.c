@@ -32,7 +32,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#ifdef _WIN32
+#if defined _WIN32 || defined __EMX__
 	static const char *mode = "wb";
 #else
 	static const char *mode = "w";

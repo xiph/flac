@@ -29,6 +29,11 @@ int main(int argc, char *argv[])
 	CommandLineOptions options;
 	int ret = 0;
 
+#ifdef __EMX__
+	_response(&argc, &argv);
+	_wildcard(&argc, &argv);
+#endif
+
 	setlocale(LC_ALL, "");
 	init_options(&options);
 

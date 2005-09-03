@@ -204,7 +204,7 @@ FLAC__bool transport_tempfile_(const char *filename, FILE **tempfile, char **tem
 		*tempfile = 0;
 	}
 
-#if defined _MSC_VER || defined __MINGW32__
+#if defined _MSC_VER || defined __MINGW32__ || defined __EMX__
 	if(unlink(filename) < 0) {
 		cleanup_tempfile_(tempfile, tempfilename);
 		return false;
@@ -239,7 +239,7 @@ void set_file_stats_(const char *filename, struct stat *stats)
 	srctime.modtime = stats->st_mtime;
 	(void)chmod(filename, stats->st_mode);
 	(void)utime(filename, &srctime);
-#if !defined _MSC_VER && !defined __MINGW32__
+#if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
 	(void)chown(filename, stats->st_uid, -1);
 	(void)chown(filename, -1, stats->st_gid);
 #endif

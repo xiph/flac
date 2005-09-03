@@ -24,7 +24,7 @@
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
 #include <utime.h> /* for utime() */
 #endif
-#ifdef __CYGWIN__
+#if defined __CYGWIN__ || defined __EMX__
 #include <io.h> /* for setmode(), O_BINARY */
 #include <fcntl.h> /* for _O_BINARY */
 #endif
@@ -120,6 +120,8 @@ FILE *grabbag__file_get_binary_stdin()
 #elif defined __CYGWIN__
 	/* almost certainly not needed for any modern Cygwin, but let's be safe... */
 	setmode(_fileno(stdin), _O_BINARY);
+#elif defined __EMX__
+	setmode(fileno(stdin), O_BINARY);
 #endif
 
 	return stdin;
@@ -136,6 +138,8 @@ FILE *grabbag__file_get_binary_stdout()
 #elif defined __CYGWIN__
 	/* almost certainly not needed for any modern Cygwin, but let's be safe... */
 	setmode(_fileno(stdout), _O_BINARY);
+#elif defined __EMX__
+	setmode(fileno(stdout), O_BINARY);
 #endif
 
 	return stdout;

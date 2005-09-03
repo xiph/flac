@@ -221,7 +221,7 @@ bool transport_tempfile_(const char *filename, FILE **tempfile, char **tempfilen
 		*tempfile = 0;
 	}
 
-#if defined _MSC_VER || defined __MINGW32__
+#if defined _MSC_VER || defined __MINGW32__ || defined __EMX__
 	if(unlink(filename) < 0) {
 		cleanup_tempfile_(tempfile, tempfilename);
 		return false;
@@ -256,7 +256,7 @@ void set_file_stats_(const char *filename, struct stat *stats)
 	srctime.modtime = stats->st_mtime;
 	(void)chmod(filename, stats->st_mode);
 	(void)utime(filename, &srctime);
-#if !defined _MSC_VER && !defined __MINGW32__
+#if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
 	(void)chown(filename, stats->st_uid, (gid_t)(-1));
 	(void)chown(filename, (uid_t)(-1), stats->st_gid);
 #endif

@@ -32,7 +32,7 @@
 #ifndef FLAC__ORDINALS_H
 #define FLAC__ORDINALS_H
 
-#ifndef _MSC_VER
+#if !(defined(_MSC_VER) || defined(__EMX__))
 #include <inttypes.h>
 #endif
 
@@ -46,6 +46,13 @@ typedef __int64 FLAC__int64;
 typedef unsigned __int16 FLAC__uint16;
 typedef unsigned __int32 FLAC__uint32;
 typedef unsigned __int64 FLAC__uint64;
+#elif defined(__EMX__)
+typedef short FLAC__int16;
+typedef long FLAC__int32;
+typedef long long FLAC__int64;
+typedef unsigned short FLAC__uint16;
+typedef unsigned long FLAC__uint32;
+typedef unsigned long long FLAC__uint64;
 #else
 typedef int16_t FLAC__int16;
 typedef int32_t FLAC__int32;
