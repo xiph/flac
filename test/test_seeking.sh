@@ -87,9 +87,6 @@ fi
 echo "generating FLAC files for seeking:"
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 --output-name=tiny.flac noise8m32.raw || die "ERROR generating FLAC file"
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 --output-name=small.flac noise.raw || die "ERROR generating FLAC file"
-echo "generating Ogg FLAC files for seeking:"
-run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 --output-name=tiny.ogg --ogg noise8m32.raw || die "ERROR generating Ogg FLAC file"
-run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 --output-name=small.ogg --ogg noise.raw || die "ERROR generating Ogg FLAC file"
 
 echo "testing tiny.flac:"
 if run_test_seeking tiny.flac 100 ; then : ; else
@@ -117,6 +114,10 @@ if run_test_seeking small.flac 1000 ; then : ; else
 fi
 
 if [ $has_ogg = "yes" ] ; then
+
+	echo "generating Ogg FLAC files for seeking:"
+	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 --output-name=tiny.ogg --ogg noise8m32.raw || die "ERROR generating Ogg FLAC file"
+	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 --output-name=small.ogg --ogg noise.raw || die "ERROR generating Ogg FLAC file"
 
 	echo "testing tiny.ogg:"
 	if run_test_seeking tiny.ogg 100 ; then : ; else
