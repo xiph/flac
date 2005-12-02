@@ -68,7 +68,7 @@
  *  stdio streams to implement the callbacks, you can pass fread, fwrite, and
  *  fclose anywhere a FLAC__IOCallback_Read, FLAC__IOCallback_Write, or
  *  FLAC__IOCallback_Close is required, and a FILE* anywhere a FLAC__IOHandle
- *  is required.  \warning You generally can NOT directly use fseek or ftell
+ *  is required.  \warning You generally CANNOT directly use fseek or ftell
  *  for FLAC__IOCallback_Seek or FLAC__IOCallback_Tell since on most systems
  *  these use 32-bit offsets and FLAC requires 64-bit offsets to deal with
  *  large files.  You will have to find an equivalent function (e.g. ftello),
