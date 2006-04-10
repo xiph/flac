@@ -1007,6 +1007,12 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_object_cuesheet_is_legal(object_, check_cd_da_subset, violation);
 		}
 
+		FLAC__uint32 CueSheet::calculate_cddb_id() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_object_cuesheet_calculate_cddb_id(object_);
+		}
+
 
 		//
 		// Unknown
@@ -1082,6 +1088,36 @@ namespace FLAC {
 
 			if(::FLAC__metadata_get_tags(filename, &object)) {
 				tags.assign(object, /*copy=*/false);
+				return true;
+			}
+			else
+				return false;
+		}
+
+		FLACPP_API bool get_cuesheet(const char *filename, CueSheet *&cuesheet)
+		{
+			FLAC__ASSERT(0 != filename);
+
+			::FLAC__StreamMetadata *object;
+
+			cuesheet = 0;
+
+			if(::FLAC__metadata_get_cuesheet(filename, &object)) {
+				cuesheet = new CueSheet(object, /*copy=*/false);
+				return true;
+			}
+			else
+				return false;
+		}
+
+		FLACPP_API bool get_cuesheet(const char *filename, CueSheet &cuesheet)
+		{
+			FLAC__ASSERT(0 != filename);
+
+			::FLAC__StreamMetadata *object;
+
+			if(::FLAC__metadata_get_cuesheet(filename, &object)) {
+				cuesheet.assign(object, /*copy=*/false);
 				return true;
 			}
 			else

@@ -478,10 +478,11 @@ static void decoder_error_callback_(const FLAC__FileDecoder *decoder, FLAC__Stre
 	printf("ERROR: got error callback, status = %s (%u)\n", FLAC__StreamDecoderErrorStatusString[status], (unsigned)status);
 }
 
-static FLAC__bool generate_file_()
+static FLAC__bool generate_file_(FLAC__bool include_cuesheet)
 {
-	FLAC__StreamMetadata streaminfo, vorbiscomment, padding;
-	FLAC__StreamMetadata *metadata[1];
+	FLAC__StreamMetadata streaminfo, vorbiscomment, *cuesheet, padding;
+	FLAC__StreamMetadata *metadata[3];
+	unsigned i = 0, n = 0;
 
 	printf("generating FLAC file for test\n");
 
@@ -513,20 +514,38 @@ static FLAC__bool generate_file_()
 		vorbiscomment.data.vorbis_comment.comments = 0;
 	}
 
+	{
+		if (0 == (cuesheet = FLAC__metadata_object_new(FLAC__METADATA_TYPE_CUESHEET)))
+			return die_("priming our metadata");
+		cuesheet->is_last = false;
+		strcpy(cuesheet->data.cue_sheet.media_catalog_number, "bogo-MCN");
+		cuesheet->data.cue_sheet.lead_in = 123;
+		cuesheet->data.cue_sheet.is_cd = false;
+		if (!FLAC__metadata_object_cuesheet_insert_blank_track(cuesheet, 0))
+			return die_("priming our metadata");
+		cuesheet->data.cue_sheet.tracks[0].number = 1;
+		if (!FLAC__metadata_object_cuesheet_track_insert_blank_index(cuesheet, 0, 0))
+			return die_("priming our metadata");
+	}
+
 	padding.is_last = true;
 	padding.type = FLAC__METADATA_TYPE_PADDING;
 	padding.length = 1234;
 
-	metadata[0] = &padding;
+	metadata[n++] = &vorbiscomment;
+	if (include_cuesheet)
+		metadata[n++] = cuesheet;
+	metadata[n++] = &padding;
 
 	if(
-		!insert_to_our_metadata_(&streaminfo, 0, /*copy=*/true) ||
-		!insert_to_our_metadata_(&vorbiscomment, 1, /*copy=*/true) ||
-		!insert_to_our_metadata_(&padding, 2, /*copy=*/true)
+		!insert_to_our_metadata_(&streaminfo, i++, /*copy=*/true) ||
+		!insert_to_our_metadata_(&vorbiscomment, i++, /*copy=*/true) ||
+		(include_cuesheet && !insert_to_our_metadata_(cuesheet, i++, /*copy=*/false)) ||
+		!insert_to_our_metadata_(&padding, i++, /*copy=*/true)
 	)
 		return die_("priming our metadata");
 
-	if(!file_utils__generate_flacfile(flacfile_, 0, 512 * 1024, &streaminfo, metadata, 1))
+	if(!file_utils__generate_flacfile(flacfile_, 0, 512 * 1024, &streaminfo, metadata, n))
 		return die_("creating the encoded file");
 
 	free(vorbiscomment.data.vorbis_comment.vendor_string.entry);
@@ -605,10 +624,11 @@ static FLAC__bool test_level_0_()
 {
 	FLAC__StreamMetadata streaminfo;
 	FLAC__StreamMetadata *tags = 0;
+	FLAC__StreamMetadata *cuesheet = 0;
 
 	printf("\n\n++++++ testing level 0 interface\n");
 
-	if(!generate_file_())
+	if(!generate_file_(/*include_cuesheet=*/true))
 		return false;
 
 	if(!test_file_(flacfile_, decoder_metadata_callback_null_))
@@ -646,6 +666,19 @@ static FLAC__bool test_level_0_()
 
 	FLAC__metadata_object_delete(tags);
 
+	printf("testing FLAC__metadata_get_cuesheet()... ");
+
+	if(!FLAC__metadata_get_cuesheet(flacfile_, &cuesheet))
+		return die_("during FLAC__metadata_get_cuesheet()");
+
+	/* check to see if some basic data matches (c.f. generate_file_()) */
+	if(cuesheet->data.cue_sheet.lead_in != 123)
+		return die_("mismatch in cuesheet->data.vorbis_comment.num_comments");
+
+	printf("OK\n");
+
+	FLAC__metadata_object_delete(cuesheet);
+
 	if(!remove_file_(flacfile_))
 		return false;
 
@@ -668,7 +701,7 @@ static FLAC__bool test_level_1_()
 
 	printf("simple iterator on read-only file\n");
 
-	if(!generate_file_())
+	if(!generate_file_(/*include_cuesheet=*/false))
 		return false;
 
 	if(!change_stats_(flacfile_, /*read_only=*/true))
@@ -1327,7 +1360,7 @@ static FLAC__bool test_level_2_(FLAC__bool filename_based)
 
 	printf("generate read-only file\n");
 
-	if(!generate_file_())
+	if(!generate_file_(/*include_cuesheet=*/false))
 		return false;
 
 	if(!change_stats_(flacfile_, /*read_only=*/true))
@@ -1840,7 +1873,7 @@ static FLAC__bool test_level_2_misc_()
 
 	printf("generate file\n");
 
-	if(!generate_file_())
+	if(!generate_file_(/*include_cuesheet=*/false))
 		return false;
 
 	printf("create chain\n");

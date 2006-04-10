@@ -1470,3 +1470,49 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_is_legal(const FLAC__StreamMe
 
 	return FLAC__format_cuesheet_is_legal(&object->data.cue_sheet, check_cd_da_subset, violation);
 }
+
+static FLAC__uint64 get_index_01_offset_(const FLAC__StreamMetadata_CueSheet *cs, unsigned track)
+{
+	if (track >= (cs->num_tracks-1) || cs->tracks[track].num_indices < 1)
+		return 0;
+	else if (cs->tracks[track].indices[0].number == 1)
+		return cs->tracks[track].indices[0].offset + cs->tracks[track].offset + cs->lead_in;
+	else if (cs->tracks[track].num_indices < 2)
+		return 0;
+	else if (cs->tracks[track].indices[1].number == 1)
+		return cs->tracks[track].indices[1].offset + cs->tracks[track].offset + cs->lead_in;
+	else
+		return 0;
+}
+
+static FLAC__uint32 cddb_add_digits_(FLAC__uint32 x)
+{
+	FLAC__uint32 n = 0;
+	while (x) {
+		n += (x%10);
+		x /= 10;
+	}
+	return n;
+}
+
+FLAC_API FLAC__uint32 FLAC__metadata_object_cuesheet_calculate_cddb_id(const FLAC__StreamMetadata *object)
+{
+	const FLAC__StreamMetadata_CueSheet *cs;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_CUESHEET);
+
+	cs = &object->data.cue_sheet;
+
+	if (cs->num_tracks < 2) /* need at least one real track and the lead-out track */
+		return 0;
+
+	{
+		FLAC__uint32 i, length, sum = 0;
+		for (i = 0; i < (cs->num_tracks-1); i++) /* -1 to avoid counting the lead-out */
+			sum += cddb_add_digits_((FLAC__uint32)(get_index_01_offset_(cs, i) / 44100));
+		length = (FLAC__uint32)((cs->tracks[cs->num_tracks-1].offset+cs->lead_in) / 44100) - (FLAC__uint32)(get_index_01_offset_(cs, 0) / 44100);
+
+		return (sum % 0xFF) << 24 | length << 8 | (FLAC__uint32)(cs->num_tracks-1);
+	}
+}

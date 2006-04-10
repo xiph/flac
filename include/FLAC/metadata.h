@@ -124,15 +124,15 @@ extern "C" {
  *
  *  \brief
  *  The level 0 interface consists of individual routines to read the
- *  STREAMINFO and VORBIS_COMMENT blocks, requiring only a filename.
+ *  STREAMINFO, VORBIS_COMMENT, and CUESHEET blocks, requiring only a filename.
  *
- *  It skips any ID3v2 tag at the head of the file.
+ *  They try to skip any ID3v2 tag at the head of the file.
  *
  * \{
  */
 
 /** Read the STREAMINFO metadata block of the given FLAC file.  This function
- *  will skip any ID3v2 tag at the head of the file.
+ *  will try to skip any ID3v2 tag at the head of the file.
  *
  * \param filename    The path to the FLAC file to read.
  * \param streaminfo  A pointer to space for the STREAMINFO block.  Since
@@ -151,7 +151,7 @@ extern "C" {
 FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo);
 
 /** Read the VORBIS_COMMENT metadata block of the given FLAC file.  This
- *  function will skip any ID3v2 tag at the head of the file.
+ *  function will try to skip any ID3v2 tag at the head of the file.
  *
  * \param filename    The path to the FLAC file to read.
  * \param tags        The address where the returned pointer will be
@@ -159,7 +159,7 @@ FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__St
  *                    the caller using FLAC__metadata_object_delete().
  * \assert
  *    \code filename != NULL \endcode
- *    \code streaminfo != NULL \endcode
+ *    \code tags != NULL \endcode
  * \retval FLAC__bool
  *    \c true if a valid VORBIS_COMMENT block was read from \a filename,
  *    and \a *tags will be set to the address of the tag structure.
@@ -168,6 +168,25 @@ FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__St
  *    \a *tags will be set to \c NULL.
  */
 FLAC_API FLAC__bool FLAC__metadata_get_tags(const char *filename, FLAC__StreamMetadata **tags);
+
+/** Read the CUESHEET metadata block of the given FLAC file.  This
+ *  function will try to skip any ID3v2 tag at the head of the file.
+ *
+ * \param filename    The path to the FLAC file to read.
+ * \param cuesheet    The address where the returned pointer will be
+ *                    stored.  The \a cuesheet object must be deleted by
+ *                    the caller using FLAC__metadata_object_delete().
+ * \assert
+ *    \code filename != NULL \endcode
+ *    \code cuesheet != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if a valid CUESHEET block was read from \a filename,
+ *    and \a *cuesheet will be set to the address of the tag structure.
+ *    Returns \c false if there was a memory allocation error, a file
+ *    decoder error, or the file contained no CUESHEET block, and
+ *    \a *cuesheet will be set to \c NULL.
+ */
+FLAC_API FLAC__bool FLAC__metadata_get_cuesheet(const char *filename, FLAC__StreamMetadata **cuesheet);
 
 /* \} */
 
@@ -1848,6 +1867,20 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_delete_track(FLAC__StreamMeta
  *    \c false if cue sheet is illegal, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_is_legal(const FLAC__StreamMetadata *object, FLAC__bool check_cd_da_subset, const char **violation);
+
+/* @@@@ add to unit tests */
+/** Calculate and return the CDDB/freedb ID for a cue sheet.  The function
+ *  assumes the cue sheet corresponds to a CD; the result is undefined
+ *  if the cuesheet's is_cd bit is not set.
+ *
+ * \param object     A pointer to an existing CUESHEET object.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
+ * \retval FLAC__uint32
+ *    The unsigned integer representation of the CDDB/freedb ID
+ */
+FLAC_API FLAC__uint32 FLAC__metadata_object_cuesheet_calculate_cddb_id(const FLAC__StreamMetadata *object);
 
 /* \} */
 

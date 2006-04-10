@@ -777,6 +777,9 @@ namespace FLAC {
 
 			//! See FLAC__metadata_object_cuesheet_is_legal()
 			bool is_legal(bool check_cd_da_subset = false, const char **violation = 0) const;
+
+			//! See FLAC__metadata_object_cuesheet_calculate_cddb_id()
+			FLAC__uint32 calculate_cddb_id() const;
 		};
 
 		/** Opaque metadata block for storing unknown types.
@@ -858,6 +861,10 @@ namespace FLAC {
 	 	//! See FLAC__metadata_get_tags().
 		FLACPP_API bool get_tags(const char *filename, VorbisComment *&tags);
 		FLACPP_API bool get_tags(const char *filename, VorbisComment &tags);
+
+	 	//! See FLAC__metadata_get_cuesheet().
+		FLACPP_API bool get_cuesheet(const char *filename, CueSheet *&cuesheet);
+		FLACPP_API bool get_cuesheet(const char *filename, CueSheet &cuesheet);
 
 		/* \} */
 
