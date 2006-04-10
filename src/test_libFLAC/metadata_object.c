@@ -208,7 +208,7 @@ static int vc_find_from_(FLAC__StreamMetadata *block, const char *name, unsigned
 	unsigned i;
 	for(i = start; i < block->data.vorbis_comment.num_comments; i++) {
 		const FLAC__StreamMetadata_VorbisComment_Entry *entry = &block->data.vorbis_comment.comments[i];
-		if(entry->length > n && 0 == strncmp(entry->entry, name, n) && entry->entry[n] == '=')
+		if(entry->length > n && 0 == strncmp((const char *)entry->entry, name, n) && entry->entry[n] == '=')
 			return (int)i;
 	}
 	return -1;
@@ -891,7 +891,7 @@ FLAC__bool test_metadata_object()
 			printf("FAILED, returned false\n");
 			return false;
 		}
-		if(strcmp(entry_.entry, "name=value")) {
+		if(strcmp((const char *)entry_.entry, "name=value")) {
 			printf("FAILED, field mismatch\n");
 			return false;
 		}
