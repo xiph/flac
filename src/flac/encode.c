@@ -636,17 +636,11 @@ int flac__encode_wav(FILE *infile, long infilesize, const char *infilename, cons
 			is_unsigned_samples = (x == 8);
 
 			/* skip any extra data in the fmt sub-chunk */
+			FLAC__ASSERT(data_bytes >= 16);
 			data_bytes -= 16;
-			if(data_bytes > 0) {
-				unsigned left, need;
-				for(left = data_bytes; left > 0; ) {
-					need = min(left, CHUNK_OF_SAMPLES);
-					if(fread(ucbuffer_, 1U, need, infile) < need) {
-						flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping samples\n", encoder_session.inbasefilename);
-						return EncoderSession_finish_error(&encoder_session);
-					}
-					left -= need;
-				}
+			if(!fskip_ahead(infile, data_bytes)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping extra 'fmt' data\n", encoder_session.inbasefilename);
+				return EncoderSession_finish_error(&encoder_session);
 			}
 
 			/*
@@ -2147,10 +2141,18 @@ FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 		long need = (long)min(offset, LONG_MAX);
 	   	if(fseek(f, need, SEEK_CUR) < 0) {
 			need = (long)min(offset, sizeof(dump));
-			if(fread(dump, need, 1, f) < 1)
+			if(fread(dump, 1, need, f) < need)
 				return false;
 		}
 		offset -= need;
 	}
+#if 0 /* pure non-fseek() version */
+	while(offset > 0) {
+		const long need = (long)min(offset, sizeof(dump));
+		if(fread(dump, 1, need, f) < need)
+			return false;
+		offset -= need;
+	}
+#endif
 	return true;
 }
