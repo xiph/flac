@@ -45,6 +45,13 @@
 #define M_LN2 0.69314718055994530942
 #endif
 
+void FLAC__lpc_window_data(const FLAC__real in[], const FLAC__real window[], FLAC__real out[], unsigned data_len)
+{
+	unsigned i;
+	for(i = 0; i < data_len; i++)
+		out[i] = in[i] * window[i];
+}
+
 void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	/* a readable, but slower, version */

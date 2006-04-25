@@ -1427,6 +1427,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			OggFLAC__stream_encoder_set_bits_per_sample(e->encoder.ogg.stream, bps);
 			OggFLAC__stream_encoder_set_sample_rate(e->encoder.ogg.stream, sample_rate);
 			OggFLAC__stream_encoder_set_blocksize(e->encoder.ogg.stream, options.blocksize);
+			OggFLAC__stream_encoder_set_apodization(e->encoder.ogg.stream, options.apodizations);
 			OggFLAC__stream_encoder_set_max_lpc_order(e->encoder.ogg.stream, options.max_lpc_order);
 			OggFLAC__stream_encoder_set_qlp_coeff_precision(e->encoder.ogg.stream, options.qlp_coeff_precision);
 			OggFLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder.ogg.stream, options.do_qlp_coeff_prec_search);
@@ -1463,6 +1464,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			OggFLAC__file_encoder_set_bits_per_sample(e->encoder.ogg.file, bps);
 			OggFLAC__file_encoder_set_sample_rate(e->encoder.ogg.file, sample_rate);
 			OggFLAC__file_encoder_set_blocksize(e->encoder.ogg.file, options.blocksize);
+			OggFLAC__file_encoder_set_apodization(e->encoder.ogg.file, options.apodizations);
 			OggFLAC__file_encoder_set_max_lpc_order(e->encoder.ogg.file, options.max_lpc_order);
 			OggFLAC__file_encoder_set_qlp_coeff_precision(e->encoder.ogg.file, options.qlp_coeff_precision);
 			OggFLAC__file_encoder_set_do_qlp_coeff_prec_search(e->encoder.ogg.file, options.do_qlp_coeff_prec_search);
@@ -1499,6 +1501,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		FLAC__stream_encoder_set_bits_per_sample(e->encoder.flac.stream, bps);
 		FLAC__stream_encoder_set_sample_rate(e->encoder.flac.stream, sample_rate);
 		FLAC__stream_encoder_set_blocksize(e->encoder.flac.stream, options.blocksize);
+		FLAC__stream_encoder_set_apodization(e->encoder.flac.stream, options.apodizations);
 		FLAC__stream_encoder_set_max_lpc_order(e->encoder.flac.stream, options.max_lpc_order);
 		FLAC__stream_encoder_set_qlp_coeff_precision(e->encoder.flac.stream, options.qlp_coeff_precision);
 		FLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder.flac.stream, options.do_qlp_coeff_prec_search);
@@ -1534,6 +1537,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		FLAC__file_encoder_set_bits_per_sample(e->encoder.flac.file, bps);
 		FLAC__file_encoder_set_sample_rate(e->encoder.flac.file, sample_rate);
 		FLAC__file_encoder_set_blocksize(e->encoder.flac.file, options.blocksize);
+		FLAC__file_encoder_set_apodization(e->encoder.flac.file, options.apodizations);
 		FLAC__file_encoder_set_max_lpc_order(e->encoder.flac.file, options.max_lpc_order);
 		FLAC__file_encoder_set_qlp_coeff_precision(e->encoder.flac.file, options.qlp_coeff_precision);
 		FLAC__file_encoder_set_do_qlp_coeff_prec_search(e->encoder.flac.file, options.do_qlp_coeff_prec_search);
@@ -2141,7 +2145,7 @@ FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 		long need = (long)min(offset, LONG_MAX);
 	   	if(fseek(f, need, SEEK_CUR) < 0) {
 			need = (long)min(offset, sizeof(dump));
-			if(fread(dump, 1, need, f) < need)
+			if((long)fread(dump, 1, need, f) < need)
 				return false;
 		}
 		offset -= need;

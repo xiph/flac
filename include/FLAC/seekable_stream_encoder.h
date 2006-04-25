@@ -417,6 +417,21 @@ FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_sample_rate(FLAC__Seekable
 FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_blocksize(FLAC__SeekableStreamEncoder *encoder, unsigned value);
 
 /** This is inherited from FLAC__StreamEncoder; see
+ *  FLAC__stream_encoder_set_apodization().
+ *
+ * \default \c 0
+ * \param  encoder        An encoder instance to set.
+ * \param  specification  See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code specification != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+/* @@@@add to unit tests*/
+FLAC_API FLAC__bool FLAC__seekable_stream_encoder_set_apodization(FLAC__SeekableStreamEncoder *encoder, const char *specification);
+
+/** This is inherited from FLAC__StreamEncoder; see
  *  FLAC__stream_encoder_set_max_lpc_order().
  *
  * \default \c 0

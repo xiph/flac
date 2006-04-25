@@ -147,6 +147,7 @@ static struct share__option long_options_[] = {
 	{ "blocksize"                 , share__required_argument, 0, 'b' },
 	{ "exhaustive-model-search"   , share__no_argument, 0, 'e' },
 	{ "max-lpc-order"             , share__required_argument, 0, 'l' },
+	{ "apodization"               , share__required_argument, 0, 'A' },
 	{ "mid-side"                  , share__no_argument, 0, 'm' },
 	{ "adaptive-mid-side"         , share__no_argument, 0, 'M' },
 	{ "qlp-coeff-precision-search", share__no_argument, 0, 'p' },
@@ -232,6 +233,7 @@ static struct {
 	const char *output_prefix;
 	analysis_options aopts;
 	int padding;
+	char apodizations[1000]; /* bad MAGIC NUMBER but buffer overflow is checked */
 	unsigned max_lpc_order;
 	unsigned qlp_coeff_precision;
 	const char *skip_specification;
@@ -247,7 +249,7 @@ static struct {
 	int min_residual_partition_order;
 	int max_residual_partition_order;
 	int rice_parameter_search_dist;
-	char requested_seek_points[50000]; /* bad MAGIC NUMBER but buffer overflow is checked */
+	char requested_seek_points[5000]; /* bad MAGIC NUMBER but buffer overflow is checked */
 	int num_requested_seek_points; /* -1 => no -S options were given, 0 => -S- was given */
 	const char *cuesheet_filename;
 	FLAC__bool cued_seekpoints;
@@ -577,6 +579,7 @@ FLAC__bool init_options()
 	option_values.aopts.do_residual_text = false;
 	option_values.aopts.do_residual_gnuplot = false;
 	option_values.padding = 4096;
+	option_values.apodizations[0] = '\0';
 	option_values.max_lpc_order = 8;
 	option_values.qlp_coeff_precision = 0;
 	option_values.skip_specification = 0;
@@ -615,7 +618,7 @@ int parse_options(int argc, char *argv[])
 	int short_option;
 	int option_index = 1;
 	FLAC__bool had_error = false;
-	const char *short_opts = "0123456789ab:cdefFhHl:mMo:pP:q:r:sS:tT:vV";
+	const char *short_opts = "0123456789aA:b:cdefFhHl:mMo:pP:q:r:sS:tT:vV";
 
 	while ((short_option = share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
 		switch (short_option) {
@@ -1030,6 +1033,16 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				FLAC__ASSERT(0 != option_argument);
 				option_values.max_lpc_order = atoi(option_argument);
 				break;
+			case 'A':
+				FLAC__ASSERT(0 != option_argument);
+				if(strlen(option_values.apodizations)+strlen(option_argument)+2 >= sizeof(option_values.apodizations)) {
+					return usage_error("ERROR: too many apodization functions requested\n");
+				}
+				else {
+					strcat(option_values.apodizations, option_argument);
+					strcat(option_values.apodizations, ";");
+				}
+				break;
 			case 'm':
 				option_values.do_mid_side = true;
 				option_values.loose_mid_side = false;
@@ -1210,6 +1223,7 @@ void show_help()
 	printf("  -m, --mid-side                     Try mid-side coding for each frame\n");
 	printf("  -M, --adaptive-mid-side            Adaptive mid-side coding for all frames\n");
 	printf("  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)\n");
+	printf("  -A, --apodization=\"function\"       Window audio data with given the function\n");
 	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors\n");
 	printf("  -p, --qlp-coeff-precision-search   Exhaustively search LP coeff quantization\n");
 	printf("  -q, --qlp-coeff-precision=#        Specify precision in bits\n");
@@ -1422,6 +1436,16 @@ void show_explain()
 	printf("  -M, --adaptive-mid-side            Adaptive mid-side coding for all frames\n");
 	printf("                                     (stereo only)\n");
 	printf("  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)\n");
+	printf("  -A, --apodization=\"function\"       Window audio data with given the function.\n");
+	printf("                                     The functions are: bartlett, bartlett_hann,\n");
+	printf("                                     blackman, blackman_harris_4term_92db,\n");
+	printf("                                     connes, flattop, gauss(STDDEV), hamming,\n");
+	printf("                                     hann, kaiser_bessel, nuttall, rectangle,\n");
+	printf("                                     triangle, tukey(P), welch.  More than one\n");
+	printf("                                     may be specified but encoding time is a\n");
+	printf("                                     multiple of the number of functions since\n");
+	printf("                                     they are each tried in turn.  The default\n");
+	printf("                                     is \"hann\". \n");
 	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors\n");
 	printf("  -p, --qlp-coeff-precision-search   Do exhaustive search of LP coefficient\n");
 	printf("                                     quantization (expensive!); overrides -q;\n");
@@ -1606,6 +1630,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.min_residual_partition_order = option_values.min_residual_partition_order;
 	common_options.max_residual_partition_order = option_values.max_residual_partition_order;
 	common_options.rice_parameter_search_dist = option_values.rice_parameter_search_dist;
+	common_options.apodizations = option_values.apodizations;
 	common_options.max_lpc_order = option_values.max_lpc_order;
 	common_options.blocksize = (unsigned)option_values.blocksize;
 	common_options.qlp_coeff_precision = option_values.qlp_coeff_precision;

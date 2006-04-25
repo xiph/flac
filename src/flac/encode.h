@@ -43,6 +43,7 @@ typedef struct {
 	unsigned min_residual_partition_order;
 	unsigned max_residual_partition_order;
 	unsigned rice_parameter_search_dist;
+	char *apodizations;
 	unsigned max_lpc_order;
 	unsigned blocksize;
 	unsigned qlp_coeff_precision;

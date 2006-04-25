@@ -498,6 +498,52 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *en
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *encoder, unsigned value);
 
+/** Sets the apodization function(s) the encoder will use when windowing
+ *  audio data for LPC analysis.
+ *
+ * The \a specification is a plain ASCII string which specifies exactly
+ * which functions to use.  There may be more than one (up to 32),
+ * separated by \c ';' characters.  Some functions take one or more
+ * comma-separated arguments in parentheses.
+ *
+ * The available functions are \c bartlett, \c bartlett_hann,
+ * \c blackman, \c blackman_harris_4term_92db, \c connes, \c flattop,
+ * \c gauss(STDDEV), \c hamming, \c hann, \c kaiser_bessel, \c nuttall,
+ * \c rectangle, \c triangle, \c tukey(P), \c welch.
+ *
+ * For \c gauss(STDDEV), STDDEV specifies the standard deviation
+ * (0<STDDEV<=0.5).
+ *
+ * For \c tukey(P), P specifies the fraction of the window that is
+ * tapered (0<=P<=1).  P=0 corresponds to \c rectangle and P=1
+ * corresponds to \c hann.
+ *
+ * Example specifications are \c "blackman" or
+ * \c "hann;triangle;tukey(0.5);tukey(0.25);tukey(0.125)"
+ *
+ * Any function that is specified erroneously is silently dropped.  Up
+ * to 32 functions are kept, the rest are dropped.  If the specification
+ * is empty the encoder defaults to \c "hann".
+ *
+ * When more than one function is specified, then for every subframe the
+ * encoder will try each of them separately and choose the window that
+ * results in the smallest compressed subframe.
+ *
+ * Note that each function specified causes the encoder to occupy a
+ * floating point array in which to store the window.
+ *
+ * \default \c "hann"
+ * \param  encoder        An encoder instance to set.
+ * \param  specification  See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code specification != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+/* @@@@add to unit tests*/
+FLAC_API FLAC__bool FLAC__stream_encoder_set_apodization(FLAC__StreamEncoder *encoder, const char *specification);
+
 /** Set the maximum LPC order, or \c 0 to use only the fixed predictors.
  *
  * \default \c 0

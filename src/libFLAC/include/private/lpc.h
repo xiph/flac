@@ -42,6 +42,19 @@
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
 /*
+ *	FLAC__lpc_window_data()
+ *	--------------------------------------------------------------------
+ *	Applies the given window to the data.
+ *  @@@@@@ asm optimize
+ *
+ *	IN in[0,data_len-1]
+ *	IN window[0,data_len-1]
+ *	OUT out[0,lag-1]
+ *	IN data_len
+ */
+void FLAC__lpc_window_data(const FLAC__real in[], const FLAC__real window[], FLAC__real out[], unsigned data_len);
+
+/*
  *	FLAC__lpc_compute_autocorrelation()
  *	--------------------------------------------------------------------
  *	Compute the autocorrelation for lags between 0 and lag-1.

@@ -299,6 +299,20 @@ OggFLAC_API FLAC__bool OggFLAC__file_encoder_set_sample_rate(OggFLAC__FileEncode
 OggFLAC_API FLAC__bool OggFLAC__file_encoder_set_blocksize(OggFLAC__FileEncoder *encoder, unsigned value);
 
 /** This is inherited from OggFLAC__SeekableStreamEncoder; see
+ *  OggFLAC__seekable_stream_encoder_set_apodization().
+ *
+ * \default \c 0
+ * \param  encoder        An encoder instance to set.
+ * \param  specification  See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code specification != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+OggFLAC_API FLAC__bool OggFLAC__file_encoder_set_apodization(OggFLAC__FileEncoder *encoder, const char *specification);
+
+/** This is inherited from OggFLAC__SeekableStreamEncoder; see
  *  OggFLAC__seekable_stream_encoder_set_max_lpc_order().
  *
  * \default \c 0

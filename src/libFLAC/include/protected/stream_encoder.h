@@ -34,6 +34,44 @@
 
 #include "FLAC/stream_encoder.h"
 
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+
+#include "private/float.h"
+
+#define FLAC__MAX_APODIZATION_FUNCTIONS 32
+
+typedef enum {
+	FLAC__APODIZATION_BARTLETT,
+	FLAC__APODIZATION_BARTLETT_HANN,
+	FLAC__APODIZATION_BLACKMAN,
+	FLAC__APODIZATION_BLACKMAN_HARRIS_4TERM_92DB_SIDELOBE,
+	FLAC__APODIZATION_CONNES,
+	FLAC__APODIZATION_FLATTOP,
+	FLAC__APODIZATION_GAUSS,
+	FLAC__APODIZATION_HAMMING,
+	FLAC__APODIZATION_HANN,
+	FLAC__APODIZATION_KAISER_BESSEL,
+	FLAC__APODIZATION_NUTTALL,
+	FLAC__APODIZATION_RECTANGLE,
+	FLAC__APODIZATION_TRIANGLE,
+	FLAC__APODIZATION_TUKEY,
+	FLAC__APODIZATION_WELCH
+} FLAC__ApodizationFunction;
+
+typedef struct {
+	FLAC__ApodizationFunction type;
+	union {
+		struct {
+			FLAC__real stddev;
+		} gauss;
+		struct {
+			FLAC__real p;
+		} tukey;
+	} parameters;
+} FLAC__ApodizationSpecification;
+
+#endif // #ifndef FLAC__INTEGER_ONLY_LIBRARY
+
 typedef struct FLAC__StreamEncoderProtected {
 	FLAC__StreamEncoderState state;
 	FLAC__bool verify;
@@ -44,6 +82,10 @@ typedef struct FLAC__StreamEncoderProtected {
 	unsigned bits_per_sample;
 	unsigned sample_rate;
 	unsigned blocksize;
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+	unsigned num_apodizations;
+	FLAC__ApodizationSpecification apodizations[FLAC__MAX_APODIZATION_FUNCTIONS];
+#endif
 	unsigned max_lpc_order;
 	unsigned qlp_coeff_precision;
 	FLAC__bool do_qlp_coeff_prec_search;

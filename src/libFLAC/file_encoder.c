@@ -314,6 +314,17 @@ FLAC_API FLAC__bool FLAC__file_encoder_set_blocksize(FLAC__FileEncoder *encoder,
 	return FLAC__seekable_stream_encoder_set_blocksize(encoder->private_->seekable_stream_encoder, value);
 }
 
+FLAC_API FLAC__bool FLAC__file_encoder_set_apodization(FLAC__FileEncoder *encoder, const char *specification)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	FLAC__ASSERT(0 != encoder->private_->seekable_stream_encoder);
+	if(encoder->protected_->state != FLAC__FILE_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__seekable_stream_encoder_set_apodization(encoder->private_->seekable_stream_encoder, specification);
+}
+
 FLAC_API FLAC__bool FLAC__file_encoder_set_max_lpc_order(FLAC__FileEncoder *encoder, unsigned value)
 {
 	FLAC__ASSERT(0 != encoder);

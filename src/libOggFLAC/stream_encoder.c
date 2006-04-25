@@ -290,6 +290,17 @@ OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_blocksize(OggFLAC__StreamEnco
 	return FLAC__stream_encoder_set_blocksize(encoder->private_->FLAC_stream_encoder, value);
 }
 
+OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_apodization(OggFLAC__StreamEncoder *encoder, const char *specification)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	FLAC__ASSERT(0 != encoder->private_->FLAC_stream_encoder);
+	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	return FLAC__stream_encoder_set_apodization(encoder->private_->FLAC_stream_encoder, specification);
+}
+
 OggFLAC_API FLAC__bool OggFLAC__stream_encoder_set_max_lpc_order(OggFLAC__StreamEncoder *encoder, unsigned value)
 {
 	FLAC__ASSERT(0 != encoder);
