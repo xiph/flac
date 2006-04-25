@@ -1,5 +1,5 @@
 /* plugin_common - Routines common to several plugins
- * Copyright (C) 2002,2003  Josh Coalson
+ * Copyright (C) 2002,2003,2004,2005,2006  Josh Coalson
  * Copyright (C) 2003  Philip Jägenstedt
  *
  * This program is free software; you can redistribute it and/or
