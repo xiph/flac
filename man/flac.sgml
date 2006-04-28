@@ -310,7 +310,9 @@
 		    don't exist, the start of the stream (for the start
 		    point) or end of the stream (for the end point) will be
 		    used.  The cuepoints are merely translated into sample
-		    numbers then used as --skip and --until.</para>
+		    numbers then used as --skip and --until.  A CD track can
+		    always be cued by, for example, --cue=9.1-10.1 for track
+		    9, even if the CD has no 10th track.</para>
 		</listitem>
 	      </varlistentry>
 
@@ -611,6 +613,33 @@
 		<listitem>
 		  <para>Do exhaustive model search
 		    (expensive!)</para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><option>-A</option> <replaceable>function</replaceable>, <option>--apodization</option>=<replaceable>function</replaceable></term>
+
+		<listitem>
+		  <para>Window audio data with given the apodization function.
+		    The functions are: bartlett, bartlett_hann, blackman,
+		    blackman_harris_4term_92db, connes, flattop, gauss(STDDEV),
+		    hamming, hann, kaiser_bessel, nuttall, rectangle, triangle,
+		    tukey(P), welch.</para>
+		  <para>For gauss(STDDEV), STDDEV is the standard deviation
+		    (0&lt;STDDEV&lt;=0.5).</para>
+		  <para>For tukey(P), P specifies the fraction of the window that
+		    is tapered (0&lt;=P&lt;=1; P=0 corresponds to "rectangle" and
+		    P=1 corresponds to "hann").</para>
+		  <para>More than one -A option (up to 32) may be used.  Any
+		    function that is specified erroneously is silently dropped.
+		    The encoder chooses suitable defaults in the absence of any
+		    -A options; any -A option specified replaces the default(s).
+		    </para>
+		  <para>When more than one function is specified, then for every
+		    subframe the encoder will try each of them separately and
+		    choose the window that results in the smallest compressed
+		    subframe.  Multiple functions can greatly increase the
+		    encoding time.</para>
 		</listitem>
 	      </varlistentry>
 

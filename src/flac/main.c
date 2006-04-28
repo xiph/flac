@@ -1363,6 +1363,9 @@ void show_explain()
 	printf("                               point) or after it (for the end point) will be\n");
 	printf("                               used.  The cuepoints are merely translated into\n");
 	printf("                               sample numbers then used as --skip and --until.\n");
+	printf("                               A CD track can always be cued by, for example,\n");
+	printf("                               --cue=9.1-10.1 for track 9, even if the CD has\n");
+	printf("                               no 10th track.\n");
 	printf("encoding options:\n");
 	printf("  -V, --verify                 Verify a correct encoding by decoding the\n");
 	printf("                               output in parallel and comparing to the\n");
@@ -1444,8 +1447,9 @@ void show_explain()
 	printf("                                     triangle, tukey(P), welch.  More than one\n");
 	printf("                                     may be specified but encoding time is a\n");
 	printf("                                     multiple of the number of functions since\n");
-	printf("                                     they are each tried in turn.  The default\n");
-	printf("                                     is \"hann\". \n");
+	printf("                                     they are each tried in turn.  The encoder\n");
+	printf("                                     chooses suitable defaults in the absence\n");
+	printf("                                     of any -A options.\n");
 	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors\n");
 	printf("  -p, --qlp-coeff-precision-search   Do exhaustive search of LP coefficient\n");
 	printf("                                     quantization (expensive!); overrides -q;\n");

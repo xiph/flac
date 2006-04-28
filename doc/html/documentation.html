@@ -423,7 +423,8 @@
 					<span class="argument">--cue=4.1</span> : decode from track 4, index 1 to the end of the stream<br />
 					<span class="argument">--cue=4.1-</span> : decode from track 4, index 1 to the end of the stream<br />
 					<span class="argument">--cue=-4.1</span> : decode from the beginning of the stream up to, but not including, track 4, index 1<br />
-					<span class="argument">--cue=2.1-2.4</span> : decode from track 2, index 1, up to, but not including, track 2, index 4
+					<span class="argument">--cue=2.1-2.4</span> : decode from track 2, index 1, up to, but not including, track 2, index 4<br />
+					<span class="argument">--cue=9.1-10.1</span> : decode from track 9 the way it would be played on a CD player; this works even if the CD has no 10th track.
 				</td>
 			</tr>
 			<tr>
@@ -724,6 +725,19 @@
 				</td>
 				<td>
 					Exhaustive model search (expensive!).  Normally the encoder estimates the best model to use and encodes once based on the estimate.  With an exhaustive model search, the encoder will generate subframes for every order and use the smallest.  If the max LPC order is high this can significantly increase the encode time but can shave off another 0.5%.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_apodization" />
+					<span class="argument">-A "function"</span>, <span class="argument">--apodization="function"</span>
+				</td>
+				<td>
+					Window audio data with given the apodization function.  The functions are: bartlett, bartlett_hann, blackman, blackman_harris_4term_92db, connes, flattop, gauss(STDDEV), hamming, hann, kaiser_bessel, nuttall, rectangle, triangle, tukey(P), welch.<br />
+					For gauss(STDDEV), STDDEV is the standard deviation (0&lt;STDDEV&lt;=0.5).<br />
+					For tukey(P), P specifies the fraction of the window that is tapered (0&lt;=P&lt;=1; P=0 corresponds to "rectangle" and P=1 corresponds to "hann").<br />
+					More than one -A option (up to 32) may be used.  Any function that is specified erroneously is silently dropped.  The encoder chooses suitable defaults in the absence of any -A options; any -A option specified replaces the default(s).<br />
+					When more than one function is specified, then for every subframe the encoder will try each of them separately and choose the window that results in the smallest compressed subframe.  Multiple functions can greatly increase the encoding time.<br />
 				</td>
 			</tr>
 			<tr>
