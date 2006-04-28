@@ -1985,7 +1985,7 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size)
 				default:
 					FLAC__ASSERT(0);
 					/* double protection */
-					FLAC__window_rectangle(encoder->private_->window[i], new_size);
+					FLAC__window_hann(encoder->private_->window[i], new_size);
 					break;
 			}
 		}
@@ -2519,7 +2519,17 @@ FLAC__bool process_subframe_(
 								min_lpc_order = 1;
 							}
 							else {
-								unsigned guess_lpc_order = FLAC__lpc_compute_best_order(lpc_error, max_lpc_order, frame_header->blocksize, subframe_bps);
+								const unsigned guess_lpc_order =
+									FLAC__lpc_compute_best_order(
+										lpc_error,
+										max_lpc_order,
+										frame_header->blocksize,
+										subframe_bps + (
+											encoder->protected_->do_qlp_coeff_prec_search?
+												FLAC__MIN_QLP_COEFF_PRECISION : /* have to guess; use the min possible size to avoid accidentally favoring lower orders */
+												encoder->protected_->qlp_coeff_precision
+										)
+									);
 								min_lpc_order = max_lpc_order = guess_lpc_order;
 							}
 							for(lpc_order = min_lpc_order; lpc_order <= max_lpc_order; lpc_order++) {
@@ -2529,16 +2539,18 @@ FLAC__bool process_subframe_(
 								rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
 								rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
 								if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-	#ifdef DEBUG_VERBOSE
+#ifdef DEBUG_VERBOSE
 									fprintf(stderr, "clipping rice_parameter (%u -> %u) @1\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
-	#endif
+#endif
 									rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
 								}
 								if(encoder->protected_->do_qlp_coeff_prec_search) {
 									min_qlp_coeff_precision = FLAC__MIN_QLP_COEFF_PRECISION;
-									/* ensure a 32-bit datapath throughout for 16bps or less */
-									if(subframe_bps <= 16)
+									/* try to ensure a 32-bit datapath throughout for 16bps(+1bps for side channel) or less */
+									if(subframe_bps <= 17) {
 										max_qlp_coeff_precision = min(32 - subframe_bps - lpc_order, FLAC__MAX_QLP_COEFF_PRECISION);
+										max_qlp_coeff_precision = max(max_qlp_coeff_precision, min_qlp_coeff_precision);
+									}
 									else
 										max_qlp_coeff_precision = FLAC__MAX_QLP_COEFF_PRECISION;
 								}
