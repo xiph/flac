@@ -261,6 +261,10 @@ SOURCE=.\stream_encoder.c
 
 SOURCE=.\stream_encoder_framing.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\window.c
+# End Source File
 # End Group
 # Begin Group "Private Header Files"
 
@@ -316,6 +320,10 @@ SOURCE=.\include\private\metadata.h
 # Begin Source File
 
 SOURCE=.\include\private\stream_encoder_framing.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\private\window.h
 # End Source File
 # End Group
 # Begin Group "Protected Header Files"
