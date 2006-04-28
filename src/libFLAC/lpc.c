@@ -62,6 +62,13 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], unsigned data_le
 	FLAC__ASSERT(lag > 0);
 	FLAC__ASSERT(lag <= data_len);
 
+	/*
+	 * Technically we should subtract the mean first like so:
+	 *   for(i = 0; i < data_len; i++)
+	 *     data[i] -= mean;
+	 * but it appears not to make enough of a difference to matter, and
+	 * most signals are already closely centered around zero
+	 */
 	while(lag--) {
 		for(i = lag, d = 0.0; i < data_len; i++)
 			d += data[i] * data[i - lag];
@@ -410,28 +417,28 @@ FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scal
 	}
 }
 
-unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned max_order, unsigned total_samples, unsigned bits_per_signal_sample)
+unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned max_order, unsigned total_samples, unsigned overhead_bits_per_order)
 {
-	unsigned order, best_order;
-	FLAC__double best_bits, tmp_bits, error_scale;
+	unsigned order, index, best_index; /* 'index' the index into lpc_error; index==order-1 since lpc_error[0] is for order==1, lpc_error[1] is for order==2, etc */
+	FLAC__double bits, best_bits, error_scale;
 
 	FLAC__ASSERT(max_order > 0);
 	FLAC__ASSERT(total_samples > 0);
 
 	error_scale = 0.5 * M_LN2 * M_LN2 / (FLAC__double)total_samples;
 
-	best_order = 0;
-	best_bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[0], error_scale) * (FLAC__double)total_samples;
+	best_index = 0;
+	best_bits = (unsigned)(-1);
 
-	for(order = 1; order < max_order; order++) {
-		tmp_bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[order], error_scale) * (FLAC__double)(total_samples - order) + (FLAC__double)(order * bits_per_signal_sample);
-		if(tmp_bits < best_bits) {
-			best_order = order;
-			best_bits = tmp_bits;
+	for(index = 0, order = 1; index < max_order; index++, order++) {
+		bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[index], error_scale) * (FLAC__double)(total_samples - order) + (FLAC__double)(order * overhead_bits_per_order);
+		if(bits < best_bits) {
+			best_index = index;
+			best_bits = bits;
 		}
 	}
 
-	return best_order+1; /* +1 since index of lpc_error[] is order-1 */
+	return best_index+1; /* +1 since index of lpc_error[] is order-1 */
 }
 
 #endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */

@@ -200,10 +200,11 @@ FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scal
  *	IN lpc_error[0,max_order-1] >= 0.0  error returned from calculating LP coefficients
  *	IN max_order > 0                    max LP order
  *	IN total_samples > 0                # of samples in residual signal
- *	IN bits_per_signal_sample           # of bits per sample in the original signal
+ *	IN overhead_bits_per_order          # of bits overhead for each increased LP order
+ *	                                    (includes warmup sample size and quantized LP coefficient)
  *	RETURN [1,max_order]                best order
  */
-unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned max_order, unsigned total_samples, unsigned bits_per_signal_sample);
+unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned max_order, unsigned total_samples, unsigned overhead_bits_per_order);
 
 #endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
 
