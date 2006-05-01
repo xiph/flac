@@ -30,7 +30,7 @@
  */
 
 /*@@@@@@*/
-#define WINDOW_DEBUG_OUTPUT
+#undef WINDOW_DEBUG_OUTPUT
 
 #include <limits.h>
 #include <stdio.h>
