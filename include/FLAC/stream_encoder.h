@@ -523,7 +523,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *enco
  *
  * Any function that is specified erroneously is silently dropped.  Up
  * to 32 functions are kept, the rest are dropped.  If the specification
- * is empty the encoder defaults to \c "hann".
+ * is empty the encoder defaults to \c "tukey(0.5)".
  *
  * When more than one function is specified, then for every subframe the
  * encoder will try each of them separately and choose the window that
@@ -532,7 +532,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *enco
  * Note that each function specified causes the encoder to occupy a
  * floating point array in which to store the window.
  *
- * \default \c "hann"
+ * \default \c "tukey(0.5)"
  * \param  encoder        An encoder instance to set.
  * \param  specification  See above.
  * \assert

@@ -1168,7 +1168,8 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_apodization(FLAC__StreamEncoder *en
 	}
 	if(encoder->protected_->num_apodizations == 0) {
 		encoder->protected_->num_apodizations = 1;
-		encoder->protected_->apodizations[0].type = FLAC__APODIZATION_HANN;
+		encoder->protected_->apodizations[0].type = FLAC__APODIZATION_TUKEY;
+		encoder->protected_->apodizations[0].parameters.tukey.p = 0.5;
 	}
 #ifdef WINDOW_DEBUG_OUTPUT
 {unsigned n;for(n=0;n<encoder->protected_->num_apodizations;n++)fprintf(stderr,"@@@@@@ parsed apodization[%zu]: %s\n",n,winstr[encoder->protected_->apodizations[n].type]);}
@@ -1764,7 +1765,8 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->protected_->blocksize = 1152;
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	encoder->protected_->num_apodizations = 1;
-	encoder->protected_->apodizations[0].type = FLAC__APODIZATION_HANN;
+	encoder->protected_->apodizations[0].type = FLAC__APODIZATION_TUKEY;
+	encoder->protected_->apodizations[0].parameters.tukey.p = 0.5;
 #endif
 	encoder->protected_->max_lpc_order = 0;
 	encoder->protected_->qlp_coeff_precision = 0;
