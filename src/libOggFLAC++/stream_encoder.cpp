@@ -111,6 +111,12 @@ namespace OggFLAC {
 			return (bool)::OggFLAC__stream_encoder_set_blocksize(encoder_, value);
 		}
 
+		bool Stream::set_apodization(const char *specification)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::OggFLAC__stream_encoder_set_apodization(encoder_, specification);
+		}
+
 		bool Stream::set_max_lpc_order(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());

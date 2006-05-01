@@ -116,6 +116,7 @@ namespace FLAC {
 			bool set_bits_per_sample(unsigned value);
 			bool set_sample_rate(unsigned value);
 			bool set_blocksize(unsigned value);
+			bool set_apodization(const char *specification);
 			bool set_max_lpc_order(unsigned value);
 			bool set_qlp_coeff_precision(unsigned value);
 			bool set_do_qlp_coeff_prec_search(bool value);
@@ -214,6 +215,7 @@ namespace FLAC {
 			bool set_bits_per_sample(unsigned value);
 			bool set_sample_rate(unsigned value);
 			bool set_blocksize(unsigned value);
+			bool set_apodization(const char *specification);
 			bool set_max_lpc_order(unsigned value);
 			bool set_qlp_coeff_precision(unsigned value);
 			bool set_do_qlp_coeff_prec_search(bool value);
@@ -315,6 +317,7 @@ namespace FLAC {
 			bool set_bits_per_sample(unsigned value);
 			bool set_sample_rate(unsigned value);
 			bool set_blocksize(unsigned value);
+			bool set_apodization(const char *specification);
 			bool set_max_lpc_order(unsigned value);
 			bool set_qlp_coeff_precision(unsigned value);
 			bool set_do_qlp_coeff_prec_search(bool value);
