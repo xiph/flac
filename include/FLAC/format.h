@@ -315,10 +315,6 @@ typedef struct {
 
 	const FLAC__int32 *residual;
 	/**< The residual signal, length == (blocksize minus order) samples. */
-
-#ifdef WINDOW_DEBUG_OUTPUT
-	char window_type[64]; //@@@@@@
-#endif
 } FLAC__Subframe_LPC;
 
 extern FLAC_API const unsigned FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN; /**< == 4 (bits) */
