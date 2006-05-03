@@ -36,6 +36,11 @@
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
+#ifndef M_PI
+/* math.h in VC++ doesn't seem to have this (how Microsoft is that?) */
+#define M_PI 3.14159265358979323846
+#endif
+
 
 void FLAC__window_bartlett(FLAC__real *window, const FLAC__int32 L)
 {
