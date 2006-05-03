@@ -105,7 +105,7 @@ namespace FLAC {
 			return (bool)::FLAC__file_encoder_set_blocksize(encoder_, value);
 		}
 
-		bool File::set_apodization(const char *apodization)
+		bool File::set_apodization(const char *specification)
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__file_encoder_set_apodization(encoder_, specification);

@@ -28,10 +28,10 @@ void FLAC_plugin__replaygain_get_from_file(const char *filename,
                                            double *track_peak, FLAC__bool *track_peak_set,
                                            double *album_peak, FLAC__bool *album_peak_set)
 {
+	FLAC__Metadata_SimpleIterator *iterator = FLAC__metadata_simple_iterator_new();
+
 	*track_gain_set = *album_gain_set = *track_peak_set = *album_peak_set = false;
 
-	/* Largely stolen from vorbiscomment.c and the other replaygain.c  */
-	FLAC__Metadata_SimpleIterator *iterator = FLAC__metadata_simple_iterator_new();
 	if(0 != iterator) {
 		if(FLAC__metadata_simple_iterator_init(iterator, filename, /*read_only=*/true, /*preserve_file_stats=*/true)) {
 			FLAC__bool got_vorbis_comments = false;

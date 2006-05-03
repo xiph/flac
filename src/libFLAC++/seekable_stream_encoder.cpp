@@ -105,7 +105,7 @@ namespace FLAC {
 			return (bool)::FLAC__seekable_stream_encoder_set_blocksize(encoder_, value);
 		}
 
-		bool SeekableStream::set_apodization(const char *apodization)
+		bool SeekableStream::set_apodization(const char *specification)
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__seekable_stream_encoder_set_apodization(encoder_, specification);
