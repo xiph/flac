@@ -2356,7 +2356,12 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 		}
 
 		for(channel = 0; channel < encoder->protected_->channels; channel++) {
-			if(!add_subframe_(encoder, &frame_header, encoder->private_->subframe_bps[channel], &encoder->private_->subframe_workspace[channel][encoder->private_->best_subframe[channel]], encoder->private_->frame, encoder->private_->best_subframe_bits[channel])) {
+#ifdef WINDOW_DEBUG_OUTPUT
+			if(!add_subframe_(encoder, &frame_header, encoder->private_->subframe_bps[channel], &encoder->private_->subframe_workspace[channel][encoder->private_->best_subframe[channel]], encoder->private_->frame, encoder->private_->best_subframe_bits[channel]))
+#else
+			if(!add_subframe_(encoder, &frame_header, encoder->private_->subframe_bps[channel], &encoder->private_->subframe_workspace[channel][encoder->private_->best_subframe[channel]], encoder->private_->frame))
+#endif
+			{
 				/* the above function sets the state for us in case of an error */
 				return false;
 			}
@@ -2512,7 +2517,7 @@ FLAC__bool process_subframe_(
 				if(max_lpc_order > 0) {
 					unsigned a;
 					for (a = 0; a < encoder->protected_->num_apodizations; a++) {
-						FLAC__lpc_apply_apodization(real_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize);
+						FLAC__lpc_window_data(real_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize);
 						encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->windowed_signal, frame_header->blocksize, max_lpc_order+1, autoc);
 						/* if autoc[0] == 0.0, the signal is constant and we usually won't get here, but it can happen */
 						if(autoc[0] != 0.0) {
