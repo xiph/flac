@@ -3086,7 +3086,7 @@ void precompute_partition_info_escapes_(
 			raw_bits_per_partition[partition] = max(silog2_min, silog2_max);
 		}
 		to_partition = partitions;
-		break;
+		break; /*@@@@@@ yuck, should remove the 'for' loop instead */
 	}
 
 	/* now merge partitions for lower orders */
