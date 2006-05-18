@@ -41,4 +41,5 @@ noinst_HEADERS = \
 	md5.h \
 	memory.h \
 	metadata.h \
-	stream_encoder_framing.h
+	stream_encoder_framing.h \
+	window.h

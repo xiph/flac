@@ -101,4 +101,5 @@ libFLAC_la_SOURCES = \
 	seekable_stream_encoder.c \
 	stream_decoder.c \
 	stream_encoder.c \
-	stream_encoder_framing.c
+	stream_encoder_framing.c \
+	window.c
