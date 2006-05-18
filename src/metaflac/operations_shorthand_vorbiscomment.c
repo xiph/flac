@@ -19,6 +19,7 @@
 #include "options.h"
 #include "utils.h"
 #include "FLAC/assert.h"
+#include "share/grabbag.h" /* for grabbag__file_get_filesize() */
 #include "share/utf8.h"
 #include <stdlib.h>
 #include <string.h>
@@ -171,34 +172,102 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 {
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	char *converted;
-	FLAC__bool needs_free = false;
 
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__ASSERT(0 != field);
 	FLAC__ASSERT(0 != needs_write);
 
-	if(raw) {
-		entry.entry = (FLAC__byte *)field->field;
-	}
-	else if(utf8_encode(field->field, &converted) >= 0) {
-		entry.entry = (FLAC__byte *)converted;
-		needs_free = true;
-	}
-	else {
-		fprintf(stderr, "%s: ERROR: couldn't convert comment to UTF-8\n", filename);
-		return false;
-	}
+	if(field->field_value_from_file) {
+		/* read the file into 'data' */
+		FILE *f = 0;
+		char *data = 0;
+		const off_t size = grabbag__file_get_filesize(field->field_value);
+		if(size < 0) {
+			fprintf(stderr, "%s: ERROR: can't open file '%s' for '%s' tag value\n", filename, field->field_value, field->field_name);
+			return false;
+		}
+		if(size >= 0x100000) { /* magic arbitrary limit, actual format limit is near 16MB */
+			fprintf(stderr, "%s: ERROR: file '%s' for '%s' tag value is too large\n", filename, field->field_value, field->field_name);
+			return false;
+		}
+		if(0 == (data = malloc(size+1)))
+			die("out of memory allocating tag value");
+		data[size] = '\0';
+		if(0 == (f = fopen(field->field_value, "rb")) || fread(data, 1, size, f) != (size_t)size) {
+			free(data);
+			if(f)
+				fclose(f);
+			fprintf(stderr, "%s: ERROR: while reading file '%s' for '%s' tag value\n", filename, field->field_value, field->field_name);
+			return false;
+		}
+		fclose(f);
+		if(strlen(data) != (size_t)size) {
+			free(data);
+			fprintf(stderr, "%s: ERROR: file '%s' for '%s' tag value has embedded NULs\n", filename, field->field_value, field->field_name);
+			return false;
+		}
 
-	entry.length = strlen((const char *)entry.entry);
+		/* move 'data' into 'converted', converting to UTF-8 if necessary */
+		if(raw) {
+			converted = data;
+		}
+		else if(utf8_encode(data, &converted) >= 0) {
+			free(data);
+		}
+		else {
+			free(data);
+			fprintf(stderr, "%s: ERROR: converting file '%s' contents to UTF-8 for tag value\n", filename, field->field_value);
+			return false;
+		}
 
-	if(!FLAC__metadata_object_vorbiscomment_append_comment(block, entry, /*copy=*/true)) {
-		if(needs_free)
+		/* create and entry and append it */
+		if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, field->field_name, converted)) {
 			free(converted);
-		fprintf(stderr, "%s: ERROR: memory allocation failure\n", filename);
-		return false;
+			fprintf(stderr, "%s: ERROR: file '%s' for '%s' tag value is not valid UTF-8\n", filename, field->field_value, field->field_name);
+			return false;
+		}
+		free(converted);
+		if(!FLAC__metadata_object_vorbiscomment_append_comment(block, entry, /*copy=*/false)) {
+			fprintf(stderr, "%s: ERROR: memory allocation failure\n", filename);
+			return false;
+		}
+
+		*needs_write = true;
+		return true;
 	}
 	else {
+		FLAC__bool needs_free = false;
+		if(raw) {
+			entry.entry = (FLAC__byte *)field->field;
+		}
+		else if(utf8_encode(field->field, &converted) >= 0) {
+			entry.entry = (FLAC__byte *)converted;
+			needs_free = true;
+		}
+		else {
+			fprintf(stderr, "%s: ERROR: converting comment '%s' to UTF-8\n", filename, field->field);
+			return false;
+		}
+		entry.length = strlen((const char *)entry.entry);
+		if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length)) {
+			if(needs_free)
+				free(converted);
+			/*
+			 * our previous parsing has already established that the field
+			 * name is OK, so it must be the field value
+			 */
+			fprintf(stderr, "%s: ERROR: tag value for '%s' is not valid UTF-8\n", filename, field->field_name);
+			return false;
+		}
+
+		if(!FLAC__metadata_object_vorbiscomment_append_comment(block, entry, /*copy=*/true)) {
+			if(needs_free)
+				free(converted);
+			fprintf(stderr, "%s: ERROR: memory allocation failure\n", filename);
+			return false;
+		}
+
 		*needs_write = true;
 		if(needs_free)
 			free(converted);
@@ -240,6 +309,7 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 				Argument_VcField field;
 				*p = '\0';
 				memset(&field, 0, sizeof(Argument_VcField));
+				field.field_value_from_file = false;
 				if(!parse_vorbis_comment_field(line, &field.field, &field.field_name, &field.field_value, &field.field_value_length, &violation)) {
 					FLAC__ASSERT(0 != violation);
 					fprintf(stderr, "%s: ERROR: malformed vorbis comment field \"%s\",\n       %s\n", vc_filename->value, line, violation);

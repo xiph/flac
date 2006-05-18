@@ -585,6 +585,15 @@
 			</tr>
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_tag_from_file" />
+					<span class="argument">--tag-from-file=FIELD=FILENAME</span>
+				</td>
+				<td>
+					Like <a href="#flac_options_tag"><span class="argument">--tag</span></a>, except FILENAME is a file whose contents will be read verbatim to set the tag value.  The contents will be converted to UTF-8 from the local charset.  This can be used to store a cuesheet in a tag (e.g. <span class="argument">--tag-from-file="CUESHEET=image.cue"</span>).  Do not try to store binary data in tag fields!  Use APPLICATION blocks for that.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_blocksize" />
 					<span class="argument">-b #</span>, <span class="argument">--blocksize=#</span>
 				</td>
@@ -1135,11 +1144,20 @@
 			</tr>
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_set_tag_from_file" />
+					<span class="argument">--set-tag-from-file=FIELD</span>
+				</td>
+				<td>
+					Like <a href="#metaflac_shorthand_set_tag"><span class="argument">--set-tag</span></a>, except the VALUE is a filename whose contents will be read verbatim to set the tag value.  Unless <a href="#metaflac_options_no_utf8_convert"><span class="argument">--no-utf8-convert</span></a> is specified, the contents will be converted to UTF-8 from the local charset.  This can be used to store a cuesheet in a tag (e.g. <span class="argument">--set-tag-from-file="CUESHEET=image.cue"</span>).  Do not try to store binary data in tag fields!  Use APPLICATION blocks for that.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="metaflac_shorthand_import_tags_from" />
 					<span class="argument">--import-tags-from=FILE</span>
 				</td>
 				<td>
-					Import tags from a file.  Use '-' for stdin.  Each line should be of the form <span class="argument">NAME=VALUE</span>.  Multi-line comments are currently not supported.  Specify <span class="argument">--remove-all-tags</span> and/or <span class="argument">--no-utf8-convert</span> before <span class="argument">--import-tags-from</span> if necessary.
+					Import tags from a file.  Use '-' for stdin.  Each line should be of the form <span class="argument">NAME=VALUE</span>.  Multi-line comments are currently not supported.  Specify <span class="argument">--remove-all-tags</span> and/or <a href="#metaflac_options_no_utf8_convert"><span class="argument">--no-utf8-convert</span></a> before <span class="argument">--import-tags-from</span> if necessary.
 				</td>
 			</tr>
 			<tr>
@@ -1148,7 +1166,7 @@
 					<span class="argument">--export-tags-to=FILE</span>
 				</td>
 				<td>
-					Export tags to a file.  Use '-' for stdin.  Each line will be of the form <span class="argument">NAME=VALUE</span>.  Specify <span class="argument">--no-utf8-convert</span> if necessary.
+					Export tags to a file.  Use '-' for stdin.  Each line will be of the form <span class="argument">NAME=VALUE</span>.  Specify <a href="#metaflac_options_no_utf8_convert"><span class="argument">--no-utf8-convert</span></a> if necessary.
 				</td>
 			</tr>
 			<tr>

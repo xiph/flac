@@ -63,6 +63,7 @@ struct share__option long_options_[] = {
 	{ "remove-tag", 1, 0, 0 }, 
 	{ "remove-first-tag", 1, 0, 0 }, 
 	{ "set-tag", 1, 0, 0 }, 
+	{ "set-tag-from-file", 1, 0, 0 }, 
 	{ "import-tags-from", 1, 0, 0 }, 
 	{ "export-tags-to", 1, 0, 0 }, 
 	{ "show-vc-vendor", 0, 0, 0 }, /* deprecated */
@@ -503,6 +504,18 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --set-tag\n", opt);
 		op = append_shorthand_operation(options, OP__SET_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
+		op->argument.vc_field.field_value_from_file = false;
+		if(!parse_vorbis_comment_field(option_argument, &(op->argument.vc_field.field), &(op->argument.vc_field.field_name), &(op->argument.vc_field.field_value), &(op->argument.vc_field.field_value_length), &violation)) {
+			FLAC__ASSERT(0 != violation);
+			fprintf(stderr, "ERROR (--%s): malformed vorbis comment field \"%s\",\n       %s\n", opt, option_argument, violation);
+			ok = false;
+		}
+	}
+	else if(0 == strcmp(opt, "set-tag-from-file")) {
+		const char *violation;
+		op = append_shorthand_operation(options, OP__SET_VC_FIELD);
+		FLAC__ASSERT(0 != option_argument);
+		op->argument.vc_field.field_value_from_file = true;
 		if(!parse_vorbis_comment_field(option_argument, &(op->argument.vc_field.field), &(op->argument.vc_field.field_name), &(op->argument.vc_field.field_value), &(op->argument.vc_field.field_value_length), &violation)) {
 			FLAC__ASSERT(0 != violation);
 			fprintf(stderr, "ERROR (--%s): malformed vorbis comment field \"%s\",\n       %s\n", opt, option_argument, violation);

@@ -244,6 +244,21 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--set-tag-from-file=field</option></term>
+        <listitem>
+          <para>
+	    Like --set-tag, except the VALUE is a filename whose
+	    contents will be read verbatim to set the tag value.
+	    Unless --no-utf8-convert is specified, the contents will be
+	    converted to UTF-8 from the local charset.  This can be used
+	    to store a cuesheet in a tag (e.g.
+	    --set-tag-from-file="CUESHEET=image.cue").  Do not try to
+	    store binary data in tag fields!  Use APPLICATION blocks for
+	    that.
+	  </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
 	<term><option>--import-tags-from=file</option></term>
         <listitem>
 	  <para>

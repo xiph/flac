@@ -122,6 +122,14 @@ int long_usage(const char *message, ...)
 	fprintf(out, "--set-tag=FIELD       Add a tag.  The FIELD must comply with the Vorbis comment\n");
 	fprintf(out, "                      spec, of the form \"NAME=VALUE\".  If there is currently\n");
 	fprintf(out, "                      no tag block, one will be created.\n");
+	fprintf(out, "--set-tag-from-file=FIELD   Like --set-tag, except the VALUE is a filename\n");
+	fprintf(out, "                      whose contents will be read verbatim to set the tag value.\n");
+	fprintf(out, "                      Unless --no-utf8-convert is specified, the contents will\n");
+	fprintf(out, "                      be converted to UTF-8 from the local charset.  This can\n");
+	fprintf(out, "                      be used to store a cuesheet in a tag (e.g.\n");
+	fprintf(out, "                      --set-tag-from-file=\"CUESHEET=image.cue\").  Do not try to\n");
+	fprintf(out, "                      store binary data in tag fields!  Use APPLICATION blocks\n");
+	fprintf(out, "                      for that.\n");
 	fprintf(out, "--import-tags-from=FILE Import tags from a file.  Use '-' for stdin.  Each line\n");
 	fprintf(out, "                      should be of the form NAME=VALUE.  Multi-line comments\n");
 	fprintf(out, "                      are currently not supported.  Specify --remove-all-tags\n");

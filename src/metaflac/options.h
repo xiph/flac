@@ -101,6 +101,7 @@ typedef struct {
 	/* according to the vorbis spec, field values can contain \0 so simple C strings are not enough here */
 	unsigned field_value_length;
 	char *field_value;
+	FLAC__bool field_value_from_file; /* true if field_value holds a filename for the value, false for plain value */
 } Argument_VcField;
 
 typedef struct {

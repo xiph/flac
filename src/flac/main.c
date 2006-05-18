@@ -119,6 +119,7 @@ static struct share__option long_options_[] = {
 	{ "cuesheet"                  , share__required_argument, 0, 0 },
 	{ "no-cued-seekpoints"        , share__no_argument, 0, 0 },
 	{ "tag"                       , share__required_argument, 0, 'T' },
+	{ "tag-from-file"             , share__required_argument, 0, 0 },
 	{ "compression-level-0"       , share__no_argument, 0, '0' },
 	{ "compression-level-1"       , share__no_argument, 0, '1' },
 	{ "compression-level-2"       , share__no_argument, 0, '2' },
@@ -656,6 +657,7 @@ int parse_options(int argc, char *argv[])
 
 int parse_option(int short_option, const char *long_option, const char *option_argument)
 {
+	const char *violation;
 	char *p;
 
 	if(short_option == 0) {
@@ -714,6 +716,11 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "cuesheet")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.cuesheet_filename = option_argument;
+		}
+		else if(0 == strcmp(long_option, "tag-from-file")) {
+			FLAC__ASSERT(0 != option_argument);
+			if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/true, &violation))
+				return usage_error("ERROR: (--tag-from-file) %s\n", violation);
 		}
 		else if(0 == strcmp(long_option, "no-cued-seekpoints")) {
 			option_values.cued_seekpoints = false;
@@ -858,7 +865,6 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 	}
 	else {
-		const char *violation;
 		switch(short_option) {
 			case 'h':
 				option_values.show_help = true;
@@ -898,7 +904,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 'T':
 				FLAC__ASSERT(0 != option_argument);
-				if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, &violation))
+				if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/false, &violation))
 					return usage_error("ERROR: (-T/--tag) %s\n", violation);
 				break;
 			case '0':
@@ -1208,6 +1214,7 @@ void show_help()
 	printf("      --replay-gain            Calculate ReplayGain & store in FLAC tags\n");
 	printf("      --cuesheet=FILENAME      Import cuesheet and store in CUESHEET block\n");
 	printf("  -T, --tag=FIELD=VALUE        Add a FLAC tag; may appear multiple times\n");
+	printf("      --tag-from-file=FIELD=FILENAME   Like --tag but gets value from file\n");
 	printf("  -S, --seekpoint={#|X|#x|#s}  Add seek point(s)\n");
 	printf("  -P, --padding=#              Write a PADDING block of length #\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
@@ -1392,6 +1399,14 @@ void show_explain()
 	printf("                               comment if necessary.  This option may appear\n");
 	printf("                               more than once to add several comments.  NOTE:\n");
 	printf("                               all tags will be added to all encoded files.\n");
+	printf("      --tag-from-file=FIELD=FILENAME   Like --tag, except FILENAME is a file\n");
+	printf("                               whose contents will be read verbatim to set the\n");
+	printf("                               tag value.  The contents will be converted to\n");
+	printf("                               UTF-8 from the local charset.  This can be used\n");
+	printf("                               to store a cuesheet in a tag (e.g.\n");
+	printf("                               --tag-from-file=\"CUESHEET=image.cue\").  Do not\n");
+	printf("                               try to store binary data in tag fields!  Use\n");
+	printf("                               APPLICATION blocks for that.\n");
 	printf("  -S, --seekpoint={#|X|#x|#s}  Include a point or points in a SEEKTABLE\n");
 	printf("       #  : a specific sample number for a seek point\n");
 	printf("       X  : a placeholder point (always goes at the end of the SEEKTABLE)\n");

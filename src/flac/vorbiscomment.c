@@ -23,6 +23,7 @@
 #include "vorbiscomment.h"
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
+#include "share/grabbag.h" /* for grabbag__file_get_filesize() */
 #include "share/utf8.h"
 #include <ctype.h>
 #include <stdio.h>
@@ -32,7 +33,7 @@
 
 /*
  * This struct and the following 4 static functions are copied from
- * ../metaflac/main.c.  Maybe someday there will be a convenience
+ * ../metaflac/.  Maybe someday there will be a convenience
  * library for Vorbis comment parsing.
  */
 typedef struct {
@@ -41,6 +42,7 @@ typedef struct {
 	/* according to the vorbis spec, field values can contain \0 so simple C strings are not enough here */
 	unsigned field_value_length;
 	char *field_value;
+	FLAC__bool field_value_from_file; /* true if field_value holds a filename for the value, false for plain value */
 } Argument_VcField;
 
 static void die(const char *message)
@@ -101,34 +103,102 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 {
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	char *converted;
-	FLAC__bool needs_free = false;
 
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__ASSERT(0 != field);
 	FLAC__ASSERT(0 != needs_write);
 
-	if(raw) {
-		entry.entry = (FLAC__byte *)field->field;
-	}
-	else if(utf8_encode(field->field, &converted) >= 0) {
-		entry.entry = (FLAC__byte *)converted;
-		needs_free = true;
-	}
-	else {
-		*violation = "couldn't convert comment to UTF-8";
-		return false;
-	}
+	if(field->field_value_from_file) {
+		/* read the file into 'data' */
+		FILE *f = 0;
+		char *data = 0;
+		const off_t size = grabbag__file_get_filesize(field->field_value);
+		if(size < 0) {
+			*violation = "can't open file for tag value";
+			return false;
+		}
+		if(size >= 0x100000) { /* magic arbitrary limit, actual format limit is near 16MB */
+			*violation = "file for tag value is too large";
+			return false;
+		}
+		if(0 == (data = malloc(size+1)))
+			die("out of memory allocating tag value");
+		data[size] = '\0';
+		if(0 == (f = fopen(field->field_value, "rb")) || fread(data, 1, size, f) != (size_t)size) {
+			free(data);
+			if(f)
+				fclose(f);
+			*violation = "error while reading file for tag value";
+			return false;
+		}
+		fclose(f);
+		if(strlen(data) != (size_t)size) {
+			free(data);
+			*violation = "file for tag value has embedded NULs";
+			return false;
+		}
 
-	entry.length = strlen((const char *)entry.entry);
+		/* move 'data' into 'converted', converting to UTF-8 if necessary */
+		if(raw) {
+			converted = data;
+		}
+		else if(utf8_encode(data, &converted) >= 0) {
+			free(data);
+		}
+		else {
+			free(data);
+			*violation = "error converting file contents to UTF-8 for tag value";
+			return false;
+		}
 
-	if(!FLAC__metadata_object_vorbiscomment_append_comment(block, entry, /*copy=*/true)) {
-		if(needs_free)
+		/* create and entry and append it */
+		if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, field->field_name, converted)) {
 			free(converted);
-		*violation = "memory allocation failure";
-		return false;
+			*violation = "file for tag value is not valid UTF-8";
+			return false;
+		}
+		free(converted);
+		if(!FLAC__metadata_object_vorbiscomment_append_comment(block, entry, /*copy=*/false)) {
+			*violation = "memory allocation failure";
+			return false;
+		}
+
+		*needs_write = true;
+		return true;
 	}
 	else {
+		FLAC__bool needs_free = false;
+		if(raw) {
+			entry.entry = (FLAC__byte *)field->field;
+		}
+		else if(utf8_encode(field->field, &converted) >= 0) {
+			entry.entry = (FLAC__byte *)converted;
+			needs_free = true;
+		}
+		else {
+			*violation = "error converting comment to UTF-8";
+			return false;
+		}
+		entry.length = strlen((const char *)entry.entry);
+		if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length)) {
+			if(needs_free)
+				free(converted);
+			/*
+			 * our previous parsing has already established that the field
+			 * name is OK, so it must be the field value
+			 */
+			*violation = "tag value for is not valid UTF-8";
+			return false;
+		}
+
+		if(!FLAC__metadata_object_vorbiscomment_append_comment(block, entry, /*copy=*/true)) {
+			if(needs_free)
+				free(converted);
+			*violation = "memory allocation failure";
+			return false;
+		}
+
 		*needs_write = true;
 		if(needs_free)
 			free(converted);
@@ -150,7 +220,7 @@ static void free_field(Argument_VcField *obj)
 		free(obj->field_value);
 }
 
-FLAC__bool flac__vorbiscomment_add(FLAC__StreamMetadata *block, const char *comment, const char **violation)
+FLAC__bool flac__vorbiscomment_add(FLAC__StreamMetadata *block, const char *comment, FLAC__bool value_from_file, const char **violation)
 {
 	Argument_VcField parsed;
 	FLAC__bool dummy;
@@ -161,6 +231,7 @@ FLAC__bool flac__vorbiscomment_add(FLAC__StreamMetadata *block, const char *comm
 
 	memset(&parsed, 0, sizeof(parsed));
 
+	parsed.field_value_from_file = value_from_file;
 	if(!parse_vorbis_comment_field(comment, &(parsed.field), &(parsed.field_name), &(parsed.field_value), &(parsed.field_value_length), violation)) {
 		free_field(&parsed);
 		return false;
