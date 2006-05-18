@@ -5,7 +5,11 @@
 topdir = ../../..
 
 LIB_NAME = libutf8
+ifeq ($(DARWIN_BUILD),yes)
 INCLUDES = -I$(topdir)/include -I$(topdir)/include/share -I$(ICONV_INCLUDE_DIR)
+else
+INCLUDES = -I$(topdir)/include -I$(topdir)/include/share
+endif
 
 SRCS_C = \
 	charset.c \

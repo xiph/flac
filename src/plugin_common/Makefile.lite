@@ -22,7 +22,11 @@
 topdir = ../..
 
 LIB_NAME = libplugin_common
+ifeq ($(DARWIN_BUILD),yes)
 INCLUDES = -I$(topdir)/include -I$(HOME)/local/include -I$(ICONV_INCLUDE_DIR)
+else
+INCLUDES = -I$(topdir)/include -I$(HOME)/local/include
+endif
 DEFINES  = 
 
 SRCS_C = \
