@@ -170,6 +170,8 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cuesheet, const char *cs_filename)
 {
 	FILE *f;
+	char *ref = 0;
+	size_t reflen;
 
 	if(0 == cs_filename || strlen(cs_filename) == 0) {
 		fprintf(stderr, "%s: ERROR: empty export file name\n", filename);
@@ -185,7 +187,17 @@ FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cueshe
 		return false;
 	}
 
-	grabbag__cuesheet_emit(f, cuesheet, "\"dummy.wav\" WAVE");
+	reflen = strlen(filename) + 7 + 1;
+	if(0 == (ref = malloc(reflen))) {
+		fprintf(stderr, "%s: ERROR: allocating memory\n", filename);
+		return false;
+	}
+
+	snprintf(ref, reflen, "\"%s\" FLAC", filename);
+
+	grabbag__cuesheet_emit(f, cuesheet, ref);
+
+	free(ref);
 
 	if(f != stdout)
 		fclose(f);
