@@ -168,7 +168,10 @@ dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_ICONV
 AM_LANGINFO_CODESET
 
-AC_CHECK_PROGS(DOXYGEN, doxygen)
+AC_ARG_ENABLE(doxygen_docs, AC_HELP_STRING([--disable-doxygen-docs], [Disable API documentation building via Doxygen]))
+if "x$enable_doxygen_docs" != "xno"; then
+	AC_CHECK_PROGS(DOXYGEN, doxygen)
+fi
 AM_CONDITIONAL(FLaC__HAS_DOXYGEN, test -n "$DOXYGEN")
 if test -n "$DOXYGEN" ; then
 AC_DEFINE(FLAC__HAS_DOXYGEN)
