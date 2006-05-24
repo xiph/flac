@@ -32,6 +32,10 @@
 /*@@@@@@*/
 #undef WINDOW_DEBUG_OUTPUT
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
@@ -50,10 +54,6 @@
 #include "private/memory.h"
 #include "private/stream_encoder_framing.h"
 #include "private/window.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #ifdef min
 #undef min

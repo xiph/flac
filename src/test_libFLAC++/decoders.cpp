@@ -16,6 +16,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#if defined _MSC_VER || defined __MINGW32__
+//@@@ [2G limit] hacks for MSVC6
+#define fseeko fseek
+#define ftello ftell
+#endif
 #include "decoders.h"
 extern "C" {
 #include "file_utils.h"
@@ -25,10 +34,6 @@ extern "C" {
 #include "FLAC/metadata.h" // for ::FLAC__metadata_object_is_equal()
 #include "FLAC++/decoder.h"
 #include "share/grabbag.h"
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #ifdef _MSC_VER
 // warning C4800: 'int' : forcing to bool 'true' or 'false' (performance warning)
@@ -39,7 +44,7 @@ static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, 
 static ::FLAC__StreamMetadata *expected_metadata_sequence_[8];
 static unsigned num_expected_;
 static const char *flacfilename_ = "metadata.flac";
-static unsigned flacfilesize_;
+static off_t flacfilesize_;
 
 static bool die_(const char *msg)
 {
@@ -221,7 +226,7 @@ bool StreamDecoder::test_respond()
 
 	current_metadata_number_ = 0;
 
-	if(::fseek(file_, 0, SEEK_SET) < 0) {
+	if(fseeko(file_, 0, SEEK_SET) < 0) {
 		printf("FAILED rewinding input, errno = %d\n", errno);
 		return false;
 	}
@@ -333,7 +338,7 @@ static bool test_stream_decoder()
 	printf("opening FLAC file... ");
 	decoder->file_ = ::fopen(flacfilename_, "rb");
 	if(0 == decoder->file_) {
-		printf("ERROR\n");
+		printf("ERROR (%s)\n", strerror(errno));
 		return false;
 	}
 	printf("OK\n");
@@ -421,7 +426,7 @@ static bool test_stream_decoder()
 	decoder->current_metadata_number_ = 0;
 
 	printf("rewinding input... ");
-	if(::fseek(decoder->file_, 0, SEEK_SET) < 0) {
+	if(fseeko(decoder->file_, 0, SEEK_SET) < 0) {
 		printf("FAILED, errno = %d\n", errno);
 		return false;
 	}
@@ -835,7 +840,7 @@ public:
 	if(error_occurred_)
 		return ::FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
 
-	if(::fseek(file_, (long)absolute_byte_offset, SEEK_SET) < 0) {
+	if(fseeko(file_, (off_t)absolute_byte_offset, SEEK_SET) < 0) {
 		error_occurred_ = true;
 		return ::FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
 	}
@@ -848,7 +853,7 @@ public:
 	if(error_occurred_)
 		return ::FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR;
 
-	long offset = ::ftell(file_);
+	off_t offset = ftello(file_);
 	*absolute_byte_offset = (FLAC__uint64)offset;
 
 	if(offset < 0) {
@@ -925,7 +930,7 @@ bool SeekableStreamDecoder::test_respond()
 
 	current_metadata_number_ = 0;
 
-	if(::fseek(file_, 0, SEEK_SET) < 0) {
+	if(fseeko(file_, 0, SEEK_SET) < 0) {
 		printf("FAILED rewinding input, errno = %d\n", errno);
 		return false;
 	}
@@ -1048,7 +1053,7 @@ static bool test_seekable_stream_decoder()
 	printf("opening FLAC file... ");
 	decoder->file_ = ::fopen(flacfilename_, "rb");
 	if(0 == decoder->file_) {
-		printf("ERROR\n");
+		printf("ERROR (%s)\n", strerror(errno));
 		return false;
 	}
 	printf("OK\n");
@@ -1148,7 +1153,7 @@ static bool test_seekable_stream_decoder()
 	decoder->current_metadata_number_ = 0;
 
 	printf("rewinding input... ");
-	if(::fseek(decoder->file_, 0, SEEK_SET) < 0) {
+	if(fseeko(decoder->file_, 0, SEEK_SET) < 0) {
 		printf("FAILED, errno = %d\n", errno);
 		return false;
 	}

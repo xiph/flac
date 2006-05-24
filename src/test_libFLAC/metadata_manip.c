@@ -16,24 +16,30 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "file_utils.h"
-#include "metadata_utils.h"
-#include "FLAC/assert.h"
-#include "FLAC/file_decoder.h"
-#include "FLAC/metadata.h"
-#include "share/grabbag.h"
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
-
 #if defined _MSC_VER || defined __MINGW32__
 #include <sys/utime.h> /* for utime() */
 #include <io.h> /* for chmod() */
+//@@@ [2G limit] hacks for MSVC6
+#define fseeko fseek
+#define ftello ftell
 #else
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
 #include <utime.h> /* for utime() */
 #include <unistd.h> /* for chown(), unlink() */
 #endif
 #include <sys/stat.h> /* for stat(), maybe chmod() */
+#include "file_utils.h"
+#include "metadata_utils.h"
+#include "FLAC/assert.h"
+#include "FLAC/file_decoder.h"
+#include "FLAC/metadata.h"
+#include "share/grabbag.h"
 
 
 /******************************************************************************
@@ -258,14 +264,14 @@ static size_t chain_write_cb_(const void *ptr, size_t size, size_t nmemb, FLAC__
 
 static int chain_seek_cb_(FLAC__IOHandle handle, FLAC__int64 offset, int whence)
 {
-	long o = (long)offset;
+	off_t o = (off_t)offset;
 	FLAC__ASSERT(offset == o);
-	return fseek((FILE*)handle, o, whence);
+	return fseeko((FILE*)handle, o, whence);
 }
 
 static FLAC__int64 chain_tell_cb_(FLAC__IOHandle handle)
 {
-	return ftell((FILE*)handle);
+	return ftello((FILE*)handle);
 }
 
 static int chain_eof_cb_(FLAC__IOHandle handle)

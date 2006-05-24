@@ -16,10 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include<io.h>
-#include<sys/stat.h>
-#include<wtypes.h>
-#include<winbase.h>
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <io.h>
+#include <sys/stat.h>
+#include <wtypes.h>
+#include <winbase.h>
 
 int main(int argc, char *argv[])
 {

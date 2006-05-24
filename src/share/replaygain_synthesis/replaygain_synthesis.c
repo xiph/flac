@@ -34,6 +34,10 @@
  * Additional code by Magnus Holmgren and Gian-Carlo Pascutto
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <string.h> /* for memset() */
 #include <math.h>
 #include "private/fast_float_math_hack.h"

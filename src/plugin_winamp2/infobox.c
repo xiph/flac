@@ -16,12 +16,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <windows.h>
 #include <stdio.h>
 #include "FLAC/all.h"
 #include "plugin_common/all.h"
 #include "infobox.h"
-#include "config.h"
+#include "configure.h"
 #include "resource.h"
 
 

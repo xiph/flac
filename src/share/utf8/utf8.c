@@ -21,12 +21,12 @@
  * Convert a string between UTF-8 and the locale's charset.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include "utf8.h"
 #include "charset.h"

@@ -16,11 +16,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "options.h"
 #include "utils.h"
 #include "FLAC/assert.h"
 #include "share/grabbag.h" /* for grabbag__file_get_filesize() */
 #include "share/utf8.h"
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -195,10 +200,10 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 			die("out of memory allocating tag value");
 		data[size] = '\0';
 		if(0 == (f = fopen(field->field_value, "rb")) || fread(data, 1, size, f) != (size_t)size) {
+			fprintf(stderr, "%s: ERROR: while reading file '%s' for '%s' tag value: %s\n", filename, field->field_value, field->field_name, strerror(errno));
 			free(data);
 			if(f)
 				fclose(f);
-			fprintf(stderr, "%s: ERROR: while reading file '%s' for '%s' tag value\n", filename, field->field_value, field->field_name);
 			return false;
 		}
 		fclose(f);
@@ -291,7 +296,7 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 		f = fopen(vc_filename->value, "r");
 
 	if(0 == f) {
-		fprintf(stderr, "%s: ERROR: can't open import file %s\n", filename, vc_filename->value);
+		fprintf(stderr, "%s: ERROR: can't open import file %s: %s\n", filename, vc_filename->value, strerror(errno));
 		return false;
 	}
 
@@ -348,7 +353,7 @@ FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const
 		f = fopen(vc_filename->value, "w");
 
 	if(0 == f) {
-		fprintf(stderr, "%s: ERROR: can't open export file %s\n", filename, vc_filename->value);
+		fprintf(stderr, "%s: ERROR: can't open export file %s: %s\n", filename, vc_filename->value, strerror(errno));
 		return false;
 	}
 

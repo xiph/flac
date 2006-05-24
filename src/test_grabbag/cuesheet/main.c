@@ -16,6 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,7 +45,7 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 		fin = stdin;
 	}
 	else if(0 == (fin = fopen(infilename, "r"))) {
-		fprintf(stderr, "can't open file %s for reading\n", infilename);
+		fprintf(stderr, "can't open file %s for reading: %s\n", infilename, strerror(errno));
 		return 255;
 	}
 	if(0 != (cuesheet = grabbag__cuesheet_parse(fin, &error_message, &last_line_read, is_cdda, lead_out_offset))) {
@@ -60,7 +65,7 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 	}
 	sprintf(tmpfilename, "%s.1", infilename);
 	if(0 == (fout = fopen(tmpfilename, "w"))) {
-		fprintf(stderr, "can't open file %s for writing\n", tmpfilename);
+		fprintf(stderr, "can't open file %s for writing: %s\n", tmpfilename, strerror(errno));
 		FLAC__metadata_object_delete(cuesheet);
 		return 255;
 	}
@@ -72,7 +77,7 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 	 * pass 2
 	 */
 	if(0 == (fin = fopen(tmpfilename, "r"))) {
-		fprintf(stderr, "can't open file %s for reading\n", tmpfilename);
+		fprintf(stderr, "can't open file %s for reading: %s\n", tmpfilename, strerror(errno));
 		return 255;
 	}
 	if(0 != (cuesheet = grabbag__cuesheet_parse(fin, &error_message, &last_line_read, is_cdda, lead_out_offset))) {
@@ -92,7 +97,7 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 	}
 	sprintf(tmpfilename, "%s.2", infilename);
 	if(0 == (fout = fopen(tmpfilename, "w"))) {
-		fprintf(stderr, "can't open file %s for writing\n", tmpfilename);
+		fprintf(stderr, "can't open file %s for writing: %s\n", tmpfilename, strerror(errno));
 		FLAC__metadata_object_delete(cuesheet);
 		return 255;
 	}

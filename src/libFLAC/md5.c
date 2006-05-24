@@ -23,14 +23,14 @@
  * Still in the public domain.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdlib.h>		/* for malloc() */
 #include <string.h>		/* for memcpy() */
 
 #include "private/md5.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #ifndef FLaC__INLINE
 #define FLaC__INLINE

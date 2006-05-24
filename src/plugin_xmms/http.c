@@ -16,6 +16,11 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 /* modified for FLAC support by Steven Richman (2003) */
+
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -34,10 +39,6 @@
 
 #include <xmms/util.h>
 #include <xmms/plugin.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include "configure.h"
 #include "plugin_common/locale_hack.h"

@@ -107,11 +107,11 @@ SOURCE=.\include\winamp2\out.h
 # End Group
 # Begin Source File
 
-SOURCE=.\config.c
+SOURCE=.\configure.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\config.h
+SOURCE=.\configure.h
 # End Source File
 # Begin Source File
 

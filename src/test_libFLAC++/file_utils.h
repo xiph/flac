@@ -19,8 +19,17 @@
 #ifndef FLAC__TEST_LIBFLAC_FILE_UTILS_H
 #define FLAC__TEST_LIBFLAC_FILE_UTILS_H
 
-#include "FLAC/format.h"
+/* needed because of off_t */
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
-FLAC__bool file_utils__generate_flacfile(const char *output_filename, unsigned *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata);
+#include "FLAC/format.h"
+#include <stdlib.h> /* for off_t */
+#if defined _MSC_VER || defined __MINGW32__
+#include <sys/types.h> /* for off_t */
+#endif
+
+FLAC__bool file_utils__generate_flacfile(const char *output_filename, off_t *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata);
 
 #endif

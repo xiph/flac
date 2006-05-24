@@ -19,10 +19,19 @@
 #ifndef OggFLAC__TEST_LIBOGGFLAC_FILE_UTILS_H
 #define OggFLAC__TEST_LIBOGGFLAC_FILE_UTILS_H
 
+/* needed because of off_t */
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "FLAC/format.h"
+#include <stdlib.h> /* for off_t */
+#if defined _MSC_VER || defined __MINGW32__
+#include <sys/types.h> /* for off_t */
+#endif
 
 extern const long file_utils__serial_number;
 
-FLAC__bool file_utils__generate_oggflacfile(const char *output_filename, unsigned *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata);
+FLAC__bool file_utils__generate_oggflacfile(const char *output_filename, off_t *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata);
 
 #endif

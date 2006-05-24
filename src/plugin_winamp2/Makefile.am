@@ -18,8 +18,8 @@
 SUBDIRS = include
 
 EXTRA_DIST = \
-	config.h \
-	config.c \
+	configure.h \
+	configure.c \
 	in_flac.c \
 	in_flac.dsp \
 	infobox.c \

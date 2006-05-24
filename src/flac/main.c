@@ -16,17 +16,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <ctype.h>
+#include <errno.h>
 #include <locale.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #if !defined _MSC_VER && !defined __MINGW32__
 /* unlink is in stdio.h in VC++ */
@@ -245,7 +246,7 @@ static struct {
 	int format_channels;
 	int format_bps;
 	int format_sample_rate;
-	long format_input_size;
+	off_t format_input_size;
 	int blocksize;
 	int min_residual_partition_order;
 	int max_residual_partition_order;
@@ -591,7 +592,7 @@ FLAC__bool init_options()
 	option_values.format_channels = -1;
 	option_values.format_bps = -1;
 	option_values.format_sample_rate = -1;
-	option_values.format_input_size = -1;
+	option_values.format_input_size = (off_t)(-1);
 	option_values.blocksize = -1;
 	option_values.min_residual_partition_order = -1;
 	option_values.max_residual_partition_order = -1;
@@ -682,7 +683,23 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "input-size")) {
 			FLAC__ASSERT(0 != option_argument);
-			option_values.format_input_size = atol(option_argument);
+			{
+				char *end;
+#ifdef _MSC_VER
+				FLAC__int64 i;
+				i = strtol(option_argument, &end, 10); /* [2G limit] */
+#else
+				long long i;
+				i = strtoll(option_argument, &end, 10);
+#endif
+				if(0 == strlen(option_argument) || *end)
+					return usage_error("ERROR: --%s must be a number\n", long_option);
+				option_values.format_input_size = (off_t)i;
+				if(option_values.format_input_size != i) /* check if off_t is smaller than long long */
+					return usage_error("ERROR: --%s too large; this flac does not support filesizes over 2GB\n", long_option);
+				if(option_values.format_input_size <= 0)
+					return usage_error("ERROR: --%s must be > 0\n", long_option);
+			}
 		}
 		else if(0 == strcmp(long_option, "cue")) {
 			FLAC__ASSERT(0 != option_argument);
@@ -1533,7 +1550,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	FileFormat fmt = RAW;
 	FLAC__bool is_aifc = false;
 	int retval;
-	long infilesize;
+	off_t infilesize;
 	encode_options_t common_options;
 	const char *outfilename = get_encoded_outfilename(infilename);
 
@@ -1552,13 +1569,13 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 
 	if(0 == strcmp(infilename, "-")) {
-		infilesize = -1;
+		infilesize = (off_t)(-1);
 		encode_infile = grabbag__file_get_binary_stdin();
 	}
 	else {
 		infilesize = grabbag__file_get_filesize(infilename);
 		if(0 == (encode_infile = fopen(infilename, "rb"))) {
-			flac__utils_printf(stderr, 1, "ERROR: can't open input file %s\n", infilename);
+			flac__utils_printf(stderr, 1, "ERROR: can't open input file %s: %s\n", infilename, strerror(errno));
 			return 1;
 		}
 	}

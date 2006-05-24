@@ -16,6 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -208,7 +213,7 @@ FLAC__bool dump_stats(const subframe_stats_t *stats, const char *filename)
 	outfile = fopen(filename, "w");
 
 	if(0 == outfile) {
-		fprintf(stderr, "ERROR opening %s\n", filename);
+		fprintf(stderr, "ERROR opening %s: %s\n", filename, strerror(errno));
 		return false;
 	}
 

@@ -18,6 +18,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h> /* for strlen() */
 #include <sys/types.h>
@@ -223,7 +227,11 @@ static void show_file_info()
 				(int)(streaminfo.data.stream_info.total_samples / streaminfo.data.stream_info.sample_rate % 60));
 
 	if(!stat(current_filename, &_stat) && S_ISREG(_stat.st_mode)) {
+#if _FILE_OFFSET_BITS = 64
+		label_set_text(flac_filesize, _("Filesize: %lld B"), _stat.st_size);
+#else
 		label_set_text(flac_filesize, _("Filesize: %ld B"), _stat.st_size);
+#endif
 		if (streaminfo.data.stream_info.total_samples)
 			label_set_text(flac_bitrate, _("Avg. bitrate: %.1f kb/s\nCompression ratio: %.1f%%"),
 					8.0 * (float)(_stat.st_size) / (1000.0 * (float)streaminfo.data.stream_info.total_samples / (float)streaminfo.data.stream_info.sample_rate),

@@ -29,15 +29,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h> /* for qsort() */
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
 #include "private/format.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #ifdef min
 #undef min

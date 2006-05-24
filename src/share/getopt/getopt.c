@@ -41,8 +41,8 @@
 # define _NO_PROTO
 #endif
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
+#if HAVE_CONFIG_H
+#  include <config.h>
 #endif
 
 #if !defined __STDC__ || !__STDC__

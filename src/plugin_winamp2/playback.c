@@ -16,6 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <limits.h> /* for INT_MAX */
 #include <stdlib.h>
 #include <string.h> /* for memmove() */
 #include "playback.h"
@@ -60,8 +65,7 @@ static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__Stre
 
 	if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO)
 	{
-		FLAC__ASSERT(metadata->data.stream_info.total_samples < 0x100000000); /* this plugin can only handle < 4 gigasamples */
-		file_info->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xfffffffful);
+		file_info->total_samples = metadata->data.stream_info.total_samples;
 		file_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
 		file_info->channels = metadata->data.stream_info.channels;
 		file_info->sample_rate = metadata->data.stream_info.sample_rate;
@@ -72,7 +76,14 @@ static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__Stre
 			file_info->abort_flag = true;
 			return;
 		}
-		file_info->length_in_msec = (unsigned)((double)file_info->total_samples / (double)file_info->sample_rate * 1000.0 + 0.5);
+
+		{
+			/* with VC++ you have to spoon feed it the casting from uint64->int64->double */
+			FLAC__uint64 l = (FLAC__uint64)((double)(FLAC__int64)file_info->total_samples / (double)file_info->sample_rate * 1000.0 + 0.5);
+			if (l > INT_MAX)
+				l = INT_MAX;
+			file_info->length_in_msec = (int)l;
+		}
 	}
 	else if (metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT)
 	{
@@ -143,7 +154,7 @@ FLAC__bool FLAC_plugin__decoder_init(FLAC__FileDecoder *decoder, const char *fil
 	file_info->eof = false;
 	file_info->seek_to = -1;
 	file_info->is_playing = true;
-	file_info->average_bps = (unsigned)(filesize / (125.*file_info->total_samples/file_info->sample_rate));
+	file_info->average_bps = (unsigned)(filesize / (125.*(double)(FLAC__int64)file_info->total_samples/(double)file_info->sample_rate));
 	
 	bh_index_last_w = 0;
 	bh_index_last_o = BITRATE_HIST_SIZE;
@@ -176,8 +187,7 @@ void FLAC_plugin__decoder_delete(FLAC__FileDecoder *decoder)
 int FLAC_plugin__seek(FLAC__FileDecoder *decoder, file_info_struct *file_info)
 {
 	int pos;
-	const FLAC__uint64 target_sample =
-		(FLAC__uint64)file_info->total_samples*file_info->seek_to / file_info->length_in_msec;
+	const FLAC__uint64 target_sample = file_info->total_samples * file_info->seek_to / file_info->length_in_msec;
 
 	if (!FLAC__file_decoder_seek_absolute(decoder, target_sample))
 		return -1;

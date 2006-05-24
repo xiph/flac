@@ -29,6 +29,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memset/memcpy() */
@@ -42,10 +46,6 @@
 #include "private/format.h"
 #include "private/lpc.h"
 #include "private/memory.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #ifdef max
 #undef max

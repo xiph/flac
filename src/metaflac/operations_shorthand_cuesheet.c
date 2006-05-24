@@ -16,11 +16,17 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <errno.h>
+#include <stdio.h> /* for snprintf() */
+#include <string.h>
 #include "options.h"
 #include "utils.h"
 #include "FLAC/assert.h"
 #include "share/grabbag.h"
-#include <string.h>
 
 static FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet, const char *cs_filename, FLAC__bool *needs_write, FLAC__uint64 lead_out_offset, FLAC__bool is_cdda, Argument_AddSeekpoint *add_seekpoint_link);
 static FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cuesheet, const char *cs_filename);
@@ -118,7 +124,7 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 		f = fopen(cs_filename, "r");
 
 	if(0 == f) {
-		fprintf(stderr, "%s: ERROR: can't open import file %s\n", filename, cs_filename);
+		fprintf(stderr, "%s: ERROR: can't open import file %s: %s\n", filename, cs_filename, strerror(errno));
 		return false;
 	}
 
@@ -183,7 +189,7 @@ FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cueshe
 		f = fopen(cs_filename, "w");
 
 	if(0 == f) {
-		fprintf(stderr, "%s: ERROR: can't open export file %s\n", filename, cs_filename);
+		fprintf(stderr, "%s: ERROR: can't open export file %s: %s\n", filename, cs_filename, strerror(errno));
 		return false;
 	}
 
@@ -193,7 +199,11 @@ FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cueshe
 		return false;
 	}
 
+#ifdef _MSC_VER
+	_snprintf(ref, reflen, "\"%s\" FLAC", filename);
+#else
 	snprintf(ref, reflen, "\"%s\" FLAC", filename);
+#endif
 
 	grabbag__cuesheet_emit(f, cuesheet, ref);
 

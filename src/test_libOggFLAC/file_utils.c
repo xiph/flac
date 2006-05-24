@@ -16,6 +16,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "file_utils.h"
 #include "FLAC/assert.h"
 #include "OggFLAC/stream_encoder.h"
@@ -63,7 +67,7 @@ static void encoder_metadata_callback_(const OggFLAC__StreamEncoder *encoder, co
 	(void)encoder, (void)metadata, (void)client_data;
 }
 
-FLAC__bool file_utils__generate_oggflacfile(const char *output_filename, unsigned *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)
+FLAC__bool file_utils__generate_oggflacfile(const char *output_filename, off_t *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)
 {
 	FLAC__int32 samples[1024];
 	OggFLAC__StreamEncoder *encoder;
@@ -139,7 +143,7 @@ FLAC__bool file_utils__generate_oggflacfile(const char *output_filename, unsigne
 		if(stat(output_filename, &filestats) != 0)
 			return false;
 		else
-			*output_filesize = (unsigned)filestats.st_size;
+			*output_filesize = filestats.st_size;
 	}
 
 	return true;

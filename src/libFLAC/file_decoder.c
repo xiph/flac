@@ -29,6 +29,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for strcmp() */
@@ -36,6 +40,10 @@
 #if defined _MSC_VER || defined __MINGW32__
 #include <io.h> /* for _setmode() */
 #include <fcntl.h> /* for _O_BINARY */
+#include <sys/types.h> /* for off_t */
+//@@@ [2G limit] hacks for MSVC6
+#define fseeko fseek
+#define ftello ftell
 #elif defined __CYGWIN__
 #include <io.h> /* for setmode(), O_BINARY */
 #include <fcntl.h> /* for _O_BINARY */
@@ -606,7 +614,7 @@ FLAC__SeekableStreamDecoderSeekStatus seek_callback_(const FLAC__SeekableStreamD
 	FLAC__FileDecoder *file_decoder = (FLAC__FileDecoder *)client_data;
 	(void)decoder;
 
-	if(fseek(file_decoder->private_->file, (long)absolute_byte_offset, SEEK_SET) < 0)
+	if(fseeko(file_decoder->private_->file, (off_t)absolute_byte_offset, SEEK_SET) < 0)
 		return FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
 	else
 		return FLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK;
@@ -615,10 +623,10 @@ FLAC__SeekableStreamDecoderSeekStatus seek_callback_(const FLAC__SeekableStreamD
 FLAC__SeekableStreamDecoderTellStatus tell_callback_(const FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
 {
 	FLAC__FileDecoder *file_decoder = (FLAC__FileDecoder *)client_data;
-	long pos;
+	off_t pos;
 	(void)decoder;
 
-	if((pos = ftell(file_decoder->private_->file)) < 0)
+	if((pos = ftello(file_decoder->private_->file)) < 0)
 		return FLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR;
 	else {
 		*absolute_byte_offset = (FLAC__uint64)pos;

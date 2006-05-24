@@ -29,13 +29,13 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "private/cpu.h"
 #include <stdlib.h>
 #include <stdio.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #if defined FLAC__CPU_PPC
 # if !defined FLAC__NO_ASM

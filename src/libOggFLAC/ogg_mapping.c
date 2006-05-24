@@ -29,6 +29,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "private/ogg_mapping.h"
 
 const unsigned OggFLAC__MAPPING_PACKET_TYPE_LEN = 8; /* bits */

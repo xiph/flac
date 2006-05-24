@@ -16,6 +16,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <stdio.h>
+#include <stdlib.h> /* for malloc() */
+#include <string.h> /* for memcpy()/memset() */
+#if defined _MSC_VER || defined __MINGW32__
+#include <sys/utime.h> /* for utime() */
+#include <io.h> /* for chmod() */
+//@@@ [2G limit] hacks for MSVC6
+#define fseeko fseek
+#define ftello ftell
+#else
+#include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
+#include <utime.h> /* for utime() */
+#include <unistd.h> /* for chown(), unlink() */
+#endif
+#include <sys/stat.h> /* for stat(), maybe chmod() */
 extern "C" {
 #include "file_utils.h"
 }
@@ -23,19 +38,6 @@ extern "C" {
 #include "FLAC++/decoder.h"
 #include "FLAC++/metadata.h"
 #include "share/grabbag.h"
-#include <stdio.h>
-#include <stdlib.h> /* for malloc() */
-#include <string.h> /* for memcpy()/memset() */
-
-#if defined _MSC_VER || defined __MINGW32__
-#include <sys/utime.h> /* for utime() */
-#include <io.h> /* for chmod() */
-#else
-#include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
-#include <utime.h> /* for utime() */
-#include <unistd.h> /* for chown(), unlink() */
-#endif
-#include <sys/stat.h> /* for stat(), maybe chmod() */
 
 /******************************************************************************
 	The general strategy of these tests (for interface levels 1 and 2) is
@@ -275,14 +277,14 @@ static size_t chain_write_cb_(const void *ptr, size_t size, size_t nmemb, ::FLAC
 
 static int chain_seek_cb_(::FLAC__IOHandle handle, FLAC__int64 offset, int whence)
 {
-	long o = (long)offset;
+	off_t o = (off_t)offset;
 	FLAC__ASSERT(offset == o);
-	return fseek((FILE*)handle, o, whence);
+	return fseeko((FILE*)handle, o, whence);
 }
 
 static FLAC__int64 chain_tell_cb_(::FLAC__IOHandle handle)
 {
-	return ftell((FILE*)handle);
+	return ftello((FILE*)handle);
 }
 
 static int chain_eof_cb_(::FLAC__IOHandle handle)

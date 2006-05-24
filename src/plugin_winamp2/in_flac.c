@@ -16,11 +16,16 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <windows.h>
+#include <limits.h> /* for INT_MAX */
 #include <stdio.h>
 
 #include "winamp2/in2.h"
-#include "config.h"
+#include "configure.h"
 #include "infobox.h"
 #include "tagz.h"
 
@@ -326,33 +331,33 @@ static void getfileinfo(char *filename, char *title, int *length_in_msec)
 {
 	FLAC__StreamMetadata streaminfo;
 
-	if (!filename || !*filename)
-	{
+	if (!filename || !*filename) {
 		filename = lastfn_;
-		if (length_in_msec)
-		{
-			*length_in_msec = (int)file_info_.length_in_msec;
-			length_in_msec  = 0;    /* force skip in following code */
+		if (length_in_msec) {
+			*length_in_msec = file_info_.length_in_msec;
+			length_in_msec = 0;    /* force skip in following code */
 		}
 	}
 
-	if (!FLAC__metadata_get_streaminfo(filename, &streaminfo))
-	{
+	if (!FLAC__metadata_get_streaminfo(filename, &streaminfo)) {
 		if (length_in_msec)
 			*length_in_msec = -1;
 		return;
 	}
 
-	if (title)
-	{
+	if (title) {
 		static WCHAR buffer[400];
 		format_title(filename, buffer, 400);
 		WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, buffer, -1, title, 400, NULL, NULL);
 	}
 
-	if (length_in_msec)
+	if (length_in_msec) {
 		/* with VC++ you have to spoon feed it the casting from uint64->int64->double */
-		*length_in_msec = (int)((double)(FLAC__int64)streaminfo.data.stream_info.total_samples / (double)streaminfo.data.stream_info.sample_rate * 1000.0 + 0.5);
+		FLAC__uint64 l = (FLAC__uint64)((double)(FLAC__int64)streaminfo.data.stream_info.total_samples / (double)streaminfo.data.stream_info.sample_rate * 1000.0 + 0.5);
+		if (l > INT_MAX)
+			l = INT_MAX;
+		*length_in_msec = (int)l;
+	}
 }
 
 /*

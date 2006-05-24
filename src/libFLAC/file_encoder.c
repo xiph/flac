@@ -29,9 +29,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for strlen(), strcpy() */
+#if defined _MSC_VER || defined __MINGW32__
+#include <sys/types.h> /* for off_t */
+//@@@ [2G limit] hacks for MSVC6
+#define fseeko fseek
+#define ftello ftell
+#endif
 #include "FLAC/assert.h"
 #include "protected/file_encoder.h"
 
@@ -724,7 +734,7 @@ FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamE
 
 	FLAC__ASSERT(0 != file_encoder);
 
-	if(fseek(file_encoder->private_->file, (long)absolute_byte_offset, SEEK_SET) < 0)
+	if(fseeko(file_encoder->private_->file, (off_t)absolute_byte_offset, SEEK_SET) < 0)
 		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_ERROR;
 	else
 		return FLAC__SEEKABLE_STREAM_ENCODER_SEEK_STATUS_OK;
@@ -733,13 +743,13 @@ FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamE
 FLAC__SeekableStreamEncoderTellStatus tell_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
 {
 	FLAC__FileEncoder *file_encoder = (FLAC__FileEncoder*)client_data;
-	long offset;
+	off_t offset;
 
 	(void)encoder;
 
 	FLAC__ASSERT(0 != file_encoder);
 
-	offset = ftell(file_encoder->private_->file);
+	offset = ftello(file_encoder->private_->file);
 
 	if(offset < 0) {
 		return FLAC__SEEKABLE_STREAM_ENCODER_TELL_STATUS_ERROR;

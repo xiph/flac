@@ -16,6 +16,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <limits.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,10 +34,6 @@
 #include <xmms/util.h>
 #include <xmms/configfile.h>
 #include <xmms/titlestring.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #ifdef HAVE_LANGINFO_CODESET
 #include <langinfo.h>
@@ -52,13 +53,6 @@
 #endif
 #define min(x,y) ((x)<(y)?(x):(y))
 
-/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
-#ifdef _MSC_VER
-#define FLAC__U64L(x) x
-#else
-#define FLAC__U64L(x) x##LLU
-#endif
-
 extern void FLAC_XMMS__file_info_box(char *filename);
 
 typedef struct {
@@ -66,11 +60,11 @@ typedef struct {
 	FLAC__bool is_playing;
 	FLAC__bool eof;
 	FLAC__bool play_thread_open; /* if true, is_playing must also be true */
-	unsigned total_samples;
+	FLAC__uint64 total_samples;
 	unsigned bits_per_sample;
 	unsigned channels;
 	unsigned sample_rate;
-	unsigned length_in_msec;
+	int length_in_msec; /* int (instead of FLAC__uint64) only because that's what XMMS uses; seeking won't work right if this maxes out */
 	gchar *title;
 	AFormat sample_format;
 	unsigned sample_format_bytes_per_sample;
@@ -450,8 +444,12 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 	if(title) {
 		*title = flac_format_song_title(filename);
 	}
-	if(length_in_msec)
-		*length_in_msec = (unsigned)((double)streaminfo.data.stream_info.total_samples / (double)streaminfo.data.stream_info.sample_rate * 1000.0 + 0.5);
+	if(length_in_msec) {
+		FLAC__uint64 l = (FLAC__uint64)((double)streaminfo.data.stream_info.total_samples / (double)streaminfo.data.stream_info.sample_rate * 1000.0 + 0.5);
+		if (l > INT_MAX)
+			l = INT_MAX;
+		*length_in_msec = (int)l;
+	}
 }
 
 /***********************************************************************
@@ -524,8 +522,8 @@ void *play_loop_(void *arg)
 			xmms_usleep(10000);
 		if(decoder_func_table_->seekable && file_info_.seek_to_in_sec != -1) {
 			const double distance = (double)file_info_.seek_to_in_sec * 1000.0 / (double)file_info_.length_in_msec;
-			unsigned target_sample = (unsigned)(distance * (double)file_info_.total_samples);
-			if(FLAC__file_decoder_seek_absolute(decoder_, (FLAC__uint64)target_sample)) {
+			FLAC__uint64 target_sample = (FLAC__uint64)(distance * (double)file_info_.total_samples);
+			if(FLAC__file_decoder_seek_absolute(decoder_, target_sample)) {
 				flac_ip.output->flush(file_info_.seek_to_in_sec * 1000);
 				bh_index_last_w = bh_index_last_o = flac_ip.output->output_time() / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE;
 				if(!FLAC__file_decoder_get_decode_position(decoder_, &decode_position_frame))
@@ -610,8 +608,7 @@ static FLAC__bool http_decoder_set_md5_checking (void *decoder, FLAC__bool value
 {
 	(void) value;
 	// operation unsupported
-	return FLAC__stream_decoder_get_state ((const FLAC__StreamDecoder *) decoder) ==
-		FLAC__STREAM_DECODER_UNINITIALIZED;
+	return FLAC__stream_decoder_get_state ((const FLAC__StreamDecoder *) decoder) == FLAC__STREAM_DECODER_UNINITIALIZED;
 }
 
 static FLAC__bool http_decoder_set_url (void *decoder, const char* url)
@@ -800,12 +797,16 @@ void metadata_callback_(const void *decoder, const FLAC__StreamMetadata *metadat
 	file_info_struct *file_info = (file_info_struct *)client_data;
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		FLAC__ASSERT(metadata->data.stream_info.total_samples < FLAC__U64L(0x100000000)); /* this plugin can only handle < 4 gigasamples */
-		file_info->total_samples = (unsigned)(metadata->data.stream_info.total_samples&0xffffffff);
+		file_info->total_samples = metadata->data.stream_info.total_samples;
 		file_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
 		file_info->channels = metadata->data.stream_info.channels;
 		file_info->sample_rate = metadata->data.stream_info.sample_rate;
-		file_info->length_in_msec = (unsigned)((double)file_info->total_samples / (double)file_info->sample_rate * 1000.0 + 0.5);
+		{
+			FLAC__uint64 l = (FLAC__uint64)((double)file_info->total_samples / (double)file_info->sample_rate * 1000.0 + 0.5);
+			if (l > INT_MAX)
+				l = INT_MAX;
+			file_info->length_in_msec = (int)l;
+		}
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 		double gain, peak;

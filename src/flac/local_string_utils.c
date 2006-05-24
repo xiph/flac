@@ -1,6 +1,10 @@
 /* flac - Command-line FLAC encoder/decoder
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <string.h>
 
 #include "utils.h"

@@ -23,6 +23,11 @@
 #ifndef GRABAG__FILE_H
 #define GRABAG__FILE_H
 
+/* needed because of off_t */
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <sys/types.h> /* for off_t */
 #include <stdio.h> /* for FILE */
 #include "FLAC/ordinals.h"

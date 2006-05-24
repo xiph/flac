@@ -20,6 +20,10 @@
  * These are not tests, just utility functions used by the metadata tests
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "metadata_utils.h"
 #include "FLAC/metadata.h"
 #include <stdio.h>

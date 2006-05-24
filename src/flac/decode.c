@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
+#if HAVE_CONFIG_H
+#  include <config.h>
 #endif
 
 #if defined _WIN32 && !defined __CYGWIN__
@@ -26,10 +26,16 @@
 #else
 # include <unistd.h>
 #endif
+#if defined _MSC_VER || defined __MINGW32__
+#include <sys/types.h> /* for off_t */
+//@@@ [2G limit] hacks for MSVC6
+#define fseeko fseek
+#define ftello ftell
+#endif
 #include <errno.h>
 #include <math.h> /* for floor() */
-#include <stdio.h> /* for FILE et al. */
-#include <string.h> /* for strcmp() */
+#include <stdio.h> /* for FILE etc. */
+#include <string.h> /* for strcmp(), strerror() */
 #include "FLAC/all.h"
 #include "share/grabbag.h"
 #include "share/replaygain_synthesis.h"
@@ -72,9 +78,9 @@ typedef struct {
 
 	struct {
 		FLAC__bool needs_fixup;
-		unsigned riff_offset; /* or FORM offset for AIFF */
-		unsigned data_offset; /* or SSND offset for AIFF */
-		unsigned frames_offset; /* AIFF only */
+		off_t riff_offset; /* or FORM offset for AIFF */
+		off_t data_offset; /* or SSND offset for AIFF */
+		off_t frames_offset; /* AIFF only */
 	} wave_chunk_size_fixup;
 
 	FLAC__bool is_big_endian;
@@ -292,7 +298,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 		}
 		else {
 			if(0 == (d->fout = fopen(outfilename, "wb"))) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: can't open output file %s\n", d->inbasefilename, outfilename);
+				flac__utils_printf(stderr, 1, "%s: ERROR: can't open output file %s: %s\n", d->inbasefilename, outfilename, strerror(errno));
 				DecoderSession_destroy(d, /*error_occurred=*/true);
 				return false;
 			}
@@ -639,7 +645,7 @@ FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
 				return false;
 
 			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-				decoder_session->wave_chunk_size_fixup.riff_offset = ftell(decoder_session->fout);
+				decoder_session->wave_chunk_size_fixup.riff_offset = ftello(decoder_session->fout);
 
 			if(!write_little_endian_uint32(decoder_session->fout, aligned_data_size+36)) /* filesize-8 */
 				return false;
@@ -672,7 +678,7 @@ FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
 				return false;
 
 			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-				decoder_session->wave_chunk_size_fixup.data_offset = ftell(decoder_session->fout);
+				decoder_session->wave_chunk_size_fixup.data_offset = ftello(decoder_session->fout);
 
 			if(!write_little_endian_uint32(decoder_session->fout, (FLAC__uint32)data_size)) /* data size */
 				return false;
@@ -682,7 +688,7 @@ FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
 				return false;
 
 			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-				decoder_session->wave_chunk_size_fixup.riff_offset = ftell(decoder_session->fout);
+				decoder_session->wave_chunk_size_fixup.riff_offset = ftello(decoder_session->fout);
 
 			if(!write_big_endian_uint32(decoder_session->fout, aligned_data_size+46)) /* filesize-8 */
 				return false;
@@ -697,7 +703,7 @@ FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
 				return false;
 
 			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-				decoder_session->wave_chunk_size_fixup.frames_offset = ftell(decoder_session->fout);
+				decoder_session->wave_chunk_size_fixup.frames_offset = ftello(decoder_session->fout);
 
 			if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)decoder_session->total_samples))
 				return false;
@@ -712,7 +718,7 @@ FLAC__bool write_necessary_headers(DecoderSession *decoder_session)
 				return false;
 
 			if(decoder_session->wave_chunk_size_fixup.needs_fixup)
-				decoder_session->wave_chunk_size_fixup.data_offset = ftell(decoder_session->fout);
+				decoder_session->wave_chunk_size_fixup.data_offset = ftello(decoder_session->fout);
 
 			if(!write_big_endian_uint32(decoder_session->fout, (FLAC__uint32)data_size+8)) /* data size */
 				return false;
@@ -805,11 +811,11 @@ FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out
 {
 	const char *fmt_desc = (is_wave_out? "WAVE" : "AIFF");
 	FLAC__bool (*write_it)(FILE *, FLAC__uint32) = (is_wave_out? write_little_endian_uint32 : write_big_endian_uint32);
-	FILE *f = fopen(outfilename, "r+b");
 	FLAC__uint32 data_size, aligned_data_size;
+	FILE *f = fopen(outfilename, "r+b");
 
 	if(0 == f) {
-		flac__utils_printf(stderr, 1, "ERROR, couldn't open file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
+		flac__utils_printf(stderr, 1, "ERROR, couldn't open file %s while fixing up %s chunk size: %s\n", outfilename, fmt_desc, strerror(errno));
 		return false;
 	}
 
@@ -817,7 +823,7 @@ FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out
 	if(aligned_data_size & 1)
 		aligned_data_size++;
 
-	if(fseek(f, riff_offset, SEEK_SET) < 0) {
+	if(fseeko(f, riff_offset, SEEK_SET) < 0) {
 		flac__utils_printf(stderr, 1, "ERROR, couldn't seek in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 		fclose(f);
 		return false;
@@ -828,7 +834,7 @@ FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out
 		return false;
 	}
 	if(!is_wave_out) {
-		if(fseek(f, frames_offset, SEEK_SET) < 0) {
+		if(fseeko(f, frames_offset, SEEK_SET) < 0) {
 			flac__utils_printf(stderr, 1, "ERROR, couldn't seek in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 			fclose(f);
 			return false;
@@ -839,7 +845,7 @@ FLAC__bool fixup_wave_chunk_size(const char *outfilename, FLAC__bool is_wave_out
 			return false;
 		}
 	}
-	if(fseek(f, data_offset, SEEK_SET) < 0) {
+	if(fseeko(f, data_offset, SEEK_SET) < 0) {
 		flac__utils_printf(stderr, 1, "ERROR, couldn't seek in file %s while fixing up %s chunk size\n", outfilename, fmt_desc);
 		fclose(f);
 		return false;

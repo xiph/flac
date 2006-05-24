@@ -38,12 +38,12 @@ typedef struct {
 	volatile FLAC__bool abort_flag;
 	volatile FLAC__bool eof;
 	volatile int seek_to;
-	unsigned total_samples;
+	FLAC__uint64 total_samples;
 	unsigned bits_per_sample;
 	unsigned output_bits_per_sample;
 	unsigned channels;
 	unsigned sample_rate;
-	unsigned length_in_msec;
+	int length_in_msec; /* int (instead of FLAC__uint64) only because that's what Winamp uses; seeking won't work right if this maxes out */
 	unsigned average_bps;
 	FLAC__bool has_replaygain;
 	double replay_scale;

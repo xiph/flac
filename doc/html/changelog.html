@@ -65,7 +65,7 @@
 			<li>
 				General:
 				<ul>
-					<li>(none)</li>
+					<li>Large file (&gt;2GB) support everywhere</li>
 				</ul>
 			</li>
 			<li>
@@ -98,6 +98,7 @@
 				<ul>
 					<li>Added a new option <a href="documentation.html#metaflac_shorthand_set_tag_from_file"><span class="argument">--set-tag-from-file</span></a> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
 					<li>Added shorthand operation <a href="documentation.html#metaflac_shorthand_remove_replay_gain"><span class="argument">--remove-replay-gain</span></a> for removing ReplayGain tags.</li>
+					<li><a href="documentation.html#metaflac_shorthand_export_cuesheet_to"><span class="argument">--export-cuesheet-to</span></a> now properly specifies the FLAC file name (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1272825&amp;group_id=13478&amp;atid=363478">SF #1272825</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now issues a warning.</li>
 				</ul>
 			</li>
@@ -105,14 +106,16 @@
 				plugins:
 				<ul>
 					<li>When ReplayGain is on, if tags for the preferred kind of gain (album/track) are not in a stream, the other kind will be used.</li>
-					<li>Add ReplayGain info to file info box in XMMS plugin</li>
+					<li>Added ReplayGain info to file info box in XMMS plugin</li>
 					<li>Fixed UTF-8 decoder to disallow non-shortest-form and surrogate sequences (see <a href="http://www.unicode.org/versions/corrigendum1.html">here</a>).</li>
 				</ul>
 			</li>
 			<li>
 				build system:
 				<ul>
-					<li>Add support for building on OS/2 with EMX (<a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1229495&group_id=13478&atid=113478">SF #1229495</a>)</li>
+					<li>Added support for building on OS/2 with EMX (<a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1229495&group_id=13478&atid=113478">SF #1229495</a>)</li>
+					<li>Added <span class="argument">--disable-doxygen-docs</span> to <span class="command">configure</span> for disabling Doxygen-based API doc generation (<a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1365935&group_id=13478&atid=313478">SF #1365935</a>).</li>
+					<li>Added large file support with <span class="argument">AC_SYS_LARGEFILE</span>; use <span class="argument">--disable-largefile</span> with <span class="command">configure</span> to disable.</li>
 				</ul>
 			</li>
 			<li>
