@@ -152,15 +152,6 @@ AC_DEFINE(FLAC__USE_ALTIVEC)
 AH_TEMPLATE(FLAC__USE_ALTIVEC, [define to enable use of Altivec instructions])
 fi
 
-AC_ARG_ENABLE(local-xmms-plugin,
-AC_HELP_STRING([--enable-local-xmms-plugin], [Install XMMS plugin to ~/.xmms/Plugins instead of system location]),
-[case "${enableval}" in
-	yes) install_xmms_plugin_locally=true ;;
-	no)  install_xmms_plugin_locally=false ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --enable-local-xmms-plugin) ;;
-esac],[install_xmms_plugin_locally=false])
-AM_CONDITIONAL(FLaC__INSTALL_XMMS_PLUGIN_LOCALLY, test "x$install_xmms_plugin_locally" = xtrue)
-
 AC_ARG_ENABLE(thorough-tests,
 AC_HELP_STRING([--disable-thorough-tests], [Disable thorough (long) testing, do only basic tests]),
 [case "${enableval}" in
@@ -200,10 +191,31 @@ AC_HELP_STRING([--disable-doxygen-docs], [Disable API documentation building via
 	no)  enable_doxygen_docs=false ;;
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-doxygen-docs) ;;
 esac],[enable_doxygen_docs=true])
-if test "x$enable_doxygen_docs" != xno ; then
+if test "x$enable_doxygen_docs" != xfalse ; then
 	AC_CHECK_PROGS(DOXYGEN, doxygen)
 fi
 AM_CONDITIONAL(FLaC__HAS_DOXYGEN, test -n "$DOXYGEN")
+
+AC_ARG_ENABLE(local-xmms-plugin,
+AC_HELP_STRING([--enable-local-xmms-plugin], [Install XMMS plugin to ~/.xmms/Plugins instead of system location]),
+[case "${enableval}" in
+	yes) install_xmms_plugin_locally=true ;;
+	no)  install_xmms_plugin_locally=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-local-xmms-plugin) ;;
+esac],[install_xmms_plugin_locally=false])
+AM_CONDITIONAL(FLaC__INSTALL_XMMS_PLUGIN_LOCALLY, test "x$install_xmms_plugin_locally" = xtrue)
+
+AC_ARG_ENABLE(xmms-plugin,
+AC_HELP_STRING([--disable-xmms-plugin], [Do not build XMMS plugin]),
+[case "${enableval}" in
+	yes) enable_xmms_plugin=true ;;
+	no)  enable_xmms_plugin=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-xmms-plugin) ;;
+esac],[enable_xmms_plugin=true])
+if test "x$enable_xmms_plugin" != xfalse ; then
+	AM_PATH_XMMS(0.9.5.1, , AC_MSG_WARN([*** XMMS >= 0.9.5.1 not installed - XMMS support will not be built]))
+fi
+AM_CONDITIONAL(FLaC__HAS_XMMS, test -n "$XMMS_INPUT_PLUGIN_DIR")
 
 dnl check for ogg library
 XIPH_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
@@ -212,9 +224,6 @@ if test "x$have_ogg" = xyes ; then
 AC_DEFINE(FLAC__HAS_OGG)
 AH_TEMPLATE(FLAC__HAS_OGG, [define if you have the ogg library])
 fi
-
-AM_PATH_XMMS(0.9.5.1, , AC_MSG_WARN([*** XMMS >= 0.9.5.1 not installed - xmms support will not be built]))
-AM_CONDITIONAL(FLaC__HAS_XMMS, test -n "$XMMS_INPUT_PLUGIN_DIR")
 
 dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_ICONV
