@@ -227,7 +227,7 @@ static void show_file_info()
 				(int)(streaminfo.data.stream_info.total_samples / streaminfo.data.stream_info.sample_rate % 60));
 
 	if(!stat(current_filename, &_stat) && S_ISREG(_stat.st_mode)) {
-#if _FILE_OFFSET_BITS = 64
+#if _FILE_OFFSET_BITS == 64
 		label_set_text(flac_filesize, _("Filesize: %lld B"), _stat.st_size);
 #else
 		label_set_text(flac_filesize, _("Filesize: %ld B"), _stat.st_size);
