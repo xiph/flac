@@ -16,7 +16,7 @@
 #  distribution.
 
 if FLaC__HAS_XMMS
-XMMS_DIRS = plugin_xmms
+XMMS_DIRS = plugin_common plugin_xmms
 endif
 
 if FLaC__HAS_OGG
@@ -32,7 +32,6 @@ SUBDIRS = \
 	flac \
 	metaflac \
 	monkeys_audio_utilities \
-	plugin_common \
 	$(XMMS_DIRS) \
 	plugin_winamp2 \
 	test_grabbag \
