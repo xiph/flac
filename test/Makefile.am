@@ -15,19 +15,7 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-if FLaC__EXHAUSTIVE_TESTS
-FLAC__EXHAUSTIVE_TESTS = yes
-else
-FLAC__EXHAUSTIVE_TESTS = no
-endif
-
-if FLaC__VALGRIND_TESTING
-FLAC__VALGRIND = yes
-else
-FLAC__VALGRIND = no
-endif
-
-TESTS_ENVIRONMENT = FLAC__EXHAUSTIVE_TESTS=$(FLAC__EXHAUSTIVE_TESTS) FLAC__VALGRIND=$(FLAC__VALGRIND)
+TESTS_ENVIRONMENT = FLAC__TEST_LEVEL=@FLAC__TEST_LEVEL@ FLAC__TEST_WITH_VALRGIND=@FLAC__TEST_WITH_VALGRIND@
 
 SUBDIRS = cuesheets
 
@@ -45,8 +33,7 @@ TESTS = \
 	./test_metaflac.sh \
 	./test_grabbag.sh \
 	./test_seeking.sh \
-	./test_streams.sh \
-	./test_bins.sh
+	./test_streams.sh
 
 EXTRA_DIST = \
 	Makefile.lite \

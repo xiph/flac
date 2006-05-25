@@ -41,7 +41,7 @@ PATH=../obj/$BUILD/bin:$PATH
 
 run_test_libOggFLACpp ()
 {
-	if [ x"$FLAC__VALGRIND" = xyes ] ; then
+	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 test_libOggFLAC++ $* 4>>test_libOggFLAC++.valgrind.log
 	else
 		test_libOggFLAC++ $*

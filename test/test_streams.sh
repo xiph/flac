@@ -39,7 +39,7 @@ flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 
 run_flac ()
 {
-	if [ x"$FLAC__VALGRIND" = xyes ] ; then
+	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 flac $* 4>>test_streams.valgrind.log
 	else
 		flac $*
@@ -131,7 +131,7 @@ test_file_piped ()
 	echo OK
 }
 
-if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
+if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
 	max_lpc_order=32
 else
 	max_lpc_order=16
@@ -212,44 +212,60 @@ test_file sine16-01 1 16 "-0 -l $max_lpc_order -m -e -p --lax --sample-rate=9000
 echo "Testing option variations..."
 for f in 00 01 02 03 04 ; do
 	for disable in '' '--disable-verbatim-subframes --disable-constant-subframes' '--disable-verbatim-subframes --disable-constant-subframes --disable-fixed-subframes' ; do
-		for opt in 0 1 2 4 5 6 8 ; do
-			for extras in '' '-p' '-e' ; do
-				test_file sine16-$f 1 16 "-$opt $extras $disable"
+		if [ -z "$disable" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+			for opt in 0 1 2 4 5 6 8 ; do
+				for extras in '' '-p' '-e' ; do
+					if [ -z "$extras" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+						test_file sine16-$f 1 16 "-$opt $extras $disable"
+					fi
+				done
 			done
-		done
-		if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
-			test_file sine16-$f 1 16 "-b 16384 -m -r 8 -l $max_lpc_order -e -p $disable"
+			if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
+				test_file sine16-$f 1 16 "-b 16384 -m -r 8 -l $max_lpc_order -e -p $disable"
+			fi
 		fi
 	done
 done
 
 for f in 10 11 12 13 14 15 16 17 18 19 ; do
 	for disable in '' '--disable-verbatim-subframes --disable-constant-subframes' '--disable-verbatim-subframes --disable-constant-subframes --disable-fixed-subframes' ; do
-		for opt in 0 1 2 4 5 6 8 ; do
-			for extras in '' '-p' '-e' ; do
-				test_file sine16-$f 2 16 "-$opt $extras $disable"
+		if [ -z "$disable" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+			for opt in 0 1 2 4 5 6 8 ; do
+				for extras in '' '-p' '-e' ; do
+					if [ -z "$extras" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+						test_file sine16-$f 2 16 "-$opt $extras $disable"
+					fi
+				done
 			done
-		done
-		if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
-			test_file sine16-$f 2 16 "-b 16384 -m -r 8 -l $max_lpc_order -e -p $disable"
+			if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
+				test_file sine16-$f 2 16 "-b 16384 -m -r 8 -l $max_lpc_order -e -p $disable"
+			fi
 		fi
 	done
 done
 
 echo "Testing noise..."
 for disable in '' '--disable-verbatim-subframes --disable-constant-subframes' '--disable-verbatim-subframes --disable-constant-subframes --disable-fixed-subframes' ; do
-	for channels in 1 2 4 8 ; do
-		for bps in 8 16 24 ; do
-			for opt in 0 1 2 3 4 5 6 7 8 ; do
-				for extras in '' '-p' '-e' ; do
-					for blocksize in '' '--lax -b 32' '--lax -b 32768' '--lax -b 65535' ; do
-						test_file noise $channels $bps "-$opt $extras $blocksize $disable"
+	if [ -z "$disable" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+		for channels in 1 2 4 8 ; do
+			if [ $channels -le 2 ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+				for bps in 8 16 24 ; do
+					for opt in 0 1 2 3 4 5 6 7 8 ; do
+						for extras in '' '-p' '-e' ; do
+							if [ -z "$extras" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+								for blocksize in '' '--lax -b 32' '--lax -b 32768' '--lax -b 65535' ; do
+									if [ -z "$blocksize" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+										test_file noise $channels $bps "-$opt $extras $blocksize $disable"
+									fi
+								done
+							fi
+						done
 					done
+					if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
+						test_file noise $channels $bps "-b 16384 -m -r 8 -l $max_lpc_order -e -p $disable"
+					fi
 				done
-			done
-			if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
-				test_file noise $channels $bps "-b 16384 -m -r 8 -l $max_lpc_order -e -p $disable"
 			fi
 		done
-	done
+	fi
 done

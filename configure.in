@@ -105,7 +105,7 @@ AH_TEMPLATE(FLAC__NO_ASM, [define to disable use of assembly code])
 fi
 
 AC_ARG_ENABLE(debug,
-[  --enable-debug                 Turn on debugging],
+AC_HELP_STRING([--enable-debug], [Turn on debugging]),
 [case "${enableval}" in
 	yes) debug=true ;;
 	no)  debug=false ;;
@@ -114,7 +114,7 @@ esac],[debug=false])
 AM_CONDITIONAL(DEBUG, test "x$debug" = xtrue)
 
 AC_ARG_ENABLE(sse,
-[  --enable-sse                   Enable SSE support by asserting that the OS supports SSE instructions],
+AC_HELP_STRING([--enable-sse], [Enable SSE support by asserting that the OS supports SSE instructions]),
 [case "${enableval}" in
 	yes) sse_os=true ;;
 	no)  sse_os=false ;;
@@ -127,7 +127,7 @@ AH_TEMPLATE(FLAC__SSE_OS, [define if your operating system supports SSE instruct
 fi
 
 AC_ARG_ENABLE(3dnow,
-[  --disable-3dnow                Disable 3DNOW! optimizations],
+AC_HELP_STRING([--disable-3dnow], [Disable 3DNOW! optimizations]),
 [case "${enableval}" in
 	yes) use_3dnow=true ;;
 	no)  use_3dnow=false ;;
@@ -140,7 +140,7 @@ AH_TEMPLATE(FLAC__USE_3DNOW, [define to enable use of 3Dnow! instructions])
 fi
 
 AC_ARG_ENABLE(altivec,
-[  --disable-altivec              Disable Altivec optimizations],
+AC_HELP_STRING([--disable-altivec], [Disable Altivec optimizations]),
 [case "${enableval}" in
 	yes) use_altivec=true ;;
 	no)  use_altivec=false ;;
@@ -153,7 +153,7 @@ AH_TEMPLATE(FLAC__USE_ALTIVEC, [define to enable use of Altivec instructions])
 fi
 
 AC_ARG_ENABLE(local-xmms-plugin,
-[  --enable-local-xmms-plugin     Install XMMS plugin to ~/.xmms/Plugins instead of system location],
+AC_HELP_STRING([--enable-local-xmms-plugin], [Install XMMS plugin to ~/.xmms/Plugins instead of system location]),
 [case "${enableval}" in
 	yes) install_xmms_plugin_locally=true ;;
 	no)  install_xmms_plugin_locally=false ;;
@@ -161,31 +161,37 @@ AC_ARG_ENABLE(local-xmms-plugin,
 esac],[install_xmms_plugin_locally=false])
 AM_CONDITIONAL(FLaC__INSTALL_XMMS_PLUGIN_LOCALLY, test "x$install_xmms_plugin_locally" = xtrue)
 
+AC_ARG_ENABLE(thorough-tests,
+AC_HELP_STRING([--disable-thorough-tests], [Disable thorough (long) testing, do only basic tests]),
+[case "${enableval}" in
+	yes) thorough_tests=true ;;
+	no)  thorough_tests=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-thorough-tests) ;;
+esac],[thorough_tests=true])
 AC_ARG_ENABLE(exhaustive-tests,
-[  --enable-exhaustive-tests      Enable exhaustive testing],
+AC_HELP_STRING([--enable-exhaustive-tests], [Enable exhaustive testing (VERY long)]),
 [case "${enableval}" in
 	yes) exhaustive_tests=true ;;
 	no)  exhaustive_tests=false ;;
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-exhaustive-tests) ;;
 esac],[exhaustive_tests=false])
-AM_CONDITIONAL(FLaC__EXHAUSTIVE_TESTS, test "x$exhaustive_tests" = xtrue)
-if test "x$exhaustive_tests" = xtrue ; then
-AC_DEFINE(FLAC__EXHAUSTIVE_TESTS)
-AH_TEMPLATE(FLAC__EXHAUSTIVE_TESTS, [define to run even more tests])
+if test "x$thorough_tests" = xfalse ; then
+FLAC__TEST_LEVEL=0
+elif test "x$exhaustive_tests" = xfalse ; then
+FLAC__TEST_LEVEL=1
+else
+FLAC__TEST_LEVEL=2
 fi
+AC_SUBST(FLAC__TEST_LEVEL)
 
 AC_ARG_ENABLE(valgrind-testing,
 AC_HELP_STRING([--enable-valgrind-testing], [Run all tests inside Valgrind]),
 [case "${enableval}" in
-	yes) valgrind_testing=true ;;
-	no)  valgrind_testing=false ;;
+	yes) FLAC__TEST_WITH_VALGRIND=yes ;;
+	no)  FLAC__TEST_WITH_VALGRIND=no ;;
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-valgrind-testing) ;;
-esac],[valgrind_testing=false])
-AM_CONDITIONAL(FLaC__VALGRIND_TESTING, test "x$valgrind_testing" = xtrue)
-if test "x$valgrind_testing" = xtrue ; then
-AC_DEFINE(FLAC__VALGRIND_TESTING)
-AH_TEMPLATE(FLAC__VALGRIND_TESTING, [define to enable use of Valgrind in testers])
-fi
+esac],[FLAC__TEST_WITH_VALGRIND=no])
+AC_SUBST(FLAC__TEST_WITH_VALGRIND)
 
 AC_ARG_ENABLE(doxygen-docs,
 AC_HELP_STRING([--disable-doxygen-docs], [Disable API documentation building via Doxygen]),

@@ -46,7 +46,7 @@ flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 
 run_flac ()
 {
-	if [ x"$FLAC__VALGRIND" = xyes ] ; then
+	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 flac $* 4>>test_bins.valgrind.log
 	else
 		flac $*
@@ -98,7 +98,7 @@ for f in b00 b01 b02 b03 b04 ; do
 							done
 						done
 					done
-					if [ "$FLAC__EXHAUSTIVE_TESTS" = yes ] ; then
+					if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
 						test_file $binfile $channels $bps "-b 16384 -m -r 8 -l 32 -e -p $disable"
 					fi
 				done
