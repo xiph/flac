@@ -91,7 +91,10 @@ void FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow(const FLAC__real data[], u
  *	OUT lp_coeff[0,max_order-1][0,max_order-1] LP coefficients for each order
  *	*** IMPORTANT:
  *	*** lp_coeff[0,max_order-1][max_order,FLAC__MAX_LPC_ORDER-1] are untouched
- *	OUT error[0,max_order-1]                   error for each order
+ *	OUT error[0,max_order-1]                   error for each order (more
+ *	                                           specifically, the variance of
+ *	                                           the error signal times # of
+ *	                                           samples in the signal)
  *
  *	Example: if max_order is 9, the LP coefficients for order 9 will be
  *	         in lp_coeff[8][0,8], the LP coefficients for order 8 will be
