@@ -1036,7 +1036,7 @@ int flac__encode_raw(FILE *infile, off_t infilesize, const char *infilename, con
 		while(total_input_bytes_read < max_input_bytes) {
 			{
 				size_t wanted = (CHUNK_OF_SAMPLES * bytes_per_wide_sample);
-				wanted = min(wanted, (size_t)(max_input_bytes - total_input_bytes_read));
+				wanted = (size_t) min((off_t)wanted, max_input_bytes - total_input_bytes_read);
 
 				if(lookahead_length > 0) {
 					FLAC__ASSERT(lookahead_length <= wanted);
