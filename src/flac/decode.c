@@ -85,6 +85,7 @@ typedef struct {
 
 	FLAC__bool is_big_endian;
 	FLAC__bool is_unsigned_samples;
+	FLAC__bool got_stream_info;
 	FLAC__uint64 total_samples;
 	unsigned bps;
 	unsigned channels;
@@ -283,6 +284,12 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	d->wave_chunk_size_fixup.needs_fixup = false;
 
+	d->total_samples = 0;
+	d->got_stream_info = false;
+	d->bps = 0;
+	d->channels = 0;
+	d->sample_rate = 0;
+
 	d->decoder.flac.file = 0;
 #ifdef FLAC__HAS_OGG
 	d->decoder.ogg.file = 0;
@@ -407,7 +414,8 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		if(OggFLAC__file_decoder_get_state(d->decoder.ogg.file) != OggFLAC__FILE_DECODER_OK && OggFLAC__file_decoder_get_state(d->decoder.ogg.file) != OggFLAC__FILE_DECODER_END_OF_FILE) {
 			flac__utils_printf(stderr, 2, "\n");
 			print_error_with_state(d, "ERROR during metadata decoding");
-			return false;
+			if(!d->continue_through_decode_errors)
+				return false;
 		}
 	}
 	else
@@ -421,7 +429,8 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		if(FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_OK && FLAC__file_decoder_get_state(d->decoder.flac.file) != FLAC__FILE_DECODER_END_OF_FILE) {
 			flac__utils_printf(stderr, 2, "\n");
 			print_error_with_state(d, "ERROR during metadata decoding");
-			return false;
+			if(!d->continue_through_decode_errors)
+				return false;
 		}
 	}
 	if(d->abort_flag)
@@ -540,6 +549,9 @@ int DecoderSession_finish_ok(DecoderSession *d)
 		flac__analyze_finish(d->aopts);
 	if(md5_failure) {
 		flac__utils_printf(stderr, 1, "\r%s: WARNING, MD5 signature mismatch\n", d->inbasefilename);
+	}
+	else if(!d->got_stream_info) {
+		flac__utils_printf(stderr, 1, "\r%s: WARNING, cannot check MD5 signature since there was no STREAMINFO\n", d->inbasefilename);
 	}
 	else {
 		flac__utils_printf(stderr, 2, "\r%s: %s         \n", d->inbasefilename, d->test_only? "ok           ":d->analysis_mode?"done           ":"done");
@@ -880,25 +892,44 @@ FLAC__StreamDecoderWriteStatus write_callback(const void *decoder, const FLAC__F
 	if(decoder_session->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-	if(bps != decoder_session->bps) {
+	if(decoder_session->bps && bps != decoder_session->bps) {
 		flac__utils_printf(stderr, 1, "%s: ERROR, bits-per-sample is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, bps, decoder_session->bps);
-		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		if(!decoder_session->continue_through_decode_errors)
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
-	if(channels != decoder_session->channels) {
+	if(decoder_session->channels && channels != decoder_session->channels) {
 		flac__utils_printf(stderr, 1, "%s: ERROR, channels is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, channels, decoder_session->channels);
-		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		if(!decoder_session->continue_through_decode_errors)
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
-	if(frame->header.sample_rate != decoder_session->sample_rate) {
+	if(decoder_session->sample_rate && frame->header.sample_rate != decoder_session->sample_rate) {
 		flac__utils_printf(stderr, 1, "%s: ERROR, sample rate is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, frame->header.sample_rate, decoder_session->sample_rate);
-		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		if(!decoder_session->continue_through_decode_errors)
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 
 	/*
 	 * limit the number of samples to accept based on --until
 	 */
 	FLAC__ASSERT(!decoder_session->skip_specification->is_relative);
+	/* if we never got the total_samples from the metadata, the skip and until specs would never have been canonicalized, so protect against that: */
+	if(decoder_session->skip_specification->is_relative) {
+		if(decoder_session->skip_specification->value.samples == 0) /* special case for when no --skip was given */
+			decoder_session->skip_specification->is_relative = false; /* convert to our meaning of beginning-of-stream */
+		else {
+			flac__utils_printf(stderr, 1, "%s: ERROR, cannot use --skip because the total sample count was not found in the metadata\n", decoder_session->inbasefilename);
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		}
+	}
+	if(decoder_session->until_specification->is_relative) {
+		if(decoder_session->until_specification->value.samples == 0) /* special case for when no --until was given */
+			decoder_session->until_specification->is_relative = false; /* convert to our meaning of end-of-stream */
+		else {
+			flac__utils_printf(stderr, 1, "%s: ERROR, cannot use --until because the total sample count was not found in the metadata\n", decoder_session->inbasefilename);
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		}
+	}
 	FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
-	FLAC__ASSERT(!decoder_session->until_specification->is_relative);
 	FLAC__ASSERT(decoder_session->until_specification->value.samples >= 0);
 	if(decoder_session->until_specification->value.samples > 0) {
 		const FLAC__uint64 skip = (FLAC__uint64)decoder_session->skip_specification->value.samples;
@@ -1044,6 +1075,7 @@ void metadata_callback(const void *decoder, const FLAC__StreamMetadata *metadata
 	(void)decoder;
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		FLAC__uint64 skip, until;
+		decoder_session->got_stream_info = true;
 		decoder_session->bps = metadata->data.stream_info.bits_per_sample;
 		decoder_session->channels = metadata->data.stream_info.channels;
 		decoder_session->sample_rate = metadata->data.stream_info.sample_rate;
