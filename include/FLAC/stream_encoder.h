@@ -55,7 +55,7 @@ extern "C" {
  *  \ingroup flac
  *
  *  \brief
- *  This module describes the two encoder layers provided by libFLAC.
+ *  This module describes the three encoder layers provided by libFLAC.
  *
  * For encoding FLAC streams, libFLAC provides three layers of access.  The
  * lowest layer is non-seekable stream-level encoding, the next is seekable

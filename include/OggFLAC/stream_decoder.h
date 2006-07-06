@@ -571,11 +571,10 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_reset(OggFLAC__StreamDecoder *dec
  *    \code decoder != NULL \endcode
  *    \code OggFLAC__stream_decoder_get_state(decoder) == OggFLAC__STREAM_DECODER_OK \endcode
  * \retval FLAC__bool
- *    \c false if any read or write error occurred (except
- *    \c FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
- *    in any case, check the decoder state with
- *    OggFLAC__stream_decoder_get_state() to see what went wrong or to
- *    check for lost synchronization (a sign of stream corruption).
+ *    \c false if any fatal read, write, or memory allocation error
+ *    occurred (meaning decoding must stop), else \c true; for more
+ *    information about the decoder, check the decoder state with
+ *    OggFLAC__stream_decoder_get_state().
  */
 OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_single(OggFLAC__StreamDecoder *decoder);
 
@@ -588,11 +587,10 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_single(OggFLAC__StreamDec
  *    \code decoder != NULL \endcode
  *    \code OggFLAC__stream_decoder_get_state(decoder) == OggFLAC__STREAM_DECODER_OK \endcode
  * \retval FLAC__bool
- *    \c false if any read or write error occurred (except
- *    \c OggFLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
- *    in any case, check the decoder state with
- *    OggFLAC__stream_decoder_get_state() to see what went wrong or to
- *    check for lost synchronization (a sign of stream corruption).
+ *    \c false if any fatal read, write, or memory allocation error
+ *    occurred (meaning decoding must stop), else \c true; for more
+ *    information about the decoder, check the decoder state with
+ *    OggFLAC__stream_decoder_get_state().
  */
 OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_until_end_of_metadata(OggFLAC__StreamDecoder *decoder);
 
@@ -605,11 +603,10 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_until_end_of_metadata(Ogg
  *    \code decoder != NULL \endcode
  *    \code OggFLAC__stream_decoder_get_state(decoder) == OggFLAC__STREAM_DECODER_OK \endcode
  * \retval FLAC__bool
- *    \c false if any read or write error occurred (except
- *    \c OggFLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC), else \c true;
- *    in any case, check the decoder state with
- *    OggFLAC__stream_decoder_get_state() to see what went wrong or to
- *    check for lost synchronization (a sign of stream corruption).
+ *    \c false if any fatal read, write, or memory allocation error
+ *    occurred (meaning decoding must stop), else \c true; for more
+ *    information about the decoder, check the decoder state with
+ *    OggFLAC__stream_decoder_get_state().
  */
 OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_until_end_of_stream(OggFLAC__StreamDecoder *decoder);
 
