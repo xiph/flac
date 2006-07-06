@@ -66,7 +66,7 @@
 				General:
 				<ul>
 					<li>Large file (&gt;2GB) support everywhere</li>
-					<li>Better recovery for corrupted files</li>
+					<li>Much better recovery for corrupted files</li>
 				</ul>
 			</li>
 			<li>
@@ -84,7 +84,7 @@
 			<li>
 				flac:
 				<ul>
-					<li>Improved the <a href="documentation.html#flac_options_decode_through_errors"><span class="argument">-F</span></a> to allow decoding of FLAC files whose metadata is corrupted.</li>
+					<li>Improved the <a href="documentation.html#flac_options_decode_through_errors"><span class="argument">-F</span></a> to allow decoding of FLAC files whose metadata is corrupted, and other kinds of corruption.</li>
 					<li>Added a new option <a href="documentation.html#flac_options_tag_from_file"><span class="argument">--tag-from-file</span></a> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
 					<li>Added support for encoding from non-compressed AIFF-C (<a href="https://sourceforge.net/tracker/?func=detail&amp;atid=113478&amp;aid=1090933&amp;group_id=13478">SF #1090933</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now only issues a warning, not an error (see <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=31282">here</a>).</li>
@@ -139,6 +139,9 @@
 							<li><b>Added</b> FLAC__*_encoder_set_apodization()</li>
 							<li><b>Added</b> FLAC__metadata_object_cuesheet_calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC__metadata_get_cuesheet()</li>
+							<li><b>Changed</b> FLAC__StreamDecoderState: removed state FLAC__STREAM_DECODER_UNPARSEABLE_STREAM</li>
+							<li><b>Changed</b> FLAC__StreamDecoderErrorStatus: new error code FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM</li>
+							<li>The above two changes mean that when the decoder encounters what it thinks are unparseable frames from a future decoder, instead of returning a fatal error with the FLAC__STREAM_DECODER_UNPARSEABLE_STREAM state, it just calls the error callback with FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM and leaves the behavior up to the application.</li>
 						</ul>
 					</li>
 					<li>

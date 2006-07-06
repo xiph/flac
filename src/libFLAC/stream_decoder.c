@@ -151,7 +151,6 @@ FLAC_API const char * const FLAC__StreamDecoderStateString[] = {
 	"FLAC__STREAM_DECODER_READ_FRAME",
 	"FLAC__STREAM_DECODER_END_OF_STREAM",
 	"FLAC__STREAM_DECODER_ABORTED",
-	"FLAC__STREAM_DECODER_UNPARSEABLE_STREAM",
 	"FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR",
 	"FLAC__STREAM_DECODER_ALREADY_INITIALIZED",
 	"FLAC__STREAM_DECODER_INVALID_CALLBACK",
@@ -172,7 +171,8 @@ FLAC_API const char * const FLAC__StreamDecoderWriteStatusString[] = {
 FLAC_API const char * const FLAC__StreamDecoderErrorStatusString[] = {
 	"FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC",
 	"FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER",
-	"FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH"
+	"FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH",
+	"FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM"
 };
 
 /***********************************************************************
@@ -1399,7 +1399,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 
 	if(!read_frame_header_(decoder))
 		return false;
-	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC)
+	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means we didn't sync on a valid header */
 		return true;
 	if(!allocate_output_(decoder, decoder->private_->frame.header.blocksize, decoder->private_->frame.header.channels))
 		return false;
@@ -1435,10 +1435,8 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 		 */
 		if(!read_subframe_(decoder, channel, bps, do_full_decode))
 			return false;
-		if(decoder->protected_->state != FLAC__STREAM_DECODER_READ_FRAME) {
-			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+		if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means bad sync or got corruption */
 			return true;
-		}
 	}
 	if(!read_zero_padding_(decoder))
 		return false;
@@ -1813,8 +1811,9 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 	}
 
 	if(is_unparseable) {
-		decoder->protected_->state = FLAC__STREAM_DECODER_UNPARSEABLE_STREAM;
-		return false;
+		decoder->private_->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM, decoder->private_->client_data);
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+		return true;
 	}
 
 	return true;
@@ -1824,6 +1823,7 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, unsigned channel, unsign
 {
 	FLAC__uint32 x;
 	FLAC__bool wasted_bits;
+	unsigned i;
 
 	if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &x, 8, read_callback_, decoder)) /* MAGIC NUMBER */
 		return false; /* the read_callback_ sets the state for us */
@@ -1858,24 +1858,29 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, unsigned channel, unsign
 			return false;
 	}
 	else if(x < 16) {
-		decoder->protected_->state = FLAC__STREAM_DECODER_UNPARSEABLE_STREAM;
-		return false;
+		decoder->private_->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM, decoder->private_->client_data);
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+		return true;
 	}
 	else if(x <= 24) {
 		if(!read_subframe_fixed_(decoder, channel, bps, (x>>1)&7, do_full_decode))
 			return false;
+		if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means bad sync or got corruption */
+			return true;
 	}
 	else if(x < 64) {
-		decoder->protected_->state = FLAC__STREAM_DECODER_UNPARSEABLE_STREAM;
-		return false;
+		decoder->private_->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM, decoder->private_->client_data);
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+		return true;
 	}
 	else {
 		if(!read_subframe_lpc_(decoder, channel, bps, ((x>>1)&31)+1, do_full_decode))
 			return false;
+		if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means bad sync or got corruption */
+			return true;
 	}
 
 	if(wasted_bits && do_full_decode) {
-		unsigned i;
 		x = decoder->private_->frame.subframes[channel].wasted_bits;
 		for(i = 0; i < decoder->private_->frame.header.blocksize; i++)
 			decoder->private_->output[channel][i] <<= x;
@@ -1938,8 +1943,9 @@ FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, unsigned channel, 
 			subframe->entropy_coding_method.data.partitioned_rice.contents = &decoder->private_->partitioned_rice_contents[channel];
 			break;
 		default:
-			decoder->protected_->state = FLAC__STREAM_DECODER_UNPARSEABLE_STREAM;
-			return false;
+			decoder->private_->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM, decoder->private_->client_data);
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
 	}
 
 	/* read residual */
@@ -2014,8 +2020,9 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, un
 			subframe->entropy_coding_method.data.partitioned_rice.contents = &decoder->private_->partitioned_rice_contents[channel];
 			break;
 		default:
-			decoder->protected_->state = FLAC__STREAM_DECODER_UNPARSEABLE_STREAM;
-			return false;
+			decoder->private_->error_callback(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM, decoder->private_->client_data);
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
 	}
 
 	/* read residual */

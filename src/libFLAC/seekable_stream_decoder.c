@@ -91,6 +91,7 @@ typedef struct FLAC__SeekableStreamDecoderPrivate {
 	FLAC__bool ignore_seek_table_block;
 	FLAC__Frame last_frame; /* holds the info of the last frame we seeked to */
 	FLAC__uint64 target_sample;
+	unsigned unparseable_frame_count; /* used to tell whether we're decoding a future version of FLAC or just got a bad sync */
 } FLAC__SeekableStreamDecoderPrivate;
 
 /***********************************************************************
@@ -217,6 +218,7 @@ FLAC_API FLAC__SeekableStreamDecoderState FLAC__seekable_stream_decoder_init(FLA
 
 	decoder->private_->do_md5_checking = decoder->protected_->md5_checking;
 	decoder->private_->got_stream_info = false;
+	decoder->private_->unparseable_frame_count = 0;
 
 	/* We initialize the FLAC__MD5Context even though we may never use it.  This
 	 * is because md5 checking may be turned on to start and then turned off if
@@ -755,6 +757,18 @@ FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder,
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 	}
 	else if(*bytes > 0) {
+		/* While seeking, it is possible for our seek to land in the
+		 * middle of audio data that looks exactly like a frame header
+		 * from a future version of an encoder.  When that happens, our
+		 * error callback will get an
+		 * FLAC__STREAM_DECODER_UNPARSEABLE_STREAM and increment its
+		 * unparseable_frame_count.  But there is a remote possibility
+		 * that it is properly synced at such a "future-codec frame",
+		 * so to make sure, we wait to see many "unparseable" errors in
+		 * a row before bailing out.
+		 */
+		if(seekable_stream_decoder->protected_->state == FLAC__SEEKABLE_STREAM_DECODER_SEEKING && seekable_stream_decoder->private_->unparseable_frame_count > 20)
+			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 		if(seekable_stream_decoder->private_->read_callback(seekable_stream_decoder, buffer, bytes, seekable_stream_decoder->private_->client_data) != FLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK) {
 			seekable_stream_decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_READ_ERROR;
 			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
@@ -859,6 +873,8 @@ void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErro
 
 	if(seekable_stream_decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_SEEKING)
 		seekable_stream_decoder->private_->error_callback(seekable_stream_decoder, status, seekable_stream_decoder->private_->client_data);
+	else if(status == FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM)
+		seekable_stream_decoder->private_->unparseable_frame_count++;
 }
 
 FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__uint64 stream_length, FLAC__uint64 target_sample)
@@ -1040,32 +1056,16 @@ FLAC__bool seek_to_absolute_sample_(FLAC__SeekableStreamDecoder *decoder, FLAC__
 				return false;
 			}
 		}
-		/* Now we need to get a frame.  It is possible for our seek
-		 * to land in the middle of audio data that looks exactly like
-		 * a frame header from a future version of an encoder.  When
-		 * that happens, FLAC__stream_decoder_process_single() will
-		 * return false and the state will be
-		 * FLAC__STREAM_DECODER_UNPARSEABLE_STREAM.  But there is a
-		 * remote possibility that it is properly synced at such a
-		 * "future-codec frame", so to make sure, we wait to see
-		 * several "unparseable" errors in a row before bailing out.
+		/* Now we need to get a frame.  First we need to reset our
+		 * unparseable_frame_count; if we get too many unparseable
+		 * frames in a row, the read callback will return
+		 * FLAC__STREAM_DECODER_READ_STATUS_ABORT, causing
+		 * FLAC__stream_decoder_process_single() to return false.
 		 */
-		{
-			unsigned unparseable_count;
-			FLAC__bool got_a_frame = false;
-			for (unparseable_count = 0; !got_a_frame && unparseable_count < 10; unparseable_count++) {
-				if(FLAC__stream_decoder_process_single(decoder->private_->stream_decoder))
-					got_a_frame = true;
-				else if(decoder->private_->stream_decoder->protected_->state == FLAC__STREAM_DECODER_UNPARSEABLE_STREAM)
-					/* try again.  we don't want to flush the decoder since that clears the bitbuffer */
-					decoder->private_->stream_decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-				else /* it's a real error */
-					break;
-			}
-			if (!got_a_frame) {
-				decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
-				return false;
-			}
+		decoder->private_->unparseable_frame_count = 0;
+		if(!FLAC__stream_decoder_process_single(decoder->private_->stream_decoder)) {
+			decoder->protected_->state = FLAC__SEEKABLE_STREAM_DECODER_SEEK_ERROR;
+			return false;
 		}
 		/* our write callback will change the state when it gets to the target frame */
 		/* actually, we could have got_a_frame if our decoder is at FLAC__SEEKABLE_STREAM_DECODER_END_OF_STREAM so we need to check for that also */
