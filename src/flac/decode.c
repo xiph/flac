@@ -525,7 +525,7 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 
 int DecoderSession_finish_ok(DecoderSession *d)
 {
-	FLAC__bool md5_failure = false;
+	FLAC__bool ok = true, md5_failure = false;
 
 #ifdef FLAC__HAS_OGG
 	if(d->is_ogg) {
@@ -547,7 +547,8 @@ int DecoderSession_finish_ok(DecoderSession *d)
 	if(d->analysis_mode)
 		flac__analyze_finish(d->aopts);
 	if(md5_failure) {
-		flac__utils_printf(stderr, 1, "\r%s: WARNING, MD5 signature mismatch\n", d->inbasefilename);
+		flac__utils_printf(stderr, 1, "\r%s: ERROR, MD5 signature mismatch\n", d->inbasefilename);
+		ok = d->continue_through_decode_errors;
 	}
 	else if(!d->got_stream_info) {
 		flac__utils_printf(stderr, 1, "\r%s: WARNING, cannot check MD5 signature since there was no STREAMINFO\n", d->inbasefilename);
@@ -555,11 +556,11 @@ int DecoderSession_finish_ok(DecoderSession *d)
 	else {
 		flac__utils_printf(stderr, 2, "\r%s: %s         \n", d->inbasefilename, d->test_only? "ok           ":d->analysis_mode?"done           ":"done");
 	}
-	DecoderSession_destroy(d, /*error_occurred=*/false);
+	DecoderSession_destroy(d, /*error_occurred=*/!ok);
 	if((d->is_wave_out || d->is_aiff_out) && (d->iff_headers_need_fixup || (!d->got_stream_info && strcmp(d->outfilename, "-"))))
 		if(!fixup_iff_headers(d))
 			return 1;
-	return 0;
+	return ok? 0 : 1;
 }
 
 int DecoderSession_finish_error(DecoderSession *d)
