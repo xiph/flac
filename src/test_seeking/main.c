@@ -376,7 +376,7 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, off_t filesize, un
 		return die_of_("OggFLAC__file_decoder_process_until_end_of_metadata() FAILED", decoder);
 
 	printf("file's total_samples is %llu\n", decoder_client_data.total_samples);
-#if !defined _MSC_VER && !defined __MINGW32__
+#if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
 	if (decoder_client_data.total_samples > (FLAC__uint64)RAND_MAX) {
 		printf("ERROR: must be total_samples < %u\n", (unsigned)RAND_MAX);
 		return false;
