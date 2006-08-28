@@ -67,6 +67,7 @@
 				<ul>
 					<li>Large file (&gt;2GB) support everywhere</li>
 					<li>Much better recovery for corrupted files</li>
+					<li><span class="commandname">flac</span> now supports FLAC as input to the encoder (i.e. can re-encode FLAC to FLAC) and preserve all the metadata like tags, etc.</li>
 				</ul>
 			</li>
 			<li>
@@ -85,6 +86,7 @@
 				flac:
 				<ul>
 					<li>Improved the <a href="documentation.html#flac_options_decode_through_errors"><span class="argument">-F</span></a> to allow decoding of FLAC files whose metadata is corrupted, and other kinds of corruption.</li>
+					<li>Encoder can now take FLAC as input.  The output FLAC file will have all the same metadata as the original unless overridden with options on the command line.</li>
 					<li>Added a new option <a href="documentation.html#flac_options_tag_from_file"><span class="argument">--tag-from-file</span></a> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
 					<li>Added support for encoding from non-compressed AIFF-C (<a href="https://sourceforge.net/tracker/?func=detail&amp;atid=113478&amp;aid=1090933&amp;group_id=13478">SF #1090933</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now only issues a warning, not an error (see <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=31282">here</a>).</li>

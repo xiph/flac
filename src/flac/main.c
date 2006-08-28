@@ -56,7 +56,7 @@
 #  include "share/getopt.h"
 #endif
 
-typedef enum { RAW, WAV, AIF } FileFormat;
+typedef enum { RAW, WAV, AIF, FLAC } FileFormat;
 
 static int do_it();
 
@@ -234,7 +234,7 @@ static struct {
 	const char *cmdline_forced_outfilename;
 	const char *output_prefix;
 	analysis_options aopts;
-	int padding;
+	int padding; /* -1 => no -P options were given, 0 => -P- was given, else -P value */
 	char apodizations[1000]; /* bad MAGIC NUMBER but buffer overflow is checked */
 	unsigned max_lpc_order;
 	unsigned qlp_coeff_precision;
@@ -287,6 +287,7 @@ int main(int argc, char *argv[])
 	_wildcard(&argc, &argv);
 #endif
 
+	srand(time(0));
 	setlocale(LC_ALL, "");
 	if(!init_options()) {
 		flac__utils_printf(stderr, 1, "ERROR: allocating memory\n");
@@ -435,7 +436,7 @@ int do_it()
 			 * tags that we will set later, to avoid rewriting the
 			 * whole file.
 			 */
-			if(option_values.padding < 0) {
+			if(option_values.padding <= 0) {
 				flac__utils_printf(stderr, 1, "NOTE: --replay-gain may leave a small PADDING block even with --no-padding\n");
 				option_values.padding = GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
 			}
@@ -461,10 +462,10 @@ int do_it()
 
 	if(!option_values.mode_decode) {
 		char padopt[16];
-		if(option_values.padding < 0)
+		if(option_values.padding == 0)
 			strcpy(padopt, "-");
 		else
-			sprintf(padopt, " %d", option_values.padding);
+			sprintf(padopt, " %d", option_values.padding > 0? option_values.padding : FLAC_ENCODE__DEFAULT_PADDING);
 		flac__utils_printf(stderr, 2,
 			"options:%s%s%s%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u%s\n",
 			option_values.delete_input?" --delete-input-file":"",
@@ -580,7 +581,7 @@ FLAC__bool init_options()
 	option_values.output_prefix = 0;
 	option_values.aopts.do_residual_text = false;
 	option_values.aopts.do_residual_gnuplot = false;
-	option_values.padding = 4096;
+	option_values.padding = -1;
 	option_values.apodizations[0] = '\0';
 	option_values.max_lpc_order = 8;
 	option_values.qlp_coeff_precision = 0;
@@ -860,7 +861,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			option_values.do_qlp_coeff_prec_search = false;
 		}
 		else if(0 == strcmp(long_option, "no-padding")) {
-			option_values.padding = -1;
+			option_values.padding = 0;
 		}
 		else if(0 == strcmp(long_option, "no-verify")) {
 			option_values.verify = false;
@@ -1040,7 +1041,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				FLAC__ASSERT(0 != option_argument);
 				option_values.padding = atoi(option_argument);
 				if(option_values.padding < 0)
-					return usage_error("ERROR: argument to -P must be >= 0\n");
+					return usage_error("ERROR: argument to -P must be >= 0; for no padding use -P-\n");
 				break;
 			case 'b':
 				FLAC__ASSERT(0 != option_argument);
@@ -1552,19 +1553,12 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	int retval;
 	off_t infilesize;
 	encode_options_t common_options;
-	const char *outfilename = get_encoded_outfilename(infilename);
+	const char *outfilename = get_encoded_outfilename(infilename); /* the final name of the encoded file */
+	/* internal_outfilename is the file we will actually write to; it will be a temporary name if infilename==outfilename */
+	char *internal_outfilename = 0; /* NULL implies 'use outfilename' */
 
 	if(0 == outfilename) {
 		flac__utils_printf(stderr, 1, "ERROR: filename too long: %s", infilename);
-		return 1;
-	}
-
-	/*
-	 * Error if output file already exists (and -f not used).
-	 * Use grabbag__file_get_filesize() as a cheap way to check.
-	 */
-	if(!option_values.test_only && !option_values.force_file_overwrite && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
-		flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
 	}
 
@@ -1588,6 +1582,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			fmt= AIF;
 		else if(strlen(infilename) >= 5 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-5), ".aiff"))
 			fmt= AIF;
+		else if(strlen(infilename) >= 5 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-5), ".flac"))
+			fmt= FLAC;
 
 		/* attempt to guess the file type based on the first 12 bytes */
 		if((lookahead_length = fread(lookahead, 1, 12, encode_infile)) < 12) {
@@ -1604,12 +1600,35 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				fmt= AIF;
 				is_aifc = true;
 			}
+			else if(!strncmp((const char *)lookahead, FLAC__STREAM_SYNC_STRING, sizeof(FLAC__STREAM_SYNC_STRING)))
+				fmt= FLAC;
 			else {
 				if(fmt != RAW)
 					format_mistake(infilename, fmt == AIF ? "AIFF" : "WAVE", "raw");
 				fmt= RAW;
 			}
 		}
+	}
+
+	/*
+	 * Error if output file already exists (and -f not used).
+	 * Use grabbag__file_get_filesize() as a cheap way to check.
+	 */
+	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
+		if(fmt == FLAC) {
+			/* need more detailed error message when re-flac'ing to avoid confusing the user */
+			flac__utils_printf(stderr, 1,
+				"ERROR: output file %s already exists.\n\n"
+				"By default flac encodes files to FLAC format; if you meant to decode this file\n"
+				"from FLAC to something else, use -d.  If you meant to re-encode this file from\n"
+				"FLAC to FLAC again, use -f to force writing to the same file, or -o to specify\n"
+				"a different output filename.\n",
+				outfilename
+			);
+		}
+		else
+			flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
+		return 1;
 	}
 
 	if(option_values.format_input_size >= 0) {
@@ -1622,8 +1641,12 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 	}
 
+	if(option_values.sector_align && fmt == FLAC) {
+		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input file is FLAC\n");
+		return 1;
+	}
 	if(option_values.sector_align && fmt == RAW && infilesize < 0) {
-		flac__utils_printf(stderr, 1, "ERROR: can't --sector-align when the input size is unknown\n");
+		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input size is unknown\n");
 		return 1;
 	}
 
@@ -1651,7 +1674,6 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.use_ogg = option_values.use_ogg;
 	/* set a random serial number if one has not yet been specified */
 	if(!option_values.has_serial_number) {
-		srand(time(0));
 		option_values.serial_number = rand();
 		option_values.has_serial_number = true;
 	}
@@ -1686,6 +1708,17 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.debug.disable_fixed_subframes = option_values.debug.disable_fixed_subframes;
 	common_options.debug.disable_verbatim_subframes = option_values.debug.disable_verbatim_subframes;
 
+	/* if infilename==outfilename, we need to write to a temporary file */
+	if(encode_infile != stdin && 0 == strcmp(infilename, outfilename)) { /*@@@@@@ BUG strcmp is not adequate to check if infilename and outfilename are the same file */
+		static const char *tmp_suffix = ".tmp";
+		if(0 == (internal_outfilename = malloc(strlen(outfilename)+strlen(tmp_suffix)+1))) {
+			flac__utils_printf(stderr, 1, "ERROR allocating memory for tempfile name\n");
+			return 1;
+		}
+		strcpy(internal_outfilename, outfilename);
+		strcat(internal_outfilename, tmp_suffix);
+	}
+
 	if(fmt == RAW) {
 		raw_encode_options_t options;
 
@@ -1696,7 +1729,14 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		options.bps = option_values.format_bps;
 		options.sample_rate = option_values.format_sample_rate;
 
-		retval = flac__encode_raw(encode_infile, infilesize, infilename, outfilename, lookahead, lookahead_length, options);
+		retval = flac__encode_raw(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
+	}
+	else if(fmt == FLAC) {
+		flac_encode_options_t options;
+
+		options.common = common_options;
+
+		retval = flac__encode_flac(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
 	}
 	else {
 		wav_encode_options_t options;
@@ -1704,26 +1744,40 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		options.common = common_options;
 
 		if(fmt == AIF)
-			retval = flac__encode_aif(encode_infile, infilesize, infilename, outfilename, lookahead, lookahead_length, options, is_aifc);
+			retval = flac__encode_aif(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options, is_aifc);
 		else
-			retval = flac__encode_wav(encode_infile, infilesize, infilename, outfilename, lookahead, lookahead_length, options);
+			retval = flac__encode_wav(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
 	}
 
-	if(retval == 0 && strcmp(infilename, "-")) {
+	if(retval == 0) {
 		if(strcmp(outfilename, "-")) {
 			if(option_values.replay_gain) {
 				float title_gain, title_peak;
 				const char *error;
 				grabbag__replaygain_get_title(&title_gain, &title_peak);
-				if(0 != (error = grabbag__replaygain_store_to_file_title(outfilename, title_gain, title_peak, /*preserve_modtime=*/true))) {
+				if(0 != (error = grabbag__replaygain_store_to_file_title(internal_outfilename, title_gain, title_peak, /*preserve_modtime=*/true))) {
 					flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain title tags\n", outfilename);
 				}
 			}
-			grabbag__file_copy_metadata(infilename, outfilename);
+			if(strcmp(infilename, "-"))
+				grabbag__file_copy_metadata(infilename, internal_outfilename);
 		}
-		if(option_values.delete_input)
-			unlink(infilename);
 	}
+
+	/* rename temporary file if necessary */
+	if(retval == 0 && internal_outfilename != 0) {
+		if(rename(internal_outfilename, outfilename) < 0) {
+			flac__utils_printf(stderr, 1, "ERROR: moving new FLAC file %s back on top of original FLAC file %s, keeping both\n", internal_outfilename, outfilename);
+			retval = 1;
+		}
+	}
+
+	/* handle --delete-input-file, but don't want to delete if piping from stdin, or if input filename and output filename are the same */
+	if(retval == 0 && option_values.delete_input && strcmp(infilename, "-") && internal_outfilename == 0)
+		unlink(infilename);
+
+	if(internal_outfilename != 0)
+		free(internal_outfilename);
 
 	return retval;
 }
@@ -1870,14 +1924,7 @@ const char *get_outfilename(const char *infilename, const char *suffix)
 					return 0;
 			}
 			else {
-				if(0 == strcmp(p, suffix)) {
-					*p = '\0';
-					if (flac__strlcat(buffer, "_new", sizeof buffer) >= sizeof buffer)
-						return 0;
-				}
-				else {
-					*p = '\0';
-				}
+				*p = '\0';
 				if (flac__strlcat(buffer, suffix, sizeof buffer) >= sizeof buffer)
 					return 0;
 			}

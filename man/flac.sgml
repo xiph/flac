@@ -50,6 +50,7 @@
                <arg><replaceable>infile.wav</replaceable></arg>
                <arg><replaceable>infile.aiff</replaceable></arg>
                <arg><replaceable>infile.raw</replaceable></arg>
+               <arg><replaceable>infile.flac</replaceable></arg>
                <arg>-</arg>
             </group>
 	  </cmdsynopsis>
@@ -70,10 +71,6 @@
 	  <para><command>flac</command> is a command-line tool for
              encoding, decoding, testing and analyzing FLAC streams.
           </para>
-
-	  <para>This manual page was originally written for the &debian;
-	    distribution because the original program did not have a
-	    manual page.</para>
 
 	</refsect1>
 	<refsect1>

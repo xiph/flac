@@ -31,6 +31,8 @@
 #include <config.h>
 #endif
 
+extern const int FLAC_ENCODE__DEFAULT_PADDING;
+
 typedef struct {
 	utils__SkipUntilSpecification skip_specification;
 	utils__SkipUntilSpecification until_specification;
@@ -89,8 +91,13 @@ typedef struct {
 	unsigned sample_rate;
 } raw_encode_options_t;
 
+typedef struct {
+	encode_options_t common;
+} flac_encode_options_t;
+
 int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, wav_encode_options_t options, FLAC__bool is_aifc);
 int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, wav_encode_options_t options);
 int flac__encode_raw(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, raw_encode_options_t options);
+int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, flac_encode_options_t options);
 
 #endif

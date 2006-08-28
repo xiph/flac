@@ -54,4 +54,4 @@ valgrind: all
 release : all
 
 clean:
-	rm -f *.raw *.flac *.ogg *.cmp *.aiff *.wav *.diff *.log *.cue core
+	rm -f *.raw *.flac *.ogg *.cmp *.aiff *.wav *.diff *.log *.cue core flac-to-flac-metadata-test-files/out.* metaflac-test-files/out.*

@@ -17,7 +17,7 @@
 
 TESTS_ENVIRONMENT = FLAC__TEST_LEVEL=@FLAC__TEST_LEVEL@ FLAC__TEST_WITH_VALRGIND=@FLAC__TEST_WITH_VALGRIND@
 
-SUBDIRS = cuesheets
+SUBDIRS = cuesheets flac-to-flac-metadata-test-files metaflac-test-files
 
 if FLaC__HAS_OGG
 OGG_TESTS = \
