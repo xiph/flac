@@ -87,8 +87,8 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	FLAC__ASSERT(0 != format);
 	FLAC__ASSERT(0 != name);
-	FLAC__ASSERT(0 != value);
 
 	buffer[sizeof(buffer)-1] = '\0';
 	/*

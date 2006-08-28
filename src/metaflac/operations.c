@@ -545,7 +545,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 
 	switch(block->type) {
 		case FLAC__METADATA_TYPE_STREAMINFO:
-			PPR; printf("  minumum blocksize: %u samples\n", block->data.stream_info.min_blocksize);
+			PPR; printf("  minimum blocksize: %u samples\n", block->data.stream_info.min_blocksize);
 			PPR; printf("  maximum blocksize: %u samples\n", block->data.stream_info.max_blocksize);
 			PPR; printf("  minimum framesize: %u bytes\n", block->data.stream_info.min_framesize);
 			PPR; printf("  maximum framesize: %u bytes\n", block->data.stream_info.max_framesize);
