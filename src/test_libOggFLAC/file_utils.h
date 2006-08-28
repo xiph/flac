@@ -25,10 +25,7 @@
 #endif
 
 #include "FLAC/format.h"
-#include <stdlib.h> /* for off_t */
-#if defined _MSC_VER || defined __MINGW32__
 #include <sys/types.h> /* for off_t */
-#endif
 
 extern const long file_utils__serial_number;
 
