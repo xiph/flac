@@ -36,6 +36,7 @@
 
 #include "FLAC/ordinals.h"
 #include "FLAC/stream_decoder.h" /* for FLAC__StreamDecoderReadStatus */
+#include "OggFLAC/stream_decoder.h"
 
 typedef struct OggFLAC__OggDecoderAspect {
 	/* these are storage for values that can be set through the API */
@@ -74,6 +75,6 @@ typedef enum {
 
 typedef OggFLAC__OggDecoderAspectReadStatus (*OggFLAC__OggDecoderAspectReadCallbackProxy)(const void *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 
-OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wrapper(OggFLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], unsigned *bytes, OggFLAC__OggDecoderAspectReadCallbackProxy read_callback, void *decoder, void *client_data);
+OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wrapper(OggFLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], unsigned *bytes, OggFLAC__OggDecoderAspectReadCallbackProxy read_callback, const OggFLAC__StreamDecoder *decoder, void *client_data);
 
 #endif

@@ -19,4 +19,4 @@ if FLaC__HAS_OGG
 OGGFLAC_DIRS = OggFLAC OggFLAC++
 endif
 
-SUBDIRS = FLAC FLAC++ $(OGGFLAC_DIRS) share
+SUBDIRS = FLAC FLAC++ $(OGGFLAC_DIRS) share test_libs_common

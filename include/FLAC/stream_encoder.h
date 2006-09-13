@@ -32,6 +32,7 @@
 #ifndef FLAC__STREAM_ENCODER_H
 #define FLAC__STREAM_ENCODER_H
 
+#include <stdio.h> /* for FILE */
 #include "export.h"
 #include "format.h"
 #include "stream_decoder.h"
@@ -55,29 +56,23 @@ extern "C" {
  *  \ingroup flac
  *
  *  \brief
- *  This module describes the three encoder layers provided by libFLAC.
+ *  This module describes the two encoder layers provided by libFLAC.
  *
- * For encoding FLAC streams, libFLAC provides three layers of access.  The
- * lowest layer is non-seekable stream-level encoding, the next is seekable
- * stream-level encoding, and the highest layer is file-level encoding.  The
- * interfaces are described in the \link flac_stream_encoder stream encoder
- * \endlink, \link flac_seekable_stream_encoder seekable stream encoder
- * \endlink, and \link flac_file_encoder file encoder \endlink modules
- * respectively.  Typically you will choose the highest layer that your input
- * source will support.
- * The stream encoder relies on callbacks for writing the data and
- * metadata. The file encoder provides these callbacks internally and you
- * need only supply the filename.
+ * libFLAC provides two ways of encoding FLAC streams.  There is a @@@@@@frame encoder which encodes single frames at a time, and a stream encoder which encodes whole streams.
  *
- * The stream encoder relies on callbacks for writing the data and has no
- * provisions for seeking the output.  The seekable stream encoder wraps
- * the stream encoder and also automaticallay handles the writing back of
- * metadata discovered while encoding.  However, you must provide extra
- * callbacks for seek-related operations on your output, like seek and
- * tell.  The file encoder wraps the seekable stream encoder and supplies
- * all of the callbacks internally, simplifying the processing of standard
- * files.  The only callback exposed is for progress reporting, and that
- * is optional.
+ * @@@@@@TODO frame encoder
+ *
+ * The stream encoder can be used encode complete streams either to the
+ * client via callbacks, or directly to a file, depending on how it is
+ * initialized.  When encoding via callbacks, the client provides a write
+ * callback which will be called whenever FLAC data is ready to be written.
+ * If the client also supplies a seek callback, the encoder will also
+ * automatically handle the writing back of metadata discovered while
+ * encoding, like stream info, seek points offsets, etc.  When encoding to
+ * a file, the client needs only supply a filename or open \c FILE* and an
+ * optional progress callback for periodic notification of progress; the
+ * write and seek callbacks are supplied internally.  For more info see the
+ * \link flac_stream_encoder stream encoder \endlink module.
  */
 
 /** \defgroup flac_stream_encoder FLAC/stream_encoder.h: stream encoder interface
@@ -90,18 +85,21 @@ extern "C" {
  * The basic usage of this encoder is as follows:
  * - The program creates an instance of an encoder using
  *   FLAC__stream_encoder_new().
- * - The program overrides the default settings and sets callbacks using
+ * - The program overrides the default settings using
  *   FLAC__stream_encoder_set_*() functions.
  * - The program initializes the instance to validate the settings and
- *   prepare for encoding using FLAC__stream_encoder_init().
+ *   prepare for encoding using FLAC__stream_encoder_init_stream() or
+ *   FLAC__stream_encoder_init_FILE() or FLAC__stream_encoder_init_file(),
+ *   depending on the nature of the output.
  * - The program calls FLAC__stream_encoder_process() or
  *   FLAC__stream_encoder_process_interleaved() to encode data, which
  *   subsequently calls the callbacks when there is encoder data ready
  *   to be written.
  * - The program finishes the encoding with FLAC__stream_encoder_finish(),
  *   which causes the encoder to encode any data still in its input pipe,
- *   call the metadata callback with the final encoding statistics, and
- *   finally reset the encoder to the uninitialized state.
+ *   update the metadata with the final encoding statistics if output
+ *   seeking is possible, and finally reset the encoder to the
+ *   uninitialized state.
  * - The instance may be used again or deleted with
  *   FLAC__stream_encoder_delete().
  *
@@ -109,8 +107,9 @@ extern "C" {
  * \link flac_stream_decoder stream decoder \endlink, but has fewer
  * callbacks and more options.  Typically the user will create a new
  * instance by calling FLAC__stream_encoder_new(), then set the necessary
- * parameters and callbacks with FLAC__stream_encoder_set_*(), and
- * initialize it by calling FLAC__stream_encoder_init().
+ * parameters with FLAC__stream_encoder_set_*(), and initialize it by
+ * calling FLAC__stream_encoder_init_stream() or
+ * FLAC__stream_encoder_init_file() or FLAC__stream_encoder_init_FILE().
  *
  * Unlike the decoders, the stream encoder has many options that can
  * affect the speed and compression ratio.  When setting these parameters
@@ -118,26 +117,32 @@ extern "C" {
  * <A HREF="../documentation.html#format">user-level documentation</A>
  * or the <A HREF="../format.html">formal description</A>).  The
  * FLAC__stream_encoder_set_*() functions themselves do not validate the
- * values as many are interdependent.  The FLAC__stream_encoder_init()
- * function will do this, so make sure to pay attention to the state
- * returned by FLAC__stream_encoder_init() to make sure that it is
- * FLAC__STREAM_ENCODER_OK.  Any parameters that are not set before
- * FLAC__stream_encoder_init() will take on the defaults from the
- * constructor.
+ * values as many are interdependent.  The FLAC__stream_encoder_init_*()
+ * functions will do this, so make sure to pay attention to the state
+ * returned by FLAC__stream_encoder_init_*() to make sure that it is
+ * FLAC__STREAM_ENCODER_INIT_STATUS_OK.  Any parameters that are not set
+ * before FLAC__stream_encoder_init_*() will take on the defaults from
+ * the constructor.
  *
- * The user must provide function pointers for the following callbacks:
+ * There are three initialization functions, one for setting up the encoder
+ * to encode FLAC data to the client via callbacks, and two for encoding
+ * directly to a file.
  *
- * - Write callback - This function is called by the encoder anytime there
- *   is raw encoded data to write.  It may include metadata mixed with
- *   encoded audio frames and the data is not guaranteed to be aligned on
- *   frame or metadata block boundaries.
- * - Metadata callback - This function is called once at the end of
- *   encoding with the populated STREAMINFO structure.  This is so file
- *   encoders can seek back to the beginning of the file and write the
- *   STREAMINFO block with the correct statistics after encoding (like
- *   minimum/maximum frame size).
+ * For encoding via callbacks, use FLAC__stream_encoder_init_stream().
+ * You must also supply a write callback which will be called anytime
+ * there is raw encoded data to write.  If the client can seek the output
+ * it is best to also supply seek and tell callbacks, as this allows the
+ * encoder to go back after encoding is finished to write back
+ * information that was collected while encoding, like seek point offsets,
+ * frame sizes, etc.
  *
- * The call to FLAC__stream_encoder_init() currently will also immediately
+ * For encoding directly to a file, use FLAC__stream_encoder_init_FILE()
+ * or FLAC__stream_encoder_init_file().  Then you must only supply a
+ * filename or open \c FILE*; the encoder will handle all the callbacks
+ * internally.  You may also supply a progress callback for periodic
+ * notification of the encoding progress.
+ *
+ * The call to FLAC__stream_encoder_init_*() currently will also immediately
  * call the write callback several times, once with the \c fLaC signature,
  * and once for each encoded metadata block.
  *
@@ -177,6 +182,14 @@ extern "C" {
  * for the specification of metadata blocks and their lengths.
  *
  * \note
+ * If you are writing the FLAC data to a file via callbacks, make sure it
+ * is open for update (e.g. mode "w+" for stdio streams).  This is because
+ * after the first encoding pass, the encoder will try to seek back to the
+ * beginning of the stream, to the STREAMINFO block, to write some data
+ * there.  (If using FLAC__stream_encoder_init_file() or
+ * FLAC__stream_encoder_init_FILE(), the file is managed internally.)
+ *
+ * \note
  * The "set" functions may only be called when the encoder is in the
  * state FLAC__STREAM_ENCODER_UNINITIALIZED, i.e. after
  * FLAC__stream_encoder_new() or FLAC__stream_encoder_finish(), but
@@ -185,20 +198,30 @@ extern "C" {
  *
  * \note
  * FLAC__stream_encoder_finish() resets all settings to the constructor
- * defaults, including the callbacks.
+ * defaults.
  *
  * \{
  */
 
 
-/** State values for a FLAC__StreamEncoder
+/** State values for a FLAC__StreamEncoder.
  *
- *  The encoder's state can be obtained by calling FLAC__stream_encoder_get_state().
+ * The encoder's state can be obtained by calling FLAC__stream_encoder_get_state().
+ *
+ * If the encoder gets into any other state besides \c FLAC__STREAM_ENCODER_OK
+ * or \c FLAC__STREAM_ENCODER_UNINITIALIZED, it becomes invalid for encoding and
+ * must be deleted with FLAC__stream_encoder_delete().
  */
 typedef enum {
 
 	FLAC__STREAM_ENCODER_OK = 0,
-	/**< The encoder is in the normal OK state. */
+	/**< The encoder is in the normal OK state and samples can be processed. */
+
+	FLAC__STREAM_ENCODER_UNINITIALIZED,
+	/**< The encoder is in the uninitialized state; one of the
+	 * FLAC__stream_encoder_init_*() functions must be called before samples
+	 * can be processed.
+	 */
 
 	FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR,
 	/**< An error occurred in the underlying verify stream decoder;
@@ -210,74 +233,21 @@ typedef enum {
 	 * audio signal and the decoded audio signal.
 	 */
 
-	FLAC__STREAM_ENCODER_INVALID_CALLBACK,
-	/**< The encoder was initialized before setting all the required callbacks. */
+	FLAC__STREAM_ENCODER_CLIENT_ERROR,
+	/**< One of the callbacks returned a fatal error. */
 
-	FLAC__STREAM_ENCODER_INVALID_NUMBER_OF_CHANNELS,
-	/**< The encoder has an invalid setting for number of channels. */
-
-	FLAC__STREAM_ENCODER_INVALID_BITS_PER_SAMPLE,
-	/**< The encoder has an invalid setting for bits-per-sample.
-	 * FLAC supports 4-32 bps but the reference encoder currently supports
-	 * only up to 24 bps.
+	FLAC__STREAM_ENCODER_IO_ERROR,
+	/**< An I/O error occurred while opening/reading/writing a file.
+	 * Check \c errno.
 	 */
-
-	FLAC__STREAM_ENCODER_INVALID_SAMPLE_RATE,
-	/**< The encoder has an invalid setting for the input sample rate. */
-
-	FLAC__STREAM_ENCODER_INVALID_BLOCK_SIZE,
-	/**< The encoder has an invalid setting for the block size. */
-
-	FLAC__STREAM_ENCODER_INVALID_MAX_LPC_ORDER,
-	/**< The encoder has an invalid setting for the maximum LPC order. */
-
-	FLAC__STREAM_ENCODER_INVALID_QLP_COEFF_PRECISION,
-	/**< The encoder has an invalid setting for the precision of the quantized linear predictor coefficients. */
-
-	FLAC__STREAM_ENCODER_MID_SIDE_CHANNELS_MISMATCH,
-	/**< Mid/side coding was specified but the number of channels is not equal to 2. */
-
-	FLAC__STREAM_ENCODER_MID_SIDE_SAMPLE_SIZE_MISMATCH,
-	/**< Deprecated. */
-
-	FLAC__STREAM_ENCODER_ILLEGAL_MID_SIDE_FORCE,
-	/**< Loose mid/side coding was specified but mid/side coding was not. */
-
-	FLAC__STREAM_ENCODER_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER,
-	/**< The specified block size is less than the maximum LPC order. */
-
-	FLAC__STREAM_ENCODER_NOT_STREAMABLE,
-	/**< The encoder is bound to the "streamable subset" but other settings violate it. */
 
 	FLAC__STREAM_ENCODER_FRAMING_ERROR,
-	/**< An error occurred while writing the stream; usually, the write_callback returned an error. */
-
-	FLAC__STREAM_ENCODER_INVALID_METADATA,
-	/**< The metadata input to the encoder is invalid, in one of the following ways:
-	 * - FLAC__stream_encoder_set_metadata() was called with a null pointer but a block count > 0
-	 * - One of the metadata blocks contains an undefined type
-	 * - It contains an illegal CUESHEET as checked by FLAC__format_cuesheet_is_legal()
-	 * - It contains an illegal SEEKTABLE as checked by FLAC__format_seektable_is_legal()
-	 * - It contains more than one SEEKTABLE block or more than one VORBIS_COMMENT block
+	/**< An error occurred while writing the stream; usually, the
+	 * write_callback returned an error.
 	 */
 
-	FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_ENCODING,
-	/**< An error occurred while writing the stream; usually, the write_callback returned an error. */
-
-	FLAC__STREAM_ENCODER_FATAL_ERROR_WHILE_WRITING,
-	/**< The write_callback returned an error. */
-
-	FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR,
+	FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR
 	/**< Memory allocation failed. */
-
-	FLAC__STREAM_ENCODER_ALREADY_INITIALIZED,
-	/**< FLAC__stream_encoder_init() was called when the encoder was
-	 * already initialized, usually because
-	 * FLAC__stream_encoder_finish() was not called.
-	 */
-
-	FLAC__STREAM_ENCODER_UNINITIALIZED
-	/**< The encoder is in the uninitialized state. */
 
 } FLAC__StreamEncoderState;
 
@@ -287,6 +257,79 @@ typedef enum {
  *  will give the string equivalent.  The contents should not be modified.
  */
 extern FLAC_API const char * const FLAC__StreamEncoderStateString[];
+
+/** Possible return values for the FLAC__stream_encoder_init_*() functions.
+ */
+typedef enum {
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_OK = 0,
+	/**< Initialization was successful. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR,
+	/**< General failure to set up encoder; call FLAC__stream_encoder_get_state() for cause. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_CALLBACKS,
+	/**< A required callback was not supplied. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_NUMBER_OF_CHANNELS,
+	/**< The encoder has an invalid setting for number of channels. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BITS_PER_SAMPLE,
+	/**< The encoder has an invalid setting for bits-per-sample.
+	 * FLAC supports 4-32 bps but the reference encoder currently supports
+	 * only up to 24 bps.
+	 */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_SAMPLE_RATE,
+	/**< The encoder has an invalid setting for the input sample rate. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BLOCK_SIZE,
+	/**< The encoder has an invalid setting for the block size. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_MAX_LPC_ORDER,
+	/**< The encoder has an invalid setting for the maximum LPC order. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_QLP_COEFF_PRECISION,
+	/**< The encoder has an invalid setting for the precision of the quantized linear predictor coefficients. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_MID_SIDE_CHANNELS_MISMATCH,
+	/**< Mid/side coding was specified but the number of channels is not equal to 2. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_MID_SIDE_SAMPLE_SIZE_MISMATCH,
+	/**< Deprecated. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_ILLEGAL_MID_SIDE_FORCE,
+	/**< Loose mid/side coding was specified but mid/side coding was not. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER,
+	/**< The specified block size is less than the maximum LPC order. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE,
+	/**< The encoder is bound to the "streamable subset" but other settings violate it. */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA,
+	/**< The metadata input to the encoder is invalid, in one of the following ways:
+	 * - FLAC__stream_encoder_set_metadata() was called with a null pointer but a block count > 0
+	 * - One of the metadata blocks contains an undefined type
+	 * - It contains an illegal CUESHEET as checked by FLAC__format_cuesheet_is_legal()
+	 * - It contains an illegal SEEKTABLE as checked by FLAC__format_seektable_is_legal()
+	 * - It contains more than one SEEKTABLE block or more than one VORBIS_COMMENT block
+	 */
+
+	FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED
+	/**< FLAC__stream_encoder_init_*() was called when the encoder was
+	 * already initialized, usually because
+	 * FLAC__stream_encoder_finish() was not called.
+	 */
+
+} FLAC__StreamEncoderInitStatus;
+
+/** Maps a FLAC__StreamEncoderInitStatus to a C string.
+ *
+ *  Using a FLAC__StreamEncoderInitStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern FLAC_API const char * const FLAC__StreamEncoderInitStatusString[];
 
 /** Return values for the FLAC__StreamEncoder write callback.
  */
@@ -307,6 +350,51 @@ typedef enum {
  */
 extern FLAC_API const char * const FLAC__StreamEncoderWriteStatusString[];
 
+/** Return values for the FLAC__StreamEncoder seek callback.
+ */
+typedef enum {
+
+	FLAC__STREAM_ENCODER_SEEK_STATUS_OK,
+	/**< The seek was OK and encoding can continue. */
+
+	FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR,
+	/**< An unrecoverable error occurred. */
+
+	FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED
+	/**< Client does not support seeking. */
+
+} FLAC__StreamEncoderSeekStatus;
+
+/** Maps a FLAC__StreamEncoderSeekStatus to a C string.
+ *
+ *  Using a FLAC__StreamEncoderSeekStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern FLAC_API const char * const FLAC__StreamEncoderSeekStatusString[];
+
+
+/** Return values for the FLAC__StreamEncoder tell callback.
+ */
+typedef enum {
+
+	FLAC__STREAM_ENCODER_TELL_STATUS_OK,
+	/**< The tell was OK and encoding can continue. */
+
+	FLAC__STREAM_ENCODER_TELL_STATUS_ERROR,
+	/**< An unrecoverable error occurred. */
+
+	FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED
+	/**< Client does not support seeking. */
+
+} FLAC__StreamEncoderTellStatus;
+
+/** Maps a FLAC__StreamEncoderTellStatus to a C string.
+ *
+ *  Using a FLAC__StreamEncoderTellStatus as the index to this array
+ *  will give the string equivalent.  The contents should not be modified.
+ */
+extern FLAC_API const char * const FLAC__StreamEncoderTellStatusString[];
+
 
 /***********************************************************************
  *
@@ -326,31 +414,125 @@ typedef struct {
 } FLAC__StreamEncoder;
 
 /** Signature for the write callback.
- *  See FLAC__stream_encoder_set_write_callback() for more info.
+ *
+ *  A function pointer matching this signature must be passed to
+ *  FLAC__stream_encoder_init_stream().  The supplied function will be called
+ *  by the encoder anytime there is raw encoded data ready to write.  It may
+ *  include metadata mixed with encoded audio frames and the data is not
+ *  guaranteed to be aligned on frame or metadata block boundaries.
+ *
+ *  The only duty of the callback is to write out the \a bytes worth of data
+ *  in \a buffer to the current position in the output stream.  The arguments
+ *  \a samples and \a current_frame are purely informational.  If \a samples
+ *  is greater than \c 0, then \a current_frame will hold the current frame
+ *  number that is being written; otherwise it indicates that the write
+ *  callback is being called to write metadata.
+ *
+ * \note In general, FLAC__StreamEncoder functions which change the
+ * state should not be called on the \a encoder while in the callback.
  *
  * \param  encoder  The encoder instance calling the callback.
  * \param  buffer   An array of encoded data of length \a bytes.
  * \param  bytes    The byte length of \a buffer.
  * \param  samples  The number of samples encoded by \a buffer.
- *                  \c 0 has a special meaning; see
- *                  FLAC__stream_encoder_set_write_callback().
+ *                  \c 0 has a special meaning; see above.
  * \param  current_frame  The number of the current frame being encoded.
  * \param  client_data  The callee's client data set through
- *                      FLAC__stream_encoder_set_client_data().
+ *                      FLAC__stream_encoder_init_*().
  * \retval FLAC__StreamEncoderWriteStatus
  *    The callee's return status.
  */
 typedef FLAC__StreamEncoderWriteStatus (*FLAC__StreamEncoderWriteCallback)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 
+/** Signature for the seek callback.
+ *
+ *  A function pointer matching this signature may be passed to
+ *  FLAC__stream_encoder_init_stream().  The supplied function will be called
+ *  when the encoder needs to seek the output stream.  The encoder will pass
+ *  the absolute byte offset to seek to, 0 meaning the beginning of the stream.
+ *
+ * \note In general, FLAC__StreamEncoder functions which change the
+ * state should not be called on the \a encoder while in the callback.
+ *
+ * \param  encoder  The encoder instance calling the callback.
+ * \param  absolute_byte_offset  The offset from the beginning of the stream
+ *                               to seek to.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__stream_encoder_init_*().
+ * \retval FLAC__StreamEncoderSeekStatus
+ *    The callee's return status.
+ */
+typedef FLAC__StreamEncoderSeekStatus (*FLAC__StreamEncoderSeekCallback)(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+
+/** Signature for the tell callback.
+ *
+ *  A function pointer matching this signature may be passed to
+ *  FLAC__stream_encoder_init_stream().  The supplied function will be called
+ *  when the encoder needs to know the current position of the output stream.
+ *
+ * \warning
+ * The callback must return the true current byte offset of the output to
+ * which the encoder is writing.  If you are buffering the output, make
+ * sure and take this into account.  If you are writing directly to a
+ * FILE* from your write callback, ftell() is sufficient.  If you are
+ * writing directly to a file descriptor from your write callback, you
+ * can use lseek(fd, SEEK_CUR, 0).  The encoder may later seek back to
+ * these points to rewrite metadata after encoding.
+ *
+ * \note In general, FLAC__StreamEncoder functions which change the
+ * state should not be called on the \a encoder while in the callback.
+ *
+ * \param  encoder  The encoder instance calling the callback.
+ * \param  absolute_byte_offset  The address at which to store the current
+ *                               position of the output.
+ * \param  client_data  The callee's client data set through
+ *                      FLAC__stream_encoder_init_*().
+ * \retval FLAC__StreamEncoderTellStatus
+ *    The callee's return status.
+ */
+typedef FLAC__StreamEncoderTellStatus (*FLAC__StreamEncoderTellCallback)(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
+
 /** Signature for the metadata callback.
- *  See FLAC__stream_encoder_set_metadata_callback() for more info.
+ *
+ *  A function pointer matching this signature may be passed to
+ *  FLAC__stream_encoder_init_stream().  The supplied function will be called
+ *  once at the end of encoding with the populated STREAMINFO structure.  This
+ *  is so the client can seek back to the beginning of the file and write the
+ *  STREAMINFO block with the correct statistics after encoding (like
+ *  minimum/maximum frame size and total samples).
+ *
+ * \note In general, FLAC__StreamEncoder functions which change the
+ * state should not be called on the \a encoder while in the callback.
  *
  * \param  encoder      The encoder instance calling the callback.
  * \param  metadata     The final populated STREAMINFO block.
  * \param  client_data  The callee's client data set through
- *                      FLAC__stream_encoder_set_client_data().
+ *                      FLAC__stream_encoder_init_*().
  */
 typedef void (*FLAC__StreamEncoderMetadataCallback)(const FLAC__StreamEncoder *encoder, const FLAC__StreamMetadata *metadata, void *client_data);
+
+/** Signature for the progress callback.
+ *
+ *  A function pointer matching this signature may be passed to
+ *  FLAC__stream_encoder_init_file() or FLAC__stream_encoder_init_FILE().
+ *  The supplied function will be called when the encoder has finished
+ *  writing a frame.  The \c total_frames_estimate argument to the
+ *  callback will be based on the value from
+ *  FLAC__file_encoder_set_total_samples_estimate().
+ *
+ * \note In general, FLAC__StreamEncoder functions which change the
+ * state should not be called on the \a encoder while in the callback.
+ *
+ * \param  encoder          The encoder instance calling the callback.
+ * \param  bytes_written    Bytes written so far.
+ * \param  samples_written  Samples written so far.
+ * \param  frames_written   Frames written so far.
+ * \param  total_frames_estimate  The estimate of the total number of
+ *                                frames to be written.
+ * \param  client_data      The callee's client data set through
+ *                          FLAC__stream_encoder_init_*().
+ */
+typedef void (*FLAC__StreamEncoderProgressCallback)(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 
 
 /***********************************************************************
@@ -691,9 +873,10 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__Stream
 /** Set the metadata blocks to be emitted to the stream before encoding.
  *  A value of \c NULL, \c 0 implies no metadata; otherwise, supply an
  *  array of pointers to metadata blocks.  The array is non-const since
- *  the encoder may need to change the \a is_last flag inside them.
- *  Otherwise, the encoder will not modify or free the blocks.  It is up
- *  to the caller to free the metadata blocks after encoding.
+ *  the encoder may need to change the \a is_last flag inside them, and
+ *  in some cases update seek point offsets.  Otherwise, the encoder will
+ *  not modify or free the blocks.  It is up to the caller to free the
+ *  metadata blocks after encoding.
  *
  * \note
  * The encoder stores only the \a metadata pointer; the passed-in array
@@ -706,11 +889,34 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__Stream
  *
  * \note
  * By default the encoder does not create a SEEKTABLE.  If one is supplied
- * in the \a metadata array it will be written verbatim.  However by itself
- * this is not very useful as the user will not know the stream offsets for
- * the seekpoints ahead of time.  You must use the seekable stream encoder
- * to generate a legal seektable
- * (see FLAC__seekable_stream_encoder_set_metadata())
+ * in the \a metadata array, but the client has specified that it does not
+ * support seeking, then the SEEKTABLE will be written verbatim.  However
+ * by itself this is not very useful as the client will not know the stream
+ * offsets for the seekpoints ahead of time.  In order to get a proper
+ * seektable the client must support seeking.  See next note.
+ *
+ * \note
+ * SEEKTABLE blocks are handled specially.  Since you will not know
+ * the values for the seek point stream offsets, you should pass in
+ * a SEEKTABLE 'template', that is, a SEEKTABLE object with the
+ * required sample numbers (or placeholder points), with \c 0 for the
+ * \a frame_samples and \a stream_offset fields for each point.  If the
+ * client has specified that it supports seeking by providing a seek
+ * callback to FLAC__stream_encoder_init_stream() (or by using
+ * FLAC__stream_encoder_init_file() or FLAC__stream_encoder_init_FILE()),
+ * then while it is encoding the encoder will fill the stream offsets in
+ * for you and when encoding is finished, it will seek back and write the
+ * real values into the SEEKTABLE block in the stream.  There are helper
+ * routines for manipulating seektable template blocks; see metadata.h:
+ * FLAC__metadata_object_seektable_template_*().  If the client does
+ * not support seeking, the SEEKTABLE will have inaccurate offsets which
+ * will slow down or remove the ability to seek in the FLAC stream.
+ *
+ * \note
+ * The encoder instance \b will modify the first \c SEEKTABLE block
+ * as it transforms the template to a valid seektable while encoding,
+ * but it is still up to the caller to free all metadata blocks after
+ * encoding.
  *
  * \note
  * A VORBIS_COMMENT block may be supplied.  The vendor string in it
@@ -730,68 +936,6 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__Stream
  *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks);
-
-/** Set the write callback.
- *  The supplied function will be called by the encoder anytime there is raw
- *  encoded data ready to write.  It may include metadata mixed with encoded
- *  audio frames and the data is not guaranteed to be aligned on frame or
- *  metadata block boundaries.
- *
- *  The only duty of the callback is to write out the \a bytes worth of data
- *  in \a buffer to the current position in the output stream.  The arguments
- *  \a samples and \a current_frame are purely informational.  If \a samples
- *  is greater than \c 0, then \a current_frame will hold the current frame
- *  number that is being written; otherwise, the write callback is being called
- *  to write metadata.
- *
- * \note
- * The callback is mandatory and must be set before initialization.
- *
- * \default \c NULL
- * \param  encoder  An encoder instance to set.
- * \param  value    See above.
- * \assert
- *    \code encoder != NULL \endcode
- *    \code value != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the encoder is already initialized, else \c true.
- */
-FLAC_API FLAC__bool FLAC__stream_encoder_set_write_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteCallback value);
-
-/** Set the metadata callback.
- *  The supplied function will be called once at the end of encoding with
- *  the populated STREAMINFO structure.  This is so file encoders can seek
- *  back to the beginning of the file and write the STREAMINFO block with
- *  the correct statistics after encoding (like minimum/maximum frame size
- *  and total samples).
- *
- * \note
- * The callback is mandatory and must be set before initialization.
- *
- * \default \c NULL
- * \param  encoder  An encoder instance to set.
- * \param  value    See above.
- * \assert
- *    \code encoder != NULL \endcode
- *    \code value != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the encoder is already initialized, else \c true.
- */
-FLAC_API FLAC__bool FLAC__stream_encoder_set_metadata_callback(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderMetadataCallback value);
-
-/** Set the client data to be passed back to callbacks.
- *  This value will be supplied to callbacks in their \a client_data
- *  argument.
- *
- * \default \c NULL
- * \param  encoder  An encoder instance to set.
- * \param  value    See above.
- * \assert
- *    \code encoder != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the encoder is already initialized, else \c true.
- */
-FLAC_API FLAC__bool FLAC__stream_encoder_set_client_data(FLAC__StreamEncoder *encoder, void *value);
 
 /** Get the current encoder state.
  *
@@ -1021,24 +1165,141 @@ FLAC_API unsigned FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC
 FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC__StreamEncoder *encoder);
 
 /** Initialize the encoder instance.
- *  Should be called after FLAC__stream_encoder_new() and
+ *
+ *  This flavor of initialization sets up the encoder to encode to a stream.
+ *  I/O is performed via callbacks to the client.  For encoding to a plain file
+ *  via filename or open \c FILE*, FLAC__stream_encoder_init_file() and
+ *  FLAC__stream_encoder_init_FILE() provide a simpler interface.
+ *
+ *  This function should be called after FLAC__stream_encoder_new() and
  *  FLAC__stream_encoder_set_*() but before FLAC__stream_encoder_process()
- *  or FLAC__stream_encoder_process_interleaved().  Will set and return
- *  the encoder state, which will be FLAC__STREAM_ENCODER_OK if
+ *  or FLAC__stream_encoder_process_interleaved().
  *  initialization succeeded.
  *
- *  The call to FLAC__stream_encoder_init() currently will also immediately
+ *  The call to FLAC__stream_encoder_init_stream() currently will also immediately
  *  call the write callback several times, once with the \c fLaC signature,
  *  and once for each encoded metadata block.
  *
- * \param  encoder  An uninitialized encoder instance.
+ * \param  encoder            An uninitialized encoder instance.
+ * \param  write_callback     See FLAC__StreamEncoderWriteCallback.  This
+ *                            pointer must not be \c NULL.
+ * \param  seek_callback      See FLAC__StreamEncoderSeekCallback.  This
+ *                            pointer may be \c NULL if seeking is not
+ *                            supported.  The encoder uses seeking to go back
+ *                            and write some some stream statistics to the
+ *                            STREAMINFO block; this is recommended but not
+ *                            necessary to create a valid FLAC stream.  If
+ *                            \a seek_callback is not \c NULL then a
+ *                            \a tell_callback must also be supplied.
+ *                            Alternatively, a dummy seek callback that just
+ *                            returns \c FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED
+ *                            may also be supplied, all though this is slightly
+ *                            less efficient for the decoder.
+ * \param  tell_callback      See FLAC__StreamEncoderTellCallback.  This
+ *                            pointer may be \c NULL if seeking is not
+ *                            supported.  If \a seek_callback is \c NULL then
+ *                            this argument will be ignored.  If
+ *                            \a seek_callback is not \c NULL then a
+ *                            \a tell_callback must also be supplied.
+ *                            Alternatively, a dummy tell callback that just
+ *                            returns \c FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED
+ *                            may also be supplied, all though this is slightly
+ *                            less efficient for the decoder.
+ * \param  metadata_callback  See FLAC__StreamEncoderMetadataCallback.  This
+ *                            pointer may be \c NULL if the callback is not
+ *                            desired.  If the client provides a seek callback,
+ *                            this function is not necessary as the encoder
+ *                            will automatically seek back and update the
+ *                            STREAMINFO block.  It may also be \c NULL if the
+ *                            client does not support seeking, since it will
+ *                            have no way of going back to update the
+ *                            STREAMINFO.  However the client can still supply
+ *                            a callback if it would like to know the details
+ *                            from the STREAMINFO.
+ * \param  client_data        This value will be supplied to callbacks in their
+ *                            \a client_data argument.
  * \assert
  *    \code encoder != NULL \endcode
- * \retval FLAC__StreamEncoderState
- *    \c FLAC__STREAM_ENCODER_OK if initialization was successful; see
- *    FLAC__StreamEncoderState for the meanings of other return values.
+ * \retval FLAC__StreamEncoderInitStatus
+ *    \c FLAC__STREAM_ENCODER_INIT_STATUS_OK if initialization was successful;
+ *    see FLAC__StreamEncoderInitStatus for the meanings of other return values.
  */
-FLAC_API FLAC__StreamEncoderState FLAC__stream_encoder_init(FLAC__StreamEncoder *encoder);
+FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteCallback write_callback, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderTellCallback tell_callback, FLAC__StreamEncoderMetadataCallback metadata_callback, void *client_data);
+
+/** Initialize the encoder instance.
+ *
+ *  This flavor of initialization sets up the encoder to encode to a plain
+ *  file.  For non-stdio streams, you must use
+ *  FLAC__stream_encoder_init_stream() and provide callbacks for the I/O.
+ *
+ *  This function should be called after FLAC__stream_encoder_new() and
+ *  FLAC__stream_encoder_set_*() but before FLAC__stream_encoder_process()
+ *  or FLAC__stream_encoder_process_interleaved().
+ *  initialization succeeded.
+ *
+ *  The call to FLAC__stream_encoder_init_stream() currently will also immediately
+ *  call the write callback several times, once with the \c fLaC signature,
+ *  and once for each encoded metadata block.
+ *
+ * \param  encoder            An uninitialized encoder instance.
+ * \param  file               An open file.  The file should have been opened
+ *                            with mode \c "w+b" and rewound.  The file
+ *                            becomes owned by the encoder and should not be
+ *                            manipulated by the client while encoding.
+ *                            Unless \a file is \c stdout, it will be closed
+ *                            when FLAC__stream_encoder_finish() is called.
+ *                            Note however that a proper SEEKTABLE cannot be
+ *                            created when encoding to \c stdout since it is
+ *                            not seekable.
+ * \param  progress_callback  See FLAC__StreamEncoderProgressCallback.  This
+ *                            pointer may be \c NULL if the callback is not
+ *                            desired.
+ * \param  client_data        This value will be supplied to callbacks in their
+ *                            \a client_data argument.
+ * \assert
+ *    \code encoder != NULL \endcode
+ *    \code file != NULL \endcode
+ * \retval FLAC__StreamEncoderInitStatus
+ *    \c FLAC__STREAM_ENCODER_INIT_STATUS_OK if initialization was successful;
+ *    see FLAC__StreamEncoderInitStatus for the meanings of other return values.
+ */
+FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_FILE(FLAC__StreamEncoder *encoder, FILE *file, FLAC__StreamEncoderProgressCallback progress_callback, void *client_data);
+
+/** Initialize the encoder instance.
+ *
+ *  This flavor of initialization sets up the encoder to encode to a plain
+ *  file.  If POSIX fopen() semantics are not sufficient (for example,
+ *  with Unicode filenames on Windows), you must use
+ *  FLAC__stream_encodeR_init_FILE(), or FLAC__stream_encoder_init_stream()
+ *  and provide callbacks for the I/O.
+ *
+ *  This function should be called after FLAC__stream_encoder_new() and
+ *  FLAC__stream_encoder_set_*() but before FLAC__stream_encoder_process()
+ *  or FLAC__stream_encoder_process_interleaved().
+ *  initialization succeeded.
+ *
+ *  The call to FLAC__stream_encoder_init_stream() currently will also immediately
+ *  call the write callback several times, once with the \c fLaC signature,
+ *  and once for each encoded metadata block.
+ *
+ * \param  encoder            An uninitialized encoder instance.
+ * \param  filename           The name of the file to encode to.  The file will
+ *                            be opened with fopen().  Use \c NULL to encode to
+ *                            \c stdout.  Note however that a proper SEEKTABLE
+ *                            cannot be created when encoding to \c stdout since
+ *                            it is not seekable.
+ * \param  progress_callback  See FLAC__StreamEncoderProgressCallback.  This
+ *                            pointer may be \c NULL if the callback is not
+ *                            desired.
+ * \param  client_data        This value will be supplied to callbacks in their
+ *                            \a client_data argument.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__StreamEncoderInitStatus
+ *    \c FLAC__STREAM_ENCODER_INIT_STATUS_OK if initialization was successful;
+ *    see FLAC__StreamEncoderInitStatus for the meanings of other return values.
+ */
+FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_file(FLAC__StreamEncoder *encoder, const char *filename, FLAC__StreamEncoderProgressCallback progress_callback, void *client_data);
 
 /** Finish the encoding process.
  *  Flushes the encoding buffer, releases resources, resets the encoder

@@ -97,6 +97,7 @@ typedef struct FLAC__StreamEncoderProtected {
 	FLAC__uint64 total_samples_estimate;
 	FLAC__StreamMetadata **metadata;
 	unsigned num_metadata_blocks;
+	FLAC__uint64 streaminfo_offset, seektable_offset, audio_offset;
 } FLAC__StreamEncoderProtected;
 
 #endif

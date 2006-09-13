@@ -81,6 +81,9 @@ Package=<4>
     Project_Dep_Name libOggFLAC++_static
     End Project Dependency
     Begin Project Dependency
+    Project_Dep_Name test_libs_common_static
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name plugin_common_static
     End Project Dependency
     Begin Project Dependency
@@ -157,6 +160,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name libOggFLAC++_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libs_common_static
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name plugin_common_static
@@ -498,6 +504,24 @@ Package=<4>
 
 ###############################################################################
 
+Project: "test_libs_common"=.\src\test_libs_common\test_libs_common_static.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libFLAC_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libOggFLAC_static
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "test_libFLAC"=.\src\test_libFLAC\test_libFLAC.dsp - Package Owner=<4>
 
 Package=<5>
@@ -508,6 +532,9 @@ Package=<4>
 {{{
     Begin Project Dependency
     Project_Dep_Name libFLAC_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libs_common_static
     End Project Dependency
 }}}
 
@@ -524,6 +551,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libFLAC++_static
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libs_common_static
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -539,6 +569,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libOggFLAC_static
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libs_common_static
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -553,6 +586,9 @@ Package=<4>
 {{{
     Begin Project Dependency
     Project_Dep_Name libOggFLAC++_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_libs_common_static
     End Project Dependency
 }}}
 

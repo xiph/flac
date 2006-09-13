@@ -31,13 +31,13 @@
 #include <unistd.h> /* for chown(), unlink() */
 #endif
 #include <sys/stat.h> /* for stat(), maybe chmod() */
-extern "C" {
-#include "file_utils.h"
-}
 #include "FLAC/assert.h"
 #include "FLAC++/decoder.h"
 #include "FLAC++/metadata.h"
 #include "share/grabbag.h"
+extern "C" {
+#include "test_libs_common/file_utils_flac.h"
+}
 
 /******************************************************************************
 	The general strategy of these tests (for interface levels 1 and 2) is
@@ -568,13 +568,12 @@ static bool test_file_(const char *filename, bool ignore_metadata)
 		return die_("couldn't allocate decoder instance");
 
 	decoder.set_md5_checking(true);
-	decoder.set_filename(filename);
 	decoder.set_metadata_respond_all();
-	if(decoder.init() != ::FLAC__FILE_DECODER_OK) {
+	if(decoder.init(filename) != ::FLAC__STREAM_DECODER_INIT_STATUS_OK) {
 		decoder.finish();
 		return die_("initializing decoder\n");
 	}
-	if(!decoder.process_until_end_of_file()) {
+	if(!decoder.process_until_end_of_stream()) {
 		decoder.finish();
 		return die_("decoding file\n");
 	}

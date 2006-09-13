@@ -38,6 +38,7 @@
 typedef struct OggFLAC__StreamEncoderProtected {
 	OggFLAC__StreamEncoderState state;
 	OggFLAC__OggEncoderAspect ogg_encoder_aspect;
+	FLAC__uint64 streaminfo_offset, seektable_offset, audio_offset;
 } OggFLAC__StreamEncoderProtected;
 
 #endif

@@ -104,14 +104,6 @@ SOURCE=.\metadata.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\seekable_stream_decoder.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\seekable_stream_encoder.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\stream_decoder.cpp
 # End Source File
 # Begin Source File

@@ -20,9 +20,9 @@
 #  include <config.h>
 #endif
 
-#include "file_utils.h"
 #include "FLAC/assert.h"
 #include "FLAC/stream_encoder.h"
+#include "test_libs_common/file_utils_flac.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h> /* for stat() */
@@ -104,11 +104,8 @@ FLAC__bool file_utils__generate_flacfile(const char *output_filename, off_t *out
 	FLAC__stream_encoder_set_rice_parameter_search_dist(encoder, 0);
 	FLAC__stream_encoder_set_total_samples_estimate(encoder, streaminfo->data.stream_info.total_samples);
 	FLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
-	FLAC__stream_encoder_set_write_callback(encoder, encoder_write_callback_);
-	FLAC__stream_encoder_set_metadata_callback(encoder, encoder_metadata_callback_);
-	FLAC__stream_encoder_set_client_data(encoder, &encoder_client_data);
 
-	if(FLAC__stream_encoder_init(encoder) != FLAC__STREAM_ENCODER_OK) {
+	if(FLAC__stream_encoder_init_stream(encoder, encoder_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, encoder_metadata_callback_, &encoder_client_data) != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
 		fclose(encoder_client_data.file);
 		return false;
 	}

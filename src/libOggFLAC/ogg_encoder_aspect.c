@@ -141,7 +141,7 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 			if(bytes != FLAC__STREAM_METADATA_HEADER_LENGTH + FLAC__STREAM_METADATA_STREAMINFO_LENGTH) {
 				/*
 				 * If we get here, our assumption about the way write callbacks happen
-				 * explained above is wrong
+				 * (explained above) is wrong
 				 */
 				FLAC__ASSERT(0);
 				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;

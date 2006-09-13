@@ -22,7 +22,7 @@
 
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
-#include "metadata_utils.h"
+#include "test_libs_common/metadata_utils.h"
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp() */
@@ -467,7 +467,7 @@ static void cs_delete_(FLAC__StreamMetadata *block, unsigned pos)
 FLAC__bool test_metadata_object()
 {
 	FLAC__StreamMetadata *block, *blockcopy, *vorbiscomment, *cuesheet;
-	FLAC__StreamMetadata_SeekPoint seekpoint_array[8];
+	FLAC__StreamMetadata_SeekPoint seekpoint_array[14];
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	FLAC__StreamMetadata_CueSheet_Index index;
 	FLAC__StreamMetadata_CueSheet_Track track;
@@ -874,6 +874,28 @@ FLAC__bool test_metadata_object()
 	}
 	if(!FLAC__metadata_object_seektable_is_legal(block)) {
 		printf("FAILED, seek table is illegal\n");
+		return false;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return false;
+
+	seekpoint_array[seekpoints++].sample_number = 0;
+	seekpoint_array[seekpoints++].sample_number = 10;
+	seekpoint_array[seekpoints++].sample_number = 20;
+	printf("testing FLAC__metadata_object_seekpoint_template_append_spaced_points_by_samples()... ");
+	if(!FLAC__metadata_object_seektable_template_append_spaced_points_by_samples(block, 10, 30)) {
+		printf("FAILED, returned false\n");
+		return false;
+	}
+	if(!check_seektable_(block, seekpoints, seekpoint_array))
+		return false;
+
+	seekpoint_array[seekpoints++].sample_number = 0;
+	seekpoint_array[seekpoints++].sample_number = 11;
+	seekpoint_array[seekpoints++].sample_number = 22;
+	printf("testing FLAC__metadata_object_seekpoint_template_append_spaced_points_by_samples()... ");
+	if(!FLAC__metadata_object_seektable_template_append_spaced_points_by_samples(block, 11, 30)) {
+		printf("FAILED, returned false\n");
 		return false;
 	}
 	if(!check_seektable_(block, seekpoints, seekpoint_array))

@@ -15,8 +15,8 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-.PHONY: all flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams
-all: flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams
+.PHONY: all flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams
+all: flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams
 
 DEFAULT_CONFIG = release
 
@@ -30,7 +30,7 @@ debug   : all
 valgrind: all
 release : all
 
-flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams:
+flac libFLAC libFLAC++ libOggFLAC libOggFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams:
 	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 clean:
@@ -44,6 +44,7 @@ clean:
 	-(cd plugin_xmms ; $(MAKE) -f Makefile.lite clean)
 	-(cd share ; $(MAKE) -f Makefile.lite clean)
 	-(cd test_grabbag ; $(MAKE) -f Makefile.lite clean)
+	-(cd test_libs_common ; $(MAKE) -f Makefile.lite clean)
 	-(cd test_libFLAC ; $(MAKE) -f Makefile.lite clean)
 	-(cd test_libFLAC++ ; $(MAKE) -f Makefile.lite clean)
 	-(cd test_libOggFLAC ; $(MAKE) -f Makefile.lite clean)
@@ -60,9 +61,9 @@ plugin_common: libFLAC
 plugin_xmms: libFLAC plugin_common
 share: libFLAC
 test_grabbag: share
-test_libFLAC++: libFLAC libFLAC++
-test_libFLAC: libFLAC
-test_libOggFLAC++: libFLAC libOggFLAC libOggFLAC++
-test_libOggFLAC: libFLAC libOggFLAC
+test_libFLAC++: libFLAC libFLAC++ test_libs_common
+test_libFLAC: libFLAC test_libs_common
+test_libOggFLAC++: libFLAC libOggFLAC libOggFLAC++ test_libs_common
+test_libOggFLAC: libFLAC libOggFLAC test_libs_common
 test_seeking: libFLAC libOggFLAC
 test_streams: libFLAC

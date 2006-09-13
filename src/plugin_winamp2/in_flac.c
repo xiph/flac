@@ -35,9 +35,9 @@ static In_Module mod_;                      /* the input module (declared near t
 static char lastfn_[MAX_PATH];              /* currently playing file (used for getting info on the current file) */
 flac_config_t flac_cfg;
 
-static file_info_struct file_info_;
+static stream_data_struct stream_data_;
 static int paused;
-static FLAC__FileDecoder *decoder_;
+static FLAC__StreamDecoder *decoder_;
 static char sample_buffer_[SAMPLES_PER_WRITE * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS * (24/8) * 2];
 /* (24/8) for max bytes per sample, and 2 for DSPs */
 
@@ -50,7 +50,7 @@ static DWORD WINAPI DecodeThread(void *b);  /* the decode thread procedure */
 
 static void init()
 {
-	decoder_ = FLAC__file_decoder_new();
+	decoder_ = FLAC__stream_decoder_new();
 	strcpy(lastfn_, "");
 
 	InitConfig();
@@ -81,11 +81,11 @@ static int play(char *fn)
 	if (decoder_ == 0) return 1;
 	if (!(filesize = FileSize(fn))) return -1;
 	/* init decoder */
-	if (!FLAC_plugin__decoder_init(decoder_, fn, filesize, &file_info_, &flac_cfg.output))
+	if (!FLAC_plugin__decoder_init(decoder_, fn, filesize, &stream_data_, &flac_cfg.output))
 		return 1;
 	strcpy(lastfn_, fn);
 	/* open output */
-	maxlatency = mod_.outMod->Open(file_info_.sample_rate, file_info_.channels, file_info_.output_bits_per_sample, -1, -1);
+	maxlatency = mod_.outMod->Open(stream_data_.sample_rate, stream_data_.channels, stream_data_.output_bits_per_sample, -1, -1);
 	if (maxlatency < 0)
 	{
 		FLAC_plugin__decoder_finish(decoder_);
@@ -95,10 +95,10 @@ static int play(char *fn)
 	mod_.outMod->SetVolume(-666);
 	mod_.outMod->SetPan(0);
 	/* initialize vis stuff */
-	mod_.SAVSAInit(maxlatency, file_info_.sample_rate);
-	mod_.VSASetInfo(file_info_.sample_rate, file_info_.channels);
+	mod_.SAVSAInit(maxlatency, stream_data_.sample_rate);
+	mod_.VSASetInfo(stream_data_.sample_rate, stream_data_.channels);
 	/* set info */
-	mod_.SetInfo(file_info_.average_bps, file_info_.sample_rate/1000, file_info_.channels, 1);
+	mod_.SetInfo(stream_data_.average_bps, stream_data_.sample_rate/1000, stream_data_.channels, 1);
 	/* start playing thread */
 	paused = 0;
 	thread_handle = CreateThread(NULL, 0, DecodeThread, NULL, 0, &thread_id);
@@ -111,7 +111,7 @@ static void stop()
 {
 	if (thread_handle)
 	{
-		file_info_.is_playing = false;
+		stream_data_.is_playing = false;
 		if (WaitForSingleObject(thread_handle, 2000) == WAIT_TIMEOUT)
 		{
 			FLAC_plugin__show_error("Error while stopping decoding thread.");
@@ -149,7 +149,7 @@ static int ispaused()
 
 static int getlength()
 {
-	return file_info_.length_in_msec;
+	return stream_data_.length_in_msec;
 }
 
 static int getoutputtime()
@@ -159,7 +159,7 @@ static int getoutputtime()
 
 static void setoutputtime(int time_in_ms)
 {
-	file_info_.seek_to = time_in_ms;
+	stream_data_.seek_to = time_in_ms;
 }
 
 static void setvolume(int volume)
@@ -214,22 +214,22 @@ static void do_vis(char *data, int nch, int resolution, int position, unsigned s
 
 static DWORD WINAPI DecodeThread(void *unused)
 {
-	const unsigned channels = file_info_.channels;
-	const unsigned bits_per_sample = file_info_.bits_per_sample;
-	const unsigned target_bps = file_info_.output_bits_per_sample;
-	const unsigned sample_rate = file_info_.sample_rate;
+	const unsigned channels = stream_data_.channels;
+	const unsigned bits_per_sample = stream_data_.bits_per_sample;
+	const unsigned target_bps = stream_data_.output_bits_per_sample;
+	const unsigned sample_rate = stream_data_.sample_rate;
 	const unsigned fact = channels * (target_bps/8);
 
-	while (file_info_.is_playing)
+	while (stream_data_.is_playing)
 	{
 		/* seek needed */
-		if (file_info_.seek_to != -1)
+		if (stream_data_.seek_to != -1)
 		{
-			const int pos = FLAC_plugin__seek(decoder_, &file_info_);
+			const int pos = FLAC_plugin__seek(decoder_, &stream_data_);
 			if (pos != -1) mod_.outMod->Flush(pos);
 		}
 		/* stream ended */
-		else if (file_info_.eof)
+		else if (stream_data_.eof)
 		{
 			if (!mod_.outMod->IsPlaying())
 			{
@@ -242,7 +242,7 @@ static DWORD WINAPI DecodeThread(void *unused)
 		else
 		{
 			/* decode samples */
-			int bytes = FLAC_plugin__decode(decoder_, &file_info_, sample_buffer_);
+			int bytes = FLAC_plugin__decode(decoder_, &stream_data_, sample_buffer_);
 			const int n = bytes / fact;
 			/* visualization */
 			do_vis(sample_buffer_, channels, target_bps, mod_.outMod->GetWrittenTime(), n);
@@ -250,15 +250,15 @@ static DWORD WINAPI DecodeThread(void *unused)
 			if (mod_.dsp_isactive())
 				bytes = mod_.dsp_dosamples((short*)sample_buffer_, n, target_bps, channels, sample_rate) * fact;
 			/* output */
-			while (mod_.outMod->CanWrite()<bytes && file_info_.is_playing && file_info_.seek_to==-1)
+			while (mod_.outMod->CanWrite()<bytes && stream_data_.is_playing && stream_data_.seek_to==-1)
 				Sleep(20);
-			if (file_info_.is_playing && file_info_.seek_to==-1)
+			if (stream_data_.is_playing && stream_data_.seek_to==-1)
 				mod_.outMod->Write(sample_buffer_, bytes);
 			/* show bitrate */
 			if (flac_cfg.display.show_bps)
 			{
-				const int rate = FLAC_plugin__get_rate(mod_.outMod->GetWrittenTime(), mod_.outMod->GetOutputTime(), &file_info_);
-				if (rate) mod_.SetInfo(rate/1000, file_info_.sample_rate/1000, file_info_.channels, 1);
+				const int rate = FLAC_plugin__get_rate(mod_.outMod->GetWrittenTime(), mod_.outMod->GetOutputTime(), &stream_data_);
+				if (rate) mod_.SetInfo(rate/1000, stream_data_.sample_rate/1000, stream_data_.channels, 1);
 			}
 		}
 	}
@@ -334,7 +334,7 @@ static void getfileinfo(char *filename, char *title, int *length_in_msec)
 	if (!filename || !*filename) {
 		filename = lastfn_;
 		if (length_in_msec) {
-			*length_in_msec = file_info_.length_in_msec;
+			*length_in_msec = stream_data_.length_in_msec;
 			length_in_msec = 0;    /* force skip in following code */
 		}
 	}

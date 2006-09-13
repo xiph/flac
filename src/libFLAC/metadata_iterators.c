@@ -55,7 +55,7 @@
 #include "private/metadata.h"
 
 #include "FLAC/assert.h"
-#include "FLAC/file_decoder.h"
+#include "FLAC/stream_decoder.h"
 
 #ifdef max
 #undef max
@@ -155,9 +155,9 @@ static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *st
  *
  ***************************************************************************/
 
-static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
-static void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-static void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+static void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 typedef struct {
 	FLAC__bool got_error;
@@ -167,43 +167,38 @@ typedef struct {
 static FLAC__StreamMetadata *get_one_metadata_block_(const char *filename, FLAC__MetadataType type)
 {
 	level0_client_data cd;
-	FLAC__FileDecoder *decoder;
+	FLAC__StreamDecoder *decoder;
 
 	FLAC__ASSERT(0 != filename);
 
 	cd.got_error = false;
 	cd.object = 0;
 
-	decoder = FLAC__file_decoder_new();
+	decoder = FLAC__stream_decoder_new();
 
 	if(0 == decoder)
 		return 0;
 
-	FLAC__file_decoder_set_md5_checking(decoder, false);
-	FLAC__file_decoder_set_filename(decoder, filename);
-	FLAC__file_decoder_set_metadata_ignore_all(decoder);
-	FLAC__file_decoder_set_metadata_respond(decoder, type);
-	FLAC__file_decoder_set_write_callback(decoder, write_callback_);
-	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback_);
-	FLAC__file_decoder_set_error_callback(decoder, error_callback_);
-	FLAC__file_decoder_set_client_data(decoder, &cd);
+	FLAC__stream_decoder_set_md5_checking(decoder, false);
+	FLAC__stream_decoder_set_metadata_ignore_all(decoder);
+	FLAC__stream_decoder_set_metadata_respond(decoder, type);
 
-	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK || cd.got_error) {
-		FLAC__file_decoder_finish(decoder);
-		FLAC__file_decoder_delete(decoder);
+	if(FLAC__stream_decoder_init_file(decoder, filename, write_callback_, metadata_callback_, error_callback_, &cd) != FLAC__STREAM_DECODER_INIT_STATUS_OK || cd.got_error) {
+		FLAC__stream_decoder_finish(decoder);
+		FLAC__stream_decoder_delete(decoder);
 		return 0;
 	}
 
-	if(!FLAC__file_decoder_process_until_end_of_metadata(decoder) || cd.got_error) {
-		FLAC__file_decoder_finish(decoder);
-		FLAC__file_decoder_delete(decoder);
+	if(!FLAC__stream_decoder_process_until_end_of_metadata(decoder) || cd.got_error) {
+		FLAC__stream_decoder_finish(decoder);
+		FLAC__stream_decoder_delete(decoder);
 		if(0 != cd.object)
 			FLAC__metadata_object_delete(cd.object);
 		return 0;
 	}
 
-	FLAC__file_decoder_finish(decoder);
-	FLAC__file_decoder_delete(decoder);
+	FLAC__stream_decoder_finish(decoder);
+	FLAC__stream_decoder_delete(decoder);
 
 	return cd.object;
 }
@@ -248,14 +243,14 @@ FLAC_API FLAC__bool FLAC__metadata_get_cuesheet(const char *filename, FLAC__Stre
 	return 0 != *cuesheet;
 }
 
-FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	(void)decoder, (void)frame, (void)buffer, (void)client_data;
 
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	level0_client_data *cd = (level0_client_data *)client_data;
 	(void)decoder;
@@ -270,7 +265,7 @@ void metadata_callback_(const FLAC__FileDecoder *decoder, const FLAC__StreamMeta
 	}
 }
 
-void error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
 	level0_client_data *cd = (level0_client_data *)client_data;
 	(void)decoder;

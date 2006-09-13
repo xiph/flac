@@ -33,11 +33,11 @@
 #define OggFLAC__PRIVATE__OGG_HELPER_H
 
 #include <ogg/ogg.h>
-#include "OggFLAC/seekable_stream_encoder.h" /* for OggFLAC__SeekableStreamEncoder */
+#include "OggFLAC/stream_encoder.h" /* for OggFLAC__StreamEncoder */
 
 void simple_ogg_page__init(ogg_page *page);
 void simple_ogg_page__clear(ogg_page *page);
-FLAC__bool simple_ogg_page__get_at(OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 position, ogg_page *page, OggFLAC__SeekableStreamEncoderSeekCallback seek_callback, OggFLAC__SeekableStreamEncoderReadCallback read_callback, void *client_data);
-FLAC__bool simple_ogg_page__set_at(OggFLAC__SeekableStreamEncoder *encoder, FLAC__uint64 position, ogg_page *page, OggFLAC__SeekableStreamEncoderSeekCallback seek_callback, OggFLAC__SeekableStreamEncoderWriteCallback write_callback, void *client_data);
+FLAC__bool simple_ogg_page__get_at(OggFLAC__StreamEncoder *encoder, FLAC__uint64 position, ogg_page *page, FLAC__StreamEncoderSeekCallback seek_callback, OggFLAC__StreamEncoderReadCallback read_callback, void *client_data);
+FLAC__bool simple_ogg_page__set_at(OggFLAC__StreamEncoder *encoder, FLAC__uint64 position, ogg_page *page, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderWriteCallback write_callback, void *client_data);
 
 #endif

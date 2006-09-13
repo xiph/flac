@@ -17,7 +17,6 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	README \
 	test_libOggFLAC++.dsp
 
 AM_CFLAGS = @OGG_CFLAGS@
@@ -26,6 +25,7 @@ noinst_PROGRAMS = test_libOggFLAC++
 test_libOggFLAC___LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
+	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
 	$(top_builddir)/src/libOggFLAC++/libOggFLAC++.la \
 	$(top_builddir)/src/libOggFLAC/libOggFLAC.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
@@ -34,10 +34,6 @@ test_libOggFLAC___LDADD = \
 test_libOggFLAC___SOURCES = \
 	decoders.cpp \
 	encoders.cpp \
-	file_utils.c \
 	main.cpp \
-	metadata_utils.c \
 	decoders.h \
-	encoders.h \
-	file_utils.h \
-	metadata_utils.h
+	encoders.h

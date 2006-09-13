@@ -709,7 +709,7 @@ static void *http_buffer_loop(void *arg)
 	return NULL; /* avoid compiler warning */
 }
 
-int flac_http_open(gchar * _url, guint64 _offset)
+int flac_http_open(const gchar * _url, guint64 _offset)
 {
 	gchar *url;
 

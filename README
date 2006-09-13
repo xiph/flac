@@ -241,17 +241,18 @@ configure.in and src/libFLAC/Makefile.am; the following dependency
 graph shows which modules may be pruned without breaking things
 further down:
 
-file_encoder.h
-	stream_encoder.h
-		format.h
+stream_encoder.h
+	stream_decoder.h
+	format.h
 
-file_decoder.h
-	seekable_stream_decoder.h
-		stream_decoder.h
-			format.h
+stream_decoder.h
+	format.h
 
 metadata.h
 	format.h
+
+In other words, for pure decoding applications, both the stream encoder
+and metadata editing interfaces can be safely removed.
 
 There is a section dedicated to embedded use in the libFLAC API
 HTML documentation (see doc/html/api/index.html).

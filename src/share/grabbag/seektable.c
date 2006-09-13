@@ -51,8 +51,10 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 					if(0 != spec_has_real_points)
 						*spec_has_real_points = true;
 					if(!only_explicit_placeholders) {
-						if(!FLAC__metadata_object_seektable_template_append_spaced_points(seektable_template, atoi(pt), total_samples_to_encode))
-							return false;
+						const int n = (unsigned)atoi(pt);
+						if(n > 0)
+							if(!FLAC__metadata_object_seektable_template_append_spaced_points(seektable_template, (unsigned)n, total_samples_to_encode))
+								return false;
 					}
 				}
 			}
@@ -62,16 +64,14 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 					if(0 != spec_has_real_points)
 						*spec_has_real_points = true;
 					if(!only_explicit_placeholders) {
-						double sec = atof(pt);
+						const double sec = atof(pt);
 						if(sec > 0.0) {
-#if defined _MSC_VER || defined __MINGW32__
-							/* with MSVC you have to spoon feed it the casting */
-							unsigned n = (unsigned)((double)(FLAC__int64)total_samples_to_encode / (sec * (double)sample_rate));
-#else
-							unsigned n = (unsigned)((double)total_samples_to_encode / (sec * (double)sample_rate));
-#endif
-							if(!FLAC__metadata_object_seektable_template_append_spaced_points(seektable_template, n, total_samples_to_encode))
-								return false;
+							unsigned samples = (unsigned)(sec * (double)sample_rate);
+							if(samples > 0) {
+								/* +1 for the initial point at sample 0 */
+								if(!FLAC__metadata_object_seektable_template_append_spaced_points_by_samples(seektable_template, samples, total_samples_to_encode))
+									return false;
+							}
 						}
 					}
 				}
@@ -80,9 +80,15 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 				if(0 != spec_has_real_points)
 					*spec_has_real_points = true;
 				if(!only_explicit_placeholders) {
-					FLAC__uint64 n = (unsigned)atoi(pt);
-					if(!FLAC__metadata_object_seektable_template_append_point(seektable_template, n))
-						return false;
+					char *endptr;
+#ifdef _MSC_VER
+					const FLAC__int64 n = (FLAC__int64)strtol(pt, &endptr, 10); /* [2G limit] */
+#else
+					const FLAC__int64 n = (FLAC__int64)strtoll(pt, &endptr, 10);
+#endif
+					if(n > 0 || (endptr > pt && *endptr == ';'))
+						if(!FLAC__metadata_object_seektable_template_append_point(seektable_template, (FLAC__uint64)n))
+							return false;
 				}
 			}
 		}

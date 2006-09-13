@@ -25,23 +25,20 @@ noinst_PROGRAMS = test_libFLAC
 test_libFLAC_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
+	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	-lm
 test_libFLAC_SOURCES = \
 	bitbuffer.c \
 	decoders.c \
 	encoders.c \
-	file_utils.c \
 	format.c \
 	main.c \
 	metadata.c \
 	metadata_manip.c \
 	metadata_object.c \
-	metadata_utils.c \
 	bitbuffer.h \
 	decoders.h \
 	encoders.h \
-	file_utils.h \
 	format.h \
-	metadata.h \
-	metadata_utils.h
+	metadata.h

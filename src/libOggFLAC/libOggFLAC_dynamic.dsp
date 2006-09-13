@@ -92,14 +92,6 @@ LINK32=link.exe
 # PROP Default_Filter "c"
 # Begin Source File
 
-SOURCE=.\file_decoder.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\file_encoder.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\ogg_decoder_aspect.c
 # End Source File
 # Begin Source File
@@ -113,14 +105,6 @@ SOURCE=.\ogg_helper.c
 # Begin Source File
 
 SOURCE=.\ogg_mapping.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\seekable_stream_decoder.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\seekable_stream_encoder.c
 # End Source File
 # Begin Source File
 
@@ -164,22 +148,6 @@ SOURCE=.\include\protected\all.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\protected\file_decoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\include\protected\file_encoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\include\protected\seekable_stream_decoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\include\protected\seekable_stream_encoder.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\include\protected\stream_decoder.h
 # End Source File
 # Begin Source File
@@ -197,22 +165,6 @@ SOURCE=..\..\include\OggFLAC\all.h
 # Begin Source File
 
 SOURCE=..\..\include\OggFLAC\export.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\OggFLAC\file_decoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\OggFLAC\file_encoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\OggFLAC\seekable_stream_decoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\OggFLAC\seekable_stream_encoder.h
 # End Source File
 # Begin Source File
 

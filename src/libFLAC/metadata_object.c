@@ -935,7 +935,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
 	FLAC__ASSERT(total_samples > 0);
 
-	if(num > 0) {
+	if(num > 0 && total_samples > 0) {
 		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
 		unsigned i, j;
 
@@ -946,6 +946,39 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 
 		for(j = 0; j < num; i++, j++) {
 			seek_table->points[i].sample_number = total_samples * (FLAC__uint64)j / (FLAC__uint64)num;
+			seek_table->points[i].stream_offset = 0;
+			seek_table->points[i].frame_samples = 0;
+		}
+	}
+
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points_by_samples(FLAC__StreamMetadata *object, unsigned samples, FLAC__uint64 total_samples)
+{
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
+	FLAC__ASSERT(samples > 0);
+	FLAC__ASSERT(total_samples > 0);
+
+	if(samples > 0 && total_samples > 0) {
+		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
+		unsigned i, j;
+		FLAC__uint64 num, sample;
+
+		num = 1 + total_samples / samples; /* 1+ for the first sample at 0 */
+		/* now account for the fact that we don't place a seekpoint at "total_samples" since samples are number from 0: */
+		if(total_samples % samples == 0)
+			num--;
+
+		i = seek_table->num_points;
+
+		if(!FLAC__metadata_object_seektable_resize_points(object, seek_table->num_points + num))
+			return false;
+
+		sample = 0;
+		for(j = 0; j < num; i++, j++, sample += samples) {
+			seek_table->points[i].sample_number = sample;
 			seek_table->points[i].stream_offset = 0;
 			seek_table->points[i].frame_samples = 0;
 		}

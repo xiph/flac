@@ -48,7 +48,7 @@ typedef struct {
 	FLAC__bool has_replaygain;
 	double replay_scale;
 	DitherContext dither_context;
-} file_info_struct;
+} stream_data_struct;
 
 
 typedef struct {
@@ -77,13 +77,13 @@ typedef struct {
  *  protopytes
  */
 
-FLAC__bool FLAC_plugin__decoder_init(FLAC__FileDecoder *decoder, const char *filename, FLAC__int64 filesize, file_info_struct *file_info, output_config_t *config);
-void FLAC_plugin__decoder_finish(FLAC__FileDecoder *decoder);
-void FLAC_plugin__decoder_delete(FLAC__FileDecoder *decoder);
+FLAC__bool FLAC_plugin__decoder_init(FLAC__StreamDecoder *decoder, const char *filename, FLAC__int64 filesize, stream_data_struct *stream_data, output_config_t *config);
+void FLAC_plugin__decoder_finish(FLAC__StreamDecoder *decoder);
+void FLAC_plugin__decoder_delete(FLAC__StreamDecoder *decoder);
 
-int FLAC_plugin__seek(FLAC__FileDecoder *decoder, file_info_struct *file_info);
-unsigned FLAC_plugin__decode(FLAC__FileDecoder *decoder, file_info_struct *file_info, char *sample_buffer);
-int FLAC_plugin__get_rate(unsigned written_time, unsigned output_time, file_info_struct *file_info);
+int FLAC_plugin__seek(FLAC__StreamDecoder *decoder, stream_data_struct *stream_data);
+unsigned FLAC_plugin__decode(FLAC__StreamDecoder *decoder, stream_data_struct *stream_data, char *sample_buffer);
+int FLAC_plugin__get_rate(unsigned written_time, unsigned output_time, stream_data_struct *stream_data);
 
 /*
  *  these should be defined in plug-in

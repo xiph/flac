@@ -184,8 +184,8 @@ namespace FLAC {
 			::FLAC__StreamMetadata *m[num_blocks];
 #endif
 			for(unsigned i = 0; i < num_blocks; i++) {
-				// we can get away with this since we know the encoder will only correct the is_last flags
-				m[i] = const_cast< ::FLAC__StreamMetadata*>((::FLAC__StreamMetadata*)metadata[i]);
+				// we can get away with the const_cast since we know the encoder will only correct the is_last flags
+				m[i] = const_cast< ::FLAC__StreamMetadata*>((const ::FLAC__StreamMetadata*)metadata[i]);
 			}
 #if (defined _MSC_VER) || (defined __SUNPRO_CC)
 			// complete the hack
@@ -317,13 +317,10 @@ namespace FLAC {
 			return ::FLAC__stream_encoder_get_total_samples_estimate(encoder_);
 		}
 
-		Stream::State Stream::init()
+		::FLAC__StreamEncoderInitStatus Stream::init()
 		{
 			FLAC__ASSERT(is_valid());
-			::FLAC__stream_encoder_set_write_callback(encoder_, write_callback_);
-			::FLAC__stream_encoder_set_metadata_callback(encoder_, metadata_callback_);
-			::FLAC__stream_encoder_set_client_data(encoder_, (void*)this);
-			return State(::FLAC__stream_encoder_init(encoder_));
+			return ::FLAC__stream_encoder_init_stream(encoder_, write_callback_, seek_callback_, tell_callback_, metadata_callback_, /*client_data=*/(void*)this);
 		}
 
 		void Stream::finish()
@@ -344,6 +341,23 @@ namespace FLAC {
 			return (bool)::FLAC__stream_encoder_process_interleaved(encoder_, buffer, samples);
 		}
 
+		::FLAC__StreamEncoderSeekStatus Stream::seek_callback(FLAC__uint64 absolute_byte_offset)
+		{
+			(void)absolute_byte_offset;
+			return ::FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED;
+		}
+
+		::FLAC__StreamEncoderTellStatus Stream::tell_callback(FLAC__uint64 *absolute_byte_offset)
+		{
+			(void)absolute_byte_offset;
+			return ::FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED;
+		}
+
+		void Stream::metadata_callback(const ::FLAC__StreamMetadata *metadata)
+		{
+			(void)metadata;
+		}
+
 		::FLAC__StreamEncoderWriteStatus Stream::write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 		{
 			(void)encoder;
@@ -351,6 +365,24 @@ namespace FLAC {
 			Stream *instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			return instance->write_callback(buffer, bytes, samples, current_frame);
+		}
+
+		::FLAC__StreamEncoderSeekStatus Stream::seek_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data)
+		{
+			(void)encoder;
+			FLAC__ASSERT(0 != client_data);
+			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->seek_callback(absolute_byte_offset);
+		}
+
+		::FLAC__StreamEncoderTellStatus Stream::tell_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+		{
+			(void)encoder;
+			FLAC__ASSERT(0 != client_data);
+			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->tell_callback(absolute_byte_offset);
 		}
 
 		void Stream::metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetadata *metadata, void *client_data)

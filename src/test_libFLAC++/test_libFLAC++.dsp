@@ -51,7 +51,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 ..\..\obj\release\lib\grabbag_static.lib ..\..\obj\release\lib\replaygain_analysis_static.lib ..\..\obj\release\lib\libFLAC++_static.lib ..\..\obj\release\lib\libFLAC_static.lib /nologo /subsystem:console /machine:I386
+# ADD LINK32 ..\..\obj\release\lib\grabbag_static.lib ..\..\obj\release\lib\replaygain_analysis_static.lib ..\..\obj\release\lib\test_libs_common_static.lib ..\..\obj\release\lib\libFLAC++_static.lib ..\..\obj\release\lib\libFLAC_static.lib /nologo /subsystem:console /machine:I386
 
 !ELSEIF  "$(CFG)" == "test_libFLAC++ - Win32 Debug"
 
@@ -76,7 +76,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ..\..\obj\debug\lib\grabbag_static.lib ..\..\obj\debug\lib\replaygain_analysis_static.lib ..\..\obj\debug\lib\libFLAC++_static.lib ..\..\obj\debug\lib\libFLAC_static.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 ..\..\obj\debug\lib\grabbag_static.lib ..\..\obj\debug\lib\replaygain_analysis_static.lib ..\..\obj\debug\lib\test_libs_common_static.lib ..\..\obj\debug\lib\libFLAC++_static.lib ..\..\obj\debug\lib\libFLAC_static.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
@@ -97,10 +97,6 @@ SOURCE=.\encoders.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\file_utils.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\main.cpp
 # End Source File
 # Begin Source File
@@ -114,10 +110,6 @@ SOURCE=.\metadata_manip.cpp
 # Begin Source File
 
 SOURCE=.\metadata_object.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\metadata_utils.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -133,15 +125,7 @@ SOURCE=.\encoders.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\file_utils.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\metadata.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\metadata_utils.h
 # End Source File
 # End Group
 # Begin Source File

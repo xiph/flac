@@ -32,10 +32,6 @@
 #ifndef FLAC__PROTECTED__ALL_H
 #define FLAC__PROTECTED__ALL_H
 
-#include "file_decoder.h"
-#include "file_encoder.h"
-#include "seekable_stream_decoder.h"
-#include "seekable_stream_encoder.h"
 #include "stream_decoder.h"
 #include "stream_encoder.h"
 

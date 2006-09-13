@@ -85,39 +85,44 @@ if [ ! -f noise.raw ] ; then
 fi
 
 echo "generating FLAC files for seeking:"
-run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 --output-name=tiny.flac noise8m32.raw || die "ERROR generating FLAC file"
-run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 --output-name=small.flac noise.raw || die "ERROR generating FLAC file"
+run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 -S- --output-name=tiny.flac noise8m32.raw || die "ERROR generating FLAC file"
+run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 -S- --output-name=small.flac noise.raw || die "ERROR generating FLAC file"
+run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 -S10x --output-name=tiny-s.flac noise8m32.raw || die "ERROR generating FLAC file"
+run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 -S10x --output-name=small-s.flac noise.raw || die "ERROR generating FLAC file"
 
-echo "testing tiny.flac:"
-if run_test_seeking tiny.flac 100 ; then : ; else
-	die "ERROR: during test_seeking"
-fi
+for suffix in '' '-s' ; do
+	echo "testing tiny$suffix.flac:"
+	if run_test_seeking tiny$suffix.flac 100 ; then : ; else
+		die "ERROR: during test_seeking"
+	fi
 
-echo "testing small.flac:"
-if run_test_seeking small.flac 1000 ; then : ; else
-	die "ERROR: during test_seeking"
-fi
+	echo "testing small$suffix.flac:"
+	if run_test_seeking small$suffix.flac 1000 ; then : ; else
+		die "ERROR: during test_seeking"
+	fi
 
-echo "removing sample count from tiny.flac and small.flac:"
-if run_metaflac --no-filename --set-total-samples=0 tiny.flac small.flac ; then : ; else
-	die "ERROR: during metaflac"
-fi
+	echo "removing sample count from tiny$suffix.flac and small$suffix.flac:"
+	if run_metaflac --no-filename --set-total-samples=0 tiny$suffix.flac small$suffix.flac ; then : ; else
+		die "ERROR: during metaflac"
+	fi
 
-echo "testing tiny.flac with total_samples=0:"
-if run_test_seeking tiny.flac 100 ; then : ; else
-	die "ERROR: during test_seeking"
-fi
+	echo "testing tiny$suffix.flac with total_samples=0:"
+	if run_test_seeking tiny$suffix.flac 100 ; then : ; else
+		die "ERROR: during test_seeking"
+	fi
 
-echo "testing small.flac with total_samples=0:"
-if run_test_seeking small.flac 1000 ; then : ; else
-	die "ERROR: during test_seeking"
-fi
+	echo "testing small$suffix.flac with total_samples=0:"
+	if run_test_seeking small$suffix.flac 1000 ; then : ; else
+		die "ERROR: during test_seeking"
+	fi
+done
 
 if [ $has_ogg = "yes" ] ; then
 
 	echo "generating Ogg FLAC files for seeking:"
 	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 --output-name=tiny.ogg --ogg noise8m32.raw || die "ERROR generating Ogg FLAC file"
 	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 --output-name=small.ogg --ogg noise.raw || die "ERROR generating Ogg FLAC file"
+	# seek tables are not used in libOggFLAC
 
 	echo "testing tiny.ogg:"
 	if run_test_seeking tiny.ogg 100 ; then : ; else
@@ -131,4 +136,4 @@ if [ $has_ogg = "yes" ] ; then
 
 fi
 
-rm -f tiny.flac tiny.ogg small.flac small.ogg
+rm -f tiny.flac tiny.ogg small.flac small.ogg tiny-s.flac small-s.flac

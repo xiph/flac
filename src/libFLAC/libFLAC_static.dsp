@@ -196,14 +196,6 @@ SOURCE=.\crc.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\file_decoder.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\file_encoder.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\fixed.c
 # End Source File
 # Begin Source File
@@ -233,14 +225,6 @@ SOURCE=.\metadata_iterators.c
 # Begin Source File
 
 SOURCE=.\metadata_object.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\seekable_stream_decoder.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\seekable_stream_encoder.c
 # End Source File
 # Begin Source File
 
@@ -328,22 +312,6 @@ SOURCE=.\include\protected\all.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\protected\file_decoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\include\protected\file_encoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\include\protected\seekable_stream_decoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\include\protected\seekable_stream_encoder.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\include\protected\stream_decoder.h
 # End Source File
 # Begin Source File
@@ -368,14 +336,6 @@ SOURCE=..\..\include\FLAC\export.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\FLAC\file_decoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\FLAC\file_encoder.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\include\FLAC\format.h
 # End Source File
 # Begin Source File
@@ -385,14 +345,6 @@ SOURCE=..\..\include\FLAC\metadata.h
 # Begin Source File
 
 SOURCE=..\..\include\FLAC\ordinals.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\FLAC\seekable_stream_decoder.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\FLAC\seekable_stream_encoder.h
 # End Source File
 # Begin Source File
 

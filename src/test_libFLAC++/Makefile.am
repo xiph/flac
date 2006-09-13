@@ -17,27 +17,23 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	README \
 	test_libFLAC++.dsp
 
 noinst_PROGRAMS = test_libFLAC++
 test_libFLAC___LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
+	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
 	$(top_builddir)/src/libFLAC++/libFLAC++.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	-lm
 test_libFLAC___SOURCES = \
 	decoders.cpp \
 	encoders.cpp \
-	file_utils.c \
 	main.cpp \
 	metadata.cpp \
 	metadata_manip.cpp \
 	metadata_object.cpp \
-	metadata_utils.c \
 	decoders.h \
 	encoders.h \
-	file_utils.h \
-	metadata.h \
-	metadata_utils.h
+	metadata.h

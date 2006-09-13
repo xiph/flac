@@ -10,8 +10,9 @@ METADATA block #0
 METADATA block #1
   type: 3 (SEEKTABLE)
   is last: false
-  length: 0
-  seek points: 0
+  length: 18
+  seek points: 1
+    point 0: sample_number=0
 METADATA block #2
   type: 4 (VORBIS_COMMENT)
   is last: false

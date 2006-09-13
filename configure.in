@@ -314,6 +314,7 @@ AC_CONFIG_FILES([ \
 	src/share/utf8/Makefile \
 	src/test_grabbag/Makefile \
 	src/test_grabbag/cuesheet/Makefile \
+	src/test_libs_common/Makefile \
 	src/test_libFLAC/Makefile \
 	src/test_libFLAC++/Makefile \
 	src/test_libOggFLAC/Makefile \
@@ -327,6 +328,7 @@ AC_CONFIG_FILES([ \
 	include/OggFLAC++/Makefile \
 	include/share/Makefile \
 	include/share/grabbag/Makefile \
+	include/test_libs_common/Makefile \
 	doc/Makefile \
 	doc/html/Makefile \
 	doc/html/images/Makefile \
@@ -334,6 +336,8 @@ AC_CONFIG_FILES([ \
 	man/Makefile \
 	test/Makefile \
 	test/cuesheets/Makefile \
+	test/flac-to-flac-metadata-test-files/Makefile \
+	test/metaflac-test-files/Makefile \
 	build/Makefile \
 	obj/Makefile \
 	obj/debug/Makefile \

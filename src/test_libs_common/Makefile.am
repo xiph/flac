@@ -1,5 +1,5 @@
-#  test_libOggFLAC - Unit tester for libOggFLAC
-#  Copyright (C) 2002,2003,2004,2005,2006  Josh Coalson
+#  test_libs_common - Common code to library unit tests
+#  Copyright (C) 2000,2001,2002,2003,2004,2005,2006  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -15,26 +15,25 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+if FLaC__HAS_OGG
+OGGFLAC_SOURCES = \
+	file_utils_oggflac.c
+OGGFLAC_LIBS = \
+	../libOggFLAC/libOggFLAC.la
+endif
+
+INCLUDES = -I$(top_srcdir)/include
+
+noinst_LTLIBRARIES = libtest_libs_common.la
+
+noinst_LIBADD = @OGGFLAC_LIBS@ ../libFLAC/libFLAC.la
+
+libtest_libs_common_la_SOURCES = \
+	file_utils_flac.c \
+	metadata_utils.c \
+	$(OGGFLAC_SOURCES)
+
 EXTRA_DIST = \
 	Makefile.lite \
-	test_libOggFLAC.dsp
-
-AM_CFLAGS = @OGG_CFLAGS@
-
-INCLUDES = 
-
-noinst_PROGRAMS = test_libOggFLAC
-test_libOggFLAC_LDADD = \
-	$(top_builddir)/src/share/grabbag/libgrabbag.la \
-	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
-	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
-	$(top_builddir)/src/libOggFLAC/libOggFLAC.la \
-	$(top_builddir)/src/libFLAC/libFLAC.la \
-	@OGG_LIBS@ \
-	-lm
-test_libOggFLAC_SOURCES = \
-	decoders.c \
-	encoders.c \
-	main.c \
-	decoders.h \
-	encoders.h
+	README \
+	test_libs_common_static.dsp

@@ -34,12 +34,12 @@
 #include <unistd.h> /* for chown(), unlink() */
 #endif
 #include <sys/stat.h> /* for stat(), maybe chmod() */
-#include "file_utils.h"
-#include "metadata_utils.h"
 #include "FLAC/assert.h"
-#include "FLAC/file_decoder.h"
+#include "FLAC/stream_decoder.h"
 #include "FLAC/metadata.h"
 #include "share/grabbag.h"
+#include "test_libs_common/file_utils_flac.h"
+#include "test_libs_common/metadata_utils.h"
 
 
 /******************************************************************************
@@ -47,7 +47,7 @@
 	to create a dummy FLAC file with a known set of initial metadata
 	blocks, then keep a mirror locally of what we expect the metadata to be
 	after each operation.  Then testing becomes a simple matter of running
-	a FLAC__FileDecoder over the dummy file after each operation, comparing
+	a FLAC__StreamDecoder over the dummy file after each operation, comparing
 	the decoded metadata to what's in our local copy.  If there are any
 	differences in the metadata, or the actual audio data is corrupted, we
 	will catch it while decoding.
@@ -422,7 +422,7 @@ static FLAC__bool compare_chain_(FLAC__Metadata_Chain *chain, unsigned current_p
 
 /* decoder callbacks for checking the file */
 
-static FLAC__StreamDecoderWriteStatus decoder_write_callback_(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+static FLAC__StreamDecoderWriteStatus decoder_write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	(void)decoder, (void)buffer, (void)client_data;
 
@@ -438,7 +438,7 @@ static FLAC__StreamDecoderWriteStatus decoder_write_callback_(const FLAC__FileDe
 }
 
 /* this version pays no attention to the metadata */
-static void decoder_metadata_callback_null_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+static void decoder_metadata_callback_null_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	(void)decoder, (void)metadata, (void)client_data;
 
@@ -449,7 +449,7 @@ static void decoder_metadata_callback_null_(const FLAC__FileDecoder *decoder, co
 }
 
 /* this version is used when we want to compare to our metadata copy */
-static void decoder_metadata_callback_compare_(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+static void decoder_metadata_callback_compare_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	decoder_client_struct *dcd = (decoder_client_struct*)client_data;
 
@@ -475,7 +475,7 @@ static void decoder_metadata_callback_compare_(const FLAC__FileDecoder *decoder,
 	mc_our_block_number_++;
 }
 
-static void decoder_error_callback_(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+static void decoder_error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
 	decoder_client_struct *dcd = (decoder_client_struct*)client_data;
 	(void)decoder;
@@ -559,9 +559,9 @@ static FLAC__bool generate_file_(FLAC__bool include_cuesheet)
 	return true;
 }
 
-static FLAC__bool test_file_(const char *filename, FLAC__FileDecoderMetadataCallback metadata_callback)
+static FLAC__bool test_file_(const char *filename, FLAC__StreamDecoderMetadataCallback metadata_callback)
 {
-	FLAC__FileDecoder *decoder;
+	FLAC__StreamDecoder *decoder;
 	decoder_client_struct decoder_client_data;
 
 	FLAC__ASSERT(0 != filename);
@@ -573,29 +573,24 @@ static FLAC__bool test_file_(const char *filename, FLAC__FileDecoderMetadataCall
 	printf("\ttesting '%s'... ", filename);
 	fflush(stdout);
 
-	if(0 == (decoder = FLAC__file_decoder_new()))
+	if(0 == (decoder = FLAC__stream_decoder_new()))
 		return die_("couldn't allocate decoder instance");
 
-	FLAC__file_decoder_set_md5_checking(decoder, true);
-	FLAC__file_decoder_set_filename(decoder, filename);
-	FLAC__file_decoder_set_write_callback(decoder, decoder_write_callback_);
-	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback);
-	FLAC__file_decoder_set_error_callback(decoder, decoder_error_callback_);
-	FLAC__file_decoder_set_client_data(decoder, &decoder_client_data);
-	FLAC__file_decoder_set_metadata_respond_all(decoder);
-	if(FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK) {
-		FLAC__file_decoder_finish(decoder);
-		FLAC__file_decoder_delete(decoder);
+	FLAC__stream_decoder_set_md5_checking(decoder, true);
+	FLAC__stream_decoder_set_metadata_respond_all(decoder);
+	if(FLAC__stream_decoder_init_file(decoder, filename, decoder_write_callback_, metadata_callback, decoder_error_callback_, &decoder_client_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+		FLAC__stream_decoder_finish(decoder);
+		FLAC__stream_decoder_delete(decoder);
 		return die_("initializing decoder\n");
 	}
-	if(!FLAC__file_decoder_process_until_end_of_file(decoder)) {
-		FLAC__file_decoder_finish(decoder);
-		FLAC__file_decoder_delete(decoder);
+	if(!FLAC__stream_decoder_process_until_end_of_stream(decoder)) {
+		FLAC__stream_decoder_finish(decoder);
+		FLAC__stream_decoder_delete(decoder);
 		return die_("decoding file\n");
 	}
 
-	FLAC__file_decoder_finish(decoder);
-	FLAC__file_decoder_delete(decoder);
+	FLAC__stream_decoder_finish(decoder);
+	FLAC__stream_decoder_delete(decoder);
 
 	if(decoder_client_data.error_occurred)
 		return false;

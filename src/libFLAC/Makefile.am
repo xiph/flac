@@ -87,8 +87,6 @@ libFLAC_la_SOURCES = \
 	bitmath.c \
 	cpu.c \
 	crc.c \
-	file_decoder.c \
-	file_encoder.c \
 	fixed.c \
 	float.c \
 	format.c \
@@ -97,8 +95,6 @@ libFLAC_la_SOURCES = \
 	memory.c \
 	metadata_iterators.c \
 	metadata_object.c \
-	seekable_stream_decoder.c \
-	seekable_stream_encoder.c \
 	stream_decoder.c \
 	stream_encoder.c \
 	stream_encoder_framing.c \

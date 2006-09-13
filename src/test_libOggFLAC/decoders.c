@@ -30,29 +30,40 @@
 #define ftello ftell
 #endif
 #include "decoders.h"
-#include "file_utils.h"
-#include "metadata_utils.h"
 #include "FLAC/assert.h"
-#include "OggFLAC/file_decoder.h"
-#include "OggFLAC/seekable_stream_decoder.h"
 #include "OggFLAC/stream_decoder.h"
 #include "share/grabbag.h"
+#include "test_libs_common/file_utils_oggflac.h"
+#include "test_libs_common/metadata_utils.h"
+
+//@@@@@@ this is almost exactly like test_libFLAC/decoders.c, maybe should consolidate some stuff liek client data and callbacks
+typedef enum {
+	LAYER_STREAM = 0, /* FLAC__stream_decoder_init_stream() without seeking */
+	LAYER_SEEKABLE_STREAM, /* FLAC__stream_decoder_init_stream() with seeking */
+	LAYER_FILE, /* FLAC__stream_decoder_init_FILE() */
+	LAYER_FILENAME /* FLAC__stream_decoder_init_file() */
+} Layer;
+
+static const char * const LayerString[] = {
+	"Stream",
+	"Seekable Stream",
+	"FILE*",
+	"Filename"
+};
 
 typedef struct {
+	Layer layer;
 	FILE *file;
 	unsigned current_metadata_number;
 	FLAC__bool ignore_errors;
 	FLAC__bool error_occurred;
-} stream_decoder_client_data_struct;
-
-typedef stream_decoder_client_data_struct seekable_stream_decoder_client_data_struct;
-typedef stream_decoder_client_data_struct file_decoder_client_data_struct;
+} StreamDecoderClientData;
 
 static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, unknown_;
 static FLAC__StreamMetadata *expected_metadata_sequence_[8];
 static unsigned num_expected_;
-static const char *oggflacfilename_ = "metadata.ogg";
-static off_t oggflacfilesize_;
+static const char *flacfilename_ = "metadata.ogg";
+static off_t flacfilesize_;
 
 static FLAC__bool die_(const char *msg)
 {
@@ -73,54 +84,6 @@ static FLAC__bool die_s_(const char *msg, const OggFLAC__StreamDecoder *decoder)
 	if(state == OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR) {
 		FLAC__StreamDecoderState state_ = OggFLAC__stream_decoder_get_FLAC_stream_decoder_state(decoder);
 		printf("      FLAC stream decoder state = %u (%s)\n", (unsigned)state_, FLAC__StreamDecoderStateString[state_]);
-	}
-
-	return false;
-}
-
-static FLAC__bool die_ss_(const char *msg, const OggFLAC__SeekableStreamDecoder *decoder)
-{
-	OggFLAC__SeekableStreamDecoderState state = OggFLAC__seekable_stream_decoder_get_state(decoder);
-
-	if(msg)
-		printf("FAILED, %s", msg);
-	else
-		printf("FAILED");
-
-	printf(", state = %u (%s)\n", (unsigned)state, OggFLAC__SeekableStreamDecoderStateString[state]);
-	if(state == OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
-		OggFLAC__StreamDecoderState state_ = OggFLAC__seekable_stream_decoder_get_stream_decoder_state(decoder);
-		printf("      stream decoder state = %u (%s)\n", (unsigned)state_, OggFLAC__StreamDecoderStateString[state_]);
-		if(state_ == OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR) {
-			FLAC__StreamDecoderState state__ = OggFLAC__seekable_stream_decoder_get_FLAC_stream_decoder_state(decoder);
-			printf("      FLAC stream decoder state = %u (%s)\n", (unsigned)state__, FLAC__StreamDecoderStateString[state__]);
-		}
-	}
-
-	return false;
-}
-
-static FLAC__bool die_f_(const char *msg, const OggFLAC__FileDecoder *decoder)
-{
-	OggFLAC__FileDecoderState state = OggFLAC__file_decoder_get_state(decoder);
-
-	if(msg)
-		printf("FAILED, %s", msg);
-	else
-		printf("FAILED");
-
-	printf(", state = %u (%s)\n", (unsigned)state, OggFLAC__SeekableStreamDecoderStateString[state]);
-	if(state == OggFLAC__FILE_DECODER_SEEKABLE_STREAM_DECODER_ERROR) {
-		OggFLAC__SeekableStreamDecoderState state_ = OggFLAC__file_decoder_get_seekable_stream_decoder_state(decoder);
-		printf("      seekable stream decoder state = %u (%s)\n", (unsigned)state_, OggFLAC__SeekableStreamDecoderStateString[state_]);
-		if(state_ == OggFLAC__SEEKABLE_STREAM_DECODER_STREAM_DECODER_ERROR) {
-			OggFLAC__StreamDecoderState state__ = OggFLAC__file_decoder_get_stream_decoder_state(decoder);
-			printf("      stream decoder state = %u (%s)\n", (unsigned)state__, OggFLAC__StreamDecoderStateString[state__]);
-			if(state__ == OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR) {
-				FLAC__StreamDecoderState state___ = OggFLAC__file_decoder_get_FLAC_stream_decoder_state(decoder);
-				printf("      FLAC stream decoder state = %u (%s)\n", (unsigned)state___, FLAC__StreamDecoderStateString[state___]);
-			}
-		}
 	}
 
 	return false;
@@ -150,15 +113,16 @@ static FLAC__bool generate_file_()
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 	/* WATCHOUT: the encoder should move the VORBIS_COMMENT block to the front, right after STREAMINFO */
 
-	if(!file_utils__generate_oggflacfile(oggflacfilename_, &oggflacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
+	if(!file_utils__generate_oggflacfile(flacfilename_, &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
 		return die_("creating the encoded file");
 
 	return true;
 }
 
-static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const OggFLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 {
-	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
+	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
+	const unsigned requested_bytes = *bytes;
 
 	(void)decoder;
 
@@ -174,8 +138,8 @@ static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const OggFLAC
 		*bytes = 0;
 		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 	}
-	else if(*bytes > 0) {
-		*bytes = fread(buffer, 1, *bytes, dcd->file);
+	else if(requested_bytes > 0) {
+		*bytes = fread(buffer, 1, requested_bytes, dcd->file);
 		if(*bytes == 0) {
 			if(feof(dcd->file))
 				return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
@@ -190,9 +154,92 @@ static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const OggFLAC
 		return FLAC__STREAM_DECODER_READ_STATUS_ABORT; /* abort to avoid a deadlock */
 }
 
-static FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const OggFLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+static FLAC__StreamDecoderSeekStatus stream_decoder_seek_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
 {
-	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
+	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
+
+	(void)decoder;
+
+	if(0 == dcd) {
+		printf("ERROR: client_data in seek callback is NULL\n");
+		return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+	}
+
+	if(dcd->error_occurred)
+		return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+
+	if(fseeko(dcd->file, (off_t)absolute_byte_offset, SEEK_SET) < 0) {
+		dcd->error_occurred = true;
+		return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+	}
+
+	return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
+}
+
+static FLAC__StreamDecoderTellStatus stream_decoder_tell_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+{
+	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
+	off_t offset;
+
+	(void)decoder;
+
+	if(0 == dcd) {
+		printf("ERROR: client_data in tell callback is NULL\n");
+		return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
+	}
+
+	if(dcd->error_occurred)
+		return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
+
+	offset = ftello(dcd->file);
+	*absolute_byte_offset = (FLAC__uint64)offset;
+
+	if(offset < 0) {
+		dcd->error_occurred = true;
+		return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
+	}
+
+	return FLAC__STREAM_DECODER_TELL_STATUS_OK;
+}
+
+static FLAC__StreamDecoderLengthStatus stream_decoder_length_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
+{
+	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
+
+	(void)decoder;
+
+	if(0 == dcd) {
+		printf("ERROR: client_data in length callback is NULL\n");
+		return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
+	}
+
+	if(dcd->error_occurred)
+		return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
+
+	*stream_length = (FLAC__uint64)flacfilesize_;
+	return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
+}
+
+static FLAC__bool stream_decoder_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_data)
+{
+	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
+
+	(void)decoder;
+
+	if(0 == dcd) {
+		printf("ERROR: client_data in eof callback is NULL\n");
+		return true;
+	}
+
+	if(dcd->error_occurred)
+		return true;
+
+	return feof(dcd->file);
+}
+
+static FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+{
+	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
 
 	(void)decoder, (void)buffer;
 
@@ -215,9 +262,9 @@ static FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const OggFL
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-static void stream_decoder_metadata_callback_(const OggFLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+static void stream_decoder_metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
-	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
+	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
 
 	(void)decoder;
 
@@ -245,9 +292,9 @@ static void stream_decoder_metadata_callback_(const OggFLAC__StreamDecoder *deco
 	dcd->current_metadata_number++;
 }
 
-static void stream_decoder_error_callback_(const OggFLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+static void stream_decoder_error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
-	stream_decoder_client_data_struct *dcd = (stream_decoder_client_data_struct*)client_data;
+	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
 
 	(void)decoder;
 
@@ -262,31 +309,49 @@ static void stream_decoder_error_callback_(const OggFLAC__StreamDecoder *decoder
 	}
 }
 
-static FLAC__bool stream_decoder_test_respond_(OggFLAC__StreamDecoder *decoder, stream_decoder_client_data_struct *dcd)
+static FLAC__bool stream_decoder_test_respond_(OggFLAC__StreamDecoder *decoder, StreamDecoderClientData *dcd)
 {
-	if(!OggFLAC__stream_decoder_set_read_callback(decoder, stream_decoder_read_callback_))
-		return die_s_("at OggFLAC__stream_decoder_set_read_callback(), returned false", decoder);
+	FLAC__StreamDecoderInitStatus init_status;
 
-	if(!OggFLAC__stream_decoder_set_write_callback(decoder, stream_decoder_write_callback_))
-		return die_s_("at OggFLAC__stream_decoder_set_write_callback(), returned false", decoder);
+	if(!OggFLAC__stream_decoder_set_md5_checking(decoder, true))
+		return die_s_("at OggFLAC__stream_decoder_set_md5_checking(), returned false", decoder);
 
-	if(!OggFLAC__stream_decoder_set_metadata_callback(decoder, stream_decoder_metadata_callback_))
-		return die_s_("at OggFLAC__stream_decoder_set_metadata_callback(), returned false", decoder);
+	/* for OggFLAC__stream_encoder_init_FILE(), the OggFLAC__stream_encoder_finish() closes the file so we have to keep re-opening: */
+	if(dcd->layer == LAYER_FILE) {
+		printf("opening Ogg FLAC file... ");
+		dcd->file = fopen(flacfilename_, "rb");
+		if(0 == dcd->file) {
+			printf("ERROR (%s)\n", strerror(errno));
+			return false;
+		}
+		printf("OK\n");
+	}
 
-	if(!OggFLAC__stream_decoder_set_error_callback(decoder, stream_decoder_error_callback_))
-		return die_s_("at OggFLAC__stream_decoder_set_error_callback(), returned false", decoder);
-
-	if(!OggFLAC__stream_decoder_set_client_data(decoder, dcd))
-		return die_s_("at OggFLAC__stream_decoder_set_client_data(), returned false", decoder);
-
-	printf("testing OggFLAC__stream_decoder_init()... ");
-	if(OggFLAC__stream_decoder_init(decoder) != OggFLAC__STREAM_DECODER_OK)
+	printf("testing OggFLAC__stream_decoder_init_stream()... ");
+	switch(dcd->layer) {
+		case LAYER_STREAM:
+			init_status = OggFLAC__stream_decoder_init_stream(decoder, stream_decoder_read_callback_, /*seek_callback=*/0, /*tell_callback=*/0, /*length_callback=*/0, /*eof_callback=*/0, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, dcd);
+			break;
+		case LAYER_SEEKABLE_STREAM:
+			init_status = OggFLAC__stream_decoder_init_stream(decoder, stream_decoder_read_callback_, stream_decoder_seek_callback_, stream_decoder_tell_callback_, stream_decoder_length_callback_, stream_decoder_eof_callback_, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, dcd);
+			break;
+		case LAYER_FILE:
+			init_status = OggFLAC__stream_decoder_init_FILE(decoder, dcd->file, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, dcd);
+			break;
+		case LAYER_FILENAME:
+			init_status = OggFLAC__stream_decoder_init_file(decoder, flacfilename_, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, dcd);
+			break;
+		default:
+			die_("internal error 000");
+			return false;
+	}
+	if(init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK)
 		return die_s_(0, decoder);
 	printf("OK\n");
 
 	dcd->current_metadata_number = 0;
 
-	if(fseeko(dcd->file, 0, SEEK_SET) < 0) {
+	if(dcd->layer < LAYER_FILE && fseeko(dcd->file, 0, SEEK_SET) < 0) {
 		printf("FAILED rewinding input, errno = %d\n", errno);
 		return false;
 	}
@@ -303,14 +368,17 @@ static FLAC__bool stream_decoder_test_respond_(OggFLAC__StreamDecoder *decoder, 
 	return true;
 }
 
-static FLAC__bool test_stream_decoder()
+static FLAC__bool test_stream_decoder(Layer layer)
 {
 	OggFLAC__StreamDecoder *decoder;
 	OggFLAC__StreamDecoderState state;
 	FLAC__StreamDecoderState fstate;
-	stream_decoder_client_data_struct decoder_client_data;
+	StreamDecoderClientData decoder_client_data;
+	FLAC__bool expect;
 
-	printf("\n+++ libOggFLAC unit test: OggFLAC__StreamDecoder\n\n");
+	decoder_client_data.layer = layer;
+
+	printf("\n+++ libOggFLAC unit test: OggFLAC__StreamDecoder (layer: %s)\n\n", LayerString[layer]);
 
 	printf("testing OggFLAC__stream_decoder_new()... ");
 	decoder = OggFLAC__stream_decoder_new();
@@ -332,9 +400,27 @@ static FLAC__bool test_stream_decoder()
 	}
 	printf("OK\n");
 
-	printf("testing OggFLAC__stream_decoder_init()... ");
-	if(OggFLAC__stream_decoder_init(decoder) == OggFLAC__STREAM_DECODER_OK)
-		return die_s_(0, decoder);
+	switch(layer) {
+		case LAYER_STREAM:
+		case LAYER_SEEKABLE_STREAM:
+			printf("testing OggFLAC__stream_decoder_init_stream()... ");
+			if(OggFLAC__stream_decoder_init_stream(decoder, 0, 0, 0, 0, 0, 0, 0, 0, 0) != FLAC__STREAM_DECODER_INIT_STATUS_INVALID_CALLBACKS)
+				return die_s_(0, decoder);
+			break;
+		case LAYER_FILE:
+			printf("testing OggFLAC__stream_decoder_init_FILE()... ");
+			if(OggFLAC__stream_decoder_init_FILE(decoder, stdin, 0, 0, 0, 0) != FLAC__STREAM_DECODER_INIT_STATUS_INVALID_CALLBACKS)
+				return die_s_(0, decoder);
+			break;
+		case LAYER_FILENAME:
+			printf("testing OggFLAC__stream_decoder_init_file()... ");
+			if(OggFLAC__stream_decoder_init_file(decoder, flacfilename_, 0, 0, 0, 0) != FLAC__STREAM_DECODER_INIT_STATUS_INVALID_CALLBACKS)
+				return die_s_(0, decoder);
+			break;
+		default:
+			die_("internal error 003");
+			return false;
+	}
 	printf("OK\n");
 
 	printf("testing OggFLAC__stream_decoder_delete()... ");
@@ -357,34 +443,46 @@ static FLAC__bool test_stream_decoder()
 		return die_s_("returned false", decoder);
 	printf("OK\n");
 
-	printf("testing OggFLAC__stream_decoder_set_read_callback()... ");
-	if(!OggFLAC__stream_decoder_set_read_callback(decoder, stream_decoder_read_callback_))
+	printf("testing OggFLAC__stream_decoder_set_md5_checking()... ");
+	if(!OggFLAC__stream_decoder_set_md5_checking(decoder, true))
 		return die_s_("returned false", decoder);
 	printf("OK\n");
 
-	printf("testing OggFLAC__stream_decoder_set_write_callback()... ");
-	if(!OggFLAC__stream_decoder_set_write_callback(decoder, stream_decoder_write_callback_))
-		return die_s_("returned false", decoder);
-	printf("OK\n");
+	if(layer < LAYER_FILENAME) {
+		printf("opening Ogg FLAC file... ");
+		decoder_client_data.file = fopen(flacfilename_, "rb");
+		if(0 == decoder_client_data.file) {
+			printf("ERROR (%s)\n", strerror(errno));
+			return false;
+		}
+		printf("OK\n");
+	}
 
-	printf("testing OggFLAC__stream_decoder_set_metadata_callback()... ");
-	if(!OggFLAC__stream_decoder_set_metadata_callback(decoder, stream_decoder_metadata_callback_))
-		return die_s_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__stream_decoder_set_error_callback()... ");
-	if(!OggFLAC__stream_decoder_set_error_callback(decoder, stream_decoder_error_callback_))
-		return die_s_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__stream_decoder_set_client_data()... ");
-	if(!OggFLAC__stream_decoder_set_client_data(decoder, &decoder_client_data))
-		return die_s_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__stream_decoder_init()... ");
-	if(OggFLAC__stream_decoder_init(decoder) != OggFLAC__STREAM_DECODER_OK)
-		return die_s_(0, decoder);
+	switch(layer) {
+		case LAYER_STREAM:
+			printf("testing OggFLAC__stream_decoder_init_stream()... ");
+			if(OggFLAC__stream_decoder_init_stream(decoder, stream_decoder_read_callback_, /*seek_callback=*/0, /*tell_callback=*/0, /*length_callback=*/0, /*eof_callback=*/0, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK)
+				return die_s_(0, decoder);
+			break;
+		case LAYER_SEEKABLE_STREAM:
+			printf("testing OggFLAC__stream_decoder_init_stream()... ");
+			if(OggFLAC__stream_decoder_init_stream(decoder, stream_decoder_read_callback_, stream_decoder_seek_callback_, stream_decoder_tell_callback_, stream_decoder_length_callback_, stream_decoder_eof_callback_, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK)
+				return die_s_(0, decoder);
+			break;
+		case LAYER_FILE:
+			printf("testing OggFLAC__stream_decoder_init_FILE()... ");
+			if(OggFLAC__stream_decoder_init_FILE(decoder, decoder_client_data.file, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK)
+				return die_s_(0, decoder);
+			break;
+		case LAYER_FILENAME:
+			printf("testing OggFLAC__stream_decoder_init_file()... ");
+			if(OggFLAC__stream_decoder_init_file(decoder, flacfilename_, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK)
+				return die_s_(0, decoder);
+			break;
+		default:
+			die_("internal error 009");
+			return false;
+	}
 	printf("OK\n");
 
 	printf("testing OggFLAC__stream_decoder_get_state()... ");
@@ -399,10 +497,9 @@ static FLAC__bool test_stream_decoder()
 	decoder_client_data.ignore_errors = false;
 	decoder_client_data.error_occurred = false;
 
-	printf("opening Ogg FLAC file... ");
-	decoder_client_data.file = fopen(oggflacfilename_, "rb");
-	if(0 == decoder_client_data.file) {
-		printf("ERROR (%s)\n", strerror(errno));
+	printf("testing OggFLAC__stream_decoder_get_md5_checking()... ");
+	if(!OggFLAC__stream_decoder_get_md5_checking(decoder)) {
+		printf("FAILED, returned false, expected true\n");
 		return false;
 	}
 	printf("OK\n");
@@ -417,21 +514,40 @@ static FLAC__bool test_stream_decoder()
 		return die_s_("returned false", decoder);
 	printf("OK\n");
 
-	printf("testing OggFLAC__stream_decoder_flush()... ");
-	if(!OggFLAC__stream_decoder_flush(decoder))
+	printf("testing OggFLAC__stream_decoder_skip_single_frame()... ");
+	if(!OggFLAC__stream_decoder_skip_single_frame(decoder))
 		return die_s_("returned false", decoder);
 	printf("OK\n");
 
-	decoder_client_data.ignore_errors = true;
-	printf("testing OggFLAC__stream_decoder_process_single()... ");
-	if(!OggFLAC__stream_decoder_process_single(decoder))
-		return die_s_("returned false", decoder);
+	if(layer < LAYER_FILE) {
+		printf("testing OggFLAC__stream_decoder_flush()... ");
+		if(!OggFLAC__stream_decoder_flush(decoder))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+
+		decoder_client_data.ignore_errors = true;
+		printf("testing OggFLAC__stream_decoder_process_single()... ");
+		if(!OggFLAC__stream_decoder_process_single(decoder))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+		decoder_client_data.ignore_errors = false;
+	}
+
+	expect = (layer != LAYER_STREAM);
+	printf("testing OggFLAC__stream_decoder_seek_absolute()... ");
+	if(OggFLAC__stream_decoder_seek_absolute(decoder, 0) != expect)
+		return die_s_(expect? "returned false" : "returned true", decoder);
 	printf("OK\n");
-	decoder_client_data.ignore_errors = false;
 
 	printf("testing OggFLAC__stream_decoder_process_until_end_of_stream()... ");
 	if(!OggFLAC__stream_decoder_process_until_end_of_stream(decoder))
 		return die_s_("returned false", decoder);
+	printf("OK\n");
+
+	expect = (layer != LAYER_STREAM);
+	printf("testing OggFLAC__stream_decoder_seek_absolute()... ");
+	if(OggFLAC__stream_decoder_seek_absolute(decoder, 0) != expect)
+		return die_s_(expect? "returned false" : "returned true", decoder);
 	printf("OK\n");
 
 	printf("testing OggFLAC__stream_decoder_get_channels()... ");
@@ -467,8 +583,10 @@ static FLAC__bool test_stream_decoder()
 	printf("testing OggFLAC__stream_decoder_get_blocksize()... ");
 	{
 		unsigned blocksize = OggFLAC__stream_decoder_get_blocksize(decoder);
-		/* value could be anything since we're at the last block, so accept any answer */
-		printf("returned %u... OK\n", blocksize);
+		/* value could be anything since we're at the last block, so accept any reasonable answer */
+		printf("returned %u... %s\n", blocksize, blocksize>0? "OK" : "FAILED");
+		if(blocksize == 0)
+			return false;
 	}
 
 	printf("testing OggFLAC__stream_decoder_get_channel_assignment()... ");
@@ -477,30 +595,35 @@ static FLAC__bool test_stream_decoder()
 		printf("returned %u (%s)... OK\n", (unsigned)ca, FLAC__ChannelAssignmentString[ca]);
 	}
 
-	printf("testing OggFLAC__stream_decoder_reset()... ");
-	if(!OggFLAC__stream_decoder_reset(decoder)) {
-		state = OggFLAC__stream_decoder_get_state(decoder);
-		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
-		return false;
+	if(layer < LAYER_FILE) {
+		printf("testing OggFLAC__stream_decoder_reset()... ");
+		if(!OggFLAC__stream_decoder_reset(decoder)) {
+			state = OggFLAC__stream_decoder_get_state(decoder);
+			printf("FAILED, returned false, state = %u (%s)\n", state, OggFLAC__StreamDecoderStateString[state]);
+			return false;
+		}
+		printf("OK\n");
+
+		if(layer == LAYER_STREAM) {
+			/* after a reset() we have to rewind the input ourselves */
+			printf("rewinding input... ");
+			if(fseeko(decoder_client_data.file, 0, SEEK_SET) < 0) {
+				printf("FAILED, errno = %d\n", errno);
+				return false;
+			}
+			printf("OK\n");
+		}
+
+		decoder_client_data.current_metadata_number = 0;
+
+		printf("testing OggFLAC__stream_decoder_process_until_end_of_stream()... ");
+		if(!OggFLAC__stream_decoder_process_until_end_of_stream(decoder))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
 	}
-	printf("OK\n");
-
-	decoder_client_data.current_metadata_number = 0;
-
-	printf("rewinding input... ");
-	if(fseeko(decoder_client_data.file, 0, SEEK_SET) < 0) {
-		printf("FAILED, errno = %d\n", errno);
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__stream_decoder_process_until_end_of_stream()... ");
-	if(!OggFLAC__stream_decoder_process_until_end_of_stream(decoder))
-		return die_s_("returned false", decoder);
-	printf("OK\n");
 
 	printf("testing OggFLAC__stream_decoder_finish()... ");
-	OggFLAC__stream_decoder_finish(decoder);
+	(void) OggFLAC__stream_decoder_finish(decoder);
 	printf("OK\n");
 
 	/*
@@ -789,1288 +912,11 @@ static FLAC__bool test_stream_decoder()
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
 		return false;
 
-	/* done, now leave the sequence the way we found it... */
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
+	if(layer < LAYER_FILE) /* for LAYER_FILE, FLAC__stream_decoder_finish() closes the file */
+		fclose(decoder_client_data.file);
 
 	printf("testing OggFLAC__stream_decoder_delete()... ");
 	OggFLAC__stream_decoder_delete(decoder);
-	printf("OK\n");
-
-	fclose(decoder_client_data.file);
-
-	printf("\nPASSED!\n");
-
-	return true;
-}
-
-static OggFLAC__SeekableStreamDecoderReadStatus seekable_stream_decoder_read_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
-{
-	(void)decoder;
-	switch(stream_decoder_read_callback_(0, buffer, bytes, client_data)) {
-		case FLAC__STREAM_DECODER_READ_STATUS_CONTINUE:
-		case FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM:
-			return OggFLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_OK;
-		case FLAC__STREAM_DECODER_READ_STATUS_ABORT:
-			return OggFLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR;
-		default:
-			FLAC__ASSERT(0);
-			return OggFLAC__SEEKABLE_STREAM_DECODER_READ_STATUS_ERROR;
-	}
-}
-
-static OggFLAC__SeekableStreamDecoderSeekStatus seekable_stream_decoder_seek_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
-{
-	seekable_stream_decoder_client_data_struct *dcd = (seekable_stream_decoder_client_data_struct*)client_data;
-
-	(void)decoder;
-
-	if(0 == dcd) {
-		printf("ERROR: client_data in seek callback is NULL\n");
-		return OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
-	}
-
-	if(dcd->error_occurred)
-		return OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
-
-	if(fseeko(dcd->file, (off_t)absolute_byte_offset, SEEK_SET) < 0) {
-		dcd->error_occurred = true;
-		return OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_ERROR;
-	}
-
-	return OggFLAC__SEEKABLE_STREAM_DECODER_SEEK_STATUS_OK;
-}
-
-static OggFLAC__SeekableStreamDecoderTellStatus seekable_stream_decoder_tell_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
-{
-	seekable_stream_decoder_client_data_struct *dcd = (seekable_stream_decoder_client_data_struct*)client_data;
-	off_t offset;
-
-	(void)decoder;
-
-	if(0 == dcd) {
-		printf("ERROR: client_data in tell callback is NULL\n");
-		return OggFLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR;
-	}
-
-	if(dcd->error_occurred)
-		return OggFLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR;
-
-	offset = ftello(dcd->file);
-	*absolute_byte_offset = (FLAC__uint64)offset;
-
-	if(offset < 0) {
-		dcd->error_occurred = true;
-		return OggFLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_ERROR;
-	}
-
-	return OggFLAC__SEEKABLE_STREAM_DECODER_TELL_STATUS_OK;
-}
-
-static OggFLAC__SeekableStreamDecoderLengthStatus seekable_stream_decoder_length_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
-{
-	seekable_stream_decoder_client_data_struct *dcd = (seekable_stream_decoder_client_data_struct*)client_data;
-
-	(void)decoder;
-
-	if(0 == dcd) {
-		printf("ERROR: client_data in length callback is NULL\n");
-		return OggFLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR;
-	}
-
-	if(dcd->error_occurred)
-		return OggFLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_ERROR;
-
-	*stream_length = (FLAC__uint64)oggflacfilesize_;
-	return OggFLAC__SEEKABLE_STREAM_DECODER_LENGTH_STATUS_OK;
-}
-
-static FLAC__bool seekable_stream_decoder_eof_callback_(const OggFLAC__SeekableStreamDecoder *decoder, void *client_data)
-{
-	seekable_stream_decoder_client_data_struct *dcd = (seekable_stream_decoder_client_data_struct*)client_data;
-
-	(void)decoder;
-
-	if(0 == dcd) {
-		printf("ERROR: client_data in eof callback is NULL\n");
-		return true;
-	}
-
-	if(dcd->error_occurred)
-		return true;
-
-	return feof(dcd->file);
-}
-
-static FLAC__StreamDecoderWriteStatus seekable_stream_decoder_write_callback_(const OggFLAC__SeekableStreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
-{
-	(void)decoder;
-	return stream_decoder_write_callback_(0, frame, buffer, client_data);
-}
-
-static void seekable_stream_decoder_metadata_callback_(const OggFLAC__SeekableStreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
-{
-	(void)decoder;
-	stream_decoder_metadata_callback_(0, metadata, client_data);
-}
-
-static void seekable_stream_decoder_error_callback_(const OggFLAC__SeekableStreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
-{
-	(void)decoder;
-	stream_decoder_error_callback_(0, status, client_data);
-}
-
-static FLAC__bool seekable_stream_decoder_test_respond_(OggFLAC__SeekableStreamDecoder *decoder, seekable_stream_decoder_client_data_struct *dcd)
-{
-	if(!OggFLAC__seekable_stream_decoder_set_read_callback(decoder, seekable_stream_decoder_read_callback_))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_read_callback(), returned false", decoder);
-
-	if(!OggFLAC__seekable_stream_decoder_set_seek_callback(decoder, seekable_stream_decoder_seek_callback_))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_seek_callback(), returned false", decoder);
-
-	if(!OggFLAC__seekable_stream_decoder_set_tell_callback(decoder, seekable_stream_decoder_tell_callback_))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_tell_callback(), returned false", decoder);
-
-	if(!OggFLAC__seekable_stream_decoder_set_length_callback(decoder, seekable_stream_decoder_length_callback_))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_length_callback(), returned false", decoder);
-
-	if(!OggFLAC__seekable_stream_decoder_set_eof_callback(decoder, seekable_stream_decoder_eof_callback_))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_eof_callback(), returned false", decoder);
-
-	if(!OggFLAC__seekable_stream_decoder_set_write_callback(decoder, seekable_stream_decoder_write_callback_))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_write_callback(), returned false", decoder);
-
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_callback(decoder, seekable_stream_decoder_metadata_callback_))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_metadata_callback(), returned false", decoder);
-
-	if(!OggFLAC__seekable_stream_decoder_set_error_callback(decoder, seekable_stream_decoder_error_callback_))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_error_callback(), returned false", decoder);
-
-	if(!OggFLAC__seekable_stream_decoder_set_client_data(decoder, dcd))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_client_data(), returned false", decoder);
-
-	if(!OggFLAC__seekable_stream_decoder_set_md5_checking(decoder, true))
-		return die_ss_("at OggFLAC__seekable_stream_decoder_set_md5_checking(), returned false", decoder);
-
-	printf("testing OggFLAC__seekable_stream_decoder_init()... ");
-	if(OggFLAC__seekable_stream_decoder_init(decoder) != OggFLAC__SEEKABLE_STREAM_DECODER_OK)
-		return die_ss_(0, decoder);
-	printf("OK\n");
-
-	dcd->current_metadata_number = 0;
-
-	if(fseeko(dcd->file, 0, SEEK_SET) < 0) {
-		printf("FAILED rewinding input, errno = %d\n", errno);
-		return false;
-	}
-
-	printf("testing OggFLAC__seekable_stream_decoder_process_until_end_of_stream()... ");
-	if(!OggFLAC__seekable_stream_decoder_process_until_end_of_stream(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_finish()... ");
-	(void) OggFLAC__seekable_stream_decoder_finish(decoder);
-	printf("OK\n");
-
-	return true;
-}
-
-static FLAC__bool test_seekable_stream_decoder()
-{
-	OggFLAC__SeekableStreamDecoder *decoder;
-	OggFLAC__SeekableStreamDecoderState state;
-	OggFLAC__StreamDecoderState sstate;
-	FLAC__StreamDecoderState fstate;
-	seekable_stream_decoder_client_data_struct decoder_client_data;
-
-	printf("\n+++ libOggFLAC unit test: OggFLAC__SeekableStreamDecoder\n\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_new()... ");
-	decoder = OggFLAC__seekable_stream_decoder_new();
-	if(0 == decoder) {
-		printf("FAILED, returned NULL\n");
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_delete()... ");
-	OggFLAC__seekable_stream_decoder_delete(decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_new()... ");
-	decoder = OggFLAC__seekable_stream_decoder_new();
-	if(0 == decoder) {
-		printf("FAILED, returned NULL\n");
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_init()... ");
-	if(OggFLAC__seekable_stream_decoder_init(decoder) == OggFLAC__SEEKABLE_STREAM_DECODER_OK)
-		return die_ss_(0, decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_delete()... ");
-	OggFLAC__seekable_stream_decoder_delete(decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-
-	printf("testing OggFLAC__seekable_stream_decoder_new()... ");
-	decoder = OggFLAC__seekable_stream_decoder_new();
-	if(0 == decoder) {
-		printf("FAILED, returned NULL\n");
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_serial_number()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_serial_number(decoder, file_utils__serial_number))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_read_callback()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_read_callback(decoder, seekable_stream_decoder_read_callback_))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_seek_callback()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_seek_callback(decoder, seekable_stream_decoder_seek_callback_))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_tell_callback()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_tell_callback(decoder, seekable_stream_decoder_tell_callback_))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_length_callback()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_length_callback(decoder, seekable_stream_decoder_length_callback_))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_eof_callback()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_eof_callback(decoder, seekable_stream_decoder_eof_callback_))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_write_callback()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_write_callback(decoder, seekable_stream_decoder_write_callback_))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_callback()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_callback(decoder, seekable_stream_decoder_metadata_callback_))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_error_callback()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_error_callback(decoder, seekable_stream_decoder_error_callback_))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_client_data()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_client_data(decoder, &decoder_client_data))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_md5_checking()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_md5_checking(decoder, true))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_init()... ");
-	if(OggFLAC__seekable_stream_decoder_init(decoder) != OggFLAC__SEEKABLE_STREAM_DECODER_OK)
-		return die_ss_(0, decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_get_state()... ");
-	state = OggFLAC__seekable_stream_decoder_get_state(decoder);
-	printf("returned state = %u (%s)... OK\n", state, OggFLAC__SeekableStreamDecoderStateString[state]);
-
-	printf("testing OggFLAC__seekable_stream_decoder_get_stream_decoder_state()... ");
-	sstate = OggFLAC__seekable_stream_decoder_get_stream_decoder_state(decoder);
-	printf("returned state = %u (%s)... OK\n", sstate, OggFLAC__StreamDecoderStateString[sstate]);
-
-	printf("testing OggFLAC__seekable_stream_decoder_get_FLAC_stream_decoder_state()... ");
-	fstate = OggFLAC__seekable_stream_decoder_get_FLAC_stream_decoder_state(decoder);
-	printf("returned state = %u (%s)... OK\n", fstate, FLAC__StreamDecoderStateString[fstate]);
-
-	decoder_client_data.current_metadata_number = 0;
-	decoder_client_data.ignore_errors = false;
-	decoder_client_data.error_occurred = false;
-
-	printf("opening Ogg FLAC file... ");
-	decoder_client_data.file = fopen(oggflacfilename_, "rb");
-	if(0 == decoder_client_data.file) {
-		printf("ERROR (%s)\n", strerror(errno));
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_get_md5_checking()... ");
-	if(!OggFLAC__seekable_stream_decoder_get_md5_checking(decoder)) {
-		printf("FAILED, returned false, expected true\n");
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_process_until_end_of_metadata()... ");
-	if(!OggFLAC__seekable_stream_decoder_process_until_end_of_metadata(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_process_single()... ");
-	if(!OggFLAC__seekable_stream_decoder_process_single(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_flush()... ");
-	if(!OggFLAC__seekable_stream_decoder_flush(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	decoder_client_data.ignore_errors = true;
-	printf("testing OggFLAC__seekable_stream_decoder_process_single()... ");
-	if(!OggFLAC__seekable_stream_decoder_process_single(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-	decoder_client_data.ignore_errors = false;
-
-	printf("testing OggFLAC__seekable_stream_decoder_seek_absolute()... ");
-	if(!OggFLAC__seekable_stream_decoder_seek_absolute(decoder, 0))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_process_until_end_of_stream()... ");
-	if(!OggFLAC__seekable_stream_decoder_process_until_end_of_stream(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_get_channels()... ");
-	{
-		unsigned channels = OggFLAC__seekable_stream_decoder_get_channels(decoder);
-		if(channels != streaminfo_.data.stream_info.channels) {
-			printf("FAILED, returned %u, expected %u\n", channels, streaminfo_.data.stream_info.channels);
-			return false;
-		}
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_get_bits_per_sample()... ");
-	{
-		unsigned bits_per_sample = OggFLAC__seekable_stream_decoder_get_bits_per_sample(decoder);
-		if(bits_per_sample != streaminfo_.data.stream_info.bits_per_sample) {
-			printf("FAILED, returned %u, expected %u\n", bits_per_sample, streaminfo_.data.stream_info.bits_per_sample);
-			return false;
-		}
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_get_sample_rate()... ");
-	{
-		unsigned sample_rate = OggFLAC__seekable_stream_decoder_get_sample_rate(decoder);
-		if(sample_rate != streaminfo_.data.stream_info.sample_rate) {
-			printf("FAILED, returned %u, expected %u\n", sample_rate, streaminfo_.data.stream_info.sample_rate);
-			return false;
-		}
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_get_blocksize()... ");
-	{
-		unsigned blocksize = OggFLAC__seekable_stream_decoder_get_blocksize(decoder);
-		/* value could be anything since we're at the last block, so accept any answer */
-		printf("returned %u... OK\n", blocksize);
-	}
-
-	printf("testing OggFLAC__seekable_stream_decoder_get_channel_assignment()... ");
-	{
-		FLAC__ChannelAssignment ca = OggFLAC__seekable_stream_decoder_get_channel_assignment(decoder);
-		printf("returned %u (%s)... OK\n", (unsigned)ca, FLAC__ChannelAssignmentString[ca]);
-	}
-
-	printf("testing OggFLAC__seekable_stream_decoder_reset()... ");
-	if(!OggFLAC__seekable_stream_decoder_reset(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	decoder_client_data.current_metadata_number = 0;
-
-	printf("rewinding input... ");
-	if(fseeko(decoder_client_data.file, 0, SEEK_SET) < 0) {
-		printf("FAILED, errno = %d\n", errno);
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_process_until_end_of_stream()... ");
-	if(!OggFLAC__seekable_stream_decoder_process_until_end_of_stream(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_finish()... ");
-	(void) OggFLAC__seekable_stream_decoder_finish(decoder);
-	printf("OK\n");
-
-	/*
-	 * respond all
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore VORBIS_COMMENT
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore(VORBIS_COMMENT)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore APPLICATION
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore APPLICATION id of app#1
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore APPLICATION id of app#1 & app#2
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_application(of app block #2)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application2_.data.application.id))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond VORBIS_COMMENT
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond(VORBIS_COMMENT)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond APPLICATION
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond APPLICATION id of app#1
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond APPLICATION id of app#1 & app#2
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_application(of app block #2)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application2_.data.application.id))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore APPLICATION, respond APPLICATION id of app#1
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond APPLICATION, ignore APPLICATION id of app#1
-	 */
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_all(decoder))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__seekable_stream_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!OggFLAC__seekable_stream_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
-		return die_ss_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-
-	if(!seekable_stream_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/* done, now leave the sequence the way we found it... */
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	printf("testing OggFLAC__seekable_stream_decoder_delete()... ");
-	OggFLAC__seekable_stream_decoder_delete(decoder);
-	printf("OK\n");
-
-	fclose(decoder_client_data.file);
-
-	printf("\nPASSED!\n");
-
-	return true;
-}
-
-static FLAC__StreamDecoderWriteStatus file_decoder_write_callback_(const OggFLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
-{
-	(void)decoder;
-	return stream_decoder_write_callback_(0, frame, buffer, client_data);
-}
-
-static void file_decoder_metadata_callback_(const OggFLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
-{
-	(void)decoder;
-	stream_decoder_metadata_callback_(0, metadata, client_data);
-}
-
-static void file_decoder_error_callback_(const OggFLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
-{
-	(void)decoder;
-	stream_decoder_error_callback_(0, status, client_data);
-}
-
-static FLAC__bool file_decoder_test_respond_(OggFLAC__FileDecoder *decoder, file_decoder_client_data_struct *dcd)
-{
-	if(!OggFLAC__file_decoder_set_write_callback(decoder, file_decoder_write_callback_))
-		return die_f_("at OggFLAC__file_decoder_set_write_callback(), returned false", decoder);
-
-	if(!OggFLAC__file_decoder_set_metadata_callback(decoder, file_decoder_metadata_callback_))
-		return die_f_("at OggFLAC__file_decoder_set_metadata_callback(), returned false", decoder);
-
-	if(!OggFLAC__file_decoder_set_error_callback(decoder, file_decoder_error_callback_))
-		return die_f_("at OggFLAC__file_decoder_set_error_callback(), returned false", decoder);
-
-	if(!OggFLAC__file_decoder_set_client_data(decoder, dcd))
-		return die_f_("at OggFLAC__file_decoder_set_client_data(), returned false", decoder);
-
-	if(!OggFLAC__file_decoder_set_filename(decoder, oggflacfilename_))
-		return die_f_("at OggFLAC__file_decoder_set_filename(), returned false", decoder);
-
-	if(!OggFLAC__file_decoder_set_md5_checking(decoder, true))
-		return die_f_("at OggFLAC__file_decoder_set_md5_checking(), returned false", decoder);
-
-	printf("testing OggFLAC__file_decoder_init()... ");
-	if(OggFLAC__file_decoder_init(decoder) != OggFLAC__FILE_DECODER_OK)
-		return die_f_(0, decoder);
-	printf("OK\n");
-
-	dcd->current_metadata_number = 0;
-
-	printf("testing OggFLAC__file_decoder_process_until_end_of_file()... ");
-	if(!OggFLAC__file_decoder_process_until_end_of_file(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_finish()... ");
-	(void) OggFLAC__file_decoder_finish(decoder);
-	printf("OK\n");
-
-	return true;
-}
-
-static FLAC__bool test_file_decoder()
-{
-	OggFLAC__FileDecoder *decoder;
-	OggFLAC__FileDecoderState state;
-	OggFLAC__SeekableStreamDecoderState ssstate;
-	OggFLAC__StreamDecoderState sstate;
-	FLAC__StreamDecoderState fstate;
-	seekable_stream_decoder_client_data_struct decoder_client_data;
-
-	printf("\n+++ libOggFLAC unit test: OggFLAC__FileDecoder\n\n");
-
-	printf("testing OggFLAC__file_decoder_new()... ");
-	decoder = OggFLAC__file_decoder_new();
-	if(0 == decoder) {
-		printf("FAILED, returned NULL\n");
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_delete()... ");
-	OggFLAC__file_decoder_delete(decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_new()... ");
-	decoder = OggFLAC__file_decoder_new();
-	if(0 == decoder) {
-		printf("FAILED, returned NULL\n");
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_init()... ");
-	if(OggFLAC__file_decoder_init(decoder) == OggFLAC__FILE_DECODER_OK)
-		return die_f_(0, decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_delete()... ");
-	OggFLAC__file_decoder_delete(decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-
-	printf("testing OggFLAC__file_decoder_new()... ");
-	decoder = OggFLAC__file_decoder_new();
-	if(0 == decoder) {
-		printf("FAILED, returned NULL\n");
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_serial_number()... ");
-	if(!OggFLAC__file_decoder_set_serial_number(decoder, file_utils__serial_number))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_write_callback()... ");
-	if(!OggFLAC__file_decoder_set_write_callback(decoder, file_decoder_write_callback_))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_callback()... ");
-	if(!OggFLAC__file_decoder_set_metadata_callback(decoder, file_decoder_metadata_callback_))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_error_callback()... ");
-	if(!OggFLAC__file_decoder_set_error_callback(decoder, file_decoder_error_callback_))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_client_data()... ");
-	if(!OggFLAC__file_decoder_set_client_data(decoder, &decoder_client_data))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_filename()... ");
-	if(!OggFLAC__file_decoder_set_filename(decoder, oggflacfilename_))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_md5_checking()... ");
-	if(!OggFLAC__file_decoder_set_md5_checking(decoder, true))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_init()... ");
-	if(OggFLAC__file_decoder_init(decoder) != OggFLAC__FILE_DECODER_OK)
-		return die_f_(0, decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_get_state()... ");
-	state = OggFLAC__file_decoder_get_state(decoder);
-	printf("returned state = %u (%s)... OK\n", state, OggFLAC__FileDecoderStateString[state]);
-
-	printf("testing OggFLAC__file_decoder_get_seekable_stream_decoder_state()... ");
-	ssstate = OggFLAC__file_decoder_get_seekable_stream_decoder_state(decoder);
-	printf("returned state = %u (%s)... OK\n", ssstate, OggFLAC__SeekableStreamDecoderStateString[ssstate]);
-
-	printf("testing OggFLAC__file_decoder_get_stream_decoder_state()... ");
-	sstate = OggFLAC__file_decoder_get_stream_decoder_state(decoder);
-	printf("returned state = %u (%s)... OK\n", sstate, OggFLAC__StreamDecoderStateString[sstate]);
-
-	printf("testing OggFLAC__file_decoder_get_FLAC_stream_decoder_state()... ");
-	fstate = OggFLAC__file_decoder_get_FLAC_stream_decoder_state(decoder);
-	printf("returned state = %u (%s)... OK\n", fstate, FLAC__StreamDecoderStateString[fstate]);
-
-	decoder_client_data.current_metadata_number = 0;
-	decoder_client_data.ignore_errors = false;
-	decoder_client_data.error_occurred = false;
-
-	printf("testing OggFLAC__file_decoder_get_md5_checking()... ");
-	if(!OggFLAC__file_decoder_get_md5_checking(decoder)) {
-		printf("FAILED, returned false, expected true\n");
-		return false;
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_process_until_end_of_metadata()... ");
-	if(!OggFLAC__file_decoder_process_until_end_of_metadata(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_process_single()... ");
-	if(!OggFLAC__file_decoder_process_single(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_seek_absolute()... ");
-	if(!OggFLAC__file_decoder_seek_absolute(decoder, 0))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_process_until_end_of_file()... ");
-	if(!OggFLAC__file_decoder_process_until_end_of_file(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_get_channels()... ");
-	{
-		unsigned channels = OggFLAC__file_decoder_get_channels(decoder);
-		if(channels != streaminfo_.data.stream_info.channels) {
-			printf("FAILED, returned %u, expected %u\n", channels, streaminfo_.data.stream_info.channels);
-			return false;
-		}
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_get_bits_per_sample()... ");
-	{
-		unsigned bits_per_sample = OggFLAC__file_decoder_get_bits_per_sample(decoder);
-		if(bits_per_sample != streaminfo_.data.stream_info.bits_per_sample) {
-			printf("FAILED, returned %u, expected %u\n", bits_per_sample, streaminfo_.data.stream_info.bits_per_sample);
-			return false;
-		}
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_get_sample_rate()... ");
-	{
-		unsigned sample_rate = OggFLAC__file_decoder_get_sample_rate(decoder);
-		if(sample_rate != streaminfo_.data.stream_info.sample_rate) {
-			printf("FAILED, returned %u, expected %u\n", sample_rate, streaminfo_.data.stream_info.sample_rate);
-			return false;
-		}
-	}
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_get_blocksize()... ");
-	{
-		unsigned blocksize = OggFLAC__file_decoder_get_blocksize(decoder);
-		/* value could be anything since we're at the last block, so accept any answer */
-		printf("returned %u... OK\n", blocksize);
-	}
-
-	printf("testing OggFLAC__file_decoder_get_channel_assignment()... ");
-	{
-		FLAC__ChannelAssignment ca = OggFLAC__file_decoder_get_channel_assignment(decoder);
-		printf("returned %u (%s)... OK\n", (unsigned)ca, FLAC__ChannelAssignmentString[ca]);
-	}
-
-	printf("testing OggFLAC__file_decoder_finish()... ");
-	(void) OggFLAC__file_decoder_finish(decoder);
-	printf("OK\n");
-
-	/*
-	 * respond all
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore VORBIS_COMMENT
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore(VORBIS_COMMENT)... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore APPLICATION
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore APPLICATION id of app#1
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore APPLICATION id of app#1 & app#2
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_application(of app block #2)... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_application(decoder, application2_.data.application.id))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond VORBIS_COMMENT
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond(VORBIS_COMMENT)... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond APPLICATION
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond APPLICATION id of app#1
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond APPLICATION id of app#1 & app#2
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_application(of app block #2)... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_application(decoder, application2_.data.application.id))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * respond all, ignore APPLICATION, respond APPLICATION id of app#1
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore(APPLICATION)... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore(decoder, FLAC__METADATA_TYPE_APPLICATION))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond_application(of app block #1)... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond_application(decoder, application1_.data.application.id))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/*
-	 * ignore all, respond APPLICATION, ignore APPLICATION id of app#1
-	 */
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_all()... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_all(decoder))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_respond(APPLICATION)... ");
-	if(!OggFLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_APPLICATION))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	printf("testing OggFLAC__file_decoder_set_metadata_ignore_application(of app block #1)... ");
-	if(!OggFLAC__file_decoder_set_metadata_ignore_application(decoder, application1_.data.application.id))
-		return die_f_("returned false", decoder);
-	printf("OK\n");
-
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-
-	if(!file_decoder_test_respond_(decoder, &decoder_client_data))
-		return false;
-
-	/* done, now leave the sequence the way we found it... */
-	num_expected_ = 0;
-	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
-	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
-	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
-	expected_metadata_sequence_[num_expected_++] = &application1_;
-	expected_metadata_sequence_[num_expected_++] = &application2_;
-	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
-	expected_metadata_sequence_[num_expected_++] = &unknown_;
-
-	printf("testing OggFLAC__file_decoder_delete()... ");
-	OggFLAC__file_decoder_delete(decoder);
 	printf("OK\n");
 
 	printf("\nPASSED!\n");
@@ -2084,16 +930,19 @@ FLAC__bool test_decoders()
 	if(!generate_file_())
 		return false;
 
-	if(!test_stream_decoder())
+	if(!test_stream_decoder(LAYER_STREAM))
 		return false;
 
-	if(!test_seekable_stream_decoder())
+	if(!test_stream_decoder(LAYER_SEEKABLE_STREAM))
 		return false;
 
-	if(!test_file_decoder())
+	if(!test_stream_decoder(LAYER_FILE))
 		return false;
 
-	(void) grabbag__file_remove_file(oggflacfilename_);
+	if(!test_stream_decoder(LAYER_FILENAME))
+		return false;
+
+	(void) grabbag__file_remove_file(flacfilename_);
 	free_metadata_blocks_();
 
 	return true;

@@ -57,6 +57,12 @@ namespace FLAC {
 			return 0 != decoder_;
 		}
 
+		bool Stream::set_md5_checking(bool value)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_decoder_set_md5_checking(decoder_, value);
+		}
+
 		bool Stream::set_metadata_respond(::FLAC__MetadataType type)
 		{
 			FLAC__ASSERT(is_valid());
@@ -99,6 +105,18 @@ namespace FLAC {
 			return State(::FLAC__stream_decoder_get_state(decoder_));
 		}
 
+		bool Stream::get_md5_checking() const
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_decoder_get_md5_checking(decoder_);
+		}
+
+		FLAC__uint64 Stream::get_total_samples() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_decoder_get_total_samples(decoder_);
+		}
+
 		unsigned Stream::get_channels() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -129,15 +147,10 @@ namespace FLAC {
 			return ::FLAC__stream_decoder_get_blocksize(decoder_);
 		}
 
-		Stream::State Stream::init()
+		::FLAC__StreamDecoderInitStatus Stream::init()
 		{
 			FLAC__ASSERT(is_valid());
-			::FLAC__stream_decoder_set_read_callback(decoder_, read_callback_);
-			::FLAC__stream_decoder_set_write_callback(decoder_, write_callback_);
-			::FLAC__stream_decoder_set_metadata_callback(decoder_, metadata_callback_);
-			::FLAC__stream_decoder_set_error_callback(decoder_, error_callback_);
-			::FLAC__stream_decoder_set_client_data(decoder_, (void*)this);
-			return State(::FLAC__stream_decoder_init(decoder_));
+			return ::FLAC__stream_decoder_init_stream(decoder_, read_callback_, seek_callback_, tell_callback_, length_callback_, eof_callback_, write_callback_, metadata_callback_, error_callback_, /*client_data=*/(void*)this);
 		}
 
 		void Stream::finish()
@@ -182,6 +195,40 @@ namespace FLAC {
 			return (bool)::FLAC__stream_decoder_skip_single_frame(decoder_);
 		}
 
+		bool Stream::seek_absolute(FLAC__uint64 sample)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_decoder_seek_absolute(decoder_, sample);
+		}
+
+		::FLAC__StreamDecoderSeekStatus Stream::seek_callback(FLAC__uint64 absolute_byte_offset)
+		{
+			(void)absolute_byte_offset;
+			return ::FLAC__STREAM_DECODER_SEEK_STATUS_UNSUPPORTED;
+		}
+
+		::FLAC__StreamDecoderTellStatus Stream::tell_callback(FLAC__uint64 *absolute_byte_offset)
+		{
+			(void)absolute_byte_offset;
+			return ::FLAC__STREAM_DECODER_TELL_STATUS_UNSUPPORTED;
+		}
+
+		::FLAC__StreamDecoderLengthStatus Stream::length_callback(FLAC__uint64 *stream_length)
+		{
+			(void)stream_length;
+			return ::FLAC__STREAM_DECODER_LENGTH_STATUS_UNSUPPORTED;
+		}
+
+		bool Stream::eof_callback()
+		{
+			return false;
+		}
+
+		void Stream::metadata_callback(const ::FLAC__StreamMetadata *metadata)
+		{
+			(void)metadata;
+		}
+
 		::FLAC__StreamDecoderReadStatus Stream::read_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
 		{
 			(void)decoder;
@@ -189,6 +236,42 @@ namespace FLAC {
 			Stream *instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			return instance->read_callback(buffer, bytes);
+		}
+
+		::FLAC__StreamDecoderSeekStatus Stream::seek_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
+		{
+			(void) decoder;
+			FLAC__ASSERT(0 != client_data);
+			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->seek_callback(absolute_byte_offset);
+		}
+
+		::FLAC__StreamDecoderTellStatus Stream::tell_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+		{
+			(void) decoder;
+			FLAC__ASSERT(0 != client_data);
+			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->tell_callback(absolute_byte_offset);
+		}
+
+		::FLAC__StreamDecoderLengthStatus Stream::length_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
+		{
+			(void) decoder;
+			FLAC__ASSERT(0 != client_data);
+			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->length_callback(stream_length);
+		}
+
+		FLAC__bool Stream::eof_callback_(const ::FLAC__StreamDecoder *decoder, void *client_data)
+		{
+			(void) decoder;
+			FLAC__ASSERT(0 != client_data);
+			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->eof_callback();
 		}
 
 		::FLAC__StreamDecoderWriteStatus Stream::write_callback_(const ::FLAC__StreamDecoder *decoder, const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)

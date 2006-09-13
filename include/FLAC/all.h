@@ -36,13 +36,9 @@
 
 #include "assert.h"
 #include "callback.h"
-#include "file_decoder.h"
-#include "file_encoder.h"
 #include "format.h"
 #include "metadata.h"
 #include "ordinals.h"
-#include "seekable_stream_decoder.h"
-#include "seekable_stream_encoder.h"
 #include "stream_decoder.h"
 #include "stream_encoder.h"
 
@@ -121,6 +117,12 @@
  * individual functions.  You can see different views of the individual
  * functions through the links in top bar across this page.
  *
+ * \section porting_guide Porting Guide
+ *
+ * Starting with FLAC 1.1.3 a \link porting Porting Guide \endlink
+ * has been introduced which gives detailed instructions on how to
+ * port your code to newer versions of FLAC.
+ *
  * \section embedded_developers Embedded Developers
  *
  * libFLAC has grown larger over time as more functionality has been
@@ -142,6 +144,140 @@
  * encoders, and no metadata interface, you can remove the seekable stream
  * decoder, file decoder, all encoders, and the metadata interface, which
  * will greatly reduce the size of the library.
+ */
+
+/** \defgroup porting Porting Guide for New Versions
+ *
+ * This module describes differences in the library interfaces from
+ * version to version.  It assists in the porting of code that uses
+ * the libraries to newer versions of FLAC.
+ */
+
+/** \defgroup porting_1_1_2_to_1_1_3 Porting from FLAC 1.1.2 to 1.1.3
+ *  \ingroup porting
+ *
+ *  \brief
+ *  This module describes porting from FLAC 1.1.2 to FLAC 1.1.3.
+ *
+ * The main change between the APIs in 1.1.2 and 1.1.3 is that the three
+ * decoding layers and three encoding layers have been merged into a
+ * single stream decoder and stream encoder.  That is, the functionality
+ * of FLAC__SeekableStreamDecoder and FLAC__FileDecoder has been merged
+ * into FLAC__StreamDecoder, and FLAC__SeekableStreamEncoder and
+ * FLAC__FileEncoder into FLAC__StreamEncoder.  Only the
+ * FLAC__StreamDecoder and FLAC__StreamEncoder remain.  This can
+ * simplify code that needs to process both seekable and non-seekable
+ * streams.
+ *
+ * Instead of creating an encoder or decoder of a certain layer, now the
+ * client will always create a FLAC__StreamEncoder or
+ * FLAC__StreamDecoder.  The different layers are differentiated by the
+ * initialization function.  For example, for the decoder,
+ * FLAC__stream_decoder_init() has been replaced by
+ * FLAC__stream_decoder_init_stream().  This init function takes
+ * callbacks for the I/O, and the seeking callbacks are optional.  This
+ * allows the client to use the same object for seekable and
+ * non-seekable streams.  For decoding a FLAC file directly, the client
+ * can use FLAC__stream_decoder_init_file() and pass just a filename
+ * and fewer callbacks; most of the other callbacks are supplied
+ * internally.  For situations where fopen()ing by filename is not
+ * possible (e.g. Unicode filenames on Windows) the client can instead
+ * open the file itself and supply the FILE* to
+ * FLAC__stream_decoder_init_FILE().  The init functions now returns a
+ * FLAC__StreamDecoderInitStatus instead of FLAC__StreamDecoderState.
+ * Since the callbacks and client data are now passed to the init
+ * function, the FLAC__stream_decoder_set_*_callback() functions and
+ * FLAC__stream_decoder_set_client_data() are no longer needed.  The
+ * rest of the calls to the decoder are the same as before.
+ *
+ * As an example, in FLAC 1.1.2 a seekable stream decoder would be set
+ * up like so:
+ *@@@@@@CHECK@@@@@@
+ * \code
+ * FLAC__SeekableStreamDecoder *decoder = FLAC__seekable_stream_decoder_new();
+ * if(decoder == NULL) do something;
+ * FLAC__seekable_stream_decoder_set_md5_checking(decoder, true);
+ * [... other settings ...]
+ * FLAC__seekable_stream_decoder_set_read_callback(decoder, my_read_callback);
+ * FLAC__seekable_stream_decoder_set_seek_callback(decoder, my_seek_callback);
+ * FLAC__seekable_stream_decoder_set_tell_callback(decoder, my_tell_callback);
+ * FLAC__seekable_stream_decoder_set_length_callback(decoder, my_length_callback);
+ * FLAC__seekable_stream_decoder_set_eof_callback(decoder, my_eof_callback);
+ * FLAC__seekable_stream_decoder_set_write_callback(decoder, my_write_callback);
+ * FLAC__seekable_stream_decoder_set_metadata_callback(decoder, my_metadata_callback);
+ * FLAC__seekable_stream_decoder_set_error_callback(decoder, my_error_callback);
+ * FLAC__seekable_stream_decoder_set_client_data(decoder, my_client_data);
+ * if(FLAC__seekable_stream_decoder_init(decoder) != FLAC__SEEKABLE_STREAM_DECODER_OK) do something;
+ * \endcode
+ *
+ * In FLAC 1.1.3 it is like this:
+ *
+ * \code
+ * FLAC__StreamDecoder *decoder = FLAC__stream_decoder_new();
+ * if(decoder == NULL) do something;
+ * FLAC__stream_decoder_set_md5_checking(decoder, true);
+ * [... other settings ...]
+ * if(FLAC__stream_decoder_init_stream(
+ *   decoder,
+ *   my_read_callback,
+ *   my_seek_callback,      // or NULL
+ *   my_tell_callback,      // or NULL
+ *   my_length_callback,    // or NULL
+ *   my_eof_callback,       // or NULL
+ *   my_write_callback,
+ *   my_metadata_callback,  // or NULL
+ *   my_error_callback,
+ *   my_client_data,
+ * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do something;
+ * \endcode
+ *
+ * or you could do;
+ *
+ * \code
+ * [...]
+ * FILE *file = fopen("somefile.flac","rb");
+ * if(file == NULL) do somthing;
+ * if(FLAC__stream_decoder_init_FILE(
+ *   decoder,
+ *   file,
+ *   my_write_callback,
+ *   my_metadata_callback,  // or NULL
+ *   my_error_callback,
+ *   my_client_data,
+ * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do something;
+ * \endcode
+ *
+ * or just:
+ *
+ * \code
+ * [...]
+ * if(FLAC__stream_decoder_init_FILE(
+ *   decoder,
+ *   "somefile.flac",
+ *   my_write_callback,
+ *   my_metadata_callback,  // or NULL
+ *   my_error_callback,
+ *   my_client_data,
+ * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do something;
+ * \endcode
+ *
+ * Another small change to the decoder is in how it handles unparseable
+ * streams.  Before, when the decoder found an unparseable stream
+ * (reserved for when the decoder encounters a stream from a future
+ * encoder that it can't parse), it changed the state to
+ * \c FLAC__STREAM_DECODER_UNPARSEABLE_STREAM.  Now the decoder instead
+ * drops sync and calls the error callback with a new error code
+ * \c FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM.  This is
+ * more robust.  If your error callback does not discriminate on the the
+ * error state, your code does not need to be changed.
+ *
+ * The encoder now has a new setting:
+ * FLAC__stream_encoder_set_apodization().  This is for setting the
+ * method used to window the data before LPC analysis.  You only need to
+ * add a call to this function if the default is not   There are also
+ * two new convenience functions that may be useful:
+ * FLAC__metadata_object_cuesheet_calculate_cddb_id() and
+ * FLAC__metadata_get_cuesheet().
  */
 
 /** \defgroup flac FLAC C API

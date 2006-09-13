@@ -46,7 +46,5 @@ libOggFLAC___la_LIBADD = ../libOggFLAC/libOggFLAC.la
 libOggFLAC___la_SOURCES = \
 	file_decoder.cpp \
 	file_encoder.cpp \
-	seekable_stream_decoder.cpp \
-	seekable_stream_encoder.cpp \
 	stream_decoder.cpp \
 	stream_encoder.cpp

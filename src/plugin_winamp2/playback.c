@@ -39,15 +39,15 @@ static FLAC__int64 decode_position, decode_position_last;
  *  callbacks
  */
 
-static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
-	file_info_struct *file_info = (file_info_struct*)client_data;
-	const unsigned channels = file_info->channels, wide_samples = frame->header.blocksize;
+	stream_data_struct *stream_data = (stream_data_struct*)client_data;
+	const unsigned channels = stream_data->channels, wide_samples = frame->header.blocksize;
 	unsigned channel;
 
 	(void)decoder;
 
-	if (file_info->abort_flag)
+	if (stream_data->abort_flag)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
 	for (channel = 0; channel < channels; channel++)
@@ -58,31 +58,31 @@ static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__FileDecoder *de
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+static void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
-	file_info_struct *file_info = (file_info_struct*)client_data;
+	stream_data_struct *stream_data = (stream_data_struct*)client_data;
 	(void)decoder;
 
 	if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO)
 	{
-		file_info->total_samples = metadata->data.stream_info.total_samples;
-		file_info->bits_per_sample = metadata->data.stream_info.bits_per_sample;
-		file_info->channels = metadata->data.stream_info.channels;
-		file_info->sample_rate = metadata->data.stream_info.sample_rate;
+		stream_data->total_samples = metadata->data.stream_info.total_samples;
+		stream_data->bits_per_sample = metadata->data.stream_info.bits_per_sample;
+		stream_data->channels = metadata->data.stream_info.channels;
+		stream_data->sample_rate = metadata->data.stream_info.sample_rate;
 
-		if (file_info->bits_per_sample!=8 && file_info->bits_per_sample!=16 && file_info->bits_per_sample!=24)
+		if (stream_data->bits_per_sample!=8 && stream_data->bits_per_sample!=16 && stream_data->bits_per_sample!=24)
 		{
 			FLAC_plugin__show_error("This plugin can only handle 8/16/24-bit samples.");
-			file_info->abort_flag = true;
+			stream_data->abort_flag = true;
 			return;
 		}
 
 		{
 			/* with VC++ you have to spoon feed it the casting from uint64->int64->double */
-			FLAC__uint64 l = (FLAC__uint64)((double)(FLAC__int64)file_info->total_samples / (double)file_info->sample_rate * 1000.0 + 0.5);
+			FLAC__uint64 l = (FLAC__uint64)((double)(FLAC__int64)stream_data->total_samples / (double)stream_data->sample_rate * 1000.0 + 0.5);
 			if (l > INT_MAX)
 				l = INT_MAX;
-			file_info->length_in_msec = (int)l;
+			stream_data->length_in_msec = (int)l;
 		}
 	}
 	else if (metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT)
@@ -90,71 +90,68 @@ static void metadata_callback(const FLAC__FileDecoder *decoder, const FLAC__Stre
 		double gain, peak;
 		if (grabbag__replaygain_load_from_vorbiscomment(metadata, cfg.replaygain.album_mode, /*strict=*/false, &gain, &peak))
 		{
-			file_info->has_replaygain = true;
-			file_info->replay_scale = grabbag__replaygain_compute_scale_factor(peak, gain, (double)cfg.replaygain.preamp, !cfg.replaygain.hard_limit);
+			stream_data->has_replaygain = true;
+			stream_data->replay_scale = grabbag__replaygain_compute_scale_factor(peak, gain, (double)cfg.replaygain.preamp, !cfg.replaygain.hard_limit);
 		}
 	}
 }
 
-static void error_callback(const FLAC__FileDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+static void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
-	file_info_struct *file_info = (file_info_struct*)client_data;
+	stream_data_struct *stream_data = (stream_data_struct*)client_data;
 	(void)decoder;
 
 	if (cfg.misc.stop_err || status!=FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
-		file_info->abort_flag = true;
+		stream_data->abort_flag = true;
 }
 
 /*
  *  init/delete
  */
 
-FLAC__bool FLAC_plugin__decoder_init(FLAC__FileDecoder *decoder, const char *filename, FLAC__int64 filesize, file_info_struct *file_info, output_config_t *config)
+FLAC__bool FLAC_plugin__decoder_init(FLAC__StreamDecoder *decoder, const char *filename, FLAC__int64 filesize, stream_data_struct *stream_data, output_config_t *config)
 {
+	FLAC__StreamDecoderInitStatus init_status;
+
 	FLAC__ASSERT(decoder);
 	FLAC_plugin__decoder_finish(decoder);
 	/* init decoder */
-	FLAC__file_decoder_set_md5_checking(decoder, false);
-	FLAC__file_decoder_set_filename(decoder, filename);
-	FLAC__file_decoder_set_metadata_ignore_all(decoder);
-	FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_STREAMINFO);
-	FLAC__file_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
-	FLAC__file_decoder_set_metadata_callback(decoder, metadata_callback);
-	FLAC__file_decoder_set_write_callback(decoder, write_callback);
-	FLAC__file_decoder_set_error_callback(decoder, error_callback);
-	FLAC__file_decoder_set_client_data(decoder, file_info);
+	FLAC__stream_decoder_set_md5_checking(decoder, false);
+	FLAC__stream_decoder_set_metadata_ignore_all(decoder);
+	FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_STREAMINFO);
+	FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
-	if (FLAC__file_decoder_init(decoder) != FLAC__FILE_DECODER_OK)
+	if ((init_status = FLAC__stream_decoder_init_file(decoder, filename, write_callback, metadata_callback, error_callback, /*client_data=*/stream_data)) != FLAC__STREAM_DECODER_INIT_STATUS_OK)
 	{
-		FLAC_plugin__show_error("Error while initializing decoder (%s).", FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder)]);
+		FLAC_plugin__show_error("Error while initializing decoder (%s [%s]).", FLAC__StreamDecoderInitStatusString[init_status], FLAC__stream_decoder_get_resolved_state_string(decoder));
 		return false;
 	}
 	/* process */
 	cfg = *config;
 	wide_samples_in_reservoir_ = 0;
-	file_info->is_playing = false;
-	file_info->abort_flag = false;
-	file_info->has_replaygain = false;
+	stream_data->is_playing = false;
+	stream_data->abort_flag = false;
+	stream_data->has_replaygain = false;
 
-	if (!FLAC__file_decoder_process_until_end_of_metadata(decoder))
+	if (!FLAC__stream_decoder_process_until_end_of_metadata(decoder))
 	{
-		FLAC_plugin__show_error("Error while processing metadata (%s).", FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder)]);
+		FLAC_plugin__show_error("Error while processing metadata (%s).", FLAC__stream_decoder_get_resolved_state_string(decoder));
 		return false;
 	}
 	/* check results */
-	if (file_info->abort_flag) return false;                /* metadata callback already popped up the error dialog */
+	if (stream_data->abort_flag) return false;                /* metadata callback already popped up the error dialog */
 	/* init replaygain */
-	file_info->output_bits_per_sample = file_info->has_replaygain && cfg.replaygain.enable ?
+	stream_data->output_bits_per_sample = stream_data->has_replaygain && cfg.replaygain.enable ?
 		cfg.resolution.replaygain.bps_out :
-		cfg.resolution.normal.dither_24_to_16 ? min(file_info->bits_per_sample, 16) : file_info->bits_per_sample;
+		cfg.resolution.normal.dither_24_to_16 ? min(stream_data->bits_per_sample, 16) : stream_data->bits_per_sample;
 
-	if (file_info->has_replaygain && cfg.replaygain.enable && cfg.resolution.replaygain.dither)
-		FLAC__replaygain_synthesis__init_dither_context(&file_info->dither_context, file_info->bits_per_sample, cfg.resolution.replaygain.noise_shaping);
+	if (stream_data->has_replaygain && cfg.replaygain.enable && cfg.resolution.replaygain.dither)
+		FLAC__replaygain_synthesis__init_dither_context(&stream_data->dither_context, stream_data->bits_per_sample, cfg.resolution.replaygain.noise_shaping);
 	/* more inits */
-	file_info->eof = false;
-	file_info->seek_to = -1;
-	file_info->is_playing = true;
-	file_info->average_bps = (unsigned)(filesize / (125.*(double)(FLAC__int64)file_info->total_samples/(double)file_info->sample_rate));
+	stream_data->eof = false;
+	stream_data->seek_to = -1;
+	stream_data->is_playing = true;
+	stream_data->average_bps = (unsigned)(filesize / (125.*(double)(FLAC__int64)stream_data->total_samples/(double)stream_data->sample_rate));
 	
 	bh_index_last_w = 0;
 	bh_index_last_o = BITRATE_HIST_SIZE;
@@ -165,18 +162,18 @@ FLAC__bool FLAC_plugin__decoder_init(FLAC__FileDecoder *decoder, const char *fil
 	return true;
 }
 
-void FLAC_plugin__decoder_finish(FLAC__FileDecoder *decoder)
+void FLAC_plugin__decoder_finish(FLAC__StreamDecoder *decoder)
 {
-	if (decoder && FLAC__file_decoder_get_state(decoder)!=FLAC__FILE_DECODER_UNINITIALIZED)
-		FLAC__file_decoder_finish(decoder);
+	if (decoder && FLAC__stream_decoder_get_state(decoder) != FLAC__STREAM_DECODER_UNINITIALIZED)
+		FLAC__stream_decoder_finish(decoder);
 }
 
-void FLAC_plugin__decoder_delete(FLAC__FileDecoder *decoder)
+void FLAC_plugin__decoder_delete(FLAC__StreamDecoder *decoder)
 {
 	if (decoder)
 	{
 		FLAC_plugin__decoder_finish(decoder);
-		FLAC__file_decoder_delete(decoder);
+		FLAC__stream_decoder_delete(decoder);
 	}
 }
 
@@ -184,68 +181,75 @@ void FLAC_plugin__decoder_delete(FLAC__FileDecoder *decoder)
  *  decode
  */
 
-int FLAC_plugin__seek(FLAC__FileDecoder *decoder, file_info_struct *file_info)
+int FLAC_plugin__seek(FLAC__StreamDecoder *decoder, stream_data_struct *stream_data)
 {
 	int pos;
-	const FLAC__uint64 target_sample = file_info->total_samples * file_info->seek_to / file_info->length_in_msec;
+	FLAC__uint64 target_sample = stream_data->total_samples * stream_data->seek_to / stream_data->length_in_msec;
 
-	if (!FLAC__file_decoder_seek_absolute(decoder, target_sample))
-		return -1;
+	if (stream_data->total_samples > 0 && target_sample >= stream_data->total_samples && target_sample > 0)
+		target_sample = stream_data->total_samples - 1;
 
-	file_info->seek_to = -1;
-	file_info->eof = false;
+	/* even if the seek fails we have to reset these so that we don't repeat the seek */
+	stream_data->seek_to = -1;
+	stream_data->eof = false;
 	wide_samples_in_reservoir_ = 0;
-	pos = (int)(target_sample*1000 / file_info->sample_rate);
+	pos = (int)(target_sample*1000 / stream_data->sample_rate);
+
+	if (!FLAC__stream_decoder_seek_absolute(decoder, target_sample)) {
+		if(FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEEK_ERROR)
+			FLAC__stream_decoder_flush(decoder);
+		pos = -1;
+	}
 
 	bh_index_last_o = bh_index_last_w = (pos/BITRATE_HIST_SEGMENT_MSEC) % BITRATE_HIST_SIZE;
-	if (!FLAC__file_decoder_get_decode_position(decoder, &decode_position))
+	if (!FLAC__stream_decoder_get_decode_position(decoder, &decode_position))
 		decode_position = 0;
 
 	return pos;
 }
 
-unsigned FLAC_plugin__decode(FLAC__FileDecoder *decoder, file_info_struct *file_info, char *sample_buffer)
+unsigned FLAC_plugin__decode(FLAC__StreamDecoder *decoder, stream_data_struct *stream_data, char *sample_buffer)
 {
 	/* fill reservoir */
 	while (wide_samples_in_reservoir_ < SAMPLES_PER_WRITE)
 	{
-		if (FLAC__file_decoder_get_state(decoder) == FLAC__FILE_DECODER_END_OF_FILE)
+		if (FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
 		{
-			file_info->eof = true;
+			stream_data->eof = true;
 			break;
 		}
-		else if (!FLAC__file_decoder_process_single(decoder))
+		else if (!FLAC__stream_decoder_process_single(decoder))
 		{
-			FLAC_plugin__show_error("Error while processing frame (%s).", FLAC__FileDecoderStateString[FLAC__file_decoder_get_state(decoder)]);
-			file_info->eof = true;
+			FLAC_plugin__show_error("Error while processing frame (%s).", FLAC__stream_decoder_get_resolved_state_string(decoder));
+			stream_data->eof = true;
 			break;
 		}
-		if (!FLAC__file_decoder_get_decode_position(decoder, &decode_position))
+		if (!FLAC__stream_decoder_get_decode_position(decoder, &decode_position))
 			decode_position = 0;
 	}
 	/* output samples */
 	if (wide_samples_in_reservoir_ > 0)
 	{
 		const unsigned n = min(wide_samples_in_reservoir_, SAMPLES_PER_WRITE);
-		const unsigned channels = file_info->channels;
+		const unsigned channels = stream_data->channels;
 		unsigned i;
 		int bytes;
 
-		if (cfg.replaygain.enable && file_info->has_replaygain)
+		if (cfg.replaygain.enable && stream_data->has_replaygain)
 		{
 			bytes = FLAC__replaygain_synthesis__apply_gain(
 				sample_buffer,
 				true, /* little_endian_data_out */
-				file_info->output_bits_per_sample == 8, /* unsigned_data_out */
+				stream_data->output_bits_per_sample == 8, /* unsigned_data_out */
 				reservoir__,
 				n,
 				channels,
-				file_info->bits_per_sample,
-				file_info->output_bits_per_sample,
-				file_info->replay_scale,
+				stream_data->bits_per_sample,
+				stream_data->output_bits_per_sample,
+				stream_data->replay_scale,
 				cfg.replaygain.hard_limit,
 				cfg.resolution.replaygain.dither,
-				&file_info->dither_context
+				&stream_data->dither_context
 			);
 		}
 		else
@@ -255,8 +259,8 @@ unsigned FLAC_plugin__decode(FLAC__FileDecoder *decoder, file_info_struct *file_
 				reservoir__,
 				n,
 				channels,
-				file_info->bits_per_sample,
-				file_info->output_bits_per_sample
+				stream_data->bits_per_sample,
+				stream_data->output_bits_per_sample
 			);
 		}
 
@@ -268,12 +272,12 @@ unsigned FLAC_plugin__decode(FLAC__FileDecoder *decoder, file_info_struct *file_
 	}
 	else
 	{
-		file_info->eof = true;
+		stream_data->eof = true;
 		return 0;
 	}
 }
 
-int FLAC_plugin__get_rate(unsigned written_time, unsigned output_time, file_info_struct *file_info)
+int FLAC_plugin__get_rate(unsigned written_time, unsigned output_time, stream_data_struct *stream_data)
 {
 	static int bitrate_history_[BITRATE_HIST_SIZE];
 	unsigned bh_index_w = (written_time/BITRATE_HIST_SEGMENT_MSEC) % BITRATE_HIST_SIZE;
@@ -285,7 +289,7 @@ int FLAC_plugin__get_rate(unsigned written_time, unsigned output_time, file_info
 		bitrate_history_[(bh_index_w + BITRATE_HIST_SIZE-1)%BITRATE_HIST_SIZE] =
 			decode_position>decode_position_last && written_time > written_time_last ?
 			(unsigned)(8000*(decode_position - decode_position_last)/(written_time - written_time_last)) :
-			file_info->average_bps;
+			stream_data->average_bps;
 
 		bh_index_last_w = bh_index_w;
 		written_time_last = written_time;

@@ -27,22 +27,20 @@ PROGRAM_NAME = test_libFLAC
 INCLUDES = -I../libFLAC/include -I$(topdir)/include
 
 ifeq ($(DARWIN_BUILD),yes)
-EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libFLAC.a -lm
+EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libtest_libs_common.a $(libdir)/libFLAC.a -lm
 else
-LIBS = -lgrabbag -lreplaygain_analysis -lFLAC -lm
+LIBS = -lgrabbag -lreplaygain_analysis -ltest_libs_common -lOggFLAC -lFLAC -L$(OGG_LIB_DIR) -logg -lm
 endif
 
 SRCS_C = \
 	bitbuffer.c \
 	decoders.c \
 	encoders.c \
-	file_utils.c \
 	format.c \
 	main.c \
 	metadata.c \
 	metadata_manip.c \
-	metadata_object.c \
-	metadata_utils.c
+	metadata_object.c
 
 include $(topdir)/build/exe.mk
 

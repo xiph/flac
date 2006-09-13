@@ -1338,10 +1338,39 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_points(FLAC_
  * \assert
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ *    \code total_samples > 0 \endcode
  * \retval FLAC__bool
  *    \c false if memory allocation fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points(FLAC__StreamMetadata *object, unsigned num, FLAC__uint64 total_samples);
+
+/** Append a set of evenly-spaced seek point templates to the end of a
+ *  seek table.
+ *
+ * \note
+ * As with the other ..._seektable_template_... functions, you should
+ * call FLAC__metadata_object_seektable_template_sort() when finished
+ * to make the seek table legal.
+ *
+ * \param object  A pointer to an existing SEEKTABLE object.
+ * \param samples The number of samples apart to space the placeholder
+ *                points.  The first point will be at sample \c 0, the
+ *                second at sample \a samples, then 2*\a samples, and
+ *                so on.  As long as \a samples and \a total_samples
+ *                are greater than \c 0, there will always be at least
+ *                one seekpoint at sample \0.
+ * \param total_samples  The total number of samples to be encoded;
+ *                       the seekpoints will be spaced
+ *                       \a samples samples apart.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_SEEKTABLE \endcode
+ *    \code samples > 0 \endcode
+ *    \code total_samples > 0 \endcode
+ * \retval FLAC__bool
+ *    \c false if memory allocation fails, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points_by_samples(FLAC__StreamMetadata *object, unsigned samples, FLAC__uint64 total_samples);
 
 /** Sort a seek table's seek points according to the format specification,
  *  removing duplicates.

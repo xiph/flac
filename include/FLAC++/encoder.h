@@ -34,8 +34,6 @@
 
 #include "export.h"
 
-#include "FLAC/file_encoder.h"
-#include "FLAC/seekable_stream_encoder.h"
 #include "FLAC/stream_encoder.h"
 #include "decoder.h"
 #include "metadata.h"
@@ -55,27 +53,28 @@
  *  \ingroup flacpp
  *
  *  \brief
- *  This module describes the three encoder layers provided by libFLAC++.
+ *  This module describes the encoder layers provided by libFLAC++.
  *
  * The libFLAC++ encoder classes are object wrappers around their
- * counterparts in libFLAC.  All three encoding layers available in
+ * counterparts in libFLAC.  All decoding layers available in
  * libFLAC are also provided here.  The interface is very similar;
  * make sure to read the \link flac_encoder libFLAC encoder module \endlink.
  *
- * The only real difference here is that instead of passing in C function
- * pointers for callbacks, you inherit from the encoder class and provide
- * implementations for the callbacks in the derived class; because of this
- * there is no need for a 'client_data' property.
+ * There are only two significant differences here.  First, instead of
+ * passing in C function pointers for callbacks, you inherit from the
+ * encoder class and provide implementations for the callbacks in your
+ * derived class; because of this there is no need for a 'client_data'
+ * property.
+ *
+ * Second, there are two stream encoder classes.  FLAC::Encoder::Stream
+ * is used for the same cases that FLAC__stream_encoder_init_stream() is
+ * used, and FLAC::Encoder::File is used for the same cases that
+ * FLAC__stream_encoder_init_FILE() and FLAC__stream_encoder_init_file()
+ * are used.
  */
 
 namespace FLAC {
 	namespace Encoder {
-
-		// ============================================================
-		//
-		//  Equivalent: FLAC__StreamEncoder
-		//
-		// ============================================================
 
 		/** \defgroup flacpp_stream_encoder FLAC++/encoder.h: stream encoder class
 		 *  \ingroup flacpp_encoder
@@ -83,12 +82,29 @@ namespace FLAC {
 		 *  \brief
 		 *  This class wraps the ::FLAC__StreamEncoder.
 		 *
-		 * See the \link flac_stream_encoder libFLAC stream encoder module \endlink.
+		 * See the \link flac_stream_encoder libFLAC stream encoder module \endlink
+		 * for basic usage.
 		 *
 		 * \{
 		 */
 
-		/** This class wraps the ::FLAC__StreamEncoder.
+		/** This class wraps the ::FLAC__StreamEncoder.  If you are
+		 *  encoding to a file, FLAC::Encoder::File may be more
+		 *  convenient.
+		 *
+		 * The usage of this class is similar to FLAC__StreamEncoder,
+		 * except instead of providing callbacks to
+		 * FLAC__stream_encoder_init_stream(), you will inherit from this
+		 * class and override the virtual callback functions with your
+		 * own implementations, then call Stream::init().  The rest of
+		 * the calls work the same as in the C layer.
+		 *
+		 * Only the write callback is mandatory.  The others are
+		 * optional; this class provides default implementations that do
+		 * nothing.  In order for some STREAMINFO and SEEKTABLE data to
+		 * be written properly, you must overide seek_callback() and
+		 * tell_callback(); see FLAC__stream_encoder_init_stream() as to
+		 * why.
 		 */
 		class FLACPP_API Stream {
 		public:
@@ -105,175 +121,96 @@ namespace FLAC {
 			Stream();
 			virtual ~Stream();
 
+			/** Call after construction to check the that the object was created
+			 *  successfully.  If not, use get_state() to find out why not.
+			 *
+			 * \{
+			 */
 			bool is_valid() const;
 			inline operator bool() const { return is_valid(); }
+			/* \} */
 
-			bool set_verify(bool value);
-			bool set_streamable_subset(bool value);
-			bool set_do_mid_side_stereo(bool value);
-			bool set_loose_mid_side_stereo(bool value);
-			bool set_channels(unsigned value);
-			bool set_bits_per_sample(unsigned value);
-			bool set_sample_rate(unsigned value);
-			bool set_blocksize(unsigned value);
-			bool set_apodization(const char *specification);
-			bool set_max_lpc_order(unsigned value);
-			bool set_qlp_coeff_precision(unsigned value);
-			bool set_do_qlp_coeff_prec_search(bool value);
-			bool set_do_escape_coding(bool value);
-			bool set_do_exhaustive_model_search(bool value);
-			bool set_min_residual_partition_order(unsigned value);
-			bool set_max_residual_partition_order(unsigned value);
-			bool set_rice_parameter_search_dist(unsigned value);
-			bool set_total_samples_estimate(FLAC__uint64 value);
-			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);
-			bool set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks);
+			bool set_verify(bool value);                            ///< See FLAC__stream_encoder_set_verify()
+			bool set_streamable_subset(bool value);                 ///< See FLAC__stream_encoder_set_streamable_subset()
+			bool set_do_mid_side_stereo(bool value);                ///< See FLAC__stream_encoder_set_do_mid_side_stereo()
+			bool set_loose_mid_side_stereo(bool value);             ///< See FLAC__stream_encoder_set_loose_mid_side_stereo()
+			bool set_channels(unsigned value);                      ///< See FLAC__stream_encoder_set_channels()
+			bool set_bits_per_sample(unsigned value);               ///< See FLAC__stream_encoder_set_bits_per_sample()
+			bool set_sample_rate(unsigned value);                   ///< See FLAC__stream_encoder_set_sample_rate()
+			bool set_blocksize(unsigned value);                     ///< See FLAC__stream_encoder_set_blocksize()
+			bool set_apodization(const char *specification);        ///< See FLAC__stream_encoder_set_apodization()
+			bool set_max_lpc_order(unsigned value);                 ///< See FLAC__stream_encoder_set_max_lpc_order()
+			bool set_qlp_coeff_precision(unsigned value);           ///< See FLAC__stream_encoder_set_qlp_coeff_precision()
+			bool set_do_qlp_coeff_prec_search(bool value);          ///< See FLAC__stream_encoder_set_do_qlp_coeff_prec_search()
+			bool set_do_escape_coding(bool value);                  ///< See FLAC__stream_encoder_set_do_escape_coding()
+			bool set_do_exhaustive_model_search(bool value);        ///< See FLAC__stream_encoder_set_do_exhaustive_model_search()
+			bool set_min_residual_partition_order(unsigned value);  ///< See FLAC__stream_encoder_set_min_residual_partition_order()
+			bool set_max_residual_partition_order(unsigned value);  ///< See FLAC__stream_encoder_set_max_residual_partition_order()
+			bool set_rice_parameter_search_dist(unsigned value);    ///< See FLAC__stream_encoder_set_rice_parameter_search_dist()
+			bool set_total_samples_estimate(FLAC__uint64 value);    ///< See FLAC__stream_encoder_set_total_samples_estimate()
+			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);    ///< See FLAC__stream_encoder_set_metadata()
+			bool set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks); ///< See FLAC__stream_encoder_set_metadata()
 
-			State    get_state() const;
-			Decoder::Stream::State get_verify_decoder_state() const;
-			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
-			bool     get_verify() const;
-			bool     get_streamable_subset() const;
-			bool     get_do_mid_side_stereo() const;
-			bool     get_loose_mid_side_stereo() const;
-			unsigned get_channels() const;
-			unsigned get_bits_per_sample() const;
-			unsigned get_sample_rate() const;
-			unsigned get_blocksize() const;
-			unsigned get_max_lpc_order() const;
-			unsigned get_qlp_coeff_precision() const;
-			bool     get_do_qlp_coeff_prec_search() const;
-			bool     get_do_escape_coding() const;
-			bool     get_do_exhaustive_model_search() const;
-			unsigned get_min_residual_partition_order() const;
-			unsigned get_max_residual_partition_order() const;
-			unsigned get_rice_parameter_search_dist() const;
-			FLAC__uint64 get_total_samples_estimate() const;
+			State    get_state() const;                              ///< See FLAC__stream_encoder_get_state()
+			Decoder::Stream::State get_verify_decoder_state() const; ///< See FLAC__stream_encoder_get_verify_decoder_state()
+			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got); ///< See FLAC__stream_encoder_get_verify_decoder_error_stats()
+			bool     get_verify() const;                       ///< See FLAC__stream_encoder_get_verify()
+			bool     get_streamable_subset() const;            ///< See FLAC__stream_encoder_get_streamable_subset()
+			bool     get_do_mid_side_stereo() const;           ///< See FLAC__stream_encoder_get_do_mid_side_stereo()
+			bool     get_loose_mid_side_stereo() const;        ///< See FLAC__stream_encoder_get_loose_mid_side_stereo()
+			unsigned get_channels() const;                     ///< See FLAC__stream_encoder_get_channels()
+			unsigned get_bits_per_sample() const;              ///< See FLAC__stream_encoder_get_bits_per_sample()
+			unsigned get_sample_rate() const;                  ///< See FLAC__stream_encoder_get_sample_rate()
+			unsigned get_blocksize() const;                    ///< See FLAC__stream_encoder_get_blocksize()
+			unsigned get_max_lpc_order() const;                ///< See FLAC__stream_encoder_get_max_lpc_order()
+			unsigned get_qlp_coeff_precision() const;          ///< See FLAC__stream_encoder_get_qlp_coeff_precision()
+			bool     get_do_qlp_coeff_prec_search() const;     ///< See FLAC__stream_encoder_get_do_qlp_coeff_prec_search()
+			bool     get_do_escape_coding() const;             ///< See FLAC__stream_encoder_get_do_escape_coding()
+			bool     get_do_exhaustive_model_search() const;   ///< See FLAC__stream_encoder_get_do_exhaustive_model_search()
+			unsigned get_min_residual_partition_order() const; ///< See FLAC__stream_encoder_get_min_residual_partition_order()
+			unsigned get_max_residual_partition_order() const; ///< See FLAC__stream_encoder_get_max_residual_partition_order()
+			unsigned get_rice_parameter_search_dist() const;   ///< See FLAC__stream_encoder_get_rice_parameter_search_dist()
+			FLAC__uint64 get_total_samples_estimate() const;   ///< See FLAC__stream_encoder_get_total_samples_estimate()
 
-			State init();
+			/** Initialize the instance; as with the C interface,
+			 *  init() should be called after construction and 'set'
+			 *  calls but before any of the 'process' calls.
+			 *
+			 *  See FLAC__stream_encoder_init_stream().
+			 */
+			::FLAC__StreamEncoderInitStatus init();
 
-			void finish();
+			void finish(); ///< See FLAC__stream_encoder_finish()
 
-			bool process(const FLAC__int32 * const buffer[], unsigned samples);
-			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples);
+			bool process(const FLAC__int32 * const buffer[], unsigned samples);     ///< See FLAC__stream_encoder_process()
+			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples); ///< See FLAC__stream_encoder_process_interleaved()
 		protected:
+			/// See FLAC__StreamEncoderWriteCallback
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
-			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata) = 0;
+
+			/// See FLAC__StreamEncoderSeekCallback
+			virtual ::FLAC__StreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
+
+			/// See FLAC__StreamEncoderTellCallback
+			virtual ::FLAC__StreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset);
+
+			/// See FLAC__StreamEncoderTellCallback
+			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata);
 
 #if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96))) || (defined __SUNPRO_CC)
 			// lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring()
 			friend State;
 #endif
 			::FLAC__StreamEncoder *encoder_;
-		private:
-			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
-			static void metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetadata *metadata, void *client_data);
 
+			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+			static ::FLAC__StreamEncoderSeekStatus seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
+			static ::FLAC__StreamEncoderTellStatus tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
+			static void metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetadata *metadata, void *client_data);
+		private:
 			// Private and undefined so you can't use them:
 			Stream(const Stream &);
 			void operator=(const Stream &);
-		};
-
-		/* \} */
-
-		/** \defgroup flacpp_seekable_stream_encoder FLAC++/encoder.h: seekable stream encoder class
-		 *  \ingroup flacpp_encoder
-		 *
-		 *  \brief
-		 *  This class wraps the ::FLAC__SeekableStreamEncoder.
-		 *
-		 * See the \link flac_seekable_stream_encoder libFLAC seekable stream encoder module \endlink.
-		 *
-		 * \{
-		 */
-
-		/** This class wraps the ::FLAC__SeekableStreamEncoder.
-		 */
-		class FLACPP_API SeekableStream {
-		public:
-			class FLACPP_API State {
-			public:
-				inline State(::FLAC__SeekableStreamEncoderState state): state_(state) { }
-				inline operator ::FLAC__SeekableStreamEncoderState() const { return state_; }
-				inline const char *as_cstring() const { return ::FLAC__SeekableStreamEncoderStateString[state_]; }
-				inline const char *resolved_as_cstring(const SeekableStream &encoder) const { return ::FLAC__seekable_stream_encoder_get_resolved_state_string(encoder.encoder_); }
-			protected:
-				::FLAC__SeekableStreamEncoderState state_;
-			};
-
-			SeekableStream();
-			virtual ~SeekableStream();
-
-			bool is_valid() const;
-			inline operator bool() const { return is_valid(); }
-
-			bool set_verify(bool value);
-			bool set_streamable_subset(bool value);
-			bool set_do_mid_side_stereo(bool value);
-			bool set_loose_mid_side_stereo(bool value);
-			bool set_channels(unsigned value);
-			bool set_bits_per_sample(unsigned value);
-			bool set_sample_rate(unsigned value);
-			bool set_blocksize(unsigned value);
-			bool set_apodization(const char *specification);
-			bool set_max_lpc_order(unsigned value);
-			bool set_qlp_coeff_precision(unsigned value);
-			bool set_do_qlp_coeff_prec_search(bool value);
-			bool set_do_escape_coding(bool value);
-			bool set_do_exhaustive_model_search(bool value);
-			bool set_min_residual_partition_order(unsigned value);
-			bool set_max_residual_partition_order(unsigned value);
-			bool set_rice_parameter_search_dist(unsigned value);
-			bool set_total_samples_estimate(FLAC__uint64 value);
-			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);
-			bool set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks);
-
-			State    get_state() const;
-			Stream::State get_stream_encoder_state() const;
-			Decoder::Stream::State get_verify_decoder_state() const;
-			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
-			bool     get_verify() const;
-			bool     get_streamable_subset() const;
-			bool     get_do_mid_side_stereo() const;
-			bool     get_loose_mid_side_stereo() const;
-			unsigned get_channels() const;
-			unsigned get_bits_per_sample() const;
-			unsigned get_sample_rate() const;
-			unsigned get_blocksize() const;
-			unsigned get_max_lpc_order() const;
-			unsigned get_qlp_coeff_precision() const;
-			bool     get_do_qlp_coeff_prec_search() const;
-			bool     get_do_escape_coding() const;
-			bool     get_do_exhaustive_model_search() const;
-			unsigned get_min_residual_partition_order() const;
-			unsigned get_max_residual_partition_order() const;
-			unsigned get_rice_parameter_search_dist() const;
-			FLAC__uint64 get_total_samples_estimate() const;
-
-			State init();
-
-			void finish();
-
-			bool process(const FLAC__int32 * const buffer[], unsigned samples);
-			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples);
-		protected:
-			virtual ::FLAC__SeekableStreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset) = 0;
-			virtual ::FLAC__SeekableStreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset) = 0;
-			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
-
-#if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96))) || (defined __SUNPRO_CC)
-			// lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring()
-			friend State;
-#endif
-			::FLAC__SeekableStreamEncoder *encoder_;
-		private:
-			static ::FLAC__SeekableStreamEncoderSeekStatus seek_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
-			static ::FLAC__SeekableStreamEncoderTellStatus tell_callback_(const FLAC__SeekableStreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
-			static ::FLAC__StreamEncoderWriteStatus write_callback_(const FLAC__SeekableStreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
-
-			// Private and undefined so you can't use them:
-			SeekableStream(const SeekableStream &);
-			void operator=(const SeekableStream &);
 		};
 
 		/* \} */
@@ -282,94 +219,57 @@ namespace FLAC {
 		 *  \ingroup flacpp_encoder
 		 *
 		 *  \brief
-		 *  This class wraps the ::FLAC__FileEncoder.
+		 *  This class wraps the ::FLAC__StreamEncoder.
 		 *
-		 * See the \link flac_file_encoder libFLAC file encoder module \endlink.
+		 * See the \link flac_stream_encoder libFLAC stream encoder module \endlink
+		 * for basic usage.
 		 *
 		 * \{
 		 */
 
-		/** This class wraps the ::FLAC__FileEncoder.
+		/** This class wraps the ::FLAC__StreamEncoder.  If you are
+		 *  not encoding to a file, you may need to use
+		 *  FLAC::Encoder::Stream.
+		 *
+		 * The usage of this class is similar to FLAC__StreamEncoder,
+		 * except instead of providing callbacks to
+		 * FLAC__stream_encoder_init_FILE() or
+		 * FLAC__stream_encoder_init_file(), you will inherit from this
+		 * class and override the virtual callback functions with your
+		 * own implementations, then call File::init().  The rest of
+		 * the calls work the same as in the C layer.
+		 *
+		 * There are no mandatory callbacks; all the callbacks from
+		 * FLAC::Encoder::Stream are implemented here fully and support
+		 * full post-encode STREAMINFO and SEEKTABLE updating.  There is
+		 * only an optional progress callback which you may override to
+		 * get periodic reports on the progress of the encode.
 		 */
-		class FLACPP_API File {
+		class FLACPP_API File: public Stream {
 		public:
-			class FLACPP_API State {
-			public:
-				inline State(::FLAC__FileEncoderState state): state_(state) { }
-				inline operator ::FLAC__FileEncoderState() const { return state_; }
-				inline const char *as_cstring() const { return ::FLAC__FileEncoderStateString[state_]; }
-				inline const char *resolved_as_cstring(const File &encoder) const { return ::FLAC__file_encoder_get_resolved_state_string(encoder.encoder_); }
-			protected:
-				::FLAC__FileEncoderState state_;
-			};
-
+			/** Initialize the instance; as with the C interface,
+			 *  init() should be called after construction and 'set'
+			 *  calls but before any of the 'process' calls.
+			 *
+			 *  See FLAC__stream_encoder_init_FILE() and
+			 *  FLAC__stream_encoder_init_file().
+			 *  \{
+			 */
 			File();
 			virtual ~File();
+			/*  \} */
 
-			bool is_valid() const;
-			inline operator bool() const { return is_valid(); }
-
-			bool set_verify(bool value);
-			bool set_streamable_subset(bool value);
-			bool set_do_mid_side_stereo(bool value);
-			bool set_loose_mid_side_stereo(bool value);
-			bool set_channels(unsigned value);
-			bool set_bits_per_sample(unsigned value);
-			bool set_sample_rate(unsigned value);
-			bool set_blocksize(unsigned value);
-			bool set_apodization(const char *specification);
-			bool set_max_lpc_order(unsigned value);
-			bool set_qlp_coeff_precision(unsigned value);
-			bool set_do_qlp_coeff_prec_search(bool value);
-			bool set_do_escape_coding(bool value);
-			bool set_do_exhaustive_model_search(bool value);
-			bool set_min_residual_partition_order(unsigned value);
-			bool set_max_residual_partition_order(unsigned value);
-			bool set_rice_parameter_search_dist(unsigned value);
-			bool set_total_samples_estimate(FLAC__uint64 value);
-			bool set_metadata(::FLAC__StreamMetadata **metadata, unsigned num_blocks);
-			bool set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks);
-			bool set_filename(const char *value);
-
-			State    get_state() const;
-			SeekableStream::State get_seekable_stream_encoder_state() const;
-			Stream::State get_stream_encoder_state() const;
-			Decoder::Stream::State get_verify_decoder_state() const;
-			void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, unsigned *frame_number, unsigned *channel, unsigned *sample, FLAC__int32 *expected, FLAC__int32 *got);
-			bool     get_verify() const;
-			bool     get_streamable_subset() const;
-			bool     get_do_mid_side_stereo() const;
-			bool     get_loose_mid_side_stereo() const;
-			unsigned get_channels() const;
-			unsigned get_bits_per_sample() const;
-			unsigned get_sample_rate() const;
-			unsigned get_blocksize() const;
-			unsigned get_max_lpc_order() const;
-			unsigned get_qlp_coeff_precision() const;
-			bool     get_do_qlp_coeff_prec_search() const;
-			bool     get_do_escape_coding() const;
-			bool     get_do_exhaustive_model_search() const;
-			unsigned get_min_residual_partition_order() const;
-			unsigned get_max_residual_partition_order() const;
-			unsigned get_rice_parameter_search_dist() const;
-			FLAC__uint64 get_total_samples_estimate() const;
-
-			State init();
-
-			void finish();
-
-			bool process(const FLAC__int32 * const buffer[], unsigned samples);
-			bool process_interleaved(const FLAC__int32 buffer[], unsigned samples);
+			::FLAC__StreamEncoderInitStatus init(FILE *file);
+			::FLAC__StreamEncoderInitStatus init(const char *filename);
+			::FLAC__StreamEncoderInitStatus init(const std::string &filename);
 		protected:
+			/// See FLAC__StreamEncoderProgressCallback
 			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);
 
-#if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96))) || (defined __SUNPRO_CC)
-			// lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring()
-			friend State;
-#endif
-			::FLAC__FileEncoder *encoder_;
+			/// This is a dummy implementation to satisfy the pure virtual in Stream that is actually supplied internally by the C layer
+			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame);
 		private:
-			static void progress_callback_(const ::FLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
+			static void progress_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 
 			// Private and undefined so you can't use them:
 			File(const Stream &);

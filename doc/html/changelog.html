@@ -53,7 +53,7 @@
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		This is an informal changelog, a summary of changes in each release.  Particulary important for developers is the precise description of changes to the library interfaces.
+		This is an informal changelog, a summary of changes in each release.  Particulary important for developers is the precise description of changes to the library interfaces.  See also the <a href="http://flac.sourceforge.net/api/group__porting.html">porting guide</a> for specific instructions on porting to newer versions of FLAC.
 
 		<br /><br />
 
@@ -68,6 +68,7 @@
 					<li>Large file (&gt;2GB) support everywhere</li>
 					<li>Much better recovery for corrupted files</li>
 					<li><span class="commandname">flac</span> now supports FLAC as input to the encoder (i.e. can re-encode FLAC to FLAC) and preserve all the metadata like tags, etc.</li>
+					<li>In the developer libraries, the interface has been simplfied by merging the three decoding layers into a single class; ditto for the encoders.</li>
 				</ul>
 			</li>
 			<li>
@@ -134,12 +135,19 @@
 				</ul>
 			</li>
 			<li>
-				Interface changes:
+				Interface changes (see also the <a href="http://flac.sourceforge.net/api/group__porting__1__1__2__to__1__1__3.html">porting guide</a> for specific instructions on porting to FLAC 1.1.3):
 				<ul>
+					<li>
+						all libraries;
+						<ul>
+							<li>Merged seekable stream decoder and file decoder into the stream decoder.</li>
+							<li>Merged seekable stream encoder and file encoder into the stream encoder.</li>
+						</ul>
+					</li>
 					<li>
 						libFLAC:
 						<ul>
-							<li><b>Added</b> FLAC__*_encoder_set_apodization()</li>
+							<li><b>Added</b> FLAC__stream_encoder_set_apodization()</li>
 							<li><b>Added</b> FLAC__metadata_object_cuesheet_calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC__metadata_get_cuesheet()</li>
 							<li><b>Changed</b> FLAC__StreamDecoderState: removed state FLAC__STREAM_DECODER_UNPARSEABLE_STREAM</li>
@@ -150,7 +158,7 @@
 					<li>
 						libFLAC++:
 						<ul>
-							<li><b>Added</b> FLAC::*::Encoder::set_apodization()</li>
+							<li><b>Added</b> FLAC::Encoder::Stream::set_apodization()</li>
 							<li><b>Added</b> FLAC::Metadata::CueSheet::calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC::Metadata::get_cuesheet()</li>
 						</ul>
@@ -158,7 +166,7 @@
 					<li>
 						libOggFLAC:
 						<ul>
-							<li><b>Added</b> OggFLAC__*_encoder_set_apodization()</li>
+							<li><b>Added</b> OggFLAC__stream_encoder_set_apodization()</li>
 							<li><b>Added</b> OggFLAC__metadata_object_cuesheet_calculate_cddb_id()</li>
 							<li><b>Added</b> OggFLAC__metadata_get_cuesheet()</li>
 						</ul>
@@ -166,7 +174,7 @@
 					<li>
 						libOggFLAC++:
 						<ul>
-							<li><b>Added</b> OggFLAC::*::Encoder::set_apodization()</li>
+							<li><b>Added</b> OggFLAC::Encoder::Stream::set_apodization()</li>
 							<li><b>Added</b> OggFLAC::Metadata::CueSheet::calculate_cddb_id()</li>
 							<li><b>Added</b> OggFLAC::Metadata::get_cuesheet()</li>
 						</ul>

@@ -19,19 +19,20 @@ EXTRA_DIST = \
 	case00a-expect.meta \
 	case01a-expect.meta \
 	case01b-expect.meta \
+	case01c-expect.meta \
+	case01d-expect.meta \
+	case01e-expect.meta \
 	case02a-expect.meta \
 	case02b-expect.meta \
+	case02c-expect.meta \
 	case03a-expect.meta \
 	case03b-expect.meta \
 	case03c-expect.meta \
 	case04a-expect.meta \
 	case04b-expect.meta \
 	case04c-expect.meta \
-	case05a-expect.meta \
-	case05b-expect.meta \
-	case05c-expect.meta \
-	case05d-expect.meta \
-	case05e-expect.meta \
+	case04d-expect.meta \
+	case04e-expect.meta \
 	input-SCPAP.flac \
 	input-SCVA.flac \
 	input-SCVAUP.flac \

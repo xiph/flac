@@ -48,14 +48,10 @@ INCLUDES = -I./include -I$(topdir)/include -I$(OGG_INCLUDE_DIR)
 DEBUG_CFLAGS = 
 
 SRCS_C = \
-	file_decoder.c \
-	file_encoder.c \
 	ogg_decoder_aspect.c \
 	ogg_encoder_aspect.c \
 	ogg_helper.c \
 	ogg_mapping.c \
-	seekable_stream_decoder.c \
-	seekable_stream_encoder.c \
 	stream_decoder.c \
 	stream_encoder.c
 

@@ -61,4 +61,7 @@ EXTRA_DIST = \
 	bad.234.FLAC_leadout_illegal_offset.cue \
 	bad.235.FLAC_leadout_offset_not_211680000.cue \
 	good.000.cue \
-	good.001.cue
+	good.001.cue \
+	good.002.dos_format.cue \
+	good.003.missing_final_newline.cue \
+	good.004.dos_format.missing_final_newline.cue

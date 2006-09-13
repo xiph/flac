@@ -1026,15 +1026,21 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 'S':
 				FLAC__ASSERT(0 != option_argument);
-				if(option_values.num_requested_seek_points < 0)
+				if(0 == strcmp(option_argument, "-")) {
 					option_values.num_requested_seek_points = 0;
-				option_values.num_requested_seek_points++;
-				if(strlen(option_values.requested_seek_points)+strlen(option_argument)+2 >= sizeof(option_values.requested_seek_points)) {
-					return usage_error("ERROR: too many seekpoints requested\n");
+					option_values.requested_seek_points[0] = '\0';
 				}
 				else {
-					strcat(option_values.requested_seek_points, option_argument);
-					strcat(option_values.requested_seek_points, ";");
+					if(option_values.num_requested_seek_points < 0)
+						option_values.num_requested_seek_points = 0;
+					option_values.num_requested_seek_points++;
+					if(strlen(option_values.requested_seek_points)+strlen(option_argument)+2 >= sizeof(option_values.requested_seek_points)) {
+						return usage_error("ERROR: too many seekpoints requested\n");
+					}
+					else {
+						strcat(option_values.requested_seek_points, option_argument);
+						strcat(option_values.requested_seek_points, ";");
+					}
 				}
 				break;
 			case 'P':

@@ -18,7 +18,7 @@
 #ifndef FLAC__PLUGIN_XMMS__HTTP_H
 #define FLAC__PLUGIN_XMMS__HTTP_H
 
-extern int flac_http_open(gchar * url, guint64 offset);
+extern int flac_http_open(const gchar * url, guint64 offset);
 extern void flac_http_close(void);
 extern int flac_http_read(gpointer data, gint length);
 

@@ -32,8 +32,8 @@
 #ifndef OggFLAC__STREAM_DECODER_H
 #define OggFLAC__STREAM_DECODER_H
 
+#include <stdio.h> /* for FILE */
 #include "export.h"
-
 #include "FLAC/stream_decoder.h"
 
 #ifdef __cplusplus
@@ -95,28 +95,31 @@ typedef enum {
 	OggFLAC__STREAM_DECODER_OGG_ERROR,
 	/**< An error occurred in the underlying Ogg layer.  */
 
-	OggFLAC__STREAM_DECODER_READ_ERROR,
-	/**< The read callback returned an error. */
-
 	OggFLAC__STREAM_DECODER_FLAC_STREAM_DECODER_ERROR,
 	/**< An error occurred in the underlying FLAC stream decoder;
 	 * check OggFLAC__stream_decoder_get_FLAC_stream_decoder_state().
 	 */
 
-	OggFLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR,
-	/**< Memory allocation failed. */
-
-	OggFLAC__STREAM_DECODER_ALREADY_INITIALIZED,
-	/**< OggFLAC__stream_decoder_init() was called when the decoder was
-	 * already initialized, usually because
-	 * OggFLAC__stream_decoder_finish() was not called.
+	OggFLAC__STREAM_DECODER_SEEK_ERROR,
+	/**< An error occurred while seeking or the seek or tell
+	 * callback returned an error.  The decoder must be flushed with
+	 * OggFLAC__stream_decoder_flush() or reset with
+	 * OggFLAC__stream_decoder_reset() before decoding can continue.
 	 */
 
-	OggFLAC__STREAM_DECODER_INVALID_CALLBACK,
-	/**< The decoder was initialized before setting all the required callbacks. */
+	OggFLAC__STREAM_DECODER_READ_ERROR,
+	/**< The read callback returned an error. */
+
+	OggFLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR,
+	/**< An error occurred allocating memory.  The decoder is in an invalid
+	 * state and can no longer be used.
+	 */
 
 	OggFLAC__STREAM_DECODER_UNINITIALIZED
-	/**< The decoder is in the uninitialized state. */
+	/**< The decoder is in the uninitialized state; one of the
+	 * OggFLAC__stream_decoder_init_*() functions must be called before samples
+	 * can be processed.
+	 */
 
 } OggFLAC__StreamDecoderState;
 
@@ -141,70 +144,10 @@ struct OggFLAC__StreamDecoderPrivate;
  *  for a detailed description.
  */
 typedef struct {
+	FLAC__StreamDecoder super_; /* parentclass@@@@@@ */
 	struct OggFLAC__StreamDecoderProtected *protected_; /* avoid the C++ keyword 'protected' */
 	struct OggFLAC__StreamDecoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } OggFLAC__StreamDecoder;
-
-/** Signature for the read callback.
- *  See OggFLAC__stream_decoder_set_read_callback()
- *  and FLAC__StreamDecoderReadCallback for more info.
- *
- * \param  decoder  The decoder instance calling the callback.
- * \param  buffer   A pointer to a location for the callee to store
- *                  data to be decoded.
- * \param  bytes    A pointer to the size of the buffer.  On entry
- *                  to the callback, it contains the maximum number
- *                  of bytes that may be stored in \a buffer.  The
- *                  callee must set it to the actual number of bytes
- *                  stored before returning.
- * \param  client_data  The callee's client data set through
- *                      OggFLAC__stream_decoder_set_client_data().
- * \retval FLAC__StreamDecoderReadStatus
- *    The callee's return status.
- */
-typedef FLAC__StreamDecoderReadStatus (*OggFLAC__StreamDecoderReadCallback)(const OggFLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
-
-/** Signature for the write callback.
- *  See OggFLAC__stream_decoder_set_write_callback()
- *  and FLAC__StreamDecoderWriteCallback for more info.
- *
- * \param  decoder  The decoder instance calling the callback.
- * \param  frame    The description of the decoded frame.  See
- *                  FLAC__Frame.
- * \param  buffer   An array of pointers to decoded channels of data.
- *                  Each pointer will point to an array of signed
- *                  samples of length \a frame->header.blocksize.
- *                  Currently, the channel order has no meaning
- *                  except for stereo streams; in this case channel
- *                  0 is left and 1 is right.
- * \param  client_data  The callee's client data set through
- *                      OggFLAC__stream_decoder_set_client_data().
- * \retval FLAC__StreamDecoderWriteStatus
- *    The callee's return status.
- */
-typedef FLAC__StreamDecoderWriteStatus (*OggFLAC__StreamDecoderWriteCallback)(const OggFLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
-
-/** Signature for the metadata callback.
- *  See OggFLAC__stream_decoder_set_metadata_callback()
- *  and FLAC__StreamDecoderMetadataCallback for more info.
- *
- * \param  decoder  The decoder instance calling the callback.
- * \param  metadata The decoded metadata block.
- * \param  client_data  The callee's client data set through
- *                      OggFLAC__stream_decoder_set_client_data().
- */
-typedef void (*OggFLAC__StreamDecoderMetadataCallback)(const OggFLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-
-/** Signature for the error callback.
- *  See OggFLAC__stream_decoder_set_error_callback()
- *  and FLAC__StreamDecoderErrorCallback for more info.
- *
- * \param  decoder  The decoder instance calling the callback.
- * \param  status   The error encountered by the decoder.
- * \param  client_data  The callee's client data set through
- *                      OggFLAC__stream_decoder_set_client_data().
- */
-typedef void (*OggFLAC__StreamDecoderErrorCallback)(const OggFLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
 
 /***********************************************************************
@@ -237,88 +180,6 @@ OggFLAC_API void OggFLAC__stream_decoder_delete(OggFLAC__StreamDecoder *decoder)
  *
  ***********************************************************************/
 
-/** Set the read callback.
- * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_read_callback()
- *
- * \note
- * The callback is mandatory and must be set before initialization.
- *
- * \default \c NULL
- * \param  decoder  A decoder instance to set.
- * \param  value    See above.
- * \assert
- *    \code decoder != NULL \endcode
- *    \code value != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
- */
-OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_read_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderReadCallback value);
-
-/** Set the write callback.
- * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_write_callback()
- *
- * \note
- * The callback is mandatory and must be set before initialization.
- *
- * \default \c NULL
- * \param  decoder  A decoder instance to set.
- * \param  value    See above.
- * \assert
- *    \code decoder != NULL \endcode
- *    \code value != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
- */
-OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_write_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderWriteCallback value);
-
-/** Set the metadata callback.
- * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_metadata_callback()
- *
- * \note
- * The callback is mandatory and must be set before initialization.
- *
- * \default \c NULL
- * \param  decoder  A decoder instance to set.
- * \param  value    See above.
- * \assert
- *    \code decoder != NULL \endcode
- *    \code value != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
- */
-OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_metadata_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderMetadataCallback value);
-
-/** Set the error callback.
- * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_error_callback()
- *
- * \note
- * The callback is mandatory and must be set before initialization.
- *
- * \default \c NULL
- * \param  decoder  A decoder instance to set.
- * \param  value    See above.
- * \assert
- *    \code decoder != NULL \endcode
- *    \code value != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
- */
-OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_error_callback(OggFLAC__StreamDecoder *decoder, OggFLAC__StreamDecoderErrorCallback value);
-
-/** Set the client data to be passed back to callbacks.
- *  This value will be supplied to callbacks in their \a client_data
- *  argument.
- *
- * \default \c NULL
- * \param  decoder  A decoder instance to set.
- * \param  value    See above.
- * \assert
- *    \code decoder != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
- */
-OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_client_data(OggFLAC__StreamDecoder *decoder, void *value);
-
 /** Set the serial number for the Ogg stream.
  * The default behavior is to use the serial number of the first Ogg
  * page.  Setting a serial number here will explicitly specify which
@@ -333,6 +194,19 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_client_data(OggFLAC__StreamDe
  *    \c false if the decoder is already initialized, else \c true.
  */
 OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_serial_number(OggFLAC__StreamDecoder *decoder, long serial_number);
+
+/** Set the "MD5 signature checking" flag.
+ * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_md5_checking()
+ *
+ * \default \c false
+ * \param  decoder  A decoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
+OggFLAC_API FLAC__bool OggFLAC__stream_decoder_set_md5_checking(OggFLAC__StreamDecoder *decoder, FLAC__bool value);
 
 /** Direct the decoder to pass on all metadata blocks of type \a type.
  * This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_set_metadata_respond()
@@ -457,6 +331,26 @@ OggFLAC_API FLAC__StreamDecoderState OggFLAC__stream_decoder_get_FLAC_stream_dec
  */
 OggFLAC_API const char *OggFLAC__stream_decoder_get_resolved_state_string(const OggFLAC__StreamDecoder *decoder);
 
+/** This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_get_md5_checking()
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
+OggFLAC_API FLAC__bool OggFLAC__stream_decoder_get_md5_checking(const OggFLAC__StreamDecoder *decoder);
+
+/** This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_get_total_samples()
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval unsigned
+ *    See above.
+ */
+OggFLAC_API FLAC__uint64 OggFLAC__stream_decoder_get_total_samples(const OggFLAC__StreamDecoder *decoder);
+
 /** This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_get_channels()
  *
  * \param  decoder  A decoder instance to query.
@@ -508,21 +402,168 @@ OggFLAC_API unsigned OggFLAC__stream_decoder_get_sample_rate(const OggFLAC__Stre
 OggFLAC_API unsigned OggFLAC__stream_decoder_get_blocksize(const OggFLAC__StreamDecoder *decoder);
 
 /** Initialize the decoder instance.
- *  Should be called after OggFLAC__stream_decoder_new() and
+ *
+ *  This flavor of initialization sets up the decoder to decode from a stream.
+ *  I/O is performed via callbacks to the client.  For decoding from a plain file
+ *  via filename or open FILE*, OggFLAC__stream_decoder_init_file() and
+ *  OggFLAC__stream_decoder_init_FILE() provide a simpler interface.
+ *
+ *  This function should be called after OggFLAC__stream_decoder_new() and
  *  OggFLAC__stream_decoder_set_*() but before any of the
  *  OggFLAC__stream_decoder_process_*() functions.  Will set and return the
  *  decoder state, which will be OggFLAC__STREAM_DECODER_OK
  *  if initialization succeeded.
  *
- * \param  decoder  An uninitialized decoder instance.
+ * \param  decoder            An uninitialized decoder instance.
+ * \param  read_callback      See FLAC__StreamDecoderReadCallback.  This
+ *                            pointer must not be \c NULL.
+ * \param  seek_callback      See FLAC__StreamDecoderSeekCallback.  This
+ *                            pointer may be \c NULL if seeking is not
+ *                            supported.  If \a seek_callback is not \c NULL then a
+ *                            \a tell_callback, \a length_callback, and \a eof_callback must also be supplied.
+ *                            Alternatively, a dummy seek callback that just
+ *                            returns \c FLAC__STREAM_DECODER_SEEK_STATUS_UNSUPPORTED
+ *                            may also be supplied, all though this is slightly
+ *                            less efficient for the decoder.
+ * \param  tell_callback      See FLAC__StreamDecoderTellCallback.  This
+ *                            pointer may be \c NULL if not supported by the client.  If
+ *                            \a seek_callback is not \c NULL then a
+ *                            \a tell_callback must also be supplied.
+ *                            Alternatively, a dummy tell callback that just
+ *                            returns \c FLAC__STREAM_DECODER_TELL_STATUS_UNSUPPORTED
+ *                            may also be supplied, all though this is slightly
+ *                            less efficient for the decoder.
+ * \param  length_callback    See FLAC__StreamDecoderLengthCallback.  This
+ *                            pointer may be \c NULL if not supported by the client.  If
+ *                            \a seek_callback is not \c NULL then a
+ *                            \a length_callback must also be supplied.
+ *                            Alternatively, a dummy length callback that just
+ *                            returns \c FLAC__STREAM_DECODER_LENGTH_STATUS_UNSUPPORTED
+ *                            may also be supplied, all though this is slightly
+ *                            less efficient for the decoder.
+ * \param  eof_callback       See FLAC__StreamDecoderEofCallback.  This
+ *                            pointer may be \c NULL if not supported by the client.  If
+ *                            \a seek_callback is not \c NULL then a
+ *                            \a eof_callback must also be supplied.
+ *                            Alternatively, a dummy length callback that just
+ *                            returns \c false
+ *                            may also be supplied, all though this is slightly
+ *                            less efficient for the decoder.
+ * \param  write_callback     See FLAC__StreamDecoderWriteCallback.  This
+ *                            pointer must not be \c NULL.
+ * \param  metadata_callback  See FLAC__StreamDecoderMetadataCallback.  This
+ *                            pointer may be \c NULL if the callback is not
+ *                            desired.
+ * \param  error_callback     See FLAC__StreamDecoderErrorCallback.  This
+ *                            pointer must not be \c NULL.
+ * \param  client_data        This value will be supplied to callbacks in their
+ *                            \a client_data argument.
  * \assert
  *    \code decoder != NULL \endcode
- * \retval OggFLAC__StreamDecoderState
- *    \c OggFLAC__STREAM_DECODER_OK if initialization was
- *    successful; see OggFLAC__StreamDecoderState for the meanings of other
- *    return values.
+ * \retval FLAC__StreamDecoderInitStatus
+ *    \c FLAC__STREAM_DECODER_INIT_STATUS_OK if initialization was successful;
+ *    see FLAC__StreamDecoderInitStatus for the meanings of other return values.
  */
-OggFLAC_API OggFLAC__StreamDecoderState OggFLAC__stream_decoder_init(OggFLAC__StreamDecoder *decoder);
+OggFLAC_API FLAC__StreamDecoderInitStatus OggFLAC__stream_decoder_init_stream(
+	OggFLAC__StreamDecoder *decoder,
+	FLAC__StreamDecoderReadCallback read_callback,
+	FLAC__StreamDecoderSeekCallback seek_callback,
+	FLAC__StreamDecoderTellCallback tell_callback,
+	FLAC__StreamDecoderLengthCallback length_callback,
+	FLAC__StreamDecoderEofCallback eof_callback,
+	FLAC__StreamDecoderWriteCallback write_callback,
+	FLAC__StreamDecoderMetadataCallback metadata_callback,
+	FLAC__StreamDecoderErrorCallback error_callback,
+	void *client_data
+);
+
+/** Initialize the decoder instance.
+ *
+ *  This flavor of initialization sets up the decoder to decode from a plain
+ *  file.  For non-stdio streams, you must use
+ *  OggFLAC__stream_decoder_init_stream() and provide callbacks for the I/O.
+ *
+ *  This function should be called after OggFLAC__stream_decoder_new() and
+ *  OggFLAC__stream_decoder_set_*() but before any of the
+ *  OggFLAC__stream_decoder_process_*() functions.  Will set and return the
+ *  decoder state, which will be OggFLAC__STREAM_DECODER_OK
+ *  if initialization succeeded.
+ *
+ * \param  decoder            An uninitialized decoder instance.
+ * \param  file               An open Ogg FLAC file.  The file should have been
+ *                            opened with mode \c "rb" and rewound.  The file
+ *                            becomes owned by the decoder and should not be
+ *                            manipulated by the client while decoding.
+ *                            Unless \a file is \c stdin, it will be closed
+ *                            when OggFLAC__stream_decoder_finish() is called.
+ *                            Note however that seeking will not work when
+ *                            decoding from \c stdout since it is not seekable.
+ * \param  write_callback     See FLAC__StreamDecoderWriteCallback.  This
+ *                            pointer must not be \c NULL.
+ * \param  metadata_callback  See FLAC__StreamDecoderMetadataCallback.  This
+ *                            pointer may be \c NULL if the callback is not
+ *                            desired.
+ * \param  error_callback     See FLAC__StreamDecoderErrorCallback.  This
+ *                            pointer must not be \c NULL.
+ * \param  client_data        This value will be supplied to callbacks in their
+ *                            \a client_data argument.
+ * \assert
+ *    \code decoder != NULL \endcode
+ *    \code file != NULL \endcode
+ * \retval FLAC__StreamDecoderInitStatus
+ *    \c FLAC__STREAM_DECODER_INIT_STATUS_OK if initialization was successful;
+ *    see FLAC__StreamDecoderInitStatus for the meanings of other return values.
+ */
+OggFLAC_API FLAC__StreamDecoderInitStatus OggFLAC__stream_decoder_init_FILE(
+	OggFLAC__StreamDecoder *decoder,
+	FILE *file,
+	FLAC__StreamDecoderWriteCallback write_callback,
+	FLAC__StreamDecoderMetadataCallback metadata_callback,
+	FLAC__StreamDecoderErrorCallback error_callback,
+	void *client_data
+);
+
+/** Initialize the decoder instance.
+ *
+ *  This flavor of initialization sets up the decoder to decode from a plain
+ *  file.  If POSIX fopen() semantics are not sufficient, (for example, with
+ *  Unicode filenames on Windows), you must use
+ *  OggFLAC__stream_decoder_init_FILE(), or OggFLAC__stream_decoder_init_stream()
+ *  and provide callbacks for the I/O.
+ *
+ *  This function should be called after OggFLAC__stream_decoder_new() and
+ *  OggFLAC__stream_decoder_set_*() but before any of the
+ *  OggFLAC__stream_decoder_process_*() functions.  Will set and return the
+ *  decoder state, which will be OggFLAC__STREAM_DECODER_OK
+ *  if initialization succeeded.
+ *
+ * \param  decoder            An uninitialized decoder instance.
+ * \param  filename           The name of the file to decode from.  The file will
+ *                            be opened with fopen().  Use \c NULL to decode from
+ *                            \c stdin.  Note that \c stdin is not seekable.
+ * \param  write_callback     See FLAC__StreamDecoderWriteCallback.  This
+ *                            pointer must not be \c NULL.
+ * \param  metadata_callback  See FLAC__StreamDecoderMetadataCallback.  This
+ *                            pointer may be \c NULL if the callback is not
+ *                            desired.
+ * \param  error_callback     See FLAC__StreamDecoderErrorCallback.  This
+ *                            pointer must not be \c NULL.
+ * \param  client_data        This value will be supplied to callbacks in their
+ *                            \a client_data argument.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__StreamDecoderInitStatus
+ *    \c FLAC__STREAM_DECODER_INIT_STATUS_OK if initialization was successful;
+ *    see FLAC__StreamDecoderInitStatus for the meanings of other return values.
+ */
+OggFLAC_API FLAC__StreamDecoderInitStatus OggFLAC__stream_decoder_init_file(
+	OggFLAC__StreamDecoder *decoder,
+	const char *filename,
+	FLAC__StreamDecoderWriteCallback write_callback,
+	FLAC__StreamDecoderMetadataCallback metadata_callback,
+	FLAC__StreamDecoderErrorCallback error_callback,
+	void *client_data
+);
 
 /** Finish the decoding process.
  *  Flushes the decoding buffer, releases resources, resets the decoder
@@ -538,7 +579,7 @@ OggFLAC_API OggFLAC__StreamDecoderState OggFLAC__stream_decoder_init(OggFLAC__St
  * \assert
  *    \code decoder != NULL \endcode
  */
-OggFLAC_API void OggFLAC__stream_decoder_finish(OggFLAC__StreamDecoder *decoder);
+OggFLAC_API FLAC__bool OggFLAC__stream_decoder_finish(OggFLAC__StreamDecoder *decoder);
 
 /** This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_flush()
  *
@@ -558,7 +599,7 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_flush(OggFLAC__StreamDecoder *dec
  *    \code decoder != NULL \endcode
  * \retval FLAC__bool
  *    \c true if successful, else \c false if a memory allocation
- *    error occurs.
+ *    or seek error occurs.
  */
 OggFLAC_API FLAC__bool OggFLAC__stream_decoder_reset(OggFLAC__StreamDecoder *decoder);
 
@@ -609,6 +650,35 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_until_end_of_metadata(Ogg
  *    OggFLAC__stream_decoder_get_state().
  */
 OggFLAC_API FLAC__bool OggFLAC__stream_decoder_process_until_end_of_stream(OggFLAC__StreamDecoder *decoder);
+
+/** Skip one audio frame.
+ *  This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_skip_single_frame()
+ *
+ * \param  decoder  An initialized decoder instance not in a metadata
+ *                  state.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if any fatal read, write, or memory allocation error
+ *    occurred (meaning decoding must stop), or if the underlying FLAC
+ *    stream decoder is in the FLAC__STREAM_DECODER_SEARCH_FOR_METADATA or
+ *    FLAC__STREAM_DECODER_READ_METADATA state, else \c true; for more
+ *    information about the decoder, check the decoder state with
+ *    OggFLAC__stream_decoder_get_FLAC_stream_decoder_state().
+ */
+OggFLAC_API FLAC__bool OggFLAC__stream_decoder_skip_single_frame(OggFLAC__StreamDecoder *decoder);
+
+/** Flush the input and seek to an absolute sample.
+ *  This is inherited from FLAC__StreamDecoder; see FLAC__stream_decoder_seek_absolute().
+ *
+ * \param  decoder  A decoder instance.
+ * \param  sample   The target sample number to seek to.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if successful, else \c false.
+ */
+OggFLAC_API FLAC__bool OggFLAC__stream_decoder_seek_absolute(OggFLAC__StreamDecoder *decoder, FLAC__uint64 sample);
 
 /* \} */
 

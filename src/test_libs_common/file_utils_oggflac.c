@@ -1,4 +1,4 @@
-/* test_libFLAC - Unit tester for libFLAC
+/* test_libOggFLAC - Unit tester for libOggFLAC
  * Copyright (C) 2002,2003,2004,2005,2006  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
@@ -20,9 +20,9 @@
 #  include <config.h>
 #endif
 
-#include "file_utils.h"
 #include "FLAC/assert.h"
-#include "FLAC/stream_encoder.h"
+#include "OggFLAC/stream_encoder.h"
+#include "test_libs_common/file_utils_oggflac.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h> /* for stat() */
@@ -31,6 +31,8 @@
 #undef min
 #endif
 #define min(a,b) ((a)<(b)?(a):(b))
+
+const long file_utils__serial_number = 12345;
 
 #ifdef FLAC__VALGRIND_TESTING
 static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
@@ -65,10 +67,10 @@ static void encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const
 	(void)encoder, (void)metadata, (void)client_data;
 }
 
-FLAC__bool file_utils__generate_flacfile(const char *output_filename, off_t *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)
+FLAC__bool file_utils__generate_oggflacfile(const char *output_filename, off_t *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)
 {
 	FLAC__int32 samples[1024];
-	FLAC__StreamEncoder *encoder;
+	OggFLAC__StreamEncoder *encoder;
 	encoder_client_struct encoder_client_data;
 	unsigned i, n;
 
@@ -80,35 +82,33 @@ FLAC__bool file_utils__generate_flacfile(const char *output_filename, off_t *out
 	if(0 == (encoder_client_data.file = fopen(output_filename, "wb")))
 		return false;
 
-	encoder = FLAC__stream_encoder_new();
+	encoder = OggFLAC__stream_encoder_new();
 	if(0 == encoder) {
 		fclose(encoder_client_data.file);
 		return false;
 	}
 
-	FLAC__stream_encoder_set_verify(encoder, true);
-	FLAC__stream_encoder_set_streamable_subset(encoder, true);
-	FLAC__stream_encoder_set_do_mid_side_stereo(encoder, false);
-	FLAC__stream_encoder_set_loose_mid_side_stereo(encoder, false);
-	FLAC__stream_encoder_set_channels(encoder, streaminfo->data.stream_info.channels);
-	FLAC__stream_encoder_set_bits_per_sample(encoder, streaminfo->data.stream_info.bits_per_sample);
-	FLAC__stream_encoder_set_sample_rate(encoder, streaminfo->data.stream_info.sample_rate);
-	FLAC__stream_encoder_set_blocksize(encoder, streaminfo->data.stream_info.min_blocksize);
-	FLAC__stream_encoder_set_max_lpc_order(encoder, 0);
-	FLAC__stream_encoder_set_qlp_coeff_precision(encoder, 0);
-	FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder, false);
-	FLAC__stream_encoder_set_do_escape_coding(encoder, false);
-	FLAC__stream_encoder_set_do_exhaustive_model_search(encoder, false);
-	FLAC__stream_encoder_set_min_residual_partition_order(encoder, 0);
-	FLAC__stream_encoder_set_max_residual_partition_order(encoder, 0);
-	FLAC__stream_encoder_set_rice_parameter_search_dist(encoder, 0);
-	FLAC__stream_encoder_set_total_samples_estimate(encoder, streaminfo->data.stream_info.total_samples);
-	FLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
-	FLAC__stream_encoder_set_write_callback(encoder, encoder_write_callback_);
-	FLAC__stream_encoder_set_metadata_callback(encoder, encoder_metadata_callback_);
-	FLAC__stream_encoder_set_client_data(encoder, &encoder_client_data);
+	OggFLAC__stream_encoder_set_serial_number(encoder, file_utils__serial_number);
+	OggFLAC__stream_encoder_set_verify(encoder, true);
+	OggFLAC__stream_encoder_set_streamable_subset(encoder, true);
+	OggFLAC__stream_encoder_set_do_mid_side_stereo(encoder, false);
+	OggFLAC__stream_encoder_set_loose_mid_side_stereo(encoder, false);
+	OggFLAC__stream_encoder_set_channels(encoder, streaminfo->data.stream_info.channels);
+	OggFLAC__stream_encoder_set_bits_per_sample(encoder, streaminfo->data.stream_info.bits_per_sample);
+	OggFLAC__stream_encoder_set_sample_rate(encoder, streaminfo->data.stream_info.sample_rate);
+	OggFLAC__stream_encoder_set_blocksize(encoder, streaminfo->data.stream_info.min_blocksize);
+	OggFLAC__stream_encoder_set_max_lpc_order(encoder, 0);
+	OggFLAC__stream_encoder_set_qlp_coeff_precision(encoder, 0);
+	OggFLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder, false);
+	OggFLAC__stream_encoder_set_do_escape_coding(encoder, false);
+	OggFLAC__stream_encoder_set_do_exhaustive_model_search(encoder, false);
+	OggFLAC__stream_encoder_set_min_residual_partition_order(encoder, 0);
+	OggFLAC__stream_encoder_set_max_residual_partition_order(encoder, 0);
+	OggFLAC__stream_encoder_set_rice_parameter_search_dist(encoder, 0);
+	OggFLAC__stream_encoder_set_total_samples_estimate(encoder, streaminfo->data.stream_info.total_samples);
+	OggFLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
 
-	if(FLAC__stream_encoder_init(encoder) != FLAC__STREAM_ENCODER_OK) {
+	if(OggFLAC__stream_encoder_init_stream(encoder, /*read_callback=*/0, encoder_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, encoder_metadata_callback_, &encoder_client_data) != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
 		fclose(encoder_client_data.file);
 		return false;
 	}
@@ -120,7 +120,7 @@ FLAC__bool file_utils__generate_flacfile(const char *output_filename, off_t *out
 	while(length > 0) {
 		n = min(length, sizeof(samples) / sizeof(FLAC__int32));
 
-		if(!FLAC__stream_encoder_process_interleaved(encoder, samples, n)) {
+		if(!OggFLAC__stream_encoder_process_interleaved(encoder, samples, n)) {
 			fclose(encoder_client_data.file);
 			return false;
 		}
@@ -128,11 +128,11 @@ FLAC__bool file_utils__generate_flacfile(const char *output_filename, off_t *out
 		length -= n;
 	}
 
-	FLAC__stream_encoder_finish(encoder);
+	OggFLAC__stream_encoder_finish(encoder);
 
 	fclose(encoder_client_data.file);
 
-	FLAC__stream_encoder_delete(encoder);
+	OggFLAC__stream_encoder_delete(encoder);
 
 	if(0 != output_filesize) {
 		struct stat filestats;
