@@ -536,7 +536,7 @@ int do_it()
 						return 2;
 					}
 					if(0 != (error = grabbag__replaygain_store_to_file_album(outfilename, album_gain, album_peak, /*preserve_modtime=*/true))) {
-						flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain album tags\n", outfilename);
+						flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain album tags (%s)\n", outfilename, error);
 						retval = 1;
 					}
 				}
@@ -1606,7 +1606,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				fmt= AIF;
 				is_aifc = true;
 			}
-			else if(!strncmp((const char *)lookahead, FLAC__STREAM_SYNC_STRING, sizeof(FLAC__STREAM_SYNC_STRING)))
+			else if(!memcmp(lookahead, FLAC__STREAM_SYNC_STRING, sizeof(FLAC__STREAM_SYNC_STRING)))
 				fmt= FLAC;
 			else {
 				if(fmt != RAW)
@@ -1761,12 +1761,15 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				float title_gain, title_peak;
 				const char *error;
 				grabbag__replaygain_get_title(&title_gain, &title_peak);
-				if(0 != (error = grabbag__replaygain_store_to_file_title(internal_outfilename, title_gain, title_peak, /*preserve_modtime=*/true))) {
-					flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain title tags\n", outfilename);
+				if(
+					0 != (error = grabbag__replaygain_store_to_file_reference(internal_outfilename? internal_outfilename : outfilename, /*preserve_modtime=*/true)) ||
+					0 != (error = grabbag__replaygain_store_to_file_title(internal_outfilename? internal_outfilename : outfilename, title_gain, title_peak, /*preserve_modtime=*/true))
+				) {
+					flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain reference/title tags (%s)\n", outfilename, error);
 				}
 			}
 			if(strcmp(infilename, "-"))
-				grabbag__file_copy_metadata(infilename, internal_outfilename);
+				grabbag__file_copy_metadata(infilename, internal_outfilename? internal_outfilename : outfilename);
 		}
 	}
 

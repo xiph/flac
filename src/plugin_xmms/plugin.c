@@ -662,8 +662,8 @@ void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMe
 		}
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
-		double gain, peak;
-		if(grabbag__replaygain_load_from_vorbiscomment(metadata, flac_cfg.output.replaygain.album_mode, /*strict=*/false, &gain, &peak)) {
+		double reference, gain, peak;
+		if(grabbag__replaygain_load_from_vorbiscomment(metadata, flac_cfg.output.replaygain.album_mode, /*strict=*/false, &reference, &gain, &peak)) {
 			stream_data->has_replaygain = true;
 			stream_data->replay_scale = grabbag__replaygain_compute_scale_factor(peak, gain, (double)flac_cfg.output.replaygain.preamp, /*prevent_clipping=*/!flac_cfg.output.replaygain.hard_limit);
 		}

@@ -41,7 +41,7 @@ static GtkWidget *window = NULL;
 static GList *genre_list = NULL;
 static GtkWidget *filename_entry, *tag_frame;
 static GtkWidget *title_entry, *artist_entry, *album_entry, *date_entry, *tracknum_entry, *comment_entry;
-static GtkWidget *replaygain_track_gain, *replaygain_album_gain, *replaygain_track_peak, *replaygain_album_peak;
+static GtkWidget *replaygain_reference, *replaygain_track_gain, *replaygain_album_gain, *replaygain_track_peak, *replaygain_album_peak;
 static GtkWidget *genre_combo;
 static GtkWidget *flac_samplerate, *flac_channels, *flac_bits_per_sample, *flac_blocksize, *flac_filesize, *flac_samples, *flac_bitrate;
 
@@ -244,22 +244,26 @@ static void show_replaygain()
 	/* known limitation: If only one of gain and peak is set, neither will be shown. This is true for
 	 * both track and album replaygain tags. Written so it will be easy to fix, with some trouble.  */
 
+	gtk_label_set_text(GTK_LABEL(replaygain_reference), "");
 	gtk_label_set_text(GTK_LABEL(replaygain_track_gain), "");
 	gtk_label_set_text(GTK_LABEL(replaygain_album_gain), "");
 	gtk_label_set_text(GTK_LABEL(replaygain_track_peak), "");
 	gtk_label_set_text(GTK_LABEL(replaygain_album_peak), "");
 
-	double track_gain, track_peak, album_gain, album_peak;
-	FLAC__bool track_gain_set, track_peak_set, album_gain_set, album_peak_set;
+	double reference, track_gain, track_peak, album_gain, album_peak;
+	FLAC__bool reference_set, track_gain_set, track_peak_set, album_gain_set, album_peak_set;
 
 	FLAC_plugin__replaygain_get_from_file(
 		current_filename,
+		&reference, &reference_set,
 		&track_gain, &track_gain_set,
 		&album_gain, &album_gain_set,
 		&track_peak, &track_peak_set,
 		&album_peak, &album_peak_set
 	);
 
+	if(reference_set)
+		  label_set_text(replaygain_reference, _("ReplayGain Reference Loudness: %2.1f dB"), reference);
 	if(track_gain_set)
 		  label_set_text(replaygain_track_gain, _("ReplayGain Track Gain: %+2.2f dB"), track_gain);
 	if(album_gain_set)
@@ -437,6 +441,11 @@ void FLAC_XMMS__file_info_box(char *filename)
 		gtk_misc_set_alignment(GTK_MISC(flac_bitrate), 0, 0);
 		gtk_label_set_justify(GTK_LABEL(flac_bitrate), GTK_JUSTIFY_LEFT);
 		gtk_box_pack_start(GTK_BOX(flac_box), flac_bitrate, FALSE, FALSE, 0);
+
+		replaygain_reference = gtk_label_new("");
+		gtk_misc_set_alignment(GTK_MISC(replaygain_reference), 0, 0);
+		gtk_label_set_justify(GTK_LABEL(replaygain_reference), GTK_JUSTIFY_LEFT);
+		gtk_box_pack_start(GTK_BOX(flac_box), replaygain_reference, FALSE, FALSE, 0);
 
 		replaygain_track_gain = gtk_label_new("");
 		gtk_misc_set_alignment(GTK_MISC(replaygain_track_gain), 0, 0);

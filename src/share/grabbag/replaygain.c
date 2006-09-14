@@ -45,19 +45,22 @@
 #endif
 #define local_max(a,b) ((a)>(b)?(a):(b))
 
-static const char *peak_format_ = "%s=%1.8f";
+static const char *reference_format_ = "%s=%2.1f dB";
 static const char *gain_format_ = "%s=%+2.2f dB";
+static const char *peak_format_ = "%s=%1.8f";
 
 static double album_peak_, title_peak_;
 
-const unsigned GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED = 148;
+const unsigned GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED = 190;
 /*
+	FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + 29 + 1 + 8 +
 	FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + 21 + 1 + 10 +
 	FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + 21 + 1 + 12 +
 	FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + 21 + 1 + 10 +
 	FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + 21 + 1 + 12
 */
 
+const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_REFERENCE_LOUDNESS = (const FLAC__byte * const)"REPLAYGAIN_REFERENCE_LOUDNESS";
 const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_TITLE_GAIN = (const FLAC__byte * const)"REPLAYGAIN_TRACK_GAIN";
 const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_TITLE_PEAK = (const FLAC__byte * const)"REPLAYGAIN_TRACK_PEAK";
 const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN = (const FLAC__byte * const)"REPLAYGAIN_ALBUM_GAIN";
@@ -368,11 +371,28 @@ const char *grabbag__replaygain_store_to_vorbiscomment(FLAC__StreamMetadata *blo
 {
 	const char *error;
 
+	if(0 != (error = grabbag__replaygain_store_to_vorbiscomment_reference(block)))
+		return error;
+
 	if(0 != (error = grabbag__replaygain_store_to_vorbiscomment_title(block, title_gain, title_peak)))
 		return error;
 
 	if(0 != (error = grabbag__replaygain_store_to_vorbiscomment_album(block, album_gain, album_peak)))
 		return error;
+
+	return 0;
+}
+
+const char *grabbag__replaygain_store_to_vorbiscomment_reference(FLAC__StreamMetadata *block)
+{
+	FLAC__ASSERT(0 != block);
+	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+	if(FLAC__metadata_object_vorbiscomment_remove_entries_matching(block, (const char *)GRABBAG__REPLAYGAIN_TAG_REFERENCE_LOUDNESS) < 0)
+		return "memory allocation error";
+
+	if(!append_tag_(block, reference_format_, GRABBAG__REPLAYGAIN_TAG_REFERENCE_LOUDNESS, ReplayGainReferenceLoudness))
+		return "memory allocation error";
 
 	return 0;
 }
@@ -389,8 +409,8 @@ const char *grabbag__replaygain_store_to_vorbiscomment_album(FLAC__StreamMetadat
 		return "memory allocation error";
 
 	if(
-		!append_tag_(block, peak_format_, GRABBAG__REPLAYGAIN_TAG_ALBUM_PEAK, album_peak) ||
-		!append_tag_(block, gain_format_, GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN, album_gain)
+		!append_tag_(block, gain_format_, GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN, album_gain) ||
+		!append_tag_(block, peak_format_, GRABBAG__REPLAYGAIN_TAG_ALBUM_PEAK, album_peak)
 	)
 		return "memory allocation error";
 
@@ -409,8 +429,8 @@ const char *grabbag__replaygain_store_to_vorbiscomment_title(FLAC__StreamMetadat
 		return "memory allocation error";
 
 	if(
-		!append_tag_(block, peak_format_, GRABBAG__REPLAYGAIN_TAG_TITLE_PEAK, title_peak) ||
-		!append_tag_(block, gain_format_, GRABBAG__REPLAYGAIN_TAG_TITLE_GAIN, title_gain)
+		!append_tag_(block, gain_format_, GRABBAG__REPLAYGAIN_TAG_TITLE_GAIN, title_gain) ||
+		!append_tag_(block, peak_format_, GRABBAG__REPLAYGAIN_TAG_TITLE_PEAK, title_peak)
 	)
 		return "memory allocation error";
 
@@ -514,6 +534,26 @@ const char *grabbag__replaygain_store_to_file(const char *filename, float album_
 	return 0;
 }
 
+const char *grabbag__replaygain_store_to_file_reference(const char *filename, FLAC__bool preserve_modtime)
+{
+	FLAC__Metadata_Chain *chain;
+	FLAC__StreamMetadata *block;
+	const char *error;
+
+	if(0 != (error = store_to_file_pre_(filename, &chain, &block)))
+		return error;
+
+	if(0 != (error = grabbag__replaygain_store_to_vorbiscomment_reference(block))) {
+		FLAC__metadata_chain_delete(chain);
+		return error;
+	}
+
+	if(0 != (error = store_to_file_post_(filename, chain, preserve_modtime)))
+		return error;
+
+	return 0;
+}
+
 const char *grabbag__replaygain_store_to_file_album(const char *filename, float album_gain, float album_peak, FLAC__bool preserve_modtime)
 {
 	FLAC__Metadata_Chain *chain;
@@ -579,22 +619,33 @@ static FLAC__bool parse_double_(const FLAC__StreamMetadata_VorbisComment_Entry *
 	return true;
 }
 
-FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadata *block, FLAC__bool album_mode, FLAC__bool strict, double *gain, double *peak)
+FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadata *block, FLAC__bool album_mode, FLAC__bool strict, double *reference, double *gain, double *peak)
 {
-	int gain_offset, peak_offset;
+	int reference_offset, gain_offset, peak_offset;
 
 	FLAC__ASSERT(0 != block);
+	FLAC__ASSERT(0 != reference);
+	FLAC__ASSERT(0 != gain);
+	FLAC__ASSERT(0 != peak);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
+	/* Default to current level until overridden by a detected tag; this
+	 * will always be true until we change replaygain_analysis.c
+	 */
+	*reference = ReplayGainReferenceLoudness;
+
+	if(0 <= (reference_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)GRABBAG__REPLAYGAIN_TAG_REFERENCE_LOUDNESS)))
+		(void)parse_double_(block->data.vorbis_comment.comments + reference_offset, reference);
+
 	if(0 > (gain_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)(album_mode? GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN : GRABBAG__REPLAYGAIN_TAG_TITLE_GAIN))))
-		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, gain, peak);
+		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, reference, gain, peak);
 	if(0 > (peak_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)(album_mode? GRABBAG__REPLAYGAIN_TAG_ALBUM_PEAK : GRABBAG__REPLAYGAIN_TAG_TITLE_PEAK))))
-		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, gain, peak);
+		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, reference, gain, peak);
 
 	if(!parse_double_(block->data.vorbis_comment.comments + gain_offset, gain))
-		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, gain, peak);
+		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, reference, gain, peak);
 	if(!parse_double_(block->data.vorbis_comment.comments + peak_offset, peak))
-		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, gain, peak);
+		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, reference, gain, peak);
 
 	return true;
 }
