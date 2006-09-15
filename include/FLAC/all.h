@@ -80,7 +80,7 @@
  * dependency on a thread library. However, libFLAC does not use
  * global variables and should be thread-safe.
  *
- * There is also a new libOggFLAC library which wraps around libFLAC
+ * There is also a libOggFLAC library which wraps around libFLAC
  * to provide routines for encoding to and decoding from FLAC streams
  * inside an Ogg container.  The interfaces are very similar or identical
  * to their counterparts in libFLAC.  libOggFLAC is also licensed under
@@ -97,7 +97,7 @@
  * for the C++ API will be installed in your include area as
  * <include>/FLAC++/...
  *
- * There is also a new libOggFLAC++ library, which provides classes
+ * There is also a libOggFLAC++ library, which provides classes
  * for encoding to and decoding from FLAC streams in an Ogg container.
  * The classes are very similar to their counterparts in libFLAC++.
  *
@@ -195,7 +195,7 @@
  *@@@@@@CHECK@@@@@@
  * \code
  * FLAC__SeekableStreamDecoder *decoder = FLAC__seekable_stream_decoder_new();
- * if(decoder == NULL) do something;
+ * if(decoder == NULL) do_something;
  * FLAC__seekable_stream_decoder_set_md5_checking(decoder, true);
  * [... other settings ...]
  * FLAC__seekable_stream_decoder_set_read_callback(decoder, my_read_callback);
@@ -207,14 +207,14 @@
  * FLAC__seekable_stream_decoder_set_metadata_callback(decoder, my_metadata_callback);
  * FLAC__seekable_stream_decoder_set_error_callback(decoder, my_error_callback);
  * FLAC__seekable_stream_decoder_set_client_data(decoder, my_client_data);
- * if(FLAC__seekable_stream_decoder_init(decoder) != FLAC__SEEKABLE_STREAM_DECODER_OK) do something;
+ * if(FLAC__seekable_stream_decoder_init(decoder) != FLAC__SEEKABLE_STREAM_DECODER_OK) do_something;
  * \endcode
  *
  * In FLAC 1.1.3 it is like this:
  *
  * \code
  * FLAC__StreamDecoder *decoder = FLAC__stream_decoder_new();
- * if(decoder == NULL) do something;
+ * if(decoder == NULL) do_something;
  * FLAC__stream_decoder_set_md5_checking(decoder, true);
  * [... other settings ...]
  * if(FLAC__stream_decoder_init_stream(
@@ -228,7 +228,7 @@
  *   my_metadata_callback,  // or NULL
  *   my_error_callback,
  *   my_client_data,
- * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do something;
+ * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do_something;
  * \endcode
  *
  * or you could do;
@@ -236,7 +236,7 @@
  * \code
  * [...]
  * FILE *file = fopen("somefile.flac","rb");
- * if(file == NULL) do somthing;
+ * if(file == NULL) do_somthing;
  * if(FLAC__stream_decoder_init_FILE(
  *   decoder,
  *   file,
@@ -244,7 +244,7 @@
  *   my_metadata_callback,  // or NULL
  *   my_error_callback,
  *   my_client_data,
- * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do something;
+ * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do_something;
  * \endcode
  *
  * or just:
@@ -258,7 +258,7 @@
  *   my_metadata_callback,  // or NULL
  *   my_error_callback,
  *   my_client_data,
- * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do something;
+ * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do_something;
  * \endcode
  *
  * Another small change to the decoder is in how it handles unparseable
