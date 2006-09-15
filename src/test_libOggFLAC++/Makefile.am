@@ -28,6 +28,7 @@ test_libOggFLAC___LDADD = \
 	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
 	$(top_builddir)/src/libOggFLAC++/libOggFLAC++.la \
 	$(top_builddir)/src/libOggFLAC/libOggFLAC.la \
+	$(top_builddir)/src/libFLAC++/libFLAC++.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
 	-lm

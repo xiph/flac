@@ -73,6 +73,37 @@
  * used, and OggFLAC::Encoder::File is used for the same cases that
  * OggFLAC__stream_encoder_init_FILE() and OggFLAC__stream_encoder_init_file()
  * are used.
+ *
+ * Note that OggFLAC::Encoder::Stream inherits from FLAC::Encoder::Stream so
+ * it is possible to support both FLAC and Ogg FLAC encoding with only a
+ * little specialized code (just up to initialization).  For example,
+ * \code
+ * class MyFLACEncoder: public FLAC::Encoder::Stream
+ * {
+ *     // implement callbacks
+ * };
+ * FLAC::Encoder::Stream *flac = new MyFLACEncoder();
+ * if(*flac) {
+ *     flac->set_...();
+ *     // continue set_ calls()
+ *     if(flac->init() == ::FLAC__STREAM_ENCODER_INIT_STATUS_OK)
+ *         my_process_stream(flac);
+ * }
+ * 
+ * ...
+ * 
+ * class MyOggFLACEncoder: public OggFLAC::Encoder::Stream
+ * {
+ *     // implement callbacks
+ * };
+ * FLAC::Encoder::Stream *oggflac = new MyOggFLACEncoder();
+ * if(*oggflac) {
+ *     oggflac->set_serial_number();
+ *     // continue set_ calls()
+ *     if(oggflac->init() == ::FLAC__STREAM_ENCODER_INIT_STATUS_OK)
+ *         my_process_stream(oggflac);
+ * }
+ * \endcode
  */
 
 namespace OggFLAC {
@@ -108,29 +139,20 @@ namespace OggFLAC {
 		 * tell_callback(); see OggFLAC__stream_encoder_init_stream() as to
 		 * why.
 		 */
-		class OggFLACPP_API Stream {
+		class OggFLACPP_API Stream: public FLAC::Encoder::Stream {
 		public:
 			class OggFLACPP_API State {
 			public:
 				inline State(::OggFLAC__StreamEncoderState state): state_(state) { }
 				inline operator ::OggFLAC__StreamEncoderState() const { return state_; }
 				inline const char *as_cstring() const { return ::OggFLAC__StreamEncoderStateString[state_]; }
-				inline const char *resolved_as_cstring(const Stream &encoder) const { return ::OggFLAC__stream_encoder_get_resolved_state_string(encoder.encoder_); }
+				inline const char *resolved_as_cstring(const Stream &encoder) const { return ::OggFLAC__stream_encoder_get_resolved_state_string((const OggFLAC__StreamEncoder*)encoder.encoder_); }
 			protected:
 				::OggFLAC__StreamEncoderState state_;
 			};
 
 			Stream();
 			virtual ~Stream();
-
-			/** Call after construction to check the that the object was created
-			 *  successfully.  If not, use get_state() to find out why not.
-			 *
-			 * \{
-			 */
-			bool is_valid() const;
-			inline operator bool() const { return is_valid(); }
-			/* \} */
 
 			bool set_serial_number(long value);                     ///< See OggFLAC__stream_encoder_set_serial_number()
 			bool set_verify(bool value);                            ///< See OggFLAC__stream_encoder_set_verify()
@@ -192,29 +214,11 @@ namespace OggFLAC {
 			/// See OggFLAC__StreamEncoderReadCallback
 			virtual ::OggFLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);
 
-			/// See FLAC__StreamEncoderWriteCallback
-			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
-
-			/// See FLAC__StreamEncoderSeekCallback
-			virtual ::FLAC__StreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
-
-			/// See FLAC__StreamEncoderTellCallback
-			virtual ::FLAC__StreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset);
-
-			/// See FLAC__StreamEncoderTellCallback
-			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata);
-
 #if (defined _MSC_VER) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96))) || (defined __SUNPRO_CC)
 			// lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring()
 			friend State;
 #endif
-			::OggFLAC__StreamEncoder *encoder_;
-
 			static ::OggFLAC__StreamEncoderReadStatus read_callback_(const ::OggFLAC__StreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
-			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
-			static ::FLAC__StreamEncoderSeekStatus seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
-			static ::FLAC__StreamEncoderTellStatus tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
-			static void metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetadata *metadata, void *client_data);
 		private:
 			// Private and undefined so you can't use them:
 			Stream(const Stream &);

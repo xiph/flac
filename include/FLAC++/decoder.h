@@ -124,26 +124,27 @@ namespace FLAC {
 			 *
 			 * \{
 			 */
-			bool is_valid() const;
+			virtual bool is_valid() const;
 			inline operator bool() const { return is_valid(); }
 			/* \} */
 
-			bool set_md5_checking(bool value);                             ///< See FLAC__stream_decoder_set_md5_checking()
-			bool set_metadata_respond(::FLAC__MetadataType type);          ///< See FLAC__stream_decoder_set_metadata_respond()
-			bool set_metadata_respond_application(const FLAC__byte id[4]); ///< See FLAC__stream_decoder_set_metadata_respond_application()
-			bool set_metadata_respond_all();                               ///< See FLAC__stream_decoder_set_metadata_respond_all()
-			bool set_metadata_ignore(::FLAC__MetadataType type);           ///< See FLAC__stream_decoder_set_metadata_ignore()
-			bool set_metadata_ignore_application(const FLAC__byte id[4]);  ///< See FLAC__stream_decoder_set_metadata_ignore_application()
-			bool set_metadata_ignore_all();                                ///< See FLAC__stream_decoder_set_metadata_ignore_all()
+			virtual bool set_md5_checking(bool value);                             ///< See FLAC__stream_decoder_set_md5_checking()
+			virtual bool set_metadata_respond(::FLAC__MetadataType type);          ///< See FLAC__stream_decoder_set_metadata_respond()
+			virtual bool set_metadata_respond_application(const FLAC__byte id[4]); ///< See FLAC__stream_decoder_set_metadata_respond_application()
+			virtual bool set_metadata_respond_all();                               ///< See FLAC__stream_decoder_set_metadata_respond_all()
+			virtual bool set_metadata_ignore(::FLAC__MetadataType type);           ///< See FLAC__stream_decoder_set_metadata_ignore()
+			virtual bool set_metadata_ignore_application(const FLAC__byte id[4]);  ///< See FLAC__stream_decoder_set_metadata_ignore_application()
+			virtual bool set_metadata_ignore_all();                                ///< See FLAC__stream_decoder_set_metadata_ignore_all()
 
-			State get_state() const;                                  ///< See FLAC__stream_decoder_get_state()
-			bool get_md5_checking() const;                            ///< See FLAC__stream_decoder_get_md5_checking()
-			FLAC__uint64 get_total_samples() const;                   ///< See FLAC__stream_decoder_get_total_samples()
-			unsigned get_channels() const;                            ///< See FLAC__stream_decoder_get_channels()
-			::FLAC__ChannelAssignment get_channel_assignment() const; ///< See FLAC__stream_decoder_get_channel_assignment()
-			unsigned get_bits_per_sample() const;                     ///< See FLAC__stream_decoder_get_bits_per_sample()
-			unsigned get_sample_rate() const;                         ///< See FLAC__stream_decoder_get_sample_rate()
-			unsigned get_blocksize() const;                           ///< See FLAC__stream_decoder_get_blocksize()
+			/* get_state() is not virtual since we want subclasses to be able to return their own state */
+			State get_state() const;                                          ///< See FLAC__stream_decoder_get_state()
+			virtual bool get_md5_checking() const;                            ///< See FLAC__stream_decoder_get_md5_checking()
+			virtual FLAC__uint64 get_total_samples() const;                   ///< See FLAC__stream_decoder_get_total_samples()
+			virtual unsigned get_channels() const;                            ///< See FLAC__stream_decoder_get_channels()
+			virtual ::FLAC__ChannelAssignment get_channel_assignment() const; ///< See FLAC__stream_decoder_get_channel_assignment()
+			virtual unsigned get_bits_per_sample() const;                     ///< See FLAC__stream_decoder_get_bits_per_sample()
+			virtual unsigned get_sample_rate() const;                         ///< See FLAC__stream_decoder_get_sample_rate()
+			virtual unsigned get_blocksize() const;                           ///< See FLAC__stream_decoder_get_blocksize()
 
 			/** Initialize the instance; as with the C interface,
 			 *  init() should be called after construction and 'set'
@@ -151,19 +152,19 @@ namespace FLAC {
 			 *
 			 *  See FLAC__stream_decoder_init_stream().
 			 */
-			::FLAC__StreamDecoderInitStatus init();
+			virtual ::FLAC__StreamDecoderInitStatus init();
 
-			void finish(); ///< See FLAC__stream_decoder_finish()
+			virtual void finish(); ///< See FLAC__stream_decoder_finish()
 
-			bool flush(); ///< See FLAC__stream_decoder_flush()
-			bool reset(); ///< See FLAC__stream_decoder_reset()
+			virtual bool flush(); ///< See FLAC__stream_decoder_flush()
+			virtual bool reset(); ///< See FLAC__stream_decoder_reset()
 
-			bool process_single();                ///< See FLAC__stream_decoder_process_single()
-			bool process_until_end_of_metadata(); ///< See FLAC__stream_decoder_process_until_end_of_metadata()
-			bool process_until_end_of_stream();   ///< See FLAC__stream_decoder_process_until_end_of_stream()
-			bool skip_single_frame();             ///< See FLAC__stream_decoder_skip_single_frame()
+			virtual bool process_single();                ///< See FLAC__stream_decoder_process_single()
+			virtual bool process_until_end_of_metadata(); ///< See FLAC__stream_decoder_process_until_end_of_metadata()
+			virtual bool process_until_end_of_stream();   ///< See FLAC__stream_decoder_process_until_end_of_stream()
+			virtual bool skip_single_frame();             ///< See FLAC__stream_decoder_skip_single_frame()
 
-			bool seek_absolute(FLAC__uint64 sample); ///< See FLAC__stream_decoder_seek_absolute()
+			virtual bool seek_absolute(FLAC__uint64 sample); ///< See FLAC__stream_decoder_seek_absolute()
 		protected:
 			/// see FLAC__StreamDecoderReadCallback
 			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes) = 0;
@@ -193,6 +194,9 @@ namespace FLAC {
 			// lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring()
 			friend State;
 #endif
+			// hackery solely for the use of libOggFLAC++
+			Stream(::FLAC__StreamDecoder *);
+
 			::FLAC__StreamDecoder *decoder_;
 
 			static ::FLAC__StreamDecoderReadStatus read_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);

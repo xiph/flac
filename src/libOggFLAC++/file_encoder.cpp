@@ -45,19 +45,18 @@ namespace OggFLAC {
 		{ }
 
 		File::~File()
-		{
-		}
+		{ }
 
 		::FLAC__StreamEncoderInitStatus File::init(FILE *file)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::OggFLAC__stream_encoder_init_FILE(encoder_, file, progress_callback_, /*client_data=*/(void*)this);
+			return ::OggFLAC__stream_encoder_init_FILE((OggFLAC__StreamEncoder*)encoder_, file, progress_callback_, /*client_data=*/(void*)this);
 		}
 
 		::FLAC__StreamEncoderInitStatus File::init(const char *filename)
 		{
 			FLAC__ASSERT(is_valid());
-			return ::OggFLAC__stream_encoder_init_file(encoder_, filename, progress_callback_, /*client_data=*/(void*)this);
+			return ::OggFLAC__stream_encoder_init_file((OggFLAC__StreamEncoder*)encoder_, filename, progress_callback_, /*client_data=*/(void*)this);
 		}
 
 		::FLAC__StreamEncoderInitStatus File::init(const std::string &filename)

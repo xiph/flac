@@ -44,8 +44,18 @@ namespace FLAC {
 		decoder_(::FLAC__stream_decoder_new())
 		{ }
 
+		Stream::Stream(::FLAC__StreamDecoder *decoder):
+		decoder_(decoder)
+		{ }
+
 		Stream::~Stream()
 		{
+            // WATCHOUT: must check for NULL not only because
+            // ::FLAC__stream_encoder_new() might have failed in
+            // the constructor, but also because
+            // OggFLAC::Encoder::Stream deletes the encoder_ before
+            // we get to it here to make the C inheritance magic
+            // work.
 			if(0 != decoder_) {
 				::FLAC__stream_decoder_finish(decoder_);
 				::FLAC__stream_decoder_delete(decoder_);

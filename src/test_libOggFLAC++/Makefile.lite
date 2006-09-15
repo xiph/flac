@@ -27,9 +27,9 @@ PROGRAM_NAME = test_libOggFLAC++
 INCLUDES = -I$(topdir)/include
 
 ifeq ($(DARWIN_BUILD),yes)
-EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libtest_libs_common.a $(libdir)/libOggFLAC++.a $(libdir)/libOggFLAC.a $(libdir)/libFLAC.a $(OGG_LIB_DIR)/libogg.a -lm
+EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libtest_libs_common.a $(libdir)/libOggFLAC++.a $(libdir)/libOggFLAC.a $(libdir)/libFLAC++.a $(libdir)/libFLAC.a $(OGG_LIB_DIR)/libogg.a -lm
 else
-LIBS = -lgrabbag -lreplaygain_analysis -ltest_libs_common -lOggFLAC++ -lOggFLAC -lFLAC -L$(OGG_LIB_DIR) -logg -lm
+LIBS = -lgrabbag -lreplaygain_analysis -ltest_libs_common -lOggFLAC++ -lOggFLAC -lFLAC++ -lFLAC -L$(OGG_LIB_DIR) -logg -lm
 endif
 
 SRCS_CPP = \

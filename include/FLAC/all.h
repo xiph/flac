@@ -278,6 +278,11 @@
  * two new convenience functions that may be useful:
  * FLAC__metadata_object_cuesheet_calculate_cddb_id() and
  * FLAC__metadata_get_cuesheet().
+ *
+ * In libOggFLAC++, OggFLAC::Decoder::Stream now inherits from
+ * FLAC::Decoder::Stream and OggFLAC::Encoder::Stream now inherits from
+ * FLAC::Encoder::Stream, which means both OggFLAC and FLAC can be
+ * supported by using common code for everything after initialization.
  */
 
 /** \defgroup flac FLAC C API
