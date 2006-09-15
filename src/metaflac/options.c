@@ -588,7 +588,8 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		(void) append_shorthand_operation(options, OP__ADD_REPLAY_GAIN);
 	}
 	else if(0 == strcmp(opt, "remove-replay-gain")) {
-		const FLAC__byte * const tags[4] = {
+		const FLAC__byte * const tags[5] = {
+			GRABBAG__REPLAYGAIN_TAG_REFERENCE_LOUDNESS,
 			GRABBAG__REPLAYGAIN_TAG_TITLE_GAIN,
 			GRABBAG__REPLAYGAIN_TAG_TITLE_PEAK,
 			GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN,
