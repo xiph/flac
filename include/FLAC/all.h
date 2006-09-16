@@ -190,8 +190,8 @@
  * FLAC__stream_decoder_set_client_data() are no longer needed.  The
  * rest of the calls to the decoder are the same as before.
  *
- * As an example, in FLAC 1.1.2 a seekable stream decoder would be set
- * up like so:
+ * As an example, in FLAC 1.1.2 a seekable stream decoder would have
+ * been set up like so:
  *
  * \code
  * FLAC__SeekableStreamDecoder *decoder = FLAC__seekable_stream_decoder_new();
