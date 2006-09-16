@@ -88,7 +88,6 @@ typedef struct {
 	} encoder;
 
 	FILE *fin;
-	FILE *fout;
 	FLAC__StreamMetadata *seek_table_template;
 } EncoderSession;
 
@@ -1317,12 +1316,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 #endif
 
 	e->fin = infile;
-	e->fout = 0;
 	e->seek_table_template = 0;
-
-	if(e->is_stdout) {
-		e->fout = grabbag__file_get_binary_stdout();
-	}
 
 	if(0 == (e->seek_table_template = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE))) {
 		flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for seek table\n", e->inbasefilename);
@@ -1354,8 +1348,6 @@ void EncoderSession_destroy(EncoderSession *e)
 {
 	if(e->fin != stdin)
 		fclose(e->fin);
-	if(0 != e->fout && e->fout != stdout)
-		fclose(e->fout);
 
 #ifdef FLAC__HAS_OGG
 	if(e->use_ogg) {
