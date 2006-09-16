@@ -354,8 +354,9 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_finish(OggFLAC__StreamDecoder *de
 
 	OggFLAC__ogg_decoder_aspect_finish(&decoder->protected_->ogg_decoder_aspect);
 
-	if(0 != decoder->private_->file && decoder->private_->file != stdin) {
-		fclose(decoder->private_->file);
+	if(0 != decoder->private_->file) {
+		if(decoder->private_->file != stdin)
+			fclose(decoder->private_->file);
 		decoder->private_->file = 0;
 	}
 

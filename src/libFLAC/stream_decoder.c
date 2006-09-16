@@ -581,8 +581,9 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	decoder->private_->output_capacity = 0;
 	decoder->private_->output_channels = 0;
 
-	if(0 != decoder->private_->file && decoder->private_->file != stdin) {
-		fclose(decoder->private_->file);
+	if(0 != decoder->private_->file) {
+		if(decoder->private_->file != stdin)
+			fclose(decoder->private_->file);
 		decoder->private_->file = 0;
 	}
 
