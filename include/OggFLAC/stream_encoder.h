@@ -164,7 +164,7 @@ struct OggFLAC__StreamEncoderPrivate;
  *  for a detailed description.
  */
 typedef struct {
-	FLAC__StreamEncoder super_; /* parentclass@@@@@@ */
+	FLAC__StreamEncoder super_;
 	struct OggFLAC__StreamEncoderProtected *protected_; /* avoid the C++ keyword 'protected' */
 	struct OggFLAC__StreamEncoderPrivate *private_; /* avoid the C++ keyword 'private' */
 } OggFLAC__StreamEncoder;

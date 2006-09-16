@@ -211,6 +211,7 @@ FLAC__bool transport_tempfile_(const char *filename, FILE **tempfile, char **tem
 	}
 
 #if defined _MSC_VER || defined __MINGW32__ || defined __EMX__
+	/* on some flavors of windows, rename() will fail if the destination already exists */
 	if(unlink(filename) < 0) {
 		cleanup_tempfile_(tempfile, tempfilename);
 		return false;
