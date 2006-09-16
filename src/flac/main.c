@@ -1776,8 +1776,20 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	/* rename temporary file if necessary */
 	if(retval == 0 && internal_outfilename != 0) {
 		if(rename(internal_outfilename, outfilename) < 0) {
+#if defined _MSC_VER || defined __MINGW32__ || defined __EMX__
+			/* on some flavors of windows, rename() will fail if the destination already exists, so we unlink and try again */
+			if(unlink(outfilename) < 0) {
+				flac__utils_printf(stderr, 1, "ERROR: moving new FLAC file %s back on top of original FLAC file %s, keeping both\n", internal_outfilename, outfilename);
+				retval = 1;
+			}
+			else if(rename(internal_outfilename, outfilename) < 0) {
+				flac__utils_printf(stderr, 1, "ERROR: moving new FLAC file %s back on top of original FLAC file %s, you must do it\n", internal_outfilename, outfilename);
+				retval = 1;
+			}
+#else
 			flac__utils_printf(stderr, 1, "ERROR: moving new FLAC file %s back on top of original FLAC file %s, keeping both\n", internal_outfilename, outfilename);
 			retval = 1;
+#endif
 		}
 	}
 
