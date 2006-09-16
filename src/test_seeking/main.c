@@ -266,18 +266,8 @@ static FLAC__bool seek_barrage_native_flac(const char *filename, off_t filesize,
 				printf("seek failed, assuming it was past EOF... ");
 			else
 				printf("seek past end failed as expected... ");
-
-			/* hack to work around a deficiency in the seek API's behavior */
-			/* seeking past EOF sets the file decoder state to non-OK and there's no ..._flush() or ..._reset() call to reset it */
-			/* @@@@@@ probably no longer true and we can remove this hack */
-			if(!FLAC__stream_decoder_finish(decoder))
-				return die_s_("FLAC__stream_decoder_finish() FAILED", decoder);
-
-			if(FLAC__stream_decoder_init_file(decoder, filename, write_callback_, metadata_callback_, error_callback_, &decoder_client_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK)
-				return die_s_("FLAC__stream_decoder_init_file() FAILED", decoder);
-
-			if(!FLAC__stream_decoder_process_until_end_of_metadata(decoder))
-				return die_s_("FLAC__stream_decoder_process_until_end_of_metadata() FAILED", decoder);
+			if(!FLAC__stream_decoder_flush(decoder))
+				return die_s_("FLAC__stream_decoder_flush() FAILED", decoder);
 		}
 		else {
 			printf("decode_frame... ");
@@ -399,18 +389,8 @@ static FLAC__bool seek_barrage_ogg_flac(const char *filename, off_t filesize, un
 				printf("seek failed, assuming it was past EOF... ");
 			else
 				printf("seek past end failed as expected... ");
-
-			/* hack to work around a deficiency in the seek API's behavior */
-			/* seeking past EOF sets the file decoder state to non-OK and there's no ..._flush() or ..._reset() call to reset it */
-			/* @@@@@@ probably no longer true and we can remove this hack */
-			if(!OggFLAC__stream_decoder_finish(decoder))
-				return die_os_("OggFLAC__stream_decoder_finish() FAILED", decoder);
-
-			if(OggFLAC__stream_decoder_init_file(decoder, filename, write_callback_, metadata_callback_, error_callback_, &decoder_client_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK)
-				return die_os_("OggFLAC__stream_decoder_init_file() FAILED", decoder);
-
-			if(!OggFLAC__stream_decoder_process_until_end_of_metadata(decoder))
-				return die_os_("OggFLAC__stream_decoder_process_until_end_of_metadata() FAILED", decoder);
+			if(!OggFLAC__stream_decoder_flush(decoder))
+				return die_os_("OggFLAC__stream_decoder_flush() FAILED", decoder);
 		}
 		else {
 			printf("decode_frame... ");
