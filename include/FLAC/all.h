@@ -192,7 +192,7 @@
  *
  * As an example, in FLAC 1.1.2 a seekable stream decoder would be set
  * up like so:
- *@@@@@@CHECK@@@@@@
+ *
  * \code
  * FLAC__SeekableStreamDecoder *decoder = FLAC__seekable_stream_decoder_new();
  * if(decoder == NULL) do_something;
@@ -227,7 +227,7 @@
  *   my_write_callback,
  *   my_metadata_callback,  // or NULL
  *   my_error_callback,
- *   my_client_data,
+ *   my_client_data
  * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do_something;
  * \endcode
  *
@@ -243,7 +243,7 @@
  *   my_write_callback,
  *   my_metadata_callback,  // or NULL
  *   my_error_callback,
- *   my_client_data,
+ *   my_client_data
  * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do_something;
  * \endcode
  *
@@ -251,13 +251,13 @@
  *
  * \code
  * [...]
- * if(FLAC__stream_decoder_init_FILE(
+ * if(FLAC__stream_decoder_init_file(
  *   decoder,
  *   "somefile.flac",
  *   my_write_callback,
  *   my_metadata_callback,  // or NULL
  *   my_error_callback,
- *   my_client_data,
+ *   my_client_data
  * ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) do_something;
  * \endcode
  *
