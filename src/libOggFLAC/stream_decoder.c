@@ -115,7 +115,6 @@ OggFLAC_API const char * const OggFLAC__StreamDecoderStateString[] = {
 	"OggFLAC__STREAM_DECODER_READ_ERROR",
 	"OggFLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR",
 	"OggFLAC__STREAM_DECODER_UNINITIALIZED"
-	//@@@@@@
 };
 
 
@@ -267,19 +266,6 @@ OggFLAC_API FLAC__StreamDecoderInitStatus OggFLAC__stream_decoder_init_FILE(
 
 	decoder->private_->file = file;
 
-#ifdef OLD_STAT_WAY //@@@@@@
-	if(0 != decoder->private_->filename) {
-		free(decoder->private_->filename);
-		decoder->private_->filename = 0;
-	}
-	if(filename) {
-		if(0 == (decoder->private_->filename = strdup(filename))) {
-			decoder->protected_->state = OggFLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-			return FLAC__STREAM_DECODER_INIT_STATUS_MEMORY_ALLOCATION_ERROR;
-		}
-	}
-#endif
-
 	return OggFLAC__stream_decoder_init_stream(
 		decoder,
 		file_read_callback_,
@@ -322,19 +308,6 @@ OggFLAC_API FLAC__StreamDecoderInitStatus OggFLAC__stream_decoder_init_file(
 
 	if(0 == file)
 		return FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE;
-
-#ifdef OLD_STAT_WAY //@@@@@@
-	if(0 != decoder->private_->filename) {
-		free(decoder->private_->filename);
-		decoder->private_->filename = 0;
-	}
-	if(filename) {
-		if(0 == (decoder->private_->filename = strdup(filename))) {
-			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-			return FLAC__STREAM_DECODER_INIT_STATUS_MEMORY_ALLOCATION_ERROR;
-		}
-	}
-#endif
 
 	return OggFLAC__stream_decoder_init_FILE(decoder, file, write_callback, metadata_callback, error_callback, client_data);
 }
@@ -934,7 +907,7 @@ FLAC__bool seek_to_absolute_sample_(OggFLAC__StreamDecoder *decoder, FLAC__uint6
 #endif
 				/* @@@ TODO: might want to limit pos to some distance
 				 * before EOF, to make sure we land before the last frame,
-				 * thereby getting a this_fram_sample and so having a better
+				 * thereby getting a this_frame_sample and so having a better
 				 * estimate.  @@@@@@DELETE:this would also mostly (or totally if we could
 				 * be sure to land before the last frame) avoid the
 				 * end-of-stream case we have to check later.
@@ -1074,9 +1047,6 @@ FLAC__StreamDecoderLengthStatus file_length_callback_(const FLAC__StreamDecoder 
 
 	if(decoder->private_->file == stdin)
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_UNSUPPORTED;
-#ifdef OLD_STAT_WAY //@@@@@@
-	else if(0 == decoder->private_->filename || fstat(fileno(decoder->private_->file), &filestats) != 0)
-#endif
 	else if(fstat(fileno(decoder->private_->file), &filestats) != 0)
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
 	else {

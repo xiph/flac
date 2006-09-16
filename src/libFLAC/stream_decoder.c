@@ -63,8 +63,6 @@
 #include "private/md5.h"
 #include "private/memory.h"
 
-#undef OLD_STAT_WAY /*@@@@@@ old way of keeping the filename and using stat(); remove remnants once we know this works */
-
 #ifdef max
 #undef max
 #endif
@@ -147,9 +145,6 @@ typedef struct FLAC__StreamDecoderPrivate {
 	void (*local_lpc_restore_signal_16bit_order8)(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
 	void *client_data;
 	FILE *file; /* only used if FLAC__stream_decoder_init_file()/FLAC__stream_decoder_init_file() called, else NULL */
-#ifdef OLD_STAT_WAY
-	char *filename; /* only used if FLAC__stream_decoder_init_file()/FLAC__stream_decoder_init_file() called, else NULL */
-#endif
 	FLAC__BitBuffer *input;
 	FLAC__int32 *output[FLAC__MAX_CHANNELS];
 	FLAC__int32 *residual[FLAC__MAX_CHANNELS]; /* WATCHOUT: these are the aligned pointers; the real pointers that should be free()'d are residual_unaligned[] below */
@@ -467,19 +462,6 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
 
 	decoder->private_->file = file;
 
-#ifdef OLD_STAT_WAY
-	if(0 != decoder->private_->filename) {
-		free(decoder->private_->filename);
-		decoder->private_->filename = 0;
-	}
-	if(filename) {
-		if(0 == (decoder->private_->filename = strdup(filename))) {
-			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-			return FLAC__STREAM_DECODER_INIT_STATUS_MEMORY_ALLOCATION_ERROR;
-		}
-	}
-#endif
-
 	return FLAC__stream_decoder_init_stream(
 		decoder,
 		file_read_callback_,
@@ -522,19 +504,6 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_file(
 
 	if(0 == file)
 		return FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE;
-
-#ifdef OLD_STAT_WAY
-	if(0 != decoder->private_->filename) {
-		free(decoder->private_->filename);
-		decoder->private_->filename = 0;
-	}
-	if(filename) {
-		if(0 == (decoder->private_->filename = strdup(filename))) {
-			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-			return FLAC__STREAM_DECODER_INIT_STATUS_MEMORY_ALLOCATION_ERROR;
-		}
-	}
-#endif
 
 	return FLAC__stream_decoder_init_FILE(decoder, file, write_callback, metadata_callback, error_callback, client_data);
 }
@@ -586,13 +555,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 			fclose(decoder->private_->file);
 		decoder->private_->file = 0;
 	}
-
-#ifdef OLD_STAT_WAY
-	if(0 != decoder->private_->filename) {
-		free(decoder->private_->filename);
-		decoder->private_->filename = 0;
-	}
-#endif
 
 	if(decoder->private_->do_md5_checking) {
 		if(memcmp(decoder->private_->stream_info.data.stream_info.md5sum, decoder->private_->computed_md5sum, 16))
@@ -1096,9 +1058,6 @@ void set_defaults_(FLAC__StreamDecoder *decoder)
 	decoder->private_->metadata_callback = 0;
 	decoder->private_->error_callback = 0;
 	decoder->private_->client_data = 0;
-#ifdef OLD_STAT_WAY
-	decoder->private_->filename = 0;
-#endif
 
 	memset(decoder->private_->metadata_filter, 0, sizeof(decoder->private_->metadata_filter));
 	decoder->private_->metadata_filter[FLAC__METADATA_TYPE_STREAMINFO] = true;
@@ -2892,9 +2851,6 @@ FLAC__StreamDecoderLengthStatus file_length_callback_(const FLAC__StreamDecoder 
 
 	if(decoder->private_->file == stdin)
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_UNSUPPORTED;
-#ifdef OLD_STAT_WAY
-	else if(0 == decoder->private_->filename || fstat(fileno(decoder->private_->file), &filestats) != 0)
-#endif
 	else if(fstat(fileno(decoder->private_->file), &filestats) != 0)
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
 	else {
