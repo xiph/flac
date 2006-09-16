@@ -341,6 +341,12 @@ OggFLAC_API void OggFLAC__stream_encoder_finish(OggFLAC__StreamEncoder *encoder)
 
 	OggFLAC__ogg_encoder_aspect_finish(&encoder->protected_->ogg_encoder_aspect);
 
+	if(0 != encoder->private_->file) {
+		if(encoder->private_->file != stdout)
+			fclose(encoder->private_->file);
+		encoder->private_->file = 0;
+	}
+
 	set_defaults_(encoder);
 
 	encoder->protected_->state = OggFLAC__STREAM_ENCODER_UNINITIALIZED;
