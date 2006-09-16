@@ -1939,24 +1939,6 @@ void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_
 	}
 }
 
-#if 0 /*@@@@@@ old ogg progress callback, I don't think the comment about samples_written is true anymore but keep around until verified */
-void ogg_file_encoder_progress_callback(const OggFLAC__FileEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
-{
-	EncoderSession *encoder_session = (EncoderSession*)client_data;
-
-	(void)encoder;
-
-	/*
-	 * With Ogg FLAC we don't get a value for 'samples_written', so we
-	 * estimate based on the frames written and the knowledge that all
-	 * blocks (except the last) are the same size.
-	 */
-	samples_written = frames_written * encoder_session->blocksize;
-	flac_file_encoder_progress_callback(0, bytes_written, samples_written, frames_written, total_frames_estimate, client_data);
-}
-
-#endif
-
 void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
 {
 	EncoderSession *encoder_session = (EncoderSession*)client_data;
