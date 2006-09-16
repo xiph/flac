@@ -134,16 +134,16 @@
  * It is easiest to just describe the dependencies:
  *
  * - All modules depend on the \link flac_format Format \endlink module.
- * - The decoders and encoders are independent of each other.
- * - The metadata interface requires the file decoder.
- * - The decoder and encoder layers depend on the layers below them, but
- *   not above them; e.g. the seekable stream decoder depends on the stream
- *   decoder but not the file decoder
+ * - The decoders and encoders depend on the bitbuffer.
+ * - The decoder is independent of the encoder.  The encoder uses the
+ *   decoder because of the verify feature, but this can be removed if
+ *   not needed.
+ * - The metadata interface requires the stream decoder.
  *
  * For example, if your application only requires the stream decoder, no
- * encoders, and no metadata interface, you can remove the seekable stream
- * decoder, file decoder, all encoders, and the metadata interface, which
- * will greatly reduce the size of the library.
+ * encoder, and no metadata interface, you can remove the stream encoder
+ * and the metadata interface, which will greatly reduce the size of the
+ * library.
  */
 
 /** \defgroup porting Porting Guide for New Versions
