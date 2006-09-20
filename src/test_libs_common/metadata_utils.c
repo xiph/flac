@@ -504,7 +504,7 @@ void mutils__init_metadata_blocks(
 	cuesheet->data.cue_sheet.tracks[2].num_indices = 0;
 
 	unknown->is_last = true;
-	unknown->type = 127;
+	unknown->type = 126;
 	unknown->length = 8;
 	unknown->data.unknown.data = (FLAC__byte*)malloc_or_die_(unknown->length);
 	memcpy(unknown->data.unknown.data, "\xfe\xdc\xba\x98\xf0\xe1\xd2\xc3", unknown->length);
