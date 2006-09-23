@@ -276,7 +276,7 @@ void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErro
 		cd->got_error = true;
 }
 
-FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__StreamMetadata **picture, FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth)
+FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__StreamMetadata **picture, FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth, unsigned max_colors)
 {
 	FLAC__Metadata_SimpleIterator *it;
 	FLAC__uint64 max_area_seen = 0;
@@ -306,6 +306,7 @@ FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__Strea
 				obj->data.picture.width <= max_width &&
 				obj->data.picture.height <= max_height &&
 				obj->data.picture.depth <= max_depth &&
+				obj->data.picture.colors <= max_colors &&
 				(area > max_area_seen || (area == max_area_seen && obj->data.picture.depth > max_depth_seen))
 			) {
 				if(*picture)
@@ -2210,6 +2211,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_picture_cb_(FLAC__I
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN/8);
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN/8);
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_COLORS_LEN/8);
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_PICTURE_TYPE_LEN % 8 == 0);
 	len = FLAC__STREAM_METADATA_PICTURE_TYPE_LEN / 8;
@@ -2240,6 +2242,12 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_picture_cb_(FLAC__I
 	if(read_cb(buffer, 1, len, handle) != len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 	block->depth = unpack_uint32_(buffer, len);
+
+	FLAC__ASSERT(FLAC__STREAM_METADATA_PICTURE_COLORS_LEN % 8 == 0);
+	len = FLAC__STREAM_METADATA_PICTURE_COLORS_LEN / 8;
+	if(read_cb(buffer, 1, len, handle) != len)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+	block->colors = unpack_uint32_(buffer, len);
 
 	/* for convenience we use read_metadata_block_data_picture_cstring_cb_() even though it adds an extra terminating NUL we don't use */
 	if((status = read_metadata_block_data_picture_cstring_cb_(handle, read_cb, &(block->data), &(block->data_length), FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN)) != FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK)
@@ -2547,6 +2555,7 @@ FLAC__bool write_metadata_block_data_picture_cb_(FLAC__IOHandle handle, FLAC__IO
 	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN%8);
 	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN%8);
 	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN%8);
+	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_COLORS_LEN%8);
 	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN%8);
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_TYPE_LEN/8);
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN/8);
@@ -2554,6 +2563,7 @@ FLAC__bool write_metadata_block_data_picture_cb_(FLAC__IOHandle handle, FLAC__IO
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN/8);
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN/8);
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_COLORS_LEN/8);
 	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN/8);
 
 	len = FLAC__STREAM_METADATA_PICTURE_TYPE_LEN/8;
@@ -2589,6 +2599,11 @@ FLAC__bool write_metadata_block_data_picture_cb_(FLAC__IOHandle handle, FLAC__IO
 
 	len = FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN/8;
 	pack_uint32_(block->depth, buffer, len);
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
+
+	len = FLAC__STREAM_METADATA_PICTURE_COLORS_LEN/8;
+	pack_uint32_(block->colors, buffer, len);
 	if(write_cb(buffer, 1, len, handle) != len)
 		return false;
 

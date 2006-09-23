@@ -545,6 +545,7 @@ static bool generate_file_(FLAC__bool include_extras)
 				FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
 				FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
 				FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+				FLAC__STREAM_METADATA_PICTURE_COLORS_LEN +
 				FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN /* will add the length for the data later */
 			) / 8
 		;
@@ -556,6 +557,7 @@ static bool generate_file_(FLAC__bool include_extras)
 		picture.data.picture.width = 300;
 		picture.data.picture.height = 300;
 		picture.data.picture.depth = 24;
+		picture.data.picture.colors = 0;
 		picture.data.picture.data = (FLAC__byte*)strdup_or_die_("SOMEJPEGDATA");
 		picture.data.picture.data_length = strlen((const char *)picture.data.picture.data);
 		picture.length += picture.data.picture.data_length;
@@ -751,7 +753,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::Picture *picture = 0;
 
-		if(!FLAC::Metadata::get_picture(flacfile_, picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(unsigned)(-1), /*max_height=*/(unsigned)(-1), /*max_depth=*/(unsigned)(-1)))
+		if(!FLAC::Metadata::get_picture(flacfile_, picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(unsigned)(-1), /*max_height=*/(unsigned)(-1), /*max_depth=*/(unsigned)(-1), /*max_colors=*/(unsigned)(-1)))
 			return die_("during FLAC::Metadata::get_picture()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -768,7 +770,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::Picture picture;
 
-		if(!FLAC::Metadata::get_picture(flacfile_, picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(unsigned)(-1), /*max_height=*/(unsigned)(-1), /*max_depth=*/(unsigned)(-1)))
+		if(!FLAC::Metadata::get_picture(flacfile_, picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(unsigned)(-1), /*max_height=*/(unsigned)(-1), /*max_depth=*/(unsigned)(-1), /*max_colors=*/(unsigned)(-1)))
 			return die_("during FLAC::Metadata::get_picture()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */

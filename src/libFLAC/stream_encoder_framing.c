@@ -198,6 +198,8 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 					return false;
 				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.depth, FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN))
 					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.colors, FLAC__STREAM_METADATA_PICTURE_COLORS_LEN))
+					return false;
 				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.data_length, FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN))
 					return false;
 				if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.picture.data, metadata->data.picture.data_length))

@@ -1067,6 +1067,12 @@ namespace FLAC {
 			return object_->data.picture.depth;
 		}
 
+		FLAC__uint32 Picture::get_colors() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.picture.colors;
+		}
+
 		FLAC__uint32 Picture::get_data_length() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -1115,6 +1121,12 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			object_->data.picture.depth = value;
+		}
+
+		void Picture::set_colors(FLAC__uint32 value) const
+		{
+			FLAC__ASSERT(is_valid());
+			object_->data.picture.colors = value;
 		}
 
 		bool Picture::set_data(const FLAC__byte *data, FLAC__uint32 data_length)
@@ -1235,7 +1247,7 @@ namespace FLAC {
 				return false;
 		}
 
-		FLACPP_API bool get_picture(const char *filename, Picture *&picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth)
+		FLACPP_API bool get_picture(const char *filename, Picture *&picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth, unsigned max_colors)
 		{
 			FLAC__ASSERT(0 != filename);
 
@@ -1243,7 +1255,7 @@ namespace FLAC {
 
 			picture = 0;
 
-			if(::FLAC__metadata_get_picture(filename, &object, type, mime_type, description, max_width, max_height, max_depth)) {
+			if(::FLAC__metadata_get_picture(filename, &object, type, mime_type, description, max_width, max_height, max_depth, max_colors)) {
 				picture = new Picture(object, /*copy=*/false);
 				return true;
 			}
@@ -1251,13 +1263,13 @@ namespace FLAC {
 				return false;
 		}
 
-		FLACPP_API bool get_picture(const char *filename, Picture &picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth)
+		FLACPP_API bool get_picture(const char *filename, Picture &picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth, unsigned max_colors)
 		{
 			FLAC__ASSERT(0 != filename);
 
 			::FLAC__StreamMetadata *object;
 
-			if(::FLAC__metadata_get_picture(filename, &object, type, mime_type, description, max_width, max_height, max_depth)) {
+			if(::FLAC__metadata_get_picture(filename, &object, type, mime_type, description, max_width, max_height, max_depth, max_colors)) {
 				picture.assign(object, /*copy=*/false);
 				return true;
 			}

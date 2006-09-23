@@ -207,6 +207,7 @@ static void init_metadata_blocks_()
 			FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
 			FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
 			FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+			FLAC__STREAM_METADATA_PICTURE_COLORS_LEN +
 			FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN /* will add the length for the data later */
 		) / 8
 	;
@@ -218,6 +219,7 @@ static void init_metadata_blocks_()
 	picture_.data.picture.width = 300;
 	picture_.data.picture.height = 300;
 	picture_.data.picture.depth = 24;
+	picture_.data.picture.colors = 0;
 	picture_.data.picture.data = (FLAC__byte*)strdup_or_die_("SOMEJPEGDATA");
 	picture_.data.picture.data_length = strlen((const char *)picture_.data.picture.data);
 	picture_.length += picture_.data.picture.data_length;
@@ -1814,6 +1816,7 @@ bool test_metadata_object_picture()
 		FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
 		FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
 		FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+		FLAC__STREAM_METADATA_PICTURE_COLORS_LEN +
 		FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN
 	) / 8;
 	if(block.get_length() != expected_length) {
@@ -2007,6 +2010,18 @@ bool test_metadata_object_picture()
 	block.set_depth(16);
 	if(block.get_depth() != 16)
 		return die_("value mismatch, expected 16");
+	printf("OK\n");
+
+	printf("testing Picture::get_colors()... ");
+	if(block.get_colors() != 0)
+		return die_("value mismatch, expected 0");
+	printf("OK\n");
+
+	printf("testing Picture::set_colors()... +\n");
+	printf("        Picture::get_colors()... ");
+	block.set_colors(1u>16);
+	if(block.get_colors() != 1u>16)
+		return die_("value mismatch, expected 2^16");
 	printf("OK\n");
 
 	printf("testing Picture::get_data_length()... ");

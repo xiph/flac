@@ -653,6 +653,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			PPR; printf("  width: %u\n", (unsigned)block->data.picture.width);
 			PPR; printf("  height: %u\n", (unsigned)block->data.picture.height);
 			PPR; printf("  depth: %u\n", (unsigned)block->data.picture.depth);
+			PPR; printf("  colors: %u%s\n", (unsigned)block->data.picture.colors, block->data.picture.colors? "" : " (unindexed)");
 			PPR; printf("  data length: %u\n", (unsigned)block->data.picture.data_length);
 			PPR; printf("  data:\n");
 			if(0 != block->data.picture.data)

@@ -481,6 +481,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 					FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
 					FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
 					FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+					FLAC__STREAM_METADATA_PICTURE_COLORS_LEN +
 					FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN +
 					0 /* no data */
 				) / 8;
@@ -491,6 +492,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 				object->data.picture.width = 0;
 				object->data.picture.height = 0;
 				object->data.picture.depth = 0;
+				object->data.picture.colors = 0;
 				object->data.picture.data_length = 0;
 				object->data.picture.data = 0;
 				*/
@@ -598,6 +600,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 				to->data.picture.width = object->data.picture.width;
 				to->data.picture.height = object->data.picture.height;
 				to->data.picture.depth = object->data.picture.depth;
+				to->data.picture.colors = object->data.picture.colors;
 				to->data.picture.data_length = object->data.picture.data_length;
 				if(!copy_bytes_((&to->data.picture.data), object->data.picture.data, object->data.picture.data_length)) {
 					FLAC__metadata_object_delete(to);
@@ -833,6 +836,8 @@ static FLAC__bool compare_block_data_picture_(const FLAC__StreamMetadata_Picture
 	if(block1->height != block2->height)
 		return false;
 	if(block1->depth != block2->depth)
+		return false;
+	if(block1->colors != block2->colors)
 		return false;
 	if(block1->data_length != block2->data_length)
 		return false;

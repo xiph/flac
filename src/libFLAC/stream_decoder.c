@@ -1677,6 +1677,10 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &obj->depth, FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN, read_callback_, decoder))
 		return false; /* read_callback_ sets the state for us */
 
+	/* read colors */
+	if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &obj->colors, FLAC__STREAM_METADATA_PICTURE_COLORS_LEN, read_callback_, decoder))
+		return false; /* read_callback_ sets the state for us */
+
 	/* read data */
 	if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &(obj->data_length), FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN, read_callback_, decoder))
 		return false; /* read_callback_ sets the state for us */

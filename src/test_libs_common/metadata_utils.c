@@ -328,6 +328,10 @@ FLAC__bool mutils__compare_block_data_picture(const FLAC__StreamMetadata_Picture
 		printf("FAILED, depth mismatch, expected %u, got %u\n", block->depth, blockcopy->depth);
 		return false;
 	}
+	if(blockcopy->colors != block->colors) {
+		printf("FAILED, colors mismatch, expected %u, got %u\n", block->colors, blockcopy->colors);
+		return false;
+	}
 	if(blockcopy->data_length != block->data_length) {
 		printf("FAILED, data_length mismatch, expected %u, got %u\n", block->data_length, blockcopy->data_length);
 		return false;
@@ -577,6 +581,7 @@ void mutils__init_metadata_blocks(
 			FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
 			FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
 			FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+			FLAC__STREAM_METADATA_PICTURE_COLORS_LEN +
 			FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN /* will add the length for the data later */
 		) / 8
 	;
@@ -588,6 +593,7 @@ void mutils__init_metadata_blocks(
 	picture->data.picture.width = 300;
 	picture->data.picture.height = 300;
 	picture->data.picture.depth = 24;
+	picture->data.picture.colors = 0;
 	picture->data.picture.data = (FLAC__byte*)strdup_or_die_("SOMEJPEGDATA");
 	picture->data.picture.data_length = strlen((const char *)picture->data.picture.data);
 	picture->length += picture->data.picture.data_length;

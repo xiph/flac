@@ -767,6 +767,11 @@ typedef struct {
 	FLAC__uint32 depth;
 	/**< Picture's color depth in bits-per-pixel. */
 
+	FLAC__uint32 colors;
+	/**< For indexed palettes (like GIF), picture's number of colors (the
+	 * number of palette entries), or \c 0 for non-indexed (i.e. 2^depth).
+	 */
+
 	FLAC__uint32 data_length;
 	/**< Length of binary picture data in bytes. */
 
@@ -781,6 +786,7 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN; /**< == 32 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN; /**< == 32 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_COLORS_LEN; /**< == 32 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN; /**< == 32 (bits) */
 
 

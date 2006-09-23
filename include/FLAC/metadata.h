@@ -216,6 +216,8 @@ FLAC_API FLAC__bool FLAC__metadata_get_cuesheet(const char *filename, FLAC__Stre
  *                    \c (unsigned)(-1) to mean "any height".
  * \param max_depth   The maximum color depth in bits-per-pixel desired.
  *                    Use \c (unsigned)(-1) to mean "any depth".
+ * \param max_colors  The maximum number of colors desired.  Use
+ *                    \c (unsigned)(-1) to mean "any number of colors".
  * \assert
  *    \code filename != NULL \endcode
  *    \code picture != NULL \endcode
@@ -226,7 +228,7 @@ FLAC_API FLAC__bool FLAC__metadata_get_cuesheet(const char *filename, FLAC__Stre
  *    error, a file decoder error, or the file contained no PICTURE
  *    block, and \a *picture will be set to \c NULL.
  */
-FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__StreamMetadata **picture, FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth);
+FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__StreamMetadata **picture, FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth, unsigned max_colors);
 
 /* \} */
 

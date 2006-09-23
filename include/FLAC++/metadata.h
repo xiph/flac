@@ -837,6 +837,7 @@ namespace FLAC {
 			FLAC__uint32 get_width() const;
 			FLAC__uint32 get_height() const;
 			FLAC__uint32 get_depth() const;
+			FLAC__uint32 get_colors() const; ///< a return value of \c 0 means true-color, i.e. 2^depth colors
 			FLAC__uint32 get_data_length() const;
 			const FLAC__byte *get_data() const;
 
@@ -851,6 +852,7 @@ namespace FLAC {
 			void set_width(FLAC__uint32 value) const;
 			void set_height(FLAC__uint32 value) const;
 			void set_depth(FLAC__uint32 value) const;
+			void set_colors(FLAC__uint32 value) const; ///< a value of \c 0 means true-color, i.e. 2^depth colors
 
 			//! See FLAC__metadata_object_picture_set_data()
 			bool set_data(const FLAC__byte *data, FLAC__uint32 data_length);
@@ -937,8 +939,8 @@ namespace FLAC {
 		FLACPP_API bool get_cuesheet(const char *filename, CueSheet *&cuesheet); //! See FLAC__metadata_get_cuesheet().
 		FLACPP_API bool get_cuesheet(const char *filename, CueSheet &cuesheet); //! See FLAC__metadata_get_cuesheet().
 
-		FLACPP_API bool get_picture(const char *filename, Picture *&picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth); //! See FLAC__metadata_get_picture().
-		FLACPP_API bool get_picture(const char *filename, Picture &picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth); //! See FLAC__metadata_get_picture().
+		FLACPP_API bool get_picture(const char *filename, Picture *&picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth, unsigned max_colors); //! See FLAC__metadata_get_picture().
+		FLACPP_API bool get_picture(const char *filename, Picture &picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth, unsigned max_colors); //! See FLAC__metadata_get_picture().
 
 		/* \} */
 
