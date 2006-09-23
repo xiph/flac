@@ -42,6 +42,9 @@
 #else
 #define FLACPP_API	_declspec(dllimport)
 
+/* every time the libFLAC++ API changes in any way, this number will be incremented */
+#define FLACPP_API_NUMBER 10
+
 #endif
 #endif
 #endif

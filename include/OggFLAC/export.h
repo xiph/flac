@@ -42,6 +42,9 @@
 #else
 #define OggFLAC_API	_declspec(dllimport)
 
+/* every time the libOggFLAC API changes in any way, this number will be incremented */
+#define OggFLAC_API_NUMBER 10
+
 #endif
 #endif
 #endif
