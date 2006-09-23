@@ -289,6 +289,56 @@ FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueShe
 	return true;
 }
 
+FLAC__bool mutils__compare_block_data_picture(const FLAC__StreamMetadata_Picture *block, const FLAC__StreamMetadata_Picture *blockcopy)
+{
+	size_t len, lencopy;
+	if(blockcopy->type != block->type) {
+		printf("FAILED, type mismatch, expected %u, got %u\n", (unsigned)block->type, (unsigned)blockcopy->type);
+		return false;
+	}
+	len = strlen(block->mime_type);
+	lencopy = strlen(blockcopy->mime_type);
+	if(lencopy != len) {
+		printf("FAILED, mime_type length mismatch, expected %u, got %u\n", (unsigned)len, (unsigned)lencopy);
+		return false;
+	}
+	if(strcmp(blockcopy->mime_type, block->mime_type)) {
+		printf("FAILED, mime_type mismatch, expected %s, got %s\n", block->mime_type, blockcopy->mime_type);
+		return false;
+	}
+	len = strlen((const char *)block->description);
+	lencopy = strlen((const char *)blockcopy->description);
+	if(lencopy != len) {
+		printf("FAILED, description length mismatch, expected %u, got %u\n", (unsigned)len, (unsigned)lencopy);
+		return false;
+	}
+	if(strcmp((const char *)blockcopy->description, (const char *)block->description)) {
+		printf("FAILED, description mismatch, expected %s, got %s\n", block->description, blockcopy->description);
+		return false;
+	}
+	if(blockcopy->width != block->width) {
+		printf("FAILED, width mismatch, expected %u, got %u\n", block->width, blockcopy->width);
+		return false;
+	}
+	if(blockcopy->height != block->height) {
+		printf("FAILED, height mismatch, expected %u, got %u\n", block->height, blockcopy->height);
+		return false;
+	}
+	if(blockcopy->depth != block->depth) {
+		printf("FAILED, depth mismatch, expected %u, got %u\n", block->depth, blockcopy->depth);
+		return false;
+	}
+	if(blockcopy->data_length != block->data_length) {
+		printf("FAILED, data_length mismatch, expected %u, got %u\n", block->data_length, blockcopy->data_length);
+		return false;
+	}
+	if(memcmp(blockcopy->data, block->data, block->data_length)) {
+		printf("FAILED, data mismatch\n");
+		return false;
+	}
+	return true;
+}
+
 FLAC__bool mutils__compare_block_data_unknown(const FLAC__StreamMetadata_Unknown *block, const FLAC__StreamMetadata_Unknown *blockcopy, unsigned block_length)
 {
 	if(0 == block->data || 0 == blockcopy->data) {
@@ -341,10 +391,13 @@ FLAC__bool mutils__compare_block(const FLAC__StreamMetadata *block, const FLAC__
 			return mutils__compare_block_data_vorbiscomment(&block->data.vorbis_comment, &blockcopy->data.vorbis_comment);
 		case FLAC__METADATA_TYPE_CUESHEET:
 			return mutils__compare_block_data_cuesheet(&block->data.cue_sheet, &blockcopy->data.cue_sheet);
+		case FLAC__METADATA_TYPE_PICTURE:
+			return mutils__compare_block_data_picture(&block->data.picture, &blockcopy->data.picture);
 		default:
 			return mutils__compare_block_data_unknown(&block->data.unknown, &blockcopy->data.unknown, block->length);
 	}
 }
+
 static void *malloc_or_die_(size_t size)
 {
 	void *x = malloc(size);
@@ -365,6 +418,16 @@ static void *calloc_or_die_(size_t n, size_t size)
 	return x;
 }
 
+static char *strdup_or_die_(const char *s)
+{
+	char *x = strdup(s);
+	if(0 == x) {
+		fprintf(stderr, "ERROR: out of memory copying string \"%s\"\n", s);
+		exit(1);
+	}
+	return x;
+}
+
 void mutils__init_metadata_blocks(
 	FLAC__StreamMetadata *streaminfo,
 	FLAC__StreamMetadata *padding,
@@ -373,6 +436,7 @@ void mutils__init_metadata_blocks(
 	FLAC__StreamMetadata *application2,
 	FLAC__StreamMetadata *vorbiscomment,
 	FLAC__StreamMetadata *cuesheet,
+	FLAC__StreamMetadata *picture,
 	FLAC__StreamMetadata *unknown
 )
 {
@@ -503,6 +567,31 @@ void mutils__init_metadata_blocks(
 	cuesheet->data.cue_sheet.tracks[2].number = 170;
 	cuesheet->data.cue_sheet.tracks[2].num_indices = 0;
 
+	picture->is_last = false;
+	picture->type = FLAC__METADATA_TYPE_PICTURE;
+	picture->length =
+		(
+			FLAC__STREAM_METADATA_PICTURE_TYPE_LEN +
+			FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN + /* will add the length for the string later */
+			FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN + /* will add the length for the string later */
+			FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
+			FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
+			FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+			FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN /* will add the length for the data later */
+		) / 8
+	;
+	picture->data.picture.type = FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER;
+	picture->data.picture.mime_type = strdup_or_die_("image/jpeg");
+	picture->length += strlen(picture->data.picture.mime_type);
+	picture->data.picture.description = (FLAC__byte*)strdup_or_die_("desc");
+	picture->length += strlen((const char *)picture->data.picture.description);
+	picture->data.picture.width = 300;
+	picture->data.picture.height = 300;
+	picture->data.picture.depth = 24;
+	picture->data.picture.data = (FLAC__byte*)strdup_or_die_("SOMEJPEGDATA");
+	picture->data.picture.data_length = strlen((const char *)picture->data.picture.data);
+	picture->length += picture->data.picture.data_length;
+
 	unknown->is_last = true;
 	unknown->type = 126;
 	unknown->length = 8;
@@ -518,6 +607,7 @@ void mutils__free_metadata_blocks(
 	FLAC__StreamMetadata *application2,
 	FLAC__StreamMetadata *vorbiscomment,
 	FLAC__StreamMetadata *cuesheet,
+	FLAC__StreamMetadata *picture,
 	FLAC__StreamMetadata *unknown
 )
 {
@@ -530,5 +620,8 @@ void mutils__free_metadata_blocks(
 	free(cuesheet->data.cue_sheet.tracks[0].indices);
 	free(cuesheet->data.cue_sheet.tracks[1].indices);
 	free(cuesheet->data.cue_sheet.tracks);
+	free(picture->data.picture.mime_type);
+	free(picture->data.picture.description);
+	free(picture->data.picture.data);
 	free(unknown->data.unknown.data);
 }

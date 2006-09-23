@@ -64,7 +64,8 @@
  *  There are three metadata interfaces of increasing complexity:
  *
  *  Level 0:
- *  Read-only access to the STREAMINFO and VORBIS_COMMENT blocks.
+ *  Read-only access to the STREAMINFO, VORBIS_COMMENT, CUESHEET, and
+ *  PICTURE blocks.
  *
  *  Level 1:
  *  Read-write access to all metadata blocks.  This level is write-
@@ -124,7 +125,8 @@ extern "C" {
  *
  *  \brief
  *  The level 0 interface consists of individual routines to read the
- *  STREAMINFO, VORBIS_COMMENT, and CUESHEET blocks, requiring only a filename.
+ *  STREAMINFO, VORBIS_COMMENT, CUESHEET, and PICTURE blocks, requiring
+ *   only a filename.
  *
  *  They try to skip any ID3v2 tag at the head of the file.
  *
@@ -162,7 +164,7 @@ FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__St
  *    \code tags != NULL \endcode
  * \retval FLAC__bool
  *    \c true if a valid VORBIS_COMMENT block was read from \a filename,
- *    and \a *tags will be set to the address of the tag structure.
+ *    and \a *tags will be set to the address of the metadata structure.
  *    Returns \c false if there was a memory allocation error, a file
  *    decoder error, or the file contained no VORBIS_COMMENT block, and
  *    \a *tags will be set to \c NULL.
@@ -181,12 +183,50 @@ FLAC_API FLAC__bool FLAC__metadata_get_tags(const char *filename, FLAC__StreamMe
  *    \code cuesheet != NULL \endcode
  * \retval FLAC__bool
  *    \c true if a valid CUESHEET block was read from \a filename,
- *    and \a *cuesheet will be set to the address of the tag structure.
- *    Returns \c false if there was a memory allocation error, a file
- *    decoder error, or the file contained no CUESHEET block, and
- *    \a *cuesheet will be set to \c NULL.
+ *    and \a *cuesheet will be set to the address of the metadata
+ *    structure.  Returns \c false if there was a memory allocation
+ *    error, a file decoder error, or the file contained no CUESHEET
+ *    block, and \a *cuesheet will be set to \c NULL.
  */
 FLAC_API FLAC__bool FLAC__metadata_get_cuesheet(const char *filename, FLAC__StreamMetadata **cuesheet);
+
+/** Read a PICTURE metadata block of the given FLAC file.  This
+ *  function will try to skip any ID3v2 tag at the head of the file.
+ *  Since there can be more than one PICTURE block in a file, this
+ *  function takes a number of parameters that act as constraints to
+ *  the search.  The PICTURE block with the largest area matching all
+ *  the constraints will be returned, or \a *picture will be set to
+ *  \c NULL if there was no such block.
+ *
+ * \param filename    The path to the FLAC file to read.
+ * \param picture     The address where the returned pointer will be
+ *                    stored.  The \a picture object must be deleted by
+ *                    the caller using FLAC__metadata_object_delete().
+ * \param type        The desired picture type.  Use \c -1 to mean
+ *                    "any type".
+ * \param mime_type   The desired MIME type, e.g. "image/jpeg".  The
+ *                    string will be matched exactly.  Use \c NULL to
+ *                    mean "any MIME type".
+ * \param description The desired description.  The string will be
+ *                    matched exactly.  Use \c NULL to mean "any
+ *                    description".
+ * \param max_width   The maximum width in pixels desired.  Use
+ *                    \c (unsigned)(-1) to mean "any width".
+ * \param max_height  The maximum height in pixels desired.  Use
+ *                    \c (unsigned)(-1) to mean "any height".
+ * \param max_depth   The maximum color depth in bits-per-pixel desired.
+ *                    Use \c (unsigned)(-1) to mean "any depth".
+ * \assert
+ *    \code filename != NULL \endcode
+ *    \code picture != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if a valid PICTURE block was read from \a filename,
+ *    and \a *picture will be set to the address of the metadata
+ *    structure.  Returns \c false if there was a memory allocation
+ *    error, a file decoder error, or the file contained no PICTURE
+ *    block, and \a *picture will be set to \c NULL.
+ */
+FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__StreamMetadata **picture, FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth);
 
 /* \} */
 
@@ -203,9 +243,9 @@ FLAC_API FLAC__bool FLAC__metadata_get_cuesheet(const char *filename, FLAC__Stre
  * - Create an iterator using FLAC__metadata_simple_iterator_new()
  * - Attach it to a file using FLAC__metadata_simple_iterator_init() and check
  *   the exit code.  Call FLAC__metadata_simple_iterator_is_writable() to
- *   see if the file is writable, or read-only access is allowed.
+ *   see if the file is writable, or only read access is allowed.
  * - Use FLAC__metadata_simple_iterator_next() and
- *   FLAC__metadata_simple_iterator_prev() to move around the blocks.
+ *   FLAC__metadata_simple_iterator_prev() to traverse the blocks.
  *   This is does not read the actual blocks themselves.
  *   FLAC__metadata_simple_iterator_next() is relatively fast.
  *   FLAC__metadata_simple_iterator_prev() is slower since it needs to search
@@ -1185,7 +1225,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *b
 /** Sets the application data of an APPLICATION block.
  *
  *  If \a copy is \c true, a copy of the data is stored; otherwise, the object
- *  takes ownership of the pointer.
+ *  takes ownership of the pointer.  The existing data will be freed if this
+ *  function is successful, otherwise the original data will remain if \a copy
+ *  is \c true and malloc() fails.
+ *
+ * \note It is safe to pass a const pointer to \a data if \a copy is \c true.
  *
  * \param object  A pointer to an existing APPLICATION object.
  * \param data    A pointer to the data to set.
@@ -1910,6 +1954,95 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_is_legal(const FLAC__StreamMe
  *    The unsigned integer representation of the CDDB/freedb ID
  */
 FLAC_API FLAC__uint32 FLAC__metadata_object_cuesheet_calculate_cddb_id(const FLAC__StreamMetadata *object);
+
+/** Sets the MIME type of a PICTURE block.
+ *
+ *  If \a copy is \c true, a copy of the string is stored; otherwise, the object
+ *  takes ownership of the pointer.  The existing string will be freed if this
+ *  function is successful, otherwise the original string will remain if \a copy
+ *  is \c true and malloc() fails.
+ *
+ * \note It is safe to pass a const pointer to \a mime_type if \a copy is \c true.
+ *
+ * \param object      A pointer to an existing PICTURE object.
+ * \param mime_type   A pointer to the MIME type string.  The string must be
+ *                    ASCII characters 0x20-0x7e, NUL-terminated.  No validation
+ *                    is done.
+ * \param copy        See above.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_PICTURE \endcode
+ *    \code (mime_type != NULL) \endcode
+ * \retval FLAC__bool
+ *    \c false if \a copy is \c true and malloc() fails, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_picture_set_mime_type(FLAC__StreamMetadata *object, char *mime_type, FLAC__bool copy);
+
+/** Sets the description of a PICTURE block.
+ *
+ *  If \a copy is \c true, a copy of the string is stored; otherwise, the object
+ *  takes ownership of the pointer.  The existing string will be freed if this
+ *  function is successful, otherwise the original string will remain if \a copy
+ *  is \c true and malloc() fails.
+ *
+ * \note It is safe to pass a const pointer to \a description if \a copy is \c true.
+ *
+ * \param object      A pointer to an existing PICTURE object.
+ * \param description A pointer to the description string.  The string must be
+ *                    valid UTF-8, NUL-terminated.  No validation is done.
+ * \param copy        See above.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_PICTURE \endcode
+ *    \code (description != NULL) \endcode
+ * \retval FLAC__bool
+ *    \c false if \a copy is \c true and malloc() fails, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_picture_set_description(FLAC__StreamMetadata *object, FLAC__byte *description, FLAC__bool copy);
+
+/** Sets the picture data of a PICTURE block.
+ *
+ *  If \a copy is \c true, a copy of the data is stored; otherwise, the object
+ *  takes ownership of the pointer.  Also sets the \a data_length field of the
+ *  metadata object to what is passed in as the \a length parameter.  The
+ *  existing data will be freed if this function is successful, otherwise the
+ *  original data and data_length will remain if \a copy is \c true and
+ *  malloc() fails.
+ *
+ * \note It is safe to pass a const pointer to \a data if \a copy is \c true.
+ *
+ * \param object  A pointer to an existing PICTURE object.
+ * \param data    A pointer to the data to set.
+ * \param length  The length of \a data in bytes.
+ * \param copy    See above.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_PICTURE \endcode
+ *    \code (data != NULL && length > 0) ||
+ * (data == NULL && length == 0 && copy == false) \endcode
+ * \retval FLAC__bool
+ *    \c false if \a copy is \c true and malloc() fails, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_picture_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, FLAC__uint32 length, FLAC__bool copy);
+
+/** Check a PICTURE block to see if it conforms to the FLAC specification.
+ *  See the format specification for limits on the contents of the
+ *  PICTURE block.
+ *
+ * \param picture    A pointer to existing PICTURE block to be checked.
+ * \param violation  Address of a pointer to a string.  If there is a
+ *                   violation, a pointer to a string explanation of the
+ *                   violation will be returned here. \a violation may be
+ *                   \c NULL if you don't need the returned string.  Do not
+ *                   free the returned string; it will always point to static
+ *                   data.
+ * \assert
+ *    \code object != NULL \endcode
+ *    \code object->type == FLAC__METADATA_TYPE_PICTURE \endcode
+ * \retval FLAC__bool
+ *    \c false if PICTURE block is illegal, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__metadata_object_picture_is_legal(const FLAC__StreamMetadata *object, const char **violation);
 
 /* \} */
 

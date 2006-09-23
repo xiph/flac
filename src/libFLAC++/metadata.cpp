@@ -68,6 +68,9 @@ namespace FLAC {
 					case FLAC__METADATA_TYPE_CUESHEET:
 						ret = new CueSheet(object, /*copy=*/false);
 						break;
+					case FLAC__METADATA_TYPE_PICTURE:
+						ret = new Picture(object, /*copy=*/false);
+						break;
 					default:
 						ret = new Unknown(object, /*copy=*/false);
 						break;
@@ -87,6 +90,7 @@ namespace FLAC {
 			const SeekTable *seektable = dynamic_cast<const SeekTable *>(object);
 			const VorbisComment *vorbiscomment = dynamic_cast<const VorbisComment *>(object);
 			const CueSheet *cuesheet = dynamic_cast<const CueSheet *>(object);
+			const Picture *picture = dynamic_cast<const Picture *>(object);
 			const Unknown *unknown = dynamic_cast<const Unknown *>(object);
 
 			if(0 != streaminfo)
@@ -101,6 +105,8 @@ namespace FLAC {
 				return new VorbisComment(*vorbiscomment);
 			else if(0 != cuesheet)
 				return new CueSheet(*cuesheet);
+			else if(0 != picture)
+				return new Picture(*picture);
 			else if(0 != unknown)
 				return new Unknown(*unknown);
 			else {
@@ -1015,6 +1021,111 @@ namespace FLAC {
 
 
 		//
+		// Picture
+		//
+
+		Picture::Picture():
+		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE), /*copy=*/false)
+		{ }
+
+		Picture::~Picture()
+		{ }
+
+		::FLAC__StreamMetadata_Picture_Type Picture::get_type() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.picture.type;
+		}
+
+		const char *Picture::get_mime_type() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.picture.mime_type;
+		}
+
+		const FLAC__byte *Picture::get_description() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.picture.description;
+		}
+
+		FLAC__uint32 Picture::get_width() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.picture.width;
+		}
+
+		FLAC__uint32 Picture::get_height() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.picture.height;
+		}
+
+		FLAC__uint32 Picture::get_depth() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.picture.depth;
+		}
+
+		FLAC__uint32 Picture::get_data_length() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.picture.data_length;
+		}
+
+		const FLAC__byte *Picture::get_data() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.picture.data;
+		}
+
+		void Picture::set_type(::FLAC__StreamMetadata_Picture_Type type)
+		{
+			FLAC__ASSERT(is_valid());
+			object_->data.picture.type = type;
+		}
+
+		bool Picture::set_mime_type(const char *string)
+		{
+			FLAC__ASSERT(is_valid());
+			// We can safely const_cast since copy=true
+			return (bool)::FLAC__metadata_object_picture_set_mime_type(object_, const_cast<char*>(string), /*copy=*/true);
+		}
+
+		bool Picture::set_description(const FLAC__byte *string)
+		{
+			FLAC__ASSERT(is_valid());
+			// We can safely const_cast since copy=true
+			return (bool)::FLAC__metadata_object_picture_set_description(object_, const_cast<FLAC__byte*>(string), /*copy=*/true);
+		}
+
+		void Picture::set_width(FLAC__uint32 value) const
+		{
+			FLAC__ASSERT(is_valid());
+			object_->data.picture.width = value;
+		}
+
+		void Picture::set_height(FLAC__uint32 value) const
+		{
+			FLAC__ASSERT(is_valid());
+			object_->data.picture.height = value;
+		}
+
+		void Picture::set_depth(FLAC__uint32 value) const
+		{
+			FLAC__ASSERT(is_valid());
+			object_->data.picture.depth = value;
+		}
+
+		bool Picture::set_data(const FLAC__byte *data, FLAC__uint32 data_length)
+		{
+			FLAC__ASSERT(is_valid());
+			// We can safely const_cast since copy=true
+			return (bool)::FLAC__metadata_object_picture_set_data(object_, const_cast<FLAC__byte*>(data), data_length, /*copy=*/true);
+		}
+
+
+		//
 		// Unknown
 		//
 
@@ -1118,6 +1229,36 @@ namespace FLAC {
 
 			if(::FLAC__metadata_get_cuesheet(filename, &object)) {
 				cuesheet.assign(object, /*copy=*/false);
+				return true;
+			}
+			else
+				return false;
+		}
+
+		FLACPP_API bool get_picture(const char *filename, Picture *&picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth)
+		{
+			FLAC__ASSERT(0 != filename);
+
+			::FLAC__StreamMetadata *object;
+
+			picture = 0;
+
+			if(::FLAC__metadata_get_picture(filename, &object, type, mime_type, description, max_width, max_height, max_depth)) {
+				picture = new Picture(object, /*copy=*/false);
+				return true;
+			}
+			else
+				return false;
+		}
+
+		FLACPP_API bool get_picture(const char *filename, Picture &picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth)
+		{
+			FLAC__ASSERT(0 != filename);
+
+			::FLAC__StreamMetadata *object;
+
+			if(::FLAC__metadata_get_picture(filename, &object, type, mime_type, description, max_width, max_height, max_depth)) {
+				picture.assign(object, /*copy=*/false);
 				return true;
 			}
 			else

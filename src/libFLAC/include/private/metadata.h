@@ -34,7 +34,12 @@
 
 #include "FLAC/metadata.h"
 
+/* WATCHOUT: all malloc()ed data in the block is free()ed; this may not
+ * be a consistent state (e.g. PICTURE) or equivalent to the initial
+ * state after FLAC__metadata_object_new()
+ */
 void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object);
+
 void FLAC__metadata_object_cuesheet_track_delete_data(FLAC__StreamMetadata_CueSheet_Track *object);
 
 #endif

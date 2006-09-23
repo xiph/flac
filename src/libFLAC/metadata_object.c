@@ -47,8 +47,17 @@
  *
  ***************************************************************************/
 
+/* copy bytes:
+ *  from = NULL  && bytes = 0
+ *       to <- NULL
+ *  from != NULL && bytes > 0
+ *       to <- copy of from
+ *  else ASSERT
+ * malloc error leaved 'to' unchanged
+ */
 static FLAC__bool copy_bytes_(FLAC__byte **to, const FLAC__byte *from, unsigned bytes)
 {
+	FLAC__ASSERT(0 != to);
 	if(bytes > 0 && 0 != from) {
 		FLAC__byte *x;
 		if(0 == (x = (FLAC__byte*)malloc(bytes)))
@@ -64,12 +73,49 @@ static FLAC__bool copy_bytes_(FLAC__byte **to, const FLAC__byte *from, unsigned 
 	return true;
 }
 
+#if 0 /* UNUSED */
+/* like copy_bytes_(), but free()s the original '*to' if the copy succeeds and the original '*to' is non-NULL */
+static FLAC__bool free_copy_bytes_(FLAC__byte **to, const FLAC__byte *from, unsigned bytes)
+{
+	FLAC__byte *copy;
+	FLAC__ASSERT(0 != to);
+	if(copy_bytes_(&copy, from, bytes)) {
+		if(*to)
+			free(*to);
+		*to = copy;
+		return true;
+	}
+	else
+		return false;
+}
+#endif
+
+/* reallocate entry to 1 byte larger and add a terminating NUL */
+/* realloc() failure leaves entry unchanged */
 static FLAC__bool ensure_null_terminated_(FLAC__byte **entry, unsigned length)
 {
 	FLAC__byte *x = (FLAC__byte*)realloc(*entry, length+1);
 	if(0 != x) {
 		x[length] = '\0';
 		*entry = x;
+		return true;
+	}
+	else
+		return false;
+}
+
+/* copies the NUL-terminated C-string 'from' to '*to', leaving '*to'
+ * unchanged if malloc fails, free()ing the original '*to' if it
+ * succeeds and the original '*to' was not NULL
+ */
+static FLAC__bool copy_cstring_(char **to, const char *from)
+{
+	FLAC__ASSERT(to);
+	char *copy = strdup(from);
+	if(copy) {
+		if(*to)
+			free(*to);
+		*to = copy;
 		return true;
 	}
 	else
@@ -417,17 +463,48 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 				*/
 				break;
 			case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-				{
-					object->data.vorbis_comment.vendor_string.length = (unsigned)strlen(FLAC__VENDOR_STRING);
-					if(!copy_bytes_(&object->data.vorbis_comment.vendor_string.entry, (const FLAC__byte*)FLAC__VENDOR_STRING, object->data.vorbis_comment.vendor_string.length+1)) {
-						free(object);
-						return 0;
-					}
-					vorbiscomment_calculate_length_(object);
+				object->data.vorbis_comment.vendor_string.length = (unsigned)strlen(FLAC__VENDOR_STRING);
+				if(!copy_bytes_(&object->data.vorbis_comment.vendor_string.entry, (const FLAC__byte*)FLAC__VENDOR_STRING, object->data.vorbis_comment.vendor_string.length+1)) {
+					free(object);
+					return 0;
 				}
+				vorbiscomment_calculate_length_(object);
 				break;
 			case FLAC__METADATA_TYPE_CUESHEET:
 				cuesheet_calculate_length_(object);
+				break;
+			case FLAC__METADATA_TYPE_PICTURE:
+				object->length = (
+					FLAC__STREAM_METADATA_PICTURE_TYPE_LEN +
+					FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN + /* empty mime_type string */
+					FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN + /* empty description string */
+					FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
+					FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
+					FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+					FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN +
+					0 /* no data */
+				) / 8;
+				object->data.picture.type = FLAC__STREAM_METADATA_PICTURE_TYPE_OTHER;
+				object->data.picture.mime_type = 0;
+				object->data.picture.description = 0;
+				/* calloc() took care of this for us:
+				object->data.picture.width = 0;
+				object->data.picture.height = 0;
+				object->data.picture.depth = 0;
+				object->data.picture.data_length = 0;
+				object->data.picture.data = 0;
+				*/
+				/* now initialize mime_type and description with empty strings to make things easier on the client */
+				if(!copy_cstring_(&object->data.picture.mime_type, "")) {
+					free(object);
+					return 0;
+				}
+				if(!copy_cstring_((char**)(&object->data.picture.description), "")) {
+					if(object->data.picture.mime_type)
+						free(object->data.picture.mime_type);
+					free(object);
+					return 0;
+				}
 				break;
 			default:
 				/* calloc() took care of this for us:
@@ -508,6 +585,25 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 					}
 				}
 				break;
+			case FLAC__METADATA_TYPE_PICTURE:
+				to->data.picture.type = object->data.picture.type;
+				if(!copy_cstring_(&to->data.picture.mime_type, object->data.picture.mime_type)) {
+					FLAC__metadata_object_delete(to);
+					return 0;
+				}
+				if(!copy_cstring_((char**)(&to->data.picture.description), (const char*)object->data.picture.description)) {
+					FLAC__metadata_object_delete(to);
+					return 0;
+				}
+				to->data.picture.width = object->data.picture.width;
+				to->data.picture.height = object->data.picture.height;
+				to->data.picture.depth = object->data.picture.depth;
+				to->data.picture.data_length = object->data.picture.data_length;
+				if(!copy_bytes_((&to->data.picture.data), object->data.picture.data, object->data.picture.data_length)) {
+					FLAC__metadata_object_delete(to);
+					return 0;
+				}
+				break;
 			default:
 				if(!copy_bytes_(&to->data.unknown.data, object->data.unknown.data, object->length)) {
 					FLAC__metadata_object_delete(to);
@@ -554,6 +650,20 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 			if(0 != object->data.cue_sheet.tracks) {
 				FLAC__ASSERT(object->data.cue_sheet.num_tracks > 0);
 				cuesheet_track_array_delete_(object->data.cue_sheet.tracks, object->data.cue_sheet.num_tracks);
+			}
+			break;
+		case FLAC__METADATA_TYPE_PICTURE:
+			if(0 != object->data.picture.mime_type) {
+				free(object->data.picture.mime_type);
+				object->data.picture.mime_type = 0;
+			}
+			if(0 != object->data.picture.description) {
+				free(object->data.picture.description);
+				object->data.picture.description = 0;
+			}
+			if(0 != object->data.picture.data) {
+				free(object->data.picture.data);
+				object->data.picture.data = 0;
 			}
 			break;
 		default:
@@ -710,6 +820,27 @@ static FLAC__bool compare_block_data_cuesheet_(const FLAC__StreamMetadata_CueShe
 	return true;
 }
 
+static FLAC__bool compare_block_data_picture_(const FLAC__StreamMetadata_Picture *block1, const FLAC__StreamMetadata_Picture *block2)
+{
+	if(block1->type != block2->type)
+		return false;
+	if(block1->mime_type != block2->mime_type && (0 == block1->mime_type || 0 == block2->mime_type || strcmp(block1->mime_type, block2->mime_type)))
+		return false;
+	if(block1->description != block2->description && (0 == block1->description || 0 == block2->description || strcmp((const char *)block1->description, (const char *)block2->description)))
+		return false;
+	if(block1->width != block2->width)
+		return false;
+	if(block1->height != block2->height)
+		return false;
+	if(block1->depth != block2->depth)
+		return false;
+	if(block1->data_length != block2->data_length)
+		return false;
+	if(block1->data != block2->data && (0 == block1->data || 0 == block2->data || memcmp(block1->data, block2->data, block1->data_length)))
+		return false;
+	return true;
+}
+
 static FLAC__bool compare_block_data_unknown_(const FLAC__StreamMetadata_Unknown *block1, const FLAC__StreamMetadata_Unknown *block2, unsigned block_length)
 {
 	FLAC__ASSERT(0 != block1);
@@ -748,6 +879,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *b
 			return compare_block_data_vorbiscomment_(&block1->data.vorbis_comment, &block2->data.vorbis_comment);
 		case FLAC__METADATA_TYPE_CUESHEET:
 			return compare_block_data_cuesheet_(&block1->data.cue_sheet, &block2->data.cue_sheet);
+		case FLAC__METADATA_TYPE_PICTURE:
+			return compare_block_data_picture_(&block1->data.picture, &block2->data.picture);
 		default:
 			return compare_block_data_unknown_(&block1->data.unknown, &block2->data.unknown, block1->length);
 	}
@@ -1552,4 +1685,100 @@ FLAC_API FLAC__uint32 FLAC__metadata_object_cuesheet_calculate_cddb_id(const FLA
 
 		return (sum % 0xFF) << 24 | length << 8 | (FLAC__uint32)(cs->num_tracks-1);
 	}
+}
+
+FLAC_API FLAC__bool FLAC__metadata_object_picture_set_mime_type(FLAC__StreamMetadata *object, char *mime_type, FLAC__bool copy)
+{
+	char *old;
+	size_t old_length, new_length;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_PICTURE);
+	FLAC__ASSERT(0 != mime_type);
+
+	old = object->data.picture.mime_type;
+	old_length = old? strlen(old) : 0;
+	new_length = strlen(mime_type);
+
+	/* do the copy first so that if we fail we leave the object untouched */
+	if(copy) {
+		if(!copy_bytes_((FLAC__byte**)(&object->data.picture.mime_type), (FLAC__byte*)mime_type, new_length+1))
+			return false;
+	}
+	else {
+		object->data.picture.mime_type = mime_type;
+	}
+
+	if(0 != old)
+		free(old);
+
+	object->length -= old_length;
+	object->length += new_length;
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_object_picture_set_description(FLAC__StreamMetadata *object, FLAC__byte *description, FLAC__bool copy)
+{
+	FLAC__byte *old;
+	size_t old_length, new_length;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_PICTURE);
+	FLAC__ASSERT(0 != description);
+
+	old = object->data.picture.description;
+	old_length = old? strlen((const char *)old) : 0;
+	new_length = strlen((const char *)description);
+
+	/* do the copy first so that if we fail we leave the object untouched */
+	if(copy) {
+		if(!copy_bytes_(&object->data.picture.description, description, new_length+1))
+			return false;
+	}
+	else {
+		object->data.picture.description = description;
+	}
+
+	if(0 != old)
+		free(old);
+
+	object->length -= old_length;
+	object->length += new_length;
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_object_picture_set_data(FLAC__StreamMetadata *object, FLAC__byte *data, FLAC__uint32 length, FLAC__bool copy)
+{
+	FLAC__byte *old;
+
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_PICTURE);
+	FLAC__ASSERT((0 != data && length > 0) || (0 == data && length == 0 && copy == false));
+
+	old = object->data.picture.data;
+
+	/* do the copy first so that if we fail we leave the object untouched */
+	if(copy) {
+		if(!copy_bytes_(&object->data.picture.data, data, length))
+			return false;
+	}
+	else {
+		object->data.picture.data = data;
+	}
+
+	if(0 != old)
+		free(old);
+
+	object->length -= object->data.picture.data_length;
+	object->data.picture.data_length = length;
+	object->length += length;
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_object_picture_is_legal(const FLAC__StreamMetadata *object, const char **violation)
+{
+	FLAC__ASSERT(0 != object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_PICTURE);
+
+	return FLAC__format_picture_is_legal(&object->data.picture, violation);
 }

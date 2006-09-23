@@ -478,7 +478,10 @@ typedef enum {
 	FLAC__METADATA_TYPE_CUESHEET = 5,
 	/**< <A HREF="../format.html#metadata_block_cuesheet">CUESHEET</A> block */
 
-	FLAC__METADATA_TYPE_UNDEFINED = 6
+	FLAC__METADATA_TYPE_PICTURE = 6,
+	/**< <A HREF="../format.html#metadata_block_picture">PICTURE</A> block */
+
+	FLAC__METADATA_TYPE_UNDEFINED = 7
 	/**< marker to denote beginning of undefined type range; this number will increase as new metadata types are added */
 
 } FLAC__MetadataType;
@@ -678,7 +681,7 @@ typedef struct {
 	/**< The number of lead-in samples. */
 
 	FLAC__bool is_cd;
-	/**< \c true if CUESHEET corresponds to a Compact Disc, else \c false */
+	/**< \c true if CUESHEET corresponds to a Compact Disc, else \c false. */
 
 	unsigned num_tracks;
 	/**< The number of tracks. */
@@ -693,6 +696,92 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN; /**< 
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN; /**< == 1 (bit) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN; /**< == 7+258*8 (bits) */
 extern FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN; /**< == 8 (bits) */
+
+
+/** An enumeration of the PICTURE types (see FLAC__StreamMetadataPicture and id3 v2.4 APIC tag). */
+typedef enum {
+	FLAC__STREAM_METADATA_PICTURE_TYPE_OTHER = 0, /**< Other */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD = 1, /**< 32x32 pixels 'file icon' (PNG only) */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON = 2, /**< Other file icon */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER = 3, /**< Cover (front) */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_BACK_COVER = 4, /**< Cover (back) */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_LEAFLET_PAGE = 5, /**< Leaflet page */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_MEDIA = 6, /**< Media (e.g. label side of CD) */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_LEAD_ARTIST = 7, /**< Lead artist/lead performer/soloist */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_ARTIST = 8, /**< Artist/performer */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_CONDUCTOR = 9, /**< Conductor */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_BAND = 10, /**< Band/Orchestra */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_COMPOSER = 11, /**< Composer */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_LYRICIST = 12, /**< Lyricist/text writer */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_RECORDING_LOCATION = 13, /**< Recording Location */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_DURING_RECORDING = 14, /**< During recording */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_DURING_PERFORMANCE = 15, /**< During performance */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_VIDEO_SCREEN_CAPTURE = 16, /**< Movie/video screen capture */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_FISH = 17, /**< A bright coloured fish */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_ILLUSTRATION = 18, /**< Illustration */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_BAND_LOGOTYPE = 19, /**< Band/artist logotype */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_PUBLISHER_LOGOTYPE = 20, /**< Publisher/Studio logotype */
+	FLAC__STREAM_METADATA_PICTURE_TYPE_UNDEFINED
+} FLAC__StreamMetadata_Picture_Type;
+
+/** Maps a FLAC__StreamMetadata_Picture_Type to a C string.
+ *
+ *  Using a FLAC__StreamMetadata_Picture_Type as the index to this array
+ *  will give the string equivalent.  The contents should not be
+ *  modified.
+ */
+extern FLAC_API const char * const FLAC__StreamMetadata_Picture_TypeString[];
+
+/** FLAC PICTURE structure.  (See the
+ * <A HREF="../format.html#metadata_block_picture">format specification</A>
+ * for the full description of each field.)
+ */
+typedef struct {
+	FLAC__StreamMetadata_Picture_Type type;
+	/**< The kind of picture stored. */
+
+	char *mime_type;
+	/**< Picture data's MIME type, in ASCII printable characters
+	 * 0x20-0x7e, NUL terminated.  For best compatibility with players,
+	 * use picture data of MIME type \c image/jpeg or \c image/png.  A
+	 * MIME type of '-->' is also allowed, in which case the picture
+	 * data should be a complete URL.  In file storage, the MIME type is
+	 * stored as a 32-bit length followed by the ASCII string with no NUL
+	 * terminator, but is converted to a plain C string in this structure
+	 * for convenience.
+	 */
+
+	FLAC__byte *description;
+	/**< Picture's description in UTF-8, NUL terminated.  In file storage,
+	 * the description is stored as a 32-bit length followed by the UTF-8
+	 * string with no NUL terminator, but is converted to a plain C string
+	 * in this structure for convenience.
+	 */
+
+	FLAC__uint32 width;
+	/**< Picture's width in pixels. */
+
+	FLAC__uint32 height;
+	/**< Picture's height in pixels. */
+
+	FLAC__uint32 depth;
+	/**< Picture's color depth in bits-per-pixel. */
+
+	FLAC__uint32 data_length;
+	/**< Length of binary picture data in bytes. */
+
+	FLAC__byte *data;
+	/**< Binary picture data. */
+
+} FLAC__StreamMetadata_Picture;
+
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_TYPE_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN; /**< == 32 (bits) */
+extern FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN; /**< == 32 (bits) */
 
 
 /** Structure that is used when a metadata block of unknown type is loaded.
@@ -725,6 +814,7 @@ typedef struct {
 		FLAC__StreamMetadata_SeekTable seek_table;
 		FLAC__StreamMetadata_VorbisComment vorbis_comment;
 		FLAC__StreamMetadata_CueSheet cue_sheet;
+		FLAC__StreamMetadata_Picture picture;
 		FLAC__StreamMetadata_Unknown unknown;
 	} data;
 	/**< Polymorphic block data; use the \a type value to determine which
@@ -851,6 +941,25 @@ FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *se
  *    \c false if cue sheet is illegal, else \c true.
  */
 FLAC_API FLAC__bool FLAC__format_cuesheet_is_legal(const FLAC__StreamMetadata_CueSheet *cue_sheet, FLAC__bool check_cd_da_subset, const char **violation);
+
+/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
+/** Check picture data to see if it conforms to the FLAC specification.
+ *  See the format specification for limits on the contents of the
+ *  PICTURE block.
+ *
+ * \param picture    A pointer to existing picture data to be checked.
+ * \param violation  Address of a pointer to a string.  If there is a
+ *                   violation, a pointer to a string explanation of the
+ *                   violation will be returned here. \a violation may be
+ *                   \c NULL if you don't need the returned string.  Do not
+ *                   free the returned string; it will always point to static
+ *                   data.
+ * \assert
+ *    \code picture != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if picture data is illegal, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__format_picture_is_legal(const FLAC__StreamMetadata_Picture *picture, const char **violation);
 
 /* \} */
 

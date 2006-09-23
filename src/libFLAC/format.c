@@ -104,6 +104,14 @@ FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN = 1; /* bit */
 FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN = 7+258*8; /* bits */
 FLAC_API const unsigned FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN = 8; /* bits */
 
+FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_TYPE_LEN = 32; /* bits */
+FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN = 32; /* bits */
+FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN = 32; /* bits */
+FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN = 32; /* bits */
+FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN = 32; /* bits */
+FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN = 32; /* bits */
+FLAC_API const unsigned FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN = 32; /* bits */
+
 FLAC_API const unsigned FLAC__STREAM_METADATA_IS_LAST_LEN = 1; /* bits */
 FLAC_API const unsigned FLAC__STREAM_METADATA_TYPE_LEN = 7; /* bits */
 FLAC_API const unsigned FLAC__STREAM_METADATA_LENGTH_LEN = 24; /* bits */
@@ -168,7 +176,32 @@ FLAC_API const char * const FLAC__MetadataTypeString[] = {
 	"APPLICATION",
 	"SEEKTABLE",
 	"VORBIS_COMMENT",
-	"CUESHEET"
+	"CUESHEET",
+	"PICTURE"
+};
+
+FLAC_API const char * const FLAC__StreamMetadata_Picture_TypeString[] = {
+	"Other",
+	"32x32 pixels 'file icon' (PNG only)",
+	"Other file icon",
+	"Cover (front)",
+	"Cover (back)",
+	"Leaflet page",
+	"Media (e.g. label side of CD)",
+	"Lead artist/lead performer/soloist",
+	"Artist/performer",
+	"Conductor",
+	"Band/Orchestra",
+	"Composer",
+	"Lyricist/text writer",
+	"Recording Location",
+	"During recording",
+	"During performance",
+	"Movie/video screen capture",
+	"A bright coloured fish",
+	"Illustration",
+	"Band/artist logotype",
+	"Publisher/Studio logotype"
 };
 
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate)
@@ -432,6 +465,30 @@ FLAC_API FLAC__bool FLAC__format_cuesheet_is_legal(const FLAC__StreamMetadata_Cu
 				}
 			}
 		}
+	}
+
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__format_picture_is_legal(const FLAC__StreamMetadata_Picture *picture, const char **violation)
+{
+	char *p;
+	FLAC__byte *b;
+
+	for(p = picture->mime_type; *p; p++) {
+		if(*p < 0x20 || *p > 0x7e) {
+			if(violation) *violation = "MIME type string must contain only printable ASCII characters (0x20-0x7e)";
+			return false;
+		}
+	}
+
+	for(b = picture->description; *b; ) {
+		unsigned n = utf8len_(b);
+		if(n == 0) {
+			if(violation) *violation = "description string must be valid UTF-8";
+			return false;
+		}
+		b += n;
 	}
 
 	return true;

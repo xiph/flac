@@ -177,6 +177,33 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 				}
 			}
 			break;
+		case FLAC__METADATA_TYPE_PICTURE:
+			{
+				size_t len;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.type, FLAC__STREAM_METADATA_PICTURE_TYPE_LEN))
+					return false;
+				len = strlen(metadata->data.picture.mime_type);
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, len, FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_byte_block(bb, (const FLAC__byte*)metadata->data.picture.mime_type, len))
+					return false;
+				len = strlen((const char *)metadata->data.picture.description);
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, len, FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.picture.description, len))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.width, FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.height, FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.depth, FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.data_length, FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN))
+					return false;
+				if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.picture.data, metadata->data.picture.data_length))
+					return false;
+			}
+			break;
 		default:
 			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.unknown.data, metadata->length))
 				return false;

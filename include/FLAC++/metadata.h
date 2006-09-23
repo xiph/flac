@@ -782,6 +782,80 @@ namespace FLAC {
 			FLAC__uint32 calculate_cddb_id() const;
 		};
 
+		/** PICTURE metadata block.
+		 *  See <A HREF="../format.html#metadata_block_picture">format specification</A>.
+		 */
+		class FLACPP_API Picture : public Prototype {
+		public:
+			Picture();
+
+			//@{
+			/** Constructs a copy of the given object.  This form
+			 *  always performs a deep copy.
+			 */
+			inline Picture(const Picture &object): Prototype(object) { }
+			inline Picture(const ::FLAC__StreamMetadata &object): Prototype(object) { }
+			inline Picture(const ::FLAC__StreamMetadata *object): Prototype(object) { }
+			//@}
+
+			/** Constructs an object with copy control.  See
+			 *  Prototype(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline Picture(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
+
+			~Picture();
+
+			//@{
+			/** Assign from another object.  Always performs a deep copy. */
+			inline Picture &operator=(const Picture &object) { Prototype::operator=(object); return *this; }
+			inline Picture &operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); return *this; }
+			inline Picture &operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); return *this; }
+			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline Picture &assign(::FLAC__StreamMetadata *object, bool copy) { Prototype::assign_object(object, copy); return *this; }
+
+			//@{
+			/** Check for equality, performing a deep compare by following pointers. */
+			inline bool operator==(const Picture &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata *object) const { return Prototype::operator==(object); }
+			//@}
+
+			//@{
+			/** Check for inequality, performing a deep compare by following pointers. */
+			inline bool operator!=(const Picture &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
+			//@}
+
+			::FLAC__StreamMetadata_Picture_Type get_type() const;
+			const char *get_mime_type() const; // NUL-terminated printable ASCII string
+			const FLAC__byte *get_description() const; // NUL-terminated UTF-8 string
+			FLAC__uint32 get_width() const;
+			FLAC__uint32 get_height() const;
+			FLAC__uint32 get_depth() const;
+			FLAC__uint32 get_data_length() const;
+			const FLAC__byte *get_data() const;
+
+			void set_type(::FLAC__StreamMetadata_Picture_Type type);
+
+			//! See FLAC__metadata_object_picture_set_mime_type()
+			bool set_mime_type(const char *string); // NUL-terminated printable ASCII string
+
+			//! See FLAC__metadata_object_picture_set_description()
+			bool set_description(const FLAC__byte *string); // NUL-terminated UTF-8 string
+
+			void set_width(FLAC__uint32 value) const;
+			void set_height(FLAC__uint32 value) const;
+			void set_depth(FLAC__uint32 value) const;
+
+			//! See FLAC__metadata_object_picture_set_data()
+			bool set_data(const FLAC__byte *data, FLAC__uint32 data_length);
+		};
+
 		/** Opaque metadata block for storing unknown types.
 		 *  This should not be used unless you know what you are doing;
 		 *  it is currently used only internally to support forward
@@ -855,16 +929,16 @@ namespace FLAC {
 		 * \{
 		 */
 
-	 	//! See FLAC__metadata_get_streaminfo().
-		FLACPP_API bool get_streaminfo(const char *filename, StreamInfo &streaminfo);
+		FLACPP_API bool get_streaminfo(const char *filename, StreamInfo &streaminfo); //< See FLAC__metadata_get_streaminfo().
 
-	 	//! See FLAC__metadata_get_tags().
-		FLACPP_API bool get_tags(const char *filename, VorbisComment *&tags);
-		FLACPP_API bool get_tags(const char *filename, VorbisComment &tags);
+		FLACPP_API bool get_tags(const char *filename, VorbisComment *&tags); //< See FLAC__metadata_get_tags().
+		FLACPP_API bool get_tags(const char *filename, VorbisComment &tags); //< See FLAC__metadata_get_tags().
 
-	 	//! See FLAC__metadata_get_cuesheet().
-		FLACPP_API bool get_cuesheet(const char *filename, CueSheet *&cuesheet);
-		FLACPP_API bool get_cuesheet(const char *filename, CueSheet &cuesheet);
+		FLACPP_API bool get_cuesheet(const char *filename, CueSheet *&cuesheet); //! See FLAC__metadata_get_cuesheet().
+		FLACPP_API bool get_cuesheet(const char *filename, CueSheet &cuesheet); //! See FLAC__metadata_get_cuesheet().
+
+		FLACPP_API bool get_picture(const char *filename, Picture *&picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth); //! See FLAC__metadata_get_picture().
+		FLACPP_API bool get_picture(const char *filename, Picture &picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth); //! See FLAC__metadata_get_picture().
 
 		/* \} */
 

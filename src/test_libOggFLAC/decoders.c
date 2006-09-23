@@ -59,8 +59,8 @@ typedef struct {
 	FLAC__bool error_occurred;
 } StreamDecoderClientData;
 
-static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, unknown_;
-static FLAC__StreamMetadata *expected_metadata_sequence_[8];
+static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, picture_, unknown_;
+static FLAC__StreamMetadata *expected_metadata_sequence_[9];
 static unsigned num_expected_;
 static const char *flacfilename_ = "metadata.ogg";
 static off_t flacfilesize_;
@@ -91,12 +91,12 @@ static FLAC__bool die_s_(const char *msg, const OggFLAC__StreamDecoder *decoder)
 
 static void init_metadata_blocks_()
 {
-	mutils__init_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &unknown_);
+	mutils__init_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &picture_, &unknown_);
 }
 
 static void free_metadata_blocks_()
 {
-	mutils__free_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &unknown_);
+	mutils__free_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &picture_, &unknown_);
 }
 
 static FLAC__bool generate_file_()
@@ -110,6 +110,7 @@ static FLAC__bool generate_file_()
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &picture_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 	/* WATCHOUT: the encoder should move the VORBIS_COMMENT block to the front, right after STREAMINFO */
 
@@ -643,6 +644,7 @@ static FLAC__bool test_stream_decoder(Layer layer)
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &picture_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
@@ -683,6 +685,7 @@ static FLAC__bool test_stream_decoder(Layer layer)
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &picture_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
@@ -708,6 +711,7 @@ static FLAC__bool test_stream_decoder(Layer layer)
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &picture_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
@@ -734,6 +738,7 @@ static FLAC__bool test_stream_decoder(Layer layer)
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &picture_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
@@ -764,6 +769,7 @@ static FLAC__bool test_stream_decoder(Layer layer)
 	expected_metadata_sequence_[num_expected_++] = &padding_;
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &picture_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))
@@ -882,6 +888,7 @@ static FLAC__bool test_stream_decoder(Layer layer)
 	expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
+	expected_metadata_sequence_[num_expected_++] = &picture_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
 	if(!stream_decoder_test_respond_(decoder, &decoder_client_data))

@@ -773,6 +773,10 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__St
 			if(!FLAC__format_cuesheet_is_legal(&encoder->protected_->metadata[i]->data.cue_sheet, encoder->protected_->metadata[i]->data.cue_sheet.is_cd, /*violation=*/0))
 				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
 		}
+		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_PICTURE) {
+			if(!FLAC__format_picture_is_legal(&encoder->protected_->metadata[i]->data.picture, /*violation=*/0))
+				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+		}
 	}
 
 	encoder->private_->input_capacity = 0;

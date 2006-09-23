@@ -92,6 +92,7 @@ static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comme
 static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_VorbisComment *block);
 static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_track_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_CueSheet_Track *track);
 static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_CueSheet *block);
+static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_picture_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_Picture *block);
 static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_unknown_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_Unknown *block, unsigned block_length);
 
 static FLAC__bool write_metadata_block_header_(FILE *file, FLAC__Metadata_SimpleIteratorStatus *status, const FLAC__StreamMetadata *block);
@@ -104,6 +105,7 @@ static FLAC__bool write_metadata_block_data_application_cb_(FLAC__IOHandle handl
 static FLAC__bool write_metadata_block_data_seektable_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_SeekTable *block);
 static FLAC__bool write_metadata_block_data_vorbis_comment_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_VorbisComment *block);
 static FLAC__bool write_metadata_block_data_cuesheet_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_CueSheet *block);
+static FLAC__bool write_metadata_block_data_picture_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Picture *block);
 static FLAC__bool write_metadata_block_data_unknown_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Unknown *block, unsigned block_length);
 
 static FLAC__bool write_metadata_block_stationary_(FLAC__Metadata_SimpleIterator *iterator, const FLAC__StreamMetadata *block);
@@ -272,6 +274,55 @@ void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErro
 
 	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
 		cd->got_error = true;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__StreamMetadata **picture, FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth)
+{
+	FLAC__Metadata_SimpleIterator *it;
+	FLAC__uint64 max_area_seen = 0;
+	FLAC__uint64 max_depth_seen = 0;
+
+	FLAC__ASSERT(0 != filename);
+	FLAC__ASSERT(0 != picture);
+
+	*picture = 0;
+
+	it = FLAC__metadata_simple_iterator_new();
+	if(0 == it)
+		return false;
+	if(!FLAC__metadata_simple_iterator_init(it, filename, /*read_only=*/true, /*preserve_file_stats=*/true)) {
+		FLAC__metadata_simple_iterator_delete(it);
+		return false;
+	}
+	do {
+		if(FLAC__metadata_simple_iterator_get_block_type(it) == FLAC__METADATA_TYPE_PICTURE) {
+			FLAC__StreamMetadata *obj = FLAC__metadata_simple_iterator_get_block(it);
+			FLAC__uint64 area = (FLAC__uint64)obj->data.picture.width * (FLAC__uint64)obj->data.picture.height;
+			/* check constraints */
+			if(
+				(type == (FLAC__StreamMetadata_Picture_Type)(-1) || type == obj->data.picture.type) &&
+				(mime_type == 0 || !strcmp(mime_type, obj->data.picture.mime_type)) &&
+				(description == 0 || !strcmp((const char *)description, (const char *)obj->data.picture.description)) &&
+				obj->data.picture.width <= max_width &&
+				obj->data.picture.height <= max_height &&
+				obj->data.picture.depth <= max_depth &&
+				(area > max_area_seen || (area == max_area_seen && obj->data.picture.depth > max_depth_seen))
+			) {
+				if(*picture)
+					FLAC__metadata_object_delete(*picture);
+				*picture = obj;
+				max_area_seen = area;
+				max_depth_seen = obj->data.picture.depth;
+			}
+			else {
+				FLAC__metadata_object_delete(obj);
+			}
+		}
+	} while(FLAC__metadata_simple_iterator_next(it));
+
+	FLAC__metadata_simple_iterator_delete(it);
+
+	return (0 != *picture);
 }
 
 
@@ -1851,6 +1902,8 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cb_(FLAC__IOHandle 
 			return read_metadata_block_data_vorbis_comment_cb_(handle, read_cb, &block->data.vorbis_comment);
 		case FLAC__METADATA_TYPE_CUESHEET:
 			return read_metadata_block_data_cuesheet_cb_(handle, read_cb, &block->data.cue_sheet);
+		case FLAC__METADATA_TYPE_PICTURE:
+			return read_metadata_block_data_picture_cb_(handle, read_cb, &block->data.picture);
 		default:
 			return read_metadata_block_data_unknown_cb_(handle, read_cb, &block->data.unknown, block->length);
 	}
@@ -1881,7 +1934,6 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_streaminfo_cb_(FLAC
 
 	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
 }
-
 
 FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_padding_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Seek seek_cb, FLAC__StreamMetadata_Padding *block, unsigned block_length)
 {
@@ -1947,7 +1999,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_entr
 	const unsigned entry_length_len = FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8;
 	FLAC__byte buffer[4]; /* magic number is asserted below */
 
-	FLAC__ASSERT(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8 == 4);
+	FLAC__ASSERT(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN / 8 == sizeof(buffer));
 
 	if(read_cb(buffer, 1, entry_length_len, handle) != entry_length_len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
@@ -1979,7 +2031,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_cb_(
 	const unsigned num_comments_len = FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8;
 	FLAC__byte buffer[4]; /* magic number is asserted below */
 
-	FLAC__ASSERT(FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8 == 4);
+	FLAC__ASSERT(FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8 == sizeof(buffer));
 
 	if(FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK != (status = read_metadata_block_data_vorbis_comment_entry_cb_(handle, read_cb, &(block->vendor_string))))
 		return status;
@@ -2117,6 +2169,85 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_cb_(FLAC__
 	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
 }
 
+FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_picture_cstring_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__byte **data, FLAC__uint32 *length, FLAC__uint32 length_len)
+{
+	FLAC__byte buffer[sizeof(FLAC__uint32)];
+
+	FLAC__ASSERT(0 != data);
+	FLAC__ASSERT(length_len%8 == 0);
+
+	length_len /= 8; /* convert to bytes */
+
+	FLAC__ASSERT(sizeof(buffer) >= length_len);
+
+	if(read_cb(buffer, 1, length_len, handle) != length_len)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+	*length = unpack_uint32_(buffer, length_len);
+
+	if(0 != *data)
+		free(*data);
+
+	if(0 == (*data = (FLAC__byte*)malloc(*length+1)))
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
+
+	if(*length > 0) {
+		if(read_cb(*data, 1, *length, handle) != *length)
+			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+	}
+
+	(*data)[*length] = '\0';
+
+	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+}
+
+FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_picture_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_Picture *block)
+{
+	FLAC__Metadata_SimpleIteratorStatus status;
+	FLAC__byte buffer[4]; /* asserted below that this is big enough */
+	FLAC__uint32 len;
+
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_TYPE_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN/8);
+
+	FLAC__ASSERT(FLAC__STREAM_METADATA_PICTURE_TYPE_LEN % 8 == 0);
+	len = FLAC__STREAM_METADATA_PICTURE_TYPE_LEN / 8;
+	if(read_cb(buffer, 1, len, handle) != len)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+	block->type = (FLAC__StreamMetadata_Picture_Type)unpack_uint32_(buffer, len);
+
+	if((status = read_metadata_block_data_picture_cstring_cb_(handle, read_cb, (FLAC__byte**)(&(block->mime_type)), &len, FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN)) != FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK)
+		return status;
+
+	if((status = read_metadata_block_data_picture_cstring_cb_(handle, read_cb, &(block->description), &len, FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN)) != FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK)
+		return status;
+
+	FLAC__ASSERT(FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN % 8 == 0);
+	len = FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN / 8;
+	if(read_cb(buffer, 1, len, handle) != len)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+	block->width = unpack_uint32_(buffer, len);
+
+	FLAC__ASSERT(FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN % 8 == 0);
+	len = FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN / 8;
+	if(read_cb(buffer, 1, len, handle) != len)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+	block->height = unpack_uint32_(buffer, len);
+
+	FLAC__ASSERT(FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN % 8 == 0);
+	len = FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN / 8;
+	if(read_cb(buffer, 1, len, handle) != len)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+	block->depth = unpack_uint32_(buffer, len);
+
+	/* for convenience we use read_metadata_block_data_picture_cstring_cb_() even though it adds an extra terminating NUL we don't use */
+	if((status = read_metadata_block_data_picture_cstring_cb_(handle, read_cb, &(block->data), &(block->data_length), FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN)) != FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK)
+		return status;
+
+	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+}
+
 FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_unknown_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_Unknown *block, unsigned block_length)
 {
 	if(block_length == 0) {
@@ -2193,6 +2324,8 @@ FLAC__bool write_metadata_block_data_cb_(FLAC__IOHandle handle, FLAC__IOCallback
 			return write_metadata_block_data_vorbis_comment_cb_(handle, write_cb, &block->data.vorbis_comment);
 		case FLAC__METADATA_TYPE_CUESHEET:
 			return write_metadata_block_data_cuesheet_cb_(handle, write_cb, &block->data.cue_sheet);
+		case FLAC__METADATA_TYPE_PICTURE:
+			return write_metadata_block_data_picture_cb_(handle, write_cb, &block->data.picture);
 		default:
 			return write_metadata_block_data_unknown_cb_(handle, write_cb, &block->data.unknown, block->length);
 	}
@@ -2285,7 +2418,7 @@ FLAC__bool write_metadata_block_data_vorbis_comment_cb_(FLAC__IOHandle handle, F
 	const unsigned num_comments_len = FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN / 8;
 	FLAC__byte buffer[4]; /* magic number is asserted below */
 
-	FLAC__ASSERT(max(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN, FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8 == 4);
+	FLAC__ASSERT(max(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN, FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN) / 8 == sizeof(buffer));
 
 	pack_uint32_little_endian_(block->vendor_string.length, buffer, entry_length_len);
 	if(write_cb(buffer, 1, entry_length_len, handle) != entry_length_len)
@@ -2398,6 +2531,73 @@ FLAC__bool write_metadata_block_data_cuesheet_cb_(FLAC__IOHandle handle, FLAC__I
 				return false;
 		}
 	}
+
+	return true;
+}
+
+FLAC__bool write_metadata_block_data_picture_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Picture *block)
+{
+	unsigned len;
+	size_t slen;
+	FLAC__byte buffer[4]; /* magic number is asserted below */
+
+	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_TYPE_LEN%8);
+	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN%8);
+	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN%8);
+	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN%8);
+	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN%8);
+	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN%8);
+	FLAC__ASSERT(0 == FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN%8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_TYPE_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN/8);
+	FLAC__ASSERT(sizeof(buffer) >= FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN/8);
+
+	len = FLAC__STREAM_METADATA_PICTURE_TYPE_LEN/8;
+	pack_uint32_(block->type, buffer, len);
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
+
+	len = FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN/8;
+	slen = strlen(block->mime_type);
+	pack_uint32_(slen, buffer, len);
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
+	if(write_cb(block->mime_type, 1, slen, handle) != slen)
+		return false;
+
+	len = FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN/8;
+	slen = strlen((const char *)block->description);
+	pack_uint32_(slen, buffer, len);
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
+	if(write_cb(block->description, 1, slen, handle) != slen)
+		return false;
+
+	len = FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN/8;
+	pack_uint32_(block->width, buffer, len);
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
+
+	len = FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN/8;
+	pack_uint32_(block->height, buffer, len);
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
+
+	len = FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN/8;
+	pack_uint32_(block->depth, buffer, len);
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
+
+	len = FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN/8;
+	pack_uint32_(block->data_length, buffer, len);
+	if(write_cb(buffer, 1, len, handle) != len)
+		return false;
+	if(write_cb(block->data, 1, block->data_length, handle) != block->data_length)
+		return false;
 
 	return true;
 }
@@ -2556,7 +2756,7 @@ unsigned seek_to_first_metadata_block_cb_(FLAC__IOHandle handle, FLAC__IOCallbac
 	size_t n;
 	unsigned i;
 
-	FLAC__ASSERT(FLAC__STREAM_SYNC_LENGTH == 4);
+	FLAC__ASSERT(FLAC__STREAM_SYNC_LENGTH == sizeof(buffer));
 
 	/* skip any id3v2 tag */
 	errno = 0;

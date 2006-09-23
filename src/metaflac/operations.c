@@ -646,6 +646,18 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 				}
 			}
 			break;
+		case FLAC__METADATA_TYPE_PICTURE:
+			PPR; printf("  type: %u (%s)\n", block->data.picture.type, block->data.picture.type < FLAC__STREAM_METADATA_PICTURE_TYPE_UNDEFINED? FLAC__StreamMetadata_Picture_TypeString[block->data.picture.type] : "UNDEFINED");
+			PPR; printf("  MIME type: %s\n", block->data.picture.mime_type);
+			PPR; printf("  description: %s\n", block->data.picture.description);
+			PPR; printf("  width: %u\n", (unsigned)block->data.picture.width);
+			PPR; printf("  height: %u\n", (unsigned)block->data.picture.height);
+			PPR; printf("  depth: %u\n", (unsigned)block->data.picture.depth);
+			PPR; printf("  data length: %u\n", (unsigned)block->data.picture.data_length);
+			PPR; printf("  data:\n");
+			if(0 != block->data.picture.data)
+				hexdump(filename, block->data.picture.data, block->data.picture.data_length, "    ");
+			break;
 		default:
 			PPR; printf("  data contents:\n");
 			if(0 != block->data.unknown.data)

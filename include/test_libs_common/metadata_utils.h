@@ -40,6 +40,8 @@ FLAC__bool mutils__compare_block_data_vorbiscomment(const FLAC__StreamMetadata_V
 
 FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueSheet *block, const FLAC__StreamMetadata_CueSheet *blockcopy);
 
+FLAC__bool mutils__compare_block_data_picture(const FLAC__StreamMetadata_Picture *block, const FLAC__StreamMetadata_Picture *blockcopy);
+
 FLAC__bool mutils__compare_block_data_unknown(const FLAC__StreamMetadata_Unknown *block, const FLAC__StreamMetadata_Unknown *blockcopy, unsigned block_length);
 
 FLAC__bool mutils__compare_block(const FLAC__StreamMetadata *block, const FLAC__StreamMetadata *blockcopy);
@@ -52,6 +54,7 @@ void mutils__init_metadata_blocks(
 	FLAC__StreamMetadata *application2,
 	FLAC__StreamMetadata *vorbiscomment,
 	FLAC__StreamMetadata *cuesheet,
+	FLAC__StreamMetadata *picture,
 	FLAC__StreamMetadata *unknown
 );
 
@@ -63,6 +66,7 @@ void mutils__free_metadata_blocks(
 	FLAC__StreamMetadata *application2,
 	FLAC__StreamMetadata *vorbiscomment,
 	FLAC__StreamMetadata *cuesheet,
+	FLAC__StreamMetadata *picture,
 	FLAC__StreamMetadata *unknown
 );
 

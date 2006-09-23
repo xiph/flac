@@ -100,6 +100,16 @@ static void *malloc_or_die_(size_t size)
 	return x;
 }
 
+static char *strdup_or_die_(const char *s)
+{
+	char *x = strdup(s);
+	if(0 == x) {
+		fprintf(stderr, "ERROR: out of memory copying string \"%s\"\n", s);
+		exit(1);
+	}
+	return x;
+}
+
 /* functions for working with our metadata copy */
 
 static FLAC__bool replace_in_our_metadata_(FLAC__StreamMetadata *block, unsigned position, FLAC__bool copy)
@@ -485,10 +495,10 @@ static void decoder_error_callback_(const FLAC__StreamDecoder *decoder, FLAC__St
 	printf("ERROR: got error callback, status = %s (%u)\n", FLAC__StreamDecoderErrorStatusString[status], (unsigned)status);
 }
 
-static FLAC__bool generate_file_(FLAC__bool include_cuesheet)
+static FLAC__bool generate_file_(FLAC__bool include_extras)
 {
-	FLAC__StreamMetadata streaminfo, vorbiscomment, *cuesheet, padding;
-	FLAC__StreamMetadata *metadata[3];
+	FLAC__StreamMetadata streaminfo, vorbiscomment, *cuesheet, picture, padding;
+	FLAC__StreamMetadata *metadata[4];
 	unsigned i = 0, n = 0;
 
 	printf("generating FLAC file for test\n");
@@ -535,19 +545,49 @@ static FLAC__bool generate_file_(FLAC__bool include_cuesheet)
 			return die_("priming our metadata");
 	}
 
+	{
+		picture.is_last = false;
+		picture.type = FLAC__METADATA_TYPE_PICTURE;
+		picture.length =
+			(
+				FLAC__STREAM_METADATA_PICTURE_TYPE_LEN +
+				FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN + /* will add the length for the string later */
+				FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN + /* will add the length for the string later */
+				FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
+				FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
+				FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+				FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN /* will add the length for the data later */
+			) / 8
+		;
+		picture.data.picture.type = FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER;
+		picture.data.picture.mime_type = strdup_or_die_("image/jpeg");
+		picture.length += strlen(picture.data.picture.mime_type);
+		picture.data.picture.description = (FLAC__byte*)strdup_or_die_("desc");
+		picture.length += strlen((const char *)picture.data.picture.description);
+		picture.data.picture.width = 300;
+		picture.data.picture.height = 300;
+		picture.data.picture.depth = 24;
+		picture.data.picture.data = (FLAC__byte*)strdup_or_die_("SOMEJPEGDATA");
+		picture.data.picture.data_length = strlen((const char *)picture.data.picture.data);
+		picture.length += picture.data.picture.data_length;
+	}
+
 	padding.is_last = true;
 	padding.type = FLAC__METADATA_TYPE_PADDING;
 	padding.length = 1234;
 
 	metadata[n++] = &vorbiscomment;
-	if (include_cuesheet)
+	if(include_extras) {
 		metadata[n++] = cuesheet;
+		metadata[n++] = &picture;
+	}
 	metadata[n++] = &padding;
 
 	if(
 		!insert_to_our_metadata_(&streaminfo, i++, /*copy=*/true) ||
 		!insert_to_our_metadata_(&vorbiscomment, i++, /*copy=*/true) ||
-		(include_cuesheet && !insert_to_our_metadata_(cuesheet, i++, /*copy=*/false)) ||
+		(include_extras && !insert_to_our_metadata_(cuesheet, i++, /*copy=*/false)) ||
+		(include_extras && !insert_to_our_metadata_(&picture, i++, /*copy=*/true)) ||
 		!insert_to_our_metadata_(&padding, i++, /*copy=*/true)
 	)
 		return die_("priming our metadata");
@@ -627,10 +667,11 @@ static FLAC__bool test_level_0_()
 	FLAC__StreamMetadata streaminfo;
 	FLAC__StreamMetadata *tags = 0;
 	FLAC__StreamMetadata *cuesheet = 0;
+	FLAC__StreamMetadata *picture = 0;
 
 	printf("\n\n++++++ testing level 0 interface\n");
 
-	if(!generate_file_(/*include_cuesheet=*/true))
+	if(!generate_file_(/*include_extras=*/true))
 		return false;
 
 	if(!test_file_(flacfile_, decoder_metadata_callback_null_))
@@ -675,11 +716,24 @@ static FLAC__bool test_level_0_()
 
 	/* check to see if some basic data matches (c.f. generate_file_()) */
 	if(cuesheet->data.cue_sheet.lead_in != 123)
-		return die_("mismatch in cuesheet->data.vorbis_comment.num_comments");
+		return die_("mismatch in cuesheet->data.cue_sheet.lead_in");
 
 	printf("OK\n");
 
 	FLAC__metadata_object_delete(cuesheet);
+
+	printf("testing FLAC__metadata_get_picture()... ");
+
+	if(!FLAC__metadata_get_picture(flacfile_, &picture, /*type=*/(FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(unsigned)(-1), /*max_height=*/(unsigned)(-1), /*max_depth=*/(unsigned)(-1)))
+		return die_("during FLAC__metadata_get_picture()");
+
+	/* check to see if some basic data matches (c.f. generate_file_()) */
+	if(picture->data.picture.type != FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER)
+		return die_("mismatch in picture->data.picture.type");
+
+	printf("OK\n");
+
+	FLAC__metadata_object_delete(picture);
 
 	if(!remove_file_(flacfile_))
 		return false;
@@ -703,7 +757,7 @@ static FLAC__bool test_level_1_()
 
 	printf("simple iterator on read-only file\n");
 
-	if(!generate_file_(/*include_cuesheet=*/false))
+	if(!generate_file_(/*include_extras=*/false))
 		return false;
 
 	if(!change_stats_(flacfile_, /*read_only=*/true))
@@ -1362,7 +1416,7 @@ static FLAC__bool test_level_2_(FLAC__bool filename_based)
 
 	printf("generate read-only file\n");
 
-	if(!generate_file_(/*include_cuesheet=*/false))
+	if(!generate_file_(/*include_extras=*/false))
 		return false;
 
 	if(!change_stats_(flacfile_, /*read_only=*/true))
@@ -1875,7 +1929,7 @@ static FLAC__bool test_level_2_misc_()
 
 	printf("generate file\n");
 
-	if(!generate_file_(/*include_cuesheet=*/false))
+	if(!generate_file_(/*include_extras=*/false))
 		return false;
 
 	printf("create chain\n");
