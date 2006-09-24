@@ -633,7 +633,7 @@ FLAC_API void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteCallback write_callback, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderTellCallback tell_callback, FLAC__StreamEncoderMetadataCallback metadata_callback, void *client_data)
 {
 	unsigned i;
-	FLAC__bool metadata_has_seektable, metadata_has_vorbis_comment;
+	FLAC__bool metadata_has_seektable, metadata_has_vorbis_comment, metadata_picture_has_type1, metadata_picture_has_type2;
 
 	FLAC__ASSERT(0 != encoder);
 
@@ -754,28 +754,51 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__St
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
 	metadata_has_seektable = false;
 	metadata_has_vorbis_comment = false;
+	metadata_picture_has_type1 = false;
+	metadata_picture_has_type2 = false;
 	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
-		if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_STREAMINFO)
+		const FLAC__StreamMetadata *m = encoder->protected_->metadata[i];
+		if(m->type == FLAC__METADATA_TYPE_STREAMINFO)
 			return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+		else if(m->type == FLAC__METADATA_TYPE_SEEKTABLE) {
 			if(metadata_has_seektable) /* only one is allowed */
 				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
 			metadata_has_seektable = true;
-			if(!FLAC__format_seektable_is_legal(&encoder->protected_->metadata[i]->data.seek_table))
+			if(!FLAC__format_seektable_is_legal(&m->data.seek_table))
 				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
 		}
-		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+		else if(m->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 			if(metadata_has_vorbis_comment) /* only one is allowed */
 				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
 			metadata_has_vorbis_comment = true;
 		}
-		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_CUESHEET) {
-			if(!FLAC__format_cuesheet_is_legal(&encoder->protected_->metadata[i]->data.cue_sheet, encoder->protected_->metadata[i]->data.cue_sheet.is_cd, /*violation=*/0))
+		else if(m->type == FLAC__METADATA_TYPE_CUESHEET) {
+			if(!FLAC__format_cuesheet_is_legal(&m->data.cue_sheet, m->data.cue_sheet.is_cd, /*violation=*/0))
 				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
 		}
-		else if(encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_PICTURE) {
-			if(!FLAC__format_picture_is_legal(&encoder->protected_->metadata[i]->data.picture, /*violation=*/0))
+		else if(m->type == FLAC__METADATA_TYPE_PICTURE) {
+			if(!FLAC__format_picture_is_legal(&m->data.picture, /*violation=*/0))
 				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+			if(m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD) {
+				if(metadata_picture_has_type1) /* there should only be 1 per stream */
+					return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+				metadata_picture_has_type1 = true;
+				/* standard icon must be 32x32 pixel PNG */
+				if(
+					m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD && 
+					(
+						(strcmp(m->data.picture.mime_type, "image/png") && strcmp(m->data.picture.mime_type, "-->")) ||
+						m->data.picture.width != 32 ||
+						m->data.picture.height != 32
+					)
+				)
+					return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+			}
+			else if(m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON) {
+				if(metadata_picture_has_type2) /* there should only be 1 per stream */
+					return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+				metadata_picture_has_type2 = true;
+			}
 		}
 	}
 
