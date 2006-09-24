@@ -9,6 +9,7 @@ noinst_LTLIBRARIES = libgrabbag.la
 libgrabbag_la_SOURCES = \
 	cuesheet.c \
 	file.c \
+	picture.c \
 	replaygain.c \
 	seektable.c
 

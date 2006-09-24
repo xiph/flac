@@ -10,6 +10,7 @@ INCLUDES = -I$(topdir)/include
 SRCS_C = \
 	cuesheet.c \
 	file.c \
+	picture.c \
 	replaygain.c \
 	seektable.c
 

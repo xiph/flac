@@ -93,6 +93,10 @@ SOURCE=.\file.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\picture.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\replaygain.c
 # End Source File
 # Begin Source File
@@ -110,6 +114,10 @@ SOURCE=..\..\..\include\share\grabbag\cuesheet.h
 # Begin Source File
 
 SOURCE=..\..\..\include\share\grabbag\file.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\include\share\grabbag\picture.h
 # End Source File
 # Begin Source File
 
