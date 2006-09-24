@@ -37,6 +37,31 @@ static char *local__strndup_(const char *s, size_t size)
 	return x;
 }
 
+static FLAC__bool local__parse_type_(const char *s, size_t len, FLAC__StreamMetadata_Picture *picture)
+{
+	size_t i;
+	FLAC__uint32 val = 0;
+
+	picture->type = FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER;;
+
+	if(len == 0)
+		return true; /* empty string implies default to 'front cover' */
+
+	for(i = 0; i < len; i++) {
+		if(s[i] >= '0' && s[i] <= '9')
+			val = 10*val + (FLAC__uint32)(s[i] - '0');
+		else
+			return false;
+	}
+
+	if(i == len)
+		picture->type = val;
+	else
+		return false;
+
+	return true;
+}
+
 static FLAC__bool local__parse_resolution_(const char *s, size_t len, FLAC__StreamMetadata_Picture *picture)
 {
 	int state = 0;
@@ -236,7 +261,9 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 		"unable to extract resolution and color info from file, user must set explicitly",
 		"error opening picture file",
 		"error reading picture file",
-		"invalid MIME type"
+		"invalid picture type",
+		"invalid MIME type",
+		"type 1 icon must be a 32x32 pixel PNG"
 	};
 
 	FLAC__ASSERT(0 != spec);
@@ -256,21 +283,25 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 	for(p = spec; *error_message==0 && *p; ) {
 		if(*p == '|') {
 			switch(state) {
-				case 0: /* mime type */
-					if(p-spec == 0)
+				case 0: /* type */
+					if(!local__parse_type_(spec, p-spec, &obj->data.picture))
 						*error_message = error_messages[7];
+					break;
+				case 1: /* mime type */
+					if(p-spec == 0)
+						*error_message = error_messages[8];
 					else if(0 == (q = local__strndup_(spec, p-spec)))
 						*error_message = error_messages[0];
 					else if(!FLAC__metadata_object_picture_set_mime_type(obj, q, /*copy=*/false))
 						*error_message = error_messages[0];
 					break;
-				case 1: /* description */
+				case 2: /* description */
 					if(0 == (q = local__strndup_(spec, p-spec)))
 						*error_message = error_messages[0];
 					else if(!FLAC__metadata_object_picture_set_description(obj, (FLAC__byte*)q, /*copy=*/false))
 						*error_message = error_messages[0];
 					break;
-				case 2: /* resolution/color (e.g. [300x300x16[/1234]] */
+				case 3: /* resolution/color (e.g. [300x300x16[/1234]] */
 					if(!local__parse_resolution_(spec, p-spec, &obj->data.picture))
 						*error_message = error_messages[2];
 					break;
@@ -287,7 +318,7 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 	}
 	/* parse filename, read file, try to extract resolution/color info if needed */
 	if(*error_message == 0) {
-		if(state != 3)
+		if(state != 4)
 			*error_message = error_messages[1];
 		else { /* 'spec' points to filename/URL */
 			if(0 == strcmp(obj->data.picture.mime_type, "-->")) { /* magic MIME type means URL */
@@ -326,6 +357,18 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 				}
 			}
 		}
+	}
+
+	if(*error_message == 0) {
+		if(
+			obj->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD && 
+			(
+				(strcmp(obj->data.picture.mime_type, "image/png") && strcmp(obj->data.picture.mime_type, "-->")) ||
+				obj->data.picture.width != 32 ||
+				obj->data.picture.height != 32
+			)
+		)
+			*error_message = error_messages[9];
 	}
 
 	if(*error_message && obj) {

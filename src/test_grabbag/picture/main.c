@@ -32,23 +32,24 @@ typedef struct {
 	FLAC__uint32 height;
 	FLAC__uint32 depth;
 	FLAC__uint32 colors;
+	FLAC__StreamMetadata_Picture_Type type;
 } PictureFile;
 
 PictureFile picturefiles[] = {
-	{ "0.gif", "image/gif" , "", 24, 24, 24, 2 },
-	{ "1.gif", "image/gif" , "", 12,  8, 24, 256 },
-	{ "2.gif", "image/gif" , "", 16, 14, 24, 128 },
-	{ "0.jpg", "image/jpeg", "", 30, 20,  8, 0 },
-	{ "4.jpg", "image/jpeg", "", 31, 47, 24, 0 },
-	{ "0.png", "image/png" , "", 30, 20,  8, 0 },
-	{ "1.png", "image/png" , "", 30, 20,  8, 0 },
-	{ "2.png", "image/png" , "", 30, 20, 24, 7 },
-	{ "3.png", "image/png" , "", 30, 20, 24, 7 },
-	{ "4.png", "image/png" , "", 31, 47, 24, 0 },
-	{ "5.png", "image/png" , "", 31, 47, 24, 0 },
-	{ "6.png", "image/png" , "", 31, 47, 24, 23 },
-	{ "7.png", "image/png" , "", 31, 47, 24, 23 },
-	{ "8.png", "image/png" , "", 32, 32, 32, 0 }
+	{ "0.gif", "image/gif" , "", 24, 24, 24, 2, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "1.gif", "image/gif" , "", 12,  8, 24, 256, FLAC__STREAM_METADATA_PICTURE_TYPE_BACK_COVER },
+	{ "2.gif", "image/gif" , "", 16, 14, 24, 128, FLAC__STREAM_METADATA_PICTURE_TYPE_OTHER },
+	{ "0.jpg", "image/jpeg", "", 30, 20,  8, 0, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "4.jpg", "image/jpeg", "", 31, 47, 24, 0, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "0.png", "image/png" , "", 30, 20,  8, 0, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "1.png", "image/png" , "", 30, 20,  8, 0, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "2.png", "image/png" , "", 30, 20, 24, 7, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "3.png", "image/png" , "", 30, 20, 24, 7, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "4.png", "image/png" , "", 31, 47, 24, 0, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "5.png", "image/png" , "", 31, 47, 24, 0, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "6.png", "image/png" , "", 31, 47, 24, 23, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "7.png", "image/png" , "", 31, 47, 24, 23, FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER },
+	{ "8.png", "image/png" , "", 32, 32, 32, 0, 999 }
 };
 
 static FLAC__bool debug_ = false;
@@ -68,13 +69,16 @@ static FLAC__bool test_one_picture(const char *prefix, const PictureFile *pf, co
 	FLAC__StreamMetadata *obj;
 	const char *error;
 	char s[4096];
-	snprintf(s, sizeof(s)-1, "%s|%s|%s|%s/%s", pf->mime_type, pf->description, res, prefix, pf->path);
+	snprintf(s, sizeof(s)-1, "%u|%s|%s|%s|%s/%s", (unsigned)pf->type, pf->mime_type, pf->description, res, prefix, pf->path);
 
 	printf("testing grabbag__picture_parse_specification(\"%s\")... ", s);
 	if(0 == (obj = grabbag__picture_parse_specification(s, &error)))
 		return failed_(error);
 	if(debug_) {
-		printf("\nmime_type=%s\ndescription=%s\nwidth=%u\nheight=%u\ndepth=%u\ncolors=%u\ndata_length=%u\n",
+		printf("\ntype=%u (%s)\nmime_type=%s\ndescription=%s\nwidth=%u\nheight=%u\ndepth=%u\ncolors=%u\ndata_length=%u\n",
+			obj->data.picture.type,
+			obj->data.picture.type < FLAC__STREAM_METADATA_PICTURE_TYPE_UNDEFINED?
+				FLAC__StreamMetadata_Picture_TypeString[obj->data.picture.type] : "UNDEFINED",
 			obj->data.picture.mime_type,
 			obj->data.picture.description,
 			obj->data.picture.width,
@@ -84,6 +88,8 @@ static FLAC__bool test_one_picture(const char *prefix, const PictureFile *pf, co
 			obj->data.picture.data_length
 		);
 	}
+	if(obj->data.picture.type != pf->type)
+		return failed_("picture type mismatch");
 	if(strcmp(obj->data.picture.mime_type, pf->mime_type))
 		return failed_("picture MIME type mismatch");
 	if(strcmp((const char *)obj->data.picture.description, (const char *)pf->description))
@@ -116,49 +122,55 @@ static FLAC__bool do_picture(const char *prefix)
 	printf("OK (failed as expected, error: %s)\n", error);
 
 	/* invalid spec: no filename */
-	printf("testing grabbag__picture_parse_specification(\"|||\")... ");
-	if(0 != (obj = grabbag__picture_parse_specification("|||", &error)))
+	printf("testing grabbag__picture_parse_specification(\"||||\")... ");
+	if(0 != (obj = grabbag__picture_parse_specification("||||", &error)))
 		return failed_("expected error, got object");
 	printf("OK (failed as expected: %s)\n", error);
 
 	/* invalid spec: no filename */
-	printf("testing grabbag__picture_parse_specification(\"image/gif|||\")... ");
-	if(0 != (obj = grabbag__picture_parse_specification("image/gif|||", &error)))
+	printf("testing grabbag__picture_parse_specification(\"|image/gif|||\")... ");
+	if(0 != (obj = grabbag__picture_parse_specification("|image/gif|||", &error)))
 		return failed_("expected error, got object");
 	printf("OK (failed as expected: %s)\n", error);
 
 	/* invalid spec: bad resolution */
-	printf("testing grabbag__picture_parse_specification(\"image/gif|desc|320|0.gif\")... ");
-	if(0 != (obj = grabbag__picture_parse_specification("image/gif|desc|320|0.gif", &error)))
+	printf("testing grabbag__picture_parse_specification(\"|image/gif|desc|320|0.gif\")... ");
+	if(0 != (obj = grabbag__picture_parse_specification("|image/gif|desc|320|0.gif", &error)))
 		return failed_("expected error, got object");
 	printf("OK (failed as expected: %s)\n", error);
 
 	/* invalid spec: bad resolution */
-	printf("testing grabbag__picture_parse_specification(\"image/gif|desc|320x240|0.gif\")... ");
-	if(0 != (obj = grabbag__picture_parse_specification("image/gif|desc|320x240|0.gif", &error)))
+	printf("testing grabbag__picture_parse_specification(\"|image/gif|desc|320x240|0.gif\")... ");
+	if(0 != (obj = grabbag__picture_parse_specification("|image/gif|desc|320x240|0.gif", &error)))
 		return failed_("expected error, got object");
 	printf("OK (failed as expected: %s)\n", error);
 
 	/* invalid spec: no filename */
-	printf("testing grabbag__picture_parse_specification(\"image/gif|desc|320x240x9|\")... ");
-	if(0 != (obj = grabbag__picture_parse_specification("image/gif|desc|320x240x9|", &error)))
+	printf("testing grabbag__picture_parse_specification(\"|image/gif|desc|320x240x9|\")... ");
+	if(0 != (obj = grabbag__picture_parse_specification("|image/gif|desc|320x240x9|", &error)))
 		return failed_("expected error, got object");
 	printf("OK (failed as expected: %s)\n", error);
 
 	/* invalid spec: #colors exceeds color depth */
-	printf("testing grabbag__picture_parse_specification(\"image/gif|desc|320x240x9/2345|0.gif\")... ");
-	if(0 != (obj = grabbag__picture_parse_specification("image/gif|desc|320x240x9/2345|0.gif", &error)))
+	printf("testing grabbag__picture_parse_specification(\"|image/gif|desc|320x240x9/2345|0.gif\")... ");
+	if(0 != (obj = grabbag__picture_parse_specification("|image/gif|desc|320x240x9/2345|0.gif", &error)))
+		return failed_("expected error, got object");
+	printf("OK (failed as expected: %s)\n", error);
+
+	/* invalid spec: standard icon has to be 32x32 PNG */
+	printf("testing grabbag__picture_parse_specification(\"1|-->|desc|32x24x9|0.gif\")... ");
+	if(0 != (obj = grabbag__picture_parse_specification("1|-->|desc|32x24x9|0.gif", &error)))
 		return failed_("expected error, got object");
 	printf("OK (failed as expected: %s)\n", error);
 
 	/* invalid spec: need resolution for linked URL */
-	printf("testing grabbag__picture_parse_specification(\"-->|desc||http://blah.blah.blah/z.gif\")... ");
-	if(0 != (obj = grabbag__picture_parse_specification("-->|desc||http://blah.blah.blah/z.gif", &error)))
+	printf("testing grabbag__picture_parse_specification(\"|-->|desc||http://blah.blah.blah/z.gif\")... ");
+	if(0 != (obj = grabbag__picture_parse_specification("|-->|desc||http://blah.blah.blah/z.gif", &error)))
 		return failed_("expected error, got object");
 	printf("OK (failed as expected: %s)\n", error);
 
-	printf("testing grabbag__picture_parse_specification(\"-->|desc|320x240x9|http://blah.blah.blah/z.gif\")... ");
-	if(0 == (obj = grabbag__picture_parse_specification("-->|desc|320x240x9|http://blah.blah.blah/z.gif", &error)))
+	printf("testing grabbag__picture_parse_specification(\"|-->|desc|320x240x9|http://blah.blah.blah/z.gif\")... ");
+	if(0 == (obj = grabbag__picture_parse_specification("|-->|desc|320x240x9|http://blah.blah.blah/z.gif", &error)))
 		return failed_(error);
 	printf("OK\n");
 
