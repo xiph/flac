@@ -69,6 +69,8 @@ typedef struct {
 	FLAC__bool sector_align;
 
 	FLAC__StreamMetadata *vorbis_comment;
+	FLAC__StreamMetadata *pictures[64];
+	unsigned num_pictures;
 
 	struct {
 		FLAC__bool disable_constant_subframes;

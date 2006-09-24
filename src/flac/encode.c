@@ -1441,12 +1441,14 @@ int EncoderSession_finish_error(EncoderSession *e)
 
 FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t options, unsigned channels, unsigned bps, unsigned sample_rate, FLACDecoderData *flac_decoder_data)
 {
-	unsigned num_metadata;
+	unsigned num_metadata, i;
 	FLAC__StreamMetadata padding, *cuesheet = 0;
-	FLAC__StreamMetadata *static_metadata[4];
+	FLAC__StreamMetadata *static_metadata[4+64]; /* MAGIC +64 is for pictures metadata in options.pictures */
 	FLAC__StreamMetadata **metadata = static_metadata;
 	FLAC__StreamEncoderInitStatus init_status;
 	const FLAC__bool is_cdda = (channels == 1 || channels == 2) && (bps == 16) && (sample_rate == 44100);
+
+	FLAC__ASSERT(sizeof(options.pictures)/sizeof(options.pictures[0]) <= 64);
 
 	e->replay_gain = options.replay_gain;
 	e->channels = channels;
@@ -1677,6 +1679,8 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		if(0 != cuesheet)
 			metadata[num_metadata++] = cuesheet;
 		metadata[num_metadata++] = options.vorbis_comment;
+		for(i = 0; i < options.num_pictures; i++)
+			metadata[num_metadata++] = options.pictures[i];
 		if(options.padding != 0) {
 			padding.is_last = false; /* the encoder will set this for us */
 			padding.type = FLAC__METADATA_TYPE_PADDING;

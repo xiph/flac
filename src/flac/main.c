@@ -119,6 +119,7 @@ static struct share__option long_options_[] = {
 	 */
 	{ "cuesheet"                  , share__required_argument, 0, 0 },
 	{ "no-cued-seekpoints"        , share__no_argument, 0, 0 },
+	{ "picture"                   , share__required_argument, 0, 0 },
 	{ "tag"                       , share__required_argument, 0, 'T' },
 	{ "tag-from-file"             , share__required_argument, 0, 0 },
 	{ "compression-level-0"       , share__no_argument, 0, '0' },
@@ -260,6 +261,8 @@ static struct {
 	char **filenames;
 
 	FLAC__StreamMetadata *vorbis_comment;
+	FLAC__StreamMetadata *pictures[64];
+	unsigned num_pictures;
 
 	struct {
 		FLAC__bool disable_constant_subframes;
@@ -608,6 +611,7 @@ FLAC__bool init_options()
 
 	if(0 == (option_values.vorbis_comment = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)))
 		return false;
+	option_values.num_pictures = 0;
 
 	option_values.debug.disable_constant_subframes = false;
 	option_values.debug.disable_fixed_subframes = false;
@@ -734,6 +738,15 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "cuesheet")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.cuesheet_filename = option_argument;
+		}
+		else if(0 == strcmp(long_option, "picture")) {
+			const unsigned max_pictures = sizeof(option_values.pictures)/sizeof(option_values.pictures[0]);
+			FLAC__ASSERT(0 != option_argument);
+			if(option_values.num_pictures >= max_pictures)
+				return usage_error("ERROR: too many --picture arguments, only %u allowed\n", max_pictures);
+			if(0 == (option_values.pictures[option_values.num_pictures] = grabbag__picture_parse_specification(option_argument, &violation)))
+				return usage_error("ERROR: (--picture) %s\n", violation);
+			option_values.num_pictures++;
 		}
 		else if(0 == strcmp(long_option, "tag-from-file")) {
 			FLAC__ASSERT(0 != option_argument);
@@ -1123,6 +1136,8 @@ void free_options()
 	}
 	if(0 != option_values.vorbis_comment)
 		FLAC__metadata_object_delete(option_values.vorbis_comment);
+	for(i = 0; i < option_values.num_pictures; i++)
+		FLAC__metadata_object_delete(option_values.pictures[i]);
 }
 
 int usage_error(const char *message, ...)
@@ -1710,6 +1725,9 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.replay_gain = option_values.replay_gain;
 	common_options.sector_align = option_values.sector_align;
 	common_options.vorbis_comment = option_values.vorbis_comment;
+	FLAC__ASSERT(sizeof(common_options.pictures) >= sizeof(option_values.pictures));
+	memcpy(common_options.pictures, option_values.pictures, sizeof(option_values.pictures));
+	common_options.num_pictures = option_values.num_pictures;
 	common_options.debug.disable_constant_subframes = option_values.debug.disable_constant_subframes;
 	common_options.debug.disable_fixed_subframes = option_values.debug.disable_fixed_subframes;
 	common_options.debug.disable_verbatim_subframes = option_values.debug.disable_verbatim_subframes;
