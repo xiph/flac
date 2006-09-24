@@ -72,7 +72,7 @@ static FLAC__bool test_one_picture(const char *prefix, const PictureFile *pf, co
 
 	printf("testing grabbag__picture_parse_specification(\"%s\")... ", s);
 	if(0 == (obj = grabbag__picture_parse_specification(s, &error)))
-		return failed_(0);
+		return failed_(error);
 	if(debug_) {
 		printf("\nmime_type=%s\ndescription=%s\nwidth=%u\nheight=%u\ndepth=%u\ncolors=%u\ndata_length=%u\n",
 			obj->data.picture.mime_type,
@@ -150,6 +150,17 @@ static FLAC__bool do_picture(const char *prefix)
 	if(0 != (obj = grabbag__picture_parse_specification("image/gif|desc|320x240x9/2345|0.gif", &error)))
 		return failed_("expected error, got object");
 	printf("OK (failed as expected: %s)\n", error);
+
+	/* invalid spec: need resolution for linked URL */
+	printf("testing grabbag__picture_parse_specification(\"-->|desc||http://blah.blah.blah/z.gif\")... ");
+	if(0 != (obj = grabbag__picture_parse_specification("-->|desc||http://blah.blah.blah/z.gif", &error)))
+		return failed_("expected error, got object");
+	printf("OK (failed as expected: %s)\n", error);
+
+	printf("testing grabbag__picture_parse_specification(\"-->|desc|320x240x9|http://blah.blah.blah/z.gif\")... ");
+	if(0 == (obj = grabbag__picture_parse_specification("-->|desc|320x240x9|http://blah.blah.blah/z.gif", &error)))
+		return failed_(error);
+	printf("OK\n");
 
 	/* test automatic parsing of picture files to get resolution/color info */
 	for(i = 0; i < sizeof(picturefiles)/sizeof(picturefiles[0]); i++)
