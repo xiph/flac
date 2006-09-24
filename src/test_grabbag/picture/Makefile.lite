@@ -1,5 +1,5 @@
-#  test_grabbag - Simple testers for the grabbag library
-#  Copyright (C) 2002,2003,2004,2005,2006  Josh Coalson
+#  test_cuesheet - Simple tester for cuesheet routines in grabbag
+#  Copyright (C) 2006  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -15,26 +15,26 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-.PHONY: cuesheet picture
-all: cuesheet picture
+#
+# GNU makefile
+#
 
-DEFAULT_CONFIG = release
+topdir = ../../..
+libdir = $(topdir)/obj/$(BUILD)/lib
 
-CONFIG = $(DEFAULT_CONFIG)
+PROGRAM_NAME = test_picture
 
-debug   : CONFIG = debug
-valgrind: CONFIG = valgrind
-release : CONFIG = release
+INCLUDES = -I./include -I$(topdir)/include
 
-debug   : all
-valgrind: all
-release : all
+ifeq ($(DARWIN_BUILD),yes)
+EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libFLAC.a -lm
+else
+LIBS = -lgrabbag -lFLAC -lm
+endif
 
-cuesheet:
-	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
-picture:
-	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
+SRCS_C = \
+	main.c
 
-clean:
-	-(cd cuesheet ; $(MAKE) -f Makefile.lite clean)
-	-(cd picture ; $(MAKE) -f Makefile.lite clean)
+include $(topdir)/build/exe.mk
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.

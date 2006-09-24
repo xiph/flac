@@ -15,7 +15,7 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-SUBDIRS = cuesheet
+SUBDIRS = cuesheet picture
 
 EXTRA_DIST = \
 	Makefile.lite

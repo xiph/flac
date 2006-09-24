@@ -93,6 +93,9 @@ Package=<4>
     Project_Dep_Name test_cuesheet
     End Project Dependency
     Begin Project Dependency
+    Project_Dep_Name test_picture
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name test_libFLAC
     End Project Dependency
     Begin Project Dependency
@@ -172,6 +175,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name test_cuesheet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name test_picture
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name test_libFLAC
@@ -490,6 +496,21 @@ Package=<4>
 ###############################################################################
 
 Project: "test_cuesheet"=.\src\test_grabbag\cuesheet\test_cuesheet.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name grabbag_static
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "test_picture"=.\src\test_grabbag\cuesheet\test_picture.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

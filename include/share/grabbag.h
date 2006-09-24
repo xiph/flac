@@ -22,6 +22,7 @@
 /* These can't be included by themselves, only from within grabbag.h */
 #include "grabbag/cuesheet.h"
 #include "grabbag/file.h"
+#include "grabbag/picture.h"
 #include "grabbag/replaygain.h"
 #include "grabbag/seektable.h"
 

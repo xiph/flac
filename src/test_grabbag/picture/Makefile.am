@@ -1,5 +1,5 @@
-#  test_grabbag - Simple testers for the grabbag library
-#  Copyright (C) 2002,2003,2004,2005,2006  Josh Coalson
+#  test_picture - Simple tester for cuesheet routines in grabbag
+#  Copyright (C) 2006  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -15,26 +15,16 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-.PHONY: cuesheet picture
-all: cuesheet picture
+EXTRA_DIST = \
+	Makefile.lite \
+	test_picture.dsp
 
-DEFAULT_CONFIG = release
+noinst_PROGRAMS = test_picture
+test_picture_SOURCES = \
+	main.c
+test_picture_LDADD = \
+	$(top_builddir)/src/share/grabbag/libgrabbag.la \
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	-lm
 
-CONFIG = $(DEFAULT_CONFIG)
-
-debug   : CONFIG = debug
-valgrind: CONFIG = valgrind
-release : CONFIG = release
-
-debug   : all
-valgrind: all
-release : all
-
-cuesheet:
-	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
-picture:
-	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
-
-clean:
-	-(cd cuesheet ; $(MAKE) -f Makefile.lite clean)
-	-(cd picture ; $(MAKE) -f Makefile.lite clean)
+CLEANFILES = $(wildcard *.raw)
