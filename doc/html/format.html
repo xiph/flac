@@ -94,6 +94,7 @@
 													</li>
 												</ul>
 											</li>
+											<li><a href="#metadata_block_picture">METADATA_BLOCK_PICTURE</a></li>
 										</ul>
 									</li>
 								</ul>
@@ -266,6 +267,7 @@
 					<li><a name="def_SEEKTABLE" /><b>SEEKTABLE</b>: This is an optional block for storing seek points.  It is possible to seek to any given sample in a FLAC stream without a seek table, but the delay can be unpredictable since the bitrate may vary widely within a stream.  By adding seek points to a stream, this delay can be significantly reduced.  Each seek point takes 18 bytes, so 1% resolution within a stream adds less than 2k.  There can be only one SEEKTABLE in a stream, but the table can have any number of seek points.  There is also a special 'placeholder' seekpoint which will be ignored by decoders but which can be used to reserve space for future seek point insertion.</li>
 					<li><a name="def_VORBIS_COMMENT" /><b>VORBIS_COMMENT</b>: This block is for storing a list of human-readable name/value pairs.  Values are encoded using UTF-8.  It is an implementation of the <a href="http://xiph.org/ogg/vorbis/doc/v-comment.html">Vorbis comment specification</a>.  This is the only officially supported tagging mechanism in FLAC.  There may be only one VORBIS_COMMENT block in a stream.  In some external documentation, Vorbis comments are called FLAC tags to lessen confusion.</li>
 					<li><a name="def_CUESHEET" /><b>CUESHEET</b>: This block is for storing various information that can be used in a cue sheet.  It supports track and index points, compatible with Red Book CD digital audio discs, as well as other CD-DA metadata such as media catalog number and track ISRCs.  The CUESHEET block is especially useful for backing up CD-DA discs, but it can be used as a general purpose cueing mechanism for playback.</li>
+					<li><a name="def_PICTURE" /><b>PICTURE</b>: This block is for storing pictures associated with the file, most commonly cover art from CDs.  There may be more than one PICTURE block in a file.  The picture format is similar to the <a href="http://www.id3.org/id3v2.4.0-frames.txt">APIC frame in ID3v2</a>.  The PICTURE block has a type, MIME type, and UTF-8 description like ID3v2, and supports external linking via URL (though this is discouraged).  The differences are that there is no uniqueness constraint on the description field, and the MIME type is mandatory.  The FLAC PICTURE block also includes the resolution, color depth, and palette size so that the client can search for a suitable picture without having to scan them all.</li>
 				</ul>
 			</li>
 			<li>
@@ -424,7 +426,10 @@
 					<tt>5</tt> : CUESHEET
 				</li>
 				<li>
-					<tt>6-126</tt> : reserved
+					<tt>6</tt> : PICTURE
+				</li>
+				<li>
+					<tt>7-126</tt> : reserved
 				</li>
 				<li>
 					<tt>127</tt> : invalid, to avoid confusion with a frame sync code
@@ -461,7 +466,8 @@
 				|| <a href="#metadata_block_application"><i>METADATA_BLOCK_APPLICATION</i></a><br />
 				|| <a href="#metadata_block_seektable"><i>METADATA_BLOCK_SEEKTABLE</i></a><br />
 				|| <a href="#metadata_block_vorbis_comment"><i>METADATA_BLOCK_VORBIS_COMMENT</i></a><br />
-				|| <a href="#metadata_block_cuesheet"><i>METADATA_BLOCK_CUESHEET</i></a>
+				|| <a href="#metadata_block_cuesheet"><i>METADATA_BLOCK_CUESHEET</i></a><br />
+				|| <a href="#metadata_block_picture"><i>METADATA_BLOCK_PICTURE</i></a>
 			</td>
 			<td>
 				The block data must match the block type in the block header.
@@ -908,6 +914,132 @@
 			</td>
 			<td>
 				Reserved.  All bits must be set to zero.
+			</td>
+		</tr>
+	</table>
+	</td></tr></table>
+</div>
+
+<br />
+
+<div class="box">
+	<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+	<table width="100%" border="1">
+		<tr>
+			<td colspan="2" bgcolor="#D3D4C5">
+				<a name="metadata_block_picture"><font size="+1"><b>METADATA_BLOCK_PICTURE</b></font></a>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;32&gt;
+			</td>
+			<td>
+				The picture type according to the ID3v2 APIC frame:<br />
+				<ul>
+					<li>0 - Other</li>
+					<li>1 - 32x32 pixels 'file icon' (PNG only)</li>
+					<li>2 - Other file icon</li>
+					<li>3 - Cover (front)</li>
+					<li>4 - Cover (back)</li>
+					<li>5 - Leaflet page</li>
+					<li>6 - Media (e.g. label side of CD)</li>
+					<li>7 - Lead artist/lead performer/soloist</li>
+					<li>8 - Artist/performer</li>
+					<li>9 - Conductor</li>
+					<li>10 - Band/Orchestra</li>
+					<li>11 - Composer</li>
+					<li>12 - Lyricist/text writer</li>
+					<li>13 - Recording Location</li>
+					<li>14 - During recording</li>
+					<li>15 - During performance</li>
+					<li>16 - Movie/video screen capture</li>
+					<li>17 - A bright coloured fish</li>
+					<li>18 - Illustration</li>
+					<li>19 - Band/artist logotype</li>
+					<li>20 - Publisher/Studio logotype</li>
+				</ul>
+				Others are reserved and should not be used.  There may only be one each of picture type 1 and 2 in a file.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;32&gt;
+			</td>
+			<td>
+				The length of the MIME type string in bytes.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;n*8&gt;
+			</td>
+			<td>
+				The MIME type string, in printable ASCII characters 0x20-0x7e.  The MIME type may also be <tt>--&gt;</tt> to signify that the data part is a URL of the picture instead of the picture data itself.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;32&gt;
+			</td>
+			<td>
+				The length of the description string in bytes.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;n*8&gt;
+			</td>
+			<td>
+				The description of the picture, in UTF-8.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;32&gt;
+			</td>
+			<td>
+				The width of the picture in pixels.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;32&gt;
+			</td>
+			<td>
+				The height of the picture in pixels.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;32&gt;
+			</td>
+			<td>
+				The color depth of the picture in bits-per-pixel.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;32&gt;
+			</td>
+			<td>
+				For indexed-color pictures (e.g. GIF), the number of colors used, or <tt>0</tt> for non-indexed pictures.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;32&gt;
+			</td>
+			<td>
+				The length of the picture data in bytes.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;n*8&gt;
+			</td>
+			<td>
+				The binary picture data.
 			</td>
 		</tr>
 	</table>
