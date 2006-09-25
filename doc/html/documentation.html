@@ -531,6 +531,47 @@
 			</tr>
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_picture" />
+					<span class="argument">--picture=SPECIFICATION</span>
+				</td>
+				<td>
+					Import a picture and store it in a <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block.  More than one <span class="argument">--picture</span> command can be specified.  The <span class="argument">SPECIFICATION</span> is a string whose parts are separated by <span class="argument">|</span> (pipe) characters.  Some parts may be left empty to invoke default values.  The format of <span class="argument">SPECIFICATION</span> is<br /><br />
+					<tt>&nbsp;&nbsp;[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE</tt><br /><br />
+					<span class="argument">TYPE</span> is optional; it is a number from one of:<br />
+					<tt><ul>
+						<li>0: Other</li>
+						<li>1: 32x32 pixels 'file icon' (PNG only)</li>
+						<li>2: Other file icon</li>
+						<li>3: Cover (front)</li>
+						<li>4: Cover (back)</li>
+						<li>5: Leaflet page</li>
+						<li>6: Media (e.g. label side of CD)</li>
+						<li>7: Lead artist/lead performer/soloist</li>
+						<li>8: Artist/performer</li>
+						<li>9: Conductor</li>
+						<li>10: Band/Orchestra</li>
+						<li>11: Composer</li>
+						<li>12: Lyricist/text writer</li>
+						<li>13: Recording Location</li>
+						<li>14: During recording</li>
+						<li>15: During performance</li>
+						<li>16: Movie/video screen capture</li>
+						<li>17: A bright coloured fish</li>
+						<li>18: Illustration</li>
+						<li>19: Band/artist logotype</li>
+						<li>20: Publisher/Studio logotype</li>
+					</ul></tt>
+					The default is 3 (front cover).  There may only be one picture each of type 1 and 2 in a file.<br/><br />
+					<span class="argument">MIME-TYPE</span> is mandatory; for best compatibility with players, use pictures with MIME type <tt>image/jpeg</tt> or <tt>image/png</tt>.  The MIME type can also be --&gt; to mean that <span class="argument">FILE</span> is actually a URL to an image, though this use is discouraged.<br /><br />
+					<span class="argument">DESCRIPTION</span> is optional; the default is an empty string.<br /><br />
+					The next part specfies the resolution and color information.  If the <span class="argument">MIME-TYPE</span> is <tt>image/jpeg</tt>, <tt>image/png</tt>, or <tt>image/gif</tt>, you can usually leave this empty and they can be detected from the file.  Otherwise, you must specify the width in pixels, height in pixels, and color depth in bits-per-pixel.  If the image has indexed colors you should also specify the number of colors used.  When manually specified, it is not checked against the file for accuracy.<br /><br />
+					<span class="argument">FILE</span> is the path to the picture file to be imported, or the URL if MIME type is --&gt;<br /><br />
+					For example, the specification <span class="argument">|image/jpeg|||../cover.jpg</span> will embed the JPEG file at <tt>../cover.jpg</tt>, defaulting to type 3 (front cover) and an empty description.  The resolution and color info will be retrieved from the file itself.<br /><br />
+					The specification <span class="argument">4|--&gt;|CD|320x300x24/173|http://blah.blah/backcover.tiff</span> will embed the given URL, with type 4 (back cover), description "CD", and a manually specified resolution of 320x300, 24 bits-per-pixel, and 173 colors.  The file at the URL will not be fetched; the URL itself is stored in the PICTURE metadata block.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_sector_align" />
 					<span class="argument">--sector-align</span>
 				</td>
