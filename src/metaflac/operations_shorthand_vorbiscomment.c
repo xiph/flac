@@ -33,8 +33,8 @@ static FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *bloc
 static FLAC__bool remove_vc_field(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_firstfield(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw);
-static FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_Filename *vc_filename, FLAC__bool *needs_write, FLAC__bool raw);
-static FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_Filename *vc_filename, FLAC__bool raw);
+static FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool *needs_write, FLAC__bool raw);
+static FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool raw);
 
 FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw)
 {
@@ -280,7 +280,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 	}
 }
 
-FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_Filename *vc_filename, FLAC__bool *needs_write, FLAC__bool raw)
+FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool *needs_write, FLAC__bool raw)
 {
 	FILE *f;
 	char line[65536];
@@ -338,7 +338,7 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 	return ret;
 }
 
-FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_Filename *vc_filename, FLAC__bool raw)
+FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool raw)
 {
 	FILE *f;
 	FLAC__bool ret;

@@ -101,6 +101,10 @@ SOURCE=.\operations_shorthand_cuesheet.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\operations_shorthand_picture.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\operations_shorthand_seektable.c
 # End Source File
 # Begin Source File

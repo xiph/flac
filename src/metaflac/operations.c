@@ -58,6 +58,9 @@ extern FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, F
 /* from operations_shorthand_cuesheet.c */
 extern FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
 
+/* from operations_shorthand_picture.c */
+extern FLAC__bool do_shorthand_operation__picture(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
+
 
 FLAC__bool do_operations(const CommandLineOptions *options)
 {
@@ -355,6 +358,9 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 		case OP__IMPORT_CUESHEET_FROM:
 		case OP__EXPORT_CUESHEET_TO:
 			ok = do_shorthand_operation__cuesheet(filename, chain, operation, needs_write);
+			break;
+		case OP__IMPORT_PICTURE:
+			ok = do_shorthand_operation__picture(filename, chain, operation, needs_write);
 			break;
 		case OP__ADD_SEEKPOINT:
 			ok = do_shorthand_operation__add_seekpoints(filename, chain, operation->argument.add_seekpoint.specification, needs_write);

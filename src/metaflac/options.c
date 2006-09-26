@@ -80,6 +80,7 @@ struct share__option long_options_[] = {
 	{ "export-vc-to", 1, 0, 0 }, /* deprecated */
 	{ "import-cuesheet-from", 1, 0, 0 },
 	{ "export-cuesheet-to", 1, 0, 0 },
+	{ "import-picture", 1, 0, 0 },
 	{ "add-seekpoint", 1, 0, 0 },
 	{ "add-replay-gain", 0, 0, 0 },
 	{ "remove-replay-gain", 0, 0, 0 },
@@ -113,7 +114,7 @@ static Argument *append_argument(CommandLineOptions *options, ArgumentType type)
 static FLAC__bool parse_md5(const char *src, FLAC__byte dest[16]);
 static FLAC__bool parse_uint32(const char *src, FLAC__uint32 *dest);
 static FLAC__bool parse_uint64(const char *src, FLAC__uint64 *dest);
-static FLAC__bool parse_filename(const char *src, char **dest);
+static FLAC__bool parse_string(const char *src, char **dest);
 static FLAC__bool parse_vorbis_comment_field_name(const char *field_ref, char **name, const char **violation);
 static FLAC__bool parse_add_seekpoint(const char *in, char **out, const char **violation);
 static FLAC__bool parse_add_padding(const char *in, unsigned *out);
@@ -273,6 +274,10 @@ void free_options(CommandLineOptions *options)
 			case OP__IMPORT_CUESHEET_FROM:
 				if(0 != op->argument.import_cuesheet_from.filename)
 					free(op->argument.import_cuesheet_from.filename);
+				break;
+			case OP__IMPORT_PICTURE:
+				if(0 != op->argument.specification.value)
+					free(op->argument.specification.value);
 				break;
 			case OP__ADD_SEEKPOINT:
 				if(0 != op->argument.add_seekpoint.specification)
@@ -531,7 +536,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --import-tags-from\n", opt);
 		op = append_shorthand_operation(options, OP__IMPORT_VC_FROM);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_filename(option_argument, &(op->argument.filename.value))) {
+		if(!parse_string(option_argument, &(op->argument.filename.value))) {
 			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
 			ok = false;
 		}
@@ -541,7 +546,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --export-tags-to\n", opt);
 		op = append_shorthand_operation(options, OP__EXPORT_VC_TO);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_filename(option_argument, &(op->argument.filename.value))) {
+		if(!parse_string(option_argument, &(op->argument.filename.value))) {
 			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
 			ok = false;
 		}
@@ -553,7 +558,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		}
 		op = append_shorthand_operation(options, OP__IMPORT_CUESHEET_FROM);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_filename(option_argument, &(op->argument.import_cuesheet_from.filename))) {
+		if(!parse_string(option_argument, &(op->argument.import_cuesheet_from.filename))) {
 			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
 			ok = false;
 		}
@@ -561,8 +566,16 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	else if(0 == strcmp(opt, "export-cuesheet-to")) {
 		op = append_shorthand_operation(options, OP__EXPORT_CUESHEET_TO);
 		FLAC__ASSERT(0 != option_argument);
-		if(!parse_filename(option_argument, &(op->argument.filename.value))) {
+		if(!parse_string(option_argument, &(op->argument.filename.value))) {
 			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
+			ok = false;
+		}
+	}
+	else if(0 == strcmp(opt, "import-picture")) {
+		op = append_shorthand_operation(options, OP__IMPORT_PICTURE);
+		FLAC__ASSERT(0 != option_argument);
+		if(!parse_string(option_argument, &(op->argument.specification.value))) {
+			fprintf(stderr, "ERROR (--%s): missing specification\n", opt);
 			ok = false;
 		}
 	}
@@ -829,7 +842,7 @@ FLAC__bool parse_uint64(const char *src, FLAC__uint64 *dest)
 	return true;
 }
 
-FLAC__bool parse_filename(const char *src, char **dest)
+FLAC__bool parse_string(const char *src, char **dest)
 {
 	if(0 == src || strlen(src) == 0)
 		return false;
@@ -1023,6 +1036,9 @@ FLAC__bool parse_block_type(const char *in, Argument_BlockType *out)
 		}
 		else if(0 == strcmp(q, "CUESHEET")) {
 			out->entries[entry++].type = FLAC__METADATA_TYPE_CUESHEET;
+		}
+		else if(0 == strcmp(q, "PICTURE")) {
+			out->entries[entry++].type = FLAC__METADATA_TYPE_PICTURE;
 		}
 		else {
 			free(s);

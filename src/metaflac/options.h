@@ -60,6 +60,7 @@ typedef enum {
 	OP__EXPORT_VC_TO,
 	OP__IMPORT_CUESHEET_FROM,
 	OP__EXPORT_CUESHEET_TO,
+	OP__IMPORT_PICTURE,
 	OP__ADD_SEEKPOINT,
 	OP__ADD_REPLAY_GAIN,
 	OP__ADD_PADDING,
@@ -106,7 +107,7 @@ typedef struct {
 
 typedef struct {
 	char *value;
-} Argument_Filename;
+} Argument_String;
 
 typedef struct {
 	unsigned num_entries;
@@ -153,7 +154,8 @@ typedef struct {
 		Argument_StreaminfoUInt64 streaminfo_uint64;
 		Argument_VcFieldName vc_field_name;
 		Argument_VcField vc_field;
-		Argument_Filename filename;
+		Argument_String filename;
+		Argument_String specification;
 		Argument_ImportCuesheetFrom import_cuesheet_from;
 		Argument_AddSeekpoint add_seekpoint;
 		Argument_AddPadding add_padding;

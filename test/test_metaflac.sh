@@ -110,7 +110,11 @@ filter ()
 	# minor danger, changing vendor strings will change the length of the
 	# VORBIS_COMMENT block, but if we add "^  length: " to the patterns,
 	# we lose info about PADDING size that we need
-	grep -Ev '^  vendor string: |^  m..imum .....size: ' | sed -e 's/, stream_offset.*//'
+	# grep pattern 1: remove vendor string
+	# grep pattern 2: remove minimum/maximum frame and block size from STREAMINFO
+	# grep pattern 3: remove hexdump data from PICTURE metadata blocks
+	# sed pattern 1: remove stream offset values from SEEKTABLE points
+	grep -Ev '^  vendor string: |^  m..imum .....size: |^    0000[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]: ' | sed -e 's/, stream_offset.*//'
 }
 metaflac_test ()
 {
@@ -289,6 +293,7 @@ run_metaflac --remove-replay-gain $flacfile
 check_flac
 metaflac_test case42 "--remove-replay-gain" "--list"
 
+# CUESHEET blocks
 cs_in=cuesheets/good.000.cue
 cs_out=metaflac.cue
 cs_out2=metaflac2.cue
@@ -309,6 +314,55 @@ echo identical
 
 rm -f $cs_out $cs_out2
 
+# PICTURE blocks
+ncase=46
+for f in \
+	0.gif \
+	1.gif \
+	2.gif \
+; do
+	run_metaflac --import-picture="|image/gif|$f||pictures/$f" $flacfile
+	check_flac
+	metaflac_test "case$ncase" "--import-picture" "--list"
+	ncase=`expr $ncase + 1`
+done
+for f in \
+	0.jpg \
+	4.jpg \
+; do
+	run_metaflac --import-picture="4|image/jpeg|$f||pictures/$f" $flacfile
+	check_flac
+	metaflac_test "case$ncase" "--import-picture" "--list"
+	ncase=`expr $ncase + 1`
+done
+for f in \
+	0.png \
+	1.png \
+	2.png \
+	3.png \
+	4.png \
+	5.png \
+	6.png \
+	7.png \
+	8.png \
+; do
+	run_metaflac --import-picture="5|image/png|$f||pictures/$f" $flacfile
+	check_flac
+	metaflac_test "case$ncase" "--import-picture" "--list"
+	ncase=`expr $ncase + 1`
+done
+[ $ncase == 60 ] || die "expected case# to be 60"
+run_metaflac --remove --block-type=PICTURE $flacfile
+check_flac
+metaflac_test case60 "--remove --block-type=PICTURE" "--list"
+run_metaflac --import-picture="1|image/png|standard_icon|32x32x24|pictures/0.png" $flacfile
+check_flac
+metaflac_test case61 "--import-picture" "--list"
+run_metaflac --import-picture="2|image/png|icon|64x64x24|pictures/1.png" $flacfile
+check_flac
+metaflac_test case62 "--import-picture" "--list"
+
+# UNKNOWN blocks
 echo -n "Testing FLAC file with unknown metadata... "
 cp -p metaflac.flac.in $flacfile
 # remove the VORBIS_COMMENT block so vendor string changes don't interfere with the comparison:
@@ -316,6 +370,6 @@ run_metaflac --remove --block-type=VORBIS_COMMENT --dont-use-padding $flacfile
 cmp $flacfile metaflac.flac.ok || die "ERROR, $flacfile and metaflac.flac.ok differ"
 echo OK
 
-rm -f out.flac out.meta
+rm -f $testdir/out.flac $testdir/out.meta
 
 exit 0

@@ -301,6 +301,48 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
+	<term><option>--import-picture</option>=<replaceable>SPECIFICATION</replaceable></term>
+	<listitem>
+	  <para>Import a picture and store it in a PICTURE metadata block.  More than one --import-picture command can be specified.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  The format of SPECIFICATION is</para>
+	  <para>[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE</para>
+	  <para>TYPE is optional; it is a number from one of:</para>
+	  <para>0: Other</para>
+	  <para>1: 32x32 pixels 'file icon' (PNG only)</para>
+	  <para>2: Other file icon</para>
+	  <para>3: Cover (front)</para>
+	  <para>4: Cover (back)</para>
+	  <para>5: Leaflet page</para>
+	  <para>6: Media (e.g. label side of CD)</para>
+	  <para>7: Lead artist/lead performer/soloist</para>
+	  <para>8: Artist/performer</para>
+	  <para>9: Conductor</para>
+	  <para>10: Band/Orchestra</para>
+	  <para>11: Composer</para>
+	  <para>12: Lyricist/text writer</para>
+	  <para>13: Recording Location</para>
+	  <para>14: During recording</para>
+	  <para>15: During performance</para>
+	  <para>16: Movie/video screen capture</para>
+	  <para>17: A bright coloured fish</para>
+	  <para>18: Illustration</para>
+	  <para>19: Band/artist logotype</para>
+	  <para>20: Publisher/Studio logotype</para>
+	  <para>The default is 3 (front cover).  There may only be one picture each of type 1 and 2 in a file.</para>
+
+	  <para>MIME-TYPE is mandatory; for best compatibility with players, use pictures with MIME type image/jpeg or image/png.  The MIME type can also be --&gt; to mean that FILE is actually a URL to an image, though this use is discouraged.</para>
+
+	  <para>DESCRIPTION is optional; the default is an empty string.</para>
+
+	  <para>The next part specfies the resolution and color information.  If the MIME-TYPE is image/jpeg, image/png, or image/gif, you can usually leave this empty and they can be detected from the file.  Otherwise, you must specify the width in pixels, height in pixels, and color depth in bits-per-pixel.  If the image has indexed colors you should also specify the number of colors used.  When manually specified, it is not checked against the file for accuracy.</para>
+
+	  <para>FILE is the path to the picture file to be imported, or the URL if MIME type is --&gt;</para>
+
+	  <para>For example, "|image/jpeg|||../cover.jpg" will embed the JPEG file at ../cover.jpg, defaulting to type 3 (front cover) and an empty description.  The resolution and color info will be retrieved from the file itself.</para>
+
+	  <para>The specification "4|-->|CD|320x300x24/173|http://blah.blah/backcover.tiff" will embed the given URL, with type 4 (back cover), description "CD", and a manually specified resolution of 320x300, 24 bits-per-pixel, and 173 colors.  The file at the URL will not be fetched; the URL itself is stored in the PICTURE metadata block.</para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
 	<term><option>--add-replay-gain</option></term>
         <listitem>
 	  <para>
