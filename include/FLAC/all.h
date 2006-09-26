@@ -151,6 +151,27 @@
  * This module describes differences in the library interfaces from
  * version to version.  It assists in the porting of code that uses
  * the libraries to newer versions of FLAC.
+ *
+ * One simple facility for making porting easier that has been added
+ * in FLAC 1.1.3 is a set of \c #defines in \c export.h of each
+ * library's includes (e.g. \c include/FLAC/export.h).  The
+ * \c #defines mirror the libraries'
+ * <A HREF="http://www.gnu.org/software/libtool/manual.html#Libtool-versioning">libtool version numbers</A>,
+ * e.g. in libFLAC there are \c FLAC_API_VERSION_CURRENT,
+ * \c FLAC_API_VERSION_REVISION, and \c FLAC_API_VERSION_AGE.
+ * These can be used to support multiple versions of an API during the
+ * transition phase, e.g.
+ *
+ * \code
+ * #if !defined(FLAC_API_VERSION_CURRENT) || FLAC_API_VERSION_CURRENT <= 7
+ *   legacy code
+ * #else
+ *   new code
+ * #endif
+ * \endcode
+ *
+ * The the source will work for multiple versions and the legacy code can
+ * easily be removed when the transition is complete.
  */
 
 /** \defgroup porting_1_1_2_to_1_1_3 Porting from FLAC 1.1.2 to 1.1.3
