@@ -42,8 +42,12 @@
 #else
 #define FLAC_API	_declspec(dllimport)
 
-/* every time the libFLAC API changes in any way, this number will be incremented */
-#define FLAC_API_NUMBER 10
+/* These #defines will mirror the libtool-based library version number, see
+ * http://www.gnu.org/software/libtool/manual.html#Libtool-versioning
+ */
+#define FLAC_API_VERSION_CURRENT 7
+#define FLAC_API_VERSION_REVISION 0
+#define FLAC_API_VERSION_AGE 0
 
 #endif
 #endif
