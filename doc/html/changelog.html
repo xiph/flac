@@ -76,7 +76,7 @@
 			<li>
 				FLAC format:
 				<ul>
-					<li>(none)</li>
+					<li>New <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block for storing things like cover art</li>
 				</ul>
 			</li>
 			<li>
@@ -91,6 +91,7 @@
 					<li>Improved the <a href="documentation.html#flac_options_decode_through_errors"><span class="argument">-F</span></a> to allow decoding of FLAC files whose metadata is corrupted, and other kinds of corruption.</li>
 					<li>Encoder can now take FLAC as input.  The output FLAC file will have all the same metadata as the original unless overridden with options on the command line.</li>
 					<li>Added a new option <a href="documentation.html#flac_options_tag_from_file"><span class="argument">--tag-from-file</span></a> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
+					<li>Added a new option <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> for adding pictures.</li>
 					<li>Added support for encoding from non-compressed AIFF-C (<a href="https://sourceforge.net/tracker/?func=detail&amp;atid=113478&amp;aid=1090933&amp;group_id=13478">SF #1090933</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now only issues a warning, not an error (see <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=31282">here</a>).</li>
 					<li>MD5 comparison failures on decoding are now an error instead of a warning and will also return a non-zero exit code (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1493725&amp;group_id=13478&amp;atid=113478">SF #1493725</a>).</li>
@@ -105,6 +106,7 @@
 				metaflac:
 				<ul>
 					<li>Added a new option <a href="documentation.html#metaflac_shorthand_set_tag_from_file"><span class="argument">--set-tag-from-file</span></a> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
+					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture">--import-picture</a></span> for importing pictures.</li>
 					<li>Added shorthand operation <a href="documentation.html#metaflac_shorthand_remove_replay_gain"><span class="argument">--remove-replay-gain</span></a> for removing ReplayGain tags.</li>
 					<li><a href="documentation.html#metaflac_shorthand_export_cuesheet_to"><span class="argument">--export-cuesheet-to</span></a> now properly specifies the FLAC file name (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1272825&amp;group_id=13478&amp;atid=363478">SF #1272825</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now issues a warning.</li>
@@ -152,6 +154,7 @@
 							<li><b>Added</b> FLAC__stream_encoder_set_apodization()</li>
 							<li><b>Added</b> FLAC__metadata_object_cuesheet_calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC__metadata_get_cuesheet()</li>
+							<li><b>Added</b> FLAC__metadata_get_picture()</li>
 							<li><b>Changed</b> FLAC__StreamDecoderState: removed state FLAC__STREAM_DECODER_UNPARSEABLE_STREAM</li>
 							<li><b>Changed</b> FLAC__StreamDecoderErrorStatus: new error code FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM</li>
 							<li>The above two changes mean that when the decoder encounters what it thinks are unparseable frames from a future decoder, instead of returning a fatal error with the FLAC__STREAM_DECODER_UNPARSEABLE_STREAM state, it just calls the error callback with FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM and leaves the behavior up to the application.</li>
@@ -160,9 +163,11 @@
 					<li>
 						libFLAC++:
 						<ul>
+							<li><b>Added</b> FLAC::Metadata::Picture</li>
 							<li><b>Added</b> FLAC::Encoder::Stream::set_apodization()</li>
 							<li><b>Added</b> FLAC::Metadata::CueSheet::calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC::Metadata::get_cuesheet()</li>
+							<li><b>Added</b> FLAC::Metadata::get_picture()</li>
 						</ul>
 					</li>
 					<li>
@@ -171,6 +176,7 @@
 							<li><b>Added</b> OggFLAC__stream_encoder_set_apodization()</li>
 							<li><b>Added</b> OggFLAC__metadata_object_cuesheet_calculate_cddb_id()</li>
 							<li><b>Added</b> OggFLAC__metadata_get_cuesheet()</li>
+							<li><b>Added</b> OggFLAC__metadata_get_picture()</li>
 						</ul>
 					</li>
 					<li>
@@ -179,6 +185,7 @@
 							<li><b>Added</b> OggFLAC::Encoder::Stream::set_apodization()</li>
 							<li><b>Added</b> OggFLAC::Metadata::CueSheet::calculate_cddb_id()</li>
 							<li><b>Added</b> OggFLAC::Metadata::get_cuesheet()</li>
+							<li><b>Added</b> OggFLAC::Metadata::get_picture()</li>
 						</ul>
 					</li>
 				</ul>
