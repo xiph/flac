@@ -70,14 +70,6 @@ struct share__option long_options_[] = {
 	{ "set-tag-from-file", 1, 0, 0 }, 
 	{ "import-tags-from", 1, 0, 0 }, 
 	{ "export-tags-to", 1, 0, 0 }, 
-	{ "show-vc-vendor", 0, 0, 0 }, /* deprecated */
-	{ "show-vc-field", 1, 0, 0 }, /* deprecated */
-	{ "remove-vc-all", 0, 0, 0 }, /* deprecated */
-	{ "remove-vc-field", 1, 0, 0 }, /* deprecated */
-	{ "remove-vc-firstfield", 1, 0, 0 }, /* deprecated */
-	{ "set-vc-field", 1, 0, 0 }, /* deprecated */
-	{ "import-vc-from", 1, 0, 0 }, /* deprecated */
-	{ "export-vc-to", 1, 0, 0 }, /* deprecated */
 	{ "import-cuesheet-from", 1, 0, 0 },
 	{ "export-cuesheet-to", 1, 0, 0 },
 	{ "import-picture", 1, 0, 0 },
@@ -461,15 +453,11 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		else
 			undocumented_warning(opt);
 	}
-	else if(0 == strcmp(opt, "show-vendor-tag") || 0 == strcmp(opt, "show-vc-vendor")) {
-		if(0 == strcmp(opt, "show-vc-vendor"))
-			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --show-vendor-tag\n", opt);
+	else if(0 == strcmp(opt, "show-vendor-tag")) {
 		(void) append_shorthand_operation(options, OP__SHOW_VC_VENDOR);
 	}
-	else if(0 == strcmp(opt, "show-tag") || 0 == strcmp(opt, "show-vc-field")) {
+	else if(0 == strcmp(opt, "show-tag")) {
 		const char *violation;
-		if(0 == strcmp(opt, "show-vc-field"))
-			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --show-tag\n", opt);
 		op = append_shorthand_operation(options, OP__SHOW_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_vorbis_comment_field_name(option_argument, &(op->argument.vc_field_name.value), &violation)) {
@@ -478,15 +466,11 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-	else if(0 == strcmp(opt, "remove-all-tags") || 0 == strcmp(opt, "remove-vc-all")) {
-		if(0 == strcmp(opt, "remove-vc-all"))
-			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --remove-all-tags\n", opt);
+	else if(0 == strcmp(opt, "remove-all-tags")) {
 		(void) append_shorthand_operation(options, OP__REMOVE_VC_ALL);
 	}
-	else if(0 == strcmp(opt, "remove-tag") || 0 == strcmp(opt, "remove-vc-field")) {
+	else if(0 == strcmp(opt, "remove-tag")) {
 		const char *violation;
-		if(0 == strcmp(opt, "remove-vc-field"))
-			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --remove-tag\n", opt);
 		op = append_shorthand_operation(options, OP__REMOVE_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_vorbis_comment_field_name(option_argument, &(op->argument.vc_field_name.value), &violation)) {
@@ -495,10 +479,8 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-	else if(0 == strcmp(opt, "remove-first-tag") || 0 == strcmp(opt, "remove-vc-firstfield")) {
+	else if(0 == strcmp(opt, "remove-first-tag")) {
 		const char *violation;
-		if(0 == strcmp(opt, "remove-vc-firstfield"))
-			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --remove-first-tag\n", opt);
 		op = append_shorthand_operation(options, OP__REMOVE_VC_FIRSTFIELD);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_vorbis_comment_field_name(option_argument, &(op->argument.vc_field_name.value), &violation)) {
@@ -507,10 +489,8 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-	else if(0 == strcmp(opt, "set-tag") || 0 == strcmp(opt, "set-vc-field")) {
+	else if(0 == strcmp(opt, "set-tag")) {
 		const char *violation;
-		if(0 == strcmp(opt, "set-vc-field"))
-			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --set-tag\n", opt);
 		op = append_shorthand_operation(options, OP__SET_VC_FIELD);
 		FLAC__ASSERT(0 != option_argument);
 		op->argument.vc_field.field_value_from_file = false;
@@ -531,9 +511,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-	else if(0 == strcmp(opt, "import-tags-from") || 0 == strcmp(opt, "import-vc-from")) {
-		if(0 == strcmp(opt, "import-vc-from"))
-			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --import-tags-from\n", opt);
+	else if(0 == strcmp(opt, "import-tags-from")) {
 		op = append_shorthand_operation(options, OP__IMPORT_VC_FROM);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_string(option_argument, &(op->argument.filename.value))) {
@@ -541,9 +519,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-	else if(0 == strcmp(opt, "export-tags-to") || 0 == strcmp(opt, "export-vc-to")) {
-		if(0 == strcmp(opt, "export-vc-to"))
-			fprintf(stderr, "WARNING: --%s is deprecated, the new name is --export-tags-to\n", opt);
+	else if(0 == strcmp(opt, "export-tags-to")) {
 		op = append_shorthand_operation(options, OP__EXPORT_VC_TO);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_string(option_argument, &(op->argument.filename.value))) {

@@ -295,9 +295,6 @@ typedef enum {
 	FLAC__STREAM_ENCODER_INIT_STATUS_MID_SIDE_CHANNELS_MISMATCH,
 	/**< Mid/side coding was specified but the number of channels is not equal to 2. */
 
-	FLAC__STREAM_ENCODER_INIT_STATUS_MID_SIDE_SAMPLE_SIZE_MISMATCH,
-	/**< Deprecated. */
-
 	FLAC__STREAM_ENCODER_INIT_STATUS_ILLEGAL_MID_SIDE_FORCE,
 	/**< Loose mid/side coding was specified but mid/side coding was not. */
 

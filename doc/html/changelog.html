@@ -110,6 +110,18 @@
 					<li>Added shorthand operation <a href="documentation.html#metaflac_shorthand_remove_replay_gain"><span class="argument">--remove-replay-gain</span></a> for removing ReplayGain tags.</li>
 					<li><a href="documentation.html#metaflac_shorthand_export_cuesheet_to"><span class="argument">--export-cuesheet-to</span></a> now properly specifies the FLAC file name (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1272825&amp;group_id=13478&amp;atid=363478">SF #1272825</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now issues a warning.</li>
+					<li>Removed the following deprecated tag editing options; you should use the new option names shown instead:
+						<ul>
+							<li>Removed <span class="argument">--show-vc-vendor</span>; use <span class="argument">--show-vendor-tag</span></li>
+							<li>Removed <span class="argument">--show-vc-field</span>; use <span class="argument">--show-tag</span></li>
+							<li>Removed <span class="argument">--remove-vc-all</span>; use <span class="argument">--remove-all-tags</span></li>
+							<li>Removed <span class="argument">--remove-vc-field</span>; use <span class="argument">--remove-tag</span></li>
+							<li>Removed <span class="argument">--remove-vc-firstfield</span>; use <span class="argument">--remove-first-tag</span></li>
+							<li>Removed <span class="argument">--set-vc-field</span>; use <span class="argument">--set-tag</span></li>
+							<li>Removed <span class="argument">--import-vc-from</span>; use <span class="argument">--import-tags-from</span></li>
+							<li>Removed <span class="argument">--export-vc-to</span>; use <span class="argument">--export-tags-to</span></li>
+						</ul>
+					</li>
 				</ul>
 			</li>
 			<li>
