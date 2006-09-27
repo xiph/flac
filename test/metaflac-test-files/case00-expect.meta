@@ -21,4 +21,4 @@ METADATA block #2
 METADATA block #3
   type: 1 (PADDING)
   is last: true
-  length: 4096
+  length: 8192

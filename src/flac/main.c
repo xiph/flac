@@ -1516,7 +1516,8 @@ void show_explain()
 	printf("                               of the 4 metadata block header bytes.  You can\n");
 	printf("                               force no PADDING block at all to be written with\n");
 	printf("                               --no-padding.  The encoder writes a PADDING\n");
-	printf("                               block of 4096 bytes by default.\n");
+	printf("                               block of 8192 bytes by default, or 65536 bytes\n");
+	printf("                               if the input audio is more than 20 minutes long.\n");
 	printf("  -b, --blocksize=#            Specify the blocksize in samples; the default is\n");
 	printf("                               1152 for -l 0, else 4608; must be one of 192,\n");
 	printf("                               576, 1152, 2304, 4608, 256, 512, 1024, 2048,\n");

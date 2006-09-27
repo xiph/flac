@@ -76,4 +76,4 @@ METADATA block #4
 METADATA block #5
   type: 1 (PADDING)
   is last: true
-  length: 4096
+  length: 8192
