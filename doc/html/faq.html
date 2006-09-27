@@ -65,6 +65,9 @@
 				<a href="#general__software"><b>What software support FLAC?</b></a>
 			</li>
 			<li>
+				<a href="#general__software_wmp"><b>How can I play FLAC in Windows Media Player?</b></a>
+			</li>
+			<li>
 				<a href="#general__hardware"><b>What hardware products support FLAC?</b></a>
 			</li>
 			<li>
@@ -78,6 +81,12 @@
 			</li>
 			<li>
 				<a href="#general__no_wave_metadata"><b>Why doesn't FLAC store all WAVE metadata?</b></a>
+			</li>
+			<li>
+				<a href="#general__not_wave_compressor"><b>If flac compresses WAVE files, why isn't it technically a WAVE file compressor?</b></a>
+			</li>
+			<li>
+				<a href="#general__no_riff_subchunks"><b>Why do some lossless comparisons say FLAC does not support RIFF chunks?</b></a>
 			</li>
 			<li>
 				<a href="#general__asymmetry"><b>Why do the encoder settings have a big effect on the encoding time but not the decoding time?</b></a>
@@ -116,6 +125,9 @@
 				<a href="#tools__long_meta_edits"><b>Why does it take so long to edit some FLAC files with metaflac?</b></a>
 			</li>
 			<li>
+				<a href="#tools__unicode_filenames_windows"><b>Why don't Unicode file names work with <span class="commandname">flac</span> on Windows?</b></a>
+			</li>
+			<li>
 				<a href="#tools__hardware_prob"><b>I compressed a file to FLAC with verify on, and flac said "Verify FAILED!"  Why?</b></a>
 			</li>
 			<li>
@@ -128,11 +140,17 @@
 				<a href="#tools__two_bytes_short"><b>I decoded a FLAC file and the WAVE is 2 bytes shorter than the original.  Why?</b></a>
 			</li>
 			<li>
-				<a href="#tools__not_streamable"><b>Why did I get "ERROR initializing encoder, state = 14:FLAC__STREAM_ENCODER_NOT_STREAMABLE"?</b></a>
+				<a href="#tools__not_streamable"><b>Why did I get "ERROR initializing encoder, state = FLAC__STREAM_ENCODER_NOT_STREAMABLE"?</b></a>
+			</li>
+			<li>
+				<a href="#tools__different_sizes"><b>Why doesn't the same file compressed on different machines with the same options yield the same FLAC file?</b></a>
 			</li>
 		</ul>
 		<b>API</b>
 		<ul>
+			<li>
+				<a href="#api__release_versioning"><b>Why does your API change for point releases?</b></a>
+			</li>
 			<li>
 				<a href="#api__frame_length"><b>How can I determine the encoded frame length?</b></a>
 			</li>
@@ -165,6 +183,10 @@
 		<br />
 		This list is so large now it is difficult to maintain and keep up-to-date.  For a partial list of open-source software that supports FLAC, see the <a href="links.html#software">software section</a> of the links page.  For a partial list of the most popular software used to encode, decode, play, tag, and rip FLAC files, see the <a href="download.html">download page</a>.<br />
 		<br />
+		<a name="general__software_wmp"><b>How can I play FLAC in Windows Media Player?</b></a><br />
+		<br />
+		See <a href="http://losslessaudio.blogspot.com/2005/12/media-center-edition-2005-with-flac.html">this guide</a>.<br />
+		<br />
 		<a name="general__hardware"><b>What hardware products support FLAC?</b></a><br />
 		<br />
 		See the <a href="links.html#hardware">hardware section</a> of the links page.<br />
@@ -194,12 +216,17 @@
 		Some players (for example Foobar2000) allow you to store the CDDB data as FLAC tags and can parse that.<br />
 		<br />
 		<a name="general__no_wave_metadata"><b>Why doesn't FLAC store all WAVE metadata?</b></a><br />
+		<a name="general__not_wave_compressor"><b>If flac compresses WAVE files, why isn't it technically a WAVE file compressor?</b></a><br />
 		<br />
 		FLAC is a general-purpose audio format, not just a compressed WAVE file format.  There's a subtle difference.  WAVE is a complicated standard; many kinds of data besides audio data can be put in it.  FLAC's purpose is not to reproduce a WAVE file, including all the non-audio data that is in it, it is to losslessly compress the audio.<br />
 		<br />
 		People have asked for that in FLAC, but if it were added, then what about similar formats like AIFF?  <span class="commandname">flac</span> can extract and compress audio data in an AIFF file also.  AIFF is widely used on the Mac.  AIFF users have asked that all AIFF metadata be stored for the same reasons.  And it doesn't end there, other uncompressed formats exist.<br />
 		<br />
-		Also, it would add a lot of complexity to FLAC because non-audio data has to go in the metadata section which is at the beginning of the FLAC file.  But in WAVE and AIFF it can go before or after the audio, so the encoding would have to make multiple passes and also store the chunk hierarchy to be able to reproduce it.<br />
+		Trying to exactly recreate the container data of other formats would actually make FLAC less useful as a general audio compressor.  But it is possible to hack this behavior into FLAC metadata using another program.<br />
+		<br />
+		<a name="general__no_riff_subchunks"><b>Why do some lossless comparisons say FLAC does not support RIFF chunks?</b></a><br />
+		<br />
+		FLAC supports the RIFF subchunks (technically the whole WAVE part is a chunk and the comparison is about subchunks of WAVE) that are used in the vast majority of WAVE files, including all canonical WAVE files that most tools output.  The comparison is talking about rarely-used subchunks that some editing tools use.  For the reason why, <a href="#general__no_wave_metadata">see above</a>.<br />
 		<br />
 		<a name="general__asymmetry"><b>Why do the encoder settings have a big effect on the encoding time but not the decoding time?</b></a><br />
 		<br />
@@ -256,6 +283,10 @@
 		<br />
 		Since metadata is stored at the beginning of a FLAC file, changing the length of it can sometimes cause the whole file to be rewritten.  You can avoid this by adding padding with <span class="commandname">flac</span> when you encode, or with <span class="commandname">metaflac</span> after encoding.  By default, <span class="commandname">flac</span> adds 4k of padding; you can change this amount if you need more or less.<br />
 		<br />
+		<a name="tools__unicode_filenames_windows"><b>Why don't Unicode file names work with <span class="commandname">flac</span> on Windows?</b></a><br />
+		<br />
+		Windows implements Unicode filenames differently than all other operating systems, and can only be supported via Windows APIs (non-portable).  Also the method is different for different versions of Windows.  It's so hard to get right that most programs that have to work for other operating systems also do not support it.  A workaround can be found <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=48131">here</a>.<br />
+		<br />
 		<a name="tools__hardware_prob"><b>I compressed a file to FLAC with verify on, and flac said "Verify FAILED!"  Why?</b></a><br />
 		<br />
 		Every single report of this has turned out to be caused by a hardware problem, usually aggressive over-clocking or bad RAM.  The best indicator of this is that the verify failure does not always happen in the same place for the same file.  First, read the comments in <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=595858&amp;group_id=13478&amp;atid=113478">this bug report</a>.  Then, if you have a file that fails verification in the same place every time, <a href="#project__submit_bug">submit a new bug</a>, uploading a sample according to <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=585158&amp;group_id=13478&amp;atid=113478">the instructions found at the bottom of this bug report</a>.<br />
@@ -265,22 +296,28 @@
 		<br />
 		WAVE is a complicated standard; many kinds of data besides audio data can be put in it.  Most likely what has happened is that the application that created the original WAVE file also added some extra information for it's own use, which FLAC does not store or recreate  <a href="#tools__two_bytes_short">(see also)</a>.  But the audio data in the two WAVE files will be identical.  There are other tools to compare just the audio content of two WAVE files; <a href="http://www.exactaudiocopy.de/">ExactAudioCopy</a> has such a feature.<br />
 		<br />
-		For the more technically inclined, FLAC only stores what is in the 'fmt ' and 'data' sub-chunks of a WAVE file.<br />
-		<br />
-		<a href="#general__no_wave_metadata">(see also)</a><br />
+		For the more technically inclined, FLAC only stores what is in the 'fmt ' and 'data' sub-chunks of a WAVE file.  <a href="#general__no_wave_metadata">(see also)</a><br />
 		<br />
 		<a name="tools__two_bytes_short"><b>I decoded a FLAC file and the WAVE is 2 bytes shorter than the original.  Why?</b></a><br />
 		<br />
 		The difference is probably that between an 18-byte 'fmt ' subchunk in the original WAVE vs. a 16-byte one in the decoded WAVE.  With WAVE there is more than one way to write identical formatting information, but FLAC always writes the most common form.  <a href="#tools__wave_flac_wave">(see also)</a><br />
 		<br />
-		<a name="tools__not_streamable"><b>Why did I get "ERROR initializing encoder, state = 14:FLAC__STREAM_ENCODER_NOT_STREAMABLE"?</b></a><br />
+		<a name="tools__not_streamable"><b>Why did I get "ERROR initializing encoder, state = FLAC__STREAM_ENCODER_NOT_STREAMABLE"?</b></a><br />
 		<br />
-		You specified encoding options that are outside the <a href="format.html#subset">Streamable subset</a>.  If that is what you really wanted, you must also use <span class="code">flac --lax</span>.
+		You specified encoding options that are outside the <a href="format.html#subset">Streamable subset</a>.  If that is what you really wanted, you must also use <span class="code">flac --lax</span>.<br />
+		<br />
+		<a name="tools__different_sizes"><b>Why doesn't the same file compressed on different machines with the same options yield the same FLAC file?</b></a><br />
+		<br />
+		It's not supposed to, and neither does it mean either encoding was bad.  There are many variations between different machines or even different builds of <span class="commandname">flac</span> on the same machine that can lead to small differences in the FLAC file, even if they have the exact same final size.  This is normal.
 
 		<h2>
 			<b>API</b>
 		</h2>
 
+		<a name="api__release_versioning"><b>Why does your API change for point releases?</b></a><br />
+		<br />
+		The FLAC release numbering scheme of MAJOR.MINOR.MICRO reflects the state of the FLAC format, not the API.  This is most intuitive for users, at the expense of flustering developers.  The shared library number (derived from the libtool current:revision:age number) is the indicator of binary API compatibility.  As of FLAC 1.1.3, the current, revision, and age numbers are also <tt>#define</tt>d in the library headers to make porting easier; see the <a href="api/group__porting.html">porting guide</a>.<br />
+		<br />
 		<a name="api__frame_length"><b>How can I determine the encoded frame length?</b></a><br />
 		<br />
 		With native FLAC, it is not possible to determine the frame length without decoding.  Probably if I had it all to do again I would have constrained the possible block sizes, which would have made it more practical to put the frame length in the frame header.  For an example of how to find the frame boundaries in a stream, see the source code to <span class="commandname">metaflac</span>, in the functionality that adds seek points.<br />
