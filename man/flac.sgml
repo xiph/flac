@@ -361,7 +361,7 @@
 	  <term><option>-P</option> <replaceable>#</replaceable>, <option>--padding</option>=<replaceable>#</replaceable></term>
 
 	  <listitem>
-	    <para>Tell the encoder to write a PADDING metadata block of the given length (in bytes) after the STREAMINFO block.  This is useful if you plan to tag the file later with an APPLICATION block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the PADDING block.  Note that the total length of the PADDING block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no PADDING block at all to be written with --no-padding.  The encoder writes a PADDING block of 4096 bytes by default.</para>
+	    <para>Tell the encoder to write a PADDING metadata block of the given length (in bytes) after the STREAMINFO block.  This is useful if you plan to tag the file later with an APPLICATION block; instead of having to rewrite the entire file later just to insert your block, you can write directly over the PADDING block.  Note that the total length of the PADDING block will be 4 bytes longer than the length given because of the 4 metadata block header bytes.  You can force no PADDING block at all to be written with --no-padding.  The encoder writes a PADDING block of 8192 bytes by default (or 65536 bytes if the input audio stream is more that 20 minutes long).</para>
 	  </listitem>
 	</varlistentry>
 

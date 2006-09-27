@@ -103,7 +103,7 @@ typedef struct {
 	FLAC__bool fatal_error;
 } FLACDecoderData;
 
-const int FLAC_ENCODE__DEFAULT_PADDING = 4096;
+const int FLAC_ENCODE__DEFAULT_PADDING = 8192;
 
 static FLAC__bool is_big_endian_host_;
 
@@ -1516,7 +1516,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			if(options.padding > 0)
 				p = options.padding;
 			if(p < 0)
-				p = FLAC_ENCODE__DEFAULT_PADDING;
+				p = e->total_samples_to_encode / e->sample_rate < 20*60? FLAC_ENCODE__DEFAULT_PADDING : FLAC_ENCODE__DEFAULT_PADDING*8;
 			if(options.padding != 0) {
 				if(p > 0 && flac_decoder_data->num_metadata_blocks < sizeof(flac_decoder_data->metadata_blocks)/sizeof(flac_decoder_data->metadata_blocks[0])) {
 					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
@@ -1684,7 +1684,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		if(options.padding != 0) {
 			padding.is_last = false; /* the encoder will set this for us */
 			padding.type = FLAC__METADATA_TYPE_PADDING;
-			padding.length = (unsigned)(options.padding>0? options.padding : FLAC_ENCODE__DEFAULT_PADDING);
+			padding.length = (unsigned)(options.padding>0? options.padding : (e->total_samples_to_encode / e->sample_rate < 20*60? FLAC_ENCODE__DEFAULT_PADDING : FLAC_ENCODE__DEFAULT_PADDING*8));
 			metadata[num_metadata++] = &padding;
 		}
 	}

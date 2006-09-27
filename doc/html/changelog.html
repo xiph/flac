@@ -95,6 +95,7 @@
 					<li>Added support for encoding from non-compressed AIFF-C (<a href="https://sourceforge.net/tracker/?func=detail&amp;atid=113478&amp;aid=1090933&amp;group_id=13478">SF #1090933</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now only issues a warning, not an error (see <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=31282">here</a>).</li>
 					<li>MD5 comparison failures on decoding are now an error instead of a warning and will also return a non-zero exit code (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1493725&amp;group_id=13478&amp;atid=113478">SF #1493725</a>).</li>
+					<li>The default padding size is now 8K, or 64K if the input audio stream is more than 20 minutes long.</li>
 					<li>Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.</li>
 					<li>Fixed a bug that caused a crash when <span class="argument">-a</span> and <span class="argument">-t</span> were used together (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1229481&amp;group_id=13478&amp;atid=113478">SF #1229481</a>).</li>
 					<li>Fixed a bug with --sector-align where appended samples were not always totally silent (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1237707&amp;group_id=13478&amp;atid=113478">SF #1237707</a>).</li>
