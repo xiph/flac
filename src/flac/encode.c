@@ -139,6 +139,7 @@ static FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_
 static FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], unsigned samples);
 static FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, FLAC__StreamMetadata *cuesheet, EncoderSession *e);
 static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, unsigned sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
+static FLAC__bool verify_metadata(const EncoderSession *e, FLAC__StreamMetadata **metadata, unsigned num_metadata);
 static void format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps);
 static void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 static FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
@@ -1689,6 +1690,17 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		}
 	}
 
+	/* check for a few things that have not already been checked.  the
+	 * FLAC__stream_encoder_init*() will check it but only return
+	 * FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA so we check some
+	 * up front to give a better error message.
+	 */
+	if(!verify_metadata(e, metadata, num_metadata)) {
+		if(0 != cuesheet)
+			FLAC__metadata_object_delete(cuesheet);
+		return false;
+	}
+
 	e->blocksize = options.blocksize;
 	e->stats_mask = (options.do_exhaustive_model_search || options.do_qlp_coeff_prec_search)? 0x0f : 0x3f;
 
@@ -1868,6 +1880,53 @@ FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec,
 	if((FLAC__uint64)spec->value.samples > total_samples_in_input) {
 		flac__utils_printf(stderr, 1, "%s: ERROR, --until value is after end of input\n", inbasefilename);
 		return false;
+	}
+
+	return true;
+}
+
+FLAC__bool verify_metadata(const EncoderSession *e, FLAC__StreamMetadata **metadata, unsigned num_metadata)
+{
+	FLAC__bool metadata_picture_has_type1 = false;
+	FLAC__bool metadata_picture_has_type2 = false;
+	unsigned i;
+
+	FLAC__ASSERT(0 != metadata);
+	for(i = 0; i < num_metadata; i++) {
+		const FLAC__StreamMetadata *m = metadata[i];
+		if(m->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+			if(!FLAC__format_seektable_is_legal(&m->data.seek_table)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: SEEKTABLE metadata block is invalid\n", e->inbasefilename);
+				return false;
+			}
+		}
+		else if(m->type == FLAC__METADATA_TYPE_CUESHEET) {
+			if(!FLAC__format_cuesheet_is_legal(&m->data.cue_sheet, m->data.cue_sheet.is_cd, /*violation=*/0)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: CUESHEET metadata block is invalid\n", e->inbasefilename);
+				return false;
+			}
+		}
+		else if(m->type == FLAC__METADATA_TYPE_PICTURE) {
+			const char *error = 0;
+			if(!FLAC__format_picture_is_legal(&m->data.picture, &error)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: PICTURE metadata block is invalid: %s\n", e->inbasefilename, error);
+				return false;
+			}
+			if(m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD) {
+				if(metadata_picture_has_type1) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: there may only be one picture of type 1 (32x32 icon) in the file\n", e->inbasefilename);
+					return false;
+				}
+				metadata_picture_has_type1 = true;
+			}
+			else if(m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON) {
+				if(metadata_picture_has_type2) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: there may only be one picture of type 2 (icon) in the file\n", e->inbasefilename);
+					return false;
+				}
+				metadata_picture_has_type2 = true;
+			}
+		}
 	}
 
 	return true;
