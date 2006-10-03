@@ -510,7 +510,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "test_picture"=.\src\test_grabbag\cuesheet\test_picture.dsp - Package Owner=<4>
+Project: "test_picture"=.\src\test_grabbag\picture\test_picture.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
