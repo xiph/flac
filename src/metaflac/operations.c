@@ -100,7 +100,7 @@ FLAC__bool do_major_operation(const CommandLineOptions *options)
 	unsigned i;
 	FLAC__bool ok = true;
 
-	/*@@@ to die after first error,  v---  add '&& ok' here */
+	/* to die after first error,     v---  add '&& ok' here */
 	for(i = 0; i < options->num_files; i++)
 		ok &= do_major_operation_on_file(options->filenames[i], options);
 
@@ -194,7 +194,7 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const CommandLineOptions *options)
 {
 	(void) chain, (void) options;
-	fprintf(stderr, "ERROR: --append not implemented yet\n"); /*@@@*/
+	fprintf(stderr, "ERROR: --append not implemented yet\n");
 	return false;
 }
 

@@ -56,11 +56,7 @@ extern "C" {
  *  \ingroup flac
  *
  *  \brief
- *  This module describes the two encoder layers provided by libFLAC.
- *
- * libFLAC provides two ways of encoding FLAC streams.  There is a @@@@@@frame encoder which encodes single frames at a time, and a stream encoder which encodes whole streams.
- *
- * @@@@@@TODO frame encoder
+ *  This module describes the encoder layers provided by libFLAC.
  *
  * The stream encoder can be used encode complete streams either to the
  * client via callbacks, or directly to a file, depending on how it is

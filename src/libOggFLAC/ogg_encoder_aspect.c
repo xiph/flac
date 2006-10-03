@@ -63,7 +63,7 @@ FLAC__bool OggFLAC__ogg_encoder_aspect_init(OggFLAC__OggEncoderAspect *aspect)
 void OggFLAC__ogg_encoder_aspect_finish(OggFLAC__OggEncoderAspect *aspect)
 {
 	(void)ogg_stream_clear(&aspect->stream_state);
-	/*@@@ what aobut the page? */
+	/*@@@ what about the page? */
 }
 
 void OggFLAC__ogg_encoder_aspect_set_serial_number(OggFLAC__OggEncoderAspect *aspect, long value)

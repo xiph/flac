@@ -55,11 +55,7 @@ extern "C" {
  *  \ingroup flac
  *
  *  \brief
- *  This module describes the two decoder layers provided by libFLAC.
- *
- * libFLAC provides two ways of decoding FLAC streams.  There is a @@@@@@frame decoder which decodes single frames at a time, and a stream decoder which decodes whole streams.
- *
- * @@@@@@TODO frame decoder
+ *  This module describes the decoder layers provided by libFLAC.
  *
  * The stream decoder can be used decode complete streams either from the
  * client via callbacks, or directly from a file, depending on how it is

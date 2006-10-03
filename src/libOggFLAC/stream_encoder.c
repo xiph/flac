@@ -46,7 +46,7 @@
 #include <string.h> /* for memcpy() */
 #include <sys/types.h> /* for off_t */
 #if defined _MSC_VER || defined __MINGW32__
-/*@@@ [2G limit] hacks for MSVC6 */
+/*@@@@@@ [2G limit] hacks for MSVC6 */
 #define fseeko fseek
 #define ftello ftell
 #endif
@@ -1156,13 +1156,13 @@ FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *s
 		 * will drop back to 0.
 		 */
 		encoder->private_->frames_written = max(encoder->private_->frames_written, current_frame+1);
-		/*@@@ We would like to add an '&& samples > 0' to the if
+		/* We would like to add an '&& samples > 0' to the if
 		 * clause here but currently because of the nature of our Ogg
 		 * writing implementation, 'samples' is always 0 (see
 		 * ogg_encoder_aspect.c).  The downside is extra progress
 		 * callbacks.
 		 */
-		if(0 != encoder->private_->progress_callback /*@@@ && samples > 0 */)
+		if(0 != encoder->private_->progress_callback /* && samples > 0 */)
 			encoder->private_->progress_callback((FLAC__StreamEncoder*)encoder, encoder->private_->bytes_written, encoder->private_->samples_written, encoder->private_->frames_written, encoder->private_->total_frames_estimate, encoder->private_->client_data);
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 	}
