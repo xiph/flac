@@ -25,9 +25,10 @@
 #include <stdlib.h>
 #include <string.h>
 #if defined _MSC_VER || defined __MINGW32__
-//@@@ [2G limit] hacks for MSVC6
+#if _MSC_VER <= 1200 /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
+#endif
 #endif
 #include "decoders.h"
 #include "FLAC/assert.h"

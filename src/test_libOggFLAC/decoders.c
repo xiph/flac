@@ -25,9 +25,10 @@
 #include <stdlib.h>
 #include <string.h>
 #if defined _MSC_VER || defined __MINGW32__
-//@@@ [2G limit] hacks for MSVC6
+#if _MSC_VER <= 1200 /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
+#endif
 #endif
 #include "decoders.h"
 #include "FLAC/assert.h"
@@ -36,7 +37,7 @@
 #include "test_libs_common/file_utils_oggflac.h"
 #include "test_libs_common/metadata_utils.h"
 
-//@@@@@@ this is almost exactly like test_libFLAC/decoders.c, maybe should consolidate some stuff liek client data and callbacks
+//@@@@@@ this is almost exactly like test_libFLAC/decoders.c, maybe should consolidate some stuff like client data and callbacks
 typedef enum {
 	LAYER_STREAM = 0, /* FLAC__stream_decoder_init_stream() without seeking */
 	LAYER_SEEKABLE_STREAM, /* FLAC__stream_decoder_init_stream() with seeking */

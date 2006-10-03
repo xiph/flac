@@ -46,9 +46,10 @@
 #include <sys/stat.h> /* for stat() */
 #include <sys/types.h> /* for off_t */
 #if defined _MSC_VER || defined __MINGW32__
-/*@@@ [2G limit] hacks for MSVC6 */
+#if _MSC_VER <= 1200 /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
+#endif
 #endif
 #include "FLAC/assert.h"
 #include "protected/stream_decoder.h"

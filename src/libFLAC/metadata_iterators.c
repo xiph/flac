@@ -42,9 +42,10 @@
 #include <sys/utime.h> /* for utime() */
 #include <io.h> /* for chmod() */
 #include <sys/types.h> /* for off_t */
-//@@@ [2G limit] hacks for MSVC6
+#if _MSC_VER <= 1200 /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
+#endif
 #else
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
 #include <utime.h> /* for utime() */

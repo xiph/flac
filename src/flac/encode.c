@@ -28,9 +28,10 @@
 #endif
 #if defined _MSC_VER || defined __MINGW32__
 #include <sys/types.h> /* for off_t */
-//@@@@@@ [2G limit] hacks for MSVC6
+#if _MSC_VER <= 1200 /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
+#endif
 #endif
 #include <errno.h>
 #include <limits.h> /* for LONG_MAX */

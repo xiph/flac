@@ -28,9 +28,10 @@
 #endif
 #if defined _MSC_VER || defined __MINGW32__
 #include <sys/types.h> /* for off_t */
-//@@@ [2G limit] hacks for MSVC6
+#if _MSC_VER <= 1200 /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
+#endif
 #endif
 #include <errno.h>
 #include <math.h> /* for floor() */
@@ -647,7 +648,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		if(!write_little_endian_uint32(f, decoder_session->sample_rate))
 			return false;
 
-		if(!write_little_endian_uint32(f, decoder_session->sample_rate * decoder_session->channels * ((decoder_session->bps+7) / 8))) /* @@@ or is it (sample_rate*channels*bps) / 8 ??? */
+		if(!write_little_endian_uint32(f, decoder_session->sample_rate * decoder_session->channels * ((decoder_session->bps+7) / 8)))
 			return false;
 
 		if(!write_little_endian_uint16(f, (FLAC__uint16)(decoder_session->channels * ((decoder_session->bps+7) / 8)))) /* block align */
