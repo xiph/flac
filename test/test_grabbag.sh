@@ -48,6 +48,12 @@ run_test_cuesheet ()
 	fi
 }
 
+if [ `env | grep -ic '^comspec='` != 0 ] ; then
+	is_win=yes
+else
+	is_win=no
+fi
+
 ########################################################################
 #
 # test_cuesheet
@@ -95,6 +101,10 @@ for cuesheet in $good_cuesheets ; do
 	rm -f $cuesheet_pass1 $cuesheet_pass2
 done
 
-diff cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
+if [ $is_win = yes ] ; then
+	diff -w cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
+else
+	diff cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
+fi
 
 echo "PASSED (results are in $log)"
