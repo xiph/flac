@@ -134,7 +134,6 @@ static struct share__option long_options_[] = {
 	{ "compression-level-9"       , share__no_argument, 0, '9' },
 	{ "best"                      , share__no_argument, 0, '8' },
 	{ "fast"                      , share__no_argument, 0, '0' },
-	{ "super-secret-totally-impractical-compression-level", share__no_argument, 0, 0 },
 	{ "verify"                    , share__no_argument, 0, 'V' },
 	{ "force-aiff-format"         , share__no_argument, 0, 0 },
 	{ "force-raw-format"          , share__no_argument, 0, 0 },
@@ -755,18 +754,6 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "no-cued-seekpoints")) {
 			option_values.cued_seekpoints = false;
-		}
-		else if(0 == strcmp(long_option, "super-secret-totally-impractical-compression-level")) {
-			option_values.lax = true;
-			option_values.do_exhaustive_model_search = true;
-			option_values.do_escape_coding = true;
-			option_values.do_mid_side = true;
-			option_values.loose_mid_side = false;
-			option_values.do_qlp_coeff_prec_search = true;
-			option_values.min_residual_partition_order = 0;
-			option_values.max_residual_partition_order = 16;
-			option_values.rice_parameter_search_dist = 0;
-			option_values.max_lpc_order = 32;
 		}
 		else if(0 == strcmp(long_option, "force-aiff-format")) {
 			option_values.force_aiff_format = true;
@@ -1725,11 +1712,13 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		if(option_values.replay_gain)
 			return usage_error("ERROR: --replay-gain cannot be used when encoding to stdout\n");
 	}
+	if(option_values.replay_gain && option_values.use_ogg)
+		return usage_error("ERROR: --replay-gain cannot be used when encoding to Ogg FLAC yet\n");
 
 	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative)
 		return usage_error("ERROR: invalid value for --skip\n");
 
-	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) /*@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
+	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) /*@@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
 		return usage_error("ERROR: invalid value for --until\n");
 	/* if there is no "--until" we want to default to "--until=-0" */
 	if(0 == option_values.until_specification)
