@@ -351,7 +351,7 @@ for f in \
 	metaflac_test "case$ncase" "--import-picture" "--list"
 	ncase=`expr $ncase + 1`
 done
-[ $ncase == 60 ] || die "expected case# to be 60"
+[ $ncase = 60 ] || die "expected case# to be 60"
 run_metaflac --remove --block-type=PICTURE $flacfile
 check_flac
 metaflac_test case60 "--remove --block-type=PICTURE" "--list"

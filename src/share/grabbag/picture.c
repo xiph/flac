@@ -340,7 +340,7 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 						if(0 == f)
 							*error_message = error_messages[5];
 						else {
-							if(fread(buffer, 1, size, f) != size)
+							if(fread(buffer, 1, size, f) != (size_t)size)
 								*error_message = error_messages[6];
 							fclose(f);
 							if(0 == *error_message) {

@@ -113,7 +113,7 @@ static FLAC__bool local__parse_cue_(const char *s, const char *end, unsigned *tr
 }
 
 /*
- * @@@ this only works with sorted cuesheets (the spec strongly recommends but
+ * this only works with sorted cuesheets (the spec strongly recommends but
  * does not require sorted cuesheets).  but if it's not sorted, picking a
  * nearest cue point has no significance.
  */

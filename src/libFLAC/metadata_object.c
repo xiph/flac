@@ -110,8 +110,8 @@ static FLAC__bool ensure_null_terminated_(FLAC__byte **entry, unsigned length)
  */
 static FLAC__bool copy_cstring_(char **to, const char *from)
 {
-	FLAC__ASSERT(to);
 	char *copy = strdup(from);
+	FLAC__ASSERT(to);
 	if(copy) {
 		if(*to)
 			free(*to);
@@ -1111,7 +1111,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 
 		i = seek_table->num_points;
 
-		if(!FLAC__metadata_object_seektable_resize_points(object, seek_table->num_points + num))
+		if(!FLAC__metadata_object_seektable_resize_points(object, seek_table->num_points + (unsigned)num))
 			return false;
 
 		sample = 0;
