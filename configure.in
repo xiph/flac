@@ -339,6 +339,7 @@ AC_CONFIG_FILES([ \
 	test/cuesheets/Makefile \
 	test/flac-to-flac-metadata-test-files/Makefile \
 	test/metaflac-test-files/Makefile \
+	test/pictures/Makefile \
 	build/Makefile \
 	obj/Makefile \
 	obj/debug/Makefile \
