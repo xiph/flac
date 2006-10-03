@@ -427,7 +427,7 @@ int main(int argc, char *argv[])
 
 	static const char * const usage = "usage: test_seeking file.flac [#seeks]\n";
 
-	if (argc < 1 || argc > 3) {
+	if (argc < 2 || argc > 3) {
 		fprintf(stderr, usage);
 		return 1;
 	}
