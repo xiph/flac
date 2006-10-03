@@ -146,7 +146,7 @@ BEGIN
     CONTROL         "Reserve space for &FLAC tags",IDC_RESERVE,"Button",
                     BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,8,76,125,10
     GROUPBOX        " Miscellaneous  ",IDC_STATIC,2,96,220,72
-    CONTROL         "&Show average bitrate while playing",IDC_BPS,"Button",
+    CONTROL         "&Show instantaneous bitrate while playing",IDC_BPS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,108,125,10
     CONTROL         "Stop on &all errors",IDC_ERRORS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,8,120,69,10
