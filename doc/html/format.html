@@ -1214,7 +1214,17 @@
 				Channel assignment
 				<ul>
 				<li>
-					<tt>0000-0111</tt> : (number of independent channels)-1.  when == 0001, channel 0 is the left channel and channel 1 is the right
+					<tt>0000-0111</tt> : (number of independent channels)-1.  Where defined, the channel order follows SMPTE/ITU-R recommendations.  The assignments are as follows:
+					<ul>
+						<li>1 channel: mono</li>
+						<li>2 channels: left, right</li>
+						<li>3 channels: left, right, center</li>
+						<li>4 channels: left, right, back left, back right</li>
+						<li>5 channels: left, right, center, back/surround left, back/surround right</li>
+						<li>6 channels: left, right, center, LFE, back/surround left, back/surround right</li>
+						<li>7 channels: not defined</li>
+						<li>8 channels: not defined</li>
+					</ul>
 				</li>
 				<li>
 					<tt>1000</tt> : left/side stereo: channel 0 is the left channel, channel 1 is the side(difference) channel

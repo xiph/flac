@@ -1318,6 +1318,10 @@ FLAC_API void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder);
  *  representing one channel.  The samples need not be block-aligned,
  *  but each channel should have the same number of samples.
  *
+ *  For applications where channel order is important, channels must
+ *  follow the order as described in the
+ *  <A HREF="../format.html#frame_header">frame header</A>.
+ *
  * \param  encoder  An initialized encoder instance in the OK state.
  * \param  buffer   An array of pointers to each channel's signal.
  * \param  samples  The number of samples in one channel.
@@ -1338,6 +1342,10 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
  *  The samples need not be block-aligned but they must be
  *  sample-aligned, i.e. the first value should be channel0_sample0
  *  and the last value channelN_sampleM.
+ *
+ *  For applications where channel order is important, channels must
+ *  follow the order as described in the
+ *  <A HREF="../format.html#frame_header">frame header</A>.
  *
  * \param  encoder  An initialized encoder instance in the OK state.
  * \param  buffer   An array of channel-interleaved data (see above).

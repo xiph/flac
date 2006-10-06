@@ -574,9 +574,9 @@ typedef FLAC__bool (*FLAC__StreamDecoderEofCallback)(const FLAC__StreamDecoder *
  * \param  buffer   An array of pointers to decoded channels of data.
  *                  Each pointer will point to an array of signed
  *                  samples of length \a frame->header.blocksize.
- *                  Currently, the channel order has no meaning
- *                  except for stereo streams; in this case channel
- *                  0 is left and 1 is right.
+ *                  Channels will be ordered according to the FLAC
+ *                  specification; see the documentation for the
+ *                  <A HREF="../format.html#frame_header">frame header</A>.
  * \param  client_data  The callee's client data set through
  *                      FLAC__stream_decoder_init_*().
  * \retval FLAC__StreamDecoderWriteStatus
