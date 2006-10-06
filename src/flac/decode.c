@@ -499,7 +499,8 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 			if(!OggFLAC__stream_decoder_process_until_end_of_stream(d->decoder.ogg) && !d->aborting_due_to_until) {
 				flac__utils_printf(stderr, 2, "\n");
 				print_error_with_state(d, "ERROR while decoding data");
-				return false;
+				if(!d->continue_through_decode_errors)
+					return false;
 			}
 			if(OggFLAC__stream_decoder_get_state(d->decoder.ogg) != OggFLAC__STREAM_DECODER_OK && OggFLAC__stream_decoder_get_state(d->decoder.ogg) != OggFLAC__STREAM_DECODER_END_OF_STREAM && !d->aborting_due_to_until) {
 				flac__utils_printf(stderr, 2, "\n");
@@ -513,7 +514,8 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 			if(!FLAC__stream_decoder_process_until_end_of_stream(d->decoder.flac) && !d->aborting_due_to_until) {
 				flac__utils_printf(stderr, 2, "\n");
 				print_error_with_state(d, "ERROR while decoding data");
-				return false;
+				if(!d->continue_through_decode_errors)
+					return false;
 			}
 			if(FLAC__stream_decoder_get_state(d->decoder.flac) > FLAC__STREAM_DECODER_END_OF_STREAM && !d->aborting_due_to_until) {
 				flac__utils_printf(stderr, 2, "\n");
