@@ -59,6 +59,7 @@ typedef struct {
 	int num_requested_seek_points;
 	const char *cuesheet_filename;
 	FLAC__bool cued_seekpoints;
+	FLAC__bool channel_map_none; /* --channel-map=none specified, eventually will expand to take actual channel map */
 
 	/* options related to --replay-gain and --sector-align */
 	FLAC__bool is_first_file;

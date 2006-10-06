@@ -22,10 +22,13 @@
 
 #include "utils.h"
 #include "FLAC/assert.h"
+#include "FLAC/metadata.h"
 #include <math.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+
+const char *CHANNEL_MASK_TAG = "WAVEFORMATEXTENSIBLE_CHANNEL_MASK";
 
 int flac__utils_verbosity_ = 2;
 
@@ -268,4 +271,41 @@ void flac__utils_canonicalize_cue_specification(const utils__CueSpecification *c
 		until_spec->value.samples = local__find_closest_cue_(cuesheet, cue_spec->end_track, cue_spec->end_index, total_samples, /*look_forward=*/true);
 	else
 		until_spec->value.samples = total_samples;
+}
+
+FLAC__bool flac__utils_set_channel_mask_tag(FLAC__StreamMetadata *object, FLAC__uint32 channel_mask)
+{
+	FLAC__StreamMetadata_VorbisComment_Entry entry = { 0, 0 };
+	char tag[128];
+
+	FLAC__ASSERT(object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	FLAC__ASSERT(strlen(CHANNEL_MASK_TAG+1+2+16+1) <= sizeof(tag)); /* +1 for =, +2 for 0x, +16 for digits, +1 for NUL */
+	entry.entry = (FLAC__byte*)tag;
+	if((entry.length = snprintf(tag, sizeof(tag), "%s=0x%04X", CHANNEL_MASK_TAG, (unsigned)channel_mask)) >= sizeof(tag))
+		return false;
+	if(!FLAC__metadata_object_vorbiscomment_replace_comment(object, entry, /*all=*/true, /*copy=*/true))
+		return false;
+	return true;
+}
+
+FLAC__bool flac__utils_get_channel_mask_tag(const FLAC__StreamMetadata *object, FLAC__uint32 *channel_mask)
+{
+	int offset;
+	unsigned val;
+	char *p;
+	FLAC__ASSERT(object);
+	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	if(0 > (offset = FLAC__metadata_object_vorbiscomment_find_entry_from(object, /*offset=*/0, CHANNEL_MASK_TAG)))
+		return false;
+	if(object->data.vorbis_comment.comments[offset].length < strlen(CHANNEL_MASK_TAG)+4)
+		return false;
+	if(0 == (p = strchr((const char *)object->data.vorbis_comment.comments[offset].entry, '='))) /* should never happen, but just in case */
+		return false;
+	if(strncmp(p, "=0x", 3))
+		return false;
+	if(sscanf(p+3, "%x", &val) != 1)
+		return false;
+	*channel_mask = val;
+	return true;
 }

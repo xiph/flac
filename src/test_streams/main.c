@@ -614,8 +614,9 @@ foo:
 	return false;
 }
 
-static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bytes_per_sample, unsigned samples)
+static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bytes_per_sample, unsigned samples, FLAC__bool strict)
 {
+	const FLAC__bool waveformatextensible = strict && channels > 2;
 	const unsigned true_size = channels * bytes_per_sample * samples;
 	const unsigned padded_size = (true_size + 1) & (~1u);
 	FILE *f;
@@ -625,9 +626,13 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 		return false;
 	if(fwrite("RIFF", 1, 4, f) < 4)
 		goto foo;
-	if(!write_little_endian_uint32(f, padded_size + 36))
+	if(!write_little_endian_uint32(f, padded_size + (waveformatextensible?60:36)))
 		goto foo;
-	if(fwrite("WAVEfmt \020\000\000\000\001\000", 1, 14, f) < 14)
+	if(fwrite("WAVEfmt ", 1, 8, f) < 8)
+		goto foo;
+	if(!write_little_endian_uint32(f, waveformatextensible?40:16))
+		goto foo;
+	if(!write_little_endian_uint16(f, waveformatextensible?65534:1))
 		goto foo;
 	if(!write_little_endian_uint16(f, (FLAC__uint16)channels))
 		goto foo;
@@ -639,6 +644,17 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 		goto foo;
 	if(!write_little_endian_uint16(f, (FLAC__uint16)(8 * bytes_per_sample)))
 		goto foo;
+	if(waveformatextensible) {
+		if(!write_little_endian_uint16(f, (FLAC__uint16)22)) /* cbSize */
+			goto foo;
+		if(!write_little_endian_uint16(f, (FLAC__uint16)(8 * bytes_per_sample))) /* validBitsPerSample */
+			goto foo;
+		if(!write_little_endian_uint32(f, 0)) /* channelMask */
+			goto foo;
+		/* GUID = {0x00000001, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} */
+		if(fwrite("\x01\x00\x00\x00\x00\x00\x10\x00\x80\x00\x00\xaa\x00\x38\x9b\x71", 1, 16, f) != 16)
+			goto foo;
+	}
 	if(fwrite("data", 1, 4, f) < 4)
 		goto foo;
 	if(!write_little_endian_uint32(f, true_size))
@@ -815,7 +831,7 @@ int main(int argc, char *argv[])
 					return 1;
 
 				sprintf(fn, "rt-%u-%u-%u.wav", channels, bytes_per_sample, nsamples[samples]);
-				if(!generate_wav(fn, 44100, channels, bytes_per_sample, nsamples[samples]))
+				if(!generate_wav(fn, 44100, channels, bytes_per_sample, nsamples[samples], /*strict=*/true))
 					return 1;
 			}
 		}

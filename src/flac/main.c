@@ -106,6 +106,7 @@ static struct share__option long_options_[] = {
 	{ "output-name"      , share__required_argument, 0, 'o' },
 	{ "skip"             , share__required_argument, 0, 0 },
 	{ "until"            , share__required_argument, 0, 0 },
+	{ "channel-map"      , share__required_argument, 0, 0 }, /* undocumented */
 
 	/*
 	 * decoding options
@@ -255,6 +256,7 @@ static struct {
 	int num_requested_seek_points; /* -1 => no -S options were given, 0 => -S- was given */
 	const char *cuesheet_filename;
 	FLAC__bool cued_seekpoints;
+	FLAC__bool channel_map_none; /* --channel-map=none specified, eventually will expand to take actual channel map */
 
 	unsigned num_files;
 	char **filenames;
@@ -604,6 +606,7 @@ FLAC__bool init_options()
 	option_values.num_requested_seek_points = -1;
 	option_values.cuesheet_filename = 0;
 	option_values.cued_seekpoints = true;
+	option_values.channel_map_none = false;;
 
 	option_values.num_files = 0;
 	option_values.filenames = 0;
@@ -733,6 +736,11 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 						return usage_error("ERROR: bad specification string \"%s\" for --%s\n", option_argument, long_option);
 				}
 			}
+		}
+		else if(0 == strcmp(long_option, "channel-map")) {
+			if (0 == option_argument || strcmp(option_argument, "none"))
+				return usage_error("ERROR: only --channel-map=none currently supported\n");
+			option_values.channel_map_none = true;
 		}
 		else if(0 == strcmp(long_option, "cuesheet")) {
 			FLAC__ASSERT(0 != option_argument);
@@ -1752,6 +1760,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.num_requested_seek_points = option_values.num_requested_seek_points;
 	common_options.cuesheet_filename = option_values.cuesheet_filename;
 	common_options.cued_seekpoints = option_values.cued_seekpoints;
+	common_options.channel_map_none = option_values.channel_map_none;
 	common_options.is_first_file = is_first_file;
 	common_options.is_last_file = is_last_file;
 	common_options.align_reservoir = align_reservoir;
@@ -1919,6 +1928,7 @@ int decode_file(const char *infilename)
 	common_options.use_first_serial_number = !option_values.has_serial_number;
 	common_options.serial_number = option_values.serial_number;
 #endif
+	common_options.channel_map_none = option_values.channel_map_none;
 
 	if(!option_values.force_raw_format) {
 		wav_decode_options_t options;

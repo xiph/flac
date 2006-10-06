@@ -47,6 +47,7 @@ typedef struct {
 	utils__SkipUntilSpecification until_specification;
 	FLAC__bool has_cue_specification;
 	utils__CueSpecification cue_specification;
+	FLAC__bool channel_map_none; /* --channel-map=none specified, eventually will expand to take actual channel map */
 } decode_options_t;
 
 /* used for AIFF also */
