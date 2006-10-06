@@ -182,7 +182,7 @@ static void crc16_update_blurb(FLAC__BitBuffer *bb, FLAC__blurb blurb)
 
 /*
  * WATCHOUT: The current implentation is not friendly to shrinking, i.e. it
- * does not shift left what is consumed, it just chops off the end, whether
+ * does not shift out what is consumed, it just chops off the end, whether
  * there is unconsumed data there or not.  This is OK because currently we
  * never shrink the buffer, but if this ever changes, we'll have to do some
  * fixups here.
