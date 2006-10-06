@@ -1184,6 +1184,7 @@ FLAC__bool find_metadata_(FLAC__StreamDecoder *decoder)
 			}
 			continue;
 		}
+		id = 0;
 		if(x == 0xff) { /* MAGIC NUMBER for the first 8 frame sync bits */
 			decoder->private_->header_warmup[0] = (FLAC__byte)x;
 			if(!FLAC__bitbuffer_read_raw_uint32(decoder->private_->input, &x, 8, read_callback_, decoder))
