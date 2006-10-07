@@ -338,10 +338,10 @@ extern FLAC_API const unsigned FLAC__SUBFRAME_ZERO_PAD_LEN; /**< == 1 (bit) */
 extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_LEN; /**< == 6 (bits) */
 extern FLAC_API const unsigned FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN; /**< == 1 (bit) */
 
-extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK; /* = 0x00 */
-extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK; /* = 0x02 */
-extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK; /* = 0x10 */
-extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK; /* = 0x40 */
+extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK; /**< = 0x00 */
+extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK; /**< = 0x02 */
+extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK; /**< = 0x10 */
+extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK; /**< = 0x40 */
 
 /*****************************************************************************/
 
@@ -641,7 +641,7 @@ typedef struct {
 	/**< The track number. */
 
 	char isrc[13];
-	/**< Track ISRC.  This is a 12-digit alphanumeric code plus a trailing '\0' */
+	/**< Track ISRC.  This is a 12-digit alphanumeric code plus a trailing \c NUL byte */
 
 	unsigned type:1;
 	/**< The track type: 0 for audio, 1 for non-audio. */
@@ -891,7 +891,8 @@ FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_value_is_legal(const FLAC__
  *  FLAC__format_vorbiscomment_entry_name_is_legal() and
  *  FLAC__format_vorbiscomment_entry_value_is_legal() respectively.
  *
- * \param value      A string to be checked.
+ * \param entry      An entry to be checked.
+ * \param length     The length of \a entry in bytes.
  * \assert
  *    \code value != NULL \endcode
  * \retval FLAC__bool

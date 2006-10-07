@@ -138,6 +138,8 @@ namespace OggFLAC {
 		 */
 		class OggFLACPP_API Stream: public FLAC::Decoder::Stream {
 		public:
+			/** This class is a wrapper around OggFLAC__StreamDecoderState.
+			 */
 			class OggFLACPP_API State {
 			public:
 				inline State(::OggFLAC__StreamDecoderState state): state_(state) { }
@@ -208,7 +210,7 @@ namespace OggFLAC {
 		 *  \brief
 		 *  This class wraps the ::OggFLAC__FileDecoder.
 		 *
-		 * See the \link oggflac_file_decoder libOggFLAC file decoder module \endlink
+		 * See the \link oggflac_stream_decoder libOggFLAC stream decoder module \endlink
 		 * for basic usage.
 		 *
 		 * \{
@@ -236,18 +238,18 @@ namespace OggFLAC {
 			File();
 			virtual ~File();
 
+			//@{
 			/** Initialize the instance; as with the C interface,
 			 *  init() should be called after construction and 'set'
 			 *  calls but before any of the 'process' calls.
 			 *
 			 *  See OggFLAC__stream_decoder_init_FILE() and
 			 *  OggFLAC__stream_decoder_init_file().
-			 *  \{
 			 */
 			::FLAC__StreamDecoderInitStatus init(FILE *file);
 			::FLAC__StreamDecoderInitStatus init(const char *filename);
 			::FLAC__StreamDecoderInitStatus init(const std::string &filename);
-			/*  \} */
+			//@}
 		protected:
 			// this is a dummy implementation to satisfy the pure virtual in Stream that is actually supplied internally by the C layer
 			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);

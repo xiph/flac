@@ -141,6 +141,8 @@ namespace OggFLAC {
 		 */
 		class OggFLACPP_API Stream: public FLAC::Encoder::Stream {
 		public:
+			/** This class is a wrapper around OggFLAC__StreamEncoderState.
+			 */
 			class OggFLACPP_API State {
 			public:
 				inline State(::OggFLAC__StreamEncoderState state): state_(state) { }
@@ -233,7 +235,7 @@ namespace OggFLAC {
 		 *  \brief
 		 *  This class wraps the ::OggFLAC__FileEncoder.
 		 *
-		 * See the \link oggflac_file_encoder libOggFLAC file encoder module \endlink
+		 * See the \link oggflac_stream_encoder libOggFLAC stream encoder module \endlink
 		 * for basic usage.
 		 *
 		 * \{
@@ -259,21 +261,21 @@ namespace OggFLAC {
 		 */
 		class OggFLACPP_API File: public Stream {
 		public:
+			File();
+			virtual ~File();
+
+			//@{
 			/** Initialize the instance; as with the C interface,
 			 *  init() should be called after construction and 'set'
 			 *  calls but before any of the 'process' calls.
 			 *
 			 *  See OggFLAC__stream_encoder_init_FILE() and
 			 *  OggFLAC__stream_encoder_init_file().
-			 *  \{
 			 */
-			File();
-			virtual ~File();
-			/*  \} */
-
 			::FLAC__StreamEncoderInitStatus init(FILE *file);
 			::FLAC__StreamEncoderInitStatus init(const char *filename);
 			::FLAC__StreamEncoderInitStatus init(const std::string &filename);
+			//@}
 		protected:
 			/// See FLAC__StreamEncoderProgressCallback
 			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);

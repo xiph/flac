@@ -59,7 +59,7 @@
  * describing the components of FLAC streams, and functions for
  * encoding and decoding streams, as well as manipulating FLAC
  * metadata in files.  The public include files will be installed
- * in your include area as <include>/FLAC/...
+ * in your include area (for example /usr/include/FLAC/...).
  *
  * By writing a little code and linking against libFLAC, it is
  * relatively easy to add FLAC support to another program.  The
@@ -94,8 +94,8 @@
  * equivalent.  For the most part, they share the same usage as
  * their counterparts in libFLAC, and the FLAC C API documentation
  * can be used as a supplement.  The public include files
- * for the C++ API will be installed in your include area as
- * <include>/FLAC++/...
+ * for the C++ API will be installed in your include area (for
+ * example /usr/include/FLAC++/...).
  *
  * There is also a libOggFLAC++ library, which provides classes
  * for encoding to and decoding from FLAC streams in an Ogg container.

@@ -108,6 +108,8 @@ namespace FLAC {
 		 */
 		class FLACPP_API Stream {
 		public:
+			/** This class is a wrapper around FLAC__StreamEncoderState.
+			 */
 			class FLACPP_API State {
 			public:
 				inline State(::FLAC__StreamEncoderState state): state_(state) { }
@@ -121,14 +123,14 @@ namespace FLAC {
 			Stream();
 			virtual ~Stream();
 
+			//@{
 			/** Call after construction to check the that the object was created
 			 *  successfully.  If not, use get_state() to find out why not.
 			 *
-			 * \{
 			 */
 			virtual bool is_valid() const;
 			inline operator bool() const { return is_valid(); }
-			/* \} */
+			//@}
 
 			virtual bool set_verify(bool value);                            ///< See FLAC__stream_encoder_set_verify()
 			virtual bool set_streamable_subset(bool value);                 ///< See FLAC__stream_encoder_set_streamable_subset()
@@ -251,21 +253,21 @@ namespace FLAC {
 		 */
 		class FLACPP_API File: public Stream {
 		public:
-			/** Initialize the instance; as with the C interface,
+			File();
+			virtual ~File();
+
+			//@{
+			/* Initialize the instance; as with the C interface,
 			 *  init() should be called after construction and 'set'
 			 *  calls but before any of the 'process' calls.
 			 *
 			 *  See FLAC__stream_encoder_init_FILE() and
 			 *  FLAC__stream_encoder_init_file().
-			 *  \{
 			 */
-			File();
-			virtual ~File();
-			/*  \} */
-
 			::FLAC__StreamEncoderInitStatus init(FILE *file);
 			::FLAC__StreamEncoderInitStatus init(const char *filename);
 			::FLAC__StreamEncoderInitStatus init(const std::string &filename);
+			//@}
 		protected:
 			/// See FLAC__StreamEncoderProgressCallback
 			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);

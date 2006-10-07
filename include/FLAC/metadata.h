@@ -1404,7 +1404,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
  *                second at sample \a samples, then 2*\a samples, and
  *                so on.  As long as \a samples and \a total_samples
  *                are greater than \c 0, there will always be at least
- *                one seekpoint at sample \0.
+ *                one seekpoint at sample \c 0.
  * \param total_samples  The total number of samples to be encoded;
  *                       the seekpoints will be spaced
  *                       \a samples samples apart.
@@ -2031,7 +2031,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_data(FLAC__StreamMetadata 
  *  See the format specification for limits on the contents of the
  *  PICTURE block.
  *
- * \param picture    A pointer to existing PICTURE block to be checked.
+ * \param object     A pointer to existing PICTURE block to be checked.
  * \param violation  Address of a pointer to a string.  If there is a
  *                   violation, a pointer to a string explanation of the
  *                   violation will be returned here. \a violation may be

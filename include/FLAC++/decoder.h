@@ -106,6 +106,8 @@ namespace FLAC {
 		 */
 		class FLACPP_API Stream {
 		public:
+			/** This class is a wrapper around FLAC__StreamDecoderState.
+			 */
 			class FLACPP_API State {
 			public:
 				inline State(::FLAC__StreamDecoderState state): state_(state) { }
@@ -119,14 +121,13 @@ namespace FLAC {
 			Stream();
 			virtual ~Stream();
 
+			//@{
 			/** Call after construction to check the that the object was created
 			 *  successfully.  If not, use get_state() to find out why not.
-			 *
-			 * \{
 			 */
 			virtual bool is_valid() const;
 			inline operator bool() const { return is_valid(); }
-			/* \} */
+			//@}
 
 			virtual bool set_md5_checking(bool value);                             ///< See FLAC__stream_decoder_set_md5_checking()
 			virtual bool set_metadata_respond(::FLAC__MetadataType type);          ///< See FLAC__stream_decoder_set_metadata_respond()
@@ -249,18 +250,18 @@ namespace FLAC {
 			File();
 			virtual ~File();
 
+			//@{
 			/** Initialize the instance; as with the C interface,
 			 *  init() should be called after construction and 'set'
 			 *  calls but before any of the 'process' calls.
 			 *
 			 *  See FLAC__stream_decoder_init_FILE() and
 			 *  FLAC__stream_decoder_init_file().
-			 *  \{
 			 */
 			::FLAC__StreamDecoderInitStatus init(FILE *file);
 			::FLAC__StreamDecoderInitStatus init(const char *filename);
 			::FLAC__StreamDecoderInitStatus init(const std::string &filename);
-			/*  \} */
+			//@}
 		protected:
 			// this is a dummy implementation to satisfy the pure virtual in Stream that is actually supplied internally by the C layer
 			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);
