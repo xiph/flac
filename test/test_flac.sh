@@ -143,10 +143,9 @@ rt_test_raw ()
 {
 	f="$1"
 	channels=`echo $f | awk -F- '{print $2}'`
-	bytes_per_sample=`echo $f | awk -F- '{print $3}'`
-	bps=`expr $bytes_per_sample '*' 8`
+	bps=`echo $f | awk -F- '{print $3}'`
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $f -o rt.flac || die "ERROR"
+	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels --lax -o rt.flac $f || die "ERROR"
 	echo -n "decode... "
 	run_flac $SILENT --force --decode --force-raw-format --endian=little --sign=signed -o rt.raw rt.flac || die "ERROR"
 	echo -n "compare... "
@@ -159,7 +158,7 @@ rt_test_wav ()
 {
 	f="$1"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none $f -o rt.flac || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --lax -o rt.flac $f || die "ERROR"
 	echo -n "decode... "
 	run_flac $SILENT --force --decode --channel-map=none -o rt.wav rt.flac || die "ERROR"
 	echo -n "compare... "
@@ -172,7 +171,7 @@ rt_test_aiff ()
 {
 	f="$1"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none $f -o rt.flac || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --lax -o rt.flac $f || die "ERROR"
 	echo -n "decode... "
 	run_flac $SILENT --force --decode --channel-map=none -o rt.aiff rt.flac || die "ERROR"
 	echo -n "compare... "
@@ -186,9 +185,9 @@ rt_test_flac ()
 {
 	f="$1"
 	echo -n "round-trip test ($f->flac->flac->wav) encode... "
-	run_flac $SILENT --force --verify --channel-map=none $f -o rt.flac || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --lax -o rt.flac $f || die "ERROR"
 	echo -n "re-encode... "
-	run_flac $SILENT --force --verify -o rt2.flac rt.flac || die "ERROR"
+	run_flac $SILENT --force --verify --lax -o rt2.flac rt.flac || die "ERROR"
 	echo -n "decode... "
 	run_flac $SILENT --force --decode --channel-map=none -o rt.wav rt2.flac || die "ERROR"
 	echo -n "compare... "

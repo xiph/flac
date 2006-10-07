@@ -42,6 +42,12 @@
 	static const char *mode = "w";
 #endif
 
+#if !defined _MSC_VER && !defined __MINGW32__
+#define GET_RANDOM_BYTE (((unsigned)random()) & 0xff)
+#else
+#define GET_RANDOM_BYTE (((unsigned)rand()) & 0xff)
+#endif
+
 static FLAC__bool is_big_endian_host;
 
 
@@ -538,17 +544,6 @@ static FLAC__bool generate_noise(const char *fn, unsigned bytes)
 {
 	FILE *f;
 	unsigned b;
-#if !defined _MSC_VER && !defined __MINGW32__
-	struct timeval tv;
-
-	if(gettimeofday(&tv, 0) < 0) {
-		fprintf(stderr, "WARNING: couldn't seed RNG with time\n");
-		tv.tv_usec = 4321;
-	}
-	srandom(tv.tv_usec);
-#else
-	srand(time(0));
-#endif
 
 	if(0 == (f = fopen(fn, mode)))
 		return false;
@@ -570,10 +565,11 @@ foo:
 	return false;
 }
 
-static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsigned channels, unsigned bytes_per_sample, unsigned samples)
+static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples)
 {
-	const unsigned true_size = channels * bytes_per_sample * samples;
+	const unsigned true_size = channels * ((bps+7)/8) * samples;
 	const unsigned padded_size = (true_size + 1) & (~1u);
+	const unsigned shift = 8 - (bps%8);
 	FILE *f;
 	unsigned i;
 
@@ -589,7 +585,7 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		goto foo;
 	if(!write_big_endian_uint32(f, samples))
 		goto foo;
-	if(!write_big_endian_uint16(f, (FLAC__uint16)(8 * bytes_per_sample)))
+	if(!write_big_endian_uint16(f, (FLAC__uint16)bps))
 		goto foo;
 	if(!write_sane_extended(f, sample_rate))
 		goto foo;
@@ -601,7 +597,7 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		goto foo;
 
 	for(i = 0; i < true_size; i++)
-		if(fputc(i, f) == EOF)
+		if(fputc(GET_RANDOM_BYTE<<shift, f) == EOF)
 			goto foo;
 	for( ; i < padded_size; i++)
 		if(fputc(0, f) == EOF)
@@ -614,11 +610,16 @@ foo:
 	return false;
 }
 
-static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bytes_per_sample, unsigned samples, FLAC__bool strict)
+static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples, FLAC__bool strict)
 {
-	const FLAC__bool waveformatextensible = strict && channels > 2;
-	const unsigned true_size = channels * bytes_per_sample * samples;
+	const FLAC__bool waveformatextensible = strict && (channels > 2 || (bps%8));
+	/*                                                                 ^^^^^^^
+	 * (bps%8) allows 24 bps which is technically supposed to be WAVEFORMATEXTENSIBLE but we
+	 * write 24bps as WAVEFORMATEX since it's unambiguous and matches how flac writes it
+	 */
+	const unsigned true_size = channels * ((bps+7)/8) * samples;
 	const unsigned padded_size = (true_size + 1) & (~1u);
+	const unsigned shift = (bps%8)? 8 - (bps%8) : 0;
 	FILE *f;
 	unsigned i;
 
@@ -638,16 +639,16 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 		goto foo;
 	if(!write_little_endian_uint32(f, sample_rate))
 		goto foo;
-	if(!write_little_endian_uint32(f, sample_rate * channels * bytes_per_sample))
+	if(!write_little_endian_uint32(f, sample_rate * channels * ((bps+7)/8)))
 		goto foo;
-	if(!write_little_endian_uint16(f, (FLAC__uint16)(channels * bytes_per_sample))) /* block align */
+	if(!write_little_endian_uint16(f, (FLAC__uint16)(channels * ((bps+7)/8)))) /* block align */
 		goto foo;
-	if(!write_little_endian_uint16(f, (FLAC__uint16)(8 * bytes_per_sample)))
+	if(!write_little_endian_uint16(f, (FLAC__uint16)(bps+shift)))
 		goto foo;
 	if(waveformatextensible) {
 		if(!write_little_endian_uint16(f, (FLAC__uint16)22)) /* cbSize */
 			goto foo;
-		if(!write_little_endian_uint16(f, (FLAC__uint16)(8 * bytes_per_sample))) /* validBitsPerSample */
+		if(!write_little_endian_uint16(f, (FLAC__uint16)bps)) /* validBitsPerSample */
 			goto foo;
 		if(!write_little_endian_uint32(f, 0)) /* channelMask */
 			goto foo;
@@ -661,7 +662,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 		goto foo;
 
 	for(i = 0; i < true_size; i++)
-		if(fputc(i, f) == EOF)
+		if(fputc(GET_RANDOM_BYTE<<shift, f) == EOF)
 			goto foo;
 	for( ; i < padded_size; i++)
 		if(fputc(0, f) == EOF)
@@ -727,6 +728,18 @@ int main(int argc, char *argv[])
 	(void)argc;
 	(void)argv;
 	is_big_endian_host = (*((FLAC__byte*)(&test)))? false : true;
+
+#if !defined _MSC_VER && !defined __MINGW32__
+	struct timeval tv;
+
+	if(gettimeofday(&tv, 0) < 0) {
+		fprintf(stderr, "WARNING: couldn't seed RNG with time\n");
+		tv.tv_usec = 4321;
+	}
+	srandom(tv.tv_usec);
+#else
+	srand(time(0));
+#endif
 
 	if(!generate_01()) return 1;
 	if(!generate_02()) return 1;
@@ -815,24 +828,26 @@ int main(int argc, char *argv[])
 	if(!generate_noise("noise8m32.raw", 32)) return 1;
 	if(!generate_wackywavs()) return 1;
 	for(channels = 1; channels <= 8; channels++) {
-		unsigned bytes_per_sample;
-		for(bytes_per_sample = 1; bytes_per_sample <= 3; bytes_per_sample++) {
-			static const unsigned nsamples[] = { 1, 111, 5555 } ;
+		unsigned bits_per_sample;
+		for(bits_per_sample = 4; bits_per_sample <= 24; bits_per_sample++) {
+			static const unsigned nsamples[] = { 1, 111, 4777 } ;
 			unsigned samples;
 			for(samples = 0; samples < sizeof(nsamples)/sizeof(nsamples[0]); samples++) {
 				char fn[64];
 
-				sprintf(fn, "rt-%u-%u-%u.aiff", channels, bytes_per_sample, nsamples[samples]);
-				if(!generate_aiff(fn, 44100, channels, bytes_per_sample, nsamples[samples]))
+				sprintf(fn, "rt-%u-%u-%u.aiff", channels, bits_per_sample, nsamples[samples]);
+				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples]))
 					return 1;
 
-				sprintf(fn, "rt-%u-%u-%u.raw", channels, bytes_per_sample, nsamples[samples]);
-				if(!generate_noise(fn, channels * bytes_per_sample * nsamples[samples]))
+				sprintf(fn, "rt-%u-%u-%u.wav", channels, bits_per_sample, nsamples[samples]);
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true))
 					return 1;
 
-				sprintf(fn, "rt-%u-%u-%u.wav", channels, bytes_per_sample, nsamples[samples]);
-				if(!generate_wav(fn, 44100, channels, bytes_per_sample, nsamples[samples], /*strict=*/true))
-					return 1;
+				if(bits_per_sample % 8 == 0) {
+					sprintf(fn, "rt-%u-%u-%u.raw", channels, bits_per_sample, nsamples[samples]);
+					if(!generate_noise(fn, channels * bits_per_sample/8 * nsamples[samples]))
+						return 1;
+				}
 			}
 		}
 	}
