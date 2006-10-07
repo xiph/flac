@@ -856,7 +856,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	FILE *fout = decoder_session->fout;
 	const unsigned bps = frame->header.bits_per_sample, channels = frame->header.channels;
-	const unsigned shift = (decoder_session->is_wave_out && (bps%8)? 8-(bps%8): 0);
+	const unsigned shift = ((decoder_session->is_wave_out || decoder_session->is_aiff_out) && (bps%8)? 8-(bps%8): 0);
 	FLAC__bool is_big_endian = (decoder_session->is_aiff_out? true : (decoder_session->is_wave_out? false : decoder_session->is_big_endian));
 	FLAC__bool is_unsigned_samples = (decoder_session->is_aiff_out? false : (decoder_session->is_wave_out? bps<=8 : decoder_session->is_unsigned_samples));
 	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, byte;
@@ -993,7 +993,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 					&decoder_session->replaygain.dither_context
 				);
 			}
-			else if(bps == 8) {
+			else if(bps+shift == 8) {
 				if(is_unsigned_samples) {
 					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 						for(channel = 0; channel < channels; channel++, sample++)
@@ -1006,7 +1006,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 				}
 				bytes_to_write = sample;
 			}
-			else if(bps == 16) {
+			else if(bps+shift == 16) {
 				if(is_unsigned_samples) {
 					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 						for(channel = 0; channel < channels; channel++, sample++)
@@ -1028,7 +1028,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 				}
 				bytes_to_write = 2 * sample;
 			}
-			else if(bps == 24) {
+			else if(bps+shift == 24) {
 				if(is_unsigned_samples) {
 					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 						for(channel = 0; channel < channels; channel++, sample++)
@@ -1136,8 +1136,8 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 			decoder_session->total_samples -= (metadata->data.stream_info.total_samples - until);
 		}
 
-		if(decoder_session->bps != 8 && decoder_session->bps != 16 && decoder_session->bps != 24) {
-			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is not 8/16/24\n", decoder_session->inbasefilename);
+		if(decoder_session->bps < 4 || decoder_session->bps > 24) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 4-24\n", decoder_session->inbasefilename, decoder_session->bps);
 			decoder_session->abort_flag = true;
 			return;
 		}
