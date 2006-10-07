@@ -1651,6 +1651,12 @@ int EncoderSession_finish_error(EncoderSession *e)
 {
 	FLAC__StreamEncoderState fse_state;
 
+#ifdef FLAC__HAS_OGG
+	FLAC__ASSERT(e->encoder.ogg || e->encoder.flac);
+#else
+	FLAC__ASSERT(e->encoder.flac);
+#endif
+
 	if(e->total_samples_to_encode > 0)
 		flac__utils_printf(stderr, 2, "\n");
 
@@ -1660,7 +1666,7 @@ int EncoderSession_finish_error(EncoderSession *e)
 	}
 	else
 #endif
-	if(e->is_stdout) {
+	{
 		fse_state = FLAC__stream_encoder_get_state(e->encoder.flac);
 	}
 
