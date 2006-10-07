@@ -65,9 +65,10 @@
 			<li>
 				General:
 				<ul>
-					<li>Large file (&gt;2GB) support everywhere</li>
+					<li>Improved compression with no impact on format or decoding speed.</li>
 					<li>Much better recovery for corrupted files</li>
 					<li>Better multichannel support</li>
+					<li>Large file (&gt;2GB) support everywhere</li>
 					<li><span class="commandname">flac</span> now supports FLAC as input to the encoder (i.e. can re-encode FLAC to FLAC) and preserve all the metadata like tags, etc.</li>
 					<li>New <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block for storing things like cover art, new <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> option to <span class="commandname">flac</span> and <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture">--import-picture</a></span> option to <span class="commandname">metaflac</span> for importing pictures, and metadata API <a href="api/group__flac__metadata__level0.html#ga3">additions</a> for searching for suitable pictures based on type, size and color constraints.</li>
 					<li>Support for new <tt>REPLAYGAIN_REFERENCE_LOUDNESS</tt> tag.</li>
@@ -90,13 +91,14 @@
 			<li>
 				flac:
 				<ul>
-					<li>Improved the <a href="documentation.html#flac_options_decode_through_errors"><span class="argument">-F</span></a> to allow decoding of FLAC files whose metadata is corrupted, and other kinds of corruption.</li>
+					<li>Improved the <a href="documentation.html#flac_options_decode_through_errors"><span class="argument">-F</span></a> option to allow decoding of FLAC files whose metadata is corrupted, and other kinds of severe corruption.</li>
 					<li>Encoder can now take FLAC as input.  The output FLAC file will have all the same metadata as the original unless overridden with options on the command line.</li>
 					<li>Encoder can now take WAVEFORMATEXTENSIBLE WAVE files as input; decoder will output WAVEFORMATEXTENSIBLE WAVE files when necessary to conform to the latest Microsoft specifications.</li>
 					<li>Now properly supports AIFF and WAVEFORMATEXTENSIBLE multichannel input, performing necessary channel reordering both for encoding and decoding.  WAVEFORMATEXTENSIBLE channel mask is also saved to a tag on encoding and restored on decoding for situations when there is no natural mapping to FLAC channel assignments.</li>
-					<li>Added support for "odd" sample resolutions; all resolution from 4 to 24 bits-per-sample now supported.</li>
+					<li>Expanded support for "odd" sample resolutions to WAVE and AIFF input; all resolutions from 4 to 24 bits-per-sample now supported for all input types.</li>
 					<li>Added a new option <a href="documentation.html#flac_options_tag_from_file"><span class="argument">--tag-from-file</span></a> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
 					<li>Added a new option <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> for adding pictures.</li>
+					<li>Added a new option <a href="documentation.html#flac_options_apodization"><span class="argument">--apodization</span></a> for specifying the window function(s) to be used in LPC analysis.</li>
 					<li>Added support for encoding from non-compressed AIFF-C (<a href="https://sourceforge.net/tracker/?func=detail&amp;atid=113478&amp;aid=1090933&amp;group_id=13478">SF #1090933</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now only issues a warning, not an error (see <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=31282">here</a>).</li>
 					<li>MD5 comparison failures on decoding are now an error instead of a warning and will also return a non-zero exit code (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1493725&amp;group_id=13478&amp;atid=113478">SF #1493725</a>).</li>
@@ -151,6 +153,7 @@
 			<li>
 				libraries:
 				<ul>
+					<li>libFLAC: Improved compression with no impact on FLAC format or decoding time by adding a windowing stage before LPC analysis.</li>
 					<li>libFLAC: Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.</li>
 					<li>libFLAC: Fixed UTF-8 decoder to disallow non-shortest-form and surrogate sequences (see <a href="http://www.unicode.org/versions/corrigendum1.html">here</a>).</li>
 					<li>libFLAC: Fixed a bug in the return value for <span class="argument">FLAC__stream_decoder_set_metadata_respond_application()</span> and <span class="argument">FLAC__stream_decoder_set_metadata_ignore_application()</span> when there was a memory allocation error (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1235005&amp;group_id=13478&amp;atid=113478">SF #1235005</a>).</li>
@@ -164,7 +167,7 @@
 						<ul>
 							<li>Merged seekable stream decoder and file decoder into the stream decoder.</li>
 							<li>Merged seekable stream encoder and file encoder into the stream encoder.</li>
-							<li>Added #defines for the API version number to make porting easier; see <tt>include/lib*FLAC*/export.h<tt>.</li>
+							<li>Added #defines for the API version number to make porting easier; see <tt>include/lib*FLAC*/export.h</tt>.</li>
 						</ul>
 					</li>
 					<li>
