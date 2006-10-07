@@ -97,6 +97,10 @@ extern "C" {
 /** The maximum block size, in samples, permitted by the format. */
 #define FLAC__MAX_BLOCK_SIZE (65535u)
 
+/** The maximum block size, in samples, permitted by the FLAC subset for
+ *  sample rates up to 48kHz. */
+#define FLAC__SUBSET_MAX_BLOCK_SIZE_48000HZ (4608u)
+
 /** The maximum number of channels permitted by the format. */
 #define FLAC__MAX_CHANNELS (8u)
 
@@ -124,6 +128,10 @@ extern "C" {
 
 /** The maximum LPC order permitted by the format. */
 #define FLAC__MAX_LPC_ORDER (32u)
+
+/** The maximum LPC order permitted by the FLAC subset for sample rates
+ *  up to 48kHz. */
+#define FLAC__SUBSET_MAX_LPC_ORDER_48000HZ (12u)
 
 /** The minimum quantized linear predictor coefficient precision
  *  permitted by the format.

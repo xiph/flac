@@ -742,6 +742,15 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__St
 			return FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE;
 		if(encoder->protected_->max_residual_partition_order > FLAC__SUBSET_MAX_RICE_PARTITION_ORDER)
 			return FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE;
+		if(
+			encoder->protected_->sample_rate <= 48000 &&
+			(
+				encoder->protected_->blocksize > FLAC__SUBSET_MAX_BLOCK_SIZE_48000HZ ||
+				encoder->protected_->max_lpc_order > FLAC__SUBSET_MAX_LPC_ORDER_48000HZ
+			)
+		) {
+			return FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE;
+		}
 	}
 
 	if(encoder->protected_->max_residual_partition_order >= (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN))
@@ -2663,7 +2672,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 
 		frame_header.channel_assignment = channel_assignment;
 
-		if(!FLAC__frame_add_header(&frame_header, encoder->protected_->streamable_subset, encoder->private_->frame)) {
+		if(!FLAC__frame_add_header(&frame_header, encoder->private_->frame)) {
 			encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 			return false;
 		}
@@ -2740,7 +2749,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 #endif
 	}
 	else {
-		if(!FLAC__frame_add_header(&frame_header, encoder->protected_->streamable_subset, encoder->private_->frame)) {
+		if(!FLAC__frame_add_header(&frame_header, encoder->private_->frame)) {
 			encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 			return false;
 		}

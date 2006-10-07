@@ -216,7 +216,7 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 	return true;
 }
 
-FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool streamable_subset, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitBuffer *bb)
 {
 	unsigned u, blocksize_hint, sample_rate_hint;
 
@@ -251,10 +251,6 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 				blocksize_hint = u = 6;
 			else if(header->blocksize <= 0x10000)
 				blocksize_hint = u = 7;
-			else {
-				FLAC__ASSERT(0);
-				return false;
-			}
 			break;
 	}
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))
@@ -278,10 +274,6 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__bool st
 				sample_rate_hint = u = 14;
 			else if(header->sample_rate <= 0xffff)
 				sample_rate_hint = u = 13;
-			else if(streamable_subset) {
-				FLAC__ASSERT(0);
-				return false;
-			}
 			else
 				u = 0;
 			break;

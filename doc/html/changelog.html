@@ -78,8 +78,9 @@
 			<li>
 				FLAC format:
 				<ul>
-					<li>New <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block for storing things like cover art</li>
-					<li>Speaker assignments and channel orders for 3-6 channels (see <a href="format.html#frame_header">frame header</a>)</li>
+					<li>New <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block for storing things like cover art.</li>
+					<li>Speaker assignments and channel orders for 3-6 channels (see <a href="format.html#frame_header">frame header</a>).</li>
+					<li>Further restrictions on the <a href="format.html#subset">FLAC subset</a> when the sample rate is &lt;=48kHz; in this case the maximum LPC order is now 12 and maximum blocksize is 4608.  This is to further limit the processing and memory requirements for hardware implementations while not measurably affecting compression.</li>
 				</ul>
 			</li>
 			<li>

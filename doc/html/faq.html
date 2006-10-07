@@ -304,7 +304,7 @@
 		<br />
 		<a name="tools__not_streamable"><b>Why did I get "ERROR initializing encoder, state = FLAC__STREAM_ENCODER_NOT_STREAMABLE"?</b></a><br />
 		<br />
-		You specified encoding options that are outside the <a href="format.html#subset">Streamable subset</a>.  If that is what you really wanted, you must also use <span class="code">flac --lax</span>.<br />
+		You specified encoding options that are outside the <a href="format.html#subset">Streamable subset</a>.  If that is what you really wanted and you understand the consequences, you can use <span class="code">flac --lax</span> to generate a non-Subset stream.  The resulting file may not be streamable or play in all players.<br />
 		<br />
 		<a name="tools__different_sizes"><b>Why doesn't the same file compressed on different machines with the same options yield the same FLAC file?</b></a><br />
 		<br />

@@ -1516,8 +1516,8 @@ void show_explain()
 	printf("  -b, --blocksize=#            Specify the blocksize in samples; the default is\n");
 	printf("                               1152 for -l 0, else 4608; must be one of 192,\n");
 	printf("                               576, 1152, 2304, 4608, 256, 512, 1024, 2048,\n");
-	printf("                               4096, 8192, 16384, or 32768 (unless --lax is\n");
-	printf("                               used)\n");
+	printf("                               4096 (and 8192 or 16384 if the sample rate is\n");
+	printf("                               >48kHz) for Subset streams.\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 2,2\n");
 	printf("  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 2,2\n");
 	printf("  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3\n");
@@ -1544,7 +1544,9 @@ void show_explain()
 	printf("                                     they are each tried in turn.  The encoder\n");
 	printf("                                     chooses suitable defaults in the absence\n");
 	printf("                                     of any -A options.\n");
-	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors\n");
+	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors.\n");
+	printf("                                     Must be <= 12 for Subset streams if sample\n");
+	printf("                                     rate is <=48kHz.\n");
 	printf("  -p, --qlp-coeff-precision-search   Do exhaustive search of LP coefficient\n");
 	printf("                                     quantization (expensive!); overrides -q;\n");
 	printf("                                     does nothing if using -l 0\n");

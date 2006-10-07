@@ -642,7 +642,7 @@
 					<span class="argument">-b #</span>, <span class="argument">--blocksize=#</span>
 				</td>
 				<td>
-					Specify the block size in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096/8192/16384/32768.  The reference encoder uses the same block size for the entire stream.
+					Specify the block size in samples.  The default is 1152 for -l 0, otherwise 4608.  Subset streams must use one of 192/576/1152/2304/4608/256/512/1024/2048/4096 (and 8192/16384 if the sample rate is &gt;48kHz).  The reference encoder uses the same block size for the entire stream.
 				</td>
 			</tr>
 			<tr>
@@ -799,7 +799,7 @@
 					<span class="argument">-l #</span>, <span class="argument">--max-lpc-order=#</span>
 				</td>
 				<td>
-					Specifies the maximum LPC order.  This number must be &lt;= 32.  If 0, the encoder will not attempt generic linear prediction, and use only fixed predictors.  Using fixed predictors is faster but usually results in files being 5-10% larger.
+					Specifies the maximum LPC order.  This number must be &lt;= 32.  For Subset streams, it must be &lt;=12 if the sample rate is &lt;=48kHz.  If 0, the encoder will not attempt generic linear prediction, and use only fixed predictors.  Using fixed predictors is faster but usually results in files being 5-10% larger.
 				</td>
 			</tr>
 			<tr>

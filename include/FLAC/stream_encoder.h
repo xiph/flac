@@ -298,7 +298,7 @@ typedef enum {
 	/**< The specified block size is less than the maximum LPC order. */
 
 	FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE,
-	/**< The encoder is bound to the "streamable subset" but other settings violate it. */
+	/**< The encoder is bound to the <A HREF="../format.html#subset">Subset</A> but other settings violate it. */
 
 	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA,
 	/**< The metadata input to the encoder is invalid, in one of the following ways:
@@ -574,8 +574,8 @@ FLAC_API void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder);
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Set the "streamable subset" flag.  If \c true, the encoder will comply
- *  with the subset (see the format specification) and will check the
+/** Set the <A HREF="../format.html#subset">Subset</A> flag.  If \c true,
+ *  the encoder will comply with the Subset and will check the
  *  settings during FLAC__stream_encoder_init() to see if all settings
  *  comply.  If \c false, the settings may take advantage of the full
  *  range that the format allows.
@@ -994,7 +994,7 @@ FLAC_API void FLAC__stream_encoder_get_verify_decoder_error_stats(const FLAC__St
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_get_verify(const FLAC__StreamEncoder *encoder);
 
-/** Get the "streamable subset" flag.
+/** Get the <A HREF="../format.html#subset>Subset</A> flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert

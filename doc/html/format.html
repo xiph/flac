@@ -286,13 +286,16 @@
 				<a name="subset" />FLAC specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the encoding parameters such that decoder buffer sizes and other resource requirements can be easily determined.  "flac" generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
 				<ul>
 				<li>
-					The blocksize bits in the <a href="#frame_header">frame header</a> must be 0001-0101 or 1000-1110, specifying a fixed-blocksize stream (the exception being the last block as described in the table) and a few allowable blocksizes.  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.
+					The blocksize bits in the <a href="#frame_header">frame header</a> must be 0001-0101 or 1000-1110, specifying a fixed-blocksize stream (the exception being the last block as described in the table) and a few allowable blocksizes.  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.  If the sample rate is &lt;= 48000Hz, the blocksize must be &lt;=4608, i.e. blocksize bits 0001-0101 or 1000-1100.
 				</li>
 				<li>
 					The sample rate bits in the <a href="#frame_header">frame header</a> must be 0001-1011.
 				</li>
 				<li>
 					The bits-per-sample bits in the <a href="#frame_header">frame header</a> must be 001-111.
+				</li>
+				<li>
+					If the sample rate is &lt;= 48000Hz, the filter order in <a href="#subframe_lpc">LPC subframes</a> must be less than or equal to 12, i.e. the subframe type bits in the <a href="#subframe_header">subframe header</a> may not be 101100-111111.
 				</li>
 				<li>
 					The Rice partition order in a <a href="#partitioned_rice">Rice-coded residual section</a> must be less than or equal to 8.

@@ -2519,8 +2519,9 @@ void print_error_with_init_status(const EncoderSession *e, const char *message, 
 		flac__utils_printf(stderr, 1,
 			"\n"
 			"The encoding parameters specified do not conform to the FLAC Subset and may not\n"
-			"be streamable or playable in hardware devices.  Add --lax to the command-line\n"
-			"options to encode with these parameters anyway.\n"
+			"be streamable or playable in hardware devices.  If you really understand the\n"
+			"consequences, you can add --lax to the command-line options to encode with\n"
+			"these parameters anyway.  See http://flac.sourceforge.net/format.html#subset\n"
 		);
 	}
 }
