@@ -269,6 +269,12 @@ OggFLAC_API FLAC__StreamEncoderInitStatus OggFLAC__stream_encoder_init_FILE(OggF
 	if(encoder->protected_->state != OggFLAC__STREAM_ENCODER_UNINITIALIZED)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED;
 
+	/* double protection */
+	if(file == 0) {
+		encoder->protected_->state = OggFLAC__STREAM_ENCODER_IO_ERROR;
+		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
+	}
+
 	/*
 	 * To make sure that our file does not go unclosed after an error, we
 	 * must assign the FILE pointer before any further error can occur in
