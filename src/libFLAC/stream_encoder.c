@@ -1115,11 +1115,6 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_FILE(FLAC__Stre
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != file);
 
-	/*
-	 * To make sure that our file does not go unclosed after an error, we
-	 * must assign the FILE pointer before any further error can occur in
-	 * this routine.
-	 */
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED;
 
@@ -1129,6 +1124,11 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_FILE(FLAC__Stre
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 	}
 
+	/*
+	 * To make sure that our file does not go unclosed after an error, we
+	 * must assign the FILE pointer before any further error can occur in
+	 * this routine.
+	 */
 	if(file == stdout)
 		file = get_binary_stdout_(); /* just to be safe */
 
