@@ -65,6 +65,7 @@ typedef struct {
 #endif
 	FLAC__bool verify;
 	FLAC__bool is_stdout;
+	FLAC__bool outputfile_opened; /* true if we successfully opened the output file and we want it to be deleted if there is an error */
 	const char *inbasefilename;
 	const char *outfilename;
 
@@ -1534,6 +1535,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	e->verify = verify;
 
 	e->is_stdout = (0 == strcmp(outfilename, "-"));
+	e->outputfile_opened = false;
 
 	e->inbasefilename = grabbag__file_get_basename(infilename);
 	e->outfilename = outfilename;
@@ -1672,8 +1674,8 @@ int EncoderSession_finish_error(EncoderSession *e)
 
 	if(fse_state == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA)
 		print_verify_error(e);
-	else
-		/*@@@@@@@@@ BUG: if error was caused because the output file already exists but the file encoder could not write on top of it (i.e. it's not writable), this will delete the pre-existing file, which is not what we want */
+	else if(e->outputfile_opened)
+		/* only want to delete the file if we opened it; otherwise it could be an existing file and our overwrite failed */
 		unlink(e->outfilename);
 
 	EncoderSession_destroy(e);
@@ -1984,10 +1986,14 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		init_status = OggFLAC__stream_encoder_init_file(e->encoder.ogg, e->is_stdout? 0 : e->outfilename, encoder_progress_callback, /*client_data=*/e);
 		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
 			print_error_with_init_status(e, "ERROR initializing encoder", init_status);
+			if(OggFLAC__stream_encoder_get_state(e->encoder.ogg) != OggFLAC__STREAM_ENCODER_IO_ERROR)
+				e->outputfile_opened = true;
 			if(0 != cuesheet)
 				FLAC__metadata_object_delete(cuesheet);
 			return false;
 		}
+		else
+			e->outputfile_opened = true;
 	}
 	else
 #endif
@@ -2019,10 +2025,14 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		init_status = FLAC__stream_encoder_init_file(e->encoder.flac, e->is_stdout? 0 : e->outfilename, encoder_progress_callback, /*client_data=*/e);
 		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
 			print_error_with_init_status(e, "ERROR initializing encoder", init_status);
+			if(FLAC__stream_encoder_get_state(e->encoder.flac) != FLAC__STREAM_ENCODER_IO_ERROR)
+				e->outputfile_opened = true;
 			if(0 != cuesheet)
 				FLAC__metadata_object_delete(cuesheet);
 			return false;
 		}
+		else
+			e->outputfile_opened = true;
 	}
 
 	if(0 != cuesheet)
