@@ -199,7 +199,7 @@ FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cueshe
 		return false;
 	}
 
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __MINGW32__
 	_snprintf(ref, reflen, "\"%s\" FLAC", filename);
 #else
 	snprintf(ref, reflen, "\"%s\" FLAC", filename);

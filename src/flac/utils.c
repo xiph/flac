@@ -25,6 +25,7 @@
 #include "FLAC/metadata.h"
 #include <math.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -282,7 +283,11 @@ FLAC__bool flac__utils_set_channel_mask_tag(FLAC__StreamMetadata *object, FLAC__
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__ASSERT(strlen(CHANNEL_MASK_TAG+1+2+16+1) <= sizeof(tag)); /* +1 for =, +2 for 0x, +16 for digits, +1 for NUL */
 	entry.entry = (FLAC__byte*)tag;
+#if defined _MSC_VER || defined __MINGW32__
+	if((entry.length = _snprintf(tag, sizeof(tag), "%s=0x%04X", CHANNEL_MASK_TAG, (unsigned)channel_mask)) >= sizeof(tag))
+#else
 	if((entry.length = snprintf(tag, sizeof(tag), "%s=0x%04X", CHANNEL_MASK_TAG, (unsigned)channel_mask)) >= sizeof(tag))
+#endif
 		return false;
 	if(!FLAC__metadata_object_vorbiscomment_replace_comment(object, entry, /*all=*/true, /*copy=*/true))
 		return false;

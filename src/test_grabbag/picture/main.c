@@ -69,7 +69,11 @@ static FLAC__bool test_one_picture(const char *prefix, const PictureFile *pf, co
 	FLAC__StreamMetadata *obj;
 	const char *error;
 	char s[4096];
+#if defined _MSC_VER || defined __MINGW32__
+	_snprintf(s, sizeof(s)-1, "%u|%s|%s|%s|%s/%s", (unsigned)pf->type, pf->mime_type, pf->description, res, prefix, pf->path);
+#else
 	snprintf(s, sizeof(s)-1, "%u|%s|%s|%s|%s/%s", (unsigned)pf->type, pf->mime_type, pf->description, res, prefix, pf->path);
+#endif
 
 	printf("testing grabbag__picture_parse_specification(\"%s\")... ", s);
 	if(0 == (obj = grabbag__picture_parse_specification(s, &error)))
