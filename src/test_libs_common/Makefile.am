@@ -26,8 +26,6 @@ INCLUDES = -I$(top_srcdir)/include
 
 noinst_LTLIBRARIES = libtest_libs_common.la
 
-noinst_LIBADD = @OGGFLAC_LIBS@ ../libFLAC/libFLAC.la
-
 libtest_libs_common_la_SOURCES = \
 	file_utils_flac.c \
 	metadata_utils.c \
