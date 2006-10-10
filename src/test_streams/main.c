@@ -633,7 +633,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 		goto foo;
 	if(!write_little_endian_uint32(f, waveformatextensible?40:16))
 		goto foo;
-	if(!write_little_endian_uint16(f, waveformatextensible?65534:1))
+	if(!write_little_endian_uint16(f, (FLAC__uint16)(waveformatextensible?65534:1)))
 		goto foo;
 	if(!write_little_endian_uint16(f, (FLAC__uint16)channels))
 		goto foo;
