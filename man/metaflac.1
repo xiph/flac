@@ -3,7 +3,8 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "METAFLAC" "1" "02 February 2005" "" ""
+.TH "METAFLAC" "1" "09 October 2006" "" ""
+
 .SH NAME
 metaflac \- program to list, add, remove, or edit metadata in one or more FLAC files.
 .SH SYNOPSIS
@@ -81,6 +82,16 @@ Add a tag.  The field must comply with the
 Vorbis comment spec, of the form "NAME=VALUE".  If there is
 currently no tag block, one will be created.
 .TP
+\fB--set-tag-from-file=field\fR
+Like --set-tag, except the VALUE is a filename whose
+contents will be read verbatim to set the tag value.
+Unless --no-utf8-convert is specified, the contents will be
+converted to UTF-8 from the local charset.  This can be used
+to store a cuesheet in a tag (e.g.
+--set-tag-from-file="CUESHEET=image.cue").  Do not try to
+store binary data in tag fields!  Use APPLICATION blocks for
+that.
+.TP
 \fB--import-tags-from=file\fR
 Import tags from a file.  Use '-' for stdin.  Each
 line should be of the form NAME=VALUE.  Multi-line comments
@@ -103,6 +114,69 @@ Export CUESHEET block to a cuesheet file, suitable for use by
 CD authoring software.  Use '-' for stdout.  Only one FLAC file
 may be specified on the command line.
 .TP
+\fB--import-picture=\fISPECIFICATION\fB\fR
+Import a picture and store it in a PICTURE metadata block.  More than one --import-picture command can be specified.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  The format of SPECIFICATION is
+
+[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE
+
+TYPE is optional; it is a number from one of:
+
+0: Other
+
+1: 32x32 pixels 'file icon' (PNG only)
+
+2: Other file icon
+
+3: Cover (front)
+
+4: Cover (back)
+
+5: Leaflet page
+
+6: Media (e.g. label side of CD)
+
+7: Lead artist/lead performer/soloist
+
+8: Artist/performer
+
+9: Conductor
+
+10: Band/Orchestra
+
+11: Composer
+
+12: Lyricist/text writer
+
+13: Recording Location
+
+14: During recording
+
+15: During performance
+
+16: Movie/video screen capture
+
+17: A bright coloured fish
+
+18: Illustration
+
+19: Band/artist logotype
+
+20: Publisher/Studio logotype
+
+The default is 3 (front cover).  There may only be one picture each of type 1 and 2 in a file.
+
+MIME-TYPE is mandatory; for best compatibility with players, use pictures with MIME type image/jpeg or image/png.  The MIME type can also be --> to mean that FILE is actually a URL to an image, though this use is discouraged.
+
+DESCRIPTION is optional; the default is an empty string.
+
+The next part specfies the resolution and color information.  If the MIME-TYPE is image/jpeg, image/png, or image/gif, you can usually leave this empty and they can be detected from the file.  Otherwise, you must specify the width in pixels, height in pixels, and color depth in bits-per-pixel.  If the image has indexed colors you should also specify the number of colors used.  When manually specified, it is not checked against the file for accuracy.
+
+FILE is the path to the picture file to be imported, or the URL if MIME type is -->
+
+For example, "|image/jpeg|||../cover.jpg" will embed the JPEG file at ../cover.jpg, defaulting to type 3 (front cover) and an empty description.  The resolution and color info will be retrieved from the file itself.
+
+The specification "4|-->|CD|320x300x24/173|http://blah.blah/backcover.tiff" will embed the given URL, with type 4 (back cover), description "CD", and a manually specified resolution of 320x300, 24 bits-per-pixel, and 173 colors.  The file at the URL will not be fetched; the URL itself is stored in the PICTURE metadata block.
+.TP
 \fB--add-replay-gain\fR
 Calculates the title and album gains/peaks of the given FLAC
 files as if all the files were part of one album, then stores
@@ -115,6 +189,9 @@ have been completed and written to disk.  All FLAC files
 specified must have the same resolution, sample rate, and
 number of channels.  The sample rate must be one of 8, 11.025,
 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.
+.TP
+\fB--remove-replay-gain\fR
+Removes the ReplayGain tags.
 .TP
 \fB--add-seekpoint={\fI#\fB|\fIX\fB|\fI#x\fB|\fI#s\fB}\fR
 Add seek points to a SEEKTABLE block.  Using #, a seek point at
