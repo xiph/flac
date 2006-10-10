@@ -40,7 +40,7 @@ all default: $(DEFAULT_BUILD)
 # GNU makefile fragment for emulating stuff normally done by configure
 #
 
-VERSION=\"1.1.3\"
+VERSION=\"1.1.3-beta1\"
 
 ifeq ($(DARWIN_BUILD),yes)
 #CONFIG_CFLAGS=-DHAVE_INTTYPES_H -DHAVE_ICONV -DHAVE_LANGINFO_CODESET -DHAVE_SOCKLEN_T -DFLAC__HAS_OGG -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DFLAC__SYS_DARWIN
