@@ -108,6 +108,12 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 	return true;
 }
 
+FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
+{
+	struct stat s1, s2;
+	return f1 && f2 && stat(f1, &s1) == 0 && stat(f2, &s2) == 0 && s1.st_ino == s2.st_ino;
+}
+
 FLAC__bool grabbag__file_remove_file(const char *filename)
 {
 	return grabbag__file_change_stats(filename, /*read_only=*/false) && 0 == unlink(filename);
