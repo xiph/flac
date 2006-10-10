@@ -317,11 +317,11 @@ static FLAC__bool write_chain_(FLAC__Metadata_Chain *chain, FLAC__bool use_paddi
 					return false;
 			}
 			if(0 == (file = fopen(filename, "rb")))
-				return false; /*@@@ chain status still says OK though */
+				return false; /*@@@@ chain status still says OK though */
 			if(!open_tempfile_(filename, &tempfile, &tempfilename)) {
 				fclose(file);
 				cleanup_tempfile_(&tempfile, &tempfilename);
-				return false; /*@@@ chain status still says OK though */
+				return false; /*@@@@ chain status still says OK though */
 			}
 			if(!FLAC__metadata_chain_write_with_callbacks_and_tempfile(chain, use_padding, (FLAC__IOHandle)file, callbacks, (FLAC__IOHandle)tempfile, callbacks)) {
 				fclose(file);
@@ -339,7 +339,7 @@ static FLAC__bool write_chain_(FLAC__Metadata_Chain *chain, FLAC__bool use_paddi
 		else {
 			FILE *file = fopen(filename, "r+b");
 			if(0 == file)
-				return false; /*@@@ chain status still says OK though */
+				return false; /*@@@@ chain status still says OK though */
 			if(!FLAC__metadata_chain_write_with_callbacks(chain, use_padding, (FLAC__IOHandle)file, callbacks))
 				return false;
 			fclose(file);
@@ -365,7 +365,7 @@ static FLAC__bool read_chain_(FLAC__Metadata_Chain *chain, const char *filename,
 			FLAC__bool ret;
 			FILE *file = fopen(filename, "rb");
 			if(0 == file)
-				return false; /*@@@ chain status still says OK though */
+				return false; /*@@@@ chain status still says OK though */
 			ret = FLAC__metadata_chain_read_with_callbacks(chain, (FLAC__IOHandle)file, callbacks);
 			fclose(file);
 			return ret;

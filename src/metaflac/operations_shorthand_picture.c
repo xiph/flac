@@ -21,7 +21,7 @@
 #endif
 
 #include <errno.h>
-#include <stdio.h> /* for snprintf() */
+#include <stdio.h>
 #include <string.h>
 #include "options.h"
 #include "utils.h"

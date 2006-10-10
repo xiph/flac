@@ -330,11 +330,11 @@ static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool pr
 					return false;
 			}
 			if(0 == (file = fopen(filename, "rb")))
-				return false; /*@@@ chain status still says OK though */
+				return false; /*@@@@ chain status still says OK though */
 			if(!open_tempfile_(filename, &tempfile, &tempfilename)) {
 				fclose(file);
 				cleanup_tempfile_(&tempfile, &tempfilename);
-				return false; /*@@@ chain status still says OK though */
+				return false; /*@@@@ chain status still says OK though */
 			}
 			if(!chain.write(use_padding, (::FLAC__IOHandle)file, callbacks, (::FLAC__IOHandle)tempfile, callbacks)) {
 				fclose(file);
@@ -352,7 +352,7 @@ static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool pr
 		else {
 			FILE *file = fopen(filename, "r+b");
 			if(0 == file)
-				return false; /*@@@ chain status still says OK though */
+				return false; /*@@@@ chain status still says OK though */
 			if(!chain.write(use_padding, (::FLAC__IOHandle)file, callbacks))
 				return false;
 			fclose(file);
@@ -378,7 +378,7 @@ static bool read_chain_(FLAC::Metadata::Chain &chain, const char *filename, bool
 			bool ret;
 			FILE *file = fopen(filename, "rb");
 			if(0 == file)
-				return false; /*@@@ chain status still says OK though */
+				return false; /*@@@@ chain status still says OK though */
 			ret = chain.read((::FLAC__IOHandle)file, callbacks);
 			fclose(file);
 			return ret;
