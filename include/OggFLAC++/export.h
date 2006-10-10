@@ -45,7 +45,7 @@
 /* These #defines will mirror the libtool-based library version number, see
  * http://www.gnu.org/software/libtool/manual.html#Libtool-versioning
  */
-#define OggFLACPP_API_VERSION_CURRENT 2
+#define OggFLACPP_API_VERSION_CURRENT 3
 #define OggFLACPP_API_VERSION_REVISION 0
 #define OggFLACPP_API_VERSION_AGE 0
 
