@@ -111,7 +111,11 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 {
 	struct stat s1, s2;
+#if defined _MSC_VER || defined __MINGW32__
+	return f1 && f2 && 0 == strcmp(s1, s2); /*@@@@@@ need better method than strcmp */
+#else
 	return f1 && f2 && stat(f1, &s1) == 0 && stat(f2, &s2) == 0 && s1.st_ino == s2.st_ino;
+#endif
 }
 
 FLAC__bool grabbag__file_remove_file(const char *filename)
