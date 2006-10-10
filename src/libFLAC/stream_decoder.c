@@ -468,9 +468,9 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
 		decoder,
 		file_read_callback_,
 		decoder->private_->file == stdin? 0: file_seek_callback_,
-		decoder->private_->file == stdin? 0: file_tell_callback_,/*@@@@@@ might work for stdin*/
+		decoder->private_->file == stdin? 0: file_tell_callback_,
 		decoder->private_->file == stdin? 0: file_length_callback_,
-		decoder->private_->file == stdin? 0: file_eof_callback_,/*@@@@@@ might work for stdin*/
+		file_eof_callback_,
 		write_callback,
 		metadata_callback,
 		error_callback,
@@ -2916,7 +2916,7 @@ FLAC__StreamDecoderTellStatus file_tell_callback_(const FLAC__StreamDecoder *dec
 	off_t pos;
 	(void)client_data;
 
-	if(decoder->private_->file == stdin) /*@@@@@@ may work for stdin */
+	if(decoder->private_->file == stdin)
 		return FLAC__STREAM_DECODER_TELL_STATUS_UNSUPPORTED;
 	else if((pos = ftello(decoder->private_->file)) < 0)
 		return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
@@ -2945,7 +2945,5 @@ FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_d
 {
 	(void)client_data;
 
-	if(decoder->private_->file == stdin) /*@@@@@@ feof() may work for stdin */
-		return false;
 	return feof(decoder->private_->file)? true : false;
 }
