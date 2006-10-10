@@ -164,7 +164,7 @@ static FLAC__bool read_big_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool 
 static FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn);
 static FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset);
 static unsigned count_channel_mask_bits(FLAC__uint32 mask);
-static unsigned limit_channel_mask(FLAC__uint32 mask, unsigned channels);
+static FLAC__uint32 limit_channel_mask(FLAC__uint32 mask, unsigned channels);
 
 /*
  * public routines
