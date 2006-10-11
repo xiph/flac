@@ -2466,7 +2466,6 @@ void print_stats(const EncoderSession *encoder_session)
 	const double ratio = (double)encoder_session->bytes_written / ((double)encoder_session->unencoded_size * min(1.0, progress));
 #endif
 
-
 	if(samples_written == encoder_session->total_samples_to_encode) {
 		flac__utils_printf(stderr, 2, "\r%s:%s wrote %u bytes, ratio=%0.3f",
 			encoder_session->inbasefilename,
