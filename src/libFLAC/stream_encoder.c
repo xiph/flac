@@ -3949,11 +3949,17 @@ static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *st
 
 FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
-	(void)client_data, (void)samples, (void)current_frame;
+	(void)client_data, (void)current_frame;
 
 	if(local__fwrite(buffer, sizeof(FLAC__byte), bytes, encoder->private_->file) == bytes) {
-		if(0 != encoder->private_->progress_callback && samples > 0)
-			encoder->private_->progress_callback(encoder, encoder->private_->bytes_written, encoder->private_->samples_written, encoder->private_->frames_written, encoder->private_->total_frames_estimate, encoder->private_->client_data);
+		if(0 != encoder->private_->progress_callback && samples > 0) {
+			/* NOTE: We have to add +bytes, +samples, and +1 to the stats
+			 * because at this point in the callback chain, the stats
+			 * have not been updated.  Only after we return and control
+			 * gets back to write_frame_() are the stats updated
+			 */
+			encoder->private_->progress_callback(encoder, encoder->private_->bytes_written+bytes, encoder->private_->samples_written+samples, encoder->private_->frames_written+(samples?1:0), encoder->private_->total_frames_estimate, encoder->private_->client_data);
+		}
 		return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
 	}
 	else
