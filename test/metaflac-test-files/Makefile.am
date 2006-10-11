@@ -61,7 +61,24 @@ EXTRA_DIST = \
 	case42-expect.meta \
 	case43-expect.meta \
 	case44-expect.meta \
-	case45-expect.meta
+	case45-expect.meta \
+	case46-expect.meta \
+	case47-expect.meta \
+	case48-expect.meta \
+	case49-expect.meta \
+	case50-expect.meta \
+	case51-expect.meta \
+	case52-expect.meta \
+	case53-expect.meta \
+	case54-expect.meta \
+	case55-expect.meta \
+	case56-expect.meta \
+	case57-expect.meta \
+	case58-expect.meta \
+	case59-expect.meta \
+	case60-expect.meta \
+	case61-expect.meta \
+	case62-expect.meta
 
 CLEANFILES = \
 	$(wildcard out.*)
