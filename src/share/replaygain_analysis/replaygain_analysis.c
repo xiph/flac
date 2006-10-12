@@ -100,7 +100,7 @@
 
 #include "replaygain_analysis.h"
 
-extern Float_t ReplayGainReferenceLoudness = 89.0; /* in dB SPL */
+Float_t ReplayGainReferenceLoudness = 89.0; /* in dB SPL */
 
 typedef unsigned short  Uint16_t;
 typedef signed short    Int16_t;
