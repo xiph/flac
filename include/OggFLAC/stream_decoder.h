@@ -55,9 +55,9 @@ extern "C" {
  *  \ingroup oggflac
  *
  *  \brief
- *  This module describes the three decoder layers provided by libOggFLAC.
+ *  This module describes the decoder layers provided by libOggFLAC.
  *
- * libOggFLAC currently provides the same three layers of access as
+ * libOggFLAC currently provides the same layers of access as
  * libFLAC; the interfaces are nearly identical, with th addition of a
  * method for specifying the Ogg serial number.  See the
  * \link flac_decoder FLAC decoder module \endlink for full documentation.
