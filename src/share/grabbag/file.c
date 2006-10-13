@@ -114,7 +114,7 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 	return f1 && f2 && 0 == strcmp(f1, f2); /*@@@@@@ need better method than strcmp */
 #else
 	struct stat s1, s2;
-	return f1 && f2 && stat(f1, &s1) == 0 && stat(f2, &s2) == 0 && s1.st_ino == s2.st_ino;
+	return f1 && f2 && stat(f1, &s1) == 0 && stat(f2, &s2) == 0 && s1.st_ino == s2.st_ino && s1.st_dev == s2.st_dev;
 #endif
 }
 
