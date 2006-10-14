@@ -655,7 +655,6 @@ OggFLAC_API FLAC__bool OggFLAC__stream_decoder_seek_absolute(OggFLAC__StreamDeco
 		}
 		/* check this again in case we didn't know total_samples the first time */
 		if(OggFLAC__stream_decoder_get_total_samples(decoder) > 0 && sample >= OggFLAC__stream_decoder_get_total_samples(decoder)) {
-			decoder->protected_->state = OggFLAC__STREAM_DECODER_SEEK_ERROR;
 			decoder->private_->is_seeking = false;
 			return false;
 		}
