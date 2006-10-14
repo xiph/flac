@@ -736,26 +736,6 @@ OggFLAC_API unsigned OggFLAC__stream_encoder_get_rice_parameter_search_dist(cons
 OggFLAC_API FLAC__uint64 OggFLAC__stream_encoder_get_total_samples_estimate(const OggFLAC__StreamEncoder *encoder);
 
 /** Initialize the encoder instance.
- *  Should be called after OggFLAC__stream_encoder_new() and
- *  OggFLAC__stream_encoder_set_*() but before OggFLAC__stream_encoder_process()
- *  or OggFLAC__stream_encoder_process_interleaved().  Will set and return
- *  the encoder state, which will be OggFLAC__STREAM_ENCODER_OK if
- *  initialization succeeded.
- *
- *  The call to OggFLAC__stream_encoder_init() currently will also immediately
- *  call the write callback several times, once with the \c fLaC signature,
- *  and once for each encoded metadata block.
- *
- * \param  encoder  An uninitialized encoder instance.
- * \assert
- *    \code encoder != NULL \endcode
- * \retval OggFLAC__StreamEncoderState
- *    \c OggFLAC__STREAM_ENCODER_OK if initialization was successful; see
- *    OggFLAC__StreamEncoderState for the meanings of other return values.
- */
-OggFLAC_API OggFLAC__StreamEncoderState OggFLAC__stream_encoder_init(OggFLAC__StreamEncoder *encoder);
-
-/** Initialize the encoder instance.
  *
  *  This flavor of initialization sets up the encoder to encode to a stream.
  *  I/O is performed via callbacks to the client.  For encoding to a plain file
