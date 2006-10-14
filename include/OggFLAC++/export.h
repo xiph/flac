@@ -42,6 +42,9 @@
 #else
 #define OggFLACPP_API	_declspec(dllimport)
 
+#endif
+#endif
+
 /* These #defines will mirror the libtool-based library version number, see
  * http://www.gnu.org/software/libtool/manual.html#Libtool-versioning
  */
@@ -49,6 +52,4 @@
 #define OggFLACPP_API_VERSION_REVISION 0
 #define OggFLACPP_API_VERSION_AGE 0
 
-#endif
-#endif
 #endif
