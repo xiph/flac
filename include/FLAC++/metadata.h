@@ -64,7 +64,8 @@
  *
  *  The behavior closely mimics the C layer interface; be sure to read
  *  the detailed description of the
- *  \link flac_metadata C metadata module \endlink.
+ *  \link flac_metadata C metadata module \endlink.  Note that the
+ *  metadata API currently does not support Ogg FLAC files.
  */
 
 
@@ -563,7 +564,7 @@ namespace FLAC {
 
 				virtual ~Entry();
 
-				virtual bool is_valid() const;
+				virtual bool is_valid() const; ///< Returns \c true iff object was properly constructed.
 
 				unsigned get_field_length() const;
 				unsigned get_field_name_length() const;
@@ -687,7 +688,8 @@ namespace FLAC {
 
 				virtual ~Track();
 
-				virtual bool is_valid() const;
+				virtual bool is_valid() const; ///< Returns \c true iff object was properly constructed.
+
 
 				inline FLAC__uint64 get_offset() const { return object_->offset; }
 				inline FLAC__byte get_number() const { return object_->number; }
@@ -1005,9 +1007,10 @@ namespace FLAC {
 			SimpleIterator();
 			virtual ~SimpleIterator();
 
+			bool is_valid() const; ///< Returns \c true iff object was properly constructed.
+
 			bool init(const char *filename, bool read_only, bool preserve_file_stats); ///< See FLAC__metadata_simple_iterator_init().
 
-			bool is_valid() const;
 			Status status();                                                    ///< See FLAC__metadata_simple_iterator_status().
 			bool is_writable() const;                                           ///< See FLAC__metadata_simple_iterator_is_writable().
 
@@ -1088,7 +1091,8 @@ namespace FLAC {
 
 			friend class Iterator;
 
-			bool is_valid() const;
+			bool is_valid() const; ///< Returns \c true iff object was properly constructed.
+
 			Status status();                                                ///< See FLAC__metadata_chain_status().
 
 			bool read(const char *filename);                                ///< See FLAC__metadata_chain_read().
@@ -1118,7 +1122,8 @@ namespace FLAC {
 			Iterator();
 			virtual ~Iterator();
 
-			bool is_valid() const;
+			bool is_valid() const; ///< Returns \c true iff object was properly constructed.
+
 
 			void init(Chain &chain);                       ///< See FLAC__metadata_iterator_init().
 

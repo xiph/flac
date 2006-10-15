@@ -67,36 +67,28 @@
  * property.
  *
  * Second, there are two stream encoder classes.  FLAC::Encoder::Stream
- * is used for the same cases that FLAC__stream_encoder_init_stream() is
- * used, and FLAC::Encoder::File is used for the same cases that
- * FLAC__stream_encoder_init_FILE() and FLAC__stream_encoder_init_file()
+ * is used for the same cases that FLAC__stream_encoder_init_stream() /
+ * FLAC__stream_encoder_init_ogg_stream() is used, and FLAC::Encoder::File
+ * is used for the same cases that
+ * FLAC__stream_encoder_init_FILE() and FLAC__stream_encoder_init_file() /
+ * FLAC__stream_encoder_init_ogg_FILE() and FLAC__stream_encoder_init_ogg_file()
  * are used.
  */
 
 namespace FLAC {
 	namespace Encoder {
 
-		/** \defgroup flacpp_stream_encoder FLAC++/encoder.h: stream encoder class
-		 *  \ingroup flacpp_encoder
-		 *
+		/** \ingroup flacpp_encoder
 		 *  \brief
-		 *  This class wraps the ::FLAC__StreamEncoder.
-		 *
-		 * See the \link flac_stream_encoder libFLAC stream encoder module \endlink
-		 * for basic usage.
-		 *
-		 * \{
-		 */
-
-		/** This class wraps the ::FLAC__StreamEncoder.  If you are
+		 *  This class wraps the ::FLAC__StreamEncoder.  If you are
 		 *  encoding to a file, FLAC::Encoder::File may be more
 		 *  convenient.
 		 *
 		 * The usage of this class is similar to FLAC__StreamEncoder,
 		 * except instead of providing callbacks to
-		 * FLAC__stream_encoder_init_stream(), you will inherit from this
+		 * FLAC__stream_encoder_init*_stream(), you will inherit from this
 		 * class and override the virtual callback functions with your
-		 * own implementations, then call Stream::init().  The rest of
+		 * own implementations, then call init() or init_ogg().  The rest of
 		 * the calls work the same as in the C layer.
 		 *
 		 * Only the write callback is mandatory.  The others are
@@ -129,7 +121,7 @@ namespace FLAC {
 			 *
 			 */
 			virtual bool is_valid() const;
-			inline operator bool() const { return is_valid(); }
+			inline operator bool() const { return is_valid(); } ///< See is_valid()
 			//@}
 
 			virtual bool set_ogg_serial_number(long value);                 ///< See FLAC__stream_encoder_set_ogg_serial_number()
@@ -219,31 +211,19 @@ namespace FLAC {
 			void operator=(const Stream &);
 		};
 
-		/* \} */
-
-		/** \defgroup flacpp_file_encoder FLAC++/encoder.h: file encoder class
-		 *  \ingroup flacpp_encoder
-		 *
+		/** \ingroup flacpp_encoder
 		 *  \brief
-		 *  This class wraps the ::FLAC__StreamEncoder.
-		 *
-		 * See the \link flac_stream_encoder libFLAC stream encoder module \endlink
-		 * for basic usage.
-		 *
-		 * \{
-		 */
-
-		/** This class wraps the ::FLAC__StreamEncoder.  If you are
+		 *  This class wraps the ::FLAC__StreamEncoder.  If you are
 		 *  not encoding to a file, you may need to use
 		 *  FLAC::Encoder::Stream.
 		 *
 		 * The usage of this class is similar to FLAC__StreamEncoder,
 		 * except instead of providing callbacks to
-		 * FLAC__stream_encoder_init_FILE() or
-		 * FLAC__stream_encoder_init_file(), you will inherit from this
+		 * FLAC__stream_encoder_init*_FILE() or
+		 * FLAC__stream_encoder_init*_file(), you will inherit from this
 		 * class and override the virtual callback functions with your
-		 * own implementations, then call File::init().  The rest of
-		 * the calls work the same as in the C layer.
+		 * own implementations, then call init() or init_ogg().  The rest
+		 * of the calls work the same as in the C layer.
 		 *
 		 * There are no mandatory callbacks; all the callbacks from
 		 * FLAC::Encoder::Stream are implemented here fully and support

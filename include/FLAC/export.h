@@ -32,6 +32,26 @@
 #ifndef FLAC__EXPORT_H
 #define FLAC__EXPORT_H
 
+/** \file include/FLAC/export.h
+ *
+ *  \brief
+ *  This module contains #defines and symbols for exporting function
+ *  calls, and providing version information and compiled-in features.
+ *
+ *  See the \link flac_export export \endlink module.
+ */
+
+/** \defgroup flac_export FLAC/export.h: export symbols
+ *  \ingroup flac
+ *
+ *  \brief
+ *  This module contains structure definitions for the representation
+ *  of FLAC format components in memory.  These are the basic
+ *  structures used by the rest of the interfaces.
+ *
+ * \{
+ */
+
 #if defined(FLAC__NO_DLL) || !defined(_MSC_VER)
 #define FLAC_API
 
@@ -45,14 +65,16 @@
 #endif
 #endif
 
-/* These #defines will mirror the libtool-based library version number, see
+/** These #defines will mirror the libtool-based library version number, see
  * http://www.gnu.org/software/libtool/manual.html#Libtool-versioning
  */
 #define FLAC_API_VERSION_CURRENT 8
-#define FLAC_API_VERSION_REVISION 0
-#define FLAC_API_VERSION_AGE 0
+#define FLAC_API_VERSION_REVISION 0 /**< see above */
+#define FLAC_API_VERSION_AGE 0 /**< see above */
 
 /** \c 1 if the library has been compiled with support for Ogg FLAC, else \c 0. */
 extern int FLAC_API_SUPPORTS_OGG_FLAC;
+
+/* \} */
 
 #endif

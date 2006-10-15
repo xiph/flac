@@ -57,9 +57,9 @@ extern "C" {
  *  \brief
  *  This module describes the decoder layers provided by libFLAC.
  *
- * The stream decoder can be used decode complete streams either from the
- * client via callbacks, or directly from a file, depending on how it is
- * initialized.  When decoding via callbacks, the client provides
+ * The stream decoder can be used to decode complete streams either from
+ * the client via callbacks, or directly from a file, depending on how
+ * it is initialized.  When decoding via callbacks, the client provides
  * callbacks for reading FLAC data and writing decoded samples, and
  * handling metadata and errors.  If the client also supplies seek-related
  * callback, the decoder function for sample-accurate seeking within the
@@ -76,15 +76,21 @@ extern "C" {
  *  This module contains the functions which implement the stream
  *  decoder.
  *
+ * The stream decoder can decode native FLAC, and optionally Ogg FLAC
+ * (check FLAC_API_SUPPORTS_OGG_FLAC) streams and files.
+ *
  * The basic usage of this decoder is as follows:
  * - The program creates an instance of a decoder using
  *   FLAC__stream_decoder_new().
  * - The program overrides the default settings using
  *   FLAC__stream_decoder_set_*() functions.
  * - The program initializes the instance to validate the settings and
- *   prepare for decoding using FLAC__stream_decoder_init() or
- *   FLAC__stream_decoder_init_FILE() or FLAC__stream_decoder_init_file(),
- *   depending on the nature of the input.
+ *   prepare for decoding using FLAC__stream_decoder_init_stream() or
+ *   FLAC__stream_decoder_init_FILE() or FLAC__stream_decoder_init_file()
+ *   for native FLAC, or FLAC__stream_decoder_init_ogg_stream() or
+ *   FLAC__stream_decoder_init_ogg_FILE() or
+ *   FLAC__stream_decoder_init_ogg_file() for Ogg FLAC, depending on the
+ *   nature of the input.
  * - The program calls the FLAC__stream_decoder_process_*() functions
  *   to decode data, which subsequently calls the callbacks.
  * - The program finishes the decoding with FLAC__stream_decoder_finish(),
@@ -96,11 +102,11 @@ extern "C" {
  * In more detail, the program will create a new instance by calling
  * FLAC__stream_decoder_new(), then call FLAC__stream_decoder_set_*()
  * functions to override the default decoder options, and call
- * on of the FLAC__stream_decoder_init_*() functions.
+ * one of the FLAC__stream_decoder_init_*() functions.
  *
- * There are three initialization functions, one for setting up the decoder
- * to decode FLAC data from the client via callbacks, and two for decoding
- * directly from a FLAC file.
+ * There are three initialization functions for native FLAC, one for
+ * setting up the decoder to decode FLAC data from the client via
+ * callbacks, and two for decoding directly from a FLAC file.
  *
  * For decoding via callbacks, use FLAC__stream_decoder_init_stream().
  * You must also supply several callbacks for handling I/O.  Some (like
@@ -111,6 +117,10 @@ extern "C" {
  * filename or open \c FILE* and fewer callbacks; the decoder will handle
  * the other callbacks internally.
  *
+ * There are three similarly-named init functions for decoding from Ogg
+ * FLAC streams.  Check \c FLAC_API_SUPPORTS_OGG_FLAC to find out if the
+ * library has been built with Ogg support.
+ *
  * Once the decoder is initialized, your program will call one of several
  * functions to start the decoding process:
  *
@@ -120,12 +130,12 @@ extern "C" {
  *   loses sync it will return with only the error callback being called.
  * - FLAC__stream_decoder_process_until_end_of_metadata() - Tells the decoder
  *   to process the stream from the current location and stop upon reaching
- *   the first audio frame.  The user will get one metadata, write, or error
+ *   the first audio frame.  The client will get one metadata, write, or error
  *   callback per metadata block, audio frame, or sync error, respectively.
  * - FLAC__stream_decoder_process_until_end_of_stream() - Tells the decoder
  *   to process the stream from the current location until the read callback
  *   returns FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM or
- *   FLAC__STREAM_DECODER_READ_STATUS_ABORT.  The user will get one metadata,
+ *   FLAC__STREAM_DECODER_READ_STATUS_ABORT.  The client will get one metadata,
  *   write, or error callback per metadata block, audio frame, or sync error,
  *   respectively.
  *
@@ -136,7 +146,7 @@ extern "C" {
  * again to decode another stream.
  *
  * Seeking is exposed through the FLAC__stream_decoder_seek_absolute() method.
- * At any point after the stream decoder has been initialized, the user can
+ * At any point after the stream decoder has been initialized, the client can
  * call this function to seek to an exact sample within the stream.
  * Subsequently, the first time the write callback is called it will be
  * passed a (possibly partial) block starting at that sample.
@@ -174,7 +184,7 @@ extern "C" {
  * The "set" functions may only be called when the decoder is in the
  * state FLAC__STREAM_DECODER_UNINITIALIZED, i.e. after
  * FLAC__stream_decoder_new() or FLAC__stream_decoder_finish(), but
- * before FLAC__stream_decoder_init().  If this is the case they will
+ * before FLAC__stream_decoder_init_*().  If this is the case they will
  * return \c true, otherwise \c false.
  *
  * \note
@@ -260,7 +270,8 @@ typedef enum {
 	/**< An error occurred allocating memory. */
 
 	FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE,
-	/**< fopen() failed in FLAC__stream_decoder_init_file(). */
+	/**< fopen() failed in FLAC__stream_decoder_init_file() or
+	 * FLAC__stream_decoder_init_ogg_file(). */
 
 	FLAC__STREAM_DECODER_INIT_STATUS_ALREADY_INITIALIZED
 	/**< FLAC__stream_decoder_init_*() was called when the decoder was
@@ -457,7 +468,7 @@ typedef struct {
 /** Signature for the read callback.
  *
  *  A function pointer matching this signature must be passed to
- *  FLAC__stream_decoder_init_stream(). The supplied function will be
+ *  FLAC__stream_decoder_init*_stream(). The supplied function will be
  *  called when the decoder needs more input data.  The address of the
  *  buffer to be filled is supplied, along with the number of bytes the
  *  buffer can hold.  The callback may choose to supply less data and
@@ -487,7 +498,7 @@ typedef FLAC__StreamDecoderReadStatus (*FLAC__StreamDecoderReadCallback)(const F
 /** Signature for the seek callback.
  *
  *  A function pointer matching this signature may be passed to
- *  FLAC__stream_decoder_init_stream().  The supplied function will be
+ *  FLAC__stream_decoder_init*_stream().  The supplied function will be
  *  called when the decoder needs to seek the input stream.  The decoder
  *  will pass the absolute byte offset to seek to, 0 meaning the
  *  beginning of the stream.
@@ -508,7 +519,7 @@ typedef FLAC__StreamDecoderSeekStatus (*FLAC__StreamDecoderSeekCallback)(const F
 /** Signature for the tell callback.
  *
  *  A function pointer matching this signature may be passed to
- *  FLAC__stream_decoder_init_stream().  The supplied function will be
+ *  FLAC__stream_decoder_init*_stream().  The supplied function will be
  *  called when the decoder wants to know the current position of the
  *  stream.  The callback should return the byte offset from the
  *  beginning of the stream.
@@ -529,7 +540,7 @@ typedef FLAC__StreamDecoderTellStatus (*FLAC__StreamDecoderTellCallback)(const F
 /** Signature for the length callback.
  *
  *  A function pointer matching this signature may be passed to
- *  FLAC__stream_decoder_init_stream().  The supplied function will be
+ *  FLAC__stream_decoder_init*_stream().  The supplied function will be
  *  called when the decoder wants to know the total length of the stream
  *  in bytes.
  *
@@ -549,7 +560,7 @@ typedef FLAC__StreamDecoderLengthStatus (*FLAC__StreamDecoderLengthCallback)(con
 /** Signature for the EOF callback.
  *
  *  A function pointer matching this signature may be passed to
- *  FLAC__stream_decoder_init_stream().  The supplied function will be
+ *  FLAC__stream_decoder_init*_stream().  The supplied function will be
  *  called when the decoder needs to know if the end of the stream has
  *  been reached.
  *
@@ -667,10 +678,13 @@ FLAC_API void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder);
  *
  ***********************************************************************/
 
-/** Set the serial number for the Ogg stream.
+/** Set the serial number for the FLAC stream within the Ogg container.
  *  The default behavior is to use the serial number of the first Ogg
  *  page.  Setting a serial number here will explicitly specify which
  *  stream is to be decoded.
+ *
+ * \note
+ * This does not need to be set for native FLAC decoding.
  *
  * \default \c use serial number of first page
  * \param  decoder        A decoder instance to set.
@@ -1262,7 +1276,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_file(
  *
  *  In the event of a prematurely-terminated decode, it is not strictly
  *  necessary to call this immediately before FLAC__stream_decoder_delete()
- *  but it is good practice to match every FLAC__stream_decoder_init()
+ *  but it is good practice to match every FLAC__stream_decoder_init_*()
  *  with a FLAC__stream_decoder_finish().
  *
  * \param  decoder  An uninitialized decoder instance.
@@ -1295,18 +1309,18 @@ FLAC_API FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder);
  *  The decoder's input buffer will be cleared and the state set to
  *  \c FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.  This is similar to
  *  FLAC__stream_decoder_finish() except that the settings are
- *  preserved; there is no need to call FLAC__stream_decoder_init()
+ *  preserved; there is no need to call FLAC__stream_decoder_init_*()
  *  before decoding again.  MD5 checking will be restored to its original
  *  setting.
  *
  *  If the decoder is seekable, or was initialized with
- *  FLAC__stream_decoder_init_FILE() or FLAC__stream_decoder_init_file(),
+ *  FLAC__stream_decoder_init*_FILE() or FLAC__stream_decoder_init*_file(),
  *  the decoder will also attempt to seek to the beginning of the file.
  *  If this rewind fails, this function will return \c false.  It follows
  *  that FLAC__stream_decoder_reset() cannot be used when decoding from
  *  \c stdin.
  *
- *  If the decoder was initialized with FLAC__stream_encoder_init_stream()
+ *  If the decoder was initialized with FLAC__stream_encoder_init*_stream()
  *  and is not seekable (i.e. no seek callback was provided or the seek
  *  callback returns \c FLAC__STREAM_DECODER_SEEK_STATUS_UNSUPPORTED), it
  *  is the duty of the client to start feeding data from the beginning of
@@ -1414,15 +1428,14 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
  *  same way that FLAC__stream_decoder_process_single() will return once
  *  one whole frame is decoded.
  *
- *  This function, when used from the higher FLAC__SeekableStreamDecoder
- *  layer, can be used in more quickly determining FLAC frame boundaries
- *  when decoding of the actual data is not needed, for example when an
- *  application is separating a FLAC stream into frames for editing or
- *  storing in a container.  To do this, the application can use
- *  FLAC__seekable_stream_decoder_skip_single_frame() to quickly advance
+ *  This function can be used in more quickly determining FLAC frame
+ *  boundaries when decoding of the actual data is not needed, for
+ *  example when an application is separating a FLAC stream into frames
+ *  for editing or storing in a container.  To do this, the application
+ *  can use FLAC__stream_decoder_skip_single_frame() to quickly advance
  *  to the next frame, then use
- *  FLAC__seekable_stream_decoder_get_decode_position() to find the new
- *  frame boundary.
+ *  FLAC__stream_decoder_get_decode_position() to find the new frame
+ *  boundary.
  *
  *  This function should only be called when the stream has advanced
  *  past all the metadata, otherwise it will return \c false.

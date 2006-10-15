@@ -80,11 +80,9 @@
  * dependency on a thread library. However, libFLAC does not use
  * global variables and should be thread-safe.
  *
- * There is also a libOggFLAC library which wraps around libFLAC
- * to provide routines for encoding to and decoding from FLAC streams
- * inside an Ogg container.  The interfaces are very similar or identical
- * to their counterparts in libFLAC.  libOggFLAC is also licensed under
- * <A HREF="../license.html">Xiph's BSD license</A>.
+ * libFLAC also supports encoding to and decoding from Ogg FLAC.
+ * However the metadata editing interfaces currently work only for
+ * native FLAC files.
  *
  * \section cpp_api FLAC C++ API
  *
@@ -97,11 +95,11 @@
  * for the C++ API will be installed in your include area (for
  * example /usr/include/FLAC++/...).
  *
- * There is also a libOggFLAC++ library, which provides classes
- * for encoding to and decoding from FLAC streams in an Ogg container.
- * The classes are very similar to their counterparts in libFLAC++.
+ * libFLAC++ also supports encoding to and decoding from Ogg FLAC.
+ * However the metadata editing interfaces currently work only for
+ * native FLAC files.
  *
- * Both libFLAC++ libOggFLAC++ are also licensed under
+ * libFLAC++ is also licensed under
  * <A HREF="../license.html">Xiph's BSD license</A>.
  *
  * \section getting_started Getting Started
@@ -139,6 +137,8 @@
  *   decoder because of the verify feature, but this can be removed if
  *   not needed.
  * - The metadata interface requires the stream decoder.
+ * - Ogg support is selectable through the compile time macro
+ *   \c FLAC__HAS_OGG.
  *
  * For example, if your application only requires the stream decoder, no
  * encoder, and no metadata interface, you can remove the stream encoder
@@ -172,6 +172,12 @@
  *
  * The the source will work for multiple versions and the legacy code can
  * easily be removed when the transition is complete.
+ *
+ * Another available symbol is FLAC_API_SUPPORTS_OGG_FLAC (defined in
+ * include/FLAC/export.h), which can be used to determine whether or not
+ * the library has been compiled with support for Ogg FLAC.  This is
+ * simpler than trying to call an Ogg init function and catching the
+ * error.
  */
 
 /** \defgroup porting_1_1_2_to_1_1_3 Porting from FLAC 1.1.2 to 1.1.3
@@ -180,15 +186,18 @@
  *  \brief
  *  This module describes porting from FLAC 1.1.2 to FLAC 1.1.3.
  *
- * The main change between the APIs in 1.1.2 and 1.1.3 is that the three
+ * The main change between the APIs in 1.1.2 and 1.1.3 is that they have
+ * been simplified.  First, libOggFLAC has been merged into libFLAC and
+ * libOggFLAC++ has been merged into libFLAC++.  Second, both the three
  * decoding layers and three encoding layers have been merged into a
  * single stream decoder and stream encoder.  That is, the functionality
  * of FLAC__SeekableStreamDecoder and FLAC__FileDecoder has been merged
  * into FLAC__StreamDecoder, and FLAC__SeekableStreamEncoder and
  * FLAC__FileEncoder into FLAC__StreamEncoder.  Only the
- * FLAC__StreamDecoder and FLAC__StreamEncoder remain.  This can
- * simplify code that needs to process both seekable and non-seekable
- * streams.
+ * FLAC__StreamDecoder and FLAC__StreamEncoder remain.  What this means
+ * is there is now a single API that can be used to encode or decode
+ * streams to/from native FLAC or Ogg FLAC and the single API can work
+ * on both seekable and non-seekable streams.
  *
  * Instead of creating an encoder or decoder of a certain layer, now the
  * client will always create a FLAC__StreamEncoder or
@@ -210,6 +219,10 @@
  * function, the FLAC__stream_decoder_set_*_callback() functions and
  * FLAC__stream_decoder_set_client_data() are no longer needed.  The
  * rest of the calls to the decoder are the same as before.
+ *
+ * There are counterpart init functions for Ogg FLAC, e.g.
+ * FLAC__stream_decoder_init_ogg_stream().  All the rest of the calls
+ * and callbacks are the same as for native FLAC.
  *
  * As an example, in FLAC 1.1.2 a seekable stream decoder would have
  * been set up like so:
@@ -299,11 +312,6 @@
  * two new convenience functions that may be useful:
  * FLAC__metadata_object_cuesheet_calculate_cddb_id() and
  * FLAC__metadata_get_cuesheet().
- *
- * In libOggFLAC++, OggFLAC::Decoder::Stream now inherits from
- * FLAC::Decoder::Stream and OggFLAC::Encoder::Stream now inherits from
- * FLAC::Encoder::Stream, which means both OggFLAC and FLAC can be
- * supported by using common code for everything after initialization.
  */
 
 /** \defgroup flac FLAC C API

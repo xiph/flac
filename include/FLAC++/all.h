@@ -43,11 +43,6 @@
  * The FLAC C++ API is the interface to libFLAC++, a set of classes
  * that encapsulate the encoders, decoders, and metadata interfaces
  * in libFLAC.
- *
- * Note that Doxygen currently has some quirks (bugs?) in the way
- * it deals with some member groups and C++ constructs.  You will find
- * some document entries in the wrong place under [NOHEADER] sections.
- * Hopefully this is not too distracting.
  */
 
 #endif

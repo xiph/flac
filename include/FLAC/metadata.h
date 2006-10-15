@@ -36,11 +36,11 @@
 #include "callback.h"
 #include "format.h"
 
-/******************************************************************************
-	(For an example of how all these routines are used, see the source
-	code for the unit tests in src/test_libFLAC/metadata_*.c, or metaflac
-	in src/metaflac/)
-******************************************************************************/
+/* --------------------------------------------------------------------
+   (For an example of how all these routines are used, see the source
+   code for the unit tests in src/test_libFLAC/metadata_*.c, or
+   metaflac in src/metaflac/)
+   ------------------------------------------------------------------*/
 
 /** \file include/FLAC/metadata.h
  *
@@ -59,7 +59,9 @@
  *  \brief
  *  This module provides functions for creating and manipulating FLAC
  *  metadata blocks in memory, and three progressively more powerful
- *  interfaces for traversing and editing metadata in FLAC files.
+ *  interfaces for traversing and editing metadata in native FLAC files.
+ *  Note that this metadata interface currently does not support Ogg
+ *  FLAC files.
  *
  *  There are three metadata interfaces of increasing complexity:
  *
