@@ -102,10 +102,10 @@ void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect *aspect)
 		aspect->need_serial_number = true;
 }
 
-FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(FLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], unsigned *bytes, FLAC__OggDecoderAspectReadCallbackProxy read_callback, const FLAC__StreamDecoder *decoder, void *client_data)
+FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(FLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], size_t *bytes, FLAC__OggDecoderAspectReadCallbackProxy read_callback, const FLAC__StreamDecoder *decoder, void *client_data)
 {
-	static const unsigned OGG_BYTES_CHUNK = 8192;
-	const unsigned bytes_requested = *bytes;
+	static const size_t OGG_BYTES_CHUNK = 8192;
+	const size_t bytes_requested = *bytes;
 
 	/*
 	 * The FLAC decoding API uses pull-based reads, whereas Ogg decoding
@@ -137,8 +137,8 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 	while (*bytes < bytes_requested && !aspect->end_of_stream) {
 		if (aspect->have_working_page) {
 			if (aspect->have_working_packet) {
-				unsigned n = bytes_requested - *bytes;
-				if ((unsigned)aspect->working_packet.bytes <= n) {
+				size_t n = bytes_requested - *bytes;
+				if ((size_t)aspect->working_packet.bytes <= n) {
 					/* the rest of the packet will fit in the buffer */
 					n = aspect->working_packet.bytes;
 					memcpy(buffer, aspect->working_packet.packet, n);
@@ -210,14 +210,14 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 			}
 			else if (ret == 0) {
 				/* need more data */
-				const unsigned ogg_bytes_to_read = max(bytes_requested - *bytes, OGG_BYTES_CHUNK);
+				const size_t ogg_bytes_to_read = max(bytes_requested - *bytes, OGG_BYTES_CHUNK);
 				char *oggbuf = ogg_sync_buffer(&aspect->sync_state, ogg_bytes_to_read);
 
 				if(0 == oggbuf) {
 					return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
 				}
 				else {
-					unsigned ogg_bytes_read = ogg_bytes_to_read;
+					size_t ogg_bytes_read = ogg_bytes_to_read;
 
 					switch(read_callback(decoder, (FLAC__byte*)oggbuf, &ogg_bytes_read, client_data)) {
 						case FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK:

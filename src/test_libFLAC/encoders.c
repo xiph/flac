@@ -88,7 +88,7 @@ static void free_metadata_blocks_()
 	mutils__free_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &picture_, &unknown_);
 }
 
-static FLAC__StreamEncoderReadStatus stream_encoder_read_callback_(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+static FLAC__StreamEncoderReadStatus stream_encoder_read_callback_(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
 {
 	(void)encoder, (void)buffer, (void)bytes, (void)client_data;
 	memset(buffer, 0, *bytes); /* init buffer to avoid valgrind errors */

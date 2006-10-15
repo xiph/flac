@@ -187,7 +187,7 @@ public:
 	~StreamDecoder() { }
 
 	// from FLAC::Decoder::Stream
-	::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);
+	::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);
 	::FLAC__StreamDecoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
 	::FLAC__StreamDecoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset);
 	::FLAC__StreamDecoderLengthStatus length_callback(FLAC__uint64 *stream_length);
@@ -199,9 +199,9 @@ public:
 	bool test_respond(bool is_ogg);
 };
 
-::FLAC__StreamDecoderReadStatus StreamDecoder::read_callback(FLAC__byte buffer[], unsigned *bytes)
+::FLAC__StreamDecoderReadStatus StreamDecoder::read_callback(FLAC__byte buffer[], size_t *bytes)
 {
-	const unsigned requested_bytes = *bytes;
+	const size_t requested_bytes = *bytes;
 
 	if(error_occurred_)
 		return ::FLAC__STREAM_DECODER_READ_STATUS_ABORT;

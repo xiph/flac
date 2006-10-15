@@ -91,7 +91,7 @@ static FLAC__bool safe_decoder_init_(const char *filename, FLAC__StreamDecoder *
 static void safe_decoder_finish_(FLAC__StreamDecoder *decoder);
 static void safe_decoder_delete_(FLAC__StreamDecoder *decoder);
 
-static FLAC__StreamDecoderReadStatus http_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+static FLAC__StreamDecoderReadStatus http_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
@@ -577,7 +577,7 @@ void safe_decoder_delete_(FLAC__StreamDecoder *decoder)
 	}
 }
 
-FLAC__StreamDecoderReadStatus http_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+FLAC__StreamDecoderReadStatus http_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
 {
 	(void)decoder;
 	(void)client_data;

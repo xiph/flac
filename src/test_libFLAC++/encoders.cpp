@@ -94,14 +94,14 @@ public:
 	~StreamEncoder() { }
 
 	// from FLAC::Encoder::Stream
-	::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);
+	::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);
 	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame);
 	::FLAC__StreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
 	::FLAC__StreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset);
 	void metadata_callback(const ::FLAC__StreamMetadata *metadata);
 };
 
-::FLAC__StreamEncoderReadStatus StreamEncoder::read_callback(FLAC__byte buffer[], unsigned *bytes)
+::FLAC__StreamEncoderReadStatus StreamEncoder::read_callback(FLAC__byte buffer[], size_t *bytes)
 {
 	(void)buffer, (void)bytes;
 

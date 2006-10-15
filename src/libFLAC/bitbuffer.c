@@ -238,9 +238,9 @@ static FLAC__bool bitbuffer_ensure_size_(FLAC__BitBuffer *bb, unsigned bits_to_a
 		return true;
 }
 
-static FLAC__bool bitbuffer_read_from_client_(FLAC__BitBuffer *bb, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+static FLAC__bool bitbuffer_read_from_client_(FLAC__BitBuffer *bb, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
-	unsigned bytes;
+	size_t bytes;
 	FLAC__byte *target;
 
 	/* first shift the unconsumed buffer data toward the front as much as possible */
@@ -1238,7 +1238,7 @@ FLAC__bool FLAC__bitbuffer_zero_pad_to_byte_boundary(FLAC__BitBuffer *bb)
 		return true;
 }
 
-FLAC__bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	/* to avoid a drastic speed penalty we don't:
 	FLAC__ASSERT(0 != bb);
@@ -1258,7 +1258,7 @@ FLAC__bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__bo
 	}
 }
 
-FLAC__bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	/* to avoid a drastic speed penalty we don't:
 	FLAC__ASSERT(0 != bb);
@@ -1285,7 +1285,7 @@ FLAC__bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__bo
 	}
 }
 
-FLAC__bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, FLAC__uint32 *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, FLAC__uint32 *val, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	/* to avoid a drastic speed penalty we don't:
 	FLAC__ASSERT(0 != bb);
@@ -1313,7 +1313,7 @@ FLAC__bool FLAC__bitbuffer_read_bit_to_uint32(FLAC__BitBuffer *bb, FLAC__uint32 
 	}
 }
 
-FLAC__bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *val, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	/* to avoid a drastic speed penalty we don't:
 	FLAC__ASSERT(0 != bb);
@@ -1341,7 +1341,7 @@ FLAC__bool FLAC__bitbuffer_read_bit_to_uint64(FLAC__BitBuffer *bb, FLAC__uint64 
 	}
 }
 
-FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, FLAC__uint32 *val, const unsigned bits, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, FLAC__uint32 *val, const unsigned bits, FLAC__BitbufferReadCallback read_callback, void *client_data)
 #ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned i;
@@ -1442,7 +1442,7 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32(FLAC__BitBuffer *bb, FLA
 }
 #endif
 
-FLAC__bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, FLAC__int32 *val, const unsigned bits, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, FLAC__int32 *val, const unsigned bits, FLAC__BitbufferReadCallback read_callback, void *client_data)
 #ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned i;
@@ -1572,7 +1572,7 @@ FLAC__bool FLAC__bitbuffer_read_raw_int32(FLAC__BitBuffer *bb, FLAC__int32 *val,
 }
 #endif
 
-FLAC__bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *val, const unsigned bits, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *val, const unsigned bits, FLAC__BitbufferReadCallback read_callback, void *client_data)
 #ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned i;
@@ -1661,7 +1661,7 @@ FLAC__bool FLAC__bitbuffer_read_raw_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *va
 #endif
 
 #if 0 /* UNUSED */
-FLAC__bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 *val, const unsigned bits, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 *val, const unsigned bits, FLAC__BitbufferReadCallback read_callback, void *client_data)
 #ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned i;
@@ -1774,7 +1774,7 @@ FLAC__bool FLAC__bitbuffer_read_raw_int64(FLAC__BitBuffer *bb, FLAC__int64 *val,
 #endif
 #endif
 
-FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32_little_endian(FLAC__BitBuffer *bb, FLAC__uint32 *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32_little_endian(FLAC__BitBuffer *bb, FLAC__uint32 *val, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	FLAC__uint32 x8, x32 = 0;
 
@@ -1799,7 +1799,7 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_raw_uint32_little_endian(FLAC__BitB
 	return true;
 }
 
-FLAC__bool FLAC__bitbuffer_skip_bits_no_crc(FLAC__BitBuffer *bb, unsigned bits, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_skip_bits_no_crc(FLAC__BitBuffer *bb, unsigned bits, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	/*
 	 * @@@ a slightly faster implementation is possible but
@@ -1835,7 +1835,7 @@ FLAC__bool FLAC__bitbuffer_skip_bits_no_crc(FLAC__BitBuffer *bb, unsigned bits, 
 	return true;
 }
 
-FLAC__bool FLAC__bitbuffer_read_byte_block_aligned_no_crc(FLAC__BitBuffer *bb, FLAC__byte *val, unsigned nvals, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_byte_block_aligned_no_crc(FLAC__BitBuffer *bb, FLAC__byte *val, unsigned nvals, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	FLAC__ASSERT(0 != bb);
 	FLAC__ASSERT(0 != bb->buffer);
@@ -1866,7 +1866,7 @@ FLAC__bool FLAC__bitbuffer_read_byte_block_aligned_no_crc(FLAC__BitBuffer *bb, F
 	return true;
 }
 
-FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb, unsigned *val, FLAC__BitbufferReadCallback read_callback, void *client_data)
 #ifdef FLAC__NO_MANUAL_INLINING
 {
 	unsigned bit, val_ = 0;
@@ -1969,7 +1969,7 @@ FLaC__INLINE FLAC__bool FLAC__bitbuffer_read_unary_unsigned(FLAC__BitBuffer *bb,
 }
 #endif
 
-FLAC__bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	FLAC__uint32 lsbs = 0, msbs = 0;
 	unsigned uval;
@@ -1996,7 +1996,7 @@ FLAC__bool FLAC__bitbuffer_read_rice_signed(FLAC__BitBuffer *bb, int *val, unsig
 	return true;
 }
 
-FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[], unsigned nvals, unsigned parameter, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_rice_signed_block(FLAC__BitBuffer *bb, int vals[], unsigned nvals, unsigned parameter, FLAC__BitbufferReadCallback read_callback, void *client_data)
 #ifdef FLAC__OLD_MSVC_FLAVOR
 {
 	const FLAC__blurb *buffer = bb->buffer;
@@ -2315,7 +2315,7 @@ break2:
 #endif
 
 #if 0 /* UNUSED */
-FLAC__bool FLAC__bitbuffer_read_golomb_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_golomb_signed(FLAC__BitBuffer *bb, int *val, unsigned parameter, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	FLAC__uint32 lsbs = 0, msbs = 0;
 	unsigned bit, uval, k;
@@ -2359,7 +2359,7 @@ FLAC__bool FLAC__bitbuffer_read_golomb_signed(FLAC__BitBuffer *bb, int *val, uns
 	return true;
 }
 
-FLAC__bool FLAC__bitbuffer_read_golomb_unsigned(FLAC__BitBuffer *bb, unsigned *val, unsigned parameter, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data)
+FLAC__bool FLAC__bitbuffer_read_golomb_unsigned(FLAC__BitBuffer *bb, unsigned *val, unsigned parameter, FLAC__BitbufferReadCallback read_callback, void *client_data)
 {
 	FLAC__uint32 lsbs, msbs = 0;
 	unsigned bit, k;
@@ -2399,7 +2399,7 @@ FLAC__bool FLAC__bitbuffer_read_golomb_unsigned(FLAC__BitBuffer *bb, unsigned *v
 #endif /* UNUSED */
 
 /* on return, if *val == 0xffffffff then the utf-8 sequence was invalid, but the return value will be true */
-FLAC__bool FLAC__bitbuffer_read_utf8_uint32(FLAC__BitBuffer *bb, FLAC__uint32 *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data, FLAC__byte *raw, unsigned *rawlen)
+FLAC__bool FLAC__bitbuffer_read_utf8_uint32(FLAC__BitBuffer *bb, FLAC__uint32 *val, FLAC__BitbufferReadCallback read_callback, void *client_data, FLAC__byte *raw, unsigned *rawlen)
 {
 	FLAC__uint32 v = 0;
 	FLAC__uint32 x;
@@ -2454,7 +2454,7 @@ FLAC__bool FLAC__bitbuffer_read_utf8_uint32(FLAC__BitBuffer *bb, FLAC__uint32 *v
 }
 
 /* on return, if *val == 0xffffffffffffffff then the utf-8 sequence was invalid, but the return value will be true */
-FLAC__bool FLAC__bitbuffer_read_utf8_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *val, FLAC__bool (*read_callback)(FLAC__byte buffer[], unsigned *bytes, void *client_data), void *client_data, FLAC__byte *raw, unsigned *rawlen)
+FLAC__bool FLAC__bitbuffer_read_utf8_uint64(FLAC__BitBuffer *bb, FLAC__uint64 *val, FLAC__BitbufferReadCallback read_callback, void *client_data, FLAC__byte *raw, unsigned *rawlen)
 {
 	FLAC__uint64 v = 0;
 	FLAC__uint32 x;

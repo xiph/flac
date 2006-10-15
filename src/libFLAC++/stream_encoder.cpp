@@ -369,7 +369,7 @@ namespace FLAC {
 			return (bool)::FLAC__stream_encoder_process_interleaved(encoder_, buffer, samples);
 		}
 
-		::FLAC__StreamEncoderReadStatus Stream::read_callback(FLAC__byte buffer[], unsigned *bytes)
+		::FLAC__StreamEncoderReadStatus Stream::read_callback(FLAC__byte buffer[], size_t *bytes)
 		{
 			(void)buffer, (void)bytes;
 			return ::FLAC__STREAM_ENCODER_READ_STATUS_UNSUPPORTED;
@@ -392,7 +392,7 @@ namespace FLAC {
 			(void)metadata;
 		}
 
-		::FLAC__StreamEncoderReadStatus Stream::read_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+		::FLAC__StreamEncoderReadStatus Stream::read_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);

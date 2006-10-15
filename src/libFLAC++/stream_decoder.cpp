@@ -257,7 +257,7 @@ namespace FLAC {
 			(void)metadata;
 		}
 
-		::FLAC__StreamDecoderReadStatus Stream::read_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+		::FLAC__StreamDecoderReadStatus Stream::read_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
 		{
 			(void)decoder;
 			FLAC__ASSERT(0 != client_data);
@@ -382,7 +382,7 @@ namespace FLAC {
 		// with FLAC__stream_decoder_init_FILE() or
 		// FLAC__stream_decoder_init_file() and those supply the read
 		// callback internally.
-		::FLAC__StreamDecoderReadStatus File::read_callback(FLAC__byte buffer[], unsigned *bytes)
+		::FLAC__StreamDecoderReadStatus File::read_callback(FLAC__byte buffer[], size_t *bytes)
 		{
 			(void)buffer, (void)bytes;
 			FLAC__ASSERT(false);

@@ -177,7 +177,7 @@ namespace FLAC {
 			virtual bool process_interleaved(const FLAC__int32 buffer[], unsigned samples); ///< See FLAC__stream_encoder_process_interleaved()
 		protected:
 			/// See FLAC__StreamEncoderReadCallback
-			virtual ::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);
+			virtual ::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);
 
 			/// See FLAC__StreamEncoderWriteCallback
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
@@ -200,7 +200,7 @@ namespace FLAC {
 
 			::FLAC__StreamEncoder *encoder_;
 
-			static ::FLAC__StreamEncoderReadStatus read_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+			static ::FLAC__StreamEncoderReadStatus read_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 			static ::FLAC__StreamEncoderSeekStatus seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 			static ::FLAC__StreamEncoderTellStatus tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);

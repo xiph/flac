@@ -130,7 +130,7 @@ static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification
 static FLAC__bool verify_metadata(const EncoderSession *e, FLAC__StreamMetadata **metadata, unsigned num_metadata);
 static FLAC__bool format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned shift, size_t *channel_map);
 static void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
-static FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+static FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 static FLAC__StreamDecoderSeekStatus flac_decoder_seek_callback(const FLAC__StreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 static FLAC__StreamDecoderTellStatus flac_decoder_tell_callback(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 static FLAC__StreamDecoderLengthStatus flac_decoder_length_callback(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
@@ -2198,7 +2198,7 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 		print_stats(encoder_session);
 }
 
-FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
 {
 	size_t n = 0;
 	FLACDecoderData *data = (FLACDecoderData*)client_data;

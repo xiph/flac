@@ -156,7 +156,7 @@ namespace FLAC {
 			virtual bool seek_absolute(FLAC__uint64 sample); ///< See FLAC__stream_decoder_seek_absolute()
 		protected:
 			/// see FLAC__StreamDecoderReadCallback
-			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes) = 0;
+			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes) = 0;
 
 			/// see FLAC__StreamDecoderSeekCallback
 			virtual ::FLAC__StreamDecoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
@@ -188,7 +188,7 @@ namespace FLAC {
 
 			::FLAC__StreamDecoder *decoder_;
 
-			static ::FLAC__StreamDecoderReadStatus read_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+			static ::FLAC__StreamDecoderReadStatus read_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 			static ::FLAC__StreamDecoderSeekStatus seek_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 			static ::FLAC__StreamDecoderTellStatus tell_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 			static ::FLAC__StreamDecoderLengthStatus length_callback_(const ::FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
@@ -234,7 +234,7 @@ namespace FLAC {
 			virtual ::FLAC__StreamDecoderInitStatus init_ogg(const std::string &filename); ///< See FLAC__stream_decoder_init_ogg_file()
 		protected:
 			// this is a dummy implementation to satisfy the pure virtual in Stream that is actually supplied internally by the C layer
-			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);
+			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);
 		private:
 			// Private and undefined so you can't use them:
 			File(const File &);

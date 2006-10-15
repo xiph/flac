@@ -484,7 +484,7 @@ typedef struct {
  * \retval FLAC__StreamEncoderReadStatus
  *    The callee's return status.
  */
-typedef FLAC__StreamEncoderReadStatus (*FLAC__StreamEncoderReadCallback)(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+typedef FLAC__StreamEncoderReadStatus (*FLAC__StreamEncoderReadCallback)(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 
 /** Signature for the write callback.
  *

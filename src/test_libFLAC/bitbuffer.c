@@ -52,7 +52,7 @@ struct FLAC__BitBuffer {
 };
 
 
-static FLAC__bool dummy_read_callback(FLAC__byte buffer[], unsigned *bytes, void *client_data)
+static FLAC__bool dummy_read_callback(FLAC__byte buffer[], size_t *bytes, void *client_data)
 {
 	(void)buffer, (void)bytes, (void)client_data;
 	return true;

@@ -40,10 +40,10 @@
 #include "protected/stream_encoder.h"
 
 
-static FLAC__bool full_read_(FLAC__StreamEncoder *encoder, FLAC__byte *buffer, unsigned bytes, FLAC__StreamEncoderReadCallback read_callback, void *client_data)
+static FLAC__bool full_read_(FLAC__StreamEncoder *encoder, FLAC__byte *buffer, size_t bytes, FLAC__StreamEncoderReadCallback read_callback, void *client_data)
 {
 	while(bytes > 0) {
-		unsigned bytes_read = bytes;
+		size_t bytes_read = bytes;
 		switch(read_callback(encoder, buffer, &bytes_read, client_data)) {
 			case FLAC__STREAM_ENCODER_READ_STATUS_CONTINUE:
 				bytes -= bytes_read;

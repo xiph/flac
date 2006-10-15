@@ -72,8 +72,8 @@ typedef enum {
 	FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR
 } FLAC__OggDecoderAspectReadStatus;
 
-typedef FLAC__OggDecoderAspectReadStatus (*FLAC__OggDecoderAspectReadCallbackProxy)(const void *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+typedef FLAC__OggDecoderAspectReadStatus (*FLAC__OggDecoderAspectReadCallbackProxy)(const void *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 
-FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(FLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], unsigned *bytes, FLAC__OggDecoderAspectReadCallbackProxy read_callback, const FLAC__StreamDecoder *decoder, void *client_data);
+FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(FLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], size_t *bytes, FLAC__OggDecoderAspectReadCallbackProxy read_callback, const FLAC__StreamDecoder *decoder, void *client_data);
 
 #endif

@@ -493,7 +493,7 @@ typedef struct {
  * \retval FLAC__StreamDecoderReadStatus
  *    The callee's return status.
  */
-typedef FLAC__StreamDecoderReadStatus (*FLAC__StreamDecoderReadCallback)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
+typedef FLAC__StreamDecoderReadStatus (*FLAC__StreamDecoderReadCallback)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 
 /** Signature for the seek callback.
  *

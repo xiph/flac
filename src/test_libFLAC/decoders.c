@@ -120,10 +120,10 @@ static FLAC__bool generate_file_(FLAC__bool is_ogg)
 	return true;
 }
 
-static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+static FLAC__StreamDecoderReadStatus stream_decoder_read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
 {
 	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
-	const unsigned requested_bytes = *bytes;
+	const size_t requested_bytes = *bytes;
 
 	(void)decoder;
 
