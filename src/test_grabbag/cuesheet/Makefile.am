@@ -26,6 +26,7 @@ test_cuesheet_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
+	@OGG_LIBS@ \
 	-lm
 
 CLEANFILES = $(wildcard *.raw)

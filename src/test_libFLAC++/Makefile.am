@@ -26,6 +26,7 @@ test_libFLAC___LDADD = \
 	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
 	$(top_builddir)/src/libFLAC++/libFLAC++.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
+	@OGG_LIBS@ \
 	-lm
 test_libFLAC___SOURCES = \
 	decoders.cpp \

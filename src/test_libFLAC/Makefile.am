@@ -27,6 +27,7 @@ test_libFLAC_LDADD = \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
 	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
+	@OGG_LIBS@ \
 	-lm
 test_libFLAC_SOURCES = \
 	bitbuffer.c \
