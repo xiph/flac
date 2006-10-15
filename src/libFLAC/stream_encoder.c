@@ -110,7 +110,9 @@ static FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_siz
 static FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, unsigned samples);
 static FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples);
 static void update_metadata_(const FLAC__StreamEncoder *encoder);
+#if FLAC__HAS_OGG
 static void update_ogg_metadata_(FLAC__StreamEncoder *encoder);
+#endif
 static FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
 static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
 
@@ -2710,6 +2712,7 @@ void update_metadata_(const FLAC__StreamEncoder *encoder)
 	}
 }
 
+#if FLAC__HAS_OGG
 /* Gets called when the encoding process has finished so that we can update the STREAMINFO and SEEKTABLE blocks.  */
 void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 {
@@ -2884,6 +2887,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 		simple_ogg_page__clear(&page);
 	}
 }
+#endif
 
 FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame)
 {

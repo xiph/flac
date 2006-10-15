@@ -2740,8 +2740,13 @@ FLAC__bool read_callback_(FLAC__byte buffer[], unsigned *bytes, void *client_dat
 {
 	FLAC__StreamDecoder *decoder = (FLAC__StreamDecoder *)client_data;
 
-	/* see [1] HACK NOTE below for why we don't call the eof_callback when decoding Ogg FLAC */
-	if(!decoder->private_->is_ogg && decoder->private_->eof_callback && decoder->private_->eof_callback(decoder, decoder->private_->client_data)) {
+	if(
+#if FLAC__HAS_OGG
+		/* see [1] HACK NOTE below for why we don't call the eof_callback when decoding Ogg FLAC */
+		!decoder->private_->is_ogg &&
+#endif
+		decoder->private_->eof_callback && decoder->private_->eof_callback(decoder, decoder->private_->client_data)
+	) {
 		*bytes = 0;
 		decoder->protected_->state = FLAC__STREAM_DECODER_END_OF_STREAM;
 		return false;
@@ -2774,8 +2779,16 @@ FLAC__bool read_callback_(FLAC__byte buffer[], unsigned *bytes, void *client_dat
 				return false;
 			}
 			else if(*bytes == 0) {
-				/* see [1] HACK NOTE below for why we don't call the eof_callback when decoding Ogg FLAC */
-				if(status == FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM || (!decoder->private_->is_ogg && decoder->private_->eof_callback && decoder->private_->eof_callback(decoder, decoder->private_->client_data))) {
+				if(
+					status == FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM ||
+					(
+#if FLAC__HAS_OGG
+						/* see [1] HACK NOTE below for why we don't call the eof_callback when decoding Ogg FLAC */
+						!decoder->private_->is_ogg &&
+#endif
+						decoder->private_->eof_callback && decoder->private_->eof_callback(decoder, decoder->private_->client_data)
+					)
+				) {
 					decoder->protected_->state = FLAC__STREAM_DECODER_END_OF_STREAM;
 					return false;
 				}
