@@ -43,10 +43,6 @@
 #include "share/grabbag.h"
 #include "encode.h"
 
-#ifdef FLAC__HAS_OGG
-#include "OggFLAC/stream_encoder.h"
-#endif
-
 #ifdef min
 #undef min
 #endif
@@ -82,12 +78,7 @@ typedef struct {
 	unsigned blocksize;
 	unsigned stats_mask;
 
-	union {
-		FLAC__StreamEncoder *flac;
-#ifdef FLAC__HAS_OGG
-		OggFLAC__StreamEncoder *ogg;
-#endif
-	} encoder;
+	FLAC__StreamEncoder *encoder;
 
 	FILE *fin;
 	FLAC__StreamMetadata *seek_table_template;
@@ -124,11 +115,6 @@ static FLAC__int32 *input_[FLAC__MAX_CHANNELS];
 extern FLAC__bool FLAC__stream_encoder_disable_constant_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
 extern FLAC__bool FLAC__stream_encoder_disable_fixed_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
 extern FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
-#ifdef FLAC__HAS_OGG
-extern FLAC__bool OggFLAC__stream_encoder_disable_constant_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
-extern FLAC__bool OggFLAC__stream_encoder_disable_fixed_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
-extern FLAC__bool OggFLAC__stream_encoder_disable_verbatim_subframes(OggFLAC__StreamEncoder *encoder, FLAC__bool value);
-#endif
 
 /*
  * local routines
@@ -1548,10 +1534,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	e->blocksize = 0;
 	e->stats_mask = 0;
 
-	e->encoder.flac = 0;
-#ifdef FLAC__HAS_OGG
-	e->encoder.ogg = 0;
-#endif
+	e->encoder = 0;
 
 	e->fin = infile;
 	e->seek_table_template = 0;
@@ -1561,19 +1544,8 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 		return false;
 	}
 
-#ifdef FLAC__HAS_OGG
-	if(e->use_ogg) {
-		e->encoder.ogg = OggFLAC__stream_encoder_new();
-		if(0 == e->encoder.ogg) {
-			flac__utils_printf(stderr, 1, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
-			EncoderSession_destroy(e);
-			return false;
-		}
-	}
-	else
-#endif
-	e->encoder.flac = FLAC__stream_encoder_new();
-	if(0 == e->encoder.flac) {
+	e->encoder = FLAC__stream_encoder_new();
+	if(0 == e->encoder) {
 		flac__utils_printf(stderr, 1, "%s: ERROR creating the encoder instance\n", e->inbasefilename);
 		EncoderSession_destroy(e);
 		return false;
@@ -1587,18 +1559,9 @@ void EncoderSession_destroy(EncoderSession *e)
 	if(e->fin != stdin)
 		fclose(e->fin);
 
-#ifdef FLAC__HAS_OGG
-	if(e->use_ogg) {
-		if(0 != e->encoder.ogg) {
-			OggFLAC__stream_encoder_delete(e->encoder.ogg);
-			e->encoder.ogg = 0;
-		}
-	}
-	else
-#endif
-	if(0 != e->encoder.flac) {
-		FLAC__stream_encoder_delete(e->encoder.flac);
-		e->encoder.flac = 0;
+	if(0 != e->encoder) {
+		FLAC__stream_encoder_delete(e->encoder);
+		e->encoder = 0;
 	}
 
 	if(0 != e->seek_table_template) {
@@ -1612,18 +1575,9 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 	FLAC__StreamEncoderState fse_state = FLAC__STREAM_ENCODER_OK;
 	int ret = 0;
 
-#ifdef FLAC__HAS_OGG
-	if(e->use_ogg) {
-		if(e->encoder.ogg) {
-			fse_state = OggFLAC__stream_encoder_get_FLAC_stream_encoder_state(e->encoder.ogg);
-			OggFLAC__stream_encoder_finish(e->encoder.ogg);
-		}
-	}
-	else
-#endif
-	if(e->encoder.flac) {
-		fse_state = FLAC__stream_encoder_get_state(e->encoder.flac);
-		FLAC__stream_encoder_finish(e->encoder.flac);
+	if(e->encoder) {
+		fse_state = FLAC__stream_encoder_get_state(e->encoder);
+		FLAC__stream_encoder_finish(e->encoder);
 	}
 
 	if(e->total_samples_to_encode > 0) {
@@ -1651,28 +1605,12 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 
 int EncoderSession_finish_error(EncoderSession *e)
 {
-	FLAC__StreamEncoderState fse_state;
-
-#ifdef FLAC__HAS_OGG
-	FLAC__ASSERT(e->encoder.ogg || e->encoder.flac);
-#else
-	FLAC__ASSERT(e->encoder.flac);
-#endif
+	FLAC__ASSERT(e->encoder);
 
 	if(e->total_samples_to_encode > 0)
 		flac__utils_printf(stderr, 2, "\n");
 
-#ifdef FLAC__HAS_OGG
-	if(e->use_ogg) {
-		fse_state = OggFLAC__stream_encoder_get_FLAC_stream_encoder_state(e->encoder.ogg);
-	}
-	else
-#endif
-	{
-		fse_state = FLAC__stream_encoder_get_state(e->encoder.flac);
-	}
-
-	if(fse_state == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA)
+	if(FLAC__stream_encoder_get_state(e->encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA)
 		print_verify_error(e);
 	else if(e->outputfile_opened)
 		/* only want to delete the file if we opened it; otherwise it could be an existing file and our overwrite failed */
@@ -1956,84 +1894,52 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	e->blocksize = options.blocksize;
 	e->stats_mask = (options.do_exhaustive_model_search || options.do_qlp_coeff_prec_search)? 0x0f : 0x3f;
 
+	FLAC__stream_encoder_set_verify(e->encoder, options.verify);
+	FLAC__stream_encoder_set_streamable_subset(e->encoder, !options.lax);
+	FLAC__stream_encoder_set_do_mid_side_stereo(e->encoder, options.do_mid_side);
+	FLAC__stream_encoder_set_loose_mid_side_stereo(e->encoder, options.loose_mid_side);
+	FLAC__stream_encoder_set_channels(e->encoder, channels);
+	FLAC__stream_encoder_set_bits_per_sample(e->encoder, bps);
+	FLAC__stream_encoder_set_sample_rate(e->encoder, sample_rate);
+	FLAC__stream_encoder_set_blocksize(e->encoder, options.blocksize);
+	FLAC__stream_encoder_set_apodization(e->encoder, options.apodizations);
+	FLAC__stream_encoder_set_max_lpc_order(e->encoder, options.max_lpc_order);
+	FLAC__stream_encoder_set_qlp_coeff_precision(e->encoder, options.qlp_coeff_precision);
+	FLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder, options.do_qlp_coeff_prec_search);
+	FLAC__stream_encoder_set_do_escape_coding(e->encoder, options.do_escape_coding);
+	FLAC__stream_encoder_set_do_exhaustive_model_search(e->encoder, options.do_exhaustive_model_search);
+	FLAC__stream_encoder_set_min_residual_partition_order(e->encoder, options.min_residual_partition_order);
+	FLAC__stream_encoder_set_max_residual_partition_order(e->encoder, options.max_residual_partition_order);
+	FLAC__stream_encoder_set_rice_parameter_search_dist(e->encoder, options.rice_parameter_search_dist);
+	FLAC__stream_encoder_set_total_samples_estimate(e->encoder, e->total_samples_to_encode);
+	FLAC__stream_encoder_set_metadata(e->encoder, (num_metadata > 0)? metadata : 0, num_metadata);
+
+	FLAC__stream_encoder_disable_constant_subframes(e->encoder, options.debug.disable_constant_subframes);
+	FLAC__stream_encoder_disable_fixed_subframes(e->encoder, options.debug.disable_fixed_subframes);
+	FLAC__stream_encoder_disable_verbatim_subframes(e->encoder, options.debug.disable_verbatim_subframes);
+
 #ifdef FLAC__HAS_OGG
 	if(e->use_ogg) {
-		OggFLAC__stream_encoder_set_serial_number(e->encoder.ogg, options.serial_number);
-		OggFLAC__stream_encoder_set_verify(e->encoder.ogg, options.verify);
-		OggFLAC__stream_encoder_set_streamable_subset(e->encoder.ogg, !options.lax);
-		OggFLAC__stream_encoder_set_do_mid_side_stereo(e->encoder.ogg, options.do_mid_side);
-		OggFLAC__stream_encoder_set_loose_mid_side_stereo(e->encoder.ogg, options.loose_mid_side);
-		OggFLAC__stream_encoder_set_channels(e->encoder.ogg, channels);
-		OggFLAC__stream_encoder_set_bits_per_sample(e->encoder.ogg, bps);
-		OggFLAC__stream_encoder_set_sample_rate(e->encoder.ogg, sample_rate);
-		OggFLAC__stream_encoder_set_blocksize(e->encoder.ogg, options.blocksize);
-		OggFLAC__stream_encoder_set_apodization(e->encoder.ogg, options.apodizations);
-		OggFLAC__stream_encoder_set_max_lpc_order(e->encoder.ogg, options.max_lpc_order);
-		OggFLAC__stream_encoder_set_qlp_coeff_precision(e->encoder.ogg, options.qlp_coeff_precision);
-		OggFLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder.ogg, options.do_qlp_coeff_prec_search);
-		OggFLAC__stream_encoder_set_do_escape_coding(e->encoder.ogg, options.do_escape_coding);
-		OggFLAC__stream_encoder_set_do_exhaustive_model_search(e->encoder.ogg, options.do_exhaustive_model_search);
-		OggFLAC__stream_encoder_set_min_residual_partition_order(e->encoder.ogg, options.min_residual_partition_order);
-		OggFLAC__stream_encoder_set_max_residual_partition_order(e->encoder.ogg, options.max_residual_partition_order);
-		OggFLAC__stream_encoder_set_rice_parameter_search_dist(e->encoder.ogg, options.rice_parameter_search_dist);
-		OggFLAC__stream_encoder_set_total_samples_estimate(e->encoder.ogg, e->total_samples_to_encode);
-		OggFLAC__stream_encoder_set_metadata(e->encoder.ogg, (num_metadata > 0)? metadata : 0, num_metadata);
+		FLAC__stream_encoder_set_serial_number(e->encoder, options.serial_number);
 
-		OggFLAC__stream_encoder_disable_constant_subframes(e->encoder.ogg, options.debug.disable_constant_subframes);
-		OggFLAC__stream_encoder_disable_fixed_subframes(e->encoder.ogg, options.debug.disable_fixed_subframes);
-		OggFLAC__stream_encoder_disable_verbatim_subframes(e->encoder.ogg, options.debug.disable_verbatim_subframes);
-
-		init_status = OggFLAC__stream_encoder_init_file(e->encoder.ogg, e->is_stdout? 0 : e->outfilename, encoder_progress_callback, /*client_data=*/e);
-		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
-			print_error_with_init_status(e, "ERROR initializing encoder", init_status);
-			if(OggFLAC__stream_encoder_get_state(e->encoder.ogg) != OggFLAC__STREAM_ENCODER_IO_ERROR)
-				e->outputfile_opened = true;
-			if(0 != cuesheet)
-				FLAC__metadata_object_delete(cuesheet);
-			return false;
-		}
-		else
-			e->outputfile_opened = true;
+		init_status = FLAC__stream_encoder_init_ogg_file(e->encoder, e->is_stdout? 0 : e->outfilename, encoder_progress_callback, /*client_data=*/e);
 	}
 	else
 #endif
 	{
-		FLAC__stream_encoder_set_verify(e->encoder.flac, options.verify);
-		FLAC__stream_encoder_set_streamable_subset(e->encoder.flac, !options.lax);
-		FLAC__stream_encoder_set_do_mid_side_stereo(e->encoder.flac, options.do_mid_side);
-		FLAC__stream_encoder_set_loose_mid_side_stereo(e->encoder.flac, options.loose_mid_side);
-		FLAC__stream_encoder_set_channels(e->encoder.flac, channels);
-		FLAC__stream_encoder_set_bits_per_sample(e->encoder.flac, bps);
-		FLAC__stream_encoder_set_sample_rate(e->encoder.flac, sample_rate);
-		FLAC__stream_encoder_set_blocksize(e->encoder.flac, options.blocksize);
-		FLAC__stream_encoder_set_apodization(e->encoder.flac, options.apodizations);
-		FLAC__stream_encoder_set_max_lpc_order(e->encoder.flac, options.max_lpc_order);
-		FLAC__stream_encoder_set_qlp_coeff_precision(e->encoder.flac, options.qlp_coeff_precision);
-		FLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder.flac, options.do_qlp_coeff_prec_search);
-		FLAC__stream_encoder_set_do_escape_coding(e->encoder.flac, options.do_escape_coding);
-		FLAC__stream_encoder_set_do_exhaustive_model_search(e->encoder.flac, options.do_exhaustive_model_search);
-		FLAC__stream_encoder_set_min_residual_partition_order(e->encoder.flac, options.min_residual_partition_order);
-		FLAC__stream_encoder_set_max_residual_partition_order(e->encoder.flac, options.max_residual_partition_order);
-		FLAC__stream_encoder_set_rice_parameter_search_dist(e->encoder.flac, options.rice_parameter_search_dist);
-		FLAC__stream_encoder_set_total_samples_estimate(e->encoder.flac, e->total_samples_to_encode);
-		FLAC__stream_encoder_set_metadata(e->encoder.flac, (num_metadata > 0)? metadata : 0, num_metadata);
-
-		FLAC__stream_encoder_disable_constant_subframes(e->encoder.flac, options.debug.disable_constant_subframes);
-		FLAC__stream_encoder_disable_fixed_subframes(e->encoder.flac, options.debug.disable_fixed_subframes);
-		FLAC__stream_encoder_disable_verbatim_subframes(e->encoder.flac, options.debug.disable_verbatim_subframes);
-
-		init_status = FLAC__stream_encoder_init_file(e->encoder.flac, e->is_stdout? 0 : e->outfilename, encoder_progress_callback, /*client_data=*/e);
-		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
-			print_error_with_init_status(e, "ERROR initializing encoder", init_status);
-			if(FLAC__stream_encoder_get_state(e->encoder.flac) != FLAC__STREAM_ENCODER_IO_ERROR)
-				e->outputfile_opened = true;
-			if(0 != cuesheet)
-				FLAC__metadata_object_delete(cuesheet);
-			return false;
-		}
-		else
-			e->outputfile_opened = true;
+		init_status = FLAC__stream_encoder_init_file(e->encoder, e->is_stdout? 0 : e->outfilename, encoder_progress_callback, /*client_data=*/e);
 	}
+
+	if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
+		print_error_with_init_status(e, "ERROR initializing encoder", init_status);
+		if(FLAC__stream_encoder_get_state(e->encoder) != FLAC__STREAM_ENCODER_IO_ERROR)
+			e->outputfile_opened = true;
+		if(0 != cuesheet)
+			FLAC__metadata_object_delete(cuesheet);
+		return false;
+	}
+	else
+		e->outputfile_opened = true;
 
 	if(0 != cuesheet)
 		FLAC__metadata_object_delete(cuesheet);
@@ -2049,12 +1955,7 @@ FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const b
 		}
 	}
 
-#ifdef FLAC__HAS_OGG
-	if(e->use_ogg)
-		return OggFLAC__stream_encoder_process(e->encoder.ogg, buffer, samples);
-	else
-#endif
-	return FLAC__stream_encoder_process(e->encoder.flac, buffer, samples);
+	return FLAC__stream_encoder_process(e->encoder, buffer, samples);
 }
 
 FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, FLAC__StreamMetadata *cuesheet, EncoderSession *e)
@@ -2489,33 +2390,18 @@ void print_error_with_init_status(const EncoderSession *e, const char *message, 
 	flac__utils_printf(stderr, 1, "%*s init_status = %s\n", ilen, "", FLAC__StreamEncoderInitStatusString[init_status]);
 
 	if(init_status == FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR) {
-#ifdef FLAC__HAS_OGG
-		if(e->use_ogg)
-			state_string = OggFLAC__stream_encoder_get_resolved_state_string(e->encoder.ogg);
-		else
-#endif
-		state_string = FLAC__stream_encoder_get_resolved_state_string(e->encoder.flac);
+		state_string = FLAC__stream_encoder_get_resolved_state_string(e->encoder);
 
 		flac__utils_printf(stderr, 1, "%*s state = %s\n", ilen, "", state_string);
 
 		/* print out some more info for some errors: */
-		if(
-			0 == strcmp(state_string, FLAC__StreamEncoderStateString[FLAC__STREAM_ENCODER_CLIENT_ERROR])
-#ifdef FLAC__HAS_OGG
-			|| 0 == strcmp(state_string, OggFLAC__StreamEncoderStateString[OggFLAC__STREAM_ENCODER_CLIENT_ERROR])
-#endif
-		) {
+		if(0 == strcmp(state_string, FLAC__StreamEncoderStateString[FLAC__STREAM_ENCODER_CLIENT_ERROR])) {
 			flac__utils_printf(stderr, 1,
 				"\n"
 				"An error occurred while writing; the most common cause is that the disk is full.\n"
 			);
 		}
-		else if(
-			0 == strcmp(state_string, FLAC__StreamEncoderStateString[FLAC__STREAM_ENCODER_IO_ERROR])
-#ifdef FLAC__HAS_OGG
-			|| 0 == strcmp(state_string, OggFLAC__StreamEncoderStateString[OggFLAC__STREAM_ENCODER_IO_ERROR])
-#endif
-		) {
+		else if(0 == strcmp(state_string, FLAC__StreamEncoderStateString[FLAC__STREAM_ENCODER_IO_ERROR])) {
 			flac__utils_printf(stderr, 1,
 				"\n"
 				"An error occurred opening the output file; it is likely that the output\n"
@@ -2542,22 +2428,12 @@ void print_error_with_state(const EncoderSession *e, const char *message)
 
 	flac__utils_printf(stderr, 1, "\n%s: %s\n", e->inbasefilename, message);
 
-#ifdef FLAC__HAS_OGG
-	if(e->use_ogg)
-		state_string = OggFLAC__stream_encoder_get_resolved_state_string(e->encoder.ogg);
-	else
-#endif
-	state_string = FLAC__stream_encoder_get_resolved_state_string(e->encoder.flac);
+	state_string = FLAC__stream_encoder_get_resolved_state_string(e->encoder);
 
 	flac__utils_printf(stderr, 1, "%*s state = %s\n", ilen, "", state_string);
 
 	/* print out some more info for some errors: */
-	if(
-		0 == strcmp(state_string, FLAC__StreamEncoderStateString[FLAC__STREAM_ENCODER_CLIENT_ERROR])
-#ifdef FLAC__HAS_OGG
-		|| 0 == strcmp(state_string, OggFLAC__StreamEncoderStateString[OggFLAC__STREAM_ENCODER_CLIENT_ERROR])
-#endif
-	) {
+	if(0 == strcmp(state_string, FLAC__StreamEncoderStateString[FLAC__STREAM_ENCODER_CLIENT_ERROR])) {
 		flac__utils_printf(stderr, 1,
 			"\n"
 			"An error occurred while writing; the most common cause is that the disk is full.\n"
@@ -2574,12 +2450,7 @@ void print_verify_error(EncoderSession *e)
 	FLAC__int32 expected;
 	FLAC__int32 got;
 
-#ifdef FLAC__HAS_OGG
-	if(e->use_ogg)
-		OggFLAC__stream_encoder_get_verify_decoder_error_stats(e->encoder.ogg, &absolute_sample, &frame_number, &channel, &sample, &expected, &got);
-	else
-#endif
-	FLAC__stream_encoder_get_verify_decoder_error_stats(e->encoder.flac, &absolute_sample, &frame_number, &channel, &sample, &expected, &got);
+	FLAC__stream_encoder_get_verify_decoder_error_stats(e->encoder, &absolute_sample, &frame_number, &channel, &sample, &expected, &got);
 
 	flac__utils_printf(stderr, 1, "%s: ERROR: mismatch in decoded data, verify FAILED!\n", e->inbasefilename);
 	flac__utils_printf(stderr, 1, "       Absolute sample=%u, frame=%u, channel=%u, sample=%u, expected %d, got %d\n", (unsigned)absolute_sample, frame_number, channel, sample, expected, got);

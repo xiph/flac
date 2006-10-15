@@ -41,5 +41,9 @@ noinst_HEADERS = \
 	md5.h \
 	memory.h \
 	metadata.h \
+	ogg_decoder_aspect.h \
+	ogg_encoder_aspect.h \
+	ogg_helper.h \
+	ogg_mapping.h \
 	stream_encoder_framing.h \
 	window.h

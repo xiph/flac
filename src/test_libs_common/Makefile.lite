@@ -28,7 +28,6 @@ INCLUDES = -I$(topdir)/include
 
 SRCS_C = \
 	file_utils_flac.c \
-	file_utils_oggflac.c \
 	metadata_utils.c
 
 include $(topdir)/build/lib.mk

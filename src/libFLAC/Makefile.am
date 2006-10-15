@@ -80,6 +80,13 @@ EXTRA_DIST = \
 	libFLAC_static.dsp \
 	libFLAC.m4
 
+if FLaC__HAS_OGG
+extra_ogg_sources = \
+	ogg_decoder_aspect.c \
+	ogg_encoder_aspect.c \
+	ogg_helper.c \
+	ogg_mapping.c
+endif
 # see 'http://www.gnu.org/software/libtool/manual.html#Libtool-versioning' for numbering convention
 libFLAC_la_LDFLAGS = -version-info 8:0:0 -lm $(LOCAL_EXTRA_LDFLAGS)
 libFLAC_la_SOURCES = \
@@ -98,4 +105,5 @@ libFLAC_la_SOURCES = \
 	stream_decoder.c \
 	stream_encoder.c \
 	stream_encoder_framing.c \
-	window.c
+	window.c \
+	$(extra_ogg_sources)

@@ -85,14 +85,6 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp"
 # Begin Source File
 
-SOURCE=.\file_decoder.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\file_encoder.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\metadata.cpp
 # End Source File
 # Begin Source File

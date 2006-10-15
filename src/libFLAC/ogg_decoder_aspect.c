@@ -1,4 +1,4 @@
-/* libOggFLAC - Free Lossless Audio Codec + Ogg library
+/* libFLAC - Free Lossless Audio Codec
  * Copyright (C) 2002,2003,2004,2005,2006  Josh Coalson
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@
  *
  ***********************************************************************/
 
-FLAC__bool OggFLAC__ogg_decoder_aspect_init(OggFLAC__OggDecoderAspect *aspect)
+FLAC__bool FLAC__ogg_decoder_aspect_init(FLAC__OggDecoderAspect *aspect)
 {
 	/* we will determine the serial number later if necessary */
 	if(ogg_stream_init(&aspect->stream_state, aspect->serial_number) != 0)
@@ -69,24 +69,24 @@ FLAC__bool OggFLAC__ogg_decoder_aspect_init(OggFLAC__OggDecoderAspect *aspect)
 	return true;
 }
 
-void OggFLAC__ogg_decoder_aspect_finish(OggFLAC__OggDecoderAspect *aspect)
+void FLAC__ogg_decoder_aspect_finish(FLAC__OggDecoderAspect *aspect)
 {
 	(void)ogg_sync_clear(&aspect->sync_state);
 	(void)ogg_stream_clear(&aspect->stream_state);
 }
 
-void OggFLAC__ogg_decoder_aspect_set_serial_number(OggFLAC__OggDecoderAspect *aspect, long value)
+void FLAC__ogg_decoder_aspect_set_serial_number(FLAC__OggDecoderAspect *aspect, long value)
 {
 	aspect->use_first_serial_number = false;
 	aspect->serial_number = value;
 }
 
-void OggFLAC__ogg_decoder_aspect_set_defaults(OggFLAC__OggDecoderAspect *aspect)
+void FLAC__ogg_decoder_aspect_set_defaults(FLAC__OggDecoderAspect *aspect)
 {
 	aspect->use_first_serial_number = true;
 }
 
-void OggFLAC__ogg_decoder_aspect_flush(OggFLAC__OggDecoderAspect *aspect)
+void FLAC__ogg_decoder_aspect_flush(FLAC__OggDecoderAspect *aspect)
 {
 	(void)ogg_stream_reset(&aspect->stream_state);
 	(void)ogg_sync_reset(&aspect->sync_state);
@@ -94,15 +94,15 @@ void OggFLAC__ogg_decoder_aspect_flush(OggFLAC__OggDecoderAspect *aspect)
 	aspect->have_working_page = false;
 }
 
-void OggFLAC__ogg_decoder_aspect_reset(OggFLAC__OggDecoderAspect *aspect)
+void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect *aspect)
 {
-	OggFLAC__ogg_decoder_aspect_flush(aspect);
+	FLAC__ogg_decoder_aspect_flush(aspect);
 
 	if(aspect->use_first_serial_number)
 		aspect->need_serial_number = true;
 }
 
-OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wrapper(OggFLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], unsigned *bytes, OggFLAC__OggDecoderAspectReadCallbackProxy read_callback, const OggFLAC__StreamDecoder *decoder, void *client_data)
+FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(FLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], unsigned *bytes, FLAC__OggDecoderAspectReadCallbackProxy read_callback, const FLAC__StreamDecoder *decoder, void *client_data)
 {
 	static const unsigned OGG_BYTES_CHUNK = 8192;
 	const unsigned bytes_requested = *bytes;
@@ -161,25 +161,25 @@ OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wr
 				if (ret > 0) {
 					aspect->have_working_packet = true;
 					/* if it is the first header packet, check for magic and a supported Ogg FLAC mapping version */
-					if (aspect->working_packet.bytes > 0 && aspect->working_packet.packet[0] == OggFLAC__MAPPING_FIRST_HEADER_PACKET_TYPE) {
+					if (aspect->working_packet.bytes > 0 && aspect->working_packet.packet[0] == FLAC__OGG_MAPPING_FIRST_HEADER_PACKET_TYPE) {
 						const FLAC__byte *b = aspect->working_packet.packet;
 						const unsigned header_length =
-							OggFLAC__MAPPING_PACKET_TYPE_LENGTH +
-							OggFLAC__MAPPING_MAGIC_LENGTH +
-							OggFLAC__MAPPING_VERSION_MAJOR_LENGTH +
-							OggFLAC__MAPPING_VERSION_MINOR_LENGTH +
-							OggFLAC__MAPPING_NUM_HEADERS_LENGTH;
+							FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH +
+							FLAC__OGG_MAPPING_MAGIC_LENGTH +
+							FLAC__OGG_MAPPING_VERSION_MAJOR_LENGTH +
+							FLAC__OGG_MAPPING_VERSION_MINOR_LENGTH +
+							FLAC__OGG_MAPPING_NUM_HEADERS_LENGTH;
 						if (aspect->working_packet.bytes < (long)header_length)
-							return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC;
-						b += OggFLAC__MAPPING_PACKET_TYPE_LENGTH;
-						if (memcmp(b, OggFLAC__MAPPING_MAGIC, OggFLAC__MAPPING_MAGIC_LENGTH))
-							return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC;
-						b += OggFLAC__MAPPING_MAGIC_LENGTH;
+							return FLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC;
+						b += FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH;
+						if (memcmp(b, FLAC__OGG_MAPPING_MAGIC, FLAC__OGG_MAPPING_MAGIC_LENGTH))
+							return FLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC;
+						b += FLAC__OGG_MAPPING_MAGIC_LENGTH;
 						aspect->version_major = (unsigned)(*b);
-						b += OggFLAC__MAPPING_VERSION_MAJOR_LENGTH;
+						b += FLAC__OGG_MAPPING_VERSION_MAJOR_LENGTH;
 						aspect->version_minor = (unsigned)(*b);
 						if (aspect->version_major != 1)
-							return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_UNSUPPORTED_MAPPING_VERSION;
+							return FLAC__OGG_DECODER_ASPECT_READ_STATUS_UNSUPPORTED_MAPPING_VERSION;
 						aspect->working_packet.packet += header_length;
 						aspect->working_packet.bytes -= header_length;
 					}
@@ -189,7 +189,7 @@ OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wr
 				}
 				else { /* ret < 0 */
 					/* lost sync, we'll leave the working page for the next call */
-					return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC;
+					return FLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC;
 				}
 			}
 		}
@@ -214,19 +214,19 @@ OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wr
 				char *oggbuf = ogg_sync_buffer(&aspect->sync_state, ogg_bytes_to_read);
 
 				if(0 == oggbuf) {
-					return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
+					return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
 				}
 				else {
 					unsigned ogg_bytes_read = ogg_bytes_to_read;
 
 					switch(read_callback(decoder, (FLAC__byte*)oggbuf, &ogg_bytes_read, client_data)) {
-						case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_OK:
+						case FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK:
 							break;
-						case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM:
+						case FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM:
 							aspect->end_of_stream = true;
 							break;
-						case OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT:
-							return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT;
+						case FLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT:
+							return FLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT;
 						default:
 							FLAC__ASSERT(0);
 					}
@@ -234,20 +234,20 @@ OggFLAC__OggDecoderAspectReadStatus OggFLAC__ogg_decoder_aspect_read_callback_wr
 					if(ogg_sync_wrote(&aspect->sync_state, ogg_bytes_read) < 0) {
 						/* double protection; this will happen if the read callback returns more bytes than the max requested, which would overflow Ogg's internal buffer */
 						FLAC__ASSERT(0);
-						return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_ERROR;
+						return FLAC__OGG_DECODER_ASPECT_READ_STATUS_ERROR;
 					}
 				}
 			}
 			else { /* ret < 0 */
 				/* lost sync, bail out */
-				return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC;
+				return FLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC;
 			}
 		}
 	}
 
 	if (aspect->end_of_stream && *bytes == 0) {
-		return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM;
+		return FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM;
 	}
 
-	return OggFLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
+	return FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
 }

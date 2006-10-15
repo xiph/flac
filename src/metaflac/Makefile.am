@@ -17,6 +17,8 @@
 
 bin_PROGRAMS = metaflac
 
+AM_CFLAGS = @OGG_CFLAGS@
+
 EXTRA_DIST = \
 	Makefile.lite \
 	metaflac.dsp
@@ -44,5 +46,6 @@ metaflac_LDADD = \
 	$(top_builddir)/src/share/getopt/libgetopt.a \
 	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
+	@OGG_LIBS@ \
 	@LIBICONV@ \
 	-lm

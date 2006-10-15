@@ -40,6 +40,12 @@
 namespace FLAC {
 	namespace Decoder {
 
+		// ------------------------------------------------------------
+		//
+		// Stream
+		//
+		// ------------------------------------------------------------
+
 		Stream::Stream():
 		decoder_(::FLAC__stream_decoder_new())
 		{ }
@@ -65,6 +71,12 @@ namespace FLAC {
 		bool Stream::is_valid() const
 		{
 			return 0 != decoder_;
+		}
+
+		bool Stream::set_serial_number(long value)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_decoder_set_serial_number(decoder_, value);
 		}
 
 		bool Stream::set_md5_checking(bool value)
@@ -161,6 +173,12 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_decoder_init_stream(decoder_, read_callback_, seek_callback_, tell_callback_, length_callback_, eof_callback_, write_callback_, metadata_callback_, error_callback_, /*client_data=*/(void*)this);
+		}
+
+		::FLAC__StreamDecoderInitStatus Stream::init_ogg()
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_decoder_init_ogg_stream(decoder_, read_callback_, seek_callback_, tell_callback_, length_callback_, eof_callback_, write_callback_, metadata_callback_, error_callback_, /*client_data=*/(void*)this);
 		}
 
 		void Stream::finish()
@@ -309,6 +327,66 @@ namespace FLAC {
 			Stream *instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			instance->error_callback(status);
+		}
+
+		// ------------------------------------------------------------
+		//
+		// File
+		//
+		// ------------------------------------------------------------
+
+		File::File():
+			Stream()
+		{ }
+
+		File::~File()
+		{
+		}
+
+		::FLAC__StreamDecoderInitStatus File::init(FILE *file)
+		{
+			FLAC__ASSERT(0 != decoder_);
+			return ::FLAC__stream_decoder_init_FILE(decoder_, file, write_callback_, metadata_callback_, error_callback_, /*client_data=*/(void*)this);
+		}
+
+		::FLAC__StreamDecoderInitStatus File::init(const char *filename)
+		{
+			FLAC__ASSERT(0 != decoder_);
+			return ::FLAC__stream_decoder_init_file(decoder_, filename, write_callback_, metadata_callback_, error_callback_, /*client_data=*/(void*)this);
+		}
+
+		::FLAC__StreamDecoderInitStatus File::init(const std::string &filename)
+		{
+			return init(filename.c_str());
+		}
+
+		::FLAC__StreamDecoderInitStatus File::init_ogg(FILE *file)
+		{
+			FLAC__ASSERT(0 != decoder_);
+			return ::FLAC__stream_decoder_init_ogg_FILE(decoder_, file, write_callback_, metadata_callback_, error_callback_, /*client_data=*/(void*)this);
+		}
+
+		::FLAC__StreamDecoderInitStatus File::init_ogg(const char *filename)
+		{
+			FLAC__ASSERT(0 != decoder_);
+			return ::FLAC__stream_decoder_init_ogg_file(decoder_, filename, write_callback_, metadata_callback_, error_callback_, /*client_data=*/(void*)this);
+		}
+
+		::FLAC__StreamDecoderInitStatus File::init_ogg(const std::string &filename)
+		{
+			return init_ogg(filename.c_str());
+		}
+
+		// This is a dummy to satisfy the pure virtual from Stream; the
+		// read callback will never be called since we are initializing
+		// with FLAC__stream_decoder_init_FILE() or
+		// FLAC__stream_decoder_init_file() and those supply the read
+		// callback internally.
+		::FLAC__StreamDecoderReadStatus File::read_callback(FLAC__byte buffer[], unsigned *bytes)
+		{
+			(void)buffer, (void)bytes;
+			FLAC__ASSERT(false);
+			return ::FLAC__STREAM_DECODER_READ_STATUS_ABORT; // double protection
 		}
 
 	}

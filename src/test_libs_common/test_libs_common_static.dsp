@@ -89,10 +89,6 @@ SOURCE=.\file_utils_flac.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\file_utils_oggflac.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\metadata_utils.c
 # End Source File
 # End Group
@@ -102,10 +98,6 @@ SOURCE=.\metadata_utils.c
 # Begin Source File
 
 SOURCE=..\..\include\test_libs_common\file_utils_flac.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\test_libs_common\file_utils_oggflac.h
 # End Source File
 # Begin Source File
 

@@ -30,7 +30,7 @@
 
 topdir = .
 
-.PHONY: all doc src libFLAC libFLAC++ libOggFLAC libOggFLAC++ share plugin_common plugin_xmms flac metaflac test_grabbag test_libFLAC test_libFLAC++ test_libOggFLAC test_libOggFLAC++ test_seeking test_streams
+.PHONY: all doc src libFLAC libFLAC++ share plugin_common plugin_xmms flac metaflac test_grabbag test_libFLAC test_libFLAC++ test_seeking test_streams
 all: doc src
 
 DEFAULT_CONFIG = release
@@ -57,16 +57,10 @@ libFLAC:
 libFLAC++: libFLAC
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
-libOggFLAC: libFLAC
-	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
-
-libOggFLAC++: libFLAC
-	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
-
 share: libFLAC
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
-flac: libFLAC libOggFLAC share
+flac: libFLAC share
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 metaflac: libFLAC share
@@ -78,7 +72,7 @@ plugin_common: libFLAC
 plugin_xmms: libFLAC plugin_common
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
-test_seeking: libFLAC libOggFLAC
+test_seeking: libFLAC
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 test_streams: libFLAC
@@ -91,12 +85,6 @@ test_libFLAC: libFLAC
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 test_libFLAC++: libFLAC libFLAC++
-	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
-
-test_libOggFLAC: libFLAC libOggFLAC
-	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
-
-test_libOggFLAC++: libFLAC libOggFLAC libOggFLAC++
 	(cd src/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 test: debug

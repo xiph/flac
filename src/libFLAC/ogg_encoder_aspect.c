@@ -1,4 +1,4 @@
-/* libOggFLAC - Free Lossless Audio Codec + Ogg library
+/* libFLAC - Free Lossless Audio Codec
  * Copyright (C) 2002,2003,2004,2005,2006  Josh Coalson
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@
 #include "private/ogg_encoder_aspect.h"
 #include "private/ogg_mapping.h"
 
-static const FLAC__byte OggFLAC__MAPPING_VERSION_MAJOR = 1;
-static const FLAC__byte OggFLAC__MAPPING_VERSION_MINOR = 0;
+static const FLAC__byte FLAC__OGG_MAPPING_VERSION_MAJOR = 1;
+static const FLAC__byte FLAC__OGG_MAPPING_VERSION_MINOR = 0;
 
 /***********************************************************************
  *
@@ -47,7 +47,7 @@ static const FLAC__byte OggFLAC__MAPPING_VERSION_MINOR = 0;
  *
  ***********************************************************************/
 
-FLAC__bool OggFLAC__ogg_encoder_aspect_init(OggFLAC__OggEncoderAspect *aspect)
+FLAC__bool FLAC__ogg_encoder_aspect_init(FLAC__OggEncoderAspect *aspect)
 {
 	/* we will determine the serial number later if necessary */
 	if(ogg_stream_init(&aspect->stream_state, aspect->serial_number) != 0)
@@ -60,20 +60,20 @@ FLAC__bool OggFLAC__ogg_encoder_aspect_init(OggFLAC__OggEncoderAspect *aspect)
 	return true;
 }
 
-void OggFLAC__ogg_encoder_aspect_finish(OggFLAC__OggEncoderAspect *aspect)
+void FLAC__ogg_encoder_aspect_finish(FLAC__OggEncoderAspect *aspect)
 {
 	(void)ogg_stream_clear(&aspect->stream_state);
 	/*@@@ what about the page? */
 }
 
-void OggFLAC__ogg_encoder_aspect_set_serial_number(OggFLAC__OggEncoderAspect *aspect, long value)
+void FLAC__ogg_encoder_aspect_set_serial_number(FLAC__OggEncoderAspect *aspect, long value)
 {
 	aspect->serial_number = value;
 }
 
-FLAC__bool OggFLAC__ogg_encoder_aspect_set_num_metadata(OggFLAC__OggEncoderAspect *aspect, unsigned value)
+FLAC__bool FLAC__ogg_encoder_aspect_set_num_metadata(FLAC__OggEncoderAspect *aspect, unsigned value)
 {
-	if(value < (1u << OggFLAC__MAPPING_NUM_HEADERS_LEN)) {
+	if(value < (1u << FLAC__OGG_MAPPING_NUM_HEADERS_LEN)) {
 		aspect->num_metadata = value;
 		return true;
 	}
@@ -81,7 +81,7 @@ FLAC__bool OggFLAC__ogg_encoder_aspect_set_num_metadata(OggFLAC__OggEncoderAspec
 		return false;
 }
 
-void OggFLAC__ogg_encoder_aspect_set_defaults(OggFLAC__OggEncoderAspect *aspect)
+void FLAC__ogg_encoder_aspect_set_defaults(FLAC__OggEncoderAspect *aspect)
 {
 	aspect->serial_number = 0;
 	aspect->num_metadata = 0;
@@ -108,7 +108,7 @@ void OggFLAC__ogg_encoder_aspect_set_defaults(OggFLAC__OggEncoderAspect *aspect)
  * separate write callback for the fLaC magic, and then separate write
  * callbacks for each metadata block and audio frame.
  */
-FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrapper(OggFLAC__OggEncoderAspect *aspect, const FLAC__uint64 total_samples_estimate, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, OggFLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data)
+FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(FLAC__OggEncoderAspect *aspect, const FLAC__uint64 total_samples_estimate, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, FLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data)
 {
 	/* WATCHOUT:
 	 * This depends on the behavior of FLAC__StreamEncoder that 'samples'
@@ -123,11 +123,11 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 	if(aspect->seen_magic) {
 		ogg_packet packet;
 		FLAC__byte synthetic_first_packet_body[
-			OggFLAC__MAPPING_PACKET_TYPE_LENGTH +
-			OggFLAC__MAPPING_MAGIC_LENGTH +
-			OggFLAC__MAPPING_VERSION_MAJOR_LENGTH +
-			OggFLAC__MAPPING_VERSION_MINOR_LENGTH +
-			OggFLAC__MAPPING_NUM_HEADERS_LENGTH +
+			FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH +
+			FLAC__OGG_MAPPING_MAGIC_LENGTH +
+			FLAC__OGG_MAPPING_VERSION_MAJOR_LENGTH +
+			FLAC__OGG_MAPPING_VERSION_MINOR_LENGTH +
+			FLAC__OGG_MAPPING_NUM_HEADERS_LENGTH +
 			FLAC__STREAM_SYNC_LENGTH +
 			FLAC__STREAM_METADATA_HEADER_LENGTH +
 			FLAC__STREAM_METADATA_STREAMINFO_LENGTH
@@ -147,17 +147,17 @@ FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrappe
 				return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 			}
 			/* add first header packet type */
-			*b = OggFLAC__MAPPING_FIRST_HEADER_PACKET_TYPE;
-			b += OggFLAC__MAPPING_PACKET_TYPE_LENGTH;
+			*b = FLAC__OGG_MAPPING_FIRST_HEADER_PACKET_TYPE;
+			b += FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH;
 			/* add 'FLAC' mapping magic */
-			memcpy(b, OggFLAC__MAPPING_MAGIC, OggFLAC__MAPPING_MAGIC_LENGTH);
-			b += OggFLAC__MAPPING_MAGIC_LENGTH;
+			memcpy(b, FLAC__OGG_MAPPING_MAGIC, FLAC__OGG_MAPPING_MAGIC_LENGTH);
+			b += FLAC__OGG_MAPPING_MAGIC_LENGTH;
 			/* add Ogg FLAC mapping major version number */
-			memcpy(b, &OggFLAC__MAPPING_VERSION_MAJOR, OggFLAC__MAPPING_VERSION_MAJOR_LENGTH);
-			b += OggFLAC__MAPPING_VERSION_MAJOR_LENGTH;
+			memcpy(b, &FLAC__OGG_MAPPING_VERSION_MAJOR, FLAC__OGG_MAPPING_VERSION_MAJOR_LENGTH);
+			b += FLAC__OGG_MAPPING_VERSION_MAJOR_LENGTH;
 			/* add Ogg FLAC mapping minor version number */
-			memcpy(b, &OggFLAC__MAPPING_VERSION_MINOR, OggFLAC__MAPPING_VERSION_MINOR_LENGTH);
-			b += OggFLAC__MAPPING_VERSION_MINOR_LENGTH;
+			memcpy(b, &FLAC__OGG_MAPPING_VERSION_MINOR, FLAC__OGG_MAPPING_VERSION_MINOR_LENGTH);
+			b += FLAC__OGG_MAPPING_VERSION_MINOR_LENGTH;
 			/* add number of header packets */
 			*b = (FLAC__byte)(aspect->num_metadata >> 8);
 			b++;

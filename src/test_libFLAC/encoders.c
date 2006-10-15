@@ -32,10 +32,10 @@
 #include "test_libs_common/metadata_utils.h"
 
 typedef enum {
-	LAYER_STREAM = 0, /* FLAC__stream_encoder_init_stream() without seeking */
-	LAYER_SEEKABLE_STREAM, /* FLAC__stream_encoder_init_stream() with seeking */
-	LAYER_FILE, /* FLAC__stream_encoder_init_FILE() */
-	LAYER_FILENAME /* FLAC__stream_encoder_init_file() */
+	LAYER_STREAM = 0, /* FLAC__stream_encoder_init_[ogg_]stream() without seeking */
+	LAYER_SEEKABLE_STREAM, /* FLAC__stream_encoder_init_[ogg_]stream() with seeking */
+	LAYER_FILE, /* FLAC__stream_encoder_init_[ogg_]FILE() */
+	LAYER_FILENAME /* FLAC__stream_encoder_init_[ogg_]file() */
 } Layer;
 
 static const char * const LayerString[] = {
@@ -46,9 +46,13 @@ static const char * const LayerString[] = {
 };
 
 static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, picture_, unknown_;
-static FLAC__StreamMetadata *metadata_sequence_[] = { &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &picture_, &unknown_ };
+static FLAC__StreamMetadata *metadata_sequence_[] = { &vorbiscomment_, &padding_, &seektable_, &application1_, &application2_, &cuesheet_, &picture_, &unknown_ };
 static const unsigned num_metadata_ = sizeof(metadata_sequence_) / sizeof(metadata_sequence_[0]);
-static const char *flacfilename_ = "metadata.flac";
+
+static const char *flacfilename(FLAC__bool is_ogg)
+{
+	return is_ogg? "metadata.ogg" : "metadata.flac";
+}
 
 static FLAC__bool die_(const char *msg)
 {
@@ -84,6 +88,13 @@ static void free_metadata_blocks_()
 	mutils__free_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &picture_, &unknown_);
 }
 
+static FLAC__StreamEncoderReadStatus stream_encoder_read_callback_(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+{
+	(void)encoder, (void)buffer, (void)bytes, (void)client_data;
+	memset(buffer, 0, *bytes); /* init buffer to avoid valgrind errors */
+	return FLAC__STREAM_ENCODER_READ_STATUS_CONTINUE;
+}
+
 static FLAC__StreamEncoderWriteStatus stream_encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	(void)encoder, (void)buffer, (void)bytes, (void)samples, (void)current_frame, (void)client_data;
@@ -113,9 +124,10 @@ static void stream_encoder_progress_callback_(const FLAC__StreamEncoder *encoder
 	(void)encoder, (void)bytes_written, (void)samples_written, (void)frames_written, (void)total_frames_estimate, (void)client_data;
 }
 
-static FLAC__bool test_stream_encoder(Layer layer)
+static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 {
 	FLAC__StreamEncoder *encoder;
+	FLAC__StreamEncoderInitStatus init_status;
 	FLAC__StreamEncoderState state;
 	FLAC__StreamDecoderState dstate;
 	FILE *file = 0;
@@ -125,7 +137,7 @@ static FLAC__bool test_stream_encoder(Layer layer)
 
 	samples_array[0] = samples;
 
-	printf("\n+++ libFLAC unit test: FLAC__StreamEncoder (layer: %s)\n\n", LayerString[layer]);
+	printf("\n+++ libFLAC unit test: FLAC__StreamEncoder (layer: %s, format: %s)\n\n", LayerString[layer], is_ogg? "Ogg FLAC":"FLAC");
 
 	printf("testing FLAC__stream_encoder_new()... ");
 	encoder = FLAC__stream_encoder_new();
@@ -134,6 +146,13 @@ static FLAC__bool test_stream_encoder(Layer layer)
 		return false;
 	}
 	printf("OK\n");
+
+	if(is_ogg) {
+		printf("testing FLAC__stream_encoder_set_serial_number()... ");
+		if(!FLAC__stream_encoder_set_serial_number(encoder, file_utils__ogg_serial_number))
+			return die_s_("returned false", encoder);
+		printf("OK\n");
+	}
 
 	printf("testing FLAC__stream_encoder_set_verify()... ");
 	if(!FLAC__stream_encoder_set_verify(encoder, true))
@@ -227,37 +246,43 @@ static FLAC__bool test_stream_encoder(Layer layer)
 
 	switch(layer) {
 		case LAYER_STREAM:
-			printf("testing FLAC__stream_encoder_init_stream()... ");
-			if(FLAC__stream_encoder_init_stream(encoder, stream_encoder_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, stream_encoder_metadata_callback_, /*client_data=*/0) != FLAC__STREAM_ENCODER_INIT_STATUS_OK)
-				return die_s_(0, encoder);
+			printf("testing FLAC__stream_encoder_init_%sstream()... ", is_ogg? "ogg_":"");
+			init_status = is_ogg?
+				FLAC__stream_encoder_init_ogg_stream(encoder, /*read_callback=*/0, stream_encoder_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, stream_encoder_metadata_callback_, /*client_data=*/0) :
+				FLAC__stream_encoder_init_stream(encoder, stream_encoder_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, stream_encoder_metadata_callback_, /*client_data=*/0);
 			break;
 		case LAYER_SEEKABLE_STREAM:
-			printf("testing FLAC__stream_encoder_init_stream()... ");
-			if(FLAC__stream_encoder_init_stream(encoder, stream_encoder_write_callback_, stream_encoder_seek_callback_, stream_encoder_tell_callback_, /*metadata_callback=*/0, /*client_data=*/0) != FLAC__STREAM_ENCODER_INIT_STATUS_OK)
-				return die_s_(0, encoder);
+			printf("testing FLAC__stream_encoder_init_%sstream()... ", is_ogg? "ogg_":"");
+			init_status = is_ogg?
+				FLAC__stream_encoder_init_ogg_stream(encoder, stream_encoder_read_callback_, stream_encoder_write_callback_, stream_encoder_seek_callback_, stream_encoder_tell_callback_, /*metadata_callback=*/0, /*client_data=*/0) :
+				FLAC__stream_encoder_init_stream(encoder, stream_encoder_write_callback_, stream_encoder_seek_callback_, stream_encoder_tell_callback_, /*metadata_callback=*/0, /*client_data=*/0);
 			break;
 		case LAYER_FILE:
 			printf("opening file for FLAC output... ");
-			file = fopen(flacfilename_, "w+b");
+			file = fopen(flacfilename(is_ogg), "w+b");
 			if(0 == file) {
 				printf("ERROR (%s)\n", strerror(errno));
 				return false;
 			}
 			printf("OK\n");
 
-			printf("testing FLAC__stream_encoder_init_FILE()... ");
-			if(FLAC__stream_encoder_init_FILE(encoder, file, stream_encoder_progress_callback_, /*client_data=*/0) != FLAC__STREAM_ENCODER_INIT_STATUS_OK)
-				return die_s_(0, encoder);
+			printf("testing FLAC__stream_encoder_init_%sFILE()... ", is_ogg? "ogg_":"");
+			init_status = is_ogg?
+				FLAC__stream_encoder_init_ogg_FILE(encoder, file, stream_encoder_progress_callback_, /*client_data=*/0) :
+				FLAC__stream_encoder_init_FILE(encoder, file, stream_encoder_progress_callback_, /*client_data=*/0);
 			break;
 		case LAYER_FILENAME:
-			printf("testing FLAC__stream_encoder_init_file()... ");
-			if(FLAC__stream_encoder_init_file(encoder, flacfilename_, stream_encoder_progress_callback_, /*client_data=*/0) != FLAC__STREAM_ENCODER_INIT_STATUS_OK)
-				return die_s_(0, encoder);
+			printf("testing FLAC__stream_encoder_init_%sfile()... ", is_ogg? "ogg_":"");
+			init_status = is_ogg?
+				FLAC__stream_encoder_init_ogg_file(encoder, flacfilename(is_ogg), stream_encoder_progress_callback_, /*client_data=*/0) :
+				FLAC__stream_encoder_init_file(encoder, flacfilename(is_ogg), stream_encoder_progress_callback_, /*client_data=*/0);
 			break;
 		default:
 			die_("internal error 001");
 			return false;
 	}
+	if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK)
+		return die_s_(0, encoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_encoder_get_state()... ");
@@ -427,22 +452,31 @@ static FLAC__bool test_stream_encoder(Layer layer)
 
 FLAC__bool test_encoders()
 {
-	init_metadata_blocks_();
+	FLAC__bool is_ogg = false;
 
-	if(!test_stream_encoder(LAYER_STREAM))
-		return false;
+	while(1) {
+		init_metadata_blocks_();
 
-	if(!test_stream_encoder(LAYER_SEEKABLE_STREAM))
-		return false;
+		if(!test_stream_encoder(LAYER_STREAM, is_ogg))
+			return false;
 
-	if(!test_stream_encoder(LAYER_FILE))
-		return false;
+		if(!test_stream_encoder(LAYER_SEEKABLE_STREAM, is_ogg))
+			return false;
 
-	if(!test_stream_encoder(LAYER_FILENAME))
-		return false;
+		if(!test_stream_encoder(LAYER_FILE, is_ogg))
+			return false;
 
-	(void) grabbag__file_remove_file(flacfilename_);
-	free_metadata_blocks_();
+		if(!test_stream_encoder(LAYER_FILENAME, is_ogg))
+			return false;
+
+		(void) grabbag__file_remove_file(flacfilename(is_ogg));
+
+		free_metadata_blocks_();
+
+		if(!FLAC_API_SUPPORTS_OGG_FLAC || is_ogg)
+			break;
+		is_ogg = true;
+	}
 
 	return true;
 }

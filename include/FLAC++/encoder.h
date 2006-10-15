@@ -56,7 +56,7 @@
  *  This module describes the encoder layers provided by libFLAC++.
  *
  * The libFLAC++ encoder classes are object wrappers around their
- * counterparts in libFLAC.  All decoding layers available in
+ * counterparts in libFLAC.  All encoding layers available in
  * libFLAC are also provided here.  The interface is very similar;
  * make sure to read the \link flac_encoder libFLAC encoder module \endlink.
  *
@@ -132,6 +132,7 @@ namespace FLAC {
 			inline operator bool() const { return is_valid(); }
 			//@}
 
+			virtual bool set_serial_number(long value);                     ///< See FLAC__stream_encoder_set_serial_number()
 			virtual bool set_verify(bool value);                            ///< See FLAC__stream_encoder_set_verify()
 			virtual bool set_streamable_subset(bool value);                 ///< See FLAC__stream_encoder_set_streamable_subset()
 			virtual bool set_do_mid_side_stereo(bool value);                ///< See FLAC__stream_encoder_set_do_mid_side_stereo()
@@ -175,19 +176,17 @@ namespace FLAC {
 			virtual unsigned get_rice_parameter_search_dist() const;   ///< See FLAC__stream_encoder_get_rice_parameter_search_dist()
 			virtual FLAC__uint64 get_total_samples_estimate() const;   ///< See FLAC__stream_encoder_get_total_samples_estimate()
 
-			/** Initialize the instance; as with the C interface,
-			 *  init() should be called after construction and 'set'
-			 *  calls but before any of the 'process' calls.
-			 *
-			 *  See FLAC__stream_encoder_init_stream().
-			 */
-			virtual ::FLAC__StreamEncoderInitStatus init();
+			virtual ::FLAC__StreamEncoderInitStatus init();            ///< See FLAC__stream_encoder_init_stream()
+			virtual ::FLAC__StreamEncoderInitStatus init_ogg();        ///< See FLAC__stream_encoder_init_ogg_stream()
 
 			virtual void finish(); ///< See FLAC__stream_encoder_finish()
 
 			virtual bool process(const FLAC__int32 * const buffer[], unsigned samples);     ///< See FLAC__stream_encoder_process()
 			virtual bool process_interleaved(const FLAC__int32 buffer[], unsigned samples); ///< See FLAC__stream_encoder_process_interleaved()
 		protected:
+			/// See FLAC__StreamEncoderReadCallback
+			virtual ::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);
+
 			/// See FLAC__StreamEncoderWriteCallback
 			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
 
@@ -209,6 +208,7 @@ namespace FLAC {
 
 			::FLAC__StreamEncoder *encoder_;
 
+			static ::FLAC__StreamEncoderReadStatus read_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data);
 			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 			static ::FLAC__StreamEncoderSeekStatus seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 			static ::FLAC__StreamEncoderTellStatus tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
@@ -256,18 +256,12 @@ namespace FLAC {
 			File();
 			virtual ~File();
 
-			//@{
-			/* Initialize the instance; as with the C interface,
-			 *  init() should be called after construction and 'set'
-			 *  calls but before any of the 'process' calls.
-			 *
-			 *  See FLAC__stream_encoder_init_FILE() and
-			 *  FLAC__stream_encoder_init_file().
-			 */
-			::FLAC__StreamEncoderInitStatus init(FILE *file);
-			::FLAC__StreamEncoderInitStatus init(const char *filename);
-			::FLAC__StreamEncoderInitStatus init(const std::string &filename);
-			//@}
+			virtual ::FLAC__StreamEncoderInitStatus init(FILE *file);                      ///< See FLAC__stream_encoder_init_FILE()
+			virtual ::FLAC__StreamEncoderInitStatus init(const char *filename);            ///< See FLAC__stream_encoder_init_file()
+			virtual ::FLAC__StreamEncoderInitStatus init(const std::string &filename);     ///< See FLAC__stream_encoder_init_file()
+			virtual ::FLAC__StreamEncoderInitStatus init_ogg(FILE *file);                  ///< See FLAC__stream_encoder_init_ogg_FILE()
+			virtual ::FLAC__StreamEncoderInitStatus init_ogg(const char *filename);        ///< See FLAC__stream_encoder_init_ogg_file()
+			virtual ::FLAC__StreamEncoderInitStatus init_ogg(const std::string &filename); ///< See FLAC__stream_encoder_init_ogg_file()
 		protected:
 			/// See FLAC__StreamEncoderProgressCallback
 			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);
@@ -281,8 +275,6 @@ namespace FLAC {
 			File(const Stream &);
 			void operator=(const Stream &);
 		};
-
-		/* \} */
 
 	}
 }

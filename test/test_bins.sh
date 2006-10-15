@@ -30,7 +30,6 @@ else
 fi
 
 LD_LIBRARY_PATH=../src/libFLAC/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=../src/libOggFLAC/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/share/grabbag/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/share/getopt/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH

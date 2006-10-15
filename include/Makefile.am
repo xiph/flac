@@ -15,8 +15,4 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-if FLaC__HAS_OGG
-OGGFLAC_DIRS = OggFLAC OggFLAC++
-endif
-
-SUBDIRS = FLAC FLAC++ $(OGGFLAC_DIRS) share test_libs_common
+SUBDIRS = FLAC FLAC++ share test_libs_common

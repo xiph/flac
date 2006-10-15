@@ -19,19 +19,12 @@ TESTS_ENVIRONMENT = FLAC__TEST_LEVEL=@FLAC__TEST_LEVEL@ FLAC__TEST_WITH_VALRGIND
 
 SUBDIRS = cuesheets flac-to-flac-metadata-test-files metaflac-test-files pictures
 
-if FLaC__HAS_OGG
-OGG_TESTS = \
-	./test_libOggFLAC.sh \
-	./test_libOggFLAC++.sh
-endif
-
 TESTS = \
 	./test_libFLAC.sh \
 	./test_libFLAC++.sh \
-	$(OGG_TESTS) \
+	./test_grabbag.sh \
 	./test_flac.sh \
 	./test_metaflac.sh \
-	./test_grabbag.sh \
 	./test_seeking.sh \
 	./test_streams.sh
 
@@ -42,8 +35,6 @@ EXTRA_DIST = \
 	metaflac.flac.ok \
 	test_libFLAC.sh \
 	test_libFLAC++.sh \
-	test_libOggFLAC.sh \
-	test_libOggFLAC++.sh \
 	test_flac.sh \
 	test_metaflac.sh \
 	test_grabbag.sh \

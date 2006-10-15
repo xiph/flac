@@ -72,7 +72,7 @@
 					<li><span class="commandname">flac</span> now supports FLAC as input to the encoder (i.e. can re-encode FLAC to FLAC) and preserve all the metadata like tags, etc.</li>
 					<li>New <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block for storing things like cover art, new <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> option to <span class="commandname">flac</span> and <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture">--import-picture</a></span> option to <span class="commandname">metaflac</span> for importing pictures, and metadata API <a href="api/group__flac__metadata__level0.html#ga3">additions</a> for searching for suitable pictures based on type, size and color constraints.</li>
 					<li>Support for new <tt>REPLAYGAIN_REFERENCE_LOUDNESS</tt> tag.</li>
-					<li>In the developer libraries, the interface has been simplfied by merging the three decoding layers into a single class; ditto for the encoders.</li>
+					<li>In the developer libraries, the interface has been simplfied by merging the three decoding layers into a single class; ditto for the encoders.  Also, libOggFLAC has been merged into libFLAC and libOggFLAC++ has been merged into libFLAC++ so there is a single API supporting both native FLAC and Ogg FLAC.</li>
 				</ul>
 			</li>
 			<li>
@@ -154,6 +154,8 @@
 			<li>
 				libraries:
 				<ul>
+					<li>Merged libOggFLAC into libFLAC; both formats are now supporte through the same API.</li>
+					<li>Merged libOggFLAC++ into libFLAC++; both formats are now supporte through the same API.</li>
 					<li>libFLAC: Improved compression with no impact on FLAC format or decoding time by adding a windowing stage before LPC analysis.</li>
 					<li>libFLAC: Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.</li>
 					<li>libFLAC: Fixed UTF-8 decoder to disallow non-shortest-form and surrogate sequences (see <a href="http://www.unicode.org/versions/corrigendum1.html">here</a>).</li>
@@ -166,6 +168,8 @@
 					<li>
 						all libraries;
 						<ul>
+							<li>Merged libOggFLAC into libFLAC; both formats are now supporte through the same API.</li>
+							<li>Merged libOggFLAC++ into libFLAC++; both formats are now supporte through the same API.</li>
 							<li>Merged seekable stream decoder and file decoder into the stream decoder.</li>
 							<li>Merged seekable stream encoder and file encoder into the stream encoder.</li>
 							<li>Added #defines for the API version number to make porting easier; see <tt>include/lib*FLAC*/export.h</tt>.</li>
@@ -196,19 +200,13 @@
 					<li>
 						libOggFLAC:
 						<ul>
-							<li><b>Added</b> OggFLAC__stream_encoder_set_apodization()</li>
-							<li><b>Added</b> OggFLAC__metadata_object_cuesheet_calculate_cddb_id()</li>
-							<li><b>Added</b> OggFLAC__metadata_get_cuesheet()</li>
-							<li><b>Added</b> OggFLAC__metadata_get_picture()</li>
+							<li>Merged into libFLAC.</li>
 						</ul>
 					</li>
 					<li>
 						libOggFLAC++:
 						<ul>
-							<li><b>Added</b> OggFLAC::Encoder::Stream::set_apodization()</li>
-							<li><b>Added</b> OggFLAC::Metadata::CueSheet::calculate_cddb_id()</li>
-							<li><b>Added</b> OggFLAC::Metadata::get_cuesheet()</li>
-							<li><b>Added</b> OggFLAC::Metadata::get_picture()</li>
+							<li>Merged into libFLAC++.</li>
 						</ul>
 					</li>
 				</ul>

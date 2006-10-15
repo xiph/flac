@@ -15,21 +15,13 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
-if FLaC__HAS_OGG
-OGGFLAC_SOURCES = \
-	file_utils_oggflac.c
-OGGFLAC_LIBS = \
-	../libOggFLAC/libOggFLAC.la
-endif
-
 INCLUDES = -I$(top_srcdir)/include
 
 noinst_LTLIBRARIES = libtest_libs_common.la
 
 libtest_libs_common_la_SOURCES = \
 	file_utils_flac.c \
-	metadata_utils.c \
-	$(OGGFLAC_SOURCES)
+	metadata_utils.c
 
 EXTRA_DIST = \
 	Makefile.lite \

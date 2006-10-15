@@ -1,4 +1,4 @@
-/* libOggFLAC - Free Lossless Audio Codec + Ogg library
+/* libFLAC - Free Lossless Audio Codec
  * Copyright (C) 2002,2003,2004,2005,2006  Josh Coalson
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef OggFLAC__PRIVATE__OGG_ENCODER_ASPECT_H
-#define OggFLAC__PRIVATE__OGG_ENCODER_ASPECT_H
+#ifndef FLAC__PRIVATE__OGG_ENCODER_ASPECT_H
+#define FLAC__PRIVATE__OGG_ENCODER_ASPECT_H
 
 #include <ogg/ogg.h>
 
 #include "FLAC/ordinals.h"
 #include "FLAC/stream_encoder.h" /* for FLAC__StreamEncoderWriteStatus */
 
-typedef struct OggFLAC__OggEncoderAspect {
+typedef struct FLAC__OggEncoderAspect {
 	/* these are storage for values that can be set through the API */
 	long serial_number;
 	unsigned num_metadata;
@@ -48,15 +48,15 @@ typedef struct OggFLAC__OggEncoderAspect {
 	FLAC__bool seen_magic; /* true if we've seen the fLaC magic in the write callback yet */
 	FLAC__bool is_first_packet;
 	FLAC__uint64 samples_written;
-} OggFLAC__OggEncoderAspect;
+} FLAC__OggEncoderAspect;
 
-void OggFLAC__ogg_encoder_aspect_set_serial_number(OggFLAC__OggEncoderAspect *aspect, long value);
-FLAC__bool OggFLAC__ogg_encoder_aspect_set_num_metadata(OggFLAC__OggEncoderAspect *aspect, unsigned value);
-void OggFLAC__ogg_encoder_aspect_set_defaults(OggFLAC__OggEncoderAspect *aspect);
-FLAC__bool OggFLAC__ogg_encoder_aspect_init(OggFLAC__OggEncoderAspect *aspect);
-void OggFLAC__ogg_encoder_aspect_finish(OggFLAC__OggEncoderAspect *aspect);
+void FLAC__ogg_encoder_aspect_set_serial_number(FLAC__OggEncoderAspect *aspect, long value);
+FLAC__bool FLAC__ogg_encoder_aspect_set_num_metadata(FLAC__OggEncoderAspect *aspect, unsigned value);
+void FLAC__ogg_encoder_aspect_set_defaults(FLAC__OggEncoderAspect *aspect);
+FLAC__bool FLAC__ogg_encoder_aspect_init(FLAC__OggEncoderAspect *aspect);
+void FLAC__ogg_encoder_aspect_finish(FLAC__OggEncoderAspect *aspect);
 
-typedef FLAC__StreamEncoderWriteStatus (*OggFLAC__OggEncoderAspectWriteCallbackProxy)(const void *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+typedef FLAC__StreamEncoderWriteStatus (*FLAC__OggEncoderAspectWriteCallbackProxy)(const void *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
 
-FLAC__StreamEncoderWriteStatus OggFLAC__ogg_encoder_aspect_write_callback_wrapper(OggFLAC__OggEncoderAspect *aspect, const FLAC__uint64 total_samples_estimate, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, OggFLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data);
+FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(FLAC__OggEncoderAspect *aspect, const FLAC__uint64 total_samples_estimate, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, FLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data);
 #endif

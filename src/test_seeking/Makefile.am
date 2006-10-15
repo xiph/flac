@@ -1,4 +1,4 @@
-#  test_seeking - Seeking tester for libFLAC and libOggFLAC
+#  test_seeking - Seeking tester for libFLAC
 #  Copyright (C) 2004,2005,2006  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
@@ -23,13 +23,8 @@ AM_CFLAGS = @OGG_CFLAGS@
 
 INCLUDES = 
 
-if FLaC__HAS_OGG
-NEED_OGGFLAC_LIB = $(top_builddir)/src/libOggFLAC/libOggFLAC.la
-endif
-
 noinst_PROGRAMS = test_seeking
 test_seeking_LDADD = \
-	$(NEED_OGGFLAC_LIB) \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
 	-lm

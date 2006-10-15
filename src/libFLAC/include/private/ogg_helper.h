@@ -1,5 +1,5 @@
-/* libOggFLAC++ - Free Lossless Audio Codec + Ogg library
- * Copyright (C) 2002,2003,2004,2005,2006 Josh Coalson
+/* libFLAC - Free Lossless Audio Codec
+ * Copyright (C) 2004,2005,2006  Josh Coalson
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,27 +29,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef OggFLACPP__EXPORT_H
-#define OggFLACPP__EXPORT_H
+#ifndef FLAC__PRIVATE__OGG_HELPER_H
+#define FLAC__PRIVATE__OGG_HELPER_H
 
-#if defined(FLAC__NO_DLL) || !defined(_MSC_VER)
-#define OggFLACPP_API
+#include <ogg/ogg.h>
+#include "FLAC/stream_encoder.h" /* for FLAC__StreamEncoder */
 
-#else
-
-#ifdef OggFLACPP_API_EXPORTS
-#define	OggFLACPP_API	_declspec(dllexport)
-#else
-#define OggFLACPP_API	_declspec(dllimport)
-
-#endif
-#endif
-
-/* These #defines will mirror the libtool-based library version number, see
- * http://www.gnu.org/software/libtool/manual.html#Libtool-versioning
- */
-#define OggFLACPP_API_VERSION_CURRENT 3
-#define OggFLACPP_API_VERSION_REVISION 0
-#define OggFLACPP_API_VERSION_AGE 0
+void simple_ogg_page__init(ogg_page *page);
+void simple_ogg_page__clear(ogg_page *page);
+FLAC__bool simple_ogg_page__get_at(FLAC__StreamEncoder *encoder, FLAC__uint64 position, ogg_page *page, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderReadCallback read_callback, void *client_data);
+FLAC__bool simple_ogg_page__set_at(FLAC__StreamEncoder *encoder, FLAC__uint64 position, ogg_page *page, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderWriteCallback write_callback, void *client_data);
 
 #endif

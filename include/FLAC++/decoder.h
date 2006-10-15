@@ -129,6 +129,7 @@ namespace FLAC {
 			inline operator bool() const { return is_valid(); }
 			//@}
 
+			virtual bool set_serial_number(long value);                            ///< See FLAC__stream_decoder_set_serial_number()
 			virtual bool set_md5_checking(bool value);                             ///< See FLAC__stream_decoder_set_md5_checking()
 			virtual bool set_metadata_respond(::FLAC__MetadataType type);          ///< See FLAC__stream_decoder_set_metadata_respond()
 			virtual bool set_metadata_respond_application(const FLAC__byte id[4]); ///< See FLAC__stream_decoder_set_metadata_respond_application()
@@ -147,13 +148,8 @@ namespace FLAC {
 			virtual unsigned get_sample_rate() const;                         ///< See FLAC__stream_decoder_get_sample_rate()
 			virtual unsigned get_blocksize() const;                           ///< See FLAC__stream_decoder_get_blocksize()
 
-			/** Initialize the instance; as with the C interface,
-			 *  init() should be called after construction and 'set'
-			 *  calls but before any of the 'process' calls.
-			 *
-			 *  See FLAC__stream_decoder_init_stream().
-			 */
-			virtual ::FLAC__StreamDecoderInitStatus init();
+			virtual ::FLAC__StreamDecoderInitStatus init();      ///< Seek FLAC__stream_decoder_init_stream()
+			virtual ::FLAC__StreamDecoderInitStatus init_ogg();  ///< Seek FLAC__stream_decoder_init_ogg_stream()
 
 			virtual void finish(); ///< See FLAC__stream_decoder_finish()
 
@@ -250,18 +246,12 @@ namespace FLAC {
 			File();
 			virtual ~File();
 
-			//@{
-			/** Initialize the instance; as with the C interface,
-			 *  init() should be called after construction and 'set'
-			 *  calls but before any of the 'process' calls.
-			 *
-			 *  See FLAC__stream_decoder_init_FILE() and
-			 *  FLAC__stream_decoder_init_file().
-			 */
-			::FLAC__StreamDecoderInitStatus init(FILE *file);
-			::FLAC__StreamDecoderInitStatus init(const char *filename);
-			::FLAC__StreamDecoderInitStatus init(const std::string &filename);
-			//@}
+			virtual ::FLAC__StreamDecoderInitStatus init(FILE *file);                      ///< See FLAC__stream_decoder_init_FILE()
+			virtual ::FLAC__StreamDecoderInitStatus init(const char *filename);            ///< See FLAC__stream_decoder_init_file()
+			virtual ::FLAC__StreamDecoderInitStatus init(const std::string &filename);     ///< See FLAC__stream_decoder_init_file()
+			virtual ::FLAC__StreamDecoderInitStatus init_ogg(FILE *file);                  ///< See FLAC__stream_decoder_init_ogg_FILE()
+			virtual ::FLAC__StreamDecoderInitStatus init_ogg(const char *filename);        ///< See FLAC__stream_decoder_init_ogg_file()
+			virtual ::FLAC__StreamDecoderInitStatus init_ogg(const std::string &filename); ///< See FLAC__stream_decoder_init_ogg_file()
 		protected:
 			// this is a dummy implementation to satisfy the pure virtual in Stream that is actually supplied internally by the C layer
 			virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], unsigned *bytes);

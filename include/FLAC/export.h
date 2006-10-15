@@ -52,4 +52,7 @@
 #define FLAC_API_VERSION_REVISION 0
 #define FLAC_API_VERSION_AGE 0
 
+/** \c 1 if the library has been compiled with support for Ogg FLAC, else \c 0. */
+extern int FLAC_API_SUPPORTS_OGG_FLAC;
+
 #endif

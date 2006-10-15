@@ -19,10 +19,6 @@ bin_PROGRAMS = flac
 
 AM_CFLAGS = @OGG_CFLAGS@
 
-if FLaC__HAS_OGG
-NEED_OGGFLAC_LIB = $(top_builddir)/src/libOggFLAC/libOggFLAC.la
-endif
-
 EXTRA_DIST = \
 	Makefile.lite \
 	flac.dsp
@@ -43,7 +39,6 @@ flac_SOURCES = \
 	vorbiscomment.h
 
 flac_LDADD = \
-	$(NEED_OGGFLAC_LIB) \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/getopt/libgetopt.a \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \

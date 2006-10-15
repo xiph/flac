@@ -595,7 +595,7 @@ static FLAC__bool generate_file_(FLAC__bool include_extras)
 	)
 		return die_("priming our metadata");
 
-	if(!file_utils__generate_flacfile(flacfile_, 0, 512 * 1024, &streaminfo, metadata, n))
+	if(!file_utils__generate_flacfile(/*is_ogg=*/false, flacfile_, 0, 512 * 1024, &streaminfo, metadata, n))
 		return die_("creating the encoded file");
 
 	free(vorbiscomment.data.vorbis_comment.vendor_string.entry);

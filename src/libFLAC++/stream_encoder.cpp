@@ -41,6 +41,12 @@
 namespace FLAC {
 	namespace Encoder {
 
+		// ------------------------------------------------------------
+		//
+		// Stream
+		//
+		// ------------------------------------------------------------
+
 		Stream::Stream():
 		encoder_(::FLAC__stream_encoder_new())
 		{ }
@@ -66,6 +72,12 @@ namespace FLAC {
 		bool Stream::is_valid() const
 		{
 			return 0 != encoder_;
+		}
+
+		bool Stream::set_serial_number(long value)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_encoder_set_serial_number(encoder_, value);
 		}
 
 		bool Stream::set_verify(bool value)
@@ -333,6 +345,12 @@ namespace FLAC {
 			return ::FLAC__stream_encoder_init_stream(encoder_, write_callback_, seek_callback_, tell_callback_, metadata_callback_, /*client_data=*/(void*)this);
 		}
 
+		::FLAC__StreamEncoderInitStatus Stream::init_ogg()
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_init_ogg_stream(encoder_, read_callback_, write_callback_, seek_callback_, tell_callback_, metadata_callback_, /*client_data=*/(void*)this);
+		}
+
 		void Stream::finish()
 		{
 			FLAC__ASSERT(is_valid());
@@ -351,6 +369,12 @@ namespace FLAC {
 			return (bool)::FLAC__stream_encoder_process_interleaved(encoder_, buffer, samples);
 		}
 
+		::FLAC__StreamEncoderReadStatus Stream::read_callback(FLAC__byte buffer[], unsigned *bytes)
+		{
+			(void)buffer, (void)bytes;
+			return ::FLAC__STREAM_ENCODER_READ_STATUS_UNSUPPORTED;
+		}
+
 		::FLAC__StreamEncoderSeekStatus Stream::seek_callback(FLAC__uint64 absolute_byte_offset)
 		{
 			(void)absolute_byte_offset;
@@ -366,6 +390,15 @@ namespace FLAC {
 		void Stream::metadata_callback(const ::FLAC__StreamMetadata *metadata)
 		{
 			(void)metadata;
+		}
+
+		::FLAC__StreamEncoderReadStatus Stream::read_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__byte buffer[], unsigned *bytes, void *client_data)
+		{
+			(void)encoder;
+			FLAC__ASSERT(0 != client_data);
+			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			return instance->read_callback(buffer, bytes);
 		}
 
 		::FLAC__StreamEncoderWriteStatus Stream::write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
@@ -402,6 +435,80 @@ namespace FLAC {
 			Stream *instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			instance->metadata_callback(metadata);
+		}
+
+		// ------------------------------------------------------------
+		//
+		// File
+		//
+		// ------------------------------------------------------------
+
+		File::File():
+			Stream()
+		{ }
+
+		File::~File()
+		{
+		}
+
+		::FLAC__StreamEncoderInitStatus File::init(FILE *file)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_init_FILE(encoder_, file, progress_callback_, /*client_data=*/(void*)this);
+		}
+
+		::FLAC__StreamEncoderInitStatus File::init(const char *filename)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_init_file(encoder_, filename, progress_callback_, /*client_data=*/(void*)this);
+		}
+
+		::FLAC__StreamEncoderInitStatus File::init(const std::string &filename)
+		{
+			return init(filename.c_str());
+		}
+
+		::FLAC__StreamEncoderInitStatus File::init_ogg(FILE *file)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_init_ogg_FILE(encoder_, file, progress_callback_, /*client_data=*/(void*)this);
+		}
+
+		::FLAC__StreamEncoderInitStatus File::init_ogg(const char *filename)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_init_ogg_file(encoder_, filename, progress_callback_, /*client_data=*/(void*)this);
+		}
+
+		::FLAC__StreamEncoderInitStatus File::init_ogg(const std::string &filename)
+		{
+			return init_ogg(filename.c_str());
+		}
+
+		// This is a dummy to satisfy the pure virtual from Stream; the
+		// read callback will never be called since we are initializing
+		// with FLAC__stream_decoder_init_FILE() or
+		// FLAC__stream_decoder_init_file() and those supply the read
+		// callback internally.
+		::FLAC__StreamEncoderWriteStatus File::write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame)
+		{
+			(void)buffer, (void)bytes, (void)samples, (void)current_frame;
+			FLAC__ASSERT(false);
+			return ::FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR; // double protection
+		}
+
+		void File::progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate)
+		{
+			(void)bytes_written, (void)samples_written, (void)frames_written, (void)total_frames_estimate;
+		}
+
+		void File::progress_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data)
+		{
+			(void)encoder;
+			FLAC__ASSERT(0 != client_data);
+			File *instance = reinterpret_cast<File *>(client_data);
+			FLAC__ASSERT(0 != instance);
+			instance->progress_callback(bytes_written, samples_written, frames_written, total_frames_estimate);
 		}
 
 	}

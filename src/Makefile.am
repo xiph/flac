@@ -19,15 +19,9 @@ if FLaC__HAS_XMMS
 XMMS_DIRS = plugin_common plugin_xmms
 endif
 
-if FLaC__HAS_OGG
-OGGFLAC_DIRS = libOggFLAC libOggFLAC++
-OGGFLAC_TEST_DIRS = test_libOggFLAC test_libOggFLAC++
-endif
-
 SUBDIRS = \
 	libFLAC \
 	libFLAC++ \
-	$(OGGFLAC_DIRS) \
 	share \
 	flac \
 	metaflac \
@@ -38,7 +32,6 @@ SUBDIRS = \
 	test_libs_common \
 	test_libFLAC \
 	test_libFLAC++ \
-	$(OGGFLAC_TEST_DIRS) \
 	test_seeking \
 	test_streams
 

@@ -32,6 +32,8 @@
 #endif
 #define min(a,b) ((a)<(b)?(a):(b))
 
+const long file_utils__ogg_serial_number = 12345;
+
 #ifdef FLAC__VALGRIND_TESTING
 static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
 {
@@ -65,10 +67,11 @@ static void encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const
 	(void)encoder, (void)metadata, (void)client_data;
 }
 
-FLAC__bool file_utils__generate_flacfile(const char *output_filename, off_t *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)
+FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_filename, off_t *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)
 {
 	FLAC__int32 samples[1024];
 	FLAC__StreamEncoder *encoder;
+	FLAC__StreamEncoderInitStatus init_status;
 	encoder_client_struct encoder_client_data;
 	unsigned i, n;
 
@@ -86,6 +89,7 @@ FLAC__bool file_utils__generate_flacfile(const char *output_filename, off_t *out
 		return false;
 	}
 
+	FLAC__stream_encoder_set_serial_number(encoder, file_utils__ogg_serial_number);
 	FLAC__stream_encoder_set_verify(encoder, true);
 	FLAC__stream_encoder_set_streamable_subset(encoder, true);
 	FLAC__stream_encoder_set_do_mid_side_stereo(encoder, false);
@@ -105,7 +109,12 @@ FLAC__bool file_utils__generate_flacfile(const char *output_filename, off_t *out
 	FLAC__stream_encoder_set_total_samples_estimate(encoder, streaminfo->data.stream_info.total_samples);
 	FLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
 
-	if(FLAC__stream_encoder_init_stream(encoder, encoder_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, encoder_metadata_callback_, &encoder_client_data) != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
+	if(is_ogg)
+		init_status = FLAC__stream_encoder_init_ogg_stream(encoder, /*read_callback=*/0, encoder_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, encoder_metadata_callback_, &encoder_client_data);
+	else
+		init_status = FLAC__stream_encoder_init_stream(encoder, encoder_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, encoder_metadata_callback_, &encoder_client_data);
+
+	if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
 		fclose(encoder_client_data.file);
 		return false;
 	}

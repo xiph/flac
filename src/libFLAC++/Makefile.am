@@ -44,8 +44,6 @@ libFLAC___la_LDFLAGS = -version-info 6:0:0
 libFLAC___la_LIBADD = ../libFLAC/libFLAC.la
 
 libFLAC___la_SOURCES = \
-	file_decoder.cpp \
-	file_encoder.cpp \
 	metadata.cpp \
 	stream_decoder.cpp \
 	stream_encoder.cpp

@@ -235,6 +235,22 @@ SOURCE=.\metadata_object.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\ogg_decoder_aspect.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ogg_encoder_aspect.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ogg_helper.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ogg_mapping.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stream_decoder.c
 # End Source File
 # Begin Source File
@@ -300,6 +316,22 @@ SOURCE=.\include\private\memory.h
 # Begin Source File
 
 SOURCE=.\include\private\metadata.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\private\ogg_decoder_aspect.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\private\ogg_encoder_aspect.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\private\ogg_helper.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\private\ogg_mapping.h
 # End Source File
 # Begin Source File
 

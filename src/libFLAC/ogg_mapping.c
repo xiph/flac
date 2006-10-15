@@ -1,5 +1,5 @@
-/* libOggFLAC - Free Lossless Audio Codec + Ogg library
- * Copyright (C) 2002,2003,2004,2005,2006 Josh Coalson
+/* libFLAC - Free Lossless Audio Codec
+ * Copyright (C) 2004,2005,2006  Josh Coalson
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,27 +29,19 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef OggFLAC__EXPORT_H
-#define OggFLAC__EXPORT_H
-
-#if defined(FLAC__NO_DLL) || !defined(_MSC_VER)
-#define OggFLAC_API
-
-#else
-
-#ifdef OggFLAC_API_EXPORTS
-#define	OggFLAC_API	_declspec(dllexport)
-#else
-#define OggFLAC_API	_declspec(dllimport)
-
-#endif
+#if HAVE_CONFIG_H
+#  include <config.h>
 #endif
 
-/* These #defines will mirror the libtool-based library version number, see
- * http://www.gnu.org/software/libtool/manual.html#Libtool-versioning
- */
-#define OggFLAC_API_VERSION_CURRENT 4
-#define OggFLAC_API_VERSION_REVISION 0
-#define OggFLAC_API_VERSION_AGE 0
+#include "private/ogg_mapping.h"
 
-#endif
+const unsigned FLAC__OGG_MAPPING_PACKET_TYPE_LEN = 8; /* bits */
+
+const FLAC__byte FLAC__OGG_MAPPING_FIRST_HEADER_PACKET_TYPE = 0x7f;
+
+const FLAC__byte * const FLAC__OGG_MAPPING_MAGIC = (const FLAC__byte * const)"FLAC";
+
+const unsigned FLAC__OGG_MAPPING_VERSION_MAJOR_LEN = 8; /* bits */
+const unsigned FLAC__OGG_MAPPING_VERSION_MINOR_LEN = 8; /* bits */
+
+const unsigned FLAC__OGG_MAPPING_NUM_HEADERS_LEN = 16; /* bits */
