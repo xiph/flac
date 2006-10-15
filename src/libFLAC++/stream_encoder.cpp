@@ -401,7 +401,7 @@ namespace FLAC {
 			return instance->read_callback(buffer, bytes);
 		}
 
-		::FLAC__StreamEncoderWriteStatus Stream::write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
+		::FLAC__StreamEncoderWriteStatus Stream::write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, void *client_data)
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
@@ -490,7 +490,7 @@ namespace FLAC {
 		// with FLAC__stream_decoder_init_FILE() or
 		// FLAC__stream_decoder_init_file() and those supply the read
 		// callback internally.
-		::FLAC__StreamEncoderWriteStatus File::write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame)
+		::FLAC__StreamEncoderWriteStatus File::write_callback(const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame)
 		{
 			(void)buffer, (void)bytes, (void)samples, (void)current_frame;
 			FLAC__ASSERT(false);

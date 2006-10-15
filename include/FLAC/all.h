@@ -313,9 +313,9 @@
  * FLAC__metadata_object_cuesheet_calculate_cddb_id() and
  * FLAC__metadata_get_cuesheet().
  *
- * The \a bytes parameter to FLAC__StreamDecoderReadCallback and
- * FLAC__StreamEncoderReadCallback is now \c size_t instead of
- * \c unsigned.
+ * The \a bytes parameter to FLAC__StreamDecoderReadCallback,
+ * FLAC__StreamEncoderReadCallback, and FLAC__StreamEncoderWriteCallback
+ * is now \c size_t instead of \c unsigned.
  */
 
 /** \defgroup flac FLAC C API

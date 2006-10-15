@@ -108,7 +108,7 @@ static void set_defaults_(FLAC__StreamEncoder *encoder);
 static void free_(FLAC__StreamEncoder *encoder);
 static FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size);
 static FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, unsigned samples);
-static FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples);
+static FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples);
 static void update_metadata_(const FLAC__StreamEncoder *encoder);
 #if FLAC__HAS_OGG
 static void update_ogg_metadata_(FLAC__StreamEncoder *encoder);
@@ -314,7 +314,7 @@ static void verify_error_callback_(const FLAC__StreamDecoder *decoder, FLAC__Str
 static FLAC__StreamEncoderReadStatus file_read_callback_(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 static FLAC__StreamEncoderSeekStatus file_seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 static FLAC__StreamEncoderTellStatus file_tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
-static FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+static FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, void *client_data);
 static FILE *get_binary_stdout_();
 
 
@@ -2430,7 +2430,7 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size)
 FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, unsigned samples)
 {
 	const FLAC__byte *buffer;
-	unsigned bytes;
+	size_t bytes;
 
 	FLAC__ASSERT(FLAC__bitbuffer_is_byte_aligned(encoder->private_->frame));
 
@@ -2468,7 +2468,7 @@ FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, unsigned samples)
 	return true;
 }
 
-FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples)
+FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples)
 {
 	FLAC__StreamEncoderWriteStatus status;
 	FLAC__uint64 output_position = 0;
@@ -4449,7 +4449,7 @@ static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *st
 #define local__fwrite fwrite
 #endif
 
-FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
+FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	(void)client_data, (void)current_frame;
 

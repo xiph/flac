@@ -180,7 +180,7 @@ namespace FLAC {
 			virtual ::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);
 
 			/// See FLAC__StreamEncoderWriteCallback
-			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame) = 0;
+			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame) = 0;
 
 			/// See FLAC__StreamEncoderSeekCallback
 			virtual ::FLAC__StreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
@@ -201,7 +201,7 @@ namespace FLAC {
 			::FLAC__StreamEncoder *encoder_;
 
 			static ::FLAC__StreamEncoderReadStatus read_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
-			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, void *client_data);
 			static ::FLAC__StreamEncoderSeekStatus seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 			static ::FLAC__StreamEncoderTellStatus tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 			static void metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetadata *metadata, void *client_data);
@@ -247,7 +247,7 @@ namespace FLAC {
 			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);
 
 			/// This is a dummy implementation to satisfy the pure virtual in Stream that is actually supplied internally by the C layer
-			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame);
+			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame);
 		private:
 			static void progress_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate, void *client_data);
 

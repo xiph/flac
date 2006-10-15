@@ -50,7 +50,7 @@ typedef struct {
 	FILE *file;
 } encoder_client_struct;
 
-static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
+static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	encoder_client_struct *ecd = (encoder_client_struct*)client_data;
 

@@ -522,7 +522,7 @@ typedef FLAC__StreamEncoderReadStatus (*FLAC__StreamEncoderReadCallback)(const F
  * \retval FLAC__StreamEncoderWriteStatus
  *    The callee's return status.
  */
-typedef FLAC__StreamEncoderWriteStatus (*FLAC__StreamEncoderWriteCallback)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data);
+typedef FLAC__StreamEncoderWriteStatus (*FLAC__StreamEncoderWriteCallback)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, void *client_data);
 
 /** Signature for the seek callback.
  *

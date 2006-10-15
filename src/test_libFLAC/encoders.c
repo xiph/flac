@@ -95,7 +95,7 @@ static FLAC__StreamEncoderReadStatus stream_encoder_read_callback_(const FLAC__S
 	return FLAC__STREAM_ENCODER_READ_STATUS_CONTINUE;
 }
 
-static FLAC__StreamEncoderWriteStatus stream_encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], unsigned bytes, unsigned samples, unsigned current_frame, void *client_data)
+static FLAC__StreamEncoderWriteStatus stream_encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, void *client_data)
 {
 	(void)encoder, (void)buffer, (void)bytes, (void)samples, (void)current_frame, (void)client_data;
 	return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
