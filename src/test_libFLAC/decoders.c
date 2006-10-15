@@ -457,8 +457,8 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 	printf("OK\n");
 
 	if(is_ogg) {
-		printf("testing FLAC__stream_decoder_set_serial_number()... ");
-		if(!FLAC__stream_decoder_set_serial_number(decoder, file_utils__ogg_serial_number))
+		printf("testing FLAC__stream_decoder_set_ogg_serial_number()... ");
+		if(!FLAC__stream_decoder_set_ogg_serial_number(decoder, file_utils__ogg_serial_number))
 			return die_s_("returned false", decoder);
 		printf("OK\n");
 	}

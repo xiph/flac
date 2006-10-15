@@ -1920,7 +1920,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 #ifdef FLAC__HAS_OGG
 	if(e->use_ogg) {
-		FLAC__stream_encoder_set_serial_number(e->encoder, options.serial_number);
+		FLAC__stream_encoder_set_ogg_serial_number(e->encoder, options.serial_number);
 
 		init_status = FLAC__stream_encoder_init_ogg_file(e->encoder, e->is_stdout? 0 : e->outfilename, encoder_progress_callback, /*client_data=*/e);
 	}

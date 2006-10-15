@@ -148,8 +148,8 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 	printf("OK\n");
 
 	if(is_ogg) {
-		printf("testing FLAC__stream_encoder_set_serial_number()... ");
-		if(!FLAC__stream_encoder_set_serial_number(encoder, file_utils__ogg_serial_number))
+		printf("testing FLAC__stream_encoder_set_ogg_serial_number()... ");
+		if(!FLAC__stream_encoder_set_ogg_serial_number(encoder, file_utils__ogg_serial_number))
 			return die_s_("returned false", encoder);
 		printf("OK\n");
 	}

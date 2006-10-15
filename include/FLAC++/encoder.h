@@ -132,7 +132,7 @@ namespace FLAC {
 			inline operator bool() const { return is_valid(); }
 			//@}
 
-			virtual bool set_serial_number(long value);                     ///< See FLAC__stream_encoder_set_serial_number()
+			virtual bool set_ogg_serial_number(long value);                 ///< See FLAC__stream_encoder_set_ogg_serial_number()
 			virtual bool set_verify(bool value);                            ///< See FLAC__stream_encoder_set_verify()
 			virtual bool set_streamable_subset(bool value);                 ///< See FLAC__stream_encoder_set_streamable_subset()
 			virtual bool set_do_mid_side_stereo(bool value);                ///< See FLAC__stream_encoder_set_do_mid_side_stereo()

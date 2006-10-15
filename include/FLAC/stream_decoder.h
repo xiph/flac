@@ -680,7 +680,7 @@ FLAC_API void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder);
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC_API FLAC__bool FLAC__stream_decoder_set_serial_number(FLAC__StreamDecoder *decoder, long serial_number);
+FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecoder *decoder, long serial_number);
 
 /** Set the "MD5 signature checking" flag.  If \c true, the decoder will
  *  compute the MD5 signature of the unencoded audio data while decoding

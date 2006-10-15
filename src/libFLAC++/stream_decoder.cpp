@@ -73,10 +73,10 @@ namespace FLAC {
 			return 0 != decoder_;
 		}
 
-		bool Stream::set_serial_number(long value)
+		bool Stream::set_ogg_serial_number(long value)
 		{
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__stream_decoder_set_serial_number(decoder_, value);
+			return (bool)::FLAC__stream_decoder_set_ogg_serial_number(decoder_, value);
 		}
 
 		bool Stream::set_md5_checking(bool value)

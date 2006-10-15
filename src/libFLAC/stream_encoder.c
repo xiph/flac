@@ -1370,7 +1370,7 @@ FLAC_API void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
 }
 
-FLAC_API FLAC__bool FLAC__stream_encoder_set_serial_number(FLAC__StreamEncoder *encoder, long value)
+FLAC_API FLAC__bool FLAC__stream_encoder_set_ogg_serial_number(FLAC__StreamEncoder *encoder, long value)
 {
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);

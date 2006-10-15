@@ -651,7 +651,7 @@ FLAC_API void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder);
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-FLAC_API FLAC__bool FLAC__stream_encoder_set_serial_number(FLAC__StreamEncoder *encoder, long serial_number);
+FLAC_API FLAC__bool FLAC__stream_encoder_set_ogg_serial_number(FLAC__StreamEncoder *encoder, long serial_number);
 
 /** Set the "verify" flag.  If \c true, the encoder will verify it's own
  *  encoded output by feeding it through an internal decoder and comparing

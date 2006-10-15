@@ -335,7 +335,7 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 #ifdef FLAC__HAS_OGG
 	if(decoder_session->is_ogg) {
 		if(!decode_options.use_first_serial_number)
-			FLAC__stream_decoder_set_serial_number(decoder_session->decoder, decode_options.serial_number);
+			FLAC__stream_decoder_set_ogg_serial_number(decoder_session->decoder, decode_options.serial_number);
 		init_status = FLAC__stream_decoder_init_ogg_file(decoder_session->decoder, strcmp(infilename, "-")? infilename : 0, write_callback, metadata_callback, error_callback, /*client_data=*/decoder_session);
 	}
 	else

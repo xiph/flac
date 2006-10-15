@@ -89,7 +89,7 @@ FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_f
 		return false;
 	}
 
-	FLAC__stream_encoder_set_serial_number(encoder, file_utils__ogg_serial_number);
+	FLAC__stream_encoder_set_ogg_serial_number(encoder, file_utils__ogg_serial_number);
 	FLAC__stream_encoder_set_verify(encoder, true);
 	FLAC__stream_encoder_set_streamable_subset(encoder, true);
 	FLAC__stream_encoder_set_do_mid_side_stereo(encoder, false);

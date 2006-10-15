@@ -528,8 +528,8 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	printf("OK\n");
 
 	if(is_ogg) {
-		printf("testing set_serial_number()... ");
-		if(!decoder->set_serial_number(file_utils__ogg_serial_number))
+		printf("testing set_ogg_serial_number()... ");
+		if(!decoder->set_ogg_serial_number(file_utils__ogg_serial_number))
 			return die_s_("returned false", decoder);
 		printf("OK\n");
 	}

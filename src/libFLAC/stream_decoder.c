@@ -721,7 +721,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	return !md5_failed;
 }
 
-FLAC_API FLAC__bool FLAC__stream_decoder_set_serial_number(FLAC__StreamDecoder *decoder, long value)
+FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecoder *decoder, long value)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->private_);
