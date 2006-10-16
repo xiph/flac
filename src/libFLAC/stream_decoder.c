@@ -78,7 +78,7 @@
 
 
 /* technically this should be in an "export.c" but this is convenient enough */
-int FLAC_API_SUPPORTS_OGG_FLAC =
+FLAC_API int FLAC_API_SUPPORTS_OGG_FLAC =
 #if FLAC__HAS_OGG
 	1
 #else
