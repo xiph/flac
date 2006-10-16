@@ -29,7 +29,7 @@
 #include "infobox.h"
 #include "tagz.h"
 
-#define PLUGIN_VERSION          "1.1.3-beta1"
+#define PLUGIN_VERSION          "1.1.3-beta2"
 
 static In_Module mod_;                      /* the input module (declared near the bottom of this file) */
 static char lastfn_[MAX_PATH];              /* currently playing file (used for getting info on the current file) */
