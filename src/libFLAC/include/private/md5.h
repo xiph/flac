@@ -28,12 +28,6 @@
 
 #define md5byte unsigned char
 
-/*
- * Due to an unholy abomination in libOggFLAC (it requires access to
- * these internal MD5 functions) we have to #include "FLAC/export.h"
- * and export them when building a DLL
- */
-#include "FLAC/export.h"
 #include "FLAC/ordinals.h"
 
 struct FLAC__MD5Context {
@@ -44,11 +38,11 @@ struct FLAC__MD5Context {
 	unsigned capacity;
 };
 
-FLAC_API void FLAC__MD5Init(struct FLAC__MD5Context *context);
-FLAC_API void FLAC__MD5Update(struct FLAC__MD5Context *context, md5byte const *buf, unsigned len);
-FLAC_API void FLAC__MD5Final(md5byte digest[16], struct FLAC__MD5Context *context);
+void FLAC__MD5Init(struct FLAC__MD5Context *context);
+void FLAC__MD5Update(struct FLAC__MD5Context *context, md5byte const *buf, unsigned len);
+void FLAC__MD5Final(md5byte digest[16], struct FLAC__MD5Context *context);
 void FLAC__MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16]);
 
-FLAC_API FLAC__bool FLAC__MD5Accumulate(struct FLAC__MD5Context *ctx, const FLAC__int32 * const signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample);
+FLAC__bool FLAC__MD5Accumulate(struct FLAC__MD5Context *ctx, const FLAC__int32 * const signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample);
 
 #endif /* !MD5_H */

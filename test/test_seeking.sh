@@ -121,7 +121,7 @@ if [ $has_ogg = "yes" ] ; then
 	echo "generating Ogg FLAC files for seeking:"
 	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 --output-name=tiny.ogg --ogg noise8m32.raw || die "ERROR generating Ogg FLAC file"
 	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 --output-name=small.ogg --ogg noise.raw || die "ERROR generating Ogg FLAC file"
-	# seek tables are not used in libOggFLAC
+	# seek tables are not used in Ogg FLAC
 
 	echo "testing tiny.ogg:"
 	if run_test_seeking tiny.ogg 100 ; then : ; else

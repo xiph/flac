@@ -452,9 +452,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = ../include/FLAC \
-                         ../include/FLAC++ \
-                         ../include/OggFLAC \
-                         ../include/OggFLAC++
+                         ../include/FLAC++
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -997,7 +995,7 @@ PREDEFINED             = FLAC__NO_DLL
 # The macro definition that is found in the sources will be used. 
 # Use the PREDEFINED tag if you want to use a different macro definition.
 
-EXPAND_AS_DEFINED      = FLAC_API FLACPP_API OggFLAC_API OggFLACPP_API
+EXPAND_AS_DEFINED      = FLAC_API FLACPP_API
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES (the default) then 
 # doxygen's preprocessor will remove all function-like macros that are alone 

@@ -195,9 +195,6 @@ namespace FLAC {
 			// lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring()
 			friend State;
 #endif
-			// hackery solely for the use of libOggFLAC++
-			Stream(::FLAC__StreamEncoder *);
-
 			::FLAC__StreamEncoder *encoder_;
 
 			static ::FLAC__StreamEncoderReadStatus read_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data);

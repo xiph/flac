@@ -29,7 +29,7 @@ INCLUDES = -I../libFLAC/include -I$(topdir)/include
 ifeq ($(DARWIN_BUILD),yes)
 EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libtest_libs_common.a $(libdir)/libFLAC.a -lm
 else
-LIBS = -lgrabbag -lreplaygain_analysis -ltest_libs_common -lOggFLAC -lFLAC -L$(OGG_LIB_DIR) -logg -lm
+LIBS = -lgrabbag -lreplaygain_analysis -ltest_libs_common -lFLAC -L$(OGG_LIB_DIR) -logg -lm
 endif
 
 SRCS_C = \
