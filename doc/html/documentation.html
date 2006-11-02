@@ -1201,7 +1201,7 @@
 					<span class="argument">--import-tags-from=FILE</span>
 				</td>
 				<td>
-					Import tags from a file.  Use '-' for stdin.  Each line should be of the form <span class="argument">NAME=VALUE</span>.  Multi-line comments are currently not supported.  Specify <span class="argument">--remove-all-tags</span> and/or <a href="#metaflac_options_no_utf8_convert"><span class="argument">--no-utf8-convert</span></a> before <span class="argument">--import-tags-from</span> if necessary.
+					Import tags from a file.  Use <span class="argument">-</span> for stdin.  Each line should be of the form <span class="argument">NAME=VALUE</span>.  Multi-line comments are currently not supported.  Specify <span class="argument">--remove-all-tags</span> and/or <a href="#metaflac_options_no_utf8_convert"><span class="argument">--no-utf8-convert</span></a> before <span class="argument">--import-tags-from</span> if necessary.
 				</td>
 			</tr>
 			<tr>
@@ -1210,7 +1210,7 @@
 					<span class="argument">--export-tags-to=FILE</span>
 				</td>
 				<td>
-					Export tags to a file.  Use '-' for stdin.  Each line will be of the form <span class="argument">NAME=VALUE</span>.  Specify <a href="#metaflac_options_no_utf8_convert"><span class="argument">--no-utf8-convert</span></a> if necessary.
+					Export tags to a file.  Use <span class="argument">-</span> for stdin.  Each line will be of the form <span class="argument">NAME=VALUE</span>.  Specify <a href="#metaflac_options_no_utf8_convert"><span class="argument">--no-utf8-convert</span></a> if necessary.
 				</td>
 			</tr>
 			<tr>
@@ -1219,7 +1219,7 @@
 					<span class="argument">--import-cuesheet-from=FILE</span>
 				</td>
 				<td>
-					Import a cuesheet from a file.  Use '-' for stdin.  Only one FLAC file may be specified.  A seekpoint will be added for each index point in the cuesheet to the <span class="code">SEEKTABLE</span> unless <span class="argument">--no-cued-seekpoints</span> is specified.
+					Import a cuesheet from a file.  Use <span class="argument">-</span> for stdin.  Only one FLAC file may be specified.  A seekpoint will be added for each index point in the cuesheet to the <span class="code">SEEKTABLE</span> unless <span class="argument">--no-cued-seekpoints</span> is specified.
 				</td>
 			</tr>
 			<tr>
@@ -1228,7 +1228,7 @@
 					<span class="argument">--export-cuesheet-to=FILE</span>
 				</td>
 				<td>
-					Export <span class="code">CUESHEET</span> block to a cuesheet file, suitable for use by CD authoring software.  Use '-' for stdout.  Only one FLAC file may be specified on the command line.
+					Export <span class="code">CUESHEET</span> block to a cuesheet file, suitable for use by CD authoring software.  Use <span class="argument">-</span> for stdout.  Only one FLAC file may be specified on the command line.
 				</td>
 			</tr>
 			<tr>
@@ -1238,6 +1238,15 @@
 				</td>
 				<td>
 					Import a picture and store it in a <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block.  See the <span class="commandname">flac</span> option <span class="argument"><a href="#flac_options_picture">--picture</a></span> for an explanation of the <span class="argument">SPECIFICATION</span> syntax.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="metaflac_shorthand_export_picture_to" />
+					<span class="argument">--export-picture-to=FILE</span>
+				</td>
+				<td>
+					Export <span class="code">PICTURE</span> block to a file.  Use <span class="argument">-</span> for stdout.  Only one FLAC file may be specified on the command line.  The first <span class="code">PICTURE</span> block will be exported unless <span class="argument">--export-picture-to</span> is preceded by a <span class="argument">--block-number=#</span> option to specify the exact metadata block to extract.  Note that the block number is the one shown by --list.
 				</td>
 			</tr>
 			<tr>

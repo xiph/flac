@@ -73,6 +73,7 @@ struct share__option long_options_[] = {
 	{ "import-cuesheet-from", 1, 0, 0 },
 	{ "export-cuesheet-to", 1, 0, 0 },
 	{ "import-picture", 1, 0, 0 },
+	{ "export-picture-to", 1, 0, 0 },
 	{ "add-seekpoint", 1, 0, 0 },
 	{ "add-replay-gain", 0, 0, 0 },
 	{ "remove-replay-gain", 0, 0, 0 },
@@ -101,6 +102,7 @@ static void append_new_operation(CommandLineOptions *options, Operation operatio
 static void append_new_argument(CommandLineOptions *options, Argument argument);
 static Operation *append_major_operation(CommandLineOptions *options, OperationType type);
 static Operation *append_shorthand_operation(CommandLineOptions *options, OperationType type);
+static Argument *find_argument(CommandLineOptions *options, ArgumentType type);
 static Operation *find_shorthand_operation(CommandLineOptions *options, OperationType type);
 static Argument *append_argument(CommandLineOptions *options, ArgumentType type);
 static FLAC__bool parse_md5(const char *src, FLAC__byte dest[16]);
@@ -201,8 +203,14 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 	}
 
 	/* check for only one FLAC file used with --import-cuesheet-from/--export-cuesheet-to */
-	if((0 != find_shorthand_operation(options, OP__IMPORT_CUESHEET_FROM) || 0 != find_shorthand_operation(options, OP__EXPORT_CUESHEET_TO)) && options->num_files > 1) {
-		fprintf(stderr, "ERROR: you may only specify one FLAC file when using '--import-cuesheet-from' or '--export-cuesheet-to'\n");
+	if(
+		(
+			0 != find_shorthand_operation(options, OP__IMPORT_CUESHEET_FROM) ||
+			0 != find_shorthand_operation(options, OP__EXPORT_CUESHEET_TO) ||
+			0 != find_shorthand_operation(options, OP__EXPORT_PICTURE_TO)
+		) && options->num_files > 1
+	) {
+		fprintf(stderr, "ERROR: you may only specify one FLAC file when using '--import-cuesheet-from', '--export-cuesheet-to' or '--export-picture-to'\n");
 		had_error = true;
 	}
 
@@ -270,6 +278,10 @@ void free_options(CommandLineOptions *options)
 			case OP__IMPORT_PICTURE:
 				if(0 != op->argument.specification.value)
 					free(op->argument.specification.value);
+				break;
+			case OP__EXPORT_PICTURE_TO:
+				if(0 != op->argument.export_picture_to.filename)
+					free(op->argument.export_picture_to.filename);
 				break;
 			case OP__ADD_SEEKPOINT:
 				if(0 != op->argument.add_seekpoint.specification)
@@ -555,6 +567,16 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
+	else if(0 == strcmp(opt, "export-picture-to")) {
+		const Argument *arg = find_argument(options, ARG__BLOCK_NUMBER);
+		op = append_shorthand_operation(options, OP__EXPORT_PICTURE_TO);
+		FLAC__ASSERT(0 != option_argument);
+		if(!parse_string(option_argument, &(op->argument.export_picture_to.filename))) {
+			fprintf(stderr, "ERROR (--%s): missing filename\n", opt);
+			ok = false;
+		}
+		op->argument.export_picture_to.block_number_link = arg? &(arg->value.block_number) : 0;
+	}
 	else if(0 == strcmp(opt, "add-seekpoint")) {
 		const char *violation;
 		char *spec;
@@ -731,6 +753,15 @@ Operation *append_shorthand_operation(CommandLineOptions *options, OperationType
 	append_new_operation(options, op);
 	options->args.checks.num_shorthand_ops++;
 	return options->ops.operations + (options->ops.num_operations - 1);
+}
+
+Argument *find_argument(CommandLineOptions *options, ArgumentType type)
+{
+	unsigned i;
+	for(i = 0; i < options->args.num_arguments; i++)
+		if(options->args.arguments[i].type == type)
+			return &options->args.arguments[i];
+	return 0;
 }
 
 Operation *find_shorthand_operation(CommandLineOptions *options, OperationType type)

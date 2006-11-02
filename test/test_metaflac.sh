@@ -351,6 +351,21 @@ for f in \
 	ncase=`expr $ncase + 1`
 done
 [ $ncase = 60 ] || die "expected case# to be 60"
+
+fn=export-picture-check
+echo -n "Testing --export-picture-to... "
+run_metaflac --export-picture-to=$fn $flacfile
+check_flac
+cmp $fn pictures/0.gif || die "ERROR, exported picture file and original differ"
+echo OK
+rm -f $fn
+echo -n "Testing --block-number --export-picture-to... "
+run_metaflac --block-number=9 --export-picture-to=$fn $flacfile
+check_flac
+cmp $fn pictures/0.png || die "ERROR, exported picture file and original differ"
+echo OK
+rm -f $fn
+
 run_metaflac --remove --block-type=PICTURE $flacfile
 check_flac
 metaflac_test case60 "--remove --block-type=PICTURE" "--list"

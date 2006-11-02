@@ -360,6 +360,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 			ok = do_shorthand_operation__cuesheet(filename, chain, operation, needs_write);
 			break;
 		case OP__IMPORT_PICTURE:
+		case OP__EXPORT_PICTURE_TO:
 			ok = do_shorthand_operation__picture(filename, chain, operation, needs_write);
 			break;
 		case OP__ADD_SEEKPOINT:

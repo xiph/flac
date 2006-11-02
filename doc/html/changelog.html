@@ -70,7 +70,7 @@
 					<li>Better multichannel support</li>
 					<li>Large file (&gt;2GB) support everywhere</li>
 					<li><span class="commandname">flac</span> now supports FLAC as input to the encoder (i.e. can re-encode FLAC to FLAC) and preserve all the metadata like tags, etc.</li>
-					<li>New <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block for storing things like cover art, new <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> option to <span class="commandname">flac</span> and <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture">--import-picture</a></span> option to <span class="commandname">metaflac</span> for importing pictures, and metadata API <a href="api/group__flac__metadata__level0.html#ga3">additions</a> for searching for suitable pictures based on type, size and color constraints.</li>
+					<li>New <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block for storing things like cover art, new <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> option to <span class="commandname">flac</span> and <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture">--import-picture</a></span> option to <span class="commandname">metaflac</span> for importing pictures, new <a href="documentation.html#metaflac_shorthand_export_picture_to">--export-picture-to</a></span> option to <span class="commandname">metaflac</span> for exporting pictures, and metadata API <a href="api/group__flac__metadata__level0.html#ga3">additions</a> for searching for suitable pictures based on type, size and color constraints.</li>
 					<li>Support for new <tt>REPLAYGAIN_REFERENCE_LOUDNESS</tt> tag.</li>
 					<li>In the developer libraries, the interface has been simplfied by merging the three decoding layers into a single class; ditto for the encoders.  Also, libOggFLAC has been merged into libFLAC and libOggFLAC++ has been merged into libFLAC++ so there is a single API supporting both native FLAC and Ogg FLAC.</li>
 				</ul>
@@ -116,6 +116,7 @@
 				<ul>
 					<li>Added a new option <a href="documentation.html#metaflac_shorthand_set_tag_from_file"><span class="argument">--set-tag-from-file</span></a> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
 					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture">--import-picture</a></span> for importing pictures.</li>
+					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_export_picture_to">--export-picture-to</a></span> for exporting pictures.</li>
 					<li>Added shorthand operation <a href="documentation.html#metaflac_shorthand_remove_replay_gain"><span class="argument">--remove-replay-gain</span></a> for removing ReplayGain tags.</li>
 					<li><a href="documentation.html#metaflac_shorthand_export_cuesheet_to"><span class="argument">--export-cuesheet-to</span></a> now properly specifies the FLAC file name (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1272825&amp;group_id=13478&amp;atid=363478">SF #1272825</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now issues a warning.</li>

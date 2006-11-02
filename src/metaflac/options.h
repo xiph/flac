@@ -61,6 +61,7 @@ typedef enum {
 	OP__IMPORT_CUESHEET_FROM,
 	OP__EXPORT_CUESHEET_TO,
 	OP__IMPORT_PICTURE,
+	OP__EXPORT_PICTURE_TO,
 	OP__ADD_SEEKPOINT,
 	OP__ADD_REPLAY_GAIN,
 	OP__ADD_PADDING,
@@ -143,6 +144,11 @@ typedef struct {
 } Argument_ImportCuesheetFrom;
 
 typedef struct {
+	char *filename;
+	const Argument_BlockNumber *block_number_link; /* may be NULL to mean 'first PICTURE block' */
+} Argument_ExportPictureTo;
+
+typedef struct {
 	unsigned length;
 } Argument_AddPadding;
 
@@ -157,6 +163,7 @@ typedef struct {
 		Argument_String filename;
 		Argument_String specification;
 		Argument_ImportCuesheetFrom import_cuesheet_from;
+		Argument_ExportPictureTo export_picture_to;
 		Argument_AddSeekpoint add_seekpoint;
 		Argument_AddPadding add_padding;
 	} argument;

@@ -343,6 +343,14 @@ manpage.1: manpage.sgml
 	</listitem>
       </varlistentry>
       <varlistentry>
+	<term><option>--export-picture-to=file</option></term>
+        <listitem>
+	  <para>
+	    Export PICTURE block to a file.  Use '-' for stdout.  Only one FLAC file may be specified on the command line.  The first PICTURE block will be exported unless --export-picture-to is preceded by a --block-number=# option to specify the exact metadata block to extract.  Note that the block number is the one shown by --list.
+	  </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
 	<term><option>--add-replay-gain</option></term>
         <listitem>
 	  <para>

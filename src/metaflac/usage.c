@@ -191,6 +191,12 @@ int long_usage(const char *message, ...)
 	fprintf(out, "             you should also specify the number of colors used.\n");
 	fprintf(out, "           FILE is the path to the picture file to be imported, or the URL if\n");
 	fprintf(out, "             MIME type is -->\n");
+	fprintf(out, "--export-picture-to=FILE  Export PICTURE block to a file.  Use '-' for stdout.\n");
+	fprintf(out, "                      Only one FLAC file may be specified.  The first PICTURE\n");
+	fprintf(out, "                      block will be exported unless --export-picture-to is\n");
+	fprintf(out, "                      preceded by a --block-number=# option to specify the exact\n");
+	fprintf(out, "                      metadata block to extract.  Note that the block number is\n");
+	fprintf(out, "                      the one shown by --list.\n");
 	fprintf(out, "--add-replay-gain     Calculates the title and album gains/peaks of the given\n");
 	fprintf(out, "                      FLAC files as if all the files were part of one album,\n");
 	fprintf(out, "                      then stores them in the VORBIS_COMMENT block.  The tags\n");

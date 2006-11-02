@@ -28,6 +28,7 @@
 #include "share/grabbag.h" /* for grabbag__picture_parse_specification */
 
 static FLAC__bool import_pic_from(const char *filename, FLAC__StreamMetadata **picture, const char *specification, FLAC__bool *needs_write);
+static FLAC__bool export_pic_to(const char *filename, const FLAC__StreamMetadata *picture, const char *pic_filename);
 
 FLAC__bool do_shorthand_operation__picture(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
 {
@@ -53,36 +54,58 @@ FLAC__bool do_shorthand_operation__picture(const char *filename, FLAC__Metadata_
 					ok = false;
 				}
 			}
+			if(ok) {
+				/* check global PICTURE constraints (max 1 block each of type=1 and type=2) */
+				while(FLAC__metadata_iterator_prev(iterator))
+					;
+				do {
+					FLAC__StreamMetadata *block = FLAC__metadata_iterator_get_block(iterator);
+					if(block->type == FLAC__METADATA_TYPE_PICTURE) {
+						if(block->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD) {
+							if(has_type1) {
+								print_error_with_chain_status(chain, "%s: ERROR: FLAC stream can only have one 32x32 standard icon (type=1) PICTURE block", filename);
+								ok = false;
+							}
+							has_type1 = true;
+						}
+						else if(block->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON) {
+							if(has_type2) {
+								print_error_with_chain_status(chain, "%s: ERROR: FLAC stream can only have one icon (type=2) PICTURE block", filename);
+								ok = false;
+							}
+							has_type2 = true;
+						}
+					}
+				} while(FLAC__metadata_iterator_next(iterator));
+			}
+			break;
+		case OP__EXPORT_PICTURE_TO:
+			{
+				const Argument_BlockNumber *a = operation->argument.export_picture_to.block_number_link;
+				int block_number = (a && a->num_entries > 0)? (int)a->entries[0] : -1;
+				unsigned i = 0;
+				do {
+					FLAC__StreamMetadata *block = FLAC__metadata_iterator_get_block(iterator);
+					if(block->type == FLAC__METADATA_TYPE_PICTURE && (block_number < 0 || i == (unsigned)block_number))
+						picture = block;
+					i++;
+				} while(FLAC__metadata_iterator_next(iterator) && 0 == picture);
+				if(0 == picture) {
+					if(block_number < 0)
+						fprintf(stderr, "%s: ERROR: FLAC file has no PICTURE block\n", filename);
+					else
+						fprintf(stderr, "%s: ERROR: FLAC file has no PICTURE block at block #%d\n", filename, block_number);
+					ok = false;
+				}
+				else
+					ok = export_pic_to(filename, picture, operation->argument.filename.value);
+			}
 			break;
 		default:
 			ok = false;
 			FLAC__ASSERT(0);
 			break;
 	};
-
-	/* check global PICTURE constraints (max 1 block each of type=1 and type=2) */
-	while(FLAC__metadata_iterator_prev(iterator))
-		;
-	do {
-		FLAC__StreamMetadata *block = FLAC__metadata_iterator_get_block(iterator);
-		if(block->type == FLAC__METADATA_TYPE_PICTURE) {
-			if(block->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD) {
-				if(has_type1) {
-					print_error_with_chain_status(chain, "%s: ERROR: FLAC stream can only have one 32x32 standard icon (type=1) PICTURE block", filename);
-					ok = false;
-				}
-				has_type1 = true;
-			}
-			else if(block->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON) {
-				if(has_type2) {
-					print_error_with_chain_status(chain, "%s: ERROR: FLAC stream can only have one icon (type=2) PICTURE block", filename);
-					ok = false;
-				}
-				has_type2 = true;
-			}
-		}
-	} while(FLAC__metadata_iterator_next(iterator));
-
 
 	FLAC__metadata_iterator_delete(iterator);
 	return ok;
@@ -114,5 +137,35 @@ FLAC__bool import_pic_from(const char *filename, FLAC__StreamMetadata **picture,
 	}
 
 	*needs_write = true;
+	return true;
+}
+
+FLAC__bool export_pic_to(const char *filename, const FLAC__StreamMetadata *picture, const char *pic_filename)
+{
+	FILE *f;
+	const FLAC__uint32 len = picture->data.picture.data_length;
+
+	if(0 == pic_filename || strlen(pic_filename) == 0) {
+		fprintf(stderr, "%s: ERROR: empty export file name\n", filename);
+		return false;
+	}
+	if(0 == strcmp(pic_filename, "-"))
+		f = stdout;
+	else
+		f = fopen(pic_filename, "w");
+
+	if(0 == f) {
+		fprintf(stderr, "%s: ERROR: can't open export file %s: %s\n", filename, pic_filename, strerror(errno));
+		return false;
+	}
+
+	if(fwrite(picture->data.picture.data, 1, len, f) != len) {
+		fprintf(stderr, "%s: ERROR: writing PICTURE data to file\n", filename);
+		return false;
+	}
+
+	if(f != stdout)
+		fclose(f);
+
 	return true;
 }
