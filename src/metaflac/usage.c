@@ -149,10 +149,10 @@ int long_usage(const char *message, ...)
 	fprintf(out, "--export-cuesheet-to=FILE  Export CUESHEET block to a cuesheet file, suitable\n");
 	fprintf(out, "                      for use by CD authoring software.  Use '-' for stdout.\n");
 	fprintf(out, "                      Only one FLAC file may be specified on the command line.\n");
-	fprintf(out, "--import-picture=SPECIFICATION Import a picture and store it in a PICTURE block.\n");
-	fprintf(out, "                      The SPECIFICATION is a string whose parts are separated\n");
-	fprintf(out, "                      by | characters.  Some parts may be left empty to invoke\n");
-	fprintf(out, "                      default values.  The specification format is:\n");
+	fprintf(out, "--import-picture-from=SPECIFICATION  Import a picture and store it in a PICTURE\n");
+	fprintf(out, "                      block.  The SPECIFICATION is a string whose parts are\n");
+	fprintf(out, "                      separated by | characters.  Some parts may be left empty\n");
+	fprintf(out, "                      to invoke default values.  The specification format is:\n");
 	fprintf(out, "         [TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE\n");
 	fprintf(out, "           TYPE is optional; it is a number from one of:\n");
 	fprintf(out, "              0: Other\n");

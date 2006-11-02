@@ -42,7 +42,7 @@ FLAC__bool do_shorthand_operation__picture(const char *filename, FLAC__Metadata_
 	FLAC__metadata_iterator_init(iterator, chain);
 
 	switch(operation->type) {
-		case OP__IMPORT_PICTURE:
+		case OP__IMPORT_PICTURE_FROM:
 			ok = import_pic_from(filename, &picture, operation->argument.specification.value, needs_write);
 			if(ok) {
 				/* append PICTURE block */

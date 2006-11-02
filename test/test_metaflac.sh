@@ -320,18 +320,18 @@ for f in \
 	1.gif \
 	2.gif \
 ; do
-	run_metaflac --import-picture="|image/gif|$f||pictures/$f" $flacfile
+	run_metaflac --import-picture-from="|image/gif|$f||pictures/$f" $flacfile
 	check_flac
-	metaflac_test "case$ncase" "--import-picture" "--list"
+	metaflac_test "case$ncase" "--import-picture-from" "--list"
 	ncase=`expr $ncase + 1`
 done
 for f in \
 	0.jpg \
 	4.jpg \
 ; do
-	run_metaflac --import-picture="4|image/jpeg|$f||pictures/$f" $flacfile
+	run_metaflac --import-picture-from="4|image/jpeg|$f||pictures/$f" $flacfile
 	check_flac
-	metaflac_test "case$ncase" "--import-picture" "--list"
+	metaflac_test "case$ncase" "--import-picture-from" "--list"
 	ncase=`expr $ncase + 1`
 done
 for f in \
@@ -345,9 +345,9 @@ for f in \
 	7.png \
 	8.png \
 ; do
-	run_metaflac --import-picture="5|image/png|$f||pictures/$f" $flacfile
+	run_metaflac --import-picture-from="5|image/png|$f||pictures/$f" $flacfile
 	check_flac
-	metaflac_test "case$ncase" "--import-picture" "--list"
+	metaflac_test "case$ncase" "--import-picture-from" "--list"
 	ncase=`expr $ncase + 1`
 done
 [ $ncase = 60 ] || die "expected case# to be 60"
@@ -369,12 +369,12 @@ rm -f $fn
 run_metaflac --remove --block-type=PICTURE $flacfile
 check_flac
 metaflac_test case60 "--remove --block-type=PICTURE" "--list"
-run_metaflac --import-picture="1|image/png|standard_icon|32x32x24|pictures/0.png" $flacfile
+run_metaflac --import-picture-from="1|image/png|standard_icon|32x32x24|pictures/0.png" $flacfile
 check_flac
-metaflac_test case61 "--import-picture" "--list"
-run_metaflac --import-picture="2|image/png|icon|64x64x24|pictures/1.png" $flacfile
+metaflac_test case61 "--import-picture-from" "--list"
+run_metaflac --import-picture-from="2|image/png|icon|64x64x24|pictures/1.png" $flacfile
 check_flac
-metaflac_test case62 "--import-picture" "--list"
+metaflac_test case62 "--import-picture-from" "--list"
 
 # UNKNOWN blocks
 echo -n "Testing FLAC file with unknown metadata... "

@@ -301,9 +301,9 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
-	<term><option>--import-picture</option>=<replaceable>SPECIFICATION</replaceable></term>
+	<term><option>--import-picture-from</option>=<replaceable>SPECIFICATION</replaceable></term>
 	<listitem>
-	  <para>Import a picture and store it in a PICTURE metadata block.  More than one --import-picture command can be specified.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  The format of SPECIFICATION is</para>
+	  <para>Import a picture and store it in a PICTURE metadata block.  More than one --import-picture-from command can be specified.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  The format of SPECIFICATION is</para>
 	  <para>[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE</para>
 	  <para>TYPE is optional; it is a number from one of:</para>
 	  <para>0: Other</para>

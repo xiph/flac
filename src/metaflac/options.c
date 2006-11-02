@@ -72,7 +72,7 @@ struct share__option long_options_[] = {
 	{ "export-tags-to", 1, 0, 0 }, 
 	{ "import-cuesheet-from", 1, 0, 0 },
 	{ "export-cuesheet-to", 1, 0, 0 },
-	{ "import-picture", 1, 0, 0 },
+	{ "import-picture-from", 1, 0, 0 },
 	{ "export-picture-to", 1, 0, 0 },
 	{ "add-seekpoint", 1, 0, 0 },
 	{ "add-replay-gain", 0, 0, 0 },
@@ -275,7 +275,7 @@ void free_options(CommandLineOptions *options)
 				if(0 != op->argument.import_cuesheet_from.filename)
 					free(op->argument.import_cuesheet_from.filename);
 				break;
-			case OP__IMPORT_PICTURE:
+			case OP__IMPORT_PICTURE_FROM:
 				if(0 != op->argument.specification.value)
 					free(op->argument.specification.value);
 				break;
@@ -559,8 +559,8 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			ok = false;
 		}
 	}
-	else if(0 == strcmp(opt, "import-picture")) {
-		op = append_shorthand_operation(options, OP__IMPORT_PICTURE);
+	else if(0 == strcmp(opt, "import-picture-from")) {
+		op = append_shorthand_operation(options, OP__IMPORT_PICTURE_FROM);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_string(option_argument, &(op->argument.specification.value))) {
 			fprintf(stderr, "ERROR (--%s): missing specification\n", opt);

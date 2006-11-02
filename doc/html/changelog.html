@@ -70,7 +70,7 @@
 					<li>Better multichannel support</li>
 					<li>Large file (&gt;2GB) support everywhere</li>
 					<li><span class="commandname">flac</span> now supports FLAC as input to the encoder (i.e. can re-encode FLAC to FLAC) and preserve all the metadata like tags, etc.</li>
-					<li>New <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block for storing things like cover art, new <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> option to <span class="commandname">flac</span> and <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture">--import-picture</a></span> option to <span class="commandname">metaflac</span> for importing pictures, new <a href="documentation.html#metaflac_shorthand_export_picture_to">--export-picture-to</a></span> option to <span class="commandname">metaflac</span> for exporting pictures, and metadata API <a href="api/group__flac__metadata__level0.html#ga3">additions</a> for searching for suitable pictures based on type, size and color constraints.</li>
+					<li>New <span class="code"><a href="format.html#def_PICTURE">PICTURE</a></span> metadata block for storing things like cover art, new <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> option to <span class="commandname">flac</span> and <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture_from">--import-picture-from</a></span> option to <span class="commandname">metaflac</span> for importing pictures, new <span class="argument"><a href="documentation.html#metaflac_shorthand_export_picture_to">--export-picture-to</a></span> option to <span class="commandname">metaflac</span> for exporting pictures, and metadata API <a href="api/group__flac__metadata__level0.html#ga3">additions</a> for searching for suitable pictures based on type, size and color constraints.</li>
 					<li>Support for new <tt>REPLAYGAIN_REFERENCE_LOUDNESS</tt> tag.</li>
 					<li>In the developer libraries, the interface has been simplfied by merging the three decoding layers into a single class; ditto for the encoders.  Also, libOggFLAC has been merged into libFLAC and libOggFLAC++ has been merged into libFLAC++ so there is a single API supporting both native FLAC and Ogg FLAC.</li>
 				</ul>
@@ -78,7 +78,7 @@
 			<li>
 				FLAC format:
 				<ul>
-					<li>New <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block for storing things like cover art.</li>
+					<li>New <span class="code"><a href="format.html#def_PICTURE">PICTURE</a></span> metadata block for storing things like cover art.</li>
 					<li>Speaker assignments and channel orders for 3-6 channels (see <a href="format.html#frame_header">frame header</a>).</li>
 					<li>Further restrictions on the <a href="format.html#subset">FLAC subset</a> when the sample rate is &lt;=48kHz; in this case the maximum LPC order is now 12 and maximum blocksize is 4608.  This is to further limit the processing and memory requirements for hardware implementations while not measurably affecting compression.</li>
 				</ul>
@@ -92,14 +92,14 @@
 			<li>
 				flac:
 				<ul>
-					<li>Improved the <a href="documentation.html#flac_options_decode_through_errors"><span class="argument">-F</span></a> option to allow decoding of FLAC files whose metadata is corrupted, and other kinds of severe corruption.</li>
+					<li>Improved the <span class="argument"><a href="documentation.html#flac_options_decode_through_errors">-F</a></span> option to allow decoding of FLAC files whose metadata is corrupted, and other kinds of severe corruption.</li>
 					<li>Encoder can now take FLAC as input.  The output FLAC file will have all the same metadata as the original unless overridden with options on the command line.</li>
 					<li>Encoder can now take WAVEFORMATEXTENSIBLE WAVE files as input; decoder will output WAVEFORMATEXTENSIBLE WAVE files when necessary to conform to the latest Microsoft specifications.</li>
 					<li>Now properly supports AIFF and WAVEFORMATEXTENSIBLE multichannel input, performing necessary channel reordering both for encoding and decoding.  WAVEFORMATEXTENSIBLE channel mask is also saved to a tag on encoding and restored on decoding for situations when there is no natural mapping to FLAC channel assignments.</li>
 					<li>Expanded support for "odd" sample resolutions to WAVE and AIFF input; all resolutions from 4 to 24 bits-per-sample now supported for all input types.</li>
-					<li>Added a new option <a href="documentation.html#flac_options_tag_from_file"><span class="argument">--tag-from-file</span></a> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
+					<li>Added a new option <span class="argument"><a href="documentation.html#flac_options_tag_from_file">--tag-from-file</a></span> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
 					<li>Added a new option <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> for adding pictures.</li>
-					<li>Added a new option <a href="documentation.html#flac_options_apodization"><span class="argument">--apodization</span></a> for specifying the window function(s) to be used in LPC analysis.</li>
+					<li>Added a new option <span class="argument"><a href="documentation.html#flac_options_apodization">--apodization</a></span> for specifying the window function(s) to be used in LPC analysis.</li>
 					<li>Added support for encoding from non-compressed AIFF-C (<a href="https://sourceforge.net/tracker/?func=detail&amp;atid=113478&amp;aid=1090933&amp;group_id=13478">SF #1090933</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now only issues a warning, not an error (see <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=31282">here</a>).</li>
 					<li>MD5 comparison failures on decoding are now an error instead of a warning and will also return a non-zero exit code (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1493725&amp;group_id=13478&amp;atid=113478">SF #1493725</a>).</li>
@@ -114,11 +114,11 @@
 			<li>
 				metaflac:
 				<ul>
-					<li>Added a new option <a href="documentation.html#metaflac_shorthand_set_tag_from_file"><span class="argument">--set-tag-from-file</span></a> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
-					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture">--import-picture</a></span> for importing pictures.</li>
+					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_set_tag_from_file">--set-tag-from-file</a></span> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
+					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture_from">--import-picture-from</a></span> for importing pictures.</li>
 					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_export_picture_to">--export-picture-to</a></span> for exporting pictures.</li>
-					<li>Added shorthand operation <a href="documentation.html#metaflac_shorthand_remove_replay_gain"><span class="argument">--remove-replay-gain</span></a> for removing ReplayGain tags.</li>
-					<li><a href="documentation.html#metaflac_shorthand_export_cuesheet_to"><span class="argument">--export-cuesheet-to</span></a> now properly specifies the FLAC file name (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1272825&amp;group_id=13478&amp;atid=363478">SF #1272825</a>).</li>
+					<li>Added shorthand operation <span class="argument"><a href="documentation.html#metaflac_shorthand_remove_replay_gain">--remove-replay-gain</a></span> for removing ReplayGain tags.</li>
+					<li><span class="argument"><a href="documentation.html#metaflac_shorthand_export_cuesheet_to">--export-cuesheet-to</a></span> now properly specifies the FLAC file name (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1272825&amp;group_id=13478&amp;atid=363478">SF #1272825</a>).</li>
 					<li>Importing of non-CDDA-compliant cuesheets now issues a warning.</li>
 					<li>Removed the following deprecated tag editing options; you should use the new option names shown instead:
 						<ul>
@@ -245,7 +245,7 @@
 			<li>
 				flac:
 				<ul>
-					<li>New option <a href="documentation.html#flac_options_input_size"><span class="argument">--input-size</span></a> to manually specify the input size when encoding raw samples from stdin.</li>
+					<li>New option <span class="argument"><a href="documentation.html#flac_options_input_size">--input-size</a></span> to manually specify the input size when encoding raw samples from stdin.</li>
 				</ul>
 			</li>
 			<li>
@@ -352,16 +352,16 @@
 			<li>
 				Ogg FLAC format:
 				<ul>
-					<li>First official FLAC-&gt;Ogg bitstream mapping standardized (see new <a href="ogg_mapping.html">FLAC-to-Ogg mapping specification</a>).  See the documentation for the <a href="documentation.html#flac_options_ogg"><span class="argument">--ogg</span></a> switch about having to re-encode older Ogg FLAC files.</li>
+					<li>First official FLAC-&gt;Ogg bitstream mapping standardized (see new <a href="ogg_mapping.html">FLAC-to-Ogg mapping specification</a>).  See the documentation for the <span class="argument"><a href="documentation.html#flac_options_ogg">--ogg</a></span> switch about having to re-encode older Ogg FLAC files.</li>
 				</ul>
 			</li>
 			<li>
 				flac:
 				<ul>
 					<li>Print an error when output file already exists instead of automatically overwriting.</li>
-					<li>New option <a href="documentation.html#flac_options_force"><span class="argument">-f</span> (<span class="argument">--force</span>)</a> to force overwriting if the output file already exists.</li>
-					<li>New option <a href="documentation.html#flac_options_cue"><span class="argument">--cue</span></a> to select a specific section to decode using cuesheet track/index points.</li>
-					<li>New option <a href="documentation.html#flac_options_totally_silent"><span class="argument">--totally-silent</span></a> to suppress all output.</li>
+					<li>New option <span class="argument"><a href="documentation.html#flac_options_force">-f</a></span> (<span class="argument"><a href="documentation.html#flac_options_force">--force</a></span>) to force overwriting if the output file already exists.</li>
+					<li>New option <span class="argument"><a href="documentation.html#flac_options_cue">--cue</a></span> to select a specific section to decode using cuesheet track/index points.</li>
+					<li>New option <span class="argument"><a href="documentation.html#flac_options_totally_silent">--totally-silent</a></span> to suppress all output.</li>
 					<li>New (but undocumented) option <span class="argument">--apply-replaygain-which-is-not-lossless</span> which applies ReplayGain to the decoded output.  See <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=17293&amp;st=11">this thread</a> for usage and caveats.</li>
 					<li>When encoding to Ogg FLAC, use a random serial number (instead of 0 as was done before) when a serial number is not specified.</li>
 					<li>When encoding multiple Ogg FLAC streams, <span class="argument">--serial-number</span> or random serial number sets the first number, which is then incremented for subsequent streams (before, the same serial number was used for all streams).</li>
