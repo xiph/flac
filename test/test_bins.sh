@@ -41,6 +41,10 @@ PATH=../src/flac:$PATH
 PATH=../obj/$BUILD/bin:$PATH
 BINS_PATH=../../test_files/bins
 
+if [ x"$FLAC__TEST_LEVEL" = x ] ; then
+	FLAC__TEST_LEVEL=1
+fi
+
 flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 
 run_flac ()
