@@ -1292,9 +1292,9 @@ FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC
  *  or FLAC__stream_encoder_process_interleaved().
  *  initialization succeeded.
  *
- *  The call to FLAC__stream_encoder_init_stream() currently will also immediately
- *  call the write callback several times, once with the \c fLaC signature,
- *  and once for each encoded metadata block.
+ *  The call to FLAC__stream_encoder_init_stream() currently will also
+ *  immediately call the write callback several times, once with the \c fLaC
+ *  signature, and once for each encoded metadata block.
  *
  * \param  encoder            An uninitialized encoder instance.
  * \param  write_callback     See FLAC__StreamEncoderWriteCallback.  This
@@ -1355,9 +1355,9 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__St
  *  or FLAC__stream_encoder_process_interleaved().
  *  initialization succeeded.
  *
- *  The call to FLAC__stream_encoder_init_ogg_stream() currently will
- *  also immediately call the write callback several times, once with
- *  the \c fLaC signature, and once for each encoded metadata block.@@@@@@
+ *  The call to FLAC__stream_encoder_init_ogg_stream() currently will also
+ *  immediately call the write callback several times to write the metadata
+ *  packets.
  *
  * \param  encoder            An uninitialized encoder instance.
  * \param  read_callback      See FLAC__StreamEncoderReadCallback.  This

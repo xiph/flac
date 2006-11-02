@@ -1780,7 +1780,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	/* if infilename and outfilename point to the same file, we need to write to a temporary file */
 	if(encode_infile != stdin && grabbag__file_are_same(infilename, outfilename)) {
 		static const char *tmp_suffix = ".tmp,fl-ac+en'c";
-		/*@@@ still a remote possibility that a file with this filename exists */
+		/*@@@@ still a remote possibility that a file with this filename exists */
 		if(0 == (internal_outfilename = malloc(strlen(outfilename)+strlen(tmp_suffix)+1))) {
 			flac__utils_printf(stderr, 1, "ERROR allocating memory for tempfile name\n");
 			return 1;
