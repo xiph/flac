@@ -40,6 +40,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> /* for strrchr() */
+#if defined _WIN32 && !defined __CYGWIN__
+// for GetFileInformationByHandle() etc
+#include <Windows.h>
+#include <Winbase.h>
+#endif
 #include "share/grabbag.h"
 
 
@@ -111,7 +116,34 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 {
 #if defined _MSC_VER || defined __MINGW32__
-	return f1 && f2 && 0 == strcmp(f1, f2); /*@@@@@@ need better method than strcmp */
+	/* see
+	 * http://www.hydrogenaudio.org/forums/index.php?showtopic=49439&pid=444300&st=0
+	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/getfileinformationbyhandle.asp
+	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/by_handle_file_information_str.asp
+	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/createfile.asp
+	 * apparently both the files have to be open at the same time for the comparison to work
+	 */
+	FLAC__bool same = false;
+	BY_HANDLE_FILE_INFORMATION info1, info2;
+	HANDLE h1, h2;
+	BOOL ok = 1;
+	h1 = CreateFile(f1, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	h2 = CreateFile(f2, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if(h1 == INVALID_HANDLE_VALUE || h2 == INVALID_HANDLE_VALUE)
+		ok = 0;
+	ok &= GetFileInformationByHandle(h1, &info1);
+	ok &= GetFileInformationByHandle(h2, &info2);
+	if(ok)
+		same =
+			info1.dwVolumeSerialNumber == info2.dwVolumeSerialNumber &&
+			info1.nFileIndexHigh == info2.nFileIndexHigh &&
+			info1.nFileIndexLow == info2.nFileIndexLow
+		;
+	if(h1 != INVALID_HANDLE_VALUE)
+		CloseHandle(h1);
+	if(h2 != INVALID_HANDLE_VALUE)
+		CloseHandle(h2);
+	return same;
 #else
 	struct stat s1, s2;
 	return f1 && f2 && stat(f1, &s1) == 0 && stat(f2, &s2) == 0 && s1.st_ino == s2.st_ino && s1.st_dev == s2.st_dev;

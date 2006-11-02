@@ -45,8 +45,8 @@ const char *grabbag__file_get_basename(const char *srcpath);
  */
 FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only);
 
-/* returns true iff stat() succeeds for both files and they have the same device and inode */
-/*@@@ this does not work on windows so for that the function just returns !strcmp(f1,f2) */
+/* returns true iff stat() succeeds for both files and they have the same device and inode. */
+/* on windows, uses GetFileInformationByHandle() to compare */
 FLAC__bool grabbag__file_are_same(const char *f1, const char *f2);
 
 /* attempts to make writable before unlinking */
