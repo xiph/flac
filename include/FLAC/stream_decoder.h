@@ -85,12 +85,11 @@ extern "C" {
  * - The program overrides the default settings using
  *   FLAC__stream_decoder_set_*() functions.
  * - The program initializes the instance to validate the settings and
- *   prepare for decoding using FLAC__stream_decoder_init_stream() or
- *   FLAC__stream_decoder_init_FILE() or FLAC__stream_decoder_init_file()
- *   for native FLAC, or FLAC__stream_decoder_init_ogg_stream() or
- *   FLAC__stream_decoder_init_ogg_FILE() or
- *   FLAC__stream_decoder_init_ogg_file() for Ogg FLAC, depending on the
- *   nature of the input.
+ *   prepare for decoding using
+ *   - FLAC__stream_decoder_init_stream() or FLAC__stream_decoder_init_FILE()
+ *     or FLAC__stream_decoder_init_file() for native FLAC,
+ *   - FLAC__stream_decoder_init_ogg_stream() or FLAC__stream_decoder_init_ogg_FILE()
+ *     or FLAC__stream_decoder_init_ogg_file() for Ogg FLAC
  * - The program calls the FLAC__stream_decoder_process_*() functions
  *   to decode data, which subsequently calls the callbacks.
  * - The program finishes the decoding with FLAC__stream_decoder_finish(),
