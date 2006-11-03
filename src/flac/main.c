@@ -64,6 +64,9 @@ static FLAC__bool init_options();
 static int parse_options(int argc, char *argv[]);
 static int parse_option(int short_option, const char *long_option, const char *option_argument);
 static void free_options();
+static void add_compression_setting_bool(compression_setting_type_t type, FLAC__bool value);
+static void add_compression_setting_string(compression_setting_type_t type, const char *value);
+static void add_compression_setting_unsigned(compression_setting_type_t type, unsigned value);
 
 static int usage_error(const char *message, ...);
 static void short_usage();
@@ -221,11 +224,6 @@ static struct {
 	FLAC__bool use_ogg;
 	FLAC__bool has_serial_number; /* true iff --serial-number was used */
 	long serial_number; /* this is the Ogg serial number and is unused for native FLAC */
-	FLAC__bool do_mid_side;
-	FLAC__bool loose_mid_side;
-	FLAC__bool do_exhaustive_model_search;
-	FLAC__bool do_escape_coding;
-	FLAC__bool do_qlp_coeff_prec_search;
 	FLAC__bool force_to_stdout;
 	FLAC__bool force_aiff_format;
 	FLAC__bool force_raw_format;
@@ -236,9 +234,8 @@ static struct {
 	const char *output_prefix;
 	analysis_options aopts;
 	int padding; /* -1 => no -P options were given, 0 => -P- was given, else -P value */
-	char apodizations[1000]; /* bad MAGIC NUMBER but buffer overflow is checked */
-	unsigned max_lpc_order;
-	unsigned qlp_coeff_precision;
+	size_t num_compression_settings;
+	compression_setting_t compression_settings[64]; /* bad MAGIC NUMBER but buffer overflow is checked */
 	const char *skip_specification;
 	const char *until_specification;
 	const char *cue_specification;
@@ -248,10 +245,6 @@ static struct {
 	int format_bps;
 	int format_sample_rate;
 	off_t format_input_size;
-	int blocksize;
-	int min_residual_partition_order;
-	int max_residual_partition_order;
-	int rice_parameter_search_dist;
 	char requested_seek_points[5000]; /* bad MAGIC NUMBER but buffer overflow is checked */
 	int num_requested_seek_points; /* -1 => no -S options were given, 0 => -S- was given */
 	const char *cuesheet_filename;
@@ -334,26 +327,6 @@ int do_it()
 		 * tweak options; validate the values
 		 */
 		if(!option_values.mode_decode) {
-			if(option_values.blocksize < 0) {
-				if(option_values.max_lpc_order == 0)
-					option_values.blocksize = 1152;
-				else
-					option_values.blocksize = 4608;
-			}
-			if(option_values.max_residual_partition_order < 0) {
-				if(option_values.blocksize <= 1152)
-					option_values.max_residual_partition_order = 2;
-				else if(option_values.blocksize <= 2304)
-					option_values.max_residual_partition_order = 3;
-				else if(option_values.blocksize <= 4608)
-					option_values.max_residual_partition_order = 3;
-				else
-					option_values.max_residual_partition_order = 4;
-				option_values.min_residual_partition_order = option_values.max_residual_partition_order;
-			}
-			if(option_values.rice_parameter_search_dist < 0) {
-				option_values.rice_parameter_search_dist = 0;
-			}
 			if(0 != option_values.cue_specification)
 				return usage_error("ERROR: --cue is not allowed in test mode\n");
 		}
@@ -372,8 +345,6 @@ int do_it()
 
 		if(0 != option_values.cue_specification && (0 != option_values.skip_specification || 0 != option_values.until_specification))
 			return usage_error("ERROR: --cue may not be combined with --skip or --until\n");
-
-		FLAC__ASSERT(option_values.blocksize >= 0 || option_values.mode_decode);
 
 		if(option_values.format_channels >= 0) {
 			if(option_values.format_channels == 0 || (unsigned)option_values.format_channels > FLAC__MAX_CHANNELS)
@@ -402,12 +373,6 @@ int do_it()
 				return usage_error("ERROR: --bps not allowed with --decode\n");
 			if(option_values.format_sample_rate >= 0)
 				return usage_error("ERROR: --sample-rate not allowed with --decode\n");
-		}
-		if(!option_values.mode_decode && ((unsigned)option_values.blocksize < FLAC__MIN_BLOCK_SIZE || (unsigned)option_values.blocksize > FLAC__MAX_BLOCK_SIZE)) {
-			return usage_error("ERROR: invalid blocksize '%u', must be >= %u and <= %u\n", (unsigned)option_values.blocksize, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
-		}
-		if(option_values.qlp_coeff_precision > 0 && option_values.qlp_coeff_precision < FLAC__MIN_QLP_COEFF_PRECISION) {
-			return usage_error("ERROR: invalid value '%u' for qlp coeff precision, must be 0 or >= %u\n", option_values.qlp_coeff_precision, FLAC__MIN_QLP_COEFF_PRECISION);
 		}
 
 		if(option_values.sector_align) {
@@ -463,32 +428,6 @@ int do_it()
 	flac__utils_printf(stderr, 2, "flac %s, Copyright (C) 2000,2001,2002,2003,2004,2005,2006  Josh Coalson\n", FLAC__VERSION_STRING);
 	flac__utils_printf(stderr, 2, "flac comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are\n");
 	flac__utils_printf(stderr, 2, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
-
-	if(!option_values.mode_decode) {
-		char padopt[16];
-		if(option_values.padding == 0)
-			strcpy(padopt, "-");
-		else
-			sprintf(padopt, " %d", option_values.padding > 0? option_values.padding : FLAC_ENCODE__DEFAULT_PADDING);
-		flac__utils_printf(stderr, 2,
-			"options:%s%s%s%s -P%s -b %u%s -l %u%s%s%s -q %u -r %u,%u%s\n",
-			option_values.delete_input?" --delete-input-file":"",
-			option_values.sector_align?" --sector-align":"",
-			option_values.use_ogg?" --ogg":"",
-			option_values.lax?" --lax":"",
-			padopt,
-			(unsigned)option_values.blocksize,
-			option_values.loose_mid_side?" -M":option_values.do_mid_side?" -m":"",
-			option_values.max_lpc_order,
-			option_values.do_exhaustive_model_search?" -e":"",
-			option_values.do_escape_coding?" -E":"",
-			option_values.do_qlp_coeff_prec_search?" -p":"",
-			option_values.qlp_coeff_precision,
-			(unsigned)option_values.min_residual_partition_order,
-			(unsigned)option_values.max_residual_partition_order,
-			option_values.verify? " -V":""
-		);
-	}
 
 	if(option_values.mode_decode) {
 		FLAC__bool first = true;
@@ -570,11 +509,6 @@ FLAC__bool init_options()
 	option_values.use_ogg = false;
 	option_values.has_serial_number = false;
 	option_values.serial_number = 0;
-	option_values.do_mid_side = true;
-	option_values.loose_mid_side = false;
-	option_values.do_exhaustive_model_search = false;
-	option_values.do_escape_coding = false;
-	option_values.do_qlp_coeff_prec_search = false;
 	option_values.force_to_stdout = false;
 	option_values.force_aiff_format = false;
 	option_values.force_raw_format = false;
@@ -586,9 +520,7 @@ FLAC__bool init_options()
 	option_values.aopts.do_residual_text = false;
 	option_values.aopts.do_residual_gnuplot = false;
 	option_values.padding = -1;
-	option_values.apodizations[0] = '\0';
-	option_values.max_lpc_order = 8;
-	option_values.qlp_coeff_precision = 0;
+	option_values.num_compression_settings = 0;
 	option_values.skip_specification = 0;
 	option_values.until_specification = 0;
 	option_values.cue_specification = 0;
@@ -598,10 +530,6 @@ FLAC__bool init_options()
 	option_values.format_bps = -1;
 	option_values.format_sample_rate = -1;
 	option_values.format_input_size = (off_t)(-1);
-	option_values.blocksize = -1;
-	option_values.min_residual_partition_order = -1;
-	option_values.max_residual_partition_order = -1;
-	option_values.rice_parameter_search_dist = -1;
 	option_values.requested_seek_points[0] = '\0';
 	option_values.num_requested_seek_points = -1;
 	option_values.cuesheet_filename = 0;
@@ -667,6 +595,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 {
 	const char *violation;
 	char *p;
+	int i;
 
 	if(short_option == 0) {
 		FLAC__ASSERT(0 != long_option);
@@ -857,16 +786,18 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 #endif
 		else if(0 == strcmp(long_option, "no-exhaustive-model-search")) {
-			option_values.do_exhaustive_model_search = false;
+			add_compression_setting_bool(CST_DO_EXHAUSTIVE_MODEL_SEARCH, false);
 		}
 		else if(0 == strcmp(long_option, "no-mid-side")) {
-			option_values.do_mid_side = option_values.loose_mid_side = false;
+			add_compression_setting_bool(CST_DO_MID_SIDE, false);
+			add_compression_setting_bool(CST_LOOSE_MID_SIDE, false);
 		}
 		else if(0 == strcmp(long_option, "no-adaptive-mid-side")) {
-			option_values.loose_mid_side = option_values.do_mid_side = false;
+			add_compression_setting_bool(CST_DO_MID_SIDE, false);
+			add_compression_setting_bool(CST_LOOSE_MID_SIDE, false);
 		}
 		else if(0 == strcmp(long_option, "no-qlp-coeff-prec-search")) {
-			option_values.do_qlp_coeff_prec_search = false;
+			add_compression_setting_bool(CST_DO_QLP_COEFF_PREC_SEARCH, false);
 		}
 		else if(0 == strcmp(long_option, "no-padding")) {
 			option_values.padding = 0;
@@ -934,98 +865,15 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 					return usage_error("ERROR: (-T/--tag) %s\n", violation);
 				break;
 			case '0':
-				option_values.do_exhaustive_model_search = false;
-				option_values.do_escape_coding = false;
-				option_values.do_mid_side = false;
-				option_values.loose_mid_side = false;
-				option_values.qlp_coeff_precision = 0;
-				option_values.min_residual_partition_order = option_values.max_residual_partition_order = 2;
-				option_values.rice_parameter_search_dist = 0;
-				option_values.max_lpc_order = 0;
-				break;
 			case '1':
-				option_values.do_exhaustive_model_search = false;
-				option_values.do_escape_coding = false;
-				option_values.do_mid_side = true;
-				option_values.loose_mid_side = true;
-				option_values.qlp_coeff_precision = 0;
-				option_values.min_residual_partition_order = option_values.max_residual_partition_order = 2;
-				option_values.rice_parameter_search_dist = 0;
-				option_values.max_lpc_order = 0;
-				break;
 			case '2':
-				option_values.do_exhaustive_model_search = false;
-				option_values.do_escape_coding = false;
-				option_values.do_mid_side = true;
-				option_values.loose_mid_side = false;
-				option_values.qlp_coeff_precision = 0;
-				option_values.min_residual_partition_order = 0;
-				option_values.max_residual_partition_order = 3;
-				option_values.rice_parameter_search_dist = 0;
-				option_values.max_lpc_order = 0;
-				break;
 			case '3':
-				option_values.do_exhaustive_model_search = false;
-				option_values.do_escape_coding = false;
-				option_values.do_mid_side = false;
-				option_values.loose_mid_side = false;
-				option_values.qlp_coeff_precision = 0;
-				option_values.min_residual_partition_order = option_values.max_residual_partition_order = 3;
-				option_values.rice_parameter_search_dist = 0;
-				option_values.max_lpc_order = 6;
-				break;
 			case '4':
-				option_values.do_exhaustive_model_search = false;
-				option_values.do_escape_coding = false;
-				option_values.do_mid_side = true;
-				option_values.loose_mid_side = true;
-				option_values.qlp_coeff_precision = 0;
-				option_values.min_residual_partition_order = option_values.max_residual_partition_order = 3;
-				option_values.rice_parameter_search_dist = 0;
-				option_values.max_lpc_order = 8;
-				break;
 			case '5':
-				option_values.do_exhaustive_model_search = false;
-				option_values.do_escape_coding = false;
-				option_values.do_mid_side = true;
-				option_values.loose_mid_side = false;
-				option_values.qlp_coeff_precision = 0;
-				option_values.min_residual_partition_order = option_values.max_residual_partition_order = 3;
-				option_values.rice_parameter_search_dist = 0;
-				option_values.max_lpc_order = 8;
-				break;
 			case '6':
-				option_values.do_exhaustive_model_search = false;
-				option_values.do_escape_coding = false;
-				option_values.do_mid_side = true;
-				option_values.loose_mid_side = false;
-				option_values.qlp_coeff_precision = 0;
-				option_values.min_residual_partition_order = 0;
-				option_values.max_residual_partition_order = 4;
-				option_values.rice_parameter_search_dist = 0;
-				option_values.max_lpc_order = 8;
-				break;
 			case '7':
-				option_values.do_exhaustive_model_search = true;
-				option_values.do_escape_coding = false;
-				option_values.do_mid_side = true;
-				option_values.loose_mid_side = false;
-				option_values.qlp_coeff_precision = 0;
-				option_values.min_residual_partition_order = 0;
-				option_values.max_residual_partition_order = 6;
-				option_values.rice_parameter_search_dist = 0;
-				option_values.max_lpc_order = 8;
-				break;
 			case '8':
-				option_values.do_exhaustive_model_search = true;
-				option_values.do_escape_coding = false;
-				option_values.do_mid_side = true;
-				option_values.loose_mid_side = false;
-				option_values.qlp_coeff_precision = 0;
-				option_values.min_residual_partition_order = 0;
-				option_values.max_residual_partition_order = 6;
-				option_values.rice_parameter_search_dist = 0;
-				option_values.max_lpc_order = 12;
+				add_compression_setting_unsigned(CST_COMPRESSION_LEVEL, short_option-'0');
 				break;
 			case '9':
 				return usage_error("ERROR: compression level '9' is reserved\n");
@@ -1055,61 +903,76 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				FLAC__ASSERT(0 != option_argument);
 				option_values.padding = atoi(option_argument);
 				if(option_values.padding < 0)
-					return usage_error("ERROR: argument to -P must be >= 0; for no padding use -P-\n");
+					return usage_error("ERROR: argument to -%c must be >= 0; for no padding use -%c-\n", short_option, short_option);
 				break;
 			case 'b':
 				FLAC__ASSERT(0 != option_argument);
-				option_values.blocksize = atoi(option_argument);
+				i = atoi(option_argument);
+				if((i < (int)FLAC__MIN_BLOCK_SIZE || i > (int)FLAC__MAX_BLOCK_SIZE))
+					return usage_error("ERROR: invalid blocksize (-%c) '%d', must be >= %u and <= %u\n", short_option, i, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
+				add_compression_setting_unsigned(CST_BLOCKSIZE, (unsigned)i);
 				break;
 			case 'e':
-				option_values.do_exhaustive_model_search = true;
+				add_compression_setting_bool(CST_DO_EXHAUSTIVE_MODEL_SEARCH, true);
 				break;
 			case 'E':
-				option_values.do_escape_coding = true;
+				add_compression_setting_bool(CST_DO_ESCAPE_CODING, true);
 				break;
 			case 'l':
 				FLAC__ASSERT(0 != option_argument);
-				option_values.max_lpc_order = atoi(option_argument);
+				i = atoi(option_argument);
+				if((i < 0 || i > (int)FLAC__MAX_LPC_ORDER))
+					return usage_error("ERROR: invalid LPC order (-%c) '%d', must be >= %u and <= %u\n", short_option, i, 0, FLAC__MAX_LPC_ORDER);
+				add_compression_setting_unsigned(CST_MAX_LPC_ORDER, (unsigned)i);
 				break;
 			case 'A':
 				FLAC__ASSERT(0 != option_argument);
-				if(strlen(option_values.apodizations)+strlen(option_argument)+2 >= sizeof(option_values.apodizations)) {
-					return usage_error("ERROR: too many apodization functions requested\n");
-				}
-				else {
-					strcat(option_values.apodizations, option_argument);
-					strcat(option_values.apodizations, ";");
-				}
+				add_compression_setting_string(CST_APODIZATION, option_argument);
 				break;
 			case 'm':
-				option_values.do_mid_side = true;
-				option_values.loose_mid_side = false;
+				add_compression_setting_bool(CST_DO_MID_SIDE, true);
+				add_compression_setting_bool(CST_LOOSE_MID_SIDE, false);
 				break;
 			case 'M':
-				option_values.loose_mid_side = option_values.do_mid_side = true;
+				add_compression_setting_bool(CST_DO_MID_SIDE, true);
+				add_compression_setting_bool(CST_LOOSE_MID_SIDE, true);
 				break;
 			case 'p':
-				option_values.do_qlp_coeff_prec_search = true;
+				add_compression_setting_bool(CST_DO_QLP_COEFF_PREC_SEARCH, true);
 				break;
 			case 'q':
 				FLAC__ASSERT(0 != option_argument);
-				option_values.qlp_coeff_precision = atoi(option_argument);
+				i = atoi(option_argument);
+				if(i < 0 || (i > 0 && (i < (int)FLAC__MIN_QLP_COEFF_PRECISION || i > (int)FLAC__MAX_QLP_COEFF_PRECISION)))
+					return usage_error("ERROR: invalid value '%d' for qlp coeff precision (-%c), must be 0 or between %u and %u, inclusive\n", i, short_option, FLAC__MIN_QLP_COEFF_PRECISION, FLAC__MAX_QLP_COEFF_PRECISION);
+				add_compression_setting_unsigned(CST_QLP_COEFF_PRECISION, (unsigned)i);
 				break;
 			case 'r':
 				FLAC__ASSERT(0 != option_argument);
 				p = strchr(option_argument, ',');
 				if(0 == p) {
-					option_values.min_residual_partition_order = 0;
-					option_values.max_residual_partition_order = atoi(option_argument);
+					add_compression_setting_unsigned(CST_MIN_RESIDUAL_PARTITION_ORDER, 0);
+					i = atoi(option_argument);
+					if(i < 0)
+						return usage_error("ERROR: invalid value '%d' for residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
+					add_compression_setting_unsigned(CST_MAX_RESIDUAL_PARTITION_ORDER, (unsigned)i);
 				}
 				else {
-					option_values.min_residual_partition_order = atoi(option_argument);
-					option_values.max_residual_partition_order = atoi(++p);
+					i = atoi(option_argument);
+					if(i < 0)
+						return usage_error("ERROR: invalid value '%d' for min residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
+					add_compression_setting_unsigned(CST_MIN_RESIDUAL_PARTITION_ORDER, (unsigned)i);
+					i = atoi(++p);
+					if(i < 0)
+						return usage_error("ERROR: invalid value '%d' for max residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
+					add_compression_setting_unsigned(CST_MAX_RESIDUAL_PARTITION_ORDER, (unsigned)i);
 				}
 				break;
 			case 'R':
-				FLAC__ASSERT(0 != option_argument);
-				option_values.rice_parameter_search_dist = atoi(option_argument);
+				i = atoi(option_argument);
+				if(i < 0)
+					return usage_error("ERROR: invalid value '%d' for Rice parameter search distance (-%c), must be >= 0\n", i, short_option);
+				add_compression_setting_unsigned(CST_RICE_PARAMETER_SEARCH_DIST, (unsigned)i);
 				break;
 			default:
 				FLAC__ASSERT(0);
@@ -1133,6 +996,33 @@ void free_options()
 		FLAC__metadata_object_delete(option_values.vorbis_comment);
 	for(i = 0; i < option_values.num_pictures; i++)
 		FLAC__metadata_object_delete(option_values.pictures[i]);
+}
+
+void add_compression_setting_bool(compression_setting_type_t type, FLAC__bool value)
+{
+	if(option_values.num_compression_settings >= sizeof(option_values.compression_settings)/sizeof(option_values.compression_settings[0]))
+		die("too many compression settings");
+	option_values.compression_settings[option_values.num_compression_settings].type = type;
+	option_values.compression_settings[option_values.num_compression_settings].value.t_bool = value;
+	option_values.num_compression_settings++;
+}
+
+void add_compression_setting_string(compression_setting_type_t type, const char *value)
+{
+	if(option_values.num_compression_settings >= sizeof(option_values.compression_settings)/sizeof(option_values.compression_settings[0]))
+		die("too many compression settings");
+	option_values.compression_settings[option_values.num_compression_settings].type = type;
+	option_values.compression_settings[option_values.num_compression_settings].value.t_string = value;
+	option_values.num_compression_settings++;
+}
+
+void add_compression_setting_unsigned(compression_setting_type_t type, unsigned value)
+{
+	if(option_values.num_compression_settings >= sizeof(option_values.compression_settings)/sizeof(option_values.compression_settings[0]))
+		die("too many compression settings");
+	option_values.compression_settings[option_values.num_compression_settings].type = type;
+	option_values.compression_settings[option_values.num_compression_settings].value.t_unsigned = value;
+	option_values.num_compression_settings++;
 }
 
 int usage_error(const char *message, ...)
@@ -1745,19 +1635,10 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.serial_number = option_values.serial_number++;
 #endif
 	common_options.lax = option_values.lax;
-	common_options.do_mid_side = option_values.do_mid_side;
-	common_options.loose_mid_side = option_values.loose_mid_side;
-	common_options.do_exhaustive_model_search = option_values.do_exhaustive_model_search;
-	common_options.do_escape_coding = option_values.do_escape_coding;
-	common_options.do_qlp_coeff_prec_search = option_values.do_qlp_coeff_prec_search;
-	common_options.min_residual_partition_order = option_values.min_residual_partition_order;
-	common_options.max_residual_partition_order = option_values.max_residual_partition_order;
-	common_options.rice_parameter_search_dist = option_values.rice_parameter_search_dist;
-	common_options.apodizations = option_values.apodizations;
-	common_options.max_lpc_order = option_values.max_lpc_order;
-	common_options.blocksize = (unsigned)option_values.blocksize;
-	common_options.qlp_coeff_precision = option_values.qlp_coeff_precision;
 	common_options.padding = option_values.padding;
+	common_options.num_compression_settings = option_values.num_compression_settings;
+	FLAC__ASSERT(sizeof(common_options.compression_settings) >= sizeof(option_values.compression_settings));
+	memcpy(common_options.compression_settings, option_values.compression_settings, sizeof(option_values.compression_settings));
 	common_options.requested_seek_points = option_values.requested_seek_points;
 	common_options.num_requested_seek_points = option_values.num_requested_seek_points;
 	common_options.cuesheet_filename = option_values.cuesheet_filename;

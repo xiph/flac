@@ -75,7 +75,6 @@ typedef struct {
 	FLAC__uint64 total_samples_to_encode;
 	FLAC__uint64 bytes_written;
 	FLAC__uint64 samples_written;
-	unsigned blocksize;
 	unsigned stats_mask;
 
 	FLAC__StreamEncoder *encoder;
@@ -1531,7 +1530,6 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	e->total_samples_to_encode = 0;
 	e->bytes_written = 0;
 	e->samples_written = 0;
-	e->blocksize = 0;
 	e->stats_mask = 0;
 
 	e->encoder = 0;
@@ -1629,6 +1627,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__StreamMetadata **metadata = static_metadata;
 	FLAC__StreamEncoderInitStatus init_status;
 	const FLAC__bool is_cdda = (channels == 1 || channels == 2) && (bps == 16) && (sample_rate == 44100);
+	char apodizations[2000];
 
 	FLAC__ASSERT(sizeof(options.pictures)/sizeof(options.pictures[0]) <= 64);
 
@@ -1636,6 +1635,8 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	e->channels = channels;
 	e->bits_per_sample = bps;
 	e->sample_rate = sample_rate;
+
+	apodizations[0] = '\0';
 
 	if(e->replay_gain) {
 		if(channels != 1 && channels != 2) {
@@ -1653,9 +1654,6 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			}
 		}
 	}
-
-	if(channels != 2)
-		options.do_mid_side = options.loose_mid_side = false;
 
 	if(!parse_cuesheet(&cuesheet, options.cuesheet_filename, e->inbasefilename, is_cdda, e->total_samples_to_encode))
 		return false;
@@ -1891,26 +1889,66 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		return false;
 	}
 
-	e->blocksize = options.blocksize;
-	e->stats_mask = (options.do_exhaustive_model_search || options.do_qlp_coeff_prec_search)? 0x0f : 0x3f;
-
 	FLAC__stream_encoder_set_verify(e->encoder, options.verify);
 	FLAC__stream_encoder_set_streamable_subset(e->encoder, !options.lax);
-	FLAC__stream_encoder_set_do_mid_side_stereo(e->encoder, options.do_mid_side);
-	FLAC__stream_encoder_set_loose_mid_side_stereo(e->encoder, options.loose_mid_side);
 	FLAC__stream_encoder_set_channels(e->encoder, channels);
 	FLAC__stream_encoder_set_bits_per_sample(e->encoder, bps);
 	FLAC__stream_encoder_set_sample_rate(e->encoder, sample_rate);
-	FLAC__stream_encoder_set_blocksize(e->encoder, options.blocksize);
-	FLAC__stream_encoder_set_apodization(e->encoder, options.apodizations);
-	FLAC__stream_encoder_set_max_lpc_order(e->encoder, options.max_lpc_order);
-	FLAC__stream_encoder_set_qlp_coeff_precision(e->encoder, options.qlp_coeff_precision);
-	FLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder, options.do_qlp_coeff_prec_search);
-	FLAC__stream_encoder_set_do_escape_coding(e->encoder, options.do_escape_coding);
-	FLAC__stream_encoder_set_do_exhaustive_model_search(e->encoder, options.do_exhaustive_model_search);
-	FLAC__stream_encoder_set_min_residual_partition_order(e->encoder, options.min_residual_partition_order);
-	FLAC__stream_encoder_set_max_residual_partition_order(e->encoder, options.max_residual_partition_order);
-	FLAC__stream_encoder_set_rice_parameter_search_dist(e->encoder, options.rice_parameter_search_dist);
+	for(i = 0; i < options.num_compression_settings; i++) {
+		switch(options.compression_settings[i].type) {
+			case CST_BLOCKSIZE:
+				FLAC__stream_encoder_set_blocksize(e->encoder, options.compression_settings[i].value.t_unsigned);
+				break;
+			case CST_COMPRESSION_LEVEL:
+				FLAC__stream_encoder_set_compression_level(e->encoder, options.compression_settings[i].value.t_unsigned);
+				apodizations[0] = '\0';
+				break;
+			case CST_DO_MID_SIDE:
+				FLAC__stream_encoder_set_do_mid_side_stereo(e->encoder, options.compression_settings[i].value.t_bool);
+				break;
+			case CST_LOOSE_MID_SIDE:
+				FLAC__stream_encoder_set_loose_mid_side_stereo(e->encoder, options.compression_settings[i].value.t_bool);
+				break;
+			case CST_APODIZATION:
+				if(strlen(apodizations)+strlen(options.compression_settings[i].value.t_string)+2 >= sizeof(apodizations)) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: too many apodization functions requested\n", e->inbasefilename);
+					if(0 != cuesheet)
+						FLAC__metadata_object_delete(cuesheet);
+					return false;
+				}
+				else {
+					strcat(apodizations, options.compression_settings[i].value.t_string);
+					strcat(apodizations, ";");
+				}
+				break;
+			case CST_MAX_LPC_ORDER:
+				FLAC__stream_encoder_set_max_lpc_order(e->encoder, options.compression_settings[i].value.t_unsigned);
+				break;
+			case CST_QLP_COEFF_PRECISION:
+				FLAC__stream_encoder_set_qlp_coeff_precision(e->encoder, options.compression_settings[i].value.t_unsigned);
+				break;
+			case CST_DO_QLP_COEFF_PREC_SEARCH:
+				FLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder, options.compression_settings[i].value.t_bool);
+				break;
+			case CST_DO_ESCAPE_CODING:
+				FLAC__stream_encoder_set_do_escape_coding(e->encoder, options.compression_settings[i].value.t_bool);
+				break;
+			case CST_DO_EXHAUSTIVE_MODEL_SEARCH:
+				FLAC__stream_encoder_set_do_exhaustive_model_search(e->encoder, options.compression_settings[i].value.t_bool);
+				break;
+			case CST_MIN_RESIDUAL_PARTITION_ORDER:
+				FLAC__stream_encoder_set_min_residual_partition_order(e->encoder, options.compression_settings[i].value.t_unsigned);
+				break;
+			case CST_MAX_RESIDUAL_PARTITION_ORDER:
+				FLAC__stream_encoder_set_max_residual_partition_order(e->encoder, options.compression_settings[i].value.t_unsigned);
+				break;
+			case CST_RICE_PARAMETER_SEARCH_DIST:
+				FLAC__stream_encoder_set_rice_parameter_search_dist(e->encoder, options.compression_settings[i].value.t_unsigned);
+				break;
+		}
+	}
+	if(*apodizations)
+		FLAC__stream_encoder_set_apodization(e->encoder, apodizations);
 	FLAC__stream_encoder_set_total_samples_estimate(e->encoder, e->total_samples_to_encode);
 	FLAC__stream_encoder_set_metadata(e->encoder, (num_metadata > 0)? metadata : 0, num_metadata);
 
@@ -1940,6 +1978,8 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	}
 	else
 		e->outputfile_opened = true;
+
+	e->stats_mask = (FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x0f : 0x3f;
 
 	if(0 != cuesheet)
 		FLAC__metadata_object_delete(cuesheet);

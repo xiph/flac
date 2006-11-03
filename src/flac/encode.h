@@ -33,6 +33,31 @@
 
 extern const int FLAC_ENCODE__DEFAULT_PADDING;
 
+typedef enum {
+	CST_BLOCKSIZE,
+	CST_COMPRESSION_LEVEL,
+	CST_DO_MID_SIDE,
+	CST_LOOSE_MID_SIDE,
+	CST_APODIZATION,
+	CST_MAX_LPC_ORDER,
+	CST_QLP_COEFF_PRECISION,
+	CST_DO_QLP_COEFF_PREC_SEARCH,
+	CST_DO_ESCAPE_CODING,
+	CST_DO_EXHAUSTIVE_MODEL_SEARCH,
+	CST_MIN_RESIDUAL_PARTITION_ORDER,
+	CST_MAX_RESIDUAL_PARTITION_ORDER,
+	CST_RICE_PARAMETER_SEARCH_DIST
+} compression_setting_type_t;
+
+typedef struct {
+	compression_setting_type_t type;
+	union {
+		FLAC__bool t_bool;
+		unsigned t_unsigned;
+		const char *t_string;
+	} value;
+} compression_setting_t;
+
 typedef struct {
 	utils__SkipUntilSpecification skip_specification;
 	utils__SkipUntilSpecification until_specification;
@@ -42,19 +67,9 @@ typedef struct {
 	long serial_number;
 #endif
 	FLAC__bool lax;
-	FLAC__bool do_mid_side;
-	FLAC__bool loose_mid_side;
-	FLAC__bool do_exhaustive_model_search;
-	FLAC__bool do_escape_coding;
-	FLAC__bool do_qlp_coeff_prec_search;
-	unsigned min_residual_partition_order;
-	unsigned max_residual_partition_order;
-	unsigned rice_parameter_search_dist;
-	char *apodizations;
-	unsigned max_lpc_order;
-	unsigned blocksize;
-	unsigned qlp_coeff_precision;
 	int padding;
+	size_t num_compression_settings;
+	compression_setting_t compression_settings[64];
 	char *requested_seek_points;
 	int num_requested_seek_points;
 	const char *cuesheet_filename;
