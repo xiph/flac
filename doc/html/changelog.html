@@ -157,6 +157,7 @@
 				<ul>
 					<li>Merged libOggFLAC into libFLAC; both formats are now supporte through the same API.</li>
 					<li>Merged libOggFLAC++ into libFLAC++; both formats are now supporte through the same API.</li>
+					<li>libFLAC and libFLAC++: Simplified encoder setup with new <span class="argument">FLAC__stream_encoder_set_compression_level()</span> function.</li>
 					<li>libFLAC: Improved compression with no impact on FLAC format or decoding time by adding a windowing stage before LPC analysis.</li>
 					<li>libFLAC: Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.</li>
 					<li>libFLAC: Fixed UTF-8 decoder to disallow non-shortest-form and surrogate sequences (see <a href="http://www.unicode.org/versions/corrigendum1.html">here</a>).</li>
@@ -180,6 +181,7 @@
 						libFLAC:
 						<ul>
 							<li><b>Added</b> FLAC__stream_encoder_set_apodization()</li>
+							<li><b>Added</b> FLAC__stream_encoder_set_compression_level()</li>
 							<li><b>Added</b> FLAC__metadata_object_cuesheet_calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC__metadata_get_cuesheet()</li>
 							<li><b>Added</b> FLAC__metadata_get_picture()</li>
@@ -193,6 +195,7 @@
 						<ul>
 							<li><b>Added</b> FLAC::Metadata::Picture</li>
 							<li><b>Added</b> FLAC::Encoder::Stream::set_apodization()</li>
+							<li><b>Added</b> FLAC::Encoder::Stream::set_compression_level()</li>
 							<li><b>Added</b> FLAC::Metadata::CueSheet::calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC::Metadata::get_cuesheet()</li>
 							<li><b>Added</b> FLAC::Metadata::get_picture()</li>
