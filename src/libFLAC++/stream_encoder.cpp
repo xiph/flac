@@ -82,18 +82,6 @@ namespace FLAC {
 			return (bool)::FLAC__stream_encoder_set_streamable_subset(encoder_, value);
 		}
 
-		bool Stream::set_do_mid_side_stereo(bool value)
-		{
-			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__stream_encoder_set_do_mid_side_stereo(encoder_, value);
-		}
-
-		bool Stream::set_loose_mid_side_stereo(bool value)
-		{
-			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__stream_encoder_set_loose_mid_side_stereo(encoder_, value);
-		}
-
 		bool Stream::set_channels(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
@@ -112,10 +100,28 @@ namespace FLAC {
 			return (bool)::FLAC__stream_encoder_set_sample_rate(encoder_, value);
 		}
 
+		bool Stream::set_compression_level(unsigned value)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_encoder_set_compression_level(encoder_, value);
+		}
+
 		bool Stream::set_blocksize(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__stream_encoder_set_blocksize(encoder_, value);
+		}
+
+		bool Stream::set_do_mid_side_stereo(bool value)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_encoder_set_do_mid_side_stereo(encoder_, value);
+		}
+
+		bool Stream::set_loose_mid_side_stereo(bool value)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__stream_encoder_set_loose_mid_side_stereo(encoder_, value);
 		}
 
 		bool Stream::set_apodization(const char *specification)

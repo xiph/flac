@@ -85,14 +85,27 @@ extern "C" {
  * - The program creates an instance of an encoder using
  *   FLAC__stream_encoder_new().
  * - The program overrides the default settings using
- *   FLAC__stream_encoder_set_*() functions.
+ *   FLAC__stream_encoder_set_*() functions.  At a minimum, the following
+ *   functions should be called:
+ *   - FLAC__stream_encoder_set_channels()
+ *   - FLAC__stream_encoder_set_bits_per_sample()
+ *   - FLAC__stream_encoder_set_sample_rate()
+ *   - FLAC__stream_encoder_set_ogg_serial_number() (if encoding to Ogg FLAC)
+ *   - FLAC__stream_encoder_set_total_samples_estimate() (if known)
+ * - If the application wants to control the compression level or set its own
+ *   metadata, then the following should also be called:
+ *   - FLAC__stream_encoder_set_compression_level()
+ *   - FLAC__stream_encoder_set_verify()
+ *   - FLAC__stream_encoder_set_metadata()
+ * - The rest of the set functions should only be called if the client needs
+ *   exact control over how the audio is compressed; thorough understanding
+ *   of the FLAC format is necessary to achieve good results.
  * - The program initializes the instance to validate the settings and
- *   prepare for encoding using FLAC__stream_encoder_init_stream() or
- *   FLAC__stream_encoder_init_FILE() or FLAC__stream_encoder_init_file()
- *   for native FLAC, or FLAC__stream_encoder_init_ogg_stream() or
- *   FLAC__stream_encoder_init_ogg_FILE() or
- *   FLAC__stream_encoder_init_ogg_file() for Ogg FLAC, depending on the
- *   nature of the input.
+ *   prepare for encoding using
+ *   - FLAC__stream_encoder_init_stream() or FLAC__stream_encoder_init_FILE()
+ *     or FLAC__stream_encoder_init_file() for native FLAC
+ *   - FLAC__stream_encoder_init_ogg_stream() or FLAC__stream_encoder_init_ogg_FILE()
+ *     or FLAC__stream_encoder_init_ogg_file() for Ogg FLAC
  * - The program calls FLAC__stream_encoder_process() or
  *   FLAC__stream_encoder_process_interleaved() to encode data, which
  *   subsequently calls the callbacks when there is encoder data ready
@@ -307,12 +320,6 @@ typedef enum {
 
 	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_QLP_COEFF_PRECISION,
 	/**< The encoder has an invalid setting for the precision of the quantized linear predictor coefficients. */
-
-	FLAC__STREAM_ENCODER_INIT_STATUS_MID_SIDE_CHANNELS_MISMATCH,
-	/**< Mid/side coding was specified but the number of channels is not equal to 2. */
-
-	FLAC__STREAM_ENCODER_INIT_STATUS_ILLEGAL_MID_SIDE_FORCE,
-	/**< Loose mid/side coding was specified but mid/side coding was not. */
 
 	FLAC__STREAM_ENCODER_INIT_STATUS_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER,
 	/**< The specified block size is less than the maximum LPC order. */
@@ -698,35 +705,6 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_streamable_subset(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Set to \c true to enable mid-side encoding on stereo input.  The
- *  number of channels must be 2.  Set to \c false to use only
- *  independent channel coding.
- *
- * \default \c false
- * \param  encoder  An encoder instance to set.
- * \param  value    Flag value (see above).
- * \assert
- *    \code encoder != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the encoder is already initialized, else \c true.
- */
-FLAC_API FLAC__bool FLAC__stream_encoder_set_do_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value);
-
-/** Set to \c true to enable adaptive switching between mid-side and
- *  left-right encoding on stereo input.  The number of channels must
- *  be 2.  Set to \c false to use exhaustive searching.  In either
- *  case, the mid/side stereo setting must be \c true.
- *
- * \default \c false
- * \param  encoder  An encoder instance to set.
- * \param  value    Flag value (see above).
- * \assert
- *    \code encoder != NULL \endcode
- * \retval FLAC__bool
- *    \c false if the encoder is already initialized, else \c true.
- */
-FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value);
-
 /** Set the number of channels to be encoded.
  *
  * \default \c 2
@@ -767,9 +745,75 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_bits_per_sample(FLAC__StreamEncoder
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *encoder, unsigned value);
 
+/** Set the compression level
+ *
+ * The compression level is roughly proportional to the amount of effort
+ * the encoder expends to compress the file.  A higher level usually
+ * means more computation but higher compression.  The default level is
+ * suitable for most applications.
+ *
+ * Currently the levels range from \c 0 (fastest, least compression) to
+ * \c 8 (slowest, most compression).  A value larger than \c 8 will be
+ * treated as \c 8.
+ *
+ * This function automatically calls the following other \c _set_
+ * functions with appropriate values, so the client does not need to
+ * unless it specifically wants to override them:
+ * - FLAC__stream_encoder_set_do_mid_side_stereo()
+ * - FLAC__stream_encoder_set_loose_mid_side_stereo()
+ * - FLAC__stream_encoder_set_apodization()
+ * - FLAC__stream_encoder_set_max_lpc_order()
+ * - FLAC__stream_encoder_set_qlp_coeff_precision()
+ * - FLAC__stream_encoder_set_do_qlp_coeff_prec_search()
+ * - FLAC__stream_encoder_set_do_escape_coding()
+ * - FLAC__stream_encoder_set_do_exhaustive_model_search()
+ * - FLAC__stream_encoder_set_min_residual_partition_order()
+ * - FLAC__stream_encoder_set_max_residual_partition_order()
+ * - FLAC__stream_encoder_set_rice_parameter_search_dist()
+ *
+ * The actual values set for each level are:
+ * <table>
+ * <tr>
+ *  <td><b>level</b><td>
+ *  <td>do mid-side stereo<td>
+ *  <td>loose mid-side stereo<td>
+ *  <td>apodization<td>
+ *  <td>max lpc order<td>
+ *  <td>qlp coeff precision<td>
+ *  <td>qlp coeff prec search<td>
+ *  <td>escape coding<td>
+ *  <td>exhaustive model search<td>
+ *  <td>min residual partition order<td>
+ *  <td>max residual partition order<td>
+ *  <td>rice parameter search dist<td>
+ * </tr>
+ * <tr>  <td><b>0</b><td>  <td>false<td>  <td>false<td>  <td>tukey(0.5)<td>  <td>0<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>2<td>  <td>2<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>1</b><td>  <td>true<td>   <td>true<td>   <td>tukey(0.5)<td>  <td>0<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>2<td>  <td>2<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>2</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>0<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>3<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>3</b><td>  <td>false<td>  <td>false<td>  <td>tukey(0.5)<td>  <td>6<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>3<td>  <td>3<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>4</b><td>  <td>true<td>   <td>true<td>   <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>3<td>  <td>3<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>5</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>3<td>  <td>3<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>6</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>4<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>7</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>true<td>   <td>0<td>  <td>6<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>8</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>12<td>  <td>0<td>  <td>false<td>  <td>false<td>  <td>true<td>   <td>0<td>  <td>6<td>  <td>0<td>  </tr>
+ * </table>
+ *
+ * \default \c 5
+ * \param  encoder  An encoder instance to set.
+ * \param  value    See above.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_encoder_set_compression_level(FLAC__StreamEncoder *encoder, unsigned value);
+
 /** Set the blocksize to use while encoding.
  *
- * \default \c 1152
+ * The number of samples to use per frame.  Use \c 0 to let the encoder
+ * estimate a blocksize; this is usually best.
+ *
+ * \default \c 0
  * \param  encoder  An encoder instance to set.
  * \param  value    See above.
  * \assert
@@ -778,6 +822,36 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *en
  *    \c false if the encoder is already initialized, else \c true.
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *encoder, unsigned value);
+
+/** Set to \c true to enable mid-side encoding on stereo input.  The
+ *  number of channels must be 2 for this to have any effect.  Set to
+ *  \c false to use only independent channel coding.
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_encoder_set_do_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value);
+
+/** Set to \c true to enable adaptive switching between mid-side and
+ *  left-right encoding on stereo input.  Set to \c false to use
+ *  exhaustive searching.  Setting this to \c true requires
+ *  FLAC__stream_encoder_set_do_mid_side_stereo() to also be set to
+ *  \c true in order to have any effect.
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /** Sets the apodization function(s) the encoder will use when windowing
  *  audio data for LPC analysis.
@@ -1126,26 +1200,6 @@ FLAC_API FLAC__bool FLAC__stream_encoder_get_verify(const FLAC__StreamEncoder *e
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_get_streamable_subset(const FLAC__StreamEncoder *encoder);
 
-/** Get the "mid/side stereo coding" flag.
- *
- * \param  encoder  An encoder instance to query.
- * \assert
- *    \code encoder != NULL \endcode
- * \retval FLAC__bool
- *    See FLAC__stream_encoder_get_do_mid_side_stereo().
- */
-FLAC_API FLAC__bool FLAC__stream_encoder_get_do_mid_side_stereo(const FLAC__StreamEncoder *encoder);
-
-/** Get the "adaptive mid/side switching" flag.
- *
- * \param  encoder  An encoder instance to query.
- * \assert
- *    \code encoder != NULL \endcode
- * \retval FLAC__bool
- *    See FLAC__stream_encoder_set_loose_mid_side_stereo().
- */
-FLAC_API FLAC__bool FLAC__stream_encoder_get_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder);
-
 /** Get the number of input channels being processed.
  *
  * \param  encoder  An encoder instance to query.
@@ -1185,6 +1239,26 @@ FLAC_API unsigned FLAC__stream_encoder_get_sample_rate(const FLAC__StreamEncoder
  *    See FLAC__stream_encoder_set_blocksize().
  */
 FLAC_API unsigned FLAC__stream_encoder_get_blocksize(const FLAC__StreamEncoder *encoder);
+
+/** Get the "mid/side stereo coding" flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_get_do_mid_side_stereo().
+ */
+FLAC_API FLAC__bool FLAC__stream_encoder_get_do_mid_side_stereo(const FLAC__StreamEncoder *encoder);
+
+/** Get the "adaptive mid/side switching" flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_loose_mid_side_stereo().
+ */
+FLAC_API FLAC__bool FLAC__stream_encoder_get_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder);
 
 /** Get the maximum LPC order setting.
  *

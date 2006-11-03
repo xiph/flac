@@ -98,6 +98,31 @@ typedef enum {
 	ENCODER_IN_AUDIO = 2
 } EncoderStateHint;
 
+static struct CompressionLevels {
+	FLAC__bool do_mid_side_stereo;
+	FLAC__bool loose_mid_side_stereo;
+	const char *apodization;
+	unsigned max_lpc_order;
+	unsigned qlp_coeff_precision;
+	FLAC__bool do_qlp_coeff_prec_search;
+	FLAC__bool do_escape_coding;
+	FLAC__bool do_exhaustive_model_search;
+	unsigned min_residual_partition_order;
+	unsigned max_residual_partition_order;
+	unsigned rice_parameter_search_dist;
+} compression_levels_[] = {
+	{ false, false, "tukey(0.5)",  0, 0, false, false, false, 2, 2, 0 },
+	{ true , true , "tukey(0.5)",  0, 0, false, false, false, 2, 2, 0 },
+	{ true , false, "tukey(0.5)",  0, 0, false, false, false, 0, 3, 0 },
+	{ false, false, "tukey(0.5)",  6, 0, false, false, false, 3, 3, 0 },
+	{ true , true , "tukey(0.5)",  8, 0, false, false, false, 3, 3, 0 },
+	{ true , false, "tukey(0.5)",  8, 0, false, false, false, 3, 3, 0 },
+	{ true , false, "tukey(0.5)",  8, 0, false, false, false, 0, 4, 0 },
+	{ true , false, "tukey(0.5)",  8, 0, false, false, true , 0, 6, 0 },
+	{ true , false, "tukey(0.5)", 12, 0, false, false, true , 0, 6, 0 }
+};
+
+
 /***********************************************************************
  *
  * Private class method prototypes
@@ -469,8 +494,6 @@ FLAC_API const char * const FLAC__StreamEncoderInitStatusString[] = {
 	"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BLOCK_SIZE",
 	"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_MAX_LPC_ORDER",
 	"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_QLP_COEFF_PRECISION",
-	"FLAC__STREAM_ENCODER_INIT_STATUS_MID_SIDE_CHANNELS_MISMATCH",
-	"FLAC__STREAM_ENCODER_INIT_STATUS_ILLEGAL_MID_SIDE_FORCE",
 	"FLAC__STREAM_ENCODER_INIT_STATUS_BLOCK_SIZE_TOO_SMALL_FOR_LPC_ORDER",
 	"FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE",
 	"FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA",
@@ -647,11 +670,12 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	if(encoder->protected_->channels == 0 || encoder->protected_->channels > FLAC__MAX_CHANNELS)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_NUMBER_OF_CHANNELS;
 
-	if(encoder->protected_->do_mid_side_stereo && encoder->protected_->channels != 2)
-		return FLAC__STREAM_ENCODER_INIT_STATUS_MID_SIDE_CHANNELS_MISMATCH;
-
-	if(encoder->protected_->loose_mid_side_stereo && !encoder->protected_->do_mid_side_stereo)
-		return FLAC__STREAM_ENCODER_INIT_STATUS_ILLEGAL_MID_SIDE_FORCE;
+	if(encoder->protected_->channels != 2) {
+		encoder->protected_->do_mid_side_stereo = false;
+		encoder->protected_->loose_mid_side_stereo = false;
+	}
+	else if(!encoder->protected_->do_mid_side_stereo)
+		encoder->protected_->loose_mid_side_stereo = false;
 
 	if(encoder->protected_->bits_per_sample >= 32)
 		encoder->protected_->do_mid_side_stereo = false; /* since we currenty do 32-bit math, the side channel would have 33 bps and overflow */
@@ -661,6 +685,13 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 
 	if(!FLAC__format_sample_rate_is_valid(encoder->protected_->sample_rate))
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_SAMPLE_RATE;
+
+	if(encoder->protected_->blocksize == 0) {
+		if(encoder->protected_->max_lpc_order == 0)
+			encoder->protected_->blocksize = 1152;
+		else
+			encoder->protected_->blocksize = 4608;
+	}
 
 	if(encoder->protected_->blocksize < FLAC__MIN_BLOCK_SIZE || encoder->protected_->blocksize > FLAC__MAX_BLOCK_SIZE)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BLOCK_SIZE;
@@ -1411,28 +1442,6 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_streamable_subset(FLAC__StreamEncod
 	return true;
 }
 
-FLAC_API FLAC__bool FLAC__stream_encoder_set_do_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value)
-{
-	FLAC__ASSERT(0 != encoder);
-	FLAC__ASSERT(0 != encoder->private_);
-	FLAC__ASSERT(0 != encoder->protected_);
-	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
-		return false;
-	encoder->protected_->do_mid_side_stereo = value;
-	return true;
-}
-
-FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value)
-{
-	FLAC__ASSERT(0 != encoder);
-	FLAC__ASSERT(0 != encoder->private_);
-	FLAC__ASSERT(0 != encoder->protected_);
-	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
-		return false;
-	encoder->protected_->loose_mid_side_stereo = value;
-	return true;
-}
-
 FLAC_API FLAC__bool FLAC__stream_encoder_set_channels(FLAC__StreamEncoder *encoder, unsigned value)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -1466,6 +1475,30 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *en
 	return true;
 }
 
+FLAC_API FLAC__bool FLAC__stream_encoder_set_compression_level(FLAC__StreamEncoder *encoder, unsigned value)
+{
+	FLAC__bool ok = true;
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	if(value >= sizeof(compression_levels_)/sizeof(compression_levels_[0]))
+		value = sizeof(compression_levels_)/sizeof(compression_levels_[0]) - 1;
+	ok &= FLAC__stream_encoder_set_do_mid_side_stereo          (encoder, compression_levels_[value].do_mid_side_stereo);
+	ok &= FLAC__stream_encoder_set_loose_mid_side_stereo       (encoder, compression_levels_[value].loose_mid_side_stereo);
+	ok &= FLAC__stream_encoder_set_apodization                 (encoder, compression_levels_[value].apodization);
+	ok &= FLAC__stream_encoder_set_max_lpc_order               (encoder, compression_levels_[value].max_lpc_order);
+	ok &= FLAC__stream_encoder_set_qlp_coeff_precision         (encoder, compression_levels_[value].qlp_coeff_precision);
+	ok &= FLAC__stream_encoder_set_do_qlp_coeff_prec_search    (encoder, compression_levels_[value].do_qlp_coeff_prec_search);
+	ok &= FLAC__stream_encoder_set_do_escape_coding            (encoder, compression_levels_[value].do_escape_coding);
+	ok &= FLAC__stream_encoder_set_do_exhaustive_model_search  (encoder, compression_levels_[value].do_exhaustive_model_search);
+	ok &= FLAC__stream_encoder_set_min_residual_partition_order(encoder, compression_levels_[value].min_residual_partition_order);
+	ok &= FLAC__stream_encoder_set_max_residual_partition_order(encoder, compression_levels_[value].max_residual_partition_order);
+	ok &= FLAC__stream_encoder_set_rice_parameter_search_dist  (encoder, compression_levels_[value].rice_parameter_search_dist);
+	return ok;
+}
+
 FLAC_API FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *encoder, unsigned value)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -1474,6 +1507,28 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *enco
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->blocksize = value;
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__stream_encoder_set_do_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected_->do_mid_side_stereo = value;
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected_->loose_mid_side_stereo = value;
 	return true;
 }
 
@@ -1775,22 +1830,6 @@ FLAC_API FLAC__bool FLAC__stream_encoder_get_streamable_subset(const FLAC__Strea
 	return encoder->protected_->streamable_subset;
 }
 
-FLAC_API FLAC__bool FLAC__stream_encoder_get_do_mid_side_stereo(const FLAC__StreamEncoder *encoder)
-{
-	FLAC__ASSERT(0 != encoder);
-	FLAC__ASSERT(0 != encoder->private_);
-	FLAC__ASSERT(0 != encoder->protected_);
-	return encoder->protected_->do_mid_side_stereo;
-}
-
-FLAC_API FLAC__bool FLAC__stream_encoder_get_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder)
-{
-	FLAC__ASSERT(0 != encoder);
-	FLAC__ASSERT(0 != encoder->private_);
-	FLAC__ASSERT(0 != encoder->protected_);
-	return encoder->protected_->loose_mid_side_stereo;
-}
-
 FLAC_API unsigned FLAC__stream_encoder_get_channels(const FLAC__StreamEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -1821,6 +1860,22 @@ FLAC_API unsigned FLAC__stream_encoder_get_blocksize(const FLAC__StreamEncoder *
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
 	return encoder->protected_->blocksize;
+}
+
+FLAC_API FLAC__bool FLAC__stream_encoder_get_do_mid_side_stereo(const FLAC__StreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	return encoder->protected_->do_mid_side_stereo;
+}
+
+FLAC_API FLAC__bool FLAC__stream_encoder_get_loose_mid_side_stereo(const FLAC__StreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	return encoder->protected_->loose_mid_side_stereo;
 }
 
 FLAC_API unsigned FLAC__stream_encoder_get_max_lpc_order(const FLAC__StreamEncoder *encoder)
@@ -2180,7 +2235,7 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->protected_->channels = 2;
 	encoder->protected_->bits_per_sample = 16;
 	encoder->protected_->sample_rate = 44100;
-	encoder->protected_->blocksize = 1152;
+	encoder->protected_->blocksize = 0;
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	encoder->protected_->num_apodizations = 1;
 	encoder->protected_->apodizations[0].type = FLAC__APODIZATION_TUKEY;

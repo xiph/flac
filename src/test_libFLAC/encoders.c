@@ -164,16 +164,6 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 
-	printf("testing FLAC__stream_encoder_set_do_mid_side_stereo()... ");
-	if(!FLAC__stream_encoder_set_do_mid_side_stereo(encoder, false))
-		return die_s_("returned false", encoder);
-	printf("OK\n");
-
-	printf("testing FLAC__stream_encoder_set_loose_mid_side_stereo()... ");
-	if(!FLAC__stream_encoder_set_loose_mid_side_stereo(encoder, false))
-		return die_s_("returned false", encoder);
-	printf("OK\n");
-
 	printf("testing FLAC__stream_encoder_set_channels()... ");
 	if(!FLAC__stream_encoder_set_channels(encoder, streaminfo_.data.stream_info.channels))
 		return die_s_("returned false", encoder);
@@ -189,8 +179,23 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 
+	printf("testing FLAC__stream_encoder_set_compression_level()... ");
+	if(!FLAC__stream_encoder_set_compression_level(encoder, (unsigned)(-1)))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
 	printf("testing FLAC__stream_encoder_set_blocksize()... ");
 	if(!FLAC__stream_encoder_set_blocksize(encoder, streaminfo_.data.stream_info.min_blocksize))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
+	printf("testing FLAC__stream_encoder_set_do_mid_side_stereo()... ");
+	if(!FLAC__stream_encoder_set_do_mid_side_stereo(encoder, false))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
+	printf("testing FLAC__stream_encoder_set_loose_mid_side_stereo()... ");
+	if(!FLAC__stream_encoder_set_loose_mid_side_stereo(encoder, false))
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 

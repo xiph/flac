@@ -201,16 +201,6 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 
-	printf("testing set_do_mid_side_stereo()... ");
-	if(!encoder->set_do_mid_side_stereo(false))
-		return die_s_("returned false", encoder);
-	printf("OK\n");
-
-	printf("testing set_loose_mid_side_stereo()... ");
-	if(!encoder->set_loose_mid_side_stereo(false))
-		return die_s_("returned false", encoder);
-	printf("OK\n");
-
 	printf("testing set_channels()... ");
 	if(!encoder->set_channels(streaminfo_.data.stream_info.channels))
 		return die_s_("returned false", encoder);
@@ -226,8 +216,23 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 
+	printf("testing set_compression_level()... ");
+	if(!encoder->set_compression_level((unsigned)(-1)))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
 	printf("testing set_blocksize()... ");
 	if(!encoder->set_blocksize(streaminfo_.data.stream_info.min_blocksize))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
+	printf("testing set_do_mid_side_stereo()... ");
+	if(!encoder->set_do_mid_side_stereo(false))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
+	printf("testing set_loose_mid_side_stereo()... ");
+	if(!encoder->set_loose_mid_side_stereo(false))
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 
