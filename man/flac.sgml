@@ -385,7 +385,7 @@
 	  <term><option>-b</option> <replaceable>#</replaceable>, <option>--blocksize</option>=<replaceable>#</replaceable></term>
 
 	  <listitem>
-	    <para>Specify the block size in samples.  The default is 1152 for -l 0, else 4608.  Subset streams must use one of 192, 576, 1152, 2304, 4608, 256, 512, 1024, 2048, 4096 (and 8192 or 16384 if the sample rate is &gt;48kHz).</para>
+	    <para>Specify the block size in samples.  Subset streams must use one of 192, 576, 1152, 2304, 4608, 256, 512, 1024, 2048, 4096 (and 8192 or 16384 if the sample rate is &gt;48kHz).</para>
 	  </listitem>
 	</varlistentry>
 
