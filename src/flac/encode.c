@@ -2267,7 +2267,7 @@ FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecod
 		*bytes = n + fread(buffer, 1, *bytes-n, data->encoder_session->fin);
 		if(ferror(data->encoder_session->fin))
 			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
-		else if(0 == *bytes && feof(data->encoder_session->fin))
+		else if(0 == *bytes)
 			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 		else
 			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
