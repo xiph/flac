@@ -45,12 +45,13 @@
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>flac</command>
-      <arg choice=opt><replaceable>options</replaceable></arg>
+      <arg choice=opt><replaceable>OPTIONS</replaceable></arg>
       <group rep=repeat>
 	<arg><replaceable>infile.wav</replaceable></arg>
 	<arg><replaceable>infile.aiff</replaceable></arg>
 	<arg><replaceable>infile.raw</replaceable></arg>
 	<arg><replaceable>infile.flac</replaceable></arg>
+	<arg><replaceable>infile.ogg</replaceable></arg>
 	<arg>-</arg>
       </group>
     </cmdsynopsis>
@@ -62,7 +63,11 @@
 	<arg>-a</arg> <arg>--analyze</arg>
       </group>
       <arg choice=opt><replaceable>OPTIONS</replaceable></arg>
-      <arg choice=opt rep=repeat><replaceable>infile.flac</replaceable></arg>
+      <group rep=repeat>
+	<arg><replaceable>infile.flac</replaceable></arg>
+	<arg><replaceable>infile.ogg</replaceable></arg>
+	<arg>-</arg>
+      </group>
     </cmdsynopsis>
   </refsynopsisdiv>
   <refsect1>

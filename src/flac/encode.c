@@ -1344,7 +1344,7 @@ int flac__encode_raw(FILE *infile, off_t infilesize, const char *infilename, con
 	return EncoderSession_finish_ok(&encoder_session, info_align_carry, info_align_zero);
 }
 
-int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, flac_encode_options_t options)
+int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, flac_encode_options_t options, FLAC__bool input_is_ogg)
 {
 	EncoderSession encoder_session;
 	FLAC__StreamDecoder *decoder = 0;
@@ -1391,7 +1391,13 @@ int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, co
 		goto fubar1; /*@@@ yuck */
 	}
 
-	if (FLAC__stream_decoder_init_stream(decoder, flac_decoder_read_callback, flac_decoder_seek_callback, flac_decoder_tell_callback, flac_decoder_length_callback, flac_decoder_eof_callback, flac_decoder_write_callback, flac_decoder_metadata_callback, flac_decoder_error_callback, /*client_data=*/&decoder_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+	if (input_is_ogg) {
+		if (FLAC__stream_decoder_init_ogg_stream(decoder, flac_decoder_read_callback, flac_decoder_seek_callback, flac_decoder_tell_callback, flac_decoder_length_callback, flac_decoder_eof_callback, flac_decoder_write_callback, flac_decoder_metadata_callback, flac_decoder_error_callback, /*client_data=*/&decoder_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: initializing decoder for Ogg FLAC input, state = %s\n", encoder_session.inbasefilename, FLAC__stream_decoder_get_resolved_state_string(decoder));
+			goto fubar1; /*@@@ yuck */
+		}
+	}
+	else if (FLAC__stream_decoder_init_stream(decoder, flac_decoder_read_callback, flac_decoder_seek_callback, flac_decoder_tell_callback, flac_decoder_length_callback, flac_decoder_eof_callback, flac_decoder_write_callback, flac_decoder_metadata_callback, flac_decoder_error_callback, /*client_data=*/&decoder_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
 		flac__utils_printf(stderr, 1, "%s: ERROR: initializing decoder for FLAC input, state = %s\n", encoder_session.inbasefilename, FLAC__stream_decoder_get_resolved_state_string(decoder));
 		goto fubar1; /*@@@ yuck */
 	}
@@ -2259,7 +2265,12 @@ FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecod
 	/* get the rest from file */
 	if (*bytes > n) {
 		*bytes = n + fread(buffer, 1, *bytes-n, data->encoder_session->fin);
-		return ferror(data->encoder_session->fin)? FLAC__STREAM_DECODER_READ_STATUS_ABORT : FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+		if(ferror(data->encoder_session->fin))
+			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+		else if(0 == *bytes && feof(data->encoder_session->fin))
+			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+		else
+			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 	}
 	else
 		return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;

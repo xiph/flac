@@ -195,6 +195,22 @@ rt_test_flac ()
 	rm -f rt.wav rt.flac rt2.flac
 }
 
+# assumes input file is WAVE; does not check the metadata-preserving features of flac-to-flac; that is checked later
+rt_test_ogg_flac ()
+{
+	f="$1"
+	echo -n "round-trip test ($f->oggflac->oggflac->wav) encode... "
+	run_flac $SILENT --force --verify --channel-map=none --lax -o rt.ogg --ogg $f || die "ERROR"
+	echo -n "re-encode... "
+	run_flac $SILENT --force --verify --lax -o rt2.ogg --ogg rt.ogg || die "ERROR"
+	echo -n "decode... "
+	run_flac $SILENT --force --decode --channel-map=none -o rt.wav rt2.ogg || die "ERROR"
+	echo -n "compare... "
+	cmp $f rt.wav || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.wav rt.ogg rt2.ogg
+}
+
 for f in rt-*.raw ; do
 	rt_test_raw $f
 done
@@ -207,6 +223,11 @@ done
 for f in rt-*.wav ; do
 	rt_test_flac $f
 done
+if [ $has_ogg = yes ] ; then
+	for f in rt-*.wav ; do
+		rt_test_ogg_flac $f
+	done
+fi
 
 ############################################################################
 # test --skip and --until
@@ -241,7 +262,7 @@ raw_eopt="$wav_eopt --force-raw-format --endian=big --sign=signed --sample-rate=
 raw_dopt="$wav_dopt --force-raw-format --endian=big --sign=signed"
 
 #
-# convert them to WAVE and AIFF files
+# convert them to WAVE/AIFF/Ogg FLAC files
 #
 convert_to_wav ()
 {
@@ -287,12 +308,35 @@ convert_to_aiff 50c.skip10.until40 "$raw_eopt" "$wav_dopt"
 convert_to_aiff 50c.skip20.until30 "$raw_eopt" "$wav_dopt"
 convert_to_aiff 50c.skip20.until40 "$raw_eopt" "$wav_dopt"
 
+convert_to_ogg ()
+{
+	run_flac "$wav_eopt" --ogg $1.wav || die "ERROR converting $1.raw to Ogg FLAC"
+}
+if [ $has_ogg = yes ] ; then
+	convert_to_ogg 50c
+	convert_to_ogg 50c.skip10
+	convert_to_ogg 50c.skip11
+	convert_to_ogg 50c.skip20
+	convert_to_ogg 50c.skip30
+	convert_to_ogg 50c.skip40
+	convert_to_ogg 50c.until10
+	convert_to_ogg 50c.until20
+	convert_to_ogg 50c.until30
+	convert_to_ogg 50c.until39
+	convert_to_ogg 50c.until40
+	convert_to_ogg 50c.skip10.until30
+	convert_to_ogg 50c.skip10.until39
+	convert_to_ogg 50c.skip10.until40
+	convert_to_ogg 50c.skip20.until30
+	convert_to_ogg 50c.skip20.until40
+fi
+
 test_skip_until ()
 {
 	in_fmt=$1
 	out_fmt=$2
 
-	[ "$in_fmt" = wav ] || [ "$in_fmt" = aiff ] || [ "$in_fmt" = raw ] || [ "$in_fmt" = flac ] || die "ERROR: internal error, bad 'in' format '$in_fmt'"
+	[ "$in_fmt" = wav ] || [ "$in_fmt" = aiff ] || [ "$in_fmt" = raw ] || [ "$in_fmt" = flac ] || [ "$in_fmt" = ogg ] || die "ERROR: internal error, bad 'in' format '$in_fmt'"
 
 	[ "$out_fmt" = flac ] || [ "$out_fmt" = ogg ] || die "ERROR: internal error, bad 'out' format '$out_fmt'"
 
@@ -304,7 +348,7 @@ test_skip_until ()
 		dopt="$wav_dopt"
 	fi
 
-	if [ $in_fmt = flac ] && [ $out_fmt = flac ] ; then
+	if ( [ $in_fmt = flac ] || [ $in_fmt = ogg ] ) && ( [ $out_fmt = flac ] || [ $out_fmt = ogg ] ) ; then
 		CMP=md5cmp
 	else
 		CMP=cmp
@@ -574,13 +618,18 @@ test_skip_until raw flac
 test_skip_until wav flac
 test_skip_until aiff flac
 test_skip_until flac flac
+#@@@if [ $has_ogg = yes ] ; then
+#@@@	#@@@ doesn't work yet because md5cmp doesn't work because metaflac doesn't work on ogg flac yet
+#@@@	test_skip_until ogg flac
+#@@@fi
 
-if [ $has_ogg = "yes" ] ; then
+if [ $has_ogg = yes ] ; then
 	test_skip_until raw ogg
 	test_skip_until wav ogg
 	test_skip_until aiff ogg
-	#@@@ doesn't work yet, no comparison step written since metaflac doesn't work on ogg flac yet
+	#@@@ doesn't work yet because md5cmp doesn't work because metaflac doesn't work on ogg flac yet
 	#@@@test_skip_until flac ogg
+	#@@@test_skip_until ogg ogg
 fi
 
 echo "testing seek extremes:"
@@ -652,7 +701,7 @@ test_cue ()
 	in_fmt=$1
 	out_fmt=$2
 
-	[ "$in_fmt" = wav ] || [ "$in_fmt" = aiff ] || [ "$in_fmt" = raw ] || [ "$in_fmt" = flac ] || die "ERROR: internal error, bad 'in' format '$in_fmt'"
+	[ "$in_fmt" = wav ] || [ "$in_fmt" = aiff ] || [ "$in_fmt" = raw ] || [ "$in_fmt" = flac ] || [ "$in_fmt" = ogg ] || die "ERROR: internal error, bad 'in' format '$in_fmt'"
 
 	[ "$out_fmt" = flac ] || [ "$out_fmt" = ogg ] || die "ERROR: internal error, bad 'out' format '$out_fmt'"
 
@@ -664,7 +713,7 @@ test_cue ()
 		dopt="$wav_dopt"
 	fi
 
-	if [ $in_fmt = flac ] && [ $out_fmt = flac ] ; then
+	if ( [ $in_fmt = flac ] || [ $in_fmt = ogg ] ) && ( [ $out_fmt = flac ] || [ $out_fmt = ogg ] ) ; then
 		CMP=md5cmp
 	else
 		CMP=cmp
@@ -799,13 +848,18 @@ test_cue raw flac
 test_cue wav flac
 test_cue aiff flac
 test_cue flac flac
+#@@@if [ $has_ogg = yes ] ; then
+#@@@	#@@@ doesn't work yet because md5cmp doesn't work because metaflac doesn't work on ogg flac yet
+#@@@	test_cue ogg flac
+#@@@fi
 
-if [ $has_ogg = "yes" ] ; then
+if [ $has_ogg = yes ] ; then
 	test_cue raw ogg
 	test_cue wav ogg
 	test_cue aiff ogg
-	#@@@ doesn't work yet, no comparison step written since metaflac doesn't work on ogg flac yet
+	#@@@ doesn't work yet because md5cmp doesn't work because metaflac doesn't work on ogg flac yet
 	#@@@test_cue flac ogg
+	#@@@test_cue ogg ogg
 fi
 
 ############################################################################
@@ -955,7 +1009,7 @@ test_multifile ()
 		encode_options="$encode_options --sector-align"
 	fi
 
-	if [ $input_type = flac ] ; then
+	if [ $input_type = flac ] || [ $input_type = ogg ] ; then
 		CMP=md5cmp
 	else
 		CMP=cmp
@@ -980,14 +1034,19 @@ test_multifile ()
 	done
 }
 
-for input_type in raw wav aiff flac ; do
+input_types="raw wav aiff flac"
+#@@@ doesn't work yet because md5cmp doesn't work because metaflac doesn't work on ogg flac yet
+#@@@if [ $has_ogg = yes ] ; then
+#@@@	input_types="$input_types ogg"
+#@@@fi
+for input_type in $input_types ; do
 	echo "Testing multiple $input_type files without verify..."
 	test_multifile $input_type flac no_sector_align ""
 
 	echo "Testing multiple $input_type files with verify..."
 	test_multifile $input_type flac no_sector_align "--verify"
 
-	if [ $input_type != flac ] ; then # --sector-align not supported for FLAC input
+	if [ $input_type != flac ] && [ $input_type != ogg ] ; then # --sector-align not supported for FLAC input
 		echo "Testing multiple $input_type files with --sector-align, without verify..."
 		test_multifile $input_type flac sector_align ""
 
@@ -995,7 +1054,7 @@ for input_type in raw wav aiff flac ; do
 		test_multifile $input_type flac sector_align "--verify"
 	fi
 
-	if [ $has_ogg = "yes" ] ; then
+	if [ $has_ogg = yes ] ; then
 		echo "Testing multiple $input_type files with --ogg, without verify..."
 		test_multifile $input_type ogg no_sector_align ""
 
@@ -1084,5 +1143,7 @@ flac2flac input-SCVA.flac case04e "$TOTALLY_SILENT --no-padding -S 5x"
 #(already covered by case03c)
 
 rm -f out.flac out.meta
+
+#@@@ when metaflac handles ogg flac, duplicate flac2flac tests here
 
 cd ..

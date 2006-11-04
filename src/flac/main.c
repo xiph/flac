@@ -56,7 +56,7 @@
 #  include "share/getopt.h"
 #endif
 
-typedef enum { RAW, WAV, AIF, FLAC } FileFormat;
+typedef enum { RAW, WAV, AIF, FLAC, OGGFLAC } FileFormat;
 
 static int do_it();
 
@@ -1537,6 +1537,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			fmt= AIF;
 		else if(strlen(infilename) >= 5 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-5), ".flac"))
 			fmt= FLAC;
+		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".ogg"))
+			fmt= OGGFLAC;
 
 		/* attempt to guess the file type based on the first 12 bytes */
 		if((lookahead_length = fread(lookahead, 1, 12, encode_infile)) < 12) {
@@ -1555,6 +1557,9 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			}
 			else if(!memcmp(lookahead, FLAC__STREAM_SYNC_STRING, sizeof(FLAC__STREAM_SYNC_STRING)))
 				fmt= FLAC;
+			/* this could be made more accurate by looking at the first packet */
+			else if(!memcmp(lookahead, "OggS", 4))
+				fmt= OGGFLAC;
 			else {
 				if(fmt != RAW)
 					format_mistake(infilename, fmt == AIF ? "AIFF" : "WAVE", "raw");
@@ -1579,6 +1584,17 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				outfilename
 			);
 		}
+		else if(fmt == OGGFLAC) {
+			/* need more detailed error message when re-flac'ing to avoid confusing the user */
+			flac__utils_printf(stderr, 1,
+				"ERROR: output file %s already exists.\n\n"
+				"By default 'flac -ogg' encodes files to Ogg FLAC format; if you meant to decode\n"
+				"this file from Ogg FLAC to something else, use -d.  If you meant to re-encode\n"
+				"this file from Ogg FLAC to Ogg FLAC again, use -f to force writing to the same\n"
+				"file, or -o to specify a different output filename.\n",
+				outfilename
+			);
+		}
 		else
 			flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
@@ -1594,8 +1610,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 	}
 
-	if(option_values.sector_align && fmt == FLAC) {
-		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input file is FLAC\n");
+	if(option_values.sector_align && (fmt == FLAC || fmt == OGGFLAC)) {
+		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input file is FLAC or Ogg FLAC\n");
 		return 1;
 	}
 	if(option_values.sector_align && fmt == RAW && infilesize < 0) {
@@ -1682,12 +1698,12 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 		retval = flac__encode_raw(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
 	}
-	else if(fmt == FLAC) {
+	else if(fmt == FLAC || fmt == OGGFLAC) {
 		flac_encode_options_t options;
 
 		options.common = common_options;
 
-		retval = flac__encode_flac(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
+		retval = flac__encode_flac(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options, fmt==OGGFLAC);
 	}
 	else {
 		wav_encode_options_t options;
