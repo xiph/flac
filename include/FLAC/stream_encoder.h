@@ -474,6 +474,25 @@ typedef struct {
  *  overflow the buffer.  The callback then returns a status code chosen from
  *  FLAC__StreamEncoderReadStatus.
  *
+ * Here is an example of a read callback for stdio streams:
+ * \code
+ * FLAC__StreamEncoderReadStatus read_cb(const FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
+ * {
+ *   FILE *file = ((MyClientData*)client_data)->file;
+ *   if(*bytes > 0) {
+ *     *bytes = fread(buffer, sizeof(FLAC__byte), *bytes, file);
+ *     if(ferror(file))
+ *       return FLAC__STREAM_ENCODER_READ_STATUS_ABORT;
+ *     else if(*bytes == 0)
+ *       return FLAC__STREAM_ENCODER_READ_STATUS_END_OF_STREAM;
+ *     else
+ *       return FLAC__STREAM_ENCODER_READ_STATUS_CONTINUE;
+ *   }
+ *   else
+ *     return FLAC__STREAM_ENCODER_READ_STATUS_ABORT;
+ * }
+ * \endcode
+ *
  * \note In general, FLAC__StreamEncoder functions which change the
  * state should not be called on the \a encoder while in the callback.
  *
@@ -538,6 +557,20 @@ typedef FLAC__StreamEncoderWriteStatus (*FLAC__StreamEncoderWriteCallback)(const
  *  when the encoder needs to seek the output stream.  The encoder will pass
  *  the absolute byte offset to seek to, 0 meaning the beginning of the stream.
  *
+ * Here is an example of a seek callback for stdio streams:
+ * \code
+ * FLAC__StreamEncoderSeekStatus seek_cb(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data)
+ * {
+ *   FILE *file = ((MyClientData*)client_data)->file;
+ *   if(file == stdin)
+ *     return FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED;
+ *   else if(fseeko(file, (off_t)absolute_byte_offset, SEEK_SET) < 0)
+ *     return FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR;
+ *   else
+ *     return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
+ * }
+ * \endcode
+ *
  * \note In general, FLAC__StreamEncoder functions which change the
  * state should not be called on the \a encoder while in the callback.
  *
@@ -565,6 +598,23 @@ typedef FLAC__StreamEncoderSeekStatus (*FLAC__StreamEncoderSeekCallback)(const F
  * writing directly to a file descriptor from your write callback, you
  * can use lseek(fd, SEEK_CUR, 0).  The encoder may later seek back to
  * these points to rewrite metadata after encoding.
+ *
+ * Here is an example of a tell callback for stdio streams:
+ * \code
+ * FLAC__StreamEncoderTellStatus tell_cb(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+ * {
+ *   FILE *file = ((MyClientData*)client_data)->file;
+ *   off_t pos;
+ *   if(file == stdin)
+ *     return FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED;
+ *   else if((pos = ftello(file)) < 0)
+ *     return FLAC__STREAM_ENCODER_TELL_STATUS_ERROR;
+ *   else {
+ *     *absolute_byte_offset = (FLAC__uint64)pos;
+ *     return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
+ *   }
+ * }
+ * \endcode
  *
  * \note In general, FLAC__StreamEncoder functions which change the
  * state should not be called on the \a encoder while in the callback.

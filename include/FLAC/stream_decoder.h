@@ -475,6 +475,25 @@ typedef struct {
  *  The callback then returns a status code chosen from
  *  FLAC__StreamDecoderReadStatus.
  *
+ * Here is an example of a read callback for stdio streams:
+ * \code
+ * FLAC__StreamDecoderReadStatus read_cb(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
+ * {
+ *   FILE *file = ((MyClientData*)client_data)->file;
+ *   if(*bytes > 0) {
+ *     *bytes = fread(buffer, sizeof(FLAC__byte), *bytes, file);
+ *     if(ferror(file))
+ *       return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+ *     else if(*bytes == 0)
+ *       return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+ *     else
+ *       return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+ *   }
+ *   else
+ *     return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+ * }
+ * \endcode
+ *
  * \note In general, FLAC__StreamDecoder functions which change the
  * state should not be called on the \a decoder while in the callback.
  *
@@ -504,6 +523,20 @@ typedef FLAC__StreamDecoderReadStatus (*FLAC__StreamDecoderReadCallback)(const F
  *  will pass the absolute byte offset to seek to, 0 meaning the
  *  beginning of the stream.
  *
+ * Here is an example of a seek callback for stdio streams:
+ * \code
+ * FLAC__StreamDecoderSeekStatus seek_cb(const FLAC__StreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data)
+ * {
+ *   FILE *file = ((MyClientData*)client_data)->file;
+ *   if(file == stdin)
+ *     return FLAC__STREAM_DECODER_SEEK_STATUS_UNSUPPORTED;
+ *   else if(fseeko(file, (off_t)absolute_byte_offset, SEEK_SET) < 0)
+ *     return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+ *   else
+ *     return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
+ * }
+ * \endcode
+ *
  * \note In general, FLAC__StreamDecoder functions which change the
  * state should not be called on the \a decoder while in the callback.
  *
@@ -525,6 +558,23 @@ typedef FLAC__StreamDecoderSeekStatus (*FLAC__StreamDecoderSeekCallback)(const F
  *  stream.  The callback should return the byte offset from the
  *  beginning of the stream.
  *
+ * Here is an example of a tell callback for stdio streams:
+ * \code
+ * FLAC__StreamDecoderTellStatus tell_cb(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
+ * {
+ *   FILE *file = ((MyClientData*)client_data)->file;
+ *   off_t pos;
+ *   if(file == stdin)
+ *     return FLAC__STREAM_DECODER_TELL_STATUS_UNSUPPORTED;
+ *   else if((pos = ftello(file)) < 0)
+ *     return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
+ *   else {
+ *     *absolute_byte_offset = (FLAC__uint64)pos;
+ *     return FLAC__STREAM_DECODER_TELL_STATUS_OK;
+ *   }
+ * }
+ * \endcode
+ *
  * \note In general, FLAC__StreamDecoder functions which change the
  * state should not be called on the \a decoder while in the callback.
  *
@@ -545,6 +595,24 @@ typedef FLAC__StreamDecoderTellStatus (*FLAC__StreamDecoderTellCallback)(const F
  *  called when the decoder wants to know the total length of the stream
  *  in bytes.
  *
+ * Here is an example of a length callback for stdio streams:
+ * \code
+ * FLAC__StreamDecoderLengthStatus length_cb(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
+ * {
+ *   FILE *file = ((MyClientData*)client_data)->file;
+ *   struct stat filestats;
+ *
+ *   if(file == stdin)
+ *     return FLAC__STREAM_DECODER_LENGTH_STATUS_UNSUPPORTED;
+ *   else if(fstat(fileno(file), &filestats) != 0)
+ *     return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
+ *   else {
+ *     *stream_length = (FLAC__uint64)filestats.st_size;
+ *     return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
+ *   }
+ * }
+ * \endcode
+ *
  * \note In general, FLAC__StreamDecoder functions which change the
  * state should not be called on the \a decoder while in the callback.
  *
@@ -564,6 +632,15 @@ typedef FLAC__StreamDecoderLengthStatus (*FLAC__StreamDecoderLengthCallback)(con
  *  FLAC__stream_decoder_init*_stream().  The supplied function will be
  *  called when the decoder needs to know if the end of the stream has
  *  been reached.
+ *
+ * Here is an example of a EOF callback for stdio streams:
+ * FLAC__bool eof_cb(const FLAC__StreamDecoder *decoder, void *client_data)
+ * \code
+ * {
+ *   FILE *file = ((MyClientData*)client_data)->file;
+ *   return feof(file)? true : false;
+ * }
+ * \endcode
  *
  * \note In general, FLAC__StreamDecoder functions which change the
  * state should not be called on the \a decoder while in the callback.
