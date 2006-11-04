@@ -154,7 +154,12 @@ static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDeco
 	}
 }
 
-static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t filesize, unsigned count)
+/* read mode:
+ * 0 - no read after seek
+ * 1 - read 2 frames
+ * 2 - read until end
+ */
+static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t filesize, unsigned count, unsigned read_mode)
 {
 	FLAC__StreamDecoder *decoder;
 	DecoderClientData decoder_client_data;
@@ -167,7 +172,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 	decoder_client_data.ignore_errors = false;
 	decoder_client_data.error_occurred = false;
 
-	printf("\n+++ seek test: FLAC__StreamDecoder (%s FLAC)\n\n", is_ogg? "Ogg":"native");
+	printf("\n+++ seek test: FLAC__StreamDecoder (%s FLAC, read_mode=%u)\n\n", is_ogg? "Ogg":"native", read_mode);
 
 	decoder = FLAC__stream_decoder_new();
 	if(0 == decoder)
@@ -255,7 +260,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 			if(!FLAC__stream_decoder_flush(decoder))
 				return die_s_("FLAC__stream_decoder_flush() FAILED", decoder);
 		}
-		else {
+		else if(read_mode == 1) {
 			printf("decode_frame... ");
 			fflush(stdout);
 			if(!FLAC__stream_decoder_process_single(decoder))
@@ -265,6 +270,14 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 			fflush(stdout);
 			if(!FLAC__stream_decoder_process_single(decoder))
 				return die_s_("FLAC__stream_decoder_process_single() FAILED", decoder);
+		}
+		else if(read_mode == 2) {
+			printf("decode_all... ");
+			fflush(stdout);
+			decoder_client_data.quiet = true;
+			if(!FLAC__stream_decoder_process_until_end_of_stream(decoder))
+				return die_s_("FLAC__stream_decoder_process_until_end_of_stream() FAILED", decoder);
+			decoder_client_data.quiet = false;
 		}
 
 		printf("OK\n");
@@ -284,7 +297,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 int main(int argc, char *argv[])
 {
 	const char *filename;
-	unsigned count = 0;
+	unsigned count = 0, read_mode;
 	off_t filesize;
 
 	static const char * const usage = "usage: test_seeking file.flac [#seeks]\n";
@@ -324,19 +337,22 @@ int main(int argc, char *argv[])
 
 	(void) signal(SIGINT, our_sigint_handler_);
 
-	{
+	for (read_mode = 0; read_mode <= 2; read_mode++) {
 		FLAC__bool ok;
 		if (strlen(filename) > 4 && 0 == strcmp(filename+strlen(filename)-4, ".ogg")) {
 #ifdef FLAC__HAS_OGG
-			ok = seek_barrage(/*is_ogg=*/true, filename, filesize, count);
+			ok = seek_barrage(/*is_ogg=*/true, filename, filesize, count, read_mode);
 #else
 			fprintf(stderr, "ERROR: Ogg FLAC not supported\n");
 			ok = false;
 #endif
 		}
 		else {
-			ok = seek_barrage(/*is_ogg=*/false, filename, filesize, count);
+			ok = seek_barrage(/*is_ogg=*/false, filename, filesize, count, read_mode);
 		}
-		return ok? 0 : 2;
+		if (!ok)
+			return 2;
 	}
+
+	return 0;
 }
