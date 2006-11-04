@@ -520,7 +520,9 @@ FLAC__bool init_options()
 	option_values.aopts.do_residual_text = false;
 	option_values.aopts.do_residual_gnuplot = false;
 	option_values.padding = -1;
-	option_values.num_compression_settings = 0;
+	option_values.num_compression_settings = 1;
+	option_values.compression_settings[0].type = CST_COMPRESSION_LEVEL;
+	option_values.compression_settings[0].value.t_unsigned = 5;
 	option_values.skip_specification = 0;
 	option_values.until_specification = 0;
 	option_values.cue_specification = 0;
