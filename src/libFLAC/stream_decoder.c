@@ -2806,9 +2806,10 @@ FLAC__bool read_callback_(FLAC__byte buffer[], size_t *bytes, void *client_data)
 	}
 	/* [1] @@@ HACK NOTE: The end-of-stream checking has to be hacked around
 	 * for Ogg FLAC.  This is because the ogg decoder aspect can lose sync
-	 * and at the same time hit the end of the stream.  There is no way to
-	 * report an Ogg sync loss through the callbacks (see note in
-	 * read_callback_ogg_aspect_()) so it returns CONTINUE with *bytes==0.
+	 * and at the same time hit the end of the stream (for example, seeking
+	 * to a point that is after the beginning of the last Ogg page).  There
+	 * is no way to report an Ogg sync loss through the callbacks (see note
+	 * in read_callback_ogg_aspect_()) so it returns CONTINUE with *bytes==0.
 	 * So to keep the decoder from stopping at this point we gate the call
 	 * to the eof_callback and let the Ogg decoder aspect set the
 	 * end-of-stream state when it is needed.

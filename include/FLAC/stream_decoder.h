@@ -490,7 +490,9 @@ typedef struct {
  * \param  client_data  The callee's client data set through
  *                      FLAC__stream_decoder_init_*().
  * \retval FLAC__StreamDecoderReadStatus
- *    The callee's return status.
+ *    The callee's return status.  Note that the callback should return
+ *    \c FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM if and only if
+ *    zero bytes were read and there is no more data to be read.
  */
 typedef FLAC__StreamDecoderReadStatus (*FLAC__StreamDecoderReadCallback)(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 
