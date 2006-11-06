@@ -84,7 +84,7 @@ unsigned FLAC__bitbuffer_get_input_bytes_unconsumed(const FLAC__BitBuffer *bb); 
 /*
  * direct buffer access
  */
-void FLAC__bitbuffer_get_buffer(FLAC__BitBuffer *bb, const FLAC__byte **buffer, unsigned *bytes);
+void FLAC__bitbuffer_get_buffer(FLAC__BitBuffer *bb, const FLAC__byte **buffer, size_t *bytes);
 void FLAC__bitbuffer_release_buffer(FLAC__BitBuffer *bb);
 
 /*
@@ -122,7 +122,7 @@ FLAC__bool FLAC__bitbuffer_zero_pad_to_byte_boundary(FLAC__BitBuffer *bb);
 /*
  * read functions
  */
-typedef FLAC__bool (*FLAC__BitbufferReadCallback)(FLAC__byte buffer[], unsigned *bytes, void *client_data);
+typedef FLAC__bool (*FLAC__BitbufferReadCallback)(FLAC__byte buffer[], size_t *bytes, void *client_data);
 
 FLAC__bool FLAC__bitbuffer_peek_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__BitbufferReadCallback read_callback, void *client_data);
 FLAC__bool FLAC__bitbuffer_read_bit(FLAC__BitBuffer *bb, unsigned *val, FLAC__BitbufferReadCallback read_callback, void *client_data);
