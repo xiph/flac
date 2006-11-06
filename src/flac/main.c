@@ -1268,9 +1268,10 @@ void show_explain()
 	printf("                               '.ogg'.\n");
 	printf("      --serial-number          Serial number to use for the FLAC stream.  When\n");
 	printf("                               encoding and no serial number is given, flac\n");
-	printf("                               uses '0'.  When decoding and no number is\n");
-	printf("                               given, flac uses the serial number of the first\n");
-	printf("                               page.\n");
+	printf("                               uses a random one.  If encoding to multiple files\n");
+	printf("                               the serial number is incremented for each file.\n");
+	printf("                               When decoding and no number is given, flac uses\n");
+	printf("                               the serial number of the first page.\n");
 #endif
 	printf("analysis options:\n");
 	printf("      --residual-text          Include residual signal in text output.  This\n");
