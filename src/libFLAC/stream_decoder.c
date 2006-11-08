@@ -2928,16 +2928,22 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 	FLAC__int64 pos = -1;
 	int i;
 	unsigned approx_bytes_per_frame;
-	FLAC__bool needs_seek = true, first_seek = true;
+	FLAC__bool first_seek = true;
 	const FLAC__uint64 total_samples = FLAC__stream_decoder_get_total_samples(decoder);
 	const unsigned min_blocksize = decoder->private_->stream_info.data.stream_info.min_blocksize;
 	const unsigned max_blocksize = decoder->private_->stream_info.data.stream_info.max_blocksize;
 	const unsigned max_framesize = decoder->private_->stream_info.data.stream_info.max_framesize;
 	const unsigned min_framesize = decoder->private_->stream_info.data.stream_info.min_framesize;
 	/* take these from the current frame in case they've changed mid-stream */
-	const unsigned channels = FLAC__stream_decoder_get_channels(decoder);
-	const unsigned bps = FLAC__stream_decoder_get_bits_per_sample(decoder);
+	unsigned channels = FLAC__stream_decoder_get_channels(decoder);
+	unsigned bps = FLAC__stream_decoder_get_bits_per_sample(decoder);
 	const FLAC__StreamMetadata_SeekTable *seek_table = decoder->private_->has_seek_table? &decoder->private_->seek_table.data.seek_table : 0;
+
+	/* use values from stream info if we didn't decode a frame */
+	if(channels == 0)
+		channels = decoder->private_->stream_info.data.stream_info.channels;
+	if(bps == 0)
+		bps = decoder->private_->stream_info.data.stream_info.bits_per_sample;
 
 	/* we are just guessing here */
 	if(max_framesize > 0)
@@ -2966,6 +2972,8 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 	lower_bound_sample = 0;
 	upper_bound = stream_length;
 	upper_bound_sample = total_samples > 0 ? total_samples : target_sample;
+	if(upper_bound_sample == 0)
+		upper_bound_sample = 1;
 
 	/*
 	 * Now we refine the bounds if we have a seektable with
@@ -3001,33 +3009,31 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 			return false;
 		}
-		if(needs_seek) {
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #if defined _MSC_VER || defined __MINGW32__
-			/* with VC++ you have to spoon feed it the casting */
-			pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)(FLAC__int64)(target_sample - lower_bound_sample) / (FLAC__double)(FLAC__int64)(upper_bound_sample - lower_bound_sample) * (FLAC__double)(FLAC__int64)(upper_bound - lower_bound)) - approx_bytes_per_frame;
+		/* with VC++ you have to spoon feed it the casting */
+		pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)(FLAC__int64)(target_sample - lower_bound_sample) / (FLAC__double)(FLAC__int64)(upper_bound_sample - lower_bound_sample) * (FLAC__double)(FLAC__int64)(upper_bound - lower_bound)) - approx_bytes_per_frame;
 #else
-			pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)(target_sample - lower_bound_sample) / (FLAC__double)(upper_bound_sample - lower_bound_sample) * (FLAC__double)(upper_bound - lower_bound)) - approx_bytes_per_frame;
+		pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)(target_sample - lower_bound_sample) / (FLAC__double)(upper_bound_sample - lower_bound_sample) * (FLAC__double)(upper_bound - lower_bound)) - approx_bytes_per_frame;
 #endif
 #else
-			/* a little less accurate: */
-			if (upper_bound - lower_bound < 0xffffffff)
-				pos = (FLAC__int64)lower_bound + (FLAC__int64)(((target_sample - lower_bound_sample) * (upper_bound - lower_bound)) / (upper_bound_sample - lower_bound_sample)) - approx_bytes_per_frame;
-			else /* @@@ WATCHOUT, ~2TB limit */
-				pos = (FLAC__int64)lower_bound + (FLAC__int64)((((target_sample - lower_bound_sample)>>8) * ((upper_bound - lower_bound)>>8)) / ((upper_bound_sample - lower_bound_sample)>>16)) - approx_bytes_per_frame;
+		/* a little less accurate: */
+		if(upper_bound - lower_bound < 0xffffffff)
+			pos = (FLAC__int64)lower_bound + (FLAC__int64)(((target_sample - lower_bound_sample) * (upper_bound - lower_bound)) / (upper_bound_sample - lower_bound_sample)) - approx_bytes_per_frame;
+		else /* @@@ WATCHOUT, ~2TB limit */
+			pos = (FLAC__int64)lower_bound + (FLAC__int64)((((target_sample - lower_bound_sample)>>8) * ((upper_bound - lower_bound)>>8)) / ((upper_bound_sample - lower_bound_sample)>>16)) - approx_bytes_per_frame;
 #endif
-			if(pos >= (FLAC__int64)upper_bound)
-				pos = (FLAC__int64)upper_bound - 1;
-			if(pos < (FLAC__int64)lower_bound)
-				pos = (FLAC__int64)lower_bound;
-			if(decoder->private_->seek_callback(decoder, (FLAC__uint64)pos, decoder->private_->client_data) != FLAC__STREAM_DECODER_SEEK_STATUS_OK) {
-				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
-				return false;
-			}
-			if(!FLAC__stream_decoder_flush(decoder)) {
-				/* above call sets the state for us */
-				return false;
-			}
+		if(pos >= (FLAC__int64)upper_bound)
+			pos = (FLAC__int64)upper_bound - 1;
+		if(pos < (FLAC__int64)lower_bound)
+			pos = (FLAC__int64)lower_bound;
+		if(decoder->private_->seek_callback(decoder, (FLAC__uint64)pos, decoder->private_->client_data) != FLAC__STREAM_DECODER_SEEK_STATUS_OK) {
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+			return false;
+		}
+		if(!FLAC__stream_decoder_flush(decoder)) {
+			/* above call sets the state for us */
+			return false;
 		}
 		/* Now we need to get a frame.  First we need to reset our
 		 * unparseable_frame_count; if we get too many unparseable
@@ -3053,7 +3059,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		this_frame_sample = decoder->private_->last_frame.header.number.sample_number;
 
 		if (!decoder->private_->samples_decoded || (this_frame_sample + decoder->private_->last_frame.header.blocksize >= upper_bound_sample && !first_seek)) {
-			if (pos == (FLAC__int64)lower_bound || !needs_seek) {
+			if (pos == (FLAC__int64)lower_bound) {
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return false;
 			}
@@ -3072,8 +3078,6 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 
 		FLAC__ASSERT(decoder->private_->last_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 
-		approx_bytes_per_frame = decoder->private_->last_frame.header.blocksize * channels * bps/8 + 64;
-
 		/* we need to narrow the search */
 		if(target_sample < this_frame_sample) {
 			upper_bound_sample = this_frame_sample + decoder->private_->last_frame.header.blocksize;
@@ -3081,19 +3085,17 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return false;
 			}
+			approx_bytes_per_frame = 2 * (upper_bound - pos) / 3 + 16;
 		}
 		else {
 			/* target_sample >= this_frame_sample + this frame's blocksize */
 
-			/* we are close, continue in decoding next frames */
-			if(target_sample < this_frame_sample + 4 * decoder->private_->last_frame.header.blocksize)
-				needs_seek = false;
-			
 			lower_bound_sample = this_frame_sample + decoder->private_->last_frame.header.blocksize;
 			if(!FLAC__stream_decoder_get_decode_position(decoder, &lower_bound)) {
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return false;
 			}
+			approx_bytes_per_frame = 2 * (lower_bound - pos) / 3 + 16;
 		}
 	}
 
