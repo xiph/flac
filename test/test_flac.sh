@@ -23,6 +23,8 @@ die ()
 	exit 1
 }
 
+dddie="die ERROR: creating files with dd"
+
 if [ x = x"$1" ] ; then
 	BUILD=debug
 else
@@ -135,6 +137,22 @@ fi
 rm -f exist.wav exist.flac
 
 ############################################################################
+# test fractional block sizes
+############################################################################
+
+for samples in 254 255 256 257 258 510 511 512 513 514 ; do
+	dd if=noise.raw ibs=4 count=$samples of=pbs.raw 2>/dev/null || $dddie
+	echo -n "fractional block size test ($samples) encode... "
+	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=256 -o pbs.flac pbs.raw || die "ERROR"
+	echo -n "decode... "
+	run_flac $SILENT --force --decode --force-raw-format --endian=little --sign=signed -o pbs.cmp pbs.flac || die "ERROR"
+	echo -n "compare... "
+	cmp pbs.raw pbs.cmp || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f pbs.raw pbs.flac pbs.cmp
+done
+
+############################################################################
 # basic 'round-trip' tests of various kinds of streams
 ############################################################################
 
@@ -237,7 +255,6 @@ fi
 # first make some chopped-up raw files
 #
 echo "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMN" > master.raw
-dddie="die ERROR: creating files with dd"
 dd if=master.raw ibs=1 count=50 of=50c.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=10 count=40 of=50c.skip10.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=11 count=39 of=50c.skip11.raw 2>/dev/null || $dddie
