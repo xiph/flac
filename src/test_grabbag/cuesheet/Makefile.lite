@@ -27,9 +27,9 @@ PROGRAM_NAME = test_cuesheet
 INCLUDES = -I./include -I$(topdir)/include
 
 ifeq ($(DARWIN_BUILD),yes)
-EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libFLAC.a -lm
+EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libFLAC.a $(OGG_LIB_DIR)/libogg.a -lm
 else
-LIBS = -lgrabbag -lreplaygain_analysis -lFLAC -lm
+LIBS = -lgrabbag -lreplaygain_analysis -lFLAC -L$(OGG_LIB_DIR) -logg -lm
 endif
 
 SRCS_C = \
