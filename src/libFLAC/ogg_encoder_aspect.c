@@ -108,7 +108,7 @@ void FLAC__ogg_encoder_aspect_set_defaults(FLAC__OggEncoderAspect *aspect)
  * separate write callback for the fLaC magic, and then separate write
  * callbacks for each metadata block and audio frame.
  */
-FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(FLAC__OggEncoderAspect *aspect, const FLAC__uint64 total_samples_estimate, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, FLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data)
+FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(FLAC__OggEncoderAspect *aspect, const FLAC__uint64 total_samples_estimate, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, FLAC__bool is_last_block, FLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data)
 {
 	/* WATCHOUT:
 	 * This depends on the behavior of FLAC__StreamEncoder that 'samples'
@@ -180,8 +180,13 @@ FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(F
 			packet.bytes = bytes;
 		}
 
-		if(total_samples_estimate > 0 && total_samples_estimate == aspect->samples_written + samples)
+		if(is_last_block) {
+			/* we used to check:
+			 * FLAC__ASSERT(total_samples_estimate == 0 || total_samples_estimate == aspect->samples_written + samples);
+			 * but it's really not useful since total_samples_estimate is an estimate and can be inexact
+			 */
 			packet.e_o_s = 1;
+		}
 
 		if(ogg_stream_packetin(&aspect->stream_state, &packet) != 0)
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
