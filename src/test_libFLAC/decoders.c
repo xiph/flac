@@ -375,7 +375,8 @@ static FLAC__bool stream_decoder_test_respond_(FLAC__StreamDecoder *decoder, Str
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_finish()... ");
-	FLAC__stream_decoder_finish(decoder);
+	if(!FLAC__stream_decoder_finish(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	return true;
@@ -645,7 +646,8 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 	}
 
 	printf("testing FLAC__stream_decoder_finish()... ");
-	(void) FLAC__stream_decoder_finish(decoder);
+	if(!FLAC__stream_decoder_finish(decoder))
+		return die_s_("returned false", decoder);
 	printf("OK\n");
 
 	/*
