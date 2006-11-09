@@ -564,7 +564,7 @@ FLAC__bool safe_decoder_init_(const char *filename, FLAC__StreamDecoder *decoder
 void safe_decoder_finish_(FLAC__StreamDecoder *decoder)
 {
 	if(decoder && FLAC__stream_decoder_get_state(decoder) != FLAC__STREAM_DECODER_UNINITIALIZED)
-		FLAC__stream_decoder_finish(decoder);
+		(void)FLAC__stream_decoder_finish(decoder);
 	if(stream_data_.is_http_source)
 		flac_http_close();
 }

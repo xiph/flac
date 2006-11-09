@@ -473,7 +473,7 @@ int DecoderSession_finish_ok(DecoderSession *d)
 int DecoderSession_finish_error(DecoderSession *d)
 {
 	if(d->decoder) {
-		FLAC__stream_decoder_finish(d->decoder);
+		(void)FLAC__stream_decoder_finish(d->decoder);
 		FLAC__stream_decoder_delete(d->decoder);
 	}
 	if(d->analysis_mode)

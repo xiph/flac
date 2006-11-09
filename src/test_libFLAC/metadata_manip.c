@@ -623,17 +623,17 @@ static FLAC__bool test_file_(const char *filename, FLAC__StreamDecoderMetadataCa
 	FLAC__stream_decoder_set_md5_checking(decoder, true);
 	FLAC__stream_decoder_set_metadata_respond_all(decoder);
 	if(FLAC__stream_decoder_init_file(decoder, filename, decoder_write_callback_, metadata_callback, decoder_error_callback_, &decoder_client_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
-		FLAC__stream_decoder_finish(decoder);
+		(void)FLAC__stream_decoder_finish(decoder);
 		FLAC__stream_decoder_delete(decoder);
 		return die_("initializing decoder\n");
 	}
 	if(!FLAC__stream_decoder_process_until_end_of_stream(decoder)) {
-		FLAC__stream_decoder_finish(decoder);
+		(void)FLAC__stream_decoder_finish(decoder);
 		FLAC__stream_decoder_delete(decoder);
 		return die_("decoding file\n");
 	}
 
-	FLAC__stream_decoder_finish(decoder);
+	(void)FLAC__stream_decoder_finish(decoder);
 	FLAC__stream_decoder_delete(decoder);
 
 	if(decoder_client_data.error_occurred)

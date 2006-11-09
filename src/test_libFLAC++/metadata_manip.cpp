@@ -619,15 +619,15 @@ static bool test_file_(const char *filename, bool ignore_metadata)
 	decoder.set_md5_checking(true);
 	decoder.set_metadata_respond_all();
 	if(decoder.init(filename) != ::FLAC__STREAM_DECODER_INIT_STATUS_OK) {
-		decoder.finish();
+		(void)decoder.finish();
 		return die_("initializing decoder\n");
 	}
 	if(!decoder.process_until_end_of_stream()) {
-		decoder.finish();
+		(void)decoder.finish();
 		return die_("decoding file\n");
 	}
 
-	decoder.finish();
+	(void)decoder.finish();
 
 	if(decoder.error_occurred_)
 		return false;

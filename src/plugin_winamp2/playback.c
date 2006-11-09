@@ -165,7 +165,7 @@ FLAC__bool FLAC_plugin__decoder_init(FLAC__StreamDecoder *decoder, const char *f
 void FLAC_plugin__decoder_finish(FLAC__StreamDecoder *decoder)
 {
 	if (decoder && FLAC__stream_decoder_get_state(decoder) != FLAC__STREAM_DECODER_UNINITIALIZED)
-		FLAC__stream_decoder_finish(decoder);
+		(void)FLAC__stream_decoder_finish(decoder);
 }
 
 void FLAC_plugin__decoder_delete(FLAC__StreamDecoder *decoder)

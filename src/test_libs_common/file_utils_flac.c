@@ -134,7 +134,7 @@ FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_f
 		length -= n;
 	}
 
-	FLAC__stream_encoder_finish(encoder);
+	(void)FLAC__stream_encoder_finish(encoder);
 
 	fclose(encoder_client_data.file);
 

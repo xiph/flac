@@ -54,7 +54,7 @@ namespace FLAC {
 		Stream::~Stream()
 		{
 			if(0 != encoder_) {
-				::FLAC__stream_encoder_finish(encoder_);
+				(void)::FLAC__stream_encoder_finish(encoder_);
 				::FLAC__stream_encoder_delete(encoder_);
 			}
 		}
@@ -347,10 +347,10 @@ namespace FLAC {
 			return ::FLAC__stream_encoder_init_ogg_stream(encoder_, read_callback_, write_callback_, seek_callback_, tell_callback_, metadata_callback_, /*client_data=*/(void*)this);
 		}
 
-		void Stream::finish()
+		bool Stream::finish()
 		{
 			FLAC__ASSERT(is_valid());
-			::FLAC__stream_encoder_finish(encoder_);
+			return (bool)::FLAC__stream_encoder_finish(encoder_);
 		}
 
 		bool Stream::process(const FLAC__int32 * const buffer[], unsigned samples)

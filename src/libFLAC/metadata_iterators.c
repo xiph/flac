@@ -187,20 +187,20 @@ static FLAC__StreamMetadata *get_one_metadata_block_(const char *filename, FLAC_
 	FLAC__stream_decoder_set_metadata_respond(decoder, type);
 
 	if(FLAC__stream_decoder_init_file(decoder, filename, write_callback_, metadata_callback_, error_callback_, &cd) != FLAC__STREAM_DECODER_INIT_STATUS_OK || cd.got_error) {
-		FLAC__stream_decoder_finish(decoder);
+		(void)FLAC__stream_decoder_finish(decoder);
 		FLAC__stream_decoder_delete(decoder);
 		return 0;
 	}
 
 	if(!FLAC__stream_decoder_process_until_end_of_metadata(decoder) || cd.got_error) {
-		FLAC__stream_decoder_finish(decoder);
+		(void)FLAC__stream_decoder_finish(decoder);
 		FLAC__stream_decoder_delete(decoder);
 		if(0 != cd.object)
 			FLAC__metadata_object_delete(cd.object);
 		return 0;
 	}
 
-	FLAC__stream_decoder_finish(decoder);
+	(void)FLAC__stream_decoder_finish(decoder);
 	FLAC__stream_decoder_delete(decoder);
 
 	return cd.object;
