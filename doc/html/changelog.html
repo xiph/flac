@@ -185,6 +185,7 @@
 							<li><b>Added</b> FLAC__metadata_object_cuesheet_calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC__metadata_get_cuesheet()</li>
 							<li><b>Added</b> FLAC__metadata_get_picture()</li>
+							<li><b>Changed</b> FLAC__stream_encoder_finish() now returns a FLAC__bool to signal a verify failure.</li>
 							<li><b>Changed</b> FLAC__StreamDecoderState: removed state FLAC__STREAM_DECODER_UNPARSEABLE_STREAM</li>
 							<li><b>Changed</b> FLAC__StreamDecoderErrorStatus: new error code FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM</li>
 							<li>The above two changes mean that when the decoder encounters what it thinks are unparseable frames from a future decoder, instead of returning a fatal error with the FLAC__STREAM_DECODER_UNPARSEABLE_STREAM state, it just calls the error callback with FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM and leaves the behavior up to the application.</li>
@@ -199,6 +200,8 @@
 							<li><b>Added</b> FLAC::Metadata::CueSheet::calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC::Metadata::get_cuesheet()</li>
 							<li><b>Added</b> FLAC::Metadata::get_picture()</li>
+							<li><b>Changed</b> FLAC::Decoder::Stream::finish() now returns a bool to signal an MD5 failure like FLAC__stream_decoder_finish() does.</li>
+							<li><b>Changed</b> FLAC::Encoder::Stream::finish() now returns a bool to signal a verify failure.</li>
 						</ul>
 					</li>
 					<li>

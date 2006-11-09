@@ -1683,8 +1683,12 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_file(FLAC__
  * \param  encoder  An uninitialized encoder instance.
  * \assert
  *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if verify mode is set (see FLAC__stream_encoder_set_verify())
+ *    and there was a verify mismatch (in which case the state will be
+ *    \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR), else \c true.
  */
-FLAC_API void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder);
+FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder);
 
 /** Submit data for encoding.
  *  This version allows you to supply the input data via an array of

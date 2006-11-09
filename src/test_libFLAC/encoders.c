@@ -443,7 +443,8 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 	printf("OK\n");
 
 	printf("testing FLAC__stream_encoder_finish()... ");
-	FLAC__stream_encoder_finish(encoder);
+	if(!FLAC__stream_encoder_finish(encoder))
+		return die_s_("returned false", encoder);
 	printf("OK\n");
 
 	printf("testing FLAC__stream_encoder_delete()... ");

@@ -172,7 +172,7 @@ namespace FLAC {
 			virtual ::FLAC__StreamEncoderInitStatus init();            ///< See FLAC__stream_encoder_init_stream()
 			virtual ::FLAC__StreamEncoderInitStatus init_ogg();        ///< See FLAC__stream_encoder_init_ogg_stream()
 
-			virtual void finish(); ///< See FLAC__stream_encoder_finish()
+			virtual bool finish(); ///< See FLAC__stream_encoder_finish()
 
 			virtual bool process(const FLAC__int32 * const buffer[], unsigned samples);     ///< See FLAC__stream_encoder_process()
 			virtual bool process_interleaved(const FLAC__int32 buffer[], unsigned samples); ///< See FLAC__stream_encoder_process_interleaved()

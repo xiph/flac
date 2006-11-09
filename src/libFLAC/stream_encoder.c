@@ -612,7 +612,7 @@ FLAC_API void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 
 	encoder->private_->is_being_deleted = true;
 
-	FLAC__stream_encoder_finish(encoder);
+	(void)FLAC__stream_encoder_finish(encoder);
 
 	if(0 != encoder->private_->verify.decoder)
 		FLAC__stream_decoder_delete(encoder->private_->verify.decoder);
@@ -1350,19 +1350,22 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_file(
 	return init_file_internal_(encoder, filename, progress_callback, client_data, /*is_ogg=*/true);
 }
 
-FLAC_API void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
+FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 {
+	FLAC__bool verify_mismatch = false;
+
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
 
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_UNINITIALIZED)
-		return;
+		return true;
 
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		if(encoder->private_->current_sample_number != 0) {
 			encoder->protected_->blocksize = encoder->private_->current_sample_number;
-			process_frame_(encoder, /*is_fractional_block=*/true);
+			if(!process_frame_(encoder, /*is_fractional_block=*/true) && encoder->protected_->state == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA)
+				verify_mismatch = true;
 		}
 	}
 
@@ -1381,8 +1384,8 @@ FLAC_API void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 			encoder->private_->metadata_callback(encoder, &encoder->private_->streaminfo, encoder->private_->client_data);
 	}
 
-	if(encoder->protected_->verify && 0 != encoder->private_->verify.decoder)
-		FLAC__stream_decoder_finish(encoder->private_->verify.decoder);
+	if(encoder->protected_->verify && 0 != encoder->private_->verify.decoder && !FLAC__stream_decoder_finish(encoder->private_->verify.decoder))
+		verify_mismatch = true;
 
 	if(0 != encoder->private_->file) {
 		if(encoder->private_->file != stdout)
@@ -1398,7 +1401,13 @@ FLAC_API void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	free_(encoder);
 	set_defaults_(encoder);
 
-	encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
+	/* change the state to uninitialized unless there was a verify mismatch */
+	if(verify_mismatch)
+		encoder->protected_->state = FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA;
+	else
+		encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
+
+	return !verify_mismatch;
 }
 
 FLAC_API FLAC__bool FLAC__stream_encoder_set_ogg_serial_number(FLAC__StreamEncoder *encoder, long value)
