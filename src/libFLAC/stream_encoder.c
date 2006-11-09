@@ -4442,10 +4442,9 @@ FLAC__StreamDecoderWriteStatus verify_write_callback_(const FLAC__StreamDecoder 
 		}
 	}
 	/* dequeue the frame from the fifo */
-	for(channel = 0; channel < channels; channel++) {
-		memmove(&encoder->private_->verify.input_fifo.data[channel][0], &encoder->private_->verify.input_fifo.data[channel][blocksize], encoder->private_->verify.input_fifo.tail - blocksize);
-	}
 	encoder->private_->verify.input_fifo.tail -= blocksize;
+	for(channel = 0; channel < channels; channel++)
+		memmove(&encoder->private_->verify.input_fifo.data[channel][0], &encoder->private_->verify.input_fifo.data[channel][blocksize], encoder->private_->verify.input_fifo.tail * sizeof(encoder->private_->verify.input_fifo.data[0][0]));
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
