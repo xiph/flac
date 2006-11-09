@@ -332,7 +332,11 @@ bool StreamDecoder::test_respond(bool is_ogg)
 	printf("OK\n");
 
 	printf("testing finish()... ");
-	finish();
+	if(!finish()) {
+		State state = get_state();
+		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		return false;
+	}
 	printf("OK\n");
 
 	return true;
@@ -414,7 +418,11 @@ bool FileDecoder::test_respond(bool is_ogg)
 	printf("OK\n");
 
 	printf("testing finish()... ");
-	finish();
+	if(!finish()) {
+		State state = get_state();
+		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		return false;
+	}
 	printf("OK\n");
 
 	return true;
@@ -714,7 +722,11 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	}
 
 	printf("testing finish()... ");
-	decoder->finish();
+	if(!decoder->finish()) {
+		FLAC::Decoder::Stream::State state = decoder->get_state();
+		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		return false;
+	}
 	printf("OK\n");
 
 	/*

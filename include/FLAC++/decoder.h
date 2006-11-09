@@ -143,7 +143,7 @@ namespace FLAC {
 			virtual ::FLAC__StreamDecoderInitStatus init();      ///< Seek FLAC__stream_decoder_init_stream()
 			virtual ::FLAC__StreamDecoderInitStatus init_ogg();  ///< Seek FLAC__stream_decoder_init_ogg_stream()
 
-			virtual void finish(); ///< See FLAC__stream_decoder_finish()
+			virtual bool finish(); ///< See FLAC__stream_decoder_finish()
 
 			virtual bool flush(); ///< See FLAC__stream_decoder_flush()
 			virtual bool reset(); ///< See FLAC__stream_decoder_reset()
