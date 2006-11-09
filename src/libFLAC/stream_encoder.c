@@ -131,15 +131,15 @@ static struct CompressionLevels {
 
 static void set_defaults_(FLAC__StreamEncoder *encoder);
 static void free_(FLAC__StreamEncoder *encoder);
-static FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size);
+static FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_blocksize);
 static FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, unsigned samples);
 static FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples);
 static void update_metadata_(const FLAC__StreamEncoder *encoder);
 #if FLAC__HAS_OGG
 static void update_ogg_metadata_(FLAC__StreamEncoder *encoder);
 #endif
-static FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
-static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame);
+static FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional_block);
+static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional_block);
 
 static FLAC__bool process_subframe_(
 	FLAC__StreamEncoder *encoder,
@@ -1362,7 +1362,7 @@ FLAC_API void FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		if(encoder->private_->current_sample_number != 0) {
 			encoder->protected_->blocksize = encoder->private_->current_sample_number;
-			process_frame_(encoder, true); /* true => is last frame */
+			process_frame_(encoder, /*is_fractional_block=*/true);
 		}
 	}
 
@@ -1999,7 +1999,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 					encoder->private_->current_sample_number++;
 				}
 				if(i == blocksize) {
-					if(!process_frame_(encoder, false)) /* false => not last frame */
+					if(!process_frame_(encoder, /*is_fractional_block=*/false))
 						return false;
 				}
 			} while(j < samples);
@@ -2024,7 +2024,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 					encoder->private_->current_sample_number++;
 				}
 				if(i == blocksize) {
-					if(!process_frame_(encoder, false)) /* false => not last frame */
+					if(!process_frame_(encoder, /*is_fractional_block=*/false))
 						return false;
 				}
 			} while(j < samples);
@@ -2052,7 +2052,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 					encoder->private_->current_sample_number++;
 				}
 				if(i == blocksize) {
-					if(!process_frame_(encoder, false)) /* false => not last frame */
+					if(!process_frame_(encoder, /*is_fractional_block=*/false))
 						return false;
 				}
 			} while(j < samples);
@@ -2072,7 +2072,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 					encoder->private_->current_sample_number++;
 				}
 				if(i == blocksize) {
-					if(!process_frame_(encoder, false)) /* false => not last frame */
+					if(!process_frame_(encoder, /*is_fractional_block=*/false))
 						return false;
 				}
 			} while(j < samples);
@@ -2131,7 +2131,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 					encoder->private_->current_sample_number++;
 				}
 				if(i == blocksize) {
-					if(!process_frame_(encoder, false)) /* false => not last frame */
+					if(!process_frame_(encoder, /*is_fractional_block=*/false))
 						return false;
 				}
 			} while(j < samples);
@@ -2156,7 +2156,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 					encoder->private_->current_sample_number++;
 				}
 				if(i == blocksize) {
-					if(!process_frame_(encoder, false)) /* false => not last frame */
+					if(!process_frame_(encoder, /*is_fractional_block=*/false))
 						return false;
 				}
 			} while(j < samples);
@@ -2184,7 +2184,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 					encoder->private_->current_sample_number++;
 				}
 				if(i == blocksize) {
-					if(!process_frame_(encoder, false)) /* false => not last frame */
+					if(!process_frame_(encoder, /*is_fractional_block=*/false))
 						return false;
 				}
 			} while(j < samples);
@@ -2204,7 +2204,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 					encoder->private_->current_sample_number++;
 				}
 				if(i == blocksize) {
-					if(!process_frame_(encoder, false)) /* false => not last frame */
+					if(!process_frame_(encoder, /*is_fractional_block=*/false))
 						return false;
 				}
 			} while(j < samples);
@@ -2353,17 +2353,17 @@ void free_(FLAC__StreamEncoder *encoder)
 	FLAC__bitbuffer_free(encoder->private_->frame);
 }
 
-FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size)
+FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_blocksize)
 {
 	FLAC__bool ok;
 	unsigned i, channel;
 
-	FLAC__ASSERT(new_size > 0);
+	FLAC__ASSERT(new_blocksize > 0);
 	FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
 	FLAC__ASSERT(encoder->private_->current_sample_number == 0);
 
 	/* To avoid excessive malloc'ing, we only grow the buffer; no shrinking. */
-	if(new_size <= encoder->private_->input_capacity)
+	if(new_blocksize <= encoder->private_->input_capacity)
 		return true;
 
 	ok = true;
@@ -2371,113 +2371,114 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_size)
 	/* WATCHOUT: FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx()
 	 * requires that the input arrays (in our case the integer signals)
 	 * have a buffer of up to 3 zeroes in front (at negative indices) for
-	 * alignment purposes; we use 4 to keep the data well-aligned.
+	 * alignment purposes; we use 4 in front to keep the data well-aligned.
 	 */
 
 	for(i = 0; ok && i < encoder->protected_->channels; i++) {
-		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_size+4, &encoder->private_->integer_signal_unaligned[i], &encoder->private_->integer_signal[i]);
-#ifndef FLAC__INTEGER_ONLY_LIBRARY
-		if(encoder->protected_->max_lpc_order > 0)
-			ok = ok && FLAC__memory_alloc_aligned_real_array(new_size, &encoder->private_->real_signal_unaligned[i], &encoder->private_->real_signal[i]);
-#endif
+		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4, &encoder->private_->integer_signal_unaligned[i], &encoder->private_->integer_signal[i]);
 		memset(encoder->private_->integer_signal[i], 0, sizeof(FLAC__int32)*4);
 		encoder->private_->integer_signal[i] += 4;
-	}
-	for(i = 0; ok && i < 2; i++) {
-		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_size+4, &encoder->private_->integer_signal_mid_side_unaligned[i], &encoder->private_->integer_signal_mid_side[i]);
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 		if(encoder->protected_->max_lpc_order > 0)
-			ok = ok && FLAC__memory_alloc_aligned_real_array(new_size, &encoder->private_->real_signal_mid_side_unaligned[i], &encoder->private_->real_signal_mid_side[i]);
+			ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize, &encoder->private_->real_signal_unaligned[i], &encoder->private_->real_signal[i]);
 #endif
+	}
+	for(i = 0; ok && i < 2; i++) {
+		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4, &encoder->private_->integer_signal_mid_side_unaligned[i], &encoder->private_->integer_signal_mid_side[i]);
 		memset(encoder->private_->integer_signal_mid_side[i], 0, sizeof(FLAC__int32)*4);
 		encoder->private_->integer_signal_mid_side[i] += 4;
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+		if(encoder->protected_->max_lpc_order > 0)
+			ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize, &encoder->private_->real_signal_mid_side_unaligned[i], &encoder->private_->real_signal_mid_side[i]);
+#endif
 	}
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	if(ok && encoder->protected_->max_lpc_order > 0) {
 		for(i = 0; ok && i < encoder->protected_->num_apodizations; i++)
-			ok = ok && FLAC__memory_alloc_aligned_real_array(new_size, &encoder->private_->window_unaligned[i], &encoder->private_->window[i]);
-		ok = ok && FLAC__memory_alloc_aligned_real_array(new_size, &encoder->private_->windowed_signal_unaligned, &encoder->private_->windowed_signal);
+			ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize, &encoder->private_->window_unaligned[i], &encoder->private_->window[i]);
+		ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize, &encoder->private_->windowed_signal_unaligned, &encoder->private_->windowed_signal);
 	}
 #endif
 	for(channel = 0; ok && channel < encoder->protected_->channels; channel++) {
 		for(i = 0; ok && i < 2; i++) {
-			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_size, &encoder->private_->residual_workspace_unaligned[channel][i], &encoder->private_->residual_workspace[channel][i]);
+			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize, &encoder->private_->residual_workspace_unaligned[channel][i], &encoder->private_->residual_workspace[channel][i]);
 		}
 	}
 	for(channel = 0; ok && channel < 2; channel++) {
 		for(i = 0; ok && i < 2; i++) {
-			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_size, &encoder->private_->residual_workspace_mid_side_unaligned[channel][i], &encoder->private_->residual_workspace_mid_side[channel][i]);
+			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize, &encoder->private_->residual_workspace_mid_side_unaligned[channel][i], &encoder->private_->residual_workspace_mid_side[channel][i]);
 		}
 	}
-	ok = ok && FLAC__memory_alloc_aligned_uint32_array(new_size, &encoder->private_->abs_residual_unaligned, &encoder->private_->abs_residual);
+	ok = ok && FLAC__memory_alloc_aligned_uint32_array(new_blocksize, &encoder->private_->abs_residual_unaligned, &encoder->private_->abs_residual);
 	if(encoder->private_->precompute_partition_sums || encoder->protected_->do_escape_coding) /* we require precompute_partition_sums if do_escape_coding because of their intertwined nature */
-		ok = ok && FLAC__memory_alloc_aligned_uint64_array(new_size * 2, &encoder->private_->abs_residual_partition_sums_unaligned, &encoder->private_->abs_residual_partition_sums);
+		ok = ok && FLAC__memory_alloc_aligned_uint64_array(new_blocksize * 2, &encoder->private_->abs_residual_partition_sums_unaligned, &encoder->private_->abs_residual_partition_sums);
 	if(encoder->protected_->do_escape_coding)
-		ok = ok && FLAC__memory_alloc_aligned_unsigned_array(new_size * 2, &encoder->private_->raw_bits_per_partition_unaligned, &encoder->private_->raw_bits_per_partition);
+		ok = ok && FLAC__memory_alloc_aligned_unsigned_array(new_blocksize * 2, &encoder->private_->raw_bits_per_partition_unaligned, &encoder->private_->raw_bits_per_partition);
 
-	if(ok)
-		encoder->private_->input_capacity = new_size;
-	else
-		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-
+	/* now adjust the windows if the blocksize has changed */
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-	if(ok && encoder->protected_->max_lpc_order > 0) {
+	if(ok && new_blocksize != encoder->private_->input_capacity && encoder->protected_->max_lpc_order > 0) {
 		for(i = 0; ok && i < encoder->protected_->num_apodizations; i++) {
 			switch(encoder->protected_->apodizations[i].type) {
 				case FLAC__APODIZATION_BARTLETT:
-					FLAC__window_bartlett(encoder->private_->window[i], new_size);
+					FLAC__window_bartlett(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_BARTLETT_HANN:
-					FLAC__window_bartlett_hann(encoder->private_->window[i], new_size);
+					FLAC__window_bartlett_hann(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_BLACKMAN:
-					FLAC__window_blackman(encoder->private_->window[i], new_size);
+					FLAC__window_blackman(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_BLACKMAN_HARRIS_4TERM_92DB_SIDELOBE:
-					FLAC__window_blackman_harris_4term_92db_sidelobe(encoder->private_->window[i], new_size);
+					FLAC__window_blackman_harris_4term_92db_sidelobe(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_CONNES:
-					FLAC__window_connes(encoder->private_->window[i], new_size);
+					FLAC__window_connes(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_FLATTOP:
-					FLAC__window_flattop(encoder->private_->window[i], new_size);
+					FLAC__window_flattop(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_GAUSS:
-					FLAC__window_gauss(encoder->private_->window[i], new_size, encoder->protected_->apodizations[i].parameters.gauss.stddev);
+					FLAC__window_gauss(encoder->private_->window[i], new_blocksize, encoder->protected_->apodizations[i].parameters.gauss.stddev);
 					break;
 				case FLAC__APODIZATION_HAMMING:
-					FLAC__window_hamming(encoder->private_->window[i], new_size);
+					FLAC__window_hamming(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_HANN:
-					FLAC__window_hann(encoder->private_->window[i], new_size);
+					FLAC__window_hann(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_KAISER_BESSEL:
-					FLAC__window_kaiser_bessel(encoder->private_->window[i], new_size);
+					FLAC__window_kaiser_bessel(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_NUTTALL:
-					FLAC__window_nuttall(encoder->private_->window[i], new_size);
+					FLAC__window_nuttall(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_RECTANGLE:
-					FLAC__window_rectangle(encoder->private_->window[i], new_size);
+					FLAC__window_rectangle(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_TRIANGLE:
-					FLAC__window_triangle(encoder->private_->window[i], new_size);
+					FLAC__window_triangle(encoder->private_->window[i], new_blocksize);
 					break;
 				case FLAC__APODIZATION_TUKEY:
-					FLAC__window_tukey(encoder->private_->window[i], new_size, encoder->protected_->apodizations[i].parameters.tukey.p);
+					FLAC__window_tukey(encoder->private_->window[i], new_blocksize, encoder->protected_->apodizations[i].parameters.tukey.p);
 					break;
 				case FLAC__APODIZATION_WELCH:
-					FLAC__window_welch(encoder->private_->window[i], new_size);
+					FLAC__window_welch(encoder->private_->window[i], new_blocksize);
 					break;
 				default:
 					FLAC__ASSERT(0);
 					/* double protection */
-					FLAC__window_hann(encoder->private_->window[i], new_size);
+					FLAC__window_hann(encoder->private_->window[i], new_blocksize);
 					break;
 			}
 		}
 	}
 #endif
+
+	if(ok)
+		encoder->private_->input_capacity = new_blocksize;
+	else
+		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 
 	return ok;
 }
@@ -2944,7 +2945,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 }
 #endif
 
-FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame)
+FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional_block)
 {
 	FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
 
@@ -2959,7 +2960,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame
 	/*
 	 * Process the frame header and subframes into the frame bitbuffer
 	 */
-	if(!process_subframes_(encoder, is_last_frame)) {
+	if(!process_subframes_(encoder, is_fractional_block)) {
 		/* the above function sets the state for us in case of an error */
 		return false;
 	}
@@ -2996,7 +2997,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame
 	return true;
 }
 
-FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_frame)
+FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional_block)
 {
 	FLAC__FrameHeader frame_header;
 	unsigned channel, min_partition_order = encoder->protected_->min_residual_partition_order, max_partition_order;
@@ -3005,7 +3006,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_f
 	/*
 	 * Calculate the min,max Rice partition orders
 	 */
-	if(is_last_frame) {
+	if(is_fractional_block) {
 		max_partition_order = 0;
 	}
 	else {
