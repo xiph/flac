@@ -140,16 +140,38 @@ rm -f exist.wav exist.flac
 # test fractional block sizes
 ############################################################################
 
-for samples in 254 255 256 257 258 510 511 512 513 514 ; do
+test_fractional ()
+{
+	blocksize=$1
+	samples=$2
 	dd if=noise.raw ibs=4 count=$samples of=pbs.raw 2>/dev/null || $dddie
-	echo -n "fractional block size test ($samples) encode... "
-	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=256 -o pbs.flac pbs.raw || die "ERROR"
+	echo -n "fractional block size test (blocksize=$blocksize samples=$samples) encode... "
+	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=$blocksize --lax -o pbs.flac pbs.raw || die "ERROR"
 	echo -n "decode... "
 	run_flac $SILENT --force --decode --force-raw-format --endian=little --sign=signed -o pbs.cmp pbs.flac || die "ERROR"
 	echo -n "compare... "
 	cmp pbs.raw pbs.cmp || die "ERROR: file mismatch"
 	echo "OK"
 	rm -f pbs.raw pbs.flac pbs.cmp
+}
+
+# The special significance of 2048 is it's the # of samples that flac calls
+# FLAC__stream_encoder_process() on.
+#
+# We're trying to make sure the 1-sample overread logic in the stream encoder
+# (used for last-block checking) works; these values probe around common
+# multiples of the flac sample chunk size (2048) and the blocksize.
+for samples in 31 32 33 34 35 2046 2047 2048 2049 2050 ; do
+	test_fractional 33 $samples
+done
+for samples in 254 255 256 257 258 510 511 512 513 514 1022 1023 1024 1025 1026 2046 2047 2048 2049 2050 4094 4095 4096 4097 4098 ; do
+	test_fractional 256 $samples
+done
+for samples in 1022 1023 1024 1025 1026 2046 2047 2048 2049 2050 4094 4095 4096 4097 4098 ; do
+	test_fractional 2048 $samples
+done
+for samples in 1022 1023 1024 1025 1026 2046 2047 2048 2049 2050 4094 4095 4096 4097 4098 4606 4607 4608 4609 4610 8190 8191 8192 8193 8194 16382 16383 16384 16385 16386 ; do
+	test_fractional 4608 $samples
 done
 
 ############################################################################
