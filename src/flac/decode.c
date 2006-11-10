@@ -464,7 +464,7 @@ int DecoderSession_finish_ok(DecoderSession *d)
 		flac__utils_printf(stderr, 2, "\r%s: %s         \n", d->inbasefilename, d->test_only? "ok           ":d->analysis_mode?"done           ":"done");
 	}
 	DecoderSession_destroy(d, /*error_occurred=*/!ok);
-	if((d->is_wave_out || d->is_aiff_out) && (d->iff_headers_need_fixup || (!d->got_stream_info && strcmp(d->outfilename, "-"))))
+	if(!d->test_only && (d->is_wave_out || d->is_aiff_out) && (d->iff_headers_need_fixup || (!d->got_stream_info && strcmp(d->outfilename, "-"))))
 		if(!fixup_iff_headers(d))
 			return 1;
 	return ok? 0 : 1;
