@@ -1905,7 +1905,8 @@ const char *get_outfilename(const char *infilename, const char *suffix)
 				return 0;
 			if (flac__strlcat(buffer, infilename, sizeof buffer) >= sizeof buffer)
 				return 0;
-			if(0 == (p = strrchr(buffer, '.'))) {
+			/* the . must come after any / to avoid problems with, e.g. "some.directory/extensionless-filename" */
+			if(0 == (p = strrchr(buffer, '.')) || strchr(p, '/')) {
 				if (flac__strlcat(buffer, suffix, sizeof buffer) >= sizeof buffer)
 					return 0;
 			}
