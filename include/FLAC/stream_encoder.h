@@ -903,6 +903,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_do_mid_side_stereo(FLAC__StreamEnco
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
+/* @@@@add to unit tests*/
 /** Sets the apodization function(s) the encoder will use when windowing
  *  audio data for LPC analysis.
  *
@@ -946,7 +947,6 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamE
  * \retval FLAC__bool
  *    \c false if the encoder is already initialized, else \c true.
  */
-/* @@@@add to unit tests*/
 FLAC_API FLAC__bool FLAC__stream_encoder_set_apodization(FLAC__StreamEncoder *encoder, const char *specification);
 
 /** Set the maximum LPC order, or \c 0 to use only the fixed predictors.
