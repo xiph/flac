@@ -102,7 +102,7 @@ for f in b00 b01 b02 b03 b04 ; do
 						done
 					done
 					if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
-						test_file $binfile $channels $bps "-b 16384 -m -r 8 -l 32 -e -p $disable"
+						test_file $binfile $channels $bps "--lax -b 16384 -m -r 8 -l 32 -e -p $disable"
 					fi
 				done
 			done
