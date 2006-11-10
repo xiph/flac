@@ -98,3 +98,7 @@ cident FLAC__cpu_info_sse_test_asm_ia32
 	pop	ebx
 
 end
+
+%ifdef OBJ_FORMAT_elf
+       section .note.GNU-stack noalloc
+%endif

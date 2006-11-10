@@ -304,3 +304,7 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	ret
 
 end
+
+%ifdef OBJ_FORMAT_elf
+       section .note.GNU-stack noalloc
+%endif
