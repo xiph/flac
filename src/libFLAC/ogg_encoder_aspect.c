@@ -108,7 +108,7 @@ void FLAC__ogg_encoder_aspect_set_defaults(FLAC__OggEncoderAspect *aspect)
  * separate write callback for the fLaC magic, and then separate write
  * callbacks for each metadata block and audio frame.
  */
-FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(FLAC__OggEncoderAspect *aspect, const FLAC__uint64 total_samples_estimate, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, FLAC__bool is_last_block, FLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data)
+FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(FLAC__OggEncoderAspect *aspect, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, FLAC__bool is_last_block, FLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data)
 {
 	/* WATCHOUT:
 	 * This depends on the behavior of FLAC__StreamEncoder that 'samples'

@@ -562,7 +562,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 #ifdef _MSC_VER
 			PPR; printf("  total samples: %I64u\n", block->data.stream_info.total_samples);
 #else
-			PPR; printf("  total samples: %llu\n", block->data.stream_info.total_samples);
+			PPR; printf("  total samples: %llu\n", (unsigned long long)block->data.stream_info.total_samples);
 #endif
 			PPR; printf("  MD5 signature: ");
 			for(i = 0; i < 16; i++) {
@@ -593,7 +593,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 #ifdef _MSC_VER
 					PPR; printf("    point %u: sample_number=%I64u, stream_offset=%I64u, frame_samples=%u\n", i, block->data.seek_table.points[i].sample_number, block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
 #else
-					PPR; printf("    point %u: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, block->data.seek_table.points[i].sample_number, block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
+					PPR; printf("    point %u: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, (unsigned long long)block->data.seek_table.points[i].sample_number, (unsigned long long)block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
 #endif
 				}
 				else {
@@ -615,7 +615,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 #ifdef _MSC_VER
 			PPR; printf("  lead-in: %I64u\n", block->data.cue_sheet.lead_in);
 #else
-			PPR; printf("  lead-in: %llu\n", block->data.cue_sheet.lead_in);
+			PPR; printf("  lead-in: %llu\n", (unsigned long long)block->data.cue_sheet.lead_in);
 #endif
 			PPR; printf("  is CD: %s\n", block->data.cue_sheet.is_cd? "true":"false");
 			PPR; printf("  number of tracks: %u\n", block->data.cue_sheet.num_tracks);
@@ -627,7 +627,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 #ifdef _MSC_VER
 				PPR; printf("      offset: %I64u\n", track->offset);
 #else
-				PPR; printf("      offset: %llu\n", track->offset);
+				PPR; printf("      offset: %llu\n", (unsigned long long)track->offset);
 #endif
 				if(is_last) {
 					PPR; printf("      number: %u (%s)\n", (unsigned)track->number, is_leadout? "LEAD-OUT" : "INVALID");
@@ -646,7 +646,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 #ifdef _MSC_VER
 						PPR; printf("          offset: %I64u\n", index->offset);
 #else
-						PPR; printf("          offset: %llu\n", index->offset);
+						PPR; printf("          offset: %llu\n", (unsigned long long)index->offset);
 #endif
 						PPR; printf("          number: %u\n", (unsigned)index->number);
 					}

@@ -46,7 +46,7 @@ static FLAC__bool compare_track_(const FLAC__StreamMetadata_CueSheet_Track *from
 	unsigned i;
 
 	if(from->offset != to->offset) {
-		printf("FAILED, track offset mismatch, expected %llu, got %llu\n", to->offset, from->offset);
+		printf("FAILED, track offset mismatch, expected %llu, got %llu\n", (unsigned long long)to->offset, (unsigned long long)from->offset);
 		return false;
 	}
 	if(from->number != to->number) {
@@ -78,7 +78,7 @@ static FLAC__bool compare_track_(const FLAC__StreamMetadata_CueSheet_Track *from
 	else {
 		for(i = 0; i < to->num_indices; i++) {
 			if(from->indices[i].offset != to->indices[i].offset) {
-				printf("FAILED, track indices[%u].offset mismatch, expected %llu, got %llu\n", i, to->indices[i].offset, from->indices[i].offset);
+				printf("FAILED, track indices[%u].offset mismatch, expected %llu, got %llu\n", i, (unsigned long long)to->indices[i].offset, (unsigned long long)from->indices[i].offset);
 				return false;
 			}
 			if(from->indices[i].number != to->indices[i].number) {
@@ -100,11 +100,11 @@ static FLAC__bool compare_seekpoint_array_(const FLAC__StreamMetadata_SeekPoint 
 
 	for(i = 0; i < n; i++) {
 		if(from[i].sample_number != to[i].sample_number) {
-			printf("FAILED, point[%u].sample_number mismatch, expected %llu, got %llu\n", i, to[i].sample_number, from[i].sample_number);
+			printf("FAILED, point[%u].sample_number mismatch, expected %llu, got %llu\n", i, (unsigned long long)to[i].sample_number, (unsigned long long)from[i].sample_number);
 			return false;
 		}
 		if(from[i].stream_offset != to[i].stream_offset) {
-			printf("FAILED, point[%u].stream_offset mismatch, expected %llu, got %llu\n", i, to[i].stream_offset, from[i].stream_offset);
+			printf("FAILED, point[%u].stream_offset mismatch, expected %llu, got %llu\n", i, (unsigned long long)to[i].stream_offset, (unsigned long long)from[i].stream_offset);
 			return false;
 		}
 		if(from[i].frame_samples != to[i].frame_samples) {

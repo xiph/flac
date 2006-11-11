@@ -103,7 +103,7 @@ static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder 
 	}
 	else if (frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER) {
 		if (!dcd->quiet)
-			printf("frame@%llu(%u)... ", frame->header.number.sample_number, frame->header.blocksize);
+			printf("frame@%llu(%u)... ", (unsigned long long)frame->header.number.sample_number, frame->header.blocksize);
 	}
 	else {
 		FLAC__ASSERT(0);
@@ -202,7 +202,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 			return die_s_("expected FLAC__STREAM_DECODER_END_OF_STREAM", decoder);
 	}
 
-	printf("file's total_samples is %llu\n", decoder_client_data.total_samples);
+	printf("file's total_samples is %llu\n", (unsigned long long)decoder_client_data.total_samples);
 #if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
 	if (decoder_client_data.total_samples > (FLAC__uint64)RAND_MAX) {
 		printf("ERROR: must be total_samples < %u\n", (unsigned)RAND_MAX);
@@ -248,7 +248,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 #endif
 		}
 
-		printf("seek(%llu)... ", pos);
+		printf("seek(%llu)... ", (unsigned long long)pos);
 		fflush(stdout);
 		if(!FLAC__stream_decoder_seek_absolute(decoder, pos)) {
 			if(pos < (FLAC__uint64)n && decoder_client_data.total_samples != 0)

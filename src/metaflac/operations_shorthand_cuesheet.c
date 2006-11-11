@@ -162,7 +162,7 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 #ifdef _MSC_VER
 				sprintf(spec, "%I64u;", tr->offset + tr->indices[index].offset);
 #else
-				sprintf(spec, "%llu;", tr->offset + tr->indices[index].offset);
+				sprintf(spec, "%llu;", (unsigned long long)(tr->offset + tr->indices[index].offset));
 #endif
 				local_strcat(seekpoint_specification, spec);
 			}

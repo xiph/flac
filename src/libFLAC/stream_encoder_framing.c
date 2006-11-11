@@ -251,6 +251,8 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitBuff
 				blocksize_hint = u = 6;
 			else if(header->blocksize <= 0x10000)
 				blocksize_hint = u = 7;
+			else
+				u = 0;
 			break;
 	}
 	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))

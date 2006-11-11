@@ -2707,7 +2707,6 @@ FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const 
 	if(encoder->private_->is_ogg) {
 		status = FLAC__ogg_encoder_aspect_write_callback_wrapper(
 			&encoder->protected_->ogg_encoder_aspect,
-			FLAC__stream_encoder_get_total_samples_estimate(encoder),
 			buffer,
 			bytes,
 			samples,

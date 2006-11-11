@@ -57,7 +57,6 @@ static FLAC__bool is_big_endian_host_;
  * reflect the addition of 16 longwords of new data.  MD5Update blocks
  * the data and converts bytes into longwords for this routine.
  */
-FLaC__INLINE
 void
 FLAC__MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16])
 {

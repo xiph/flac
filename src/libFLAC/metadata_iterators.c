@@ -2925,8 +2925,9 @@ FLAC__bool copy_n_bytes_from_file_(FILE *file, FILE *tempfile, off_t bytes, FLAC
 	FLAC__byte buffer[8192];
 	size_t n;
 
+	FLAC__ASSERT(bytes >= 0);
 	while(bytes > 0) {
-		n = min(sizeof(buffer), bytes);
+		n = min(sizeof(buffer), (size_t)bytes);
 		if(fread(buffer, 1, n, file) != n) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 			return false;
@@ -2946,8 +2947,9 @@ FLAC__bool copy_n_bytes_from_file_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Re
 	FLAC__byte buffer[8192];
 	size_t n;
 
+	FLAC__ASSERT(bytes >= 0);
 	while(bytes > 0) {
-		n = min(sizeof(buffer), bytes);
+		n = min(sizeof(buffer), (size_t)bytes);
 		if(read_cb(buffer, 1, n, handle) != n) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 			return false;

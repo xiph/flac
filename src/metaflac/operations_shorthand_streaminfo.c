@@ -77,7 +77,7 @@ FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool p
 #ifdef _MSC_VER
 			printf("%I64u\n", block->data.stream_info.total_samples);
 #else
-			printf("%llu\n", block->data.stream_info.total_samples);
+			printf("%llu\n", (unsigned long long)block->data.stream_info.total_samples);
 #endif
 			break;
 		case OP__SET_MD5SUM:
