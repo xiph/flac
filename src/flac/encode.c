@@ -883,6 +883,10 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
 			data_bytes = xx;
+			if(0 == data_bytes) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: 'data' subchunk has size of 0\n", encoder_session.inbasefilename);
+				return EncoderSession_finish_error(&encoder_session);
+			}
 			pad = (data_bytes & 1U) ? true : false;
 
 			bytes_per_wide_sample = channels * (bps >> 3);
