@@ -19,7 +19,7 @@
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_INIT(src/flac/main.c)
-AM_INIT_AUTOMAKE(flac, 1.1.3-beta2)
+AM_INIT_AUTOMAKE(flac, 1.1.3)
 
 # Don't automagically regenerate autoconf/automake generated files unless
 # explicitly requested.  Eases autobuilding -mdz
@@ -73,6 +73,7 @@ AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 case "$host" in
 	i386-*-openbsd3.[[0-3]]) OBJ_FORMAT=aoutb ;;
 	*-*-cygwin|*mingw*) OBJ_FORMAT=win32 ;;
+	*-*-darwin*) OBJ_FORMAT=macho ;;
 	*) OBJ_FORMAT=elf ;;
 esac
 AC_SUBST(OBJ_FORMAT)
@@ -263,7 +264,7 @@ fi
 
 OUR_CFLAGS_HEAD='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
 if test "x$debug" = xtrue; then
-	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -g -O0 -DDEBUG"
+	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -g -DDEBUG"
 else
 	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -O2 -DNDEBUG"
 	if test "x$GCC" = xyes; then
