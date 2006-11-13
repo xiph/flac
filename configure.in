@@ -266,9 +266,9 @@ OUR_CFLAGS_HEAD='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
 if test "x$debug" = xtrue; then
 	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -g -DDEBUG"
 else
-	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -O2 -DNDEBUG"
+	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -DNDEBUG"
 	if test "x$GCC" = xyes; then
-		OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -O3 -fomit-frame-pointer -funroll-loops -finline-functions -Wall -W -Winline -DFLaC__INLINE=__inline__"
+		OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -O3 -funroll-loops -finline-functions -Wall -W -Winline -DFLaC__INLINE=__inline__"
 	fi
 fi
 CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS"

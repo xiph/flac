@@ -28,7 +28,7 @@ AC_ARG_ENABLE(libFLACtest, [  --disable-libFLACtest       Do not try to compile 
   elif test "x$libFLAC_prefix" != "x" ; then
     LIBFLAC_CFLAGS="-I$libFLAC_prefix/include"
   elif test "$prefix" != "xNONE"; then
-    LIBFLAC_CFLAGS="-I$prefix/include"
+    LIBFLAC_CFLAGS=""
   fi
 
   AC_MSG_CHECKING(for libFLAC)
