@@ -71,7 +71,7 @@ static FLAC__bool local__parse_timecode_(const char *s, double *value)
 	}
 	ret = (double)i * 60.;
 
-	/* parse [0-9]*[.,]?[0-9]* i.e. a sign-less rational number (. or , OK for fractional seconds, so support different locales) */
+	/* parse [0-9]*[.,]?[0-9]* i.e. a sign-less rational number (. or , OK for fractional seconds, to support different locales) */
 	if(strspn(s, "1234567890.,") != strlen(s))
 		return false;
 	{
