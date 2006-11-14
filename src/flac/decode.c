@@ -80,6 +80,7 @@ typedef struct {
 	FLAC__bool is_big_endian;
 	FLAC__bool is_unsigned_samples;
 	FLAC__bool got_stream_info;
+	FLAC__bool has_md5sum;
 	FLAC__uint64 total_samples;
 	unsigned bps;
 	unsigned channels;
@@ -273,6 +274,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	d->total_samples = 0;
 	d->got_stream_info = false;
+	d->has_md5sum = false;
 	d->bps = 0;
 	d->channels = 0;
 	d->sample_rate = 0;
@@ -423,7 +425,10 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		if(!d->continue_through_decode_errors)
 			return false;
 	}
-	if(FLAC__stream_decoder_get_state(d->decoder) > FLAC__STREAM_DECODER_END_OF_STREAM && !d->aborting_due_to_until) {
+	if(
+		(d->abort_flag && !(d->aborting_due_to_until || d->continue_through_decode_errors)) ||
+		(FLAC__stream_decoder_get_state(d->decoder) > FLAC__STREAM_DECODER_END_OF_STREAM && !d->aborting_due_to_until)
+	) {
 		flac__utils_printf(stderr, 2, "\n");
 		print_error_with_state(d, "ERROR during decoding");
 		return false;
@@ -457,10 +462,13 @@ int DecoderSession_finish_ok(DecoderSession *d)
 		flac__utils_printf(stderr, 1, "\r%s: ERROR, MD5 signature mismatch\n", d->inbasefilename);
 		ok = d->continue_through_decode_errors;
 	}
-	else if(!d->got_stream_info) {
-		flac__utils_printf(stderr, 1, "\r%s: WARNING, cannot check MD5 signature since there was no STREAMINFO\n", d->inbasefilename);
-	}
 	else {
+		if(!d->got_stream_info) {
+			flac__utils_printf(stderr, 1, "\r%s: WARNING, cannot check MD5 signature since there was no STREAMINFO\n", d->inbasefilename);
+		}
+		else if(!d->has_md5sum) {
+			flac__utils_printf(stderr, 1, "\r%s: WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n", d->inbasefilename);
+		}
 		flac__utils_printf(stderr, 2, "\r%s: %s         \n", d->inbasefilename, d->test_only? "ok           ":d->analysis_mode?"done           ":"done");
 	}
 	DecoderSession_destroy(d, /*error_occurred=*/!ok);
@@ -981,6 +989,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		FLAC__uint64 skip, until;
 		decoder_session->got_stream_info = true;
+		decoder_session->has_md5sum = memcmp(metadata->data.stream_info.md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16);
 		decoder_session->bps = metadata->data.stream_info.bits_per_sample;
 		decoder_session->channels = metadata->data.stream_info.channels;
 		decoder_session->sample_rate = metadata->data.stream_info.sample_rate;
