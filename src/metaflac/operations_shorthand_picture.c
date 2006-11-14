@@ -25,7 +25,7 @@
 #include "options.h"
 #include "utils.h"
 #include "FLAC/assert.h"
-#include "share/grabbag.h" /* for grabbag__picture_parse_specification */
+#include "share/grabbag.h" /* for grabbag__picture_parse_specification() etc */
 
 static FLAC__bool import_pic_from(const char *filename, FLAC__StreamMetadata **picture, const char *specification, FLAC__bool *needs_write);
 static FLAC__bool export_pic_to(const char *filename, const FLAC__StreamMetadata *picture, const char *pic_filename);
@@ -150,9 +150,9 @@ FLAC__bool export_pic_to(const char *filename, const FLAC__StreamMetadata *pictu
 		return false;
 	}
 	if(0 == strcmp(pic_filename, "-"))
-		f = stdout;
+		f = grabbag__file_get_binary_stdout();
 	else
-		f = fopen(pic_filename, "w");
+		f = fopen(pic_filename, "wb");
 
 	if(0 == f) {
 		fprintf(stderr, "%s: ERROR: can't open export file %s: %s\n", filename, pic_filename, strerror(errno));
