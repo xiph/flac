@@ -61,7 +61,11 @@ FLAC__bool mutils__compare_block_data_streaminfo(const FLAC__StreamMetadata_Stre
 		return false;
 	}
 	if(blockcopy->total_samples != block->total_samples) {
+#ifdef _MSC_VER
+		printf("FAILED, total_samples mismatch, expected %I64u, got %I64u\n", block->total_samples, blockcopy->total_samples);
+#else
 		printf("FAILED, total_samples mismatch, expected %llu, got %llu\n", (unsigned long long)block->total_samples, (unsigned long long)blockcopy->total_samples);
+#endif
 		return false;
 	}
 	if(0 != memcmp(blockcopy->md5sum, block->md5sum, sizeof(block->md5sum))) {
@@ -162,11 +166,19 @@ FLAC__bool mutils__compare_block_data_seektable(const FLAC__StreamMetadata_SeekT
 	}
 	for(i = 0; i < block->num_points; i++) {
 		if(blockcopy->points[i].sample_number != block->points[i].sample_number) {
+#ifdef _MSC_VER
+			printf("FAILED, points[%u].sample_number mismatch, expected %I64u, got %I64u\n", i, block->points[i].sample_number, blockcopy->points[i].sample_number);
+#else
 			printf("FAILED, points[%u].sample_number mismatch, expected %llu, got %llu\n", i, (unsigned long long)block->points[i].sample_number, (unsigned long long)blockcopy->points[i].sample_number);
+#endif
 			return false;
 		}
 		if(blockcopy->points[i].stream_offset != block->points[i].stream_offset) {
+#ifdef _MSC_VER
+			printf("FAILED, points[%u].stream_offset mismatch, expected %I64u, got %I64u\n", i, block->points[i].stream_offset, blockcopy->points[i].stream_offset);
+#else
 			printf("FAILED, points[%u].stream_offset mismatch, expected %llu, got %llu\n", i, (unsigned long long)block->points[i].stream_offset, (unsigned long long)blockcopy->points[i].stream_offset);
+#endif
 			return false;
 		}
 		if(blockcopy->points[i].frame_samples != block->points[i].frame_samples) {
@@ -228,7 +240,11 @@ FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueShe
 		return false;
 	}
 	if(blockcopy->lead_in != block->lead_in) {
+#ifdef _MSC_VER
+		printf("FAILED, lead_in mismatch, expected %I64u, got %I64u\n", block->lead_in, blockcopy->lead_in);
+#else
 		printf("FAILED, lead_in mismatch, expected %llu, got %llu\n", (unsigned long long)block->lead_in, (unsigned long long)blockcopy->lead_in);
+#endif
 		return false;
 	}
 	if(blockcopy->is_cd != block->is_cd) {
@@ -241,7 +257,11 @@ FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueShe
 	}
 	for(i = 0; i < block->num_tracks; i++) {
 		if(blockcopy->tracks[i].offset != block->tracks[i].offset) {
+#ifdef _MSC_VER
+			printf("FAILED, tracks[%u].offset mismatch, expected %I64u, got %I64u\n", i, block->tracks[i].offset, blockcopy->tracks[i].offset);
+#else
 			printf("FAILED, tracks[%u].offset mismatch, expected %llu, got %llu\n", i, (unsigned long long)block->tracks[i].offset, (unsigned long long)blockcopy->tracks[i].offset);
+#endif
 			return false;
 		}
 		if(blockcopy->tracks[i].number != block->tracks[i].number) {
@@ -275,7 +295,11 @@ FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueShe
 			else {
 				for(j = 0; j < block->tracks[i].num_indices; j++) {
 					if(blockcopy->tracks[i].indices[j].offset != block->tracks[i].indices[j].offset) {
+#ifdef _MSC_VER
+						printf("FAILED, tracks[%u].indices[%u].offset mismatch, expected %I64u, got %I64u\n", i, j, block->tracks[i].indices[j].offset, blockcopy->tracks[i].indices[j].offset);
+#else
 						printf("FAILED, tracks[%u].indices[%u].offset mismatch, expected %llu, got %llu\n", i, j, (unsigned long long)block->tracks[i].indices[j].offset, (unsigned long long)blockcopy->tracks[i].indices[j].offset);
+#endif
 						return false;
 					}
 					if(blockcopy->tracks[i].indices[j].number != block->tracks[i].indices[j].number) {

@@ -3085,7 +3085,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return false;
 			}
-			approx_bytes_per_frame = 2 * (upper_bound - pos) / 3 + 16;
+			approx_bytes_per_frame = (unsigned)(2 * (upper_bound - pos) / 3 + 16);
 		}
 		else {
 			/* target_sample >= this_frame_sample + this frame's blocksize */
@@ -3095,7 +3095,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return false;
 			}
-			approx_bytes_per_frame = 2 * (lower_bound - pos) / 3 + 16;
+			approx_bytes_per_frame = (unsigned)(2 * (lower_bound - pos) / 3 + 16);
 		}
 	}
 

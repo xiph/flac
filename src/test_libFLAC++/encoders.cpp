@@ -453,7 +453,11 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 
 	printf("testing get_total_samples_estimate()... ");
 	if(encoder->get_total_samples_estimate() != streaminfo_.data.stream_info.total_samples) {
+#ifdef _MSC_VER
+		printf("FAILED, expected %I64u, got %I64u\n", streaminfo_.data.stream_info.total_samples, encoder->get_total_samples_estimate());
+#else
 		printf("FAILED, expected %llu, got %llu\n", (unsigned long long)streaminfo_.data.stream_info.total_samples, (unsigned long long)encoder->get_total_samples_estimate());
+#endif
 		return false;
 	}
 	printf("OK\n");
