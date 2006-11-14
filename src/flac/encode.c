@@ -1992,7 +1992,10 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	else
 		e->outputfile_opened = true;
 
-	e->stats_mask = (FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x0f : 0x3f;
+	e->stats_mask =
+		(FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) && FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x07 :
+		(FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x0f :
+		0x3f;
 
 	if(0 != cuesheet)
 		FLAC__metadata_object_delete(cuesheet);
