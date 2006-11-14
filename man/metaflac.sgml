@@ -265,7 +265,8 @@ manpage.1: manpage.sgml
 	    Import tags from a file.  Use '-' for stdin.  Each
 	    line should be of the form NAME=VALUE.  Multi-line comments
 	    are currently not supported.  Specify --remove-all-tags and/or
-	    --no-utf8-convert before --import-tags-from if necessary.
+	    --no-utf8-convert before --import-tags-from if necessary.  If
+	    FILE is '-' (stdin), only one FLAC file may be specified.
 	  </para>
         </listitem>
       </varlistentry>
