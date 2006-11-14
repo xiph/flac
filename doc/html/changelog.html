@@ -109,6 +109,10 @@
 					<li>Fixed a bug with --sector-align where appended samples were not always totally silent (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1237707&amp;group_id=13478&amp;atid=113478">SF #1237707</a>).</li>
 					<li>Fixed bugs with --sector-align and raw input files.</li>
 					<li>Fixed a bug printing out unknown AIFF subchunk names (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1267476&amp;group_id=13478&amp;atid=113478">SF #1267476</a>).</li>
+					<li>Fixed a bug where WAVE files with "data" subchunks of size 0 where accepted (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1293830&amp;group_id=13478&amp;atid=113478">SF #1293830</a>).</li>
+					<li>Fixed a bug where sync error at end-of-stream of truncated files was not being caught (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1244071&amp;group_id=13478&amp;atid=113478">SF #1244071</a>).</li>
+					<li>Fixed a problem with filename parsing if file does not have extension but also has a . in the path (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1161916&amp;group_id=13478&amp;atid=113478">SF #1161916</a>).</li>
+					<li>Increase progress report rate when -p and -e are used together (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1580122&amp;group_id=13478&amp;atid=113478">SF #1580122</a>).</li>
 				</ul>
 			</li>
 			<li>
@@ -132,6 +136,7 @@
 							<li>Removed <span class="argument">--export-vc-to</span>; use <span class="argument">--export-tags-to</span></li>
 						</ul>
 					</li>
+					<li>Disallow multiple input FLAC files when --import-tags-from=- is used (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1082577&amp;group_id=13478&amp;atid=113478">SF #1082577</a>).</li>
 				</ul>
 			</li>
 			<li>
