@@ -60,8 +60,9 @@
  *  This module provides functions for creating and manipulating FLAC
  *  metadata blocks in memory, and three progressively more powerful
  *  interfaces for traversing and editing metadata in native FLAC files.
- *  Note that this metadata interface currently does not support Ogg
- *  FLAC files.
+ *  Note that currently only the Chain interface (level 2) supports Ogg
+ *  FLAC files, and it is read-only i.e. no writing back changed
+ *  metadata to file.
  *
  *  There are three metadata interfaces of increasing complexity:
  *
@@ -128,7 +129,7 @@ extern "C" {
  *  \brief
  *  The level 0 interface consists of individual routines to read the
  *  STREAMINFO, VORBIS_COMMENT, CUESHEET, and PICTURE blocks, requiring
- *   only a filename.
+ *  only a filename.
  *
  *  They try to skip any ID3v2 tag at the head of the file.
  *
