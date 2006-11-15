@@ -1095,8 +1095,8 @@ namespace FLAC {
 
 			Status status();                                                ///< See FLAC__metadata_chain_status().
 
-			bool read(const char *filename);                                ///< See FLAC__metadata_chain_read().
-			bool read(FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);  ///< See FLAC__metadata_chain_read_with_callbacks().
+			bool read(const char *filename, bool is_ogg = false);                                ///< See FLAC__metadata_chain_read(), FLAC__metadata_chain_read_ogg().
+			bool read(FLAC__IOHandle handle, FLAC__IOCallbacks callbacks, bool is_ogg = false);  ///< See FLAC__metadata_chain_read_with_callbacks(), FLAC__metadata_chain_read_ogg_with_callbacks().
 
 			bool check_if_tempfile_needed(bool use_padding);                ///< See FLAC__metadata_chain_check_if_tempfile_needed().
 

@@ -119,6 +119,7 @@
 			<li>
 				metaflac:
 				<ul>
+					<li>Added support for read-only operations on Ogg FLAC files.</li>
 					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_set_tag_from_file">--set-tag-from-file</a></span> for setting a tag from file (e.g. for importing a cuesheet as a tag).</li>
 					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture_from">--import-picture-from</a></span> for importing pictures.</li>
 					<li>Added a new option <span class="argument"><a href="documentation.html#metaflac_shorthand_export_picture_to">--export-picture-to</a></span> for exporting pictures.</li>
@@ -191,6 +192,7 @@
 							<li><b>Added</b> FLAC__metadata_object_cuesheet_calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC__metadata_get_cuesheet()</li>
 							<li><b>Added</b> FLAC__metadata_get_picture()</li>
+							<li><b>Added</b> FLAC__metadata_chain_read_ogg() and FLAC__metadata_chain_read_ogg_with_callbacks()</li>
 							<li><b>Changed</b> FLAC__stream_encoder_finish() now returns a FLAC__bool to signal a verify failure.</li>
 							<li><b>Changed</b> FLAC__StreamDecoderState: removed state FLAC__STREAM_DECODER_UNPARSEABLE_STREAM</li>
 							<li><b>Changed</b> FLAC__StreamDecoderErrorStatus: new error code FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM</li>
@@ -206,6 +208,7 @@
 							<li><b>Added</b> FLAC::Metadata::CueSheet::calculate_cddb_id()</li>
 							<li><b>Added</b> FLAC::Metadata::get_cuesheet()</li>
 							<li><b>Added</b> FLAC::Metadata::get_picture()</li>
+							<li><b>Changed</b> FLAC::Metadata::Chain::read() to accept a flag denoting Ogg FLAC input</li>
 							<li><b>Changed</b> FLAC::Decoder::Stream::finish() now returns a bool to signal an MD5 failure like FLAC__stream_decoder_finish() does.</li>
 							<li><b>Changed</b> FLAC::Encoder::Stream::finish() now returns a bool to signal a verify failure.</li>
 						</ul>

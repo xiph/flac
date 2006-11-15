@@ -1402,17 +1402,23 @@ namespace FLAC {
 			return Status(::FLAC__metadata_chain_status(chain_));
 		}
 
-		bool Chain::read(const char *filename)
+		bool Chain::read(const char *filename, bool is_ogg)
 		{
 			FLAC__ASSERT(0 != filename);
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__metadata_chain_read(chain_, filename);
+			return is_ogg?
+				(bool)::FLAC__metadata_chain_read_ogg(chain_, filename) :
+				(bool)::FLAC__metadata_chain_read(chain_, filename)
+			;
 		}
 
-		bool Chain::read(FLAC__IOHandle handle, ::FLAC__IOCallbacks callbacks)
+		bool Chain::read(FLAC__IOHandle handle, ::FLAC__IOCallbacks callbacks, bool is_ogg)
 		{
 			FLAC__ASSERT(is_valid());
-			return (bool)::FLAC__metadata_chain_read_with_callbacks(chain_, handle, callbacks);
+			return is_ogg?
+				(bool)::FLAC__metadata_chain_read_ogg_with_callbacks(chain_, handle, callbacks) :
+				(bool)::FLAC__metadata_chain_read_with_callbacks(chain_, handle, callbacks)
+			;
 		}
 
 		bool Chain::check_if_tempfile_needed(bool use_padding)

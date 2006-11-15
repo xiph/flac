@@ -839,6 +839,7 @@ typedef struct FLAC__Metadata_Node {
 
 struct FLAC__Metadata_Chain {
 	char *filename; /* will be NULL if using callbacks */
+	FLAC__bool is_ogg;
 	FLAC__Metadata_Node *head;
 	FLAC__Metadata_Node *tail;
 	unsigned nodes;
@@ -850,6 +851,9 @@ struct FLAC__Metadata_Chain {
 	 * or not the whole file has to be rewritten.
 	 */
 	off_t initial_length;
+	/* @@@ hacky, these are currently only needed by ogg reader */
+	FLAC__IOHandle handle;
+	FLAC__IOCallback_Read read_cb;
 };
 
 struct FLAC__Metadata_Iterator {
@@ -895,10 +899,12 @@ static void chain_init_(FLAC__Metadata_Chain *chain)
 	FLAC__ASSERT(0 != chain);
 
 	chain->filename = 0;
+	chain->is_ogg = false;
 	chain->head = chain->tail = 0;
 	chain->nodes = 0;
 	chain->status = FLAC__METADATA_CHAIN_STATUS_OK;
 	chain->initial_length = 0;
+	chain->read_cb = 0;
 }
 
 static void chain_clear_(FLAC__Metadata_Chain *chain)
@@ -1188,6 +1194,95 @@ static FLAC__bool chain_read_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle han
 	return true;
 }
 
+FLAC__StreamDecoderReadStatus chain_read_ogg_read_cb_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)
+{
+	FLAC__Metadata_Chain *chain = (FLAC__Metadata_Chain*)client_data;
+	(void)decoder;
+	if(*bytes > 0 && chain->status == FLAC__METADATA_CHAIN_STATUS_OK) {
+		*bytes = chain->read_cb(buffer, sizeof(FLAC__byte), *bytes, chain->handle);
+		if(*bytes == 0)
+			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+		else
+			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+	}
+	else
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+}
+
+static FLAC__StreamDecoderWriteStatus chain_read_ogg_write_cb_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+{
+	(void)decoder, (void)frame, (void)buffer, (void)client_data;
+	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+}
+
+static void chain_read_ogg_metadata_cb_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+{
+	FLAC__Metadata_Chain *chain = (FLAC__Metadata_Chain*)client_data;
+
+	(void)decoder;
+
+	FLAC__Metadata_Node *node = node_new_();
+	if(0 == node) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
+		return;
+	}
+
+	node->data = FLAC__metadata_object_clone(metadata);
+	if(0 == node->data) {
+		node_delete_(node);
+		chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
+		return;
+	}
+
+	chain_append_node_(chain, node);
+}
+
+static void chain_read_ogg_error_cb_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+{
+	FLAC__Metadata_Chain *chain = (FLAC__Metadata_Chain*)client_data;
+	(void)decoder, (void)status;
+	chain->status = FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR; /*@@@ maybe needs better error code */
+}
+
+static FLAC__bool chain_read_ogg_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb)
+{
+	FLAC__StreamDecoder *decoder;
+
+	FLAC__ASSERT(0 != chain);
+
+	/* we assume we're already at the beginning of the file */
+
+	chain->handle = handle;
+	chain->read_cb = read_cb;
+	if(0 == (decoder = FLAC__stream_decoder_new())) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
+		return false;
+	}
+	FLAC__stream_decoder_set_metadata_respond_all(decoder);
+	if(FLAC__stream_decoder_init_ogg_stream(decoder, chain_read_ogg_read_cb_, /*seek_callback=*/0, /*tell_callback=*/0, /*length_callback=*/0, /*eof_callback=*/0, chain_read_ogg_write_cb_, chain_read_ogg_metadata_cb_, chain_read_ogg_error_cb_, chain) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+		FLAC__stream_decoder_delete(decoder);
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR; /*@@@ maybe needs better error code */
+		return false;
+	}
+
+	chain->first_offset = 0; /*@@@ wrong; will need to be set correctly to implement metadata writing for Ogg FLAC */
+
+	if(!FLAC__stream_decoder_process_until_end_of_metadata(decoder))
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR; /*@@@ maybe needs better error code */
+	if(chain->status != FLAC__METADATA_CHAIN_STATUS_OK) {
+		FLAC__stream_decoder_delete(decoder);
+		return false;
+	}
+
+	FLAC__stream_decoder_delete(decoder);
+
+	chain->last_offset = 0; /*@@@ wrong; will need to be set correctly to implement metadata writing for Ogg FLAC */
+
+	chain->initial_length = chain_calculate_length_(chain);
+
+	return true;
+}
+
 static FLAC__bool chain_rewrite_metadata_in_place_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, FLAC__IOCallback_Seek seek_cb)
 {
 	FLAC__Metadata_Node *node;
@@ -1369,7 +1464,7 @@ FLAC_API FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_C
 	return status;
 }
 
-FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *filename)
+static FLAC__bool chain_read_(FLAC__Metadata_Chain *chain, const char *filename, FLAC__bool is_ogg)
 {
 	FILE *file;
 	FLAC__bool ret;
@@ -1384,21 +1479,38 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
 		return false;
 	}
 
+	chain->is_ogg = is_ogg;
+
 	if(0 == (file = fopen(filename, "rb"))) {
 		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
 		return false;
 	}
 
-	/* chain_read_cb_() sets chain->status for us */
-	ret = chain_read_cb_(chain, file, (FLAC__IOCallback_Read)fread, fseek_wrapper_, ftell_wrapper_);
+	/* the function also sets chain->status for us */
+	ret = is_ogg?
+		chain_read_ogg_cb_(chain, file, (FLAC__IOCallback_Read)fread) :
+		chain_read_cb_(chain, file, (FLAC__IOCallback_Read)fread, fseek_wrapper_, ftell_wrapper_)
+	;
 
 	fclose(file);
 
 	return ret;
 }
 
-FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks)
+FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *filename)
 {
+	return chain_read_(chain, filename, /*is_ogg=*/false);
+}
+
+FLAC_API FLAC__bool FLAC__metadata_chain_read_ogg(FLAC__Metadata_Chain *chain, const char *filename)
+{
+	return chain_read_(chain, filename, /*is_ogg=*/true);
+}
+
+static FLAC__bool chain_read_with_callbacks_(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks, FLAC__bool is_ogg)
+{
+	FLAC__bool ret;
+
 	FLAC__ASSERT(0 != chain);
 
 	chain_clear_(chain);
@@ -1408,16 +1520,31 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chai
 		return false;
 	}
 
+	chain->is_ogg = is_ogg;
+
 	/* rewind */
 	if(0 != callbacks.seek(handle, 0, SEEK_SET)) {
 		chain->status = FLAC__METADATA_CHAIN_STATUS_SEEK_ERROR;
 		return false;
 	}
 
-	if(!chain_read_cb_(chain, handle, callbacks.read, callbacks.seek, callbacks.tell))
-		return false; /* chain->status is already set by chain_read_cb_ */
+	/* the function also sets chain->status for us */
+	ret = is_ogg?
+		chain_read_ogg_cb_(chain, handle, callbacks.read) :
+		chain_read_cb_(chain, handle, callbacks.read, callbacks.seek, callbacks.tell)
+	;
 
-	return true;
+	return ret;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks)
+{
+	return chain_read_with_callbacks_(chain, handle, callbacks, /*is_ogg=*/false);
+}
+
+FLAC_API FLAC__bool FLAC__metadata_chain_read_ogg_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks)
+{
+	return chain_read_with_callbacks_(chain, handle, callbacks, /*is_ogg=*/true);
 }
 
 FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata_Chain *chain, FLAC__bool use_padding)
@@ -1461,6 +1588,11 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC
 	off_t current_length;
 
 	FLAC__ASSERT(0 != chain);
+
+	if (chain->is_ogg) { /* cannot write back to Ogg FLAC yet */
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR;
+		return false;
+	}
 
 	if (0 == chain->filename) {
 		chain->status = FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH;
@@ -1506,6 +1638,11 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks(FLAC__Metadata_Cha
 
 	FLAC__ASSERT(0 != chain);
 
+	if (chain->is_ogg) { /* cannot write back to Ogg FLAC yet */
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR;
+		return false;
+	}
+
 	if (0 != chain->filename) {
 		chain->status = FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH;
 		return false;
@@ -1537,6 +1674,11 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks_and_tempfile(FLAC_
 	off_t current_length;
 
 	FLAC__ASSERT(0 != chain);
+
+	if (chain->is_ogg) { /* cannot write back to Ogg FLAC yet */
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR;
+		return false;
+	}
 
 	if (0 != chain->filename) {
 		chain->status = FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH;

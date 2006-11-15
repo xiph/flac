@@ -584,12 +584,17 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_S
  * all metadata is read into memory, operated on in memory, and then written
  * to file, which is more efficient than level 1 when editing multiple blocks.
  *
+ * Currently Ogg FLAC is supported for read only, via
+ * FLAC__metadata_chain_read_ogg() but a subsequent
+ * FLAC__metadata_chain_write() will fail.
+ *
  * The general usage of this interface is:
  *
  * - Create a new chain using FLAC__metadata_chain_new().  A chain is a
  *   linked list of FLAC metadata blocks.
  * - Read all metadata into the the chain from a FLAC file using
- *   FLAC__metadata_chain_read() and check the status.
+ *   FLAC__metadata_chain_read() or FLAC__metadata_chain_read_ogg() and
+ *   check the status.
  * - Optionally, consolidate the padding using
  *   FLAC__metadata_chain_merge_padding() or
  *   FLAC__metadata_chain_sort_padding().
@@ -611,8 +616,8 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_S
  * Even though the FLAC file is not open while the chain is being
  * manipulated, you must not alter the file externally during
  * this time.  The chain assumes the FLAC file will not change
- * between the time of FLAC__metadata_chain_read() and
- * FLAC__metadata_chain_write().
+ * between the time of FLAC__metadata_chain_read()/FLAC__metadata_chain_read_ogg()
+ * and FLAC__metadata_chain_write().
  *
  * \note
  * Do not modify the is_last, length, or type fields of returned
@@ -683,11 +688,12 @@ typedef enum {
 
 	FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH,
 	/**< FLAC__metadata_chain_write() was called on a chain read by
-	 *   FLAC__metadata_chain_read_with_callbacks(), or
-	 *   FLAC__metadata_chain_write_with_callbacks() or
-	 *   FLAC__metadata_chain_write_with_callbacks_and_tempfile() was
-	 *   called on a chain read by FLAC__metadata_chain_read().  Matching
-	 *   read/write methods must always be used. */
+	 *   FLAC__metadata_chain_read_with_callbacks()/FLAC__metadata_chain_read_ogg_with_callbacks(),
+	 *   or 
+	 *   FLAC__metadata_chain_write_with_callbacks()/FLAC__metadata_chain_write_with_callbacks_and_tempfile()
+	 *   was called on a chain read by
+	 *   FLAC__metadata_chain_read()/FLAC__metadata_chain_read_ogg().
+	 *   Matching read/write methods must always be used. */
 
 	FLAC__METADATA_CHAIN_STATUS_WRONG_WRITE_CALL
 	/**< FLAC__metadata_chain_write_with_callbacks() was called when the
@@ -751,6 +757,24 @@ FLAC_API FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_C
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *filename);
 
+/*@@@@ add to unit tests*/
+/** Read all metadata from an Ogg FLAC file into the chain.
+ *
+ * \note Ogg FLAC metadata data writing is not supported yet and
+ * FLAC__metadata_chain_write() will fail.
+ *
+ * \param chain    A pointer to an existing chain.
+ * \param filename The path to the Ogg FLAC file to read.
+ * \assert
+ *    \code chain != NULL \endcode
+ *    \code filename != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if a valid list of metadata blocks was read from
+ *    \a filename, else \c false.  On failure, check the status with
+ *    FLAC__metadata_chain_status().
+ */
+FLAC_API FLAC__bool FLAC__metadata_chain_read_ogg(FLAC__Metadata_Chain *chain, const char *filename);
+
 /** Read all metadata from a FLAC stream into the chain via I/O callbacks.
  *
  *  The \a handle need only be open for reading, but must be seekable.
@@ -772,6 +796,32 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
  *    FLAC__metadata_chain_status().
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);
+
+/*@@@@ add to unit tests*/
+/** Read all metadata from an Ogg FLAC stream into the chain via I/O callbacks.
+ *
+ *  The \a handle need only be open for reading, but must be seekable.
+ *  The equivalent minimum stdio fopen() file mode is \c "r" (or \c "rb"
+ *  for Windows).
+ *
+ * \note Ogg FLAC metadata data writing is not supported yet and
+ * FLAC__metadata_chain_write() will fail.
+ *
+ * \param chain    A pointer to an existing chain.
+ * \param handle   The I/O handle of the Ogg FLAC stream to read.  The
+ *                 handle will NOT be closed after the metadata is read;
+ *                 that is the duty of the caller.
+ * \param callbacks
+ *                 A set of callbacks to use for I/O.  The mandatory
+ *                 callbacks are \a read, \a seek, and \a tell.
+ * \assert
+ *    \code chain != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if a valid list of metadata blocks was read from
+ *    \a handle, else \c false.  On failure, check the status with
+ *    FLAC__metadata_chain_status().
+ */
+FLAC_API FLAC__bool FLAC__metadata_chain_read_ogg_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);
 
 /** Checks if writing the given chain would require the use of a
  *  temporary file, or if it could be written in place.
@@ -833,7 +883,8 @@ FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata
  *  be preserved even if the FLAC file is written.
  *
  *  For this write function to be used, the chain must have been read with
- *  FLAC__metadata_chain_read(), not FLAC__metadata_chain_read_with_callbacks().
+ *  FLAC__metadata_chain_read()/FLAC__metadata_chain_read_ogg(), not
+ *  FLAC__metadata_chain_read_with_callbacks()/FLAC__metadata_chain_read_ogg_with_callbacks().
  *
  * \param chain               A pointer to an existing chain.
  * \param use_padding         See above.
@@ -856,7 +907,8 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC
  *  for Windows).
  *
  *  For this write function to be used, the chain must have been read with
- *  FLAC__metadata_chain_read_with_callbacks(), not FLAC__metadata_chain_read().
+ *  FLAC__metadata_chain_read_with_callbacks()/FLAC__metadata_chain_read_ogg_with_callbacks(),
+ *  not FLAC__metadata_chain_read()/FLAC__metadata_chain_read_ogg().
  *  Also, FLAC__metadata_chain_check_if_tempfile_needed() must have returned
  *  \c false.
  *
@@ -899,7 +951,8 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks(FLAC__Metadata_Cha
  *  truncate it on return).
  *
  *  For this write function to be used, the chain must have been read with
- *  FLAC__metadata_chain_read_with_callbacks(), not FLAC__metadata_chain_read().
+ *  FLAC__metadata_chain_read_with_callbacks()/FLAC__metadata_chain_read_ogg_with_callbacks(),
+ *  not FLAC__metadata_chain_read()/FLAC__metadata_chain_read_ogg().
  *  Also, FLAC__metadata_chain_check_if_tempfile_needed() must have returned
  *  \c true.
  *
