@@ -105,6 +105,7 @@
 					<li>MD5 comparison failures on decoding are now an error instead of a warning and will also return a non-zero exit code (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1493725&amp;group_id=13478&amp;atid=113478">SF #1493725</a>).</li>
 					<li>The default padding size is now 8K, or 64K if the input audio stream is more than 20 minutes long.</li>
 					<li>Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.</li>
+					<li>Fixed a bug where missing STREAMINFO fields (min/max framesize, total samples, MD5 sum) and seek point offsets were not getting rewritten back to Ogg FLAC file (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1338969&amp;group_id=13478&amp;atid=113478">SF #1338969</a>).</li>
 					<li>Fixed a bug that caused a crash when <span class="argument">-a</span> and <span class="argument">-t</span> were used together (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1229481&amp;group_id=13478&amp;atid=113478">SF #1229481</a>).</li>
 					<li>Fixed a bug with --sector-align where appended samples were not always totally silent (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1237707&amp;group_id=13478&amp;atid=113478">SF #1237707</a>).</li>
 					<li>Fixed bugs with --sector-align and raw input files.</li>

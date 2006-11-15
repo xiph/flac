@@ -66,6 +66,7 @@
 #include "private/memory.h"
 #ifdef FLAC__HAS_OGG
 #include "private/ogg_helper.h"
+#include "private/ogg_mapping.h"
 #endif
 #include "private/stream_encoder_framing.h"
 #include "private/window.h"
@@ -2895,6 +2896,15 @@ void update_metadata_(const FLAC__StreamEncoder *encoder)
 /* Gets called when the encoding process has finished so that we can update the STREAMINFO and SEEKTABLE blocks.  */
 void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 {
+	/* the # of bytes in the 1st packet that precede the STREAMINFO */
+	static const unsigned FIRST_OGG_PACKET_STREAMINFO_PREFIX_LENGTH =
+		FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH +
+		FLAC__OGG_MAPPING_MAGIC_LENGTH +
+		FLAC__OGG_MAPPING_VERSION_MAJOR_LENGTH +
+		FLAC__OGG_MAPPING_VERSION_MINOR_LENGTH +
+		FLAC__OGG_MAPPING_NUM_HEADERS_LENGTH +
+		FLAC__STREAM_SYNC_LENGTH
+	;
 	FLAC__byte b[max(6, FLAC__STREAM_METADATA_SEEKPOINT_LENGTH)];
 	const FLAC__StreamMetadata *metadata = &encoder->private_->streaminfo;
 	const FLAC__uint64 samples = metadata->data.stream_info.total_samples;
@@ -2923,6 +2933,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 	 */
 	{
 		const unsigned md5_offset =
+			FIRST_OGG_PACKET_STREAMINFO_PREFIX_LENGTH +
 			FLAC__STREAM_METADATA_HEADER_LENGTH +
 			(
 				FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN +
@@ -2948,6 +2959,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 	 */
 	{
 		const unsigned total_samples_byte_offset =
+			FIRST_OGG_PACKET_STREAMINFO_PREFIX_LENGTH +
 			FLAC__STREAM_METADATA_HEADER_LENGTH +
 			(
 				FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN +
@@ -2979,6 +2991,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 	 */
 	{
 		const unsigned min_framesize_offset =
+			FIRST_OGG_PACKET_STREAMINFO_PREFIX_LENGTH +
 			FLAC__STREAM_METADATA_HEADER_LENGTH +
 			(
 				FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN +
@@ -3021,7 +3034,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 			return; /* state already set */
 		}
 
-		if(FLAC__STREAM_METADATA_HEADER_LENGTH + (18*encoder->private_->seek_table->num_points) > (unsigned)page.body_len) {
+		if((FLAC__STREAM_METADATA_HEADER_LENGTH + 18*encoder->private_->seek_table->num_points) != (unsigned)page.body_len) {
 			encoder->protected_->state = FLAC__STREAM_ENCODER_OGG_ERROR;
 			simple_ogg_page__clear(&page);
 			return;
@@ -3051,11 +3064,6 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 			x = encoder->private_->seek_table->points[i].frame_samples;
 			b[17] = (FLAC__byte)x; x >>= 8;
 			b[16] = (FLAC__byte)x; x >>= 8;
-			if(encoder->private_->write_callback(encoder, b, 18, 0, 0, encoder->private_->client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
-				encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
-				simple_ogg_page__clear(&page);
-				return;
-			}
 			memcpy(p, b, 18);
 		}
 

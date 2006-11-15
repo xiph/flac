@@ -150,7 +150,7 @@ FLAC__bool simple_ogg_page__get_at(FLAC__StreamEncoder *encoder, FLAC__uint64 po
 			}
 		}
 
-		page->body_len = 255 * i + page->header[i];
+		page->body_len = 255 * i + page->header[i + OGG_HEADER_FIXED_PORTION_LEN];
 	}
 
 	/* allocate space for the page body */
@@ -196,6 +196,10 @@ FLAC__bool simple_ogg_page__set_at(FLAC__StreamEncoder *encoder, FLAC__uint64 po
 
 	/* re-write the page */
 	if(write_callback((FLAC__StreamEncoder*)encoder, page->header, page->header_len, 0, 0, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
+		encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
+		return false;
+	}
+	if(write_callback((FLAC__StreamEncoder*)encoder, page->body, page->body_len, 0, 0, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 		return false;
 	}
