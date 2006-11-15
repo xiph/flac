@@ -109,13 +109,17 @@ FLAC__bool do_major_operation(const CommandLineOptions *options)
 
 FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOptions *options)
 {
-	FLAC__bool ok = true, needs_write = false;
+	FLAC__bool ok = true, needs_write = false, is_ogg = false;
 	FLAC__Metadata_Chain *chain = FLAC__metadata_chain_new();
 
 	if(0 == chain)
 		die("out of memory allocating chain");
 
-	if(!FLAC__metadata_chain_read(chain, filename)) {
+	/*@@@@ lame way of guessing the file type */
+	if(strlen(filename) >= 4 && 0 == strcmp(filename+strlen(filename)-4, ".ogg"))
+		is_ogg = true;
+
+	if(! (is_ogg? FLAC__metadata_chain_read_ogg(chain, filename) : FLAC__metadata_chain_read(chain, filename)) ) {
 		print_error_with_chain_status(chain, "%s: ERROR: reading metadata", filename);
 		FLAC__metadata_chain_delete(chain);
 		return false;
