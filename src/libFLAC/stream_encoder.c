@@ -1271,10 +1271,10 @@ static FLAC__StreamEncoderInitStatus init_FILE_internal_(
 
 	init_status = init_stream_internal_(
 		encoder,
-		is_ogg? file_read_callback_ : 0,
+		encoder->private_->file == stdout? 0 : is_ogg? file_read_callback_ : 0,
 		file_write_callback_,
-		file_seek_callback_,
-		file_tell_callback_,
+		encoder->private_->file == stdout? 0 : file_seek_callback_,
+		encoder->private_->file == stdout? 0 : file_tell_callback_,
 		/*metadata_callback=*/0,
 		client_data,
 		is_ogg
@@ -1366,7 +1366,7 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_file(
 
 FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 {
-	FLAC__bool verify_mismatch = false;
+	FLAC__bool error = false;
 
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
@@ -1379,28 +1379,37 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 		if(encoder->private_->current_sample_number != 0) {
 			const FLAC__bool is_fractional_block = encoder->protected_->blocksize != encoder->private_->current_sample_number;
 			encoder->protected_->blocksize = encoder->private_->current_sample_number;
-			if(!process_frame_(encoder, is_fractional_block, /*is_last_block=*/true) && encoder->protected_->state == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA)
-				verify_mismatch = true;
+			if(!process_frame_(encoder, is_fractional_block, /*is_last_block=*/true))
+				error = true;
 		}
 	}
 
 	FLAC__MD5Final(encoder->private_->streaminfo.data.stream_info.md5sum, &encoder->private_->md5context);
 
-	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
-		if(encoder->private_->seek_callback) {
+	if(!encoder->private_->is_being_deleted) {
+		if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK) {
+			if(encoder->private_->seek_callback) {
 #if FLAC__HAS_OGG
-			if(encoder->private_->is_ogg)
-				update_ogg_metadata_(encoder);
-			else
+				if(encoder->private_->is_ogg)
+					update_ogg_metadata_(encoder);
+				else
 #endif
-			update_metadata_(encoder);
-		}
-		if(encoder->private_->metadata_callback)
-			encoder->private_->metadata_callback(encoder, &encoder->private_->streaminfo, encoder->private_->client_data);
-	}
+				update_metadata_(encoder);
 
-	if(encoder->protected_->verify && 0 != encoder->private_->verify.decoder && !FLAC__stream_decoder_finish(encoder->private_->verify.decoder))
-		verify_mismatch = true;
+				/* check if an error occurred while updating metadata */
+				if(encoder->protected_->state != FLAC__STREAM_ENCODER_OK)
+					error = true;
+			}
+			if(encoder->private_->metadata_callback)
+				encoder->private_->metadata_callback(encoder, &encoder->private_->streaminfo, encoder->private_->client_data);
+		}
+
+		if(encoder->protected_->verify && 0 != encoder->private_->verify.decoder && !FLAC__stream_decoder_finish(encoder->private_->verify.decoder)) {
+			if(!error)
+				encoder->protected_->state = FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA;
+			error = true;
+		}
+	}
 
 	if(0 != encoder->private_->file) {
 		if(encoder->private_->file != stdout)
@@ -1416,13 +1425,10 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	free_(encoder);
 	set_defaults_(encoder);
 
-	/* change the state to uninitialized unless there was a verify mismatch */
-	if(verify_mismatch)
-		encoder->protected_->state = FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA;
-	else
+	if(!error)
 		encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
 
-	return !verify_mismatch;
+	return !error;
 }
 
 FLAC_API FLAC__bool FLAC__stream_encoder_set_ogg_serial_number(FLAC__StreamEncoder *encoder, long value)
@@ -2913,6 +2919,13 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 	ogg_page page;
 
 	FLAC__ASSERT(metadata->type == FLAC__METADATA_TYPE_STREAMINFO);
+	FLAC__ASSERT(0 != encoder->private_->seek_callback);
+
+	/* Pre-check that client supports seeking, since we don't want the
+	 * ogg_helper code to ever have to deal with this condition.
+	 */
+	if(encoder->private_->seek_callback(encoder, 0, encoder->private_->client_data) == FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED)
+		return;
 
 	/* All this is based on intimate knowledge of the stream header
 	 * layout, but a change to the header format that would break this
