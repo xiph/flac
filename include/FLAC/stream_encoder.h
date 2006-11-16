@@ -1434,7 +1434,7 @@ FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC
  *                            Alternatively, a dummy seek callback that just
  *                            returns \c FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED
  *                            may also be supplied, all though this is slightly
- *                            less efficient for the decoder.
+ *                            less efficient for the encoder.
  * \param  tell_callback      See FLAC__StreamEncoderTellCallback.  This
  *                            pointer may be \c NULL if seeking is not
  *                            supported.  If \a seek_callback is \c NULL then
@@ -1444,7 +1444,7 @@ FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC
  *                            Alternatively, a dummy tell callback that just
  *                            returns \c FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED
  *                            may also be supplied, all though this is slightly
- *                            less efficient for the decoder.
+ *                            less efficient for the encoder.
  * \param  metadata_callback  See FLAC__StreamEncoderMetadataCallback.  This
  *                            pointer may be \c NULL if the callback is not
  *                            desired.  If the client provides a seek callback,
@@ -1502,7 +1502,7 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__St
  *                            Alternatively, a dummy seek callback that just
  *                            returns \c FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED
  *                            may also be supplied, all though this is slightly
- *                            less efficient for the decoder.
+ *                            less efficient for the encoder.
  * \param  tell_callback      See FLAC__StreamEncoderTellCallback.  This
  *                            pointer may be \c NULL if seeking is not
  *                            supported.  If \a seek_callback is \c NULL then
@@ -1512,7 +1512,7 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__St
  *                            Alternatively, a dummy tell callback that just
  *                            returns \c FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED
  *                            may also be supplied, all though this is slightly
- *                            less efficient for the decoder.
+ *                            less efficient for the encoder.
  * \param  metadata_callback  See FLAC__StreamEncoderMetadataCallback.  This
  *                            pointer may be \c NULL if the callback is not
  *                            desired.  If the client provides a seek callback,
@@ -1675,6 +1675,10 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_file(FLAC__
  *  one or more write callbacks before returning, and will generate
  *  a metadata callback.
  *
+ *  Note that in the course of processing the last frame, errors can
+ *  occur, so the caller should be sure to check the return value to
+ *  ensure the file was encoded properly.
+ *
  *  In the event of a prematurely-terminated encode, it is not strictly
  *  necessary to call this immediately before FLAC__stream_encoder_delete()
  *  but it is good practice to match every FLAC__stream_encoder_init_*()
@@ -1684,9 +1688,11 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_file(FLAC__
  * \assert
  *    \code encoder != NULL \endcode
  * \retval FLAC__bool
- *    \c false if verify mode is set (see FLAC__stream_encoder_set_verify())
- *    and there was a verify mismatch (in which case the state will be
- *    \c FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR), else \c true.
+ *    \c false if an error occurred processing the last frame; or if verify
+ *    mode is set (see FLAC__stream_encoder_set_verify()), there was a
+ *    verify mismatch; else \c true.  If \c false, caller should check the
+ *    state with FLAC__stream_encoder_get_state() for more information
+ *    about the error.
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder);
 

@@ -1582,21 +1582,25 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 {
 	FLAC__StreamEncoderState fse_state = FLAC__STREAM_ENCODER_OK;
 	int ret = 0;
+	FLAC__bool verify_error = false;
 
 	if(e->encoder) {
 		fse_state = FLAC__stream_encoder_get_state(e->encoder);
 		ret = FLAC__stream_encoder_finish(e->encoder)? 0 : 1;
+		verify_error =
+			fse_state == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA ||
+			FLAC__stream_encoder_get_state(e->encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA
+		;
 	}
-
-	if(e->total_samples_to_encode > 0) {
+	/* all errors except verify errors should interrupt the stats */
+	if(ret && !verify_error)
+		print_error_with_state(e, "ERROR during encoding");
+	else if(e->total_samples_to_encode > 0) {
 		print_stats(e);
 		flac__utils_printf(stderr, 2, "\n");
 	}
 
-	if(
-		fse_state == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA ||
-		FLAC__stream_encoder_get_state(e->encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA
-	) {
+	if(verify_error) {
 		print_verify_error(e);
 		ret = 1;
 	}
