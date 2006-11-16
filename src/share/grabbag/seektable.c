@@ -86,7 +86,10 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 #else
 					const FLAC__int64 n = (FLAC__int64)strtoll(pt, &endptr, 10);
 #endif
-					if(n > 0 || (endptr > pt && *endptr == ';'))
+					if(
+						(n > 0 || (endptr > pt && *endptr == ';')) && /* is a valid number (extra check needed for "0") */
+						(total_samples_to_encode == 0 || (FLAC__uint64)n < total_samples_to_encode) /* number is not >= the known total_samples_to_encode */
+					)
 						if(!FLAC__metadata_object_seektable_template_append_point(seektable_template, (FLAC__uint64)n))
 							return false;
 				}
