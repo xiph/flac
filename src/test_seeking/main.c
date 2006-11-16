@@ -163,7 +163,7 @@ static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDeco
  * 1 - read 2 frames
  * 2 - read until end
  */
-static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t filesize, unsigned count, unsigned read_mode)
+static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t filesize, unsigned count, FLAC__int64 total_samples, unsigned read_mode)
 {
 	FLAC__StreamDecoder *decoder;
 	DecoderClientData decoder_client_data;
@@ -219,6 +219,9 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 #endif
 	n = (long int)decoder_client_data.total_samples;
 
+	if(n == 0 && total_samples >= 0)
+		n = (long int)total_samples;
+
 	/* if we don't have a total samples count, just guess based on the file size */
 	/* @@@ for is_ogg we should get it from last page's granulepos */
 	if(n == 0) {
@@ -263,12 +266,12 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 #endif
 		fflush(stdout);
 		if(!FLAC__stream_decoder_seek_absolute(decoder, pos)) {
-			if(pos < (FLAC__uint64)n && decoder_client_data.total_samples != 0)
-				return die_s_("FLAC__stream_decoder_seek_absolute() FAILED", decoder);
-			else if(decoder_client_data.total_samples == 0)
+			if(pos >= (FLAC__uint64)n)
+				printf("seek past end failed as expected... ");
+			else if(decoder_client_data.total_samples == 0 && total_samples <= 0)
 				printf("seek failed, assuming it was past EOF... ");
 			else
-				printf("seek past end failed as expected... ");
+				return die_s_("FLAC__stream_decoder_seek_absolute() FAILED", decoder);
 			if(!FLAC__stream_decoder_flush(decoder))
 				return die_s_("FLAC__stream_decoder_flush() FAILED", decoder);
 		}
@@ -310,11 +313,12 @@ int main(int argc, char *argv[])
 {
 	const char *filename;
 	unsigned count = 0, read_mode;
+	FLAC__int64 samples = -1;
 	off_t filesize;
 
-	static const char * const usage = "usage: test_seeking file.flac [#seeks]\n";
+	static const char * const usage = "usage: test_seeking file.flac [#seeks] [#samples-in-file.flac]\n";
 
-	if (argc < 2 || argc > 3) {
+	if (argc < 2 || argc > 4) {
 		fprintf(stderr, usage);
 		return 1;
 	}
@@ -323,6 +327,8 @@ int main(int argc, char *argv[])
 
 	if (argc > 2)
 		count = strtoul(argv[2], 0, 10);
+	if (argc > 3)
+		samples = strtoull(argv[3], 0, 10);
 
 	if (count < 30)
 		fprintf(stderr, "WARNING: random seeks don't kick in until after 30 preprogrammed ones\n");
@@ -353,14 +359,14 @@ int main(int argc, char *argv[])
 		FLAC__bool ok;
 		if (strlen(filename) > 4 && 0 == strcmp(filename+strlen(filename)-4, ".ogg")) {
 #ifdef FLAC__HAS_OGG
-			ok = seek_barrage(/*is_ogg=*/true, filename, filesize, count, read_mode);
+			ok = seek_barrage(/*is_ogg=*/true, filename, filesize, count, samples, read_mode);
 #else
 			fprintf(stderr, "ERROR: Ogg FLAC not supported\n");
 			ok = false;
 #endif
 		}
 		else {
-			ok = seek_barrage(/*is_ogg=*/false, filename, filesize, count, read_mode);
+			ok = seek_barrage(/*is_ogg=*/false, filename, filesize, count, samples, read_mode);
 		}
 		if (!ok)
 			return 2;

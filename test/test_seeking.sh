@@ -89,14 +89,17 @@ run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 -S10x --output-name=tiny-s.flac noise8m32.raw || die "ERROR generating FLAC file"
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 -S10x --output-name=small-s.flac noise.raw || die "ERROR generating FLAC file"
 
+tiny_samples=`metaflac --show-total-samples tiny.flac`
+small_samples=`metaflac --show-total-samples small.flac`
+
 for suffix in '' '-s' ; do
 	echo "testing tiny$suffix.flac:"
-	if run_test_seeking tiny$suffix.flac 100 ; then : ; else
+	if run_test_seeking tiny$suffix.flac 100 $tiny_samples ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 	echo "testing small$suffix.flac:"
-	if run_test_seeking small$suffix.flac 1000 ; then : ; else
+	if run_test_seeking small$suffix.flac 1000 $small_samples ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
@@ -106,12 +109,12 @@ for suffix in '' '-s' ; do
 	fi
 
 	echo "testing tiny$suffix.flac with total_samples=0:"
-	if run_test_seeking tiny$suffix.flac 100 ; then : ; else
+	if run_test_seeking tiny$suffix.flac 100 $tiny_samples ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 	echo "testing small$suffix.flac with total_samples=0:"
-	if run_test_seeking small$suffix.flac 1000 ; then : ; else
+	if run_test_seeking small$suffix.flac 1000 $small_samples ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 done
@@ -124,12 +127,12 @@ if [ $has_ogg = "yes" ] ; then
 	# seek tables are not used in Ogg FLAC
 
 	echo "testing tiny.ogg:"
-	if run_test_seeking tiny.ogg 100 ; then : ; else
+	if run_test_seeking tiny.ogg 100 $tiny_samples ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 	echo "testing small.ogg:"
-	if run_test_seeking small.ogg 1000 ; then : ; else
+	if run_test_seeking small.ogg 1000 $small_samples ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
