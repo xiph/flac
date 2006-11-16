@@ -146,7 +146,7 @@ static struct share__option long_options_[] = {
 	{ "sector-align"              , share__no_argument, 0, 0 },
 	{ "seekpoint"                 , share__required_argument, 0, 'S' },
 	{ "padding"                   , share__required_argument, 0, 'P' },
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	{ "ogg"                       , share__no_argument, 0, 0 },
 	{ "serial-number"             , share__required_argument, 0, 0 },
 #endif
@@ -183,7 +183,7 @@ static struct share__option long_options_[] = {
 	{ "no-replay-gain"            , share__no_argument, 0, 0 },
 	{ "no-sector-align"           , share__no_argument, 0, 0 },
 	{ "no-lax"                    , share__no_argument, 0, 0 },
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	{ "no-ogg"                    , share__no_argument, 0, 0 },
 #endif
 	{ "no-exhaustive-model-search", share__no_argument, 0, 0 },
@@ -709,7 +709,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "sector-align")) {
 			option_values.sector_align = true;
 		}
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 		else if(0 == strcmp(long_option, "ogg")) {
 			option_values.use_ogg = true;
 		}
@@ -782,7 +782,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "no-lax")) {
 			option_values.lax = false;
 		}
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 		else if(0 == strcmp(long_option, "no-ogg")) {
 			option_values.use_ogg = false;
 		}
@@ -1123,7 +1123,7 @@ void show_help()
 	printf("      --delete-input-file      Deletes after a successful encode/decode\n");
 	printf("      --skip={#|mm:ss.ss}      Skip the given initial samples for each input\n");
 	printf("      --until={#|[+|-]mm:ss.ss}  Stop at the given sample for each input file\n");
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	printf("      --ogg                    Use Ogg as transport layer\n");
 	printf("      --serial-number          Serial number to use for the FLAC stream\n");
 #endif
@@ -1178,7 +1178,7 @@ void show_help()
 	printf("      --no-exhaustive-model-search\n");
 	printf("      --no-lax\n");
 	printf("      --no-mid-side\n");
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	printf("      --no-ogg\n");
 #endif
 	printf("      --no-padding\n");
@@ -1256,7 +1256,7 @@ void show_explain()
 	printf("                               relative to the --skip point.  If a `-' sign is\n");
 	printf("                               at the beginning, the --until point is relative\n");
 	printf("                               to end of the audio.\n");
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	printf("      --ogg                    When encoding, generate Ogg FLAC output instead\n");
 	printf("                               of native FLAC.  Ogg FLAC streams are FLAC\n");
 	printf("                               streams wrapped in an Ogg transport layer.  The\n");
@@ -1480,7 +1480,7 @@ void show_explain()
 	printf("      --no-exhaustive-model-search\n");
 	printf("      --no-lax\n");
 	printf("      --no-mid-side\n");
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	printf("      --no-ogg\n");
 #endif
 	printf("      --no-padding\n");
@@ -1644,7 +1644,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		common_options.until_specification.is_relative = true;
 
 	common_options.verify = option_values.verify;
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	common_options.use_ogg = option_values.use_ogg;
 	/* set a random serial number if one has not yet been specified */
 	if(!option_values.has_serial_number) {
@@ -1800,7 +1800,7 @@ int decode_file(const char *infilename)
 	else
 		treat_as_ogg = false;
 
-#ifndef FLAC__HAS_OGG
+#if !FLAC__HAS_OGG
 	if(treat_as_ogg) {
 		flac__utils_printf(stderr, 1, "%s: Ogg support has not been built into this copy of flac\n", infilename);
 		return 1;
@@ -1826,7 +1826,7 @@ int decode_file(const char *infilename)
 
 	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
 	common_options.replaygain_synthesis_spec = option_values.replaygain_synthesis_spec;
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	common_options.is_ogg = treat_as_ogg;
 	common_options.use_first_serial_number = !option_values.has_serial_number;
 	common_options.serial_number = option_values.serial_number;

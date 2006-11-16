@@ -56,7 +56,7 @@
 #define CHUNK_OF_SAMPLES 2048
 
 typedef struct {
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	FLAC__bool use_ogg;
 #endif
 	FLAC__bool verify;
@@ -172,7 +172,7 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 	if(!
 		EncoderSession_construct(
 			&encoder_session,
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 			options.common.use_ogg,
 #else
 			/*use_ogg=*/false,
@@ -584,7 +584,7 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 	if(!
 		EncoderSession_construct(
 			&encoder_session,
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 			options.common.use_ogg,
 #else
 			/*use_ogg=*/false,
@@ -1105,7 +1105,7 @@ int flac__encode_raw(FILE *infile, off_t infilesize, const char *infilename, con
 	if(!
 		EncoderSession_construct(
 			&encoder_session,
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 			options.common.use_ogg,
 #else
 			/*use_ogg=*/false,
@@ -1359,7 +1359,7 @@ int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, co
 	if(!
 		EncoderSession_construct(
 			&encoder_session,
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 			options.common.use_ogg,
 #else
 			/*use_ogg=*/false,
@@ -1522,7 +1522,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	 * initialize instance
 	 */
 
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	e->use_ogg = use_ogg;
 #else
 	(void)use_ogg;
@@ -1973,7 +1973,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__stream_encoder_disable_fixed_subframes(e->encoder, options.debug.disable_fixed_subframes);
 	FLAC__stream_encoder_disable_verbatim_subframes(e->encoder, options.debug.disable_verbatim_subframes);
 
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	if(e->use_ogg) {
 		FLAC__stream_encoder_set_ogg_serial_number(e->encoder, options.serial_number);
 

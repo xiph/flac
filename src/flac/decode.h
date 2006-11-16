@@ -38,7 +38,7 @@ typedef struct {
 typedef struct {
 	FLAC__bool continue_through_decode_errors;
 	replaygain_synthesis_spec_t replaygain_synthesis_spec;
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	FLAC__bool is_ogg;
 	FLAC__bool use_first_serial_number;
 	long serial_number;

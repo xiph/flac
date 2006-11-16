@@ -43,7 +43,7 @@
 #include "decode.h"
 
 typedef struct {
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	FLAC__bool is_ogg;
 #endif
 
@@ -131,7 +131,7 @@ int flac__decode_aiff(const char *infilename, const char *outfilename, FLAC__boo
 	if(!
 		DecoderSession_construct(
 			&decoder_session,
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 			options.common.is_ogg,
 #else
 			/*is_ogg=*/false,
@@ -168,7 +168,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 	if(!
 		DecoderSession_construct(
 			&decoder_session,
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 			options.common.is_ogg,
 #else
 			/*is_ogg=*/false,
@@ -208,7 +208,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	if(!
 		DecoderSession_construct(
 			&decoder_session,
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 			options.common.is_ogg,
 #else
 			/*is_ogg=*/false,
@@ -240,7 +240,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 
 FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename)
 {
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
 #else
 	(void)is_ogg;
@@ -334,7 +334,7 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 	if (decoder_session->replaygain.spec.apply)
 		FLAC__stream_decoder_set_metadata_respond(decoder_session->decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	if(decoder_session->is_ogg) {
 		if(!decode_options.use_first_serial_number)
 			FLAC__stream_decoder_set_ogg_serial_number(decoder_session->decoder, decode_options.serial_number);

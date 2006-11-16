@@ -64,7 +64,7 @@
 #include "private/lpc.h"
 #include "private/md5.h"
 #include "private/memory.h"
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 #include "private/ogg_helper.h"
 #include "private/ogg_mapping.h"
 #endif
@@ -673,7 +673,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED;
 
-#ifndef FLAC__HAS_OGG
+#if !FLAC__HAS_OGG
 	if(is_ogg)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_UNSUPPORTED_CONTAINER;
 #endif
@@ -1438,7 +1438,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_ogg_serial_number(FLAC__StreamEncod
 	FLAC__ASSERT(0 != encoder->protected_);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 	/* can't check encoder->private_->is_ogg since that's not set until init time */
 	FLAC__ogg_encoder_aspect_set_serial_number(&encoder->protected_->ogg_encoder_aspect, value);
 	return true;

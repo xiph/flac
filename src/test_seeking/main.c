@@ -358,7 +358,7 @@ int main(int argc, char *argv[])
 	for (read_mode = 0; read_mode <= 2; read_mode++) {
 		FLAC__bool ok;
 		if (strlen(filename) > 4 && 0 == strcmp(filename+strlen(filename)-4, ".ogg")) {
-#ifdef FLAC__HAS_OGG
+#if FLAC__HAS_OGG
 			ok = seek_barrage(/*is_ogg=*/true, filename, filesize, count, samples, read_mode);
 #else
 			fprintf(stderr, "ERROR: Ogg FLAC not supported\n");
