@@ -1013,8 +1013,8 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 	/* We initialize the FLAC__MD5Context even though we may never use it.  This
 	 * is because md5 checking may be turned on to start and then turned off if
 	 * a seek occurs.  So we init the context here and finalize it in
-	 * FLAC__stream_decoder_finish() to make sure things are always
-	 * cleaned up properly.
+	 * FLAC__stream_decoder_finish() to make sure things are always cleaned up
+	 * properly.
 	 */
 	FLAC__MD5Init(&decoder->private_->md5context);
 
