@@ -84,6 +84,10 @@ static const char *get_outfilename(const char *infilename, const char *suffix);
 
 static void die(const char *message);
 static char *local_strdup(const char *source);
+#ifdef _MSC_VER
+/* There's no strtoll() in MSVC6 so we just write a specialized one */
+static FLAC__int64 local__strtoll(const char *src, char **endptr);
+#endif
 
 
 /*
@@ -625,7 +629,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				char *end;
 #ifdef _MSC_VER
 				FLAC__int64 i;
-				i = strtol(option_argument, &end, 10); /* [2G limit] */
+				i = local__strtoll(option_argument, &end);
 #else
 				long long i;
 				i = strtoll(option_argument, &end, 10);
@@ -1783,7 +1787,7 @@ int decode_file(const char *infilename)
 	 * Error if output file already exists (and -f not used).
 	 * Use grabbag__file_get_filesize() as a cheap way to check.
 	 */
-	if(!option_values.test_only && !option_values.force_file_overwrite && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
+	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
 		flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
 	}
@@ -1937,3 +1941,29 @@ char *local_strdup(const char *source)
 		die("out of memory during strdup()");
 	return ret;
 }
+
+#ifdef _MSC_VER
+/* There's no strtoll() in MSVC6 so we just write a specialized one */
+FLAC__int64 local__strtoll(const char *src, char **endptr)
+{
+	FLAC__bool neg = false;
+	FLAC__int64 ret = 0;
+	int c;
+	FLAC__ASSERT(0 != src);
+	if(*src == '-') {
+		neg = true;
+		src++;
+	}
+	while(0 != (c = *src)) {
+		c -= '0';
+		if(c >= 0 && c <= 9)
+			ret = (ret * 10) + c;
+		else
+			break;
+		src++;
+	}
+	if(endptr)
+		*endptr = (char*)src;
+	return neg? -ret : ret;
+}
+#endif
