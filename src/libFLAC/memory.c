@@ -45,7 +45,13 @@ void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address)
 #ifdef FLAC__ALIGN_MALLOC_DATA
 	/* align on 32-byte (256-bit) boundary */
 	x = malloc(bytes+31);
-	*aligned_address = (void*)(((unsigned)x + 31) & -32);
+	/* there's got to be a better way to do this right for all archs */
+	if(sizeof(void*) == sizeof(unsigned))
+		*aligned_address = (void*)(((unsigned)x + 31) & -32);
+	else if(sizeof(void*) == sizeof(FLAC__uint64))
+		*aligned_address = (void*)(((FLAC__uint64)x + 31) & (FLAC__uint64)(-((FLAC__int64)32)));
+	else
+		return 0;
 #else
 	x = malloc(bytes);
 	*aligned_address = x;
