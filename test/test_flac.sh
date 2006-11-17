@@ -297,7 +297,7 @@ dd if=master.raw ibs=1 skip=20 count=20 of=50c.skip20.until40.raw 2>/dev/null ||
 wav_eopt="$SILENT --force --verify --no-padding --lax"
 wav_dopt="$SILENT --force --decode"
 
-raw_eopt="$wav_eopt --force-raw-format --endian=big --sign=signed --sample-rate=10 --bps=8 --channels=1
+raw_eopt="$wav_eopt --force-raw-format --endian=big --sign=signed --sample-rate=10 --bps=8 --channels=1"
 raw_dopt="$wav_dopt --force-raw-format --endian=big --sign=signed"
 
 #
