@@ -25,6 +25,32 @@
 #include <stdlib.h> /* for atoi() */
 #include <string.h>
 
+#ifdef _MSC_VER
+/* There's no strtoll() in MSVC6 so we just write a specialized one */
+static FLAC__int64 local__strtoll(const char *src, char **endptr)
+{
+	FLAC__bool neg = false;
+	FLAC__int64 ret = 0;
+	int c;
+	FLAC__ASSERT(0 != src);
+	if(*src == '-') {
+		neg = true;
+		src++;
+	}
+	while(0 != (c = *src)) {
+		c -= '0';
+		if(c >= 0 && c <= 9)
+			ret = (ret * 10) + c;
+		else
+			break;
+		src++;
+	}
+	if(endptr)
+		*endptr = (char*)src;
+	return neg? -ret : ret;
+}
+#endif
+
 FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec, FLAC__bool only_explicit_placeholders, FLAC__uint64 total_samples_to_encode, unsigned sample_rate, FLAC__StreamMetadata *seektable_template, FLAC__bool *spec_has_real_points)
 {
 	unsigned i;
@@ -82,7 +108,7 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 				if(!only_explicit_placeholders) {
 					char *endptr;
 #ifdef _MSC_VER
-					const FLAC__int64 n = (FLAC__int64)strtol(pt, &endptr, 10); /* [2G limit] */
+					const FLAC__int64 n = local__strtoll(pt, &endptr);
 #else
 					const FLAC__int64 n = (FLAC__int64)strtoll(pt, &endptr, 10);
 #endif

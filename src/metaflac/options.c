@@ -835,7 +835,8 @@ FLAC__bool parse_uint32(const char *src, FLAC__uint32 *dest)
 	return true;
 }
 
-/* There's no stroull() in MSVC6 so we just write a specialized one */
+#ifdef _MSC_VER
+/* There's no strtoull() in MSVC6 so we just write a specialized one */
 static FLAC__uint64 local__strtoull(const char *src)
 {
 	FLAC__uint64 ret = 0;
@@ -850,13 +851,18 @@ static FLAC__uint64 local__strtoull(const char *src)
 	}
 	return ret;
 }
+#endif
 
 FLAC__bool parse_uint64(const char *src, FLAC__uint64 *dest)
 {
 	FLAC__ASSERT(0 != src);
 	if(strlen(src) == 0 || strspn(src, "0123456789") != strlen(src))
 		return false;
+#ifdef _MSC_VER
 	*dest = local__strtoull(src);
+#else
+	*dest = strtoull(src, 0, 10);
+#endif
 	return true;
 }
 

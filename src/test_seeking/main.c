@@ -309,6 +309,24 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 	return true;
 }
 
+#ifdef _MSC_VER
+/* There's no strtoull() in MSVC6 so we just write a specialized one */
+static FLAC__uint64 local__strtoull(const char *src)
+{
+	FLAC__uint64 ret = 0;
+	int c;
+	FLAC__ASSERT(0 != src);
+	while(0 != (c = *src++)) {
+		c -= '0';
+		if(c >= 0 && c <= 9)
+			ret = (ret * 10) + c;
+		else
+			break;
+	}
+	return ret;
+}
+#endif
+
 int main(int argc, char *argv[])
 {
 	const char *filename;
@@ -328,7 +346,11 @@ int main(int argc, char *argv[])
 	if (argc > 2)
 		count = strtoul(argv[2], 0, 10);
 	if (argc > 3)
+#ifdef _MSC_VER
+		samples = local__strtoull(argv[3]);
+#else
 		samples = strtoull(argv[3], 0, 10);
+#endif
 
 	if (count < 30)
 		fprintf(stderr, "WARNING: random seeks don't kick in until after 30 preprogrammed ones\n");

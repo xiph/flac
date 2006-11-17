@@ -1218,10 +1218,11 @@ static FLAC__StreamDecoderWriteStatus chain_read_ogg_write_cb_(const FLAC__Strea
 static void chain_read_ogg_metadata_cb_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	FLAC__Metadata_Chain *chain = (FLAC__Metadata_Chain*)client_data;
+	FLAC__Metadata_Node *node;
 
 	(void)decoder;
 
-	FLAC__Metadata_Node *node = node_new_();
+	node = node_new_();
 	if(0 == node) {
 		chain->status = FLAC__METADATA_CHAIN_STATUS_MEMORY_ALLOCATION_ERROR;
 		return;
