@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "METAFLAC" "1" "09 October 2006" "" ""
+.TH "METAFLAC" "1" "17 November 2006" "" ""
 
 .SH NAME
 metaflac \- program to list, add, remove, or edit metadata in one or more FLAC files.
@@ -96,7 +96,8 @@ that.
 Import tags from a file.  Use '-' for stdin.  Each
 line should be of the form NAME=VALUE.  Multi-line comments
 are currently not supported.  Specify --remove-all-tags and/or
---no-utf8-convert before --import-tags-from if necessary.
+--no-utf8-convert before --import-tags-from if necessary.  If
+FILE is '-' (stdin), only one FLAC file may be specified.
 .TP
 \fB--export-tags-to=file\fR
 Export tags to a file.  Use '-' for stdin.  Each
@@ -114,8 +115,8 @@ Export CUESHEET block to a cuesheet file, suitable for use by
 CD authoring software.  Use '-' for stdout.  Only one FLAC file
 may be specified on the command line.
 .TP
-\fB--import-picture=\fISPECIFICATION\fB\fR
-Import a picture and store it in a PICTURE metadata block.  More than one --import-picture command can be specified.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  The format of SPECIFICATION is
+\fB--import-picture-from=\fISPECIFICATION\fB\fR
+Import a picture and store it in a PICTURE metadata block.  More than one --import-picture-from command can be specified.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  The format of SPECIFICATION is
 
 [TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE
 
@@ -176,6 +177,9 @@ FILE is the path to the picture file to be imported, or the URL if MIME type is 
 For example, "|image/jpeg|||../cover.jpg" will embed the JPEG file at ../cover.jpg, defaulting to type 3 (front cover) and an empty description.  The resolution and color info will be retrieved from the file itself.
 
 The specification "4|-->|CD|320x300x24/173|http://blah.blah/backcover.tiff" will embed the given URL, with type 4 (back cover), description "CD", and a manually specified resolution of 320x300, 24 bits-per-pixel, and 173 colors.  The file at the URL will not be fetched; the URL itself is stored in the PICTURE metadata block.
+.TP
+\fB--export-picture-to=file\fR
+Export PICTURE block to a file.  Use '-' for stdout.  Only one FLAC file may be specified on the command line.  The first PICTURE block will be exported unless --export-picture-to is preceded by a --block-number=# option to specify the exact metadata block to extract.  Note that the block number is the one shown by --list.
 .TP
 \fB--add-replay-gain\fR
 Calculates the title and album gains/peaks of the given FLAC
