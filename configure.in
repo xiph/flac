@@ -248,7 +248,8 @@ fi
 AC_CHECK_PROGS(AS, as, as)
 AC_CHECK_PROGS(GAS, gas, gas)
 
-test "$AS" = "as" && as --version | grep GNU >/dev/null && AS=gas
+# try -v (apple as) and --version (gas) at the same time
+test "$AS" = "as" && as --version -v < /dev/null 2>&1 | grep Apple >/dev/null || AS=gas
 
 AM_CONDITIONAL(FLaC__HAS_AS, test "$AS" = "as")
 AM_CONDITIONAL(FLaC__HAS_GAS, test "$AS" = "gas")
