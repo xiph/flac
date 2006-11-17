@@ -66,7 +66,7 @@ test_file ()
 	encode_options="$4"
 
 	echo -n "$name.bin (--channels=$channels --bps=$bps $encode_options): encode..."
-	cmd="run_flac --verify --silent --force --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options $name.bin"
+	cmd="run_flac --verify --silent --force --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --no-padding $name.bin"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	$cmd 2>>./streams.log || die "ERROR during encode of $name"

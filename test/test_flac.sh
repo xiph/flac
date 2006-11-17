@@ -146,7 +146,7 @@ test_fractional ()
 	samples=$2
 	dd if=noise.raw ibs=4 count=$samples of=pbs.raw 2>/dev/null || $dddie
 	echo -n "fractional block size test (blocksize=$blocksize samples=$samples) encode... "
-	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=$blocksize --lax -o pbs.flac pbs.raw || die "ERROR"
+	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=$blocksize --no-padding --lax -o pbs.flac pbs.raw || die "ERROR"
 	echo -n "decode... "
 	run_flac $SILENT --force --decode --force-raw-format --endian=little --sign=signed -o pbs.cmp pbs.flac || die "ERROR"
 	echo -n "compare... "
@@ -184,7 +184,7 @@ rt_test_raw ()
 	channels=`echo $f | awk -F- '{print $2}'`
 	bps=`echo $f | awk -F- '{print $3}'`
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels --lax -o rt.flac $f || die "ERROR"
+	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels --no-padding --lax -o rt.flac $f || die "ERROR"
 	echo -n "decode... "
 	run_flac $SILENT --force --decode --force-raw-format --endian=little --sign=signed -o rt.raw rt.flac || die "ERROR"
 	echo -n "compare... "
@@ -197,7 +197,7 @@ rt_test_wav ()
 {
 	f="$1"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --lax -o rt.flac $f || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $f || die "ERROR"
 	echo -n "decode... "
 	run_flac $SILENT --force --decode --channel-map=none -o rt.wav rt.flac || die "ERROR"
 	echo -n "compare... "
@@ -210,7 +210,7 @@ rt_test_aiff ()
 {
 	f="$1"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --lax -o rt.flac $f || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $f || die "ERROR"
 	echo -n "decode... "
 	run_flac $SILENT --force --decode --channel-map=none -o rt.aiff rt.flac || die "ERROR"
 	echo -n "compare... "
@@ -224,7 +224,7 @@ rt_test_flac ()
 {
 	f="$1"
 	echo -n "round-trip test ($f->flac->flac->wav) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --lax -o rt.flac $f || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $f || die "ERROR"
 	echo -n "re-encode... "
 	run_flac $SILENT --force --verify --lax -o rt2.flac rt.flac || die "ERROR"
 	echo -n "decode... "
@@ -240,7 +240,7 @@ rt_test_ogg_flac ()
 {
 	f="$1"
 	echo -n "round-trip test ($f->oggflac->oggflac->wav) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --lax -o rt.ogg --ogg $f || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.ogg --ogg $f || die "ERROR"
 	echo -n "re-encode... "
 	run_flac $SILENT --force --verify --lax -o rt2.ogg --ogg rt.ogg || die "ERROR"
 	echo -n "decode... "
@@ -294,10 +294,10 @@ dd if=master.raw ibs=1 skip=10 count=30 of=50c.skip10.until40.raw 2>/dev/null ||
 dd if=master.raw ibs=1 skip=20 count=10 of=50c.skip20.until30.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=20 count=20 of=50c.skip20.until40.raw 2>/dev/null || $dddie
 
-wav_eopt="$SILENT --force --verify --lax"
+wav_eopt="$SILENT --force --verify --no-padding --lax"
 wav_dopt="$SILENT --force --decode"
 
-raw_eopt="$wav_eopt --force-raw-format --endian=big --sign=signed --sample-rate=10 --bps=8 --channels=1"
+raw_eopt="$wav_eopt --force-raw-format --endian=big --sign=signed --sample-rate=10 --bps=8 --channels=1
 raw_dopt="$wav_dopt --force-raw-format --endian=big --sign=signed"
 
 #
@@ -673,7 +673,7 @@ fi
 
 echo "testing seek extremes:"
 
-run_flac --verify --force $SILENT --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 noise.raw || die "ERROR generating FLAC file"
+run_flac --verify --force $SILENT --no-padding --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 noise.raw || die "ERROR generating FLAC file"
 
 if [ $is_win = no ] ; then
 	total_noise_cdda_samples=`run_metaflac --show-total-samples noise.flac`
@@ -964,7 +964,7 @@ rm -f noise.aiff fixup.aiff fixup.flac
 
 echo "Generating multiple input files from noise..."
 multifile_format_decode="--endian=big --sign=signed"
-multifile_format_encode="$multifile_format_decode --sample-rate=44100 --bps=16 --channels=2"
+multifile_format_encode="$multifile_format_decode --sample-rate=44100 --bps=16 --channels=2 --no-padding"
 short_noise_cdda_samples=`expr $total_noise_cdda_samples / 8`
 run_flac --verify --force $SILENT --force-raw-format $multifile_format_encode --until=$short_noise_cdda_samples -o shortnoise.flac noise.raw || die "ERROR generating FLAC file"
 run_flac --decode --force $SILENT shortnoise.flac -o shortnoise.raw --force-raw-format $multifile_format_decode || die "ERROR generating RAW file"
