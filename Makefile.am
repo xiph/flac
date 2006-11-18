@@ -28,6 +28,8 @@
 # distclean: remove everything except what goes in the distribution
 #
 
+AUTOMAKE_OPTIONS = 1.7
+
 SUBDIRS = doc include man src test build flac.pbproj obj
 
 DISTCLEANFILES = libtool-disable-static
