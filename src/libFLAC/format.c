@@ -54,7 +54,7 @@
 /* VERSION should come from configure */
 FLAC_API const char *FLAC__VERSION_STRING = VERSION;
 
-#if defined _MSC_VER || defined __MINW32__
+#if defined _MSC_VER || defined __BORLANDC__ || defined __MINW32__
 /* yet one more hack because of MSVC6: */
 FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC 1.1.3 20061120";
 #else
