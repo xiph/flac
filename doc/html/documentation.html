@@ -77,8 +77,8 @@
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		<span class="commandname">flac</span> has been tuned so that the default options yield a good speed vs. compression tradeoff for many kinds of input.  However, if you are looking to maximize the compression rate or speed, or want to use the full power of FLAC's metadata system, this section is for you.  If not, just skip to the <a href="#flac">next section</a>.
-		<br /><br />
+		<span class="commandname">flac</span> has been tuned so that the default options yield a good speed vs. compression tradeoff for many kinds of input.  However, if you are looking to maximize the compression rate or speed, or want to use the full power of FLAC's metadata system, this section is for you.  If not, just skip to the <a href="#flac">next section</a>.<br />
+		<br />
 		The basic structure of a FLAC stream is:
 		<ul>
 			<li>The four byte string "<span class="code">fLaC</span>"</li>
@@ -86,50 +86,50 @@
 			<li>Zero or more other metadata blocks</li>
 			<li>One or more audio frames</li>
 		</ul>
-		The first four bytes are to identify the FLAC stream.  The metadata that follows contains all the information about the stream except for the audio data itself.  After the metadata comes the encoded audio data.
-		<br /><br />
-		<b>METADATA</b>
-		<br /><br />
-		FLAC defines several types of metadata blocks (see the <a href="format.html">format</a> page for the complete list).  Metadata blocks can be any length and new ones can be defined.  A decoder is allowed to skip any metadata types it does not understand.  Only one is mandatory: the <span class="code">STREAMINFO</span> block.  This block has information like the sample rate, number of channels, etc., and data that can help the decoder manage its buffers, like the minimum and maximum data rate and minimum and maximum block size.  Also included in the <span class="code">STREAMINFO</span> block is the MD5 signature of the <i>unencoded</i> audio data.  This is useful for checking an entire stream for transmission errors.
-		<br /><br />
-		Other blocks allow for padding, seek tables, tags, cuesheets, and application-specific data.  You can see <span class="commandname">flac</span> options below for adding <span class="code">PADDING</span> blocks or specifying seek points.  FLAC does not require seek points for seeking but they can speed up seeks, or be used for cueing in editing applications.
-		<br /><br />
-		Also, if you have a need of a custom metadata block, you can define your own and request an ID <a href="id.html">here</a>.  Then you can reserve a <span class="code">PADDING</span> block of the correct size when encoding, and overwrite the padding block with your <span class="code">APPLICATION</span> block after encoding.  The resulting stream will be FLAC compatible; decoders that are aware of your metadata can use it and the rest will safely ignore it.
-		<br /><br />
-		<b>AUDIO DATA</b>
-		<br /><br />
-		After the metadata comes the encoded audio data.  Audio data and metadata are not interleaved.  Like most audio codecs, FLAC splits the unencoded audio data into blocks, and encodes each block separately.  The encoded block is packed into a frame and appended to the stream.  The reference encoder uses a single block size for the whole stream but the FLAC format does not require it.
-		<br /><br />
-		<b>BLOCKING</b>
-		<br /><br />
-		The block size is an important parameter to encoding.  If it is too small, the frame overhead will lower the compression.  If it is too large, the modeling stage of the compressor will not be able to generate an efficient model.  Understanding FLAC's modeling will help you to improve compression for some kinds of input by varying the block size.  In the most general case, using linear prediction on 44.1kHz audio, the optimal block size will be between 2-6 ksamples.  <span class="commandname">flac</span> defaults to a block size of 4608 in this case.  Using the fast fixed predictors, a smaller block size is usually preferable because of the smaller frame header.
-		<br /><br />
-		<b>INTER-CHANNEL DECORRELATION</b>
-		<br /><br />
-		In the case of stereo input, once the data is blocked it is optionally passed through an inter-channel decorrelation stage.  The left and right channels are converted to center and side channels through the following transformation: mid = (left + right) / 2, side = left - right.  This is a lossless process, unlike joint stereo.  For normal CD audio this can result in significant extra compression.  <span class="commandname">flac</span> has two options for this: <span class="argument">-m</span> always compresses both the left-right and mid-side versions of the block and takes the smallest frame, and <span class="argument">-M</span>, which adaptively switches between left-right and mid-side.
-		<br /><br />
-		<b>MODELING</b>
-		<br /><br />
-		In the next stage, the encoder tries to approximate the signal with a function in such a way that when the approximation is subracted, the result (called the <i>residual</i>, <i>residue</i>, or <i>error</i>) requires fewer bits-per-sample to encode.  The function's parameters also have to be transmitted so they should not be so complex as to eat up the savings.  FLAC has two methods of forming approximations: 1) fitting a simple polynomial to the signal; and 2) general linear predictive coding (LPC).  I will not go into the details here, only some generalities that involve the encoding options.
-		<br /><br />
-		First, fixed polynomial prediction (specified with <span class="argument">-l 0</span>) is much faster, but less accurate than LPC.  The higher the maximum LPC order, the slower, but more accurate, the model will be.  However, there are diminishing returns with increasing orders.  Also, at some point (usually around order 9) the part of the encoder that guesses what is the best order to use will start to get it wrong and the compression will actually decrease slightly; at that point you will have to you will have to use the exhaustive search option <span class="argument">-e</span> to overcome this, which is significantly slower.
-		<br /><br />
-		Second, the parameters for the fixed predictors can be transmitted in 3 bits whereas the parameters for the LPC model depend on the bits-per-sample and LPC order.  This means the frame header length varies depending on the method and order you choose and can affect the optimal block size.
-		<br /><br />
-		<b>RESIDUAL CODING</b>
-		<br /><br />
-		Once the model is generated, the encoder subracts the approximation from the original signal to get the residual (error) signal.  The error signal is then losslessly coded.  To do this, FLAC takes advantage of the fact that the error signal generally has a Laplacian (two-sided geometric) distribution, and that there are a set of special Huffman codes called Rice codes that can be used to efficiently encode these kind of signals quickly and without needing a dictionary.
-		<br /><br />
-		Rice coding involves finding a single parameter that matches a signal's distribution, then using that parameter to generate the codes.  As the distribution changes, the optimal parameter changes, so FLAC supports a method that allows the parameter to change as needed.  The residual can be broken into several <i>contexts</i> or <i>partitions</i>, each with it's own Rice parameter.  <span class="commandname">flac</span> allows you to specify how the partitioning is done with the <span class="argument">-r</span> option.  The residual can be broken into 2^<i>n</i> partitions, by using the option <span class="argument">-r n,n</span>.  The parameter <i>n</i> is called the <i>partition order</i>.  Furthermore, the encoder can be made to search through <i>m</i> to <i>n</i> partition orders, taking the best one, by specifying <span class="argument">-r m,n</span>.  Generally, the choice of n does not affect encoding speed but m,n does.  The larger the difference between m and n, the more time it will take the encoder to search for the best order.  The block size will also affect the optimal order.
-		<br /><br />
-		<b>FRAMING</b>
-		<br /><br />
-		An audio frame is preceded by a frame header and trailed by a frame footer.  The header starts with a sync code, and contains the minimum information necessary for a decoder to play the stream, like sample rate, bits per sample, etc.  It also contains the block or sample number and an 8-bit CRC of the frame header.  The sync code, frame header CRC, and block/sample number allow resynchronization and seeking even in the absence of seek points.  The frame footer contains a 16-bit CRC of the entire encoded frame for error detection.  If the reference decoder detects a CRC error it will generate a silent block.
-		<br /><br />
-		<b>MISCELLANEOUS</b>
-		<br /><br />
-		As a convenience, the reference decoder knows how to skip <a href="http://www.id3.org/">ID3v1 and ID3v2 tags</a>.  Note however that the FLAC specification does not require compliant implementations to support ID3 in any form and their use is discouraged.
-		<br /><br />
+		The first four bytes are to identify the FLAC stream.  The metadata that follows contains all the information about the stream except for the audio data itself.  After the metadata comes the encoded audio data.<br />
+		<br />
+		<b>METADATA</b><br />
+		<br />
+		FLAC defines several types of metadata blocks (see the <a href="format.html">format</a> page for the complete list).  Metadata blocks can be any length and new ones can be defined.  A decoder is allowed to skip any metadata types it does not understand.  Only one is mandatory: the <span class="code">STREAMINFO</span> block.  This block has information like the sample rate, number of channels, etc., and data that can help the decoder manage its buffers, like the minimum and maximum data rate and minimum and maximum block size.  Also included in the <span class="code">STREAMINFO</span> block is the MD5 signature of the <i>unencoded</i> audio data.  This is useful for checking an entire stream for transmission errors.<br />
+		<br />
+		Other blocks allow for padding, seek tables, tags, cuesheets, and application-specific data.  You can see <span class="commandname">flac</span> options below for adding <span class="code">PADDING</span> blocks or specifying seek points.  FLAC does not require seek points for seeking but they can speed up seeks, or be used for cueing in editing applications.<br />
+		<br />
+		Also, if you have a need of a custom metadata block, you can define your own and request an ID <a href="id.html">here</a>.  Then you can reserve a <span class="code">PADDING</span> block of the correct size when encoding, and overwrite the padding block with your <span class="code">APPLICATION</span> block after encoding.  The resulting stream will be FLAC compatible; decoders that are aware of your metadata can use it and the rest will safely ignore it.<br />
+		<br />
+		<b>AUDIO DATA</b><br />
+		<br />
+		After the metadata comes the encoded audio data.  Audio data and metadata are not interleaved.  Like most audio codecs, FLAC splits the unencoded audio data into blocks, and encodes each block separately.  The encoded block is packed into a frame and appended to the stream.  The reference encoder uses a single block size for the whole stream but the FLAC format does not require it.<br />
+		<br />
+		<b>BLOCKING</b><br />
+		<br />
+		The block size is an important parameter to encoding.  If it is too small, the frame overhead will lower the compression.  If it is too large, the modeling stage of the compressor will not be able to generate an efficient model.  Understanding FLAC's modeling will help you to improve compression for some kinds of input by varying the block size.  In the most general case, using linear prediction on 44.1kHz audio, the optimal block size will be between 2-6 ksamples.  <span class="commandname">flac</span> defaults to a block size of 4608 in this case.  Using the fast fixed predictors, a smaller block size is usually preferable because of the smaller frame header.<br />
+		<br />
+		<b>INTER-CHANNEL DECORRELATION</b><br />
+		<br />
+		In the case of stereo input, once the data is blocked it is optionally passed through an inter-channel decorrelation stage.  The left and right channels are converted to center and side channels through the following transformation: mid = (left + right) / 2, side = left - right.  This is a lossless process, unlike joint stereo.  For normal CD audio this can result in significant extra compression.  <span class="commandname">flac</span> has two options for this: <span class="argument">-m</span> always compresses both the left-right and mid-side versions of the block and takes the smallest frame, and <span class="argument">-M</span>, which adaptively switches between left-right and mid-side.<br />
+		<br />
+		<b>MODELING</b><br />
+		<br />
+		In the next stage, the encoder tries to approximate the signal with a function in such a way that when the approximation is subracted, the result (called the <i>residual</i>, <i>residue</i>, or <i>error</i>) requires fewer bits-per-sample to encode.  The function's parameters also have to be transmitted so they should not be so complex as to eat up the savings.  FLAC has two methods of forming approximations: 1) fitting a simple polynomial to the signal; and 2) general linear predictive coding (LPC).  I will not go into the details here, only some generalities that involve the encoding options.<br />
+		<br />
+		First, fixed polynomial prediction (specified with <span class="argument">-l 0</span>) is much faster, but less accurate than LPC.  The higher the maximum LPC order, the slower, but more accurate, the model will be.  However, there are diminishing returns with increasing orders.  Also, at some point (usually around order 9) the part of the encoder that guesses what is the best order to use will start to get it wrong and the compression will actually decrease slightly; at that point you will have to you will have to use the exhaustive search option <span class="argument">-e</span> to overcome this, which is significantly slower.<br />
+		<br />
+		Second, the parameters for the fixed predictors can be transmitted in 3 bits whereas the parameters for the LPC model depend on the bits-per-sample and LPC order.  This means the frame header length varies depending on the method and order you choose and can affect the optimal block size.<br />
+		<br />
+		<b>RESIDUAL CODING</b><br />
+		<br />
+		Once the model is generated, the encoder subracts the approximation from the original signal to get the residual (error) signal.  The error signal is then losslessly coded.  To do this, FLAC takes advantage of the fact that the error signal generally has a Laplacian (two-sided geometric) distribution, and that there are a set of special Huffman codes called Rice codes that can be used to efficiently encode these kind of signals quickly and without needing a dictionary.<br />
+		<br />
+		Rice coding involves finding a single parameter that matches a signal's distribution, then using that parameter to generate the codes.  As the distribution changes, the optimal parameter changes, so FLAC supports a method that allows the parameter to change as needed.  The residual can be broken into several <i>contexts</i> or <i>partitions</i>, each with it's own Rice parameter.  <span class="commandname">flac</span> allows you to specify how the partitioning is done with the <span class="argument">-r</span> option.  The residual can be broken into 2^<i>n</i> partitions, by using the option <span class="argument">-r n,n</span>.  The parameter <i>n</i> is called the <i>partition order</i>.  Furthermore, the encoder can be made to search through <i>m</i> to <i>n</i> partition orders, taking the best one, by specifying <span class="argument">-r m,n</span>.  Generally, the choice of n does not affect encoding speed but m,n does.  The larger the difference between m and n, the more time it will take the encoder to search for the best order.  The block size will also affect the optimal order.<br />
+		<br />
+		<b>FRAMING</b><br />
+		<br />
+		An audio frame is preceded by a frame header and trailed by a frame footer.  The header starts with a sync code, and contains the minimum information necessary for a decoder to play the stream, like sample rate, bits per sample, etc.  It also contains the block or sample number and an 8-bit CRC of the frame header.  The sync code, frame header CRC, and block/sample number allow resynchronization and seeking even in the absence of seek points.  The frame footer contains a 16-bit CRC of the entire encoded frame for error detection.  If the reference decoder detects a CRC error it will generate a silent block.<br />
+		<br />
+		<b>MISCELLANEOUS</b><br />
+		<br />
+		As a convenience, the reference decoder knows how to skip <a href="http://www.id3.org/">ID3v1 and ID3v2 tags</a>.  Note however that the FLAC specification does not require compliant implementations to support ID3 in any form and their use is discouraged.<br />
+		<br />
 		<span class="commandname">flac</span> has a verify option <span class="argument">-V</span> that verifies the output while encoding.  With this option, a decoder is run in parallel to the encoder and its output is compared against the original input.  If a difference is found <span class="commandname">flac</span> will stop with an error.
 	</div>
 	<div class="box_footer"></div>
@@ -143,12 +143,12 @@
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		<span class="commandname">flac</span> is the command-line file encoder/decoder.  The encoder currently supports as input RIFF WAVE, AIFF, FLAC or Ogg FLAC format, or raw interleaved samples.  The decoder currently can output to RIFF WAVE or AIFF format, or raw interleaved samples.  <span class="commandname">flac</span> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.), and the input must be between 4 and 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.
-		<br /><br />
-		<span class="commandname">flac</span> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, files ending in ".aif" or ".aiff" or have the AIFF header present are AIFF files, and files ending in ".flac" or have the FLAC header present are FLAC files.  This assumption may be overridden with a command-line option.  It also assumes that files ending in ".ogg" of have the Ogg FLAC header present are Ogg FLAC files.  Other than this, <span class="commandname">flac</span> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient "8.3" file systems like FAT-16).
-		<br /><br />
-		Before going into the full command-line description, a few other things help to sort it out: 1) <span class="commandname">flac</span> encodes by default, so you must use <b>-d</b> to decode; 2) the options <span class="argument">-0</span> .. <span class="argument">-8</span> (or <span class="argument">--fast</span> and <span class="argument">--best</span>) that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <span class="commandname">flac</span> behaves similarly to gzip in the way it handles input and output files.
-		<br /><br />
+		<span class="commandname">flac</span> is the command-line file encoder/decoder.  The encoder currently supports as input RIFF WAVE, AIFF, FLAC or Ogg FLAC format, or raw interleaved samples.  The decoder currently can output to RIFF WAVE or AIFF format, or raw interleaved samples.  <span class="commandname">flac</span> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.), and the input must be between 4 and 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.<br />
+		<br />
+		<span class="commandname">flac</span> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, files ending in ".aif" or ".aiff" or have the AIFF header present are AIFF files, and files ending in ".flac" or have the FLAC header present are FLAC files.  This assumption may be overridden with a command-line option.  It also assumes that files ending in ".ogg" of have the Ogg FLAC header present are Ogg FLAC files.  Other than this, <span class="commandname">flac</span> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient "8.3" file systems like FAT-16).<br />
+		<br />
+		Before going into the full command-line description, a few other things help to sort it out: 1) <span class="commandname">flac</span> encodes by default, so you must use <b>-d</b> to decode; 2) the options <span class="argument">-0</span> .. <span class="argument">-8</span> (or <span class="argument">--fast</span> and <span class="argument">--best</span>) that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <span class="commandname">flac</span> behaves similarly to gzip in the way it handles input and output files.<br />
+		<br />
 		<span class="commandname">flac</span> will be invoked one of four ways, depending on whether you are encoding, decoding, testing, or analyzing:
 		<ul>
 			<li>
@@ -164,8 +164,8 @@
 				Analyzing: flac -a [<i><a href="#general_options">&lt;general-options&gt;</a></i>] [<i><a href="#analysis_options">&lt;analysis-options&gt;</a></i>] [FLACfile [...]]
 			</li>
 		</ul>
-		In any case, if no <span class="argument">inputfile</span> is specified, stdin is assumed.  If only one inputfile is specified, it may be "-" for stdin.  When stdin is used as input, <span class="commandname">flac</span> will write to stdout.  Otherwise <span class="commandname">flac</span> will perform the desired operation on each input file to similarly named output files (meaning for encoding, the extension will be replaced with ".flac", or appended with ".flac" if the input file has no extension, and for decoding, the extension will be ".wav" for WAVE output and ".raw" for raw output).  The original file is not deleted unless --delete-input-file is specified.
-		<br /><br />
+		In any case, if no <span class="argument">inputfile</span> is specified, stdin is assumed.  If only one inputfile is specified, it may be "-" for stdin.  When stdin is used as input, <span class="commandname">flac</span> will write to stdout.  Otherwise <span class="commandname">flac</span> will perform the desired operation on each input file to similarly named output files (meaning for encoding, the extension will be replaced with ".flac", or appended with ".flac" if the input file has no extension, and for decoding, the extension will be ".wav" for WAVE output and ".raw" for raw output).  The original file is not deleted unless --delete-input-file is specified.<br />
+		<br />
 		If you are encoding/decoding from stdin to a file, you should use the -o option like so:
 		<ul>
 			<li>
@@ -184,22 +184,22 @@
 				flac -d [options] &gt; outputfile
 			</li>
 		</ul>
-		since the former allows flac to seek backwards to write the <span class="code">STREAMINFO</span> or RIFF WAVE header contents when necessary.
-		<br /><br />
-		Also, you can force output data to go to stdout using <span class="argument">-c</span>.
-		<br /><br />
+		since the former allows flac to seek backwards to write the <span class="code">STREAMINFO</span> or RIFF WAVE header contents when necessary.<br />
+		<br />
+		Also, you can force output data to go to stdout using <span class="argument">-c</span>.<br />
+		<br />
 		To encode or decode files that start with a dash, use <span class="argument">--</span> to signal the end of options, to keep the filenames themselves from being treated as options:
 		<ul>
 			<li>
 				<span class="code">flac -V -- -01-filename.wav</span>
 			</li>
 		</ul>
-		The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <span class="commandname">flac</span> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE or AIFF file the format options are not needed since they are read from the AIFF/WAVE header.
-		<br /><br />
-		In test mode, <span class="commandname">flac</span> acts just like in decode mode, except no output file is written.  Both decode and test modes detect errors in the stream, but they also detect when the MD5 signature of the decoded audio does not match the stored MD5 signature, even when the bitstream is valid.
-		<br /><br />
-		<span class="commandname">flac</span> can also re-encode FLAC files.  In other words, you can specify a FLAC or Ogg FLAC file as an input to the encoder and it will decoder it and re-encode it according to the options you specify.  It will also preserve all the metadata unless you override it with other options (e.g. specifying new tags, seekpoints, cuesheet, padding, etc.).
-		<br /><br />
+		The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <span class="commandname">flac</span> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE or AIFF file the format options are not needed since they are read from the AIFF/WAVE header.<br />
+		<br />
+		In test mode, <span class="commandname">flac</span> acts just like in decode mode, except no output file is written.  Both decode and test modes detect errors in the stream, but they also detect when the MD5 signature of the decoded audio does not match the stored MD5 signature, even when the bitstream is valid.<br />
+		<br />
+		<span class="commandname">flac</span> can also re-encode FLAC files.  In other words, you can specify a FLAC or Ogg FLAC file as an input to the encoder and it will decoder it and re-encode it according to the options you specify.  It will also preserve all the metadata unless you override it with other options (e.g. specifying new tags, seekpoints, cuesheet, padding, etc.).<br />
+		<br />
 
 		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
 		<table width="100%" border="1" bgcolor="#EEEED4">
@@ -331,8 +331,10 @@
 					<span class="argument">--skip={#|mm:ss.ss}</span>
 				</td>
 				<td>
-					Skip over the first # of samples of the input.  This works for both encoding and decoding, but not testing.  The alternative form <span class="argument">mm:ss.ss</span> can be used to specify minutes, seconds, and fractions of a second.<br /><br />
-					Examples:<br /><br />
+					Skip over the first # of samples of the input.  This works for both encoding and decoding, but not testing.  The alternative form <span class="argument">mm:ss.ss</span> can be used to specify minutes, seconds, and fractions of a second.<br />
+					<br />
+					Examples:<br />
+					<br />
 					<span class="argument">--skip=123</span> : skip the first 123 samples of the input<br />
 					<span class="argument">--skip=1:23.45</span> : skip the first 1 minute and 23.45 seconds of the input
 				</td>
@@ -343,8 +345,10 @@
 					<span class="argument">--until={#|[+|-]mm:ss.ss}</span>
 				</td>
 				<td>
-					Stop at the given sample number for each input file.  This works for both encoding and decoding, but not testing.  The given sample number is not included in the decoded output.  The alternative form <span class="argument">mm:ss.ss</span> can be used to specify minutes, seconds, and fractions of a second.  If a <span class="argument">+</span> sign is at the beginning, the <span class="argument">--until</span> point is relative to the <span class="argument">--skip</span> point.  If a <span class="argument">-</span> sign is at the beginning, the <span class="argument">--until</span> point is relative to end of the audio.<br /><br />
-					Examples:<br /><br />
+					Stop at the given sample number for each input file.  This works for both encoding and decoding, but not testing.  The given sample number is not included in the decoded output.  The alternative form <span class="argument">mm:ss.ss</span> can be used to specify minutes, seconds, and fractions of a second.  If a <span class="argument">+</span> sign is at the beginning, the <span class="argument">--until</span> point is relative to the <span class="argument">--skip</span> point.  If a <span class="argument">-</span> sign is at the beginning, the <span class="argument">--until</span> point is relative to end of the audio.<br />
+					<br />
+					Examples:<br />
+					<br />
 					<span class="argument">--until=123</span> : decode only the first 123 samples of the input (samples 0-122, stopping at 123)<br />
 					<span class="argument">--until=1:23.45</span> : decode only the first 1 minute and 23.45 seconds of the input<br />
 					<span class="argument">--skip=1:00 --until=+1:23.45</span> : decode 1:00.00 to 2:23.45<br />
@@ -358,8 +362,10 @@
 					<span class="argument">--ogg</span>
 				</td>
 				<td>
-					When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <span class="commandname">flac</span>.<br /><br />
-					When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.<br /><br />
+					When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <span class="commandname">flac</span>.<br />
+					<br />
+					When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.<br />
+					<br />
 					<b>NOTE:</b> Ogg FLAC files created prior to <span class="commandname">flac</span> 1.1.1 used an ad-hoc mapping and do not support seeking.  They should be decoded and re-encoded with <span class="commandname">flac</span> 1.1.1 or later.
 				</td>
 			</tr>
@@ -420,8 +426,10 @@
 					<span class="argument">--cue=[#.#][-[#.#]]</span>
 				</td>
 				<td>
-					Set the beginning and ending cuepoints to decode.  The optional first <span class="argument">#.#</span> is the track and index point at which decoding will start; the default is the beginning of the stream.  The optional second <span class="argument">#.#</span> is the track and index point at which decoding will end; the default is the end of the stream.  If the cuepoint does not exist, the closest one before it (for the start point) or after it (for the end point) will be used.  If those don't exist, the start of the stream (for the start point) or end of the stream (for the end point) will be used.  The cuepoints are merely translated into sample numbers then used as --skip and --until.<br /><br />
-					Examples:<br /><br />
+					Set the beginning and ending cuepoints to decode.  The optional first <span class="argument">#.#</span> is the track and index point at which decoding will start; the default is the beginning of the stream.  The optional second <span class="argument">#.#</span> is the track and index point at which decoding will end; the default is the end of the stream.  If the cuepoint does not exist, the closest one before it (for the start point) or after it (for the end point) will be used.  If those don't exist, the start of the stream (for the start point) or end of the stream (for the end point) will be used.  The cuepoints are merely translated into sample numbers then used as --skip and --until.<br />
+					<br />
+					Examples:<br />
+					<br />
 					<span class="argument">--cue=-</span> : decode the entire stream<br />
 					<span class="argument">--cue=4.1</span> : decode from track 4, index 1 to the end of the stream<br />
 					<span class="argument">--cue=4.1-</span> : decode from track 4, index 1 to the end of the stream<br />
@@ -446,13 +454,14 @@
 					<span class="argument">-@@@-apply-replaygain-which-is-not-lossless[=&lt;specification&gt;]</span>
 				</td>
 				<td>
-					Applies ReplayGain values while decoding.
-					<br /><br />
-					<b>WARNING: THIS IS NOT LOSSLESS.  DECODED AUDIO WILL NOT BE IDENTICAL TO THE ORIGINAL WITH THIS OPTION</b>.
-					<br /><br />
-					The equals sign and &lt;specification&gt; is optional.  If omitted, the default is <span class="argument">0aLn1</span>.
-					<br /><br />
-					The <span class="argument">&lt;specification&gt;</span> is a shorthand notation for describing how to apply ReplayGain.  All components are optional but order is important.  '<span class="argument">[]</span>' means 'optional'.  '<span class="argument">|</span>' means 'or'.  '<span class="argument">{}</span>' means required.  The format is:<br /><br />
+					Applies ReplayGain values while decoding.<br />
+					<br />
+					<b>WARNING: THIS IS NOT LOSSLESS.  DECODED AUDIO WILL NOT BE IDENTICAL TO THE ORIGINAL WITH THIS OPTION</b>.<br />
+					<br />
+					The equals sign and &lt;specification&gt; is optional.  If omitted, the default is <span class="argument">0aLn1</span>.<br />
+					<br />
+					The <span class="argument">&lt;specification&gt;</span> is a shorthand notation for describing how to apply ReplayGain.  All components are optional but order is important.  '<span class="argument">[]</span>' means 'optional'.  '<span class="argument">|</span>' means 'or'.  '<span class="argument">{}</span>' means required.  The format is:<br />
+					<br />
 					&nbsp;&nbsp;<span class="argument">[&lt;preamp&gt;][a|t][l|L][n{0|1|2|3}]</span>
 					<ul>
 						<li>
@@ -472,10 +481,10 @@
 								&nbsp;&nbsp;Specify the amount of noise shaping.  ReplayGain synthesis happens in floating point; the result is dithered before converting back to integer.  This quantization adds noise.  Noise shaping tries to move the noise where you won't hear it as much.  <span class="argument">0</span> means no noise shaping, <span class="argument">1</span> means 'low', <span class="argument">2</span> means 'medium', <span class="argument">3</span> means 'high'.
 						</li>
 					</ul>
-					For example, the default of <span class="argument">0aLn1</span> means 0dB preamp, use album gain, 6dB hard limit, low noise shaping.
-					<br /><br />
-					<span class="argument">-@@@-apply-replaygain-which-is-not-lossless=3</span> means 3dB preamp, use album gain, no limiting, no noise shaping.
-					<br /><br />
+					For example, the default of <span class="argument">0aLn1</span> means 0dB preamp, use album gain, 6dB hard limit, low noise shaping.<br />
+					<br />
+					<span class="argument">-@@@-apply-replaygain-which-is-not-lossless=3</span> means 3dB preamp, use album gain, no limiting, no noise shaping.<br />
+					<br />
 					<span class="commandname">flac</span> uses the ReplayGain tags for the calculation.  If a stream does not have the required tags or they can't be parsed, decoding will continue with a warning, and no ReplayGain is applied to that stream.
 				</td>
 			</tr>
@@ -516,7 +525,8 @@
 					<span class="argument">--replay-gain</span>
 				</td>
 				<td>
-					Calculate <a href="http://www.replaygain.org/">ReplayGain</a> values and store them as FLAC tags, similar to <a href="http://packages.qa.debian.org/v/vorbisgain.html">VorbisGain</a>.  Title gains/peaks will be computed for each input file, and an album gain/peak will be computed for all files.  All input files must have the same resolution, sample rate, and number of channels.  Only mono and stereo files are allowed, and the sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.  Also note that this option may leave a few extra bytes in a <span class="code">PADDING</span> block as the exact size of the tags is not known until all files are processed.<br /><br />
+					Calculate <a href="http://www.replaygain.org/">ReplayGain</a> values and store them as FLAC tags, similar to <a href="http://packages.qa.debian.org/v/vorbisgain.html">VorbisGain</a>.  Title gains/peaks will be computed for each input file, and an album gain/peak will be computed for all files.  All input files must have the same resolution, sample rate, and number of channels.  Only mono and stereo files are allowed, and the sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.  Also note that this option may leave a few extra bytes in a <span class="code">PADDING</span> block as the exact size of the tags is not known until all files are processed.<br />
+					<br />
 					Note that this option cannot be used when encoding to standard output (stdout).
 				</td>
 			</tr>
@@ -526,7 +536,8 @@
 					<span class="argument">--cuesheet=FILENAME</span>
 				</td>
 				<td>
-					Import the given cuesheet file and store it in a <a href="format.html#def_CUESHEET"><span class="code">CUESHEET</span></a> metadata block.  This option may only be used when encoding a single file.  A seekpoint will be added for each index point in the cuesheet to the <a href="format.html#def_SEEKTABLE"><span class="code">SEEKTABLE</span></a> unless <span class="argument">--no-cued-seekpoints</span> is specified.<br /><br />
+					Import the given cuesheet file and store it in a <a href="format.html#def_CUESHEET"><span class="code">CUESHEET</span></a> metadata block.  This option may only be used when encoding a single file.  A seekpoint will be added for each index point in the cuesheet to the <a href="format.html#def_SEEKTABLE"><span class="code">SEEKTABLE</span></a> unless <span class="argument">--no-cued-seekpoints</span> is specified.<br />
+					<br />
 					The cuesheet file must be of the sort written by <a href="http://www.goldenhawk.com/cdrwin.htm">CDRwin</a>, <a href="http://www.dcsoft.com/prod03.htm">CDRcue</a>, <a href="http://www.exactaudiocopy.de/">EAC</a>, etc.  See also <a href="http://digitalx.org/cuesheetsyntax.php">cuesheet syntax</a>.
 				</td>
 			</tr>
@@ -536,8 +547,10 @@
 					<span class="argument">--picture=SPECIFICATION</span>
 				</td>
 				<td>
-					Import a picture and store it in a <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block.  More than one <span class="argument">--picture</span> command can be specified.  The <span class="argument">SPECIFICATION</span> is a string whose parts are separated by <span class="argument">|</span> (pipe) characters.  Some parts may be left empty to invoke default values.  The format of <span class="argument">SPECIFICATION</span> is<br /><br />
-					<tt>&nbsp;&nbsp;[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE</tt><br /><br />
+					Import a picture and store it in a <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block.  More than one <span class="argument">--picture</span> command can be specified.  The <span class="argument">SPECIFICATION</span> is a string whose parts are separated by <span class="argument">|</span> (pipe) characters.  Some parts may be left empty to invoke default values.  The format of <span class="argument">SPECIFICATION</span> is<br />
+					<br />
+					<tt>&nbsp;&nbsp;[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE</tt><br />
+					<br />
 					<span class="argument">TYPE</span> is optional; it is a number from one of:<br />
 					<tt><ul>
 						<li>0: Other</li>
@@ -562,12 +575,18 @@
 						<li>19: Band/artist logotype</li>
 						<li>20: Publisher/Studio logotype</li>
 					</ul></tt>
-					The default is 3 (front cover).  There may only be one picture each of type 1 and 2 in a file.<br/><br />
-					<span class="argument">MIME-TYPE</span> is mandatory; for best compatibility with players, use pictures with MIME type <tt>image/jpeg</tt> or <tt>image/png</tt>.  The MIME type can also be --&gt; to mean that <span class="argument">FILE</span> is actually a URL to an image, though this use is discouraged.<br /><br />
-					<span class="argument">DESCRIPTION</span> is optional; the default is an empty string.<br /><br />
-					The next part specfies the resolution and color information.  If the <span class="argument">MIME-TYPE</span> is <tt>image/jpeg</tt>, <tt>image/png</tt>, or <tt>image/gif</tt>, you can usually leave this empty and they can be detected from the file.  Otherwise, you must specify the width in pixels, height in pixels, and color depth in bits-per-pixel.  If the image has indexed colors you should also specify the number of colors used.  When manually specified, it is not checked against the file for accuracy.<br /><br />
-					<span class="argument">FILE</span> is the path to the picture file to be imported, or the URL if MIME type is --&gt;<br /><br />
-					For example, the specification <span class="argument">|image/jpeg|||../cover.jpg</span> will embed the JPEG file at <tt>../cover.jpg</tt>, defaulting to type 3 (front cover) and an empty description.  The resolution and color info will be retrieved from the file itself.<br /><br />
+					The default is 3 (front cover).  There may only be one picture each of type 1 and 2 in a file.<br/>
+					<br />
+					<span class="argument">MIME-TYPE</span> is mandatory; for best compatibility with players, use pictures with MIME type <tt>image/jpeg</tt> or <tt>image/png</tt>.  The MIME type can also be --&gt; to mean that <span class="argument">FILE</span> is actually a URL to an image, though this use is discouraged.<br />
+					<br />
+					<span class="argument">DESCRIPTION</span> is optional; the default is an empty string.<br />
+					<br />
+					The next part specfies the resolution and color information.  If the <span class="argument">MIME-TYPE</span> is <tt>image/jpeg</tt>, <tt>image/png</tt>, or <tt>image/gif</tt>, you can usually leave this empty and they can be detected from the file.  Otherwise, you must specify the width in pixels, height in pixels, and color depth in bits-per-pixel.  If the image has indexed colors you should also specify the number of colors used.  When manually specified, it is not checked against the file for accuracy.<br />
+					<br />
+					<span class="argument">FILE</span> is the path to the picture file to be imported, or the URL if MIME type is --&gt;<br />
+					<br />
+					For example, the specification <span class="argument">|image/jpeg|||../cover.jpg</span> will embed the JPEG file at <tt>../cover.jpg</tt>, defaulting to type 3 (front cover) and an empty description.  The resolution and color info will be retrieved from the file itself.<br />
+					<br />
 					The specification <span class="argument">4|--&gt;|CD|320x300x24/173|http://blah.blah/backcover.tiff</span> will embed the given URL, with type 4 (back cover), description "CD", and a manually specified resolution of 320x300, 24 bits-per-pixel, and 173 colors.  The file at the URL will not be fetched; the URL itself is stored in the PICTURE metadata block.
 				</td>
 			</tr>
@@ -577,8 +596,10 @@
 					<span class="argument">--sector-align</span>
 				</td>
 				<td>
-					Align encoding of multiple CD format files on sector boundaries.  This option is only allowed when encoding files all of which have a 44.1kHz sample rate and 2 channels.  With <span class="argument">--sector-align</span>, the encoder will align the resulting .flac streams so that their lengths are even multiples of a CD sector (1/75th of a second, or 588 samples).  It does this by carrying over any partial sector at the end of each file to the next stream.  The last stream will be padded to alignment with zeroes.<br /><br />
-					This option will have no effect if the files are already aligned (as is the normally the case with WAVE files ripped from a CD).  <span class="commandname">flac</span> can only align a set of files given in one invocation of <span class="commandname">flac</span>.<br /><br />
+					Align encoding of multiple CD format files on sector boundaries.  This option is only allowed when encoding files all of which have a 44.1kHz sample rate and 2 channels.  With <span class="argument">--sector-align</span>, the encoder will align the resulting .flac streams so that their lengths are even multiples of a CD sector (1/75th of a second, or 588 samples).  It does this by carrying over any partial sector at the end of each file to the next stream.  The last stream will be padded to alignment with zeroes.<br />
+					<br />
+					This option will have no effect if the files are already aligned (as is the normally the case with WAVE files ripped from a CD).  <span class="commandname">flac</span> can only align a set of files given in one invocation of <span class="commandname">flac</span>.<br />
+					<br />
 					<b>WARNING:</b> The ordering of files is important!  If you give a command like '<span class="code">flac --sector-align *.wav</span>' the shell may not expand the wildcard to the order you expect.  To be safe you should '<span class="code">echo *.wav</span>' first to confirm the order, or be explicit like '<span class="code">flac --sector-align 8.wav 9.wav 10.wav</span>'.
 				</td>
 			</tr>
@@ -826,7 +847,8 @@
 					<span class="argument">-r [#,]#</span>,<br /><span class="argument">--rice-partition-order=[#,]#</span>
 				</td>
 				<td>
-					Set the [min,]max residual partition order.  The min value defaults to 0 if unspecified.<br /><br />
+					Set the [min,]max residual partition order.  The min value defaults to 0 if unspecified.<br />
+					<br />
 					By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is iteratively partitioned into 2^min# .. 2^max# pieces, each with its own Rice parameter.  Higher values of max# yield diminishing returns.  The most bang for the buck is usually with <span class="argument">-r 2,2</span> (more for higher block sizes).  This usually shaves off about 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <span class="argument">-r 0,16</span> to force the highest degree of optimization.
 				</td>
 			</tr>
@@ -964,8 +986,8 @@
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		<span class="commandname">metaflac</span> is the command-line <span class="code">.flac</span> file metadata editor.  You can use it to list the contents of metadata blocks, edit, delete or insert blocks, and manage padding.
-		<br /><br />
+		<span class="commandname">metaflac</span> is the command-line <span class="code">.flac</span> file metadata editor.  You can use it to list the contents of metadata blocks, edit, delete or insert blocks, and manage padding.<br />
+		<br />
 		<span class="commandname">metaflac</span> takes a set of "options" (though some are not optional) and a set of FLAC files to operate on.  There are three kinds of "options":
 		<ul>
 			<li>
@@ -978,14 +1000,14 @@
 				Global options, which affect all the operations.
 			</li>
 		</ul>
-		All of these are described in the tables below.  At least one shorthand or major operation must be supplied.  You can use multiple shorthand operations to do more than one thing to a file or set of files.  Most of the common things to do to metadata have shorthand operations.  As an example, here is how to show the MD5 signatures for a set of three FLAC files:
-		<br /><br />
-			<span class="code">metaflac --show-md5sum file1.flac file2.flac file3.flac</span>
-		<br /><br />
-			Another example; this removes all DESCRIPTION and COMMENT tags in a set of FLAC files, and uses the <span class="argument">--preserve-modtime</span> global option to keep the FLAC file modification times the same (usually when files are edited the modification time is set to the current time):
-		<br /><br />
-			<span class="code">metaflac --preserve-modtime --remove-tag=DESCRIPTION --remove-tag=COMMENT file1.flac file2.flac file3.flac</span>
-		<br /><br />
+		All of these are described in the tables below.  At least one shorthand or major operation must be supplied.  You can use multiple shorthand operations to do more than one thing to a file or set of files.  Most of the common things to do to metadata have shorthand operations.  As an example, here is how to show the MD5 signatures for a set of three FLAC files:<br />
+		<br />
+		<span class="code">metaflac --show-md5sum file1.flac file2.flac file3.flac</span><br />
+		<br />
+		Another example; this removes all DESCRIPTION and COMMENT tags in a set of FLAC files, and uses the <span class="argument">--preserve-modtime</span> global option to keep the FLAC file modification times the same (usually when files are edited the modification time is set to the current time):<br />
+		<br />
+		<span class="code">metaflac --preserve-modtime --remove-tag=DESCRIPTION --remove-tag=COMMENT file1.flac file2.flac file3.flac</span><br />
+		<br />
 
 		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
 		<table width="100%" border="1" bgcolor="#EEEED4">
@@ -1328,10 +1350,12 @@
 					<span class="argument">--list</span>
 				</td>
 				<td>
-					List the contents of one or more metadata blocks to stdout.  By default, all metadata blocks are listed in text format.  Use the following options to change this behavior:<br /><br />
+					List the contents of one or more metadata blocks to stdout.  By default, all metadata blocks are listed in text format.  Use the following options to change this behavior:<br />
+					<br />
 
 					<span class="argument">--block-number=#[,#[...]]</span><br />
-					An optional comma-separated list of block numbers to display.  The first block, the <span class="code">STREAMINFO</span> block, is block 0.<br /><br />
+					An optional comma-separated list of block numbers to display.  The first block, the <span class="code">STREAMINFO</span> block, is block 0.<br />
+					<br />
 
 					<span class="argument">--block-type=type[,type[...]]</span><br />
 					<span class="argument">--except-block-type=type[,type[...]]</span><br />
@@ -1348,7 +1372,8 @@
 					</table>
 					<br />
 
-					NOTE: if both <span class="argument">--block-number</span> and <span class="argument">--[except-]block-type</span> are specified, the result is the logical AND of both arguments.<br /><br />
+					NOTE: if both <span class="argument">--block-number</span> and <span class="argument">--[except-]block-type</span> are specified, the result is the logical AND of both arguments.<br />
+					<br />
 
 					<span class="argument">--application-data-format=hexdump|text</span><br />
 					If the application block you are displaying contains binary data but your <span class="argument">--data-format=text</span>, you can display a hex dump of the application data contents instead using <span class="argument">--application-data-format=hexdump</span>.
@@ -1360,12 +1385,14 @@
 					<span class="argument">--remove</span>
 				</td>
 				<td>
-					Remove one or more metadata blocks from the metadata.  Unless <span class="argument">--dont-use-padding</span> is specified, the blocks will be replaced with padding.  You may not remove the <span class="code">STREAMINFO</span> block.<br /><br />
+					Remove one or more metadata blocks from the metadata.  Unless <span class="argument">--dont-use-padding</span> is specified, the blocks will be replaced with padding.  You may not remove the <span class="code">STREAMINFO</span> block.<br />
+					<br />
 
 					<span class="argument">--block-number=#[,#[...]]</span><br />
 					<span class="argument">--block-type=type[,type[...]]</span><br />
 					<span class="argument">--except-block-type=type[,type[...]]</span><br />
-					See <a href="#metaflac_operations_list"><span class="argument">--list</span></a> above for usage.<br /><br />
+					See <a href="#metaflac_operations_list"><span class="argument">--list</span></a> above for usage.<br />
+					<br />
 
 					NOTE: if both <span class="argument">--block-number</span> and <span class="argument">--[except-]block-type</span> are specified, the result is the logical AND of both arguments.
 				</td>
@@ -1438,8 +1465,8 @@
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		Bug tracking is done on the Sourceforge project page <a href="http://sourceforge.net/bugs/?group_id=13478">here</a>.  If you submit a bug, make sure and provide an email contact or use the Monitor feature.
-		<br /><br />
+		Bug tracking is done on the Sourceforge project page <a href="http://sourceforge.net/bugs/?group_id=13478">here</a>.  If you submit a bug, make sure and provide an email contact or use the Monitor feature.<br />
+		<br />
 		The following are major known bugs in the current (1.1.3) release:
 		<ul>
 			<li>

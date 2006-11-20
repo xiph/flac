@@ -62,16 +62,16 @@
 				The compression ratios and times for flac are representative only of the reference encoder.  They are not indicative of the limits of all FLAC encoders or the FLAC format itself since the format is open and extensible, and anyone is free to write a better FLAC encoder.
 			</li>
 		</ul>
-		I make an effort to keep this information as accurate as possible, but if any of the data is wrong, <a href="mailto:jcoalson@users.sourceforge.net">let me know</a> and I'll correct it.  For another comparison (with graphs) of lossless codecs, see <a href="http://web.inter.nl.net/users/hvdh/lossless/lossless.htm">here</a>.
-		<br /><br />
+		I make an effort to keep this information as accurate as possible, but if any of the data is wrong, <a href="mailto:jcoalson@users.sourceforge.net">let me know</a> and I'll correct it.  For another comparison (with graphs) of lossless codecs, see <a href="http://web.inter.nl.net/users/hvdh/lossless/lossless.htm">here</a>.<br />
+		<br />
 		Note: the comparison tables are getting a little stale for some of the other encoders; for some alternate comparisons and other lossless information see these links:
 		<ul>
 			<li><a href="http://web.inter.nl.net/users/hvdh/lossless/lossless.htm">Hans Heijden's</a> lossless comparison</li>
 			<li><a href="http://wiki.hydrogenaudio.org/index.php?title=Lossless_comparison">Roberto Amorim's</a> lossless comparison on Hydrogenaudio</li>
 			<li><a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=33226">"Which is the best lossless codec?"</a> thread on Hydrogenaudio</li>
 			<li><a href="http://www.losslessaudioblog.com/">Lossless Audio Blog</a></li>
-		</ul>
-		<br /><br />
+		</ul><br />
+		<br />
 		Reviewed encoders (besides flac of course):
 		<ul>
 			<li>
@@ -105,8 +105,8 @@
 				<a href="http://www.wavpack.com/">WavPack</a> - An open-source codec, released under the BSD license.  WavPack has a very good tradeoff between compressed size and compression speed.
 			</li>
 		</ul>
-		If you take maximum compression ratio and speed out of the picture (as you will see later, most coders exhibit similar performance), here is a subjective sort based on overall "usefulness".  As far as features go, having source code gives you the most freedom since you can add anything you need that is missing; besides, open source projects tend to get better faster than closed source ones.  A close second (depending on the user) would be OS support or plugin support.
-		<br /><br />
+		If you take maximum compression ratio and speed out of the picture (as you will see later, most coders exhibit similar performance), here is a subjective sort based on overall "usefulness".  As far as features go, having source code gives you the most freedom since you can add anything you need that is missing; besides, open source projects tend to get better faster than closed source ones.  A close second (depending on the user) would be OS support or plugin support.<br />
+		<br />
 		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
 		<table width="100%" border="1" bgcolor="#EEEED4">
 			<tr>
@@ -425,14 +425,14 @@
 		</td></tr></table>
 		<br />
 
-		The machine I used for encoding the test files is a PII-333 with 256 megs of RAM, running Windows NT 4.0 SP5.  Unfortunately, Windows is the lowest-common-denominator platform for all the encoders.  Apple Lossless was tested on a newer machine (P4-2.4GHz Windows 2000); only the overall encoding and decoding times are shown, and the times are scaled to the PII-333 by multiplying by the ratio of flac times on the PII to P4.
-		<br /><br />
-		The input corpus currently consists entirely of CD music tracks.  In the future it may include more kinds of input (like speech, other sample rates/resolutions, etc).  There are 14 tracks whose genres range from rock to pop to death metal to classical to chant.
-		<br /><br />
-		The first table is a summary of results on all input tracks.  The remaining tables show the results of the encoders on each track.  The summary table has more modes, whereas the individual tables have just the interesting ones.
-		<br /><br />
-		In the summary table, entries are sorted by average compression ratio, which is the average of the ratios for each track; this keeps long tracks from having more influence than short ones.  In the individual tables, this is the same as the straight compression ratio, which is compressed size / uncompressed size.
-		<br /><br />
+		The machine I used for encoding the test files is a PII-333 with 256 megs of RAM, running Windows NT 4.0 SP5.  Unfortunately, Windows is the lowest-common-denominator platform for all the encoders.  Apple Lossless was tested on a newer machine (P4-2.4GHz Windows 2000); only the overall encoding and decoding times are shown, and the times are scaled to the PII-333 by multiplying by the ratio of flac times on the PII to P4.<br />
+		<br />
+		The input corpus currently consists entirely of CD music tracks.  In the future it may include more kinds of input (like speech, other sample rates/resolutions, etc).  There are 14 tracks whose genres range from rock to pop to death metal to classical to chant.<br />
+		<br />
+		The first table is a summary of results on all input tracks.  The remaining tables show the results of the encoders on each track.  The summary table has more modes, whereas the individual tables have just the interesting ones.<br />
+		<br />
+		In the summary table, entries are sorted by average compression ratio, which is the average of the ratios for each track; this keeps long tracks from having more influence than short ones.  In the individual tables, this is the same as the straight compression ratio, which is compressed size / uncompressed size.<br />
+		<br />
 		Some interesting things to note:
 		<ul>
 			<li>flac -5 is right in the middle with respect to compression, relatively fast on the encoding range, and one of the fastest decoding.  This is about what you would expect; FLAC is designed to put most of the processing on the encoding side, which is only done once, whereas the adaptive codecs take as long to decode as encode.  FLAC is more suited in this way for playback on low-power devices and is one of the reasons it is the only lossless codec with any kind of hardware support.</li>
@@ -440,8 +440,8 @@
 			<li>RKAU also has a tendency to get bigger in the 'high' mode.</li>
 			<li>Another ironic fact is that the encoders that are patented or cost money turn out to be the worst by most measures.  SPS is so archane and crippled that I gave up trying to put together results for it after one track.</li>
 		</ul>
-		This is a summary table with just the most 'economic' modes (the ones that give the most compression for the least amount of encode/decode time) for each codec.
-		<br /><br />
+		This is a summary table with just the most 'economic' modes (the ones that give the most compression for the least amount of encode/decode time) for each codec.<br />
+		<br />
 
 		<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
 		<table width="100%" border="1" bgcolor="#EEEED4">
