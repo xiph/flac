@@ -30,9 +30,9 @@
 #include <errno.h>
 
 #include "plugin_common/charset.h"
-#include "plugin_common/locale_hack.h"
 #include "charset.h"
 #include "configure.h"
+#include "locale_hack.h"
 
 
 /****************

@@ -117,10 +117,6 @@ SOURCE=.\dither.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\locale_hack.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\replaygain.h
 # End Source File
 # Begin Source File

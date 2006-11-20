@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!-- Copyright (c)  2004,2005,2006 Josh Coalson -->
+<!-- Copyright (c) 2004,2005,2006  Josh Coalson -->
 <!-- Permission is granted to copy, distribute and/or modify this document -->
 <!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
 <!-- or any later version published by the Free Software Foundation; -->
@@ -60,51 +60,80 @@
 
 <br />
 
-<a name="hardware" />
 <div class="box">
 	<div class="box_title">
-		hardware
+		<a name="hardware">hardware</a>
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		Below is a list of devices that support the FLAC format.  So far we only have experience with the Rio Reciever.  Manufacturers, if you would like your product reviewed here, feel free to <a href="mailto:jcoalson@users.sourceforge.net">send a unit</a>.<br />
+		Below is a list of devices that support the FLAC format.  So far we only have experience with the Squeezebox2 and Rio Reciever; see <a href="#review">reviews</a> below.  Manufacturers, if you would like your product reviewed here, feel free to <a href="mailto:jcoalson@users.sourceforge.net">send a unit</a>.<br />
 		<br />
 		<b>Home stereo:</b>
 		<ul>
-			<li><a href="http://www.request.com/us/">AudioReQuest</a> music servers</li>
-			<li>Digital Techniques' "iStereo" <a href="http://www.digitaltechniques.com/M300A_Overview.html">M300A Digital Music Player</a></li>
-			<li>Escient's <a href="http://www.escient.com/">FireBall servers (E2-40/160/300, DVDM-300)</a>, networked home stereo components with hard-drives</li>
+			<li><a href="http://www.request.com/">AudioReQuest</a> music servers</li>
+			<li><a href="http://www.avegasystems.com/">Avega Systems'</a> wireless <a href="http://www.avegasystems.com/_documents/Oyster_Specifications.pdf">Oyster</a> loudspeakers</li>
+			<!--
+				http://www.avegasystems.com/_documents/Oyster_Specifications.pdf
+				http://www.avegasystems.com/_documents/Oyster_FAQ.pdf
+			-->
+			<li>Digital Techniques' <a href="http://www.digitaltechniques.com/Products.html">Blackbird Digital Music Players</a></li>
+			<li>Escient's <a href="http://www.escient.com/">FireBall servers (E2-40/160/300, DVDM-300, SE-D1)</a>, networked home stereo components with hard-drives</li>
 			<li><a href="http://www.hermstedt.com/english/hifidelio/hifidelio.html">Hifidelio</a>, a wireless home stereo component</li>
+			<li><a href="http://www.imuse.us/">iMuse</a> audio/video media servers</li>
 			<li>Meda Systems' <a href="http://www.medainc.com/">Bravo servers</a></li>
-			<li>The <a href="http://www.cesweb.org/attendees/show_floor/product_locator/product_details.asp?prodid=5181">MS300 Music Server</a> by McIntosh Laboratory</li>
+			<li>The <a href="http://www.mcintoshlabs.com/mcprod/shopdisplayproducts.asp?id=19&amp;cat=Sources&amp;prodid=1113&amp;product=MS300">MS300 Music Server</a> by McIntosh Laboratory (<a href="http://www.mcintoshlabs.com/mcprod/..\data\brochures\ms300techsheet.pdf">brochure</a>)</li>
+			<li><a href="http://www.olive.us/">Olive</a>'s Opus, Symphony, and Musica wireless digital music centers</li>
 			<li><a href="http://www.phatnoise.com/products/homeplayer/index.php">PhatNoise Home Digital Media Player</a></li>
-			<li><a href="http://www.mock.com/receiver/">Rio Reciever</a> and Dell Digital Audio Receiver via <a href="http://sourceforge.net/projects/rioplay/">RioPlay</a> or <a href="http://www.reza.net/rio/rrr.html">RRR</a> clients<br />This little device is a hacker's dream.  There are several open source clients available and since it boots its Linux distro over NFS you can write your own client.  They're not made anymore but you can still find them on ebay.</li>
-			<li><a href="http://www.rokulabs.com/">Roku Soundbridge</a></li>
+			<li>PONTIS' <a href="http://www.pontis.de/site_e/produkte/ms_330_e.htm">MS330 Media Server</a></li>
+			<li>Neodigits' <a href="http://www.neodigits.com/new/body/products/Xline/x5000.asp">Helios X5000</a> HD network media player</a>.
+			<li><a href="http://www.numark.com/">Numark</a>'s DJ equipment like the HDX and CDX turntables with integrated hard drive and CD player, and the HDMIX mixer</li>
+			<li><a href="http://www.mock.com/receiver/">Rio Reciever</a> and Dell Digital Audio Receiver via <a href="http://sourceforge.net/projects/rioplay/">RioPlay</a>, <a href="http://www.reza.net/rio/rrr.html">RRR</a>, <a href="http://sourceforge.net/projects/triot/">tRio</a>, or <a href="http://www.xplhal.com/xplrionet.htm">xPLRio.net</a> clients (<a href="#review_rio_receiver">review</a>)</li>
+			<li><a href="http://www.rokulabs.com/products/photobridge/features.php">Roku Photobridge HD</a> via <a href="http://homepage.ntlworld.ie/p.mc.quillan/FLAC_V0.7.zip">plugin</a></li>
+			<li><a href="http://www.rokulabs.com/">Roku Soundbridge(*)</a></li>
 			<li><a href="http://www.skipjam.com/">SkipJam</a>'s networked audio/video devices</li>
-			<li><a href="http://www.slimdevices.com/">Squeezebox and SliMP3</a> networked audio players</li>
-			<li>Turtle Beach's <a href="http://www.turtlebeach.com/site/products/audiotron/producthome.asp">AudioTron</a> via Bery Rinaldo's <a href="http://file-ext-map.sourceforge.net/">Samba VFS Module</a></li>
+			<li><a href="http://www.sonos.com/">Sonos Digital Music System</a></li>
+			<li>Slim Devices' <a href="http://www.slimdevices.com/pi_transporter.html">Transporter</a> and <a href="http://www.slimdevices.com/pi_squeezebox.html">Squeezebox</a> networked audio players (<a href="#review_squeezebox2">review</a>)</li>
+			<li>Turtle Beach's <a href="http://www.turtlebeach.com/site/products/audiotron/producthome.asp">AudioTron(*)</a> via Bery Rinaldo's <a href="http://file-ext-map.sourceforge.net/">Samba VFS Module</a></li>
 			<li><a href="http://www.z500series.com/">Zensonic Z500 Networked DVD Media Player</a></li>
+			<li>Ziova's <a href="http://www.ziova.com/cs510.php">CS510</a> and <a href="http://www.ziova.com/cs505.php">CS505</a> network media players</li>
+			<li>(*) <i>device decodes FLAC to WAVE/PCM on server-side</i></li>
+			<li>(**) <i>device decodes FLAC to MP3 on server-side</i></li>
 		</ul>
 		<b>Car stereo:</b>
 		<ul>
 			<li><a href="http://www.phatnoise.com/products/digitalmediaplayers/kenwood_music_keg.php">Kenwood Music Keg</a></li>
 			<li><a href="http://www.phatnoise.com/products/digitalmediaplayers/index.php">PhatBox</a></li>
+			<li><a href="http://www.cdd.ru/">URAL ConceRt CDD</a></li>
+			<li>Volvo's <a href="http://www.volvocars.com/DigitalJukebox/product_information/">Digital Jukebox</a></li>
 		</ul>
 		<b>Portable/Handheld:</b>
 		<ul>
-			<li><a href="http://www.jetaudio.com/products/iaudio/m3/">iAUDIO M3</a></li>
+			<li>Bluedot's <a href="http://www.digitalworldtokyo.com/2006/07/bluedot_pmp_runs_linux_loves.php">BMP-1430</a></li>
+			<li>COWON's <a href="http://www.cowonamerica.com/products/cowon/a2/">iAUDIO A2</a>, <a href="http://www.cowonglobal.com/product/product_F2_feature.php">iAUDIO F2</a>, <a href="http://www.cowonamerica.com/products/iaudio/u3/">iAUDIO U3</a>, <a href="http://www.jetaudio.com/products/iaudio/m3/">iAUDIO M3</a>, <a href="http://www.cowonamerica.com/products/iaudio/m5/">iAUDIO M5</a>, <a href="http://www.cowonamerica.com/products/iaudio/t2/">iAUDIO T2</a>, and <a href="http://www.cowonamerica.com/products/iaudio/x5/">iAUDIO X5</a></li>
+			<li>Green Apple's portable media player: <a href="http://www.apod.com.cn/show_products.asp?photoID=437">AP3000</a></li>
+			<li>iPod via the <a href="http://www.rockbox.org/">Rockbox</a> firmware replacement</li>
+			<li>iRiver iHP-120/iHP-140/H320/H340 via the <a href="http://www.rockbox.org/">Rockbox</a> firmware replacement</li>
+			<li><a href="http://gaming.engadget.com/2006/01/22/iwod-g10-pmp-with-nes-emulator/">Iwod G10</a></li>
+			<li>Onda <a href="http://www.anythingbutipod.com/archives/2006/09/onda-vx737-gaming-pmp.php">VX737</a></li>
 			<li><a href="http://www.digitalnetworksna.com/shop/_templates/item_main_Rio.asp?model=220&amp;cat=53">Rio Karma</a><!-- and Rio Chroma--></li>
+			<li>TrekStor's <a href="http://www.trekstor.de/en/products/detail_mp3.php?pid=66">Vibez</a></li>
 		</ul>
+		<a name="review"><b>Reviews:</b></a>
+		<br /><br />
+		The main purpose of these reviews is to give an idea of how well particular devices support FLAC.  Other subjective comments here are based on our general impressions and are not meant to be thorough or authoritative.  We only review devices we have tested directly ourselves.
+		<br /><br />
+		<a name="review_rio_receiver"><a href="http://www.mock.com/receiver/"><b>Rio Reciever</b></a></a>: This little device is a hacker's dream.  It plays audio over a network (Ethernet or HPNA) so it requires a PC to serve audio files.  There are several open source clients available and since it boots its Linux distro over NFS you can write your own client.  They're not made anymore but you can still find them on ebay.  The main downsides: 1) small, hard-to-read LCD display; 2) FLAC support is only in third-party clients which take some work to set up.
+		<br /><br />
+		<a name="review_squeezebox2"><a href="http://www.slimdevices.com/"><b>Squeezebox2</b></a></a>: A fantastic networked audio player.  Has an excellent, easy-to-read vacuum fluorescent display, wired or wireless networking, optical and coax digital outs and analog out, a reputation for very high audio quality, multi-room synchronization, and a bunch of other features.  The server-side software, SlimServer, is open-source, runs on Windows, Mac OS X, Linux, etc. and has an active community.  FLAC support is excellent; nearly the full <a href="format.html#subset">subset</a> (e.g. sample rates up to 48kHz, 16- and 24-bits per sample) including all standard encoding modes are supported.  Also supported are FLAC tags, automatic transcoding on the server of many audio formats to FLAC for transmission to the box, and external cuesheet support (internal cuesheet support is in the works).
 	</div>
 	<div class="box_footer"></div>
 </div>
 
 <br />
 
-<a name="music" />
 <div class="box">
 	<div class="box_title">
-		music
+		<a name="music">music</a>
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
@@ -112,10 +141,14 @@
 		<br />
 		<b>Artists</b>
 		<ul>
+			<li><a href="http://www.bleep.com/?label=Autechre">Autechre</a></li>
 			<li><a href="http://www.bucketheadslivewedges.com/">Buckethead</a></li>
 			<li><a href="http://www.charliehunter.com/news/main.htm">Charlie Hunter</a></li>
 			<li><a href="http://www.c2b3live.com/">Colonel Claypool's Bucket of Bernie Brains</a></li>
 			<li><a href="http://stores.musictoday.com/store/dept.asp?band_id=1&amp;dept_id=2640">Dave Matthews Band</a></li>
+			<li><a href="http://stores.musictoday.com/store/dept.asp?band_id=171&amp;dept_id=6764">The Grateful Dead</a></li>
+			<li><a href="http://www.dgmlive.com/">King Crimson</a></li>
+			<li><a href="http://www.theymightbegiants.com/">They Might Be Giants</a></li>
 			<li><a href="http://www.livemetallica.com/">Metallica</a></li>
 			<li><a href="http://www.livephish.com/">Phish</a></li>
 			<li><a href="http://www.primuslive.com/">Primus</a></li>
@@ -124,14 +157,22 @@
 		<ul>
 			<li><a href="http://www.aliveaudio.net/">AliveAudio</a></li>
 			<li><a href="http://www.atorecords.com/">ATO Records</a> (<a href="http://stores.musictoday.com/store/dept.asp?dept_id=2654&amp;band_id=154">Store</a>)</li>
+			<li><a href="http://www.bleep.com/">Bleep.com</a></li>
+			<li><a href="http://www.burningshed.com/">Burning Shed</a></li>
 			<li><a href="http://digitalsoundboard.net/">DigitalSoundboard.net</a></li>
+			<li><a href="http://www.digital-tunes.net/">digital-tunes</a></li>
 			<li><a href="http://www.disclogic.com/">DiscLogic</a></li>
 			<li><a href="http://www.edmdigital.com/catalog/index.php?ref=13">EDM Digital</a></li>
+			<li><a href="http://www.experimedia.net/">Experimedia</a></li>
 			<li><a href="http://fastatmosphere.com/">Fast Atmosphere</a></li>
+			<li><a href="http://festivalink.net/">FestivaLink.net</a></li>
 			<li><a href="http://magnatune.com/">Magnatune</a></li>
 			<li><a href="http://www.mindawn.com/">Mindawn</a></li>
-			<li><a href="http://morganleahrecords.com">morgan leah records</a></li>
-			<li><a href="http://stores.musictoday.com">Musictoday</a></li>
+			<li><a href="http://morganleahrecords.com/">morgan leah records</a></li>
+			<li><a href="http://musicishere.com/">Music is Here!</a></li>
+			<li><a href="http://stores.musictoday.com/">Musictoday</a></li>
+			<li><a href="http://www.thephiladelphiaorchestra.com/">The Philadelphia Orchestra</a></li>
+			<li><a href="http://www.globalsound.si.edu/">Smithsonian Global Sound</a></li>
 			<li><a href="http://www.opsound.org/">Opsound</a></li>
 		</ul>
 		<b>Venues:</b>
@@ -150,6 +191,7 @@
 			<li><a href="http://www.dxdt.org/archive/">dxdt.org</a></li>
 			<li><a href="http://wiki.etree.org/">etree.org</a></li>
 			<li>The <a href="http://www.furthurnet.org/">Furthur Network</a></li>
+			<li><a href="http://nugs.net/">nugs.net</a>: live music downloads</li>
 		</ul>
 	</div>
 	<div class="box_footer"></div>
@@ -157,10 +199,9 @@
 
 <br />
 
-<a name="software" />
 <div class="box">
 	<div class="box_title">
-		software
+		<a name="software">software</a>
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
@@ -171,9 +212,14 @@
 			<li><a href="http://easytag.sourceforge.net/">EasyTAG</a> versatile tagger</li>
 			<li><a href="http://entagged.sourceforge.net/">Entagged</a>, a Java audio file tagger</li>
 			<li><a href="http://etree-scripts.sourceforge.net/">etree-scripts</a>: command-line tools for verifying, tagging, converting, and burning lossless audio files</li>
-			<li><a href="http://www.uninformative.com/flacattack/">Flacattack</a>: an all-in-one tool that works with ExactAudioCopy to encode a CD image to FLAC, embed the cuesheet, add ReplayGain, create lossy files, etc. all in a customizable directory structure.</li>
-			<li><a href="http://home.wanadoo.nl/~w.speek/flac.htm">FLAC frontend</a> (Windows GUI)</li>
-			<li><a href="http://www.danrules.com/macflac/">MacFLAC</a> Mac OS X FLAC distribution</li>
+			<li><a href="http://members.home.nl/w.speek/flac.htm">FLAC frontend</a> (Windows GUI)</li>
+			<li><a href="http://www.linux1.ca/">Flac-Jacket</a>: a set of scripts for creating FLAC files and an HTML index</li>
+			<li><a href="http://www.gently.org.uk/flactag/">FLACTAG</a>: tags single album FLAC files with embedded CUE sheets using data from the MusicBrainz service</li>
+<!--
+			<li><a href="http://lufs.sourceforge.net/lufs/">LUFS</a>: a virtual file system that, via <a href="@@@">this plugin</a> can make FLAC files look like WAVE files and thus be used by any app that supports WAVE</li>
+-->
+			<li><!-- <a href="http://www.danrules.com/macflac/"><a href="http://www.versiontracker.com/dyn/moreinfo/macosx/15883"> --><a href="http://mac.softpedia.com/get/Audio/MacFLAC.shtml">MacFLAC</a> Mac OS X FLAC distribution</li>
+			<li><a href="http://mp3fs.sourceforge.net/">MP3FS</a>, a read-only FUSE filesystem which can transcode FLAC to MP3 on the fly</li>
 			<li><a href="http://rawrec.sourceforge.net/">rawrec/rawplay</a> recording/playback tools</li>
 			<li><a href="http://www.cyclooctane.com/sonice/">sonice</a> FLAC to Vorbis transcoder</li>
 			<li><a href="http://www.lameb.fsnet.co.uk/">Split_wav</a> WAV+CUE splitter</li>
@@ -193,12 +239,15 @@
 			<li><a href="http://alsaplayer.org/">AlsaPlayer</a></li>
 			<li><a href="http://aqualung.sourceforge.net/">Aqualung</a>, a Linux player</li>
 			<li><a href="http://bossogg.sourceforge.net/">Boss Ogg</a>: Audio client/server</li>
+			<li><a href="http://freshmeat.net/projects/cynthiune/">Cynthiune</a>: a music player for Mac OS X and GNUstep</li>
 			<li><a href="http://flac-tools.sourceforge.net/">flac-tools</a>: includes flac123 player</li>
-			<li><a href="http://www.giantdisc.com/">GiantDisc</a>: Linux jukebox + Palm remote</li>
+			<li><a href="http://www.giantdisc.org/">GiantDisc</a>: Linux jukebox + Palm remote</li>
 			<li><a href="http://jreceiver.sourceforge.net/">JReceiver</a> servlet-based audio server</li>
-			<li><a href="http://www.monsterfang.com/MCinFLAC/">Media Center FLAC plugin</a></li>
+			<li><a href="http://mcplugins.sourceforge.net/">Media Center FLAC plugins</a></li>
 			<li><a href="http://musicpd.sourceforge.net/">MPD</a>, Music Player Daemon</li>
 			<li><a href="http://www.mplayerhq.hu/">MPlayer</a></li>
+			<li><a href="http://www.freewebtown.com/mpxplay/">Mpxplay</a>, a DOS player</li>
+			<li><a href="http://muine.gooeylinux.org/">Muine</a>: a music player for GNOME</li>
 			<li><a href="http://musik.berlios.de/">Musik</a>: an open-source, cross-platform multimedia player and library</li>
 			<li><a href="http://www.mythtv.org/">MythTV</a>: Linux PVR and more</li>
 			<li><a href="http://ripperx.sourceforge.net/">ripperX</a>: X-based ripper/encoder</li>
@@ -212,24 +261,30 @@
 		<b>CD ripping/burning:</b>
 		<ul>
 			<li><a href="http://arson.sourceforge.net/">Arson</a>: KDE ripper/burner</li>
+			<li><a href="http://www.legroom.net/modules.php?op=modload&name=Open_Source&file=index&page=software&app=autoflac">AutoFLAC</a>: automated ripping and encoding to FLAC with EAC (ExactAudioCopy); also has a write mode for burning back to CD for an exact copy</li>
 			<li><a href="http://bach.dynet.com/crip/index.html">crip</a>: console ripper/encoder/tagger</li>
+			<li><a href="http://www.uninformative.com/flacattack/">Flacattack</a>: an all-in-one tool that works with EAC (ExactAudioCopy) to encode a CD image to FLAC, embed the cuesheet, add ReplayGain, create lossy files, etc. all in a customizable directory structure</li>
 			<li><a href="http://mareo.netfirms.com/">MAREO</a> multi-format encoder for EAC</li>
+			<li><a href="http://sbooth.org/Max/">Max</a>, a CD ripper and encoder for OS X</li>
 			<li><a href="http://rip.sourceforge.net/">rip</a> command-line ripper/encoder</li>
 			<li><a href="http://www.suwald.com/ripit/ripit.html">RipIT</a>, a console-based front-end to several ripping and encoding tools</li>
+			<li><a href="http://www.uninformative.com/wack/">Wack</a>, the successor to <a href="http://www.uninformative.com/flacattack/">Flacattack</a> which can encode to multiple formats at once</li>
 		</ul>
 		<b>Organizers:</b>
 		<ul>
+			<li><a href="http://www.ampache.org/">Ampache</a>, a PHP-based tool for managing, updating and playing files via a web interface</li>
 			<li><a href="http://www.blinkenlights.ch/cgi-bin/fm.pl?get=ipod">GNUpod</a> includes on-the-fly FLAC conversion to iPod</li>
 			<li><a href="http://mac.sourceforge.net/">MPEG Audio Collection</a></li>
 			<li><a href="http://www.rhythmbox.org/">Rhythmbox</a>, music management application for GNOME</li>
 		</ul>
-		<b>Developer tools and libraries:</b>
+		<b>Plugins, developer tools and libraries:</b>
 		<ul>
 			<li><a href="http://audiere.sourceforge.net/">audiere</a>, a high-level audio API</li>
 			<li><a href="http://search.cpan.org/~daniel/Audio-FLAC-0.8/FLAC.pm">Audio::FLAC</a> perl module</li>
 			<li><a href="http://search.cpan.org/author/DANIEL/Audio-FLAC-Decoder-0.2/Decoder.pm">Audio::FLAC::Decoder</a> perl module</li>
 			<li><a href="http://corecodec.org/projects/coreflac">CoreFLAC</a>: FLAC DirectShow filters</li>
 			<li><a href="http://www.illiminable.com/ogg/">DirectShow filters</a> for encoding to/decoding from FLAC and Ogg FLAC (as well as Ogg Vorbis/Speex/Theora).</li>
+			<li><a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=41476&st=75&p=368174&#entry368174">FLACDotNet</a>, a .NET wrapper around libFLAC</li>
 			<li><a href="http://getid3.sourceforge.net/">getID3()</a>: a PHP4 script for extracting metadata</li>
 			<li><a href="http://www.gstreamer.net/">GStreamer</a> streaming media framework</li>
 			<li><a href="http://jflac.sourceforge.net/">jFLAC</a>: Java native FLAC decoder</li>
@@ -238,6 +293,8 @@
 			<li><a href="http://math.berkeley.edu/~roconnor/MMIOMP3/">MMIOFLAC</a>, Multimedia IOProc for OS/2</li>
 			<li><a href="http://ptarmigan.sourceforge.net/">Ptarmigan</a> media parser for XML</li>
 			<li><a href="http://www.icculus.org/SDL_sound/">SDL_sound</a> audio add-on to SDL</li>
+			<li><a href="http://wmptagext.sourceforge.net/">WMP Tag Support Extender</a> plugs in to Windows Media Player to allow access to FLAC tags</li>
+			<li><a href="http://www.xiph.org/quicktime/">XiphQT</a> component for Quicktime/iTunes that supports Ogg FLAC</li>
 		</ul>
 		<b>Scientific, Audio Analysis:</b>
 		<ul>
@@ -260,7 +317,23 @@
 
 
 <div class="copyright">
-	Copyright (c) 2004,2005,2006 Josh Coalson
+	<!-- @@@ oh so hacky -->
+	<table>
+		<tr>
+			<td align="left">
+				Copyright (c) 2004,2005,2006  Josh Coalson
+			</td>
+			<td width="1%" align="right">
+				<a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=13478&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+			</td>
+			<td width="1%" align="right">
+				<a href="http://www.eff.org/cafe/"><img src="images/cafebug.gif" alt="CAFE Logo" border="0" /></a><br />
+			</td>
+			<td width="1%" align="right">
+				<a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" border="0" hspace="0" /></a>
+			</td>
+		</tr>
+	</table>
 </div>
 
 </body>

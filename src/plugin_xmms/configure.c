@@ -38,10 +38,10 @@
 #include <xmms/util.h>
 #include <xmms/plugin.h>
 
-#include "plugin_common/locale_hack.h"
 #include "share/replaygain_synthesis.h" /* for NOISE_SHAPING_LOW */
 #include "charset.h"
 #include "configure.h"
+#include "locale_hack.h"
 
 /*
  * Initialize Global Valueable

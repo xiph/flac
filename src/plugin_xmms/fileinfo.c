@@ -33,9 +33,9 @@
 #include "FLAC/metadata.h"
 #include "charset.h"
 #include "configure.h"
-#include "plugin_common/locale_hack.h"
 #include "plugin_common/replaygain.h"
 #include "plugin_common/tags.h"
+#include "locale_hack.h"
 
 static GtkWidget *window = NULL;
 static GList *genre_list = NULL;

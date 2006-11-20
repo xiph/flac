@@ -40,9 +40,9 @@
 #include <xmms/util.h>
 #include <xmms/plugin.h>
 
-#include "configure.h"
-#include "plugin_common/locale_hack.h"
 #include "FLAC/format.h"
+#include "configure.h"
+#include "locale_hack.h"
 #include "plugin.h"
 
 /* on FreeBSD we get socklen_t from <sys/socket.h> */

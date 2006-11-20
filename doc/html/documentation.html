@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!-- Copyright (c)  2000,2001,2002,2003,2004,2005,2006 Josh Coalson -->
+<!-- Copyright (c) 2000,2001,2002,2003,2004,2005,2006  Josh Coalson -->
 <!-- Permission is granted to copy, distribute and/or modify this document -->
 <!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
 <!-- or any later version published by the Free Software Foundation; -->
@@ -527,7 +527,7 @@
 				</td>
 				<td>
 					Import the given cuesheet file and store it in a <a href="format.html#def_CUESHEET"><span class="code">CUESHEET</span></a> metadata block.  This option may only be used when encoding a single file.  A seekpoint will be added for each index point in the cuesheet to the <a href="format.html#def_SEEKTABLE"><span class="code">SEEKTABLE</span></a> unless <span class="argument">--no-cued-seekpoints</span> is specified.<br /><br />
-					The cuesheet file must be of the sort written by <a href="http://www.goldenhawk.com/cdrwin.htm">CDRwin</a>, <a href="http://www.dcsoft.com/prod03.htm">CDRcue</a>, <a href="http://www.exactaudiocopy.de/">EAC</a>, et al.
+					The cuesheet file must be of the sort written by <a href="http://www.goldenhawk.com/cdrwin.htm">CDRwin</a>, <a href="http://www.dcsoft.com/prod03.htm">CDRcue</a>, <a href="http://www.exactaudiocopy.de/">EAC</a>, etc.  See also <a href="http://digitalx.org/cuesheetsyntax.php">cuesheet syntax</a>.
 				</td>
 			</tr>
 			<tr>
@@ -1490,14 +1490,30 @@
 			</li>
 			<li>Now you can encode FLAC files as if you were using the replaced encoder.  The renamed <span class="commandname">flac_mac.exe</span> utility will call <span class="commandname">flac.exe</span> and afterwards, <span class="commandname">flac_ren.exe</span> will rename the resulting file to have the .flac extension.</li>
 		</ul>
-		Other front-ends may be wedged in the same way; if you have one in mind, post it to the <a href="http://lists.sourceforge.net/lists/listinfo/flac-dev">flac-dev</a> mailing list.
+		Other front-ends may be wedged in the same way; if you have one in mind, post it to the <a href="http://lists.xiph.org/mailman/listinfo/flac-dev">flac-dev</a> mailing list.
 	</div>
 	<div class="box_footer"></div>
 </div>
 
 
 <div class="copyright">
-	Copyright (c) 2000,2001,2002,2003,2004,2005,2006 Josh Coalson
+	<!-- @@@ oh so hacky -->
+	<table>
+		<tr>
+			<td align="left">
+				Copyright (c) 2000,2001,2002,2003,2004,2005,2006  Josh Coalson
+			</td>
+			<td width="1%" align="right">
+				<a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=13478&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+			</td>
+			<td width="1%" align="right">
+				<a href="http://www.eff.org/cafe/"><img src="images/cafebug.gif" alt="CAFE Logo" border="0" /></a><br />
+			</td>
+			<td width="1%" align="right">
+				<a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" border="0" hspace="0" /></a>
+			</td>
+		</tr>
+	</table>
 </div>
 
 </body>

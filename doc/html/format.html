@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!-- Copyright (c)  2000,2001,2002,2003,2004,2005,2006 Josh Coalson -->
+<!-- Copyright (c) 2000,2001,2002,2003,2004,2005,2006  Josh Coalson -->
 <!-- Permission is granted to copy, distribute and/or modify this document -->
 <!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
 <!-- or any later version published by the Free Software Foundation; -->
@@ -149,7 +149,7 @@
 				N. Levinson and J. Durbin; the reference encoder uses an algorithm developed and refined by them for determining the LPC coefficients from the autocorrelation coefficients.
 			</li>
 			<li>
-				And of course, <a href="http://www.digitalcentury.com/encyclo/update/shannon.html">Claude Shannon</a>
+				And of course, <a href="http://en.wikipedia.org/wiki/Claude_Shannon">Claude Shannon</a>
 			</li>
 		</ul>
 		<a name="scope"><font size="+1"><b><u>Scope</u></b></font></a>
@@ -261,13 +261,13 @@
 			<li>
 				FLAC supports up to 128 kinds of metadata blocks; currently the following are defined:
 				<ul>
-					<li><a name="def_STREAMINFO" /><b>STREAMINFO</b>: This block has information about the whole stream, like sample rate, number of channels, total number of samples, etc.  It must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.</li>
-					<li><a name="def_APPLICATION" /><b>APPLICATION</b>: This block is for use by third-party applications.  The only mandatory field is a 32-bit identifier.  This ID is granted upon request to an application by the FLAC maintainers.  The remainder is of the block is defined by the registered application.  Visit the <a href="id.html">registration page</a> if you would like to register an ID for your application with FLAC.</li>
-					<li><a name="def_PADDING" /><b>PADDING</b>: This block allows for an arbitrary amount of padding.  The contents of a PADDING block have no meaning.  This block is useful when it is known that metadata will be edited after encoding; the user can instruct the encoder to reserve a PADDING block of sufficient size so that when metadata is added, it will simply overwrite the padding (which is relatively quick) instead of having to insert it into the right place in the existing file (which would normally require rewriting the entire file).</li>
-					<li><a name="def_SEEKTABLE" /><b>SEEKTABLE</b>: This is an optional block for storing seek points.  It is possible to seek to any given sample in a FLAC stream without a seek table, but the delay can be unpredictable since the bitrate may vary widely within a stream.  By adding seek points to a stream, this delay can be significantly reduced.  Each seek point takes 18 bytes, so 1% resolution within a stream adds less than 2k.  There can be only one SEEKTABLE in a stream, but the table can have any number of seek points.  There is also a special 'placeholder' seekpoint which will be ignored by decoders but which can be used to reserve space for future seek point insertion.</li>
-					<li><a name="def_VORBIS_COMMENT" /><b>VORBIS_COMMENT</b>: This block is for storing a list of human-readable name/value pairs.  Values are encoded using UTF-8.  It is an implementation of the <a href="http://xiph.org/ogg/vorbis/doc/v-comment.html">Vorbis comment specification</a>.  This is the only officially supported tagging mechanism in FLAC.  There may be only one VORBIS_COMMENT block in a stream.  In some external documentation, Vorbis comments are called FLAC tags to lessen confusion.</li>
-					<li><a name="def_CUESHEET" /><b>CUESHEET</b>: This block is for storing various information that can be used in a cue sheet.  It supports track and index points, compatible with Red Book CD digital audio discs, as well as other CD-DA metadata such as media catalog number and track ISRCs.  The CUESHEET block is especially useful for backing up CD-DA discs, but it can be used as a general purpose cueing mechanism for playback.</li>
-					<li><a name="def_PICTURE" /><b>PICTURE</b>: This block is for storing pictures associated with the file, most commonly cover art from CDs.  There may be more than one PICTURE block in a file.  The picture format is similar to the <a href="http://www.id3.org/id3v2.4.0-frames.txt">APIC frame in ID3v2</a>.  The PICTURE block has a type, MIME type, and UTF-8 description like ID3v2, and supports external linking via URL (though this is discouraged).  The differences are that there is no uniqueness constraint on the description field, and the MIME type is mandatory.  The FLAC PICTURE block also includes the resolution, color depth, and palette size so that the client can search for a suitable picture without having to scan them all.</li>
+					<li><a name="def_STREAMINFO"><b>STREAMINFO</b></a>: This block has information about the whole stream, like sample rate, number of channels, total number of samples, etc.  It must be present as the first metadata block in the stream.  Other metadata blocks may follow, and ones that the decoder doesn't understand, it will skip.</li>
+					<li><a name="def_APPLICATION"><b>APPLICATION</b></a>: This block is for use by third-party applications.  The only mandatory field is a 32-bit identifier.  This ID is granted upon request to an application by the FLAC maintainers.  The remainder is of the block is defined by the registered application.  Visit the <a href="id.html">registration page</a> if you would like to register an ID for your application with FLAC.</li>
+					<li><a name="def_PADDING"><b>PADDING</b></a>: This block allows for an arbitrary amount of padding.  The contents of a PADDING block have no meaning.  This block is useful when it is known that metadata will be edited after encoding; the user can instruct the encoder to reserve a PADDING block of sufficient size so that when metadata is added, it will simply overwrite the padding (which is relatively quick) instead of having to insert it into the right place in the existing file (which would normally require rewriting the entire file).</li>
+					<li><a name="def_SEEKTABLE"><b>SEEKTABLE</b></a>: This is an optional block for storing seek points.  It is possible to seek to any given sample in a FLAC stream without a seek table, but the delay can be unpredictable since the bitrate may vary widely within a stream.  By adding seek points to a stream, this delay can be significantly reduced.  Each seek point takes 18 bytes, so 1% resolution within a stream adds less than 2k.  There can be only one SEEKTABLE in a stream, but the table can have any number of seek points.  There is also a special 'placeholder' seekpoint which will be ignored by decoders but which can be used to reserve space for future seek point insertion.</li>
+					<li><a name="def_VORBIS_COMMENT"><b>VORBIS_COMMENT</b></a>: This block is for storing a list of human-readable name/value pairs.  Values are encoded using UTF-8.  It is an implementation of the <a href="http://xiph.org/vorbis/doc/v-comment.html">Vorbis comment specification</a>.  This is the only officially supported tagging mechanism in FLAC.  There may be only one VORBIS_COMMENT block in a stream.  In some external documentation, Vorbis comments are called FLAC tags to lessen confusion.</li>
+					<li><a name="def_CUESHEET"><b>CUESHEET</b></a>: This block is for storing various information that can be used in a cue sheet.  It supports track and index points, compatible with Red Book CD digital audio discs, as well as other CD-DA metadata such as media catalog number and track ISRCs.  The CUESHEET block is especially useful for backing up CD-DA discs, but it can be used as a general purpose cueing mechanism for playback.</li>
+					<li><a name="def_PICTURE"><b>PICTURE</b></a>: This block is for storing pictures associated with the file, most commonly cover art from CDs.  There may be more than one PICTURE block in a file.  The picture format is similar to the <a href="http://www.id3.org/id3v2.4.0-frames.txt">APIC frame in ID3v2</a>.  The PICTURE block has a type, MIME type, and UTF-8 description like ID3v2, and supports external linking via URL (though this is discouraged).  The differences are that there is no uniqueness constraint on the description field, and the MIME type is mandatory.  The FLAC PICTURE block also includes the resolution, color depth, and palette size so that the client can search for a suitable picture without having to scan them all.</li>
 				</ul>
 			</li>
 			<li>
@@ -283,7 +283,7 @@
 				Individual subframes (one for each channel) are coded separately within a frame, and appear serially in the stream.  In other words, the encoded audio data is NOT channel-interleaved.  This reduces decoder complexity at the cost of requiring larger decode buffers.  Each subframe has its own header specifying the attributes of the subframe, like prediction method and order, residual coding parameters, etc.  The header is followed by the encoded audio data for that channel.
 			</li>
 			<li>
-				<a name="subset" />FLAC specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the encoding parameters such that decoder buffer sizes and other resource requirements can be easily determined.  "flac" generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
+				<a name="subset">FLAC</a> specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the encoding parameters such that decoder buffer sizes and other resource requirements can be easily determined.  "flac" generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
 				<ul>
 				<li>
 					The blocksize bits in the <a href="#frame_header">frame header</a> must be 0001-0101 or 1000-1110, specifying a fixed-blocksize stream (the exception being the last block as described in the table) and a few allowable blocksizes.  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.  If the sample rate is &lt;= 48000Hz, the blocksize must be &lt;=4608, i.e. blocksize bits 0001-0101 or 1000-1100.
@@ -738,7 +738,7 @@
 				&lt;n&gt;
 			</td>
 			<td>
-				Also known as FLAC tags, the contents of a vorbis comment packet as specified <a href="http://www.xiph.org/ogg/vorbis/doc/v-comment.html">here</a>, including the vendor string.  Note that the vorbis comment spec allows for on the order of 2 ^ 64 bytes of data where as the FLAC metadata block is limited to 2 ^ 24 bytes.  Given the stated purpose of vorbis comments, i.e. human-readable textual information, this limit is unlikely to be restrictive.  Also note that the 32-bit field lengths are little-endian coded according to the vorbis spec, as opposed to the usual big-endian coding of fixed-length integers in the rest of FLAC.
+				Also known as FLAC tags, the contents of a vorbis comment packet as specified <a href="http://www.xiph.org/vorbis/doc/v-comment.html">here</a>, including the vendor string.  Note that the vorbis comment spec allows for on the order of 2 ^ 64 bytes of data where as the FLAC metadata block is limited to 2 ^ 24 bytes.  Given the stated purpose of vorbis comments, i.e. human-readable textual information, this limit is unlikely to be restrictive.  Also note that the 32-bit field lengths are little-endian coded according to the vorbis spec, as opposed to the usual big-endian coding of fixed-length integers in the rest of FLAC.
 			</td>
 		</tr>
 	</table>
@@ -1722,7 +1722,23 @@
 
 
 <div class="copyright">
-	Copyright (c) 2000,2001,2002,2003,2004,2005,2006 Josh Coalson
+	<!-- @@@ oh so hacky -->
+	<table>
+		<tr>
+			<td align="left">
+				Copyright (c) 2000,2001,2002,2003,2004,2005,2006  Josh Coalson
+			</td>
+			<td width="1%" align="right">
+				<a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=13478&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+			</td>
+			<td width="1%" align="right">
+				<a href="http://www.eff.org/cafe/"><img src="images/cafebug.gif" alt="CAFE Logo" border="0" /></a><br />
+			</td>
+			<td width="1%" align="right">
+				<a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" border="0" hspace="0" /></a>
+			</td>
+		</tr>
+	</table>
 </div>
 
 </body>

@@ -26,6 +26,7 @@ noinst_HEADERS = \
 	charset.h \
 	configure.h \
 	http.h \
+	locale_hack.h \
 	plugin.h \
 	tag.h
 

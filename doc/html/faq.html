@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!-- Copyright (c)  2000,2001,2002,2003,2004,2005,2006 Josh Coalson -->
+<!-- Copyright (c) 2000,2001,2002,2003,2004,2005,2006  Josh Coalson -->
 <!-- Permission is granted to copy, distribute and/or modify this document -->
 <!-- under the terms of the GNU Free Documentation License, Version 1.1 -->
 <!-- or any later version published by the Free Software Foundation; -->
@@ -289,7 +289,11 @@
 		<br />
 		<a name="tools__hardware_prob"><b>I compressed a file to FLAC with verify on, and flac said "Verify FAILED!"  Why?</b></a><br />
 		<br />
-		Every single report of this has turned out to be caused by a hardware problem, usually aggressive over-clocking or bad RAM.  The best indicator of this is that the verify failure does not always happen in the same place for the same file.  First, read the comments in <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=595858&amp;group_id=13478&amp;atid=113478">this bug report</a>.  Then, if you have a file that fails verification in the same place every time, <a href="#project__submit_bug">submit a new bug</a>, uploading a sample according to <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=585158&amp;group_id=13478&amp;atid=113478">the instructions found at the bottom of this bug report</a>.<br />
+		The only known cause of verify errors is faulty hardware.  The dead giveaway is that if you repeat the exact same command, the error occurs in a different place or not at all.  This can also happen when decoding or testing a FLAC file.  If this is happening it is your hardware and not a FLAC bug.<br />
+		<br />
+		The problem is usually caused by overclocking/overheating the CPU or bad RAM.  Try one of the many free programs available for testing hardware (e.g. <a href="http://www.memtest86.com/">Memtest86</a>).  We have had reports of a few cases where a system is passing with flying colors and still getting unrepeatable FLAC errors, and the one thing many (all?) of these systems have in common is an ASUS motherboard (A7V133 or P3V4X) which we suspect is buggy in some way.  (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=884401&amp;group_id=13478&amp;atid=113478">See also</a>)<br />
+		<br />
+		If you ever have a verify error that fails at the same place every time, please <a href="#project__submit_bug">file a bug</a>, uploading a sample according to <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=585158&amp;group_id=13478&amp;atid=113478">the instructions found at the bottom of this bug report</a>.<br />
 		<br />
 		<a name="tools__wave_flac_wave"><b>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</b></a><br />
 		<a name="tools__skipped_subchunk"><b>I compressed a WAVE file to FLAC and it said "warning: skipping unknown sub-chunk LIST".  Why?</b></a><br />
@@ -330,7 +334,7 @@
 
 		<a name="project__lists"><b>Where are the mailing lists, forums, discussion areas, etc.?</b></a><br />
 		<br />
-		There are a few places.  The main discussions happen on <a href="http://sourceforge.net/mail/?group_id=13478">the official FLAC mailing lists</a>.  Eventually we will be transitioning over to <a href="http://xiph.org/archives/">the lists on Xiph.org</a>.  Also, there is a lot of discussion relating to FLAC on <a href="http://www.hydrogenaudio.org/">Hydrogen Audio</a>.<br />
+		There are a few places.  The main discussions happen on <a href="http://lists.xiph.org/mailman/listinfo">the official FLAC mailing lists</a>.  Also, there is a lot of discussion relating to FLAC on <a href="http://www.hydrogenaudio.org/">Hydrogen Audio</a>.<br />
 		<br />
 		<a name="project__submit_bug"><b>How do I submit a bug report?</b></a><br />
 		<br />
@@ -341,7 +345,23 @@
 
 
 <div class="copyright">
-	Copyright (c) 2000,2001,2002,2003,2004,2005,2006 Josh Coalson
+	<!-- @@@ oh so hacky -->
+	<table>
+		<tr>
+			<td align="left">
+				Copyright (c) 2000,2001,2002,2003,2004,2005,2006  Josh Coalson
+			</td>
+			<td width="1%" align="right">
+				<a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=13478&amp;type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /></a>
+			</td>
+			<td width="1%" align="right">
+				<a href="http://www.eff.org/cafe/"><img src="images/cafebug.gif" alt="CAFE Logo" border="0" /></a><br />
+			</td>
+			<td width="1%" align="right">
+				<a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" border="0" hspace="0" /></a>
+			</td>
+		</tr>
+	</table>
 </div>
 
 </body>
