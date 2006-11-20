@@ -58,6 +58,7 @@ flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 run_flac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=100 flac $*" >>test_flac.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 flac $* 4>>test_flac.valgrind.log
 	else
 		flac $*
@@ -67,6 +68,7 @@ run_flac ()
 run_metaflac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=100 metaflac $*" >>test_flac.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 metaflac $* 4>>test_flac.valgrind.log
 	else
 		metaflac $*
