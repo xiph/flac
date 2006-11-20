@@ -177,6 +177,7 @@ static FLAC__bool do_picture(const char *prefix)
 	if(0 == (obj = grabbag__picture_parse_specification("|-->|desc|320x240x9|http://blah.blah.blah/z.gif", &error)))
 		return failed_(error);
 	printf("OK\n");
+	FLAC__metadata_object_delete(obj);
 
 	/* test automatic parsing of picture files to get resolution/color info */
 	for(i = 0; i < sizeof(picturefiles)/sizeof(picturefiles[0]); i++)

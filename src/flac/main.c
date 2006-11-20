@@ -83,6 +83,7 @@ static const char *get_decoded_outfilename(const char *infilename);
 static const char *get_outfilename(const char *infilename, const char *suffix);
 
 static void die(const char *message);
+static int conditional_fclose(FILE *f);
 static char *local_strdup(const char *source);
 #ifdef _MSC_VER
 /* There's no strtoll() in MSVC6 so we just write a specialized one */
@@ -1604,12 +1605,14 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 		else
 			flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
+		conditional_fclose(encode_infile);
 		return 1;
 	}
 
 	if(option_values.format_input_size >= 0) {
 	   	if (fmt != RAW || infilesize >= 0) {
 			flac__utils_printf(stderr, 1, "ERROR: can only use --input-size when encoding raw samples from stdin\n");
+			conditional_fclose(encode_infile);
 			return 1;
 		}
 		else {
@@ -1619,30 +1622,42 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 	if(option_values.sector_align && (fmt == FLAC || fmt == OGGFLAC)) {
 		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input file is FLAC or Ogg FLAC\n");
+		conditional_fclose(encode_infile);
 		return 1;
 	}
 	if(option_values.sector_align && fmt == RAW && infilesize < 0) {
 		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input size is unknown\n");
+		conditional_fclose(encode_infile);
 		return 1;
 	}
 
 	if(fmt == RAW) {
-		if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0)
+		if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0) {
+			conditional_fclose(encode_infile);
 			return usage_error("ERROR: for encoding a raw file you must specify a value for --endian, --sign, --channels, --bps, and --sample-rate\n");
+		}
 	}
 
 	if(encode_infile == stdin || option_values.force_to_stdout) {
-		if(option_values.replay_gain)
+		if(option_values.replay_gain) {
+			conditional_fclose(encode_infile);
 			return usage_error("ERROR: --replay-gain cannot be used when encoding to stdout\n");
+		}
 	}
-	if(option_values.replay_gain && option_values.use_ogg)
+	if(option_values.replay_gain && option_values.use_ogg) {
+		conditional_fclose(encode_infile);
 		return usage_error("ERROR: --replay-gain cannot be used when encoding to Ogg FLAC yet\n");
+	}
 
-	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative)
+	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative) {
+		conditional_fclose(encode_infile);
 		return usage_error("ERROR: invalid value for --skip\n");
+	}
 
-	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) /*@@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
+	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) { /*@@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
+		conditional_fclose(encode_infile);
 		return usage_error("ERROR: invalid value for --until\n");
+	}
 	/* if there is no "--until" we want to default to "--until=-0" */
 	if(0 == option_values.until_specification)
 		common_options.until_specification.is_relative = true;
@@ -1687,6 +1702,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		/*@@@@ still a remote possibility that a file with this filename exists */
 		if(0 == (internal_outfilename = malloc(strlen(outfilename)+strlen(tmp_suffix)+1))) {
 			flac__utils_printf(stderr, 1, "ERROR allocating memory for tempfile name\n");
+			conditional_fclose(encode_infile);
 			return 1;
 		}
 		strcpy(internal_outfilename, outfilename);
@@ -1931,6 +1947,14 @@ void die(const char *message)
 	FLAC__ASSERT(0 != message);
 	flac__utils_printf(stderr, 1, "ERROR: %s\n", message);
 	exit(1);
+}
+
+int conditional_fclose(FILE *f)
+{
+	if(f == 0 || f == stdin || f == stdout)
+		return 0;
+	else
+		return fclose(f);
 }
 
 char *local_strdup(const char *source)

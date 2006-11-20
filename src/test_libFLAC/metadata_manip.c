@@ -608,6 +608,7 @@ static FLAC__bool generate_file_(FLAC__bool include_extras, FLAC__bool is_ogg)
 		return die_("creating the encoded file");
 
 	free(vorbiscomment.data.vorbis_comment.vendor_string.entry);
+	free(picture.data.picture.mime_type);
 
 	return true;
 }
