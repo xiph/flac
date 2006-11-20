@@ -44,6 +44,7 @@ test_picture -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_picture ex
 run_test_cuesheet ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=100 test_cuesheet $*" >>test_grabbag.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 test_cuesheet $* 4>>test_grabbag.valgrind.log
 	else
 		test_cuesheet $*
@@ -53,6 +54,7 @@ run_test_cuesheet ()
 run_test_picture ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=100 test_picture $*" >>test_grabbag.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 test_picture $* 4>>test_grabbag.valgrind.log
 	else
 		test_picture $*
