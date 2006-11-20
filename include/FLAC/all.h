@@ -81,8 +81,8 @@
  * global variables and should be thread-safe.
  *
  * libFLAC also supports encoding to and decoding from Ogg FLAC.
- * However the metadata editing interfaces currently work only for
- * native FLAC files.
+ * However the metadata editing interfaces currently have limited
+ * read-only support for Ogg FLAC files.
  *
  * \section cpp_api FLAC C++ API
  *
@@ -94,10 +94,6 @@
  * can be used as a supplement.  The public include files
  * for the C++ API will be installed in your include area (for
  * example /usr/include/FLAC++/...).
- *
- * libFLAC++ also supports encoding to and decoding from Ogg FLAC.
- * However the metadata editing interfaces currently work only for
- * native FLAC files.
  *
  * libFLAC++ is also licensed under
  * <A HREF="../license.html">Xiph's BSD license</A>.
@@ -136,7 +132,8 @@
  * - The decoder is independent of the encoder.  The encoder uses the
  *   decoder because of the verify feature, but this can be removed if
  *   not needed.
- * - The metadata interface requires the stream decoder.
+ * - Parts of the metadata interface require the stream decoder (but not
+ *   the encoder).
  * - Ogg support is selectable through the compile time macro
  *   \c FLAC__HAS_OGG.
  *
@@ -201,7 +198,7 @@
  *
  * Instead of creating an encoder or decoder of a certain layer, now the
  * client will always create a FLAC__StreamEncoder or
- * FLAC__StreamDecoder.  The different layers are differentiated by the
+ * FLAC__StreamDecoder.  The old layers are now differentiated by the
  * initialization function.  For example, for the decoder,
  * FLAC__stream_decoder_init() has been replaced by
  * FLAC__stream_decoder_init_stream().  This init function takes
@@ -308,8 +305,8 @@
  * The encoder now has a new setting:
  * FLAC__stream_encoder_set_apodization().  This is for setting the
  * method used to window the data before LPC analysis.  You only need to
- * add a call to this function if the default is not   There are also
- * two new convenience functions that may be useful:
+ * add a call to this function if the default is not suitable.   There
+ * are also two new convenience functions that may be useful:
  * FLAC__metadata_object_cuesheet_calculate_cddb_id() and
  * FLAC__metadata_get_cuesheet().
  *

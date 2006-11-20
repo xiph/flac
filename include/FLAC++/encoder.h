@@ -68,7 +68,7 @@
  *
  * Second, there are two stream encoder classes.  FLAC::Encoder::Stream
  * is used for the same cases that FLAC__stream_encoder_init_stream() /
- * FLAC__stream_encoder_init_ogg_stream() is used, and FLAC::Encoder::File
+ * FLAC__stream_encoder_init_ogg_stream() are used, and FLAC::Encoder::File
  * is used for the same cases that
  * FLAC__stream_encoder_init_FILE() and FLAC__stream_encoder_init_file() /
  * FLAC__stream_encoder_init_ogg_FILE() and FLAC__stream_encoder_init_ogg_file()

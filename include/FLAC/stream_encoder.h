@@ -52,7 +52,7 @@ extern "C" {
  *  \link flac_stream_encoder stream encoder \endlink module.
  */
 
-/** \defgroup flac_encoder FLAC/ *_encoder.h: encoder interfaces
+/** \defgroup flac_encoder FLAC/ \*_encoder.h: encoder interfaces
  *  \ingroup flac
  *
  *  \brief
@@ -163,8 +163,8 @@ extern "C" {
  * The call to FLAC__stream_encoder_init_*() currently will also immediately
  * call the write callback several times, once with the \c fLaC signature,
  * and once for each encoded metadata block.  Note that for Ogg FLAC
- * encoding you will usually get twice the number of callbacks than with
- * native FLAC, one for the Ogg page header and one for the page body.
+ * encoding you will usually get at least twice the number of callbacks than
+ * with native FLAC, one for the Ogg page header and one for the page body.
  *
  * After initializing the instance, the client may feed audio data to the
  * encoder in one of two ways:

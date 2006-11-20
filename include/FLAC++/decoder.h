@@ -67,7 +67,7 @@
  *
  * Second, there are two stream decoder classes.  FLAC::Decoder::Stream
  * is used for the same cases that FLAC__stream_decoder_init_stream() /
- * FLAC__stream_decoder_init_ogg_stream() is used, and FLAC::Decoder::File
+ * FLAC__stream_decoder_init_ogg_stream() are used, and FLAC::Decoder::File
  * is used for the same cases that
  * FLAC__stream_decoder_init_FILE() and FLAC__stream_decoder_init_file() /
  * FLAC__stream_decoder_init_ogg_FILE() and FLAC__stream_decoder_init_ogg_file()

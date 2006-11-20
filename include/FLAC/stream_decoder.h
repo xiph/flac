@@ -51,7 +51,7 @@ extern "C" {
  *  \link flac_stream_decoder stream decoder \endlink module.
  */
 
-/** \defgroup flac_decoder FLAC/ *_decoder.h: decoder interfaces
+/** \defgroup flac_decoder FLAC/ \*_decoder.h: decoder interfaces
  *  \ingroup flac
  *
  *  \brief
@@ -112,8 +112,8 @@ extern "C" {
  * seeking) are optional, depending on the capabilities of the input.
  *
  * For decoding directly from a file, use FLAC__stream_decoder_init_FILE()
- * or FLAC__stream_decoder_init_file().  Then you must only supply a
- * filename or open \c FILE* and fewer callbacks; the decoder will handle
+ * or FLAC__stream_decoder_init_file().  Then you must only supply an open
+ * \c FILE* or filename and fewer callbacks; the decoder will handle
  * the other callbacks internally.
  *
  * There are three similarly-named init functions for decoding from Ogg
@@ -168,13 +168,13 @@ extern "C" {
  * explicitly which blocks to parse and return via the metadata_callback
  * and/or which to skip.  Use a FLAC__stream_decoder_set_metadata_respond_all(),
  * FLAC__stream_decoder_set_metadata_ignore() ... or FLAC__stream_decoder_set_metadata_ignore_all(),
- * FLAC__stream_decoder_set_metadata_respond() ... sequence to exactly specify which
- * blocks to return.  Remember that some metadata blocks can be big so
- * filtering out the ones you don't use can reduce the memory requirements
- * of the decoder.  Also note the special forms
- * FLAC__stream_decoder_set_metadata_respond_application(id) and
- * FLAC__stream_decoder_set_metadata_ignore_application(id) for filtering APPLICATION
- * blocks based on the application ID.
+ * FLAC__stream_decoder_set_metadata_respond() ... sequence to exactly specify
+ * which blocks to return.  Remember that metadata blocks can potentially
+ * be big (for example, cover art) so filtering out the ones you don't
+ * use can reduce the memory requirements of the decoder.  Also note the
+ * special forms FLAC__stream_decoder_set_metadata_respond_application(id)
+ * and FLAC__stream_decoder_set_metadata_ignore_application(id) for
+ * filtering APPLICATION blocks based on the application ID.
  *
  * STREAMINFO and SEEKTABLE blocks are always parsed and used internally, but
  * they still can legally be filtered from the metadata_callback.

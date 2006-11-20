@@ -45,9 +45,8 @@
  *  \ingroup flac
  *
  *  \brief
- *  This module contains structure definitions for the representation
- *  of FLAC format components in memory.  These are the basic
- *  structures used by the rest of the interfaces.
+ *  This module contains #defines and symbols for exporting function
+ *  calls, and providing version information and compiled-in features.
  *
  * \{
  */

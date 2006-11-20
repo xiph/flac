@@ -64,8 +64,10 @@
  *
  *  The behavior closely mimics the C layer interface; be sure to read
  *  the detailed description of the
- *  \link flac_metadata C metadata module \endlink.  Note that the
- *  metadata API currently does not support Ogg FLAC files.
+ *  \link flac_metadata C metadata module \endlink.  Note that like the
+ *  C layer, currently only the Chain interface (level 2) supports Ogg
+ *  FLAC files, and it is read-only i.e. no writing back changed
+ *  metadata to file.
  */
 
 

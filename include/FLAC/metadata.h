@@ -100,7 +100,8 @@
  *
  *  All levels access files via their filenames.  In addition, level 2
  *  has additional alternative read and write functions that take an I/O
- *  handle and callbacks, for times when access by filename is not possible.
+ *  handle and callbacks, for situations where access by filename is not
+ *  possible.
  *
  *  In addition to the three interfaces, this module defines functions for
  *  creating and manipulating various metadata objects in memory.  As we see
