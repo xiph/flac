@@ -38,11 +38,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined _MSC_VER || defined __MINGW32__
+#if defined _MSC_VER || defined __BORLANDC__ || defined __MINGW32__
+#if defined __BORLANDC__
+#include <utime.h> /* for utime() */
+#else
 #include <sys/utime.h> /* for utime() */
+#endif
 #include <io.h> /* for chmod() */
 #include <sys/types.h> /* for off_t */
-#if _MSC_VER <= 1200 /* @@@ [2G limit] */
+#if _MSC_VER <= 1200 || defined __BORLANDC__ /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
 #endif

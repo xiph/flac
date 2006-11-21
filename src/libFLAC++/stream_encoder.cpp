@@ -193,7 +193,7 @@ namespace FLAC {
 		bool Stream::set_metadata(FLAC::Metadata::Prototype **metadata, unsigned num_blocks)
 		{
 			FLAC__ASSERT(is_valid());
-#if (defined _MSC_VER) || (defined __SUNPRO_CC)
+#if (defined _MSC_VER) || (defined __BORLANDC__) || (defined __SUNPRO_CC)
 			// MSVC++ can't handle:
 			// ::FLAC__StreamMetadata *m[num_blocks];
 			// so we do this ugly workaround
@@ -205,7 +205,7 @@ namespace FLAC {
 				// we can get away with the const_cast since we know the encoder will only correct the is_last flags
 				m[i] = const_cast< ::FLAC__StreamMetadata*>((const ::FLAC__StreamMetadata*)metadata[i]);
 			}
-#if (defined _MSC_VER) || (defined __SUNPRO_CC)
+#if (defined _MSC_VER) || (defined __BORLANDC__) || (defined __SUNPRO_CC)
 			// complete the hack
 			const bool ok = (bool)::FLAC__stream_encoder_set_metadata(encoder_, m, num_blocks);
 			delete [] m;
