@@ -2,6 +2,30 @@
 # Run this to set up the build system: configure, makefiles, etc.
 # (based on the version in enlightenment's cvs)
 
+# Some notes:
+#
+# You may need to specify -I /SOME_PATH/share/aclocal in ACLOCAL_FLAGS
+# if any packages FLAC relies on (autotools, libogg, libiconv) are
+# installed in non-standard places.
+#
+# If you don't have XMMS installed at all, you should comment out
+# AM_PATH_XMMS in configure.in.
+#
+# FLAC uses iconv but not gettext.  iconv requires config.rpath which
+# is supplied by gettext, which is copied in by gettextize.  But we
+# can't run gettextize since we do not fulfill all it's requirements
+# (because we don't use it).  So you may have to:
+#
+#   cp /usr/share/gettext/config.rpath .
+#
+# before running autogen.sh
+#
+# Also watchout, if you replace ltmain.sh, there is a bug in some
+# versions of libtool (or maybe autoconf) on some platforms where the
+# configure-generated libtool does not have $SED defined.  See also:
+#
+#   http://lists.gnu.org/archive/html/libtool/2003-11/msg00131.html
+
 package="flac"
 
 olddir=`pwd`
