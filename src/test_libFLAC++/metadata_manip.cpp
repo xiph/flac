@@ -2192,15 +2192,17 @@ bool test_metadata_file_manipulation()
 	if(!test_level_2_misc_(/*is_ogg=*/false))
 		return false;
 
-	if(!test_level_2_(/*filename_based=*/true, /*is_ogg=*/true)) /* filename-based */
-		return false;
-	if(!test_level_2_(/*filename_based=*/false, /*is_ogg=*/true)) /* callback-based */
-		return false;
+	if(FLAC_API_SUPPORTS_OGG_FLAC) {
+		if(!test_level_2_(/*filename_based=*/true, /*is_ogg=*/true)) /* filename-based */
+			return false;
+		if(!test_level_2_(/*filename_based=*/false, /*is_ogg=*/true)) /* callback-based */
+			return false;
 #if 0
-	/* when ogg flac write is supported, will have to add this: */
-	if(!test_level_2_misc_(/*is_ogg=*/true))
-		return false;
+		/* when ogg flac write is supported, will have to add this: */
+		if(!test_level_2_misc_(/*is_ogg=*/true))
+			return false;
 #endif
+	}
 
 	return true;
 }
