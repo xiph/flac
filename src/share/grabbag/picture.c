@@ -191,7 +191,7 @@ static FLAC__bool local__extract_resolution_color_info_(FLAC__StreamMetadata_Pic
 			if(*data == 0xda || *data == 0xd9)
 				return false;
 			/* looking for some SOFn */
-			else if(strchr("\xc0\xc1\xc2\xc3\xc5\xc6\xc7\xc9\xca\xcb\xcd\xce\xcf", *data)) {
+			else if(memchr("\xc0\xc1\xc2\xc3\xc5\xc6\xc7\xc9\xca\xcb\xcd\xce\xcf", *data, 13)) {
 				data++; len--; /* skip marker byte */
 				if(len < 2)
 					return false;
