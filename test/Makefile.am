@@ -33,6 +33,7 @@ EXTRA_DIST = \
 	cuesheet.ok \
 	metaflac.flac.in \
 	metaflac.flac.ok \
+	picture.ok \
 	test_libFLAC.sh \
 	test_libFLAC++.sh \
 	test_flac.sh \
