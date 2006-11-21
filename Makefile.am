@@ -28,9 +28,9 @@
 # distclean: remove everything except what goes in the distribution
 #
 
-AUTOMAKE_OPTIONS = 1.7
+AUTOMAKE_OPTIONS = foreign 1.7
 
-SUBDIRS = doc include man src test build flac.pbproj obj
+SUBDIRS = doc include m4 man src test build flac.pbproj obj
 
 DISTCLEANFILES = libtool-disable-static
 
@@ -49,5 +49,3 @@ EXTRA_DIST = \
 	depcomp \
 	ltmain.sh \
 	strip_non_asm_libtool_args.sh
-
-AUTOMAKE_OPTIONS = foreign
