@@ -44,7 +44,7 @@ else
 DEFINES = -DFLAC__CPU_IA32 -DFLAC__USE_3DNOW -DFLAC__HAS_NASM -DFLAC__ALIGN_MALLOC_DATA
 endif
 endif
-INCLUDES = -I./include -I$(topdir)/include
+INCLUDES = -I./include -I$(topdir)/include -I$(OGG_INCLUDE_DIR)
 DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
 ifeq ($(DARWIN_BUILD),yes)
