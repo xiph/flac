@@ -69,9 +69,10 @@
 					<li>Much better recovery for corrupted files</li>
 					<li>Better multichannel support</li>
 					<li>Large file (&gt;2GB) support everywhere</li>
-					<li><span class="commandname">flac</span> now supports FLAC and Ogg FLAC as input to the encoder (i.e. can re-encode FLAC to FLAC) and preserve all the metadata like tags, etc.</li>
+					<li><span class="commandname">flac</span> now supports FLAC and Ogg FLAC as input to the encoder (e.g. can re-encode FLAC to FLAC) and preserve all the metadata like tags, etc.</li>
 					<li>New <span class="code"><a href="format.html#def_PICTURE">PICTURE</a></span> metadata block for storing things like cover art, new <span class="argument"><a href="documentation.html#flac_options_picture">--picture</a></span> option to <span class="commandname">flac</span> and <span class="argument"><a href="documentation.html#metaflac_shorthand_import_picture_from">--import-picture-from</a></span> option to <span class="commandname">metaflac</span> for importing pictures, new <span class="argument"><a href="documentation.html#metaflac_shorthand_export_picture_to">--export-picture-to</a></span> option to <span class="commandname">metaflac</span> for exporting pictures, and metadata API <a href="api/group__flac__metadata__level0.html#ga3">additions</a> for searching for suitable pictures based on type, size and color constraints.</li>
 					<li>Support for new <tt>REPLAYGAIN_REFERENCE_LOUDNESS</tt> tag.</li>
+					<li>Fixed a bug in Ogg FLAC encoding where metadata was not being updated properly.  Existing Ogg FLAC files should be recoded to fix up the metadata, e.g. <span class="command">flac -Vf -S 10s --ogg file.ogg</span></li>
 					<li>In the developer libraries, the interface has been simplfied by merging the three decoding layers into a single class; ditto for the encoders.  Also, libOggFLAC has been merged into libFLAC and libOggFLAC++ has been merged into libFLAC++ so there is a single API supporting both native FLAC and Ogg FLAC.</li>
 				</ul>
 			</li>
@@ -105,7 +106,6 @@
 					<li>MD5 comparison failures on decoding are now an error instead of a warning and will also return a non-zero exit code (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1493725&amp;group_id=13478&amp;atid=113478">SF #1493725</a>).</li>
 					<li>The default padding size is now 8K, or 64K if the input audio stream is more than 20 minutes long.</li>
 					<li>Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.</li>
-					<li>Fixed a bug where missing STREAMINFO fields (min/max framesize, total samples, MD5 sum) and seek point offsets were not getting rewritten back to Ogg FLAC file (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1338969&amp;group_id=13478&amp;atid=113478">SF #1338969</a>).</li>
 					<li>Fixed a bug that caused a crash when <span class="argument">-a</span> and <span class="argument">-t</span> were used together (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1229481&amp;group_id=13478&amp;atid=113478">SF #1229481</a>).</li>
 					<li>Fixed a bug with --sector-align where appended samples were not always totally silent (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1237707&amp;group_id=13478&amp;atid=113478">SF #1237707</a>).</li>
 					<li>Fixed bugs with --sector-align and raw input files.</li>
@@ -154,6 +154,7 @@
 				build system:
 				<ul>
 					<li>Added support for building on OS/2 with EMX (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1229495&amp;group_id=13478&amp;atid=113478">SF #1229495</a>)</li>
+					<li>Added support for building with Borland C++ (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1599018&amp;group_id=13478&amp;atid=313478">SF #1599018</a>)</li>
 					<li>Added a <span class="argument">--disable-xmms-plugin</span> option to <span class="command">configure</span> to prevent building the XMMS plugin (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=930494&amp;group_id=13478&amp;atid=363478">SF #930494</a>).</li>
 					<li>Added a <span class="argument">--disable-doxygen-docs</span> option to <span class="command">configure</span> for disabling Doxygen-based API doc generation (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1365935&amp;group_id=13478&amp;atid=313478">SF #1365935</a>).</li>
 					<li>Added a <span class="argument">--disable-thorough-tests</span> option to <span class="command">configure</span> to do the basic library, stream, and tool tests in a reasonable time (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1077948&amp;group_id=13478&amp;atid=363478">SF #1077948</a>).</li>
@@ -167,6 +168,7 @@
 					<li>Merged libOggFLAC++ into libFLAC++; both formats are now supporte through the same API.</li>
 					<li>libFLAC and libFLAC++: Simplified encoder setup with new <span class="argument">FLAC__stream_encoder_set_compression_level()</span> function.</li>
 					<li>libFLAC: Improved compression with no impact on FLAC format or decoding time by adding a windowing stage before LPC analysis.</li>
+					<li>libFLAC: Fixed a bug where missing STREAMINFO fields (min/max framesize, total samples, MD5 sum) and seek point offsets were not getting rewritten back to Ogg FLAC file (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1338969&amp;group_id=13478&amp;atid=113478">SF #1338969</a>).</li>
 					<li>libFLAC: Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.</li>
 					<li>libFLAC: Fixed UTF-8 decoder to disallow non-shortest-form and surrogate sequences (see <a href="http://www.unicode.org/versions/corrigendum1.html">here</a>).</li>
 					<li>libFLAC: Fixed a bug in the return value for <span class="argument">FLAC__stream_decoder_set_metadata_respond_application()</span> and <span class="argument">FLAC__stream_decoder_set_metadata_ignore_application()</span> when there was a memory allocation error (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1235005&amp;group_id=13478&amp;atid=113478">SF #1235005</a>).</li>
