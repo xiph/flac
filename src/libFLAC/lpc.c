@@ -105,18 +105,19 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], unsigned data_le
 	}
 }
 
-void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], FLAC__double error[])
+void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], FLAC__double error[])
 {
 	unsigned i, j;
 	FLAC__double r, err, ref[FLAC__MAX_LPC_ORDER], lpc[FLAC__MAX_LPC_ORDER];
 
-	FLAC__ASSERT(0 < max_order);
-	FLAC__ASSERT(max_order <= FLAC__MAX_LPC_ORDER);
+	FLAC__ASSERT(0 != max_order);
+	FLAC__ASSERT(0 < *max_order);
+	FLAC__ASSERT(*max_order <= FLAC__MAX_LPC_ORDER);
 	FLAC__ASSERT(autoc[0] != 0.0);
 
 	err = autoc[0];
 
-	for(i = 0; i < max_order; i++) {
+	for(i = 0; i < *max_order; i++) {
 		/* Sum up this iteration's reflection coefficient. */
 		r = -autoc[i+1];
 		for(j = 0; j < i; j++)
@@ -139,6 +140,12 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned max_or
 		for(j = 0; j <= i; j++)
 			lp_coeff[i][j] = (FLAC__real)(-lpc[j]); /* negate FIR filter coeff to get predictor coeff */
 		error[i] = err;
+
+		/*@@@@@@ see SF bug #1601812 http://sourceforge.net/tracker/index.php?func=detail&aid=1601812&group_id=13478&atid=113478 */
+		if(err == 0.0) {
+			*max_order = i+1;
+			return;
+		}
 	}
 }
 

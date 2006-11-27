@@ -100,7 +100,7 @@ void FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow(const FLAC__real data[], u
  *	         in lp_coeff[8][0,8], the LP coefficients for order 8 will be
  *			 in lp_coeff[7][0,7], etc.
  */
-void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], FLAC__double error[]);
+void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], FLAC__double error[]);
 
 /*
  *	FLAC__lpc_quantize_coefficients()

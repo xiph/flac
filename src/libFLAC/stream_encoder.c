@@ -3532,7 +3532,7 @@ FLAC__bool process_subframe_(
 						encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->windowed_signal, frame_header->blocksize, max_lpc_order+1, autoc);
 						/* if autoc[0] == 0.0, the signal is constant and we usually won't get here, but it can happen */
 						if(autoc[0] != 0.0) {
-							FLAC__lpc_compute_lp_coefficients(autoc, max_lpc_order, encoder->private_->lp_coeff, lpc_error);
+							FLAC__lpc_compute_lp_coefficients(autoc, &max_lpc_order, encoder->private_->lp_coeff, lpc_error);
 							if(encoder->protected_->do_exhaustive_model_search) {
 								min_lpc_order = 1;
 							}
