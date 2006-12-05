@@ -639,7 +639,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 					return usage_error("ERROR: --%s must be a number\n", long_option);
 				option_values.format_input_size = (off_t)i;
 				if(option_values.format_input_size != i) /* check if off_t is smaller than long long */
-					return usage_error("ERROR: --%s too large; this flac does not support filesizes over 2GB\n", long_option);
+					return usage_error("ERROR: --%s too large; this build of flac does not support filesizes over 2GB\n", long_option);
 				if(option_values.format_input_size <= 0)
 					return usage_error("ERROR: --%s must be > 0\n", long_option);
 			}
