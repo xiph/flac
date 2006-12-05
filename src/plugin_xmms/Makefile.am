@@ -30,7 +30,7 @@ noinst_HEADERS = \
 	plugin.h \
 	tag.h
 
-AM_CFLAGS = @XMMS_CFLAGS@
+AM_CFLAGS = @OGG_CFLAGS@ @XMMS_CFLAGS@
 
 INCLUDES = -I$(top_srcdir)/src
 if FLaC__INSTALL_XMMS_PLUGIN_LOCALLY
@@ -64,6 +64,7 @@ libxmms_flac_la_LIBADD = \
 	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	-L$(top_builddir)/src/libFLAC/.libs \
+	@OGG_LIBS@ \
 	@XMMS_LIBS@ \
 	@LIBICONV@
 libxmms_flac_la_LDFLAGS = -module -avoid-version
