@@ -102,7 +102,6 @@ typedef enum {
 static struct CompressionLevels {
 	FLAC__bool do_mid_side_stereo;
 	FLAC__bool loose_mid_side_stereo;
-	const char *apodization;
 	unsigned max_lpc_order;
 	unsigned qlp_coeff_precision;
 	FLAC__bool do_qlp_coeff_prec_search;
@@ -112,15 +111,15 @@ static struct CompressionLevels {
 	unsigned max_residual_partition_order;
 	unsigned rice_parameter_search_dist;
 } compression_levels_[] = {
-	{ false, false, "tukey(0.5)",  0, 0, false, false, false, 2, 2, 0 },
-	{ true , true , "tukey(0.5)",  0, 0, false, false, false, 2, 2, 0 },
-	{ true , false, "tukey(0.5)",  0, 0, false, false, false, 0, 3, 0 },
-	{ false, false, "tukey(0.5)",  6, 0, false, false, false, 3, 3, 0 },
-	{ true , true , "tukey(0.5)",  8, 0, false, false, false, 3, 3, 0 },
-	{ true , false, "tukey(0.5)",  8, 0, false, false, false, 3, 3, 0 },
-	{ true , false, "tukey(0.5)",  8, 0, false, false, false, 0, 4, 0 },
-	{ true , false, "tukey(0.5)",  8, 0, false, false, true , 0, 6, 0 },
-	{ true , false, "tukey(0.5)", 12, 0, false, false, true , 0, 6, 0 }
+	{ false, false,  0, 0, false, false, false, 2, 2, 0 },
+	{ true , true ,  0, 0, false, false, false, 2, 2, 0 },
+	{ true , false,  0, 0, false, false, false, 0, 3, 0 },
+	{ false, false,  6, 0, false, false, false, 3, 3, 0 },
+	{ true , true ,  8, 0, false, false, false, 3, 3, 0 },
+	{ true , false,  8, 0, false, false, false, 3, 3, 0 },
+	{ true , false,  8, 0, false, false, false, 0, 4, 0 },
+	{ true , false,  8, 0, false, false, true , 0, 6, 0 },
+	{ true , false, 12, 0, false, false, true , 0, 6, 0 }
 };
 
 
@@ -1517,7 +1516,15 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_compression_level(FLAC__StreamEncod
 		value = sizeof(compression_levels_)/sizeof(compression_levels_[0]) - 1;
 	ok &= FLAC__stream_encoder_set_do_mid_side_stereo          (encoder, compression_levels_[value].do_mid_side_stereo);
 	ok &= FLAC__stream_encoder_set_loose_mid_side_stereo       (encoder, compression_levels_[value].loose_mid_side_stereo);
+#if 0
+	/* was: */
 	ok &= FLAC__stream_encoder_set_apodization                 (encoder, compression_levels_[value].apodization);
+	/* but it's too hard to specify the string in a locale-specific way */
+#else
+	encoder->protected_->num_apodizations = 1;
+	encoder->protected_->apodizations[0].type = FLAC__APODIZATION_TUKEY;
+	encoder->protected_->apodizations[0].parameters.tukey.p = 0.5;
+#endif
 	ok &= FLAC__stream_encoder_set_max_lpc_order               (encoder, compression_levels_[value].max_lpc_order);
 	ok &= FLAC__stream_encoder_set_qlp_coeff_precision         (encoder, compression_levels_[value].qlp_coeff_precision);
 	ok &= FLAC__stream_encoder_set_do_qlp_coeff_prec_search    (encoder, compression_levels_[value].do_qlp_coeff_prec_search);
