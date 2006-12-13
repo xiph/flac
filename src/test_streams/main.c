@@ -730,13 +730,15 @@ int main(int argc, char *argv[])
 	is_big_endian_host = (*((FLAC__byte*)(&test)))? false : true;
 
 #if !defined _MSC_VER && !defined __MINGW32__
-	struct timeval tv;
+	{
+		struct timeval tv;
 
-	if(gettimeofday(&tv, 0) < 0) {
-		fprintf(stderr, "WARNING: couldn't seed RNG with time\n");
-		tv.tv_usec = 4321;
+		if(gettimeofday(&tv, 0) < 0) {
+			fprintf(stderr, "WARNING: couldn't seed RNG with time\n");
+			tv.tv_usec = 4321;
+		}
+		srandom(tv.tv_usec);
 	}
-	srandom(tv.tv_usec);
 #else
 	srand(time(0));
 #endif
