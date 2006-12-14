@@ -1473,6 +1473,9 @@
 				If your locale does not use "." for the decimal point, there is a bug that causes the default compression settings to be sub-optimal.  You should add <span class="argument">-A "tukey(0,5)"</span> to your <span class="command">flac</span> command string (or however "0.5" should be formatted for your locale).
 			</li>
 			<li>
+				If a corrupted FLAC file is used as input in FLAC-to-FLAC encoding, the transcoded FLAC file will have the audio data truncated after the first error.
+			</li>
+			<li>
 				When encoding to Ogg FLAC, if there are too many seek points (&gt;240), the seek table will not have the offsets written back properly after encoding.
 			</li>
 		</ul>
