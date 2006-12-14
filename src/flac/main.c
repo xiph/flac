@@ -1680,6 +1680,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.requested_seek_points = option_values.requested_seek_points;
 	common_options.num_requested_seek_points = option_values.num_requested_seek_points;
 	common_options.cuesheet_filename = option_values.cuesheet_filename;
+	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
 	common_options.cued_seekpoints = option_values.cued_seekpoints;
 	common_options.channel_map_none = option_values.channel_map_none;
 	common_options.is_first_file = is_first_file;

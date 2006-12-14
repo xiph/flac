@@ -73,6 +73,7 @@ typedef struct {
 	char *requested_seek_points;
 	int num_requested_seek_points;
 	const char *cuesheet_filename;
+	FLAC__bool continue_through_decode_errors; /* currently only obeyed when encoding from FLAC or Ogg FLAC */
 	FLAC__bool cued_seekpoints;
 	FLAC__bool channel_map_none; /* --channel-map=none specified, eventually will expand to take actual channel map */
 

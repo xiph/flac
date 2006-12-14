@@ -67,6 +67,7 @@ typedef struct {
 
 	FLAC__uint64 skip;
 	FLAC__uint64 until; /* a value of 0 mean end-of-stream (i.e. --until=-0) */
+	FLAC__bool continue_through_decode_errors;
 	FLAC__bool replay_gain;
 	unsigned channels;
 	unsigned bits_per_sample;
@@ -118,7 +119,7 @@ extern FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEn
 /*
  * local routines
  */
-static FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FILE *infile, const char *infilename, const char *outfilename);
+static FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool continue_through_decode_errors, FILE *infile, const char *infilename, const char *outfilename);
 static void EncoderSession_destroy(EncoderSession *e);
 static int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_align_zero);
 static int EncoderSession_finish_error(EncoderSession *e);
@@ -178,6 +179,7 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 			/*use_ogg=*/false,
 #endif
 			options.common.verify,
+			options.common.continue_through_decode_errors,
 			infile,
 			infilename,
 			outfilename
@@ -590,6 +592,7 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 			/*use_ogg=*/false,
 #endif
 			options.common.verify,
+			options.common.continue_through_decode_errors,
 			infile,
 			infilename,
 			outfilename
@@ -1111,6 +1114,7 @@ int flac__encode_raw(FILE *infile, off_t infilesize, const char *infilename, con
 			/*use_ogg=*/false,
 #endif
 			options.common.verify,
+			options.common.continue_through_decode_errors,
 			infile,
 			infilename,
 			outfilename
@@ -1365,6 +1369,7 @@ int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, co
 			/*use_ogg=*/false,
 #endif
 			options.common.verify,
+			options.common.continue_through_decode_errors,
 			infile,
 			infilename,
 			outfilename
@@ -1481,6 +1486,12 @@ int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, co
 		 * now do samples from the file
 		 */
 		while(!decoder_data.fatal_error && decoder_data.samples_left_to_process > 0) {
+			/* We can also hit the end of stream without samples_left_to_process
+			 * going to 0 if there are errors and continue_through_decode_errors
+			 * is on, so we want to break in that case too:
+			 */
+			if(encoder_session.continue_through_decode_errors && FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
+				break;
 			if(!FLAC__stream_decoder_process_single(decoder)) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: while decoding FLAC input, state = %s\n", encoder_session.inbasefilename, FLAC__stream_decoder_get_resolved_state_string(decoder));
 				goto fubar2; /*@@@ yuck */
@@ -1507,7 +1518,7 @@ fubar1:
 	return EncoderSession_finish_error(&encoder_session);
 }
 
-FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FILE *infile, const char *infilename, const char *outfilename)
+FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool continue_through_decode_errors, FILE *infile, const char *infilename, const char *outfilename)
 {
 	unsigned i;
 	FLAC__uint32 test = 1;
@@ -1532,6 +1543,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	(void)use_ogg;
 #endif
 	e->verify = verify;
+	e->continue_through_decode_errors = continue_through_decode_errors;
 
 	e->is_stdout = (0 == strcmp(outfilename, "-"));
 	e->outputfile_opened = false;
@@ -2379,7 +2391,8 @@ void flac_decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__Strea
 	(void)decoder;
 
 	flac__utils_printf(stderr, 1, "%s: ERROR got %s while decoding FLAC input\n", data->encoder_session->inbasefilename, FLAC__StreamDecoderErrorStatusString[status]);
-	data->fatal_error = true;
+	if(!data->encoder_session->continue_through_decode_errors)
+		data->fatal_error = true;
 }
 
 FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
