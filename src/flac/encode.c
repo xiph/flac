@@ -1486,6 +1486,10 @@ int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, co
 				goto fubar2; /*@@@ yuck */
 			}
 		}
+		if(decoder_data.fatal_error) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: while decoding FLAC input, state = %s\n", encoder_session.inbasefilename, FLAC__stream_decoder_get_resolved_state_string(decoder));
+			goto fubar2; /*@@@ yuck */
+		}
 	}
 
 	FLAC__stream_decoder_delete(decoder);
