@@ -45,29 +45,31 @@ CPUCFLAGS = -maltivec -mabi=altivec -DFLAC__NO_ASM
 endif
 endif
 
-AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS)
+AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) @OGG_CFLAGS@
 
 if FLaC__NO_ASM
 else
 if FLaC__CPU_IA32
 if FLaC__HAS_NASM
 ARCH_SUBDIRS = ia32
-libFLAC_la_LIBADD = ia32/libFLAC-asm.la
+LOCAL_EXTRA_LIBADD = ia32/libFLAC-asm.la
 endif
 endif
 if FLaC__CPU_PPC
 ARCH_SUBDIRS = ppc
 if FLaC__HAS_AS__TEMPORARILY_DISABLED
-libFLAC_la_LIBADD = ppc/as/libFLAC-asm.la
+LOCAL_EXTRA_LIBADD = ppc/as/libFLAC-asm.la
 LOCAL_EXTRA_LDFLAGS = "-Wl,-read_only_relocs,warning"
 else
 if FLaC__HAS_GAS__TEMPORARILY_DISABLED
-libFLAC_la_LIBADD = ppc/gas/libFLAC-asm.la
+LOCAL_EXTRA_LIBADD = ppc/gas/libFLAC-asm.la
 LOCAL_EXTRA_LDFLAGS = ""
 endif
 endif
 endif
 endif
+
+libFLAC_la_LIBADD = $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@
 
 SUBDIRS = $(ARCH_SUBDIRS) include .
 
