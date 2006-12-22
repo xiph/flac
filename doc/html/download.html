@@ -29,12 +29,8 @@
 	&nbsp;<a href="faq.html">faq</a>&nbsp;&nbsp;|
 	&nbsp;<a href="news.html">news</a>&nbsp;&nbsp;|
 	&nbsp;download&nbsp;&nbsp;|
-	&nbsp;<a href="features.html">features</a>&nbsp;&nbsp;|
-	&nbsp;<a href="goals.html">goals</a>&nbsp;&nbsp;|
-	&nbsp;<a href="format.html">format</a>&nbsp;&nbsp;|
-	&nbsp;<a href="id.html">id</a>&nbsp;&nbsp;|
-	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
 	&nbsp;<a href="documentation.html">documentation</a>&nbsp;&nbsp;|
+	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
 	&nbsp;<a href="changelog.html">changelog</a>&nbsp;&nbsp;|
 	&nbsp;<a href="links.html">links</a>&nbsp;&nbsp;|
 	&nbsp;<a href="developers.html">developers</a>&nbsp;
@@ -53,6 +49,10 @@
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
+		Many different programs support FLAC.  If you are not sure what to download, see <a href="documentation_tasks.html">Using FLAC</a> for instructions and guides on playing FLAC files, ripping CDs to FLAC, etc.<br />
+		<br />
+		This section is for the <a href="documentation_tools.html">official FLAC tools</a>.  See the <a href="#extras">extras section</a> below for other third-party tools.<br />
+		<br />
 		All source code and binaries are freely available and distributed under <a href="http://www.opensource.org/docs/definition.php">Open Source</a> licenses.  The codec libraries are distributed under Xiph.org's BSD license, and the plugins and command-line utilites (<span class="commandname">flac</span> and <span class="commandname">metaflac</span>) are distributed under the <a href="http://www.opensource.org/licenses/gpl-license.html">GPL</a>.  If you would like to redistribute parts or all of FLAC under different terms, <a href="mailto:jcoalson@users.sourceforge.net">contact Josh Coalson</a>.  (For more information, see the <a href="license.html">license page</a>.)
 		<ul>
 			<li>
@@ -76,7 +76,7 @@
 			<li>
 				<b>Windows</b>
 				<ul>
-					<li><a href="http://cyberial.com/flacinstaller.asp">FLAC for Windows with installer</a> (<a href="http://downloads.sourceforge.net/flac/flac113b.exe?use_mirror=superb-west">alternate link</a>). <b>NOTE: </b>Several virus scanners are reporting that FLAC contains a trojan; this is a FALSE POSITIVE.  For more info see <a href="http://nsis.sourceforge.net/index.php?id=2&amp;backPID=2&amp;tt_news=14">here</a>, <a href="http://servicenews.symantec.com/cgi-bin/displayArticle.cgi?article=29991&amp;group=symantec.support.generic.virus_corporate.general&amp;tpre=ent">here</a>, <a href="http://forums.mcafeehelp.com/viewtopic.php?p=164312">here</a>.</li>
+					<li><a href="http://cyberial.com/flacinstaller.asp">FLAC for Windows with installer</a> (<a href="http://downloads.sourceforge.net/flac/flac113b.exe?use_mirror=superb-west">alternate link</a>)</li>
 					<li><a href="http://sourceforge.net/project/showfiles.php?group_id=13478&amp;package_id=12675">FLAC for Windows (tools only)</a></li>
 				</ul>
 			</li>
@@ -119,10 +119,10 @@
 		<br />
 		<b>NOTE: </b> make sure to check out the <a href="links.html">links page</a> for a large list of open-source software supporting FLAC.<br />
 		<br />
-		<b>GUI encoding/decoding front-ends:</b>
+		<a name="extras_gui"><b>GUI encoding/decoding front-ends:</b></a>
 		<ul>
 			<li>
-				<b>Windows</b>
+				<a name="extras_gui_windows"><b>Windows</b></a>
 				<ul>
 					<li><a href="http://www.legroom.net/modules.php?op=modload&amp;name=Open_Source&amp;file=index&amp;page=software&amp;app=autoflac">AutoFLAC</a> for automated ripping and encoding to FLAC with EAC (ExactAudioCopy); also has a write mode for burning back to CD for an exact copy</li>
 					<li><a href="http://www.dbpoweramp.com/">dBpowerAMP</a>, a swiss army knife that can convert and play many formats, including FLAC.</li>
@@ -133,20 +133,12 @@
 					<li><a href="http://home.vxu.se/mdati00/frontah/">Frontah</a>, a new frontend to many codecs, including FLAC.  Still in beta but has good reviews.</li>
 					<li><a href="http://www.germanixsoft.de/">GX::Transcoder</a></li>
 					<li><a href="http://mareo.netfirms.com/">MAREO</a> is a "virtual" encoder that can be used with ExactAudioCopy to encode to multiple formats (including FLAC) at once while ripping.</li>
-					<li><a href="http://www.monkeysaudio.com/">Monkey's Audio</a> can be fooled into supporting FLAC as an external encoder; <a href="documentation.html#monkey">here's how</a>.</li>
 					<li><a href="http://www.unifront.boereck.de/">UniversalFront</a>, an encoding/decoding/transcoding GUI that is also scriptable.</li>
 					<li><a href="http://music.yahoo.com/musicengine/">Yahoo! Music Engine</a></li>
 				</ul>
 			</li>
 			<li>
-				<b>Unix</b>
-				<ul>
-					<li><a href="http://www.nostatic.org/grip/">Grip</a> is a great ripping and encoding front end and can be easily configured to use flac.  See <a href="http://sourceforge.net/mailarchive/forum.php?thread_id=1634089&amp;forum_id=5443">this message</a> on how to configure Grip for FLAC.</li>
-					<li><a href="http://www.amb.org/xmcd/">xmcd</a> is a CD ripper with CDDB support as well as a player.</li>
-				</ul>
-			</li>
-			<li>
-				<b>Mac OS X</b>
+				<a name="extras_gui_osx"><b>Mac OS X</b></a>
 				<ul>
 					<li><a href="http://www.lexial.ca/alex/applescripts/iTunes_to_flac.html">iTunes-to-FLAC</a>, an AppleScript for converting between FLAC and WAVE/AIFF with tagging via iTunes.</li>
 					<li><!-- <a href="http://www.danrules.com/macflac/"><a href="http://www.versiontracker.com/dyn/moreinfo/macosx/15883"> --><a href="http://mac.softpedia.com/get/Audio/MacFLAC.shtml">MacFLAC</a>, a FLAC distribution which also includes nice graphical front-end.</li>
@@ -157,16 +149,24 @@
 				</ul>
 			</li>
 			<li>
-				<b>Pocket PC</b>
+				<a name="extras_gui_unix"><b>Unix</b></a>
+				<ul>
+					<li><a href="http://www.nostatic.org/grip/">Grip</a> is a great ripping and encoding front end and can be easily configured to use flac.  See <a href="http://sourceforge.net/mailarchive/forum.php?thread_id=1634089&amp;forum_id=5443">this message</a> on how to configure Grip for FLAC.</li>
+					<li><a href="http://www.amb.org/xmcd/">xmcd</a> is a CD ripper with CDDB support as well as a player.</li>
+					<li>(<a href="links.html#software">many more</a>)</li>
+				</ul>
+			</li>
+			<li>
+				<a name="extras_gui_pocketpc"><b>Pocket PC</b></a>
 				<ul>
 					<li>[$] <a href="http://www.gidluckmastering.com/live2496.html">Live2496</a>, a program that can record 24-bit audio up to 96kHz on a Pocket PC (using <a href="http://www.core-sound.com/">Core Sound's PDAudio interface</a>) can record directly to FLAC.</li>
 				</ul>
 			</li>
 		</ul>
-		<b>CD burning:</b>
+		<a name="extras_burning"><b>CD burning:</b></a>
 		<ul>
 			<li>
-				<b>Windows</b>
+				<a name="extras_burning_windows"><b>Windows</b></a>
 				<ul>
 					<li><a href="http://www.burnatonce.com/">burnatonce</a>, a CD burning GUI that wraps around <a href="http://sourceforge.net/projects/cdrdao/">cdrdao</a> and <a href="http://freshmeat.net/projects/cdrecord/">mkisofs</a>.</li>
 					<li><a href="http://www.burrrn.net/?page_id=4">Burrrn</a> supports burning CDs from cuesheets directly from many formats, including FLAC, and supports most tag formats.</li>
@@ -174,24 +174,27 @@
 					<li><a href="http://dbpoweramp.com/cdwriter.htm">dBpowerAMP CD Writer</a>.</li>
 					<li>[$] <a href="http://www.poikosoft.com/">Easy CD-DA Extractor</a>.</li>
 					<li>[$] <a href="http://www.roxio.com/enu/products/creator/suite/features.html">Easy Media Creator 9 Suite</a> from Roxio.</li>
-					<li>[$] <a href="http://www.nero.com/">Nero</a> (as a <a href="http://neroplugins.cd-rw.org/">plugin</a>); allows you to burn FLAC files directly to audio CDs.</li>
 				</ul>
-				<b>Mac OS X</b>
+			</li>
+			<li>
+				<a name="extras_burning_osx"><b>Mac OS X</b></a>
 				<ul>
 					<li>[$] Roxio's <a href="http://www.roxio.com/en/products/toast/index.jhtml">Toast 7 Titanium</a> supports encoding to FLAC and CD/DVD burning from FLAC.</li>
 				</ul>
 			</li>
 			<li>
-				<b>Unix</b>
+				<a name="extras_burning_unix"><b>Unix</b></a>
 				<ul>
-					<li><a href="http://arson.sourceforge.net/">Arson</a>, a front-end to various CD burning and ripping tools.</li>
+					<li><a href="http://arson.sourceforge.net/">Arson</a>: KDE ripper/burner</li>
+					<li><a href="http://www.k3b.org/">K3B</a>: CD/DVD creator for Linux</li>
+					<li>(<a href="links.html#software">more</a>)</li>
 				</ul>
 			</li>
 		</ul>
-		<b>Players and plugins:</b>
+		<a name="extras_players"><b>Players and plugins:</b></a>
 		<ul>
 			<li>
-				<b>Windows</b>
+				<a name="extras_players_windows"><b>Windows</b></a>
 				<ul>
 					<!-- case's page disappeared, use temporary links
 					<li><a href="http://www.saunalahti.fi/~cse/files/cool_flac.zip">Cooledit FLAC filter</a> (source code <a href="http://www.saunalahti.fi/cse/files/cool_flac_src.zip">here</a>).</li>
@@ -215,7 +218,7 @@
 				</ul>
 			</li>
 			<li>
-				<b>Mac OS X</b>
+				<a name="extras_players_osx"><b>Mac OS X</b></a>
 				<ul>
 					<li><a href="http://cogosx.sourceforge.net/">Cog</a></li>
 					<li><a href="http://freshmeat.net/projects/cynthiune/">Cynthiune</a> music player</li>
@@ -223,11 +226,26 @@
 					<li><a href="http://homepage.mac.com/steve_bryan/Personal12.html">PureMusic Audio Player</a></li>
 					<li><a href="http://www.songbirdnest.com/">Songbird</a></li>
 					<li><a href="http://www.videolan.org/vlc/index.html">VLC</a></li>
-					<li><a href="http://www.xiph.org/quicktime/">XiphQT</a> component for Quicktime/iTunes that supports Ogg FLAC</li>
+					<li><a href="http://www.xiph.org/quicktime/">XiphQT</a> component for Quicktime/iTunes that supports Ogg FLAC playback</li>
 				</ul>
 			</li>
 			<li>
-				<b>Java</b>
+				<a name="extras_players_unix"><b>Unix</b></a>
+				<ul>
+					<li><a href="http://alsaplayer.org/">AlsaPlayer</a></li>
+					<li><a href="http://www.giantdisc.org/">GiantDisc</a>: Linux jukebox + Palm remote</li>
+					<li><a href="http://www.mplayerhq.hu/">MPlayer</a></li>
+					<li><a href="http://muine.gooeylinux.org/">Muine</a>: a music player for GNOME</li>
+					<li><a href="http://musik.berlios.de/">Musik</a>: an open-source, cross-platform multimedia player and library</li>
+					<li><a href="http://www.videolan.org/">VideoLAN</a> client</li>
+					<li><a href="http://xine.sourceforge.net/">Xine</a> multimedia player</li>
+					<li><a href="http://www.amb.org/xmcd/">xmcd</a>: X CD player</li>
+					<li><a href="http://www.xmms.org/">XMMS</a>: X MultiMedia System</li>
+					<li>(<a href="links.html#software">many more</a>)</li>
+				</ul>
+			</li>
+			<li>
+				<a name="extras_players_java"><b>Java</b></a>
 				<ul>
 					<li><a href="http://jflac.sourceforge.net/">jFLAC</a>: a Java native-FLAC decoder library and player application.</li>
 					<li><a href="http://www.j-ogg.de/">J-Ogg</a>: Java libraries for Ogg decoding, including Ogg FLAC.</li>

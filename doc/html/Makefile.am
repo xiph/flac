@@ -26,15 +26,22 @@ doc_DATA =  \
 	comparison.html \
 	developers.html \
 	documentation.html \
+	documentation_bugs.html \
+	documentation_format_overview.html \
+	documentation_tasks.html \
+	documentation_tools.html \
+	documentation_tools_flac.html \
+	documentation_tools_metaflac.html \
+	documentation_tools_plugins.html \
 	download.html \
 	faq.html \
 	favicon.ico \
 	features.html \
 	flac.css \
 	format.html \
-	goals.html \
 	id.html \
 	index.html \
+	itunes.html \
 	license.html \
 	links.html \
 	news.html \

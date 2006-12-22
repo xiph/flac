@@ -13,7 +13,7 @@
 	<meta name="keywords" content="free,lossless,audio,codec,encoder,decoder,compression,compressor,archival,archive,archiving,backup,music" />
 	<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="flac.css" />
-	<title>FLAC - goals</title>
+	<title>FLAC - documentation</title>
 </head>
 
 <body>
@@ -29,12 +29,8 @@
 	&nbsp;<a href="faq.html">faq</a>&nbsp;&nbsp;|
 	&nbsp;<a href="news.html">news</a>&nbsp;&nbsp;|
 	&nbsp;<a href="download.html">download</a>&nbsp;&nbsp;|
-	&nbsp;<a href="features.html">features</a>&nbsp;&nbsp;|
-	&nbsp;goals&nbsp;&nbsp;|
-	&nbsp;<a href="format.html">format</a>&nbsp;&nbsp;|
-	&nbsp;<a href="id.html">id</a>&nbsp;&nbsp;|
-	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
 	&nbsp;<a href="documentation.html">documentation</a>&nbsp;&nbsp;|
+	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
 	&nbsp;<a href="changelog.html">changelog</a>&nbsp;&nbsp;|
 	&nbsp;<a href="links.html">links</a>&nbsp;&nbsp;|
 	&nbsp;<a href="developers.html">developers</a>&nbsp;
@@ -42,52 +38,46 @@
 
 <div class="langbar">
 	&nbsp;english&nbsp;&nbsp;|
-	&nbsp;<a href="ru/goals.html">russian</a>&nbsp;
+	&nbsp;<a href="ru/documentation.html">russian</a>&nbsp;
 </div>
 
 <div class="below_nav"></div>
 
 <div class="box">
 	<div class="box_title">
-		goals
+		<a name="bugs">known bugs</a>
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		Since FLAC is an open-source project, it's important to have a set of goals that everyone works to.  They may change slightly from time to time but they're a good guideline.  Changes should be in line with the goals and should not attempt to embrace any of the anti-goals!<br />
+		The following are major known bugs in the current (1.1.3) release:
+		<ul>
+			<li>
+				If your locale does not use "." for the decimal point, there is a bug that causes the default compression settings to be sub-optimal.  You should add <span class="argument">-A "tukey(0,5)"</span> to your <span class="command">flac</span> command string (or however "0.5" should be formatted for your locale).
+			</li>
+			<li>
+				If a corrupted FLAC file is used as input in FLAC-to-FLAC encoding, the transcoded FLAC file will have the audio data truncated after the first error.
+			</li>
+			<li>
+				When encoding to Ogg FLAC, if there are too many seek points (&gt;240), the seek table will not have the offsets written back properly after encoding.
+			</li>
+		</ul>
+	</div>
+	<div class="box_footer"></div>
+</div>
+
+<br />
+
+<div class="box">
+	<div class="box_title">
+		<a name="bug_reporting">reporting bugs</a>
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
+		To report a bug, please go to the <a href="http://sourceforge.net/tracker/?group_id=13478&amp;atid=113478">FLAC bug tracker</a> (or appropriately the <a href="http://sourceforge.net/tracker/?group_id=13478&amp;atid=363478">feature request tracker</a>, <a href="http://sourceforge.net/tracker/?group_id=13478&amp;atid=313478">patch page</a>, or <a href="http://sourceforge.net/tracker/?group_id=13478&amp;atid=213478">support page</a>).<br />
 		<br />
-		<b>Goals</b>
-		<ul>
-			<li>
-				FLAC should be and stay an open format with an open-source reference implementation.
-			</li>
-			<li>
-				FLAC should be lossless.  This seems obvious but lossy compression seems to creep into every audio codec.  This goal also means that flac should stay archival quality and be truly lossless for all input.  Testing of releases should be thorough.
-			</li>
-			<li>
-				FLAC should yield respectable compression, on par or better than other lossless codecs.
-			</li>
-			<li>
-				FLAC should allow at least realtime decoding on even modest hardware.
-			</li>
-			<li>
-				FLAC should support fast sample-accurate seeking.
-			</li>
-			<li>
-				FLAC should allow gapless playback of consecutive streams.  This follows from the lossless goal.
-			</li>
-			<li>
-				The FLAC project owes a lot to the many people who have advanced the audio compression field so freely, and aims also to contribute through the open-source development of new ideas.
-			</li>
-		</ul>
-		<b>Anti-goals</b><br />
-		<ul>
-			<li>
-				Lossy compression.  There are already many suitable lossy formats (<a href="http://www.xiph.org/ogg/vorbis/index.html">Ogg Vorbis</a>, <a href="http://www.mp3-tech.org/">MP3</a>, etc.).
-			</li>
-			<li>
-				Copy prevention of any kind.
-			</li>
-		</ul>
+		First check that there is not already an existing request.  If you do submit a new request, make sure and provide an email contact <b>and</b> use the Monitor feature.<br />
+		<br />
+		Note that we get many false bug reports from people with faulty hardware or who overclock their machines that FLAC is not working.  Please do due diligence if you are getting FLAC encoding or decoding errors that it is not the fault of the hardware.  FLAC encoding tends to highlight problems with bad RAM, corrupted files, and excessive overclocking.
 	</div>
 	<div class="box_footer"></div>
 </div>

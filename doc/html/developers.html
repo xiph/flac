@@ -29,12 +29,8 @@
 	&nbsp;<a href="faq.html">faq</a>&nbsp;&nbsp;|
 	&nbsp;<a href="news.html">news</a>&nbsp;&nbsp;|
 	&nbsp;<a href="download.html">download</a>&nbsp;&nbsp;|
-	&nbsp;<a href="features.html">features</a>&nbsp;&nbsp;|
-	&nbsp;<a href="goals.html">goals</a>&nbsp;&nbsp;|
-	&nbsp;<a href="format.html">format</a>&nbsp;&nbsp;|
-	&nbsp;<a href="id.html">id</a>&nbsp;&nbsp;|
-	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
 	&nbsp;<a href="documentation.html">documentation</a>&nbsp;&nbsp;|
+	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
 	&nbsp;<a href="changelog.html">changelog</a>&nbsp;&nbsp;|
 	&nbsp;<a href="links.html">links</a>&nbsp;&nbsp;|
 	&nbsp;developers&nbsp;
@@ -49,31 +45,27 @@
 
 <div class="box">
 	<div class="box_title">
-		FLAC developers
+		developers
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		FLAC is an open source project and we are happy to enlist the help of anyone who wants to contribute.  The preferred method for transmitting improvements is patch files (in "diff -c" format) sent to the <a href="http://lists.xiph.org/mailman/listinfo/flac-dev">developer mailing list</a>, but zipped up sources are OK.  Make sure to read the <a href="goals.html">FLAC goals</a> first; there are some thing the we <b>don't</b> want added to FLAC, like copy protection and lossy compression.<br />
+		FLAC is an open source project and we are happy to enlist the help of anyone who wants to contribute, or to help with FLAC support in other programs and devices.  The preferred method of communication is the <a href="http://lists.xiph.org/mailman/listinfo/flac-dev">developer mailing list</a>.<br />
 		<br />
-		High priority items are:
+		FLAC is open to third-party developers who want to add support for FLAC into their programs.  All the necessary functionality is contained the libFLAC libraries which are licensed under <a href="license.html">Xiph.org's BSD license</a>.<br />
+		<br />
+		Some pointers to developer documentation and code:<br />
 		<ul>
-			<li>
-				Support in the plugins for using the CUESHEET metadata block.  The plugin should be able to see a CUESHEET in a FLAC file and present the individual tracks in the player, and fetch metadata from CDDB or CDindex by computing the hash from the CUESHEET and looking up either in a local database or over the net.
-			</li>
+			<li><a href="license.html">License</a> - The license under which the official tools are distributed.</li>
+			<li><a href="api/index.html">libFLAC and libFLAC++ APIs</a> - Complete library documentation.</li>
+			<li><a href="format.html">FLAC Format Specification</a> - The formal specification.</li>
+			<li><a href="ogg_mapping.html">Ogg FLAC Mapping</a> - How FLAC should be embedded in an Ogg container.</li>
+			<li><a href="id.html">ID Registration</a> - Register an ID if you need to write custom metadata.</li>
+			<li><a href="http://sourceforge.net/cvs/?group_id=13478">CVS Access</a> - instructions for checking out the source code.</li>
+			<li><a href="http://flac.cvs.sourceforge.net/flac">Browse the CVS repository</a> from your web browser.</li>
 		</ul>
-		Some other "nice-to-haves":
-		<ul>
-			<li>
-				FLAC module for <a href="http://www.68k.org/~michael/audiofile/">Audiofile</a>.
-			</li>
-			<li>
-				<a href="http://java.sun.com/products/java-media/jmf/">JMF</a> plugin.
-			</li>
-			<li>
-				Streaming support in the Winamp plugin.
-			</li>
-		</ul>
-		See also the <a href="http://sourceforge.net/projects/flac">FLAC project page</a> on Sourceforge.net.
+		There also are several examples in the FLAC code base of API usage that may also be helpful.  Visit the <a href="download.html">download page</a> for instructions on how to get the source code.
+		<br />
+		Finally, more resources are available on the <a href="http://sourceforge.net/projects/flac">FLAC project page</a> on Sourceforge.net.
 	</div>
 	<div class="box_footer"></div>
 </div>
@@ -82,19 +74,45 @@
 
 <div class="box">
 	<div class="box_title">
-		third-party developers
+		goals
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		FLAC is open to third-party developers who want to add support for FLAC into their programs.  All the necessary functionality is contained the lib*FLAC libraries which are licensed under Xiph.org's BSD license.  The relevant documentation here is:
+		Since FLAC is an open-source project, it's important to have a set of goals that everyone works to.  They may change slightly from time to time but they're a good guideline.  Changes should be in line with the goals and should not attempt to embrace any of the anti-goals.<br />
+		<br />
+		<b>Goals</b>
 		<ul>
-			<li>The <a href="license.html">license page</a>.</li>
-			<li>The <a href="api/index.html">API documentation</a>.</li>
-			<li>The <a href="format.html">formal description</a> of the FLAC format.</li>
-			<li>The <a href="ogg_mapping.html">Ogg FLAC mapping</a> document.</li>
-			<li>The <a href="id.html">ID registration page</a> for registering an ID if you need to write custom metadata.</li>
+			<li>
+				FLAC should be and stay an open format with an open-source reference implementation.
+			</li>
+			<li>
+				FLAC should be lossless.  This seems obvious but lossy compression seems to creep into every audio codec.  This goal also means that <span class="commandname">flac</span> should stay archival quality and be truly lossless for all input.  Testing of releases should be thorough.
+			</li>
+			<li>
+				FLAC should yield respectable compression, on par or better than other lossless codecs.
+			</li>
+			<li>
+				FLAC should allow at least realtime decoding on even modest hardware.
+			</li>
+			<li>
+				FLAC should support fast sample-accurate seeking.
+			</li>
+			<li>
+				FLAC should allow gapless playback of consecutive streams.  This follows from the lossless goal.
+			</li>
+			<li>
+				The FLAC project owes a lot to the many people who have advanced the audio compression field so freely, and aims also to contribute through the open-source development of new ideas.
+			</li>
 		</ul>
-		There also are several examples in the FLAC code base of API usage that may also be helpful.  Visit the <a href="download.html">download page</a> for instructions on how to get the source.
+		<b>Anti-goals</b><br />
+		<ul>
+			<li>
+				Lossy compression.  There are already many suitable lossy formats (<a href="http://www.xiph.org/ogg/vorbis/index.html">Ogg Vorbis</a>, <a href="http://www.mp3-tech.org/">MP3</a>, etc.).
+			</li>
+			<li>
+				Copy prevention, DRM, etc.  There is no intention to add any copy prevention methods.  Of course, we can't stop someone from encrypting a FLAC stream in another container (e.g. the way Apple encrypts AAC in MP4 with FairPlay), that is the choice of the user.
+			</li>
+		</ul>
 	</div>
 	<div class="box_footer"></div>
 </div>

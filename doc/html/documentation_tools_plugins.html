@@ -29,7 +29,7 @@
 	&nbsp;<a href="faq.html">faq</a>&nbsp;&nbsp;|
 	&nbsp;<a href="news.html">news</a>&nbsp;&nbsp;|
 	&nbsp;<a href="download.html">download</a>&nbsp;&nbsp;|
-	&nbsp;documentation&nbsp;&nbsp;|
+	&nbsp;<a href="documentation.html">documentation</a>&nbsp;&nbsp;|
 	&nbsp;<a href="comparison.html">comparison</a>&nbsp;&nbsp;|
 	&nbsp;<a href="changelog.html">changelog</a>&nbsp;&nbsp;|
 	&nbsp;<a href="links.html">links</a>&nbsp;&nbsp;|
@@ -45,36 +45,26 @@
 
 <div class="box">
 	<div class="box_title">
-		documentation
+		<a name="plugins"></a><a name="xmms_plugin">xmms plugin</a>
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		FLAC is a general purpose audio format supported by many programs.  Most of the documentation here is about the FLAC format itself and the tools we provide, but there is also information on using other programs that support FLAC.
-		<ul>
-			<li><a href="features.html">Introduction</a> - What is FLAC?</li>
-			<li><a href="download.html">Getting FLAC</a> - How to download what you need to play or make FLAC files.</li>
-			<li><a href="documentation_tasks.html">Using FLAC</a> - If you have some FLAC files and want to do something with them, or want to create FLAC files, look here.</li>
-			<li><a href="faq.html">FAQ</a> - Frequently Asked Questions</li>
-		</ul>
-		In more detail:
-		<ul>
-			<li><a href="documentation_format_overview.html">About the FLAC Format</a> - An overview of the FLAC format for power users.</li>
-			<li><a href="documentation_tools.html">Official Tools</a> - How to use the <span class="commandname">flac</span> and <span class="commandname">metaflac</span> command-line tools.</li>
-			<li><a href="comparison.html">Comparison</a> - A comparison of FLAC with other lossless codecs.</li>
-			<li><a href="documentation_bugs.html">Bugs</a> - How to report bugs and request features, and a list of known bugs in the FLAC tools.</li>
-			<li><a href="http://sourceforge.net/tracker/?group_id=13478&amp;atid=213478">Request Support</a> - Support for the official FLAC tools.  For other programs, use <a href="http://www.hydrogenaudio.org/">hydrogenaudio.org</a>
-			<li><a href="http://lists.xiph.org/mailman/listinfo/flac">FLAC Mailing List</a> - General discussion about FLAC, tools, releases, etc.</li>
-		</ul>
-		For developers who want to add FLAC support to their programs:
-		<ul>
-			<li><a href="documentation_format_overview.html">About the FLAC Format</a> - An overview of the FLAC format for power users.</li>
-			<li><a href="format.html">FLAC Format Specification</a> - The formal specification.</li>
-			<li><a href="ogg_mapping.html">Ogg FLAC Mapping</a> - How FLAC should be embedded in an Ogg container.</li>
-			<li><a href="api/index.html">libFLAC and libFLAC++ APIs</a> - Complete library documentation.</li>
-			<li><a href="license.html">License</a> - The license under which the official tools are distributed.</li>
-			<li>(see also the <a href="developer.html">developer page</a>)</li>
-		</ul>
-		Keep in mind that the online version of the documentation will always apply to the latest release.  For older releases, check the documentation included with the release package.
+		Normally the FLAC plugin for XMMS is installed with a package, but some of the <a href="download.html">binary builds</a> have a compiled plugin.  All that is necessary is to copy <span class="code">libxmms-flac.so</span> to the directory where XMMS looks for input plugins (usually <span class="code">/usr/lib/xmms/Input</span> or <span class="code">$HOME/.xmms/Input</span>).  There is nothing else to configure.  Make sure to restart XMMS before trying to play any <span class="code">.flac</span> files.
+	</div>
+	<div class="box_footer"></div>
+</div>
+
+<br />
+
+<div class="box">
+	<div class="box_title">
+		<a name="winamp_plugin">winamp plugin</a>
+	</div>
+	<div class="box_header"></div>
+	<div class="box_body">
+		Since Winamp 5.31, Nullsoft has supplied a FLAC plugin with their Full install; nothing else is needed to get FLAC to play in Wnamp.<br />
+		<br />
+		Before Winamp 5.31 it was necessary to use our FLAC plugin.  If you have an older version of Winamp, our plugin is still available in the <a href="http://cyberial.com/flacinstaller.asp">FLAC Installer for Windows</a>.  The Winamp plugin should work for both Winamp2 and Winamp5.  All that is necessary is to copy <span class="code">in_flac.dll</span> to the <span class="code">Plugins/</span> directory of your Winamp installation.  There is nothing else to configure.  Make sure to restart Winamp before trying to play any <span class="code">.flac</span> files.
 	</div>
 	<div class="box_footer"></div>
 </div>
