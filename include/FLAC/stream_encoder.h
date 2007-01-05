@@ -172,7 +172,7 @@ extern "C" {
  * - Channel separate, through FLAC__stream_encoder_process() - The client
  *   will pass an array of pointers to buffers, one for each channel, to
  *   the encoder, each of the same length.  The samples need not be
- *   block-aligned.
+ *   block-aligned, but each channel should have the same number of samples.
  * - Channel interleaved, through
  *   FLAC__stream_encoder_process_interleaved() - The client will pass a single
  *   pointer to data that is channel-interleaved (i.e. channel0_sample0,
@@ -180,6 +180,11 @@ extern "C" {
  *   Again, the samples need not be block-aligned but they must be
  *   sample-aligned, i.e. the first value should be channel0_sample0 and
  *   the last value channelN_sampleM.
+ *
+ * Note that for either process call, each sample in the buffers should be a
+ * signed integer, right-justified to the resolution set by
+ * FLAC__stream_encoder_set_bits_per_sample().  For example, if the resolution
+ * is 16 bits per sample, the samples should all be in the range [-32768,32767].
  *
  * When the client is finished encoding data, it calls
  * FLAC__stream_encoder_finish(), which causes the encoder to encode any
@@ -1700,7 +1705,11 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder);
  *  This version allows you to supply the input data via an array of
  *  pointers, each pointer pointing to an array of \a samples samples
  *  representing one channel.  The samples need not be block-aligned,
- *  but each channel should have the same number of samples.
+ *  but each channel should have the same number of samples.  Each sample
+ *  should be a signed integer, right-justified to the resolution set by
+ *  FLAC__stream_encoder_set_bits_per_sample().  For example, if the
+ *  resolution is 16 bits per sample, the samples should all be in the
+ *  range [-32768,32767].
  *
  *  For applications where channel order is important, channels must
  *  follow the order as described in the
@@ -1725,7 +1734,11 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
  *  channel1_sample0, ... , channelN_sample0, channel0_sample1, ...).
  *  The samples need not be block-aligned but they must be
  *  sample-aligned, i.e. the first value should be channel0_sample0
- *  and the last value channelN_sampleM.
+ *  and the last value channelN_sampleM.  Each sample should be a signed
+ *  integer, right-justified to the resolution set by
+ *  FLAC__stream_encoder_set_bits_per_sample().  For example, if the
+ *  resolution is 16 bits per sample, the samples should all be in the
+ *  range [-32768,32767].
  *
  *  For applications where channel order is important, channels must
  *  follow the order as described in the
