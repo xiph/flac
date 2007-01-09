@@ -580,6 +580,11 @@ unsigned FLAC__bitbuffer_get_input_bytes_unconsumed(const FLAC__BitBuffer *bb)
 	return (bb->total_bits - bb->total_consumed_bits) >> 3;
 }
 
+unsigned FLAC__bitbuffer_get_input_bits_unconsumed(const FLAC__BitBuffer *bb)
+{
+	return bb->total_bits - bb->total_consumed_bits;
+}
+
 void FLAC__bitbuffer_get_buffer(FLAC__BitBuffer *bb, const FLAC__byte **buffer, size_t *bytes)
 {
 	FLAC__ASSERT((bb->consumed_bits & 7) == 0 && (bb->bits & 7) == 0);

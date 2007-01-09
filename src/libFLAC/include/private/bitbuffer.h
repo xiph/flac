@@ -80,6 +80,7 @@ FLAC__bool FLAC__bitbuffer_is_byte_aligned(const FLAC__BitBuffer *bb);
 FLAC__bool FLAC__bitbuffer_is_consumed_byte_aligned(const FLAC__BitBuffer *bb);
 unsigned FLAC__bitbuffer_bits_left_for_byte_alignment(const FLAC__BitBuffer *bb);
 unsigned FLAC__bitbuffer_get_input_bytes_unconsumed(const FLAC__BitBuffer *bb); /* do not call unless byte-aligned */
+unsigned FLAC__bitbuffer_get_input_bits_unconsumed(const FLAC__BitBuffer *bb); /* can be called anytime, returns total # of bits unconsumed */
 
 /*
  * direct buffer access
