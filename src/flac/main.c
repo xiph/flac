@@ -73,7 +73,7 @@ static void short_usage();
 static void show_version();
 static void show_help();
 static void show_explain();
-static void format_mistake(const char *infilename, const char *wrong, const char *right);
+static void format_mistake(const char *infilename, FileFormat wrong, FileFormat right);
 
 static int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file);
 static int decode_file(const char *infilename);
@@ -1499,9 +1499,11 @@ void show_explain()
 	printf("      --no-verify\n");
 }
 
-void format_mistake(const char *infilename, const char *wrong, const char *right)
+void format_mistake(const char *infilename, FileFormat wrong, FileFormat right)
 {
-	flac__utils_printf(stderr, 1, "WARNING: %s is not a %s file; treating as a %s file\n", infilename, wrong, right);
+	/* WATCHOUT: indexed by FileFormat */
+	static const char * const ff[] = { "raw", "WAVE", "AIFF", "FLAC", "Ogg FLAC" };
+	flac__utils_printf(stderr, 1, "WARNING: %s is not a %s file%s; treating as a %s file\n", infilename, ff[wrong], wrong==FLAC||wrong==OGGFLAC? " (or may have an ID3v2 tag which is not allowed)":"", ff[right]);
 }
 
 int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file)
@@ -1551,7 +1553,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		/* attempt to guess the file type based on the first 12 bytes */
 		if((lookahead_length = fread(lookahead, 1, 12, encode_infile)) < 12) {
 			if(fmt != RAW)
-				format_mistake(infilename, fmt == AIF ? "AIFF" : "WAVE", "raw");
+				format_mistake(infilename, fmt, RAW);
 			fmt= RAW;
 		}
 		else {
@@ -1570,7 +1572,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				fmt= OGGFLAC;
 			else {
 				if(fmt != RAW)
-					format_mistake(infilename, fmt == AIF ? "AIFF" : "WAVE", "raw");
+					format_mistake(infilename, fmt, RAW);
 				fmt= RAW;
 			}
 		}
