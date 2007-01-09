@@ -1503,7 +1503,7 @@ void format_mistake(const char *infilename, FileFormat wrong, FileFormat right)
 {
 	/* WATCHOUT: indexed by FileFormat */
 	static const char * const ff[] = { "raw", "WAVE", "AIFF", "FLAC", "Ogg FLAC" };
-	flac__utils_printf(stderr, 1, "WARNING: %s is not a %s file%s; treating as a %s file\n", infilename, ff[wrong], wrong==FLAC||wrong==OGGFLAC? " (or may have an ID3v2 tag which is not allowed)":"", ff[right]);
+	flac__utils_printf(stderr, 1, "WARNING: %s is not a %s file; treating as a %s file\n", infilename, ff[wrong], ff[right]);
 }
 
 int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file)
@@ -1557,7 +1557,11 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			fmt= RAW;
 		}
 		else {
-			if(!strncmp((const char *)lookahead, "RIFF", 4) && !strncmp((const char *)lookahead+8, "WAVE", 4))
+			if(!strncmp((const char *)lookahead, "ID3", 3)) {
+				flac__utils_printf(stderr, 1, "ERROR: input file %s has an ID3v2 tag\n", infilename);
+				return 1;
+			}
+			else if(!strncmp((const char *)lookahead, "RIFF", 4) && !strncmp((const char *)lookahead+8, "WAVE", 4))
 				fmt= WAV;
 			else if(!strncmp((const char *)lookahead, "FORM", 4) && !strncmp((const char *)lookahead+8, "AIFF", 4))
 				fmt= AIF;
