@@ -151,19 +151,11 @@ test_file test02 2 16 "-0 -l $max_lpc_order --lax -m -e -p"
 test_file test03 1 16 "-0 -l $max_lpc_order --lax -m -e -p"
 test_file test04 2 16 "-0 -l $max_lpc_order --lax -m -e -p"
 
-echo "Testing 8-bit full-scale deflection streams..."
-for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd8-$b 1 8 "-0 -l $max_lpc_order --lax -m -e -p"
-done
-
-echo "Testing 16-bit full-scale deflection streams..."
-for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd16-$b 1 16 "-0 -l $max_lpc_order --lax -m -e -p"
-done
-
-echo "Testing 24-bit full-scale deflection streams..."
-for b in 01 02 03 04 05 06 07 ; do
-	test_file fsd24-$b 1 24 "-0 -l $max_lpc_order --lax -m -e -p"
+for bps in 8 16 24 ; do
+	echo "Testing $bps-bit full-scale deflection streams..."
+	for b in 01 02 03 04 05 06 07 ; do
+		test_file fsd$bps-$b 1 $bps "-0 -l $max_lpc_order --lax -m -e -p"
+	done
 done
 
 echo "Testing 16-bit wasted-bits-per-sample streams..."
@@ -198,7 +190,7 @@ for disable in '' '--disable-verbatim-subframes --disable-constant-subframes' '-
 	for blocksize in 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 ; do
 		for lpc_order in 0 1 2 3 4 5 7 8 9 15 16 17 31 32 ; do
 			if [ $lpc_order = 0 ] || [ $lpc_order -le $blocksize ] ; then
-					test_file noise8m32 1 8 "-8 -p -e -l $lpc_order --lax --blocksize=$blocksize $disable"
+				test_file noise8m32 1 8 "-8 -p -e -l $lpc_order --lax --blocksize=$blocksize $disable"
 			fi
 		done
 	done
