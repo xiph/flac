@@ -4128,11 +4128,6 @@ void precompute_partition_info_escapes_(
 	}
 }
 
-#undef VARIABLE_RICE_BITS
-#ifndef EXACT_RICE_BITS_CALCULATION
-#define VARIABLE_RICE_BITS(value, parameter) ((value) >> (parameter))
-#endif
-
 #ifdef EXACT_RICE_BITS_CALCULATION
 static __inline unsigned count_rice_bits_(
 	const unsigned rice_parameter,
@@ -4155,7 +4150,7 @@ static __inline unsigned count_rice_bits_(
 	const unsigned rice_parameter_estimate = rice_parameter-1;
 	unsigned i, partition_bits = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + (1+rice_parameter) * partition_samples;
 	for(i = 0; i < partition_samples; i++)
-		partition_bits += VARIABLE_RICE_BITS(abs_residual[i], rice_parameter_estimate);
+		partition_bits += (abs_residual[i] >> rice_parameter_estimate);
 	return partition_bits;
 }
 #endif
