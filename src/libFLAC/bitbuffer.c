@@ -647,7 +647,7 @@ FLAC__bool FLAC__bitbuffer_write_raw_uint32(FLAC__BitBuffer *bb, FLAC__uint32 va
 	FLAC__ASSERT(bits <= 32);
 	if(bits == 0)
 		return true;
-	/* inline the size check so we don't incure a function call unnecessarily */
+	/* inline the size check so we don't incur a function call unnecessarily */
 	if(FLAC__BLURBS_TO_BITS(bb->capacity) < bb->total_bits + bits) {
 		if(!bitbuffer_ensure_size_(bb, bits))
 			return false;
