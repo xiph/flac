@@ -92,8 +92,9 @@ endif
 # see 'http://www.gnu.org/software/libtool/manual.html#Libtool-versioning' for numbering convention
 libFLAC_la_LDFLAGS = -version-info 8:0:0 -lm $(LOCAL_EXTRA_LDFLAGS)
 libFLAC_la_SOURCES = \
-	bitbuffer.c \
 	bitmath.c \
+	bitreader.c \
+	bitwriter.c \
 	cpu.c \
 	crc.c \
 	fixed.c \

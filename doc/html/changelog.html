@@ -62,7 +62,7 @@
 			<li>
 				General:
 				<ul>
-					<li>(none)</li>
+					<li>Encoding and decoding speedups across the board.  Encoding at -8 is twice as fast.</li>
 				</ul>
 			</li>
 			<li>
@@ -80,6 +80,7 @@
 			<li>
 				flac:
 				<ul>
+					<li>Encoding and decoding speedups across the board.  Encoding at -8 is twice as fast.</li>
 					<li>Fixed a bug that caused suboptimal default compression settings in some locales (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1608883&amp;group_id=13478&amp;atid=113478">SF #1608883</a>).</li>
 					<li>Fixed a bug where FLAC-to-FLAC transcoding of a corrupted FLAC file would truncate the transcoded file at the first error (<a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=1615019&amp;group_id=13478&amp;atid=113478">SF #1615019</a>).</li>
 					<li>Fixed a bug where using <span class="argument"><a href="documentation_tools_flac.html#flac_options_decode_through_errors">-F</a></span> with FLAC-to-FLAC transcoding of a corrupted FLAC would have no effect (<a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=1615391&amp;group_id=13478&amp;atid=113478">SF #1615391</a>).</li>
@@ -106,6 +107,8 @@
 			<li>
 				libraries:
 				<ul>
+					<li>Completely rewritten bitbuffer which uses native machine word size instead of bytes for dramatic speed improvements.</li>
+					<li>Much faster rice partition size estimation which greatly speeds encoding in higher modes.</li>
 					<li>Fixed a bug with default apodization settings that were erroneous in some locales (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1608883&amp;group_id=13478&amp;atid=113478">SF #1608883</a>).</li>
 				</ul>
 			</li>

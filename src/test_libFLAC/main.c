@@ -20,7 +20,7 @@
 #  include <config.h>
 #endif
 
-#include "bitbuffer.h"
+#include "bitwriter.h"
 #include "decoders.h"
 #include "encoders.h"
 #include "format.h"
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 {
 	(void)argc, (void)argv;
 
-	if(!test_bitbuffer())
+	if(!test_bitwriter())
 		return 1;
 
 	if(!test_format())

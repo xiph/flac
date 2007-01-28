@@ -187,11 +187,15 @@ SOURCE=.\ia32\nasm.h
 # End Group
 # Begin Source File
 
-SOURCE=.\bitbuffer.c
+SOURCE=.\bitmath.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\bitmath.c
+SOURCE=.\bitreader.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\bitwriter.c
 # End Source File
 # Begin Source File
 
@@ -275,11 +279,15 @@ SOURCE=.\include\private\all.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\private\bitbuffer.h
+SOURCE=.\include\private\bitmath.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\private\bitmath.h
+SOURCE=.\include\private\bitreader.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\private\bitwriter.h
 # End Source File
 # Begin Source File
 

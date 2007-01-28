@@ -44,18 +44,18 @@
 #endif
 #define max(x,y) ((x)>(y)?(x):(y))
 
-static FLAC__bool add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method);
-static FLAC__bool add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order);
+static FLAC__bool add_entropy_coding_method_(FLAC__BitWriter *bw, const FLAC__EntropyCodingMethod *method);
+static FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order);
 
-FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitWriter *bw)
 {
 	unsigned i, j;
 	const unsigned vendor_string_length = (unsigned)strlen(FLAC__VENDOR_STRING);
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->is_last, FLAC__STREAM_METADATA_IS_LAST_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->is_last, FLAC__STREAM_METADATA_IS_LAST_LEN))
 		return false;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->type, FLAC__STREAM_METADATA_TYPE_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->type, FLAC__STREAM_METADATA_TYPE_LEN))
 		return false;
 
 	/*
@@ -68,111 +68,111 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 		i += vendor_string_length;
 	}
 	FLAC__ASSERT(i < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, i, FLAC__STREAM_METADATA_LENGTH_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, i, FLAC__STREAM_METADATA_LENGTH_LEN))
 		return false;
 
 	switch(metadata->type) {
 		case FLAC__METADATA_TYPE_STREAMINFO:
 			FLAC__ASSERT(metadata->data.stream_info.min_blocksize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.min_blocksize, FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info.min_blocksize, FLAC__STREAM_METADATA_STREAMINFO_MIN_BLOCK_SIZE_LEN))
 				return false;
 			FLAC__ASSERT(metadata->data.stream_info.max_blocksize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.max_blocksize, FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info.max_blocksize, FLAC__STREAM_METADATA_STREAMINFO_MAX_BLOCK_SIZE_LEN))
 				return false;
 			FLAC__ASSERT(metadata->data.stream_info.min_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.min_framesize, FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info.min_framesize, FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN))
 				return false;
 			FLAC__ASSERT(metadata->data.stream_info.max_framesize < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.max_framesize, FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info.max_framesize, FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN))
 				return false;
 			FLAC__ASSERT(FLAC__format_sample_rate_is_valid(metadata->data.stream_info.sample_rate));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.sample_rate, FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info.sample_rate, FLAC__STREAM_METADATA_STREAMINFO_SAMPLE_RATE_LEN))
 				return false;
 			FLAC__ASSERT(metadata->data.stream_info.channels > 0);
 			FLAC__ASSERT(metadata->data.stream_info.channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.channels-1, FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info.channels-1, FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN))
 				return false;
 			FLAC__ASSERT(metadata->data.stream_info.bits_per_sample > 0);
 			FLAC__ASSERT(metadata->data.stream_info.bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.stream_info.bits_per_sample-1, FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info.bits_per_sample-1, FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN))
 				return false;
-			if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.stream_info.total_samples, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN))
+			if(!FLAC__bitwriter_write_raw_uint64(bw, metadata->data.stream_info.total_samples, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN))
 				return false;
-			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.stream_info.md5sum, 16))
+			if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.stream_info.md5sum, 16))
 				return false;
 			break;
 		case FLAC__METADATA_TYPE_PADDING:
-			if(!FLAC__bitbuffer_write_zeroes(bb, metadata->length * 8))
+			if(!FLAC__bitwriter_write_zeroes(bw, metadata->length * 8))
 				return false;
 			break;
 		case FLAC__METADATA_TYPE_APPLICATION:
-			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.application.id, FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8))
+			if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.application.id, FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8))
 				return false;
-			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.application.data, metadata->length - (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8)))
+			if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.application.data, metadata->length - (FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8)))
 				return false;
 			break;
 		case FLAC__METADATA_TYPE_SEEKTABLE:
 			for(i = 0; i < metadata->data.seek_table.num_points; i++) {
-				if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.seek_table.points[i].sample_number, FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN))
+				if(!FLAC__bitwriter_write_raw_uint64(bw, metadata->data.seek_table.points[i].sample_number, FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.seek_table.points[i].stream_offset, FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN))
+				if(!FLAC__bitwriter_write_raw_uint64(bw, metadata->data.seek_table.points[i].stream_offset, FLAC__STREAM_METADATA_SEEKPOINT_STREAM_OFFSET_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.seek_table.points[i].frame_samples, FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.seek_table.points[i].frame_samples, FLAC__STREAM_METADATA_SEEKPOINT_FRAME_SAMPLES_LEN))
 					return false;
 			}
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-			if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, vendor_string_length))
+			if(!FLAC__bitwriter_write_raw_uint32_little_endian(bw, vendor_string_length))
 				return false;
-			if(!FLAC__bitbuffer_write_byte_block(bb, (const FLAC__byte*)FLAC__VENDOR_STRING, vendor_string_length))
+			if(!FLAC__bitwriter_write_byte_block(bw, (const FLAC__byte*)FLAC__VENDOR_STRING, vendor_string_length))
 				return false;
-			if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, metadata->data.vorbis_comment.num_comments))
+			if(!FLAC__bitwriter_write_raw_uint32_little_endian(bw, metadata->data.vorbis_comment.num_comments))
 				return false;
 			for(i = 0; i < metadata->data.vorbis_comment.num_comments; i++) {
-				if(!FLAC__bitbuffer_write_raw_uint32_little_endian(bb, metadata->data.vorbis_comment.comments[i].length))
+				if(!FLAC__bitwriter_write_raw_uint32_little_endian(bw, metadata->data.vorbis_comment.comments[i].length))
 					return false;
-				if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.vorbis_comment.comments[i].entry, metadata->data.vorbis_comment.comments[i].length))
+				if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.vorbis_comment.comments[i].entry, metadata->data.vorbis_comment.comments[i].length))
 					return false;
 			}
 			break;
 		case FLAC__METADATA_TYPE_CUESHEET:
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN % 8 == 0);
-			if(!FLAC__bitbuffer_write_byte_block(bb, (const FLAC__byte*)metadata->data.cue_sheet.media_catalog_number, FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN/8))
+			if(!FLAC__bitwriter_write_byte_block(bw, (const FLAC__byte*)metadata->data.cue_sheet.media_catalog_number, FLAC__STREAM_METADATA_CUESHEET_MEDIA_CATALOG_NUMBER_LEN/8))
 				return false;
-			if(!FLAC__bitbuffer_write_raw_uint64(bb, metadata->data.cue_sheet.lead_in, FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN))
+			if(!FLAC__bitwriter_write_raw_uint64(bw, metadata->data.cue_sheet.lead_in, FLAC__STREAM_METADATA_CUESHEET_LEAD_IN_LEN))
 				return false;
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.cue_sheet.is_cd? 1 : 0, FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.cue_sheet.is_cd? 1 : 0, FLAC__STREAM_METADATA_CUESHEET_IS_CD_LEN))
 				return false;
-			if(!FLAC__bitbuffer_write_zeroes(bb, FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN))
+			if(!FLAC__bitwriter_write_zeroes(bw, FLAC__STREAM_METADATA_CUESHEET_RESERVED_LEN))
 				return false;
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.cue_sheet.num_tracks, FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.cue_sheet.num_tracks, FLAC__STREAM_METADATA_CUESHEET_NUM_TRACKS_LEN))
 				return false;
 			for(i = 0; i < metadata->data.cue_sheet.num_tracks; i++) {
 				const FLAC__StreamMetadata_CueSheet_Track *track = metadata->data.cue_sheet.tracks + i;
 
-				if(!FLAC__bitbuffer_write_raw_uint64(bb, track->offset, FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN))
+				if(!FLAC__bitwriter_write_raw_uint64(bw, track->offset, FLAC__STREAM_METADATA_CUESHEET_TRACK_OFFSET_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, track->number, FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, track->number, FLAC__STREAM_METADATA_CUESHEET_TRACK_NUMBER_LEN))
 					return false;
 				FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN % 8 == 0);
-				if(!FLAC__bitbuffer_write_byte_block(bb, (const FLAC__byte*)track->isrc, FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN/8))
+				if(!FLAC__bitwriter_write_byte_block(bw, (const FLAC__byte*)track->isrc, FLAC__STREAM_METADATA_CUESHEET_TRACK_ISRC_LEN/8))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, track->type, FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, track->type, FLAC__STREAM_METADATA_CUESHEET_TRACK_TYPE_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, track->pre_emphasis, FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, track->pre_emphasis, FLAC__STREAM_METADATA_CUESHEET_TRACK_PRE_EMPHASIS_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_zeroes(bb, FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN))
+				if(!FLAC__bitwriter_write_zeroes(bw, FLAC__STREAM_METADATA_CUESHEET_TRACK_RESERVED_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, track->num_indices, FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, track->num_indices, FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN))
 					return false;
 				for(j = 0; j < track->num_indices; j++) {
 					const FLAC__StreamMetadata_CueSheet_Index *index = track->indices + j;
 
-					if(!FLAC__bitbuffer_write_raw_uint64(bb, index->offset, FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN))
+					if(!FLAC__bitwriter_write_raw_uint64(bw, index->offset, FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN))
 						return false;
-					if(!FLAC__bitbuffer_write_raw_uint32(bb, index->number, FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN))
+					if(!FLAC__bitwriter_write_raw_uint32(bw, index->number, FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN))
 						return false;
-					if(!FLAC__bitbuffer_write_zeroes(bb, FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN))
+					if(!FLAC__bitwriter_write_zeroes(bw, FLAC__STREAM_METADATA_CUESHEET_INDEX_RESERVED_LEN))
 						return false;
 				}
 			}
@@ -180,52 +180,53 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 		case FLAC__METADATA_TYPE_PICTURE:
 			{
 				size_t len;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.type, FLAC__STREAM_METADATA_PICTURE_TYPE_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.picture.type, FLAC__STREAM_METADATA_PICTURE_TYPE_LEN))
 					return false;
 				len = strlen(metadata->data.picture.mime_type);
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, len, FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, len, FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_byte_block(bb, (const FLAC__byte*)metadata->data.picture.mime_type, len))
+				if(!FLAC__bitwriter_write_byte_block(bw, (const FLAC__byte*)metadata->data.picture.mime_type, len))
 					return false;
 				len = strlen((const char *)metadata->data.picture.description);
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, len, FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, len, FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.picture.description, len))
+				if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.picture.description, len))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.width, FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.picture.width, FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.height, FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.picture.height, FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.depth, FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.picture.depth, FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.colors, FLAC__STREAM_METADATA_PICTURE_COLORS_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.picture.colors, FLAC__STREAM_METADATA_PICTURE_COLORS_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, metadata->data.picture.data_length, FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.picture.data_length, FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN))
 					return false;
-				if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.picture.data, metadata->data.picture.data_length))
+				if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.picture.data, metadata->data.picture.data_length))
 					return false;
 			}
 			break;
 		default:
-			if(!FLAC__bitbuffer_write_byte_block(bb, metadata->data.unknown.data, metadata->length))
+			if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.unknown.data, metadata->length))
 				return false;
 			break;
 	}
 
-	FLAC__ASSERT(FLAC__bitbuffer_is_byte_aligned(bb));
+	FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(bw));
 	return true;
 }
 
-FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWriter *bw)
 {
 	unsigned u, blocksize_hint, sample_rate_hint;
+	FLAC__byte crc;
 
-	FLAC__ASSERT(FLAC__bitbuffer_is_byte_aligned(bb));
+	FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(bw));
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__FRAME_HEADER_SYNC, FLAC__FRAME_HEADER_SYNC_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__FRAME_HEADER_SYNC, FLAC__FRAME_HEADER_SYNC_LEN))
 		return false;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, 0, FLAC__FRAME_HEADER_RESERVED_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__FRAME_HEADER_RESERVED_LEN))
 		return false;
 
 	FLAC__ASSERT(header->blocksize > 0 && header->blocksize <= FLAC__MAX_BLOCK_SIZE);
@@ -255,7 +256,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitBuff
 				u = 0;
 			break;
 	}
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))
 		return false;
 
 	FLAC__ASSERT(FLAC__format_sample_rate_is_valid(header->sample_rate));
@@ -280,7 +281,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitBuff
 				u = 0;
 			break;
 	}
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_SAMPLE_RATE_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, u, FLAC__FRAME_HEADER_SAMPLE_RATE_LEN))
 		return false;
 
 	FLAC__ASSERT(header->channels > 0 && header->channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN) && header->channels <= FLAC__MAX_CHANNELS);
@@ -303,7 +304,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitBuff
 		default:
 			FLAC__ASSERT(0);
 	}
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, u, FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN))
 		return false;
 
 	FLAC__ASSERT(header->bits_per_sample > 0 && header->bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
@@ -315,74 +316,76 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitBuff
 		case 24: u = 6; break;
 		default: u = 0; break;
 	}
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, u, FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, u, FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN))
 		return false;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, 0, FLAC__FRAME_HEADER_ZERO_PAD_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__FRAME_HEADER_ZERO_PAD_LEN))
 		return false;
 
 	FLAC__ASSERT(header->number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER);
-	if(!FLAC__bitbuffer_write_utf8_uint32(bb, header->number.frame_number))
+	if(!FLAC__bitwriter_write_utf8_uint32(bw, header->number.frame_number))
 		return false;
 
 	if(blocksize_hint)
-		if(!FLAC__bitbuffer_write_raw_uint32(bb, header->blocksize-1, (blocksize_hint==6)? 8:16))
+		if(!FLAC__bitwriter_write_raw_uint32(bw, header->blocksize-1, (blocksize_hint==6)? 8:16))
 			return false;
 
 	switch(sample_rate_hint) {
 		case 12:
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, header->sample_rate / 1000, 8))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, header->sample_rate / 1000, 8))
 				return false;
 			break;
 		case 13:
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, header->sample_rate, 16))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, header->sample_rate, 16))
 				return false;
 			break;
 		case 14:
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, header->sample_rate / 10, 16))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, header->sample_rate / 10, 16))
 				return false;
 			break;
 	}
 
 	/* write the CRC */
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__bitbuffer_get_write_crc8(bb), FLAC__FRAME_HEADER_CRC_LEN))
+	if(!FLAC__bitwriter_get_write_crc8(bw, &crc))
+		return false;
+	if(!FLAC__bitwriter_write_raw_uint32(bw, crc, FLAC__FRAME_HEADER_CRC_LEN))
 		return false;
 
 	return true;
 }
 
-FLAC__bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitWriter *bw)
 {
 	FLAC__bool ok;
 
 	ok =
-		FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN) &&
-		(wasted_bits? FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1) : true) &&
-		FLAC__bitbuffer_write_raw_int32(bb, subframe->value, subframe_bps)
+		FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN) &&
+		(wasted_bits? FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1) : true) &&
+		FLAC__bitwriter_write_raw_int32(bw, subframe->value, subframe_bps)
 	;
 
 	return ok;
 }
 
-FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitWriter *bw)
 {
 	unsigned i;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK | (subframe->order<<1) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK | (subframe->order<<1) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
 	if(wasted_bits)
-		if(!FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1))
+		if(!FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1))
 			return false;
 
 	for(i = 0; i < subframe->order; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], subframe_bps))
+		if(!FLAC__bitwriter_write_raw_int32(bw, subframe->warmup[i], subframe_bps))
 			return false;
 
-	if(!add_entropy_coding_method_(bb, &subframe->entropy_coding_method))
+	if(!add_entropy_coding_method_(bw, &subframe->entropy_coding_method))
 		return false;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.contents->parameters, subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
+			if(!add_residual_partitioned_rice_(bw, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.contents->parameters, subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:
@@ -392,33 +395,33 @@ FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, unsign
 	return true;
 }
 
-FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned residual_samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitWriter *bw)
 {
 	unsigned i;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK | ((subframe->order-1)<<1) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK | ((subframe->order-1)<<1) | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
 	if(wasted_bits)
-		if(!FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1))
+		if(!FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1))
 			return false;
 
 	for(i = 0; i < subframe->order; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->warmup[i], subframe_bps))
+		if(!FLAC__bitwriter_write_raw_int32(bw, subframe->warmup[i], subframe_bps))
 			return false;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, subframe->qlp_coeff_precision-1, FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, subframe->qlp_coeff_precision-1, FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
 		return false;
-	if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->quantization_level, FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN))
+	if(!FLAC__bitwriter_write_raw_int32(bw, subframe->quantization_level, FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN))
 		return false;
 	for(i = 0; i < subframe->order; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, subframe->qlp_coeff[i], subframe->qlp_coeff_precision))
+		if(!FLAC__bitwriter_write_raw_int32(bw, subframe->qlp_coeff[i], subframe->qlp_coeff_precision))
 			return false;
 
-	if(!add_entropy_coding_method_(bb, &subframe->entropy_coding_method))
+	if(!add_entropy_coding_method_(bw, &subframe->entropy_coding_method))
 		return false;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!add_residual_partitioned_rice_(bb, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.contents->parameters, subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
+			if(!add_residual_partitioned_rice_(bw, subframe->residual, residual_samples, subframe->order, subframe->entropy_coding_method.data.partitioned_rice.contents->parameters, subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits, subframe->entropy_coding_method.data.partitioned_rice.order))
 				return false;
 			break;
 		default:
@@ -428,31 +431,31 @@ FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, unsigned r
 	return true;
 }
 
-FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitBuffer *bb)
+FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, unsigned samples, unsigned subframe_bps, unsigned wasted_bits, FLAC__BitWriter *bw)
 {
 	unsigned i;
 	const FLAC__int32 *signal = subframe->data;
 
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
 	if(wasted_bits)
-		if(!FLAC__bitbuffer_write_unary_unsigned(bb, wasted_bits-1))
+		if(!FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1))
 			return false;
 
 	for(i = 0; i < samples; i++)
-		if(!FLAC__bitbuffer_write_raw_int32(bb, signal[i], subframe_bps))
+		if(!FLAC__bitwriter_write_raw_int32(bw, signal[i], subframe_bps))
 			return false;
 
 	return true;
 }
 
-FLAC__bool add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCodingMethod *method)
+FLAC__bool add_entropy_coding_method_(FLAC__BitWriter *bw, const FLAC__EntropyCodingMethod *method)
 {
-	if(!FLAC__bitbuffer_write_raw_uint32(bb, method->type, FLAC__ENTROPY_CODING_METHOD_TYPE_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, method->type, FLAC__ENTROPY_CODING_METHOD_TYPE_LEN))
 		return false;
 	switch(method->type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, method->data.partitioned_rice.order, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, method->data.partitioned_rice.order, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN))
 				return false;
 			break;
 		default:
@@ -461,24 +464,22 @@ FLAC__bool add_entropy_coding_method_(FLAC__BitBuffer *bb, const FLAC__EntropyCo
 	return true;
 }
 
-FLAC__bool add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order)
+FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32 residual[], const unsigned residual_samples, const unsigned predictor_order, const unsigned rice_parameters[], const unsigned raw_bits[], const unsigned partition_order)
 {
 	if(partition_order == 0) {
 		unsigned i;
 
-		if(!FLAC__bitbuffer_write_raw_uint32(bb, rice_parameters[0], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
+		if(!FLAC__bitwriter_write_raw_uint32(bw, rice_parameters[0], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 			return false;
 		if(rice_parameters[0] < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-			for(i = 0; i < residual_samples; i++) {
-				if(!FLAC__bitbuffer_write_rice_signed(bb, residual[i], rice_parameters[0]))
-					return false;
-			}
+			if(!FLAC__bitwriter_write_rice_signed_block(bw, residual, residual_samples, rice_parameters[0]))
+				return false;
 		}
 		else {
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, raw_bits[0], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[0], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN))
 				return false;
 			for(i = 0; i < residual_samples; i++) {
-				if(!FLAC__bitbuffer_write_raw_int32(bb, residual[i], raw_bits[0]))
+				if(!FLAC__bitwriter_write_raw_int32(bw, residual[i], raw_bits[0]))
 					return false;
 			}
 		}
@@ -489,23 +490,21 @@ FLAC__bool add_residual_partitioned_rice_(FLAC__BitBuffer *bb, const FLAC__int32
 		unsigned partition_samples;
 		const unsigned default_partition_samples = (residual_samples+predictor_order) >> partition_order;
 		for(i = 0; i < (1u<<partition_order); i++) {
-			if(!FLAC__bitbuffer_write_raw_uint32(bb, rice_parameters[i], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, rice_parameters[i], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN))
 				return false;
 			partition_samples = default_partition_samples;
 			if(i == 0)
 				partition_samples -= predictor_order;
 			k += partition_samples;
 			if(rice_parameters[i] < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
-				for(j = k_last; j < k; j++) {
-					if(!FLAC__bitbuffer_write_rice_signed(bb, residual[j], rice_parameters[i]))
-						return false;
-				}
+				if(!FLAC__bitwriter_write_rice_signed_block(bw, residual+k_last, k-k_last, rice_parameters[i]))
+					return false;
 			}
 			else {
-				if(!FLAC__bitbuffer_write_raw_uint32(bb, raw_bits[i], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[i], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN))
 					return false;
 				for(j = k_last; j < k; j++) {
-					if(!FLAC__bitbuffer_write_raw_int32(bb, residual[j], raw_bits[i]))
+					if(!FLAC__bitwriter_write_raw_int32(bw, residual[j], raw_bits[i]))
 						return false;
 				}
 			}

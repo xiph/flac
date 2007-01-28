@@ -33,7 +33,7 @@ LIBS = -lgrabbag -lreplaygain_analysis -ltest_libs_common -lFLAC -L$(OGG_LIB_DIR
 endif
 
 SRCS_C = \
-	bitbuffer.c \
+	bitwriter.c \
 	decoders.c \
 	encoders.c \
 	format.c \

@@ -30,8 +30,9 @@
 
 noinst_HEADERS = \
 	all.h \
-	bitbuffer.h \
 	bitmath.h \
+	bitreader.h \
+	bitwriter.h \
 	cpu.h \
 	crc.h \
 	fixed.h \

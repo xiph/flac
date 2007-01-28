@@ -30,7 +30,7 @@ test_libFLAC_LDADD = \
 	@OGG_LIBS@ \
 	-lm
 test_libFLAC_SOURCES = \
-	bitbuffer.c \
+	bitwriter.c \
 	decoders.c \
 	encoders.c \
 	format.c \
@@ -38,7 +38,7 @@ test_libFLAC_SOURCES = \
 	metadata.c \
 	metadata_manip.c \
 	metadata_object.c \
-	bitbuffer.h \
+	bitwriter.h \
 	decoders.h \
 	encoders.h \
 	format.h \

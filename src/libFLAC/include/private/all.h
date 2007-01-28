@@ -32,8 +32,9 @@
 #ifndef FLAC__PRIVATE__ALL_H
 #define FLAC__PRIVATE__ALL_H
 
-#include "bitbuffer.h"
 #include "bitmath.h"
+#include "bitreader.h"
+#include "bitwriter.h"
 #include "cpu.h"
 #include "crc.h"
 #include "fixed.h"
