@@ -44,6 +44,8 @@ AC_FUNC_FSEEKO
 #@@@ new name is AC_CONFIG_HEADERS
 AM_CONFIG_HEADER(config.h)
 
+AC_C_BIGENDIAN
+
 AC_CHECK_TYPES(socklen_t, [], [])
 
 dnl check for getopt in standard library
