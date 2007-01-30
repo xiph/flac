@@ -39,6 +39,8 @@ int main(int argc, char *argv[])
 
 	if(parse_options(argc, argv, &options))
 		ret = !do_operations(&options);
+	else
+		ret = 1;
 
 	free_options(&options);
 
