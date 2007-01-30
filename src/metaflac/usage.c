@@ -140,7 +140,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "                      and/or --no-utf8-convert before --import-tags-from if\n");
 	fprintf(out, "                      necessary.  If FILE is '-' (stdin), only one FLAC file\n");
 	fprintf(out, "                      may be specified.\n");
-	fprintf(out, "--export-tags-to=FILE Export tags to a file.  Use '-' for stdin.  Each line\n");
+	fprintf(out, "--export-tags-to=FILE Export tags to a file.  Use '-' for stdout.  Each line\n");
 	fprintf(out, "                      will be of the form NAME=VALUE.  Specify\n");
 	fprintf(out, "                      --no-utf8-convert if necessary.\n");
 	fprintf(out, "--import-cuesheet-from=FILE  Import a cuesheet from a file.  Use '-' for stdin.\n");
