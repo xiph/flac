@@ -106,6 +106,15 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
+        <term><option>--no-utf8-convert</option></term>
+        <listitem>
+          <para>
+	    Do not convert tags from UTF-8 to local charset, or vice versa. This is
+	    useful for scripts.
+	  </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
         <term><option>--dont-use-padding</option></term>
         <listitem>
           <para>
@@ -274,7 +283,7 @@ manpage.1: manpage.sgml
 	<term><option>--export-tags-to=file</option></term>
         <listitem>
 	  <para>
-	    Export tags to a file.  Use '-' for stdin.  Each
+	    Export tags to a file.  Use '-' for stdout.  Each
 	    line will be of the form NAME=VALUE.  Specify
 	    --no-utf8-convert if necessary.
 	  </para>

@@ -29,6 +29,10 @@ more than one FLAC file is specified).
 Do not prefix each output line with the FLAC file name (the default
 if only one FLAC file is specified).
 .TP
+\fB--no-utf8-convert\fR
+Do not convert tags from UTF-8 to local charset, or vice versa. This is
+useful for scripts.
+.TP
 \fB--dont-use-padding\fR
 By default metaflac tries to use padding where possible to avoid
 rewriting the entire file if the metadata size changes.  Use this
@@ -100,7 +104,7 @@ are currently not supported.  Specify --remove-all-tags and/or
 FILE is '-' (stdin), only one FLAC file may be specified.
 .TP
 \fB--export-tags-to=file\fR
-Export tags to a file.  Use '-' for stdin.  Each
+Export tags to a file.  Use '-' for stdout.  Each
 line will be of the form NAME=VALUE.  Specify
 --no-utf8-convert if necessary.
 .TP
