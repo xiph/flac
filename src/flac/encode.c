@@ -28,7 +28,7 @@
 #endif
 #if defined _MSC_VER || defined __MINGW32__
 #include <sys/types.h> /* for off_t */
-#if _MSC_VER <= 1200 /* @@@ [2G limit] */
+#if _MSC_VER <= 1600 /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
 #endif

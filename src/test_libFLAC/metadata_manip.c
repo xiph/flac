@@ -26,7 +26,7 @@
 #if defined _MSC_VER || defined __MINGW32__
 #include <sys/utime.h> /* for utime() */
 #include <io.h> /* for chmod() */
-#if _MSC_VER <= 1200 /* @@@ [2G limit] */
+#if _MSC_VER <= 1600 /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
 #endif

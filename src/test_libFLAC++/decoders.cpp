@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #if defined _MSC_VER || defined __MINGW32__
-#if _MSC_VER <= 1200 /* @@@ [2G limit] */
+#if _MSC_VER <= 1600 /* @@@ [2G limit] */
 #define fseeko fseek
 #define ftello ftell
 #endif
