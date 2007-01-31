@@ -311,7 +311,7 @@ static FLAC__StreamEncoderReadStatus file_read_callback_(const FLAC__StreamEncod
 static FLAC__StreamEncoderSeekStatus file_seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 static FLAC__StreamEncoderTellStatus file_tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 static FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, unsigned samples, unsigned current_frame, void *client_data);
-static FILE *get_binary_stdout_();
+static FILE *get_binary_stdout_(void);
 
 
 /***********************************************************************
@@ -510,7 +510,7 @@ static const unsigned OVERREAD_ = 1;
  * Class constructor/destructor
  *
  */
-FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new()
+FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new(void)
 {
 	FLAC__StreamEncoder *encoder;
 	unsigned i;
@@ -4497,7 +4497,7 @@ FLAC__StreamEncoderWriteStatus file_write_callback_(const FLAC__StreamEncoder *e
 /*
  * This will forcibly set stdout to binary mode (for OSes that require it)
  */
-FILE *get_binary_stdout_()
+FILE *get_binary_stdout_(void)
 {
 	/* if something breaks here it is probably due to the presence or
 	 * absence of an underscore before the identifiers 'setmode',

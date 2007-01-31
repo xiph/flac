@@ -69,7 +69,7 @@ typedef struct {
 extern flac_config_t flac_cfg;
 
 extern void FLAC_XMMS__configure(void);
-extern void FLAC_XMMS__aboutbox();
+extern void FLAC_XMMS__aboutbox(void);
 
 #endif
 

@@ -44,7 +44,7 @@ typedef struct FLAC__BitWriter FLAC__BitWriter;
 /*
  * construction, deletion, initialization, etc functions
  */
-FLAC__BitWriter *FLAC__bitwriter_new();
+FLAC__BitWriter *FLAC__bitwriter_new(void);
 void FLAC__bitwriter_delete(FLAC__BitWriter *bw);
 FLAC__bool FLAC__bitwriter_init(FLAC__BitWriter *bw);
 void FLAC__bitwriter_free(FLAC__BitWriter *bw); /* does not 'free(buffer)' */

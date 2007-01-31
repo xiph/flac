@@ -142,7 +142,7 @@ static void get_entry_tag(GtkEntry * entry, const char *name)
 		free(utf8);
 }
 
-static void show_tag()
+static void show_tag(void)
 {
 	set_entry_tag(GTK_ENTRY(title_entry)                  , FLAC_plugin__tags_get_tag_utf8(tags_, "TITLE"));
 	set_entry_tag(GTK_ENTRY(artist_entry)                 , FLAC_plugin__tags_get_tag_utf8(tags_, "ARTIST"));
@@ -195,7 +195,7 @@ static void remove_tag(GtkWidget * w, gpointer data)
 	gtk_widget_destroy(window);
 }
 
-static void show_file_info()
+static void show_file_info(void)
 {
 	FLAC__StreamMetadata streaminfo;
 	struct stat _stat;
@@ -239,7 +239,7 @@ static void show_file_info()
 	}
 }
 
-static void show_replaygain()
+static void show_replaygain(void)
 {
 	/* known limitation: If only one of gain and peak is set, neither will be shown. This is true for
 	 * both track and album replaygain tags. Written so it will be easy to fix, with some trouble.  */

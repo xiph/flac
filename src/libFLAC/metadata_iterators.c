@@ -374,7 +374,7 @@ FLAC_API const char * const FLAC__Metadata_SimpleIteratorStatusString[] = {
 };
 
 
-FLAC_API FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new()
+FLAC_API FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new(void)
 {
 	FLAC__Metadata_SimpleIterator *iterator = (FLAC__Metadata_SimpleIterator*)calloc(1, sizeof(FLAC__Metadata_SimpleIterator));
 
@@ -885,7 +885,7 @@ FLAC_API const char * const FLAC__Metadata_ChainStatusString[] = {
 };
 
 
-static FLAC__Metadata_Node *node_new_()
+static FLAC__Metadata_Node *node_new_(void)
 {
 	return (FLAC__Metadata_Node*)calloc(1, sizeof(FLAC__Metadata_Node));
 }
@@ -1439,7 +1439,7 @@ static FLAC__bool chain_rewrite_file_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHa
 	return true;
 }
 
-FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new()
+FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new(void)
 {
 	FLAC__Metadata_Chain *chain = (FLAC__Metadata_Chain*)calloc(1, sizeof(FLAC__Metadata_Chain));
 
@@ -1772,7 +1772,7 @@ FLAC_API void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain)
 }
 
 
-FLAC_API FLAC__Metadata_Iterator *FLAC__metadata_iterator_new()
+FLAC_API FLAC__Metadata_Iterator *FLAC__metadata_iterator_new(void)
 {
 	FLAC__Metadata_Iterator *iterator = (FLAC__Metadata_Iterator*)calloc(1, sizeof(FLAC__Metadata_Iterator));
 

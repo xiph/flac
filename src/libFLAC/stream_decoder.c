@@ -102,7 +102,7 @@ static FLAC__byte ID3V2_TAG_[3] = { 'I', 'D', '3' };
  ***********************************************************************/
 
 static void set_defaults_(FLAC__StreamDecoder *decoder);
-static FILE *get_binary_stdin_();
+static FILE *get_binary_stdin_(void);
 static FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigned channels);
 static FLAC__bool has_id_filtered_(FLAC__StreamDecoder *decoder, FLAC__byte *id);
 static FLAC__bool find_metadata_(FLAC__StreamDecoder *decoder);
@@ -273,7 +273,7 @@ FLAC_API const char * const FLAC__StreamDecoderErrorStatusString[] = {
  * Class constructor/destructor
  *
  ***********************************************************************/
-FLAC_API FLAC__StreamDecoder *FLAC__stream_decoder_new()
+FLAC_API FLAC__StreamDecoder *FLAC__stream_decoder_new(void)
 {
 	FLAC__StreamDecoder *decoder;
 	unsigned i;
@@ -1272,7 +1272,7 @@ void set_defaults_(FLAC__StreamDecoder *decoder)
 /*
  * This will forcibly set stdin to binary mode (for OSes that require it)
  */
-FILE *get_binary_stdin_()
+FILE *get_binary_stdin_(void)
 {
 	/* if something breaks here it is probably due to the presence or
 	 * absence of an underscore before the identifiers 'setmode',

@@ -182,7 +182,7 @@ static FLAC__bool write_sane_extended(FILE *f, unsigned val)
 }
 
 /* a mono one-sample 16bps stream */
-static FLAC__bool generate_01()
+static FLAC__bool generate_01(void)
 {
 	FILE *f;
 	FLAC__int16 x = -32768;
@@ -201,7 +201,7 @@ foo:
 }
 
 /* a stereo one-sample 16bps stream */
-static FLAC__bool generate_02()
+static FLAC__bool generate_02(void)
 {
 	FILE *f;
 	FLAC__int16 xl = -32768, xr = 32767;
@@ -222,7 +222,7 @@ foo:
 }
 
 /* a mono five-sample 16bps stream */
-static FLAC__bool generate_03()
+static FLAC__bool generate_03(void)
 {
 	FILE *f;
 	FLAC__int16 x[] = { -25, 0, 25, 50, 100 };
@@ -243,7 +243,7 @@ foo:
 }
 
 /* a stereo five-sample 16bps stream */
-static FLAC__bool generate_04()
+static FLAC__bool generate_04(void)
 {
 	FILE *f;
 	FLAC__int16 x[] = { -25, 500, 0, 400, 25, 300, 50, 200, 100, 100 };
@@ -675,7 +675,7 @@ foo:
 	return false;
 }
 
-static FLAC__bool generate_wackywavs()
+static FLAC__bool generate_wackywavs(void)
 {
 	FILE *f;
 	FLAC__byte wav[] = {

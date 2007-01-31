@@ -58,21 +58,21 @@
 
 typedef enum { RAW, WAV, AIF, FLAC, OGGFLAC } FileFormat;
 
-static int do_it();
+static int do_it(void);
 
-static FLAC__bool init_options();
+static FLAC__bool init_options(void);
 static int parse_options(int argc, char *argv[]);
 static int parse_option(int short_option, const char *long_option, const char *option_argument);
-static void free_options();
+static void free_options(void);
 static void add_compression_setting_bool(compression_setting_type_t type, FLAC__bool value);
 static void add_compression_setting_string(compression_setting_type_t type, const char *value);
 static void add_compression_setting_unsigned(compression_setting_type_t type, unsigned value);
 
 static int usage_error(const char *message, ...);
-static void short_usage();
-static void show_version();
-static void show_help();
-static void show_explain();
+static void short_usage(void);
+static void show_version(void);
+static void show_help(void);
+static void show_explain(void);
 static void format_mistake(const char *infilename, FileFormat wrong, FileFormat right);
 
 static int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file);
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
 	return retval;
 }
 
-int do_it()
+int do_it(void)
 {
 	int retval = 0;
 
@@ -495,7 +495,7 @@ int do_it()
 	return retval;
 }
 
-FLAC__bool init_options()
+FLAC__bool init_options(void)
 {
 	option_values.show_help = false;
 	option_values.show_explain = false;
@@ -989,7 +989,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 	return 0;
 }
 
-void free_options()
+void free_options(void)
 {
 	unsigned i;
 	if(0 != option_values.filenames) {
@@ -1051,12 +1051,12 @@ int usage_error(const char *message, ...)
 	return 1;
 }
 
-void show_version()
+void show_version(void)
 {
 	printf("flac %s\n", FLAC__VERSION_STRING);
 }
 
-static void usage_header()
+static void usage_header(void)
 {
 	printf("===============================================================================\n");
 	printf("flac - Command-line FLAC encoder/decoder version %s\n", FLAC__VERSION_STRING);
@@ -1078,7 +1078,7 @@ static void usage_header()
 	printf("===============================================================================\n");
 }
 
-static void usage_summary()
+static void usage_summary(void)
 {
 	printf("Usage:\n");
 	printf("\n");
@@ -1089,7 +1089,7 @@ static void usage_summary()
 	printf("\n");
 }
 
-void short_usage()
+void short_usage(void)
 {
 	usage_header();
 	printf("\n");
@@ -1108,7 +1108,7 @@ void short_usage()
 	printf("  flac -t [INPUTFILE [...]]\n");
 }
 
-void show_help()
+void show_help(void)
 {
 	usage_header();
 	usage_summary();
@@ -1198,7 +1198,7 @@ void show_help()
 	printf("      --no-verify\n");
 }
 
-void show_explain()
+void show_explain(void)
 {
 	usage_header();
 	usage_summary();

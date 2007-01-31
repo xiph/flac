@@ -90,7 +90,7 @@
  *  XORed values of both generators.
  */
 
-static unsigned int random_int_()
+static unsigned int random_int_(void)
 {
 	static const unsigned char parity_[256] = {
 		0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,

@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void show_version();
+static void show_version(void);
 static FLAC__bool do_major_operation(const CommandLineOptions *options);
 static FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOptions *options);
 static FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *chain, const CommandLineOptions *options);
@@ -90,7 +90,7 @@ FLAC__bool do_operations(const CommandLineOptions *options)
  * local routines
  */
 
-void show_version()
+void show_version(void)
 {
 	printf("metaflac %s\n", FLAC__VERSION_STRING);
 }

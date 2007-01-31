@@ -21,6 +21,6 @@
 
 #include "FLAC/ordinals.h"
 
-FLAC__bool test_encoders();
+FLAC__bool test_encoders(void);
 
 #endif

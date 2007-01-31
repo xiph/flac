@@ -75,14 +75,14 @@ typedef struct {
 	DitherContext dither_context;
 } stream_data_struct;
 
-static void FLAC_XMMS__init();
+static void FLAC_XMMS__init(void);
 static int  FLAC_XMMS__is_our_file(char *filename);
 static void FLAC_XMMS__play_file(char *filename);
-static void FLAC_XMMS__stop();
+static void FLAC_XMMS__stop(void);
 static void FLAC_XMMS__pause(short p);
 static void FLAC_XMMS__seek(int time);
-static int  FLAC_XMMS__get_time();
-static void FLAC_XMMS__cleanup();
+static int  FLAC_XMMS__get_time(void);
+static void FLAC_XMMS__cleanup(void);
 static void FLAC_XMMS__get_song_info(char *filename, char **title, int *length);
 
 static void *play_loop_(void *arg);
@@ -141,7 +141,7 @@ static FLAC__bool is_big_endian_host_;
 static unsigned bitrate_history_[BITRATE_HIST_SIZE];
 
 
-InputPlugin *get_iplugin_info()
+InputPlugin *get_iplugin_info(void)
 {
 	flac_ip.description = g_strdup_printf("Reference FLAC Player v%s", FLAC__VERSION_STRING);
 	return &flac_ip;
@@ -154,7 +154,7 @@ void set_track_info(const char* title, int length_in_msec)
 	}
 }
 
-static gchar* homedir()
+static gchar* homedir(void)
 {
 	gchar *result;
 	char *env_home = getenv("HOME");
@@ -177,7 +177,7 @@ static FLAC__bool is_http_source(const char *source)
 	return 0 == strncasecmp(source, "http://", 7);
 }
 
-void FLAC_XMMS__init()
+void FLAC_XMMS__init(void)
 {
 	ConfigFile *cfg;
 	FLAC__uint32 test = 1;
@@ -343,7 +343,7 @@ void FLAC_XMMS__play_file(char *filename)
 	pthread_create(&decode_thread_, NULL, play_loop_, NULL);
 }
 
-void FLAC_XMMS__stop()
+void FLAC_XMMS__stop(void)
 {
 	if(stream_data_.is_playing) {
 		stream_data_.is_playing = false;
@@ -372,7 +372,7 @@ void FLAC_XMMS__seek(int time)
 	}
 }
 
-int FLAC_XMMS__get_time()
+int FLAC_XMMS__get_time(void)
 {
 	if(audio_error_)
 		return -2;
@@ -382,7 +382,7 @@ int FLAC_XMMS__get_time()
 		return flac_ip.output->output_time();
 }
 
-void FLAC_XMMS__cleanup()
+void FLAC_XMMS__cleanup(void)
 {
 	safe_decoder_delete_(decoder_);
 	decoder_ = 0;

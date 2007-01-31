@@ -360,7 +360,7 @@ extern FLAC_API const char * const FLAC__Metadata_SimpleIteratorStatusString[];
  * \retval FLAC__Metadata_SimpleIterator*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC_API FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new();
+FLAC_API FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new(void);
 
 /** Free an iterator instance.  Deletes the object pointed to by \a iterator.
  *
@@ -723,7 +723,7 @@ extern FLAC_API const char * const FLAC__Metadata_ChainStatusString[];
  * \retval FLAC__Metadata_Chain*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new();
+FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new(void);
 
 /** Free a chain instance.  Deletes the object pointed to by \a chain.
  *
@@ -1017,7 +1017,7 @@ FLAC_API void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain);
  * \retval FLAC__Metadata_Iterator*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC_API FLAC__Metadata_Iterator *FLAC__metadata_iterator_new();
+FLAC_API FLAC__Metadata_Iterator *FLAC__metadata_iterator_new(void);
 
 /** Free an iterator instance.  Deletes the object pointed to by \a iterator.
  *
@@ -1772,7 +1772,7 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entries_matching(FLAC__S
  * \retval FLAC__StreamMetadata_CueSheet_Track*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_track_new();
+FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_track_new(void);
 
 /** Create a copy of an existing CUESHEET track object.
  *

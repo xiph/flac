@@ -513,7 +513,7 @@ static void pi_set_data(FLAC__StreamMetadata *block, const FLAC__byte *data, FLA
 	block->length += len;
 }
 
-FLAC__bool test_metadata_object()
+FLAC__bool test_metadata_object(void)
 {
 	FLAC__StreamMetadata *block, *blockcopy, *vorbiscomment, *cuesheet, *picture;
 	FLAC__StreamMetadata_SeekPoint seekpoint_array[14];

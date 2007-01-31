@@ -257,7 +257,7 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
  *
  ***********************************************************************/
 
-FLAC__BitReader *FLAC__bitreader_new()
+FLAC__BitReader *FLAC__bitreader_new(void)
 {
 	FLAC__BitReader *br = (FLAC__BitReader*)calloc(1, sizeof(FLAC__BitReader));
 

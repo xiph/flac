@@ -30,7 +30,7 @@
  * Prototypes *
  **************/
 
-char *FLAC_plugin__charset_get_current();
+char *FLAC_plugin__charset_get_current(void);
 char *FLAC_plugin__charset_convert_string(const char *string, char *from, char *to);
 
 /* returns 1 for success, 0 for failure or no iconv */

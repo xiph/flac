@@ -23,10 +23,10 @@
 #include "metadata.h"
 #include <stdio.h>
 
-extern FLAC__bool test_metadata_object();
-extern FLAC__bool test_metadata_file_manipulation();
+extern FLAC__bool test_metadata_object(void);
+extern FLAC__bool test_metadata_file_manipulation(void);
 
-FLAC__bool test_metadata()
+FLAC__bool test_metadata(void)
 {
 	if(!test_metadata_object())
 		return false;

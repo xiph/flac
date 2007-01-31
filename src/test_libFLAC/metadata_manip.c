@@ -681,7 +681,7 @@ static FLAC__bool remove_file_(const char *filename)
 	return true;
 }
 
-static FLAC__bool test_level_0_()
+static FLAC__bool test_level_0_(void)
 {
 	FLAC__StreamMetadata streaminfo;
 	FLAC__StreamMetadata *tags = 0;
@@ -760,7 +760,7 @@ static FLAC__bool test_level_0_()
 	return true;
 }
 
-static FLAC__bool test_level_1_()
+static FLAC__bool test_level_1_(void)
 {
 	FLAC__Metadata_SimpleIterator *iterator;
 	FLAC__StreamMetadata *block, *app, *padding;
@@ -2093,7 +2093,7 @@ static FLAC__bool test_level_2_misc_(FLAC__bool is_ogg)
 	return true;
 }
 
-FLAC__bool test_metadata_file_manipulation()
+FLAC__bool test_metadata_file_manipulation(void)
 {
 	printf("\n+++ libFLAC unit test: metadata manipulation\n\n");
 

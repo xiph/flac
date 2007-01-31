@@ -690,7 +690,7 @@ typedef void (*FLAC__StreamEncoderProgressCallback)(const FLAC__StreamEncoder *e
  * \retval FLAC__StreamEncoder*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new();
+FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new(void);
 
 /** Free an encoder instance.  Deletes the object pointed to by \a encoder.
  *

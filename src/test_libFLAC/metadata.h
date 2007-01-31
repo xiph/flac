@@ -21,6 +21,6 @@
 
 #include "FLAC/ordinals.h"
 
-FLAC__bool test_metadata();
+FLAC__bool test_metadata(void);
 
 #endif

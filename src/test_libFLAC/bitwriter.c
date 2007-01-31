@@ -50,7 +50,7 @@ struct FLAC__BitWriter {
 #define TOTAL_BITS(bw) ((bw)->words*sizeof(bwword)*8 + (bw)->bits)
 
 
-FLAC__bool test_bitwriter()
+FLAC__bool test_bitwriter(void)
 {
 	FLAC__BitWriter *bw;
 	FLAC__bool ok;

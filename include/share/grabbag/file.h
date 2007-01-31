@@ -53,8 +53,8 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2);
 FLAC__bool grabbag__file_remove_file(const char *filename);
 
 /* these will forcibly set stdin/stdout to binary mode (for OSes that require it) */
-FILE *grabbag__file_get_binary_stdin();
-FILE *grabbag__file_get_binary_stdout();
+FILE *grabbag__file_get_binary_stdin(void);
+FILE *grabbag__file_get_binary_stdout(void);
 
 #ifdef __cplusplus
 }

@@ -185,7 +185,7 @@ static struct {
 	{ 5, (const FLAC__byte*)"a=\xe1\xa5\x80", true  }
 };
 
-FLAC__bool test_format()
+FLAC__bool test_format(void)
 {
 	unsigned i;
 

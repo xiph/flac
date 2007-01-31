@@ -155,7 +155,7 @@ FLAC__bool grabbag__file_remove_file(const char *filename)
 	return grabbag__file_change_stats(filename, /*read_only=*/false) && 0 == unlink(filename);
 }
 
-FILE *grabbag__file_get_binary_stdin()
+FILE *grabbag__file_get_binary_stdin(void)
 {
 	/* if something breaks here it is probably due to the presence or
 	 * absence of an underscore before the identifiers 'setmode',
@@ -173,7 +173,7 @@ FILE *grabbag__file_get_binary_stdin()
 	return stdin;
 }
 
-FILE *grabbag__file_get_binary_stdout()
+FILE *grabbag__file_get_binary_stdout(void)
 {
 	/* if something breaks here it is probably due to the presence or
 	 * absence of an underscore before the identifiers 'setmode',

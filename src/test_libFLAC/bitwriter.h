@@ -21,6 +21,6 @@
 
 #include "FLAC/ordinals.h"
 
-FLAC__bool test_bitwriter();
+FLAC__bool test_bitwriter(void);
 
 #endif

@@ -739,7 +739,7 @@ typedef void (*FLAC__StreamDecoderErrorCallback)(const FLAC__StreamDecoder *deco
  * \retval FLAC__StreamDecoder*
  *    \c NULL if there was an error allocating memory, else the new instance.
  */
-FLAC_API FLAC__StreamDecoder *FLAC__stream_decoder_new();
+FLAC_API FLAC__StreamDecoder *FLAC__stream_decoder_new(void);
 
 /** Free a decoder instance.  Deletes the object pointed to by \a decoder.
  *

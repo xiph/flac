@@ -84,9 +84,9 @@ void FLAC__cpu_info(FLAC__CPUInfo *info);
 #ifndef FLAC__NO_ASM
 #ifdef FLAC__CPU_IA32
 #ifdef FLAC__HAS_NASM
-unsigned FLAC__cpu_info_asm_ia32();
-unsigned FLAC__cpu_info_extended_amd_asm_ia32();
-unsigned FLAC__cpu_info_sse_test_asm_ia32();
+unsigned FLAC__cpu_info_asm_ia32(void);
+unsigned FLAC__cpu_info_extended_amd_asm_ia32(void);
+unsigned FLAC__cpu_info_sse_test_asm_ia32(void);
 #endif
 #endif
 #endif

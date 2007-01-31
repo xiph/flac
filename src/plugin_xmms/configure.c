@@ -783,7 +783,7 @@ void FLAC_XMMS__configure(void)
 	gtk_widget_show_all(flac_configurewin);
 }
 
-void FLAC_XMMS__aboutbox()
+void FLAC_XMMS__aboutbox(void)
 {
 	static GtkWidget *about_window;
 

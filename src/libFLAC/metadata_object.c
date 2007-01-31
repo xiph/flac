@@ -1411,7 +1411,7 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entries_matching(FLAC__S
 	return ok? (int)matching : -1;
 }
 
-FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_track_new()
+FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_track_new(void)
 {
 	return (FLAC__StreamMetadata_CueSheet_Track*)calloc(1, sizeof(FLAC__StreamMetadata_CueSheet_Track));
 }
