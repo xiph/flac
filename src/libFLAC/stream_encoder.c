@@ -4025,7 +4025,8 @@ void precompute_partition_info_escapes_(
 
 	/* first do max_partition_order */
 	for(partition_order = (int)max_partition_order; partition_order >= 0; partition_order--) {
-		FLAC__int32 r, residual_partition_min, residual_partition_max;
+		FLAC__int32 r;
+		FLAC__uint32 rmax;
 		unsigned silog2_min, silog2_max;
 		unsigned partition, partition_sample, partition_samples, residual_sample;
 		const unsigned partitions = 1u << partition_order;
@@ -4037,18 +4038,16 @@ void precompute_partition_info_escapes_(
 			partition_samples = default_partition_samples;
 			if(partition == 0)
 				partition_samples -= predictor_order;
-			residual_partition_min = residual_partition_max = 0;
+			rmax = 0;
 			for(partition_sample = 0; partition_sample < partition_samples; partition_sample++) {
-				r = residual[residual_sample];
-				if(r < residual_partition_min)
-					residual_partition_min = r;
-				else if(r > residual_partition_max)
-					residual_partition_max = r;
-				residual_sample++;
+				r = residual[residual_sample++];
+				if(r < 0)
+					rmax |= ~r;
+				else
+					rmax |= r;
 			}
-			silog2_min = FLAC__bitmath_silog2(residual_partition_min);
-			silog2_max = FLAC__bitmath_silog2(residual_partition_max);
-			raw_bits_per_partition[partition] = max(silog2_min, silog2_max);
+			/* now we know all residual values are in the range [-rmax-1,rmax] */
+			raw_bits_per_partition[partition] = rmax? FLAC__bitmath_ilog2(rmax) + 2 : 1;
 		}
 		to_partition = partitions;
 		break; /*@@@ yuck, should remove the 'for' loop instead */
@@ -4129,7 +4128,6 @@ FLAC__bool set_partitioned_rice_(
 {
 	unsigned rice_parameter, partition_bits;
 	unsigned best_partition_bits, best_rice_parameter = 0;
-	unsigned flat_bits;
 	unsigned bits_ = FLAC__ENTROPY_CODING_METHOD_TYPE_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN;
 	unsigned *parameters, *raw_bits;
 #ifdef ENABLE_RICE_PARAMETER_SEARCH
@@ -4180,11 +4178,11 @@ FLAC__bool set_partitioned_rice_(
 		}
 #endif
 		if(search_for_escapes) {
-			flat_bits = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN + raw_bits_per_partition[0] * residual_samples;
-			if(flat_bits <= best_partition_bits) {
+			partition_bits = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN + raw_bits_per_partition[0] * residual_samples;
+			if(partition_bits <= best_partition_bits) {
 				raw_bits[0] = raw_bits_per_partition[0];
 				best_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
-				best_partition_bits = flat_bits;
+				best_partition_bits = partition_bits;
 			}
 		}
 		parameters[0] = best_rice_parameter;
@@ -4254,11 +4252,11 @@ FLAC__bool set_partitioned_rice_(
 			}
 #endif
 			if(search_for_escapes) {
-				flat_bits = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN + raw_bits_per_partition[partition] * partition_samples;
-				if(flat_bits <= best_partition_bits) {
+				partition_bits = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN + raw_bits_per_partition[partition] * partition_samples;
+				if(partition_bits <= best_partition_bits) {
 					raw_bits[partition] = raw_bits_per_partition[partition];
 					best_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
-					best_partition_bits = flat_bits;
+					best_partition_bits = partition_bits;
 				}
 			}
 			parameters[partition] = best_rice_parameter;
