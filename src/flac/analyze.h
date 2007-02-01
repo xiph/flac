@@ -25,7 +25,7 @@ typedef struct {
 } analysis_options;
 
 void flac__analyze_init(analysis_options aopts);
-void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analysis_options aopts, FILE *fout);
+void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, unsigned frame_bytes, analysis_options aopts, FILE *fout);
 void flac__analyze_finish(analysis_options aopts);
 
 #endif

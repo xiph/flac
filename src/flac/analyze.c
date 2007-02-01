@@ -58,7 +58,7 @@ void flac__analyze_init(analysis_options aopts)
 	}
 }
 
-void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analysis_options aopts, FILE *fout)
+void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, unsigned frame_bytes, analysis_options aopts, FILE *fout)
 {
 	const unsigned channels = frame->header.channels;
 	char outfilename[1024];
@@ -66,7 +66,7 @@ void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analys
 	unsigned i, channel;
 
 	/* do the human-readable part first */
-	fprintf(fout, "frame=%u\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
+	fprintf(fout, "frame=%u\tbits=%u\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame_bytes*8, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
 	for(channel = 0; channel < channels; channel++) {
 		const FLAC__Subframe *subframe = frame->subframes+channel;
 		fprintf(fout, "\tsubframe=%u\twasted_bits=%u\ttype=%s", channel, subframe->wasted_bits, FLAC__SubframeTypeString[subframe->type]);
@@ -95,6 +95,8 @@ void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, analys
 			case FLAC__SUBFRAME_TYPE_LPC:
 				FLAC__ASSERT(subframe->data.lpc.entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE);
 				fprintf(fout, "\torder=%u\tpartition_order=%u\tqlp_coeff_precision=%u\tquantization_level=%d\n", subframe->data.lpc.order, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level);
+				for(i = 0; i < subframe->data.lpc.order; i++)
+					fprintf(fout, "\t\tqlp_coeff[%u]=%d\n", i, subframe->data.lpc.qlp_coeff[i]);
 				for(i = 0; i < subframe->data.lpc.order; i++)
 					fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.lpc.warmup[i]);
 				if(aopts.do_residual_text) {

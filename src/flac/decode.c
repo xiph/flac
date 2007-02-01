@@ -87,6 +87,9 @@ typedef struct {
 	unsigned sample_rate;
 	FLAC__uint32 channel_mask;
 
+	/* these are used only in analyze mode */
+	FLAC__uint64 decode_position;
+
 	FLAC__StreamDecoder *decoder;
 
 	FILE *fout;
@@ -279,6 +282,8 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->channels = 0;
 	d->sample_rate = 0;
 	d->channel_mask = 0;
+
+	d->decode_position = 0;
 
 	d->decoder = 0;
 
@@ -858,7 +863,10 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 			print_stats(decoder_session);
 
 		if(decoder_session->analysis_mode) {
-			flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->aopts, fout);
+			FLAC__uint64 dpos;
+			FLAC__stream_decoder_get_decode_position(decoder_session->decoder, &dpos);
+			flac__analyze_frame(frame, decoder_session->frame_counter-1, (unsigned)(dpos-decoder_session->decode_position), decoder_session->aopts, fout);
+			decoder_session->decode_position = dpos;
 		}
 		else if(!decoder_session->test_only) {
 			if(shift && !decoder_session->replaygain.apply) {
