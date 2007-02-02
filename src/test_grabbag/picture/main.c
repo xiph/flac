@@ -1,5 +1,5 @@
 /* test_picture - Simple tester for cuesheet routines in grabbag
- * Copyright (C) 2006  Josh Coalson
+ * Copyright (C) 2006,2007  Josh Coalson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

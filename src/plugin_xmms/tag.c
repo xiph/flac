@@ -1,6 +1,6 @@
 /* libxmms-flac - XMMS FLAC input plugin
- * Copyright (C) 2000,2001,2002,2003,2004,2005,2006  Josh Coalson
- * Copyright (C) 2002,2003,2004,2005,2006  Daisuke Shimamura
+ * Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007  Josh Coalson
+ * Copyright (C) 2002,2003,2004,2005,2006,2007  Daisuke Shimamura
  *
  * Based on FLAC plugin.c and mpg123 plugin
  *
