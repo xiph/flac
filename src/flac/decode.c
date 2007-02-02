@@ -754,6 +754,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	FLAC__bool is_big_endian = (decoder_session->is_aiff_out? true : (decoder_session->is_wave_out? false : decoder_session->is_big_endian));
 	FLAC__bool is_unsigned_samples = (decoder_session->is_aiff_out? false : (decoder_session->is_wave_out? bps<=8 : decoder_session->is_unsigned_samples));
 	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, byte;
+	unsigned frame_bytes = 0;
 	static FLAC__int8 s8buffer[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(FLAC__int32)]; /* WATCHOUT: can be up to 2 megs */
 	FLAC__uint8  *u8buffer  = (FLAC__uint8  *)s8buffer;
 	FLAC__int16  *s16buffer = (FLAC__int16  *)s8buffer;
@@ -855,6 +856,13 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		}
 	}
 
+	if(decoder_session->analysis_mode) {
+		FLAC__uint64 dpos;
+		FLAC__stream_decoder_get_decode_position(decoder_session->decoder, &dpos);
+		frame_bytes = (unsigned)(dpos-decoder_session->decode_position);
+		decoder_session->decode_position = dpos;
+	}
+
 	if(wide_samples > 0) {
 		decoder_session->samples_processed += wide_samples;
 		decoder_session->frame_counter++;
@@ -863,10 +871,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 			print_stats(decoder_session);
 
 		if(decoder_session->analysis_mode) {
-			FLAC__uint64 dpos;
-			FLAC__stream_decoder_get_decode_position(decoder_session->decoder, &dpos);
-			flac__analyze_frame(frame, decoder_session->frame_counter-1, (unsigned)(dpos-decoder_session->decode_position), decoder_session->aopts, fout);
-			decoder_session->decode_position = dpos;
+			flac__analyze_frame(frame, decoder_session->frame_counter-1, frame_bytes, decoder_session->aopts, fout);
 		}
 		else if(!decoder_session->test_only) {
 			if(shift && !decoder_session->replaygain.apply) {
@@ -993,7 +998,10 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
-	(void)decoder;
+
+	if(decoder_session->analysis_mode)
+		FLAC__stream_decoder_get_decode_position(decoder, &decoder_session->decode_position);
+
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		FLAC__uint64 skip, until;
 		decoder_session->got_stream_info = true;
