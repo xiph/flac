@@ -152,10 +152,8 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_o
 int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order, unsigned precision, FLAC__int32 qlp_coeff[], int *shift)
 {
 	unsigned i;
-	FLAC__double d, cmax = -1e32;
+	FLAC__double cmax;
 	FLAC__int32 qmax, qmin;
-	const int max_shiftlimit = (1 << (FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN-1)) - 1;
-	const int min_shiftlimit = -max_shiftlimit - 1;
 
 	FLAC__ASSERT(precision > 0);
 	FLAC__ASSERT(precision >= FLAC__MIN_QLP_COEFF_PRECISION);
@@ -166,19 +164,21 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 	qmin = -qmax;
 	qmax--;
 
+	/* calc cmax = max( |lp_coeff[i]| ) */
+	cmax = 0.0;
 	for(i = 0; i < order; i++) {
-		if(lp_coeff[i] == 0.0)
-			continue;
-		d = fabs(lp_coeff[i]);
+		const FLAC__double d = fabs(lp_coeff[i]);
 		if(d > cmax)
 			cmax = d;
 	}
-redo_it:
+
 	if(cmax <= 0.0) {
 		/* => coefficients are all 0, which means our constant-detect didn't work */
 		return 2;
 	}
 	else {
+		const int max_shiftlimit = (1 << (FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN-1)) - 1;
+		const int min_shiftlimit = -max_shiftlimit - 1;
 		int log2cmax;
 
 		(void)frexp(cmax, &log2cmax);
@@ -186,6 +186,9 @@ redo_it:
 		*shift = (int)precision - log2cmax - 1;
 
 		if(*shift < min_shiftlimit || *shift > max_shiftlimit) {
+#ifdef FLAC__OVERFLOW_DETECT
+			fprintf(stderr,"FLAC__lpc_quantize_coefficients: shift out of limit: shift=%d cmax=%f precision=%u\n",q,qmax,*shift,cmax,precision+1);
+#endif
 #if 0
 			/*@@@ this does not seem to help at all, but was not extensively tested either: */
 			if(*shift > max_shiftlimit)
@@ -197,36 +200,53 @@ redo_it:
 	}
 
 	if(*shift >= 0) {
+		FLAC__double error = 0.0;
+		FLAC__int32 q;
 		for(i = 0; i < order; i++) {
-			qlp_coeff[i] = (FLAC__int32)floor((FLAC__double)lp_coeff[i] * (FLAC__double)(1 << *shift));
-
-			/* double-check the result */
-			if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
+			error += lp_coeff[i] * (1 << *shift);
+			q = lround(error); /* round() is also suitable */
 #ifdef FLAC__OVERFLOW_DETECT
-				fprintf(stderr,"FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (FLAC__double)lp_coeff[i] * (FLAC__double)(1 << *shift), floor((FLAC__double)lp_coeff[i] * (FLAC__double)(1 << *shift)));
+			if(q > qmax)
+				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q>qmax %d>%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmax,*shift,cmax,precision+1,i,lp_coeff[i]);
+			else if(q < qmin)
+				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q<qmin %d<%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmin,*shift,cmax,precision+1,i,lp_coeff[i]);
 #endif
-				cmax *= 2.0;
-				goto redo_it;
-			}
+			if(q > qmax)
+				q = qmax;
+			else if(q < qmin)
+				q = qmin;
+			error -= q;
+			qlp_coeff[i] = q;
 		}
 	}
-	else { /* (*shift < 0) */
+	/* negative shift is very rare but due to design flaw, negative shift is
+	 * a NOP in the decoder, so it must be handled specially by scaling down
+	 * coeffs
+	 */
+	else {
 		const int nshift = -(*shift);
+		FLAC__double error = 0.0;
+		FLAC__int32 q;
 #ifdef DEBUG
 		fprintf(stderr,"FLAC__lpc_quantize_coefficients: negative shift = %d\n", *shift);
 #endif
 		for(i = 0; i < order; i++) {
-			qlp_coeff[i] = (FLAC__int32)floor((FLAC__double)lp_coeff[i] / (FLAC__double)(1 << nshift));
-
-			/* double-check the result */
-			if(qlp_coeff[i] > qmax || qlp_coeff[i] < qmin) {
+			error += lp_coeff[i] / (1 << nshift);
+			q = lround(error); /* round() is also suitable */
 #ifdef FLAC__OVERFLOW_DETECT
-				fprintf(stderr,"FLAC__lpc_quantize_coefficients: compensating for overflow, qlp_coeff[%u]=%d, lp_coeff[%u]=%f, cmax=%f, precision=%u, shift=%d, q=%f, f(q)=%f\n", i, qlp_coeff[i], i, lp_coeff[i], cmax, precision, *shift, (FLAC__double)lp_coeff[i] / (FLAC__double)(1 << nshift), floor((FLAC__double)lp_coeff[i] / (FLAC__double)(1 << nshift)));
+			if(q > qmax)
+				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q>qmax %d>%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmax,*shift,cmax,precision+1,i,lp_coeff[i]);
+			else if(q < qmin)
+				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q<qmin %d<%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmin,*shift,cmax,precision+1,i,lp_coeff[i]);
 #endif
-				cmax *= 2.0;
-				goto redo_it;
-			}
+			if(q > qmax)
+				q = qmax;
+			else if(q < qmin)
+				q = qmin;
+			error -= q;
+			qlp_coeff[i] = q;
 		}
+		*shift = 0;
 	}
 
 	return 0;
