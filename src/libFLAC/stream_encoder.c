@@ -4027,7 +4027,6 @@ void precompute_partition_info_escapes_(
 	for(partition_order = (int)max_partition_order; partition_order >= 0; partition_order--) {
 		FLAC__int32 r;
 		FLAC__uint32 rmax;
-		unsigned silog2_min, silog2_max;
 		unsigned partition, partition_sample, partition_samples, residual_sample;
 		const unsigned partitions = 1u << partition_order;
 		const unsigned default_partition_samples = blocksize >> partition_order;
