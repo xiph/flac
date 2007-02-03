@@ -2515,7 +2515,8 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_blocksize)
 			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize, &encoder->private_->residual_workspace_mid_side_unaligned[channel][i], &encoder->private_->residual_workspace_mid_side[channel][i]);
 		}
 	}
-	/* @@@@@@@@@ blocksize*2 is too pessimistic, but to fix, we need smarter logic because a smaller new_blocksize can actually increase the # of partitions */
+	/* the *2 is an approximation to the series 1 + 1/2 + 1/4 + ... that sums tree occupies in a flat array */
+	/*@@@ new_blocksize*2 is too pessimistic, but to fix, we need smarter logic because a smaller new_blocksize can actually increase the # of partitions; would require moving this out into a separate function, then checking its capacity against the need of the current blocksize&min/max_partition_order (and maybe predictor order) */
 	ok = ok && FLAC__memory_alloc_aligned_uint64_array(new_blocksize * 2, &encoder->private_->abs_residual_partition_sums_unaligned, &encoder->private_->abs_residual_partition_sums);
 	if(encoder->protected_->do_escape_coding)
 		ok = ok && FLAC__memory_alloc_aligned_unsigned_array(new_blocksize * 2, &encoder->private_->raw_bits_per_partition_unaligned, &encoder->private_->raw_bits_per_partition);
@@ -3653,7 +3654,7 @@ FLAC__bool add_subframe_(
 	return true;
 }
 
-#define SPOTCHECK_ESTIMATE 0 //@@@@@@@@@
+#define SPOTCHECK_ESTIMATE 0
 #if SPOTCHECK_ESTIMATE
 static void spotcheck_subframe_estimate_(
 	FLAC__StreamEncoder *encoder,
@@ -4067,7 +4068,6 @@ void precompute_partition_info_escapes_(
 	}
 }
 
-/*@@@@@@ overflow is a possible problem here for hi-res samples */
 #ifdef EXACT_RICE_BITS_CALCULATION
 static __inline unsigned count_rice_bits_in_partition_(
 	const unsigned rice_parameter,
