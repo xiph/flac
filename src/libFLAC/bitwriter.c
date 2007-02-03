@@ -347,9 +347,6 @@ FLaC__INLINE FLAC__bool FLAC__bitwriter_write_raw_uint32(FLAC__BitWriter *bw, FL
 		bw->bits += bits;
 	}
 	else if(bw->bits) { /* WATCHOUT: if bw->bits == 0, left==FLAC__BITS_PER_WORD and bw->accum<<=left is a NOP instead of setting to 0 */
-#ifdef DEBUG
-if(left>=FLAC__BITS_PER_WORD)fprintf(stderr,"@@@@@@ bitwriter shift error @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n");
-#endif
 		bw->accum <<= left;
 		bw->accum |= val >> (bw->bits = bits - left);
 		bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(bw->accum);
@@ -357,7 +354,7 @@ if(left>=FLAC__BITS_PER_WORD)fprintf(stderr,"@@@@@@ bitwriter shift error @@@@@@
 	}
 	else {
 #ifdef DEBUG
-if(bits!=left)fprintf(stderr,"@@@@@@ bitwriter shift error2 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n");
+if(bits!=left)fprintf(stderr,"@@@@@@ bitwriter error2 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n");
 #endif
 		bw->accum = val;
 		bw->bits = 0;
@@ -596,9 +593,7 @@ break1:
 			 * triggered the (lsbits<left) case above.
 			 */
 			FLAC__ASSERT(bw->bits);
-#ifdef DEBUG
-if(left>=FLAC__BITS_PER_WORD)fprintf(stderr,"@@@@@@ bitwriter shift error @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n");
-#endif
+			FLAC__ASSERT(left < FLAC__BITS_PER_WORD);
 			bw->accum <<= left;
 			bw->accum |= uval >> (bw->bits = lsbits - left);
 			bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(bw->accum);

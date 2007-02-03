@@ -374,10 +374,6 @@ FLAC__uint16 FLAC__bitreader_get_read_crc16(FLAC__BitReader *br)
 	/* CRC any tail bytes in a partially-consumed word */
 	if(br->consumed_bits) {
 		const brword tail = br->buffer[br->consumed_words];
-#ifdef DEBUG
-if(br->crc16_align)fprintf(stderr,"@@@@@@ FLAC__bitreader_get_read_crc16() got nonzero crc align = %u\n",br->crc16_align);
-#endif
-		/* non-zero crc align here can probably never happen with FLAC but check for consistency */
 		for( ; br->crc16_align < br->consumed_bits; br->crc16_align += 8)
 			br->read_crc16 = FLAC__CRC16_UPDATE((unsigned)((tail >> (FLAC__BITS_PER_WORD-8-br->crc16_align)) & 0xff), br->read_crc16);
 	}
