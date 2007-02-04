@@ -66,7 +66,11 @@ typedef FLAC__uint32 brword;
 #if WORDS_BIGENDIAN
 #define SWAP_BE_WORD_TO_HOST(x) (x)
 #else
+#ifdef _MSC_VER
+#define SWAP_BE_WORD_TO_HOST(x) local_swap32_(x)
+#else
 #define SWAP_BE_WORD_TO_HOST(x) ntohl(x)
+#endif
 #endif
 /* counts the # of zero MSBs in a word */
 #define ALIGNED_UNARY_BITS(word) ( \
@@ -146,6 +150,15 @@ struct FLAC__BitReader {
 	FLAC__BitReaderReadCallback read_callback;
 	void *client_data;
 };
+
+#ifdef _MSC_VER
+/* OPT: an MSVC built-in would be better */
+static _inline FLAC__uint32 local_swap32_(FLAC__uint32 x)
+{
+	x = ((x<<8)&0xFF00FF00) | ((x>>8)&0x00FF00FF);
+	return (x>>16) | (x<<16);
+}
+#endif
 
 static FLaC__INLINE void crc16_update_word_(FLAC__BitReader *br, brword word)
 {

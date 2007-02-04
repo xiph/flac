@@ -58,7 +58,11 @@ typedef FLAC__uint32 bwword;
 #if WORDS_BIGENDIAN
 #define SWAP_BE_WORD_TO_HOST(x) (x)
 #else
+#ifdef _MSC_VER
+#define SWAP_BE_WORD_TO_HOST(x) local_swap32_(x)
+#else
 #define SWAP_BE_WORD_TO_HOST(x) ntohl(x)
+#endif
 #endif
 
 /*
@@ -97,6 +101,15 @@ struct FLAC__BitWriter {
 	unsigned words; /* # of complete words in buffer */
 	unsigned bits; /* # of used bits in accum */
 };
+
+#ifdef _MSC_VER
+/* OPT: an MSVC built-in would be better */
+static _inline FLAC__uint32 local_swap32_(FLAC__uint32 x)
+{
+	x = ((x<<8)&0xFF00FF00) | ((x>>8)&0x00FF00FF);
+	return (x>>16) | (x<<16);
+}
+#endif
 
 /* * WATCHOUT: The current implementation only grows the buffer. */
 static FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, unsigned bits_to_add)
