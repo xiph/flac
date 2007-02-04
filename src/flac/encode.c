@@ -1701,48 +1701,22 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	if(flac_decoder_data) {
 		/*
 		 * we're encoding from FLAC so we will use the FLAC file's
-		 * metadata as the basic for the encoded file
+		 * metadata as the basis for the encoded file
 		 */
 		{
 			/*
-			 * first handle padding: if --no-padding was specified,
-			 * then delete all padding; else if -P was specified,
-			 * use that instead of existing padding (if any); else
-			 * if existing file has padding, move all existing
-			 * padding blocks to one padding block at the end; else
-			 * use default padding.
+			 * first handle pictures: simple append any --pictures
+			 * specified.
 			 */
-			int p = -1;
-			size_t i, j;
-			for(i = 0, j = 0; i < flac_decoder_data->num_metadata_blocks; i++) {
-				if(flac_decoder_data->metadata_blocks[i]->type == FLAC__METADATA_TYPE_PADDING) {
-					if(p < 0)
-						p = 0;
-					p += flac_decoder_data->metadata_blocks[i]->length;
-					FLAC__metadata_object_delete(flac_decoder_data->metadata_blocks[i]);
-					flac_decoder_data->metadata_blocks[i] = 0;
+			for(i = 0; i < options.num_pictures; i++) {
+				FLAC__StreamMetadata *pic = FLAC__metadata_object_clone(options.pictures[i]);
+				if(0 == pic) {
+					flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for PICTURE block\n", e->inbasefilename);
+					if(0 != cuesheet)
+						FLAC__metadata_object_delete(cuesheet);
+					return false;
 				}
-				else
-					flac_decoder_data->metadata_blocks[j++] = flac_decoder_data->metadata_blocks[i];
-			}
-			flac_decoder_data->num_metadata_blocks = j;
-			if(options.padding > 0)
-				p = options.padding;
-			if(p < 0)
-				p = e->total_samples_to_encode / e->sample_rate < 20*60? FLAC_ENCODE__DEFAULT_PADDING : FLAC_ENCODE__DEFAULT_PADDING*8;
-			if(options.padding != 0) {
-				if(p > 0 && flac_decoder_data->num_metadata_blocks < sizeof(flac_decoder_data->metadata_blocks)/sizeof(flac_decoder_data->metadata_blocks[0])) {
-					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
-					if(0 == flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks]) {
-						flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for PADDING block\n", e->inbasefilename);
-						if(0 != cuesheet)
-							FLAC__metadata_object_delete(cuesheet);
-						return false;
-					}
-					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks]->is_last = false; /* the encoder will set this for us */
-					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks]->length = p;
-					flac_decoder_data->num_metadata_blocks++;
-				}
+				flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks++] = pic;
 			}
 		}
 		{
@@ -1753,6 +1727,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			 * we keep the existing one.  also need to make sure to
 			 * propagate any channel mask tag.
 			 */
+			/* @@@@@@ change to append in -T values from options.vorbis_comment if input has VC already */
 			size_t i, j;
 			FLAC__bool vc_found = false;
 			for(i = 0, j = 0; i < flac_decoder_data->num_metadata_blocks; i++) {
@@ -1831,7 +1806,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		}
 		{
 			/*
-			 * finally handle seektable: if -S- was specified, no
+			 * next handle seektable: if -S- was specified, no
 			 * SEEKTABLE; else if -S was specified, use it/them;
 			 * else if file has existing SEEKTABLE and input size is
 			 * preserved (no --skip/--until/etc specified), keep it;
@@ -1875,6 +1850,48 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 					flac_decoder_data->metadata_blocks[i] = flac_decoder_data->metadata_blocks[i-1];
 				flac_decoder_data->metadata_blocks[1] = st;
 				flac_decoder_data->num_metadata_blocks++;
+			}
+		}
+		{
+			/*
+			 * finally handle padding: if --no-padding was specified,
+			 * then delete all padding; else if -P was specified,
+			 * use that instead of existing padding (if any); else
+			 * if existing file has padding, move all existing
+			 * padding blocks to one padding block at the end; else
+			 * use default padding.
+			 */
+			int p = -1;
+			size_t i, j;
+			for(i = 0, j = 0; i < flac_decoder_data->num_metadata_blocks; i++) {
+				if(flac_decoder_data->metadata_blocks[i]->type == FLAC__METADATA_TYPE_PADDING) {
+					if(p < 0)
+						p = 0;
+					p += flac_decoder_data->metadata_blocks[i]->length;
+					FLAC__metadata_object_delete(flac_decoder_data->metadata_blocks[i]);
+					flac_decoder_data->metadata_blocks[i] = 0;
+				}
+				else
+					flac_decoder_data->metadata_blocks[j++] = flac_decoder_data->metadata_blocks[i];
+			}
+			flac_decoder_data->num_metadata_blocks = j;
+			if(options.padding > 0)
+				p = options.padding;
+			if(p < 0)
+				p = e->total_samples_to_encode / e->sample_rate < 20*60? FLAC_ENCODE__DEFAULT_PADDING : FLAC_ENCODE__DEFAULT_PADDING*8;
+			if(options.padding != 0) {
+				if(p > 0 && flac_decoder_data->num_metadata_blocks < sizeof(flac_decoder_data->metadata_blocks)/sizeof(flac_decoder_data->metadata_blocks[0])) {
+					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
+					if(0 == flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks]) {
+						flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for PADDING block\n", e->inbasefilename);
+						if(0 != cuesheet)
+							FLAC__metadata_object_delete(cuesheet);
+						return false;
+					}
+					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks]->is_last = false; /* the encoder will set this for us */
+					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks]->length = p;
+					flac_decoder_data->num_metadata_blocks++;
+				}
 			}
 		}
 		metadata = &flac_decoder_data->metadata_blocks[1]; /* don't include STREAMINFO */
