@@ -185,18 +185,10 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 		log2cmax--;
 		*shift = (int)precision - log2cmax - 1;
 
-		if(*shift < min_shiftlimit || *shift > max_shiftlimit) {
-#ifdef FLAC__OVERFLOW_DETECT
-			fprintf(stderr,"FLAC__lpc_quantize_coefficients: shift out of limit: shift=%d cmax=%f precision=%u\n",*shift,cmax,precision+1);
-#endif
-#if 0
-			/*@@@ this does not seem to help at all, but was not extensively tested either: */
-			if(*shift > max_shiftlimit)
-				*shift = max_shiftlimit;
-			else
-#endif
-				return 1;
-		}
+		if(*shift > max_shiftlimit)
+			*shift = max_shiftlimit;
+		else if(*shift < min_shiftlimit)
+			return 1;
 	}
 
 	if(*shift >= 0) {
