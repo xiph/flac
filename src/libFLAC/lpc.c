@@ -328,11 +328,19 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 			sum += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*(--history));
 #ifdef FLAC__OVERFLOW_DETECT
 		if(FLAC__bitmath_silog2_wide(sum >> lp_quantization) > 32) {
+#if defined _MSC_VER
+			fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients_wide: OVERFLOW, i=%u, sum=%I64d\n", i, sum >> lp_quantization);
+#else
 			fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients_wide: OVERFLOW, i=%u, sum=%lld\n", i, (long long)(sum >> lp_quantization));
+#endif
 			break;
 		}
 		if(FLAC__bitmath_silog2_wide((FLAC__int64)(*data) - (sum >> lp_quantization)) > 32) {
+#if defined _MSC_VER
+			fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients_wide: OVERFLOW, i=%u, data=%d, sum=%I64d, residual=%I64d\n", i, *data, sum >> lp_quantization, (FLAC__int64)(*data) - (sum >> lp_quantization));
+#else
 			fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients_wide: OVERFLOW, i=%u, data=%d, sum=%lld, residual=%lld\n", i, *data, (long long)(sum >> lp_quantization), (long long)((FLAC__int64)(*data) - (sum >> lp_quantization)));
+#endif
 			break;
 		}
 #endif
@@ -412,11 +420,19 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 			sum += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*(--history));
 #ifdef FLAC__OVERFLOW_DETECT
 		if(FLAC__bitmath_silog2_wide(sum >> lp_quantization) > 32) {
+#ifdef _MSC_VER
+			fprintf(stderr,"FLAC__lpc_restore_signal_wide: OVERFLOW, i=%u, sum=%I64d\n", i, sum >> lp_quantization);
+#else
 			fprintf(stderr,"FLAC__lpc_restore_signal_wide: OVERFLOW, i=%u, sum=%lld\n", i, (long long)(sum >> lp_quantization));
+#endif
 			break;
 		}
 		if(FLAC__bitmath_silog2_wide((FLAC__int64)(*r) + (sum >> lp_quantization)) > 32) {
+#ifdef _MSC_VER
+			fprintf(stderr,"FLAC__lpc_restore_signal_wide: OVERFLOW, i=%u, residual=%d, sum=%I64d, data=%I64d\n", i, *r, sum >> lp_quantization, (FLAC__int64)(*r) + (sum >> lp_quantization));
+#else
 			fprintf(stderr,"FLAC__lpc_restore_signal_wide: OVERFLOW, i=%u, residual=%d, sum=%lld, data=%lld\n", i, *r, (long long)(sum >> lp_quantization), (long long)((FLAC__int64)(*r) + (sum >> lp_quantization)));
+#endif
 			break;
 		}
 #endif
