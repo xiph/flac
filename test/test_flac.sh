@@ -1125,7 +1125,7 @@ echo "Testing the metadata-handling properties of flac-to-flac encoding..."
 testdir="flac-to-flac-metadata-test-files"
 filter ()
 {
-	# minor danger, changing vendor strings will change the length of the
+	# minor danger, changing vendor strings might change the length of the
 	# VORBIS_COMMENT block, but if we add "^  length: " to the patterns,
 	# we lose info about PADDING size that we need
 	grep -Ev '^  vendor string: |^  m..imum .....size: ' | sed -e 's/, stream_offset.*//'
