@@ -302,14 +302,14 @@ namespace FLAC {
 		void StreamInfo::set_min_framesize(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			FLAC__ASSERT(value < (1u < FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN));
+			FLAC__ASSERT(value < (1u << FLAC__STREAM_METADATA_STREAMINFO_MIN_FRAME_SIZE_LEN));
 			object_->data.stream_info.min_framesize = value;
 		}
 
 		void StreamInfo::set_max_framesize(unsigned value)
 		{
 			FLAC__ASSERT(is_valid());
-			FLAC__ASSERT(value < (1u < FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN));
+			FLAC__ASSERT(value < (1u << FLAC__STREAM_METADATA_STREAMINFO_MAX_FRAME_SIZE_LEN));
 			object_->data.stream_info.max_framesize = value;
 		}
 
