@@ -67,6 +67,7 @@ typedef struct {
 
 	FLAC__uint64 skip;
 	FLAC__uint64 until; /* a value of 0 mean end-of-stream (i.e. --until=-0) */
+	FLAC__bool treat_warnings_as_errors;
 	FLAC__bool continue_through_decode_errors;
 	FLAC__bool replay_gain;
 	unsigned channels;
@@ -119,7 +120,7 @@ extern FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEn
 /*
  * local routines
  */
-static FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool continue_through_decode_errors, FILE *infile, const char *infilename, const char *outfilename);
+static FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FILE *infile, const char *infilename, const char *outfilename);
 static void EncoderSession_destroy(EncoderSession *e);
 static int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_align_zero);
 static int EncoderSession_finish_error(EncoderSession *e);
@@ -138,7 +139,7 @@ static FLAC__bool flac_decoder_eof_callback(const FLAC__StreamDecoder *decoder, 
 static FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void flac_decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
-static FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset);
+static FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset, FLAC__bool treat_warnings_as_errors);
 static void print_stats(const EncoderSession *encoder_session);
 static void print_error_with_init_status(const EncoderSession *e, const char *message, FLAC__StreamEncoderInitStatus init_status);
 static void print_error_with_state(const EncoderSession *e, const char *message);
@@ -179,6 +180,7 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 			/*use_ogg=*/false,
 #endif
 			options.common.verify,
+			options.common.treat_warnings_as_errors,
 			options.common.continue_through_decode_errors,
 			infile,
 			infilename,
@@ -221,6 +223,8 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 			}
 			else if(!is_aifc && xx!=minimum_comm_size) {
 				flac__utils_printf(stderr, 1, "%s: WARNING: non-standard %s 'COMM' chunk has length = %u, expected %u\n", encoder_session.inbasefilename, is_aifc? "AIFF-C" : "AIFF", (unsigned int)xx, minimum_comm_size);
+				if(encoder_session.treat_warnings_as_errors)
+					return EncoderSession_finish_error(&encoder_session);
 			}
 			skip= (xx-minimum_comm_size)+(xx & 1U);
 
@@ -451,6 +455,8 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 					}
 					else if(feof(infile)) {
 						flac__utils_printf(stderr, 1, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned int)encoder_session.total_samples_to_encode, (unsigned int)encoder_session.samples_written);
+						if(encoder_session.treat_warnings_as_errors)
+							return EncoderSession_finish_error(&encoder_session);
 						data_bytes= 0;
 					}
 				}
@@ -511,6 +517,8 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 						}
 						else if(bytes_read != (*options.common.align_reservoir_samples) * bytes_per_frame) {
 							flac__utils_printf(stderr, 1, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned int)bytes_read, (unsigned int)encoder_session.total_samples_to_encode, (unsigned int)encoder_session.samples_written);
+							if(encoder_session.treat_warnings_as_errors)
+								return EncoderSession_finish_error(&encoder_session);
 						}
 						else {
 							info_align_carry= *options.common.align_reservoir_samples;
@@ -535,12 +543,18 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 		else { /* other chunk */
 			if(!memcmp(chunk_id, "COMM", 4)) {
 				flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'COMM' chunk\n", encoder_session.inbasefilename);
+				if(encoder_session.treat_warnings_as_errors)
+					return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(!memcmp(chunk_id, "SSND", 4)) {
 				flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'SSND' chunk\n", encoder_session.inbasefilename);
+				if(encoder_session.treat_warnings_as_errors)
+					return EncoderSession_finish_error(&encoder_session);
 			}
 			else {
 				flac__utils_printf(stderr, 1, "%s: WARNING: skipping unknown chunk '%s'\n", encoder_session.inbasefilename, chunk_id);
+				if(encoder_session.treat_warnings_as_errors)
+					return EncoderSession_finish_error(&encoder_session);
 			}
 
 			/* chunk size */
@@ -592,6 +606,7 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 			/*use_ogg=*/false,
 #endif
 			options.common.verify,
+			options.common.treat_warnings_as_errors,
 			options.common.continue_through_decode_errors,
 			infile,
 			infilename,
@@ -705,6 +720,8 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 					if(bps == 24 || bps == 32) {
 						/* let these slide with a warning since they're unambiguous */
 						flac__utils_printf(stderr, 1, "%s: WARNING: legacy WAVE file has format type %u but bits-per-sample=%u\n", encoder_session.inbasefilename, (unsigned)format, bps);
+						if(encoder_session.treat_warnings_as_errors)
+							return EncoderSession_finish_error(&encoder_session);
 					}
 					else {
 						/* @@@ we could add an option to specify left- or right-justified blocks so we knew how to set 'shift' */
@@ -717,6 +734,8 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 					if(bps % 8) {
 						/* assume legacy file is byte aligned with some LSBs zero; this is double-checked in format_input() */
 						flac__utils_printf(stderr, 1, "%s: WARNING: legacy WAVE file (format type %d) has block alignment=%u, bits-per-sample=%u, channels=%u\n", encoder_session.inbasefilename, (unsigned)format, block_align, bps, channels);
+						if(encoder_session.treat_warnings_as_errors)
+							return EncoderSession_finish_error(&encoder_session);
 						shift = 8 - (bps % 8);
 						bps += shift;
 					}
@@ -972,6 +991,8 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 					}
 					else if(feof(infile)) {
 						flac__utils_printf(stderr, 1, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
+						if(encoder_session.treat_warnings_as_errors)
+							return EncoderSession_finish_error(&encoder_session);
 						data_bytes = 0;
 					}
 				}
@@ -1031,6 +1052,8 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 						}
 						else if(bytes_read != (*options.common.align_reservoir_samples) * bytes_per_wide_sample) {
 							flac__utils_printf(stderr, 1, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)bytes_read, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
+							if(encoder_session.treat_warnings_as_errors)
+								return EncoderSession_finish_error(&encoder_session);
 						}
 						else {
 							info_align_carry = *options.common.align_reservoir_samples;
@@ -1055,10 +1078,14 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 		else {
 			if(xx == 0x20746d66 && got_fmt_chunk) { /* "fmt " */
 				flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'fmt ' sub-chunk\n", encoder_session.inbasefilename);
+				if(encoder_session.treat_warnings_as_errors)
+					return EncoderSession_finish_error(&encoder_session);
 			}
 			else if(xx == 0x61746164) { /* "data" */
 				if(got_data_chunk) {
 					flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'data' sub-chunk\n", encoder_session.inbasefilename);
+					if(encoder_session.treat_warnings_as_errors)
+						return EncoderSession_finish_error(&encoder_session);
 				}
 				else if(!got_fmt_chunk) {
 					flac__utils_printf(stderr, 1, "%s: ERROR: got 'data' sub-chunk before 'fmt' sub-chunk\n", encoder_session.inbasefilename);
@@ -1070,6 +1097,8 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 			}
 			else {
 				flac__utils_printf(stderr, 1, "%s: WARNING: skipping unknown sub-chunk '%c%c%c%c'\n", encoder_session.inbasefilename, (char)(xx&255), (char)((xx>>8)&255), (char)((xx>>16)&255), (char)(xx>>24));
+				if(encoder_session.treat_warnings_as_errors)
+					return EncoderSession_finish_error(&encoder_session);
 			}
 			/* sub-chunk size */
 			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
@@ -1114,6 +1143,7 @@ int flac__encode_raw(FILE *infile, off_t infilesize, const char *infilename, con
 			/*use_ogg=*/false,
 #endif
 			options.common.verify,
+			options.common.treat_warnings_as_errors,
 			options.common.continue_through_decode_errors,
 			infile,
 			infilename,
@@ -1287,6 +1317,8 @@ int flac__encode_raw(FILE *infile, off_t infilesize, const char *infilename, con
 				}
 				else if(feof(infile)) {
 					flac__utils_printf(stderr, 1, "%s: WARNING: unexpected EOF; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
+					if(encoder_session.treat_warnings_as_errors)
+						return EncoderSession_finish_error(&encoder_session);
 					total_input_bytes_read = max_input_bytes;
 				}
 			}
@@ -1339,6 +1371,8 @@ int flac__encode_raw(FILE *infile, off_t infilesize, const char *infilename, con
 				}
 				else if(bytes_read != (*options.common.align_reservoir_samples) * bytes_per_wide_sample) {
 					flac__utils_printf(stderr, 1, "%s: WARNING: unexpected EOF; read %u bytes; expected %u samples, got %u samples\n", encoder_session.inbasefilename, (unsigned)bytes_read, (unsigned)encoder_session.total_samples_to_encode, (unsigned)encoder_session.samples_written);
+					if(encoder_session.treat_warnings_as_errors)
+						return EncoderSession_finish_error(&encoder_session);
 				}
 				else {
 					info_align_carry = *options.common.align_reservoir_samples;
@@ -1369,6 +1403,7 @@ int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, co
 			/*use_ogg=*/false,
 #endif
 			options.common.verify,
+			options.common.treat_warnings_as_errors,
 			options.common.continue_through_decode_errors,
 			infile,
 			infilename,
@@ -1518,7 +1553,7 @@ fubar1:
 	return EncoderSession_finish_error(&encoder_session);
 }
 
-FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool continue_through_decode_errors, FILE *infile, const char *infilename, const char *outfilename)
+FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC__bool verify, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FILE *infile, const char *infilename, const char *outfilename)
 {
 	unsigned i;
 	FLAC__uint32 test = 1;
@@ -1543,6 +1578,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, FLAC__bool use_ogg, FLAC_
 	(void)use_ogg;
 #endif
 	e->verify = verify;
+	e->treat_warnings_as_errors = treat_warnings_as_errors;
 	e->continue_through_decode_errors = continue_through_decode_errors;
 
 	e->is_stdout = (0 == strcmp(outfilename, "-"));
@@ -1688,7 +1724,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		}
 	}
 
-	if(!parse_cuesheet(&cuesheet, options.cuesheet_filename, e->inbasefilename, is_cdda, e->total_samples_to_encode))
+	if(!parse_cuesheet(&cuesheet, options.cuesheet_filename, e->inbasefilename, is_cdda, e->total_samples_to_encode, e->treat_warnings_as_errors))
 		return false;
 
 	if(!convert_to_seek_table_template(options.requested_seek_points, options.num_requested_seek_points, options.cued_seekpoints? cuesheet : 0, e)) {
@@ -1736,6 +1772,11 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 				if(flac_decoder_data->metadata_blocks[i]->type == FLAC__METADATA_TYPE_VORBIS_COMMENT && options.vorbis_comment->data.vorbis_comment.num_comments > 0) {
 					(void) flac__utils_get_channel_mask_tag(flac_decoder_data->metadata_blocks[i], &channel_mask);
 					flac__utils_printf(stderr, 1, "%s: WARNING, replacing tags from input FLAC file with those given on the command-line\n", e->inbasefilename);
+					if(e->treat_warnings_as_errors) {
+						if(0 != cuesheet)
+							FLAC__metadata_object_delete(cuesheet);
+						return false;
+					}
 					FLAC__metadata_object_delete(flac_decoder_data->metadata_blocks[i]);
 					flac_decoder_data->metadata_blocks[i] = 0;
 				}
@@ -1772,16 +1813,31 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 					const FLAC__StreamMetadata_CueSheet *cs = &flac_decoder_data->metadata_blocks[i]->data.cue_sheet;
 					if(e->total_samples_to_encode == 0) {
 						flac__utils_printf(stderr, 1, "%s: WARNING, cuesheet in input FLAC file cannot be kept if input size is not known, dropping it...\n", e->inbasefilename);
+						if(e->treat_warnings_as_errors) {
+							if(0 != cuesheet)
+								FLAC__metadata_object_delete(cuesheet);
+							return false;
+						}
 						existing_cuesheet_is_bad = true;
 					}
 					else if(e->total_samples_to_encode != cs->tracks[cs->num_tracks-1].offset) {
 						flac__utils_printf(stderr, 1, "%s: WARNING, lead-out offset of cuesheet in input FLAC file does not match input length, dropping existing cuesheet...\n", e->inbasefilename);
+						if(e->treat_warnings_as_errors) {
+							if(0 != cuesheet)
+								FLAC__metadata_object_delete(cuesheet);
+							return false;
+						}
 						existing_cuesheet_is_bad = true;
 					}
 				}
 				if(flac_decoder_data->metadata_blocks[i]->type == FLAC__METADATA_TYPE_CUESHEET && (existing_cuesheet_is_bad || 0 != cuesheet)) {
-					if(0 != cuesheet)
+					if(0 != cuesheet) {
 						flac__utils_printf(stderr, 1, "%s: WARNING, replacing cuesheet in input FLAC file with the one given on the command-line\n", e->inbasefilename);
+						if(e->treat_warnings_as_errors) {
+							FLAC__metadata_object_delete(cuesheet);
+							return false;
+						}
+					}
 					FLAC__metadata_object_delete(flac_decoder_data->metadata_blocks[i]);
 					flac_decoder_data->metadata_blocks[i] = 0;
 				}
@@ -1823,12 +1879,24 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 				if(flac_decoder_data->metadata_blocks[i]->type == FLAC__METADATA_TYPE_SEEKTABLE)
 					existing_seektable = true;
 				if(flac_decoder_data->metadata_blocks[i]->type == FLAC__METADATA_TYPE_SEEKTABLE && (e->total_samples_to_encode != flac_decoder_data->metadata_blocks[0]->data.stream_info.total_samples || options.num_requested_seek_points >= 0)) {
-					if(options.num_requested_seek_points > 0)
+					if(options.num_requested_seek_points > 0) {
 						flac__utils_printf(stderr, 1, "%s: WARNING, replacing seektable in input FLAC file with the one given on the command-line\n", e->inbasefilename);
+						if(e->treat_warnings_as_errors) {
+							if(0 != cuesheet)
+								FLAC__metadata_object_delete(cuesheet);
+							return false;
+						}
+					}
 					else if(options.num_requested_seek_points == 0)
 						; /* no warning, silently delete existing SEEKTABLE since user specified --no-seektable (-S-) */
-					else
+					else {
 						flac__utils_printf(stderr, 1, "%s: WARNING, can't use existing seektable in input FLAC since the input size is changing or unknown, dropping existing SEEKTABLE block...\n", e->inbasefilename);
+						if(e->treat_warnings_as_errors) {
+							if(0 != cuesheet)
+								FLAC__metadata_object_delete(cuesheet);
+							return false;
+						}
+					}
 					FLAC__metadata_object_delete(flac_decoder_data->metadata_blocks[i]);
 					flac_decoder_data->metadata_blocks[i] = 0;
 					existing_seektable = false;
@@ -2045,6 +2113,8 @@ FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const b
 	if(e->replay_gain) {
 		if(!grabbag__replaygain_analyze(buffer, e->channels==2, e->bits_per_sample, samples)) {
 			flac__utils_printf(stderr, 1, "%s: WARNING, error while calculating ReplayGain\n", e->inbasefilename);
+			if(e->treat_warnings_as_errors)
+				return false;
 		}
 	}
 
@@ -2088,6 +2158,8 @@ FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int
 	if(has_real_points) {
 		if(e->is_stdout) {
 			flac__utils_printf(stderr, 1, "%s: WARNING, cannot write back seekpoints when encoding to stdout\n", e->inbasefilename);
+			if(e->treat_warnings_as_errors)
+				return false;
 		}
 	}
 
@@ -2412,7 +2484,7 @@ void flac_decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__Strea
 		data->fatal_error = true;
 }
 
-FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
+FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset, FLAC__bool treat_warnings_as_errors)
 {
 	FILE *f;
 	unsigned last_line_read;
@@ -2448,6 +2520,8 @@ FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_
 	/* if we're expecting CDDA, warn about non-compliance */
 	if(is_cdda && !FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/true, &error_message)) {
 		flac__utils_printf(stderr, 1, "%s: WARNING cuesheet \"%s\" is not audio CD compliant: %s\n", inbasefilename, cuesheet_filename, error_message);
+		if(treat_warnings_as_errors)
+			return false;
 		(*cuesheet)->data.cue_sheet.is_cd = false;
 	}
 

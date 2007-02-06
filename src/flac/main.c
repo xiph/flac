@@ -99,22 +99,23 @@ static struct share__option long_options_[] = {
 	/*
 	 * general options
 	 */
-	{ "help"             , share__no_argument, 0, 'h' },
-	{ "explain"          , share__no_argument, 0, 'H' },
-	{ "version"          , share__no_argument, 0, 'v' },
-	{ "decode"           , share__no_argument, 0, 'd' },
-	{ "analyze"          , share__no_argument, 0, 'a' },
-	{ "test"             , share__no_argument, 0, 't' },
-	{ "stdout"           , share__no_argument, 0, 'c' },
-	{ "silent"           , share__no_argument, 0, 's' },
-	{ "totally-silent"   , share__no_argument, 0, 0 },
-	{ "force"            , share__no_argument, 0, 'f' },
-	{ "delete-input-file", share__no_argument, 0, 0 },
-	{ "output-prefix"    , share__required_argument, 0, 0 },
-	{ "output-name"      , share__required_argument, 0, 'o' },
-	{ "skip"             , share__required_argument, 0, 0 },
-	{ "until"            , share__required_argument, 0, 0 },
-	{ "channel-map"      , share__required_argument, 0, 0 }, /* undocumented */
+	{ "help"              , share__no_argument, 0, 'h' },
+	{ "explain"           , share__no_argument, 0, 'H' },
+	{ "version"           , share__no_argument, 0, 'v' },
+	{ "decode"            , share__no_argument, 0, 'd' },
+	{ "analyze"           , share__no_argument, 0, 'a' },
+	{ "test"              , share__no_argument, 0, 't' },
+	{ "stdout"            , share__no_argument, 0, 'c' },
+	{ "silent"            , share__no_argument, 0, 's' },
+	{ "totally-silent"    , share__no_argument, 0, 0 },
+	{ "warnings-as-errors", share__no_argument, 0, 'w' },
+	{ "force"             , share__no_argument, 0, 'f' },
+	{ "delete-input-file" , share__no_argument, 0, 0 },
+	{ "output-prefix"     , share__required_argument, 0, 0 },
+	{ "output-name"       , share__required_argument, 0, 'o' },
+	{ "skip"              , share__required_argument, 0, 0 },
+	{ "until"             , share__required_argument, 0, 0 },
+	{ "channel-map"       , share__required_argument, 0, 0 }, /* undocumented */
 
 	/*
 	 * decoding options
@@ -197,6 +198,7 @@ static struct share__option long_options_[] = {
 	{ "no-qlp-coeff-prec-search"  , share__no_argument, 0, 0 },
 	{ "no-padding"                , share__no_argument, 0, 0 },
 	{ "no-verify"                 , share__no_argument, 0, 0 },
+	{ "no-warnings-as-errors"     , share__no_argument, 0, 0 },
 	{ "no-residual-gnuplot"       , share__no_argument, 0, 0 },
 	{ "no-residual-text"          , share__no_argument, 0, 0 },
 	/*
@@ -220,6 +222,7 @@ static struct {
 	FLAC__bool show_version;
 	FLAC__bool mode_decode;
 	FLAC__bool verify;
+	FLAC__bool treat_warnings_as_errors;
 	FLAC__bool force_file_overwrite;
 	FLAC__bool continue_through_decode_errors;
 	replaygain_synthesis_spec_t replaygain_synthesis_spec;
@@ -501,6 +504,7 @@ FLAC__bool init_options(void)
 	option_values.show_explain = false;
 	option_values.mode_decode = false;
 	option_values.verify = false;
+	option_values.treat_warnings_as_errors = false;
 	option_values.force_file_overwrite = false;
 	option_values.continue_through_decode_errors = false;
 	option_values.replaygain_synthesis_spec.apply = false;
@@ -562,7 +566,7 @@ int parse_options(int argc, char *argv[])
 	int short_option;
 	int option_index = 1;
 	FLAC__bool had_error = false;
-	const char *short_opts = "0123456789aA:b:cdefFhHl:mMo:pP:q:r:sS:tT:vV";
+	const char *short_opts = "0123456789aA:b:cdefFhHl:mMo:pP:q:r:sS:tT:vVw";
 
 	while ((short_option = share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
 		switch (short_option) {
@@ -812,6 +816,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "no-verify")) {
 			option_values.verify = false;
 		}
+		else if(0 == strcmp(long_option, "no-warnings-as-errors")) {
+			option_values.treat_warnings_as_errors = false;
+		}
 		else if(0 == strcmp(long_option, "no-residual-gnuplot")) {
 			option_values.aopts.do_residual_gnuplot = false;
 		}
@@ -886,6 +893,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				return usage_error("ERROR: compression level '9' is reserved\n");
 			case 'V':
 				option_values.verify = true;
+				break;
+			case 'w':
+				option_values.treat_warnings_as_errors = true;
 				break;
 			case 'S':
 				FLAC__ASSERT(0 != option_argument);
@@ -1122,6 +1132,7 @@ void show_help(void)
 	printf("  -c, --stdout                 Write output to stdout\n");
 	printf("  -s, --silent                 Do not write runtime encode/decode statistics\n");
 	printf("      --totally-silent         Do not print anything, including errors\n");
+	printf("  -w, --warnings-as-errors     Treat all warnings as errors\n");
 	printf("  -f, --force                  Force overwriting of output files\n");
 	printf("  -o, --output-name=FILENAME   Force the output file name\n");
 	printf("      --output-prefix=STRING   Prepend STRING to output names\n");
@@ -1196,6 +1207,7 @@ void show_help(void)
 	printf("      --no-silent\n");
 	printf("      --no-force\n");
 	printf("      --no-verify\n");
+	printf("      --no-warnings-as-errors\n");
 }
 
 void show_explain(void)
@@ -1234,6 +1246,7 @@ void show_explain(void)
 	printf("      --totally-silent         Do not print anything of any kind, including\n");
 	printf("                               warnings or errors.  The exit code will be the\n");
 	printf("                               only way to determine successful completion.\n");
+	printf("  -w, --warnings-as-errors     Treat all warnings as errors\n");
 	printf("  -f, --force                  Force overwriting of output files\n");
 	printf("  -o, --output-name=FILENAME   Force the output file name; usually flac just\n");
 	printf("                               changes the extension.  May only be used when\n");
@@ -1330,10 +1343,13 @@ void show_explain(void)
 	printf("                               --no-cued-seekpoints is specified.\n");
 	printf("      --picture=SPECIFICATION  Import a picture and store it in a PICTURE block.\n");
 	printf("                               More than one --picture command can be specified.\n");
-	printf("                               The SPECIFICATION is a string whose parts are\n");
-	printf("                               separated by | characters.  Some parts may be\n");
-	printf("                               left empty to invoke default values.  The format:\n");
-	printf("         [TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE\n");
+	printf("                               The SPECIFICATION can either be a simple filename\n");
+	printf("                               for the picture file, or a complete specification\n");
+	printf("                               whose parts are separated by | characters.  Some\n");
+	printf("                               parts may be left empty to invoke default values.\n");
+	printf("                               Using a filename is shorthand for \"||||FILE\".\n");
+	printf("                               The SPECIFICATION format is:\n");
+	printf("         [TYPE]|[MIME-TYPE]|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE\n");
 	printf("           TYPE is optional; it is a number from one of:\n");
 	printf("              0: Other\n");
 	printf("              1: 32x32 pixels 'file icon' (PNG only)\n");
@@ -1358,10 +1374,11 @@ void show_explain(void)
 	printf("             20: Publisher/Studio logotype\n");
 	printf("             The default is 3 (front cover).  There may only be one picture each\n");
 	printf("             of type 1 and 2 in a file.\n");
-	printf("           MIME-TYPE is mandatory; for best compatibility with players, use\n");
-	printf("             pictures with MIME type image/jpeg or image/png.  The MIME type can\n");
-	printf("             also be --> to mean that FILE is actually a URL to an image, though\n");
-	printf("             this use is discouraged.\n");
+	printf("           MIME-TYPE is optional; if left blank, it will be detected from the\n");
+	printf("             file.  For best compatibility with players, use pictures with MIME\n");
+	printf("             type image/jpeg or image/png.  The MIME type can also be --> to\n");
+	printf("             mean that FILE is actually a URL to an image, though this use is\n");
+	printf("             discouraged.\n");
 	printf("           DESCRIPTION is optional; the default is an empty string\n");
 	printf("           The next part specfies the resolution and color information.  If\n");
 	printf("             the MIME-TYPE is image/jpeg, image/png, or image/gif, you can\n");
@@ -1497,6 +1514,7 @@ void show_explain(void)
 	printf("      --no-silent\n");
 	printf("      --no-force\n");
 	printf("      --no-verify\n");
+	printf("      --no-warnings-as-errors\n");
 }
 
 void format_mistake(const char *infilename, FileFormat wrong, FileFormat right)
@@ -1552,8 +1570,13 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 		/* attempt to guess the file type based on the first 12 bytes */
 		if((lookahead_length = fread(lookahead, 1, 12, encode_infile)) < 12) {
-			if(fmt != RAW)
+			if(fmt != RAW) {
 				format_mistake(infilename, fmt, RAW);
+				if(option_values.treat_warnings_as_errors) {
+					conditional_fclose(encode_infile);
+					return 1;
+				}
+			}
 			fmt= RAW;
 		}
 		else {
@@ -1575,8 +1598,13 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			else if(!memcmp(lookahead, "OggS", 4))
 				fmt= OGGFLAC;
 			else {
-				if(fmt != RAW)
+				if(fmt != RAW) {
 					format_mistake(infilename, fmt, RAW);
+					if(option_values.treat_warnings_as_errors) {
+						conditional_fclose(encode_infile);
+						return 1;
+					}
+				}
 				fmt= RAW;
 			}
 		}
@@ -1669,6 +1697,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		common_options.until_specification.is_relative = true;
 
 	common_options.verify = option_values.verify;
+	common_options.treat_warnings_as_errors = option_values.treat_warnings_as_errors;
 #if FLAC__HAS_OGG
 	common_options.use_ogg = option_values.use_ogg;
 	/* set a random serial number if one has not yet been specified */
@@ -1851,6 +1880,7 @@ int decode_file(const char *infilename)
 	else
 		common_options.has_cue_specification = false;
 
+	common_options.treat_warnings_as_errors = option_values.treat_warnings_as_errors;
 	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
 	common_options.replaygain_synthesis_spec = option_values.replaygain_synthesis_spec;
 #if FLAC__HAS_OGG

@@ -36,6 +36,7 @@ typedef struct {
 } replaygain_synthesis_spec_t;
 
 typedef struct {
+	FLAC__bool treat_warnings_as_errors;
 	FLAC__bool continue_through_decode_errors;
 	replaygain_synthesis_spec_t replaygain_synthesis_spec;
 #if FLAC__HAS_OGG

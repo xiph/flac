@@ -158,6 +158,14 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>-w</option>, <option>--warnings-as-errors</option>
+	  </term>
+	  <listitem>
+	    <para>Treat all warnings as errors (which cause flac to terminate with a non-zero exit code).</para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>-f</option>, <option>--force</option>
 	  </term>
 	  <listitem>
@@ -303,11 +311,11 @@
 	</varlistentry>
 
 	<varlistentry>
-	  <term><option>--picture</option>=<replaceable>SPECIFICATION</replaceable></term>
+	  <term><option>--picture</option>={<replaceable>FILENAME</replaceable>|<replaceable>SPECIFICATION</replaceable>}</term>
 
 	  <listitem>
-	    <para>Import a picture and store it in a PICTURE metadata block.  More than one --picture command can be specified.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  The format of SPECIFICATION is</para>
-	    <para>[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE</para>
+	    <para>Import a picture and store it in a PICTURE metadata block.  More than one --picture command can be specified.  Either a filename for the picture file or a more complete specification form can be used.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  FILENAME is just shorthand for "||||FILENAME".  The format of SPECIFICATION is</para>
+	    <para>[TYPE]|[MIME-TYPE]|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE</para>
 	    <para>TYPE is optional; it is a number from one of:</para>
 	    <para>0: Other</para>
 	    <para>1: 32x32 pixels 'file icon' (PNG only)</para>
@@ -332,7 +340,7 @@
 	    <para>20: Publisher/Studio logotype</para>
 	    <para>The default is 3 (front cover).  There may only be one picture each of type 1 and 2 in a file.</para>
 
-	    <para>MIME-TYPE is mandatory; for best compatibility with players, use pictures with MIME type image/jpeg or image/png.  The MIME type can also be --&gt; to mean that FILE is actually a URL to an image, though this use is discouraged.</para>
+	    <para>MIME-TYPE is optional; if left blank, it will be detected from the file.  For best compatibility with players, use pictures with MIME type image/jpeg or image/png.  The MIME type can also be --&gt; to mean that FILE is actually a URL to an image, though this use is discouraged.</para>
 
 	    <para>DESCRIPTION is optional; the default is an empty string.</para>
 
@@ -656,6 +664,7 @@
 	  <term><option>--no-seektable</option></term>
 	  <term><option>--no-silent</option></term>
 	  <term><option>--no-verify</option></term>
+	  <term><option>--no-warnings-as-errors</option></term>
 	  <listitem>
 	    <para>These flags can be used to invert the sense of the corresponding normal option.</para>
 	  </listitem>

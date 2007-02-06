@@ -49,6 +49,7 @@ typedef struct {
 
 	FLAC__bool is_aiff_out;
 	FLAC__bool is_wave_out;
+	FLAC__bool treat_warnings_as_errors;
 	FLAC__bool continue_through_decode_errors;
 	FLAC__bool channel_map_none;
 
@@ -102,7 +103,7 @@ static FLAC__bool is_big_endian_host_;
 /*
  * local routines
  */
-static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename);
+static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
 static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, decode_options_t decode_options, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
@@ -141,6 +142,7 @@ int flac__decode_aiff(const char *infilename, const char *outfilename, FLAC__boo
 #endif
 			/*is_aiff_out=*/true,
 			/*is_wave_out=*/false,
+			options.common.treat_warnings_as_errors,
 			options.common.continue_through_decode_errors,
 			options.common.channel_map_none,
 			options.common.replaygain_synthesis_spec,
@@ -178,6 +180,7 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 #endif
 			/*is_aiff_out=*/false,
 			/*is_wave_out=*/true,
+			options.common.treat_warnings_as_errors,
 			options.common.continue_through_decode_errors,
 			options.common.channel_map_none,
 			options.common.replaygain_synthesis_spec,
@@ -218,6 +221,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 #endif
 			/*is_aiff_out=*/false,
 			/*is_wave_out=*/false,
+			options.common.treat_warnings_as_errors,
 			options.common.continue_through_decode_errors,
 			options.common.channel_map_none,
 			options.common.replaygain_synthesis_spec,
@@ -241,7 +245,7 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	return DecoderSession_finish_ok(&decoder_session);
 }
 
-FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename)
+FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename)
 {
 #if FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
@@ -251,6 +255,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	d->is_aiff_out = is_aiff_out;
 	d->is_wave_out = is_wave_out;
+	d->treat_warnings_as_errors = treat_warnings_as_errors;
 	d->continue_through_decode_errors = continue_through_decode_errors;
 	d->channel_map_none = channel_map_none;
 	d->replaygain.spec = replaygain_synthesis_spec;
@@ -470,9 +475,11 @@ int DecoderSession_finish_ok(DecoderSession *d)
 	else {
 		if(!d->got_stream_info) {
 			flac__utils_printf(stderr, 1, "\r%s: WARNING, cannot check MD5 signature since there was no STREAMINFO\n", d->inbasefilename);
+			ok = !d->treat_warnings_as_errors;
 		}
 		else if(!d->has_md5sum) {
 			flac__utils_printf(stderr, 1, "\r%s: WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n", d->inbasefilename);
+			ok = !d->treat_warnings_as_errors;
 		}
 		flac__utils_printf(stderr, 2, "\r%s: %s         \n", d->inbasefilename, d->test_only? "ok           ":d->analysis_mode?"done           ":"done");
 	}
@@ -551,6 +558,8 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 			flac__utils_printf(stderr, 1, "%s: WARNING, don't have accurate sample count available for %s header.\n", decoder_session->inbasefilename, fmt_desc);
 			flac__utils_printf(stderr, 1, "             Generated %s file will have a data chunk size of 0.  Try\n", fmt_desc);
 			flac__utils_printf(stderr, 1, "             decoding directly to a file instead.\n");
+			if(decoder_session->treat_warnings_as_errors)
+				return false;
 		}
 		else {
 			decoder_session->iff_headers_need_fixup = true;
@@ -1076,6 +1085,10 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 			double reference, gain, peak;
 			if (!(decoder_session->replaygain.apply = grabbag__replaygain_load_from_vorbiscomment(metadata, decoder_session->replaygain.spec.use_album_gain, /*strict=*/false, &reference, &gain, &peak))) {
 				flac__utils_printf(stderr, 1, "%s: WARNING: can't get %s (or even %s) ReplayGain tags\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track", decoder_session->replaygain.spec.use_album_gain? "track":"album");
+				if(decoder_session->treat_warnings_as_errors) {
+					decoder_session->abort_flag = true;
+					return;
+				}
 			}
 			else {
 				const char *ls[] = { "no", "peak", "hard" };
@@ -1085,6 +1098,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 				FLAC__replaygain_synthesis__init_dither_context(&decoder_session->replaygain.dither_context, decoder_session->bps, decoder_session->replaygain.spec.noise_shaping);
 				flac__utils_printf(stderr, 1, "%s: INFO: applying %s ReplayGain (gain=%0.2fdB+preamp=%0.1fdB, %s noise shaping, %s limiting) to output\n", decoder_session->inbasefilename, decoder_session->replaygain.spec.use_album_gain? "album":"track", gain, decoder_session->replaygain.spec.preamp, ns[decoder_session->replaygain.spec.noise_shaping], ls[decoder_session->replaygain.spec.limiter]);
 				flac__utils_printf(stderr, 1, "%s: WARNING: applying ReplayGain is not lossless\n", decoder_session->inbasefilename);
+				/* don't check if(decoder_session->treat_warnings_as_errors) because the user explicitly asked for it */
 			}
 		}
 		(void)flac__utils_get_channel_mask_tag(metadata, &decoder_session->channel_mask);

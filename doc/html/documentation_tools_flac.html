@@ -212,6 +212,15 @@
 			</tr>
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_warnings_as_errors" />
+					<span class="argument">-w</span>, <span class="argument">--warnings-as-errors</span>
+				</td>
+				<td>
+					Treat all warnings as errors (which cause <span class="commandname">flac</span> to terminate with a non-zero exit code).
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_force" />
 					<span class="argument">-f</span>, <span class="argument">--force</span>
 				</td>
@@ -465,12 +474,12 @@
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_picture" />
-					<span class="argument">--picture=SPECIFICATION</span>
+					<span class="argument">--picture={FILENAME|SPECIFICATION}</span>
 				</td>
 				<td>
-					Import a picture and store it in a <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block.  More than one <span class="argument">--picture</span> command can be specified.  The <span class="argument">SPECIFICATION</span> is a string whose parts are separated by <span class="argument">|</span> (pipe) characters.  Some parts may be left empty to invoke default values.  The format of <span class="argument">SPECIFICATION</span> is<br />
+					Import a picture and store it in a <a href="format.html#def_PICTURE"><span class="code">PICTURE</span></a> metadata block.  More than one <span class="argument">--picture</span> command can be specified.  Either a filename for the picture file or a more complete specification form can be used.  The <span class="argument">SPECIFICATION</span> is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  <span class="argument">FILENAME</span> is just shorthand for <span class="argument">||||FILENAME</span>.  The format of <span class="argument">SPECIFICATION</span> is<br />
 					<br />
-					<tt>&nbsp;&nbsp;[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE</tt><br />
+					<tt>&nbsp;&nbsp;[TYPE]|[MIME-TYPE]|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE</tt><br />
 					<br />
 					<span class="argument">TYPE</span> is optional; it is a number from one of:<br />
 					<ul>
@@ -498,7 +507,7 @@
 					</ul>
 					The default is 3 (front cover).  There may only be one picture each of type 1 and 2 in a file.<br/>
 					<br />
-					<span class="argument">MIME-TYPE</span> is mandatory; for best compatibility with players, use pictures with MIME type <tt>image/jpeg</tt> or <tt>image/png</tt>.  The MIME type can also be --&gt; to mean that <span class="argument">FILE</span> is actually a URL to an image, though this use is discouraged.<br />
+					<span class="argument">MIME-TYPE</span> is optional; if left blank, it will be detected from the file.  For best compatibility with players, use pictures with MIME type <tt>image/jpeg</tt> or <tt>image/png</tt>.  The MIME type can also be --&gt; to mean that <span class="argument">FILE</span> is actually a URL to an image, though this use is discouraged.<br />
 					<br />
 					<span class="argument">DESCRIPTION</span> is optional; the default is an empty string.<br />
 					<br />
@@ -887,6 +896,7 @@
 					<span class="argument">--no-seektable</span><br />
 					<span class="argument">--no-silent</span><br />
 					<span class="argument">--no-verify</span>
+					<span class="argument">--no-warnings-as-errors</span>
 				</td>
 				<td>
 					Can all be used to turn off a particular option.
@@ -972,6 +982,7 @@
 		<a href="#negative_options" /><span class="argument">--no-seektable</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-silent</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-verify</span></a><br />
+		<a href="#negative_options" /><span class="argument">--no-warnings-as-errors</span></a><br />
 		<a href="#flac_options_output_name" /><span class="argument">-o</span></a><br />
 		<a href="#flac_options_ogg" /><span class="argument">--ogg</span></a><br />
 		<a href="#flac_options_output_name" /><span class="argument">--output-name</span></a><br />
@@ -1008,6 +1019,8 @@
 		<a href="#flac_options_verify" /><span class="argument">-V</span></a><br />
 		<a href="#flac_options_version" /><span class="argument">-v</span></a><br />
 		<a href="#flac_options_verify" /><span class="argument">--verify</span></a><br />
+		<a href="#flac_options_warnings_as_errors" /><span class="argument">-w</span></a><br />
+		<a href="#flac_options_warnings_as_errors" /><span class="argument">--warnings-as-errors</span></a><br />
 		<a href="#flac_options_version" /><span class="argument">--version</span></a><br />
 
 	</div>
