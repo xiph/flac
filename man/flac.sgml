@@ -429,7 +429,7 @@
 		<term><option>-0</option>, <option>--compression-level-0</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 0 -b 1152 -r 2,2</para>
+		  <para>Synonymous with -l 0 -b 1152 -r 3</para>
 		</listitem>
 	      </varlistentry>
 
@@ -437,7 +437,7 @@
 		<term><option>-1</option>, <option>--compression-level-1</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 0 -b 1152 -M -r 2,2</para>
+		  <para>Synonymous with -l 0 -b 1152 -M -r 3</para>
 		</listitem>
 	      </varlistentry>
 
@@ -453,7 +453,7 @@
 		<term><option>-3</option>, <option>--compression-level-3</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 6 -b 4608 -r 3,3</para>
+		  <para>Synonymous with -l 6 -b 4608 -r 4</para>
 		</listitem>
 	      </varlistentry>
 
@@ -461,7 +461,7 @@
 		<term><option>-4</option>, <option>--compression-level-4</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 8 -b 4608 -M -r 3,3</para>
+		  <para>Synonymous with -l 8 -b 4608 -M -r 4</para>
 		</listitem>
 	      </varlistentry>
 
@@ -469,7 +469,7 @@
 		<term><option>-5</option>, <option>--compression-level-5</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 8 -b 4608 -m -r 3,3</para>
+		  <para>Synonymous with -l 8 -b 4608 -m -r 5</para>
 		</listitem>
 	      </varlistentry>
 
@@ -477,7 +477,7 @@
 		<term><option>-6</option>, <option>--compression-level-6</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 8 -b 4608 -m -r 4</para>
+		  <para>Synonymous with -l 8 -b 4608 -m -r 6</para>
 		</listitem>
 	      </varlistentry>
 
@@ -566,7 +566,7 @@
 	  <term><option>-r</option> [<replaceable>#</replaceable>,]<replaceable>#</replaceable>, <option>--rice-partition-order</option>=[<replaceable>#</replaceable>,]<replaceable>#</replaceable></term>
 
 	  <listitem>
-	    <para>Set the [min,]max residual partition order (0..16). min defaults to 0 if unspecified.  Default is -r 3,3.</para>
+	    <para>Set the [min,]max residual partition order (0..16). min defaults to 0 if unspecified.  Default is -r 5.</para>
 	  </listitem>
 	</varlistentry>
 

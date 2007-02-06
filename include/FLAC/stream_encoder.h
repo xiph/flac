@@ -842,13 +842,13 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *en
  *  <td>max residual partition order<td>
  *  <td>rice parameter search dist<td>
  * </tr>
- * <tr>  <td><b>0</b><td>  <td>false<td>  <td>false<td>  <td>tukey(0.5)<td>  <td>0<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>2<td>  <td>2<td>  <td>0<td>  </tr>
- * <tr>  <td><b>1</b><td>  <td>true<td>   <td>true<td>   <td>tukey(0.5)<td>  <td>0<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>2<td>  <td>2<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>0</b><td>  <td>false<td>  <td>false<td>  <td>tukey(0.5)<td>  <td>0<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>3<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>1</b><td>  <td>true<td>   <td>true<td>   <td>tukey(0.5)<td>  <td>0<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>3<td>  <td>0<td>  </tr>
  * <tr>  <td><b>2</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>0<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>3<td>  <td>0<td>  </tr>
- * <tr>  <td><b>3</b><td>  <td>false<td>  <td>false<td>  <td>tukey(0.5)<td>  <td>6<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>3<td>  <td>3<td>  <td>0<td>  </tr>
- * <tr>  <td><b>4</b><td>  <td>true<td>   <td>true<td>   <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>3<td>  <td>3<td>  <td>0<td>  </tr>
- * <tr>  <td><b>5</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>3<td>  <td>3<td>  <td>0<td>  </tr>
- * <tr>  <td><b>6</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>4<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>3</b><td>  <td>false<td>  <td>false<td>  <td>tukey(0.5)<td>  <td>6<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>4<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>4</b><td>  <td>true<td>   <td>true<td>   <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>4<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>5</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>5<td>  <td>0<td>  </tr>
+ * <tr>  <td><b>6</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>false<td>  <td>0<td>  <td>6<td>  <td>0<td>  </tr>
  * <tr>  <td><b>7</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>8<td>   <td>0<td>  <td>false<td>  <td>false<td>  <td>true<td>   <td>0<td>  <td>6<td>  <td>0<td>  </tr>
  * <tr>  <td><b>8</b><td>  <td>true<td>   <td>false<td>  <td>tukey(0.5)<td>  <td>12<td>  <td>0<td>  <td>false<td>  <td>false<td>  <td>true<td>   <td>0<td>  <td>6<td>  <td>0<td>  </tr>
  * </table>

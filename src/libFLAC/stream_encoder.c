@@ -126,13 +126,13 @@ static struct CompressionLevels {
 	unsigned max_residual_partition_order;
 	unsigned rice_parameter_search_dist;
 } compression_levels_[] = {
-	{ false, false,  0, 0, false, false, false, 2, 2, 0 },
-	{ true , true ,  0, 0, false, false, false, 2, 2, 0 },
+	{ false, false,  0, 0, false, false, false, 0, 3, 0 },
+	{ true , true ,  0, 0, false, false, false, 0, 3, 0 },
 	{ true , false,  0, 0, false, false, false, 0, 3, 0 },
-	{ false, false,  6, 0, false, false, false, 3, 3, 0 },
-	{ true , true ,  8, 0, false, false, false, 3, 3, 0 },
-	{ true , false,  8, 0, false, false, false, 3, 3, 0 },
-	{ true , false,  8, 0, false, false, false, 0, 4, 0 },
+	{ false, false,  6, 0, false, false, false, 0, 4, 0 },
+	{ true , true ,  8, 0, false, false, false, 0, 4, 0 },
+	{ true , false,  8, 0, false, false, false, 0, 5, 0 },
+	{ true , false,  8, 0, false, false, false, 0, 6, 0 },
 	{ true , false,  8, 0, false, false, true , 0, 6, 0 },
 	{ true , false, 12, 0, false, false, true , 0, 6, 0 }
 };
