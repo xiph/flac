@@ -674,7 +674,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		if(encoder->protected_->max_lpc_order == 0)
 			encoder->protected_->blocksize = 1152;
 		else
-			encoder->protected_->blocksize = 4608;
+			encoder->protected_->blocksize = 4096;
 	}
 
 	if(encoder->protected_->blocksize < FLAC__MIN_BLOCK_SIZE || encoder->protected_->blocksize > FLAC__MAX_BLOCK_SIZE)

@@ -57,7 +57,7 @@
 		<br />
 		This presents a problem when trying to encapsulate FLAC in other true transport layers; the choice has to be made between redundancy and complexity.  In pursuit of correctness, a mapping could be created that removed from native FLAC the transport data, and merged the remaining frame header information into the audio packets.  The disadvantage is that current native FLAC decoder software could not be used to decode because of the tight coupling with the transport.  Either a separate decoding implementation would have to be created and maintained, or an Ogg FLAC decoder would have to synthesize native FLAC frames from Ogg FLAC packets and feed them to a native FLAC decoder.<br />
 		<br />
-		The alternative is to treat native FLAC frames as Ogg packets and accept the transport redundancy.  It turns out that this is not much of a penalty; a maximum of 12 bytes per frame will be wasted.  Given the common case of stereo CD audio encoded with a blocksize of 4608 samples, a compressed frame will be 4-16 Kbytes.  The redundancy amounts to a fraction of a percent.<br />
+		The alternative is to treat native FLAC frames as Ogg packets and accept the transport redundancy.  It turns out that this is not much of a penalty; a maximum of 12 bytes per frame will be wasted.  Given the common case of stereo CD audio encoded with a blocksize of 4096 samples, a compressed frame will be 4-16 Kbytes.  The redundancy amounts to a fraction of a percent.<br />
 		<br />
 		In the interest of simplicity and expediency, the second method was chosen for the first official FLAC-&gt;Ogg mapping.  A mapping version is included in the first packet so that a less redundant mapping can be defined in the future.<br />
 		<br />

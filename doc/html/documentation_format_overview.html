@@ -72,7 +72,7 @@
 		<br />
 		<b>BLOCKING</b><br />
 		<br />
-		The block size is an important parameter to encoding.  If it is too small, the frame overhead will lower the compression.  If it is too large, the modeling stage of the compressor will not be able to generate an efficient model.  Understanding FLAC's modeling will help you to improve compression for some kinds of input by varying the block size.  In the most general case, using linear prediction on 44.1kHz audio, the optimal block size will be between 2-6 ksamples.  <span class="commandname">flac</span> defaults to a block size of 4608 in this case.  Using the fast fixed predictors, a smaller block size is usually preferable because of the smaller frame header.<br />
+		The block size is an important parameter to encoding.  If it is too small, the frame overhead will lower the compression.  If it is too large, the modeling stage of the compressor will not be able to generate an efficient model.  Understanding FLAC's modeling will help you to improve compression for some kinds of input by varying the block size.  In the most general case, using linear prediction on 44.1kHz audio, the optimal block size will be between 2-6 ksamples.  <span class="commandname">flac</span> defaults to a block size of 4096 in this case.  Using the fast fixed predictors, a smaller block size is usually preferable because of the smaller frame header.<br />
 		<br />
 		<b>INTER-CHANNEL DECORRELATION</b><br />
 		<br />

@@ -2965,7 +2965,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		approx_bytes_per_frame = min_blocksize * channels * bps/8 + 64;
 	}
 	else
-		approx_bytes_per_frame = 4608 * channels * bps/8 + 64;
+		approx_bytes_per_frame = 4096 * channels * bps/8 + 64;
 
 	/*
 	 * First, we set an upper and lower bound on where in the

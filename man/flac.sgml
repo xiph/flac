@@ -453,7 +453,7 @@
 		<term><option>-3</option>, <option>--compression-level-3</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 6 -b 4608 -r 4</para>
+		  <para>Synonymous with -l 6 -b 4096 -r 4</para>
 		</listitem>
 	      </varlistentry>
 
@@ -461,7 +461,7 @@
 		<term><option>-4</option>, <option>--compression-level-4</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 8 -b 4608 -M -r 4</para>
+		  <para>Synonymous with -l 8 -b 4096 -M -r 4</para>
 		</listitem>
 	      </varlistentry>
 
@@ -469,7 +469,7 @@
 		<term><option>-5</option>, <option>--compression-level-5</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 8 -b 4608 -m -r 5</para>
+		  <para>Synonymous with -l 8 -b 4096 -m -r 5</para>
 		</listitem>
 	      </varlistentry>
 
@@ -477,7 +477,7 @@
 		<term><option>-6</option>, <option>--compression-level-6</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 8 -b 4608 -m -r 6</para>
+		  <para>Synonymous with -l 8 -b 4096 -m -r 6</para>
 		</listitem>
 	      </varlistentry>
 
@@ -485,7 +485,7 @@
 		<term><option>-7</option>, <option>--compression-level-7</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 8 -b 4608 -m -e -r 6</para>
+		  <para>Synonymous with -l 8 -b 4096 -m -e -r 6</para>
 		</listitem>
 	      </varlistentry>
 
@@ -493,7 +493,7 @@
 		<term><option>-8</option>, <option>--compression-level-8</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 12 -b 4608 -m -e -r 6</para>
+		  <para>Synonymous with -l 12 -b 4096 -m -e -r 6</para>
 		</listitem>
 	      </varlistentry>
 	    </variablelist>
