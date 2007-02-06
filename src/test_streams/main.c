@@ -51,6 +51,17 @@
 static FLAC__bool is_big_endian_host;
 
 
+static FLAC__bool write_little_endian(FILE *f, FLAC__int32 x, size_t bytes)
+{
+	while(bytes) {
+		if(fputc(x, f) == EOF)
+			return false;
+		x >>= 8;
+		bytes--;
+	}
+	return true;
+}
+
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 x)
 {
 	return
@@ -95,6 +106,19 @@ static FLAC__bool write_little_endian_int32(FILE *f, FLAC__int32 x)
 	return write_little_endian_uint32(f, (FLAC__uint32)x);
 }
 #endif
+
+static FLAC__bool write_big_endian(FILE *f, FLAC__int32 x, size_t bytes)
+{
+	if(bytes < 4)
+		x <<= 8*(4-bytes);
+	while(bytes) {
+		if(fputc(x>>24, f) == EOF)
+			return false;
+		x <<= 8;
+		bytes--;
+	}
+	return true;
+}
 
 static FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 x)
 {
@@ -565,13 +589,48 @@ foo:
 	return false;
 }
 
+static FLAC__bool generate_raw(const char *filename, unsigned channels, unsigned bytes_per_sample, unsigned samples)
+{
+	const FLAC__int32 full_scale = (1 << (bytes_per_sample*8-1)) - 1;
+	const double f1 = 441.0, a1 = 0.61, f2 = 661.5, a2 = 0.37;
+	const double delta1 = 2.0 * M_PI / ( 44100.0 / f1);
+	const double delta2 = 2.0 * M_PI / ( 44100.0 / f2);
+	double theta1, theta2;
+	FILE *f;
+	unsigned i, j;
+
+	if(0 == (f = fopen(filename, mode)))
+		return false;
+
+	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
+		for(j = 0; j < channels; j++) {
+			double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
+			FLAC__int32 v = (FLAC__int32)(val + 0.5) + ((GET_RANDOM_BYTE>>4)-8);
+			if(!write_little_endian(f, v, bytes_per_sample))
+				goto foo;
+		}
+	}
+
+	fclose(f);
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
 static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples)
 {
-	const unsigned true_size = channels * ((bps+7)/8) * samples;
+	const unsigned bytes_per_sample = (bps+7)/8;
+	const unsigned true_size = channels * bytes_per_sample * samples;
 	const unsigned padded_size = (true_size + 1) & (~1u);
-	const unsigned shift = 8 - (bps%8);
+	const unsigned shift = (bps%8)? 8 - (bps%8) : 0;
+	const FLAC__int32 full_scale = (1 << (bps-1)) - 1;
+	const double f1 = 441.0, a1 = 0.61, f2 = 661.5, a2 = 0.37;
+	const double delta1 = 2.0 * M_PI / ( sample_rate / f1);
+	const double delta2 = 2.0 * M_PI / ( sample_rate / f2);
+	double theta1, theta2;
 	FILE *f;
-	unsigned i;
+	unsigned i, j;
 
 	if(0 == (f = fopen(filename, mode)))
 		return false;
@@ -596,10 +655,15 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 	if(fwrite("\000\000\000\000\000\000\000\000", 1, 8, f) < 8)
 		goto foo;
 
-	for(i = 0; i < true_size; i++)
-		if(fputc(GET_RANDOM_BYTE<<shift, f) == EOF)
-			goto foo;
-	for( ; i < padded_size; i++)
+	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
+		for(j = 0; j < channels; j++) {
+			double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
+			FLAC__int32 v = ((FLAC__int32)(val + 0.5) + ((GET_RANDOM_BYTE>>4)-8)) << shift;
+			if(!write_big_endian(f, v, bytes_per_sample))
+				goto foo;
+		}
+	}
+	for(i = true_size; i < padded_size; i++)
 		if(fputc(0, f) == EOF)
 			goto foo;
 
@@ -617,11 +681,17 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 	 * (bps%8) allows 24 bps which is technically supposed to be WAVEFORMATEXTENSIBLE but we
 	 * write 24bps as WAVEFORMATEX since it's unambiguous and matches how flac writes it
 	 */
-	const unsigned true_size = channels * ((bps+7)/8) * samples;
+	const unsigned bytes_per_sample = (bps+7)/8;
+	const unsigned true_size = channels * bytes_per_sample * samples;
 	const unsigned padded_size = (true_size + 1) & (~1u);
 	const unsigned shift = (bps%8)? 8 - (bps%8) : 0;
+	const FLAC__int32 full_scale = (1 << (bps-1)) - 1;
+	const double f1 = 441.0, a1 = 0.61, f2 = 661.5, a2 = 0.37;
+	const double delta1 = 2.0 * M_PI / ( sample_rate / f1);
+	const double delta2 = 2.0 * M_PI / ( sample_rate / f2);
+	double theta1, theta2;
 	FILE *f;
-	unsigned i;
+	unsigned i, j;
 
 	if(0 == (f = fopen(filename, mode)))
 		return false;
@@ -639,9 +709,9 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 		goto foo;
 	if(!write_little_endian_uint32(f, sample_rate))
 		goto foo;
-	if(!write_little_endian_uint32(f, sample_rate * channels * ((bps+7)/8)))
+	if(!write_little_endian_uint32(f, sample_rate * channels * bytes_per_sample))
 		goto foo;
-	if(!write_little_endian_uint16(f, (FLAC__uint16)(channels * ((bps+7)/8)))) /* block align */
+	if(!write_little_endian_uint16(f, (FLAC__uint16)(channels * bytes_per_sample))) /* block align */
 		goto foo;
 	if(!write_little_endian_uint16(f, (FLAC__uint16)(bps+shift)))
 		goto foo;
@@ -661,10 +731,15 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 	if(!write_little_endian_uint32(f, true_size))
 		goto foo;
 
-	for(i = 0; i < true_size; i++)
-		if(fputc(GET_RANDOM_BYTE<<shift, f) == EOF)
-			goto foo;
-	for( ; i < padded_size; i++)
+	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
+		for(j = 0; j < channels; j++) {
+			double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
+			FLAC__int32 v = ((FLAC__int32)(val + 0.5) + ((GET_RANDOM_BYTE>>4)-8)) << shift;
+			if(!write_little_endian(f, v, bytes_per_sample))
+				goto foo;
+		}
+	}
+	for(i = true_size; i < padded_size; i++)
 		if(fputc(0, f) == EOF)
 			goto foo;
 
@@ -847,7 +922,7 @@ int main(int argc, char *argv[])
 
 				if(bits_per_sample % 8 == 0) {
 					sprintf(fn, "rt-%u-%u-%u.raw", channels, bits_per_sample, nsamples[samples]);
-					if(!generate_noise(fn, channels * bits_per_sample/8 * nsamples[samples]))
+					if(!generate_raw(fn, channels, bits_per_sample/8, nsamples[samples]))
 						return 1;
 				}
 			}
