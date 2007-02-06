@@ -42,7 +42,7 @@ static FLAC__bool local__parse_type_(const char *s, size_t len, FLAC__StreamMeta
 	size_t i;
 	FLAC__uint32 val = 0;
 
-	picture->type = FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER;;
+	picture->type = FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER;
 
 	if(len == 0)
 		return true; /* empty string implies default to 'front cover' */
@@ -110,6 +110,17 @@ static FLAC__bool local__parse_resolution_(const char *s, size_t len, FLAC__Stre
 		return false;
 
 	return true;
+}
+
+static FLAC__bool local__extract_mime_type_(FLAC__StreamMetadata *obj)
+{
+	if(obj->data.picture.data_length >= 8 && 0 == memcmp(obj->data.picture.data, "\x89PNG\x0d\x0a\x1a\x0a", 8))
+		return FLAC__metadata_object_picture_set_mime_type(obj, "image/png", /*copy=*/true);
+	else if(obj->data.picture.data_length >= 6 && (0 == memcmp(obj->data.picture.data, "GIF87a", 6) || 0 == memcmp(obj->data.picture.data, "GIF89a", 6)))
+		return FLAC__metadata_object_picture_set_mime_type(obj, "image/gif", /*copy=*/true);
+	else if(obj->data.picture.data_length >= 2 && 0 == memcmp(obj->data.picture.data, "\xff\xd8", 2))
+		return FLAC__metadata_object_picture_set_mime_type(obj, "image/jpeg", /*copy=*/true);
+	return false;
 }
 
 static FLAC__bool local__extract_resolution_color_info_(FLAC__StreamMetadata_Picture *picture)
@@ -251,8 +262,6 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 {
 	FLAC__StreamMetadata *obj;
 	int state = 0;
-	const char *p;
-	char *q;
 	static const char *error_messages[] = {
 		"memory allocation error",
 		"invalid picture specification",
@@ -262,7 +271,7 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 		"error opening picture file",
 		"error reading picture file",
 		"invalid picture type",
-		"invalid MIME type",
+		"unable to guess MIME type from file, user must set explicitly",
 		"type 1 icon must be a 32x32 pixel PNG"
 	};
 
@@ -280,42 +289,58 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 	if(0 == (obj = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE)))
 		*error_message = error_messages[0];
 
-	for(p = spec; *error_message==0 && *p; ) {
-		if(*p == '|') {
-			switch(state) {
-				case 0: /* type */
-					if(!local__parse_type_(spec, p-spec, &obj->data.picture))
-						*error_message = error_messages[7];
-					break;
-				case 1: /* mime type */
-					if(p-spec == 0)
-						*error_message = error_messages[8];
-					else if(0 == (q = local__strndup_(spec, p-spec)))
-						*error_message = error_messages[0];
-					else if(!FLAC__metadata_object_picture_set_mime_type(obj, q, /*copy=*/false))
-						*error_message = error_messages[0];
-					break;
-				case 2: /* description */
-					if(0 == (q = local__strndup_(spec, p-spec)))
-						*error_message = error_messages[0];
-					else if(!FLAC__metadata_object_picture_set_description(obj, (FLAC__byte*)q, /*copy=*/false))
-						*error_message = error_messages[0];
-					break;
-				case 3: /* resolution/color (e.g. [300x300x16[/1234]] */
-					if(!local__parse_resolution_(spec, p-spec, &obj->data.picture))
-						*error_message = error_messages[2];
-					break;
-				default:
-					*error_message = error_messages[1];
-					break;
+	if(strchr(spec, '|')) { /* full format */
+		const char *p;
+		char *q;
+		for(p = spec; *error_message==0 && *p; ) {
+			if(*p == '|') {
+				switch(state) {
+					case 0: /* type */
+						if(!local__parse_type_(spec, p-spec, &obj->data.picture))
+							*error_message = error_messages[7];
+						break;
+					case 1: /* mime type */
+						if(p-spec) { /* if blank, we'll try to guess later from the picture data */
+							if(0 == (q = local__strndup_(spec, p-spec)))
+								*error_message = error_messages[0];
+							else if(!FLAC__metadata_object_picture_set_mime_type(obj, q, /*copy=*/false))
+								*error_message = error_messages[0];
+						}
+						break;
+					case 2: /* description */
+						if(0 == (q = local__strndup_(spec, p-spec)))
+							*error_message = error_messages[0];
+						else if(!FLAC__metadata_object_picture_set_description(obj, (FLAC__byte*)q, /*copy=*/false))
+							*error_message = error_messages[0];
+						break;
+					case 3: /* resolution/color (e.g. [300x300x16[/1234]] */
+						if(!local__parse_resolution_(spec, p-spec, &obj->data.picture))
+							*error_message = error_messages[2];
+						break;
+					default:
+						*error_message = error_messages[1];
+						break;
+				}
+				p++;
+				spec = p;
+				state++;
 			}
-			p++;
-			spec = p;
-			state++;
+			else
+				p++;
 		}
-		else
-			p++;
 	}
+	else { /* simple format, filename only, everything else guessed */
+		if(!local__parse_type_("", 0, &obj->data.picture)) /* use default picture type */
+			*error_message = error_messages[7];
+		/* leave MIME type to be filled in later */
+		/* leave description empty */
+		/* leave the rest to be filled in later: */
+		else if(!local__parse_resolution_("", 0, &obj->data.picture))
+			*error_message = error_messages[2];
+		else
+			state = 4;
+	}
+
 	/* parse filename, read file, try to extract resolution/color info if needed */
 	if(*error_message == 0) {
 		if(state != 4)
@@ -346,11 +371,12 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 							if(0 == *error_message) {
 								if(!FLAC__metadata_object_picture_set_data(obj, buffer, size, /*copy=*/false))
 									*error_message = error_messages[6];
+								/* try to extract MIME type if user left it blank */
+								else if(*obj->data.picture.mime_type == '\0' && !local__extract_mime_type_(obj))
+									*error_message = error_messages[8];
 								/* try to extract resolution/color info if user left it blank */
-								else if(obj->data.picture.width == 0 || obj->data.picture.height == 0 || obj->data.picture.depth == 0) {
-									if(!local__extract_resolution_color_info_(&obj->data.picture))
-										*error_message = error_messages[4];
-								}
+								else if((obj->data.picture.width == 0 || obj->data.picture.height == 0 || obj->data.picture.depth == 0) && !local__extract_resolution_color_info_(&obj->data.picture))
+									*error_message = error_messages[4];
 							}
 						}
 					}
