@@ -22,7 +22,7 @@
 
 #include "FLAC/ordinals.h"
 
-void FLAC_plugin__replaygain_get_from_file(const char *filename,
+FLAC__bool FLAC_plugin__replaygain_get_from_file(const char *filename,
                                            double *reference, FLAC__bool *reference_set,
                                            double *track_gain, FLAC__bool *track_gain_set,
                                            double *album_gain, FLAC__bool *album_gain_set,

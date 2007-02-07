@@ -26,19 +26,21 @@
 #include "FLAC/metadata.h"
 #include "share/grabbag.h"
 
-void FLAC_plugin__replaygain_get_from_file(const char *filename,
-                                           double *reference, FLAC__bool *reference_set,
-                                           double *track_gain, FLAC__bool *track_gain_set,
-                                           double *album_gain, FLAC__bool *album_gain_set,
-                                           double *track_peak, FLAC__bool *track_peak_set,
-                                           double *album_peak, FLAC__bool *album_peak_set)
+FLAC__bool FLAC_plugin__replaygain_get_from_file(const char *filename,
+                                                 double *reference, FLAC__bool *reference_set,
+                                                 double *track_gain, FLAC__bool *track_gain_set,
+                                                 double *album_gain, FLAC__bool *album_gain_set,
+                                                 double *track_peak, FLAC__bool *track_peak_set,
+                                                 double *album_peak, FLAC__bool *album_peak_set)
 {
 	FLAC__Metadata_SimpleIterator *iterator = FLAC__metadata_simple_iterator_new();
+	FLAC__bool ret = false;
 
 	*track_gain_set = *album_gain_set = *track_peak_set = *album_peak_set = false;
 
 	if(0 != iterator) {
 		if(FLAC__metadata_simple_iterator_init(iterator, filename, /*read_only=*/true, /*preserve_file_stats=*/true)) {
+			ret = true;
 			FLAC__bool got_vorbis_comments = false;
 			do {
 				if(FLAC__metadata_simple_iterator_get_block_type(iterator) == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
@@ -58,5 +60,5 @@ void FLAC_plugin__replaygain_get_from_file(const char *filename,
 		}
 		FLAC__metadata_simple_iterator_delete(iterator);
 	}
-	return;
+	return ret;
 }
