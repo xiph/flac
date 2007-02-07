@@ -40,8 +40,8 @@ FLAC__bool FLAC_plugin__replaygain_get_from_file(const char *filename,
 
 	if(0 != iterator) {
 		if(FLAC__metadata_simple_iterator_init(iterator, filename, /*read_only=*/true, /*preserve_file_stats=*/true)) {
-			ret = true;
 			FLAC__bool got_vorbis_comments = false;
+			ret = true;
 			do {
 				if(FLAC__metadata_simple_iterator_get_block_type(iterator) == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 					FLAC__StreamMetadata *block = FLAC__metadata_simple_iterator_get_block(iterator);
