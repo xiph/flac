@@ -76,8 +76,12 @@ SUBDIRS = $(ARCH_SUBDIRS) include .
 m4datadir = $(datadir)/aclocal
 m4data_DATA = libFLAC.m4
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = flac.pc
+
 EXTRA_DIST = \
 	Makefile.lite \
+	flac.pc.in \
 	libFLAC_dynamic.dsp \
 	libFLAC_static.dsp \
 	libFLAC.m4

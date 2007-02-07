@@ -285,6 +285,7 @@ AC_CONFIG_FILES([ \
 	Makefile \
 	src/Makefile \
 	src/libFLAC/Makefile \
+	src/libFLAC/flac.pc \
 	src/libFLAC/ia32/Makefile \
 	src/libFLAC/ppc/Makefile \
 	src/libFLAC/ppc/as/Makefile \
@@ -293,6 +294,7 @@ AC_CONFIG_FILES([ \
 	src/libFLAC/include/private/Makefile \
 	src/libFLAC/include/protected/Makefile \
 	src/libFLAC++/Makefile \
+	src/libFLAC++/flac++.pc \
 	src/flac/Makefile \
 	src/metaflac/Makefile \
 	src/monkeys_audio_utilities/Makefile \
