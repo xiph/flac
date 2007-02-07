@@ -45,7 +45,7 @@
  *	FLAC__lpc_window_data()
  *	--------------------------------------------------------------------
  *	Applies the given window to the data.
- *  @@@ asm optimize
+ *  OPT: asm implementation
  *
  *	IN in[0,data_len-1]
  *	IN window[0,data_len-1]
