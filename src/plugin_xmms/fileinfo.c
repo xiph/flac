@@ -253,14 +253,15 @@ static void show_replaygain(void)
 	double reference, track_gain, track_peak, album_gain, album_peak;
 	FLAC__bool reference_set, track_gain_set, track_peak_set, album_gain_set, album_peak_set;
 
-	FLAC_plugin__replaygain_get_from_file(
+	if(!FLAC_plugin__replaygain_get_from_file(
 		current_filename,
 		&reference, &reference_set,
 		&track_gain, &track_gain_set,
 		&album_gain, &album_gain_set,
 		&track_peak, &track_peak_set,
 		&album_peak, &album_peak_set
-	);
+	))
+		return;
 
 	if(reference_set)
 		  label_set_text(replaygain_reference, _("ReplayGain Reference Loudness: %2.1f dB"), reference);
