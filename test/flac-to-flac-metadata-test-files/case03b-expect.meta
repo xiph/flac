@@ -47,7 +47,7 @@ METADATA block #2
   length: 180
   seek points: 10
     point 0: sample_number=0
-    point 1: sample_number=4608
+    point 1: sample_number=4096
     point 2: PLACEHOLDER
     point 3: PLACEHOLDER
     point 4: PLACEHOLDER
