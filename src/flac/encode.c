@@ -1763,7 +1763,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			 * we keep the existing one.  also need to make sure to
 			 * propagate any channel mask tag.
 			 */
-			/* @@@@@@ change to append -T values from options.vorbis_comment if input has VC already */
+			/* @@@ change to append -T values from options.vorbis_comment if input has VC already? */
 			size_t i, j;
 			FLAC__bool vc_found = false;
 			for(i = 0, j = 0; i < flac_decoder_data->num_metadata_blocks; i++) {
