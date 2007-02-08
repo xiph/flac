@@ -51,7 +51,7 @@
 	<div class="box_body">
 		Many lossless comparisons look at only compression ratio and speed.  FLAC decoding is the fastest among lossless codecs.  Its compression is average but the compression ratios of all lossless codecs fall in a quite narrow range.  The difference between the very best and very worst is only around 7%, and only 4% for the practical codecs.<br />
 		<br />
-		So the evaluation of lossless codecs typically depends mainly on other features, which is what our first table shows; features like how well it is supported in devices and software, license costs, etc.  Additionally, as archiving is one of the main applications for a lossless codec, of chief importance is the ability to use and recover data in the future.  FLAC stands out as the most widely supported codec, and the only codec that at once is non-proprietary, is unencumbered by patents, has an open-source reference implementation, has a well documented format, and has several other independent implementations.<br />
+		So the evaluation of lossless codecs typically depends mainly on other features, which is what our first table shows; features like how well it is supported in devices and software, license costs, etc.  Additionally, as archiving is one of the main applications for a lossless codec, of chief importance is the ability to use and recover data in the future.  FLAC stands out as the most widely supported codec, and the only codec that at once is non-proprietary, is unencumbered by patents, has an open-source reference implementation, has a well documented format and API, and has several other independent implementations.<br />
 		<br />
 		The rest of the tables show in detail the compression ratios and speed of the codecs in different modes.  FLAC's high decoding speed is due to very low complexity and is instrumental to its support by dozens of consumer electronic devices.  Its compression ratio is also within a 3% of even the most complex codecs.<br />
 		<br />
@@ -127,7 +127,7 @@
 					NONE
 				</td>
 				<td>
-					Linux, Windows, Mac OS&nbsp;X, *BSD, Solaris, OS/2, BeOS, Amiga&nbsp;OS, others
+					Linux, Windows, Mac&nbsp;OS&nbsp;X, *BSD, Solaris, OS/2, BeOS, Amiga&nbsp;OS, others
 				</td>
 			</tr>
 			<tr>
@@ -141,13 +141,13 @@
 					YES (Winamp, foobar2000, dBpowerAMP, <a href="http://wiki.hydrogenaudio.org/index.php?title=WavPack#Players">more</a>)
 				</td>
 				<td bgcolor="#D4D4C0">
-					maybe (only some portables via <a href="http://www.rockbox.org/">Rockbox</a> firmware replacement)
+					maybe (some portables via <a href="http://www.rockbox.org/">Rockbox</a> firmware replacement)
 				</td>
 				<td>
 					NONE
 				</td>
 				<td>
-					Linux, Windows, Mac OS&nbsp;X
+					Linux, Windows, Mac&nbsp;OS&nbsp;X
 				</td>
 			</tr>
 			<tr>
@@ -161,13 +161,13 @@
 					YES (Winamp, XMMS)
 				</td>
 				<td bgcolor="#D4D4C0">
-					maybe (only some portables via <a href="http://www.rockbox.org/">Rockbox</a> firmware replacement)
+					maybe (some portables via <a href="http://www.rockbox.org/">Rockbox</a> firmware replacement)
 				</td>
 				<td bgcolor="#BCBCAC">
 					non-<br />commercial only
 				</td>
 				<td>
-					Linux, Windows, Mac OS 9, Mac OS&nbsp;X, *BSD, Solaris, others
+					Linux, Windows, Mac&nbsp;OS&nbsp;9, Mac&nbsp;OS&nbsp;X, *BSD, Solaris, others
 				</td>
 			</tr>
 			<tr>
@@ -207,7 +207,7 @@
 					unavailable
 				</td>
 				<td bgcolor="#BCBCAC">
-					Windows, Mac OS&nbsp;X
+					Windows, Mac&nbsp;OS&nbsp;X
 				</td>
 			</tr>
 			<tr>
@@ -252,7 +252,7 @@
 			</tr>
 			<tr>
 				<td align="right" bgcolor="#F4F4CC">
-					La 0.3c
+					optimFROG 4.21
 				</td>
 				<td bgcolor="#BCBCAC">
 					no
@@ -272,7 +272,7 @@
 			</tr>
 			<tr>
 				<td align="right" bgcolor="#F4F4CC">
-					optimFROG 4.21
+					La 0.3c
 				</td>
 				<td bgcolor="#BCBCAC">
 					no
@@ -349,23 +349,22 @@
 				</td>
 			</tr>
 			<!-- bgcolor="#D4D4C0" -->
-			<tr><td>La 0.3c</td><td>151:13.16</td><td>145:49.78</td><td>375.76 MB</td><td>0.4814</td><td>0.4986</td></tr>
-			<tr bgcolor="#D4D4C0"><td>Tak 1.0 (normal)</td><td>12:04.81</td><td>7:02.42</td><td>391.16 MB</td><td>0.5011</td><td>0.5138</td></tr>
-			<tr><td>Monkey's Audio 3.99 (high)</td><td>15:45.41</td><td>16:48.03</td><td>389.83 MB</td><td>0.4994</td><td>0.5153</td></tr>
-			<tr bgcolor="#D4D4C0"><td>optimFROG 4.21 (mode 0 @ 4x)</td><td>16:34.96</td><td>17:57.28</td><td>394.69 MB</td><td>0.5056</td><td>0.5223</td></tr>
-			<tr><td>Tak 1.0 (turbo)</td><td>7:40.54</td><td>6:47.04</td><td>399.97 MB</td><td>0.5124</td><td>0.5271</td></tr>
-			<tr bgcolor="#D4D4C0"><td>WavPack 4.40 (high)</td><td>13:17.48</td><td>10:08.22</td><td>399.90 MB</td><td>0.5123</td><td>0.5273</td></tr>
-			<tr><td>Monkey's Audio 3.99 (fast)</td><td>10:32.11</td><td>11:49.46</td><td>400.57 MB</td><td>0.5132</td><td>0.5311</td></tr>
-			<tr bgcolor="#D4D4C0"><td>WavPack 4.40 (normal)</td><td>10:30.58</td><td>8:11.92</td><td>405.84 MB</td><td>0.5199</td><td>0.5355</td></tr>
+			<tr><td>Tak 1.0 (normal)</td><td>12:04.81</td><td>7:02.42</td><td>391.16 MB</td><td>0.5011</td><td>0.5138</td></tr>
+			<tr bgcolor="#D4D4C0"><td>Monkey's Audio 3.99 (high)</td><td>15:45.41</td><td>16:48.03</td><td>389.83 MB</td><td>0.4994</td><td>0.5153</td></tr>
+			<tr><td>optimFROG 4.21 (mode 0 @ 4x)</td><td>16:34.96</td><td>17:57.28</td><td>394.69 MB</td><td>0.5056</td><td>0.5223</td></tr>
+			<tr bgcolor="#D4D4C0"><td>Tak 1.0 (turbo)</td><td>7:40.54</td><td>6:47.04</td><td>399.97 MB</td><td>0.5124</td><td>0.5271</td></tr>
+			<tr><td>WavPack 4.40 (high)</td><td>13:17.48</td><td>10:08.22</td><td>399.90 MB</td><td>0.5123</td><td>0.5273</td></tr>
+			<tr bgcolor="#D4D4C0"><td>Monkey's Audio 3.99 (fast)</td><td>10:32.11</td><td>11:49.46</td><td>400.57 MB</td><td>0.5132</td><td>0.5311</td></tr>
+			<tr><td>WavPack 4.40 (normal)</td><td>10:30.58</td><td>8:11.92</td><td>405.84 MB</td><td>0.5199</td><td>0.5355</td></tr>
 			<tr bgcolor="#FFFFFF"><td>flac 1.1.4 (-5, default)</td><td>11:38.36</td><td>6:42.27</td><td>406.25 MB</td><td>0.5205</td><td>0.5367</td></tr>
-			<tr bgcolor="#D4D4C0"><td>flac 1.1.4 (-3)</td><td>8:41.63</td><td>6:43.16</td><td>412.42 MB</td><td>0.5284</td><td>0.5457</td></tr>
-			<tr><td>WavPack 4.40 (fast)</td><td>9:16.21</td><td>7:19.30</td><td>415.05 MB</td><td>0.5317</td><td>0.5491</td></tr>
-			<tr bgcolor="#D4D4C0"><td>Apple Lossless</td><td>19:53.27</td><td>10:01.86</td><td>414.45 MB</td><td>0.5310</td><td>0.5496</td></tr>
-			<tr><td>Bonk 0.5</td><td>36:56.36</td><td>27:09.35</td><td>418.65 MB</td><td>0.5364</td><td>0.5543</td></tr>
-			<tr bgcolor="#D4D4C0"><td>flac 1.1.4 (-1)</td><td>7:23.26</td><td>6:44.92</td><td>431.72 MB</td><td>0.5531</td><td>0.5697</td></tr>
-			<tr><td>Ogg Squish 0.98</td><td>?</td><td>?</td><td>431.08 MB</td><td>0.5522</td><td>0.5714</td></tr>
-			<tr bgcolor="#D4D4C0"><td>Shorten 3.2a (-p0 -b256, default)</td><td>9:44.48</td><td>6:31.74</td><td>433.56 MB</td><td>0.5555</td><td>0.5729</td></tr>
-			<tr><td>RIFF WAVE</td><td>77:19.89</td><td>77:19.89</td><td>780.56 MB</td><td>1.0000</td><td>1.0000</td></tr>
+			<tr><td>flac 1.1.4 (-3)</td><td>8:41.63</td><td>6:43.16</td><td>412.42 MB</td><td>0.5284</td><td>0.5457</td></tr>
+			<tr bgcolor="#D4D4C0"><td>WavPack 4.40 (fast)</td><td>9:16.21</td><td>7:19.30</td><td>415.05 MB</td><td>0.5317</td><td>0.5491</td></tr>
+			<tr><td>Apple Lossless</td><td>19:53.27</td><td>10:01.86</td><td>414.45 MB</td><td>0.5310</td><td>0.5496</td></tr>
+			<tr bgcolor="#D4D4C0"><td>Bonk 0.5</td><td>36:56.36</td><td>27:09.35</td><td>418.65 MB</td><td>0.5364</td><td>0.5543</td></tr>
+			<tr><td>flac 1.1.4 (-1)</td><td>7:23.26</td><td>6:44.92</td><td>431.72 MB</td><td>0.5531</td><td>0.5697</td></tr>
+			<tr bgcolor="#D4D4C0"><td>Ogg Squish 0.98</td><td>?</td><td>?</td><td>431.08 MB</td><td>0.5522</td><td>0.5714</td></tr>
+			<tr><td>Shorten 3.2a (-p0 -b256, default)</td><td>9:44.48</td><td>6:31.74</td><td>433.56 MB</td><td>0.5555</td><td>0.5729</td></tr>
+			<tr bgcolor="#D4D4C0"><td>RIFF WAVE</td><td>77:19.89</td><td>77:19.89</td><td>780.56 MB</td><td>1.0000</td><td>1.0000</td></tr>
 		</table>
 		</td></tr></table>
 		<br />
@@ -905,7 +904,7 @@
 		</td></tr></table>
 
 		<br />
-		<a name"alternate_links"></a>Some alternate lossless audio codec comparisons:
+		<a name="alternate_links"></a>Some alternate lossless audio codec comparisons:
 		<ul>
 			<li><a href="http://web.inter.nl.net/users/hvdh/lossless/lossless.htm">Hans Heijden's</a> lossless comparison</li>
 			<li><a href="http://www.synthetic-soul.co.uk/comparison/lossless/">Synthetic Soul</a> lossless comparison</li>

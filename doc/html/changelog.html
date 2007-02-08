@@ -62,7 +62,7 @@
 				General:
 				<ul>
 					<li>Improved compression with no impact on format or decoding speed.</li>
-					<li>Encoding and decoding speedups across the board.  Encoding at -8 is twice as fast.</li>
+					<li>Encoding and decoding speedups for all modes.  Encoding at -8 is twice as fast.</li>
 				</ul>
 			</li>
 			<li>
@@ -81,20 +81,19 @@
 				flac:
 				<ul>
 					<li>Improved compression with no impact on format or decoding speed.</li>
-					<li>Encoding and decoding speedups across the board.  Encoding at -8 is twice as fast.</li>
+					<li>Encoding and decoding speedups for all modes.  Encoding at -8 is twice as fast.</li>
 					<li>Added a new option <span class="argument"><a href="documentation_tools_flac.html#flac_options_warnings_as_errors">-w,--warnings-as-errors</a></span> for treating all warnings as errors.</li>
 					<li>Allow <span class="argument"><a href="documentation_tools_flac.html#flac_options_picture">--picture</a></span> option to take only a filename, and have all other attributes extracted from the file itself.</li>
 					<li>Fixed a bug that caused suboptimal default compression settings in some locales (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1608883&amp;group_id=13478&amp;atid=113478">SF #1608883</a>).</li>
 					<li>Fixed a bug where FLAC-to-FLAC transcoding of a corrupted FLAC file would truncate the transcoded file at the first error (<a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=1615019&amp;group_id=13478&amp;atid=113478">SF #1615019</a>).</li>
 					<li>Fixed a bug where using <span class="argument"><a href="documentation_tools_flac.html#flac_options_decode_through_errors">-F</a></span> with FLAC-to-FLAC transcoding of a corrupted FLAC would have no effect (<a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=1615391&amp;group_id=13478&amp;atid=113478">SF #1615391</a>).</li>
-					<li>Fixed a bug where for new PICTURE metadata blocks specified with <span class="argument"><a href="documentation_tools_flac.html#flac_options_picture">--picture</a></span> would not be transferred during FLAC-to-FLAC transcoding (<a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1627993&group_id=13478&atid=113478">SF #1627993</a>).</li>
+					<li>Fixed a bug where new PICTURE metadata blocks specified with <span class="argument"><a href="documentation_tools_flac.html#flac_options_picture">--picture</a></span> would not be transferred during FLAC-to-FLAC transcoding (<a href="https://sourceforge.net/tracker/index.php?func=detail&aid=1627993&group_id=13478&atid=113478">SF #1627993</a>).</li>
 				</ul>
 			</li>
 			<li>
 				metaflac:
 				<ul>
 					<li>Allow <span class="argument"><a href="documentation_tools_metaflac.html#metaflac_shorthand_import_picture_from">--import-picture-from</a></span> option to take only a filename, and have all other attributes extracted from the file itself.</li>
-					<li>(none)</li>
 				</ul>
 			</li>
 			<li>
@@ -107,30 +106,26 @@
 				build system:
 				<ul>
 					<li>Fixed a makefile linkage bug with libogg (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1611414&amp;group_id=13478&amp;atid=113478">SF #1611414</a>).</li>
-					<li>Added pgk-config files for libFLAC and libFLAC++ (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1647881&amp;group_id=13478&amp;atid=313478">SF #1647881</a>).</li>
+					<li>Added pkg-config files for libFLAC and libFLAC++ (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1647881&amp;group_id=13478&amp;atid=313478">SF #1647881</a>).</li>
 				</ul>
 			</li>
 			<li>
 				libraries:
 				<ul>
-					<li>Completely rewritten bitbuffer which uses native machine word size instead of bytes for dramatic speed improvements.  The speedup should be most dramatic on CPUs with slower byte manipulation capability.</li>
+					<li>Completely rewritten bitbuffer which uses native machine word size instead of bytes for dramatic speed improvements.  The speedup should be most dramatic on CPUs with slower byte manipulation capability and big-endian machines.</li>
 					<li>Much faster Rice partition size estimation which greatly speeds encoding in higher modes.</li>
+					<li>Increased compression for all modes.</li>
+					<li>Reduced memory requirements for encoder and decoder.</li>
 					<li>Fixed a bug with default apodization settings that were erroneous in some locales (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1608883&amp;group_id=13478&amp;atid=113478">SF #1608883</a>).</li>
 				</ul>
 			</li>
 			<li>
-				Interface changes (see also the <a href="http://flac.sourceforge.net/api/group__porting__1__1__3__to__1__1__4.html">porting guide</a> for specific instructions on porting to FLAC 1.1.4):
+				Interface changes:
 				<ul>
-					<li>
-						all libraries;
-						<ul>
-							<li>(none)</li>
-						</ul>
-					</li>
 					<li>
 						libFLAC:
 						<ul>
-							<li>FLAC__stream_encoder_set_metadata() now makes a copy of the "metadata" array of pointers (but not copies of the objects themselves) so the client does not need to maintain its copy of the array after the call.</li>
+							<li>(behavior only) FLAC__stream_encoder_set_metadata() now makes a copy of the "metadata" array of pointers (but not copies of the objects themselves) so the client does not need to maintain its copy of the array after the call.</li>
 						</ul>
 					</li>
 					<li>
