@@ -274,9 +274,6 @@ FLAC__bool FLAC__bitwriter_get_buffer(FLAC__BitWriter *bw, const FLAC__byte **bu
 		return false;
 	/* if we have bits in the accumulator we have to flush those to the buffer first */
 	if(bw->bits) {
-#ifdef DEBUG
-if(bw->words == bw->capacity)fprintf(stderr,"@@@@@@ DEBUG:resizing in FLAC__bitwriter_get_buffer()\n");
-#endif
 		FLAC__ASSERT(bw->words <= bw->capacity);
 		if(bw->words == bw->capacity && !bitwriter_grow_(bw, FLAC__BITS_PER_WORD))
 			return false;
@@ -366,9 +363,6 @@ FLaC__INLINE FLAC__bool FLAC__bitwriter_write_raw_uint32(FLAC__BitWriter *bw, FL
 		bw->accum = val;
 	}
 	else {
-#ifdef DEBUG
-if(bits!=left)fprintf(stderr,"@@@@@@ bitwriter error2 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n");
-#endif
 		bw->accum = val;
 		bw->bits = 0;
 		bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(val);
