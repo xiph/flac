@@ -196,16 +196,16 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 		FLAC__int32 q;
 		for(i = 0; i < order; i++) {
 			error += lp_coeff[i] * (1 << *shift);
-#if defined _MSC_VER
+#if 1 /* unfortunately lround() is C99 */
 			if(error >= 0.0)
 				q = (FLAC__int32)(error + 0.5);
 			else
 				q = (FLAC__int32)(error - 0.5);
 #else
-			q = lround(error); /* round() is also suitable */
+			q = lround(error);
 #endif
 #ifdef FLAC__OVERFLOW_DETECT
-			if(q > qmax+1) /* we expect q==qmax+1 occasionally due to lround() */
+			if(q > qmax+1) /* we expect q==qmax+1 occasionally due to rounding */
 				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q>qmax %d>%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmax,*shift,cmax,precision+1,i,lp_coeff[i]);
 			else if(q < qmin)
 				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q<qmin %d<%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmin,*shift,cmax,precision+1,i,lp_coeff[i]);
@@ -231,16 +231,16 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 #endif
 		for(i = 0; i < order; i++) {
 			error += lp_coeff[i] / (1 << nshift);
-#if defined _MSC_VER
+#if 1 /* unfortunately lround() is C99 */
 			if(error >= 0.0)
 				q = (FLAC__int32)(error + 0.5);
 			else
 				q = (FLAC__int32)(error - 0.5);
 #else
-			q = lround(error); /* round() is also suitable */
+			q = lround(error);
 #endif
 #ifdef FLAC__OVERFLOW_DETECT
-			if(q > qmax+1) /* we expect q==qmax+1 occasionally due to lround() */
+			if(q > qmax+1) /* we expect q==qmax+1 occasionally due to rounding */
 				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q>qmax %d>%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmax,*shift,cmax,precision+1,i,lp_coeff[i]);
 			else if(q < qmin)
 				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q<qmin %d<%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmin,*shift,cmax,precision+1,i,lp_coeff[i]);
