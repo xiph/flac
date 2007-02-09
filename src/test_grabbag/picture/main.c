@@ -64,15 +64,22 @@ static FLAC__bool failed_(const char *msg)
     return false;
 }
 
-static FLAC__bool test_one_picture(const char *prefix, const PictureFile *pf, const char *res)
+static FLAC__bool test_one_picture(const char *prefix, const PictureFile *pf, const char *res, FLAC__bool fn_only)
 {
 	FLAC__StreamMetadata *obj;
 	const char *error;
 	char s[4096];
+	if(fn_only)
 #if defined _MSC_VER || defined __MINGW32__
-	_snprintf(s, sizeof(s)-1, "%u|%s|%s|%s|%s/%s", (unsigned)pf->type, pf->mime_type, pf->description, res, prefix, pf->path);
+		_snprintf(s, sizeof(s)-1, "%s/%s", prefix, pf->path);
 #else
-	snprintf(s, sizeof(s)-1, "%u|%s|%s|%s|%s/%s", (unsigned)pf->type, pf->mime_type, pf->description, res, prefix, pf->path);
+		snprintf(s, sizeof(s)-1, "%s/%s", prefix, pf->path);
+#endif
+	else
+#if defined _MSC_VER || defined __MINGW32__
+		_snprintf(s, sizeof(s)-1, "%u|%s|%s|%s|%s/%s", (unsigned)pf->type, pf->mime_type, pf->description, res, prefix, pf->path);
+#else
+		snprintf(s, sizeof(s)-1, "%u|%s|%s|%s|%s/%s", (unsigned)pf->type, pf->mime_type, pf->description, res, prefix, pf->path);
 #endif
 
 	printf("testing grabbag__picture_parse_specification(\"%s\")... ", s);
@@ -92,7 +99,7 @@ static FLAC__bool test_one_picture(const char *prefix, const PictureFile *pf, co
 			obj->data.picture.data_length
 		);
 	}
-	if(obj->data.picture.type != pf->type)
+	if(obj->data.picture.type != (fn_only? FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER : pf->type))
 		return failed_("picture type mismatch");
 	if(strcmp(obj->data.picture.mime_type, pf->mime_type))
 		return failed_("picture MIME type mismatch");
@@ -179,16 +186,21 @@ static FLAC__bool do_picture(const char *prefix)
 	printf("OK\n");
 	FLAC__metadata_object_delete(obj);
 
+	/* test automatic parsing of picture files from only the file name */
+	for(i = 0; i < sizeof(picturefiles)/sizeof(picturefiles[0]); i++)
+		if(!test_one_picture(prefix, picturefiles+i, "", /*fn_only=*/true))
+			return false;
+
 	/* test automatic parsing of picture files to get resolution/color info */
 	for(i = 0; i < sizeof(picturefiles)/sizeof(picturefiles[0]); i++)
-		if(!test_one_picture(prefix, picturefiles+i, ""))
+		if(!test_one_picture(prefix, picturefiles+i, "", /*fn_only=*/false))
 			return false;
 
 	picturefiles[0].width = 320;
 	picturefiles[0].height = 240;
 	picturefiles[0].depth = 3;
 	picturefiles[0].colors = 2;
-	if(!test_one_picture(prefix, picturefiles+0, "320x240x3/2"))
+	if(!test_one_picture(prefix, picturefiles+0, "320x240x3/2", /*fn_only=*/false))
 		return false;
 
 	return true;
