@@ -98,7 +98,9 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 	 * We need to save the old locale and switch to "C" because the locale
 	 * influences the formatting of %f and we want it a certain way.
 	 */
-	saved_locale = setlocale(LC_ALL, 0);
+	saved_locale = strdup(setlocale(LC_ALL, 0));
+	if (0 == saved_locale)
+		return false;
 	setlocale(LC_ALL, "C");
 #if defined _MSC_VER || defined __MINGW32__
 	_snprintf(buffer, sizeof(buffer)-1, format, name, value);
@@ -106,6 +108,7 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 	snprintf(buffer, sizeof(buffer)-1, format, name, value);
 #endif
 	setlocale(LC_ALL, saved_locale);
+	free(saved_locale);
 
 	entry.entry = (FLAC__byte *)buffer;
 	entry.length = strlen(buffer);
