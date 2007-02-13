@@ -304,6 +304,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 			return die_s_("FLAC__stream_decoder_finish() FAILED", decoder);
 	}
 
+	FLAC__stream_decoder_delete(decoder);
 	printf("\nPASSED!\n");
 
 	return true;

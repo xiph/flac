@@ -600,6 +600,8 @@ static bool generate_file_(bool include_extras, bool is_ogg)
 		return die_("creating the encoded file");
 
 	free(vorbiscomment.data.vorbis_comment.vendor_string.entry);
+	free(picture.data.picture.mime_type);
+	free(picture.data.picture.description);
 	free(picture.data.picture.data);
 
 	return true;

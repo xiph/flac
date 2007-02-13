@@ -1500,7 +1500,7 @@ int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, co
 
 		/* (channel mask will get copied over from the source VORBIS_COMMENT if it exists) */
 		if(!EncoderSession_init_encoder(&encoder_session, options.common, /*channel_mask=*/0, decoder_data.metadata_blocks[0]->data.stream_info.channels, decoder_data.metadata_blocks[0]->data.stream_info.bits_per_sample, decoder_data.metadata_blocks[0]->data.stream_info.sample_rate, &decoder_data))
-			return EncoderSession_finish_error(&encoder_session);
+			goto fubar2; /*@@@ yuck */
 
 		/*
 		 * have to wait until the FLAC encoder is set up for writing
@@ -1542,12 +1542,12 @@ int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, co
 	retval = EncoderSession_finish_ok(&encoder_session, -1, -1);
 	/* have to wail until encoder is completely finished before deleting because of the final step of writing the seekpoint offsets */
 	for(i = 0; i < decoder_data.num_metadata_blocks; i++)
-		free(decoder_data.metadata_blocks[i]);
+		FLAC__metadata_object_delete(decoder_data.metadata_blocks[i]);
 	return retval;
 
 fubar2:
 	for(i = 0; i < decoder_data.num_metadata_blocks; i++)
-		free(decoder_data.metadata_blocks[i]);
+		FLAC__metadata_object_delete(decoder_data.metadata_blocks[i]);
 fubar1:
 	FLAC__stream_decoder_delete(decoder);
 	return EncoderSession_finish_error(&encoder_session);

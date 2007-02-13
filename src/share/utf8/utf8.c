@@ -231,23 +231,17 @@ int iconvert(const char *fromcode, const char *tocode,
 	     const char *from, size_t fromlen,
 	     char **to, size_t *tolen);
 
-static char *current_charset = 0; /* means "US-ASCII" */
-
-void convert_set_charset(const char *charset)
+static const char *current_charset(void)
 {
-
+  const char *c = 0;
 #ifdef HAVE_LANGINFO_CODESET
-  if (!charset)
-    charset = nl_langinfo(CODESET);
+  c = nl_langinfo(CODESET);
 #endif
 
-  if (!charset)
-    charset = getenv("CHARSET");
+  if (!c)
+    c = getenv("CHARSET");
 
-  free(current_charset);
-  current_charset = 0;
-  if (charset && *charset)
-    current_charset = strdup(charset);
+  return c? c : "US-ASCII";
 }
 
 static int convert_buffer(const char *fromcode, const char *tocode,
@@ -300,20 +294,14 @@ int utf8_encode(const char *from, char **to)
 {
   char *charset;
 
-  if (!current_charset)
-    convert_set_charset(0);
-  charset = current_charset ? current_charset : "US-ASCII";
-  return convert_string(charset, "UTF-8", from, to, '#');
+  return convert_string(current_charset(), "UTF-8", from, to, '#');
 }
 
 int utf8_decode(const char *from, char **to)
 {
   char *charset;
 
-  if (!current_charset)
-    convert_set_charset(0);
-  charset = current_charset ? current_charset : "US-ASCII";
-  return convert_string("UTF-8", charset, from, to, '?');
+  return convert_string("UTF-8", current_charset(), from, to, '?');
 }
 
 #endif

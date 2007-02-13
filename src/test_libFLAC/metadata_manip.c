@@ -610,6 +610,10 @@ static FLAC__bool generate_file_(FLAC__bool include_extras, FLAC__bool is_ogg)
 
 	free(vorbiscomment.data.vorbis_comment.vendor_string.entry);
 	free(picture.data.picture.mime_type);
+	free(picture.data.picture.description);
+	free(picture.data.picture.data);
+	if(!include_extras)
+		FLAC__metadata_object_delete(cuesheet);
 
 	return true;
 }
