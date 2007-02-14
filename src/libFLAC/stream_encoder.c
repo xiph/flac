@@ -93,8 +93,6 @@
  */
 #undef ENABLE_RICE_PARAMETER_SEARCH 
 
-/*@@@@@@ for 1.1.4-alpha1*/
-#define FLAC__MANDATORY_VERIFY_WHILE_ENCODING
 
 typedef struct {
 	FLAC__int32 *data[FLAC__MAX_CHANNELS];
