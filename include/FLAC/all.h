@@ -315,6 +315,21 @@
  * is now \c size_t instead of \c unsigned.
  */
 
+/** \defgroup porting_1_1_3_to_1_1_4 Porting from FLAC 1.1.3 to 1.1.4
+ *  \ingroup porting
+ *
+ *  \brief
+ *  This module describes porting from FLAC 1.1.3 to FLAC 1.1.4.
+ *
+ * There were no changes to any of the interfaces from 1.1.3 to 1.1.4.
+ * There was a slight change in the implementation of
+ * FLAC__stream_encoder_set_metadata(); the function now makes a copy
+ * of the \a metadata array of pointers so the client no longer needs
+ * to maintain it after the call.  The objects themselves that are
+ * pointed to by the array are still not copied though and must be
+ * maintained until the call to FLAC__stream_encoder_finish().
+ */
+
 /** \defgroup flac FLAC C API
  *
  * The FLAC C API is the interface to libFLAC, a set of structures
