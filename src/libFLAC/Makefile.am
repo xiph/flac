@@ -94,7 +94,7 @@ extra_ogg_sources = \
 	ogg_mapping.c
 endif
 # see 'http://www.gnu.org/software/libtool/manual.html#Libtool-versioning' for numbering convention
-libFLAC_la_LDFLAGS = -version-info 8:0:0 -lm $(LOCAL_EXTRA_LDFLAGS)
+libFLAC_la_LDFLAGS = -version-info 8:1:0 -lm $(LOCAL_EXTRA_LDFLAGS)
 libFLAC_la_SOURCES = \
 	bitmath.c \
 	bitreader.c \

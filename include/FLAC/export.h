@@ -68,7 +68,7 @@
  * http://www.gnu.org/software/libtool/manual.html#Libtool-versioning
  */
 #define FLAC_API_VERSION_CURRENT 8
-#define FLAC_API_VERSION_REVISION 0 /**< see above */
+#define FLAC_API_VERSION_REVISION 1 /**< see above */
 #define FLAC_API_VERSION_AGE 0 /**< see above */
 
 #ifdef __cplusplus
