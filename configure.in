@@ -19,7 +19,7 @@
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_INIT(src/flac/main.c)
-AM_INIT_AUTOMAKE(flac, 1.1.4-alpha1)
+AM_INIT_AUTOMAKE(flac, 1.1.4)
 
 # Don't automagically regenerate autoconf/automake generated files unless
 # explicitly requested.  Eases autobuilding -mdz
