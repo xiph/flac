@@ -21,7 +21,7 @@ SUBDIRS = ru images
 
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/html
 
-doc_DATA =  \
+doc_DATA = \
 	changelog.html \
 	comparison.html \
 	developers.html \
