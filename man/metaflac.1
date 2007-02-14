@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "METAFLAC" "1" "17 November 2006" "" ""
+.TH "METAFLAC" "1" "12 February 2007" "" ""
 
 .SH NAME
 metaflac \- program to list, add, remove, or edit metadata in one or more FLAC files.
@@ -119,10 +119,10 @@ Export CUESHEET block to a cuesheet file, suitable for use by
 CD authoring software.  Use '-' for stdout.  Only one FLAC file
 may be specified on the command line.
 .TP
-\fB--import-picture-from=\fISPECIFICATION\fB\fR
-Import a picture and store it in a PICTURE metadata block.  More than one --import-picture-from command can be specified.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  The format of SPECIFICATION is
+\fB--import-picture-from={\fIFILENAME\fB|\fISPECIFICATION\fB}\fR
+Import a picture and store it in a PICTURE metadata block.  More than one --import-picture-from command can be specified.  Either a filename for the picture file or a more complete specification form can be used.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  FILENAME is just shorthand for "||||FILENAME".  The format of SPECIFICATION is
 
-[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE
+[TYPE]|[MIME-TYPE]|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE
 
 TYPE is optional; it is a number from one of:
 
@@ -170,7 +170,7 @@ TYPE is optional; it is a number from one of:
 
 The default is 3 (front cover).  There may only be one picture each of type 1 and 2 in a file.
 
-MIME-TYPE is mandatory; for best compatibility with players, use pictures with MIME type image/jpeg or image/png.  The MIME type can also be --> to mean that FILE is actually a URL to an image, though this use is discouraged.
+MIME-TYPE is optional; if left blank, it will be detected from the file.  For best compatibility with players, use pictures with MIME type image/jpeg or image/png.  The MIME type can also be --> to mean that FILE is actually a URL to an image, though this use is discouraged.
 
 DESCRIPTION is optional; the default is an empty string.
 

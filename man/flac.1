@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "17 November 2006" "" ""
+.TH "FLAC" "1" "12 February 2007" "" ""
 
 .SH NAME
 flac \- Free Lossless Audio Codec
@@ -49,6 +49,9 @@ Silent mode (do not write runtime encode/decode statistics to stderr)
 .TP
 \fB--totally-silent \fR
 Do not print anything of any kind, including warnings or errors.  The exit code will be the only way to determine successful completion.
+.TP
+\fB-w, --warnings-as-errors \fR
+Treat all warnings as errors (which cause flac to terminate with a non-zero exit code).
 .TP
 \fB-f, --force \fR
 Force overwriting of output files.  By default, flac warns that the output file already exists and continues to the next file.
@@ -103,10 +106,10 @@ Calculate ReplayGain values and store them as FLAC tags, similar to vorbisgain. 
 \fB--cuesheet=\fIfilename\fB\fR
 Import the given cuesheet file and store it in a CUESHEET metadata block.  This option may only be used when encoding a single file.  A seekpoint will be added for each index point in the cuesheet to the SEEKTABLE unless --no-cued-seekpoints is specified.
 .TP
-\fB--picture=\fISPECIFICATION\fB\fR
-Import a picture and store it in a PICTURE metadata block.  More than one --picture command can be specified.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  The format of SPECIFICATION is
+\fB--picture={\fIFILENAME\fB|\fISPECIFICATION\fB}\fR
+Import a picture and store it in a PICTURE metadata block.  More than one --picture command can be specified.  Either a filename for the picture file or a more complete specification form can be used.  The SPECIFICATION is a string whose parts are separated by | (pipe) characters.  Some parts may be left empty to invoke default values.  FILENAME is just shorthand for "||||FILENAME".  The format of SPECIFICATION is
 
-[TYPE]|MIME-TYPE|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE
+[TYPE]|[MIME-TYPE]|[DESCRIPTION]|[WIDTHxHEIGHTxDEPTH[/COLORS]]|FILE
 
 TYPE is optional; it is a number from one of:
 
@@ -154,7 +157,7 @@ TYPE is optional; it is a number from one of:
 
 The default is 3 (front cover).  There may only be one picture each of type 1 and 2 in a file.
 
-MIME-TYPE is mandatory; for best compatibility with players, use pictures with MIME type image/jpeg or image/png.  The MIME type can also be --> to mean that FILE is actually a URL to an image, though this use is discouraged.
+MIME-TYPE is optional; if left blank, it will be detected from the file.  For best compatibility with players, use pictures with MIME type image/jpeg or image/png.  The MIME type can also be --> to mean that FILE is actually a URL to an image, though this use is discouraged.
 
 DESCRIPTION is optional; the default is an empty string.
 
@@ -195,31 +198,31 @@ Fastest compression..highest compression (default is -5).  These are synonyms fo
 .RS
 .TP
 \fB-0, --compression-level-0\fR
-Synonymous with -l 0 -b 1152 -r 2,2
+Synonymous with -l 0 -b 1152 -r 3
 .TP
 \fB-1, --compression-level-1\fR
-Synonymous with -l 0 -b 1152 -M -r 2,2
+Synonymous with -l 0 -b 1152 -M -r 3
 .TP
 \fB-2, --compression-level-2\fR
 Synonymous with -l 0 -b 1152 -m -r 3
 .TP
 \fB-3, --compression-level-3\fR
-Synonymous with -l 6 -b 4608 -r 3,3
+Synonymous with -l 6 -b 4096 -r 4
 .TP
 \fB-4, --compression-level-4\fR
-Synonymous with -l 8 -b 4608 -M -r 3,3
+Synonymous with -l 8 -b 4096 -M -r 4
 .TP
 \fB-5, --compression-level-5\fR
-Synonymous with -l 8 -b 4608 -m -r 3,3
+Synonymous with -l 8 -b 4096 -m -r 5
 .TP
 \fB-6, --compression-level-6\fR
-Synonymous with -l 8 -b 4608 -m -r 4
+Synonymous with -l 8 -b 4096 -m -r 6
 .TP
 \fB-7, --compression-level-7\fR
-Synonymous with -l 8 -b 4608 -m -e -r 6
+Synonymous with -l 8 -b 4096 -m -e -r 6
 .TP
 \fB-8, --compression-level-8\fR
-Synonymous with -l 12 -b 4608 -m -e -r 6
+Synonymous with -l 12 -b 4096 -m -e -r 6
 .RE
 .TP
 \fB--fast\fR
@@ -252,7 +255,7 @@ Do exhaustive search of LP coefficient quantization (expensive!).  Overrides -q;
 Precision of the quantized linear-predictor coefficients, 0 => let encoder decide (min is 5, default is 0)
 .TP
 \fB-r [\fI#\fB,]\fI#\fB, --rice-partition-order=[\fI#\fB,]\fI#\fB\fR
-Set the [min,]max residual partition order (0..16). min defaults to 0 if unspecified.  Default is -r 3,3.
+Set the [min,]max residual partition order (0..16). min defaults to 0 if unspecified.  Default is -r 5.
 .SS "FORMAT OPTIONS"
 .TP
 \fB--endian={\fIbig\fB|\fIlittle\fB}\fR
@@ -309,6 +312,8 @@ Force input (when encoding) or output (when decoding) to be treated as raw sampl
 \fB--no-silent\fR
 .TP
 \fB--no-verify\fR
+.TP
+\fB--no-warnings-as-errors\fR
 These flags can be used to invert the sense of the corresponding normal option.
 .SH "SEE ALSO"
 .PP
