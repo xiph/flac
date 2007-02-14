@@ -25,7 +25,7 @@ LIB_NAME  = libxmms-flac
 INCLUDES  = $(shell xmms-config --cflags) -I./include -I$(topdir)/include -I..
 # refer to the static libs explicitly
 ifeq ($(DARWIN_BUILD),yes)
-LIBS = $(topdir)/obj/$(BUILD)/lib/libFLAC.a $(topdir)/obj/$(BUILD)/lib/libplugin_common.a $(topdir)/obj/$(BUILD)/lib/libgrabbag.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_analysis.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_synthesis.a $(OGG_LIB_DIR)/libogg.a -L$(ICONV_LIB_DIR) -liconv -lstdc++ -lz
+LIBS = $(topdir)/obj/$(BUILD)/lib/libFLAC.a $(topdir)/obj/$(BUILD)/lib/libplugin_common.a $(topdir)/obj/$(BUILD)/lib/libgrabbag.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_analysis.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_synthesis.a $(OGG_LIB_DIR)/libogg.a -liconv -lstdc++ -lz
 else
 LIBS = $(topdir)/obj/$(BUILD)/lib/libFLAC.a $(topdir)/obj/$(BUILD)/lib/libplugin_common.a $(topdir)/obj/$(BUILD)/lib/libgrabbag.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_analysis.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_synthesis.a -L$(OGG_LIB_DIR) -logg -lstdc++ -lz
 endif
