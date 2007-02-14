@@ -61,7 +61,7 @@
 			<li>
 				General:
 				<ul>
-					<li>Improved compression with no impact on format or decoding speed.</li>
+					<li>Improved compression with no change to format or decrease in speed.</li>
 					<li>Encoding and decoding speedups for all modes.  Encoding at -8 is twice as fast.</li>
 				</ul>
 			</li>
@@ -80,7 +80,7 @@
 			<li>
 				flac:
 				<ul>
-					<li>Improved compression with no impact on format or decoding speed.</li>
+					<li>Improved compression with no change to format or decrease in speed.</li>
 					<li>Encoding and decoding speedups for all modes.  Encoding at -8 is twice as fast.</li>
 					<li>Added a new option <span class="argument"><a href="documentation_tools_flac.html#flac_options_warnings_as_errors">-w,--warnings-as-errors</a></span> for treating all warnings as errors.</li>
 					<li>Allow <span class="argument"><a href="documentation_tools_flac.html#flac_options_picture">--picture</a></span> option to take only a filename, and have all other attributes extracted from the file itself.</li>
@@ -126,7 +126,7 @@
 					<li>
 						libFLAC:
 						<ul>
-							<li>(behavior only) FLAC__stream_encoder_set_metadata() now makes a copy of the "metadata" array of pointers (but not copies of the objects themselves) so the client does not need to maintain its copy of the array after the call.</li>
+							<li>(behavior only) FLAC__stream_encoder_set_metadata() now makes a copy of the "metadata" array of pointers (but still not copies of the objects themselves) so the client does not need to maintain its copy of the array after the call.</li>
 						</ul>
 					</li>
 					<li>
