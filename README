@@ -167,8 +167,10 @@ not an x86, change -DFLAC__CPU_IA32 to -DFLAC__CPU_UNKNOWN.
 Building with MSVC
 ===============================================================================
 
-There are now .dsp projects and a master FLAC.dsw workspace to build
-all the libraries and executables.
+There are .dsp projects and a master FLAC.dsw workspace to build all
+the libraries and executables with MSVC6.  There are also .vcproj
+projects and a master FLAC.sln solution to build all the libraries and
+executables with VC++ 2005.
 
 Prerequisite: you must have the Ogg libraries installed as described
 later.
@@ -177,13 +179,21 @@ Prerequisite: you must have nasm installed, and nasmw.exe must be in
 your PATH, or the path to nasmw.exe must be added to the list of
 directories for executable files in the MSVC global options.
 
+MSVC6:
 To build everything, run Developer Studio, do File|Open Workspace,
 and open FLAC.dsw.  Select "Build | Set active configuration..."
 from the menu, then in the dialog, select "All - Win32 Release" (or
-Debug if you prefer).  Click "Ok" then hit F7 to build. This will build
-all libraries both statically (e.g. obj\release\lib\libFLAC_static.lib)
-and as DLLs (e.g.  obj\release\bin\libFLAC.dll), and it will build all
-binaries, statically linked (e.g. obj\release\bin\flac.exe).
+Debug if you prefer).  Click "Ok" then hit F7 to build.
+
+VC++ 2005:
+To build everything, run Visual Studio, do File|Open and open FLAC.sln.
+From the dropdown in the toolbar, select "Release" instead of "Debug",
+then hit F7 to build.
+
+Either way, this will build all libraries both statically (e.g.
+obj\release\lib\libFLAC_static.lib) and as DLLs (e.g.
+obj\release\lib\libFLAC.dll), and it will build all binaries, statically
+linked (e.g. obj\release\bin\flac.exe).
 
 Everything will end up in the "obj" directory.  DLLs and .exe files
 are all that are needed and can be copied to an installation area and
@@ -197,6 +207,9 @@ build win32\ogg_static.dsp), copy ogg_static.lib into FLAC's
 'obj\release\lib' directory, and copy the entire include\ogg tree into
 FLAC's 'include' directory (so that there is an 'ogg' directory in FLAC's
 'include' directory with the files ogg.h, os_types.h and config_types.h).
+
+If you want to build without Ogg support, instead edit all .dsp or
+.vcproj files and remove any occurrences of "/D FLAC__HAS_OGG".
 
 
 ===============================================================================
