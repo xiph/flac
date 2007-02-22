@@ -9,7 +9,11 @@ typedef unsigned int UINT;
 #endif
 
 #ifdef TAGZ_UNICODE
+#if _MSC_VER <= 1200
 typedef unsigned short T_CHAR;
+#else
+typedef wchar_t T_CHAR;
+#endif
 #else
 #define T_CHAR char
 #endif
