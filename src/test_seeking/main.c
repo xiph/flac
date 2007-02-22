@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
 		srandom(tv.tv_usec);
 	}
 #else
-	srand(time(0));
+	srand((unsigned)time(0));
 #endif
 
 	filesize = get_filesize_(filename);

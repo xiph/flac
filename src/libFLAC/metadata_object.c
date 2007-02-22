@@ -1238,7 +1238,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__St
 
 	{
 		int i;
-		unsigned field_name_length;
+		size_t field_name_length;
 		const FLAC__byte *eq = (FLAC__byte*)memchr(entry.entry, '=', entry.length);
 
 		FLAC__ASSERT(0 != eq);

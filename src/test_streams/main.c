@@ -815,7 +815,7 @@ int main(int argc, char *argv[])
 		srandom(tv.tv_usec);
 	}
 #else
-	srand(time(0));
+	srand((unsigned)time(0));
 #endif
 
 	if(!generate_01()) return 1;

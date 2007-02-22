@@ -339,7 +339,7 @@ namespace FLAC {
 		void StreamInfo::set_total_samples(FLAC__uint64 value)
 		{
 			FLAC__ASSERT(is_valid());
-			FLAC__ASSERT(value < (1u << FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN));
+			FLAC__ASSERT(value < (((FLAC__uint64)1) << FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN));
 			object_->data.stream_info.total_samples = value;
 		}
 
@@ -738,7 +738,7 @@ namespace FLAC {
 			if(0 == p)
 				p = (const char *)entry_.entry + entry_.length;
 
-			field_name_length_ = p - (const char *)entry_.entry;
+			field_name_length_ = (unsigned)(p - (const char *)entry_.entry);
 			if(0 == (field_name_ = (char *)malloc(field_name_length_ + 1))) { // +1 for the trailing \0
 				is_valid_ = false;
 				return;

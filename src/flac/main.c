@@ -292,7 +292,7 @@ int main(int argc, char *argv[])
 	_wildcard(&argc, &argv);
 #endif
 
-	srand(time(0));
+	srand((unsigned)time(0));
 	setlocale(LC_ALL, "");
 	if(!init_options()) {
 		flac__utils_printf(stderr, 1, "ERROR: allocating memory\n");
