@@ -2634,6 +2634,9 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, un
 	/* decode the subframe */
 	if(do_full_decode) {
 		memcpy(decoder->private_->output[channel], subframe->warmup, sizeof(FLAC__int32) * order);
+		/*@@@@@@ technically not pessimistic enough, should be more like
+		if( (FLAC__uint64)order * ((((FLAC__uint64)1)<<bps)-1) * ((1<<subframe->qlp_coeff_precision)-1) < (((FLAC__uint64)-1) << 32) )
+		*/
 		if(bps + subframe->qlp_coeff_precision + FLAC__bitmath_ilog2(order) <= 32)
 			if(bps <= 16 && subframe->qlp_coeff_precision <= 16) {
 				if(order <= 8)

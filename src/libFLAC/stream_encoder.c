@@ -4042,6 +4042,7 @@ void precompute_partition_info_escapes_(
 			rmax = 0;
 			for(partition_sample = 0; partition_sample < partition_samples; partition_sample++) {
 				r = residual[residual_sample++];
+				/* OPT: maybe faster: rmax |= r ^ (r>>31) */
 				if(r < 0)
 					rmax |= ~r;
 				else
