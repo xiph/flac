@@ -3980,7 +3980,7 @@ void precompute_partition_info_sums_(
 				partition_samples -= predictor_order;
 			abs_residual_partition_sum = 0;
 			for(partition_sample = 0; partition_sample < partition_samples; partition_sample++, residual_sample++) {
-#if defined _MSC_VER && _MSC_VER <= 1200
+#if defined _MSC_VER
 				/* OPT: abs() may be faster for some compilers */
 				abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
 #else
