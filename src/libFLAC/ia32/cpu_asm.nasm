@@ -34,7 +34,6 @@
 
 cglobal FLAC__cpu_info_asm_ia32
 cglobal FLAC__cpu_info_extended_amd_asm_ia32
-cglobal FLAC__cpu_info_sse_test_asm_ia32
 
 	code_section
 
@@ -92,10 +91,6 @@ cident FLAC__cpu_info_extended_amd_asm_ia32
 .end
 	pop	ebx
 	ret
-
-cident FLAC__cpu_info_sse_test_asm_ia32
-	xorps	xmm0, xmm0
-	pop	ebx
 
 end
 
