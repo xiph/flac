@@ -115,7 +115,7 @@ const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX = 0x00400000;
  *   6 bytes extra in case our estimate is wrong
  * 12 bytes puts us in the NOP "landing zone"
  */
-#  define USE_OBSOLETE_SIGCONTEXT_FLAVOR /*@@@@@@ #define this to use the older signal handler method */
+#  undef USE_OBSOLETE_SIGCONTEXT_FLAVOR /* #define this to use the older signal handler method */
 #  ifdef USE_OBSOLETE_SIGCONTEXT_FLAVOR
 	static void sigill_handler_sse_os(int signal, struct sigcontext sc)
 	{
@@ -132,7 +132,7 @@ const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX = 0x00400000;
 #  endif
 # elif defined(_MSC_VER)
 #  include <windows.h>
-#  define USE_TRY_CATCH_FLAVOR /*@@@@@@ #define this to use the try/catch method for catching illegal opcode exception */
+#  undef USE_TRY_CATCH_FLAVOR /* #define this to use the try/catch method for catching illegal opcode exception */
 #  ifdef USE_TRY_CATCH_FLAVOR
 #  else
 	LONG CALLBACK sigill_handler_sse_os(EXCEPTION_POINTERS *ep)
@@ -247,7 +247,16 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #elif defined(_MSC_VER)
 # ifdef USE_TRY_CATCH_FLAVOR
 			_try {
-				__asm xorps xmm0,xmm0
+				__asm {
+#  if _MSC_VER <= 1200
+					/* VC6 assembler doesn't know SSE, have to emit bytecode instead */
+					_emit 0x0F
+					_emit 0x57
+					_emit 0xC0
+#  else
+					xorps xmm0,xmm0
+#  endif
+				}
 			}
 			_except(EXCEPTION_EXECUTE_HANDLER) {
 				if (_exception_code() == STATUS_ILLEGAL_INSTRUCTION)
@@ -262,7 +271,14 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			//@@@@@@ http://www.codeproject.com/cpp/gccasm.asp
 			//@@@@@@ http://www.hick.org/~mmiller/msvc_inline_asm.html
 			__asm {
+#  if _MSC_VER <= 1200
+				/* VC6 assembler doesn't know SSE, have to emit bytecode instead */
+				_emit 0x0F
+				_emit 0x57
+				_emit 0xC0
+#  else
 				xorps xmm0,xmm0
+#  endif
 				inc sse
 				nop
 				nop
