@@ -923,7 +923,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #  ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #   ifdef FLAC__HAS_NASM
-#    ifdef FLAC__SSE_OS
 		if(encoder->private_->cpuinfo.data.ia32.sse) {
 			if(encoder->protected_->max_lpc_order < 4)
 				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4;
@@ -934,9 +933,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			else
 				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32;
 		}
-		else
-#    endif /* FLAC__SSE_OS */
-		if(encoder->private_->cpuinfo.data.ia32._3dnow)
+		else if(encoder->private_->cpuinfo.data.ia32._3dnow)
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow;
 		else
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32;
