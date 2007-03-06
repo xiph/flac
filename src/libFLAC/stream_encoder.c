@@ -4099,7 +4099,7 @@ static __inline unsigned count_rice_bits_in_partition_(
 		)
 		- (partition_samples >> 1)
 		/* -(partition_samples>>1) to subtract out extra contributions to the abs_residual_partition_sum.
-		 * The actual number of bits used is closer to the sum for all i in the partition of  abs(residual[i])>>(rice_parameter-1)
+		 * The actual number of bits used is closer to the sum(for all i in the partition) of  abs(residual[i])>>(rice_parameter-1)
 		 * By using the abs_residual_partition sum, we also add in bits in the LSBs that would normally be shifted out.
 		 * So the subtraction term tries to guess how many extra bits were contributed.
 		 * If the LSBs are randomly distributed, this should average to 0.5 extra bits per sample.
