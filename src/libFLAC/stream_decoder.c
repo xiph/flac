@@ -2141,6 +2141,19 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 	 * Note that along the way as we read the header, we look for a sync
 	 * code inside.  If we find one it would indicate that our original
 	 * sync was bad since there cannot be a sync code in a valid header.
+	 *
+	 * Three kinds of things can go wrong when reading the frame header:
+	 *  1) We may have sync'ed incorrectly and not landed on a frame header.
+	 *     If we don't find a sync code, it can end up looking like we read
+	 *     a valid but unparseable header, until getting to the frame header
+	 *     CRC.  Even then we could get a false positive on the CRC.
+	 *  2) We may have sync'ed correctly but on an unparseable frame (from a
+	 *     future encoder).
+	 *  3) We may be on a damaged frame which appears valid but unparseable.
+	 *
+	 * For all these reasons, we try and read a complete frame header as
+	 * long as it seems valid, even if unparseable, up until the frame
+	 * header CRC.
 	 */
 
 	/*
