@@ -267,7 +267,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			LPTOP_LEVEL_EXCEPTION_FILTER save = SetUnhandledExceptionFilter(sigill_handler_sse_os);
 			/* see GCC version above for explanation */
 			//@@@@@@ http://msdn2.microsoft.com/en-us/library/4ks26t93.aspx
-			//@@@@@@ http://www.daniweb.com/techtalkforums/thread8072.html
 			//@@@@@@ http://www.codeproject.com/cpp/gccasm.asp
 			//@@@@@@ http://www.hick.org/~mmiller/msvc_inline_asm.html
 			__asm {
@@ -293,7 +292,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			SetUnhandledExceptionFilter(save);
 			if(!sse)
 				info->data.ia32.fxsr = info->data.ia32.sse = info->data.ia32.sse2 = false;
-fprintf(stderr,"\n@@@@@@ SSE OS=%d %d\n",sse?1:0,sse);
 # endif
 #else
 			/* no way to test, disable to be safe */
