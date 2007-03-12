@@ -44,10 +44,8 @@
 #include "replaygain_synthesis.h"
 #include "FLAC/assert.h"
 
-#if defined _MSC_VER
-#define FLAC__INLINE __inline
-#else
-#define FLAC__INLINE
+#ifndef FLaC__INLINE
+#define FLaC__INLINE
 #endif
 
 /* adjust for compilers that can't understand using LL suffix for int64_t literals */
@@ -238,7 +236,7 @@ void FLAC__replaygain_synthesis__init_dither_context(DitherContext *d, int bits,
  * the following is based on parts of wavegain.c
  */
 
-static FLAC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_dithering, int shapingtype, int i, double Sum, int k)
+static FLaC__INLINE FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_dithering, int shapingtype, int i, double Sum, int k)
 {
 	union {
 		double d;

@@ -28,8 +28,12 @@
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
 
+#ifndef FLaC__INLINE
+#define FLaC__INLINE
+#endif
 
-static __inline unsigned local__wide_strlen(const FLAC__uint16 *s)
+
+static FLaC__INLINE unsigned local__wide_strlen(const FLAC__uint16 *s)
 {
 	unsigned n = 0;
 	while(*s++)
@@ -43,7 +47,7 @@ static __inline unsigned local__wide_strlen(const FLAC__uint16 *s)
  * and a more clear explanation at the end of this section:
  *   http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
  */
-static __inline unsigned local__utf8len(const FLAC__byte *utf8)
+static FLaC__INLINE unsigned local__utf8len(const FLAC__byte *utf8)
 {
 	FLAC__ASSERT(0 != utf8);
 	if ((utf8[0] & 0x80) == 0) {
@@ -85,7 +89,7 @@ static __inline unsigned local__utf8len(const FLAC__byte *utf8)
 }
 
 
-static __inline unsigned local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__uint16 *ucs2)
+static FLaC__INLINE unsigned local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__uint16 *ucs2)
 {
 	const unsigned len = local__utf8len(utf8);
 
@@ -140,7 +144,7 @@ static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, unsigned lengt
 	return out;
 }
 
-static __inline unsigned local__ucs2len(FLAC__uint16 ucs2)
+static FLaC__INLINE unsigned local__ucs2len(FLAC__uint16 ucs2)
 {
 	if (ucs2 < 0x0080)
 		return 1;
@@ -150,7 +154,7 @@ static __inline unsigned local__ucs2len(FLAC__uint16 ucs2)
 		return 3;
 }
 
-static __inline unsigned local__ucs2_to_utf8(FLAC__uint16 ucs2, FLAC__byte *utf8)
+static FLaC__INLINE unsigned local__ucs2_to_utf8(FLAC__uint16 ucs2, FLAC__byte *utf8)
 {
 	if (ucs2 < 0x080) {
 		utf8[0] = (FLAC__byte)ucs2;

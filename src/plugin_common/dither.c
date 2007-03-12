@@ -32,19 +32,17 @@
 #endif
 #define max(a,b) ((a)>(b)?(a):(b))
 
-
-#if defined _MSC_VER
-#define FLAC__INLINE __inline
-#else
-#define FLAC__INLINE
+#ifndef FLaC__INLINE
+#define FLaC__INLINE
 #endif
+
 
 /* 32-bit pseudo-random number generator
  *
  * @@@ According to Miroslav, this one is poor quality, the one from the
  * @@@ original replaygain code is much better
  */
-static FLAC__INLINE FLAC__uint32 prng(FLAC__uint32 state)
+static FLaC__INLINE FLAC__uint32 prng(FLAC__uint32 state)
 {
 	return (state * 0x0019660dL + 0x3c6ef35fL) & 0xffffffffL;
 }
@@ -56,7 +54,7 @@ typedef struct {
 	FLAC__int32 random;
 } dither_state;
 
-static FLAC__INLINE FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
+static FLaC__INLINE FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
 {
 	unsigned scalebits;
 	FLAC__int32 output, mask, random;
