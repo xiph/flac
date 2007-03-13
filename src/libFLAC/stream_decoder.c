@@ -442,7 +442,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 
 	/* from here on, errors are fatal */
 
-	if(!FLAC__bitreader_init(decoder->private_->input, read_callback_, decoder)) {
+	if(!FLAC__bitreader_init(decoder->private_->input, decoder->private_->cpuinfo, read_callback_, decoder)) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return FLAC__STREAM_DECODER_INIT_STATUS_MEMORY_ALLOCATION_ERROR;
 	}
