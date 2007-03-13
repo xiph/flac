@@ -47,14 +47,6 @@
 #include "private/crc.h"
 #include "FLAC/assert.h"
 
-/*
- * Along the way you will see two versions of some functions, selected
- * by a FLAC__NO_MANUAL_INLINING macro.  One is the simplified, more
- * readable, and slow version, and the other is the same function
- * where crucial parts have been manually inlined and are much faster.
- *
- */
-
 /* Things should be fastest when this matches the machine word size */
 /* WATCHOUT: if you change this you must also change the following #defines down to ALIGNED_UNARY_BITS below to match */
 /* WATCHOUT: there are a few places where the code will not work unless brword is >= 32 bits wide */
@@ -151,6 +143,7 @@ struct FLAC__BitReader {
 	unsigned crc16_align; /* the number of bits in the current consumed word that should not be CRC'd */
 	FLAC__BitReaderReadCallback read_callback;
 	void *client_data;
+	FLAC__CPUInfo cpu_info;
 };
 
 #ifdef _MSC_VER
@@ -159,6 +152,23 @@ static _inline FLAC__uint32 local_swap32_(FLAC__uint32 x)
 {
 	x = ((x<<8)&0xFF00FF00) | ((x>>8)&0x00FF00FF);
 	return (x>>16) | (x<<16);
+}
+static void local_swap32_block_(FLAC__uint32 *start, FLAC__uint32 len)
+{
+	__asm {
+		mov edx, start
+		mov ecx, len
+		test ecx, ecx
+loop1:
+		jz done1
+		mov eax, [edx]
+		bswap eax
+		mov [edx], eax
+		add edx, 4
+		dec ecx
+		jmp short loop1
+done1:
+	}
 }
 #endif
 
@@ -249,6 +259,13 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 #if WORDS_BIGENDIAN
 #else
 	end = (br->words*FLAC__BYTES_PER_WORD + br->bytes + bytes + (FLAC__BYTES_PER_WORD-1)) / FLAC__BYTES_PER_WORD;
+# if defined(_MSC_VER) && (FLAC__BYTES_PER_WORD == 4)
+	if(br->cpu_info.type == FLAC__CPUINFO_TYPE_IA32 && br->cpu_info.data.ia32.bswap) {
+		start = br->words;
+		local_swap32_block_(br->buffer + start, end - start);
+	}
+	else
+# endif
 	for(start = br->words; start < end; start++)
 		br->buffer[start] = SWAP_BE_WORD_TO_HOST(br->buffer[start]);
 #endif
@@ -302,7 +319,7 @@ void FLAC__bitreader_delete(FLAC__BitReader *br)
  *
  ***********************************************************************/
 
-FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__BitReaderReadCallback rcb, void *cd)
+FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__CPUInfo cpu, FLAC__BitReaderReadCallback rcb, void *cd)
 {
 	FLAC__ASSERT(0 != br);
 
@@ -314,6 +331,7 @@ FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__BitReaderReadCallback
 		return false;
 	br->read_callback = rcb;
 	br->client_data = cd;
+	br->cpu_info = cpu;
 
 	return true;
 }
@@ -673,7 +691,7 @@ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, F
 }
 
 FLaC__INLINE FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, unsigned *val)
-#ifdef FLAC__NO_MANUAL_INLINING
+#if 0 /* slow but readable version */
 {
 	unsigned bit;
 
