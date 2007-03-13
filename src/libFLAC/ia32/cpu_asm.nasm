@@ -32,6 +32,7 @@
 
 	data_section
 
+cglobal FLAC__cpu_have_cpuid_asm_ia32
 cglobal FLAC__cpu_info_asm_ia32
 cglobal FLAC__cpu_info_extended_amd_asm_ia32
 
@@ -39,8 +40,11 @@ cglobal FLAC__cpu_info_extended_amd_asm_ia32
 
 ; **********************************************************************
 ;
+; FLAC__uint32 FLAC__cpu_have_cpuid_asm_ia32()
+;
 
-have_cpuid:
+cident FLAC__cpu_have_cpuid_asm_ia32
+	push	ebx
 	pushfd
 	pop	eax
 	mov	edx, eax
@@ -56,26 +60,42 @@ have_cpuid:
 .no_cpuid:
 	xor	eax, eax
 .end:
+	pop	ebx
 	ret
 
+; **********************************************************************
+;
+; void FLAC__cpu_info_asm_ia32(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx)
+;
+
 cident FLAC__cpu_info_asm_ia32
+	;[esp + 8] == flags_edx
+	;[esp + 12] == flags_ecx
+
 	push	ebx
-	call	have_cpuid
+	call	FLAC__cpu_have_cpuid_asm_ia32
 	test	eax, eax
 	jz	.no_cpuid
 	mov	eax, 1
 	cpuid
-	mov	eax, edx
+	mov	ebx, [esp + 8]
+	mov	[ebx], edx
+	mov	ebx, [esp + 12]
+	mov	[ebx], ecx
 	jmp	.end
-.no_cpuid:
+.no_cpuid
 	xor	eax, eax
+	mov	ebx, [esp + 8]
+	mov	[ebx], eax
+	mov	ebx, [esp + 12]
+	mov	[ebx], eax
 .end
 	pop	ebx
 	ret
 
 cident FLAC__cpu_info_extended_amd_asm_ia32
 	push	ebx
-	call	have_cpuid
+	call	FLAC__cpu_have_cpuid_asm_ia32
 	test	eax, eax
 	jz	.no_cpuid
 	mov	eax, 0x80000000
