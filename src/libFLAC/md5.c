@@ -1,3 +1,16 @@
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <stdlib.h>		/* for malloc() */
+#include <string.h>		/* for memcpy() */
+
+#include "private/md5.h"
+
+#ifndef FLaC__INLINE
+#define FLaC__INLINE
+#endif
+
 /*
  * This code implements the MD5 message-digest algorithm.
  * The algorithm is due to Ron Rivest.  This code was
@@ -23,23 +36,6 @@
  * Still in the public domain.
  */
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
-
-#include <stdlib.h>		/* for malloc() */
-#include <string.h>		/* for memcpy() */
-
-#include "private/md5.h"
-
-#ifndef FLaC__INLINE
-#define FLaC__INLINE
-#endif
-
-static FLAC__bool is_big_endian_host_;
-
-#ifndef ASM_MD5
-
 /* The four core functions - F1 is optimized somewhat */
 
 /* #define F1(x, y, z) (x & y | ~x & z) */
@@ -57,8 +53,7 @@ static FLAC__bool is_big_endian_host_;
  * reflect the addition of 16 longwords of new data.  MD5Update blocks
  * the data and converts bytes into longwords for this routine.
  */
-void
-FLAC__MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16])
+static void FLAC__MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16])
 {
 	register FLAC__uint32 a, b, c, d;
 
@@ -141,51 +136,25 @@ FLAC__MD5Transform(FLAC__uint32 buf[4], FLAC__uint32 const in[16])
 	buf[3] += d;
 }
 
-#endif
-
-FLaC__INLINE
-void
-byteSwap(FLAC__uint32 *buf, unsigned words)
+#if WORDS_BIGENDIAN
+//@@@@@@ OPT: use bswap/intrinsics
+FLaC__INLINE static void byteSwap(FLAC__uint32 *buf, unsigned words)
 {
-	md5byte *p = (md5byte *)buf;
-
-	if(!is_big_endian_host_)
-		return;
 	do {
+		FLAC__byte *p = (FLAC__byte *)buf;
 		*buf++ = (FLAC__uint32)((unsigned)p[3] << 8 | p[2]) << 16 | ((unsigned)p[1] << 8 | p[0]);
 		p += 4;
 	} while (--words);
 }
-
-/*
- * Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious
- * initialization constants.
- */
-void
-FLAC__MD5Init(struct FLAC__MD5Context *ctx)
-{
-	FLAC__uint32 test = 1;
-
-	is_big_endian_host_ = (*((FLAC__byte*)(&test)))? false : true;
-
-	ctx->buf[0] = 0x67452301;
-	ctx->buf[1] = 0xefcdab89;
-	ctx->buf[2] = 0x98badcfe;
-	ctx->buf[3] = 0x10325476;
-
-	ctx->bytes[0] = 0;
-	ctx->bytes[1] = 0;
-
-	ctx->internal_buf = 0;
-	ctx->capacity = 0;
-}
+#else
+#define byteSwap(buf, words)
+#endif
 
 /*
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
-void
-FLAC__MD5Update(struct FLAC__MD5Context *ctx, md5byte const *buf, unsigned len)
+static void FLAC__MD5Update(FLAC__MD5Context *ctx, FLAC__byte const *buf, unsigned len)
 {
 	FLAC__uint32 t;
 
@@ -197,11 +166,11 @@ FLAC__MD5Update(struct FLAC__MD5Context *ctx, md5byte const *buf, unsigned len)
 
 	t = 64 - (t & 0x3f);	/* Space available in ctx->in (at least 1) */
 	if (t > len) {
-		memcpy((md5byte *)ctx->in + 64 - t, buf, len);
+		memcpy((FLAC__byte *)ctx->in + 64 - t, buf, len);
 		return;
 	}
 	/* First chunk is an odd size */
-	memcpy((md5byte *)ctx->in + 64 - t, buf, t);
+	memcpy((FLAC__byte *)ctx->in + 64 - t, buf, t);
 	byteSwap(ctx->in, 16);
 	FLAC__MD5Transform(ctx->buf, ctx->in);
 	buf += t;
@@ -221,66 +190,31 @@ FLAC__MD5Update(struct FLAC__MD5Context *ctx, md5byte const *buf, unsigned len)
 }
 
 /*
- * Convert the incoming audio signal to a byte stream and FLAC__MD5Update it.
+ * Start MD5 accumulation.  Set bit count to 0 and buffer to mysterious
+ * initialization constants.
  */
-FLAC__bool
-FLAC__MD5Accumulate(struct FLAC__MD5Context *ctx, const FLAC__int32 * const signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
+void FLAC__MD5Init(FLAC__MD5Context *ctx)
 {
-	unsigned channel, sample, a_byte;
-	FLAC__int32 a_word;
-	FLAC__byte *buf_;
-	const unsigned bytes_needed = channels * samples * bytes_per_sample;
+	ctx->buf[0] = 0x67452301;
+	ctx->buf[1] = 0xefcdab89;
+	ctx->buf[2] = 0x98badcfe;
+	ctx->buf[3] = 0x10325476;
 
-	if(ctx->capacity < bytes_needed) {
-		FLAC__byte *tmp = (FLAC__byte*)realloc(ctx->internal_buf, bytes_needed);
-		if(0 == tmp) {
-			free(ctx->internal_buf);
-			if(0 == (ctx->internal_buf = (FLAC__byte*)malloc(bytes_needed)))
-				return false;
-		}
-		ctx->internal_buf = tmp;
-		ctx->capacity = bytes_needed;
-	}
+	ctx->bytes[0] = 0;
+	ctx->bytes[1] = 0;
 
-	buf_ = ctx->internal_buf;
-
-#ifdef FLAC__CPU_IA32
-	if(channels == 2 && bytes_per_sample == 2) {
-		memcpy(buf_, signal[0], sizeof(FLAC__int32) * samples);
-		buf_ += sizeof(FLAC__int16);
-		for(sample = 0; sample < samples; sample++)
-			((FLAC__int16 *)buf_)[2 * sample] = (FLAC__int16)signal[1][sample];
-	}
-	else if(channels == 1 && bytes_per_sample == 2) {
-		for(sample = 0; sample < samples; sample++)
-			((FLAC__int16 *)buf_)[sample] = (FLAC__int16)signal[0][sample];
-	}
-	else
-#endif
-	for(sample = 0; sample < samples; sample++) {
-		for(channel = 0; channel < channels; channel++) {
-			a_word = signal[channel][sample];
-			for(a_byte = 0; a_byte < bytes_per_sample; a_byte++) {
-				*buf_++ = (FLAC__byte)(a_word & 0xff);
-				a_word >>= 8;
-			}
-		}
-	}
-
-	FLAC__MD5Update(ctx, ctx->internal_buf, bytes_needed);
-
-	return true;
+	ctx->internal_buf = 0;
+	ctx->capacity = 0;
 }
 
 /*
  * Final wrapup - pad to 64-byte boundary with the bit pattern
  * 1 0* (64-bit count of bits processed, MSB-first)
  */
-void
-FLAC__MD5Final(md5byte digest[16], struct FLAC__MD5Context *ctx)
+void FLAC__MD5Final(FLAC__byte digest[16], FLAC__MD5Context *ctx)
 {
 	int count = ctx->bytes[0] & 0x3f;	/* Number of bytes in ctx->in */
-	md5byte *p = (md5byte *)ctx->in + count;
+	FLAC__byte *p = (FLAC__byte *)ctx->in + count;
 
 	/* Set the first char of padding to 0x80.  There is always room. */
 	*p++ = 0x80;
@@ -292,7 +226,7 @@ FLAC__MD5Final(md5byte digest[16], struct FLAC__MD5Context *ctx)
 		memset(p, 0, count + 8);
 		byteSwap(ctx->in, 16);
 		FLAC__MD5Transform(ctx->buf, ctx->in);
-		p = (md5byte *)ctx->in;
+		p = (FLAC__byte *)ctx->in;
 		count = 56;
 	}
 	memset(p, 0, count);
@@ -311,4 +245,150 @@ FLAC__MD5Final(md5byte digest[16], struct FLAC__MD5Context *ctx)
 		ctx->internal_buf = 0;
 		ctx->capacity = 0;
 	}
+}
+
+/*
+ * Convert the incoming audio signal to a byte stream
+ */
+static void format_input_(FLAC__byte *buf, const FLAC__int32 * const signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
+{
+	unsigned channel, sample;
+	register FLAC__int32 a_word;
+	register FLAC__byte *buf_ = buf;
+
+#if WORDS_BIGENDIAN
+#else
+	if(channels == 2 && bytes_per_sample == 2) {
+		FLAC__int16 *buf1_ = ((FLAC__int16*)buf_) + 1;
+		memcpy(buf_, signal[0], sizeof(FLAC__int32) * samples);
+		for(sample = 0; sample < samples; sample++, buf1_+=2)
+			*buf1_ = (FLAC__int16)signal[1][sample];
+	}
+	else if(channels == 1 && bytes_per_sample == 2) {
+		FLAC__int16 *buf1_ = (FLAC__int16*)buf_;
+		for(sample = 0; sample < samples; sample++)
+			*buf1_++ = (FLAC__int16)signal[0][sample];
+	}
+	else
+#endif
+	if(bytes_per_sample == 2) {
+		if(channels == 2) {
+			for(sample = 0; sample < samples; sample++) {
+				a_word = signal[0][sample];
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word;
+				a_word = signal[1][sample];
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word;
+			}
+		}
+		else if(channels == 1) {
+			for(sample = 0; sample < samples; sample++) {
+				a_word = signal[0][sample];
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word;
+			}
+		}
+		else {
+			for(sample = 0; sample < samples; sample++) {
+				for(channel = 0; channel < channels; channel++) {
+					a_word = signal[channel][sample];
+					*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+					*buf_++ = (FLAC__byte)a_word;
+				}
+			}
+		}
+	}
+	else if(bytes_per_sample == 3) {
+		if(channels == 2) {
+			for(sample = 0; sample < samples; sample++) {
+				a_word = signal[0][sample];
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word;
+				a_word = signal[1][sample];
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word;
+			}
+		}
+		else if(channels == 1) {
+			for(sample = 0; sample < samples; sample++) {
+				a_word = signal[0][sample];
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word;
+			}
+		}
+		else {
+			for(sample = 0; sample < samples; sample++) {
+				for(channel = 0; channel < channels; channel++) {
+					a_word = signal[channel][sample];
+					*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+					*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+					*buf_++ = (FLAC__byte)a_word;
+				}
+			}
+		}
+	}
+	else if(bytes_per_sample == 1) {
+		if(channels == 2) {
+			for(sample = 0; sample < samples; sample++) {
+				a_word = signal[0][sample];
+				*buf_++ = (FLAC__byte)a_word;
+				a_word = signal[1][sample];
+				*buf_++ = (FLAC__byte)a_word;
+			}
+		}
+		else if(channels == 1) {
+			for(sample = 0; sample < samples; sample++) {
+				a_word = signal[0][sample];
+				*buf_++ = (FLAC__byte)a_word;
+			}
+		}
+		else {
+			for(sample = 0; sample < samples; sample++) {
+				for(channel = 0; channel < channels; channel++) {
+					a_word = signal[channel][sample];
+					*buf_++ = (FLAC__byte)a_word;
+				}
+			}
+		}
+	}
+	else { /* bytes_per_sample == 4, maybe optimize more later */
+		for(sample = 0; sample < samples; sample++) {
+			for(channel = 0; channel < channels; channel++) {
+				a_word = signal[channel][sample];
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word; a_word >>= 8;
+				*buf_++ = (FLAC__byte)a_word;
+			}
+		}
+	}
+}
+
+/*
+ * Convert the incoming audio signal to a byte stream and FLAC__MD5Update it.
+ */
+FLAC__bool FLAC__MD5Accumulate(FLAC__MD5Context *ctx, const FLAC__int32 * const signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
+{
+	const unsigned bytes_needed = channels * samples * bytes_per_sample;
+
+	if(ctx->capacity < bytes_needed) {
+		FLAC__byte *tmp = (FLAC__byte*)realloc(ctx->internal_buf, bytes_needed);
+		if(0 == tmp) {
+			free(ctx->internal_buf);
+			if(0 == (ctx->internal_buf = (FLAC__byte*)malloc(bytes_needed)))
+				return false;
+		}
+		ctx->internal_buf = tmp;
+		ctx->capacity = bytes_needed;
+	}
+
+	format_input_(ctx->internal_buf, signal, channels, samples, bytes_per_sample);
+
+	FLAC__MD5Update(ctx, ctx->internal_buf, bytes_needed);
+
+	return true;
 }
