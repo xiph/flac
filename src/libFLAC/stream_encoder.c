@@ -361,7 +361,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__StreamMetadata_SeekTable *seek_table;       /* pointer into encoder->protected_->metadata_ where the seek table is */
 	unsigned current_sample_number;
 	unsigned current_frame_number;
-	struct FLAC__MD5Context md5context;
+	FLAC__MD5Context md5context;
 	FLAC__CPUInfo cpuinfo;
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	unsigned (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
