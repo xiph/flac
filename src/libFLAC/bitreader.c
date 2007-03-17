@@ -131,6 +131,7 @@ static const unsigned char byte_to_unary_table[] = {
 #define FLaC__INLINE
 #endif
 
+/* WATCHOUT: assembly routines rely on the order in which these fields are declared */
 struct FLAC__BitReader {
 	/* any partially-consumed word at the head will stay right-justified as bits are consumed from the left */
 	/* any incomplete word at the tail will be left-justified, and bytes from the read callback are added on the right */
@@ -138,7 +139,8 @@ struct FLAC__BitReader {
 	unsigned capacity; /* in words */
 	unsigned words; /* # of completed words in buffer */
 	unsigned bytes; /* # of bytes in incomplete word at buffer[words] */
-	unsigned consumed_words, consumed_bits; /* #words+(#bits of head word) already consumed from the front of buffer */
+	unsigned consumed_words; /* #words ... */
+	unsigned consumed_bits; /* ... + (#bits of head word) already consumed from the front of buffer */
 	unsigned read_crc16; /* the running frame CRC */
 	unsigned crc16_align; /* the number of bits in the current consumed word that should not be CRC'd */
 	FLAC__BitReaderReadCallback read_callback;
@@ -201,7 +203,8 @@ static FLaC__INLINE void crc16_update_word_(FLAC__BitReader *br, brword word)
 	br->crc16_align = 0;
 }
 
-static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
+/* would be static except it needs to be called by asm routines */
+FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 {
 	unsigned start, end;
 	size_t bytes;
@@ -827,7 +830,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 	/* WATCHOUT: code does not work with <32bit words; we can make things much faster with this assertion */
 	FLAC__ASSERT(FLAC__BITS_PER_WORD >= 32);
 	FLAC__ASSERT(parameter < 32);
-	/* the above two asserts also guarantee that the binary part never straddles more that 2 words, so we don't have to loop to read it */
+	/* the above two asserts also guarantee that the binary part never straddles more than 2 words, so we don't have to loop to read it */
 
 	if(nvals == 0)
 		return true;
@@ -849,9 +852,9 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 					i = ALIGNED_UNARY_BITS(b);
 #endif
 					uval += i;
-					bits = parameter;
-					i++;
 					cbits += i;
+					bits = parameter;
+					cbits++; /* skip over stop bit */
 					if(cbits == FLAC__BITS_PER_WORD) {
 						crc16_update_word_(br, br->buffer[cwords]);
 						cwords++;
@@ -876,7 +879,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 			 */
 			if(br->bytes) {
 				const unsigned end = br->bytes * 8;
-				brword b = (br->buffer[cwords] & (FLAC__WORD_ALL_ONES << (FLAC__BITS_PER_WORD-end))) << cbits;
+				brword b = (br->buffer[cwords] & ~(FLAC__WORD_ALL_ONES >> end)) << cbits;
 				if(b) {
 #if 0 /* too slow, but this is the idea: */
 					for(i = 0; !(b & FLAC__WORD_TOP_BIT_ONE); i++)
@@ -885,9 +888,9 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 					i = ALIGNED_UNARY_BITS(b);
 #endif
 					uval += i;
-					bits = parameter;
-					i++;
 					cbits += i;
+					bits = parameter;
+					cbits++; /* skip over stop bit */
 					FLAC__ASSERT(cbits < FLAC__BITS_PER_WORD);
 					goto break1;
 				}
