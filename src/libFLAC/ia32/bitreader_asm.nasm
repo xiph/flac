@@ -148,13 +148,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	;; edi		unsigned FLAC__crc16_table[]
 	;; ebp		br
 	test	ecx, ecx		;		switch(br->crc16_align) ...
-	jz	.c0b0			;		[br->crc16_align is 0 the vast majority of the time so we optimize the common case]
-	cmp	ecx, 8
-	je	.c0b1
-	shr	edx, 16
-	cmp	ecx, 16
-	je	.c0b2
-	jmp	.c0b3
+	jnz	.c0b4			;		[br->crc16_align is 0 the vast majority of the time so we optimize the common case]
 .c0b0:	xor	dl, ah			;		dl <- (crc>>8)^(word>>24)
 	movzx	ebx, dl
 	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word>>24)]
@@ -177,7 +171,6 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	shl	ax, 8			;		ax <- (crc<<8)
 	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
 	mov	[ebp + 24], eax		;		br->read_crc <- crc
-	mov	[ebp + 28], dword 0	;		br->crc16_align <- 0
 	pop	ecx
 	pop	edi
 
@@ -185,6 +178,25 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	xor	ecx, ecx		;           cbits = 0;
 					;         }
 	jmp	near .break1		;         goto break1;
+	;; this section relocated out of the way for performance
+.c0b4:
+	mov	[ebp + 28], dword 0	;		br->crc16_align <- 0
+	cmp	ecx, 8
+	je	.c0b1
+	shr	edx, 16
+	cmp	ecx, 16
+	je	.c0b2
+	jmp	.c0b3
+
+	;; this section relocated out of the way for performance
+.c1b4:
+	mov	[ebp + 28], dword 0	;		br->crc16_align <- 0
+	cmp	ecx, 8
+	je	.c1b1
+	shr	edx, 16
+	cmp	ecx, 16
+	je	.c1b2
+	jmp	.c1b3
 
 .c1_next2:				;       } else {
 	;; ecx		cbits
@@ -210,13 +222,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	;; edi		unsigned FLAC__crc16_table[]
 	;; ebp		br
 	test	ecx, ecx		;		switch(br->crc16_align) ...
-	jz	.c1b0			;		[br->crc16_align is 0 the vast majority of the time so we optimize the common case]
-	cmp	ecx, 8
-	je	.c1b1
-	shr	edx, 16
-	cmp	ecx, 16
-	je	.c1b2
-	jmp	.c1b3
+	jnz	.c1b4			;		[br->crc16_align is 0 the vast majority of the time so we optimize the common case]
 .c1b0:	xor	dl, ah			;		dl <- (crc>>8)^(word>>24)
 	movzx	ebx, dl
 	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word>>24)]
@@ -239,7 +245,6 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	shl	ax, 8			;		ax <- (crc<<8)
 	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
 	mov	[ebp + 24], eax		;		br->read_crc <- crc
-	mov	[ebp + 28], dword 0	;		br->crc16_align <- 0
 	pop	ecx
 	pop	edi
 
@@ -428,13 +433,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	;; edi		unsigned FLAC__crc16_table[]
 	;; ebp		br
 	test	ecx, ecx		;		switch(br->crc16_align) ...
-	jz	.c2b0			;		[br->crc16_align is 0 the vast majority of the time so we optimize the common case]
-	cmp	ecx, 8
-	je	.c2b1
-	shr	edx, 16
-	cmp	ecx, 16
-	je	.c2b2
-	jmp	.c2b3
+	jnz	.c2b4			;		[br->crc16_align is 0 the vast majority of the time so we optimize the common case]
 .c2b0:	xor	dl, ah			;		dl <- (crc>>8)^(word>>24)
 	movzx	ebx, dl
 	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word>>24)]
@@ -457,7 +456,6 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	shl	ax, 8			;		ax <- (crc<<8)
 	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
 	mov	[ebp + 24], eax		;		br->read_crc <- crc
-	mov	[ebp + 28], dword 0	;		br->crc16_align <- 0
 	pop	eax
 	pop	ecx
 	pop	ebx
@@ -473,6 +471,17 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	shld	edi, eax, cl
 					;         }
 	jmp	.break2			;         goto break2;
+
+	;; this section relocated out of the way for performance
+.c2b4:
+	mov	[ebp + 28], dword 0	;		br->crc16_align <- 0
+	cmp	ecx, 8
+	je	.c2b1
+	shr	edx, 16
+	cmp	ecx, 16
+	je	.c2b2
+	jmp	.c2b3
+
 .c2_next3:				;       } else {
 	mov	ecx, ebx		;         cbits = parameter;
 					;         uval <<= cbits;
