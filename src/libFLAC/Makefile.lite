@@ -54,6 +54,7 @@ else
 ifeq ($(SOLARIS_BUILD),yes)
 else
 SRCS_NASM = \
+	ia32/bitreader_asm.nasm \
 	ia32/cpu_asm.nasm \
 	ia32/fixed_asm.nasm \
 	ia32/lpc_asm.nasm

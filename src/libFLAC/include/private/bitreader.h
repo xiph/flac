@@ -81,6 +81,13 @@ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, F
 FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, unsigned *val);
 FLAC__bool FLAC__bitreader_read_rice_signed(FLAC__BitReader *br, int *val, unsigned parameter);
 FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[], unsigned nvals, unsigned parameter);
+#ifndef FLAC__NO_ASM
+#  ifdef FLAC__CPU_IA32
+#    ifdef FLAC__HAS_NASM
+FLAC__bool FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap(FLAC__BitReader *br, int vals[], unsigned nvals, unsigned parameter);
+#    endif
+#  endif
+#endif
 #if 0 /* UNUSED */
 FLAC__bool FLAC__bitreader_read_golomb_signed(FLAC__BitReader *br, int *val, unsigned parameter);
 FLAC__bool FLAC__bitreader_read_golomb_unsigned(FLAC__BitReader *br, unsigned *val, unsigned parameter);
@@ -88,4 +95,5 @@ FLAC__bool FLAC__bitreader_read_golomb_unsigned(FLAC__BitReader *br, unsigned *v
 FLAC__bool FLAC__bitreader_read_utf8_uint32(FLAC__BitReader *br, FLAC__uint32 *val, FLAC__byte *raw, unsigned *rawlen);
 FLAC__bool FLAC__bitreader_read_utf8_uint64(FLAC__BitReader *br, FLAC__uint64 *val, FLAC__byte *raw, unsigned *rawlen);
 
+FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br);//@@@@@@
 #endif
