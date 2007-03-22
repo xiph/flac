@@ -733,7 +733,7 @@ FLaC__INLINE FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br,
 				*val += i;
 				i++;
 				br->consumed_bits += i;
-				if(br->consumed_bits == FLAC__BITS_PER_WORD) {
+				if(br->consumed_bits >= FLAC__BITS_PER_WORD) { /* faster way of testing if(br->consumed_bits == FLAC__BITS_PER_WORD) */
 					crc16_update_word_(br, br->buffer[br->consumed_words]);
 					br->consumed_words++;
 					br->consumed_bits = 0;
@@ -855,7 +855,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 					uval += i;
 					cbits += i;
 					cbits++; /* skip over stop bit */
-					if(cbits == FLAC__BITS_PER_WORD) {
+					if(cbits >= FLAC__BITS_PER_WORD) { /* faster way of testing if(cbits == FLAC__BITS_PER_WORD) */
 						crc16_update_word_(br, br->buffer[cwords]);
 						cwords++;
 						cbits = 0;
@@ -940,7 +940,6 @@ break1:
 					/* this also works when consumed_bits==0, it's just a little slower than necessary for that case */
 					const unsigned n = FLAC__BITS_PER_WORD - cbits;
 					const brword word = br->buffer[cwords];
-					unsigned bits;
 					if(parameter < n) {
 						uval <<= parameter;
 						uval |= (word & (FLAC__WORD_ALL_ONES >> cbits)) >> (n-parameter);
@@ -949,22 +948,19 @@ break1:
 					}
 					uval <<= n;
 					uval |= word & (FLAC__WORD_ALL_ONES >> cbits);
-					bits = parameter - n;
 					crc16_update_word_(br, word);
 					cwords++;
-					cbits = 0;
-					if(bits) { /* if there are still bits left to read, there have to be less than 32 so they will all be in the next word */
-						uval <<= bits;
-						uval |= (br->buffer[cwords] >> (FLAC__BITS_PER_WORD-bits));
-						cbits = bits;
+					cbits = parameter - n;
+					if(cbits) { /* parameter > n, i.e. if there are still bits left to read, there have to be less than 32 so they will all be in the next word */
+						uval <<= cbits;
+						uval |= (br->buffer[cwords] >> (FLAC__BITS_PER_WORD-cbits));
 					}
 					goto break2;
 				}
 				else {
-					FLAC__ASSERT(parameter < FLAC__BITS_PER_WORD);
-					uval <<= parameter;
-					uval |= br->buffer[cwords] >> (FLAC__BITS_PER_WORD-parameter);
 					cbits = parameter;
+					uval <<= parameter;
+					uval |= br->buffer[cwords] >> (FLAC__BITS_PER_WORD-cbits);
 					goto break2;
 				}
 			}
@@ -982,8 +978,8 @@ break1:
 					goto break2;
 				}
 				else {
-					uval |= br->buffer[cwords] >> (FLAC__BITS_PER_WORD-parameter);
-					cbits += parameter;
+					cbits = parameter;
+					uval |= br->buffer[cwords] >> (FLAC__BITS_PER_WORD-cbits);
 					goto break2;
 				}
 			}
