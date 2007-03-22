@@ -151,26 +151,26 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	jnz	.c0b4			;		[br->crc16_align is 0 the vast majority of the time so we optimize the common case]
 .c0b0:	xor	dl, ah			;		dl <- (crc>>8)^(word>>24)
 	movzx	ebx, dl
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word>>24)]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word>>24)]
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word>>24)]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word>>24)]
 .c0b1:	xor	dh, ah			;		dh <- (crc>>8)^((word>>16)&0xff))
 	movzx	ebx, dh
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
 	shr	edx, 16
 .c0b2:	xor	dl, ah			;		dl <- (crc>>8)^((word>>8)&0xff))
 	movzx	ebx, dl
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
 .c0b3:	xor	dh, ah			;		dh <- (crc>>8)^(word&0xff)
 	movzx	ebx, dh
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word&0xff)]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
-	mov	[ebp + 24], eax		;		br->read_crc <- crc
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word&0xff)]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
+	mov	[ebp + 24], ax		;		br->read_crc <- crc
 	pop	ecx
 	pop	edi
 
@@ -225,26 +225,26 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	jnz	.c1b4			;		[br->crc16_align is 0 the vast majority of the time so we optimize the common case]
 .c1b0:	xor	dl, ah			;		dl <- (crc>>8)^(word>>24)
 	movzx	ebx, dl
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word>>24)]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word>>24)]
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word>>24)]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word>>24)]
 .c1b1:	xor	dh, ah			;		dh <- (crc>>8)^((word>>16)&0xff))
 	movzx	ebx, dh
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
 	shr	edx, 16
 .c1b2:	xor	dl, ah			;		dl <- (crc>>8)^((word>>8)&0xff))
 	movzx	ebx, dl
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
 .c1b3:	xor	dh, ah			;		dh <- (crc>>8)^(word&0xff)
 	movzx	ebx, dh
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word&0xff)]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
-	mov	[ebp + 24], eax		;		br->read_crc <- crc
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word&0xff)]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
+	mov	[ebp + 24], ax		;		br->read_crc <- crc
 	pop	ecx
 	pop	edi
 
@@ -436,26 +436,26 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	jnz	.c2b4			;		[br->crc16_align is 0 the vast majority of the time so we optimize the common case]
 .c2b0:	xor	dl, ah			;		dl <- (crc>>8)^(word>>24)
 	movzx	ebx, dl
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word>>24)]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word>>24)]
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word>>24)]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word>>24)]
 .c2b1:	xor	dh, ah			;		dh <- (crc>>8)^((word>>16)&0xff))
 	movzx	ebx, dh
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>16)&0xff))]
 	shr	edx, 16
 .c2b2:	xor	dl, ah			;		dl <- (crc>>8)^((word>>8)&0xff))
 	movzx	ebx, dl
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^((word>>8)&0xff))]
 .c2b3:	xor	dh, ah			;		dh <- (crc>>8)^(word&0xff)
 	movzx	ebx, dh
-	mov	cx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word&0xff)]
-	shl	ax, 8			;		ax <- (crc<<8)
-	xor	ax, cx			;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
-	mov	[ebp + 24], eax		;		br->read_crc <- crc
+	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word&0xff)]
+	shl	eax, 8			;		ax <- (crc<<8)
+	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
+	mov	[ebp + 24], ax		;		br->read_crc <- crc
 	pop	eax
 	pop	ecx
 	pop	ebx
