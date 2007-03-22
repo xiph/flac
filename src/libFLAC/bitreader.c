@@ -824,6 +824,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 	 * bitwriter functions that use them, and before returning */
 	register unsigned cwords;
 	register unsigned cbits;
+	unsigned ucbits; /* keep track of the number of unconsumed bits in the buffer */
 
 	FLAC__ASSERT(0 != br);
 	FLAC__ASSERT(0 != br->buffer);
@@ -837,6 +838,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 
 	cbits = br->consumed_bits;
 	cwords = br->consumed_words;
+	ucbits = (br->words-cwords)*FLAC__BITS_PER_WORD + br->bytes*8 - cbits;
 
 	while(1) {
 
@@ -910,13 +912,21 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 			if(!bitreader_read_from_client_(br))
 				return false;
 			cwords = br->consumed_words;
+			ucbits = (br->words-cwords)*FLAC__BITS_PER_WORD + br->bytes*8 - cbits + uval;
+			/* + uval to offset our count by the # of unary bits already
+			 * consumed before the read, because we will add these back
+			 * in all at once at break1
+			 */
 		}
 break1:
+		ucbits -= uval;
+		ucbits--; /* account for stop bit */
+
 		/* read binary part */
 		FLAC__ASSERT(cwords <= br->words);
 
 		if(bits) {
-			while((br->words-cwords)*FLAC__BITS_PER_WORD + br->bytes*8 - cbits < bits) {
+			while(ucbits < bits) {
 				/* flush registers and read; bitreader_read_from_client_() does
 				 * not touch br->consumed_bits at all but we still need to set
 				 * it in case it fails and we have to return false.
@@ -926,6 +936,7 @@ break1:
 				if(!bitreader_read_from_client_(br))
 					return false;
 				cwords = br->consumed_words;
+				ucbits = (br->words-cwords)*FLAC__BITS_PER_WORD + br->bytes*8 - cbits;
 			}
 			if(cwords < br->words) { /* if we've not consumed up to a partial tail word... */
 				if(cbits) {
@@ -980,6 +991,8 @@ break1:
 			}
 		}
 break2:
+		ucbits -= parameter;
+
 		/* compose the value */
 		*vals = (int)(uval >> 1 ^ -(int)(uval & 1));
 
