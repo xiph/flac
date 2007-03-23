@@ -34,8 +34,8 @@
 
 	data_section
 
-extern FLAC__crc16_table		; unsigned FLAC__crc16_table[256];
-extern bitreader_read_from_client_	; FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br);
+cextern FLAC__crc16_table		; unsigned FLAC__crc16_table[256];
+cextern bitreader_read_from_client_	; FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br);
 
 cglobal FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 
@@ -137,7 +137,11 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	bswap	edx			;		edx = br->buffer[cwords] swapped; now we can CRC the bytes from LSByte to MSByte which makes things much easier
 	mov	ecx, [ebp + 28]		;		ecx <- br->crc16_align
 	mov	eax, [ebp + 24]		;		ax <- br->read_crc (a.k.a. crc)
+%if FLAC__PUBLIC_NEEDS_UNDERSCORE
+	mov	edi, _FLAC__crc16_table
+%else
 	mov	edi, FLAC__crc16_table
+%endif
 	;; eax (ax)	crc a.k.a. br->read_crc
 	;; ebx (bl)	intermediate result index into FLAC__crc16_table[]
 	;; ecx		br->crc16_align
@@ -209,7 +213,11 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	bswap	edx			;		edx = br->buffer[cwords] swapped; now we can CRC the bytes from LSByte to MSByte which makes things much easier
 	mov	ecx, [ebp + 28]		;		ecx <- br->crc16_align
 	mov	eax, [ebp + 24]		;		ax <- br->read_crc (a.k.a. crc)
+%if FLAC__PUBLIC_NEEDS_UNDERSCORE
+	mov	edi, _FLAC__crc16_table
+%else
 	mov	edi, FLAC__crc16_table
+%endif
 	;; eax (ax)	crc a.k.a. br->read_crc
 	;; ebx (bl)	intermediate result index into FLAC__crc16_table[]
 	;; ecx		br->crc16_align
@@ -304,7 +312,11 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	mov	[ebp + 20], ecx		;     br->consumed_bits = cbits;
 	push	ecx			;     /* save */
 	push	ebp			;     /* push br argument */
+%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
+	call	_bitreader_read_from_client_
+%else
 	call	bitreader_read_from_client_
+%endif
 	pop	edx			;     /* discard, unused */
 	pop	ecx			;     /* restore */
 	mov	esi, [ebp + 16]		;     cwords = br->consumed_words;
@@ -351,7 +363,11 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	mov	[ebp + 20], ecx		;       br->consumed_bits = cbits;
 	push	ecx			;       /* save */
 	push	ebp			;       /* push br argument */
+%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
+	call	_bitreader_read_from_client_
+%else
 	call	bitreader_read_from_client_
+%endif
 	pop	edx			;       /* discard, unused */
 	pop	ecx			;       /* restore */
 	mov	esi, [ebp + 16]		;       cwords = br->consumed_words;
@@ -418,7 +434,11 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	bswap	edx			;		edx = br->buffer[cwords] swapped; now we can CRC the bytes from LSByte to MSByte which makes things much easier
 	mov	ecx, [ebp + 28]		;		ecx <- br->crc16_align
 	mov	eax, [ebp + 24]		;		ax <- br->read_crc (a.k.a. crc)
+%if FLAC__PUBLIC_NEEDS_UNDERSCORE
+	mov	edi, _FLAC__crc16_table
+%else
 	mov	edi, FLAC__crc16_table
+%endif
 	;; eax (ax)	crc a.k.a. br->read_crc
 	;; ebx (bl)	intermediate result index into FLAC__crc16_table[]
 	;; ecx		br->crc16_align
