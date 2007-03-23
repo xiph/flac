@@ -134,11 +134,9 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	jz	near .break1 		;         if(cbits >= FLAC__BITS_PER_WORD) { /* faster way of testing if(cbits == FLAC__BITS_PER_WORD) */
 					;           crc16_update_word_(br, br->buffer[cwords]);
 	push	edi			;		[need more registers]
-	push	ecx			;		[need more registers]
 	bswap	edx			;		edx = br->buffer[cwords] swapped; now we can CRC the bytes from LSByte to MSByte which makes things much easier
 	mov	ecx, [ebp + 28]		;		ecx <- br->crc16_align
 	mov	eax, [ebp + 24]		;		ax <- br->read_crc (a.k.a. crc)
-	xor	ebx, ebx		;		[code from here down assumes and requires that the top 24 bits of ebx stay zero]
 	mov	edi, FLAC__crc16_table
 	;; eax (ax)	crc a.k.a. br->read_crc
 	;; ebx (bl)	intermediate result index into FLAC__crc16_table[]
@@ -170,8 +168,8 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word&0xff)]
 	shl	eax, 8			;		ax <- (crc<<8)
 	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
-	mov	[ebp + 24], ax		;		br->read_crc <- crc
-	pop	ecx
+	movzx	eax, ax
+	mov	[ebp + 24], eax		;		br->read_crc <- crc
 	pop	edi
 
 	add	esi, 1			;           cwords++;
@@ -208,11 +206,9 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	sub	edi, ecx		;         uval += FLAC__BITS_PER_WORD - cbits;
 					;         crc16_update_word_(br, br->buffer[cwords]);
 	push	edi			;		[need more registers]
-	push	ecx			;		[need more registers]
 	bswap	edx			;		edx = br->buffer[cwords] swapped; now we can CRC the bytes from LSByte to MSByte which makes things much easier
 	mov	ecx, [ebp + 28]		;		ecx <- br->crc16_align
 	mov	eax, [ebp + 24]		;		ax <- br->read_crc (a.k.a. crc)
-	xor	ebx, ebx		;		[code from here down assumes and requires that the top 24 bits of ebx stay zero]
 	mov	edi, FLAC__crc16_table
 	;; eax (ax)	crc a.k.a. br->read_crc
 	;; ebx (bl)	intermediate result index into FLAC__crc16_table[]
@@ -244,8 +240,8 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word&0xff)]
 	shl	eax, 8			;		ax <- (crc<<8)
 	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
-	mov	[ebp + 24], ax		;		br->read_crc <- crc
-	pop	ecx
+	movzx	eax, ax
+	mov	[ebp + 24], eax		;		br->read_crc <- crc
 	pop	edi
 
 	add	esi, 1			;         cwords++;
@@ -418,12 +414,10 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 					;         crc16_update_word_(br, br->buffer[cwords]);
 	push	edi			;		[need more registers]
 	push	ebx			;		[need more registers]
-	push	ecx			;		[need more registers]
 	push	eax			;		[need more registers]
 	bswap	edx			;		edx = br->buffer[cwords] swapped; now we can CRC the bytes from LSByte to MSByte which makes things much easier
 	mov	ecx, [ebp + 28]		;		ecx <- br->crc16_align
 	mov	eax, [ebp + 24]		;		ax <- br->read_crc (a.k.a. crc)
-	xor	ebx, ebx		;		[code from here down assumes and requires that the top 24 bits of ebx stay zero]
 	mov	edi, FLAC__crc16_table
 	;; eax (ax)	crc a.k.a. br->read_crc
 	;; ebx (bl)	intermediate result index into FLAC__crc16_table[]
@@ -455,9 +449,9 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	mov	ecx, [ebx*4 + edi]	;		cx <- FLAC__crc16_table[(crc>>8)^(word&0xff)]
 	shl	eax, 8			;		ax <- (crc<<8)
 	xor	eax, ecx		;		crc <- ax <- (crc<<8) ^ FLAC__crc16_table[(crc>>8)^(word&0xff)]
-	mov	[ebp + 24], ax		;		br->read_crc <- crc
+	movzx	eax, ax
+	mov	[ebp + 24], eax		;		br->read_crc <- crc
 	pop	eax
-	pop	ecx
 	pop	ebx
 	pop	edi
 	add	esi, 1			;         cwords++;
