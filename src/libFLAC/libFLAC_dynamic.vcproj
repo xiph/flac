@@ -407,6 +407,30 @@
 			>
 		</File>
 		<File
+			RelativePath=".\ia32\bitreader_asm.nasm"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/bitreader_asm.nasm -o ia32/bitreader_asm.obj&#x0D;&#x0A;"
+					AdditionalDependencies="ia32/bitreader_asm.nasm;ia32/nasm.h"
+					Outputs="ia32/bitreader_asm.obj"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/bitreader_asm.nasm -o ia32/bitreader_asm.obj&#x0D;&#x0A;"
+					AdditionalDependencies="ia32/bitreader_asm.nasm;ia32/nasm.h"
+					Outputs="ia32/bitreader_asm.obj"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
 			RelativePath=".\ia32\cpu_asm.nasm"
 			>
 			<FileConfiguration

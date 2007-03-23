@@ -88,6 +88,35 @@ LIB32=link.exe -lib
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=.\ia32\bitreader_asm.nasm
+
+!IF  "$(CFG)" == "libFLAC_static - Win32 Release"
+
+USERDEP__CPU_A="ia32/bitreader_asm.nasm"	
+# Begin Custom Build
+InputPath=.\ia32\bitreader_asm.nasm
+
+"ia32/bitreader_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/bitreader_asm.nasm -o ia32/bitreader_asm.obj
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "libFLAC_static - Win32 Debug"
+
+USERDEP__CPU_A="ia32/bitreader_asm.nasm"	
+# Begin Custom Build
+InputPath=.\ia32\bitreader_asm.nasm
+
+"ia32/bitreader_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/bitreader_asm.nasm -o ia32/bitreader_asm.obj
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\ia32\cpu_asm.nasm
 
 !IF  "$(CFG)" == "libFLAC_static - Win32 Release"
