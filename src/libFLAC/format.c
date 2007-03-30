@@ -211,9 +211,17 @@ FLAC_API const char * const FLAC__StreamMetadata_Picture_TypeString[] = {
 
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate)
 {
+	if(sample_rate == 0 || sample_rate > FLAC__MAX_SAMPLE_RATE) {
+		return false;
+	}
+	else
+		return true;
+}
+
+FLAC_API FLAC__bool FLAC__format_sample_rate_is_subset(unsigned sample_rate)
+{
 	if(
-		sample_rate == 0 ||
-		sample_rate > FLAC__MAX_SAMPLE_RATE ||
+		!FLAC__format_sample_rate_is_valid(sample_rate) ||
 		(
 			sample_rate >= (1u << 16) &&
 			!(sample_rate % 1000 == 0 || sample_rate % 10 == 0)

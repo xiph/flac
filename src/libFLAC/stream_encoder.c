@@ -739,16 +739,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->protected_->blocksize != 16384
 		)
 			return FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE;
-		if(
-			encoder->protected_->sample_rate != 8000 &&
-			encoder->protected_->sample_rate != 16000 &&
-			encoder->protected_->sample_rate != 22050 &&
-			encoder->protected_->sample_rate != 24000 &&
-			encoder->protected_->sample_rate != 32000 &&
-			encoder->protected_->sample_rate != 44100 &&
-			encoder->protected_->sample_rate != 48000 &&
-			encoder->protected_->sample_rate != 96000
-		)
+		if(!FLAC__format_sample_rate_is_subset(encoder->protected_->sample_rate))
 			return FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE;
 		if(
 			encoder->protected_->bits_per_sample != 8 &&

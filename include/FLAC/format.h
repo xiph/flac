@@ -851,8 +851,7 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bit
  *
  *****************************************************************************/
 
-/** Tests that a sample rate is valid for FLAC.  Since the rules for valid
- *  sample rates are slightly complex, they are encapsulated in this function.
+/** Tests that a sample rate is valid for FLAC.
  *
  * \param sample_rate  The sample rate to test for compliance.
  * \retval FLAC__bool
@@ -860,6 +859,17 @@ extern FLAC_API const unsigned FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bit
  *    \c false.
  */
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate);
+
+/** Tests that a sample rate is valid for the FLAC subset.  The subset rules
+ *  for valid sample rates are slightly more complex since the rate has to
+ *  be expressible completely in the frame header.
+ *
+ * \param sample_rate  The sample rate to test for compliance.
+ * \retval FLAC__bool
+ *    \c true if the given sample rate conforms to the specification for the
+ *    subset, else \c false.
+ */
+FLAC_API FLAC__bool FLAC__format_sample_rate_is_subset(unsigned sample_rate);
 
 /** Check a Vorbis comment entry name to see if it conforms to the Vorbis
  *  comment specification.

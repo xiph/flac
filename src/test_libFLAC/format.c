@@ -29,41 +29,46 @@ static const char *true_false_string_[2] = { "false", "true" };
 static struct {
 	unsigned rate;
 	FLAC__bool valid;
+	FLAC__bool subset;
 } SAMPLE_RATES[] = {
-	{ 0      , false },
-	{ 1      , true  },
-	{ 9      , true  },
-	{ 10     , true  },
-	{ 4000   , true  },
-	{ 8000   , true  },
-	{ 11025  , true  },
-	{ 12000  , true  },
-	{ 16000  , true  },
-	{ 22050  , true  },
-	{ 24000  , true  },
-	{ 32000  , true  },
-	{ 32768  , true  },
-	{ 44100  , true  },
-	{ 48000  , true  },
-	{ 65000  , true  },
-	{ 65535  , true  },
-	{ 65536  , false },
-	{ 65540  , true  },
-	{ 65550  , true  },
-	{ 65555  , false },
-	{ 66000  , true  },
-	{ 66001  , false },
-	{ 96000  , true  },
-	{ 100000 , true  },
-	{ 100001 , false },
-	{ 192000 , true  },
-	{ 500000 , true  },
-	{ 500001 , false },
-	{ 500010 , true  },
-	{ 700000 , false },
-	{ 700010 , false },
-	{ 1000000, false },
-	{ 1100000, false }
+	{ 0      , false, false },
+	{ 1      , true , true  },
+	{ 9      , true , true  },
+	{ 10     , true , true  },
+	{ 4000   , true , true  },
+	{ 8000   , true , true  },
+	{ 11025  , true , true  },
+	{ 12000  , true , true  },
+	{ 16000  , true , true  },
+	{ 22050  , true , true  },
+	{ 24000  , true , true  },
+	{ 32000  , true , true  },
+	{ 32768  , true , true  },
+	{ 44100  , true , true  },
+	{ 48000  , true , true  },
+	{ 65000  , true , true  },
+	{ 65535  , true , true  },
+	{ 65536  , true , false },
+	{ 65540  , true , true  },
+	{ 65550  , true , true  },
+	{ 65555  , true , false },
+	{ 66000  , true , true  },
+	{ 66001  , true , false },
+	{ 96000  , true , true  },
+	{ 100000 , true , true  },
+	{ 100001 , true , false },
+	{ 192000 , true , true  },
+	{ 500000 , true , true  },
+	{ 500001 , true , false },
+	{ 500010 , true , true  },
+	{ 655349 , true , false },
+	{ 655350 , true , true  },
+	{ 655351 , false, false },
+	{ 655360 , false, false },
+	{ 700000 , false, false },
+	{ 700010 , false, false },
+	{ 1000000, false, false },
+	{ 1100000, false, false }
 };
 
 static struct {
@@ -195,6 +200,15 @@ FLAC__bool test_format(void)
 		printf("testing FLAC__format_sample_rate_is_valid(%u)... ", SAMPLE_RATES[i].rate);
 		if(FLAC__format_sample_rate_is_valid(SAMPLE_RATES[i].rate) != SAMPLE_RATES[i].valid) {
 			printf("FAILED, expected %s, got %s\n", true_false_string_[SAMPLE_RATES[i].valid], true_false_string_[!SAMPLE_RATES[i].valid]);
+			return false;
+		}
+		printf("OK\n");
+	}
+
+	for(i = 0; i < sizeof(SAMPLE_RATES)/sizeof(SAMPLE_RATES[0]); i++) {
+		printf("testing FLAC__format_sample_rate_is_subset(%u)... ", SAMPLE_RATES[i].rate);
+		if(FLAC__format_sample_rate_is_subset(SAMPLE_RATES[i].rate) != SAMPLE_RATES[i].subset) {
+			printf("FAILED, expected %s, got %s\n", true_false_string_[SAMPLE_RATES[i].subset], true_false_string_[!SAMPLE_RATES[i].subset]);
 			return false;
 		}
 		printf("OK\n");
