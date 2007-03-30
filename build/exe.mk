@@ -83,7 +83,9 @@ endif
 %.debug.i %.release.i : %.cpp
 	$(CCC) $(CFLAGS) -E $< -o $@
 
-%.debug.o %.release.o : %.nasm
+%.debug.o : %.nasm
+	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ -g $< -o $@
+%.release.o : %.nasm
 	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ $< -o $@
 
 .PHONY : clean
