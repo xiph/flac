@@ -129,7 +129,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	and	ebx, 31			;         ebx = 'i' = # of leading 0 bits in 'b' (eax)
 	add	ecx, ebx		;         cbits += i;
 	add	edi, ebx		;         uval += i;
-	add	ecx, 1			;         cbits++; /* skip over stop bit */
+	add	ecx, byte 1		;         cbits++; /* skip over stop bit */
 	test	ecx, ~31
 	jz	near .break1 		;         if(cbits >= FLAC__BITS_PER_WORD) { /* faster way of testing if(cbits == FLAC__BITS_PER_WORD) */
 					;           crc16_update_word_(br, br->buffer[cwords]);
@@ -137,7 +137,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	bswap	edx			;		edx = br->buffer[cwords] swapped; now we can CRC the bytes from LSByte to MSByte which makes things much easier
 	mov	ecx, [ebp + 28]		;		ecx <- br->crc16_align
 	mov	eax, [ebp + 24]		;		ax <- br->read_crc (a.k.a. crc)
-%if FLAC__PUBLIC_NEEDS_UNDERSCORE
+%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
 	mov	edi, _FLAC__crc16_table
 %else
 	mov	edi, FLAC__crc16_table
@@ -176,7 +176,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	mov	[ebp + 24], eax		;		br->read_crc <- crc
 	pop	edi
 
-	add	esi, 1			;           cwords++;
+	add	esi, byte 1		;           cwords++;
 	xor	ecx, ecx		;           cbits = 0;
 					;         }
 	jmp	near .break1		;         goto break1;
@@ -213,7 +213,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	bswap	edx			;		edx = br->buffer[cwords] swapped; now we can CRC the bytes from LSByte to MSByte which makes things much easier
 	mov	ecx, [ebp + 28]		;		ecx <- br->crc16_align
 	mov	eax, [ebp + 24]		;		ax <- br->read_crc (a.k.a. crc)
-%if FLAC__PUBLIC_NEEDS_UNDERSCORE
+%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
 	mov	edi, _FLAC__crc16_table
 %else
 	mov	edi, FLAC__crc16_table
@@ -252,7 +252,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	mov	[ebp + 24], eax		;		br->read_crc <- crc
 	pop	edi
 
-	add	esi, 1			;         cwords++;
+	add	esi, byte 1		;         cwords++;
 	xor	ecx, ecx		;         cbits = 0;
 					;         /* didn't find stop bit yet, have to keep going... */
 					;       }
@@ -291,7 +291,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	and	ebx, 31			;         ebx = 'i' = # of leading 0 bits in 'b' (eax)
 	add	ecx, ebx		;         cbits += i;
 	add	edi, ebx		;         uval += i;
-	add	ecx, 1			;         cbits++; /* skip over stop bit */
+	add	ecx, byte 1		;         cbits++; /* skip over stop bit */
 	jmp	short .break1 		;         goto break1;
 .c1_next3:				;       } else {
 	sub	edi, ecx
@@ -345,7 +345,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	;; ebp		br
 	;; [esp]	ucbits
 	sub	[esp], edi		;   ucbits -= uval;
-	sub	dword [esp], 1		;   ucbits--; /* account for stop bit */
+	sub	dword [esp], byte 1	;   ucbits--; /* account for stop bit */
 
 	;
 	; read binary part
@@ -434,7 +434,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	bswap	edx			;		edx = br->buffer[cwords] swapped; now we can CRC the bytes from LSByte to MSByte which makes things much easier
 	mov	ecx, [ebp + 28]		;		ecx <- br->crc16_align
 	mov	eax, [ebp + 24]		;		ax <- br->read_crc (a.k.a. crc)
-%if FLAC__PUBLIC_NEEDS_UNDERSCORE
+%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
 	mov	edi, _FLAC__crc16_table
 %else
 	mov	edi, FLAC__crc16_table
@@ -474,7 +474,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	pop	eax
 	pop	ebx
 	pop	edi
-	add	esi, 1			;         cwords++;
+	add	esi, byte 1		;         cwords++;
 	mov	ecx, ebx
 	sub	ecx, eax		;         cbits = parameter - n;
 	jz	.break2			;         if(cbits) { /* parameter > n, i.e. if there are still bits left to read, there have to be less than 32 so they will all be in the next word */
@@ -543,7 +543,7 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	neg	edi			;   edi <- -(int)(uval & 1)
 	xor	edx, edi		;   edx <- (uval >> 1 ^ -(int)(uval & 1))
 	mov	[ebx], edx		;   *vals <- edx
-	sub	dword [esp + 32], 1	;   --nvals;
+	sub	dword [esp + 32], byte 1	;   --nvals;
 	jz	.finished		;   if(nvals == 0) /* jump to finish */
 	xor	edi, edi		;   uval = 0;
 	add	dword [esp + 28], 4	;   ++vals
