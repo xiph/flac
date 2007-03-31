@@ -249,6 +249,7 @@ static unsigned find_best_partition_order_(
 	unsigned rice_parameter,
 	unsigned min_partition_order,
 	unsigned max_partition_order,
+	unsigned bps,
 	FLAC__bool do_escape_coding,
 	unsigned rice_parameter_search_dist,
 	FLAC__EntropyCodingMethod_PartitionedRice *best_partitioned_rice
@@ -260,7 +261,8 @@ static void precompute_partition_info_sums_(
 	unsigned residual_samples,
 	unsigned predictor_order,
 	unsigned min_partition_order,
-	unsigned max_partition_order
+	unsigned max_partition_order,
+	unsigned bps
 );
 
 static void precompute_partition_info_escapes_(
@@ -3741,6 +3743,7 @@ unsigned evaluate_fixed_subframe_(
 			rice_parameter,
 			min_partition_order,
 			max_partition_order,
+			subframe_bps,
 			do_escape_coding,
 			rice_parameter_search_dist,
 			&subframe->data.fixed.entropy_coding_method.data.partitioned_rice
@@ -3821,6 +3824,7 @@ unsigned evaluate_lpc_subframe_(
 			rice_parameter,
 			min_partition_order,
 			max_partition_order,
+			subframe_bps,
 			do_escape_coding,
 			rice_parameter_search_dist,
 			&subframe->data.lpc.entropy_coding_method.data.partitioned_rice
@@ -3878,6 +3882,7 @@ unsigned find_best_partition_order_(
 	unsigned rice_parameter,
 	unsigned min_partition_order,
 	unsigned max_partition_order,
+	unsigned bps,
 	FLAC__bool do_escape_coding,
 	unsigned rice_parameter_search_dist,
 	FLAC__EntropyCodingMethod_PartitionedRice *best_partitioned_rice
@@ -3890,7 +3895,7 @@ unsigned find_best_partition_order_(
 	max_partition_order = FLAC__format_get_max_rice_partition_order_from_blocksize_limited_max_and_predictor_order(max_partition_order, blocksize, predictor_order);
 	min_partition_order = min(min_partition_order, max_partition_order);
 
-	precompute_partition_info_sums_(residual, abs_residual_partition_sums, residual_samples, predictor_order, min_partition_order, max_partition_order);
+	precompute_partition_info_sums_(residual, abs_residual_partition_sums, residual_samples, predictor_order, min_partition_order, max_partition_order, bps);
 
 	if(do_escape_coding)
 		precompute_partition_info_escapes_(residual, raw_bits_per_partition, residual_samples, predictor_order, min_partition_order, max_partition_order);
@@ -3950,56 +3955,54 @@ void precompute_partition_info_sums_(
 	unsigned residual_samples,
 	unsigned predictor_order,
 	unsigned min_partition_order,
-	unsigned max_partition_order
+	unsigned max_partition_order,
+	unsigned bps
 )
 {
 	int partition_order;
 	unsigned from_partition, to_partition = 0;
 	const unsigned blocksize = residual_samples + predictor_order;
+	const unsigned partitions = 1u << max_partition_order;
+	const unsigned default_partition_samples = blocksize >> max_partition_order;
+	unsigned partition, end, residual_sample;
+
+	FLAC__ASSERT(default_partition_samples > predictor_order);
 
 	/* first do max_partition_order */
-	for(partition_order = (int)max_partition_order; partition_order >= 0; partition_order--) {
-		FLAC__uint64 abs_residual_partition_sum; /* OPT: can reasonably be FLAC__uint32 for bps <= 17 and maybe higher */
-		unsigned partition, partition_sample, partition_samples, residual_sample;
-		const unsigned partitions = 1u << partition_order;
-		const unsigned default_partition_samples = blocksize >> partition_order;
+	if(FLAC__bitmath_ilog2(default_partition_samples) + bps < 32) { /* very slightly pessimistic but still catches all common cases */
+		FLAC__uint32 abs_residual_partition_sum;
 
-		FLAC__ASSERT(default_partition_samples > predictor_order);
-
+		end = (unsigned)(-(int)predictor_order);
 		for(partition = residual_sample = 0; partition < partitions; partition++) {
-			partition_samples = default_partition_samples;
-			if(partition == 0)
-				partition_samples -= predictor_order;
+			end += default_partition_samples;
 			abs_residual_partition_sum = 0;
-			for(partition_sample = 0; partition_sample < partition_samples; partition_sample++, residual_sample++) {
-#if defined _MSC_VER
-				/* OPT: abs() may be faster for some compilers */
+			for( ; residual_sample < end; residual_sample++)
 				abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
-#else
-				const FLAC__int32 r = residual[residual_sample];
-				if(r < 0)
-					abs_residual_partition_sum -= r;
-				else
-					abs_residual_partition_sum += r;
-#endif
-			}
 			abs_residual_partition_sums[partition] = abs_residual_partition_sum;
 		}
-		to_partition = partitions;
-		break;
+	}
+	else { /* have to pessimistically use 64 bits for accumulator */
+		FLAC__uint64 abs_residual_partition_sum;
+
+		end = (unsigned)(-(int)predictor_order);
+		for(partition = residual_sample = 0; partition < partitions; partition++) {
+			end += default_partition_samples;
+			abs_residual_partition_sum = 0;
+			for( ; residual_sample < end; residual_sample++)
+				abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
+			abs_residual_partition_sums[partition] = abs_residual_partition_sum;
+		}
 	}
 
 	/* now merge partitions for lower orders */
-	for(from_partition = 0, --partition_order; partition_order >= (int)min_partition_order; partition_order--) {
-		FLAC__uint64 s;
+	for(from_partition = 0, to_partition = partitions, partition_order = (int)max_partition_order - 1; partition_order >= (int)min_partition_order; partition_order--) {
 		unsigned i;
 		const unsigned partitions = 1u << partition_order;
 		for(i = 0; i < partitions; i++) {
-			s = abs_residual_partition_sums[from_partition];
-			from_partition++;
-			abs_residual_partition_sums[to_partition] = s + abs_residual_partition_sums[from_partition];
-			from_partition++;
-			to_partition++;
+			abs_residual_partition_sums[to_partition++] =
+				abs_residual_partition_sums[from_partition  ] +
+				abs_residual_partition_sums[from_partition+1];
+			from_partition += 2;
 		}
 	}
 }
