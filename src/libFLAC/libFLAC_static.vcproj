@@ -468,6 +468,30 @@
 				/>
 			</FileConfiguration>
 		</File>
+		<File
+			RelativePath=".\ia32\stream_encoder_asm.nasm"
+			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/stream_encoder_asm.nasm -o ia32/stream_encoder_asm.obj&#x0D;&#x0A;"
+					AdditionalDependencies="ia32/stream_encoder_asm.nasm;ia32/nasm.h"
+					Outputs="ia32/stream_encoder_asm.obj"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCustomBuildTool"
+					CommandLine="nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/stream_encoder_asm.nasm -o ia32/stream_encoder_asm.obj&#x0D;&#x0A;"
+					AdditionalDependencies="ia32/stream_encoder_asm.nasm;ia32/nasm.h"
+					Outputs="ia32/stream_encoder_asm.obj"
+				/>
+			</FileConfiguration>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

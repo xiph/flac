@@ -211,6 +211,35 @@ InputPath=.\ia32\lpc_asm.nasm
 # End Source File
 # Begin Source File
 
+SOURCE=.\ia32\stream_encoder_asm.nasm
+
+!IF  "$(CFG)" == "libFLAC_dynamic - Win32 Release"
+
+USERDEP__CPU_A="ia32/stream_encoder_asm.nasm"	
+# Begin Custom Build
+InputPath=.\ia32\stream_encoder_asm.nasm
+
+"ia32/stream_encoder_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/stream_encoder_asm.nasm -o ia32/stream_encoder_asm.obj
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "libFLAC_dynamic - Win32 Debug"
+
+USERDEP__CPU_A="ia32/stream_encoder_asm.nasm"	
+# Begin Custom Build
+InputPath=.\ia32\stream_encoder_asm.nasm
+
+"ia32/stream_encoder_asm.obj" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	nasmw.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/stream_encoder_asm.nasm -o ia32/stream_encoder_asm.obj
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\ia32\nasm.h
 # End Source File
 # End Group

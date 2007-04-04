@@ -41,4 +41,5 @@ libFLAC_asm_la_SOURCES = \
 	cpu_asm.nasm \
 	fixed_asm.nasm \
 	lpc_asm.nasm \
-	nasm.h
+	nasm.h \
+	stream_encoder_asm.nasm
