@@ -1967,23 +1967,11 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 			memcpy(&encoder->private_->integer_signal[channel][encoder->private_->current_sample_number], &buffer[channel][j], sizeof(buffer[channel][0]) * n);
 
 		if(encoder->protected_->do_mid_side_stereo) {
-#ifdef _MSC_VER
-			FLAC__int32 x, mid, side;
-#endif
 			FLAC__ASSERT(channels == 2);
 			/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
 			for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-#ifdef _MSC_VER /* OPT: @@@@@@ make sure this is really faster on MSVC6, else drop it, make appropriate change in ..._interleaved() too */
-				mid = side = buffer[0][j];
-				x = buffer[1][j];
-				mid += x;
-				side -= x;
-				encoder->private_->integer_signal_mid_side[1][i] = side;
-				encoder->private_->integer_signal_mid_side[0][i] = mid >> 1; /* NOTE: not the same as 'mid = (buffer[0][j] + buffer[1][j]) / 2' ! */
-#else
 				encoder->private_->integer_signal_mid_side[1][i] = buffer[0][j] - buffer[1][j];
 				encoder->private_->integer_signal_mid_side[0][i] = (buffer[0][j] + buffer[1][j]) >> 1; /* NOTE: not the same as 'mid = (buffer[0][j] + buffer[1][j]) / 2' ! */
-#endif
 			}
 		}
 		else
@@ -3913,7 +3901,7 @@ FLAC__bool set_partitioned_rice_(
 	raw_bits = partitioned_rice_contents->raw_bits;
 
 	if(partition_order == 0) {
-		best_partition_bits = 0xffffffff;
+		best_partition_bits = (unsigned)(-1);
 #ifdef ENABLE_RICE_PARAMETER_SEARCH
 		if(rice_parameter_search_dist) {
 			if(suggested_rice_parameter < rice_parameter_search_dist)
@@ -3989,7 +3977,7 @@ FLAC__bool set_partitioned_rice_(
 				rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
 			}
 
-			best_partition_bits = 0xffffffff;
+			best_partition_bits = (unsigned)(-1);
 #ifdef ENABLE_RICE_PARAMETER_SEARCH
 			if(rice_parameter_search_dist) {
 				if(rice_parameter < rice_parameter_search_dist)
