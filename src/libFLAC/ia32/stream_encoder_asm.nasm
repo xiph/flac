@@ -86,16 +86,15 @@ cident precompute_partition_info_sums_32bit_asm_ia32_
 	;
 	; first do max_partition_order
 	;
-	mov	edi, [esp + 40]
-	neg	edi			; edi <- end = (unsigned)(-(int)predictor_order)
+	mov	edi, [esp + 4]
+	sub	edi, [esp + 40]		; edi <- end = (unsigned)(-(int)predictor_order) + default_partition_samples
+	xor	esi, esi		; esi <- residual_sample = 0
 	xor	ecx, ecx		; ecx <- partition = 0
 	mov	ebp, [esp + 28]		; ebp <- residual[]
-	xor	esi, esi		; esi <- residual_sample = 0
+	xor	ebx, ebx		; ebx <- abs_residual_partition_sum = 0;
+	; note we put the updates to 'end' and 'abs_residual_partition_sum' at the end of loop0 and in the initialization above so we could align loop0 and loop1
 	ALIGN	16
 .loop0:					; for(partition = residual_sample = 0; partition < partitions; partition++) {
-	add	edi, [esp + 4]		;   end += default_partition_samples;
-	xor	ebx, ebx		;   abs_residual_partition_sum = 0;
-	ALIGN	16;@@@ OPT: remove?
 .loop1:					;   for( ; residual_sample < end; residual_sample++)
 	mov	eax, [ebp + esi * 4]
 	cdq
@@ -106,9 +105,11 @@ cident precompute_partition_info_sums_32bit_asm_ia32_
 	cmp	esi, edi		;   /* since the loop will always run at least once, we can put the loop check down here */
 	jb	.loop1
 .next1:
+	add	edi, [esp + 4]		;   end += default_partition_samples;
 	mov	eax, [esp + 32]
 	mov	[eax + ecx * 8], ebx	;   abs_residual_partition_sums[partition] = abs_residual_partition_sum;
 	mov	[eax + ecx * 8 + 4], dword 0
+	xor	ebx, ebx		;   abs_residual_partition_sum = 0;
 	add	ecx, byte 1
 	cmp	ecx, [esp]		; /* since the loop will always run at least once, we can put the loop check down here */
 	jb	.loop0
@@ -127,7 +128,7 @@ cident precompute_partition_info_sums_32bit_asm_ia32_
 	jl	.next2
 	mov	edx, 1
 	shl	edx, cl			;   const unsigned partitions = 1u << partition_order;
-	ALIGN 16;@@@ OPT: remove?
+	ALIGN 16
 .loop3:					;   for(i = 0; i < partitions; i++) {
 	mov	eax, [esi]
 	mov	[edi + 4], dword 0
