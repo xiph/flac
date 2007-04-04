@@ -1949,8 +1949,7 @@ FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC
 
 FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], unsigned samples)
 {
-	unsigned i, j, channel;
-	FLAC__int32 x, mid, side;
+	unsigned i, j = 0, channel;
 	const unsigned channels = encoder->protected_->channels, blocksize = encoder->protected_->blocksize;
 
 	FLAC__ASSERT(0 != encoder);
@@ -1958,150 +1957,56 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 	FLAC__ASSERT(0 != encoder->protected_);
 	FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
 
-	j = 0;
-	/*
-	 * we have several flavors of the same basic loop, optimized for
-	 * different conditions:
-	 */
-	if(encoder->protected_->max_lpc_order > 0) {
-		if(encoder->protected_->do_mid_side_stereo && channels == 2) {
-			/*
-			 * stereo coding: unroll channel loop
-			 * with LPC: calculate floating point version of signal
-			 */
-			do {
-				if(encoder->protected_->verify)
-					append_to_verify_fifo_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+1-encoder->private_->current_sample_number, samples-j));
+	do {
+		const unsigned n = min(blocksize+OVERREAD_-encoder->private_->current_sample_number, samples-j);
 
-				/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
-				for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-					x = mid = side = buffer[0][j];
-					encoder->private_->integer_signal[0][i] = x;
-					x = buffer[1][j];
-					encoder->private_->integer_signal[1][i] = x;
-					mid += x;
-					side -= x;
-					mid >>= 1; /* NOTE: not the same as 'mid = (buffer[0][j] + buffer[1][j]) / 2' ! */
-					encoder->private_->integer_signal_mid_side[1][i] = side;
-					encoder->private_->integer_signal_mid_side[0][i] = mid;
-					encoder->private_->current_sample_number++;
-				}
-				/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
-				if(i > blocksize) {
-					if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
-						return false;
-					/* move unprocessed overread samples to beginnings of arrays */
-					FLAC__ASSERT(i == blocksize+OVERREAD_);
-					FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
-					i--;
-					encoder->private_->integer_signal[0][0] = encoder->private_->integer_signal[0][i];
-					encoder->private_->integer_signal[1][0] = encoder->private_->integer_signal[1][i];
-					encoder->private_->integer_signal_mid_side[0][0] = encoder->private_->integer_signal_mid_side[0][i];
-					encoder->private_->integer_signal_mid_side[1][0] = encoder->private_->integer_signal_mid_side[1][i];
-					encoder->private_->current_sample_number = 1;
-				}
-			} while(j < samples);
-		}
-		else {
-			/*
-			 * independent channel coding: buffer each channel in inner loop
-			 * with LPC: calculate floating point version of signal
-			 */
-			do {
-				if(encoder->protected_->verify)
-					append_to_verify_fifo_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+1-encoder->private_->current_sample_number, samples-j));
+		if(encoder->protected_->verify)
+			append_to_verify_fifo_(&encoder->private_->verify.input_fifo, buffer, j, channels, n);
 
-				/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
-				for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-					for(channel = 0; channel < channels; channel++) {
-						x = buffer[channel][j];
-						encoder->private_->integer_signal[channel][i] = x;
-					}
-					encoder->private_->current_sample_number++;
-				}
-				/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
-				if(i > blocksize) {
-					if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
-						return false;
-					/* move unprocessed overread samples to beginnings of arrays */
-					FLAC__ASSERT(i == blocksize+OVERREAD_);
-					FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
-					i--;
-					for(channel = 0; channel < channels; channel++)
-						encoder->private_->integer_signal[channel][0] = encoder->private_->integer_signal[channel][i];
-					encoder->private_->current_sample_number = 1;
-				}
-			} while(j < samples);
-		}
-	}
-	else {
-		if(encoder->protected_->do_mid_side_stereo && channels == 2) {
-			/*
-			 * stereo coding: unroll channel loop
-			 * without LPC: no need to calculate floating point version of signal
-			 */
-			do {
-				if(encoder->protected_->verify)
-					append_to_verify_fifo_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+1-encoder->private_->current_sample_number, samples-j));
+		for(channel = 0; channel < channels; channel++)
+			memcpy(&encoder->private_->integer_signal[channel][encoder->private_->current_sample_number], &buffer[channel][j], sizeof(buffer[channel][0]) * n);
 
-				/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
-				for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-					encoder->private_->integer_signal[0][i] = mid = side = buffer[0][j];
-					x = buffer[1][j];
-					encoder->private_->integer_signal[1][i] = x;
-					mid += x;
-					side -= x;
-					mid >>= 1; /* NOTE: not the same as 'mid = (buffer[0][j] + buffer[1][j]) / 2' ! */
-					encoder->private_->integer_signal_mid_side[1][i] = side;
-					encoder->private_->integer_signal_mid_side[0][i] = mid;
-					encoder->private_->current_sample_number++;
-				}
-				/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
-				if(i > blocksize) {
-					if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
-						return false;
-					/* move unprocessed overread samples to beginnings of arrays */
-					FLAC__ASSERT(i == blocksize+OVERREAD_);
-					FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
-					i--;
-					encoder->private_->integer_signal[0][0] = encoder->private_->integer_signal[0][i];
-					encoder->private_->integer_signal[1][0] = encoder->private_->integer_signal[1][i];
-					encoder->private_->integer_signal_mid_side[0][0] = encoder->private_->integer_signal_mid_side[0][i];
-					encoder->private_->integer_signal_mid_side[1][0] = encoder->private_->integer_signal_mid_side[1][i];
-					encoder->private_->current_sample_number = 1;
-				}
-			} while(j < samples);
+		if(encoder->protected_->do_mid_side_stereo) {
+#ifdef _MSC_VER
+			FLAC__int32 x, mid, side;
+#endif
+			FLAC__ASSERT(channels == 2);
+			/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
+			for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
+#ifdef _MSC_VER /* OPT: @@@@@@ make sure this is really faster on MSVC6, else drop it, make appropriate change in ..._interleaved() too */
+				mid = side = buffer[0][j];
+				x = buffer[1][j];
+				mid += x;
+				side -= x;
+				encoder->private_->integer_signal_mid_side[1][i] = side;
+				encoder->private_->integer_signal_mid_side[0][i] = mid >> 1; /* NOTE: not the same as 'mid = (buffer[0][j] + buffer[1][j]) / 2' ! */
+#else
+				encoder->private_->integer_signal_mid_side[1][i] = buffer[0][j] - buffer[1][j];
+				encoder->private_->integer_signal_mid_side[0][i] = (buffer[0][j] + buffer[1][j]) >> 1; /* NOTE: not the same as 'mid = (buffer[0][j] + buffer[1][j]) / 2' ! */
+#endif
+			}
 		}
-		else {
-			/*
-			 * independent channel coding: buffer each channel in inner loop
-			 * without LPC: no need to calculate floating point version of signal
-			 */
-			do {
-				if(encoder->protected_->verify)
-					append_to_verify_fifo_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+1-encoder->private_->current_sample_number, samples-j));
+		else
+			j += n;
 
-				/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
-				for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-					for(channel = 0; channel < channels; channel++)
-						encoder->private_->integer_signal[channel][i] = buffer[channel][j];
-					encoder->private_->current_sample_number++;
-				}
-				/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
-				if(i > blocksize) {
-					if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
-						return false;
-					/* move unprocessed overread samples to beginnings of arrays */
-					FLAC__ASSERT(i == blocksize+OVERREAD_);
-					FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
-					i--;
-					for(channel = 0; channel < channels; channel++)
-						encoder->private_->integer_signal[channel][0] = encoder->private_->integer_signal[channel][i];
-					encoder->private_->current_sample_number = 1;
-				}
-			} while(j < samples);
+		encoder->private_->current_sample_number += n;
+
+		/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
+		if(encoder->private_->current_sample_number > blocksize) {
+			if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
+				return false;
+			/* move unprocessed overread samples to beginnings of arrays */
+			FLAC__ASSERT(encoder->private_->current_sample_number == blocksize+OVERREAD_);
+			FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
+			for(channel = 0; channel < channels; channel++)
+				encoder->private_->integer_signal[channel][0] = encoder->private_->integer_signal[channel][blocksize];
+			if(encoder->protected_->do_mid_side_stereo) {
+				encoder->private_->integer_signal_mid_side[0][0] = encoder->private_->integer_signal_mid_side[0][blocksize];
+				encoder->private_->integer_signal_mid_side[1][0] = encoder->private_->integer_signal_mid_side[1][blocksize];
+			}
+			encoder->private_->current_sample_number = 1;
 		}
-	}
+	} while(j < samples);
 
 	return true;
 }
@@ -2122,144 +2027,67 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 	 * we have several flavors of the same basic loop, optimized for
 	 * different conditions:
 	 */
-	if(encoder->protected_->max_lpc_order > 0) {
-		if(encoder->protected_->do_mid_side_stereo && channels == 2) {
-			/*
-			 * stereo coding: unroll channel loop
-			 * with LPC: calculate floating point version of signal
-			 */
-			do {
-				if(encoder->protected_->verify)
-					append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+1-encoder->private_->current_sample_number, samples-j));
+	if(encoder->protected_->do_mid_side_stereo && channels == 2) {
+		/*
+		 * stereo coding: unroll channel loop
+		 */
+		do {
+			if(encoder->protected_->verify)
+				append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+OVERREAD_-encoder->private_->current_sample_number, samples-j));
 
-				/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
-				for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-					x = mid = side = buffer[k++];
-					encoder->private_->integer_signal[0][i] = x;
-					x = buffer[k++];
-					encoder->private_->integer_signal[1][i] = x;
-					mid += x;
-					side -= x;
-					mid >>= 1; /* NOTE: not the same as 'mid = (left + right) / 2' ! */
-					encoder->private_->integer_signal_mid_side[1][i] = side;
-					encoder->private_->integer_signal_mid_side[0][i] = mid;
-					encoder->private_->current_sample_number++;
-				}
-				/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
-				if(i > blocksize) {
-					if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
-						return false;
-					/* move unprocessed overread samples to beginnings of arrays */
-					FLAC__ASSERT(i == blocksize+OVERREAD_);
-					FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
-					i--;
-					encoder->private_->integer_signal[0][0] = encoder->private_->integer_signal[0][i];
-					encoder->private_->integer_signal[1][0] = encoder->private_->integer_signal[1][i];
-					encoder->private_->integer_signal_mid_side[0][0] = encoder->private_->integer_signal_mid_side[0][i];
-					encoder->private_->integer_signal_mid_side[1][0] = encoder->private_->integer_signal_mid_side[1][i];
-					encoder->private_->current_sample_number = 1;
-				}
-			} while(j < samples);
-		}
-		else {
-			/*
-			 * independent channel coding: buffer each channel in inner loop
-			 * with LPC: calculate floating point version of signal
-			 */
-			do {
-				if(encoder->protected_->verify)
-					append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+1-encoder->private_->current_sample_number, samples-j));
-
-				/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
-				for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-					for(channel = 0; channel < channels; channel++) {
-						x = buffer[k++];
-						encoder->private_->integer_signal[channel][i] = x;
-					}
-					encoder->private_->current_sample_number++;
-				}
-				/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
-				if(i > blocksize) {
-					if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
-						return false;
-					/* move unprocessed overread samples to beginnings of arrays */
-					FLAC__ASSERT(i == blocksize+OVERREAD_);
-					FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
-					i--;
-					for(channel = 0; channel < channels; channel++)
-						encoder->private_->integer_signal[channel][0] = encoder->private_->integer_signal[channel][i];
-					encoder->private_->current_sample_number = 1;
-				}
-			} while(j < samples);
-		}
+			/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
+			for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
+				encoder->private_->integer_signal[0][i] = mid = side = buffer[k++];
+				x = buffer[k++];
+				encoder->private_->integer_signal[1][i] = x;
+				mid += x;
+				side -= x;
+				mid >>= 1; /* NOTE: not the same as 'mid = (left + right) / 2' ! */
+				encoder->private_->integer_signal_mid_side[1][i] = side;
+				encoder->private_->integer_signal_mid_side[0][i] = mid;
+			}
+			encoder->private_->current_sample_number = i;
+			/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
+			if(i > blocksize) {
+				if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
+					return false;
+				/* move unprocessed overread samples to beginnings of arrays */
+				FLAC__ASSERT(i == blocksize+OVERREAD_);
+				FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
+				encoder->private_->integer_signal[0][0] = encoder->private_->integer_signal[0][blocksize];
+				encoder->private_->integer_signal[1][0] = encoder->private_->integer_signal[1][blocksize];
+				encoder->private_->integer_signal_mid_side[0][0] = encoder->private_->integer_signal_mid_side[0][blocksize];
+				encoder->private_->integer_signal_mid_side[1][0] = encoder->private_->integer_signal_mid_side[1][blocksize];
+				encoder->private_->current_sample_number = 1;
+			}
+		} while(j < samples);
 	}
 	else {
-		if(encoder->protected_->do_mid_side_stereo && channels == 2) {
-			/*
-			 * stereo coding: unroll channel loop
-			 * without LPC: no need to calculate floating point version of signal
-			 */
-			do {
-				if(encoder->protected_->verify)
-					append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+1-encoder->private_->current_sample_number, samples-j));
+		/*
+		 * independent channel coding: buffer each channel in inner loop
+		 */
+		do {
+			if(encoder->protected_->verify)
+				append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+OVERREAD_-encoder->private_->current_sample_number, samples-j));
 
-				/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
-				for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-					encoder->private_->integer_signal[0][i] = mid = side = buffer[k++];
-					x = buffer[k++];
-					encoder->private_->integer_signal[1][i] = x;
-					mid += x;
-					side -= x;
-					mid >>= 1; /* NOTE: not the same as 'mid = (left + right) / 2' ! */
-					encoder->private_->integer_signal_mid_side[1][i] = side;
-					encoder->private_->integer_signal_mid_side[0][i] = mid;
-					encoder->private_->current_sample_number++;
-				}
-				/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
-				if(i > blocksize) {
-					if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
-						return false;
-					/* move unprocessed overread samples to beginnings of arrays */
-					FLAC__ASSERT(i == blocksize+OVERREAD_);
-					FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
-					i--;
-					encoder->private_->integer_signal[0][0] = encoder->private_->integer_signal[0][i];
-					encoder->private_->integer_signal[1][0] = encoder->private_->integer_signal[1][i];
-					encoder->private_->integer_signal_mid_side[0][0] = encoder->private_->integer_signal_mid_side[0][i];
-					encoder->private_->integer_signal_mid_side[1][0] = encoder->private_->integer_signal_mid_side[1][i];
-					encoder->private_->current_sample_number = 1;
-				}
-			} while(j < samples);
-		}
-		else {
-			/*
-			 * independent channel coding: buffer each channel in inner loop
-			 * without LPC: no need to calculate floating point version of signal
-			 */
-			do {
-				if(encoder->protected_->verify)
-					append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, min(blocksize+1-encoder->private_->current_sample_number, samples-j));
-
-				/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
-				for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-					for(channel = 0; channel < channels; channel++)
-						encoder->private_->integer_signal[channel][i] = buffer[k++];
-					encoder->private_->current_sample_number++;
-				}
-				/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
-				if(i > blocksize) {
-					if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
-						return false;
-					/* move unprocessed overread samples to beginnings of arrays */
-					FLAC__ASSERT(i == blocksize+OVERREAD_);
-					FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
-					i--;
-					for(channel = 0; channel < channels; channel++)
-						encoder->private_->integer_signal[channel][0] = encoder->private_->integer_signal[channel][i];
-					encoder->private_->current_sample_number = 1;
-				}
-			} while(j < samples);
-		}
+			/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
+			for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
+				for(channel = 0; channel < channels; channel++)
+					encoder->private_->integer_signal[channel][i] = buffer[k++];
+			}
+			encoder->private_->current_sample_number = i;
+			/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
+			if(i > blocksize) {
+				if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
+					return false;
+				/* move unprocessed overread samples to beginnings of arrays */
+				FLAC__ASSERT(i == blocksize+OVERREAD_);
+				FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
+				for(channel = 0; channel < channels; channel++)
+					encoder->private_->integer_signal[channel][0] = encoder->private_->integer_signal[channel][blocksize];
+				encoder->private_->current_sample_number = 1;
+			}
+		} while(j < samples);
 	}
 
 	return true;
