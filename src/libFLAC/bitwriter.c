@@ -540,7 +540,7 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 	const FLAC__uint32 mask1 = FLAC__WORD_ALL_ONES << parameter; /* we val|=mask1 to set the stop bit above it... */
 	const FLAC__uint32 mask2 = FLAC__WORD_ALL_ONES >> (31-parameter); /* ...then mask off the bits above the stop bit with val&=mask2*/
 	FLAC__uint32 uval;
-	register unsigned left;
+	unsigned left;
 	const unsigned lsbits = 1 + parameter;
 	unsigned msbits;
 
@@ -558,22 +558,24 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 
 		/* slightly pessimistic size check but faster than "<= bw->words + (bw->bits+msbits+lsbits+FLAC__BITS_PER_WORD-1)/FLAC__BITS_PER_WORD" */
 		/* OPT: pessimism may cause flurry of false calls to grow_ which eat up all savings before it */
-		if(bw->capacity <= bw->words + bw->bits + msbits + lsbits && !bitwriter_grow_(bw, msbits+lsbits))
+		if(bw->capacity <= bw->words + bw->bits + msbits + 1/*lsbits always fit in 1 bwword*/ && !bitwriter_grow_(bw, msbits+lsbits))
 			return false;
 
 		if(msbits) {
 			/* first part gets to word alignment */
 			if(bw->bits) {
-				left = min(FLAC__BITS_PER_WORD - bw->bits, msbits);
-				bw->accum <<= left;
-				msbits -= left;
-				bw->bits += left;
-				if(bw->bits == FLAC__BITS_PER_WORD) {
+				left = FLAC__BITS_PER_WORD - bw->bits;
+				if(msbits < left) {
+					bw->accum <<= msbits;
+					bw->bits += msbits;
+					goto break1;
+				}
+				else {
+					bw->accum <<= left;
+					msbits -= left;
 					bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(bw->accum);
 					bw->bits = 0;
 				}
-				else
-					goto break1;
 			}
 			/* do whole words */
 			while(msbits >= FLAC__BITS_PER_WORD) {
