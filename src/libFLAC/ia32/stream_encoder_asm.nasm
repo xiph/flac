@@ -93,27 +93,25 @@ cident precompute_partition_info_sums_32bit_asm_ia32_
 	xor	esi, esi		; esi <- residual_sample = 0
 	ALIGN	16
 .loop0:					; for(partition = residual_sample = 0; partition < partitions; partition++) {
-	cmp	ecx, [esp]
-	jae	.next0
 	add	edi, [esp + 4]		;   end += default_partition_samples;
 	xor	ebx, ebx		;   abs_residual_partition_sum = 0;
 	ALIGN	16;@@@ OPT: remove?
 .loop1:					;   for( ; residual_sample < end; residual_sample++)
-	cmp	esi, edi
-	jae	.next1
 	mov	eax, [ebp + esi * 4]
 	cdq
 	xor	eax, edx
 	sub	eax, edx
 	add	ebx, eax		;     abs_residual_partition_sum += abs(residual[residual_sample]);
 	add	esi, byte 1
-	jmp	.loop1
+	cmp	esi, edi		;   /* since the loop will always run at least once, we can put the loop check down here */
+	jb	.loop1
 .next1:
 	mov	eax, [esp + 32]
 	mov	[eax + ecx * 8], ebx	;   abs_residual_partition_sums[partition] = abs_residual_partition_sum;
 	mov	[eax + ecx * 8 + 4], dword 0
 	add	ecx, byte 1
-	jmp	.loop0
+	cmp	ecx, [esp]		; /* since the loop will always run at least once, we can put the loop check down here */
+	jb	.loop0
 .next0:					; }
 	;
 	; now merge partitions for lower orders
