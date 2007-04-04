@@ -52,7 +52,7 @@
  *	OUT out[0,lag-1]
  *	IN data_len
  */
-void FLAC__lpc_window_data(const FLAC__real in[], const FLAC__real window[], FLAC__real out[], unsigned data_len);
+void FLAC__lpc_window_data(const FLAC__int32 in[], const FLAC__real window[], FLAC__real out[], unsigned data_len);
 
 /*
  *	FLAC__lpc_compute_autocorrelation()
