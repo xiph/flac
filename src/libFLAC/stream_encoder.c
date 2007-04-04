@@ -1981,11 +1981,11 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 
 		/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
 		if(encoder->private_->current_sample_number > blocksize) {
+			FLAC__ASSERT(encoder->private_->current_sample_number == blocksize+OVERREAD_);
+			FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
 			if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
 				return false;
 			/* move unprocessed overread samples to beginnings of arrays */
-			FLAC__ASSERT(encoder->private_->current_sample_number == blocksize+OVERREAD_);
-			FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
 			for(channel = 0; channel < channels; channel++)
 				encoder->private_->integer_signal[channel][0] = encoder->private_->integer_signal[channel][blocksize];
 			if(encoder->protected_->do_mid_side_stereo) {
@@ -3711,6 +3711,17 @@ unsigned find_best_partition_order_(
 	return best_residual_bits;
 }
 
+#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM
+extern void precompute_partition_info_sums_32bit_asm_ia32_(
+	const FLAC__int32 residual[],
+	FLAC__uint64 abs_residual_partition_sums[],
+	unsigned blocksize,
+	unsigned predictor_order,
+	unsigned min_partition_order,
+	unsigned max_partition_order
+);
+#endif
+
 void precompute_partition_info_sums_(
 	const FLAC__int32 residual[],
 	FLAC__uint64 abs_residual_partition_sums[],
@@ -3721,50 +3732,58 @@ void precompute_partition_info_sums_(
 	unsigned bps
 )
 {
-	int partition_order;
-	unsigned from_partition, to_partition = 0;
-	const unsigned blocksize = residual_samples + predictor_order;
-	const unsigned partitions = 1u << max_partition_order;
-	const unsigned default_partition_samples = blocksize >> max_partition_order;
-	unsigned partition, end, residual_sample;
+	const unsigned default_partition_samples = (residual_samples + predictor_order) >> max_partition_order;
+	unsigned partitions = 1u << max_partition_order;
 
 	FLAC__ASSERT(default_partition_samples > predictor_order);
 
-	/* first do max_partition_order */
+#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM
 	if(FLAC__bitmath_ilog2(default_partition_samples) + bps < 32) { /* very slightly pessimistic but still catches all common cases */
-		FLAC__uint32 abs_residual_partition_sum;
-
-		end = (unsigned)(-(int)predictor_order);
-		for(partition = residual_sample = 0; partition < partitions; partition++) {
-			end += default_partition_samples;
-			abs_residual_partition_sum = 0;
-			for( ; residual_sample < end; residual_sample++)
-				abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
-			abs_residual_partition_sums[partition] = abs_residual_partition_sum;
-		}
+		precompute_partition_info_sums_32bit_asm_ia32_(residual, abs_residual_partition_sums, residual_samples + predictor_order, predictor_order, min_partition_order, max_partition_order);
+		return;
 	}
-	else { /* have to pessimistically use 64 bits for accumulator */
-		FLAC__uint64 abs_residual_partition_sum;
+#endif
 
-		end = (unsigned)(-(int)predictor_order);
-		for(partition = residual_sample = 0; partition < partitions; partition++) {
-			end += default_partition_samples;
-			abs_residual_partition_sum = 0;
-			for( ; residual_sample < end; residual_sample++)
-				abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
-			abs_residual_partition_sums[partition] = abs_residual_partition_sum;
+	/* first do max_partition_order */
+	{
+		unsigned partition, residual_sample, end = (unsigned)(-(int)predictor_order);
+		if(FLAC__bitmath_ilog2(default_partition_samples) + bps < 32) { /* very slightly pessimistic but still catches all common cases */
+			FLAC__uint32 abs_residual_partition_sum;
+
+			for(partition = residual_sample = 0; partition < partitions; partition++) {
+				end += default_partition_samples;
+				abs_residual_partition_sum = 0;
+				for( ; residual_sample < end; residual_sample++)
+					abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
+				abs_residual_partition_sums[partition] = abs_residual_partition_sum;
+			}
+		}
+		else { /* have to pessimistically use 64 bits for accumulator */
+			FLAC__uint64 abs_residual_partition_sum;
+
+			for(partition = residual_sample = 0; partition < partitions; partition++) {
+				end += default_partition_samples;
+				abs_residual_partition_sum = 0;
+				for( ; residual_sample < end; residual_sample++)
+					abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
+				abs_residual_partition_sums[partition] = abs_residual_partition_sum;
+			}
 		}
 	}
 
 	/* now merge partitions for lower orders */
-	for(from_partition = 0, to_partition = partitions, partition_order = (int)max_partition_order - 1; partition_order >= (int)min_partition_order; partition_order--) {
-		unsigned i;
-		const unsigned partitions = 1u << partition_order;
-		for(i = 0; i < partitions; i++) {
-			abs_residual_partition_sums[to_partition++] =
-				abs_residual_partition_sums[from_partition  ] +
-				abs_residual_partition_sums[from_partition+1];
-			from_partition += 2;
+	{
+		unsigned from_partition = 0, to_partition = partitions;
+		int partition_order;
+		for(partition_order = (int)max_partition_order - 1; partition_order >= (int)min_partition_order; partition_order--) {
+			unsigned i;
+			partitions >>= 1;
+			for(i = 0; i < partitions; i++) {
+				abs_residual_partition_sums[to_partition++] =
+					abs_residual_partition_sums[from_partition  ] +
+					abs_residual_partition_sums[from_partition+1];
+				from_partition += 2;
+			}
 		}
 	}
 }
