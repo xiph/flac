@@ -139,6 +139,7 @@ namespace FLAC {
 			virtual unsigned get_bits_per_sample() const;                     ///< See FLAC__stream_decoder_get_bits_per_sample()
 			virtual unsigned get_sample_rate() const;                         ///< See FLAC__stream_decoder_get_sample_rate()
 			virtual unsigned get_blocksize() const;                           ///< See FLAC__stream_decoder_get_blocksize()
+			virtual bool get_decode_position(FLAC__uint64 *position) const;   ///< See FLAC__stream_decoder_get_decode_position()
 
 			virtual ::FLAC__StreamDecoderInitStatus init();      ///< Seek FLAC__stream_decoder_init_stream()
 			virtual ::FLAC__StreamDecoderInitStatus init_ogg();  ///< Seek FLAC__stream_decoder_init_ogg_stream()

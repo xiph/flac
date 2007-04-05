@@ -159,6 +159,12 @@ namespace FLAC {
 			return ::FLAC__stream_decoder_get_blocksize(decoder_);
 		}
 
+		bool Stream::get_decode_position(FLAC__uint64 *position) const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_decoder_get_decode_position(decoder_, position);
+		}
+
 		::FLAC__StreamDecoderInitStatus Stream::init()
 		{
 			FLAC__ASSERT(is_valid());
