@@ -23,6 +23,12 @@
 #include <stdio.h>
 #include <string.h>
 #include "FLAC++/decoder.h"
+#if defined _MSC_VER || defined __MINGW32__
+#if _MSC_VER <= 1600 /* @@@ [2G limit] */
+#define fseeko fseek
+#define ftello ftell
+#endif
+#endif
 
 class AutoFILE {
 protected:
@@ -52,9 +58,9 @@ protected:
 	virtual ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes)
 	{
 		*bytes = fread(buffer, 1, *bytes, f_);
-		if(ferror(f_))
+		if(ferror((FILE*)f_))
 			return ::FLAC__STREAM_DECODER_READ_STATUS_ABORT;
-		else if(*bytes == 0 && feof(f_))
+		else if(*bytes == 0 && feof((FILE*)f_))
 			return ::FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
 		else
 			return ::FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
@@ -71,7 +77,7 @@ protected:
 
 	virtual bool eof_callback()
 	{
-		return feof(f_);
+		return feof((FILE*)f_);
 	}
 
 	virtual ::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const /*buffer*/[])
