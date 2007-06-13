@@ -124,6 +124,9 @@
 				<a href="#tools__eac_and_flac"><b>How do I set up EAC to rip directly to FLAC?</b></a>
 			</li>
 			<li>
+				<a href="#tools__runtime75"><b>Why am I getting "Run-time error '75': Path/File access error" with FLAC Frontend?</b></a>
+			</li>
+			<li>
 				<a href="#tools__option_blocking"><b>How do I encode a file that starts with a dash?</b></a>
 			</li>
 			<li>
@@ -288,6 +291,10 @@
 		<a name="tools__eac_and_flac"><b>How do I set up EAC to rip directly to FLAC?</b></a><br />
 		<br />
 		See Case's excellent <a href="http://www.saunalahti.fi/cse/EAC/index.html">EAC configuration page</a>.  Or use <a href="http://www.legroom.net/modules.php?op=modload&name=Open_Source&file=index&page=software&app=autoflac">AutoFLAC</a>, <a href="http://omniencoder.autobotcity.net/">Omni Encoder</a>, or <a href="http://mareo.netfirms.com/">MAREO</a> to rip to FLAC or multiple formats at once.<br />
+		<br />
+		<a name="tools__runtime75"><b>Why am I getting "Run-time error '75': Path/File access error" with FLAC Frontend?</b></a><br />
+		<br />
+		Depending on how FLAC Frontend is installed, it could be one of two things: 1) you are trying to encode to file to a directory where you do not have write permission; 2) the FLAC Frontend program must be set to run as Administrator by opening Windows Explorer, navigating to <span class="command">C:\Program Files\FLAC</span> (or wherever FLAC was installed), then right-clicking on <span class="command">FLAC Frontend.exe</span> and checking "Run this program as an administrator".<br />
 		<br />
 		<a name="tools__option_blocking"><b>How do I encode a file that starts with a dash?</b></a><br />
 		<br />
