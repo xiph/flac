@@ -1058,7 +1058,8 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->streaminfo.data.stream_info.bits_per_sample = encoder->protected_->bits_per_sample;
 	encoder->private_->streaminfo.data.stream_info.total_samples = encoder->protected_->total_samples_estimate; /* we will replace this later with the real total */
 	memset(encoder->private_->streaminfo.data.stream_info.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
-	FLAC__MD5Init(&encoder->private_->md5context);
+	if(encoder->protected_->do_md5)
+		FLAC__MD5Init(&encoder->private_->md5context);
 	if(!FLAC__add_metadata_block(&encoder->private_->streaminfo, encoder->private_->frame)) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
@@ -1327,7 +1328,8 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 		}
 	}
 
-	FLAC__MD5Final(encoder->private_->streaminfo.data.stream_info.md5sum, &encoder->private_->md5context);
+	if(encoder->protected_->do_md5)
+		FLAC__MD5Final(encoder->private_->streaminfo.data.stream_info.md5sum, &encoder->private_->md5context);
 
 	if(!encoder->private_->is_being_deleted) {
 		if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK) {
@@ -1412,6 +1414,17 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_streamable_subset(FLAC__StreamEncod
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->streamable_subset = value;
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__stream_encoder_set_do_md5(FLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected_->do_md5 = value;
 	return true;
 }
 
@@ -1827,6 +1840,14 @@ FLAC_API FLAC__bool FLAC__stream_encoder_get_streamable_subset(const FLAC__Strea
 	return encoder->protected_->streamable_subset;
 }
 
+FLAC_API FLAC__bool FLAC__stream_encoder_get_do_md5(const FLAC__StreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	return encoder->protected_->do_md5;
+}
+
 FLAC_API unsigned FLAC__stream_encoder_get_channels(const FLAC__StreamEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -2097,6 +2118,7 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->protected_->verify = false;
 #endif
 	encoder->protected_->streamable_subset = true;
+	encoder->protected_->do_md5 = true;
 	encoder->protected_->do_mid_side_stereo = false;
 	encoder->protected_->loose_mid_side_stereo = false;
 	encoder->protected_->channels = 2;
@@ -2845,7 +2867,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional
 	/*
 	 * Accumulate raw signal to the MD5 signature
 	 */
-	if(!FLAC__MD5Accumulate(&encoder->private_->md5context, (const FLAC__int32 * const *)encoder->private_->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize, (encoder->protected_->bits_per_sample+7) / 8)) {
+	if(encoder->protected_->do_md5 && !FLAC__MD5Accumulate(&encoder->private_->md5context, (const FLAC__int32 * const *)encoder->private_->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize, (encoder->protected_->bits_per_sample+7) / 8)) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}

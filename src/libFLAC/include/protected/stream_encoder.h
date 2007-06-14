@@ -79,6 +79,7 @@ typedef struct FLAC__StreamEncoderProtected {
 	FLAC__StreamEncoderState state;
 	FLAC__bool verify;
 	FLAC__bool streamable_subset;
+	FLAC__bool do_md5;
 	FLAC__bool do_mid_side_stereo;
 	FLAC__bool loose_mid_side_stereo;
 	unsigned channels;
