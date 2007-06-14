@@ -39,7 +39,7 @@ AC_ARG_ENABLE(libFLACtest, [  --disable-libFLACtest       Do not try to compile 
     ac_save_CFLAGS="$CFLAGS"
     ac_save_CXXFLAGS="$CXXFLAGS"
     ac_save_LIBS="$LIBS"
-    ac_save_LDPATH="$LD_LIBRARY_PATH"
+    ac_save_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
     CFLAGS="$CFLAGS $LIBFLAC_CFLAGS"
     CXXFLAGS="$CXXFLAGS $LIBFLAC_CFLAGS"
     LIBS="$LIBS $LIBFLAC_LIBS"

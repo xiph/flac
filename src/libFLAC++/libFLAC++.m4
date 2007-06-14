@@ -42,7 +42,7 @@ AC_ARG_ENABLE(libFLACPPtest, [  --disable-libFLACPPtest       Do not try to comp
     ac_save_CFLAGS="$CFLAGS"
     ac_save_CXXFLAGS="$CXXFLAGS"
     ac_save_LIBS="$LIBS"
-    ac_save_LDPATH="$LD_LIBRARY_PATH"
+    ac_save_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
     CFLAGS="$CFLAGS $LIBFLACPP_CFLAGS"
     CXXFLAGS="$CXXFLAGS $LIBFLACPP_CFLAGS"
     LIBS="$LIBS $LIBFLACPP_LIBS"
