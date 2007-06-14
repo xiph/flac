@@ -122,7 +122,12 @@ typedef signed int      Int32_t;
  * sampleWindow calculation in ResetSampleFrequency(), and was causing
  * buffer overflows for 48kHz analysis, hence the +1.
  */
-#define MAX_SAMPLES_PER_WINDOW  (size_t) (MAX_SAMP_FREQ * RMS_WINDOW_TIME + 1.)   /* max. Samples per Time slice */
+#ifndef __sun
+ #define MAX_SAMPLES_PER_WINDOW  (size_t) (MAX_SAMP_FREQ * RMS_WINDOW_TIME + 1.)   /* max. Samples per Time slice */
+#else
+ /* [JEC] Solaris Forte compiler doesn't like float calc in array indices */
+ #define MAX_SAMPLES_PER_WINDOW  (size_t) (2401)
+#endif
 #define PINK_REF                64.82 /* 298640883795 */                          /* calibration value */
 
 static Float_t          linprebuf [MAX_ORDER * 2];
@@ -142,8 +147,14 @@ static unsigned long    totsamp;
 static double           lsum;
 static double           rsum;
 static int              freqindex;
+#ifndef __sun
 static Uint32_t  A [(size_t)(STEPS_per_dB * MAX_dB)];
 static Uint32_t  B [(size_t)(STEPS_per_dB * MAX_dB)];
+#else
+/* [JEC] Solaris Forte compiler doesn't like float calc in array indices */
+static Uint32_t  A [12000];
+static Uint32_t  B [12000];
+#endif
 
 /* for each filter:
    [0] 48 kHz, [1] 44.1 kHz, [2] 32 kHz, [3] 24 kHz, [4] 22050 Hz, [5] 16 kHz, [6] 12 kHz, [7] is 11025 Hz, [8] 8 kHz */
