@@ -292,15 +292,11 @@ static int convert_string(const char *fromcode, const char *tocode,
 
 int utf8_encode(const char *from, char **to)
 {
-  char *charset;
-
   return convert_string(current_charset(), "UTF-8", from, to, '#');
 }
 
 int utf8_decode(const char *from, char **to)
 {
-  char *charset;
-
   return convert_string("UTF-8", current_charset(), from, to, '?');
 }
 
