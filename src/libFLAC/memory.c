@@ -45,6 +45,16 @@ void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address)
 #ifdef FLAC__ALIGN_MALLOC_DATA
 	/* align on 32-byte (256-bit) boundary */
 	x = malloc(bytes+31);
+#ifdef SIZEOF_VOIDP
+#if SIZEOF_VOIDP == 4
+		/* could do  *aligned_address = x + ((unsigned) (32 - (((unsigned)x) & 31))) & 31; */
+		*aligned_address = (void*)(((unsigned)x + 31) & -32);
+#elif SIZEOF_VOIDP == 8
+		*aligned_address = (void*)(((FLAC__uint64)x + 31) & (FLAC__uint64)(-((FLAC__int64)32)));
+#else
+# error  Unsupported sizeof(void*)
+#endif
+#else
 	/* there's got to be a better way to do this right for all archs */
 	if(sizeof(void*) == sizeof(unsigned))
 		*aligned_address = (void*)(((unsigned)x + 31) & -32);
@@ -52,6 +62,7 @@ void *FLAC__memory_alloc_aligned(size_t bytes, void **aligned_address)
 		*aligned_address = (void*)(((FLAC__uint64)x + 31) & (FLAC__uint64)(-((FLAC__int64)32)));
 	else
 		return 0;
+#endif
 #else
 	x = malloc(bytes);
 	*aligned_address = x;
