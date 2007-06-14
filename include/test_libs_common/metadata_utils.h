@@ -16,8 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef FLAC__TEST_LIBFLAC_METADATA_H
-#define FLAC__TEST_LIBFLAC_METADATA_H
+#ifndef FLAC__TEST_LIBS_COMMON_METADATA_UTILS_H
+#define FLAC__TEST_LIBS_COMMON_METADATA_UTILS_H
 
 /*
  * These are not tests, just utility functions used by the metadata tests
