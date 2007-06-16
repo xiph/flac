@@ -880,7 +880,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 			print_stats(decoder_session);
 
 		if(decoder_session->analysis_mode) {
-			flac__analyze_frame(frame, decoder_session->frame_counter-1, frame_bytes, decoder_session->aopts, fout);
+			flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->decode_position-frame_bytes, frame_bytes, decoder_session->aopts, fout);
 		}
 		else if(!decoder_session->test_only) {
 			if(shift && !decoder_session->replaygain.apply) {

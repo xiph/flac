@@ -58,56 +58,62 @@ void flac__analyze_init(analysis_options aopts)
 	}
 }
 
-void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, unsigned frame_bytes, analysis_options aopts, FILE *fout)
+void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, FLAC__uint64 frame_offset, unsigned frame_bytes, analysis_options aopts, FILE *fout)
 {
 	const unsigned channels = frame->header.channels;
 	char outfilename[1024];
 	subframe_stats_t stats;
-	unsigned i, channel;
+	unsigned i, channel, partitions;
 
 	/* do the human-readable part first */
-	fprintf(fout, "frame=%u\tbits=%u\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame_bytes*8, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
+#ifdef _MSC_VER
+	fprintf(fout, "frame=%u\toffset=%I64u\tbits=%u\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame_offset, frame_bytes*8, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
+#else
+	fprintf(fout, "frame=%u\toffset=%llu\tbits=%u\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, (unsigned long long)frame_offset, frame_bytes*8, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
+#endif
 	for(channel = 0; channel < channels; channel++) {
 		const FLAC__Subframe *subframe = frame->subframes+channel;
+		const FLAC__bool is_rice2 = subframe->data.fixed.entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2;
+		const unsigned pesc = is_rice2? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
 		fprintf(fout, "\tsubframe=%u\twasted_bits=%u\ttype=%s", channel, subframe->wasted_bits, FLAC__SubframeTypeString[subframe->type]);
 		switch(subframe->type) {
 			case FLAC__SUBFRAME_TYPE_CONSTANT:
 				fprintf(fout, "\tvalue=%d\n", subframe->data.constant.value);
 				break;
 			case FLAC__SUBFRAME_TYPE_FIXED:
-				FLAC__ASSERT(subframe->data.fixed.entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE);
-				fprintf(fout, "\torder=%u\tpartition_order=%u\n", subframe->data.fixed.order, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
+				FLAC__ASSERT(subframe->data.fixed.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2);
+				fprintf(fout, "\torder=%u\tresidual_type=%s\tpartition_order=%u\n", subframe->data.fixed.order, is_rice2? "RICE2":"RICE", subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < subframe->data.fixed.order; i++)
 					fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.fixed.warmup[i]);
+				partitions = (1u << subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
+				for(i = 0; i < partitions; i++) {
+					unsigned parameter = subframe->data.fixed.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
+					if(parameter == pesc)
+						fprintf(fout, "\t\tparameter[%u]=ESCAPE, raw_bits=%u\n", i, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.contents->raw_bits[i]);
+					else
+						fprintf(fout, "\t\tparameter[%u]=%u\n", i, parameter);
+				}
 				if(aopts.do_residual_text) {
-					const unsigned partitions = (1u << subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
-					for(i = 0; i < partitions; i++) {
-						unsigned parameter = subframe->data.fixed.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
-						if(parameter == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER)
-							fprintf(fout, "\t\tparameter[%u]=ESCAPE, raw_bits=%u\n", i, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.contents->raw_bits[i]);
-						else
-							fprintf(fout, "\t\tparameter[%u]=%u\n", i, parameter);
-					}
 					for(i = 0; i < frame->header.blocksize-subframe->data.fixed.order; i++)
 						fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.fixed.residual[i]);
 				}
 				break;
 			case FLAC__SUBFRAME_TYPE_LPC:
-				FLAC__ASSERT(subframe->data.lpc.entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE);
-				fprintf(fout, "\torder=%u\tpartition_order=%u\tqlp_coeff_precision=%u\tquantization_level=%d\n", subframe->data.lpc.order, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level);
+				FLAC__ASSERT(subframe->data.lpc.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2);
+				fprintf(fout, "\torder=%u\tqlp_coeff_precision=%u\tquantization_level=%d\tresidual_type=%s\tpartition_order=%u\n", subframe->data.lpc.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level, is_rice2? "RICE2":"RICE", subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < subframe->data.lpc.order; i++)
 					fprintf(fout, "\t\tqlp_coeff[%u]=%d\n", i, subframe->data.lpc.qlp_coeff[i]);
 				for(i = 0; i < subframe->data.lpc.order; i++)
 					fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.lpc.warmup[i]);
+				partitions = (1u << subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
+				for(i = 0; i < partitions; i++) {
+					unsigned parameter = subframe->data.lpc.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
+					if(parameter == pesc)
+						fprintf(fout, "\t\tparameter[%u]=ESCAPE, raw_bits=%u\n", i, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.contents->raw_bits[i]);
+					else
+						fprintf(fout, "\t\tparameter[%u]=%u\n", i, parameter);
+				}
 				if(aopts.do_residual_text) {
-					const unsigned partitions = (1u << subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
-					for(i = 0; i < partitions; i++) {
-						unsigned parameter = subframe->data.lpc.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
-						if(parameter == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER)
-							fprintf(fout, "\t\tparameter[%u]=ESCAPE, raw_bits=%u\n", i, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.contents->raw_bits[i]);
-						else
-							fprintf(fout, "\t\tparameter[%u]=%u\n", i, parameter);
-					}
 					for(i = 0; i < frame->header.blocksize-subframe->data.lpc.order; i++)
 						fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.lpc.residual[i]);
 				}
