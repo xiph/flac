@@ -31,9 +31,11 @@
 #endif
 #include <sys/stat.h> /* for stat() */
 #include "FLAC/assert.h"
+#include "FLAC/metadata.h"
 #include "FLAC/stream_decoder.h"
 
 typedef struct {
+	FLAC__int32 **pcm;
 	FLAC__bool got_data;
 	FLAC__uint64 total_samples;
 	unsigned channels;
@@ -83,6 +85,89 @@ static off_t get_filesize_(const char *srcpath)
 		return -1;
 }
 
+static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const char *flacfilename)
+{
+	FILE *f;
+	unsigned channels, bps, samples, i, j;
+
+	off_t rawfilesize = get_filesize_(rawfilename);
+	if (rawfilesize < 0) {
+		fprintf(stderr, "ERROR: can't determine filesize for %s\n", rawfilename);
+		return false;
+	}
+	/* get sample format from flac file; would just use FLAC__metadata_get_streaminfo() except it doesn't work for Ogg FLAC yet */
+	{
+#if 0
+		FLAC__StreamMetadata streaminfo;
+		if(!FLAC__metadata_get_streaminfo(flacfilename, &streaminfo)) {
+			printf("ERROR: getting STREAMINFO from %s\n", flacfilename);
+			return false;
+		}
+		channels = streaminfo.data.stream_info.channels;
+		bps = streaminfo.data.stream_info.bits_per_sample;
+#else
+		FLAC__bool ok = true;
+		FLAC__Metadata_Chain *chain = FLAC__metadata_chain_new();
+		FLAC__Metadata_Iterator *it = 0;
+		ok = ok && chain && (FLAC__metadata_chain_read(chain, flacfilename) || FLAC__metadata_chain_read_ogg(chain, flacfilename));
+		ok = ok && (it = FLAC__metadata_iterator_new());
+		if(ok) FLAC__metadata_iterator_init(it, chain);
+		ok = ok && (FLAC__metadata_iterator_get_block(it)->type == FLAC__METADATA_TYPE_STREAMINFO);
+		ok = ok && (channels = FLAC__metadata_iterator_get_block(it)->data.stream_info.channels);
+		ok = ok && (bps = FLAC__metadata_iterator_get_block(it)->data.stream_info.bits_per_sample);
+		if(it) FLAC__metadata_iterator_delete(it);
+		if(chain) FLAC__metadata_chain_delete(chain);
+		if(!ok) {
+			printf("ERROR: getting STREAMINFO from %s\n", flacfilename);
+			return false;
+		}
+#endif
+	}
+	if(channels > 2) {
+		printf("ERROR: PCM verification requires 1 or 2 channels, got %u\n", channels);
+		return false;
+	}
+	if(bps != 8 && bps != 16) {
+		printf("ERROR: PCM verification requires 8 or 16 bps, got %u\n", bps);
+		return false;
+	}
+	samples = rawfilesize / channels / (bps>>3);
+	if (samples > 10000000) {
+		fprintf(stderr, "ERROR: %s is too big\n", rawfilename);
+		return false;
+	}
+	for(i = 0; i < channels; i++) {
+		if(0 == (pcm[i] = (FLAC__int32*)malloc(sizeof(FLAC__int32)*samples))) {
+			printf("ERROR: allocating space for PCM samples\n");
+			return false;
+		}
+	}
+	if(0 == (f = fopen(rawfilename, "r"))) {
+		printf("ERROR: opening %s for reading\n", rawfilename);
+		return false;
+	}
+	/* assumes signed big-endian data */
+	if(bps == 8) {
+		signed char c;
+		for(i = 0; i < samples; i++) {
+			for(j = 0; j < channels; j++) {
+				fread(&c, 1, 1, f);
+				pcm[j][i] = c;
+			}
+		}
+	}
+	else { /* bps == 16 */
+		unsigned char c[2];
+		for(i = 0; i < samples; i++) {
+			for(j = 0; j < channels; j++) {
+				fread(&c, 1, 2, f);
+				pcm[j][i] = ((int)((signed char)c[0])) << 8 | (int)c[1];
+			}
+		}
+	}
+	return true;
+}
+
 static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	DecoderClientData *dcd = (DecoderClientData*)client_data;
@@ -97,24 +182,25 @@ static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder 
 	if(dcd->error_occurred)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-	if (frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER) {
-		if (!dcd->quiet)
-			printf("frame@%uf(%u)... ", frame->header.number.frame_number, frame->header.blocksize);
-	}
-	else if (frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER) {
-		if (!dcd->quiet)
+	FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER); /* decoder guarantees this */
+	if (!dcd->quiet)
 #ifdef _MSC_VER
-			printf("frame@%I64u(%u)... ", frame->header.number.sample_number, frame->header.blocksize);
+		printf("frame@%I64u(%u)... ", frame->header.number.sample_number, frame->header.blocksize);
 #else
-			printf("frame@%llu(%u)... ", (unsigned long long)frame->header.number.sample_number, frame->header.blocksize);
+		printf("frame@%llu(%u)... ", (unsigned long long)frame->header.number.sample_number, frame->header.blocksize);
 #endif
-	}
-	else {
-		FLAC__ASSERT(0);
-		dcd->error_occurred = true;
-		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-	}
 	fflush(stdout);
+
+	/* check against PCM data if we have it */
+	if (dcd->pcm) {
+		unsigned c, i, j;
+		for (c = 0; c < frame->header.channels; c++)
+			for (i = (unsigned)frame->header.number.sample_number, j = 0; j < frame->header.blocksize; i++, j++)
+				if (buffer[c][j] != dcd->pcm[c][i]) {
+					printf("ERROR: sample mismatch at sample#%u(%u), channel=%u, expected %d, got %d\n", i, j, c, buffer[c][j], dcd->pcm[c][i]);
+					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+				}
+	}
 
 	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
@@ -163,13 +249,14 @@ static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDeco
  * 1 - read 2 frames
  * 2 - read until end
  */
-static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t filesize, unsigned count, FLAC__int64 total_samples, unsigned read_mode)
+static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t filesize, unsigned count, FLAC__int64 total_samples, unsigned read_mode, FLAC__int32 **pcm)
 {
 	FLAC__StreamDecoder *decoder;
 	DecoderClientData decoder_client_data;
 	unsigned i;
 	long int n;
 
+	decoder_client_data.pcm = pcm;
 	decoder_client_data.got_data = false;
 	decoder_client_data.total_samples = 0;
 	decoder_client_data.quiet = false;
@@ -330,28 +417,31 @@ static FLAC__uint64 local__strtoull(const char *src)
 
 int main(int argc, char *argv[])
 {
-	const char *filename;
+	const char *flacfilename, *rawfilename = 0;
 	unsigned count = 0, read_mode;
 	FLAC__int64 samples = -1;
-	off_t filesize;
+	off_t flacfilesize;
+	FLAC__int32 *pcm[2] = { 0, 0 };
 
-	static const char * const usage = "usage: test_seeking file.flac [#seeks] [#samples-in-file.flac]\n";
+	static const char * const usage = "usage: test_seeking file.flac [#seeks] [#samples-in-file.flac] [file.raw]\n";
 
-	if (argc < 2 || argc > 4) {
+	if (argc < 2 || argc > 5) {
 		fprintf(stderr, usage);
 		return 1;
 	}
 
-	filename = argv[1];
+	flacfilename = argv[1];
 
 	if (argc > 2)
 		count = strtoul(argv[2], 0, 10);
 	if (argc > 3)
 #ifdef _MSC_VER
-		samples = local__strtoull(argv[3]);
+		samples = local__strtoull(argv[4]);
 #else
 		samples = strtoull(argv[3], 0, 10);
 #endif
+	if (argc > 4)
+		rawfilename = argv[4];
 
 	if (count < 30)
 		fprintf(stderr, "WARNING: random seeks don't kick in until after 30 preprogrammed ones\n");
@@ -370,26 +460,32 @@ int main(int argc, char *argv[])
 	srand((unsigned)time(0));
 #endif
 
-	filesize = get_filesize_(filename);
-	if (filesize < 0) {
-		fprintf(stderr, "ERROR: can't determine filesize for %s\n", filename);
+	flacfilesize = get_filesize_(flacfilename);
+	if (flacfilesize < 0) {
+		fprintf(stderr, "ERROR: can't determine filesize for %s\n", flacfilename);
 		return 1;
 	}
+
+	if (rawfilename && !read_pcm_(pcm, rawfilename, flacfilename))
+		return 1;
 
 	(void) signal(SIGINT, our_sigint_handler_);
 
 	for (read_mode = 0; read_mode <= 2; read_mode++) {
 		FLAC__bool ok;
-		if (strlen(filename) > 4 && 0 == strcmp(filename+strlen(filename)-4, ".ogg")) {
+		/* no need to do "decode all" read_mode if PCM checking is available */
+		if (rawfilename && read_mode > 1)
+			continue;
+		if (strlen(flacfilename) > 4 && 0 == strcmp(flacfilename+strlen(flacfilename)-4, ".ogg")) {
 #if FLAC__HAS_OGG
-			ok = seek_barrage(/*is_ogg=*/true, filename, filesize, count, samples, read_mode);
+			ok = seek_barrage(/*is_ogg=*/true, flacfilename, flacfilesize, count, samples, read_mode, rawfilename? pcm : 0);
 #else
 			fprintf(stderr, "ERROR: Ogg FLAC not supported\n");
 			ok = false;
 #endif
 		}
 		else {
-			ok = seek_barrage(/*is_ogg=*/false, filename, filesize, count, samples, read_mode);
+			ok = seek_barrage(/*is_ogg=*/false, flacfilename, flacfilesize, count, samples, read_mode, rawfilename? pcm : 0);
 		}
 		if (!ok)
 			return 2;

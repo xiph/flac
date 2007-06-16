@@ -38,6 +38,10 @@ PATH=../src/test_seeking:$PATH
 PATH=../src/test_streams:$PATH
 PATH=../obj/$BUILD/bin:$PATH
 
+if [ x"$FLAC__TEST_LEVEL" = x ] ; then
+	FLAC__TEST_LEVEL=1
+fi
+
 flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 metaflac --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac executable"
 
@@ -95,14 +99,21 @@ run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed
 tiny_samples=`metaflac --show-total-samples tiny.flac`
 small_samples=`metaflac --show-total-samples small.flac`
 
+tiny_seek_count=100
+if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
+	small_seek_count=10000
+else
+	small_seek_count=100000
+fi
+
 for suffix in '' '-s' ; do
 	echo "testing tiny$suffix.flac:"
-	if run_test_seeking tiny$suffix.flac 100 $tiny_samples ; then : ; else
+	if run_test_seeking tiny$suffix.flac $tiny_seek_count $tiny_samples noise8m32.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 	echo "testing small$suffix.flac:"
-	if run_test_seeking small$suffix.flac 1000 $small_samples ; then : ; else
+	if run_test_seeking small$suffix.flac $small_seek_count $small_samples noise.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
@@ -112,12 +123,12 @@ for suffix in '' '-s' ; do
 	fi
 
 	echo "testing tiny$suffix.flac with total_samples=0:"
-	if run_test_seeking tiny$suffix.flac 100 $tiny_samples ; then : ; else
+	if run_test_seeking tiny$suffix.flac $tiny_seek_count $tiny_samples noise8m32.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 	echo "testing small$suffix.flac with total_samples=0:"
-	if run_test_seeking small$suffix.flac 1000 $small_samples ; then : ; else
+	if run_test_seeking small$suffix.flac $small_seek_count $small_samples noise.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 done
@@ -130,12 +141,12 @@ if [ $has_ogg = "yes" ] ; then
 	# seek tables are not used in Ogg FLAC
 
 	echo "testing tiny.ogg:"
-	if run_test_seeking tiny.ogg 100 $tiny_samples ; then : ; else
+	if run_test_seeking tiny.ogg $tiny_seek_count $tiny_samples noise8m32.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 	echo "testing small.ogg:"
-	if run_test_seeking small.ogg 1000 $small_samples ; then : ; else
+	if run_test_seeking small.ogg $small_seek_count $small_samples noise.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
