@@ -545,7 +545,7 @@ FLAC__bool init_options(void)
 	option_values.num_requested_seek_points = -1;
 	option_values.cuesheet_filename = 0;
 	option_values.cued_seekpoints = true;
-	option_values.channel_map_none = false;;
+	option_values.channel_map_none = false;
 
 	option_values.num_files = 0;
 	option_values.filenames = 0;
