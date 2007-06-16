@@ -191,9 +191,13 @@ extern FLAC_API const unsigned FLAC__STREAM_SYNC_LEN; /* = 32 bits */
 
 /** An enumeration of the available entropy coding methods. */
 typedef enum {
-	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE = 0
+	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE = 0,
 	/**< Residual is coded by partitioning into contexts, each with it's own
-	 * Rice parameter. */
+	 * 4-bit Rice parameter. */
+
+	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 = 1
+	/**< Residual is coded by partitioning into contexts, each with it's own
+	 * 5-bit Rice parameter. */
 } FLAC__EntropyCodingMethodType;
 
 /** Maps a FLAC__EntropyCodingMethodType to a C string.
@@ -212,7 +216,9 @@ typedef struct {
 	/**< The Rice parameters for each context. */
 
 	unsigned *raw_bits;
-	/**< Widths for escape-coded partitions. */
+	/**< Widths for escape-coded partitions.  Will be non-zero for escaped
+	 * partitions and zero for unescaped partitions.
+	 */
 
 	unsigned capacity_by_order;
 	/**< The capacity of the \a parameters and \a raw_bits arrays
@@ -235,10 +241,13 @@ typedef struct {
 
 extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN; /**< == 4 (bits) */
 extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN; /**< == 4 (bits) */
+extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN; /**< == 5 (bits) */
 extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN; /**< == 5 (bits) */
 
 extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
 /**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN)-1 */
+extern FLAC_API const unsigned FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER;
+/**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN)-1 */
 
 /** Header for the entropy coding method.  (c.f. <A HREF="../format.html#residual">format specification</A>)
  */
@@ -342,7 +351,14 @@ typedef struct {
 	unsigned wasted_bits;
 } FLAC__Subframe;
 
-extern FLAC_API const unsigned FLAC__SUBFRAME_ZERO_PAD_LEN; /**< == 1 (bit) */
+/** == 1 (bit)
+ *
+ * This used to be a zero-padding bit (hence the name
+ * FLAC__SUBFRAME_ZERO_PAD_LEN) but is now a reserved bit.  It still has a
+ * mandatory value of \c 0 but in the future may take on the value \c 0 or \c 1
+ * to mean something else.
+ */
+extern FLAC_API const unsigned FLAC__SUBFRAME_ZERO_PAD_LEN;
 extern FLAC_API const unsigned FLAC__SUBFRAME_TYPE_LEN; /**< == 6 (bits) */
 extern FLAC_API const unsigned FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN; /**< == 1 (bit) */
 
@@ -408,7 +424,9 @@ typedef struct {
 	/**< The sample resolution. */
 
 	FLAC__FrameNumberType number_type;
-	/**< The numbering scheme used for the frame. */
+	/**< The numbering scheme used for the frame.  As a convenience, the
+	 * decoder will always convert a frame number to a sample number because
+	 * the rules are complex. */
 
 	union {
 		FLAC__uint32 frame_number;
@@ -426,7 +444,8 @@ typedef struct {
 
 extern FLAC_API const unsigned FLAC__FRAME_HEADER_SYNC; /**< == 0x3ffe; the frame header sync code */
 extern FLAC_API const unsigned FLAC__FRAME_HEADER_SYNC_LEN; /**< == 14 (bits) */
-extern FLAC_API const unsigned FLAC__FRAME_HEADER_RESERVED_LEN; /**< == 2 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_RESERVED_LEN; /**< == 1 (bits) */
+extern FLAC_API const unsigned FLAC__FRAME_HEADER_BLOCKING_STRATEGY_LEN; /**< == 1 (bits) */
 extern FLAC_API const unsigned FLAC__FRAME_HEADER_BLOCK_SIZE_LEN; /**< == 4 (bits) */
 extern FLAC_API const unsigned FLAC__FRAME_HEADER_SAMPLE_RATE_LEN; /**< == 4 (bits) */
 extern FLAC_API const unsigned FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN; /**< == 4 (bits) */

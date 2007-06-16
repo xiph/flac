@@ -229,6 +229,9 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 	if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__FRAME_HEADER_RESERVED_LEN))
 		return false;
 
+	if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__FRAME_HEADER_BLOCKING_STRATEGY_LEN))
+		return false;
+
 	FLAC__ASSERT(header->blocksize > 0 && header->blocksize <= FLAC__MAX_BLOCK_SIZE);
 	/* when this assertion holds true, any legal blocksize can be expressed in the frame header */
 	FLAC__ASSERT(FLAC__MAX_BLOCK_SIZE <= 65535u);
