@@ -94,6 +94,7 @@ typedef struct {
 		FLAC__bool disable_constant_subframes;
 		FLAC__bool disable_fixed_subframes;
 		FLAC__bool disable_verbatim_subframes;
+		FLAC__bool do_md5;
 	} debug;
 } encode_options_t;
 

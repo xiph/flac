@@ -116,6 +116,7 @@ static FLAC__int32 *input_[FLAC__MAX_CHANNELS];
 extern FLAC__bool FLAC__stream_encoder_disable_constant_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
 extern FLAC__bool FLAC__stream_encoder_disable_fixed_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
 extern FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
+extern FLAC__bool FLAC__stream_encoder_set_do_md5(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /*
  * local routines
@@ -151,7 +152,9 @@ static FLAC__bool read_big_endian_uint32(FILE *f, FLAC__uint32 *val, FLAC__bool 
 static FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, FLAC__bool eof_ok, const char *fn);
 static FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset);
 static unsigned count_channel_mask_bits(FLAC__uint32 mask);
+#if 0
 static FLAC__uint32 limit_channel_mask(FLAC__uint32 mask, unsigned channels);
+#endif
 
 /*
  * public routines
@@ -2073,6 +2076,15 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__stream_encoder_disable_constant_subframes(e->encoder, options.debug.disable_constant_subframes);
 	FLAC__stream_encoder_disable_fixed_subframes(e->encoder, options.debug.disable_fixed_subframes);
 	FLAC__stream_encoder_disable_verbatim_subframes(e->encoder, options.debug.disable_verbatim_subframes);
+	if(!options.debug.do_md5) {
+		flac__utils_printf(stderr, 1, "%s: WARNING, MD5 computation disabled, resulting file will not have MD5 sum\n", e->inbasefilename);
+		if(e->treat_warnings_as_errors) {
+			if(0 != cuesheet)
+				FLAC__metadata_object_delete(cuesheet);
+			return false;
+		}
+		FLAC__stream_encoder_set_do_md5(e->encoder, false);
+	}
 
 #if FLAC__HAS_OGG
 	if(e->use_ogg) {
@@ -2797,6 +2809,7 @@ unsigned count_channel_mask_bits(FLAC__uint32 mask)
 	return count;
 }
 
+#if 0
 FLAC__uint32 limit_channel_mask(FLAC__uint32 mask, unsigned channels)
 {
 	FLAC__uint32 x = 0x80000000;
@@ -2811,3 +2824,4 @@ FLAC__uint32 limit_channel_mask(FLAC__uint32 mask, unsigned channels)
 	FLAC__ASSERT(count_channel_mask_bits(mask) == channels);
 	return mask;
 }
+#endif

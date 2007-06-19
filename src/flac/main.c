@@ -207,6 +207,7 @@ static struct share__option long_options_[] = {
 	{ "disable-constant-subframes", share__no_argument, 0, 0 },
 	{ "disable-fixed-subframes"   , share__no_argument, 0, 0 },
 	{ "disable-verbatim-subframes", share__no_argument, 0, 0 },
+	{ "no-md5-sum"                , share__no_argument, 0, 0 },
 
 	{0, 0, 0, 0}
 };
@@ -270,6 +271,7 @@ static struct {
 		FLAC__bool disable_constant_subframes;
 		FLAC__bool disable_fixed_subframes;
 		FLAC__bool disable_verbatim_subframes;
+		FLAC__bool do_md5;
 	} debug;
 } option_values;
 
@@ -557,6 +559,7 @@ FLAC__bool init_options(void)
 	option_values.debug.disable_constant_subframes = false;
 	option_values.debug.disable_fixed_subframes = false;
 	option_values.debug.disable_verbatim_subframes = false;
+	option_values.debug.do_md5 = true;
 
 	return true;
 }
@@ -833,6 +836,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "disable-verbatim-subframes")) {
 			option_values.debug.disable_verbatim_subframes = true;
+		}
+		else if(0 == strcmp(long_option, "no-md5-sum")) {
+			option_values.debug.do_md5 = false;
 		}
 	}
 	else {
@@ -1731,6 +1737,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.debug.disable_constant_subframes = option_values.debug.disable_constant_subframes;
 	common_options.debug.disable_fixed_subframes = option_values.debug.disable_fixed_subframes;
 	common_options.debug.disable_verbatim_subframes = option_values.debug.disable_verbatim_subframes;
+	common_options.debug.do_md5 = option_values.debug.do_md5;
 
 	/* if infilename and outfilename point to the same file, we need to write to a temporary file */
 	if(encode_infile != stdin && grabbag__file_are_same(infilename, outfilename)) {
