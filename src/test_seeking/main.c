@@ -165,6 +165,7 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 			}
 		}
 	}
+	fclose(f);
 	return true;
 }
 
@@ -422,6 +423,7 @@ int main(int argc, char *argv[])
 	FLAC__int64 samples = -1;
 	off_t flacfilesize;
 	FLAC__int32 *pcm[2] = { 0, 0 };
+	FLAC__bool ok = true;
 
 	static const char * const usage = "usage: test_seeking file.flac [#seeks] [#samples-in-file.flac] [file.raw]\n";
 
@@ -466,13 +468,15 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (rawfilename && !read_pcm_(pcm, rawfilename, flacfilename))
+	if (rawfilename && !read_pcm_(pcm, rawfilename, flacfilename)) {
+		free(pcm[0]);
+		free(pcm[1]);
 		return 1;
+	}
 
 	(void) signal(SIGINT, our_sigint_handler_);
 
-	for (read_mode = 0; read_mode <= 2; read_mode++) {
-		FLAC__bool ok;
+	for (read_mode = 0; ok && read_mode <= 2; read_mode++) {
 		/* no need to do "decode all" read_mode if PCM checking is available */
 		if (rawfilename && read_mode > 1)
 			continue;
@@ -487,9 +491,10 @@ int main(int argc, char *argv[])
 		else {
 			ok = seek_barrage(/*is_ogg=*/false, flacfilename, flacfilesize, count, samples, read_mode, rawfilename? pcm : 0);
 		}
-		if (!ok)
-			return 2;
 	}
 
-	return 0;
+	free(pcm[0]);
+	free(pcm[1]);
+
+	return ok? 0 : 2;
 }
