@@ -40,7 +40,7 @@ PATH=../obj/$BUILD/bin:$PATH
 run_test_libFLAC ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --logfile-fd=4 test_libFLAC $* 4>>test_libFLAC.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=100 --log-fd=4 test_libFLAC $* 4>>test_libFLAC.valgrind.log
 	else
 		test_libFLAC $*
 	fi
