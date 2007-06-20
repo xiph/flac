@@ -552,7 +552,7 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 
 	while(nvals) {
 		/* fold signed to unsigned; actual formula is: negative(v)? -2v-1 : 2v */
-        uval = (*vals<<1) ^ (*vals>>31);
+		uval = (*vals<<1) ^ (*vals>>31);
 
 		msbits = uval >> parameter;
 
