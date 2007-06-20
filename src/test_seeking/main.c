@@ -88,7 +88,7 @@ static off_t get_filesize_(const char *srcpath)
 static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const char *flacfilename)
 {
 	FILE *f;
-	unsigned channels, bps, samples, i, j;
+	unsigned channels = 0, bps = 0, samples, i, j;
 
 	off_t rawfilesize = get_filesize_(rawfilename);
 	if (rawfilesize < 0) {
@@ -142,7 +142,7 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 			return false;
 		}
 	}
-	if(0 == (f = fopen(rawfilename, "r"))) {
+	if(0 == (f = fopen(rawfilename, "rb"))) {
 		printf("ERROR: opening %s for reading\n", rawfilename);
 		return false;
 	}
@@ -348,9 +348,9 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 		}
 
 #ifdef _MSC_VER
-		printf("seek(%I64u)... ", pos);
+		printf("#%u:seek(%I64u)... ", i, pos);
 #else
-		printf("seek(%llu)... ", (unsigned long long)pos);
+		printf("#%u:seek(%llu)... ", i, (unsigned long long)pos);
 #endif
 		fflush(stdout);
 		if(!FLAC__stream_decoder_seek_absolute(decoder, pos)) {
@@ -438,7 +438,7 @@ int main(int argc, char *argv[])
 		count = strtoul(argv[2], 0, 10);
 	if (argc > 3)
 #ifdef _MSC_VER
-		samples = local__strtoull(argv[4]);
+		samples = local__strtoull(argv[3]);
 #else
 		samples = strtoull(argv[3], 0, 10);
 #endif
