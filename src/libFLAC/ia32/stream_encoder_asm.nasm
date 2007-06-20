@@ -101,6 +101,7 @@ cident precompute_partition_info_sums_32bit_asm_ia32_
 	xor	eax, edx
 	sub	eax, edx
 	add	ebx, eax		;     abs_residual_partition_sum += abs(residual[residual_sample]);
+	;@@@@@@ check overflow flag and abort here?
 	add	esi, byte 1
 	cmp	esi, edi		;   /* since the loop will always run at least once, we can put the loop check down here */
 	jb	.loop1
@@ -131,10 +132,11 @@ cident precompute_partition_info_sums_32bit_asm_ia32_
 	ALIGN 16
 .loop3:					;   for(i = 0; i < partitions; i++) {
 	mov	eax, [esi]
-	mov	[edi + 4], dword 0
+	mov	ebx, [esi + 4]
+	add	eax, [esi + 8]
+	adc	ebx, [esi + 12]
 	mov	[edi], eax
-	mov	ebx, [esi + 8]
-	add	[edi], ebx		;     a_r_p_s[to_partition] = a_r_p_s[from_partition] + a_r_p_s[from_partition+1];
+	mov	[edi + 4], ebx		;     a_r_p_s[to_partition] = a_r_p_s[from_partition] + a_r_p_s[from_partition+1];
 	add	esi, byte 16
 	add	edi, byte 8
 	sub	edx, byte 1
