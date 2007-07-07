@@ -77,7 +77,7 @@ protected:
 
 	virtual bool eof_callback()
 	{
-		return feof((FILE*)f_);
+		return (bool)feof((FILE*)f_);
 	}
 
 	virtual ::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const /*buffer*/[])
