@@ -3008,6 +3008,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 	upper_bound_sample = total_samples > 0 ? total_samples : target_sample /*estimate it*/;
 
 	/*@@@@@@ add step to validate seek table before using?  encoding to pipe leaves some flac files with incomplete seektables which screw us up */
+	/*@@@@@@ ignore seekpoints where frame_samples = 0 or if point is >= total_samples and total_samples is known (or just alter seek_table in read_metadata_seektable_()) */
 
 	/*
 	 * Now we refine the bounds if we have a seektable with

@@ -235,7 +235,7 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 
 	/*
 	 * We need to create an OP__ADD_SEEKPOINT operation if there is
-	 * not one already,  and --import-cuesheet-from was specified but
+	 * not one already, and --import-cuesheet-from was specified but
 	 * --no-cued-seekpoints was not:
 	 */
 	if(options->cued_seekpoints) {
