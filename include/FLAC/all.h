@@ -330,6 +330,24 @@
  * maintained until the call to FLAC__stream_encoder_finish().
  */
 
+/** \defgroup porting_1_1_4_to_1_2_0 Porting from FLAC 1.1.4 to 1.2.0
+ *  \ingroup porting
+ *
+ *  \brief
+ *  This module describes porting from FLAC 1.1.4 to FLAC 1.2.0.
+ *
+ * There were only very minor changes to the interfaces from 1.1.4 to 1.2.0.
+ * In libFLAC, \c FLAC__format_sample_rate_is_subset() was added.
+ * In libFLAC++, \c FLAC::Decoder::Stream::get_decode_position() was added.
+ *
+ * Finally, value of the constant \c FLAC__FRAME_HEADER_RESERVED_LEN
+ * has changed to reflect the conversion of one of the reserved bits
+ * into active use.  It used to be \c 2 and now is \c 1.  However the
+ * FLAC frame header length has not changed, so to skip the proper
+ * number of bits, use \c FLAC__FRAME_HEADER_RESERVED_LEN +
+ * \c FLAC__FRAME_HEADER_BLOCKING_STRATEGY_LEN
+ */
+
 /** \defgroup flac FLAC C API
  *
  * The FLAC C API is the interface to libFLAC, a set of structures
