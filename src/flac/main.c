@@ -149,6 +149,7 @@ static struct share__option long_options_[] = {
 	{ "force-raw-format"          , share__no_argument, 0, 0 },
 	{ "lax"                       , share__no_argument, 0, 0 },
 	{ "replay-gain"               , share__no_argument, 0, 0 },
+	{ "ignore-chunk-sizes"        , share__no_argument, 0, 0 },
 	{ "sector-align"              , share__no_argument, 0, 0 },
 	{ "seekpoint"                 , share__required_argument, 0, 'S' },
 	{ "padding"                   , share__required_argument, 0, 'P' },
@@ -187,6 +188,7 @@ static struct share__option long_options_[] = {
 	{ "no-seektable"              , share__no_argument, 0, 0 },
 	{ "no-delete-input-file"      , share__no_argument, 0, 0 },
 	{ "no-replay-gain"            , share__no_argument, 0, 0 },
+	{ "no-ignore-chunk-sizes"     , share__no_argument, 0, 0 },
 	{ "no-sector-align"           , share__no_argument, 0, 0 },
 	{ "no-lax"                    , share__no_argument, 0, 0 },
 #if FLAC__HAS_OGG
@@ -238,6 +240,7 @@ static struct {
 	FLAC__bool force_raw_format;
 	FLAC__bool delete_input;
 	FLAC__bool replay_gain;
+	FLAC__bool ignore_chunk_sizes;
 	FLAC__bool sector_align;
 	const char *cmdline_forced_outfilename;
 	const char *output_prefix;
@@ -385,6 +388,18 @@ int do_it(void)
 				return usage_error("ERROR: --sample-rate not allowed with --decode\n");
 		}
 
+		if(option_values.ignore_chunk_sizes) {
+			if(option_values.mode_decode)
+				return usage_error("ERROR: --ignore-chunk-sizes only allowed for encoding\n");
+			if(0 != option_values.sector_align)
+				return usage_error("ERROR: --ignore-chunk-sizes not allowed with --sector-align\n");
+			if(0 != option_values.until_specification)
+				return usage_error("ERROR: --ignore-chunk-sizes not allowed with --until\n");
+			if(0 != option_values.cue_specification)
+				return usage_error("ERROR: --ignore-chunk-sizes not allowed with --cue\n");
+			if(0 != option_values.cuesheet_filename)
+				return usage_error("ERROR: --ignore-chunk-sizes not allowed with --cuesheet\n");
+		}
 		if(option_values.sector_align) {
 			if(option_values.mode_decode)
 				return usage_error("ERROR: --sector-align only allowed for encoding\n");
@@ -460,6 +475,9 @@ int do_it(void)
 	else { /* encode */
 		FLAC__bool first = true;
 
+		if(option_values.ignore_chunk_sizes)
+			flac__utils_printf(stderr, 1, "INFO: Make sure you know what you're doing when using --ignore-chunk-sizes.\n      Improper use can cause flac to encode non-audio data as audio.\n");
+
 		if(option_values.num_files == 0) {
 			retval = encode_file("-", first, true);
 		}
@@ -525,6 +543,7 @@ FLAC__bool init_options(void)
 	option_values.force_raw_format = false;
 	option_values.delete_input = false;
 	option_values.replay_gain = false;
+	option_values.ignore_chunk_sizes = false;
 	option_values.sector_align = false;
 	option_values.cmdline_forced_outfilename = 0;
 	option_values.output_prefix = 0;
@@ -718,6 +737,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "replay-gain")) {
 			option_values.replay_gain = true;
 		}
+		else if(0 == strcmp(long_option, "ignore-chunk-sizes")) {
+			option_values.ignore_chunk_sizes = true;
+		}
 		else if(0 == strcmp(long_option, "sector-align")) {
 			option_values.sector_align = true;
 		}
@@ -787,6 +809,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "no-replay-gain")) {
 			option_values.replay_gain = false;
+		}
+		else if(0 == strcmp(long_option, "no-ignore-chunk-sizes")) {
+			option_values.ignore_chunk_sizes = false;
 		}
 		else if(0 == strcmp(long_option, "no-sector-align")) {
 			option_values.sector_align = false;
@@ -1158,6 +1183,9 @@ void show_help(void)
 	printf("encoding options:\n");
 	printf("  -V, --verify                 Verify a correct encoding\n");
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
+#if 0 /*@@@ currently undocumented */
+	printf("      --ignore-chunk-sizes     Ignore data chunk sizes in WAVE/AIFF files\n");
+#endif
 	printf("      --sector-align           Align multiple files on sector boundaries\n");
 	printf("      --replay-gain            Calculate ReplayGain & store in FLAC tags\n");
 	printf("      --cuesheet=FILENAME      Import cuesheet and store in CUESHEET block\n");
@@ -1208,6 +1236,9 @@ void show_help(void)
 	printf("      --no-replay-gain\n");
 	printf("      --no-residual-gnuplot\n");
 	printf("      --no-residual-text\n");
+#if 0 /*@@@ currently undocumented */
+	printf("      --no-ignore-chunk-sizes\n");
+#endif
 	printf("      --no-sector-align\n");
 	printf("      --no-seektable\n");
 	printf("      --no-silent\n");
@@ -1330,6 +1361,11 @@ void show_explain(void)
 	printf("                               output in parallel and comparing to the\n");
 	printf("                               original\n");
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
+#if 0 /*@@@ currently undocumented */
+	printf("      --ignore-chunk-sizes     Ignore data chunk sizes in WAVE/AIFF files;\n");
+	printf("                               useful when piping data from programs which\n");
+	printf("                               generate bogus data chunk sizes.\n");
+#endif
 	printf("      --sector-align           Align encoding of multiple CD format WAVE files\n");
 	printf("                               on sector boundaries.\n");
 	printf("      --replay-gain            Calculate ReplayGain values and store them as\n");
@@ -1515,6 +1551,9 @@ void show_explain(void)
 	printf("      --no-qlp-coeff-prec-search\n");
 	printf("      --no-residual-gnuplot\n");
 	printf("      --no-residual-text\n");
+#if 0 /*@@@ currently undocumented */
+	printf("      --no-ignore-chunk-sizes\n");
+#endif
 	printf("      --no-sector-align\n");
 	printf("      --no-seektable\n");
 	printf("      --no-silent\n");
@@ -1729,6 +1768,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	common_options.align_reservoir = align_reservoir;
 	common_options.align_reservoir_samples = &align_reservoir_samples;
 	common_options.replay_gain = option_values.replay_gain;
+	common_options.ignore_chunk_sizes = option_values.ignore_chunk_sizes;
 	common_options.sector_align = option_values.sector_align;
 	common_options.vorbis_comment = option_values.vorbis_comment;
 	FLAC__ASSERT(sizeof(common_options.pictures) >= sizeof(option_values.pictures));
