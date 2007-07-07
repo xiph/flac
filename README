@@ -63,7 +63,6 @@ for full documentation.
 A brief description of the directory tree:
 
 	doc/          the HTML documentation
-	flac.pbproj/  the Mac OS X Project Builder project
 	include/      public include files for libFLAC and libFLAC++
 	man/          the man page for `flac'
 	src/          the source code and private headers
@@ -216,29 +215,9 @@ If you want to build without Ogg support, instead edit all .dsp or
 Building on Mac OS X
 ===============================================================================
 
-If you have Fink, the GNU flow above should work.  Otherwise,
-there is a Project Builder project in the top-level source
-directory to build libFLAC and the command-line utilities on
-Mac OS X.  In a terminal, cd to the top-level directory (the
-one that contains this README file) and type:
-
-	pbxbuild -alltargets
-
-This will create everything and leave it in the build/ directory.
-Don't worry about the rest of the stuff that is in build/ or
-the stuff that was already there before building.
-
-The Project Builder project requires that you have libiconv and
-libogg in /sw, ala fink.  If you don't, you'll need to install
-them somewhere and change the path to them in the Library Paths
-section of several targets.
-
-It also assumes the CPU supports Altivec instructions.  If it does
-not, you will also have to add -DFLAC__NO_ASM to the CFLAGS in the
-libFLAC target.
-
-There currently is no install procedure; you will have to
-manually copy the tools to wherever you need them.
+If you have Fink or a recent version of OS X with the proper autotooles,
+the GNU flow above should work.  The Project Builder project has been
+deprecated but we are working on replacing it with an Xcode equivalent.
 
 
 ===============================================================================

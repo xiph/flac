@@ -356,6 +356,5 @@ AC_CONFIG_FILES([ \
 	obj/release/Makefile \
 	obj/release/bin/Makefile \
 	obj/release/lib/Makefile \
-	flac.pbproj/Makefile \
 ])
 AC_OUTPUT

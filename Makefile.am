@@ -30,7 +30,7 @@
 
 AUTOMAKE_OPTIONS = foreign 1.7
 
-SUBDIRS = doc include m4 man src test build flac.pbproj obj
+SUBDIRS = doc include m4 man src test build obj
 
 DISTCLEANFILES = libtool-disable-static
 
