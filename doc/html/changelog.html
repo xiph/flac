@@ -53,8 +53,7 @@
 
 		<br />
 
-<!-- @@@@@@
-		<a name="flac_1_1_5"><b>FLAC 1.1.5</b></a>
+		<a name="flac_1_2_0"><b>FLAC 1.2.0</b></a>
 
 		<br />
 
@@ -62,7 +61,7 @@
 			<li>
 				General:
 				<ul>
-					<li>(none)</li>
+					<li>Encoding and decoding speedups for all modes.</li>
 				</ul>
 			</li>
 			<li>
@@ -80,7 +79,8 @@
 			<li>
 				flac:
 				<ul>
-					<li>(none)</li>
+					<li>Added runtime detection of SSE OS support for most operating systems.</li>
+					<li>Added a new undocumented option <span class="argument">--ignore-chunk-sizes</span> for ignoring the size of the 'data' chunk (WAVE) or 'SSND' chunk(AIFF).  Can be used to encode files with bogus data sizes.  Use with caution, all subsequent data is treated as audio, so the data/SSND chunk must be the last or the following data/tags will be treated as audio and encoded.</li>
 				</ul>
 			</li>
 			<li>
@@ -98,17 +98,17 @@
 			<li>
 				build system:
 				<ul>
-					<li>Added solution and project files for building with VC++ 2005</li>
+					<li>Added solution and project files for building with VC++ 2005.</li>
 				</ul>
 			</li>
 			<li>
 				libraries:
 				<ul>
-					<li>Added runtime detection of SSE OS support for most operating systems</li>
+					<li>Added runtime detection of SSE OS support for most operating systems.</li>
 				</ul>
 			</li>
 			<li>
-				Interface changes (see also the <a href="http://flac.sourceforge.net/api/group__porting__1__1__4__to__1__1__5.html">porting guide</a> for specific instructions on porting to FLAC 1.1.5):
+				Interface changes (see also the <a href="http://flac.sourceforge.net/api/group__porting__1__1__4__to__1__2__0.html">porting guide</a> for specific instructions on porting to FLAC 1.2.0):
 				<ul>
 					<li>
 						all libraries;
@@ -134,7 +134,6 @@
 
 		<br />
 
-@@@@@@ -->
 		<a name="flac_1_1_4"><b>FLAC 1.1.4</b></a>
 
 		<br />
@@ -165,7 +164,6 @@
 					<li>Improved compression with no change to format or decrease in speed.</li>
 					<li>Encoding and decoding speedups for all modes.  Encoding at -8 is twice as fast.</li>
 					<li>Added a new option <span class="argument"><a href="documentation_tools_flac.html#flac_options_warnings_as_errors">-w,--warnings-as-errors</a></span> for treating all warnings as errors.</li>
-					<li>Added a new undocumented option <span class="argument">--ignore-chunk-sizes</span> for ignoring the size of the 'data' chunk (WAVE) or 'SSND' chunk(AIFF).  Can be used to encode files with bogus data sizes.  Use with caution, all subsequent data is treated as audio, so the data/SSND chunk must be the last or the following data/tags will be treated as audio and encoded.</li>
 					<li>Allow <span class="argument"><a href="documentation_tools_flac.html#flac_options_picture">--picture</a></span> option to take only a filename, and have all other attributes extracted from the file itself.</li>
 					<li>Fixed a bug that caused suboptimal default compression settings in some locales (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1608883&amp;group_id=13478&amp;atid=113478">SF #1608883</a>).</li>
 					<li>Fixed a bug where FLAC-to-FLAC transcoding of a corrupted FLAC file would truncate the transcoded file at the first error (<a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=1615019&amp;group_id=13478&amp;atid=113478">SF #1615019</a>).</li>
