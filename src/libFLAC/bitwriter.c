@@ -557,7 +557,8 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 		msbits = uval >> parameter;
 
 #if 1 /* OPT: can remove this special case if it doesn't make up for the extra compare */
-		if(bw->bits + msbits + lsbits <= FLAC__BITS_PER_WORD) { /* i.e. if the whole thing fits in the current bwword */
+		if(bw->bits && bw->bits + msbits + lsbits <= FLAC__BITS_PER_WORD) { /* i.e. if the whole thing fits in the current bwword */
+			/* ^^^ if bw->bits is 0 then we may have filled the buffer and have no free bwword to work in */
 			bw->bits = bw->bits + msbits + lsbits;
 			uval |= mask1; /* set stop bit */
 			uval &= mask2; /* mask off unused top bits */
@@ -577,7 +578,8 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 		}
 		else {
 #elif 0 /*@@@@@@ OPT: try this version with MSVC6 to see if better, not much difference for gcc-4 */
-		if(bw->bits + msbits + lsbits < FLAC__BITS_PER_WORD) { /* i.e. if the whole thing fits in the current bwword */
+		if(bw->bits && bw->bits + msbits + lsbits < FLAC__BITS_PER_WORD) { /* i.e. if the whole thing fits in the current bwword */
+			/* ^^^ if bw->bits is 0 then we may have filled the buffer and have no free bwword to work in */
 			bw->bits = bw->bits + msbits + lsbits;
 			uval |= mask1; /* set stop bit */
 			uval &= mask2; /* mask off unused top bits */
