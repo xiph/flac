@@ -80,7 +80,7 @@
 				flac:
 				<ul>
 					<li>Added runtime detection of SSE OS support for most operating systems.</li>
-					<li>Added a new undocumented option <span class="argument">--ignore-chunk-sizes</span> for ignoring the size of the 'data' chunk (WAVE) or 'SSND' chunk(AIFF).  Can be used to encode files with bogus data sizes.  Use with caution, all subsequent data is treated as audio, so the data/SSND chunk must be the last or the following data/tags will be treated as audio and encoded.</li>
+					<li>Added a new undocumented option <span class="argument">--ignore-chunk-sizes</span> for ignoring the size of the 'data' chunk (WAVE) or 'SSND' chunk (AIFF).  Can be used to encode files with bogus data sizes (e.g. with WAV files piped from foobar2000 to flac.exe as an external encoder).  <b>Use with caution</b>: all subsequent data is treated as audio, so the data/SSND chunk must be the last or the following data/tags will be treated as audio and encoded.</li>
 				</ul>
 			</li>
 			<li>
@@ -105,17 +105,12 @@
 				libraries:
 				<ul>
 					<li>Added runtime detection of SSE OS support for most operating systems.</li>
+					<li>Fixed bug where invalid seek tables could cause some seeks to fail.</li>
 				</ul>
 			</li>
 			<li>
 				Interface changes (see also the <a href="http://flac.sourceforge.net/api/group__porting__1__1__4__to__1__2__0.html">porting guide</a> for specific instructions on porting to FLAC 1.2.0):
 				<ul>
-					<li>
-						all libraries;
-						<ul>
-							<li>(none)</li>
-						</ul>
-					</li>
 					<li>
 						libFLAC:
 						<ul>

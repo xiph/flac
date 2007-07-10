@@ -3007,33 +3007,55 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 	upper_bound = stream_length;
 	upper_bound_sample = total_samples > 0 ? total_samples : target_sample /*estimate it*/;
 
-	/*@@@@@@ add step to validate seek table before using?  encoding to pipe leaves some flac files with incomplete seektables which screw us up */
-	/*@@@@@@ ignore seekpoints where frame_samples = 0 or if point is >= total_samples and total_samples is known (or just alter seek_table in read_metadata_seektable_()) */
-
 	/*
 	 * Now we refine the bounds if we have a seektable with
 	 * suitable points.  Note that according to the spec they
 	 * must be ordered by ascending sample number.
+	 *
+	 * Note: to protect against invalid seek tables we will ignore points
+	 * that have frame_samples==0 or sample_number>=total_samples
 	 */
 	if(seek_table) {
+		FLAC__uint64 new_lower_bound = lower_bound;
+		FLAC__uint64 new_upper_bound = upper_bound;
+		FLAC__uint64 new_lower_bound_sample = lower_bound_sample;
+		FLAC__uint64 new_upper_bound_sample = upper_bound_sample;
+
 		/* find the closest seek point <= target_sample, if it exists */
 		for(i = (int)seek_table->num_points - 1; i >= 0; i--) {
-			if(seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER && seek_table->points[i].sample_number <= target_sample)
+			if(
+				seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER &&
+				seek_table->points[i].frame_samples > 0 && /* defense against bad seekpoints */
+				(total_samples <= 0 || seek_table->points[i].sample_number < total_samples) && /* defense against bad seekpoints */
+				seek_table->points[i].sample_number <= target_sample
+			)
 				break;
 		}
 		if(i >= 0) { /* i.e. we found a suitable seek point... */
-			lower_bound = first_frame_offset + seek_table->points[i].stream_offset;
-			lower_bound_sample = seek_table->points[i].sample_number;
+			new_lower_bound = first_frame_offset + seek_table->points[i].stream_offset;
+			new_lower_bound_sample = seek_table->points[i].sample_number;
 		}
 
 		/* find the closest seek point > target_sample, if it exists */
 		for(i = 0; i < (int)seek_table->num_points; i++) {
-			if(seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER && seek_table->points[i].sample_number > target_sample)
+			if(
+				seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER &&
+				seek_table->points[i].frame_samples > 0 && /* defense against bad seekpoints */
+				(total_samples <= 0 || seek_table->points[i].sample_number < total_samples) && /* defense against bad seekpoints */
+				seek_table->points[i].sample_number > target_sample
+			)
 				break;
 		}
 		if(i < (int)seek_table->num_points) { /* i.e. we found a suitable seek point... */
-			upper_bound = first_frame_offset + seek_table->points[i].stream_offset;
-			upper_bound_sample = seek_table->points[i].sample_number;
+			new_upper_bound = first_frame_offset + seek_table->points[i].stream_offset;
+			new_upper_bound_sample = seek_table->points[i].sample_number;
+		}
+		/* final protection against unsorted seek tables; keep original values if bogus */
+		if(new_upper_bound >= new_lower_bound) {
+			lower_bound = new_lower_bound;
+			upper_bound = new_upper_bound;
+			lower_bound_sample = new_lower_bound_sample;
+			upper_bound_sample = new_upper_bound_sample;
 		}
 	}
 
