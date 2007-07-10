@@ -2177,7 +2177,11 @@ FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int
 		return true;
 
 	if(num_requested_seek_points < 0) {
-		requested_seek_points = "10s;";
+		/*@@@@@@ workaround ogg bug: too many seekpoints makes table not fit in one page */
+		if(e->use_ogg && e->total_samples_to_encode > 0 && e->total_samples_to_encode / e->sample_rate / 10 > 230)
+			requested_seek_points = "230x;";
+		else 
+			requested_seek_points = "10s;";
 		num_requested_seek_points = 1;
 	}
 
