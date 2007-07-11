@@ -95,5 +95,5 @@ FLAC__bool FLAC__bitreader_read_golomb_unsigned(FLAC__BitReader *br, unsigned *v
 FLAC__bool FLAC__bitreader_read_utf8_uint32(FLAC__BitReader *br, FLAC__uint32 *val, FLAC__byte *raw, unsigned *rawlen);
 FLAC__bool FLAC__bitreader_read_utf8_uint64(FLAC__BitReader *br, FLAC__uint64 *val, FLAC__byte *raw, unsigned *rawlen);
 
-FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br);//@@@@@@
+FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br);
 #endif
