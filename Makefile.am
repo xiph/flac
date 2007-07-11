@@ -40,6 +40,7 @@ EXTRA_DIST = \
 	COPYING.LGPL \
 	COPYING.Xiph \
 	FLAC.dsw \
+	FLAC.sln \
 	Makefile.lite \
 	all.dsp \
 	all_dynamic.dsp \
