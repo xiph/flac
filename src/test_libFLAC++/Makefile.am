@@ -17,7 +17,8 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_libFLAC++.dsp
+	test_libFLAC++.dsp \
+	test_libFLAC++.vcproj
 
 noinst_PROGRAMS = test_libFLAC++
 test_libFLAC___LDADD = \

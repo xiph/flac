@@ -38,7 +38,8 @@ libplugin_common_la_SOURCES = \
 EXTRA_DIST = \
 	Makefile.lite \
 	README \
-	plugin_common_static.dsp
+	plugin_common_static.dsp \
+	plugin_common_static.vcproj
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

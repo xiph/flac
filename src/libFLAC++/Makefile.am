@@ -40,7 +40,9 @@ EXTRA_DIST = \
 	Makefile.lite \
 	flac++.pc.in \
 	libFLAC++_dynamic.dsp \
+	libFLAC++_dynamic.vcproj \
 	libFLAC++_static.dsp \
+	libFLAC++_static.vcproj \
 	libFLAC++.m4
 
 # see 'http://www.gnu.org/software/libtool/manual.html#Libtool-versioning' for numbering convention

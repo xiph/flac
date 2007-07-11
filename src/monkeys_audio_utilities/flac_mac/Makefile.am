@@ -17,4 +17,5 @@
 
 EXTRA_DIST = \
 	flac_mac.dsp \
+	flac_mac.vcproj \
 	main.c

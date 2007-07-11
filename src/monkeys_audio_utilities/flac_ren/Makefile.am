@@ -17,4 +17,5 @@
 
 EXTRA_DIST = \
 	flac_ren.dsp \
+	flac_ren.vcproj \
 	main.c

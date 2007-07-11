@@ -17,7 +17,8 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_cuesheet.dsp
+	test_cuesheet.dsp \
+	test_cuesheet.vcproj
 
 noinst_PROGRAMS = test_cuesheet
 test_cuesheet_SOURCES = \

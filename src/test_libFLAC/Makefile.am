@@ -17,7 +17,8 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_libFLAC.dsp
+	test_libFLAC.dsp \
+	test_libFLAC.vcproj
 
 INCLUDES = -I$(top_srcdir)/src/libFLAC/include
 

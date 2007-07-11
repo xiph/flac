@@ -21,7 +21,8 @@ AM_CFLAGS = @OGG_CFLAGS@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	metaflac.dsp
+	metaflac.dsp \
+	metaflac.vcproj
 
 metaflac_SOURCES = \
 	main.c \

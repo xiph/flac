@@ -17,7 +17,8 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_picture.dsp
+	test_picture.dsp \
+	test_picture.vcproj
 
 noinst_PROGRAMS = test_picture
 test_picture_SOURCES = \

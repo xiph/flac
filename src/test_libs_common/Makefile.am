@@ -26,4 +26,5 @@ libtest_libs_common_la_SOURCES = \
 EXTRA_DIST = \
 	Makefile.lite \
 	README \
-	test_libs_common_static.dsp
+	test_libs_common_static.dsp \
+	test_libs_common_static.vcproj

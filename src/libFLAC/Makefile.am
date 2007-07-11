@@ -83,7 +83,9 @@ EXTRA_DIST = \
 	Makefile.lite \
 	flac.pc.in \
 	libFLAC_dynamic.dsp \
+	libFLAC_dynamic.vcproj \
 	libFLAC_static.dsp \
+	libFLAC_static.vcproj \
 	libFLAC.m4
 
 if FLaC__HAS_OGG

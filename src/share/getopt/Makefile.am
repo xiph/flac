@@ -10,7 +10,8 @@ libgetopt_a_SOURCES = getopt.c getopt1.c
 
 EXTRA_DIST = \
 	Makefile.lite \
-	getopt_static.dsp
+	getopt_static.dsp \
+	getopt_static.vcproj
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

@@ -22,6 +22,7 @@ EXTRA_DIST = \
 	configure.c \
 	in_flac.c \
 	in_flac.dsp \
+	in_flac.vcproj \
 	infobox.c \
 	infobox.h \
 	playback.c \

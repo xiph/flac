@@ -17,7 +17,8 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_streams.dsp
+	test_streams.dsp \
+	test_streams.vcproj
 
 noinst_PROGRAMS = test_streams
 test_streams_SOURCES = \
