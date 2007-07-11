@@ -49,6 +49,10 @@
 #define M_LN2 0.69314718055994530942
 #endif
 
+/* OPT: #undef'ing this may improve the speed on some architectures */
+#define FLAC__LPC_UNROLLED_FILTER_LOOPS
+
+
 void FLAC__lpc_window_data(const FLAC__int32 in[], const FLAC__real window[], FLAC__real out[], unsigned data_len)
 {
 	unsigned i;
@@ -259,7 +263,7 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 }
 
 void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
-#ifdef FLAC__OVERFLOW_DETECT /* this ugly flavor is only for debugging */
+#if defined(FLAC__OVERFLOW_DETECT) || !defined(FLAC__LPC_UNROLLED_FILTER_LOOPS)
 {
 	FLAC__int64 sumo;
 	unsigned i, j;
@@ -525,7 +529,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 *data, u
 #endif
 
 void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
-#ifdef FLAC__OVERFLOW_DETECT /* this ugly flavor is only for debugging */
+#if defined(FLAC__OVERFLOW_DETECT) || !defined(FLAC__LPC_UNROLLED_FILTER_LOOPS)
 {
 	unsigned i, j;
 	FLAC__int64 sum;
@@ -789,7 +793,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 #endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
 
 void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[])
-#ifdef FLAC__OVERFLOW_DETECT /* this ugly flavor is only for debugging */
+#if defined(FLAC__OVERFLOW_DETECT) || !defined(FLAC__LPC_UNROLLED_FILTER_LOOPS)
 {
 	FLAC__int64 sumo;
 	unsigned i, j;
@@ -1055,7 +1059,7 @@ void FLAC__lpc_restore_signal(const FLAC__int32 residual[], unsigned data_len, c
 #endif
 
 void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[])
-#ifdef FLAC__OVERFLOW_DETECT /* this ugly flavor is only for debugging */
+#if defined(FLAC__OVERFLOW_DETECT) || !defined(FLAC__LPC_UNROLLED_FILTER_LOOPS)
 {
 	unsigned i, j;
 	FLAC__int64 sum;
