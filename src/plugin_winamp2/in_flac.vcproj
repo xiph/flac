@@ -42,7 +42,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;IN_FLAC_EXPORTS;FLAC__NO_DLL;VERSION=\&quot;1.2.0\&quot;;TAGZ_UNICODE;DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -117,9 +117,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories=".\include;..;..\..\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;IN_FLAC_EXPORTS;FLAC__NO_DLL;VERSION=\&quot;1.2.0\&quot;;TAGZ_UNICODE"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -139,13 +144,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="..\..\obj\release\lib\ogg_static.lib user32.lib"
-				LinkIncremental="2"
+				LinkIncremental="1"
 				AdditionalLibraryDirectories="C:\Program Files\Microsoft Visual Studio .NET 2003\Vc7\PlatformSDK\Lib"
 				IgnoreDefaultLibraryNames="uuid.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
 				TargetMachine="1"
 			/>
 			<Tool
