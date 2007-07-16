@@ -420,8 +420,10 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 #ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(decoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #ifdef FLAC__HAS_NASM
+#if 0 /*@@@@@@ OPT: not clearly faster, needs more testing */
 		if(decoder->private_->cpuinfo.data.ia32.bswap)
 			decoder->private_->local_bitreader_read_rice_signed_block = FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap;
+#endif
 		if(decoder->private_->cpuinfo.data.ia32.mmx) {
 			decoder->private_->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32_mmx;

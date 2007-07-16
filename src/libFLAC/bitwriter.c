@@ -556,7 +556,7 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 
 		msbits = uval >> parameter;
 
-#if 1 /* OPT: can remove this special case if it doesn't make up for the extra compare */
+#if 0 /* OPT: can remove this special case if it doesn't make up for the extra compare (doesn't make a statistically significant difference with msvc or gcc/x86) */
 		if(bw->bits && bw->bits + msbits + lsbits <= FLAC__BITS_PER_WORD) { /* i.e. if the whole thing fits in the current bwword */
 			/* ^^^ if bw->bits is 0 then we may have filled the buffer and have no free bwword to work in */
 			bw->bits = bw->bits + msbits + lsbits;
@@ -642,7 +642,7 @@ break1:
 				bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(bw->accum);
 				bw->accum = uval;
 			}
-#if 1
+#if 0
 		}
 #endif
 		vals++;
