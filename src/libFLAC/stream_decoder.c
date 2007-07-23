@@ -420,7 +420,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 #ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(decoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #ifdef FLAC__HAS_NASM
-#if 0 /*@@@@@@ OPT: not clearly faster, needs more testing */
+#if 1 /*@@@@@@ OPT: not clearly faster, needs more testing */
 		if(decoder->private_->cpuinfo.data.ia32.bswap)
 			decoder->private_->local_bitreader_read_rice_signed_block = FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap;
 #endif
@@ -2078,7 +2078,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 						decoder->private_->output[0][i] = (mid + side) >> 1;
 						decoder->private_->output[1][i] = (mid - side) >> 1;
 #else
-						//@@@@@@ OPT: try without 'side' temp variable
+						/* OPT: without 'side' temp variable */
 						mid = (decoder->private_->output[0][i] << 1) | (decoder->private_->output[1][i] & 1); /* i.e. if 'side' is odd... */
 						decoder->private_->output[0][i] = (mid + decoder->private_->output[1][i]) >> 1;
 						decoder->private_->output[1][i] = (mid - decoder->private_->output[1][i]) >> 1;
