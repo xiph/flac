@@ -227,9 +227,7 @@ int utf8_decode(const char *from, char **to)
 #include <langinfo.h>
 #endif
 
-int iconvert(const char *fromcode, const char *tocode,
-	     const char *from, size_t fromlen,
-	     char **to, size_t *tolen);
+#include "iconvert.h"
 
 static const char *current_charset(void)
 {

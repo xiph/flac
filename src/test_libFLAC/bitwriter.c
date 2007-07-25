@@ -22,6 +22,7 @@
 
 #include "FLAC/assert.h"
 #include "private/bitwriter.h" /* from the libFLAC private include area */
+#include "bitwriter.h"
 #include <stdio.h>
 #include <string.h> /* for memcmp() */
 

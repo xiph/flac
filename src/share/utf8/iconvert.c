@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "iconvert.h"
+
 /*
  * Convert data from one encoding to another. Return:
  *

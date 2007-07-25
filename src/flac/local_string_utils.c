@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "utils.h"
+#include "local_string_utils.h"
 
 /*	$OpenBSD: strlcpy.c,v 1.8 2003/06/17 21:56:24 millert Exp $
  *

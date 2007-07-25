@@ -23,6 +23,7 @@
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
 #include "test_libs_common/metadata_utils.h"
+#include "metadata.h"
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp() */

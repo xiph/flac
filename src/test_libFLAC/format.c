@@ -22,6 +22,7 @@
 
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
+#include "format.h"
 #include <stdio.h>
 
 static const char *true_false_string_[2] = { "false", "true" };

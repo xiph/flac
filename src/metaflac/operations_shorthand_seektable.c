@@ -25,6 +25,7 @@
 #include "FLAC/stream_decoder.h"
 #include "FLAC/metadata.h"
 #include "share/grabbag.h"
+#include "operations_shorthand.h"
 
 static FLAC__bool populate_seekpoint_values(const char *filename, FLAC__StreamMetadata *block, FLAC__bool *needs_write);
 

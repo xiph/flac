@@ -25,6 +25,7 @@
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
 #include <string.h>
+#include "operations_shorthand.h"
 
 FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write)
 {

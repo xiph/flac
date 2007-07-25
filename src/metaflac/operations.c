@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "operations_shorthand.h"
 
 static void show_version(void);
 static FLAC__bool do_major_operation(const CommandLineOptions *options);
