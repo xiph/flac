@@ -62,7 +62,8 @@ static void usage_summary(FILE *out)
 	fprintf(out, "--no-filename         Do not prefix each output line with the FLAC file name\n");
 	fprintf(out, "                      (the default if only one FLAC file is specified)\n");
 	fprintf(out, "--no-utf8-convert     Do not convert tags from UTF-8 to local charset,\n");
-	fprintf(out, "                      or vice versa.  This is useful for scripts.\n");
+	fprintf(out, "                      or vice versa.  This is useful for scripts, and setting\n");
+	fprintf(out, "                      tags in situations where the locale is wrong.\n");
 	fprintf(out, "--dont-use-padding    By default metaflac tries to use padding where possible\n");
 	fprintf(out, "                      to avoid rewriting the entire file if the metadata size\n");
 	fprintf(out, "                      changes.  Use this option to tell metaflac to not take\n");
