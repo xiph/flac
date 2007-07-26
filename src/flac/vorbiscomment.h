@@ -21,6 +21,6 @@
 
 #include "FLAC/metadata.h"
 
-FLAC__bool flac__vorbiscomment_add(FLAC__StreamMetadata *block, const char *comment, FLAC__bool value_from_file, const char **violation);
+FLAC__bool flac__vorbiscomment_add(FLAC__StreamMetadata *block, const char *comment, FLAC__bool value_from_file, FLAC__bool raw, const char **violation);
 
 #endif

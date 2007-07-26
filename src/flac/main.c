@@ -190,6 +190,7 @@ static struct share__option long_options_[] = {
 	{ "no-replay-gain"            , share__no_argument, 0, 0 },
 	{ "no-ignore-chunk-sizes"     , share__no_argument, 0, 0 },
 	{ "no-sector-align"           , share__no_argument, 0, 0 },
+	{ "no-utf8-convert"           , share__no_argument, 0, 0 },
 	{ "no-lax"                    , share__no_argument, 0, 0 },
 #if FLAC__HAS_OGG
 	{ "no-ogg"                    , share__no_argument, 0, 0 },
@@ -242,6 +243,7 @@ static struct {
 	FLAC__bool replay_gain;
 	FLAC__bool ignore_chunk_sizes;
 	FLAC__bool sector_align;
+	FLAC__bool utf8_convert; /* true by default, to convert tag strings from locale to utf-8, false if --no-utf8-convert used */
 	const char *cmdline_forced_outfilename;
 	const char *output_prefix;
 	analysis_options aopts;
@@ -545,6 +547,7 @@ FLAC__bool init_options(void)
 	option_values.replay_gain = false;
 	option_values.ignore_chunk_sizes = false;
 	option_values.sector_align = false;
+	option_values.utf8_convert = true;
 	option_values.cmdline_forced_outfilename = 0;
 	option_values.output_prefix = 0;
 	option_values.aopts.do_residual_text = false;
@@ -719,7 +722,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "tag-from-file")) {
 			FLAC__ASSERT(0 != option_argument);
-			if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/true, &violation))
+			if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/true, /*raw=*/!option_values.utf8_convert, &violation))
 				return usage_error("ERROR: (--tag-from-file) %s\n", violation);
 		}
 		else if(0 == strcmp(long_option, "no-cued-seekpoints")) {
@@ -816,6 +819,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "no-sector-align")) {
 			option_values.sector_align = false;
 		}
+		else if(0 == strcmp(long_option, "no-utf8-convert")) {
+			option_values.utf8_convert = false;
+		}
 		else if(0 == strcmp(long_option, "no-lax")) {
 			option_values.lax = false;
 		}
@@ -906,7 +912,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 'T':
 				FLAC__ASSERT(0 != option_argument);
-				if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/false, &violation))
+				if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/false, /*raw=*/!option_values.utf8_convert, &violation))
 					return usage_error("ERROR: (-T/--tag) %s\n", violation);
 				break;
 			case '0':
@@ -1163,6 +1169,7 @@ void show_help(void)
 	printf("  -c, --stdout                 Write output to stdout\n");
 	printf("  -s, --silent                 Do not write runtime encode/decode statistics\n");
 	printf("      --totally-silent         Do not print anything, including errors\n");
+	printf("      --no-utf8-convert        Do not convert tags from local charset to UTF-8\n");
 	printf("  -w, --warnings-as-errors     Treat all warnings as errors\n");
 	printf("  -f, --force                  Force overwriting of output files\n");
 	printf("  -o, --output-name=FILENAME   Force the output file name\n");
@@ -1283,6 +1290,10 @@ void show_explain(void)
 	printf("      --totally-silent         Do not print anything of any kind, including\n");
 	printf("                               warnings or errors.  The exit code will be the\n");
 	printf("                               only way to determine successful completion.\n");
+	printf("      --no-utf8-convert        Do not convert tags from local charset to UTF-8.\n");
+	printf("                               This is useful for scripts, and setting tags in\n");
+	printf("                               situations where the locale is wrong.  This\n");
+	printf("                               option must appear before any tag options!\n");
 	printf("  -w, --warnings-as-errors     Treat all warnings as errors\n");
 	printf("  -f, --force                  Force overwriting of output files\n");
 	printf("  -o, --output-name=FILENAME   Force the output file name; usually flac just\n");

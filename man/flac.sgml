@@ -158,6 +158,14 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>--no-utf8-convert</option>
+	  </term>
+	  <listitem>
+	    <para>Do not convert tags from local charset to UTF-8.  This is useful for scripts, and setting tags in situations where the locale is wrong.  This option must appear before any tag options!</para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>-w</option>, <option>--warnings-as-errors</option>
 	  </term>
 	  <listitem>

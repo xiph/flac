@@ -212,6 +212,15 @@
 			</tr>
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_no_utf8_convert" />
+					<span class="argument">--no-utf8-convert</span>
+				</td>
+				<td>
+					Do not convert tags from local charset to UTF-8.  This is useful for scripts, and setting tags in situations where the locale is wrong.  This option must appear before any tag options!
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_warnings_as_errors" />
 					<span class="argument">-w</span>, <span class="argument">--warnings-as-errors</span>
 				</td>
@@ -983,6 +992,7 @@
 		<a href="#negative_options" /><span class="argument">--no-silent</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-verify</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-warnings-as-errors</span></a><br />
+		<a href="#flac_options_no_utf8_convert" /><span class="argument">--no-utf8-convert</span></a><br />
 		<a href="#flac_options_output_name" /><span class="argument">-o</span></a><br />
 		<a href="#flac_options_ogg" /><span class="argument">--ogg</span></a><br />
 		<a href="#flac_options_output_name" /><span class="argument">--output-name</span></a><br />
