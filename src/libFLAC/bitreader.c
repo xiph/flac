@@ -39,6 +39,8 @@
 #include <winsock.h> /* for ntohl() */
 #elif defined FLAC__SYS_DARWIN
 #include <machine/endian.h> /* for ntohl() */
+#elif defined __MINGW32__
+#include <winsock.h> /* for ntohl() */
 #else
 #include <netinet/in.h> /* for ntohl() */
 #endif

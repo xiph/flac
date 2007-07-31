@@ -42,8 +42,8 @@
 #include <string.h> /* for strrchr() */
 #if defined _WIN32 && !defined __CYGWIN__
 // for GetFileInformationByHandle() etc
-#include <Windows.h>
-#include <Winbase.h>
+#include <windows.h>
+#include <winbase.h>
 #endif
 #include "share/grabbag.h"
 
