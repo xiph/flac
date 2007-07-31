@@ -120,6 +120,11 @@
 																	<li><a href="#rice_partition">RICE_PARTITION</a></li>
 																</ul>
 															</li>
+															<li><a href="#partitioned_rice2">RESIDUAL_CODING_METHOD_PARTITIONED_RICE2</a>
+																<ul>
+																	<li><a href="#rice2_partition">RICE2_PARTITION</a></li>
+																</ul>
+															</li>
 														</ul>
 													</li>
 												</ul>
@@ -241,7 +246,7 @@
 		</ul>
 		<a name="residualcoding"><font size="+1"><b><u>Residual Coding</u></b></font></a><br />
 		<br />
-		FLAC currently defines two similar methods for the coding of the error signal from the prediction stage.  The error signal is coded using Rice codes in one of two ways: 1) the encoder estimates a single rice parameter based on the variance of the residual and Rice codes the entire residual using this parameter; 2) the residual is partitioned into several equal-length regions of contiguous samples, and each region is coded with its own Rice parameter based on the region's mean.  (Note that the first method is a special case of the second method with one partition, except the Rice parameter is based on the residual variance instead of the mean.)<br />
+		FLAC currently defines two similar methods for the coding of the error signal from the prediction stage.  The error signal is coded using Rice codes in one of two ways: 1) the encoder estimates a single Rice parameter based on the variance of the residual and Rice codes the entire residual using this parameter; 2) the residual is partitioned into several equal-length regions of contiguous samples, and each region is coded with its own Rice parameter based on the region's mean.  (Note that the first method is a special case of the second method with one partition, except the Rice parameter is based on the residual variance instead of the mean.)<br />
 		<br />
 		The FLAC format has reserved space for other coding methods.  Some possiblities for volunteers would be to explore better context-modeling of the Rice parameter, or Huffman coding.  See <a href="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</a> and <a href="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</a> for descriptions of several universal codes.<br />
 		<br />
@@ -281,13 +286,13 @@
 				Individual subframes (one for each channel) are coded separately within a frame, and appear serially in the stream.  In other words, the encoded audio data is NOT channel-interleaved.  This reduces decoder complexity at the cost of requiring larger decode buffers.  Each subframe has its own header specifying the attributes of the subframe, like prediction method and order, residual coding parameters, etc.  The header is followed by the encoded audio data for that channel.
 			</li>
 			<li>
-				<a name="subset">FLAC</a> specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the encoding parameters such that decoder buffer sizes and other resource requirements can be easily determined.  "flac" generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
+				<a name="subset">FLAC</a> specifies a subset of itself as the Subset format.  The purpose of this is to ensure that any streams encoded according to the Subset are truly "streamable", meaning that a decoder that cannot seek within the stream can still pick up in the middle of the stream and start decoding.  It also makes hardware decoder implementations more practical by limiting the encoding parameters such that decoder buffer sizes and other resource requirements can be easily determined.  <span class="commandname">flac</span> generates Subset streams by default unless the "--lax" command-line option is used.  The Subset makes the following limitations on what may be used in the stream:
 				<ul>
 				<li>
-					The blocksize bits in the <a href="#frame_header">frame header</a> must be 0001-0101 or 1000-1110, specifying a fixed-blocksize stream (the exception being the last block as described in the table) and a few allowable blocksizes.  This also means that the STREAMINFO metadata block must specify equal mininum and maximum blocksizes.  If the sample rate is &lt;= 48000Hz, the blocksize must be &lt;=4608, i.e. blocksize bits 0001-0101 or 1000-1100.
+					The blocksize bits in the <a href="#frame_header">frame header</a> must be 0001-1110.  The blocksize must be &lt;=16384; if the sample rate is &lt;= 48000Hz, the blocksize must be &lt;=4608.
 				</li>
 				<li>
-					The sample rate bits in the <a href="#frame_header">frame header</a> must be 0001-1011.
+					The sample rate bits in the <a href="#frame_header">frame header</a> must be 0001-1110.
 				</li>
 				<li>
 					The bits-per-sample bits in the <a href="#frame_header">frame header</a> must be 001-111.
@@ -1113,16 +1118,32 @@
 		</tr>
 		<tr>
 			<td align="right" valign="top" bgcolor="#F4F4CC">
-				&lt;2&gt;
+				&lt;1&gt;
 			</td>
 			<td>
 				Reserved:<br />
 				<ul>
 				<li>
-					<tt>00</tt> : mandatory value
+					<tt>0</tt> : mandatory value
 				</li>
 				<li>
-					<tt>01-11</tt> : reserved for future use
+					<tt>1</tt> : reserved for future use
+				</li>
+				</ul>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;1&gt;
+			</td>
+			<td>
+				Blocking strategy:<br />
+				<ul>
+				<li>
+					<tt>0</tt> : fixed-blocksize stream; frame header encodes the frame number
+				</li>
+				<li>
+					<tt>1</tt> : variable-blocksize stream; frame header encodes the sample number
 				</li>
 				</ul>
 			</td>
@@ -1135,7 +1156,7 @@
 				Block size in inter-channel samples:<br />
 				<ul>
 				<li>
-					<tt>0000</tt> : get from STREAMINFO metadata block
+					<tt>0000</tt> : reserved
 				</li>
 				<li>
 					<tt>0001</tt> : 192 samples
@@ -1166,7 +1187,13 @@
 					<tt>0000</tt> : get from STREAMINFO metadata block
 				</li>
 				<li>
-					<tt>0001-0011</tt> : reserved
+					<tt>0001</tt> : 88.2kHz
+				</li>
+				<li>
+					<tt>0010</tt> : 176.4kHz
+				</li>
+				<li>
+					<tt>0011</tt> : 192kHz
 				</li>
 				<li>
 					<tt>0100</tt> : 8kHz
@@ -1281,7 +1308,15 @@
 				&lt;1&gt;
 			</td>
 			<td>
-				Zero bit padding, to prevent sync-fooling string of 1s
+				Reserved:<br />
+				<ul>
+				<li>
+					<tt>0</tt> : mandatory value
+				</li>
+				<li>
+					<tt>1</tt> : reserved for future use
+				</li>
+				</ul>
 			</td>
 		</tr>
 		<tr>
@@ -1328,7 +1363,10 @@
 				<font size="+1">NOTES</font><br />
 				<ul>
 				<li>
-					The blocksize bits 0000-0101 and 1000-1111 may only be used if the blocksize is fixed throughout the entire stream.  Blocksize bits 0110-0111 may be used in any case but the decoder will have to pessimistically guess that it is a variable-blocksize stream unless it has STREAMINFO metadata and the min_blocksize and max_blocksize values in it match.  There is only one special case: the encoder may use blocksize bits 0110-0111 on the last frame of a fixed-blocksize stream, as long as the blocksize is not greater than the stream blocksize.
+					The "blocking strategy" bit must be the same throughout the entire stream.
+				</li>
+				<li>
+					The "blocking strategy" bit determines how to calculate the sample number of the first sample in the frame.  If the bit is <tt>0</tt> (fixed-blocksize), the frame header encodes the frame number as above, and the frame's starting sample number will be the frame number times the blocksize.  If it is <tt>1</tt> (variable-blocksize), the frame header encodes the frame's starting sample number itself.  (In the case of a fixed-blocksize stream, only the last block may be shorter than the stream blocksize; its starting sample number will be calculated as the frame number times the previous frame's blocksize, or zero if it is the first frame).
 				</li>
 				<li>
 					The "UTF-8" coding used for the sample/frame number is the same variable length code used to store compressed UCS-2, extended to handle larger input.
@@ -1607,32 +1645,24 @@
 				Residual coding method:<br />
 				<ul>
 				<li>
-					<tt>00</tt> : partitioned rice coding
+					<tt>00</tt> : partitioned Rice coding with 4-bit Rice parameter; RESIDUAL_CODING_METHOD_PARTITIONED_RICE follows
 				</li>
 				<li>
-					<tt>01-11</tt> : reserved
+					<tt>01</tt> : partitioned Rice coding with 5-bit Rice parameter; RESIDUAL_CODING_METHOD_PARTITIONED_RICE2 follows
+				</li>
+				<li>
+					<tt>10-11</tt> : reserved
 				</li>
 				</ul>
 			</td>
 		</tr>
 		<tr>
 			<td align="right" valign="top" bgcolor="#F4F4CC">
-				<a href="#partitioned_rice"><i>RESIDUAL_CODING_METHOD_PARTITIONED_RICE</i></a>
+				<a href="#partitioned_rice"><i>RESIDUAL_CODING_METHOD_PARTITIONED_RICE</i></a>&nbsp;||<br />
+				<a href="#partitioned_rice2"><i>RESIDUAL_CODING_METHOD_PARTITIONED_RICE2</i></a>
 			</td>
 			<td>
 				&nbsp;
-			</td>
-		</tr>
-		<tr>
-			<td>
-			</td>
-			<td bgcolor="#F4F4CC">
-				<font size="+1">NOTES</font><br />
-				<ul>
-				<li>
-					Currently, FLAC specifies only one entropy coding method.
-				</li>
-				</ul>
 			</td>
 		</tr>
 	</table>
@@ -1691,6 +1721,85 @@
 				</li>
 				<li>
 					<tt>1111</tt> : Escape code, meaning the partition is in unencoded binary form using n bits per sample; n follows as a 5-bit number.
+				</li>
+				</ul>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;?&gt;
+			</td>
+			<td>
+				Encoded residual.  The number of samples (n) in the partition is determined as follows:<br />
+				<ul>
+				<li>
+					if the partition order is zero, n = frame's blocksize - predictor order
+				</li>
+				<li>
+					else if this is not the first partition of the subframe, n = (frame's blocksize / (2^partition order))
+				</li>
+				<li>
+					else n = (frame's blocksize / (2^partition order)) - predictor order
+				</li>
+				</ul>
+			</td>
+		</tr>
+	</table>
+	</td></tr></table>
+</div>
+
+<br />
+
+<div class="box">
+	<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+	<table width="100%" border="1" bgcolor="#EEEED4">
+		<tr>
+			<td colspan="2" bgcolor="#D3D4C5">
+				<a name="partitioned_rice2"><font size="+1"><b>RESIDUAL_CODING_METHOD_PARTITIONED_RICE2</b></font></a>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;4&gt;
+			</td>
+			<td>
+				Partition order.
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				<a href="#rice2_partition"><i>RICE2_PARTITION</i></a>+
+			</td>
+			<td>
+				There will be 2^order partitions.
+			</td>
+		</tr>
+	</table>
+	</td></tr></table>
+</div>
+
+<br />
+
+<div class="box">
+	<table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#EEEED4"><tr><td>
+	<table width="100%" border="1" bgcolor="#EEEED4">
+		<tr>
+			<td colspan="2" bgcolor="#D3D4C5">
+				<a name="rice2_partition"><font size="+1"><b>RICE2_PARTITION</b></font></a>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" bgcolor="#F4F4CC">
+				&lt;5(+5)&gt;
+			</td>
+			<td>
+				Encoding parameter:<br />
+				<ul>
+				<li>
+					<tt>0000-11110</tt> : Rice parameter.
+				</li>
+				<li>
+					<tt>11111</tt> : Escape code, meaning the partition is in unencoded binary form using n bits per sample; n follows as a 5-bit number.
 				</li>
 				</ul>
 			</td>
