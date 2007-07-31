@@ -274,17 +274,17 @@ AC_DEFINE(FLAC__HAS_GAS)
 AH_TEMPLATE(FLAC__HAS_GAS, [define if you are compiling for PowerPC and have the 'gas' assembler])
 fi
 
-OUR_CFLAGS_HEAD='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'
+CPPFLAGS='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'" $CPPFLAGS"
 if test "x$debug" = xtrue; then
-	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -g -DDEBUG"
+	CPPFLAGS="-DDEBUG $CPPFLAGS"
+	CFLAGS="-g $CFLAGS"
 else
-	OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -DNDEBUG"
+	CPPFLAGS="-DNDEBUG $CPPFLAGS"
 	if test "x$GCC" = xyes; then
-		OUR_CFLAGS_HEAD="$OUR_CFLAGS_HEAD -O3 -funroll-loops -finline-functions -Wall -W -Winline -DFLaC__INLINE=__inline__"
+		CPPFLAGS="-DFLaC__INLINE=__inline__ $CPPFLAGS"
+		CFLAGS="-O3 -funroll-loops -finline-functions -Wall -W -Winline $CFLAGS"
 	fi
 fi
-CFLAGS="$OUR_CFLAGS_HEAD $CFLAGS"
-CXXFLAGS="$OUR_CFLAGS_HEAD $CXXFLAGS"
 
 #@@@
 AM_CONDITIONAL(FLaC__HAS_AS__TEMPORARILY_DISABLED, test "yes" = "no")
