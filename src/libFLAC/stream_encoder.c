@@ -198,6 +198,7 @@ static unsigned evaluate_fixed_subframe_(
 	unsigned subframe_bps,
 	unsigned order,
 	unsigned rice_parameter,
+	unsigned rice_parameter_limit,
 	unsigned min_partition_order,
 	unsigned max_partition_order,
 	FLAC__bool do_escape_coding,
@@ -219,6 +220,7 @@ static unsigned evaluate_lpc_subframe_(
 	unsigned order,
 	unsigned qlp_coeff_precision,
 	unsigned rice_parameter,
+	unsigned rice_parameter_limit,
 	unsigned min_partition_order,
 	unsigned max_partition_order,
 	FLAC__bool do_escape_coding,
@@ -244,12 +246,13 @@ static unsigned find_best_partition_order_(
 	unsigned residual_samples,
 	unsigned predictor_order,
 	unsigned rice_parameter,
+	unsigned rice_parameter_limit,
 	unsigned min_partition_order,
 	unsigned max_partition_order,
 	unsigned bps,
 	FLAC__bool do_escape_coding,
 	unsigned rice_parameter_search_dist,
-	FLAC__EntropyCodingMethod_PartitionedRice *best_partitioned_rice
+	FLAC__EntropyCodingMethod *best_ecm
 );
 
 static void precompute_partition_info_sums_(
@@ -280,6 +283,7 @@ static FLAC__bool set_partitioned_rice_(
 	const unsigned residual_samples,
 	const unsigned predictor_order,
 	const unsigned suggested_rice_parameter,
+	const unsigned rice_parameter_limit,
 	const unsigned rice_parameter_search_dist,
 	const unsigned partition_order,
 	const FLAC__bool search_for_escapes,
@@ -3194,6 +3198,8 @@ FLAC__bool process_subframe_(
 	unsigned rice_parameter;
 	unsigned _candidate_bits, _best_bits;
 	unsigned _best_subframe;
+	/* only use RICE2 partitions if stream bps > 16 */
+	const unsigned rice_parameter_limit = FLAC__stream_encoder_get_bits_per_sample(encoder) > 16? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
 
 	FLAC__ASSERT(frame_header->blocksize > 0);
 
@@ -3256,11 +3262,11 @@ FLAC__bool process_subframe_(
 					rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > FLAC__FP_ZERO)? (unsigned)FLAC__fixedpoint_trunc(fixed_residual_bits_per_sample[fixed_order]+FLAC__FP_ONE_HALF) : 0; /* 0.5 is for rounding */
 #endif
 					rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
-					if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+					if(rice_parameter >= rice_parameter_limit) {
 #ifdef DEBUG_VERBOSE
-						fprintf(stderr, "clipping rice_parameter (%u -> %u) @0\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
+						fprintf(stderr, "clipping rice_parameter (%u -> %u) @0\n", rice_parameter, rice_parameter_limit - 1);
 #endif
-						rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
+						rice_parameter = rice_parameter_limit - 1;
 					}
 					_candidate_bits =
 						evaluate_fixed_subframe_(
@@ -3273,6 +3279,7 @@ FLAC__bool process_subframe_(
 							subframe_bps,
 							fixed_order,
 							rice_parameter,
+							rice_parameter_limit,
 							min_partition_order,
 							max_partition_order,
 							encoder->protected_->do_escape_coding,
@@ -3327,11 +3334,11 @@ FLAC__bool process_subframe_(
 									continue; /* don't even try */
 								rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
 								rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
-								if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+								if(rice_parameter >= rice_parameter_limit) {
 #ifdef DEBUG_VERBOSE
-									fprintf(stderr, "clipping rice_parameter (%u -> %u) @1\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
+									fprintf(stderr, "clipping rice_parameter (%u -> %u) @1\n", rice_parameter, rice_parameter_limit - 1);
 #endif
-									rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
+									rice_parameter = rice_parameter_limit - 1;
 								}
 								if(encoder->protected_->do_qlp_coeff_prec_search) {
 									min_qlp_coeff_precision = FLAC__MIN_QLP_COEFF_PRECISION;
@@ -3360,6 +3367,7 @@ FLAC__bool process_subframe_(
 											lpc_order,
 											qlp_coeff_precision,
 											rice_parameter,
+											rice_parameter_limit,
 											min_partition_order,
 											max_partition_order,
 											encoder->protected_->do_escape_coding,
@@ -3499,6 +3507,7 @@ unsigned evaluate_fixed_subframe_(
 	unsigned subframe_bps,
 	unsigned order,
 	unsigned rice_parameter,
+	unsigned rice_parameter_limit,
 	unsigned min_partition_order,
 	unsigned max_partition_order,
 	FLAC__bool do_escape_coding,
@@ -3527,12 +3536,13 @@ unsigned evaluate_fixed_subframe_(
 			residual_samples,
 			order,
 			rice_parameter,
+			rice_parameter_limit,
 			min_partition_order,
 			max_partition_order,
 			subframe_bps,
 			do_escape_coding,
 			rice_parameter_search_dist,
-			&subframe->data.fixed.entropy_coding_method.data.partitioned_rice
+			&subframe->data.fixed.entropy_coding_method
 		);
 
 	subframe->data.fixed.order = order;
@@ -3561,6 +3571,7 @@ unsigned evaluate_lpc_subframe_(
 	unsigned order,
 	unsigned qlp_coeff_precision,
 	unsigned rice_parameter,
+	unsigned rice_parameter_limit,
 	unsigned min_partition_order,
 	unsigned max_partition_order,
 	FLAC__bool do_escape_coding,
@@ -3608,12 +3619,13 @@ unsigned evaluate_lpc_subframe_(
 			residual_samples,
 			order,
 			rice_parameter,
+			rice_parameter_limit,
 			min_partition_order,
 			max_partition_order,
 			subframe_bps,
 			do_escape_coding,
 			rice_parameter_search_dist,
-			&subframe->data.lpc.entropy_coding_method.data.partitioned_rice
+			&subframe->data.lpc.entropy_coding_method
 		);
 
 	subframe->data.lpc.order = order;
@@ -3666,16 +3678,18 @@ unsigned find_best_partition_order_(
 	unsigned residual_samples,
 	unsigned predictor_order,
 	unsigned rice_parameter,
+	unsigned rice_parameter_limit,
 	unsigned min_partition_order,
 	unsigned max_partition_order,
 	unsigned bps,
 	FLAC__bool do_escape_coding,
 	unsigned rice_parameter_search_dist,
-	FLAC__EntropyCodingMethod_PartitionedRice *best_partitioned_rice
+	FLAC__EntropyCodingMethod *best_ecm
 )
 {
 	unsigned residual_bits, best_residual_bits = 0;
 	unsigned best_parameters_index = 0;
+	unsigned best_partition_order = 0;
 	const unsigned blocksize = residual_samples + predictor_order;
 
 	max_partition_order = FLAC__format_get_max_rice_partition_order_from_blocksize_limited_max_and_predictor_order(max_partition_order, blocksize, predictor_order);
@@ -3701,6 +3715,7 @@ unsigned find_best_partition_order_(
 					residual_samples,
 					predictor_order,
 					rice_parameter,
+					rice_parameter_limit,
 					rice_parameter_search_dist,
 					(unsigned)partition_order,
 					do_escape_coding,
@@ -3716,20 +3731,37 @@ unsigned find_best_partition_order_(
 			if(best_residual_bits == 0 || residual_bits < best_residual_bits) {
 				best_residual_bits = residual_bits;
 				best_parameters_index = !best_parameters_index;
-				best_partitioned_rice->order = partition_order;
+				best_partition_order = partition_order;
 			}
 		}
 	}
 
-	/*
-	 * We are allowed to de-const the pointer based on our special knowledge;
-	 * it is const to the outside world.
-	 */
+	best_ecm->data.partitioned_rice.order = best_partition_order;
+
 	{
-		FLAC__EntropyCodingMethod_PartitionedRiceContents* best_partitioned_rice_contents = (FLAC__EntropyCodingMethod_PartitionedRiceContents*)best_partitioned_rice->contents;
-		FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(best_partitioned_rice_contents, max(6, best_partitioned_rice->order));
-		memcpy(best_partitioned_rice_contents->parameters, private_->partitioned_rice_contents_extra[best_parameters_index].parameters, sizeof(unsigned)*(1<<(best_partitioned_rice->order)));
-		memcpy(best_partitioned_rice_contents->raw_bits, private_->partitioned_rice_contents_extra[best_parameters_index].raw_bits, sizeof(unsigned)*(1<<(best_partitioned_rice->order)));
+		/*
+		 * We are allowed to de-const the pointer based on our special
+		 * knowledge; it is const to the outside world.
+		 */
+		FLAC__EntropyCodingMethod_PartitionedRiceContents* prc = (FLAC__EntropyCodingMethod_PartitionedRiceContents*)best_ecm->data.partitioned_rice.contents;
+		unsigned partition;
+
+		/* save best parameters and raw_bits */
+		FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(prc, max(6, best_partition_order));
+		memcpy(prc->parameters, private_->partitioned_rice_contents_extra[best_parameters_index].parameters, sizeof(unsigned)*(1<<(best_partition_order)));
+		if(do_escape_coding)
+			memcpy(prc->raw_bits, private_->partitioned_rice_contents_extra[best_parameters_index].raw_bits, sizeof(unsigned)*(1<<(best_partition_order)));
+		/*
+		 * Now need to check if the type should be changed to
+		 * FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 based on the
+		 * size of the rice parameters.
+		 */
+		for(partition = 0; partition < (1u<<best_partition_order); partition++) {
+			if(prc->parameters[partition] >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+				best_ecm->type = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2;
+				break;
+			}
+		}
 	}
 
 	return best_residual_bits;
@@ -3882,7 +3914,7 @@ static FLaC__INLINE unsigned count_rice_bits_in_partition_(
 )
 {
 	unsigned i, partition_bits =
-		FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN +
+		FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + /* actually could end up being FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN but err on side of 16bps */
 		(1+rice_parameter) * partition_samples /* 1 for unary stop bit + rice_parameter for the binary portion */
 	;
 	for(i = 0; i < partition_samples; i++)
@@ -3897,7 +3929,7 @@ static FLaC__INLINE unsigned count_rice_bits_in_partition_(
 )
 {
 	return
-		FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN +
+		FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + /* actually could end up being FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN but err on side of 16bps */
 		(1+rice_parameter) * partition_samples + /* 1 for unary stop bit + rice_parameter for the binary portion */
 		(
 			rice_parameter?
@@ -3924,6 +3956,7 @@ FLAC__bool set_partitioned_rice_(
 	const unsigned residual_samples,
 	const unsigned predictor_order,
 	const unsigned suggested_rice_parameter,
+	const unsigned rice_parameter_limit,
 	const unsigned rice_parameter_search_dist,
 	const unsigned partition_order,
 	const FLAC__bool search_for_escapes,
@@ -3941,7 +3974,8 @@ FLAC__bool set_partitioned_rice_(
 	(void)rice_parameter_search_dist;
 #endif
 
-	FLAC__ASSERT(suggested_rice_parameter < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER);
+	FLAC__ASSERT(suggested_rice_parameter < FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER);
+	FLAC__ASSERT(rice_parameter_limit <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER);
 
 	FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(partitioned_rice_contents, max(6, partition_order));
 	parameters = partitioned_rice_contents->parameters;
@@ -3956,11 +3990,11 @@ FLAC__bool set_partitioned_rice_(
 			else
 				min_rice_parameter = suggested_rice_parameter - rice_parameter_search_dist;
 			max_rice_parameter = suggested_rice_parameter + rice_parameter_search_dist;
-			if(max_rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+			if(max_rice_parameter >= rice_parameter_limit) {
 #ifdef DEBUG_VERBOSE
-				fprintf(stderr, "clipping rice_parameter (%u -> %u) @5\n", max_rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
+				fprintf(stderr, "clipping rice_parameter (%u -> %u) @5\n", max_rice_parameter, rice_parameter_limit - 1);
 #endif
-				max_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
+				max_rice_parameter = rice_parameter_limit - 1;
 			}
 		}
 		else
@@ -3983,12 +4017,14 @@ FLAC__bool set_partitioned_rice_(
 		}
 #endif
 		if(search_for_escapes) {
-			partition_bits = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN + raw_bits_per_partition[0] * residual_samples;
+			partition_bits = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN + raw_bits_per_partition[0] * residual_samples;
 			if(partition_bits <= best_partition_bits) {
 				raw_bits[0] = raw_bits_per_partition[0];
-				best_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
+				best_rice_parameter = 0; /* will be converted to appropriate escape parameter later */
 				best_partition_bits = partition_bits;
 			}
+			else
+				raw_bits[0] = 0;
 		}
 		parameters[0] = best_rice_parameter;
 		bits_ += best_partition_bits;
@@ -4017,11 +4053,11 @@ FLAC__bool set_partitioned_rice_(
 			 */
 			for(rice_parameter = 0, k = partition_samples; k < mean; rice_parameter++, k <<= 1)
 				;
-			if(rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+			if(rice_parameter >= rice_parameter_limit) {
 #ifdef DEBUG_VERBOSE
-				fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
+				fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, rice_parameter_limit - 1);
 #endif
-				rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
+				rice_parameter = rice_parameter_limit - 1;
 			}
 
 			best_partition_bits = (unsigned)(-1);
@@ -4032,11 +4068,11 @@ FLAC__bool set_partitioned_rice_(
 				else
 					min_rice_parameter = rice_parameter - rice_parameter_search_dist;
 				max_rice_parameter = rice_parameter + rice_parameter_search_dist;
-				if(max_rice_parameter >= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER) {
+				if(max_rice_parameter >= rice_parameter_limit) {
 #ifdef DEBUG_VERBOSE
-					fprintf(stderr, "clipping rice_parameter (%u -> %u) @7\n", max_rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1);
+					fprintf(stderr, "clipping rice_parameter (%u -> %u) @7\n", max_rice_parameter, rice_parameter_limit - 1);
 #endif
-					max_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER - 1;
+					max_rice_parameter = rice_parameter_limit - 1;
 				}
 			}
 			else
@@ -4057,12 +4093,14 @@ FLAC__bool set_partitioned_rice_(
 			}
 #endif
 			if(search_for_escapes) {
-				partition_bits = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN + raw_bits_per_partition[partition] * partition_samples;
+				partition_bits = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN + raw_bits_per_partition[partition] * partition_samples;
 				if(partition_bits <= best_partition_bits) {
 					raw_bits[partition] = raw_bits_per_partition[partition];
-					best_rice_parameter = FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
+					best_rice_parameter = 0; /* will be converted to appropriate escape parameter later */
 					best_partition_bits = partition_bits;
 				}
+				else
+					raw_bits[partition] = 0;
 			}
 			parameters[partition] = best_rice_parameter;
 			bits_ += best_partition_bits;
