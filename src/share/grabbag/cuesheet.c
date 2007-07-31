@@ -398,9 +398,21 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					*error_message = "TRACK number must be greater than 0";
 					return false;
 				}
-				if(is_cdda && in_track_num > 99) {
-					*error_message = "CD-DA TRACK number must be between 1 and 99, inclusive";
-					return false;
+				if(is_cdda) {
+					if(in_track_num > 99) {
+						*error_message = "CD-DA TRACK number must be between 1 and 99, inclusive";
+						return false;
+					}
+				}
+				else {
+					if(in_track_num == 255) {
+						*error_message = "TRACK number 255 is reserved for the lead-out";
+						return false;
+					}
+					else if(in_track_num > 255) {
+						*error_message = "TRACK number must be between 1 and 254, inclusive";
+						return false;
+					}
 				}
 				if(is_cdda && cs->num_tracks > 0 && in_track_num != cs->tracks[cs->num_tracks-1].number + 1) {
 					*error_message = "CD-DA TRACK numbers must be sequential";
@@ -503,7 +515,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 	}
 
 	if(!has_forced_leadout) {
-		forced_leadout_track_num = is_cdda? 170 : cs->num_tracks;
+		forced_leadout_track_num = is_cdda? 170 : 255;
 		forced_leadout_track_offset = lead_out_offset;
 	}
 	if(!FLAC__metadata_object_cuesheet_insert_blank_track(cuesheet, cs->num_tracks)) {

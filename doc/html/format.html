@@ -790,7 +790,7 @@
 				&lt;8&gt;
 			</td>
 			<td>
-				The number of tracks.  For CD-DA, this number must be no more than 100 (99 regular tracks and one leadout track).
+				The number of tracks.  Must be at least 1 (because of the requisite lead-out track).  For CD-DA, this number must be no more than 100 (99 regular tracks and one lead-out track).
 			</td>
 		</tr>
 		<tr>
@@ -798,7 +798,7 @@
 				<a href="#cuesheet_track"><i>CUESHEET_TRACK</i></a>+
 			</td>
 			<td>
-				One or more tracks.  A CUESHEET block is required to have a lead-out track; it is always the last track in the CUESHEET.  For CD-DA, the lead-out track number must be 170 as specified by the Red Book.
+				One or more tracks.  A CUESHEET block is required to have a lead-out track; it is always the last track in the CUESHEET.  For CD-DA, the lead-out track number must be 170 as specified by the Red Book, otherwise is must be 255.
 			</td>
 		</tr>
 	</table>
@@ -828,7 +828,7 @@
 				&lt;8&gt;
 			</td>
 			<td>
-				Track number.  A track number of 0 is not allowed to avoid conflicting with the CD-DA spec, which reserves this for the lead-in. For CD-DA the number must be 1-99, or 170 for the lead-out.  It is not required but encouraged to start with track 1 and increase sequentially.  Track numbers must be unique within a CUESHEET.
+				Track number.  A track number of 0 is not allowed to avoid conflicting with the CD-DA spec, which reserves this for the lead-in.  For CD-DA the number must be 1-99, or 170 for the lead-out; for non-CD-DA, the track number must for 255 for the lead-out.  It is not required but encouraged to start with track 1 and increase sequentially.  Track numbers must be unique within a CUESHEET.
 			</td>
 		</tr>
 		<tr>
