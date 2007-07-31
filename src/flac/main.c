@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #if !defined _MSC_VER && !defined __MINGW32__
 /* unlink is in stdio.h in VC++ */
@@ -432,7 +433,10 @@ int do_it(void)
 			 * tags that we will set later, to avoid rewriting the
 			 * whole file.
 			 */
-			if(option_values.padding <= 0) {
+			if(
+				(option_values.padding >= 0 && option_values.padding < GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED) ||
+				(option_values.padding < 0 && FLAC_ENCODE__DEFAULT_PADDING < GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED)
+			) {
 				flac__utils_printf(stderr, 1, "NOTE: --replay-gain may leave a small PADDING block even with --no-padding\n");
 				option_values.padding = GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
 			}
