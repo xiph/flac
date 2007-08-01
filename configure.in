@@ -74,6 +74,7 @@ esac
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test "x$cpu_ppc" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
+
 case "$host" in
 	i386-*-openbsd3.[[0-3]]) OBJ_FORMAT=aoutb ;;
 	*-*-cygwin|*mingw*) OBJ_FORMAT=win32 ;;
@@ -81,6 +82,14 @@ case "$host" in
 	*) OBJ_FORMAT=elf ;;
 esac
 AC_SUBST(OBJ_FORMAT)
+
+# only needed because of ntohl() usage, can get rid of after that's gone:
+case "$host" in
+	*-*-cygwin|*mingw*) MINGW_WINSOCK_LIBS=-lwsock32 ;;
+	*) MINGW_WINSOCK_LIBS= ;;
+esac
+AC_SUBST(MINGW_WINSOCK_LIBS)
+
 case "$host" in
 	*-pc-linux-gnu)
 		sys_linux=true

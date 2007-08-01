@@ -28,6 +28,7 @@ noinst_PROGRAMS = test_seeking
 test_seeking_LDADD = \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
+	@MINGW_WINSOCK_LIBS@ \
 	-lm
 test_seeking_SOURCES = \
 	main.c
