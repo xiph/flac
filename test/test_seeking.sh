@@ -136,20 +136,20 @@ done
 if [ $has_ogg = "yes" ] ; then
 
 	echo "generating Ogg FLAC files for seeking:"
-	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 --output-name=tiny.ogg --ogg noise8m32.raw || die "ERROR generating Ogg FLAC file"
-	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 --output-name=small.ogg --ogg noise.raw || die "ERROR generating Ogg FLAC file"
+	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 --output-name=tiny.oga --ogg noise8m32.raw || die "ERROR generating Ogg FLAC file"
+	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 --output-name=small.oga --ogg noise.raw || die "ERROR generating Ogg FLAC file"
 	# seek tables are not used in Ogg FLAC
 
-	echo "testing tiny.ogg:"
-	if run_test_seeking tiny.ogg $tiny_seek_count $tiny_samples noise8m32.raw ; then : ; else
+	echo "testing tiny.oga:"
+	if run_test_seeking tiny.oga $tiny_seek_count $tiny_samples noise8m32.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
-	echo "testing small.ogg:"
-	if run_test_seeking small.ogg $small_seek_count $small_samples noise.raw ; then : ; else
+	echo "testing small.oga:"
+	if run_test_seeking small.oga $small_seek_count $small_samples noise.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 fi
 
-rm -f tiny.flac tiny.ogg small.flac small.ogg tiny-s.flac small-s.flac
+rm -f tiny.flac tiny.oga small.flac small.oga tiny-s.flac small-s.flac

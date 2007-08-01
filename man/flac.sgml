@@ -51,6 +51,7 @@
 	<arg><replaceable>infile.aiff</replaceable></arg>
 	<arg><replaceable>infile.raw</replaceable></arg>
 	<arg><replaceable>infile.flac</replaceable></arg>
+	<arg><replaceable>infile.oga</replaceable></arg>
 	<arg><replaceable>infile.ogg</replaceable></arg>
 	<arg>-</arg>
       </group>
@@ -65,6 +66,7 @@
       <arg choice=opt><replaceable>OPTIONS</replaceable></arg>
       <group rep=repeat>
 	<arg><replaceable>infile.flac</replaceable></arg>
+	<arg><replaceable>infile.oga</replaceable></arg>
 	<arg><replaceable>infile.ogg</replaceable></arg>
 	<arg>-</arg>
       </group>
@@ -221,8 +223,8 @@
 	  <term><option>--ogg</option></term>
 
 	  <listitem>
-	    <para>When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by flac.</para>
-	    <para>When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.</para>
+	    <para>When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.oga' extension and will still be decodable by flac.</para>
+	    <para>When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.oga' or '.ogg'.</para>
 	  </listitem>
 	</varlistentry>
 

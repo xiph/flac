@@ -480,7 +480,7 @@ int main(int argc, char *argv[])
 		/* no need to do "decode all" read_mode if PCM checking is available */
 		if (rawfilename && read_mode > 1)
 			continue;
-		if (strlen(flacfilename) > 4 && 0 == strcmp(flacfilename+strlen(flacfilename)-4, ".ogg")) {
+		if (strlen(flacfilename) > 4 && (0 == strcmp(flacfilename+strlen(flacfilename)-4, ".oga") || 0 == strcmp(flacfilename+strlen(flacfilename)-4, ".ogg"))) {
 #if FLAC__HAS_OGG
 			ok = seek_barrage(/*is_ogg=*/true, flacfilename, flacfilesize, count, samples, read_mode, rawfilename? pcm : 0);
 #else

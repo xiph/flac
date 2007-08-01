@@ -242,15 +242,15 @@ rt_test_ogg_flac ()
 {
 	f="$1"
 	echo -n "round-trip test ($f->oggflac->oggflac->wav) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.ogg --ogg $f || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.oga --ogg $f || die "ERROR"
 	echo -n "re-encode... "
-	run_flac $SILENT --force --verify --lax -o rt2.ogg --ogg rt.ogg || die "ERROR"
+	run_flac $SILENT --force --verify --lax -o rt2.oga --ogg rt.oga || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.wav rt2.ogg || die "ERROR"
+	run_flac $SILENT --force --decode --channel-map=none -o rt.wav rt2.oga || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.wav || die "ERROR: file mismatch"
 	echo "OK"
-	rm -f rt.wav rt.ogg rt2.ogg
+	rm -f rt.wav rt.oga rt2.oga
 }
 
 for f in rt-*.raw ; do
@@ -1040,7 +1040,7 @@ test_multifile ()
 	fi
 
 	if [ $streamtype = ogg ] ; then
-		suffix=ogg
+		suffix=oga
 		encode_options="$encode_options --ogg"
 	else
 		suffix=flac

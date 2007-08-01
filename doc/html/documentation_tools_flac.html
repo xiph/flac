@@ -64,7 +64,7 @@
 		<br />
 		<span class="commandname">flac</span> is the command-line file encoder/decoder.  The encoder currently supports as input RIFF WAVE, AIFF, FLAC or Ogg FLAC format, or raw interleaved samples.  The decoder currently can output to RIFF WAVE or AIFF format, or raw interleaved samples.  <span class="commandname">flac</span> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.), and the input must be between 4 and 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.<br />
 		<br />
-		<span class="commandname">flac</span> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, files ending in ".aif" or ".aiff" or have the AIFF header present are AIFF files, and files ending in ".flac" or have the FLAC header present are FLAC files.  This assumption may be overridden with a command-line option.  It also assumes that files ending in ".ogg" of have the Ogg FLAC header present are Ogg FLAC files.  Other than this, <span class="commandname">flac</span> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient "8.3" file systems like FAT-16).<br />
+		<span class="commandname">flac</span> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, files ending in ".aif" or ".aiff" or have the AIFF header present are AIFF files, and files ending in ".flac" or have the FLAC header present are FLAC files.  This assumption may be overridden with a command-line option.  It also assumes that files ending in ".oga" or ".ogg" or have the Ogg FLAC header present are Ogg FLAC files.  Other than this, <span class="commandname">flac</span> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient "8.3" file systems like FAT-16).<br />
 		<br />
 		Before going into the full command-line description, a few other things help to sort it out: 1) <span class="commandname">flac</span> encodes by default, so you must use <b>-d</b> to decode; 2) the options <span class="argument">-0</span> .. <span class="argument">-8</span> (or <span class="argument">--fast</span> and <span class="argument">--best</span>) that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <span class="commandname">flac</span> behaves similarly to gzip in the way it handles input and output files.<br />
 		<br />
@@ -301,9 +301,9 @@
 					<span class="argument">--ogg</span>
 				</td>
 				<td>
-					When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by <span class="commandname">flac</span>.<br />
+					When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.oga' extension and will still be decodable by <span class="commandname">flac</span>.<br />
 					<br />
-					When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.<br />
+					When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.oga' or '.ogg'.<br />
 					<br />
 					<b>NOTE:</b> Ogg FLAC files created prior to <span class="commandname">flac</span> 1.1.1 used an ad-hoc mapping and do not support seeking.  They should be decoded and re-encoded with <span class="commandname">flac</span> 1.1.1 or later.
 				</td>

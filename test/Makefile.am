@@ -46,6 +46,7 @@ EXTRA_DIST = \
 CLEANFILES = \
 	$(wildcard *.raw) \
 	$(wildcard *.flac) \
+	$(wildcard *.oga) \
 	$(wildcard *.ogg) \
 	$(wildcard *.cmp) \
 	$(wildcard *.aiff) \

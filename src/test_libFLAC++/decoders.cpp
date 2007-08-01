@@ -66,7 +66,7 @@ static off_t flacfilesize_;
 
 static const char *flacfilename(bool is_ogg)
 {
-	return is_ogg? "metadata.ogg" : "metadata.flac";
+	return is_ogg? "metadata.oga" : "metadata.flac";
 }
 
 static bool die_(const char *msg)

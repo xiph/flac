@@ -1330,12 +1330,12 @@ void show_explain(void)
 	printf("      --ogg                    When encoding, generate Ogg FLAC output instead\n");
 	printf("                               of native FLAC.  Ogg FLAC streams are FLAC\n");
 	printf("                               streams wrapped in an Ogg transport layer.  The\n");
-	printf("                               resulting file should have an '.ogg' extension\n");
+	printf("                               resulting file should have an '.oga' extension\n");
 	printf("                               and will still be decodable by flac.  When\n");
 	printf("                               decoding, force the input to be treated as\n");
 	printf("                               Ogg FLAC.  This is useful when piping input\n");
 	printf("                               from stdin or when the filename does not end in\n");
-	printf("                               '.ogg'.\n");
+	printf("                               '.oga' or '.ogg'.\n");
 	printf("      --serial-number          Serial number to use for the FLAC stream.  When\n");
 	printf("                               encoding and no serial number is given, flac\n");
 	printf("                               uses a random one.  If encoding to multiple files\n");
@@ -1625,6 +1625,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			fmt= AIF;
 		else if(strlen(infilename) >= 5 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-5), ".flac"))
 			fmt= FLAC;
+		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".oga"))
+			fmt= OGGFLAC;
 		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".ogg"))
 			fmt= OGGFLAC;
 
@@ -1913,6 +1915,8 @@ int decode_file(const char *infilename)
 
 	if(option_values.use_ogg)
 		treat_as_ogg = true;
+	else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".oga"))
+		treat_as_ogg = true;
 	else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".ogg"))
 		treat_as_ogg = true;
 	else
@@ -1988,7 +1992,7 @@ int decode_file(const char *infilename)
 
 const char *get_encoded_outfilename(const char *infilename)
 {
-	const char *suffix = (option_values.use_ogg? ".ogg" : ".flac");
+	const char *suffix = (option_values.use_ogg? ".oga" : ".flac");
 	return get_outfilename(infilename, suffix);
 }
 

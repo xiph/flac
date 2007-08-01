@@ -117,7 +117,7 @@ FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOpt
 		die("out of memory allocating chain");
 
 	/*@@@@ lame way of guessing the file type */
-	if(strlen(filename) >= 4 && 0 == strcmp(filename+strlen(filename)-4, ".ogg"))
+	if(strlen(filename) >= 4 && (0 == strcmp(filename+strlen(filename)-4, ".oga") || 0 == strcmp(filename+strlen(filename)-4, ".ogg")))
 		is_ogg = true;
 
 	if(! (is_ogg? FLAC__metadata_chain_read_ogg(chain, filename) : FLAC__metadata_chain_read(chain, filename)) ) {

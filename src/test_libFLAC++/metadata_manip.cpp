@@ -80,7 +80,7 @@ static unsigned mc_our_block_number_ = 0;
 
 static const char *flacfilename(bool is_ogg)
 {
-	return is_ogg? "metadata.ogg" : "metadata.flac";
+	return is_ogg? "metadata.oga" : "metadata.flac";
 }
 
 static bool die_(const char *msg)

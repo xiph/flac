@@ -49,7 +49,7 @@ static const unsigned num_metadata_ = sizeof(metadata_sequence_) / sizeof(metada
 
 static const char *flacfilename(bool is_ogg)
 {
-	return is_ogg? "metadata.ogg" : "metadata.flac";
+	return is_ogg? "metadata.oga" : "metadata.flac";
 }
 
 static bool die_(const char *msg)
