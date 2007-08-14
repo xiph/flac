@@ -577,12 +577,36 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIte
 	return true;
 }
 
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_is_last(const FLAC__Metadata_SimpleIterator *iterator)
+{
+	FLAC__ASSERT(0 != iterator);
+	FLAC__ASSERT(0 != iterator->file);
+
+	return iterator->is_last;
+}
+
+FLAC_API off_t FLAC__metadata_simple_iterator_get_block_offset(const FLAC__Metadata_SimpleIterator *iterator)
+{
+	FLAC__ASSERT(0 != iterator);
+	FLAC__ASSERT(0 != iterator->file);
+
+	return iterator->offset[iterator->depth];
+}
+
 FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Metadata_SimpleIterator *iterator)
 {
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 
 	return iterator->type;
+}
+
+FLAC_API unsigned FLAC__metadata_simple_iterator_get_block_length(const FLAC__Metadata_SimpleIterator *iterator)
+{
+	FLAC__ASSERT(0 != iterator);
+	FLAC__ASSERT(0 != iterator->file);
+
+	return iterator->length;
 }
 
 FLAC_API FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Metadata_SimpleIterator *iterator)

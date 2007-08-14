@@ -1336,10 +1336,31 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_simple_iterator_prev(iterator_);
 		}
 
+		//@@@@ add to tests
+		bool SimpleIterator::is_last() const
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_simple_iterator_is_last(iterator_);
+		}
+
+		//@@@@ add to tests
+		off_t SimpleIterator::get_block_offset() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_get_block_offset(iterator_);
+		}
+
 		::FLAC__MetadataType SimpleIterator::get_block_type() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__metadata_simple_iterator_get_block_type(iterator_);
+		}
+
+		//@@@@ add to tests
+		unsigned SimpleIterator::get_block_length() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_simple_iterator_get_block_length(iterator_);
 		}
 
 		Prototype *SimpleIterator::get_block()
