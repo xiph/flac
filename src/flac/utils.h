@@ -19,6 +19,10 @@
 #ifndef flac__utils_h
 #define flac__utils_h
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "FLAC/ordinals.h"
 #include "FLAC/format.h" /* for FLAC__StreamMetadata_CueSheet */
 #include <stdio.h> /* for FILE */
