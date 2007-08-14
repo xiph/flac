@@ -45,6 +45,8 @@
 typedef struct {
 #if FLAC__HAS_OGG
 	FLAC__bool is_ogg;
+	FLAC__bool use_first_serial_number;
+	long serial_number;
 #endif
 
 	FLAC__bool is_aiff_out;
@@ -94,6 +96,8 @@ typedef struct {
 	FLAC__StreamDecoder *decoder;
 
 	FILE *fout;
+
+	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
 } DecoderSession;
 
 
@@ -103,9 +107,9 @@ static FLAC__bool is_big_endian_host_;
 /*
  * local routines
  */
-static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename);
+static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
-static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, decode_options_t decode_options, const char *infilename);
+static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
 static int DecoderSession_finish_ok(DecoderSession *d);
 static int DecoderSession_finish_error(DecoderSession *d);
@@ -137,8 +141,12 @@ int flac__decode_aiff(const char *infilename, const char *outfilename, FLAC__boo
 			&decoder_session,
 #if FLAC__HAS_OGG
 			options.common.is_ogg,
+			options.common.use_first_serial_number,
+			options.common.serial_number,
 #else
 			/*is_ogg=*/false,
+			/*use_first_serial_number=*/false,
+			/*serial_number=*/0,
 #endif
 			/*is_aiff_out=*/true,
 			/*is_wave_out=*/false,
@@ -151,13 +159,14 @@ int flac__decode_aiff(const char *infilename, const char *outfilename, FLAC__boo
 			&options.common.skip_specification,
 			&options.common.until_specification,
 			options.common.has_cue_specification? &options.common.cue_specification : 0,
+			options.foreign_metadata,
 			infilename,
 			outfilename
 		)
 	)
 		return 1;
 
-	if(!DecoderSession_init_decoder(&decoder_session, options.common, infilename))
+	if(!DecoderSession_init_decoder(&decoder_session, infilename))
 		return DecoderSession_finish_error(&decoder_session);
 
 	if(!DecoderSession_process(&decoder_session))
@@ -175,8 +184,12 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 			&decoder_session,
 #if FLAC__HAS_OGG
 			options.common.is_ogg,
+			options.common.use_first_serial_number,
+			options.common.serial_number,
 #else
 			/*is_ogg=*/false,
+			/*use_first_serial_number=*/false,
+			/*serial_number=*/0,
 #endif
 			/*is_aiff_out=*/false,
 			/*is_wave_out=*/true,
@@ -189,13 +202,14 @@ int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool
 			&options.common.skip_specification,
 			&options.common.until_specification,
 			options.common.has_cue_specification? &options.common.cue_specification : 0,
+			options.foreign_metadata,
 			infilename,
 			outfilename
 		)
 	)
 		return 1;
 
-	if(!DecoderSession_init_decoder(&decoder_session, options.common, infilename))
+	if(!DecoderSession_init_decoder(&decoder_session, infilename))
 		return DecoderSession_finish_error(&decoder_session);
 
 	if(!DecoderSession_process(&decoder_session))
@@ -216,8 +230,12 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 			&decoder_session,
 #if FLAC__HAS_OGG
 			options.common.is_ogg,
+			options.common.use_first_serial_number,
+			options.common.serial_number,
 #else
 			/*is_ogg=*/false,
+			/*use_first_serial_number=*/false,
+			/*serial_number=*/0,
 #endif
 			/*is_aiff_out=*/false,
 			/*is_wave_out=*/false,
@@ -230,13 +248,14 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 			&options.common.skip_specification,
 			&options.common.until_specification,
 			options.common.has_cue_specification? &options.common.cue_specification : 0,
+			/*foreign_metadata=*/NULL,
 			infilename,
 			outfilename
 		)
 	)
 		return 1;
 
-	if(!DecoderSession_init_decoder(&decoder_session, options.common, infilename))
+	if(!DecoderSession_init_decoder(&decoder_session, infilename))
 		return DecoderSession_finish_error(&decoder_session);
 
 	if(!DecoderSession_process(&decoder_session))
@@ -245,10 +264,12 @@ int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool
 	return DecoderSession_finish_ok(&decoder_session);
 }
 
-FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, const char *infilename, const char *outfilename)
+FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FLAC__bool is_aiff_out, FLAC__bool is_wave_out, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename)
 {
 #if FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
+	d->use_first_serial_number = use_first_serial_number;
+	d->serial_number = serial_number;
 #else
 	(void)is_ogg;
 #endif
@@ -294,6 +315,8 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	d->fout = 0; /* initialized with an open file later if necessary */
 
+	d->foreign_metadata = foreign_metadata;
+
 	FLAC__ASSERT(!(d->test_only && d->analysis_mode));
 
 	if(!d->test_only) {
@@ -324,12 +347,20 @@ void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred)
 	}
 }
 
-FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_options_t decode_options, const char *infilename)
+FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const char *infilename)
 {
 	FLAC__StreamDecoderInitStatus init_status;
 	FLAC__uint32 test = 1;
 
 	is_big_endian_host_ = (*((FLAC__byte*)(&test)))? false : true;
+
+	if(decoder_session->foreign_metadata) {
+		const char *error;
+		if(!flac__foreign_metadata_read_from_flac(decoder_session->foreign_metadata, infilename, &error)) {
+			flac__utils_printf(stderr, 1, "%s: ERROR reading foreign metadata: %s\n", decoder_session->inbasefilename, error);
+			return false;
+		}
+	}
 
 	decoder_session->decoder = FLAC__stream_decoder_new();
 
@@ -346,8 +377,8 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, decode_o
 
 #if FLAC__HAS_OGG
 	if(decoder_session->is_ogg) {
-		if(!decode_options.use_first_serial_number)
-			FLAC__stream_decoder_set_ogg_serial_number(decoder_session->decoder, decode_options.serial_number);
+		if(!decoder_session->use_first_serial_number)
+			FLAC__stream_decoder_set_ogg_serial_number(decoder_session->decoder, decoder_session->serial_number);
 		init_status = FLAC__stream_decoder_init_ogg_file(decoder_session->decoder, strcmp(infilename, "-")? infilename : 0, write_callback, metadata_callback, error_callback, /*client_data=*/decoder_session);
 	}
 	else

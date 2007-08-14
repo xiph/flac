@@ -19,13 +19,15 @@
 #ifndef flac__decode_h
 #define flac__decode_h
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "analyze.h"
+#include "foreign_metadata.h"
 #include "utils.h"
 #include "share/replaygain_synthesis.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 typedef struct {
 	FLAC__bool apply;
@@ -54,6 +56,7 @@ typedef struct {
 /* used for AIFF also */
 typedef struct {
 	decode_options_t common;
+	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
 } wav_decode_options_t;
 
 typedef struct {

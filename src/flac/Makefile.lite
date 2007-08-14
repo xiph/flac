@@ -36,6 +36,7 @@ SRCS_C = \
 	analyze.c \
 	decode.c \
 	encode.c \
+	foreign_metadata.c \
 	local_string_utils.c \
 	main.c \
 	utils.c \

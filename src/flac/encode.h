@@ -19,17 +19,13 @@
 #ifndef flac__encode_h
 #define flac__encode_h
 
-/* needed because of off_t */
 #if HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
 #include "FLAC/metadata.h"
+#include "foreign_metadata.h"
 #include "utils.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 extern const int FLAC_ENCODE__DEFAULT_PADDING;
 
@@ -101,6 +97,7 @@ typedef struct {
 
 typedef struct {
 	encode_options_t common;
+	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
 } wav_encode_options_t;
 
 typedef struct {
