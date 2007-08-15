@@ -1363,6 +1363,13 @@ namespace FLAC {
 			return ::FLAC__metadata_simple_iterator_get_block_length(iterator_);
 		}
 
+		//@@@@ add to tests
+		bool SimpleIterator::get_application_id(FLAC__byte *id)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_simple_iterator_get_application_id(iterator_, id);
+		}
+
 		Prototype *SimpleIterator::get_block()
 		{
 			FLAC__ASSERT(is_valid());

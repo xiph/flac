@@ -609,6 +609,33 @@ FLAC_API unsigned FLAC__metadata_simple_iterator_get_block_length(const FLAC__Me
 	return iterator->length;
 }
 
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_get_application_id(FLAC__Metadata_SimpleIterator *iterator, FLAC__byte *id)
+{
+	const unsigned id_bytes = FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8;
+
+	FLAC__ASSERT(0 != iterator);
+	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(0 != id);
+
+	if(iterator->type != FLAC__METADATA_TYPE_APPLICATION) {
+		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT;
+		return false;
+	}
+
+	if(fread(id, 1, id_bytes, iterator->file) != id_bytes) {
+		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+		return false;
+	}
+
+	/* back up */
+	if(0 != fseeko(iterator->file, -((int)id_bytes), SEEK_CUR)) {
+		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
+		return false;
+	}
+
+	return true;
+}
+
 FLAC_API FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Metadata_SimpleIterator *iterator)
 {
 	FLAC__StreamMetadata *block = FLAC__metadata_object_new(iterator->type);

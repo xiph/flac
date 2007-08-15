@@ -472,7 +472,6 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_is_last(const FLAC__Metadata_
  *    This is the byte offset relative to the beginning of the file of
  *    the current metadata block's header.
  */
-
 FLAC_API off_t FLAC__metadata_simple_iterator_get_block_offset(const FLAC__Metadata_SimpleIterator *iterator);
 
 /** Get the type of the metadata block at the current position.  This
@@ -487,7 +486,6 @@ FLAC_API off_t FLAC__metadata_simple_iterator_get_block_offset(const FLAC__Metad
  * \retval FLAC__MetadataType
  *    The type of the metadata block at the current iterator position.
  */
-
 FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Metadata_SimpleIterator *iterator);
 
 /*@@@@add to tests*/
@@ -506,8 +504,33 @@ FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const 
  *    <a href="http://flac.sourceforge.net/format.html#metadata_block_header">metadata block header</a>,
  *    i.e. the length of the metadata body that follows the header.
  */
-
 FLAC_API unsigned FLAC__metadata_simple_iterator_get_block_length(const FLAC__Metadata_SimpleIterator *iterator);
+
+/*@@@@add to tests*/
+/** Get the application ID of the \c APPLICATION block at the current
+ *  position.  This avoids reading the actual block data which can save
+ *  time for large blocks.
+ *
+ * \param iterator  A pointer to an existing initialized iterator.
+ * \param id        A pointer to a buffer of at least \c 4 bytes where
+ *                  the ID will be stored.
+ * \assert
+ *    \code iterator != NULL \endcode
+ *    \code id != NULL \endcode
+ *    \a iterator has been successfully initialized with
+ *    FLAC__metadata_simple_iterator_init()
+ * \retval FLAC__bool
+ *    \c true if the ID was successfully read, else \c false, in which
+ *    case you should check FLAC__metadata_simple_iterator_status() to
+ *    find out why.  If the status is
+ *    \c FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT, then the
+ *    current metadata block is not an \c APPLICATION block.  Otherwise
+ *    if the status is
+ *    \c FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR or
+ *    \c FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR, an I/O error
+ *    occurred and the iterator can no longer be used.
+ */
+FLAC_API FLAC__bool FLAC__metadata_simple_iterator_get_application_id(FLAC__Metadata_SimpleIterator *iterator, FLAC__byte *id);
 
 /** Get the metadata block at the current position.  You can modify the
  *  block but must use FLAC__metadata_simple_iterator_set_block() to
