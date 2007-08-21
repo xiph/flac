@@ -33,6 +33,9 @@ Package=<4>
     Project_Dep_Name flac
     End Project Dependency
     Begin Project Dependency
+    Project_Dep_Name iffscan
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name metaflac
     End Project Dependency
     Begin Project Dependency
@@ -112,6 +115,9 @@ Package=<4>
 {{{
     Begin Project Dependency
     Project_Dep_Name flac
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name iffscan
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name metaflac
@@ -202,6 +208,21 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name utf8_static
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "iffscan"=.\src\flac\iffscan.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libFLAC_static
     End Project Dependency
 }}}
 
