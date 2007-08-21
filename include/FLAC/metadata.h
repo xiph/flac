@@ -32,6 +32,7 @@
 #ifndef FLAC__METADATA_H
 #define FLAC__METADATA_H
 
+#include <stdio.h> /* for off_t */
 #include "export.h"
 #include "callback.h"
 #include "format.h"
@@ -545,7 +546,8 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_get_application_id(FLAC__Meta
  *    \a iterator has been successfully initialized with
  *    FLAC__metadata_simple_iterator_init()
  * \retval FLAC__StreamMetadata*
- *    The current metadata block.
+ *    The current metadata block, or \c NULL if there was a memory
+ *    allocation error.
  */
 FLAC_API FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Metadata_SimpleIterator *iterator);
 
