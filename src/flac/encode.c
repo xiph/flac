@@ -2098,7 +2098,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 				}
 				static_metadata_append(&static_metadata, p, /*needs_delete=*/true);
 				static_metadata.metadata[static_metadata.num_metadata-1]->length = FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8 + foreign_metadata->blocks[i].size;
-fprintf(stderr,"@@@@@@ add PADDING=%u\n",static_metadata.metadata[static_metadata.num_metadata-1]->length);
+/*fprintf(stderr,"@@@@@@ add PADDING=%u\n",static_metadata.metadata[static_metadata.num_metadata-1]->length);*/
 			}
 		}
 		if(options.padding != 0) {

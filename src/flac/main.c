@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #if !defined _MSC_VER && !defined __MINGW32__
 /* unlink is in stdio.h in VC++ */
@@ -460,6 +459,10 @@ int do_it(void)
 			/* we're not going to try and support the re-creation of broken WAVE files */
 			if(option_values.ignore_chunk_sizes)
 				return usage_error("ERROR: using --keep-foreign-metadata cannot be used with --ignore-chunk-sizes\n");
+			if(option_values.test_only)
+				return usage_error("ERROR: --keep-foreign-metadata is not allowed in test mode\n");
+			if(option_values.analyze)
+				return usage_error("ERROR: --keep-foreign-metadata is not allowed in analyis mode\n");
 			/*@@@@@@*/
 			if(option_values.delete_input)
 				return usage_error("ERROR: using --delete-input-file with --keep-foreign-metadata has been disabled until more testing has been done.\n");
@@ -1875,7 +1878,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 		/* read foreign metadata if requested */
 		if(option_values.keep_foreign_metadata) {
-			if(0 == (options.foreign_metadata = flac__foreign_metadata_new())) {
+			if(0 == (options.foreign_metadata = flac__foreign_metadata_new(input_format==AIF? FOREIGN_BLOCK_TYPE__AIFF : FOREIGN_BLOCK_TYPE__RIFF))) {
 				flac__utils_printf(stderr, 1, "ERROR: creating foreign metadata object\n");
 				conditional_fclose(encode_infile);
 				return 1;
@@ -2044,7 +2047,7 @@ int decode_file(const char *infilename)
 
 		/* read foreign metadata if requested */
 		if(option_values.keep_foreign_metadata) {
-			if(0 == (options.foreign_metadata = flac__foreign_metadata_new())) {
+			if(0 == (options.foreign_metadata = flac__foreign_metadata_new(output_format==AIF? FOREIGN_BLOCK_TYPE__AIFF : FOREIGN_BLOCK_TYPE__RIFF))) {
 				flac__utils_printf(stderr, 1, "ERROR: creating foreign metadata object\n");
 				return 1;
 			}

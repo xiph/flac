@@ -101,6 +101,10 @@ SOURCE=.\encode.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\foreign_metadata.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\main.c
 # End Source File
 # Begin Source File
@@ -130,6 +134,10 @@ SOURCE=.\decode.h
 # Begin Source File
 
 SOURCE=.\encode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\foreign_metadata.h
 # End Source File
 # Begin Source File
 

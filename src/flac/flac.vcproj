@@ -200,6 +200,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\foreign_metadata.h"
+				>
+			</File>
+			<File
 				RelativePath=".\local_string_utils.h"
 				>
 			</File>
@@ -227,6 +231,10 @@
 			</File>
 			<File
 				RelativePath=".\encode.c"
+				>
+			</File>
+			<File
+				RelativePath=".\foreign_metadata.c"
 				>
 			</File>
 			<File
