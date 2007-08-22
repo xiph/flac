@@ -1786,10 +1786,10 @@ static void static_metadata_clear(static_metadata_t *m)
 static FLAC__bool static_metadata_append(static_metadata_t *m, FLAC__StreamMetadata *d, FLAC__bool needs_delete)
 {
 	void *x;
-	if(0 == (x = realloc(m->metadata, sizeof(*m->metadata)*m->num_metadata+1)))
+	if(0 == (x = realloc(m->metadata, sizeof(*m->metadata)*(m->num_metadata+1))))
 		return false;
 	m->metadata = (FLAC__StreamMetadata**)x;
-	if(0 == (x = realloc(m->needs_delete, sizeof(*m->needs_delete)*m->num_metadata+1)))
+	if(0 == (x = realloc(m->needs_delete, sizeof(*m->needs_delete)*(m->num_metadata+1))))
 		return false;
 	m->needs_delete = (FLAC__bool*)x;
 	m->metadata[m->num_metadata] = d;
