@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8.00"
 	Name="flactimer"
-	ProjectGUID="{4cefbc94-c215-11db-8314-0800200c9a66}"
+	ProjectGUID="{4cefbc95-c215-11db-8314-0800200c9a66}"
 	RootNamespace="flactimer"
 	Keyword="Win32Proj"
 	>
@@ -181,13 +181,13 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93993580-89BD-4b04-88EB-625FBE52EBFB}"
+			UniqueIdentifier="{93993580-89BD-4b40-88EB-625FBE52EBFB}"
 			>
 		</Filter>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4CF737F1-C7A5-4376-A066-2A32D752A2FF}"
+			UniqueIdentifier="{4CF737F1-C7A5-4367-A066-2A32D752A2FF}"
 			>
 			<File
 				RelativePath=".\main.cpp"
