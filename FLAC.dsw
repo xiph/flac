@@ -51,6 +51,9 @@ Package=<4>
     Project_Dep_Name flacdiff
     End Project Dependency
     Begin Project Dependency
+    Project_Dep_Name flactimer
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name grabbag_static
     End Project Dependency
     Begin Project Dependency
@@ -133,6 +136,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name flacdiff
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name flactimer
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name grabbag_static
@@ -551,6 +557,18 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libFLAC++_static
     End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "flactimer"=".\src\utils\flactimer\flactimer.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
 }}}
 
 ###############################################################################

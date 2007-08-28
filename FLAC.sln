@@ -25,6 +25,8 @@ Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "flacdiff", "src\utils\flacd
 		{4cefbc86-c215-11db-8314-0800200c9a66} = {4cefbc86-c215-11db-8314-0800200c9a66}
 	EndProjectSection
 EndProject
+Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "flactimer", "src\utils\flactimer\flactimer.vcproj", "{4cefbc95-c215-11db-8314-0800200c9a66}"
+EndProject
 Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "getopt_static", "src\share\getopt\getopt_static.vcproj", "{4cefbc80-c215-11db-8314-0800200c9a66}"
 EndProject
 Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "grabbag_static", "src\share\grabbag\grabbag_static.vcproj", "{4cefbc81-c215-11db-8314-0800200c9a66}"
@@ -214,6 +216,10 @@ Global
 		{4cefbc94-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
 		{4cefbc94-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
 		{4cefbc94-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
+		{4cefbc95-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4cefbc95-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4cefbc95-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
+		{4cefbc95-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
