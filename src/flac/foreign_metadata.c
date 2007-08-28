@@ -40,7 +40,7 @@
 #define min(x,y) ((x)<(y)?(x):(y))
 
 
-static const char *FLAC__FOREIGN_METADATA_APPLICATION_ID[2] = { "AIFF" , "RIFF" };
+static const char *FLAC__FOREIGN_METADATA_APPLICATION_ID[2] = { "aiff" , "riff" };
 
 static FLAC__uint32 unpack32be_(const FLAC__byte *b)
 {
