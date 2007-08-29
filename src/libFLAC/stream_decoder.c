@@ -2043,6 +2043,8 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 	}
 	if(!read_zero_padding_(decoder))
 		return false;
+	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means bad sync or got corruption (i.e. "zero bits" were not all zeroes) */
+		return true;
 
 	/*
 	 * Read the frame CRC-16 from the footer and check
