@@ -50,6 +50,11 @@ PATH=`pwd`/../src/flac:$PATH
 PATH=`pwd`/../src/metaflac:$PATH
 PATH=`pwd`/../obj/$BUILD/bin:$PATH
 
+if echo a | (grep -E '(a|b)') >/dev/null 2>&1
+	then EGREP='grep -E'
+	else EGREP='egrep'
+fi
+
 testdir="metaflac-test-files"
 flacfile="metaflac.flac"
 
@@ -116,7 +121,7 @@ filter ()
 	# grep pattern 2: remove minimum/maximum frame and block size from STREAMINFO
 	# grep pattern 3: remove hexdump data from PICTURE metadata blocks
 	# sed pattern 1: remove stream offset values from SEEKTABLE points
-	grep -Ev '^  vendor string: |^  m..imum .....size: |^    0000[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]: ' | sed -e 's/, stream_offset.*//'
+	$EGREP -v '^  vendor string: |^  m..imum .....size: |^    0000[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]: ' | sed -e 's/, stream_offset.*//'
 }
 metaflac_test ()
 {
@@ -126,7 +131,7 @@ metaflac_test ()
 	expect="$testdir/$case-expect.meta"
 	echo -n "test $case: $desc... "
 	run_metaflac $args $flacfile | filter > $testdir/out.meta || die "ERROR running metaflac"
-	diff -q -w $expect $testdir/out.meta 2>/dev/null || die "ERROR: metadata does not match expected $expect"
+	diff -w $expect $testdir/out.meta > /dev/null 2>&1 || die "ERROR: metadata does not match expected $expect"
 	echo OK
 }
 
