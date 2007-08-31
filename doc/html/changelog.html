@@ -61,12 +61,13 @@
 			<li>
 				General:
 				<ul>
-					<li>(none)</li>
+					<li>With the new <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> in <span class="commandname">flac</span>, non-audio RIFF and AIFF chunks can be stored in FLAC files and recreated when decoding.  This allows, among other, things support for archiving BWF files and other WAVE files from editing tools that preserves all the metadata. </li>
 				</ul>
 			</li>
 			<li>
 				FLAC format:
 				<ul>
+					<li>Specified 2 new APPLICATION metadata blocks for storing WAVE and AIFF chunks (for use with <a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> in <span class="commandname">flac</span>).</li>
 					<li>The lead-out track number for non-CDDA cuesheets now must be 255.</li>
 				</ul>
 			</li>
@@ -80,6 +81,7 @@
 				flac:
 				<ul>
 					<li>Added a new option <span class="argument"><a href="documentation_tools_flac.html#flac_options_no_utf8_convert">--no-utf8-convert</a></span> which works like it does in <span class="commandname">metaflac</span> (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=973740&amp;group_id=13478&amp;atid=363478">SF #973740</a>).</li>
+					<li>Added a new option <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> which can save/restore RIFF and AIFF chunks to/from FLAC files (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=568264&amp;group_id=13478&amp;atid=363478">SF #363478</a>).</li>
 					<li>Changed default extension for Ogg FLAC from .ogg to .oga, according to new Xiph <a href="http://wiki.xiph.org/index.php/MIME_Types_and_File_Extensions">specification</a> (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1762492&amp;group_id=13478&amp;atid=113478">SF #1762492</a> </li>
 					<li>Fixed bug where using <span class="argument">--replay-gain</span> without any padding option caused only a small PADDING block to be created (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1760790&amp;group_id=13478&amp;atid=113478">SF #1760790</a>).</li>
 					<li>Fixed bug where importing non-CDDA cuesheets would cause an invalid lead-out track number (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1764105&amp;group_id=13478&amp;atid=113478">SF #1764105</a>).</li>
