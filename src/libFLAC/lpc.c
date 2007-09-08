@@ -569,7 +569,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 }
 #else /* fully unrolled version for normal use */
 {
-	unsigned i;
+	int i;
 	FLAC__int64 sum;
 
 	FLAC__ASSERT(order > 0);
@@ -584,7 +584,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 		if(order > 8) {
 			if(order > 10) {
 				if(order == 12) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[11] * (FLAC__int64)data[i-12];
 						sum += qlp_coeff[10] * (FLAC__int64)data[i-11];
@@ -602,7 +602,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 					}
 				}
 				else { /* order == 11 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[10] * (FLAC__int64)data[i-11];
 						sum += qlp_coeff[9] * (FLAC__int64)data[i-10];
@@ -621,7 +621,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 			}
 			else {
 				if(order == 10) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[9] * (FLAC__int64)data[i-10];
 						sum += qlp_coeff[8] * (FLAC__int64)data[i-9];
@@ -637,7 +637,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 					}
 				}
 				else { /* order == 9 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[8] * (FLAC__int64)data[i-9];
 						sum += qlp_coeff[7] * (FLAC__int64)data[i-8];
@@ -656,7 +656,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 		else if(order > 4) {
 			if(order > 6) {
 				if(order == 8) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[7] * (FLAC__int64)data[i-8];
 						sum += qlp_coeff[6] * (FLAC__int64)data[i-7];
@@ -670,7 +670,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 					}
 				}
 				else { /* order == 7 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[6] * (FLAC__int64)data[i-7];
 						sum += qlp_coeff[5] * (FLAC__int64)data[i-6];
@@ -685,7 +685,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 			}
 			else {
 				if(order == 6) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[5] * (FLAC__int64)data[i-6];
 						sum += qlp_coeff[4] * (FLAC__int64)data[i-5];
@@ -697,7 +697,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 					}
 				}
 				else { /* order == 5 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[4] * (FLAC__int64)data[i-5];
 						sum += qlp_coeff[3] * (FLAC__int64)data[i-4];
@@ -712,7 +712,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 		else {
 			if(order > 2) {
 				if(order == 4) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[3] * (FLAC__int64)data[i-4];
 						sum += qlp_coeff[2] * (FLAC__int64)data[i-3];
@@ -722,7 +722,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 					}
 				}
 				else { /* order == 3 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[2] * (FLAC__int64)data[i-3];
 						sum += qlp_coeff[1] * (FLAC__int64)data[i-2];
@@ -733,7 +733,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 			}
 			else {
 				if(order == 2) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[1] * (FLAC__int64)data[i-2];
 						sum += qlp_coeff[0] * (FLAC__int64)data[i-1];
@@ -741,14 +741,14 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 					}
 				}
 				else { /* order == 1 */
-					for(i = 0; i < data_len; i++)
+					for(i = 0; i < (int)data_len; i++)
 						residual[i] = data[i] - (FLAC__int32)((qlp_coeff[0] * (FLAC__int64)data[i-1]) >> lp_quantization);
 				}
 			}
 		}
 	}
 	else { /* order > 12 */
-		for(i = 0; i < data_len; i++) {
+		for(i = 0; i < (int)data_len; i++) {
 			sum = 0;
 			switch(order) {
 				case 32: sum += qlp_coeff[31] * (FLAC__int64)data[i-32];
@@ -1099,7 +1099,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 }
 #else /* fully unrolled version for normal use */
 {
-	unsigned i;
+	int i;
 	FLAC__int64 sum;
 
 	FLAC__ASSERT(order > 0);
@@ -1114,7 +1114,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 		if(order > 8) {
 			if(order > 10) {
 				if(order == 12) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[11] * (FLAC__int64)data[i-12];
 						sum += qlp_coeff[10] * (FLAC__int64)data[i-11];
@@ -1132,7 +1132,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 					}
 				}
 				else { /* order == 11 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[10] * (FLAC__int64)data[i-11];
 						sum += qlp_coeff[9] * (FLAC__int64)data[i-10];
@@ -1151,7 +1151,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 			}
 			else {
 				if(order == 10) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[9] * (FLAC__int64)data[i-10];
 						sum += qlp_coeff[8] * (FLAC__int64)data[i-9];
@@ -1167,7 +1167,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 					}
 				}
 				else { /* order == 9 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[8] * (FLAC__int64)data[i-9];
 						sum += qlp_coeff[7] * (FLAC__int64)data[i-8];
@@ -1186,7 +1186,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 		else if(order > 4) {
 			if(order > 6) {
 				if(order == 8) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[7] * (FLAC__int64)data[i-8];
 						sum += qlp_coeff[6] * (FLAC__int64)data[i-7];
@@ -1200,7 +1200,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 					}
 				}
 				else { /* order == 7 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[6] * (FLAC__int64)data[i-7];
 						sum += qlp_coeff[5] * (FLAC__int64)data[i-6];
@@ -1215,7 +1215,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 			}
 			else {
 				if(order == 6) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[5] * (FLAC__int64)data[i-6];
 						sum += qlp_coeff[4] * (FLAC__int64)data[i-5];
@@ -1227,7 +1227,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 					}
 				}
 				else { /* order == 5 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[4] * (FLAC__int64)data[i-5];
 						sum += qlp_coeff[3] * (FLAC__int64)data[i-4];
@@ -1242,7 +1242,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 		else {
 			if(order > 2) {
 				if(order == 4) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[3] * (FLAC__int64)data[i-4];
 						sum += qlp_coeff[2] * (FLAC__int64)data[i-3];
@@ -1252,7 +1252,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 					}
 				}
 				else { /* order == 3 */
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[2] * (FLAC__int64)data[i-3];
 						sum += qlp_coeff[1] * (FLAC__int64)data[i-2];
@@ -1263,7 +1263,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 			}
 			else {
 				if(order == 2) {
-					for(i = 0; i < data_len; i++) {
+					for(i = 0; i < (int)data_len; i++) {
 						sum = 0;
 						sum += qlp_coeff[1] * (FLAC__int64)data[i-2];
 						sum += qlp_coeff[0] * (FLAC__int64)data[i-1];
@@ -1271,14 +1271,14 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 residual[], unsigned data_l
 					}
 				}
 				else { /* order == 1 */
-					for(i = 0; i < data_len; i++)
+					for(i = 0; i < (int)data_len; i++)
 						data[i] = residual[i] + (FLAC__int32)((qlp_coeff[0] * (FLAC__int64)data[i-1]) >> lp_quantization);
 				}
 			}
 		}
 	}
 	else { /* order > 12 */
-		for(i = 0; i < data_len; i++) {
+		for(i = 0; i < (int)data_len; i++) {
 			sum = 0;
 			switch(order) {
 				case 32: sum += qlp_coeff[31] * (FLAC__int64)data[i-32];
