@@ -1875,6 +1875,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		wav_encode_options_t options;
 
 		options.common = common_options;
+		options.foreign_metadata = 0;
 
 		/* read foreign metadata if requested */
 		if(option_values.keep_foreign_metadata) {
@@ -1890,7 +1891,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		else
 			retval = flac__encode_wav(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
 
-		if(option_values.keep_foreign_metadata)
+		if(options.foreign_metadata)
 			flac__foreign_metadata_delete(options.foreign_metadata);
 	}
 
@@ -2044,6 +2045,7 @@ int decode_file(const char *infilename)
 		wav_decode_options_t options;
 
 		options.common = common_options;
+		options.foreign_metadata = 0;
 
 		/* read foreign metadata if requested */
 		if(option_values.keep_foreign_metadata) {
@@ -2058,7 +2060,7 @@ int decode_file(const char *infilename)
 		else
 			retval = flac__decode_wav(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
 
-		if(option_values.keep_foreign_metadata)
+		if(options.foreign_metadata)
 			flac__foreign_metadata_delete(options.foreign_metadata);
 	}
 
