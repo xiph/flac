@@ -75,6 +75,21 @@ static FLAC__bool die_s_(const char *msg, const FLAC__StreamDecoder *decoder)
 	return false;
 }
 
+static unsigned local_rand_(void)
+{
+#if !defined _MSC_VER && !defined __MINGW32__
+#define RNDFUNC random
+#else
+#define RNDFUNC rand
+#endif
+	/* every RAND_MAX I've ever seen is 2^15-1 or 2^31-1, so a little hackery here: */
+	if (RAND_MAX > 32767)
+		return RNDFUNC();
+	else /* usually MSVC, some solaris */
+		return (RNDFUNC()<<15) | RNDFUNC();
+#undef RNDFUNC
+}
+
 static off_t get_filesize_(const char *srcpath)
 {
 	struct stat srcstat;
@@ -299,12 +314,6 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 #else
 	printf("file's total_samples is %llu\n", (unsigned long long)decoder_client_data.total_samples);
 #endif
-#if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
-	if (decoder_client_data.total_samples > (FLAC__uint64)RAND_MAX) {
-		printf("ERROR: must be total_samples < %u\n", (unsigned)RAND_MAX);
-		return false;
-	}
-#endif
 	n = (long int)decoder_client_data.total_samples;
 
 	if(n == 0 && total_samples >= 0)
@@ -315,10 +324,6 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 	if(n == 0) {
 		/* 8 would imply no compression, 9 guarantees that we will get some samples off the end of the stream to test that case */
 		n = 9 * filesize / (decoder_client_data.channels * decoder_client_data.bits_per_sample);
-#if !defined _MSC_VER && !defined __MINGW32__
-		if(n > RAND_MAX)
-			n = RAND_MAX;
-#endif
 	}
 
 	printf("Begin seek barrage, count=%u\n", count);
@@ -339,12 +344,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 			pos = n + (i-20);
 		}
 		else {
-#if !defined _MSC_VER && !defined __MINGW32__
-			pos = (FLAC__uint64)(random() % n);
-#else
-			/* RAND_MAX is only 32767 in my MSVC */
-			pos = (FLAC__uint64)((rand()<<15|rand()) % n);
-#endif
+			pos = (FLAC__uint64)(local_rand_() % n);
 		}
 
 #ifdef _MSC_VER
