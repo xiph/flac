@@ -46,8 +46,9 @@ echo "checking for autoconf... "
         DIE=1
 }
 
-VERSIONGREP="sed -e s/.*[^0-9\.]\([0-9]\.[0-9]\).*/\1/"
-VERSIONMKINT="sed -e s/[^0-9]//"
+VERSIONGREP="sed -e s/.*[^0-9\.]\([0-9][0-9]*\.[0-9][0-9]*\).*/\1/"
+VERSIONMKMAJ="sed -e s/\([0-9][0-9]*\)[^0-9].*/\\1/"
+VERSIONMKMIN="sed -e s/.*[0-9][0-9]*\.//"
                                                                                 
 # do we need automake?
 if test -r Makefile.am; then
@@ -68,12 +69,15 @@ if test -r Makefile.am; then
     fi
   else
     echo -n "checking for automake $AM_NEEDED or later... "
+    majneeded=`echo $AM_NEEDED | $VERSIONMKMAJ`
+    minneeded=`echo $AM_NEEDED | $VERSIONMKMIN`
     for am in automake-$AM_NEEDED automake$AM_NEEDED \
-	automake automake-1.7 automake-1.8 automake-1.9; do
+	automake automake-1.7 automake-1.8 automake-1.9 automake-1.10; do
       ($am --version < /dev/null > /dev/null 2>&1) || continue
-      ver=`$am --version < /dev/null | head -n 1 | $VERSIONGREP | $VERSIONMKINT`
-      verneeded=`echo $AM_NEEDED | $VERSIONMKINT`
-      if test $ver -ge $verneeded; then
+      ver=`$am --version < /dev/null | head -n 1 | $VERSIONGREP`
+      maj=`echo $ver | $VERSIONMKMAJ`
+      min=`echo $ver | $VERSIONMKMIN`
+      if test $maj -eq $majneeded -a $min -ge $minneeded; then
         AUTOMAKE=$am
         echo $AUTOMAKE
         break
@@ -82,11 +86,12 @@ if test -r Makefile.am; then
     test -z $AUTOMAKE &&  echo "no"
     echo -n "checking for aclocal $AM_NEEDED or later... "
     for ac in aclocal-$AM_NEEDED aclocal$AM_NEEDED \
-	aclocal aclocal-1.7 aclocal-1.8 aclocal-1.9; do
+	aclocal aclocal-1.7 aclocal-1.8 aclocal-1.9 aclocal-1.10; do
       ($ac --version < /dev/null > /dev/null 2>&1) || continue
-      ver=`$ac --version < /dev/null | head -n 1 | $VERSIONGREP | $VERSIONMKINT`
-      verneeded=`echo $AM_NEEDED | $VERSIONMKINT`
-      if test $ver -ge $verneeded; then
+      ver=`$ac --version < /dev/null | head -n 1 | $VERSIONGREP`
+      maj=`echo $ver | $VERSIONMKMAJ`
+      min=`echo $ver | $VERSIONMKMIN`
+      if test $maj -eq $majneeded -a $min -ge $minneeded; then
         ACLOCAL=$ac
         echo $ACLOCAL
         break
