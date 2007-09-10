@@ -276,6 +276,8 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->serial_number = serial_number;
 #else
 	(void)is_ogg;
+	(void)use_first_serial_number;
+	(void)serial_number;
 #endif
 
 	d->is_aiff_out = is_aiff_out;
@@ -389,8 +391,6 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 		init_status = FLAC__stream_decoder_init_ogg_file(decoder_session->decoder, strcmp(infilename, "-")? infilename : 0, write_callback, metadata_callback, error_callback, /*client_data=*/decoder_session);
 	}
 	else
-#else
-	(void)decode_options;
 #endif
 	{
 		init_status = FLAC__stream_decoder_init_file(decoder_session->decoder, strcmp(infilename, "-")? infilename : 0, write_callback, metadata_callback, error_callback, /*client_data=*/decoder_session);
