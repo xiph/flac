@@ -5,6 +5,7 @@ AUTOMAKE_OPTIONS = foreign
 SUBDIRS = grabbag
 
 EXTRA_DIST = \
+	alloc.h \
 	getopt.h \
 	grabbag.h \
 	replaygain_analysis.h \
