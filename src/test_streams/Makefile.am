@@ -24,5 +24,3 @@ noinst_PROGRAMS = test_streams
 test_streams_SOURCES = \
 	main.c
 test_streams_LDADD = -lm
-
-CLEANFILES = $(wildcard *.raw)
