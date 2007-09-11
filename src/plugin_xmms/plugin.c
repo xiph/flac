@@ -400,8 +400,13 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 		if(title) {
 			if (!is_http_source(filename)) {
 				static const char *errtitle = "Invalid FLAC File: ";
-				*title = g_malloc(strlen(errtitle) + 1 + strlen(filename) + 1 + 1);
-				sprintf(*title, "%s\"%s\"", errtitle, filename);
+				if(strlen(errtitle) + 1 + strlen(filename) + 1 + 1 < strlen(filename)) { /* overflow check */
+					*title = NULL;
+				}
+				else {
+					*title = g_malloc(strlen(errtitle) + 1 + strlen(filename) + 1 + 1);
+					sprintf(*title, "%s\"%s\"", errtitle, filename);
+				}
 			} else {
 				*title = NULL;
 			}

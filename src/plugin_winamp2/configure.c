@@ -26,6 +26,7 @@
 #include "configure.h"
 #include "tagz.h"
 #include "resource.h"
+#include "share/alloc.h"
 
 
 static char buffer[256];
@@ -52,7 +53,7 @@ static wchar_t *convert_ansi_to_wide_(const char *src)
 
 	len = strlen(src) + 1;
 	/* copy */
-	dest = malloc(len*sizeof(wchar_t));
+	dest = safe_malloc_mul_2op_(len, /*times*/sizeof(wchar_t));
 	if (dest) mbstowcs(dest, src, len);
 	return dest;
 }

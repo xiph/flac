@@ -27,15 +27,16 @@
 #include "tags.h"
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
+#include "share/alloc.h"
 
 #ifndef FLaC__INLINE
 #define FLaC__INLINE
 #endif
 
 
-static FLaC__INLINE unsigned local__wide_strlen(const FLAC__uint16 *s)
+static FLaC__INLINE size_t local__wide_strlen(const FLAC__uint16 *s)
 {
-	unsigned n = 0;
+	size_t n = 0;
 	while(*s++)
 		n++;
 	return n;
@@ -47,7 +48,7 @@ static FLaC__INLINE unsigned local__wide_strlen(const FLAC__uint16 *s)
  * and a more clear explanation at the end of this section:
  *   http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
  */
-static FLaC__INLINE unsigned local__utf8len(const FLAC__byte *utf8)
+static FLaC__INLINE size_t local__utf8len(const FLAC__byte *utf8)
 {
 	FLAC__ASSERT(0 != utf8);
 	if ((utf8[0] & 0x80) == 0) {
@@ -89,9 +90,9 @@ static FLaC__INLINE unsigned local__utf8len(const FLAC__byte *utf8)
 }
 
 
-static FLaC__INLINE unsigned local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__uint16 *ucs2)
+static FLaC__INLINE size_t local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__uint16 *ucs2)
 {
-	const unsigned len = local__utf8len(utf8);
+	const size_t len = local__utf8len(utf8);
 
 	FLAC__ASSERT(0 != ucs2);
 
@@ -110,7 +111,7 @@ static FLaC__INLINE unsigned local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__u
 static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, unsigned length)
 {
 	FLAC__uint16 *out;
-	unsigned chars = 0;
+	size_t chars = 0;
 
 	FLAC__ASSERT(0 != src);
 
@@ -127,7 +128,7 @@ static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, unsigned lengt
 	}
 
 	/* allocate */
-	out = (FLAC__uint16*)malloc(chars * sizeof(FLAC__uint16));
+	out = (FLAC__uint16*)safe_malloc_mul_2op_(chars, /*times*/sizeof(FLAC__uint16));
 	if (0 == out) {
 		FLAC__ASSERT(0);
 		return 0;
@@ -144,7 +145,7 @@ static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, unsigned lengt
 	return out;
 }
 
-static FLaC__INLINE unsigned local__ucs2len(FLAC__uint16 ucs2)
+static FLaC__INLINE size_t local__ucs2len(FLAC__uint16 ucs2)
 {
 	if (ucs2 < 0x0080)
 		return 1;
@@ -154,7 +155,7 @@ static FLaC__INLINE unsigned local__ucs2len(FLAC__uint16 ucs2)
 		return 3;
 }
 
-static FLaC__INLINE unsigned local__ucs2_to_utf8(FLAC__uint16 ucs2, FLAC__byte *utf8)
+static FLaC__INLINE size_t local__ucs2_to_utf8(FLAC__uint16 ucs2, FLAC__byte *utf8)
 {
 	if (ucs2 < 0x080) {
 		utf8[0] = (FLAC__byte)ucs2;
@@ -176,19 +177,23 @@ static FLaC__INLINE unsigned local__ucs2_to_utf8(FLAC__uint16 ucs2, FLAC__byte *
 static char *local__convert_ucs2_to_utf8(const FLAC__uint16 *src, unsigned length)
 {
 	char *out;
-	unsigned len = 0;
+	size_t len = 0, n;
 
 	FLAC__ASSERT(0 != src);
 
 	/* calculate length */
 	{
 		unsigned i;
-		for (i = 0; i < length; i++)
-			len += local__ucs2len(src[i]);
+		for (i = 0; i < length; i++) {
+			n = local__ucs2len(src[i]);
+			if(len + n < len) /* overflow check */
+				return 0;
+			len += n;
+		}
 	}
 
 	/* allocate */
-	out = (char*)malloc(len * sizeof(char));
+	out = (char*)safe_malloc_mul_2op_(len, /*times*/sizeof(char));
 	if (0 == out)
 		return 0;
 
@@ -311,7 +316,7 @@ FLAC__bool FLAC_plugin__tags_add_tag_utf8(FLAC__StreamMetadata *tags, const char
 		const size_t value_len = strlen(value);
 		const size_t separator_len = strlen(separator);
 		FLAC__byte *new_entry;
-		if(0 == (new_entry = (FLAC__byte*)realloc(entry->entry, entry->length + value_len + separator_len + 1)))
+		if(0 == (new_entry = (FLAC__byte*)safe_realloc_add_4op_(entry->entry, entry->length, /*+*/value_len, /*+*/separator_len, /*+*/1)))
 			return false;
 		memcpy(new_entry+entry->length, separator, separator_len);
 		entry->length += separator_len;

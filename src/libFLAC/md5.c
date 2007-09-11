@@ -6,6 +6,7 @@
 #include <string.h>		/* for memcpy() */
 
 #include "private/md5.h"
+#include "share/alloc.h"
 
 #ifndef FLaC__INLINE
 #define FLaC__INLINE
@@ -396,13 +397,19 @@ static void format_input_(FLAC__byte *buf, const FLAC__int32 * const signal[], u
  */
 FLAC__bool FLAC__MD5Accumulate(FLAC__MD5Context *ctx, const FLAC__int32 * const signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
 {
-	const unsigned bytes_needed = channels * samples * bytes_per_sample;
+	const size_t bytes_needed = (size_t)channels * (size_t)samples * (size_t)bytes_per_sample;
+
+	/* overflow check */
+	if((size_t)channels > SIZE_MAX / (size_t)bytes_per_sample)
+		return false;
+	if((size_t)channels * (size_t)bytes_per_sample > SIZE_MAX / (size_t)samples)
+		return false;
 
 	if(ctx->capacity < bytes_needed) {
 		FLAC__byte *tmp = (FLAC__byte*)realloc(ctx->internal_buf, bytes_needed);
 		if(0 == tmp) {
 			free(ctx->internal_buf);
-			if(0 == (ctx->internal_buf = (FLAC__byte*)malloc(bytes_needed)))
+			if(0 == (ctx->internal_buf = (FLAC__byte*)safe_malloc_(bytes_needed)))
 				return false;
 		}
 		ctx->internal_buf = tmp;

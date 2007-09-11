@@ -29,6 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define __STDC_LIMIT_MACROS 1 /* otherwise SIZE_MAX is not defined for c++ */
+#include "share/alloc.h"
 #include "FLAC++/metadata.h"
 #include "FLAC/assert.h"
 #include <stdlib.h> // for malloc(), free()
@@ -574,7 +576,7 @@ namespace FLAC {
 
 			clear_entry();
 
-			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_length+1))) {
+			if(0 == (entry_.entry = (FLAC__byte*)safe_malloc_add_2op_(field_length, /*+*/1))) {
 				is_valid_ = false;
 			}
 			else {
@@ -623,7 +625,7 @@ namespace FLAC {
 
 			clear_field_value();
 
-			if(0 == (field_value_ = (char *)malloc(field_value_length+1))) {
+			if(0 == (field_value_ = (char *)safe_malloc_add_2op_(field_value_length, /*+*/1))) {
 				is_valid_ = false;
 			}
 			else {
@@ -713,7 +715,7 @@ namespace FLAC {
 		{
 			clear_entry();
 
-			if(0 == (entry_.entry = (FLAC__byte*)malloc(field_name_length_ + 1 + field_value_length_ + 1))) {
+			if(0 == (entry_.entry = (FLAC__byte*)safe_malloc_add_4op_(field_name_length_, /*+*/1, /*+*/field_value_length_, /*+*/1))) {
 				is_valid_ = false;
 			}
 			else {
@@ -739,7 +741,7 @@ namespace FLAC {
 				p = (const char *)entry_.entry + entry_.length;
 
 			field_name_length_ = (unsigned)(p - (const char *)entry_.entry);
-			if(0 == (field_name_ = (char *)malloc(field_name_length_ + 1))) { // +1 for the trailing \0
+			if(0 == (field_name_ = (char *)safe_malloc_add_2op_(field_name_length_, /*+*/1))) { // +1 for the trailing \0
 				is_valid_ = false;
 				return;
 			}
@@ -748,14 +750,14 @@ namespace FLAC {
 
 			if(entry_.length - field_name_length_ == 0) {
 				field_value_length_ = 0;
-				if(0 == (field_value_ = (char *)malloc(0))) {
+				if(0 == (field_value_ = (char *)safe_malloc_(0))) {
 					is_valid_ = false;
 					return;
 				}
 			}
 			else {
 				field_value_length_ = entry_.length - field_name_length_ - 1;
-				if(0 == (field_value_ = (char *)malloc(field_value_length_ + 1))) { // +1 for the trailing \0
+				if(0 == (field_value_ = (char *)safe_malloc_add_2op_(field_value_length_, /*+*/1))) { // +1 for the trailing \0
 					is_valid_ = false;
 					return;
 				}

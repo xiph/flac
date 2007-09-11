@@ -23,6 +23,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include "FLAC/all.h"
+#include "share/alloc.h"
 #include "plugin_common/all.h"
 #include "infobox.h"
 #include "configure.h"
@@ -74,7 +75,7 @@ static void LoadGenres()
 	hFile = CreateFile(buffer, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE) return;
 	genresSize = GetFileSize(hFile, 0);
-	if (genresSize && (genres = (char*)malloc(genresSize+2)))
+	if (genresSize && (genres = (char*)safe_malloc_add_2op_(genresSize, /*+*/2)))
 	{
 		if (!ReadFile(hFile, genres, genresSize, &spam, NULL) || spam!=genresSize)
 		{
@@ -187,7 +188,7 @@ static wchar_t *AnsiToWide(const char *src)
 
 	len = strlen(src) + 1;
 	/* copy */
-	dest = (wchar_t*)malloc(len*sizeof(wchar_t));
+	dest = (wchar_t*)safe_malloc_mul_2op_(len, /*times*/sizeof(wchar_t));
 	if (dest) mbstowcs(dest, src, len);
 	return dest;
 }

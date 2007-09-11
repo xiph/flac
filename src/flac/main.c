@@ -34,6 +34,7 @@
 #include <unistd.h> /* for unlink() */
 #endif
 #include "FLAC/all.h"
+#include "share/alloc.h"
 #include "share/grabbag.h"
 #include "analyze.h"
 #include "decode.h"
@@ -1843,7 +1844,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	if(encode_infile != stdin && grabbag__file_are_same(infilename, outfilename)) {
 		static const char *tmp_suffix = ".tmp,fl-ac+en'c";
 		/*@@@@ still a remote possibility that a file with this filename exists */
-		if(0 == (internal_outfilename = (char *)malloc(strlen(outfilename)+strlen(tmp_suffix)+1))) {
+		if(0 == (internal_outfilename = (char *)safe_malloc_add_3op_(strlen(outfilename), /*+*/strlen(tmp_suffix), /*+*/1))) {
 			flac__utils_printf(stderr, 1, "ERROR allocating memory for tempfile name\n");
 			conditional_fclose(encode_infile);
 			return 1;

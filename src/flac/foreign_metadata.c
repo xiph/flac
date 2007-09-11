@@ -32,6 +32,7 @@
 #include <string.h> /* for memcmp() etc. */
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
+#include "share/alloc.h"
 #include "foreign_metadata.h"
 
 #ifdef min
@@ -73,7 +74,7 @@ static FLAC__bool copy_data_(FILE *fin, FILE *fout, size_t size, const char **er
 
 static FLAC__bool append_block_(foreign_metadata_t *fm, off_t offset, FLAC__uint32 size, const char **error)
 {
-	foreign_block_t *fb = realloc(fm->blocks, sizeof(foreign_block_t) * (fm->num_blocks+1));
+	foreign_block_t *fb = safe_realloc_muladd2_(fm->blocks, sizeof(foreign_block_t), /*times (*/fm->num_blocks, /*+*/1/*)*/);
 	if(fb) {
 		fb[fm->num_blocks].offset = offset;
 		fb[fm->num_blocks].size = size;

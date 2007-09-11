@@ -54,6 +54,7 @@
 #endif
 #include "FLAC/assert.h"
 #include "FLAC/stream_decoder.h"
+#include "share/alloc.h"
 #include "protected/stream_encoder.h"
 #include "private/bitwriter.h"
 #include "private/bitmath.h"
@@ -993,7 +994,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		 */
 		encoder->private_->verify.input_fifo.size = encoder->protected_->blocksize+OVERREAD_;
 		for(i = 0; i < encoder->protected_->channels; i++) {
-			if(0 == (encoder->private_->verify.input_fifo.data[i] = (FLAC__int32*)malloc(sizeof(FLAC__int32) * encoder->private_->verify.input_fifo.size))) {
+			if(0 == (encoder->private_->verify.input_fifo.data[i] = (FLAC__int32*)safe_malloc_mul_2op_(sizeof(FLAC__int32), /*times*/encoder->private_->verify.input_fifo.size))) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 				return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 			}
@@ -1731,7 +1732,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encod
 	}
 	if(num_blocks) {
 		FLAC__StreamMetadata **m;
-		if(0 == (m = (FLAC__StreamMetadata**)malloc(sizeof(m[0]) * num_blocks)))
+		if(0 == (m = (FLAC__StreamMetadata**)safe_malloc_mul_2op_(sizeof(m[0]), /*times*/num_blocks)))
 			return false;
 		memcpy(m, metadata, sizeof(m[0]) * num_blocks);
 		encoder->protected_->metadata = m;

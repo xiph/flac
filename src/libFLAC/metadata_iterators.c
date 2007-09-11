@@ -61,6 +61,7 @@
 
 #include "FLAC/assert.h"
 #include "FLAC/stream_decoder.h"
+#include "share/alloc.h"
 
 #ifdef max
 #undef max
@@ -2152,6 +2153,9 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_application_cb_(FLA
 	if(read_cb(block->id, 1, id_bytes, handle) != id_bytes)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 
+	if(block_length < id_bytes)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+
 	block_length -= id_bytes;
 
 	if(block_length == 0) {
@@ -2179,7 +2183,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_seektable_cb_(FLAC_
 
 	if(block->num_points == 0)
 		block->points = 0;
-	else if(0 == (block->points = (FLAC__StreamMetadata_SeekPoint*)malloc(block->num_points * sizeof(FLAC__StreamMetadata_SeekPoint))))
+	else if(0 == (block->points = (FLAC__StreamMetadata_SeekPoint*)safe_malloc_mul_2op_(block->num_points, /*times*/sizeof(FLAC__StreamMetadata_SeekPoint))))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < block->num_points; i++) {
@@ -2212,7 +2216,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_entr
 		entry->entry = 0;
 	}
 	else {
-		if(0 == (entry->entry = (FLAC__byte*)malloc(entry->length+1)))
+		if(0 == (entry->entry = (FLAC__byte*)safe_malloc_add_2op_(entry->length, /*+*/1)))
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 		if(read_cb(entry->entry, 1, entry->length, handle) != entry->length)
@@ -2387,7 +2391,7 @@ static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_picture_cstr
 	if(0 != *data)
 		free(*data);
 
-	if(0 == (*data = (FLAC__byte*)malloc(*length+1)))
+	if(0 == (*data = (FLAC__byte*)safe_malloc_add_2op_(*length, /*+*/1)))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	if(*length > 0) {
@@ -3206,7 +3210,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 {
 	static const char *tempfile_suffix = ".metadata_edit";
 	if(0 == tempfile_path_prefix) {
-		if(0 == (*tempfilename = (char*)malloc(strlen(filename) + strlen(tempfile_suffix) + 1))) {
+		if(0 == (*tempfilename = (char*)safe_malloc_add_3op_(strlen(filename), /*+*/strlen(tempfile_suffix), /*+*/1))) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
@@ -3220,7 +3224,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 		else
 			p++;
 
-		if(0 == (*tempfilename = (char*)malloc(strlen(tempfile_path_prefix) + 1 + strlen(p) + strlen(tempfile_suffix) + 1))) {
+		if(0 == (*tempfilename = (char*)safe_malloc_add_4op_(strlen(tempfile_path_prefix), /*+*/strlen(p), /*+*/strlen(tempfile_suffix), /*+*/2))) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}

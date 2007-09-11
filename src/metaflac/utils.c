@@ -22,6 +22,7 @@
 
 #include "utils.h"
 #include "FLAC/assert.h"
+#include "share/alloc.h"
 #include "share/utf8.h"
 #include <ctype.h>
 #include <stdarg.h>
@@ -57,7 +58,7 @@ char *local_strdup(const char *source)
 
 void local_strcat(char **dest, const char *source)
 {
-	unsigned ndest, nsource;
+	size_t ndest, nsource;
 
 	FLAC__ASSERT(0 != dest);
 	FLAC__ASSERT(0 != source);
@@ -68,7 +69,7 @@ void local_strcat(char **dest, const char *source)
 	if(nsource == 0)
 		return;
 
-	*dest = (char*)realloc(*dest, ndest + nsource + 1);
+	*dest = (char*)safe_realloc_add_3op_(*dest, ndest, /*+*/nsource, /*+*/1);
 	if(0 == *dest)
 		die("out of memory growing string");
 	strcpy((*dest)+ndest, source);

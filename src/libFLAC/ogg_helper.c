@@ -36,6 +36,7 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp(), memcpy() */
 #include "FLAC/assert.h"
+#include "share/alloc.h"
 #include "private/ogg_helper.h"
 #include "protected/stream_encoder.h"
 
@@ -112,7 +113,7 @@ FLAC__bool simple_ogg_page__get_at(FLAC__StreamEncoder *encoder, FLAC__uint64 po
 	}
 
 	/* allocate space for the page header */
-	if(0 == (page->header = (unsigned char *)malloc(OGG_MAX_HEADER_LEN))) {
+	if(0 == (page->header = (unsigned char *)safe_malloc_(OGG_MAX_HEADER_LEN))) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}
@@ -154,7 +155,7 @@ FLAC__bool simple_ogg_page__get_at(FLAC__StreamEncoder *encoder, FLAC__uint64 po
 	}
 
 	/* allocate space for the page body */
-	if(0 == (page->body = (unsigned char *)malloc(page->body_len))) {
+	if(0 == (page->body = (unsigned char *)safe_malloc_(page->body_len))) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}

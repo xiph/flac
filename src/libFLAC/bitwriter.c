@@ -50,6 +50,7 @@
 #include "private/bitwriter.h"
 #include "private/crc.h"
 #include "FLAC/assert.h"
+#include "share/alloc.h"
 
 /* Things should be fastest when this matches the machine word size */
 /* WATCHOUT: if you change this you must also change the following #defines down to SWAP_BE_WORD_TO_HOST below to match */
@@ -141,7 +142,7 @@ static FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, unsigned bits_to_add)
 	FLAC__ASSERT(new_capacity > bw->capacity);
 	FLAC__ASSERT(new_capacity >= bw->words + ((bw->bits + bits_to_add + FLAC__BITS_PER_WORD - 1) / FLAC__BITS_PER_WORD));
 
-	new_buffer = (bwword*)realloc(bw->buffer, sizeof(bwword)*new_capacity);
+	new_buffer = (bwword*)safe_realloc_mul_2op_(bw->buffer, sizeof(bwword), /*times*/new_capacity);
 	if(new_buffer == 0)
 		return false;
 	bw->buffer = new_buffer;
