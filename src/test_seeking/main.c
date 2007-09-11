@@ -386,6 +386,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 		printf("OK\n");
 		fflush(stdout);
 	}
+	stop_signal_ = false;
 
 	if(FLAC__stream_decoder_get_state(decoder) != FLAC__STREAM_DECODER_UNINITIALIZED) {
 		if(!FLAC__stream_decoder_finish(decoder))
