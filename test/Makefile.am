@@ -47,15 +47,5 @@ EXTRA_DIST = \
 	test_streams.sh \
 	test_bins.sh
 
-CLEANFILES = \
-	$(wildcard *.raw) \
-	$(wildcard *.flac) \
-	$(wildcard *.oga) \
-	$(wildcard *.ogg) \
-	$(wildcard *.cmp) \
-	$(wildcard *.aiff) \
-	$(wildcard *.wav) \
-	$(wildcard *.diff) \
-	$(wildcard *.log) \
-	$(wildcard *.cue) \
-	core
+clean-local:
+	-rm -f *.raw *.flac *.oga *.ogg *.cmp *.aiff *.wav *.diff *.log *.cue core

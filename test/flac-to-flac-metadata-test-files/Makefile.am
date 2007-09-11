@@ -41,5 +41,5 @@ EXTRA_DIST = \
 	input-VA.flac \
 	input0.cue
 
-CLEANFILES = \
-	$(wildcard out.*)
+clean-local:
+	-rm -f out.*

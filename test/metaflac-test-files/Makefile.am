@@ -80,5 +80,5 @@ EXTRA_DIST = \
 	case61-expect.meta \
 	case62-expect.meta
 
-CLEANFILES = \
-	$(wildcard out.*)
+clean-local:
+	-rm -f out.*
