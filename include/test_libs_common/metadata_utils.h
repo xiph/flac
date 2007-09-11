@@ -24,9 +24,6 @@
  */
 
 #include "FLAC/format.h"
-#include <stdio.h>
-#include <stdlib.h> /* for malloc() */
-#include <string.h> /* for memcmp() */
 
 FLAC__bool mutils__compare_block_data_streaminfo(const FLAC__StreamMetadata_StreamInfo *block, const FLAC__StreamMetadata_StreamInfo *blockcopy);
 
