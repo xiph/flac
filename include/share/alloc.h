@@ -29,6 +29,13 @@
 #endif
 #include <stdlib.h> /* for size_t, malloc(), etc */
 
+#ifndef SIZE_MAX
+#ifndef SIZE_T_MAX
+#error
+#endif
+#define SIZE_MAX SIZE_T_MAX
+#endif
+
 /* avoid malloc()ing 0 bytes, see:
  * https://www.securecoding.cert.org/confluence/display/seccode/MEM04-A.+Do+not+make+assumptions+about+the+result+of+allocating+0+bytes?focusedCommentId=5407003
 */
@@ -126,6 +133,17 @@ static void *safe_malloc_mul2add_(size_t size1, size_t size2, size_t size3)
 	return safe_malloc_add_2op_(size1*size2, size3);
 }
 
+/* size1 * (size2 + size3) */
+static void *safe_malloc_muladd2_(size_t size1, size_t size2, size_t size3)
+{
+	if(!size1 || (!size2 && !size3))
+		return malloc(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
+	size2 += size3;
+	if(size2 < size3)
+		return 0;
+	return safe_malloc_mul_2op_(size1, size2);
+}
+
 static void *safe_realloc_add_2op_(void *ptr, size_t size1, size_t size2)
 {
 	size2 += size1;
@@ -166,6 +184,17 @@ static void *safe_realloc_mul_2op_(void *ptr, size_t size1, size_t size2)
 	if(size1 > SIZE_MAX / size2)
 		return 0;
 	return realloc(ptr, size1*size2);
+}
+
+/* size1 * (size2 + size3) */
+static void *safe_realloc_muladd2_(void *ptr, size_t size1, size_t size2, size_t size3)
+{
+	if(!size1 || (!size2 && !size3))
+		return realloc(ptr, 0); /* preserve POSIX realloc(ptr, 0) semantics */
+	size2 += size3;
+	if(size2 < size3)
+		return 0;
+	return safe_realloc_mul_2op_(ptr, size1, size2);
 }
 
 #endif
