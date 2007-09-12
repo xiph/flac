@@ -43,11 +43,11 @@ FLAC - 1.2.0 - Contents
 
 - Introduction
 - Prerequisites
+- Note to embedded developers
 - Building in a GNU environment
 - Building with Makefile.lite
 - Building with MSVC
 - Building on Mac OS X
-- Note to embedded developers
 
 
 ===============================================================================
@@ -80,6 +80,40 @@ libogg 1.1.2 or greater, or there will be seeking problems with Ogg FLAC.
 If you are building on x86 and want the assembly optimizations, you will
 need to have NASM >= 0.98.30 installed according to the specific instructions
 below.
+
+
+===============================================================================
+Note to embedded developers
+===============================================================================
+
+libFLAC has grown larger over time as more functionality has been
+included, but much of it may be unnecessary for a particular embedded
+implementation.  Unused parts may be pruned by some simple editing of
+configure.in and src/libFLAC/Makefile.am; the following dependency
+graph shows which modules may be pruned without breaking things
+further down:
+
+metadata.h
+	stream_decoder.h
+	format.h
+
+stream_encoder.h
+	stream_decoder.h
+	format.h
+
+stream_decoder.h
+	format.h
+
+In other words, for pure decoding applications, both the stream encoder
+and metadata editing interfaces can be safely removed.
+
+There is a section dedicated to embedded use in the libFLAC API
+HTML documentation (see doc/html/api/index.html).
+
+Also, there are several places in the libFLAC code with comments marked
+with "OPT:" where a #define can be changed to enable code that might be
+faster on a specific platform.  Experimenting with these can yield faster
+binaries.
 
 
 ===============================================================================
@@ -218,31 +252,3 @@ Building on Mac OS X
 If you have Fink or a recent version of OS X with the proper autotooles,
 the GNU flow above should work.  The Project Builder project has been
 deprecated but we are working on replacing it with an Xcode equivalent.
-
-
-===============================================================================
-Note to embedded developers
-===============================================================================
-
-libFLAC has grown larger over time as more functionality has been
-included, but much of it may be unnecessary for a particular embedded
-implementation.  Unused parts may be pruned by some simple editing of
-configure.in and src/libFLAC/Makefile.am; the following dependency
-graph shows which modules may be pruned without breaking things
-further down:
-
-stream_encoder.h
-	stream_decoder.h
-	format.h
-
-stream_decoder.h
-	format.h
-
-metadata.h
-	format.h
-
-In other words, for pure decoding applications, both the stream encoder
-and metadata editing interfaces can be safely removed.
-
-There is a section dedicated to embedded use in the libFLAC API
-HTML documentation (see doc/html/api/index.html).
