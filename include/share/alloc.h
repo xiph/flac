@@ -34,10 +34,14 @@
 #include <stdlib.h> /* for size_t, malloc(), etc */
 
 #ifndef SIZE_MAX
-#ifndef SIZE_T_MAX
-#error
-#endif
-#define SIZE_MAX SIZE_T_MAX
+# ifndef SIZE_T_MAX
+#  ifdef _MSC_VER
+#   define SIZE_T_MAX UINT_MAX
+#  else
+#   error
+#  endif
+# endif
+# define SIZE_MAX SIZE_T_MAX
 #endif
 
 #ifndef FLaC__INLINE
