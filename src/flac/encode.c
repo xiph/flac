@@ -336,7 +336,7 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 
 			/* skip any extra data in the COMM chunk */
 			if(!fskip_ahead(infile, skip)) {
-				flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping extra COMM data\n", encoder_session.inbasefilename);
+				flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping over extra COMM data\n", encoder_session.inbasefilename);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 
@@ -572,18 +572,13 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 			got_ssnd_chunk= true;
 		}
 		else { /* other chunk */
-			if(!memcmp(chunk_id, "COMM", 4)) {
-				flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'COMM' chunk\n", encoder_session.inbasefilename);
-				if(encoder_session.treat_warnings_as_errors)
-					return EncoderSession_finish_error(&encoder_session);
-			}
-			else if(!memcmp(chunk_id, "SSND", 4)) {
-				flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'SSND' chunk\n", encoder_session.inbasefilename);
-				if(encoder_session.treat_warnings_as_errors)
-					return EncoderSession_finish_error(&encoder_session);
-			}
-			else if(!options.foreign_metadata) {
-				flac__utils_printf(stderr, 1, "%s: WARNING: skipping unknown chunk '%s'\n", encoder_session.inbasefilename, chunk_id);
+			if(!options.foreign_metadata) {
+				if(!memcmp(chunk_id, "COMM", 4))
+					flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'COMM' chunk (use --keep-foreign-metadata to keep)\n", encoder_session.inbasefilename);
+				else if(!memcmp(chunk_id, "SSND", 4))
+					flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'SSND' chunk (use --keep-foreign-metadata to keep)\n", encoder_session.inbasefilename);
+				else if(!options.foreign_metadata)
+					flac__utils_printf(stderr, 1, "%s: WARNING: skipping unknown chunk '%s' (use --keep-foreign-metadata to keep)\n", encoder_session.inbasefilename, chunk_id);
 				if(encoder_session.treat_warnings_as_errors)
 					return EncoderSession_finish_error(&encoder_session);
 			}
@@ -596,7 +591,7 @@ int flac__encode_aif(FILE *infile, off_t infilesize, const char *infilename, con
 
 				FLAC__ASSERT(skip<=LONG_MAX);
 				if(!fskip_ahead(infile, skip)) {
-					fprintf(stderr, "%s: ERROR during read while skipping unknown chunk\n", encoder_session.inbasefilename);
+					fprintf(stderr, "%s: ERROR during read while skipping over unknown chunk\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
@@ -920,7 +915,7 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 
 			/* skip any extra data in the fmt sub-chunk */
 			if(!fskip_ahead(infile, data_bytes)) {
-				flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping extra 'fmt' data\n", encoder_session.inbasefilename);
+				flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping over extra 'fmt' data\n", encoder_session.inbasefilename);
 				return EncoderSession_finish_error(&encoder_session);
 			}
 
@@ -1132,30 +1127,22 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 			got_data_chunk = true;
 		}
 		else {
-			if(xx == 0x20746d66 && got_fmt_chunk) { /* "fmt " */
-				flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'fmt ' sub-chunk\n", encoder_session.inbasefilename);
+			if(xx == 0x61746164 && !got_fmt_chunk) { /* "data" */
+				flac__utils_printf(stderr, 1, "%s: ERROR: got 'data' sub-chunk before 'fmt' sub-chunk\n", encoder_session.inbasefilename);
+				return EncoderSession_finish_error(&encoder_session);
+			}
+
+			if(!options.foreign_metadata) {
+				if(xx == 0x20746d66 && got_fmt_chunk) /* "fmt " */
+					flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'fmt ' sub-chunk (use --keep-foreign-metadata to keep)\n", encoder_session.inbasefilename);
+				else if(xx == 0x61746164) /* "data" */
+					flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'data' sub-chunk (use --keep-foreign-metadata to keep)\n", encoder_session.inbasefilename);
+				else
+					flac__utils_printf(stderr, 1, "%s: WARNING: skipping unknown sub-chunk '%c%c%c%c' (use --keep-foreign-metadata to keep)\n", encoder_session.inbasefilename, (char)(xx&255), (char)((xx>>8)&255), (char)((xx>>16)&255), (char)(xx>>24));
 				if(encoder_session.treat_warnings_as_errors)
 					return EncoderSession_finish_error(&encoder_session);
 			}
-			else if(xx == 0x61746164) { /* "data" */
-				if(got_data_chunk) {
-					flac__utils_printf(stderr, 1, "%s: WARNING: skipping extra 'data' sub-chunk\n", encoder_session.inbasefilename);
-					if(encoder_session.treat_warnings_as_errors)
-						return EncoderSession_finish_error(&encoder_session);
-				}
-				else if(!got_fmt_chunk) {
-					flac__utils_printf(stderr, 1, "%s: ERROR: got 'data' sub-chunk before 'fmt' sub-chunk\n", encoder_session.inbasefilename);
-					return EncoderSession_finish_error(&encoder_session);
-				}
-				else {
-					FLAC__ASSERT(0);
-				}
-			}
-			else if(!options.foreign_metadata) {
-				flac__utils_printf(stderr, 1, "%s: WARNING: skipping unknown sub-chunk '%c%c%c%c'\n", encoder_session.inbasefilename, (char)(xx&255), (char)((xx>>8)&255), (char)((xx>>16)&255), (char)(xx>>24));
-				if(encoder_session.treat_warnings_as_errors)
-					return EncoderSession_finish_error(&encoder_session);
-			}
+
 			/* sub-chunk size */
 			if(!read_little_endian_uint32(infile, &xx, false, encoder_session.inbasefilename))
 				return EncoderSession_finish_error(&encoder_session);
@@ -1164,7 +1151,7 @@ int flac__encode_wav(FILE *infile, off_t infilesize, const char *infilename, con
 
 				FLAC__ASSERT(skip<=LONG_MAX);
 				if(!fskip_ahead(infile, skip)) {
-					flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping unsupported sub-chunk\n", encoder_session.inbasefilename);
+					flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping over unsupported sub-chunk\n", encoder_session.inbasefilename);
 					return EncoderSession_finish_error(&encoder_session);
 				}
 			}
@@ -2894,23 +2881,29 @@ FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 {
 	static unsigned char dump[8192];
 
-	while(offset > 0) {
-		long need = (long)min(offset, LONG_MAX);
-	   	if(fseeko(f, need, SEEK_CUR) < 0) {
-			need = (long)min(offset, sizeof(dump));
-			if((long)fread(dump, 1, need, f) < need)
+#ifdef _MSC_VER
+	if(f == stdin) {
+		/* MS' stdio impl can't even seek forward on stdin, have to use pure non-fseek() version: */
+		while(offset > 0) {
+			const long need = (long)min(offset, sizeof(dump));
+			if(fread(dump, 1, need, f) < need)
 				return false;
+			offset -= need;
 		}
-		offset -= need;
 	}
-#if 0 /* pure non-fseek() version */
-	while(offset > 0) {
-		const long need = (long)min(offset, sizeof(dump));
-		if(fread(dump, 1, need, f) < need)
-			return false;
-		offset -= need;
-	}
+	else
 #endif
+	{
+		while(offset > 0) {
+			long need = (long)min(offset, LONG_MAX);
+			if(fseeko(f, need, SEEK_CUR) < 0) {
+				need = (long)min(offset, sizeof(dump));
+				if((long)fread(dump, 1, need, f) < need)
+					return false;
+			}
+			offset -= need;
+		}
+	}
 	return true;
 }
 
