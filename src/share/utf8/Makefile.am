@@ -14,6 +14,7 @@ EXTRA_DIST = \
 	makemap.c \
 	charset_test.c \
 	charsetmap.h \
+	iconvert.h \
 	utf8_static.dsp \
 	utf8_static.vcproj
 

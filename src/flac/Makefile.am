@@ -21,8 +21,12 @@ AM_CFLAGS = @OGG_CFLAGS@
 
 EXTRA_DIST = \
 	Makefile.lite \
+	Makefile.lite.iffscan \
 	flac.dsp \
-	flac.vcproj
+	flac.vcproj \
+	iffscan.c \
+	iffscan.dsp \
+	iffscan.vcproj
 
 flac_SOURCES = \
 	analyze.c \

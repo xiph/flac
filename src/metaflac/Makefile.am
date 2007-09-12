@@ -36,6 +36,7 @@ metaflac_SOURCES = \
 	usage.c \
 	utils.c \
 	operations.h \
+	operations_shorthand.h \
 	options.h \
 	usage.h \
 	utils.h

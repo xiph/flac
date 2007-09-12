@@ -46,6 +46,7 @@ doc_DATA = \
 	sonos_family_RGB_325x200.jpg \
 	teclast-tl29_325x244.jpg \
 	transporter_hero_grey_325x208.jpg \
+	tvix-4000_325x204.jpg \
 	vibez_nofm_combi_black_b_325x220.jpg
 
 EXTRA_DIST = $(doc_DATA)
