@@ -315,7 +315,7 @@ static FLAC__bool write_chain_(FLAC__Metadata_Chain *chain, FLAC__bool use_paddi
 
 		if(FLAC__metadata_chain_check_if_tempfile_needed(chain, use_padding)) {
 			struct stat stats;
-			FILE *file, *tempfile;
+			FILE *file, *tempfile = 0;
 			char *tempfilename;
 			if(preserve_file_stats) {
 				if(!get_file_stats_(filename, &stats))
