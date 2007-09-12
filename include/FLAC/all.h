@@ -141,6 +141,11 @@
  * encoder, and no metadata interface, you can remove the stream encoder
  * and the metadata interface, which will greatly reduce the size of the
  * library.
+ *
+ * Also, there are several places in the libFLAC code with comments marked
+ * with "OPT:" where a #define can be changed to enable code that might be
+ * faster on a specific platform.  Experimenting with these can yield faster
+ * binaries.
  */
 
 /** \defgroup porting Porting Guide for New Versions
