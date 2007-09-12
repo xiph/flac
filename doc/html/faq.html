@@ -133,7 +133,10 @@
 				<a href="#tools__long_meta_edits"><b>Why does it take so long to edit some FLAC files with metaflac?</b></a>
 			</li>
 			<li>
-				<a href="#tools__unicode_filenames_windows"><b>Why don't Unicode file names work with <span class="commandname">flac</span> on Windows?</b></a>
+				<a href="#tools__unicode_filenames_windows"><b>Why don't Unicode file names work with <span class="commandname">flac/<span class="commandname">metaflac</span></span> on Windows?</b></a>
+			</li>
+			<li>
+				<a href="#tools__wildcards_on_windows"><b>Why don't wildcards for file names like *.flac or *.wav work with <span class="commandname">flac</span>/<span class="commandname">metaflac</span> on Windows?</b></a>
 			</li>
 			<li>
 				<a href="#tools__hardware_prob"><b>I compressed a file to FLAC with verify on, and flac said "Verify FAILED!"  Why?</b></a>
@@ -237,15 +240,15 @@
 		<a name="general__no_wave_metadata"><b>Why doesn't FLAC store all WAVE metadata?</b></a><br />
 		<a name="general__not_wave_compressor"><b>If flac compresses WAVE files, why isn't it technically a WAVE file compressor?</b></a><br />
 		<br />
+		(By default, <span class="commandname">flac</span> does not store WAVE metadata, but it can with the <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> option described below.)<br />
+		<br />
 		FLAC is a general-purpose audio format, not just a compressed WAVE file format.  There's a subtle difference.  WAVE is a complicated standard; many kinds of data besides audio data can be put in it.  FLAC's purpose is not to reproduce a WAVE file, including all the non-audio data that is in it, it is to losslessly compress the audio.<br />
 		<br />
-		People have asked for that in FLAC, but if it were added, then what about similar formats like AIFF?  <span class="commandname">flac</span> can extract and compress audio data in an AIFF file also.  AIFF is widely used on the Mac.  AIFF users have asked that all AIFF metadata be stored for the same reasons.  And it doesn't end there, other uncompressed formats exist.<br />
-		<br />
-		Trying to exactly recreate the container data of other formats would actually make FLAC less useful as a general audio compressor.  But it is possible to hack this behavior into FLAC metadata using another program.<br />
+		However, if you really need to store the non-audio parts of a WAVE or AIFF file, you can use the <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> option to <span class="commandname">flac</span> when encoding to store it in FLAC metadata, then use the option again when decoding to restore in to the decoded WAVE/AIFF file.<br />
 		<br />
 		<a name="general__no_riff_subchunks"><b>Why do some lossless comparisons say FLAC does not support RIFF chunks?</b></a><br />
 		<br />
-		FLAC supports the RIFF subchunks (technically the whole WAVE part is a chunk and the comparison is about subchunks of WAVE) that are used in the vast majority of WAVE files, including all canonical WAVE files that most tools output.  The comparison is talking about rarely-used subchunks that some editing tools use.  For the reason why, <a href="#general__no_wave_metadata">see above</a>.<br />
+		This is a limitation that no longer exists with FLAC (<a href="#general__no_wave_metadata">see above</a>).<br />
 		<br />
 		<a name="general__asymmetry"><b>Why do the encoder settings have a big effect on the encoding time but not the decoding time?</b></a><br />
 		<br />
@@ -306,9 +309,17 @@
 		<br />
 		Since metadata is stored at the beginning of a FLAC file, changing the length of it can sometimes cause the whole file to be rewritten.  You can avoid this by adding padding with <span class="commandname">flac</span> when you encode, or with <span class="commandname">metaflac</span> after encoding.  By default, <span class="commandname">flac</span> adds 8k of padding; you can change this amount if you need more or less.<br />
 		<br />
-		<a name="tools__unicode_filenames_windows"><b>Why don't Unicode file names work with <span class="commandname">flac</span> on Windows?</b></a><br />
+		<a name="tools__unicode_filenames_windows"><b>Why don't Unicode file names work with <span class="commandname">flac</span>/<span class="commandname">metaflac</span> on Windows?</b></a><br />
 		<br />
 		Windows implements Unicode filenames differently than all other operating systems, and can only be supported via Windows APIs (non-portable).  Also the method is different for different versions of Windows.  It's so hard to get right that most programs that have to work for other operating systems also do not support it.  A workaround can be found <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=48131">here</a>.<br />
+		<br />
+		<a name="tools__wildcards_on_windows"><b>Why don't wildcards for file names like *.flac or *.wav work with <span class="commandname">flac</span>/<span class="commandname">metaflac</span> on Windows?</b></a><br />
+		<br />
+		The Windows command shells (cmd.exe, command.com) implement wildcard handling differently than most other shells, leaving it up to the program to do everything including difficult and ambiguous cases.  For an explanation of why wildcards on cmd.exe/command.com are dangerous, see <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=50667&st=75&p=466078&#entry466078">here</a>.  Better command shells for Windows exist, e.g. from <a href="http://cygwin.com/">Cygwin</a>.  A workaround with the Windows shells is to do something like:<br />
+		<br />
+		<tt>for %F in (*.wav) do flac "%F"</tt><br />
+		<br />
+		but care must still be taken that the command will execute as intended.<br />
 		<br />
 		<a name="tools__hardware_prob"><b>I compressed a file to FLAC with verify on, and flac said "Verify FAILED!"  Why?</b></a><br />
 		<br />
@@ -321,13 +332,13 @@
 		<a name="tools__wave_flac_wave"><b>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</b></a><br />
 		<a name="tools__skipped_subchunk"><b>I compressed a WAVE file to FLAC and it said "warning: skipping unknown sub-chunk LIST".  Why?</b></a><br />
 		<br />
-		WAVE is a complicated standard; many kinds of data besides audio data can be put in it.  Most likely what has happened is that the application that created the original WAVE file also added some extra information for it's own use, which FLAC does not store or recreate  <a href="#tools__two_bytes_short">(see also)</a>.  But the audio data in the two WAVE files will be identical.  There are other tools to compare just the audio content of two WAVE files; <a href="http://www.exactaudiocopy.de/">ExactAudioCopy</a> has such a feature.<br />
+		WAVE is a complicated standard; many kinds of data besides audio data can be put in it.  Most likely what has happened is that the application that created the original WAVE file also added some extra information for it's own use, which FLAC does not store or recreate by default (but can with the <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> option) (<a href="#tools__two_bytes_short">see also</a>).  The audio data in the two WAVE files will be identical.  There are other tools to compare just the audio content of two WAVE files; <a href="http://www.exactaudiocopy.de/">ExactAudioCopy</a> has such a feature.<br />
 		<br />
-		For the more technically inclined, FLAC only stores what is in the 'fmt ' and 'data' sub-chunks of a WAVE file.  <a href="#general__no_wave_metadata">(see also)</a><br />
+		For the more technically inclined, by default FLAC only stores what is in the 'fmt ' and 'data' sub-chunks of a WAVE file.  <a href="#general__no_wave_metadata">(see also)</a><br />
 		<br />
 		<a name="tools__two_bytes_short"><b>I decoded a FLAC file and the WAVE is 2 bytes shorter than the original.  Why?</b></a><br />
 		<br />
-		The difference is probably that between an 18-byte 'fmt ' subchunk in the original WAVE vs. a 16-byte one in the decoded WAVE.  With WAVE there is more than one way to write identical formatting information, but FLAC always writes the most common form.  <a href="#tools__wave_flac_wave">(see also)</a><br />
+		The difference is probably that between an 18-byte 'fmt ' subchunk in the original WAVE vs. a 16-byte one in the decoded WAVE.  With WAVE there is more than one way to write identical formatting information, but FLAC always writes the most common legal form.  <a href="#tools__wave_flac_wave">(see also)</a><br />
 		<br />
 		<a name="tools__not_streamable"><b>Why did I get "ERROR initializing encoder, state = FLAC__STREAM_ENCODER_NOT_STREAMABLE"?</b></a><br />
 		<br />
