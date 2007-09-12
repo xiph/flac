@@ -128,11 +128,11 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 			fwrite("WAVEfmt ", 1, 8, f) < 8 ||
 			!write_little_endian_uint32(f, 16) ||
 			!write_little_endian_uint16(f, 1) ||
-			!write_little_endian_uint16(f, channels) ||
+			!write_little_endian_uint16(f, (FLAC__uint16)channels) ||
 			!write_little_endian_uint32(f, sample_rate) ||
 			!write_little_endian_uint32(f, sample_rate * channels * (bps/8)) ||
-			!write_little_endian_uint16(f, channels * (bps/8)) || /* block align */
-			!write_little_endian_uint16(f, bps) ||
+			!write_little_endian_uint16(f, (FLAC__uint16)(channels * (bps/8))) || /* block align */
+			!write_little_endian_uint16(f, (FLAC__uint16)bps) ||
 			fwrite("data", 1, 4, f) < 4 ||
 			!write_little_endian_uint32(f, total_size)
 		) {
@@ -144,8 +144,8 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	/* write decoded PCM samples */
 	for(i = 0; i < frame->header.blocksize; i++) {
 		if(
-			!write_little_endian_int16(f, buffer[0][i]) ||  /* left channel */
-			!write_little_endian_int16(f, buffer[1][i])     /* right channel */
+			!write_little_endian_int16(f, (FLAC__int16)buffer[0][i]) ||  /* left channel */
+			!write_little_endian_int16(f, (FLAC__int16)buffer[1][i])     /* right channel */
 		) {
 			fprintf(stderr, "ERROR: write error\n");
 			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;

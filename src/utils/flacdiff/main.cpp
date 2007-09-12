@@ -30,6 +30,11 @@
 #endif
 #endif
 
+#ifdef _MSC_VER
+// warning C4800: 'int' : forcing to bool 'true' or 'false' (performance warning)
+#pragma warning ( disable : 4800 )
+#endif
+
 class AutoFILE {
 protected:
 	::FILE *f_;
