@@ -1344,7 +1344,7 @@ void show_explain(void)
 	printf("                               the decoded file.  Foreign metadata cannot be\n");
 	printf("                               transcoded, e.g. WAVE chunks saved in a FLAC file\n");
 	printf("                               cannot be restored when decoding to AIFF.  Input\n");
-	printf("                               and output must be regular files.\n");
+	printf("                               and output must be regular files, not stdin/out.\n");
 	printf("      --skip={#|mm:ss.ss}      Skip the first # samples of each input file; can\n");
 	printf("                               be used both for encoding and decoding.  The\n");
 	printf("                               alternative form mm:ss.ss can be used to specify\n");
