@@ -24,7 +24,7 @@ libdir = $(topdir)/obj/$(BUILD)/lib
 
 PROGRAM_NAME = example_c_decode_file
 
-INCLUDES = -I../libFLAC/include -I$(topdir)/include
+INCLUDES = -I$(topdir)/include
 
 ifeq ($(DARWIN_BUILD),yes)
 EXPLICIT_LIBS = $(libdir)/libFLAC.a $(OGG_LIB_DIR)/libogg.a -lm

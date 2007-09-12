@@ -73,13 +73,14 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if((decoder = FLAC__stream_decoder_new()) == NULL) {
-		fprintf(stderr, "ERROR: allocation decoder\n");
+	if((fout = fopen(argv[2], "wb")) == NULL) {
+		fprintf(stderr, "ERROR: opening %s for output\n", argv[2]);
 		return 1;
 	}
 
-	if((fout = fopen(argv[2], "wb")) == NULL) {
-		fprintf(stderr, "ERROR: opening %s for output\n", argv[2]);
+	if((decoder = FLAC__stream_decoder_new()) == NULL) {
+		fprintf(stderr, "ERROR: allocating decoder\n");
+		fclose(fout);
 		return 1;
 	}
 

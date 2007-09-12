@@ -20,8 +20,6 @@ EXTRA_DIST = \
 	example_c_decode_file.dsp \
 	example_c_decode_file.vcproj \
 
-INCLUDES = -I$(top_srcdir)/src/libFLAC/include
-
 noinst_PROGRAMS = example_c_decode_file
 example_c_decode_file_LDADD = \
 	@OGG_LIBS@ \
