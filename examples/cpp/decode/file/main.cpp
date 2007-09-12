@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
 
 	if(!decoder) {
 		fprintf(stderr, "ERROR: allocating decoder\n");
+		fclose(fout);
 		return 1;
 	}
 
