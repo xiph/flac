@@ -1,6 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual C++ Express 2005
+Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "example_c_decode_file", "example\c\decode\file\example_c_decode_file.vcproj", "{4cefbd00-c215-11db-8314-0800200c9a66}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4cefbc84-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
+	EndProjectSection
+EndProject
 Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "flac", "src\flac\flac.vcproj", "{4cefbc7d-c215-11db-8314-0800200c9a66}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4cefbc81-c215-11db-8314-0800200c9a66} = {4cefbc81-c215-11db-8314-0800200c9a66}
@@ -220,6 +225,10 @@ Global
 		{4cefbc95-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4cefbc95-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
 		{4cefbc95-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
+		{4cefbd00-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4cefbd00-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4cefbd00-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
+		{4cefbd00-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -30,6 +30,9 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
+    Project_Dep_Name examples
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name flac
     End Project Dependency
     Begin Project Dependency
@@ -117,6 +120,9 @@ Package=<5>
 Package=<4>
 {{{
     Begin Project Dependency
+    Project_Dep_Name examples
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name flac
     End Project Dependency
     Begin Project Dependency
@@ -184,6 +190,36 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name test_streams
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "examples"=.\examples\examples.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name example_c_decode_file
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "example_c_decode_file"=.\examples\c\decode\file\example_c_decode_file.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libFLAC_static
     End Project Dependency
 }}}
 
