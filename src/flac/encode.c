@@ -2886,7 +2886,7 @@ FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 		/* MS' stdio impl can't even seek forward on stdin, have to use pure non-fseek() version: */
 		while(offset > 0) {
 			const long need = (long)min(offset, sizeof(dump));
-			if(fread(dump, 1, need, f) < need)
+			if((long)fread(dump, 1, need, f) < need)
 				return false;
 			offset -= need;
 		}
