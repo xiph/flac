@@ -266,6 +266,25 @@
 			</tr>
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_keep_foreign_metadata" />
+					<span class="argument">--keep-foreign-metadata</span>
+				</td>
+				<td>
+					If encoding, save WAVE or AIFF non-audio chunks in FLAC metadata.  If decoding, restore any saved non-audio chunks from FLAC metadata when writing the decoded file.  Foreign metadata cannot be transcoded, e.g. WAVE chunks saved in a FLAC file cannot be restored when decoding to AIFF.  Input and output must be regular files (not stdin or stdout).<br />
+<!--
+					<br />
+					Using this option for both encoding then decoding in most cases will yield the exact same WAVE file as the original, metadata and all.  Because there are multiple ways to represent the same data in WAVE and AIFF, there are currently a few corner cases where the restoration process may not match exactly (but could with some improvement).  The cases are:<br />
+					<ul>
+						<li>The original WAVE had more than 2 channels and needed remapping to FLAC order</li>
+						<li>The original WAVE is not spec compliant, e.g. 20 bps in WAVEFORMATEX; restored file will still be a compliant WAVEFORMATEXTENSIBLE</li>
+						<li>Other wierd corner cases where the "fmt" chunk is not exactly identical due to there being multiple ways to represent the same thing</li>
+						<li>The original WAIV is in AIFF-C form with compression type "sowt" or "NONE"; currently the restored file will always be in AIFF (uncompressed) form</li>
+					</ul>
+-->
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_skip" />
 					<span class="argument">--skip={#|mm:ss.ss}</span>
 				</td>
@@ -969,6 +988,7 @@
 		<a href="#flac_options_help" /><span class="argument">-h</span></a><br />
 		<a href="#flac_options_help" /><span class="argument">--help</span></a><br />
 		<a href="#flac_options_input_size" /><span class="argument">--input-size</span></a><br />
+		<a href="#flac_options_keep_foreign_metadata" /><span class="argument">--keep-foreign-metadata</span></a><br />
 		<a href="#flac_options_max_lpc_order" /><span class="argument">-l</span></a><br />
 		<a href="#flac_options_lax" /><span class="argument">--lax</span></a><br />
 		<a href="#flac_options_adaptive_mid_side" /><span class="argument">-M</span></a><br />
