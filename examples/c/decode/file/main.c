@@ -19,6 +19,9 @@
 /*
  * This example shows how to use libFLAC to decode a FLAC file to a WAVE
  * file.  It only supports 16-bit stereo files.
+ *
+ * Complete API documentation can be found at:
+ *   http://flac.sourceforge.net/api/
  */
 
 #if HAVE_CONFIG_H
@@ -33,10 +36,10 @@ static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *
 static void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 
-FLAC__uint64 total_samples = 0;
-unsigned sample_rate = 0;
-unsigned channels = 0;
-unsigned bps = 0;
+static FLAC__uint64 total_samples = 0;
+static unsigned sample_rate = 0;
+static unsigned channels = 0;
+static unsigned bps = 0;
 
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 x)
 {
