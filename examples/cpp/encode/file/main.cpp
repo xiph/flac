@@ -49,7 +49,7 @@ static FLAC__int32 *pcm_[2] = { pcm, pcm+READSIZE };
 
 int main(int argc, char *argv[])
 {
-	FLAC__bool ok = true;
+	bool ok = true;
 	OurEncoder encoder;
 	FLAC__StreamEncoderInitStatus init_status;
 	FLAC__StreamMetadata *metadata[2];
