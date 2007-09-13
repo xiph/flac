@@ -1,12 +1,23 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual C++ Express 2005
-Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "example_c_decode_file", "example\c\decode\file\example_c_decode_file.vcproj", "{4cefbd00-c215-11db-8314-0800200c9a66}"
+Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "example_c_decode_file", "examples\c\decode\file\example_c_decode_file.vcproj", "{4cefbd00-c215-11db-8314-0800200c9a66}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4cefbc84-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
 	EndProjectSection
 EndProject
-Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "example_cpp_decode_file", "example\cpp\decode\file\example_cpp_decode_file.vcproj", "{4cefbe00-c215-11db-8314-0800200c9a66}"
+Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "example_c_encode_file", "examples\c\encode\file\example_c_encode_file.vcproj", "{4cefbd01-c215-11db-8314-0800200c9a66}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4cefbc84-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
+	EndProjectSection
+EndProject
+Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "example_cpp_decode_file", "examples\cpp\decode\file\example_cpp_decode_file.vcproj", "{4cefbe00-c215-11db-8314-0800200c9a66}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4cefbc84-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
+		{4cefbc86-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
+	EndProjectSection
+EndProject
+Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "example_cpp_encode_file", "examples\cpp\encode\file\example_cpp_encode_file.vcproj", "{4cefbe01-c215-11db-8314-0800200c9a66}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4cefbc84-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
 		{4cefbc86-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
@@ -220,21 +231,33 @@ Global
 		{4cefbc92-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
 		{4cefbc92-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
 		{4cefbc93-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
-		{4cefbc93-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4cefbc93-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
 		{4cefbc93-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
-		{4cefbc94-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
+		{4cefbc93-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
+		{4cefbc94-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4cefbc94-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
 		{4cefbc94-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
 		{4cefbc94-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
 		{4cefbc95-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
-		{4cefbc95-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4cefbc95-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
 		{4cefbc95-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
-		{4cefbd00-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4cefbc95-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
 		{4cefbd00-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4cefbd00-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
 		{4cefbd00-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
+		{4cefbd00-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
+		{4cefbd01-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4cefbd01-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
+		{4cefbd01-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
+		{4cefbd01-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
+		{4cefbe00-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4cefbe00-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
+		{4cefbe00-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
+		{4cefbe00-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
+		{4cefbe01-c215-11db-8314-0800200c9a66}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4cefbe01-c215-11db-8314-0800200c9a66}.Debug|Win32.Build.0 = Debug|Win32
+		{4cefbe01-c215-11db-8314-0800200c9a66}.Release|Win32.ActiveCfg = Release|Win32
+		{4cefbe01-c215-11db-8314-0800200c9a66}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

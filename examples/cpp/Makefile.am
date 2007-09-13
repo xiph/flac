@@ -15,4 +15,4 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-SUBDIRS = decode
+SUBDIRS = decode encode

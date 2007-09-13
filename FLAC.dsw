@@ -207,7 +207,13 @@ Package=<4>
     Project_Dep_Name example_c_decode_file
     End Project Dependency
     Begin Project Dependency
+    Project_Dep_Name example_c_encode_file
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name example_cpp_decode_file
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name example_cpp_encode_file
     End Project Dependency
 }}}
 
@@ -228,7 +234,40 @@ Package=<4>
 
 ###############################################################################
 
+Project: "example_c_encode_file"=.\examples\c\encode\file\example_c_encode_file.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libFLAC_static
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "example_cpp_decode_file"=.\examples\cpp\decode\file\example_cpp_decode_file.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libFLAC++_static
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libFLAC_static
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "example_cpp_encode_file"=.\examples\cpp\encode\file\example_cpp_encode_file.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

@@ -353,9 +353,13 @@ AC_CONFIG_FILES([ \
 	examples/c/Makefile \
 	examples/c/decode/Makefile \
 	examples/c/decode/file/Makefile \
+	examples/c/encode/Makefile \
+	examples/c/encode/file/Makefile \
 	examples/cpp/Makefile \
 	examples/cpp/decode/Makefile \
 	examples/cpp/decode/file/Makefile \
+	examples/cpp/encode/Makefile \
+	examples/cpp/encode/file/Makefile \
 	include/Makefile \
 	include/FLAC/Makefile \
 	include/FLAC++/Makefile \
