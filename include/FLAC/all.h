@@ -111,6 +111,9 @@
  * individual functions.  You can see different views of the individual
  * functions through the links in top bar across this page.
  *
+ * If you prefer a more hands-on approach, you can jump right to some
+ * <A HREF="../documentation_example_code.html">example code</A>.
+ *
  * \section porting_guide Porting Guide
  *
  * Starting with FLAC 1.1.3 a \link porting Porting Guide \endlink
