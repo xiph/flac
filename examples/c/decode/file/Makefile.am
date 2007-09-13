@@ -18,7 +18,7 @@
 EXTRA_DIST = \
 	Makefile.lite \
 	example_c_decode_file.dsp \
-	example_c_decode_file.vcproj \
+	example_c_decode_file.vcproj
 
 noinst_PROGRAMS = example_c_decode_file
 example_c_decode_file_LDADD = \
