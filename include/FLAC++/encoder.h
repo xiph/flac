@@ -189,7 +189,7 @@ namespace FLAC {
 			/// See FLAC__StreamEncoderTellCallback
 			virtual ::FLAC__StreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset);
 
-			/// See FLAC__StreamEncoderTellCallback
+			/// See FLAC__StreamEncoderMetadataCallback
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata);
 
 #if (defined _MSC_VER) || (defined __BORLANDC__) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96))) || (defined __SUNPRO_CC)
