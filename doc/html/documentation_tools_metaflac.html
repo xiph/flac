@@ -350,7 +350,7 @@
 					<span class="argument">--add-replay-gain</span>
 				</td>
 				<td>
-					Calculates the title and album gains/peaks of the given FLAC files as if all the files were part of one album, then stores them in the <span class="code">VORBIS_COMMENT</span> block.  The tags are the same as those used by <span class="commandname">vorbisgain</span>.  Existing ReplayGain tags will be replaced.  If only one FLAC file is given, the album and title gains will be the same.  Since this operation requires two passes, it is always executed last, after all other operations have been completed and written to disk.  All FLAC files specified must have the same resolution, sample rate, and number of channels.  The sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.
+					Calculates the title and album gains/peaks of the given FLAC files as if all the files were part of one album, then stores them as FLAC tags.  The tags are the same as those used by <span class="commandname">vorbisgain</span>.  Existing ReplayGain tags will be replaced.  If only one FLAC file is given, the album and title gains will be the same.  Since this operation requires two passes, it is always executed last, after all other operations have been completed and written to disk.  All FLAC files specified must have the same resolution, sample rate, and number of channels.  The sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.
 				</td>
 			</tr>
 			<tr>

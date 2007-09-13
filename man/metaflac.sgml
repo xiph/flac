@@ -366,7 +366,7 @@ manpage.1: manpage.sgml
 	  <para>
 	    Calculates the title and album gains/peaks of the given FLAC
 	    files as if all the files were part of one album, then stores
-	    them in the VORBIS_COMMENT block.  The tags are the same as
+	    them as FLAC tags.  The tags are the same as
 	    those used by vorbisgain.  Existing ReplayGain tags will be
 	    replaced.  If only one FLAC file is given, the album and title
 	    gains will be the same.  Since this operation requires two
