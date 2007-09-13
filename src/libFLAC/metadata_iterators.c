@@ -578,6 +578,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIte
 	return true;
 }
 
+/*@@@@add to tests*/
 FLAC_API FLAC__bool FLAC__metadata_simple_iterator_is_last(const FLAC__Metadata_SimpleIterator *iterator)
 {
 	FLAC__ASSERT(0 != iterator);
@@ -586,6 +587,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_is_last(const FLAC__Metadata_
 	return iterator->is_last;
 }
 
+/*@@@@add to tests*/
 FLAC_API off_t FLAC__metadata_simple_iterator_get_block_offset(const FLAC__Metadata_SimpleIterator *iterator)
 {
 	FLAC__ASSERT(0 != iterator);
@@ -602,6 +604,7 @@ FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const 
 	return iterator->type;
 }
 
+/*@@@@add to tests*/
 FLAC_API unsigned FLAC__metadata_simple_iterator_get_block_length(const FLAC__Metadata_SimpleIterator *iterator)
 {
 	FLAC__ASSERT(0 != iterator);
@@ -610,6 +613,7 @@ FLAC_API unsigned FLAC__metadata_simple_iterator_get_block_length(const FLAC__Me
 	return iterator->length;
 }
 
+/*@@@@add to tests*/
 FLAC_API FLAC__bool FLAC__metadata_simple_iterator_get_application_id(FLAC__Metadata_SimpleIterator *iterator, FLAC__byte *id)
 {
 	const unsigned id_bytes = FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8;
@@ -1559,6 +1563,7 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const
 	return chain_read_(chain, filename, /*is_ogg=*/false);
 }
 
+/*@@@@add to tests*/
 FLAC_API FLAC__bool FLAC__metadata_chain_read_ogg(FLAC__Metadata_Chain *chain, const char *filename)
 {
 	return chain_read_(chain, filename, /*is_ogg=*/true);
@@ -1599,6 +1604,7 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chai
 	return chain_read_with_callbacks_(chain, handle, callbacks, /*is_ogg=*/false);
 }
 
+/*@@@@add to tests*/
 FLAC_API FLAC__bool FLAC__metadata_chain_read_ogg_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks)
 {
 	return chain_read_with_callbacks_(chain, handle, callbacks, /*is_ogg=*/true);

@@ -908,7 +908,6 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_do_mid_side_stereo(FLAC__StreamEnco
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/* @@@@add to unit tests*/
 /** Sets the apodization function(s) the encoder will use when windowing
  *  audio data for LPC analysis.
  *

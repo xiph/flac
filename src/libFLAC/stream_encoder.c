@@ -1533,6 +1533,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamE
 	return true;
 }
 
+/*@@@@add to tests*/
 FLAC_API FLAC__bool FLAC__stream_encoder_set_apodization(FLAC__StreamEncoder *encoder, const char *specification)
 {
 	FLAC__ASSERT(0 != encoder);

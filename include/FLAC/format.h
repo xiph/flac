@@ -937,7 +937,6 @@ FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_value_is_legal(const FLAC__
  */
 FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_is_legal(const FLAC__byte *entry, unsigned length);
 
-/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Check a seek table to see if it conforms to the FLAC specification.
  *  See the format specification for limits on the contents of the
  *  seek table.
@@ -950,7 +949,6 @@ FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_is_legal(const FLAC__byte *
  */
 FLAC_API FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable *seek_table);
 
-/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Sort a seek table's seek points according to the format specification.
  *  This includes a "unique-ification" step to remove duplicates, i.e.
  *  seek points with identical \a sample_number values.  Duplicate seek
@@ -965,7 +963,6 @@ FLAC_API FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_S
  */
 FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table);
 
-/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Check a cue sheet to see if it conforms to the FLAC specification.
  *  See the format specification for limits on the contents of the
  *  cue sheet.
@@ -986,7 +983,6 @@ FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *se
  */
 FLAC_API FLAC__bool FLAC__format_cuesheet_is_legal(const FLAC__StreamMetadata_CueSheet *cue_sheet, FLAC__bool check_cd_da_subset, const char **violation);
 
-/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 /** Check picture data to see if it conforms to the FLAC specification.
  *  See the format specification for limits on the contents of the
  *  PICTURE block.

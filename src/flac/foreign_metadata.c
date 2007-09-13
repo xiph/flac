@@ -80,7 +80,6 @@ static FLAC__bool append_block_(foreign_metadata_t *fm, off_t offset, FLAC__uint
 		fb[fm->num_blocks].size = size;
 		fm->num_blocks++;
 		fm->blocks = fb;
-/*fprintf(stderr,"@@@@@@  appended: block#%u offset=%d size=%u\n",fm->num_blocks-1,(int)fm->blocks[fm->num_blocks-1].offset,(unsigned)fm->blocks[fm->num_blocks-1].size);*/
 		return true;
 	}
 	if(error) *error = "out of memory";
@@ -102,7 +101,6 @@ static FLAC__bool read_from_aiff_(foreign_metadata_t *fm, FILE *f, const char **
 	if(!append_block_(fm, offset, 12, error))
 		return false;
 	eof_offset = 8 + unpack32be_(buffer+4);
-/*fprintf(stderr,"@@@@@@ off=%d eof=%d\n",(int)offset,(int)eof_offset);*/
 	while(!feof(f)) {
 		FLAC__uint32 size;
 		if((offset = ftello(f)) < 0) {
@@ -153,7 +151,6 @@ static FLAC__bool read_from_aiff_(foreign_metadata_t *fm, FILE *f, const char **
 		}
 		if(!append_block_(fm, offset, 8 + (memcmp(buffer, "SSND", 4)? size : 8 + fm->ssnd_offset_size), error))
 			return false;
-/*fprintf(stderr,"@@@@@@ chunk=%c%c%c%c offset=%d size=%d\n",buffer[0],buffer[1],buffer[2],buffer[3],(int)offset,8+(int)size);*/
 		if(fseeko(f, size, SEEK_CUR) < 0) {
 			if(error) *error = "invalid AIFF file: seek error (011)";
 			return false;
@@ -189,7 +186,6 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 	if(!append_block_(fm, offset, 12, error))
 		return false;
 	eof_offset = 8 + unpack32le_(buffer+4);
-/*fprintf(stderr,"@@@@@@ off=%d eof=%d\n",(int)offset,(int)eof_offset);*/
 	while(!feof(f)) {
 		FLAC__uint32 size;
 		if((offset = ftello(f)) < 0) {
@@ -230,7 +226,6 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 		}
 		if(!append_block_(fm, offset, 8 + (memcmp(buffer, "data", 4)? size : 0), error))
 			return false;
-/*fprintf(stderr,"@@@@@@ chunk=%c%c%c%c offset=%d size=%d\n",buffer[0],buffer[1],buffer[2],buffer[3],(int)offset,8+(int)size);*/
 		if(fseeko(f, size, SEEK_CUR) < 0) {
 			if(error) *error = "invalid WAVE file: seek error (009)";
 			return false;
@@ -270,7 +265,6 @@ static FLAC__bool write_to_flac_(foreign_metadata_t *fm, FILE *fin, FILE *fout, 
 			if(error) *error = "PADDING block with wrong size found (005)";
 			return false;
 		}
-/*fprintf(stderr,"@@@@@@ flac offset = %d\n",(int)FLAC__metadata_simple_iterator_get_block_offset(it));*/
 		/* transfer chunk into APPLICATION block */
 		/* first set up the file pointers */
 		if(fseeko(fin, fm->blocks[block_num].offset, SEEK_SET) < 0) {

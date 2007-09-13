@@ -444,7 +444,6 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_next(FLAC__Metadata_SimpleIte
  */
 FLAC_API FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIterator *iterator);
 
-/*@@@@add to tests*/
 /** Returns a flag telling if the current metadata block is the last.
  *
  * \param iterator  A pointer to an existing initialized iterator.
@@ -458,7 +457,6 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIte
  */
 FLAC_API FLAC__bool FLAC__metadata_simple_iterator_is_last(const FLAC__Metadata_SimpleIterator *iterator);
 
-/*@@@@add to tests*/
 /** Get the offset of the metadata block at the current position.  This
  *  avoids reading the actual block data which can save time for large
  *  blocks.
@@ -489,7 +487,6 @@ FLAC_API off_t FLAC__metadata_simple_iterator_get_block_offset(const FLAC__Metad
  */
 FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Metadata_SimpleIterator *iterator);
 
-/*@@@@add to tests*/
 /** Get the length of the metadata block at the current position.  This
  *  avoids reading the actual block data which can save time for large
  *  blocks.
@@ -507,7 +504,6 @@ FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const 
  */
 FLAC_API unsigned FLAC__metadata_simple_iterator_get_block_length(const FLAC__Metadata_SimpleIterator *iterator);
 
-/*@@@@add to tests*/
 /** Get the application ID of the \c APPLICATION block at the current
  *  position.  This avoids reading the actual block data which can save
  *  time for large blocks.
@@ -835,7 +831,6 @@ FLAC_API FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_C
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *filename);
 
-/*@@@@ add to unit tests*/
 /** Read all metadata from an Ogg FLAC file into the chain.
  *
  * \note Ogg FLAC metadata data writing is not supported yet and
@@ -875,7 +870,6 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read_ogg(FLAC__Metadata_Chain *chain, c
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_read_with_callbacks(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallbacks callbacks);
 
-/*@@@@ add to unit tests*/
 /** Read all metadata from an Ogg FLAC stream into the chain via I/O callbacks.
  *
  *  The \a handle need only be open for reading, but must be seekable.
@@ -2076,7 +2070,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_delete_track(FLAC__StreamMeta
  */
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_is_legal(const FLAC__StreamMetadata *object, FLAC__bool check_cd_da_subset, const char **violation);
 
-/* @@@@ add to unit tests */
 /** Calculate and return the CDDB/freedb ID for a cue sheet.  The function
  *  assumes the cue sheet corresponds to a CD; the result is undefined
  *  if the cuesheet's is_cd bit is not set.

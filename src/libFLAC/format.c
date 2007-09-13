@@ -238,6 +238,7 @@ FLAC_API FLAC__bool FLAC__format_sample_rate_is_subset(unsigned sample_rate)
 		return true;
 }
 
+/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 FLAC_API FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_SeekTable *seek_table)
 {
 	unsigned i;
@@ -273,6 +274,7 @@ static int seekpoint_compare_(const FLAC__StreamMetadata_SeekPoint *l, const FLA
 		return 1;
 }
 
+/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *seek_table)
 {
 	unsigned i, j;
@@ -410,6 +412,7 @@ FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_is_legal(const FLAC__byte *
 	return true;
 }
 
+/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 FLAC_API FLAC__bool FLAC__format_cuesheet_is_legal(const FLAC__StreamMetadata_CueSheet *cue_sheet, FLAC__bool check_cd_da_subset, const char **violation)
 {
 	unsigned i, j;
@@ -488,6 +491,7 @@ FLAC_API FLAC__bool FLAC__format_cuesheet_is_legal(const FLAC__StreamMetadata_Cu
 	return true;
 }
 
+/* @@@@ add to unit tests; it is already indirectly tested by the metadata_object tests */
 FLAC_API FLAC__bool FLAC__format_picture_is_legal(const FLAC__StreamMetadata_Picture *picture, const char **violation)
 {
 	char *p;

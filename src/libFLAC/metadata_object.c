@@ -1695,6 +1695,7 @@ static FLAC__uint32 cddb_add_digits_(FLAC__uint32 x)
 	return n;
 }
 
+/*@@@@add to tests*/
 FLAC_API FLAC__uint32 FLAC__metadata_object_cuesheet_calculate_cddb_id(const FLAC__StreamMetadata *object)
 {
 	const FLAC__StreamMetadata_CueSheet *cs;

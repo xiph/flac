@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 		strcat(args, argv[i]);
 	}
 
-	//fprintf(stderr, "@@@@@@ cmd=[%s] args=[%s]\n", argv[0], args);
+	//fprintf(stderr, "@@@ cmd=[%s] args=[%s]\n", argv[0], args);
 
 	STARTUPINFO si;
 	GetStartupInfo(&si);
@@ -138,9 +138,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	//fprintf(stderr, "@@@@@@ waiting...\n");
+	//fprintf(stderr, "@@@ waiting...\n");
 	WaitForSingleObject(pi.hProcess, INFINITE);
-	//fprintf(stderr, "@@@@@@ done\n");
+	//fprintf(stderr, "@@@ done\n");
 
 	wallclock_msec = GetTickCount() - wallclock_msec;
 
