@@ -42,7 +42,7 @@ DEBUG_PROGRAM   = $(DEBUG_BINPATH)/$(PROGRAM_NAME)
 RELEASE_PROGRAM = $(RELEASE_BINPATH)/$(PROGRAM_NAME)
 
 debug   : CFLAGS = -g -O0 -DDEBUG $(CONFIG_CFLAGS) $(DEBUG_CFLAGS) -W -Wall -Wmissing-prototypes -Wstrict-prototypes -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
-valgrind: CFLAGS = -g -O0 -DDEBUG $(CONFIG_CFLAGS) $(DEBUG_CFLAGS) -DFLAC__VALGRIND_TESTING -W -Wall --Wmissing-prototypes -Wstrict-prototypes DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+valgrind: CFLAGS = -g -O0 -DDEBUG $(CONFIG_CFLAGS) $(DEBUG_CFLAGS) -DFLAC__VALGRIND_TESTING -W -Wall -Wmissing-prototypes -Wstrict-prototypes -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 release : CFLAGS = -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(CONFIG_CFLAGS) $(RELEASE_CFLAGS) -W -Wall -Wmissing-prototypes -Wstrict-prototypes -Winline -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
 LFLAGS  = -L$(LIBPATH)
