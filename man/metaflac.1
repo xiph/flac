@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "METAFLAC" "1" "12 February 2007" "" ""
+.TH "METAFLAC" "1" "14 September 2007" "" ""
 
 .SH NAME
 metaflac \- program to list, add, remove, or edit metadata in one or more FLAC files.
@@ -31,7 +31,7 @@ if only one FLAC file is specified).
 .TP
 \fB--no-utf8-convert\fR
 Do not convert tags from UTF-8 to local charset, or vice versa. This is
-useful for scripts.
+useful for scripts, and setting tags in situations where the locale is wrong.
 .TP
 \fB--dont-use-padding\fR
 By default metaflac tries to use padding where possible to avoid
@@ -188,7 +188,7 @@ Export PICTURE block to a file.  Use '-' for stdout.  Only one FLAC file may be 
 \fB--add-replay-gain\fR
 Calculates the title and album gains/peaks of the given FLAC
 files as if all the files were part of one album, then stores
-them in the VORBIS_COMMENT block.  The tags are the same as
+them as FLAC tags.  The tags are the same as
 those used by vorbisgain.  Existing ReplayGain tags will be
 replaced.  If only one FLAC file is given, the album and title
 gains will be the same.  Since this operation requires two

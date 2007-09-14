@@ -3,16 +3,16 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "12 February 2007" "" ""
+.TH "FLAC" "1" "14 September 2007" "" ""
 
 .SH NAME
 flac \- Free Lossless Audio Codec
 .SH SYNOPSIS
 
-\fBflac\fR [ \fB\fIOPTIONS\fB\fR ] [ \fB\fIinfile.wav\fB\fR | \fB\fIinfile.aiff\fB\fR | \fB\fIinfile.raw\fB\fR | \fB\fIinfile.flac\fB\fR | \fB\fIinfile.ogg\fB\fR | \fB-\fR\fI ...\fR ]
+\fBflac\fR [ \fB\fIOPTIONS\fB\fR ] [ \fB\fIinfile.wav\fB\fR | \fB\fIinfile.aiff\fB\fR | \fB\fIinfile.raw\fB\fR | \fB\fIinfile.flac\fB\fR | \fB\fIinfile.oga\fB\fR | \fB\fIinfile.ogg\fB\fR | \fB-\fR\fI ...\fR ]
 
 
-\fBflac\fR [ \fB-d\fR | \fB--decode\fR | \fB-t\fR | \fB--test\fR | \fB-a\fR | \fB--analyze\fR ] [ \fB\fIOPTIONS\fB\fR ] [ \fB\fIinfile.flac\fB\fR | \fB\fIinfile.ogg\fB\fR | \fB-\fR\fI ...\fR ]
+\fBflac\fR [ \fB-d\fR | \fB--decode\fR | \fB-t\fR | \fB--test\fR | \fB-a\fR | \fB--analyze\fR ] [ \fB\fIOPTIONS\fB\fR ] [ \fB\fIinfile.flac\fB\fR | \fB\fIinfile.oga\fB\fR | \fB\fIinfile.ogg\fB\fR | \fB-\fR\fI ...\fR ]
 
 .SH "DESCRIPTION"
 .PP
@@ -50,6 +50,9 @@ Silent mode (do not write runtime encode/decode statistics to stderr)
 \fB--totally-silent \fR
 Do not print anything of any kind, including warnings or errors.  The exit code will be the only way to determine successful completion.
 .TP
+\fB--no-utf8-convert \fR
+Do not convert tags from local charset to UTF-8.  This is useful for scripts, and setting tags in situations where the locale is wrong.  This option must appear before any tag options!
+.TP
 \fB-w, --warnings-as-errors \fR
 Treat all warnings as errors (which cause flac to terminate with a non-zero exit code).
 .TP
@@ -65,6 +68,9 @@ Prefix each output file name with the given string.  This can be useful for enco
 \fB--delete-input-file \fR
 Automatically delete the input file after a successful encode or decode.  If there was an error (including a verify error) the input file is left intact.
 .TP
+\fB--keep-foreign-metadata \fR
+If encoding, save WAVE or AIFF non-audio chunks in FLAC metadata.  If decoding, restore any saved non-audio chunks from FLAC metadata when writing the decoded file.  Foreign metadata cannot be transcoded, e.g. WAVE chunks saved in a FLAC file cannot be restored when decoding to AIFF.  Input and output must be regular files (not stdin or stdout).
+.TP
 \fB--skip={\fI#\fB|\fImm:ss.ss\fB}\fR
 Skip over the first number of samples of the input.  This works for both encoding and decoding, but not testing.  The alternative form mm:ss.ss can be used to specify minutes, seconds, and fractions of a second.
 .TP
@@ -72,9 +78,9 @@ Skip over the first number of samples of the input.  This works for both encodin
 Stop at the given sample number for each input file.  This works for both encoding and decoding, but not testing.  The given sample number is not included in the decoded output.  The alternative form mm:ss.ss can be used to specify minutes, seconds, and fractions of a second.  If a `+' (plus) sign is at the beginning, the --until point is relative to the --skip point.  If a `-' (minus) sign is at the beginning, the --until point is relative to end of the audio.
 .TP
 \fB--ogg\fR
-When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.ogg' extension and will still be decodable by flac.
+When encoding, generate Ogg FLAC output instead of native FLAC.  Ogg FLAC streams are FLAC streams wrapped in an Ogg transport layer.  The resulting file should have an '.oga' extension and will still be decodable by flac.
 
-When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.ogg'.
+When decoding, force the input to be treated as Ogg FLAC.  This is useful when piping input from stdin or when the filename does not end in '.oga' or '.ogg'.
 .TP
 \fB--serial-number=\fI#\fB\fR
 When used with --ogg, specifies the serial number to use for the first Ogg FLAC stream, which is then incremented for each additional stream.  When encoding and no serial number is given, flac uses a random number for the first stream, then increments it for each additional stream.  When decoding and no number is given, flac uses the serial number of the first page.
