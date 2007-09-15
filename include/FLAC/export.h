@@ -71,9 +71,9 @@
 /** These #defines will mirror the libtool-based library version number, see
  * http://www.gnu.org/software/libtool/manual.html#Libtool-versioning
  */
-#define FLAC_API_VERSION_CURRENT 9
+#define FLAC_API_VERSION_CURRENT 10
 #define FLAC_API_VERSION_REVISION 0 /**< see above */
-#define FLAC_API_VERSION_AGE 1 /**< see above */
+#define FLAC_API_VERSION_AGE 2 /**< see above */
 
 #ifdef __cplusplus
 extern "C" {
