@@ -14,13 +14,13 @@ EndProject
 Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "example_cpp_decode_file", "examples\cpp\decode\file\example_cpp_decode_file.vcproj", "{4cefbe00-c215-11db-8314-0800200c9a66}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4cefbc84-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
-		{4cefbc86-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
+		{4cefbc86-c215-11db-8314-0800200c9a66} = {4cefbc86-c215-11db-8314-0800200c9a66}
 	EndProjectSection
 EndProject
 Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "example_cpp_encode_file", "examples\cpp\encode\file\example_cpp_encode_file.vcproj", "{4cefbe01-c215-11db-8314-0800200c9a66}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4cefbc84-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
-		{4cefbc86-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
+		{4cefbc86-c215-11db-8314-0800200c9a66} = {4cefbc86-c215-11db-8314-0800200c9a66}
 	EndProjectSection
 EndProject
 Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "flac", "src\flac\flac.vcproj", "{4cefbc7d-c215-11db-8314-0800200c9a66}"
