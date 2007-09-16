@@ -148,7 +148,7 @@ extra (and more verbose) error checking.
 assembly routines.  Many routines have assembly versions for
 speed and `configure' is pretty good about knowing what is
 supported, but you can use this option to build only from the
-C sources.
+C sources.  May be necessary for building on OS X (Intel)
 
 --enable-sse : If you are building for an x86 CPU that supports
 SSE instructions, you can enable some of the faster routines

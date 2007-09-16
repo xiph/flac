@@ -20,6 +20,15 @@
 #
 # before running autogen.sh
 #
+# If you are running on OS X and get errors related to the AM_ICONV
+# and/or AM_LANGINFO_CODESET macros, replace those 2 lines in
+# configure.in with
+#
+#   AC_DEFINE([HAVE_ICONV], [], [Whether we have libiconv available]) LIBICONV="-liconv"
+#   AC_SUBST(LIBICONV)
+#
+# See also http://lists.xiph.org/pipermail/flac-dev/2007-September/002384.html
+#
 # Also watchout, if you replace ltmain.sh, there is a bug in some
 # versions of libtool (or maybe autoconf) on some platforms where the
 # configure-generated libtool does not have $SED defined.  See also:
