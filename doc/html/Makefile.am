@@ -24,9 +24,29 @@ docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/html
 doc_DATA = \
 	changelog.html \
 	comparison.html \
+	comparison__chopin_prelude_24.html \
+	comparison__dream_theater_600.html \
+	comparison__eddie_warner_titus.html \
+	comparison__fanfare_de_l_eventail_de_jeanne.html \
+	comparison__gloria_estefan_conga.html \
+	comparison__hand_in_my_pocket.html \
+	comparison__l_sub_raga_sivapriya.html \
+	comparison__laetatus_sum.html \
+	comparison__mummified_in_barbed_wire.html \
+	comparison__prokofiev_pcon3_3.html \
+	comparison__ravel_sq4_4.html \
+	comparison__scarlatti_k42.html \
+	comparison__tool_forty_six_and_2.html \
+	comparison__white_room.html \
+	comparison_all_cpudectime.html \
+	comparison_all_cpuenctime.html \
+	comparison_all_procdectime.html \
+	comparison_all_procenctime.html \
+	comparison_all_ratio.html \
 	developers.html \
 	documentation.html \
 	documentation_bugs.html \
+	documentation_example_code.html \
 	documentation_format_overview.html \
 	documentation_tasks.html \
 	documentation_tools.html \

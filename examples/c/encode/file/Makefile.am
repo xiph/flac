@@ -22,6 +22,7 @@ EXTRA_DIST = \
 
 noinst_PROGRAMS = example_c_encode_file
 example_c_encode_file_LDADD = \
+	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
 	@MINGW_WINSOCK_LIBS@ \
 	-lm

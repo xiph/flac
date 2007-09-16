@@ -22,7 +22,9 @@ EXTRA_DIST = \
 
 noinst_PROGRAMS = example_cpp_encode_file
 example_cpp_encode_file_LDADD = \
+	$(top_builddir)/src/libFLAC++/libFLAC++.la \
+	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
 	@MINGW_WINSOCK_LIBS@ \
 	-lm
-example_cpp_encode_file_SOURCES = main.c
+example_cpp_encode_file_SOURCES = main.cpp
