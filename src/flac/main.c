@@ -57,8 +57,6 @@
 #  include "share/getopt.h"
 #endif
 
-typedef enum { RAW, WAV, AIF, FLAC, OGGFLAC } FileFormat;
-
 static int do_it(void);
 
 static FLAC__bool init_options(void);
@@ -1161,6 +1159,9 @@ static void usage_summary(void)
 	printf("  Testing: flac -t [<general-options>] [FLACFILE [...]]\n");
 	printf("Analyzing: flac -a [<general-options>] [<analysis-options>] [FLACFILE [...]]\n");
 	printf("\n");
+	printf("Be sure to read the list of known bugs at:\n");
+	printf("http://flac.sourceforge.net/documentation_bugs.html\n");
+	printf("\n");
 }
 
 void short_usage(void)
@@ -1169,6 +1170,9 @@ void short_usage(void)
 	printf("\n");
 	printf("This is the short help; for all options use 'flac --help'; for even more\n");
 	printf("instructions use 'flac --explain'\n");
+	printf("\n");
+	printf("Be sure to read the list of known bugs at:\n");
+	printf("http://flac.sourceforge.net/documentation_bugs.html\n");
 	printf("\n");
 	printf("To encode:\n");
 	printf("  flac [-#] [INPUTFILE [...]]\n");
@@ -1613,8 +1617,8 @@ void show_explain(void)
 void format_mistake(const char *infilename, FileFormat wrong, FileFormat right)
 {
 	/* WATCHOUT: indexed by FileFormat */
-	static const char * const ff[] = { "raw", "WAVE", "AIFF", "FLAC", "Ogg FLAC" };
-	flac__utils_printf(stderr, 1, "WARNING: %s is not a %s file; treating as a %s file\n", infilename, ff[wrong], ff[right]);
+	static const char * const ff[] = { " raw", " WAVE", "n AIFF", "n AIFF-C", " FLAC", "n Ogg FLAC" };
+	flac__utils_printf(stderr, 1, "WARNING: %s is not a%s file; treating as a%s file\n", infilename, ff[wrong], ff[right]);
 }
 
 int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file)
@@ -1622,8 +1626,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	FILE *encode_infile;
 	FLAC__byte lookahead[12];
 	unsigned lookahead_length = 0;
-	FileFormat input_format = RAW;
-	FLAC__bool is_aifc = false;
+	FileFormat input_format = FORMAT_RAW;
 	int retval;
 	off_t infilesize;
 	encode_options_t common_options;
@@ -1651,28 +1654,28 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	if(!option_values.force_raw_format) {
 		/* first set format based on name */
 		if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".wav"))
-			input_format = WAV;
+			input_format = FORMAT_WAVE;
 		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".aif"))
-			input_format = AIF;
+			input_format = FORMAT_AIFF;
 		else if(strlen(infilename) >= 5 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-5), ".aiff"))
-			input_format = AIF;
+			input_format = FORMAT_AIFF;
 		else if(strlen(infilename) >= 5 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-5), ".flac"))
-			input_format = FLAC;
+			input_format = FORMAT_FLAC;
 		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".oga"))
-			input_format = OGGFLAC;
+			input_format = FORMAT_OGGFLAC;
 		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".ogg"))
-			input_format = OGGFLAC;
+			input_format = FORMAT_OGGFLAC;
 
 		/* attempt to guess the file type based on the first 12 bytes */
 		if((lookahead_length = fread(lookahead, 1, 12, encode_infile)) < 12) {
-			if(input_format != RAW) {
-				format_mistake(infilename, input_format, RAW);
+			if(input_format != FORMAT_RAW) {
+				format_mistake(infilename, input_format, FORMAT_RAW);
 				if(option_values.treat_warnings_as_errors) {
 					conditional_fclose(encode_infile);
 					return 1;
 				}
 			}
-			input_format = RAW;
+			input_format = FORMAT_RAW;
 		}
 		else {
 			if(!strncmp((const char *)lookahead, "ID3", 3)) {
@@ -1680,27 +1683,25 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				return 1;
 			}
 			else if(!strncmp((const char *)lookahead, "RIFF", 4) && !strncmp((const char *)lookahead+8, "WAVE", 4))
-				input_format = WAV;
+				input_format = FORMAT_WAVE;
 			else if(!strncmp((const char *)lookahead, "FORM", 4) && !strncmp((const char *)lookahead+8, "AIFF", 4))
-				input_format = AIF;
-			else if(!strncmp((const char *)lookahead, "FORM", 4) && !strncmp((const char *)lookahead+8, "AIFC", 4)) {
-				input_format = AIF;
-				is_aifc = true;
-			}
+				input_format = FORMAT_AIFF;
+			else if(!strncmp((const char *)lookahead, "FORM", 4) && !strncmp((const char *)lookahead+8, "AIFC", 4))
+				input_format = FORMAT_AIFF_C;
 			else if(!memcmp(lookahead, FLAC__STREAM_SYNC_STRING, sizeof(FLAC__STREAM_SYNC_STRING)))
-				input_format = FLAC;
+				input_format = FORMAT_FLAC;
 			/* this could be made more accurate by looking at the first packet */
 			else if(!memcmp(lookahead, "OggS", 4))
-				input_format = OGGFLAC;
+				input_format = FORMAT_OGGFLAC;
 			else {
-				if(input_format != RAW) {
-					format_mistake(infilename, input_format, RAW);
+				if(input_format != FORMAT_RAW) {
+					format_mistake(infilename, input_format, FORMAT_RAW);
 					if(option_values.treat_warnings_as_errors) {
 						conditional_fclose(encode_infile);
 						return 1;
 					}
 				}
-				input_format = RAW;
+				input_format = FORMAT_RAW;
 			}
 		}
 	}
@@ -1710,7 +1711,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			conditional_fclose(encode_infile);
 			return usage_error("ERROR: --keep-foreign-metadata cannot be used when encoding from stdin or to stdout\n");
 		}
-		if(input_format != WAV && input_format != AIF) {
+		if(input_format != FORMAT_WAVE && input_format != FORMAT_AIFF && input_format != FORMAT_AIFF_C) {
 			conditional_fclose(encode_infile);
 			return usage_error("ERROR: --keep-foreign-metadata can only be used with WAVE or AIFF input\n");
 		}
@@ -1721,7 +1722,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	 * Use grabbag__file_get_filesize() as a cheap way to check.
 	 */
 	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
-		if(input_format == FLAC) {
+		if(input_format == FORMAT_FLAC) {
 			/* need more detailed error message when re-flac'ing to avoid confusing the user */
 			flac__utils_printf(stderr, 1,
 				"ERROR: output file %s already exists.\n\n"
@@ -1732,7 +1733,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				outfilename
 			);
 		}
-		else if(input_format == OGGFLAC) {
+		else if(input_format == FORMAT_OGGFLAC) {
 			/* need more detailed error message when re-flac'ing to avoid confusing the user */
 			flac__utils_printf(stderr, 1,
 				"ERROR: output file %s already exists.\n\n"
@@ -1750,7 +1751,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 
 	if(option_values.format_input_size >= 0) {
-	   	if (input_format != RAW || infilesize >= 0) {
+	   	if (input_format != FORMAT_RAW || infilesize >= 0) {
 			flac__utils_printf(stderr, 1, "ERROR: can only use --input-size when encoding raw samples from stdin\n");
 			conditional_fclose(encode_infile);
 			return 1;
@@ -1760,18 +1761,18 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 	}
 
-	if(option_values.sector_align && (input_format == FLAC || input_format == OGGFLAC)) {
+	if(option_values.sector_align && (input_format == FORMAT_FLAC || input_format == FORMAT_OGGFLAC)) {
 		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input file is FLAC or Ogg FLAC\n");
 		conditional_fclose(encode_infile);
 		return 1;
 	}
-	if(option_values.sector_align && input_format == RAW && infilesize < 0) {
+	if(option_values.sector_align && input_format == FORMAT_RAW && infilesize < 0) {
 		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input size is unknown\n");
 		conditional_fclose(encode_infile);
 		return 1;
 	}
 
-	if(input_format == RAW) {
+	if(input_format == FORMAT_RAW) {
 		if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0) {
 			conditional_fclose(encode_infile);
 			return usage_error("ERROR: for encoding a raw file you must specify a value for --endian, --sign, --channels, --bps, and --sample-rate\n");
@@ -1853,7 +1854,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		strcat(internal_outfilename, tmp_suffix);
 	}
 
-	if(input_format == RAW) {
+	if(input_format == FORMAT_RAW) {
 		raw_encode_options_t options;
 
 		options.common = common_options;
@@ -1865,12 +1866,12 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 		retval = flac__encode_raw(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
 	}
-	else if(input_format == FLAC || input_format == OGGFLAC) {
+	else if(input_format == FORMAT_FLAC || input_format == FORMAT_OGGFLAC) {
 		flac_encode_options_t options;
 
 		options.common = common_options;
 
-		retval = flac__encode_flac(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options, input_format==OGGFLAC);
+		retval = flac__encode_flac(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options, input_format==FORMAT_OGGFLAC);
 	}
 	else {
 		wav_encode_options_t options;
@@ -1880,17 +1881,17 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 		/* read foreign metadata if requested */
 		if(option_values.keep_foreign_metadata) {
-			if(0 == (options.foreign_metadata = flac__foreign_metadata_new(input_format==AIF? FOREIGN_BLOCK_TYPE__AIFF : FOREIGN_BLOCK_TYPE__RIFF))) {
+			if(0 == (options.foreign_metadata = flac__foreign_metadata_new(input_format==FORMAT_WAVE? FOREIGN_BLOCK_TYPE__RIFF : FOREIGN_BLOCK_TYPE__AIFF))) {
 				flac__utils_printf(stderr, 1, "ERROR: creating foreign metadata object\n");
 				conditional_fclose(encode_infile);
 				return 1;
 			}
 		}
 
-		if(input_format == AIF)
-			retval = flac__encode_aif(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options, is_aifc);
+		if(input_format == FORMAT_WAVE)
+			retval = flac__encode_wave(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
 		else
-			retval = flac__encode_wav(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
+			retval = flac__encode_aiff(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options, input_format==FORMAT_AIFF_C);
 
 		if(options.foreign_metadata)
 			flac__foreign_metadata_delete(options.foreign_metadata);
@@ -1949,7 +1950,7 @@ int decode_file(const char *infilename)
 {
 	int retval;
 	FLAC__bool treat_as_ogg = false;
-	FileFormat output_format = WAV;
+	FileFormat output_format = FORMAT_WAVE;
 	decode_options_t common_options;
 	const char *outfilename = get_decoded_outfilename(infilename);
 
@@ -1968,25 +1969,25 @@ int decode_file(const char *infilename)
 	}
 
 	if(option_values.force_raw_format)
-		output_format = RAW;
+		output_format = FORMAT_RAW;
 	else if(
 		option_values.force_aiff_format ||
 		(strlen(outfilename) >= 4 && 0 == FLAC__STRCASECMP(outfilename+(strlen(outfilename)-4), ".aif")) ||
 		(strlen(outfilename) >= 5 && 0 == FLAC__STRCASECMP(outfilename+(strlen(outfilename)-5), ".aiff"))
 	)
-		output_format = AIF;
+		output_format = FORMAT_AIFF;
 	else
-		output_format = WAV;
+		output_format = FORMAT_WAVE;
 
 	if(!option_values.test_only && !option_values.analyze) {
-		if(output_format == RAW && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0))
+		if(output_format == FORMAT_RAW && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0))
 			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian and --sign\n");
 	}
 
 	if(option_values.keep_foreign_metadata) {
 		if(0 == strcmp(infilename, "-") || 0 == strcmp(outfilename, "-"))
 			return usage_error("ERROR: --keep-foreign-metadata cannot be used when decoding from stdin or to stdout\n");
-		if(output_format != WAV && output_format != AIF)
+		if(output_format != FORMAT_WAVE && output_format != FORMAT_AIFF)
 			return usage_error("ERROR: --keep-foreign-metadata can only be used with WAVE or AIFF output\n");
 	}
 
@@ -2033,7 +2034,7 @@ int decode_file(const char *infilename)
 #endif
 	common_options.channel_map_none = option_values.channel_map_none;
 
-	if(output_format == RAW) {
+	if(output_format == FORMAT_RAW) {
 		raw_decode_options_t options;
 
 		options.common = common_options;
@@ -2050,16 +2051,16 @@ int decode_file(const char *infilename)
 
 		/* read foreign metadata if requested */
 		if(option_values.keep_foreign_metadata) {
-			if(0 == (options.foreign_metadata = flac__foreign_metadata_new(output_format==AIF? FOREIGN_BLOCK_TYPE__AIFF : FOREIGN_BLOCK_TYPE__RIFF))) {
+			if(0 == (options.foreign_metadata = flac__foreign_metadata_new(output_format==FORMAT_WAVE? FOREIGN_BLOCK_TYPE__RIFF : FOREIGN_BLOCK_TYPE__AIFF))) {
 				flac__utils_printf(stderr, 1, "ERROR: creating foreign metadata object\n");
 				return 1;
 			}
 		}
 
-		if(output_format == AIF)
-			retval = flac__decode_aiff(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
-		else
+		if(output_format == FORMAT_WAVE)
 			retval = flac__decode_wav(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
+		else
+			retval = flac__decode_aiff(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, options);
 
 		if(options.foreign_metadata)
 			flac__foreign_metadata_delete(options.foreign_metadata);

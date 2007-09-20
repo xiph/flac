@@ -27,6 +27,8 @@
 #include "FLAC/format.h" /* for FLAC__StreamMetadata_CueSheet */
 #include <stdio.h> /* for FILE */
 
+typedef enum { FORMAT_RAW, FORMAT_WAVE, FORMAT_AIFF, FORMAT_AIFF_C, FORMAT_FLAC, FORMAT_OGGFLAC } FileFormat;
+
 typedef struct {
 	FLAC__bool is_relative; /* i.e. specification string started with + or - */
 	FLAC__bool value_is_samples;
