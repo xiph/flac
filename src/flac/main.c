@@ -150,7 +150,7 @@ static struct share__option long_options_[] = {
 	{ "lax"                       , share__no_argument, 0, 0 },
 	{ "replay-gain"               , share__no_argument, 0, 0 },
 	{ "ignore-chunk-sizes"        , share__no_argument, 0, 0 },
-	{ "sector-align"              , share__no_argument, 0, 0 },
+	{ "sector-align"              , share__no_argument, 0, 0 }, /* DEPRECATED */
 	{ "seekpoint"                 , share__required_argument, 0, 'S' },
 	{ "padding"                   , share__required_argument, 0, 'P' },
 #if FLAC__HAS_OGG
@@ -190,7 +190,7 @@ static struct share__option long_options_[] = {
 	{ "no-keep-foreign-metadata"  , share__no_argument, 0, 0 },
 	{ "no-replay-gain"            , share__no_argument, 0, 0 },
 	{ "no-ignore-chunk-sizes"     , share__no_argument, 0, 0 },
-	{ "no-sector-align"           , share__no_argument, 0, 0 },
+	{ "no-sector-align"           , share__no_argument, 0, 0 }, /* DEPRECATED */
 	{ "no-utf8-convert"           , share__no_argument, 0, 0 },
 	{ "no-lax"                    , share__no_argument, 0, 0 },
 #if FLAC__HAS_OGG
@@ -287,7 +287,7 @@ static struct {
  * miscellaneous globals
  */
 
-static FLAC__int32 align_reservoir_0[588], align_reservoir_1[588]; /* for carrying over samples from --sector-align */
+static FLAC__int32 align_reservoir_0[588], align_reservoir_1[588]; /* for carrying over samples from --sector-align */ /* DEPRECATED */
 static FLAC__int32 *align_reservoir[2] = { align_reservoir_0, align_reservoir_1 };
 static unsigned align_reservoir_samples = 0; /* 0 .. 587 */
 
@@ -766,6 +766,8 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			option_values.ignore_chunk_sizes = true;
 		}
 		else if(0 == strcmp(long_option, "sector-align")) {
+			flac__utils_printf(stderr, 1, "WARNING: --sector-align is DEPRECATED and may not exist in future versions of flac.\n");
+			flac__utils_printf(stderr, 1, "         shntool provides similar functionality\n");
 			option_values.sector_align = true;
 		}
 #if FLAC__HAS_OGG
@@ -1225,7 +1227,7 @@ void show_help(void)
 #if 0 /*@@@ currently undocumented */
 	printf("      --ignore-chunk-sizes     Ignore data chunk sizes in WAVE/AIFF files\n");
 #endif
-	printf("      --sector-align           Align multiple files on sector boundaries\n");
+	printf("      --sector-align (DEPRECATED) Align multiple files on sector boundaries\n");
 	printf("      --replay-gain            Calculate ReplayGain & store in FLAC tags\n");
 	printf("      --cuesheet=FILENAME      Import cuesheet and store in CUESHEET block\n");
 	printf("      --picture=SPECIFICATION  Import picture and store in PICTURE block\n");
@@ -1418,7 +1420,9 @@ void show_explain(void)
 	printf("                               generate bogus data chunk sizes.\n");
 #endif
 	printf("      --sector-align           Align encoding of multiple CD format WAVE files\n");
-	printf("                               on sector boundaries.\n");
+	printf("                               on sector boundaries.  This option is DEPRECATED\n");
+	printf("                               and may not exist in future versions of flac.\n");
+	printf("                               shntool offers similar functionality.\n");
 	printf("      --replay-gain            Calculate ReplayGain values and store them as\n");
 	printf("                               FLAC tags.  Title gains/peaks will be computed\n");
 	printf("                               for each file, and an album gain/peak will be\n");
