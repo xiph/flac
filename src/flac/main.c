@@ -110,6 +110,7 @@ static struct share__option long_options_[] = {
 	{ "warnings-as-errors"    , share__no_argument, 0, 'w' },
 	{ "force"                 , share__no_argument, 0, 'f' },
 	{ "delete-input-file"     , share__no_argument, 0, 0 },
+	{ "preserve-modtime"      , share__no_argument, 0, 0 },
 	{ "keep-foreign-metadata" , share__no_argument, 0, 0 },
 	{ "output-prefix"         , share__required_argument, 0, 0 },
 	{ "output-name"           , share__required_argument, 0, 'o' },
@@ -182,6 +183,7 @@ static struct share__option long_options_[] = {
 	/*
 	 * negatives
 	 */
+	{ "no-preserve-modtime"       , share__no_argument, 0, 0 },
 	{ "no-decode-through-errors"  , share__no_argument, 0, 0 },
 	{ "no-silent"                 , share__no_argument, 0, 0 },
 	{ "no-force"                  , share__no_argument, 0, 0 },
@@ -241,6 +243,7 @@ static struct {
 	FLAC__bool force_aiff_format;
 	FLAC__bool force_raw_format;
 	FLAC__bool delete_input;
+	FLAC__bool preserve_modtime;
 	FLAC__bool keep_foreign_metadata;
 	FLAC__bool replay_gain;
 	FLAC__bool ignore_chunk_sizes;
@@ -526,7 +529,7 @@ int do_it(void)
 						flac__utils_printf(stderr, 1, "internal error\n");
 						return 2;
 					}
-					if(0 != (error = grabbag__replaygain_store_to_file_album(outfilename, album_gain, album_peak, /*preserve_modtime=*/true))) {
+					if(0 != (error = grabbag__replaygain_store_to_file_album(outfilename, album_gain, album_peak, option_values.preserve_modtime))) {
 						flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain album tags (%s)\n", outfilename, error);
 						retval = 1;
 					}
@@ -562,6 +565,7 @@ FLAC__bool init_options(void)
 	option_values.force_aiff_format = false;
 	option_values.force_raw_format = false;
 	option_values.delete_input = false;
+	option_values.preserve_modtime = true;
 	option_values.keep_foreign_metadata = false;
 	option_values.replay_gain = false;
 	option_values.ignore_chunk_sizes = false;
@@ -659,6 +663,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "delete-input-file")) {
 			option_values.delete_input = true;
+		}
+		else if(0 == strcmp(long_option, "preserve-modtime")) {
+			option_values.preserve_modtime = true;
 		}
 		else if(0 == strcmp(long_option, "keep-foreign-metadata")) {
 			option_values.keep_foreign_metadata = true;
@@ -818,6 +825,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		/*
 		 * negatives
 		 */
+		else if(0 == strcmp(long_option, "no-preserve-modtime")) {
+			option_values.preserve_modtime = false;
+		}
 		else if(0 == strcmp(long_option, "no-decode-through-errors")) {
 			option_values.continue_through_decode_errors = false;
 		}
@@ -1208,6 +1218,7 @@ void show_help(void)
 	printf("  -o, --output-name=FILENAME   Force the output file name\n");
 	printf("      --output-prefix=STRING   Prepend STRING to output names\n");
 	printf("      --delete-input-file      Deletes after a successful encode/decode\n");
+	printf("      --preserve-modtime       Output files keep timestamp of input (default)\n");
 	printf("      --keep-foreign-metadata  Save/restore WAVE or AIFF non-audio chunks\n");
 	printf("      --skip={#|mm:ss.ss}      Skip the given initial samples for each input\n");
 	printf("      --until={#|[+|-]mm:ss.ss}  Stop at the given sample for each input file\n");
@@ -1266,6 +1277,7 @@ void show_help(void)
 	printf("      --no-adaptive-mid-side\n");
 	printf("      --no-decode-through-errors\n");
 	printf("      --no-delete-input-file\n");
+	printf("      --no-preserve-modtime\n");
 	printf("      --no-keep-foreign-metadata\n");
 	printf("      --no-exhaustive-model-search\n");
 	printf("      --no-lax\n");
@@ -1344,6 +1356,11 @@ void show_explain(void)
 	printf("                               successful encode or decode.  If there was an\n");
 	printf("                               error (including a verify error) the input file\n");
 	printf("                               is left intact.\n");
+	printf("      --preserve-modtime       Output files have their timestamps/permissions\n");
+	printf("                               set to match those of their inputs (this is\n");
+	printf("                               default).  Use --no-preserve-modtime to make\n");
+	printf("                               output files have the current time and default\n");
+	printf("                               permissions.\n");
 	printf("      --keep-foreign-metadata  If encoding, save WAVE or AIFF non-audio chunks\n");
 	printf("                               in FLAC metadata.  If decoding, restore any saved\n");
 	printf("                               non-audio chunks from FLAC metadata when writing\n");
@@ -1596,6 +1613,7 @@ void show_explain(void)
 	printf("      --no-adaptive-mid-side\n");
 	printf("      --no-decode-through-errors\n");
 	printf("      --no-delete-input-file\n");
+	printf("      --no-preserve-modtime\n");
 	printf("      --no-keep-foreign-metadata\n");
 	printf("      --no-exhaustive-model-search\n");
 	printf("      --no-lax\n");
@@ -1900,14 +1918,14 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				const char *error;
 				grabbag__replaygain_get_title(&title_gain, &title_peak);
 				if(
-					0 != (error = grabbag__replaygain_store_to_file_reference(internal_outfilename? internal_outfilename : outfilename, /*preserve_modtime=*/true)) ||
-					0 != (error = grabbag__replaygain_store_to_file_title(internal_outfilename? internal_outfilename : outfilename, title_gain, title_peak, /*preserve_modtime=*/true))
+					0 != (error = grabbag__replaygain_store_to_file_reference(internal_outfilename? internal_outfilename : outfilename, option_values.preserve_modtime)) ||
+					0 != (error = grabbag__replaygain_store_to_file_title(internal_outfilename? internal_outfilename : outfilename, title_gain, title_peak, option_values.preserve_modtime))
 				) {
 					flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain reference/title tags (%s)\n", outfilename, error);
 					retval = 1;
 				}
 			}
-			if(strcmp(infilename, "-"))
+			if(option_values.preserve_modtime && strcmp(infilename, "-"))
 				grabbag__file_copy_metadata(infilename, internal_outfilename? internal_outfilename : outfilename);
 		}
 	}
@@ -2063,7 +2081,7 @@ int decode_file(const char *infilename)
 	}
 
 	if(retval == 0 && strcmp(infilename, "-")) {
-		if(strcmp(outfilename, "-"))
+		if(option_values.preserve_modtime && strcmp(outfilename, "-"))
 			grabbag__file_copy_metadata(infilename, outfilename);
 		if(option_values.delete_input && !option_values.test_only && !option_values.analyze)
 			unlink(infilename);
