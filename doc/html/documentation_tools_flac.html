@@ -319,6 +319,15 @@
 			</tr>
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_preserve_modtime" />
+					<span class="argument">--preserve-modtime</span>
+				</td>
+				<td>
+					Output files have their timestamps/permissions set to match those of their inputs (this is default).  Use <span class="argument">--no-preserve-modtime</span> to make output files have the current time and default permissions.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_keep_foreign_metadata" />
 					<span class="argument">--keep-foreign-metadata</span>
 				</td>
@@ -611,7 +620,9 @@
 					<br />
 					This option will have no effect if the files are already aligned (as is the normally the case with WAVE files ripped from a CD).  <span class="commandname">flac</span> can only align a set of files given in one invocation of <span class="commandname">flac</span>.<br />
 					<br />
-					<b>WARNING:</b> The ordering of files is important!  If you give a command like '<span class="code">flac --sector-align *.wav</span>' the shell may not expand the wildcard to the order you expect.  To be safe you should '<span class="code">echo *.wav</span>' first to confirm the order, or be explicit like '<span class="code">flac --sector-align 8.wav 9.wav 10.wav</span>'.
+					<b>WARNING:</b> The ordering of files is important!  If you give a command like '<span class="code">flac --sector-align *.wav</span>' the shell may not expand the wildcard to the order you expect.  To be safe you should '<span class="code">echo *.wav</span>' first to confirm the order, or be explicit like '<span class="code">flac --sector-align 8.wav 9.wav 10.wav</span>'.<br />
+					<br />
+					<b>NOTE:</b>This option is DEPRECATED and may not exist in future version of <span class="commandname">flac</span>.  <a href="http://www.etree.org/shnutils/shntool/">shntool</a> provides similar functionality.
 				</td>
 			</tr>
 			<tr>
@@ -1053,10 +1064,12 @@
 		<a href="#negative_options" /><span class="argument">--no-delete-input-file</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-escape-coding</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-exhaustive-model-search</span></a><br />
+		<a href="#negative_options" /><span class="argument">--no-keep-foreign-metadata</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-lax</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-mid-side</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-ogg</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-padding</span></a><br />
+		<a href="#negative_options" /><span class="argument">--no-preserve-modtime</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-qlp-coeff-precision-search</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-residual-gnuplot</span></a><br />
 		<a href="#negative_options" /><span class="argument">--no-residual-text</span></a><br />

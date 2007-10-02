@@ -206,6 +206,14 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>--preserve-modtime</option>
+	  </term>
+	  <listitem>
+	    <para>Output files have their timestamps/permissions set to match those of their inputs (this is default).  Use --no-preserve-modtime to make output files have the current time and default permissions.</para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>--keep-foreign-metadata</option>
 	  </term>
 	  <listitem>
@@ -376,7 +384,7 @@
 	  <term><option>--sector-align</option></term>
 
 	  <listitem>
-	    <para>Align encoding of multiple CD format files on sector boundaries.  See the HTML documentation for more information.</para>
+	    <para>Align encoding of multiple CD format files on sector boundaries.  See the HTML documentation for more information.  This option is DEPRECATED and may not exist in future versions of flac.</para>
 	  </listitem>
 	</varlistentry>
 
@@ -670,6 +678,8 @@
 	  <term><option>--no-adaptive-mid-side</option></term>
 	  <term><option>--no-decode-through-errors</option></term>
 	  <term><option>--no-delete-input-file</option></term>
+	  <term><option>--no-preserve-modtime</option></term>
+	  <term><option>--no-keep-foreign-metadata</option></term>
 	  <term><option>--no-exhaustive-model-search</option></term>
 	  <term><option>--no-lax</option></term>
 	  <term><option>--no-mid-side</option></term>
