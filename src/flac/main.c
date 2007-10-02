@@ -1629,7 +1629,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	FileFormat input_format = FORMAT_RAW;
 	int retval;
 	off_t infilesize;
-	encode_options_t common_options;
+	encode_options_t encode_options;
 	const char *outfilename = get_encoded_outfilename(infilename); /* the final name of the encoded file */
 	/* internal_outfilename is the file we will actually write to; it will be a temporary name if infilename==outfilename */
 	char *internal_outfilename = 0; /* NULL implies 'use outfilename' */
@@ -1790,56 +1790,57 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		return usage_error("ERROR: --replay-gain cannot be used when encoding to Ogg FLAC yet\n");
 	}
 
-	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &common_options.skip_specification) || common_options.skip_specification.is_relative) {
+	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &encode_options.skip_specification) || encode_options.skip_specification.is_relative) {
 		conditional_fclose(encode_infile);
 		return usage_error("ERROR: invalid value for --skip\n");
 	}
 
-	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &common_options.until_specification)) { /*@@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
+	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &encode_options.until_specification)) { /*@@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
 		conditional_fclose(encode_infile);
 		return usage_error("ERROR: invalid value for --until\n");
 	}
 	/* if there is no "--until" we want to default to "--until=-0" */
 	if(0 == option_values.until_specification)
-		common_options.until_specification.is_relative = true;
+		encode_options.until_specification.is_relative = true;
 
-	common_options.verify = option_values.verify;
-	common_options.treat_warnings_as_errors = option_values.treat_warnings_as_errors;
+	encode_options.verify = option_values.verify;
+	encode_options.treat_warnings_as_errors = option_values.treat_warnings_as_errors;
 #if FLAC__HAS_OGG
-	common_options.use_ogg = option_values.use_ogg;
+	encode_options.use_ogg = option_values.use_ogg;
 	/* set a random serial number if one has not yet been specified */
 	if(!option_values.has_serial_number) {
 		option_values.serial_number = rand();
 		option_values.has_serial_number = true;
 	}
-	common_options.serial_number = option_values.serial_number++;
+	encode_options.serial_number = option_values.serial_number++;
 #endif
-	common_options.lax = option_values.lax;
-	common_options.padding = option_values.padding;
-	common_options.num_compression_settings = option_values.num_compression_settings;
-	FLAC__ASSERT(sizeof(common_options.compression_settings) >= sizeof(option_values.compression_settings));
-	memcpy(common_options.compression_settings, option_values.compression_settings, sizeof(option_values.compression_settings));
-	common_options.requested_seek_points = option_values.requested_seek_points;
-	common_options.num_requested_seek_points = option_values.num_requested_seek_points;
-	common_options.cuesheet_filename = option_values.cuesheet_filename;
-	common_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
-	common_options.cued_seekpoints = option_values.cued_seekpoints;
-	common_options.channel_map_none = option_values.channel_map_none;
-	common_options.is_first_file = is_first_file;
-	common_options.is_last_file = is_last_file;
-	common_options.align_reservoir = align_reservoir;
-	common_options.align_reservoir_samples = &align_reservoir_samples;
-	common_options.replay_gain = option_values.replay_gain;
-	common_options.ignore_chunk_sizes = option_values.ignore_chunk_sizes;
-	common_options.sector_align = option_values.sector_align;
-	common_options.vorbis_comment = option_values.vorbis_comment;
-	FLAC__ASSERT(sizeof(common_options.pictures) >= sizeof(option_values.pictures));
-	memcpy(common_options.pictures, option_values.pictures, sizeof(option_values.pictures));
-	common_options.num_pictures = option_values.num_pictures;
-	common_options.debug.disable_constant_subframes = option_values.debug.disable_constant_subframes;
-	common_options.debug.disable_fixed_subframes = option_values.debug.disable_fixed_subframes;
-	common_options.debug.disable_verbatim_subframes = option_values.debug.disable_verbatim_subframes;
-	common_options.debug.do_md5 = option_values.debug.do_md5;
+	encode_options.lax = option_values.lax;
+	encode_options.padding = option_values.padding;
+	encode_options.num_compression_settings = option_values.num_compression_settings;
+	FLAC__ASSERT(sizeof(encode_options.compression_settings) >= sizeof(option_values.compression_settings));
+	memcpy(encode_options.compression_settings, option_values.compression_settings, sizeof(option_values.compression_settings));
+	encode_options.requested_seek_points = option_values.requested_seek_points;
+	encode_options.num_requested_seek_points = option_values.num_requested_seek_points;
+	encode_options.cuesheet_filename = option_values.cuesheet_filename;
+	encode_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
+	encode_options.cued_seekpoints = option_values.cued_seekpoints;
+	encode_options.channel_map_none = option_values.channel_map_none;
+	encode_options.is_first_file = is_first_file;
+	encode_options.is_last_file = is_last_file;
+	encode_options.align_reservoir = align_reservoir;
+	encode_options.align_reservoir_samples = &align_reservoir_samples;
+	encode_options.replay_gain = option_values.replay_gain;
+	encode_options.ignore_chunk_sizes = option_values.ignore_chunk_sizes;
+	encode_options.sector_align = option_values.sector_align;
+	encode_options.vorbis_comment = option_values.vorbis_comment;
+	FLAC__ASSERT(sizeof(encode_options.pictures) >= sizeof(option_values.pictures));
+	memcpy(encode_options.pictures, option_values.pictures, sizeof(option_values.pictures));
+	encode_options.num_pictures = option_values.num_pictures;
+	encode_options.format = input_format;
+	encode_options.debug.disable_constant_subframes = option_values.debug.disable_constant_subframes;
+	encode_options.debug.disable_fixed_subframes = option_values.debug.disable_fixed_subframes;
+	encode_options.debug.disable_verbatim_subframes = option_values.debug.disable_verbatim_subframes;
+	encode_options.debug.do_md5 = option_values.debug.do_md5;
 
 	/* if infilename and outfilename point to the same file, we need to write to a temporary file */
 	if(encode_infile != stdin && grabbag__file_are_same(infilename, outfilename)) {
@@ -1855,46 +1856,37 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 
 	if(input_format == FORMAT_RAW) {
-		raw_encode_options_t options;
+		encode_options.format_options.raw.is_big_endian = option_values.format_is_big_endian;
+		encode_options.format_options.raw.is_unsigned_samples = option_values.format_is_unsigned_samples;
+		encode_options.format_options.raw.channels = option_values.format_channels;
+		encode_options.format_options.raw.bps = option_values.format_bps;
+		encode_options.format_options.raw.sample_rate = option_values.format_sample_rate;
 
-		options.common = common_options;
-		options.is_big_endian = option_values.format_is_big_endian;
-		options.is_unsigned_samples = option_values.format_is_unsigned_samples;
-		options.channels = option_values.format_channels;
-		options.bps = option_values.format_bps;
-		options.sample_rate = option_values.format_sample_rate;
-
-		retval = flac__encode_raw(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
+		retval = flac__encode_file(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, encode_options);
 	}
 	else if(input_format == FORMAT_FLAC || input_format == FORMAT_OGGFLAC) {
-		flac_encode_options_t options;
-
-		options.common = common_options;
-
-		retval = flac__encode_flac(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options, input_format==FORMAT_OGGFLAC);
+		retval = flac__encode_file(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, encode_options);
 	}
-	else {
-		wav_encode_options_t options;
-
-		options.common = common_options;
-		options.foreign_metadata = 0;
+	else if(input_format == FORMAT_WAVE || input_format == FORMAT_AIFF || input_format == FORMAT_AIFF_C) {
+		encode_options.format_options.iff.foreign_metadata = 0;
 
 		/* read foreign metadata if requested */
 		if(option_values.keep_foreign_metadata) {
-			if(0 == (options.foreign_metadata = flac__foreign_metadata_new(input_format==FORMAT_WAVE? FOREIGN_BLOCK_TYPE__RIFF : FOREIGN_BLOCK_TYPE__AIFF))) {
+			if(0 == (encode_options.format_options.iff.foreign_metadata = flac__foreign_metadata_new(input_format==FORMAT_WAVE? FOREIGN_BLOCK_TYPE__RIFF : FOREIGN_BLOCK_TYPE__AIFF))) {
 				flac__utils_printf(stderr, 1, "ERROR: creating foreign metadata object\n");
 				conditional_fclose(encode_infile);
 				return 1;
 			}
 		}
 
-		if(input_format == FORMAT_WAVE)
-			retval = flac__encode_wave(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options);
-		else
-			retval = flac__encode_aiff(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, options, input_format==FORMAT_AIFF_C);
+		retval = flac__encode_file(encode_infile, infilesize, infilename, internal_outfilename? internal_outfilename : outfilename, lookahead, lookahead_length, encode_options);
 
-		if(options.foreign_metadata)
-			flac__foreign_metadata_delete(options.foreign_metadata);
+		if(encode_options.format_options.iff.foreign_metadata)
+			flac__foreign_metadata_delete(encode_options.format_options.iff.foreign_metadata);
+	}
+	else {
+		FLAC__ASSERT(0);
+		retval = 1; /* double protection */
 	}
 
 	if(retval == 0) {

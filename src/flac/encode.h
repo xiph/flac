@@ -87,6 +87,20 @@ typedef struct {
 	FLAC__StreamMetadata *pictures[64];
 	unsigned num_pictures;
 
+	FileFormat format;
+	union {
+		struct {
+			FLAC__bool is_big_endian;
+			FLAC__bool is_unsigned_samples;
+			unsigned channels;
+			unsigned bps;
+			unsigned sample_rate;
+		} raw;
+		struct {
+			foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
+		} iff;
+	} format_options;
+
 	struct {
 		FLAC__bool disable_constant_subframes;
 		FLAC__bool disable_fixed_subframes;
@@ -95,28 +109,6 @@ typedef struct {
 	} debug;
 } encode_options_t;
 
-typedef struct {
-	encode_options_t common;
-	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
-} wav_encode_options_t;
-
-typedef struct {
-	encode_options_t common;
-
-	FLAC__bool is_big_endian;
-	FLAC__bool is_unsigned_samples;
-	unsigned channels;
-	unsigned bps;
-	unsigned sample_rate;
-} raw_encode_options_t;
-
-typedef struct {
-	encode_options_t common;
-} flac_encode_options_t;
-
-int flac__encode_aiff(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, wav_encode_options_t options, FLAC__bool is_aifc);
-int flac__encode_wave(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, wav_encode_options_t options);
-int flac__encode_raw(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, raw_encode_options_t options);
-int flac__encode_flac(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, flac_encode_options_t options, FLAC__bool input_is_ogg);
+int flac__encode_file(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, encode_options_t options);
 
 #endif
