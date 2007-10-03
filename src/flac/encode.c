@@ -1431,6 +1431,16 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options,
 
 void EncoderSession_destroy(EncoderSession *e)
 {
+	if(e->format == FORMAT_FLAC || e->format == FORMAT_OGGFLAC) {
+		size_t i;
+		if(e->fmt.flac.decoder)
+			FLAC__stream_decoder_delete(e->fmt.flac.decoder);
+		e->fmt.flac.decoder = 0;
+		for(i = 0; i < e->fmt.flac.client_data.num_metadata_blocks; i++)
+			FLAC__metadata_object_delete(e->fmt.flac.client_data.metadata_blocks[i]);
+		e->fmt.flac.client_data.num_metadata_blocks = 0;
+	}
+
 	if(e->fin != stdin)
 		fclose(e->fin);
 
@@ -1450,17 +1460,6 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 	FLAC__StreamEncoderState fse_state = FLAC__STREAM_ENCODER_OK;
 	int ret = 0;
 	FLAC__bool verify_error = false;
-
-	/*@@@ can this go in EncoderSession_destroy()? it's duplicated in EncoderSession_finish_error() */
-	if(e->format == FORMAT_FLAC || e->format == FORMAT_OGGFLAC) {
-		size_t i;
-		for(i = 0; i < e->fmt.flac.client_data.num_metadata_blocks; i++)
-			FLAC__metadata_object_delete(e->fmt.flac.client_data.metadata_blocks[i]);
-		e->fmt.flac.client_data.num_metadata_blocks = 0;
-		if(e->fmt.flac.decoder)
-			FLAC__stream_decoder_delete(e->fmt.flac.decoder);
-		e->fmt.flac.decoder = 0;
-	}
 
 	if(e->encoder) {
 		fse_state = FLAC__stream_encoder_get_state(e->encoder);
@@ -1508,17 +1507,6 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 int EncoderSession_finish_error(EncoderSession *e)
 {
 	FLAC__ASSERT(e->encoder);
-
-	/*@@@ can this go in EncoderSession_destroy()? it's duplicated in EncoderSession_finish_ok() */
-	if(e->format == FORMAT_FLAC || e->format == FORMAT_OGGFLAC) {
-		size_t i;
-		for(i = 0; i < e->fmt.flac.client_data.num_metadata_blocks; i++)
-			FLAC__metadata_object_delete(e->fmt.flac.client_data.metadata_blocks[i]);
-		e->fmt.flac.client_data.num_metadata_blocks = 0;
-		if(e->fmt.flac.decoder)
-			FLAC__stream_decoder_delete(e->fmt.flac.decoder);
-		e->fmt.flac.decoder = 0;
-	}
 
 	if(e->total_samples_to_encode > 0)
 		flac__utils_printf(stderr, 2, "\n");
