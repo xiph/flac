@@ -48,7 +48,7 @@ FLAC__uint8 FLAC__crc8(const FLAC__byte *data, unsigned len);
 ** polynomial = x^16 + x^15 + x^2 + x^0
 ** init = 0
 */
-extern unsigned FLAC__crc16_table[256];
+extern unsigned const FLAC__crc16_table[256];
 
 #define FLAC__CRC16_UPDATE(data, crc) (((((crc)<<8) & 0xffff) ^ FLAC__crc16_table[((crc)>>8) ^ (data)]))
 /* this alternate may be faster on some systems/compilers */
