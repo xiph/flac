@@ -728,20 +728,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_QLP_COEFF_PRECISION;
 
 	if(encoder->protected_->streamable_subset) {
-		if(
-			encoder->protected_->blocksize != 192 &&
-			encoder->protected_->blocksize != 576 &&
-			encoder->protected_->blocksize != 1152 &&
-			encoder->protected_->blocksize != 2304 &&
-			encoder->protected_->blocksize != 4608 &&
-			encoder->protected_->blocksize != 256 &&
-			encoder->protected_->blocksize != 512 &&
-			encoder->protected_->blocksize != 1024 &&
-			encoder->protected_->blocksize != 2048 &&
-			encoder->protected_->blocksize != 4096 &&
-			encoder->protected_->blocksize != 8192 &&
-			encoder->protected_->blocksize != 16384
-		)
+		if(!FLAC__format_blocksize_is_subset(encoder->protected_->blocksize, encoder->protected_->sample_rate))
 			return FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE;
 		if(!FLAC__format_sample_rate_is_subset(encoder->protected_->sample_rate))
 			return FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE;
