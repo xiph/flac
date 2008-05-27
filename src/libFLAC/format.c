@@ -223,6 +223,16 @@ FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(unsigned sample_rate)
 		return true;
 }
 
+FLAC_API FLAC__bool FLAC__format_blocksize_is_subset(unsigned blocksize, unsigned sample_rate)
+{
+	if(blocksize > 16384)
+		return false;
+	else if(sample_rate <= 48000 && blocksize > 4608)
+		return false;
+	else
+		return true;
+}
+
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_subset(unsigned sample_rate)
 {
 	if(
