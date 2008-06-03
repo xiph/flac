@@ -177,6 +177,7 @@ done1:
 	}
 }
 #endif
+#endif
 
 static FLaC__INLINE void crc16_update_word_(FLAC__BitReader *br, brword word)
 {
