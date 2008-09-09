@@ -29,7 +29,8 @@
 /* WATCHOUT: these enums are used to index internal arrays */
 typedef enum {
 	FOREIGN_BLOCK_TYPE__AIFF = 0, /* for AIFF and AIFF-C */
-	FOREIGN_BLOCK_TYPE__RIFF = 1  /* for WAVE and RF64 */
+	FOREIGN_BLOCK_TYPE__RIFF = 1, /* for WAVE and RF64 */
+	FOREIGN_BLOCK_TYPE__WAVE64 = 2  /* only for Sony's flavor */
 } foreign_block_type_t;
 
 typedef struct {
@@ -41,6 +42,8 @@ typedef struct {
 	/* For 'data'/'SSND' chunks, the size does not include the actual sound or padding bytes */
 	/* because these are not stored, they are recreated from the compressed FLAC stream. */
 	/* So for RIFF 'data', size is 8, and for AIFF 'SSND', size is 8 + 8 + ssnd_offset_size */
+	/* 32 bit size is OK because we only care about the non-sound data and FLAC metadata */
+	/* only supports a few megs anyway. */
 	FLAC__uint32 size;
 } foreign_block_t;
 
@@ -60,6 +63,7 @@ void flac__foreign_metadata_delete(foreign_metadata_t *fm);
 
 FLAC__bool flac__foreign_metadata_read_from_aiff(foreign_metadata_t *fm, const char *filename, const char **error);
 FLAC__bool flac__foreign_metadata_read_from_wave(foreign_metadata_t *fm, const char *filename, const char **error);
+FLAC__bool flac__foreign_metadata_read_from_wave64(foreign_metadata_t *fm, const char *filename, const char **error);
 FLAC__bool flac__foreign_metadata_write_to_flac(foreign_metadata_t *fm, const char *infilename, const char *outfilename, const char **error);
 
 FLAC__bool flac__foreign_metadata_read_from_flac(foreign_metadata_t *fm, const char *filename, const char **error);

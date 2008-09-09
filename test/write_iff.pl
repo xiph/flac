@@ -7,7 +7,7 @@ require Math::BigInt;
 my $usage = "
 $0 <format> <bps> <channels> <sample-rate> <#samples> <sample-type>
 
-     <format> is one of aiff,wave,rf64
+     <format> is one of aiff,wave,wave64,rf64
         <bps> is 8,16,24,32
    <channels> is 1-8
 <sample-rate> is any 32-bit value
@@ -18,7 +18,7 @@ $0 <format> <bps> <channels> <sample-rate> <#samples> <sample-type>
 
 die $usage unless @ARGV == 6;
 
-my %formats = ( 'aiff'=>1, 'wave'=>1, 'rf64'=>1 );
+my %formats = ( 'aiff'=>1, 'wave'=>1, 'wave64'=>1, 'rf64'=>1 );
 my %sampletypes = ( 'zero'=>1, 'rand'=>1 );
 my @channelmask = ( 0, 1, 3, 7, 0x33, 0x607, 0x60f, 0, 0 ); #@@@@@@ need proper masks for 7,8
 
@@ -37,8 +37,10 @@ $bps /= 8;
 my $datasize = $samples * $bps * $channels;
 my $bigdatasize = $bigsamples * $bps * $channels;
 
-my $padding = int($bigdatasize & 1? 1 : 0);
-my $wavx = ($format eq 'wave' || $format eq 'rf64') && ($channels > 2);
+my $padding = int($bigdatasize & 1); # for aiff/wave/rf64 chunk alignment
+my $padding8 = 8 - int($bigdatasize & 7); $padding8 = 0 if $padding8 == 8; # for wave64 alignment
+# wave-ish file needs to be WAVEFORMATEXTENSIBLE?
+my $wavx = ($format eq 'wave' || $format eq 'wave64' || $format eq 'rf64') && ($channels > 2);
 
 # write header
 
@@ -61,13 +63,28 @@ if ($format eq 'aiff') {
 	print pack('N', 0); # ssnd_offset_size
 	print pack('N', 0); # blocksize
 }
-elsif ($format eq 'wave' || $format eq 'rf64') {
+elsif ($format eq 'wave' || $format eq 'wave64' || $format eq 'rf64') {
 	die "sample data too big for format\n" if $format eq 'wave' && ($wavx?60:36) + $datasize + $padding > 4294967295;
 	# header
 	if ($format eq 'wave') {
 		print "RIFF";
-		print pack('V', ($wavx?60:36) + $datasize + $padding);
+		# +4 for WAVE
+		# +8+{40,16} for fmt chunk
+		# +8 for data chunk header
+		print pack('V', 4 + 8+($wavx?40:16) + 8 + $datasize + $padding);
 		print "WAVE";
+	}
+	elsif ($format eq 'wave64') {
+		# RIFF GUID 66666972-912E-11CF-A5D6-28DB04C10000
+		print "\x72\x69\x66\x66\x2E\x91\xCF\x11\xD6\xA5\x28\xDB\x04\xC1\x00\x00";
+		# +(16+8) for RIFF GUID + size
+		# +16 for WAVE GUID
+		# +16+8+{40,16} for fmt chunk
+		# +16+8 for data chunk header
+		my $bigriffsize = $bigdatasize + (16+8) + 16 + 16+8+($wavx?40:16) + (16+8) + $padding8;
+		print pack_64('V', $bigriffsize);
+		# WAVE GUID 65766177-ACF3-11D3-8CD1-00C04F8EDB8A
+		print "\x77\x61\x76\x65\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A";
 	}
 	else {
 		print "RF64";
@@ -76,15 +93,27 @@ elsif ($format eq 'wave' || $format eq 'rf64') {
 		# ds64 chunk
 		print "ds64";
 		print pack('V', 28); # chunk size
-		my $bigriffsize = $bigdatasize + ($wavx?60:36) + (8+28) + $padding;
+		# +4 for WAVE
+		# +(8+28) for ds64 chunk
+		# +8+{40,16} for fmt chunk
+		# +8 for data chunk header
+		my $bigriffsize = $bigdatasize + 4 + (8+28) + 8+($wavx?40:16) + 8 + $padding;
 		print pack_64('V', $bigriffsize);
 		print pack_64('V', $bigdatasize);
 		print pack_64('V', $bigsamples);
 		print pack('V', 0); # table size
 	}
 	# fmt chunk
-	print "fmt ";
-	print pack('V', $wavx?40:16); # chunk size
+	if ($format ne 'wave64') {
+		print "fmt ";
+		print pack('V', $wavx?40:16); # chunk size
+	}
+	else { # wave64
+		# fmt GUID 20746D66-ACF3-11D3-8CD1-00C04F8EDB8A
+		print "\x66\x6D\x74\x20\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A";
+		print pack('V', 16+8+($wavx?40:16)); # chunk size (+16+8 for GUID and size fields)
+		print pack('V', 0);                  # ...is 8 bytes for wave64
+	}
 	print pack('v', $wavx?65534:1); # compression code
 	print pack('v', $channels);
 	print pack('V', $samplerate);
@@ -99,8 +128,15 @@ elsif ($format eq 'wave' || $format eq 'rf64') {
 		print "\x01\x00\x00\x00\x00\x00\x10\x00\x80\x00\x00\xaa\x00\x38\x9b\x71";
 	}
 	# data header
-	print "data";
-	print pack('V', $format eq 'wave'? $datasize : 0xffffffff);
+	if ($format ne 'wave64') {
+		print "data";
+		print pack('V', $format eq 'wave'? $datasize : 0xffffffff);
+	}
+	else { # wave64
+		# data GUID 61746164-ACF3-11D3-8CD1-00C04F8EDB8A
+		print "\x64\x61\x74\x61\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A";
+		print pack_64('V', $bigdatasize+16+8); # +16+8 for GUID and size fields
+	}
 }
 else {
 	die;
@@ -132,7 +168,14 @@ elsif ($sampletype eq 'rand') {
 else {
 	die;
 }
-print "\x00" if $padding;
+
+# write padding
+if ($format eq 'wave64') {
+	print pack("x[$padding8]") if $padding8;
+}
+else {
+	print "\x00" if $padding;
+}
 
 exit 0;
 
@@ -150,14 +193,14 @@ sub pack_sane_extended
 
 sub pack_64
 {
-	my $c = shift;
-	my $v1 = shift;
+	my $c = shift; # 'N' for big-endian, 'V' for little-endian, ala pack()
+	my $v1 = shift; # value, must be Math::BigInt
 	my $v2 = $v1->copy();
 	if ($c eq 'V') {
 		$v1->band(0xffffffff);
 		$v2->brsft(32);
 	}
-	elsif ($c eq 'C') {
+	elsif ($c eq 'N') {
 		$v2->band(0xffffffff);
 		$v1->brsft(32);
 	}

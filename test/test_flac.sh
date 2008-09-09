@@ -210,6 +210,20 @@ rt_test_wav ()
 	rm -f rt.flac rt.wav
 }
 
+rt_test_w64 ()
+{
+	f="$1"
+	extra="$2"
+	echo -n "round-trip test ($f) encode... "
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	echo -n "decode... "
+	run_flac $SILENT --force --decode --channel-map=none -o rt.w64 $extra rt.flac || die "ERROR"
+	echo -n "compare... "
+	cmp $f rt.w64 || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.w64
+}
+
 rt_test_rf64 ()
 {
 	f="$1"
@@ -277,6 +291,9 @@ for f in rt-*.raw ; do
 done
 for f in rt-*.wav ; do
 	rt_test_wav $f
+done
+for f in rt-*.w64 ; do
+	rt_test_w64 $f
 done
 for f in rt-*.rf64 ; do
 	rt_test_rf64 $f
@@ -1146,6 +1163,8 @@ echo "Testing --keep-foreign-metadata..."
 
 rt_test_wav wacky1.wav '--keep-foreign-metadata'
 rt_test_wav wacky2.wav '--keep-foreign-metadata'
+rt_test_w64 wacky1.w64 '--keep-foreign-metadata'
+rt_test_w64 wacky2.w64 '--keep-foreign-metadata'
 rt_test_rf64 wacky1.rf64 '--keep-foreign-metadata'
 rt_test_rf64 wacky2.rf64 '--keep-foreign-metadata'
 

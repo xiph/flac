@@ -653,6 +653,14 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>--force-raw-format</option></term>
+
+	  <listitem>
+	    <para>Force input (when encoding) or output (when decoding) to be treated as raw samples (even if filename ends in <filename>.wav</filename>).</para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>--force-aiff-format</option></term>
 
 	  <listitem>
@@ -669,10 +677,10 @@
 	</varlistentry>
 
 	<varlistentry>
-	  <term><option>--force-raw-format</option></term>
+	  <term><option>--force-wave64-format</option></term>
 
 	  <listitem>
-	    <para>Force input (when encoding) or output (when decoding) to be treated as raw samples (even if filename ends in <filename>.wav</filename>).</para>
+	    <para>Force the decoder to output Wave64 format.  This option is not needed if the output filename (as set by -o) ends with <filename>.w64</filename>.  Also, this option has no effect when encoding since input Wave64 is auto-detected.</para>
 	  </listitem>
 	</varlistentry>
 

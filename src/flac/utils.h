@@ -27,10 +27,7 @@
 #include "FLAC/format.h" /* for FLAC__StreamMetadata_CueSheet */
 #include <stdio.h> /* for FILE */
 
-typedef enum { FORMAT_RAW, FORMAT_WAVE, FORMAT_RF64, FORMAT_AIFF, FORMAT_AIFF_C, FORMAT_FLAC, FORMAT_OGGFLAC } FileFormat;
-
-/* returns true iff format is one of FORMAT_WAVE, FORMAT_RF64, FORMAT_AIFF, FORMAT_AIFF_C */
-FLAC__bool flac__utils_format_is_iff(FileFormat format);
+typedef enum { FORMAT_RAW, FORMAT_WAVE, FORMAT_WAVE64, FORMAT_RF64, FORMAT_AIFF, FORMAT_AIFF_C, FORMAT_FLAC, FORMAT_OGGFLAC } FileFormat;
 
 typedef struct {
 	FLAC__bool is_relative; /* i.e. specification string started with + or - */

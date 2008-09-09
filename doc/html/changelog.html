@@ -63,7 +63,7 @@
 				General:
 				<ul>
 					<li>The <span class="argument"><a href="documentation_tools_flac.html#flac_options_sector_align">--sector-align</a></span> option of <span class="commandname">flac</span> has been deprecated and may not exist in future versions.  <a href="http://www.etree.org/shnutils/shntool/">shntool</a> provides similar functionality.</li>
-					<li>Support for the RF64 format in <span class="commandname">flac</span> (see below).</li>
+					<li>Support for the RF64 and Wave64 formats in <span class="commandname">flac</span> (see below).</li>
 				</ul>
 			</li>
 			<li>
@@ -81,7 +81,8 @@
 			<li>
 				flac:
 				<ul>
-					<li>Added support for encoding from and decoding to the RF64 format, and a new corresponding option <span class="argument"><a href="#flac_options_force_rf64_format" />--force-rf64-format</a></span>.  (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1762502&amp;group_id=13478&amp;atid=363478">SF #1762502</a>).</li>
+					<li>Added support for encoding from and decoding to the RF64 format, and a new corresponding option <span class="argument"><a href="#flac_options_force_rf64_format" />--force-rf64-format</a></span>.  (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1762502&amp;group_id=13478&amp;atid=363478">SF #1762502</a>).  <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> is also supported.</li>
+					<li>Added support for encoding from and decoding to the Sony Wave64 format, and a new corresponding option <span class="argument"><a href="#flac_options_force_wave64_format" />--force-wave64-format</a></span>.  (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1769582&amp;group_id=13478&amp;atid=363478">SF #1769582</a>).  <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> is also supported.</li>
 					<li>Added a new options <span class="argument"><a href="documentation_tools_flac.html#flac_options_preserve_modtime">--preserve-modtime</a></span> and <span class="argument"><a href="documentation_tools_flac.html#flac_options_no_preserve_modtime">--no-preserve-modtime</a></span> to specify whether or not output files should copy the timestamp and permissions from their input files.  The default is <span class="argument"><a href="documentation_tools_flac.html#flac_options_preserve_modtime">--preserve-modtime</a></span> as in previous versions.  (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1805428&amp;group_id=13478&amp;atid=363478">SF #1805428</a>).</li>
 					<li>The <span class="argument"><a href="documentation_tools_flac.html#flac_options_sector_align">--sector-align</a></span> option of <span class="commandname">flac</span> has been deprecated and may not exist in future versions.  <a href="http://www.etree.org/shnutils/shntool/">shntool</a> provides similar functionality. (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=1805946&amp;group_id=13478&amp;atid=363478">SF #1805946</a>)</li>
 				</ul>

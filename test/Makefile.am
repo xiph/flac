@@ -49,4 +49,4 @@ EXTRA_DIST = \
 	write_iff.pl
 
 clean-local:
-	-rm -f *.raw *.flac *.oga *.ogg *.cmp *.aiff *.wav *.rf64 *.diff *.log *.cue core
+	-rm -f *.raw *.flac *.oga *.ogg *.cmp *.aiff *.wav *.w64 *.rf64 *.diff *.log *.cue core
