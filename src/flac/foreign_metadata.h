@@ -27,21 +27,30 @@
 #include "utils.h"
 
 /* WATCHOUT: these enums are used to index internal arrays */
-typedef enum { FOREIGN_BLOCK_TYPE__AIFF = 0, FOREIGN_BLOCK_TYPE__RIFF = 1 } foreign_block_type_t;
+typedef enum {
+	FOREIGN_BLOCK_TYPE__AIFF = 0, /* for AIFF and AIFF-C */
+	FOREIGN_BLOCK_TYPE__RIFF = 1  /* for WAVE and RF64 */
+} foreign_block_type_t;
 
 typedef struct {
 	/* for encoding, this will be the offset in the WAVE/AIFF file of the chunk */
 	/* for decoding, this will be the offset in the FLAC file of the chunk data inside the APPLICATION block */
 	off_t offset;
+	/* size is the actual size in bytes of the chunk to be stored/recreated. */
+	/* It includes the 8 bytes of chunk type and size, and any padding byte for alignment. */
+	/* For 'data'/'SSND' chunks, the size does not include the actual sound or padding bytes */
+	/* because these are not stored, they are recreated from the compressed FLAC stream. */
+	/* So for RIFF 'data', size is 8, and for AIFF 'SSND', size is 8 + 8 + ssnd_offset_size */
 	FLAC__uint32 size;
 } foreign_block_t;
 
 typedef struct {
-	foreign_block_type_t type; /* currently we don't support multiple foreign types in a stream (an maybe never will) */
+	foreign_block_type_t type; /* currently we don't support multiple foreign types in a stream (and maybe never will) */
 	foreign_block_t *blocks;
 	size_t num_blocks;
 	size_t format_block; /* block number of 'fmt ' or 'COMM' chunk */
 	size_t audio_block; /* block number of 'data' or 'SSND' chunk */
+	FLAC__bool is_rf64; /* always false if type!=RIFF */
 	FLAC__uint32 ssnd_offset_size; /* 0 if type!=AIFF */
 } foreign_metadata_t;
 

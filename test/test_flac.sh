@@ -183,12 +183,13 @@ done
 rt_test_raw ()
 {
 	f="$1"
+	extra="$2"
 	channels=`echo $f | awk -F- '{print $2}'`
 	bps=`echo $f | awk -F- '{print $3}'`
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels --no-padding --lax -o rt.flac $f || die "ERROR"
+	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --force-raw-format --endian=little --sign=signed -o rt.raw rt.flac || die "ERROR"
+	run_flac $SILENT --force --decode --force-raw-format --endian=little --sign=signed -o rt.raw $extra rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.raw || die "ERROR: file mismatch"
 	echo "OK"
@@ -198,23 +199,39 @@ rt_test_raw ()
 rt_test_wav ()
 {
 	f="$1"
+	extra="$2"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $f || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.wav rt.flac || die "ERROR"
+	run_flac $SILENT --force --decode --channel-map=none -o rt.wav $extra rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.wav || die "ERROR: file mismatch"
 	echo "OK"
 	rm -f rt.flac rt.wav
 }
 
+rt_test_rf64 ()
+{
+	f="$1"
+	extra="$2"
+	echo -n "round-trip test ($f) encode... "
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	echo -n "decode... "
+	run_flac $SILENT --force --decode --channel-map=none -o rt.rf64 $extra rt.flac || die "ERROR"
+	echo -n "compare... "
+	cmp $f rt.rf64 || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.rf64
+}
+
 rt_test_aiff ()
 {
 	f="$1"
+	extra="$2"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $f || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.aiff rt.flac || die "ERROR"
+	run_flac $SILENT --force --decode --channel-map=none -o rt.aiff $extra rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.aiff || die "ERROR: file mismatch"
 	echo "OK"
@@ -225,12 +242,13 @@ rt_test_aiff ()
 rt_test_flac ()
 {
 	f="$1"
+	extra="$2"
 	echo -n "round-trip test ($f->flac->flac->wav) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $f || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "re-encode... "
 	run_flac $SILENT --force --verify --lax -o rt2.flac rt.flac || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.wav rt2.flac || die "ERROR"
+	run_flac $SILENT --force --decode --channel-map=none -o rt.wav $extra rt2.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.wav || die "ERROR: file mismatch"
 	echo "OK"
@@ -241,12 +259,13 @@ rt_test_flac ()
 rt_test_ogg_flac ()
 {
 	f="$1"
+	extra="$2"
 	echo -n "round-trip test ($f->oggflac->oggflac->wav) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.oga --ogg $f || die "ERROR"
+	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.oga --ogg $extra $f || die "ERROR"
 	echo -n "re-encode... "
 	run_flac $SILENT --force --verify --lax -o rt2.oga --ogg rt.oga || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.wav rt2.oga || die "ERROR"
+	run_flac $SILENT --force --decode --channel-map=none -o rt.wav $extra rt2.oga || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.wav || die "ERROR: file mismatch"
 	echo "OK"
@@ -258,6 +277,9 @@ for f in rt-*.raw ; do
 done
 for f in rt-*.wav ; do
 	rt_test_wav $f
+done
+for f in rt-*.rf64 ; do
+	rt_test_rf64 $f
 done
 for f in rt-*.aiff ; do
 	rt_test_aiff $f
@@ -1114,6 +1136,18 @@ for input_type in $input_types ; do
 		test_multifile $input_type ogg no_sector_align "--serial-number=321 --verify"
 	fi
 done
+
+
+############################################################################
+# test --keep-foreign-metadata
+############################################################################
+
+echo "Testing --keep-foreign-metadata..."
+
+rt_test_wav wacky1.wav '--keep-foreign-metadata'
+rt_test_wav wacky2.wav '--keep-foreign-metadata'
+rt_test_rf64 wacky1.rf64 '--keep-foreign-metadata'
+rt_test_rf64 wacky2.rf64 '--keep-foreign-metadata'
 
 
 ############################################################################

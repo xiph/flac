@@ -33,6 +33,16 @@ const char *CHANNEL_MASK_TAG = "WAVEFORMATEXTENSIBLE_CHANNEL_MASK";
 
 int flac__utils_verbosity_ = 2;
 
+FLAC__bool flac__utils_format_is_iff(FileFormat format)
+{
+	return
+		format == FORMAT_WAVE ||
+		format == FORMAT_RF64 ||
+		format == FORMAT_AIFF ||
+		format == FORMAT_AIFF_C
+	;
+}
+
 static FLAC__bool local__parse_uint64_(const char *s, FLAC__uint64 *value)
 {
 	FLAC__uint64 ret = 0;

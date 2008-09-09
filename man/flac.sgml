@@ -48,6 +48,7 @@
       <arg choice=opt><replaceable>OPTIONS</replaceable></arg>
       <group rep=repeat>
 	<arg><replaceable>infile.wav</replaceable></arg>
+	<arg><replaceable>infile.rf64</replaceable></arg>
 	<arg><replaceable>infile.aiff</replaceable></arg>
 	<arg><replaceable>infile.raw</replaceable></arg>
 	<arg><replaceable>infile.flac</replaceable></arg>
@@ -217,7 +218,7 @@
 	  <term><option>--keep-foreign-metadata</option>
 	  </term>
 	  <listitem>
-	    <para>If encoding, save WAVE or AIFF non-audio chunks in FLAC metadata.  If decoding, restore any saved non-audio chunks from FLAC metadata when writing the decoded file.  Foreign metadata cannot be transcoded, e.g. WAVE chunks saved in a FLAC file cannot be restored when decoding to AIFF.  Input and output must be regular files (not stdin or stdout).</para>
+	    <para>If encoding, save WAVE, RF64, or AIFF non-audio chunks in FLAC metadata.  If decoding, restore any saved non-audio chunks from FLAC metadata when writing the decoded file.  Foreign metadata cannot be transcoded, e.g. WAVE chunks saved in a FLAC file cannot be restored when decoding to AIFF.  Input and output must be regular files (not stdin or stdout).</para>
 	  </listitem>
 	</varlistentry>
 
@@ -655,7 +656,15 @@
 	  <term><option>--force-aiff-format</option></term>
 
 	  <listitem>
-	    <para>Force the decoder to output AIFF format.  This option is not needed if the output filename (as set by -o) ends with <filename>.aiff</filename>.  Also, this option has no effect when encoding since input AIFF is auto-detected.</para>
+	    <para>Force the decoder to output AIFF format.  This option is not needed if the output filename (as set by -o) ends with <filename>.aif</filename> or <filename>.aiff</filename>.  Also, this option has no effect when encoding since input AIFF is auto-detected.</para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term><option>--force-rf64-format</option></term>
+
+	  <listitem>
+	    <para>Force the decoder to output RF64 format.  This option is not needed if the output filename (as set by -o) ends with <filename>.rf64</filename>.  Also, this option has no effect when encoding since input RF64 is auto-detected.</para>
 	  </listitem>
 	</varlistentry>
 

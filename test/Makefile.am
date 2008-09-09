@@ -45,7 +45,8 @@ EXTRA_DIST = \
 	test_grabbag.sh \
 	test_seeking.sh \
 	test_streams.sh \
-	test_bins.sh
+	test_bins.sh \
+	write_iff.pl
 
 clean-local:
-	-rm -f *.raw *.flac *.oga *.ogg *.cmp *.aiff *.wav *.diff *.log *.cue core
+	-rm -f *.raw *.flac *.oga *.ogg *.cmp *.aiff *.wav *.rf64 *.diff *.log *.cue core

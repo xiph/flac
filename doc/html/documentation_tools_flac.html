@@ -63,9 +63,9 @@
 		</ul>
 		<a name="usage"><font size="+1"><b><u>General Usage</u></b></font></a><br />
 		<br />
-		<span class="commandname">flac</span> is the command-line file encoder/decoder.  The encoder currently supports as input RIFF WAVE, AIFF, FLAC or Ogg FLAC format, or raw interleaved samples.  The decoder currently can output to RIFF WAVE or AIFF format, or raw interleaved samples.  <span class="commandname">flac</span> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.), and the input must be between 4 and 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.<br />
+		<span class="commandname">flac</span> is the command-line file encoder/decoder.  The encoder currently supports as input RIFF WAVE, RF64, AIFF, FLAC or Ogg FLAC format, or raw interleaved samples.  The decoder currently can output to RIFF WAVE, RF64, or AIFF format, or raw interleaved samples.  <span class="commandname">flac</span> only supports linear PCM samples (in other words, no A-LAW, uLAW, etc.), and the input must be between 4 and 24 bits per sample.  This is not a limitation of the FLAC format, just the reference encoder/decoder.<br />
 		<br />
-		<span class="commandname">flac</span> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, files ending in ".aif" or ".aiff" or have the AIFF header present are AIFF files, and files ending in ".flac" or have the FLAC header present are FLAC files.  This assumption may be overridden with a command-line option.  It also assumes that files ending in ".oga" or ".ogg" or have the Ogg FLAC header present are Ogg FLAC files.  Other than this, <span class="commandname">flac</span> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient "8.3" file systems like FAT-16).<br />
+		<span class="commandname">flac</span> assumes that files ending in ".wav" or that have the RIFF WAVE header present are WAVE files, files ending in ".rf64" or have the RF64 header present are RF64 files, files ending in ".aif" or ".aiff" or have the AIFF header present are AIFF files, and files ending in ".flac" or have the FLAC header present are FLAC files.  This assumption may be overridden with a command-line option.  It also assumes that files ending in ".oga" or ".ogg" or have the Ogg FLAC header present are Ogg FLAC files.  Other than this, <span class="commandname">flac</span> makes no assumptions about file extensions, though the convention is that FLAC files have the extension ".flac" (or ".fla" on ancient "8.3" file systems like FAT-16).<br />
 		<br />
 		Before going into the full command-line description, a few other things help to sort it out: 1) <span class="commandname">flac</span> encodes by default, so you must use <b>-d</b> to decode; 2) the options <span class="argument">-0</span> .. <span class="argument">-8</span> (or <span class="argument">--fast</span> and <span class="argument">--best</span>) that control the compression level actually are just synonyms for different groups of specific encoding options (described later) and you can get the same effect by using the same options; 3) <span class="commandname">flac</span> behaves similarly to gzip in the way it handles input and output files.<br />
 		<br />
@@ -116,7 +116,7 @@
 				<span class="code">flac -V -- -01-filename.wav</span>
 			</li>
 		</ul>
-		The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <span class="commandname">flac</span> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE or AIFF file the format options are not needed since they are read from the AIFF/WAVE header.<br />
+		The encoding options affect the compression ratio and encoding speed.  The format options are used to tell <span class="commandname">flac</span> the arrangement of samples if the input file (or output file when decoding) is a raw file.  If it is a RIFF WAVE, RF64, or AIFF file the format options are not needed since they are read from the file's header.<br />
 		<br />
 		In test mode, <span class="commandname">flac</span> acts just like in decode mode, except no output file is written.  Both decode and test modes detect errors in the stream, but they also detect when the MD5 signature of the decoded audio does not match the stored MD5 signature, even when the bitstream is valid.<br />
 		<br />
@@ -156,6 +156,9 @@
 		<tt><b>flac abc.aiff</b></tt><br />
 		Encode <tt>abc.aiff</tt> to <tt>abc.flac</tt>.<br />
 		<br />
+		<tt><b>flac abc.rf64</b></tt><br />
+		Encode <tt>abc.rf64</tt> to <tt>abc.flac</tt>.<br />
+		<br />
 		<tt><b>flac abc.flac <a href="#flac_options_force">--force</a></b></tt><br />
 		This one's a little tricky: notice that <span class="commandname">flac</span> is in encode mode by default (you have to specify <span class="argument">-d</span> to decode) so this command actually recompresses <tt>abc.flac</tt> back to <tt>abc.flac</tt>.  <span class="argument"><a href="#flac_options_force">--force</a></span> is needed to make sure you really want to overwrite <tt>abc.flac</tt> with a new version.  Why would you want to do this?  It allows you to recompress an existing FLAC file with (usually) higher compression options or a newer version of FLAC and preserve all the metadata like tags too.<br />
 		<br />
@@ -168,6 +171,10 @@
 		<tt><b>flac <a href="#flac_options_decode">-d</a> <a href="#flac_options_force_aiff_format">--force-aiff-format</a> abc.flac</b></tt><br />
 		<tt><b>flac <a href="#flac_options_decode">-d</a> <a href="#flac_options_output_name">-o</a> abc.aiff abc.flac</b></tt><br />
 		Two different ways of decoding <tt>abc.flac</tt> to <tt>abc.aiff</tt> (AIFF format).  <tt>abc.flac</tt> is not deleted.<br />
+		<br />
+		<tt><b>flac <a href="#flac_options_decode">-d</a> <a href="#flac_options_force_rf64_format">--force-rf64-format</a> abc.flac</b></tt><br />
+		<tt><b>flac <a href="#flac_options_decode">-d</a> <a href="#flac_options_output_name">-o</a> abc.rf64 abc.flac</b></tt><br />
+		Two different ways of decoding <tt>abc.flac</tt> to <tt>abc.rf64</tt> (RF64 format).  <tt>abc.flac</tt> is not deleted.<br />
 		<br />
 		<tt><b>flac <a href="#flac_options_decode">-d</a> <a href="#flac_options_decode_through_errors">-F</a> abc.flac</b></tt><br />
 		Decode <tt>abc.flac</tt> to <tt>abc.wav</tt> and don't abort if errors are found (useful for recovering as much as possible from corrupted files).<br />
@@ -332,15 +339,15 @@
 					<span class="argument">--keep-foreign-metadata</span>
 				</td>
 				<td>
-					If encoding, save WAVE or AIFF non-audio chunks in FLAC metadata.  If decoding, restore any saved non-audio chunks from FLAC metadata when writing the decoded file.  Foreign metadata cannot be transcoded, e.g. WAVE chunks saved in a FLAC file cannot be restored when decoding to AIFF.  Input and output must be regular files (not stdin or stdout).<br />
+					If encoding, save WAVE, RF64, or AIFF non-audio chunks in FLAC metadata.  If decoding, restore any saved non-audio chunks from FLAC metadata when writing the decoded file.  Foreign metadata cannot be transcoded, e.g. WAVE chunks saved in a FLAC file cannot be restored when decoding to AIFF.  Input and output must be regular files (not stdin or stdout).<br />
 <!--
 					<br />
-					Using this option for both encoding then decoding in most cases will yield the exact same WAVE file as the original, metadata and all.  Because there are multiple ways to represent the same data in WAVE and AIFF, there are currently a few corner cases where the restoration process may not match exactly (but could with some improvement).  The cases are:<br />
+					Using this option for both encoding then decoding in most cases will yield the exact same WAVE file as the original, metadata and all.  Because there are multiple ways to represent the same data in WAVE, RF64, and AIFF, there are currently a few corner cases where the restoration process may not match exactly (but could with some improvement).  The cases are:<br />
 					<ul>
-						<li>The original WAVE had more than 2 channels and needed remapping to FLAC order</li>
-						<li>The original WAVE is not spec compliant, e.g. 20 bps in WAVEFORMATEX; restored file will still be a compliant WAVEFORMATEXTENSIBLE</li>
-						<li>Other wierd corner cases where the "fmt" chunk is not exactly identical due to there being multiple ways to represent the same thing</li>
-						<li>The original WAIV is in AIFF-C form with compression type "sowt" or "NONE"; currently the restored file will always be in AIFF (uncompressed) form</li>
+						<li>The original WAVE/RF64 had more than 2 channels and needed remapping to FLAC order</li>
+						<li>The original WAVE/RF64 is not spec compliant, e.g. 20 bps in WAVEFORMATEX; restored file will still be a compliant WAVEFORMATEXTENSIBLE</li>
+						<li>Other weird corner cases where the "fmt" chunk is not exactly identical due to there being multiple ways to represent the same thing</li>
+						<li>The original AIFF is in AIFF-C form with compression type "sowt" or "NONE"; currently the restored file will always be in AIFF (uncompressed) form</li>
 					</ul>
 -->
 				</td>
@@ -946,7 +953,16 @@
 					<span class="argument">--force-aiff-format</span>
 				</td>
 				<td>
-					Force the decoder to output AIFF format.  This option is not needed if the output filename (as set by -o) ends with .aiff.  Also, this option has no effect when encoding since input AIFF is auto-detected.
+					Force the decoder to output AIFF format.  This option is not needed if the output filename (as set by -o) ends with .aif or .aiff.  Also, this option has no effect when encoding since input AIFF is auto-detected.
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_force_rf64_format" />
+					<span class="argument">--force-rf64-format</span>
+				</td>
+				<td>
+					Force the decoder to output RF64 format.  This option is not needed if the output filename (as set by -o) ends with .rf64.  Also, this option has no effect when encoding since input RF64 is auto-detected.
 				</td>
 			</tr>
 			<tr>
@@ -1046,6 +1062,7 @@
 		<a href="#flac_options_force" /><span class="argument">-f</span></a><br />
 		<a href="#flac_options_fast" /><span class="argument">--fast</span></a><br />
 		<a href="#flac_options_force_aiff_format" /><span class="argument">--force-aiff-format</span></a><br />
+		<a href="#flac_options_force_rf64_format" /><span class="argument">--force-rf64-format</span></a><br />
 		<a href="#flac_options_force_raw_format" /><span class="argument">--force-raw-format</span></a><br />
 		<a href="#flac_options_force" /><span class="argument">--force</span></a><br />
 		<a href="#flac_options_explain" /><span class="argument">-H</span></a><br />

@@ -101,6 +101,20 @@ static FLAC__bool write_little_endian_int32(FILE *f, FLAC__int32 x)
 }
 #endif
 
+static FLAC__bool write_little_endian_uint64(FILE *f, FLAC__uint64 x)
+{
+	return
+		fputc(x, f) != EOF &&
+		fputc(x >> 8, f) != EOF &&
+		fputc(x >> 16, f) != EOF &&
+		fputc(x >> 24, f) != EOF &&
+		fputc(x >> 32, f) != EOF &&
+		fputc(x >> 40, f) != EOF &&
+		fputc(x >> 48, f) != EOF &&
+		fputc(x >> 56, f) != EOF
+	;
+}
+
 static FLAC__bool write_big_endian(FILE *f, FLAC__int32 x, size_t bytes)
 {
 	if(bytes < 4)
@@ -668,7 +682,7 @@ foo:
 	return false;
 }
 
-static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples, FLAC__bool strict)
+static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples, FLAC__bool strict, FLAC__bool rf64)
 {
 	const FLAC__bool waveformatextensible = strict && (channels > 2 || (bps%8));
 	/*                                                                 ^^^^^^^
@@ -689,11 +703,27 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 
 	if(0 == (f = fopen(filename, "wb")))
 		return false;
-	if(fwrite("RIFF", 1, 4, f) < 4)
+	if(fwrite(rf64?"RF64":"RIFF", 1, 4, f) < 4)
 		goto foo;
-	if(!write_little_endian_uint32(f, padded_size + (waveformatextensible?60:36)))
+	if(!write_little_endian_uint32(f, rf64? 0xffffffff : padded_size + (waveformatextensible?60:36)))
 		goto foo;
-	if(fwrite("WAVEfmt ", 1, 8, f) < 8)
+	if(fwrite("WAVE", 1, 4, f) < 4)
+		goto foo;
+	if(rf64) {
+		if(fwrite("ds64", 1, 4, f) < 4)
+			goto foo;
+		if(!write_little_endian_uint32(f, 28)) /* ds64 chunk size */
+			goto foo;
+		if(!write_little_endian_uint64(f, 36 + padded_size + (waveformatextensible?60:36)))
+			goto foo;
+		if(!write_little_endian_uint64(f, true_size))
+			goto foo;
+		if(!write_little_endian_uint64(f, samples))
+			goto foo;
+		if(!write_little_endian_uint32(f, 0)) /* table size */
+			goto foo;
+	}
+	if(fwrite("fmt ", 1, 4, f) < 4)
 		goto foo;
 	if(!write_little_endian_uint32(f, waveformatextensible?40:16))
 		goto foo;
@@ -722,7 +752,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 	}
 	if(fwrite("data", 1, 4, f) < 4)
 		goto foo;
-	if(!write_little_endian_uint32(f, true_size))
+	if(!write_little_endian_uint32(f, rf64? 0xffffffff : true_size))
 		goto foo;
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
@@ -749,12 +779,12 @@ static FLAC__bool generate_wackywavs(void)
 	FILE *f;
 	FLAC__byte wav[] = {
 		'R', 'I', 'F', 'F',  76,   0,   0,   0,
-		'W', 'A', 'V', 'E', 'f', 'a', 'c', 't',
+		'W', 'A', 'V', 'E', 'j', 'u', 'n', 'k',
 		  4,   0,   0,  0 , 'b', 'l', 'a', 'h',
 		'p', 'a', 'd', ' ',   4,   0,   0,   0,
 		'B', 'L', 'A', 'H', 'f', 'm', 't', ' ',
 		 16,   0,   0,   0,   1,   0,   1,   0,
-		0x44,0xAC,  0,   0,   0,   0,   0,   0,
+		0x44,0xAC,  0,   0,0x88,0x58,0x01,   0,
 		  2,   0,  16,   0, 'd', 'a', 't', 'a',
 		 16,   0,   0,   0,   0,   0,   1,   0,
 		  4,   0,   9,   0,  16,   0,  25,   0,
@@ -772,6 +802,48 @@ static FLAC__bool generate_wackywavs(void)
 	if(0 == (f = fopen("wacky2.wav", "wb")))
 		return false;
 	if(fwrite(wav, 1, 96, f) < 96)
+		goto foo;
+	fclose(f);
+
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
+static FLAC__bool generate_wackyrf64s(void)
+{
+	FILE *f;
+	FLAC__byte wav[] = {
+		'R', 'F', '6', '4', 255, 255, 255, 255,
+		'W', 'A', 'V', 'E', 'd', 's', '6', '4',
+		 28,   0,   0,   0, 112,   0,   0,   0,
+		  0,   0,   0,   0,  16,   0,   0,   0,
+		  0,   0,   0,   0,   8,   0,   0,   0,
+		  0,   0,   0,   0,   0,   0,   0,   0,
+		                    'j', 'u', 'n', 'k',
+		  4,   0,   0,   0, 'b', 'l', 'a', 'h',
+		'p', 'a', 'd', ' ',   4,   0,   0,   0,
+		'B', 'L', 'A', 'H', 'f', 'm', 't', ' ',
+		 16,   0,   0,   0,   1,   0,   1,   0,
+		0x44,0xAC,  0,   0,0x88,0x58,0x01,   0,
+		  2,   0,  16,   0, 'd', 'a', 't', 'a',
+		255, 255, 255, 255,   0,   0,   1,   0,
+		  4,   0,   9,   0,  16,   0,  25,   0,
+		 36,   0,  49,   0, 'p', 'a', 'd', ' ',
+		  4,   0,   0,   0, 'b', 'l', 'a', 'h'
+	};
+
+	if(0 == (f = fopen("wacky1.rf64", "wb")))
+		return false;
+	if(fwrite(wav, 1, 120, f) < 120)
+		goto foo;
+	fclose(f);
+
+	wav[20] += 12;
+	if(0 == (f = fopen("wacky2.rf64", "wb")))
+		return false;
+	if(fwrite(wav, 1, 132, f) < 132)
 		goto foo;
 	fclose(f);
 
@@ -898,6 +970,7 @@ int main(int argc, char *argv[])
 	if(!generate_noise("noise.raw", 65536 * 8 * 3)) return 1;
 	if(!generate_noise("noise8m32.raw", 32)) return 1;
 	if(!generate_wackywavs()) return 1;
+	if(!generate_wackyrf64s()) return 1;
 	for(channels = 1; channels <= 8; channels++) {
 		unsigned bits_per_sample;
 		for(bits_per_sample = 4; bits_per_sample <= 24; bits_per_sample++) {
@@ -911,7 +984,11 @@ int main(int argc, char *argv[])
 					return 1;
 
 				sprintf(fn, "rt-%u-%u-%u.wav", channels, bits_per_sample, nsamples[samples]);
-				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true))
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true, /*rf64=*/false))
+					return 1;
+
+				sprintf(fn, "rt-%u-%u-%u.rf64", channels, bits_per_sample, nsamples[samples]);
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true, /*rf64=*/true))
 					return 1;
 
 				if(bits_per_sample % 8 == 0) {

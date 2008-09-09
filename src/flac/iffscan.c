@@ -42,6 +42,11 @@ static FLAC__uint32 unpack32le_(const FLAC__byte *b)
 	return (FLAC__uint32)b[0] + ((FLAC__uint32)b[1]<<8) + ((FLAC__uint32)b[2]<<16) + ((FLAC__uint32)b[3]<<24);
 }
 
+static FLAC__uint64 unpack64le_(const FLAC__byte *b)
+{
+	return (FLAC__uint64)b[0] + ((FLAC__uint64)b[1]<<8) + ((FLAC__uint64)b[2]<<16) + ((FLAC__uint64)b[3]<<24) + ((FLAC__uint64)b[4]<<32) + ((FLAC__uint64)b[5]<<40) + ((FLAC__uint64)b[6]<<48) + ((FLAC__uint64)b[7]<<56);
+}
+
 static FLAC__uint32 unpack32_(const FLAC__byte *b, foreign_block_type_t type)
 {
 	if(type == FOREIGN_BLOCK_TYPE__AIFF)
@@ -53,7 +58,7 @@ static FLAC__uint32 unpack32_(const FLAC__byte *b, foreign_block_type_t type)
 int main(int argc, char *argv[])
 {
 	FILE *f;
-	char buf[12];
+	char buf[36];
 	foreign_metadata_t *fm;
 	const char *fn, *error;
 	size_t i;
@@ -69,7 +74,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	fclose(f);
-	if(0 == (fm = flac__foreign_metadata_new(memcmp(buf, "RIFF", 4)? FOREIGN_BLOCK_TYPE__AIFF : FOREIGN_BLOCK_TYPE__RIFF))) {
+	if(0 == (fm = flac__foreign_metadata_new(memcmp(buf, "RIFF", 4) && memcmp(buf, "RF64", 4)? FOREIGN_BLOCK_TYPE__AIFF : FOREIGN_BLOCK_TYPE__RIFF))) {
 		fprintf(stderr, "ERROR: out of memory\n");
 		return 1;
 	}
@@ -94,7 +99,7 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "ERROR seeking in %s\n", fn);
 			return 1;
 		}
-		if(fread(buf, 1, 12, f) != 12) {
+		if(fread(buf, 1, i==0?12:8, f) != (i==0?12:8)) {
 			fprintf(stderr, "ERROR reading %s\n", fn);
 			return 1;
 		}
@@ -104,6 +109,22 @@ int main(int argc, char *argv[])
 			printf(" type:[%c%c%c%c]", buf[8], buf[9], buf[10], buf[11]);
 		else if(fm->type == FOREIGN_BLOCK_TYPE__AIFF && i == fm->audio_block)
 			printf(" offset size=%08x=(%10u)", fm->ssnd_offset_size, fm->ssnd_offset_size);
+		else if(fm->type == FOREIGN_BLOCK_TYPE__RIFF && i == 1 && !memcmp(buf, "ds64", 4)) {
+			if(fread(buf+8, 1, 36-8, f) != 36-8) {
+				fprintf(stderr, "ERROR reading %s\n", fn);
+				return 1;
+			}
+#ifdef _MSC_VER
+			printf(" RIFF size=%016I64x=(%I64u)", unpack64le_(buf+8), unpack64le_(buf+8));
+			printf(" data size=%016I64x=(%I64u)", unpack64le_(buf+16), unpack64le_(buf+16));
+			printf(" sample count=%016I64x=(%I64u)", unpack64le_(buf+24), unpack64le_(buf+24));
+#else
+			printf(" RIFF size=%016llx=(%llu)", unpack64le_(buf+8), unpack64le_(buf+8));
+			printf(" data size=%016llx=(%llu)", unpack64le_(buf+16), unpack64le_(buf+16));
+			printf(" sample count=%016llx=(%llu)", unpack64le_(buf+24), unpack64le_(buf+24));
+#endif
+			printf(" table size=%08x=(%u)", unpack32le_(buf+32), unpack32le_(buf+32));
+		}
 		printf("\n");
 	}
 	fclose(f);

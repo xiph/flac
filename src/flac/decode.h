@@ -51,24 +51,20 @@ typedef struct {
 	FLAC__bool has_cue_specification;
 	utils__CueSpecification cue_specification;
 	FLAC__bool channel_map_none; /* --channel-map=none specified, eventually will expand to take actual channel map */
+
+	FileFormat format;
+	union {
+		struct {
+			FLAC__bool is_big_endian;
+			FLAC__bool is_unsigned_samples;
+		} raw;
+		struct {
+			foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
+		} iff;
+	} format_options;
 } decode_options_t;
 
-/* used for AIFF also */
-typedef struct {
-	decode_options_t common;
-	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
-} wav_decode_options_t;
-
-typedef struct {
-	decode_options_t common;
-
-	FLAC__bool is_big_endian;
-	FLAC__bool is_unsigned_samples;
-} raw_decode_options_t;
-
 /* outfile == 0 => test only */
-int flac__decode_aiff(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, wav_decode_options_t options);
-int flac__decode_wav(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, wav_decode_options_t options);
-int flac__decode_raw(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, raw_decode_options_t options);
+int flac__decode_file(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, decode_options_t options);
 
 #endif
