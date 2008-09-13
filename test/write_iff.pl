@@ -118,7 +118,7 @@ elsif ($format eq 'wave' || $format eq 'wave64' || $format eq 'rf64') {
 	print pack('v', $channels);
 	print pack('V', $samplerate);
 	print pack('V', $samplerate * $channels * $bps);
-	print pack('v', $bps); # block align = channels*((bps+7)/8)
+	print pack('v', $channels * $bps); # block align = channels*((bps+7)/8)
 	print pack('v', $bps * 8); # bits per sample = ((bps+7)/8)*8
 	if ($wavx) {
 		print pack('v', 22); # cbSize
