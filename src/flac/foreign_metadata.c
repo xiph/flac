@@ -154,6 +154,11 @@ static FLAC__bool read_from_aiff_(foreign_metadata_t *fm, FILE *f, const char **
 				if(error) *error = "invalid AIFF file: seek error (010)";
 				return false;
 			}
+			/* WATCHOUT: For SSND we ignore the blockSize and are not saving any
+			 * unaligned part at the end of the chunk.  In retrospect it is pretty
+			 * pointless to save the unaligned data before the PCM but now it is
+			 * done and cast in stone.
+			 */
 		}
 		if(!append_block_(fm, offset, 8 + (memcmp(buffer, "SSND", 4)? size : 8 + fm->ssnd_offset_size), error))
 			return false;
@@ -665,7 +670,6 @@ static FLAC__bool write_to_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fout, o
 		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in WAVE/AIFF file (008)", "write failed in FLAC file (009)"))
 			return false;
 	}
-	/*@@@@@@ need to write SSND offset bytes here?  decoder left them as zeroes */
 	if(fseeko(fout, offset3, SEEK_SET) < 0) {
 		if(error) *error = "seek failed in WAVE/AIFF file (010)";
 		return false;
