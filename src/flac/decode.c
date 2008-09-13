@@ -418,9 +418,9 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 			if(flac__utils_fwrite("\000", 1, 1, d->fout) != 1) {
 				print_error_with_state(
 					d,
-					d->format == FORMAT_WAVE?  "ERROR writing pad byte to WAVE data chunk" :
-					d->format == FORMAT_WAVE64?  "ERROR writing pad bytes to WAVE64 data chunk" :
-					d->format == FORMAT_RF64?  "ERROR writing pad byte to RF64 data chunk" :
+					d->format == FORMAT_WAVE?   "ERROR writing pad byte to WAVE data chunk" :
+					d->format == FORMAT_WAVE64? "ERROR writing pad bytes to WAVE64 data chunk" :
+					d->format == FORMAT_RF64?   "ERROR writing pad byte to RF64 data chunk" :
 					"ERROR writing pad byte to AIFF SSND chunk"
 				);
 				return false;
@@ -605,8 +605,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		/* +16+8 for data chunk header (GUID and size field) */
 		iff_size = 16+8 + 16 + 16+8+(is_waveformatextensible?40:16) + 16+8 + foreign_metadata_size + aligned_data_size;
 	else /* AIFF */
-		/* @@@@@@ can ssnd_offset_size be odd and hence screw up our alignment logic? */
-		iff_size = 46 + foreign_metadata_size + aligned_data_size + (fm? fm->ssnd_offset_size : 0);
+		iff_size = 46 + foreign_metadata_size + aligned_data_size;
 
 	if(format != FORMAT_WAVE64 && format != FORMAT_RF64 && iff_size >= 0xFFFFFFF4) {
 		flac__utils_printf(stderr, 1, "%s: ERROR: stream is too big to fit in a single %s file\n", decoder_session->inbasefilename, fmt_desc);
@@ -727,8 +726,6 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		decoder_session->fm_offset3 = ftello(f) + aligned_data_size;
 	}
 	else {
-		FLAC__uint32 ssnd_offset_size = (fm? fm->ssnd_offset_size : 0);
-
 		if(flac__utils_fwrite("FORM", 1, 4, f) != 4)
 			return false;
 
@@ -768,22 +765,14 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		if(flac__utils_fwrite("SSND", 1, 4, f) != 4)
 			return false;
 
-		if(!write_big_endian_uint32(f, (FLAC__uint32)data_size + 8 + ssnd_offset_size)) /* data size */
+		if(!write_big_endian_uint32(f, (FLAC__uint32)data_size + 8)) /* data size */
 			return false;
 
-		if(!write_big_endian_uint32(f, ssnd_offset_size))
+		if(!write_big_endian_uint32(f, 0/*offset_size*/))
 			return false;
 
 		if(!write_big_endian_uint32(f, 0/*block_size*/))
 			return false;
-
-		if(ssnd_offset_size) {
-			/* seek forward to {allocate} or {skip over already-written} SSND offset */
-			if(fseeko(f, ssnd_offset_size, SEEK_CUR) < 0) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: allocating/skipping \"SSND\" offset\n", decoder_session->inbasefilename);
-				return false;
-			}
-		}
 
 		decoder_session->fm_offset3 = ftello(f) + aligned_data_size;
 	}

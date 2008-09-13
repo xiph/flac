@@ -801,7 +801,7 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 		else if(!memcmp(chunk_id, "SSND", 4) && !got_ssnd_chunk) { /* sound data chunk */
 			FLAC__uint32 xx;
 			FLAC__uint64 data_bytes;
-			unsigned offset = 0, block_size = 0;
+			unsigned offset = 0;
 
 			if(!got_comm_chunk) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: got 'SSND' chunk before 'COMM' chunk\n", e->inbasefilename);
@@ -838,19 +838,19 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 			/* block size */
 			if(!read_uint32(e->fin, /*big_endian=*/true, &xx, e->inbasefilename))
 				return false;
-			else if(xx != 0) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: block size is %u; must be 0\n", e->inbasefilename, (unsigned)xx);
-				return false;
+			if(xx && !options.ignore_chunk_sizes)
+				data_bytes -= (xx - (data_bytes % xx));
+			if(options.ignore_chunk_sizes) {
+				if(xx) {
+					flac__utils_printf(stderr, 1, "%s: WARNING: 'SSND' chunk has non-zero blocksize, using --ignore-chunk-sizes is probably a bad idea\n", e->inbasefilename, chunk_id);
+					if(e->treat_warnings_as_errors)
+						return false;
+				}
 			}
-			block_size = xx;
 
 			/* skip any SSND offset bytes */
 			if(!fskip_ahead(e->fin, offset)) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: skipping offset in SSND chunk\n", e->inbasefilename);
-				return false;
-			}
-			if(data_bytes != (sample_frames * e->info.bytes_per_wide_sample)) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: SSND chunk size inconsistent with sample frame count\n", e->inbasefilename);
 				return false;
 			}
 
@@ -1068,6 +1068,7 @@ int flac__encode_file(FILE *infile, off_t infilesize, const char *infilename, co
 			case FORMAT_RF64:
 			case FORMAT_AIFF:
 			case FORMAT_AIFF_C:
+				/* truncation in the division removes any padding byte that was counted in encoder_session.fmt.iff.data_bytes */
 				total_samples_in_input = encoder_session.fmt.iff.data_bytes / encoder_session.info.bytes_per_wide_sample + *options.align_reservoir_samples;
 				break;
 			case FORMAT_FLAC:
