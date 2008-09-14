@@ -21,12 +21,17 @@
 
 DEFAULT_BUILD = release
 
+# returns i386, x86_64, powerpc, etc.
+PROC := $(shell uname -p)
+# returns Linux, Darwin, FreeBSD, etc.
+OS := $(shell uname -s)
+
 debug    : BUILD = debug
 valgrind : BUILD = debug
 release  : BUILD = release
 
 # override LINKAGE on OS X until we figure out how to get 'cc -static' to work
-ifeq ($(DARWIN_BUILD),yes)
+ifeq ($(OS),Darwin)
 LINKAGE = 
 else
 debug    : LINKAGE = -static
@@ -42,7 +47,7 @@ all default: $(DEFAULT_BUILD)
 
 VERSION=\"1.2.1\"
 
-ifeq ($(DARWIN_BUILD),yes)
+ifeq ($(OS),Darwin)
 CONFIG_CFLAGS=-DHAVE_INTTYPES_H -DHAVE_ICONV -DHAVE_LANGINFO_CODESET -DFLAC__HAS_OGG -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DFLAC__SYS_DARWIN -DWORDS_BIGENDIAN
 else
 CONFIG_CFLAGS=-DHAVE_INTTYPES_H -DHAVE_ICONV -DHAVE_LANGINFO_CODESET -DHAVE_SOCKLEN_T -DFLAC__HAS_OGG -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64

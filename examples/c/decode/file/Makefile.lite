@@ -26,7 +26,7 @@ PROGRAM_NAME = example_c_decode_file
 
 INCLUDES = -I$(topdir)/include
 
-ifeq ($(DARWIN_BUILD),yes)
+ifeq ($(OS),Darwin)
 EXPLICIT_LIBS = $(libdir)/libFLAC.a $(OGG_LIB_DIR)/libogg.a -lm
 else
 LIBS = -lFLAC -L$(OGG_LIB_DIR) -logg -lm

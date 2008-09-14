@@ -16,6 +16,7 @@
 #  distribution.
 
 EXTRA_DIST = \
+	compile.mk \
 	config.mk \
 	exe.mk \
 	lib.mk

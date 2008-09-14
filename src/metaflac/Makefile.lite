@@ -26,7 +26,7 @@ PROGRAM_NAME = metaflac
 
 INCLUDES = -I./include -I$(topdir)/include -I$(OGG_INCLUDE_DIR)
 
-ifeq ($(DARWIN_BUILD),yes)
+ifeq ($(OS),Darwin)
 EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libFLAC.a $(libdir)/libreplaygain_analysis.a $(libdir)/libgetopt.a $(libdir)/libutf8.a $(OGG_LIB_DIR)/libogg.a -liconv -lm
 else
 LIBS = -lgrabbag -lFLAC -lreplaygain_analysis -lgetopt -lutf8 -L$(OGG_LIB_DIR) -logg -lm

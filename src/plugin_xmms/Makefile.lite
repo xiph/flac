@@ -24,7 +24,7 @@ topdir = ../..
 LIB_NAME  = libxmms-flac
 INCLUDES  = -I./include -I$(topdir)/include -I.. $(shell xmms-config --cflags)
 # refer to the static libs explicitly
-ifeq ($(DARWIN_BUILD),yes)
+ifeq ($(OS),Darwin)
 LIBS = $(topdir)/obj/$(BUILD)/lib/libFLAC.a $(topdir)/obj/$(BUILD)/lib/libplugin_common.a $(topdir)/obj/$(BUILD)/lib/libgrabbag.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_analysis.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_synthesis.a $(OGG_LIB_DIR)/libogg.a -liconv -lstdc++ -lz
 else
 LIBS = $(topdir)/obj/$(BUILD)/lib/libFLAC.a $(topdir)/obj/$(BUILD)/lib/libplugin_common.a $(topdir)/obj/$(BUILD)/lib/libgrabbag.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_analysis.a $(topdir)/obj/$(BUILD)/lib/libreplaygain_synthesis.a -L$(OGG_LIB_DIR) -logg -lstdc++ -lz

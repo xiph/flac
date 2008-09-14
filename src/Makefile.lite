@@ -15,7 +15,7 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-ifeq ($(DARWIN_BUILD),yes)
+ifeq ($(OS),Darwin)
 EXTRA_TARGETS = 
 else
 EXTRA_TARGETS = plugin_xmms

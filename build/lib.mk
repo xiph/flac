@@ -21,7 +21,7 @@
 
 include $(topdir)/build/config.mk
 
-ifeq ($(DARWIN_BUILD),yes)
+ifeq ($(OS),Darwin)
 CC          = cc
 CCC         = c++
 else
@@ -35,7 +35,7 @@ OBJPATH     = $(topdir)/obj
 LIBPATH     = $(OBJPATH)/$(BUILD)/lib
 DEBUG_LIBPATH     = $(OBJPATH)/debug/lib
 RELEASE_LIBPATH   = $(OBJPATH)/release/lib
-ifeq ($(DARWIN_BUILD),yes)
+ifeq ($(OS),Darwin)
 STATIC_LIB_SUFFIX = a
 DYNAMIC_LIB_SUFFIX = dylib
 else
@@ -50,7 +50,7 @@ DEBUG_STATIC_LIB    = $(DEBUG_LIBPATH)/$(STATIC_LIB_NAME)
 DEBUG_DYNAMIC_LIB   = $(DEBUG_LIBPATH)/$(DYNAMIC_LIB_NAME)
 RELEASE_STATIC_LIB  = $(RELEASE_LIBPATH)/$(STATIC_LIB_NAME)
 RELEASE_DYNAMIC_LIB = $(RELEASE_LIBPATH)/$(DYNAMIC_LIB_NAME)
-ifeq ($(DARWIN_BUILD),yes)
+ifeq ($(OS),Darwin)
 LINKD       = $(CC) -dynamiclib -flat_namespace -undefined suppress -install_name $(DYNAMIC_LIB)
 else
 LINKD       = $(CC) -shared
@@ -64,6 +64,10 @@ LFLAGS  = -L$(LIBPATH)
 
 DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o) $(SRCS_S:%.s=%.debug.o)
 RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o) $(SRCS_S:%.s=%.release.o)
+ifeq ($(PROC),x86_64)
+DEBUG_PIC_OBJS = $(SRCS_C:%.c=%.debug.pic.o) $(SRCS_CC:%.cc=%.debug.pic.o) $(SRCS_CPP:%.cpp=%.debug.pic.o) $(SRCS_NASM:%.nasm=%.debug.pic.o) $(SRCS_S:%.s=%.debug.pic.o)
+RELEASE_PIC_OBJS = $(SRCS_C:%.c=%.release.pic.o) $(SRCS_CC:%.cc=%.release.pic.o) $(SRCS_CPP:%.cpp=%.release.pic.o) $(SRCS_NASM:%.nasm=%.release.pic.o) $(SRCS_S:%.s=%.release.pic.o)
+endif
 
 debug   : $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
 valgrind: $(DEBUG_STATIC_LIB) $(DEBUG_DYNAMIC_LIB)
@@ -75,49 +79,33 @@ $(DEBUG_STATIC_LIB): $(DEBUG_OBJS)
 $(RELEASE_STATIC_LIB): $(RELEASE_OBJS)
 	$(LINK) $@ $(RELEASE_OBJS) && ranlib $@
 
-$(DEBUG_DYNAMIC_LIB) : $(DEBUG_OBJS)
-ifeq ($(DARWIN_BUILD),yes)
+$(DEBUG_DYNAMIC_LIB) : $(DEBUG_OBJS) $(DEBUG_PIC_OBJS)
+ifeq ($(OS),Darwin)
 	echo Not building dynamic lib, command is: $(LINKD) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS) -lc
+else
+ifeq ($(PROC),x86_64)
+	$(LINKD) -o $@ $(DEBUG_PIC_OBJS) $(LFLAGS) $(LIBS)
 else
 	$(LINKD) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS)
 endif
+endif
 
-$(RELEASE_DYNAMIC_LIB) : $(RELEASE_OBJS)
-ifeq ($(DARWIN_BUILD),yes)
+$(RELEASE_DYNAMIC_LIB) : $(RELEASE_OBJS) $(RELEASE_PIC_OBJS)
+ifeq ($(OS),Darwin)
 	echo Not building dynamic lib, command is: $(LINKD) -o $@ $(RELEASE_OBJS) $(LFLAGS) $(LIBS) -lc
+else
+ifeq ($(PROC),x86_64)
+	$(LINKD) -o $@ $(RELEASE_PIC_OBJS) $(LFLAGS) $(LIBS)
 else
 	$(LINKD) -o $@ $(RELEASE_OBJS) $(LFLAGS) $(LIBS)
 endif
-
-%.debug.o %.release.o : %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-%.debug.o %.release.o : %.cc
-	$(CCC) $(CFLAGS) -c $< -o $@
-%.debug.o %.release.o : %.cpp
-	$(CCC) $(CFLAGS) -c $< -o $@
-%.debug.i %.release.i : %.c
-	$(CC) $(CFLAGS) -E $< -o $@
-%.debug.i %.release.i : %.cc
-	$(CCC) $(CFLAGS) -E $< -o $@
-%.debug.i %.release.i : %.cpp
-	$(CCC) $(CFLAGS) -E $< -o $@
-
-%.debug.o %.release.o : %.s
-ifeq ($(DARWIN_BUILD),yes)
-	#$(CC) -c -arch ppc -Wall -force_cpusubtype_ALL $< -o $@
-	$(AS) -arch ppc -force_cpusubtype_ALL $< -o $@
-else
-	$(AS) $< -o $@
 endif
 
-%.debug.o : %.nasm
-	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ -g $< -o $@
-%.release.o : %.nasm
-	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ $< -o $@
+include $(topdir)/build/compile.mk
 
 .PHONY : clean
 clean :
-	-rm -f $(DEBUG_OBJS) $(RELEASE_OBJS) $(OBJPATH)/*/lib/$(STATIC_LIB_NAME) $(OBJPATH)/*/lib/$(DYNAMIC_LIB_NAME)
+	-rm -f $(DEBUG_OBJS) $(RELEASE_OBJS) $(DEBUG_PIC_OBJS) $(RELEASE_PIC_OBJS) $(OBJPATH)/*/lib/$(STATIC_LIB_NAME) $(OBJPATH)/*/lib/$(DYNAMIC_LIB_NAME)
 
 .PHONY : depend
 depend:
