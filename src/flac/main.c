@@ -469,9 +469,6 @@ int do_it(void)
 				return usage_error("ERROR: --keep-foreign-metadata is not allowed in test mode\n");
 			if(option_values.analyze)
 				return usage_error("ERROR: --keep-foreign-metadata is not allowed in analyis mode\n");
-			/*@@@@@@*/
-			if(option_values.delete_input)
-				return usage_error("ERROR: using --delete-input-file with --keep-foreign-metadata has been disabled until more testing has been done.\n");
 			flac__utils_printf(stderr, 1, "NOTE: --keep-foreign-metadata is a new feature; make sure to test the output file before deleting the original.\n");
 		}
 	}
