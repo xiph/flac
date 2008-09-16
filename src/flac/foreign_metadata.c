@@ -393,7 +393,7 @@ static FLAC__bool read_from_wave64_(foreign_metadata_t *fm, FILE *f, const char 
 			}
 			fm->audio_block = fm->num_blocks;
 		}
-		if(!append_block_(fm, offset, memcmp(buffer, "\x64\x61\x74\x61\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 16)? size : 16+8, error))
+		if(!append_block_(fm, offset, memcmp(buffer, "\x64\x61\x74\x61\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 16)? (FLAC__uint32)size : 16+8, error))
 			return false;
 		/* skip to next chunk */
 		if(fseeko(f, size-24, SEEK_CUR) < 0) {
