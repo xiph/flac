@@ -28,7 +28,7 @@
  */
 
 #include <limits.h> /* for SIZE_MAX */
-#if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
+#if HAVE_STDINT_H
 #include <stdint.h> /* for SIZE_MAX in case limits.h didn't get it */
 #endif
 #include <stdlib.h> /* for size_t, malloc(), etc */
