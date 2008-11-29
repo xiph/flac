@@ -7,4 +7,4 @@ Name: FLAC
 Description: Free Lossless Audio Codec Library
 Version: @VERSION@
 Libs: -L${libdir} -lFLAC -lm
-Cflags: -I${includedir}/FLAC
+Cflags: -I${includedir}
