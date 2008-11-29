@@ -8,4 +8,4 @@ Description: Free Lossless Audio Codec Library (C++ API)
 Version: @VERSION@
 Requires: flac
 Libs: -L${libdir} -lFLAC++ -lm
-Cflags: -I${includedir}/FLAC++
+Cflags: -I${includedir}
