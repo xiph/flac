@@ -15,10 +15,18 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
+topdir = ..
+
+include $(topdir)/build/config.mk
+
 ifeq ($(OS),Darwin)
 EXTRA_TARGETS = 
 else
+ifeq ($(PROC),x86_64)
+EXTRA_TARGETS = 
+else
 EXTRA_TARGETS = plugin_xmms
+endif
 endif
 
 .PHONY: all flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams
