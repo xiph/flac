@@ -2155,6 +2155,8 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 #if FLAC__HAS_OGG
 	FLAC__ogg_encoder_aspect_set_defaults(&encoder->protected_->ogg_encoder_aspect);
 #endif
+
+	FLAC__stream_encoder_set_compression_level(encoder, 5);
 }
 
 void free_(FLAC__StreamEncoder *encoder)

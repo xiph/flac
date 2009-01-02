@@ -524,12 +524,6 @@ int do_it(void)
 						flac__utils_printf(stderr, 1, "ERROR: filename too long: %s", option_values.filenames[i]);
 						return 1;
 					}
-					if(0 == strcmp(option_values.filenames[i], "-")) {
-						FLAC__ASSERT(0);
-						/* double protection */
-						flac__utils_printf(stderr, 1, "internal error\n");
-						return 2;
-					}
 					if(0 != (error = grabbag__replaygain_store_to_file_album(outfilename, album_gain, album_peak, option_values.preserve_modtime))) {
 						flac__utils_printf(stderr, 1, "%s: ERROR writing ReplayGain album tags (%s)\n", outfilename, error);
 						retval = 1;
@@ -1834,7 +1828,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 	}
 
-	if(/*@@@@@@why no stdin?*/encode_infile == stdin || option_values.force_to_stdout) {
+	if(option_values.force_to_stdout) {
 		if(option_values.replay_gain) {
 			conditional_fclose(encode_infile);
 			return usage_error("ERROR: --replay-gain cannot be used when encoding to stdout\n");

@@ -136,7 +136,7 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX = 0x00400000;
 #  endif
 # elif defined(_MSC_VER)
 #  include <windows.h>
-#  undef USE_TRY_CATCH_FLAVOR /* #define this to use the try/catch method for catching illegal opcode exception */
+#  define USE_TRY_CATCH_FLAVOR /* sigill_handler flavor resulted in several crash reports on win32 */
 #  ifdef USE_TRY_CATCH_FLAVOR
 #  else
 	LONG CALLBACK sigill_handler_sse_os(EXCEPTION_POINTERS *ep)

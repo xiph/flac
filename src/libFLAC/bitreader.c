@@ -36,13 +36,16 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy(), memset() */
 #ifdef _MSC_VER
-#include <winsock.h> /* for ntohl() */
+# include <winsock.h> /* for ntohl() */
+# if _MSC_VER >= 1310
+#  include <winsock2.h> /* for ntohl(), sometimes it is not in winsock.h */
+# endif
 #elif defined FLAC__SYS_DARWIN
-#include <machine/endian.h> /* for ntohl() */
+# include <machine/endian.h> /* for ntohl() */
 #elif defined __MINGW32__
-#include <winsock.h> /* for ntohl() */
+# include <winsock.h> /* for ntohl() */
 #else
-#include <netinet/in.h> /* for ntohl() */
+# include <netinet/in.h> /* for ntohl() */
 #endif
 #include "private/bitmath.h"
 #include "private/bitreader.h"

@@ -152,6 +152,11 @@ void flac__utils_printf(FILE *stream, int level, const char *format, ...)
 		(void) vfprintf(stream, format, args);
 
 		va_end(args);
+
+#ifdef _MSC_VER
+		if(stream == stderr)
+			fflush(stream); /* for some reason stderr is buffered in at least some if not all MSC libs */
+#endif
 	}
 }
 
