@@ -46,6 +46,16 @@ AC_CHECK_SIZEOF(void*,0)
 #@@@ new name is AC_CONFIG_HEADERS
 AM_CONFIG_HEADER(config.h)
 
+AC_LANG_PUSH(C++)
+# c++ flavor first
+AC_C_VARARRAYS
+if test $ac_cv_c_vararrays = yes; then
+	AC_DEFINE([HAVE_CXX_VARARRAYS], 1, [Define to 1 if C++ supports variable-length arrays.])
+fi
+AC_LANG_POP(C++)
+# c flavor
+AC_C_VARARRAYS
+
 AC_C_BIGENDIAN
 
 AC_CHECK_TYPES(socklen_t, [], [])
