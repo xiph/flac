@@ -104,7 +104,7 @@ protected:
 
 	virtual void error_callback(::FLAC__StreamDecoderErrorStatus status)
 	{
-		fprintf(stderr, "get error %d:%s\n", status, ::FLAC__StreamDecoderErrorStatusString[status]);
+		fprintf(stderr, "got error %d:%s\n", status, ::FLAC__StreamDecoderErrorStatusString[status]);
 		go_ = false;
 		err_ = true;
 	}
