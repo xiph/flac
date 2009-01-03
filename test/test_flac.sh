@@ -17,6 +17,9 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
+# we use '.' as decimal separator in --skip/--until tests
+export LANG=C LC_ALL=C
+
 die ()
 {
 	echo $* 1>&2
