@@ -54,7 +54,7 @@ typedef struct {
 	FLAC__int32 random;
 } dither_state;
 
-static FLaC__INLINE FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
+static FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
 {
 	unsigned scalebits;
 	FLAC__int32 output, mask, random;

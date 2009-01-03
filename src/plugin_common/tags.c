@@ -48,7 +48,7 @@ static FLaC__INLINE size_t local__wide_strlen(const FLAC__uint16 *s)
  * and a more clear explanation at the end of this section:
  *   http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
  */
-static FLaC__INLINE size_t local__utf8len(const FLAC__byte *utf8)
+static size_t local__utf8len(const FLAC__byte *utf8)
 {
 	FLAC__ASSERT(0 != utf8);
 	if ((utf8[0] & 0x80) == 0) {
@@ -90,7 +90,7 @@ static FLaC__INLINE size_t local__utf8len(const FLAC__byte *utf8)
 }
 
 
-static FLaC__INLINE size_t local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__uint16 *ucs2)
+static size_t local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__uint16 *ucs2)
 {
 	const size_t len = local__utf8len(utf8);
 
@@ -155,7 +155,7 @@ static FLaC__INLINE size_t local__ucs2len(FLAC__uint16 ucs2)
 		return 3;
 }
 
-static FLaC__INLINE size_t local__ucs2_to_utf8(FLAC__uint16 ucs2, FLAC__byte *utf8)
+static size_t local__ucs2_to_utf8(FLAC__uint16 ucs2, FLAC__byte *utf8)
 {
 	if (ucs2 < 0x080) {
 		utf8[0] = (FLAC__byte)ucs2;

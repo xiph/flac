@@ -40,10 +40,6 @@
 #include "FLAC/format.h"
 #include "private/format.h"
 
-#ifndef FLaC__INLINE
-#define FLaC__INLINE
-#endif
-
 #ifdef min
 #undef min
 #endif
@@ -323,7 +319,7 @@ FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *se
  * and a more clear explanation at the end of this section:
  *   http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
  */
-static FLaC__INLINE unsigned utf8len_(const FLAC__byte *utf8)
+static unsigned utf8len_(const FLAC__byte *utf8)
 {
 	FLAC__ASSERT(0 != utf8);
 	if ((utf8[0] & 0x80) == 0) {
