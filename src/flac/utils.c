@@ -55,7 +55,7 @@ static FLAC__bool local__parse_timecode_(const char *s, double *value)
 {
 	double ret;
 	unsigned i;
-	char c;
+	char c, *endptr;
 
 	/* parse [0-9][0-9]*: */
 	c = *s++;
@@ -74,12 +74,9 @@ static FLAC__bool local__parse_timecode_(const char *s, double *value)
 	/* parse [0-9]*[.,]?[0-9]* i.e. a sign-less rational number (. or , OK for fractional seconds, to support different locales) */
 	if(strspn(s, "1234567890.,") != strlen(s))
 		return false;
-	{
-		const char *p = strpbrk(s, ".,");
-		if(p && 0 != strpbrk(++p, ".,"))
-			return false;
-	}
-	ret += atof(s);
+	ret += strtod(s, &endptr);
+	if (endptr == s || *endptr)
+		return false;
 
 	*value = ret;
 	return true;
