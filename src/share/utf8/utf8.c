@@ -155,7 +155,7 @@ int utf8_encode(const char *from, char **to)
 
 	if(wchars == 0)
 	{
-		fprintf(stderr, "Unicode translation error %d\n", GetLastError());
+		fprintf(stderr, "Unicode translation error %d\n", (int)GetLastError());
 		return -1;
 	}
 
@@ -174,7 +174,7 @@ int utf8_encode(const char *from, char **to)
 	if(err != wchars)
 	{
 		free(unicode);
-		fprintf(stderr, "Unicode translation error %d\n", GetLastError());
+		fprintf(stderr, "Unicode translation error %d\n", (int)GetLastError());
 		return -1;
 	}
 
@@ -210,7 +210,7 @@ int utf8_decode(const char *from, char **to)
 
     if(chars == 0)
     {
-        fprintf(stderr, "Unicode translation error %d\n", GetLastError());
+        fprintf(stderr, "Unicode translation error %d\n", (int)GetLastError());
         free(unicode);
         return -1;
     }
@@ -227,7 +227,7 @@ int utf8_decode(const char *from, char **to)
             -1, *to, chars, NULL, NULL);
     if(err != chars)
     {
-        fprintf(stderr, "Unicode translation error %d\n", GetLastError());
+        fprintf(stderr, "Unicode translation error %d\n", (int)GetLastError());
         free(unicode);
         free(*to);
         *to = NULL;
