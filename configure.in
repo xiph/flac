@@ -359,6 +359,9 @@ AC_CONFIG_FILES([ \
 	src/test_libFLAC++/Makefile \
 	src/test_seeking/Makefile \
 	src/test_streams/Makefile \
+	src/utils/Makefile \
+	src/utils/flacdiff/Makefile \
+	src/utils/flactimer/Makefile \
 	examples/Makefile \
 	examples/c/Makefile \
 	examples/c/decode/Makefile \
