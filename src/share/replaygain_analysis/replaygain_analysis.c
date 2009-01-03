@@ -110,24 +110,24 @@ typedef signed int      Int32_t;
 #define YULE_ORDER         10
 #define BUTTER_ORDER        2
 #define RMS_PERCENTILE      0.95        /* percentile which is louder than the proposed level */
-#define MAX_SAMP_FREQ   48000.          /* maximum allowed sample frequency [Hz] */
-#define RMS_WINDOW_TIME     0.050       /* Time slice size [s] */
+#define MAX_SAMP_FREQ   48000           /* maximum allowed sample frequency [Hz] */
+#define RMS_WINDOW_TIME    50           /* Time slice size [ms] */
 #define STEPS_per_dB      100.          /* Table entries per dB */
 #define MAX_dB            120.          /* Table entries for 0...MAX_dB (normal max. values are 70...80 dB) */
 
 #define MAX_ORDER               (BUTTER_ORDER > YULE_ORDER ? BUTTER_ORDER : YULE_ORDER)
 /* [JEC] the following was originally #defined as:
- *   (size_t) (MAX_SAMP_FREQ * RMS_WINDOW_TIME)
+ *   (size_t) (MAX_SAMP_FREQ * RMS_WINDOW_TIME / 1000)
  * but that seemed to fail to take into account the ceil() part of the
  * sampleWindow calculation in ResetSampleFrequency(), and was causing
  * buffer overflows for 48kHz analysis, hence the +1.
  */
-#ifndef __sun
- #define MAX_SAMPLES_PER_WINDOW  (size_t) (MAX_SAMP_FREQ * RMS_WINDOW_TIME + 1.)   /* max. Samples per Time slice */
-#else
- /* [JEC] Solaris Forte compiler doesn't like float calc in array indices */
- #define MAX_SAMPLES_PER_WINDOW  (size_t) (2401)
-#endif
+/* [JEC] WATCHOUT: if MAX_SAMP_FREQ * RMS_WINDOW_TIME / 1000 is not an
+ * integer it must be manually rounded up.  there is a limit on the
+ * kind of calculation that can be done in array size definition (e.g.
+ * Sun Forte compiler cannot handle any floating point terms).
+ */
+#define MAX_SAMPLES_PER_WINDOW  (size_t) (MAX_SAMP_FREQ * RMS_WINDOW_TIME / 1000 + 1)   /* max. Samples per Time slice */
 #define PINK_REF                64.82 /* 298640883795 */                          /* calibration value */
 
 static Float_t          linprebuf [MAX_ORDER * 2];
@@ -255,7 +255,7 @@ ResetSampleFrequency ( long samplefreq ) {
         default:    return INIT_GAIN_ANALYSIS_ERROR;
     }
 
-    sampleWindow = (int) ceil (samplefreq * RMS_WINDOW_TIME);
+    sampleWindow = (int) ceil ((double)samplefreq * (double)RMS_WINDOW_TIME / 1000.0);
 
     lsum         = 0.;
     rsum         = 0.;

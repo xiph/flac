@@ -108,7 +108,7 @@
 				OmitFramePointers="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories=".\include;..\..\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FLAC__HAS_OGG;FLAC__CPU_IA32;FLAC__HAS_NASM;FLAC__USE_3DNOW;VERSION=\&quot;1.2.0\&quot;;FLAC__NO_DLL"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FLAC__HAS_OGG;FLAC__CPU_IA32;FLAC__HAS_NASM;FLAC__USE_3DNOW;VERSION=\&quot;1.2.0\&quot;;FLAC__NO_DLL;FLaC__INLINE=_inline"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"

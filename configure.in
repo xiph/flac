@@ -60,6 +60,7 @@ AC_LANG_POP(C++)
 AC_C_VARARRAYS
 
 AC_C_BIGENDIAN
+AC_C_INLINE
 
 AC_CHECK_TYPES(socklen_t, [], [])
 
@@ -316,12 +317,15 @@ fi
 
 CPPFLAGS='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'" $CPPFLAGS"
 if test "x$debug" = xtrue; then
-	CPPFLAGS="-DDEBUG $CPPFLAGS"
+	CPPFLAGS="-DDEBUG -DFLaC__INLINE= $CPPFLAGS"
 	CFLAGS="-g $CFLAGS"
 else
 	CPPFLAGS="-DNDEBUG $CPPFLAGS"
+	# $ac_cv_c_inline from AC_C_INLINE
+	if test "x$ac_cv_c_inline" != xno ; then
+		CPPFLAGS="-DFLaC__INLINE=$ac_cv_c_inline $CPPFLAGS"
+	fi
 	if test "x$GCC" = xyes; then
-		CPPFLAGS="-DFLaC__INLINE=__inline__ $CPPFLAGS"
 		CFLAGS="-O3 -funroll-loops -finline-functions -Wall -W -Winline $CFLAGS"
 	fi
 fi
