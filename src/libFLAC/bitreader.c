@@ -758,7 +758,7 @@ FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, unsigned *va
 		 * us data a byte at a time (unlikely), br->consumed_bits may not
 		 * be zero.
 		 */
-		if(br->bytes) {
+		if(br->bytes*8 > br->consumed_bits) {
 			const unsigned end = br->bytes * 8;
 			brword b = (br->buffer[br->consumed_words] & (FLAC__WORD_ALL_ONES << (FLAC__BITS_PER_WORD-end))) << br->consumed_bits;
 			if(b) {
@@ -771,7 +771,7 @@ FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, unsigned *va
 			}
 			else {
 				*val += end - br->consumed_bits;
-				br->consumed_bits += end;
+				br->consumed_bits = end;
 				FLAC__ASSERT(br->consumed_bits < FLAC__BITS_PER_WORD);
 				/* didn't find stop bit yet, have to keep going... */
 			}
@@ -881,7 +881,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 			 * us data a byte at a time (unlikely), br->consumed_bits may not
 			 * be zero.
 			 */
-			if(br->bytes) {
+			if(br->bytes*8 > cbits) {
 				const unsigned end = br->bytes * 8;
 				brword b = (br->buffer[cwords] & (FLAC__WORD_ALL_ONES << (FLAC__BITS_PER_WORD-end))) << cbits;
 				if(b) {
@@ -895,7 +895,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 				}
 				else {
 					uval += end - cbits;
-					cbits += end;
+					cbits = end;
 					FLAC__ASSERT(cbits < FLAC__BITS_PER_WORD);
 					/* didn't find stop bit yet, have to keep going... */
 				}
@@ -1064,7 +1064,7 @@ break2:
 			 * us data a byte at a time (unlikely), br->consumed_bits may not
 			 * be zero.
 			 */
-			if(br->bytes) {
+			if(br->bytes*8 > cbits) {
 				const unsigned end = br->bytes * 8;
 				brword b = (br->buffer[cwords] & ~(FLAC__WORD_ALL_ONES >> end)) << cbits;
 				if(b) {
@@ -1077,7 +1077,7 @@ break2:
 				}
 				else {
 					uval += end - cbits;
-					cbits += end;
+					cbits = end;
 					FLAC__ASSERT(cbits < FLAC__BITS_PER_WORD);
 					/* didn't find stop bit yet, have to keep going... */
 				}
