@@ -1,5 +1,5 @@
 /* plugin_common - Routines common to several plugins
- * Copyright (C) 2002,2003,2004,2006,2007,2008  Josh Coalson
+ * Copyright (C) 2002,2003,2004,2006,2007,2008,2009  Josh Coalson
  *
  * Based on:
  * locale.h - 2000/05/05 13:10 Jerome Couderc

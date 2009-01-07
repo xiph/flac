@@ -1,5 +1,5 @@
 #  flacdiff - Displays where two FLAC streams differ
-#  Copyright (C) 2007,2008  Josh Coalson
+#  Copyright (C) 2007,2008,2009  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License

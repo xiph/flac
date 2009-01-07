@@ -1,5 +1,5 @@
 /* alloc - Convenience routines for safely allocating memory
- * Copyright (C) 2007,2008  Josh Coalson
+ * Copyright (C) 2007,2008,2009  Josh Coalson
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
