@@ -111,7 +111,7 @@ rm -f $log
 #
 for cuesheet in $bad_cuesheets ; do
 	echo "NEGATIVE $cuesheet" >> $log 2>&1
-	run_test_cuesheet $cuesheet $good_leadout cdda >> $log 2>&1
+	run_test_cuesheet $cuesheet $good_leadout 44100 cdda >> $log 2>&1
 	exit_code=$?
 	if [ "$exit_code" = 255 ] ; then
 		die "Error: test script is broken"
@@ -126,7 +126,7 @@ done
 #
 for cuesheet in $good_cuesheets ; do
 	echo "POSITIVE $cuesheet" >> $log 2>&1
-	run_test_cuesheet $cuesheet $good_leadout cdda >> $log 2>&1
+	run_test_cuesheet $cuesheet $good_leadout 44100 cdda >> $log 2>&1
 	exit_code=$?
 	if [ "$exit_code" = 255 ] ; then
 		die "Error: test script is broken"

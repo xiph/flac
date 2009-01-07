@@ -162,7 +162,7 @@ static FLAC__bool flac_decoder_eof_callback(const FLAC__StreamDecoder *decoder, 
 static FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
 static void flac_decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
-static FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset, FLAC__bool treat_warnings_as_errors);
+static FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, unsigned sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset, FLAC__bool treat_warnings_as_errors);
 static void print_stats(const EncoderSession *encoder_session);
 static void print_error_with_init_status(const EncoderSession *e, const char *message, FLAC__StreamEncoderInitStatus init_status);
 static void print_error_with_state(const EncoderSession *e, const char *message);
@@ -1770,7 +1770,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		}
 	}
 
-	if(!parse_cuesheet(&static_metadata.cuesheet, options.cuesheet_filename, e->inbasefilename, is_cdda, e->total_samples_to_encode, e->treat_warnings_as_errors))
+	if(!parse_cuesheet(&static_metadata.cuesheet, options.cuesheet_filename, e->inbasefilename, sample_rate, is_cdda, e->total_samples_to_encode, e->treat_warnings_as_errors))
 		return false;
 
 	if(!convert_to_seek_table_template(options.requested_seek_points, options.num_requested_seek_points, options.cued_seekpoints? static_metadata.cuesheet : 0, e)) {
@@ -2560,7 +2560,7 @@ void flac_decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__Strea
 		data->fatal_error = true;
 }
 
-FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset, FLAC__bool treat_warnings_as_errors)
+FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_filename, const char *inbasefilename, unsigned sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset, FLAC__bool treat_warnings_as_errors)
 {
 	FILE *f;
 	unsigned last_line_read;
@@ -2579,7 +2579,7 @@ FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_
 		return false;
 	}
 
-	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, is_cdda, lead_out_offset);
+	*cuesheet = grabbag__cuesheet_parse(f, &error_message, &last_line_read, sample_rate, is_cdda, lead_out_offset);
 
 	fclose(f);
 

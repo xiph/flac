@@ -28,7 +28,7 @@
 #include "FLAC/metadata.h"
 #include "share/grabbag.h"
 
-static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
+static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
 {
 	FILE *fin, *fout;
 	const char *error_message;
@@ -48,7 +48,7 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 		fprintf(stderr, "can't open file %s for reading: %s\n", infilename, strerror(errno));
 		return 255;
 	}
-	if(0 != (cuesheet = grabbag__cuesheet_parse(fin, &error_message, &last_line_read, is_cdda, lead_out_offset))) {
+	if(0 != (cuesheet = grabbag__cuesheet_parse(fin, &error_message, &last_line_read, sample_rate, is_cdda, lead_out_offset))) {
 		if(fin != stdin)
 			fclose(fin);
 	}
@@ -80,7 +80,7 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 		fprintf(stderr, "can't open file %s for reading: %s\n", tmpfilename, strerror(errno));
 		return 255;
 	}
-	if(0 != (cuesheet = grabbag__cuesheet_parse(fin, &error_message, &last_line_read, is_cdda, lead_out_offset))) {
+	if(0 != (cuesheet = grabbag__cuesheet_parse(fin, &error_message, &last_line_read, sample_rate, is_cdda, lead_out_offset))) {
 		if(fin != stdin)
 			fclose(fin);
 	}
@@ -111,28 +111,32 @@ static int do_cuesheet(const char *infilename, FLAC__bool is_cdda, FLAC__uint64 
 int main(int argc, char *argv[])
 {
 	FLAC__uint64 lead_out_offset;
+	unsigned sample_rate;
 	FLAC__bool is_cdda = false;
-	const char *usage = "usage: test_cuesheet cuesheet_file lead_out_offset [ cdda ]\n";
+	const char *usage = "usage: test_cuesheet cuesheet_file lead_out_offset [ [ sample_rate ] cdda ]\n";
 
 	if(argc > 1 && 0 == strcmp(argv[1], "-h")) {
 		printf(usage);
 		return 0;
 	}
 
-	if(argc < 3 || argc > 4) {
+	if(argc < 3 || argc > 5) {
 		fprintf(stderr, usage);
 		return 255;
 	}
 
 	lead_out_offset = (FLAC__uint64)strtoul(argv[2], 0, 10);
-	if(argc == 4) {
-		if(0 == strcmp(argv[3], "cdda"))
-			is_cdda = true;
-		else {
-			fprintf(stderr, usage);
-			return 255;
+	if(argc >= 4) {
+		sample_rate = (unsigned)atoi(argv[3]);
+		if(argc >= 5) {
+			if(0 == strcmp(argv[4], "cdda"))
+				is_cdda = true;
+			else {
+				fprintf(stderr, usage);
+				return 255;
+			}
 		}
 	}
 
-	return do_cuesheet(argv[1], is_cdda, lead_out_offset);
+	return do_cuesheet(argv[1], sample_rate, is_cdda, lead_out_offset);
 }
