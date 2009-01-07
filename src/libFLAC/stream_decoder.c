@@ -1407,7 +1407,7 @@ FLAC__bool find_metadata_(FLAC__StreamDecoder *decoder)
 				decoder->private_->lookahead = (FLAC__byte)x;
 				decoder->private_->cached = true;
 			}
-			else if(x >> 2 == 0x3e) { /* MAGIC NUMBER for the last 6 sync bits */
+			else if(x >> 1 == 0x7c) { /* MAGIC NUMBER for the last 6 sync bits and reserved 7th bit */
 				decoder->private_->header_warmup[1] = (FLAC__byte)x;
 				decoder->protected_->state = FLAC__STREAM_DECODER_READ_FRAME;
 				return true;
@@ -1977,7 +1977,7 @@ FLAC__bool frame_sync_(FLAC__StreamDecoder *decoder)
 				decoder->private_->lookahead = (FLAC__byte)x;
 				decoder->private_->cached = true;
 			}
-			else if(x >> 2 == 0x3e) { /* MAGIC NUMBER for the last 6 sync bits */
+			else if(x >> 1 == 0x7c) { /* MAGIC NUMBER for the last 6 sync bits and reserved 7th bit */
 				decoder->private_->header_warmup[1] = (FLAC__byte)x;
 				decoder->protected_->state = FLAC__STREAM_DECODER_READ_FRAME;
 				return true;

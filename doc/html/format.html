@@ -1121,7 +1121,7 @@
 				&lt;1&gt;
 			</td>
 			<td>
-				Reserved:<br />
+				Reserved: <a href="#frame_header_notes">[1]</a><br />
 				<ul>
 				<li>
 					<tt>0</tt> : mandatory value
@@ -1137,7 +1137,7 @@
 				&lt;1&gt;
 			</td>
 			<td>
-				Blocking strategy:<br />
+				Blocking strategy: <a href="#frame_header_notes">[2]</a> <a href="#frame_header_notes">[3]</a><br />
 				<ul>
 				<li>
 					<tt>0</tt> : fixed-blocksize stream; frame header encodes the frame number
@@ -1325,9 +1325,9 @@
 			</td>
 			<td>
 				if(variable blocksize)<br />
-				&nbsp;&nbsp;&nbsp;&lt;8-56&gt;:"UTF-8" coded sample number (decoded number is 36 bits)<br />
+				&nbsp;&nbsp;&nbsp;&lt;8-56&gt;:"UTF-8" coded sample number (decoded number is 36 bits) <a href="#frame_header_notes">[4]</a><br />
 				else<br />
-				&nbsp;&nbsp;&nbsp;&lt;8-48&gt;:"UTF-8" coded frame number (decoded number is 31 bits)
+				&nbsp;&nbsp;&nbsp;&lt;8-48&gt;:"UTF-8" coded frame number (decoded number is 31 bits) <a href="#frame_header_notes">[4]</a>
 			</td>
 		</tr>
 		<tr>
@@ -1360,8 +1360,11 @@
 			<td>
 			</td>
 			<td bgcolor="#F4F4CC">
-				<font size="+1">NOTES</font><br />
-				<ul>
+				<a name="frame_header_notes"><font size="+1">NOTES</font></a><br />
+				<ol>
+				<li>
+					This bit must remain reserved for <tt>0</tt> in order for a FLAC frame's initial 15 bits to be distinguishable from the start of an MPEG audio frame (<a href="http://lists.xiph.org/pipermail/flac-dev/2008-December/002607.html">see also</a>).
+				</li>
 				<li>
 					The "blocking strategy" bit must be the same throughout the entire stream.
 				</li>
@@ -1371,7 +1374,7 @@
 				<li>
 					The "UTF-8" coding used for the sample/frame number is the same variable length code used to store compressed UCS-2, extended to handle larger input.
 				</li>
-				</ul>
+				</ol>
 			</td>
 		</tr>
 	</table>
