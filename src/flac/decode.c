@@ -77,6 +77,7 @@ typedef struct {
 	FLAC__bool abort_flag;
 	FLAC__bool aborting_due_to_until; /* true if we intentionally abort decoding prematurely because we hit the --until point */
 	FLAC__bool aborting_due_to_unparseable; /* true if we abort decoding because we hit an unparseable frame */
+	FLAC__bool error_callback_suppress_messages; /* turn on to prevent repeating messages from the error callback */
 
 	FLAC__bool iff_headers_need_fixup;
 
@@ -228,6 +229,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->abort_flag = false;
 	d->aborting_due_to_until = false;
 	d->aborting_due_to_unparseable = false;
+	d->error_callback_suppress_messages = false;
 
 	d->iff_headers_need_fixup = false;
 
@@ -1357,11 +1359,26 @@ void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderError
 {
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	(void)decoder;
-	flac__utils_printf(stderr, 1, "%s: *** Got error code %d:%s\n", decoder_session->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
+	if(!decoder_session->error_callback_suppress_messages)
+		flac__utils_printf(stderr, 1, "%s: *** Got error code %d:%s\n", decoder_session->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
 	if(!decoder_session->continue_through_decode_errors) {
-		decoder_session->abort_flag = true;
-		if(status == FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM)
+		/* if we got a sync error while looking for metadata, either it's not a FLAC file (more likely) or the file is corrupted */
+		if(
+			!decoder_session->error_callback_suppress_messages &&
+			status == FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC &&
+			FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_SEARCH_FOR_METADATA
+		) {
+			flac__utils_printf(stderr, 1,
+				"\n"
+				"The input file is either not a FLAC file or is corrupted.  If you are\n"
+				"convinced it is a FLAC file, you can rerun the same command and add the\n"
+				"-F parameter to try and recover as much as possible from the file.\n"
+			);
+			decoder_session->error_callback_suppress_messages = true;
+		}
+		else if(status == FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM)
 			decoder_session->aborting_due_to_unparseable = true;
+		decoder_session->abort_flag = true;
 	}
 }
 
