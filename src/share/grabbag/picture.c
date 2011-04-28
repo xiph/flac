@@ -287,8 +287,10 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 
 	*error_message = 0;
 
-	if(0 == (obj = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE)))
+	if(0 == (obj = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE))) {
 		*error_message = error_messages[0];
+		return obj;
+	}
 
 	if(strchr(spec, '|')) { /* full format */
 		const char *p;
@@ -363,8 +365,10 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 						*error_message = error_messages[0];
 					else {
 						FILE *f = fopen(spec, "rb");
-						if(0 == f)
+						if(0 == f) {
 							*error_message = error_messages[5];
+							free(buffer);
+						}
 						else {
 							if(fread(buffer, 1, size, f) != (size_t)size)
 								*error_message = error_messages[6];
@@ -378,6 +382,9 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 								/* try to extract resolution/color info if user left it blank */
 								else if((obj->data.picture.width == 0 || obj->data.picture.height == 0 || obj->data.picture.depth == 0) && !local__extract_resolution_color_info_(&obj->data.picture))
 									*error_message = error_messages[4];
+							}
+							else {
+								free(buffer);
 							}
 						}
 					}

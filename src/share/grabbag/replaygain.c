@@ -505,8 +505,10 @@ static const char *store_to_file_post_(const char *filename, FLAC__Metadata_Chai
 
 	FLAC__metadata_chain_sort_padding(chain);
 	if(!FLAC__metadata_chain_write(chain, /*use_padding=*/true, preserve_modtime)) {
+		const char *error;
+		error = FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)];
 		FLAC__metadata_chain_delete(chain);
-		return FLAC__Metadata_ChainStatusString[FLAC__metadata_chain_status(chain)];
+		return error;
 	}
 
 	FLAC__metadata_chain_delete(chain);
