@@ -301,18 +301,22 @@ check_flac
 metaflac_test case42 "--remove-replay-gain" "--list"
 
 
-echo
-echo "All the following tests got broken in this commit:"
-echo
-echo "commit c9ed238c3db9b797d302485b362ef031655ad6d4"
-echo "Author: Josh Coalson <jcoalson@users.sourceforce.net>"
-echo "Date:   Wed Jan 7 07:03:17 2009 +0000"
-echo
-echo "Allow MM:SS:FF and MM:SS.SS time formats in non-CD-DA cuesheets"
-echo
 exit 0
 
-# Had look at fixing this, but it was taking too much time.
+# "All the following tests got broken in this commit:"
+#
+# "commit c9ed238c3db9b797d302485b362ef031655ad6d4"
+# "Author: Josh Coalson <jcoalson@users.sourceforce.net>"
+# "Date:   Wed Jan 7 07:03:17 2009 +0000"
+#
+# "Allow MM:SS:FF and MM:SS.SS time formats in non-CD-DA cuesheets"
+
+
+# Had look at fixing this, but made little progress.
+#
+# Can't just skip the broken test and continue with the rest because the test
+# suite is stateful. Failing one test will break the remaining tests.
+
 
 # CUESHEET blocks
 cs_in=cuesheets/good.000.cue
