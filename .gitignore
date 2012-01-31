@@ -38,3 +38,14 @@ src/test_libFLAC/test_libFLAC
 src/test_seeking/test_seeking
 src/test_streams/test_streams
 stamp-h1
+test/*.aiff
+test/*.raw
+test/*.rf64
+test/*.w64
+test/*.wav
+test/cuesheet.diff
+test/cuesheet.log
+test/metaflac-test-files/out.meta
+test/metaflac.flac
+test/picture.diff
+test/picture.log
