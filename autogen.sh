@@ -145,6 +145,10 @@ if test -z "$*"; then
         echo "to pass any to it, please specify them on the $0 command line."
 fi
 
+if test ! -f config.rpath ; then
+	touch config.rpath
+fi
+
 echo "Generating configuration files for $package, please wait...."
 
 echo "  $ACLOCAL $ACLOCAL_FLAGS"
