@@ -39,6 +39,11 @@ src/test_seeking/test_seeking
 src/test_streams/test_streams
 stamp-h1
 test/*.aiff
+test/*.cmp
+test/*.cue
+test/*.flac
+test/*.log
+test/*.oga
 test/*.raw
 test/*.rf64
 test/*.w64
