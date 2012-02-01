@@ -16,6 +16,6 @@
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 EXTRA_DIST = \
-	flactime.dsp \
-	flactime.vcproj \
+	flactimer.dsp \
+	flactimer.vcproj \
 	main.cpp
