@@ -114,15 +114,9 @@ int main(int argc, char *argv[])
 				fprintf(stderr, "ERROR reading %s\n", fn);
 				return 1;
 			}
-#ifdef _MSC_VER
-			printf(" RIFF size=%016I64x=(%I64u)", unpack64le_(buf+8), unpack64le_(buf+8));
-			printf(" data size=%016I64x=(%I64u)", unpack64le_(buf+16), unpack64le_(buf+16));
-			printf(" sample count=%016I64x=(%I64u)", unpack64le_(buf+24), unpack64le_(buf+24));
-#else
-			printf(" RIFF size=%016llx=(%llu)", unpack64le_(buf+8), unpack64le_(buf+8));
-			printf(" data size=%016llx=(%llu)", unpack64le_(buf+16), unpack64le_(buf+16));
-			printf(" sample count=%016llx=(%llu)", unpack64le_(buf+24), unpack64le_(buf+24));
-#endif
+			printf(" RIFF size=%016" PRIx64 "=(" PRIu64 ")", unpack64le_(buf+8), unpack64le_(buf+8));
+			printf(" data size=%016" PRIx64 "=(" PRIu64 ")", unpack64le_(buf+16), unpack64le_(buf+16));
+			printf(" sample count=%016" PRIx64 "=(" PRIu64 ")", unpack64le_(buf+24), unpack64le_(buf+24));
 			printf(" table size=%08x=(%u)", unpack32le_(buf+32), unpack32le_(buf+32));
 		}
 		printf("\n");

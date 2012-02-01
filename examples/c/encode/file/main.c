@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 	channels = 2;
 	bps = 16;
 	total_samples = (((((((unsigned)buffer[43] << 8) | buffer[42]) << 8) | buffer[41]) << 8) | buffer[40]) / 4;
-   
+
 	/* allocate the encoder */
 	if((encoder = FLAC__stream_encoder_new()) == NULL) {
 		fprintf(stderr, "ERROR: allocating encoder\n");
@@ -165,9 +165,5 @@ void progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_wr
 {
 	(void)encoder, (void)client_data;
 
-#ifdef _MSC_VER
-	fprintf(stderr, "wrote %I64u bytes, %I64u/%u samples, %u/%u frames\n", bytes_written, samples_written, total_samples, frames_written, total_frames_estimate);
-#else
-	fprintf(stderr, "wrote %llu bytes, %llu/%u samples, %u/%u frames\n", bytes_written, samples_written, total_samples, frames_written, total_frames_estimate);
-#endif
+	fprintf(stderr, "wrote %" PRIu64 " bytes, %" PRIu64 "/%u samples, %u/%u frames\n", bytes_written, samples_written, total_samples, frames_written, total_frames_estimate);
 }

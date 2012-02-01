@@ -174,11 +174,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 		fprintf(stderr, "sample rate    : %u Hz\n", sample_rate);
 		fprintf(stderr, "channels       : %u\n", channels);
 		fprintf(stderr, "bits per sample: %u\n", bps);
-#ifdef _MSC_VER
-		fprintf(stderr, "total samples  : %I64u\n", total_samples);
-#else
-		fprintf(stderr, "total samples  : %llu\n", total_samples);
-#endif
+		fprintf(stderr, "total samples  : %" PRIu64 "\n", total_samples);
 	}
 }
 

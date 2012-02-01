@@ -182,7 +182,7 @@ static void remove_tag(GtkWidget * w, gpointer data)
 {
 	(void)w;
 	(void)data;
-	
+
 	FLAC_plugin__tags_delete_tag(tags_, "TITLE");
 	FLAC_plugin__tags_delete_tag(tags_, "ARTIST");
 	FLAC_plugin__tags_delete_tag(tags_, "ALBUM");
@@ -221,17 +221,13 @@ static void show_file_info(void)
 		label_set_text(flac_blocksize, _("Blocksize: variable\n  min/max: %d/%d"), streaminfo.data.stream_info.min_blocksize, streaminfo.data.stream_info.max_blocksize);
 
 	if (streaminfo.data.stream_info.total_samples)
-		label_set_text(flac_samples, _("Samples: %llu\nLength: %d:%.2d"),
+		label_set_text(flac_samples, _("Samples: %" PRIu64 "\nLength: %d:%.2d"),
 				streaminfo.data.stream_info.total_samples,
 				(int)(streaminfo.data.stream_info.total_samples / streaminfo.data.stream_info.sample_rate / 60),
 				(int)(streaminfo.data.stream_info.total_samples / streaminfo.data.stream_info.sample_rate % 60));
 
 	if(!stat(current_filename, &_stat) && S_ISREG(_stat.st_mode)) {
-#if _FILE_OFFSET_BITS == 64
-		label_set_text(flac_filesize, _("Filesize: %lld B"), _stat.st_size);
-#else
-		label_set_text(flac_filesize, _("Filesize: %ld B"), _stat.st_size);
-#endif
+		label_set_text(flac_filesize, _("Filesize: %zd B"), _stat.st_size);
 		if (streaminfo.data.stream_info.total_samples)
 			label_set_text(flac_bitrate, _("Avg. bitrate: %.1f kb/s\nCompression ratio: %.1f%%"),
 					8.0 * (float)(_stat.st_size) / (1000.0 * (float)streaminfo.data.stream_info.total_samples / (float)streaminfo.data.stream_info.sample_rate),

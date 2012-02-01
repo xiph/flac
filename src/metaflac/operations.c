@@ -565,11 +565,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			PPR; printf("  sample_rate: %u Hz\n", block->data.stream_info.sample_rate);
 			PPR; printf("  channels: %u\n", block->data.stream_info.channels);
 			PPR; printf("  bits-per-sample: %u\n", block->data.stream_info.bits_per_sample);
-#ifdef _MSC_VER
-			PPR; printf("  total samples: %I64u\n", block->data.stream_info.total_samples);
-#else
-			PPR; printf("  total samples: %llu\n", (unsigned long long)block->data.stream_info.total_samples);
-#endif
+			PPR; printf("  total samples: %" PRIu64 "\n", (uint64_t)block->data.stream_info.total_samples);
 			PPR; printf("  MD5 signature: ");
 			for(i = 0; i < 16; i++) {
 				printf("%02x", (unsigned)block->data.stream_info.md5sum[i]);
@@ -596,11 +592,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			PPR; printf("  seek points: %u\n", block->data.seek_table.num_points);
 			for(i = 0; i < block->data.seek_table.num_points; i++) {
 				if(block->data.seek_table.points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER) {
-#ifdef _MSC_VER
-					PPR; printf("    point %u: sample_number=%I64u, stream_offset=%I64u, frame_samples=%u\n", i, block->data.seek_table.points[i].sample_number, block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
-#else
-					PPR; printf("    point %u: sample_number=%llu, stream_offset=%llu, frame_samples=%u\n", i, (unsigned long long)block->data.seek_table.points[i].sample_number, (unsigned long long)block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
-#endif
+					PPR; printf("    point %u: sample_number=%" PRIu64 ", stream_offset=%" PRIu64 ", frame_samples=%u\n", i, (uint64_t)block->data.seek_table.points[i].sample_number, (uint64_t)block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
 				}
 				else {
 					PPR; printf("    point %u: PLACEHOLDER\n", i);
@@ -618,11 +610,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			break;
 		case FLAC__METADATA_TYPE_CUESHEET:
 			PPR; printf("  media catalog number: %s\n", block->data.cue_sheet.media_catalog_number);
-#ifdef _MSC_VER
-			PPR; printf("  lead-in: %I64u\n", block->data.cue_sheet.lead_in);
-#else
-			PPR; printf("  lead-in: %llu\n", (unsigned long long)block->data.cue_sheet.lead_in);
-#endif
+			PPR; printf("  lead-in: %" PRIu64 "\n", (uint64_t)block->data.cue_sheet.lead_in);
 			PPR; printf("  is CD: %s\n", block->data.cue_sheet.is_cd? "true":"false");
 			PPR; printf("  number of tracks: %u\n", block->data.cue_sheet.num_tracks);
 			for(i = 0; i < block->data.cue_sheet.num_tracks; i++) {
@@ -630,11 +618,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 				const FLAC__bool is_last = (i == block->data.cue_sheet.num_tracks-1);
 				const FLAC__bool is_leadout = is_last && track->num_indices == 0;
 				PPR; printf("    track[%u]\n", i);
-#ifdef _MSC_VER
-				PPR; printf("      offset: %I64u\n", track->offset);
-#else
-				PPR; printf("      offset: %llu\n", (unsigned long long)track->offset);
-#endif
+				PPR; printf("      offset: %" PRIu64 "\n", (uint64_t)track->offset);
 				if(is_last) {
 					PPR; printf("      number: %u (%s)\n", (unsigned)track->number, is_leadout? "LEAD-OUT" : "INVALID");
 				}
@@ -649,11 +633,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 					for(j = 0; j < track->num_indices; j++) {
 						const FLAC__StreamMetadata_CueSheet_Index *index = track->indices+j;
 						PPR; printf("        index[%u]\n", j);
-#ifdef _MSC_VER
-						PPR; printf("          offset: %I64u\n", index->offset);
-#else
-						PPR; printf("          offset: %llu\n", (unsigned long long)index->offset);
-#endif
+						PPR; printf("          offset: %" PRIu64 "\n", (uint64_t)index->offset);
 						PPR; printf("          number: %u\n", (unsigned)index->number);
 					}
 				}
