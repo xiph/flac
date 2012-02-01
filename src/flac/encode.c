@@ -275,7 +275,6 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 			FLAC__uint16 x;
 			FLAC__uint32 xx, data_bytes;
 			FLAC__uint16 wFormatTag; /* wFormatTag word from the 'fmt ' chunk */
-			unsigned block_align;
 
 			if(got_fmt_chunk) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: file has multiple 'fmt ' chunks\n", e->inbasefilename);
@@ -368,7 +367,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 			/* block align */
 			if(!read_uint16(e->fin, /*big_endian=*/false, &x, e->inbasefilename))
 				return false;
-			block_align = (unsigned)x;
+
 			/* bits per sample */
 			if(!read_uint16(e->fin, /*big_endian=*/false, &x, e->inbasefilename))
 				return false;

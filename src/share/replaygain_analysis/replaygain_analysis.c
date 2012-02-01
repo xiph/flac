@@ -147,13 +147,13 @@ static unsigned long    totsamp;
 static double           lsum;
 static double           rsum;
 static int              freqindex;
-#ifndef __sun
+#if 0
 static Uint32_t  A [(size_t)(STEPS_per_dB * MAX_dB)];
 static Uint32_t  B [(size_t)(STEPS_per_dB * MAX_dB)];
 #else
 /* [JEC] Solaris Forte compiler doesn't like float calc in array indices */
-static Uint32_t  A [12000];
-static Uint32_t  B [12000];
+static Uint32_t  A [120 * 100];
+static Uint32_t  B [120 * 100];
 #endif
 
 /* for each filter:

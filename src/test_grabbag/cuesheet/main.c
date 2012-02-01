@@ -111,7 +111,7 @@ static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool 
 int main(int argc, char *argv[])
 {
 	FLAC__uint64 lead_out_offset;
-	unsigned sample_rate;
+	unsigned sample_rate = 48000;
 	FLAC__bool is_cdda = false;
 	const char *usage = "usage: test_cuesheet cuesheet_file lead_out_offset [ [ sample_rate ] cdda ]\n";
 
