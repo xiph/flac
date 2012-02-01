@@ -649,10 +649,10 @@ void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, co
 				fprintf(file, "%02u:%02u:%02u\n", m, s, f);
 			}
 			else
-				fprintf(file, "%" PRIu64 "\n", (uint64_t)(track->offset + index->offset));
+				fprintf(file, "%" PRIu64 "\n", (track->offset + index->offset));
 		}
 	}
 
-	fprintf(file, "REM FLAC__lead-in %" PRIu64 "\n", (uint64_t)cs->lead_in);
-	fprintf(file, "REM FLAC__lead-out %u %" PRIu64 "\n", (unsigned)cs->tracks[track_num].number, (uint64_t)cs->tracks[track_num].offset);
+	fprintf(file, "REM FLAC__lead-in %" PRIu64 "\n", cs->lead_in);
+	fprintf(file, "REM FLAC__lead-out %u %" PRIu64 "\n", (unsigned)cs->tracks[track_num].number, cs->tracks[track_num].offset);
 }

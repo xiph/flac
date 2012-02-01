@@ -200,7 +200,7 @@ static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder 
 
 	FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER); /* decoder guarantees this */
 	if (!dcd->quiet)
-		printf("frame@%" PRIu64 "(%u)... ", (uint64_t)frame->header.number.sample_number, frame->header.blocksize);
+		printf("frame@%" PRIu64 "(%u)... ", frame->header.number.sample_number, frame->header.blocksize);
 	fflush(stdout);
 
 	/* check against PCM data if we have it */
@@ -305,7 +305,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 			return die_s_("expected FLAC__STREAM_DECODER_END_OF_STREAM", decoder);
 	}
 
-	printf("file's total_samples is %" PRIu64 "\n", (uint64_t)decoder_client_data.total_samples);
+	printf("file's total_samples is %" PRIu64 "\n", decoder_client_data.total_samples);
 	n = (long int)decoder_client_data.total_samples;
 
 	if(n == 0 && total_samples >= 0)
@@ -339,7 +339,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t fi
 			pos = (FLAC__uint64)(local_rand_() % n);
 		}
 
-		printf("#%u:seek(%" PRIu64 ")... ", i, (uint64_t)pos);
+		printf("#%u:seek(%" PRIu64 ")... ", i, pos);
 		fflush(stdout);
 		if(!FLAC__stream_decoder_seek_absolute(decoder, pos)) {
 			if(pos >= (FLAC__uint64)n)

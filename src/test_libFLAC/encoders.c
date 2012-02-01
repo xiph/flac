@@ -449,7 +449,7 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 
 	printf("testing FLAC__stream_encoder_get_total_samples_estimate()... ");
 	if(FLAC__stream_encoder_get_total_samples_estimate(encoder) != streaminfo_.data.stream_info.total_samples) {
-		printf("FAILED, expected %" PRIu64 ", got %" PRIu64 "\n", (uint64_t)streaminfo_.data.stream_info.total_samples, (uint64_t)FLAC__stream_encoder_get_total_samples_estimate(encoder));
+		printf("FAILED, expected %" PRIu64 ", got %" PRIu64 "\n", streaminfo_.data.stream_info.total_samples, FLAC__stream_encoder_get_total_samples_estimate(encoder));
 		return false;
 	}
 	printf("OK\n");
