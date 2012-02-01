@@ -439,7 +439,7 @@ FLaC__INLINE unsigned FLAC__bitreader_get_input_bits_unconsumed(const FLAC__BitR
 	return (br->words-br->consumed_words)*FLAC__BITS_PER_WORD + br->bytes*8 - br->consumed_bits;
 }
 
-FLaC__INLINE FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *val, unsigned bits)
+FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *val, unsigned bits)
 {
 	FLAC__ASSERT(0 != br);
 	FLAC__ASSERT(0 != br->buffer);
