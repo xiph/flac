@@ -52,6 +52,7 @@ EXTRA_DIST = \
 	test_grabbag.sh \
 	test_seeking.sh \
 	test_streams.sh \
+	test_wrapper.sh \
 	test_bins.sh \
 	write_iff.pl
 
