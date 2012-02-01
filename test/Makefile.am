@@ -35,6 +35,10 @@ check_SCRIPTS = \
 check: $(check_SCRIPTS)
 	./test_wrapper.sh
 
+fastcheck: $(check_SCRIPTS)
+	./test_libFLAC.sh
+	./test_grabbag.sh
+
 EXTRA_DIST = \
 	Makefile.lite \
 	cuesheet.ok \
