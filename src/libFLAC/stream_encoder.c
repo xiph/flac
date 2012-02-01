@@ -991,10 +991,12 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		/*
 		 * Now set up a stream decoder for verification
 		 */
-		encoder->private_->verify.decoder = FLAC__stream_decoder_new();
 		if(0 == encoder->private_->verify.decoder) {
-			encoder->protected_->state = FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR;
-			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
+			encoder->private_->verify.decoder = FLAC__stream_decoder_new();
+			if(0 == encoder->private_->verify.decoder) {
+				encoder->protected_->state = FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR;
+				return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
+			}
 		}
 
 		if(FLAC__stream_decoder_init_stream(encoder->private_->verify.decoder, verify_read_callback_, /*seek_callback=*/0, /*tell_callback=*/0, /*length_callback=*/0, /*eof_callback=*/0, verify_write_callback_, verify_metadata_callback_, verify_error_callback_, /*client_data=*/encoder) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
