@@ -20,7 +20,7 @@
 
 AC_INIT(src/flac/main.c)
 AM_INIT_AUTOMAKE(flac, 1.2.1)
-AM_SILENT_RULES([yes])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # Don't automagically regenerate autoconf/automake generated files unless
 # explicitly requested.  Eases autobuilding -mdz
