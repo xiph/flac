@@ -116,9 +116,9 @@ char *flac_format_song_title(char *filename)
 
 	XMMS_NEW_TITLEINPUT(input);
 
-	input->performer = local__getstr(performer);
+	input->performer = local__getstr(artist);
 	if(!input->performer)
-		input->performer = local__getstr(artist);
+		input->performer = local__getstr(performer);
 	input->album_name = local__getstr(album);
 	input->track_name = local__getstr(title);
 	input->track_number = local__getnum(tracknumber);
