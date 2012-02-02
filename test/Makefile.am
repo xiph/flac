@@ -23,7 +23,7 @@ TESTS_ENVIRONMENT = FLAC__TEST_LEVEL=@FLAC__TEST_LEVEL@ FLAC__TEST_WITH_VALRGIND
 
 SUBDIRS = cuesheets flac-to-flac-metadata-test-files metaflac-test-files pictures
 
-check_SCRIPTS = \
+TESTS = \
 	./test_libFLAC.sh \
 	$(CPPLIBS_TESTS) \
 	./test_grabbag.sh \
@@ -32,10 +32,7 @@ check_SCRIPTS = \
 	./test_seeking.sh \
 	./test_streams.sh
 
-check: $(check_SCRIPTS)
-	./test_wrapper.sh
-
-fastcheck: $(check_SCRIPTS)
+fastcheck: $(TESTS)
 	./test_libFLAC.sh
 	./test_grabbag.sh
 
