@@ -26,8 +26,12 @@
 #include <string.h>
 #if defined _MSC_VER || defined __MINGW32__
 #if _MSC_VER <= 1600 /* @@@ [2G limit] */
+#ifndef fseeko
 #define fseeko fseek
+#endif
+#ifndef ftello
 #define ftello ftell
+#endif
 #endif
 #endif
 #include "decoders.h"

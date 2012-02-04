@@ -27,8 +27,12 @@
 #include <sys/utime.h> /* for utime() */
 #include <io.h> /* for chmod() */
 #if _MSC_VER <= 1600 /* @@@ [2G limit] */
+#ifndef fseeko
 #define fseeko fseek
+#endif
+#ifndef ftello
 #define ftello ftell
+#endif
 #endif
 #else
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */

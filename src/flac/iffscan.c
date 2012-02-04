@@ -26,8 +26,12 @@
 #if defined _MSC_VER || defined __MINGW32__
 #include <sys/types.h> /* for off_t */
 #if _MSC_VER <= 1600 /* @@@ [2G limit] */
+#ifndef fseeko
 #define fseeko fseek
+#endif
+#ifndef ftello
 #define ftello ftell
+#endif
 #endif
 #endif
 #include "foreign_metadata.h"
