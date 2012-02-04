@@ -24,9 +24,7 @@
 #include "utils.h"
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
-#if HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
+#include "share/compat.h"
 #include <string.h>
 #include "operations_shorthand.h"
 

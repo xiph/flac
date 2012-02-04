@@ -26,14 +26,6 @@
 #if defined _MSC_VER || defined __MINGW32__
 #include <sys/utime.h> /* for utime() */
 #include <io.h> /* for chmod() */
-#if _MSC_VER <= 1600 /* @@@ [2G limit] */
-#ifndef fseeko
-#define fseeko fseek
-#endif
-#ifndef ftello
-#define ftello ftell
-#endif
-#endif
 #else
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
 #include <utime.h> /* for utime() */
@@ -44,6 +36,7 @@
 #include "FLAC/stream_decoder.h"
 #include "FLAC/metadata.h"
 #include "share/grabbag.h"
+#include "share/compat.h"
 #include "test_libs_common/file_utils_flac.h"
 #include "test_libs_common/metadata_utils.h"
 #include "metadata.h"

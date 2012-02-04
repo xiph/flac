@@ -20,9 +20,6 @@
 #  include <config.h>
 #endif
 
-#if HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +33,7 @@
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
 #include "FLAC/stream_decoder.h"
+#include "share/compat.h"
 
 typedef struct {
 	FLAC__int32 **pcm;

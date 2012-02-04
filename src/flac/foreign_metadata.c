@@ -20,23 +20,13 @@
 #  include <config.h>
 #endif
 
-#if defined _MSC_VER || defined __MINGW32__
-#include <sys/types.h> /* for off_t */
-#if _MSC_VER <= 1600 /* @@@ [2G limit] */
-#ifndef fseeko
-#define fseeko fseek
-#endif
-#ifndef ftello
-#define ftello ftell
-#endif
-#endif
-#endif
 #include <stdio.h> /* for FILE etc. */
 #include <stdlib.h> /* for calloc() etc. */
 #include <string.h> /* for memcmp() etc. */
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
 #include "share/alloc.h"
+#include "share/compat.h"
 #include "foreign_metadata.h"
 
 #ifdef min

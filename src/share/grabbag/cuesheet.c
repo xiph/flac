@@ -21,10 +21,8 @@
 #endif
 
 #include "share/grabbag.h"
+#include "share/compat.h"
 #include "FLAC/assert.h"
-#if HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

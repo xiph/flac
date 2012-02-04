@@ -20,23 +20,6 @@
 #  include <config.h>
 #endif
 
-#if defined _WIN32 && !defined __CYGWIN__
-/* where MSVC puts unlink() */
-# include <io.h>
-#else
-# include <unistd.h>
-#endif
-#if defined _MSC_VER || defined __MINGW32__
-#include <sys/types.h> /* for off_t */
-#if _MSC_VER <= 1600 /* @@@ [2G limit] */
-#ifndef fseeko
-#define fseeko fseek
-#endif
-#ifndef ftello
-#define ftello ftell
-#endif
-#endif
-#endif
 #include <errno.h>
 #include <limits.h> /* for LONG_MAX */
 #include <math.h> /* for floor() */
@@ -46,6 +29,7 @@
 #include "FLAC/all.h"
 #include "share/alloc.h"
 #include "share/grabbag.h"
+#include "share/compat.h"
 #include "encode.h"
 
 #ifdef min

@@ -21,9 +21,6 @@
 #endif
 
 #include <errno.h>
-#if HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +28,7 @@
 #include "FLAC/assert.h"
 #include "FLAC/stream_encoder.h"
 #include "share/grabbag.h"
+#include "share/compat.h"
 #include "test_libs_common/file_utils_flac.h"
 #include "test_libs_common/metadata_utils.h"
 

@@ -28,12 +28,10 @@
 #  include <config.h>
 #endif
 
-#if HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "share/compat.h"
 #include "FLAC/metadata.h"
 #include "FLAC/stream_encoder.h"
 

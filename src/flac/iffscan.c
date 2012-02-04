@@ -23,17 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined _MSC_VER || defined __MINGW32__
-#include <sys/types.h> /* for off_t */
-#if _MSC_VER <= 1600 /* @@@ [2G limit] */
-#ifndef fseeko
-#define fseeko fseek
-#endif
-#ifndef ftello
-#define ftello ftell
-#endif
-#endif
-#endif
+#include "share/compat.h"
 #include "foreign_metadata.h"
 
 static FLAC__uint32 unpack32be_(const FLAC__byte *b)

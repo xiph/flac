@@ -21,15 +21,13 @@
 #endif
 
 #include <errno.h>
-#if HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 #include <stdio.h> /* for snprintf() */
 #include <string.h>
 #include "options.h"
 #include "utils.h"
 #include "FLAC/assert.h"
 #include "share/grabbag.h"
+#include "share/compat.h"
 #include "operations_shorthand.h"
 
 static FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet, const char *cs_filename, FLAC__bool *needs_write, FLAC__uint64 lead_out_offset, unsigned sample_rate, FLAC__bool is_cdda, Argument_AddSeekpoint *add_seekpoint_link);

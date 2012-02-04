@@ -24,20 +24,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if defined _MSC_VER || defined __MINGW32__
-#if _MSC_VER <= 1600 /* @@@ [2G limit] */
-#ifndef fseeko
-#define fseeko fseek
-#endif
-#ifndef ftello
-#define ftello ftell
-#endif
-#endif
-#endif
 #include "decoders.h"
 #include "FLAC/assert.h"
 #include "FLAC/stream_decoder.h"
 #include "share/grabbag.h"
+#include "share/compat.h"
 #include "test_libs_common/file_utils_flac.h"
 #include "test_libs_common/metadata_utils.h"
 
