@@ -27,6 +27,9 @@
 #include "FLAC/metadata.h"
 #include "share/alloc.h"
 #include "share/grabbag.h"
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

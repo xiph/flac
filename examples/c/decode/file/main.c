@@ -28,6 +28,9 @@
 #  include <config.h>
 #endif
 
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include "FLAC/stream_decoder.h"

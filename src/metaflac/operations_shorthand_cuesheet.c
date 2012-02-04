@@ -21,6 +21,9 @@
 #endif
 
 #include <errno.h>
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 #include <stdio.h> /* for snprintf() */
 #include <string.h>
 #include "options.h"

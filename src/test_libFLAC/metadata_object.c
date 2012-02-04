@@ -24,6 +24,9 @@
 #include "FLAC/metadata.h"
 #include "test_libs_common/metadata_utils.h"
 #include "metadata.h"
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp() */

@@ -20,6 +20,9 @@
 #  include <config.h>
 #endif
 
+#if HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
