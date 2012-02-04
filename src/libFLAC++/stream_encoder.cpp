@@ -203,7 +203,7 @@ namespace FLAC {
 #endif
 			for(unsigned i = 0; i < num_blocks; i++) {
 				// we can get away with the const_cast since we know the encoder will only correct the is_last flags
-				m[i] = const_cast< ::FLAC__StreamMetadata*>((const ::FLAC__StreamMetadata*)metadata[i]);
+				m[i] = const_cast< ::FLAC__StreamMetadata*>(static_cast<const ::FLAC__StreamMetadata*>(*metadata[i]));
 			}
 #ifndef HAVE_CXX_VARARRAYS
 			// complete the hack
