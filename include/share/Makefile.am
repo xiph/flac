@@ -7,6 +7,7 @@ SUBDIRS = grabbag
 EXTRA_DIST = \
 	alloc.h \
 	compat.h \
+	endswap.h \
 	getopt.h \
 	grabbag.h \
 	replaygain_analysis.h \
