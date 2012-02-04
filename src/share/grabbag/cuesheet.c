@@ -369,7 +369,8 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 						}
 					}
 				}
-				else if(sample_rate % 75) {
+				else if(sample_rate % 75 && xx) {
+                                        /* only sample zero is exact */
 					*error_message = "illegal INDEX offset (MM:SS:FF form not allowed if sample rate is not a multiple of 75)";
 					return false;
 				}
