@@ -53,3 +53,5 @@ EXTRA_DIST = \
 
 fastcheck:
 	(cd test && make fastcheck)
+
+CLEANFILES = *~
