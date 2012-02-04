@@ -352,8 +352,10 @@ static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool pr
 			FILE *file = fopen(filename, "r+b");
 			if(0 == file)
 				return false; /*@@@@ chain status still says OK though */
-			if(!chain.write(use_padding, (::FLAC__IOHandle)file, callbacks))
+			if(!chain.write(use_padding, (::FLAC__IOHandle)file, callbacks)) {
+				fclose(file);
 				return false;
+			}
 			fclose(file);
 		}
 	}

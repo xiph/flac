@@ -196,6 +196,8 @@ FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cueshe
 	reflen = strlen(filename) + 7 + 1;
 	if(0 == (ref = malloc(reflen))) {
 		fprintf(stderr, "%s: ERROR: allocating memory\n", filename);
+		if(f != stdout)
+			fclose(f);
 		return false;
 	}
 

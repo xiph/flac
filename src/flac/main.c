@@ -1723,6 +1723,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		else {
 			if(!memcmp(lookahead, "ID3", 3)) {
 				flac__utils_printf(stderr, 1, "ERROR: input file %s has an ID3v2 tag\n", infilename);
+				conditional_fclose(encode_infile);
 				return 1;
 			}
 			else if(!memcmp(lookahead, "RIFF", 4) && !memcmp(lookahead+8, "WAVE", 4))
@@ -1932,6 +1933,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			if(0 == encode_options.format_options.iff.foreign_metadata) {
 				flac__utils_printf(stderr, 1, "ERROR: creating foreign metadata object\n");
 				conditional_fclose(encode_infile);
+				if(internal_outfilename != 0)
+					free(internal_outfilename);
 				return 1;
 			}
 		}

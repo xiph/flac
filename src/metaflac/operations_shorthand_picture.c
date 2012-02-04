@@ -163,6 +163,8 @@ FLAC__bool export_pic_to(const char *filename, const FLAC__StreamMetadata *pictu
 
 	if(fwrite(picture->data.picture.data, 1, len, f) != len) {
 		fprintf(stderr, "%s: ERROR: writing PICTURE data to file\n", filename);
+		if(f != stdout)
+			fclose(f);
 		return false;
 	}
 
