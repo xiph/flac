@@ -53,8 +53,11 @@ if test $ac_cv_c_vararrays = yes; then
 	AC_DEFINE([HAVE_CXX_VARARRAYS], 1, [Define to 1 if C++ supports variable-length arrays.])
 fi
 AC_LANG_POP(C++)
+
 # c flavor
 AC_HEADER_STDC
+AC_C_INLINE
+AC_C_VARARRAYS
 
 AC_CHECK_HEADERS(stdint.h)
 AC_SUBST(HAVE_STDINT_H)
@@ -63,11 +66,15 @@ AC_SUBST(HAVE_INTTYPES_H)
 AC_CHECK_HEADERS(byteswap.h)
 AC_SUBST(HAVE_BYTESWAP_H)
 
-AC_C_VARARRAYS
+XIPH_C_FIND_ENDIAN
+AC_DEFINE_UNQUOTED(CPU_IS_BIG_ENDIAN, ${ac_cv_c_big_endian},
+					[Target processor is big endian.])
+AC_DEFINE_UNQUOTED(CPU_IS_LITTLE_ENDIAN, ${ac_cv_c_little_endian},
+					[Target processor is little endian.])
+AC_DEFINE_UNQUOTED(WORDS_BIGENDIAN, ${ac_cv_c_big_endian},
+					[Target processor is big endian.])
 
-AC_C_BIGENDIAN
-AC_C_INLINE
-
+# For the XMMS plugin.
 AC_CHECK_TYPES(socklen_t, [], [])
 
 dnl check for getopt in standard library
