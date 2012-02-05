@@ -40,7 +40,7 @@ metaflac_SOURCES = \
 	options.h \
 	usage.h \
 	utils.h
-metaflac_LDFLAGS = 
+metaflac_LDFLAGS =
 
 metaflac_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
@@ -50,5 +50,4 @@ metaflac_LDADD = \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
 	@LIBICONV@ \
-	@MINGW_WINSOCK_LIBS@ \
 	-lm

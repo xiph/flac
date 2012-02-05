@@ -107,16 +107,12 @@ case "$host" in
 	*-*-cygwin|*mingw*)
 		# define this variable for enabling strict exports with libtool; for now, it's only supported by Win32
 		LT_NO_UNDEFINED="-no-undefined"
-		# -lwsock32 only needed because of ntohl() usage, can get rid of after that's gone:
-		MINGW_WINSOCK_LIBS=-lwsock32
 		;;
 	*)
 		LT_NO_UNDEFINED=
-		MINGW_WINSOCK_LIBS=
 		;;
 esac
 AC_SUBST(LT_NO_UNDEFINED)
-AC_SUBST(MINGW_WINSOCK_LIBS)
 
 case "$host" in
 	*-pc-linux-gnu)

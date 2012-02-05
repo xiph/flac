@@ -28,8 +28,8 @@ test_libFLAC___LDADD = \
 	$(top_builddir)/src/libFLAC++/libFLAC++.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
-	@MINGW_WINSOCK_LIBS@ \
 	-lm
+
 test_libFLAC___SOURCES = \
 	decoders.cpp \
 	encoders.cpp \

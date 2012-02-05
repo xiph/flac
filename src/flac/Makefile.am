@@ -54,5 +54,4 @@ flac_LDADD = \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
 	@LIBICONV@ \
-	@MINGW_WINSOCK_LIBS@ \
 	-lm

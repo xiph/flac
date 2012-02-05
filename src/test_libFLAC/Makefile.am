@@ -29,8 +29,8 @@ test_libFLAC_LDADD = \
 	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
-	@MINGW_WINSOCK_LIBS@ \
 	-lm
+
 test_libFLAC_SOURCES = \
 	bitwriter.c \
 	decoders.c \
