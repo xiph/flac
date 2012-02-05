@@ -22,10 +22,6 @@ AC_INIT(src/flac/main.c)
 AM_INIT_AUTOMAKE(flac, 1.2.1)
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-# Don't automagically regenerate autoconf/automake generated files unless
-# explicitly requested.  Eases autobuilding -mdz
-AM_MAINTAINER_MODE
-
 # Enable the generation of shared libraries under Win32
 AC_LIBTOOL_WIN32_DLL
 
