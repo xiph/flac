@@ -104,8 +104,8 @@ esac
 AC_SUBST(OBJ_FORMAT)
 
 case "$host" in
-	*-*-cygwin|*mingw*)
-		# define this variable for enabling strict exports with libtool; for now, it's only supported by Win32
+	*-*-cygwin|*mingw*|*emx*)
+		# define this variable for enabling strict exports with libtool; for now, it's supported by Win32 and OS/2
 		LT_NO_UNDEFINED="-no-undefined"
 		;;
 	*)
