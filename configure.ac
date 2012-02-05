@@ -99,6 +99,7 @@ case "$host" in
 	i386-*-openbsd3.[[0-3]]) OBJ_FORMAT=aoutb ;;
 	*-*-cygwin|*mingw*) OBJ_FORMAT=win32 ;;
 	*-*-darwin*) OBJ_FORMAT=macho ;;
+	*emx*) OBJ_FORMAT=aout ;;
 	*) OBJ_FORMAT=elf ;;
 esac
 AC_SUBST(OBJ_FORMAT)
