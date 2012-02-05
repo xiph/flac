@@ -31,15 +31,19 @@
 
 /* It is assumed that this header will be included after "config.h". */
 
-#if HAVE_BYTESWAP_H
+#if HAVE_BSWAP32			/* GCC and Clang */
 
-#include <byteswap.h>		/* Linux */
-
-#define	ENDSWAP_INT(x)		((int) bswap_32 (x))
+#define	ENDSWAP_INT(x)		(__builtin_bswap32 (x))
 
 #elif defined _MSC_VER		/* Windows. Apparently in <stdlib.h>. */
 
 #define	ENDSWAP_INT(x)		((int) _byteswap_ulong (x))
+
+#elif HAVE_BYTESWAP_H		/* Linux */
+
+#include <byteswap.h>
+
+#define	ENDSWAP_INT(x)		((int) bswap_32 (x))
 
 #else
 

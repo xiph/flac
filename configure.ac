@@ -66,6 +66,8 @@ AC_SUBST(HAVE_INTTYPES_H)
 AC_CHECK_HEADERS(byteswap.h)
 AC_SUBST(HAVE_BYTESWAP_H)
 
+XIPH_C_BSWAP32
+
 XIPH_C_FIND_ENDIAN
 AC_DEFINE_UNQUOTED(CPU_IS_BIG_ENDIAN, ${ac_cv_c_big_endian},
 					[Target processor is big endian.])
