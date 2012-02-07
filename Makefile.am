@@ -51,7 +51,7 @@ EXTRA_DIST = \
 	ltmain.sh \
 	strip_non_asm_libtool_args.sh
 
-fastcheck:
-	(cd test && make fastcheck)
+fullcheck:
+	(cd test && make fullcheck)
 
 CLEANFILES = *~

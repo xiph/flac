@@ -15,26 +15,47 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-if FLaC__WITH_CPPLIBS
-CPPLIBS_TESTS = test_libFLAC++.sh
-endif
-
 TESTS_ENVIRONMENT = FLAC__TEST_LEVEL=@FLAC__TEST_LEVEL@ FLAC__TEST_WITH_VALRGIND=@FLAC__TEST_WITH_VALGRIND@
 
 SUBDIRS = cuesheets flac-to-flac-metadata-test-files metaflac-test-files pictures
 
-TESTS = \
-	./test_libFLAC.sh \
-	$(CPPLIBS_TESTS) \
-	./test_grabbag.sh \
-	./test_flac.sh \
-	./test_metaflac.sh \
-	./test_seeking.sh \
-	./test_streams.sh
+check_SCRIPTS = \
+	test_libFLAC.sh \
+	test_libFLAC++.sh \
+	test_grabbag.sh \
+	test_flac.sh \
+	test_metaflac.sh \
+	test_seeking.sh \
+	test_streams.sh
 
-fastcheck: $(TESTS)
+# This one should pass when building out-of-tree (eg 'make distcheck').
+check: $(check_SCRIPTS)
+	$(srcdir)/test_libFLAC.sh
+if FLaC__WITH_CPPLIBS
+	$(srcdir)/test_libFLAC++.sh
+endif
+	$(srcdir)/test_seeking.sh
+	$(srcdir)/test_streams.sh
+	@echo "----------------"
+	@echo "All tests passed"
+	@echo "----------------"
+
+# This is the full test suite, but only works correctly in-tree.
+# In particular test_grabbag.sh, test_flac.sh and test_metaflac.sh will not
+# run correctly out-of-tree.
+fullcheck: $(check_SCRIPTS)
 	./test_libFLAC.sh
+if FLaC__WITH_CPPLIBS
+	./test_libFLAC++.sh
+endif
 	./test_grabbag.sh
+	./test_flac.sh
+	./test_metaflac.sh
+	./test_seeking.sh
+	./test_streams.sh
+	@echo "----------------"
+	@echo "All tests passed"
+	@echo "----------------"
 
 EXTRA_DIST = \
 	Makefile.lite \
@@ -42,13 +63,7 @@ EXTRA_DIST = \
 	metaflac.flac.in \
 	metaflac.flac.ok \
 	picture.ok \
-	test_libFLAC.sh \
-	$(CPPLIBS_TESTS) \
-	test_flac.sh \
-	test_metaflac.sh \
-	test_grabbag.sh \
-	test_seeking.sh \
-	test_streams.sh \
+	$(check_SCRIPTS) \
 	test_wrapper.sh \
 	test_bins.sh \
 	write_iff.pl
