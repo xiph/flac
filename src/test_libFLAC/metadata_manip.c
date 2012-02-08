@@ -259,7 +259,7 @@ static void set_file_stats_(const char *filename, struct stat *stats)
 	srctime.modtime = stats->st_mtime;
 	(void)chmod(filename, stats->st_mode);
 	(void)utime(filename, &srctime);
-#if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
+#if !defined _MSC_VER && !defined __MINGW32__
 	(void)chown(filename, stats->st_uid, -1);
 	(void)chown(filename, -1, stats->st_gid);
 #endif

@@ -43,7 +43,7 @@
 #include "utils.h"
 #include "vorbiscomment.h"
 
-#if defined _MSC_VER || defined __MINGW32__ || defined __EMX__
+#if defined _MSC_VER || defined __MINGW32__
 #define FLAC__STRCASECMP stricmp
 #else
 #define FLAC__STRCASECMP strcasecmp
