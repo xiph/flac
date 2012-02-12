@@ -249,7 +249,7 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 		}
 	}
 
-	return !had_error;
+	return had_error;
 }
 
 void free_options(CommandLineOptions *options)

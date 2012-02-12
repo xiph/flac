@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 	setlocale(LC_ALL, "");
 	init_options(&options);
 
-	if(parse_options(argc, argv, &options))
+	if ((ret = parse_options(argc, argv, &options)) == 0)
 		ret = !do_operations(&options);
 	else
 		ret = 1;
