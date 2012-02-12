@@ -1414,6 +1414,7 @@ void print_error_with_state(const DecoderSession *d, const char *message)
 
 void print_stats(const DecoderSession *decoder_session)
 {
+	static int count = 0;
 	if(flac__utils_verbosity_ >= 2) {
 #if defined _MSC_VER || defined __MINGW32__
 		/* with MSVC you have to spoon feed it the casting */
@@ -1422,7 +1423,13 @@ void print_stats(const DecoderSession *decoder_session)
 		const double progress = (double)decoder_session->samples_processed / (double)decoder_session->total_samples * 100.0;
 #endif
 		if(decoder_session->total_samples > 0) {
-			fprintf(stderr, "\r%s: %s%u%% complete",
+			while (count > 0 && count--)
+				fprintf(stderr, "\b");
+
+			if ((unsigned)floor(progress + 0.5) == 100)
+				return;
+
+			count = fprintf(stderr, "%s: %s%u%% complete",
 				decoder_session->inbasefilename,
 				decoder_session->test_only? "testing, " : decoder_session->analysis_mode? "analyzing, " : "",
 				(unsigned)floor(progress + 0.5)
