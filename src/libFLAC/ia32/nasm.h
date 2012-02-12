@@ -73,3 +73,6 @@
 _%1:
 %1:
 %endmacro
+
+section .note.GNU-stack progbits noalloc noexec nowrite align=1
+
