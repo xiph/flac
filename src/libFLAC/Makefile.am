@@ -40,8 +40,13 @@ if FLaC__SYS_DARWIN
 CPUCFLAGS = -faltivec -force_cpusubtype_ALL -DFLAC__NO_ASM
 else
 # Linux-gcc for PPC does not have -force_cpusubtype_ALL, it is Darwin-specific
+CPUCFLAGS =
+if FLaC__CPU_PPC_SPE
+else
+CPUCFLAGS += -maltivec -mabi=altivec
+endif
 #@@@ PPC optimizations temporarily disabled
-CPUCFLAGS = -maltivec -mabi=altivec -DFLAC__NO_ASM
+CPUCFLAGS += -DFLAC__NO_ASM
 endif
 endif
 
@@ -58,12 +63,15 @@ endif
 if FLaC__CPU_PPC
 ARCH_SUBDIRS = ppc
 if FLaC__HAS_AS__TEMPORARILY_DISABLED
+if FLaC__CPU_PPC_SPE
+else
 LOCAL_EXTRA_LIBADD = ppc/as/libFLAC-asm.la
 LOCAL_EXTRA_LDFLAGS = "-Wl,-read_only_relocs,warning"
 else
 if FLaC__HAS_GAS__TEMPORARILY_DISABLED
 LOCAL_EXTRA_LIBADD = ppc/gas/libFLAC-asm.la
 LOCAL_EXTRA_LDFLAGS = ""
+endif
 endif
 endif
 endif

@@ -112,6 +112,14 @@ case "$host" in
 	*) OBJ_FORMAT=elf ;;
 esac
 AC_SUBST(OBJ_FORMAT)
+case "$host" in
+	*-gnuspe)
+		abi_spe=true
+		AC_DEFINE(FLAC__CPU_PPC_SPE)
+		AH_TEMPLATE(FLAC__CPU_PPC_SPE, [define if building for PowerPC with SPE ABI])
+		;;
+esac
+AM_CONDITIONAL(FLaC__CPU_PPC_SPE, test "x$abi_spe" = xtrue)
 
 case "$host" in
 	*-*-cygwin|*mingw*|*emx*)
