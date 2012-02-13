@@ -30,6 +30,8 @@
 
 AUTOMAKE_OPTIONS = foreign 1.7
 
+ACLOCAL_AMFLAGS = -I m4
+
 SUBDIRS = doc include m4 man src examples test build obj
 
 DISTCLEANFILES = libtool-disable-static

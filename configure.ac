@@ -33,6 +33,7 @@ sed -e 's/^build_old_libs=yes/build_old_libs=no/' libtool > libtool-disable-stat
 chmod +x libtool-disable-static
 
 AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
+AC_CONFIG_MACRO_DIR([m4])
 
 AM_PROG_AS
 AC_PROG_CXX
