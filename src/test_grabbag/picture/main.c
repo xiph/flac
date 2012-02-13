@@ -211,12 +211,12 @@ int main(int argc, char *argv[])
 	const char *usage = "usage: test_pictures path_prefix\n";
 
 	if(argc > 1 && 0 == strcmp(argv[1], "-h")) {
-		printf(usage);
+		printf("%s", usage);
 		return 0;
 	}
 
 	if(argc != 2) {
-		fprintf(stderr, usage);
+		fprintf(stderr, "%s", usage);
 		return 255;
 	}
 
