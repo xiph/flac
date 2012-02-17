@@ -111,18 +111,6 @@ static inline void *safe_malloc_add_4op_(size_t size1, size_t size2, size_t size
 }
 
 static inline void *safe_malloc_mul_2op_(size_t size1, size_t size2)
-#if 0
-needs support for cases where sizeof(size_t) != 4
-{
-	/* could be faster #ifdef'ing off SIZEOF_SIZE_T */
-	if(sizeof(size_t) == 4) {
-		if ((double)size1 * (double)size2 < 4294967296.0)
-			return malloc(size1*size2);
-	}
-	return 0;
-}
-#else
-/* better? */
 {
 	if(!size1 || !size2)
 		return malloc(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
@@ -130,7 +118,6 @@ needs support for cases where sizeof(size_t) != 4
 		return 0;
 	return malloc(size1*size2);
 }
-#endif
 
 static inline void *safe_malloc_mul_3op_(size_t size1, size_t size2, size_t size3)
 {
