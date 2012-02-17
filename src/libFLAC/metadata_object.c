@@ -550,7 +550,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 				break;
 			case FLAC__METADATA_TYPE_SEEKTABLE:
 				to->data.seek_table.num_points = object->data.seek_table.num_points;
-				if(to->data.seek_table.num_points > SIZE_MAX / sizeof(FLAC__StreamMetadata_SeekPoint)) { /* overflow check */
+				if(to->data.seek_table.num_points > UINT32_MAX / sizeof(FLAC__StreamMetadata_SeekPoint)) { /* overflow check */
 					FLAC__metadata_object_delete(to);
 					return 0;
 				}
@@ -943,7 +943,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMe
 		const size_t new_size = new_num_points * sizeof(FLAC__StreamMetadata_SeekPoint);
 
 		/* overflow check */
-		if((size_t)new_num_points > SIZE_MAX / sizeof(FLAC__StreamMetadata_SeekPoint))
+		if(new_num_points > UINT32_MAX / sizeof(FLAC__StreamMetadata_SeekPoint))
 			return false;
 
 		FLAC__ASSERT(object->data.seek_table.num_points > 0);
@@ -1174,7 +1174,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 		const size_t new_size = new_num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry);
 
 		/* overflow check */
-		if((size_t)new_num_comments > SIZE_MAX / sizeof(FLAC__StreamMetadata_VorbisComment_Entry))
+		if(new_num_comments > UINT32_MAX / sizeof(FLAC__StreamMetadata_VorbisComment_Entry))
 			return false;
 
 		FLAC__ASSERT(object->data.vorbis_comment.num_comments > 0);
@@ -1335,7 +1335,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
 		memcpy(entry->entry+nn+1, field_value, nv);
 		entry->entry[entry->length] = '\0';
 	}
-	
+
 	return true;
 }
 
@@ -1491,7 +1491,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
 		const size_t new_size = new_num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index);
 
 		/* overflow check */
-		if((size_t)new_num_indices > SIZE_MAX / sizeof(FLAC__StreamMetadata_CueSheet_Index))
+		if(new_num_indices > UINT32_MAX / sizeof(FLAC__StreamMetadata_CueSheet_Index))
 			return false;
 
 		FLAC__ASSERT(track->num_indices > 0);
@@ -1579,7 +1579,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 		const size_t new_size = new_num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track);
 
 		/* overflow check */
-		if((size_t)new_num_tracks > SIZE_MAX / sizeof(FLAC__StreamMetadata_CueSheet_Track))
+		if(new_num_tracks > UINT32_MAX / sizeof(FLAC__StreamMetadata_CueSheet_Track))
 			return false;
 
 		FLAC__ASSERT(object->data.cue_sheet.num_tracks > 0);

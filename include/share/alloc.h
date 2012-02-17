@@ -49,7 +49,7 @@
 #ifndef SIZE_MAX
 # ifndef SIZE_T_MAX
 #  ifdef _MSC_VER
-#   define SIZE_T_MAX UINT_MAX
+#   define SIZE_T_MAX UINT_MAX /* What happens on 64 bit windows? */
 #  else
 #   error
 #  endif

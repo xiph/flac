@@ -62,15 +62,15 @@ struct share__option long_options_[] = {
 	{ "set-channels", 1, 0, 0 }, /* undocumented */
 	{ "set-bps", 1, 0, 0 }, /* undocumented */
 	{ "set-total-samples", 1, 0, 0 }, /* undocumented */ /* WATCHOUT: used by test/test_flac.sh on windows */
-	{ "show-vendor-tag", 0, 0, 0 }, 
-	{ "show-tag", 1, 0, 0 }, 
-	{ "remove-all-tags", 0, 0, 0 }, 
-	{ "remove-tag", 1, 0, 0 }, 
-	{ "remove-first-tag", 1, 0, 0 }, 
-	{ "set-tag", 1, 0, 0 }, 
-	{ "set-tag-from-file", 1, 0, 0 }, 
-	{ "import-tags-from", 1, 0, 0 }, 
-	{ "export-tags-to", 1, 0, 0 }, 
+	{ "show-vendor-tag", 0, 0, 0 },
+	{ "show-tag", 1, 0, 0 },
+	{ "remove-all-tags", 0, 0, 0 },
+	{ "remove-tag", 1, 0, 0 },
+	{ "remove-first-tag", 1, 0, 0 },
+	{ "set-tag", 1, 0, 0 },
+	{ "set-tag-from-file", 1, 0, 0 },
+	{ "import-tags-from", 1, 0, 0 },
+	{ "export-tags-to", 1, 0, 0 },
 	{ "import-cuesheet-from", 1, 0, 0 },
 	{ "export-cuesheet-to", 1, 0, 0 },
 	{ "import-picture-from", 1, 0, 0 },
@@ -719,7 +719,7 @@ void append_new_operation(CommandLineOptions *options, Operation operation)
 	}
 	if(options->ops.capacity <= options->ops.num_operations) {
 		unsigned original_capacity = options->ops.capacity;
-		if(options->ops.capacity > SIZE_MAX / 2) /* overflow check */
+		if(options->ops.capacity > UINT32_MAX / 2) /* overflow check */
 			die("out of memory allocating space for option list");
 		options->ops.capacity *= 2;
 		if(0 == (options->ops.operations = (Operation*)safe_realloc_mul_2op_(options->ops.operations, sizeof(Operation), /*times*/options->ops.capacity)))
@@ -740,7 +740,7 @@ void append_new_argument(CommandLineOptions *options, Argument argument)
 	}
 	if(options->args.capacity <= options->args.num_arguments) {
 		unsigned original_capacity = options->args.capacity;
-		if(options->args.capacity > SIZE_MAX / 2) /* overflow check */
+		if(options->args.capacity > UINT32_MAX / 2) /* overflow check */
 			die("out of memory allocating space for option list");
 		options->args.capacity *= 2;
 		if(0 == (options->args.arguments = (Argument*)safe_realloc_mul_2op_(options->args.arguments, sizeof(Argument), /*times*/options->args.capacity)))
