@@ -118,25 +118,7 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 
 FLAC__bool grabbag__replaygain_is_valid_sample_frequency(unsigned sample_frequency)
 {
-	static const unsigned valid_sample_rates[] = {
-		8000,
-		11025,
-		12000,
-		16000,
-		22050,
-		24000,
-		32000,
-		44100,
-		48000
-	};
-	static const unsigned n_valid_sample_rates = sizeof(valid_sample_rates) / sizeof(valid_sample_rates[0]);
-
-	unsigned i;
-
-	for(i = 0; i < n_valid_sample_rates; i++)
-		if(sample_frequency == valid_sample_rates[i])
-			return true;
-	return false;
+        return ValidGainFrequency( sample_frequency );
 }
 
 FLAC__bool grabbag__replaygain_init(unsigned sample_frequency)
