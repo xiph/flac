@@ -355,6 +355,7 @@ else
 	fi
 fi
 
+XIPH_GCC_VERSION
 
 if test x$ac_cv_c_compiler_gnu = xyes ; then
 	if test x$enable_gcc_werror = "xyes" ; then
@@ -450,3 +451,20 @@ AC_CONFIG_FILES([ \
 	obj/release/lib/Makefile \
 ])
 AC_OUTPUT
+
+AC_MSG_RESULT([
+-=-=-=-=-=-=-=-=-=-= Configuration Complete =-=-=-=-=-=-=-=-=-=-
+
+  Configuration summary :
+
+    FLAC version : ........................ ${VERSION}
+
+    Host CPU : ............................ ${host_cpu}
+    Host Vendor : ......................... ${host_vendor}
+    Host OS : ............................. ${host_os}
+])
+
+if test x$ac_cv_c_compiler_gnu = xyes ; then
+	echo "    Compiler is GCC : ..................... ${ac_cv_c_compiler_gnu}"
+	echo "    GCC version : ......................... ${GCC_VERSION}"
+	fi
