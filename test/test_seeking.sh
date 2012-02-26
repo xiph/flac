@@ -103,7 +103,7 @@ tiny_seek_count=100
 if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
 	small_seek_count=10000
 else
-	small_seek_count=100000
+	small_seek_count=100
 fi
 
 for suffix in '' '-s' ; do

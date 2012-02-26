@@ -1078,9 +1078,9 @@ int main(int argc, char *argv[])
 	if(!generate_wackywavs()) return 1;
 	if(!generate_wackywav64s()) return 1;
 	if(!generate_wackyrf64s()) return 1;
-	for(channels = 1; channels <= 8; channels++) {
+	for(channels = 1; channels <= 8; channels *= 2) {
 		unsigned bits_per_sample;
-		for(bits_per_sample = 4; bits_per_sample <= 24; bits_per_sample++) {
+		for(bits_per_sample = 8; bits_per_sample <= 24; bits_per_sample += 4) {
 			static const unsigned nsamples[] = { 1, 111, 4777 } ;
 			unsigned samples;
 			for(samples = 0; samples < sizeof(nsamples)/sizeof(nsamples[0]); samples++) {
