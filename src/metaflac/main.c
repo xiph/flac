@@ -23,6 +23,7 @@
 #include "operations.h"
 #include "options.h"
 #include <locale.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[])
 {
