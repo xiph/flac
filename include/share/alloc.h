@@ -110,14 +110,7 @@ static inline void *safe_malloc_add_4op_(size_t size1, size_t size2, size_t size
 	return safe_malloc_(size4);
 }
 
-static inline void *safe_malloc_mul_2op_(size_t size1, size_t size2)
-{
-	if(!size1 || !size2)
-		return malloc(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
-	if(size1 > SIZE_MAX / size2)
-		return 0;
-	return malloc(size1*size2);
-}
+void *safe_malloc_mul_2op_(size_t size1, size_t size2) ;
 
 static inline void *safe_malloc_mul_3op_(size_t size1, size_t size2, size_t size3)
 {
