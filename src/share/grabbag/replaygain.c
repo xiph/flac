@@ -596,7 +596,7 @@ static FLAC__bool parse_double_(const FLAC__StreamMetadata_VorbisComment_Entry *
 		return false;
 	q++;
 	memset(s, 0, sizeof(s)-1);
-	strncpy(s, q, local_min(sizeof(s)-1, entry->length - (q-p)));
+	strncpy(s, q, local_min(sizeof(s)-1, (size_t) (entry->length - (q-p))));
 
 	v = strtod(s, &end);
 	if(end == s)

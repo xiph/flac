@@ -247,7 +247,7 @@ static const struct ReplayGainFilter ReplayGainFilters[] = {
         { 0.96009142950541,  -1.92018285901082,   0.96009142950541 },
         { 1.00000000000000,  -1.91858953033784,   0.92177618768381 },
     },
-    
+
     {
         11025, 0, /* ORIGINAL */
         { 0.58100494960553,  -0.53174909058578,  -0.14289799034253,   0.17520704835522,   0.02377945217615,   0.15558449135573,  -0.25344790059353,   0.01628462406333,   0.06920467763959,  -0.03721611395801,  -0.00749618797172 },
@@ -447,7 +447,7 @@ AnalyzeSamples ( const Float_t* left_samples, const Float_t* right_samples, size
     }
 
     prebufsamples = MAX_ORDER;
-    if (prebufsamples > num_samples)
+    if ((size_t) prebufsamples > num_samples)
         prebufsamples = num_samples;
 
     for ( i = 0; i < prebufsamples; ++i ) {
