@@ -33,21 +33,21 @@
 
 #if HAVE_BSWAP32			/* GCC and Clang */
 
-#define	ENDSWAP_INT(x)		(__builtin_bswap32 (x))
+#define	ENDSWAP_32(x)		(__builtin_bswap32 (x))
 
 #elif defined _MSC_VER		/* Windows. Apparently in <stdlib.h>. */
 
-#define	ENDSWAP_INT(x)		((int) _byteswap_ulong (x))
+#define	ENDSWAP_32(x)		(_byteswap_ulong (x))
 
 #elif HAVE_BYTESWAP_H		/* Linux */
 
 #include <byteswap.h>
 
-#define	ENDSWAP_INT(x)		((int) bswap_32 (x))
+#define	ENDSWAP_32(x)		(bswap_32 (x))
 
 #else
 
-#define	ENDSWAP_INT(x)		((((x) >> 24) & 0xFF) + (((x) >> 8) & 0xFF00) + (((x) & 0xFF00) << 8) + (((x) & 0xFF) << 24))
+#define	ENDSWAP_32(x)		((((x) >> 24) & 0xFF) + (((x) >> 8) & 0xFF00) + (((x) & 0xFF00) << 8) + (((x) & 0xFF) << 24))
 
 #endif
 

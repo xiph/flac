@@ -53,7 +53,7 @@ typedef FLAC__uint32 brword;
 #if WORDS_BIGENDIAN
 #define SWAP_BE_WORD_TO_HOST(x) (x)
 #else
-#define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_INT(x)
+#define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_32(x)
 #endif
 /* counts the # of zero MSBs in a word */
 #define COUNT_ZERO_MSBS(word) ( \
