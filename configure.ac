@@ -389,9 +389,6 @@ AC_CONFIG_FILES([ \
 	src/monkeys_audio_utilities/flac_mac/Makefile \
 	src/monkeys_audio_utilities/flac_ren/Makefile \
 	src/plugin_common/Makefile \
-	src/plugin_winamp2/Makefile \
-	src/plugin_winamp2/include/Makefile \
-	src/plugin_winamp2/include/winamp2/Makefile \
 	src/plugin_xmms/Makefile \
 	src/share/Makefile \
 	src/share/getopt/Makefile \

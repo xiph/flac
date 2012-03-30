@@ -30,7 +30,6 @@ SUBDIRS = \
 	metaflac \
 	monkeys_audio_utilities \
 	$(XMMS_DIRS) \
-	plugin_winamp2 \
 	test_grabbag \
 	test_libs_common \
 	test_libFLAC \
