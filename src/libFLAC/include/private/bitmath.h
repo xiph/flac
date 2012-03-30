@@ -34,8 +34,30 @@
 
 #include "FLAC/ordinals.h"
 
+
+#if defined(__GNUC__)
+
+static inline unsigned FLAC__bitmath_ilog2(FLAC__uint32 v)
+{
+    if (v == 0)
+		return 0;
+    return sizeof(FLAC__uint32) * __CHAR_BIT__  - 1 - __builtin_clz(v);
+}
+
+static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
+{
+    if (v == 0)
+		return 0;
+    return sizeof(FLAC__uint64) * __CHAR_BIT__ - 1 - __builtin_clzll(v);
+}
+
+#else
+
 unsigned FLAC__bitmath_ilog2(FLAC__uint32 v);
 unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v);
+
+#endif
+
 unsigned FLAC__bitmath_silog2(int v);
 unsigned FLAC__bitmath_silog2_wide(FLAC__int64 v);
 

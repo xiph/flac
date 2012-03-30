@@ -58,10 +58,16 @@
  * ilog2(17) = 4
  * ilog2(18) = 4
  */
+
+#ifndef __GNUC__
+
+/* For GNUC, use static inline version in include/private/bitmath.h. */
+
 unsigned FLAC__bitmath_ilog2(FLAC__uint32 v)
 {
-	unsigned l = 0;
-	FLAC__ASSERT(v > 0);
+ 	unsigned l = 0;
+    if (v == 0)
+		return 0;
 	while(v >>= 1)
 		l++;
 	return l;
@@ -70,11 +76,13 @@ unsigned FLAC__bitmath_ilog2(FLAC__uint32 v)
 unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 {
 	unsigned l = 0;
-	FLAC__ASSERT(v > 0);
+    if (v == 0)
+		return 0;
 	while(v >>= 1)
 		l++;
 	return l;
 }
+#endif
 
 /* An example of what FLAC__bitmath_silog2() computes:
  *

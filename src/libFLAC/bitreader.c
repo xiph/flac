@@ -55,14 +55,24 @@ typedef FLAC__uint32 brword;
 #else
 #define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_32(x)
 #endif
+
+#if defined(__GNUC__)
+/*  "int __builtin_clz (unsigned int x) If x is 0, the result is undefined" */
+static inline uint32_t
+COUNT_ZERO_MSBS (uint32_t word)
+{
+	if (word == 0)
+		return 32;
+	return __builtin_clz (word);
+}
+#else
 /* counts the # of zero MSBs in a word */
 #define COUNT_ZERO_MSBS(word) ( \
 	(word) <= 0xffff ? \
 		( (word) <= 0xff? byte_to_unary_table[word] + 24 : byte_to_unary_table[(word) >> 8] + 16 ) : \
 		( (word) <= 0xffffff? byte_to_unary_table[word >> 16] + 8 : byte_to_unary_table[(word) >> 24] ) \
 )
-/* this alternate might be slightly faster on some systems/compilers: */
-#define COUNT_ZERO_MSBS2(word) ( (word) <= 0xff ? byte_to_unary_table[word] + 24 : ((word) <= 0xffff ? byte_to_unary_table[(word) >> 8] + 16 : ((word) <= 0xffffff ? byte_to_unary_table[(word) >> 16] + 8 : byte_to_unary_table[(word) >> 24])) )
+#endif
 
 
 /*
