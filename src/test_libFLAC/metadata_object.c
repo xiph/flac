@@ -33,7 +33,7 @@ static FLAC__byte *make_dummydata_(FLAC__byte *dummydata, unsigned len)
 {
 	FLAC__byte *ret;
 
-	if(0 == (ret = (FLAC__byte*)malloc(len))) {
+	if(0 == (ret = malloc(len))) {
 		printf("FAILED, malloc error\n");
 		exit(1);
 	}
@@ -148,7 +148,7 @@ static FLAC__bool check_seektable_(const FLAC__StreamMetadata *block, unsigned n
 static void entry_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, const char *field)
 {
 	entry->length = strlen(field);
-	entry->entry = (FLAC__byte*)malloc(entry->length+1);
+	entry->entry = malloc(entry->length+1);
 	FLAC__ASSERT(0 != entry->entry);
 	memcpy(entry->entry, field, entry->length);
 	entry->entry[entry->length] = '\0';
@@ -156,7 +156,7 @@ static void entry_new_(FLAC__StreamMetadata_VorbisComment_Entry *entry, const ch
 
 static void entry_clone_(FLAC__StreamMetadata_VorbisComment_Entry *entry)
 {
-	FLAC__byte *x = (FLAC__byte*)malloc(entry->length+1);
+	FLAC__byte *x = malloc(entry->length+1);
 	FLAC__ASSERT(0 != x);
 	memcpy(x, entry->entry, entry->length);
 	x[entry->length] = '\0';
@@ -198,7 +198,7 @@ static void vc_resize_(FLAC__StreamMetadata *block, unsigned num)
 		}
 	}
 	else {
-		vc->comments = (FLAC__StreamMetadata_VorbisComment_Entry*)realloc(vc->comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*num);
+		vc->comments = realloc(vc->comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*num);
 		FLAC__ASSERT(0 != vc->comments);
 		if(num > vc->num_comments)
 			memset(vc->comments+vc->num_comments, 0, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(num-vc->num_comments));
@@ -297,7 +297,7 @@ static void track_clone_(FLAC__StreamMetadata_CueSheet_Track *track)
 {
 	if(track->num_indices > 0) {
 		size_t bytes = sizeof(FLAC__StreamMetadata_CueSheet_Index) * track->num_indices;
-		FLAC__StreamMetadata_CueSheet_Index *x = (FLAC__StreamMetadata_CueSheet_Index*)malloc(bytes);
+		FLAC__StreamMetadata_CueSheet_Index *x = malloc(bytes);
 		FLAC__ASSERT(0 != x);
 		memcpy(x, track->indices, bytes);
 		track->indices = x;
@@ -352,7 +352,7 @@ static void tr_resize_(FLAC__StreamMetadata *block, unsigned track_num, unsigned
 		}
 	}
 	else {
-		tr->indices = (FLAC__StreamMetadata_CueSheet_Index*)realloc(tr->indices, sizeof(FLAC__StreamMetadata_CueSheet_Index)*num);
+		tr->indices = realloc(tr->indices, sizeof(FLAC__StreamMetadata_CueSheet_Index)*num);
 		FLAC__ASSERT(0 != tr->indices);
 		if(num > tr->num_indices)
 			memset(tr->indices+tr->num_indices, 0, sizeof(FLAC__StreamMetadata_CueSheet_Index)*(num-tr->num_indices));
@@ -429,7 +429,7 @@ static void cs_resize_(FLAC__StreamMetadata *block, unsigned num)
 		}
 	}
 	else {
-		cs->tracks = (FLAC__StreamMetadata_CueSheet_Track*)realloc(cs->tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track)*num);
+		cs->tracks = realloc(cs->tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track)*num);
 		FLAC__ASSERT(0 != cs->tracks);
 		if(num > cs->num_tracks)
 			memset(cs->tracks+cs->num_tracks, 0, sizeof(FLAC__StreamMetadata_CueSheet_Track)*(num-cs->num_tracks));

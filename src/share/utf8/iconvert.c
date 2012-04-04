@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2001 Edmund Grimley Evans <edmundo@rano.org>
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -82,7 +82,7 @@ int iconvert(const char *fromcode, const char *tocode,
      * This is deliberately not a config option as people often
      * change their iconv library without rebuilding applications.
      */
-    tocode1 = (char *)safe_malloc_add_2op_(strlen(tocode), /*+*/11);
+    tocode1 = safe_malloc_add_2op_(strlen(tocode), /*+*/11);
     if (!tocode1)
       goto fail;
 
@@ -101,7 +101,7 @@ int iconvert(const char *fromcode, const char *tocode,
   }
 
   utflen = 1; /*fromlen * 2 + 1; XXX */
-  utfbuf = (char *)malloc(utflen);
+  utfbuf = malloc(utflen);
   if (!utfbuf)
     goto fail;
 
@@ -123,7 +123,7 @@ int iconvert(const char *fromcode, const char *tocode,
       if(utflen*2 < utflen) /* overflow check */
 	goto fail;
       utflen *= 2;
-      newbuf = (char *)realloc(utfbuf, utflen);
+      newbuf = realloc(utfbuf, utflen);
       if (!newbuf)
 	goto fail;
       ob = (ob - utfbuf) + newbuf;
@@ -148,7 +148,7 @@ int iconvert(const char *fromcode, const char *tocode,
       iconv_close(cd1);
       return ret;
     }
-    newbuf = (char *)safe_realloc_add_2op_(utfbuf, (ob - utfbuf), /*+*/1);
+    newbuf = safe_realloc_add_2op_(utfbuf, (ob - utfbuf), /*+*/1);
     if (!newbuf)
       goto fail;
     ob = (ob - utfbuf) + newbuf;
@@ -160,7 +160,7 @@ int iconvert(const char *fromcode, const char *tocode,
 
   /* Truncate the buffer to be tidy */
   utflen = ob - utfbuf;
-  newbuf = (char *)realloc(utfbuf, utflen);
+  newbuf = realloc(utfbuf, utflen);
   if (!newbuf)
     goto fail;
   utfbuf = newbuf;
@@ -199,7 +199,7 @@ int iconvert(const char *fromcode, const char *tocode,
   outlen += ob - tbuf;
 
   /* Convert from UTF-8 for real */
-  outbuf = (char *)safe_malloc_add_2op_(outlen, /*+*/1);
+  outbuf = safe_malloc_add_2op_(outlen, /*+*/1);
   if (!outbuf)
     goto fail;
   ib = utfbuf;

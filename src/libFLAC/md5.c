@@ -139,7 +139,7 @@ static void byteSwap(FLAC__uint32 *buf, unsigned words)
 {
 	register FLAC__uint32 x;
 	do {
-		x = *buf; 
+		x = *buf;
 		x = ((x << 8) & 0xff00ff00) | ((x >> 8) & 0x00ff00ff);
 		*buf++ = (x >> 16) | (x << 16);
 	} while (--words);
@@ -402,10 +402,10 @@ FLAC__bool FLAC__MD5Accumulate(FLAC__MD5Context *ctx, const FLAC__int32 * const 
 		return false;
 
 	if(ctx->capacity < bytes_needed) {
-		FLAC__byte *tmp = (FLAC__byte*)realloc(ctx->internal_buf, bytes_needed);
+		FLAC__byte *tmp = realloc(ctx->internal_buf, bytes_needed);
 		if(0 == tmp) {
 			free(ctx->internal_buf);
-			if(0 == (ctx->internal_buf = (FLAC__byte*)safe_malloc_(bytes_needed)))
+			if(0 == (ctx->internal_buf = safe_malloc_(bytes_needed)))
 				return false;
 		}
 		else

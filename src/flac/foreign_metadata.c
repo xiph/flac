@@ -682,7 +682,7 @@ static FLAC__bool write_to_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fout, o
 foreign_metadata_t *flac__foreign_metadata_new(foreign_block_type_t type)
 {
 	/* calloc() to zero all the member variables */
-	foreign_metadata_t *x = (foreign_metadata_t*)calloc(sizeof(foreign_metadata_t), 1);
+	foreign_metadata_t *x = calloc(sizeof(foreign_metadata_t), 1);
 	if(x) {
 		x->type = type;
 		x->is_rf64 = false;

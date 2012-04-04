@@ -475,7 +475,7 @@ void mutils__init_metadata_blocks(
 	seektable->type = FLAC__METADATA_TYPE_SEEKTABLE;
 	seektable->data.seek_table.num_points = 2;
 	seektable->length = seektable->data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	seektable->data.seek_table.points = (FLAC__StreamMetadata_SeekPoint*)malloc_or_die_(seektable->data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint));
+	seektable->data.seek_table.points = malloc_or_die_(seektable->data.seek_table.num_points * sizeof(FLAC__StreamMetadata_SeekPoint));
 	seektable->data.seek_table.points[0].sample_number = 0;
 	seektable->data.seek_table.points[0].stream_offset = 0;
 	seektable->data.seek_table.points[0].frame_samples = streaminfo->data.stream_info.min_blocksize;
@@ -487,7 +487,7 @@ void mutils__init_metadata_blocks(
 	application1->type = FLAC__METADATA_TYPE_APPLICATION;
 	application1->length = 8;
 	memcpy(application1->data.application.id, "\xfe\xdc\xba\x98", 4);
-	application1->data.application.data = (FLAC__byte*)malloc_or_die_(4);
+	application1->data.application.data = malloc_or_die_(4);
 	memcpy(application1->data.application.data, "\xf0\xe1\xd2\xc3", 4);
 
 	application2->is_last = false;
@@ -502,12 +502,12 @@ void mutils__init_metadata_blocks(
 		vorbiscomment->type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
 		vorbiscomment->length = (4 + vendor_string_length) + 4 + (4 + 5) + (4 + 0);
 		vorbiscomment->data.vorbis_comment.vendor_string.length = vendor_string_length;
-		vorbiscomment->data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc_or_die_(vendor_string_length+1);
+		vorbiscomment->data.vorbis_comment.vendor_string.entry = malloc_or_die_(vendor_string_length+1);
 		memcpy(vorbiscomment->data.vorbis_comment.vendor_string.entry, FLAC__VENDOR_STRING, vendor_string_length+1);
 		vorbiscomment->data.vorbis_comment.num_comments = 2;
-		vorbiscomment->data.vorbis_comment.comments = (FLAC__StreamMetadata_VorbisComment_Entry*)malloc_or_die_(vorbiscomment->data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
+		vorbiscomment->data.vorbis_comment.comments = malloc_or_die_(vorbiscomment->data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry));
 		vorbiscomment->data.vorbis_comment.comments[0].length = 5;
-		vorbiscomment->data.vorbis_comment.comments[0].entry = (FLAC__byte*)malloc_or_die_(5+1);
+		vorbiscomment->data.vorbis_comment.comments[0].entry = malloc_or_die_(5+1);
 		memcpy(vorbiscomment->data.vorbis_comment.comments[0].entry, "ab=cd", 5+1);
 		vorbiscomment->data.vorbis_comment.comments[1].length = 0;
 		vorbiscomment->data.vorbis_comment.comments[1].entry = 0;
@@ -547,14 +547,14 @@ void mutils__init_metadata_blocks(
 	cuesheet->data.cue_sheet.lead_in = 2 * 44100;
 	cuesheet->data.cue_sheet.is_cd = true;
 	cuesheet->data.cue_sheet.num_tracks = 3;
-	cuesheet->data.cue_sheet.tracks = (FLAC__StreamMetadata_CueSheet_Track*)calloc_or_die_(cuesheet->data.cue_sheet.num_tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track));
+	cuesheet->data.cue_sheet.tracks = calloc_or_die_(cuesheet->data.cue_sheet.num_tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track));
 	cuesheet->data.cue_sheet.tracks[0].offset = 0;
 	cuesheet->data.cue_sheet.tracks[0].number = 1;
 	memcpy(cuesheet->data.cue_sheet.tracks[0].isrc, "ACBDE1234567", sizeof(cuesheet->data.cue_sheet.tracks[0].isrc));
 	cuesheet->data.cue_sheet.tracks[0].type = 0;
 	cuesheet->data.cue_sheet.tracks[0].pre_emphasis = 1;
 	cuesheet->data.cue_sheet.tracks[0].num_indices = 2;
-	cuesheet->data.cue_sheet.tracks[0].indices = (FLAC__StreamMetadata_CueSheet_Index*)malloc_or_die_(cuesheet->data.cue_sheet.tracks[0].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet->data.cue_sheet.tracks[0].indices = malloc_or_die_(cuesheet->data.cue_sheet.tracks[0].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
 	cuesheet->data.cue_sheet.tracks[0].indices[0].offset = 0;
 	cuesheet->data.cue_sheet.tracks[0].indices[0].number = 0;
 	cuesheet->data.cue_sheet.tracks[0].indices[1].offset = 123 * 588;
@@ -565,7 +565,7 @@ void mutils__init_metadata_blocks(
 	cuesheet->data.cue_sheet.tracks[1].type = 1;
 	cuesheet->data.cue_sheet.tracks[1].pre_emphasis = 0;
 	cuesheet->data.cue_sheet.tracks[1].num_indices = 1;
-	cuesheet->data.cue_sheet.tracks[1].indices = (FLAC__StreamMetadata_CueSheet_Index*)malloc_or_die_(cuesheet->data.cue_sheet.tracks[1].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet->data.cue_sheet.tracks[1].indices = malloc_or_die_(cuesheet->data.cue_sheet.tracks[1].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
 	cuesheet->data.cue_sheet.tracks[1].indices[0].offset = 0;
 	cuesheet->data.cue_sheet.tracks[1].indices[0].number = 1;
 	cuesheet->data.cue_sheet.tracks[2].offset = 12345 * 588;
@@ -602,7 +602,7 @@ void mutils__init_metadata_blocks(
 	unknown->is_last = true;
 	unknown->type = 126;
 	unknown->length = 8;
-	unknown->data.unknown.data = (FLAC__byte*)malloc_or_die_(unknown->length);
+	unknown->data.unknown.data = malloc_or_die_(unknown->length);
 	memcpy(unknown->data.unknown.data, "\xfe\xdc\xba\x98\xf0\xe1\xd2\xc3", unknown->length);
 }
 

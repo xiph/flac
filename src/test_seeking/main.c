@@ -153,7 +153,7 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 		return false;
 	}
 	for(i = 0; i < channels; i++) {
-		if(0 == (pcm[i] = (FLAC__int32*)malloc(sizeof(FLAC__int32)*samples))) {
+		if(0 == (pcm[i] = malloc(sizeof(FLAC__int32)*samples))) {
 			printf("ERROR: allocating space for PCM samples\n");
 			return false;
 		}

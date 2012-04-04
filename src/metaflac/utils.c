@@ -69,7 +69,7 @@ void local_strcat(char **dest, const char *source)
 	if(nsource == 0)
 		return;
 
-	*dest = (char*)safe_realloc_add_3op_(*dest, ndest, /*+*/nsource, /*+*/1);
+	*dest = safe_realloc_add_3op_(*dest, ndest, /*+*/nsource, /*+*/1);
 	if(0 == *dest)
 		die("out of memory growing string");
 	strcpy((*dest)+ndest, source);

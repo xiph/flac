@@ -448,8 +448,8 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 	}
 
 	if(
-		0 == (title_gains = (float*)safe_malloc_mul_2op_(sizeof(float), /*times*/num_files)) ||
-		0 == (title_peaks = (float*)safe_malloc_mul_2op_(sizeof(float), /*times*/num_files))
+		0 == (title_gains = safe_malloc_mul_2op_(sizeof(float), /*times*/num_files)) ||
+		0 == (title_peaks = safe_malloc_mul_2op_(sizeof(float), /*times*/num_files))
 	)
 		die("out of memory allocating space for title gains/peaks");
 

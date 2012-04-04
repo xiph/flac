@@ -30,7 +30,7 @@
 /* slightly different that strndup(): this always copies 'size' bytes starting from s into a NUL-terminated string. */
 static char *local__strndup_(const char *s, size_t size)
 {
-	char *x = (char*)safe_malloc_add_2op_(size, /*+*/1);
+	char *x = safe_malloc_add_2op_(size, /*+*/1);
 	if(x) {
 		memcpy(x, s, size);
 		x[size] = '\0';
@@ -360,7 +360,7 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 				if(size < 0)
 					*error_message = error_messages[5];
 				else {
-					FLAC__byte *buffer = (FLAC__byte*)safe_malloc_(size);
+					FLAC__byte *buffer = safe_malloc_(size);
 					if(0 == buffer)
 						*error_message = error_messages[0];
 					else {
@@ -395,7 +395,7 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 
 	if(*error_message == 0) {
 		if(
-			obj->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD && 
+			obj->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD &&
 			(
 				(strcmp(obj->data.picture.mime_type, "image/png") && strcmp(obj->data.picture.mime_type, "-->")) ||
 				obj->data.picture.width != 32 ||

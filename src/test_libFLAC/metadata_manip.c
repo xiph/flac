@@ -186,7 +186,7 @@ static FLAC__bool open_tempfile_(const char *filename, FILE **tempfile, char **t
 {
 	static const char *tempfile_suffix = ".metadata_edit";
 
-	if(0 == (*tempfilename = (char*)malloc(strlen(filename) + strlen(tempfile_suffix) + 1)))
+	if(0 == (*tempfilename = malloc(strlen(filename) + strlen(tempfile_suffix) + 1)))
 		return false;
 	strcpy(*tempfilename, filename);
 	strcat(*tempfilename, tempfile_suffix);

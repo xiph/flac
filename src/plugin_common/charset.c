@@ -85,7 +85,7 @@ char* FLAC_plugin__charset_convert_string (const char *string, char *from, char 
 	outsize = ((length + 3) & ~3) + 1;
 	if(outsize < length) /* overflow check */
 		return NULL;
-	out = (char*)malloc(outsize);
+	out = malloc(outsize);
 	outleft = outsize - 1;
 	outptr = out;
 

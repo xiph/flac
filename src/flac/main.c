@@ -638,7 +638,7 @@ int parse_options(int argc, char *argv[])
 
 	if(option_values.num_files > 0) {
 		unsigned i = 0;
-		if(0 == (option_values.filenames = (char**)malloc(sizeof(char*) * option_values.num_files)))
+		if(0 == (option_values.filenames = malloc(sizeof(char*) * option_values.num_files)))
 			die("out of memory allocating space for file names list");
 		while(share__optind < argc)
 			option_values.filenames[i++] = local_strdup(argv[share__optind++]);
@@ -1896,7 +1896,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	if(encode_infile != stdin && grabbag__file_are_same(infilename, outfilename)) {
 		static const char *tmp_suffix = ".tmp,fl-ac+en'c";
 		/*@@@@ still a remote possibility that a file with this filename exists */
-		if(0 == (internal_outfilename = (char *)safe_malloc_add_3op_(strlen(outfilename), /*+*/strlen(tmp_suffix), /*+*/1))) {
+		if(0 == (internal_outfilename = safe_malloc_add_3op_(strlen(outfilename), /*+*/strlen(tmp_suffix), /*+*/1))) {
 			flac__utils_printf(stderr, 1, "ERROR allocating memory for tempfile name\n");
 			conditional_fclose(encode_infile);
 			return 1;

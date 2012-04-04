@@ -186,7 +186,7 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 
 	if(options->num_files > 0) {
 		unsigned i = 0;
-		if(0 == (options->filenames = (char**)safe_malloc_mul_2op_(sizeof(char*), /*times*/options->num_files)))
+		if(0 == (options->filenames = safe_malloc_mul_2op_(sizeof(char*), /*times*/options->num_files)))
 			die("out of memory allocating space for file names list");
 		while(share__optind < argc)
 			options->filenames[i++] = local_strdup(argv[share__optind++]);
@@ -713,7 +713,7 @@ void append_new_operation(CommandLineOptions *options, Operation operation)
 {
 	if(options->ops.capacity == 0) {
 		options->ops.capacity = 50;
-		if(0 == (options->ops.operations = (Operation*)malloc(sizeof(Operation) * options->ops.capacity)))
+		if(0 == (options->ops.operations = malloc(sizeof(Operation) * options->ops.capacity)))
 			die("out of memory allocating space for option list");
 		memset(options->ops.operations, 0, sizeof(Operation) * options->ops.capacity);
 	}
@@ -722,7 +722,7 @@ void append_new_operation(CommandLineOptions *options, Operation operation)
 		if(options->ops.capacity > UINT32_MAX / 2) /* overflow check */
 			die("out of memory allocating space for option list");
 		options->ops.capacity *= 2;
-		if(0 == (options->ops.operations = (Operation*)safe_realloc_mul_2op_(options->ops.operations, sizeof(Operation), /*times*/options->ops.capacity)))
+		if(0 == (options->ops.operations = safe_realloc_mul_2op_(options->ops.operations, sizeof(Operation), /*times*/options->ops.capacity)))
 			die("out of memory allocating space for option list");
 		memset(options->ops.operations + original_capacity, 0, sizeof(Operation) * (options->ops.capacity - original_capacity));
 	}
@@ -734,7 +734,7 @@ void append_new_argument(CommandLineOptions *options, Argument argument)
 {
 	if(options->args.capacity == 0) {
 		options->args.capacity = 50;
-		if(0 == (options->args.arguments = (Argument*)malloc(sizeof(Argument) * options->args.capacity)))
+		if(0 == (options->args.arguments = malloc(sizeof(Argument) * options->args.capacity)))
 			die("out of memory allocating space for option list");
 		memset(options->args.arguments, 0, sizeof(Argument) * options->args.capacity);
 	}
@@ -743,7 +743,7 @@ void append_new_argument(CommandLineOptions *options, Argument argument)
 		if(options->args.capacity > UINT32_MAX / 2) /* overflow check */
 			die("out of memory allocating space for option list");
 		options->args.capacity *= 2;
-		if(0 == (options->args.arguments = (Argument*)safe_realloc_mul_2op_(options->args.arguments, sizeof(Argument), /*times*/options->args.capacity)))
+		if(0 == (options->args.arguments = safe_realloc_mul_2op_(options->args.arguments, sizeof(Argument), /*times*/options->args.capacity)))
 			die("out of memory allocating space for option list");
 		memset(options->args.arguments + original_capacity, 0, sizeof(Argument) * (options->args.capacity - original_capacity));
 	}
@@ -974,7 +974,7 @@ FLAC__bool parse_block_number(const char *in, Argument_BlockNumber *out)
 
 	/* make space */
 	FLAC__ASSERT(out->num_entries > 0);
-	if(0 == (out->entries = (unsigned*)safe_malloc_mul_2op_(sizeof(unsigned), /*times*/out->num_entries)))
+	if(0 == (out->entries = safe_malloc_mul_2op_(sizeof(unsigned), /*times*/out->num_entries)))
 		die("out of memory allocating space for option list");
 
 	/* load 'em up */
@@ -1013,7 +1013,7 @@ FLAC__bool parse_block_type(const char *in, Argument_BlockType *out)
 
 	/* make space */
 	FLAC__ASSERT(out->num_entries > 0);
-	if(0 == (out->entries = (Argument_BlockTypeEntry*)safe_malloc_mul_2op_(sizeof(Argument_BlockTypeEntry), /*times*/out->num_entries)))
+	if(0 == (out->entries = safe_malloc_mul_2op_(sizeof(Argument_BlockTypeEntry), /*times*/out->num_entries)))
 		die("out of memory allocating space for option list");
 
 	/* load 'em up */
