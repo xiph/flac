@@ -22,6 +22,10 @@ AC_INIT(src/flac/main.c)
 AM_INIT_AUTOMAKE(flac, 1.2.1)
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+
+#Prefer whatever the current ISO standard is.
+AC_PROG_CC_STDC
+AC_USE_SYSTEM_EXTENSIONS
 # Enable the generation of shared libraries under Win32
 AC_LIBTOOL_WIN32_DLL
 
@@ -60,6 +64,7 @@ AC_HEADER_STDC
 AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_VARARRAYS
+AC_C_TYPEOF
 
 AC_CHECK_HEADERS(stdint.h)
 AC_SUBST(HAVE_STDINT_H)
@@ -67,6 +72,8 @@ AC_CHECK_HEADERS(inttypes.h)
 AC_SUBST(HAVE_INTTYPES_H)
 AC_CHECK_HEADERS(byteswap.h)
 AC_SUBST(HAVE_BYTESWAP_H)
+
+AC_CHECK_HEADERS([sys/param.h])
 
 XIPH_C_BSWAP32
 

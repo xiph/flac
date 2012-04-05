@@ -39,11 +39,7 @@
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
 #include "private/format.h"
-
-#ifdef min
-#undef min
-#endif
-#define min(a,b) ((a)<(b)?(a):(b))
+#include "private/macros.h"
 
 /* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
 #ifdef _MSC_VER
@@ -542,7 +538,7 @@ unsigned FLAC__format_get_max_rice_partition_order_from_blocksize(unsigned block
 		max_rice_partition_order++;
 		blocksize >>= 1;
 	}
-	return min(FLAC__MAX_RICE_PARTITION_ORDER, max_rice_partition_order);
+	return flac_min(FLAC__MAX_RICE_PARTITION_ORDER, max_rice_partition_order);
 }
 
 unsigned FLAC__format_get_max_rice_partition_order_from_blocksize_limited_max_and_predictor_order(unsigned limit, unsigned blocksize, unsigned predictor_order)

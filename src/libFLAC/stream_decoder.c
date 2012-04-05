@@ -59,11 +59,7 @@
 #include "private/lpc.h"
 #include "private/md5.h"
 #include "private/memory.h"
-
-#ifdef max
-#undef max
-#endif
-#define max(a,b) ((a)>(b)?(a):(b))
+#include "private/macros.h"
 
 /* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
 #ifdef _MSC_VER
@@ -2732,7 +2728,7 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigne
 		}
 	}
 
-	if(!FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(partitioned_rice_contents, max(6, partition_order))) {
+	if(!FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(partitioned_rice_contents, flac_max(6u, partition_order))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}

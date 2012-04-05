@@ -37,6 +37,7 @@
 #include <string.h>
 #include "private/bitwriter.h"
 #include "private/crc.h"
+#include "private/macros.h"
 #include "FLAC/assert.h"
 #include "share/alloc.h"
 #include "share/endswap.h"
@@ -66,11 +67,6 @@ static const unsigned FLAC__BITWRITER_DEFAULT_INCREMENT = 4096u / sizeof(uint32_
 
 #define FLAC__WORDS_TO_BITS(words) ((words) * FLAC__BITS_PER_WORD)
 #define FLAC__TOTAL_BITS(bw) (FLAC__WORDS_TO_BITS((bw)->words) + (bw)->bits)
-
-#ifdef min
-#undef min
-#endif
-#define min(x,y) ((x)<(y)?(x):(y))
 
 /* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
 #ifdef _MSC_VER
@@ -288,7 +284,7 @@ FLaC__INLINE FLAC__bool FLAC__bitwriter_write_zeroes(FLAC__BitWriter *bw, unsign
 		return false;
 	/* first part gets to word alignment */
 	if(bw->bits) {
-		n = min(FLAC__BITS_PER_WORD - bw->bits, bits);
+		n = flac_min(FLAC__BITS_PER_WORD - bw->bits, bits);
 		bw->accum <<= n;
 		bits -= n;
 		bw->bits += n;

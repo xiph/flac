@@ -38,6 +38,7 @@
 #include "private/bitmath.h"
 #include "private/bitreader.h"
 #include "private/crc.h"
+#include "private/macros.h"
 #include "FLAC/assert.h"
 #include "share/endswap.h"
 
@@ -108,15 +109,6 @@ static const unsigned char byte_to_unary_table[] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
-
-#ifdef min
-#undef min
-#endif
-#define min(x,y) ((x)<(y)?(x):(y))
-#ifdef max
-#undef max
-#endif
-#define max(x,y) ((x)>(y)?(x):(y))
 
 /* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
 #ifdef _MSC_VER
@@ -547,7 +539,7 @@ FLAC__bool FLAC__bitreader_skip_bits_no_crc(FLAC__BitReader *br, unsigned bits)
 		FLAC__uint32 x;
 
 		if(n != 0) {
-			m = min(8-n, bits);
+			m = flac_min(8-n, bits);
 			if(!FLAC__bitreader_read_raw_uint32(br, &x, m))
 				return false;
 			bits -= m;
