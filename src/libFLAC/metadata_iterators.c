@@ -2899,8 +2899,8 @@ FLAC__bool write_metadata_block_stationary_with_padding_(FLAC__Metadata_SimpleIt
 
 FLAC__bool rewrite_whole_file_(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, FLAC__bool append)
 {
-	FILE *tempfile;
-	char *tempfilename;
+	FILE *tempfile = NULL;
+	char *tempfilename = NULL;
 	int fixup_is_last_code = 0; /* 0 => no need to change any is_last flags */
 	off_t fixup_is_last_flag_offset = -1;
 
