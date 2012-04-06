@@ -1,11 +1,14 @@
+*.a
 *.la
 *.lo
+*.so
 .deps
 .libs
 Makefile
 Makefile.in
 aclocal.m4
 autom4te.cache/
+compile
 config.guess
 config.h
 config.h.in
