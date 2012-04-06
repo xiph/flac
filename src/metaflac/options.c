@@ -1040,8 +1040,8 @@ FLAC__bool parse_block_type(const char *in, Argument_BlockType *out)
 			out->entries[entry].type = FLAC__METADATA_TYPE_APPLICATION;
 			out->entries[entry].filter_application_by_id = (0 != r);
 			if(0 != r) {
-				if(strlen(r) == 4) {
-					memcpy(out->entries[entry].application_id, r, 4);
+				if(strlen(r) == sizeof (out->entries[entry].application_id)) {
+					memcpy(out->entries[entry].application_id, r, sizeof (out->entries[entry].application_id));
 				}
 				else if(strlen(r) == 10 && strncmp(r, "0x", 2) == 0 && strspn(r+2, "0123456789ABCDEFabcdef") == 8) {
 					FLAC__uint32 x = strtoul(r+2, 0, 16);
