@@ -39,6 +39,7 @@ noinst_HEADERS = \
 	float.h \
 	format.h \
 	lpc.h \
+	macros.h \
 	md5.h \
 	memory.h \
 	metadata.h \
