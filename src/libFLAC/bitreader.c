@@ -117,10 +117,6 @@ static const unsigned char byte_to_unary_table[] = {
 #define FLAC__U64L(x) x##LLU
 #endif
 
-#ifndef FLaC__INLINE
-#define FLaC__INLINE
-#endif
-
 /* WATCHOUT: assembly routines rely on the order in which these fields are declared */
 struct FLAC__BitReader {
 	/* any partially-consumed word at the head will stay right-justified as bits are consumed from the left */
@@ -138,7 +134,7 @@ struct FLAC__BitReader {
 	FLAC__CPUInfo cpu_info;
 };
 
-static FLaC__INLINE void crc16_update_word_(FLAC__BitReader *br, uint32_t word)
+static inline void crc16_update_word_(FLAC__BitReader *br, uint32_t word)
 {
 	register unsigned crc = br->read_crc16;
 #if FLAC__BYTES_PER_WORD == 4
@@ -373,17 +369,17 @@ FLAC__uint16 FLAC__bitreader_get_read_crc16(FLAC__BitReader *br)
 	return br->read_crc16;
 }
 
-FLaC__INLINE FLAC__bool FLAC__bitreader_is_consumed_byte_aligned(const FLAC__BitReader *br)
+inline FLAC__bool FLAC__bitreader_is_consumed_byte_aligned(const FLAC__BitReader *br)
 {
 	return ((br->consumed_bits & 7) == 0);
 }
 
-FLaC__INLINE unsigned FLAC__bitreader_bits_left_for_byte_alignment(const FLAC__BitReader *br)
+inline unsigned FLAC__bitreader_bits_left_for_byte_alignment(const FLAC__BitReader *br)
 {
 	return 8 - (br->consumed_bits & 7);
 }
 
-FLaC__INLINE unsigned FLAC__bitreader_get_input_bits_unconsumed(const FLAC__BitReader *br)
+inline unsigned FLAC__bitreader_get_input_bits_unconsumed(const FLAC__BitReader *br)
 {
 	return (br->words-br->consumed_words)*FLAC__BITS_PER_WORD + br->bytes*8 - br->consumed_bits;
 }
@@ -499,7 +495,7 @@ FLAC__bool FLAC__bitreader_read_raw_uint64(FLAC__BitReader *br, FLAC__uint64 *va
 	return true;
 }
 
-FLaC__INLINE FLAC__bool FLAC__bitreader_read_uint32_little_endian(FLAC__BitReader *br, FLAC__uint32 *val)
+inline FLAC__bool FLAC__bitreader_read_uint32_little_endian(FLAC__BitReader *br, FLAC__uint32 *val)
 {
 	FLAC__uint32 x8, x32 = 0;
 

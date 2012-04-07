@@ -19,7 +19,7 @@ EXTRA_DIST = \
 	Makefile.lite \
 	example_cpp_decode_file.dsp \
 	example_cpp_decode_file.vcproj
-
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 noinst_PROGRAMS = example_cpp_decode_file
 example_cpp_decode_file_LDADD = \
 	$(top_builddir)/src/libFLAC++/libFLAC++.la \

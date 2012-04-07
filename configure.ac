@@ -18,27 +18,18 @@
 # NOTE that for many of the AM_CONDITIONALs we use the prefix FLaC__
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
-AC_INIT(src/flac/main.c)
-AM_INIT_AUTOMAKE(flac, 1.2.1)
+AC_PREREQ(2.60)
+AC_INIT([flac], [1.2.1])
+AC_CONFIG_SRCDIR([src/flac/main.c])
+AC_CONFIG_MACRO_DIR([m4])
+AM_INIT_AUTOMAKE([foreign -Wall tar-pax no-dist-gzip dist-xz subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 
 #Prefer whatever the current ISO standard is.
 AC_PROG_CC_STDC
 AC_USE_SYSTEM_EXTENSIONS
-# Enable the generation of shared libraries under Win32
-AC_LIBTOOL_WIN32_DLL
-
-# We need two libtools, one that builds both shared and static, and
-# one that builds only static.  This is because the resulting libtool
-# does not allow us to choose which to build at runtime.
-AM_PROG_LIBTOOL
-sed -e 's/^build_old_libs=yes/build_old_libs=no/' libtool > libtool-disable-static
-chmod +x libtool-disable-static
-
-AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
-AC_CONFIG_MACRO_DIR([m4])
-
+LT_INIT([win32-dll disable-static pic-only])
 AM_PROG_AS
 AC_PROG_CXX
 AC_PROG_MAKE_SET
@@ -47,7 +38,7 @@ AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
 AC_CHECK_SIZEOF(void*,0)
-
+AC_SEARCH_LIBS([lround],[m], [AC_DEFINE(HAVE_LROUND,1,lround support)])
 #@@@ new name is AC_CONFIG_HEADERS
 AM_CONFIG_HEADER(config.h)
 
@@ -348,18 +339,13 @@ AC_DEFINE(FLAC__HAS_GAS)
 AH_TEMPLATE(FLAC__HAS_GAS, [define if you are compiling for PowerPC and have the 'gas' assembler])
 fi
 
-CPPFLAGS='-I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include'" $CPPFLAGS"
 if test "x$debug" = xtrue; then
-	CPPFLAGS="-DDEBUG -DFLaC__INLINE= $CPPFLAGS"
+	CPPFLAGS="-DDEBUG $CPPFLAGS"
 	CFLAGS="-g $CFLAGS"
 else
 	CPPFLAGS="-DNDEBUG $CPPFLAGS"
-	# $ac_cv_c_inline from AC_C_INLINE
-	if test "x$ac_cv_c_inline" != xno ; then
-		CPPFLAGS="-DFLaC__INLINE=$ac_cv_c_inline $CPPFLAGS"
-	fi
 	if test "x$GCC" = xyes; then
-		CFLAGS="-O3 -funroll-loops -finline-functions -Wall -W -Winline $CFLAGS"
+    CFLAGS="-O3 -funroll-loops -Wall -W -Winline $CFLAGS"
 	fi
 fi
 

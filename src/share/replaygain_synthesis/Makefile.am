@@ -4,7 +4,7 @@ AUTOMAKE_OPTIONS = foreign
 
 SUBDIRS = include .
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/include/share
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/include/share
 
 noinst_LTLIBRARIES = libreplaygain_synthesis.la
 

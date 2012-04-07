@@ -20,6 +20,7 @@ EXTRA_DIST = \
 	test_cuesheet.dsp \
 	test_cuesheet.vcproj
 
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 noinst_PROGRAMS = test_cuesheet
 test_cuesheet_SOURCES = \
 	main.c

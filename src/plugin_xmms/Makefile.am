@@ -31,8 +31,7 @@ noinst_HEADERS = \
 	tag.h
 
 AM_CFLAGS = @OGG_CFLAGS@ @XMMS_CFLAGS@
-
-INCLUDES = -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src
 if FLaC__INSTALL_XMMS_PLUGIN_LOCALLY
 xmmsinputplugindir = $(HOME)/.xmms/Plugins
 else

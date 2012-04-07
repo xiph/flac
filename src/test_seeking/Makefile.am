@@ -22,7 +22,7 @@ EXTRA_DIST = \
 
 AM_CFLAGS = @OGG_CFLAGS@
 
-INCLUDES =
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 
 noinst_PROGRAMS = test_seeking
 test_seeking_LDADD = \

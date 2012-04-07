@@ -28,6 +28,7 @@
 #  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 lib_LTLIBRARIES = libFLAC.la
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
@@ -77,7 +78,7 @@ endif
 endif
 endif
 
-libFLAC_la_LIBADD = $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@
+libFLAC_la_LIBADD = $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@ -lm
 
 SUBDIRS = $(ARCH_SUBDIRS) include .
 
@@ -104,7 +105,7 @@ extra_ogg_sources = \
 	ogg_mapping.c
 endif
 # see 'http://www.gnu.org/software/libtool/manual.html#Libtool-versioning' for numbering convention
-libFLAC_la_LDFLAGS = -version-info 10:0:2 -lm $(LOCAL_EXTRA_LDFLAGS) @LT_NO_UNDEFINED@
+libFLAC_la_LDFLAGS = -version-info 10:0:2 $(LOCAL_EXTRA_LDFLAGS) @LT_NO_UNDEFINED@
 libFLAC_la_SOURCES = \
 	bitmath.c \
 	bitreader.c \

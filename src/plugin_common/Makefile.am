@@ -17,7 +17,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-INCLUDES = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 
 noinst_LTLIBRARIES = libplugin_common.la
 

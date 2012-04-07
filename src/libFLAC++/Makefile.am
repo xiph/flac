@@ -35,7 +35,7 @@ m4data_DATA = libFLAC++.m4
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = flac++.pc
-
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 EXTRA_DIST = \
 	Makefile.lite \
 	flac++.pc.in \

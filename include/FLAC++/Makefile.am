@@ -29,7 +29,7 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 flaccppincludedir = $(includedir)/FLAC++
-
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 flaccppinclude_HEADERS = \
 	all.h \
 	decoder.h \

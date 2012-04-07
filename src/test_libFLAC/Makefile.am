@@ -20,7 +20,7 @@ EXTRA_DIST = \
 	test_libFLAC.dsp \
 	test_libFLAC.vcproj
 
-INCLUDES = -I$(top_srcdir)/src/libFLAC/include
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include
 
 noinst_PROGRAMS = test_libFLAC
 test_libFLAC_LDADD = \

@@ -68,9 +68,6 @@
 #include "private/stream_encoder_framing.h"
 #include "private/window.h"
 
-#ifndef FLaC__INLINE
-#define FLaC__INLINE
-#endif
 
 /* Exact Rice codeword length calculation is off by default.  The simple
  * (and fast) estimation (of how many bits a residual value will be
@@ -3886,7 +3883,7 @@ void precompute_partition_info_escapes_(
 }
 
 #ifdef EXACT_RICE_BITS_CALCULATION
-static FLaC__INLINE unsigned count_rice_bits_in_partition_(
+static inline unsigned count_rice_bits_in_partition_(
 	const unsigned rice_parameter,
 	const unsigned partition_samples,
 	const FLAC__int32 *residual
@@ -3901,7 +3898,7 @@ static FLaC__INLINE unsigned count_rice_bits_in_partition_(
 	return partition_bits;
 }
 #else
-static FLaC__INLINE unsigned count_rice_bits_in_partition_(
+static inline unsigned count_rice_bits_in_partition_(
 	const unsigned rice_parameter,
 	const unsigned partition_samples,
 	const FLAC__uint64 abs_residual_partition_sum

@@ -38,6 +38,7 @@
 #include "FLAC/format.h"
 #include "private/bitmath.h"
 #include "private/lpc.h"
+#include "private/macros.h"
 #if defined DEBUG || defined FLAC__OVERFLOW_DETECT || defined FLAC__OVERFLOW_DETECT_VERBOSE
 #include <stdio.h>
 #endif
@@ -52,6 +53,18 @@
 #define M_LN2 0.69314718055994530942
 #endif
 
+#if !defined(HAVE_LROUND)
+#if defined(_MSC_VER)
+#include <float.h>
+#define copysign _copysign
+#elif defined(__GNUC__)
+#define copysign __builtin_copysign
+#endif
+static inline long int lround(double x) {
+    return (long)(x + copysign (0.5, x));
+}
+//If this fails, we are in the precence of a mid 90's compiler..move along...
+#endif
 
 void FLAC__lpc_window_data(const FLAC__int32 in[], const FLAC__real window[], FLAC__real out[], unsigned data_len)
 {
@@ -199,14 +212,8 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 		FLAC__int32 q;
 		for(i = 0; i < order; i++) {
 			error += lp_coeff[i] * (1 << *shift);
-#if 1 /* unfortunately lround() is C99 */
-			if(error >= 0.0)
-				q = (FLAC__int32)(error + 0.5);
-			else
-				q = (FLAC__int32)(error - 0.5);
-#else
 			q = lround(error);
-#endif
+
 #ifdef FLAC__OVERFLOW_DETECT
 			if(q > qmax+1) /* we expect q==qmax+1 occasionally due to rounding */
 				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q>qmax %d>%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmax,*shift,cmax,precision+1,i,lp_coeff[i]);
@@ -234,14 +241,7 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 #endif
 		for(i = 0; i < order; i++) {
 			error += lp_coeff[i] / (1 << nshift);
-#if 1 /* unfortunately lround() is C99 */
-			if(error >= 0.0)
-				q = (FLAC__int32)(error + 0.5);
-			else
-				q = (FLAC__int32)(error - 0.5);
-#else
 			q = lround(error);
-#endif
 #ifdef FLAC__OVERFLOW_DETECT
 			if(q > qmax+1) /* we expect q==qmax+1 occasionally due to rounding */
 				fprintf(stderr,"FLAC__lpc_quantize_coefficients: quantizer overflow: q>qmax %d>%d shift=%d cmax=%f precision=%u lpc[%u]=%f\n",q,qmax,*shift,cmax,precision+1,i,lp_coeff[i]);
