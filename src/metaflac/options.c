@@ -25,6 +25,7 @@
 #include "utils.h"
 #include "FLAC/assert.h"
 #include "share/alloc.h"
+#include "share/compat.h"
 #include "share/grabbag/replaygain.h"
 #include <ctype.h>
 #include <stdio.h>
@@ -840,34 +841,12 @@ FLAC__bool parse_uint32(const char *src, FLAC__uint32 *dest)
 	return true;
 }
 
-#ifdef _MSC_VER
-/* There's no strtoull() in MSVC6 so we just write a specialized one */
-static FLAC__uint64 local__strtoull(const char *src)
-{
-	FLAC__uint64 ret = 0;
-	int c;
-	FLAC__ASSERT(0 != src);
-	while(0 != (c = *src++)) {
-		c -= '0';
-		if(c >= 0 && c <= 9)
-			ret = (ret * 10) + c;
-		else
-			break;
-	}
-	return ret;
-}
-#endif
-
 FLAC__bool parse_uint64(const char *src, FLAC__uint64 *dest)
 {
 	FLAC__ASSERT(0 != src);
 	if(strlen(src) == 0 || strspn(src, "0123456789") != strlen(src))
 		return false;
-#ifdef _MSC_VER
-	*dest = local__strtoull(src);
-#else
 	*dest = strtoull(src, 0, 10);
-#endif
 	return true;
 }
 

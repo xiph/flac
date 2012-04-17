@@ -61,6 +61,7 @@
 
 #if defined(_MSC_VER)
 #define strtoll _strtoi64
+#define strtoull _strtoui64
 #endif
 
 #if defined(_MSC_VER)
