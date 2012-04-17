@@ -36,6 +36,7 @@
 #include "FLAC/all.h"
 #include "share/alloc.h"
 #include "share/grabbag.h"
+#include "share/compat.h"
 #include "analyze.h"
 #include "decode.h"
 #include "encode.h"
@@ -84,11 +85,6 @@ static const char *get_outfilename(const char *infilename, const char *suffix);
 static void die(const char *message);
 static int conditional_fclose(FILE *f);
 static char *local_strdup(const char *source);
-#ifdef _MSC_VER
-/* There's no strtoll() in MSVC6 so we just write a specialized one */
-static FLAC__int64 local__strtoll(const char *src, char **endptr);
-#endif
-
 
 /*
  * share__getopt format struct; note that for long options with no
@@ -683,13 +679,8 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			FLAC__ASSERT(0 != option_argument);
 			{
 				char *end;
-#ifdef _MSC_VER
 				FLAC__int64 i;
-				i = local__strtoll(option_argument, &end);
-#else
-				long long i;
 				i = strtoll(option_argument, &end, 10);
-#endif
 				if(0 == strlen(option_argument) || *end)
 					return usage_error("ERROR: --%s must be a number\n", long_option);
 				option_values.format_input_size = (off_t)i;
@@ -2222,29 +2213,3 @@ char *local_strdup(const char *source)
 		die("out of memory during strdup()");
 	return ret;
 }
-
-#ifdef _MSC_VER
-/* There's no strtoll() in MSVC6 so we just write a specialized one */
-FLAC__int64 local__strtoll(const char *src, char **endptr)
-{
-	FLAC__bool neg = false;
-	FLAC__int64 ret = 0;
-	int c;
-	FLAC__ASSERT(0 != src);
-	if(*src == '-') {
-		neg = true;
-		src++;
-	}
-	while(0 != (c = *src)) {
-		c -= '0';
-		if(c >= 0 && c <= 9)
-			ret = (ret * 10) + c;
-		else
-			break;
-		src++;
-	}
-	if(endptr)
-		*endptr = (char*)src;
-	return neg? -ret : ret;
-}
-#endif

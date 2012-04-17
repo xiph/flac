@@ -59,3 +59,11 @@
 #include <inttypes.h>
 #endif
 
+#if defined(_MSC_VER)
+#define strtoll _strtoi64
+#endif
+
+#if defined(_MSC_VER)
+#define restrict __restrict
+#endif
+
