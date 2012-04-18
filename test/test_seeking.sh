@@ -32,6 +32,8 @@ fi
 LD_LIBRARY_PATH=../src/libFLAC/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../obj/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
+export MALLOC_CHECK_=3
+export MALLOC_PERTURB_=$(($RANDOM % 255 + 1))
 PATH=../src/flac:$PATH
 PATH=../src/metaflac:$PATH
 PATH=../src/test_seeking:$PATH

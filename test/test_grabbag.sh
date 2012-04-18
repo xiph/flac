@@ -34,6 +34,8 @@ LD_LIBRARY_PATH=../src/share/grabbag/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../obj/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
+export MALLOC_CHECK_=3
+export MALLOC_PERTURB_=$(($RANDOM % 255 + 1))
 PATH=../src/test_grabbag/cuesheet:$PATH
 PATH=../src/test_grabbag/picture:$PATH
 PATH=../obj/$BUILD/bin:$PATH
