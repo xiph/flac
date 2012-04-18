@@ -36,7 +36,7 @@ LD_LIBRARY_PATH=../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../obj/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 export MALLOC_CHECK_=3
-export MALLOC_PERTURB_=$(($RANDOM % 255 + 1))
+export MALLOC_PERTURB_=$((RANDOM % 255 + 1))
 PATH=../src/test_libFLAC++:$PATH
 PATH=../obj/$BUILD/bin:$PATH
 
