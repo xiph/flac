@@ -438,6 +438,12 @@ namespace FLAC {
 			return object_->data.seek_table.points[index];
 		}
 
+		bool SeekTable::resize_points(unsigned new_num_points)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_seektable_resize_points(object_, new_num_points);
+		}
+
 		void SeekTable::set_point(unsigned index, const ::FLAC__StreamMetadata_SeekPoint &point)
 		{
 			FLAC__ASSERT(is_valid());
@@ -463,6 +469,42 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return (bool)::FLAC__metadata_object_seektable_is_legal(object_);
+		}
+
+		bool SeekTable::template_append_placeholders(unsigned num)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_seektable_template_append_placeholders(object_, num);
+		}
+
+		bool SeekTable::template_append_point(FLAC__uint64 sample_number)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_seektable_template_append_point(object_, sample_number);
+		}
+
+		bool SeekTable::template_append_points(FLAC__uint64 sample_numbers[], unsigned num)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_seektable_template_append_points(object_, sample_numbers, num);
+		}
+
+		bool SeekTable::template_append_spaced_points(unsigned num, FLAC__uint64 total_samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_seektable_template_append_spaced_points(object_, num, total_samples);
+		}
+
+		bool SeekTable::template_append_spaced_points_by_samples(unsigned samples, FLAC__uint64 total_samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_seektable_template_append_spaced_points_by_samples(object_, samples, total_samples);
+		}
+
+		bool SeekTable::template_sort(bool compact)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_seektable_template_sort(object_, compact);
 		}
 
 

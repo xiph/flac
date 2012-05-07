@@ -502,6 +502,9 @@ namespace FLAC {
 			unsigned get_num_points() const;
 			::FLAC__StreamMetadata_SeekPoint get_point(unsigned index) const;
 
+			//! See FLAC__metadata_object_seektable_resize_points()
+			bool resize_points(unsigned new_num_points);
+
 			//! See FLAC__metadata_object_seektable_set_point()
 			void set_point(unsigned index, const ::FLAC__StreamMetadata_SeekPoint &point);
 
@@ -513,6 +516,24 @@ namespace FLAC {
 
 			//! See FLAC__metadata_object_seektable_is_legal()
 			bool is_legal() const;
+
+			//! See FLAC__metadata_object_seektable_template_append_placeholders()
+			bool template_append_placeholders(unsigned num);
+
+			//! See FLAC__metadata_object_seektable_template_append_point()
+			bool template_append_point(FLAC__uint64 sample_number);
+
+			//! See FLAC__metadata_object_seektable_template_append_points()
+			bool template_append_points(FLAC__uint64 sample_numbers[], unsigned num);
+
+			//! See FLAC__metadata_object_seektable_template_append_spaced_points()
+			bool template_append_spaced_points(unsigned num, FLAC__uint64 total_samples);
+
+			//! See FLAC__metadata_object_seektable_template_append_spaced_points_by_samples()
+			bool template_append_spaced_points_by_samples(unsigned samples, FLAC__uint64 total_samples);
+
+			//! See FLAC__metadata_object_seektable_template_sort()
+			bool template_sort(bool compact);
 		};
 
 		/** VORBIS_COMMENT metadata block.
