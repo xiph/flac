@@ -161,7 +161,7 @@
  * in FLAC 1.1.3 is a set of \c #defines in \c export.h of each
  * library's includes (e.g. \c include/FLAC/export.h).  The
  * \c #defines mirror the libraries'
- * <A HREF="http://www.gnu.org/software/libtool/manual.html#Libtool-versioning">libtool version numbers</A>,
+ * <A HREF="http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning">libtool version numbers</A>,
  * e.g. in libFLAC there are \c FLAC_API_VERSION_CURRENT,
  * \c FLAC_API_VERSION_REVISION, and \c FLAC_API_VERSION_AGE.
  * These can be used to support multiple versions of an API during the
