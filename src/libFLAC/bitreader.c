@@ -68,9 +68,11 @@ COUNT_ZERO_MSBS (uint32_t word)
 #else
 /* counts the # of zero MSBs in a word */
 #define COUNT_ZERO_MSBS(word) ( \
-	(word) <= 0xffff ? \
-		( (word) <= 0xff? byte_to_unary_table[word] + 24 : byte_to_unary_table[(word) >> 8] + 16 ) : \
-		( (word) <= 0xffffff? byte_to_unary_table[word >> 16] + 8 : byte_to_unary_table[(word) >> 24] ) \
+	(word) > 0xffffff ? byte_to_unary_table[(word) >> 24] : \
+	!(word) ? 32 : \
+	(word) > 0xffff ? byte_to_unary_table[(word) >> 16] + 8 : \
+	(word) > 0xff ? byte_to_unary_table[(word) >> 8] + 16 : \
+	byte_to_unary_table[(word)] + 24 \
 )
 #endif
 
