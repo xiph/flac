@@ -845,7 +845,7 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			// vendor_string is a special kind of entry
-			const ::FLAC__StreamMetadata_VorbisComment_Entry vendor_string = { strlen((const char *)string), (FLAC__byte*)string }; // we can cheat on const-ness because we make a copy below:
+			const ::FLAC__StreamMetadata_VorbisComment_Entry vendor_string = { static_cast<FLAC__uint32>(strlen((const char *)string)), (FLAC__byte*)string }; // we can cheat on const-ness because we make a copy below:
 			return (bool)::FLAC__metadata_object_vorbiscomment_set_vendor_string(object_, vendor_string, /*copy=*/true);
 		}
 
