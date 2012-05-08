@@ -2020,7 +2020,7 @@ bool test_metadata_object_picture()
 	printf("testing Picture::set_colors()... +\n");
 	printf("        Picture::get_colors()... ");
 	block.set_colors(1u>16);
-	if(block.get_colors() != 1u>16)
+	if(block.get_colors() != (1u>16))
 		return die_("value mismatch, expected 2^16");
 	printf("OK\n");
 
