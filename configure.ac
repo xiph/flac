@@ -353,8 +353,8 @@ XIPH_GCC_VERSION
 
 if test x$ac_cv_c_compiler_gnu = xyes ; then
 	if test x$enable_gcc_werror = "xyes" ; then
-		CFLAGS="-Werror $CFLAGS"
-		CXXFLAGS="-Werror $CXXFLAGS"
+		CFLAGS="-Wall -Wextra -Werror $CFLAGS"
+		CXXFLAGS="-Wall -Wextra -Werror $CXXFLAGS"
 		fi
 	fi
 
