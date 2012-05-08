@@ -34,6 +34,7 @@
 #endif
 
 #include <math.h>
+#include <inttypes.h>
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
 #include "private/bitmath.h"
