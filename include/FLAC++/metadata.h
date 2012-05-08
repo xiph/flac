@@ -675,6 +675,9 @@ namespace FLAC {
 			//! See FLAC__metadata_object_vorbiscomment_set_vendor_string()
 			bool set_vendor_string(const FLAC__byte *string); // NUL-terminated UTF-8 string
 
+			//! See FLAC__metadata_object_vorbiscomment_resize_comments()
+			bool resize_comments(unsigned new_num_comments);
+
 			//! See FLAC__metadata_object_vorbiscomment_set_comment()
 			bool set_comment(unsigned index, const Entry &entry);
 
@@ -684,8 +687,20 @@ namespace FLAC {
 			//! See FLAC__metadata_object_vorbiscomment_append_comment()
 			bool append_comment(const Entry &entry);
 
+			//! See FLAC__metadata_object_vorbiscomment_replace_comment()
+			bool replace_comment(const Entry &entry, bool all);
+
 			//! See FLAC__metadata_object_vorbiscomment_delete_comment()
 			bool delete_comment(unsigned index);
+
+			//! See FLAC__metadata_object_vorbiscomment_find_entry_from()
+			int find_entry_from(unsigned offset, const char *field_name);
+
+			//! See FLAC__metadata_object_vorbiscomment_remove_entry_matching()
+			int remove_entry_matching(const char *field_name);
+
+			//! See FLAC__metadata_object_vorbiscomment_remove_entries_matching()
+			int remove_entries_matching(const char *field_name);
 		};
 
 		/** CUESHEET metadata block.

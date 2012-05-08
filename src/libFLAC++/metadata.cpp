@@ -849,6 +849,12 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_object_vorbiscomment_set_vendor_string(object_, vendor_string, /*copy=*/true);
 		}
 
+		bool VorbisComment::resize_comments(unsigned new_num_comments)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_vorbiscomment_resize_comments(object_, new_num_comments);
+		}
+
 		bool VorbisComment::set_comment(unsigned index, const VorbisComment::Entry &entry)
 		{
 			FLAC__ASSERT(is_valid());
@@ -869,11 +875,35 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_object_vorbiscomment_append_comment(object_, entry.get_entry(), /*copy=*/true);
 		}
 
+		bool VorbisComment::replace_comment(const VorbisComment::Entry &entry, bool all)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_vorbiscomment_replace_comment(object_, entry.get_entry(), all, /*copy=*/true);
+		}
+
 		bool VorbisComment::delete_comment(unsigned index)
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(index < object_->data.vorbis_comment.num_comments);
 			return (bool)::FLAC__metadata_object_vorbiscomment_delete_comment(object_, index);
+		}
+
+		int VorbisComment::find_entry_from(unsigned offset, const char *field_name)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_object_vorbiscomment_find_entry_from(object_, offset, field_name);
+		}
+
+		int VorbisComment::remove_entry_matching(const char *field_name)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_object_vorbiscomment_remove_entry_matching(object_, field_name);
+		}
+
+		int VorbisComment::remove_entries_matching(const char *field_name)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__metadata_object_vorbiscomment_remove_entries_matching(object_, field_name);
 		}
 
 
