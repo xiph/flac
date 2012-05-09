@@ -43,7 +43,7 @@
 #include "share/endswap.h"
 
 /* Things should be fastest when this matches the machine word size */
-/* WATCHOUT: if you change this you must also change the following #defines down to COUNT_ZERO_MSBS below to match */
+/* WATCHOUT: if you change this you must also change the following #defines down to FLAC__clz_uint32 below to match */
 /* WATCHOUT: there are a few places where the code will not work unless uint32_t is >= 32 bits wide */
 /*           also, some sections currently only have fast versions for 4 or 8 bytes per word */
 #define FLAC__BYTES_PER_WORD 4		/* sizeof uint32_t */
@@ -55,27 +55,6 @@
 #else
 #define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_32(x)
 #endif
-
-#if defined(__GNUC__)
-/*  "int __builtin_clz (unsigned int x) If x is 0, the result is undefined" */
-static inline uint32_t
-COUNT_ZERO_MSBS (uint32_t word)
-{
-	if (word == 0)
-		return 32;
-	return __builtin_clz (word);
-}
-#else
-/* counts the # of zero MSBs in a word */
-#define COUNT_ZERO_MSBS(word) ( \
-	(word) > 0xffffff ? byte_to_unary_table[(word) >> 24] : \
-	!(word) ? 32 : \
-	(word) > 0xffff ? byte_to_unary_table[(word) >> 16] + 8 : \
-	(word) > 0xff ? byte_to_unary_table[(word) >> 8] + 16 : \
-	byte_to_unary_table[(word)] + 24 \
-)
-#endif
-
 
 /*
  * This should be at least twice as large as the largest number of words
@@ -92,25 +71,6 @@ COUNT_ZERO_MSBS (uint32_t word)
  * may be necessary to squeeze out the best performance.
  */
 static const unsigned FLAC__BITREADER_DEFAULT_CAPACITY = 65536u / FLAC__BITS_PER_WORD; /* in words */
-
-static const unsigned char byte_to_unary_table[] = {
-	8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
-	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
 
 /* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
 #ifdef _MSC_VER
@@ -679,7 +639,7 @@ FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, unsigned *va
 		while(br->consumed_words < br->words) { /* if we've not consumed up to a partial tail word... */
 			uint32_t b = br->buffer[br->consumed_words] << br->consumed_bits;
 			if(b) {
-				i = COUNT_ZERO_MSBS(b);
+				i = FLAC__clz_uint32(b);
 				*val += i;
 				i++;
 				br->consumed_bits += i;
@@ -709,7 +669,7 @@ FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, unsigned *va
 			const unsigned end = br->bytes * 8;
 			uint32_t b = (br->buffer[br->consumed_words] & (FLAC__WORD_ALL_ONES << (FLAC__BITS_PER_WORD-end))) << br->consumed_bits;
 			if(b) {
-				i = COUNT_ZERO_MSBS(b);
+				i = FLAC__clz_uint32(b);
 				*val += i;
 				i++;
 				br->consumed_bits += i;
@@ -800,7 +760,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 						mov i, eax
 					}
 #else
-					i = COUNT_ZERO_MSBS(b);
+					i = FLAC__clz_uint32(b);
 #endif
 					uval += i;
 					bits = parameter;
@@ -832,7 +792,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 				const unsigned end = br->bytes * 8;
 				uint32_t b = (br->buffer[cwords] & (FLAC__WORD_ALL_ONES << (FLAC__BITS_PER_WORD-end))) << cbits;
 				if(b) {
-					i = COUNT_ZERO_MSBS(b);
+					i = FLAC__clz_uint32(b);
 					uval += i;
 					bits = parameter;
 					i++;
@@ -984,7 +944,7 @@ break2:
 						: "r"(b)
 					);
 #else
-					i = COUNT_ZERO_MSBS(b);
+					i = FLAC__clz_uint32(b);
 #endif
 					uval += i;
 					cbits += i;
@@ -1015,7 +975,7 @@ break2:
 				const unsigned end = br->bytes * 8;
 				uint32_t b = (br->buffer[cwords] & ~(FLAC__WORD_ALL_ONES >> end)) << cbits;
 				if(b) {
-					i = COUNT_ZERO_MSBS(b);
+					i = FLAC__clz_uint32(b);
 					uval += i;
 					cbits += i;
 					cbits++; /* skip over stop bit */
