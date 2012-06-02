@@ -25,10 +25,10 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign -Wall tar-pax no-dist-gzip dist-xz subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-
 #Prefer whatever the current ISO standard is.
 AC_PROG_CC_STDC
 AC_USE_SYSTEM_EXTENSIONS
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 LT_INIT([win32-dll disable-static pic-only])
 AM_PROG_AS
 AC_PROG_CXX
