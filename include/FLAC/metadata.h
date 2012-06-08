@@ -1986,7 +1986,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
  *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
  *    \code track_num < object->data.cue_sheet.num_tracks \endcode
  *    \code (track->indices != NULL && track->num_indices > 0) ||
- * (track->indices == NULL && track->num_indices == 0)
+ * (track->indices == NULL && track->num_indices == 0) \endcode
  * \retval FLAC__bool
  *    \c false if \a copy is \c true and malloc() fails, else \c true.
  */
