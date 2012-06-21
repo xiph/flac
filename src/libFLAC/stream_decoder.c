@@ -332,7 +332,9 @@ FLAC_API void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder)
 {
 	unsigned i;
 
-	FLAC__ASSERT(0 != decoder);
+	if (decoder == NULL)
+		return ;
+
 	FLAC__ASSERT(0 != decoder->protected_);
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->private_->input);
