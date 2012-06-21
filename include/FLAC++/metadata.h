@@ -808,17 +808,29 @@ namespace FLAC {
 
 			void set_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
 
+			//! See FLAC__metadata_object_cuesheet_track_resize_indices()
+			bool resize_indices(unsigned track_num, unsigned new_num_indices);
+
 			//! See FLAC__metadata_object_cuesheet_track_insert_index()
 			bool insert_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
 
+			//! See FLAC__metadata_object_cuesheet_track_insert_blank_index()
+			bool insert_blank_index(unsigned track_num, unsigned index_num);
+
 			//! See FLAC__metadata_object_cuesheet_track_delete_index()
 			bool delete_index(unsigned track_num, unsigned index_num);
+
+			//! See FLAC__metadata_object_cuesheet_resize_tracks()
+			bool resize_tracks(unsigned new_num_tracks);
 
 			//! See FLAC__metadata_object_cuesheet_set_track()
 			bool set_track(unsigned i, const Track &track);
 
 			//! See FLAC__metadata_object_cuesheet_insert_track()
 			bool insert_track(unsigned i, const Track &track);
+
+			//! See FLAC__metadata_object_cuesheet_insert_blank_track()
+			bool insert_blank_track(unsigned i);
 
 			//! See FLAC__metadata_object_cuesheet_delete_track()
 			bool delete_track(unsigned i);
@@ -905,6 +917,9 @@ namespace FLAC {
 
 			//! See FLAC__metadata_object_picture_set_data()
 			bool set_data(const FLAC__byte *data, FLAC__uint32 data_length);
+
+			//! See FLAC__metadata_object_picture_is_legal()
+			bool is_legal(const char **violation);
 		};
 
 		/** Opaque metadata block for storing unknown types.

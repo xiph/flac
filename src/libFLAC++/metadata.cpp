@@ -1042,6 +1042,13 @@ namespace FLAC {
 			object_->data.cue_sheet.tracks[track_num].indices[index_num] = index;
 		}
 
+		bool CueSheet::resize_indices(unsigned track_num, unsigned new_num_indices)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(track_num < object_->data.cue_sheet.num_tracks);
+			return (bool)::FLAC__metadata_object_cuesheet_track_resize_indices(object_, track_num, new_num_indices);
+		}
+
 		bool CueSheet::insert_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index)
 		{
 			FLAC__ASSERT(is_valid());
@@ -1050,12 +1057,26 @@ namespace FLAC {
 			return (bool)::FLAC__metadata_object_cuesheet_track_insert_index(object_, track_num, index_num, index);
 		}
 
+		bool CueSheet::insert_blank_index(unsigned track_num, unsigned index_num)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(track_num < object_->data.cue_sheet.num_tracks);
+			FLAC__ASSERT(index_num <= object_->data.cue_sheet.tracks[track_num].num_indices);
+			return (bool)::FLAC__metadata_object_cuesheet_track_insert_blank_index(object_, track_num, index_num);
+		}
+
 		bool CueSheet::delete_index(unsigned track_num, unsigned index_num)
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(track_num < object_->data.cue_sheet.num_tracks);
 			FLAC__ASSERT(index_num < object_->data.cue_sheet.tracks[track_num].num_indices);
 			return (bool)::FLAC__metadata_object_cuesheet_track_delete_index(object_, track_num, index_num);
+		}
+
+		bool CueSheet::resize_tracks(unsigned new_num_tracks)
+		{
+			FLAC__ASSERT(is_valid());
+			return (bool)::FLAC__metadata_object_cuesheet_resize_tracks(object_, new_num_tracks);
 		}
 
 		bool CueSheet::set_track(unsigned i, const CueSheet::Track &track)
@@ -1072,6 +1093,13 @@ namespace FLAC {
 			FLAC__ASSERT(i <= object_->data.cue_sheet.num_tracks);
 			// We can safely const_cast since copy=true
 			return (bool)::FLAC__metadata_object_cuesheet_insert_track(object_, i, const_cast< ::FLAC__StreamMetadata_CueSheet_Track*>(track.get_track()), /*copy=*/true);
+		}
+
+		bool CueSheet::insert_blank_track(unsigned i)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(i <= object_->data.cue_sheet.num_tracks);
+			return (bool)::FLAC__metadata_object_cuesheet_insert_blank_track(object_, i);
 		}
 
 		bool CueSheet::delete_track(unsigned i)
@@ -1208,6 +1236,12 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			// We can safely const_cast since copy=true
 			return (bool)::FLAC__metadata_object_picture_set_data(object_, const_cast<FLAC__byte*>(data), data_length, /*copy=*/true);
+		}
+
+		bool Picture::is_legal(const char **violation)
+		{
+  			FLAC__ASSERT(is_valid());
+  			return (bool)::FLAC__metadata_object_picture_is_legal(object_, violation);
 		}
 
 
