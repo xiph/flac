@@ -220,7 +220,7 @@ FLAC__bool FLAC__memory_alloc_aligned_real_array(size_t elements, FLAC__real **u
 
 #endif
 
-void *safe_malloc_mul_2op_(size_t size1, size_t size2)
+void *safe_malloc_mul_2op_p(size_t size1, size_t size2)
 {
 	if(!size1 || !size2)
 		return malloc(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */

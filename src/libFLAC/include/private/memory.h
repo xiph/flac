@@ -52,6 +52,6 @@ FLAC__bool FLAC__memory_alloc_aligned_unsigned_array(size_t elements, unsigned *
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 FLAC__bool FLAC__memory_alloc_aligned_real_array(size_t elements, FLAC__real **unaligned_pointer, FLAC__real **aligned_pointer);
 #endif
-void *safe_malloc_mul_2op_(size_t size1, size_t size2);
+void *safe_malloc_mul_2op_p(size_t size1, size_t size2);
 
 #endif

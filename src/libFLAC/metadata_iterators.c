@@ -60,6 +60,10 @@
 #include "share/alloc.h"
 #include "share/compat.h"
 #include "private/macros.h"
+#include "private/memory.h"
+
+/* Alias the first (in share/alloc.h) to the second (in src/libFLAC/memory.c). */
+#define safe_malloc_mul_2op_ safe_malloc_mul_2op_p
 
 /****************************************************************************
  *
@@ -2179,7 +2183,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_seektable_cb_(FLAC_
 
 	if(block->num_points == 0)
 		block->points = 0;
-	else if(0 == (block->points = safe_malloc_mul_2op_(block->num_points, /*times*/sizeof(FLAC__StreamMetadata_SeekPoint))))
+	else if(0 == (block->points = safe_malloc_mul_2op_p(block->num_points, /*times*/sizeof(FLAC__StreamMetadata_SeekPoint))))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < block->num_points; i++) {

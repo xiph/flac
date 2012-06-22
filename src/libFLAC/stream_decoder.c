@@ -1729,7 +1729,7 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 
 	/* read comments */
 	if(obj->num_comments > 0) {
-		if(0 == (obj->comments = safe_malloc_mul_2op_(obj->num_comments, /*times*/sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
+		if(0 == (obj->comments = safe_malloc_mul_2op_p(obj->num_comments, /*times*/sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}

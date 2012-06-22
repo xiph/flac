@@ -37,9 +37,13 @@
 #include <string.h>
 
 #include "private/metadata.h"
+#include "private/memory.h"
 
 #include "FLAC/assert.h"
 #include "share/alloc.h"
+
+/* Alias the first (in share/alloc.h) to the second (in src/libFLAC/memory.c). */
+#define safe_malloc_mul_2op_ safe_malloc_mul_2op_p
 
 
 /****************************************************************************
@@ -151,7 +155,7 @@ static FLAC__bool copy_track_(FLAC__StreamMetadata_CueSheet_Track *to, const FLA
 	else {
 		FLAC__StreamMetadata_CueSheet_Index *x;
 		FLAC__ASSERT(from->num_indices > 0);
-		if(0 == (x = safe_malloc_mul_2op_(from->num_indices, /*times*/sizeof(FLAC__StreamMetadata_CueSheet_Index))))
+		if(0 == (x = safe_malloc_mul_2op_p(from->num_indices, /*times*/sizeof(FLAC__StreamMetadata_CueSheet_Index))))
 			return false;
 		memcpy(x, from->indices, from->num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
 		to->indices = x;
@@ -173,7 +177,7 @@ static FLAC__StreamMetadata_SeekPoint *seekpoint_array_new_(unsigned num_points)
 
 	FLAC__ASSERT(num_points > 0);
 
-	object_array = safe_malloc_mul_2op_(num_points, /*times*/sizeof(FLAC__StreamMetadata_SeekPoint));
+	object_array = safe_malloc_mul_2op_p(num_points, /*times*/sizeof(FLAC__StreamMetadata_SeekPoint));
 
 	if(0 != object_array) {
 		unsigned i;

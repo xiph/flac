@@ -142,7 +142,9 @@ static inline void *safe_malloc_muladd2_(size_t size1, size_t size2, size_t size
 	size2 += size3;
 	if(size2 < size3)
 		return 0;
-	return safe_malloc_mul_2op_(size1, size2);
+	if(size1 > SIZE_MAX / size2)
+		return 0;
+	return malloc(size1*size2);
 }
 
 static inline void *safe_realloc_add_2op_(void *ptr, size_t size1, size_t size2)
