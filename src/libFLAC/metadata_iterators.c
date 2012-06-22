@@ -38,19 +38,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined _MSC_VER || defined __BORLANDC__ || defined __MINGW32__
-#if defined __BORLANDC__
-#include <utime.h> /* for utime() */
-#else
-#include <sys/utime.h> /* for utime() */
-#endif
-#include <io.h> /* for chmod() */
-#include <sys/types.h> /* for off_t */
-#else
-#include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
-#include <utime.h> /* for utime() */
-#include <unistd.h> /* for chown(), unlink() */
-#endif
 #include <sys/stat.h> /* for stat(), maybe chmod() */
 
 #include "private/metadata.h"

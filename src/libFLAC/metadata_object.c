@@ -41,6 +41,7 @@
 
 #include "FLAC/assert.h"
 #include "share/alloc.h"
+#include "share/compat.h"
 
 /* Alias the first (in share/alloc.h) to the second (in src/libFLAC/memory.c). */
 #define safe_malloc_mul_2op_ safe_malloc_mul_2op_p
@@ -1379,13 +1380,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC
 	FLAC__ASSERT(0 != entry.entry && entry.length > 0);
 	{
 		const FLAC__byte *eq = (FLAC__byte*)memchr(entry.entry, '=', entry.length);
-#if defined _MSC_VER || defined __BORLANDC__ || defined __MINGW32__
-#define FLAC__STRNCASECMP strnicmp
-#else
-#define FLAC__STRNCASECMP strncasecmp
-#endif
 		return (0 != eq && (unsigned)(eq-entry.entry) == field_name_length && 0 == FLAC__STRNCASECMP(field_name, (const char *)entry.entry, field_name_length));
-#undef FLAC__STRNCASECMP
 	}
 }
 
