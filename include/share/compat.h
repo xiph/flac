@@ -68,3 +68,9 @@
 #define restrict __restrict
 #endif
 
+/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
+#ifdef _MSC_VER
+#define FLAC__U64L(x) x
+#else
+#define FLAC__U64L(x) x##LLU
+#endif

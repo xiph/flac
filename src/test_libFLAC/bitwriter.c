@@ -21,17 +21,11 @@
 #endif
 
 #include "FLAC/assert.h"
+#include "share/compat.h"
 #include "private/bitwriter.h" /* from the libFLAC private include area */
 #include "bitwriter.h"
 #include <stdio.h>
 #include <string.h> /* for memcmp() */
-
-/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
-#ifdef _MSC_VER
-#define FLAC__U64L(x) x
-#else
-#define FLAC__U64L(x) x##LLU
-#endif
 
 /*
  * WATCHOUT!  Since FLAC__BitWriter is a private structure, we use a copy of

@@ -40,6 +40,7 @@
 #include "private/macros.h"
 #include "FLAC/assert.h"
 #include "share/alloc.h"
+#include "share/compat.h"
 #include "share/endswap.h"
 
 /* Things should be fastest when this matches the machine word size */
@@ -67,13 +68,6 @@ static const unsigned FLAC__BITWRITER_DEFAULT_INCREMENT = 4096u / sizeof(uint32_
 
 #define FLAC__WORDS_TO_BITS(words) ((words) * FLAC__BITS_PER_WORD)
 #define FLAC__TOTAL_BITS(bw) (FLAC__WORDS_TO_BITS((bw)->words) + (bw)->bits)
-
-/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
-#ifdef _MSC_VER
-#define FLAC__U64L(x) x
-#else
-#define FLAC__U64L(x) x##LLU
-#endif
 
 struct FLAC__BitWriter {
 	uint32_t *buffer;

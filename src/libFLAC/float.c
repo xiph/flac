@@ -34,17 +34,10 @@
 #endif
 
 #include "FLAC/assert.h"
-
+#include "share/compat.h"
 #include "private/float.h"
 
 #ifdef FLAC__INTEGER_ONLY_LIBRARY
-
-/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
-#ifdef _MSC_VER
-#define FLAC__U64L(x) x
-#else
-#define FLAC__U64L(x) x##LLU
-#endif
 
 const FLAC__fixedpoint FLAC__FP_ZERO = 0;
 const FLAC__fixedpoint FLAC__FP_ONE_HALF = 0x00008000;
@@ -282,7 +275,7 @@ FLAC__uint32 FLAC__fixedpoint_log2(FLAC__uint32 x, unsigned fracbits, unsigned p
 
 	if(x < ONE)
 		return 0;
-	
+
 	if(precision > LOG2_LOOKUP_PRECISION)
 		precision = LOG2_LOOKUP_PRECISION;
 

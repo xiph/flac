@@ -40,6 +40,7 @@
 #include "private/crc.h"
 #include "private/macros.h"
 #include "FLAC/assert.h"
+#include "share/compat.h"
 #include "share/endswap.h"
 
 /* Things should be fastest when this matches the machine word size */
@@ -71,13 +72,6 @@
  * may be necessary to squeeze out the best performance.
  */
 static const unsigned FLAC__BITREADER_DEFAULT_CAPACITY = 65536u / FLAC__BITS_PER_WORD; /* in words */
-
-/* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
-#ifdef _MSC_VER
-#define FLAC__U64L(x) x
-#else
-#define FLAC__U64L(x) x##LLU
-#endif
 
 /* WATCHOUT: assembly routines rely on the order in which these fields are declared */
 struct FLAC__BitReader {
