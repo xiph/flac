@@ -46,11 +46,11 @@ flac_SOURCES = \
 	vorbiscomment.h
 
 flac_LDADD = \
+	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/getopt/libgetopt.a \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
 	$(top_builddir)/src/share/replaygain_synthesis/libreplaygain_synthesis.la \
-	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
 	@LIBICONV@ \
