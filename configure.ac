@@ -297,8 +297,9 @@ fi
 
 AM_CONDITIONAL(FLaC__HAS_OGG, [test "x$have_ogg" = xyes])
 if test "x$have_ogg" = xyes ; then
-AC_DEFINE(FLAC__HAS_OGG)
-AH_TEMPLATE(FLAC__HAS_OGG, [define if you have the ogg library])
+	AC_DEFINE_UNQUOTED([FLAC__HAS_OGG],1,[define if you have the ogg library])
+else
+	AC_DEFINE_UNQUOTED([FLAC__HAS_OGG],0)
 fi
 
 dnl check for i18n(internationalization); these are from libiconv/gettext
