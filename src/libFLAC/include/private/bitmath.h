@@ -42,7 +42,7 @@
 #endif
 
 /* Will never be emitted for MSVC, GCC, Intel compilers */
-inline unsigned int FLAC__clz_soft_uint32(unsigned int word)
+static inline unsigned int FLAC__clz_soft_uint32(unsigned int word)
 {
     static const unsigned char byte_to_unary_table[] = {
     8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
