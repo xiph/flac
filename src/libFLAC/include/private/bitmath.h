@@ -64,7 +64,6 @@ static inline unsigned int FLAC__clz_soft_uint32(unsigned int word)
     };
 
     return (word) > 0xffffff ? byte_to_unary_table[(word) >> 24] :
-    !(word) ? 32 :
     (word) > 0xffff ? byte_to_unary_table[(word) >> 16] + 8 :
     (word) > 0xff ? byte_to_unary_table[(word) >> 8] + 16 :
     byte_to_unary_table[(word)] + 24;
@@ -86,6 +85,14 @@ static inline unsigned int FLAC__clz_uint32(FLAC__uint32 v)
 #else
     return FLAC__clz_soft_uint32(v);
 #endif
+}
+
+/* This one works with input 0 */
+static inline unsigned int FLAC__clz2_uint32(FLAC__uint32 v)
+{
+    if (!v)
+        return 32;
+    return FLAC__clz_uint32(v);
 }
 
 /* An example of what FLAC__bitmath_ilog2() computes:
