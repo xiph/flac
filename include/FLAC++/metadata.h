@@ -359,6 +359,10 @@ namespace FLAC {
 			 */
 			inline Padding(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 
+			/** Constructs an object with the given length.
+			 */
+			Padding(unsigned length);
+
 			~Padding();
 
 			//@{
@@ -387,6 +391,8 @@ namespace FLAC {
 			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
 			//@}
 
+			/** Sets the length in bytes of the padding block.
+			 */
 			void set_length(unsigned length);
 		};
 

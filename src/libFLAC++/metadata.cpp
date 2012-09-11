@@ -361,6 +361,12 @@ namespace FLAC {
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING), /*copy=*/false)
 		{ }
 
+		Padding::Padding(unsigned length):
+		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING), /*copy=*/false)
+		{
+			set_length(length);
+		}
+
 		Padding::~Padding()
 		{ }
 
