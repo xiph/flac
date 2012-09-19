@@ -17,10 +17,12 @@
 
 if FLaC__HAS_DOCBOOK_TO_MAN
 flac.1: flac.sgml
-	docbook-to-man $? > $@ || (docbook2man $? && mv FLAC.1 $@)
+	docbook-to-man $? > $@
+	(docbook2man $? && mv FLAC.1 $@)
 
 metaflac.1: metaflac.sgml
-	docbook-to-man $? > $@ || (docbook2man $? && mv METAFLAC.1 $@)
+	docbook-to-man $? > $@
+	(docbook2man $? && mv METAFLAC.1 $@)
 else
 flac.1:
 	echo "*** Warning: docbook-to-man not found; man pages will not be built."
