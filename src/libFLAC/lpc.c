@@ -140,6 +140,7 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_o
 		r = -autoc[i+1];
 		for(j = 0; j < i; j++)
 			r -= lpc[j] * autoc[i-j];
+		r /= err;
 
 		/* Update LPC coefficients and total error. */
 		lpc[i]=r;
