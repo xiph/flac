@@ -26,7 +26,8 @@ check_SCRIPTS = \
 	test_flac.sh \
 	test_metaflac.sh \
 	test_seeking.sh \
-	test_streams.sh
+	test_streams.sh \
+	test_compression.sh
 
 # This one should pass when building out-of-tree (eg 'make distcheck').
 check: $(check_SCRIPTS)
@@ -36,6 +37,7 @@ if FLaC__WITH_CPPLIBS
 endif
 	$(srcdir)/test_seeking.sh
 	$(srcdir)/test_streams.sh
+	$(srcdir)/test_compression.sh
 	@echo "----------------"
 	@echo "All tests passed"
 	@echo "----------------"
@@ -53,6 +55,7 @@ endif
 	./test_metaflac.sh
 	./test_seeking.sh
 	./test_streams.sh
+	./test_compression.sh
 	@echo "----------------"
 	@echo "All tests passed"
 	@echo "----------------"
