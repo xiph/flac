@@ -488,7 +488,7 @@ static int http_connect (gchar *url_, gboolean head, guint64 offset)
 				if (offset && !head) {
 					gchar *temp_dead = temp;
 					temp = g_strdup_printf ("%sRange: %" PRIu64 "-\r\n", temp, offset);
-					fprintf (stderr, "%s", temp);
+					fputs (temp, stderr);
 					g_free (temp_dead);
 				}
 

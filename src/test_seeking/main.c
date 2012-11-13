@@ -418,7 +418,7 @@ int main(int argc, char *argv[])
 	static const char * const usage = "usage: test_seeking file.flac [#seeks] [#samples-in-file.flac] [file.raw]\n";
 
 	if (argc < 2 || argc > 5) {
-		fprintf(stderr, "%s", usage);
+		fputs(usage, stderr);
 		return 1;
 	}
 
