@@ -452,7 +452,7 @@ FLAC_API const char * const FLAC__StreamEncoderInitStatusString[] = {
 	"FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED"
 };
 
-FLAC_API const char * const FLAC__treamEncoderReadStatusString[] = {
+FLAC_API const char * const FLAC__StreamEncoderReadStatusString[] = {
 	"FLAC__STREAM_ENCODER_READ_STATUS_CONTINUE",
 	"FLAC__STREAM_ENCODER_READ_STATUS_END_OF_STREAM",
 	"FLAC__STREAM_ENCODER_READ_STATUS_ABORT",
