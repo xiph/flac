@@ -698,11 +698,13 @@
 	  <term><option>--no-preserve-modtime</option></term>
 	  <term><option>--no-keep-foreign-metadata</option></term>
 	  <term><option>--no-exhaustive-model-search</option></term>
+	  <term><option>--no-force</option></term>
 	  <term><option>--no-lax</option></term>
 	  <term><option>--no-mid-side</option></term>
 	  <term><option>--no-ogg</option></term>
 	  <term><option>--no-padding</option></term>
 	  <term><option>--no-qlp-coeff-precision-search</option></term>
+	  <term><option>--no-replay-gain</option></term>
 	  <term><option>--no-residual-gnuplot</option></term>
 	  <term><option>--no-residual-text</option></term>
 	  <term><option>--no-sector-align</option></term>
