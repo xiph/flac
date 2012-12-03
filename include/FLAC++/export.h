@@ -55,17 +55,22 @@
  * \{
  */
 
-#if defined(FLAC__NO_DLL) || !defined(_MSC_VER)
+#if defined(FLAC__NO_DLL)
 #define FLACPP_API
 
-#else
-
+#elif defined(_MSC_VER)
 #ifdef FLACPP_API_EXPORTS
 #define	FLACPP_API	_declspec(dllexport)
 #else
 #define FLACPP_API	_declspec(dllimport)
-
 #endif
+
+#elif defined(FLAC__USE_VISIBILITY_ATTR)
+#define FLACPP_API __attribute__ ((visibility ("default")))
+
+#else
+#define FLACPP_API
+
 #endif
 
 /* These #defines will mirror the libtool-based library version number, see

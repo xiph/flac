@@ -30,6 +30,7 @@
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 lib_LTLIBRARIES = libFLAC.la
+noinst_LTLIBRARIES = libFLAC-static.la
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
 endif
@@ -106,7 +107,8 @@ extra_ogg_sources = \
 endif
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
 libFLAC_la_LDFLAGS = -version-info 10:0:2 $(LOCAL_EXTRA_LDFLAGS) @LT_NO_UNDEFINED@
-libFLAC_la_SOURCES = \
+
+libFLAC_sources = \
 	bitmath.c \
 	bitreader.c \
 	bitwriter.c \
@@ -125,3 +127,9 @@ libFLAC_la_SOURCES = \
 	stream_encoder_framing.c \
 	window.c \
 	$(extra_ogg_sources)
+
+libFLAC_la_SOURCES = $(libFLAC_sources)
+
+# needed for test_libFLAC
+libFLAC_static_la_LIBADD = $(LOCAL_EXTRA_LIBADD)
+libFLAC_static_la_SOURCES = $(libFLAC_sources)

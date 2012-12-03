@@ -27,7 +27,7 @@ test_libFLAC_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
 	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
-	$(top_builddir)/src/libFLAC/libFLAC.la \
+	$(top_builddir)/src/libFLAC/libFLAC-static.la \
 	@OGG_LIBS@ \
 	-lm
 
