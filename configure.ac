@@ -25,6 +25,8 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign -Wall tar-pax no-dist-gzip dist-xz subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+user_cflags=$CFLAGS
+
 #Prefer whatever the current ISO standard is.
 AC_PROG_CC_STDC
 AC_USE_SYSTEM_EXTENSIONS
@@ -346,7 +348,9 @@ if test "x$debug" = xtrue; then
 else
 	CPPFLAGS="-DNDEBUG $CPPFLAGS"
 	if test "x$GCC" = xyes; then
-    CFLAGS="-O3 -funroll-loops -Wall -W -Winline $CFLAGS"
+		if test "x$user_cflags" = x; then
+			CFLAGS="-O3 -funroll-loops -Wall -W -Winline"
+		fi
 	fi
 fi
 
