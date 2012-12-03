@@ -76,9 +76,9 @@
 /* These #defines will mirror the libtool-based library version number, see
  * http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
  */
-#define FLACPP_API_VERSION_CURRENT 8
+#define FLACPP_API_VERSION_CURRENT 9
 #define FLACPP_API_VERSION_REVISION 0
-#define FLACPP_API_VERSION_AGE 2
+#define FLACPP_API_VERSION_AGE 3
 
 /* \} */
 
