@@ -115,7 +115,3 @@ cident FLAC__cpu_info_extended_amd_asm_ia32
 	ret
 
 end
-
-%ifdef OBJ_FORMAT_elf
-       section .note.GNU-stack noalloc
-%endif

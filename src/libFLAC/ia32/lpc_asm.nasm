@@ -1505,7 +1505,3 @@ cident FLAC__lpc_restore_signal_asm_ia32_mmx
 	ret
 
 end
-
-%ifdef OBJ_FORMAT_elf
-       section .note.GNU-stack noalloc
-%endif

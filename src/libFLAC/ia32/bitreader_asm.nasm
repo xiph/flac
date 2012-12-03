@@ -590,7 +590,3 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	ret
 
 end
-
-%ifdef OBJ_FORMAT_elf
-	section .note.GNU-stack noalloc
-%endif
