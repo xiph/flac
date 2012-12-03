@@ -57,7 +57,11 @@
 	%ifdef FLAC__PUBLIC_NEEDS_UNDERSCORE
 		global _%1
 	%else
-		global %1
+		%if __NASM_MAJOR__ >= 2
+			global %1:function hidden
+		%else
+			global %1
+		%endif
 	%endif
 %endmacro
 
