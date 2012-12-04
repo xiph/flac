@@ -11,9 +11,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #if HAVE_CONFIG_H
@@ -41,9 +41,9 @@ static void usage_header(FILE *out)
 	fprintf(out, "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n");
 	fprintf(out, "GNU General Public License for more details.\n");
 	fprintf(out, "\n");
-	fprintf(out, "You should have received a copy of the GNU General Public License\n");
-	fprintf(out, "along with this program; if not, write to the Free Software\n");
-	fprintf(out, "Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.\n");
+	fprintf(out, "You should have received a copy of the GNU General Public License along\n");
+	fprintf(out, "with this program; if not, write to the Free Software Foundation, Inc.,\n");
+	fprintf(out, "51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.\n");
 	fprintf(out, "==============================================================================\n");
 }
 
