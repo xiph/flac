@@ -34,7 +34,7 @@
 
 #include "FLAC/ordinals.h"
 
-/** The length of the 'FLAC' magic in bytes. */
+/** The length of the packet type field in bytes. */
 #define FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH (1u)
 
 extern const unsigned FLAC__OGG_MAPPING_PACKET_TYPE_LEN; /* = 8 bits */
