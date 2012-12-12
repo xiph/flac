@@ -19,10 +19,11 @@
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_PREREQ(2.60)
-AC_INIT([flac], [1.2.1])
+AC_INIT([flac], [1.2.1], [flac-dev@xiph.org], [flac], [http://flac.sourceforge.net/])
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/flac/main.c])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([foreign 1.7 -Wall tar-pax no-dist-gzip dist-xz subdir-objects])
+AM_INIT_AUTOMAKE([foreign 1.11 -Wall tar-pax no-dist-gzip dist-xz subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 user_cflags=$CFLAGS
@@ -39,18 +40,16 @@ AC_PROG_MAKE_SET
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
-AC_CHECK_SIZEOF(void*,0)
+AC_CHECK_SIZEOF([void*])
 AC_SEARCH_LIBS([lround],[m], [AC_DEFINE(HAVE_LROUND,1,lround support)])
-#@@@ new name is AC_CONFIG_HEADERS
-AM_CONFIG_HEADER(config.h)
 
-AC_LANG_PUSH(C++)
+AC_LANG_PUSH([C++])
 # c++ flavor first
 AC_C_VARARRAYS
 if test $ac_cv_c_vararrays = yes; then
 	AC_DEFINE([HAVE_CXX_VARARRAYS], 1, [Define to 1 if C++ supports variable-length arrays.])
 fi
-AC_LANG_POP(C++)
+AC_LANG_POP([C++])
 
 # c flavor
 AC_HEADER_STDC
