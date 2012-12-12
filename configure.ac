@@ -70,7 +70,15 @@ AC_CHECK_HEADERS([sys/param.h])
 
 XIPH_C_BSWAP32
 
-XIPH_C_FIND_ENDIAN
+ac_cv_c_big_endian=0
+ac_cv_c_little_endian=0
+AC_C_BIGENDIAN([ac_cv_c_big_endian=1], [ac_cv_c_little_endian=1], [
+	AC_MSG_WARN([[*****************************************************************]])
+	AC_MSG_WARN([[*** Not able to determine endian-ness of target processor.       ]])
+	AC_MSG_WARN([[*** The constants CPU_IS_BIG_ENDIAN and CPU_IS_LITTLE_ENDIAN in  ]])
+	AC_MSG_WARN([[*** config.h may need to be hand editied.                        ]])
+	AC_MSG_WARN([[*****************************************************************]])
+])
 AC_DEFINE_UNQUOTED(CPU_IS_BIG_ENDIAN, ${ac_cv_c_big_endian},
 					[Target processor is big endian.])
 AC_DEFINE_UNQUOTED(CPU_IS_LITTLE_ENDIAN, ${ac_cv_c_little_endian},
