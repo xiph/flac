@@ -474,7 +474,7 @@ AC_MSG_RESULT([
     Host OS : ............................. ${host_os}
 ])
 
-if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    Compiler is GCC : ..................... ${ac_cv_c_compiler_gnu}"
+if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    GCC version : ......................... ${GCC_VERSION}"
-	fi
+fi
