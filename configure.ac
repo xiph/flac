@@ -22,7 +22,7 @@ AC_PREREQ(2.60)
 AC_INIT([flac], [1.2.1])
 AC_CONFIG_SRCDIR([src/flac/main.c])
 AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([foreign -Wall tar-pax no-dist-gzip dist-xz subdir-objects])
+AM_INIT_AUTOMAKE([foreign 1.7 -Wall tar-pax no-dist-gzip dist-xz subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 user_cflags=$CFLAGS

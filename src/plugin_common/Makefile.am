@@ -15,8 +15,6 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-AUTOMAKE_OPTIONS = foreign
-
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 
 noinst_LTLIBRARIES = libplugin_common.la

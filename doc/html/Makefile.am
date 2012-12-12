@@ -15,8 +15,6 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-AUTOMAKE_OPTIONS = foreign
-
 SUBDIRS = ru images
 
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/html

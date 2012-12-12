@@ -34,6 +34,9 @@ noinst_LTLIBRARIES = libFLAC-static.la
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
 endif
+
+# FIXME: The following logic should be part of configure, not of Makefile.am
+
 if FLaC__CPU_PPC
 # The -force_cpusubtype_ALL is needed to insert a ppc64 instruction
 # into cpu.c with an asm().
