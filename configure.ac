@@ -91,7 +91,7 @@ case "$host_cpu" in
 		AC_DEFINE(FLAC__CPU_IA32)
 		AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
 		;;
-	powerpc)
+	powerpc|powerpc64)
 		cpu_ppc=true
 		AC_DEFINE(FLAC__CPU_PPC)
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
@@ -470,3 +470,4 @@ AC_MSG_RESULT([
 if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    GCC version : ......................... ${GCC_VERSION}"
 fi
+echo
