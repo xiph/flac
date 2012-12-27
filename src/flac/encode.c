@@ -26,6 +26,7 @@
 #include <stdio.h> /* for FILE etc. */
 #include <stdlib.h> /* for malloc */
 #include <string.h> /* for strcmp(), strerror() */
+#include <sys/stat.h>
 #include "FLAC/all.h"
 #include "share/alloc.h"
 #include "share/grabbag.h"
@@ -2799,29 +2800,18 @@ FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, const char *fn)
 FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 {
 	static unsigned char dump[8192];
+	struct stat stb;
 
-#ifdef _MSC_VER
-	if(f == stdin) {
-		/* MS' stdio impl can't even seek forward on stdin, have to use pure non-fseek() version: */
-		while(offset > 0) {
-			const long need = (long)min(offset, sizeof(dump));
-			if((long)fread(dump, 1, need, f) < need)
-				return false;
-			offset -= need;
-		}
-	}
-	else
-#endif
+	if(fstat(fileno(f), &stb) == 0 && (stb.st_mode & S_IFMT) == S_IFREG)
 	{
-		while(offset > 0) {
-			long need = (long)min(offset, LONG_MAX);
-			if(fseeko(f, need, SEEK_CUR) < 0) {
-				need = (long)min(offset, sizeof(dump));
-				if((long)fread(dump, 1, need, f) < need)
-					return false;
-			}
-			offset -= need;
-		}
+		if(fseeko(f, offset, SEEK_CUR) == 0)
+			return true;
+	}
+	while(offset > 0) {
+		const long need = (long)min(offset, sizeof(dump));
+		if((long)fread(dump, 1, need, f) < need)
+			return false;
+		offset -= need;
 	}
 	return true;
 }
