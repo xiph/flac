@@ -444,13 +444,13 @@ AC_CONFIG_FILES([ \
 	test/metaflac-test-files/Makefile \
 	test/pictures/Makefile \
 	build/Makefile \
-	obj/Makefile \
-	obj/debug/Makefile \
-	obj/debug/bin/Makefile \
-	obj/debug/lib/Makefile \
-	obj/release/Makefile \
-	obj/release/bin/Makefile \
-	obj/release/lib/Makefile \
+	objs/Makefile \
+	objs/debug/Makefile \
+	objs/debug/bin/Makefile \
+	objs/debug/lib/Makefile \
+	objs/release/Makefile \
+	objs/release/bin/Makefile \
+	objs/release/lib/Makefile \
 ])
 AC_OUTPUT
 
