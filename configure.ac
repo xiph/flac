@@ -431,6 +431,7 @@ AC_CONFIG_FILES([ \
 	include/share/Makefile \
 	include/share/grabbag/Makefile \
 	include/test_libs_common/Makefile \
+	doc/Doxyfile \
 	doc/Makefile \
 	doc/html/Makefile \
 	doc/html/images/Makefile \

@@ -18,6 +18,7 @@
 SUBDIRS = . html
 
 if FLaC__HAS_DOXYGEN
+all-local: Doxyfile
 FLAC.tag: Doxyfile
 	doxygen Doxyfile
 	rm -rf html/api
@@ -35,7 +36,7 @@ docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 doc_DATA = \
 	FLAC.tag
 
-EXTRA_DIST = Doxyfile Makefile.lite doxygen.footer.html doxygen.header.html $(doc_DATA)
+EXTRA_DIST = Doxyfile.in Makefile.lite doxygen.footer.html doxygen.header.html $(doc_DATA)
 
 maintainer-clean-local:
 	rm -rf FLAC.tag html/api doxytmp
