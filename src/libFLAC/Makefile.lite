@@ -34,21 +34,27 @@
 
 topdir = ../..
 
-LIB_NAME = libFLAC
 ifeq ($(OS),Darwin)
-DEFINES = -DFLAC__CPU_PPC -DFLAC__USE_ALTIVEC -DFLAC__ALIGN_MALLOC_DATA
+    EXPLICIT_LIBS = $(OGG_EXPLICIT_LIBS) -lm
+else
+    LIBS = $(OGG_LIBS) -lm
+endif
+
+LIB_NAME = libFLAC
+ifeq ($(PROC),ppc)
+    DEFINES = -DFLAC__CPU_PPC -DFLAC__USE_ALTIVEC -DFLAC__ALIGN_MALLOC_DATA
 else
 ifeq ($(OS),Solaris)
-DEFINES = -DFLAC__NO_ASM -DFLAC__ALIGN_MALLOC_DATA
+    DEFINES = -DFLAC__NO_ASM -DFLAC__ALIGN_MALLOC_DATA
 else
 ifeq ($(PROC),i386)
-DEFINES = -DFLAC__CPU_IA32 -DFLAC__USE_3DNOW -DFLAC__HAS_NASM -DFLAC__ALIGN_MALLOC_DATA
+    DEFINES = -DFLAC__CPU_IA32 -DFLAC__USE_3DNOW -DFLAC__HAS_NASM -DFLAC__ALIGN_MALLOC_DATA
 else
-DEFINES = -DFLAC__ALIGN_MALLOC_DATA
+    DEFINES = -DFLAC__ALIGN_MALLOC_DATA
 endif
 endif
 endif
-INCLUDES = -I./include -I$(topdir)/include -I$(OGG_INCLUDE_DIR)
+INCLUDES = -I./include -I$(topdir)/include $(OGG_INCLUDES)
 DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
 ifeq ($(OS),Darwin)
@@ -65,6 +71,12 @@ SRCS_NASM = \
 endif
 endif
 
+OGG_SRCS_C = \
+	ogg_decoder_aspect.c \
+	ogg_encoder_aspect.c \
+	ogg_helper.c \
+	ogg_mapping.c
+
 SRCS_C = \
 	bitmath.c \
 	bitreader.c \
@@ -79,14 +91,11 @@ SRCS_C = \
 	memory.c \
 	metadata_iterators.c \
 	metadata_object.c \
-	ogg_decoder_aspect.c \
-	ogg_encoder_aspect.c \
-	ogg_helper.c \
-	ogg_mapping.c \
 	stream_decoder.c \
 	stream_encoder.c \
 	stream_encoder_framing.c \
-	window.c
+	window.c \
+	$(OGG_SRCS)
 
 include $(topdir)/build/lib.mk
 

@@ -22,11 +22,11 @@
 include $(topdir)/build/config.mk
 
 ifeq ($(OS),Darwin)
-CC          = cc
-CCC         = c++
+    CC          = cc
+    CCC         = c++
 else
-CC          = gcc
-CCC         = g++
+    CC          = gcc
+    CCC         = g++
 endif
 NASM        = nasm
 LINK        = $(CC) $(LINKAGE)

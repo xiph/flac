@@ -27,9 +27,9 @@ PROGRAM_NAME = example_c_decode_file
 INCLUDES = -I$(topdir)/include
 
 ifeq ($(OS),Darwin)
-EXPLICIT_LIBS = $(libdir)/libFLAC.a $(OGG_LIB_DIR)/libogg.a -lm
+    EXPLICIT_LIBS = $(libdir)/libFLAC.a $(OGG_EXPLICIT_LIBS) -lm
 else
-LIBS = -lFLAC -L$(OGG_LIB_DIR) -logg -lm
+    LIBS = -lFLAC $(OGG_LIBS) -lm
 endif
 
 SRCS_C = main.c

@@ -1,5 +1,5 @@
-#  flac - Command-line FLAC encoder/decoder
-#  Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009  Josh Coalson
+#  flactimer - Runs a command and prints timing information
+#  Copyright (C) 2007,2008,2009  Josh Coalson
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -19,29 +19,24 @@
 # GNU makefile
 #
 
-topdir = ../..
+topdir = ../../..
 libdir = $(topdir)/obj/$(BUILD)/lib
 
-PROGRAM_NAME = flac
+PROGRAM_NAME = flactimer
 
-INCLUDES = -I./include -I$(topdir)/include $(OGG_INCLUDES)
+INCLUDES = -I$(topdir)/include
 
 ifeq ($(OS),Darwin)
-    EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libFLAC.a $(libdir)/libreplaygain_analysis.a $(libdir)/libreplaygain_synthesis.a $(libdir)/libgetopt.a $(libdir)/libutf8.a $(OGG_EXPLICIT_LIBS) $(ICONV_LIBS) -lm
+    EXPLICIT_LIBS = $(libdir)/libFLAC++.a $(libdir)/libFLAC.a $(OGG_EXPLICIT_LIBS) -lm
 else
-    LIBS = -lgrabbag -lFLAC -lreplaygain_analysis -lreplaygain_synthesis -lgetopt -lutf8 -lgrabbag $(OGG_LIBS) -lm
+    LIBS = -lFLAC++ -lFLAC $(OGG_LIBS) -lm
 endif
 
-SRCS_C = \
-	analyze.c \
-	decode.c \
-	encode.c \
-	foreign_metadata.c \
-	local_string_utils.c \
-	main.c \
-	utils.c \
-	vorbiscomment.c
+SRCS_CPP = \
+	main.cpp
 
 include $(topdir)/build/exe.mk
+
+LINK = $(CCC) $(LINKAGE)
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.

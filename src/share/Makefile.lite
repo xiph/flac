@@ -16,7 +16,7 @@
 #  distribution.
 
 .PHONY: all getopt grabbag replaygain_analysis replaygain_synthesis utf8
-all: getopt grabbag replaygain_analysis replaygain_synthesis utf8
+all: getopt replaygain_analysis grabbag replaygain_synthesis utf8
 
 DEFAULT_CONFIG = release
 
@@ -33,10 +33,10 @@ release : all
 getopt:
 	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
-grabbag:
+replaygain_analysis:
 	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
-replaygain_analysis:
+grabbag:
 	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 replaygain_synthesis:

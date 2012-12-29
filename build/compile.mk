@@ -40,15 +40,15 @@
 
 %.debug.o %.release.o : %.s
 ifeq ($(OS),Darwin)
-	#$(CC) -c -arch ppc -Wall -force_cpusubtype_ALL $< -o $@
-	$(AS) -arch ppc -force_cpusubtype_ALL $< -o $@
+	#$(CC) -c -arch $(PROC) -Wall -force_cpusubtype_ALL $< -o $@
+	$(AS) -arch $(PROC) -force_cpusubtype_ALL $< -o $@
 else
 	$(AS) $< -o $@
 endif
 %.debug.pic.o %.release.pic.o : %.s
 ifeq ($(OS),Darwin)
-	#$(CC) -c -arch ppc -Wall -force_cpusubtype_ALL $< -o $@
-	$(AS) -arch ppc -force_cpusubtype_ALL $< -o $@
+	#$(CC) -c -arch $(PROC) -Wall -force_cpusubtype_ALL $< -o $@
+	$(AS) -arch $(PROC) -force_cpusubtype_ALL $< -o $@
 else
 	$(AS) $< -o $@
 endif

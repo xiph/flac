@@ -24,6 +24,12 @@ libdir = $(topdir)/obj/$(BUILD)/lib
 
 LIB_NAME = libtest_libs_common
 
+ifeq ($(OS),Darwin)
+    EXPLICIT_LIBS = $(libdir)/libFLAC.a $(OGG_EXPLICIT_LIBS) -lm
+else
+    LIBS = -lFLAC $(OGG_LIBS) -lm
+endif
+
 INCLUDES = -I$(topdir)/include
 
 SRCS_C = \

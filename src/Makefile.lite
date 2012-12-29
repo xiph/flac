@@ -20,17 +20,17 @@ topdir = ..
 include $(topdir)/build/config.mk
 
 ifeq ($(OS),Darwin)
-EXTRA_TARGETS = 
+    EXTRA_TARGETS =
 else
 ifeq ($(PROC),x86_64)
-EXTRA_TARGETS = 
+    EXTRA_TARGETS =
 else
-EXTRA_TARGETS = plugin_xmms
+    EXTRA_TARGETS = plugin_xmms
 endif
 endif
 
-.PHONY: all flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams
-all: flac libFLAC libFLAC++ metaflac plugin_common $(EXTRA_TARGETS) share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams
+.PHONY: all flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams utils flacdiff flactimer
+all: flac libFLAC libFLAC++ metaflac plugin_common $(EXTRA_TARGETS) share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams utils
 
 DEFAULT_CONFIG = release
 
@@ -44,8 +44,13 @@ debug   : all
 valgrind: all
 release : all
 
+all: flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams utils
+
 flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams:
 	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
+
+flacdiff flactimer:
+	(cd utils/$@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 clean:
 	-(cd flac ; $(MAKE) -f Makefile.lite clean)
@@ -61,15 +66,7 @@ clean:
 	-(cd test_libFLAC++ ; $(MAKE) -f Makefile.lite clean)
 	-(cd test_seeking ; $(MAKE) -f Makefile.lite clean)
 	-(cd test_streams ; $(MAKE) -f Makefile.lite clean)
+	-(cd utils/flacdiff ; $(MAKE) -f Makefile.lite clean)
+	-(cd utils/flactimer ; $(MAKE) -f Makefile.lite clean)
 
-flac: libFLAC share
-libFLAC++: libFLAC
-metaflac: libFLAC share
-plugin_common: libFLAC
-plugin_xmms: libFLAC plugin_common
-share: libFLAC
-test_grabbag: share
-test_libFLAC++: libFLAC libFLAC++ test_libs_common
-test_libFLAC: libFLAC test_libs_common
-test_seeking: libFLAC
-test_streams: libFLAC
+include $(topdir)/Makefile.deps
