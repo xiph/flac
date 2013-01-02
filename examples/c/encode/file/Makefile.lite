@@ -20,7 +20,7 @@
 #
 
 topdir = ../../../..
-libdir = $(topdir)/obj/$(BUILD)/lib
+libdir = $(topdir)/objs/$(BUILD)/lib
 
 PROGRAM_NAME = example_c_encode_file
 

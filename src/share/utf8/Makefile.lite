@@ -3,7 +3,7 @@
 #
 
 topdir = ../../..
-libdir = $(topdir)/obj/$(BUILD)/lib
+libdir = $(topdir)/objs/$(BUILD)/lib
 
 LIB_NAME = libutf8
 

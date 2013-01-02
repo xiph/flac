@@ -3,7 +3,7 @@
 #
 
 topdir = ../../..
-libdir = $(topdir)/obj/$(BUILD)/lib
+libdir = $(topdir)/objs/$(BUILD)/lib
 
 ifeq ($(OS),Darwin)
     EXPLICIT_LIBS = $(libdir)/libFLAC.a $(libdir)/libreplaygain_analysis.a $(OGG_EXPLICIT_LIBS) -lm

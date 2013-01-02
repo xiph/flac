@@ -30,7 +30,7 @@ else
 endif
 NASM        = nasm
 LINK        = $(CC) $(LINKAGE)
-OBJPATH     = $(topdir)/obj
+OBJPATH     = $(topdir)/objs
 BINPATH     = $(OBJPATH)/$(BUILD)/bin
 LIBPATH     = $(OBJPATH)/$(BUILD)/lib
 DEBUG_BINPATH   = $(OBJPATH)/debug/bin

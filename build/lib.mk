@@ -31,7 +31,7 @@ endif
 AS          = as
 NASM        = nasm
 LINK        = ar cru
-OBJPATH     = $(topdir)/obj
+OBJPATH     = $(topdir)/objs
 LIBPATH     = $(OBJPATH)/$(BUILD)/lib
 DEBUG_LIBPATH     = $(OBJPATH)/debug/lib
 RELEASE_LIBPATH   = $(OBJPATH)/release/lib

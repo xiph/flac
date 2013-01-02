@@ -20,7 +20,7 @@
 #
 
 topdir = ../..
-libdir = $(topdir)/obj/$(BUILD)/lib
+libdir = $(topdir)/objs/$(BUILD)/lib
 
 LIB_NAME  = libxmms-flac
 INCLUDES  = -I./include -I$(topdir)/include -I.. $(shell xmms-config --cflags)

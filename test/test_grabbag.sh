@@ -32,13 +32,13 @@ fi
 LD_LIBRARY_PATH=../src/libFLAC/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/share/grabbag/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=../obj/$BUILD/lib:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=../objs/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 export MALLOC_CHECK_=3
 export MALLOC_PERTURB_=$(($RANDOM % 255 + 1))
 PATH=../src/test_grabbag/cuesheet:$PATH
 PATH=../src/test_grabbag/picture:$PATH
-PATH=../obj/$BUILD/bin:$PATH
+PATH=../objs/$BUILD/bin:$PATH
 
 test_cuesheet -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_cuesheet executable"
 test_picture -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_picture executable"
