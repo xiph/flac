@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\obj\debug\lib"
+			OutputDirectory="..\..\objs\debug\lib"
 			IntermediateDirectory="Debug_dynamic"
 			ConfigurationType="2"
 			>
@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\obj\release\lib\ogg_static.lib"
+				AdditionalDependencies="..\..\objs\release\lib\ogg_static.lib"
 				LinkIncremental="2"
 				IgnoreDefaultLibraryNames="uuid.lib"
 				GenerateDebugInformation="true"
@@ -93,7 +93,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\obj\release\lib"
+			OutputDirectory="..\..\objs\release\lib"
 			IntermediateDirectory="Release_dynamic"
 			ConfigurationType="2"
 			>
@@ -140,7 +140,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\obj\release\lib\ogg_static.lib"
+				AdditionalDependencies="..\..\objs\release\lib\ogg_static.lib"
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames="uuid.lib"
 				GenerateDebugInformation="true"

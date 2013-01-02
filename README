@@ -228,9 +228,9 @@ From the dropdown in the toolbar, select "Release" instead of "Debug",
 then hit F7 to build.
 
 Either way, this will build all libraries both statically (e.g.
-obj\release\lib\libFLAC_static.lib) and as DLLs (e.g.
-obj\release\lib\libFLAC.dll), and it will build all binaries, statically
-linked (e.g. obj\release\bin\flac.exe).
+objs\release\lib\libFLAC_static.lib) and as DLLs (e.g.
+objs\release\lib\libFLAC.dll), and it will build all binaries, statically
+linked (e.g. objs\release\bin\flac.exe).
 
 Everything will end up in the "obj" directory.  DLLs and .exe files
 are all that are needed and can be copied to an installation area and
@@ -241,7 +241,7 @@ By default the code is configured with Ogg support.  Before building FLAC
 you will need to get the Ogg source distribution
 (see http://xiph.org/ogg/vorbis/download/), build ogg_static.lib (load and
 build win32\ogg_static.dsp), copy ogg_static.lib into FLAC's
-'obj\release\lib' directory, and copy the entire include\ogg tree into
+'objs\release\lib' directory, and copy the entire include\ogg tree into
 FLAC's 'include' directory (so that there is an 'ogg' directory in FLAC's
 'include' directory with the files ogg.h, os_types.h and config_types.h).
 
