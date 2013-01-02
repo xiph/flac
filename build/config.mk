@@ -55,6 +55,11 @@ ifeq ($(PROC),powerpc)
     PROC := ppc
 endif
 
+ifeq ($(OS),Linux)
+    PROC := $(shell uname -m)
+    USE_ICONV := 0
+endif
+
 debug    : BUILD = debug
 valgrind : BUILD = debug
 release  : BUILD = release
@@ -88,6 +93,12 @@ ifeq ($(PROC),ppc)
     CONFIG_CFLAGS += -DWORDS_BIGENDIAN=1
 else
     CONFIG_CFLAGS += -DWORDS_BIGENDIAN=0
+endif
+
+ifeq ($(OS),Linux)
+	ifeq ($(PROC),x86_64)
+        CONFIG_CFLAGS += -fPIC
+	endif
 endif
 
 ifneq (0,$(USE_ICONV))
