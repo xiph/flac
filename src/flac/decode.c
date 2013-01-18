@@ -333,32 +333,26 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		return false;
 
 	/* set channel mapping */
-	if(!d->channel_map_none) {
-		/* currently FLAC order matches SMPTE/WAVEFORMATEXTENSIBLE order, so no reordering is necessary; see encode.c */
-		/* only the channel mask must be set if it was not already picked up from the WAVEFORMATEXTENSIBLE_CHANNEL_MASK tag */
+	/* currently FLAC order matches SMPTE/WAVEFORMATEXTENSIBLE order, so no reordering is necessary; see encode.c */
+	/* only the channel mask must be set if it was not already picked up from the WAVEFORMATEXTENSIBLE_CHANNEL_MASK tag */
+	if(!d->channel_map_none && d->channel_mask == 0) {
 		if(d->channels == 1) {
-			if(d->channel_mask == 0)
-				d->channel_mask = 0x0001;
+			d->channel_mask = 0x0001;
 		}
 		else if(d->channels == 2) {
-			if(d->channel_mask == 0)
-				d->channel_mask = 0x0003;
+			d->channel_mask = 0x0003;
 		}
 		else if(d->channels == 3) {
-			if(d->channel_mask == 0)
-				d->channel_mask = 0x0007;
+			d->channel_mask = 0x0007;
 		}
 		else if(d->channels == 4) {
-			if(d->channel_mask == 0)
-				d->channel_mask = 0x0033;
+			d->channel_mask = 0x0033;
 		}
 		else if(d->channels == 5) {
-			if(d->channel_mask == 0)
-				d->channel_mask = 0x0607;
+			d->channel_mask = 0x0607;
 		}
 		else if(d->channels == 6) {
-			if(d->channel_mask == 0)
-				d->channel_mask = 0x060f;
+			d->channel_mask = 0x060f;
 		}
 	}
 
