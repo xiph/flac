@@ -38,5 +38,5 @@ doc_DATA = \
 
 EXTRA_DIST = Doxyfile.in Makefile.lite doxygen.footer.html doxygen.header.html $(doc_DATA)
 
-maintainer-clean-local:
+distclean-local:
 	rm -rf FLAC.tag html/api doxytmp
