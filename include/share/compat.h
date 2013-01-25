@@ -66,6 +66,7 @@
 
 #if defined(_MSC_VER)
 #define restrict __restrict
+#define inline __inline
 #endif
 
 /* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
