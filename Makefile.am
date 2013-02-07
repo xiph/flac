@@ -32,8 +32,6 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = doc include m4 man src examples test build objs
 
-DISTCLEANFILES = libtool-disable-static
-
 EXTRA_DIST = \
 	COPYING.FDL \
 	COPYING.GPL \

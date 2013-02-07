@@ -38,9 +38,6 @@ else
 xmmsinputplugindir = @XMMS_INPUT_PLUGIN_DIR@
 endif
 
-# Don't build a static library
-LIBTOOL = $(top_builddir)/libtool-disable-static
-
 xmmsinputplugin_LTLIBRARIES = libxmms-flac.la
 
 plugin_sources = charset.c configure.c fileinfo.c http.c plugin.c tag.c
