@@ -18,9 +18,7 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  */
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "plugin.h"
 
 #include <stdlib.h>
 #include <string.h> /* for strlen() */

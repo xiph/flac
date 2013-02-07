@@ -19,6 +19,14 @@
 #ifndef FLAC__PLUGIN_XMMS__PLUGIN_H
 #define FLAC__PLUGIN_XMMS__PLUGIN_H
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#if defined(__GNUC_STDC_INLINE__)
+#  define G_INLINE_FUNC extern inline __attribute__((gnu_inline))
+#endif
+
 void set_track_info(const char* title, int length_in_msec);
 
 #endif

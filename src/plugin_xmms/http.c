@@ -17,9 +17,7 @@
  */
 /* modified for FLAC support by Steven Richman (2003) */
 
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#include "plugin.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -44,7 +42,6 @@
 #include "FLAC/format.h"
 #include "configure.h"
 #include "locale_hack.h"
-#include "plugin.h"
 
 /* on FreeBSD we get socklen_t from <sys/socket.h> */
 #if (!defined HAVE_SOCKLEN_T) && !defined(__FreeBSD__)
