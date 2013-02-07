@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <inttypes.h>
 #include <gtk/gtk.h>
 
 #include "FLAC/metadata.h"
