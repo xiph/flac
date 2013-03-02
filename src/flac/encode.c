@@ -461,7 +461,9 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				}
 				else if(
 					channel_mask == 0x003f || /* 6 channels: front left, front right, front center, LFE, back left, back right */
-					channel_mask == 0x060f    /* 6 channels: front left, front right, front center, LFE, side left, side right */
+					channel_mask == 0x060f || /* 6 channels: front left, front right, front center, LFE, side left, side right */
+					channel_mask == 0x070f || /* 7 channels: front left, front right, front center, LFE, back center, side left, side right */
+					channel_mask == 0x063f    /* 8 channels: front left, front right, front center, LFE, back left, back right, side left, side right */
 				) {
 					/* to dolby order: front left, center, front right, surround left, surround right, LFE */
 					channel_map[1] = 2;
@@ -481,7 +483,9 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 					channel_mask == 0x0037 || /* 5 channels: front left, front right, front center, back left, back right */
 					channel_mask == 0x0607 || /* 5 channels: front left, front right, front center, side left, side right */
 					channel_mask == 0x003f || /* 6 channels: front left, front right, front center, LFE, back left, back right */
-					channel_mask == 0x060f    /* 6 channels: front left, front right, front center, LFE, side left, side right */
+					channel_mask == 0x060f || /* 6 channels: front left, front right, front center, LFE, side left, side right */
+					channel_mask == 0x070f || /* 7 channels: front left, front right, front center, LFE, back center, side left, side right */
+					channel_mask == 0x063f    /* 8 channels: front left, front right, front center, LFE, back left, back right, side left, side right */
 				) {
 					/* keep default channel order */
 				}
