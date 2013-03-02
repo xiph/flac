@@ -360,12 +360,6 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		else if(d->channels == 8) {
 			d->channel_mask = 0x063f;
 		}
-		else if(d->channels == 7) {
-			d->channel_mask = 0x070f;
-		}
-		else if(d->channels == 8) {
-			d->channel_mask = 0x063f;
-		}
 	}
 
 	/* write the WAVE/AIFF headers if necessary */
