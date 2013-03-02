@@ -19,7 +19,7 @@
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_PREREQ(2.60)
-AC_INIT([flac], [1.2.1], [flac-dev@xiph.org], [flac], [http://flac.sourceforge.net/])
+AC_INIT([flac], [1.3.0pre1], [flac-dev@xiph.org], [flac], [https://www.xiph.org/flac/])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/flac/main.c])
 AC_CONFIG_MACRO_DIR([m4])
