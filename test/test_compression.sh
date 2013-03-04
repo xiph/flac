@@ -27,24 +27,25 @@ LD_LIBRARY_PATH=`pwd`/../objs/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 PATH=`pwd`/../src/flac:$PATH
 
-echo "Using FLAC binary :" `which flac`
+echo "Using FLAC binary :" $(which flac)
 
 date=`date "+%Y%m%dT%H%M%S"`
 fname="comp${date}.flac"
 
-last_size=0
 last_k=0
-for k in `seq 1 8` ; do
+last_size=$(wc -c < noisy-sine.wav)
+
+echo "Original file size ${last_size} bytes."
+
+for k in $(seq 1 8) ; do
 	flac -${k} --silent noisy-sine.wav -o ${fname}
-	size=`stat --format="%s" ${fname}`
+	size=$(wc -c < ${fname})
 	echo "Compression level ${k}, file size ${size} bytes."
-	if test $k -gt 1 ; then
-		if test $last_size -lt $size ; then
-			echo "Error : Compression $last_k size $last_size >= compression $k size $size."
-			exit 1
-			fi
+	if test ${last_size} -lt ${size} ; then
+		echo "Error : Compression ${last_k} size $last_size >= compression $k size $size."
+		exit 1
 		fi
-	last_size=$size
-	last_k=$k
-	rm -f $fname
+	last_size=${size}
+	last_k=${k}
+	rm -f ${fname}
 	done
