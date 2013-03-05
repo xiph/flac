@@ -167,8 +167,8 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 		signed char c;
 		for(i = 0; i < samples; i++) {
 			for(j = 0; j < channels; j++) {
-				fread(&c, 1, 1, f);
-				pcm[j][i] = c;
+				if (fread(&c, 1, 1, f) == 1)
+					pcm[j][i] = c;
 			}
 		}
 	}
@@ -176,8 +176,8 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 		unsigned char c[2];
 		for(i = 0; i < samples; i++) {
 			for(j = 0; j < channels; j++) {
-				fread(&c, 1, 2, f);
-				pcm[j][i] = ((int)((signed char)c[0])) << 8 | (int)c[1];
+				if (fread(&c, 1, 2, f) == 2)
+					pcm[j][i] = ((int)((signed char)c[0])) << 8 | (int)c[1];
 			}
 		}
 	}

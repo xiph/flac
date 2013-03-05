@@ -46,6 +46,7 @@
 #include "FLAC/stream_decoder.h"
 #include "share/alloc.h"
 #include "share/compat.h"
+#include "share/macros.h"
 #include "private/macros.h"
 #include "private/memory.h"
 
@@ -3295,8 +3296,8 @@ void set_file_stats_(const char *filename, struct stat *stats)
 	(void)chmod(filename, stats->st_mode);
 	(void)utime(filename, &srctime);
 #if !defined _MSC_VER && !defined __BORLANDC__ && !defined __MINGW32__
-	(void)chown(filename, stats->st_uid, -1);
-	(void)chown(filename, -1, stats->st_gid);
+	FLAC_CHECK_RETURN(chown(filename, stats->st_uid, -1));
+	FLAC_CHECK_RETURN(chown(filename, -1, stats->st_gid));
 #endif
 }
 

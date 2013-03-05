@@ -8,6 +8,7 @@ EXTRA_DIST = \
 	endswap.h \
 	getopt.h \
 	grabbag.h \
+	macros.h \
 	replaygain_analysis.h \
 	replaygain_synthesis.h \
 	utf8.h

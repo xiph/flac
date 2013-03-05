@@ -302,8 +302,7 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 	}
 
 	ret = true;
-	while(ret && !feof(f)) {
-		fgets(line, sizeof(line), f);
+	while(ret && !feof(f) && fgets(line, sizeof(line), f) != NULL) {
 		if(!feof(f)) {
 			char *p = strchr(line, '\n');
 			if(0 == p) {

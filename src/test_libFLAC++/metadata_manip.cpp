@@ -32,6 +32,7 @@
 #include "FLAC++/metadata.h"
 #include "share/grabbag.h"
 #include "share/compat.h"
+#include "share/macros.h"
 extern "C" {
 #include "test_libs_common/file_utils_flac.h"
 }
@@ -270,8 +271,8 @@ void set_file_stats_(const char *filename, struct stat *stats)
 	(void)chmod(filename, stats->st_mode);
 	(void)utime(filename, &srctime);
 #if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
-	(void)chown(filename, stats->st_uid, (gid_t)(-1));
-	(void)chown(filename, (uid_t)(-1), stats->st_gid);
+	FLAC_CHECK_RETURN(chown(filename, stats->st_uid, (gid_t)(-1)));
+	FLAC_CHECK_RETURN(chown(filename, (uid_t)(-1), stats->st_gid));
 #endif
 }
 
