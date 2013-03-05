@@ -1229,9 +1229,7 @@ void show_help(void)
 	printf("encoding options:\n");
 	printf("  -V, --verify                 Verify a correct encoding\n");
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
-#if 0 /*@@@ currently undocumented */
 	printf("      --ignore-chunk-sizes     Ignore data chunk sizes in WAVE/AIFF files\n");
-#endif
 	printf("      --sector-align (DEPRECATED) Align multiple files on sector boundaries\n");
 	printf("      --replay-gain            Calculate ReplayGain & store in FLAC tags\n");
 	printf("      --cuesheet=FILENAME      Import cuesheet and store in CUESHEET block\n");
@@ -1286,9 +1284,7 @@ void show_help(void)
 	printf("      --no-replay-gain\n");
 	printf("      --no-residual-gnuplot\n");
 	printf("      --no-residual-text\n");
-#if 0 /*@@@ currently undocumented */
 	printf("      --no-ignore-chunk-sizes\n");
-#endif
 	printf("      --no-sector-align\n");
 	printf("      --no-seektable\n");
 	printf("      --no-silent\n");
