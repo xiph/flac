@@ -81,8 +81,8 @@
 			<li>
 				flac:
 				<ul>
-					<li>Added support for encoding from and decoding to the RF64 format, and a new corresponding option <span class="argument"><a href="#flac_options_force_rf64_format" />--force-rf64-format</a></span>.  (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1762502&amp;group_id=13478&amp;atid=363478">SF #1762502</a>).  <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> is also supported.</li>
-					<li>Added support for encoding from and decoding to the Sony Wave64 format, and a new corresponding option <span class="argument"><a href="#flac_options_force_wave64_format" />--force-wave64-format</a></span>.  (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1769582&amp;group_id=13478&amp;atid=363478">SF #1769582</a>).  <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> is also supported.</li>
+					<li>Added support for encoding from and decoding to the RF64 format, and a new corresponding option <span class="argument"><a href="#flac_options_force_rf64_format">--force-rf64-format</a></span>.  (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1762502&amp;group_id=13478&amp;atid=363478">SF #1762502</a>).  <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> is also supported.</li>
+					<li>Added support for encoding from and decoding to the Sony Wave64 format, and a new corresponding option <span class="argument"><a href="#flac_options_force_wave64_format">--force-wave64-format</a></span>.  (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1769582&amp;group_id=13478&amp;atid=363478">SF #1769582</a>).  <span class="argument"><a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> is also supported.</li>
 					<li>Added new options <span class="argument"><a href="documentation_tools_flac.html#flac_options_preserve_modtime">--preserve-modtime</a></span> and <span class="argument"><a href="documentation_tools_flac.html#flac_options_no_preserve_modtime">--no-preserve-modtime</a></span> to specify whether or not output files should copy the timestamp and permissions from their input files.  The default is <span class="argument"><a href="documentation_tools_flac.html#flac_options_preserve_modtime">--preserve-modtime</a></span> as in previous versions.  (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1805428&amp;group_id=13478&amp;atid=363478">SF #1805428</a>).</li>
 					<li>Allow MM:SS:FF and MM:SS.SS time formats in non-CD-DA cuesheets.  (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1947353&amp;group_id=13478&amp;atid=363478">SF #1947353</a>, <a href="https://sourceforge.net/tracker2/index.php?func=detail&amp;aid=2182432&amp;group_id=13478&amp;atid=113478">SF #2182432</a>)</li>
 					<li>The <span class="argument"><a href="documentation_tools_flac.html#flac_options_sector_align">--sector-align</a></span> option of <span class="commandname">flac</span> has been deprecated and may not exist in future versions.  <a href="http://www.etree.org/shnutils/shntool/">shntool</a> provides similar functionality. (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1805946&amp;group_id=13478&amp;atid=363478">SF #1805946</a>)</li>
@@ -162,7 +162,7 @@
 			<li>
 				FLAC format:
 				<ul>
-					<li>Specified 2 new APPLICATION metadata blocks for storing WAVE and AIFF chunks (for use with <a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a></span> in <span class="commandname">flac</span>).</li>
+					<li>Specified 2 new APPLICATION metadata blocks for storing WAVE and AIFF chunks (for use with <a href="documentation_tools_flac.html#flac_options_keep_foreign_metadata">--keep-foreign-metadata</a> in <span class="commandname">flac</span>).</li>
 					<li>The lead-out track number for non-CDDA cuesheets now must be 255.</li>
 				</ul>
 			</li>
@@ -381,7 +381,7 @@
 				<ul>
 					<li>Fixed a makefile linkage bug with libogg (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1611414&amp;group_id=13478&amp;atid=113478">SF #1611414</a>).</li>
 					<li>Added pkg-config files for libFLAC and libFLAC++ (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1647881&amp;group_id=13478&amp;atid=313478">SF #1647881</a>).</li>
-					<li>Added <span class=argument>--disable-ogg</span> option for building without Ogg support even if libogg is installed (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1196996&amp;group_id=13478&amp;atid=113478">SF #1196996</a>).</li>
+					<li>Added <span class="argument">--disable-ogg</span> option for building without Ogg support even if libogg is installed (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1196996&amp;group_id=13478&amp;atid=113478">SF #1196996</a>).</li>
 				</ul>
 			</li>
 			<li>
