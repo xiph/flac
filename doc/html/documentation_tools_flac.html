@@ -641,6 +641,18 @@
 			</tr>
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
+					<a name="flac_options_ignore_chunk_sizes" />
+					<span class="argument">--ignore-chunk-sizes</span>
+				</td>
+				<td>
+					When encoding to flac, ignore the file size headers in WAV and AIFF files to attempt to work around problems with over-sized or malformed files.<br />
+					<br />
+					WAV and AIFF files both have an unsigned 32 bit numbers in the file header which specifes the length of audio data. Since this number is unsigned 32 bits, that limits the size of a valid file to being just over 4 Gigabytes. Files larger than this are mal-formed, but should be read correctly using this option. <br />
+					<br />
+				</td>
+			</tr>
+			<tr>
+				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_seekpoint" />
 					<span class="argument">-S {#|X|#x|#s}</span>,<br /><span class="argument">--seekpoint={#|X|#x|#s}</span>
 				</td>
@@ -1017,6 +1029,7 @@
 					<span class="argument">--no-residual-gnuplot</span><br />
 					<span class="argument">--no-residual-text</span><br />
 					<span class="argument">--no-sector-align</span><br />
+					<span class="argument">--no-ignore-chunk-sizes</span><br />
 					<span class="argument">--no-seektable</span><br />
 					<span class="argument">--no-silent</span><br />
 					<span class="argument">--no-verify</span>
@@ -1133,6 +1146,7 @@
 		<a href="#flac_options_silent"><span class="argument">-s</span></a><br />
 		<a href="#flac_options_sample_rate"><span class="argument">--sample-rate</span></a><br />
 		<a href="#flac_options_sector_align"><span class="argument">--sector-align</span></a><br />
+		<a href="#flac_options_ignore_chunk_sizes"><span class="argument">--ignore-chunk-sizes</span></a><br />
 		<a href="#flac_options_seekpoint"><span class="argument">--seekpoint</span></a><br />
 		<a href="#flac_options_serial_number"><span class="argument">--serial-number</span></a><br />
 		<a href="#flac_options_sign"><span class="argument">--sign</span></a><br />
