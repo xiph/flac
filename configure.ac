@@ -356,6 +356,10 @@ fi
 
 XIPH_GCC_VERSION
 
+XIPH_ADD_CFLAGS([-Wextra])
+XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
+XIPH_ADD_CFLAGS([-fstack-protector --param ssp-buffer-size=4])
+
 if test x$ac_cv_c_compiler_gnu = xyes ; then
 	if test x$enable_gcc_werror = "xyes" ; then
 		CFLAGS="-Wall -Wextra -Werror $CFLAGS"
