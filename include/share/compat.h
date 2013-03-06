@@ -36,6 +36,9 @@
  * It is assumed that this header will be included after "config.h".
  */
 
+#ifndef FLAC__SHARE__COMPAT_H
+#define FLAC__SHARE__COMPAT_H
+
 #if defined _WIN32 && !defined __CYGWIN__
 /* where MSVC puts unlink() */
 # include <io.h>
@@ -56,6 +59,7 @@
 #endif
 
 #if HAVE_INTTYPES_H
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 #endif
 
@@ -65,7 +69,10 @@
 #endif
 
 #if defined(_MSC_VER)
+#if _MSC_VER < 1500
+/* Visual Studio 2008 has restrict. */
 #define restrict __restrict
+#endif
 #define inline __inline
 #endif
 
@@ -105,3 +112,31 @@
 #include <utime.h> /* for utime() */
 #include <unistd.h> /* for chown(), unlink() */
 #endif
+
+#if defined _MSC_VER
+#  if _MSC_VER >= 1600
+/* Visual Studio 2010 has decent C99 support */
+#    include <stdint.h>
+#    define PRIu64 "llu"
+#    define PRId64 "lld"
+#    define PRIx64 "llx"
+#  else
+#    include <limits.h>
+#    ifndef UINT32_MAX
+#      define UINT32_MAX _UI32_MAX
+#    endif
+     typedef unsigned __int64 uint64_t;
+     typedef unsigned __int32 uint32_t;
+     typedef unsigned __int16 uint16_t;
+     typedef unsigned __int8 uint8_t;
+     typedef __int64 int64_t;
+     typedef __int32 int32_t;
+     typedef __int16 int16_t;
+     typedef __int8  int8_t;
+#    define PRIu64 "I64u"
+#    define PRId64 "I64d"
+#    define PRIx64 "I64x"
+#  endif
+#endif /* defined _MSC_VER */
+
+#endif /* FLAC__SHARE__COMPAT_H */

@@ -36,6 +36,7 @@
 
 /* for CHAR_BIT */
 #include <limits.h>
+#include "share/compat.h"
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #include <intrin.h> /* for _BitScanReverse* */

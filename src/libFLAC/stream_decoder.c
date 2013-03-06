@@ -55,7 +55,11 @@
 
 
 /* technically this should be in an "export.c" but this is convenient enough */
+#ifdef FLAC_API_SUPPORTS_OGG_FLAC
 FLAC_API int FLAC_API_SUPPORTS_OGG_FLAC = FLAC__HAS_OGG ;
+#else
+FLAC_API int FLAC_API_SUPPORTS_OGG_FLAC = 0 ;
+#endif
 
 
 /***********************************************************************

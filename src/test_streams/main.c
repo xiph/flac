@@ -902,8 +902,11 @@ static FLAC__bool generate_noisy_sine(void)
 
 		sample += sin (2.0 * k * M_PI * 1.0 / 32.0);
 		sample *= 0.4;
-
+#if !defined _MSC_VER
 		write_little_endian_int16(f, lrintf(sample * 32700.0));
+#else
+		write_little_endian_int16(f, (FLAC__int16)(sample * 32700.0));
+#endif
 	};
 
 	fclose(f);

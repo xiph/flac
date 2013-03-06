@@ -34,9 +34,10 @@
 #endif
 
 #include <math.h>
-#include <inttypes.h>
+
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
+#include "share/compat.h"
 #include "private/bitmath.h"
 #include "private/lpc.h"
 #include "private/macros.h"

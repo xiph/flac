@@ -45,11 +45,12 @@
 #include <stdint.h> /* for SIZE_MAX in case limits.h didn't get it */
 #endif
 #include <stdlib.h> /* for size_t, malloc(), etc */
+#include "share/compat.h"
 
 #ifndef SIZE_MAX
 # ifndef SIZE_T_MAX
 #  ifdef _MSC_VER
-#   define SIZE_T_MAX UINT_MAX /* What happens on 64 bit windows? */
+#   define SIZE_T_MAX SIZE_MAX
 #  else
 #   error
 #  endif

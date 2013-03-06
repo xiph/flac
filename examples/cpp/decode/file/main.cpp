@@ -31,10 +31,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
-
 #include "FLAC++/decoder.h"
+#include "share/compat.h"
 
 static FLAC__uint64 total_samples = 0;
 static unsigned sample_rate = 0;

@@ -32,11 +32,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define __STDC_FORMAT_MACROS
-#include <inttypes.h>
-
 #include "FLAC++/metadata.h"
 #include "FLAC++/encoder.h"
+#include "share/compat.h"
 
 #include <cstring>
 

@@ -25,9 +25,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
+
 #include "FLAC/all.h"
 #include "analyze.h"
+
+#include "share/compat.h"
 
 typedef struct {
 	FLAC__int32 residual;
