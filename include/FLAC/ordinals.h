@@ -32,12 +32,25 @@
 #ifndef FLAC__ORDINALS_H
 #define FLAC__ORDINALS_H
 
-/* If your compiler does not provide <stdint.h> you should provide a replacement
- * which has suitable replacements for the following intX_T and uintX_t types.
- * For example:
- *     http://msinttypes.googlecode.com/svn/trunk/stdint.h
- *     http://www.azillionmonkeys.com/qed/pstdint.h
+#if defined(_MSC_VER) && _MSC_VER < 1600
+
+/* Microsoft Visual Studio earlier than the 2010 version did not provide
+ * the 1999 ISO C Standard header file <stdint.h>.
  */
+
+typedef __int8 FLAC__int8;
+typedef unsigned __int8 FLAC__uint8;
+
+typedef __int16 FLAC__int16;
+typedef __int32 FLAC__int32;
+typedef __int64 FLAC__int64;
+typedef unsigned __int16 FLAC__uint16;
+typedef unsigned __int32 FLAC__uint32;
+typedef unsigned __int64 FLAC__uint64;
+
+#else
+
+/* For MSVC 2010 and everything else which provides <stdint.h>. */
 
 #include <stdint.h>
 
@@ -51,9 +64,12 @@ typedef uint16_t FLAC__uint16;
 typedef uint32_t FLAC__uint32;
 typedef uint64_t FLAC__uint64;
 
+#endif
+
 typedef int FLAC__bool;
 
 typedef FLAC__uint8 FLAC__byte;
+
 
 #ifdef true
 #undef true
