@@ -356,10 +356,6 @@ fi
 
 XIPH_GCC_VERSION
 
-XIPH_ADD_CFLAGS([-Wextra])
-XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
-XIPH_ADD_CFLAGS([-fstack-protector --param ssp-buffer-size=4])
-
 if test x$ac_cv_c_compiler_gnu = xyes ; then
 	if test x$enable_gcc_werror = "xyes" ; then
 		CFLAGS="-Wall -Wextra -Werror $CFLAGS"
@@ -373,6 +369,18 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	fi
 fi
 
+
+XIPH_ADD_CFLAGS([-Wextra])
+XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
+
+case "$host_os" in
+	mingw32msvc | mingw32)
+		# Disable for MinGW. Had reports of it not working.
+		;;
+	*)
+		XIPH_ADD_CFLAGS([-fstack-protector --param ssp-buffer-size=4])
+		;;
+	esac
 
 #@@@
 AM_CONDITIONAL(FLaC__HAS_AS__TEMPORARILY_DISABLED, test "yes" = "no")
