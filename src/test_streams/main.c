@@ -23,6 +23,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "share/compat.h"
 #if defined _MSC_VER || defined __MINGW32__
 #include <time.h>
 #else

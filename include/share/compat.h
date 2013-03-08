@@ -48,7 +48,7 @@
 
 #if defined _MSC_VER || defined __BORLANDC__ || defined __MINGW32__
 #include <sys/types.h> /* for off_t */
-#if _MSC_VER <= 1600 || defined __BORLANDC__ /* @@@ [2G limit] */
+#if !defined __MINGW32__ /* @@@ [2G limit] */
 #ifndef fseeko
 #define fseeko fseek
 #endif
