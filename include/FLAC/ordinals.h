@@ -33,7 +33,10 @@
 #define FLAC__ORDINALS_H
 
 /* If your compiler does not provide <stdint.h> you should provide a replacement
- * which hss suitable replacements for the following intX_T and uintX_t types.
+ * which has suitable replacements for the following intX_T and uintX_t types.
+ * For example:
+ *     http://msinttypes.googlecode.com/svn/trunk/stdint.h
+ *     http://www.azillionmonkeys.com/qed/pstdint.h
  */
 
 #include <stdint.h>
