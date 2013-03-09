@@ -360,14 +360,18 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	if test x$enable_gcc_werror = "xyes" ; then
 		CFLAGS="-Wall -Wextra -Werror $CFLAGS"
 		CXXFLAGS="-Wall -Wextra -Werror $CXXFLAGS"
-	fi
+		fi
 
 	if test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = elf; then
 		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
 		CFLAGS="$CFLAGS -fvisibility=hidden"
 		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+		fi
+
+	if test "x$GCC_MAJOR_VERSION$GCC_MINOR_VERSION" = "x42" ; then
+		XIPH_ADD_CFLAGS([-fgnu89-inline])
+		fi
 	fi
-fi
 
 
 XIPH_ADD_CFLAGS([-Wextra])
