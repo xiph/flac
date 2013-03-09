@@ -37,7 +37,7 @@ last_size=$(wc -c < noisy-sine.wav)
 
 echo "Original file size ${last_size} bytes."
 
-for k in $(seq 1 8) ; do
+for k in 1 2 3 4 5 6 7 8 ; do
 	flac -${k} --silent noisy-sine.wav -o ${fname}
 	size=$(wc -c < ${fname})
 	echo "Compression level ${k}, file size ${size} bytes."
