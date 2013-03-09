@@ -374,8 +374,8 @@ XIPH_ADD_CFLAGS([-Wextra])
 XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
 
 case "$host_os" in
-	mingw32msvc | mingw32)
-		# Disable for MinGW. Had reports of it not working.
+	mingw32msvc | mingw32 | freebsd* )
+		# Stack protector not working on these platforms 2013/03/09.
 		;;
 	*)
 		XIPH_ADD_CFLAGS([-fstack-protector --param ssp-buffer-size=4])
