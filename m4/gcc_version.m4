@@ -20,8 +20,8 @@ if test "x$ac_cv_c_compiler_gnu" = "xyes" ; then
 	AC_MSG_RESULT($GCC_VERSION)
 
 	changequote(,)dnl
-	GCC_MINOR_VERSION=`echo $GCC_VERSION | sed "s/^[0-9]\+\.//" | sed "s/\..*//"`
 	GCC_MAJOR_VERSION=`echo $GCC_VERSION | sed "s/\..*//"`
+	GCC_MINOR_VERSION=`echo $GCC_VERSION | sed "s/$GCC_MAJOR_VERSION\.//" | sed "s/\..*//"`
 	changequote([,])dnl
 	fi
 
