@@ -645,7 +645,7 @@
 					<span class="argument">--ignore-chunk-sizes</span>
 				</td>
 				<td>
-					When encoding to flac, ignore the file size headers in WAV and AIFF files to attempt to work around problems with over-sized or malformed files.<br />
+					When encoding to <span class="commandname">flac</span>, ignore the file size headers in WAV and AIFF files to attempt to work around problems with over-sized or malformed files.<br />
 					<br />
 					WAV and AIFF files both have an unsigned 32 bit numbers in the file header which specifes the length of audio data. Since this number is unsigned 32 bits, that limits the size of a valid file to being just over 4 Gigabytes. Files larger than this are mal-formed, but should be read correctly using this option. <br />
 					<br />
@@ -1021,6 +1021,7 @@
 					<span class="argument">--no-delete-input-file</span><br />
 					<span class="argument">--no-escape-coding</span><br />
 					<span class="argument">--no-exhaustive-model-search</span><br />
+					<span class="argument">--no-ignore-chunk-sizes</span><br />
 					<span class="argument">--no-lax</span><br />
 					<span class="argument">--no-mid-side</span><br />
 					<span class="argument">--no-ogg</span><br />
@@ -1029,7 +1030,6 @@
 					<span class="argument">--no-residual-gnuplot</span><br />
 					<span class="argument">--no-residual-text</span><br />
 					<span class="argument">--no-sector-align</span><br />
-					<span class="argument">--no-ignore-chunk-sizes</span><br />
 					<span class="argument">--no-seektable</span><br />
 					<span class="argument">--no-silent</span><br />
 					<span class="argument">--no-verify</span>
@@ -1098,6 +1098,7 @@
 		<a href="#flac_options_explain"><span class="argument">-H</span></a><br />
 		<a href="#flac_options_help"><span class="argument">-h</span></a><br />
 		<a href="#flac_options_help"><span class="argument">--help</span></a><br />
+		<a href="#flac_options_ignore_chunk_sizes"><span class="argument">--ignore-chunk-sizes</span></a><br />
 		<a href="#flac_options_input_size"><span class="argument">--input-size</span></a><br />
 		<a href="#flac_options_keep_foreign_metadata"><span class="argument">--keep-foreign-metadata</span></a><br />
 		<a href="#flac_options_max_lpc_order"><span class="argument">-l</span></a><br />
@@ -1146,7 +1147,6 @@
 		<a href="#flac_options_silent"><span class="argument">-s</span></a><br />
 		<a href="#flac_options_sample_rate"><span class="argument">--sample-rate</span></a><br />
 		<a href="#flac_options_sector_align"><span class="argument">--sector-align</span></a><br />
-		<a href="#flac_options_ignore_chunk_sizes"><span class="argument">--ignore-chunk-sizes</span></a><br />
 		<a href="#flac_options_seekpoint"><span class="argument">--seekpoint</span></a><br />
 		<a href="#flac_options_serial_number"><span class="argument">--serial-number</span></a><br />
 		<a href="#flac_options_sign"><span class="argument">--sign</span></a><br />
