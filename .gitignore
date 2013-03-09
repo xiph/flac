@@ -1,6 +1,7 @@
 *.a
 *.la
 *.lo
+*.o
 *.so
 *.dll
 *.dylib
@@ -22,6 +23,7 @@ config.status
 config.sub
 configure
 depcomp
+doc/Doxyfile
 doc/FLAC.tag
 doc/html/api/
 examples/c/decode/file/example_c_decode_file
@@ -38,6 +40,7 @@ m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
 missing
+obj
 src/flac/flac
 src/libFLAC++/flac++.pc
 src/libFLAC/flac.pc
