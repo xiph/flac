@@ -40,8 +40,6 @@
 #include <sys/types.h> /* for off_t */
 #include "FLAC/assert.h"
 #include "FLAC/stream_decoder.h"
-#include "share/alloc.h"
-#include "share/compat.h"
 #include "protected/stream_encoder.h"
 #include "private/bitwriter.h"
 #include "private/bitmath.h"
@@ -59,6 +57,9 @@
 #endif
 #include "private/stream_encoder_framing.h"
 #include "private/window.h"
+#include "share/alloc.h"
+#include "share/compat.h"
+#include "share/private.h"
 
 
 /* Exact Rice codeword length calculation is off by default.  The simple

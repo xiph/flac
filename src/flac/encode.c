@@ -31,6 +31,7 @@
 #include "share/alloc.h"
 #include "share/grabbag.h"
 #include "share/compat.h"
+#include "share/private.h"
 #include "encode.h"
 
 #ifdef min
@@ -119,14 +120,6 @@ static FLAC__int16 *ssbuffer_ = (FLAC__int16 *)ucbuffer_;
 static FLAC__int32 in_[FLAC__MAX_CHANNELS][CHUNK_OF_SAMPLES];
 static FLAC__int32 *input_[FLAC__MAX_CHANNELS];
 
-
-/*
- * unpublished debug routines from the FLAC libs
- */
-extern FLAC__bool FLAC__stream_encoder_disable_constant_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
-extern FLAC__bool FLAC__stream_encoder_disable_fixed_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
-extern FLAC__bool FLAC__stream_encoder_disable_verbatim_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value);
-extern FLAC__bool FLAC__stream_encoder_set_do_md5(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
 /*
  * local routines
