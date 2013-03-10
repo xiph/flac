@@ -55,6 +55,12 @@
 #ifndef ftello
 #define ftello ftell
 #endif
+#else
+/* MinGW */
+#if !defined(HAVE_FSEEKO)
+#  define fseeko fseeko64
+#  define ftello ftello64
+#endif
 #endif
 #endif
 
