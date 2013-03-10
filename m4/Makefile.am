@@ -16,5 +16,10 @@
 #  distribution.
 
 EXTRA_DIST = \
+	add_cflags.m4 \
+	add_cxxflags.m4 \
+	bswap.m4 \
+	endian.m4 \
+	gcc_version.m4 \
 	ogg.m4 \
 	xmms.m4
