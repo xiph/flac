@@ -39,9 +39,7 @@ AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 EXTRA_DIST = \
 	Makefile.lite \
 	flac++.pc.in \
-	libFLAC++_dynamic.dsp \
 	libFLAC++_dynamic.vcproj \
-	libFLAC++_static.dsp \
 	libFLAC++_static.vcproj \
 	libFLAC++.m4
 

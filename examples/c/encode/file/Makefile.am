@@ -17,8 +17,8 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	example_c_encode_file.dsp \
 	example_c_encode_file.vcproj
+
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 noinst_PROGRAMS = example_c_encode_file
 example_c_encode_file_LDADD = \

@@ -13,7 +13,6 @@ EXTRA_DIST = \
 	charset_test.c \
 	charsetmap.h \
 	iconvert.h \
-	utf8_static.dsp \
 	utf8_static.vcproj
 
 debug:

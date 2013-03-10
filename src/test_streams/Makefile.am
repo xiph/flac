@@ -17,10 +17,11 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_streams.dsp \
 	test_streams.vcproj
+
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 noinst_PROGRAMS = test_streams
 test_streams_SOURCES = \
 	main.c
+
 test_streams_LDADD = -lm

@@ -17,12 +17,13 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_picture.dsp \
 	test_picture.vcproj
+
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 noinst_PROGRAMS = test_picture
 test_picture_SOURCES = \
 	main.c
+
 test_picture_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \

@@ -17,7 +17,6 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_libFLAC.dsp \
 	test_libFLAC.vcproj
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include

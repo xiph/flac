@@ -22,10 +22,8 @@ AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.lite.iffscan \
-	flac.dsp \
 	flac.vcproj \
 	iffscan.c \
-	iffscan.dsp \
 	iffscan.vcproj
 
 flac_SOURCES = \

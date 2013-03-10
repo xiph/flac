@@ -37,12 +37,8 @@ EXTRA_DIST = \
 	COPYING.GPL \
 	COPYING.LGPL \
 	COPYING.Xiph \
-	FLAC.dsw \
 	FLAC.sln \
 	Makefile.lite \
-	all.dsp \
-	all_dynamic.dsp \
-	all_static.dsp \
 	autogen.sh \
 	config.rpath \
 	depcomp \

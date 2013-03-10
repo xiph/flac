@@ -8,7 +8,6 @@ libreplaygain_analysis_la_SOURCES = replaygain_analysis.c
 
 EXTRA_DIST = \
 	Makefile.lite \
-	replaygain_analysis_static.dsp \
 	replaygain_analysis_static.vcproj
 
 debug:

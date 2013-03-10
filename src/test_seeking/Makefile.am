@@ -17,7 +17,6 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_seeking.dsp \
 	test_seeking.vcproj
 
 AM_CFLAGS = @OGG_CFLAGS@

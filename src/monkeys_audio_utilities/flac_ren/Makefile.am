@@ -16,6 +16,5 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 EXTRA_DIST = \
-	flac_ren.dsp \
 	flac_ren.vcproj \
 	main.c
