@@ -739,12 +739,12 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #if FLAC__HAS_OGG
 	/* reorder metadata if necessary to ensure that any VORBIS_COMMENT is the first, according to the mapping spec */
 	if(is_ogg && 0 != encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 1) {
-		unsigned i;
-		for(i = 1; i < encoder->protected_->num_metadata_blocks; i++) {
-			if(0 != encoder->protected_->metadata[i] && encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
-				FLAC__StreamMetadata *vc = encoder->protected_->metadata[i];
-				for( ; i > 0; i--)
-					encoder->protected_->metadata[i] = encoder->protected_->metadata[i-1];
+		unsigned i1;
+		for(i1 = 1; i1 < encoder->protected_->num_metadata_blocks; i1++) {
+			if(0 != encoder->protected_->metadata[i1] && encoder->protected_->metadata[i1]->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+				FLAC__StreamMetadata *vc = encoder->protected_->metadata[i1];
+				for( ; i1 > 0; i1--)
+					encoder->protected_->metadata[i1] = encoder->protected_->metadata[i1-1];
 				encoder->protected_->metadata[0] = vc;
 				break;
 			}
@@ -753,10 +753,10 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #endif
 	/* keep track of any SEEKTABLE block */
 	if(0 != encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 0) {
-		unsigned i;
-		for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
-			if(0 != encoder->protected_->metadata[i] && encoder->protected_->metadata[i]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
-				encoder->private_->seek_table = &encoder->protected_->metadata[i]->data.seek_table;
+		unsigned i2;
+		for(i2 = 0; i2 < encoder->protected_->num_metadata_blocks; i2++) {
+			if(0 != encoder->protected_->metadata[i2] && encoder->protected_->metadata[i2]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+				encoder->private_->seek_table = &encoder->protected_->metadata[i2]->data.seek_table;
 				break; /* take only the first one */
 			}
 		}

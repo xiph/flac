@@ -718,7 +718,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 
 	printf("testing finish()... ");
 	if(!decoder->finish()) {
-		FLAC::Decoder::Stream::State state = decoder->get_state();
+		state = decoder->get_state();
 		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
 		return false;
 	}

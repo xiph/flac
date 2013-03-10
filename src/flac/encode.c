@@ -1725,7 +1725,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__StreamMetadata padding;
 	FLAC__StreamMetadata **metadata = 0;
 	static_metadata_t static_metadata;
-	unsigned num_metadata = 0, i;
+	unsigned num_metadata = 0, ic;
 	FLAC__StreamEncoderInitStatus init_status;
 	const FLAC__bool is_cdda = (channels == 1 || channels == 2) && (bps == 16) && (sample_rate == 44100);
 	char apodizations[2000];
@@ -1771,6 +1771,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		 * metadata as the basis for the encoded file
 		 */
 		{
+			unsigned i;
 			/*
 			 * first handle pictures: simple append any --pictures
 			 * specified.
@@ -1992,6 +1993,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		 * from scratch
 		 */
 		const foreign_metadata_t *foreign_metadata = EncoderSession_format_is_iff(e)? options.format_options.iff.foreign_metadata : 0;
+		unsigned i;
 
 		if(e->seek_table_template->data.seek_table.num_points > 0) {
 			e->seek_table_template->is_last = false; /* the encoder will set this for us */
@@ -2046,55 +2048,55 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__stream_encoder_set_channels(e->encoder, channels);
 	FLAC__stream_encoder_set_bits_per_sample(e->encoder, bps);
 	FLAC__stream_encoder_set_sample_rate(e->encoder, sample_rate);
-	for(i = 0; i < options.num_compression_settings; i++) {
-		switch(options.compression_settings[i].type) {
+	for(ic = 0; ic < options.num_compression_settings; ic++) {
+		switch(options.compression_settings[ic].type) {
 			case CST_BLOCKSIZE:
-				FLAC__stream_encoder_set_blocksize(e->encoder, options.compression_settings[i].value.t_unsigned);
+				FLAC__stream_encoder_set_blocksize(e->encoder, options.compression_settings[ic].value.t_unsigned);
 				break;
 			case CST_COMPRESSION_LEVEL:
-				FLAC__stream_encoder_set_compression_level(e->encoder, options.compression_settings[i].value.t_unsigned);
+				FLAC__stream_encoder_set_compression_level(e->encoder, options.compression_settings[ic].value.t_unsigned);
 				apodizations[0] = '\0';
 				break;
 			case CST_DO_MID_SIDE:
-				FLAC__stream_encoder_set_do_mid_side_stereo(e->encoder, options.compression_settings[i].value.t_bool);
+				FLAC__stream_encoder_set_do_mid_side_stereo(e->encoder, options.compression_settings[ic].value.t_bool);
 				break;
 			case CST_LOOSE_MID_SIDE:
-				FLAC__stream_encoder_set_loose_mid_side_stereo(e->encoder, options.compression_settings[i].value.t_bool);
+				FLAC__stream_encoder_set_loose_mid_side_stereo(e->encoder, options.compression_settings[ic].value.t_bool);
 				break;
 			case CST_APODIZATION:
-				if(strlen(apodizations)+strlen(options.compression_settings[i].value.t_string)+2 >= sizeof(apodizations)) {
+				if(strlen(apodizations)+strlen(options.compression_settings[ic].value.t_string)+2 >= sizeof(apodizations)) {
 					flac__utils_printf(stderr, 1, "%s: ERROR: too many apodization functions requested\n", e->inbasefilename);
 					static_metadata_clear(&static_metadata);
 					return false;
 				}
 				else {
-					strcat(apodizations, options.compression_settings[i].value.t_string);
+					strcat(apodizations, options.compression_settings[ic].value.t_string);
 					strcat(apodizations, ";");
 				}
 				break;
 			case CST_MAX_LPC_ORDER:
-				FLAC__stream_encoder_set_max_lpc_order(e->encoder, options.compression_settings[i].value.t_unsigned);
+				FLAC__stream_encoder_set_max_lpc_order(e->encoder, options.compression_settings[ic].value.t_unsigned);
 				break;
 			case CST_QLP_COEFF_PRECISION:
-				FLAC__stream_encoder_set_qlp_coeff_precision(e->encoder, options.compression_settings[i].value.t_unsigned);
+				FLAC__stream_encoder_set_qlp_coeff_precision(e->encoder, options.compression_settings[ic].value.t_unsigned);
 				break;
 			case CST_DO_QLP_COEFF_PREC_SEARCH:
-				FLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder, options.compression_settings[i].value.t_bool);
+				FLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder, options.compression_settings[ic].value.t_bool);
 				break;
 			case CST_DO_ESCAPE_CODING:
-				FLAC__stream_encoder_set_do_escape_coding(e->encoder, options.compression_settings[i].value.t_bool);
+				FLAC__stream_encoder_set_do_escape_coding(e->encoder, options.compression_settings[ic].value.t_bool);
 				break;
 			case CST_DO_EXHAUSTIVE_MODEL_SEARCH:
-				FLAC__stream_encoder_set_do_exhaustive_model_search(e->encoder, options.compression_settings[i].value.t_bool);
+				FLAC__stream_encoder_set_do_exhaustive_model_search(e->encoder, options.compression_settings[ic].value.t_bool);
 				break;
 			case CST_MIN_RESIDUAL_PARTITION_ORDER:
-				FLAC__stream_encoder_set_min_residual_partition_order(e->encoder, options.compression_settings[i].value.t_unsigned);
+				FLAC__stream_encoder_set_min_residual_partition_order(e->encoder, options.compression_settings[ic].value.t_unsigned);
 				break;
 			case CST_MAX_RESIDUAL_PARTITION_ORDER:
-				FLAC__stream_encoder_set_max_residual_partition_order(e->encoder, options.compression_settings[i].value.t_unsigned);
+				FLAC__stream_encoder_set_max_residual_partition_order(e->encoder, options.compression_settings[ic].value.t_unsigned);
 				break;
 			case CST_RICE_PARAMETER_SEARCH_DIST:
-				FLAC__stream_encoder_set_rice_parameter_search_dist(e->encoder, options.compression_settings[i].value.t_unsigned);
+				FLAC__stream_encoder_set_rice_parameter_search_dist(e->encoder, options.compression_settings[ic].value.t_unsigned);
 				break;
 		}
 	}

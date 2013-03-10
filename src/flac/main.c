@@ -646,8 +646,6 @@ int parse_options(int argc, char *argv[])
 int parse_option(int short_option, const char *long_option, const char *option_argument)
 {
 	const char *violation;
-	char *p;
-	int i;
 
 	if(short_option == 0) {
 		FLAC__ASSERT(0 != long_option);
@@ -679,12 +677,12 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			FLAC__ASSERT(0 != option_argument);
 			{
 				char *end;
-				FLAC__int64 i;
-				i = strtoll(option_argument, &end, 10);
+				FLAC__int64 ix;
+				ix = strtoll(option_argument, &end, 10);
 				if(0 == strlen(option_argument) || *end)
 					return usage_error("ERROR: --%s must be a number\n", long_option);
-				option_values.format_input_size = (off_t)i;
-				if(option_values.format_input_size != i) /* check if off_t is smaller than long long */
+				option_values.format_input_size = (off_t)ix;
+				if(option_values.format_input_size != ix) /* check if off_t is smaller than long long */
 					return usage_error("ERROR: --%s too large; this build of flac does not support filesizes over 2GB\n", long_option);
 				if(option_values.format_input_size <= 0)
 					return usage_error("ERROR: --%s must be > 0\n", long_option);
@@ -991,11 +989,14 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 					return usage_error("ERROR: argument to -%c must be >= 0; for no padding use -%c-\n", short_option, short_option);
 				break;
 			case 'b':
-				FLAC__ASSERT(0 != option_argument);
-				i = atoi(option_argument);
-				if((i < (int)FLAC__MIN_BLOCK_SIZE || i > (int)FLAC__MAX_BLOCK_SIZE))
-					return usage_error("ERROR: invalid blocksize (-%c) '%d', must be >= %u and <= %u\n", short_option, i, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
-				add_compression_setting_unsigned(CST_BLOCKSIZE, (unsigned)i);
+				{
+					unsigned i ;
+					FLAC__ASSERT(0 != option_argument);
+					i = atoi(option_argument);
+					if((i < (int)FLAC__MIN_BLOCK_SIZE || i > (int)FLAC__MAX_BLOCK_SIZE))
+						return usage_error("ERROR: invalid blocksize (-%c) '%d', must be >= %u and <= %u\n", short_option, i, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
+					add_compression_setting_unsigned(CST_BLOCKSIZE, (unsigned)i);
+				}
 				break;
 			case 'e':
 				add_compression_setting_bool(CST_DO_EXHAUSTIVE_MODEL_SEARCH, true);
@@ -1004,11 +1005,14 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				add_compression_setting_bool(CST_DO_ESCAPE_CODING, true);
 				break;
 			case 'l':
-				FLAC__ASSERT(0 != option_argument);
-				i = atoi(option_argument);
-				if((i < 0 || i > (int)FLAC__MAX_LPC_ORDER))
-					return usage_error("ERROR: invalid LPC order (-%c) '%d', must be >= %u and <= %u\n", short_option, i, 0, FLAC__MAX_LPC_ORDER);
-				add_compression_setting_unsigned(CST_MAX_LPC_ORDER, (unsigned)i);
+				{
+					unsigned i ;
+					FLAC__ASSERT(0 != option_argument);
+					i = atoi(option_argument);
+					if(i > FLAC__MAX_LPC_ORDER)
+						return usage_error("ERROR: invalid LPC order (-%c) '%d', must be >= %u and <= %u\n", short_option, i, 0, FLAC__MAX_LPC_ORDER);
+					add_compression_setting_unsigned(CST_MAX_LPC_ORDER, i);
+				}
 				break;
 			case 'A':
 				FLAC__ASSERT(0 != option_argument);
@@ -1026,38 +1030,46 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				add_compression_setting_bool(CST_DO_QLP_COEFF_PREC_SEARCH, true);
 				break;
 			case 'q':
-				FLAC__ASSERT(0 != option_argument);
-				i = atoi(option_argument);
-				if(i < 0 || (i > 0 && (i < (int)FLAC__MIN_QLP_COEFF_PRECISION || i > (int)FLAC__MAX_QLP_COEFF_PRECISION)))
-					return usage_error("ERROR: invalid value '%d' for qlp coeff precision (-%c), must be 0 or between %u and %u, inclusive\n", i, short_option, FLAC__MIN_QLP_COEFF_PRECISION, FLAC__MAX_QLP_COEFF_PRECISION);
-				add_compression_setting_unsigned(CST_QLP_COEFF_PRECISION, (unsigned)i);
+				{
+					unsigned i ;
+					FLAC__ASSERT(0 != option_argument);
+					i = atoi(option_argument);
+					if((i > 0 && (i < FLAC__MIN_QLP_COEFF_PRECISION || i > FLAC__MAX_QLP_COEFF_PRECISION)))
+						return usage_error("ERROR: invalid value '%d' for qlp coeff precision (-%c), must be 0 or between %u and %u, inclusive\n", i, short_option, FLAC__MIN_QLP_COEFF_PRECISION, FLAC__MAX_QLP_COEFF_PRECISION);
+					add_compression_setting_unsigned(CST_QLP_COEFF_PRECISION, i);
+				}
 				break;
 			case 'r':
-				FLAC__ASSERT(0 != option_argument);
-				p = strchr(option_argument, ',');
-				if(0 == p) {
-					add_compression_setting_unsigned(CST_MIN_RESIDUAL_PARTITION_ORDER, 0);
-					i = atoi(option_argument);
-					if(i < 0)
-						return usage_error("ERROR: invalid value '%d' for residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
-					add_compression_setting_unsigned(CST_MAX_RESIDUAL_PARTITION_ORDER, (unsigned)i);
-				}
-				else {
-					i = atoi(option_argument);
-					if(i < 0)
-						return usage_error("ERROR: invalid value '%d' for min residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
-					add_compression_setting_unsigned(CST_MIN_RESIDUAL_PARTITION_ORDER, (unsigned)i);
-					i = atoi(++p);
-					if(i < 0)
-						return usage_error("ERROR: invalid value '%d' for max residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
-					add_compression_setting_unsigned(CST_MAX_RESIDUAL_PARTITION_ORDER, (unsigned)i);
+				{
+					unsigned i;
+					char * p;
+					FLAC__ASSERT(0 != option_argument);
+					p = strchr(option_argument, ',');
+					if(0 == p) {
+						add_compression_setting_unsigned(CST_MIN_RESIDUAL_PARTITION_ORDER, 0);
+						i = atoi(option_argument);
+						if(i > FLAC__MAX_RICE_PARTITION_ORDER)
+							return usage_error("ERROR: invalid value '%d' for residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
+						add_compression_setting_unsigned(CST_MAX_RESIDUAL_PARTITION_ORDER, i);
+					}
+					else {
+						i = atoi(option_argument);
+						if(i > FLAC__MAX_RICE_PARTITION_ORDER)
+							return usage_error("ERROR: invalid value '%d' for min residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
+						add_compression_setting_unsigned(CST_MIN_RESIDUAL_PARTITION_ORDER, i);
+						i = atoi(++p);
+						if(i > FLAC__MAX_RICE_PARTITION_ORDER)
+							return usage_error("ERROR: invalid value '%d' for max residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
+						add_compression_setting_unsigned(CST_MAX_RESIDUAL_PARTITION_ORDER, i);
+					}
 				}
 				break;
 			case 'R':
-				i = atoi(option_argument);
-				if(i < 0)
-					return usage_error("ERROR: invalid value '%d' for Rice parameter search distance (-%c), must be >= 0\n", i, short_option);
-				add_compression_setting_unsigned(CST_RICE_PARAMETER_SEARCH_DIST, (unsigned)i);
+				{
+					unsigned i;
+					i = atoi(option_argument);
+					add_compression_setting_unsigned(CST_RICE_PARAMETER_SEARCH_DIST, i);
+				}
 				break;
 			default:
 				FLAC__ASSERT(0);

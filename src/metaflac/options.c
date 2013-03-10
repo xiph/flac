@@ -581,7 +581,7 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		}
 	}
 	else if(0 == strcmp(opt, "export-picture-to")) {
-		const Argument *arg = find_argument(options, ARG__BLOCK_NUMBER);
+		arg = find_argument(options, ARG__BLOCK_NUMBER);
 		op = append_shorthand_operation(options, OP__EXPORT_PICTURE_TO);
 		FLAC__ASSERT(0 != option_argument);
 		if(!parse_string(option_argument, &(op->argument.export_picture_to.filename))) {

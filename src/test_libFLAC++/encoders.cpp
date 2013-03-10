@@ -503,7 +503,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 
 	printf("testing finish()... ");
 	if(!encoder->finish()) {
-		FLAC::Encoder::Stream::State state = encoder->get_state();
+		state = encoder->get_state();
 		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamEncoderState)state), state.as_cstring());
 		return false;
 	}
