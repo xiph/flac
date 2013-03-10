@@ -357,9 +357,13 @@ fi
 XIPH_GCC_VERSION
 
 if test x$ac_cv_c_compiler_gnu = xyes ; then
+	CFLAGS="$CFLAGS -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Winline -Wconversion
+	CXXFLAGS="$CXXFLAGS -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
+
+
 	if test x$enable_gcc_werror = "xyes" ; then
-		CFLAGS="-Wall -Wextra -Werror $CFLAGS"
-		CXXFLAGS="-Wall -Wextra -Werror $CXXFLAGS"
+		CFLAGS="$CFLAGS -Wall -Wextra -Werror "
+		CXXFLAGS="$CXXFLAGS -Wall -Wextra -Werror "
 		fi
 
 	if test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = elf; then
@@ -375,6 +379,7 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 
 
 XIPH_ADD_CFLAGS([-Wextra])
+XIPH_ADD_CFLAGS([-Wdeclaration-after-statement])
 XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
 
 case "$host_os" in
