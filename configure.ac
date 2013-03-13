@@ -234,7 +234,10 @@ fi
 AC_SUBST(FLAC__TEST_LEVEL)
 
 AC_ARG_ENABLE(gcc-werror,
-	AC_HELP_STRING([--enable-gcc-werror], [enable -Werror in all Makefiles]))
+	AC_HELP_STRING([--enable-gcc-werror], [Enable -Werror in all Makefiles]))
+
+AC_ARG_ENABLE(stack-smash-protection,
+	AC_HELP_STRING([--enable-stack-smash-protection], [Enable GNU GCC stack smash protection]))
 
 AC_ARG_ENABLE(valgrind-testing,
 AC_HELP_STRING([--enable-valgrind-testing], [Run all tests inside Valgrind]),
@@ -382,14 +385,10 @@ XIPH_ADD_CFLAGS([-Wextra])
 XIPH_ADD_CFLAGS([-Wdeclaration-after-statement])
 XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
 
-case "$host_os" in
-	mingw32msvc | mingw32 | freebsd* )
-		# Stack protector not working on these platforms 2013/03/09.
-		;;
-	*)
-		XIPH_ADD_CFLAGS([-fstack-protector --param ssp-buffer-size=4])
-		;;
-	esac
+if test x$enable_stack_smash_protection = "xyes" ; then
+	XIPH_GCC_STACK_PROTECTOR
+	XIPH_GXX_STACK_PROTECTOR
+	fi
 
 #@@@
 AM_CONDITIONAL(FLaC__HAS_AS__TEMPORARILY_DISABLED, test "yes" = "no")
