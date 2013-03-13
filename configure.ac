@@ -40,6 +40,7 @@ AC_PROG_MAKE_SET
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
+AC_CHECK_SIZEOF(off_t,1)	# Fake default value.
 AC_CHECK_SIZEOF([void*])
 AC_SEARCH_LIBS([lround],[m], [AC_DEFINE(HAVE_LROUND,1,lround support)])
 
