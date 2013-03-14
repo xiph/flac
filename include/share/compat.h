@@ -52,6 +52,11 @@
 #if !defined __MINGW32__
 #define fseeko _fseeki64
 #define ftello _ftelli64
+#else /* MinGW */
+#if !defined(HAVE_FSEEKO)
+#define fseeko fseeko64
+#define ftello ftello64
+#endif
 #endif
 #else
 #define FLAC__off_t off_t
