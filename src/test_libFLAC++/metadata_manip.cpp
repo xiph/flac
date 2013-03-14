@@ -295,7 +295,7 @@ static size_t chain_write_cb_(const void *ptr, size_t size, size_t nmemb, ::FLAC
 
 static int chain_seek_cb_(::FLAC__IOHandle handle, FLAC__int64 offset, int whence)
 {
-	off_t o = (off_t)offset;
+	FLAC__off_t o = (FLAC__off_t)offset;
 	FLAC__ASSERT(offset == o);
 	return fseeko((FILE*)handle, o, whence);
 }

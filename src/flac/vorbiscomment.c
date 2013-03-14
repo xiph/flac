@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "share/compat.h"
 
 
 /*
@@ -113,7 +114,7 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 		/* read the file into 'data' */
 		FILE *f = 0;
 		char *data = 0;
-		const off_t size = grabbag__file_get_filesize(field->field_value);
+		const FLAC__off_t size = grabbag__file_get_filesize(field->field_value);
 		if(size < 0) {
 			*violation = "can't open file for tag value";
 			return false;

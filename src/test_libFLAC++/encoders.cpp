@@ -28,6 +28,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "share/compat.h"
 
 typedef enum {
 	LAYER_STREAM = 0, /* FLAC__stream_encoder_init_stream() without seeking */
@@ -131,7 +132,7 @@ public:
 {
 	if(layer_==LAYER_STREAM)
 		return ::FLAC__STREAM_ENCODER_SEEK_STATUS_UNSUPPORTED;
-	else if(fseek(file_, (long)absolute_byte_offset, SEEK_SET) < 0)
+	else if(fseeko(file_, (FLAC__off_t)absolute_byte_offset, SEEK_SET) < 0)
 		return FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR;
 	else
 		return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
@@ -139,10 +140,10 @@ public:
 
 ::FLAC__StreamEncoderTellStatus StreamEncoder::tell_callback(FLAC__uint64 *absolute_byte_offset)
 {
-	long pos;
+	FLAC__off_t pos;
 	if(layer_==LAYER_STREAM)
 		return ::FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED;
-	else if((pos = ftell(file_)) < 0)
+	else if((pos = ftello(file_)) < 0)
 		return FLAC__STREAM_ENCODER_TELL_STATUS_ERROR;
 	else {
 		*absolute_byte_offset = (FLAC__uint64)pos;
@@ -478,11 +479,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 
 	printf("testing get_total_samples_estimate()... ");
 	if(encoder->get_total_samples_estimate() != streaminfo_.data.stream_info.total_samples) {
-#ifdef _MSC_VER
-		printf("FAILED, expected %I64u, got %I64u\n", streaminfo_.data.stream_info.total_samples, encoder->get_total_samples_estimate());
-#else
-		printf("FAILED, expected %llu, got %llu\n", (unsigned long long)streaminfo_.data.stream_info.total_samples, (unsigned long long)encoder->get_total_samples_estimate());
-#endif
+		printf("FAILED, expected %" PRIu64 ", got %" PRIu64 "\n", streaminfo_.data.stream_info.total_samples, encoder->get_total_samples_estimate());
 		return false;
 	}
 	printf("OK\n");

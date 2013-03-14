@@ -57,7 +57,7 @@ static const char * const LayerString[] = {
 static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, picture_, unknown_;
 static ::FLAC__StreamMetadata *expected_metadata_sequence_[9];
 static unsigned num_expected_;
-static off_t flacfilesize_;
+static FLAC__off_t flacfilesize_;
 
 static const char *flacfilename(bool is_ogg)
 {
@@ -229,7 +229,7 @@ public:
 	if(error_occurred_)
 		return ::FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 
-	if(fseeko(file_, (off_t)absolute_byte_offset, SEEK_SET) < 0) {
+	if(fseeko(file_, (FLAC__off_t)absolute_byte_offset, SEEK_SET) < 0) {
 		error_occurred_ = true;
 		return ::FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 	}
@@ -245,7 +245,7 @@ public:
 	if(error_occurred_)
 		return ::FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
 
-	off_t offset = ftello(file_);
+	FLAC__off_t offset = ftello(file_);
 	*absolute_byte_offset = (FLAC__uint64)offset;
 
 	if(offset < 0) {

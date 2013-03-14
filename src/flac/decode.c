@@ -87,7 +87,7 @@ typedef struct {
 	FILE *fout;
 
 	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
-	off_t fm_offset1, fm_offset2, fm_offset3;
+	FLAC__off_t fm_offset1, fm_offset2, fm_offset3;
 } DecoderSession;
 
 

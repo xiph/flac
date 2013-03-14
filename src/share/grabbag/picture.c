@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "share/compat.h"
 
 /* slightly different that strndup(): this always copies 'size' bytes starting from s into a NUL-terminated string. */
 static char *local__strndup_(const char *s, size_t size)
@@ -356,7 +357,7 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 					*error_message = error_messages[3];
 			}
 			else { /* regular picture file */
-				const off_t size = grabbag__file_get_filesize(spec);
+				const FLAC__off_t size = grabbag__file_get_filesize(spec);
 				if(size < 0)
 					*error_message = error_messages[5];
 				else {

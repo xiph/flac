@@ -57,7 +57,7 @@ typedef struct {
 static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, picture_, unknown_;
 static FLAC__StreamMetadata *expected_metadata_sequence_[9];
 static unsigned num_expected_;
-static off_t flacfilesize_;
+static FLAC__off_t flacfilesize_;
 
 static const char *flacfilename(FLAC__bool is_ogg)
 {
@@ -164,7 +164,7 @@ static FLAC__StreamDecoderSeekStatus stream_decoder_seek_callback_(const FLAC__S
 	if(dcd->error_occurred)
 		return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 
-	if(fseeko(dcd->file, (off_t)absolute_byte_offset, SEEK_SET) < 0) {
+	if(fseeko(dcd->file, (FLAC__off_t)absolute_byte_offset, SEEK_SET) < 0) {
 		dcd->error_occurred = true;
 		return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 	}
@@ -175,7 +175,7 @@ static FLAC__StreamDecoderSeekStatus stream_decoder_seek_callback_(const FLAC__S
 static FLAC__StreamDecoderTellStatus stream_decoder_tell_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
 {
 	StreamDecoderClientData *dcd = (StreamDecoderClientData*)client_data;
-	off_t offset;
+	FLAC__off_t offset;
 
 	(void)decoder;
 

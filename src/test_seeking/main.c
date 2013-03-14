@@ -91,11 +91,17 @@ static unsigned local_rand_(void)
 #undef RNDFUNC
 }
 
-static off_t get_filesize_(const char *srcpath)
+static FLAC__off_t get_filesize_(const char *srcpath)
 {
+#if defined _MSC_VER || defined __MINGW32__
+	struct _stat64 srcstat;
+
+	if(0 == _stat64(srcpath, &srcstat))
+#else
 	struct stat srcstat;
 
 	if(0 == stat(srcpath, &srcstat))
+#endif
 		return srcstat.st_size;
 	else
 		return -1;
@@ -106,7 +112,7 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 	FILE *f;
 	unsigned channels = 0, bps = 0, samples, i, j;
 
-	off_t rawfilesize = get_filesize_(rawfilename);
+	FLAC__off_t rawfilesize = get_filesize_(rawfilename);
 	if (rawfilesize < 0) {
 		fprintf(stderr, "ERROR: can't determine filesize for %s\n", rawfilename);
 		return false;
@@ -262,7 +268,7 @@ static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDeco
  * 1 - read 2 frames
  * 2 - read until end
  */
-static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, off_t filesize, unsigned count, FLAC__int64 total_samples, unsigned read_mode, FLAC__int32 **pcm)
+static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, FLAC__off_t filesize, unsigned count, FLAC__int64 total_samples, unsigned read_mode, FLAC__int32 **pcm)
 {
 	FLAC__StreamDecoder *decoder;
 	DecoderClientData decoder_client_data;
@@ -411,7 +417,7 @@ int main(int argc, char *argv[])
 	const char *flacfilename, *rawfilename = 0;
 	unsigned count = 0, read_mode;
 	FLAC__int64 samples = -1;
-	off_t flacfilesize;
+	FLAC__off_t flacfilesize;
 	FLAC__int32 *pcm[2] = { 0, 0 };
 	FLAC__bool ok = true;
 

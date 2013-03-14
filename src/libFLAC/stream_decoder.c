@@ -3319,7 +3319,7 @@ FLAC__StreamDecoderSeekStatus file_seek_callback_(const FLAC__StreamDecoder *dec
 
 	if(decoder->private_->file == stdin)
 		return FLAC__STREAM_DECODER_SEEK_STATUS_UNSUPPORTED;
-	else if(fseeko(decoder->private_->file, (off_t)absolute_byte_offset, SEEK_SET) < 0)
+	else if(fseeko(decoder->private_->file, (FLAC__off_t)absolute_byte_offset, SEEK_SET) < 0)
 		return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
 	else
 		return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
@@ -3327,7 +3327,7 @@ FLAC__StreamDecoderSeekStatus file_seek_callback_(const FLAC__StreamDecoder *dec
 
 FLAC__StreamDecoderTellStatus file_tell_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data)
 {
-	off_t pos;
+	FLAC__off_t pos;
 	(void)client_data;
 
 	if(decoder->private_->file == stdin)
@@ -3342,12 +3342,20 @@ FLAC__StreamDecoderTellStatus file_tell_callback_(const FLAC__StreamDecoder *dec
 
 FLAC__StreamDecoderLengthStatus file_length_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
 {
+#if defined _MSC_VER || defined __MINGW32__
+	struct _stat64 filestats;
+#else
 	struct stat filestats;
+#endif
 	(void)client_data;
 
 	if(decoder->private_->file == stdin)
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_UNSUPPORTED;
+#if defined _MSC_VER || defined __MINGW32__
+	else if(_fstat64(fileno(decoder->private_->file), &filestats) != 0)
+#else
 	else if(fstat(fileno(decoder->private_->file), &filestats) != 0)
+#endif
 		return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
 	else {
 		*stream_length = (FLAC__uint64)filestats.st_size;

@@ -31,13 +31,14 @@
 #include <sys/types.h> /* for off_t */
 #include <stdio.h> /* for FILE */
 #include "FLAC/ordinals.h"
+#include "share/compat.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void grabbag__file_copy_metadata(const char *srcpath, const char *destpath);
-off_t grabbag__file_get_filesize(const char *srcpath);
+FLAC__off_t grabbag__file_get_filesize(const char *srcpath);
 const char *grabbag__file_get_basename(const char *srcpath);
 
 /* read_only == false means "make file writable by user"

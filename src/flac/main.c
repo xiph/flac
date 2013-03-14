@@ -263,7 +263,7 @@ static struct {
 	int format_channels;
 	int format_bps;
 	int format_sample_rate;
-	off_t format_input_size;
+	FLAC__off_t format_input_size;
 	char requested_seek_points[5000]; /* bad MAGIC NUMBER but buffer overflow is checked */
 	int num_requested_seek_points; /* -1 => no -S options were given, 0 => -S- was given */
 	const char *cuesheet_filename;
@@ -580,7 +580,7 @@ FLAC__bool init_options(void)
 	option_values.format_channels = -1;
 	option_values.format_bps = -1;
 	option_values.format_sample_rate = -1;
-	option_values.format_input_size = (off_t)(-1);
+	option_values.format_input_size = (FLAC__off_t)(-1);
 	option_values.requested_seek_points[0] = '\0';
 	option_values.num_requested_seek_points = -1;
 	option_values.cuesheet_filename = 0;
@@ -681,8 +681,8 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				ix = strtoll(option_argument, &end, 10);
 				if(0 == strlen(option_argument) || *end)
 					return usage_error("ERROR: --%s must be a number\n", long_option);
-				option_values.format_input_size = (off_t)ix;
-				if(option_values.format_input_size != ix) /* check if off_t is smaller than long long */
+				option_values.format_input_size = (FLAC__off_t)ix;
+				if(option_values.format_input_size != ix) /* check if FLAC__off_t is smaller than long long */
 					return usage_error("ERROR: --%s too large; this build of flac does not support filesizes over 2GB\n", long_option);
 				if(option_values.format_input_size <= 0)
 					return usage_error("ERROR: --%s must be > 0\n", long_option);
@@ -1664,7 +1664,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	unsigned lookahead_length = 0;
 	FileFormat input_format = FORMAT_RAW;
 	int retval;
-	off_t infilesize;
+	FLAC__off_t infilesize;
 	encode_options_t encode_options;
 	const char *outfilename = get_encoded_outfilename(infilename); /* the final name of the encoded file */
 	/* internal_outfilename is the file we will actually write to; it will be a temporary name if infilename==outfilename */
@@ -1676,7 +1676,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 
 	if(0 == strcmp(infilename, "-")) {
-		infilesize = (off_t)(-1);
+		infilesize = (FLAC__off_t)(-1);
 		encode_infile = grabbag__file_get_binary_stdin();
 	}
 	else {
@@ -1770,7 +1770,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	 * Error if output file already exists (and -f not used).
 	 * Use grabbag__file_get_filesize() as a cheap way to check.
 	 */
-	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
+	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (FLAC__off_t)(-1)) {
 		if(input_format == FORMAT_FLAC) {
 			/* need more detailed error message when re-flac'ing to avoid confusing the user */
 			flac__utils_printf(stderr, 1,
@@ -2014,7 +2014,7 @@ int decode_file(const char *infilename)
 	 * Error if output file already exists (and -f not used).
 	 * Use grabbag__file_get_filesize() as a cheap way to check.
 	 */
-	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (off_t)(-1)) {
+	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (FLAC__off_t)(-1)) {
 		flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
 		return 1;
 	}

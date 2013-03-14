@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "operations_shorthand.h"
+#include "share/compat.h"
 
 static FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *block, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_field(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
@@ -188,7 +189,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 		/* read the file into 'data' */
 		FILE *f = 0;
 		char *data = 0;
-		const off_t size = grabbag__file_get_filesize(field->field_value);
+		const FLAC__off_t size = grabbag__file_get_filesize(field->field_value);
 		if(size < 0) {
 			fprintf(stderr, "%s: ERROR: can't open file '%s' for '%s' tag value\n", filename, field->field_value, field->field_name);
 			return false;

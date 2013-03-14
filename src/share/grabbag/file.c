@@ -61,11 +61,17 @@ void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
 	}
 }
 
-off_t grabbag__file_get_filesize(const char *srcpath)
+FLAC__off_t grabbag__file_get_filesize(const char *srcpath)
 {
+#if defined _MSC_VER || defined __MINGW32__
+	struct _stat64 srcstat;
+
+	if(0 == _stat64(srcpath, &srcstat))
+#else
 	struct stat srcstat;
 
 	if(0 == stat(srcpath, &srcstat))
+#endif
 		return srcstat.st_size;
 	else
 		return -1;

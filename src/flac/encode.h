@@ -26,6 +26,7 @@
 #include "FLAC/metadata.h"
 #include "foreign_metadata.h"
 #include "utils.h"
+#include "share/compat.h"
 
 extern const int FLAC_ENCODE__DEFAULT_PADDING;
 
@@ -109,6 +110,6 @@ typedef struct {
 	} debug;
 } encode_options_t;
 
-int flac__encode_file(FILE *infile, off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, encode_options_t options);
+int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length, encode_options_t options);
 
 #endif

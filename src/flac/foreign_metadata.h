@@ -25,6 +25,7 @@
 
 #include "FLAC/metadata.h"
 #include "utils.h"
+#include "share/compat.h"
 
 /* WATCHOUT: these enums are used to index internal arrays */
 typedef enum {
@@ -36,7 +37,7 @@ typedef enum {
 typedef struct {
 	/* for encoding, this will be the offset in the WAVE/AIFF file of the chunk */
 	/* for decoding, this will be the offset in the FLAC file of the chunk data inside the APPLICATION block */
-	off_t offset;
+	FLAC__off_t offset;
 	/* size is the actual size in bytes of the chunk to be stored/recreated. */
 	/* It includes the 8 bytes of chunk type and size, and any padding byte for alignment. */
 	/* For 'data'/'SSND' chunks, the size does not include the actual sound or padding bytes */
@@ -67,6 +68,6 @@ FLAC__bool flac__foreign_metadata_read_from_wave64(foreign_metadata_t *fm, const
 FLAC__bool flac__foreign_metadata_write_to_flac(foreign_metadata_t *fm, const char *infilename, const char *outfilename, const char **error);
 
 FLAC__bool flac__foreign_metadata_read_from_flac(foreign_metadata_t *fm, const char *filename, const char **error);
-FLAC__bool flac__foreign_metadata_write_to_iff(foreign_metadata_t *fm, const char *infilename, const char *outfilename, off_t offset1, off_t offset2, off_t offset3, const char **error);
+FLAC__bool flac__foreign_metadata_write_to_iff(foreign_metadata_t *fm, const char *infilename, const char *outfilename, FLAC__off_t offset1, FLAC__off_t offset2, FLAC__off_t offset3, const char **error);
 
 #endif

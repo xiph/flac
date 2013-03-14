@@ -23,12 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "FLAC++/decoder.h"
-#if defined _MSC_VER || defined __MINGW32__
-#if _MSC_VER <= 1600 /* @@@ [2G limit] */
-#define fseeko fseek
-#define ftello ftell
-#endif
-#endif
+#include "share/compat.h"
 
 #ifdef _MSC_VER
 // warning C4800: 'int' : forcing to bool 'true' or 'false' (performance warning)
@@ -53,7 +48,7 @@ private:
 
 class Decoder: public FLAC::Decoder::Stream {
 public:
-	Decoder(AutoFILE &f, off_t tgt): tgtpos_((FLAC__uint64)tgt), curpos_(0), go_(true), err_(false), frame_(), f_(f) { memset(&frame_, 0, sizeof(::FLAC__Frame)); }
+	Decoder(AutoFILE &f, FLAC__off_t tgt): tgtpos_((FLAC__uint64)tgt), curpos_(0), go_(true), err_(false), frame_(), f_(f) { memset(&frame_, 0, sizeof(::FLAC__Frame)); }
 	FLAC__uint64 tgtpos_, curpos_;
 	bool go_, err_;
 	::FLAC__Frame frame_;
@@ -73,7 +68,7 @@ protected:
 
 	virtual ::FLAC__StreamDecoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset)
 	{
-		off_t off = ftello(f_);
+		FLAC__off_t off = ftello(f_);
 		if(off < 0)
 			return ::FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
 		*absolute_byte_offset = off;
@@ -110,7 +105,7 @@ protected:
 	}
 };
 
-static bool show_diff(AutoFILE &f1, AutoFILE &f2, off_t off)
+static bool show_diff(AutoFILE &f1, AutoFILE &f2, FLAC__off_t off)
 {
 	Decoder d1(f1, off), d2(f2, off);
 	if(!d1) {
@@ -160,15 +155,15 @@ static bool show_diff(AutoFILE &f1, AutoFILE &f2, off_t off)
 		fprintf(stderr, "ERROR: d1.go_(%s) != d2.go_(%s)\n", d1.go_?"true":"false", d2.go_?"true":"false");
 		return false;
 	}
-	fprintf(stdout, "pos1 = %llu  blocksize=%u sample#%llu frame#%llu\n", d1.curpos_, d1.frame_.header.blocksize, d1.frame_.header.number.sample_number, d1.frame_.header.number.sample_number / d1.frame_.header.blocksize);
-	fprintf(stdout, "pos2 = %llu  blocksize=%u sample#%llu frame#%llu\n", d2.curpos_, d2.frame_.header.blocksize, d2.frame_.header.number.sample_number, d2.frame_.header.number.sample_number / d2.frame_.header.blocksize);
+	fprintf(stdout, "pos1 = %" PRIu64 "  blocksize=%u sample#%" PRIu64 " frame#%" PRIu64 "\n", d1.curpos_, d1.frame_.header.blocksize, d1.frame_.header.number.sample_number, d1.frame_.header.number.sample_number / d1.frame_.header.blocksize);
+	fprintf(stdout, "pos2 = %" PRIu64 "  blocksize=%u sample#%" PRIu64 " frame#%" PRIu64 "\n", d2.curpos_, d2.frame_.header.blocksize, d2.frame_.header.number.sample_number, d2.frame_.header.number.sample_number / d2.frame_.header.blocksize);
 
 	return true;
 }
 
-static off_t get_diff_offset(AutoFILE &f1, AutoFILE &f2)
+static FLAC__off_t get_diff_offset(AutoFILE &f1, AutoFILE &f2)
 {
-	off_t off = 0;
+	FLAC__off_t off = 0;
 	while(1) {
 		if(feof((FILE*)f1) && feof((FILE*)f1)) {
 			fprintf(stderr, "ERROR: files are identical\n");
@@ -190,7 +185,7 @@ static off_t get_diff_offset(AutoFILE &f1, AutoFILE &f2)
 
 static bool run(const char *fn1, const char *fn2)
 {
-	off_t off;
+	FLAC__off_t off;
 	AutoFILE f1(fn1, "rb"), f2(fn2, "rb");
 
 	if(!f1) {
@@ -205,7 +200,7 @@ static bool run(const char *fn1, const char *fn2)
 	if((off = get_diff_offset(f1, f2)) < 0)
 		return false;
 
-	fprintf(stdout, "got diff offset = %u\n", (unsigned)off); //@@@ 4G limit (what is % modifier for off_t?)
+	fprintf(stdout, "got diff offset = %" PRId64 "\n", off);
 
 	return show_diff(f1, f2, off);
 }

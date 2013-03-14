@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h> /* for stat() */
+#include "share/compat.h"
 
 #ifdef min
 #undef min
@@ -67,7 +68,7 @@ static void encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const
 	(void)encoder, (void)metadata, (void)client_data;
 }
 
-FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_filename, off_t *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)
+FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_filename, FLAC__off_t *output_filesize, unsigned length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, unsigned num_metadata)
 {
 	FLAC__int32 samples[1024];
 	FLAC__StreamEncoder *encoder;
@@ -141,9 +142,15 @@ FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_f
 	FLAC__stream_encoder_delete(encoder);
 
 	if(0 != output_filesize) {
+#if defined _MSC_VER || defined __MINGW32__
+		struct _stat64 filestats;
+
+		if(_stat64(output_filename, &filestats) != 0)
+#else
 		struct stat filestats;
 
 		if(stat(output_filename, &filestats) != 0)
+#endif
 			return false;
 		else
 			*output_filesize = filestats.st_size;
