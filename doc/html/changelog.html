@@ -92,6 +92,7 @@
 					<li>Fix bug where <span class="commandname">flac</span> was disallowing use of <span class="argument">--replay-gain</span> when encoding from stdin (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1840124&amp;group_id=13478&amp;atid=113478">SF #1840124</a>).</li>
 					<li>Fix bug with fractional seconds on some locales (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1815517&amp;group_id=13478&amp;atid=113478">SF #1815517</a>, <a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1858012&amp;group_id=13478&amp;atid=113478">SF #1858012</a>).</li>
 					<li>Read and write appropriate channel masks for 6.1 and 7.1 surround input WAV files. Documentation was also updated.</li>
+					<li>Correct Wave64 GUIDs.</li>
 				</ul>
 			</li>
 			<li>
@@ -117,6 +118,7 @@
 					<li>Fixes for windows builds (including <a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1676822&amp;group_id=13478&amp;atid=113478">SF #1676822</a>, <a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1756624&amp;group_id=13478&amp;atid=363478">SF #1756624</a>, <a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1809863&amp;group_id=13478&amp;atid=113478">SF #1809863</a>, <a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1911149&amp;group_id=13478&amp;atid=363478">SF #1911149</a>).</li>
 					<li>Fixes for FreeBSD and OpenBSD.</li>
 					<li>Compile with GNU gcc _FORTIFY_SOURCE=2 and stack protection where those features are detected.</li>
+					<li>Enable a bunch of GCC compiler warnings and fix code that generates warnings.</li>
 				</ul>
 			</li>
 			<li>
