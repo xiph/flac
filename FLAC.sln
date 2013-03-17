@@ -57,14 +57,6 @@ Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "grabbag_static", "src\share
 		{4cefbc89-c215-11db-8314-0800200c9a66} = {4cefbc89-c215-11db-8314-0800200c9a66}
 	EndProjectSection
 EndProject
-Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "in_flac", "src\plugin_winamp2\in_flac.vcproj", "{4cefbc82-c215-11db-8314-0800200c9a66}"
-	ProjectSection(ProjectDependencies) = postProject
-		{4cefbc84-c215-11db-8314-0800200c9a66} = {4cefbc84-c215-11db-8314-0800200c9a66}
-		{4cefbc8a-c215-11db-8314-0800200c9a66} = {4cefbc8a-c215-11db-8314-0800200c9a66}
-		{4cefbc81-c215-11db-8314-0800200c9a66} = {4cefbc81-c215-11db-8314-0800200c9a66}
-		{4cefbc88-c215-11db-8314-0800200c9a66} = {4cefbc88-c215-11db-8314-0800200c9a66}
-	EndProjectSection
-EndProject
 Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "libFLAC_dynamic", "src\libFLAC\libFLAC_dynamic.vcproj", "{4cefbc83-c215-11db-8314-0800200c9a66}"
 EndProject
 Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "libFLAC_static", "src\libFLAC\libFLAC_static.vcproj", "{4cefbc84-c215-11db-8314-0800200c9a66}"
