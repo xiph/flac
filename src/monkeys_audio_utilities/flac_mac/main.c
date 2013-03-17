@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 		strcpy(strrchr(to,'.'), ".flac");
 
 		flac_snprintf(prog, sizeof (prog), "%sflac_ren.exe", macdir);
-		flac_snprintf(cmdline, sizeof (smdline), "\"%s\" \"%s\" \"%s\"", prog, from, to);
+		flac_snprintf(cmdline, sizeof (cmdline), "\"%s\" \"%s\" \"%s\"", prog, from, to);
 
 		flac_return_val = forkit(prog, cmdline);
 	}

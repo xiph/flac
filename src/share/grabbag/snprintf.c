@@ -62,7 +62,7 @@ flac_snprintf(char *str, size_t size, const char *fmt, ...)
 	va_start (va, fmt);
 
 #ifdef _MSC_VER
-	rc = vsnprintf_s (str, size, fmt, va);
+	rc = vsnprintf_s (str, size, _TRUNCATE, fmt, va);
 	rc = (rc > 0) ? rc : (size == 0 ? 1024 : size * 2);
 #else
 	rc = vsnprintf (str, size, fmt, va);
