@@ -143,4 +143,14 @@
 #  endif
 #endif /* defined _MSC_VER */
 
+
+/* FLAC needs to compile and work correctly on systems with a norrmal ISO C99
+ * snprintf as well as Microsoft Visual Studio which has an non-standards
+ * conformant snprint_s function.
+ *
+ * This function wraps the MS version to behave more like the the ISO version.
+ */
+
+int flac_snprintf(char *str, size_t size, const char *fmt, ...);
+
 #endif /* FLAC__SHARE__COMPAT_H */

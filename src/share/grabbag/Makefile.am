@@ -10,7 +10,8 @@ libgrabbag_la_SOURCES = \
 	file.c \
 	picture.c \
 	replaygain.c \
-	seektable.c
+	seektable.c \
+	snprintf.c
 
 EXTRA_DIST = \
 	Makefile.lite \

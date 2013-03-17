@@ -186,6 +186,10 @@
 				RelativePath=".\seektable.c"
 				>
 			</File>
+			<File
+				RelativePath=".\snprintf.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Public Header Files"
