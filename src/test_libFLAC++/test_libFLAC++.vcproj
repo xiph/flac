@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\objs\release\lib\ogg_static.lib"
+				AdditionalDependencies="..\..\objs\release\lib\libogg_static.lib"
 				LinkIncremental="2"
 				IgnoreDefaultLibraryNames="uuid.lib"
 				GenerateDebugInformation="true"
@@ -138,7 +138,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\objs\release\lib\ogg_static.lib"
+				AdditionalDependencies="..\..\objs\release\lib\libogg_static.lib"
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames="uuid.lib"
 				GenerateDebugInformation="true"
