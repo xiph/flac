@@ -186,7 +186,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 
 	if(e->format == FORMAT_WAVE64) {
 		/*
-		 * lookahead[] already has "riff\x2E\x91\xCF\x11\xD6\xA5\x28\xDB", skip over remaining header
+		 * lookahead[] already has "riff\x2E\x91\xCF\x11\xA5\xD6\x28\xDB", skip over remaining header
 		 */
 		if(!fskip_ahead(e->fin, 16+8+16-12)) { /* riff GUID + riff size + WAVE GUID - lookahead */
 			flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping over remaining \"riff\" header\n", e->inbasefilename);
@@ -252,7 +252,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 		}
 		else if(
 			!memcmp(chunk_id, "fmt ", 4) &&
-			(e->format!=FORMAT_WAVE64 || !memcmp(chunk_id, "fmt \xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 16))
+			(e->format!=FORMAT_WAVE64 || !memcmp(chunk_id, "fmt \xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 16))
 		) { /* format chunk */
 			FLAC__uint16 x;
 			FLAC__uint32 xx, data_bytes;
@@ -528,7 +528,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 		}
 		else if(
 			!memcmp(chunk_id, "data", 4) &&
-			(e->format!=FORMAT_WAVE64 || !memcmp(chunk_id, "data\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 16))
+			(e->format!=FORMAT_WAVE64 || !memcmp(chunk_id, "data\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 16))
 		) { /* data chunk */
 			FLAC__uint32 xx;
 			FLAC__uint64 data_bytes;

@@ -1729,7 +1729,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 				input_format = FORMAT_WAVE;
 			else if(!memcmp(lookahead, "RF64", 4) && !memcmp(lookahead+8, "WAVE", 4))
 				input_format = FORMAT_RF64;
-			else if(!memcmp(lookahead, "riff\x2E\x91\xCF\x11\xD6\xA5\x28\xDB", 12)) /* just check 1st 12 bytes of GUID */
+			else if(!memcmp(lookahead, "riff\x2E\x91\xCF\x11\xA5\xD6\x28\xDB", 12)) /* just check 1st 12 bytes of GUID */
 				input_format = FORMAT_WAVE64;
 			else if(!memcmp(lookahead, "FORM", 4) && !memcmp(lookahead+8, "AIFF", 4))
 				input_format = FORMAT_AIFF;

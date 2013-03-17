@@ -730,7 +730,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 			break;
 		case 2:
 			/* RIFF GUID 66666972-912E-11CF-A5D6-28DB04C10000 */
-			if(fwrite("\x72\x69\x66\x66\x2E\x91\xCF\x11\xD6\xA5\x28\xDB\x04\xC1\x00\x00", 1, 16, f) < 16)
+			if(fwrite("\x72\x69\x66\x66\x2E\x91\xCF\x11\xA5\xD6\x28\xDB\x04\xC1\x00\x00", 1, 16, f) < 16)
 				goto foo;
 			/* +(16+8) for RIFF GUID + size */
 			/* +16 for WAVE GUID */
@@ -739,7 +739,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 			if(!write_little_endian_uint64(f, (16+8) + 16 + 16+8+(waveformatextensible?40:16) + (16+8) + padded_size))
 				goto foo;
 			/* WAVE GUID 65766177-ACF3-11D3-8CD1-00C04F8EDB8A */
-			if(fwrite("\x77\x61\x76\x65\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) < 16)
+			if(fwrite("\x77\x61\x76\x65\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) < 16)
 				goto foo;
 			break;
 		default:
@@ -769,7 +769,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 	}
 	else { /* wave64 */
 		/* fmt GUID 20746D66-ACF3-11D3-8CD1-00C04F8EDB8A */
-		if(fwrite("\x66\x6D\x74\x20\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) < 16)
+		if(fwrite("\x66\x6D\x74\x20\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) < 16)
 			goto foo;
 		/* chunk size (+16+8 for GUID and size fields) */
 		if(!write_little_endian_uint64(f, 16+8+(waveformatextensible?40:16)))
@@ -807,7 +807,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 	}
 	else { /* wave64 */
 		/* data GUID 61746164-ACF3-11D3-8CD1-00C04F8EDB8A */
-		if(fwrite("\x64\x61\x74\x61\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
+		if(fwrite("\x64\x61\x74\x61\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
 			goto foo;
 		/* +16+8 for GUID and size fields */
 		if(!write_little_endian_uint64(f, 16+8 + true_size))
@@ -923,26 +923,26 @@ static FLAC__bool generate_wackywav64s(void)
 	FILE *f;
 	FLAC__byte wav[] = {
 		0x72,0x69,0x66,0x66,0x2E,0x91,0xCF,0x11, /* RIFF GUID */
-		0xD6,0xA5,0x28,0xDB,0x04,0xC1,0x00,0x00,
+		0xA5,0xD6,0x28,0xDB,0x04,0xC1,0x00,0x00,
 		 152,   0,   0,   0,   0,   0,   0,   0,
 		0x77,0x61,0x76,0x65,0xF3,0xAC,0xD3,0x11, /* WAVE GUID */
-		0xD1,0x8C,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
 		0x6A,0x75,0x6E,0x6B,0xF3,0xAC,0xD3,0x11, /* junk GUID */
-		0xD1,0x8C,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
 		  32,   0,   0,  0 ,   0,   0,   0,   0,
 		 'b', 'l', 'a', 'h', 'b', 'l', 'a', 'h',
 		0x66,0x6D,0x74,0x20,0xF3,0xAC,0xD3,0x11, /* fmt GUID */
-		0xD1,0x8C,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
 		  40,   0,   0,  0 ,   0,   0,   0,   0,
 		   1,   0,   1,   0,0x44,0xAC,   0,   0,
 		0x88,0x58,0x01,   0,   2,   0,  16,   0,
 		0x64,0x61,0x74,0x61,0xF3,0xAC,0xD3,0x11, /* data GUID */
-		0xD1,0x8C,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
 		  40,   0,   0,  0 ,   0,   0,   0,   0,
 		   0,   0,   1,   0,   4,   0,   9,   0,
 		  16,   0,  25,   0,  36,   0,  49,   0,
 		0x6A,0x75,0x6E,0x6B,0xF3,0xAC,0xD3,0x11, /* junk GUID */
-		0xD1,0x8C,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
 		  32,   0,   0,  0 ,   0,   0,   0,   0,
 		 'b', 'l', 'a', 'h', 'b', 'l', 'a', 'h'
 	};

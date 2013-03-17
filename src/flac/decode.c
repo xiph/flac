@@ -615,12 +615,12 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 				break;
 			case FORMAT_WAVE64:
 				/* RIFF GUID 66666972-912E-11CF-A5D6-28DB04C10000 */
-				if(flac__utils_fwrite("\x72\x69\x66\x66\x2E\x91\xCF\x11\xD6\xA5\x28\xDB\x04\xC1\x00\x00", 1, 16, f) != 16)
+				if(flac__utils_fwrite("\x72\x69\x66\x66\x2E\x91\xCF\x11\xA5\xD6\x28\xDB\x04\xC1\x00\x00", 1, 16, f) != 16)
 					return false;
 				if(!write_little_endian_uint64(f, iff_size))
 					return false;
 				/* WAVE GUID 65766177-ACF3-11D3-8CD1-00C04F8EDB8A */
-				if(flac__utils_fwrite("\x77\x61\x76\x65\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
+				if(flac__utils_fwrite("\x77\x61\x76\x65\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
 					return false;
 				break;
 			case FORMAT_RF64:
@@ -676,7 +676,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		}
 		else { /* Wave64 */
 			/* fmt GUID 20746D66-ACF3-11D3-8CD1-00C04F8EDB8A */
-			if(flac__utils_fwrite("\x66\x6D\x74\x20\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
+			if(flac__utils_fwrite("\x66\x6D\x74\x20\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
 				return false;
 			/* chunk size (+16+8 for GUID and size fields) */
 			if(!write_little_endian_uint64(f, 16+8+(is_waveformatextensible?40:16)))
@@ -706,7 +706,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		}
 		else { /* Wave64 */
 			/* data GUID 61746164-ACF3-11D3-8CD1-00C04F8EDB8A */
-			if(flac__utils_fwrite("\x64\x61\x74\x61\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
+			if(flac__utils_fwrite("\x64\x61\x74\x61\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
 				return false;
 			/* +16+8 for GUID and size fields */
 			if(!write_little_endian_uint64(f, 16+8 + data_size))

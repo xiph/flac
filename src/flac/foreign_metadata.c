@@ -333,9 +333,9 @@ static FLAC__bool read_from_wave64_(foreign_metadata_t *fm, FILE *f, const char 
 	if(
 		fread(buffer, 1, 40, f) < 40 ||
 		/* RIFF GUID 66666972-912E-11CF-A5D6-28DB04C10000 */
-		memcmp(buffer, "\x72\x69\x66\x66\x2E\x91\xCF\x11\xD6\xA5\x28\xDB\x04\xC1\x00\x00", 16) ||
+		memcmp(buffer, "\x72\x69\x66\x66\x2E\x91\xCF\x11\xA5\xD6\x28\xDB\x04\xC1\x00\x00", 16) ||
 		/* WAVE GUID 65766177-ACF3-11D3-8CD1-00C04F8EDB8A */
-		memcmp(buffer+24, "\x77\x61\x76\x65\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 16)
+		memcmp(buffer+24, "\x77\x61\x76\x65\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 16)
 	) {
 		if(error) *error = "unsupported Wave64 layout (002)";
 		return false;
@@ -364,7 +364,7 @@ static FLAC__bool read_from_wave64_(foreign_metadata_t *fm, FILE *f, const char 
 		if(size & 7)
 			size = (size+7) & (~((FLAC__uint64)7));
 		/* fmt GUID 20746D66-ACF3-11D3-8CD1-00C04F8EDB8A */
-		if(!memcmp(buffer, "\x66\x6D\x74\x20\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 16)) {
+		if(!memcmp(buffer, "\x66\x6D\x74\x20\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 16)) {
 			if(fm->format_block) {
 				if(error) *error = "invalid Wave64 file: multiple \"fmt \" chunks (005)";
 				return false;
@@ -376,7 +376,7 @@ static FLAC__bool read_from_wave64_(foreign_metadata_t *fm, FILE *f, const char 
 			fm->format_block = fm->num_blocks;
 		}
 		/* data GUID 61746164-ACF3-11D3-8CD1-00C04F8EDB8A */
-		else if(!memcmp(buffer, "\x64\x61\x74\x61\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 16)) {
+		else if(!memcmp(buffer, "\x64\x61\x74\x61\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 16)) {
 			if(fm->audio_block) {
 				if(error) *error = "invalid Wave64 file: multiple \"data\" chunks (007)";
 				return false;
@@ -387,7 +387,7 @@ static FLAC__bool read_from_wave64_(foreign_metadata_t *fm, FILE *f, const char 
 			}
 			fm->audio_block = fm->num_blocks;
 		}
-		if(!append_block_(fm, offset, memcmp(buffer, "\x64\x61\x74\x61\xF3\xAC\xD3\x11\xD1\x8C\x00\xC0\x4F\x8E\xDB\x8A", 16)? (FLAC__uint32)size : 16+8, error))
+		if(!append_block_(fm, offset, memcmp(buffer, "\x64\x61\x74\x61\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 16)? (FLAC__uint32)size : 16+8, error))
 			return false;
 		/* skip to next chunk */
 		if(fseeko(f, size-24, SEEK_CUR) < 0) {
