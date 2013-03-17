@@ -454,7 +454,7 @@ static int http_connect (gchar *url_, gboolean head, guint64 offset)
 				{
 					udp_port = udp_establish_listener (&udp_sock);
 					if (udp_port > 0)
-						sprintf (udpspace, "x-audiocast-udpport: %d\r\n", udp_port);
+						flac_snprintf (udpspace, sizeof (udpspace), "x-audiocast-udpport: %d\r\n", udp_port);
 					else
 						udp_sock = 0;
 				}
@@ -879,7 +879,7 @@ static int udp_check_for_data(int sock)
 		else if (strstr(lines[i], "x-audiocast-udpseqnr:") != NULL)
 		{
 			gchar obuf[60];
-			sprintf(obuf, "x-audiocast-ack: %ld \r\n", atol(valptr));
+			flac_snprintf(obuf, sizeof (obuf), "x-audiocast-ack: %ld \r\n", atol(valptr));
 			if (sendto(sock, obuf, strlen(obuf), 0, (struct sockaddr *) &from, fromlen) < 0)
 			{
 				g_log(NULL, G_LOG_LEVEL_WARNING,

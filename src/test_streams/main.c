@@ -31,6 +31,7 @@
 #endif
 #include "FLAC/assert.h"
 #include "FLAC/ordinals.h"
+#include "share/compat.h"
 
 #ifndef M_PI
 /* math.h in VC++ doesn't seem to have this (how Microsoft is that?) */
@@ -1136,24 +1137,24 @@ int main(int argc, char *argv[])
 			for(samples = 0; samples < sizeof(nsamples)/sizeof(nsamples[0]); samples++) {
 				char fn[64];
 
-				sprintf(fn, "rt-%u-%u-%u.aiff", channels, bits_per_sample, nsamples[samples]);
+				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.aiff", channels, bits_per_sample, nsamples[samples]);
 				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples]))
 					return 1;
 
-				sprintf(fn, "rt-%u-%u-%u.wav", channels, bits_per_sample, nsamples[samples]);
+				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.wav", channels, bits_per_sample, nsamples[samples]);
 				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true, /*flavor=*/0))
 					return 1;
 
-				sprintf(fn, "rt-%u-%u-%u.rf64", channels, bits_per_sample, nsamples[samples]);
+				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.rf64", channels, bits_per_sample, nsamples[samples]);
 				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true, /*flavor=*/1))
 					return 1;
 
-				sprintf(fn, "rt-%u-%u-%u.w64", channels, bits_per_sample, nsamples[samples]);
+				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.w64", channels, bits_per_sample, nsamples[samples]);
 				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true, /*flavor=*/2))
 					return 1;
 
 				if(bits_per_sample % 8 == 0) {
-					sprintf(fn, "rt-%u-%u-%u.raw", channels, bits_per_sample, nsamples[samples]);
+					flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.raw", channels, bits_per_sample, nsamples[samples]);
 					if(!generate_raw(fn, channels, bits_per_sample/8, nsamples[samples]))
 						return 1;
 				}

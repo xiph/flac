@@ -152,7 +152,7 @@ void flac__analyze_frame(const FLAC__Frame *frame, unsigned frame_number, FLAC__
 			}
 
 			/* write the subframe */
-			sprintf(outfilename, "f%06u.s%u.gp", frame_number, channel);
+			flac_snprintf(outfilename, sizeof (outfilename), "f%06u.s%u.gp", frame_number, channel);
 			compute_stats(&stats);
 
 			(void)dump_stats(&stats, outfilename);

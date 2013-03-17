@@ -402,8 +402,9 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 					*title = NULL;
 				}
 				else {
-					*title = g_malloc(strlen(errtitle) + 1 + strlen(filename) + 1 + 1);
-					sprintf(*title, "%s\"%s\"", errtitle, filename);
+					size_t len = strlen(errtitle) + 1 + strlen(filename) + 1 + 1;
+					*title = g_malloc(len);
+					flac_snprintf(*title, len, "%s\"%s\"", errtitle, filename);
 				}
 			} else {
 				*title = NULL;

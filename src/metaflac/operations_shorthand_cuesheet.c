@@ -21,7 +21,6 @@
 #endif
 
 #include <errno.h>
-#include <stdio.h> /* for snprintf() */
 #include <string.h>
 #include "options.h"
 #include "utils.h"
@@ -163,7 +162,7 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 		for(track = 0; track < cs->num_tracks; track++) {
 			const FLAC__StreamMetadata_CueSheet_Track *tr = cs->tracks+track;
 			for(index = 0; index < tr->num_indices; index++) {
-				sprintf(spec, "%" PRIu64 ";", (tr->offset + tr->indices[index].offset));
+				flac_snprintf(spec, sizeof (spec), "%" PRIu64 ";", (tr->offset + tr->indices[index].offset));
 				local_strcat(seekpoint_specification, spec);
 			}
 		}
@@ -201,11 +200,7 @@ FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cueshe
 		return false;
 	}
 
-#if defined _MSC_VER || defined __MINGW32__
-	_snprintf(ref, reflen, "\"%s\" FLAC", filename);
-#else
-	snprintf(ref, reflen, "\"%s\" FLAC", filename);
-#endif
+	flac_snprintf(ref, reflen, "\"%s\" FLAC", filename);
 
 	grabbag__cuesheet_emit(f, cuesheet, ref);
 

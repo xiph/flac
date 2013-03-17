@@ -63,7 +63,7 @@ static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool 
 		FLAC__metadata_object_delete(cuesheet);
 		return 1;
 	}
-	sprintf(tmpfilename, "%s.1", infilename);
+	flac_snprintf(tmpfilename, sizeof (tmpfilename), "%s.1", infilename);
 	if(0 == (fout = fopen(tmpfilename, "w"))) {
 		fprintf(stderr, "can't open file %s for writing: %s\n", tmpfilename, strerror(errno));
 		FLAC__metadata_object_delete(cuesheet);
@@ -95,7 +95,7 @@ static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool 
 		FLAC__metadata_object_delete(cuesheet);
 		return 1;
 	}
-	sprintf(tmpfilename, "%s.2", infilename);
+	flac_snprintf(tmpfilename, sizeof (tmpfilename), "%s.2", infilename);
 	if(0 == (fout = fopen(tmpfilename, "w"))) {
 		fprintf(stderr, "can't open file %s for writing: %s\n", tmpfilename, strerror(errno));
 		FLAC__metadata_object_delete(cuesheet);

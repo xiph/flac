@@ -100,14 +100,14 @@ int main(int argc, char *argv[])
 		return -4;
 
 	/* build the command to call flac with */
-	sprintf(prog, "%sflac.exe", macdir);
-	sprintf(options, "-%d", flac_level);
+	flac_snprintf(prog, sizeof (prog), "%sflac.exe", macdir);
+	flac_snprintf(options, sizeof (options), "-%d", flac_level);
 	for(i = opt_arg; i < argc; i++)
 		if(argv[i][0] == '-') {
 			strcat(options, " ");
 			strcat(options, argv[i]);
 		}
-	sprintf(cmdline, "\"%s\" %s -o \"%s\" \"%s\"", prog, options, argv[to_arg], argv[from_arg]);
+	flac_snprintf(cmdline, sizeof (cmdline), "\"%s\" %s -o \"%s\" \"%s\"", prog, options, argv[to_arg], argv[from_arg]);
 
 	flac_return_val = execit(prog, cmdline);
 
@@ -139,8 +139,8 @@ int main(int argc, char *argv[])
 		}
 		strcpy(strrchr(to,'.'), ".flac");
 
-		sprintf(prog, "%sflac_ren.exe", macdir);
-		sprintf(cmdline, "\"%s\" \"%s\" \"%s\"", prog, from, to);
+		flac_snprintf(prog, sizeof (prog), "%sflac_ren.exe", macdir);
+		flac_snprintf(cmdline, sizeof (smdline), "\"%s\" \"%s\" \"%s\"", prog, from, to);
 
 		flac_return_val = forkit(prog, cmdline);
 	}

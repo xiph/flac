@@ -24,4 +24,4 @@ noinst_PROGRAMS = test_streams
 test_streams_SOURCES = \
 	main.c
 
-test_streams_LDADD = -lm
+test_streams_LDADD =  $(top_builddir)/src/share/grabbag/libgrabbag.la -lm

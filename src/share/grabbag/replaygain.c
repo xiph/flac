@@ -102,11 +102,7 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 	if (0 == saved_locale)
 		return false;
 	setlocale(LC_ALL, "C");
-#if defined _MSC_VER || defined __MINGW32__
-	_snprintf(buffer, sizeof(buffer)-1, format, name, value);
-#else
-	snprintf(buffer, sizeof(buffer)-1, format, name, value);
-#endif
+	flac_snprintf(buffer, sizeof(buffer), format, name, value);
 	setlocale(LC_ALL, saved_locale);
 	free(saved_locale);
 
