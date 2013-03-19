@@ -47,6 +47,7 @@
 #include "share/alloc.h"
 #include "share/compat.h"
 #include "share/macros.h"
+#include "share/safe_str.h"
 #include "private/macros.h"
 #include "private/memory.h"
 
@@ -3198,28 +3199,32 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 {
 	static const char *tempfile_suffix = ".metadata_edit";
 	if(0 == tempfile_path_prefix) {
-		if(0 == (*tempfilename = safe_malloc_add_3op_(strlen(filename), /*+*/strlen(tempfile_suffix), /*+*/1))) {
+		size_t dest_len = strlen(filename) + strlen(tempfile_suffix) + 1;
+		if(0 == (*tempfilename = safe_malloc_(dest_len))) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
-		strcpy(*tempfilename, filename);
-		strcat(*tempfilename, tempfile_suffix);
+		safe_strncpy(*tempfilename, filename, dest_len);
+		safe_strncat(*tempfilename, tempfile_suffix, dest_len);
 	}
 	else {
 		const char *p = strrchr(filename, '/');
+		size_t dest_len;
 		if(0 == p)
 			p = filename;
 		else
 			p++;
 
-		if(0 == (*tempfilename = safe_malloc_add_4op_(strlen(tempfile_path_prefix), /*+*/strlen(p), /*+*/strlen(tempfile_suffix), /*+*/2))) {
+		dest_len = strlen(tempfile_path_prefix) + strlen(p) + strlen(tempfile_suffix) + 2;
+
+		if(0 == (*tempfilename = safe_malloc_(dest_len))) {
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
-		strcpy(*tempfilename, tempfile_path_prefix);
-		strcat(*tempfilename, "/");
-		strcat(*tempfilename, p);
-		strcat(*tempfilename, tempfile_suffix);
+		safe_strncpy(*tempfilename, tempfile_path_prefix, dest_len);
+		safe_strncat(*tempfilename, "/", dest_len);
+		safe_strncat(*tempfilename, p, dest_len);
+		safe_strncat(*tempfilename, tempfile_suffix, dest_len);
 	}
 
 	if(0 == (*tempfile = fopen(*tempfilename, "w+b"))) {

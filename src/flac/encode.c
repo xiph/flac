@@ -32,6 +32,7 @@
 #include "share/grabbag.h"
 #include "share/compat.h"
 #include "share/private.h"
+#include "share/safe_str.h"
 #include "encode.h"
 
 #ifdef min
@@ -2070,8 +2071,8 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 					return false;
 				}
 				else {
-					strcat(apodizations, options.compression_settings[ic].value.t_string);
-					strcat(apodizations, ";");
+					safe_strncat(apodizations, options.compression_settings[ic].value.t_string, sizeof(apodizations));
+					safe_strncat(apodizations, ";", sizeof(apodizations));
 				}
 				break;
 			case CST_MAX_LPC_ORDER:

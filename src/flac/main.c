@@ -37,6 +37,7 @@
 #include "share/alloc.h"
 #include "share/grabbag.h"
 #include "share/compat.h"
+#include "share/safe_str.h"
 #include "analyze.h"
 #include "decode.h"
 #include "encode.h"
@@ -977,8 +978,8 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 						return usage_error("ERROR: too many seekpoints requested\n");
 					}
 					else {
-						strcat(option_values.requested_seek_points, option_argument);
-						strcat(option_values.requested_seek_points, ";");
+						safe_strncat(option_values.requested_seek_points, option_argument, sizeof(option_values.requested_seek_points));
+						safe_strncat(option_values.requested_seek_points, ";", sizeof(option_values.requested_seek_points));
 					}
 				}
 				break;
@@ -1894,14 +1895,15 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	/* if infilename and outfilename point to the same file, we need to write to a temporary file */
 	if(encode_infile != stdin && grabbag__file_are_same(infilename, outfilename)) {
 		static const char *tmp_suffix = ".tmp,fl-ac+en'c";
+		size_t dest_len = strlen(outfilename) + strlen(tmp_suffix) + 1;
 		/*@@@@ still a remote possibility that a file with this filename exists */
-		if(0 == (internal_outfilename = safe_malloc_add_3op_(strlen(outfilename), /*+*/strlen(tmp_suffix), /*+*/1))) {
+		if(0 == (internal_outfilename = safe_malloc_(dest_len))) {
 			flac__utils_printf(stderr, 1, "ERROR allocating memory for tempfile name\n");
 			conditional_fclose(encode_infile);
 			return 1;
 		}
-		strcpy(internal_outfilename, outfilename);
-		strcat(internal_outfilename, tmp_suffix);
+		safe_strncpy(internal_outfilename, outfilename, dest_len);
+		safe_strncat(internal_outfilename, tmp_suffix, dest_len);
 	}
 
 	if(input_format == FORMAT_RAW) {
@@ -2173,7 +2175,7 @@ const char *get_outfilename(const char *infilename, const char *suffix)
 		static char buffer[4096]; /* @@@ bad MAGIC NUMBER */
 
 		if(0 == strcmp(infilename, "-") || option_values.force_to_stdout) {
-			strcpy(buffer, "-");
+			safe_strncpy(buffer, "-", sizeof(buffer));
 		}
 		else {
 			char *p;

@@ -119,7 +119,7 @@ void test_utf8()
   assert(charset_mbtowc(charset, &wc, "\377\277\277\277\277\277", 9) == -1);
 
   /* Encoder */
-  strcpy(s, ".......");
+  safe_strncpy(s, ".......", sizeof(s));
   assert(charset_wctomb(charset, s, 1 << 31) == -1 &&
 	 !strcmp(s, "......."));
   assert(charset_wctomb(charset, s, 127) == 1 &&
@@ -161,7 +161,7 @@ void test_ascii()
   assert(charset_mbtowc(charset, &wc, "\200", 2) == -1);
 
   /* Encoder */
-  strcpy(s, "..");
+  safe_strncpy(s, "..", sizeof(s));
   assert(charset_wctomb(charset, s, 256) == -1 && !strcmp(s, ".."));
   assert(charset_wctomb(charset, s, 255) == -1);
   assert(charset_wctomb(charset, s, 128) == -1);
@@ -182,7 +182,7 @@ void test_iso1()
   assert(charset_mbtowc(charset, &wc, "\302\200", 9) == 1 && wc == 0xc2);
 
   /* Encoder */
-  strcpy(s, "..");
+  safe_strncpy(s, "..", sizeof(s));
   assert(charset_wctomb(charset, s, 256) == -1 && !strcmp(s, ".."));
   assert(charset_wctomb(charset, s, 255) == 1 && !strcmp(s, "\377."));
   assert(charset_wctomb(charset, s, 128) == 1 && !strcmp(s, "\200."));
@@ -203,7 +203,7 @@ void test_iso2()
   assert(charset_mbtowc(charset, &wc, "\377", 2) == 1 && wc == 0x2d9);
 
   /* Encoder */
-  strcpy(s, "..");
+  safe_strncpy(s, "..", sizeof(s));
   assert(charset_wctomb(charset, s, 256) == -1 && !strcmp(s, ".."));
   assert(charset_wctomb(charset, s, 255) == -1 && !strcmp(s, ".."));
   assert(charset_wctomb(charset, s, 258) == 1 && !strcmp(s, "\303."));
@@ -230,7 +230,7 @@ void test_convert()
   assert(charset_convert("UTF-8", "iso-8859-1",
 			 "\302\200\304\200x", 5, &q, &n) == 1 &&
 	 n == 3 && !strcmp(q, "\200?x"));
-  assert(charset_convert("iso-8859-1", "UTF-8", 
+  assert(charset_convert("iso-8859-1", "UTF-8",
 			 "\000\200\377", 3, &q, &n) == 0 &&
 	 n == 5 && !memcmp(q, "\000\302\200\303\277", 5));
   assert(charset_convert("iso-8859-1", "iso-8859-1",

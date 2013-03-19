@@ -20,12 +20,13 @@
 #  include <config.h>
 #endif
 
-#include "share/grabbag.h"
-#include "share/compat.h"
-#include "FLAC/assert.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "FLAC/assert.h"
+#include "share/compat.h"
+#include "share/grabbag.h"
+#include "share/safe_str.h"
 
 unsigned grabbag__cuesheet_msf_to_frame(unsigned minutes, unsigned seconds, unsigned frames)
 {
@@ -292,7 +293,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					*error_message = "CD-DA CATALOG number must be 13 decimal digits";
 					return false;
 				}
-				strcpy(cs->media_catalog_number, field);
+				safe_strncpy(cs->media_catalog_number, field, sizeof(cs->media_catalog_number));
 				disc_has_catalog = true;
 			}
 			else if(0 == FLAC__STRCASECMP(field, "FLAGS")) {
@@ -421,7 +422,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					*error_message = "invalid ISRC number";
 					return false;
 				}
-				strcpy(cs->tracks[cs->num_tracks-1].isrc, field);
+				safe_strncpy(cs->tracks[cs->num_tracks-1].isrc, field, sizeof(cs->tracks[cs->num_tracks-1].isrc));
 				track_has_isrc = true;
 			}
 			else if(0 == FLAC__STRCASECMP(field, "TRACK")) {

@@ -30,6 +30,7 @@
 
 #include "iconvert.h"
 #include "share/alloc.h"
+#include "share/safe_str.h"
 
 /*
  * Convert data from one encoding to another. Return:
@@ -76,18 +77,18 @@ int iconvert(const char *fromcode, const char *tocode,
       tocode[4] != '8' ||
       tocode[5] != '\0') {
     char *tocode1;
-
+	size_t dest_len = strlen(tocode) + 11;
     /*
      * Try using this non-standard feature of glibc and libiconv.
      * This is deliberately not a config option as people often
      * change their iconv library without rebuilding applications.
      */
-    tocode1 = safe_malloc_add_2op_(strlen(tocode), /*+*/11);
+    tocode1 = safe_malloc_(dest_len);
     if (!tocode1)
       goto fail;
 
-    strcpy(tocode1, tocode);
-    strcat(tocode1, "//TRANSLIT");
+    safe_strncpy(tocode1, tocode, dest_len);
+    safe_strncat(tocode1, "//TRANSLIT", dest_len);
     cd2 = iconv_open(tocode1, "UTF-8");
     free(tocode1);
 

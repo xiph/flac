@@ -38,6 +38,7 @@
 #include "share/grabbag.h"
 #include "share/compat.h"
 #include "share/macros.h"
+#include "share/safe_str.h"
 #include "test_libs_common/file_utils_flac.h"
 #include "test_libs_common/metadata_utils.h"
 #include "metadata.h"
@@ -186,11 +187,11 @@ static void delete_from_our_metadata_(unsigned position)
 static FLAC__bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
 {
 	static const char *tempfile_suffix = ".metadata_edit";
-
-	if(0 == (*tempfilename = malloc(strlen(filename) + strlen(tempfile_suffix) + 1)))
+	size_t dest_len = strlen(filename) + strlen(tempfile_suffix) + 1;
+	if(0 == (*tempfilename = malloc(dest_len)))
 		return false;
-	strcpy(*tempfilename, filename);
-	strcat(*tempfilename, tempfile_suffix);
+	safe_strncpy(*tempfilename, filename, dest_len);
+	safe_strncat(*tempfilename, tempfile_suffix, dest_len);
 
 	if(0 == (*tempfile = fopen(*tempfilename, "wb")))
 		return false;
@@ -545,7 +546,7 @@ static FLAC__bool generate_file_(FLAC__bool include_extras, FLAC__bool is_ogg)
 		if (0 == (cuesheet = FLAC__metadata_object_new(FLAC__METADATA_TYPE_CUESHEET)))
 			return die_("priming our metadata");
 		cuesheet->is_last = false;
-		strcpy(cuesheet->data.cue_sheet.media_catalog_number, "bogo-MCN");
+		safe_strncpy(cuesheet->data.cue_sheet.media_catalog_number, "bogo-MCN", sizeof(cuesheet->data.cue_sheet.media_catalog_number));
 		cuesheet->data.cue_sheet.lead_in = 123;
 		cuesheet->data.cue_sheet.is_cd = false;
 		if (!FLAC__metadata_object_cuesheet_insert_blank_track(cuesheet, 0))

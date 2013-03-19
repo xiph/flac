@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include "share/alloc.h"
+#include "share/safe_str.h"
 #include "utf8.h"
 #include "charset.h"
 
@@ -298,7 +299,7 @@ static int convert_string(const char *fromcode, const char *tocode,
   s = safe_malloc_add_2op_(fromlen, /*+*/1);
   if (!s)
     return -1;
-  strcpy(s, from);
+  safe_strncpy(s, from, fromlen + 1);
   *to = s;
   for (; *s; s++)
     if (*s & ~0x7f)

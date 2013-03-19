@@ -20,11 +20,6 @@
 #  include <config.h>
 #endif
 
-#include "share/grabbag.h"
-#include "share/replaygain_analysis.h"
-#include "FLAC/assert.h"
-#include "FLAC/metadata.h"
-#include "FLAC/stream_decoder.h"
 #include <locale.h>
 #include <math.h>
 #include <stdio.h>
@@ -34,6 +29,13 @@
 #include <io.h> /* for chmod() */
 #endif
 #include <sys/stat.h> /* for stat(), maybe chmod() */
+
+#include "FLAC/assert.h"
+#include "FLAC/metadata.h"
+#include "FLAC/stream_decoder.h"
+#include "share/grabbag.h"
+#include "share/replaygain_analysis.h"
+#include "share/safe_str.h"
 
 #ifdef local_min
 #undef local_min
@@ -591,8 +593,7 @@ static FLAC__bool parse_double_(const FLAC__StreamMetadata_VorbisComment_Entry *
 	if(0 == q)
 		return false;
 	q++;
-	memset(s, 0, sizeof(s)-1);
-	strncpy(s, q, local_min(sizeof(s)-1, (size_t) (entry->length - (q-p))));
+	safe_strncpy(s, q, local_min(sizeof(s), (size_t) (entry->length - (q-p))));
 
 	v = strtod(s, &end);
 	if(end == s)

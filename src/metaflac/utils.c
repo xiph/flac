@@ -20,15 +20,16 @@
 #  include <config.h>
 #endif
 
-#include "utils.h"
-#include "FLAC/assert.h"
-#include "share/alloc.h"
-#include "share/utf8.h"
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "utils.h"
+#include "FLAC/assert.h"
+#include "share/alloc.h"
+#include "share/safe_str.h"
+#include "share/utf8.h"
 
 void die(const char *message)
 {
@@ -72,7 +73,7 @@ void local_strcat(char **dest, const char *source)
 	*dest = safe_realloc_add_3op_(*dest, ndest, /*+*/nsource, /*+*/1);
 	if(0 == *dest)
 		die("out of memory growing string");
-	strcpy((*dest)+ndest, source);
+	safe_strncpy((*dest)+ndest, source, ndest + nsource + 1);
 }
 
 void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent)
