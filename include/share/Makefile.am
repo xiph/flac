@@ -12,4 +12,5 @@ EXTRA_DIST = \
 	private.h \
 	replaygain_analysis.h \
 	replaygain_synthesis.h \
+	safe_str.h \
 	utf8.h
