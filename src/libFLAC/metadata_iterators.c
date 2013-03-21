@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include <sys/stat.h> /* for stat(), maybe chmod() */
 
@@ -1377,7 +1378,7 @@ static FLAC__bool chain_rewrite_metadata_in_place_(FLAC__Metadata_Chain *chain)
 
 static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *tempfile_path_prefix)
 {
-	FILE *f, *tempfile;
+	FILE *f, *tempfile = NULL;
 	char *tempfilename;
 	FLAC__Metadata_SimpleIteratorStatus status;
 	const FLAC__Metadata_Node *node;
@@ -3195,6 +3196,25 @@ FLAC__bool copy_remaining_bytes_from_file_cb_(FLAC__IOHandle handle, FLAC__IOCal
 	return true;
 }
 
+static int
+local_snprintf(char *str, size_t size, const char *fmt, ...)
+{
+	va_list va;
+	int rc ;
+
+	va_start (va, fmt);
+
+#ifdef _MSC_VER
+	rc = vsnprintf_s (str, size, _TRUNCATE, fmt, va);
+	rc = (rc > 0) ? rc : (size == 0 ? 1024 : size * 2);
+#else
+	rc = vsnprintf (str, size, fmt, va);
+#endif
+	va_end (va);
+
+	return rc;
+}
+
 FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix, FILE **tempfile, char **tempfilename, FLAC__Metadata_SimpleIteratorStatus *status)
 {
 	static const char *tempfile_suffix = ".metadata_edit";
@@ -3204,8 +3224,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
-		safe_strncpy(*tempfilename, filename, dest_len);
-		safe_strncat(*tempfilename, tempfile_suffix, dest_len);
+		local_snprintf(*tempfilename, dest_len, "%s%s", filename, tempfile_suffix);
 	}
 	else {
 		const char *p = strrchr(filename, '/');
@@ -3221,10 +3240,7 @@ FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path_prefix
 			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 			return false;
 		}
-		safe_strncpy(*tempfilename, tempfile_path_prefix, dest_len);
-		safe_strncat(*tempfilename, "/", dest_len);
-		safe_strncat(*tempfilename, p, dest_len);
-		safe_strncat(*tempfilename, tempfile_suffix, dest_len);
+		local_snprintf(*tempfilename, dest_len, "%s/%s%s", tempfile_path_prefix, p, tempfile_suffix);
 	}
 
 	if(0 == (*tempfile = fopen(*tempfilename, "w+b"))) {

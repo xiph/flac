@@ -978,8 +978,8 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 						return usage_error("ERROR: too many seekpoints requested\n");
 					}
 					else {
-						safe_strncat(option_values.requested_seek_points, option_argument, sizeof(option_values.requested_seek_points));
-						safe_strncat(option_values.requested_seek_points, ";", sizeof(option_values.requested_seek_points));
+						size_t len = strlen(option_values.requested_seek_points);
+						flac_snprintf(option_values.requested_seek_points+len, sizeof(option_values.requested_seek_points) - len, "%s;", option_argument);
 					}
 				}
 				break;
