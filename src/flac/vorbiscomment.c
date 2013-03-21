@@ -126,7 +126,7 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 		if(0 == (data = malloc(size+1)))
 			die("out of memory allocating tag value");
 		data[size] = '\0';
-		if(0 == (f = fopen(field->field_value, "rb")) || fread(data, 1, size, f) != (size_t)size) {
+		if(0 == (f = flac_fopen(field->field_value, "rb")) || fread(data, 1, size, f) != (size_t)size) {
 			free(data);
 			if(f)
 				fclose(f);
@@ -170,6 +170,9 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 	}
 	else {
 		FLAC__bool needs_free = false;
+#ifdef FLAC__STRINGS_IN_UTF8 /* everything in UTF-8 already. Must not alter */
+		entry.entry = (FLAC__byte *)field->field;
+#else
 		if(raw) {
 			entry.entry = (FLAC__byte *)field->field;
 		}
@@ -181,6 +184,7 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 			*violation = "error converting comment to UTF-8";
 			return false;
 		}
+#endif
 		entry.length = strlen((const char *)entry.entry);
 		if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length)) {
 			if(needs_free)

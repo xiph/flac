@@ -93,15 +93,9 @@ static unsigned local_rand_(void)
 
 static FLAC__off_t get_filesize_(const char *srcpath)
 {
-#if defined _MSC_VER || defined __MINGW32__
-	struct _stat64 srcstat;
+	struct _flac_stat srcstat;
 
-	if(0 == _stat64(srcpath, &srcstat))
-#else
-	struct stat srcstat;
-
-	if(0 == stat(srcpath, &srcstat))
-#endif
+	if(0 == flac_stat(srcpath, &srcstat))
 		return srcstat.st_size;
 	else
 		return -1;
@@ -164,7 +158,7 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 			return false;
 		}
 	}
-	if(0 == (f = fopen(rawfilename, "rb"))) {
+	if(0 == (f = flac_fopen(rawfilename, "rb"))) {
 		printf("ERROR: opening %s for reading\n", rawfilename);
 		return false;
 	}

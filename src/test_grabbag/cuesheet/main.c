@@ -44,7 +44,7 @@ static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool 
 	if(0 == strcmp(infilename, "-")) {
 		fin = stdin;
 	}
-	else if(0 == (fin = fopen(infilename, "r"))) {
+	else if(0 == (fin = flac_fopen(infilename, "r"))) {
 		fprintf(stderr, "can't open file %s for reading: %s\n", infilename, strerror(errno));
 		return 255;
 	}
@@ -64,7 +64,7 @@ static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool 
 		return 1;
 	}
 	flac_snprintf(tmpfilename, sizeof (tmpfilename), "%s.1", infilename);
-	if(0 == (fout = fopen(tmpfilename, "w"))) {
+	if(0 == (fout = flac_fopen(tmpfilename, "w"))) {
 		fprintf(stderr, "can't open file %s for writing: %s\n", tmpfilename, strerror(errno));
 		FLAC__metadata_object_delete(cuesheet);
 		return 255;
@@ -76,7 +76,7 @@ static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool 
 	/*
 	 * pass 2
 	 */
-	if(0 == (fin = fopen(tmpfilename, "r"))) {
+	if(0 == (fin = flac_fopen(tmpfilename, "r"))) {
 		fprintf(stderr, "can't open file %s for reading: %s\n", tmpfilename, strerror(errno));
 		return 255;
 	}
@@ -96,7 +96,7 @@ static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool 
 		return 1;
 	}
 	flac_snprintf(tmpfilename, sizeof (tmpfilename), "%s.2", infilename);
-	if(0 == (fout = fopen(tmpfilename, "w"))) {
+	if(0 == (fout = flac_fopen(tmpfilename, "w"))) {
 		fprintf(stderr, "can't open file %s for writing: %s\n", tmpfilename, strerror(errno));
 		FLAC__metadata_object_delete(cuesheet);
 		return 255;

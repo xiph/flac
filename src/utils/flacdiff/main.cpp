@@ -189,11 +189,11 @@ static bool run(const char *fn1, const char *fn2)
 	AutoFILE f1(fn1, "rb"), f2(fn2, "rb");
 
 	if(!f1) {
-		fprintf(stderr, "ERROR: opening %s for reading\n", fn1);
+		flac_fprintf(stderr, "ERROR: opening %s for reading\n", fn1);
 		return false;
 	}
 	if(!f2) {
-		fprintf(stderr, "ERROR: opening %s for reading\n", fn2);
+		flac_fprintf(stderr, "ERROR: opening %s for reading\n", fn2);
 		return false;
 	}
 
@@ -208,6 +208,13 @@ static bool run(const char *fn1, const char *fn2)
 int main(int argc, char *argv[])
 {
 	const char *usage = "usage: flacdiff flacfile1 flacfile2\n";
+
+#ifdef FLAC__STRINGS_IN_UTF8
+	if (get_utf8_argv(&argc, &argv) != 0) {
+		fprintf(stderr, "%ERROR: failed to convert command line parameters to UTF-8\n");
+		return 1;
+	}
+#endif
 
 	if(argc > 1 && 0 == strcmp(argv[1], "-h")) {
 		printf(usage);

@@ -51,7 +51,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 		if(block->type == FLAC__METADATA_TYPE_STREAMINFO) {
 			lead_out_offset = block->data.stream_info.total_samples;
 			if(lead_out_offset == 0) {
-				fprintf(stderr, "%s: ERROR: FLAC file must have total_samples set in STREAMINFO in order to import/export cuesheet\n", filename);
+				flac_fprintf(stderr, "%s: ERROR: FLAC file must have total_samples set in STREAMINFO in order to import/export cuesheet\n", filename);
 				FLAC__metadata_iterator_delete(iterator);
 				return false;
 			}
@@ -63,7 +63,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 	} while(FLAC__metadata_iterator_next(iterator));
 
 	if(lead_out_offset == 0) {
-		fprintf(stderr, "%s: ERROR: FLAC stream has no STREAMINFO block\n", filename);
+		flac_fprintf(stderr, "%s: ERROR: FLAC stream has no STREAMINFO block\n", filename);
 		FLAC__metadata_iterator_delete(iterator);
 		return false;
 	}
@@ -71,7 +71,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 	switch(operation->type) {
 		case OP__IMPORT_CUESHEET_FROM:
 			if(0 != cuesheet) {
-				fprintf(stderr, "%s: ERROR: FLAC file already has CUESHEET block\n", filename);
+				flac_fprintf(stderr, "%s: ERROR: FLAC file already has CUESHEET block\n", filename);
 				ok = false;
 			}
 			else {
@@ -90,7 +90,7 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 			break;
 		case OP__EXPORT_CUESHEET_TO:
 			if(0 == cuesheet) {
-				fprintf(stderr, "%s: ERROR: FLAC file has no CUESHEET block\n", filename);
+				flac_fprintf(stderr, "%s: ERROR: FLAC file has no CUESHEET block\n", filename);
 				ok = false;
 			}
 			else
@@ -118,16 +118,16 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 	unsigned last_line_read;
 
 	if(0 == cs_filename || strlen(cs_filename) == 0) {
-		fprintf(stderr, "%s: ERROR: empty import file name\n", filename);
+		flac_fprintf(stderr, "%s: ERROR: empty import file name\n", filename);
 		return false;
 	}
 	if(0 == strcmp(cs_filename, "-"))
 		f = stdin;
 	else
-		f = fopen(cs_filename, "r");
+		f = flac_fopen(cs_filename, "r");
 
 	if(0 == f) {
-		fprintf(stderr, "%s: ERROR: can't open import file %s: %s\n", filename, cs_filename, strerror(errno));
+		flac_fprintf(stderr, "%s: ERROR: can't open import file %s: %s\n", filename, cs_filename, strerror(errno));
 		return false;
 	}
 
@@ -137,18 +137,18 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 		fclose(f);
 
 	if(0 == *cuesheet) {
-		fprintf(stderr, "%s: ERROR: while parsing cuesheet \"%s\" on line %u: %s\n", filename, cs_filename, last_line_read, error_message);
+		flac_fprintf(stderr, "%s: ERROR: while parsing cuesheet \"%s\" on line %u: %s\n", filename, cs_filename, last_line_read, error_message);
 		return false;
 	}
 
 	if(!FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/false, &error_message)) {
-		fprintf(stderr, "%s: ERROR parsing cuesheet \"%s\": %s\n", filename, cs_filename, error_message);
+		flac_fprintf(stderr, "%s: ERROR parsing cuesheet \"%s\": %s\n", filename, cs_filename, error_message);
 		return false;
 	}
 
 	/* if we're expecting CDDA, warn about non-compliance */
 	if(is_cdda && !FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/true, &error_message)) {
-		fprintf(stderr, "%s: WARNING cuesheet \"%s\" is not audio CD compliant: %s\n", filename, cs_filename, error_message);
+		flac_fprintf(stderr, "%s: WARNING cuesheet \"%s\" is not audio CD compliant: %s\n", filename, cs_filename, error_message);
 		(*cuesheet)->data.cue_sheet.is_cd = false;
 	}
 
@@ -179,22 +179,22 @@ FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cueshe
 	size_t reflen;
 
 	if(0 == cs_filename || strlen(cs_filename) == 0) {
-		fprintf(stderr, "%s: ERROR: empty export file name\n", filename);
+		flac_fprintf(stderr, "%s: ERROR: empty export file name\n", filename);
 		return false;
 	}
 	if(0 == strcmp(cs_filename, "-"))
 		f = stdout;
 	else
-		f = fopen(cs_filename, "w");
+		f = flac_fopen(cs_filename, "w");
 
 	if(0 == f) {
-		fprintf(stderr, "%s: ERROR: can't open export file %s: %s\n", filename, cs_filename, strerror(errno));
+		flac_fprintf(stderr, "%s: ERROR: can't open export file %s: %s\n", filename, cs_filename, strerror(errno));
 		return false;
 	}
 
 	reflen = strlen(filename) + 7 + 1;
 	if(0 == (ref = malloc(reflen))) {
-		fprintf(stderr, "%s: ERROR: allocating memory\n", filename);
+		flac_fprintf(stderr, "%s: ERROR: allocating memory\n", filename);
 		if(f != stdout)
 			fclose(f);
 		return false;

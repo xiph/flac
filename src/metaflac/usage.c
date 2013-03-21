@@ -24,6 +24,7 @@
 #include "FLAC/format.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include "share/compat.h"
 
 static void usage_header(FILE *out)
 {
@@ -83,9 +84,9 @@ int short_usage(const char *message, ...)
 
 	}
 	usage_header(stderr);
-	fprintf(stderr, "\n");
-	fprintf(stderr, "This is the short help; for full help use 'metaflac --help'\n");
-	fprintf(stderr, "\n");
+	flac_fprintf(stderr, "\n");
+	flac_fprintf(stderr, "This is the short help; for full help use 'metaflac --help'\n");
+	flac_fprintf(stderr, "\n");
 	usage_summary(stderr);
 
 	return message? 1 : 0;

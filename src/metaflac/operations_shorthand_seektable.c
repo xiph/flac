@@ -53,7 +53,7 @@ FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Me
 	} while(!found_seektable_block && FLAC__metadata_iterator_next(iterator));
 
 	if(total_samples == 0) {
-		fprintf(stderr, "%s: ERROR: cannot add seekpoints because STREAMINFO block does not specify total_samples\n", filename);
+		flac_fprintf(stderr, "%s: ERROR: cannot add seekpoints because STREAMINFO block does not specify total_samples\n", filename);
 		return false;
 	}
 
@@ -79,7 +79,7 @@ FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Me
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_SEEKTABLE);
 
 	if(!grabbag__seektable_convert_specification_to_template(specification, /*only_explicit_placeholders=*/false, total_samples, sample_rate, block, /*spec_has_real_points=*/0)) {
-		fprintf(stderr, "%s: ERROR (internal) preparing seektable with seekpoints\n", filename);
+		flac_fprintf(stderr, "%s: ERROR (internal) preparing seektable with seekpoints\n", filename);
 		return false;
 	}
 
@@ -178,7 +178,7 @@ FLAC__bool populate_seekpoint_values(const char *filename, FLAC__StreamMetadata 
 	decoder = FLAC__stream_decoder_new();
 
 	if(0 == decoder) {
-		fprintf(stderr, "%s: ERROR (--add-seekpoint) creating the decoder instance\n", filename);
+		flac_fprintf(stderr, "%s: ERROR (--add-seekpoint) creating the decoder instance\n", filename);
 		return false;
 	}
 
@@ -186,28 +186,28 @@ FLAC__bool populate_seekpoint_values(const char *filename, FLAC__StreamMetadata 
 	FLAC__stream_decoder_set_metadata_ignore_all(decoder);
 
 	if(FLAC__stream_decoder_init_file(decoder, filename, write_callback_, /*metadata_callback=*/0, error_callback_, &client_data) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
-		fprintf(stderr, "%s: ERROR (--add-seekpoint) initializing the decoder instance (%s)\n", filename, FLAC__stream_decoder_get_resolved_state_string(decoder));
+		flac_fprintf(stderr, "%s: ERROR (--add-seekpoint) initializing the decoder instance (%s)\n", filename, FLAC__stream_decoder_get_resolved_state_string(decoder));
 		ok = false;
 	}
 
 	if(ok && !FLAC__stream_decoder_process_until_end_of_metadata(decoder)) {
-		fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file (%s)\n", filename, FLAC__stream_decoder_get_resolved_state_string(decoder));
+		flac_fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file (%s)\n", filename, FLAC__stream_decoder_get_resolved_state_string(decoder));
 		ok = false;
 	}
 
 	if(ok && !FLAC__stream_decoder_get_decode_position(decoder, &client_data.audio_offset)) {
-		fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file\n", filename);
+		flac_fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file\n", filename);
 		ok = false;
 	}
 	client_data.last_offset = client_data.audio_offset;
 
 	if(ok && !FLAC__stream_decoder_process_until_end_of_stream(decoder)) {
-		fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file (%s)\n", filename, FLAC__stream_decoder_get_resolved_state_string(decoder));
+		flac_fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file (%s)\n", filename, FLAC__stream_decoder_get_resolved_state_string(decoder));
 		ok = false;
 	}
 
 	if(ok && client_data.error_occurred) {
-		fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file (%u:%s)\n", filename, (unsigned)client_data.error_status, FLAC__StreamDecoderErrorStatusString[client_data.error_status]);
+		flac_fprintf(stderr, "%s: ERROR (--add-seekpoint) decoding file (%u:%s)\n", filename, (unsigned)client_data.error_status, FLAC__StreamDecoderErrorStatusString[client_data.error_status]);
 		ok = false;
 	}
 

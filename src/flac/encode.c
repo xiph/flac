@@ -1665,7 +1665,7 @@ int EncoderSession_finish_error(EncoderSession *e)
 		print_verify_error(e);
 	else if(e->outputfile_opened)
 		/* only want to delete the file if we opened it; otherwise it could be an existing file and our overwrite failed */
-		unlink(e->outfilename);
+		flac_unlink(e->outfilename);
 
 	EncoderSession_destroy(e);
 
@@ -2562,7 +2562,7 @@ FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_
 		return false;
 	}
 
-	if(0 == (f = fopen(cuesheet_filename, "r"))) {
+	if(0 == (f = flac_fopen(cuesheet_filename, "r"))) {
 		flac__utils_printf(stderr, 1, "%s: ERROR opening cuesheet \"%s\" for reading: %s\n", inbasefilename, cuesheet_filename, strerror(errno));
 		return false;
 	}
@@ -2800,9 +2800,9 @@ FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, const char *fn)
 FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 {
 	static unsigned char dump[8192];
-	struct stat stb;
+	struct _flac_stat stb;
 
-	if(fstat(fileno(f), &stb) == 0 && (stb.st_mode & S_IFMT) == S_IFREG)
+	if(flac_fstat(fileno(f), &stb) == 0 && (stb.st_mode & S_IFMT) == S_IFREG)
 	{
 		if(fseeko(f, offset, SEEK_CUR) == 0)
 			return true;

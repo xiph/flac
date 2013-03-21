@@ -379,7 +379,7 @@ bool FileDecoder::test_respond(bool is_ogg)
 		case LAYER_FILE:
 			{
 				printf("opening %sFLAC file... ", is_ogg? "Ogg ":"");
-				FILE *file = ::fopen(flacfilename(is_ogg), "rb");
+				FILE *file = ::flac_fopen(flacfilename(is_ogg), "rb");
 				if(0 == file) {
 					printf("ERROR (%s)\n", strerror(errno));
 					return false;
@@ -546,7 +546,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		case LAYER_STREAM:
 		case LAYER_SEEKABLE_STREAM:
 			printf("opening %sFLAC file... ", is_ogg? "Ogg ":"");
-			dynamic_cast<StreamDecoder*>(decoder)->file_ = ::fopen(flacfilename(is_ogg), "rb");
+			dynamic_cast<StreamDecoder*>(decoder)->file_ = ::flac_fopen(flacfilename(is_ogg), "rb");
 			if(0 == dynamic_cast<StreamDecoder*>(decoder)->file_) {
 				printf("ERROR (%s)\n", strerror(errno));
 				return false;
@@ -559,7 +559,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		case LAYER_FILE:
 			{
 				printf("opening FLAC file... ");
-				FILE *file = ::fopen(flacfilename(is_ogg), "rb");
+				FILE *file = ::flac_fopen(flacfilename(is_ogg), "rb");
 				if(0 == file) {
 					printf("ERROR (%s)\n", strerror(errno));
 					return false;

@@ -141,6 +141,44 @@
 #  endif
 #endif /* defined _MSC_VER */
 
+#ifdef FLAC__STRINGS_IN_UTF8 /* all char* strings are in UTF-8 format. Added to support Unicode files on Windows */
+#include "share/utf8_io.h"
+
+#define flac_printf printf_utf8
+#define flac_fprintf fprintf_utf8
+#define flac_vfprintf vfprintf_utf8
+#define flac_fopen fopen_utf8
+#define flac_stat _stat64_utf8
+#define flac_chmod chmod_utf8
+#define flac_utime utime_utf8
+#define flac_unlink unlink_utf8
+#define flac_rename rename_utf8
+
+#else
+
+#define flac_printf printf
+#define flac_fprintf fprintf
+#define flac_vfprintf vfprintf
+#define flac_fopen fopen
+#ifdef _WIN32
+#define flac_stat _stat64
+#else
+#define flac_stat stat
+#endif
+#define flac_chmod chmod
+#define flac_utime utime
+#define flac_unlink unlink
+#define flac_rename rename
+#endif
+
+#ifdef _WIN32
+#define _flac_stat _stat64 /* stat struct */
+#define flac_fstat _fstat64
+#else
+#define _flac_stat stat /* stat struct */
+#define flac_fstat fstat
+#endif
+
 
 /* FLAC needs to compile and work correctly on systems with a norrmal ISO C99
  * snprintf as well as Microsoft Visual Studio which has an non-standards

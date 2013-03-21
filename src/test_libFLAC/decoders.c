@@ -88,7 +88,7 @@ static FLAC__bool die_s_(const char *msg, const FLAC__StreamDecoder *decoder)
 
 static void open_test_file(StreamDecoderClientData * pdcd, int is_ogg, const char * mode)
 {
-	pdcd->file = fopen(flacfilename(is_ogg), mode);
+	pdcd->file = flac_fopen(flacfilename(is_ogg), mode);
 	safe_strncpy(pdcd->filename, flacfilename(is_ogg), sizeof (pdcd->filename));
 }
 

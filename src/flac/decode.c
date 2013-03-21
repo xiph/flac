@@ -244,7 +244,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 			d->fout = grabbag__file_get_binary_stdout();
 		}
 		else {
-			if(0 == (d->fout = fopen(outfilename, "wb"))) {
+			if(0 == (d->fout = flac_fopen(outfilename, "wb"))) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: can't open output file %s: %s\n", d->inbasefilename, outfilename, strerror(errno));
 				DecoderSession_destroy(d, /*error_occurred=*/true);
 				return false;
@@ -263,7 +263,7 @@ void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred)
 	if(0 != d->fout && d->fout != stdout) {
 		fclose(d->fout);
 		if(error_occurred)
-			unlink(d->outfilename);
+			flac_unlink(d->outfilename);
 	}
 }
 
@@ -926,7 +926,7 @@ FLAC__bool fixup_iff_headers(DecoderSession *d)
 		d->format==FORMAT_WAVE64? "Wave64" :
 		d->format==FORMAT_RF64? "RF64" :
 		"AIFF";
-	FILE *f = fopen(d->outfilename, "r+b"); /* stream is positioned at beginning of file */
+	FILE *f = flac_fopen(d->outfilename, "r+b"); /* stream is positioned at beginning of file */
 
 	if(0 == f) {
 		flac__utils_printf(stderr, 1, "ERROR, couldn't open file %s while fixing up %s chunk size: %s\n", d->outfilename, fmt_desc, strerror(errno));

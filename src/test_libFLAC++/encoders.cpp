@@ -310,7 +310,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 
 	if(layer < LAYER_FILENAME) {
 		printf("opening file for FLAC output... ");
-		file = ::fopen(flacfilename(is_ogg), "w+b");
+		file = ::flac_fopen(flacfilename(is_ogg), "w+b");
 		if(0 == file) {
 			printf("ERROR (%s)\n", strerror(errno));
 			return false;

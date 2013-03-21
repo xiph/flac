@@ -365,7 +365,7 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 					if(0 == buffer)
 						*error_message = error_messages[0];
 					else {
-						FILE *f = fopen(spec, "rb");
+						FILE *f = flac_fopen(spec, "rb");
 						if(0 == f) {
 							*error_message = error_messages[5];
 							free(buffer);

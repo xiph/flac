@@ -304,6 +304,12 @@ int main(int argc, char *argv[])
 	_response(&argc, &argv);
 	_wildcard(&argc, &argv);
 #endif
+#ifdef FLAC__STRINGS_IN_UTF8
+	if (get_utf8_argv(&argc, &argv) != 0) {
+		fprintf(stderr, "ERROR: failed to convert command line parameters to UTF-8\n");
+		return 1;
+	}
+#endif
 
 	srand((unsigned)time(0));
 	setlocale(LC_ALL, "");
@@ -1684,7 +1690,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 	else {
 		infilesize = grabbag__file_get_filesize(infilename);
-		if(0 == (encode_infile = fopen(infilename, "rb"))) {
+		if(0 == (encode_infile = flac_fopen(infilename, "rb"))) {
 			flac__utils_printf(stderr, 1, "ERROR: can't open input file %s: %s\n", infilename, strerror(errno));
 			return 1;
 		}
@@ -1973,14 +1979,14 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 	/* rename temporary file if necessary */
 	if(retval == 0 && internal_outfilename != 0) {
-		if(rename(internal_outfilename, outfilename) < 0) {
+		if(flac_rename(internal_outfilename, outfilename) < 0) {
 #if defined _MSC_VER || defined __MINGW32__ || defined __EMX__
-			/* on some flavors of windows, rename() will fail if the destination already exists, so we unlink and try again */
-			if(unlink(outfilename) < 0) {
+			/* on some flavors of windows, flac_rename() will fail if the destination already exists, so we unlink and try again */
+			if(flac_unlink(outfilename) < 0) {
 				flac__utils_printf(stderr, 1, "ERROR: moving new FLAC file %s back on top of original FLAC file %s, keeping both\n", internal_outfilename, outfilename);
 				retval = 1;
 			}
-			else if(rename(internal_outfilename, outfilename) < 0) {
+			else if(flac_rename(internal_outfilename, outfilename) < 0) {
 				flac__utils_printf(stderr, 1, "ERROR: moving new FLAC file %s back on top of original FLAC file %s, you must do it\n", internal_outfilename, outfilename);
 				retval = 1;
 			}
@@ -1993,7 +1999,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 	/* handle --delete-input-file, but don't want to delete if piping from stdin, or if input filename and output filename are the same */
 	if(retval == 0 && option_values.delete_input && strcmp(infilename, "-") && internal_outfilename == 0)
-		unlink(infilename);
+		flac_unlink(infilename);
 
 	if(internal_outfilename != 0)
 		free(internal_outfilename);
@@ -2135,7 +2141,7 @@ int decode_file(const char *infilename)
 		if(option_values.preserve_modtime && strcmp(outfilename, "-"))
 			grabbag__file_copy_metadata(infilename, outfilename);
 		if(option_values.delete_input && !option_values.test_only && !option_values.analyze)
-			unlink(infilename);
+			flac_unlink(infilename);
 	}
 
 	return retval;

@@ -1250,7 +1250,7 @@ static FLAC__StreamEncoderInitStatus init_file_internal_(
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ALREADY_INITIALIZED;
 
-	file = filename? fopen(filename, "w+b") : stdout;
+	file = filename? flac_fopen(filename, "w+b") : stdout;
 
 	if(file == 0) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_IO_ERROR;

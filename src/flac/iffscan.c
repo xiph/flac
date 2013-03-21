@@ -58,43 +58,50 @@ int main(int argc, char *argv[])
 	size_t i;
 	FLAC__uint32 size;
 
+#ifdef FLAC__STRINGS_IN_UTF8
+	if (get_utf8_argv(&argc, &argv) != 0) {
+		fprintf(stderr, "%ERROR: failed to convert command line parameters to UTF-8\n");
+		return 1;
+	}
+#endif
+
 	if(argc != 2) {
-		fprintf(stderr, "usage: %s { file.wav | file.aif }\n", argv[0]);
+		flac_fprintf(stderr, "usage: %s { file.wav | file.aif }\n", argv[0]);
 		return 1;
 	}
 	fn = argv[1];
-	if(0 == (f = fopen(fn, "rb")) || fread(buf, 1, 4, f) != 4) {
-		fprintf(stderr, "ERROR opening %s for reading\n", fn);
+	if(0 == (f = flac_fopen(fn, "rb")) || fread(buf, 1, 4, f) != 4) {
+		flac_fprintf(stderr, "ERROR opening %s for reading\n", fn);
 		return 1;
 	}
 	fclose(f);
 	if(0 == (fm = flac__foreign_metadata_new(memcmp(buf, "RIFF", 4) && memcmp(buf, "RF64", 4)? FOREIGN_BLOCK_TYPE__AIFF : FOREIGN_BLOCK_TYPE__RIFF))) {
-		fprintf(stderr, "ERROR: out of memory\n");
+		flac_fprintf(stderr, "ERROR: out of memory\n");
 		return 1;
 	}
 	if(fm->type == FOREIGN_BLOCK_TYPE__AIFF) {
 		if(!flac__foreign_metadata_read_from_aiff(fm, fn, &error)) {
-			fprintf(stderr, "ERROR reading chunks from %s: %s\n", fn, error);
+			flac_fprintf(stderr, "ERROR reading chunks from %s: %s\n", fn, error);
 			return 1;
 		}
 	}
 	else {
 		if(!flac__foreign_metadata_read_from_wave(fm, fn, &error)) {
-			fprintf(stderr, "ERROR reading chunks from %s: %s\n", fn, error);
+			flac_fprintf(stderr, "ERROR reading chunks from %s: %s\n", fn, error);
 			return 1;
 		}
 	}
-	if(0 == (f = fopen(fn, "rb"))) {
-		fprintf(stderr, "ERROR opening %s for reading\n", fn);
+	if(0 == (f = flac_fopen(fn, "rb"))) {
+		flac_fprintf(stderr, "ERROR opening %s for reading\n", fn);
 		return 1;
 	}
 	for(i = 0; i < fm->num_blocks; i++) {
 		if(fseeko(f, fm->blocks[i].offset, SEEK_SET) < 0) {
-			fprintf(stderr, "ERROR seeking in %s\n", fn);
+			flac_fprintf(stderr, "ERROR seeking in %s\n", fn);
 			return 1;
 		}
 		if(fread(buf, 1, i==0?12:8, f) != (i==0?12:8)) {
-			fprintf(stderr, "ERROR reading %s\n", fn);
+			flac_fprintf(stderr, "ERROR reading %s\n", fn);
 			return 1;
 		}
 		size = unpack32_((const FLAC__byte*)buf+4, fm->type);
@@ -105,7 +112,7 @@ int main(int argc, char *argv[])
 			printf(" offset size=%08x=(%10u)", fm->ssnd_offset_size, fm->ssnd_offset_size);
 		else if(fm->type == FOREIGN_BLOCK_TYPE__RIFF && i == 1 && !memcmp(buf, "ds64", 4)) {
 			if(fread(buf+8, 1, 36-8, f) != 36-8) {
-				fprintf(stderr, "ERROR reading %s\n", fn);
+				flac_fprintf(stderr, "ERROR reading %s\n", fn);
 				return 1;
 			}
 			printf(" RIFF size=%016" PRIx64 "=(" PRIu64 ")", unpack64le_(buf+8), unpack64le_(buf+8));

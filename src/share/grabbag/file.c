@@ -50,28 +50,22 @@
 
 void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
 {
-	struct stat srcstat;
+	struct _flac_stat srcstat;
 	struct utimbuf srctime;
 
-	if(0 == stat(srcpath, &srcstat)) {
+	if(0 == flac_stat(srcpath, &srcstat)) {
 		srctime.actime = srcstat.st_atime;
 		srctime.modtime = srcstat.st_mtime;
-		(void)chmod(destpath, srcstat.st_mode);
-		(void)utime(destpath, &srctime);
+		(void)flac_chmod(destpath, srcstat.st_mode);
+		(void)flac_utime(destpath, &srctime);
 	}
 }
 
 FLAC__off_t grabbag__file_get_filesize(const char *srcpath)
 {
-#if defined _MSC_VER || defined __MINGW32__
-	struct _stat64 srcstat;
+	struct _flac_stat srcstat;
 
-	if(0 == _stat64(srcpath, &srcstat))
-#else
-	struct stat srcstat;
-
-	if(0 == stat(srcpath, &srcstat))
-#endif
+	if(0 == flac_stat(srcpath, &srcstat))
 		return srcstat.st_size;
 	else
 		return -1;
@@ -92,9 +86,9 @@ const char *grabbag__file_get_basename(const char *srcpath)
 
 FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only)
 {
-	struct stat stats;
+	struct _flac_stat stats;
 
-	if(0 == stat(filename, &stats)) {
+	if(0 == flac_stat(filename, &stats)) {
 #if !defined _MSC_VER && !defined __MINGW32__
 		if(read_only) {
 			stats.st_mode &= ~S_IWUSR;
@@ -110,7 +104,7 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 		else
 			stats.st_mode |= S_IWRITE;
 #endif
-		if(0 != chmod(filename, stats.st_mode))
+		if(0 != flac_chmod(filename, stats.st_mode))
 			return false;
 	}
 	else
@@ -151,14 +145,14 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 		CloseHandle(h2);
 	return same;
 #else
-	struct stat s1, s2;
-	return f1 && f2 && stat(f1, &s1) == 0 && stat(f2, &s2) == 0 && s1.st_ino == s2.st_ino && s1.st_dev == s2.st_dev;
+	struct _flac_stat s1, s2;
+	return f1 && f2 && flac_stat(f1, &s1) == 0 && flac_stat(f2, &s2) == 0 && s1.st_ino == s2.st_ino && s1.st_dev == s2.st_dev;
 #endif
 }
 
 FLAC__bool grabbag__file_remove_file(const char *filename)
 {
-	return grabbag__file_change_stats(filename, /*read_only=*/false) && 0 == unlink(filename);
+	return grabbag__file_change_stats(filename, /*read_only=*/false) && 0 == flac_unlink(filename);
 }
 
 FILE *grabbag__file_get_binary_stdin(void)

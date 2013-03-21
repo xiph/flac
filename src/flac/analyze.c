@@ -217,7 +217,7 @@ FLAC__bool dump_stats(const subframe_stats_t *stats, const char *filename)
 	const double s1 = stats->stddev, s2 = s1*2, s3 = s1*3, s4 = s1*4, s5 = s1*5, s6 = s1*6;
 	const double p = stats->buckets[stats->peak_index].count;
 
-	outfile = fopen(filename, "w");
+	outfile = flac_fopen(filename, "w");
 
 	if(0 == outfile) {
 		fprintf(stderr, "ERROR opening %s: %s\n", filename, strerror(errno));

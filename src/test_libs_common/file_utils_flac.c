@@ -81,7 +81,7 @@ FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_f
 	FLAC__ASSERT(streaminfo->type == FLAC__METADATA_TYPE_STREAMINFO);
 	FLAC__ASSERT((streaminfo->is_last && num_metadata == 0) || (!streaminfo->is_last && num_metadata > 0));
 
-	if(0 == (encoder_client_data.file = fopen(output_filename, "wb")))
+	if(0 == (encoder_client_data.file = flac_fopen(output_filename, "wb")))
 		return false;
 
 	encoder = FLAC__stream_encoder_new();
@@ -142,15 +142,9 @@ FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_f
 	FLAC__stream_encoder_delete(encoder);
 
 	if(0 != output_filesize) {
-#if defined _MSC_VER || defined __MINGW32__
-		struct _stat64 filestats;
+		struct _flac_stat filestats;
 
-		if(_stat64(output_filename, &filestats) != 0)
-#else
-		struct stat filestats;
-
-		if(stat(output_filename, &filestats) != 0)
-#endif
+		if(flac_stat(output_filename, &filestats) != 0)
 			return false;
 		else
 			*output_filesize = filestats.st_size;

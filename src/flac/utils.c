@@ -147,7 +147,7 @@ void flac__utils_printf(FILE *stream, int level, const char *format, ...)
 
 		va_start(args, format);
 
-		(void) vfprintf(stream, format, args);
+		(void) flac_vfprintf(stream, format, args);
 
 		va_end(args);
 

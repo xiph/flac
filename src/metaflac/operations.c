@@ -187,7 +187,7 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 		block = FLAC__metadata_iterator_get_block(iterator);
 		ok &= (0 != block);
 		if(!ok)
-			fprintf(stderr, "%s: ERROR: couldn't get block from chain\n", filename);
+			flac_fprintf(stderr, "%s: ERROR: couldn't get block from chain\n", filename);
 		else if(passes_filter(options, FLAC__metadata_iterator_get_block(iterator), block_number))
 			write_metadata(filename, block, block_number, !options->utf8_convert, options->application_data_format_is_hexdump);
 		block_number++;
@@ -201,7 +201,7 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const CommandLineOptions *options)
 {
 	(void) chain, (void) options;
-	fprintf(stderr, "ERROR: --append not implemented yet\n");
+	flac_fprintf(stderr, "ERROR: --append not implemented yet\n");
 	return false;
 }
 
@@ -406,7 +406,7 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 	for(i = 0; i < num_files; i++) {
 		FLAC__ASSERT(0 != filenames[i]);
 		if(!FLAC__metadata_get_streaminfo(filenames[i], &streaminfo)) {
-			fprintf(stderr, "%s: ERROR: can't open file or get STREAMINFO block\n", filenames[i]);
+			flac_fprintf(stderr, "%s: ERROR: can't open file or get STREAMINFO block\n", filenames[i]);
 			return false;
 		}
 		if(first) {
@@ -417,24 +417,24 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 		}
 		else {
 			if(sample_rate != streaminfo.data.stream_info.sample_rate) {
-				fprintf(stderr, "%s: ERROR: sample rate of %u Hz does not match previous files' %u Hz\n", filenames[i], streaminfo.data.stream_info.sample_rate, sample_rate);
+				flac_fprintf(stderr, "%s: ERROR: sample rate of %u Hz does not match previous files' %u Hz\n", filenames[i], streaminfo.data.stream_info.sample_rate, sample_rate);
 				return false;
 			}
 			if(bits_per_sample != streaminfo.data.stream_info.bits_per_sample) {
-				fprintf(stderr, "%s: ERROR: resolution of %u bps does not match previous files' %u bps\n", filenames[i], streaminfo.data.stream_info.bits_per_sample, bits_per_sample);
+				flac_fprintf(stderr, "%s: ERROR: resolution of %u bps does not match previous files' %u bps\n", filenames[i], streaminfo.data.stream_info.bits_per_sample, bits_per_sample);
 				return false;
 			}
 			if(channels != streaminfo.data.stream_info.channels) {
-				fprintf(stderr, "%s: ERROR: # channels (%u) does not match previous files' (%u)\n", filenames[i], streaminfo.data.stream_info.channels, channels);
+				flac_fprintf(stderr, "%s: ERROR: # channels (%u) does not match previous files' (%u)\n", filenames[i], streaminfo.data.stream_info.channels, channels);
 				return false;
 			}
 		}
 		if(!grabbag__replaygain_is_valid_sample_frequency(sample_rate)) {
-			fprintf(stderr, "%s: ERROR: sample rate of %u Hz is not supported\n", filenames[i], sample_rate);
+			flac_fprintf(stderr, "%s: ERROR: sample rate of %u Hz is not supported\n", filenames[i], sample_rate);
 			return false;
 		}
 		if(channels != 1 && channels != 2) {
-			fprintf(stderr, "%s: ERROR: # of channels (%u) is not supported, must be 1 or 2\n", filenames[i], channels);
+			flac_fprintf(stderr, "%s: ERROR: # of channels (%u) is not supported, must be 1 or 2\n", filenames[i], channels);
 			return false;
 		}
 	}
@@ -443,7 +443,7 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 	if(!grabbag__replaygain_init(sample_rate)) {
 		FLAC__ASSERT(0);
 		/* double protection */
-		fprintf(stderr, "internal error\n");
+		flac_fprintf(stderr, "internal error\n");
 		return false;
 	}
 
@@ -455,7 +455,7 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 
 	for(i = 0; i < num_files; i++) {
 		if(0 != (error = grabbag__replaygain_analyze_file(filenames[i], title_gains+i, title_peaks+i))) {
-			fprintf(stderr, "%s: ERROR: during analysis (%s)\n", filenames[i], error);
+			flac_fprintf(stderr, "%s: ERROR: during analysis (%s)\n", filenames[i], error);
 			free(title_gains);
 			free(title_peaks);
 			return false;
@@ -465,7 +465,7 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 
 	for(i = 0; i < num_files; i++) {
 		if(0 != (error = grabbag__replaygain_store_to_file(filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i], preserve_modtime))) {
-			fprintf(stderr, "%s: ERROR: writing tags (%s)\n", filenames[i], error);
+			flac_fprintf(stderr, "%s: ERROR: writing tags (%s)\n", filenames[i], error);
 			free(title_gains);
 			free(title_peaks);
 			return false;
@@ -551,7 +551,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 	unsigned i, j;
 
 /*@@@ yuck, should do this with a varargs function or something: */
-#define PPR if(filename)printf("%s:",filename);
+#define PPR if(filename)flac_printf("%s:",filename);
 	PPR; printf("METADATA block #%u\n", block_number);
 	PPR; printf("  type: %u (%s)\n", (unsigned)block->type, block->type < FLAC__METADATA_TYPE_UNDEFINED? FLAC__MetadataTypeString[block->type] : "UNKNOWN");
 	PPR; printf("  is last: %s\n", block->is_last? "true":"false");

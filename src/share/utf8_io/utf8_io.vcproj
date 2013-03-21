@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="getopt_static"
-	ProjectGUID="{4cefbc80-c215-11db-8314-0800200c9a66}"
-	RootNamespace="getopt_static"
+	Name="utf8_io"
+	ProjectGUID="{4cefbe02-c215-11db-8314-0800200c9a66}"
+	RootNamespace="utf8_io"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="..\..\..\objs\debug\lib"
-			IntermediateDirectory="Debug_static"
+			IntermediateDirectory="Debug"
 			ConfigurationType="4"
 			>
 			<Tool
@@ -39,7 +39,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\include;..\..\..\include"
+				AdditionalIncludeDirectories=".\include;..\..\..\include;..\..\..\include\share"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;FLAC__NO_DLL;DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -83,7 +83,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="..\..\..\objs\release\lib"
-			IntermediateDirectory="Release_static"
+			IntermediateDirectory="Release"
 			ConfigurationType="4"
 			>
 			<Tool
@@ -107,7 +107,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories=".\include;..\..\..\include"
+				AdditionalIncludeDirectories=".\include;..\..\..\include;..\..\..\include\share"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FLAC__NO_DLL"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -150,7 +150,7 @@
 		<Configuration
 			Name="Release (UTF8)|Win32"
 			OutputDirectory="..\..\..\objs\release\lib"
-			IntermediateDirectory="Release_static"
+			IntermediateDirectory="Release"
 			ConfigurationType="4"
 			>
 			<Tool
@@ -174,7 +174,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories=".\include;..\..\..\include"
+				AdditionalIncludeDirectories=".\include;..\..\..\include;..\..\..\include\share"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FLAC__NO_DLL;FLAC__STRINGS_IN_UTF8"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -219,10 +219,12 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			Name="Public Header Files"
 			>
+			<File
+				RelativePath="..\..\..\include\share\utf8_io.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Source Files"
@@ -230,19 +232,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\getopt.c"
-				>
-			</File>
-			<File
-				RelativePath=".\getopt1.c"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Public Header Files"
-			>
-			<File
-				RelativePath="..\..\..\include\share\getopt.h"
+				RelativePath=".\utf8_io.c"
 				>
 			</File>
 		</Filter>

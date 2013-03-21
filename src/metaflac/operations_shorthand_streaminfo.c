@@ -46,7 +46,7 @@ FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool p
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_STREAMINFO);
 
 	if(prefix_with_filename)
-		printf("%s:", filename);
+		flac_printf("%s:", filename);
 
 	switch(operation->type) {
 		case OP__SHOW_MD5SUM:

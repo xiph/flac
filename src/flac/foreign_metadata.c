@@ -702,7 +702,7 @@ void flac__foreign_metadata_delete(foreign_metadata_t *fm)
 FLAC__bool flac__foreign_metadata_read_from_aiff(foreign_metadata_t *fm, const char *filename, const char **error)
 {
 	FLAC__bool ok;
-	FILE *f = fopen(filename, "rb");
+	FILE *f = flac_fopen(filename, "rb");
 	if(!f) {
 		if(error) *error = "can't open AIFF file for reading (000)";
 		return false;
@@ -715,7 +715,7 @@ FLAC__bool flac__foreign_metadata_read_from_aiff(foreign_metadata_t *fm, const c
 FLAC__bool flac__foreign_metadata_read_from_wave(foreign_metadata_t *fm, const char *filename, const char **error)
 {
 	FLAC__bool ok;
-	FILE *f = fopen(filename, "rb");
+	FILE *f = flac_fopen(filename, "rb");
 	if(!f) {
 		if(error) *error = "can't open WAVE file for reading (000)";
 		return false;
@@ -728,7 +728,7 @@ FLAC__bool flac__foreign_metadata_read_from_wave(foreign_metadata_t *fm, const c
 FLAC__bool flac__foreign_metadata_read_from_wave64(foreign_metadata_t *fm, const char *filename, const char **error)
 {
 	FLAC__bool ok;
-	FILE *f = fopen(filename, "rb");
+	FILE *f = flac_fopen(filename, "rb");
 	if(!f) {
 		if(error) *error = "can't open Wave64 file for reading (000)";
 		return false;
@@ -752,12 +752,12 @@ FLAC__bool flac__foreign_metadata_write_to_flac(foreign_metadata_t *fm, const ch
 		FLAC__metadata_simple_iterator_delete(it);
 		return false;
 	}
-	if(0 == (fin = fopen(infilename, "rb"))) {
+	if(0 == (fin = flac_fopen(infilename, "rb"))) {
 		if(error) *error = "can't open WAVE/AIFF file for reading (002)";
 		FLAC__metadata_simple_iterator_delete(it);
 		return false;
 	}
-	if(0 == (fout = fopen(outfilename, "r+b"))) {
+	if(0 == (fout = flac_fopen(outfilename, "r+b"))) {
 		if(error) *error = "can't open FLAC file for updating (003)";
 		FLAC__metadata_simple_iterator_delete(it);
 		fclose(fin);
@@ -784,7 +784,7 @@ FLAC__bool flac__foreign_metadata_read_from_flac(foreign_metadata_t *fm, const c
 		FLAC__metadata_simple_iterator_delete(it);
 		return false;
 	}
-	if(0 == (f = fopen(filename, "rb"))) {
+	if(0 == (f = flac_fopen(filename, "rb"))) {
 		if(error) *error = "can't open FLAC file for reading (002)";
 		FLAC__metadata_simple_iterator_delete(it);
 		return false;
@@ -799,11 +799,11 @@ FLAC__bool flac__foreign_metadata_write_to_iff(foreign_metadata_t *fm, const cha
 {
 	FLAC__bool ok;
 	FILE *fin, *fout;
-	if(0 == (fin = fopen(infilename, "rb"))) {
+	if(0 == (fin = flac_fopen(infilename, "rb"))) {
 		if(error) *error = "can't open FLAC file for reading (000)";
 		return false;
 	}
-	if(0 == (fout = fopen(outfilename, "r+b"))) {
+	if(0 == (fout = flac_fopen(outfilename, "r+b"))) {
 		if(error) *error = "can't open WAVE/AIFF file for updating (001)";
 		fclose(fin);
 		return false;

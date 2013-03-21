@@ -30,11 +30,12 @@
 #include "share/alloc.h"
 #include "share/safe_str.h"
 #include "share/utf8.h"
+#include "share/compat.h"
 
 void die(const char *message)
 {
 	FLAC__ASSERT(0 != message);
-	fprintf(stderr, "ERROR: %s\n", message);
+	flac_fprintf(stderr, "ERROR: %s\n", message);
 	exit(1);
 }
 
@@ -82,7 +83,7 @@ void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const 
 	const FLAC__byte *b = buf;
 
 	for(i = 0; i < bytes; i += 16) {
-		printf("%s%s%s%08X: "
+		flac_printf("%s%s%s%08X: "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\n",
@@ -139,43 +140,43 @@ void print_error_with_chain_status(FLAC__Metadata_Chain *chain, const char *form
 
 	va_end(args);
 
-	fprintf(stderr, ", status = \"%s\"\n", FLAC__Metadata_ChainStatusString[status]);
+	flac_fprintf(stderr, ", status = \"%s\"\n", FLAC__Metadata_ChainStatusString[status]);
 
 	if(status == FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE) {
-		fprintf(stderr, "\n"
+		flac_fprintf(stderr, "\n"
 			"The FLAC file could not be opened.  Most likely the file does not exist\n"
 			"or is not readable.\n"
 		);
 	}
 	else if(status == FLAC__METADATA_CHAIN_STATUS_NOT_A_FLAC_FILE) {
-		fprintf(stderr, "\n"
+		flac_fprintf(stderr, "\n"
 			"The file does not appear to be a FLAC file.\n"
 		);
 	}
 	else if(status == FLAC__METADATA_CHAIN_STATUS_NOT_WRITABLE) {
-		fprintf(stderr, "\n"
+		flac_fprintf(stderr, "\n"
 			"The FLAC file does not have write permissions.\n"
 		);
 	}
 	else if(status == FLAC__METADATA_CHAIN_STATUS_BAD_METADATA) {
-		fprintf(stderr, "\n"
+		flac_fprintf(stderr, "\n"
 			"The metadata to be writted does not conform to the FLAC metadata\n"
 			"specifications.\n"
 		);
 	}
 	else if(status == FLAC__METADATA_CHAIN_STATUS_READ_ERROR) {
-		fprintf(stderr, "\n"
+		flac_fprintf(stderr, "\n"
 			"There was an error while reading the FLAC file.\n"
 		);
 	}
 	else if(status == FLAC__METADATA_CHAIN_STATUS_WRITE_ERROR) {
-		fprintf(stderr, "\n"
+		flac_fprintf(stderr, "\n"
 			"There was an error while writing FLAC file; most probably the disk is\n"
 			"full.\n"
 		);
 	}
 	else if(status == FLAC__METADATA_CHAIN_STATUS_UNLINK_ERROR) {
-		fprintf(stderr, "\n"
+		flac_fprintf(stderr, "\n"
 			"There was an error removing the temporary FLAC file.\n"
 		);
 	}

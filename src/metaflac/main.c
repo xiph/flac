@@ -24,6 +24,7 @@
 #include "options.h"
 #include <locale.h>
 #include <stdlib.h>
+#include "share/compat.h"
 
 int main(int argc, char *argv[])
 {
@@ -33,6 +34,12 @@ int main(int argc, char *argv[])
 #ifdef __EMX__
 	_response(&argc, &argv);
 	_wildcard(&argc, &argv);
+#endif
+#ifdef FLAC__STRINGS_IN_UTF8
+	if (get_utf8_argv(&argc, &argv) != 0) {
+		fprintf(stderr, "%ERROR: failed to convert command line parameters to UTF-8\n");
+		return 1;
+	}
 #endif
 
 	setlocale(LC_ALL, "");
