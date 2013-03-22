@@ -69,14 +69,14 @@ const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN = (const FLAC__byte 
 const FLAC__byte * const GRABBAG__REPLAYGAIN_TAG_ALBUM_PEAK = (const FLAC__byte * const)"REPLAYGAIN_ALBUM_PEAK";
 
 
-static FLAC__bool get_file_stats_(const char *filename, struct _flac_stat *stats)
+static FLAC__bool get_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
 	FLAC__ASSERT(0 != filename);
 	FLAC__ASSERT(0 != stats);
 	return (0 == flac_stat(filename, stats));
 }
 
-static void set_file_stats_(const char *filename, struct _flac_stat *stats)
+static void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
 	FLAC__ASSERT(0 != filename);
 	FLAC__ASSERT(0 != stats);
@@ -478,7 +478,7 @@ static const char *store_to_file_pre_(const char *filename, FLAC__Metadata_Chain
 
 static const char *store_to_file_post_(const char *filename, FLAC__Metadata_Chain *chain, FLAC__bool preserve_modtime)
 {
-	struct _flac_stat stats;
+	struct flac_stat_s stats;
 	const FLAC__bool have_stats = get_file_stats_(filename, &stats);
 
 	(void)grabbag__file_change_stats(filename, /*read_only=*/false);

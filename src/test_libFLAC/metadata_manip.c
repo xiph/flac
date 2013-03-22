@@ -243,14 +243,14 @@ static FLAC__bool transport_tempfile_(const char *filename, FILE **tempfile, cha
 	return true;
 }
 
-static FLAC__bool get_file_stats_(const char *filename, struct _flac_stat *stats)
+static FLAC__bool get_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
 	FLAC__ASSERT(0 != filename);
 	FLAC__ASSERT(0 != stats);
 	return (0 == flac_stat(filename, stats));
 }
 
-static void set_file_stats_(const char *filename, struct _flac_stat *stats)
+static void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
 	struct utimbuf srctime;
 
@@ -313,7 +313,7 @@ static FLAC__bool write_chain_(FLAC__Metadata_Chain *chain, FLAC__bool use_paddi
 		callbacks.eof = chain_eof_cb_;
 
 		if(FLAC__metadata_chain_check_if_tempfile_needed(chain, use_padding)) {
-			struct _flac_stat stats;
+			struct flac_stat_s stats;
 			FILE *file, *tempfile = 0;
 			char *tempfilename;
 			if(preserve_file_stats) {

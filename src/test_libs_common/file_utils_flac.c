@@ -142,7 +142,7 @@ FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_f
 	FLAC__stream_encoder_delete(encoder);
 
 	if(0 != output_filesize) {
-		struct _flac_stat filestats;
+		struct flac_stat_s filestats;
 
 		if(flac_stat(output_filename, &filestats) != 0)
 			return false;

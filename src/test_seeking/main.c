@@ -93,7 +93,7 @@ static unsigned local_rand_(void)
 
 static FLAC__off_t get_filesize_(const char *srcpath)
 {
-	struct _flac_stat srcstat;
+	struct flac_stat_s srcstat;
 
 	if(0 == flac_stat(srcpath, &srcstat))
 		return srcstat.st_size;

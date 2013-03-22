@@ -50,7 +50,7 @@
 
 void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
 {
-	struct _flac_stat srcstat;
+	struct flac_stat_s srcstat;
 	struct utimbuf srctime;
 
 	if(0 == flac_stat(srcpath, &srcstat)) {
@@ -63,7 +63,7 @@ void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
 
 FLAC__off_t grabbag__file_get_filesize(const char *srcpath)
 {
-	struct _flac_stat srcstat;
+	struct flac_stat_s srcstat;
 
 	if(0 == flac_stat(srcpath, &srcstat))
 		return srcstat.st_size;
@@ -86,7 +86,7 @@ const char *grabbag__file_get_basename(const char *srcpath)
 
 FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only)
 {
-	struct _flac_stat stats;
+	struct flac_stat_s stats;
 
 	if(0 == flac_stat(filename, &stats)) {
 #if !defined _MSC_VER && !defined __MINGW32__
@@ -145,7 +145,7 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 		CloseHandle(h2);
 	return same;
 #else
-	struct _flac_stat s1, s2;
+	struct flac_stat_s s1, s2;
 	return f1 && f2 && flac_stat(f1, &s1) == 0 && flac_stat(f2, &s2) == 0 && s1.st_ino == s2.st_ino && s1.st_dev == s2.st_dev;
 #endif
 }

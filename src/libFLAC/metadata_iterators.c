@@ -118,8 +118,8 @@ static FLAC__bool open_tempfile_(const char *filename, const char *tempfile_path
 static FLAC__bool transport_tempfile_(const char *filename, FILE **tempfile, char **tempfilename, FLAC__Metadata_SimpleIteratorStatus *status);
 static void cleanup_tempfile_(FILE **tempfile, char **tempfilename);
 
-static FLAC__bool get_file_stats_(const char *filename, struct _flac_stat *stats);
-static void set_file_stats_(const char *filename, struct _flac_stat *stats);
+static FLAC__bool get_file_stats_(const char *filename, struct flac_stat_s *stats);
+static void set_file_stats_(const char *filename, struct flac_stat_s *stats);
 
 static int fseek_wrapper_(FLAC__IOHandle handle, FLAC__int64 offset, int whence);
 static FLAC__int64 ftell_wrapper_(FLAC__IOHandle handle);
@@ -327,7 +327,7 @@ FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__Strea
 struct FLAC__Metadata_SimpleIterator {
 	FILE *file;
 	char *filename, *tempfile_path_prefix;
-	struct _flac_stat stats;
+	struct flac_stat_s stats;
 	FLAC__bool has_stats;
 	FLAC__bool is_writable;
 	FLAC__Metadata_SimpleIteratorStatus status;
@@ -1630,7 +1630,7 @@ FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata
 
 FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats)
 {
-	struct _flac_stat stats;
+	struct flac_stat_s stats;
 	const char *tempfile_path_prefix = 0;
 	FLAC__off_t current_length;
 
@@ -3298,14 +3298,14 @@ void cleanup_tempfile_(FILE **tempfile, char **tempfilename)
 	}
 }
 
-FLAC__bool get_file_stats_(const char *filename, struct _flac_stat *stats)
+FLAC__bool get_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
 	FLAC__ASSERT(0 != filename);
 	FLAC__ASSERT(0 != stats);
 	return (0 == flac_stat(filename, stats));
 }
 
-void set_file_stats_(const char *filename, struct _flac_stat *stats)
+void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
 	struct utimbuf srctime;
 

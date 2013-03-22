@@ -3342,7 +3342,7 @@ FLAC__StreamDecoderTellStatus file_tell_callback_(const FLAC__StreamDecoder *dec
 
 FLAC__StreamDecoderLengthStatus file_length_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
 {
-	struct _flac_stat filestats;
+	struct flac_stat_s filestats;
 	(void)client_data;
 
 	if(decoder->private_->file == stdin)

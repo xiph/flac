@@ -2800,7 +2800,7 @@ FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, const char *fn)
 FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 {
 	static unsigned char dump[8192];
-	struct _flac_stat stb;
+	struct flac_stat_s stb;
 
 	if(flac_fstat(fileno(f), &stb) == 0 && (stb.st_mode & S_IFMT) == S_IFREG)
 	{
