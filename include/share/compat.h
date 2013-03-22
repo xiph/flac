@@ -142,7 +142,7 @@
 #endif /* defined _MSC_VER */
 
 #ifdef FLAC__STRINGS_IN_UTF8 /* all char* strings are in UTF-8 format. Added to support Unicode files on Windows */
-#include "share/utf8_io.h"
+#include "share/win_utf8_io.h"
 
 #define flac_printf printf_utf8
 #define flac_fprintf fprintf_utf8

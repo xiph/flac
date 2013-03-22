@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="utf8_io"
+	Name="win_utf8_io"
 	ProjectGUID="{4cefbe02-c215-11db-8314-0800200c9a66}"
-	RootNamespace="utf8_io"
+	RootNamespace="win_utf8_io"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -222,7 +222,7 @@
 			Name="Public Header Files"
 			>
 			<File
-				RelativePath="..\..\..\include\share\utf8_io.h"
+				RelativePath="..\..\..\include\share\win_utf8_io.h"
 				>
 			</File>
 		</Filter>
@@ -232,7 +232,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\utf8_io.c"
+				RelativePath=".\win_utf8_io.c"
 				>
 			</File>
 		</Filter>

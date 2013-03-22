@@ -9,6 +9,8 @@
 #include <stdarg.h>
 #include <windows.h> /* for WideCharToMultiByte and MultiByteToWideChar */
 
+#include "share/win_utf8_io.h"
+
 /* convert WCHAR stored Unicode string to UTF-8. Caller is responsible for freeing memory */
 char *utf8_from_wchar(const wchar_t *wstr)
 {

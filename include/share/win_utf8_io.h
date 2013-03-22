@@ -1,7 +1,7 @@
 #ifdef FLAC__STRINGS_IN_UTF8
 
-#ifndef flac__utf8_io_h
-#define flac__utf8_io_h
+#ifndef flac__win_utf8_io_h
+#define flac__win_utf8_io_h
 
 #ifdef __cplusplus
 extern "C" {
