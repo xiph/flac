@@ -44,3 +44,5 @@ test_libFLAC_SOURCES = \
 	encoders.h \
 	format.h \
 	metadata.h
+
+CLEANFILES = test_libFLAC.exe

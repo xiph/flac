@@ -29,3 +29,5 @@ test_cuesheet_LDADD = \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	@OGG_LIBS@ \
 	-lm
+
+CLEANFILES = test_cuesheet.exe

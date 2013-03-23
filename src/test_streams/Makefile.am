@@ -25,3 +25,5 @@ test_streams_SOURCES = \
 	main.c
 
 test_streams_LDADD =  $(top_builddir)/src/share/grabbag/libgrabbag.la -lm
+
+CLEANFILES = test_streams.exe

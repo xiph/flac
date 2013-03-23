@@ -31,3 +31,5 @@ test_seeking_LDADD = \
 
 test_seeking_SOURCES = \
 	main.c
+
+CLEANFILES = test_seeking.exe

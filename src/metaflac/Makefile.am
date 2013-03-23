@@ -50,3 +50,5 @@ metaflac_LDADD = \
 	@OGG_LIBS@ \
 	@LIBICONV@ \
 	-lm
+
+CLEANFILES = metaflac.exe

@@ -53,3 +53,5 @@ flac_LDADD = \
 	@OGG_LIBS@ \
 	@LIBICONV@ \
 	-lm
+
+CLEANFILES = flac.exe
