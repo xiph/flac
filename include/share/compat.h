@@ -94,14 +94,15 @@
 #endif
 
 #if defined _MSC_VER || defined __MINGW32__
-#include <io.h> /* for _setmode() */
+#include <io.h> /* for _setmode(), chmod() */
 #include <fcntl.h> /* for _O_BINARY */
 #endif
 #if defined __CYGWIN__ || defined __EMX__
-#include <io.h> /* for setmode(), O_BINARY */
+#include <io.h> /* for setmode(), chmod() */
 #include <fcntl.h> /* for _O_BINARY */
+#else
+#include <unistd.h> /* for chown(), unlink() */
 #endif
-
 
 #if defined _MSC_VER || defined __BORLANDC__ || defined __MINGW32__
 #if defined __BORLANDC__
@@ -109,12 +110,9 @@
 #else
 #include <sys/utime.h> /* for utime() */
 #endif
-#include <io.h> /* for chmod() */
-#include <sys/types.h> /* for off_t */
 #else
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
 #include <utime.h> /* for utime() */
-#include <unistd.h> /* for chown(), unlink() */
 #endif
 
 #if defined _MSC_VER
