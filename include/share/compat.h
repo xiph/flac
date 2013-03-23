@@ -148,11 +148,11 @@
 #define flac_fprintf fprintf_utf8
 #define flac_vfprintf vfprintf_utf8
 #define flac_fopen fopen_utf8
-#define flac_stat _stat64_utf8
 #define flac_chmod chmod_utf8
 #define flac_utime utime_utf8
 #define flac_unlink unlink_utf8
 #define flac_rename rename_utf8
+#define flac_stat _stat64_utf8
 
 #else
 
@@ -160,15 +160,17 @@
 #define flac_fprintf fprintf
 #define flac_vfprintf vfprintf
 #define flac_fopen fopen
+#define flac_chmod chmod
+#define flac_utime utime
+#define flac_unlink unlink
+#define flac_rename rename
+
 #ifdef _WIN32
 #define flac_stat _stat64
 #else
 #define flac_stat stat
 #endif
-#define flac_chmod chmod
-#define flac_utime utime
-#define flac_unlink unlink
-#define flac_rename rename
+
 #endif
 
 #ifdef _WIN32
