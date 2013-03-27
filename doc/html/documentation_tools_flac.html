@@ -963,7 +963,7 @@
 					<span class="argument">--input-size=#</span>
 				</td>
 				<td>
-					Specify the size of the raw input in bytes.  If you are encoding raw samples from stdin, you must set this option in order to be able to use --skip, --until, --cue-sheet, or other options that need to know the size of the input beforehand.  If the size given is greater than what is found in the input stream, the encoder will complain about an unexpected end-of-file.  If the size given is less, samples will be truncated.
+					Specify the size of the raw input in bytes.  If you are encoding raw samples from stdin, you must set this option in order to be able to use --skip, --until, --cuesheet, or other options that need to know the size of the input beforehand.  If the size given is greater than what is found in the input stream, the encoder will complain about an unexpected end-of-file.  If the size given is less, samples will be truncated.
 				</td>
 			</tr>
 			<tr>
@@ -1017,6 +1017,7 @@
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<span class="argument">--no-adaptive-mid-side</span><br />
+					<span class="argument">--no-cued-seekpoints</span><br />
 					<span class="argument">--no-decode-through-errors</span><br />
 					<span class="argument">--no-delete-input-file</span><br />
 					<span class="argument">--no-escape-coding</span><br />
@@ -1026,7 +1027,7 @@
 					<span class="argument">--no-mid-side</span><br />
 					<span class="argument">--no-ogg</span><br />
 					<span class="argument">--no-padding</span><br />
-					<span class="argument">--no-qlp-coeff-precision-search</span><br />
+					<span class="argument">--no-qlp-coeff-prec-search</span><br />
 					<span class="argument">--no-residual-gnuplot</span><br />
 					<span class="argument">--no-residual-text</span><br />
 					<span class="argument">--no-sector-align</span><br />
@@ -1108,6 +1109,7 @@
 		<a href="#flac_options_max_lpc_order"><span class="argument">--max-lpc-order</span></a><br />
 		<a href="#flac_options_mid_side"><span class="argument">--mid-side</span></a><br />
 		<a href="#negative_options"><span class="argument">--no-adaptive-mid-side</span></a><br />
+		<a href="#negative_options"><span class="argument">--no-cued-seekpoints</span></a><br />
 		<a href="#negative_options"><span class="argument">--no-decode-through-errors</span></a><br />
 		<a href="#negative_options"><span class="argument">--no-delete-input-file</span></a><br />
 		<a href="#negative_options"><span class="argument">--no-escape-coding</span></a><br />
@@ -1118,7 +1120,7 @@
 		<a href="#negative_options"><span class="argument">--no-ogg</span></a><br />
 		<a href="#negative_options"><span class="argument">--no-padding</span></a><br />
 		<a href="#negative_options"><span class="argument">--no-preserve-modtime</span></a><br />
-		<a href="#negative_options"><span class="argument">--no-qlp-coeff-precision-search</span></a><br />
+		<a href="#negative_options"><span class="argument">--no-qlp-coeff-prec-search</span></a><br />
 		<a href="#negative_options"><span class="argument">--no-residual-gnuplot</span></a><br />
 		<a href="#negative_options"><span class="argument">--no-residual-text</span></a><br />
 		<a href="#negative_options"><span class="argument">--no-sector-align</span></a><br />

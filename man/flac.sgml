@@ -648,7 +648,7 @@
 	  <term><option>--input-size</option>=<replaceable>#</replaceable></term>
 
 	  <listitem>
-	    <para>Specify the size of the raw input in bytes.  If you are encoding raw samples from stdin, you must set this option in order to be able to use --skip, --until, --cue-sheet, or other options that need to know the size of the input beforehand.  If the size given is greater than what is found in the input stream, the encoder will complain about an unexpected end-of-file.  If the size given is less, samples will be truncated.</para>
+	    <para>Specify the size of the raw input in bytes.  If you are encoding raw samples from stdin, you must set this option in order to be able to use --skip, --until, --cuesheet, or other options that need to know the size of the input beforehand.  If the size given is greater than what is found in the input stream, the encoder will complain about an unexpected end-of-file.  If the size given is less, samples will be truncated.</para>
 	  </listitem>
 	</varlistentry>
 
@@ -693,6 +693,7 @@
       <variablelist>
 	<varlistentry>
 	  <term><option>--no-adaptive-mid-side</option></term>
+	  <term><option>--no-cued-seekpoints</option></term>
 	  <term><option>--no-decode-through-errors</option></term>
 	  <term><option>--no-delete-input-file</option></term>
 	  <term><option>--no-preserve-modtime</option></term>
@@ -703,7 +704,7 @@
 	  <term><option>--no-mid-side</option></term>
 	  <term><option>--no-ogg</option></term>
 	  <term><option>--no-padding</option></term>
-	  <term><option>--no-qlp-coeff-precision-search</option></term>
+	  <term><option>--no-qlp-coeff-prec-search</option></term>
 	  <term><option>--no-replay-gain</option></term>
 	  <term><option>--no-residual-gnuplot</option></term>
 	  <term><option>--no-residual-text</option></term>

@@ -283,7 +283,7 @@ Set sample rate (in Hz).
 Set the sign of samples (the default is signed).
 .TP
 \fB--input-size=\fI#\fB\fR
-Specify the size of the raw input in bytes.  If you are encoding raw samples from stdin, you must set this option in order to be able to use --skip, --until, --cue-sheet, or other options that need to know the size of the input beforehand.  If the size given is greater than what is found in the input stream, the encoder will complain about an unexpected end-of-file.  If the size given is less, samples will be truncated.
+Specify the size of the raw input in bytes.  If you are encoding raw samples from stdin, you must set this option in order to be able to use --skip, --until, --cuesheet, or other options that need to know the size of the input beforehand.  If the size given is greater than what is found in the input stream, the encoder will complain about an unexpected end-of-file.  If the size given is less, samples will be truncated.
 .TP
 \fB--force-raw-format\fR
 Force input (when encoding) or output (when decoding) to be treated as raw samples (even if filename ends in \fI\&.wav\fR).
@@ -299,6 +299,8 @@ Force the decoder to output Wave64 format.  This option is not needed if the out
 .SS "NEGATIVE OPTIONS"
 .TP
 \fB--no-adaptive-mid-side\fR
+.TP
+\fB--no-cued-seekpoints\fR
 .TP
 \fB--no-decode-through-errors\fR
 .TP
@@ -320,7 +322,7 @@ Force the decoder to output Wave64 format.  This option is not needed if the out
 .TP
 \fB--no-padding\fR
 .TP
-\fB--no-qlp-coeff-precision-search\fR
+\fB--no-qlp-coeff-prec-search\fR
 .TP
 \fB--no-replay-gain\fR
 .TP

@@ -1282,6 +1282,7 @@ void show_help(void)
 	printf("      --force-wave64-format    Force decoding to Wave64 format\n");
 	printf("negative options:\n");
 	printf("      --no-adaptive-mid-side\n");
+	printf("      --no-cued-seekpoints\n");
 	printf("      --no-decode-through-errors\n");
 	printf("      --no-delete-input-file\n");
 	printf("      --no-preserve-modtime\n");
@@ -1601,7 +1602,7 @@ void show_explain(void)
 	printf("      --input-size=#           Size of the raw input in bytes.  If you are\n");
 	printf("                               encoding raw samples from stdin, you must set\n");
 	printf("                               this option in order to be able to use --skip,\n");
-	printf("                               --until, --cue-sheet, or other options that need\n");
+	printf("                               --until, --cuesheet, or other options that need\n");
 	printf("                               to know the size of the input beforehand.  If\n");
 	printf("                               the size given is greater than what is found in\n");
 	printf("                               the input stream, the encoder will complain\n");
@@ -1626,6 +1627,7 @@ void show_explain(void)
 	printf("                               auto-detected.\n");
 	printf("negative options:\n");
 	printf("      --no-adaptive-mid-side\n");
+	printf("      --no-cued-seekpoints\n");
 	printf("      --no-decode-through-errors\n");
 	printf("      --no-delete-input-file\n");
 	printf("      --no-preserve-modtime\n");
