@@ -29,6 +29,7 @@
 #include "FLAC/stream_decoder.h"
 #include "share/grabbag.h"
 #include "share/compat.h"
+#include "share/safe_str.h"
 #include "test_libs_common/file_utils_flac.h"
 #include "test_libs_common/metadata_utils.h"
 
@@ -49,6 +50,7 @@ static const char * const LayerString[] = {
 typedef struct {
 	Layer layer;
 	FILE *file;
+	char filename[512];
 	unsigned current_metadata_number;
 	FLAC__bool ignore_errors;
 	FLAC__bool error_occurred;
@@ -82,6 +84,12 @@ static FLAC__bool die_s_(const char *msg, const FLAC__StreamDecoder *decoder)
 	printf(", state = %u (%s)\n", (unsigned)state, FLAC__StreamDecoderStateString[state]);
 
 	return false;
+}
+
+static void open_test_file(StreamDecoderClientData * pdcd, int is_ogg, const char * mode)
+{
+	pdcd->file = fopen(flacfilename(is_ogg), mode);
+	safe_strncpy(pdcd->filename, flacfilename(is_ogg), sizeof (pdcd->filename));
 }
 
 static void init_metadata_blocks_(void)
@@ -315,7 +323,7 @@ static FLAC__bool stream_decoder_test_respond_(FLAC__StreamDecoder *decoder, Str
 	/* for FLAC__stream_encoder_init_FILE(), the FLAC__stream_encoder_finish() closes the file so we have to keep re-opening: */
 	if(dcd->layer == LAYER_FILE) {
 		printf("opening %sFLAC file... ", is_ogg? "Ogg ":"");
-		dcd->file = fopen(flacfilename(is_ogg), "rb");
+		open_test_file(dcd, is_ogg, "rb");
 		if(0 == dcd->file) {
 			printf("ERROR (%s)\n", strerror(errno));
 			return false;
@@ -466,7 +474,7 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 
 	if(layer < LAYER_FILENAME) {
 		printf("opening %sFLAC file... ", is_ogg? "Ogg ":"");
-		decoder_client_data.file = fopen(flacfilename(is_ogg), "rb");
+		open_test_file(&decoder_client_data, is_ogg, "rb");
 		if(0 == decoder_client_data.file) {
 			printf("ERROR (%s)\n", strerror(errno));
 			return false;
