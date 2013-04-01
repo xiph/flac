@@ -175,7 +175,7 @@
 				OmitFramePointers="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories=".\include;..\..\..\include;..\..\..\include\share"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FLAC__NO_DLL;FLAC__STRINGS_IN_UTF8"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FLAC__NO_DLL"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
