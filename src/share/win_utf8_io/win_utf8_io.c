@@ -182,7 +182,7 @@ FILE *fopen_utf8(const char *filename, const char *mode)
 	return f;
 }
 
-int _stat64_utf8(const char *path, struct _stat64 *buffer)
+int _stat64_utf8(const char *path, struct __stat64 *buffer)
 {
 	wchar_t *wpath;
 	int ret;

@@ -20,7 +20,7 @@ int vfprintf_utf8(FILE *stream, const char *format, va_list argptr);
 
 FILE *fopen_utf8(const char *filename, const char *mode);
 int stat_utf8(const char *path, struct stat *buffer);
-int _stat64_utf8(const char *path, struct _stat64 *buffer);
+int _stat64_utf8(const char *path, struct __stat64 *buffer);
 int chmod_utf8(const char *filename, int pmode);
 int utime_utf8(const char *filename, struct utimbuf *times);
 int unlink_utf8(const char *filename);

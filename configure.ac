@@ -129,6 +129,7 @@ case "$host" in
 	*-*-cygwin|*mingw*|*emx*)
 		# define this variable for enabling strict exports with libtool; for now, it's supported by Win32 and OS/2
 		LT_NO_UNDEFINED="-no-undefined"
+		CPPFLAGS="-D__MSVCRT_VERSION__=0x0601 $CPPFLAGS"
 		os_is_windows=yes
 		;;
 	*)
