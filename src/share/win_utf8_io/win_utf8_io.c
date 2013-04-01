@@ -1,4 +1,3 @@
-#ifdef FLAC__STRINGS_IN_UTF8
 
 #include <stdio.h>
 #include <sys/stat.h>
@@ -12,6 +11,7 @@
 #include "share/win_utf8_io.h"
 
 /* convert WCHAR stored Unicode string to UTF-8. Caller is responsible for freeing memory */
+static
 char *utf8_from_wchar(const wchar_t *wstr)
 {
 	char *utf8str;
@@ -29,6 +29,7 @@ char *utf8_from_wchar(const wchar_t *wstr)
 }
 
 /* convert UTF-8 back to WCHAR. Caller is responsible for freeing memory */
+static
 wchar_t *wchar_from_utf8(const char *str)
 {
 	wchar_t *widestr;
@@ -256,5 +257,3 @@ int rename_utf8(const char *oldname, const char *newname)
 
 	return ret;
 }
-
-#endif

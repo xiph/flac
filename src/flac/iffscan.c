@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 	size_t i;
 	FLAC__uint32 size;
 
-#ifdef FLAC__STRINGS_IN_UTF8
+#ifdef _WIN32
 	if (get_utf8_argv(&argc, &argv) != 0) {
 		fprintf(stderr, "%ERROR: failed to convert command line parameters to UTF-8\n");
 		return 1;

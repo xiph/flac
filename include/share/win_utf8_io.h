@@ -1,4 +1,4 @@
-#ifdef FLAC__STRINGS_IN_UTF8
+#ifdef _WIN32
 
 #ifndef flac__win_utf8_io_h
 #define flac__win_utf8_io_h

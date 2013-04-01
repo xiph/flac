@@ -245,7 +245,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 	}
 	else {
 		FLAC__bool needs_free = false;
-#ifdef FLAC__STRINGS_IN_UTF8 /* do not convert anything or things will break */
+#ifdef _WIN32 /* do not convert anything or things will break */
 		entry.entry = (FLAC__byte *)field->field;
 #else
 		if(raw) {

@@ -69,3 +69,4 @@ test/metaflac-test-files/out.meta
 test/metaflac.flac
 test/picture.diff
 test/picture.log
+.dirstamp

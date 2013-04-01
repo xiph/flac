@@ -170,7 +170,7 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 	}
 	else {
 		FLAC__bool needs_free = false;
-#ifdef FLAC__STRINGS_IN_UTF8 /* everything in UTF-8 already. Must not alter */
+#ifdef _WIN32 /* everything in UTF-8 already. Must not alter */
 		entry.entry = (FLAC__byte *)field->field;
 #else
 		if(raw) {

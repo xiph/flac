@@ -82,7 +82,11 @@ endif
 endif
 endif
 
-libFLAC_la_LIBADD = $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@ -lm
+if OS_IS_WINDOWS
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+endif
+
+libFLAC_la_LIBADD = $(win_utf8_lib) $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@ -lm
 
 SUBDIRS = $(ARCH_SUBDIRS) include .
 
@@ -106,6 +110,7 @@ extra_ogg_sources = \
 	ogg_helper.c \
 	ogg_mapping.c
 endif
+
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
 libFLAC_la_LDFLAGS = -version-info 11:0:3 $(LOCAL_EXTRA_LDFLAGS) @LT_NO_UNDEFINED@
 

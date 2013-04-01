@@ -24,6 +24,10 @@ noinst_PROGRAMS = test_streams
 test_streams_SOURCES = \
 	main.c
 
-test_streams_LDADD =  $(top_builddir)/src/share/grabbag/libgrabbag.la -lm
+if OS_IS_WINDOWS
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+endif
+
+test_streams_LDADD = $(win_utf8_lib) $(top_builddir)/src/share/grabbag/libgrabbag.la -lm
 
 CLEANFILES = test_streams.exe

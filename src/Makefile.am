@@ -24,8 +24,8 @@ CPPLIBS_DIRS = libFLAC++ test_libFLAC++
 endif
 
 SUBDIRS = \
-	libFLAC \
 	share \
+	libFLAC \
 	flac \
 	metaflac \
 	monkeys_audio_utilities \
