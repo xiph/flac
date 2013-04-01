@@ -33,6 +33,7 @@
 #include<process.h>
 #include<winbase.h>
 
+#include "share/compat.h"
 #include "share/safe_str.h"
 
 static int execit(char *prog, char *args);
@@ -106,8 +107,8 @@ int main(int argc, char *argv[])
 	flac_snprintf(options, sizeof (options), "-%d", flac_level);
 	for(i = opt_arg; i < argc; i++)
 		if(argv[i][0] == '-') {
-			safe_strncat(options, " ");
-			safe_strncat(options, argv[i]);
+			safe_strncat(options, " ", sizeof(options));
+			safe_strncat(options, argv[i], sizeof(options));
 		}
 	flac_snprintf(cmdline, sizeof (cmdline), "\"%s\" %s -o \"%s\" \"%s\"", prog, options, argv[to_arg], argv[from_arg]);
 
@@ -131,8 +132,8 @@ int main(int argc, char *argv[])
 
 		/* for the full 'from' and 'to' paths for the renamer process */
 		p = strrchr(argv[from_arg],'\\');
-		safe_strncat(from, p? p+1 : argv[from_arg]);
-		safe_strncpy(to, from, sizeof(to));
+		safe_strncat(from, p? p+1 : argv[from_arg], sizeof(from));
+		safe_strncpy(to, from, sizeof(to), sizeof(to));
 
 		cptr = strrchr(from,'.');
 		if(cptr == NULL)
