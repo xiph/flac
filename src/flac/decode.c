@@ -1429,14 +1429,14 @@ void print_stats(const DecoderSession *decoder_session)
 			if ((unsigned)floor(progress + 0.5) == 100)
 				return;
 
-			count = fprintf(stderr, "%s: %s%u%% complete",
+			count = flac_fprintf(stderr, "%s: %s%u%% complete",
 				decoder_session->inbasefilename,
 				decoder_session->test_only? "testing, " : decoder_session->analysis_mode? "analyzing, " : "",
 				(unsigned)floor(progress + 0.5)
 			);
 		}
 		else {
-			fprintf(stderr, "\r%s: %s %u samples",
+			flac_fprintf(stderr, "\r%s: %s %u samples",
 				decoder_session->inbasefilename,
 				decoder_session->test_only? "tested" : decoder_session->analysis_mode? "analyzed" : "wrote",
 				(unsigned)decoder_session->samples_processed
