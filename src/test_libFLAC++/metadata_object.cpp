@@ -16,11 +16,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "FLAC/assert.h"
-#include "FLAC++/metadata.h"
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcmp() */
+#include "FLAC/assert.h"
+#include "FLAC++/metadata.h"
+#include "share/safe_str.h"
 
 static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application_, vorbiscomment_, cuesheet_, picture_;
 
@@ -1694,7 +1695,7 @@ bool test_metadata_object_cuesheet()
 	{
 		char mcn[129];
 		memset(mcn, 0, sizeof(mcn));
-		strcpy(mcn, "1234567890123");
+		safe_strncpy(mcn, "1234567890123", sizeof(mcn));
 		block.set_media_catalog_number(mcn);
 		if(0 != memcmp(block.get_media_catalog_number(), mcn, sizeof(mcn)))
 			return die_("value mismatch");

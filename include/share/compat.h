@@ -189,7 +189,12 @@
  *
  * This function wraps the MS version to behave more like the the ISO version.
  */
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 int flac_snprintf(char *str, size_t size, const char *fmt, ...);
+#ifdef __cplusplus
+};
+#endif
 
 #endif /* FLAC__SHARE__COMPAT_H */

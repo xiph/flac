@@ -39,6 +39,7 @@
 #include "share/grabbag.h"
 #include "share/compat.h"
 #include "share/macros.h"
+#include "share/safe_str.h"
 extern "C" {
 #include "test_libs_common/file_utils_flac.h"
 }
@@ -202,11 +203,11 @@ void add_to_padding_length_(unsigned index, int delta)
 bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
 {
 	static const char *tempfile_suffix = ".metadata_edit";
+	size_t destlen = strlen(filename) + strlen(tempfile_suffix) + 1;
 
-	if(0 == (*tempfilename = (char*)malloc(strlen(filename) + strlen(tempfile_suffix) + 1)))
+	if(0 == (*tempfilename = (char*)malloc(destlen)))
 		return false;
-	strcpy(*tempfilename, filename);
-	strcat(*tempfilename, tempfile_suffix);
+	flac_snprintf(*tempfilename, destlen, "%s%s", filename, tempfile_suffix);
 
 	if(0 == (*tempfile = flac_fopen(*tempfilename, "wb")))
 		return false;
@@ -533,7 +534,7 @@ static bool generate_file_(bool include_extras, bool is_ogg)
 		if (0 == (cuesheet = ::FLAC__metadata_object_new(::FLAC__METADATA_TYPE_CUESHEET)))
 			return die_("priming our metadata");
 		cuesheet->is_last = false;
-		strcpy(cuesheet->data.cue_sheet.media_catalog_number, "bogo-MCN");
+		safe_strncpy(cuesheet->data.cue_sheet.media_catalog_number, "bogo-MCN", sizeof(cuesheet->data.cue_sheet.media_catalog_number));
 		cuesheet->data.cue_sheet.lead_in = 123;
 		cuesheet->data.cue_sheet.is_cd = false;
 		if (!FLAC__metadata_object_cuesheet_insert_blank_track(cuesheet, 0))

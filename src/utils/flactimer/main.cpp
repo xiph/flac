@@ -106,8 +106,8 @@ int main(int argc, char *argv[])
 	args[0] = '\0';
 	for(i = 0; i < argc; i++) {
 		if(i > 0)
-			strcat(args, " ");
-		strcat(args, argv[i]);
+			safe_strncat(args, sizeof(args), " ");
+		safe_strncat(args, sizeof(args), argv[i]);
 	}
 
 	//fprintf(stderr, "@@@ cmd=[%s] args=[%s]\n", argv[0], args);
