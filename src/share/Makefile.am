@@ -15,8 +15,65 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-SUBDIRS = getopt replaygain_analysis replaygain_synthesis grabbag utf8
+AUTOMAKE_OPTIONS = subdir-objects
+
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/include/share
 
 EXTRA_DIST = \
 	Makefile.lite \
-	README
+	README \
+	getopt/Makefile.lite \
+	getopt/getopt_static.vcproj \
+	grabbag/Makefile.lite \
+	grabbag/grabbag_static.vcproj \
+	replaygain_analysis/Makefile.lite \
+	replaygain_analysis/replaygain_analysis_static.vcproj \
+	replaygain_synthesis/Makefile.lite \
+	replaygain_synthesis/replaygain_synthesis_static.vcproj \
+	replaygain_synthesis/include/private/fast_float_math_hack.h \
+	utf8/Makefile.lite \
+	utf8/charmaps.h \
+	utf8/makemap.c \
+	utf8/charset_test.c \
+	utf8/charsetmap.h \
+	utf8/iconvert.h \
+	utf8/utf8_static.vcproj \
+	win_utf8_io/win_utf8_io.vcproj
+
+
+noinst_LTLIBRARIES = \
+	getopt/libgetopt.la \
+	grabbag/libgrabbag.la \
+	utf8/libutf8.la \
+	replaygain_analysis/libreplaygain_analysis.la \
+	replaygain_synthesis/libreplaygain_synthesis.la
+
+
+getopt_libgetopt_la_SOURCES = getopt/getopt.c getopt/getopt1.c
+
+grabbag_libgrabbag_la_SOURCES = \
+	grabbag/alloc.c \
+	grabbag/cuesheet.c \
+	grabbag/file.c \
+	grabbag/picture.c \
+	grabbag/replaygain.c \
+	grabbag/seektable.c \
+	grabbag/snprintf.c
+
+utf8_libutf8_la_SOURCES = \
+	utf8/charset.c \
+	utf8/charset.h \
+	utf8/iconvert.c \
+	utf8/utf8.c \
+	win_utf8_io/win_utf8_io.c
+
+replaygain_analysis_libreplaygain_analysis_la_SOURCES = replaygain_analysis/replaygain_analysis.c
+
+replaygain_synthesis_libreplaygain_synthesis_la_CFLAGS = -I $(top_srcdir)/src/share/replaygain_synthesis/include
+replaygain_synthesis_libreplaygain_synthesis_la_SOURCES = replaygain_synthesis/replaygain_synthesis.c
+
+debug:
+	$(MAKE) all CFLAGS="@DEBUG@"
+
+profile:
+	$(MAKE) all CFLAGS="@PROFILE@"

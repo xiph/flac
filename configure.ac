@@ -417,13 +417,6 @@ AC_CONFIG_FILES([ \
 	src/plugin_common/Makefile \
 	src/plugin_xmms/Makefile \
 	src/share/Makefile \
-	src/share/getopt/Makefile \
-	src/share/grabbag/Makefile \
-	src/share/replaygain_analysis/Makefile \
-	src/share/replaygain_synthesis/Makefile \
-	src/share/replaygain_synthesis/include/Makefile \
-	src/share/replaygain_synthesis/include/private/Makefile \
-	src/share/utf8/Makefile \
 	src/test_grabbag/Makefile \
 	src/test_grabbag/cuesheet/Makefile \
 	src/test_grabbag/picture/Makefile \
