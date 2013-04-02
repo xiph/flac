@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 		/* for the full 'from' and 'to' paths for the renamer process */
 		p = strrchr(argv[from_arg],'\\');
 		safe_strncat(from, p? p+1 : argv[from_arg], sizeof(from));
-		safe_strncpy(to, from, sizeof(to), sizeof(to));
+		safe_strncpy(to, from, sizeof(to));
 
 		cptr = strrchr(from,'.');
 		if(cptr == NULL)
