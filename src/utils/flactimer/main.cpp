@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <windows.h>
+#include "share/compat.h"
+#include "share/safe_str.h"
 
 #define int64_t __int64
 #define uint64_t unsigned int64_t
@@ -106,8 +108,8 @@ int main(int argc, char *argv[])
 	args[0] = '\0';
 	for(i = 0; i < argc; i++) {
 		if(i > 0)
-			safe_strncat(args, sizeof(args), " ");
-		safe_strncat(args, sizeof(args), argv[i]);
+			safe_strncat(args, " ", sizeof(args));
+		safe_strncat(args, argv[i], sizeof(args));
 	}
 
 	//fprintf(stderr, "@@@ cmd=[%s] args=[%s]\n", argv[0], args);
