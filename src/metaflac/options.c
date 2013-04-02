@@ -1084,5 +1084,5 @@ FLAC__bool parse_application_data_format(const char *in, FLAC__bool *out)
 
 void undocumented_warning(const char *opt)
 {
-	flac_fprintf(stderr, "WARNING: undocmented option --%s should be used with caution,\n         only for repairing a damaged STREAMINFO block\n", opt);
+	flac_fprintf(stderr, "WARNING: undocumented option --%s should be used with caution,\n         only for repairing a damaged STREAMINFO block\n", opt);
 }
