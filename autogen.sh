@@ -1,7 +1,25 @@
-#!/bin/sh
+#!/bin/bash
 # Run this to set up the build system: configure, makefiles, etc.
 # We trust that the user has a recent enough autoconf & automake setup
 # (not older than a few years...)
+
+test_program_errors=0
+
+function test_program {
+	if ! command -v $1 >/dev/null 2>&1 ; then
+		echo "Missing program '$1'."
+		test_program_errors=1
+		fi
+}
+
+for prog in autoconf automake libtool pkg-config gettext ; do
+	test_program $prog
+	done
+
+test $test_program_errors -ne 1 || exit 1
+
+#-------------------------------------------------------------------------------
+
 set -e
 
 if test $(uname -s) = "OpenBSD" ; then
