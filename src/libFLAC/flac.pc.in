@@ -6,5 +6,5 @@ includedir=@includedir@
 Name: FLAC
 Description: Free Lossless Audio Codec Library
 Version: @VERSION@
-Libs: -L${libdir} -lFLAC -lm
+Libs: -L${libdir} -lFLAC @OGG_LIBS@ -lm
 Cflags: -I${includedir}

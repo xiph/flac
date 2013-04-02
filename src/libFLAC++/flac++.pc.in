@@ -7,5 +7,5 @@ Name: FLAC++
 Description: Free Lossless Audio Codec Library (C++ API)
 Version: @VERSION@
 Requires: flac
-Libs: -L${libdir} -lFLAC++ -lm
+Libs: -L${libdir} -lFLAC++ @OGG_LIBS@ -lm
 Cflags: -I${includedir}
