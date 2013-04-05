@@ -2711,17 +2711,17 @@ FLAC__bool write_metadata_block_data_cuesheet_cb_(FLAC__IOHandle handle, FLAC__I
 			return false;
 
 		for(j = 0; j < track->num_indices; j++) {
-			FLAC__StreamMetadata_CueSheet_Index *index = track->indices + j;
+			FLAC__StreamMetadata_CueSheet_Index *indx = track->indices + j;
 
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN % 8 == 0);
 			len = FLAC__STREAM_METADATA_CUESHEET_INDEX_OFFSET_LEN / 8;
-			pack_uint64_(index->offset, buffer, len);
+			pack_uint64_(indx->offset, buffer, len);
 			if(write_cb(buffer, 1, len, handle) != len)
 				return false;
 
 			FLAC__ASSERT(FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN % 8 == 0);
 			len = FLAC__STREAM_METADATA_CUESHEET_INDEX_NUMBER_LEN / 8;
-			pack_uint32_(index->number, buffer, len);
+			pack_uint32_(indx->number, buffer, len);
 			if(write_cb(buffer, 1, len, handle) != len)
 				return false;
 

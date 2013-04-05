@@ -209,14 +209,14 @@ void FLAC__replaygain_synthesis__init_dither_context(DitherContext *d, int bits,
 	static unsigned char default_dither [] = { 92, 92, 88, 84, 81, 78, 74, 67,  0,  0 };
 	static const float*               F [] = { F44_0, F44_1, F44_2, F44_3 };
 
-	int index;
+	int indx;
 
 	if (shapingtype < 0) shapingtype = 0;
 	if (shapingtype > 3) shapingtype = 3;
 	d->ShapingType = (NoiseShaping)shapingtype;
-	index = bits - 11 - shapingtype;
-	if (index < 0) index = 0;
-	if (index > 9) index = 9;
+	indx = bits - 11 - shapingtype;
+	if (indx < 0) indx = 0;
+	if (indx > 9) indx = 9;
 
 	memset ( d->ErrorHistory , 0, sizeof (d->ErrorHistory ) );
 	memset ( d->DitherHistory, 0, sizeof (d->DitherHistory) );
@@ -224,7 +224,7 @@ void FLAC__replaygain_synthesis__init_dither_context(DitherContext *d, int bits,
 	d->FilterCoeff = F [shapingtype];
 	d->Mask   = ((FLAC__uint64)-1) << (32 - bits);
 	d->Add    = 0.5     * ((1L << (32 - bits)) - 1);
-	d->Dither = 0.01f*default_dither[index] / (((FLAC__int64)1) << bits);
+	d->Dither = 0.01f*default_dither[indx] / (((FLAC__int64)1) << bits);
 	d->LastHistoryIndex = 0;
 }
 

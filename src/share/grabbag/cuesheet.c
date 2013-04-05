@@ -642,17 +642,17 @@ void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, co
 			fprintf(file, "    ISRC %s\n", track->isrc);
 
 		for(index_num = 0; index_num < track->num_indices; index_num++) {
-			const FLAC__StreamMetadata_CueSheet_Index *index = track->indices + index_num;
+			const FLAC__StreamMetadata_CueSheet_Index *indx = track->indices + index_num;
 
-			fprintf(file, "    INDEX %02u ", (unsigned)index->number);
+			fprintf(file, "    INDEX %02u ", (unsigned)indx->number);
 			if(cs->is_cd) {
-				const unsigned logical_frame = (unsigned)((track->offset + index->offset) / (44100 / 75));
+				const unsigned logical_frame = (unsigned)((track->offset + indx->offset) / (44100 / 75));
 				unsigned m, s, f;
 				grabbag__cuesheet_frame_to_msf(logical_frame, &m, &s, &f);
 				fprintf(file, "%02u:%02u:%02u\n", m, s, f);
 			}
 			else
-				fprintf(file, "%" PRIu64 "\n", (track->offset + index->offset));
+				fprintf(file, "%" PRIu64 "\n", (track->offset + indx->offset));
 		}
 	}
 

@@ -48,12 +48,12 @@
 static unsigned char *make_utf8_string(const wchar_t *unicode)
 {
     size_t size = 0, n;
-    int index = 0, out_index = 0;
+    int indx = 0, out_index = 0;
     unsigned char *out;
     unsigned short c;
 
     /* first calculate the size of the target string */
-    c = unicode[index++];
+    c = unicode[indx++];
     while(c) {
         if(c < 0x0080) {
             n = 1;
@@ -65,15 +65,15 @@ static unsigned char *make_utf8_string(const wchar_t *unicode)
         if(size+n < size) /* overflow check */
             return NULL;
         size += n;
-        c = unicode[index++];
+        c = unicode[indx++];
     }
 
     out = safe_malloc_add_2op_(size, /*+*/1);
     if (out == NULL)
         return NULL;
-    index = 0;
+    indx = 0;
 
-    c = unicode[index++];
+    c = unicode[indx++];
     while(c)
     {
         if(c < 0x080) {
@@ -86,7 +86,7 @@ static unsigned char *make_utf8_string(const wchar_t *unicode)
             out[out_index++] = 0x80 | ((c >> 6) & 0x3f);
             out[out_index++] = 0x80 | (c & 0x3f);
         }
-        c = unicode[index++];
+        c = unicode[indx++];
     }
     out[out_index] = 0x00;
 
@@ -96,24 +96,24 @@ static unsigned char *make_utf8_string(const wchar_t *unicode)
 static wchar_t *make_unicode_string(const unsigned char *utf8)
 {
     size_t size = 0;
-    int index = 0, out_index = 0;
+    int indx = 0, out_index = 0;
     wchar_t *out;
     unsigned char c;
 
     /* first calculate the size of the target string */
-    c = utf8[index++];
+    c = utf8[indx++];
     while(c) {
         if((c & 0x80) == 0) {
-            index += 0;
+            indx += 0;
         } else if((c & 0xe0) == 0xe0) {
-            index += 2;
+            indx += 2;
         } else {
-            index += 1;
+            indx += 1;
         }
         if(size + 1 == 0) /* overflow check */
             return NULL;
         size++;
-        c = utf8[index++];
+        c = utf8[indx++];
     }
 
     if(size + 1 == 0) /* overflow check */
@@ -121,25 +121,25 @@ static wchar_t *make_unicode_string(const unsigned char *utf8)
     out = safe_malloc_mul_2op_(size+1, /*times*/sizeof(wchar_t));
     if (out == NULL)
         return NULL;
-    index = 0;
+    indx = 0;
 
-    c = utf8[index++];
+    c = utf8[indx++];
     while(c)
     {
         if((c & 0x80) == 0) {
             out[out_index++] = c;
         } else if((c & 0xe0) == 0xe0) {
             out[out_index] = (c & 0x1F) << 12;
-	        c = utf8[index++];
+	        c = utf8[indx++];
             out[out_index] |= (c & 0x3F) << 6;
-	        c = utf8[index++];
+	        c = utf8[indx++];
             out[out_index++] |= (c & 0x3F);
         } else {
             out[out_index] = (c & 0x3F) << 6;
-	        c = utf8[index++];
+	        c = utf8[indx++];
             out[out_index++] |= (c & 0x3F);
         }
-        c = utf8[index++];
+        c = utf8[indx++];
     }
     out[out_index] = 0;
 

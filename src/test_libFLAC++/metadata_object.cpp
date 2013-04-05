@@ -51,11 +51,11 @@ static char *strdup_or_die_(const char *s)
 	return x;
 }
 
-static bool index_is_equal_(const ::FLAC__StreamMetadata_CueSheet_Index &index, const ::FLAC__StreamMetadata_CueSheet_Index &indexcopy)
+static bool index_is_equal_(const ::FLAC__StreamMetadata_CueSheet_Index &indx, const ::FLAC__StreamMetadata_CueSheet_Index &indxcopy)
 {
-	if(indexcopy.offset != index.offset)
+	if(indxcopy.offset != indx.offset)
 		return false;
-	if(indexcopy.number != index.number)
+	if(indxcopy.number != indx.number)
 		return false;
 	return true;
 }

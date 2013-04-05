@@ -1327,7 +1327,7 @@ FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scal
 
 unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned max_order, unsigned total_samples, unsigned overhead_bits_per_order)
 {
-	unsigned order, index, best_index; /* 'index' the index into lpc_error; index==order-1 since lpc_error[0] is for order==1, lpc_error[1] is for order==2, etc */
+	unsigned order, indx, best_index; /* 'index' the index into lpc_error; index==order-1 since lpc_error[0] is for order==1, lpc_error[1] is for order==2, etc */
 	FLAC__double bits, best_bits, error_scale;
 
 	FLAC__ASSERT(max_order > 0);
@@ -1338,15 +1338,15 @@ unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned m
 	best_index = 0;
 	best_bits = (unsigned)(-1);
 
-	for(index = 0, order = 1; index < max_order; index++, order++) {
-		bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[index], error_scale) * (FLAC__double)(total_samples - order) + (FLAC__double)(order * overhead_bits_per_order);
+	for(indx = 0, order = 1; indx < max_order; indx++, order++) {
+		bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[indx], error_scale) * (FLAC__double)(total_samples - order) + (FLAC__double)(order * overhead_bits_per_order);
 		if(bits < best_bits) {
-			best_index = index;
+			best_index = indx;
 			best_bits = bits;
 		}
 	}
 
-	return best_index+1; /* +1 since index of lpc_error[] is order-1 */
+	return best_index+1; /* +1 since indx of lpc_error[] is order-1 */
 }
 
 #endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */

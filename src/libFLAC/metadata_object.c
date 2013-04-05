@@ -1272,19 +1272,19 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__St
 
 		i = vorbiscomment_find_entry_from_(object, 0, (const char *)entry.entry, field_name_length);
 		if(i >= 0) {
-			unsigned index = (unsigned)i;
-			if(!FLAC__metadata_object_vorbiscomment_set_comment(object, index, entry, copy))
+			unsigned indx = (unsigned)i;
+			if(!FLAC__metadata_object_vorbiscomment_set_comment(object, indx, entry, copy))
 				return false;
-			entry = object->data.vorbis_comment.comments[index];
-			index++; /* skip over replaced comment */
-			if(all && index < object->data.vorbis_comment.num_comments) {
-				i = vorbiscomment_find_entry_from_(object, index, (const char *)entry.entry, field_name_length);
+			entry = object->data.vorbis_comment.comments[indx];
+			indx++; /* skip over replaced comment */
+			if(all && indx < object->data.vorbis_comment.num_comments) {
+				i = vorbiscomment_find_entry_from_(object, indx, (const char *)entry.entry, field_name_length);
 				while(i >= 0) {
-					index = (unsigned)i;
-					if(!FLAC__metadata_object_vorbiscomment_delete_comment(object, index))
+					indx = (unsigned)i;
+					if(!FLAC__metadata_object_vorbiscomment_delete_comment(object, indx))
 						return false;
-					if(index < object->data.vorbis_comment.num_comments)
-						i = vorbiscomment_find_entry_from_(object, index, (const char *)entry.entry, field_name_length);
+					if(indx < object->data.vorbis_comment.num_comments)
+						i = vorbiscomment_find_entry_from_(object, indx, (const char *)entry.entry, field_name_length);
 					else
 						i = -1;
 				}
@@ -1513,7 +1513,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
 	return true;
 }
 
-FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num, FLAC__StreamMetadata_CueSheet_Index index)
+FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num, FLAC__StreamMetadata_CueSheet_Index indx)
 {
 	FLAC__StreamMetadata_CueSheet_Track *track;
 
@@ -1530,16 +1530,16 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_index(FLAC__Stre
 	/* move all indices >= index_num forward one space */
 	memmove(&track->indices[index_num+1], &track->indices[index_num], sizeof(FLAC__StreamMetadata_CueSheet_Index)*(track->num_indices-1-index_num));
 
-	track->indices[index_num] = index;
+	track->indices[index_num] = indx;
 	cuesheet_calculate_length_(object);
 	return true;
 }
 
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_insert_blank_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num)
 {
-	FLAC__StreamMetadata_CueSheet_Index index;
-	memset(&index, 0, sizeof(index));
-	return FLAC__metadata_object_cuesheet_track_insert_index(object, track_num, index_num, index);
+	FLAC__StreamMetadata_CueSheet_Index indx;
+	memset(&indx, 0, sizeof(indx));
+	return FLAC__metadata_object_cuesheet_track_insert_index(object, track_num, index_num, indx);
 }
 
 FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_delete_index(FLAC__StreamMetadata *object, unsigned track_num, unsigned index_num)

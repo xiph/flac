@@ -83,7 +83,7 @@ static FLAC__bool local__parse_timecode_(const char *s, double *value)
 	return true;
 }
 
-static FLAC__bool local__parse_cue_(const char *s, const char *end, unsigned *track, unsigned *index)
+static FLAC__bool local__parse_cue_(const char *s, const char *end, unsigned *track, unsigned *indx)
 {
 	FLAC__bool got_track = false, got_index = false;
 	unsigned t = 0, i = 0;
@@ -110,7 +110,7 @@ static FLAC__bool local__parse_cue_(const char *s, const char *end, unsigned *tr
 			return false;
 	}
 	*track = t;
-	*index = i;
+	*indx = i;
 	return got_track && got_index;
 }
 
@@ -119,20 +119,20 @@ static FLAC__bool local__parse_cue_(const char *s, const char *end, unsigned *tr
  * does not require sorted cuesheets).  but if it's not sorted, picking a
  * nearest cue point has no significance.
  */
-static FLAC__uint64 local__find_closest_cue_(const FLAC__StreamMetadata_CueSheet *cuesheet, unsigned track, unsigned index, FLAC__uint64 total_samples, FLAC__bool look_forward)
+static FLAC__uint64 local__find_closest_cue_(const FLAC__StreamMetadata_CueSheet *cuesheet, unsigned track, unsigned indx, FLAC__uint64 total_samples, FLAC__bool look_forward)
 {
 	int t, i;
 	if(look_forward) {
 		for(t = 0; t < (int)cuesheet->num_tracks; t++)
 			for(i = 0; i < (int)cuesheet->tracks[t].num_indices; i++)
-				if(cuesheet->tracks[t].number > track || (cuesheet->tracks[t].number == track && cuesheet->tracks[t].indices[i].number >= index))
+				if(cuesheet->tracks[t].number > track || (cuesheet->tracks[t].number == track && cuesheet->tracks[t].indices[i].number >= indx))
 					return cuesheet->tracks[t].offset + cuesheet->tracks[t].indices[i].offset;
 		return total_samples;
 	}
 	else {
 		for(t = (int)cuesheet->num_tracks - 1; t >= 0; t--)
 			for(i = (int)cuesheet->tracks[t].num_indices - 1; i >= 0; i--)
-				if(cuesheet->tracks[t].number < track || (cuesheet->tracks[t].number == track && cuesheet->tracks[t].indices[i].number <= index))
+				if(cuesheet->tracks[t].number < track || (cuesheet->tracks[t].number == track && cuesheet->tracks[t].indices[i].number <= indx))
 					return cuesheet->tracks[t].offset + cuesheet->tracks[t].indices[i].offset;
 		return 0;
 	}

@@ -155,14 +155,14 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 	/* add seekpoints for each index point if required */
 	if(0 != seekpoint_specification) {
 		char spec[128];
-		unsigned track, index;
+		unsigned track, indx;
 		const FLAC__StreamMetadata_CueSheet *cs = &(*cuesheet)->data.cue_sheet;
 		if(0 == *seekpoint_specification)
 			*seekpoint_specification = local_strdup("");
 		for(track = 0; track < cs->num_tracks; track++) {
 			const FLAC__StreamMetadata_CueSheet_Track *tr = cs->tracks+track;
-			for(index = 0; index < tr->num_indices; index++) {
-				flac_snprintf(spec, sizeof (spec), "%" PRIu64 ";", (tr->offset + tr->indices[index].offset));
+			for(indx = 0; indx < tr->num_indices; indx++) {
+				flac_snprintf(spec, sizeof (spec), "%" PRIu64 ";", (tr->offset + tr->indices[indx].offset));
 				local_strcat(seekpoint_specification, spec);
 			}
 		}

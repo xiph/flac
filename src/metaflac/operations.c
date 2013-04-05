@@ -632,10 +632,10 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 					PPR; printf("      pre-emphasis: %s\n", track->pre_emphasis? "true":"false");
 					PPR; printf("      number of index points: %u\n", track->num_indices);
 					for(j = 0; j < track->num_indices; j++) {
-						const FLAC__StreamMetadata_CueSheet_Index *index = track->indices+j;
+						const FLAC__StreamMetadata_CueSheet_Index *indx = track->indices+j;
 						PPR; printf("        index[%u]\n", j);
-						PPR; printf("          offset: %" PRIu64 "\n", index->offset);
-						PPR; printf("          number: %u\n", (unsigned)index->number);
+						PPR; printf("          offset: %" PRIu64 "\n", indx->offset);
+						PPR; printf("          number: %u\n", (unsigned)indx->number);
 					}
 				}
 			}
