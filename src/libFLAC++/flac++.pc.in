@@ -6,6 +6,6 @@ includedir=@includedir@
 Name: FLAC++
 Description: Free Lossless Audio Codec Library (C++ API)
 Version: @VERSION@
-Requires: flac
-Libs: -L${libdir} -lFLAC++ @OGG_LIBS@ -lm
+Requires.private: flac
+Libs: -L${libdir} -lFLAC++
 Cflags: -I${includedir}
