@@ -22,8 +22,6 @@ EXTRA_DIST = \
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 noinst_PROGRAMS = example_c_decode_file
 example_c_decode_file_LDADD = \
-	$(top_builddir)/src/libFLAC/libFLAC.la \
-	@OGG_LIBS@ \
-	-lm
+	$(top_builddir)/src/libFLAC/libFLAC.la
 
 example_c_decode_file_SOURCES = main.c

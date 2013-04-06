@@ -26,8 +26,6 @@ test_picture_SOURCES = \
 
 test_picture_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
-	$(top_builddir)/src/libFLAC/libFLAC.la \
-	@OGG_LIBS@ \
-	-lm
+	$(top_builddir)/src/libFLAC/libFLAC.la
 
 CLEANFILES = test_picture.exe

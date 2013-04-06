@@ -50,7 +50,6 @@ flac_LDADD = \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
 	$(top_builddir)/src/share/replaygain_synthesis/libreplaygain_synthesis.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
-	@OGG_LIBS@ \
 	@LIBICONV@ \
 	-lm
 

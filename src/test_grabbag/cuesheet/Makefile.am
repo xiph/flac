@@ -26,8 +26,6 @@ test_cuesheet_SOURCES = \
 test_cuesheet_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
-	$(top_builddir)/src/libFLAC/libFLAC.la \
-	@OGG_LIBS@ \
-	-lm
+	$(top_builddir)/src/libFLAC/libFLAC.la
 
 CLEANFILES = test_cuesheet.exe
