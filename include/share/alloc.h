@@ -50,7 +50,11 @@
 #ifndef SIZE_MAX
 # ifndef SIZE_T_MAX
 #  ifdef _MSC_VER
-#   define SIZE_T_MAX SIZE_MAX
+#   ifdef _WIN64
+#    define SIZE_T_MAX 0xffffffffffffffffui64
+#   else
+#    define SIZE_T_MAX 0xffffffff
+#   endif
 #  else
 #   error
 #  endif
