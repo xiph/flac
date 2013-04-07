@@ -45,15 +45,17 @@ noinst_LTLIBRARIES = \
 	getopt/libgetopt.la \
 	grabbag/libgrabbag.la \
 	utf8/libutf8.la \
-	win_utf8_io/libwin_utf8_io.la \
+	$(libwin_utf8_io) \
 	replaygain_analysis/libreplaygain_analysis.la \
 	replaygain_synthesis/libreplaygain_synthesis.la
 
 
 if OS_IS_WINDOWS
 win_utf8_io_libwin_utf8_io_la_SOURCES =	win_utf8_io/win_utf8_io.c
+libwin_utf8_io = win_utf8_io/libwin_utf8_io.la
 else
 win_utf8_io_libwin_utf8_io_la_SOURCES =
+libwin_utf8_io =
 endif
 
 
