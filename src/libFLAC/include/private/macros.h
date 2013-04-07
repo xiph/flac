@@ -61,6 +61,14 @@
 #define flac_min(a,b) __min(a,b)
 #endif
 
+#ifndef MIN
+#define MIN(x,y)	((x) <= (y) ? (x) : (y))
+#endif
+
+#ifndef MAX
+#define MAX(x,y)	((x) >= (y) ? (x) : (y))
+#endif
+
 #if !defined(__cplusplus) && defined(_MSC_VER)
 #ifndef inline
 #define inline __inline
