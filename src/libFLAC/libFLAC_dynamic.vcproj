@@ -172,87 +172,6 @@
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
-		<Configuration
-			Name="Release (UTF8)|Win32"
-			OutputDirectory="..\..\objs\release\lib"
-			IntermediateDirectory="Release_dynamic"
-			ConfigurationType="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="true"
-				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories=".\include;..\..\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FLAC_API_EXPORTS;FLAC__HAS_OGG;FLAC__CPU_IA32;FLAC__HAS_NASM;FLAC__USE_3DNOW;VERSION=\&quot;1.3.0pre3\&quot;;FLaC__INLINE=_inline"
-				RuntimeLibrary="0"
-				BufferSecurityCheck="false"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-				CompileAs="0"
-				DisableSpecificWarnings="4267;4996"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\objs\release\lib\libogg_static.lib"
-				LinkIncremental="1"
-				IgnoreDefaultLibraryNames="uuid.lib"
-				GenerateDebugInformation="true"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				LinkTimeCodeGeneration="1"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -508,16 +427,6 @@
 					Outputs="ia32/bitreader_asm.obj"
 				/>
 			</FileConfiguration>
-			<FileConfiguration
-				Name="Release (UTF8)|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					CommandLine="nasm.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/bitreader_asm.nasm -o ia32/bitreader_asm.obj&#x0D;&#x0A;"
-					AdditionalDependencies="ia32/bitreader_asm.nasm;ia32/nasm.h"
-					Outputs="ia32/bitreader_asm.obj"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\release_static\BuildLog.htm"
@@ -538,16 +447,6 @@
 			</FileConfiguration>
 			<FileConfiguration
 				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					CommandLine="nasm.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/cpu_asm.nasm -o ia32/cpu_asm.obj&#x0D;&#x0A;"
-					AdditionalDependencies="ia32/cpu_asm.nasm;ia32/nasm.h"
-					Outputs="ia32/cpu_asm.obj"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release (UTF8)|Win32"
 				>
 				<Tool
 					Name="VCCustomBuildTool"
@@ -580,16 +479,6 @@
 					Outputs="ia32/fixed_asm.obj"
 				/>
 			</FileConfiguration>
-			<FileConfiguration
-				Name="Release (UTF8)|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					CommandLine="nasm.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/fixed_asm.nasm -o ia32/fixed_asm.obj&#x0D;&#x0A;"
-					AdditionalDependencies="ia32/fixed_asm.nasm;ia32/nasm.h"
-					Outputs="ia32/fixed_asm.obj"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\ia32\lpc_asm.nasm"
@@ -614,16 +503,6 @@
 					Outputs="ia32/lpc_asm.obj"
 				/>
 			</FileConfiguration>
-			<FileConfiguration
-				Name="Release (UTF8)|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					CommandLine="nasm.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/lpc_asm.nasm -o ia32/lpc_asm.obj&#x0D;&#x0A;"
-					AdditionalDependencies="ia32/lpc_asm.nasm;ia32/nasm.h"
-					Outputs="ia32/lpc_asm.obj"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\ia32\stream_encoder_asm.nasm"
@@ -640,16 +519,6 @@
 			</FileConfiguration>
 			<FileConfiguration
 				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCustomBuildTool"
-					CommandLine="nasm.exe -f win32 -d OBJ_FORMAT_win32 -i ia32/ ia32/stream_encoder_asm.nasm -o ia32/stream_encoder_asm.obj&#x0D;&#x0A;"
-					AdditionalDependencies="ia32/stream_encoder_asm.nasm;ia32/nasm.h"
-					Outputs="ia32/stream_encoder_asm.obj"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release (UTF8)|Win32"
 				>
 				<Tool
 					Name="VCCustomBuildTool"

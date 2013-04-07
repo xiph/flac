@@ -10,6 +10,8 @@
 
 #include "share/win_utf8_io.h"
 
+static UINT win_utf8_io_codepage = CP_ACP;
+
 /* convert WCHAR stored Unicode string to UTF-8. Caller is responsible for freeing memory */
 static
 char *utf8_from_wchar(const wchar_t *wstr)
@@ -38,7 +40,7 @@ wchar_t *wchar_from_utf8(const char *str)
 	if (!str) return NULL;
 	len=(int)strlen(str)+1;
 	if ((widestr = (wchar_t *)malloc(len*sizeof(wchar_t))) != NULL) {
-		if (MultiByteToWideChar(CP_UTF8, 0, str, len, widestr, len) == 0) {
+		if (MultiByteToWideChar(win_utf8_io_codepage, 0, str, len, widestr, len) == 0) {
 			if (MultiByteToWideChar(CP_ACP, 0, str, len, widestr, len) == 0) { /* try conversion from Ansi in case the initial UTF-8 conversion had failed */
 				free(widestr);
 				widestr = NULL;
@@ -76,7 +78,10 @@ int get_utf8_argv(int *argc, char ***argv)
 		if (ret != 0) break;
 	}
 
+	FreeLibrary(handle);
+
 	if (ret == 0) {
+		win_utf8_io_codepage = CP_UTF8;
 		*argc = wargc;
 		*argv = utf8argv;
 	} else {
