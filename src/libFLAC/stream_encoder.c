@@ -2406,6 +2406,10 @@ FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const 
 	FLAC__StreamEncoderWriteStatus status;
 	FLAC__uint64 output_position = 0;
 
+#if FLAC__HAS_OGG == 0
+	(void)is_last_block;
+#endif
+
 	/* FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED just means we didn't get the offset; no error */
 	if(encoder->private_->tell_callback && encoder->private_->tell_callback(encoder, &output_position, encoder->private_->client_data) == FLAC__STREAM_ENCODER_TELL_STATUS_ERROR) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;

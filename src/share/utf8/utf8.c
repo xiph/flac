@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
@@ -164,13 +164,13 @@ int utf8_encode(const char *from, char **to)
 		return -1;
 
 	unicode = safe_calloc_((size_t)wchars + 1, sizeof(unsigned short));
-	if(unicode == NULL) 
+	if(unicode == NULL)
 	{
 		fprintf(stderr, "Out of memory processing string to UTF8\n");
 		return -1;
 	}
 
-	err = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, from, 
+	err = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, from,
 			strlen(from), unicode, wchars);
 	if(err != wchars)
 	{
@@ -179,10 +179,10 @@ int utf8_encode(const char *from, char **to)
 		return -1;
 	}
 
-	/* On NT-based windows systems, we could use WideCharToMultiByte(), but 
+	/* On NT-based windows systems, we could use WideCharToMultiByte(), but
 	 * MS doesn't actually have a consistent API across win32.
 	 */
-	*to = make_utf8_string(unicode);
+	*to = (char*)make_utf8_string(unicode);
 
 	free(unicode);
 	return 0;
@@ -193,11 +193,11 @@ int utf8_decode(const char *from, char **to)
     wchar_t *unicode;
     int chars, err;
 
-    /* On NT-based windows systems, we could use MultiByteToWideChar(CP_UTF8), but 
+    /* On NT-based windows systems, we could use MultiByteToWideChar(CP_UTF8), but
      * MS doesn't actually have a consistent API across win32.
      */
-    unicode = make_unicode_string(from);
-    if(unicode == NULL) 
+    unicode = make_unicode_string((const unsigned char*)from);
+    if(unicode == NULL)
     {
         fprintf(stderr, "Out of memory processing string from UTF8 to UNICODE16\n");
         return -1;
@@ -217,14 +217,14 @@ int utf8_decode(const char *from, char **to)
     }
 
     *to = safe_calloc_((size_t)chars + 1, sizeof(unsigned char));
-    if(*to == NULL) 
+    if(*to == NULL)
     {
         fprintf(stderr, "Out of memory processing string to local charset\n");
         free(unicode);
         return -1;
     }
 
-    err = WideCharToMultiByte(GetConsoleCP(), WC_COMPOSITECHECK, unicode, 
+    err = WideCharToMultiByte(GetConsoleCP(), WC_COMPOSITECHECK, unicode,
             -1, *to, chars, NULL, NULL);
     if(err != chars)
     {

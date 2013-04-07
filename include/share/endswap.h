@@ -39,7 +39,7 @@
 
 #define	ENDSWAP_32(x)		(_byteswap_ulong (x))
 
-#elif HAVE_BYTESWAP_H		/* Linux */
+#elif defined HAVE_BYTESWAP_H		/* Linux */
 
 #include <byteswap.h>
 

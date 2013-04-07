@@ -359,7 +359,7 @@ static struct inverse_map *make_inverse_map(const unsigned short *from)
   return to;
 }
 
-int wctomb_8bit(void *map1, char *s, int wc1)
+static int wctomb_8bit(void *map1, char *s, int wc1)
 {
   struct map *map = map1;
   unsigned short wc = wc1;

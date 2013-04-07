@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 #endif
 #ifdef _WIN32
 	if (get_utf8_argv(&argc, &argv) != 0) {
-		fprintf(stderr, "%ERROR: failed to convert command line parameters to UTF-8\n");
+		fputs("ERROR: failed to convert command line parameters to UTF-8\n", stderr);
 		return 1;
 	}
 #endif

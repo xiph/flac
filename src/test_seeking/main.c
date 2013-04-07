@@ -48,9 +48,9 @@ typedef struct {
 
 static FLAC__bool stop_signal_ = false;
 
-static void our_sigint_handler_(int signal)
+static void our_sigint_handler_(int signum)
 {
-	(void)signal;
+	(void)signum;
 	printf("(caught SIGINT) ");
 	fflush(stdout);
 	stop_signal_ = true;
