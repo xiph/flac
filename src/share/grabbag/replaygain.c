@@ -606,6 +606,8 @@ static FLAC__bool parse_double_(const FLAC__StreamMetadata_VorbisComment_Entry *
 FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadata *block, FLAC__bool album_mode, FLAC__bool strict, double *reference, double *gain, double *peak)
 {
 	int reference_offset, gain_offset, peak_offset;
+	char *saved_locale;
+	FLAC__bool res = true;
 
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(0 != reference);
@@ -618,20 +620,36 @@ FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadat
 	 */
 	*reference = ReplayGainReferenceLoudness;
 
+	/*
+	 * We need to save the old locale and switch to "C" because the locale
+	 * influences the formatting of %f and we want it a certain way.
+	 */
+	saved_locale = strdup(setlocale(LC_ALL, 0));
+	if (0 == saved_locale)
+		return false;
+	setlocale(LC_ALL, "C");
+
 	if(0 <= (reference_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)GRABBAG__REPLAYGAIN_TAG_REFERENCE_LOUDNESS)))
 		(void)parse_double_(block->data.vorbis_comment.comments + reference_offset, reference);
 
 	if(0 > (gain_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)(album_mode? GRABBAG__REPLAYGAIN_TAG_ALBUM_GAIN : GRABBAG__REPLAYGAIN_TAG_TITLE_GAIN))))
-		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, reference, gain, peak);
+		res = false;
 	if(0 > (peak_offset = FLAC__metadata_object_vorbiscomment_find_entry_from(block, /*offset=*/0, (const char *)(album_mode? GRABBAG__REPLAYGAIN_TAG_ALBUM_PEAK : GRABBAG__REPLAYGAIN_TAG_TITLE_PEAK))))
-		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, reference, gain, peak);
+		res = false;
 
-	if(!parse_double_(block->data.vorbis_comment.comments + gain_offset, gain))
-		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, reference, gain, peak);
-	if(!parse_double_(block->data.vorbis_comment.comments + peak_offset, peak))
-		return !strict && grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, reference, gain, peak);
+	if(res && !parse_double_(block->data.vorbis_comment.comments + gain_offset, gain))
+		res = false;
+	if(res && !parse_double_(block->data.vorbis_comment.comments + peak_offset, peak))
+		res = false;
 
-	return true;
+	setlocale(LC_ALL, saved_locale);
+	free(saved_locale);
+
+	/* something failed; retry with strict */
+	if (!res && !strict)
+		res = grabbag__replaygain_load_from_vorbiscomment(block, !album_mode, /*strict=*/true, reference, gain, peak);
+
+	return res;
 }
 
 double grabbag__replaygain_compute_scale_factor(double peak, double gain, double preamp, FLAC__bool prevent_clipping)
