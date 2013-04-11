@@ -782,7 +782,7 @@
 
     <para>metaflac(1).</para>
 
-    <para>The programs are documented fully by HTML format documentation, available in <filename>/usr/share/doc/flac/html</filename> on &debian; systems.</para>
+    <para>The programs are documented fully by HTML format documentation, available in <filename>/usr/share/doc/libflac-doc/html</filename> on &debian; systems.</para>
   </refsect1>
   <refsect1>
     <title>AUTHOR</title>
