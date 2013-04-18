@@ -39,7 +39,7 @@ metaflac_SOURCES = \
 	options.h \
 	usage.h \
 	utils.h
-metaflac_LDFLAGS =
+metaflac_LDFLAGS = $(AM_LDFLAGS)
 
 metaflac_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
