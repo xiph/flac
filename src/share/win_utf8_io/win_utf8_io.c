@@ -259,21 +259,19 @@ int chmod_utf8(const char *filename, int pmode)
 int utime_utf8(const char *filename, struct utimbuf *times)
 {
 	wchar_t *wname;
-	struct _utimbuf ut;
+	struct __utimbuf64 ut;
 	int ret;
 
-	if (!(wname = wchar_from_utf8(filename))) return -1;
-	ret = _wutime(wname, &ut);
-	free(wname);
-
-	if (ret != -1) {
-		if (sizeof(*times) == sizeof(ut)) {
-			memcpy(times, &ut, sizeof(ut));
-		} else {
-			times->actime = ut.actime;
-			times->modtime = ut.modtime;
-		}
+	if (sizeof(*times) == sizeof(ut)) {
+		memcpy(&ut, times, sizeof(ut));
+	} else {
+		ut.actime = times->actime;
+		ut.modtime = times->modtime;
 	}
+
+	if (!(wname = wchar_from_utf8(filename))) return -1;
+	ret = _wutime64(wname, &ut);
+	free(wname);
 
 	return ret;
 }
