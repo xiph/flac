@@ -91,7 +91,46 @@ int get_utf8_argv(int *argc, char ***argv)
 	return ret;
 }
 
+/* return number of characters in the UTF-8 string */
+size_t strlen_utf8(const char *str)
+{
+	size_t len;
+	if ((len = MultiByteToWideChar(win_utf8_io_codepage, 0, str, -1, NULL, 0)) == 0)
+		len = strlen(str);
+	return len;
+}
+
+/* get the console width in characters */
+int win_get_console_width()
+{
+	int width = 80;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (GetConsoleScreenBufferInfo(hOut, &csbi) != 0) width = csbi.dwSize.X;
+	return width;
+}
+
 /* print functions */
+
+int print_console(FILE *stream, const wchar_t *text, DWORD len)
+{
+	static HANDLE hOut;
+	static HANDLE hErr;
+	DWORD out;
+	hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	hErr = GetStdHandle(STD_ERROR_HANDLE);
+	if (stream == stdout && hOut != INVALID_HANDLE_VALUE && GetFileType(hOut) == FILE_TYPE_CHAR) {
+		if (WriteConsoleW(hOut, text, len, &out, NULL) == 0) return -1;
+		return out;
+	} else if (stream == stderr && hErr != INVALID_HANDLE_VALUE && GetFileType(hErr) == FILE_TYPE_CHAR) {
+		if (WriteConsoleW(hErr, text, len, &out, NULL) == 0) return -1;
+		return out;
+	} else {
+		int ret = fwprintf(stream, L"%s", text);
+		if (ret < 0) return ret;
+		return len;
+	}
+}
 
 int printf_utf8(const char *format, ...)
 {
@@ -110,7 +149,7 @@ int printf_utf8(const char *format, ...)
 			ret = -1;
 			break;
 		}
-		ret = wprintf(L"%s", wout);
+		ret = print_console(stdout, wout, wcslen(wout));
 		break;
 	}
 	if (utmp) free(utmp);
@@ -136,7 +175,7 @@ int fprintf_utf8(FILE *stream, const char *format, ...)
 			ret = -1;
 			break;
 		}
-		ret = fwprintf(stream, L"%s", wout);
+		ret = print_console(stream, wout, wcslen(wout));
 		break;
 	}
 	if (utmp) free(utmp);
@@ -158,7 +197,7 @@ int vfprintf_utf8(FILE *stream, const char *format, va_list argptr)
 			ret = -1;
 			break;
 		}
-		ret = fwprintf(stream, L"%s", wout);
+		ret = print_console(stream, wout, wcslen(wout));
 		break;
 	}
 	if (utmp) free(utmp);

@@ -29,6 +29,10 @@
 #include "FLAC/assert.h"
 #include "FLAC/metadata.h"
 #include "share/compat.h"
+#ifndef _WIN32
+#include <wchar.h>
+#include <sys/ioctl.h>
+#endif
 
 const char *CHANNEL_MASK_TAG = "WAVEFORMATEXTENSIBLE_CHANNEL_MASK";
 
@@ -155,6 +159,95 @@ void flac__utils_printf(FILE *stream, int level, const char *format, ...)
 		if(stream == stderr)
 			fflush(stream); /* for some reason stderr is buffered in at least some if not all MSC libs */
 #endif
+	}
+}
+
+/* variables and functions for console status output */
+static FLAC__bool is_name_printed;
+static int stats_char_count = 0;
+static int console_width;
+static int console_chars_left;
+
+int get_console_width()
+{
+	int width = 80;
+#ifdef _WIN32
+	width = win_get_console_width();
+#else
+	struct winsize w;
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)	width = w.ws_col;
+#endif
+	return width;
+}
+
+size_t strlen_console(const char *text)
+{
+#ifdef _WIN32
+	return strlen_utf8(text);
+#else
+	size_t len;
+	wchar_t *wtmp;
+
+	len = strlen(text)+1;
+	wtmp = (wchar_t *)malloc(len*sizeof(wchar_t));
+	if (wtmp == NULL) return len-1;
+	mbstowcs(wtmp, text, len);
+	len = wcswidth(wtmp, len);
+	free(wtmp);
+
+	return len;
+#endif
+}
+
+void stats_new_file()
+{
+	is_name_printed = false;
+}
+
+void stats_clear()
+{
+	while (stats_char_count > 0 && stats_char_count--)
+		fprintf(stderr, "\b");
+}
+
+void stats_print_name(int level, const char *name)
+{
+	int len;
+
+	if (flac__utils_verbosity_ >= level) {
+		stats_clear();
+		if(is_name_printed) return;
+
+		console_width = get_console_width();
+		len = strlen_console(name)+2;
+		console_chars_left = console_width  - (len % console_width);
+		flac_fprintf(stderr, "%s: ", name);
+		is_name_printed = true;
+	}
+}
+
+void stats_print_info(int level, const char *format, ...)
+{
+	char tmp[80];
+	int len, cleared_len;
+
+	if (flac__utils_verbosity_ >= level) {
+		va_list args;
+		va_start(args, format);
+		len = vsnprintf(tmp, sizeof(tmp), format, args);
+		va_end(args);
+		if (len < 0 || len == sizeof(tmp)) {
+			tmp[sizeof(tmp)-1] = '\0';
+			len = sizeof(tmp)-1;
+		}
+		cleared_len = stats_char_count;
+		stats_clear();
+		if (len >= console_chars_left) {
+			while (cleared_len > 0 && cleared_len--) fprintf(stderr, " ");
+			fprintf(stderr, "\n");
+			console_chars_left = console_width;
+		}
+		stats_char_count = fprintf(stderr, "%s", tmp);
 	}
 }
 

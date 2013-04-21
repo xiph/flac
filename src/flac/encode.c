@@ -1180,6 +1180,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		if(options.format == FORMAT_FLAC || options.format == FORMAT_OGGFLAC)
 			encoder_session.fmt.flac.client_data.samples_left_to_process = encoder_session.total_samples_to_encode;
 
+		stats_new_file();
 		/* init the encoder */
 		if(!EncoderSession_init_encoder(&encoder_session, options))
 			return EncoderSession_finish_error(&encoder_session);
@@ -2543,7 +2544,8 @@ void flac_decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__Strea
     FLACDecoderData *data = &e->fmt.flac.client_data;
 	(void)decoder;
 
-	flac__utils_printf(stderr, 1, "%s: ERROR got %s while decoding FLAC input\n", e->inbasefilename, FLAC__StreamDecoderErrorStatusString[status]);
+	stats_print_name(1, e->inbasefilename);
+	flac__utils_printf(stderr, 1, "ERROR got %s while decoding FLAC input\n", FLAC__StreamDecoderErrorStatusString[status]);
 	if(!e->continue_through_decode_errors)
 		data->fatal_error = true;
 }
@@ -2594,33 +2596,36 @@ FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_
 
 void print_stats(const EncoderSession *encoder_session)
 {
-	const FLAC__uint64 samples_written = min(encoder_session->total_samples_to_encode, encoder_session->samples_written);
-	const FLAC__uint64 uesize = encoder_session->unencoded_size;
+	if(flac__utils_verbosity_ >= 2) {
+		const FLAC__uint64 samples_written = min(encoder_session->total_samples_to_encode, encoder_session->samples_written);
+		const FLAC__uint64 uesize = encoder_session->unencoded_size;
 #if defined _MSC_VER || defined __MINGW32__
-	/* with MSVC you have to spoon feed it the casting */
-	const double progress = (double)(FLAC__int64)samples_written / (double)(FLAC__int64)encoder_session->total_samples_to_encode;
-	const double ratio = (double)(FLAC__int64)encoder_session->bytes_written / ((double)(FLAC__int64)(uesize? uesize:1) * min(1.0, progress));
+		/* with MSVC you have to spoon feed it the casting */
+		const double progress = (double)(FLAC__int64)samples_written / (double)(FLAC__int64)encoder_session->total_samples_to_encode;
+		const double ratio = (double)(FLAC__int64)encoder_session->bytes_written / ((double)(FLAC__int64)(uesize? uesize:1) * min(1.0, progress));
 #else
-	const double progress = (double)samples_written / (double)encoder_session->total_samples_to_encode;
-	const double ratio = (double)encoder_session->bytes_written / ((double)(uesize? uesize:1) * min(1.0, progress));
+		const double progress = (double)samples_written / (double)encoder_session->total_samples_to_encode;
+		const double ratio = (double)encoder_session->bytes_written / ((double)(uesize? uesize:1) * min(1.0, progress));
 #endif
+		char ratiostr[16];
 
-	FLAC__ASSERT(encoder_session->total_samples_to_encode > 0);
+		FLAC__ASSERT(encoder_session->total_samples_to_encode > 0);
 
-	if(samples_written == encoder_session->total_samples_to_encode) {
-		flac__utils_printf(stderr, 2, "\r%s:%s wrote %" PRIu64 " bytes, ratio=",
-			encoder_session->inbasefilename,
-			encoder_session->verify? " Verify OK," : "",
-			encoder_session->bytes_written
-		);
+		if (uesize)	sprintf(ratiostr, "%0.3f", ratio); else sprintf(ratiostr, "N/A");
+
+		if(samples_written == encoder_session->total_samples_to_encode) {
+			stats_print_name(2, encoder_session->inbasefilename);
+			stats_print_info(2, "%swrote %" PRIu64 " bytes, ratio=%s",
+				encoder_session->verify? "Verify OK, " : "",
+				encoder_session->bytes_written,
+				ratiostr
+			);
+		}
+		else {
+			stats_print_name(2, encoder_session->inbasefilename);
+			stats_print_info(2, "%u%% complete, ratio=%s", (unsigned)floor(progress * 100.0 + 0.5), ratiostr);
+		}
 	}
-	else {
-		flac__utils_printf(stderr, 2, "\r%s: %u%% complete, ratio=", encoder_session->inbasefilename, (unsigned)floor(progress * 100.0 + 0.5));
-	}
-	if(uesize)
-		flac__utils_printf(stderr, 2, "%0.3f", ratio);
-	else
-		flac__utils_printf(stderr, 2, "N/A");
 }
 
 void print_error_with_init_status(const EncoderSession *e, const char *message, FLAC__StreamEncoderInitStatus init_status)

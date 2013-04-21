@@ -136,7 +136,7 @@ void print_error_with_chain_status(FLAC__Metadata_Chain *chain, const char *form
 
 	va_start(args, format);
 
-	(void) vfprintf(stderr, format, args);
+	(void) flac_vfprintf(stderr, format, args);
 
 	va_end(args);
 

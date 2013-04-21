@@ -172,6 +172,7 @@ int flac__decode_file(const char *infilename, const char *outfilename, FLAC__boo
 	)
 		return 1;
 
+	stats_new_file();
 	if(!DecoderSession_init_decoder(&decoder_session, infilename))
 		return DecoderSession_finish_error(&decoder_session);
 
@@ -433,19 +434,23 @@ int DecoderSession_finish_ok(DecoderSession *d)
 	if(d->analysis_mode)
 		flac__analyze_finish(d->aopts);
 	if(md5_failure) {
-		flac__utils_printf(stderr, 1, "\r%s: ERROR, MD5 signature mismatch\n", d->inbasefilename);
+		stats_print_name(1, d->inbasefilename);
+		flac__utils_printf(stderr, 1, "ERROR, MD5 signature mismatch\n");
 		ok = d->continue_through_decode_errors;
 	}
 	else {
 		if(!d->got_stream_info) {
-			flac__utils_printf(stderr, 1, "\r%s: WARNING, cannot check MD5 signature since there was no STREAMINFO\n", d->inbasefilename);
+			stats_print_name(1, d->inbasefilename);
+			flac__utils_printf(stderr, 1, "WARNING, cannot check MD5 signature since there was no STREAMINFO\n");
 			ok = !d->treat_warnings_as_errors;
 		}
 		else if(!d->has_md5sum) {
-			flac__utils_printf(stderr, 1, "\r%s: WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n", d->inbasefilename);
+			stats_print_name(1, d->inbasefilename);
+			flac__utils_printf(stderr, 1, "WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n");
 			ok = !d->treat_warnings_as_errors;
 		}
-		flac__utils_printf(stderr, 2, "\r%s: %s         \n", d->inbasefilename, d->test_only? "ok           ":d->analysis_mode?"done           ":"done");
+		stats_print_name(2, d->inbasefilename);
+		flac__utils_printf(stderr, 2, "%s         \n", d->test_only? "ok           ":d->analysis_mode?"done           ":"done");
 	}
 	DecoderSession_destroy(d, /*error_occurred=*/!ok);
 	if(!d->analysis_mode && !d->test_only && d->format != FORMAT_RAW) {
@@ -1348,7 +1353,8 @@ void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderError
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	(void)decoder;
 	if(!decoder_session->error_callback_suppress_messages)
-		flac__utils_printf(stderr, 1, "%s: *** Got error code %d:%s\n", decoder_session->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status]);
+		stats_print_name(1, decoder_session->inbasefilename);
+		flac__utils_printf(stderr, 1, "*** Got error code %d:%s\n", status, FLAC__StreamDecoderErrorStatusString[status]);
 	if(!decoder_session->continue_through_decode_errors) {
 		/* if we got a sync error while looking for metadata, either it's not a FLAC file (more likely) or the file is corrupted */
 		if(
@@ -1414,7 +1420,6 @@ void print_error_with_state(const DecoderSession *d, const char *message)
 
 void print_stats(const DecoderSession *decoder_session)
 {
-	static int count = 0;
 	if(flac__utils_verbosity_ >= 2) {
 #if defined _MSC_VER || defined __MINGW32__
 		/* with MSVC you have to spoon feed it the casting */
@@ -1422,24 +1427,22 @@ void print_stats(const DecoderSession *decoder_session)
 #else
 		const double progress = (double)decoder_session->samples_processed / (double)decoder_session->total_samples * 100.0;
 #endif
-		if(decoder_session->total_samples > 0) {
-			while (count > 0 && count--)
-				fprintf(stderr, "\b");
 
+		if(decoder_session->total_samples > 0) {
 			if ((unsigned)floor(progress + 0.5) == 100)
 				return;
 
-			count = flac_fprintf(stderr, "%s: %s%u%% complete",
-				decoder_session->inbasefilename,
+			stats_print_name(2, decoder_session->inbasefilename);
+			stats_print_info(2, "%s%u%% complete",
 				decoder_session->test_only? "testing, " : decoder_session->analysis_mode? "analyzing, " : "",
 				(unsigned)floor(progress + 0.5)
 			);
 		}
 		else {
-			flac_fprintf(stderr, "\r%s: %s %u samples",
-				decoder_session->inbasefilename,
+			stats_print_name(2, decoder_session->inbasefilename);
+			stats_print_info(2, "%s %" PRIu64 " samples",
 				decoder_session->test_only? "tested" : decoder_session->analysis_mode? "analyzed" : "wrote",
-				(unsigned)decoder_session->samples_processed
+				decoder_session->samples_processed
 			);
 		}
 	}
