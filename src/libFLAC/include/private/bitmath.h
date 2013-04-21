@@ -131,7 +131,7 @@ static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 {
     if (v == 0)
 		return 0;
-#if && defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
+#if defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
     return sizeof(FLAC__uint64) * CHAR_BIT - 1 - __builtin_clzll(v);
 /* Sorry, only supported in win64/Itanium.. */
 #elif (defined(_MSC_VER) && (_MSC_VER >= 1400)) && (defined(_M_IA64) || defined(_WIN64))
