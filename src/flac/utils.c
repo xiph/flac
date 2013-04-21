@@ -229,7 +229,7 @@ void stats_print_name(int level, const char *name)
 void stats_print_info(int level, const char *format, ...)
 {
 	char tmp[80];
-	int len, cleared_len;
+	int len, clear_len;
 
 	if (flac__utils_verbosity_ >= level) {
 		va_list args;
@@ -240,10 +240,10 @@ void stats_print_info(int level, const char *format, ...)
 			tmp[sizeof(tmp)-1] = '\0';
 			len = sizeof(tmp)-1;
 		}
-		cleared_len = stats_char_count;
 		stats_clear();
 		if (len >= console_chars_left) {
-			while (cleared_len > 0 && cleared_len--) fprintf(stderr, " ");
+			clear_len = console_chars_left;
+			while (clear_len > 0 && clear_len--) fprintf(stderr, " ");
 			fprintf(stderr, "\n");
 			console_chars_left = console_width;
 		}
