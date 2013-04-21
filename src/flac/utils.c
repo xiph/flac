@@ -168,7 +168,7 @@ static int stats_char_count = 0;
 static int console_width;
 static int console_chars_left;
 
-int get_console_width()
+int get_console_width(void)
 {
 	int width = 80;
 #ifdef _WIN32
@@ -199,12 +199,12 @@ size_t strlen_console(const char *text)
 #endif
 }
 
-void stats_new_file()
+void stats_new_file(void)
 {
 	is_name_printed = false;
 }
 
-void stats_clear()
+void stats_clear(void)
 {
 	while (stats_char_count > 0 && stats_char_count--)
 		fprintf(stderr, "\b");

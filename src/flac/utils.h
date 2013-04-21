@@ -53,10 +53,10 @@ size_t flac__utils_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stre
 extern int flac__utils_verbosity_;
 void flac__utils_printf(FILE *stream, int level, const char *format, ...);
 
-int get_console_width();
+int get_console_width(void);
 size_t strlen_console(const char *text);
-void stats_new_file();
-void stats_clear();
+void stats_new_file(void);
+void stats_clear(void);
 void stats_print_name(int level, const char *name);
 void stats_print_info(int level, const char *format, ...);
 

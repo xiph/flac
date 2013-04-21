@@ -25,6 +25,9 @@ int chmod_utf8(const char *filename, int pmode);
 int utime_utf8(const char *filename, struct utimbuf *times);
 int unlink_utf8(const char *filename);
 int rename_utf8(const char *oldname, const char *newname);
+size_t strlen_utf8(const char *str);
+int win_get_console_width(void);
+int print_console(FILE *stream, const wchar_t *text, uint32_t len);
 
 #ifdef __cplusplus
 } /* extern "C" */

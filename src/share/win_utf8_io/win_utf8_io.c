@@ -1,4 +1,8 @@
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/utime.h>
@@ -8,7 +12,9 @@
 #include <stdarg.h>
 #include <windows.h> /* for WideCharToMultiByte and MultiByteToWideChar */
 
+#include "share/compat.h"
 #include "share/win_utf8_io.h"
+#include "share/compat.h"
 
 static UINT win_utf8_io_codepage = CP_ACP;
 
@@ -101,7 +107,7 @@ size_t strlen_utf8(const char *str)
 }
 
 /* get the console width in characters */
-int win_get_console_width()
+int win_get_console_width(void)
 {
 	int width = 80;
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -112,7 +118,7 @@ int win_get_console_width()
 
 /* print functions */
 
-int print_console(FILE *stream, const wchar_t *text, DWORD len)
+int print_console(FILE *stream, const wchar_t *text, uint32_t len)
 {
 	static HANDLE hOut;
 	static HANDLE hErr;
