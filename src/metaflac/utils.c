@@ -77,17 +77,23 @@ void local_strcat(char **dest, const char *source)
 	safe_strncpy((*dest)+ndest, source, ndest + nsource + 1);
 }
 
+static inline int local_isprint(int c)
+{
+	if (c < 32) return 0;
+	return isprint(c);
+}
+
 void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const char *indent)
 {
 	unsigned i, left = bytes;
 	const FLAC__byte *b = buf;
 
 	for(i = 0; i < bytes; i += 16) {
-		flac_printf("%s%s%s%08X: "
+		flac_printf("%s%s", filename? filename:"", filename? ":":"");
+		printf("%s%08X: "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\n",
-			filename? filename:"", filename? ":":"",
 			indent, i,
 			left >  0? (unsigned char)b[ 0] : 0,
 			left >  1? (unsigned char)b[ 1] : 0,
@@ -105,22 +111,22 @@ void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const 
 			left > 13? (unsigned char)b[13] : 0,
 			left > 14? (unsigned char)b[14] : 0,
 			left > 15? (unsigned char)b[15] : 0,
-			(left >  0) ? (isprint(b[ 0]) ? b[ 0] : '.') : ' ',
-			(left >  1) ? (isprint(b[ 1]) ? b[ 1] : '.') : ' ',
-			(left >  2) ? (isprint(b[ 2]) ? b[ 2] : '.') : ' ',
-			(left >  3) ? (isprint(b[ 3]) ? b[ 3] : '.') : ' ',
-			(left >  4) ? (isprint(b[ 4]) ? b[ 4] : '.') : ' ',
-			(left >  5) ? (isprint(b[ 5]) ? b[ 5] : '.') : ' ',
-			(left >  6) ? (isprint(b[ 6]) ? b[ 6] : '.') : ' ',
-			(left >  7) ? (isprint(b[ 7]) ? b[ 7] : '.') : ' ',
-			(left >  8) ? (isprint(b[ 8]) ? b[ 8] : '.') : ' ',
-			(left >  9) ? (isprint(b[ 9]) ? b[ 9] : '.') : ' ',
-			(left > 10) ? (isprint(b[10]) ? b[10] : '.') : ' ',
-			(left > 11) ? (isprint(b[11]) ? b[11] : '.') : ' ',
-			(left > 12) ? (isprint(b[12]) ? b[12] : '.') : ' ',
-			(left > 13) ? (isprint(b[13]) ? b[13] : '.') : ' ',
-			(left > 14) ? (isprint(b[14]) ? b[14] : '.') : ' ',
-			(left > 15) ? (isprint(b[15]) ? b[15] : '.') : ' '
+			(left >  0) ? (local_isprint(b[ 0]) ? b[ 0] : '.') : ' ',
+			(left >  1) ? (local_isprint(b[ 1]) ? b[ 1] : '.') : ' ',
+			(left >  2) ? (local_isprint(b[ 2]) ? b[ 2] : '.') : ' ',
+			(left >  3) ? (local_isprint(b[ 3]) ? b[ 3] : '.') : ' ',
+			(left >  4) ? (local_isprint(b[ 4]) ? b[ 4] : '.') : ' ',
+			(left >  5) ? (local_isprint(b[ 5]) ? b[ 5] : '.') : ' ',
+			(left >  6) ? (local_isprint(b[ 6]) ? b[ 6] : '.') : ' ',
+			(left >  7) ? (local_isprint(b[ 7]) ? b[ 7] : '.') : ' ',
+			(left >  8) ? (local_isprint(b[ 8]) ? b[ 8] : '.') : ' ',
+			(left >  9) ? (local_isprint(b[ 9]) ? b[ 9] : '.') : ' ',
+			(left > 10) ? (local_isprint(b[10]) ? b[10] : '.') : ' ',
+			(left > 11) ? (local_isprint(b[11]) ? b[11] : '.') : ' ',
+			(left > 12) ? (local_isprint(b[12]) ? b[12] : '.') : ' ',
+			(left > 13) ? (local_isprint(b[13]) ? b[13] : '.') : ' ',
+			(left > 14) ? (local_isprint(b[14]) ? b[14] : '.') : ' ',
+			(left > 15) ? (local_isprint(b[15]) ? b[15] : '.') : ' '
 		);
 		left -= 16;
 		b += 16;
