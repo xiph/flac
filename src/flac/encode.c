@@ -2319,7 +2319,7 @@ FLAC__bool verify_metadata(const EncoderSession *e, FLAC__StreamMetadata **metad
 
 FLAC__bool format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, unsigned channels, unsigned bps, unsigned shift, size_t *channel_map)
 {
-	unsigned wide_sample, sample, channel, byte;
+	unsigned wide_sample, sample, channel;
 	FLAC__int32 *out[FLAC__MAX_CHANNELS];
 
 	if(0 == channel_map) {
@@ -2347,10 +2347,11 @@ FLAC__bool format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool i
 		if(is_big_endian != is_big_endian_host_) {
 			unsigned char tmp;
 			const unsigned bytes = wide_samples * channels * (bps >> 3);
-			for(byte = 0; byte < bytes; byte += 2) {
-				tmp = ucbuffer_[byte];
-				ucbuffer_[byte] = ucbuffer_[byte+1];
-				ucbuffer_[byte+1] = tmp;
+			unsigned b;
+			for(b = 0; b < bytes; b += 2) {
+				tmp = ucbuffer_[b];
+				ucbuffer_[b] = ucbuffer_[b+1];
+				ucbuffer_[b+1] = tmp;
 			}
 		}
 		if(is_unsigned_samples) {
@@ -2368,27 +2369,30 @@ FLAC__bool format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool i
 		if(!is_big_endian) {
 			unsigned char tmp;
 			const unsigned bytes = wide_samples * channels * (bps >> 3);
-			for(byte = 0; byte < bytes; byte += 3) {
-				tmp = ucbuffer_[byte];
-				ucbuffer_[byte] = ucbuffer_[byte+2];
-				ucbuffer_[byte+2] = tmp;
+			unsigned b;
+			for(b = 0; b < bytes; b += 3) {
+				tmp = ucbuffer_[b];
+				ucbuffer_[b] = ucbuffer_[b+2];
+				ucbuffer_[b+2] = tmp;
 			}
 		}
 		if(is_unsigned_samples) {
-			for(byte = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+			unsigned b;
+			for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++) {
-					out[channel][wide_sample]  = ucbuffer_[byte++]; out[channel][wide_sample] <<= 8;
-					out[channel][wide_sample] |= ucbuffer_[byte++]; out[channel][wide_sample] <<= 8;
-					out[channel][wide_sample] |= ucbuffer_[byte++];
+					out[channel][wide_sample]  = ucbuffer_[b++]; out[channel][wide_sample] <<= 8;
+					out[channel][wide_sample] |= ucbuffer_[b++]; out[channel][wide_sample] <<= 8;
+					out[channel][wide_sample] |= ucbuffer_[b++];
 					out[channel][wide_sample] -= 0x800000;
 				}
 		}
 		else {
-			for(byte = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+			unsigned b;
+			for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++) {
-					out[channel][wide_sample]  = scbuffer_[byte++]; out[channel][wide_sample] <<= 8;
-					out[channel][wide_sample] |= ucbuffer_[byte++]; out[channel][wide_sample] <<= 8;
-					out[channel][wide_sample] |= ucbuffer_[byte++];
+					out[channel][wide_sample]  = scbuffer_[b++]; out[channel][wide_sample] <<= 8;
+					out[channel][wide_sample] |= ucbuffer_[b++]; out[channel][wide_sample] <<= 8;
+					out[channel][wide_sample] |= ucbuffer_[b++];
 				}
 		}
 	}

@@ -963,7 +963,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 || decoder_session->format == FORMAT_RF64 ? bps<=8 :
 		decoder_session->is_unsigned_samples
 	));
-	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel, byte;
+	unsigned wide_samples = frame->header.blocksize, wide_sample, sample, channel;
 	unsigned frame_bytes = 0;
 	static FLAC__int8 s8buffer[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(FLAC__int32)]; /* WATCHOUT: can be up to 2 megs */
 	FLAC__uint8  *u8buffer  = (FLAC__uint8  *)s8buffer;
@@ -1161,10 +1161,11 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 				if(is_big_endian != is_big_endian_host_) {
 					unsigned char tmp;
 					const unsigned bytes = sample * 2;
-					for(byte = 0; byte < bytes; byte += 2) {
-						tmp = u8buffer[byte];
-						u8buffer[byte] = u8buffer[byte+1];
-						u8buffer[byte+1] = tmp;
+					unsigned b;
+					for(b = 0; b < bytes; b += 2) {
+						tmp = u8buffer[b];
+						u8buffer[b] = u8buffer[b+1];
+						u8buffer[b+1] = tmp;
 					}
 				}
 				bytes_to_write = 2 * sample;
@@ -1183,33 +1184,34 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 				if(is_big_endian != is_big_endian_host_) {
 					unsigned char tmp;
 					const unsigned bytes = sample * 4;
-					for(byte = 0; byte < bytes; byte += 4) {
-						tmp = u8buffer[byte];
-						u8buffer[byte] = u8buffer[byte+3];
-						u8buffer[byte+3] = tmp;
-						tmp = u8buffer[byte+1];
-						u8buffer[byte+1] = u8buffer[byte+2];
-						u8buffer[byte+2] = tmp;
+					unsigned b;
+					for(b = 0; b < bytes; b += 4) {
+						tmp = u8buffer[b];
+						u8buffer[b] = u8buffer[b+3];
+						u8buffer[b+3] = tmp;
+						tmp = u8buffer[b+1];
+						u8buffer[b+1] = u8buffer[b+2];
+						u8buffer[b+2] = tmp;
 					}
 				}
 				if(is_big_endian) {
-					unsigned lbyte;
+					unsigned b, lbyte;
 					const unsigned bytes = sample * 4;
-					for(lbyte = byte = 0; byte < bytes; ) {
-						byte++;
-						u8buffer[lbyte++] = u8buffer[byte++];
-						u8buffer[lbyte++] = u8buffer[byte++];
-						u8buffer[lbyte++] = u8buffer[byte++];
+					for(lbyte = b = 0; b < bytes; ) {
+						b++;
+						u8buffer[lbyte++] = u8buffer[b++];
+						u8buffer[lbyte++] = u8buffer[b++];
+						u8buffer[lbyte++] = u8buffer[b++];
 					}
 				}
 				else {
-					unsigned lbyte;
+					unsigned b, lbyte;
 					const unsigned bytes = sample * 4;
-					for(lbyte = byte = 0; byte < bytes; ) {
-						u8buffer[lbyte++] = u8buffer[byte++];
-						u8buffer[lbyte++] = u8buffer[byte++];
-						u8buffer[lbyte++] = u8buffer[byte++];
-						byte++;
+					for(lbyte = b = 0; b < bytes; ) {
+						u8buffer[lbyte++] = u8buffer[b++];
+						u8buffer[lbyte++] = u8buffer[b++];
+						u8buffer[lbyte++] = u8buffer[b++];
+						b++;
 					}
 				}
 				bytes_to_write = 3 * sample;
