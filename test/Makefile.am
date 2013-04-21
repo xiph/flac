@@ -15,7 +15,7 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-TESTS_ENVIRONMENT = FLAC__TEST_LEVEL=@FLAC__TEST_LEVEL@ FLAC__TEST_WITH_VALRGIND=@FLAC__TEST_WITH_VALGRIND@
+TESTS_ENVIRONMENT = FLAC__TEST_LEVEL=@FLAC__TEST_LEVEL@ FLAC__TEST_WITH_VALGRIND=@FLAC__TEST_WITH_VALGRIND@
 
 SUBDIRS = cuesheets flac-to-flac-metadata-test-files metaflac-test-files pictures
 
@@ -31,13 +31,13 @@ check_SCRIPTS = \
 
 # This one should pass when building out-of-tree (eg 'make distcheck').
 check: $(check_SCRIPTS)
-	$(srcdir)/test_libFLAC.sh
+	$(TESTS_ENVIRONMENT) $(srcdir)/test_libFLAC.sh
 if FLaC__WITH_CPPLIBS
-	$(srcdir)/test_libFLAC++.sh
+	$(TESTS_ENVIRONMENT) $(srcdir)/test_libFLAC++.sh
 endif
-	$(srcdir)/test_seeking.sh
-	$(srcdir)/test_streams.sh
-	$(srcdir)/test_compression.sh
+	$(TESTS_ENVIRONMENT) $(srcdir)/test_seeking.sh
+	$(TESTS_ENVIRONMENT) $(srcdir)/test_streams.sh
+	$(TESTS_ENVIRONMENT) $(srcdir)/test_compression.sh
 	@echo "----------------"
 	@echo "All tests passed"
 	@echo "----------------"
@@ -46,16 +46,16 @@ endif
 # In particular test_grabbag.sh, test_flac.sh and test_metaflac.sh will not
 # run correctly out-of-tree.
 fullcheck: $(check_SCRIPTS)
-	./test_libFLAC.sh
+	$(TESTS_ENVIRONMENT) ./test_libFLAC.sh
 if FLaC__WITH_CPPLIBS
-	./test_libFLAC++.sh
+	$(TESTS_ENVIRONMENT) ./test_libFLAC++.sh
 endif
-	./test_grabbag.sh
-	./test_flac.sh
-	./test_metaflac.sh
-	./test_seeking.sh
-	./test_streams.sh
-	./test_compression.sh
+	$(TESTS_ENVIRONMENT) ./test_grabbag.sh
+	$(TESTS_ENVIRONMENT) ./test_flac.sh
+	$(TESTS_ENVIRONMENT) ./test_metaflac.sh
+	$(TESTS_ENVIRONMENT) ./test_seeking.sh
+	$(TESTS_ENVIRONMENT) ./test_streams.sh
+	$(TESTS_ENVIRONMENT) ./test_compression.sh
 	@echo "----------------"
 	@echo "All tests passed"
 	@echo "----------------"
