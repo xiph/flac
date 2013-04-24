@@ -203,7 +203,7 @@ int utf8_decode(const char *from, char **to)
         return -1;
     }
 
-    chars = WideCharToMultiByte(GetConsoleCP(), WC_COMPOSITECHECK, unicode,
+    chars = WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, unicode,
             -1, NULL, 0, NULL, NULL);
 
     if(chars < 0) /* underflow check */
@@ -224,7 +224,7 @@ int utf8_decode(const char *from, char **to)
         return -1;
     }
 
-    err = WideCharToMultiByte(GetConsoleCP(), WC_COMPOSITECHECK, unicode,
+    err = WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, unicode,
             -1, *to, chars, NULL, NULL);
     if(err != chars)
     {

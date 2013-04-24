@@ -96,7 +96,11 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bo
 			ok = remove_vc_firstfield(filename, block, operation->argument.vc_field_name.value, needs_write);
 			break;
 		case OP__SET_VC_FIELD:
+#ifdef _WIN32 /* do not convert anything or things will break */
+			ok = set_vc_field(filename, block, &operation->argument.vc_field, needs_write, true);
+#else
 			ok = set_vc_field(filename, block, &operation->argument.vc_field, needs_write, raw);
+#endif
 			break;
 		case OP__IMPORT_VC_FROM:
 			ok = import_vc_from(filename, block, &operation->argument.filename, needs_write, raw);
@@ -245,9 +249,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 	}
 	else {
 		FLAC__bool needs_free = false;
-#ifdef _WIN32 /* do not convert anything or things will break */
 		entry.entry = (FLAC__byte *)field->field;
-#else
 		if(raw) {
 			entry.entry = (FLAC__byte *)field->field;
 		}
@@ -259,7 +261,6 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 			flac_fprintf(stderr, "%s: ERROR: converting comment '%s' to UTF-8\n", filename, field->field);
 			return false;
 		}
-#endif
 		entry.length = strlen((const char *)entry.entry);
 		if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length)) {
 			if(needs_free)

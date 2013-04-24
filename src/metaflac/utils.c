@@ -229,13 +229,18 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 {
 	if(0 != entry->entry) {
 		if(filename)
-			fprintf(f, "%s:", filename);
+			flac_fprintf(f, "%s:", filename);
 
 		if(!raw) {
 			/*
 			 * WATCHOUT: comments that contain an embedded null will
 			 * be truncated by utf_decode().
 			 */
+#ifdef _WIN32 /* if we are outputting to console, we need to use proper print functions to show unicode characters */
+			if (f == stdout || f == stderr) {
+				flac_fprintf(f, "%s", entry->entry);
+			} else {
+#endif
 			char *converted;
 
 			if(utf8_decode((const char *)entry->entry, &converted) >= 0) {
@@ -245,6 +250,9 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 			else {
 				(void) local_fwrite(entry->entry, 1, entry->length, f);
 			}
+#ifdef _WIN32
+			}
+#endif
 		}
 		else {
 			(void) local_fwrite(entry->entry, 1, entry->length, f);
