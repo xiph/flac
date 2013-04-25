@@ -399,6 +399,7 @@ echo OK
 
 tonegenerator ()
 {
+	# When using GAWK, use --lint=posix to identify non-POSIX awk usages.
     awk -- '
     BEGIN {
             samplerate = '$1';
@@ -407,7 +408,11 @@ tonegenerator ()
             duration = 1;
             bitspersample = 24;
 
-            samplemidpoint = lshift(1, (bitspersample-1));
+            samplemidpoint = 1;
+			for (sps = 0 ; sps < bitspersample - 1 ; sps++) {
+				samplemidpoint *= 2;
+			}
+
             samplerange = samplemidpoint - 1;
 
             pi = 4 * atan2(1,1);
