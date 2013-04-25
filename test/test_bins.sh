@@ -38,7 +38,7 @@ LD_LIBRARY_PATH=../src/share/utf8/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../objs/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 export MALLOC_CHECK_=3
-export MALLOC_PERTURB_==$(($RANDOM % 255 + 1))
+export MALLOC_PERTURB_==$((1$(date +%N) % 255 + 1))
 PATH=../src/flac:$PATH
 PATH=../objs/$BUILD/bin:$PATH
 BINS_PATH=../../test_files/bins
