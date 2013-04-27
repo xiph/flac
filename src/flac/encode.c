@@ -2615,7 +2615,7 @@ void print_stats(const EncoderSession *encoder_session)
 
 		FLAC__ASSERT(encoder_session->total_samples_to_encode > 0);
 
-		if (uesize)	sprintf(ratiostr, "%0.3f", ratio); else sprintf(ratiostr, "N/A");
+		if (uesize)	flac_snprintf(ratiostr, sizeof(ratiostr), "%0.3f", ratio); else flac_snprintf(ratiostr, sizeof(ratiostr), "N/A");
 
 		if(samples_written == encoder_session->total_samples_to_encode) {
 			stats_print_name(2, encoder_session->inbasefilename);
