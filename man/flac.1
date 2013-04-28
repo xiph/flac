@@ -181,6 +181,11 @@ The specification "4|-->|CD|320x300x24/173|http://blah.blah/backcover.tiff" will
 \fB--sector-align\fR
 Align encoding of multiple CD format files on sector boundaries.  See the HTML documentation for more information.  This option is DEPRECATED and may not exist in future versions of flac.
 .TP
+\fB--ignore-chunk-sizes\fR
+When encoding to flac, ignore the file size headers in WAV and AIFF files to attempt to work around problems with over-sized or malformed files.
+
+WAV and AIFF files both have an unsigned 32 bit numbers in the file header which specifes the length of audio data. Since this number is unsigned 32 bits, that limits the size of a valid file to being just over 4 Gigabytes. Files larger than this are mal-formed, but should be read correctly using this option.
+.TP
 \fB-S {\fI#\fB|\fIX\fB|\fI#x\fB|\fI#s\fB}, --seekpoint={\fI#\fB|\fIX\fB|\fI#x\fB|\fI#s\fB}\fR
 Include a point or points in a SEEKTABLE.  Using #, a seek point at that sample number is added.  Using X, a placeholder point is added at the end of a the table.  Using #x, # evenly spaced seek points will be added, the first being at sample 0.  Using #s, a seekpoint will be added every # seconds (# does not have to be a whole number; it can be, for example, 9.5, meaning a seekpoint every 9.5 seconds).  You may use many -S options; the resulting SEEKTABLE will be the unique-ified union of all such values.  With no -S options, flac defaults to '-S 10s'.  Use --no-seektable for no SEEKTABLE.  Note: '-S #x' and '-S #s' will not work if the encoder can't determine the input size before starting.  Note: if you use '-S #' and # is >= samples in the input, there will be either no seek point entered (if the input size is determinable before encoding starts) or a placeholder point (if input size is not determinable).
 .TP

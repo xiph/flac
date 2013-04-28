@@ -390,6 +390,15 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>--ignore-chunk-sizes</option></term>
+
+	  <listitem>
+		<para>When encoding to flac, ignore the file size headers in WAV and AIFF files to attempt to work around problems with over-sized or malformed files.</para>
+		<para>WAV and AIFF files both have an unsigned 32 bit numbers in the file header which specifes the length of audio data. Since this number is unsigned 32 bits, that limits the size of a valid file to being just over 4 Gigabytes. Files larger than this are mal-formed, but should be read correctly using this option.</para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>-S</option> {<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>|<replaceable>#s</replaceable>}, <option>--seekpoint</option>={<replaceable>#</replaceable>|<replaceable>X</replaceable>|<replaceable>#x</replaceable>|<replaceable>#s</replaceable>}</term>
 
 	  <listitem>
