@@ -298,6 +298,52 @@
 	  </listitem>
 	</varlistentry>
 
+	<varlistentry>
+	  <term><option>--apply-replaygain-which-is-not-lossless[=&lt;specification&gt;]</option>
+	  </term>
+	  <listitem>
+            <para>Applies ReplayGain values while decoding.</para>
+            <para>WARNING: THIS IS NOT LOSSLESS.  DECODED AUDIO WILL NOT BE IDENTICAL TO THE ORIGINAL WITH THIS OPTION.</para>
+            <para>The equals sign and &lt;specification&gt; is optional.  If omitted, the default is 0aLn1.</para>
+            <para>The &lt;specification&gt; is a shorthand notation for describing how to apply ReplayGain.  All components are optional but order is important.  '[]' means 'optional'.  '|' means 'or'.  '{}' means required.  The format is:</para>
+            <para>[&lt;preamp&gt;][a|t][l|L][n{0|1|2|3}]</para>
+
+            <variablelist>
+              <varlistentry>
+                <term><option>preamp</option></term>
+                <listitem>
+                  <para>A floating point number in dB.  This is added to the existing gain value.</para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><option>a|t</option></term>
+                <listitem>
+                  <para>Specify 'a' to use the album gain, or 't' to use the track gain.  If tags for the preferred kind (album/track) do not exist but tags for the other (track/album) do, those will be used instead.</para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><option>l|L</option></term>
+                <listitem>
+                  <para>Specify 'l' to peak-limit the output, so that the ReplayGain peak value is full-scale.  Specify 'L' to use a 6dB hard limiter that kicks in when the signal approaches full-scale.</para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><option>n{0|1|2|3}</option></term>
+                <listitem>
+                  <para>Specify the amount of noise shaping.  ReplayGain synthesis happens in floating point; the result is dithered before converting back to integer.  This quantization adds noise.  Noise shaping tries to move the noise where you won't hear it as much.  0 means no noise shaping, 1 means 'low', 2 means 'medium', 3 means 'high'.</para>
+                </listitem>
+              </varlistentry>
+
+            </variablelist>
+
+            <para>For example, the default of 0aLn1 means 0dB preamp, use album gain, 6dB hard limit, low noise shaping.</para>
+            <para>--apply-replaygain-which-is-not-lossless=3 means 3dB preamp, use album gain, no limiting, no noise shaping.</para>
+            <para>flac uses the ReplayGain tags for the calculation.  If a stream does not have the required tags or they can't be parsed, decoding will continue with a warning, and no ReplayGain is applied to that stream.</para>
+	  </listitem>
+	</varlistentry>
       </variablelist>
     </refsect2>
 

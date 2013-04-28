@@ -481,11 +481,10 @@
 					By default <span class="commandname">flac</span> stops decoding with an error and removes the partially decoded file if it encounters a bitstream error.  With <span class="argument">-F</span>, errors are still printed but <span class="commandname">flac</span> will continue decoding to completion.  Note that errors may cause the decoded audio to be missing some samples or have silent sections.
 				</td>
 			</tr>
-			<!-- @@@ undocumented, also not in the man page yet
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_apply_replaygain_which_is_not_lossless" />
-					<span class="argument">-@@@-apply-replaygain-which-is-not-lossless[=&lt;specification&gt;]</span>
+					<span class="argument">--apply-replaygain-which-is-not-lossless[=&lt;specification&gt;]</span>
 				</td>
 				<td>
 					Applies ReplayGain values while decoding.<br />
@@ -517,12 +516,11 @@
 					</ul>
 					For example, the default of <span class="argument">0aLn1</span> means 0dB preamp, use album gain, 6dB hard limit, low noise shaping.<br />
 					<br />
-					<span class="argument">-@@@-apply-replaygain-which-is-not-lossless=3</span> means 3dB preamp, use album gain, no limiting, no noise shaping.<br />
+					<span class="argument">--apply-replaygain-which-is-not-lossless=3</span> means 3dB preamp, use album gain, no limiting, no noise shaping.<br />
 					<br />
 					<span class="commandname">flac</span> uses the ReplayGain tags for the calculation.  If a stream does not have the required tags or they can't be parsed, decoding will continue with a warning, and no ReplayGain is applied to that stream.
 				</td>
 			</tr>
-			-->
 		</table>
 		</td></tr></table>
 
@@ -1060,9 +1058,7 @@
 		<a href="#flac_options_adaptive_mid_side"><span class="argument">--adaptive-mid-side</span></a><br />
 		<a href="#flac_options_analyze"><span class="argument">--analyze</span></a><br />
 		<a href="#flac_options_apodization"><span class="argument">--apodization</span></a><br />
-		<!-- @@@ undocumented, also not in the man page yet
-		<a href="#flac_options_apply_replaygain_which_is_not_lossless"><span class="argument">-@@@-apply-replaygain-which-is-not-lossless</span></a><br />
-		-->
+		<a href="#flac_options_apply_replaygain_which_is_not_lossless"><span class="argument">--apply-replaygain-which-is-not-lossless</span></a><br />
 		<a href="#flac_options_blocksize"><span class="argument">-b</span></a><br />
 		<a href="#flac_options_best"><span class="argument">--best</span></a><br />
 		<a href="#flac_options_blocksize"><span class="argument">--blocksize</span></a><br />

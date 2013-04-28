@@ -101,6 +101,37 @@ Set the beginning and ending cuepoints to decode.  The optional first #.# is the
 .TP
 \fB-F, --decode-through-errors \fR
 By default flac stops decoding with an error and removes the partially decoded file if it encounters a bitstream error.  With -F, errors are still printed but flac will continue decoding to completion.  Note that errors may cause the decoded audio to be missing some samples or have silent sections.
+.TP
+\fB--apply-replaygain-which-is-not-lossless[=<specification>] \fR
+Applies ReplayGain values while decoding.
+
+WARNING: THIS IS NOT LOSSLESS.  DECODED AUDIO WILL NOT BE IDENTICAL TO THE ORIGINAL WITH THIS OPTION.
+
+The equals sign and <specification> is optional.  If omitted, the default is 0aLn1.
+
+The <specification> is a shorthand notation for describing how to apply ReplayGain.  All components are optional but order is important.  '[]' means 'optional'.  '|' means 'or'.  '{}' means required.  The format is:
+
+[<preamp>][a|t][l|L][n{0|1|2|3}]
+.RS
+.TP
+\fBpreamp\fR
+A floating point number in dB.  This is added to the existing gain value.
+.TP
+\fBa|t\fR
+Specify 'a' to use the album gain, or 't' to use the track gain.  If tags for the preferred kind (album/track) do not exist but tags for the other (track/album) do, those will be used instead.
+.TP
+\fBl|L\fR
+Specify 'l' to peak-limit the output, so that the ReplayGain peak value is full-scale.  Specify 'L' to use a 6dB hard limiter that kicks in when the signal approaches full-scale.
+.TP
+\fBn{0|1|2|3}\fR
+Specify the amount of noise shaping.  ReplayGain synthesis happens in floating point; the result is dithered before converting back to integer.  This quantization adds noise.  Noise shaping tries to move the noise where you won't hear it as much.  0 means no noise shaping, 1 means 'low', 2 means 'medium', 3 means 'high'.
+.RE
+
+For example, the default of 0aLn1 means 0dB preamp, use album gain, 6dB hard limit, low noise shaping.
+
+--apply-replaygain-which-is-not-lossless=3 means 3dB preamp, use album gain, no limiting, no noise shaping.
+
+flac uses the ReplayGain tags for the calculation.  If a stream does not have the required tags or they can't be parsed, decoding will continue with a warning, and no ReplayGain is applied to that stream.
 .SS "ENCODING OPTIONS"
 .TP
 \fB-V, --verify\fR
