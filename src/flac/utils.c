@@ -173,6 +173,10 @@ int get_console_width(void)
 	int width = 80;
 #ifdef _WIN32
 	width = win_get_console_width();
+#elif defined __EMX__
+        int s[2];
+        _scrsize (s);
+        width = s[0];
 #else
 	struct winsize w;
 	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)	width = w.ws_col;
