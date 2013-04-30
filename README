@@ -93,7 +93,7 @@ Note to embedded developers
 libFLAC has grown larger over time as more functionality has been
 included, but much of it may be unnecessary for a particular embedded
 implementation.  Unused parts may be pruned by some simple editing of
-configure.in and src/libFLAC/Makefile.am; the following dependency
+configure.ac and src/libFLAC/Makefile.am; the following dependency
 graph shows which modules may be pruned without breaking things
 further down:
 
@@ -174,7 +174,7 @@ $HOME/.xmms/Plugins, instead of the global XMMS plugin area
 Use these if you have these packages but configure can't find them.
 
 If you want to build completely from scratch (i.e. starting with just
-configure.in and Makefile.am) you should be able to just run 'autogen.sh'
+configure.ac and Makefile.am) you should be able to just run 'autogen.sh'
 but make sure and read the comments in that file first.
 
 
@@ -245,6 +245,6 @@ and remove any "FLAC__HAS_OGG" definitions.
 Building on Mac OS X
 ===============================================================================
 
-If you have Fink or a recent version of OS X with the proper autotooles,
+If you have Fink or a recent version of OS X with the proper autotools,
 the GNU flow above should work.  The Project Builder project has been
 deprecated but we are working on replacing it with an Xcode equivalent.
