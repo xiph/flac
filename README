@@ -246,5 +246,4 @@ Building on Mac OS X
 ===============================================================================
 
 If you have Fink or a recent version of OS X with the proper autotools,
-the GNU flow above should work.  The Project Builder project has been
-deprecated but we are working on replacing it with an Xcode equivalent.
+the GNU flow above should work.
