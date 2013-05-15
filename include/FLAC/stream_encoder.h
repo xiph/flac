@@ -128,7 +128,7 @@ extern "C" {
  * Unlike the decoders, the stream encoder has many options that can
  * affect the speed and compression ratio.  When setting these parameters
  * you should have some basic knowledge of the format (see the
- * <A HREF="../documentation.html#format">user-level documentation</A>
+ * <A HREF="../documentation_format_overview.html">user-level documentation</A>
  * or the <A HREF="../format.html">formal description</A>).  The
  * FLAC__stream_encoder_set_*() functions themselves do not validate the
  * values as many are interdependent.  The FLAC__stream_encoder_init_*()
