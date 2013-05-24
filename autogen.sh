@@ -12,9 +12,13 @@ function test_program {
 		fi
 }
 
-for prog in autoconf automake libtool pkg-config gettext ; do
+for prog in autoconf automake libtool pkg-config ; do
 	test_program $prog
 	done
+
+if test $(uname -s) != "Darwin" ; then
+	test_program gettext
+	fi
 
 test $test_program_errors -ne 1 || exit 1
 
