@@ -20,7 +20,7 @@ manpage.1: manpage.sgml
   <!ENTITY manfirstname "<firstname>dann</firstname>">
   <!ENTITY mansurname   "<surname>frazier</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY mandate      "<date>2006-11-14</date>">
+  <!ENTITY mandate      "<date>2013/04/30</date>">
   <!-- SECTION should be 1-8, maybe with subsection. Other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY mansection   "<manvolnum>1</manvolnum>">
@@ -40,7 +40,7 @@ manpage.1: manpage.sgml
       &mansurname;
     </author>
     <copyright>
-      <year>2002,2003,2004,2005</year>
+      <year>2002-2005, 2011-2013</year>
       <holder>&manusername;</holder>
     </copyright>
     &mandate;
@@ -545,7 +545,7 @@ manpage.1: manpage.sgml
       </varlistentry>
     </variablelist>
   </refsect1>
-  
+
   <refsect1>
     <title>SEE ALSO</title>
 

@@ -1,5 +1,6 @@
 /* plugin_common - Routines common to several plugins
- * Copyright (C) 2002,2003,2004,2005,2006,2007,2008,2009  Josh Coalson
+ * Copyright (C) 2002-2009  Josh Coalson
+ * Copyright (C) 2011-2013  Xiph.Org Foundation
  *
  * dithering routine derived from (other GPLed source):
  * mad - MPEG audio decoder

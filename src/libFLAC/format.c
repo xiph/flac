@@ -1,5 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007,2008,2009  Josh Coalson
+ * Copyright (C) 2000-2009  Josh Coalson
+ * Copyright (C) 2011-2013  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,9 +48,9 @@ FLAC_API const char *FLAC__VERSION_STRING = VERSION;
 
 #if defined _MSC_VER || defined __BORLANDC__ || defined __MINW32__
 /* yet one more hack because of MSVC6: */
-FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC 1.2.1 20070917";
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC 1.3.0 20130526";
 #else
-FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " VERSION " 20070917";
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " VERSION " 20130526";
 #endif
 
 FLAC_API const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
