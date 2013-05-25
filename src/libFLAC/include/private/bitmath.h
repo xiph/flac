@@ -74,7 +74,7 @@ static inline unsigned int FLAC__clz_uint32(FLAC__uint32 v)
 {
 /* Never used with input 0 */
 #if defined(__INTEL_COMPILER)
-    return _bit_scan_reverse(n) ^ 31U;
+    return _bit_scan_reverse(v) ^ 31U;
 #elif defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
 /* This will translate either to (bsr ^ 31U), clz , ctlz, cntlz, lzcnt depending on
  * -march= setting or to a software rutine in exotic machines. */
