@@ -236,6 +236,7 @@
 					<li>libFLAC: 64-bit fixes (<a href="https://sourceforge.net/tracker2/?func=detail&amp;aid=1790872&amp;group_id=13478&amp;atid=113478">SF #1790872</a>).</li>
 					<li>libFLAC: Fix assembler code to be position independent.</li>
 					<li>libFLAC: Optimization of a number of inner loop functions.</li>
+					<li>Added support for encoding the residual coding method introduced in libFLAC 1.2.0 (RESIDUAL_CODING_METHOD_PARTITIONED_RICE2) which will  encode 24-bit files more efficiently.</li>
 				</ul>
 			</li>
 			<li>
@@ -318,6 +319,7 @@
 				<ul>
 					<li>Added runtime detection of SSE OS support for most operating systems.</li>
 					<li>Fixed bug where invalid seek tables could cause some seeks to fail.</li>
+					<li>Added support for decoding the new residual coding method (RESIDUAL_CODING_METHOD_PARTITIONED_RICE2).</li>
 				</ul>
 			</li>
 			<li>
