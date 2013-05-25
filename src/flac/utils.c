@@ -171,13 +171,13 @@ static int console_chars_left;
 int get_console_width(void)
 {
 	int width = 80;
-#ifdef _WIN32
+#if defined _WIN32
 	width = win_get_console_width();
 #elif defined __EMX__
-        int s[2];
-        _scrsize (s);
-        width = s[0];
-#else
+	int s[2];
+	_scrsize (s);
+	width = s[0];
+#elif !defined __ANDROID__
 	struct winsize w;
 	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)	width = w.ws_col;
 #endif
