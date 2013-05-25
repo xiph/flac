@@ -32,7 +32,7 @@
 #ifndef FLAC__PRIVATE__MACROS_H
 #define FLAC__PRIVATE__MACROS_H
 
-#if defined(__GNUC__) && (__GNUC__ > 4) && (__GNUC_MINOR__ > 4)
+#if defined(__GNUC__) && (__GNUC__ > 4 || ( __GNUC__ == 4 && __GNUC_MINOR__ >= 3))
 
 #define flac_max(a,b) \
     ({ __typeof__ (a) _a = (a); \
