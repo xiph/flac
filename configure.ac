@@ -59,7 +59,9 @@ AC_C_INLINE
 AC_C_VARARRAYS
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h])
+AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h termios.h])
+
+AC_HEADER_TIOCGWINSZ
 
 XIPH_C_BSWAP32
 

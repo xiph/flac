@@ -32,7 +32,12 @@
 #include "share/compat.h"
 #ifndef _WIN32
 #include <wchar.h>
-#include <sys/ioctl.h>
+#ifdef HAVE_TERMIOS_H
+# include <termios.h>
+#endif
+#ifdef GWINSZ_IN_SYS_IOCTL
+# include <sys/ioctl.h>
+#endif
 #endif
 
 const char *CHANNEL_MASK_TAG = "WAVEFORMATEXTENSIBLE_CHANNEL_MASK";
