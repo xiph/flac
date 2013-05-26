@@ -79,7 +79,10 @@ struct FLAC__BitWriter {
 };
 
 /* * WATCHOUT: The current implementation only grows the buffer. */
-static FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, unsigned bits_to_add)
+#ifndef __SUNPRO_C
+static
+#endif
+FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, unsigned bits_to_add)
 {
 	unsigned new_capacity;
 	uint32_t *new_buffer;
