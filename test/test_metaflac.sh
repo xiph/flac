@@ -48,7 +48,7 @@ LD_LIBRARY_PATH=`pwd`/../src/share/utf8/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=`pwd`/../objs/$BUILD/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH
 export MALLOC_CHECK_=3
-export MALLOC_PERTURB_=$((1$(date +%N) % 255 + 1))
+export MALLOC_PERTURB_=$(($(date +%s) % 255 + 1))
 PATH=`pwd`/../src/flac:$PATH
 PATH=`pwd`/../src/metaflac:$PATH
 PATH=`pwd`/../objs/$BUILD/bin:$PATH
