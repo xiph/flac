@@ -31,6 +31,10 @@
  */
 
 #define __STDC_LIMIT_MACROS 1 /* otherwise SIZE_MAX is not defined for c++ */
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "share/alloc.h"
 #include "FLAC++/metadata.h"
 #include "FLAC/assert.h"
