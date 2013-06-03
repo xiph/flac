@@ -75,7 +75,7 @@ void local_strcat(char **dest, const char *source)
 	*dest = safe_realloc_add_3op_(*dest, ndest, /*+*/nsource, /*+*/1);
 	if(0 == *dest)
 		die("out of memory growing string");
-	safe_strncpy((*dest)+ndest, source, ndest + nsource + 1);
+	safe_strncpy((*dest)+ndest, source, nsource + 1);
 }
 
 static inline int local_isprint(int c)
