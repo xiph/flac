@@ -258,6 +258,7 @@ void stats_print_info(int level, const char *format, ...)
 			console_chars_left = console_width;
 		}
 		stats_char_count = fprintf(stderr, "%s", tmp);
+		fflush(stderr);
 	}
 }
 
