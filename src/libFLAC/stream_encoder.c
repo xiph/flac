@@ -3772,7 +3772,7 @@ void precompute_partition_info_sums_(
 #if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM
 	/* slightly pessimistic but still catches all common cases */
 	/* WATCHOUT: "+ bps" is an assumption that the average residual magnitude will not be more than "bps" bits */
-	if(FLAC__bitmath_ilog2(default_partition_samples) + bps < 32) {
+	if(bps < 24 && FLAC__bitmath_ilog2(default_partition_samples) + bps < 32) {
 		precompute_partition_info_sums_32bit_asm_ia32_(residual, abs_residual_partition_sums, residual_samples + predictor_order, predictor_order, min_partition_order, max_partition_order);
 		return;
 	}
@@ -3783,8 +3783,8 @@ void precompute_partition_info_sums_(
 		unsigned partition, residual_sample, end = (unsigned)(-(int)predictor_order);
 		/* slightly pessimistic but still catches all common cases */
 		/* WATCHOUT: "+ bps" is an assumption that the average residual magnitude will not be more than "bps" bits */
-		if(FLAC__bitmath_ilog2(default_partition_samples) + bps < 32) {
-			FLAC__uint64 abs_residual_partition_sum;
+		if(bps < 24 && FLAC__bitmath_ilog2(default_partition_samples) + bps < 32) {
+			FLAC__uint32 abs_residual_partition_sum;
 
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				end += default_partition_samples;
