@@ -45,7 +45,7 @@ EXTRA_DIST = \
 	libFLAC++.m4
 
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
-libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -version-info 9:0:3 @LT_NO_UNDEFINED@
+libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 9:0:3
 libFLAC___la_LIBADD = ../libFLAC/libFLAC.la
 
 libFLAC___la_SOURCES = \

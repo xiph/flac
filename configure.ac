@@ -129,19 +129,11 @@ AM_CONDITIONAL(FLaC__CPU_PPC_SPE, test "x$abi_spe" = xtrue)
 os_is_windows=no
 case "$host" in
 	*-*-cygwin|*mingw*)
-		# define this variable for enabling strict exports with libtool; for now, it's supported by Win32 and OS/2
-		LT_NO_UNDEFINED="-no-undefined"
 		CPPFLAGS="-D__MSVCRT_VERSION__=0x0601 $CPPFLAGS"
 		os_is_windows=yes
 		;;
-	*emx*)
-		LT_NO_UNDEFINED="-no-undefined"
-		;;
-	*)
-		LT_NO_UNDEFINED=
-		;;
 esac
-AC_SUBST(LT_NO_UNDEFINED)
+
 AM_CONDITIONAL(OS_IS_WINDOWS, test "x$os_is_windows" = xyes)
 
 case "$host" in
