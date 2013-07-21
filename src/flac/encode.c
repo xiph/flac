@@ -108,6 +108,7 @@ typedef struct {
 
 	FILE *fin;
 	FLAC__StreamMetadata *seek_table_template;
+	double progress, compression_ratio;
 } EncoderSession;
 
 const int FLAC_ENCODE__DEFAULT_PADDING = 8192;
@@ -1651,6 +1652,11 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 		}
 	}
 
+	if (e->compression_ratio >= 1.0) {
+		flac__utils_printf(stderr, 1, "ERROR: Compression failed (ratio %0.3f, should be < 1.0). Please contact the developers.\n", e->compression_ratio);
+		ret = 1;
+	}
+
 	EncoderSession_destroy(e);
 
 	return ret;
@@ -2418,6 +2424,17 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 {
 	EncoderSession *e = (EncoderSession*)client_data;
 
+	const FLAC__uint64 uesize = e->unencoded_size;
+
+#if defined _MSC_VER || defined __MINGW32__
+	/* with MSVC you have to spoon feed it the casting */
+	e->progress = (double)(FLAC__int64)samples_written / (double)(FLAC__int64)e->total_samples_to_encode;
+	e->compression_ratio = (double)(FLAC__int64)e->bytes_written / ((double)(FLAC__int64)(uesize? uesize:1) * min(1.0, e->progress));
+#else
+	e->progress = (double)samples_written / (double)e->total_samples_to_encode;
+	e->compression_ratio = (double)e->bytes_written / ((double)(uesize? uesize:1) * min(1.0, e->progress));
+#endif
+
 	(void)encoder, (void)total_frames_estimate;
 
 	e->bytes_written = bytes_written;
@@ -2599,26 +2616,19 @@ FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_
 	return true;
 }
 
-void print_stats(const EncoderSession *encoder_session)
+static void print_stats(const EncoderSession *encoder_session)
 {
 	if(flac__utils_verbosity_ >= 2) {
-		const FLAC__uint64 samples_written = min(encoder_session->total_samples_to_encode, encoder_session->samples_written);
-		const FLAC__uint64 uesize = encoder_session->unencoded_size;
-#if defined _MSC_VER || defined __MINGW32__
-		/* with MSVC you have to spoon feed it the casting */
-		const double progress = (double)(FLAC__int64)samples_written / (double)(FLAC__int64)encoder_session->total_samples_to_encode;
-		const double ratio = (double)(FLAC__int64)encoder_session->bytes_written / ((double)(FLAC__int64)(uesize? uesize:1) * min(1.0, progress));
-#else
-		const double progress = (double)samples_written / (double)encoder_session->total_samples_to_encode;
-		const double ratio = (double)encoder_session->bytes_written / ((double)(uesize? uesize:1) * min(1.0, progress));
-#endif
 		char ratiostr[16];
 
 		FLAC__ASSERT(encoder_session->total_samples_to_encode > 0);
 
-		if (uesize)	flac_snprintf(ratiostr, sizeof(ratiostr), "%0.3f", ratio); else flac_snprintf(ratiostr, sizeof(ratiostr), "N/A");
+		if (encoder_session->compression_ratio > 0.0)
+			flac_snprintf(ratiostr, sizeof(ratiostr), "%0.3f", encoder_session->compression_ratio);
+		else
+			flac_snprintf(ratiostr, sizeof(ratiostr), "N/A");
 
-		if(samples_written == encoder_session->total_samples_to_encode) {
+		if(encoder_session->samples_written == encoder_session->total_samples_to_encode) {
 			stats_print_name(2, encoder_session->inbasefilename);
 			stats_print_info(2, "%swrote %" PRIu64 " bytes, ratio=%s",
 				encoder_session->verify? "Verify OK, " : "",
@@ -2628,7 +2638,7 @@ void print_stats(const EncoderSession *encoder_session)
 		}
 		else {
 			stats_print_name(2, encoder_session->inbasefilename);
-			stats_print_info(2, "%u%% complete, ratio=%s", (unsigned)floor(progress * 100.0 + 0.5), ratiostr);
+			stats_print_info(2, "%u%% complete, ratio=%s", (unsigned)floor(encoder_session->progress * 100.0 + 0.5), ratiostr);
 		}
 	}
 }
