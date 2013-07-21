@@ -503,7 +503,7 @@ static const char *store_to_file_post_(const char *filename, FLAC__Metadata_Chai
 const char *grabbag__replaygain_store_to_file(const char *filename, float album_gain, float album_peak, float title_gain, float title_peak, FLAC__bool preserve_modtime)
 {
 	FLAC__Metadata_Chain *chain;
-	FLAC__StreamMetadata *block;
+	FLAC__StreamMetadata *block = NULL;
 	const char *error;
 
 	if(0 != (error = store_to_file_pre_(filename, &chain, &block)))
@@ -523,7 +523,7 @@ const char *grabbag__replaygain_store_to_file(const char *filename, float album_
 const char *grabbag__replaygain_store_to_file_reference(const char *filename, FLAC__bool preserve_modtime)
 {
 	FLAC__Metadata_Chain *chain;
-	FLAC__StreamMetadata *block;
+	FLAC__StreamMetadata *block = NULL;
 	const char *error;
 
 	if(0 != (error = store_to_file_pre_(filename, &chain, &block)))
@@ -543,7 +543,7 @@ const char *grabbag__replaygain_store_to_file_reference(const char *filename, FL
 const char *grabbag__replaygain_store_to_file_album(const char *filename, float album_gain, float album_peak, FLAC__bool preserve_modtime)
 {
 	FLAC__Metadata_Chain *chain;
-	FLAC__StreamMetadata *block;
+	FLAC__StreamMetadata *block = NULL;
 	const char *error;
 
 	if(0 != (error = store_to_file_pre_(filename, &chain, &block)))
@@ -563,7 +563,7 @@ const char *grabbag__replaygain_store_to_file_album(const char *filename, float 
 const char *grabbag__replaygain_store_to_file_title(const char *filename, float title_gain, float title_peak, FLAC__bool preserve_modtime)
 {
 	FLAC__Metadata_Chain *chain;
-	FLAC__StreamMetadata *block;
+	FLAC__StreamMetadata *block = NULL;
 	const char *error;
 
 	if(0 != (error = store_to_file_pre_(filename, &chain, &block)))
