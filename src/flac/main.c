@@ -207,6 +207,7 @@ static struct share__option long_options_[] = {
 	{ "no-warnings-as-errors"     , share__no_argument, 0, 0 },
 	{ "no-residual-gnuplot"       , share__no_argument, 0, 0 },
 	{ "no-residual-text"          , share__no_argument, 0, 0 },
+	{ "no-error-on-compression-fail", share__no_argument, 0, 0 },
 	/*
 	 * undocumented debugging options for the test suite
 	 */
@@ -271,6 +272,7 @@ static struct {
 	const char *cuesheet_filename;
 	FLAC__bool cued_seekpoints;
 	FLAC__bool channel_map_none; /* --channel-map=none specified, eventually will expand to take actual channel map */
+	FLAC__bool error_on_compression_fail;
 
 	unsigned num_files;
 	char **filenames;
@@ -594,6 +596,7 @@ FLAC__bool init_options(void)
 	option_values.cuesheet_filename = 0;
 	option_values.cued_seekpoints = true;
 	option_values.channel_map_none = false;
+	option_values.error_on_compression_fail = true;
 
 	option_values.num_files = 0;
 	option_values.filenames = 0;
@@ -907,6 +910,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "no-md5-sum")) {
 			option_values.debug.do_md5 = false;
+		}
+		else if(0 == strcmp(long_option, "no-error-on-compression-fail")) {
+			option_values.error_on_compression_fail = false;
 		}
 	}
 	else {
@@ -1901,6 +1907,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	encode_options.debug.disable_fixed_subframes = option_values.debug.disable_fixed_subframes;
 	encode_options.debug.disable_verbatim_subframes = option_values.debug.disable_verbatim_subframes;
 	encode_options.debug.do_md5 = option_values.debug.do_md5;
+	encode_options.error_on_compression_fail = option_values.error_on_compression_fail;
 
 	/* if infilename and outfilename point to the same file, we need to write to a temporary file */
 	if(encode_infile != stdin && grabbag__file_are_same(infilename, outfilename)) {

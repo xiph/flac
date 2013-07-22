@@ -84,6 +84,7 @@ typedef struct {
 	FLAC__bool replay_gain;
 	FLAC__bool ignore_chunk_sizes;
 	FLAC__bool sector_align;
+	FLAC__bool error_on_compression_fail;
 
 	FLAC__StreamMetadata *vorbis_comment;
 	FLAC__StreamMetadata *pictures[64];

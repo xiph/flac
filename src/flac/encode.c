@@ -129,7 +129,7 @@ static FLAC__int32 *input_[FLAC__MAX_CHANNELS];
  */
 static FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options, FLAC__off_t infilesize, FILE *infile, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, unsigned lookahead_length);
 static void EncoderSession_destroy(EncoderSession *e);
-static int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_align_zero, foreign_metadata_t *foreign_metadata);
+static int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_align_zero, foreign_metadata_t *foreign_metadata, FLAC__bool error_on_compression_fail);
 static int EncoderSession_finish_error(EncoderSession *e);
 static FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t options);
 static FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], unsigned samples);
@@ -1489,7 +1489,8 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		&encoder_session,
 		info_align_carry,
 		info_align_zero,
-		EncoderSession_format_is_iff(&encoder_session)? options.format_options.iff.foreign_metadata : 0
+		EncoderSession_format_is_iff(&encoder_session)? options.format_options.iff.foreign_metadata : 0,
+		options.error_on_compression_fail
 	);
 }
 
@@ -1608,7 +1609,7 @@ void EncoderSession_destroy(EncoderSession *e)
 	}
 }
 
-int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_align_zero, foreign_metadata_t *foreign_metadata)
+int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_align_zero, foreign_metadata_t *foreign_metadata, FLAC__bool error_on_compression_fail)
 {
 	FLAC__StreamEncoderState fse_state = FLAC__STREAM_ENCODER_OK;
 	int ret = 0;
@@ -1652,7 +1653,7 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 		}
 	}
 
-	if (e->compression_ratio >= 1.0) {
+	if (error_on_compression_fail && e->compression_ratio >= 1.0) {
 		flac__utils_printf(stderr, 1, "ERROR: Compression failed (ratio %0.3f, should be < 1.0). Please contact the developers.\n", e->compression_ratio);
 		ret = 1;
 	}
