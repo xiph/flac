@@ -110,13 +110,22 @@ fi
 
 check_flac
 
+
+if mawk ; then
+	AWK=mawk
+else
+	# Really hope awk is not gawk, because the following AWK script doesn't
+	# work correctly with gawk 4.0.1 but did with earlier versions.
+	AWK=awk
+	fi
+
 # Replay gain tests - Test the rates which have specific filter table entries
 # and verify that harmonics can be processed correctly.
 
 tonegenerator ()
 {
 	# When using GAWK, use --lint=posix to identify non-POSIX awk usages.
-    awk -- '
+    $AWK -- '
     BEGIN {
             samplerate = '$1';
 
