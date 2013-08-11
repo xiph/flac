@@ -81,6 +81,14 @@ AC_DEFINE_UNQUOTED(CPU_IS_LITTLE_ENDIAN, ${ac_cv_c_little_endian},
 AC_DEFINE_UNQUOTED(WORDS_BIGENDIAN, ${ac_cv_c_big_endian},
 					[Target processor is big endian.])
 
+AC_ARG_ENABLE(asm-optimizations, AC_HELP_STRING([--disable-asm-optimizations], [Don't use any assembly optimization routines]), asm_opt=no, asm_opt=yes)
+dnl ' Terminate the damn single quote
+AM_CONDITIONAL(FLaC__NO_ASM, test "x$asm_opt" = xno)
+if test "x$asm_opt" = xno ; then
+AC_DEFINE(FLAC__NO_ASM)
+AH_TEMPLATE(FLAC__NO_ASM, [define to disable use of assembly code])
+fi
+
 # For the XMMS plugin.
 AC_CHECK_TYPES(socklen_t, [], [])
 
@@ -88,21 +96,35 @@ dnl check for getopt in standard library
 dnl AC_CHECK_FUNCS(getopt_long , , [LIBOBJS="$LIBOBJS getopt.o getopt1.o"] )
 AC_CHECK_FUNCS(getopt_long, [], [])
 
+AC_CHECK_SIZEOF(void*,1)
+
+asm_optimisation=no
 case "$host_cpu" in
+	x86_64)
+		if test $ac_cv_sizeof_voidp = 4 ; then
+			cpu_ia32=true
+			AC_DEFINE(FLAC__CPU_IA32)
+			AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
+			asm_optimisation=$asm_opt
+			fi
+		;;
 	i*86)
 		cpu_ia32=true
 		AC_DEFINE(FLAC__CPU_IA32)
 		AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
+		asm_optimisation=$asm_opt
 		;;
 	powerpc|powerpc64)
 		cpu_ppc=true
 		AC_DEFINE(FLAC__CPU_PPC)
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
+		asm_optimisation=$asm_opt
 		;;
 	sparc)
 		cpu_sparc=true
 		AC_DEFINE(FLAC__CPU_SPARC)
 		AH_TEMPLATE(FLAC__CPU_SPARC, [define if building for SPARC])
+		asm_optimisation=$asm_opt
 		;;
 esac
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
@@ -154,14 +176,6 @@ AM_CONDITIONAL(FLaC__SYS_LINUX, test "x$sys_linux" = xtrue)
 if test "x$cpu_ia32" = xtrue ; then
 AC_DEFINE(FLAC__ALIGN_MALLOC_DATA)
 AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA, [define to align allocated memory on 32-byte boundaries])
-fi
-
-AC_ARG_ENABLE(asm-optimizations, AC_HELP_STRING([--disable-asm-optimizations], [Don't use any assembly optimization routines]), asm_opt=no, asm_opt=yes)
-dnl ' Terminate the damn single quote
-AM_CONDITIONAL(FLaC__NO_ASM, test "x$asm_opt" = xno)
-if test "x$asm_opt" = xno ; then
-AC_DEFINE(FLAC__NO_ASM)
-AH_TEMPLATE(FLAC__NO_ASM, [define to disable use of assembly code])
 fi
 
 AC_ARG_ENABLE(debug,
@@ -488,4 +502,5 @@ AC_MSG_RESULT([
 if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    GCC version : ......................... ${GCC_VERSION}"
 fi
+	echo "    Asm optimiizations : .................. ${asm_optimisation}"
 echo
