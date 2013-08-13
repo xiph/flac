@@ -782,4 +782,4 @@ FLAC__lpc_compute_autocorrelation_asm:
 	pop	ebp
 	ret
 
-end
+; end

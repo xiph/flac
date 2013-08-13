@@ -115,4 +115,4 @@ cident FLAC__cpu_info_extended_amd_asm_ia32
 	pop	ebx
 	ret
 
-end
+; end

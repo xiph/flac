@@ -153,4 +153,4 @@ cident precompute_partition_info_sums_32bit_asm_ia32_
 	pop	ebp
 	ret
 
-end
+; end

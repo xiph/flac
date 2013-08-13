@@ -306,4 +306,4 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	pop	ebp
 	ret
 
-end
+; end

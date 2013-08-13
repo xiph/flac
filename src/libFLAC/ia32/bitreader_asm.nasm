@@ -590,4 +590,4 @@ cident FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap
 	pop	ebp
 	ret
 
-end
+; end
