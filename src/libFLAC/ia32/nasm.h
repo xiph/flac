@@ -79,7 +79,7 @@ _%1:
 %1:
 %endmacro
 
-%ifndef OBJ_FORMAT_aout
+%ifdef OBJ_FORMAT_elf
 section .note.GNU-stack progbits noalloc noexec nowrite align=1
 %endif
 
