@@ -285,14 +285,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 # ifdef USE_TRY_CATCH_FLAVOR
 			_try {
 				__asm {
-#  if _MSC_VER <= 1200
-					/* VC6 assembler doesn't know SSE, have to emit bytecode instead */
-					_emit 0x0F
-					_emit 0x57
-					_emit 0xC0
-#  else
 					xorps xmm0,xmm0
-#  endif
 				}
 			}
 			_except(EXCEPTION_EXECUTE_HANDLER) {
@@ -307,14 +300,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			/*  http://www.codeproject.com/cpp/gccasm.asp */
 			/*  http://www.hick.org/~mmiller/msvc_inline_asm.html */
 			__asm {
-#  if _MSC_VER <= 1200
-				/* VC6 assembler doesn't know SSE, have to emit bytecode instead */
-				_emit 0x0F
-				_emit 0x57
-				_emit 0xC0
-#  else
 				xorps xmm0,xmm0
-#  endif
 				inc sse
 				nop
 				nop
