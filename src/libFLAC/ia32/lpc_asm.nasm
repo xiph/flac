@@ -39,6 +39,7 @@ cglobal FLAC__lpc_compute_autocorrelation_asm_ia32
 cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4
 cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8
 cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16
 cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow
 cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32
 cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx
@@ -596,7 +597,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
 	movss	xmm3, xmm2
 	movss	xmm2, xmm0
 
-	; xmm7:xmm6:xmm5 += xmm0:xmm0:xmm0 * xmm3:xmm3:xmm2
+	; xmm7:xmm6:xmm5 += xmm0:xmm0:xmm0 * xmm4:xmm3:xmm2
 	movaps	xmm1, xmm0
 	mulps	xmm1, xmm2
 	addps	xmm5, xmm1
@@ -616,6 +617,95 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
 	movups	[edx + 32], xmm7
 
 .end:
+	ret
+
+	ALIGN 16
+cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16
+	;[ebp + 20] == autoc[]
+	;[ebp + 16] == lag
+	;[ebp + 12] == data_len
+	;[ebp +  8] == data[]
+	;[esp] == __m128
+	;[esp + 16] == __m128
+
+	push	ebp
+	mov ebp, esp
+	and	esp, -16 ; stack realign for SSE instructions 'movaps' and 'addps'
+	sub	esp, 32
+
+	;ASSERT(lag > 0)
+	;ASSERT(lag <= 12)
+	;ASSERT(lag <= data_len)
+	;ASSERT(data_len > 0)
+
+	;	for(coeff = 0; coeff < lag; coeff++)
+	;		autoc[coeff] = 0.0;
+	xorps	xmm5, xmm5
+	xorps	xmm6, xmm6
+	movaps	[esp], xmm5
+	movaps	[esp + 16], xmm6
+
+	mov	edx, [ebp + 12]			; edx == data_len
+	mov	eax, [ebp +  8]			; eax == &data[sample] <- &data[0]
+
+	movss	xmm0, [eax]			; xmm0 = 0,0,0,data[0]
+	add	eax, 4
+	movaps	xmm1, xmm0			; xmm1 = 0,0,0,data[0]
+	shufps	xmm0, xmm0, 0		; xmm0 == data[sample],data[sample],data[sample],data[sample] = data[0],data[0],data[0],data[0]
+	xorps	xmm2, xmm2			; xmm2 = 0,0,0,0
+	xorps	xmm3, xmm3			; xmm3 = 0,0,0,0
+	xorps	xmm4, xmm4			; xmm4 = 0,0,0,0
+	movaps	xmm7, xmm0
+	mulps	xmm7, xmm1
+	addps	xmm5, xmm7
+	dec	edx
+	jz	.loop_end
+	ALIGN 16
+.loop_start:
+	; start by reading the next sample
+	movss	xmm0, [eax]				; xmm0 = 0,0,0,data[sample]
+	add	eax, 4
+	shufps	xmm0, xmm0, 0			; xmm0 = data[sample],data[sample],data[sample],data[sample]
+
+	; shift xmm4:xmm3:xmm2:xmm1 left by one float
+	shufps	xmm1, xmm1, 93h
+	shufps	xmm2, xmm2, 93h
+	shufps	xmm3, xmm3, 93h
+	shufps	xmm4, xmm4, 93h
+	movss	xmm4, xmm3
+	movss	xmm3, xmm2
+	movss	xmm2, xmm1
+	movss	xmm1, xmm0
+
+	; xmmB:xmmA:xmm6:xmm5 += xmm0:xmm0:xmm0:xmm0 * xmm4:xmm3:xmm2:xmm1
+	movaps	xmm7, xmm0
+	mulps	xmm7, xmm1
+	addps	xmm5, xmm7
+	movaps	xmm7, xmm0
+	mulps	xmm7, xmm2
+	addps	xmm6, xmm7
+	movaps	xmm7, xmm0
+	mulps	xmm7, xmm3
+	mulps	xmm0, xmm4
+	addps	xmm7, [esp]
+	addps	xmm0, [esp + 16]
+	movaps	[esp], xmm7
+	movaps	[esp + 16], xmm0
+
+	dec	edx
+	jnz	.loop_start
+.loop_end:
+	; store autoc
+	mov	edx, [ebp + 20]				; edx == autoc
+	movups	[edx], xmm5
+	movups	[edx + 16], xmm6
+	movaps	xmm5, [esp]
+	movaps	xmm6, [esp + 16]
+	movups	[edx + 32], xmm5
+	movups	[edx + 48], xmm6
+.end:
+	mov esp, ebp
+	pop ebp
 	ret
 
 	ALIGN 16
