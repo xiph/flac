@@ -73,10 +73,6 @@
 #endif
 
 #if defined(_MSC_VER)
-#if _MSC_VER < 1500
-/* Visual Studio 2008 has restrict. */
-#define restrict __restrict
-#endif
 #define inline __inline
 #endif
 
