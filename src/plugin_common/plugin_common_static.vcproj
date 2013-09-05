@@ -129,7 +129,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\objs\release\lib\$(ProjectName).lib"
+				OutputFile="..\..\objs\release\lib\$(ProjectName).lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
