@@ -39,7 +39,7 @@ EXTRA_DIST = \
 	utf8/charsetmap.h \
 	utf8/iconvert.h \
 	utf8/utf8_static.vcproj \
-	win_utf8_io/win_utf8_io.vcproj
+	win_utf8_io/win_utf8_io_static.vcproj
 
 
 noinst_LTLIBRARIES = \

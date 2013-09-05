@@ -158,7 +158,7 @@ EndProject
 Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "utf8_static", "src\share\utf8\utf8_static.vcproj", "{4cefbc92-c215-11db-8314-0800200c9a66}"
 EndProject
 EndProject
-Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "win_utf8_io", "src\share\win_utf8_io\win_utf8_io.vcproj", "{4cefbe02-c215-11db-8314-0800200c9a66}"
+Project("{4cefbc7c-c215-11db-8314-0800200c9a66}") = "win_utf8_io_static", "src\share\win_utf8_io\win_utf8_io_static.vcproj", "{4cefbe02-c215-11db-8314-0800200c9a66}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
