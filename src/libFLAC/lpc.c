@@ -51,10 +51,6 @@
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
-#ifndef M_LN2
-#define M_LN2 0.69314718055994530942
-#endif
-
 #if !defined(HAVE_LROUND)
 #if defined(_MSC_VER)
 #include <float.h>

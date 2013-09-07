@@ -36,14 +36,11 @@
 
 #include <math.h>
 #include <string.h>
+#include "share/compat.h"
 #include "private/bitmath.h"
 #include "private/fixed.h"
 #include "private/macros.h"
 #include "FLAC/assert.h"
-
-#ifndef M_LN2
-#define M_LN2 0.69314718055994530942
-#endif
 
 #ifdef local_abs
 #undef local_abs
