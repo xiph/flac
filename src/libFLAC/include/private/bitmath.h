@@ -78,10 +78,10 @@ static inline unsigned int FLAC__clz_uint32(FLAC__uint32 v)
     return _bit_scan_reverse(v) ^ 31U;
 #elif defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
 /* This will translate either to (bsr ^ 31U), clz , ctlz, cntlz, lzcnt depending on
- * -march= setting or to a software rutine in exotic machines. */
+ * -march= setting or to a software routine in exotic machines. */
     return __builtin_clz(v);
 #elif defined(_MSC_VER) && (_MSC_VER >= 1400)
-    FLAC__uint32 idx;
+    unsigned long idx;
     _BitScanReverse(&idx, v);
     return idx ^ 31U;
 #else
@@ -122,11 +122,19 @@ static inline unsigned int FLAC__clz2_uint32(FLAC__uint32 v)
 
 static inline unsigned FLAC__bitmath_ilog2(FLAC__uint32 v)
 {
+#if defined(__INTEL_COMPILER)
+    return _bit_scan_reverse(v);
+#elif defined(_MSC_VER) && (_MSC_VER >= 1400)
+    unsigned long idx;
+    _BitScanReverse(&idx, v);
+    return idx;
+#else
     return sizeof(FLAC__uint32) * CHAR_BIT  - 1 - FLAC__clz_uint32(v);
+#endif
 }
 
 
-#ifdef FLAC__INTEGER_ONLY_LIBRARY /*Unused otherwise */
+#ifdef FLAC__INTEGER_ONLY_LIBRARY /* Unused otherwise */
 
 static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 {
