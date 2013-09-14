@@ -333,6 +333,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lpc_x86intrin.c"
+				>
+			</File>
+			<File
 				RelativePath=".\md5.c"
 				>
 			</File>

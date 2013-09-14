@@ -125,6 +125,7 @@ libFLAC_sources = \
 	float.c \
 	format.c \
 	lpc.c \
+	lpc_x86intrin.c \
 	md5.c \
 	memory.c \
 	metadata_iterators.c \

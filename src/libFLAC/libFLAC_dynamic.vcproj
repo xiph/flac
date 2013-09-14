@@ -318,6 +318,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lpc_x86intrin.c"
+				>
+			</File>
+			<File
 				RelativePath=".\md5.c"
 				>
 			</File>
@@ -429,10 +433,6 @@
 					Outputs="ia32/bitreader_asm.obj"
 				/>
 			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\release_static\BuildLog.htm"
-			>
 		</File>
 		<File
 			RelativePath=".\ia32\cpu_asm.nasm"
