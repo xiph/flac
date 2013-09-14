@@ -175,7 +175,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	info->data.ia32.ext3dnow = false;
 	info->data.ia32.extmmx = false;
 	if(info->data.ia32.cpuid) {
-		/* http://www.sandpile.org/ia32/cpuid.htm */
+		/* http://www.sandpile.org/x86/cpuid.htm */
 		FLAC__uint32 flags_edx, flags_ecx;
 		FLAC__cpu_info_asm_ia32(&flags_edx, &flags_ecx);
 		info->data.ia32.cmov  = (flags_edx & FLAC__CPUINFO_IA32_CPUID_CMOV )? true : false;
@@ -283,12 +283,12 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 				info->data.ia32.fxsr = info->data.ia32.sse = info->data.ia32.sse2 = info->data.ia32.sse3 = info->data.ia32.ssse3 = false;
 #elif defined(_MSC_VER)
 # ifdef USE_TRY_CATCH_FLAVOR
-			_try {
+			__try {
 				__asm {
 					xorps xmm0,xmm0
 				}
 			}
-			_except(EXCEPTION_EXECUTE_HANDLER) {
+			__except(EXCEPTION_EXECUTE_HANDLER) {
 				if (_exception_code() == STATUS_ILLEGAL_INSTRUCTION)
 					info->data.ia32.fxsr = info->data.ia32.sse = info->data.ia32.sse2 = info->data.ia32.sse3 = info->data.ia32.ssse3 = false;
 			}
@@ -326,6 +326,32 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 
 		}
 	}
+#else
+	info->use_asm = false;
+#endif
+
+/*
+ * x86-64-specific
+ */
+#elif defined FLAC__CPU_X86_64
+	info->type = FLAC__CPUINFO_TYPE_X86_64;
+#if !defined FLAC__NO_ASM && defined FLAC__HAS_X86INTRIN
+	info->use_asm = true;
+	info->data.x86_64.sse3 = false;
+	info->data.x86_64.ssse3 = false;
+	{
+		/* http://www.sandpile.org/x86/cpuid.htm */
+		FLAC__uint32 flags_edx, flags_ecx;
+		FLAC__cpu_info_x86(&flags_edx, &flags_ecx);
+		info->data.x86_64.sse3  = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE3 )? true : false;
+		info->data.x86_64.ssse3 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSSE3)? true : false;
+	}
+#ifdef DEBUG
+	fprintf(stderr, "CPU info (x86-64):\n");
+	fprintf(stderr, "  SSE3 ....... %c\n", info->data.x86_64.sse3    ? 'Y' : 'n');
+	fprintf(stderr, "  SSSE3 ...... %c\n", info->data.x86_64.ssse3   ? 'Y' : 'n');
+#endif
+
 #else
 	info->use_asm = false;
 #endif
@@ -396,10 +422,40 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 # endif
 
 /*
- * unknown CPI
+ * unknown CPU
  */
 #else
 	info->type = FLAC__CPUINFO_TYPE_UNKNOWN;
 	info->use_asm = false;
 #endif
 }
+
+#if defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64
+#ifdef FLAC__HAS_X86INTRIN
+
+#if defined _MSC_VER && (_MSC_VER >= 1400)
+#include <intrin.h> /* for __cpuid() */
+#endif
+
+void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx)
+{
+#if defined _MSC_VER && (_MSC_VER >= 1400)
+		int cpuinfo[4];
+		__cpuid(cpuinfo, 1);
+		*flags_ecx = cpuinfo[2];
+		*flags_edx = cpuinfo[3];
+#elif defined __GNUC__ && __GNUC__
+		FLAC__uint32 info = 1, flags_eax, flags_ebx;
+		__asm__ __volatile__ (
+			"xchg %%ebx, %%edi;"
+			"cpuid;"
+			"xchg %%edi, %%ebx;"
+			:"=a" (flags_eax), "=D" (flags_ebx), "=c" (*flags_ecx), "=d" (*flags_edx)
+			:"a" (info)
+		);
+#else
+		*flags_ecx = *flags_edx = 0;
+#endif
+}
+#endif /* FLAC__HAS_X86INTRIN */
+#endif /* FLAC__CPU_IA32 || FLAC__CPU_X86_64 */
