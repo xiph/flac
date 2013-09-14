@@ -59,7 +59,7 @@ AC_C_INLINE
 AC_C_VARARRAYS
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h termios.h])
+AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h termios.h x86intrin.h])
 
 AC_HEADER_TIOCGWINSZ
 
@@ -102,11 +102,18 @@ asm_optimisation=no
 case "$host_cpu" in
 	x86_64)
 		if test $ac_cv_sizeof_voidp = 4 ; then
+			# This must be a 32 bit user space running on 64 bit kernel so treat
+			# this as ia32.
 			cpu_ia32=true
 			AC_DEFINE(FLAC__CPU_IA32)
 			AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
-			asm_optimisation=$asm_opt
+		else
+			# x86_64 user space and kernel.
+			cpu_x86_64=true
+			AC_DEFINE(FLAC__CPU_X86_64)
+			AH_TEMPLATE(FLAC__CPU_X86_64, [define if building for x86_64])
 			fi
+		asm_optimisation=$asm_opt
 		;;
 	i*86)
 		cpu_ia32=true
@@ -127,9 +134,12 @@ case "$host_cpu" in
 		asm_optimisation=$asm_opt
 		;;
 esac
+AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test "x$cpu_ppc" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
+
+AC_DEFINE_UNQUOTED([FLAC__HAS_X86INTRIN],${HAVE_X86INTRIN_H}, [Set to 1 if <x86intrin.h> is available.])
 
 case "$host" in
 	i386-*-openbsd3.[[0-3]]) OBJ_FORMAT=aoutb ;;
