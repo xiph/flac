@@ -30,14 +30,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #ifndef FLAC__NO_ASM
 #if defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64
 #ifdef FLAC__HAS_X86INTRIN
-
-#if HAVE_CONFIG_H
-#  include <config.h>
-#endif
 
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
@@ -49,6 +49,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4(const FLAC__real data[],
 {
 	__m128 xmm0, xmm2, xmm5;
 
+	(void) lag;
 	FLAC__ASSERT(lag > 0);
 	FLAC__ASSERT(lag <= 4);
 	FLAC__ASSERT(lag <= data_len);
@@ -84,6 +85,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8(const FLAC__real data[],
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm5, xmm6;
 
+	(void) lag;
 	FLAC__ASSERT(lag > 0);
 	FLAC__ASSERT(lag <= 8);
 	FLAC__ASSERT(lag <= data_len);
@@ -129,6 +131,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12(const FLAC__real data[]
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
 
+	(void) lag;
 	FLAC__ASSERT(lag > 0);
 	FLAC__ASSERT(lag <= 12);
 	FLAC__ASSERT(lag <= data_len);
@@ -181,6 +184,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[]
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9;
 
+	(void) lag;
 	FLAC__ASSERT(lag > 0);
 	FLAC__ASSERT(lag <= 16);
 	FLAC__ASSERT(lag <= data_len);
