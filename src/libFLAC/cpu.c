@@ -430,8 +430,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #endif
 }
 
-#if defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64
-#ifdef FLAC__HAS_X86INTRIN
+#if defined FLAC__CPU_X86_64 && defined  FLAC__HAS_X86INTRIN
 
 #if defined _MSC_VER && (_MSC_VER >= 1400)
 #include <intrin.h> /* for __cpuid() */
@@ -457,5 +456,4 @@ void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx)
 		*flags_ecx = *flags_edx = 0;
 #endif
 }
-#endif /* FLAC__HAS_X86INTRIN */
-#endif /* FLAC__CPU_IA32 || FLAC__CPU_X86_64 */
+#endif /* FLAC__HAS_X86INTRIN && FLAC__CPU_X86_64 */
