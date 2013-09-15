@@ -78,15 +78,13 @@ run_test_seeking ()
 	fi
 }
 
-echo "Checking for --ogg support in flac..."
-if flac --ogg --silent --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
+echo -n "Checking for --ogg support in flac ... "
+if flac --ogg --no-error-on-compression-fail --silent --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
 	has_ogg=yes;
-	echo "flac --ogg works"
 else
 	has_ogg=no;
-	echo "flac --ogg doesn't work"
 fi
-
+echo ${has_ogg}
 
 echo "Generating streams..."
 if [ ! -f noise.raw ] ; then
