@@ -1090,6 +1090,10 @@ namespace FLAC {
 		protected:
 			::FLAC__Metadata_SimpleIterator *iterator_;
 			void clear();
+
+		private: // Do not use.
+			SimpleIterator(const SimpleIterator&);
+			SimpleIterator&operator=(const SimpleIterator&);
 		};
 
 		/* \} */
@@ -1174,6 +1178,10 @@ namespace FLAC {
 		protected:
 			::FLAC__Metadata_Chain *chain_;
 			virtual void clear();
+
+		private: // Do not use.
+			Chain(const Chain&);
+			Chain&operator=(const Chain&);
 		};
 
 		/** This class is a wrapper around the FLAC__metadata_iterator
@@ -1204,6 +1212,10 @@ namespace FLAC {
 		protected:
 			::FLAC__Metadata_Iterator *iterator_;
 			virtual void clear();
+
+		private: // Do not use.
+			Iterator(const Iterator&);
+			Iterator&operator=(const Iterator&);
 		};
 
 		/* \} */

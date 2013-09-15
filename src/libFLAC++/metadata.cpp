@@ -523,36 +523,72 @@ namespace FLAC {
 		// VorbisComment::Entry
 		//
 
-		VorbisComment::Entry::Entry()
+		VorbisComment::Entry::Entry() :
+			is_valid_(true),
+			entry_(),
+			field_name_(0),
+			field_name_length_(0),
+			field_value_(0),
+			field_value_length_(0)
 		{
 			zero();
 		}
 
-		VorbisComment::Entry::Entry(const char *field, unsigned field_length)
+		VorbisComment::Entry::Entry(const char *field, unsigned field_length) :
+			is_valid_(true),
+			entry_(),
+			field_name_(0),
+			field_name_length_(0),
+			field_value_(0),
+			field_value_length_(0)
 		{
 			zero();
 			construct(field, field_length);
 		}
 
-		VorbisComment::Entry::Entry(const char *field)
+		VorbisComment::Entry::Entry(const char *field) :
+			is_valid_(true),
+			entry_(),
+			field_name_(0),
+			field_name_length_(0),
+			field_value_(0),
+			field_value_length_(0)
 		{
 			zero();
 			construct(field);
 		}
 
-		VorbisComment::Entry::Entry(const char *field_name, const char *field_value, unsigned field_value_length)
+		VorbisComment::Entry::Entry(const char *field_name, const char *field_value, unsigned field_value_length) :
+			is_valid_(true),
+			entry_(),
+			field_name_(0),
+			field_name_length_(0),
+			field_value_(0),
+			field_value_length_(0)
 		{
 			zero();
 			construct(field_name, field_value, field_value_length);
 		}
 
-		VorbisComment::Entry::Entry(const char *field_name, const char *field_value)
+		VorbisComment::Entry::Entry(const char *field_name, const char *field_value) :
+			is_valid_(true),
+			entry_(),
+			field_name_(0),
+			field_name_length_(0),
+			field_value_(0),
+			field_value_length_(0)
 		{
 			zero();
 			construct(field_name, field_value);
 		}
 
-		VorbisComment::Entry::Entry(const Entry &entry)
+		VorbisComment::Entry::Entry(const Entry &entry) :
+			is_valid_(true),
+			entry_(),
+			field_name_(0),
+			field_name_length_(0),
+			field_value_(0),
+			field_value_length_(0)
 		{
 			FLAC__ASSERT(entry.is_valid());
 			zero();
