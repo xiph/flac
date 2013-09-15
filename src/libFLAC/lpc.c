@@ -545,7 +545,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 *da
 			break;
 		}
 		if(FLAC__bitmath_silog2_wide((FLAC__int64)(*data) - (sum >> lp_quantization)) > 32) {
-			fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients_wide: OVERFLOW, i=%u, data=%d, sum=%" PRId64 ", residual=%" PRId64 "\n", i, *data, (long long)(sum >> lp_quantization), ((FLAC__int64)(*data) - (sum >> lp_quantization)));
+			fprintf(stderr,"FLAC__lpc_compute_residual_from_qlp_coefficients_wide: OVERFLOW, i=%u, data=%d, sum=%" PRId64 ", residual=%" PRId64 "\n", i, *data, (int64_t)(sum >> lp_quantization), ((FLAC__int64)(*data) - (sum >> lp_quantization)));
 			break;
 		}
 		*(residual++) = *(data++) - (FLAC__int32)(sum >> lp_quantization);
