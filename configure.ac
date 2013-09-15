@@ -332,6 +332,7 @@ if test "x$have_ogg" = xyes ; then
 	OGG_PACKAGE="ogg"
 else
 	AC_DEFINE_UNQUOTED([FLAC__HAS_OGG],0)
+	have_ogg=no
 fi
 AC_SUBST(OGG_PACKAGE)
 
@@ -518,4 +519,5 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    GCC version : ......................... ${GCC_VERSION}"
 fi
 	echo "    Asm optimiizations : .................. ${asm_optimisation}"
+	echo "    Ogg/FLAC support : .................... ${have_ogg}"
 echo
