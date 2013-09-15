@@ -388,14 +388,21 @@ fi
 XIPH_GCC_VERSION
 
 if test x$ac_cv_c_compiler_gnu = xyes ; then
-	CFLAGS="$CFLAGS -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Winline -Wconversion
-	CXXFLAGS="$CXXFLAGS -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
+	CFLAGS="$CFLAGS -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Winline -Wconversion
+	CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
 
 
 	if test x$enable_gcc_werror = "xyes" ; then
-		CFLAGS="$CFLAGS -Wall -Wextra -Werror "
-		CXXFLAGS="$CXXFLAGS -Wall -Wextra -Werror "
+		CFLAGS="$CFLAGS -Werror "
+		CXXFLAGS="$CXXFLAGS -Werror "
 		fi
+
+	XIPH_ADD_CFLAGS([-Wdeclaration-after-statement])
+	XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
+
+	AC_LANG_PUSH([C++])
+	XIPH_ADD_CXXFLAGS([-Weffc++])
+	AC_LANG_POP([C++])
 
 	if test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = elf; then
 		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
@@ -406,12 +413,10 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	if test "x$GCC_MAJOR_VERSION$GCC_MINOR_VERSION" = "x42" ; then
 		XIPH_ADD_CFLAGS([-fgnu89-inline])
 		fi
+
 	fi
 
-
 XIPH_ADD_CFLAGS([-Wextra])
-XIPH_ADD_CFLAGS([-Wdeclaration-after-statement])
-XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
 
 if test x$enable_stack_smash_protection = "xyes" ; then
 	XIPH_GCC_STACK_PROTECTOR
