@@ -415,6 +415,11 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 		XIPH_ADD_CFLAGS([-fgnu89-inline])
 		fi
 
+	if test "x$asm_optimisation" = "xyes" ; then
+		XIPH_ADD_CFLAGS([-msse])
+		XIPH_ADD_CFLAGS([-msse2])
+		fi
+
 	fi
 
 XIPH_ADD_CFLAGS([-Wextra])

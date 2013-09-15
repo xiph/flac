@@ -91,7 +91,7 @@ void         FLAC__cpu_info_asm_ia32(FLAC__uint32 *flags_edx, FLAC__uint32 *flag
 FLAC__uint32 FLAC__cpu_info_extended_amd_asm_ia32(void);
 #endif
 
-#if defined FLAC__CPU_X86_64 && defined  FLAC__HAS_X86INTRIN
+#if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined  FLAC__HAS_X86INTRIN
 void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx);
 #endif
 
