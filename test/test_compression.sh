@@ -17,14 +17,8 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-LD_LIBRARY_PATH=`pwd`/../src/libFLAC/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/grabbag/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/getopt/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_synthesis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/utf8/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../objs/$BUILD/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH
+source common.sh
+
 PATH=`pwd`/../src/flac:$PATH
 
 echo "Using FLAC binary :" $(which flac)
@@ -38,7 +32,7 @@ last_size=$(wc -c < noisy-sine.wav)
 echo "Original file size ${last_size} bytes."
 
 for k in 0 1 2 3 4 5 6 7 8 ; do
-	flac -${k} --silent noisy-sine.wav -o ${fname}
+	flac${EXE} -${k} --silent noisy-sine.wav -o ${fname}
 	size=$(wc -c < ${fname})
 	echo "Compression level ${k}, file size ${size} bytes."
 	if test ${last_size} -lt ${size} ; then

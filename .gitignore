@@ -65,6 +65,7 @@ test/*.raw
 test/*.rf64
 test/*.w64
 test/*.wav
+test/common.sh
 test/cuesheet.diff
 test/cuesheet.log
 test/metaflac-test-files/out.meta

@@ -491,6 +491,7 @@ AC_CONFIG_FILES([ \
 	doc/html/ru/Makefile \
 	m4/Makefile \
 	man/Makefile \
+	test/common.sh \
 	test/Makefile \
 	test/cuesheets/Makefile \
 	test/flac-to-flac-metadata-test-files/Makefile \

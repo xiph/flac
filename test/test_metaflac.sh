@@ -18,37 +18,8 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-die ()
-{
-	echo $* 1>&2
-	exit 1
-}
+source common.sh
 
-if [ x = x"$1" ] ; then
-	BUILD=debug
-else
-	BUILD="$1"
-fi
-
-# change to 'false' to show all flac/metaflac output (useful for debugging)
-if true ; then
-	SILENT='--silent'
-	TOTALLY_SILENT='--totally-silent'
-else
-	SILENT=''
-	TOTALLY_SILENT=''
-fi
-
-LD_LIBRARY_PATH=`pwd`/../src/libFLAC/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/grabbag/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/getopt/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_synthesis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/utf8/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../objs/$BUILD/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH
-export MALLOC_CHECK_=3
-export MALLOC_PERTURB_=$(($(date +%s) % 255 + 1))
 PATH=`pwd`/../src/flac:$PATH
 PATH=`pwd`/../src/metaflac:$PATH
 PATH=`pwd`/../objs/$BUILD/bin:$PATH
@@ -61,16 +32,16 @@ fi
 testdir="metaflac-test-files"
 flacfile="metaflac.flac"
 
-flac --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
-metaflac --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac executable"
+flac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
+metaflac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac executable"
 
 run_flac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_metaflac.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail $* 4>>test_metaflac.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} --no-error-on-compression-fail $* 4>>test_metaflac.valgrind.log
 	else
-		flac --no-error-on-compression-fail $*
+		flac${EXE} --no-error-on-compression-fail $*
 	fi
 }
 
@@ -78,9 +49,9 @@ run_metaflac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_metaflac.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 4>>test_metaflac.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} $* 4>>test_metaflac.valgrind.log
 	else
-		metaflac $*
+		metaflac${EXE} $*
 	fi
 }
 
@@ -91,9 +62,9 @@ run_metaflac_silent ()
 	else
 		if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 			echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_metaflac.valgrind.log
-			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 2>/dev/null 4>>test_metaflac.valgrind.log
+			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} $* 2>/dev/null 4>>test_metaflac.valgrind.log
 		else
-			metaflac $* 2>/dev/null
+			metaflac${EXE} $* 2>/dev/null
 		fi
 	fi
 }
@@ -105,7 +76,7 @@ check_flac ()
 
 echo "Generating stream..."
 bytes=80000
-if dd if=/dev/zero ibs=1 count=$bytes | flac --force --verify -0 --input-size=$bytes --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=8000 - ; then
+if dd if=/dev/zero ibs=1 count=$bytes | flac${EXE} --force --verify -0 --input-size=$bytes --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=8000 - ; then
 	chmod +w $flacfile
 else
 	die "ERROR during generation"
