@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -e
 
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2004-2009  Josh Coalson

@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2002-2009  Josh Coalson
@@ -64,8 +64,8 @@ flacfile="replaygain.flac"
 run_flac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
-		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_metaflac.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail $* 4>>test_metaflac.valgrind.log
+		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_replaygain.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail $* 4>>test_replaygain.valgrind.log
 	else
 		flac --no-error-on-compression-fail $*
 	fi
@@ -74,8 +74,8 @@ run_flac ()
 run_metaflac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
-		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_metaflac.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 4>>test_metaflac.valgrind.log
+		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_replaygain.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 4>>test_replaygain.valgrind.log
 	else
 		metaflac $*
 	fi
@@ -87,8 +87,8 @@ run_metaflac_silent ()
 		run_metaflac $*
 	else
 		if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
-			echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_metaflac.valgrind.log
-			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 2>/dev/null 4>>test_metaflac.valgrind.log
+			echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_replaygain.valgrind.log
+			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 2>/dev/null 4>>test_replaygain.valgrind.log
 		else
 			metaflac $* 2>/dev/null
 		fi
