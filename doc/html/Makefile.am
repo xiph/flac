@@ -16,7 +16,7 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-SUBDIRS = ru images
+SUBDIRS = images
 
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/html
 

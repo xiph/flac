@@ -16,8 +16,6 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-SUBDIRS = hw
-
 docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/html/images
 
 doc_DATA = \

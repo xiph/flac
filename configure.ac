@@ -487,8 +487,6 @@ AC_CONFIG_FILES([ \
 	doc/Makefile \
 	doc/html/Makefile \
 	doc/html/images/Makefile \
-	doc/html/images/hw/Makefile \
-	doc/html/ru/Makefile \
 	m4/Makefile \
 	man/Makefile \
 	test/common.sh \
