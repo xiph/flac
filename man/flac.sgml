@@ -4,7 +4,7 @@
   <!ENTITY dhfirstname "<firstname>Matt</firstname>">
   <!ENTITY dhsurname   "<surname>Zimmerman</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>2013/04/30</date>">
+  <!ENTITY dhdate      "<date>2013/09/18</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
@@ -648,7 +648,7 @@
 	  <term><option>-r</option> [<replaceable>#</replaceable>,]<replaceable>#</replaceable>, <option>--rice-partition-order</option>=[<replaceable>#</replaceable>,]<replaceable>#</replaceable></term>
 
 	  <listitem>
-	    <para>Set the [min,]max residual partition order (0..16). min defaults to 0 if unspecified.  Default is -r 5.</para>
+	    <para>Set the [min,]max residual partition order (0..15). min defaults to 0 if unspecified.  Default is -r 5.</para>
 	  </listitem>
 	</varlistentry>
 
@@ -780,14 +780,14 @@
   <refsect1>
     <title>SEE ALSO</title>
 
-    <para>metaflac(1).</para>
+    <para>metaflac(1)</para>
 
     <para>The programs are documented fully by HTML format documentation, available in <filename>/usr/share/doc/libflac-doc/html</filename> on &debian; systems.</para>
   </refsect1>
   <refsect1>
     <title>AUTHOR</title>
 
-    <para>This manual page was written by &dhusername; &dhemail; for the &debian; system (but may be used by others).</para>
+    <para>This manual page was initially written by &dhusername; &dhemail; for the &debian; system (but may be used by others). It has been kept up-to-date by the Xiph.org Foundation.</para>
 
     <!-- <para>Permission is granted to copy, distribute and/or modify this document under the terms of the <acronym>GNU</acronym> Free Documentation License, Version 1.1 or any later version published by the Free Software Foundation; with no Invariant Sections, no Front-Cover Texts and no Back-Cover Texts.  A copy of the license can be found under <filename>/usr/share/common-licenses/FDL</filename>.</para> -->
 

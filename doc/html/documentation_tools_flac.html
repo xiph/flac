@@ -888,7 +888,7 @@
 				<td>
 					Set the [min,]max residual partition order.  The min value defaults to 0 if unspecified.<br />
 					<br />
-					By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is iteratively partitioned into 2^min# .. 2^max# pieces, each with its own Rice parameter.  Higher values of max# yield diminishing returns.  The most bang for the buck is usually with <span class="argument">-r 2,2</span> (more for higher block sizes).  This usually shaves off about 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <span class="argument">-r 0,16</span> to force the highest degree of optimization.
+					By default the encoder uses a single Rice parameter for the subframe's entire residual.  With this option, the residual is iteratively partitioned into 2^min# .. 2^max# pieces, each with its own Rice parameter.  Higher values of max# yield diminishing returns.  The most bang for the buck is usually with <span class="argument">-r 2,2</span> (more for higher block sizes).  This usually shaves off about 1.5%.  The technique tends to peak out about when blocksize/(2^n)=128.  Use <span class="argument">-r 0,15</span> to force the highest degree of optimization.
 				</td>
 			</tr>
 		</table>

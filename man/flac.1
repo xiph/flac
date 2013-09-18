@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "2013/04/30" "" ""
+.TH "FLAC" "1" "2013/09/18" "" ""
 
 .SH NAME
 flac \- Free Lossless Audio Codec
@@ -300,7 +300,7 @@ Do exhaustive search of LP coefficient quantization (expensive!).  Overrides -q;
 Precision of the quantized linear-predictor coefficients, 0 => let encoder decide (min is 5, default is 0)
 .TP
 \fB-r [\fI#\fB,]\fI#\fB, --rice-partition-order=[\fI#\fB,]\fI#\fB\fR
-Set the [min,]max residual partition order (0..16). min defaults to 0 if unspecified.  Default is -r 5.
+Set the [min,]max residual partition order (0..15). min defaults to 0 if unspecified.  Default is -r 5.
 .SS "FORMAT OPTIONS"
 .TP
 \fB--endian={\fIbig\fB|\fIlittle\fB}\fR
@@ -378,9 +378,9 @@ Force the decoder to output Wave64 format.  This option is not needed if the out
 These flags can be used to invert the sense of the corresponding normal option.
 .SH "SEE ALSO"
 .PP
-metaflac(1).
+metaflac(1)
 .PP
 The programs are documented fully by HTML format documentation, available in \fI/usr/share/doc/libflac-doc/html\fR on Debian GNU/Linux systems.
 .SH "AUTHOR"
 .PP
-This manual page was written by Matt Zimmerman <mdz@debian.org> for the Debian GNU/Linux system (but may be used by others).
+This manual page was initially written by Matt Zimmerman <mdz@debian.org> for the Debian GNU/Linux system (but may be used by others). It has been kept up-to-date by the Xiph.org Foundation.
