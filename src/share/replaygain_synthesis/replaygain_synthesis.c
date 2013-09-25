@@ -413,7 +413,7 @@ size_t FLAC__replaygain_synthesis__apply_gain(FLAC__byte *data_out, FLAC__bool l
 				else if(sample > 0.5)
 					sample = tanh((sample - 0.5) / (1-0.5)) * (1-0.5) + 0.5;
 			}
-			sample *= 2147483647.f;
+			sample *= 2147483647.;
 
 			val64 = dither_output_(dither_context, do_dithering, noise_shaping, (i + last_history_index) % 32, sample, channel) / conv_factor;
 
