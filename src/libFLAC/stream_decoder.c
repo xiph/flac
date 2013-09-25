@@ -401,10 +401,10 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 		FLAC__ASSERT(decoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #ifdef FLAC__HAS_NASM
 #if 0 /*@@@@@@ OPT: seems to be slower than FLAC__bitreader_read_rice_signed_block */
-		if(decoder->private_->cpuinfo.data.ia32.bswap)
+		if(decoder->private_->cpuinfo.ia32.bswap)
 			decoder->private_->local_bitreader_read_rice_signed_block = FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap;
 #endif
-		if(decoder->private_->cpuinfo.data.ia32.mmx) {
+		if(decoder->private_->cpuinfo.ia32.mmx) {
 			decoder->private_->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32_mmx;
 			decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal_asm_ia32_mmx;
@@ -417,7 +417,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 #endif
 #elif defined FLAC__CPU_PPC
 		FLAC__ASSERT(decoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_PPC);
-		if(decoder->private_->cpuinfo.data.ppc.altivec) {
+		if(decoder->private_->cpuinfo.ppc.altivec) {
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ppc_altivec_16;
 			decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal_asm_ppc_altivec_16_order8;
 		}

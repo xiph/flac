@@ -888,7 +888,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #  ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #   ifdef FLAC__HAS_NASM
-		if(encoder->private_->cpuinfo.data.ia32.sse) {
+		if(encoder->private_->cpuinfo.ia32.sse) {
 			if(encoder->protected_->max_lpc_order < 4)
 				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4;
 			else if(encoder->protected_->max_lpc_order < 8)
@@ -900,11 +900,11 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			else
 				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32;
 		}
-		else if(encoder->private_->cpuinfo.data.ia32._3dnow)
+		else if(encoder->private_->cpuinfo.ia32._3dnow)
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow;
 		else
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32;
-		if(encoder->private_->cpuinfo.data.ia32.mmx) {
+		if(encoder->private_->cpuinfo.ia32.mmx) {
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx;
 		}
@@ -912,7 +912,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32;
 		}
-		if(encoder->private_->cpuinfo.data.ia32.mmx && encoder->private_->cpuinfo.data.ia32.cmov)
+		if(encoder->private_->cpuinfo.ia32.mmx && encoder->private_->cpuinfo.ia32.cmov)
 			encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov;
 #   endif /* FLAC__HAS_NASM */
 #  elif defined FLAC__CPU_X86_64
