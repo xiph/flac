@@ -183,7 +183,7 @@ esac
 AM_CONDITIONAL(FLaC__SYS_DARWIN, test "x$sys_darwin" = xtrue)
 AM_CONDITIONAL(FLaC__SYS_LINUX, test "x$sys_linux" = xtrue)
 
-if test "x$cpu_ia32" = xtrue ; then
+if test "x$cpu_ia32" = xtrue || test "x$cpu_x86_64" = xtrue ; then
 AC_DEFINE(FLAC__ALIGN_MALLOC_DATA)
 AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA, [define to align allocated memory on 32-byte boundaries])
 fi
@@ -416,7 +416,6 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 		fi
 
 	if test "x$asm_optimisation" = "xyes" ; then
-		XIPH_ADD_CFLAGS([-msse])
 		XIPH_ADD_CFLAGS([-msse2])
 		fi
 
@@ -522,6 +521,6 @@ AC_MSG_RESULT([
 if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    GCC version : ......................... ${GCC_VERSION}"
 fi
-	echo "    Asm optimiizations : .................. ${asm_optimisation}"
+	echo "    Asm optimizations : ................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : .................... ${have_ogg}"
 echo
