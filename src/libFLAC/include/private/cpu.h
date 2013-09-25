@@ -56,6 +56,8 @@ typedef struct {
 	FLAC__bool sse2;
 	FLAC__bool sse3;
 	FLAC__bool ssse3;
+	FLAC__bool sse41;
+	FLAC__bool sse42;
 	FLAC__bool _3dnow;
 	FLAC__bool ext3dnow;
 	FLAC__bool extmmx;
@@ -64,6 +66,8 @@ typedef struct {
 typedef struct {
 	FLAC__bool sse3;
 	FLAC__bool ssse3;
+	FLAC__bool sse41;
+	FLAC__bool sse42;
 } FLAC__CPUInfo_x86_64;
 
 typedef struct {
