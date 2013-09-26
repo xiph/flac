@@ -34,11 +34,6 @@
 #include "FLAC/ordinals.h"
 #include "share/compat.h"
 
-#ifndef M_PI
-/* math.h in VC++ doesn't seem to have this (how Microsoft is that?) */
-#define M_PI 3.14159265358979323846
-#endif
-
 #if !defined _MSC_VER && !defined __MINGW32__
 #define GET_RANDOM_BYTE (((unsigned)random()) & 0xff)
 #else

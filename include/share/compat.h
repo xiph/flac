@@ -177,8 +177,11 @@
 #ifndef M_LN2
 #define M_LN2 0.69314718055994530942
 #endif
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
-/* FLAC needs to compile and work correctly on systems with a norrmal ISO C99
+/* FLAC needs to compile and work correctly on systems with a normal ISO C99
  * snprintf as well as Microsoft Visual Studio which has an non-standards
  * conformant snprint_s function.
  *
