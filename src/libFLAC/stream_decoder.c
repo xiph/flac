@@ -415,6 +415,12 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 			decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal_asm_ia32;
 		}
 #endif
+#ifdef FLAC__HAS_X86INTRIN
+# ifdef FLAC__SSE4_SUPPORTED
+		if(decoder->private_->cpuinfo.ia32.sse41)
+			decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_intrin_sse41;
+# endif
+#endif
 #elif defined FLAC__CPU_PPC
 		FLAC__ASSERT(decoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_PPC);
 		if(decoder->private_->cpuinfo.ppc.altivec) {

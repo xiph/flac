@@ -39,6 +39,7 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy() */
 #include <sys/types.h> /* for off_t */
+#include "share/compat.h"
 #include "FLAC/assert.h"
 #include "FLAC/stream_decoder.h"
 #include "protected/stream_encoder.h"
@@ -56,10 +57,10 @@
 #include "private/ogg_helper.h"
 #include "private/ogg_mapping.h"
 #endif
+#include "private/stream_encoder.h"
 #include "private/stream_encoder_framing.h"
 #include "private/window.h"
 #include "share/alloc.h"
-#include "share/compat.h"
 #include "share/private.h"
 
 
@@ -344,6 +345,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	unsigned current_frame_number;
 	FLAC__MD5Context md5context;
 	FLAC__CPUInfo cpuinfo;
+	void (*local_precompute_partition_info_sums)(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned residual_samples, unsigned predictor_order, unsigned min_partition_order, unsigned max_partition_order, unsigned bps);
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	unsigned (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #else
@@ -875,6 +877,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
 #endif
+	encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_;
 	encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor;
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients;
@@ -915,6 +918,16 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		if(encoder->private_->cpuinfo.ia32.mmx && encoder->private_->cpuinfo.ia32.cmov)
 			encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov;
 #   endif /* FLAC__HAS_NASM */
+#   ifdef FLAC__HAS_X86INTRIN
+		if(encoder->private_->cpuinfo.ia32.sse2) {
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2;
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2;
+		}
+#    ifdef FLAC__SSE4_SUPPORTED
+		if(encoder->private_->cpuinfo.ia32.sse41)
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41;
+#    endif
+#   endif /* FLAC__HAS_X86INTRIN */
 #  elif defined FLAC__CPU_X86_64
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_X86_64);
 #   ifdef FLAC__HAS_X86INTRIN
@@ -927,12 +940,37 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		else if(encoder->protected_->max_lpc_order < 16)
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16;
 
+		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2;
 		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2;
+#    ifdef FLAC__SSE4_SUPPORTED
+		if(encoder->private_->cpuinfo.x86_64.sse41)
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41;
+#    endif
 #   endif /* FLAC__HAS_X86INTRIN */
 #  endif /* FLAC__CPU_... */
 	}
 # endif /* !FLAC__NO_ASM */
 #endif /* !FLAC__INTEGER_ONLY_LIBRARY */
+#if !defined FLAC__NO_ASM && defined FLAC__HAS_X86INTRIN
+	if(encoder->private_->cpuinfo.use_asm) {
+# if defined FLAC__CPU_IA32
+#  ifdef FLAC__SSSE3_SUPPORTED
+		if(encoder->private_->cpuinfo.ia32.ssse3)
+			encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_intrin_ssse3;
+		else
+#  endif
+		if(encoder->private_->cpuinfo.ia32.sse2)
+			encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_intrin_sse2;
+# elif defined FLAC__CPU_X86_64
+#  ifdef FLAC__SSSE3_SUPPORTED
+		if(encoder->private_->cpuinfo.x86_64.ssse3)
+			encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_intrin_ssse3;
+		else
+#  endif
+			encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_intrin_sse2;
+# endif /* FLAC__CPU_... */
+	}
+#endif /* !FLAC__NO_ASM && FLAC__HAS_X86INTRIN */
 	/* finally override based on wide-ness if necessary */
 	if(encoder->private_->use_wide_by_block) {
 		encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_wide;
@@ -3572,7 +3610,7 @@ unsigned evaluate_lpc_subframe_(
 	FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents
 )
 {
-	FLAC__int32 qlp_coeff[FLAC__MAX_LPC_ORDER]; /* WATCHOUT: the size is important; x86 intrinsic routines need more than 'order' elements */ 
+	FLAC__int32 qlp_coeff[FLAC__MAX_LPC_ORDER]; /* WATCHOUT: the size is important; some x86 intrinsic routines need more than lpc order elements */
 	unsigned i, residual_bits, estimate;
 	int quantization, ret;
 	const unsigned residual_samples = blocksize - order;
@@ -3687,7 +3725,7 @@ unsigned find_best_partition_order_(
 	max_partition_order = FLAC__format_get_max_rice_partition_order_from_blocksize_limited_max_and_predictor_order(max_partition_order, blocksize, predictor_order);
 	min_partition_order = flac_min(min_partition_order, max_partition_order);
 
-	precompute_partition_info_sums_(residual, abs_residual_partition_sums, residual_samples, predictor_order, min_partition_order, max_partition_order, bps);
+	private_->local_precompute_partition_info_sums(residual, abs_residual_partition_sums, residual_samples, predictor_order, min_partition_order, max_partition_order, bps);
 
 	if(do_escape_coding)
 		precompute_partition_info_escapes_(residual, raw_bits_per_partition, residual_samples, predictor_order, min_partition_order, max_partition_order);
@@ -3759,7 +3797,7 @@ unsigned find_best_partition_order_(
 	return best_residual_bits;
 }
 
-#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM
+#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM && 0
 extern void precompute_partition_info_sums_32bit_asm_ia32_(
 	const FLAC__int32 residual[],
 	FLAC__uint64 abs_residual_partition_sums[],
@@ -3785,7 +3823,7 @@ void precompute_partition_info_sums_(
 
 	FLAC__ASSERT(default_partition_samples > predictor_order);
 
-#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM
+#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM && 0
 	/* slightly pessimistic but still catches all common cases */
 	/* WATCHOUT: "+ bps" is an assumption that the average residual magnitude will not be more than "bps" bits */
 	if(bps <= 16) {

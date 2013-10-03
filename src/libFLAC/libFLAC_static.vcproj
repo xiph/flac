@@ -243,6 +243,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\private\stream_encoder.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\private\stream_encoder_framing.h"
 				>
 			</File>
@@ -333,7 +337,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\lpc_x86intrin.c"
+				RelativePath=".\lpc_intrin_sse.c"
+				>
+			</File>
+			<File
+				RelativePath=".\lpc_intrin_sse2.c"
+				>
+			</File>
+			<File
+				RelativePath=".\lpc_intrin_sse41.c"
 				>
 			</File>
 			<File
@@ -378,6 +390,14 @@
 			</File>
 			<File
 				RelativePath=".\stream_encoder_framing.c"
+				>
+			</File>
+			<File
+				RelativePath=".\stream_encoder_intrin_sse2.c"
+				>
+			</File>
+			<File
+				RelativePath=".\stream_encoder_intrin_ssse3.c"
 				>
 			</File>
 			<File

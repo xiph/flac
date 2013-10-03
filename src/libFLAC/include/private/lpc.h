@@ -156,6 +156,10 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx(const FLAC__i
 #  endif
 #  if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
+void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
+#    ifdef FLAC__SSE4_SUPPORTED
+void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
+#    endif
 #  endif
 #endif
 
@@ -187,7 +191,12 @@ void FLAC__lpc_restore_signal_asm_ia32_mmx(const FLAC__int32 residual[], unsigne
 #  elif defined FLAC__CPU_PPC
 void FLAC__lpc_restore_signal_asm_ppc_altivec_16(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
 void FLAC__lpc_restore_signal_asm_ppc_altivec_16_order8(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
-#  endif/* FLAC__CPU_IA32 || FLAC__CPU_PPC */
+#  endif /* FLAC__CPU_IA32 || FLAC__CPU_PPC */
+#  if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
+#     ifdef FLAC__SSE4_SUPPORTED
+void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[]);
+#     endif
+#  endif
 #endif /* FLAC__NO_ASM */
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY

@@ -48,5 +48,6 @@ noinst_HEADERS = \
 	ogg_encoder_aspect.h \
 	ogg_helper.h \
 	ogg_mapping.h \
+	stream_encoder.h \
 	stream_encoder_framing.h \
 	window.h
