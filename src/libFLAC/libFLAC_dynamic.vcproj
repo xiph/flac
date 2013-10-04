@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="..\..\objs\debug\lib"
-			IntermediateDirectory="Debug_dynamic"
+			OutputDirectory="$(SolutionDir)objs\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(ConfigurationName)_dynamic"
 			ConfigurationType="2"
 			>
 			<Tool
@@ -63,9 +63,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\objs\release\lib\libogg_static.lib"
+				AdditionalDependencies="$(SolutionDir)objs\$(ConfigurationName)\lib\libogg_static.lib"
 				LinkIncremental="2"
-				IgnoreDefaultLibraryNames="uuid.lib;libcmt.lib"
+				IgnoreDefaultLibraryNames="uuid.lib"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -94,9 +94,10 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="..\..\objs\release\lib"
-			IntermediateDirectory="Release_dynamic"
+			OutputDirectory="$(SolutionDir)objs\$(ConfigurationName)\lib"
+			IntermediateDirectory="$(ConfigurationName)_dynamic"
 			ConfigurationType="2"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -142,7 +143,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="..\..\objs\release\lib\libogg_static.lib"
+				AdditionalDependencies="$(SolutionDir)objs\$(ConfigurationName)\lib\libogg_static.lib"
 				LinkIncremental="1"
 				IgnoreDefaultLibraryNames="uuid.lib"
 				GenerateDebugInformation="true"
