@@ -4077,8 +4077,35 @@ FLAC__bool set_partitioned_rice_(
 			 * in the partition, so the actual mean is
 			 * mean/partition_samples
 			 */
+#if 0 /* old simple code */
 			for(rice_parameter = 0, k = partition_samples; k < mean; rice_parameter++, k <<= 1)
 				;
+#else
+#if defined FLAC__CPU_X86_64 /* and other 64-bit arch, too */
+			if(mean <= 0x80000000/512) { /* 512: more or less optimal for both 16- and 24-bit input */
+#else
+			if(mean <= 0x80000000/8) { /* 32-bit arch: use 32-bit math if possible */
+#endif
+				FLAC__uint32 k2, mean2 = (FLAC__uint32) mean;
+				rice_parameter = 0; k2 = partition_samples;
+				while(k2*8 < mean2) { /* requires: mean <= (2^31)/8 */
+					rice_parameter += 4; k2 <<= 4; /* tuned for 16-bit input */
+				}
+				while(k2 < mean2) { /* requires: mean <= 2^31 */
+					rice_parameter++; k2 <<= 1;
+				}
+			}
+			else {
+				rice_parameter = 0; k = partition_samples;
+				if(mean <= FLAC__U64L(0x8000000000000000)/128) /* usually mean is _much_ smaller than this value */
+					while(k*128 < mean) { /* requires: mean <= (2^63)/128 */
+						rice_parameter += 8; k <<= 8; /* tuned for 24-bit input */
+					}
+				while(k < mean) { /* requires: mean <= 2^63 */
+					rice_parameter++; k <<= 1;
+				}
+			}
+#endif
 			if(rice_parameter >= rice_parameter_limit) {
 #ifdef DEBUG_VERBOSE
 				fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, rice_parameter_limit - 1);
