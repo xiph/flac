@@ -942,10 +942,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 
 		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2;
 		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2;
-#    ifdef FLAC__SSE4_SUPPORTED
-		if(encoder->private_->cpuinfo.x86_64.sse41)
-			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41;
-#    endif
 #   endif /* FLAC__HAS_X86INTRIN */
 #  endif /* FLAC__CPU_... */
 	}

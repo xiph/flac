@@ -76,6 +76,15 @@
 #define inline __inline
 #endif
 
+#if defined __INTEL_COMPILER || (defined _MSC_VER && defined _WIN64)
+/* MSVS generates VERY slow 32-bit code with __restrict */
+#define flac_restrict __restrict
+#elif defined __GNUC__
+#define flac_restrict __restrict__
+#else
+#define flac_restrict
+#endif
+
 /* adjust for compilers that can't understand using LLU suffix for uint64_t literals */
 #ifdef _MSC_VER
 #define FLAC__U64L(x) x
