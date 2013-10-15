@@ -27,7 +27,6 @@ FLAC.tag: Doxyfile
 	rm -rf doxytmp
 else
 FLAC.tag:
-	echo "*** Warning: Doxygen not found; documentation will not be built."
 	touch $@
 	mkdir -p html/api
 endif
