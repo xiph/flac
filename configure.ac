@@ -35,6 +35,8 @@ m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 LT_INIT([win32-dll disable-static pic-only])
 AM_PROG_AS
 AC_PROG_CXX
+XIPH_C_COMPILER_IS_CLANG
+XIPH_GCC_REALLY_IS_GCC
 AC_PROG_MAKE_SET
 
 AC_SYS_LARGEFILE
@@ -521,6 +523,7 @@ AC_MSG_RESULT([
 if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    GCC version : ......................... ${GCC_VERSION}"
 fi
+	echo "    Compiler is Clang : ................... ${xiph_cv_c_compiler_clang}"
 	echo "    Asm optimizations : ................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : .................... ${have_ogg}"
 echo
