@@ -47,8 +47,7 @@ CPUCFLAGS = -faltivec -force_cpusubtype_ALL -DFLAC__NO_ASM
 else
 # Linux-gcc for PPC does not have -force_cpusubtype_ALL, it is Darwin-specific
 CPUCFLAGS =
-if FLaC__CPU_PPC_SPE
-else
+if FLaC__USE_ALTIVEC
 CPUCFLAGS += -maltivec -mabi=altivec
 endif
 #@@@ PPC optimizations temporarily disabled
