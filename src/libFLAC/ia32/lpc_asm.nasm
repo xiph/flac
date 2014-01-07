@@ -115,9 +115,8 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 	lea	edx, [eax + eax*2]
 	neg	edx
 	lea	edx, [eax + edx*4 + .jumper1_0 - .get_eip1]
-	call	.get_eip1
+	call	.mov_eip_to_ebx
 .get_eip1:
-	pop	ebx
 	add	edx, ebx
 	inc	edx				; compensate for the shorter opcode on the last iteration
 	inc	edx				; compensate for the shorter opcode on the last iteration
@@ -127,6 +126,10 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 	sub	edx, byte 9			; compensate for the longer opcodes on the first iteration
 .loop1_start:
 	jmp	edx
+
+.mov_eip_to_ebx:
+	mov ebx, [esp]
+	ret
 
 	fld	st0				; ST = d d
 	fmul	dword [esi + (32*4)]		; ST = d*data[sample+32] d		WATCHOUT: not a byte displacement here!
@@ -285,9 +288,8 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 	lea	edx, [eax + eax*2]
 	neg	edx
 	lea	edx, [eax + edx*4 + .jumper2_0 - .get_eip2]
-	call	.get_eip2
+	call	.mov_eip_to_ebx
 .get_eip2:
-	pop	ebx
 	add	edx, ebx
 	inc	edx				; compensate for the shorter opcode on the last iteration
 	inc	edx				; compensate for the shorter opcode on the last iteration
@@ -919,13 +921,16 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32
 
 	jmp	.end
 
+.mov_eip_to_eax:
+	mov eax, [esp]
+	ret
+
 .i_32:
 	sub	edi, esi
 	neg	eax
 	lea	edx, [eax + eax * 8 + .jumper_0 - .get_eip0]
-	call	.get_eip0
+	call	.mov_eip_to_eax
 .get_eip0:
-	pop	eax
 	add	edx, eax
 	inc	edx
 	mov	eax, [esp + 28]			; eax = qlp_coeff[]
@@ -1323,13 +1328,16 @@ cident FLAC__lpc_restore_signal_asm_ia32
 
 	jmp	.end
 
+.mov_eip_to_eax:
+	mov eax, [esp]
+	ret
+
 .x87_32:
 	sub	esi, edi
 	neg	eax
 	lea	edx, [eax + eax * 8 + .jumper_0 - .get_eip0]
-	call	.get_eip0
+	call	.mov_eip_to_eax
 .get_eip0:
-	pop	eax
 	add	edx, eax
 	inc	edx				; compensate for the shorter opcode on the last iteration
 	mov	eax, [esp + 28]			; eax = qlp_coeff[]
