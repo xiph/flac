@@ -891,6 +891,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #  ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #   ifdef FLAC__HAS_NASM
+		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_asm_ia32;
 		if(encoder->private_->cpuinfo.ia32.sse) {
 			if(encoder->protected_->max_lpc_order < 4)
 				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4;

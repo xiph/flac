@@ -404,6 +404,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 		if(decoder->private_->cpuinfo.ia32.bswap)
 			decoder->private_->local_bitreader_read_rice_signed_block = FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap;
 #endif
+		decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_asm_ia32;
 		if(decoder->private_->cpuinfo.ia32.mmx) {
 			decoder->private_->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32_mmx;
@@ -416,7 +417,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 		}
 #endif
 #ifdef FLAC__HAS_X86INTRIN
-# ifdef FLAC__SSE4_SUPPORTED
+# if defined FLAC__SSE4_SUPPORTED && 0 /* now we have FLAC__lpc_restore_signal_wide_asm_ia32() which is slightly faster */
 		if(decoder->private_->cpuinfo.ia32.sse41)
 			decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_intrin_sse41;
 # endif
