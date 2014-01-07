@@ -45,7 +45,7 @@
 #include "FLAC/assert.h"
 #include "private/stream_encoder.h"
 
-void precompute_partition_info_sums_intrin_ssse3(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],
+void FLAC__precompute_partition_info_sums_intrin_ssse3(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],
 		unsigned residual_samples, unsigned predictor_order, unsigned min_partition_order, unsigned max_partition_order, unsigned bps)
 {
 	const unsigned default_partition_samples = (residual_samples + predictor_order) >> max_partition_order;

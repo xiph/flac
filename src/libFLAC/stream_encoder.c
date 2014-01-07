@@ -952,18 +952,18 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 # if defined FLAC__CPU_IA32
 #  ifdef FLAC__SSSE3_SUPPORTED
 		if(encoder->private_->cpuinfo.ia32.ssse3)
-			encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_intrin_ssse3;
+			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_ssse3;
 		else
 #  endif
 		if(encoder->private_->cpuinfo.ia32.sse2)
-			encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_intrin_sse2;
+			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
 # elif defined FLAC__CPU_X86_64
 #  ifdef FLAC__SSSE3_SUPPORTED
 		if(encoder->private_->cpuinfo.x86_64.ssse3)
-			encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_intrin_ssse3;
+			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_ssse3;
 		else
 #  endif
-			encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_intrin_sse2;
+			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
 # endif /* FLAC__CPU_... */
 	}
 #endif /* !FLAC__NO_ASM && FLAC__HAS_X86INTRIN */
@@ -3794,7 +3794,7 @@ unsigned find_best_partition_order_(
 }
 
 #if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM && 0
-extern void precompute_partition_info_sums_32bit_asm_ia32_(
+extern void FLAC__precompute_partition_info_sums_32bit_asm_ia32_(
 	const FLAC__int32 residual[],
 	FLAC__uint64 abs_residual_partition_sums[],
 	unsigned blocksize,
@@ -3823,7 +3823,7 @@ void precompute_partition_info_sums_(
 	/* slightly pessimistic but still catches all common cases */
 	/* WATCHOUT: "+ bps" is an assumption that the average residual magnitude will not be more than "bps" bits */
 	if(bps <= 16) {
-		precompute_partition_info_sums_32bit_asm_ia32_(residual, abs_residual_partition_sums, residual_samples + predictor_order, predictor_order, min_partition_order, max_partition_order);
+		FLAC__precompute_partition_info_sums_32bit_asm_ia32_(residual, abs_residual_partition_sums, residual_samples + predictor_order, predictor_order, min_partition_order, max_partition_order);
 		return;
 	}
 #endif

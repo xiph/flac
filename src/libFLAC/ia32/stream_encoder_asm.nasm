@@ -35,14 +35,13 @@
 
 	data_section
 
-cglobal precompute_partition_info_sums_32bit_asm_ia32_
+cglobal FLAC__precompute_partition_info_sums_32bit_asm_ia32_
 
 	code_section
 
 
 ; **********************************************************************
 ;
-; void FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[], unsigned nvals, unsigned parameter)
 ; void precompute_partition_info_sums_32bit_(
 ; 	const FLAC__int32 residual[],
 ; 	FLAC__uint64 abs_residual_partition_sums[],
@@ -53,7 +52,7 @@ cglobal precompute_partition_info_sums_32bit_asm_ia32_
 ; )
 ;
 	ALIGN 16
-cident precompute_partition_info_sums_32bit_asm_ia32_
+cident FLAC__precompute_partition_info_sums_32bit_asm_ia32_
 
 	;; peppered throughout the code at major checkpoints are keys like this as to where things are at that point in time
 	;; [esp + 4]	const FLAC__int32 residual[]
