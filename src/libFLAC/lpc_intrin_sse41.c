@@ -34,16 +34,14 @@
 #  include <config.h>
 #endif
 
-#include "share/compat.h"
-
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #ifndef FLAC__NO_ASM
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
-#ifdef FLAC__SSE4_SUPPORTED
+#include "private/lpc.h"
+#ifdef FLAC__SSE4_1_SUPPORTED
 
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
-#include "private/lpc.h"
 
 #include <smmintrin.h> /* SSE4.1 */
 
@@ -68,6 +66,7 @@
 #define     DATA_RESULT(xmmN) data[i] = residual[i] + (FLAC__int32)(_mm_cvtsi128_si64(xmmN) >> lp_quantization);
 #endif
 
+FLAC__SSE_TARGET("sse4.1")
 void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
 {
 	int i;
@@ -594,6 +593,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 	}
 }
 
+FLAC__SSE_TARGET("sse4.1")
 void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[])
 {
 	int i;
@@ -1120,7 +1120,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 	}
 }
 
-#endif /* FLAC__SSE4_SUPPORTED */
+#endif /* FLAC__SSE4_1_SUPPORTED */
 #endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
 #endif /* FLAC__NO_ASM */
 #endif /* FLAC__INTEGER_ONLY_LIBRARY */

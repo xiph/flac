@@ -417,7 +417,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 		}
 #endif
 #ifdef FLAC__HAS_X86INTRIN
-# if defined FLAC__SSE4_SUPPORTED && 0 /* now we have FLAC__lpc_restore_signal_wide_asm_ia32() which is slightly faster */
+# if defined FLAC__SSE4_1_SUPPORTED && 0 /* now we have FLAC__lpc_restore_signal_wide_asm_ia32() which is slightly faster */
 		if(decoder->private_->cpuinfo.ia32.sse41)
 			decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_intrin_sse41;
 # endif

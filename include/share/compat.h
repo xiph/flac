@@ -199,12 +199,4 @@ int flac_snprintf(char *str, size_t size, const char *fmt, ...);
 };
 #endif
 
-/* SSSE3, SSE4 support: MSVS 2008, GCC 4.3 -- currently disabled, Intel Compiler 10.0 */
-#if    ( defined _MSC_VER && _MSC_VER >= 1500 ) \
-    || ( 0 && defined __GNUC__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) ) \
-    || ( defined __INTEL_COMPILER && __INTEL_COMPILER >= 1000 )
-#define FLAC__SSSE3_SUPPORTED 1
-#define FLAC__SSE4_SUPPORTED 1
-#endif
-
 #endif /* FLAC__SHARE__COMPAT_H */

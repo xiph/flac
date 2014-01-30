@@ -37,13 +37,15 @@
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #ifndef FLAC__NO_ASM
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
+#include "private/lpc.h"
+#ifdef FLAC__SSE_SUPPORTED
 
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
-#include "private/lpc.h"
 
 #include <xmmintrin.h> /* SSE */
 
+FLAC__SSE_TARGET("sse")
 void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	__m128 xmm0, xmm2, xmm5;
@@ -80,6 +82,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4(const FLAC__real data[],
 	_mm_storeu_ps(autoc, xmm5);
 }
 
+FLAC__SSE_TARGET("sse")
 void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm5, xmm6;
@@ -125,6 +128,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8(const FLAC__real data[],
 	_mm_storeu_ps(autoc+4, xmm6);
 }
 
+FLAC__SSE_TARGET("sse")
 void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
@@ -178,6 +182,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12(const FLAC__real data[]
 	_mm_storeu_ps(autoc+8, xmm7);
 }
 
+FLAC__SSE_TARGET("sse")
 void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9;
@@ -241,6 +246,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[]
 	_mm_storeu_ps(autoc+12,xmm9);
 }
 
+#endif /* FLAC__SSE_SUPPORTED */
 #endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
 #endif /* FLAC__NO_ASM */
 #endif /* FLAC__INTEGER_ONLY_LIBRARY */

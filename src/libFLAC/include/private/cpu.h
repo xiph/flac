@@ -39,6 +39,47 @@
 #include <config.h>
 #endif
 
+/* SSE intrinsics support by ICC/MSVC/GCC */
+#if defined __INTEL_COMPILER
+  #define FLAC__SSE_TARGET(x)
+  #define FLAC__SSE_SUPPORTED 1
+  #define FLAC__SSE2_SUPPORTED 1
+  #if (__INTEL_COMPILER >= 1000) /* Intel C++ Compiler 10.0 */
+    #define FLAC__SSSE3_SUPPORTED 1
+    #define FLAC__SSE4_1_SUPPORTED 1
+  #endif
+#elif defined _MSC_VER
+  #define FLAC__SSE_TARGET(x)
+  #define FLAC__SSE_SUPPORTED 1
+  #define FLAC__SSE2_SUPPORTED 1
+  #if (_MSC_VER >= 1500) /* MS Visual Studio 2008 */
+    #define FLAC__SSSE3_SUPPORTED 1
+    #define FLAC__SSE4_1_SUPPORTED 1
+  #endif
+#elif defined __GNUC__
+  #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* since GCC 4.9 -msse.. compiler options aren't necessary */
+    #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
+    #define FLAC__SSE_SUPPORTED 1
+    #define FLAC__SSE2_SUPPORTED 1
+    #define FLAC__SSSE3_SUPPORTED 1
+    #define FLAC__SSE4_1_SUPPORTED 1
+  #else /* for GCC older than 4.9 */
+    #define FLAC__SSE_TARGET(x)
+    #ifdef __SSE__
+      #define FLAC__SSE_SUPPORTED 1
+    #endif
+    #ifdef __SSE2__
+      #define FLAC__SSE2_SUPPORTED 1
+    #endif
+    #ifdef __SSSE3__
+      #define FLAC__SSSE3_SUPPORTED 1
+    #endif
+    #ifdef __SSE4_1__
+      #define FLAC__SSE4_1_SUPPORTED 1
+    #endif
+  #endif /* GCC version */
+#endif /* compiler version */
+
 typedef enum {
 	FLAC__CPUINFO_TYPE_IA32,
 	FLAC__CPUINFO_TYPE_X86_64,
