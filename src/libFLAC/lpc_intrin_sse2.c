@@ -45,6 +45,12 @@
 
 #include <emmintrin.h> /* SSE2 */
 
+#define RESIDUAL16_RESULT(xmmN) curr = *data++; *residual++ = curr - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
+#define     DATA16_RESULT(xmmN) curr = *residual++ + (_mm_cvtsi128_si32(xmmN) >> lp_quantization); *data++ = curr;
+
+#define RESIDUAL_RESULT(xmmN) residual[i] = data[i] - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
+#define     DATA_RESULT(xmmN) data[i] = residual[i] + (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
+
 FLAC__SSE_TARGET("sse2")
 void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
 {
@@ -59,7 +65,6 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 		FLAC__int32 curr;
 		if(order > 8) { /* order == 9, 10, 11, 12 */
 #ifdef FLAC__CPU_IA32 /* 8 XMM registers available */
-			/* can be modified to work with order <= 15 but the subset limit is 12 */
 			int r;
 			__m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
 			xmm0 = _mm_loadu_si128((const __m128i*)(qlp_coeff+0));
@@ -103,8 +108,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 			xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 			xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-			curr = *data++;
-			*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+			RESIDUAL16_RESULT(xmm6);
 
 			data_len--;
 			r = data_len % 2;
@@ -124,8 +128,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-				curr = *data++;
-				*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+				RESIDUAL16_RESULT(xmm6);
 
 				data_len--;
 			}
@@ -146,8 +149,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-				curr = *data++;
-				*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+				RESIDUAL16_RESULT(xmm6);
 
 				xmm3 = _mm_insert_epi16(xmm3, curr, 0);
 
@@ -159,8 +161,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-				curr = *data++;
-				*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+				RESIDUAL16_RESULT(xmm6);
 
 				data_len-=2;
 			}
@@ -218,8 +219,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 			xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 			xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-			curr = *data++;
-			*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+			RESIDUAL16_RESULT(xmm6);
 
 			data_len--;
 			r = data_len % 4;
@@ -239,8 +239,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-				curr = *data++;
-				*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+				RESIDUAL16_RESULT(xmm6);
 
 				data_len--; r--;
 			}
@@ -261,8 +260,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-				curr = *data++;
-				*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+				RESIDUAL16_RESULT(xmm6);
 
 				xmm3 = _mm_insert_epi16(xmm3, curr, 2);
 
@@ -274,8 +272,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-				curr = *data++;
-				*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+				RESIDUAL16_RESULT(xmm6);
 
 				xmm3 = _mm_insert_epi16(xmm3, curr, 1);
 
@@ -287,8 +284,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-				curr = *data++;
-				*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+				RESIDUAL16_RESULT(xmm6);
 
 				xmm3 = _mm_insert_epi16(xmm3, curr, 0);
 
@@ -300,8 +296,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 				xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-				curr = *data++;
-				*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+				RESIDUAL16_RESULT(xmm6);
 
 				data_len-=4;
 			}
@@ -329,8 +324,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-					curr = *data++;
-					*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+					RESIDUAL16_RESULT(xmm6);
 
 					data_len--;
 
@@ -343,8 +337,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len--;
 					}
@@ -373,8 +366,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-					curr = *data++;
-					*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+					RESIDUAL16_RESULT(xmm6);
 
 					data_len--;
 					r = data_len % 2;
@@ -388,8 +380,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len--;
 					}
@@ -403,8 +394,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						xmm3 = _mm_insert_epi16(xmm3, curr, 0);
 						xmm6 = xmm3;
@@ -412,8 +402,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len-=2;
 					}
@@ -446,8 +435,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-					curr = *data++;
-					*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+					RESIDUAL16_RESULT(xmm6);
 
 					data_len--;
 					r = data_len % 3;
@@ -461,8 +449,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len--; r--;
 					}
@@ -476,8 +463,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						xmm3 = _mm_insert_epi16(xmm3, curr, 1);
 
@@ -486,8 +472,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						xmm3 = _mm_insert_epi16(xmm3, curr, 0);
 
@@ -496,8 +481,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len-=3;
 					}
@@ -530,8 +514,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-					curr = *data++;
-					*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+					RESIDUAL16_RESULT(xmm6);
 
 					data_len--;
 					r = data_len % 4;
@@ -545,8 +528,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len--; r--;
 					}
@@ -560,8 +542,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						xmm3 = _mm_insert_epi16(xmm3, curr, 2);
 
@@ -570,8 +551,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						xmm3 = _mm_insert_epi16(xmm3, curr, 1);
 
@@ -580,8 +560,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						xmm3 = _mm_insert_epi16(xmm3, curr, 0);
 
@@ -590,8 +569,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len-=4;
 					}
@@ -617,8 +595,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 					xmm6 = _mm_madd_epi16(xmm6, xmm0);
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-					curr = *data++;
-					*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+					RESIDUAL16_RESULT(xmm6);
 
 					data_len--;
 
@@ -630,8 +607,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_madd_epi16(xmm6, xmm0);
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len--;
 					}
@@ -657,8 +633,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 					xmm6 = _mm_madd_epi16(xmm6, xmm0);
 					xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-					curr = *data++;
-					*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+					RESIDUAL16_RESULT(xmm6);
 
 					data_len--;
 					r = data_len % 2;
@@ -671,8 +646,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_madd_epi16(xmm6, xmm0);
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len--;
 					}
@@ -686,8 +660,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_madd_epi16(xmm6, xmm1);
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						xmm3 = _mm_insert_epi16(xmm3, curr, 0);
 
@@ -695,8 +668,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = _mm_madd_epi16(xmm6, xmm0);
 						xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 4));
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len-=2;
 					}
@@ -720,8 +692,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 					xmm6 = xmm3;
 					xmm6 = _mm_madd_epi16(xmm6, xmm0);
 
-					curr = *data++;
-					*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+					RESIDUAL16_RESULT(xmm6);
 
 					data_len--;
 
@@ -732,8 +703,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 						xmm6 = xmm3;
 						xmm6 = _mm_madd_epi16(xmm6, xmm0);
 
-						curr = *data++;
-						*residual++ = curr - (_mm_cvtsi128_si32(xmm6) >> lp_quantization);
+						RESIDUAL16_RESULT(xmm6);
 
 						data_len--;
 					}
@@ -786,8 +756,6 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 		}
 	}
 }
-
-#define RESIDUAL_RESULT(xmmN) residual[i] = data[i] - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
 
 FLAC__SSE_TARGET("sse2")
 void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
