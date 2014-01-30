@@ -70,7 +70,7 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 				if(e1 > end)
 					e1 = end; /* try flac -l 1 -b 16 and you'll be here */
 
-				/* assumption: residual[] is properly aligned so (residual + e1) is properly aligned too and _mm_loadu_si128() is fast*/
+				/* assumption: residual[] is properly aligned so (residual + e1) is properly aligned too and _mm_loadu_si128() is fast */
 				for( ; residual_sample < e1; residual_sample++)
 					abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
 
@@ -121,7 +121,7 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 
 				mm_sum = _mm_add_epi64(mm_sum, _mm_srli_si128(mm_sum, 8));
 #ifdef FLAC__CPU_IA32
-#ifdef _MSC_VER
+#if defined _MSC_VER || defined __INTEL_COMPILER
 				abs_residual_partition_sum += mm_sum.m128i_u64[0];
 #else
 				{

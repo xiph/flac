@@ -450,7 +450,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 
 void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx)
 {
-#if defined _MSC_VER
+#if defined _MSC_VER || defined __INTEL_COMPILER
 	int cpuinfo[4];
 	__cpuid(cpuinfo, 1);
 	*flags_ecx = cpuinfo[2];
