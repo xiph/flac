@@ -59,11 +59,9 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 		__m128i mm_res, mm_sum, mm_mask;
 
 		if(bps <= 16) {
-			FLAC__uint32 abs_residual_partition_sum;
 
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				end += default_partition_samples;
-				abs_residual_partition_sum = 0;
 				mm_sum = _mm_setzero_si128();
 
 				e1 = (residual_sample + 3) & ~3; e3 = end & ~3;
@@ -71,73 +69,71 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 					e1 = end; /* try flac -l 1 -b 16 and you'll be here */
 
 				/* assumption: residual[] is properly aligned so (residual + e1) is properly aligned too and _mm_loadu_si128() is fast */
-				for( ; residual_sample < e1; residual_sample++)
-					abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
+				for( ; residual_sample < e1; residual_sample++) {
+					mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
+					mm_mask = _mm_srai_epi32(mm_res, 31);
+					mm_res = _mm_xor_si128(mm_res, mm_mask);
+					mm_res = _mm_sub_epi32(mm_res, mm_mask); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
+					mm_sum = _mm_add_epi32(mm_sum, mm_res);
+				}
 
 				for( ; residual_sample < e3; residual_sample+=4) {
 					mm_res = _mm_loadu_si128((const __m128i*)(residual+residual_sample));
-
 					mm_mask = _mm_srai_epi32(mm_res, 31);
 					mm_res = _mm_xor_si128(mm_res, mm_mask);
 					mm_res = _mm_sub_epi32(mm_res, mm_mask);
+					mm_sum = _mm_add_epi32(mm_sum, mm_res);
+				}
 
+				for( ; residual_sample < end; residual_sample++) {
+					mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
+					mm_mask = _mm_srai_epi32(mm_res, 31);
+					mm_res = _mm_xor_si128(mm_res, mm_mask);
+					mm_res = _mm_sub_epi32(mm_res, mm_mask);
 					mm_sum = _mm_add_epi32(mm_sum, mm_res);
 				}
 
 				mm_sum = _mm_add_epi32(mm_sum, _mm_srli_si128(mm_sum, 8));
 				mm_sum = _mm_add_epi32(mm_sum, _mm_srli_si128(mm_sum, 4));
-				abs_residual_partition_sum += _mm_cvtsi128_si32(mm_sum);
-
-				for( ; residual_sample < end; residual_sample++)
-					abs_residual_partition_sum += abs(residual[residual_sample]);
-
-				abs_residual_partition_sums[partition] = abs_residual_partition_sum;
+				abs_residual_partition_sums[partition] = _mm_cvtsi128_si32(mm_sum);
 			}
 		}
 		else { /* have to pessimistically use 64 bits for accumulator */
-			FLAC__uint64 abs_residual_partition_sum;
 
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				end += default_partition_samples;
-				abs_residual_partition_sum = 0;
 				mm_sum = _mm_setzero_si128();
 
 				e1 = (residual_sample + 1) & ~1; e3 = end & ~1;
 				FLAC__ASSERT(e1 <= end);
 
-				for( ; residual_sample < e1; residual_sample++)
-					abs_residual_partition_sum += abs(residual[residual_sample]);
+				for( ; residual_sample < e1; residual_sample++) {
+					mm_res = _mm_cvtsi32_si128(residual[residual_sample]); /*  0   0   0   r0 */
+					mm_mask = _mm_srai_epi32(mm_res, 31);
+					mm_res = _mm_xor_si128(mm_res, mm_mask);
+					mm_res = _mm_sub_epi32(mm_res, mm_mask); /*  0   0   0  |r0|  ==   00   |r0_64| */
+					mm_sum = _mm_add_epi64(mm_sum, mm_res);
+				}
 
 				for( ; residual_sample < e3; residual_sample+=2) {
 					mm_res = _mm_loadl_epi64((const __m128i*)(residual+residual_sample)); /*  0   0   r1  r0 */
-
 					mm_mask = _mm_srai_epi32(mm_res, 31);
 					mm_res = _mm_xor_si128(mm_res, mm_mask);
 					mm_res = _mm_sub_epi32(mm_res, mm_mask); /*  0   0  |r1|   |r0| */
-
 					mm_res = _mm_shuffle_epi32(mm_res, _MM_SHUFFLE(3,1,2,0)); /* 0  |r1|  0  |r0|  ==  |r1_64|  |r0_64|  */
 					mm_sum = _mm_add_epi64(mm_sum, mm_res);
 				}
 
-				mm_sum = _mm_add_epi64(mm_sum, _mm_srli_si128(mm_sum, 8));
-#ifdef FLAC__CPU_IA32
-#if defined _MSC_VER || defined __INTEL_COMPILER
-				abs_residual_partition_sum += mm_sum.m128i_u64[0];
-#else
-				{
-					FLAC__uint64 tmp[2];
-					_mm_storel_epi64((__m128i *)tmp, mm_sum);
-					abs_residual_partition_sum += tmp[0];
+				for( ; residual_sample < end; residual_sample++) {
+					mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
+					mm_mask = _mm_srai_epi32(mm_res, 31);
+					mm_res = _mm_xor_si128(mm_res, mm_mask);
+					mm_res = _mm_sub_epi32(mm_res, mm_mask);
+					mm_sum = _mm_add_epi64(mm_sum, mm_res);
 				}
-#endif
-#else
-				abs_residual_partition_sum += _mm_cvtsi128_si64(mm_sum);
-#endif
 
-				for( ; residual_sample < end; residual_sample++)
-					abs_residual_partition_sum += abs(residual[residual_sample]);
-
-				abs_residual_partition_sums[partition] = abs_residual_partition_sum;
+				mm_sum = _mm_add_epi64(mm_sum, _mm_srli_si128(mm_sum, 8));
+				_mm_storel_epi64((__m128i*)(abs_residual_partition_sums+partition), mm_sum);
 			}
 		}
 	}
