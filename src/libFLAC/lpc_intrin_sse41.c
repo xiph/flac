@@ -46,33 +46,28 @@
 #include <smmintrin.h> /* SSE4.1 */
 
 #ifdef FLAC__CPU_IA32
-#if defined _MSC_VER || defined __INTEL_COMPILER
-#define RESIDUAL_RESULT(xmmN) residual[i] = data[i] - (FLAC__int32)(xmmN.m128i_i64[0] >> lp_quantization);
-#define     DATA_RESULT(xmmN) data[i] = residual[i] + (FLAC__int32)(xmmN.m128i_i64[0] >> lp_quantization);
-#else
-#define RESIDUAL_RESULT(xmmN) { \
-	FLAC__int64 tmp[2]; \
-	_mm_storel_epi64((__m128i *)tmp, xmmN); \
-	residual[i] = data[i] - (FLAC__int32)(tmp[0] >> lp_quantization); \
-	}
-#define DATA_RESULT(xmmN) { \
-	FLAC__int64 tmp[2]; \
-	_mm_storel_epi64((__m128i *)tmp, xmmN); \
-	data[i] = residual[i] + (FLAC__int32)(tmp[0] >> lp_quantization); \
-	}
-#endif
+#define RESIDUAL_RESULT(xmmN) residual[i] = data[i] - _mm_cvtsi128_si32(_mm_srl_epi64(xmmN, cnt));
+#define     DATA_RESULT(xmmN) data[i] = residual[i] + _mm_cvtsi128_si32(_mm_srl_epi64(xmmN, cnt));
+#define RESIDUAL_RESULT1(xmmN) residual[i] = data[i] - _mm_cvtsi128_si32(_mm_srli_epi64(xmmN, lp_quantization));
+#define     DATA_RESULT1(xmmN) data[i] = residual[i] + _mm_cvtsi128_si32(_mm_srli_epi64(xmmN, lp_quantization));
 #else
 #define RESIDUAL_RESULT(xmmN) residual[i] = data[i] - (FLAC__int32)(_mm_cvtsi128_si64(xmmN) >> lp_quantization);
 #define     DATA_RESULT(xmmN) data[i] = residual[i] + (FLAC__int32)(_mm_cvtsi128_si64(xmmN) >> lp_quantization);
+#define RESIDUAL_RESULT1(xmmN) RESIDUAL_RESULT(xmmN)
+#define     DATA_RESULT1(xmmN) DATA_RESULT(xmmN)
 #endif
 
 FLAC__SSE_TARGET("sse4.1")
 void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
 {
 	int i;
+#ifdef FLAC__CPU_IA32
+	__m128i cnt = _mm_cvtsi32_si128(lp_quantization);
+#endif
 
 	FLAC__ASSERT(order > 0);
 	FLAC__ASSERT(order <= 32);
+	FLAC__ASSERT(lp_quantization <= 32); /* there's no _mm_srai_epi64() so we have to use _mm_srli_epi64() */
 
 	if(order <= 12) {
 		if(order > 8) { /* order == 9, 10, 11, 12 */
@@ -137,7 +132,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL_RESULT1(xmm7);
 					}
 				}
 				else { /* order == 11 */
@@ -197,7 +192,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL_RESULT1(xmm7);
 					}
 				}
 			}
@@ -544,8 +539,15 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 					}
 				}
 				else { /* order == 1 */
-					for(i = 0; i < (int)data_len; i++)
-						residual[i] = data[i] - (FLAC__int32)((qlp_coeff[0] * (FLAC__int64)data[i-1]) >> lp_quantization);
+					__m128i xmm0, xmm7;
+					xmm0 = _mm_cvtsi32_si128(qlp_coeff[0]);
+
+					for(i = 0; i < (int)data_len; i++) {
+						//sum = qlp_coeff[0] * (FLAC__int64)data[i-1];
+						xmm7 = _mm_cvtsi32_si128(data[i-1]);
+						xmm7 = _mm_mul_epi32(xmm7, xmm0);
+						RESIDUAL_RESULT(xmm7);
+					}
 				}
 			}
 		}
@@ -597,9 +599,13 @@ FLAC__SSE_TARGET("sse4.1")
 void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 data[])
 {
 	int i;
+#ifdef FLAC__CPU_IA32
+	__m128i cnt = _mm_cvtsi32_si128(lp_quantization);
+#endif
 
 	FLAC__ASSERT(order > 0);
 	FLAC__ASSERT(order <= 32);
+	FLAC__ASSERT(lp_quantization <= 32); /* there's no _mm_srai_epi64() so we have to use _mm_srli_epi64() */
 
 	if(order <= 12) {
 		if(order > 8) { /* order == 9, 10, 11, 12 */
@@ -664,7 +670,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA_RESULT1(xmm7);
 					}
 				}
 				else { /* order == 11 */
@@ -724,7 +730,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA_RESULT1(xmm7);
 					}
 				}
 			}
@@ -1071,8 +1077,15 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 					}
 				}
 				else { /* order == 1 */
-					for(i = 0; i < (int)data_len; i++)
-						data[i] = residual[i] + (FLAC__int32)((qlp_coeff[0] * (FLAC__int64)data[i-1]) >> lp_quantization);
+					__m128i xmm0, xmm7;
+					xmm0 = _mm_cvtsi32_si128(qlp_coeff[0]);
+
+					for(i = 0; i < (int)data_len; i++) {
+						//sum = qlp_coeff[0] * (FLAC__int64)data[i-1];
+						xmm7 = _mm_cvtsi32_si128(data[i-1]);
+						xmm7 = _mm_mul_epi32(xmm7, xmm0);
+						DATA_RESULT(xmm7);
+					}
 				}
 			}
 		}
