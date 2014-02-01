@@ -2395,19 +2395,23 @@ FLAC__bool format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool i
 			unsigned b;
 			for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++) {
-					out[channel][wide_sample]  = ucbuffer_[b++]; out[channel][wide_sample] <<= 8;
-					out[channel][wide_sample] |= ucbuffer_[b++]; out[channel][wide_sample] <<= 8;
-					out[channel][wide_sample] |= ucbuffer_[b++];
-					out[channel][wide_sample] -= 0x800000;
+					FLAC__int32 t;
+					t  = ucbuffer_[b++]; t <<= 8;
+					t |= ucbuffer_[b++]; t <<= 8;
+					t |= ucbuffer_[b++];
+					t -= 0x800000;
+					out[channel][wide_sample] = t;
 				}
 		}
 		else {
 			unsigned b;
 			for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++) {
-					out[channel][wide_sample]  = scbuffer_[b++]; out[channel][wide_sample] <<= 8;
-					out[channel][wide_sample] |= ucbuffer_[b++]; out[channel][wide_sample] <<= 8;
-					out[channel][wide_sample] |= ucbuffer_[b++];
+					FLAC__int32 t;
+					t  = scbuffer_[b++]; t <<= 8;
+					t |= ucbuffer_[b++]; t <<= 8;
+					t |= ucbuffer_[b++];
+					out[channel][wide_sample] = t;
 				}
 		}
 	}
