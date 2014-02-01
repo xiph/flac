@@ -173,6 +173,7 @@ static struct share__option long_options_[] = {
 	{ "sample-rate"               , share__required_argument, 0, 0 },
 	{ "sign"                      , share__required_argument, 0, 0 },
 	{ "input-size"                , share__required_argument, 0, 0 },
+	{ "error-on-compression-fail" , share__no_argument, 0, 0 },
 
 	/*
 	 * analysis options
@@ -596,7 +597,7 @@ FLAC__bool init_options(void)
 	option_values.cuesheet_filename = 0;
 	option_values.cued_seekpoints = true;
 	option_values.channel_map_none = false;
-	option_values.error_on_compression_fail = true;
+	option_values.error_on_compression_fail = false;
 
 	option_values.num_files = 0;
 	option_values.filenames = 0;
@@ -913,6 +914,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "no-error-on-compression-fail")) {
 			option_values.error_on_compression_fail = false;
+		}
+		else if(0 == strcmp(long_option, "error-on-compression-fail")) {
+			option_values.error_on_compression_fail = true;
 		}
 	}
 	else {
