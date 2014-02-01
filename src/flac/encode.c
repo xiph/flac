@@ -1654,7 +1654,13 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 	}
 
 	if (error_on_compression_fail && e->compression_ratio >= 1.0) {
-		flac__utils_printf(stderr, 1, "ERROR: Compression failed (ratio %0.3f, should be < 1.0). Please contact the developers.\n", e->compression_ratio);
+		flac__utils_printf(stderr, 1,
+			"FAILURE: Compression failed (ratio %0.3f, should be < 1.0).\n"
+			"This happens for some files for one or more of the following reasons:\n"
+			" * Recompressing an existing FLAC from a higher to a lower compression setting.\n"
+			" * Insufficient input data  (eg, very short files, < 10000 fames).\n"
+			" * The audio data is not compressable (eg a full range white noise signal).\n"
+			, e->compression_ratio);
 		ret = 1;
 	}
 
