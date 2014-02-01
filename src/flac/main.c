@@ -1299,6 +1299,7 @@ void show_help(void)
 	printf("      --no-cued-seekpoints\n");
 	printf("      --no-decode-through-errors\n");
 	printf("      --no-delete-input-file\n");
+	printf("      --no-error-on-compression-fail\n");
 	printf("      --no-preserve-modtime\n");
 	printf("      --no-keep-foreign-metadata\n");
 	printf("      --no-exhaustive-model-search\n");
