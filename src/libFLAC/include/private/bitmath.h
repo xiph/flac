@@ -142,33 +142,34 @@ static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 		return 0;
 #if defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
     return sizeof(FLAC__uint64) * CHAR_BIT - 1 - __builtin_clzll(v);
-/* Sorry, only supported in win64/Itanium.. */
+/* Sorry, only supported in win64/Itanium.. and both have fast FPU which makes integer-only encoder pointless */
 #elif (defined(_MSC_VER) && (_MSC_VER >= 1400)) && (defined(_M_IA64) || defined(_WIN64))
-    FLAC__uint64 idx;
-    _BitScanReverse64(&idx, v);
-    return idx ^ 63U;
+    {
+        unsigned long idx;
+        _BitScanReverse64(&idx, v);
+        return idx;
+    }
 #else
 /* Brain-damaged compilers will use the fastest possible way that is,
     de Bruijn sequences (http://supertech.csail.mit.edu/papers/debruijn.pdf)
-    (C) Timothy B. Terriberry (tterribe@xiph.org) 2001-2009 LGPL (v2 or later).
+    (C) Timothy B. Terriberry (tterribe@xiph.org) 2001-2009 CC0 (Public domain).
 */
-    static const unsigned char DEBRUIJN_IDX64[64]={
-        0, 1, 2, 7, 3,13, 8,19, 4,25,14,28, 9,34,20,40,
-        5,17,26,38,15,46,29,48,10,31,35,54,21,50,41,57,
-        63, 6,12,18,24,27,33,39,16,37,45,47,30,53,49,56,
-        62,11,23,32,36,44,52,55,61,22,43,51,60,42,59,58
-    };
-    int ret;
-    ret= v>0;
-    v|= v>>1;
-    v|= v>>2;
-    v|= v>>4;
-    v|= v>>8;
-    v|= v>>16;
-    v|= v>>32;
-    v= (v>>1)+1;
-    ret+=DEBRUIJN_IDX64[v*0x218A392CD3D5DBF>>58&0x3F];
-    return ret;
+    {
+        static const unsigned char DEBRUIJN_IDX64[64]={
+            0, 1, 2, 7, 3,13, 8,19, 4,25,14,28, 9,34,20,40,
+            5,17,26,38,15,46,29,48,10,31,35,54,21,50,41,57,
+            63, 6,12,18,24,27,33,39,16,37,45,47,30,53,49,56,
+            62,11,23,32,36,44,52,55,61,22,43,51,60,42,59,58
+        };
+        v|= v>>1;
+        v|= v>>2;
+        v|= v>>4;
+        v|= v>>8;
+        v|= v>>16;
+        v|= v>>32;
+        v= (v>>1)+1;
+        return DEBRUIJN_IDX64[v*0x218A392CD3D5DBF>>58&0x3F];
+    }
 #endif
 }
 #endif
