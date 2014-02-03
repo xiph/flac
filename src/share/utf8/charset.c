@@ -56,7 +56,7 @@ static int ascii_strcasecmp(const char *s1, const char *s2)
   char c1, c2;
 
   for (;; s1++, s2++) {
-    if (!*s1 || !*s1)
+    if (!*s1 || !*s2)
       break;
     if (*s1 == *s2)
       continue;
