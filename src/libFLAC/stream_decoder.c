@@ -417,22 +417,15 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 		}
 #endif
 #ifdef FLAC__HAS_X86INTRIN
-# if defined FLAC__SSE2_SUPPORTED && !defined FLAC__HAS_NASM /* not faster than asm MMX code */
+# if defined FLAC__SSE2_SUPPORTED && !defined FLAC__HAS_NASM /* OPT: not faster than ASM/MMX code */
 		if(decoder->private_->cpuinfo.ia32.sse2) {
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_16_intrin_sse2;
 			decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal_16_intrin_sse2;
 		}
 # endif
-# if defined FLAC__SSE4_1_SUPPORTED && 1 /* faster than asm */
+# if defined FLAC__SSE4_1_SUPPORTED && 1 /* OPT: faster than asm; TODO: more tests */
 		if(decoder->private_->cpuinfo.ia32.sse41)
 			decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_intrin_sse41;
-# endif
-#endif
-#elif defined FLAC__CPU_X86_64
-#ifdef FLAC__HAS_X86INTRIN
-# if defined FLAC__SSE2_SUPPORTED
-		decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_16_intrin_sse2;
-		decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal_16_intrin_sse2;
 # endif
 #endif
 #elif defined FLAC__CPU_PPC

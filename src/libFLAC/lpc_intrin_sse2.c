@@ -1289,6 +1289,10 @@ void FLAC__lpc_restore_signal_16_intrin_sse2(const FLAC__int32 residual[], unsig
 {
 	int i;
 	FLAC__int32 sum;
+	if (order < 8) {
+		FLAC__lpc_restore_signal(residual, data_len, qlp_coeff, order, lp_quantization, data);
+		return;
+	}
 
 	FLAC__ASSERT(order > 0);
 	FLAC__ASSERT(order <= 32);
