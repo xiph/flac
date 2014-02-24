@@ -828,9 +828,9 @@ FLAC__bool FLAC__bitwriter_zero_pad_to_byte_boundary(FLAC__BitWriter *bw)
 		return true;
 }
 
-/* These functions a declared inline in this file but are also callable as
+/* These functions are declared inline in this file but are also callable as
  * externs from elsewhere.
- * According to the C99 sepc, section 6.7.4, simply providing a function
+ * According to the C99 spec, section 6.7.4, simply providing a function
  * prototype in a header file without 'inline' and making the function inline
  * in this file should be sufficient.
  * Unfortunately, the Microsoft VS compiler doesn't pick them up externally. To
