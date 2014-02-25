@@ -968,22 +968,22 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #if !defined FLAC__NO_ASM && defined FLAC__HAS_X86INTRIN
 	if(encoder->private_->cpuinfo.use_asm) {
 # if defined FLAC__CPU_IA32
-#  ifdef FLAC__SSSE3_SUPPORTED
+#  ifdef FLAC__SSE2_SUPPORTED
+#   ifdef FLAC__SSSE3_SUPPORTED
 		if(encoder->private_->cpuinfo.ia32.ssse3)
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_ssse3;
 		else
-#  endif
-#  ifdef FLAC__SSE2_SUPPORTED
+#   endif
 		if(encoder->private_->cpuinfo.ia32.sse2)
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
 #  endif
 # elif defined FLAC__CPU_X86_64
-#  ifdef FLAC__SSSE3_SUPPORTED
+#  ifdef FLAC__SSE2_SUPPORTED
+#   ifdef FLAC__SSSE3_SUPPORTED
 		if(encoder->private_->cpuinfo.x86_64.ssse3)
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_ssse3;
 		else
-#  endif
-#  ifdef FLAC__SSE2_SUPPORTED
+#   endif
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
 #  endif
 # endif /* FLAC__CPU_... */
