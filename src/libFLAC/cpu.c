@@ -107,7 +107,7 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX = 0x00400000;
 /*
  * Extra stuff needed for detection of OS support for SSE on IA-32
  */
-#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM && !defined FLAC__NO_SSE_OS && !defined FLAC__SSE_OS
+#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || defined FLAC__HAS_X86INTRIN) && !defined FLAC__NO_SSE_OS && !defined FLAC__SSE_OS
 # if defined(__linux__)
 /*
  * If the OS doesn't support SSE, we will get here with a SIGILL.  We
@@ -162,9 +162,13 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
  */
 #ifdef FLAC__CPU_IA32
 	info->type = FLAC__CPUINFO_TYPE_IA32;
-#if !defined FLAC__NO_ASM && defined FLAC__HAS_NASM
+#if !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || defined FLAC__HAS_X86INTRIN)
 	info->use_asm = true; /* we assume a minimum of 80386 with FLAC__CPU_IA32 */
+#ifdef FLAC__HAS_NASM
 	info->ia32.cpuid = FLAC__cpu_have_cpuid_asm_ia32()? true : false;
+#else
+	info->ia32.cpuid = FLAC__cpu_have_cpuid_x86()? true : false;
+#endif
 	info->ia32.bswap = info->ia32.cpuid; /* CPUID => BSWAP since it came after */
 	info->ia32.cmov = false;
 	info->ia32.mmx = false;
@@ -181,7 +185,11 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	if(info->ia32.cpuid) {
 		/* http://www.sandpile.org/x86/cpuid.htm */
 		FLAC__uint32 flags_edx, flags_ecx;
+#ifdef FLAC__HAS_NASM
 		FLAC__cpu_info_asm_ia32(&flags_edx, &flags_ecx);
+#else
+		FLAC__cpu_info_x86(&flags_edx, &flags_ecx);
+#endif
 		info->ia32.cmov  = (flags_edx & FLAC__CPUINFO_IA32_CPUID_CMOV )? true : false;
 		info->ia32.mmx   = (flags_edx & FLAC__CPUINFO_IA32_CPUID_MMX  )? true : false;
 		info->ia32.fxsr  = (flags_edx & FLAC__CPUINFO_IA32_CPUID_FXSR )? true : false;
@@ -192,7 +200,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		info->ia32.sse41 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE41)? true : false;
 		info->ia32.sse42 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE42)? true : false;
 
-#ifdef FLAC__USE_3DNOW
+#if defined FLAC__HAS_NASM && defined FLAC__USE_3DNOW
 		flags_edx = FLAC__cpu_info_extended_amd_asm_ia32();
 		info->ia32._3dnow   = (flags_edx & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_3DNOW   )? true : false;
 		info->ia32.ext3dnow = (flags_edx & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXT3DNOW)? true : false;
@@ -445,8 +453,43 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #if defined _MSC_VER
 #include <intrin.h> /* for __cpuid() */
 #elif defined __GNUC__
-#include <cpuid.h> /* for __get_cpuid() */
+#include <cpuid.h> /* for __get_cpuid() and __get_cpuid_max() */
 #endif
+
+FLAC__uint32 FLAC__cpu_have_cpuid_x86(void)
+{
+#ifdef FLAC__CPU_X86_64
+	return 1;
+#else
+# if defined _MSC_VER || defined __INTEL_COMPILER /* Do they support CPUs w/o CPUID support (or OSes that work on those CPUs)? */
+	FLAC__uint32 flags1, flags2;
+	__asm {
+		pushfd
+		pushfd
+		pop		eax
+		mov		flags1, eax
+		xor		eax, 0x200000
+		push	eax
+		popfd
+		pushfd
+		pop		eax
+		mov		flags2, eax
+		popfd
+	}
+	if (((flags1^flags2) & 0x200000) != 0)
+		return 1;
+	else
+		return 0;
+# elif defined __GNUC__
+	if (__get_cpuid_max(0, 0) != 0)
+		return 1;
+	else
+		return 0;
+# else
+	return 0;
+# endif
+#endif
+}
 
 void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx)
 {
