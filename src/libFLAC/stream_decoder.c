@@ -664,7 +664,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	if(decoder->protected_->state == FLAC__STREAM_DECODER_UNINITIALIZED)
 		return true;
 
-	/* see the comment in FLAC__seekable_stream_decoder_reset() as to why we
+	/* see the comment in FLAC__stream_decoder_reset() as to why we
 	 * always call FLAC__MD5Final()
 	 */
 	FLAC__MD5Final(decoder->private_->computed_md5sum, &decoder->private_->md5context);
