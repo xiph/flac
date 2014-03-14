@@ -151,6 +151,23 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX = 0x00400000;
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
 #  endif
+# elif defined(_WIN32) && defined(__GNUC__)
+#  undef USE_FXSR_FLAVOR
+#  ifdef USE_FXSR_FLAVOR
+  /* not guaranteed to work on some unknown future Intel CPUs */
+#  else
+  /* exception handler is process-wide; not good for a library */
+#  include <windows.h>
+	LONG WINAPI sigill_handler_sse_os(EXCEPTION_POINTERS *ep); /* to suppress GCC warning */
+	LONG WINAPI sigill_handler_sse_os(EXCEPTION_POINTERS *ep)
+	{
+		if(ep->ExceptionRecord->ExceptionCode == EXCEPTION_ILLEGAL_INSTRUCTION) {
+			ep->ContextRecord->Eip += 3 + 3 + 6;
+			return EXCEPTION_CONTINUE_EXECUTION;
+		}
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
+#  endif
 # endif
 #endif
 
@@ -328,6 +345,55 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 				nop
 				nop
 			}
+			SetUnhandledExceptionFilter(save);
+			if(!sse)
+				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+# endif
+#elif defined(_WIN32) && defined(__GNUC__)
+# ifdef USE_FXSR_FLAVOR
+			int sse = 0;
+			/* Based on the idea described in Agner Fog's manual "Optimizing subroutines in assembly language" */
+			/* In theory, not guaranteed to detect lack of OS SSE support on some future Intel CPUs, but in practice works (see the aforementioned manual) */
+			if (info->ia32.fxsr && info->ia32.sse) {
+				struct {
+					FLAC__uint32 buff[128];
+				} __attribute__((aligned(16))) fxsr;
+				FLAC__uint32 old_val, new_val;
+
+				asm volatile ("fxsave %0"  : "=m" (fxsr) : "m" (fxsr));
+				old_val = fxsr.buff[50];
+				fxsr.buff[50] ^= 0x0013c0de;                             /* change value in the buffer */
+				asm volatile ("fxrstor %0" : "=m" (fxsr) : "m" (fxsr));  /* try to change SSE register */
+				fxsr.buff[50] = old_val;                                 /* restore old value in the buffer */
+				asm volatile ("fxsave %0 " : "=m" (fxsr) : "m" (fxsr));  /* old value will be overwritten if SSE register was changed */
+				new_val = fxsr.buff[50];                                 /* == old_val if FXRSTOR didn't change SSE register and (old_val ^ 0x0013c0de) otherwise */
+				fxsr.buff[50] = old_val;                                 /* again restore old value in the buffer */
+				asm volatile ("fxrstor %0" : "=m" (fxsr) : "m" (fxsr));  /* restore old values of registers */
+
+				if ((old_val^new_val) == 0x0013c0de)
+					sse = 1;
+			}
+			if(!sse)
+				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+# else
+			int sse = 0;
+			LPTOP_LEVEL_EXCEPTION_FILTER save = SetUnhandledExceptionFilter(sigill_handler_sse_os);
+			/* see MSVC version above for explanation */
+			asm volatile (
+				"xorps %%xmm0,%%xmm0\n\t"
+				"incl %0\n\t"
+				"nop\n\t" /* SIGILL jump lands here if "inc" is 9 bytes */
+				"nop\n\t"
+				"nop\n\t"
+				"nop\n\t"
+				"nop\n\t"
+				"nop\n\t"
+				"nop\n\t"
+				"nop\n\t"
+				"nop"     /* SIGILL jump lands here if "inc" is 1 byte  */
+				: "=r"(sse)
+				: "0"(sse)
+			);
 			SetUnhandledExceptionFilter(save);
 			if(!sse)
 				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
