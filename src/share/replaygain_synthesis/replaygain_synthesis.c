@@ -45,12 +45,7 @@
 #include "replaygain_synthesis.h"
 #include "FLAC/assert.h"
 
-/* adjust for compilers that can't understand using LL suffix for int64_t literals */
-#ifdef _MSC_VER
-#define FLAC__I64L(x) x
-#else
 #define FLAC__I64L(x) x##LL
-#endif
 
 
 /*
