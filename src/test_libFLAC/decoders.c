@@ -281,8 +281,14 @@ static void stream_decoder_metadata_callback_(const FLAC__StreamDecoder *decoder
 	if(dcd->error_occurred)
 		return;
 
-	printf("%d... ", dcd->current_metadata_number);
+	if (metadata->type == FLAC__METADATA_TYPE_APPLICATION) {
+		printf ("%d ('%c%c%c%c')... ", dcd->current_metadata_number, metadata->data.application.id [0], metadata->data.application.id [1], metadata->data.application.id [2], metadata->data.application.id [3]);
+	}
+	else {
+		printf("%d... ", dcd->current_metadata_number);
+	}
 	fflush(stdout);
+
 
 	if(dcd->current_metadata_number >= num_expected_) {
 		(void)die_("got more metadata blocks than expected");

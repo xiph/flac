@@ -487,14 +487,14 @@ void mutils__init_metadata_blocks(
 	application1->is_last = false;
 	application1->type = FLAC__METADATA_TYPE_APPLICATION;
 	application1->length = 8;
-	memcpy(application1->data.application.id, "\xfe\xdc\xba\x98", 4);
+	memcpy(application1->data.application.id, "This", 4);
 	application1->data.application.data = malloc_or_die_(4);
 	memcpy(application1->data.application.data, "\xf0\xe1\xd2\xc3", 4);
 
 	application2->is_last = false;
 	application2->type = FLAC__METADATA_TYPE_APPLICATION;
 	application2->length = 4;
-	memcpy(application2->data.application.id, "\x76\x54\x32\x10", 4);
+	memcpy(application2->data.application.id, "Here", 4);
 	application2->data.application.data = 0;
 
 	{
