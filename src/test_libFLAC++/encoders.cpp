@@ -35,6 +35,11 @@ extern "C" {
 #include <string.h>
 #include "share/compat.h"
 
+#ifdef _MSC_VER
+// warning C4800: 'int' : forcing to bool 'true' or 'false' (performance warning)
+#pragma warning ( disable : 4800 )
+#endif
+
 typedef enum {
 	LAYER_STREAM = 0, /* FLAC__stream_encoder_init_stream() without seeking */
 	LAYER_SEEKABLE_STREAM, /* FLAC__stream_encoder_init_stream() with seeking */

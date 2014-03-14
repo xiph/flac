@@ -241,8 +241,7 @@ namespace FLAC {
 		{ return (bool)::FLAC__metadata_object_is_equal(object_, object); }
 
 #ifdef _MSC_VER
-// @@@ how to re-enable?  the following doesn't work
-// #pragma warning ( enable : 4800 )
+#pragma warning ( default : 4800 )
 #endif
 
 		inline bool Prototype::operator!=(const Prototype &object) const
