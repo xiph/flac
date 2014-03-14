@@ -130,7 +130,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 	jmp	edx
 
 .mov_eip_to_ebx:
-	mov ebx, [esp]
+	mov	ebx, [esp]
 	ret
 
 	fld	st0				; ST = d d
@@ -633,7 +633,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16
 	;[esp + 16] == __m128
 
 	push	ebp
-	mov ebp, esp
+	mov	ebp, esp
 	and	esp, -16 ; stack realign for SSE instructions 'movaps' and 'addps'
 	sub	esp, 32
 
@@ -708,8 +708,8 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16
 	movups	[edx + 32], xmm5
 	movups	[edx + 48], xmm6
 .end:
-	mov esp, ebp
-	pop ebp
+	mov	esp, ebp
+	pop	ebp
 	ret
 
 	ALIGN 16
@@ -924,7 +924,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32
 	jmp	.end
 
 .mov_eip_to_eax:
-	mov eax, [esp]
+	mov	eax, [esp]
 	ret
 
 .i_32:
@@ -1331,7 +1331,7 @@ cident FLAC__lpc_restore_signal_asm_ia32
 	jmp	.end
 
 .mov_eip_to_eax:
-	mov eax, [esp]
+	mov	eax, [esp]
 	ret
 
 .x87_32:
@@ -1670,12 +1670,12 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_wide_asm_ia32
 	jmp	.end
 
 .mov_eip_to_eax:
-	mov eax, [esp]
+	mov	eax, [esp]
 	ret
 
 .i_32:	; eax = order
 	neg	eax
-	add eax, eax
+	add	eax, eax
 	lea	ebp, [eax + eax * 4 + .jumper_0 - .get_eip0]
 	call	.mov_eip_to_eax
 .get_eip0:
@@ -1684,7 +1684,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_wide_asm_ia32
 
 	mov	ebx, [esp + 28]			; ebx = qlp_coeff[]
 	mov	edi, [esp + 20]			; edi = data[]
-	sub [esp + 40], edi			; residual[] -= data[]
+	sub	[esp + 40], edi			; residual[] -= data[]
 
 	xor	ecx, ecx
 	xor	esi, esi
@@ -1860,7 +1860,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_wide_asm_ia32
 	adc	esi, edx					; sum += qlp_coeff[ 0] * data[i- 1]
 
 .jumper_0:
-	mov edx, ecx
+	mov	edx, ecx
 ;esi:edx = sum
 	mov	ecx, [esp + 36]			; cl = lp_quantization
 	shrd	edx, esi, cl		; edx = (sum >> lp_quantization)
@@ -1869,7 +1869,7 @@ cident FLAC__lpc_compute_residual_from_qlp_coefficients_wide_asm_ia32
 ;edx = sum >> lp_q
 ;esi = --
 	neg	edx						; edx = -(sum >> lp_quantization)
-	mov eax, [esp + 40]			; residual[] - data[]
+	mov	eax, [esp + 40]			; residual[] - data[]
 	add	edx, [edi]				; edx = data[i] - (sum >> lp_quantization)
 	mov	[edi + eax], edx
 	add	edi, 4
@@ -1951,12 +1951,12 @@ cident FLAC__lpc_restore_signal_wide_asm_ia32
 	jmp	.end
 
 .mov_eip_to_eax:
-	mov eax, [esp]
+	mov	eax, [esp]
 	ret
 
 .x87_32:	; eax = order
 	neg	eax
-	add eax, eax
+	add	eax, eax
 	lea	ebp, [eax + eax * 4 + .jumper_0 - .get_eip0]
 	call	.mov_eip_to_eax
 .get_eip0:
@@ -2141,7 +2141,7 @@ cident FLAC__lpc_restore_signal_wide_asm_ia32
 	adc	esi, edx					; sum += qlp_coeff[ 0] * data[i- 1]
 
 .jumper_0:
-	mov edx, ecx
+	mov	edx, ecx
 ;esi:edx = sum
 	mov	ecx, [esp + 36]			; cl = lp_quantization
 	shrd	edx, esi, cl		; edx = (sum >> lp_quantization)
@@ -2150,7 +2150,7 @@ cident FLAC__lpc_restore_signal_wide_asm_ia32
 ;edx = sum >> lp_q
 ;esi = --
 ;
-	mov eax, [esp + 20]			; residual[] - data[]
+	mov	eax, [esp + 20]			; residual[] - data[]
 	add	edx, [edi + eax]		; edx = residual[i] + (sum >> lp_quantization)
 	mov	[edi], edx				; data[i] = residual[i] + (sum >> lp_quantization)
 	add	edi, 4
