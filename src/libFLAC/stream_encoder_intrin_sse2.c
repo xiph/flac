@@ -59,7 +59,6 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 		__m128i mm_res, mm_sum, mm_mask;
 
 		if(bps <= 16) {
-
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				end += default_partition_samples;
 				mm_sum = _mm_setzero_si128();
@@ -99,7 +98,6 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 			}
 		}
 		else { /* have to pessimistically use 64 bits for accumulator */
-
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				end += default_partition_samples;
 				mm_sum = _mm_setzero_si128();
