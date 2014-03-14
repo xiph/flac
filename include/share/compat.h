@@ -88,8 +88,10 @@
 #define FLAC__U64L(x) x##ULL
 
 #if defined _MSC_VER || defined __BORLANDC__ || defined __MINGW32__
+#define FLAC__STRCASECMP stricmp
 #define FLAC__STRNCASECMP strnicmp
 #else
+#define FLAC__STRCASECMP strcasecmp
 #define FLAC__STRNCASECMP strncasecmp
 #endif
 

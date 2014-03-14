@@ -46,12 +46,6 @@
 #include "utils.h"
 #include "vorbiscomment.h"
 
-#if defined _MSC_VER || defined __MINGW32__
-#define FLAC__STRCASECMP stricmp
-#else
-#define FLAC__STRCASECMP strcasecmp
-#endif
-
 #if 0
 /*[JEC] was:#if HAVE_GETOPT_LONG*/
 /*[JEC] see flac/include/share/getopt.h as to why the change */
