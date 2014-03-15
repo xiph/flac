@@ -1,6 +1,5 @@
 /* test_libFLAC - Unit tester for libFLAC
- * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2013  Xiph.Org Foundation
+ * Copyright (C) 2014  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,32 +20,42 @@
 #  include <config.h>
 #endif
 
-#include "bitwriter.h"
-#include "decoders.h"
-#include "encoders.h"
-#include "format.h"
-#include "metadata.h"
+#include <stdio.h>
+
+#include "FLAC/assert.h"
+#include "share/compat.h"
+#include "private/md5.h"
 #include "md5.h"
 
-int main(void)
+
+FLAC__bool test_md5(void)
 {
-	if(!test_md5())
-		return 1;
+	FLAC__MD5Context ctx;
+	FLAC__byte digest[16];
+	unsigned k ;
+	char * cptr;
 
-	if(!test_bitwriter())
-		return 1;
+	printf("\n+++ libFLAC unit test: md5\n\n");
 
-	if(!test_format())
-		return 1;
+	printf("testing FLAC__MD5Init ... ");
+	FLAC__MD5Init (&ctx);
+	if (ctx.buf[0] != 0x67452301) {
+		printf("FAILED!\n");
+		return false;
+	}
+	printf("OK\n");
 
-	if(!test_encoders())
-		return 1;
+	printf("testing that FLAC__MD5Final clears the MD5Context ... ");
+	FLAC__MD5Final(digest, &ctx);
+	cptr = (char*) &ctx ;
+	for (k = 0 ; k < sizeof (ctx) ; k++) {
+		if (cptr [k]) {
+			printf("FAILED, MD5 ctx has not been cleared after FLAC__MD5Final\n");
+			return false;
+		}
+	}
+	printf("OK\n");
 
-	if(!test_decoders())
-		return 1;
-
-	if(!test_metadata())
-		return 1;
-
-	return 0;
+	printf("\nPASSED!\n");
+	return true;
 }

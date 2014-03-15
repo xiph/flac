@@ -1,6 +1,5 @@
 /* test_libFLAC - Unit tester for libFLAC
- * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2013  Xiph.Org Foundation
+ * Copyright (C) 2014  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,36 +16,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#if HAVE_CONFIG_H
-#  include <config.h>
+#ifndef FLAC__TEST_LIBFLAC_MD5_H
+#define FLAC__TEST_LIBFLAC_MD5_H
+
+#include "FLAC/ordinals.h"
+
+FLAC__bool test_md5(void);
+
 #endif
-
-#include "bitwriter.h"
-#include "decoders.h"
-#include "encoders.h"
-#include "format.h"
-#include "metadata.h"
-#include "md5.h"
-
-int main(void)
-{
-	if(!test_md5())
-		return 1;
-
-	if(!test_bitwriter())
-		return 1;
-
-	if(!test_format())
-		return 1;
-
-	if(!test_encoders())
-		return 1;
-
-	if(!test_decoders())
-		return 1;
-
-	if(!test_metadata())
-		return 1;
-
-	return 0;
-}

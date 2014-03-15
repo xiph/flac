@@ -45,10 +45,12 @@ test_libFLAC_SOURCES = \
 	metadata.c \
 	metadata_manip.c \
 	metadata_object.c \
+	md5.c \
 	bitwriter.h \
 	decoders.h \
 	encoders.h \
 	format.h \
-	metadata.h
+	metadata.h \
+	md5.h
 
 CLEANFILES = test_libFLAC.exe
