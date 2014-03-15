@@ -200,14 +200,14 @@ esac],[debug=false])
 AM_CONDITIONAL(DEBUG, test "x$debug" = xtrue)
 
 AC_ARG_ENABLE(sse,
-AC_HELP_STRING([--enable-sse], [Enable SSE support by asserting that the OS supports SSE instructions]),
+AC_HELP_STRING([--disable-sse], [Disable SSE if the OS does not support SSE instructions]),
 [case "${enableval}" in
-	yes) sse_os=true ;;
-	no)  sse_os=false ;;
+	yes) sse_os=yes ;;
+	no)  sse_os=no ;;
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
-esac],[sse_os=false])
+esac],[sse_os=yes])
 AM_CONDITIONAL(FLaC__SSE_OS, test "x$sse_os" = xtrue)
-if test "x$sse_os" = xtrue ; then
+if test "x$sse_os" = xyes ; then
 AC_DEFINE(FLAC__SSE_OS)
 AH_TEMPLATE(FLAC__SSE_OS, [define if your operating system supports SSE instructions])
 fi
@@ -524,6 +524,7 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    GCC version : ......................... ${GCC_VERSION}"
 fi
 	echo "    Compiler is Clang : ................... ${xiph_cv_c_compiler_clang}"
+	echo "    SSE optimizations : ................... ${sse_os}"
 	echo "    Asm optimizations : ................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : .................... ${have_ogg}"
 echo
