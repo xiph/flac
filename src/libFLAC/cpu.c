@@ -518,7 +518,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 
 #if defined _MSC_VER
 #include <intrin.h> /* for __cpuid() */
-#elif defined __GNUC__
+#elif defined __GNUC__ && defined HAVE_CPUID_H
 #include <cpuid.h> /* for __get_cpuid() and __get_cpuid_max() */
 #endif
 
@@ -546,7 +546,7 @@ FLAC__uint32 FLAC__cpu_have_cpuid_x86(void)
 		return 1;
 	else
 		return 0;
-# elif defined __GNUC__
+# elif defined __GNUC__ && defined HAVE_CPUID_H
 	if (__get_cpuid_max(0, 0) != 0)
 		return 1;
 	else
@@ -564,7 +564,7 @@ void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx)
 	__cpuid(cpuinfo, 1);
 	*flags_ecx = cpuinfo[2];
 	*flags_edx = cpuinfo[3];
-#elif defined __GNUC__
+#elif defined __GNUC__ && defined HAVE_CPUID_H
 	FLAC__uint32 flags_eax, flags_ebx;
 	if (0 == __get_cpuid(1, &flags_eax, &flags_ebx, flags_ecx, flags_edx))
 		*flags_ecx = *flags_edx = 0;
