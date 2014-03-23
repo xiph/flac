@@ -264,7 +264,7 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
 
 	save = dest->entry;
 
-	if(0 != src->entry && src->length > 0) {
+	if(0 != src->entry) {
 		if(copy) {
 			/* do the copy first so that if we fail we leave the dest object untouched */
 			if(!copy_vcentry_(dest, src))
