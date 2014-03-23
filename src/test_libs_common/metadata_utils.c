@@ -21,7 +21,7 @@
  * These are not tests, just utility functions used by the metadata tests
  */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 

@@ -23,7 +23,7 @@
  * Convert a string between UTF-8 and the locale's charset.
  */
 
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 

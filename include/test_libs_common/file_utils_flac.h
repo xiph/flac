@@ -21,7 +21,7 @@
 #define FLAC__TEST_LIBFLAC_FILE_UTILS_H
 
 /* needed because of off_t */
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
