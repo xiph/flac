@@ -199,6 +199,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\md5.h"
+				>
+			</File>
+			<File
 				RelativePath=".\metadata.h"
 				>
 			</File>
@@ -226,6 +230,10 @@
 			</File>
 			<File
 				RelativePath=".\main.c"
+				>
+			</File>
+			<File
+				RelativePath=".\md5.c"
 				>
 			</File>
 			<File
