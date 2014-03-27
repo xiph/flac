@@ -142,7 +142,7 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX = 0x00400000;
 #  define USE_TRY_CATCH_FLAVOR /* sigill_handler flavor resulted in several crash reports on win32 */
 #  ifdef USE_TRY_CATCH_FLAVOR
 #  else
-	LONG CALLBACK sigill_handler_sse_os(EXCEPTION_POINTERS *ep)
+	LONG WINAPI sigill_handler_sse_os(EXCEPTION_POINTERS *ep)
 	{
 		if(ep->ExceptionRecord->ExceptionCode == EXCEPTION_ILLEGAL_INSTRUCTION) {
 			ep->ContextRecord->Eip += 3 + 3 + 6;
@@ -245,9 +245,9 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #endif
 
 		/*
-		 * now have to check for OS support of SSE/SSE2
+		 * now have to check for OS support of SSE instructions
 		 */
-		if(info->ia32.fxsr || info->ia32.sse || info->ia32.sse2) {
+		if(info->ia32.sse) {
 #if defined FLAC__NO_SSE_OS
 			/* assume user knows better than us; turn it off */
 			info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
@@ -292,7 +292,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 				/* http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html */
 				/* see sigill_handler_sse_os() for an explanation of the following: */
 				asm volatile (
-					"xorl %0,%0\n\t"          /* for some reason, still need to do this to clear 'sse' var */
 					"xorps %%xmm0,%%xmm0\n\t" /* will cause SIGILL if unsupported by OS */
 					"incl %0\n\t"             /* SIGILL handler will jump over this */
 					/* landing zone */
@@ -306,7 +305,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 					"nop\n\t"
 					"nop"     /* SIGILL jump lands here if "inc" is 1 byte */
 					: "=r"(sse)
-					: "r"(sse)
+					: "0"(sse)
 				);
 
 				sigaction(SIGILL, &sigill_save, NULL);
@@ -327,11 +326,12 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			}
 # else
 			int sse = 0;
+			/* From MSDN: SetUnhandledExceptionFilter replaces the existing top-level exception filter for all threads in the calling process */
+			/* So sigill_handler_sse_os() is process-wide and affects other threads as well (not a good thing for a library in a multi-threaded process) */
 			LPTOP_LEVEL_EXCEPTION_FILTER save = SetUnhandledExceptionFilter(sigill_handler_sse_os);
 			/* see GCC version above for explanation */
-			/*  http://msdn2.microsoft.com/en-us/library/4ks26t93.aspx */
-			/*  http://www.codeproject.com/cpp/gccasm.asp */
-			/*  http://www.hick.org/~mmiller/msvc_inline_asm.html */
+			/*  http://msdn.microsoft.com/en-us/library/4ks26t93.aspx */
+			/*  http://www.codeproject.com/Articles/5267/Inline-Assembly-in-GCC-Vs-VC */
 			__asm {
 				xorps xmm0,xmm0
 				inc sse
@@ -354,7 +354,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			int sse = 0;
 			/* Based on the idea described in Agner Fog's manual "Optimizing subroutines in assembly language" */
 			/* In theory, not guaranteed to detect lack of OS SSE support on some future Intel CPUs, but in practice works (see the aforementioned manual) */
-			if (info->ia32.fxsr && info->ia32.sse) {
+			if (info->ia32.fxsr) {
 				struct {
 					FLAC__uint32 buff[128];
 				} __attribute__((aligned(16))) fxsr;
@@ -403,10 +403,11 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
 #endif
 #ifdef DEBUG
-		fprintf(stderr, "  SSE OS sup . %c\n", info->ia32.sse     ? 'Y' : 'n');
+			fprintf(stderr, "  SSE OS sup . %c\n", info->ia32.sse     ? 'Y' : 'n');
 #endif
-
 		}
+		else /* info->ia32.sse == false */
+			info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
 	}
 #else
 	info->use_asm = false;
