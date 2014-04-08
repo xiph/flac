@@ -262,8 +262,8 @@ FLAC__TEST_LEVEL=2
 fi
 AC_SUBST(FLAC__TEST_LEVEL)
 
-AC_ARG_ENABLE(gcc-werror,
-	AC_HELP_STRING([--enable-gcc-werror], [Enable -Werror in all Makefiles]))
+AC_ARG_ENABLE(werror,
+	AC_HELP_STRING([--enable-werror], [Enable -Werror in all Makefiles]))
 
 AC_ARG_ENABLE(stack-smash-protection,
 	AC_HELP_STRING([--enable-stack-smash-protection], [Enable GNU GCC stack smash protection]))
@@ -396,11 +396,6 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef -Wunreachable-code " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
 
 
-	if test x$enable_gcc_werror = "xyes" ; then
-		CFLAGS="$CFLAGS -Werror "
-		CXXFLAGS="$CXXFLAGS -Werror "
-		fi
-
 	XIPH_ADD_CFLAGS([-Wdeclaration-after-statement])
 	XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
 
@@ -425,6 +420,14 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	fi
 
 XIPH_ADD_CFLAGS([-Wextra])
+
+if test x$enable_werror = "xyes" ; then
+	XIPH_ADD_CFLAGS([-Werror])
+	AC_LANG_PUSH([C++])
+	XIPH_ADD_CXXFLAGS([-Werror])
+	AC_LANG_POP([C++])
+	fi
+
 
 if test x$enable_stack_smash_protection = "xyes" ; then
 	XIPH_GCC_STACK_PROTECTOR
