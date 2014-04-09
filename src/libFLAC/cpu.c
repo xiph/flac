@@ -87,22 +87,25 @@ static void sigill_handler (int sig)
 /* how to get sysctlbyname()? */
 #endif
 
+#ifdef FLAC__CPU_IA32
 /* these are flags in EDX of CPUID AX=00000001 */
 static const unsigned FLAC__CPUINFO_IA32_CPUID_CMOV = 0x00008000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_MMX = 0x00800000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_FXSR = 0x01000000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE = 0x02000000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE2 = 0x04000000;
+#endif
 /* these are flags in ECX of CPUID AX=00000001 */
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE3 = 0x00000001;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSSE3 = 0x00000200;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE41 = 0x00080000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE42 = 0x00100000;
+#ifdef FLAC__CPU_IA32
 /* these are flags in EDX of CPUID AX=80000001 */
 static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_3DNOW = 0x80000000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXT3DNOW = 0x40000000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX = 0x00400000;
-
+#endif
 
 /*
  * Extra stuff needed for detection of OS support for SSE on IA-32

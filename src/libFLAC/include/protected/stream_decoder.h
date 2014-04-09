@@ -40,6 +40,7 @@
 
 typedef struct FLAC__StreamDecoderProtected {
 	FLAC__StreamDecoderState state;
+	FLAC__StreamDecoderInitStatus initstate;
 	unsigned channels;
 	FLAC__ChannelAssignment channel_assignment;
 	unsigned bits_per_sample;
