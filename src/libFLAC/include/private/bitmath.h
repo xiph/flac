@@ -142,8 +142,8 @@ static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 		return 0;
 #if defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
     return sizeof(FLAC__uint64) * CHAR_BIT - 1 - __builtin_clzll(v);
-/* Sorry, only supported in win64/Itanium.. and both have fast FPU which makes integer-only encoder pointless */
-#elif (defined(_MSC_VER) && (_MSC_VER >= 1400)) && (defined(_M_IA64) || defined(_WIN64))
+/* Sorry, only supported in x64/Itanium.. and both have fast FPU which makes integer-only encoder pointless */
+#elif (defined(_MSC_VER) && (_MSC_VER >= 1400)) && (defined(_M_IA64) || defined(_M_X64))
     {
         unsigned long idx;
         _BitScanReverse64(&idx, v);
