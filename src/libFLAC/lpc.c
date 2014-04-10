@@ -260,6 +260,11 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 	return 0;
 }
 
+#if defined(_MSC_VER)
+// silence MSVC warnings about __restrict modifier
+#pragma warning ( disable : 4028 )
+#endif
+
 void FLAC__lpc_compute_residual_from_qlp_coefficients(const FLAC__int32 * flac_restrict data, unsigned data_len, const FLAC__int32 * flac_restrict qlp_coeff, unsigned order, int lp_quantization, FLAC__int32 * flac_restrict residual)
 #if defined(FLAC__OVERFLOW_DETECT) || !defined(FLAC__LPC_UNROLLED_FILTER_LOOPS)
 {
@@ -1289,6 +1294,10 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 * flac_restrict residual, u
 		}
 	}
 }
+#endif
+
+#if defined(_MSC_VER)
+#pragma warning ( default : 4028 )
 #endif
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
