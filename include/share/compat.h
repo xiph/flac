@@ -163,12 +163,7 @@
 #define flac_utime utime
 #define flac_unlink unlink
 #define flac_rename rename
-
-#ifdef _WIN32
-#define flac_stat _stat64
-#else
 #define flac_stat stat
-#endif
 
 #endif
 
