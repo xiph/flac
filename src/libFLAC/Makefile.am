@@ -121,6 +121,8 @@ libFLAC_sources = \
 	cpu.c \
 	crc.c \
 	fixed.c \
+	fixed_intrin_sse2.c \
+	fixed_intrin_ssse3.c \
 	float.c \
 	format.c \
 	lpc.c \

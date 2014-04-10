@@ -324,6 +324,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\fixed_intrin_sse2.c"
+				>
+			</File>
+			<File
+				RelativePath=".\fixed_intrin_ssse3.c"
+				>
+			</File>
+			<File
 				RelativePath=".\float.c"
 				>
 			</File>
