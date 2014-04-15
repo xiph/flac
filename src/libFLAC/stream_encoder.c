@@ -980,8 +980,10 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		}
 		else
 #     endif
-		encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_intrin_sse2;
-		encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_sse2;
+		{
+			encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_intrin_sse2;
+			encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_sse2;
+		}
 #    endif
 #   endif /* FLAC__HAS_X86INTRIN */
 #  endif /* FLAC__CPU_... */
