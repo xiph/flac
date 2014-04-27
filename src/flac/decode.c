@@ -294,7 +294,7 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 	FLAC__stream_decoder_set_md5_checking(decoder_session->decoder, true);
 	if (0 != decoder_session->cue_specification)
 		FLAC__stream_decoder_set_metadata_respond(decoder_session->decoder, FLAC__METADATA_TYPE_CUESHEET);
-	if (decoder_session->replaygain.spec.apply)
+	if (decoder_session->replaygain.spec.apply || !decoder_session->channel_map_none)
 		FLAC__stream_decoder_set_metadata_respond(decoder_session->decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
 #if FLAC__HAS_OGG
