@@ -21,9 +21,9 @@
 #define FLAC__SHARE__REPLAYGAIN_SYNTHESIS_H
 
 #include <stdlib.h> /* for size_t */
-#include "FLAC/ordinals.h"
+#include "FLAC/format.h"
 
-#define FLAC_SHARE__MAX_SUPPORTED_CHANNELS 2
+#define FLAC_SHARE__MAX_SUPPORTED_CHANNELS FLAC__MAX_CHANNELS
 
 typedef enum {
 	NOISE_SHAPING_NONE = 0,
