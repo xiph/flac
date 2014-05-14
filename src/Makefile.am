@@ -29,7 +29,6 @@ SUBDIRS = \
 	libFLAC \
 	flac \
 	metaflac \
-	monkeys_audio_utilities \
 	$(XMMS_DIRS) \
 	test_grabbag \
 	test_libs_common \
