@@ -404,7 +404,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 		if(decoder->private_->cpuinfo.ia32.bswap)
 			decoder->private_->local_bitreader_read_rice_signed_block = FLAC__bitreader_read_rice_signed_block_asm_ia32_bswap;
 #endif
-		decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_asm_ia32;
+		decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_asm_ia32; /* OPT_IA32: was really necessary for GCC < 4.9 */
 		if(decoder->private_->cpuinfo.ia32.mmx) {
 			decoder->private_->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32_mmx;
@@ -417,13 +417,13 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 		}
 #endif
 #ifdef FLAC__HAS_X86INTRIN
-# if defined FLAC__SSE2_SUPPORTED && !defined FLAC__HAS_NASM /* OPT: not faster than ASM/MMX code */
+# if defined FLAC__SSE2_SUPPORTED && !defined FLAC__HAS_NASM /* OPT_SSE: not faster than ASM/MMX code */
 		if(decoder->private_->cpuinfo.ia32.sse2) {
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_16_intrin_sse2;
 			decoder->private_->local_lpc_restore_signal_16bit_order8 = FLAC__lpc_restore_signal_16_intrin_sse2;
 		}
 # endif
-# if defined FLAC__SSE4_1_SUPPORTED && 1 /* OPT: faster than asm; TODO: more tests */
+# if defined FLAC__SSE4_1_SUPPORTED && 1 /* OPT_SSE: faster than asm; TODO: more tests */
 		if(decoder->private_->cpuinfo.ia32.sse41)
 			decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_intrin_sse41;
 # endif
