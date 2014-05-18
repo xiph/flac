@@ -41,7 +41,6 @@
 
 #include <string.h> /* for memset() */
 #include <math.h>
-#include "private/fast_float_math_hack.h"
 #include "replaygain_synthesis.h"
 #include "FLAC/assert.h"
 

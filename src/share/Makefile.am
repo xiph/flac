@@ -31,7 +31,6 @@ EXTRA_DIST = \
 	replaygain_analysis/replaygain_analysis_static.vcproj \
 	replaygain_synthesis/Makefile.lite \
 	replaygain_synthesis/replaygain_synthesis_static.vcproj \
-	replaygain_synthesis/include/private/fast_float_math_hack.h \
 	utf8/Makefile.lite \
 	utf8/charmaps.h \
 	utf8/makemap.c \
