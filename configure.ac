@@ -395,7 +395,6 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	CFLAGS="$CFLAGS -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Wunreachable-code " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Winline -Wconversion
 	CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef -Wunreachable-code " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
 
-
 	XIPH_ADD_CFLAGS([-Wdeclaration-after-statement])
 	XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
 
@@ -404,6 +403,12 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	AC_LANG_POP([C++])
 
 	if test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = elf; then
+		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
+		CFLAGS="$CFLAGS -fvisibility=hidden"
+		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+		fi
+
+	if test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = macho; then
 		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
 		CFLAGS="$CFLAGS -fvisibility=hidden"
 		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
