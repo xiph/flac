@@ -36,7 +36,7 @@
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #ifndef FLAC__NO_ASM
-#if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
+#if (defined FLAC__CPU_IA32 || defined FLaC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 #include "private/lpc.h"
 #ifdef FLAC__SSE4_1_SUPPORTED
 
@@ -1134,6 +1134,6 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 }
 
 #endif /* FLAC__SSE4_1_SUPPORTED */
-#endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
+#endif /* (FLAC__CPU_IA32 || FLaC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
 #endif /* FLAC__NO_ASM */
 #endif /* FLAC__INTEGER_ONLY_LIBRARY */

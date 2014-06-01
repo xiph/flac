@@ -104,7 +104,7 @@ typedef struct {
 	FLAC__bool ext3dnow;
 	FLAC__bool extmmx;
 } FLAC__CPUInfo_IA32;
-#elif defined FLAC__CPU_X86_64
+#elif defined FLaC__CPU_X86_64
 typedef struct {
 	FLAC__bool sse3;
 	FLAC__bool ssse3;
@@ -123,7 +123,7 @@ typedef struct {
 	FLAC__CPUInfo_Type type;
 #if defined FLAC__CPU_IA32
 	FLAC__CPUInfo_IA32 ia32;
-#elif defined FLAC__CPU_X86_64
+#elif defined FLaC__CPU_X86_64
 	FLAC__CPUInfo_x86_64 x86_64;
 #elif defined FLAC__CPU_PPC
 	FLAC__CPUInfo_PPC ppc;
@@ -140,7 +140,7 @@ void         FLAC__cpu_info_asm_ia32(FLAC__uint32 *flags_edx, FLAC__uint32 *flag
 FLAC__uint32 FLAC__cpu_info_extended_amd_asm_ia32(void);
 #endif
 
-#if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
+#if (defined FLAC__CPU_IA32 || defined FLaC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 FLAC__uint32 FLAC__cpu_have_cpuid_x86(void);
 void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx);
 #endif

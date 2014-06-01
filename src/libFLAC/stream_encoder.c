@@ -961,7 +961,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		}
 #    endif
 #   endif /* FLAC__HAS_X86INTRIN */
-#  elif defined FLAC__CPU_X86_64
+#  elif defined FLaC__CPU_X86_64
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_X86_64);
 #   ifdef FLAC__HAS_X86INTRIN
 #    ifdef FLAC__SSE_SUPPORTED
@@ -1007,7 +1007,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		if(encoder->private_->cpuinfo.ia32.sse2)
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
 #  endif
-# elif defined FLAC__CPU_X86_64
+# elif defined FLaC__CPU_X86_64
 #  ifdef FLAC__SSE2_SUPPORTED
 #   ifdef FLAC__SSSE3_SUPPORTED
 		if(encoder->private_->cpuinfo.x86_64.ssse3)
@@ -4135,7 +4135,7 @@ FLAC__bool set_partitioned_rice_(
 			for(rice_parameter = 0, k = partition_samples; k < mean; rice_parameter++, k <<= 1)
 				;
 #else
-#if defined FLAC__CPU_X86_64 /* and other 64-bit arch, too */
+#if defined FLaC__CPU_X86_64 /* and other 64-bit arch, too */
 			if(mean <= 0x80000000/512) { /* 512: more or less optimal for both 16- and 24-bit input */
 #else
 			if(mean <= 0x80000000/8) { /* 32-bit arch: use 32-bit math if possible */
