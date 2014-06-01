@@ -39,7 +39,7 @@
 #include "share/compat.h"
 
 /*
- * FLAC needs to compile and work correctly on systems with a norrmal ISO C99
+ * FLAC needs to compile and work correctly on systems with a normal ISO C99
  * snprintf as well as Microsoft Visual Studio which has an non-standards
  * conformant snprint_s function.
  *
