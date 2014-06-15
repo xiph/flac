@@ -536,7 +536,11 @@ analyzeResult ( Uint32_t* Array, size_t len )
     if ( elems == 0 )
         return GAIN_NOT_ENOUGH_SAMPLES;
 
+#if 0 /* GCC bug workaround: it incorrectly calculates 'elems * (1. - RMS_PERCENTILE)' with -O3 -msse2 ... options */
     upper = (Int32_t) ceil (elems * (1. - RMS_PERCENTILE));
+#else
+    upper = (Int32_t) (elems / 20 + ((elems % 20) ? 1 : 0));
+#endif
     for ( i = len; i-- > 0; ) {
         if ( (upper -= Array[i]) <= 0 )
             break;
