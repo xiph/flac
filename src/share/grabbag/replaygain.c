@@ -129,7 +129,7 @@ FLAC__bool grabbag__replaygain_init(unsigned sample_frequency)
 FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__bool is_stereo, unsigned bps, unsigned samples)
 {
 	/* using a small buffer improves data locality; we'd like it to fit easily in the dcache */
-	static Float_t lbuffer[2048], rbuffer[2048];
+	static float_t lbuffer[2048], rbuffer[2048];
 	static const unsigned nbuffer = sizeof(lbuffer) / sizeof(lbuffer[0]);
 	FLAC__int32 block_peak = 0, s;
 	unsigned i, j;
@@ -150,12 +150,12 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 				const unsigned n = local_min(samples, nbuffer);
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
-					lbuffer[i] = (Float_t)s;
+					lbuffer[i] = (float_t)s;
 					s = abs(s);
 					block_peak = local_max(block_peak, s);
 
 					s = input[1][j];
-					rbuffer[i] = (Float_t)s;
+					rbuffer[i] = (float_t)s;
 					s = abs(s);
 					block_peak = local_max(block_peak, s);
 				}
@@ -170,7 +170,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 				const unsigned n = local_min(samples, nbuffer);
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
-					lbuffer[i] = (Float_t)s;
+					lbuffer[i] = (float_t)s;
 					s = abs(s);
 					block_peak = local_max(block_peak, s);
 				}
@@ -193,12 +193,12 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 				const unsigned n = local_min(samples, nbuffer);
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
-					lbuffer[i] = (Float_t)(scale * (double)s);
+					lbuffer[i] = (float_t)(scale * (double)s);
 					s = abs(s);
 					block_peak = local_max(block_peak, s);
 
 					s = input[1][j];
-					rbuffer[i] = (Float_t)(scale * (double)s);
+					rbuffer[i] = (float_t)(scale * (double)s);
 					s = abs(s);
 					block_peak = local_max(block_peak, s);
 				}
@@ -213,7 +213,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 				const unsigned n = local_min(samples, nbuffer);
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
-					lbuffer[i] = (Float_t)(scale * (double)s);
+					lbuffer[i] = (float_t)(scale * (double)s);
 					s = abs(s);
 					block_peak = local_max(block_peak, s);
 				}
