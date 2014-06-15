@@ -36,7 +36,7 @@
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #ifndef FLAC__NO_ASM
-#if (defined FLAC__CPU_IA32 || defined FLaC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
+#if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 #include "private/lpc.h"
 #ifdef FLAC__SSE_SUPPORTED
 
@@ -247,6 +247,6 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[]
 }
 
 #endif /* FLAC__SSE_SUPPORTED */
-#endif /* (FLAC__CPU_IA32 || FLaC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
+#endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
 #endif /* FLAC__NO_ASM */
 #endif /* FLAC__INTEGER_ONLY_LIBRARY */

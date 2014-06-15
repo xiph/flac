@@ -419,7 +419,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 /*
  * x86-64-specific
  */
-#elif defined FLaC__CPU_X86_64
+#elif defined FLAC__CPU_X86_64
 	info->type = FLAC__CPUINFO_TYPE_X86_64;
 #if !defined FLAC__NO_ASM && defined FLAC__HAS_X86INTRIN
 	info->use_asm = true;
@@ -518,7 +518,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #endif
 }
 
-#if (defined FLAC__CPU_IA32 || defined FLaC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
+#if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 
 #if defined _MSC_VER
 #include <intrin.h> /* for __cpuid() */
@@ -528,7 +528,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 
 FLAC__uint32 FLAC__cpu_have_cpuid_x86(void)
 {
-#ifdef FLaC__CPU_X86_64
+#ifdef FLAC__CPU_X86_64
 	return 1;
 #else
 # if defined _MSC_VER || defined __INTEL_COMPILER /* Do they support CPUs w/o CPUID support (or OSes that work on those CPUs)? */
@@ -577,4 +577,4 @@ void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx)
 #endif
 }
 
-#endif /* (FLAC__CPU_IA32 || FLaC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
+#endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */

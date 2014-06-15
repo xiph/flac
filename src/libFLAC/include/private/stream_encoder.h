@@ -37,7 +37,7 @@
 #include <config.h>
 #endif
 
-#if (defined FLAC__CPU_IA32 || defined FLaC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
+#if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 #include "private/cpu.h"
 #include "FLAC/format.h"
 
