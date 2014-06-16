@@ -41,7 +41,7 @@
 
 #include <string.h> /* for memset() */
 #include <math.h>
-#include "replaygain_synthesis.h"
+#include "share/replaygain_synthesis.h"
 #include "FLAC/assert.h"
 
 #define FLAC__I64L(x) x##LL

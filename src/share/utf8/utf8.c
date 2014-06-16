@@ -32,7 +32,7 @@
 
 #include "share/alloc.h"
 #include "share/safe_str.h"
-#include "utf8.h"
+#include "share/utf8.h"
 #include "charset.h"
 
 
