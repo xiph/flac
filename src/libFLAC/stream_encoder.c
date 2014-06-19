@@ -3872,10 +3872,9 @@ void precompute_partition_info_sums_(
 	FLAC__ASSERT(default_partition_samples > predictor_order);
 
 #if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && defined FLAC__HAS_NASM && 0
-	/* WATCHOUT: "+ bps" is an assumption that the average residual magnitude will not be more than "bps" bits */
-	/* previously the condition was: if(FLAC__bitmath_ilog2(default_partition_samples) + bps < 32) */
-	/* see http://git.xiph.org/?p=flac.git;a=commit;h=6f7ec60c7e7f05f5ab0b1cf6b7b0945e44afcd4b */
-	if(bps <= 16) {
+	/* WATCHOUT: "+ bps + FLAC__MAX_EXTRA_RESIDUAL_BPS" is the maximum
+	 * assumed size of the average residual magnitude */
+	if(FLAC__bitmath_ilog2(default_partition_samples) + bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < 32) {
 		FLAC__precompute_partition_info_sums_32bit_asm_ia32_(residual, abs_residual_partition_sums, residual_samples + predictor_order, predictor_order, min_partition_order, max_partition_order);
 		return;
 	}
@@ -3884,10 +3883,9 @@ void precompute_partition_info_sums_(
 	/* first do max_partition_order */
 	{
 		unsigned partition, residual_sample, end = (unsigned)(-(int)predictor_order);
-		/* WATCHOUT: "+ bps" is an assumption that the average residual magnitude will not be more than "bps" bits */
-		/* previously the condition was: if(FLAC__bitmath_ilog2(default_partition_samples) + bps < 32) */
-		/* see http://git.xiph.org/?p=flac.git;a=commit;h=6f7ec60c7e7f05f5ab0b1cf6b7b0945e44afcd4b */
-		if(bps <= 16) {
+		/* WATCHOUT: "+ bps + FLAC__MAX_EXTRA_RESIDUAL_BPS" is the maximum
+		 * assumed size of the average residual magnitude */
+		if(FLAC__bitmath_ilog2(default_partition_samples) + bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < 32) {
 			FLAC__uint32 abs_residual_partition_sum;
 
 			for(partition = residual_sample = 0; partition < partitions; partition++) {

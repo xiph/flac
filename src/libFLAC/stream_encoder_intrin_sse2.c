@@ -37,6 +37,7 @@
 #ifndef FLAC__NO_ASM
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 #include "private/stream_encoder.h"
+#include "private/bitmath.h"
 #ifdef FLAC__SSE2_SUPPORTED
 
 #include <stdlib.h>    /* for abs() */
@@ -58,7 +59,7 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 		unsigned e1, e3;
 		__m128i mm_res, mm_sum, mm_mask;
 
-		if(bps <= 16) {
+		if(FLAC__bitmath_ilog2(default_partition_samples) + bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < 32) {
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				end += default_partition_samples;
 				mm_sum = _mm_setzero_si128();

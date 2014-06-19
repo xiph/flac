@@ -37,6 +37,12 @@
 #include <config.h>
 #endif
 
+/*
+ * This is used to avoid overflow with unusual signals in 32-bit
+ * accumulator in the *precompute_partition_info_sums_* functions.
+ */
+#define FLAC__MAX_EXTRA_RESIDUAL_BPS 4
+
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 #include "private/cpu.h"
 #include "FLAC/format.h"
