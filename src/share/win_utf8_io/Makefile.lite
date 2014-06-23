@@ -4,11 +4,11 @@
 
 topdir = ../../..
 
-LIB_NAME = libreplaygain_analysis
+LIB_NAME = libwin_utf8_io
 INCLUDES = -I$(topdir)/include
 
 SRCS_C = \
-	replaygain_analysis.c
+	win_utf8_io.c
 
 include $(topdir)/build/lib.mk
 

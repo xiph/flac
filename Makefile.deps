@@ -16,6 +16,17 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
+ifeq ($(findstring Windows,$(OS)),Windows) # "Windows" is provided by GNU Make's internal $(OS)
+    LIBFLAC_DEPS = share/win_utf8_io
+else
+ifeq ($(findstring MINGW,$(OS)),MINGW) # "MINGW" is provided by config.mk's `uname -s`
+    LIBFLAC_DEPS = share/win_utf8_io
+else
+    LIBFLAC_DEPS =
+endif
+endif
+
+libFLAC: $(LIBFLAC_DEPS)
 flac: libFLAC share
 libFLAC++: libFLAC
 metaflac: libFLAC share

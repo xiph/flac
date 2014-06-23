@@ -23,21 +23,21 @@
 %.debug.o %.release.o : %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 %.debug.o %.release.o : %.cc
-	$(CCC) $(CFLAGS) -c $< -o $@
+	$(CCC) $(CXXFLAGS) -c $< -o $@
 %.debug.o %.release.o : %.cpp
-	$(CCC) $(CFLAGS) -c $< -o $@
+	$(CCC) $(CXXFLAGS) -c $< -o $@
 %.debug.pic.o %.release.pic.o : %.c
 	$(CC) $(CFLAGS) -fPIC -DPIC -c $< -o $@
 %.debug.pic.o %.release.pic.o : %.cc
-	$(CCC) $(CFLAGS) -fPIC -DPIC -c $< -o $@
+	$(CCC) $(CXXFLAGS) -fPIC -DPIC -c $< -o $@
 %.debug.pic.o %.release.pic.o : %.cpp
-	$(CCC) $(CFLAGS) -fPIC -DPIC -c $< -o $@
+	$(CCC) $(CXXFLAGS) -fPIC -DPIC -c $< -o $@
 %.debug.i %.release.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
 %.debug.i %.release.i : %.cc
-	$(CCC) $(CFLAGS) -E $< -o $@
+	$(CCC) $(CXXFLAGS) -E $< -o $@
 %.debug.i %.release.i : %.cpp
-	$(CCC) $(CFLAGS) -E $< -o $@
+	$(CCC) $(CXXFLAGS) -E $< -o $@
 
 %.debug.o %.release.o : %.s
 ifeq ($(OS),Darwin)

@@ -27,7 +27,15 @@ PROGRAM_NAME = test_streams
 
 INCLUDES = -I./include -I$(topdir)/include
 
-LIBS = -lm
+ifeq ($(OS),Darwin)
+    EXPLICIT_LIBS = $(libdir)/libgrabbag.a -lm
+else
+ifeq ($(findstring Windows,$(OS)),Windows)
+    LIBS = -lgrabbag -lwin_utf8_io -lm
+else
+    LIBS = -lgrabbag -lm
+endif
+endif
 
 SRCS_C = \
 	main.c

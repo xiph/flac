@@ -22,6 +22,8 @@
 
 USE_OGG     ?= 1
 USE_ICONV   ?= 1
+USE_LROUND  ?= 1
+USE_FSEEKO  ?= 1
 
 #
 # debug/release selection
@@ -41,11 +43,10 @@ ifdef PROC_OVERRIDE
 else
     ifeq ($(findstring MINGW,$(OS)),MINGW)
         PROC := i386 # failsafe
+        USE_ICONV := 0
         # ifeq (mingw32,$(shell gcc -dumpmachine)) # MinGW (mainline): mingw32
-        ifeq ($(findstring i686,$(shell gcc -dumpmachine)),i686) # MinGW-w64: i686-w64-mingw32
-            USE_ICONV := 0
-        else ifeq ($(findstring x86_64,$(shell gcc -dumpmachine)),x86_64) # MinGW-w64: x86_64-w64-mingw32
-            USE_ICONV := 0
+        # ifeq ($(findstring i686,$(shell gcc -dumpmachine)),i686) # MinGW-w64: i686-w64-mingw32
+        ifeq ($(findstring x86_64,$(shell gcc -dumpmachine)),x86_64) # MinGW-w64: x86_64-w64-mingw32
             PROC := x86_64
         endif
     else
@@ -82,7 +83,7 @@ all default: $(DEFAULT_BUILD)
 
 VERSION=\"1.3.0\"
 
-CONFIG_CFLAGS=-DHAVE_STDINT_H -DHAVE_INTTYPES_H -DHAVE_CXX_VARARRAYS -DHAVE_LANGINFO_CODESET -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+CONFIG_CFLAGS=$(CUSTOM_CFLAGS) -DHAVE_STDINT_H -DHAVE_INTTYPES_H -DHAVE_CXX_VARARRAYS -DHAVE_LANGINFO_CODESET -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ifeq ($(OS),Darwin)
     CONFIG_CFLAGS += -DFLAC__SYS_DARWIN -arch $(PROC)
@@ -125,3 +126,11 @@ endif
 
 OGG_INCLUDE_DIR=$(HOME)/local/include
 OGG_LIB_DIR=$(HOME)/local/lib
+
+ifneq (0,$(USE_LROUND))
+    CONFIG_CFLAGS += -DHAVE_LROUND
+endif
+
+ifneq (0,$(USE_FSEEKO))
+    CONFIG_CFLAGS += -DHAVE_FSEEKO
+endif

@@ -30,7 +30,11 @@ else
 endif
 endif
 
-.PHONY: all flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams utils flacdiff flactimer
+ifeq ($(findstring MINGW,$(OS)),MINGW)
+    EXTRA_TARGETS += share/win_utf8_io
+endif
+
+.PHONY: all flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share/win_utf8_io share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams utils flacdiff flactimer
 all: flac libFLAC libFLAC++ metaflac plugin_common $(EXTRA_TARGETS) share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams utils
 
 DEFAULT_CONFIG = release
