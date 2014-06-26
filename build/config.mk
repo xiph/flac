@@ -24,6 +24,7 @@ USE_OGG     ?= 1
 USE_ICONV   ?= 1
 USE_LROUND  ?= 1
 USE_FSEEKO  ?= 1
+USE_LANGINFO_CODESET ?= 1
 
 #
 # debug/release selection
@@ -31,23 +32,25 @@ USE_FSEEKO  ?= 1
 
 DEFAULT_BUILD = release
 
+F_PIC := -fPIC
+
 # returns Linux, Darwin, FreeBSD, etc.
-ifdef OS_OVERRIDE
-    OS := $(OS_OVERRIDE)
-else
+ifndef OS
     OS := $(shell uname -s)
 endif
 # returns i386, x86_64, powerpc, etc.
-ifdef PROC_OVERRIDE
-    PROC := $(PROC_OVERRIDE)
-else
-    ifeq ($(findstring MINGW,$(OS)),MINGW)
+ifndef PROC
+    ifeq ($(findstring Windows,$(OS)),Windows)
         PROC := i386 # failsafe
         USE_ICONV := 0
-        # ifeq (mingw32,$(shell gcc -dumpmachine)) # MinGW (mainline): mingw32
+        USE_LANGINFO_CODESET := 0
+        ifeq (mingw32,$(shell gcc -dumpmachine)) # MinGW (mainline): mingw32
+            USE_FSEEKO := 0
+        endif
         # ifeq ($(findstring i686,$(shell gcc -dumpmachine)),i686) # MinGW-w64: i686-w64-mingw32
         ifeq ($(findstring x86_64,$(shell gcc -dumpmachine)),x86_64) # MinGW-w64: x86_64-w64-mingw32
             PROC := x86_64
+            F_PIC :=
         endif
     else
         PROC := $(shell uname -p)
@@ -83,7 +86,7 @@ all default: $(DEFAULT_BUILD)
 
 VERSION=\"1.3.0\"
 
-CONFIG_CFLAGS=$(CUSTOM_CFLAGS) -DHAVE_STDINT_H -DHAVE_INTTYPES_H -DHAVE_CXX_VARARRAYS -DHAVE_LANGINFO_CODESET -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+CONFIG_CFLAGS=$(CUSTOM_CFLAGS) -DHAVE_STDINT_H -DHAVE_INTTYPES_H -DHAVE_CXX_VARARRAYS -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ifeq ($(OS),Darwin)
     CONFIG_CFLAGS += -DFLAC__SYS_DARWIN -arch $(PROC)
@@ -133,4 +136,8 @@ endif
 
 ifneq (0,$(USE_FSEEKO))
     CONFIG_CFLAGS += -DHAVE_FSEEKO
+endif
+
+ifneq (0,$(USE_LANGINFO_CODESET))
+    CONFIG_CFLAGS += -DHAVE_LANGINFO_CODESET
 endif

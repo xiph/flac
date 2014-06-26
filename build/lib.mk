@@ -39,12 +39,14 @@ RELEASE_LIBPATH   = $(OBJPATH)/release/lib
 ifeq ($(OS),Darwin)
     STATIC_LIB_SUFFIX = a
     DYNAMIC_LIB_SUFFIX = dylib
-else ifeq ($(findstring MINGW,$(OS)),MINGW)
+else
+ifeq ($(findstring Windows,$(OS)),Windows)
     STATIC_LIB_SUFFIX = a
     DYNAMIC_LIB_SUFFIX = dll
 else
     STATIC_LIB_SUFFIX = a
     DYNAMIC_LIB_SUFFIX = so
+endif
 endif
 STATIC_LIB_NAME     = $(LIB_NAME).$(STATIC_LIB_SUFFIX)
 DYNAMIC_LIB_NAME    = $(LIB_NAME).$(DYNAMIC_LIB_SUFFIX)

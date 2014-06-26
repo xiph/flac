@@ -31,7 +31,7 @@ else
 endif
 endif
 
-ifeq ($(findstring MINGW,$(OS)),MINGW)
+ifeq ($(findstring Windows,$(OS)),Windows)
     EXTRA_TARGETS += share/win_utf8_io
 endif
 
@@ -50,7 +50,7 @@ debug   : all
 valgrind: all
 release : all
 
-flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams:
+flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share/win_utf8_io share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams:
 	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
 
 flacdiff flactimer:

@@ -27,11 +27,11 @@
 %.debug.o %.release.o : %.cpp
 	$(CCC) $(CXXFLAGS) -c $< -o $@
 %.debug.pic.o %.release.pic.o : %.c
-	$(CC) $(CFLAGS) -fPIC -DPIC -c $< -o $@
+	$(CC) $(CFLAGS) $(F_PIC) -DPIC -c $< -o $@
 %.debug.pic.o %.release.pic.o : %.cc
-	$(CCC) $(CXXFLAGS) -fPIC -DPIC -c $< -o $@
+	$(CCC) $(CXXFLAGS) $(F_PIC) -DPIC -c $< -o $@
 %.debug.pic.o %.release.pic.o : %.cpp
-	$(CCC) $(CXXFLAGS) -fPIC -DPIC -c $< -o $@
+	$(CCC) $(CXXFLAGS) $(F_PIC) -DPIC -c $< -o $@
 %.debug.i %.release.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@
 %.debug.i %.release.i : %.cc

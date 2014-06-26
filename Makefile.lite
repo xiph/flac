@@ -32,7 +32,7 @@
 topdir = .
 
 .PHONY: all doc src examples libFLAC libFLAC++ share/win_utf8_io share plugin_common flac metaflac test_grabbag test_libFLAC test_libFLAC++ test_seeking test_streams flacdiff flactimer
-all: doc src examples
+all: src examples
 
 DEFAULT_CONFIG = release
 
