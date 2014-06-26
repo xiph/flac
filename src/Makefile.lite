@@ -26,7 +26,8 @@ else
 ifeq ($(PROC),x86_64)
     EXTRA_TARGETS =
 else
-    EXTRA_TARGETS = plugin_xmms
+	# Can add plugin_xmms here if desired.
+    EXTRA_TARGETS =
 endif
 endif
 
@@ -34,8 +35,8 @@ ifeq ($(findstring MINGW,$(OS)),MINGW)
     EXTRA_TARGETS += share/win_utf8_io
 endif
 
-.PHONY: all flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share/win_utf8_io share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams utils flacdiff flactimer
-all: flac libFLAC libFLAC++ metaflac plugin_common $(EXTRA_TARGETS) share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams utils
+.PHONY: all flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share/win_utf8_io share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams flacdiff flactimer
+all: flac libFLAC libFLAC++ metaflac plugin_common $(EXTRA_TARGETS) share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams
 
 DEFAULT_CONFIG = release
 
@@ -48,8 +49,6 @@ release : CONFIG = release
 debug   : all
 valgrind: all
 release : all
-
-all: flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams utils
 
 flac libFLAC libFLAC++ metaflac plugin_common plugin_xmms share test_grabbag test_libs_common test_libFLAC test_libFLAC++ test_seeking test_streams:
 	(cd $@ ; $(MAKE) -f Makefile.lite $(CONFIG))
