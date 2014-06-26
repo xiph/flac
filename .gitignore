@@ -42,7 +42,8 @@ m4/lt~obsolete.m4
 man/manpage.links
 man/manpage.refs
 missing
-obj
+objs/debug
+objs/release
 src/flac/flac
 src/libFLAC++/flac++.pc
 src/libFLAC/flac.pc
