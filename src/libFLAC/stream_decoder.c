@@ -1456,6 +1456,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 		unsigned real_length = length;
 		FLAC__StreamMetadata block;
 
+		memset(&block, 0, sizeof(block));
 		block.is_last = is_last;
 		block.type = (FLAC__MetadataType)type;
 		block.length = length;
@@ -1480,36 +1481,37 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 				return false; /* read_callback_ sets the state for us */
 		}
 		else {
+			FLAC__bool ok = true;
 			switch(type) {
 				case FLAC__METADATA_TYPE_PADDING:
 					/* skip the padding bytes */
 					if(!FLAC__bitreader_skip_byte_block_aligned_no_crc(decoder->private_->input, real_length))
-						return false; /* read_callback_ sets the state for us */
+						ok = false; /* read_callback_ sets the state for us */
 					break;
 				case FLAC__METADATA_TYPE_APPLICATION:
 					/* remember, we read the ID already */
 					if(real_length > 0) {
 						if(0 == (block.data.application.data = malloc(real_length))) {
 							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-							return false;
+							ok = false;
 						}
-						if(!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, block.data.application.data, real_length))
-							return false; /* read_callback_ sets the state for us */
+						else if(!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, block.data.application.data, real_length))
+							ok = false; /* read_callback_ sets the state for us */
 					}
 					else
 						block.data.application.data = 0;
 					break;
 				case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 					if(!read_metadata_vorbiscomment_(decoder, &block.data.vorbis_comment))
-						return false;
+						ok = false;
 					break;
 				case FLAC__METADATA_TYPE_CUESHEET:
 					if(!read_metadata_cuesheet_(decoder, &block.data.cue_sheet))
-						return false;
+						ok = false;
 					break;
 				case FLAC__METADATA_TYPE_PICTURE:
 					if(!read_metadata_picture_(decoder, &block.data.picture))
-						return false;
+						ok = false;
 					break;
 				case FLAC__METADATA_TYPE_STREAMINFO:
 				case FLAC__METADATA_TYPE_SEEKTABLE:
@@ -1519,16 +1521,16 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 					if(real_length > 0) {
 						if(0 == (block.data.unknown.data = malloc(real_length))) {
 							decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-							return false;
+							ok = false;
 						}
-						if(!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, block.data.unknown.data, real_length))
-							return false; /* read_callback_ sets the state for us */
+						else if(!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, block.data.unknown.data, real_length))
+							ok = false; /* read_callback_ sets the state for us */
 					}
 					else
 						block.data.unknown.data = 0;
 					break;
 			}
-			if(!decoder->private_->is_seeking && decoder->private_->metadata_callback)
+			if(ok && !decoder->private_->is_seeking && decoder->private_->metadata_callback)
 				decoder->private_->metadata_callback(decoder, &block, decoder->private_->client_data);
 
 			/* now we have to free any malloc()ed data in the block */
@@ -1573,6 +1575,9 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 						free(block.data.unknown.data);
 					break;
 			}
+
+			if(!ok) /* anything that unsets "ok" should also make sure decoder->protected_->state is updated */
+				return false;
 		}
 	}
 
