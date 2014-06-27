@@ -623,7 +623,7 @@ FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadat
 
 	/*
 	 * We need to save the old locale and switch to "C" because the locale
-	 * influences the formatting of %f and we want it a certain way.
+	 * influences the behaviour of strtod and we want it a certain way.
 	 */
 	saved_locale = strdup(setlocale(LC_ALL, 0));
 	if (0 == saved_locale)
