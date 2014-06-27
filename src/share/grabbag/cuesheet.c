@@ -585,7 +585,6 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 		return false;
 	}
 	return true;
-#undef FLAC__STRCASECMP
 }
 
 FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, unsigned *last_line_read, unsigned sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)

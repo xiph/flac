@@ -44,7 +44,6 @@
 
 #include "share/compat.h"
 #include "share/win_utf8_io.h"
-#include "share/compat.h"
 
 static UINT win_utf8_io_codepage = CP_ACP;
 
