@@ -89,8 +89,8 @@ wchar_t *wchar_from_utf8(const char *str)
 /* retrieve WCHAR commandline, expand wildcards and convert everything to UTF-8 */
 int get_utf8_argv(int *argc, char ***argv)
 {
-	typedef int (__cdecl *__wgetmainargs_)(int*, wchar_t***, wchar_t***, int, int*);
-	__wgetmainargs_ __wgetmainargs;
+	typedef int (__cdecl *wgetmainargs_t)(int*, wchar_t***, wchar_t***, int, int*);
+	wgetmainargs_t wgetmainargs;
 	HMODULE handle;
 	int wargc;
 	wchar_t **wargv;
@@ -99,9 +99,9 @@ int get_utf8_argv(int *argc, char ***argv)
 	int ret, i;
 
 	if ((handle = LoadLibrary("msvcrt.dll")) == NULL) return 1;
-	if ((__wgetmainargs = (__wgetmainargs_)GetProcAddress(handle, "__wgetmainargs")) == NULL) return 1;
+	if ((wgetmainargs = (wgetmainargs_t)GetProcAddress(handle, "__wgetmainargs")) == NULL) return 1;
 	i = 0;
-	if (__wgetmainargs(&wargc, &wargv, &wenv, 1, &i) != 0) return 1;
+	if (wgetmainargs(&wargc, &wargv, &wenv, 1, &i) != 0) return 1;
 	if ((utf8argv = (char **)malloc(wargc*sizeof(char*))) == NULL) return 1;
 	ret = 0;
 
