@@ -1191,7 +1191,7 @@ static void usage_summary(void)
 	printf("Analyzing: flac -a [<general-options>] [<analysis-options>] [FLACFILE [...]]\n");
 	printf("\n");
 	printf("Be sure to read the list of known bugs at:\n");
-	printf("http://flac.sourceforge.net/documentation_bugs.html\n");
+	printf("http://xiph.org/flac/documentation_bugs.html\n");
 	printf("\n");
 }
 
@@ -1203,7 +1203,7 @@ void short_usage(void)
 	printf("instructions use 'flac --explain'\n");
 	printf("\n");
 	printf("Be sure to read the list of known bugs at:\n");
-	printf("http://flac.sourceforge.net/documentation_bugs.html\n");
+	printf("http://xiph.org/flac/documentation_bugs.html\n");
 	printf("\n");
 	printf("To encode:\n");
 	printf("  flac [-#] [INPUTFILE [...]]\n");

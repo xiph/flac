@@ -500,7 +500,7 @@ FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const 
  * \retval unsigned
  *    The length of the metadata block at the current iterator position.
  *    The is same length as that in the
- *    <a href="http://flac.sourceforge.net/format.html#metadata_block_header">metadata block header</a>,
+ *    <a href="http://xiph.org/flac/format.html#metadata_block_header">metadata block header</a>,
  *    i.e. the length of the metadata body that follows the header.
  */
 FLAC_API unsigned FLAC__metadata_simple_iterator_get_block_length(const FLAC__Metadata_SimpleIterator *iterator);

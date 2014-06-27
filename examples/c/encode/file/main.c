@@ -22,7 +22,7 @@
  * file.  It only supports 16-bit stereo files in canonical WAVE format.
  *
  * Complete API documentation can be found at:
- *   http://flac.sourceforge.net/api/
+ *   http://xiph.org/flac/api/
  */
 
 #ifdef HAVE_CONFIG_H

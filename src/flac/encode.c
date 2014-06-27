@@ -2691,7 +2691,7 @@ void print_error_with_init_status(const EncoderSession *e, const char *message, 
 			"The encoding parameters specified do not conform to the FLAC Subset and may not\n"
 			"be streamable or playable in hardware devices.  If you really understand the\n"
 			"consequences, you can add --lax to the command-line options to encode with\n"
-			"these parameters anyway.  See http://flac.sourceforge.net/format.html#subset\n"
+			"these parameters anyway.  See http://xiph.org/flac/format.html#subset\n"
 		);
 	}
 }
@@ -2734,10 +2734,10 @@ void print_verify_error(EncoderSession *e)
 	flac__utils_printf(stderr, 1, "       and repeat the flac command exactly as before.  If it does not give a\n");
 	flac__utils_printf(stderr, 1, "       verify error in the exact same place each time you try it, then there is\n");
 	flac__utils_printf(stderr, 1, "       a problem with your hardware; please see the FAQ:\n");
-	flac__utils_printf(stderr, 1, "           http://flac.sourceforge.net/faq.html#tools__hardware_prob\n");
+	flac__utils_printf(stderr, 1, "           http://xiph.org/flac/faq.html#tools__hardware_prob\n");
 	flac__utils_printf(stderr, 1, "       If it does fail in the exact same place every time, keep\n");
 	flac__utils_printf(stderr, 1, "       %s and submit a bug report to:\n", e->outfilename);
-	flac__utils_printf(stderr, 1, "           https://sourceforge.net/bugs/?func=addbug&group_id=13478\n");
+	flac__utils_printf(stderr, 1, "           https://sourceforge.net/p/flac/bugs/\n");
 	flac__utils_printf(stderr, 1, "       Make sure to upload the FLAC file and use the \"Monitor\" feature to\n");
 	flac__utils_printf(stderr, 1, "       monitor the bug status.\n");
 	flac__utils_printf(stderr, 1, "Verify FAILED!  Do not trust %s\n", e->outfilename);

@@ -1418,7 +1418,7 @@ void print_error_with_state(const DecoderSession *d, const char *message)
 			"not able to decode the file.  If the version number is not, the file\n"
 			"may be corrupted, or you may have found a bug.  In this case please\n"
 			"submit a bug report to\n"
-			"    http://sourceforge.net/bugs/?func=addbug&group_id=13478\n"
+			"    https://sourceforge.net/p/flac/bugs/\n"
 			"Make sure to use the \"Monitor\" feature to monitor the bug status.\n",
 			d->inbasefilename, FLAC__VERSION_STRING
 		);
