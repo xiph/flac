@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)objs\$(ConfigurationName)\bin"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)_iffscan"
 			ConfigurationType="1"
 			>
 			<Tool
@@ -94,7 +94,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)objs\$(ConfigurationName)\bin"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)_iffscan"
 			ConfigurationType="1"
 			WholeProgramOptimization="1"
 			>
