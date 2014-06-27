@@ -1987,6 +1987,8 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 				p = options.padding;
 			if(p < 0)
 				p = e->total_samples_to_encode / sample_rate < 20*60? FLAC_ENCODE__DEFAULT_PADDING : FLAC_ENCODE__DEFAULT_PADDING*8;
+			if(p > 0)
+				p += (e->replay_gain ? GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED : 0);
 			if(options.padding != 0) {
 				if(p > 0 && flac_decoder_data->num_metadata_blocks < sizeof(flac_decoder_data->metadata_blocks)/sizeof(flac_decoder_data->metadata_blocks[0])) {
 					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
@@ -2043,7 +2045,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		if(options.padding != 0) {
 			padding.is_last = false; /* the encoder will set this for us */
 			padding.type = FLAC__METADATA_TYPE_PADDING;
-			padding.length = (unsigned)(options.padding>0? options.padding : (e->total_samples_to_encode / sample_rate < 20*60? FLAC_ENCODE__DEFAULT_PADDING : FLAC_ENCODE__DEFAULT_PADDING*8));
+			padding.length = (unsigned)(options.padding>0? options.padding : (e->total_samples_to_encode / sample_rate < 20*60? FLAC_ENCODE__DEFAULT_PADDING : FLAC_ENCODE__DEFAULT_PADDING*8)) + (e->replay_gain ? GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED : 0);
 			static_metadata_append(&static_metadata, &padding, /*needs_delete=*/false);
 		}
 		metadata = static_metadata.metadata;

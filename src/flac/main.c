@@ -437,20 +437,11 @@ int do_it(void)
 				return usage_error("ERROR: --replay-gain can only be done with mono/stereo input\n");
 			if(option_values.format_sample_rate >= 0 && !grabbag__replaygain_is_valid_sample_frequency(option_values.format_sample_rate))
 				return usage_error("ERROR: invalid sample rate used with --replay-gain\n");
-			/*
-			 * We want to reserve padding space for the ReplayGain
-			 * tags that we will set later, to avoid rewriting the
-			 * whole file.
-			 */
 			if(
 				(option_values.padding >= 0 && option_values.padding < (int)GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED) ||
 				(option_values.padding < 0 && FLAC_ENCODE__DEFAULT_PADDING < (int)GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED)
 			) {
 				flac__utils_printf(stderr, 1, "NOTE: --replay-gain may leave a small PADDING block even with --no-padding\n");
-				option_values.padding = GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
-			}
-			else {
-				option_values.padding += GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED;
 			}
 		}
 		if(option_values.num_files > 1 && option_values.cmdline_forced_outfilename) {
