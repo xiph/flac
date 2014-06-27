@@ -97,11 +97,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-#ifdef HAVE_STDINT_H
-#include <stdint.h>
-#endif
-
+#include "share/compat.h"
 #include "share/replaygain_analysis.h"
 
 flac_float_t ReplayGainReferenceLoudness = 89.0; /* in dB SPL */
