@@ -35,7 +35,6 @@
 #endif
 
 #include "private/bitmath.h"
-#include "FLAC/assert.h"
 
 /* An example of what FLAC__bitmath_silog2() computes:
  *
