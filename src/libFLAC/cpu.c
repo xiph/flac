@@ -565,6 +565,11 @@ void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx)
 {
 #if defined _MSC_VER || defined __INTEL_COMPILER
 	int cpuinfo[4];
+	__cpuid(cpuinfo, 0);
+	if(cpuinfo[0] < 1) {
+		*flags_ecx = *flags_edx = 0;
+		return;
+	}
 	__cpuid(cpuinfo, 1);
 	*flags_ecx = cpuinfo[2];
 	*flags_edx = cpuinfo[3];

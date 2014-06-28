@@ -47,7 +47,6 @@ cglobal FLAC__cpu_info_extended_amd_asm_ia32
 ;
 
 cident FLAC__cpu_have_cpuid_asm_ia32
-	push	ebx
 	pushfd
 	pop	eax
 	mov	edx, eax
@@ -56,14 +55,11 @@ cident FLAC__cpu_have_cpuid_asm_ia32
 	popfd
 	pushfd
 	pop	eax
-	cmp	eax, edx
-	jz	.no_cpuid
-	mov	eax, 1
-	jmp	.end
-.no_cpuid:
-	xor	eax, eax
-.end:
-	pop	ebx
+	xor	eax, edx
+	and	eax, 0x00200000
+	shr	eax, 0x15
+	push	edx
+	popfd
 	ret
 
 ; **********************************************************************
@@ -79,6 +75,10 @@ cident FLAC__cpu_info_asm_ia32
 	call	FLAC__cpu_have_cpuid_asm_ia32
 	test	eax, eax
 	jz	.no_cpuid
+	mov	eax, 0
+	cpuid
+	cmp	eax, 1
+	jb	.no_cpuid
 	mov	eax, 1
 	cpuid
 	mov	ebx, [esp + 8]
