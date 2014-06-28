@@ -399,6 +399,20 @@ int do_it(void)
 			if(option_values.format_sample_rate >= 0)
 				return usage_error("ERROR: --sample-rate not allowed with --decode\n");
 		}
+		else {
+			if(!option_values.force_raw_format) {
+				if(option_values.format_is_big_endian >= 0)
+					return usage_error("ERROR: --endian only allowed with --force-raw-format\n");
+				if(option_values.format_is_unsigned_samples >= 0)
+					return usage_error("ERROR: --sign only allowed with --force-raw-format\n");
+				if(option_values.format_channels >= 0)
+					return usage_error("ERROR: --channels only allowed with --force-raw-format\n");
+				if(option_values.format_bps >= 0)
+					return usage_error("ERROR: --bps only allowed with --force-raw-format\n");
+				if(option_values.format_sample_rate >= 0)
+					return usage_error("ERROR: --sample-rate only allowed with --force-raw-format\n");
+			}
+		}
 
 		if(option_values.ignore_chunk_sizes) {
 			if(option_values.mode_decode)
@@ -1273,16 +1287,17 @@ void show_help(void)
 	printf("  -q, --qlp-coeff-precision=#        Specify precision in bits\n");
 	printf("  -r, --rice-partition-order=[#,]#   Set [min,]max residual partition order\n");
 	printf("format options:\n");
+	printf("      --force-raw-format       Treat input or output as raw samples\n");
+	printf("      --force-aiff-format      Force decoding to AIFF format\n");
+	printf("      --force-rf64-format      Force decoding to RF64 format\n");
+	printf("      --force-wave64-format    Force decoding to Wave64 format\n");
+	printf("format options for raw input:\n");
 	printf("      --endian={big|little}    Set byte order for samples\n");
 	printf("      --channels=#             Number of channels\n");
 	printf("      --bps=#                  Number of bits per sample\n");
 	printf("      --sample-rate=#          Sample rate in Hz\n");
 	printf("      --sign={signed|unsigned} Sign of samples\n");
 	printf("      --input-size=#           Size of the raw input in bytes\n");
-	printf("      --force-raw-format       Treat input or output as raw samples\n");
-	printf("      --force-aiff-format      Force decoding to AIFF format\n");
-	printf("      --force-rf64-format      Force decoding to RF64 format\n");
-	printf("      --force-wave64-format    Force decoding to Wave64 format\n");
 	printf("negative options:\n");
 	printf("      --no-adaptive-mid-side\n");
 	printf("      --no-cued-seekpoints\n");
@@ -1598,20 +1613,6 @@ void show_explain(void)
 	printf("                                     default is -r 0; above 4 doesn't usually\n");
 	printf("                                     help much)\n");
 	printf("format options:\n");
-	printf("      --endian={big|little}    Set byte order for samples\n");
-	printf("      --channels=#             Number of channels\n");
-	printf("      --bps=#                  Number of bits per sample\n");
-	printf("      --sample-rate=#          Sample rate in Hz\n");
-	printf("      --sign={signed|unsigned} Sign of samples (the default is signed)\n");
-	printf("      --input-size=#           Size of the raw input in bytes.  If you are\n");
-	printf("                               encoding raw samples from stdin, you must set\n");
-	printf("                               this option in order to be able to use --skip,\n");
-	printf("                               --until, --cuesheet, or other options that need\n");
-	printf("                               to know the size of the input beforehand.  If\n");
-	printf("                               the size given is greater than what is found in\n");
-	printf("                               the input stream, the encoder will complain\n");
-	printf("                               about an unexpected end-of-file.  If the size\n");
-	printf("                               given is less, samples will be truncated.\n");
 	printf("      --force-raw-format       Force input (when encoding) or output (when\n");
 	printf("                               decoding) to be treated as raw samples\n");
 	printf("      --force-aiff-format      Force the decoder to output AIFF format.  This\n");
@@ -1629,6 +1630,21 @@ void show_explain(void)
 	printf("                               set by -o) ends with .w64; this option\n");
 	printf("                               has no effect when encoding since input Wave64 is\n");
 	printf("                               auto-detected.\n");
+	printf("format options for raw input:\n");
+	printf("      --endian={big|little}    Set byte order for samples\n");
+	printf("      --channels=#             Number of channels\n");
+	printf("      --bps=#                  Number of bits per sample\n");
+	printf("      --sample-rate=#          Sample rate in Hz\n");
+	printf("      --sign={signed|unsigned} Sign of samples (the default is signed)\n");
+	printf("      --input-size=#           Size of the raw input in bytes.  If you are\n");
+	printf("                               encoding raw samples from stdin, you must set\n");
+	printf("                               this option in order to be able to use --skip,\n");
+	printf("                               --until, --cuesheet, or other options that need\n");
+	printf("                               to know the size of the input beforehand.  If\n");
+	printf("                               the size given is greater than what is found in\n");
+	printf("                               the input stream, the encoder will complain\n");
+	printf("                               about an unexpected end-of-file.  If the size\n");
+	printf("                               given is less, samples will be truncated.\n");
 	printf("negative options:\n");
 	printf("      --no-adaptive-mid-side\n");
 	printf("      --no-cued-seekpoints\n");
