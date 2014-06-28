@@ -48,8 +48,8 @@
 #define RESIDUAL16_RESULT(xmmN) curr = *data++; *residual++ = curr - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
 #define     DATA16_RESULT(xmmN) curr = *residual++ + (_mm_cvtsi128_si32(xmmN) >> lp_quantization); *data++ = curr;
 
-#define RESIDUAL_RESULT(xmmN) residual[i] = data[i] - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
-#define     DATA_RESULT(xmmN) data[i] = residual[i] + (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
+#define RESIDUAL32_RESULT(xmmN) residual[i] = data[i] - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
+#define     DATA32_RESULT(xmmN) data[i] = residual[i] + (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
 
 FLAC__SSE_TARGET("sse2")
 void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[])
@@ -828,7 +828,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 11 */
@@ -888,7 +888,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 			}
@@ -944,7 +944,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 9 */
@@ -995,7 +995,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 			}
@@ -1044,7 +1044,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 7 */
@@ -1086,7 +1086,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 			}
@@ -1124,7 +1124,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 5 */
@@ -1157,7 +1157,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 			}
@@ -1188,7 +1188,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 3 */
@@ -1212,7 +1212,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 			}
@@ -1231,7 +1231,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 						xmm7 = _mm_mul_epu32(xmm7, xmm0);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 1 */
@@ -2065,7 +2065,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 11 */
@@ -2125,7 +2125,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 			}
@@ -2181,7 +2181,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 9 */
@@ -2232,7 +2232,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 			}
@@ -2281,7 +2281,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 7 */
@@ -2323,7 +2323,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 			}
@@ -2361,7 +2361,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 5 */
@@ -2394,7 +2394,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 			}
@@ -2425,7 +2425,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 3 */
@@ -2449,7 +2449,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_add_epi32(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 			}
@@ -2468,7 +2468,7 @@ void FLAC__lpc_restore_signal_intrin_sse2(const FLAC__int32 residual[], unsigned
 						xmm7 = _mm_mul_epu32(xmm7, xmm0);
 
 						xmm7 = _mm_add_epi32(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA32_RESULT(xmm7);
 					}
 				}
 				else { /* order == 1 */

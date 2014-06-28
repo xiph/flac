@@ -46,15 +46,15 @@
 #include <smmintrin.h> /* SSE4.1 */
 
 #ifdef FLAC__CPU_IA32
-#define RESIDUAL_RESULT(xmmN) residual[i] = data[i] - _mm_cvtsi128_si32(_mm_srl_epi64(xmmN, cnt));
-#define     DATA_RESULT(xmmN) data[i] = residual[i] + _mm_cvtsi128_si32(_mm_srl_epi64(xmmN, cnt));
-#define RESIDUAL_RESULT1(xmmN) residual[i] = data[i] - _mm_cvtsi128_si32(_mm_srli_epi64(xmmN, lp_quantization));
-#define     DATA_RESULT1(xmmN) data[i] = residual[i] + _mm_cvtsi128_si32(_mm_srli_epi64(xmmN, lp_quantization));
+#define RESIDUAL64_RESULT(xmmN) residual[i] = data[i] - _mm_cvtsi128_si32(_mm_srl_epi64(xmmN, cnt));
+#define     DATA64_RESULT(xmmN) data[i] = residual[i] + _mm_cvtsi128_si32(_mm_srl_epi64(xmmN, cnt));
+#define RESIDUAL64_RESULT1(xmmN) residual[i] = data[i] - _mm_cvtsi128_si32(_mm_srli_epi64(xmmN, lp_quantization));
+#define     DATA64_RESULT1(xmmN) data[i] = residual[i] + _mm_cvtsi128_si32(_mm_srli_epi64(xmmN, lp_quantization));
 #else
-#define RESIDUAL_RESULT(xmmN) residual[i] = data[i] - (FLAC__int32)(_mm_cvtsi128_si64(xmmN) >> lp_quantization);
-#define     DATA_RESULT(xmmN) data[i] = residual[i] + (FLAC__int32)(_mm_cvtsi128_si64(xmmN) >> lp_quantization);
-#define RESIDUAL_RESULT1(xmmN) RESIDUAL_RESULT(xmmN)
-#define     DATA_RESULT1(xmmN) DATA_RESULT(xmmN)
+#define RESIDUAL64_RESULT(xmmN) residual[i] = data[i] - (FLAC__int32)(_mm_cvtsi128_si64(xmmN) >> lp_quantization);
+#define     DATA64_RESULT(xmmN) data[i] = residual[i] + (FLAC__int32)(_mm_cvtsi128_si64(xmmN) >> lp_quantization);
+#define RESIDUAL64_RESULT1(xmmN) RESIDUAL64_RESULT(xmmN)
+#define     DATA64_RESULT1(xmmN) DATA64_RESULT(xmmN)
 #endif
 
 FLAC__SSE_TARGET("sse4.1")
@@ -67,7 +67,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 
 	FLAC__ASSERT(order > 0);
 	FLAC__ASSERT(order <= 32);
-	FLAC__ASSERT(lp_quantization <= 32); /* there's no _mm_srai_epi64() so we have to use _mm_srli_epi64() */
+	FLAC__ASSERT(lp_quantization <= 32); /* there's no _mm_sra_epi64() so we have to use _mm_srl_epi64() */
 
 	if(order <= 12) {
 		if(order > 8) { /* order == 9, 10, 11, 12 */
@@ -132,7 +132,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT1(xmm7);
+						RESIDUAL64_RESULT1(xmm7);
 					}
 				}
 				else { /* order == 11 */
@@ -192,7 +192,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT1(xmm7);
+						RESIDUAL64_RESULT1(xmm7);
 					}
 				}
 			}
@@ -248,7 +248,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 9 */
@@ -299,7 +299,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 			}
@@ -348,7 +348,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 7 */
@@ -390,7 +390,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 			}
@@ -428,7 +428,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 5 */
@@ -461,7 +461,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 			}
@@ -492,7 +492,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 3 */
@@ -516,7 +516,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 			}
@@ -535,7 +535,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						xmm7 = _mm_mul_epi32(xmm7, xmm0);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 1 */
@@ -546,7 +546,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 						//sum = qlp_coeff[0] * (FLAC__int64)data[i-1];
 						xmm7 = _mm_cvtsi32_si128(data[i-1]);
 						xmm7 = _mm_mul_epi32(xmm7, xmm0);
-						RESIDUAL_RESULT(xmm7);
+						RESIDUAL64_RESULT(xmm7);
 					}
 				}
 			}
@@ -605,7 +605,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 
 	FLAC__ASSERT(order > 0);
 	FLAC__ASSERT(order <= 32);
-	FLAC__ASSERT(lp_quantization <= 32); /* there's no _mm_srai_epi64() so we have to use _mm_srli_epi64() */
+	FLAC__ASSERT(lp_quantization <= 32); /* there's no _mm_sra_epi64() so we have to use _mm_srl_epi64() */
 
 	if(order <= 12) {
 		if(order > 8) { /* order == 9, 10, 11, 12 */
@@ -670,7 +670,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT1(xmm7);
+						DATA64_RESULT1(xmm7);
 					}
 				}
 				else { /* order == 11 */
@@ -730,7 +730,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT1(xmm7);
+						DATA64_RESULT1(xmm7);
 					}
 				}
 			}
@@ -786,7 +786,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 9 */
@@ -837,7 +837,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 			}
@@ -886,7 +886,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 7 */
@@ -928,7 +928,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 			}
@@ -966,7 +966,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 5 */
@@ -999,7 +999,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 			}
@@ -1030,7 +1030,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 3 */
@@ -1054,7 +1054,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_add_epi64(xmm7, xmm6);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 			}
@@ -1073,7 +1073,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						xmm7 = _mm_mul_epi32(xmm7, xmm0);
 
 						xmm7 = _mm_add_epi64(xmm7, _mm_srli_si128(xmm7, 8));
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 				else { /* order == 1 */
@@ -1084,7 +1084,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
 						//sum = qlp_coeff[0] * (FLAC__int64)data[i-1];
 						xmm7 = _mm_cvtsi32_si128(data[i-1]);
 						xmm7 = _mm_mul_epi32(xmm7, xmm0);
-						DATA_RESULT(xmm7);
+						DATA64_RESULT(xmm7);
 					}
 				}
 			}
