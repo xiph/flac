@@ -339,7 +339,7 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 	/* only the channel mask must be set if it was not already picked up from the WAVEFORMATEXTENSIBLE_CHANNEL_MASK tag */
 	if(!d->channel_map_none && d->channel_mask == 0) {
 		if(d->channels == 1) {
-			d->channel_mask = 0x0001;
+			d->channel_mask = 0x0004;
 		}
 		else if(d->channels == 2) {
 			d->channel_mask = 0x0003;

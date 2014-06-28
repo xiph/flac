@@ -428,14 +428,14 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				/* for mono/stereo and unassigned channels, we fake the mask */
 				if(channel_mask == 0) {
 					if(channels == 1)
-						channel_mask = 0x0001;
+						channel_mask = 0x0004;
 					else if(channels == 2)
 						channel_mask = 0x0003;
 				}
 				/* set channel mapping */
 				/* FLAC order follows SMPTE and WAVEFORMATEXTENSIBLE but with fewer channels, which are: */
-				/* front left, front right, center, LFE, back left, back right, surround left, surround right */
-				/* the default mapping is sufficient for 1-6 channels and 7-8 are currently unspecified anyway */
+				/* front left, front right, front center, LFE, back left, back right, back center, side left, side right */
+				/* the default mapping is sufficient for 1-8 channels */
 #if 0
 				/* @@@ example for dolby/vorbis order, for reference later in case it becomes important */
 				if(
@@ -472,7 +472,9 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 #else
 				if(
 					options.channel_map_none ||
-					channel_mask == 0x0001 || /* 1 channel: (mono) */
+					channel_mask == 0x0001 || /* 1 channel: front left */
+					channel_mask == 0x0002 || /* 1 channel: front right */
+					channel_mask == 0x0004 || /* 1 channel: mono or front center */
 					channel_mask == 0x0003 || /* 2 channels: front left, front right */
 					channel_mask == 0x0007 || /* 3 channels: front left, front right, front center */
 					channel_mask == 0x0033 || /* 4 channels: front left, front right, back left, back right */
@@ -488,7 +490,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				}
 #endif
 				else {
-					flac__utils_printf(stderr, 1, "%s: ERROR: WAVEFORMATEXTENSIBLE chunk with unsupported channel mask=0x%04X\n\nUse --channel-map=none option to store channels in current order; FLAC files\nmust also be decoded with --channel-map=none to restore correct order.\n", e->inbasefilename, (unsigned)channel_mask);
+					flac__utils_printf(stderr, 1, "%s: ERROR: WAVEFORMATEXTENSIBLE chunk with unsupported channel mask=0x%04X\n\nUse --channel-map=none option to encode the input\n", e->inbasefilename, (unsigned)channel_mask);
 					return false;
 				}
 				if(!options.channel_map_none) {
