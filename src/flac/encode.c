@@ -89,7 +89,8 @@ typedef struct {
 	FLAC__uint64 unencoded_size; /* an estimate of the input size, only used in the progress indicator */
 	FLAC__uint64 bytes_written;
 	FLAC__uint64 samples_written;
-	unsigned stats_mask;
+	unsigned stats_frames_interval;
+	unsigned old_frames_written;
 
 	SampleInfo info;
 
@@ -1531,7 +1532,8 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options,
 	e->unencoded_size = 0;
 	e->bytes_written = 0;
 	e->samples_written = 0;
-	e->stats_mask = 0;
+	e->stats_frames_interval = 0;
+	e->old_frames_written = 0;
 
 	memset(&e->info, 0, sizeof(e->info));
 
@@ -2158,10 +2160,10 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	else
 		e->outputfile_opened = true;
 
-	e->stats_mask =
-		(FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) && FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x07 :
-		(FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x0f :
-		0x3f;
+	e->stats_frames_interval =
+		(FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) && FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x1f :
+		(FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x3f :
+		0xff;
 
 	static_metadata_clear(&static_metadata);
 
@@ -2443,10 +2445,10 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 #if defined _MSC_VER || defined __MINGW32__
 	/* with MSVC you have to spoon feed it the casting */
 	e->progress = (double)(FLAC__int64)samples_written / (double)(FLAC__int64)e->total_samples_to_encode;
-	e->compression_ratio = (double)(FLAC__int64)e->bytes_written / ((double)(FLAC__int64)(uesize? uesize:1) * min(1.0, e->progress));
+	e->compression_ratio = e->progress ? (double)(FLAC__int64)e->bytes_written / ((double)(FLAC__int64)(uesize? uesize:1) * min(1.0, e->progress)) : 0;
 #else
 	e->progress = (double)samples_written / (double)e->total_samples_to_encode;
-	e->compression_ratio = (double)e->bytes_written / ((double)(uesize? uesize:1) * min(1.0, e->progress));
+	e->compression_ratio = e->progress ? (double)e->bytes_written / ((double)(uesize? uesize:1) * min(1.0, e->progress)) : 0;
 #endif
 
 	(void)encoder, (void)total_frames_estimate;
@@ -2454,8 +2456,10 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 	e->bytes_written = bytes_written;
 	e->samples_written = samples_written;
 
-	if(e->total_samples_to_encode > 0 && !((frames_written-1) & e->stats_mask))
+	if(e->total_samples_to_encode > 0 && frames_written - e->old_frames_written > e->stats_frames_interval) {
 		print_stats(e);
+		e->old_frames_written = frames_written;
+	}
 }
 
 FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)

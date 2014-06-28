@@ -1082,7 +1082,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		decoder_session->samples_processed += wide_samples;
 		decoder_session->frame_counter++;
 
-		if(!(decoder_session->frame_counter & 0x3f))
+		if(!(decoder_session->frame_counter & 0x1ff))
 			print_stats(decoder_session);
 
 		if(decoder_session->analysis_mode) {
