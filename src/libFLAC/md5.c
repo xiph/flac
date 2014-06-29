@@ -224,7 +224,7 @@ void FLAC__MD5Init(FLAC__MD5Context *ctx)
 	ctx->bytes[0] = 0;
 	ctx->bytes[1] = 0;
 
-	ctx->internal_buf = 0;
+	ctx->internal_buf.p8= 0;
 	ctx->capacity = 0;
 }
 
@@ -260,9 +260,9 @@ void FLAC__MD5Final(FLAC__byte digest[16], FLAC__MD5Context *ctx)
 
 	byteSwap(ctx->buf, 4);
 	memcpy(digest, ctx->buf, 16);
-	if (0 != ctx->internal_buf) {
-		free(ctx->internal_buf);
-		ctx->internal_buf = 0;
+	if (0 != ctx->internal_buf.p8) {
+		free(ctx->internal_buf.p8);
+		ctx->internal_buf.p8= 0;
 		ctx->capacity = 0;
 	}
 	memset(ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
@@ -271,13 +271,13 @@ void FLAC__MD5Final(FLAC__byte digest[16], FLAC__MD5Context *ctx)
 /*
  * Convert the incoming audio signal to a byte stream
  */
-static void format_input_(FLAC__byte *buf, const FLAC__int32 * const signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
+static void format_input_(FLAC__multibyte *mbuf, const FLAC__int32 * const signal[], unsigned channels, unsigned samples, unsigned bytes_per_sample)
 {
+	FLAC__byte *buf_ = mbuf->p8;
+	FLAC__int16 *buf16 = mbuf->p16;
+	FLAC__int32 *buf32 = mbuf->p32;
+	FLAC__int32 a_word;
 	unsigned channel, sample;
-	register FLAC__int32 a_word;
-	register FLAC__byte *buf_ = buf;
-	register FLAC__int16 *buf16 = (FLAC__int16*)buf;
-	register FLAC__int32 *buf32 = (FLAC__int32*)buf;
 
 	/* Storage in the output buffer, buf, is little endian. */
 
@@ -288,46 +288,46 @@ static void format_input_(FLAC__byte *buf, const FLAC__int32 * const signal[], u
 		/* One byte per sample. */
 		case (BYTES_CHANNEL_SELECTOR (1, 1)):
 			for (sample = 0; sample < samples; sample++)
-				*buf_++ = (FLAC__byte) signal[0][sample];
+				*buf_++ = signal[0][sample];
 			return;
 
 		case (BYTES_CHANNEL_SELECTOR (1, 2)):
 			for (sample = 0; sample < samples; sample++) {
-				*buf_++ = (FLAC__byte) signal[0][sample];
-				*buf_++ = (FLAC__byte) signal[1][sample];
+				*buf_++ = signal[0][sample];
+				*buf_++ = signal[1][sample];
 			}
 			return;
 
 		case (BYTES_CHANNEL_SELECTOR (1, 4)):
 			for (sample = 0; sample < samples; sample++) {
-				*buf_++ = (FLAC__byte) signal[0][sample];
-				*buf_++ = (FLAC__byte) signal[1][sample];
-				*buf_++ = (FLAC__byte) signal[2][sample];
-				*buf_++ = (FLAC__byte) signal[3][sample];
+				*buf_++ = signal[0][sample];
+				*buf_++ = signal[1][sample];
+				*buf_++ = signal[2][sample];
+				*buf_++ = signal[3][sample];
 			}
 			return;
 
 		case (BYTES_CHANNEL_SELECTOR (1, 6)):
 			for (sample = 0; sample < samples; sample++) {
-				*buf_++ = (FLAC__byte) signal[0][sample];
-				*buf_++ = (FLAC__byte) signal[1][sample];
-				*buf_++ = (FLAC__byte) signal[2][sample];
-				*buf_++ = (FLAC__byte) signal[3][sample];
-				*buf_++ = (FLAC__byte) signal[4][sample];
-				*buf_++ = (FLAC__byte) signal[5][sample];
+				*buf_++ = signal[0][sample];
+				*buf_++ = signal[1][sample];
+				*buf_++ = signal[2][sample];
+				*buf_++ = signal[3][sample];
+				*buf_++ = signal[4][sample];
+				*buf_++ = signal[5][sample];
 			}
 			return;
 
 		case (BYTES_CHANNEL_SELECTOR (1, 8)):
 			for (sample = 0; sample < samples; sample++) {
-				*buf_++ = (FLAC__byte) signal[0][sample];
-				*buf_++ = (FLAC__byte) signal[1][sample];
-				*buf_++ = (FLAC__byte) signal[2][sample];
-				*buf_++ = (FLAC__byte) signal[3][sample];
-				*buf_++ = (FLAC__byte) signal[4][sample];
-				*buf_++ = (FLAC__byte) signal[5][sample];
-				*buf_++ = (FLAC__byte) signal[6][sample];
-				*buf_++ = (FLAC__byte) signal[7][sample];
+				*buf_++ = signal[0][sample];
+				*buf_++ = signal[1][sample];
+				*buf_++ = signal[2][sample];
+				*buf_++ = signal[3][sample];
+				*buf_++ = signal[4][sample];
+				*buf_++ = signal[5][sample];
+				*buf_++ = signal[6][sample];
+				*buf_++ = signal[7][sample];
 			}
 			return;
 
@@ -455,7 +455,7 @@ static void format_input_(FLAC__byte *buf, const FLAC__int32 * const signal[], u
 		case 1:
 			for (sample = 0; sample < samples; sample++)
 				for (channel = 0; channel < channels; channel++)
-					*buf_++ = (FLAC__byte) signal[channel][sample];
+					*buf_++ = signal[channel][sample];
 			return;
 
 		case 2:
@@ -499,20 +499,20 @@ FLAC__bool FLAC__MD5Accumulate(FLAC__MD5Context *ctx, const FLAC__int32 * const 
 		return false;
 
 	if (ctx->capacity < bytes_needed) {
-		FLAC__byte *tmp = realloc(ctx->internal_buf, bytes_needed);
+		FLAC__byte *tmp = realloc(ctx->internal_buf.p8, bytes_needed);
 		if (0 == tmp) {
-			free(ctx->internal_buf);
-			if (0 == (ctx->internal_buf = safe_malloc_(bytes_needed)))
+			free(ctx->internal_buf.p8);
+			if (0 == (ctx->internal_buf.p8= safe_malloc_(bytes_needed)))
 				return false;
 		}
 		else
-			ctx->internal_buf = tmp;
+			ctx->internal_buf.p8= tmp;
 		ctx->capacity = bytes_needed;
 	}
 
-	format_input_(ctx->internal_buf, signal, channels, samples, bytes_per_sample);
+	format_input_(&ctx->internal_buf, signal, channels, samples, bytes_per_sample);
 
-	FLAC__MD5Update(ctx, ctx->internal_buf, bytes_needed);
+	FLAC__MD5Update(ctx, ctx->internal_buf.p8, bytes_needed);
 
 	return true;
 }
