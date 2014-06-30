@@ -968,7 +968,8 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	unsigned frame_bytes = 0;
 
 	static union
-	{	FLAC__int8	 s8buffer	[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(FLAC__int32)]; /* WATCHOUT: can be up to 2 megs */
+	{	/* The arrays defined within this union are all the same size. */
+		FLAC__int8	 s8buffer	[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(FLAC__int32)]; /* WATCHOUT: can be up to 2 megs */
 		FLAC__uint8  u8buffer	[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(FLAC__int32)];
 		FLAC__int16  s16buffer	[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(FLAC__int16)];
 		FLAC__uint16 u16buffer	[FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * sizeof(FLAC__int16)];
