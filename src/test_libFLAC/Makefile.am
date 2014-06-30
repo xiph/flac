@@ -40,6 +40,7 @@ test_libFLAC_SOURCES = \
 	bitwriter.c \
 	decoders.c \
 	encoders.c \
+	endswap.c \
 	format.c \
 	main.c \
 	metadata.c \
@@ -49,6 +50,7 @@ test_libFLAC_SOURCES = \
 	bitwriter.h \
 	decoders.h \
 	encoders.h \
+	endswap.h \
 	format.h \
 	metadata.h \
 	md5.h
