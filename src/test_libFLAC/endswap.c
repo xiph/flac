@@ -30,16 +30,6 @@
 #include "endswap.h"
 
 
-#define SWAP_TEST(str, bool) \
-		{	printf("%s ... ", str); \
-			if (bool) { \
-			    puts("FAILED"); \
-			    return false; \
-			} \
-			puts("OK"); \
-		}
-
-
 FLAC__bool test_endswap(void)
 {
 	int16_t i16 = 0x1234;
@@ -47,19 +37,74 @@ FLAC__bool test_endswap(void)
 	int32_t i32 = 0x12345678;
 	uint32_t u32 = 0xabcdef01;
 
-	printf("\n+++ libFLAC unit test: endswap\n\n");
+	union {
+		unsigned char bytes[4];
+		uint16_t u16;
+		uint32_t u32;
+	} data;
 
-	SWAP_TEST("testing ENDSWAP_16 on int16_t",
-		((int16_t) ENDSWAP_16 (i16)) == i16 || ((int16_t) ENDSWAP_16 (ENDSWAP_16 (i16))) != i16);
+	printf("\n+++ libFLAC unit test: endswap (%s endian host)\n\n", CPU_IS_LITTLE_ENDIAN ? "little" : "big");
 
-	SWAP_TEST("testing ENDSWAP_16 on uint16_t",
-		((uint16_t) ENDSWAP_16 (u16)) == u16 || ((uint16_t) ENDSWAP_16 (ENDSWAP_16 (u16))) != u16);
+	printf("testing ENDSWAP_16 on int16_t ... ");
+	if (((int16_t) ENDSWAP_16(i16)) == i16) {
+		printf("\nFAILED, ENDSWAP_16(0x%04x) -> 0x%04x == 0x%04x\n", i16, ENDSWAP_16(i16), i16);
+		return false;
+	}
+	if (((int16_t) ENDSWAP_16(ENDSWAP_16(i16))) != i16) {
+		printf("\nFAILED, ENDSWAP_16(ENDSWAP_16(0x%04x)) -> 0x%04x != 0x%04x\n", i16, ENDSWAP_16(ENDSWAP_16(i16)), i16);
+		return false;
+	}
+	puts("OK");
 
-	SWAP_TEST("testing ENDSWAP_32 on int32_t",
-		((int32_t) ENDSWAP_32 (i32)) == i32 || ((int32_t) ENDSWAP_32 (ENDSWAP_32 (i32))) != i32);
+	printf("testing ENDSWAP_16 on uint16_t ... ");
+	if (((uint16_t) ENDSWAP_16(u16)) == u16) {
+		printf("\nFAILED, ENDSWAP_16(0x%04x) -> 0x%04x == 0x%04x\n", u16, ENDSWAP_16(u16), u16);
+		return false;
+	}
+	if (((uint16_t) ENDSWAP_16(ENDSWAP_16(u16))) != u16) {
+		printf("\nFAILED, ENDSWAP_16(ENDSWAP_16(0x%04x)) -> 0x%04x != 0x%04x\n", u16, ENDSWAP_16(ENDSWAP_16(u16)), u16);
+		return false;
+	}
+	puts("OK");
 
-	SWAP_TEST("testing ENDSWAP_32 on uint32_t",
-		((uint32_t) ENDSWAP_32 (u32)) == u32 || ((uint32_t) ENDSWAP_32 (ENDSWAP_32 (u32))) != u32);
+	printf("testing ENDSWAP_32 on int32_t ... ");
+	if (((int32_t) ENDSWAP_32 (i32)) == i32) {
+		printf("\nFAILED, ENDSWAP_32(0x%08x) -> 0x%08x == 0x%08x\n", i32, ENDSWAP_32 (i32), i32);
+		return false;
+	}
+	if (((int32_t) ENDSWAP_32 (ENDSWAP_32 (i32))) != i32) {
+		printf("\nFAILED, ENDSWAP_32(ENDSWAP_32(0x%08x)) -> 0x%08x != 0x%08x\n", i32, ENDSWAP_32(ENDSWAP_32 (i32)), i32);
+		return false;
+	}
+	puts("OK");
+
+	printf("testing ENDSWAP_32 on uint32_t ... ");
+	if (((uint32_t) ENDSWAP_32(u32)) == u32) {
+		printf("\nFAILED, ENDSWAP_32(0x%08x) -> 0x%08x == 0x%08x\n", u32, ENDSWAP_32(u32), u32);
+		return false;
+	}
+	if (((uint32_t) ENDSWAP_32 (ENDSWAP_32(u32))) != u32) {
+		printf("\nFAILED, ENDSWAP_32(ENDSWAP_32(0x%08x)) -> 0x%08x != 0%08x\n", u32, ENDSWAP_32(ENDSWAP_32(u32)), u32);
+		return false;
+	}
+	puts("OK");
+
+	printf("testing H2LE_16 on uint16_t ... ");
+	data.u16 = H2LE_16(0x1234);
+	if (data.bytes [0] != 0x34 || data.bytes [1] != 0x12) {
+		printf("\nFAILED, H2LE_16(0x%04x) -> { 0x%02x, 0x%02x }\n", data.u16, data.bytes [0] & 0xff, data.bytes [1] & 0xff);
+		return false;
+	}
+	puts("OK");
+
+	printf("testing H2LE_32 on uint32_t ... ");
+	data.u32 = H2LE_32(0x12345678);
+	if (data.bytes [0] != 0x78 || data.bytes [1] != 0x56 || data.bytes [2] != 0x34 || data.bytes [3] != 0x12) {
+		printf("\nFAILED,  H2LE_32(0x%08x) -> { 0x%02x, 0x%02x, 0x%02x, 0x%02x }\n",
+			data.u32, data.bytes [0] & 0xff, data.bytes [1] & 0xff, data.bytes [2] & 0xff, data.bytes [3] & 0xff);
+		return false;
+	}
+	puts("OK");
 
 	printf("\nPASSED!\n");
 	return true;
