@@ -1111,7 +1111,6 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				encoder_session.fmt.iff.data_bytes -= skip * encoder_session.info.bytes_per_wide_sample;
 				if(options.ignore_chunk_sizes) {
 					encoder_session.total_samples_to_encode = 0;
-					flac__utils_printf(stderr, 2, "(No runtime statistics possible; please wait for encoding to finish...)\n");
 					FLAC__ASSERT(0 == until);
 				}
 				else {
@@ -1184,8 +1183,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				return EncoderSession_finish_error(&encoder_session);
 		}
 
-		if(encoder_session.total_samples_to_encode == 0)
+		if(encoder_session.total_samples_to_encode == 0) {
+			encoder_session.unencoded_size = 0;
 			flac__utils_printf(stderr, 2, "(No runtime statistics possible; please wait for encoding to finish...)\n");
+		}
 
 		if(options.format == FORMAT_FLAC || options.format == FORMAT_OGGFLAC)
 			encoder_session.fmt.flac.client_data.samples_left_to_process = encoder_session.total_samples_to_encode;
@@ -2451,11 +2452,11 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 
 #if defined _MSC_VER || defined __MINGW32__
 	/* with MSVC you have to spoon feed it the casting */
-	e->progress = (double)(FLAC__int64)samples_written / (double)(FLAC__int64)e->total_samples_to_encode;
-	e->compression_ratio = e->progress ? (double)(FLAC__int64)e->bytes_written / ((double)(FLAC__int64)(uesize? uesize:1) * min(1.0, e->progress)) : 0;
+	e->progress = e->total_samples_to_encode ? (double)(FLAC__int64)samples_written / (double)(FLAC__int64)e->total_samples_to_encode : 0;
+	e->compression_ratio = (e->progress && uesize) ? (double)(FLAC__int64)e->bytes_written / ((double)(FLAC__int64)uesize * min(1.0, e->progress)) : 0;
 #else
-	e->progress = (double)samples_written / (double)e->total_samples_to_encode;
-	e->compression_ratio = e->progress ? (double)e->bytes_written / ((double)(uesize? uesize:1) * min(1.0, e->progress)) : 0;
+	e->progress = e->total_samples_to_encode ? (double)samples_written / (double)e->total_samples_to_encode : 0;
+	e->compression_ratio = (e->progress && uesize) ? (double)e->bytes_written / ((double)uesize * min(1.0, e->progress)) : 0;
 #endif
 
 	(void)encoder, (void)total_frames_estimate;
