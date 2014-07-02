@@ -1291,7 +1291,7 @@ void show_help(void)
 	printf("      --force-aiff-format      Force decoding to AIFF format\n");
 	printf("      --force-rf64-format      Force decoding to RF64 format\n");
 	printf("      --force-wave64-format    Force decoding to Wave64 format\n");
-	printf("format options for raw input:\n");
+	printf("raw format options:\n");
 	printf("      --endian={big|little}    Set byte order for samples\n");
 	printf("      --channels=#             Number of channels\n");
 	printf("      --bps=#                  Number of bits per sample\n");
@@ -1630,7 +1630,7 @@ void show_explain(void)
 	printf("                               set by -o) ends with .w64; this option\n");
 	printf("                               has no effect when encoding since input Wave64 is\n");
 	printf("                               auto-detected.\n");
-	printf("format options for raw input:\n");
+	printf("raw format options:\n");
 	printf("      --endian={big|little}    Set byte order for samples\n");
 	printf("      --channels=#             Number of channels\n");
 	printf("      --bps=#                  Number of bits per sample\n");
