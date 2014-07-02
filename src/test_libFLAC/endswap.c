@@ -21,9 +21,9 @@
 #endif
 
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 
+#include "share/compat.h"
 #include "FLAC/assert.h"
 #include "share/endswap.h"
 #include "private/md5.h"

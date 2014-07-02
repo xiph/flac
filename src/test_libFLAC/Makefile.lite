@@ -41,6 +41,7 @@ SRCS_C = \
 	bitwriter.c \
 	decoders.c \
 	encoders.c \
+	endswap.c \
 	format.c \
 	main.c \
 	md5.c \

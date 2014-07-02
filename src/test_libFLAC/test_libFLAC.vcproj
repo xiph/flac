@@ -195,6 +195,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\endswap.h"
+				>
+			</File>
+			<File
 				RelativePath=".\format.h"
 				>
 			</File>
@@ -222,6 +226,10 @@
 			</File>
 			<File
 				RelativePath=".\encoders.c"
+				>
+			</File>
+			<File
+				RelativePath=".\endswap.c"
 				>
 			</File>
 			<File
