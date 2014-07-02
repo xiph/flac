@@ -33,6 +33,14 @@
 
 #if HAVE_BSWAP32			/* GCC and Clang */
 
+/* GCC prior to 4.8 didn't provide bswap16 on x86_64 */
+#if __GNUC__ <= 4 && __GNUC_MINOR__ < 8
+static inline unsigned short __builtin_bswap16(unsigned short a)
+{
+	return (a<<8)|(a>>8);
+}
+#endif
+
 #define	ENDSWAP_16(x)		(__builtin_bswap16 (x))
 #define	ENDSWAP_32(x)		(__builtin_bswap32 (x))
 
