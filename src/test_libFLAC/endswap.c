@@ -69,22 +69,22 @@ FLAC__bool test_endswap(void)
 
 	printf("testing ENDSWAP_32 on int32_t ... ");
 	if (((int32_t) ENDSWAP_32 (i32)) == i32) {
-		printf("\nFAILED, ENDSWAP_32(0x%08x) -> 0x%08x == 0x%08x\n", i32, ENDSWAP_32 (i32), i32);
+		printf("\nFAILED, ENDSWAP_32(0x%08x) -> 0x%08x == 0x%08x\n", i32, (unsigned) ENDSWAP_32 (i32), i32);
 		return false;
 	}
 	if (((int32_t) ENDSWAP_32 (ENDSWAP_32 (i32))) != i32) {
-		printf("\nFAILED, ENDSWAP_32(ENDSWAP_32(0x%08x)) -> 0x%08x != 0x%08x\n", i32, ENDSWAP_32(ENDSWAP_32 (i32)), i32);
+		printf("\nFAILED, ENDSWAP_32(ENDSWAP_32(0x%08x)) -> 0x%08x != 0x%08x\n", i32, (unsigned) ENDSWAP_32(ENDSWAP_32 (i32)), i32);
 		return false;
 	}
 	puts("OK");
 
 	printf("testing ENDSWAP_32 on uint32_t ... ");
 	if (((uint32_t) ENDSWAP_32(u32)) == u32) {
-		printf("\nFAILED, ENDSWAP_32(0x%08x) -> 0x%08x == 0x%08x\n", u32, ENDSWAP_32(u32), u32);
+		printf("\nFAILED, ENDSWAP_32(0x%08x) -> 0x%08x == 0x%08x\n", u32, (unsigned) ENDSWAP_32(u32), u32);
 		return false;
 	}
 	if (((uint32_t) ENDSWAP_32 (ENDSWAP_32(u32))) != u32) {
-		printf("\nFAILED, ENDSWAP_32(ENDSWAP_32(0x%08x)) -> 0x%08x != 0%08x\n", u32, ENDSWAP_32(ENDSWAP_32(u32)), u32);
+		printf("\nFAILED, ENDSWAP_32(ENDSWAP_32(0x%08x)) -> 0x%08x != 0%08x\n", u32, (unsigned) ENDSWAP_32(ENDSWAP_32(u32)), u32);
 		return false;
 	}
 	puts("OK");
