@@ -27,9 +27,6 @@
 #include "share/compat.h"
 #include "share/safe_str.h"
 
-#define int64_t __int64
-#define uint64_t unsigned int64_t
-
 static inline uint64_t time2nsec(const FILETIME &t)
 {
 	uint64_t n = t.dwHighDateTime;
@@ -40,7 +37,7 @@ static inline uint64_t time2nsec(const FILETIME &t)
 
 static void printtime(FILE *fout, uint64_t nsec, uint64_t total)
 {
-	unsigned pct = (unsigned)(100.0 * ((double)(int64_t)nsec / (double)(int64_t)total));
+	unsigned pct = (unsigned)(100.0 * ((double)nsec / (double)total));
 	uint64_t msec = nsec / 1000000; nsec -= msec * 1000000;
 	uint64_t sec = msec / 1000; msec -= sec * 1000;
 	uint64_t min = sec / 60; sec -= min * 60;

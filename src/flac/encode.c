@@ -2450,14 +2450,8 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 
 	const FLAC__uint64 uesize = e->unencoded_size;
 
-#if defined _MSC_VER || defined __MINGW32__
-	/* with MSVC you have to spoon feed it the casting */
-	e->progress = e->total_samples_to_encode ? (double)(FLAC__int64)samples_written / (double)(FLAC__int64)e->total_samples_to_encode : 0;
-	e->compression_ratio = (e->progress && uesize) ? (double)(FLAC__int64)e->bytes_written / ((double)(FLAC__int64)uesize * min(1.0, e->progress)) : 0;
-#else
 	e->progress = e->total_samples_to_encode ? (double)samples_written / (double)e->total_samples_to_encode : 0;
 	e->compression_ratio = (e->progress && uesize) ? (double)e->bytes_written / ((double)uesize * min(1.0, e->progress)) : 0;
-#endif
 
 	(void)encoder, (void)total_frames_estimate;
 

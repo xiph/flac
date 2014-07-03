@@ -3089,12 +3089,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 			return false;
 		}
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-#if defined _MSC_VER || defined __MINGW32__
-		/* with VC++ you have to spoon feed it the casting */
-		pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)(FLAC__int64)(target_sample - lower_bound_sample) / (FLAC__double)(FLAC__int64)(upper_bound_sample - lower_bound_sample) * (FLAC__double)(FLAC__int64)(upper_bound - lower_bound)) - approx_bytes_per_frame;
-#else
 		pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)(target_sample - lower_bound_sample) / (FLAC__double)(upper_bound_sample - lower_bound_sample) * (FLAC__double)(upper_bound - lower_bound)) - approx_bytes_per_frame;
-#endif
 #else
 		/* a little less accurate: */
 		if(upper_bound - lower_bound < 0xffffffff)
@@ -3218,12 +3213,7 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
 			}
 			else {
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-#if defined _MSC_VER || defined __MINGW32__
-				/* with MSVC you have to spoon feed it the casting */
-				pos = (FLAC__uint64)((FLAC__double)(FLAC__int64)(target_sample - left_sample) / (FLAC__double)(FLAC__int64)(right_sample - left_sample) * (FLAC__double)(FLAC__int64)(right_pos - left_pos));
-#else
 				pos = (FLAC__uint64)((FLAC__double)(target_sample - left_sample) / (FLAC__double)(right_sample - left_sample) * (FLAC__double)(right_pos - left_pos));
-#endif
 #else
 				/* a little less accurate: */
 				if ((target_sample-left_sample <= 0xffffffff) && (right_pos-left_pos <= 0xffffffff))
