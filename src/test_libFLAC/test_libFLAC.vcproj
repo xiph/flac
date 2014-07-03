@@ -120,7 +120,7 @@
 				OmitFramePointers="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories=".;..\libFLAC\include;..\..\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;FLAC__NO_DLL"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;FLAC__NO_DLL;CPU_IS_LITTLE_ENDIAN=1"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
