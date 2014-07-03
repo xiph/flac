@@ -40,7 +40,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories=".;..\libFLAC\include;..\..\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;FLAC__NO_DLL;DEBUG"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;FLAC__NO_DLL;DEBUG;CPU_IS_LITTLE_ENDIAN=1"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
