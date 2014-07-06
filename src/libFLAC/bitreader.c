@@ -120,8 +120,7 @@ static inline void crc16_update_word_(FLAC__BitReader *br, uint32_t word)
 	br->crc16_align = 0;
 }
 
-/* would be static except it needs to be called by asm routines */
-FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
+static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 {
 	unsigned start, end;
 	size_t bytes;

@@ -38,7 +38,6 @@ AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 
 noinst_LTLIBRARIES = libFLAC-asm.la
 libFLAC_asm_la_SOURCES = \
-	bitreader_asm.nasm \
 	cpu_asm.nasm \
 	fixed_asm.nasm \
 	lpc_asm.nasm \
