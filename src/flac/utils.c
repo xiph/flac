@@ -176,7 +176,7 @@ static int console_chars_left;
 
 int get_console_width(void)
 {
-	int width = 80;
+	int width = 0;
 #if defined _WIN32
 	width = win_get_console_width();
 #elif defined __EMX__
@@ -185,8 +185,11 @@ int get_console_width(void)
 	width = s[0];
 #elif defined GWINSZ_IN_SYS_IOCTL
 	struct winsize w;
-	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)	width = w.ws_col;
+	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)
+		width = w.ws_col;
 #endif
+	if (width <= 0)
+		width = 80;
 	return width;
 }
 
