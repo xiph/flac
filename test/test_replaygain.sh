@@ -128,7 +128,7 @@ tonegenerator ()
             }
 
     }' /dev/null |
-    flac${EXE} --silent --no-error-on-compression-fail \
+    flac${EXE} --silent --no-error-on-compression-fail --force-raw-format \
         --endian=big --channels=1 --bps=24 --sample-rate=$1 --sign=unsigned -
 }
 
