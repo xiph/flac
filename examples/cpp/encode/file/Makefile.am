@@ -18,7 +18,9 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	example_cpp_encode_file.vcproj
+	example_cpp_encode_file.vcproj \
+	example_cpp_encode_file.vcxproj \
+	example_cpp_encode_file.vcxproj.filters
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 noinst_PROGRAMS = example_cpp_encode_file

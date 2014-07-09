@@ -39,6 +39,7 @@ EXTRA_DIST = \
 	COPYING.LGPL \
 	COPYING.Xiph \
 	FLAC.sln \
+	FLAC-vs2010.sln \
 	Makefile.lite \
 	autogen.sh \
 	config.rpath \

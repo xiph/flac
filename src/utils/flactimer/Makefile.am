@@ -18,4 +18,6 @@
 
 EXTRA_DIST = \
 	flactimer.vcproj \
+	flactimer.vcxproj \
+	flactimer.vcxproj.filters \
 	main.cpp

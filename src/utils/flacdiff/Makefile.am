@@ -19,4 +19,6 @@
 EXTRA_DIST = \
 	Makefile.lite \
 	flacdiff.vcproj \
+	flacdiff.vcxproj \
+	flacdiff.vcxproj.filters \
 	main.cpp

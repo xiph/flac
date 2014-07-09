@@ -18,7 +18,9 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_libFLAC++.vcproj
+	test_libFLAC++.vcproj \
+	test_libFLAC++.vcxproj \
+	test_libFLAC++.vcxproj.filters
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 noinst_PROGRAMS = test_libFLAC++

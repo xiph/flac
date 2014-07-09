@@ -100,7 +100,11 @@ EXTRA_DIST = \
 	Makefile.lite \
 	flac.pc.in \
 	libFLAC_dynamic.vcproj \
+	libFLAC_dynamic.vcxproj \
+	libFLAC_dynamic.vcxproj.filters \
 	libFLAC_static.vcproj \
+	libFLAC_static.vcxproj \
+	libFLAC_static.vcxproj.filters \
 	libFLAC.m4
 
 if FLaC__HAS_OGG

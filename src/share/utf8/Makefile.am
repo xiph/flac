@@ -28,7 +28,9 @@ EXTRA_DIST = \
 	charset_test.c \
 	charsetmap.h \
 	iconvert.h \
-	utf8_static.vcproj
+	utf8_static.vcproj \
+	utf8_static.vcxproj \
+	utf8_static.vcxproj.filters
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

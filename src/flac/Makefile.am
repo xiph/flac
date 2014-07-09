@@ -24,8 +24,12 @@ EXTRA_DIST = \
 	Makefile.lite \
 	Makefile.lite.iffscan \
 	flac.vcproj \
+	flac.vcxproj \
+	flac.vcxproj.filters \
 	iffscan.c \
-	iffscan.vcproj
+	iffscan.vcproj \
+	iffscan.vcxproj \
+	iffscan.vcxproj.filters
 
 flac_SOURCES = \
 	analyze.c \

@@ -18,7 +18,9 @@
 
 EXTRA_DIST = \
 	Makefile.lite \
-	test_seeking.vcproj
+	test_seeking.vcproj \
+	test_seeking.vcxproj \
+	test_seeking.vcxproj.filters
 
 AM_CFLAGS = @OGG_CFLAGS@
 
