@@ -51,11 +51,11 @@ CXXFLAGS = $(CFLAGS)
 
 LFLAGS   = -L$(LIBPATH)
 
-DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o) $(SRCS_S:%.s=%.debug.o)
-RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o) $(SRCS_S:%.s=%.release.o)
+DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o)
+RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o)
 ifeq ($(PROC),x86_64)
-DEBUG_PIC_OBJS = $(SRCS_C:%.c=%.debug.pic.o) $(SRCS_CC:%.cc=%.debug.pic.o) $(SRCS_CPP:%.cpp=%.debug.pic.o) $(SRCS_NASM:%.nasm=%.debug.pic.o) $(SRCS_S:%.s=%.debug.pic.o)
-RELEASE_PIC_OBJS = $(SRCS_C:%.c=%.release.pic.o) $(SRCS_CC:%.cc=%.release.pic.o) $(SRCS_CPP:%.cpp=%.release.pic.o) $(SRCS_NASM:%.nasm=%.release.pic.o) $(SRCS_S:%.s=%.release.pic.o)
+DEBUG_PIC_OBJS = $(SRCS_C:%.c=%.debug.pic.o) $(SRCS_CC:%.cc=%.debug.pic.o) $(SRCS_CPP:%.cpp=%.debug.pic.o) $(SRCS_NASM:%.nasm=%.debug.pic.o)
+RELEASE_PIC_OBJS = $(SRCS_C:%.c=%.release.pic.o) $(SRCS_CC:%.cc=%.release.pic.o) $(SRCS_CPP:%.cpp=%.release.pic.o) $(SRCS_NASM:%.nasm=%.release.pic.o)
 endif
 
 debug   : $(DEBUG_PROGRAM)

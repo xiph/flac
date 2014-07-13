@@ -62,16 +62,11 @@ endif
 INCLUDES = -I./include -I$(topdir)/include $(OGG_INCLUDES)
 DEBUG_CFLAGS = -DFLAC__OVERFLOW_DETECT
 
-ifeq ($(OS),Darwin)
-SRCS_S = \
-	ppc/as/lpc_asm.s
-else
 ifeq ($(PROC),i386)
 SRCS_NASM = \
 	ia32/cpu_asm.nasm \
 	ia32/fixed_asm.nasm \
 	ia32/lpc_asm.nasm
-endif
 endif
 
 OGG_SRCS_C = \

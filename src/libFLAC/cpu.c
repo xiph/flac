@@ -45,37 +45,8 @@ static void disable_sse(FLAC__CPUInfo *info)
 {
 	info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
 }
-#elif defined FLAC__CPU_PPC
-# if !defined FLAC__NO_ASM
-#  if defined FLAC__SYS_DARWIN
-#   include <sys/sysctl.h>
-#   include <mach/mach.h>
-#   include <mach/mach_host.h>
-#   include <mach/host_info.h>
-#   include <mach/machine.h>
-#   ifndef CPU_SUBTYPE_POWERPC_970
-#    define CPU_SUBTYPE_POWERPC_970 ((cpu_subtype_t) 100)
-#   endif
-#  else /* FLAC__SYS_DARWIN */
 
-#   include <signal.h>
-#   include <setjmp.h>
-
-static sigjmp_buf jmpbuf;
-static volatile sig_atomic_t canjump = 0;
-
-static void sigill_handler (int sig)
-{
-	if (!canjump) {
-		signal (sig, SIG_DFL);
-		raise (sig);
-	}
-	canjump = 0;
-	siglongjmp (jmpbuf, 1);
-}
-#  endif /* FLAC__SYS_DARWIN */
-# endif /* FLAC__NO_ASM */
-#endif /* FLAC__CPU_PPC */
+#endif
 
 #if defined (__NetBSD__) || defined(__OpenBSD__)
 #include <sys/param.h>
@@ -358,71 +329,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #else
 	info->use_asm = false;
 #endif
-
-/*
- * PPC-specific
- */
-#elif defined FLAC__CPU_PPC
-	info->type = FLAC__CPUINFO_TYPE_PPC;
-# if !defined FLAC__NO_ASM
-	info->use_asm = true;
-#  ifdef FLAC__USE_ALTIVEC
-#   if defined FLAC__SYS_DARWIN
-	{
-		int val = 0, mib[2] = { CTL_HW, HW_VECTORUNIT };
-		size_t len = sizeof(val);
-		info->ppc.altivec = !(sysctl(mib, 2, &val, &len, NULL, 0) || !val);
-	}
-	{
-		host_basic_info_data_t hostInfo;
-		mach_msg_type_number_t infoCount;
-
-		infoCount = HOST_BASIC_INFO_COUNT;
-		host_info(mach_host_self(), HOST_BASIC_INFO, (host_info_t)&hostInfo, &infoCount);
-
-		info->ppc.ppc64 = (hostInfo.cpu_type == CPU_TYPE_POWERPC) && (hostInfo.cpu_subtype == CPU_SUBTYPE_POWERPC_970);
-	}
-#   else /* FLAC__USE_ALTIVEC && !FLAC__SYS_DARWIN */
-	{
-		/* no Darwin, do it the brute-force way */
-		/* @@@@@@ this is not thread-safe; replace with SSE OS method above or remove */
-		info->ppc.altivec = 0;
-		info->ppc.ppc64 = 0;
-
-		signal (SIGILL, sigill_handler);
-		canjump = 0;
-		if (!sigsetjmp (jmpbuf, 1)) {
-			canjump = 1;
-
-			asm volatile (
-				"mtspr 256, %0\n\t"
-				"vand %%v0, %%v0, %%v0"
-				:
-				: "r" (-1)
-			);
-
-			info->ppc.altivec = 1;
-		}
-		canjump = 0;
-		if (!sigsetjmp (jmpbuf, 1)) {
-			int x = 0;
-			canjump = 1;
-
-			/* PPC64 hardware implements the cntlzd instruction */
-			asm volatile ("cntlzd %0, %1" : "=r" (x) : "r" (x) );
-
-			info->ppc.ppc64 = 1;
-		}
-		signal (SIGILL, SIG_DFL); /*@@@@@@ should save and restore old signal */
-	}
-#   endif
-#  else /* !FLAC__USE_ALTIVEC */
-	info->ppc.altivec = 0;
-	info->ppc.ppc64 = 0;
-#  endif
-# else
-	info->use_asm = false;
-# endif
 
 /*
  * unknown CPU

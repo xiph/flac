@@ -39,19 +39,13 @@ endif
 # FIXME: The following logic should be part of configure, not of Makefile.am
 
 if FLaC__CPU_PPC
-# The -force_cpusubtype_ALL is needed to insert a ppc64 instruction
-# into cpu.c with an asm().
 if FLaC__SYS_DARWIN
-#@@@ PPC optimizations temporarily disabled
-CPUCFLAGS = -faltivec -force_cpusubtype_ALL -DFLAC__NO_ASM
+CPUCFLAGS = -faltivec
 else
-# Linux-gcc for PPC does not have -force_cpusubtype_ALL, it is Darwin-specific
 CPUCFLAGS =
 if FLaC__USE_ALTIVEC
 CPUCFLAGS += -maltivec -mabi=altivec
 endif
-#@@@ PPC optimizations temporarily disabled
-CPUCFLAGS += -DFLAC__NO_ASM
 endif
 endif
 
@@ -63,21 +57,6 @@ if FLaC__CPU_IA32
 if FLaC__HAS_NASM
 ARCH_SUBDIRS = ia32
 LOCAL_EXTRA_LIBADD = ia32/libFLAC-asm.la
-endif
-endif
-if FLaC__CPU_PPC
-ARCH_SUBDIRS = ppc
-if FLaC__HAS_AS__TEMPORARILY_DISABLED
-if FLaC__CPU_PPC_SPE
-else
-LOCAL_EXTRA_LIBADD = ppc/as/libFLAC-asm.la
-LOCAL_EXTRA_LDFLAGS = "-Wl,-read_only_relocs,warning"
-else
-if FLaC__HAS_GAS__TEMPORARILY_DISABLED
-LOCAL_EXTRA_LIBADD = ppc/gas/libFLAC-asm.la
-LOCAL_EXTRA_LDFLAGS = ""
-endif
-endif
 endif
 endif
 endif

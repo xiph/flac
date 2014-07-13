@@ -83,7 +83,6 @@
 typedef enum {
 	FLAC__CPUINFO_TYPE_IA32,
 	FLAC__CPUINFO_TYPE_X86_64,
-	FLAC__CPUINFO_TYPE_PPC,
 	FLAC__CPUINFO_TYPE_UNKNOWN
 } FLAC__CPUInfo_Type;
 
@@ -111,11 +110,6 @@ typedef struct {
 	FLAC__bool sse41;
 	FLAC__bool sse42;
 } FLAC__CPUInfo_x86_64;
-#elif defined FLAC__CPU_PPC
-typedef struct {
-	FLAC__bool altivec;
-	FLAC__bool ppc64;
-} FLAC__CPUInfo_PPC;
 #endif
 
 typedef struct {
@@ -125,8 +119,6 @@ typedef struct {
 	FLAC__CPUInfo_IA32 ia32;
 #elif defined FLAC__CPU_X86_64
 	FLAC__CPUInfo_x86_64 x86_64;
-#elif defined FLAC__CPU_PPC
-	FLAC__CPUInfo_PPC ppc;
 #endif
 } FLAC__CPUInfo;
 

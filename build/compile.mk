@@ -39,21 +39,6 @@
 %.debug.i %.release.i : %.cpp
 	$(CCC) $(CXXFLAGS) -E $< -o $@
 
-%.debug.o %.release.o : %.s
-ifeq ($(OS),Darwin)
-	#$(CC) -c -arch $(PROC) -Wall -force_cpusubtype_ALL $< -o $@
-	$(AS) -arch $(PROC) -force_cpusubtype_ALL $< -o $@
-else
-	$(AS) $< -o $@
-endif
-%.debug.pic.o %.release.pic.o : %.s
-ifeq ($(OS),Darwin)
-	#$(CC) -c -arch $(PROC) -Wall -force_cpusubtype_ALL $< -o $@
-	$(AS) -arch $(PROC) -force_cpusubtype_ALL $< -o $@
-else
-	$(AS) $< -o $@
-endif
-
 %.debug.o : %.nasm
 	$(NASM) -f elf -d OBJ_FORMAT_elf -i ia32/ -g $< -o $@
 %.release.o : %.nasm
