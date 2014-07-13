@@ -399,20 +399,6 @@ int do_it(void)
 			if(option_values.format_sample_rate >= 0)
 				return usage_error("ERROR: --sample-rate not allowed with --decode\n");
 		}
-		else {
-			if(!option_values.force_raw_format) {
-				if(option_values.format_is_big_endian >= 0)
-					return usage_error("ERROR: --endian only allowed with --force-raw-format\n");
-				if(option_values.format_is_unsigned_samples >= 0)
-					return usage_error("ERROR: --sign only allowed with --force-raw-format\n");
-				if(option_values.format_channels >= 0)
-					return usage_error("ERROR: --channels only allowed with --force-raw-format\n");
-				if(option_values.format_bps >= 0)
-					return usage_error("ERROR: --bps only allowed with --force-raw-format\n");
-				if(option_values.format_sample_rate >= 0)
-					return usage_error("ERROR: --sample-rate only allowed with --force-raw-format\n");
-			}
-		}
 
 		if(option_values.ignore_chunk_sizes) {
 			if(option_values.mode_decode)
@@ -1848,6 +1834,12 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0) {
 			conditional_fclose(encode_infile);
 			return usage_error("ERROR: for encoding a raw file you must specify a value for --endian, --sign, --channels, --bps, and --sample-rate\n");
+		}
+	}
+	else {
+		if(option_values.format_is_big_endian >= 0 || option_values.format_is_unsigned_samples >= 0 || option_values.format_channels >= 0 || option_values.format_bps >= 0 || option_values.format_sample_rate >= 0) {
+			conditional_fclose(encode_infile);
+			return usage_error("ERROR: raw format options (--endian, --sign, --channels, --bps, and --sample-rate) are not allowed for non-raw input\n");
 		}
 	}
 
