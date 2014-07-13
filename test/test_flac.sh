@@ -1028,13 +1028,13 @@ dd if=/dev/zero ibs=4 count=$file2_remainder of=z.raw 2>/dev/null || $dddie
 cat z.raw >> file2s.raw || die "ERROR: cat-ing sector-aligned files"
 rm -f z.raw
 
-convert_to_wav file0s "$multifile_format_encode --force" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
-convert_to_wav file1s "$multifile_format_encode --force" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
-convert_to_wav file2s "$multifile_format_encode --force" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
+convert_to_wav file0s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
+convert_to_wav file1s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
+convert_to_wav file2s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
 
-convert_to_aiff file0s "$multifile_format_encode --force" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
-convert_to_aiff file1s "$multifile_format_encode --force" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
-convert_to_aiff file2s "$multifile_format_encode --force" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
+convert_to_aiff file0s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
+convert_to_aiff file1s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
+convert_to_aiff file2s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
 
 test_multifile ()
 {
