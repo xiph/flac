@@ -43,7 +43,20 @@ int main(int argc, char *argv[])
 	}
 #endif
 
+#ifdef _WIN32
+	{
+		const char *var;
+		var = getenv("LC_ALL");
+		if (!var)
+			var = getenv("LC_NUMERIC");
+		if (!var)
+			var = getenv("LANG");
+		if (!var || strcmp(var, "C") != 0)
+			setlocale(LC_ALL, "");
+	}
+#else
 	setlocale(LC_ALL, "");
+#endif
 	init_options(&options);
 
 	if ((ret = parse_options(argc, argv, &options)) == 0)

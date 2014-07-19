@@ -310,7 +310,20 @@ int main(int argc, char *argv[])
 #endif
 
 	srand((unsigned)time(0));
+#ifdef _WIN32
+	{
+		const char *var;
+		var = getenv("LC_ALL");
+		if (!var)
+			var = getenv("LC_NUMERIC");
+		if (!var)
+			var = getenv("LANG");
+		if (!var || strcmp(var, "C") != 0)
+			setlocale(LC_ALL, "");
+	}
+#else
 	setlocale(LC_ALL, "");
+#endif
 	if(!init_options()) {
 		flac__utils_printf(stderr, 1, "ERROR: allocating memory\n");
 		retval = 1;
