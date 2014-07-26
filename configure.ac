@@ -382,11 +382,7 @@ if test "x$debug" = xtrue; then
 	CFLAGS="-g $CFLAGS"
 else
 	CPPFLAGS="-DNDEBUG $CPPFLAGS"
-	if test "x$GCC" = xyes; then
-		if test "x$user_cflags" = x; then
-			CFLAGS="-O3 -funroll-loops -Wall -W -Winline"
-		fi
-	fi
+	CFLAGS="-O3 -funroll-loops -Wall -W -Winline $CFLAGS"
 fi
 
 XIPH_GCC_VERSION
