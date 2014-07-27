@@ -88,7 +88,6 @@ struct FLAC__BitReader {
 	unsigned crc16_align; /* the number of bits in the current consumed word that should not be CRC'd */
 	FLAC__BitReaderReadCallback read_callback;
 	void *client_data;
-	FLAC__CPUInfo cpu_info;
 };
 
 static inline void crc16_update_word_(FLAC__BitReader *br, uint32_t word)
@@ -231,7 +230,7 @@ void FLAC__bitreader_delete(FLAC__BitReader *br)
  *
  ***********************************************************************/
 
-FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__CPUInfo cpu, FLAC__BitReaderReadCallback rcb, void *cd)
+FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__BitReaderReadCallback rcb, void *cd)
 {
 	FLAC__ASSERT(0 != br);
 
@@ -243,7 +242,6 @@ FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__CPUInfo cpu, FLAC__Bi
 		return false;
 	br->read_callback = rcb;
 	br->client_data = cd;
-	br->cpu_info = cpu;
 
 	return true;
 }
