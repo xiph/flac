@@ -379,16 +379,18 @@ fi
 
 if test "x$debug" = xtrue; then
 	CPPFLAGS="-DDEBUG $CPPFLAGS"
+	CFLAGS=$(echo "$CFLAGS" | sed 's/-g//')
 	CFLAGS="-g $CFLAGS"
 else
 	CPPFLAGS="-DNDEBUG $CPPFLAGS"
-	CFLAGS="-O3 -funroll-loops -Wall -W -Winline $CFLAGS"
+	CFLAGS=$(echo "$CFLAGS" | sed 's/-O2//;s/-g//')
+	CFLAGS="-O3 -funroll-loops $CFLAGS"
 fi
 
 XIPH_GCC_VERSION
 
 if test x$ac_cv_c_compiler_gnu = xyes ; then
-	CFLAGS="$CFLAGS -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Wunreachable-code " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Winline -Wconversion
+	CFLAGS="$CFLAGS -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Wunreachable-code -Winline " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Wconversion
 	CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef -Wunreachable-code " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
 
 	XIPH_ADD_CFLAGS([-Wdeclaration-after-statement])
