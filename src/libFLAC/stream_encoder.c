@@ -3428,9 +3428,9 @@ FLAC__bool process_subframe_(
 								}
 								if(encoder->protected_->do_qlp_coeff_prec_search) {
 									min_qlp_coeff_precision = FLAC__MIN_QLP_COEFF_PRECISION;
-									/* try to ensure a 32-bit datapath throughout for 16bps(+1bps for side channel) or less */
-									if(subframe_bps <= 17) {
-										max_qlp_coeff_precision = flac_min(32 - subframe_bps - lpc_order, FLAC__MAX_QLP_COEFF_PRECISION);
+									/* try to keep qlp coeff precision such that only 32-bit math is required for decode of <=16bps streams */
+									if(subframe_bps <= 16) {
+										max_qlp_coeff_precision = flac_min(32 - subframe_bps - FLAC__bitmath_ilog2(lpc_order), FLAC__MAX_QLP_COEFF_PRECISION);
 										max_qlp_coeff_precision = flac_max(max_qlp_coeff_precision, min_qlp_coeff_precision);
 									}
 									else
