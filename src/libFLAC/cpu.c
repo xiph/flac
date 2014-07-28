@@ -125,52 +125,14 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX = 0x00400000;
  *   6 bytes extra in case our estimate is wrong
  * 12 bytes puts us in the NOP "landing zone"
  */
-#  undef USE_OBSOLETE_SIGCONTEXT_FLAVOR /* #define this to use the older signal handler method */
-#  ifdef USE_OBSOLETE_SIGCONTEXT_FLAVOR
-	static void sigill_handler_sse_os(int signal, struct sigcontext sc)
-	{
-		(void)signal;
-		sc.eip += 3 + 3 + 6;
-	}
-#  else
 #   include <sys/ucontext.h>
 	static void sigill_handler_sse_os(int signal, siginfo_t *si, void *uc)
 	{
 		(void)signal, (void)si;
 		((ucontext_t*)uc)->uc_mcontext.gregs[14/*REG_EIP*/] += 3 + 3 + 6;
 	}
-#  endif
 # elif defined(_MSC_VER)
 #  include <windows.h>
-#  define USE_TRY_CATCH_FLAVOR /* sigill_handler flavor resulted in several crash reports on win32 */
-#  ifdef USE_TRY_CATCH_FLAVOR
-#  else
-	LONG WINAPI sigill_handler_sse_os(EXCEPTION_POINTERS *ep)
-	{
-		if(ep->ExceptionRecord->ExceptionCode == EXCEPTION_ILLEGAL_INSTRUCTION) {
-			ep->ContextRecord->Eip += 3 + 3 + 6;
-			return EXCEPTION_CONTINUE_EXECUTION;
-		}
-		return EXCEPTION_CONTINUE_SEARCH;
-	}
-#  endif
-# elif defined(_WIN32) && defined(__GNUC__)
-#  undef USE_FXSR_FLAVOR
-#  ifdef USE_FXSR_FLAVOR
-  /* not guaranteed to work on some unknown future Intel CPUs */
-#  else
-  /* exception handler is process-wide; not good for a library */
-#  include <windows.h>
-	LONG WINAPI sigill_handler_sse_os(EXCEPTION_POINTERS *ep); /* to suppress GCC warning */
-	LONG WINAPI sigill_handler_sse_os(EXCEPTION_POINTERS *ep)
-	{
-		if(ep->ExceptionRecord->ExceptionCode == EXCEPTION_ILLEGAL_INSTRUCTION) {
-			ep->ContextRecord->Eip += 3 + 3 + 6;
-			return EXCEPTION_CONTINUE_EXECUTION;
-		}
-		return EXCEPTION_CONTINUE_SEARCH;
-	}
-#  endif
 # endif
 #endif
 
@@ -282,15 +244,11 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #elif defined(__linux__)
 			int sse = 0;
 			struct sigaction sigill_save;
-#ifdef USE_OBSOLETE_SIGCONTEXT_FLAVOR
-			if(0 == sigaction(SIGILL, NULL, &sigill_save) && signal(SIGILL, (void (*)(int))sigill_handler_sse_os) != SIG_ERR)
-#else
 			struct sigaction sigill_sse;
 			sigill_sse.sa_sigaction = sigill_handler_sse_os;
 			__sigemptyset(&sigill_sse.sa_mask);
 			sigill_sse.sa_flags = SA_SIGINFO | SA_RESETHAND; /* SA_RESETHAND just in case our SIGILL return jump breaks, so we don't get stuck in a loop */
 			if(0 == sigaction(SIGILL, &sigill_sse, &sigill_save))
-#endif
 			{
 				/* http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html */
 				/* see sigill_handler_sse_os() for an explanation of the following: */
@@ -317,7 +275,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			if(!sse)
 				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
 #elif defined(_MSC_VER)
-# ifdef USE_TRY_CATCH_FLAVOR
 			__try {
 				__asm {
 					xorps xmm0,xmm0
@@ -327,33 +284,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 				if (_exception_code() == STATUS_ILLEGAL_INSTRUCTION)
 					info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
 			}
-# else
-			int sse = 0;
-			/* From MSDN: SetUnhandledExceptionFilter replaces the existing top-level exception filter for all threads in the calling process */
-			/* So sigill_handler_sse_os() is process-wide and affects other threads as well (not a good thing for a library in a multi-threaded process) */
-			LPTOP_LEVEL_EXCEPTION_FILTER save = SetUnhandledExceptionFilter(sigill_handler_sse_os);
-			/* see GCC version above for explanation */
-			/*  http://msdn.microsoft.com/en-us/library/4ks26t93.aspx */
-			/*  http://www.codeproject.com/Articles/5267/Inline-Assembly-in-GCC-Vs-VC */
-			__asm {
-				xorps xmm0,xmm0
-				inc sse
-				nop
-				nop
-				nop
-				nop
-				nop
-				nop
-				nop
-				nop
-				nop
-			}
-			SetUnhandledExceptionFilter(save);
-			if(!sse)
-				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
-# endif
-#elif defined(_WIN32) && defined(__GNUC__)
-# ifdef USE_FXSR_FLAVOR
+#elif defined(__GNUC__) /* MinGW goes here */
 			int sse = 0;
 			/* Based on the idea described in Agner Fog's manual "Optimizing subroutines in assembly language" */
 			/* In theory, not guaranteed to detect lack of OS SSE support on some future Intel CPUs, but in practice works (see the aforementioned manual) */
@@ -378,29 +309,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			}
 			if(!sse)
 				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
-# else
-			int sse = 0;
-			LPTOP_LEVEL_EXCEPTION_FILTER save = SetUnhandledExceptionFilter(sigill_handler_sse_os);
-			/* see MSVC version above for explanation */
-			asm volatile (
-				"xorps %%xmm0,%%xmm0\n\t"
-				"incl %0\n\t"
-				"nop\n\t" /* SIGILL jump lands here if "inc" is 9 bytes */
-				"nop\n\t"
-				"nop\n\t"
-				"nop\n\t"
-				"nop\n\t"
-				"nop\n\t"
-				"nop\n\t"
-				"nop\n\t"
-				"nop"     /* SIGILL jump lands here if "inc" is 1 byte  */
-				: "=r"(sse)
-				: "0"(sse)
-			);
-			SetUnhandledExceptionFilter(save);
-			if(!sse)
-				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
-# endif
 #else
 			/* no way to test, disable to be safe */
 			info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
