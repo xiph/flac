@@ -30,7 +30,6 @@ doc_DATA = \
 	documentation_tools.html \
 	documentation_tools_flac.html \
 	documentation_tools_metaflac.html \
-	documentation_tools_plugins.html \
 	faq.html \
 	favicon.ico \
 	features.html \

@@ -136,10 +136,10 @@
 		FLAC owes much to the many people who have advanced the audio compression field so freely.  For instance:
 		<ul>
 			<li>
-				<a href="http://svr-www.eng.cam.ac.uk/~ajr/">A. J. Robinson</a> for his work on <a href="http://www-svr.eng.cam.ac.uk/reports/abstracts/robinson_tr156.html">Shorten</a>; his paper is a good starting point on some of the basic methods used by FLAC.  FLAC trivially extends and improves the fixed predictors, LPC coefficient quantization, and Rice coding used in Shorten.
+				<a href="http://svr-www.eng.cam.ac.uk/~ajr/">A. J. Robinson</a> for his work on <a href="http://svr-www.eng.cam.ac.uk/reports/abstracts/robinson_tr156.html">Shorten</a>; his paper is a good starting point on some of the basic methods used by FLAC.  FLAC trivially extends and improves the fixed predictors, LPC coefficient quantization, and Rice coding used in Shorten.
 			</li>
 			<li>
-				<a href="http://commsci.usc.edu/faculty/golomb.html">S. W. Golomb</a> and Robert F. Rice; their universal codes are used by FLAC's entropy coder.
+				<a href="https://web.archive.org/web/20040215005354/http://csi.usc.edu/faculty/golomb.html">S. W. Golomb</a> and Robert F. Rice; their universal codes are used by FLAC's entropy coder.
 			</li>
 			<li>
 				N. Levinson and J. Durbin; the reference encoder uses an algorithm developed and refined by them for determining the LPC coefficients from the autocorrelation coefficients.
@@ -231,10 +231,10 @@
 				<b>Constant</b>.  This predictor is used whenever the subblock is pure DC ("digital silence"), i.e. a constant value throughout.  The signal is run-length encoded and added to the stream.
 			</li>
 			<li>
-				<b>Fixed linear predictor</b>.  FLAC uses a class of computationally-efficient fixed linear predictors (for a good description, see <a href="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</a> and <a href="http://svr-www.eng.cam.ac.uk/~ajr/GroupPubs/Robinson94-tr156/index.html">shorten</a>).  FLAC adds a fourth-order predictor to the zero-to-third-order predictors used by Shorten.  Since the predictors are fixed, the predictor order is the only parameter that needs to be stored in the compressed stream.  The error signal is then passed to the residual coder.
+				<b>Fixed linear predictor</b>.  FLAC uses a class of computationally-efficient fixed linear predictors (for a good description, see <a href="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</a> and <a href="http://svr-www.eng.cam.ac.uk/reports/abstracts/robinson_tr156.html">shorten</a>).  FLAC adds a fourth-order predictor to the zero-to-third-order predictors used by Shorten.  Since the predictors are fixed, the predictor order is the only parameter that needs to be stored in the compressed stream.  The error signal is then passed to the residual coder.
 			</li>
 			<li>
-				<b>FIR Linear prediction</b>.  For more accurate modeling (at a cost of slower encoding), FLAC supports up to 32nd order FIR linear prediction (again, for information on linear prediction, see <a href="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</a> and <a href="http://svr-www.eng.cam.ac.uk/~ajr/GroupPubs/Robinson94-tr156/index.html">shorten</a>).  The reference encoder uses the Levinson-Durbin method for calculating the LPC coefficients from the autocorrelation coefficients, and the coefficients are quantized before computing the residual.  Whereas encoders such as Shorten used a fixed quantization for the entire input, FLAC allows the quantized coefficient precision to vary from subframe to subframe.  The FLAC reference encoder estimates the optimal precision to use based on the block size and dynamic range of the original signal.
+				<b>FIR Linear prediction</b>.  For more accurate modeling (at a cost of slower encoding), FLAC supports up to 32nd order FIR linear prediction (again, for information on linear prediction, see <a href="http://www.hpl.hp.com/techreports/1999/HPL-1999-144.pdf">audiopak</a> and <a href="http://svr-www.eng.cam.ac.uk/reports/abstracts/robinson_tr156.html">shorten</a>).  The reference encoder uses the Levinson-Durbin method for calculating the LPC coefficients from the autocorrelation coefficients, and the coefficients are quantized before computing the residual.  Whereas encoders such as Shorten used a fixed quantization for the entire input, FLAC allows the quantized coefficient precision to vary from subframe to subframe.  The FLAC reference encoder estimates the optimal precision to use based on the block size and dynamic range of the original signal.
 			</li>
 		</ul>
 		<a name="residualcoding"><font size="+1"><b><u>Residual Coding</u></b></font></a><br />
@@ -263,7 +263,7 @@
 					<li><a name="def_SEEKTABLE"><b>SEEKTABLE</b></a>: This is an optional block for storing seek points.  It is possible to seek to any given sample in a FLAC stream without a seek table, but the delay can be unpredictable since the bitrate may vary widely within a stream.  By adding seek points to a stream, this delay can be significantly reduced.  Each seek point takes 18 bytes, so 1% resolution within a stream adds less than 2k.  There can be only one SEEKTABLE in a stream, but the table can have any number of seek points.  There is also a special 'placeholder' seekpoint which will be ignored by decoders but which can be used to reserve space for future seek point insertion.</li>
 					<li><a name="def_VORBIS_COMMENT"><b>VORBIS_COMMENT</b></a>: This block is for storing a list of human-readable name/value pairs.  Values are encoded using UTF-8.  It is an implementation of the <a href="http://xiph.org/vorbis/doc/v-comment.html">Vorbis comment specification</a> (without the framing bit).  This is the only officially supported tagging mechanism in FLAC.  There may be only one VORBIS_COMMENT block in a stream.  In some external documentation, Vorbis comments are called FLAC tags to lessen confusion.</li>
 					<li><a name="def_CUESHEET"><b>CUESHEET</b></a>: This block is for storing various information that can be used in a cue sheet.  It supports track and index points, compatible with Red Book CD digital audio discs, as well as other CD-DA metadata such as media catalog number and track ISRCs.  The CUESHEET block is especially useful for backing up CD-DA discs, but it can be used as a general purpose cueing mechanism for playback.</li>
-					<li><a name="def_PICTURE"><b>PICTURE</b></a>: This block is for storing pictures associated with the file, most commonly cover art from CDs.  There may be more than one PICTURE block in a file.  The picture format is similar to the <a href="http://www.id3.org/id3v2.4.0-frames.txt">APIC frame in ID3v2</a>.  The PICTURE block has a type, MIME type, and UTF-8 description like ID3v2, and supports external linking via URL (though this is discouraged).  The differences are that there is no uniqueness constraint on the description field, and the MIME type is mandatory.  The FLAC PICTURE block also includes the resolution, color depth, and palette size so that the client can search for a suitable picture without having to scan them all.</li>
+					<li><a name="def_PICTURE"><b>PICTURE</b></a>: This block is for storing pictures associated with the file, most commonly cover art from CDs.  There may be more than one PICTURE block in a file.  The picture format is similar to the <a href="http://www.id3.org/id3v2.4.0-frames">APIC frame in ID3v2</a>.  The PICTURE block has a type, MIME type, and UTF-8 description like ID3v2, and supports external linking via URL (though this is discouraged).  The differences are that there is no uniqueness constraint on the description field, and the MIME type is mandatory.  The FLAC PICTURE block also includes the resolution, color depth, and palette size so that the client can search for a suitable picture without having to scan them all.</li>
 				</ul>
 			</li>
 			<li>
@@ -834,7 +834,7 @@
 				&lt;12*8&gt;
 			</td>
 			<td>
-				Track ISRC.  This is a 12-digit alphanumeric code; see <a href="http://www.ifpi.org/isrc/isrc_handbook.html">here</a> and <a href="http://www.disctronics.co.uk/technology/cdaudio/cdaud_isrc.htm">here</a>.  A value of 12 ASCII NUL characters may be used to denote absence of an ISRC.
+				Track ISRC.  This is a 12-digit alphanumeric code; see <a href="http://isrc.ifpi.org/">here</a> and <a href="http://www.disctronics.co.uk/technology/cdaudio/cdaud_isrc.htm">here</a>.  A value of 12 ASCII NUL characters may be used to denote absence of an ISRC.
 			</td>
 		</tr>
 		<tr>
@@ -1792,7 +1792,7 @@
 				Encoding parameter:<br />
 				<ul>
 				<li>
-					<tt>0000-11110</tt> : Rice parameter.
+					<tt>00000-11110</tt> : Rice parameter.
 				</li>
 				<li>
 					<tt>11111</tt> : Escape code, meaning the partition is in unencoded binary form using n bits per sample; n follows as a 5-bit number.

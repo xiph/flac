@@ -128,9 +128,6 @@
 				<a href="faq.html#tools__long_meta_edits"><b>Why does it take so long to edit some FLAC files with metaflac?</b></a>
 			</li>
 			<li>
-				<a href="faq.html#tools__unicode_filenames_windows"><b>Why don't Unicode file names work with <span class="commandname">flac/<span class="commandname">metaflac</span></span> on Windows?</b></a>
-			</li>
-			<li>
 				<a href="faq.html#tools__wildcards_on_windows"><b>Why don't wildcards for file names like *.flac or *.wav work with <span class="commandname">flac</span>/<span class="commandname">metaflac</span> on Windows?</b></a>
 			</li>
 			<li>
@@ -184,7 +181,7 @@
 		<a name="general__how_to"><b>I have a FLAC file, how do I play it?</b></a><br />
 		<b>How can I create FLAC files?</b><br />
 		<br />
-		See <a href="http://xiph.org/flac/documentation_tasks.html">Using FLAC</a>.<br />
+		See <a href="http://xiph.org/flac/documentation_tasks.html">Using FLAC</a> or a <a href="http://xiph.org/flac/links.html">list of hardware that supports FLAC</a>.<br />
 		<br />
 		<a name="general__license"><b>What licensing applies to the FLAC format and software?</b></a><br />
 		<br />
@@ -202,7 +199,7 @@
 		<br />
 		<a name="general__software_wmp"><b>How can I play FLAC in Windows Media Player?</b></a><br />
 		<br />
-		See <a href="http://www.losslessaudioblog.com/wmpmce-lossless-guide/">this guide</a>.<br />
+		The easiest way is to use the Xiph.org Directshow Filters, <a href="http://www.xiph.org/dshow/downloads/">download them here</a><br />
 		<br />
 		<a name="general__hardware"><b>What hardware products support FLAC?</b></a><br />
 		<br />
@@ -294,11 +291,11 @@
 
 		<a name="tools__eac_and_flac"><b>How do I set up EAC to rip directly to FLAC?</b></a><br />
 		<br />
-		See Case's excellent <a href="http://www.saunalahti.fi/cse/EAC/index.html">EAC configuration page</a>.  Or use <a href="http://www.legroom.net/modules.php?op=modload&amp;name=Open_Source&amp;file=index&amp;page=software&amp;app=autoflac">AutoFLAC</a>, <a href="http://www.omniencoder.com/">Omni Encoder</a>, or <a href="http://mareo.netfirms.com/">MAREO</a> to rip to FLAC or multiple formats at once.<br />
+		See Case's excellent <a href="http://www.saunalahti.fi/cse/EAC/index.html">EAC configuration page</a>.  Or use <a href="http://www.legroom.net/software/autoflac">AutoFLAC</a> or <a href="http://mareo.netfirms.com/">MAREO</a> to rip to FLAC or multiple formats at once.<br />
 		<br />
 		<a name="tools__runtime75"><b>Why am I getting "Run-time error '75': Path/File access error" with FLAC Frontend?</b></a><br />
 		<br />
-		Depending on how FLAC Frontend is installed, it could be one of two things: 1) you are trying to encode to file to a directory where you do not have write permission; 2) the FLAC Frontend program must be set to run as Administrator by opening Windows Explorer, navigating to <span class="command">C:\Program Files\FLAC</span> (or wherever FLAC was installed), then right-clicking on <span class="command">FLAC Frontend.exe</span> and checking "Run this program as an administrator".<br />
+		You are probably using an old version of FLAC Frontend. Try downloading a new version from <a href="http://flacfrontend.sf.net/">this sourceforge page</a><br />
 		<br />
 		<a name="tools__option_blocking"><b>How do I encode a file that starts with a dash?</b></a><br />
 		<br />
@@ -310,13 +307,9 @@
 		<br />
 		Since metadata is stored at the beginning of a FLAC file, changing the length of it can sometimes cause the whole file to be rewritten.  You can avoid this by adding padding with <span class="commandname">flac</span> when you encode, or with <span class="commandname">metaflac</span> after encoding.  By default, <span class="commandname">flac</span> adds 8k of padding; you can change this amount if you need more or less.<br />
 		<br />
-		<a name="tools__unicode_filenames_windows"><b>Why don't Unicode file names work with <span class="commandname">flac</span>/<span class="commandname">metaflac</span> on Windows?</b></a><br />
-		<br />
-		Windows implements Unicode filenames differently than all other operating systems, and can only be supported via Windows APIs (non-portable).  Also the method is different for different versions of Windows.  It's so hard to get right that most programs that have to work for other operating systems also do not support it.  A workaround can be found <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=48131">here</a>.<br />
-		<br />
 		<a name="tools__wildcards_on_windows"><b>Why don't wildcards for file names like *.flac or *.wav work with <span class="commandname">flac</span>/<span class="commandname">metaflac</span> on Windows?</b></a><br />
 		<br />
-		The Windows command shells (cmd.exe, command.com) implement wildcard handling differently than most other shells, leaving it up to the program to do everything including difficult and ambiguous cases.  For an explanation of why wildcards on cmd.exe/command.com are dangerous, see <a href="http://www.hydrogenaudio.org/forums/index.php?showtopic=50667&amp;st=75&amp;p=466078&amp;#entry466078">here</a>.  Better command shells for Windows exist, e.g. from <a href="http://cygwin.com/">Cygwin</a>.  A workaround with the Windows shells is to do something like:<br />
+		The Windows command shells (cmd.exe, command.com) implement wildcard handling differently than most other shells, leaving it up to the program to do everything including difficult and ambiguous cases.  For an explanation of why wildcards on cmd.exe/command.com are dangerous, see <a href="http://www.hydrogenaud.io/forums/index.php?showtopic=50667&amp;st=75&amp;p=466078&amp;#entry466078">here</a>.  Better command shells for Windows exist, e.g. from <a href="http://cygwin.com/">Cygwin</a>.  A workaround with the Windows shells is to do something like:<br />
 		<br />
 		<tt>for %F in (*.wav) do flac "%F"</tt><br />
 		<br />
@@ -326,9 +319,9 @@
 		<br />
 		The only known cause of verify errors is faulty hardware.  The dead giveaway is that if you repeat the exact same command, the error occurs in a different place or not at all.  This can also happen when decoding or testing a FLAC file.  If this is happening it is your hardware and not a FLAC bug.<br />
 		<br />
-		The problem is usually caused by overclocking/overheating the CPU or bad RAM.  Try one of the many free programs available for testing hardware (e.g. <a href="http://www.memtest86.org/">Memtest86+</a>).  We have had reports of a few cases where a system is passing with flying colors and still getting unrepeatable FLAC errors, and the one thing many (all?) of these systems have in common is an ASUS motherboard (A7V133 or P3V4X) which we suspect is buggy in some way.  (<a href="https://sourceforge.net/tracker/index.php?func=detail&amp;aid=884401&amp;group_id=13478&amp;atid=113478">See also</a>)<br />
+		The problem is usually caused by overclocking/overheating the CPU or bad RAM.  Try one of the many free programs available for testing hardware (e.g. <a href="http://www.memtest.org/">Memtest</a>).<br />
 		<br />
-		If you ever have a verify error that fails at the same place every time, please <a href="faq.html#project__submit_bug">file a bug</a>, uploading a sample according to <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=585158&amp;group_id=13478&amp;atid=113478">the instructions found at the bottom of this bug report</a>.<br />
+		If you ever have a verify error that fails at the same place every time, please <a href="faq.html#project__submit_bug">file a bug</a>, uploading a sample according to <a href="http://sourceforge.net/p/flac/bugs/42/">the instructions found at the bottom of this bug report</a>.<br />
 		<br />
 		<a name="tools__wave_flac_wave"><b>I compressed a WAVE file to FLAC, then decompressed to WAVE, and the two weren't identical.  Why?</b></a><br />
 		<a name="tools__skipped_subchunk"><b>I compressed a WAVE file to FLAC and it said "warning: skipping unknown sub-chunk LIST".  Why?</b></a><br />
@@ -369,7 +362,7 @@
 
 		<a name="project__lists"><b>Where are the mailing lists, forums, discussion areas, etc.?</b></a><br />
 		<br />
-		There are a few places.  The main discussions happen on <a href="http://lists.xiph.org/mailman/listinfo">the official FLAC mailing lists</a> (you must subscribe to post).  Also, there is a lot of discussion relating to FLAC on <a href="http://www.hydrogenaudio.org/">Hydrogen Audio</a>.<br />
+		There are a few places.  The main discussions happen on <a href="http://lists.xiph.org/mailman/listinfo">the official FLAC mailing lists</a> (you must subscribe to post).  Also, there is a lot of discussion relating to FLAC on <a href="http://www.hydrogenaud.io/">Hydrogen Audio</a>.<br />
 		<br />
 		<a name="project__submit_bug"><b>How do I submit a bug report?</b></a><br />
 		<br />

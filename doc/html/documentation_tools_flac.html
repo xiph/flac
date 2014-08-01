@@ -355,29 +355,35 @@
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_skip" />
-					<span class="argument">--skip={#|mm:ss.ss}</span>
+					<span class="argument">--skip={#|mm:ss.ss}<br />--skip={#|mm:ss,ss}</span>
 				</td>
 				<td>
 					Skip over the first # of samples of the input.  This works for both encoding and decoding, but not testing.  The alternative form <span class="argument">mm:ss.ss</span> can be used to specify minutes, seconds, and fractions of a second.<br />
 					<br />
+					Note that the use of either a dot or a comma depends on the locale used for the system.<br />
+					<br />
 					Examples:<br />
 					<br />
 					<span class="argument">--skip=123</span> : skip the first 123 samples of the input<br />
-					<span class="argument">--skip=1:23.45</span> : skip the first 1 minute and 23.45 seconds of the input
+					<span class="argument">--skip=1:23.45</span> : skip the first 1 minute and 23.45 seconds of the input, with a locale using the point as decimal separator<br />
+					<span class="argument">--skip=1:23,45</span> : skip the first 1 minute and 23.45 seconds of the input, with a locale using the comma as decimal separator
 				</td>
 			</tr>
 			<tr>
 				<td nowrap="nowrap" align="right" valign="top" bgcolor="#F4F4CC">
 					<a name="flac_options_until" />
-					<span class="argument">--until={#|[+|-]mm:ss.ss}</span>
+					<span class="argument">--until={#|[+|-]mm:ss.ss}<br />--until={#|[+|-]mm:ss,ss}</span>
 				</td>
 				<td>
 					Stop at the given sample number for each input file.  This works for both encoding and decoding, but not testing.  The given sample number is not included in the decoded output.  The alternative form <span class="argument">mm:ss.ss</span> can be used to specify minutes, seconds, and fractions of a second.  If a <span class="argument">+</span> sign is at the beginning, the <span class="argument">--until</span> point is relative to the <span class="argument">--skip</span> point.  If a <span class="argument">-</span> sign is at the beginning, the <span class="argument">--until</span> point is relative to end of the audio.<br />
+					<br />
+					Note that the use of either a dot or a comma depends on the locale used for the system.<br />
 					<br />
 					Examples:<br />
 					<br />
 					<span class="argument">--until=123</span> : decode only the first 123 samples of the input (samples 0-122, stopping at 123)<br />
 					<span class="argument">--until=1:23.45</span> : decode only the first 1 minute and 23.45 seconds of the input<br />
+					<span class="argument">--until=1:23,45</span> : decode only the first 1 minute and 23.45 seconds of the input, if your locale setting uses a comma as decimal separator<br />
 					<span class="argument">--skip=1:00 --until=+1:23.45</span> : decode 1:00.00 to 2:23.45<br />
 					<span class="argument">--until=-1:23.45</span> : decode everything except the last 1 minute and 23.45 seconds<br />
 					<span class="argument">--until=-0:00</span> : decode until the end of the input (the same as not specifying <span class="argument">--until</span>)
@@ -550,7 +556,7 @@
 					<span class="argument">--replay-gain</span>
 				</td>
 				<td>
-					Calculate <a href="http://www.replaygain.org/">ReplayGain</a> values and store them as FLAC tags, similar to <a href="http://packages.qa.debian.org/v/vorbisgain.html">VorbisGain</a>.  Title gains/peaks will be computed for each input file, and an album gain/peak will be computed for all files.  All input files must have the same resolution, sample rate, and number of channels.  Only mono and stereo files are allowed, and the sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.  Also note that this option may leave a few extra bytes in a <span class="code">PADDING</span> block as the exact size of the tags is not known until all files are processed.<br />
+					Calculate <a href="http://wiki.hydrogenaud.io/index.php?title=ReplayGain_specification">ReplayGain</a> values and store them as FLAC tags, similar to <a href="http://packages.qa.debian.org/v/vorbisgain.html">VorbisGain</a>.  Title gains/peaks will be computed for each input file, and an album gain/peak will be computed for all files.  All input files must have the same resolution, sample rate, and number of channels.  Only mono and stereo files are allowed, and the sample rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48 kHz.  Also note that this option may leave a few extra bytes in a <span class="code">PADDING</span> block as the exact size of the tags is not known until all files are processed.<br />
 					<br />
 					Note that this option cannot be used when encoding to standard output (stdout).
 				</td>
@@ -849,6 +855,7 @@
 					Window audio data with given the apodization function.  The functions are: bartlett, bartlett_hann, blackman, blackman_harris_4term_92db, connes, flattop, gauss(STDDEV), hamming, hann, kaiser_bessel, nuttall, rectangle, triangle, tukey(P), welch.<br />
 					For gauss(STDDEV), STDDEV is the standard deviation (0&lt;STDDEV&lt;=0.5).<br />
 					For tukey(P), P specifies the fraction of the window that is tapered (0&lt;=P&lt;=1; P=0 corresponds to "rectangle" and P=1 corresponds to "hann").<br />
+					Please note that for both P as well as STDDEV, the use of a point or comma as decimal separator is locale-dependent.<br />
 					More than one -A option (up to 32) may be used.  Any function that is specified erroneously is silently dropped.  The encoder chooses suitable defaults in the absence of any -A options; any -A option specified replaces the default(s).<br />
 					When more than one function is specified, then for every subframe the encoder will try each of them separately and choose the window that results in the smallest compressed subframe.  Multiple functions can greatly increase the encoding time.<br />
 				</td>
@@ -1018,6 +1025,7 @@
 					<span class="argument">--no-mid-side</span><br />
 					<span class="argument">--no-ogg</span><br />
 					<span class="argument">--no-padding</span><br />
+					<span class="argument">--no-preserve-modtime</span><br />
 					<span class="argument">--no-qlp-coeff-prec-search</span><br />
 					<span class="argument">--no-residual-gnuplot</span><br />
 					<span class="argument">--no-residual-text</span><br />

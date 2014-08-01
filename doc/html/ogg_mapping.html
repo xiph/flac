@@ -42,7 +42,7 @@
 	</div>
 	<div class="box_header"></div>
 	<div class="box_body">
-		This page specifies the way in which compressed FLAC data is encapsulated in an Ogg transport layer.  It assumes basic knowledge of the <a href="format.html">FLAC format</a> and <a href="http://www.xiph.org/vorbis/doc/oggstream.html">Ogg structure</a> and <a href="http://www.xiph.org/vorbis/doc/framing.html">framing</a>.<br />
+		This page specifies the way in which compressed FLAC data is encapsulated in an Ogg transport layer.  It assumes basic knowledge of the <a href="format.html">FLAC format</a> and <a href="http://xiph.org/vorbis/doc/oggstream.html">Ogg structure</a> and <a href="http://xiph.org/vorbis/doc/framing.html">framing</a>.<br />
 		<br />
 		The original FLAC format includes a very thin transport system.  This system of compressed FLAC audio data mixed with a thin transport has come to be known as 'native FLAC'.  The transport consists of audio frame headers and footers which contain synchronization patterns, timecodes, and checksums (but notably not frame lengths), and a metadata system.  It is very lightweight and does not support more elaborate transport mechanisms such as multiple logical streams, but it has served its purpose well.<br />
 		<br />
@@ -93,7 +93,7 @@
 				FLAC packets may span page boundaries.
 			</li>
 			<li>
-				The granule position of pages containing FLAC audio follows the same semantics as that for Ogg-encapsulated Vorbis as described <a href="http://www.xiph.org/vorbis/doc/vorbis-ogg.html">here</a>.
+				The granule position of pages containing FLAC audio follows the same semantics as that for Ogg-encapsulated Vorbis as described <a href="http://xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-126000A">here</a>.
 			</li>
 			<li>
 				Redundant fields in the STREAMINFO packet may be set to zero (indicating "unknown" in native FLAC), which also facilitates single-pass encoding.  These fields are: the minimum and maximum frame sizes, the total samples count, and the MD5 signature.  "Unknown" values for these fields will not prevent a compliant native FLAC or Ogg FLAC decoder from decoding the stream.
