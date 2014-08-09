@@ -40,6 +40,11 @@
 
 #if defined FLAC__CPU_IA32
 # include <signal.h>
+
+static void disable_sse(FLAC__CPUInfo *info)
+{
+	info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+}
 #elif defined FLAC__CPU_PPC
 # if !defined FLAC__NO_ASM
 #  if defined FLAC__SYS_DARWIN
@@ -215,7 +220,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		if(info->ia32.sse) {
 #if defined FLAC__NO_SSE_OS
 			/* assume user knows better than us; turn it off */
-			info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+			disable_sse(info);
 #elif defined FLAC__SSE_OS
 			/* assume user knows better than us; leave as detected above */
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__APPLE__)
@@ -225,21 +230,23 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			len = sizeof(sse); sse = sse || (sysctlbyname("hw.instruction_sse", &sse, &len, NULL, 0) == 0 && sse);
 			len = sizeof(sse); sse = sse || (sysctlbyname("hw.optional.sse"   , &sse, &len, NULL, 0) == 0 && sse); /* __APPLE__ ? */
 			if(!sse)
-				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+				disable_sse(info);
 #elif defined(__NetBSD__) || defined (__OpenBSD__)
 # if __NetBSD_Version__ >= 105250000 || (defined __OpenBSD__)
 			int val = 0, mib[2] = { CTL_MACHDEP, CPU_SSE };
 			size_t len = sizeof(val);
 			if(sysctl(mib, 2, &val, &len, NULL, 0) < 0 || !val)
-				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+				disable_sse(info);
 			else { /* double-check SSE2 */
 				mib[1] = CPU_SSE2;
 				len = sizeof(val);
-				if(sysctl(mib, 2, &val, &len, NULL, 0) < 0 || !val)
-					info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+				if(sysctl(mib, 2, &val, &len, NULL, 0) < 0 || !val) {
+					disable_sse(info);
+					info->ia32.fxsr = info->ia32.sse = true;
+				}
 			}
 # else
-			info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+			disable_sse(info);
 # endif
 #elif defined(__linux__)
 			int sse = 0;
@@ -273,7 +280,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			}
 
 			if(!sse)
-				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+				disable_sse(info);
 #elif defined(_MSC_VER)
 			__try {
 				__asm {
@@ -282,7 +289,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			}
 			__except(EXCEPTION_EXECUTE_HANDLER) {
 				if (_exception_code() == STATUS_ILLEGAL_INSTRUCTION)
-					info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+					disable_sse(info);
 			}
 #elif defined(__GNUC__) /* MinGW goes here */
 			int sse = 0;
@@ -308,17 +315,17 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 					sse = 1;
 			}
 			if(!sse)
-				info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+				disable_sse(info);
 #else
 			/* no way to test, disable to be safe */
-			info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+			disable_sse(info);
 #endif
 #ifdef DEBUG
 			fprintf(stderr, "  SSE OS sup . %c\n", info->ia32.sse     ? 'Y' : 'n');
 #endif
 		}
 		else /* info->ia32.sse == false */
-			info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+			disable_sse(info);
 	}
 #else
 	info->use_asm = false;
