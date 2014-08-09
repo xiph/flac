@@ -45,6 +45,204 @@
 
 #include <xmmintrin.h> /* SSE */
 
+#if 1
+/* Faster on current Intel (starting from Core i aka Nehalem) and all AMD CPUs */
+
+FLAC__SSE_TARGET("sse")
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+{
+	int i;
+	int limit = data_len - 4;
+	__m128 sum0;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 4);
+	FLAC__ASSERT(lag <= data_len);
+
+	sum0 = _mm_setzero_ps();
+
+	for(i = 0; i <= limit; i++) {
+		__m128 d, d0;
+		d0 = _mm_loadu_ps(data+i);
+		d = d0; d = _mm_shuffle_ps(d, d, 0);
+		sum0 = _mm_add_ps(sum0, _mm_mul_ps(d0, d));
+	}
+
+	{
+		__m128 d0 = _mm_setzero_ps();
+		limit++; if(limit < 0) limit = 0;
+
+		for(i = data_len-1; i >= limit; i--) {
+			__m128 d;
+			d = _mm_load_ss(data+i); d = _mm_shuffle_ps(d, d, 0);
+			d0 = _mm_shuffle_ps(d0, d0, _MM_SHUFFLE(2,1,0,3));
+			d0 = _mm_move_ss(d0, d);
+			sum0 = _mm_add_ps(sum0, _mm_mul_ps(d, d0));
+		}
+	}
+
+	_mm_storeu_ps(autoc,   sum0);
+}
+
+FLAC__SSE_TARGET("sse")
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+{
+	int i;
+	int limit = data_len - 8;
+	__m128 sum0, sum1;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 8);
+	FLAC__ASSERT(lag <= data_len);
+
+	sum0 = _mm_setzero_ps();
+	sum1 = _mm_setzero_ps();
+
+	for(i = 0; i <= limit; i++) {
+		__m128 d, d0, d1;
+		d0 = _mm_loadu_ps(data+i);
+		d1 = _mm_loadu_ps(data+i+4);
+		d = d0; d = _mm_shuffle_ps(d, d, 0);
+		sum0 = _mm_add_ps(sum0, _mm_mul_ps(d0, d));
+		sum1 = _mm_add_ps(sum1, _mm_mul_ps(d1, d));
+	}
+
+	{
+		__m128 d0 = _mm_setzero_ps();
+		__m128 d1 = _mm_setzero_ps();
+		limit++; if(limit < 0) limit = 0;
+
+		for(i = data_len-1; i >= limit; i--) {
+			__m128 d;
+			d = _mm_load_ss(data+i); d = _mm_shuffle_ps(d, d, 0);
+			d1 = _mm_shuffle_ps(d1, d1, _MM_SHUFFLE(2,1,0,3));
+			d0 = _mm_shuffle_ps(d0, d0, _MM_SHUFFLE(2,1,0,3));
+			d1 = _mm_move_ss(d1, d0);
+			d0 = _mm_move_ss(d0, d);
+			sum1 = _mm_add_ps(sum1, _mm_mul_ps(d, d1));
+			sum0 = _mm_add_ps(sum0, _mm_mul_ps(d, d0));
+		}
+	}
+
+	_mm_storeu_ps(autoc,   sum0);
+	_mm_storeu_ps(autoc+4, sum1);
+}
+
+FLAC__SSE_TARGET("sse")
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+{
+	int i;
+	int limit = data_len - 12;
+	__m128 sum0, sum1, sum2;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 12);
+	FLAC__ASSERT(lag <= data_len);
+
+	sum0 = _mm_setzero_ps();
+	sum1 = _mm_setzero_ps();
+	sum2 = _mm_setzero_ps();
+
+	for(i = 0; i <= limit; i++) {
+		__m128 d, d0, d1, d2;
+		d0 = _mm_loadu_ps(data+i);
+		d1 = _mm_loadu_ps(data+i+4);
+		d2 = _mm_loadu_ps(data+i+8);
+		d = d0; d = _mm_shuffle_ps(d, d, 0);
+		sum0 = _mm_add_ps(sum0, _mm_mul_ps(d0, d));
+		sum1 = _mm_add_ps(sum1, _mm_mul_ps(d1, d));
+		sum2 = _mm_add_ps(sum2, _mm_mul_ps(d2, d));
+	}
+
+	{
+		__m128 d0 = _mm_setzero_ps();
+		__m128 d1 = _mm_setzero_ps();
+		__m128 d2 = _mm_setzero_ps();
+		limit++; if(limit < 0) limit = 0;
+
+		for(i = data_len-1; i >= limit; i--) {
+			__m128 d;
+			d = _mm_load_ss(data+i); d = _mm_shuffle_ps(d, d, 0);
+			d2 = _mm_shuffle_ps(d2, d2, _MM_SHUFFLE(2,1,0,3));
+			d1 = _mm_shuffle_ps(d1, d1, _MM_SHUFFLE(2,1,0,3));
+			d0 = _mm_shuffle_ps(d0, d0, _MM_SHUFFLE(2,1,0,3));
+			d2 = _mm_move_ss(d2, d1);
+			d1 = _mm_move_ss(d1, d0);
+			d0 = _mm_move_ss(d0, d);
+			sum2 = _mm_add_ps(sum2, _mm_mul_ps(d, d2));
+			sum1 = _mm_add_ps(sum1, _mm_mul_ps(d, d1));
+			sum0 = _mm_add_ps(sum0, _mm_mul_ps(d, d0));
+		}
+	}
+
+	_mm_storeu_ps(autoc,   sum0);
+	_mm_storeu_ps(autoc+4, sum1);
+	_mm_storeu_ps(autoc+8, sum2);
+}
+
+FLAC__SSE_TARGET("sse")
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+{
+	int i;
+	int limit = data_len - 16;
+	__m128 sum0, sum1, sum2, sum3;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 16);
+	FLAC__ASSERT(lag <= data_len);
+
+	sum0 = _mm_setzero_ps();
+	sum1 = _mm_setzero_ps();
+	sum2 = _mm_setzero_ps();
+	sum3 = _mm_setzero_ps();
+
+	for(i = 0; i <= limit; i++) {
+		__m128 d, d0, d1, d2, d3;
+		d0 = _mm_loadu_ps(data+i);
+		d1 = _mm_loadu_ps(data+i+4);
+		d2 = _mm_loadu_ps(data+i+8);
+		d3 = _mm_loadu_ps(data+i+12);
+		d = d0; d = _mm_shuffle_ps(d, d, 0);
+		sum0 = _mm_add_ps(sum0, _mm_mul_ps(d0, d));
+		sum1 = _mm_add_ps(sum1, _mm_mul_ps(d1, d));
+		sum2 = _mm_add_ps(sum2, _mm_mul_ps(d2, d));
+		sum3 = _mm_add_ps(sum3, _mm_mul_ps(d3, d));
+	}
+
+	{
+		__m128 d0 = _mm_setzero_ps();
+		__m128 d1 = _mm_setzero_ps();
+		__m128 d2 = _mm_setzero_ps();
+		__m128 d3 = _mm_setzero_ps();
+		limit++; if(limit < 0) limit = 0;
+
+		for(i = data_len-1; i >= limit; i--) {
+			__m128 d;
+			d = _mm_load_ss(data+i); d = _mm_shuffle_ps(d, d, 0);
+			d3 = _mm_shuffle_ps(d3, d3, _MM_SHUFFLE(2,1,0,3));
+			d2 = _mm_shuffle_ps(d2, d2, _MM_SHUFFLE(2,1,0,3));
+			d1 = _mm_shuffle_ps(d1, d1, _MM_SHUFFLE(2,1,0,3));
+			d0 = _mm_shuffle_ps(d0, d0, _MM_SHUFFLE(2,1,0,3));
+			d3 = _mm_move_ss(d3, d2);
+			d2 = _mm_move_ss(d2, d1);
+			d1 = _mm_move_ss(d1, d0);
+			d0 = _mm_move_ss(d0, d);
+			sum3 = _mm_add_ps(sum3, _mm_mul_ps(d, d3));
+			sum2 = _mm_add_ps(sum2, _mm_mul_ps(d, d2));
+			sum1 = _mm_add_ps(sum1, _mm_mul_ps(d, d1));
+			sum0 = _mm_add_ps(sum0, _mm_mul_ps(d, d0));
+		}
+	}
+
+	_mm_storeu_ps(autoc,   sum0);
+	_mm_storeu_ps(autoc+4, sum1);
+	_mm_storeu_ps(autoc+8, sum2);
+	_mm_storeu_ps(autoc+12,sum3);
+}
+
+#else
+/* Faster on older Intel CPUs (up to Core 2) */
+
 FLAC__SSE_TARGET("sse")
 void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
@@ -245,6 +443,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[]
 	_mm_storeu_ps(autoc+8, xmm8);
 	_mm_storeu_ps(autoc+12,xmm9);
 }
+#endif
 
 #endif /* FLAC__SSE_SUPPORTED */
 #endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
