@@ -110,7 +110,6 @@ int get_utf8_argv(int *argc, char ***argv)
 			ret = 1;
 			break;
 		}
-		if (ret != 0) break;
 	}
 
 	FreeLibrary(handle);
