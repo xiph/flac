@@ -102,7 +102,7 @@ int get_utf8_argv(int *argc, char ***argv)
 	if ((wgetmainargs = (wgetmainargs_t)GetProcAddress(handle, "__wgetmainargs")) == NULL) return 1;
 	i = 0;
 	if (wgetmainargs(&wargc, &wargv, &wenv, 1, &i) != 0) return 1;
-	if ((utf8argv = (char **)malloc(wargc*sizeof(char*))) == NULL) return 1;
+	if ((utf8argv = (char **)calloc(wargc, sizeof(char*))) == NULL) return 1;
 	ret = 0;
 
 	for (i=0; i<wargc; i++) {
@@ -120,6 +120,8 @@ int get_utf8_argv(int *argc, char ***argv)
 		*argc = wargc;
 		*argv = utf8argv;
 	} else {
+		for (i=0; i<wargc; i++)
+			free(utf8argv[i]);
 		free(utf8argv);
 	}
 
