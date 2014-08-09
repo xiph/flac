@@ -177,7 +177,7 @@ int printf_utf8(const char *format, ...)
 		va_list argptr;
 		if (!(utmp = (char *)malloc(32768*sizeof(char)))) break;
 		va_start(argptr, format);
-		ret = vsprintf(utmp, format, argptr);
+		ret = vsnprintf_s(utmp, 32768, _TRUNCATE, format, argptr);
 		va_end(argptr);
 		if (ret < 0) break;
 		if (!(wout = wchar_from_utf8(utmp))) {
@@ -203,7 +203,7 @@ int fprintf_utf8(FILE *stream, const char *format, ...)
 		va_list argptr;
 		if (!(utmp = (char *)malloc(32768*sizeof(char)))) break;
 		va_start(argptr, format);
-		ret = vsprintf(utmp, format, argptr);
+		ret = vsnprintf_s(utmp, 32768, _TRUNCATE, format, argptr);
 		va_end(argptr);
 		if (ret < 0) break;
 		if (!(wout = wchar_from_utf8(utmp))) {
@@ -227,7 +227,7 @@ int vfprintf_utf8(FILE *stream, const char *format, va_list argptr)
 
 	while (1) {
 		if (!(utmp = (char *)malloc(32768*sizeof(char)))) break;
-		if ((ret = vsprintf(utmp, format, argptr)) < 0) break;
+		if ((ret = vsnprintf_s(utmp, 32768, _TRUNCATE, format, argptr)) < 0) break;
 		if (!(wout = wchar_from_utf8(utmp))) {
 			ret = -1;
 			break;
