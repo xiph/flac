@@ -1664,6 +1664,48 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_apodization(FLAC__StreamEncoder *en
 				encoder->protected_->apodizations[encoder->protected_->num_apodizations++].type = FLAC__APODIZATION_TUKEY;
 			}
 		}
+		else if(n>15   && 0 == strncmp("partial_tukey("       , specification, 14)) {
+			FLAC__int32 tukey_parts = (FLAC__int32)strtod(specification+14, 0);
+			const char *si_1 = strchr(specification, '/');
+			FLAC__real overlap = si_1?flac_min((FLAC__real)strtod(si_1+1, 0),0.99f):0.1f;
+			FLAC__real overlap_units = 1.0f/(1.0f - overlap) - 1.0f;
+			const char *si_2 = strchr((si_1?(si_1+1):specification), '/');
+			FLAC__real tukey_p = si_2?(FLAC__real)strtod(si_2+1, 0):0.2f;
+
+			if (tukey_parts <= 1) {
+				encoder->protected_->apodizations[encoder->protected_->num_apodizations].parameters.tukey.p = tukey_p;
+				encoder->protected_->apodizations[encoder->protected_->num_apodizations++].type = FLAC__APODIZATION_TUKEY;
+			}else if (encoder->protected_->num_apodizations + tukey_parts < 32){
+				FLAC__int32 m;
+				for(m = 0; m < tukey_parts; m++){
+					encoder->protected_->apodizations[encoder->protected_->num_apodizations].parameters.multiple_tukey.p = tukey_p;
+					encoder->protected_->apodizations[encoder->protected_->num_apodizations].parameters.multiple_tukey.start = m/(tukey_parts+overlap_units);
+					encoder->protected_->apodizations[encoder->protected_->num_apodizations].parameters.multiple_tukey.end = (m+1+overlap_units)/(tukey_parts+overlap_units);
+					encoder->protected_->apodizations[encoder->protected_->num_apodizations++].type = FLAC__APODIZATION_PARTIAL_TUKEY;
+				}
+			}
+		}
+		else if(n>16   && 0 == strncmp("punchout_tukey("       , specification, 15)) {
+			FLAC__int32 tukey_parts = (FLAC__int32)strtod(specification+15, 0);
+			const char *si_1 = strchr(specification, '/');
+			FLAC__real overlap = si_1?flac_min((FLAC__real)strtod(si_1+1, 0),0.99f):0.2f;
+			FLAC__real overlap_units = 1.0f/(1.0f - overlap) - 1.0f;
+			const char *si_2 = strchr((si_1?(si_1+1):specification), '/');
+			FLAC__real tukey_p = si_2?(FLAC__real)strtod(si_2+1, 0):0.2f;
+
+			if (tukey_parts <= 1) {
+				encoder->protected_->apodizations[encoder->protected_->num_apodizations].parameters.tukey.p = tukey_p;
+				encoder->protected_->apodizations[encoder->protected_->num_apodizations++].type = FLAC__APODIZATION_TUKEY;
+			}else if (encoder->protected_->num_apodizations + tukey_parts < 32){
+				FLAC__int32 m;
+				for(m = 0; m < tukey_parts; m++){
+					encoder->protected_->apodizations[encoder->protected_->num_apodizations].parameters.multiple_tukey.p = tukey_p;
+					encoder->protected_->apodizations[encoder->protected_->num_apodizations].parameters.multiple_tukey.start = m/(tukey_parts+overlap_units);
+					encoder->protected_->apodizations[encoder->protected_->num_apodizations].parameters.multiple_tukey.end = (m+1+overlap_units)/(tukey_parts+overlap_units);
+					encoder->protected_->apodizations[encoder->protected_->num_apodizations++].type = FLAC__APODIZATION_PUNCHOUT_TUKEY;
+				}
+			}
+		}
 		else if(n==5  && 0 == strncmp("welch"        , specification, n))
 			encoder->protected_->apodizations[encoder->protected_->num_apodizations++].type = FLAC__APODIZATION_WELCH;
 		if (encoder->protected_->num_apodizations == 32)
@@ -2442,6 +2484,12 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, unsigned new_blocksize)
 					break;
 				case FLAC__APODIZATION_TUKEY:
 					FLAC__window_tukey(encoder->private_->window[i], new_blocksize, encoder->protected_->apodizations[i].parameters.tukey.p);
+					break;
+				case FLAC__APODIZATION_PARTIAL_TUKEY:
+					FLAC__window_partial_tukey(encoder->private_->window[i], new_blocksize, encoder->protected_->apodizations[i].parameters.multiple_tukey.p, encoder->protected_->apodizations[i].parameters.multiple_tukey.start, encoder->protected_->apodizations[i].parameters.multiple_tukey.end);
+					break;
+				case FLAC__APODIZATION_PUNCHOUT_TUKEY:
+					FLAC__window_punchout_tukey(encoder->private_->window[i], new_blocksize, encoder->protected_->apodizations[i].parameters.multiple_tukey.p, encoder->protected_->apodizations[i].parameters.multiple_tukey.start, encoder->protected_->apodizations[i].parameters.multiple_tukey.end);
 					break;
 				case FLAC__APODIZATION_WELCH:
 					FLAC__window_welch(encoder->private_->window[i], new_blocksize);

@@ -59,6 +59,8 @@ typedef enum {
 	FLAC__APODIZATION_RECTANGLE,
 	FLAC__APODIZATION_TRIANGLE,
 	FLAC__APODIZATION_TUKEY,
+	FLAC__APODIZATION_PARTIAL_TUKEY,
+	FLAC__APODIZATION_PUNCHOUT_TUKEY,
 	FLAC__APODIZATION_WELCH
 } FLAC__ApodizationFunction;
 
@@ -71,6 +73,11 @@ typedef struct {
 		struct {
 			FLAC__real p;
 		} tukey;
+		struct {
+			FLAC__real p;
+			FLAC__real start;
+			FLAC__real end;
+		} multiple_tukey;
 	} parameters;
 } FLAC__ApodizationSpecification;
 

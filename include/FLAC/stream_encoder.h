@@ -920,7 +920,8 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamE
  * The available functions are \c bartlett, \c bartlett_hann,
  * \c blackman, \c blackman_harris_4term_92db, \c connes, \c flattop,
  * \c gauss(STDDEV), \c hamming, \c hann, \c kaiser_bessel, \c nuttall,
- * \c rectangle, \c triangle, \c tukey(P), \c welch.
+ * \c rectangle, \c triangle, \c tukey(P), \c partial_tukey(n[/ov[/P]]),
+ * \c punchout_tukey(n[/ov[/P]]), \c welch.
  *
  * For \c gauss(STDDEV), STDDEV specifies the standard deviation
  * (0<STDDEV<=0.5).
@@ -928,6 +929,24 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamE
  * For \c tukey(P), P specifies the fraction of the window that is
  * tapered (0<=P<=1).  P=0 corresponds to \c rectangle and P=1
  * corresponds to \c hann.
+ *
+ * Specifying \c partial_tukey or \c punchout_tukey works a little
+ * different. These do not specify a single apodization function, but
+ * a series of them with some overlap. partial_tukey specifies a series
+ * of small windows (all treated separately) while punchout_tukey
+ * specifies a series of windows that have a hole in them. In this way,
+ * the predictor is constructed with only a part of the block, which
+ * helps in case a block consists of dissimilar parts.
+ *
+ * The three parameters that can be specified for the functions are
+ * n, ov and P. n is the number of functions to add, ov is the overlap
+ * of the windows in case of partial_tukey and the overlap in the gaps
+ * in case of punchout_tukey. P is the fraction of the window that is
+ * tapered, like with a regular tukey window. The function can be
+ * specified with only a number, a number and an overlap, or a number
+ * an overlap and a P, for example, partial_tukey(3), partial_tukey(3/0.3)
+ * and partial_tukey(3/0.3/0.5) are all valid. ov should be smaller than 1
+ * and can be negative.
  *
  * Example specifications are \c "blackman" or
  * \c "hann;triangle;tukey(0.5);tukey(0.25);tukey(0.125)"
@@ -941,7 +960,9 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_loose_mid_side_stereo(FLAC__StreamE
  * results in the smallest compressed subframe.
  *
  * Note that each function specified causes the encoder to occupy a
- * floating point array in which to store the window.
+ * floating point array in which to store the window. Also note that the
+ * values of P, STDDEV and ov are locale-specific, so if the comma
+ * separator specified by the locale is a comma, a comma should be used.
  *
  * \default \c "tukey(0.5)"
  * \param  encoder        An encoder instance to set.

@@ -58,7 +58,7 @@ void FLAC__window_bartlett(FLAC__real *window, const FLAC__int32 L)
 		for (n = 0; n <= L/2-1; n++)
 			window[n] = 2.0f * n / (float)N;
 		for (; n <= N; n++)
-			window[n] = 2.0f - 2.0f * (N-n) / (float)N;
+			window[n] = 2.0f - 2.0f * n / (float)N;
 	}
 }
 
@@ -68,7 +68,7 @@ void FLAC__window_bartlett_hann(FLAC__real *window, const FLAC__int32 L)
 	FLAC__int32 n;
 
 	for (n = 0; n < L; n++)
-		window[n] = (FLAC__real)(0.62f - 0.48f * fabs((float)n/(float)N+0.5f) + 0.38f * cos(2.0f * M_PI * ((float)n/(float)N+0.5f)));
+		window[n] = (FLAC__real)(0.62f - 0.48f * fabs((float)n/(float)N-0.5f) - 0.38f * cos(2.0f * M_PI * ((float)n/(float)N)));
 }
 
 void FLAC__window_blackman(FLAC__real *window, const FLAC__int32 L)
@@ -173,16 +173,16 @@ void FLAC__window_triangle(FLAC__real *window, const FLAC__int32 L)
 	FLAC__int32 n;
 
 	if (L & 1) {
-		for (n = 1; n <= L+1/2; n++)
+		for (n = 1; n <= (L+1)/2; n++)
 			window[n-1] = 2.0f * n / ((float)L + 1.0f);
 		for (; n <= L; n++)
-			window[n-1] = - (float)(2 * (L - n + 1)) / ((float)L + 1.0f);
+			window[n-1] = (float)(2 * (L - n + 1)) / ((float)L + 1.0f);
 	}
 	else {
 		for (n = 1; n <= L/2; n++)
-			window[n-1] = 2.0f * n / (float)L;
+			window[n-1] = 2.0f * n / ((float)L + 1.0f);
 		for (; n <= L; n++)
-			window[n-1] = ((float)(2 * (L - n)) + 1.0f) / (float)L;
+			window[n-1] = (float)(2 * (L - n + 1)) / ((float)L + 1.0f);
 	}
 }
 
@@ -205,6 +205,61 @@ void FLAC__window_tukey(FLAC__real *window, const FLAC__int32 L, const FLAC__rea
 			}
 		}
 	}
+}
+
+void FLAC__window_partial_tukey(FLAC__real *window, const FLAC__int32 L, const FLAC__real p, const FLAC__real start, const FLAC__real end)
+{
+	const FLAC__int32 start_n = (FLAC__int32)(start * L);
+	const FLAC__int32 end_n = (FLAC__int32)(end * L);
+	const FLAC__int32 N = end_n - start_n;
+	FLAC__int32 Np, n, i;
+
+	if (p <= 0.0)
+		FLAC__window_partial_tukey(window, L, 0.01, start, end);
+	else if (p >= 1.0)
+		FLAC__window_partial_tukey(window, L, 1, start, end);
+
+	Np = (FLAC__int32)(p / 2.0f * N) - 1;
+
+	for (n = 0; n < start_n; n++)
+		window[n] = 0.0f;
+	for (i = 1; n < (start_n+Np); n++, i++)
+		window[n] = (FLAC__real)(0.5f - 0.5f * cos(M_PI * i / Np));
+	for (; n < (end_n-Np); n++)
+		window[n] = 1.0f;
+	for (i = Np; n < end_n; n++, i--)
+		window[n] = (FLAC__real)(0.5f - 0.5f * cos(M_PI * i / Np));
+	for (; n < L; n++)
+		window[n] = 0.0f;
+}
+void FLAC__window_punchout_tukey(FLAC__real *window, const FLAC__int32 L, const FLAC__real p, const FLAC__real start, const FLAC__real end)
+{
+	const FLAC__int32 start_n = (FLAC__int32)(start * L);
+	const FLAC__int32 end_n = (FLAC__int32)(end * L);
+	FLAC__int32 Ns, Ne, n, i;
+
+	if (p <= 0.0)
+		FLAC__window_partial_tukey(window, L, 0.01, start, end);
+	else if (p >= 1.0)
+		FLAC__window_partial_tukey(window, L, 1, start, end);
+
+	Ns = (FLAC__int32)(p / 2.0f * start_n);
+	Ne = (FLAC__int32)(p / 2.0f * (L - end_n));
+
+	for (n = 0, i = 1; n < Ns; n++, i++)
+		window[n] = (FLAC__real)(0.5f - 0.5f * cos(M_PI * i / Ns));
+	for (; n < start_n-Ns; n++)
+		window[n] = 1.0f;
+	for (i = Ns; n < start_n; n++, i--)
+		window[n] = (FLAC__real)(0.5f - 0.5f * cos(M_PI * i / Ns));
+	for (; n < end_n; n++)
+		window[n] = 0.0f;
+	for (i = 1; n < end_n+Ne; n++, i++)
+		window[n] = (FLAC__real)(0.5f - 0.5f * cos(M_PI * i / Ne));
+	for (; n < L - (Ne); n++)
+		window[n] = 1.0f;
+	for (i = Ne; n < L; n++, i--)
+		window[n] = (FLAC__real)(0.5f - 0.5f * cos(M_PI * i / Ne));
 }
 
 void FLAC__window_welch(FLAC__real *window, const FLAC__int32 L)

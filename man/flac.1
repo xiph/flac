@@ -280,11 +280,15 @@ Highest compression.  Currently synonymous with -8.
 Do exhaustive model search (expensive!)
 .TP
 \fB-A \fIfunction\fB, --apodization=\fIfunction\fB\fR
-Window audio data with given the apodization function.  The functions are: bartlett, bartlett_hann, blackman, blackman_harris_4term_92db, connes, flattop, gauss(STDDEV), hamming, hann, kaiser_bessel, nuttall, rectangle, triangle, tukey(P), welch.
+Window audio data with given the apodization function.  The functions are: bartlett, bartlett_hann, blackman, blackman_harris_4term_92db, connes, flattop, gauss(STDDEV), hamming, hann, kaiser_bessel, nuttall, rectangle, triangle, tukey(P), partial_tukey(n[/ov[/P]]), punchout_tukey(n[/ov[/P]]), welch.
 
 For gauss(STDDEV), STDDEV is the standard deviation (0<STDDEV<=0.5).
 
 For tukey(P), P specifies the fraction of the window that is tapered (0<=P<=1; P=0 corresponds to "rectangle" and P=1 corresponds to "hann").
+
+For partial_tukey(n) and punchout_tukey(n), n apodization functions are added that span different parts of each block. Values of 2 to 6 seem to yield sane results. If necessary, an overlap can be specified, as can be the taper parameter, for example partial_tukey(2/0.2) or partial_tukey(2/0.2/0.5). ov should be smaller than 1 and can be negative.
+
+Please note that P, STDDEV and ov are locale specific, so a comma as decimal separator might be required instead of a dot.
 
 More than one -A option (up to 32) may be used.  Any function that is specified erroneously is silently dropped.  The encoder chooses suitable defaults in the absence of any -A options; any -A option specified replaces the default(s).
 
