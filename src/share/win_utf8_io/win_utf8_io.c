@@ -162,7 +162,7 @@ int print_console(FILE *stream, const wchar_t *text, size_t len)
 		if (WriteConsoleW(hErr, text, len, &out, NULL) == 0) return -1;
 		return out;
 	} else {
-		int ret = fwprintf(stream, L"%s", text);
+		int ret = fputws(text, stream);
 		if (ret < 0) return ret;
 		return len;
 	}
