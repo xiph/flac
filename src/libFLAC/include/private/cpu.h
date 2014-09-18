@@ -39,6 +39,7 @@
 #include <config.h>
 #endif
 
+#if defined FLAC__HAS_X86INTRIN
 /* SSE intrinsics support by ICC/MSVC/GCC */
 #if defined __INTEL_COMPILER
   #define FLAC__SSE_TARGET(x)
@@ -79,6 +80,7 @@
     #endif
   #endif /* GCC version */
 #endif /* compiler version */
+#endif /* intrinsics support */
 
 typedef enum {
 	FLAC__CPUINFO_TYPE_IA32,
