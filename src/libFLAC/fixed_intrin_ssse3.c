@@ -47,22 +47,9 @@
 #include "FLAC/assert.h"
 
 #ifdef FLAC__CPU_IA32
-union zz_cvt
-{
-	int64_t i64;
-	int32_t i32[2];
-};
-
-FLAC__SSE_TARGET("sse2")
-static inline int64_t _zz_cvtsi128_si64(__m128i a)
-{
-	union zz_cvt z;
-	z.i32[0] = _mm_cvtsi128_si32(a);
-	z.i32[1] = _mm_cvtsi128_si32(_mm_srli_si128(a, 4));
-	return z.i64;
-}
-
-#define _mm_cvtsi128_si64 _zz_cvtsi128_si64
+#define m128i_to_i64(dest, src) _mm_storel_epi64((__m128i*)&dest, src)
+#else
+#define m128i_to_i64(dest, src) dest = _mm_cvtsi128_si64(src)
 #endif
 
 FLAC__SSE_TARGET("ssse3")
@@ -200,13 +187,13 @@ unsigned FLAC__fixed_compute_best_predictor_wide_intrin_ssse3(const FLAC__int32 
 		}
 	}
 	
-	total_error_0 = _mm_cvtsi128_si64(total_err0);
-	total_error_4 = _mm_cvtsi128_si64(total_err3);
-	total_error_2 = _mm_cvtsi128_si64(total_err1);
+	m128i_to_i64(total_error_0, total_err0);
+	m128i_to_i64(total_error_4, total_err3);
+	m128i_to_i64(total_error_2, total_err1);
 	total_err3 = _mm_srli_si128(total_err3,	8);							//         0      te3
 	total_err1 = _mm_srli_si128(total_err1, 8);							//         0      te1
-	total_error_3 = _mm_cvtsi128_si64(total_err3);
-	total_error_1 = _mm_cvtsi128_si64(total_err1);
+	m128i_to_i64(total_error_3, total_err3);
+	m128i_to_i64(total_error_1, total_err1);
 
 	/* prefer higher order */
 	if(total_error_0 < flac_min(flac_min(flac_min(total_error_1, total_error_2), total_error_3), total_error_4))
