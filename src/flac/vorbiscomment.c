@@ -243,7 +243,7 @@ FLAC__bool flac__vorbiscomment_add(FLAC__StreamMetadata *block, const char *comm
 		return false;
 	}
 
-	if(!set_vc_field(block, &parsed, &dummy, raw, violation)) {
+	if(parsed.field_value_length > 0 && !set_vc_field(block, &parsed, &dummy, raw, violation)) {
 		free_field(&parsed);
 		return false;
 	}
