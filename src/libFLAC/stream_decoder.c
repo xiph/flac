@@ -406,7 +406,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 		}
 #endif
 #ifdef FLAC__HAS_X86INTRIN
-# if defined FLAC__SSE2_SUPPORTED && !defined FLAC__HAS_NASM /* OPT_SSE: not faster than ASM/MMX code */
+# if defined FLAC__SSE2_SUPPORTED && !defined FLAC__HAS_NASM /* OPT_SSE: not better than MMX asm */
 		if(decoder->private_->cpuinfo.ia32.sse2) {
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_16_intrin_sse2;
 		}

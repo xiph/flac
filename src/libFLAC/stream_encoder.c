@@ -978,7 +978,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16;
 #    endif
 #    ifdef FLAC__SSE2_SUPPORTED
-		/* encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2; // OPT_SSE: not faster than C; TODO: more tests on different CPUs */
 		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2;
 #     ifdef FLAC__SSE4_1_SUPPORTED
 		if(encoder->private_->cpuinfo.x86_64.sse41) {
