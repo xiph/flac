@@ -411,11 +411,15 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_16_intrin_sse2;
 		}
 # endif
-# if defined FLAC__SSE4_1_SUPPORTED && 1 /* OPT_SSE: faster than asm; TODO: more tests */
-		if(decoder->private_->cpuinfo.ia32.sse41)
+# if defined FLAC__SSE4_1_SUPPORTED
+		if(decoder->private_->cpuinfo.ia32.sse41) {
 			decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_intrin_sse41;
+		}
 # endif
 #endif
+#elif defined FLAC__CPU_X86_64
+		FLAC__ASSERT(decoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_X86_64);
+		/* No useful SSE optimizations yet */
 #endif
 	}
 #endif
