@@ -40,9 +40,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h> /* for WideCharToMultiByte and MultiByteToWideChar */
 
-#include "share/compat.h"
 #include "share/win_utf8_io.h"
 
 static UINT win_utf8_io_codepage = CP_ACP;
@@ -148,7 +148,7 @@ int win_get_console_width(void)
 
 /* print functions */
 
-int print_console(FILE *stream, const wchar_t *text, uint32_t len)
+int print_console(FILE *stream, const wchar_t *text, size_t len)
 {
 	static HANDLE hOut;
 	static HANDLE hErr;
