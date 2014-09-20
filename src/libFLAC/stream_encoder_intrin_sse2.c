@@ -95,7 +95,7 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 
 				mm_sum = _mm_add_epi32(mm_sum, _mm_srli_si128(mm_sum, 8));
 				mm_sum = _mm_add_epi32(mm_sum, _mm_srli_si128(mm_sum, 4));
-				abs_residual_partition_sums[partition] = _mm_cvtsi128_si32(mm_sum);
+				abs_residual_partition_sums[partition] = (FLAC__uint32)_mm_cvtsi128_si32(mm_sum);
 			}
 		}
 		else { /* have to pessimistically use 64 bits for accumulator */
